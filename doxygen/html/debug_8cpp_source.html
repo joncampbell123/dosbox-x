@@ -207,7 +207,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00111"></a>00111 
 <a name="l00112"></a>00112 <span class="keyword">class </span>DEBUG;
 <a name="l00113"></a>00113 
-<a name="l00114"></a>00114 DEBUG*  pDebugcom       = 0;
+<a name="l00114"></a>00114 <span class="comment">//DEBUG*        pDebugcom       = 0;</span>
 <a name="l00115"></a>00115 <span class="keywordtype">bool</span>    exitLoop        = <span class="keyword">false</span>;
 <a name="l00116"></a>00116 
 <a name="l00117"></a>00117 
@@ -2877,536 +2877,551 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02781"></a>02781 };
 <a name="l02782"></a>02782 <span class="preprocessor">#endif</span>
 <a name="l02783"></a>02783 <span class="preprocessor"></span>
-<a name="l02784"></a>02784 <span class="comment">// DEBUG.COM stuff</span>
-<a name="l02785"></a>02785 
-<a name="l02786"></a>02786 <span class="keyword">class </span>DEBUG : <span class="keyword">public</span> <a class="code" href="classProgram.html">Program</a> {
-<a name="l02787"></a>02787 <span class="keyword">public</span>:
-<a name="l02788"></a>02788         DEBUG()         { pDebugcom     = <span class="keyword">this</span>; active = <span class="keyword">false</span>; };
-<a name="l02789"></a>02789         ~DEBUG()        { pDebugcom     = 0; };
-<a name="l02790"></a>02790 
-<a name="l02791"></a>02791         <span class="keywordtype">bool</span> IsActive() { <span class="keywordflow">return</span> active; };
-<a name="l02792"></a>02792 
-<a name="l02793"></a>02793         <span class="keywordtype">void</span> Run(<span class="keywordtype">void</span>)
-<a name="l02794"></a>02794         {
-<a name="l02795"></a>02795                 <span class="keywordflow">if</span>(cmd-&gt;FindExist(<span class="stringliteral">&quot;/NOMOUSE&quot;</span>,<span class="keyword">false</span>)) {
-<a name="l02796"></a>02796                         real_writed(0,0x33&lt;&lt;2,0);
-<a name="l02797"></a>02797                         <span class="keywordflow">return</span>;
-<a name="l02798"></a>02798                 }
-<a name="l02799"></a>02799            
-<a name="l02800"></a>02800                 <span class="keywordtype">char</span> filename[128];
-<a name="l02801"></a>02801                 <span class="keywordtype">char</span> args[256+1];
-<a name="l02802"></a>02802         
-<a name="l02803"></a>02803                 cmd-&gt;FindCommand(1,temp_line);
-<a name="l02804"></a>02804                 safe_strncpy(filename,temp_line.c_str(),128);
-<a name="l02805"></a>02805                 <span class="comment">// Read commandline</span>
-<a name="l02806"></a>02806                 Bit16u i        =2;
-<a name="l02807"></a>02807                 args[0]         = 0;
-<a name="l02808"></a>02808                 <span class="keywordflow">for</span> (;cmd-&gt;FindCommand(i++,temp_line)==<span class="keyword">true</span>;) {
-<a name="l02809"></a>02809                         strncat(args,temp_line.c_str(),256);
-<a name="l02810"></a>02810                         strncat(args,<span class="stringliteral">&quot; &quot;</span>,256);
-<a name="l02811"></a>02811                 }
-<a name="l02812"></a>02812                 <span class="comment">// Start new shell and execute prog             </span>
-<a name="l02813"></a>02813                 active = <span class="keyword">true</span>;
-<a name="l02814"></a>02814                 <span class="comment">// Save cpu state....</span>
-<a name="l02815"></a>02815                 Bit16u oldcs    = SegValue(cs);
-<a name="l02816"></a>02816                 Bit32u oldeip   = reg_eip;      
-<a name="l02817"></a>02817                 Bit16u oldss    = SegValue(ss);
-<a name="l02818"></a>02818                 Bit32u oldesp   = reg_esp;
-<a name="l02819"></a>02819 
-<a name="l02820"></a>02820                 <span class="comment">// Workaround : Allocate Stack Space</span>
-<a name="l02821"></a>02821                 Bit16u segment;
-<a name="l02822"></a>02822                 Bit16u size = 0x200 / 0x10;
-<a name="l02823"></a>02823                 <span class="keywordflow">if</span> (DOS_AllocateMemory(&amp;segment,&amp;size)) {
-<a name="l02824"></a>02824                         SegSet16(ss,segment);
-<a name="l02825"></a>02825                         reg_sp = 0x200;
-<a name="l02826"></a>02826                         <span class="comment">// Start shell</span>
-<a name="l02827"></a>02827                         <a class="code" href="classDOS__Shell.html">DOS_Shell</a> shell;
-<a name="l02828"></a>02828                         shell.Execute(filename,args);
-<a name="l02829"></a>02829                         DOS_FreeMemory(segment);
-<a name="l02830"></a>02830                 }
-<a name="l02831"></a>02831                 <span class="comment">// set old reg values</span>
-<a name="l02832"></a>02832                 SegSet16(ss,oldss);
-<a name="l02833"></a>02833                 reg_esp = oldesp;
-<a name="l02834"></a>02834                 SegSet16(cs,oldcs);
-<a name="l02835"></a>02835                 reg_eip = oldeip;
-<a name="l02836"></a>02836         };
-<a name="l02837"></a>02837 
-<a name="l02838"></a>02838 <span class="keyword">private</span>:
-<a name="l02839"></a>02839         <span class="keywordtype">bool</span>    active;
-<a name="l02840"></a>02840 };
-<a name="l02841"></a>02841 
-<a name="l02842"></a>02842 <span class="keywordtype">void</span> DEBUG_CheckExecuteBreakpoint(Bit16u seg, Bit32u off)
-<a name="l02843"></a>02843 {
-<a name="l02844"></a>02844         <span class="keywordflow">if</span> (pDebugcom &amp;&amp; pDebugcom-&gt;IsActive()) {
-<a name="l02845"></a>02845                 CBreakpoint::AddBreakpoint(seg,off,<span class="keyword">true</span>);               
-<a name="l02846"></a>02846                 CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,<span class="keyword">true</span>);     
-<a name="l02847"></a>02847                 pDebugcom = 0;
-<a name="l02848"></a>02848         };
-<a name="l02849"></a>02849 };
-<a name="l02850"></a>02850 
-<a name="l02851"></a>02851 Bitu DEBUG_EnableDebugger(<span class="keywordtype">void</span>)
-<a name="l02852"></a>02852 {
-<a name="l02853"></a>02853         exitLoop = <span class="keyword">true</span>;
-<a name="l02854"></a>02854         DEBUG_Enable(<span class="keyword">true</span>);
-<a name="l02855"></a>02855         CPU_Cycles=CPU_CycleLeft=0;
-<a name="l02856"></a>02856         <span class="keywordflow">return</span> 0;
-<a name="l02857"></a>02857 };
-<a name="l02858"></a>02858 
-<a name="l02859"></a>02859 <span class="keyword">static</span> <span class="keywordtype">void</span> DEBUG_ProgramStart(<a class="code" href="classProgram.html">Program</a> * * make) {
-<a name="l02860"></a>02860         *make=<span class="keyword">new</span> DEBUG;
-<a name="l02861"></a>02861 }
-<a name="l02862"></a>02862 
-<a name="l02863"></a>02863 <span class="comment">// INIT </span>
-<a name="l02864"></a>02864 
-<a name="l02865"></a>02865 <span class="keywordtype">void</span> DBGBlock::set_data_view(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> view) {
-<a name="l02866"></a>02866     <span class="keywordtype">void</span> DrawBars(<span class="keywordtype">void</span>);
-<a name="l02867"></a>02867 
-<a name="l02868"></a>02868     <span class="keywordflow">if</span> (data_view != view) {
-<a name="l02869"></a>02869         data_view  = view;
-<a name="l02870"></a>02870 
-<a name="l02871"></a>02871         <span class="keywordflow">switch</span> (view) {
-<a name="l02872"></a>02872             <span class="keywordflow">case</span> DATV_SEGMENTED:
-<a name="l02873"></a>02873                 win_title[DBGBlock::WINI_DATA] = <span class="stringliteral">&quot;Data view (segmented)&quot;</span>;
-<a name="l02874"></a>02874                 <span class="keywordflow">break</span>;
-<a name="l02875"></a>02875             <span class="keywordflow">case</span> DATV_VIRTUAL:
-<a name="l02876"></a>02876                 win_title[DBGBlock::WINI_DATA] = <span class="stringliteral">&quot;Data view (virtual)&quot;</span>;
-<a name="l02877"></a>02877                 <span class="keywordflow">break</span>;
-<a name="l02878"></a>02878             <span class="keywordflow">case</span> DATV_PHYSICAL:
-<a name="l02879"></a>02879                 win_title[DBGBlock::WINI_DATA] = <span class="stringliteral">&quot;Data view (physical)&quot;</span>;
-<a name="l02880"></a>02880                 <span class="keywordflow">break</span>;
-<a name="l02881"></a>02881         }
+<a name="l02784"></a>02784 <span class="preprocessor">#if 0</span>
+<a name="l02785"></a>02785 <span class="preprocessor"></span><span class="comment">// DEBUG.COM stuff</span>
+<a name="l02786"></a>02786 
+<a name="l02787"></a>02787 <span class="keyword">class </span>DEBUG : <span class="keyword">public</span> <a class="code" href="classProgram.html">Program</a> {
+<a name="l02788"></a>02788 <span class="keyword">public</span>:
+<a name="l02789"></a>02789         DEBUG()         { pDebugcom     = <span class="keyword">this</span>; active = <span class="keyword">false</span>; };
+<a name="l02790"></a>02790         ~DEBUG()        { pDebugcom     = 0; };
+<a name="l02791"></a>02791 
+<a name="l02792"></a>02792         <span class="keywordtype">bool</span> IsActive() { <span class="keywordflow">return</span> active; };
+<a name="l02793"></a>02793 
+<a name="l02794"></a>02794         <span class="keywordtype">void</span> Run(<span class="keywordtype">void</span>)
+<a name="l02795"></a>02795         {
+<a name="l02796"></a>02796                 <span class="keywordflow">if</span>(cmd-&gt;FindExist(<span class="stringliteral">&quot;/NOMOUSE&quot;</span>,<span class="keyword">false</span>)) {
+<a name="l02797"></a>02797                         real_writed(0,0x33&lt;&lt;2,0);
+<a name="l02798"></a>02798                         <span class="keywordflow">return</span>;
+<a name="l02799"></a>02799                 }
+<a name="l02800"></a>02800            
+<a name="l02801"></a>02801                 <span class="keywordtype">char</span> filename[128];
+<a name="l02802"></a>02802                 <span class="keywordtype">char</span> args[256+1];
+<a name="l02803"></a>02803         
+<a name="l02804"></a>02804                 cmd-&gt;FindCommand(1,temp_line);
+<a name="l02805"></a>02805                 safe_strncpy(filename,temp_line.c_str(),128);
+<a name="l02806"></a>02806                 <span class="comment">// Read commandline</span>
+<a name="l02807"></a>02807                 Bit16u i        =2;
+<a name="l02808"></a>02808                 args[0]         = 0;
+<a name="l02809"></a>02809                 <span class="keywordflow">for</span> (;cmd-&gt;FindCommand(i++,temp_line)==<span class="keyword">true</span>;) {
+<a name="l02810"></a>02810                         strncat(args,temp_line.c_str(),256);
+<a name="l02811"></a>02811                         strncat(args,<span class="stringliteral">&quot; &quot;</span>,256);
+<a name="l02812"></a>02812                 }
+<a name="l02813"></a>02813                 <span class="comment">// Start new shell and execute prog             </span>
+<a name="l02814"></a>02814                 active = <span class="keyword">true</span>;
+<a name="l02815"></a>02815                 <span class="comment">// Save cpu state....</span>
+<a name="l02816"></a>02816                 Bit16u oldcs    = SegValue(cs);
+<a name="l02817"></a>02817                 Bit32u oldeip   = reg_eip;      
+<a name="l02818"></a>02818                 Bit16u oldss    = SegValue(ss);
+<a name="l02819"></a>02819                 Bit32u oldesp   = reg_esp;
+<a name="l02820"></a>02820 
+<a name="l02821"></a>02821                 <span class="comment">// Workaround : Allocate Stack Space</span>
+<a name="l02822"></a>02822                 Bit16u segment;
+<a name="l02823"></a>02823                 Bit16u size = 0x200 / 0x10;
+<a name="l02824"></a>02824                 <span class="keywordflow">if</span> (DOS_AllocateMemory(&amp;segment,&amp;size)) {
+<a name="l02825"></a>02825                         SegSet16(ss,segment);
+<a name="l02826"></a>02826                         reg_sp = 0x200;
+<a name="l02827"></a>02827                         <span class="comment">// Start shell</span>
+<a name="l02828"></a>02828                         <a class="code" href="classDOS__Shell.html">DOS_Shell</a> shell;
+<a name="l02829"></a>02829                         shell.Execute(filename,args);
+<a name="l02830"></a>02830                         DOS_FreeMemory(segment);
+<a name="l02831"></a>02831                 }
+<a name="l02832"></a>02832                 <span class="comment">// set old reg values</span>
+<a name="l02833"></a>02833                 SegSet16(ss,oldss);
+<a name="l02834"></a>02834                 reg_esp = oldesp;
+<a name="l02835"></a>02835                 SegSet16(cs,oldcs);
+<a name="l02836"></a>02836                 reg_eip = oldeip;
+<a name="l02837"></a>02837         };
+<a name="l02838"></a>02838 
+<a name="l02839"></a>02839 <span class="keyword">private</span>:
+<a name="l02840"></a>02840         <span class="keywordtype">bool</span>    active;
+<a name="l02841"></a>02841 };
+<a name="l02842"></a>02842 <span class="preprocessor">#endif</span>
+<a name="l02843"></a>02843 <span class="preprocessor"></span>
+<a name="l02844"></a>02844 <span class="preprocessor">#if C_DEBUG</span>
+<a name="l02845"></a>02845 <span class="preprocessor"></span><span class="keyword">extern</span> <span class="keywordtype">bool</span> debugger_break_on_exec;
+<a name="l02846"></a>02846 <span class="preprocessor">#endif</span>
+<a name="l02847"></a>02847 <span class="preprocessor"></span>
+<a name="l02848"></a>02848 <span class="keywordtype">void</span> DEBUG_CheckExecuteBreakpoint(Bit16u seg, Bit32u off)
+<a name="l02849"></a>02849 {
+<a name="l02850"></a>02850 <span class="preprocessor">#if C_DEBUG</span>
+<a name="l02851"></a>02851 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (debugger_break_on_exec) {
+<a name="l02852"></a>02852                 CBreakpoint::AddBreakpoint(seg,off,<span class="keyword">true</span>);               
+<a name="l02853"></a>02853                 CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,<span class="keyword">true</span>);     
+<a name="l02854"></a>02854         debugger_break_on_exec = <span class="keyword">false</span>;
+<a name="l02855"></a>02855     }
+<a name="l02856"></a>02856 <span class="preprocessor">#endif</span>
+<a name="l02857"></a>02857 <span class="preprocessor"></span><span class="preprocessor">#if 0</span>
+<a name="l02858"></a>02858 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (pDebugcom &amp;&amp; pDebugcom-&gt;IsActive()) {
+<a name="l02859"></a>02859                 CBreakpoint::AddBreakpoint(seg,off,<span class="keyword">true</span>);               
+<a name="l02860"></a>02860                 CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,<span class="keyword">true</span>);     
+<a name="l02861"></a>02861                 pDebugcom = 0;
+<a name="l02862"></a>02862         };
+<a name="l02863"></a>02863 <span class="preprocessor">#endif</span>
+<a name="l02864"></a>02864 <span class="preprocessor"></span>};
+<a name="l02865"></a>02865 
+<a name="l02866"></a>02866 Bitu DEBUG_EnableDebugger(<span class="keywordtype">void</span>)
+<a name="l02867"></a>02867 {
+<a name="l02868"></a>02868         exitLoop = <span class="keyword">true</span>;
+<a name="l02869"></a>02869         DEBUG_Enable(<span class="keyword">true</span>);
+<a name="l02870"></a>02870         CPU_Cycles=CPU_CycleLeft=0;
+<a name="l02871"></a>02871         <span class="keywordflow">return</span> 0;
+<a name="l02872"></a>02872 };
+<a name="l02873"></a>02873 
+<a name="l02874"></a>02874 <span class="keyword">static</span> <span class="keywordtype">void</span> DEBUG_ProgramStart(<a class="code" href="classProgram.html">Program</a> * * make) {
+<a name="l02875"></a>02875 <span class="comment">//      *make=new DEBUG;</span>
+<a name="l02876"></a>02876 }
+<a name="l02877"></a>02877 
+<a name="l02878"></a>02878 <span class="comment">// INIT </span>
+<a name="l02879"></a>02879 
+<a name="l02880"></a>02880 <span class="keywordtype">void</span> DBGBlock::set_data_view(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> view) {
+<a name="l02881"></a>02881     <span class="keywordtype">void</span> DrawBars(<span class="keywordtype">void</span>);
 <a name="l02882"></a>02882 
-<a name="l02883"></a>02883         DrawBars();
-<a name="l02884"></a>02884     }
-<a name="l02885"></a>02885 }
-<a name="l02886"></a>02886 
-<a name="l02887"></a>02887 <span class="keywordtype">void</span> DEBUG_SetupConsole(<span class="keywordtype">void</span>) {
-<a name="l02888"></a>02888         <span class="keywordflow">if</span> (dbg.win_main == NULL) {
-<a name="l02889"></a>02889                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;DEBUG_SetupConsole initializing GUI&quot;</span>);
-<a name="l02890"></a>02890 
-<a name="l02891"></a>02891         dbg.set_data_view(DBGBlock::DATV_SEGMENTED);
-<a name="l02892"></a>02892 
-<a name="l02893"></a>02893 <span class="preprocessor">#ifdef WIN32</span>
-<a name="l02894"></a>02894 <span class="preprocessor"></span>                WIN32_Console();
-<a name="l02895"></a>02895 <span class="preprocessor">#else</span>
-<a name="l02896"></a>02896 <span class="preprocessor"></span>                tcgetattr(0,&amp;consolesettings);
-<a name="l02897"></a>02897 <span class="preprocessor">#endif  </span>
-<a name="l02898"></a>02898 <span class="preprocessor"></span>                <span class="comment">//      dbg.active_win=3;</span>
-<a name="l02899"></a>02899                 <span class="comment">/* Start the Debug Gui */</span>
-<a name="l02900"></a>02900                 DBGUI_StartUp();
-<a name="l02901"></a>02901         }
-<a name="l02902"></a>02902 }
-<a name="l02903"></a>02903 
-<a name="l02904"></a>02904 <span class="keywordtype">void</span> DEBUG_ShutDown(<a class="code" href="classSection.html">Section</a> * <span class="comment">/*sec*/</span>) {
-<a name="l02905"></a>02905         CBreakpoint::DeleteAll();
-<a name="l02906"></a>02906         CDebugVar::DeleteAll();
-<a name="l02907"></a>02907         <span class="keywordflow">if</span> (dbg.win_main != NULL) {
-<a name="l02908"></a>02908                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;DEBUG_Shutdown freeing ncurses state&quot;</span>);
-<a name="l02909"></a>02909                 curs_set(old_cursor_state);
-<a name="l02910"></a>02910 
-<a name="l02911"></a>02911         <span class="keywordtype">void</span> DEBUG_GUI_DestroySubWindows(<span class="keywordtype">void</span>);
-<a name="l02912"></a>02912         DEBUG_GUI_DestroySubWindows();
-<a name="l02913"></a>02913 
-<a name="l02914"></a>02914 <span class="comment">//      if (dbg.win_main) delwin(dbg.win_main);</span>
-<a name="l02915"></a>02915                 dbg.win_main = NULL;
-<a name="l02916"></a>02916 
-<a name="l02917"></a>02917         endwin();
+<a name="l02883"></a>02883     <span class="keywordflow">if</span> (data_view != view) {
+<a name="l02884"></a>02884         data_view  = view;
+<a name="l02885"></a>02885 
+<a name="l02886"></a>02886         <span class="keywordflow">switch</span> (view) {
+<a name="l02887"></a>02887             <span class="keywordflow">case</span> DATV_SEGMENTED:
+<a name="l02888"></a>02888                 win_title[DBGBlock::WINI_DATA] = <span class="stringliteral">&quot;Data view (segmented)&quot;</span>;
+<a name="l02889"></a>02889                 <span class="keywordflow">break</span>;
+<a name="l02890"></a>02890             <span class="keywordflow">case</span> DATV_VIRTUAL:
+<a name="l02891"></a>02891                 win_title[DBGBlock::WINI_DATA] = <span class="stringliteral">&quot;Data view (virtual)&quot;</span>;
+<a name="l02892"></a>02892                 <span class="keywordflow">break</span>;
+<a name="l02893"></a>02893             <span class="keywordflow">case</span> DATV_PHYSICAL:
+<a name="l02894"></a>02894                 win_title[DBGBlock::WINI_DATA] = <span class="stringliteral">&quot;Data view (physical)&quot;</span>;
+<a name="l02895"></a>02895                 <span class="keywordflow">break</span>;
+<a name="l02896"></a>02896         }
+<a name="l02897"></a>02897 
+<a name="l02898"></a>02898         DrawBars();
+<a name="l02899"></a>02899     }
+<a name="l02900"></a>02900 }
+<a name="l02901"></a>02901 
+<a name="l02902"></a>02902 <span class="keywordtype">void</span> DEBUG_SetupConsole(<span class="keywordtype">void</span>) {
+<a name="l02903"></a>02903         <span class="keywordflow">if</span> (dbg.win_main == NULL) {
+<a name="l02904"></a>02904                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;DEBUG_SetupConsole initializing GUI&quot;</span>);
+<a name="l02905"></a>02905 
+<a name="l02906"></a>02906         dbg.set_data_view(DBGBlock::DATV_SEGMENTED);
+<a name="l02907"></a>02907 
+<a name="l02908"></a>02908 <span class="preprocessor">#ifdef WIN32</span>
+<a name="l02909"></a>02909 <span class="preprocessor"></span>                WIN32_Console();
+<a name="l02910"></a>02910 <span class="preprocessor">#else</span>
+<a name="l02911"></a>02911 <span class="preprocessor"></span>                tcgetattr(0,&amp;consolesettings);
+<a name="l02912"></a>02912 <span class="preprocessor">#endif  </span>
+<a name="l02913"></a>02913 <span class="preprocessor"></span>                <span class="comment">//      dbg.active_win=3;</span>
+<a name="l02914"></a>02914                 <span class="comment">/* Start the Debug Gui */</span>
+<a name="l02915"></a>02915                 DBGUI_StartUp();
+<a name="l02916"></a>02916         }
+<a name="l02917"></a>02917 }
 <a name="l02918"></a>02918 
-<a name="l02919"></a>02919 <span class="preprocessor">#ifndef WIN32</span>
-<a name="l02920"></a>02920 <span class="preprocessor"></span>                tcsetattr(0,TCSANOW,&amp;consolesettings);
-<a name="l02921"></a>02921 <span class="preprocessor">#endif</span>
-<a name="l02922"></a>02922 <span class="preprocessor"></span>        }
-<a name="l02923"></a>02923 }
-<a name="l02924"></a>02924 
-<a name="l02925"></a>02925 Bitu debugCallback;
-<a name="l02926"></a>02926 
-<a name="l02927"></a>02927 <span class="keywordtype">void</span> DEBUG_DOSStartUp(<a class="code" href="classSection.html">Section</a> *x) {
-<a name="l02928"></a>02928         <span class="comment">/* setup debug.com */</span>
-<a name="l02929"></a>02929         PROGRAMS_MakeFile(<span class="stringliteral">&quot;DEBUGBOX.COM&quot;</span>,DEBUG_ProgramStart);
-<a name="l02930"></a>02930 }
+<a name="l02919"></a>02919 <span class="keywordtype">void</span> DEBUG_ShutDown(<a class="code" href="classSection.html">Section</a> * <span class="comment">/*sec*/</span>) {
+<a name="l02920"></a>02920         CBreakpoint::DeleteAll();
+<a name="l02921"></a>02921         CDebugVar::DeleteAll();
+<a name="l02922"></a>02922         <span class="keywordflow">if</span> (dbg.win_main != NULL) {
+<a name="l02923"></a>02923                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;DEBUG_Shutdown freeing ncurses state&quot;</span>);
+<a name="l02924"></a>02924                 curs_set(old_cursor_state);
+<a name="l02925"></a>02925 
+<a name="l02926"></a>02926         <span class="keywordtype">void</span> DEBUG_GUI_DestroySubWindows(<span class="keywordtype">void</span>);
+<a name="l02927"></a>02927         DEBUG_GUI_DestroySubWindows();
+<a name="l02928"></a>02928 
+<a name="l02929"></a>02929 <span class="comment">//      if (dbg.win_main) delwin(dbg.win_main);</span>
+<a name="l02930"></a>02930                 dbg.win_main = NULL;
 <a name="l02931"></a>02931 
-<a name="l02932"></a>02932 <span class="keywordtype">void</span> DEBUG_Init() {
-<a name="l02933"></a>02933         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing debug system&quot;</span>);
-<a name="l02934"></a>02934 
-<a name="l02935"></a>02935         <span class="comment">/* Add some keyhandlers */</span>
-<a name="l02936"></a>02936 <span class="preprocessor">        #if defined(MACOSX)</span>
-<a name="l02937"></a>02937 <span class="preprocessor"></span>                <span class="comment">// OSX NOTE: ALT-F12 to launch debugger. pause maps to F16 on macOS,</span>
-<a name="l02938"></a>02938                 <span class="comment">// which is not easy to input on a modern mac laptop</span>
-<a name="l02939"></a>02939                 MAPPER_AddHandler(DEBUG_Enable,MK_f12,MMOD2,<span class="stringliteral">&quot;debugger&quot;</span>,<span class="stringliteral">&quot;Debugger&quot;</span>);
-<a name="l02940"></a>02940 <span class="preprocessor">        #else</span>
-<a name="l02941"></a>02941 <span class="preprocessor"></span>                MAPPER_AddHandler(DEBUG_Enable,MK_pause,MMOD2,<span class="stringliteral">&quot;debugger&quot;</span>,<span class="stringliteral">&quot;Debugger&quot;</span>);
-<a name="l02942"></a>02942 <span class="preprocessor">        #endif</span>
-<a name="l02943"></a>02943 <span class="preprocessor"></span>        <span class="comment">/* Reset code overview and input line */</span>
-<a name="l02944"></a>02944         memset((<span class="keywordtype">void</span>*)&amp;codeViewData,0,<span class="keyword">sizeof</span>(codeViewData));
-<a name="l02945"></a>02945         <span class="comment">/* Setup callback */</span>
-<a name="l02946"></a>02946         debugCallback=CALLBACK_Allocate();
-<a name="l02947"></a>02947         CALLBACK_Setup(debugCallback,DEBUG_EnableDebugger,CB_RETF,<span class="stringliteral">&quot;debugger&quot;</span>);
-<a name="l02948"></a>02948 
-<a name="l02949"></a>02949     AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(DEBUG_DOSStartUp));
-<a name="l02950"></a>02950 
-<a name="l02951"></a>02951         <span class="comment">/* shutdown function */</span>
-<a name="l02952"></a>02952         AddExitFunction(AddExitFunctionFuncPair(DEBUG_ShutDown));
-<a name="l02953"></a>02953 }
-<a name="l02954"></a>02954 
-<a name="l02955"></a>02955 <span class="comment">// DEBUGGING VAR STUFF</span>
-<a name="l02956"></a>02956 
-<a name="l02957"></a>02957 <span class="keywordtype">void</span> CDebugVar::InsertVariable(<span class="keywordtype">char</span>* name, PhysPt adr)
-<a name="l02958"></a>02958 {
-<a name="l02959"></a>02959         varList.push_back(<span class="keyword">new</span> CDebugVar(name,adr));
-<a name="l02960"></a>02960 };
-<a name="l02961"></a>02961 
-<a name="l02962"></a>02962 <span class="keywordtype">void</span> CDebugVar::DeleteAll(<span class="keywordtype">void</span>) 
-<a name="l02963"></a>02963 {
-<a name="l02964"></a>02964         std::list&lt;CDebugVar*&gt;::iterator i;
-<a name="l02965"></a>02965         CDebugVar* bp;
-<a name="l02966"></a>02966         <span class="keywordflow">for</span>(i=varList.begin(); i != varList.end(); i++) {
-<a name="l02967"></a>02967                 bp = <span class="keyword">static_cast&lt;</span>CDebugVar*<span class="keyword">&gt;</span>(*i);
-<a name="l02968"></a>02968                 <span class="keyword">delete</span> bp;
-<a name="l02969"></a>02969         };
-<a name="l02970"></a>02970         (varList.clear)();
-<a name="l02971"></a>02971 };
-<a name="l02972"></a>02972 
-<a name="l02973"></a>02973 CDebugVar* CDebugVar::FindVar(PhysPt pt)
-<a name="l02974"></a>02974 {
-<a name="l02975"></a>02975         std::list&lt;CDebugVar*&gt;::iterator i;
-<a name="l02976"></a>02976         CDebugVar* bp;
-<a name="l02977"></a>02977         <span class="keywordflow">for</span>(i=varList.begin(); i != varList.end(); i++) {
-<a name="l02978"></a>02978                 bp = <span class="keyword">static_cast&lt;</span>CDebugVar*<span class="keyword">&gt;</span>(*i);
-<a name="l02979"></a>02979                 <span class="keywordflow">if</span> (bp-&gt;GetAdr()==pt) <span class="keywordflow">return</span> bp;
-<a name="l02980"></a>02980         };
-<a name="l02981"></a>02981         <span class="keywordflow">return</span> 0;
-<a name="l02982"></a>02982 };
-<a name="l02983"></a>02983 
-<a name="l02984"></a>02984 <span class="keywordtype">bool</span> CDebugVar::SaveVars(<span class="keywordtype">char</span>* name) {
-<a name="l02985"></a>02985         <span class="keywordflow">if</span> (varList.size()&gt;65535) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l02986"></a>02986 
-<a name="l02987"></a>02987         FILE* f = fopen(name,<span class="stringliteral">&quot;wb+&quot;</span>);
-<a name="l02988"></a>02988         <span class="keywordflow">if</span> (!f) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l02989"></a>02989 
-<a name="l02990"></a>02990         <span class="comment">// write number of vars</span>
-<a name="l02991"></a>02991         Bit16u num = (Bit16u)varList.size();
-<a name="l02992"></a>02992         fwrite(&amp;num,1,<span class="keyword">sizeof</span>(num),f);
-<a name="l02993"></a>02993 
-<a name="l02994"></a>02994         std::list&lt;CDebugVar*&gt;::iterator i;
-<a name="l02995"></a>02995         CDebugVar* bp;
-<a name="l02996"></a>02996         <span class="keywordflow">for</span>(i=varList.begin(); i != varList.end(); i++) {
-<a name="l02997"></a>02997                 bp = <span class="keyword">static_cast&lt;</span>CDebugVar*<span class="keyword">&gt;</span>(*i);
-<a name="l02998"></a>02998                 <span class="comment">// name</span>
-<a name="l02999"></a>02999                 fwrite(bp-&gt;GetName(),1,16,f);
-<a name="l03000"></a>03000                 <span class="comment">// adr</span>
-<a name="l03001"></a>03001                 PhysPt adr = bp-&gt;GetAdr();
-<a name="l03002"></a>03002                 fwrite(&amp;adr,1,<span class="keyword">sizeof</span>(adr),f);
-<a name="l03003"></a>03003         };
-<a name="l03004"></a>03004         fclose(f);
-<a name="l03005"></a>03005         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l03006"></a>03006 };
-<a name="l03007"></a>03007 
-<a name="l03008"></a>03008 <span class="keywordtype">bool</span> CDebugVar::LoadVars(<span class="keywordtype">char</span>* name)
-<a name="l03009"></a>03009 {
-<a name="l03010"></a>03010         FILE* f = fopen(name,<span class="stringliteral">&quot;rb&quot;</span>);
-<a name="l03011"></a>03011         <span class="keywordflow">if</span> (!f) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l03012"></a>03012 
-<a name="l03013"></a>03013         <span class="comment">// read number of vars</span>
-<a name="l03014"></a>03014         Bit16u num;
-<a name="l03015"></a>03015         <span class="keywordflow">if</span> (fread(&amp;num,<span class="keyword">sizeof</span>(num),1,f) != 1) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l03016"></a>03016 
-<a name="l03017"></a>03017         <span class="keywordflow">for</span> (Bit16u i=0; i&lt;num; i++) {
-<a name="l03018"></a>03018                 <span class="keywordtype">char</span> name[16];
-<a name="l03019"></a>03019                 <span class="comment">// name</span>
-<a name="l03020"></a>03020                 <span class="keywordflow">if</span> (fread(name,16,1,f) != 1) <span class="keywordflow">break</span>;
-<a name="l03021"></a>03021                 <span class="comment">// adr</span>
-<a name="l03022"></a>03022                 PhysPt adr;
-<a name="l03023"></a>03023                 <span class="keywordflow">if</span> (fread(&amp;adr,<span class="keyword">sizeof</span>(adr),1,f) != 1) <span class="keywordflow">break</span>;
-<a name="l03024"></a>03024                 <span class="comment">// insert</span>
-<a name="l03025"></a>03025                 InsertVariable(name,adr);
-<a name="l03026"></a>03026         };
-<a name="l03027"></a>03027         fclose(f);
-<a name="l03028"></a>03028         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l03029"></a>03029 };
-<a name="l03030"></a>03030 
-<a name="l03031"></a>03031 <span class="keyword">static</span> <span class="keywordtype">void</span> SaveMemory(Bit16u seg, Bit32u ofs1, Bit32u num) {
-<a name="l03032"></a>03032         FILE* f = fopen(<span class="stringliteral">&quot;MEMDUMP.TXT&quot;</span>,<span class="stringliteral">&quot;wt&quot;</span>);
-<a name="l03033"></a>03033         <span class="keywordflow">if</span> (!f) {
-<a name="l03034"></a>03034                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Memory dump failed.\n&quot;</span>);
-<a name="l03035"></a>03035                 <span class="keywordflow">return</span>;
-<a name="l03036"></a>03036         }
-<a name="l03037"></a>03037         
-<a name="l03038"></a>03038         <span class="keywordtype">char</span> buffer[128];
-<a name="l03039"></a>03039         <span class="keywordtype">char</span> temp[16];
-<a name="l03040"></a>03040 
-<a name="l03041"></a>03041         <span class="keywordflow">while</span> (num&gt;16) {
-<a name="l03042"></a>03042                 sprintf(buffer,<span class="stringliteral">&quot;%04X:%04X   &quot;</span>,seg,ofs1);
-<a name="l03043"></a>03043                 <span class="keywordflow">for</span> (Bit16u x=0; x&lt;16; x++) {
-<a name="l03044"></a>03044                         Bit8u value;
-<a name="l03045"></a>03045                         <span class="keywordflow">if</span> (mem_readb_checked(GetAddress(seg,ofs1+x),&amp;value)) sprintf(temp,<span class="stringliteral">&quot;%s&quot;</span>,<span class="stringliteral">&quot;?? &quot;</span>);
-<a name="l03046"></a>03046                         <span class="keywordflow">else</span> sprintf(temp,<span class="stringliteral">&quot;%02X &quot;</span>,value);
-<a name="l03047"></a>03047                         strcat(buffer,temp);
-<a name="l03048"></a>03048                 }
-<a name="l03049"></a>03049                 ofs1+=16;
-<a name="l03050"></a>03050                 num-=16;
-<a name="l03051"></a>03051 
-<a name="l03052"></a>03052                 fprintf(f,<span class="stringliteral">&quot;%s\n&quot;</span>,buffer);
-<a name="l03053"></a>03053         }
-<a name="l03054"></a>03054         <span class="keywordflow">if</span> (num&gt;0) {
-<a name="l03055"></a>03055                 sprintf(buffer,<span class="stringliteral">&quot;%04X:%04X   &quot;</span>,seg,ofs1);
-<a name="l03056"></a>03056                 <span class="keywordflow">for</span> (Bit16u x=0; x&lt;num; x++) {
-<a name="l03057"></a>03057                         Bit8u value;
-<a name="l03058"></a>03058                         <span class="keywordflow">if</span> (mem_readb_checked(GetAddress(seg,ofs1+x),&amp;value)) sprintf(temp,<span class="stringliteral">&quot;%s&quot;</span>,<span class="stringliteral">&quot;?? &quot;</span>);
-<a name="l03059"></a>03059                         <span class="keywordflow">else</span> sprintf(temp,<span class="stringliteral">&quot;%02X &quot;</span>,value);
-<a name="l03060"></a>03060                         strcat(buffer,temp);
-<a name="l03061"></a>03061                 }
-<a name="l03062"></a>03062                 fprintf(f,<span class="stringliteral">&quot;%s\n&quot;</span>,buffer);
-<a name="l03063"></a>03063         }
-<a name="l03064"></a>03064         fclose(f);
-<a name="l03065"></a>03065         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Memory dump success.\n&quot;</span>);
-<a name="l03066"></a>03066 }
-<a name="l03067"></a>03067 
-<a name="l03068"></a>03068 <span class="keyword">static</span> <span class="keywordtype">void</span> SaveMemoryBin(Bit16u seg, Bit32u ofs1, Bit32u num) {
-<a name="l03069"></a>03069         FILE* f = fopen(<span class="stringliteral">&quot;MEMDUMP.BIN&quot;</span>,<span class="stringliteral">&quot;wb&quot;</span>);
-<a name="l03070"></a>03070         <span class="keywordflow">if</span> (!f) {
-<a name="l03071"></a>03071                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Memory binary dump failed.\n&quot;</span>);
-<a name="l03072"></a>03072                 <span class="keywordflow">return</span>;
-<a name="l03073"></a>03073         }
-<a name="l03074"></a>03074 
-<a name="l03075"></a>03075         <span class="keywordflow">for</span> (Bitu x = 0; x &lt; num;x++) {
-<a name="l03076"></a>03076                 Bit8u val;
-<a name="l03077"></a>03077                 <span class="keywordflow">if</span> (mem_readb_checked(GetAddress(seg,ofs1+x),&amp;val)) val=0;
-<a name="l03078"></a>03078                 fwrite(&amp;val,1,1,f);
-<a name="l03079"></a>03079         }
-<a name="l03080"></a>03080 
-<a name="l03081"></a>03081         fclose(f);
-<a name="l03082"></a>03082         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Memory dump binary success.\n&quot;</span>);
-<a name="l03083"></a>03083 }
-<a name="l03084"></a>03084 
-<a name="l03085"></a>03085 <span class="keyword">static</span> <span class="keywordtype">void</span> OutputVecTable(<span class="keywordtype">char</span>* filename) {
-<a name="l03086"></a>03086         FILE* f = fopen(filename, <span class="stringliteral">&quot;wt&quot;</span>);
-<a name="l03087"></a>03087         <span class="keywordflow">if</span> (!f)
-<a name="l03088"></a>03088         {
-<a name="l03089"></a>03089                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Output of interrupt vector table failed.\n&quot;</span>);
-<a name="l03090"></a>03090                 <span class="keywordflow">return</span>;
-<a name="l03091"></a>03091         }
-<a name="l03092"></a>03092 
-<a name="l03093"></a>03093         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i=0; i&lt;256; i++)
-<a name="l03094"></a>03094                 fprintf(f,<span class="stringliteral">&quot;INT %02X:  %04X:%04X\n&quot;</span>, i, mem_readw(i*4+2), mem_readw(i*4));
+<a name="l02932"></a>02932         endwin();
+<a name="l02933"></a>02933 
+<a name="l02934"></a>02934 <span class="preprocessor">#ifndef WIN32</span>
+<a name="l02935"></a>02935 <span class="preprocessor"></span>                tcsetattr(0,TCSANOW,&amp;consolesettings);
+<a name="l02936"></a>02936 <span class="preprocessor">#endif</span>
+<a name="l02937"></a>02937 <span class="preprocessor"></span>        }
+<a name="l02938"></a>02938 }
+<a name="l02939"></a>02939 
+<a name="l02940"></a>02940 Bitu debugCallback;
+<a name="l02941"></a>02941 
+<a name="l02942"></a>02942 <span class="keywordtype">void</span> DEBUG_DOSStartUp(<a class="code" href="classSection.html">Section</a> *x) {
+<a name="l02943"></a>02943 <span class="comment">//      /* setup debug.com */</span>
+<a name="l02944"></a>02944 <span class="comment">//      PROGRAMS_MakeFile(&quot;DEBUGBOX.COM&quot;,DEBUG_ProgramStart);</span>
+<a name="l02945"></a>02945 }
+<a name="l02946"></a>02946 
+<a name="l02947"></a>02947 <span class="keywordtype">void</span> DEBUG_Init() {
+<a name="l02948"></a>02948         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing debug system&quot;</span>);
+<a name="l02949"></a>02949 
+<a name="l02950"></a>02950         <span class="comment">/* Add some keyhandlers */</span>
+<a name="l02951"></a>02951 <span class="preprocessor">        #if defined(MACOSX)</span>
+<a name="l02952"></a>02952 <span class="preprocessor"></span>                <span class="comment">// OSX NOTE: ALT-F12 to launch debugger. pause maps to F16 on macOS,</span>
+<a name="l02953"></a>02953                 <span class="comment">// which is not easy to input on a modern mac laptop</span>
+<a name="l02954"></a>02954                 MAPPER_AddHandler(DEBUG_Enable,MK_f12,MMOD2,<span class="stringliteral">&quot;debugger&quot;</span>,<span class="stringliteral">&quot;Debugger&quot;</span>);
+<a name="l02955"></a>02955 <span class="preprocessor">        #else</span>
+<a name="l02956"></a>02956 <span class="preprocessor"></span>                MAPPER_AddHandler(DEBUG_Enable,MK_pause,MMOD2,<span class="stringliteral">&quot;debugger&quot;</span>,<span class="stringliteral">&quot;Debugger&quot;</span>);
+<a name="l02957"></a>02957 <span class="preprocessor">        #endif</span>
+<a name="l02958"></a>02958 <span class="preprocessor"></span>        <span class="comment">/* Reset code overview and input line */</span>
+<a name="l02959"></a>02959         memset((<span class="keywordtype">void</span>*)&amp;codeViewData,0,<span class="keyword">sizeof</span>(codeViewData));
+<a name="l02960"></a>02960         <span class="comment">/* Setup callback */</span>
+<a name="l02961"></a>02961         debugCallback=CALLBACK_Allocate();
+<a name="l02962"></a>02962         CALLBACK_Setup(debugCallback,DEBUG_EnableDebugger,CB_RETF,<span class="stringliteral">&quot;debugger&quot;</span>);
+<a name="l02963"></a>02963 
+<a name="l02964"></a>02964     AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(DEBUG_DOSStartUp));
+<a name="l02965"></a>02965 
+<a name="l02966"></a>02966         <span class="comment">/* shutdown function */</span>
+<a name="l02967"></a>02967         AddExitFunction(AddExitFunctionFuncPair(DEBUG_ShutDown));
+<a name="l02968"></a>02968 }
+<a name="l02969"></a>02969 
+<a name="l02970"></a>02970 <span class="comment">// DEBUGGING VAR STUFF</span>
+<a name="l02971"></a>02971 
+<a name="l02972"></a>02972 <span class="keywordtype">void</span> CDebugVar::InsertVariable(<span class="keywordtype">char</span>* name, PhysPt adr)
+<a name="l02973"></a>02973 {
+<a name="l02974"></a>02974         varList.push_back(<span class="keyword">new</span> CDebugVar(name,adr));
+<a name="l02975"></a>02975 };
+<a name="l02976"></a>02976 
+<a name="l02977"></a>02977 <span class="keywordtype">void</span> CDebugVar::DeleteAll(<span class="keywordtype">void</span>) 
+<a name="l02978"></a>02978 {
+<a name="l02979"></a>02979         std::list&lt;CDebugVar*&gt;::iterator i;
+<a name="l02980"></a>02980         CDebugVar* bp;
+<a name="l02981"></a>02981         <span class="keywordflow">for</span>(i=varList.begin(); i != varList.end(); i++) {
+<a name="l02982"></a>02982                 bp = <span class="keyword">static_cast&lt;</span>CDebugVar*<span class="keyword">&gt;</span>(*i);
+<a name="l02983"></a>02983                 <span class="keyword">delete</span> bp;
+<a name="l02984"></a>02984         };
+<a name="l02985"></a>02985         (varList.clear)();
+<a name="l02986"></a>02986 };
+<a name="l02987"></a>02987 
+<a name="l02988"></a>02988 CDebugVar* CDebugVar::FindVar(PhysPt pt)
+<a name="l02989"></a>02989 {
+<a name="l02990"></a>02990         std::list&lt;CDebugVar*&gt;::iterator i;
+<a name="l02991"></a>02991         CDebugVar* bp;
+<a name="l02992"></a>02992         <span class="keywordflow">for</span>(i=varList.begin(); i != varList.end(); i++) {
+<a name="l02993"></a>02993                 bp = <span class="keyword">static_cast&lt;</span>CDebugVar*<span class="keyword">&gt;</span>(*i);
+<a name="l02994"></a>02994                 <span class="keywordflow">if</span> (bp-&gt;GetAdr()==pt) <span class="keywordflow">return</span> bp;
+<a name="l02995"></a>02995         };
+<a name="l02996"></a>02996         <span class="keywordflow">return</span> 0;
+<a name="l02997"></a>02997 };
+<a name="l02998"></a>02998 
+<a name="l02999"></a>02999 <span class="keywordtype">bool</span> CDebugVar::SaveVars(<span class="keywordtype">char</span>* name) {
+<a name="l03000"></a>03000         <span class="keywordflow">if</span> (varList.size()&gt;65535) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l03001"></a>03001 
+<a name="l03002"></a>03002         FILE* f = fopen(name,<span class="stringliteral">&quot;wb+&quot;</span>);
+<a name="l03003"></a>03003         <span class="keywordflow">if</span> (!f) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l03004"></a>03004 
+<a name="l03005"></a>03005         <span class="comment">// write number of vars</span>
+<a name="l03006"></a>03006         Bit16u num = (Bit16u)varList.size();
+<a name="l03007"></a>03007         fwrite(&amp;num,1,<span class="keyword">sizeof</span>(num),f);
+<a name="l03008"></a>03008 
+<a name="l03009"></a>03009         std::list&lt;CDebugVar*&gt;::iterator i;
+<a name="l03010"></a>03010         CDebugVar* bp;
+<a name="l03011"></a>03011         <span class="keywordflow">for</span>(i=varList.begin(); i != varList.end(); i++) {
+<a name="l03012"></a>03012                 bp = <span class="keyword">static_cast&lt;</span>CDebugVar*<span class="keyword">&gt;</span>(*i);
+<a name="l03013"></a>03013                 <span class="comment">// name</span>
+<a name="l03014"></a>03014                 fwrite(bp-&gt;GetName(),1,16,f);
+<a name="l03015"></a>03015                 <span class="comment">// adr</span>
+<a name="l03016"></a>03016                 PhysPt adr = bp-&gt;GetAdr();
+<a name="l03017"></a>03017                 fwrite(&amp;adr,1,<span class="keyword">sizeof</span>(adr),f);
+<a name="l03018"></a>03018         };
+<a name="l03019"></a>03019         fclose(f);
+<a name="l03020"></a>03020         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l03021"></a>03021 };
+<a name="l03022"></a>03022 
+<a name="l03023"></a>03023 <span class="keywordtype">bool</span> CDebugVar::LoadVars(<span class="keywordtype">char</span>* name)
+<a name="l03024"></a>03024 {
+<a name="l03025"></a>03025         FILE* f = fopen(name,<span class="stringliteral">&quot;rb&quot;</span>);
+<a name="l03026"></a>03026         <span class="keywordflow">if</span> (!f) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l03027"></a>03027 
+<a name="l03028"></a>03028         <span class="comment">// read number of vars</span>
+<a name="l03029"></a>03029         Bit16u num;
+<a name="l03030"></a>03030         <span class="keywordflow">if</span> (fread(&amp;num,<span class="keyword">sizeof</span>(num),1,f) != 1) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l03031"></a>03031 
+<a name="l03032"></a>03032         <span class="keywordflow">for</span> (Bit16u i=0; i&lt;num; i++) {
+<a name="l03033"></a>03033                 <span class="keywordtype">char</span> name[16];
+<a name="l03034"></a>03034                 <span class="comment">// name</span>
+<a name="l03035"></a>03035                 <span class="keywordflow">if</span> (fread(name,16,1,f) != 1) <span class="keywordflow">break</span>;
+<a name="l03036"></a>03036                 <span class="comment">// adr</span>
+<a name="l03037"></a>03037                 PhysPt adr;
+<a name="l03038"></a>03038                 <span class="keywordflow">if</span> (fread(&amp;adr,<span class="keyword">sizeof</span>(adr),1,f) != 1) <span class="keywordflow">break</span>;
+<a name="l03039"></a>03039                 <span class="comment">// insert</span>
+<a name="l03040"></a>03040                 InsertVariable(name,adr);
+<a name="l03041"></a>03041         };
+<a name="l03042"></a>03042         fclose(f);
+<a name="l03043"></a>03043         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l03044"></a>03044 };
+<a name="l03045"></a>03045 
+<a name="l03046"></a>03046 <span class="keyword">static</span> <span class="keywordtype">void</span> SaveMemory(Bit16u seg, Bit32u ofs1, Bit32u num) {
+<a name="l03047"></a>03047         FILE* f = fopen(<span class="stringliteral">&quot;MEMDUMP.TXT&quot;</span>,<span class="stringliteral">&quot;wt&quot;</span>);
+<a name="l03048"></a>03048         <span class="keywordflow">if</span> (!f) {
+<a name="l03049"></a>03049                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Memory dump failed.\n&quot;</span>);
+<a name="l03050"></a>03050                 <span class="keywordflow">return</span>;
+<a name="l03051"></a>03051         }
+<a name="l03052"></a>03052         
+<a name="l03053"></a>03053         <span class="keywordtype">char</span> buffer[128];
+<a name="l03054"></a>03054         <span class="keywordtype">char</span> temp[16];
+<a name="l03055"></a>03055 
+<a name="l03056"></a>03056         <span class="keywordflow">while</span> (num&gt;16) {
+<a name="l03057"></a>03057                 sprintf(buffer,<span class="stringliteral">&quot;%04X:%04X   &quot;</span>,seg,ofs1);
+<a name="l03058"></a>03058                 <span class="keywordflow">for</span> (Bit16u x=0; x&lt;16; x++) {
+<a name="l03059"></a>03059                         Bit8u value;
+<a name="l03060"></a>03060                         <span class="keywordflow">if</span> (mem_readb_checked(GetAddress(seg,ofs1+x),&amp;value)) sprintf(temp,<span class="stringliteral">&quot;%s&quot;</span>,<span class="stringliteral">&quot;?? &quot;</span>);
+<a name="l03061"></a>03061                         <span class="keywordflow">else</span> sprintf(temp,<span class="stringliteral">&quot;%02X &quot;</span>,value);
+<a name="l03062"></a>03062                         strcat(buffer,temp);
+<a name="l03063"></a>03063                 }
+<a name="l03064"></a>03064                 ofs1+=16;
+<a name="l03065"></a>03065                 num-=16;
+<a name="l03066"></a>03066 
+<a name="l03067"></a>03067                 fprintf(f,<span class="stringliteral">&quot;%s\n&quot;</span>,buffer);
+<a name="l03068"></a>03068         }
+<a name="l03069"></a>03069         <span class="keywordflow">if</span> (num&gt;0) {
+<a name="l03070"></a>03070                 sprintf(buffer,<span class="stringliteral">&quot;%04X:%04X   &quot;</span>,seg,ofs1);
+<a name="l03071"></a>03071                 <span class="keywordflow">for</span> (Bit16u x=0; x&lt;num; x++) {
+<a name="l03072"></a>03072                         Bit8u value;
+<a name="l03073"></a>03073                         <span class="keywordflow">if</span> (mem_readb_checked(GetAddress(seg,ofs1+x),&amp;value)) sprintf(temp,<span class="stringliteral">&quot;%s&quot;</span>,<span class="stringliteral">&quot;?? &quot;</span>);
+<a name="l03074"></a>03074                         <span class="keywordflow">else</span> sprintf(temp,<span class="stringliteral">&quot;%02X &quot;</span>,value);
+<a name="l03075"></a>03075                         strcat(buffer,temp);
+<a name="l03076"></a>03076                 }
+<a name="l03077"></a>03077                 fprintf(f,<span class="stringliteral">&quot;%s\n&quot;</span>,buffer);
+<a name="l03078"></a>03078         }
+<a name="l03079"></a>03079         fclose(f);
+<a name="l03080"></a>03080         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Memory dump success.\n&quot;</span>);
+<a name="l03081"></a>03081 }
+<a name="l03082"></a>03082 
+<a name="l03083"></a>03083 <span class="keyword">static</span> <span class="keywordtype">void</span> SaveMemoryBin(Bit16u seg, Bit32u ofs1, Bit32u num) {
+<a name="l03084"></a>03084         FILE* f = fopen(<span class="stringliteral">&quot;MEMDUMP.BIN&quot;</span>,<span class="stringliteral">&quot;wb&quot;</span>);
+<a name="l03085"></a>03085         <span class="keywordflow">if</span> (!f) {
+<a name="l03086"></a>03086                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Memory binary dump failed.\n&quot;</span>);
+<a name="l03087"></a>03087                 <span class="keywordflow">return</span>;
+<a name="l03088"></a>03088         }
+<a name="l03089"></a>03089 
+<a name="l03090"></a>03090         <span class="keywordflow">for</span> (Bitu x = 0; x &lt; num;x++) {
+<a name="l03091"></a>03091                 Bit8u val;
+<a name="l03092"></a>03092                 <span class="keywordflow">if</span> (mem_readb_checked(GetAddress(seg,ofs1+x),&amp;val)) val=0;
+<a name="l03093"></a>03093                 fwrite(&amp;val,1,1,f);
+<a name="l03094"></a>03094         }
 <a name="l03095"></a>03095 
 <a name="l03096"></a>03096         fclose(f);
-<a name="l03097"></a>03097         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Interrupt vector table written to %s.\n&quot;</span>, filename);
+<a name="l03097"></a>03097         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Memory dump binary success.\n&quot;</span>);
 <a name="l03098"></a>03098 }
 <a name="l03099"></a>03099 
-<a name="l03100"></a>03100 <span class="preprocessor">#define DEBUG_VAR_BUF_LEN 16</span>
-<a name="l03101"></a>03101 <span class="preprocessor"></span><span class="keyword">static</span> <span class="keywordtype">void</span> DrawVariables(<span class="keywordtype">void</span>) {
-<a name="l03102"></a>03102         <span class="keywordflow">if</span> (CDebugVar::varList.empty()) <span class="keywordflow">return</span>;
-<a name="l03103"></a>03103 
-<a name="l03104"></a>03104         std::list&lt;CDebugVar*&gt;::iterator i;
-<a name="l03105"></a>03105         CDebugVar *dv;
-<a name="l03106"></a>03106         <span class="keywordtype">char</span> buffer[DEBUG_VAR_BUF_LEN];
+<a name="l03100"></a>03100 <span class="keyword">static</span> <span class="keywordtype">void</span> OutputVecTable(<span class="keywordtype">char</span>* filename) {
+<a name="l03101"></a>03101         FILE* f = fopen(filename, <span class="stringliteral">&quot;wt&quot;</span>);
+<a name="l03102"></a>03102         <span class="keywordflow">if</span> (!f)
+<a name="l03103"></a>03103         {
+<a name="l03104"></a>03104                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Output of interrupt vector table failed.\n&quot;</span>);
+<a name="l03105"></a>03105                 <span class="keywordflow">return</span>;
+<a name="l03106"></a>03106         }
 <a name="l03107"></a>03107 
-<a name="l03108"></a>03108         <span class="keywordtype">int</span> idx = 0;
-<a name="l03109"></a>03109         <span class="keywordflow">for</span>(i=CDebugVar::varList.begin(); i != CDebugVar::varList.end(); i++, idx++) {
+<a name="l03108"></a>03108         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i=0; i&lt;256; i++)
+<a name="l03109"></a>03109                 fprintf(f,<span class="stringliteral">&quot;INT %02X:  %04X:%04X\n&quot;</span>, i, mem_readw(i*4+2), mem_readw(i*4));
 <a name="l03110"></a>03110 
-<a name="l03111"></a>03111                 <span class="keywordflow">if</span> (idx == 4*3) {
-<a name="l03112"></a>03112                         <span class="comment">/* too many variables */</span>
-<a name="l03113"></a>03113                         <span class="keywordflow">break</span>;
-<a name="l03114"></a>03114                 }
-<a name="l03115"></a>03115 
-<a name="l03116"></a>03116                 dv = <span class="keyword">static_cast&lt;</span>CDebugVar*<span class="keyword">&gt;</span>(*i);
-<a name="l03117"></a>03117 
-<a name="l03118"></a>03118                 Bit16u value;
-<a name="l03119"></a>03119                 <span class="keywordflow">if</span> (mem_readw_checked(dv-&gt;GetAdr(),&amp;value))
-<a name="l03120"></a>03120                         snprintf(buffer,DEBUG_VAR_BUF_LEN, <span class="stringliteral">&quot;%s&quot;</span>, <span class="stringliteral">&quot;??????&quot;</span>);
-<a name="l03121"></a>03121                 <span class="keywordflow">else</span>
-<a name="l03122"></a>03122                         snprintf(buffer,DEBUG_VAR_BUF_LEN, <span class="stringliteral">&quot;0x%04x&quot;</span>, value);
-<a name="l03123"></a>03123 
-<a name="l03124"></a>03124                 <span class="keywordtype">int</span> y = idx / 3;
-<a name="l03125"></a>03125                 <span class="keywordtype">int</span> x = (idx % 3) * 26;
-<a name="l03126"></a>03126                 mvwprintw(dbg.win_var, y, x, dv-&gt;GetName());
-<a name="l03127"></a>03127                 mvwprintw(dbg.win_var, y,  (x + DEBUG_VAR_BUF_LEN + 1) , buffer);
-<a name="l03128"></a>03128         }
-<a name="l03129"></a>03129 
-<a name="l03130"></a>03130         wrefresh(dbg.win_var);
-<a name="l03131"></a>03131 };
-<a name="l03132"></a>03132 <span class="preprocessor">#undef DEBUG_VAR_BUF_LEN</span>
-<a name="l03133"></a>03133 <span class="preprocessor"></span><span class="comment">// HEAVY DEBUGGING STUFF</span>
-<a name="l03134"></a>03134 
-<a name="l03135"></a>03135 <span class="preprocessor">#if C_HEAVY_DEBUG</span>
-<a name="l03136"></a>03136 <span class="preprocessor"></span>
-<a name="l03137"></a>03137 <span class="keyword">const</span> Bit32u LOGCPUMAX = 20000;
+<a name="l03111"></a>03111         fclose(f);
+<a name="l03112"></a>03112         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Interrupt vector table written to %s.\n&quot;</span>, filename);
+<a name="l03113"></a>03113 }
+<a name="l03114"></a>03114 
+<a name="l03115"></a>03115 <span class="preprocessor">#define DEBUG_VAR_BUF_LEN 16</span>
+<a name="l03116"></a>03116 <span class="preprocessor"></span><span class="keyword">static</span> <span class="keywordtype">void</span> DrawVariables(<span class="keywordtype">void</span>) {
+<a name="l03117"></a>03117         <span class="keywordflow">if</span> (CDebugVar::varList.empty()) <span class="keywordflow">return</span>;
+<a name="l03118"></a>03118 
+<a name="l03119"></a>03119         std::list&lt;CDebugVar*&gt;::iterator i;
+<a name="l03120"></a>03120         CDebugVar *dv;
+<a name="l03121"></a>03121         <span class="keywordtype">char</span> buffer[DEBUG_VAR_BUF_LEN];
+<a name="l03122"></a>03122 
+<a name="l03123"></a>03123         <span class="keywordtype">int</span> idx = 0;
+<a name="l03124"></a>03124         <span class="keywordflow">for</span>(i=CDebugVar::varList.begin(); i != CDebugVar::varList.end(); i++, idx++) {
+<a name="l03125"></a>03125 
+<a name="l03126"></a>03126                 <span class="keywordflow">if</span> (idx == 4*3) {
+<a name="l03127"></a>03127                         <span class="comment">/* too many variables */</span>
+<a name="l03128"></a>03128                         <span class="keywordflow">break</span>;
+<a name="l03129"></a>03129                 }
+<a name="l03130"></a>03130 
+<a name="l03131"></a>03131                 dv = <span class="keyword">static_cast&lt;</span>CDebugVar*<span class="keyword">&gt;</span>(*i);
+<a name="l03132"></a>03132 
+<a name="l03133"></a>03133                 Bit16u value;
+<a name="l03134"></a>03134                 <span class="keywordflow">if</span> (mem_readw_checked(dv-&gt;GetAdr(),&amp;value))
+<a name="l03135"></a>03135                         snprintf(buffer,DEBUG_VAR_BUF_LEN, <span class="stringliteral">&quot;%s&quot;</span>, <span class="stringliteral">&quot;??????&quot;</span>);
+<a name="l03136"></a>03136                 <span class="keywordflow">else</span>
+<a name="l03137"></a>03137                         snprintf(buffer,DEBUG_VAR_BUF_LEN, <span class="stringliteral">&quot;0x%04x&quot;</span>, value);
 <a name="l03138"></a>03138 
-<a name="l03139"></a>03139 <span class="keyword">static</span> Bit32u logCount = 0;
-<a name="l03140"></a>03140 
-<a name="l03141"></a>03141 <span class="keyword">struct </span>TLogInst {
-<a name="l03142"></a>03142         Bit16u s_cs;
-<a name="l03143"></a>03143         Bit32u eip;
-<a name="l03144"></a>03144         Bit32u eax;
-<a name="l03145"></a>03145         Bit32u ebx;
-<a name="l03146"></a>03146         Bit32u ecx;
-<a name="l03147"></a>03147         Bit32u edx;
-<a name="l03148"></a>03148         Bit32u esi;
-<a name="l03149"></a>03149         Bit32u edi;
-<a name="l03150"></a>03150         Bit32u ebp;
-<a name="l03151"></a>03151         Bit32u esp;
-<a name="l03152"></a>03152         Bit16u s_ds;
-<a name="l03153"></a>03153         Bit16u s_es;
-<a name="l03154"></a>03154         Bit16u s_fs;
-<a name="l03155"></a>03155         Bit16u s_gs;
-<a name="l03156"></a>03156         Bit16u s_ss;
-<a name="l03157"></a>03157         <span class="keywordtype">bool</span> c;
-<a name="l03158"></a>03158         <span class="keywordtype">bool</span> z;
-<a name="l03159"></a>03159         <span class="keywordtype">bool</span> s;
-<a name="l03160"></a>03160         <span class="keywordtype">bool</span> o;
-<a name="l03161"></a>03161         <span class="keywordtype">bool</span> a;
-<a name="l03162"></a>03162         <span class="keywordtype">bool</span> p;
-<a name="l03163"></a>03163         <span class="keywordtype">bool</span> i;
-<a name="l03164"></a>03164         <span class="keywordtype">char</span> dline[31];
-<a name="l03165"></a>03165         <span class="keywordtype">char</span> res[23];
-<a name="l03166"></a>03166 };
-<a name="l03167"></a>03167 
-<a name="l03168"></a>03168 TLogInst logInst[LOGCPUMAX];
-<a name="l03169"></a>03169 
-<a name="l03170"></a>03170 <span class="keywordtype">void</span> DEBUG_HeavyLogInstruction(<span class="keywordtype">void</span>) {
-<a name="l03171"></a>03171 
-<a name="l03172"></a>03172         <span class="keyword">static</span> <span class="keywordtype">char</span> empty[23] = { 32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0 };
-<a name="l03173"></a>03173 
-<a name="l03174"></a>03174         PhysPt start = GetAddress(SegValue(cs),reg_eip);
-<a name="l03175"></a>03175         <span class="keywordtype">char</span> dline[200];
-<a name="l03176"></a>03176         DasmI386(dline, start, reg_eip, cpu.code.big);
-<a name="l03177"></a>03177         <span class="keywordtype">char</span>* res = empty;
-<a name="l03178"></a>03178         <span class="keywordflow">if</span> (showExtend) {
-<a name="l03179"></a>03179                 res = AnalyzeInstruction(dline,<span class="keyword">false</span>);
-<a name="l03180"></a>03180                 <span class="keywordflow">if</span> (!res || !(*res)) res = empty;
-<a name="l03181"></a>03181                 Bitu reslen = strlen(res);
-<a name="l03182"></a>03182                 <span class="keywordflow">if</span> (reslen&lt;22) <span class="keywordflow">for</span> (Bitu i=0; i&lt;22-reslen; i++) res[reslen+i] = <span class="charliteral">&#39; &#39;</span>; res[22] = 0;
-<a name="l03183"></a>03183         };
+<a name="l03139"></a>03139                 <span class="keywordtype">int</span> y = idx / 3;
+<a name="l03140"></a>03140                 <span class="keywordtype">int</span> x = (idx % 3) * 26;
+<a name="l03141"></a>03141                 mvwprintw(dbg.win_var, y, x, dv-&gt;GetName());
+<a name="l03142"></a>03142                 mvwprintw(dbg.win_var, y,  (x + DEBUG_VAR_BUF_LEN + 1) , buffer);
+<a name="l03143"></a>03143         }
+<a name="l03144"></a>03144 
+<a name="l03145"></a>03145         wrefresh(dbg.win_var);
+<a name="l03146"></a>03146 };
+<a name="l03147"></a>03147 <span class="preprocessor">#undef DEBUG_VAR_BUF_LEN</span>
+<a name="l03148"></a>03148 <span class="preprocessor"></span><span class="comment">// HEAVY DEBUGGING STUFF</span>
+<a name="l03149"></a>03149 
+<a name="l03150"></a>03150 <span class="preprocessor">#if C_HEAVY_DEBUG</span>
+<a name="l03151"></a>03151 <span class="preprocessor"></span>
+<a name="l03152"></a>03152 <span class="keyword">const</span> Bit32u LOGCPUMAX = 20000;
+<a name="l03153"></a>03153 
+<a name="l03154"></a>03154 <span class="keyword">static</span> Bit32u logCount = 0;
+<a name="l03155"></a>03155 
+<a name="l03156"></a>03156 <span class="keyword">struct </span>TLogInst {
+<a name="l03157"></a>03157         Bit16u s_cs;
+<a name="l03158"></a>03158         Bit32u eip;
+<a name="l03159"></a>03159         Bit32u eax;
+<a name="l03160"></a>03160         Bit32u ebx;
+<a name="l03161"></a>03161         Bit32u ecx;
+<a name="l03162"></a>03162         Bit32u edx;
+<a name="l03163"></a>03163         Bit32u esi;
+<a name="l03164"></a>03164         Bit32u edi;
+<a name="l03165"></a>03165         Bit32u ebp;
+<a name="l03166"></a>03166         Bit32u esp;
+<a name="l03167"></a>03167         Bit16u s_ds;
+<a name="l03168"></a>03168         Bit16u s_es;
+<a name="l03169"></a>03169         Bit16u s_fs;
+<a name="l03170"></a>03170         Bit16u s_gs;
+<a name="l03171"></a>03171         Bit16u s_ss;
+<a name="l03172"></a>03172         <span class="keywordtype">bool</span> c;
+<a name="l03173"></a>03173         <span class="keywordtype">bool</span> z;
+<a name="l03174"></a>03174         <span class="keywordtype">bool</span> s;
+<a name="l03175"></a>03175         <span class="keywordtype">bool</span> o;
+<a name="l03176"></a>03176         <span class="keywordtype">bool</span> a;
+<a name="l03177"></a>03177         <span class="keywordtype">bool</span> p;
+<a name="l03178"></a>03178         <span class="keywordtype">bool</span> i;
+<a name="l03179"></a>03179         <span class="keywordtype">char</span> dline[31];
+<a name="l03180"></a>03180         <span class="keywordtype">char</span> res[23];
+<a name="l03181"></a>03181 };
+<a name="l03182"></a>03182 
+<a name="l03183"></a>03183 TLogInst logInst[LOGCPUMAX];
 <a name="l03184"></a>03184 
-<a name="l03185"></a>03185         Bitu len = strlen(dline);
-<a name="l03186"></a>03186         <span class="keywordflow">if</span> (len &lt; 30) <span class="keywordflow">for</span> (Bitu i=0; i &lt; 30-len; i++) dline[len+i] = <span class="charliteral">&#39; &#39;</span>;
-<a name="l03187"></a>03187         dline[30] = 0;
+<a name="l03185"></a>03185 <span class="keywordtype">void</span> DEBUG_HeavyLogInstruction(<span class="keywordtype">void</span>) {
+<a name="l03186"></a>03186 
+<a name="l03187"></a>03187         <span class="keyword">static</span> <span class="keywordtype">char</span> empty[23] = { 32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0 };
 <a name="l03188"></a>03188 
-<a name="l03189"></a>03189         TLogInst &amp; inst = logInst[logCount];
-<a name="l03190"></a>03190         strcpy(inst.dline,dline);
-<a name="l03191"></a>03191         inst.s_cs = SegValue(cs);
-<a name="l03192"></a>03192         inst.eip  = reg_eip;
-<a name="l03193"></a>03193         strcpy(inst.res,res);
-<a name="l03194"></a>03194         inst.eax  = reg_eax;
-<a name="l03195"></a>03195         inst.ebx  = reg_ebx;
-<a name="l03196"></a>03196         inst.ecx  = reg_ecx;
-<a name="l03197"></a>03197         inst.edx  = reg_edx;
-<a name="l03198"></a>03198         inst.esi  = reg_esi;
-<a name="l03199"></a>03199         inst.edi  = reg_edi;
-<a name="l03200"></a>03200         inst.ebp  = reg_ebp;
-<a name="l03201"></a>03201         inst.esp  = reg_esp;
-<a name="l03202"></a>03202         inst.s_ds = SegValue(ds);
-<a name="l03203"></a>03203         inst.s_es = SegValue(es);
-<a name="l03204"></a>03204         inst.s_fs = SegValue(fs);
-<a name="l03205"></a>03205         inst.s_gs = SegValue(gs);
-<a name="l03206"></a>03206         inst.s_ss = SegValue(ss);
-<a name="l03207"></a>03207         inst.c    = get_CF()&gt;0;
-<a name="l03208"></a>03208         inst.z    = get_ZF()&gt;0;
-<a name="l03209"></a>03209         inst.s    = get_SF()&gt;0;
-<a name="l03210"></a>03210         inst.o    = get_OF()&gt;0;
-<a name="l03211"></a>03211         inst.a    = get_AF()&gt;0;
-<a name="l03212"></a>03212         inst.p    = get_PF()&gt;0;
-<a name="l03213"></a>03213         inst.i    = GETFLAGBOOL(IF);
-<a name="l03214"></a>03214 
-<a name="l03215"></a>03215         <span class="keywordflow">if</span> (++logCount &gt;= LOGCPUMAX) logCount = 0;
-<a name="l03216"></a>03216 };
-<a name="l03217"></a>03217 
-<a name="l03218"></a>03218 <span class="keywordtype">void</span> DEBUG_HeavyWriteLogInstruction(<span class="keywordtype">void</span>) {
-<a name="l03219"></a>03219         <span class="keywordflow">if</span> (!logHeavy) <span class="keywordflow">return</span>;
-<a name="l03220"></a>03220         logHeavy = <span class="keyword">false</span>;
-<a name="l03221"></a>03221         
-<a name="l03222"></a>03222         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Creating cpu log LOGCPU_INT_CD.TXT\n&quot;</span>);
-<a name="l03223"></a>03223 
-<a name="l03224"></a>03224         ofstream out(<span class="stringliteral">&quot;LOGCPU_INT_CD.TXT&quot;</span>);
-<a name="l03225"></a>03225         <span class="keywordflow">if</span> (!out.is_open()) {
-<a name="l03226"></a>03226                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Failed.\n&quot;</span>);      
-<a name="l03227"></a>03227                 <span class="keywordflow">return</span>;
-<a name="l03228"></a>03228         }
-<a name="l03229"></a>03229         out &lt;&lt; hex &lt;&lt; noshowbase &lt;&lt; setfill(<span class="charliteral">&#39;0&#39;</span>) &lt;&lt; uppercase;
-<a name="l03230"></a>03230         Bit32u startLog = logCount;
-<a name="l03231"></a>03231         <span class="keywordflow">do</span> {
-<a name="l03232"></a>03232                 <span class="comment">// Write Instructions</span>
-<a name="l03233"></a>03233                 TLogInst &amp; inst = logInst[startLog];
-<a name="l03234"></a>03234                 out &lt;&lt; setw(4) &lt;&lt; inst.s_cs &lt;&lt; <span class="stringliteral">&quot;:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.eip &lt;&lt; <span class="stringliteral">&quot;  &quot;</span> 
-<a name="l03235"></a>03235                     &lt;&lt; inst.dline &lt;&lt; <span class="stringliteral">&quot;  &quot;</span> &lt;&lt; inst.res &lt;&lt; <span class="stringliteral">&quot; EAX:&quot;</span> &lt;&lt; setw(8)&lt;&lt; inst.eax
-<a name="l03236"></a>03236                     &lt;&lt; <span class="stringliteral">&quot; EBX:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.ebx &lt;&lt; <span class="stringliteral">&quot; ECX:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.ecx
-<a name="l03237"></a>03237                     &lt;&lt; <span class="stringliteral">&quot; EDX:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.edx &lt;&lt; <span class="stringliteral">&quot; ESI:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.esi
-<a name="l03238"></a>03238                     &lt;&lt; <span class="stringliteral">&quot; EDI:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.edi &lt;&lt; <span class="stringliteral">&quot; EBP:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.ebp
-<a name="l03239"></a>03239                     &lt;&lt; <span class="stringliteral">&quot; ESP:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.esp &lt;&lt; <span class="stringliteral">&quot; DS:&quot;</span>  &lt;&lt; setw(4) &lt;&lt; inst.s_ds
-<a name="l03240"></a>03240                     &lt;&lt; <span class="stringliteral">&quot; ES:&quot;</span>  &lt;&lt; setw(4) &lt;&lt; inst.s_es&lt;&lt; <span class="stringliteral">&quot; FS:&quot;</span>  &lt;&lt; setw(4) &lt;&lt; inst.s_fs
-<a name="l03241"></a>03241                     &lt;&lt; <span class="stringliteral">&quot; GS:&quot;</span>  &lt;&lt; setw(4) &lt;&lt; inst.s_gs&lt;&lt; <span class="stringliteral">&quot; SS:&quot;</span>  &lt;&lt; setw(4) &lt;&lt; inst.s_ss
-<a name="l03242"></a>03242                     &lt;&lt; <span class="stringliteral">&quot; CF:&quot;</span>  &lt;&lt; inst.c  &lt;&lt; <span class="stringliteral">&quot; ZF:&quot;</span>   &lt;&lt; inst.z  &lt;&lt; <span class="stringliteral">&quot; SF:&quot;</span>  &lt;&lt; inst.s
-<a name="l03243"></a>03243                     &lt;&lt; <span class="stringliteral">&quot; OF:&quot;</span>  &lt;&lt; inst.o  &lt;&lt; <span class="stringliteral">&quot; AF:&quot;</span>   &lt;&lt; inst.a  &lt;&lt; <span class="stringliteral">&quot; PF:&quot;</span>  &lt;&lt; inst.p
-<a name="l03244"></a>03244                     &lt;&lt; <span class="stringliteral">&quot; IF:&quot;</span>  &lt;&lt; inst.i  &lt;&lt; endl;
-<a name="l03245"></a>03245 
-<a name="l03246"></a>03246 <span class="comment">/*              fprintf(f,&quot;%04X:%08X   %s  %s  EAX:%08X EBX:%08X ECX:%08X EDX:%08X ESI:%08X EDI:%08X EBP:%08X ESP:%08X DS:%04X ES:%04X FS:%04X GS:%04X SS:%04X CF:%01X ZF:%01X SF:%01X OF:%01X AF:%01X PF:%01X IF:%01X\n&quot;,</span>
-<a name="l03247"></a>03247 <span class="comment">                        logInst[startLog].s_cs,logInst[startLog].eip,logInst[startLog].dline,logInst[startLog].res,logInst[startLog].eax,logInst[startLog].ebx,logInst[startLog].ecx,logInst[startLog].edx,logInst[startLog].esi,logInst[startLog].edi,logInst[startLog].ebp,logInst[startLog].esp,</span>
-<a name="l03248"></a>03248 <span class="comment">                        logInst[startLog].s_ds,logInst[startLog].s_es,logInst[startLog].s_fs,logInst[startLog].s_gs,logInst[startLog].s_ss,</span>
-<a name="l03249"></a>03249 <span class="comment">                        logInst[startLog].c,logInst[startLog].z,logInst[startLog].s,logInst[startLog].o,logInst[startLog].a,logInst[startLog].p,logInst[startLog].i);*/</span>
-<a name="l03250"></a>03250                 <span class="keywordflow">if</span> (++startLog &gt;= LOGCPUMAX) startLog = 0;
-<a name="l03251"></a>03251         } <span class="keywordflow">while</span> (startLog != logCount);
-<a name="l03252"></a>03252         
-<a name="l03253"></a>03253         out.close();
-<a name="l03254"></a>03254         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Done.\n&quot;</span>);        
-<a name="l03255"></a>03255 };
-<a name="l03256"></a>03256 
-<a name="l03257"></a>03257 <span class="keywordtype">bool</span> DEBUG_HeavyIsBreakpoint(<span class="keywordtype">void</span>) {
-<a name="l03258"></a>03258         <span class="keyword">static</span> Bitu zero_count = 0;
-<a name="l03259"></a>03259         <span class="keywordflow">if</span> (cpuLog) {
-<a name="l03260"></a>03260                 <span class="keywordflow">if</span> (cpuLogCounter&gt;0) {
-<a name="l03261"></a>03261                         LogInstruction(SegValue(cs),reg_eip,cpuLogFile);
-<a name="l03262"></a>03262                         cpuLogCounter--;
-<a name="l03263"></a>03263                 }
-<a name="l03264"></a>03264                 <span class="keywordflow">if</span> (cpuLogCounter&lt;=0) {
-<a name="l03265"></a>03265                         cpuLogFile.close();
-<a name="l03266"></a>03266                         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: cpu log LOGCPU.TXT created\n&quot;</span>);
-<a name="l03267"></a>03267                         cpuLog = <span class="keyword">false</span>;
-<a name="l03268"></a>03268                         DEBUG_EnableDebugger();
-<a name="l03269"></a>03269                         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l03270"></a>03270                 }
-<a name="l03271"></a>03271         }
-<a name="l03272"></a>03272         <span class="comment">// LogInstruction</span>
-<a name="l03273"></a>03273         <span class="keywordflow">if</span> (logHeavy) DEBUG_HeavyLogInstruction();
-<a name="l03274"></a>03274         <span class="keywordflow">if</span> (zeroProtect) {
-<a name="l03275"></a>03275                 Bit32u value=0;
-<a name="l03276"></a>03276                 <span class="keywordflow">if</span> (!mem_readd_checked(SegPhys(cs)+reg_eip,&amp;value)) {
-<a name="l03277"></a>03277                         <span class="keywordflow">if</span> (value == 0) zero_count++;
-<a name="l03278"></a>03278                         <span class="keywordflow">else</span> zero_count = 0;
-<a name="l03279"></a>03279                 }
-<a name="l03280"></a>03280                 <span class="keywordflow">if</span> (GCC_UNLIKELY(zero_count == 10)) E_Exit(<span class="stringliteral">&quot;running zeroed code&quot;</span>);
-<a name="l03281"></a>03281         }
-<a name="l03282"></a>03282 
-<a name="l03283"></a>03283         <span class="keywordflow">if</span> (skipFirstInstruction) {
-<a name="l03284"></a>03284                 skipFirstInstruction = <span class="keyword">false</span>;
-<a name="l03285"></a>03285                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l03189"></a>03189         PhysPt start = GetAddress(SegValue(cs),reg_eip);
+<a name="l03190"></a>03190         <span class="keywordtype">char</span> dline[200];
+<a name="l03191"></a>03191         DasmI386(dline, start, reg_eip, cpu.code.big);
+<a name="l03192"></a>03192         <span class="keywordtype">char</span>* res = empty;
+<a name="l03193"></a>03193         <span class="keywordflow">if</span> (showExtend) {
+<a name="l03194"></a>03194                 res = AnalyzeInstruction(dline,<span class="keyword">false</span>);
+<a name="l03195"></a>03195                 <span class="keywordflow">if</span> (!res || !(*res)) res = empty;
+<a name="l03196"></a>03196                 Bitu reslen = strlen(res);
+<a name="l03197"></a>03197                 <span class="keywordflow">if</span> (reslen&lt;22) <span class="keywordflow">for</span> (Bitu i=0; i&lt;22-reslen; i++) res[reslen+i] = <span class="charliteral">&#39; &#39;</span>; res[22] = 0;
+<a name="l03198"></a>03198         };
+<a name="l03199"></a>03199 
+<a name="l03200"></a>03200         Bitu len = strlen(dline);
+<a name="l03201"></a>03201         <span class="keywordflow">if</span> (len &lt; 30) <span class="keywordflow">for</span> (Bitu i=0; i &lt; 30-len; i++) dline[len+i] = <span class="charliteral">&#39; &#39;</span>;
+<a name="l03202"></a>03202         dline[30] = 0;
+<a name="l03203"></a>03203 
+<a name="l03204"></a>03204         TLogInst &amp; inst = logInst[logCount];
+<a name="l03205"></a>03205         strcpy(inst.dline,dline);
+<a name="l03206"></a>03206         inst.s_cs = SegValue(cs);
+<a name="l03207"></a>03207         inst.eip  = reg_eip;
+<a name="l03208"></a>03208         strcpy(inst.res,res);
+<a name="l03209"></a>03209         inst.eax  = reg_eax;
+<a name="l03210"></a>03210         inst.ebx  = reg_ebx;
+<a name="l03211"></a>03211         inst.ecx  = reg_ecx;
+<a name="l03212"></a>03212         inst.edx  = reg_edx;
+<a name="l03213"></a>03213         inst.esi  = reg_esi;
+<a name="l03214"></a>03214         inst.edi  = reg_edi;
+<a name="l03215"></a>03215         inst.ebp  = reg_ebp;
+<a name="l03216"></a>03216         inst.esp  = reg_esp;
+<a name="l03217"></a>03217         inst.s_ds = SegValue(ds);
+<a name="l03218"></a>03218         inst.s_es = SegValue(es);
+<a name="l03219"></a>03219         inst.s_fs = SegValue(fs);
+<a name="l03220"></a>03220         inst.s_gs = SegValue(gs);
+<a name="l03221"></a>03221         inst.s_ss = SegValue(ss);
+<a name="l03222"></a>03222         inst.c    = get_CF()&gt;0;
+<a name="l03223"></a>03223         inst.z    = get_ZF()&gt;0;
+<a name="l03224"></a>03224         inst.s    = get_SF()&gt;0;
+<a name="l03225"></a>03225         inst.o    = get_OF()&gt;0;
+<a name="l03226"></a>03226         inst.a    = get_AF()&gt;0;
+<a name="l03227"></a>03227         inst.p    = get_PF()&gt;0;
+<a name="l03228"></a>03228         inst.i    = GETFLAGBOOL(IF);
+<a name="l03229"></a>03229 
+<a name="l03230"></a>03230         <span class="keywordflow">if</span> (++logCount &gt;= LOGCPUMAX) logCount = 0;
+<a name="l03231"></a>03231 };
+<a name="l03232"></a>03232 
+<a name="l03233"></a>03233 <span class="keywordtype">void</span> DEBUG_HeavyWriteLogInstruction(<span class="keywordtype">void</span>) {
+<a name="l03234"></a>03234         <span class="keywordflow">if</span> (!logHeavy) <span class="keywordflow">return</span>;
+<a name="l03235"></a>03235         logHeavy = <span class="keyword">false</span>;
+<a name="l03236"></a>03236         
+<a name="l03237"></a>03237         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Creating cpu log LOGCPU_INT_CD.TXT\n&quot;</span>);
+<a name="l03238"></a>03238 
+<a name="l03239"></a>03239         ofstream out(<span class="stringliteral">&quot;LOGCPU_INT_CD.TXT&quot;</span>);
+<a name="l03240"></a>03240         <span class="keywordflow">if</span> (!out.is_open()) {
+<a name="l03241"></a>03241                 DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Failed.\n&quot;</span>);      
+<a name="l03242"></a>03242                 <span class="keywordflow">return</span>;
+<a name="l03243"></a>03243         }
+<a name="l03244"></a>03244         out &lt;&lt; hex &lt;&lt; noshowbase &lt;&lt; setfill(<span class="charliteral">&#39;0&#39;</span>) &lt;&lt; uppercase;
+<a name="l03245"></a>03245         Bit32u startLog = logCount;
+<a name="l03246"></a>03246         <span class="keywordflow">do</span> {
+<a name="l03247"></a>03247                 <span class="comment">// Write Instructions</span>
+<a name="l03248"></a>03248                 TLogInst &amp; inst = logInst[startLog];
+<a name="l03249"></a>03249                 out &lt;&lt; setw(4) &lt;&lt; inst.s_cs &lt;&lt; <span class="stringliteral">&quot;:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.eip &lt;&lt; <span class="stringliteral">&quot;  &quot;</span> 
+<a name="l03250"></a>03250                     &lt;&lt; inst.dline &lt;&lt; <span class="stringliteral">&quot;  &quot;</span> &lt;&lt; inst.res &lt;&lt; <span class="stringliteral">&quot; EAX:&quot;</span> &lt;&lt; setw(8)&lt;&lt; inst.eax
+<a name="l03251"></a>03251                     &lt;&lt; <span class="stringliteral">&quot; EBX:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.ebx &lt;&lt; <span class="stringliteral">&quot; ECX:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.ecx
+<a name="l03252"></a>03252                     &lt;&lt; <span class="stringliteral">&quot; EDX:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.edx &lt;&lt; <span class="stringliteral">&quot; ESI:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.esi
+<a name="l03253"></a>03253                     &lt;&lt; <span class="stringliteral">&quot; EDI:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.edi &lt;&lt; <span class="stringliteral">&quot; EBP:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.ebp
+<a name="l03254"></a>03254                     &lt;&lt; <span class="stringliteral">&quot; ESP:&quot;</span> &lt;&lt; setw(8) &lt;&lt; inst.esp &lt;&lt; <span class="stringliteral">&quot; DS:&quot;</span>  &lt;&lt; setw(4) &lt;&lt; inst.s_ds
+<a name="l03255"></a>03255                     &lt;&lt; <span class="stringliteral">&quot; ES:&quot;</span>  &lt;&lt; setw(4) &lt;&lt; inst.s_es&lt;&lt; <span class="stringliteral">&quot; FS:&quot;</span>  &lt;&lt; setw(4) &lt;&lt; inst.s_fs
+<a name="l03256"></a>03256                     &lt;&lt; <span class="stringliteral">&quot; GS:&quot;</span>  &lt;&lt; setw(4) &lt;&lt; inst.s_gs&lt;&lt; <span class="stringliteral">&quot; SS:&quot;</span>  &lt;&lt; setw(4) &lt;&lt; inst.s_ss
+<a name="l03257"></a>03257                     &lt;&lt; <span class="stringliteral">&quot; CF:&quot;</span>  &lt;&lt; inst.c  &lt;&lt; <span class="stringliteral">&quot; ZF:&quot;</span>   &lt;&lt; inst.z  &lt;&lt; <span class="stringliteral">&quot; SF:&quot;</span>  &lt;&lt; inst.s
+<a name="l03258"></a>03258                     &lt;&lt; <span class="stringliteral">&quot; OF:&quot;</span>  &lt;&lt; inst.o  &lt;&lt; <span class="stringliteral">&quot; AF:&quot;</span>   &lt;&lt; inst.a  &lt;&lt; <span class="stringliteral">&quot; PF:&quot;</span>  &lt;&lt; inst.p
+<a name="l03259"></a>03259                     &lt;&lt; <span class="stringliteral">&quot; IF:&quot;</span>  &lt;&lt; inst.i  &lt;&lt; endl;
+<a name="l03260"></a>03260 
+<a name="l03261"></a>03261 <span class="comment">/*              fprintf(f,&quot;%04X:%08X   %s  %s  EAX:%08X EBX:%08X ECX:%08X EDX:%08X ESI:%08X EDI:%08X EBP:%08X ESP:%08X DS:%04X ES:%04X FS:%04X GS:%04X SS:%04X CF:%01X ZF:%01X SF:%01X OF:%01X AF:%01X PF:%01X IF:%01X\n&quot;,</span>
+<a name="l03262"></a>03262 <span class="comment">                        logInst[startLog].s_cs,logInst[startLog].eip,logInst[startLog].dline,logInst[startLog].res,logInst[startLog].eax,logInst[startLog].ebx,logInst[startLog].ecx,logInst[startLog].edx,logInst[startLog].esi,logInst[startLog].edi,logInst[startLog].ebp,logInst[startLog].esp,</span>
+<a name="l03263"></a>03263 <span class="comment">                        logInst[startLog].s_ds,logInst[startLog].s_es,logInst[startLog].s_fs,logInst[startLog].s_gs,logInst[startLog].s_ss,</span>
+<a name="l03264"></a>03264 <span class="comment">                        logInst[startLog].c,logInst[startLog].z,logInst[startLog].s,logInst[startLog].o,logInst[startLog].a,logInst[startLog].p,logInst[startLog].i);*/</span>
+<a name="l03265"></a>03265                 <span class="keywordflow">if</span> (++startLog &gt;= LOGCPUMAX) startLog = 0;
+<a name="l03266"></a>03266         } <span class="keywordflow">while</span> (startLog != logCount);
+<a name="l03267"></a>03267         
+<a name="l03268"></a>03268         out.close();
+<a name="l03269"></a>03269         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Done.\n&quot;</span>);        
+<a name="l03270"></a>03270 };
+<a name="l03271"></a>03271 
+<a name="l03272"></a>03272 <span class="keywordtype">bool</span> DEBUG_HeavyIsBreakpoint(<span class="keywordtype">void</span>) {
+<a name="l03273"></a>03273         <span class="keyword">static</span> Bitu zero_count = 0;
+<a name="l03274"></a>03274         <span class="keywordflow">if</span> (cpuLog) {
+<a name="l03275"></a>03275                 <span class="keywordflow">if</span> (cpuLogCounter&gt;0) {
+<a name="l03276"></a>03276                         LogInstruction(SegValue(cs),reg_eip,cpuLogFile);
+<a name="l03277"></a>03277                         cpuLogCounter--;
+<a name="l03278"></a>03278                 }
+<a name="l03279"></a>03279                 <span class="keywordflow">if</span> (cpuLogCounter&lt;=0) {
+<a name="l03280"></a>03280                         cpuLogFile.close();
+<a name="l03281"></a>03281                         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: cpu log LOGCPU.TXT created\n&quot;</span>);
+<a name="l03282"></a>03282                         cpuLog = <span class="keyword">false</span>;
+<a name="l03283"></a>03283                         DEBUG_EnableDebugger();
+<a name="l03284"></a>03284                         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l03285"></a>03285                 }
 <a name="l03286"></a>03286         }
-<a name="l03287"></a>03287         <span class="keywordflow">if</span> (CBreakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) {
-<a name="l03288"></a>03288                 <span class="keywordflow">return</span> <span class="keyword">true</span>;    
-<a name="l03289"></a>03289         }
-<a name="l03290"></a>03290         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l03291"></a>03291 }
-<a name="l03292"></a>03292 
-<a name="l03293"></a>03293 <span class="comment">/* this is for the BIOS, to stop the log upon BIOS POST. */</span>
-<a name="l03294"></a>03294 <span class="keywordtype">void</span> DEBUG_StopLog(<span class="keywordtype">void</span>) {
-<a name="l03295"></a>03295         <span class="keywordflow">if</span> (cpuLog) {
-<a name="l03296"></a>03296         cpuLogCounter = 0;
-<a name="l03297"></a>03297         cpuLogFile.close();
-<a name="l03298"></a>03298         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: cpu log LOGCPU.TXT stopped\n&quot;</span>);
-<a name="l03299"></a>03299         cpuLog = <span class="keyword">false</span>;
-<a name="l03300"></a>03300     }
-<a name="l03301"></a>03301 }
-<a name="l03302"></a>03302 
-<a name="l03303"></a>03303 <span class="preprocessor">#endif // HEAVY DEBUG</span>
-<a name="l03304"></a>03304 <span class="preprocessor"></span>
-<a name="l03305"></a>03305 
-<a name="l03306"></a>03306 <span class="preprocessor">#endif // DEBUG</span>
-<a name="l03307"></a>03307 <span class="preprocessor"></span>
-<a name="l03308"></a>03308 
+<a name="l03287"></a>03287         <span class="comment">// LogInstruction</span>
+<a name="l03288"></a>03288         <span class="keywordflow">if</span> (logHeavy) DEBUG_HeavyLogInstruction();
+<a name="l03289"></a>03289         <span class="keywordflow">if</span> (zeroProtect) {
+<a name="l03290"></a>03290                 Bit32u value=0;
+<a name="l03291"></a>03291                 <span class="keywordflow">if</span> (!mem_readd_checked(SegPhys(cs)+reg_eip,&amp;value)) {
+<a name="l03292"></a>03292                         <span class="keywordflow">if</span> (value == 0) zero_count++;
+<a name="l03293"></a>03293                         <span class="keywordflow">else</span> zero_count = 0;
+<a name="l03294"></a>03294                 }
+<a name="l03295"></a>03295                 <span class="keywordflow">if</span> (GCC_UNLIKELY(zero_count == 10)) E_Exit(<span class="stringliteral">&quot;running zeroed code&quot;</span>);
+<a name="l03296"></a>03296         }
+<a name="l03297"></a>03297 
+<a name="l03298"></a>03298         <span class="keywordflow">if</span> (skipFirstInstruction) {
+<a name="l03299"></a>03299                 skipFirstInstruction = <span class="keyword">false</span>;
+<a name="l03300"></a>03300                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l03301"></a>03301         }
+<a name="l03302"></a>03302         <span class="keywordflow">if</span> (CBreakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) {
+<a name="l03303"></a>03303                 <span class="keywordflow">return</span> <span class="keyword">true</span>;    
+<a name="l03304"></a>03304         }
+<a name="l03305"></a>03305         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l03306"></a>03306 }
+<a name="l03307"></a>03307 
+<a name="l03308"></a>03308 <span class="comment">/* this is for the BIOS, to stop the log upon BIOS POST. */</span>
+<a name="l03309"></a>03309 <span class="keywordtype">void</span> DEBUG_StopLog(<span class="keywordtype">void</span>) {
+<a name="l03310"></a>03310         <span class="keywordflow">if</span> (cpuLog) {
+<a name="l03311"></a>03311         cpuLogCounter = 0;
+<a name="l03312"></a>03312         cpuLogFile.close();
+<a name="l03313"></a>03313         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: cpu log LOGCPU.TXT stopped\n&quot;</span>);
+<a name="l03314"></a>03314         cpuLog = <span class="keyword">false</span>;
+<a name="l03315"></a>03315     }
+<a name="l03316"></a>03316 }
+<a name="l03317"></a>03317 
+<a name="l03318"></a>03318 <span class="preprocessor">#endif // HEAVY DEBUG</span>
+<a name="l03319"></a>03319 <span class="preprocessor"></span>
+<a name="l03320"></a>03320 
+<a name="l03321"></a>03321 <span class="preprocessor">#endif // DEBUG</span>
+<a name="l03322"></a>03322 <span class="preprocessor"></span>
+<a name="l03323"></a>03323 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 20 2018 22:06:38 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Apr 20 2018 12:41:00 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

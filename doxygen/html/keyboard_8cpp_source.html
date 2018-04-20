@@ -1722,7 +1722,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01626"></a>01626 
 <a name="l01627"></a>01627 <span class="keyword">extern</span> <span class="keywordtype">bool</span> gdc_5mhz_mode;
 <a name="l01628"></a>01628 
-<a name="l01629"></a>01629 <span class="keyword">static</span> <span class="keywordtype">bool</span> PC98_SHUT0=<span class="keyword">true</span>,PC98_SHUT1=<span class="keyword">true</span>;
+<a name="l01629"></a>01629 <span class="keywordtype">bool</span> PC98_SHUT0=<span class="keyword">true</span>,PC98_SHUT1=<span class="keyword">true</span>;
 <a name="l01630"></a>01630 
 <a name="l01631"></a><a class="code" href="classPC98__System__8255.html">01631</a> <span class="keyword">class </span><a class="code" href="classPC98__System__8255.html">PC98_System_8255</a> : <span class="keyword">public</span> <a class="code" href="classIntel8255.html">Intel8255</a> {
 <a name="l01632"></a>01632 <span class="keyword">public</span>:
@@ -1791,7 +1791,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01695"></a>01695 <span class="keyword">static</span> <a class="code" href="classPC98__System__8255.html">PC98_System_8255</a> pc98_sys_8255;
 <a name="l01696"></a>01696 
 <a name="l01697"></a>01697 <span class="keyword">static</span> <span class="keywordtype">void</span> pc98_reset_write(Bitu port,Bitu val,Bitu <span class="comment">/*iolen*/</span>) {
-<a name="l01698"></a>01698     LOG_MSG(<span class="stringliteral">&quot;Restart by port F0h requested\n&quot;</span>);
+<a name="l01698"></a>01698     LOG_MSG(<span class="stringliteral">&quot;Restart by port F0h requested: val=%02x SHUT0=%u SHUT1=%u\n&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)val,PC98_SHUT0,PC98_SHUT1);
 <a name="l01699"></a>01699     On_Software_CPU_Reset();
 <a name="l01700"></a>01700 }
 <a name="l01701"></a>01701 
@@ -2078,336 +2078,354 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01982"></a>01982 
 <a name="l01983"></a>01983 <span class="keywordtype">void</span> MOUSE_DummyEvent(<span class="keywordtype">void</span>);
 <a name="l01984"></a>01984 
-<a name="l01986"></a>01986 <span class="keyword">static</span> <span class="keywordtype">void</span> write_p7fd9_mouse(Bitu port,Bitu val,Bitu <span class="comment">/*iolen*/</span>) {
-<a name="l01987"></a>01987     <span class="keywordflow">switch</span> (port&amp;6) {
-<a name="l01988"></a>01988         <span class="keywordflow">case</span> 4:<span class="comment">// 0x7FDD Port C</span>
-<a name="l01989"></a>01989             <span class="comment">// bits [7:7]: 1=latch  0=don&#39;t latch</span>
-<a name="l01990"></a>01990             <span class="comment">//             change from 0 to 1 latches counters, clears original counters</span>
-<a name="l01991"></a>01991             <span class="comment">//             if left at 0, you can read the counters in real time</span>
-<a name="l01992"></a>01992             <span class="comment">// bits [6:5]: X/Y upper/lower nibble select</span>
-<a name="l01993"></a>01993             <span class="comment">//             11b = upper 4 bits, Y</span>
-<a name="l01994"></a>01994             <span class="comment">//             10b = lower 4 bits, Y</span>
-<a name="l01995"></a>01995             <span class="comment">//             01b = upper 4 bits, X</span>
-<a name="l01996"></a>01996             <span class="comment">//             00b = lower 4 bits, X</span>
-<a name="l01997"></a>01997             <span class="comment">// bits [4:4]: 1=disable interrupt 0=enable interrupt</span>
-<a name="l01998"></a>01998             <span class="comment">// bits [3:0]: ignored (read bits)</span>
-<a name="l01999"></a>01999             <span class="keywordflow">if</span> ((val &amp; 0x80) &amp;&amp; !p7fd9_8255_mouse_latch) { <span class="comment">// change from 0 to 1 latches counters and clears them</span>
-<a name="l02000"></a>02000                 p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
-<a name="l02001"></a>02001                 p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
-<a name="l02002"></a>02002                 p7fd9_8255_mouse_x = 0;
-<a name="l02003"></a>02003                 p7fd9_8255_mouse_y = 0;
-<a name="l02004"></a>02004             }
-<a name="l02005"></a>02005             p7fd8_8255_mouse_int_enable = ((val &gt;&gt; 4) &amp; 1) ^ 1; <span class="comment">// bit 4 is interrupt MASK</span>
-<a name="l02006"></a>02006             <span class="comment">// TODO: Does clearing this bit trigger an interrupt?</span>
-<a name="l02007"></a>02007             <span class="comment">//       Does setting, then clearing this bit trigger an interrupt?</span>
-<a name="l02008"></a>02008             p7fd9_8255_mouse_latch = (val &gt;&gt; 7) &amp; 1;
-<a name="l02009"></a>02009             p7fd9_8255_mouse_sel = (val &gt;&gt; 5) &amp; 3;
-<a name="l02010"></a>02010             <span class="keywordflow">break</span>;
-<a name="l02011"></a>02011         <span class="keywordflow">case</span> 6:<span class="comment">// 0x7FDF Control</span>
-<a name="l02012"></a>02012             <span class="keywordflow">if</span> (!(val &amp; 0x80)) {
-<a name="l02013"></a>02013                 <span class="comment">/* bit set/reset */</span>
-<a name="l02014"></a>02014                 <span class="comment">/* bits [7:7] = 0</span>
-<a name="l02015"></a>02015 <span class="comment">                 * bits [6:4] = unused</span>
-<a name="l02016"></a>02016 <span class="comment">                 * bits [3:1] = bit selection</span>
-<a name="l02017"></a>02017 <span class="comment">                 * bits [0:0] = 1=set 0=reset */</span>
-<a name="l02018"></a>02018                 uint8_t bitnum = (val &gt;&gt; 1) &amp; 7;
-<a name="l02019"></a>02019                 uint8_t bitval = val &amp; 1;
-<a name="l02020"></a>02020 
-<a name="l02021"></a>02021                 <span class="comment">/* Sim City PC-98 version writes 0x0F to this port</span>
-<a name="l02022"></a>02022 <span class="comment">                 * to flip bit 7. If you&#39;re supposed to reset the</span>
-<a name="l02023"></a>02023 <span class="comment">                 * bit then set it to latch, then I don&#39;t really know</span>
-<a name="l02024"></a>02024 <span class="comment">                 * how Sim City expects to re-latch without toggling first. */</span>
-<a name="l02025"></a>02025                 <span class="keywordflow">switch</span> (bitnum) {
-<a name="l02026"></a>02026                     <span class="keywordflow">case</span> 4: <span class="comment">// interrupt mask</span>
-<a name="l02027"></a>02027                         p7fd8_8255_mouse_int_enable = bitval ^ 1;
-<a name="l02028"></a>02028                         <span class="comment">// TODO: Does clearing this bit trigger an interrupt?</span>
-<a name="l02029"></a>02029                         <span class="comment">//       Does setting, then clearing this bit trigger an interrupt?</span>
-<a name="l02030"></a>02030                         <span class="keywordflow">break</span>;
-<a name="l02031"></a>02031                     <span class="keywordflow">case</span> 7: <span class="comment">// latch mouse counter</span>
-<a name="l02032"></a>02032                         <span class="keywordflow">if</span> (bitval) {
-<a name="l02033"></a>02033                             p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
-<a name="l02034"></a>02034                             p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
-<a name="l02035"></a>02035                             p7fd9_8255_mouse_x = 0;
-<a name="l02036"></a>02036                             p7fd9_8255_mouse_y = 0;
-<a name="l02037"></a>02037                         }
-<a name="l02038"></a>02038                         p7fd9_8255_mouse_latch = bitval;
-<a name="l02039"></a>02039                         <span class="keywordflow">break</span>;
-<a name="l02040"></a>02040                     <span class="keywordflow">default</span>:
-<a name="l02041"></a>02041                         LOG_MSG(<span class="stringliteral">&quot;PC-98 8255 MOUSE: Port C set/reset bit=%u val=%u&quot;</span>,bitnum,bitval);
-<a name="l02042"></a>02042                         <span class="keywordflow">break</span>;
-<a name="l02043"></a>02043                 }
-<a name="l02044"></a>02044 
-<a name="l02045"></a>02045                 <span class="keywordflow">break</span>;
-<a name="l02046"></a>02046             }
-<a name="l02047"></a>02047             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (val == 0x90) { <span class="comment">/* commonly sent by games, which sets port A=input port B=output C=output */</span>
-<a name="l02048"></a>02048                 <span class="comment">/* HACK for Metal Force.</span>
-<a name="l02049"></a>02049 <span class="comment">                 * The game&#39;s intro animation hooks the mouse IRQ, then writes 0x90 to this port.</span>
-<a name="l02050"></a>02050 <span class="comment">                 * The intro animation apparently requires mouse IRQs to advance through the animation,</span>
-<a name="l02051"></a>02051 <span class="comment">                 * or else it will just stop. The interrupt service routine, if fired, writes 0x0F to</span>
-<a name="l02052"></a>02052 <span class="comment">                 * latch the counters (bit 7) and then 0x90 again.</span>
-<a name="l02053"></a>02053 <span class="comment">                 *</span>
-<a name="l02054"></a>02054 <span class="comment">                 * The theory is that Metal Force is doing this to trigger the mouse interrupt periodically.</span>
-<a name="l02055"></a>02055 <span class="comment">                 * The question is whether this is how real hardware actually behaves, or not. If so, then</span>
-<a name="l02056"></a>02056 <span class="comment">                 * Metal Force is right in relying on this strange way of counting time. If not, then</span>
-<a name="l02057"></a>02057 <span class="comment">                 * Metal Force deserves to hang and/or fail from lack of interrupts for such a strange method</span>
-<a name="l02058"></a>02058 <span class="comment">                 * of counting time.</span>
-<a name="l02059"></a>02059 <span class="comment">                 *</span>
-<a name="l02060"></a>02060 <span class="comment">                 * Until I verify this on real hardware, I&#39;ll just put this hack here to make the intro sequence</span>
-<a name="l02061"></a>02061 <span class="comment">                 * work. --J.C. */</span>
-<a name="l02062"></a>02062                 <span class="keywordflow">if</span> (p7fd8_8255_mouse_int_enable)
-<a name="l02063"></a>02063                     MOUSE_DummyEvent();
-<a name="l02064"></a>02064 
-<a name="l02065"></a>02065                 <span class="keywordflow">break</span>;
-<a name="l02066"></a>02066             }
-<a name="l02067"></a>02067             <span class="comment">/* fall through */</span>
-<a name="l02068"></a>02068         <span class="keywordflow">default</span>:
-<a name="l02069"></a>02069             LOG_MSG(<span class="stringliteral">&quot;PC-98 8255 MOUSE: IO write port=0x%x val=0x%x&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)port,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)val);
-<a name="l02070"></a>02070             <span class="keywordflow">break</span>;
-<a name="l02071"></a>02071     };
-<a name="l02072"></a>02072 }
-<a name="l02073"></a>02073 
-<a name="l02074"></a>02074 <span class="keyword">static</span> Bitu read_p7fd9_mouse(Bitu port,Bitu <span class="comment">/*iolen*/</span>) {
-<a name="l02075"></a>02075     uint8_t bs;
-<a name="l02076"></a>02076     Bitu r;
-<a name="l02077"></a>02077 
-<a name="l02078"></a>02078     <span class="keywordflow">switch</span> (port&amp;6) {
-<a name="l02079"></a>02079         <span class="keywordflow">case</span> 0:<span class="comment">// 0x7FD9 Port A</span>
-<a name="l02080"></a>02080             <span class="comment">// bits [7:7] = !(LEFT BUTTON)</span>
-<a name="l02081"></a>02081             <span class="comment">// bits [6:6] = !(MIDDLE BUTTON)</span>
-<a name="l02082"></a>02082             <span class="comment">// bits [5:5] = !(RIGHT BUTTON)</span>
-<a name="l02083"></a>02083             <span class="comment">// bits [4:4] = 0 unused</span>
-<a name="l02084"></a>02084             <span class="comment">// bits [3:0] = 4 bit nibble latched via Port C</span>
-<a name="l02085"></a>02085             bs = Mouse_GetButtonState();
-<a name="l02086"></a>02086             r = 0x00;
-<a name="l02087"></a>02087 
-<a name="l02088"></a>02088             <span class="keywordflow">if</span> (!(bs &amp; 1)) r |= 0x80;       <span class="comment">// left button (inverted bit)</span>
-<a name="l02089"></a>02089             <span class="keywordflow">if</span> (!(bs &amp; 2)) r |= 0x20;       <span class="comment">// right button (inverted bit)</span>
-<a name="l02090"></a>02090             <span class="keywordflow">if</span> (!(bs &amp; 4)) r |= 0x40;       <span class="comment">// middle button (inverted bit)</span>
-<a name="l02091"></a>02091 
-<a name="l02092"></a>02092             <span class="keywordflow">if</span> (!p7fd9_8255_mouse_latch) {
-<a name="l02093"></a>02093                 p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
-<a name="l02094"></a>02094                 p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
-<a name="l02095"></a>02095             }
-<a name="l02096"></a>02096 
-<a name="l02097"></a>02097             <span class="keywordflow">switch</span> (p7fd9_8255_mouse_sel) {
-<a name="l02098"></a>02098                 <span class="keywordflow">case</span> 0: <span class="comment">// X delta</span>
-<a name="l02099"></a>02099                 <span class="keywordflow">case</span> 1:
-<a name="l02100"></a>02100                     r |= (uint8_t)(p7fd9_8255_mouse_x_latch &gt;&gt; ((p7fd9_8255_mouse_sel &amp; 1U) * 4U)) &amp; 0xF; <span class="comment">// sign extend is intentional</span>
-<a name="l02101"></a>02101                     <span class="keywordflow">break</span>;
-<a name="l02102"></a>02102                 <span class="keywordflow">case</span> 2: <span class="comment">// Y delta</span>
-<a name="l02103"></a>02103                 <span class="keywordflow">case</span> 3:
-<a name="l02104"></a>02104                     r |= (uint8_t)(p7fd9_8255_mouse_y_latch &gt;&gt; ((p7fd9_8255_mouse_sel &amp; 1U) * 4U)) &amp; 0xF; <span class="comment">// sign extend is intentional</span>
-<a name="l02105"></a>02105                     <span class="keywordflow">break</span>;
-<a name="l02106"></a>02106             };
-<a name="l02107"></a>02107 
-<a name="l02108"></a>02108             <span class="keywordflow">return</span> r;
-<a name="l02109"></a>02109         <span class="keywordflow">default</span>:
-<a name="l02110"></a>02110             LOG_MSG(<span class="stringliteral">&quot;PC-98 8255 MOUSE: IO read port=0x%x&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)port);
-<a name="l02111"></a>02111             <span class="keywordflow">break</span>;
-<a name="l02112"></a>02112     };
-<a name="l02113"></a>02113 
-<a name="l02114"></a>02114     <span class="keywordflow">return</span> 0;
+<a name="l01985"></a>01985 <span class="keywordtype">bool</span> p7fd8_8255_mouse_irq_signal = <span class="keyword">false</span>;
+<a name="l01986"></a>01986 
+<a name="l01987"></a>01987 <span class="keyword">extern</span> uint8_t MOUSE_IRQ;
+<a name="l01988"></a>01988 
+<a name="l01989"></a><a class="code" href="classPC98__Mouse__8255.html">01989</a> <span class="keyword">class </span><a class="code" href="classPC98__Mouse__8255.html">PC98_Mouse_8255</a> : <span class="keyword">public</span> <a class="code" href="classIntel8255.html">Intel8255</a> {
+<a name="l01990"></a>01990 <span class="keyword">public</span>:
+<a name="l01991"></a>01991     <a class="code" href="classPC98__Mouse__8255.html">PC98_Mouse_8255</a>() : <a class="code" href="classIntel8255.html">Intel8255</a>() {
+<a name="l01992"></a>01992         ppiName = <span class="stringliteral">&quot;Mouse 8255&quot;</span>;
+<a name="l01993"></a>01993         portNames[PortA] = <span class="stringliteral">&quot;Mouse input&quot;</span>;
+<a name="l01994"></a>01994         portNames[PortB] = <span class="stringliteral">&quot;TODO&quot;</span>;
+<a name="l01995"></a>01995         portNames[PortC] = <span class="stringliteral">&quot;TODO&quot;</span>;
+<a name="l01996"></a>01996         pinNames[PortA][0] = <span class="stringliteral">&quot;MD0 (counter latch bit 0)&quot;</span>;
+<a name="l01997"></a>01997         pinNames[PortA][1] = <span class="stringliteral">&quot;MD1 (counter latch bit 1)&quot;</span>;
+<a name="l01998"></a>01998         pinNames[PortA][2] = <span class="stringliteral">&quot;MD2 (counter latch bit 2)&quot;</span>;
+<a name="l01999"></a>01999         pinNames[PortA][3] = <span class="stringliteral">&quot;MD3 (counter latch bit 3)&quot;</span>;
+<a name="l02000"></a>02000         pinNames[PortA][4] = <span class="stringliteral">&quot;?&quot;</span>;
+<a name="l02001"></a>02001         pinNames[PortA][5] = <span class="stringliteral">&quot;!Right mouse button&quot;</span>;
+<a name="l02002"></a>02002         pinNames[PortA][6] = <span class="stringliteral">&quot;!Middle mouse button&quot;</span>;
+<a name="l02003"></a>02003         pinNames[PortA][7] = <span class="stringliteral">&quot;!Left mouse button&quot;</span>;
+<a name="l02004"></a>02004         pinNames[PortB][0] = <span class="stringliteral">&quot;?&quot;</span>;
+<a name="l02005"></a>02005         pinNames[PortB][1] = <span class="stringliteral">&quot;?&quot;</span>;
+<a name="l02006"></a>02006         pinNames[PortB][2] = <span class="stringliteral">&quot;?&quot;</span>;
+<a name="l02007"></a>02007         pinNames[PortB][3] = <span class="stringliteral">&quot;?&quot;</span>;
+<a name="l02008"></a>02008         pinNames[PortB][4] = <span class="stringliteral">&quot;?&quot;</span>;
+<a name="l02009"></a>02009         pinNames[PortB][5] = <span class="stringliteral">&quot;?&quot;</span>;
+<a name="l02010"></a>02010         pinNames[PortB][6] = <span class="stringliteral">&quot;?&quot;</span>;
+<a name="l02011"></a>02011         pinNames[PortB][7] = <span class="stringliteral">&quot;?&quot;</span>;
+<a name="l02012"></a>02012         pinNames[PortC][0] = <span class="stringliteral">&quot;?&quot;</span>;                               <span class="comment">// read</span>
+<a name="l02013"></a>02013         pinNames[PortC][1] = <span class="stringliteral">&quot;?&quot;</span>;                               <span class="comment">// read</span>
+<a name="l02014"></a>02014         pinNames[PortC][2] = <span class="stringliteral">&quot;DIP SW 3-8 80286 select V30&quot;</span>;     <span class="comment">// read</span>
+<a name="l02015"></a>02015         pinNames[PortC][3] = <span class="stringliteral">&quot;?&quot;</span>;                               <span class="comment">// read</span>
+<a name="l02016"></a>02016         pinNames[PortC][4] = <span class="stringliteral">&quot;Mouse interrupt inhibit&quot;</span>;         <span class="comment">// write</span>
+<a name="l02017"></a>02017         pinNames[PortC][5] = <span class="stringliteral">&quot;SHL, Counter latch upper nibble&quot;</span>; <span class="comment">// write</span>
+<a name="l02018"></a>02018         pinNames[PortC][6] = <span class="stringliteral">&quot;SXY, Counter latch Y (X if 0)&quot;</span>;   <span class="comment">// write</span>
+<a name="l02019"></a>02019         pinNames[PortC][7] = <span class="stringliteral">&quot;Counter latch and clear&quot;</span>;         <span class="comment">// write</span>
+<a name="l02020"></a>02020     }
+<a name="l02021"></a>02021     <span class="keyword">virtual</span> ~<a class="code" href="classPC98__Mouse__8255.html">PC98_Mouse_8255</a>() {
+<a name="l02022"></a>02022     }
+<a name="l02023"></a>02023 <span class="keyword">public</span>:
+<a name="l02024"></a>02024     <span class="comment">/* port A is input */</span>
+<a name="l02025"></a>02025     <span class="keyword">virtual</span> uint8_t inPortA(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{
+<a name="l02026"></a>02026         uint8_t bs;
+<a name="l02027"></a>02027         Bitu r;
+<a name="l02028"></a>02028 
+<a name="l02029"></a>02029         <span class="comment">// bits [7:7] = !(LEFT BUTTON)</span>
+<a name="l02030"></a>02030         <span class="comment">// bits [6:6] = !(MIDDLE BUTTON)</span>
+<a name="l02031"></a>02031         <span class="comment">// bits [5:5] = !(RIGHT BUTTON)</span>
+<a name="l02032"></a>02032         <span class="comment">// bits [4:4] = 0 unused</span>
+<a name="l02033"></a>02033         <span class="comment">// bits [3:0] = 4 bit nibble latched via Port C</span>
+<a name="l02034"></a>02034         bs = Mouse_GetButtonState();
+<a name="l02035"></a>02035         r = 0x00;
+<a name="l02036"></a>02036 
+<a name="l02037"></a>02037         <span class="keywordflow">if</span> (!(bs &amp; 1)) r |= 0x80;       <span class="comment">// left button (inverted bit)</span>
+<a name="l02038"></a>02038         <span class="keywordflow">if</span> (!(bs &amp; 2)) r |= 0x20;       <span class="comment">// right button (inverted bit)</span>
+<a name="l02039"></a>02039         <span class="keywordflow">if</span> (!(bs &amp; 4)) r |= 0x40;       <span class="comment">// middle button (inverted bit)</span>
+<a name="l02040"></a>02040 
+<a name="l02041"></a>02041         <span class="keywordflow">if</span> (!p7fd9_8255_mouse_latch) {
+<a name="l02042"></a>02042             p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
+<a name="l02043"></a>02043             p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
+<a name="l02044"></a>02044         }
+<a name="l02045"></a>02045 
+<a name="l02046"></a>02046         <span class="keywordflow">switch</span> (p7fd9_8255_mouse_sel) {
+<a name="l02047"></a>02047             <span class="keywordflow">case</span> 0: <span class="comment">// X delta</span>
+<a name="l02048"></a>02048             <span class="keywordflow">case</span> 1:
+<a name="l02049"></a>02049                 r |= (uint8_t)(p7fd9_8255_mouse_x_latch &gt;&gt; ((p7fd9_8255_mouse_sel &amp; 1U) * 4U)) &amp; 0xF; <span class="comment">// sign extend is intentional</span>
+<a name="l02050"></a>02050                 <span class="keywordflow">break</span>;
+<a name="l02051"></a>02051             <span class="keywordflow">case</span> 2: <span class="comment">// Y delta</span>
+<a name="l02052"></a>02052             <span class="keywordflow">case</span> 3:
+<a name="l02053"></a>02053                 r |= (uint8_t)(p7fd9_8255_mouse_y_latch &gt;&gt; ((p7fd9_8255_mouse_sel &amp; 1U) * 4U)) &amp; 0xF; <span class="comment">// sign extend is intentional</span>
+<a name="l02054"></a>02054                 <span class="keywordflow">break</span>;
+<a name="l02055"></a>02055         };
+<a name="l02056"></a>02056 
+<a name="l02057"></a>02057         <span class="keywordflow">return</span> r;
+<a name="l02058"></a>02058     }
+<a name="l02059"></a>02059     <span class="comment">/* port B is input */</span>
+<a name="l02060"></a>02060     <span class="keyword">virtual</span> uint8_t inPortB(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{
+<a name="l02061"></a>02061         <span class="comment">/* TODO */</span>
+<a name="l02062"></a>02062         <span class="keywordflow">return</span> 0x00;
+<a name="l02063"></a>02063     }
+<a name="l02064"></a>02064     <span class="comment">/* port C is input[3:0] and output[7:4] */</span>
+<a name="l02065"></a>02065     <span class="keyword">virtual</span> uint8_t inPortC(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{
+<a name="l02066"></a>02066         <span class="comment">/* TODO */</span>
+<a name="l02067"></a>02067         <span class="keywordflow">return</span> 0x00;
+<a name="l02068"></a>02068     }
+<a name="l02069"></a>02069     <span class="comment">/* port C is output (both halves) */</span>
+<a name="l02070"></a>02070     <span class="keyword">virtual</span> <span class="keywordtype">void</span> outPortC(<span class="keyword">const</span> uint8_t mask) {
+<a name="l02071"></a>02071         <span class="keywordflow">if</span> (mask &amp; 0x80) { <span class="comment">/* bit 7 */</span>
+<a name="l02072"></a>02072             <span class="comment">/* changing from 0 to 1 latches counters and clears them */</span>
+<a name="l02073"></a>02073             <span class="keywordflow">if</span> ((latchOutPortC &amp; 0x80) &amp;&amp; !p7fd9_8255_mouse_latch) { <span class="comment">// change from 0 to 1 latches counters and clears them</span>
+<a name="l02074"></a>02074                 p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
+<a name="l02075"></a>02075                 p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
+<a name="l02076"></a>02076                 p7fd9_8255_mouse_x = 0;
+<a name="l02077"></a>02077                 p7fd9_8255_mouse_y = 0;
+<a name="l02078"></a>02078             }
+<a name="l02079"></a>02079 
+<a name="l02080"></a>02080             p7fd9_8255_mouse_latch = (latchOutPortC &gt;&gt; 7) &amp; 1;
+<a name="l02081"></a>02081             p7fd8_8255_mouse_irq_signal = <span class="keyword">false</span>;<span class="comment">//This is a GUESS</span>
+<a name="l02082"></a>02082         }
+<a name="l02083"></a>02083         <span class="keywordflow">if</span> (mask &amp; 0x60) { <span class="comment">/* bits 6-5 */</span>
+<a name="l02084"></a>02084             p7fd9_8255_mouse_sel = (latchOutPortC &gt;&gt; 5) &amp; 3;
+<a name="l02085"></a>02085         }
+<a name="l02086"></a>02086         <span class="keywordflow">if</span> (mask &amp; 0x10) { <span class="comment">/* bit 4 */</span>
+<a name="l02087"></a>02087             uint8_t p = p7fd8_8255_mouse_int_enable;
+<a name="l02088"></a>02088 
+<a name="l02089"></a>02089             p7fd8_8255_mouse_int_enable = ((latchOutPortC &gt;&gt; 4) &amp; 1) ^ 1; <span class="comment">// bit 4 is interrupt MASK</span>
+<a name="l02090"></a>02090 
+<a name="l02091"></a>02091             <span class="keywordflow">if</span> (mode == 0x90 &amp;&amp; mask == 0xFF) {
+<a name="l02092"></a>02092                 <span class="comment">/* Metal Force (PC-98) likes to use the bus mouse as a periodic interrupt source</span>
+<a name="l02093"></a>02093 <span class="comment">                 * by setting mode byte 0x90 and re-sending that mode byte once per interrupt.</span>
+<a name="l02094"></a>02094 <span class="comment">                 * Does real hardware do this?? */</span>
+<a name="l02095"></a>02095                 <span class="keywordflow">if</span> (p7fd8_8255_mouse_int_enable)
+<a name="l02096"></a>02096                     MOUSE_DummyEvent();
+<a name="l02097"></a>02097             }
+<a name="l02098"></a>02098             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (p != p7fd8_8255_mouse_int_enable) {
+<a name="l02099"></a>02099                 <span class="comment">/* FIXME: If a mouse interrupt is pending but not yet read this should re-signal the IRQ */</span>
+<a name="l02100"></a>02100                 <span class="keywordflow">if</span> (p7fd8_8255_mouse_int_enable &amp;&amp; p7fd8_8255_mouse_irq_signal)
+<a name="l02101"></a>02101                     PIC_ActivateIRQ(MOUSE_IRQ);
+<a name="l02102"></a>02102                 <span class="keywordflow">else</span>
+<a name="l02103"></a>02103                     PIC_DeActivateIRQ(MOUSE_IRQ);
+<a name="l02104"></a>02104             }
+<a name="l02105"></a>02105         }
+<a name="l02106"></a>02106     }
+<a name="l02107"></a>02107 };
+<a name="l02108"></a>02108 
+<a name="l02109"></a>02109 <span class="keyword">static</span> <a class="code" href="classPC98__Mouse__8255.html">PC98_Mouse_8255</a> pc98_mouse_8255;
+<a name="l02110"></a>02110 
+<a name="l02112"></a>02112 <span class="keyword">static</span> <span class="keywordtype">void</span> write_p7fd9_mouse(Bitu port,Bitu val,Bitu <span class="comment">/*iolen*/</span>) {
+<a name="l02113"></a>02113     <span class="comment">/* 0x7FD9-0x7FDF odd */</span>
+<a name="l02114"></a>02114     pc98_mouse_8255.writeByPort((port - 0x7FD9) &gt;&gt; 1U,val);
 <a name="l02115"></a>02115 }
-<a name="l02117"></a>02117 
-<a name="l02118"></a>02118 <span class="keywordtype">void</span> KEYBOARD_OnEnterPC98(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l02119"></a>02119     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
-<a name="l02120"></a>02120 
-<a name="l02121"></a>02121     <span class="comment">/* TODO: Keyboard interface change, layout change. */</span>
+<a name="l02116"></a>02116 
+<a name="l02117"></a>02117 <span class="keyword">static</span> Bitu read_p7fd9_mouse(Bitu port,Bitu <span class="comment">/*iolen*/</span>) {
+<a name="l02118"></a>02118     <span class="comment">/* 0x7FD9-0x7FDF odd */</span>
+<a name="l02119"></a>02119     <span class="keywordflow">return</span> pc98_mouse_8255.readByPort((port - 0x7FD9) &gt;&gt; 1U);
+<a name="l02120"></a>02120 }
 <a name="l02122"></a>02122 
-<a name="l02123"></a>02123     <span class="comment">/* PC-98 uses the 8255 programmable peripheral interface. Install that here.</span>
-<a name="l02124"></a>02124 <span class="comment">     * Sometime in the future, move 8255 emulation to a separate file.</span>
-<a name="l02125"></a>02125 <span class="comment">     *</span>
-<a name="l02126"></a>02126 <span class="comment">     * The 8255 appears at I/O ports 0x31, 0x33, 0x35, 0x37 */</span>
-<a name="l02127"></a>02127     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l02128"></a>02128         <span class="keywordflow">for</span> (i=0;i &lt; 4;i++) {
-<a name="l02129"></a>02129             ReadHandler_8255_PC98[i].Uninstall();
-<a name="l02130"></a>02130             WriteHandler_8255_PC98[i].Uninstall();
-<a name="l02131"></a>02131         }
-<a name="l02132"></a>02132     }
-<a name="l02133"></a>02133 
-<a name="l02134"></a>02134     <span class="keywordflow">if</span> (!IS_PC98_ARCH) {
-<a name="l02135"></a>02135         <span class="comment">/* remove 60h-63h */</span>
-<a name="l02136"></a>02136         IO_FreeWriteHandler(0x60,IO_MB);
-<a name="l02137"></a>02137         IO_FreeReadHandler(0x60,IO_MB);
-<a name="l02138"></a>02138         IO_FreeWriteHandler(0x61,IO_MB);
-<a name="l02139"></a>02139         IO_FreeReadHandler(0x61,IO_MB);
-<a name="l02140"></a>02140         IO_FreeWriteHandler(0x64,IO_MB);
-<a name="l02141"></a>02141         IO_FreeReadHandler(0x64,IO_MB);
-<a name="l02142"></a>02142     }
-<a name="l02143"></a>02143 }
-<a name="l02144"></a>02144 
-<a name="l02145"></a>02145 <span class="keywordtype">void</span> KEYBOARD_OnEnterPC98_phase2(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l02146"></a>02146     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
-<a name="l02147"></a>02147 
-<a name="l02148"></a>02148     <span class="comment">/* Keyboard UART (8251) is at 0x41, 0x43. */</span>
-<a name="l02149"></a>02149     IO_RegisterWriteHandler(0x41,keyboard_pc98_8251_uart_41_write,IO_MB);
-<a name="l02150"></a>02150     IO_RegisterReadHandler(0x41,keyboard_pc98_8251_uart_41_read,IO_MB);
-<a name="l02151"></a>02151     IO_RegisterWriteHandler(0x43,keyboard_pc98_8251_uart_43_write,IO_MB);
-<a name="l02152"></a>02152     IO_RegisterReadHandler(0x43,keyboard_pc98_8251_uart_43_read,IO_MB);
-<a name="l02153"></a>02153 
-<a name="l02154"></a>02154     <span class="comment">/* PC-98 uses the 8255 programmable peripheral interface. Install that here.</span>
-<a name="l02155"></a>02155 <span class="comment">     * Sometime in the future, move 8255 emulation to a separate file.</span>
-<a name="l02156"></a>02156 <span class="comment">     *</span>
-<a name="l02157"></a>02157 <span class="comment">     * The 8255 appears at I/O ports 0x31, 0x33, 0x35, 0x37 */</span>
+<a name="l02123"></a>02123 <span class="keywordtype">void</span> KEYBOARD_OnEnterPC98(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l02124"></a>02124     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l02125"></a>02125 
+<a name="l02126"></a>02126     <span class="comment">/* TODO: Keyboard interface change, layout change. */</span>
+<a name="l02127"></a>02127 
+<a name="l02128"></a>02128     <span class="comment">/* PC-98 uses the 8255 programmable peripheral interface. Install that here.</span>
+<a name="l02129"></a>02129 <span class="comment">     * Sometime in the future, move 8255 emulation to a separate file.</span>
+<a name="l02130"></a>02130 <span class="comment">     *</span>
+<a name="l02131"></a>02131 <span class="comment">     * The 8255 appears at I/O ports 0x31, 0x33, 0x35, 0x37 */</span>
+<a name="l02132"></a>02132     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l02133"></a>02133         <span class="keywordflow">for</span> (i=0;i &lt; 4;i++) {
+<a name="l02134"></a>02134             ReadHandler_8255_PC98[i].Uninstall();
+<a name="l02135"></a>02135             WriteHandler_8255_PC98[i].Uninstall();
+<a name="l02136"></a>02136         }
+<a name="l02137"></a>02137     }
+<a name="l02138"></a>02138 
+<a name="l02139"></a>02139     <span class="keywordflow">if</span> (!IS_PC98_ARCH) {
+<a name="l02140"></a>02140         <span class="comment">/* remove 60h-63h */</span>
+<a name="l02141"></a>02141         IO_FreeWriteHandler(0x60,IO_MB);
+<a name="l02142"></a>02142         IO_FreeReadHandler(0x60,IO_MB);
+<a name="l02143"></a>02143         IO_FreeWriteHandler(0x61,IO_MB);
+<a name="l02144"></a>02144         IO_FreeReadHandler(0x61,IO_MB);
+<a name="l02145"></a>02145         IO_FreeWriteHandler(0x64,IO_MB);
+<a name="l02146"></a>02146         IO_FreeReadHandler(0x64,IO_MB);
+<a name="l02147"></a>02147     }
+<a name="l02148"></a>02148 }
+<a name="l02149"></a>02149 
+<a name="l02150"></a>02150 <span class="keywordtype">void</span> KEYBOARD_OnEnterPC98_phase2(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l02151"></a>02151     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l02152"></a>02152 
+<a name="l02153"></a>02153     <span class="comment">/* Keyboard UART (8251) is at 0x41, 0x43. */</span>
+<a name="l02154"></a>02154     IO_RegisterWriteHandler(0x41,keyboard_pc98_8251_uart_41_write,IO_MB);
+<a name="l02155"></a>02155     IO_RegisterReadHandler(0x41,keyboard_pc98_8251_uart_41_read,IO_MB);
+<a name="l02156"></a>02156     IO_RegisterWriteHandler(0x43,keyboard_pc98_8251_uart_43_write,IO_MB);
+<a name="l02157"></a>02157     IO_RegisterReadHandler(0x43,keyboard_pc98_8251_uart_43_read,IO_MB);
 <a name="l02158"></a>02158 
-<a name="l02159"></a>02159     <span class="comment">/* Port A = input</span>
-<a name="l02160"></a>02160 <span class="comment">     * Port B = input</span>
-<a name="l02161"></a>02161 <span class="comment">     * Port C = output */</span>
-<a name="l02162"></a>02162     <span class="comment">/* bit[7:7] =  1 = mode set</span>
-<a name="l02163"></a>02163 <span class="comment">     * bit[6:5] = 00 = port A mode 0</span>
-<a name="l02164"></a>02164 <span class="comment">     * bit[4:4] =  1 = port A input</span>
-<a name="l02165"></a>02165 <span class="comment">     * bit[3:3] =  0 = port C upper output              1001 0010 = 0x92</span>
-<a name="l02166"></a>02166 <span class="comment">     * bit[2:2] =  0 = port B mode 0</span>
-<a name="l02167"></a>02167 <span class="comment">     * bit[1:1] =  1 = port B input</span>
-<a name="l02168"></a>02168 <span class="comment">     * bit[0:0] =  0 = port C lower output */</span>
-<a name="l02169"></a>02169     pc98_sys_8255.writeControl(0x92);
-<a name="l02170"></a>02170     pc98_sys_8255.writePortC(0xF8); <span class="comment">/* SHUT0=1 SHUT1=1 mask printer RAM parity check buzzer inhibit */</span>
-<a name="l02171"></a>02171 
-<a name="l02172"></a>02172     <span class="keywordflow">for</span> (i=0;i &lt; 4;i++) {
-<a name="l02173"></a>02173         ReadHandler_8255_PC98[i].Uninstall();
-<a name="l02174"></a>02174         ReadHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_read,IO_MB);
-<a name="l02175"></a>02175 
-<a name="l02176"></a>02176         WriteHandler_8255_PC98[i].Uninstall();
-<a name="l02177"></a>02177         WriteHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_write,IO_MB);
-<a name="l02178"></a>02178     }
-<a name="l02179"></a>02179 
-<a name="l02180"></a>02180     <span class="comment">/* reset port */</span>
-<a name="l02181"></a>02181     Reset_PC98.Uninstall();
-<a name="l02182"></a>02182     Reset_PC98.Install(0xF0,pc98_reset_write,IO_MB);
-<a name="l02183"></a>02183 
-<a name="l02184"></a>02184     <span class="comment">/* Mouse */</span>
-<a name="l02185"></a>02185     <span class="keywordflow">for</span> (i=0;i &lt; 4;i++) {
-<a name="l02186"></a>02186         IO_RegisterWriteHandler(0x7FD9+(i*2),write_p7fd9_mouse,IO_MB);
-<a name="l02187"></a>02187         IO_RegisterReadHandler(0x7FD9+(i*2),read_p7fd9_mouse,IO_MB);
-<a name="l02188"></a>02188     }
-<a name="l02189"></a>02189 }
-<a name="l02190"></a>02190 
-<a name="l02191"></a>02191 <span class="keywordtype">void</span> KEYBOARD_OnReset(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l02192"></a>02192         <a class="code" href="classSection__prop.html">Section_prop</a> *section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;keyboard&quot;</span>));
-<a name="l02193"></a>02193 
-<a name="l02194"></a>02194         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Keyboard reinitializing&quot;</span>);
-<a name="l02195"></a>02195 
-<a name="l02196"></a>02196         <span class="keywordflow">if</span> ((keyb.enable_aux=section-&gt;Get_bool(<span class="stringliteral">&quot;aux&quot;</span>)) != <span class="keyword">false</span>) {
-<a name="l02197"></a>02197                 <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_NORMAL)(<span class="stringliteral">&quot;Keyboard AUX emulation enabled&quot;</span>);
-<a name="l02198"></a>02198         }
-<a name="l02199"></a>02199 
-<a name="l02200"></a>02200         TIMER_DelTickHandler(&amp;KEYBOARD_TickHandler);
-<a name="l02201"></a>02201 
-<a name="l02202"></a>02202         allow_keyb_reset = section-&gt;Get_bool(<span class="stringliteral">&quot;allow output port reset&quot;</span>);
-<a name="l02203"></a>02203 
-<a name="l02204"></a>02204         keyb.ps2mouse.int33_taken = 0;
-<a name="l02205"></a>02205         keyb.ps2mouse.reset_mode = MM_STREAM; <span class="comment">/* NTS: I was wrong: PS/2 mice default to streaming after reset */</span>
-<a name="l02206"></a>02206 
-<a name="l02207"></a>02207         <span class="keyword">const</span> <span class="keywordtype">char</span> * sbtype=section-&gt;Get_string(<span class="stringliteral">&quot;auxdevice&quot;</span>);
-<a name="l02208"></a>02208         keyb.ps2mouse.type = MOUSE_NONE;
-<a name="l02209"></a>02209         <span class="keywordflow">if</span> (sbtype != NULL) {
-<a name="l02210"></a>02210                 <span class="keywordflow">if</span> (!strcasecmp(sbtype,<span class="stringliteral">&quot;2button&quot;</span>))
-<a name="l02211"></a>02211                         keyb.ps2mouse.type=MOUSE_2BUTTON;
-<a name="l02212"></a>02212                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcasecmp(sbtype,<span class="stringliteral">&quot;3button&quot;</span>))
-<a name="l02213"></a>02213                         keyb.ps2mouse.type=MOUSE_3BUTTON;
-<a name="l02214"></a>02214                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcasecmp(sbtype,<span class="stringliteral">&quot;intellimouse&quot;</span>))
-<a name="l02215"></a>02215                         keyb.ps2mouse.type=MOUSE_INTELLIMOUSE;
-<a name="l02216"></a>02216                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcasecmp(sbtype,<span class="stringliteral">&quot;intellimouse45&quot;</span>))
-<a name="l02217"></a>02217                         keyb.ps2mouse.type=MOUSE_INTELLIMOUSE45;
-<a name="l02218"></a>02218                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcasecmp(sbtype,<span class="stringliteral">&quot;none&quot;</span>))
-<a name="l02219"></a>02219                         keyb.ps2mouse.type=MOUSE_NONE;
-<a name="l02220"></a>02220                 <span class="keywordflow">else</span> {
-<a name="l02221"></a>02221                         keyb.ps2mouse.type=MOUSE_INTELLIMOUSE;
-<a name="l02222"></a>02222                         <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_ERROR)(<span class="stringliteral">&quot;Assuming PS/2 intellimouse, I don&#39;t know what &#39;%s&#39; is&quot;</span>,sbtype);
-<a name="l02223"></a>02223                 }
-<a name="l02224"></a>02224         }
-<a name="l02225"></a>02225 
-<a name="l02226"></a>02226     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l02227"></a>02227         KEYBOARD_OnEnterPC98(NULL);
-<a name="l02228"></a>02228         KEYBOARD_OnEnterPC98_phase2(NULL);
-<a name="l02229"></a>02229     }
-<a name="l02230"></a>02230     <span class="keywordflow">else</span> {
-<a name="l02231"></a>02231         IO_RegisterWriteHandler(0x60,write_p60,IO_MB);
-<a name="l02232"></a>02232         IO_RegisterReadHandler(0x60,read_p60,IO_MB);
-<a name="l02233"></a>02233         IO_RegisterWriteHandler(0x61,write_p61,IO_MB);
-<a name="l02234"></a>02234         IO_RegisterReadHandler(0x61,read_p61,IO_MB);
-<a name="l02235"></a>02235         IO_RegisterWriteHandler(0x64,write_p64,IO_MB);
-<a name="l02236"></a>02236         IO_RegisterReadHandler(0x64,read_p64,IO_MB);
-<a name="l02237"></a>02237     }
-<a name="l02238"></a>02238 
-<a name="l02239"></a>02239         TIMER_AddTickHandler(&amp;KEYBOARD_TickHandler);
-<a name="l02240"></a>02240         write_p61(0,0,0);
-<a name="l02241"></a>02241         KEYBOARD_Reset();
-<a name="l02242"></a>02242         AUX_Reset();
-<a name="l02243"></a>02243 }
-<a name="l02244"></a>02244 
-<a name="l02245"></a>02245 <span class="keywordtype">void</span> KEYBOARD_Init() {
-<a name="l02246"></a>02246         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing keyboard emulation&quot;</span>);
-<a name="l02247"></a>02247 
-<a name="l02248"></a>02248         AddExitFunction(AddExitFunctionFuncPair(KEYBOARD_ShutDown));
-<a name="l02249"></a>02249 
-<a name="l02250"></a>02250         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(KEYBOARD_OnReset));
-<a name="l02251"></a>02251 }
-<a name="l02252"></a>02252 
-<a name="l02253"></a>02253 <span class="keywordtype">void</span> AUX_Reset() {
-<a name="l02254"></a>02254         keyb.ps2mouse.mode = keyb.ps2mouse.reset_mode;
-<a name="l02255"></a>02255         keyb.ps2mouse.acx = 0;
-<a name="l02256"></a>02256         keyb.ps2mouse.acy = 0;
-<a name="l02257"></a>02257         keyb.ps2mouse.samplerate = 80;
-<a name="l02258"></a>02258         keyb.ps2mouse.last_srate[0] = keyb.ps2mouse.last_srate[1] = keyb.ps2mouse.last_srate[2] = 0;
-<a name="l02259"></a>02259         keyb.ps2mouse.intellimouse_btn45 = <span class="keyword">false</span>;
-<a name="l02260"></a>02260         keyb.ps2mouse.intellimouse_mode = <span class="keyword">false</span>;
-<a name="l02261"></a>02261         keyb.ps2mouse.reporting = <span class="keyword">false</span>;
-<a name="l02262"></a>02262         keyb.ps2mouse.scale21 = <span class="keyword">false</span>;
-<a name="l02263"></a>02263         keyb.ps2mouse.resolution = 1;
-<a name="l02264"></a>02264         <span class="keywordflow">if</span> (keyb.ps2mouse.type != MOUSE_NONE &amp;&amp; keyb.ps2mouse.int33_taken)
-<a name="l02265"></a>02265                 <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_NORMAL)(<span class="stringliteral">&quot;PS/2 mouse emulation: taking over from INT 33h&quot;</span>);
-<a name="l02266"></a>02266         keyb.ps2mouse.int33_taken = 0;
-<a name="l02267"></a>02267         keyb.ps2mouse.l = keyb.ps2mouse.m = keyb.ps2mouse.r = <span class="keyword">false</span>;
-<a name="l02268"></a>02268 }
-<a name="l02269"></a>02269 
-<a name="l02270"></a>02270 <span class="keywordtype">void</span> AUX_INT33_Takeover() {
-<a name="l02271"></a>02271         <span class="keywordflow">if</span> (keyb.ps2mouse.type != MOUSE_NONE &amp;&amp; keyb.ps2mouse.int33_taken)
-<a name="l02272"></a>02272                 <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_NORMAL)(<span class="stringliteral">&quot;PS/2 mouse emulation: Program is using INT 33h, disabling direct AUX emulation&quot;</span>);
-<a name="l02273"></a>02273         keyb.ps2mouse.int33_taken = 1;
-<a name="l02274"></a>02274 }
-<a name="l02275"></a>02275 
-<a name="l02276"></a>02276 <span class="keywordtype">void</span> KEYBOARD_Reset() {
-<a name="l02277"></a>02277         <span class="comment">/* Init the keyb struct */</span>
-<a name="l02278"></a>02278         keyb.active=<span class="keyword">true</span>;
-<a name="l02279"></a>02279         keyb.scanning=<span class="keyword">true</span>;
-<a name="l02280"></a>02280         keyb.pending_key=-1;
-<a name="l02281"></a>02281         keyb.auxactive=<span class="keyword">false</span>;
-<a name="l02282"></a>02282         keyb.pending_key_state=<span class="keyword">false</span>;
-<a name="l02283"></a>02283         keyb.command=CMD_NONE;
-<a name="l02284"></a>02284         keyb.aux_command=ACMD_NONE;
-<a name="l02285"></a>02285         keyb.p60changed=<span class="keyword">false</span>;
-<a name="l02286"></a>02286         keyb.auxchanged=<span class="keyword">false</span>;
-<a name="l02287"></a>02287         keyb.led_state = 0x00;
-<a name="l02288"></a>02288         keyb.repeat.key=KBD_NONE;
-<a name="l02289"></a>02289         keyb.repeat.pause=200;
-<a name="l02290"></a>02290         keyb.repeat.rate=33;
-<a name="l02291"></a>02291         keyb.repeat.wait=0;
-<a name="l02292"></a>02292         keyb.leftctrl_pressed=<span class="keyword">false</span>;
-<a name="l02293"></a>02293         keyb.rightctrl_pressed=<span class="keyword">false</span>;
-<a name="l02294"></a>02294         keyb.scanset=1;
-<a name="l02295"></a>02295         <span class="comment">/* command byte */</span>
-<a name="l02296"></a>02296         keyb.cb_override_inhibit=<span class="keyword">false</span>;
-<a name="l02297"></a>02297         keyb.cb_irq12=<span class="keyword">false</span>;
-<a name="l02298"></a>02298         keyb.cb_irq1=<span class="keyword">true</span>;
-<a name="l02299"></a>02299         keyb.cb_xlat=<span class="keyword">true</span>;
-<a name="l02300"></a>02300         keyb.cb_sys=<span class="keyword">true</span>;
-<a name="l02301"></a>02301         keyb.reset=<span class="keyword">false</span>;
-<a name="l02302"></a>02302         <span class="comment">/* OK */</span>
-<a name="l02303"></a>02303         KEYBOARD_ClrBuffer();
-<a name="l02304"></a>02304         KEYBOARD_SetLEDs(0);
-<a name="l02305"></a>02305 }
-<a name="l02306"></a>02306 
-<a name="l02307"></a>02307 
-<a name="l02308"></a>02308 <span class="comment">//save state support</span>
-<a name="l02309"></a>02309 <span class="keywordtype">void</span> *KEYBOARD_TransferBuffer_PIC_Event = (<span class="keywordtype">void</span>*)KEYBOARD_TransferBuffer;
-<a name="l02310"></a>02310 <span class="keywordtype">void</span> *KEYBOARD_TickHandler_PIC_Timer = (<span class="keywordtype">void</span>*)KEYBOARD_TickHandler;
-<a name="l02311"></a>02311 
+<a name="l02159"></a>02159     <span class="comment">/* PC-98 uses the 8255 programmable peripheral interface. Install that here.</span>
+<a name="l02160"></a>02160 <span class="comment">     * Sometime in the future, move 8255 emulation to a separate file.</span>
+<a name="l02161"></a>02161 <span class="comment">     *</span>
+<a name="l02162"></a>02162 <span class="comment">     * The 8255 appears at I/O ports 0x31, 0x33, 0x35, 0x37 */</span>
+<a name="l02163"></a>02163 
+<a name="l02164"></a>02164     <span class="comment">/* Port A = input</span>
+<a name="l02165"></a>02165 <span class="comment">     * Port B = input</span>
+<a name="l02166"></a>02166 <span class="comment">     * Port C = output */</span>
+<a name="l02167"></a>02167     <span class="comment">/* bit[7:7] =  1 = mode set</span>
+<a name="l02168"></a>02168 <span class="comment">     * bit[6:5] = 00 = port A mode 0</span>
+<a name="l02169"></a>02169 <span class="comment">     * bit[4:4] =  1 = port A input</span>
+<a name="l02170"></a>02170 <span class="comment">     * bit[3:3] =  0 = port C upper output              1001 0010 = 0x92</span>
+<a name="l02171"></a>02171 <span class="comment">     * bit[2:2] =  0 = port B mode 0</span>
+<a name="l02172"></a>02172 <span class="comment">     * bit[1:1] =  1 = port B input</span>
+<a name="l02173"></a>02173 <span class="comment">     * bit[0:0] =  0 = port C lower output */</span>
+<a name="l02174"></a>02174     pc98_sys_8255.writeControl(0x92);
+<a name="l02175"></a>02175     pc98_sys_8255.writePortC(0xF8); <span class="comment">/* SHUT0=1 SHUT1=1 mask printer RAM parity check buzzer inhibit */</span>
+<a name="l02176"></a>02176 
+<a name="l02177"></a>02177     <span class="keywordflow">for</span> (i=0;i &lt; 4;i++) {
+<a name="l02178"></a>02178         ReadHandler_8255_PC98[i].Uninstall();
+<a name="l02179"></a>02179         ReadHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_read,IO_MB);
+<a name="l02180"></a>02180 
+<a name="l02181"></a>02181         WriteHandler_8255_PC98[i].Uninstall();
+<a name="l02182"></a>02182         WriteHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_write,IO_MB);
+<a name="l02183"></a>02183     }
+<a name="l02184"></a>02184 
+<a name="l02185"></a>02185     <span class="comment">/* reset port */</span>
+<a name="l02186"></a>02186     Reset_PC98.Uninstall();
+<a name="l02187"></a>02187     Reset_PC98.Install(0xF0,pc98_reset_write,IO_MB);
+<a name="l02188"></a>02188 
+<a name="l02189"></a>02189     <span class="comment">/* Mouse */</span>
+<a name="l02190"></a>02190     <span class="keywordflow">for</span> (i=0;i &lt; 4;i++) {
+<a name="l02191"></a>02191         IO_RegisterWriteHandler(0x7FD9+(i*2),write_p7fd9_mouse,IO_MB);
+<a name="l02192"></a>02192         IO_RegisterReadHandler(0x7FD9+(i*2),read_p7fd9_mouse,IO_MB);
+<a name="l02193"></a>02193     }
+<a name="l02194"></a>02194 
+<a name="l02195"></a>02195     <span class="comment">/* Port A = input</span>
+<a name="l02196"></a>02196 <span class="comment">     * Port B = input</span>
+<a name="l02197"></a>02197 <span class="comment">     * Port C = output */</span>
+<a name="l02198"></a>02198     <span class="comment">/* bit[7:7] =  1 = mode set</span>
+<a name="l02199"></a>02199 <span class="comment">     * bit[6:5] = 00 = port A mode 0</span>
+<a name="l02200"></a>02200 <span class="comment">     * bit[4:4] =  1 = port A input</span>
+<a name="l02201"></a>02201 <span class="comment">     * bit[3:3] =  0 = port C upper output              1001 0010 = 0x92</span>
+<a name="l02202"></a>02202 <span class="comment">     * bit[2:2] =  0 = port B mode 0</span>
+<a name="l02203"></a>02203 <span class="comment">     * bit[1:1] =  1 = port B input</span>
+<a name="l02204"></a>02204 <span class="comment">     * bit[0:0] =  1 = port C lower input */</span>
+<a name="l02205"></a>02205     pc98_mouse_8255.writeControl(0x93);
+<a name="l02206"></a>02206     pc98_mouse_8255.writePortC(0x00);
+<a name="l02207"></a>02207 }
+<a name="l02208"></a>02208 
+<a name="l02209"></a>02209 <span class="keywordtype">void</span> KEYBOARD_OnReset(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l02210"></a>02210         <a class="code" href="classSection__prop.html">Section_prop</a> *section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;keyboard&quot;</span>));
+<a name="l02211"></a>02211 
+<a name="l02212"></a>02212         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Keyboard reinitializing&quot;</span>);
+<a name="l02213"></a>02213 
+<a name="l02214"></a>02214         <span class="keywordflow">if</span> ((keyb.enable_aux=section-&gt;Get_bool(<span class="stringliteral">&quot;aux&quot;</span>)) != <span class="keyword">false</span>) {
+<a name="l02215"></a>02215                 <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_NORMAL)(<span class="stringliteral">&quot;Keyboard AUX emulation enabled&quot;</span>);
+<a name="l02216"></a>02216         }
+<a name="l02217"></a>02217 
+<a name="l02218"></a>02218         TIMER_DelTickHandler(&amp;KEYBOARD_TickHandler);
+<a name="l02219"></a>02219 
+<a name="l02220"></a>02220         allow_keyb_reset = section-&gt;Get_bool(<span class="stringliteral">&quot;allow output port reset&quot;</span>);
+<a name="l02221"></a>02221 
+<a name="l02222"></a>02222         keyb.ps2mouse.int33_taken = 0;
+<a name="l02223"></a>02223         keyb.ps2mouse.reset_mode = MM_STREAM; <span class="comment">/* NTS: I was wrong: PS/2 mice default to streaming after reset */</span>
+<a name="l02224"></a>02224 
+<a name="l02225"></a>02225         <span class="keyword">const</span> <span class="keywordtype">char</span> * sbtype=section-&gt;Get_string(<span class="stringliteral">&quot;auxdevice&quot;</span>);
+<a name="l02226"></a>02226         keyb.ps2mouse.type = MOUSE_NONE;
+<a name="l02227"></a>02227         <span class="keywordflow">if</span> (sbtype != NULL) {
+<a name="l02228"></a>02228                 <span class="keywordflow">if</span> (!strcasecmp(sbtype,<span class="stringliteral">&quot;2button&quot;</span>))
+<a name="l02229"></a>02229                         keyb.ps2mouse.type=MOUSE_2BUTTON;
+<a name="l02230"></a>02230                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcasecmp(sbtype,<span class="stringliteral">&quot;3button&quot;</span>))
+<a name="l02231"></a>02231                         keyb.ps2mouse.type=MOUSE_3BUTTON;
+<a name="l02232"></a>02232                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcasecmp(sbtype,<span class="stringliteral">&quot;intellimouse&quot;</span>))
+<a name="l02233"></a>02233                         keyb.ps2mouse.type=MOUSE_INTELLIMOUSE;
+<a name="l02234"></a>02234                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcasecmp(sbtype,<span class="stringliteral">&quot;intellimouse45&quot;</span>))
+<a name="l02235"></a>02235                         keyb.ps2mouse.type=MOUSE_INTELLIMOUSE45;
+<a name="l02236"></a>02236                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcasecmp(sbtype,<span class="stringliteral">&quot;none&quot;</span>))
+<a name="l02237"></a>02237                         keyb.ps2mouse.type=MOUSE_NONE;
+<a name="l02238"></a>02238                 <span class="keywordflow">else</span> {
+<a name="l02239"></a>02239                         keyb.ps2mouse.type=MOUSE_INTELLIMOUSE;
+<a name="l02240"></a>02240                         <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_ERROR)(<span class="stringliteral">&quot;Assuming PS/2 intellimouse, I don&#39;t know what &#39;%s&#39; is&quot;</span>,sbtype);
+<a name="l02241"></a>02241                 }
+<a name="l02242"></a>02242         }
+<a name="l02243"></a>02243 
+<a name="l02244"></a>02244     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l02245"></a>02245         KEYBOARD_OnEnterPC98(NULL);
+<a name="l02246"></a>02246         KEYBOARD_OnEnterPC98_phase2(NULL);
+<a name="l02247"></a>02247     }
+<a name="l02248"></a>02248     <span class="keywordflow">else</span> {
+<a name="l02249"></a>02249         IO_RegisterWriteHandler(0x60,write_p60,IO_MB);
+<a name="l02250"></a>02250         IO_RegisterReadHandler(0x60,read_p60,IO_MB);
+<a name="l02251"></a>02251         IO_RegisterWriteHandler(0x61,write_p61,IO_MB);
+<a name="l02252"></a>02252         IO_RegisterReadHandler(0x61,read_p61,IO_MB);
+<a name="l02253"></a>02253         IO_RegisterWriteHandler(0x64,write_p64,IO_MB);
+<a name="l02254"></a>02254         IO_RegisterReadHandler(0x64,read_p64,IO_MB);
+<a name="l02255"></a>02255     }
+<a name="l02256"></a>02256 
+<a name="l02257"></a>02257         TIMER_AddTickHandler(&amp;KEYBOARD_TickHandler);
+<a name="l02258"></a>02258         write_p61(0,0,0);
+<a name="l02259"></a>02259         KEYBOARD_Reset();
+<a name="l02260"></a>02260         AUX_Reset();
+<a name="l02261"></a>02261 }
+<a name="l02262"></a>02262 
+<a name="l02263"></a>02263 <span class="keywordtype">void</span> KEYBOARD_Init() {
+<a name="l02264"></a>02264         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing keyboard emulation&quot;</span>);
+<a name="l02265"></a>02265 
+<a name="l02266"></a>02266         AddExitFunction(AddExitFunctionFuncPair(KEYBOARD_ShutDown));
+<a name="l02267"></a>02267 
+<a name="l02268"></a>02268         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(KEYBOARD_OnReset));
+<a name="l02269"></a>02269 }
+<a name="l02270"></a>02270 
+<a name="l02271"></a>02271 <span class="keywordtype">void</span> AUX_Reset() {
+<a name="l02272"></a>02272         keyb.ps2mouse.mode = keyb.ps2mouse.reset_mode;
+<a name="l02273"></a>02273         keyb.ps2mouse.acx = 0;
+<a name="l02274"></a>02274         keyb.ps2mouse.acy = 0;
+<a name="l02275"></a>02275         keyb.ps2mouse.samplerate = 80;
+<a name="l02276"></a>02276         keyb.ps2mouse.last_srate[0] = keyb.ps2mouse.last_srate[1] = keyb.ps2mouse.last_srate[2] = 0;
+<a name="l02277"></a>02277         keyb.ps2mouse.intellimouse_btn45 = <span class="keyword">false</span>;
+<a name="l02278"></a>02278         keyb.ps2mouse.intellimouse_mode = <span class="keyword">false</span>;
+<a name="l02279"></a>02279         keyb.ps2mouse.reporting = <span class="keyword">false</span>;
+<a name="l02280"></a>02280         keyb.ps2mouse.scale21 = <span class="keyword">false</span>;
+<a name="l02281"></a>02281         keyb.ps2mouse.resolution = 1;
+<a name="l02282"></a>02282         <span class="keywordflow">if</span> (keyb.ps2mouse.type != MOUSE_NONE &amp;&amp; keyb.ps2mouse.int33_taken)
+<a name="l02283"></a>02283                 <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_NORMAL)(<span class="stringliteral">&quot;PS/2 mouse emulation: taking over from INT 33h&quot;</span>);
+<a name="l02284"></a>02284         keyb.ps2mouse.int33_taken = 0;
+<a name="l02285"></a>02285         keyb.ps2mouse.l = keyb.ps2mouse.m = keyb.ps2mouse.r = <span class="keyword">false</span>;
+<a name="l02286"></a>02286 }
+<a name="l02287"></a>02287 
+<a name="l02288"></a>02288 <span class="keywordtype">void</span> AUX_INT33_Takeover() {
+<a name="l02289"></a>02289         <span class="keywordflow">if</span> (keyb.ps2mouse.type != MOUSE_NONE &amp;&amp; keyb.ps2mouse.int33_taken)
+<a name="l02290"></a>02290                 <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_NORMAL)(<span class="stringliteral">&quot;PS/2 mouse emulation: Program is using INT 33h, disabling direct AUX emulation&quot;</span>);
+<a name="l02291"></a>02291         keyb.ps2mouse.int33_taken = 1;
+<a name="l02292"></a>02292 }
+<a name="l02293"></a>02293 
+<a name="l02294"></a>02294 <span class="keywordtype">void</span> KEYBOARD_Reset() {
+<a name="l02295"></a>02295         <span class="comment">/* Init the keyb struct */</span>
+<a name="l02296"></a>02296         keyb.active=<span class="keyword">true</span>;
+<a name="l02297"></a>02297         keyb.scanning=<span class="keyword">true</span>;
+<a name="l02298"></a>02298         keyb.pending_key=-1;
+<a name="l02299"></a>02299         keyb.auxactive=<span class="keyword">false</span>;
+<a name="l02300"></a>02300         keyb.pending_key_state=<span class="keyword">false</span>;
+<a name="l02301"></a>02301         keyb.command=CMD_NONE;
+<a name="l02302"></a>02302         keyb.aux_command=ACMD_NONE;
+<a name="l02303"></a>02303         keyb.p60changed=<span class="keyword">false</span>;
+<a name="l02304"></a>02304         keyb.auxchanged=<span class="keyword">false</span>;
+<a name="l02305"></a>02305         keyb.led_state = 0x00;
+<a name="l02306"></a>02306         keyb.repeat.key=KBD_NONE;
+<a name="l02307"></a>02307         keyb.repeat.pause=200;
+<a name="l02308"></a>02308         keyb.repeat.rate=33;
+<a name="l02309"></a>02309         keyb.repeat.wait=0;
+<a name="l02310"></a>02310         keyb.leftctrl_pressed=<span class="keyword">false</span>;
+<a name="l02311"></a>02311         keyb.rightctrl_pressed=<span class="keyword">false</span>;
+<a name="l02312"></a>02312         keyb.scanset=1;
+<a name="l02313"></a>02313         <span class="comment">/* command byte */</span>
+<a name="l02314"></a>02314         keyb.cb_override_inhibit=<span class="keyword">false</span>;
+<a name="l02315"></a>02315         keyb.cb_irq12=<span class="keyword">false</span>;
+<a name="l02316"></a>02316         keyb.cb_irq1=<span class="keyword">true</span>;
+<a name="l02317"></a>02317         keyb.cb_xlat=<span class="keyword">true</span>;
+<a name="l02318"></a>02318         keyb.cb_sys=<span class="keyword">true</span>;
+<a name="l02319"></a>02319         keyb.reset=<span class="keyword">false</span>;
+<a name="l02320"></a>02320         <span class="comment">/* OK */</span>
+<a name="l02321"></a>02321         KEYBOARD_ClrBuffer();
+<a name="l02322"></a>02322         KEYBOARD_SetLEDs(0);
+<a name="l02323"></a>02323 }
+<a name="l02324"></a>02324 
+<a name="l02325"></a>02325 
+<a name="l02326"></a>02326 <span class="comment">//save state support</span>
+<a name="l02327"></a>02327 <span class="keywordtype">void</span> *KEYBOARD_TransferBuffer_PIC_Event = (<span class="keywordtype">void</span>*)KEYBOARD_TransferBuffer;
+<a name="l02328"></a>02328 <span class="keywordtype">void</span> *KEYBOARD_TickHandler_PIC_Timer = (<span class="keywordtype">void</span>*)KEYBOARD_TickHandler;
+<a name="l02329"></a>02329 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 20 2018 22:06:41 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Apr 20 2018 12:41:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

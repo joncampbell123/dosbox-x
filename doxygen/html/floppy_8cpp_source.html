@@ -266,7 +266,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00170"></a>00170                 idx,devidx,fdc-&gt;motor_steps,fdc-&gt;motor_dir,fdc-&gt;current_cylinder[devidx]);
 <a name="l00171"></a>00171 <span class="preprocessor">#endif</span>
 <a name="l00172"></a>00172 <span class="preprocessor"></span>
-<a name="l00173"></a>00173         <span class="keywordflow">if</span> (dev != NULL &amp;&amp; dev-&gt;track0) {
+<a name="l00173"></a>00173         <span class="keywordflow">if</span> (dev != NULL &amp;&amp; dev-&gt;track0 &amp;&amp; fdc-&gt;motor_dir &lt; 0) {
 <a name="l00174"></a>00174                 LOG_MSG(<span class="stringliteral">&quot;FDC: motor step abort. floppy drive signalling track0\n&quot;</span>);
 <a name="l00175"></a>00175                 fdc-&gt;motor_steps = 0;
 <a name="l00176"></a>00176                 fdc-&gt;current_cylinder[devidx] = 0;
@@ -782,596 +782,608 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00686"></a>00686 
 <a name="l00687"></a>00687                                         <span class="comment">/* if we&#39;re at the last sector of the track according to program, then stop */</span>
 <a name="l00688"></a>00688                                         <span class="keywordflow">if</span> (in_cmd[4] == in_cmd[6]) <span class="keywordflow">break</span>;
-<a name="l00689"></a>00689                                 }
-<a name="l00690"></a>00690 
-<a name="l00691"></a>00691                                 <span class="keywordflow">if</span> (fail) {
-<a name="l00692"></a>00692                                         ST[0] = (ST[0] &amp; 0x3F) | 0x80;
-<a name="l00693"></a>00693                                         ST[1] = (1 &lt;&lt; 0)<span class="comment">/*missing address mark*/</span> | (1 &lt;&lt; 2)<span class="comment">/*no data*/</span>;
-<a name="l00694"></a>00694                                         ST[2] = (1 &lt;&lt; 0)<span class="comment">/*missing data address mark*/</span>;
-<a name="l00695"></a>00695                                         prepare_res_phase(1);
-<a name="l00696"></a>00696                                         out_res[0] = ST[0];
-<a name="l00697"></a>00697                                 }
-<a name="l00698"></a>00698                                 <span class="keywordflow">else</span> {
-<a name="l00699"></a>00699                                         prepare_res_phase(7);
-<a name="l00700"></a>00700                                         out_res[0] = ST[0];
-<a name="l00701"></a>00701                                         out_res[1] = ST[1];
-<a name="l00702"></a>00702                                         out_res[2] = ST[2];
-<a name="l00703"></a>00703                                         out_res[3] = in_cmd[2];
-<a name="l00704"></a>00704                                         out_res[4] = in_cmd[3];
-<a name="l00705"></a>00705                                         out_res[5] = in_cmd[4];         <span class="comment">/* the sector passing under the head at this time */</span>
-<a name="l00706"></a>00706                                         out_res[6] = 2;                 <span class="comment">/* 128 &lt;&lt; 2 == 512 bytes/sector */</span>
-<a name="l00707"></a>00707                                 }
-<a name="l00708"></a>00708                         }
-<a name="l00709"></a>00709                         <span class="keywordflow">else</span> {
-<a name="l00710"></a>00710                                 <span class="comment">/* TODO: real floppy controllers will pause for up to 1/2 a second before erroring out */</span>
-<a name="l00711"></a>00711                                 reset_res();
-<a name="l00712"></a>00712                                 ST[0] = (ST[0] &amp; 0x3F) | 0x80;
-<a name="l00713"></a>00713                                 ST[1] = (1 &lt;&lt; 0)<span class="comment">/*missing address mark*/</span> | (1 &lt;&lt; 2)<span class="comment">/*no data*/</span>;
-<a name="l00714"></a>00714                                 ST[2] = (1 &lt;&lt; 0)<span class="comment">/*missing data address mark*/</span>;
-<a name="l00715"></a>00715                                 prepare_res_phase(1);
-<a name="l00716"></a>00716                                 out_res[0] = ST[0];
-<a name="l00717"></a>00717                         }
-<a name="l00718"></a>00718                         raise_irq();
-<a name="l00719"></a>00719                         <span class="keywordflow">break</span>;
-<a name="l00720"></a>00720                 <span class="keywordflow">case</span> 0x06: <span class="comment">/* Read data (0110) */</span>
-<a name="l00721"></a>00721                         <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l00722"></a>00722 <span class="comment">                         * ----+------------------------------------------</span>
-<a name="l00723"></a>00723 <span class="comment">                         *   0 |               Register ST0</span>
-<a name="l00724"></a>00724 <span class="comment">                         *   1 |               Register ST1</span>
-<a name="l00725"></a>00725 <span class="comment">                         *   2 |               Register ST2</span>
-<a name="l00726"></a>00726 <span class="comment">                         *   3 |             Logical cylinder</span>
-<a name="l00727"></a>00727 <span class="comment">                         *   4 |               Logical head</span>
-<a name="l00728"></a>00728 <span class="comment">                         *   5 |              Logical sector</span>
-<a name="l00729"></a>00729 <span class="comment">                         *   6 |           Logical sector size</span>
-<a name="l00730"></a>00730 <span class="comment">                         * -----------------------------------------------</span>
-<a name="l00731"></a>00731 <span class="comment">                         *   7     total</span>
-<a name="l00732"></a>00732 <span class="comment">                         */</span>
-<a name="l00733"></a>00733                         <span class="comment">/* must have a device present. must have an image. device motor and select must be enabled.</span>
-<a name="l00734"></a>00734 <span class="comment">                         * current physical cylinder position must be within range of the image. request must have MFM bit set. */</span>
-<a name="l00735"></a>00735                         dma = GetDMAChannel(DMA);
-<a name="l00736"></a>00736                         <span class="keywordflow">if</span> (dev != NULL &amp;&amp; dma != NULL &amp;&amp; dev-&gt;motor &amp;&amp; dev-&gt;select &amp;&amp; image != NULL &amp;&amp; (in_cmd[0]&amp;0x40)<span class="comment">/*MFM=1*/</span> &amp;&amp;
-<a name="l00737"></a>00737                                 current_cylinder[devidx] &lt; image-&gt;cylinders &amp;&amp; (in_cmd[1]&amp;4?1:0) &lt;= image-&gt;heads &amp;&amp;
-<a name="l00738"></a>00738                                 (in_cmd[1]&amp;4?1:0) == in_cmd[3] &amp;&amp; in_cmd[2] == current_cylinder[devidx] &amp;&amp;
-<a name="l00739"></a>00739                                 in_cmd[5] == 2<span class="comment">/*512 bytes/sector*/</span> &amp;&amp; in_cmd[4] &gt; 0 &amp;&amp; in_cmd[4] &lt;= image-&gt;sectors) {
-<a name="l00740"></a>00740                                 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> sector[512];
-<a name="l00741"></a>00741                                 <span class="keywordtype">bool</span> fail = <span class="keyword">false</span>;
-<a name="l00742"></a>00742 
-<a name="l00743"></a>00743                                 <span class="comment">/* TODO: delay related to how long it takes for the disk to rotate around to the sector requested */</span>
-<a name="l00744"></a>00744                                 reset_res();
-<a name="l00745"></a>00745                                 ST[0] = 0x00 | devidx;
-<a name="l00746"></a>00746 
-<a name="l00747"></a>00747                                 <span class="keywordflow">while</span> (!fail &amp;&amp; !dma-&gt;tcount<span class="comment">/*terminal count*/</span>) {
-<a name="l00748"></a>00748                                         <span class="comment">/* if we&#39;re reading past the track, fail */</span>
-<a name="l00749"></a>00749                                         <span class="keywordflow">if</span> (in_cmd[4] &gt; image-&gt;sectors) {
-<a name="l00750"></a>00750                                                 fail = <span class="keyword">true</span>;
-<a name="l00751"></a>00751                                                 <span class="keywordflow">break</span>;
-<a name="l00752"></a>00752                                         }
-<a name="l00753"></a>00753 
-<a name="l00754"></a>00754                                         <span class="comment">/* read sector */</span>
-<a name="l00755"></a>00755                                         Bit8u err = image-&gt;Read_Sector(in_cmd[3]<span class="comment">/*head*/</span>,in_cmd[2]<span class="comment">/*cylinder*/</span>,in_cmd[4]<span class="comment">/*sector*/</span>,sector);
-<a name="l00756"></a>00756                                         <span class="keywordflow">if</span> (err != 0x00) {
-<a name="l00757"></a>00757                                                 fail = <span class="keyword">true</span>;
-<a name="l00758"></a>00758                                                 <span class="keywordflow">break</span>;
-<a name="l00759"></a>00759                                         }
-<a name="l00760"></a>00760 
-<a name="l00761"></a>00761                                         <span class="comment">/* DMA transfer */</span>
-<a name="l00762"></a>00762                                         dma-&gt;Register_Callback(0);
-<a name="l00763"></a>00763                                         <span class="keywordflow">if</span> (dma-&gt;Write(512,sector) != 512) <span class="keywordflow">break</span>;
-<a name="l00764"></a>00764 
-<a name="l00765"></a>00765                                         <span class="comment">/* if we&#39;re at the last sector of the track according to program, then stop */</span>
-<a name="l00766"></a>00766                                         <span class="keywordflow">if</span> (in_cmd[4] == in_cmd[6]) <span class="keywordflow">break</span>;
-<a name="l00767"></a>00767                                 }
-<a name="l00768"></a>00768 
-<a name="l00769"></a>00769                                 <span class="keywordflow">if</span> (fail) {
-<a name="l00770"></a>00770                                         ST[0] = (ST[0] &amp; 0x3F) | 0x80;
-<a name="l00771"></a>00771                                         ST[1] = (1 &lt;&lt; 0)<span class="comment">/*missing address mark*/</span> | (1 &lt;&lt; 2)<span class="comment">/*no data*/</span>;
-<a name="l00772"></a>00772                                         ST[2] = (1 &lt;&lt; 0)<span class="comment">/*missing data address mark*/</span>;
-<a name="l00773"></a>00773                                         prepare_res_phase(1);
-<a name="l00774"></a>00774                                         out_res[0] = ST[0];
-<a name="l00775"></a>00775                                 }
-<a name="l00776"></a>00776                                 <span class="keywordflow">else</span> {
-<a name="l00777"></a>00777                                         prepare_res_phase(7);
-<a name="l00778"></a>00778                                         out_res[0] = ST[0];
-<a name="l00779"></a>00779                                         out_res[1] = ST[1];
-<a name="l00780"></a>00780                                         out_res[2] = ST[2];
-<a name="l00781"></a>00781                                         out_res[3] = in_cmd[2];
-<a name="l00782"></a>00782                                         out_res[4] = in_cmd[3];
-<a name="l00783"></a>00783                                         out_res[5] = in_cmd[4];         <span class="comment">/* the sector passing under the head at this time */</span>
-<a name="l00784"></a>00784                                         out_res[6] = 2;                 <span class="comment">/* 128 &lt;&lt; 2 == 512 bytes/sector */</span>
-<a name="l00785"></a>00785                                 }
-<a name="l00786"></a>00786                         }
-<a name="l00787"></a>00787                         <span class="keywordflow">else</span> {
-<a name="l00788"></a>00788                                 <span class="comment">/* TODO: real floppy controllers will pause for up to 1/2 a second before erroring out */</span>
-<a name="l00789"></a>00789                                 reset_res();
-<a name="l00790"></a>00790                                 ST[0] = (ST[0] &amp; 0x3F) | 0x80;
-<a name="l00791"></a>00791                                 ST[1] = (1 &lt;&lt; 0)<span class="comment">/*missing address mark*/</span> | (1 &lt;&lt; 2)<span class="comment">/*no data*/</span>;
-<a name="l00792"></a>00792                                 ST[2] = (1 &lt;&lt; 0)<span class="comment">/*missing data address mark*/</span>;
-<a name="l00793"></a>00793                                 prepare_res_phase(1);
-<a name="l00794"></a>00794                                 out_res[0] = ST[0];
-<a name="l00795"></a>00795                         }
-<a name="l00796"></a>00796                         raise_irq();
-<a name="l00797"></a>00797                         <span class="keywordflow">break</span>;
-<a name="l00798"></a>00798                 <span class="keywordflow">case</span> 0x07: <span class="comment">/* Calibrate drive */</span>
-<a name="l00799"></a>00799                         ST[0] = 0x20 | devidx;
-<a name="l00800"></a>00800                         <span class="keywordflow">if</span> (instant_mode) {
-<a name="l00801"></a>00801                                 <span class="comment">/* move head to track 0 */</span>
-<a name="l00802"></a>00802                                 current_cylinder[devidx] = 0;
-<a name="l00803"></a>00803                                 <span class="comment">/* fire IRQ */</span>
-<a name="l00804"></a>00804                                 raise_irq();
-<a name="l00805"></a>00805                                 <span class="comment">/* no result phase */</span>
-<a name="l00806"></a>00806                                 reset_io();
+<a name="l00689"></a>00689 
+<a name="l00690"></a>00690                     <span class="comment">/* next sector (TODO &quot;multi-track&quot; mode) */</span>
+<a name="l00691"></a>00691                     <span class="keywordflow">if</span> (in_cmd[4] == image-&gt;sectors)
+<a name="l00692"></a>00692                         in_cmd[4] = 1;
+<a name="l00693"></a>00693                     <span class="keywordflow">else</span>
+<a name="l00694"></a>00694                         in_cmd[4]++;
+<a name="l00695"></a>00695                                 }
+<a name="l00696"></a>00696 
+<a name="l00697"></a>00697                                 <span class="keywordflow">if</span> (fail) {
+<a name="l00698"></a>00698                                         ST[0] = (ST[0] &amp; 0x3F) | 0x80;
+<a name="l00699"></a>00699                                         ST[1] = (1 &lt;&lt; 0)<span class="comment">/*missing address mark*/</span> | (1 &lt;&lt; 2)<span class="comment">/*no data*/</span>;
+<a name="l00700"></a>00700                                         ST[2] = (1 &lt;&lt; 0)<span class="comment">/*missing data address mark*/</span>;
+<a name="l00701"></a>00701                                         prepare_res_phase(1);
+<a name="l00702"></a>00702                                         out_res[0] = ST[0];
+<a name="l00703"></a>00703                                 }
+<a name="l00704"></a>00704                                 <span class="keywordflow">else</span> {
+<a name="l00705"></a>00705                                         prepare_res_phase(7);
+<a name="l00706"></a>00706                                         out_res[0] = ST[0];
+<a name="l00707"></a>00707                                         out_res[1] = ST[1];
+<a name="l00708"></a>00708                                         out_res[2] = ST[2];
+<a name="l00709"></a>00709                                         out_res[3] = in_cmd[2];
+<a name="l00710"></a>00710                                         out_res[4] = in_cmd[3];
+<a name="l00711"></a>00711                                         out_res[5] = in_cmd[4];         <span class="comment">/* the sector passing under the head at this time */</span>
+<a name="l00712"></a>00712                                         out_res[6] = 2;                 <span class="comment">/* 128 &lt;&lt; 2 == 512 bytes/sector */</span>
+<a name="l00713"></a>00713                                 }
+<a name="l00714"></a>00714                         }
+<a name="l00715"></a>00715                         <span class="keywordflow">else</span> {
+<a name="l00716"></a>00716                                 <span class="comment">/* TODO: real floppy controllers will pause for up to 1/2 a second before erroring out */</span>
+<a name="l00717"></a>00717                                 reset_res();
+<a name="l00718"></a>00718                                 ST[0] = (ST[0] &amp; 0x3F) | 0x80;
+<a name="l00719"></a>00719                                 ST[1] = (1 &lt;&lt; 0)<span class="comment">/*missing address mark*/</span> | (1 &lt;&lt; 2)<span class="comment">/*no data*/</span>;
+<a name="l00720"></a>00720                                 ST[2] = (1 &lt;&lt; 0)<span class="comment">/*missing data address mark*/</span>;
+<a name="l00721"></a>00721                                 prepare_res_phase(1);
+<a name="l00722"></a>00722                                 out_res[0] = ST[0];
+<a name="l00723"></a>00723                         }
+<a name="l00724"></a>00724                         raise_irq();
+<a name="l00725"></a>00725                         <span class="keywordflow">break</span>;
+<a name="l00726"></a>00726                 <span class="keywordflow">case</span> 0x06: <span class="comment">/* Read data (0110) */</span>
+<a name="l00727"></a>00727                         <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l00728"></a>00728 <span class="comment">                         * ----+------------------------------------------</span>
+<a name="l00729"></a>00729 <span class="comment">                         *   0 |               Register ST0</span>
+<a name="l00730"></a>00730 <span class="comment">                         *   1 |               Register ST1</span>
+<a name="l00731"></a>00731 <span class="comment">                         *   2 |               Register ST2</span>
+<a name="l00732"></a>00732 <span class="comment">                         *   3 |             Logical cylinder</span>
+<a name="l00733"></a>00733 <span class="comment">                         *   4 |               Logical head</span>
+<a name="l00734"></a>00734 <span class="comment">                         *   5 |              Logical sector</span>
+<a name="l00735"></a>00735 <span class="comment">                         *   6 |           Logical sector size</span>
+<a name="l00736"></a>00736 <span class="comment">                         * -----------------------------------------------</span>
+<a name="l00737"></a>00737 <span class="comment">                         *   7     total</span>
+<a name="l00738"></a>00738 <span class="comment">                         */</span>
+<a name="l00739"></a>00739                         <span class="comment">/* must have a device present. must have an image. device motor and select must be enabled.</span>
+<a name="l00740"></a>00740 <span class="comment">                         * current physical cylinder position must be within range of the image. request must have MFM bit set. */</span>
+<a name="l00741"></a>00741                         dma = GetDMAChannel(DMA);
+<a name="l00742"></a>00742                         <span class="keywordflow">if</span> (dev != NULL &amp;&amp; dma != NULL &amp;&amp; dev-&gt;motor &amp;&amp; dev-&gt;select &amp;&amp; image != NULL &amp;&amp; (in_cmd[0]&amp;0x40)<span class="comment">/*MFM=1*/</span> &amp;&amp;
+<a name="l00743"></a>00743                                 current_cylinder[devidx] &lt; image-&gt;cylinders &amp;&amp; (in_cmd[1]&amp;4?1:0) &lt;= image-&gt;heads &amp;&amp;
+<a name="l00744"></a>00744                                 (in_cmd[1]&amp;4?1:0) == in_cmd[3] &amp;&amp; in_cmd[2] == current_cylinder[devidx] &amp;&amp;
+<a name="l00745"></a>00745                                 in_cmd[5] == 2<span class="comment">/*512 bytes/sector*/</span> &amp;&amp; in_cmd[4] &gt; 0 &amp;&amp; in_cmd[4] &lt;= image-&gt;sectors) {
+<a name="l00746"></a>00746                                 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> sector[512];
+<a name="l00747"></a>00747                                 <span class="keywordtype">bool</span> fail = <span class="keyword">false</span>;
+<a name="l00748"></a>00748 
+<a name="l00749"></a>00749                                 <span class="comment">/* TODO: delay related to how long it takes for the disk to rotate around to the sector requested */</span>
+<a name="l00750"></a>00750                                 reset_res();
+<a name="l00751"></a>00751                                 ST[0] = 0x00 | devidx;
+<a name="l00752"></a>00752 
+<a name="l00753"></a>00753                                 <span class="keywordflow">while</span> (!fail &amp;&amp; !dma-&gt;tcount<span class="comment">/*terminal count*/</span>) {
+<a name="l00754"></a>00754                                         <span class="comment">/* if we&#39;re reading past the track, fail */</span>
+<a name="l00755"></a>00755                                         <span class="keywordflow">if</span> (in_cmd[4] &gt; image-&gt;sectors) {
+<a name="l00756"></a>00756                                                 fail = <span class="keyword">true</span>;
+<a name="l00757"></a>00757                                                 <span class="keywordflow">break</span>;
+<a name="l00758"></a>00758                                         }
+<a name="l00759"></a>00759 
+<a name="l00760"></a>00760                                         <span class="comment">/* read sector */</span>
+<a name="l00761"></a>00761                                         Bit8u err = image-&gt;Read_Sector(in_cmd[3]<span class="comment">/*head*/</span>,in_cmd[2]<span class="comment">/*cylinder*/</span>,in_cmd[4]<span class="comment">/*sector*/</span>,sector);
+<a name="l00762"></a>00762                                         <span class="keywordflow">if</span> (err != 0x00) {
+<a name="l00763"></a>00763                                                 fail = <span class="keyword">true</span>;
+<a name="l00764"></a>00764                                                 <span class="keywordflow">break</span>;
+<a name="l00765"></a>00765                                         }
+<a name="l00766"></a>00766 
+<a name="l00767"></a>00767                                         <span class="comment">/* DMA transfer */</span>
+<a name="l00768"></a>00768                                         dma-&gt;Register_Callback(0);
+<a name="l00769"></a>00769                                         <span class="keywordflow">if</span> (dma-&gt;Write(512,sector) != 512) <span class="keywordflow">break</span>;
+<a name="l00770"></a>00770 
+<a name="l00771"></a>00771                                         <span class="comment">/* if we&#39;re at the last sector of the track according to program, then stop */</span>
+<a name="l00772"></a>00772                                         <span class="keywordflow">if</span> (in_cmd[4] == in_cmd[6]) <span class="keywordflow">break</span>;
+<a name="l00773"></a>00773 
+<a name="l00774"></a>00774                     <span class="comment">/* next sector (TODO &quot;multi-track&quot; mode) */</span>
+<a name="l00775"></a>00775                     <span class="keywordflow">if</span> (in_cmd[4] == image-&gt;sectors)
+<a name="l00776"></a>00776                         in_cmd[4] = 1;
+<a name="l00777"></a>00777                     <span class="keywordflow">else</span>
+<a name="l00778"></a>00778                         in_cmd[4]++;
+<a name="l00779"></a>00779                                 }
+<a name="l00780"></a>00780 
+<a name="l00781"></a>00781                                 <span class="keywordflow">if</span> (fail) {
+<a name="l00782"></a>00782                                         ST[0] = (ST[0] &amp; 0x3F) | 0x80;
+<a name="l00783"></a>00783                                         ST[1] = (1 &lt;&lt; 0)<span class="comment">/*missing address mark*/</span> | (1 &lt;&lt; 2)<span class="comment">/*no data*/</span>;
+<a name="l00784"></a>00784                                         ST[2] = (1 &lt;&lt; 0)<span class="comment">/*missing data address mark*/</span>;
+<a name="l00785"></a>00785                                         prepare_res_phase(1);
+<a name="l00786"></a>00786                                         out_res[0] = ST[0];
+<a name="l00787"></a>00787                                 }
+<a name="l00788"></a>00788                                 <span class="keywordflow">else</span> {
+<a name="l00789"></a>00789                                         prepare_res_phase(7);
+<a name="l00790"></a>00790                                         out_res[0] = ST[0];
+<a name="l00791"></a>00791                                         out_res[1] = ST[1];
+<a name="l00792"></a>00792                                         out_res[2] = ST[2];
+<a name="l00793"></a>00793                                         out_res[3] = in_cmd[2];
+<a name="l00794"></a>00794                                         out_res[4] = in_cmd[3];
+<a name="l00795"></a>00795                                         out_res[5] = in_cmd[4];         <span class="comment">/* the sector passing under the head at this time */</span>
+<a name="l00796"></a>00796                                         out_res[6] = 2;                 <span class="comment">/* 128 &lt;&lt; 2 == 512 bytes/sector */</span>
+<a name="l00797"></a>00797                                 }
+<a name="l00798"></a>00798                         }
+<a name="l00799"></a>00799                         <span class="keywordflow">else</span> {
+<a name="l00800"></a>00800                                 <span class="comment">/* TODO: real floppy controllers will pause for up to 1/2 a second before erroring out */</span>
+<a name="l00801"></a>00801                                 reset_res();
+<a name="l00802"></a>00802                                 ST[0] = (ST[0] &amp; 0x3F) | 0x80;
+<a name="l00803"></a>00803                                 ST[1] = (1 &lt;&lt; 0)<span class="comment">/*missing address mark*/</span> | (1 &lt;&lt; 2)<span class="comment">/*no data*/</span>;
+<a name="l00804"></a>00804                                 ST[2] = (1 &lt;&lt; 0)<span class="comment">/*missing data address mark*/</span>;
+<a name="l00805"></a>00805                                 prepare_res_phase(1);
+<a name="l00806"></a>00806                                 out_res[0] = ST[0];
 <a name="l00807"></a>00807                         }
-<a name="l00808"></a>00808                         <span class="keywordflow">else</span> {
-<a name="l00809"></a>00809                                 <span class="comment">/* delay due to stepping the head to the desired cylinder */</span>
-<a name="l00810"></a>00810                                 motor_steps = current_cylinder[devidx]; <span class="comment">/* always to track 0 */</span>
-<a name="l00811"></a>00811                                 <span class="keywordflow">if</span> (motor_steps &gt; 79) motor_steps = 79; <span class="comment">/* calibrate is said to max out at 79 */</span>
-<a name="l00812"></a>00812                                 motor_dir = -1; <span class="comment">/* always step backwards */</span>
-<a name="l00813"></a>00813 
-<a name="l00814"></a>00814                                 <span class="comment">/* the command takes time to move the head */</span>
-<a name="l00815"></a>00815                                 data_register_ready = 0;
-<a name="l00816"></a>00816                                 busy_status = 1;
-<a name="l00817"></a>00817 
-<a name="l00818"></a>00818                                 <span class="comment">/* and make it happen */</span>
-<a name="l00819"></a>00819                                 PIC_AddEvent(FDC_MotorStep,(motor_steps &gt; 0 ? fdc_motor_step_delay : 0.1)<span class="comment">/*ms*/</span>,interface_index);
-<a name="l00820"></a>00820 
-<a name="l00821"></a>00821                                 <span class="comment">/* return now */</span>
-<a name="l00822"></a>00822                                 <span class="keywordflow">return</span>;
-<a name="l00823"></a>00823                         }
-<a name="l00824"></a>00824                         <span class="keywordflow">break</span>;
-<a name="l00825"></a>00825                 <span class="keywordflow">case</span> 0x08: <span class="comment">/* Check Interrupt Status */</span>
-<a name="l00826"></a>00826                         <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l00827"></a>00827 <span class="comment">                         * ----+------------------------------------------</span>
-<a name="l00828"></a>00828 <span class="comment">                         *   0 |               Register ST0</span>
-<a name="l00829"></a>00829 <span class="comment">                         *   1 |              Current Cylinder</span>
-<a name="l00830"></a>00830 <span class="comment">                         * -----------------------------------------------</span>
-<a name="l00831"></a>00831 <span class="comment">                         *   2     total</span>
-<a name="l00832"></a>00832 <span class="comment">                         */</span>
-<a name="l00833"></a>00833                         <span class="keywordflow">if</span> (irq_pending) {
-<a name="l00834"></a>00834                                 lower_irq(); <span class="comment">/* doesn&#39;t cause IRQ, clears IRQ */</span>
-<a name="l00835"></a>00835                                 reset_res();
-<a name="l00836"></a>00836                                 prepare_res_phase(2);
-<a name="l00837"></a>00837                                 out_res[0] = ST[0];
-<a name="l00838"></a>00838                                 out_res[1] = current_cylinder[devidx];
-<a name="l00839"></a>00839                         }
-<a name="l00840"></a>00840                         <span class="keywordflow">else</span> {
-<a name="l00841"></a>00841                                 <span class="comment">/* if no pending IRQ, signal error.</span>
-<a name="l00842"></a>00842 <span class="comment">                                 * this is considered standard floppy controller behavior.</span>
-<a name="l00843"></a>00843 <span class="comment">                                 * this also fixes an issue where Windows 3.1 QIC tape backup software like Norton Backup (Norton Desktop 3.0)</span>
-<a name="l00844"></a>00844 <span class="comment">                                 * will &quot;hang&quot; Windows 3.1 polling the FDC in an endless loop if we don&#39;t return this error to say that no</span>
-<a name="l00845"></a>00845 <span class="comment">                                 * more IRQs are pending. */</span>
-<a name="l00846"></a>00846                                 reset_res();
-<a name="l00847"></a>00847                                 ST[0] = (ST[0] &amp; 0x3F) | 0x80;
-<a name="l00848"></a>00848                                 out_res[0] = ST[0];
-<a name="l00849"></a>00849                                 prepare_res_phase(1);
-<a name="l00850"></a>00850                         }
-<a name="l00851"></a>00851                         <span class="keywordflow">break</span>;
-<a name="l00852"></a>00852                 <span class="keywordflow">case</span> 0x0A: <span class="comment">/* Read ID */</span>
-<a name="l00853"></a>00853                         <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l00854"></a>00854 <span class="comment">                         * ----+------------------------------------------</span>
-<a name="l00855"></a>00855 <span class="comment">                         *   0 |               Register ST0</span>
-<a name="l00856"></a>00856 <span class="comment">                         *   1 |               Register ST1</span>
-<a name="l00857"></a>00857 <span class="comment">                         *   2 |               Register ST2</span>
-<a name="l00858"></a>00858 <span class="comment">                         *   3 |             Logical cylinder</span>
-<a name="l00859"></a>00859 <span class="comment">                         *   4 |               Logical head</span>
-<a name="l00860"></a>00860 <span class="comment">                         *   5 |              Logical sector</span>
-<a name="l00861"></a>00861 <span class="comment">                         *   6 |           Logical sector size</span>
-<a name="l00862"></a>00862 <span class="comment">                         * -----------------------------------------------</span>
-<a name="l00863"></a>00863 <span class="comment">                         *   7     total</span>
-<a name="l00864"></a>00864 <span class="comment">                         */</span>
-<a name="l00865"></a>00865                         <span class="comment">/* must have a device present. must have an image. device motor and select must be enabled.</span>
-<a name="l00866"></a>00866 <span class="comment">                         * current physical cylinder position must be within range of the image. request must have MFM bit set. */</span>
-<a name="l00867"></a>00867                         <span class="keywordflow">if</span> (dev != NULL &amp;&amp; dev-&gt;motor &amp;&amp; dev-&gt;select &amp;&amp; image != NULL &amp;&amp; (in_cmd[0]&amp;0x40)<span class="comment">/*MFM=1*/</span> &amp;&amp;
-<a name="l00868"></a>00868                                 current_cylinder[devidx] &lt; image-&gt;cylinders &amp;&amp; (in_cmd[1]&amp;4?1:0) &lt;= image-&gt;heads) {
-<a name="l00869"></a>00869                                 <span class="keywordtype">int</span> ns = (int)floor(dev-&gt;floppy_image_motor_position() * image-&gt;sectors);
-<a name="l00870"></a>00870                                 <span class="comment">/* TODO: minor delay to emulate time for one sector to pass under the head */</span>
-<a name="l00871"></a>00871                                 reset_res();
-<a name="l00872"></a>00872                                 out_res[0] = ST[0];
-<a name="l00873"></a>00873                                 out_res[1] = ST[1];
-<a name="l00874"></a>00874                                 out_res[2] = ST[2];
-<a name="l00875"></a>00875                                 out_res[3] = current_cylinder[devidx];
-<a name="l00876"></a>00876                                 out_res[4] = (in_cmd[1]&amp;4?1:0);
-<a name="l00877"></a>00877                                 out_res[5] = ns + 1;            <span class="comment">/* the sector passing under the head at this time */</span>
-<a name="l00878"></a>00878                                 out_res[6] = 2;                 <span class="comment">/* 128 &lt;&lt; 2 == 512 bytes/sector */</span>
-<a name="l00879"></a>00879                                 prepare_res_phase(7);
-<a name="l00880"></a>00880                         }
-<a name="l00881"></a>00881                         <span class="keywordflow">else</span> {
-<a name="l00882"></a>00882                                 <span class="comment">/* TODO: real floppy controllers will pause for up to 1/2 a second before erroring out */</span>
+<a name="l00808"></a>00808                         raise_irq();
+<a name="l00809"></a>00809                         <span class="keywordflow">break</span>;
+<a name="l00810"></a>00810                 <span class="keywordflow">case</span> 0x07: <span class="comment">/* Calibrate drive */</span>
+<a name="l00811"></a>00811                         ST[0] = 0x20 | devidx;
+<a name="l00812"></a>00812                         <span class="keywordflow">if</span> (instant_mode) {
+<a name="l00813"></a>00813                                 <span class="comment">/* move head to track 0 */</span>
+<a name="l00814"></a>00814                                 current_cylinder[devidx] = 0;
+<a name="l00815"></a>00815                                 <span class="comment">/* fire IRQ */</span>
+<a name="l00816"></a>00816                                 raise_irq();
+<a name="l00817"></a>00817                                 <span class="comment">/* no result phase */</span>
+<a name="l00818"></a>00818                                 reset_io();
+<a name="l00819"></a>00819                         }
+<a name="l00820"></a>00820                         <span class="keywordflow">else</span> {
+<a name="l00821"></a>00821                                 <span class="comment">/* delay due to stepping the head to the desired cylinder */</span>
+<a name="l00822"></a>00822                                 motor_steps = current_cylinder[devidx]; <span class="comment">/* always to track 0 */</span>
+<a name="l00823"></a>00823                                 <span class="keywordflow">if</span> (motor_steps &gt; 79) motor_steps = 79; <span class="comment">/* calibrate is said to max out at 79 */</span>
+<a name="l00824"></a>00824                                 motor_dir = -1; <span class="comment">/* always step backwards */</span>
+<a name="l00825"></a>00825 
+<a name="l00826"></a>00826                                 <span class="comment">/* the command takes time to move the head */</span>
+<a name="l00827"></a>00827                                 data_register_ready = 0;
+<a name="l00828"></a>00828                                 busy_status = 1;
+<a name="l00829"></a>00829 
+<a name="l00830"></a>00830                                 <span class="comment">/* and make it happen */</span>
+<a name="l00831"></a>00831                                 PIC_AddEvent(FDC_MotorStep,(motor_steps &gt; 0 ? fdc_motor_step_delay : 0.1)<span class="comment">/*ms*/</span>,interface_index);
+<a name="l00832"></a>00832 
+<a name="l00833"></a>00833                                 <span class="comment">/* return now */</span>
+<a name="l00834"></a>00834                                 <span class="keywordflow">return</span>;
+<a name="l00835"></a>00835                         }
+<a name="l00836"></a>00836                         <span class="keywordflow">break</span>;
+<a name="l00837"></a>00837                 <span class="keywordflow">case</span> 0x08: <span class="comment">/* Check Interrupt Status */</span>
+<a name="l00838"></a>00838                         <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l00839"></a>00839 <span class="comment">                         * ----+------------------------------------------</span>
+<a name="l00840"></a>00840 <span class="comment">                         *   0 |               Register ST0</span>
+<a name="l00841"></a>00841 <span class="comment">                         *   1 |              Current Cylinder</span>
+<a name="l00842"></a>00842 <span class="comment">                         * -----------------------------------------------</span>
+<a name="l00843"></a>00843 <span class="comment">                         *   2     total</span>
+<a name="l00844"></a>00844 <span class="comment">                         */</span>
+<a name="l00845"></a>00845                         <span class="keywordflow">if</span> (irq_pending) {
+<a name="l00846"></a>00846                                 lower_irq(); <span class="comment">/* doesn&#39;t cause IRQ, clears IRQ */</span>
+<a name="l00847"></a>00847                                 reset_res();
+<a name="l00848"></a>00848                                 prepare_res_phase(2);
+<a name="l00849"></a>00849                                 out_res[0] = ST[0];
+<a name="l00850"></a>00850                                 out_res[1] = current_cylinder[devidx];
+<a name="l00851"></a>00851                         }
+<a name="l00852"></a>00852                         <span class="keywordflow">else</span> {
+<a name="l00853"></a>00853                                 <span class="comment">/* if no pending IRQ, signal error.</span>
+<a name="l00854"></a>00854 <span class="comment">                                 * this is considered standard floppy controller behavior.</span>
+<a name="l00855"></a>00855 <span class="comment">                                 * this also fixes an issue where Windows 3.1 QIC tape backup software like Norton Backup (Norton Desktop 3.0)</span>
+<a name="l00856"></a>00856 <span class="comment">                                 * will &quot;hang&quot; Windows 3.1 polling the FDC in an endless loop if we don&#39;t return this error to say that no</span>
+<a name="l00857"></a>00857 <span class="comment">                                 * more IRQs are pending. */</span>
+<a name="l00858"></a>00858                                 reset_res();
+<a name="l00859"></a>00859                                 ST[0] = (ST[0] &amp; 0x3F) | 0x80;
+<a name="l00860"></a>00860                                 out_res[0] = ST[0];
+<a name="l00861"></a>00861                                 prepare_res_phase(1);
+<a name="l00862"></a>00862                         }
+<a name="l00863"></a>00863                         <span class="keywordflow">break</span>;
+<a name="l00864"></a>00864                 <span class="keywordflow">case</span> 0x0A: <span class="comment">/* Read ID */</span>
+<a name="l00865"></a>00865                         <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l00866"></a>00866 <span class="comment">                         * ----+------------------------------------------</span>
+<a name="l00867"></a>00867 <span class="comment">                         *   0 |               Register ST0</span>
+<a name="l00868"></a>00868 <span class="comment">                         *   1 |               Register ST1</span>
+<a name="l00869"></a>00869 <span class="comment">                         *   2 |               Register ST2</span>
+<a name="l00870"></a>00870 <span class="comment">                         *   3 |             Logical cylinder</span>
+<a name="l00871"></a>00871 <span class="comment">                         *   4 |               Logical head</span>
+<a name="l00872"></a>00872 <span class="comment">                         *   5 |              Logical sector</span>
+<a name="l00873"></a>00873 <span class="comment">                         *   6 |           Logical sector size</span>
+<a name="l00874"></a>00874 <span class="comment">                         * -----------------------------------------------</span>
+<a name="l00875"></a>00875 <span class="comment">                         *   7     total</span>
+<a name="l00876"></a>00876 <span class="comment">                         */</span>
+<a name="l00877"></a>00877                         <span class="comment">/* must have a device present. must have an image. device motor and select must be enabled.</span>
+<a name="l00878"></a>00878 <span class="comment">                         * current physical cylinder position must be within range of the image. request must have MFM bit set. */</span>
+<a name="l00879"></a>00879                         <span class="keywordflow">if</span> (dev != NULL &amp;&amp; dev-&gt;motor &amp;&amp; dev-&gt;select &amp;&amp; image != NULL &amp;&amp; (in_cmd[0]&amp;0x40)<span class="comment">/*MFM=1*/</span> &amp;&amp;
+<a name="l00880"></a>00880                                 current_cylinder[devidx] &lt; image-&gt;cylinders &amp;&amp; (in_cmd[1]&amp;4?1:0) &lt;= image-&gt;heads) {
+<a name="l00881"></a>00881                                 <span class="keywordtype">int</span> ns = (int)floor(dev-&gt;floppy_image_motor_position() * image-&gt;sectors);
+<a name="l00882"></a>00882                                 <span class="comment">/* TODO: minor delay to emulate time for one sector to pass under the head */</span>
 <a name="l00883"></a>00883                                 reset_res();
-<a name="l00884"></a>00884                                 ST[0] = (ST[0] &amp; 0x3F) | 0x80;
-<a name="l00885"></a>00885                                 ST[1] = (1 &lt;&lt; 0)<span class="comment">/*missing address mark*/</span> | (1 &lt;&lt; 2)<span class="comment">/*no data*/</span>;
-<a name="l00886"></a>00886                                 ST[2] = (1 &lt;&lt; 0)<span class="comment">/*missing data address mark*/</span>;
-<a name="l00887"></a>00887                                 prepare_res_phase(1);
-<a name="l00888"></a>00888                                 out_res[0] = ST[0];
-<a name="l00889"></a>00889                         }
-<a name="l00890"></a>00890                         raise_irq();
-<a name="l00891"></a>00891                         <span class="keywordflow">break</span>;
-<a name="l00892"></a>00892                 <span class="keywordflow">case</span> 0x0C: <span class="comment">/* Read deleted data (1100) */</span>
-<a name="l00893"></a>00893                         <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l00894"></a>00894 <span class="comment">                         * ----+------------------------------------------</span>
-<a name="l00895"></a>00895 <span class="comment">                         *   0 |               Register ST0</span>
-<a name="l00896"></a>00896 <span class="comment">                         *   1 |               Register ST1</span>
-<a name="l00897"></a>00897 <span class="comment">                         *   2 |               Register ST2</span>
-<a name="l00898"></a>00898 <span class="comment">                         *   3 |             Logical cylinder</span>
-<a name="l00899"></a>00899 <span class="comment">                         *   4 |               Logical head</span>
-<a name="l00900"></a>00900 <span class="comment">                         *   5 |              Logical sector</span>
-<a name="l00901"></a>00901 <span class="comment">                         *   6 |           Logical sector size</span>
-<a name="l00902"></a>00902 <span class="comment">                         * -----------------------------------------------</span>
-<a name="l00903"></a>00903 <span class="comment">                         *   7     total</span>
-<a name="l00904"></a>00904 <span class="comment">                         */</span>
-<a name="l00905"></a>00905                         <span class="comment">/* the raw images used by DOSBox cannot represent &quot;deleted sectors&quot;, so always fail */</span>
-<a name="l00906"></a>00906                         reset_res();
-<a name="l00907"></a>00907                         ST[0] = (ST[0] &amp; 0x3F) | 0x80;
-<a name="l00908"></a>00908                         ST[1] = (1 &lt;&lt; 0)<span class="comment">/*missing address mark*/</span> | (1 &lt;&lt; 2)<span class="comment">/*no data*/</span>;
-<a name="l00909"></a>00909                         ST[2] = (1 &lt;&lt; 0)<span class="comment">/*missing data address mark*/</span>;
-<a name="l00910"></a>00910                         prepare_res_phase(1);
-<a name="l00911"></a>00911                         <span class="keywordflow">break</span>;
-<a name="l00912"></a>00912                 <span class="keywordflow">case</span> 0x0E: <span class="comment">/* Dump registers (response) */</span>
-<a name="l00913"></a>00913                         <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l00914"></a>00914 <span class="comment">                         * ----+------------------------------------------</span>
-<a name="l00915"></a>00915 <span class="comment">                         *   0 |                PCN-Drive 0</span>
-<a name="l00916"></a>00916 <span class="comment">                         *   1 |                PCN-Drive 1</span>
-<a name="l00917"></a>00917 <span class="comment">                         *   2 |                PCN-Drive 2</span>
-<a name="l00918"></a>00918 <span class="comment">                         *   3 |                PCN-Drive 3</span>
-<a name="l00919"></a>00919 <span class="comment">                         *   4 |   &lt;----- SRT ----&gt;    &lt;----- HUT ----&gt;</span>
-<a name="l00920"></a>00920 <span class="comment">                         *   5 |   &lt;------------ HLT ------------&gt;   ND</span>
-<a name="l00921"></a>00921 <span class="comment">                         *   6 |   &lt;------------- SC/EOT -------------&gt;</span>
-<a name="l00922"></a>00922 <span class="comment">                         *   7 |  LOCK  0   D3   D2   D1   D0   GAP WGATE</span>
-<a name="l00923"></a>00923 <span class="comment">                         *   8 |   0   EIS EFIFO POLL  &lt;--- FIFOTHR --&gt;</span>
-<a name="l00924"></a>00924 <span class="comment">                         *   9 |                   PRETRK</span>
-<a name="l00925"></a>00925 <span class="comment">                         * -----------------------------------------------</span>
-<a name="l00926"></a>00926 <span class="comment">                         *  10     total</span>
-<a name="l00927"></a>00927 <span class="comment">                         */</span>
-<a name="l00928"></a>00928                         reset_res();
-<a name="l00929"></a>00929                         prepare_res_phase(10);
-<a name="l00930"></a>00930                         out_res[0] = current_cylinder[0];
-<a name="l00931"></a>00931                         out_res[1] = current_cylinder[1];
-<a name="l00932"></a>00932                         out_res[2] = current_cylinder[2];
-<a name="l00933"></a>00933                         out_res[3] = current_cylinder[3];
-<a name="l00934"></a>00934                         out_res[4] = 0x88;                      <span class="comment">// FIXME</span>
-<a name="l00935"></a>00935                         out_res[5] = 0x40;                      <span class="comment">// FIXME</span>
-<a name="l00936"></a>00936                         out_res[6] = 18;                        <span class="comment">// FIXME</span>
-<a name="l00937"></a>00937                         out_res[7] = 0;                         <span class="comment">// FIXME</span>
-<a name="l00938"></a>00938                         out_res[8] = 0x78;                      <span class="comment">// FIXME</span>
-<a name="l00939"></a>00939                         out_res[9] = 0x00;                      <span class="comment">// FIXME</span>
-<a name="l00940"></a>00940                         <span class="keywordflow">break</span>;
-<a name="l00941"></a>00941                 <span class="keywordflow">case</span> 0x0F: <span class="comment">/* Seek Head */</span>
-<a name="l00942"></a>00942                         ST[0] = 0x00 | drive_selected();
-<a name="l00943"></a>00943                         <span class="keywordflow">if</span> (instant_mode) {
-<a name="l00944"></a>00944                                 <span class="comment">/* move head to whatever track was wanted */</span>
-<a name="l00945"></a>00945                                 current_cylinder[devidx] = in_cmd[2]; <span class="comment">/* from 3rd byte of command */</span>
-<a name="l00946"></a>00946                                 <span class="comment">/* fire IRQ */</span>
-<a name="l00947"></a>00947                                 raise_irq();
-<a name="l00948"></a>00948                                 <span class="comment">/* no result phase */</span>
-<a name="l00949"></a>00949                                 reset_io();
-<a name="l00950"></a>00950                         }
-<a name="l00951"></a>00951                         <span class="keywordflow">else</span> {
-<a name="l00952"></a>00952                                 <span class="comment">/* delay due to stepping the head to the desired cylinder */</span>
-<a name="l00953"></a>00953                                 motor_steps = abs(in_cmd[2] - current_cylinder[devidx]);
-<a name="l00954"></a>00954                                 motor_dir = in_cmd[2] &gt; current_cylinder[devidx] ? 1 : -1;
-<a name="l00955"></a>00955 
-<a name="l00956"></a>00956                                 <span class="comment">/* the command takes time to move the head */</span>
-<a name="l00957"></a>00957                                 data_register_ready = 0;
-<a name="l00958"></a>00958                                 busy_status = 1;
-<a name="l00959"></a>00959 
-<a name="l00960"></a>00960                                 <span class="comment">/* and make it happen */</span>
-<a name="l00961"></a>00961                                 PIC_AddEvent(FDC_MotorStep,(motor_steps &gt; 0 ? fdc_motor_step_delay : 0.1)<span class="comment">/*ms*/</span>,interface_index);
-<a name="l00962"></a>00962 
-<a name="l00963"></a>00963                                 <span class="comment">/* return now */</span>
-<a name="l00964"></a>00964                                 <span class="keywordflow">return</span>;
-<a name="l00965"></a>00965                         }
-<a name="l00966"></a>00966                         <span class="keywordflow">break</span>;
-<a name="l00967"></a>00967                 <span class="keywordflow">case</span> 0x13: <span class="comment">/* Configure */</span>
-<a name="l00968"></a>00968                         <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l00969"></a>00969 <span class="comment">                         * ----+------------------------------------------</span>
-<a name="l00970"></a>00970 <span class="comment">                         *   0 |   0    0    0    1    0    0    1    1</span>
-<a name="l00971"></a>00971 <span class="comment">                         *   1 |   0    0    0    0    0    0    0    0</span>
-<a name="l00972"></a>00972 <span class="comment">                         *   2 |   0   EIS EFIFO POLL  &lt;--- FIFOTHR --&gt;</span>
-<a name="l00973"></a>00973 <span class="comment">                         *   3 |                 PRETRK</span>
-<a name="l00974"></a>00974 <span class="comment">                         * -----------------------------------------------</span>
-<a name="l00975"></a>00975 <span class="comment">                         *   4     total</span>
-<a name="l00976"></a>00976 <span class="comment">                         */</span>
-<a name="l00977"></a>00977                         reset_res(); <span class="comment">// TODO: Do something with this</span>
-<a name="l00978"></a>00978                         reset_io();
-<a name="l00979"></a>00979                         <span class="keywordflow">break</span>;
-<a name="l00980"></a>00980                 <span class="keywordflow">default</span>:
-<a name="l00981"></a>00981                         LOG_MSG(<span class="stringliteral">&quot;FDC: Unknown command %02xh (somehow passed first check)\n&quot;</span>,in_cmd[0]);
-<a name="l00982"></a>00982                         reset_io();
-<a name="l00983"></a>00983                         <span class="keywordflow">break</span>;
-<a name="l00984"></a>00984         };
-<a name="l00985"></a>00985 
-<a name="l00986"></a>00986         <span class="keywordflow">switch</span> (in_cmd[0]&amp;0x1F) {
-<a name="l00987"></a>00987                 <span class="keywordflow">case</span> 0x0A:
-<a name="l00988"></a>00988                         <span class="keywordflow">break</span>;
-<a name="l00989"></a>00989                 <span class="keywordflow">default</span>:
-<a name="l00990"></a>00990                         LOG_MSG(<span class="stringliteral">&quot;FDC: Response len=%u %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n&quot;</span>,
-<a name="l00991"></a>00991                                 out_res_len,
-<a name="l00992"></a>00992                                 out_res[0],out_res[1],out_res[2],out_res[3],out_res[4],
-<a name="l00993"></a>00993                                 out_res[5],out_res[6],out_res[7],out_res[8],out_res[9]);
-<a name="l00994"></a>00994                         <span class="keywordflow">break</span>;
-<a name="l00995"></a>00995         }
-<a name="l00996"></a>00996 }
+<a name="l00884"></a>00884                                 out_res[0] = ST[0];
+<a name="l00885"></a>00885                                 out_res[1] = ST[1];
+<a name="l00886"></a>00886                                 out_res[2] = ST[2];
+<a name="l00887"></a>00887                                 out_res[3] = current_cylinder[devidx];
+<a name="l00888"></a>00888                                 out_res[4] = (in_cmd[1]&amp;4?1:0);
+<a name="l00889"></a>00889                                 out_res[5] = ns + 1;            <span class="comment">/* the sector passing under the head at this time */</span>
+<a name="l00890"></a>00890                                 out_res[6] = 2;                 <span class="comment">/* 128 &lt;&lt; 2 == 512 bytes/sector */</span>
+<a name="l00891"></a>00891                                 prepare_res_phase(7);
+<a name="l00892"></a>00892                         }
+<a name="l00893"></a>00893                         <span class="keywordflow">else</span> {
+<a name="l00894"></a>00894                                 <span class="comment">/* TODO: real floppy controllers will pause for up to 1/2 a second before erroring out */</span>
+<a name="l00895"></a>00895                                 reset_res();
+<a name="l00896"></a>00896                                 ST[0] = (ST[0] &amp; 0x3F) | 0x80;
+<a name="l00897"></a>00897                                 ST[1] = (1 &lt;&lt; 0)<span class="comment">/*missing address mark*/</span> | (1 &lt;&lt; 2)<span class="comment">/*no data*/</span>;
+<a name="l00898"></a>00898                                 ST[2] = (1 &lt;&lt; 0)<span class="comment">/*missing data address mark*/</span>;
+<a name="l00899"></a>00899                                 prepare_res_phase(1);
+<a name="l00900"></a>00900                                 out_res[0] = ST[0];
+<a name="l00901"></a>00901                         }
+<a name="l00902"></a>00902                         raise_irq();
+<a name="l00903"></a>00903                         <span class="keywordflow">break</span>;
+<a name="l00904"></a>00904                 <span class="keywordflow">case</span> 0x0C: <span class="comment">/* Read deleted data (1100) */</span>
+<a name="l00905"></a>00905                         <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l00906"></a>00906 <span class="comment">                         * ----+------------------------------------------</span>
+<a name="l00907"></a>00907 <span class="comment">                         *   0 |               Register ST0</span>
+<a name="l00908"></a>00908 <span class="comment">                         *   1 |               Register ST1</span>
+<a name="l00909"></a>00909 <span class="comment">                         *   2 |               Register ST2</span>
+<a name="l00910"></a>00910 <span class="comment">                         *   3 |             Logical cylinder</span>
+<a name="l00911"></a>00911 <span class="comment">                         *   4 |               Logical head</span>
+<a name="l00912"></a>00912 <span class="comment">                         *   5 |              Logical sector</span>
+<a name="l00913"></a>00913 <span class="comment">                         *   6 |           Logical sector size</span>
+<a name="l00914"></a>00914 <span class="comment">                         * -----------------------------------------------</span>
+<a name="l00915"></a>00915 <span class="comment">                         *   7     total</span>
+<a name="l00916"></a>00916 <span class="comment">                         */</span>
+<a name="l00917"></a>00917                         <span class="comment">/* the raw images used by DOSBox cannot represent &quot;deleted sectors&quot;, so always fail */</span>
+<a name="l00918"></a>00918                         reset_res();
+<a name="l00919"></a>00919                         ST[0] = (ST[0] &amp; 0x3F) | 0x80;
+<a name="l00920"></a>00920                         ST[1] = (1 &lt;&lt; 0)<span class="comment">/*missing address mark*/</span> | (1 &lt;&lt; 2)<span class="comment">/*no data*/</span>;
+<a name="l00921"></a>00921                         ST[2] = (1 &lt;&lt; 0)<span class="comment">/*missing data address mark*/</span>;
+<a name="l00922"></a>00922                         prepare_res_phase(1);
+<a name="l00923"></a>00923                         <span class="keywordflow">break</span>;
+<a name="l00924"></a>00924                 <span class="keywordflow">case</span> 0x0E: <span class="comment">/* Dump registers (response) */</span>
+<a name="l00925"></a>00925                         <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l00926"></a>00926 <span class="comment">                         * ----+------------------------------------------</span>
+<a name="l00927"></a>00927 <span class="comment">                         *   0 |                PCN-Drive 0</span>
+<a name="l00928"></a>00928 <span class="comment">                         *   1 |                PCN-Drive 1</span>
+<a name="l00929"></a>00929 <span class="comment">                         *   2 |                PCN-Drive 2</span>
+<a name="l00930"></a>00930 <span class="comment">                         *   3 |                PCN-Drive 3</span>
+<a name="l00931"></a>00931 <span class="comment">                         *   4 |   &lt;----- SRT ----&gt;    &lt;----- HUT ----&gt;</span>
+<a name="l00932"></a>00932 <span class="comment">                         *   5 |   &lt;------------ HLT ------------&gt;   ND</span>
+<a name="l00933"></a>00933 <span class="comment">                         *   6 |   &lt;------------- SC/EOT -------------&gt;</span>
+<a name="l00934"></a>00934 <span class="comment">                         *   7 |  LOCK  0   D3   D2   D1   D0   GAP WGATE</span>
+<a name="l00935"></a>00935 <span class="comment">                         *   8 |   0   EIS EFIFO POLL  &lt;--- FIFOTHR --&gt;</span>
+<a name="l00936"></a>00936 <span class="comment">                         *   9 |                   PRETRK</span>
+<a name="l00937"></a>00937 <span class="comment">                         * -----------------------------------------------</span>
+<a name="l00938"></a>00938 <span class="comment">                         *  10     total</span>
+<a name="l00939"></a>00939 <span class="comment">                         */</span>
+<a name="l00940"></a>00940                         reset_res();
+<a name="l00941"></a>00941                         prepare_res_phase(10);
+<a name="l00942"></a>00942                         out_res[0] = current_cylinder[0];
+<a name="l00943"></a>00943                         out_res[1] = current_cylinder[1];
+<a name="l00944"></a>00944                         out_res[2] = current_cylinder[2];
+<a name="l00945"></a>00945                         out_res[3] = current_cylinder[3];
+<a name="l00946"></a>00946                         out_res[4] = 0x88;                      <span class="comment">// FIXME</span>
+<a name="l00947"></a>00947                         out_res[5] = 0x40;                      <span class="comment">// FIXME</span>
+<a name="l00948"></a>00948                         out_res[6] = 18;                        <span class="comment">// FIXME</span>
+<a name="l00949"></a>00949                         out_res[7] = 0;                         <span class="comment">// FIXME</span>
+<a name="l00950"></a>00950                         out_res[8] = 0x78;                      <span class="comment">// FIXME</span>
+<a name="l00951"></a>00951                         out_res[9] = 0x00;                      <span class="comment">// FIXME</span>
+<a name="l00952"></a>00952                         <span class="keywordflow">break</span>;
+<a name="l00953"></a>00953                 <span class="keywordflow">case</span> 0x0F: <span class="comment">/* Seek Head */</span>
+<a name="l00954"></a>00954                         ST[0] = 0x00 | drive_selected();
+<a name="l00955"></a>00955                         <span class="keywordflow">if</span> (instant_mode) {
+<a name="l00956"></a>00956                                 <span class="comment">/* move head to whatever track was wanted */</span>
+<a name="l00957"></a>00957                                 current_cylinder[devidx] = in_cmd[2]; <span class="comment">/* from 3rd byte of command */</span>
+<a name="l00958"></a>00958                                 <span class="comment">/* fire IRQ */</span>
+<a name="l00959"></a>00959                                 raise_irq();
+<a name="l00960"></a>00960                                 <span class="comment">/* no result phase */</span>
+<a name="l00961"></a>00961                                 reset_io();
+<a name="l00962"></a>00962                         }
+<a name="l00963"></a>00963                         <span class="keywordflow">else</span> {
+<a name="l00964"></a>00964                                 <span class="comment">/* delay due to stepping the head to the desired cylinder */</span>
+<a name="l00965"></a>00965                                 motor_steps = abs(in_cmd[2] - current_cylinder[devidx]);
+<a name="l00966"></a>00966                                 motor_dir = in_cmd[2] &gt; current_cylinder[devidx] ? 1 : -1;
+<a name="l00967"></a>00967 
+<a name="l00968"></a>00968                                 <span class="comment">/* the command takes time to move the head */</span>
+<a name="l00969"></a>00969                                 data_register_ready = 0;
+<a name="l00970"></a>00970                                 busy_status = 1;
+<a name="l00971"></a>00971 
+<a name="l00972"></a>00972                                 <span class="comment">/* and make it happen */</span>
+<a name="l00973"></a>00973                                 PIC_AddEvent(FDC_MotorStep,(motor_steps &gt; 0 ? fdc_motor_step_delay : 0.1)<span class="comment">/*ms*/</span>,interface_index);
+<a name="l00974"></a>00974 
+<a name="l00975"></a>00975                                 <span class="comment">/* return now */</span>
+<a name="l00976"></a>00976                                 <span class="keywordflow">return</span>;
+<a name="l00977"></a>00977                         }
+<a name="l00978"></a>00978                         <span class="keywordflow">break</span>;
+<a name="l00979"></a>00979                 <span class="keywordflow">case</span> 0x13: <span class="comment">/* Configure */</span>
+<a name="l00980"></a>00980                         <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l00981"></a>00981 <span class="comment">                         * ----+------------------------------------------</span>
+<a name="l00982"></a>00982 <span class="comment">                         *   0 |   0    0    0    1    0    0    1    1</span>
+<a name="l00983"></a>00983 <span class="comment">                         *   1 |   0    0    0    0    0    0    0    0</span>
+<a name="l00984"></a>00984 <span class="comment">                         *   2 |   0   EIS EFIFO POLL  &lt;--- FIFOTHR --&gt;</span>
+<a name="l00985"></a>00985 <span class="comment">                         *   3 |                 PRETRK</span>
+<a name="l00986"></a>00986 <span class="comment">                         * -----------------------------------------------</span>
+<a name="l00987"></a>00987 <span class="comment">                         *   4     total</span>
+<a name="l00988"></a>00988 <span class="comment">                         */</span>
+<a name="l00989"></a>00989                         reset_res(); <span class="comment">// TODO: Do something with this</span>
+<a name="l00990"></a>00990                         reset_io();
+<a name="l00991"></a>00991                         <span class="keywordflow">break</span>;
+<a name="l00992"></a>00992                 <span class="keywordflow">default</span>:
+<a name="l00993"></a>00993                         LOG_MSG(<span class="stringliteral">&quot;FDC: Unknown command %02xh (somehow passed first check)\n&quot;</span>,in_cmd[0]);
+<a name="l00994"></a>00994                         reset_io();
+<a name="l00995"></a>00995                         <span class="keywordflow">break</span>;
+<a name="l00996"></a>00996         };
 <a name="l00997"></a>00997 
-<a name="l00998"></a>00998 <span class="keywordtype">void</span> FloppyController::fdc_data_write(uint8_t b) {
-<a name="l00999"></a>00999         <span class="keywordflow">if</span> (!busy_status) {
-<a name="l01000"></a>01000                 <span class="comment">/* we&#39;re starting another command */</span>
-<a name="l01001"></a>01001                 reset_io();
-<a name="l01002"></a>01002                 in_cmd[0] = b;
-<a name="l01003"></a>01003                 in_cmd_len = 1;
-<a name="l01004"></a>01004                 in_cmd_pos = 1;
-<a name="l01005"></a>01005                 busy_status = <span class="keyword">true</span>;
-<a name="l01006"></a>01006                 in_cmd_state = <span class="keyword">true</span>;
-<a name="l01007"></a>01007 
-<a name="l01008"></a>01008                 <span class="comment">/* right away.. how long is the command going to be? */</span>
-<a name="l01009"></a>01009                 <span class="keywordflow">switch</span> (in_cmd[0]&amp;0x1F) {
-<a name="l01010"></a>01010                         <span class="keywordflow">case</span> 0x03: <span class="comment">/* Specify */</span>
-<a name="l01011"></a>01011                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l01012"></a>01012 <span class="comment">                                 * ----+------------------------------------------</span>
-<a name="l01013"></a>01013 <span class="comment">                                 *   0 |   0    0    0    0    0    0    1    1</span>
-<a name="l01014"></a>01014 <span class="comment">                                 *   1 |   &lt;---- SRT -----&gt;    &lt;----- HUT ----&gt;</span>
-<a name="l01015"></a>01015 <span class="comment">                                 *   2 |   &lt;-------------- HLT ----------&gt;   ND</span>
-<a name="l01016"></a>01016 <span class="comment">                                 * -----------------------------------------------</span>
-<a name="l01017"></a>01017 <span class="comment">                                 *   3     total</span>
-<a name="l01018"></a>01018 <span class="comment">                                 */</span>
-<a name="l01019"></a>01019                                 in_cmd_len = 3;
-<a name="l01020"></a>01020                                 <span class="keywordflow">break</span>;
-<a name="l01021"></a>01021                         <span class="keywordflow">case</span> 0x04: <span class="comment">/* Check Drive Status */</span>
-<a name="l01022"></a>01022                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l01023"></a>01023 <span class="comment">                                 * ----+------------------------------------------</span>
-<a name="l01024"></a>01024 <span class="comment">                                 *   0 |   0    0    0    0    0    1    0    0</span>
-<a name="l01025"></a>01025 <span class="comment">                                 *   1 |   x    x    x    x    x   HD  DR1  DR0</span>
-<a name="l01026"></a>01026 <span class="comment">                                 * -----------------------------------------------</span>
-<a name="l01027"></a>01027 <span class="comment">                                 *   2     total</span>
-<a name="l01028"></a>01028 <span class="comment">                                 */</span>
-<a name="l01029"></a>01029                                 in_cmd_len = 2;
-<a name="l01030"></a>01030                                 <span class="keywordflow">break</span>;
-<a name="l01031"></a>01031                         <span class="keywordflow">case</span> 0x05: <span class="comment">/* Write data (0101) */</span>
-<a name="l01032"></a>01032                         <span class="keywordflow">case</span> 0x09: <span class="comment">/* Write deleted data (1001) */</span>
-<a name="l01033"></a>01033                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l01034"></a>01034 <span class="comment">                                 * ----+------------------------------------------</span>
-<a name="l01035"></a>01035 <span class="comment">                                 *   0 |  MT  MFM    0    0    0    1    0    1   </span>
-<a name="l01036"></a>01036 <span class="comment">                                 *   1 |   0    0    0    0    0   HD  DR1  DR0</span>
-<a name="l01037"></a>01037 <span class="comment">                                 *   2 |             Logical cylinder</span>
-<a name="l01038"></a>01038 <span class="comment">                                 *   3 |               Logical head</span>
-<a name="l01039"></a>01039 <span class="comment">                                 *   4 |          Logical sector (start)</span>
-<a name="l01040"></a>01040 <span class="comment">                                 *   5 |           Logical sector size</span>
-<a name="l01041"></a>01041 <span class="comment">                                 *   6 |               End of track               </span>
-<a name="l01042"></a>01042 <span class="comment">                                 *   7 |               Gap 3 length</span>
-<a name="l01043"></a>01043 <span class="comment">                                 *   8 |            Special sector size</span>
-<a name="l01044"></a>01044 <span class="comment">                                 * -----------------------------------------------</span>
-<a name="l01045"></a>01045 <span class="comment">                                 *   9     total</span>
-<a name="l01046"></a>01046 <span class="comment">                                 */</span>
-<a name="l01047"></a>01047                                 in_cmd_len = 9;
-<a name="l01048"></a>01048                                 <span class="keywordflow">break</span>;
-<a name="l01049"></a>01049                         <span class="keywordflow">case</span> 0x06: <span class="comment">/* Read data (0110) */</span>
-<a name="l01050"></a>01050                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l01051"></a>01051 <span class="comment">                                 * ----+------------------------------------------</span>
-<a name="l01052"></a>01052 <span class="comment">                                 *   0 |  MT  MFM   SK    0    0    1    1    0   </span>
-<a name="l01053"></a>01053 <span class="comment">                                 *   1 |   0    0    0    0    0   HD  DR1  DR0</span>
-<a name="l01054"></a>01054 <span class="comment">                                 *   2 |             Logical cylinder</span>
-<a name="l01055"></a>01055 <span class="comment">                                 *   3 |               Logical head</span>
-<a name="l01056"></a>01056 <span class="comment">                                 *   4 |          Logical sector (start)</span>
-<a name="l01057"></a>01057 <span class="comment">                                 *   5 |           Logical sector size</span>
-<a name="l01058"></a>01058 <span class="comment">                                 *   6 |               End of track               </span>
-<a name="l01059"></a>01059 <span class="comment">                                 *   7 |               Gap 3 length</span>
-<a name="l01060"></a>01060 <span class="comment">                                 *   8 |            Special sector size</span>
-<a name="l01061"></a>01061 <span class="comment">                                 * -----------------------------------------------</span>
-<a name="l01062"></a>01062 <span class="comment">                                 *   9     total</span>
-<a name="l01063"></a>01063 <span class="comment">                                 */</span>
-<a name="l01064"></a>01064                                 in_cmd_len = 9;
-<a name="l01065"></a>01065                                 <span class="keywordflow">break</span>;
-<a name="l01066"></a>01066                         <span class="keywordflow">case</span> 0x07: <span class="comment">/* Calibrate drive (move head to track 0) */</span>
-<a name="l01067"></a>01067                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l01068"></a>01068 <span class="comment">                                 * ----+------------------------------------------</span>
-<a name="l01069"></a>01069 <span class="comment">                                 *   0 |   0    0    0    0    0    1    1    1</span>
-<a name="l01070"></a>01070 <span class="comment">                                 *   1 |   x    x    x    x    x    0  DR1  DR0</span>
-<a name="l01071"></a>01071 <span class="comment">                                 * -----------------------------------------------</span>
-<a name="l01072"></a>01072 <span class="comment">                                 *   2     total</span>
-<a name="l01073"></a>01073 <span class="comment">                                 */</span>
-<a name="l01074"></a>01074                                 in_cmd_len = 2;
-<a name="l01075"></a>01075                                 <span class="keywordflow">break</span>;
-<a name="l01076"></a>01076                         <span class="keywordflow">case</span> 0x08: <span class="comment">/* Check Interrupt Status */</span>
-<a name="l01077"></a>01077                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l01078"></a>01078 <span class="comment">                                 * ----+------------------------------------------</span>
-<a name="l01079"></a>01079 <span class="comment">                                 *   0 |   0    0    0    0    1    0    0    0</span>
-<a name="l01080"></a>01080 <span class="comment">                                 * -----------------------------------------------</span>
-<a name="l01081"></a>01081 <span class="comment">                                 *   1     total</span>
-<a name="l01082"></a>01082 <span class="comment">                                 */</span>
-<a name="l01083"></a>01083                                 <span class="keywordflow">break</span>;
-<a name="l01084"></a>01084                         <span class="keywordflow">case</span> 0x0A: <span class="comment">/* Read ID */</span>
-<a name="l01085"></a>01085                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l01086"></a>01086 <span class="comment">                                 * ----+------------------------------------------</span>
-<a name="l01087"></a>01087 <span class="comment">                                 *   0 |   0  MFM    0    0    1    0    1    0</span>
-<a name="l01088"></a>01088 <span class="comment">                                 *   1 |   0    0    0    0    0   HD  DR1  DR0</span>
-<a name="l01089"></a>01089 <span class="comment">                                 * -----------------------------------------------</span>
-<a name="l01090"></a>01090 <span class="comment">                                 *   2     total</span>
-<a name="l01091"></a>01091 <span class="comment">                                 */</span>
-<a name="l01092"></a>01092                                 in_cmd_len = 2;
-<a name="l01093"></a>01093                                 <span class="keywordflow">break</span>;
-<a name="l01094"></a>01094                         <span class="keywordflow">case</span> 0x0C: <span class="comment">/* Read deleted data (1100) */</span>
-<a name="l01095"></a>01095                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l01096"></a>01096 <span class="comment">                                 * ----+------------------------------------------</span>
-<a name="l01097"></a>01097 <span class="comment">                                 *   0 |  MT  MFM   SK    0    0    1    1    0   </span>
-<a name="l01098"></a>01098 <span class="comment">                                 *   1 |   0    0    0    0    0   HD  DR1  DR0</span>
-<a name="l01099"></a>01099 <span class="comment">                                 *   2 |             Logical cylinder</span>
-<a name="l01100"></a>01100 <span class="comment">                                 *   3 |               Logical head</span>
-<a name="l01101"></a>01101 <span class="comment">                                 *   4 |          Logical sector (start)</span>
-<a name="l01102"></a>01102 <span class="comment">                                 *   5 |           Logical sector size</span>
-<a name="l01103"></a>01103 <span class="comment">                                 *   6 |               End of track               </span>
-<a name="l01104"></a>01104 <span class="comment">                                 *   7 |               Gap 3 length</span>
-<a name="l01105"></a>01105 <span class="comment">                                 *   8 |            Special sector size</span>
-<a name="l01106"></a>01106 <span class="comment">                                 * -----------------------------------------------</span>
-<a name="l01107"></a>01107 <span class="comment">                                 *   9     total</span>
-<a name="l01108"></a>01108 <span class="comment">                                 */</span>
-<a name="l01109"></a>01109                                 in_cmd_len = 9;
-<a name="l01110"></a>01110                                 <span class="keywordflow">break</span>;
-<a name="l01111"></a>01111                         <span class="keywordflow">case</span> 0x0E: <span class="comment">/* Dump registers */</span>
-<a name="l01112"></a>01112                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l01113"></a>01113 <span class="comment">                                 * ----+------------------------------------------</span>
-<a name="l01114"></a>01114 <span class="comment">                                 *   0 |   0    0    0    0    1    1    1    0</span>
-<a name="l01115"></a>01115 <span class="comment">                                 * -----------------------------------------------</span>
-<a name="l01116"></a>01116 <span class="comment">                                 *   1     total</span>
-<a name="l01117"></a>01117 <span class="comment">                                 */</span>
-<a name="l01118"></a>01118                                 in_cmd_len = 1;
-<a name="l01119"></a>01119                                 <span class="keywordflow">break</span>;
-<a name="l01120"></a>01120                         <span class="keywordflow">case</span> 0x0F: <span class="comment">/* Seek Head */</span>
-<a name="l01121"></a>01121                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l01122"></a>01122 <span class="comment">                                 * ----+------------------------------------------</span>
-<a name="l01123"></a>01123 <span class="comment">                                 *   0 |   0    0    0    0    1    1    1    1</span>
-<a name="l01124"></a>01124 <span class="comment">                                 *   1 |   x    x    x    x    x   HD  DR1  DR0</span>
-<a name="l01125"></a>01125 <span class="comment">                                 *   2 |                Cylinder</span>
-<a name="l01126"></a>01126 <span class="comment">                                 * -----------------------------------------------</span>
-<a name="l01127"></a>01127 <span class="comment">                                 *   3     total</span>
-<a name="l01128"></a>01128 <span class="comment">                                 */</span>
-<a name="l01129"></a>01129                                 <span class="keywordflow">if</span> (in_cmd[0]&amp;0x80) { <span class="comment">/* Reject Seek Relative (1xfh) most FDC&#39;s I&#39;ve tested don&#39;t support it */</span>
-<a name="l01130"></a>01130                                         LOG_MSG(<span class="stringliteral">&quot;FDC: Seek Relative not supported\n&quot;</span>);
-<a name="l01131"></a>01131                                         <span class="comment">/* give Invalid Command Code 0x80 as response */</span>
-<a name="l01132"></a>01132                                         invalid_command_code();
-<a name="l01133"></a>01133                                         reset_cmd();
-<a name="l01134"></a>01134                                 }
-<a name="l01135"></a>01135                                 <span class="keywordflow">else</span> {
-<a name="l01136"></a>01136                                         in_cmd_len = 3;
-<a name="l01137"></a>01137                                 }
-<a name="l01138"></a>01138                                 <span class="keywordflow">break</span>;
-<a name="l01139"></a>01139                         <span class="keywordflow">case</span> 0x13: <span class="comment">/* Configure */</span>
-<a name="l01140"></a>01140                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
-<a name="l01141"></a>01141 <span class="comment">                                 * ----+------------------------------------------</span>
-<a name="l01142"></a>01142 <span class="comment">                                 *   0 |   0    0    0    1    0    0    1    1</span>
-<a name="l01143"></a>01143 <span class="comment">                                 *   1 |   0    0    0    0    0    0    0    0</span>
-<a name="l01144"></a>01144 <span class="comment">                                 *   2 |   0   EIS EFIFO POLL  &lt;--- FIFOTHR --&gt;</span>
-<a name="l01145"></a>01145 <span class="comment">                                 *   3 |                 PRETRK</span>
-<a name="l01146"></a>01146 <span class="comment">                                 * -----------------------------------------------</span>
-<a name="l01147"></a>01147 <span class="comment">                                 *   4     total</span>
-<a name="l01148"></a>01148 <span class="comment">                                 */</span>
-<a name="l01149"></a>01149                                 in_cmd_len = 4;
+<a name="l00998"></a>00998         <span class="keywordflow">switch</span> (in_cmd[0]&amp;0x1F) {
+<a name="l00999"></a>00999                 <span class="keywordflow">case</span> 0x0A:
+<a name="l01000"></a>01000                         <span class="keywordflow">break</span>;
+<a name="l01001"></a>01001                 <span class="keywordflow">default</span>:
+<a name="l01002"></a>01002                         LOG_MSG(<span class="stringliteral">&quot;FDC: Response len=%u %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n&quot;</span>,
+<a name="l01003"></a>01003                                 out_res_len,
+<a name="l01004"></a>01004                                 out_res[0],out_res[1],out_res[2],out_res[3],out_res[4],
+<a name="l01005"></a>01005                                 out_res[5],out_res[6],out_res[7],out_res[8],out_res[9]);
+<a name="l01006"></a>01006                         <span class="keywordflow">break</span>;
+<a name="l01007"></a>01007         }
+<a name="l01008"></a>01008 }
+<a name="l01009"></a>01009 
+<a name="l01010"></a>01010 <span class="keywordtype">void</span> FloppyController::fdc_data_write(uint8_t b) {
+<a name="l01011"></a>01011         <span class="keywordflow">if</span> (!busy_status) {
+<a name="l01012"></a>01012                 <span class="comment">/* we&#39;re starting another command */</span>
+<a name="l01013"></a>01013                 reset_io();
+<a name="l01014"></a>01014                 in_cmd[0] = b;
+<a name="l01015"></a>01015                 in_cmd_len = 1;
+<a name="l01016"></a>01016                 in_cmd_pos = 1;
+<a name="l01017"></a>01017                 busy_status = <span class="keyword">true</span>;
+<a name="l01018"></a>01018                 in_cmd_state = <span class="keyword">true</span>;
+<a name="l01019"></a>01019 
+<a name="l01020"></a>01020                 <span class="comment">/* right away.. how long is the command going to be? */</span>
+<a name="l01021"></a>01021                 <span class="keywordflow">switch</span> (in_cmd[0]&amp;0x1F) {
+<a name="l01022"></a>01022                         <span class="keywordflow">case</span> 0x03: <span class="comment">/* Specify */</span>
+<a name="l01023"></a>01023                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l01024"></a>01024 <span class="comment">                                 * ----+------------------------------------------</span>
+<a name="l01025"></a>01025 <span class="comment">                                 *   0 |   0    0    0    0    0    0    1    1</span>
+<a name="l01026"></a>01026 <span class="comment">                                 *   1 |   &lt;---- SRT -----&gt;    &lt;----- HUT ----&gt;</span>
+<a name="l01027"></a>01027 <span class="comment">                                 *   2 |   &lt;-------------- HLT ----------&gt;   ND</span>
+<a name="l01028"></a>01028 <span class="comment">                                 * -----------------------------------------------</span>
+<a name="l01029"></a>01029 <span class="comment">                                 *   3     total</span>
+<a name="l01030"></a>01030 <span class="comment">                                 */</span>
+<a name="l01031"></a>01031                                 in_cmd_len = 3;
+<a name="l01032"></a>01032                                 <span class="keywordflow">break</span>;
+<a name="l01033"></a>01033                         <span class="keywordflow">case</span> 0x04: <span class="comment">/* Check Drive Status */</span>
+<a name="l01034"></a>01034                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l01035"></a>01035 <span class="comment">                                 * ----+------------------------------------------</span>
+<a name="l01036"></a>01036 <span class="comment">                                 *   0 |   0    0    0    0    0    1    0    0</span>
+<a name="l01037"></a>01037 <span class="comment">                                 *   1 |   x    x    x    x    x   HD  DR1  DR0</span>
+<a name="l01038"></a>01038 <span class="comment">                                 * -----------------------------------------------</span>
+<a name="l01039"></a>01039 <span class="comment">                                 *   2     total</span>
+<a name="l01040"></a>01040 <span class="comment">                                 */</span>
+<a name="l01041"></a>01041                                 in_cmd_len = 2;
+<a name="l01042"></a>01042                                 <span class="keywordflow">break</span>;
+<a name="l01043"></a>01043                         <span class="keywordflow">case</span> 0x05: <span class="comment">/* Write data (0101) */</span>
+<a name="l01044"></a>01044                         <span class="keywordflow">case</span> 0x09: <span class="comment">/* Write deleted data (1001) */</span>
+<a name="l01045"></a>01045                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l01046"></a>01046 <span class="comment">                                 * ----+------------------------------------------</span>
+<a name="l01047"></a>01047 <span class="comment">                                 *   0 |  MT  MFM    0    0    0    1    0    1   </span>
+<a name="l01048"></a>01048 <span class="comment">                                 *   1 |   0    0    0    0    0   HD  DR1  DR0</span>
+<a name="l01049"></a>01049 <span class="comment">                                 *   2 |             Logical cylinder</span>
+<a name="l01050"></a>01050 <span class="comment">                                 *   3 |               Logical head</span>
+<a name="l01051"></a>01051 <span class="comment">                                 *   4 |          Logical sector (start)</span>
+<a name="l01052"></a>01052 <span class="comment">                                 *   5 |           Logical sector size</span>
+<a name="l01053"></a>01053 <span class="comment">                                 *   6 |               End of track               </span>
+<a name="l01054"></a>01054 <span class="comment">                                 *   7 |               Gap 3 length</span>
+<a name="l01055"></a>01055 <span class="comment">                                 *   8 |            Special sector size</span>
+<a name="l01056"></a>01056 <span class="comment">                                 * -----------------------------------------------</span>
+<a name="l01057"></a>01057 <span class="comment">                                 *   9     total</span>
+<a name="l01058"></a>01058 <span class="comment">                                 */</span>
+<a name="l01059"></a>01059                                 in_cmd_len = 9;
+<a name="l01060"></a>01060                                 <span class="keywordflow">break</span>;
+<a name="l01061"></a>01061                         <span class="keywordflow">case</span> 0x06: <span class="comment">/* Read data (0110) */</span>
+<a name="l01062"></a>01062                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l01063"></a>01063 <span class="comment">                                 * ----+------------------------------------------</span>
+<a name="l01064"></a>01064 <span class="comment">                                 *   0 |  MT  MFM   SK    0    0    1    1    0   </span>
+<a name="l01065"></a>01065 <span class="comment">                                 *   1 |   0    0    0    0    0   HD  DR1  DR0</span>
+<a name="l01066"></a>01066 <span class="comment">                                 *   2 |             Logical cylinder</span>
+<a name="l01067"></a>01067 <span class="comment">                                 *   3 |               Logical head</span>
+<a name="l01068"></a>01068 <span class="comment">                                 *   4 |          Logical sector (start)</span>
+<a name="l01069"></a>01069 <span class="comment">                                 *   5 |           Logical sector size</span>
+<a name="l01070"></a>01070 <span class="comment">                                 *   6 |               End of track               </span>
+<a name="l01071"></a>01071 <span class="comment">                                 *   7 |               Gap 3 length</span>
+<a name="l01072"></a>01072 <span class="comment">                                 *   8 |            Special sector size</span>
+<a name="l01073"></a>01073 <span class="comment">                                 * -----------------------------------------------</span>
+<a name="l01074"></a>01074 <span class="comment">                                 *   9     total</span>
+<a name="l01075"></a>01075 <span class="comment">                                 */</span>
+<a name="l01076"></a>01076                                 in_cmd_len = 9;
+<a name="l01077"></a>01077                                 <span class="keywordflow">break</span>;
+<a name="l01078"></a>01078                         <span class="keywordflow">case</span> 0x07: <span class="comment">/* Calibrate drive (move head to track 0) */</span>
+<a name="l01079"></a>01079                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l01080"></a>01080 <span class="comment">                                 * ----+------------------------------------------</span>
+<a name="l01081"></a>01081 <span class="comment">                                 *   0 |   0    0    0    0    0    1    1    1</span>
+<a name="l01082"></a>01082 <span class="comment">                                 *   1 |   x    x    x    x    x    0  DR1  DR0</span>
+<a name="l01083"></a>01083 <span class="comment">                                 * -----------------------------------------------</span>
+<a name="l01084"></a>01084 <span class="comment">                                 *   2     total</span>
+<a name="l01085"></a>01085 <span class="comment">                                 */</span>
+<a name="l01086"></a>01086                                 in_cmd_len = 2;
+<a name="l01087"></a>01087                                 <span class="keywordflow">break</span>;
+<a name="l01088"></a>01088                         <span class="keywordflow">case</span> 0x08: <span class="comment">/* Check Interrupt Status */</span>
+<a name="l01089"></a>01089                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l01090"></a>01090 <span class="comment">                                 * ----+------------------------------------------</span>
+<a name="l01091"></a>01091 <span class="comment">                                 *   0 |   0    0    0    0    1    0    0    0</span>
+<a name="l01092"></a>01092 <span class="comment">                                 * -----------------------------------------------</span>
+<a name="l01093"></a>01093 <span class="comment">                                 *   1     total</span>
+<a name="l01094"></a>01094 <span class="comment">                                 */</span>
+<a name="l01095"></a>01095                                 <span class="keywordflow">break</span>;
+<a name="l01096"></a>01096                         <span class="keywordflow">case</span> 0x0A: <span class="comment">/* Read ID */</span>
+<a name="l01097"></a>01097                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l01098"></a>01098 <span class="comment">                                 * ----+------------------------------------------</span>
+<a name="l01099"></a>01099 <span class="comment">                                 *   0 |   0  MFM    0    0    1    0    1    0</span>
+<a name="l01100"></a>01100 <span class="comment">                                 *   1 |   0    0    0    0    0   HD  DR1  DR0</span>
+<a name="l01101"></a>01101 <span class="comment">                                 * -----------------------------------------------</span>
+<a name="l01102"></a>01102 <span class="comment">                                 *   2     total</span>
+<a name="l01103"></a>01103 <span class="comment">                                 */</span>
+<a name="l01104"></a>01104                                 in_cmd_len = 2;
+<a name="l01105"></a>01105                                 <span class="keywordflow">break</span>;
+<a name="l01106"></a>01106                         <span class="keywordflow">case</span> 0x0C: <span class="comment">/* Read deleted data (1100) */</span>
+<a name="l01107"></a>01107                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l01108"></a>01108 <span class="comment">                                 * ----+------------------------------------------</span>
+<a name="l01109"></a>01109 <span class="comment">                                 *   0 |  MT  MFM   SK    0    0    1    1    0   </span>
+<a name="l01110"></a>01110 <span class="comment">                                 *   1 |   0    0    0    0    0   HD  DR1  DR0</span>
+<a name="l01111"></a>01111 <span class="comment">                                 *   2 |             Logical cylinder</span>
+<a name="l01112"></a>01112 <span class="comment">                                 *   3 |               Logical head</span>
+<a name="l01113"></a>01113 <span class="comment">                                 *   4 |          Logical sector (start)</span>
+<a name="l01114"></a>01114 <span class="comment">                                 *   5 |           Logical sector size</span>
+<a name="l01115"></a>01115 <span class="comment">                                 *   6 |               End of track               </span>
+<a name="l01116"></a>01116 <span class="comment">                                 *   7 |               Gap 3 length</span>
+<a name="l01117"></a>01117 <span class="comment">                                 *   8 |            Special sector size</span>
+<a name="l01118"></a>01118 <span class="comment">                                 * -----------------------------------------------</span>
+<a name="l01119"></a>01119 <span class="comment">                                 *   9     total</span>
+<a name="l01120"></a>01120 <span class="comment">                                 */</span>
+<a name="l01121"></a>01121                                 in_cmd_len = 9;
+<a name="l01122"></a>01122                                 <span class="keywordflow">break</span>;
+<a name="l01123"></a>01123                         <span class="keywordflow">case</span> 0x0E: <span class="comment">/* Dump registers */</span>
+<a name="l01124"></a>01124                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l01125"></a>01125 <span class="comment">                                 * ----+------------------------------------------</span>
+<a name="l01126"></a>01126 <span class="comment">                                 *   0 |   0    0    0    0    1    1    1    0</span>
+<a name="l01127"></a>01127 <span class="comment">                                 * -----------------------------------------------</span>
+<a name="l01128"></a>01128 <span class="comment">                                 *   1     total</span>
+<a name="l01129"></a>01129 <span class="comment">                                 */</span>
+<a name="l01130"></a>01130                                 in_cmd_len = 1;
+<a name="l01131"></a>01131                                 <span class="keywordflow">break</span>;
+<a name="l01132"></a>01132                         <span class="keywordflow">case</span> 0x0F: <span class="comment">/* Seek Head */</span>
+<a name="l01133"></a>01133                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l01134"></a>01134 <span class="comment">                                 * ----+------------------------------------------</span>
+<a name="l01135"></a>01135 <span class="comment">                                 *   0 |   0    0    0    0    1    1    1    1</span>
+<a name="l01136"></a>01136 <span class="comment">                                 *   1 |   x    x    x    x    x   HD  DR1  DR0</span>
+<a name="l01137"></a>01137 <span class="comment">                                 *   2 |                Cylinder</span>
+<a name="l01138"></a>01138 <span class="comment">                                 * -----------------------------------------------</span>
+<a name="l01139"></a>01139 <span class="comment">                                 *   3     total</span>
+<a name="l01140"></a>01140 <span class="comment">                                 */</span>
+<a name="l01141"></a>01141                                 <span class="keywordflow">if</span> (in_cmd[0]&amp;0x80) { <span class="comment">/* Reject Seek Relative (1xfh) most FDC&#39;s I&#39;ve tested don&#39;t support it */</span>
+<a name="l01142"></a>01142                                         LOG_MSG(<span class="stringliteral">&quot;FDC: Seek Relative not supported\n&quot;</span>);
+<a name="l01143"></a>01143                                         <span class="comment">/* give Invalid Command Code 0x80 as response */</span>
+<a name="l01144"></a>01144                                         invalid_command_code();
+<a name="l01145"></a>01145                                         reset_cmd();
+<a name="l01146"></a>01146                                 }
+<a name="l01147"></a>01147                                 <span class="keywordflow">else</span> {
+<a name="l01148"></a>01148                                         in_cmd_len = 3;
+<a name="l01149"></a>01149                                 }
 <a name="l01150"></a>01150                                 <span class="keywordflow">break</span>;
-<a name="l01151"></a>01151                         <span class="keywordflow">default</span>:
-<a name="l01152"></a>01152                                 LOG_MSG(<span class="stringliteral">&quot;FDC: Unknown command (first byte %02xh)\n&quot;</span>,in_cmd[0]);
-<a name="l01153"></a>01153                                 <span class="comment">/* give Invalid Command Code 0x80 as response */</span>
-<a name="l01154"></a>01154                                 invalid_command_code();
-<a name="l01155"></a>01155                                 reset_cmd();
-<a name="l01156"></a>01156                                 <span class="keywordflow">break</span>;
-<a name="l01157"></a>01157                 };
-<a name="l01158"></a>01158 
-<a name="l01159"></a>01159                 <span class="keywordflow">if</span> (in_cmd_state &amp;&amp; in_cmd_pos &gt;= in_cmd_len)
-<a name="l01160"></a>01160                         on_fdc_in_command();
-<a name="l01161"></a>01161         }
-<a name="l01162"></a>01162         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (in_cmd_state) {
-<a name="l01163"></a>01163                 <span class="keywordflow">if</span> (in_cmd_pos &lt; in_cmd_len)
-<a name="l01164"></a>01164                         in_cmd[in_cmd_pos++] = b;
-<a name="l01165"></a>01165 
-<a name="l01166"></a>01166                 <span class="keywordflow">if</span> (in_cmd_pos &gt;= in_cmd_len)
-<a name="l01167"></a>01167                         on_fdc_in_command();
-<a name="l01168"></a>01168         }
-<a name="l01169"></a>01169         <span class="keywordflow">else</span> {
-<a name="l01170"></a>01170                 LOG_MSG(<span class="stringliteral">&quot;FDC: Unknown state!\n&quot;</span>);
-<a name="l01171"></a>01171                 on_reset();
-<a name="l01172"></a>01172         }
-<a name="l01173"></a>01173 }
-<a name="l01174"></a>01174 
-<a name="l01175"></a>01175 <span class="keyword">static</span> <span class="keywordtype">void</span> fdc_baseio_w(Bitu port,Bitu val,Bitu iolen) {
-<a name="l01176"></a>01176         <a class="code" href="classFloppyController.html">FloppyController</a> *fdc = match_fdc_controller(port);
-<a name="l01177"></a>01177         <span class="keywordflow">if</span> (fdc == NULL) {
-<a name="l01178"></a>01178                 LOG_MSG(<span class="stringliteral">&quot;WARNING: port read from I/O port not registered to FDC, yet callback triggered\n&quot;</span>);
-<a name="l01179"></a>01179                 <span class="keywordflow">return</span>;
+<a name="l01151"></a>01151                         <span class="keywordflow">case</span> 0x13: <span class="comment">/* Configure */</span>
+<a name="l01152"></a>01152                                 <span class="comment">/*     |   7    6    5    4    3    2    1    0</span>
+<a name="l01153"></a>01153 <span class="comment">                                 * ----+------------------------------------------</span>
+<a name="l01154"></a>01154 <span class="comment">                                 *   0 |   0    0    0    1    0    0    1    1</span>
+<a name="l01155"></a>01155 <span class="comment">                                 *   1 |   0    0    0    0    0    0    0    0</span>
+<a name="l01156"></a>01156 <span class="comment">                                 *   2 |   0   EIS EFIFO POLL  &lt;--- FIFOTHR --&gt;</span>
+<a name="l01157"></a>01157 <span class="comment">                                 *   3 |                 PRETRK</span>
+<a name="l01158"></a>01158 <span class="comment">                                 * -----------------------------------------------</span>
+<a name="l01159"></a>01159 <span class="comment">                                 *   4     total</span>
+<a name="l01160"></a>01160 <span class="comment">                                 */</span>
+<a name="l01161"></a>01161                                 in_cmd_len = 4;
+<a name="l01162"></a>01162                                 <span class="keywordflow">break</span>;
+<a name="l01163"></a>01163                         <span class="keywordflow">default</span>:
+<a name="l01164"></a>01164                                 LOG_MSG(<span class="stringliteral">&quot;FDC: Unknown command (first byte %02xh)\n&quot;</span>,in_cmd[0]);
+<a name="l01165"></a>01165                                 <span class="comment">/* give Invalid Command Code 0x80 as response */</span>
+<a name="l01166"></a>01166                                 invalid_command_code();
+<a name="l01167"></a>01167                                 reset_cmd();
+<a name="l01168"></a>01168                                 <span class="keywordflow">break</span>;
+<a name="l01169"></a>01169                 };
+<a name="l01170"></a>01170 
+<a name="l01171"></a>01171                 <span class="keywordflow">if</span> (in_cmd_state &amp;&amp; in_cmd_pos &gt;= in_cmd_len)
+<a name="l01172"></a>01172                         on_fdc_in_command();
+<a name="l01173"></a>01173         }
+<a name="l01174"></a>01174         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (in_cmd_state) {
+<a name="l01175"></a>01175                 <span class="keywordflow">if</span> (in_cmd_pos &lt; in_cmd_len)
+<a name="l01176"></a>01176                         in_cmd[in_cmd_pos++] = b;
+<a name="l01177"></a>01177 
+<a name="l01178"></a>01178                 <span class="keywordflow">if</span> (in_cmd_pos &gt;= in_cmd_len)
+<a name="l01179"></a>01179                         on_fdc_in_command();
 <a name="l01180"></a>01180         }
-<a name="l01181"></a>01181 
-<a name="l01182"></a>01182 <span class="comment">//      LOG_MSG(&quot;FDC: Write port 0x%03x data 0x%02x irq_at_time=%u\n&quot;,port,val,fdc-&gt;irq_pending);</span>
-<a name="l01183"></a>01183 
-<a name="l01184"></a>01184         <span class="keywordflow">if</span> (iolen &gt; 1) {
-<a name="l01185"></a>01185                 LOG_MSG(<span class="stringliteral">&quot;WARNING: FDC unusual port write %03xh val=%02xh len=%u, port I/O should be 8-bit\n&quot;</span>,(<span class="keywordtype">int</span>)port,(<span class="keywordtype">int</span>)val,(<span class="keywordtype">int</span>)iolen);
-<a name="l01186"></a>01186         }
-<a name="l01187"></a>01187 
-<a name="l01188"></a>01188         <span class="keywordflow">switch</span> (port&amp;7) {
-<a name="l01189"></a>01189                 <span class="keywordflow">case</span> 2: <span class="comment">/* digital output port */</span>
-<a name="l01190"></a>01190                         fdc-&gt;on_dor_change(val&amp;0xFF);
-<a name="l01191"></a>01191                         <span class="keywordflow">break</span>;
-<a name="l01192"></a>01192                 <span class="keywordflow">case</span> 5: <span class="comment">/* data */</span>
-<a name="l01193"></a>01193                         <span class="keywordflow">if</span> (!fdc-&gt;data_register_ready) {
-<a name="l01194"></a>01194                                 LOG_MSG(<span class="stringliteral">&quot;WARNING: FDC data write when data port not ready\n&quot;</span>);
-<a name="l01195"></a>01195                         }
-<a name="l01196"></a>01196                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (fdc-&gt;data_read_expected) {
-<a name="l01197"></a>01197                                 LOG_MSG(<span class="stringliteral">&quot;WARNING: FDC data write when data port ready but expecting I/O read\n&quot;</span>);
-<a name="l01198"></a>01198                         }
-<a name="l01199"></a>01199                         <span class="keywordflow">else</span> {
-<a name="l01200"></a>01200                                 fdc-&gt;fdc_data_write(val&amp;0xFF);
-<a name="l01201"></a>01201                         }
-<a name="l01202"></a>01202                         <span class="keywordflow">break</span>;
-<a name="l01203"></a>01203                 <span class="keywordflow">default</span>:
-<a name="l01204"></a>01204                         LOG_MSG(<span class="stringliteral">&quot;DEBUG: FDC write port %03xh val %02xh len=%u\n&quot;</span>,(<span class="keywordtype">int</span>)port,(<span class="keywordtype">int</span>)val,(<span class="keywordtype">int</span>)iolen);
-<a name="l01205"></a>01205                         <span class="keywordflow">break</span>;
-<a name="l01206"></a>01206         };
-<a name="l01207"></a>01207 }
-<a name="l01208"></a>01208 
-<a name="l01209"></a>01209 <span class="keyword">static</span> Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
-<a name="l01210"></a>01210         <a class="code" href="classFloppyController.html">FloppyController</a> *fdc = match_fdc_controller(port);
-<a name="l01211"></a>01211         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> b;
-<a name="l01212"></a>01212 
-<a name="l01213"></a>01213         <span class="keywordflow">if</span> (fdc == NULL) {
-<a name="l01214"></a>01214                 LOG_MSG(<span class="stringliteral">&quot;WARNING: port read from I/O port not registered to FDC, yet callback triggered\n&quot;</span>);
-<a name="l01215"></a>01215                 <span class="keywordflow">return</span> ~(0UL);
-<a name="l01216"></a>01216         }
-<a name="l01217"></a>01217 
-<a name="l01218"></a>01218 <span class="comment">//      LOG_MSG(&quot;FDC: Read port 0x%03x irq_at_time=%u\n&quot;,port,fdc-&gt;irq_pending);</span>
-<a name="l01219"></a>01219 
-<a name="l01220"></a>01220         <span class="keywordflow">if</span> (iolen &gt; 1) {
-<a name="l01221"></a>01221                 LOG_MSG(<span class="stringliteral">&quot;WARNING: FDC unusual port read %03xh len=%u, port I/O should be 8-bit\n&quot;</span>,(<span class="keywordtype">int</span>)port,(<span class="keywordtype">int</span>)iolen);
-<a name="l01222"></a>01222         }
-<a name="l01223"></a>01223 
-<a name="l01224"></a>01224         <span class="keywordflow">switch</span> (port&amp;7) {
-<a name="l01225"></a>01225                 <span class="keywordflow">case</span> 4: <span class="comment">/* main status */</span>
-<a name="l01226"></a>01226                         b =     (fdc-&gt;data_register_ready ? 0x80 : 0x00) +
-<a name="l01227"></a>01227                                 (fdc-&gt;data_read_expected ? 0x40 : 0x00) +
-<a name="l01228"></a>01228                                 (fdc-&gt;non_dma_mode ? 0x20 : 0x00) +
-<a name="l01229"></a>01229                                 (fdc-&gt;busy_status ? 0x10 : 0x00) +
-<a name="l01230"></a>01230                                 (fdc-&gt;positioning[3] ? 0x08 : 0x00) +
-<a name="l01231"></a>01231                                 (fdc-&gt;positioning[2] ? 0x04 : 0x00) +
-<a name="l01232"></a>01232                                 (fdc-&gt;positioning[1] ? 0x02 : 0x00) +
-<a name="l01233"></a>01233                                 (fdc-&gt;positioning[0] ? 0x01 : 0x00);
-<a name="l01234"></a>01234 <span class="comment">//                      LOG_MSG(&quot;FDC: read status 0x%02x\n&quot;,b);</span>
-<a name="l01235"></a>01235                         <span class="keywordflow">return</span> b;
-<a name="l01236"></a>01236                 <span class="keywordflow">case</span> 5: <span class="comment">/* data */</span>
-<a name="l01237"></a>01237                         <span class="keywordflow">if</span> (!fdc-&gt;data_register_ready) {
-<a name="l01238"></a>01238                                 LOG_MSG(<span class="stringliteral">&quot;WARNING: FDC data read when data port not ready\n&quot;</span>);
-<a name="l01239"></a>01239                                 <span class="keywordflow">return</span> ~(0UL);
-<a name="l01240"></a>01240                         }
-<a name="l01241"></a>01241                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!fdc-&gt;data_read_expected) {
-<a name="l01242"></a>01242                                 LOG_MSG(<span class="stringliteral">&quot;WARNING: FDC data read when data port ready but expecting I/O write\n&quot;</span>);
-<a name="l01243"></a>01243                                 <span class="keywordflow">return</span> ~(0UL);
-<a name="l01244"></a>01244                         }
-<a name="l01245"></a>01245 
-<a name="l01246"></a>01246                         b = fdc-&gt;fdc_data_read();
-<a name="l01247"></a>01247 <span class="comment">//                      LOG_MSG(&quot;FDC: read data 0x%02x\n&quot;,b);</span>
-<a name="l01248"></a>01248                         <span class="keywordflow">return</span> b;
-<a name="l01249"></a>01249                 <span class="keywordflow">default</span>:
-<a name="l01250"></a>01250                         LOG_MSG(<span class="stringliteral">&quot;DEBUG: FDC read port %03xh len=%u\n&quot;</span>,(<span class="keywordtype">int</span>)port,(<span class="keywordtype">int</span>)iolen);
-<a name="l01251"></a>01251                         <span class="keywordflow">break</span>;
-<a name="l01252"></a>01252         };
-<a name="l01253"></a>01253 
-<a name="l01254"></a>01254         <span class="keywordflow">return</span> ~(0UL);
-<a name="l01255"></a>01255 }
-<a name="l01256"></a>01256 
-<a name="l01257"></a>01257 <span class="keywordtype">void</span> FloppyController::raise_irq() {
-<a name="l01258"></a>01258         irq_pending = <span class="keyword">true</span>;
-<a name="l01259"></a>01259         <span class="keywordflow">if</span> (dma_irq_enabled() &amp;&amp; IRQ &gt;= 0) PIC_ActivateIRQ(IRQ);
-<a name="l01260"></a>01260 }
-<a name="l01261"></a>01261 
-<a name="l01262"></a>01262 <span class="keywordtype">void</span> FloppyController::lower_irq() {
-<a name="l01263"></a>01263         irq_pending = <span class="keyword">false</span>;
-<a name="l01264"></a>01264         <span class="keywordflow">if</span> (IRQ &gt;= 0) PIC_DeActivateIRQ(IRQ);
-<a name="l01265"></a>01265 }
-<a name="l01266"></a>01266 
-<a name="l01267"></a>01267 <span class="keywordtype">void</span> BIOS_Post_register_FDC() {
-<a name="l01268"></a>01268         <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i=0;i &lt; MAX_FLOPPY_CONTROLLERS;i++) {
-<a name="l01269"></a>01269         <span class="keywordflow">if</span> (floppycontroller[i] != NULL)
-<a name="l01270"></a>01270             floppycontroller[i]-&gt;register_isapnp();
-<a name="l01271"></a>01271     }
+<a name="l01181"></a>01181         <span class="keywordflow">else</span> {
+<a name="l01182"></a>01182                 LOG_MSG(<span class="stringliteral">&quot;FDC: Unknown state!\n&quot;</span>);
+<a name="l01183"></a>01183                 on_reset();
+<a name="l01184"></a>01184         }
+<a name="l01185"></a>01185 }
+<a name="l01186"></a>01186 
+<a name="l01187"></a>01187 <span class="keyword">static</span> <span class="keywordtype">void</span> fdc_baseio_w(Bitu port,Bitu val,Bitu iolen) {
+<a name="l01188"></a>01188         <a class="code" href="classFloppyController.html">FloppyController</a> *fdc = match_fdc_controller(port);
+<a name="l01189"></a>01189         <span class="keywordflow">if</span> (fdc == NULL) {
+<a name="l01190"></a>01190                 LOG_MSG(<span class="stringliteral">&quot;WARNING: port read from I/O port not registered to FDC, yet callback triggered\n&quot;</span>);
+<a name="l01191"></a>01191                 <span class="keywordflow">return</span>;
+<a name="l01192"></a>01192         }
+<a name="l01193"></a>01193 
+<a name="l01194"></a>01194 <span class="comment">//      LOG_MSG(&quot;FDC: Write port 0x%03x data 0x%02x irq_at_time=%u\n&quot;,port,val,fdc-&gt;irq_pending);</span>
+<a name="l01195"></a>01195 
+<a name="l01196"></a>01196         <span class="keywordflow">if</span> (iolen &gt; 1) {
+<a name="l01197"></a>01197                 LOG_MSG(<span class="stringliteral">&quot;WARNING: FDC unusual port write %03xh val=%02xh len=%u, port I/O should be 8-bit\n&quot;</span>,(<span class="keywordtype">int</span>)port,(<span class="keywordtype">int</span>)val,(<span class="keywordtype">int</span>)iolen);
+<a name="l01198"></a>01198         }
+<a name="l01199"></a>01199 
+<a name="l01200"></a>01200         <span class="keywordflow">switch</span> (port&amp;7) {
+<a name="l01201"></a>01201                 <span class="keywordflow">case</span> 2: <span class="comment">/* digital output port */</span>
+<a name="l01202"></a>01202                         fdc-&gt;on_dor_change(val&amp;0xFF);
+<a name="l01203"></a>01203                         <span class="keywordflow">break</span>;
+<a name="l01204"></a>01204                 <span class="keywordflow">case</span> 5: <span class="comment">/* data */</span>
+<a name="l01205"></a>01205                         <span class="keywordflow">if</span> (!fdc-&gt;data_register_ready) {
+<a name="l01206"></a>01206                                 LOG_MSG(<span class="stringliteral">&quot;WARNING: FDC data write when data port not ready\n&quot;</span>);
+<a name="l01207"></a>01207                         }
+<a name="l01208"></a>01208                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (fdc-&gt;data_read_expected) {
+<a name="l01209"></a>01209                                 LOG_MSG(<span class="stringliteral">&quot;WARNING: FDC data write when data port ready but expecting I/O read\n&quot;</span>);
+<a name="l01210"></a>01210                         }
+<a name="l01211"></a>01211                         <span class="keywordflow">else</span> {
+<a name="l01212"></a>01212                                 fdc-&gt;fdc_data_write(val&amp;0xFF);
+<a name="l01213"></a>01213                         }
+<a name="l01214"></a>01214                         <span class="keywordflow">break</span>;
+<a name="l01215"></a>01215                 <span class="keywordflow">default</span>:
+<a name="l01216"></a>01216                         LOG_MSG(<span class="stringliteral">&quot;DEBUG: FDC write port %03xh val %02xh len=%u\n&quot;</span>,(<span class="keywordtype">int</span>)port,(<span class="keywordtype">int</span>)val,(<span class="keywordtype">int</span>)iolen);
+<a name="l01217"></a>01217                         <span class="keywordflow">break</span>;
+<a name="l01218"></a>01218         };
+<a name="l01219"></a>01219 }
+<a name="l01220"></a>01220 
+<a name="l01221"></a>01221 <span class="keyword">static</span> Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
+<a name="l01222"></a>01222         <a class="code" href="classFloppyController.html">FloppyController</a> *fdc = match_fdc_controller(port);
+<a name="l01223"></a>01223         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> b;
+<a name="l01224"></a>01224 
+<a name="l01225"></a>01225         <span class="keywordflow">if</span> (fdc == NULL) {
+<a name="l01226"></a>01226                 LOG_MSG(<span class="stringliteral">&quot;WARNING: port read from I/O port not registered to FDC, yet callback triggered\n&quot;</span>);
+<a name="l01227"></a>01227                 <span class="keywordflow">return</span> ~(0UL);
+<a name="l01228"></a>01228         }
+<a name="l01229"></a>01229 
+<a name="l01230"></a>01230 <span class="comment">//      LOG_MSG(&quot;FDC: Read port 0x%03x irq_at_time=%u\n&quot;,port,fdc-&gt;irq_pending);</span>
+<a name="l01231"></a>01231 
+<a name="l01232"></a>01232         <span class="keywordflow">if</span> (iolen &gt; 1) {
+<a name="l01233"></a>01233                 LOG_MSG(<span class="stringliteral">&quot;WARNING: FDC unusual port read %03xh len=%u, port I/O should be 8-bit\n&quot;</span>,(<span class="keywordtype">int</span>)port,(<span class="keywordtype">int</span>)iolen);
+<a name="l01234"></a>01234         }
+<a name="l01235"></a>01235 
+<a name="l01236"></a>01236         <span class="keywordflow">switch</span> (port&amp;7) {
+<a name="l01237"></a>01237                 <span class="keywordflow">case</span> 4: <span class="comment">/* main status */</span>
+<a name="l01238"></a>01238                         b =     (fdc-&gt;data_register_ready ? 0x80 : 0x00) +
+<a name="l01239"></a>01239                                 (fdc-&gt;data_read_expected ? 0x40 : 0x00) +
+<a name="l01240"></a>01240                                 (fdc-&gt;non_dma_mode ? 0x20 : 0x00) +
+<a name="l01241"></a>01241                                 (fdc-&gt;busy_status ? 0x10 : 0x00) +
+<a name="l01242"></a>01242                                 (fdc-&gt;positioning[3] ? 0x08 : 0x00) +
+<a name="l01243"></a>01243                                 (fdc-&gt;positioning[2] ? 0x04 : 0x00) +
+<a name="l01244"></a>01244                                 (fdc-&gt;positioning[1] ? 0x02 : 0x00) +
+<a name="l01245"></a>01245                                 (fdc-&gt;positioning[0] ? 0x01 : 0x00);
+<a name="l01246"></a>01246 <span class="comment">//                      LOG_MSG(&quot;FDC: read status 0x%02x\n&quot;,b);</span>
+<a name="l01247"></a>01247                         <span class="keywordflow">return</span> b;
+<a name="l01248"></a>01248                 <span class="keywordflow">case</span> 5: <span class="comment">/* data */</span>
+<a name="l01249"></a>01249                         <span class="keywordflow">if</span> (!fdc-&gt;data_register_ready) {
+<a name="l01250"></a>01250                                 LOG_MSG(<span class="stringliteral">&quot;WARNING: FDC data read when data port not ready\n&quot;</span>);
+<a name="l01251"></a>01251                                 <span class="keywordflow">return</span> ~(0UL);
+<a name="l01252"></a>01252                         }
+<a name="l01253"></a>01253                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!fdc-&gt;data_read_expected) {
+<a name="l01254"></a>01254                                 LOG_MSG(<span class="stringliteral">&quot;WARNING: FDC data read when data port ready but expecting I/O write\n&quot;</span>);
+<a name="l01255"></a>01255                                 <span class="keywordflow">return</span> ~(0UL);
+<a name="l01256"></a>01256                         }
+<a name="l01257"></a>01257 
+<a name="l01258"></a>01258                         b = fdc-&gt;fdc_data_read();
+<a name="l01259"></a>01259 <span class="comment">//                      LOG_MSG(&quot;FDC: read data 0x%02x\n&quot;,b);</span>
+<a name="l01260"></a>01260                         <span class="keywordflow">return</span> b;
+<a name="l01261"></a>01261                 <span class="keywordflow">default</span>:
+<a name="l01262"></a>01262                         LOG_MSG(<span class="stringliteral">&quot;DEBUG: FDC read port %03xh len=%u\n&quot;</span>,(<span class="keywordtype">int</span>)port,(<span class="keywordtype">int</span>)iolen);
+<a name="l01263"></a>01263                         <span class="keywordflow">break</span>;
+<a name="l01264"></a>01264         };
+<a name="l01265"></a>01265 
+<a name="l01266"></a>01266         <span class="keywordflow">return</span> ~(0UL);
+<a name="l01267"></a>01267 }
+<a name="l01268"></a>01268 
+<a name="l01269"></a>01269 <span class="keywordtype">void</span> FloppyController::raise_irq() {
+<a name="l01270"></a>01270         irq_pending = <span class="keyword">true</span>;
+<a name="l01271"></a>01271         <span class="keywordflow">if</span> (dma_irq_enabled() &amp;&amp; IRQ &gt;= 0) PIC_ActivateIRQ(IRQ);
 <a name="l01272"></a>01272 }
 <a name="l01273"></a>01273 
+<a name="l01274"></a>01274 <span class="keywordtype">void</span> FloppyController::lower_irq() {
+<a name="l01275"></a>01275         irq_pending = <span class="keyword">false</span>;
+<a name="l01276"></a>01276         <span class="keywordflow">if</span> (IRQ &gt;= 0) PIC_DeActivateIRQ(IRQ);
+<a name="l01277"></a>01277 }
+<a name="l01278"></a>01278 
+<a name="l01279"></a>01279 <span class="keywordtype">void</span> BIOS_Post_register_FDC() {
+<a name="l01280"></a>01280         <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i=0;i &lt; MAX_FLOPPY_CONTROLLERS;i++) {
+<a name="l01281"></a>01281         <span class="keywordflow">if</span> (floppycontroller[i] != NULL)
+<a name="l01282"></a>01282             floppycontroller[i]-&gt;register_isapnp();
+<a name="l01283"></a>01283     }
+<a name="l01284"></a>01284 }
+<a name="l01285"></a>01285 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 20 2018 22:06:40 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Apr 20 2018 12:41:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

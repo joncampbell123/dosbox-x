@@ -293,7 +293,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00197"></a>00197         <span class="keywordflow">case</span> M_LIN4:
 <a name="l00198"></a>00198                 <span class="keywordflow">if</span> (!allow_vesa_4bpp) <span class="keywordflow">return</span> VESA_FAIL;
 <a name="l00199"></a>00199                 pageSize = mblock-&gt;sheight * mblock-&gt;swidth/2;
-<a name="l00200"></a>00200                 var_write(&amp;minfo.BytesPerScanLine,mblock-&gt;swidth/8);
+<a name="l00200"></a>00200                 var_write(&amp;minfo.BytesPerScanLine,((mblock-&gt;swidth+15U)/8U)&amp;(~1U)); <span class="comment">/* NTS: 4bpp requires even value due to VGA registers, round up */</span>
 <a name="l00201"></a>00201                 var_write(&amp;minfo.NumberOfPlanes,0x4);
 <a name="l00202"></a>00202                 var_write(&amp;minfo.BitsPerPixel,4);
 <a name="l00203"></a>00203                 var_write(&amp;minfo.MemoryModel,3);        <span class="comment">//ega planar mode</span>
@@ -806,7 +806,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 20 2018 22:06:43 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Apr 20 2018 12:41:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

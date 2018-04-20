@@ -96,6 +96,15 @@ Inheritance diagram for fat\-Drive\-:\begin{figure}[H]
 \item 
 \hypertarget{classfatDrive_a33bfa188995f1f5bf813af5a5b8e24ba}{bool {\bfseries directory\-Change} (Bit32u dir\-Clust\-Number, \hyperlink{structdirentry}{direntry} $\ast$use\-Entry, Bit32s ent\-Num)}\label{classfatDrive_a33bfa188995f1f5bf813af5a5b8e24ba}
 
+\item 
+\hypertarget{classfatDrive_a0347726faa951ece86554389c1582365}{virtual Bit8u {\bfseries Read\-\_\-\-Absolute\-Sector} (Bit32u sectnum, void $\ast$data)}\label{classfatDrive_a0347726faa951ece86554389c1582365}
+
+\item 
+\hypertarget{classfatDrive_a0a2171e173e8718bc73b2a4ce7493aa6}{virtual Bit8u {\bfseries Write\-\_\-\-Absolute\-Sector} (Bit32u sectnum, void $\ast$data)}\label{classfatDrive_a0a2171e173e8718bc73b2a4ce7493aa6}
+
+\item 
+\hypertarget{classfatDrive_a8eec794d6977defe23a899c4ced8344d}{virtual Bit32u {\bfseries get\-Sect\-Size} (void)}\label{classfatDrive_a8eec794d6977defe23a899c4ced8344d}
+
 \end{DoxyCompactItemize}
 \subsection*{Public Attributes}
 \begin{DoxyCompactItemize}
@@ -104,6 +113,9 @@ Inheritance diagram for fat\-Drive\-:\begin{figure}[H]
 
 \item 
 \hypertarget{classfatDrive_ae3927936196f98009856fc9f46f1065a}{bool {\bfseries created\-\_\-successfully}}\label{classfatDrive_ae3927936196f98009856fc9f46f1065a}
+
+\item 
+\hypertarget{classfatDrive_ac8107e7154b762ea45805c3eec97b3dd}{Bit32u {\bfseries sector\-\_\-size}}\label{classfatDrive_ac8107e7154b762ea45805c3eec97b3dd}
 
 \item 
 \hypertarget{classfatDrive_a87c406b52e2ede2b0d6d19df26e66184}{char {\bfseries srch\-\_\-dir} \mbox{[}C\-R\-O\-S\-S\-\_\-\-L\-E\-N\mbox{]}}\label{classfatDrive_a87c406b52e2ede2b0d6d19df26e66184}
@@ -135,7 +147,7 @@ Inheritance diagram for fat\-Drive\-:\begin{figure}[H]
 \subsection{Detailed Description}
 
 
-Definition at line 199 of file drives.\-h.
+Definition at line 205 of file drives.\-h.
 
 
 

@@ -363,934 +363,935 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00267"></a>00267 <span class="comment">}</span>
 <a name="l00268"></a>00268 <span class="comment">*/</span>
 <a name="l00269"></a>00269 
-<a name="l00270"></a>00270 <span class="keywordtype">bool</span> dosbox_allow_nonrecursive_page_fault = <span class="keyword">false</span>;      <span class="comment">/* when set, do nonrecursive mode (when executing instruction) */</span>
-<a name="l00271"></a>00271 
-<a name="l00272"></a>00272 <span class="comment">// PAGING_NewPageFault</span>
-<a name="l00273"></a>00273 <span class="comment">// lin_addr, page_addr: the linear and page address the fault happened at</span>
-<a name="l00274"></a>00274 <span class="comment">// prepare_only: true in case the calling core handles the fault, else the PageFaultCore does</span>
-<a name="l00275"></a>00275 <span class="keyword">static</span> <span class="keywordtype">void</span> PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, <span class="keywordtype">bool</span> prepare_only, Bitu faultcode) {
-<a name="l00276"></a>00276         paging.cr2=lin_addr;
-<a name="l00277"></a>00277         <span class="comment">//LOG_MSG(&quot;FAULT q%d, code %x&quot;,  pf_queue.used, faultcode);</span>
-<a name="l00278"></a>00278         <span class="comment">//PrintPageInfo(&quot;FA+&quot;,lin_addr,faultcode, prepare_only);</span>
-<a name="l00279"></a>00279 
-<a name="l00280"></a>00280         <span class="keywordflow">if</span> (prepare_only) {
-<a name="l00281"></a>00281                 cpu.exception.which = EXCEPTION_PF;
-<a name="l00282"></a>00282                 cpu.exception.error = faultcode;
-<a name="l00283"></a>00283         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (dosbox_allow_nonrecursive_page_fault) {
-<a name="l00284"></a>00284                 <span class="keywordflow">throw</span> <a class="code" href="classGuestPageFaultException.html">GuestPageFaultException</a>(lin_addr,page_addr,faultcode);
-<a name="l00285"></a>00285         } <span class="keywordflow">else</span> {
-<a name="l00286"></a>00286                 <span class="comment">// Save the state of the cpu cores</span>
-<a name="l00287"></a>00287                 <a class="code" href="structLazyFlags.html">LazyFlags</a> old_lflags;
-<a name="l00288"></a>00288                 memcpy(&amp;old_lflags,&amp;lflags,<span class="keyword">sizeof</span>(<a class="code" href="structLazyFlags.html">LazyFlags</a>));
-<a name="l00289"></a>00289                 CPU_Decoder * old_cpudecoder;
-<a name="l00290"></a>00290                 old_cpudecoder=cpudecoder;
-<a name="l00291"></a>00291                 cpudecoder=&amp;PageFaultCore;
-<a name="l00292"></a>00292                 <a class="code" href="classLOG.html">LOG</a>(LOG_PAGING,LOG_NORMAL)(<span class="stringliteral">&quot;Recursive PageFault for %lx used=%d&quot;</span>,(<span class="keywordtype">unsigned</span> long)lin_addr,(<span class="keywordtype">int</span>)pf_queue.used);
-<a name="l00293"></a>00293                 <span class="keywordflow">if</span> (pf_queue.used &gt;= PF_QUEUESIZE) E_Exit(<span class="stringliteral">&quot;PF queue overrun.&quot;</span>);
-<a name="l00294"></a>00294                 <span class="keywordflow">if</span> (pf_queue.used != 0) LOG_MSG(<span class="stringliteral">&quot;Warning: PAGING_NewPageFault() more than one level, now using level %d\n&quot;</span>,(<span class="keywordtype">int</span>)pf_queue.used+1);
-<a name="l00295"></a>00295                 <a class="code" href="structPF__Entry.html">PF_Entry</a> * entry=&amp;pf_queue.entries[pf_queue.used++];
-<a name="l00296"></a>00296                 entry-&gt;cs=SegValue(cs);
-<a name="l00297"></a>00297                 entry-&gt;eip=reg_eip;
-<a name="l00298"></a>00298                 entry-&gt;page_addr=page_addr;
-<a name="l00299"></a>00299                 entry-&gt;mpl=cpu.mpl;
-<a name="l00300"></a>00300                 cpu.mpl=3;
-<a name="l00301"></a>00301                 CPU_Exception(EXCEPTION_PF,faultcode);
-<a name="l00302"></a>00302                 DOSBOX_RunMachine();
-<a name="l00303"></a>00303                 pf_queue.used--;
-<a name="l00304"></a>00304                 memcpy(&amp;lflags,&amp;old_lflags,<span class="keyword">sizeof</span>(<a class="code" href="structLazyFlags.html">LazyFlags</a>));
-<a name="l00305"></a>00305                 cpudecoder=old_cpudecoder;
-<a name="l00306"></a>00306         }
-<a name="l00307"></a>00307 }
-<a name="l00308"></a>00308 
-<a name="l00309"></a><a class="code" href="classPageFoilHandler.html">00309</a> <span class="keyword">class </span><a class="code" href="classPageFoilHandler.html">PageFoilHandler</a> : <span class="keyword">public</span> <a class="code" href="classPageHandler.html">PageHandler</a> {
-<a name="l00310"></a>00310 <span class="keyword">private</span>:
-<a name="l00311"></a>00311         <span class="keywordtype">void</span> work(PhysPt addr) {
-<a name="l00312"></a>00312                 Bitu lin_page = addr &gt;&gt; 12;
-<a name="l00313"></a>00313                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
-<a name="l00314"></a>00314                         
-<a name="l00315"></a>00315                 <span class="comment">// set the page dirty in the tlb</span>
-<a name="l00316"></a>00316                 paging.tlb.phys_page[lin_page] |= PHYSPAGE_DITRY;
-<a name="l00317"></a>00317 
-<a name="l00318"></a>00318                 <span class="comment">// mark the page table entry dirty</span>
-<a name="l00319"></a>00319                 <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> dir_entry, table_entry;
-<a name="l00320"></a>00320 
-<a name="l00321"></a>00321                 PhysPt dirEntryAddr = GetPageDirectoryEntryAddr(addr);
-<a name="l00322"></a>00322                 dir_entry.load=phys_readd(dirEntryAddr);
-<a name="l00323"></a>00323                 <span class="keywordflow">if</span> (!dir_entry.block.p) E_Exit(<span class="stringliteral">&quot;Undesired situation 1 in page foiler.&quot;</span>);
-<a name="l00324"></a>00324 
-<a name="l00325"></a>00325                 PhysPt tableEntryAddr = GetPageTableEntryAddr(addr, dir_entry);
-<a name="l00326"></a>00326                 table_entry.load=phys_readd(tableEntryAddr);
-<a name="l00327"></a>00327                 <span class="keywordflow">if</span> (!table_entry.block.p) E_Exit(<span class="stringliteral">&quot;Undesired situation 2 in page foiler.&quot;</span>);
-<a name="l00328"></a>00328 
-<a name="l00329"></a>00329                 <span class="comment">// for debugging...</span>
-<a name="l00330"></a>00330                 <span class="keywordflow">if</span> (table_entry.block.base != phys_page)
-<a name="l00331"></a>00331                         E_Exit(<span class="stringliteral">&quot;Undesired situation 3 in page foiler.&quot;</span>);
-<a name="l00332"></a>00332 
-<a name="l00333"></a>00333                 <span class="comment">// map the real write handler in our place</span>
-<a name="l00334"></a>00334                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
-<a name="l00335"></a>00335 
-<a name="l00336"></a>00336                 <span class="comment">// debug</span>
-<a name="l00337"></a>00337 <span class="comment">//              LOG_MSG(&quot;FOIL            LIN% 8x PHYS% 8x [%x/%x/%x] WRP % 8x&quot;, addr, phys_page,</span>
-<a name="l00338"></a>00338 <span class="comment">//                      dirEntryAddr, tableEntryAddr, table_entry.load, wtest);</span>
-<a name="l00339"></a>00339 
-<a name="l00340"></a>00340                 <span class="comment">// this can happen when the same page table is used at two different</span>
-<a name="l00341"></a>00341                 <span class="comment">// page directory entries / linear locations (WfW311)</span>
-<a name="l00342"></a>00342                 <span class="comment">// if (table_entry.block.d) E_Exit(&quot;% 8x Already dirty!!&quot;,table_entry.load);</span>
-<a name="l00343"></a>00343                 
+<a name="l00270"></a>00270 <span class="keywordtype">bool</span> use_dynamic_core_with_paging = <span class="keyword">false</span>; <span class="comment">/* allow dynamic core even with paging (AT YOUR OWN RISK!!!!) */</span>
+<a name="l00271"></a>00271 <span class="keywordtype">bool</span> dosbox_allow_nonrecursive_page_fault = <span class="keyword">false</span>;      <span class="comment">/* when set, do nonrecursive mode (when executing instruction) */</span>
+<a name="l00272"></a>00272 
+<a name="l00273"></a>00273 <span class="comment">// PAGING_NewPageFault</span>
+<a name="l00274"></a>00274 <span class="comment">// lin_addr, page_addr: the linear and page address the fault happened at</span>
+<a name="l00275"></a>00275 <span class="comment">// prepare_only: true in case the calling core handles the fault, else the PageFaultCore does</span>
+<a name="l00276"></a>00276 <span class="keyword">static</span> <span class="keywordtype">void</span> PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, <span class="keywordtype">bool</span> prepare_only, Bitu faultcode) {
+<a name="l00277"></a>00277         paging.cr2=lin_addr;
+<a name="l00278"></a>00278         <span class="comment">//LOG_MSG(&quot;FAULT q%d, code %x&quot;,  pf_queue.used, faultcode);</span>
+<a name="l00279"></a>00279         <span class="comment">//PrintPageInfo(&quot;FA+&quot;,lin_addr,faultcode, prepare_only);</span>
+<a name="l00280"></a>00280 
+<a name="l00281"></a>00281         <span class="keywordflow">if</span> (prepare_only) {
+<a name="l00282"></a>00282                 cpu.exception.which = EXCEPTION_PF;
+<a name="l00283"></a>00283                 cpu.exception.error = faultcode;
+<a name="l00284"></a>00284         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (dosbox_allow_nonrecursive_page_fault) {
+<a name="l00285"></a>00285                 <span class="keywordflow">throw</span> <a class="code" href="classGuestPageFaultException.html">GuestPageFaultException</a>(lin_addr,page_addr,faultcode);
+<a name="l00286"></a>00286         } <span class="keywordflow">else</span> {
+<a name="l00287"></a>00287                 <span class="comment">// Save the state of the cpu cores</span>
+<a name="l00288"></a>00288                 <a class="code" href="structLazyFlags.html">LazyFlags</a> old_lflags;
+<a name="l00289"></a>00289                 memcpy(&amp;old_lflags,&amp;lflags,<span class="keyword">sizeof</span>(<a class="code" href="structLazyFlags.html">LazyFlags</a>));
+<a name="l00290"></a>00290                 CPU_Decoder * old_cpudecoder;
+<a name="l00291"></a>00291                 old_cpudecoder=cpudecoder;
+<a name="l00292"></a>00292                 cpudecoder=&amp;PageFaultCore;
+<a name="l00293"></a>00293                 <a class="code" href="classLOG.html">LOG</a>(LOG_PAGING,LOG_NORMAL)(<span class="stringliteral">&quot;Recursive PageFault for %lx used=%d&quot;</span>,(<span class="keywordtype">unsigned</span> long)lin_addr,(<span class="keywordtype">int</span>)pf_queue.used);
+<a name="l00294"></a>00294                 <span class="keywordflow">if</span> (pf_queue.used &gt;= PF_QUEUESIZE) E_Exit(<span class="stringliteral">&quot;PF queue overrun.&quot;</span>);
+<a name="l00295"></a>00295                 <span class="keywordflow">if</span> (pf_queue.used != 0) LOG_MSG(<span class="stringliteral">&quot;Warning: PAGING_NewPageFault() more than one level, now using level %d\n&quot;</span>,(<span class="keywordtype">int</span>)pf_queue.used+1);
+<a name="l00296"></a>00296                 <a class="code" href="structPF__Entry.html">PF_Entry</a> * entry=&amp;pf_queue.entries[pf_queue.used++];
+<a name="l00297"></a>00297                 entry-&gt;cs=SegValue(cs);
+<a name="l00298"></a>00298                 entry-&gt;eip=reg_eip;
+<a name="l00299"></a>00299                 entry-&gt;page_addr=page_addr;
+<a name="l00300"></a>00300                 entry-&gt;mpl=cpu.mpl;
+<a name="l00301"></a>00301                 cpu.mpl=3;
+<a name="l00302"></a>00302                 CPU_Exception(EXCEPTION_PF,faultcode);
+<a name="l00303"></a>00303                 DOSBOX_RunMachine();
+<a name="l00304"></a>00304                 pf_queue.used--;
+<a name="l00305"></a>00305                 memcpy(&amp;lflags,&amp;old_lflags,<span class="keyword">sizeof</span>(<a class="code" href="structLazyFlags.html">LazyFlags</a>));
+<a name="l00306"></a>00306                 cpudecoder=old_cpudecoder;
+<a name="l00307"></a>00307         }
+<a name="l00308"></a>00308 }
+<a name="l00309"></a>00309 
+<a name="l00310"></a><a class="code" href="classPageFoilHandler.html">00310</a> <span class="keyword">class </span><a class="code" href="classPageFoilHandler.html">PageFoilHandler</a> : <span class="keyword">public</span> <a class="code" href="classPageHandler.html">PageHandler</a> {
+<a name="l00311"></a>00311 <span class="keyword">private</span>:
+<a name="l00312"></a>00312         <span class="keywordtype">void</span> work(PhysPt addr) {
+<a name="l00313"></a>00313                 Bitu lin_page = addr &gt;&gt; 12;
+<a name="l00314"></a>00314                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
+<a name="l00315"></a>00315                         
+<a name="l00316"></a>00316                 <span class="comment">// set the page dirty in the tlb</span>
+<a name="l00317"></a>00317                 paging.tlb.phys_page[lin_page] |= PHYSPAGE_DITRY;
+<a name="l00318"></a>00318 
+<a name="l00319"></a>00319                 <span class="comment">// mark the page table entry dirty</span>
+<a name="l00320"></a>00320                 <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> dir_entry, table_entry;
+<a name="l00321"></a>00321 
+<a name="l00322"></a>00322                 PhysPt dirEntryAddr = GetPageDirectoryEntryAddr(addr);
+<a name="l00323"></a>00323                 dir_entry.load=phys_readd(dirEntryAddr);
+<a name="l00324"></a>00324                 <span class="keywordflow">if</span> (!dir_entry.block.p) E_Exit(<span class="stringliteral">&quot;Undesired situation 1 in page foiler.&quot;</span>);
+<a name="l00325"></a>00325 
+<a name="l00326"></a>00326                 PhysPt tableEntryAddr = GetPageTableEntryAddr(addr, dir_entry);
+<a name="l00327"></a>00327                 table_entry.load=phys_readd(tableEntryAddr);
+<a name="l00328"></a>00328                 <span class="keywordflow">if</span> (!table_entry.block.p) E_Exit(<span class="stringliteral">&quot;Undesired situation 2 in page foiler.&quot;</span>);
+<a name="l00329"></a>00329 
+<a name="l00330"></a>00330                 <span class="comment">// for debugging...</span>
+<a name="l00331"></a>00331                 <span class="keywordflow">if</span> (table_entry.block.base != phys_page)
+<a name="l00332"></a>00332                         E_Exit(<span class="stringliteral">&quot;Undesired situation 3 in page foiler.&quot;</span>);
+<a name="l00333"></a>00333 
+<a name="l00334"></a>00334                 <span class="comment">// map the real write handler in our place</span>
+<a name="l00335"></a>00335                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
+<a name="l00336"></a>00336 
+<a name="l00337"></a>00337                 <span class="comment">// debug</span>
+<a name="l00338"></a>00338 <span class="comment">//              LOG_MSG(&quot;FOIL            LIN% 8x PHYS% 8x [%x/%x/%x] WRP % 8x&quot;, addr, phys_page,</span>
+<a name="l00339"></a>00339 <span class="comment">//                      dirEntryAddr, tableEntryAddr, table_entry.load, wtest);</span>
+<a name="l00340"></a>00340 
+<a name="l00341"></a>00341                 <span class="comment">// this can happen when the same page table is used at two different</span>
+<a name="l00342"></a>00342                 <span class="comment">// page directory entries / linear locations (WfW311)</span>
+<a name="l00343"></a>00343                 <span class="comment">// if (table_entry.block.d) E_Exit(&quot;% 8x Already dirty!!&quot;,table_entry.load);</span>
 <a name="l00344"></a>00344                 
-<a name="l00345"></a>00345                 <span class="comment">// set the dirty bit</span>
-<a name="l00346"></a>00346                 table_entry.block.d=1;
-<a name="l00347"></a>00347                 phys_writed(tableEntryAddr,table_entry.load);
-<a name="l00348"></a>00348                 
-<a name="l00349"></a>00349                 <span class="comment">// replace this handler with the real thing</span>
-<a name="l00350"></a>00350                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_WRITEABLE)
-<a name="l00351"></a>00351                         paging.tlb.write[lin_page] = handler-&gt;GetHostWritePt(phys_page) - (lin_page &lt;&lt; 12);
-<a name="l00352"></a>00352                 <span class="keywordflow">else</span> paging.tlb.write[lin_page]=0;
-<a name="l00353"></a>00353                 paging.tlb.writehandler[lin_page]=handler;
-<a name="l00354"></a>00354 
-<a name="l00355"></a>00355                 <span class="keywordflow">return</span>;
-<a name="l00356"></a>00356         }
-<a name="l00357"></a>00357 
-<a name="l00358"></a>00358         <span class="keywordtype">void</span> read() {
-<a name="l00359"></a>00359                 E_Exit(<span class="stringliteral">&quot;The page foiler shouldn&#39;t be read.&quot;</span>);
-<a name="l00360"></a>00360         }
-<a name="l00361"></a>00361 <span class="keyword">public</span>:
-<a name="l00362"></a>00362         <a class="code" href="classPageFoilHandler.html">PageFoilHandler</a>() : <a class="code" href="classPageHandler.html">PageHandler</a>(PFLAG_INIT|PFLAG_NOCODE) {}
-<a name="l00363"></a>00363         Bitu readb(PhysPt addr) {read();<span class="keywordflow">return</span> 0;}
-<a name="l00364"></a>00364         Bitu readw(PhysPt addr) {read();<span class="keywordflow">return</span> 0;}
-<a name="l00365"></a>00365         Bitu readd(PhysPt addr) {read();<span class="keywordflow">return</span> 0;}
-<a name="l00366"></a>00366 
-<a name="l00367"></a>00367         <span class="keywordtype">void</span> writeb(PhysPt addr,Bitu val) {
-<a name="l00368"></a>00368                 work(addr);
-<a name="l00369"></a>00369                 <span class="comment">// execute the write:</span>
-<a name="l00370"></a>00370                 <span class="comment">// no need to care about mpl because we won&#39;t be entered</span>
-<a name="l00371"></a>00371                 <span class="comment">// if write isn&#39;t allowed</span>
-<a name="l00372"></a>00372                 mem_writeb(addr,val);
-<a name="l00373"></a>00373         }
-<a name="l00374"></a>00374         <span class="keywordtype">void</span> writew(PhysPt addr,Bitu val) {
-<a name="l00375"></a>00375                 work(addr);
-<a name="l00376"></a>00376                 mem_writew(addr,val);
-<a name="l00377"></a>00377         }
-<a name="l00378"></a>00378         <span class="keywordtype">void</span> writed(PhysPt addr,Bitu val) {
-<a name="l00379"></a>00379                 work(addr);
-<a name="l00380"></a>00380                 mem_writed(addr,val);
-<a name="l00381"></a>00381         }
-<a name="l00382"></a>00382 
-<a name="l00383"></a>00383         <span class="keywordtype">bool</span> readb_checked(PhysPt addr, Bit8u * val) {read();<span class="keywordflow">return</span> <span class="keyword">true</span>;}
-<a name="l00384"></a>00384         <span class="keywordtype">bool</span> readw_checked(PhysPt addr, Bit16u * val) {read();<span class="keywordflow">return</span> <span class="keyword">true</span>;}
-<a name="l00385"></a>00385         <span class="keywordtype">bool</span> readd_checked(PhysPt addr, Bit32u * val) {read();<span class="keywordflow">return</span> <span class="keyword">true</span>;}
-<a name="l00386"></a>00386 
-<a name="l00387"></a>00387         <span class="keywordtype">bool</span> writeb_checked(PhysPt addr,Bitu val) {
-<a name="l00388"></a>00388                 work(addr);
-<a name="l00389"></a>00389                         mem_writeb(addr,val);
-<a name="l00390"></a>00390                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00391"></a>00391         }
-<a name="l00392"></a>00392         <span class="keywordtype">bool</span> writew_checked(PhysPt addr,Bitu val) {
-<a name="l00393"></a>00393                 work(addr);
-<a name="l00394"></a>00394                         mem_writew(addr,val);
-<a name="l00395"></a>00395                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00396"></a>00396         }
-<a name="l00397"></a>00397         <span class="keywordtype">bool</span> writed_checked(PhysPt addr,Bitu val) {
-<a name="l00398"></a>00398                 work(addr);
-<a name="l00399"></a>00399                         mem_writed(addr,val);
-<a name="l00400"></a>00400                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00401"></a>00401         }
-<a name="l00402"></a>00402 };
-<a name="l00403"></a>00403 
-<a name="l00404"></a><a class="code" href="classExceptionPageHandler.html">00404</a> <span class="keyword">class </span><a class="code" href="classExceptionPageHandler.html">ExceptionPageHandler</a> : <span class="keyword">public</span> <a class="code" href="classPageHandler.html">PageHandler</a> {
-<a name="l00405"></a>00405 <span class="keyword">private</span>:
-<a name="l00406"></a>00406         <a class="code" href="classPageHandler.html">PageHandler</a>* getHandler(PhysPt addr) {
-<a name="l00407"></a>00407                 Bitu lin_page = addr &gt;&gt; 12;
-<a name="l00408"></a>00408                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
-<a name="l00409"></a>00409                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
-<a name="l00410"></a>00410                 <span class="keywordflow">return</span> handler;
-<a name="l00411"></a>00411                                         }
-<a name="l00412"></a>00412 
-<a name="l00413"></a>00413         <span class="keywordtype">bool</span> hack_check(PhysPt addr) {
-<a name="l00414"></a>00414                 <span class="comment">// First Encounters</span>
-<a name="l00415"></a>00415                 <span class="comment">// They change the page attributes without clearing the TLB.</span>
-<a name="l00416"></a>00416                 <span class="comment">// On a real 486 they get away with it because its TLB has only 32 or so </span>
-<a name="l00417"></a>00417                 <span class="comment">// elements. The changed page attribs get overwritten and re-read before</span>
-<a name="l00418"></a>00418                 <span class="comment">// the exception happens. Here we have gazillions of TLB entries so the</span>
-<a name="l00419"></a>00419                 <span class="comment">// exception occurs if we don&#39;t check for it.</span>
-<a name="l00420"></a>00420 
-<a name="l00421"></a>00421                 Bitu old_attirbs = paging.tlb.phys_page[addr&gt;&gt;12] &gt;&gt; 30;
-<a name="l00422"></a>00422                 <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> dir_entry, table_entry;
-<a name="l00423"></a>00423                 
-<a name="l00424"></a>00424                 dir_entry.load = phys_readd(GetPageDirectoryEntryAddr(addr));
-<a name="l00425"></a>00425                 <span class="keywordflow">if</span> (!dir_entry.block.p) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00426"></a>00426                 table_entry.load = phys_readd(GetPageTableEntryAddr(addr, dir_entry));
-<a name="l00427"></a>00427                 <span class="keywordflow">if</span> (!table_entry.block.p) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00428"></a>00428                 Bitu result =
-<a name="l00429"></a>00429                 translate_array[((dir_entry.load&lt;&lt;1)&amp;0xc) | ((table_entry.load&gt;&gt;1)&amp;0x3)];
-<a name="l00430"></a>00430                 <span class="keywordflow">if</span> (result != old_attirbs) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00431"></a>00431                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00432"></a>00432                                 }
-<a name="l00433"></a>00433 
-<a name="l00434"></a>00434         <span class="keywordtype">void</span> Exception(PhysPt addr, <span class="keywordtype">bool</span> writing, <span class="keywordtype">bool</span> checked) {
-<a name="l00435"></a>00435                 <span class="comment">//PrintPageInfo(&quot;XCEPT&quot;,addr,writing, checked);</span>
-<a name="l00436"></a>00436                 <span class="comment">//LOG_MSG(&quot;XCEPT LIN% 8x wr%d, ch%d, cpl%d, mpl%d&quot;,addr, writing, checked, cpu.cpl, cpu.mpl);</span>
-<a name="l00437"></a>00437                 PhysPt tableaddr = 0;
-<a name="l00438"></a>00438                 <span class="keywordflow">if</span> (!checked) {
-<a name="l00439"></a>00439                         <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> dir_entry;
-<a name="l00440"></a>00440                         dir_entry.load = phys_readd(GetPageDirectoryEntryAddr(addr));
-<a name="l00441"></a>00441                         <span class="keywordflow">if</span> (!dir_entry.block.p) E_Exit(<span class="stringliteral">&quot;Undesired situation 1 in exception handler.&quot;</span>);
-<a name="l00442"></a>00442                         
-<a name="l00443"></a>00443                         <span class="comment">// page table entry</span>
-<a name="l00444"></a>00444                         tableaddr = GetPageTableEntryAddr(addr, dir_entry);
-<a name="l00445"></a>00445                         <span class="comment">//Bitu d_index=(addr &gt;&gt; 12) &gt;&gt; 10;</span>
-<a name="l00446"></a>00446                         <span class="comment">//tableaddr=(paging.base.page&lt;&lt;12) | (d_index&lt;&lt;2);</span>
-<a name="l00447"></a>00447                 } 
-<a name="l00448"></a>00448                 PAGING_NewPageFault(addr, tableaddr, checked,
-<a name="l00449"></a>00449                         1 | (writing? 2:0) | (((cpu.cpl&amp;cpu.mpl)==3)? 4:0));
-<a name="l00450"></a>00450                 
-<a name="l00451"></a>00451                 PAGING_ClearTLB(); <span class="comment">// TODO got a better idea?</span>
-<a name="l00452"></a>00452         }
-<a name="l00453"></a>00453 
-<a name="l00454"></a>00454         Bitu readb_through(PhysPt addr) {
-<a name="l00455"></a>00455                 Bitu lin_page = addr &gt;&gt; 12;
-<a name="l00456"></a>00456                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
-<a name="l00457"></a>00457                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
-<a name="l00458"></a>00458                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) {
-<a name="l00459"></a>00459                         <span class="keywordflow">return</span> host_readb(handler-&gt;GetHostReadPt(phys_page) + (addr&amp;0xfff));
-<a name="l00460"></a>00460                         }
-<a name="l00461"></a>00461                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> handler-&gt;readb(addr);
-<a name="l00462"></a>00462                                         }
-<a name="l00463"></a>00463         Bitu readw_through(PhysPt addr) {
-<a name="l00464"></a>00464                 Bitu lin_page = addr &gt;&gt; 12;
-<a name="l00465"></a>00465                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
-<a name="l00466"></a>00466                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
-<a name="l00467"></a>00467                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) {
-<a name="l00468"></a>00468                         <span class="keywordflow">return</span> host_readw(handler-&gt;GetHostReadPt(phys_page) + (addr&amp;0xfff));
-<a name="l00469"></a>00469                                 }
-<a name="l00470"></a>00470                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> handler-&gt;readw(addr);
-<a name="l00471"></a>00471                         }
-<a name="l00472"></a>00472         Bitu readd_through(PhysPt addr) {
-<a name="l00473"></a>00473                 Bitu lin_page = addr &gt;&gt; 12;
-<a name="l00474"></a>00474                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
-<a name="l00475"></a>00475                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
-<a name="l00476"></a>00476                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) {
-<a name="l00477"></a>00477                         <span class="keywordflow">return</span> host_readd(handler-&gt;GetHostReadPt(phys_page) + (addr&amp;0xfff));
-<a name="l00478"></a>00478                 }
-<a name="l00479"></a>00479                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> handler-&gt;readd(addr);
-<a name="l00480"></a>00480                         }
-<a name="l00481"></a>00481 
-<a name="l00482"></a>00482         <span class="keywordtype">void</span> writeb_through(PhysPt addr, Bitu val) {
-<a name="l00483"></a>00483                 Bitu lin_page = addr &gt;&gt; 12;
-<a name="l00484"></a>00484                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
-<a name="l00485"></a>00485                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
-<a name="l00486"></a>00486                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_WRITEABLE) {
-<a name="l00487"></a>00487                         <span class="keywordflow">return</span> host_writeb(handler-&gt;GetHostWritePt(phys_page) + (addr&amp;0xfff), (Bit8u)val);
-<a name="l00488"></a>00488                 }
-<a name="l00489"></a>00489                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> handler-&gt;writeb(addr, val);
-<a name="l00490"></a>00490                         }
-<a name="l00491"></a>00491 
-<a name="l00492"></a>00492         <span class="keywordtype">void</span> writew_through(PhysPt addr, Bitu val) {
-<a name="l00493"></a>00493                 Bitu lin_page = addr &gt;&gt; 12;
-<a name="l00494"></a>00494                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
-<a name="l00495"></a>00495                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
-<a name="l00496"></a>00496                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_WRITEABLE) {
-<a name="l00497"></a>00497                         <span class="keywordflow">return</span> host_writew(handler-&gt;GetHostWritePt(phys_page) + (addr&amp;0xfff), (Bit16u)val);
-<a name="l00498"></a>00498                 }
-<a name="l00499"></a>00499                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> handler-&gt;writew(addr, val);
-<a name="l00500"></a>00500         }
-<a name="l00501"></a>00501 
-<a name="l00502"></a>00502         <span class="keywordtype">void</span> writed_through(PhysPt addr, Bitu val) {
-<a name="l00503"></a>00503                 Bitu lin_page = addr &gt;&gt; 12;
-<a name="l00504"></a>00504                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
-<a name="l00505"></a>00505                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
-<a name="l00506"></a>00506                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_WRITEABLE) {
-<a name="l00507"></a>00507                         <span class="keywordflow">return</span> host_writed(handler-&gt;GetHostWritePt(phys_page) + (addr&amp;0xfff), val);
-<a name="l00508"></a>00508                 }
-<a name="l00509"></a>00509                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> handler-&gt;writed(addr, val);
-<a name="l00510"></a>00510                         }
-<a name="l00511"></a>00511 
-<a name="l00512"></a>00512 <span class="keyword">public</span>:
-<a name="l00513"></a>00513         <a class="code" href="classExceptionPageHandler.html">ExceptionPageHandler</a>() : <a class="code" href="classPageHandler.html">PageHandler</a>(PFLAG_INIT|PFLAG_NOCODE) {}
-<a name="l00514"></a>00514         Bitu readb(PhysPt addr) {
-<a name="l00515"></a>00515                 <span class="keywordflow">if</span> (!cpu.mpl) <span class="keywordflow">return</span> readb_through(addr);
-<a name="l00516"></a>00516                         
-<a name="l00517"></a>00517                 Exception(addr, <span class="keyword">false</span>, <span class="keyword">false</span>);
-<a name="l00518"></a>00518                 <span class="keywordflow">return</span> mem_readb(addr); <span class="comment">// read the updated page (unlikely to happen?)</span>
-<a name="l00519"></a>00519                                 }
-<a name="l00520"></a>00520         Bitu readw(PhysPt addr) {
-<a name="l00521"></a>00521                 <span class="comment">// access type is supervisor mode (temporary)</span>
-<a name="l00522"></a>00522                 <span class="comment">// we are always allowed to read in superuser mode</span>
-<a name="l00523"></a>00523                 <span class="comment">// so get the handler and address and read it</span>
-<a name="l00524"></a>00524                 <span class="keywordflow">if</span> (!cpu.mpl) <span class="keywordflow">return</span> readw_through(addr);
-<a name="l00525"></a>00525 
-<a name="l00526"></a>00526                 Exception(addr, <span class="keyword">false</span>, <span class="keyword">false</span>);
-<a name="l00527"></a>00527                 <span class="keywordflow">return</span> mem_readw(addr);
-<a name="l00528"></a>00528                         }
-<a name="l00529"></a>00529         Bitu readd(PhysPt addr) {
-<a name="l00530"></a>00530                 <span class="keywordflow">if</span> (!cpu.mpl) <span class="keywordflow">return</span> readd_through(addr);
-<a name="l00531"></a>00531 
-<a name="l00532"></a>00532                 Exception(addr, <span class="keyword">false</span>, <span class="keyword">false</span>);
-<a name="l00533"></a>00533                 <span class="keywordflow">return</span> mem_readd(addr);
-<a name="l00534"></a>00534                 }
-<a name="l00535"></a>00535         <span class="keywordtype">void</span> writeb(PhysPt addr,Bitu val) {
-<a name="l00536"></a>00536                 <span class="keywordflow">if</span> (!cpu.mpl) {
-<a name="l00537"></a>00537                         writeb_through(addr, val);
-<a name="l00538"></a>00538                         <span class="keywordflow">return</span>;
-<a name="l00539"></a>00539         }
-<a name="l00540"></a>00540                 Exception(addr, <span class="keyword">true</span>, <span class="keyword">false</span>);
-<a name="l00541"></a>00541                 mem_writeb(addr, val);
-<a name="l00542"></a>00542                         }
-<a name="l00543"></a>00543         <span class="keywordtype">void</span> writew(PhysPt addr,Bitu val) {
-<a name="l00544"></a>00544                 <span class="keywordflow">if</span> (!cpu.mpl) {
-<a name="l00545"></a>00545                         <span class="comment">// TODO Exception on a KR-page?</span>
-<a name="l00546"></a>00546                         writew_through(addr, val);
-<a name="l00547"></a>00547                         <span class="keywordflow">return</span>;
-<a name="l00548"></a>00548                 }
-<a name="l00549"></a>00549                 <span class="keywordflow">if</span> (hack_check(addr)) {
-<a name="l00550"></a>00550                         LOG_MSG(<span class="stringliteral">&quot;Page attributes modified without clear&quot;</span>);
-<a name="l00551"></a>00551                         PAGING_ClearTLB();
-<a name="l00552"></a>00552                         mem_writew(addr,val);
-<a name="l00553"></a>00553                         <span class="keywordflow">return</span>;
-<a name="l00554"></a>00554                 }
-<a name="l00555"></a>00555                 <span class="comment">// firstenc here</span>
-<a name="l00556"></a>00556                 Exception(addr, <span class="keyword">true</span>, <span class="keyword">false</span>);
-<a name="l00557"></a>00557                 mem_writew(addr, val);
-<a name="l00558"></a>00558         }
-<a name="l00559"></a>00559         <span class="keywordtype">void</span> writed(PhysPt addr,Bitu val) {
-<a name="l00560"></a>00560                 <span class="keywordflow">if</span> (!cpu.mpl) {
-<a name="l00561"></a>00561                         writed_through(addr, val);
-<a name="l00562"></a>00562                         <span class="keywordflow">return</span>;
-<a name="l00563"></a>00563                 }
-<a name="l00564"></a>00564                 Exception(addr, <span class="keyword">true</span>, <span class="keyword">false</span>);
-<a name="l00565"></a>00565                 mem_writed(addr, val);
-<a name="l00566"></a>00566         }
-<a name="l00567"></a>00567         <span class="comment">// returning true means an exception was triggered for these _checked functions</span>
-<a name="l00568"></a>00568         <span class="keywordtype">bool</span> readb_checked(PhysPt addr, Bit8u * val) {
-<a name="l00569"></a>00569                 Exception(addr, <span class="keyword">false</span>, <span class="keyword">true</span>);
-<a name="l00570"></a>00570                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00571"></a>00571         }
-<a name="l00572"></a>00572         <span class="keywordtype">bool</span> readw_checked(PhysPt addr, Bit16u * val) {
-<a name="l00573"></a>00573                 Exception(addr, <span class="keyword">false</span>, <span class="keyword">true</span>);
-<a name="l00574"></a>00574                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00575"></a>00575                         }
-<a name="l00576"></a>00576         <span class="keywordtype">bool</span> readd_checked(PhysPt addr, Bit32u * val) {
-<a name="l00577"></a>00577                 Exception(addr, <span class="keyword">false</span>, <span class="keyword">true</span>);
-<a name="l00578"></a>00578                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00579"></a>00579                 }
-<a name="l00580"></a>00580         <span class="keywordtype">bool</span> writeb_checked(PhysPt addr,Bitu val) {
-<a name="l00581"></a>00581                 Exception(addr, <span class="keyword">true</span>, <span class="keyword">true</span>);
-<a name="l00582"></a>00582                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00583"></a>00583         }
-<a name="l00584"></a>00584         <span class="keywordtype">bool</span> writew_checked(PhysPt addr,Bitu val) {
-<a name="l00585"></a>00585                 <span class="keywordflow">if</span> (hack_check(addr)) {
-<a name="l00586"></a>00586                         LOG_MSG(<span class="stringliteral">&quot;Page attributes modified without clear&quot;</span>);
-<a name="l00587"></a>00587                         PAGING_ClearTLB();
-<a name="l00588"></a>00588                         mem_writew(addr,val); <span class="comment">// TODO this makes us recursive again?</span>
-<a name="l00589"></a>00589                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00590"></a>00590                 }
-<a name="l00591"></a>00591                 Exception(addr, <span class="keyword">true</span>, <span class="keyword">true</span>);
-<a name="l00592"></a>00592                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00593"></a>00593         }
-<a name="l00594"></a>00594         <span class="keywordtype">bool</span> writed_checked(PhysPt addr,Bitu val) {
-<a name="l00595"></a>00595                 Exception(addr, <span class="keyword">true</span>, <span class="keyword">true</span>);
-<a name="l00596"></a>00596                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00597"></a>00597         }
-<a name="l00598"></a>00598 };
-<a name="l00599"></a>00599 
-<a name="l00600"></a>00600 <span class="keyword">static</span> <span class="keywordtype">void</span> PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, <span class="keywordtype">bool</span> dirty);
-<a name="l00601"></a>00601 
-<a name="l00602"></a><a class="code" href="classNewInitPageHandler.html">00602</a> <span class="keyword">class </span><a class="code" href="classNewInitPageHandler.html">NewInitPageHandler</a> : <span class="keyword">public</span> <a class="code" href="classPageHandler.html">PageHandler</a> {
-<a name="l00603"></a>00603 <span class="keyword">public</span>:
-<a name="l00604"></a>00604         <a class="code" href="classNewInitPageHandler.html">NewInitPageHandler</a>() : <a class="code" href="classPageHandler.html">PageHandler</a>(PFLAG_INIT|PFLAG_NOCODE) {}
-<a name="l00605"></a>00605         Bitu readb(PhysPt addr) {
-<a name="l00606"></a>00606                 InitPage(addr, <span class="keyword">false</span>, <span class="keyword">false</span>);
-<a name="l00607"></a>00607                 <span class="keywordflow">return</span> mem_readb(addr);
-<a name="l00608"></a>00608         }
-<a name="l00609"></a>00609         Bitu readw(PhysPt addr) {
-<a name="l00610"></a>00610                 InitPage(addr, <span class="keyword">false</span>, <span class="keyword">false</span>);
-<a name="l00611"></a>00611                 <span class="keywordflow">return</span> mem_readw(addr);
-<a name="l00612"></a>00612         }
-<a name="l00613"></a>00613         Bitu readd(PhysPt addr) {
-<a name="l00614"></a>00614                 InitPage(addr, <span class="keyword">false</span>, <span class="keyword">false</span>);
-<a name="l00615"></a>00615                 <span class="keywordflow">return</span> mem_readd(addr);
-<a name="l00616"></a>00616         }
-<a name="l00617"></a>00617         <span class="keywordtype">void</span> writeb(PhysPt addr,Bitu val) {
-<a name="l00618"></a>00618                 InitPage(addr, <span class="keyword">true</span>, <span class="keyword">false</span>);
-<a name="l00619"></a>00619                 mem_writeb(addr,val);
-<a name="l00620"></a>00620         }
-<a name="l00621"></a>00621         <span class="keywordtype">void</span> writew(PhysPt addr,Bitu val) {
-<a name="l00622"></a>00622                 InitPage(addr, <span class="keyword">true</span>, <span class="keyword">false</span>);
-<a name="l00623"></a>00623                 mem_writew(addr,val);
-<a name="l00624"></a>00624         }
-<a name="l00625"></a>00625         <span class="keywordtype">void</span> writed(PhysPt addr,Bitu val) {
-<a name="l00626"></a>00626                 InitPage(addr, <span class="keyword">true</span>, <span class="keyword">false</span>);
-<a name="l00627"></a>00627                 mem_writed(addr,val);
-<a name="l00628"></a>00628         }
-<a name="l00629"></a>00629 
-<a name="l00630"></a>00630         <span class="keywordtype">bool</span> readb_checked(PhysPt addr, Bit8u * val) {
-<a name="l00631"></a>00631                 <span class="keywordflow">if</span> (InitPage(addr, <span class="keyword">false</span>, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00632"></a>00632                 *val=mem_readb(addr);
-<a name="l00633"></a>00633                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00634"></a>00634                 }
-<a name="l00635"></a>00635         <span class="keywordtype">bool</span> readw_checked(PhysPt addr, Bit16u * val) {
-<a name="l00636"></a>00636                 <span class="keywordflow">if</span> (InitPage(addr, <span class="keyword">false</span>, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00637"></a>00637                 *val=mem_readw(addr);
-<a name="l00638"></a>00638                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00639"></a>00639         }
-<a name="l00640"></a>00640         <span class="keywordtype">bool</span> readd_checked(PhysPt addr, Bit32u * val) {
-<a name="l00641"></a>00641                 <span class="keywordflow">if</span> (InitPage(addr, <span class="keyword">false</span>, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00642"></a>00642                 *val=mem_readd(addr);
-<a name="l00643"></a>00643                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00644"></a>00644                 }
-<a name="l00645"></a>00645         <span class="keywordtype">bool</span> writeb_checked(PhysPt addr,Bitu val) {
-<a name="l00646"></a>00646                 <span class="keywordflow">if</span> (InitPage(addr, <span class="keyword">true</span>, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00647"></a>00647                 mem_writeb(addr,val);
-<a name="l00648"></a>00648                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00649"></a>00649         }
-<a name="l00650"></a>00650         <span class="keywordtype">bool</span> writew_checked(PhysPt addr,Bitu val) {
-<a name="l00651"></a>00651                 <span class="keywordflow">if</span> (InitPage(addr, <span class="keyword">true</span>, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00652"></a>00652                 mem_writew(addr,val);
-<a name="l00653"></a>00653                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00654"></a>00654                 }
-<a name="l00655"></a>00655         <span class="keywordtype">bool</span> writed_checked(PhysPt addr,Bitu val) {
-<a name="l00656"></a>00656                 <span class="keywordflow">if</span> (InitPage(addr, <span class="keyword">true</span>, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00657"></a>00657                 mem_writed(addr,val);
-<a name="l00658"></a>00658                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00659"></a>00659         }
-<a name="l00660"></a>00660         <span class="keywordtype">bool</span> InitPage(PhysPt lin_addr, <span class="keywordtype">bool</span> writing, <span class="keywordtype">bool</span> prepare_only) {
-<a name="l00661"></a>00661                 Bitu lin_page=lin_addr &gt;&gt; 12;
-<a name="l00662"></a>00662                 Bitu phys_page;
-<a name="l00663"></a>00663                 <span class="keywordflow">if</span> (paging.enabled) {
-<a name="l00664"></a>00664 initpage_retry:
-<a name="l00665"></a>00665                         <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> dir_entry, table_entry;
-<a name="l00666"></a>00666                         <span class="keywordtype">bool</span> isUser = (((cpu.cpl &amp; cpu.mpl)==3)? <span class="keyword">true</span>:<span class="keyword">false</span>);
-<a name="l00667"></a>00667 
-<a name="l00668"></a>00668                         <span class="comment">// Read the paging stuff, throw not present exceptions if needed</span>
-<a name="l00669"></a>00669                         <span class="comment">// and find out how the page should be mapped</span>
-<a name="l00670"></a>00670                         PhysPt dirEntryAddr = GetPageDirectoryEntryAddr(lin_addr);
-<a name="l00671"></a>00671                         dir_entry.load=phys_readd(dirEntryAddr);
-<a name="l00672"></a>00672 
-<a name="l00673"></a>00673                         <span class="keywordflow">if</span> (!dir_entry.block.p) {
-<a name="l00674"></a>00674                                 <span class="comment">// table pointer is not present, do a page fault</span>
-<a name="l00675"></a>00675                                 PAGING_NewPageFault(lin_addr, dirEntryAddr, prepare_only,
-<a name="l00676"></a>00676                                         (writing? 2:0) | (isUser? 4:0));
-<a name="l00677"></a>00677                                 
-<a name="l00678"></a>00678                                 <span class="keywordflow">if</span> (prepare_only) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00679"></a>00679                                 <span class="keywordflow">else</span> <span class="keywordflow">goto</span> initpage_retry; <span class="comment">// TODO maybe E_Exit after a few loops</span>
-<a name="l00680"></a>00680                         }
-<a name="l00681"></a>00681                         PhysPt tableEntryAddr = GetPageTableEntryAddr(lin_addr, dir_entry);
-<a name="l00682"></a>00682                         table_entry.load=phys_readd(tableEntryAddr);
-<a name="l00683"></a>00683 
-<a name="l00684"></a>00684                         <span class="comment">// set page table accessed (IA manual: A is set whenever the entry is </span>
-<a name="l00685"></a>00685                         <span class="comment">// used in a page translation)</span>
-<a name="l00686"></a>00686                         <span class="keywordflow">if</span> (!dir_entry.block.a) {
-<a name="l00687"></a>00687                                 dir_entry.block.a = 1;          
-<a name="l00688"></a>00688                                 phys_writed(dirEntryAddr, dir_entry.load);
-<a name="l00689"></a>00689                 }
-<a name="l00690"></a>00690 
-<a name="l00691"></a>00691                         <span class="keywordflow">if</span> (!table_entry.block.p) {
-<a name="l00692"></a>00692                                 <span class="comment">// physpage pointer is not present, do a page fault</span>
-<a name="l00693"></a>00693                                 PAGING_NewPageFault(lin_addr, tableEntryAddr, prepare_only,
-<a name="l00694"></a>00694                                          (writing? 2:0) | (isUser? 4:0));
-<a name="l00695"></a>00695                                 
-<a name="l00696"></a>00696                                 <span class="keywordflow">if</span> (prepare_only) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00697"></a>00697                                 <span class="keywordflow">else</span> <span class="keywordflow">goto</span> initpage_retry;
-<a name="l00698"></a>00698         }
-<a name="l00699"></a>00699                         <span class="comment">//PrintPageInfo(&quot;INI&quot;,lin_addr,writing,prepare_only);</span>
-<a name="l00700"></a>00700 
-<a name="l00701"></a>00701                         Bitu result =
-<a name="l00702"></a>00702                                 translate_array[((dir_entry.load&lt;&lt;1)&amp;0xc) | ((table_entry.load&gt;&gt;1)&amp;0x3)];
-<a name="l00703"></a>00703                         
-<a name="l00704"></a>00704                         <span class="comment">// If a page access right exception occurs we shouldn&#39;t change a or d</span>
-<a name="l00705"></a>00705                         <span class="comment">// I&#39;d prefer running into the prepared exception handler but we&#39;d need</span>
-<a name="l00706"></a>00706                         <span class="comment">// an additional handler that sets the &#39;a&#39; bit - idea - foiler read?</span>
-<a name="l00707"></a>00707                         Bitu ft_index = result | (writing? 8:0) | (isUser? 4:0) |
-<a name="l00708"></a>00708                                 (paging.wp? 16:0);
-<a name="l00709"></a>00709                         
-<a name="l00710"></a>00710                         <span class="keywordflow">if</span> (GCC_UNLIKELY(fault_table[ft_index])) {
-<a name="l00711"></a>00711                                 <span class="comment">// exception error code format: </span>
-<a name="l00712"></a>00712                                 <span class="comment">// bit0 - protection violation, bit1 - writing, bit2 - user mode</span>
-<a name="l00713"></a>00713                                 PAGING_NewPageFault(lin_addr, tableEntryAddr, prepare_only,
-<a name="l00714"></a>00714                                         1 | (writing? 2:0) | (isUser? 4:0));
-<a name="l00715"></a>00715                                 
-<a name="l00716"></a>00716                                 <span class="keywordflow">if</span> (prepare_only) <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00717"></a>00717                                 <span class="keywordflow">else</span> <span class="keywordflow">goto</span> initpage_retry; <span class="comment">// unlikely to happen?</span>
-<a name="l00718"></a>00718                         }
-<a name="l00719"></a>00719                         <span class="comment">// save load to see if it changed later</span>
-<a name="l00720"></a>00720                         Bit32u table_load = table_entry.load;
-<a name="l00721"></a>00721 
-<a name="l00722"></a>00722                         <span class="comment">// if we are writing we can set it right here to save some CPU</span>
-<a name="l00723"></a>00723                         <span class="keywordflow">if</span> (writing) table_entry.block.d = 1;
-<a name="l00724"></a>00724 
-<a name="l00725"></a>00725                         <span class="comment">// set page accessed</span>
-<a name="l00726"></a>00726                         table_entry.block.a = 1;
-<a name="l00727"></a>00727                         
-<a name="l00728"></a>00728                         <span class="comment">// update if needed</span>
-<a name="l00729"></a>00729                         <span class="keywordflow">if</span> (table_load != table_entry.load)
-<a name="l00730"></a>00730                                 phys_writed(tableEntryAddr, table_entry.load);
-<a name="l00731"></a>00731 
-<a name="l00732"></a>00732                         <span class="comment">// if the page isn&#39;t dirty and we are reading we need to map the foiler</span>
-<a name="l00733"></a>00733                         <span class="comment">// (dirty = false)</span>
-<a name="l00734"></a>00734                         <span class="keywordtype">bool</span> dirty = table_entry.block.d? <span class="keyword">true</span>:<span class="keyword">false</span>;
-<a name="l00735"></a>00735 <span class="comment">/*</span>
-<a name="l00736"></a>00736 <span class="comment">                        LOG_MSG(&quot;INIT  %s LIN% 8x PHYS% 5x wr%x ch%x wp%x d%x c%x m%x a%x [%x/%x/%x]&quot;,</span>
-<a name="l00737"></a>00737 <span class="comment">                                mtr[result], lin_addr, table_entry.block.base,</span>
-<a name="l00738"></a>00738 <span class="comment">                                writing, prepare_only, paging.wp,</span>
-<a name="l00739"></a>00739 <span class="comment">                                dirty, cpu.cpl, cpu.mpl,</span>
-<a name="l00740"></a>00740 <span class="comment">                                ((dir_entry.load&lt;&lt;1)&amp;0xc) | ((table_entry.load&gt;&gt;1)&amp;0x3),</span>
-<a name="l00741"></a>00741 <span class="comment">                                dirEntryAddr, tableEntryAddr, table_entry.load);</span>
-<a name="l00742"></a>00742 <span class="comment">*/</span>
-<a name="l00743"></a>00743                         <span class="comment">// finally install the new page</span>
-<a name="l00744"></a>00744                         PAGING_LinkPageNew(lin_page, table_entry.block.base, result, dirty);
-<a name="l00745"></a>00745 
-<a name="l00746"></a>00746                 } <span class="keywordflow">else</span> { <span class="comment">// paging off</span>
-<a name="l00747"></a>00747                         <span class="keywordflow">if</span> (lin_page&lt;LINK_START) phys_page=paging.firstmb[lin_page];
-<a name="l00748"></a>00748                         <span class="keywordflow">else</span> phys_page=lin_page;
-<a name="l00749"></a>00749                         PAGING_LinkPage(lin_page,phys_page);
-<a name="l00750"></a>00750                 }
-<a name="l00751"></a>00751                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00752"></a>00752         }
-<a name="l00753"></a>00753 };
-<a name="l00754"></a>00754 
-<a name="l00755"></a>00755 <span class="keywordtype">bool</span> PAGING_MakePhysPage(Bitu &amp; page) {
-<a name="l00756"></a>00756         <span class="comment">// page is the linear address on entry</span>
-<a name="l00757"></a>00757         <span class="keywordflow">if</span> (paging.enabled) {
-<a name="l00758"></a>00758                 <span class="comment">// check the page directory entry for this address</span>
-<a name="l00759"></a>00759                 <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> dir_entry;
-<a name="l00760"></a>00760                 dir_entry.load = phys_readd(GetPageDirectoryEntryAddr(page&lt;&lt;12));
-<a name="l00761"></a>00761                 <span class="keywordflow">if</span> (!dir_entry.block.p) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00762"></a>00762                 
-<a name="l00763"></a>00763                 <span class="comment">// check the page table entry</span>
-<a name="l00764"></a>00764                 <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> tbl_entry;
-<a name="l00765"></a>00765                 tbl_entry.load = phys_readd(GetPageTableEntryAddr(page&lt;&lt;12, dir_entry));
-<a name="l00766"></a>00766                 <span class="keywordflow">if</span> (!tbl_entry.block.p) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00767"></a>00767 
-<a name="l00768"></a>00768                 <span class="comment">// return it</span>
-<a name="l00769"></a>00769                 page = tbl_entry.block.base;
-<a name="l00770"></a>00770         } <span class="keywordflow">else</span> {
-<a name="l00771"></a>00771                 <span class="keywordflow">if</span> (page&lt;LINK_START) page=paging.firstmb[page];
-<a name="l00772"></a>00772                 <span class="comment">//Else keep it the same</span>
-<a name="l00773"></a>00773         }
-<a name="l00774"></a>00774         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00775"></a>00775 }
-<a name="l00776"></a>00776 
-<a name="l00777"></a>00777 <span class="keyword">static</span> <a class="code" href="classNewInitPageHandler.html">NewInitPageHandler</a> init_page_handler;
-<a name="l00778"></a>00778 <span class="keyword">static</span> <a class="code" href="classExceptionPageHandler.html">ExceptionPageHandler</a> exception_handler;
-<a name="l00779"></a>00779 <span class="keyword">static</span> <a class="code" href="classPageFoilHandler.html">PageFoilHandler</a> foiling_handler;
-<a name="l00780"></a>00780 
-<a name="l00781"></a>00781 Bitu PAGING_GetDirBase(<span class="keywordtype">void</span>) {
-<a name="l00782"></a>00782         <span class="keywordflow">return</span> paging.cr3;
-<a name="l00783"></a>00783 }
-<a name="l00784"></a>00784 
-<a name="l00785"></a>00785 <span class="preprocessor">#if defined(USE_FULL_TLB)</span>
-<a name="l00786"></a>00786 <span class="preprocessor"></span><span class="keywordtype">void</span> PAGING_InitTLB(<span class="keywordtype">void</span>) {
-<a name="l00787"></a>00787         <span class="keywordflow">for</span> (Bitu i=0;i&lt;TLB_SIZE;i++) {
-<a name="l00788"></a>00788                 paging.tlb.read[i]=0;
-<a name="l00789"></a>00789                 paging.tlb.write[i]=0;
-<a name="l00790"></a>00790                 paging.tlb.readhandler[i]=&amp;init_page_handler;
-<a name="l00791"></a>00791                 paging.tlb.writehandler[i]=&amp;init_page_handler;
-<a name="l00792"></a>00792         }
-<a name="l00793"></a>00793         paging.ur_links.used=0;
-<a name="l00794"></a>00794         paging.krw_links.used=0;
-<a name="l00795"></a>00795         paging.kr_links.used=0;
-<a name="l00796"></a>00796         paging.links.used=0;
-<a name="l00797"></a>00797 }
-<a name="l00798"></a>00798 
-<a name="l00799"></a>00799 <span class="keywordtype">void</span> PAGING_ClearTLB(<span class="keywordtype">void</span>) {
-<a name="l00800"></a>00800 <span class="comment">//      LOG_MSG(&quot;CLEAR                          m% 4u, kr% 4u, krw% 4u, ur% 4u&quot;,</span>
-<a name="l00801"></a>00801 <span class="comment">//              paging.links.used, paging.kro_links.used, paging.krw_links.used, paging.ure_links.used);</span>
-<a name="l00802"></a>00802 
-<a name="l00803"></a>00803         Bit32u * <a class="code" href="structentries.html">entries</a>=&amp;paging.links.entries[0];
-<a name="l00804"></a>00804         <span class="keywordflow">for</span> (;paging.links.used&gt;0;paging.links.used--) {
-<a name="l00805"></a>00805                 Bitu page=*entries++;
-<a name="l00806"></a>00806                 paging.tlb.read[page]=0;
-<a name="l00807"></a>00807                 paging.tlb.write[page]=0;
-<a name="l00808"></a>00808                 paging.tlb.readhandler[page]=&amp;init_page_handler;
-<a name="l00809"></a>00809                 paging.tlb.writehandler[page]=&amp;init_page_handler;
-<a name="l00810"></a>00810         }
-<a name="l00811"></a>00811         paging.ur_links.used=0;
-<a name="l00812"></a>00812         paging.krw_links.used=0;
-<a name="l00813"></a>00813         paging.kr_links.used=0;
-<a name="l00814"></a>00814         paging.links.used=0;
-<a name="l00815"></a>00815 }
-<a name="l00816"></a>00816 
-<a name="l00817"></a>00817 <span class="keywordtype">void</span> PAGING_UnlinkPages(Bitu lin_page,Bitu pages) {
-<a name="l00818"></a>00818         <span class="keywordflow">for</span> (;pages&gt;0;pages--) {
-<a name="l00819"></a>00819                 paging.tlb.read[lin_page]=0;
-<a name="l00820"></a>00820                 paging.tlb.write[lin_page]=0;
-<a name="l00821"></a>00821                 paging.tlb.readhandler[lin_page]=&amp;init_page_handler;
-<a name="l00822"></a>00822                 paging.tlb.writehandler[lin_page]=&amp;init_page_handler;
-<a name="l00823"></a>00823                 lin_page++;
-<a name="l00824"></a>00824         }
-<a name="l00825"></a>00825 }
-<a name="l00826"></a>00826 
-<a name="l00827"></a>00827 <span class="keywordtype">void</span> PAGING_MapPage(Bitu lin_page,Bitu phys_page) {
-<a name="l00828"></a>00828         <span class="keywordflow">if</span> (lin_page&lt;LINK_START) {
-<a name="l00829"></a>00829                 paging.firstmb[lin_page]=phys_page;
-<a name="l00830"></a>00830                 paging.tlb.read[lin_page]=0;
-<a name="l00831"></a>00831                 paging.tlb.write[lin_page]=0;
-<a name="l00832"></a>00832                 paging.tlb.readhandler[lin_page]=&amp;init_page_handler;
-<a name="l00833"></a>00833                 paging.tlb.writehandler[lin_page]=&amp;init_page_handler;
-<a name="l00834"></a>00834         } <span class="keywordflow">else</span> {
-<a name="l00835"></a>00835                 PAGING_LinkPage(lin_page,phys_page);
-<a name="l00836"></a>00836         }
-<a name="l00837"></a>00837 }
-<a name="l00838"></a>00838 
-<a name="l00839"></a>00839 <span class="keyword">static</span> <span class="keywordtype">void</span> PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, <span class="keywordtype">bool</span> dirty) {
-<a name="l00840"></a>00840         Bitu xlat_index = linkmode | (paging.wp? 8:0) | ((cpu.cpl==3)? 4:0);
-<a name="l00841"></a>00841         Bit8u outcome = xlat_mapping[xlat_index];
-<a name="l00842"></a>00842 
-<a name="l00843"></a>00843         <span class="comment">// get the physpage handler we are going to map </span>
-<a name="l00844"></a>00844         <a class="code" href="classPageHandler.html">PageHandler</a> * handler=MEM_GetPageHandler(phys_page);
-<a name="l00845"></a>00845         Bitu lin_base=lin_page &lt;&lt; 12;
-<a name="l00846"></a>00846 
-<a name="l00847"></a>00847 <span class="comment">//      LOG_MSG(&quot;MAPPG %s&quot;,lnm[outcome]);</span>
-<a name="l00848"></a>00848         
-<a name="l00849"></a>00849         <span class="keywordflow">if</span> (GCC_UNLIKELY(lin_page&gt;=TLB_SIZE || phys_page&gt;=TLB_SIZE)) 
-<a name="l00850"></a>00850                 E_Exit(<span class="stringliteral">&quot;Illegal page&quot;</span>);
-<a name="l00851"></a>00851         <span class="keywordflow">if</span> (GCC_UNLIKELY(paging.links.used&gt;=PAGING_LINKS)) {
-<a name="l00852"></a>00852                 <a class="code" href="classLOG.html">LOG</a>(LOG_PAGING,LOG_NORMAL)(<span class="stringliteral">&quot;Not enough paging links, resetting cache&quot;</span>);
-<a name="l00853"></a>00853                 PAGING_ClearTLB();
-<a name="l00854"></a>00854         }
-<a name="l00855"></a>00855         <span class="comment">// re-use some of the unused bits in the phys_page variable</span>
-<a name="l00856"></a>00856         <span class="comment">// needed in the exception handler and foiler so they can replace themselves appropriately</span>
-<a name="l00857"></a>00857         <span class="comment">// bit31-30 ACMAP_</span>
-<a name="l00858"></a>00858         <span class="comment">// bit29        dirty</span>
-<a name="l00859"></a>00859         <span class="comment">// these bits are shifted off at the places paging.tlb.phys_page is read</span>
-<a name="l00860"></a>00860         paging.tlb.phys_page[lin_page]= phys_page | (linkmode&lt;&lt; 30) | (dirty? PHYSPAGE_DITRY:0);
-<a name="l00861"></a>00861         <span class="keywordflow">switch</span>(outcome) {
-<a name="l00862"></a>00862         <span class="keywordflow">case</span> ACMAP_RW:
-<a name="l00863"></a>00863                 <span class="comment">// read</span>
-<a name="l00864"></a>00864                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) paging.tlb.read[lin_page] = 
-<a name="l00865"></a>00865                         handler-&gt;GetHostReadPt(phys_page)-lin_base;
-<a name="l00866"></a>00866         <span class="keywordflow">else</span> paging.tlb.read[lin_page]=0;
-<a name="l00867"></a>00867         paging.tlb.readhandler[lin_page]=handler;
-<a name="l00868"></a>00868                 
-<a name="l00869"></a>00869                 <span class="comment">// write</span>
-<a name="l00870"></a>00870                 <span class="keywordflow">if</span> (dirty) { <span class="comment">// in case it is already dirty we don&#39;t need to check</span>
-<a name="l00871"></a>00871                         <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_WRITEABLE) paging.tlb.write[lin_page] = 
-<a name="l00872"></a>00872                                 handler-&gt;GetHostWritePt(phys_page)-lin_base;
-<a name="l00873"></a>00873                         <span class="keywordflow">else</span> paging.tlb.write[lin_page]=0;
-<a name="l00874"></a>00874         paging.tlb.writehandler[lin_page]=handler;
-<a name="l00875"></a>00875                 } <span class="keywordflow">else</span> {
-<a name="l00876"></a>00876                         paging.tlb.writehandler[lin_page]= &amp;foiling_handler;
-<a name="l00877"></a>00877                         paging.tlb.write[lin_page]=0;
-<a name="l00878"></a>00878                 }
-<a name="l00879"></a>00879                 <span class="keywordflow">break</span>;
-<a name="l00880"></a>00880         <span class="keywordflow">case</span> ACMAP_RE:
-<a name="l00881"></a>00881                 <span class="comment">// read</span>
-<a name="l00882"></a>00882                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) paging.tlb.read[lin_page] = 
-<a name="l00883"></a>00883                         handler-&gt;GetHostReadPt(phys_page)-lin_base;
-<a name="l00884"></a>00884                 <span class="keywordflow">else</span> paging.tlb.read[lin_page]=0;
-<a name="l00885"></a>00885                 paging.tlb.readhandler[lin_page]=handler;
-<a name="l00886"></a>00886                 <span class="comment">// exception</span>
-<a name="l00887"></a>00887                 paging.tlb.writehandler[lin_page]= &amp;exception_handler;
-<a name="l00888"></a>00888                 paging.tlb.write[lin_page]=0;
-<a name="l00889"></a>00889                 <span class="keywordflow">break</span>;
-<a name="l00890"></a>00890         <span class="keywordflow">case</span> ACMAP_EE:
-<a name="l00891"></a>00891                 paging.tlb.readhandler[lin_page]= &amp;exception_handler;
-<a name="l00892"></a>00892                 paging.tlb.writehandler[lin_page]= &amp;exception_handler;
-<a name="l00893"></a>00893                 paging.tlb.read[lin_page]=0;
-<a name="l00894"></a>00894                 paging.tlb.write[lin_page]=0;
-<a name="l00895"></a>00895                 <span class="keywordflow">break</span>;
-<a name="l00896"></a>00896 }
-<a name="l00897"></a>00897 
-<a name="l00898"></a>00898         <span class="keywordflow">switch</span>(linkmode) {
-<a name="l00899"></a>00899         <span class="keywordflow">case</span> ACCESS_KR:
-<a name="l00900"></a>00900                 paging.kr_links.entries[paging.kr_links.used++]=lin_page;
-<a name="l00901"></a>00901                 <span class="keywordflow">break</span>;
-<a name="l00902"></a>00902         <span class="keywordflow">case</span> ACCESS_KRW:
-<a name="l00903"></a>00903                 paging.krw_links.entries[paging.krw_links.used++]=lin_page;
-<a name="l00904"></a>00904                 <span class="keywordflow">break</span>;
-<a name="l00905"></a>00905         <span class="keywordflow">case</span> ACCESS_UR:
-<a name="l00906"></a>00906                 paging.ur_links.entries[paging.ur_links.used++]=lin_page;
-<a name="l00907"></a>00907                 <span class="keywordflow">break</span>;
-<a name="l00908"></a>00908         <span class="keywordflow">case</span> ACCESS_URW:        <span class="comment">// with this access right everything is possible</span>
-<a name="l00909"></a>00909                                                 <span class="comment">// thus no need to modify it on a us &lt;-&gt; sv switch</span>
-<a name="l00910"></a>00910                 <span class="keywordflow">break</span>;
-<a name="l00911"></a>00911         }
-<a name="l00912"></a>00912         paging.links.entries[paging.links.used++]=lin_page; <span class="comment">// &quot;master table&quot;</span>
-<a name="l00913"></a>00913 }
-<a name="l00914"></a>00914 
-<a name="l00915"></a>00915 <span class="keywordtype">void</span> PAGING_LinkPage(Bitu lin_page,Bitu phys_page) {
-<a name="l00916"></a>00916         <a class="code" href="classPageHandler.html">PageHandler</a> * handler=MEM_GetPageHandler(phys_page);
-<a name="l00917"></a>00917         Bitu lin_base=lin_page &lt;&lt; 12;
-<a name="l00918"></a>00918         <span class="keywordflow">if</span> (lin_page&gt;=TLB_SIZE || phys_page&gt;=TLB_SIZE) 
-<a name="l00919"></a>00919                 E_Exit(<span class="stringliteral">&quot;Illegal page&quot;</span>);
-<a name="l00920"></a>00920 
-<a name="l00921"></a>00921         <span class="keywordflow">if</span> (paging.links.used&gt;=PAGING_LINKS) {
-<a name="l00922"></a>00922                 <a class="code" href="classLOG.html">LOG</a>(LOG_PAGING,LOG_NORMAL)(<span class="stringliteral">&quot;Not enough paging links, resetting cache&quot;</span>);
-<a name="l00923"></a>00923                 PAGING_ClearTLB();
-<a name="l00924"></a>00924         }
-<a name="l00925"></a>00925 
-<a name="l00926"></a>00926         paging.tlb.phys_page[lin_page]=phys_page;
-<a name="l00927"></a>00927         <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) paging.tlb.read[lin_page]=handler-&gt;GetHostReadPt(phys_page)-lin_base;
-<a name="l00928"></a>00928         <span class="keywordflow">else</span> paging.tlb.read[lin_page]=0;
-<a name="l00929"></a>00929         <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_WRITEABLE) paging.tlb.write[lin_page]=handler-&gt;GetHostWritePt(phys_page)-lin_base;
-<a name="l00930"></a>00930         <span class="keywordflow">else</span> paging.tlb.write[lin_page]=0;
-<a name="l00931"></a>00931 
-<a name="l00932"></a>00932         paging.links.entries[paging.links.used++]=lin_page;
-<a name="l00933"></a>00933         paging.tlb.readhandler[lin_page]=handler;
-<a name="l00934"></a>00934         paging.tlb.writehandler[lin_page]=handler;
-<a name="l00935"></a>00935 }
-<a name="l00936"></a>00936 
-<a name="l00937"></a>00937 <span class="comment">// parameter is the new cpl mode</span>
-<a name="l00938"></a>00938 <span class="keywordtype">void</span> PAGING_SwitchCPL(<span class="keywordtype">bool</span> isUser) {
-<a name="l00939"></a>00939 <span class="comment">//      LOG_MSG(&quot;SWCPL u%d kr%d, krw%d, ur%d&quot;,</span>
-<a name="l00940"></a>00940 <span class="comment">//              isUser, paging.kro_links.used, paging.krw_links.used, paging.ure_links.used);</span>
-<a name="l00941"></a>00941         
-<a name="l00942"></a>00942         <span class="comment">// this function is worth optimizing</span>
-<a name="l00943"></a>00943         <span class="comment">// some of this cold be pre-stored?</span>
-<a name="l00944"></a>00944 
-<a name="l00945"></a>00945         <span class="comment">// krw - same for WP1 and WP0</span>
-<a name="l00946"></a>00946         <span class="keywordflow">if</span> (isUser) {
-<a name="l00947"></a>00947                 <span class="comment">// sv -&gt; us: rw -&gt; ee </span>
-<a name="l00948"></a>00948                 <span class="keywordflow">for</span>(Bitu i = 0; i &lt; paging.krw_links.used; i++) {
-<a name="l00949"></a>00949                         Bitu tlb_index = paging.krw_links.entries[i];
-<a name="l00950"></a>00950                         paging.tlb.readhandler[tlb_index] = &amp;exception_handler;
-<a name="l00951"></a>00951                         paging.tlb.writehandler[tlb_index] = &amp;exception_handler;
-<a name="l00952"></a>00952                         paging.tlb.read[tlb_index] = 0;
-<a name="l00953"></a>00953                         paging.tlb.write[tlb_index] = 0;
-<a name="l00954"></a>00954                 }
-<a name="l00955"></a>00955         } <span class="keywordflow">else</span> {
-<a name="l00956"></a>00956                 <span class="comment">// us -&gt; sv: ee -&gt; rw</span>
-<a name="l00957"></a>00957                 <span class="keywordflow">for</span>(Bitu i = 0; i &lt; paging.krw_links.used; i++) {
-<a name="l00958"></a>00958                         Bitu tlb_index = paging.krw_links.entries[i];
-<a name="l00959"></a>00959                         Bitu phys_page = paging.tlb.phys_page[tlb_index];
-<a name="l00960"></a>00960                         Bitu lin_base = tlb_index &lt;&lt; 12;
-<a name="l00961"></a>00961                         <span class="keywordtype">bool</span> dirty = (phys_page &amp; PHYSPAGE_DITRY)? <span class="keyword">true</span>:<span class="keyword">false</span>;
-<a name="l00962"></a>00962                         phys_page &amp;= PHYSPAGE_ADDR;
-<a name="l00963"></a>00963                         <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
-<a name="l00964"></a>00964                         
-<a name="l00965"></a>00965                         <span class="comment">// map read handler</span>
-<a name="l00966"></a>00966                         paging.tlb.readhandler[tlb_index] = handler;
-<a name="l00967"></a>00967                         <span class="keywordflow">if</span> (handler-&gt;getFlags()&amp;PFLAG_READABLE)
-<a name="l00968"></a>00968                                 paging.tlb.read[tlb_index] = handler-&gt;GetHostReadPt(phys_page)-lin_base;
-<a name="l00969"></a>00969                         <span class="keywordflow">else</span> paging.tlb.read[tlb_index] = 0;
-<a name="l00970"></a>00970                         
-<a name="l00971"></a>00971                         <span class="comment">// map write handler</span>
-<a name="l00972"></a>00972                         <span class="keywordflow">if</span> (dirty) {
-<a name="l00973"></a>00973                                 paging.tlb.writehandler[tlb_index] = handler;
-<a name="l00974"></a>00974                                 <span class="keywordflow">if</span> (handler-&gt;getFlags()&amp;PFLAG_WRITEABLE)
-<a name="l00975"></a>00975                                         paging.tlb.write[tlb_index] = handler-&gt;GetHostWritePt(phys_page)-lin_base;
-<a name="l00976"></a>00976                                 <span class="keywordflow">else</span> paging.tlb.write[tlb_index] = 0;
-<a name="l00977"></a>00977                         } <span class="keywordflow">else</span> {
-<a name="l00978"></a>00978                                 paging.tlb.writehandler[tlb_index] = &amp;foiling_handler;
-<a name="l00979"></a>00979                                 paging.tlb.write[tlb_index] = 0;
-<a name="l00980"></a>00980                         }
-<a name="l00981"></a>00981                 }
-<a name="l00982"></a>00982         }
-<a name="l00983"></a>00983         
-<a name="l00984"></a>00984         <span class="keywordflow">if</span> (GCC_UNLIKELY(paging.wp)) {
-<a name="l00985"></a>00985                 <span class="comment">// ur: no change with WP=1</span>
-<a name="l00986"></a>00986                 <span class="comment">// kr</span>
-<a name="l00987"></a>00987                 <span class="keywordflow">if</span> (isUser) {
-<a name="l00988"></a>00988                         <span class="comment">// sv -&gt; us: re -&gt; ee </span>
-<a name="l00989"></a>00989                         <span class="keywordflow">for</span>(Bitu i = 0; i &lt; paging.kr_links.used; i++) {
-<a name="l00990"></a>00990                                 Bitu tlb_index = paging.kr_links.entries[i];
-<a name="l00991"></a>00991                                 paging.tlb.readhandler[tlb_index] = &amp;exception_handler;
-<a name="l00992"></a>00992                                 paging.tlb.read[tlb_index] = 0;
-<a name="l00993"></a>00993                         }
-<a name="l00994"></a>00994                 } <span class="keywordflow">else</span> {
-<a name="l00995"></a>00995                         <span class="comment">// us -&gt; sv: ee -&gt; re</span>
-<a name="l00996"></a>00996                         <span class="keywordflow">for</span>(Bitu i = 0; i &lt; paging.kr_links.used; i++) {
-<a name="l00997"></a>00997                                 Bitu tlb_index = paging.kr_links.entries[i];
-<a name="l00998"></a>00998                                 Bitu lin_base = tlb_index &lt;&lt; 12;
-<a name="l00999"></a>00999                                 Bitu phys_page = paging.tlb.phys_page[tlb_index] &amp; PHYSPAGE_ADDR;
-<a name="l01000"></a>01000                                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
-<a name="l01001"></a>01001 
-<a name="l01002"></a>01002                                 paging.tlb.readhandler[tlb_index] = handler;
-<a name="l01003"></a>01003                                 <span class="keywordflow">if</span> (handler-&gt;getFlags()&amp;PFLAG_READABLE)
-<a name="l01004"></a>01004                                         paging.tlb.read[tlb_index] = handler-&gt;GetHostReadPt(phys_page)-lin_base;
-<a name="l01005"></a>01005                                 <span class="keywordflow">else</span> paging.tlb.read[tlb_index] = 0;
-<a name="l01006"></a>01006                         }
-<a name="l01007"></a>01007                 }
-<a name="l01008"></a>01008         } <span class="keywordflow">else</span> { <span class="comment">// WP=0</span>
-<a name="l01009"></a>01009                 <span class="comment">// ur</span>
-<a name="l01010"></a>01010                 <span class="keywordflow">if</span> (isUser) {
-<a name="l01011"></a>01011                         <span class="comment">// sv -&gt; us: rw -&gt; re </span>
-<a name="l01012"></a>01012                         <span class="keywordflow">for</span>(Bitu i = 0; i &lt; paging.ur_links.used; i++) {
-<a name="l01013"></a>01013                                 Bitu tlb_index = paging.ur_links.entries[i];
-<a name="l01014"></a>01014                                 paging.tlb.writehandler[tlb_index] = &amp;exception_handler;
-<a name="l01015"></a>01015                                 paging.tlb.write[tlb_index] = 0;
-<a name="l01016"></a>01016                         }
-<a name="l01017"></a>01017                 } <span class="keywordflow">else</span> {
-<a name="l01018"></a>01018                         <span class="comment">// us -&gt; sv: re -&gt; rw</span>
-<a name="l01019"></a>01019                         <span class="keywordflow">for</span>(Bitu i = 0; i &lt; paging.ur_links.used; i++) {
-<a name="l01020"></a>01020                                 Bitu tlb_index = paging.ur_links.entries[i];
-<a name="l01021"></a>01021                                 Bitu phys_page = paging.tlb.phys_page[tlb_index];
-<a name="l01022"></a>01022                                 <span class="keywordtype">bool</span> dirty = (phys_page &amp; PHYSPAGE_DITRY)? <span class="keyword">true</span>:<span class="keyword">false</span>;
-<a name="l01023"></a>01023                                 phys_page &amp;= PHYSPAGE_ADDR;
-<a name="l01024"></a>01024                                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
-<a name="l01025"></a>01025 
-<a name="l01026"></a>01026                                 <span class="keywordflow">if</span> (dirty) {
-<a name="l01027"></a>01027                                         Bitu lin_base = tlb_index &lt;&lt; 12;
-<a name="l01028"></a>01028                                         paging.tlb.writehandler[tlb_index] = handler;
-<a name="l01029"></a>01029                                         <span class="keywordflow">if</span> (handler-&gt;getFlags()&amp;PFLAG_WRITEABLE)
-<a name="l01030"></a>01030                                                 paging.tlb.write[tlb_index] = handler-&gt;GetHostWritePt(phys_page)-lin_base;
-<a name="l01031"></a>01031                                         <span class="keywordflow">else</span> paging.tlb.write[tlb_index] = 0;
-<a name="l01032"></a>01032                                 } <span class="keywordflow">else</span> {
-<a name="l01033"></a>01033                                         paging.tlb.writehandler[tlb_index] = &amp;foiling_handler;
-<a name="l01034"></a>01034                                         paging.tlb.write[tlb_index] = 0;
-<a name="l01035"></a>01035                                 }
-<a name="l01036"></a>01036                         }
-<a name="l01037"></a>01037                 }
-<a name="l01038"></a>01038         }
-<a name="l01039"></a>01039 }
-<a name="l01040"></a>01040 
-<a name="l01041"></a>01041 <span class="preprocessor">#else</span>
-<a name="l01042"></a>01042 <span class="preprocessor"></span>
-<a name="l01043"></a>01043 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> InitTLBInt(tlb_entry *bank) {
-<a name="l01044"></a>01044         <span class="keywordflow">for</span> (Bitu i=0;i&lt;TLB_SIZE;i++) {
-<a name="l01045"></a>01045                 bank[i].read=0;
-<a name="l01046"></a>01046                 bank[i].write=0;
-<a name="l01047"></a>01047                 bank[i].readhandler=&amp;init_page_handler;
-<a name="l01048"></a>01048                 bank[i].writehandler=&amp;init_page_handler;
-<a name="l01049"></a>01049         }
-<a name="l01050"></a>01050 }
-<a name="l01051"></a>01051 
-<a name="l01052"></a>01052 <span class="keywordtype">void</span> PAGING_InitTLBBank(tlb_entry **bank) {
-<a name="l01053"></a>01053         *bank = (tlb_entry *)malloc(<span class="keyword">sizeof</span>(tlb_entry)*TLB_SIZE);
-<a name="l01054"></a>01054         <span class="keywordflow">if</span>(!*bank) E_Exit(<span class="stringliteral">&quot;Out of Memory&quot;</span>);
-<a name="l01055"></a>01055         InitTLBInt(*bank);
-<a name="l01056"></a>01056 }
-<a name="l01057"></a>01057 
-<a name="l01058"></a>01058 <span class="keywordtype">void</span> PAGING_InitTLB(<span class="keywordtype">void</span>) {
-<a name="l01059"></a>01059         InitTLBInt(paging.tlbh);
-<a name="l01060"></a>01060         paging.links.used=0;
-<a name="l01061"></a>01061 }
-<a name="l01062"></a>01062 
-<a name="l01063"></a>01063 <span class="keywordtype">void</span> PAGING_ClearTLB(<span class="keywordtype">void</span>) {
-<a name="l01064"></a>01064         Bit32u * entries=&amp;paging.links.entries[0];
-<a name="l01065"></a>01065         <span class="keywordflow">for</span> (;paging.links.used&gt;0;paging.links.used--) {
-<a name="l01066"></a>01066                 Bitu page=*entries++;
-<a name="l01067"></a>01067                 tlb_entry *entry = get_tlb_entry(page&lt;&lt;12);
-<a name="l01068"></a>01068                 entry-&gt;read=0;
-<a name="l01069"></a>01069                 entry-&gt;write=0;
-<a name="l01070"></a>01070                 entry-&gt;readhandler=&amp;init_page_handler;
-<a name="l01071"></a>01071                 entry-&gt;writehandler=&amp;init_page_handler;
-<a name="l01072"></a>01072         }
-<a name="l01073"></a>01073         paging.links.used=0;
-<a name="l01074"></a>01074 }
-<a name="l01075"></a>01075 
-<a name="l01076"></a>01076 <span class="keywordtype">void</span> PAGING_UnlinkPages(Bitu lin_page,Bitu pages) {
-<a name="l01077"></a>01077         <span class="keywordflow">for</span> (;pages&gt;0;pages--) {
-<a name="l01078"></a>01078                 tlb_entry *entry = get_tlb_entry(lin_page&lt;&lt;12);
-<a name="l01079"></a>01079                 entry-&gt;read=0;
-<a name="l01080"></a>01080                 entry-&gt;write=0;
-<a name="l01081"></a>01081                 entry-&gt;readhandler=&amp;init_page_handler;
-<a name="l01082"></a>01082                 entry-&gt;writehandler=&amp;init_page_handler;
-<a name="l01083"></a>01083                 lin_page++;
-<a name="l01084"></a>01084         }
-<a name="l01085"></a>01085 }
-<a name="l01086"></a>01086 
-<a name="l01087"></a>01087 <span class="keywordtype">void</span> PAGING_MapPage(Bitu lin_page,Bitu phys_page) {
-<a name="l01088"></a>01088         <span class="keywordflow">if</span> (lin_page&lt;LINK_START) {
-<a name="l01089"></a>01089                 paging.firstmb[lin_page]=phys_page;
-<a name="l01090"></a>01090                 paging.tlbh[lin_page].read=0;
-<a name="l01091"></a>01091                 paging.tlbh[lin_page].write=0;
-<a name="l01092"></a>01092                 paging.tlbh[lin_page].readhandler=&amp;init_page_handler;
-<a name="l01093"></a>01093                 paging.tlbh[lin_page].writehandler=&amp;init_page_handler;
-<a name="l01094"></a>01094         } <span class="keywordflow">else</span> {
-<a name="l01095"></a>01095                 PAGING_LinkPage(lin_page,phys_page);
-<a name="l01096"></a>01096         }
-<a name="l01097"></a>01097 }
-<a name="l01098"></a>01098 
-<a name="l01099"></a>01099 <span class="keywordtype">void</span> PAGING_LinkPage(Bitu lin_page,Bitu phys_page) {
-<a name="l01100"></a>01100         <a class="code" href="classPageHandler.html">PageHandler</a> * handler=MEM_GetPageHandler(phys_page);
-<a name="l01101"></a>01101         Bitu lin_base=lin_page &lt;&lt; 12;
-<a name="l01102"></a>01102         <span class="keywordflow">if</span> (lin_page&gt;=(TLB_SIZE*(TLB_BANKS+1)) || phys_page&gt;=(TLB_SIZE*(TLB_BANKS+1))) 
-<a name="l01103"></a>01103                 E_Exit(<span class="stringliteral">&quot;Illegal page&quot;</span>);
-<a name="l01104"></a>01104 
-<a name="l01105"></a>01105         <span class="keywordflow">if</span> (paging.links.used&gt;=PAGING_LINKS) {
-<a name="l01106"></a>01106                 <a class="code" href="classLOG.html">LOG</a>(LOG_PAGING,LOG_NORMAL)(<span class="stringliteral">&quot;Not enough paging links, resetting cache&quot;</span>);
-<a name="l01107"></a>01107                 PAGING_ClearTLB();
-<a name="l01108"></a>01108         }
-<a name="l01109"></a>01109 
-<a name="l01110"></a>01110         tlb_entry *entry = get_tlb_entry(lin_base);
-<a name="l01111"></a>01111         entry-&gt;phys_page=phys_page;
-<a name="l01112"></a>01112         <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) entry-&gt;read=handler-&gt;GetHostReadPt(phys_page)-lin_base;
-<a name="l01113"></a>01113         <span class="keywordflow">else</span> entry-&gt;read=0;
-<a name="l01114"></a>01114         <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_WRITEABLE) entry-&gt;write=handler-&gt;GetHostWritePt(phys_page)-lin_base;
-<a name="l01115"></a>01115         <span class="keywordflow">else</span> entry-&gt;write=0;
-<a name="l01116"></a>01116 
-<a name="l01117"></a>01117         paging.links.entries[paging.links.used++]=lin_page;
-<a name="l01118"></a>01118         entry-&gt;readhandler=handler;
-<a name="l01119"></a>01119         entry-&gt;writehandler=handler;
-<a name="l01120"></a>01120 }
-<a name="l01121"></a>01121 
-<a name="l01122"></a>01122 <span class="keywordtype">void</span> PAGING_LinkPage_ReadOnly(Bitu lin_page,Bitu phys_page) {
-<a name="l01123"></a>01123         <a class="code" href="classPageHandler.html">PageHandler</a> * handler=MEM_GetPageHandler(phys_page);
-<a name="l01124"></a>01124         Bitu lin_base=lin_page &lt;&lt; 12;
-<a name="l01125"></a>01125         <span class="keywordflow">if</span> (lin_page&gt;=(TLB_SIZE*(TLB_BANKS+1)) || phys_page&gt;=(TLB_SIZE*(TLB_BANKS+1))) 
-<a name="l01126"></a>01126                 E_Exit(<span class="stringliteral">&quot;Illegal page&quot;</span>);
-<a name="l01127"></a>01127 
-<a name="l01128"></a>01128         <span class="keywordflow">if</span> (paging.links.used&gt;=PAGING_LINKS) {
-<a name="l01129"></a>01129                 <a class="code" href="classLOG.html">LOG</a>(LOG_PAGING,LOG_NORMAL)(<span class="stringliteral">&quot;Not enough paging links, resetting cache&quot;</span>);
-<a name="l01130"></a>01130                 PAGING_ClearTLB();
-<a name="l01131"></a>01131         }
-<a name="l01132"></a>01132 
-<a name="l01133"></a>01133         tlb_entry *entry = get_tlb_entry(lin_base);
-<a name="l01134"></a>01134         entry-&gt;phys_page=phys_page;
-<a name="l01135"></a>01135         <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) entry-&gt;read=handler-&gt;GetHostReadPt(phys_page)-lin_base;
-<a name="l01136"></a>01136         <span class="keywordflow">else</span> entry-&gt;read=0;
-<a name="l01137"></a>01137         entry-&gt;write=0;
-<a name="l01138"></a>01138 
-<a name="l01139"></a>01139         paging.links.entries[paging.links.used++]=lin_page;
-<a name="l01140"></a>01140         entry-&gt;readhandler=handler;
-<a name="l01141"></a>01141         entry-&gt;writehandler=&amp;init_page_handler_userro;
-<a name="l01142"></a>01142 }
-<a name="l01143"></a>01143 
-<a name="l01144"></a>01144 <span class="preprocessor">#endif</span>
-<a name="l01145"></a>01145 <span class="preprocessor"></span>
-<a name="l01146"></a>01146 
-<a name="l01147"></a>01147 <span class="keywordtype">void</span> PAGING_SetDirBase(Bitu cr3) {
-<a name="l01148"></a>01148         paging.cr3=cr3;
-<a name="l01149"></a>01149         
-<a name="l01150"></a>01150         paging.base.page=cr3 &gt;&gt; 12;
-<a name="l01151"></a>01151         paging.base.addr=cr3 &amp; ~0xFFF;
-<a name="l01152"></a>01152 <span class="comment">//      LOG(LOG_PAGING,LOG_NORMAL)(&quot;CR3:%X Base %X&quot;,cr3,paging.base.page);</span>
-<a name="l01153"></a>01153         <span class="keywordflow">if</span> (paging.enabled) {
-<a name="l01154"></a>01154                 PAGING_ClearTLB();
-<a name="l01155"></a>01155         }
-<a name="l01156"></a>01156 }
-<a name="l01157"></a>01157 
-<a name="l01158"></a>01158 <span class="keywordtype">void</span> PAGING_SetWP(<span class="keywordtype">bool</span> wp) {
-<a name="l01159"></a>01159         paging.wp = wp;
-<a name="l01160"></a>01160         <span class="keywordflow">if</span> (paging.enabled)
-<a name="l01161"></a>01161                 PAGING_ClearTLB();
-<a name="l01162"></a>01162 }
-<a name="l01163"></a>01163 
-<a name="l01164"></a>01164 <span class="keywordtype">void</span> PAGING_Enable(<span class="keywordtype">bool</span> enabled) {
-<a name="l01165"></a>01165         <span class="comment">/* If paging is disabled, we work from a default paging table */</span>
-<a name="l01166"></a>01166         <span class="keywordflow">if</span> (paging.enabled==enabled) <span class="keywordflow">return</span>;
-<a name="l01167"></a>01167         paging.enabled=enabled;
-<a name="l01168"></a>01168         <span class="keywordflow">if</span> (enabled) {
-<a name="l01169"></a>01169 <span class="comment">//              LOG(LOG_PAGING,LOG_NORMAL)(&quot;Enabled&quot;);</span>
-<a name="l01170"></a>01170                 PAGING_SetDirBase(paging.cr3);
-<a name="l01171"></a>01171         }
-<a name="l01172"></a>01172         PAGING_ClearTLB();
-<a name="l01173"></a>01173 }
-<a name="l01174"></a>01174 
-<a name="l01175"></a>01175 <span class="keywordtype">bool</span> PAGING_Enabled(<span class="keywordtype">void</span>) {
-<a name="l01176"></a>01176         <span class="keywordflow">return</span> paging.enabled;
-<a name="l01177"></a>01177 }
-<a name="l01178"></a>01178 
-<a name="l01179"></a>01179 <span class="keywordtype">void</span> PAGING_Init() {
-<a name="l01180"></a>01180         Bitu i;
-<a name="l01181"></a>01181 
-<a name="l01182"></a>01182         <span class="comment">// log</span>
-<a name="l01183"></a>01183         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing paging system (CPU linear -&gt; physical mapping system)&quot;</span>);
-<a name="l01184"></a>01184 
-<a name="l01185"></a>01185         <span class="comment">/* Setup default Page Directory, force it to update */</span>
-<a name="l01186"></a>01186         paging.enabled=<span class="keyword">false</span>;
-<a name="l01187"></a>01187         paging.wp=<span class="keyword">false</span>;
-<a name="l01188"></a>01188         PAGING_InitTLB();
-<a name="l01189"></a>01189         <span class="keywordflow">for</span> (i=0;i&lt;LINK_START;i++) paging.firstmb[i]=i;
-<a name="l01190"></a>01190         pf_queue.used=0;
-<a name="l01191"></a>01191 }
-<a name="l01192"></a>01192 
+<a name="l00345"></a>00345                 
+<a name="l00346"></a>00346                 <span class="comment">// set the dirty bit</span>
+<a name="l00347"></a>00347                 table_entry.block.d=1;
+<a name="l00348"></a>00348                 phys_writed(tableEntryAddr,table_entry.load);
+<a name="l00349"></a>00349                 
+<a name="l00350"></a>00350                 <span class="comment">// replace this handler with the real thing</span>
+<a name="l00351"></a>00351                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_WRITEABLE)
+<a name="l00352"></a>00352                         paging.tlb.write[lin_page] = handler-&gt;GetHostWritePt(phys_page) - (lin_page &lt;&lt; 12);
+<a name="l00353"></a>00353                 <span class="keywordflow">else</span> paging.tlb.write[lin_page]=0;
+<a name="l00354"></a>00354                 paging.tlb.writehandler[lin_page]=handler;
+<a name="l00355"></a>00355 
+<a name="l00356"></a>00356                 <span class="keywordflow">return</span>;
+<a name="l00357"></a>00357         }
+<a name="l00358"></a>00358 
+<a name="l00359"></a>00359         <span class="keywordtype">void</span> read() {
+<a name="l00360"></a>00360                 E_Exit(<span class="stringliteral">&quot;The page foiler shouldn&#39;t be read.&quot;</span>);
+<a name="l00361"></a>00361         }
+<a name="l00362"></a>00362 <span class="keyword">public</span>:
+<a name="l00363"></a>00363         <a class="code" href="classPageFoilHandler.html">PageFoilHandler</a>() : <a class="code" href="classPageHandler.html">PageHandler</a>(PFLAG_INIT|PFLAG_NOCODE) {}
+<a name="l00364"></a>00364         Bitu readb(PhysPt addr) {read();<span class="keywordflow">return</span> 0;}
+<a name="l00365"></a>00365         Bitu readw(PhysPt addr) {read();<span class="keywordflow">return</span> 0;}
+<a name="l00366"></a>00366         Bitu readd(PhysPt addr) {read();<span class="keywordflow">return</span> 0;}
+<a name="l00367"></a>00367 
+<a name="l00368"></a>00368         <span class="keywordtype">void</span> writeb(PhysPt addr,Bitu val) {
+<a name="l00369"></a>00369                 work(addr);
+<a name="l00370"></a>00370                 <span class="comment">// execute the write:</span>
+<a name="l00371"></a>00371                 <span class="comment">// no need to care about mpl because we won&#39;t be entered</span>
+<a name="l00372"></a>00372                 <span class="comment">// if write isn&#39;t allowed</span>
+<a name="l00373"></a>00373                 mem_writeb(addr,val);
+<a name="l00374"></a>00374         }
+<a name="l00375"></a>00375         <span class="keywordtype">void</span> writew(PhysPt addr,Bitu val) {
+<a name="l00376"></a>00376                 work(addr);
+<a name="l00377"></a>00377                 mem_writew(addr,val);
+<a name="l00378"></a>00378         }
+<a name="l00379"></a>00379         <span class="keywordtype">void</span> writed(PhysPt addr,Bitu val) {
+<a name="l00380"></a>00380                 work(addr);
+<a name="l00381"></a>00381                 mem_writed(addr,val);
+<a name="l00382"></a>00382         }
+<a name="l00383"></a>00383 
+<a name="l00384"></a>00384         <span class="keywordtype">bool</span> readb_checked(PhysPt addr, Bit8u * val) {read();<span class="keywordflow">return</span> <span class="keyword">true</span>;}
+<a name="l00385"></a>00385         <span class="keywordtype">bool</span> readw_checked(PhysPt addr, Bit16u * val) {read();<span class="keywordflow">return</span> <span class="keyword">true</span>;}
+<a name="l00386"></a>00386         <span class="keywordtype">bool</span> readd_checked(PhysPt addr, Bit32u * val) {read();<span class="keywordflow">return</span> <span class="keyword">true</span>;}
+<a name="l00387"></a>00387 
+<a name="l00388"></a>00388         <span class="keywordtype">bool</span> writeb_checked(PhysPt addr,Bitu val) {
+<a name="l00389"></a>00389                 work(addr);
+<a name="l00390"></a>00390                         mem_writeb(addr,val);
+<a name="l00391"></a>00391                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00392"></a>00392         }
+<a name="l00393"></a>00393         <span class="keywordtype">bool</span> writew_checked(PhysPt addr,Bitu val) {
+<a name="l00394"></a>00394                 work(addr);
+<a name="l00395"></a>00395                         mem_writew(addr,val);
+<a name="l00396"></a>00396                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00397"></a>00397         }
+<a name="l00398"></a>00398         <span class="keywordtype">bool</span> writed_checked(PhysPt addr,Bitu val) {
+<a name="l00399"></a>00399                 work(addr);
+<a name="l00400"></a>00400                         mem_writed(addr,val);
+<a name="l00401"></a>00401                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00402"></a>00402         }
+<a name="l00403"></a>00403 };
+<a name="l00404"></a>00404 
+<a name="l00405"></a><a class="code" href="classExceptionPageHandler.html">00405</a> <span class="keyword">class </span><a class="code" href="classExceptionPageHandler.html">ExceptionPageHandler</a> : <span class="keyword">public</span> <a class="code" href="classPageHandler.html">PageHandler</a> {
+<a name="l00406"></a>00406 <span class="keyword">private</span>:
+<a name="l00407"></a>00407         <a class="code" href="classPageHandler.html">PageHandler</a>* getHandler(PhysPt addr) {
+<a name="l00408"></a>00408                 Bitu lin_page = addr &gt;&gt; 12;
+<a name="l00409"></a>00409                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
+<a name="l00410"></a>00410                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
+<a name="l00411"></a>00411                 <span class="keywordflow">return</span> handler;
+<a name="l00412"></a>00412                                         }
+<a name="l00413"></a>00413 
+<a name="l00414"></a>00414         <span class="keywordtype">bool</span> hack_check(PhysPt addr) {
+<a name="l00415"></a>00415                 <span class="comment">// First Encounters</span>
+<a name="l00416"></a>00416                 <span class="comment">// They change the page attributes without clearing the TLB.</span>
+<a name="l00417"></a>00417                 <span class="comment">// On a real 486 they get away with it because its TLB has only 32 or so </span>
+<a name="l00418"></a>00418                 <span class="comment">// elements. The changed page attribs get overwritten and re-read before</span>
+<a name="l00419"></a>00419                 <span class="comment">// the exception happens. Here we have gazillions of TLB entries so the</span>
+<a name="l00420"></a>00420                 <span class="comment">// exception occurs if we don&#39;t check for it.</span>
+<a name="l00421"></a>00421 
+<a name="l00422"></a>00422                 Bitu old_attirbs = paging.tlb.phys_page[addr&gt;&gt;12] &gt;&gt; 30;
+<a name="l00423"></a>00423                 <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> dir_entry, table_entry;
+<a name="l00424"></a>00424                 
+<a name="l00425"></a>00425                 dir_entry.load = phys_readd(GetPageDirectoryEntryAddr(addr));
+<a name="l00426"></a>00426                 <span class="keywordflow">if</span> (!dir_entry.block.p) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00427"></a>00427                 table_entry.load = phys_readd(GetPageTableEntryAddr(addr, dir_entry));
+<a name="l00428"></a>00428                 <span class="keywordflow">if</span> (!table_entry.block.p) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00429"></a>00429                 Bitu result =
+<a name="l00430"></a>00430                 translate_array[((dir_entry.load&lt;&lt;1)&amp;0xc) | ((table_entry.load&gt;&gt;1)&amp;0x3)];
+<a name="l00431"></a>00431                 <span class="keywordflow">if</span> (result != old_attirbs) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00432"></a>00432                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00433"></a>00433                                 }
+<a name="l00434"></a>00434 
+<a name="l00435"></a>00435         <span class="keywordtype">void</span> Exception(PhysPt addr, <span class="keywordtype">bool</span> writing, <span class="keywordtype">bool</span> checked) {
+<a name="l00436"></a>00436                 <span class="comment">//PrintPageInfo(&quot;XCEPT&quot;,addr,writing, checked);</span>
+<a name="l00437"></a>00437                 <span class="comment">//LOG_MSG(&quot;XCEPT LIN% 8x wr%d, ch%d, cpl%d, mpl%d&quot;,addr, writing, checked, cpu.cpl, cpu.mpl);</span>
+<a name="l00438"></a>00438                 PhysPt tableaddr = 0;
+<a name="l00439"></a>00439                 <span class="keywordflow">if</span> (!checked) {
+<a name="l00440"></a>00440                         <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> dir_entry;
+<a name="l00441"></a>00441                         dir_entry.load = phys_readd(GetPageDirectoryEntryAddr(addr));
+<a name="l00442"></a>00442                         <span class="keywordflow">if</span> (!dir_entry.block.p) E_Exit(<span class="stringliteral">&quot;Undesired situation 1 in exception handler.&quot;</span>);
+<a name="l00443"></a>00443                         
+<a name="l00444"></a>00444                         <span class="comment">// page table entry</span>
+<a name="l00445"></a>00445                         tableaddr = GetPageTableEntryAddr(addr, dir_entry);
+<a name="l00446"></a>00446                         <span class="comment">//Bitu d_index=(addr &gt;&gt; 12) &gt;&gt; 10;</span>
+<a name="l00447"></a>00447                         <span class="comment">//tableaddr=(paging.base.page&lt;&lt;12) | (d_index&lt;&lt;2);</span>
+<a name="l00448"></a>00448                 } 
+<a name="l00449"></a>00449                 PAGING_NewPageFault(addr, tableaddr, checked,
+<a name="l00450"></a>00450                         1 | (writing? 2:0) | (((cpu.cpl&amp;cpu.mpl)==3)? 4:0));
+<a name="l00451"></a>00451                 
+<a name="l00452"></a>00452                 PAGING_ClearTLB(); <span class="comment">// TODO got a better idea?</span>
+<a name="l00453"></a>00453         }
+<a name="l00454"></a>00454 
+<a name="l00455"></a>00455         Bitu readb_through(PhysPt addr) {
+<a name="l00456"></a>00456                 Bitu lin_page = addr &gt;&gt; 12;
+<a name="l00457"></a>00457                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
+<a name="l00458"></a>00458                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
+<a name="l00459"></a>00459                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) {
+<a name="l00460"></a>00460                         <span class="keywordflow">return</span> host_readb(handler-&gt;GetHostReadPt(phys_page) + (addr&amp;0xfff));
+<a name="l00461"></a>00461                         }
+<a name="l00462"></a>00462                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> handler-&gt;readb(addr);
+<a name="l00463"></a>00463                                         }
+<a name="l00464"></a>00464         Bitu readw_through(PhysPt addr) {
+<a name="l00465"></a>00465                 Bitu lin_page = addr &gt;&gt; 12;
+<a name="l00466"></a>00466                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
+<a name="l00467"></a>00467                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
+<a name="l00468"></a>00468                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) {
+<a name="l00469"></a>00469                         <span class="keywordflow">return</span> host_readw(handler-&gt;GetHostReadPt(phys_page) + (addr&amp;0xfff));
+<a name="l00470"></a>00470                                 }
+<a name="l00471"></a>00471                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> handler-&gt;readw(addr);
+<a name="l00472"></a>00472                         }
+<a name="l00473"></a>00473         Bitu readd_through(PhysPt addr) {
+<a name="l00474"></a>00474                 Bitu lin_page = addr &gt;&gt; 12;
+<a name="l00475"></a>00475                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
+<a name="l00476"></a>00476                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
+<a name="l00477"></a>00477                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) {
+<a name="l00478"></a>00478                         <span class="keywordflow">return</span> host_readd(handler-&gt;GetHostReadPt(phys_page) + (addr&amp;0xfff));
+<a name="l00479"></a>00479                 }
+<a name="l00480"></a>00480                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> handler-&gt;readd(addr);
+<a name="l00481"></a>00481                         }
+<a name="l00482"></a>00482 
+<a name="l00483"></a>00483         <span class="keywordtype">void</span> writeb_through(PhysPt addr, Bitu val) {
+<a name="l00484"></a>00484                 Bitu lin_page = addr &gt;&gt; 12;
+<a name="l00485"></a>00485                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
+<a name="l00486"></a>00486                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
+<a name="l00487"></a>00487                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_WRITEABLE) {
+<a name="l00488"></a>00488                         <span class="keywordflow">return</span> host_writeb(handler-&gt;GetHostWritePt(phys_page) + (addr&amp;0xfff), (Bit8u)val);
+<a name="l00489"></a>00489                 }
+<a name="l00490"></a>00490                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> handler-&gt;writeb(addr, val);
+<a name="l00491"></a>00491                         }
+<a name="l00492"></a>00492 
+<a name="l00493"></a>00493         <span class="keywordtype">void</span> writew_through(PhysPt addr, Bitu val) {
+<a name="l00494"></a>00494                 Bitu lin_page = addr &gt;&gt; 12;
+<a name="l00495"></a>00495                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
+<a name="l00496"></a>00496                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
+<a name="l00497"></a>00497                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_WRITEABLE) {
+<a name="l00498"></a>00498                         <span class="keywordflow">return</span> host_writew(handler-&gt;GetHostWritePt(phys_page) + (addr&amp;0xfff), (Bit16u)val);
+<a name="l00499"></a>00499                 }
+<a name="l00500"></a>00500                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> handler-&gt;writew(addr, val);
+<a name="l00501"></a>00501         }
+<a name="l00502"></a>00502 
+<a name="l00503"></a>00503         <span class="keywordtype">void</span> writed_through(PhysPt addr, Bitu val) {
+<a name="l00504"></a>00504                 Bitu lin_page = addr &gt;&gt; 12;
+<a name="l00505"></a>00505                 Bit32u phys_page = paging.tlb.phys_page[lin_page] &amp; PHYSPAGE_ADDR;
+<a name="l00506"></a>00506                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
+<a name="l00507"></a>00507                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_WRITEABLE) {
+<a name="l00508"></a>00508                         <span class="keywordflow">return</span> host_writed(handler-&gt;GetHostWritePt(phys_page) + (addr&amp;0xfff), val);
+<a name="l00509"></a>00509                 }
+<a name="l00510"></a>00510                 <span class="keywordflow">else</span> <span class="keywordflow">return</span> handler-&gt;writed(addr, val);
+<a name="l00511"></a>00511                         }
+<a name="l00512"></a>00512 
+<a name="l00513"></a>00513 <span class="keyword">public</span>:
+<a name="l00514"></a>00514         <a class="code" href="classExceptionPageHandler.html">ExceptionPageHandler</a>() : <a class="code" href="classPageHandler.html">PageHandler</a>(PFLAG_INIT|PFLAG_NOCODE) {}
+<a name="l00515"></a>00515         Bitu readb(PhysPt addr) {
+<a name="l00516"></a>00516                 <span class="keywordflow">if</span> (!cpu.mpl) <span class="keywordflow">return</span> readb_through(addr);
+<a name="l00517"></a>00517                         
+<a name="l00518"></a>00518                 Exception(addr, <span class="keyword">false</span>, <span class="keyword">false</span>);
+<a name="l00519"></a>00519                 <span class="keywordflow">return</span> mem_readb(addr); <span class="comment">// read the updated page (unlikely to happen?)</span>
+<a name="l00520"></a>00520                                 }
+<a name="l00521"></a>00521         Bitu readw(PhysPt addr) {
+<a name="l00522"></a>00522                 <span class="comment">// access type is supervisor mode (temporary)</span>
+<a name="l00523"></a>00523                 <span class="comment">// we are always allowed to read in superuser mode</span>
+<a name="l00524"></a>00524                 <span class="comment">// so get the handler and address and read it</span>
+<a name="l00525"></a>00525                 <span class="keywordflow">if</span> (!cpu.mpl) <span class="keywordflow">return</span> readw_through(addr);
+<a name="l00526"></a>00526 
+<a name="l00527"></a>00527                 Exception(addr, <span class="keyword">false</span>, <span class="keyword">false</span>);
+<a name="l00528"></a>00528                 <span class="keywordflow">return</span> mem_readw(addr);
+<a name="l00529"></a>00529                         }
+<a name="l00530"></a>00530         Bitu readd(PhysPt addr) {
+<a name="l00531"></a>00531                 <span class="keywordflow">if</span> (!cpu.mpl) <span class="keywordflow">return</span> readd_through(addr);
+<a name="l00532"></a>00532 
+<a name="l00533"></a>00533                 Exception(addr, <span class="keyword">false</span>, <span class="keyword">false</span>);
+<a name="l00534"></a>00534                 <span class="keywordflow">return</span> mem_readd(addr);
+<a name="l00535"></a>00535                 }
+<a name="l00536"></a>00536         <span class="keywordtype">void</span> writeb(PhysPt addr,Bitu val) {
+<a name="l00537"></a>00537                 <span class="keywordflow">if</span> (!cpu.mpl) {
+<a name="l00538"></a>00538                         writeb_through(addr, val);
+<a name="l00539"></a>00539                         <span class="keywordflow">return</span>;
+<a name="l00540"></a>00540         }
+<a name="l00541"></a>00541                 Exception(addr, <span class="keyword">true</span>, <span class="keyword">false</span>);
+<a name="l00542"></a>00542                 mem_writeb(addr, val);
+<a name="l00543"></a>00543                         }
+<a name="l00544"></a>00544         <span class="keywordtype">void</span> writew(PhysPt addr,Bitu val) {
+<a name="l00545"></a>00545                 <span class="keywordflow">if</span> (!cpu.mpl) {
+<a name="l00546"></a>00546                         <span class="comment">// TODO Exception on a KR-page?</span>
+<a name="l00547"></a>00547                         writew_through(addr, val);
+<a name="l00548"></a>00548                         <span class="keywordflow">return</span>;
+<a name="l00549"></a>00549                 }
+<a name="l00550"></a>00550                 <span class="keywordflow">if</span> (hack_check(addr)) {
+<a name="l00551"></a>00551                         LOG_MSG(<span class="stringliteral">&quot;Page attributes modified without clear&quot;</span>);
+<a name="l00552"></a>00552                         PAGING_ClearTLB();
+<a name="l00553"></a>00553                         mem_writew(addr,val);
+<a name="l00554"></a>00554                         <span class="keywordflow">return</span>;
+<a name="l00555"></a>00555                 }
+<a name="l00556"></a>00556                 <span class="comment">// firstenc here</span>
+<a name="l00557"></a>00557                 Exception(addr, <span class="keyword">true</span>, <span class="keyword">false</span>);
+<a name="l00558"></a>00558                 mem_writew(addr, val);
+<a name="l00559"></a>00559         }
+<a name="l00560"></a>00560         <span class="keywordtype">void</span> writed(PhysPt addr,Bitu val) {
+<a name="l00561"></a>00561                 <span class="keywordflow">if</span> (!cpu.mpl) {
+<a name="l00562"></a>00562                         writed_through(addr, val);
+<a name="l00563"></a>00563                         <span class="keywordflow">return</span>;
+<a name="l00564"></a>00564                 }
+<a name="l00565"></a>00565                 Exception(addr, <span class="keyword">true</span>, <span class="keyword">false</span>);
+<a name="l00566"></a>00566                 mem_writed(addr, val);
+<a name="l00567"></a>00567         }
+<a name="l00568"></a>00568         <span class="comment">// returning true means an exception was triggered for these _checked functions</span>
+<a name="l00569"></a>00569         <span class="keywordtype">bool</span> readb_checked(PhysPt addr, Bit8u * val) {
+<a name="l00570"></a>00570                 Exception(addr, <span class="keyword">false</span>, <span class="keyword">true</span>);
+<a name="l00571"></a>00571                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00572"></a>00572         }
+<a name="l00573"></a>00573         <span class="keywordtype">bool</span> readw_checked(PhysPt addr, Bit16u * val) {
+<a name="l00574"></a>00574                 Exception(addr, <span class="keyword">false</span>, <span class="keyword">true</span>);
+<a name="l00575"></a>00575                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00576"></a>00576                         }
+<a name="l00577"></a>00577         <span class="keywordtype">bool</span> readd_checked(PhysPt addr, Bit32u * val) {
+<a name="l00578"></a>00578                 Exception(addr, <span class="keyword">false</span>, <span class="keyword">true</span>);
+<a name="l00579"></a>00579                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00580"></a>00580                 }
+<a name="l00581"></a>00581         <span class="keywordtype">bool</span> writeb_checked(PhysPt addr,Bitu val) {
+<a name="l00582"></a>00582                 Exception(addr, <span class="keyword">true</span>, <span class="keyword">true</span>);
+<a name="l00583"></a>00583                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00584"></a>00584         }
+<a name="l00585"></a>00585         <span class="keywordtype">bool</span> writew_checked(PhysPt addr,Bitu val) {
+<a name="l00586"></a>00586                 <span class="keywordflow">if</span> (hack_check(addr)) {
+<a name="l00587"></a>00587                         LOG_MSG(<span class="stringliteral">&quot;Page attributes modified without clear&quot;</span>);
+<a name="l00588"></a>00588                         PAGING_ClearTLB();
+<a name="l00589"></a>00589                         mem_writew(addr,val); <span class="comment">// TODO this makes us recursive again?</span>
+<a name="l00590"></a>00590                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00591"></a>00591                 }
+<a name="l00592"></a>00592                 Exception(addr, <span class="keyword">true</span>, <span class="keyword">true</span>);
+<a name="l00593"></a>00593                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00594"></a>00594         }
+<a name="l00595"></a>00595         <span class="keywordtype">bool</span> writed_checked(PhysPt addr,Bitu val) {
+<a name="l00596"></a>00596                 Exception(addr, <span class="keyword">true</span>, <span class="keyword">true</span>);
+<a name="l00597"></a>00597                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00598"></a>00598         }
+<a name="l00599"></a>00599 };
+<a name="l00600"></a>00600 
+<a name="l00601"></a>00601 <span class="keyword">static</span> <span class="keywordtype">void</span> PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, <span class="keywordtype">bool</span> dirty);
+<a name="l00602"></a>00602 
+<a name="l00603"></a><a class="code" href="classNewInitPageHandler.html">00603</a> <span class="keyword">class </span><a class="code" href="classNewInitPageHandler.html">NewInitPageHandler</a> : <span class="keyword">public</span> <a class="code" href="classPageHandler.html">PageHandler</a> {
+<a name="l00604"></a>00604 <span class="keyword">public</span>:
+<a name="l00605"></a>00605         <a class="code" href="classNewInitPageHandler.html">NewInitPageHandler</a>() : <a class="code" href="classPageHandler.html">PageHandler</a>(PFLAG_INIT|PFLAG_NOCODE) {}
+<a name="l00606"></a>00606         Bitu readb(PhysPt addr) {
+<a name="l00607"></a>00607                 InitPage(addr, <span class="keyword">false</span>, <span class="keyword">false</span>);
+<a name="l00608"></a>00608                 <span class="keywordflow">return</span> mem_readb(addr);
+<a name="l00609"></a>00609         }
+<a name="l00610"></a>00610         Bitu readw(PhysPt addr) {
+<a name="l00611"></a>00611                 InitPage(addr, <span class="keyword">false</span>, <span class="keyword">false</span>);
+<a name="l00612"></a>00612                 <span class="keywordflow">return</span> mem_readw(addr);
+<a name="l00613"></a>00613         }
+<a name="l00614"></a>00614         Bitu readd(PhysPt addr) {
+<a name="l00615"></a>00615                 InitPage(addr, <span class="keyword">false</span>, <span class="keyword">false</span>);
+<a name="l00616"></a>00616                 <span class="keywordflow">return</span> mem_readd(addr);
+<a name="l00617"></a>00617         }
+<a name="l00618"></a>00618         <span class="keywordtype">void</span> writeb(PhysPt addr,Bitu val) {
+<a name="l00619"></a>00619                 InitPage(addr, <span class="keyword">true</span>, <span class="keyword">false</span>);
+<a name="l00620"></a>00620                 mem_writeb(addr,val);
+<a name="l00621"></a>00621         }
+<a name="l00622"></a>00622         <span class="keywordtype">void</span> writew(PhysPt addr,Bitu val) {
+<a name="l00623"></a>00623                 InitPage(addr, <span class="keyword">true</span>, <span class="keyword">false</span>);
+<a name="l00624"></a>00624                 mem_writew(addr,val);
+<a name="l00625"></a>00625         }
+<a name="l00626"></a>00626         <span class="keywordtype">void</span> writed(PhysPt addr,Bitu val) {
+<a name="l00627"></a>00627                 InitPage(addr, <span class="keyword">true</span>, <span class="keyword">false</span>);
+<a name="l00628"></a>00628                 mem_writed(addr,val);
+<a name="l00629"></a>00629         }
+<a name="l00630"></a>00630 
+<a name="l00631"></a>00631         <span class="keywordtype">bool</span> readb_checked(PhysPt addr, Bit8u * val) {
+<a name="l00632"></a>00632                 <span class="keywordflow">if</span> (InitPage(addr, <span class="keyword">false</span>, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00633"></a>00633                 *val=mem_readb(addr);
+<a name="l00634"></a>00634                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00635"></a>00635                 }
+<a name="l00636"></a>00636         <span class="keywordtype">bool</span> readw_checked(PhysPt addr, Bit16u * val) {
+<a name="l00637"></a>00637                 <span class="keywordflow">if</span> (InitPage(addr, <span class="keyword">false</span>, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00638"></a>00638                 *val=mem_readw(addr);
+<a name="l00639"></a>00639                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00640"></a>00640         }
+<a name="l00641"></a>00641         <span class="keywordtype">bool</span> readd_checked(PhysPt addr, Bit32u * val) {
+<a name="l00642"></a>00642                 <span class="keywordflow">if</span> (InitPage(addr, <span class="keyword">false</span>, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00643"></a>00643                 *val=mem_readd(addr);
+<a name="l00644"></a>00644                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00645"></a>00645                 }
+<a name="l00646"></a>00646         <span class="keywordtype">bool</span> writeb_checked(PhysPt addr,Bitu val) {
+<a name="l00647"></a>00647                 <span class="keywordflow">if</span> (InitPage(addr, <span class="keyword">true</span>, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00648"></a>00648                 mem_writeb(addr,val);
+<a name="l00649"></a>00649                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00650"></a>00650         }
+<a name="l00651"></a>00651         <span class="keywordtype">bool</span> writew_checked(PhysPt addr,Bitu val) {
+<a name="l00652"></a>00652                 <span class="keywordflow">if</span> (InitPage(addr, <span class="keyword">true</span>, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00653"></a>00653                 mem_writew(addr,val);
+<a name="l00654"></a>00654                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00655"></a>00655                 }
+<a name="l00656"></a>00656         <span class="keywordtype">bool</span> writed_checked(PhysPt addr,Bitu val) {
+<a name="l00657"></a>00657                 <span class="keywordflow">if</span> (InitPage(addr, <span class="keyword">true</span>, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00658"></a>00658                 mem_writed(addr,val);
+<a name="l00659"></a>00659                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00660"></a>00660         }
+<a name="l00661"></a>00661         <span class="keywordtype">bool</span> InitPage(PhysPt lin_addr, <span class="keywordtype">bool</span> writing, <span class="keywordtype">bool</span> prepare_only) {
+<a name="l00662"></a>00662                 Bitu lin_page=lin_addr &gt;&gt; 12;
+<a name="l00663"></a>00663                 Bitu phys_page;
+<a name="l00664"></a>00664                 <span class="keywordflow">if</span> (paging.enabled) {
+<a name="l00665"></a>00665 initpage_retry:
+<a name="l00666"></a>00666                         <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> dir_entry, table_entry;
+<a name="l00667"></a>00667                         <span class="keywordtype">bool</span> isUser = (((cpu.cpl &amp; cpu.mpl)==3)? <span class="keyword">true</span>:<span class="keyword">false</span>);
+<a name="l00668"></a>00668 
+<a name="l00669"></a>00669                         <span class="comment">// Read the paging stuff, throw not present exceptions if needed</span>
+<a name="l00670"></a>00670                         <span class="comment">// and find out how the page should be mapped</span>
+<a name="l00671"></a>00671                         PhysPt dirEntryAddr = GetPageDirectoryEntryAddr(lin_addr);
+<a name="l00672"></a>00672                         dir_entry.load=phys_readd(dirEntryAddr);
+<a name="l00673"></a>00673 
+<a name="l00674"></a>00674                         <span class="keywordflow">if</span> (!dir_entry.block.p) {
+<a name="l00675"></a>00675                                 <span class="comment">// table pointer is not present, do a page fault</span>
+<a name="l00676"></a>00676                                 PAGING_NewPageFault(lin_addr, dirEntryAddr, prepare_only,
+<a name="l00677"></a>00677                                         (writing? 2:0) | (isUser? 4:0));
+<a name="l00678"></a>00678                                 
+<a name="l00679"></a>00679                                 <span class="keywordflow">if</span> (prepare_only) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00680"></a>00680                                 <span class="keywordflow">else</span> <span class="keywordflow">goto</span> initpage_retry; <span class="comment">// TODO maybe E_Exit after a few loops</span>
+<a name="l00681"></a>00681                         }
+<a name="l00682"></a>00682                         PhysPt tableEntryAddr = GetPageTableEntryAddr(lin_addr, dir_entry);
+<a name="l00683"></a>00683                         table_entry.load=phys_readd(tableEntryAddr);
+<a name="l00684"></a>00684 
+<a name="l00685"></a>00685                         <span class="comment">// set page table accessed (IA manual: A is set whenever the entry is </span>
+<a name="l00686"></a>00686                         <span class="comment">// used in a page translation)</span>
+<a name="l00687"></a>00687                         <span class="keywordflow">if</span> (!dir_entry.block.a) {
+<a name="l00688"></a>00688                                 dir_entry.block.a = 1;          
+<a name="l00689"></a>00689                                 phys_writed(dirEntryAddr, dir_entry.load);
+<a name="l00690"></a>00690                 }
+<a name="l00691"></a>00691 
+<a name="l00692"></a>00692                         <span class="keywordflow">if</span> (!table_entry.block.p) {
+<a name="l00693"></a>00693                                 <span class="comment">// physpage pointer is not present, do a page fault</span>
+<a name="l00694"></a>00694                                 PAGING_NewPageFault(lin_addr, tableEntryAddr, prepare_only,
+<a name="l00695"></a>00695                                          (writing? 2:0) | (isUser? 4:0));
+<a name="l00696"></a>00696                                 
+<a name="l00697"></a>00697                                 <span class="keywordflow">if</span> (prepare_only) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00698"></a>00698                                 <span class="keywordflow">else</span> <span class="keywordflow">goto</span> initpage_retry;
+<a name="l00699"></a>00699         }
+<a name="l00700"></a>00700                         <span class="comment">//PrintPageInfo(&quot;INI&quot;,lin_addr,writing,prepare_only);</span>
+<a name="l00701"></a>00701 
+<a name="l00702"></a>00702                         Bitu result =
+<a name="l00703"></a>00703                                 translate_array[((dir_entry.load&lt;&lt;1)&amp;0xc) | ((table_entry.load&gt;&gt;1)&amp;0x3)];
+<a name="l00704"></a>00704                         
+<a name="l00705"></a>00705                         <span class="comment">// If a page access right exception occurs we shouldn&#39;t change a or d</span>
+<a name="l00706"></a>00706                         <span class="comment">// I&#39;d prefer running into the prepared exception handler but we&#39;d need</span>
+<a name="l00707"></a>00707                         <span class="comment">// an additional handler that sets the &#39;a&#39; bit - idea - foiler read?</span>
+<a name="l00708"></a>00708                         Bitu ft_index = result | (writing? 8:0) | (isUser? 4:0) |
+<a name="l00709"></a>00709                                 (paging.wp? 16:0);
+<a name="l00710"></a>00710                         
+<a name="l00711"></a>00711                         <span class="keywordflow">if</span> (GCC_UNLIKELY(fault_table[ft_index])) {
+<a name="l00712"></a>00712                                 <span class="comment">// exception error code format: </span>
+<a name="l00713"></a>00713                                 <span class="comment">// bit0 - protection violation, bit1 - writing, bit2 - user mode</span>
+<a name="l00714"></a>00714                                 PAGING_NewPageFault(lin_addr, tableEntryAddr, prepare_only,
+<a name="l00715"></a>00715                                         1 | (writing? 2:0) | (isUser? 4:0));
+<a name="l00716"></a>00716                                 
+<a name="l00717"></a>00717                                 <span class="keywordflow">if</span> (prepare_only) <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00718"></a>00718                                 <span class="keywordflow">else</span> <span class="keywordflow">goto</span> initpage_retry; <span class="comment">// unlikely to happen?</span>
+<a name="l00719"></a>00719                         }
+<a name="l00720"></a>00720                         <span class="comment">// save load to see if it changed later</span>
+<a name="l00721"></a>00721                         Bit32u table_load = table_entry.load;
+<a name="l00722"></a>00722 
+<a name="l00723"></a>00723                         <span class="comment">// if we are writing we can set it right here to save some CPU</span>
+<a name="l00724"></a>00724                         <span class="keywordflow">if</span> (writing) table_entry.block.d = 1;
+<a name="l00725"></a>00725 
+<a name="l00726"></a>00726                         <span class="comment">// set page accessed</span>
+<a name="l00727"></a>00727                         table_entry.block.a = 1;
+<a name="l00728"></a>00728                         
+<a name="l00729"></a>00729                         <span class="comment">// update if needed</span>
+<a name="l00730"></a>00730                         <span class="keywordflow">if</span> (table_load != table_entry.load)
+<a name="l00731"></a>00731                                 phys_writed(tableEntryAddr, table_entry.load);
+<a name="l00732"></a>00732 
+<a name="l00733"></a>00733                         <span class="comment">// if the page isn&#39;t dirty and we are reading we need to map the foiler</span>
+<a name="l00734"></a>00734                         <span class="comment">// (dirty = false)</span>
+<a name="l00735"></a>00735                         <span class="keywordtype">bool</span> dirty = table_entry.block.d? <span class="keyword">true</span>:<span class="keyword">false</span>;
+<a name="l00736"></a>00736 <span class="comment">/*</span>
+<a name="l00737"></a>00737 <span class="comment">                        LOG_MSG(&quot;INIT  %s LIN% 8x PHYS% 5x wr%x ch%x wp%x d%x c%x m%x a%x [%x/%x/%x]&quot;,</span>
+<a name="l00738"></a>00738 <span class="comment">                                mtr[result], lin_addr, table_entry.block.base,</span>
+<a name="l00739"></a>00739 <span class="comment">                                writing, prepare_only, paging.wp,</span>
+<a name="l00740"></a>00740 <span class="comment">                                dirty, cpu.cpl, cpu.mpl,</span>
+<a name="l00741"></a>00741 <span class="comment">                                ((dir_entry.load&lt;&lt;1)&amp;0xc) | ((table_entry.load&gt;&gt;1)&amp;0x3),</span>
+<a name="l00742"></a>00742 <span class="comment">                                dirEntryAddr, tableEntryAddr, table_entry.load);</span>
+<a name="l00743"></a>00743 <span class="comment">*/</span>
+<a name="l00744"></a>00744                         <span class="comment">// finally install the new page</span>
+<a name="l00745"></a>00745                         PAGING_LinkPageNew(lin_page, table_entry.block.base, result, dirty);
+<a name="l00746"></a>00746 
+<a name="l00747"></a>00747                 } <span class="keywordflow">else</span> { <span class="comment">// paging off</span>
+<a name="l00748"></a>00748                         <span class="keywordflow">if</span> (lin_page&lt;LINK_START) phys_page=paging.firstmb[lin_page];
+<a name="l00749"></a>00749                         <span class="keywordflow">else</span> phys_page=lin_page;
+<a name="l00750"></a>00750                         PAGING_LinkPage(lin_page,phys_page);
+<a name="l00751"></a>00751                 }
+<a name="l00752"></a>00752                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00753"></a>00753         }
+<a name="l00754"></a>00754 };
+<a name="l00755"></a>00755 
+<a name="l00756"></a>00756 <span class="keywordtype">bool</span> PAGING_MakePhysPage(Bitu &amp; page) {
+<a name="l00757"></a>00757         <span class="comment">// page is the linear address on entry</span>
+<a name="l00758"></a>00758         <span class="keywordflow">if</span> (paging.enabled) {
+<a name="l00759"></a>00759                 <span class="comment">// check the page directory entry for this address</span>
+<a name="l00760"></a>00760                 <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> dir_entry;
+<a name="l00761"></a>00761                 dir_entry.load = phys_readd(GetPageDirectoryEntryAddr(page&lt;&lt;12));
+<a name="l00762"></a>00762                 <span class="keywordflow">if</span> (!dir_entry.block.p) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00763"></a>00763                 
+<a name="l00764"></a>00764                 <span class="comment">// check the page table entry</span>
+<a name="l00765"></a>00765                 <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> tbl_entry;
+<a name="l00766"></a>00766                 tbl_entry.load = phys_readd(GetPageTableEntryAddr(page&lt;&lt;12, dir_entry));
+<a name="l00767"></a>00767                 <span class="keywordflow">if</span> (!tbl_entry.block.p) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00768"></a>00768 
+<a name="l00769"></a>00769                 <span class="comment">// return it</span>
+<a name="l00770"></a>00770                 page = tbl_entry.block.base;
+<a name="l00771"></a>00771         } <span class="keywordflow">else</span> {
+<a name="l00772"></a>00772                 <span class="keywordflow">if</span> (page&lt;LINK_START) page=paging.firstmb[page];
+<a name="l00773"></a>00773                 <span class="comment">//Else keep it the same</span>
+<a name="l00774"></a>00774         }
+<a name="l00775"></a>00775         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00776"></a>00776 }
+<a name="l00777"></a>00777 
+<a name="l00778"></a>00778 <span class="keyword">static</span> <a class="code" href="classNewInitPageHandler.html">NewInitPageHandler</a> init_page_handler;
+<a name="l00779"></a>00779 <span class="keyword">static</span> <a class="code" href="classExceptionPageHandler.html">ExceptionPageHandler</a> exception_handler;
+<a name="l00780"></a>00780 <span class="keyword">static</span> <a class="code" href="classPageFoilHandler.html">PageFoilHandler</a> foiling_handler;
+<a name="l00781"></a>00781 
+<a name="l00782"></a>00782 Bitu PAGING_GetDirBase(<span class="keywordtype">void</span>) {
+<a name="l00783"></a>00783         <span class="keywordflow">return</span> paging.cr3;
+<a name="l00784"></a>00784 }
+<a name="l00785"></a>00785 
+<a name="l00786"></a>00786 <span class="preprocessor">#if defined(USE_FULL_TLB)</span>
+<a name="l00787"></a>00787 <span class="preprocessor"></span><span class="keywordtype">void</span> PAGING_InitTLB(<span class="keywordtype">void</span>) {
+<a name="l00788"></a>00788         <span class="keywordflow">for</span> (Bitu i=0;i&lt;TLB_SIZE;i++) {
+<a name="l00789"></a>00789                 paging.tlb.read[i]=0;
+<a name="l00790"></a>00790                 paging.tlb.write[i]=0;
+<a name="l00791"></a>00791                 paging.tlb.readhandler[i]=&amp;init_page_handler;
+<a name="l00792"></a>00792                 paging.tlb.writehandler[i]=&amp;init_page_handler;
+<a name="l00793"></a>00793         }
+<a name="l00794"></a>00794         paging.ur_links.used=0;
+<a name="l00795"></a>00795         paging.krw_links.used=0;
+<a name="l00796"></a>00796         paging.kr_links.used=0;
+<a name="l00797"></a>00797         paging.links.used=0;
+<a name="l00798"></a>00798 }
+<a name="l00799"></a>00799 
+<a name="l00800"></a>00800 <span class="keywordtype">void</span> PAGING_ClearTLB(<span class="keywordtype">void</span>) {
+<a name="l00801"></a>00801 <span class="comment">//      LOG_MSG(&quot;CLEAR                          m% 4u, kr% 4u, krw% 4u, ur% 4u&quot;,</span>
+<a name="l00802"></a>00802 <span class="comment">//              paging.links.used, paging.kro_links.used, paging.krw_links.used, paging.ure_links.used);</span>
+<a name="l00803"></a>00803 
+<a name="l00804"></a>00804         Bit32u * <a class="code" href="structentries.html">entries</a>=&amp;paging.links.entries[0];
+<a name="l00805"></a>00805         <span class="keywordflow">for</span> (;paging.links.used&gt;0;paging.links.used--) {
+<a name="l00806"></a>00806                 Bitu page=*entries++;
+<a name="l00807"></a>00807                 paging.tlb.read[page]=0;
+<a name="l00808"></a>00808                 paging.tlb.write[page]=0;
+<a name="l00809"></a>00809                 paging.tlb.readhandler[page]=&amp;init_page_handler;
+<a name="l00810"></a>00810                 paging.tlb.writehandler[page]=&amp;init_page_handler;
+<a name="l00811"></a>00811         }
+<a name="l00812"></a>00812         paging.ur_links.used=0;
+<a name="l00813"></a>00813         paging.krw_links.used=0;
+<a name="l00814"></a>00814         paging.kr_links.used=0;
+<a name="l00815"></a>00815         paging.links.used=0;
+<a name="l00816"></a>00816 }
+<a name="l00817"></a>00817 
+<a name="l00818"></a>00818 <span class="keywordtype">void</span> PAGING_UnlinkPages(Bitu lin_page,Bitu pages) {
+<a name="l00819"></a>00819         <span class="keywordflow">for</span> (;pages&gt;0;pages--) {
+<a name="l00820"></a>00820                 paging.tlb.read[lin_page]=0;
+<a name="l00821"></a>00821                 paging.tlb.write[lin_page]=0;
+<a name="l00822"></a>00822                 paging.tlb.readhandler[lin_page]=&amp;init_page_handler;
+<a name="l00823"></a>00823                 paging.tlb.writehandler[lin_page]=&amp;init_page_handler;
+<a name="l00824"></a>00824                 lin_page++;
+<a name="l00825"></a>00825         }
+<a name="l00826"></a>00826 }
+<a name="l00827"></a>00827 
+<a name="l00828"></a>00828 <span class="keywordtype">void</span> PAGING_MapPage(Bitu lin_page,Bitu phys_page) {
+<a name="l00829"></a>00829         <span class="keywordflow">if</span> (lin_page&lt;LINK_START) {
+<a name="l00830"></a>00830                 paging.firstmb[lin_page]=phys_page;
+<a name="l00831"></a>00831                 paging.tlb.read[lin_page]=0;
+<a name="l00832"></a>00832                 paging.tlb.write[lin_page]=0;
+<a name="l00833"></a>00833                 paging.tlb.readhandler[lin_page]=&amp;init_page_handler;
+<a name="l00834"></a>00834                 paging.tlb.writehandler[lin_page]=&amp;init_page_handler;
+<a name="l00835"></a>00835         } <span class="keywordflow">else</span> {
+<a name="l00836"></a>00836                 PAGING_LinkPage(lin_page,phys_page);
+<a name="l00837"></a>00837         }
+<a name="l00838"></a>00838 }
+<a name="l00839"></a>00839 
+<a name="l00840"></a>00840 <span class="keyword">static</span> <span class="keywordtype">void</span> PAGING_LinkPageNew(Bitu lin_page, Bitu phys_page, Bitu linkmode, <span class="keywordtype">bool</span> dirty) {
+<a name="l00841"></a>00841         Bitu xlat_index = linkmode | (paging.wp? 8:0) | ((cpu.cpl==3)? 4:0);
+<a name="l00842"></a>00842         Bit8u outcome = xlat_mapping[xlat_index];
+<a name="l00843"></a>00843 
+<a name="l00844"></a>00844         <span class="comment">// get the physpage handler we are going to map </span>
+<a name="l00845"></a>00845         <a class="code" href="classPageHandler.html">PageHandler</a> * handler=MEM_GetPageHandler(phys_page);
+<a name="l00846"></a>00846         Bitu lin_base=lin_page &lt;&lt; 12;
+<a name="l00847"></a>00847 
+<a name="l00848"></a>00848 <span class="comment">//      LOG_MSG(&quot;MAPPG %s&quot;,lnm[outcome]);</span>
+<a name="l00849"></a>00849         
+<a name="l00850"></a>00850         <span class="keywordflow">if</span> (GCC_UNLIKELY(lin_page&gt;=TLB_SIZE || phys_page&gt;=TLB_SIZE)) 
+<a name="l00851"></a>00851                 E_Exit(<span class="stringliteral">&quot;Illegal page&quot;</span>);
+<a name="l00852"></a>00852         <span class="keywordflow">if</span> (GCC_UNLIKELY(paging.links.used&gt;=PAGING_LINKS)) {
+<a name="l00853"></a>00853                 <a class="code" href="classLOG.html">LOG</a>(LOG_PAGING,LOG_NORMAL)(<span class="stringliteral">&quot;Not enough paging links, resetting cache&quot;</span>);
+<a name="l00854"></a>00854                 PAGING_ClearTLB();
+<a name="l00855"></a>00855         }
+<a name="l00856"></a>00856         <span class="comment">// re-use some of the unused bits in the phys_page variable</span>
+<a name="l00857"></a>00857         <span class="comment">// needed in the exception handler and foiler so they can replace themselves appropriately</span>
+<a name="l00858"></a>00858         <span class="comment">// bit31-30 ACMAP_</span>
+<a name="l00859"></a>00859         <span class="comment">// bit29        dirty</span>
+<a name="l00860"></a>00860         <span class="comment">// these bits are shifted off at the places paging.tlb.phys_page is read</span>
+<a name="l00861"></a>00861         paging.tlb.phys_page[lin_page]= phys_page | (linkmode&lt;&lt; 30) | (dirty? PHYSPAGE_DITRY:0);
+<a name="l00862"></a>00862         <span class="keywordflow">switch</span>(outcome) {
+<a name="l00863"></a>00863         <span class="keywordflow">case</span> ACMAP_RW:
+<a name="l00864"></a>00864                 <span class="comment">// read</span>
+<a name="l00865"></a>00865                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) paging.tlb.read[lin_page] = 
+<a name="l00866"></a>00866                         handler-&gt;GetHostReadPt(phys_page)-lin_base;
+<a name="l00867"></a>00867         <span class="keywordflow">else</span> paging.tlb.read[lin_page]=0;
+<a name="l00868"></a>00868         paging.tlb.readhandler[lin_page]=handler;
+<a name="l00869"></a>00869                 
+<a name="l00870"></a>00870                 <span class="comment">// write</span>
+<a name="l00871"></a>00871                 <span class="keywordflow">if</span> (dirty) { <span class="comment">// in case it is already dirty we don&#39;t need to check</span>
+<a name="l00872"></a>00872                         <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_WRITEABLE) paging.tlb.write[lin_page] = 
+<a name="l00873"></a>00873                                 handler-&gt;GetHostWritePt(phys_page)-lin_base;
+<a name="l00874"></a>00874                         <span class="keywordflow">else</span> paging.tlb.write[lin_page]=0;
+<a name="l00875"></a>00875         paging.tlb.writehandler[lin_page]=handler;
+<a name="l00876"></a>00876                 } <span class="keywordflow">else</span> {
+<a name="l00877"></a>00877                         paging.tlb.writehandler[lin_page]= &amp;foiling_handler;
+<a name="l00878"></a>00878                         paging.tlb.write[lin_page]=0;
+<a name="l00879"></a>00879                 }
+<a name="l00880"></a>00880                 <span class="keywordflow">break</span>;
+<a name="l00881"></a>00881         <span class="keywordflow">case</span> ACMAP_RE:
+<a name="l00882"></a>00882                 <span class="comment">// read</span>
+<a name="l00883"></a>00883                 <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) paging.tlb.read[lin_page] = 
+<a name="l00884"></a>00884                         handler-&gt;GetHostReadPt(phys_page)-lin_base;
+<a name="l00885"></a>00885                 <span class="keywordflow">else</span> paging.tlb.read[lin_page]=0;
+<a name="l00886"></a>00886                 paging.tlb.readhandler[lin_page]=handler;
+<a name="l00887"></a>00887                 <span class="comment">// exception</span>
+<a name="l00888"></a>00888                 paging.tlb.writehandler[lin_page]= &amp;exception_handler;
+<a name="l00889"></a>00889                 paging.tlb.write[lin_page]=0;
+<a name="l00890"></a>00890                 <span class="keywordflow">break</span>;
+<a name="l00891"></a>00891         <span class="keywordflow">case</span> ACMAP_EE:
+<a name="l00892"></a>00892                 paging.tlb.readhandler[lin_page]= &amp;exception_handler;
+<a name="l00893"></a>00893                 paging.tlb.writehandler[lin_page]= &amp;exception_handler;
+<a name="l00894"></a>00894                 paging.tlb.read[lin_page]=0;
+<a name="l00895"></a>00895                 paging.tlb.write[lin_page]=0;
+<a name="l00896"></a>00896                 <span class="keywordflow">break</span>;
+<a name="l00897"></a>00897 }
+<a name="l00898"></a>00898 
+<a name="l00899"></a>00899         <span class="keywordflow">switch</span>(linkmode) {
+<a name="l00900"></a>00900         <span class="keywordflow">case</span> ACCESS_KR:
+<a name="l00901"></a>00901                 paging.kr_links.entries[paging.kr_links.used++]=lin_page;
+<a name="l00902"></a>00902                 <span class="keywordflow">break</span>;
+<a name="l00903"></a>00903         <span class="keywordflow">case</span> ACCESS_KRW:
+<a name="l00904"></a>00904                 paging.krw_links.entries[paging.krw_links.used++]=lin_page;
+<a name="l00905"></a>00905                 <span class="keywordflow">break</span>;
+<a name="l00906"></a>00906         <span class="keywordflow">case</span> ACCESS_UR:
+<a name="l00907"></a>00907                 paging.ur_links.entries[paging.ur_links.used++]=lin_page;
+<a name="l00908"></a>00908                 <span class="keywordflow">break</span>;
+<a name="l00909"></a>00909         <span class="keywordflow">case</span> ACCESS_URW:        <span class="comment">// with this access right everything is possible</span>
+<a name="l00910"></a>00910                                                 <span class="comment">// thus no need to modify it on a us &lt;-&gt; sv switch</span>
+<a name="l00911"></a>00911                 <span class="keywordflow">break</span>;
+<a name="l00912"></a>00912         }
+<a name="l00913"></a>00913         paging.links.entries[paging.links.used++]=lin_page; <span class="comment">// &quot;master table&quot;</span>
+<a name="l00914"></a>00914 }
+<a name="l00915"></a>00915 
+<a name="l00916"></a>00916 <span class="keywordtype">void</span> PAGING_LinkPage(Bitu lin_page,Bitu phys_page) {
+<a name="l00917"></a>00917         <a class="code" href="classPageHandler.html">PageHandler</a> * handler=MEM_GetPageHandler(phys_page);
+<a name="l00918"></a>00918         Bitu lin_base=lin_page &lt;&lt; 12;
+<a name="l00919"></a>00919         <span class="keywordflow">if</span> (lin_page&gt;=TLB_SIZE || phys_page&gt;=TLB_SIZE) 
+<a name="l00920"></a>00920                 E_Exit(<span class="stringliteral">&quot;Illegal page&quot;</span>);
+<a name="l00921"></a>00921 
+<a name="l00922"></a>00922         <span class="keywordflow">if</span> (paging.links.used&gt;=PAGING_LINKS) {
+<a name="l00923"></a>00923                 <a class="code" href="classLOG.html">LOG</a>(LOG_PAGING,LOG_NORMAL)(<span class="stringliteral">&quot;Not enough paging links, resetting cache&quot;</span>);
+<a name="l00924"></a>00924                 PAGING_ClearTLB();
+<a name="l00925"></a>00925         }
+<a name="l00926"></a>00926 
+<a name="l00927"></a>00927         paging.tlb.phys_page[lin_page]=phys_page;
+<a name="l00928"></a>00928         <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) paging.tlb.read[lin_page]=handler-&gt;GetHostReadPt(phys_page)-lin_base;
+<a name="l00929"></a>00929         <span class="keywordflow">else</span> paging.tlb.read[lin_page]=0;
+<a name="l00930"></a>00930         <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_WRITEABLE) paging.tlb.write[lin_page]=handler-&gt;GetHostWritePt(phys_page)-lin_base;
+<a name="l00931"></a>00931         <span class="keywordflow">else</span> paging.tlb.write[lin_page]=0;
+<a name="l00932"></a>00932 
+<a name="l00933"></a>00933         paging.links.entries[paging.links.used++]=lin_page;
+<a name="l00934"></a>00934         paging.tlb.readhandler[lin_page]=handler;
+<a name="l00935"></a>00935         paging.tlb.writehandler[lin_page]=handler;
+<a name="l00936"></a>00936 }
+<a name="l00937"></a>00937 
+<a name="l00938"></a>00938 <span class="comment">// parameter is the new cpl mode</span>
+<a name="l00939"></a>00939 <span class="keywordtype">void</span> PAGING_SwitchCPL(<span class="keywordtype">bool</span> isUser) {
+<a name="l00940"></a>00940 <span class="comment">//      LOG_MSG(&quot;SWCPL u%d kr%d, krw%d, ur%d&quot;,</span>
+<a name="l00941"></a>00941 <span class="comment">//              isUser, paging.kro_links.used, paging.krw_links.used, paging.ure_links.used);</span>
+<a name="l00942"></a>00942         
+<a name="l00943"></a>00943         <span class="comment">// this function is worth optimizing</span>
+<a name="l00944"></a>00944         <span class="comment">// some of this cold be pre-stored?</span>
+<a name="l00945"></a>00945 
+<a name="l00946"></a>00946         <span class="comment">// krw - same for WP1 and WP0</span>
+<a name="l00947"></a>00947         <span class="keywordflow">if</span> (isUser) {
+<a name="l00948"></a>00948                 <span class="comment">// sv -&gt; us: rw -&gt; ee </span>
+<a name="l00949"></a>00949                 <span class="keywordflow">for</span>(Bitu i = 0; i &lt; paging.krw_links.used; i++) {
+<a name="l00950"></a>00950                         Bitu tlb_index = paging.krw_links.entries[i];
+<a name="l00951"></a>00951                         paging.tlb.readhandler[tlb_index] = &amp;exception_handler;
+<a name="l00952"></a>00952                         paging.tlb.writehandler[tlb_index] = &amp;exception_handler;
+<a name="l00953"></a>00953                         paging.tlb.read[tlb_index] = 0;
+<a name="l00954"></a>00954                         paging.tlb.write[tlb_index] = 0;
+<a name="l00955"></a>00955                 }
+<a name="l00956"></a>00956         } <span class="keywordflow">else</span> {
+<a name="l00957"></a>00957                 <span class="comment">// us -&gt; sv: ee -&gt; rw</span>
+<a name="l00958"></a>00958                 <span class="keywordflow">for</span>(Bitu i = 0; i &lt; paging.krw_links.used; i++) {
+<a name="l00959"></a>00959                         Bitu tlb_index = paging.krw_links.entries[i];
+<a name="l00960"></a>00960                         Bitu phys_page = paging.tlb.phys_page[tlb_index];
+<a name="l00961"></a>00961                         Bitu lin_base = tlb_index &lt;&lt; 12;
+<a name="l00962"></a>00962                         <span class="keywordtype">bool</span> dirty = (phys_page &amp; PHYSPAGE_DITRY)? <span class="keyword">true</span>:<span class="keyword">false</span>;
+<a name="l00963"></a>00963                         phys_page &amp;= PHYSPAGE_ADDR;
+<a name="l00964"></a>00964                         <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
+<a name="l00965"></a>00965                         
+<a name="l00966"></a>00966                         <span class="comment">// map read handler</span>
+<a name="l00967"></a>00967                         paging.tlb.readhandler[tlb_index] = handler;
+<a name="l00968"></a>00968                         <span class="keywordflow">if</span> (handler-&gt;getFlags()&amp;PFLAG_READABLE)
+<a name="l00969"></a>00969                                 paging.tlb.read[tlb_index] = handler-&gt;GetHostReadPt(phys_page)-lin_base;
+<a name="l00970"></a>00970                         <span class="keywordflow">else</span> paging.tlb.read[tlb_index] = 0;
+<a name="l00971"></a>00971                         
+<a name="l00972"></a>00972                         <span class="comment">// map write handler</span>
+<a name="l00973"></a>00973                         <span class="keywordflow">if</span> (dirty) {
+<a name="l00974"></a>00974                                 paging.tlb.writehandler[tlb_index] = handler;
+<a name="l00975"></a>00975                                 <span class="keywordflow">if</span> (handler-&gt;getFlags()&amp;PFLAG_WRITEABLE)
+<a name="l00976"></a>00976                                         paging.tlb.write[tlb_index] = handler-&gt;GetHostWritePt(phys_page)-lin_base;
+<a name="l00977"></a>00977                                 <span class="keywordflow">else</span> paging.tlb.write[tlb_index] = 0;
+<a name="l00978"></a>00978                         } <span class="keywordflow">else</span> {
+<a name="l00979"></a>00979                                 paging.tlb.writehandler[tlb_index] = &amp;foiling_handler;
+<a name="l00980"></a>00980                                 paging.tlb.write[tlb_index] = 0;
+<a name="l00981"></a>00981                         }
+<a name="l00982"></a>00982                 }
+<a name="l00983"></a>00983         }
+<a name="l00984"></a>00984         
+<a name="l00985"></a>00985         <span class="keywordflow">if</span> (GCC_UNLIKELY(paging.wp)) {
+<a name="l00986"></a>00986                 <span class="comment">// ur: no change with WP=1</span>
+<a name="l00987"></a>00987                 <span class="comment">// kr</span>
+<a name="l00988"></a>00988                 <span class="keywordflow">if</span> (isUser) {
+<a name="l00989"></a>00989                         <span class="comment">// sv -&gt; us: re -&gt; ee </span>
+<a name="l00990"></a>00990                         <span class="keywordflow">for</span>(Bitu i = 0; i &lt; paging.kr_links.used; i++) {
+<a name="l00991"></a>00991                                 Bitu tlb_index = paging.kr_links.entries[i];
+<a name="l00992"></a>00992                                 paging.tlb.readhandler[tlb_index] = &amp;exception_handler;
+<a name="l00993"></a>00993                                 paging.tlb.read[tlb_index] = 0;
+<a name="l00994"></a>00994                         }
+<a name="l00995"></a>00995                 } <span class="keywordflow">else</span> {
+<a name="l00996"></a>00996                         <span class="comment">// us -&gt; sv: ee -&gt; re</span>
+<a name="l00997"></a>00997                         <span class="keywordflow">for</span>(Bitu i = 0; i &lt; paging.kr_links.used; i++) {
+<a name="l00998"></a>00998                                 Bitu tlb_index = paging.kr_links.entries[i];
+<a name="l00999"></a>00999                                 Bitu lin_base = tlb_index &lt;&lt; 12;
+<a name="l01000"></a>01000                                 Bitu phys_page = paging.tlb.phys_page[tlb_index] &amp; PHYSPAGE_ADDR;
+<a name="l01001"></a>01001                                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
+<a name="l01002"></a>01002 
+<a name="l01003"></a>01003                                 paging.tlb.readhandler[tlb_index] = handler;
+<a name="l01004"></a>01004                                 <span class="keywordflow">if</span> (handler-&gt;getFlags()&amp;PFLAG_READABLE)
+<a name="l01005"></a>01005                                         paging.tlb.read[tlb_index] = handler-&gt;GetHostReadPt(phys_page)-lin_base;
+<a name="l01006"></a>01006                                 <span class="keywordflow">else</span> paging.tlb.read[tlb_index] = 0;
+<a name="l01007"></a>01007                         }
+<a name="l01008"></a>01008                 }
+<a name="l01009"></a>01009         } <span class="keywordflow">else</span> { <span class="comment">// WP=0</span>
+<a name="l01010"></a>01010                 <span class="comment">// ur</span>
+<a name="l01011"></a>01011                 <span class="keywordflow">if</span> (isUser) {
+<a name="l01012"></a>01012                         <span class="comment">// sv -&gt; us: rw -&gt; re </span>
+<a name="l01013"></a>01013                         <span class="keywordflow">for</span>(Bitu i = 0; i &lt; paging.ur_links.used; i++) {
+<a name="l01014"></a>01014                                 Bitu tlb_index = paging.ur_links.entries[i];
+<a name="l01015"></a>01015                                 paging.tlb.writehandler[tlb_index] = &amp;exception_handler;
+<a name="l01016"></a>01016                                 paging.tlb.write[tlb_index] = 0;
+<a name="l01017"></a>01017                         }
+<a name="l01018"></a>01018                 } <span class="keywordflow">else</span> {
+<a name="l01019"></a>01019                         <span class="comment">// us -&gt; sv: re -&gt; rw</span>
+<a name="l01020"></a>01020                         <span class="keywordflow">for</span>(Bitu i = 0; i &lt; paging.ur_links.used; i++) {
+<a name="l01021"></a>01021                                 Bitu tlb_index = paging.ur_links.entries[i];
+<a name="l01022"></a>01022                                 Bitu phys_page = paging.tlb.phys_page[tlb_index];
+<a name="l01023"></a>01023                                 <span class="keywordtype">bool</span> dirty = (phys_page &amp; PHYSPAGE_DITRY)? <span class="keyword">true</span>:<span class="keyword">false</span>;
+<a name="l01024"></a>01024                                 phys_page &amp;= PHYSPAGE_ADDR;
+<a name="l01025"></a>01025                                 <a class="code" href="classPageHandler.html">PageHandler</a>* handler = MEM_GetPageHandler(phys_page);
+<a name="l01026"></a>01026 
+<a name="l01027"></a>01027                                 <span class="keywordflow">if</span> (dirty) {
+<a name="l01028"></a>01028                                         Bitu lin_base = tlb_index &lt;&lt; 12;
+<a name="l01029"></a>01029                                         paging.tlb.writehandler[tlb_index] = handler;
+<a name="l01030"></a>01030                                         <span class="keywordflow">if</span> (handler-&gt;getFlags()&amp;PFLAG_WRITEABLE)
+<a name="l01031"></a>01031                                                 paging.tlb.write[tlb_index] = handler-&gt;GetHostWritePt(phys_page)-lin_base;
+<a name="l01032"></a>01032                                         <span class="keywordflow">else</span> paging.tlb.write[tlb_index] = 0;
+<a name="l01033"></a>01033                                 } <span class="keywordflow">else</span> {
+<a name="l01034"></a>01034                                         paging.tlb.writehandler[tlb_index] = &amp;foiling_handler;
+<a name="l01035"></a>01035                                         paging.tlb.write[tlb_index] = 0;
+<a name="l01036"></a>01036                                 }
+<a name="l01037"></a>01037                         }
+<a name="l01038"></a>01038                 }
+<a name="l01039"></a>01039         }
+<a name="l01040"></a>01040 }
+<a name="l01041"></a>01041 
+<a name="l01042"></a>01042 <span class="preprocessor">#else</span>
+<a name="l01043"></a>01043 <span class="preprocessor"></span>
+<a name="l01044"></a>01044 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> InitTLBInt(tlb_entry *bank) {
+<a name="l01045"></a>01045         <span class="keywordflow">for</span> (Bitu i=0;i&lt;TLB_SIZE;i++) {
+<a name="l01046"></a>01046                 bank[i].read=0;
+<a name="l01047"></a>01047                 bank[i].write=0;
+<a name="l01048"></a>01048                 bank[i].readhandler=&amp;init_page_handler;
+<a name="l01049"></a>01049                 bank[i].writehandler=&amp;init_page_handler;
+<a name="l01050"></a>01050         }
+<a name="l01051"></a>01051 }
+<a name="l01052"></a>01052 
+<a name="l01053"></a>01053 <span class="keywordtype">void</span> PAGING_InitTLBBank(tlb_entry **bank) {
+<a name="l01054"></a>01054         *bank = (tlb_entry *)malloc(<span class="keyword">sizeof</span>(tlb_entry)*TLB_SIZE);
+<a name="l01055"></a>01055         <span class="keywordflow">if</span>(!*bank) E_Exit(<span class="stringliteral">&quot;Out of Memory&quot;</span>);
+<a name="l01056"></a>01056         InitTLBInt(*bank);
+<a name="l01057"></a>01057 }
+<a name="l01058"></a>01058 
+<a name="l01059"></a>01059 <span class="keywordtype">void</span> PAGING_InitTLB(<span class="keywordtype">void</span>) {
+<a name="l01060"></a>01060         InitTLBInt(paging.tlbh);
+<a name="l01061"></a>01061         paging.links.used=0;
+<a name="l01062"></a>01062 }
+<a name="l01063"></a>01063 
+<a name="l01064"></a>01064 <span class="keywordtype">void</span> PAGING_ClearTLB(<span class="keywordtype">void</span>) {
+<a name="l01065"></a>01065         Bit32u * entries=&amp;paging.links.entries[0];
+<a name="l01066"></a>01066         <span class="keywordflow">for</span> (;paging.links.used&gt;0;paging.links.used--) {
+<a name="l01067"></a>01067                 Bitu page=*entries++;
+<a name="l01068"></a>01068                 tlb_entry *entry = get_tlb_entry(page&lt;&lt;12);
+<a name="l01069"></a>01069                 entry-&gt;read=0;
+<a name="l01070"></a>01070                 entry-&gt;write=0;
+<a name="l01071"></a>01071                 entry-&gt;readhandler=&amp;init_page_handler;
+<a name="l01072"></a>01072                 entry-&gt;writehandler=&amp;init_page_handler;
+<a name="l01073"></a>01073         }
+<a name="l01074"></a>01074         paging.links.used=0;
+<a name="l01075"></a>01075 }
+<a name="l01076"></a>01076 
+<a name="l01077"></a>01077 <span class="keywordtype">void</span> PAGING_UnlinkPages(Bitu lin_page,Bitu pages) {
+<a name="l01078"></a>01078         <span class="keywordflow">for</span> (;pages&gt;0;pages--) {
+<a name="l01079"></a>01079                 tlb_entry *entry = get_tlb_entry(lin_page&lt;&lt;12);
+<a name="l01080"></a>01080                 entry-&gt;read=0;
+<a name="l01081"></a>01081                 entry-&gt;write=0;
+<a name="l01082"></a>01082                 entry-&gt;readhandler=&amp;init_page_handler;
+<a name="l01083"></a>01083                 entry-&gt;writehandler=&amp;init_page_handler;
+<a name="l01084"></a>01084                 lin_page++;
+<a name="l01085"></a>01085         }
+<a name="l01086"></a>01086 }
+<a name="l01087"></a>01087 
+<a name="l01088"></a>01088 <span class="keywordtype">void</span> PAGING_MapPage(Bitu lin_page,Bitu phys_page) {
+<a name="l01089"></a>01089         <span class="keywordflow">if</span> (lin_page&lt;LINK_START) {
+<a name="l01090"></a>01090                 paging.firstmb[lin_page]=phys_page;
+<a name="l01091"></a>01091                 paging.tlbh[lin_page].read=0;
+<a name="l01092"></a>01092                 paging.tlbh[lin_page].write=0;
+<a name="l01093"></a>01093                 paging.tlbh[lin_page].readhandler=&amp;init_page_handler;
+<a name="l01094"></a>01094                 paging.tlbh[lin_page].writehandler=&amp;init_page_handler;
+<a name="l01095"></a>01095         } <span class="keywordflow">else</span> {
+<a name="l01096"></a>01096                 PAGING_LinkPage(lin_page,phys_page);
+<a name="l01097"></a>01097         }
+<a name="l01098"></a>01098 }
+<a name="l01099"></a>01099 
+<a name="l01100"></a>01100 <span class="keywordtype">void</span> PAGING_LinkPage(Bitu lin_page,Bitu phys_page) {
+<a name="l01101"></a>01101         <a class="code" href="classPageHandler.html">PageHandler</a> * handler=MEM_GetPageHandler(phys_page);
+<a name="l01102"></a>01102         Bitu lin_base=lin_page &lt;&lt; 12;
+<a name="l01103"></a>01103         <span class="keywordflow">if</span> (lin_page&gt;=(TLB_SIZE*(TLB_BANKS+1)) || phys_page&gt;=(TLB_SIZE*(TLB_BANKS+1))) 
+<a name="l01104"></a>01104                 E_Exit(<span class="stringliteral">&quot;Illegal page&quot;</span>);
+<a name="l01105"></a>01105 
+<a name="l01106"></a>01106         <span class="keywordflow">if</span> (paging.links.used&gt;=PAGING_LINKS) {
+<a name="l01107"></a>01107                 <a class="code" href="classLOG.html">LOG</a>(LOG_PAGING,LOG_NORMAL)(<span class="stringliteral">&quot;Not enough paging links, resetting cache&quot;</span>);
+<a name="l01108"></a>01108                 PAGING_ClearTLB();
+<a name="l01109"></a>01109         }
+<a name="l01110"></a>01110 
+<a name="l01111"></a>01111         tlb_entry *entry = get_tlb_entry(lin_base);
+<a name="l01112"></a>01112         entry-&gt;phys_page=phys_page;
+<a name="l01113"></a>01113         <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) entry-&gt;read=handler-&gt;GetHostReadPt(phys_page)-lin_base;
+<a name="l01114"></a>01114         <span class="keywordflow">else</span> entry-&gt;read=0;
+<a name="l01115"></a>01115         <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_WRITEABLE) entry-&gt;write=handler-&gt;GetHostWritePt(phys_page)-lin_base;
+<a name="l01116"></a>01116         <span class="keywordflow">else</span> entry-&gt;write=0;
+<a name="l01117"></a>01117 
+<a name="l01118"></a>01118         paging.links.entries[paging.links.used++]=lin_page;
+<a name="l01119"></a>01119         entry-&gt;readhandler=handler;
+<a name="l01120"></a>01120         entry-&gt;writehandler=handler;
+<a name="l01121"></a>01121 }
+<a name="l01122"></a>01122 
+<a name="l01123"></a>01123 <span class="keywordtype">void</span> PAGING_LinkPage_ReadOnly(Bitu lin_page,Bitu phys_page) {
+<a name="l01124"></a>01124         <a class="code" href="classPageHandler.html">PageHandler</a> * handler=MEM_GetPageHandler(phys_page);
+<a name="l01125"></a>01125         Bitu lin_base=lin_page &lt;&lt; 12;
+<a name="l01126"></a>01126         <span class="keywordflow">if</span> (lin_page&gt;=(TLB_SIZE*(TLB_BANKS+1)) || phys_page&gt;=(TLB_SIZE*(TLB_BANKS+1))) 
+<a name="l01127"></a>01127                 E_Exit(<span class="stringliteral">&quot;Illegal page&quot;</span>);
+<a name="l01128"></a>01128 
+<a name="l01129"></a>01129         <span class="keywordflow">if</span> (paging.links.used&gt;=PAGING_LINKS) {
+<a name="l01130"></a>01130                 <a class="code" href="classLOG.html">LOG</a>(LOG_PAGING,LOG_NORMAL)(<span class="stringliteral">&quot;Not enough paging links, resetting cache&quot;</span>);
+<a name="l01131"></a>01131                 PAGING_ClearTLB();
+<a name="l01132"></a>01132         }
+<a name="l01133"></a>01133 
+<a name="l01134"></a>01134         tlb_entry *entry = get_tlb_entry(lin_base);
+<a name="l01135"></a>01135         entry-&gt;phys_page=phys_page;
+<a name="l01136"></a>01136         <span class="keywordflow">if</span> (handler-&gt;getFlags() &amp; PFLAG_READABLE) entry-&gt;read=handler-&gt;GetHostReadPt(phys_page)-lin_base;
+<a name="l01137"></a>01137         <span class="keywordflow">else</span> entry-&gt;read=0;
+<a name="l01138"></a>01138         entry-&gt;write=0;
+<a name="l01139"></a>01139 
+<a name="l01140"></a>01140         paging.links.entries[paging.links.used++]=lin_page;
+<a name="l01141"></a>01141         entry-&gt;readhandler=handler;
+<a name="l01142"></a>01142         entry-&gt;writehandler=&amp;init_page_handler_userro;
+<a name="l01143"></a>01143 }
+<a name="l01144"></a>01144 
+<a name="l01145"></a>01145 <span class="preprocessor">#endif</span>
+<a name="l01146"></a>01146 <span class="preprocessor"></span>
+<a name="l01147"></a>01147 
+<a name="l01148"></a>01148 <span class="keywordtype">void</span> PAGING_SetDirBase(Bitu cr3) {
+<a name="l01149"></a>01149         paging.cr3=cr3;
+<a name="l01150"></a>01150         
+<a name="l01151"></a>01151         paging.base.page=cr3 &gt;&gt; 12;
+<a name="l01152"></a>01152         paging.base.addr=cr3 &amp; ~0xFFF;
+<a name="l01153"></a>01153 <span class="comment">//      LOG(LOG_PAGING,LOG_NORMAL)(&quot;CR3:%X Base %X&quot;,cr3,paging.base.page);</span>
+<a name="l01154"></a>01154         <span class="keywordflow">if</span> (paging.enabled) {
+<a name="l01155"></a>01155                 PAGING_ClearTLB();
+<a name="l01156"></a>01156         }
+<a name="l01157"></a>01157 }
+<a name="l01158"></a>01158 
+<a name="l01159"></a>01159 <span class="keywordtype">void</span> PAGING_SetWP(<span class="keywordtype">bool</span> wp) {
+<a name="l01160"></a>01160         paging.wp = wp;
+<a name="l01161"></a>01161         <span class="keywordflow">if</span> (paging.enabled)
+<a name="l01162"></a>01162                 PAGING_ClearTLB();
+<a name="l01163"></a>01163 }
+<a name="l01164"></a>01164 
+<a name="l01165"></a>01165 <span class="keywordtype">void</span> PAGING_Enable(<span class="keywordtype">bool</span> enabled) {
+<a name="l01166"></a>01166         <span class="comment">/* If paging is disabled, we work from a default paging table */</span>
+<a name="l01167"></a>01167         <span class="keywordflow">if</span> (paging.enabled==enabled) <span class="keywordflow">return</span>;
+<a name="l01168"></a>01168         paging.enabled=enabled;
+<a name="l01169"></a>01169         <span class="keywordflow">if</span> (enabled) {
+<a name="l01170"></a>01170 <span class="comment">//              LOG(LOG_PAGING,LOG_NORMAL)(&quot;Enabled&quot;);</span>
+<a name="l01171"></a>01171                 PAGING_SetDirBase(paging.cr3);
+<a name="l01172"></a>01172         }
+<a name="l01173"></a>01173         PAGING_ClearTLB();
+<a name="l01174"></a>01174 }
+<a name="l01175"></a>01175 
+<a name="l01176"></a>01176 <span class="keywordtype">bool</span> PAGING_Enabled(<span class="keywordtype">void</span>) {
+<a name="l01177"></a>01177         <span class="keywordflow">return</span> paging.enabled;
+<a name="l01178"></a>01178 }
+<a name="l01179"></a>01179 
+<a name="l01180"></a>01180 <span class="keywordtype">void</span> PAGING_Init() {
+<a name="l01181"></a>01181         Bitu i;
+<a name="l01182"></a>01182 
+<a name="l01183"></a>01183         <span class="comment">// log</span>
+<a name="l01184"></a>01184         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing paging system (CPU linear -&gt; physical mapping system)&quot;</span>);
+<a name="l01185"></a>01185 
+<a name="l01186"></a>01186         <span class="comment">/* Setup default Page Directory, force it to update */</span>
+<a name="l01187"></a>01187         paging.enabled=<span class="keyword">false</span>;
+<a name="l01188"></a>01188         paging.wp=<span class="keyword">false</span>;
+<a name="l01189"></a>01189         PAGING_InitTLB();
+<a name="l01190"></a>01190         <span class="keywordflow">for</span> (i=0;i&lt;LINK_START;i++) paging.firstmb[i]=i;
+<a name="l01191"></a>01191         pf_queue.used=0;
+<a name="l01192"></a>01192 }
+<a name="l01193"></a>01193 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 20 2018 22:06:38 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Apr 20 2018 12:41:00 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

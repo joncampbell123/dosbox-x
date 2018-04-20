@@ -173,12 +173,20 @@ Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>getFirstFreeClust</
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>directoryBrowse</b> (Bit32u dirClustNumber, <a class="el" href="structdirentry.html">direntry</a> *useEntry, Bit32s entNum, Bit32s start=0)</td></tr>
 <tr class="memitem:a33bfa188995f1f5bf813af5a5b8e24ba"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a33bfa188995f1f5bf813af5a5b8e24ba"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>directoryChange</b> (Bit32u dirClustNumber, <a class="el" href="structdirentry.html">direntry</a> *useEntry, Bit32s entNum)</td></tr>
+<tr class="memitem:a0347726faa951ece86554389c1582365"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0347726faa951ece86554389c1582365"></a>
+virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Read_AbsoluteSector</b> (Bit32u sectnum, void *data)</td></tr>
+<tr class="memitem:a0a2171e173e8718bc73b2a4ce7493aa6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0a2171e173e8718bc73b2a4ce7493aa6"></a>
+virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Write_AbsoluteSector</b> (Bit32u sectnum, void *data)</td></tr>
+<tr class="memitem:a8eec794d6977defe23a899c4ced8344d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8eec794d6977defe23a899c4ced8344d"></a>
+virtual Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>getSectSize</b> (void)</td></tr>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a3a263d1b8a02f7aff910fe9ab2347b4f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3a263d1b8a02f7aff910fe9ab2347b4f"></a>
 <a class="el" href="classimageDisk.html">imageDisk</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>loadedDisk</b></td></tr>
 <tr class="memitem:ae3927936196f98009856fc9f46f1065a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae3927936196f98009856fc9f46f1065a"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>created_successfully</b></td></tr>
+<tr class="memitem:ac8107e7154b762ea45805c3eec97b3dd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac8107e7154b762ea45805c3eec97b3dd"></a>
+Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>sector_size</b></td></tr>
 <tr class="memitem:a87c406b52e2ede2b0d6d19df26e66184"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a87c406b52e2ede2b0d6d19df26e66184"></a>
 char&#160;</td><td class="memItemRight" valign="bottom"><b>srch_dir</b> [CROSS_LEN]</td></tr>
 <tr class="memitem:a342b82338d182099e1de415a2296ee53"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a342b82338d182099e1de415a2296ee53"></a>
@@ -198,7 +206,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>DOS_Shell::CMD_SUBST<
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="drives_8h_source.html#l00199">199</a> of file <a class="el" href="drives_8h_source.html">drives.h</a>.</p>
+<p>Definition at line <a class="el" href="drives_8h_source.html#l00205">205</a> of file <a class="el" href="drives_8h_source.html">drives.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/dos/<a class="el" href="drives_8h_source.html">drives.h</a></li>
 <li>src/dos/<a class="el" href="drive__fat_8cpp_source.html">drive_fat.cpp</a></li>
@@ -207,7 +215,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>DOS_Shell::CMD_SUBST<
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 20 2018 22:06:45 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Apr 20 2018 12:41:07 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

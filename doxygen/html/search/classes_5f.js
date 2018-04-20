@@ -7,8 +7,6 @@ var searchData=
   ['_5fdac_5fstate',['_dac_state',['../struct__dac__state.html',1,'']]],
   ['_5ffbi_5fstate',['_fbi_state',['../struct__fbi__state.html',1,'']]],
   ['_5ffifo_5fstate',['_fifo_state',['../struct__fifo__state.html',1,'']]],
-  ['_5ffluid_5fmidi_5fevent_5ft',['_fluid_midi_event_t',['../struct__fluid__midi__event__t.html',1,'']]],
-  ['_5ffluid_5fmidi_5fparser_5ft',['_fluid_midi_parser_t',['../struct__fluid__midi__parser__t.html',1,'']]],
   ['_5ffmtimer',['_FMTIMER',['../struct__FMTIMER.html',1,'']]],
   ['_5fgetsnd',['_getsnd',['../struct__getsnd.html',1,'']]],
   ['_5flog',['_LOG',['../class__LOG.html',1,'']]],

@@ -99,127 +99,182 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00003"></a>00003 
 <a name="l00004"></a>00004 <span class="preprocessor">#ifdef LINUX</span>
 <a name="l00005"></a>00005 <span class="preprocessor"></span><span class="preprocessor">#include &quot;logging.h&quot;</span>
-<a name="l00006"></a>00006 <span class="preprocessor">#include &quot;SDL.h&quot;</span>
-<a name="l00007"></a>00007 <span class="preprocessor">#include &quot;SDL_version.h&quot;</span>
-<a name="l00008"></a>00008 <span class="preprocessor">#include &quot;SDL_syswm.h&quot;</span>
-<a name="l00009"></a>00009 
-<a name="l00010"></a>00010 <span class="keywordtype">void</span> UpdateWindowDimensions(Bitu width, Bitu height);
-<a name="l00011"></a>00011 <span class="keywordtype">void</span> UpdateWindowMaximized(<span class="keywordtype">bool</span> flag);
-<a name="l00012"></a>00012 
-<a name="l00013"></a>00013 <span class="keywordtype">void</span> UpdateWindowDimensions_Linux(<span class="keywordtype">void</span>) {
-<a name="l00014"></a>00014 <span class="preprocessor">#if defined(C_SDL2)</span>
-<a name="l00015"></a>00015 <span class="preprocessor"></span>    <span class="comment">// TODO</span>
-<a name="l00016"></a>00016 <span class="preprocessor">#else</span>
-<a name="l00017"></a>00017 <span class="preprocessor"></span>    <span class="keywordtype">bool</span> GFX_IsFullscreen();
-<a name="l00018"></a>00018 
-<a name="l00019"></a>00019     SDL_SysWMinfo wminfo;
-<a name="l00020"></a>00020     memset(&amp;wminfo,0,<span class="keyword">sizeof</span>(wminfo));
-<a name="l00021"></a>00021     SDL_VERSION(&amp;wminfo.version);
-<a name="l00022"></a>00022     <span class="keywordflow">if</span> (SDL_GetWMInfo(&amp;wminfo) &gt;= 0) {
-<a name="l00023"></a>00023         <span class="keywordflow">if</span> (wminfo.subsystem == SDL_SYSWM_X11 &amp;&amp; wminfo.info.x11.display != NULL) {
-<a name="l00024"></a>00024             XWindowAttributes attr;
-<a name="l00025"></a>00025             <span class="keywordtype">bool</span> maximized = <span class="keyword">false</span>;
-<a name="l00026"></a>00026 
-<a name="l00027"></a>00027             memset(&amp;attr,0,<span class="keyword">sizeof</span>(attr));
-<a name="l00028"></a>00028             XGetWindowAttributes(wminfo.info.x11.display, GFX_IsFullscreen() ? wminfo.info.x11.fswindow : wminfo.info.x11.wmwindow, &amp;attr);
-<a name="l00029"></a>00029 
-<a name="l00030"></a>00030             <span class="comment">/* we also want to ask X11 if the various atoms have been set by the window manager</span>
-<a name="l00031"></a>00031 <span class="comment">             * to signal that our window has been maximized. generally when the window has been</span>
-<a name="l00032"></a>00032 <span class="comment">             * maximized, SDL video mode setting has no effect on the dimensions of the window</span>
-<a name="l00033"></a>00033 <span class="comment">             * when it&#39;s been maximized so it helps to know in order to make better choices */</span>
-<a name="l00034"></a>00034             <span class="keywordflow">if</span> (GFX_IsFullscreen()) {
-<a name="l00035"></a>00035             }
-<a name="l00036"></a>00036             <span class="keywordflow">else</span> {
-<a name="l00037"></a>00037                 Atom atomWmState = XInternAtom(wminfo.info.x11.display, <span class="stringliteral">&quot;_NET_WM_STATE&quot;</span>,                False);
-<a name="l00038"></a>00038                 Atom atomMaxVert = XInternAtom(wminfo.info.x11.display, <span class="stringliteral">&quot;_NET_WM_STATE_MAXIMIZED_VERT&quot;</span>, False);
-<a name="l00039"></a>00039                 Atom atomMaxHorz = XInternAtom(wminfo.info.x11.display, <span class="stringliteral">&quot;_NET_WM_STATE_MAXIMIZED_HORZ&quot;</span>, False);
+<a name="l00006"></a>00006 <span class="preprocessor">#include &quot;keymap.h&quot;</span>
+<a name="l00007"></a>00007 <span class="preprocessor">#include &quot;SDL.h&quot;</span>
+<a name="l00008"></a>00008 <span class="preprocessor">#include &quot;SDL_version.h&quot;</span>
+<a name="l00009"></a>00009 <span class="preprocessor">#include &quot;SDL_syswm.h&quot;</span>
+<a name="l00010"></a>00010 
+<a name="l00011"></a>00011 <span class="preprocessor">#include &lt;X11/XKBlib.h&gt;</span>
+<a name="l00012"></a>00012 <span class="preprocessor">#include &lt;X11/extensions/XKBrules.h&gt;</span>
+<a name="l00013"></a>00013 
+<a name="l00014"></a>00014 <span class="keywordtype">void</span> UpdateWindowDimensions(Bitu width, Bitu height);
+<a name="l00015"></a>00015 <span class="keywordtype">void</span> UpdateWindowMaximized(<span class="keywordtype">bool</span> flag);
+<a name="l00016"></a>00016 
+<a name="l00017"></a>00017 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> Linux_GetKeyboardLayout(<span class="keywordtype">void</span>) {
+<a name="l00018"></a>00018     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> ret = DKM_US;
+<a name="l00019"></a>00019 
+<a name="l00020"></a>00020 <span class="preprocessor">#if defined(C_SDL2)</span>
+<a name="l00021"></a>00021 <span class="preprocessor"></span>    <span class="comment">// TODO</span>
+<a name="l00022"></a>00022 <span class="preprocessor">#else</span>
+<a name="l00023"></a>00023 <span class="preprocessor"></span>    SDL_SysWMinfo wminfo;
+<a name="l00024"></a>00024     memset(&amp;wminfo,0,<span class="keyword">sizeof</span>(wminfo));
+<a name="l00025"></a>00025     SDL_VERSION(&amp;wminfo.version);
+<a name="l00026"></a>00026     <span class="keywordflow">if</span> (SDL_GetWMInfo(&amp;wminfo) &gt;= 0) {
+<a name="l00027"></a>00027         <span class="keywordflow">if</span> (wminfo.subsystem == SDL_SYSWM_X11 &amp;&amp; wminfo.info.x11.display != NULL) {
+<a name="l00028"></a>00028             XkbRF_VarDefsRec vd;
+<a name="l00029"></a>00029             XkbStateRec state;
+<a name="l00030"></a>00030 
+<a name="l00031"></a>00031             XkbGetState(wminfo.info.x11.display, XkbUseCoreKbd, &amp;state);
+<a name="l00032"></a>00032 
+<a name="l00033"></a>00033             XkbDescPtr desc = XkbGetKeyboard(wminfo.info.x11.display, XkbAllComponentsMask, XkbUseCoreKbd);
+<a name="l00034"></a>00034             <span class="keywordtype">char</span> *group = desc ? XGetAtomName(wminfo.info.x11.display, desc-&gt;names-&gt;groups[state.group]) : NULL;
+<a name="l00035"></a>00035 
+<a name="l00036"></a>00036             <span class="keywordflow">if</span> (group != NULL) LOG_MSG(<span class="stringliteral">&quot;Current X11 keyboard layout (full name) is: &#39;%s&#39;\n&quot;</span>,group);
+<a name="l00037"></a>00037 
+<a name="l00038"></a>00038             <span class="comment">/* FIXME: Does this allocate anything? Do I need to free it? I am concerned about memory leaks --J.C. */</span>
+<a name="l00039"></a>00039             XkbRF_GetNamesProp(wminfo.info.x11.display, NULL, &amp;vd);
 <a name="l00040"></a>00040 
-<a name="l00041"></a>00041                 <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> nItem = 0, bytesAfter = 0;
-<a name="l00042"></a>00042                 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *properties = NULL;
-<a name="l00043"></a>00043                 Atom type = None;
-<a name="l00044"></a>00044                 <span class="keywordtype">int</span> format = 0;
-<a name="l00045"></a>00045 
-<a name="l00046"></a>00046                 XGetWindowProperty(wminfo.info.x11.display, wminfo.info.x11.wmwindow,
-<a name="l00047"></a>00047                     <span class="comment">/*atom to query*/</span>atomWmState,<span class="comment">/*offset*/</span>0,<span class="comment">/*length*/</span>16384,<span class="comment">/*delete*/</span>False,
-<a name="l00048"></a>00048                     <span class="comment">/*request type*/</span>AnyPropertyType,
-<a name="l00049"></a>00049                     <span class="comment">/*returns...*/</span>&amp;type,&amp;format,&amp;nItem,&amp;bytesAfter,&amp;properties);
+<a name="l00041"></a>00041             <span class="keywordtype">char</span> *tok = vd.layout ? strtok(vd.layout, <span class="stringliteral">&quot;,&quot;</span>) : NULL;
+<a name="l00042"></a>00042 
+<a name="l00043"></a>00043             <span class="keywordflow">if</span> (tok != NULL) {
+<a name="l00044"></a>00044                 <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i = 0; i &lt; state.group; i++) {
+<a name="l00045"></a>00045                     tok = strtok(NULL, <span class="stringliteral">&quot;,&quot;</span>);
+<a name="l00046"></a>00046                     <span class="keywordflow">if</span> (tok == NULL) <span class="keywordflow">break</span>;
+<a name="l00047"></a>00047                 }
+<a name="l00048"></a>00048                 <span class="keywordflow">if</span> (tok != NULL) {
+<a name="l00049"></a>00049                     LOG_MSG(<span class="stringliteral">&quot;Current X11 keyboard layout (token) is: &#39;%s&#39;\n&quot;</span>,tok);
 <a name="l00050"></a>00050 
-<a name="l00051"></a>00051                 <span class="keywordflow">if</span> (properties != NULL) {
-<a name="l00052"></a>00052                     <span class="keywordflow">if</span> (format == 32) { <span class="comment">/* it usually is */</span>
-<a name="l00053"></a>00053                         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> i=0;i &lt; nItem;i++) {
-<a name="l00054"></a>00054                             uint32_t val = ((uint32_t*)properties)[i];
-<a name="l00055"></a>00055 
-<a name="l00056"></a>00056                             <span class="keywordflow">if</span> ((Atom)val == atomMaxVert || (Atom)val == atomMaxHorz)
-<a name="l00057"></a>00057                                 maximized = <span class="keyword">true</span>;
-<a name="l00058"></a>00058                         }
-<a name="l00059"></a>00059                     }
-<a name="l00060"></a>00060 
-<a name="l00061"></a>00061                     XFree(properties);
-<a name="l00062"></a>00062                 }
-<a name="l00063"></a>00063             }
-<a name="l00064"></a>00064 
-<a name="l00065"></a>00065             LOG_MSG(<span class="stringliteral">&quot;X11 main window is %u x %u maximized=%u&quot;</span>,attr.width, attr.height, maximized);
-<a name="l00066"></a>00066 
-<a name="l00067"></a>00067             UpdateWindowDimensions(attr.width, attr.height);
-<a name="l00068"></a>00068             UpdateWindowMaximized(maximized);
-<a name="l00069"></a>00069         }
-<a name="l00070"></a>00070     }
-<a name="l00071"></a>00071 <span class="preprocessor">#endif</span>
-<a name="l00072"></a>00072 <span class="preprocessor"></span>}
+<a name="l00051"></a>00051                     <span class="keywordflow">if</span> (!strcmp(tok,<span class="stringliteral">&quot;us&quot;</span>))
+<a name="l00052"></a>00052                         ret = DKM_US;
+<a name="l00053"></a>00053                     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcmp(tok,<span class="stringliteral">&quot;jp&quot;</span>))
+<a name="l00054"></a>00054                         ret = DKM_JPN;
+<a name="l00055"></a>00055                     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcmp(tok,<span class="stringliteral">&quot;de&quot;</span>))
+<a name="l00056"></a>00056                         ret = DKM_DEU;
+<a name="l00057"></a>00057                 }
+<a name="l00058"></a>00058             }
+<a name="l00059"></a>00059 
+<a name="l00060"></a>00060             <span class="keywordflow">if</span> (desc) XFree(desc);
+<a name="l00061"></a>00061         }
+<a name="l00062"></a>00062     }
+<a name="l00063"></a>00063 <span class="preprocessor">#endif</span>
+<a name="l00064"></a>00064 <span class="preprocessor"></span>
+<a name="l00065"></a>00065     <span class="keywordflow">return</span> ret;
+<a name="l00066"></a>00066 }
+<a name="l00067"></a>00067 
+<a name="l00068"></a>00068 <span class="keywordtype">void</span> UpdateWindowDimensions_Linux(<span class="keywordtype">void</span>) {
+<a name="l00069"></a>00069 <span class="preprocessor">#if defined(C_SDL2)</span>
+<a name="l00070"></a>00070 <span class="preprocessor"></span>    <span class="comment">// TODO</span>
+<a name="l00071"></a>00071 <span class="preprocessor">#else</span>
+<a name="l00072"></a>00072 <span class="preprocessor"></span>    <span class="keywordtype">bool</span> GFX_IsFullscreen();
 <a name="l00073"></a>00073 
-<a name="l00074"></a>00074 <span class="keywordtype">void</span> Linux_GetDesktopResolution(<span class="keywordtype">int</span> *width,<span class="keywordtype">int</span> *height) {
-<a name="l00075"></a>00075 <span class="preprocessor">#if defined(C_SDL2)</span>
-<a name="l00076"></a>00076 <span class="preprocessor"></span>    *width = 1024; <span class="comment">// guess</span>
-<a name="l00077"></a>00077     *height = 768;
-<a name="l00078"></a>00078 <span class="preprocessor">#else</span>
-<a name="l00079"></a>00079 <span class="preprocessor"></span>        <span class="comment">/* We&#39;re most likely running on an X-windows desktop (through SDL). */</span>
-<a name="l00080"></a>00080         SDL_SysWMinfo wminfo;
-<a name="l00081"></a>00081         memset(&amp;wminfo,0,<span class="keyword">sizeof</span>(wminfo));
-<a name="l00082"></a>00082         SDL_VERSION(&amp;wminfo.version);
-<a name="l00083"></a>00083         <span class="keywordflow">if</span> (SDL_GetWMInfo(&amp;wminfo) &gt;= 0) {
-<a name="l00084"></a>00084                 <span class="keywordflow">if</span> (wminfo.subsystem == SDL_SYSWM_X11 &amp;&amp; wminfo.info.x11.display != NULL) {
-<a name="l00085"></a>00085                         LOG_MSG(<span class="stringliteral">&quot;GetDesktopResolution reading X11 desktop resolution&quot;</span>);
-<a name="l00086"></a>00086 
-<a name="l00087"></a>00087                         Window rootWindow = DefaultRootWindow(wminfo.info.x11.display);
-<a name="l00088"></a>00088                         <span class="keywordflow">if</span> (rootWindow &gt;= 0) {
-<a name="l00089"></a>00089                                 XWindowAttributes rootWinAttr;
-<a name="l00090"></a>00090 
-<a name="l00091"></a>00091                                 memset(&amp;rootWinAttr,0,<span class="keyword">sizeof</span>(rootWinAttr));
-<a name="l00092"></a>00092                                 XGetWindowAttributes(wminfo.info.x11.display,rootWindow,&amp;rootWinAttr);
-<a name="l00093"></a>00093                                 LOG_MSG(<span class="stringliteral">&quot;Root window (ID %lu) is %lu x %lu&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)rootWindow,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)rootWinAttr.width,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)rootWinAttr.height);
-<a name="l00094"></a>00094 
-<a name="l00095"></a>00095                                 <span class="keywordflow">if</span> (rootWinAttr.width &gt; 0 &amp;&amp; rootWinAttr.height &gt; 0) {
-<a name="l00096"></a>00096                                         *width = (int)rootWinAttr.width;
-<a name="l00097"></a>00097                                         *height = (<span class="keywordtype">int</span>)rootWinAttr.height;
-<a name="l00098"></a>00098                                 }
-<a name="l00099"></a>00099                                 <span class="keywordflow">else</span> {
-<a name="l00100"></a>00100                                         *width = 1024; <span class="comment">// guess</span>
-<a name="l00101"></a>00101                                         *height = 768;
-<a name="l00102"></a>00102                                 }
-<a name="l00103"></a>00103                         }
-<a name="l00104"></a>00104                         <span class="keywordflow">else</span> {
-<a name="l00105"></a>00105                                 *width = 1024; <span class="comment">// guess</span>
-<a name="l00106"></a>00106                                 *height = 768;
-<a name="l00107"></a>00107                         }
-<a name="l00108"></a>00108                 }
-<a name="l00109"></a>00109                 <span class="keywordflow">else</span> {
-<a name="l00110"></a>00110                         *width = 1024; <span class="comment">// guess</span>
-<a name="l00111"></a>00111                         *height = 768;
-<a name="l00112"></a>00112                 }
-<a name="l00113"></a>00113         }
-<a name="l00114"></a>00114         <span class="keywordflow">else</span> {
-<a name="l00115"></a>00115                 *width = 1024; <span class="comment">// guess</span>
-<a name="l00116"></a>00116                 *height = 768;
-<a name="l00117"></a>00117         }
-<a name="l00118"></a>00118 <span class="preprocessor">#endif</span>
-<a name="l00119"></a>00119 <span class="preprocessor"></span>}
-<a name="l00120"></a>00120 <span class="preprocessor">#endif</span>
-<a name="l00121"></a>00121 <span class="preprocessor"></span>
+<a name="l00074"></a>00074     SDL_SysWMinfo wminfo;
+<a name="l00075"></a>00075     memset(&amp;wminfo,0,<span class="keyword">sizeof</span>(wminfo));
+<a name="l00076"></a>00076     SDL_VERSION(&amp;wminfo.version);
+<a name="l00077"></a>00077     <span class="keywordflow">if</span> (SDL_GetWMInfo(&amp;wminfo) &gt;= 0) {
+<a name="l00078"></a>00078         <span class="keywordflow">if</span> (wminfo.subsystem == SDL_SYSWM_X11 &amp;&amp; wminfo.info.x11.display != NULL) {
+<a name="l00079"></a>00079             XWindowAttributes attr;
+<a name="l00080"></a>00080             <span class="keywordtype">bool</span> maximized = <span class="keyword">false</span>;
+<a name="l00081"></a>00081 
+<a name="l00082"></a>00082             memset(&amp;attr,0,<span class="keyword">sizeof</span>(attr));
+<a name="l00083"></a>00083             XGetWindowAttributes(wminfo.info.x11.display, GFX_IsFullscreen() ? wminfo.info.x11.fswindow : wminfo.info.x11.wmwindow, &amp;attr);
+<a name="l00084"></a>00084 
+<a name="l00085"></a>00085             <span class="comment">/* we also want to ask X11 if the various atoms have been set by the window manager</span>
+<a name="l00086"></a>00086 <span class="comment">             * to signal that our window has been maximized. generally when the window has been</span>
+<a name="l00087"></a>00087 <span class="comment">             * maximized, SDL video mode setting has no effect on the dimensions of the window</span>
+<a name="l00088"></a>00088 <span class="comment">             * when it&#39;s been maximized so it helps to know in order to make better choices */</span>
+<a name="l00089"></a>00089             <span class="keywordflow">if</span> (GFX_IsFullscreen()) {
+<a name="l00090"></a>00090             }
+<a name="l00091"></a>00091             <span class="keywordflow">else</span> {
+<a name="l00092"></a>00092                 Atom atomWmState = XInternAtom(wminfo.info.x11.display, <span class="stringliteral">&quot;_NET_WM_STATE&quot;</span>,                False);
+<a name="l00093"></a>00093                 Atom atomMaxVert = XInternAtom(wminfo.info.x11.display, <span class="stringliteral">&quot;_NET_WM_STATE_MAXIMIZED_VERT&quot;</span>, False);
+<a name="l00094"></a>00094                 Atom atomMaxHorz = XInternAtom(wminfo.info.x11.display, <span class="stringliteral">&quot;_NET_WM_STATE_MAXIMIZED_HORZ&quot;</span>, False);
+<a name="l00095"></a>00095 
+<a name="l00096"></a>00096                 <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> nItem = 0, bytesAfter = 0;
+<a name="l00097"></a>00097                 <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *properties = NULL;
+<a name="l00098"></a>00098                 Atom type = None;
+<a name="l00099"></a>00099                 <span class="keywordtype">int</span> format = 0;
+<a name="l00100"></a>00100 
+<a name="l00101"></a>00101                 XGetWindowProperty(wminfo.info.x11.display, wminfo.info.x11.wmwindow,
+<a name="l00102"></a>00102                     <span class="comment">/*atom to query*/</span>atomWmState,<span class="comment">/*offset*/</span>0,<span class="comment">/*length*/</span>16384,<span class="comment">/*delete*/</span>False,
+<a name="l00103"></a>00103                     <span class="comment">/*request type*/</span>AnyPropertyType,
+<a name="l00104"></a>00104                     <span class="comment">/*returns...*/</span>&amp;type,&amp;format,&amp;nItem,&amp;bytesAfter,&amp;properties);
+<a name="l00105"></a>00105 
+<a name="l00106"></a>00106                 <span class="keywordflow">if</span> (properties != NULL) {
+<a name="l00107"></a>00107                     <span class="keywordflow">if</span> (format == 32) { <span class="comment">/* it usually is */</span>
+<a name="l00108"></a>00108                         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> i=0;i &lt; nItem;i++) {
+<a name="l00109"></a>00109                             uint32_t val = ((uint32_t*)properties)[i];
+<a name="l00110"></a>00110 
+<a name="l00111"></a>00111                             <span class="keywordflow">if</span> ((Atom)val == atomMaxVert || (Atom)val == atomMaxHorz)
+<a name="l00112"></a>00112                                 maximized = <span class="keyword">true</span>;
+<a name="l00113"></a>00113                         }
+<a name="l00114"></a>00114                     }
+<a name="l00115"></a>00115 
+<a name="l00116"></a>00116                     XFree(properties);
+<a name="l00117"></a>00117                 }
+<a name="l00118"></a>00118             }
+<a name="l00119"></a>00119 
+<a name="l00120"></a>00120             LOG_MSG(<span class="stringliteral">&quot;X11 main window is %u x %u maximized=%u&quot;</span>,attr.width, attr.height, maximized);
+<a name="l00121"></a>00121 
+<a name="l00122"></a>00122             UpdateWindowDimensions(attr.width, attr.height);
+<a name="l00123"></a>00123             UpdateWindowMaximized(maximized);
+<a name="l00124"></a>00124         }
+<a name="l00125"></a>00125     }
+<a name="l00126"></a>00126 <span class="preprocessor">#endif</span>
+<a name="l00127"></a>00127 <span class="preprocessor"></span>}
+<a name="l00128"></a>00128 
+<a name="l00129"></a>00129 <span class="keywordtype">void</span> Linux_GetDesktopResolution(<span class="keywordtype">int</span> *width,<span class="keywordtype">int</span> *height) {
+<a name="l00130"></a>00130 <span class="preprocessor">#if defined(C_SDL2)</span>
+<a name="l00131"></a>00131 <span class="preprocessor"></span>    *width = 1024; <span class="comment">// guess</span>
+<a name="l00132"></a>00132     *height = 768;
+<a name="l00133"></a>00133 <span class="preprocessor">#else</span>
+<a name="l00134"></a>00134 <span class="preprocessor"></span>        <span class="comment">/* We&#39;re most likely running on an X-windows desktop (through SDL). */</span>
+<a name="l00135"></a>00135         SDL_SysWMinfo wminfo;
+<a name="l00136"></a>00136         memset(&amp;wminfo,0,<span class="keyword">sizeof</span>(wminfo));
+<a name="l00137"></a>00137         SDL_VERSION(&amp;wminfo.version);
+<a name="l00138"></a>00138         <span class="keywordflow">if</span> (SDL_GetWMInfo(&amp;wminfo) &gt;= 0) {
+<a name="l00139"></a>00139                 <span class="keywordflow">if</span> (wminfo.subsystem == SDL_SYSWM_X11 &amp;&amp; wminfo.info.x11.display != NULL) {
+<a name="l00140"></a>00140                         LOG_MSG(<span class="stringliteral">&quot;GetDesktopResolution reading X11 desktop resolution&quot;</span>);
+<a name="l00141"></a>00141 
+<a name="l00142"></a>00142                         Window rootWindow = DefaultRootWindow(wminfo.info.x11.display);
+<a name="l00143"></a>00143                         <span class="keywordflow">if</span> (rootWindow &gt;= 0) {
+<a name="l00144"></a>00144                                 XWindowAttributes rootWinAttr;
+<a name="l00145"></a>00145 
+<a name="l00146"></a>00146                                 memset(&amp;rootWinAttr,0,<span class="keyword">sizeof</span>(rootWinAttr));
+<a name="l00147"></a>00147                                 XGetWindowAttributes(wminfo.info.x11.display,rootWindow,&amp;rootWinAttr);
+<a name="l00148"></a>00148                                 LOG_MSG(<span class="stringliteral">&quot;Root window (ID %lu) is %lu x %lu&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)rootWindow,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)rootWinAttr.width,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)rootWinAttr.height);
+<a name="l00149"></a>00149 
+<a name="l00150"></a>00150                                 <span class="keywordflow">if</span> (rootWinAttr.width &gt; 0 &amp;&amp; rootWinAttr.height &gt; 0) {
+<a name="l00151"></a>00151                                         *width = (int)rootWinAttr.width;
+<a name="l00152"></a>00152                                         *height = (<span class="keywordtype">int</span>)rootWinAttr.height;
+<a name="l00153"></a>00153                                 }
+<a name="l00154"></a>00154                                 <span class="keywordflow">else</span> {
+<a name="l00155"></a>00155                                         *width = 1024; <span class="comment">// guess</span>
+<a name="l00156"></a>00156                                         *height = 768;
+<a name="l00157"></a>00157                                 }
+<a name="l00158"></a>00158                         }
+<a name="l00159"></a>00159                         <span class="keywordflow">else</span> {
+<a name="l00160"></a>00160                                 *width = 1024; <span class="comment">// guess</span>
+<a name="l00161"></a>00161                                 *height = 768;
+<a name="l00162"></a>00162                         }
+<a name="l00163"></a>00163                 }
+<a name="l00164"></a>00164                 <span class="keywordflow">else</span> {
+<a name="l00165"></a>00165                         *width = 1024; <span class="comment">// guess</span>
+<a name="l00166"></a>00166                         *height = 768;
+<a name="l00167"></a>00167                 }
+<a name="l00168"></a>00168         }
+<a name="l00169"></a>00169         <span class="keywordflow">else</span> {
+<a name="l00170"></a>00170                 *width = 1024; <span class="comment">// guess</span>
+<a name="l00171"></a>00171                 *height = 768;
+<a name="l00172"></a>00172         }
+<a name="l00173"></a>00173 <span class="preprocessor">#endif</span>
+<a name="l00174"></a>00174 <span class="preprocessor"></span>}
+<a name="l00175"></a>00175 <span class="preprocessor">#endif</span>
+<a name="l00176"></a>00176 <span class="preprocessor"></span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 20 2018 22:06:40 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Apr 20 2018 12:41:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>
