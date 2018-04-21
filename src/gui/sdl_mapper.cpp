@@ -1885,8 +1885,11 @@ public:
 		case MK_kpminus:
 			key=SDL_SCANCODE_KP_MINUS;
 			break;
-		case MK_equals:
-			key=SDL_SCANCODE_EQUALS;
+        case MK_minus:
+            key=SDL_SCANCODE_MINUS;
+            break;
+        case MK_equals:
+            key=SDL_SCANCODE_EQUALS;
 			break;
 		case MK_scrolllock:
 			key=SDL_SCANCODE_SCROLLLOCK;
@@ -1952,6 +1955,9 @@ public:
         case MK_kpplus:
 			key=SDLK_KP_PLUS;
 			break;
+        case MK_minus:
+            key=SDLK_MINUS;
+            break;
 		case MK_equals:
 			key=SDLK_EQUALS;
 			break;

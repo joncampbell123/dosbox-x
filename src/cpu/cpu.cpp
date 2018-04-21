@@ -2866,8 +2866,8 @@ public:
 #if (C_DYNAMIC_X86)
 		CPU_Core_Dyn_X86_Init();
 #endif
-		MAPPER_AddHandler(CPU_CycleDecrease,MK_f11,MMOD1,"cycledown","Dec Cycles");
-		MAPPER_AddHandler(CPU_CycleIncrease,MK_f12,MMOD1,"cycleup"  ,"Inc Cycles");
+		MAPPER_AddHandler(CPU_CycleDecrease,MK_minus,MMODHOST,"cycledown","Dec Cycles");
+		MAPPER_AddHandler(CPU_CycleIncrease,MK_equals,MMODHOST,"cycleup"  ,"Inc Cycles");
 		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_nothing,0,"cycauto","AutoCycles");
 		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_nothing,0,"normal"  ,"NormalCore");
 		MAPPER_AddHandler(CPU_ToggleFullCore,MK_nothing,0,"full","Full Core");
