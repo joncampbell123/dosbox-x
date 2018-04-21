@@ -939,10 +939,10 @@ void MAPPER_RecVolumeDown(bool pressed) {
 }
 
 void MIXER_Controls_Init() {
-	MAPPER_AddHandler(MAPPER_VolumeUp  ,MK_kpplus, MMOD1,"volup","VolUp");
-	MAPPER_AddHandler(MAPPER_VolumeDown,MK_kpminus,MMOD1,"voldown","VolDown");
-	MAPPER_AddHandler(MAPPER_RecVolumeUp  ,MK_kpplus, MMOD1|MMOD2,"recvolup","RecVolUp");
-	MAPPER_AddHandler(MAPPER_RecVolumeDown,MK_kpminus,MMOD1|MMOD2,"recvoldown","RecVolDn");
+	MAPPER_AddHandler(MAPPER_VolumeUp  ,MK_kpplus, MMODHOST,"volup","VolUp");
+	MAPPER_AddHandler(MAPPER_VolumeDown,MK_kpminus,MMODHOST,"voldown","VolDown");
+	MAPPER_AddHandler(MAPPER_RecVolumeUp  ,MK_nothing, 0,"recvolup","RecVolUp");
+	MAPPER_AddHandler(MAPPER_RecVolumeDown,MK_nothing, 0,"recvoldown","RecVolDn");
 }
 
 void MIXER_Init() {

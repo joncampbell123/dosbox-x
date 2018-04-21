@@ -2880,7 +2880,7 @@ static void GUI_StartUp() {
 	MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Fullscreen");
 	MAPPER_AddHandler(Restart,MK_nothing,0,"restart","Restart"); /* This is less useful, and now has no default binding */
 	void PasteClipboard(bool bPressed); // emendelson from dbDOS adds MMOD2 to this for Ctrl-Alt-F5 for PasteClipboard
-	MAPPER_AddHandler(PasteClipboard, MK_f4, MMOD1 | MMOD2, "paste", "Paste Clipboard"); //end emendelson
+	MAPPER_AddHandler(PasteClipboard, MK_nothing, 0, "paste", "Paste Clipboard"); //end emendelson
 #if C_DEBUG
 	/* Pause binds with activate-debugger */
 	MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD1, "pause", "Pause");
@@ -2888,8 +2888,8 @@ static void GUI_StartUp() {
 	MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD2, "pause", "Pause");
 #endif
 #if !defined(C_SDL2)
-	MAPPER_AddHandler(&GUI_Run, MK_f10, MMOD2, "gui", "ShowGUI");
-	MAPPER_AddHandler(&GUI_ResetResize, MK_f2, MMOD1, "resetsize", "ResetSize");
+	MAPPER_AddHandler(&GUI_Run, MK_nothing, 0, "gui", "ShowGUI");
+	MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "ResetSize");
 #endif
 	/* Get Keyboard state of numlock and capslock */
 #if defined(C_SDL2)
