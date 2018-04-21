@@ -1,3 +1,12 @@
+0.82.6 (next)
+  - Renderer and 32bpp VGA display code fixed to
+    reorder RGBA order for correct display on Intel
+    Mac OS X systems. Mac OS X, on Intel systems,
+    uses a strange BGRA 32bpp format that requires
+    some adjustment on our part to display correctly.
+  - Added more 24bpp INT 10h VESA BIOS modes.
+  - Removed per-sector debug messages from VFD/FDD
+    image support code.
 0.82.5 (04/18/2018)
   - Expanded memory manager memory copy fixed to
     enable A20 gate temporarily so that the copy
