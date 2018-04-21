@@ -64,28 +64,15 @@
 #define WC scalerWriteCache.b32
 //#define FC scalerFrameCache.b32
 #define FC (*(scalerFrameCache_t*)(&scalerSourceCache.b32[400][0])).b32
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX)
-/* Mac OS X for Intel uses a strange backwards BGRA format */
-# define redMask	0x0000ff00
-# define greenMask	0x00ff0000
-# define blueMask	0xff000000
-# define redBits	8
-# define greenBits	8
-# define blueBits	8
-# define redShift	8
-# define greenShift	16
-# define blueShift	24
-#else
-# define redMask	0xff0000
-# define greenMask	0x00ff00
-# define blueMask	0x0000ff
-# define redBits	8
-# define greenBits	8
-# define blueBits	8
-# define redShift	16
-# define greenShift	8
-# define blueShift	0
-#endif
+#define redMask		0xff0000
+#define greenMask	0x00ff00
+#define blueMask	0x0000ff
+#define redBits		8
+#define greenBits	8
+#define blueBits	8
+#define redShift	16
+#define greenShift	8
+#define blueShift	0
 #endif
 
 #define redblueMask (redMask | blueMask)
