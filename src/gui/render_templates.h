@@ -115,7 +115,11 @@
 #elif DBPP == 16
 #define PMAKE(_VAL) (((_VAL) & 31) | ((_VAL) & ~31) << 1)
 #elif DBPP == 32
-#define PMAKE(_VAL)  (((_VAL&(31<<10))<<9)|((_VAL&(31<<5))<<6)|((_VAL&31)<<3))
+# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Strange Mac OS X little endian RGBA order */
+#  define PMAKE(_VAL)  (((_VAL&(31<<10))<<1)|((_VAL&(31<<5))<<14)|((_VAL&31)<<27))
+# else
+#  define PMAKE(_VAL)  (((_VAL&(31<<10))<<9)|((_VAL&(31<<5))<<6)|((_VAL&31)<<3))
+# endif
 #endif
 #define SRCTYPE Bit16u
 #endif
@@ -127,7 +131,11 @@
 #elif DBPP == 16
 #define PMAKE(_VAL) (_VAL)
 #elif DBPP == 32
-#define PMAKE(_VAL)  (((_VAL&(31<<11))<<8)|((_VAL&(63<<5))<<5)|((_VAL&31)<<3))
+# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Strange Mac OS X little endian RGBA order */
+#  define PMAKE(_VAL)  (((_VAL&(31<<11))<<0)|((_VAL&(63<<5))<<13)|((_VAL&31)<<27))
+# else
+#  define PMAKE(_VAL)  (((_VAL&(31<<11))<<8)|((_VAL&(63<<5))<<5)|((_VAL&31)<<3))
+# endif
 #endif
 #define SRCTYPE Bit16u
 #endif
@@ -139,7 +147,11 @@
 #elif DBPP == 16
 #define PMAKE(_VAL) (PTYPE)(((_VAL&(31<<19))>>8)|((_VAL&(63<<10))>>5)|((_VAL&(31<<3))>>3))
 #elif DBPP == 32
-#define PMAKE(_VAL) (_VAL)
+# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Strange Mac OS X little endian RGBA order */
+#  define PMAKE(_VAL)  (((_VAL&(255<<16))>>8)|((_VAL&(255<<8))<<8)|((_VAL&255)<<24))
+# else
+#  define PMAKE(_VAL) (_VAL)
+# endif
 #endif
 #define SRCTYPE Bit32u
 #endif
