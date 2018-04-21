@@ -1,4 +1,10 @@
 0.82.6 (next)
+  - Intro text updated to reflect new default
+    key bindings.
+  - Mapper shortcuts not in common use now exist
+    without any default binding, and most existing
+    default bindings are now associated with the
+    "host" key.
   - Added 4th modifier "host" key to the mapper.
     This "host" key is F12 by default. The intent
     is to eventually move most mapper shortcuts
