@@ -1924,6 +1924,9 @@ public:
         case MK_f:
             key=SDL_SCANCODE_F;
             break;
+        case MK_m:
+            key=SDL_SCANCODE_M;
+            break;
         case MK_r:
             key=SDL_SCANCODE_R;
             break;
@@ -2016,6 +2019,9 @@ public:
             break;
         case MK_f:
             key=SDLK_f;
+            break;
+        case MK_m:
+            key=SDLK_m;
             break;
         case MK_r:
             key=SDLK_r;
@@ -3428,7 +3434,7 @@ void MAPPER_StartUp() {
 
 	Prop_path* pp = section->Get_path("mapperfile");
 	mapper.filename = pp->realpath;
-	MAPPER_AddHandler(&MAPPER_Run,MK_f1,MMOD1,"mapper","Mapper");
+	MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper");
 }
 
 void MAPPER_Shutdown() {
