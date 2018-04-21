@@ -328,6 +328,16 @@ static Bit8u * VGA_Draw_4BPP_Line_Double(Bitu vidstart, Bitu line) {
 	return TempLine;
 }
 
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+static inline Bit32u guest_bgr_to_macosx_rgba(const Bit32u x) {
+    /* guest: XRGB      X   R   G   B
+     * host:  RGBX      B   G   R   X */
+    return      ((x & 0x000000FFU) << 24U) +      /* BBxxxxxx */
+                ((x & 0x0000FF00U) <<  8U) +      /* xxGGxxxx */
+                ((x & 0x00FF0000U) >>  8U);       /* xxxxRRxx */
+}
+#endif
+
 static Bit8u * VGA_Draw_Linear_Line_24_to_32(Bitu vidstart, Bitu /*line*/) {
 	Bitu offset = vidstart & vga.draw.linear_mask;
 	Bitu i;
@@ -341,8 +351,13 @@ static Bit8u * VGA_Draw_Linear_Line_24_to_32(Bitu vidstart, Bitu /*line*/) {
 	 *          extra byte), then overwrites the extra byte with 0xFF to
 	 *          produce a valid RGBA 8:8:8:8 value with the original pixel's
 	 *          RGB plus alpha channel value of 0xFF. */
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+	for (i=0;i < vga.draw.width;i++)
+		((uint32_t*)TempLine)[i] = guest_bgr_to_macosx_rgba(*((uint32_t*)(vga.draw.linear_base+offset+(i*3)))) | 0x000000FF;
+#else
 	for (i=0;i < vga.draw.width;i++)
 		((uint32_t*)TempLine)[i] = *((uint32_t*)(vga.draw.linear_base+offset+(i*3))) | 0xFF000000;
+#endif
 
 	return TempLine;
 }
