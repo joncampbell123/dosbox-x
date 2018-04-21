@@ -1870,6 +1870,7 @@ public:
 	void MakeDefaultBind(char * buf) {
 		Bitu key=0;
 		switch (defkey) {
+        case MK_nothing: *buf = 0; return;
 		case MK_f1:case MK_f2:case MK_f3:case MK_f4:
 		case MK_f5:case MK_f6:case MK_f7:case MK_f8:
 		case MK_f9:case MK_f10:case MK_f11:case MK_f12:	
@@ -1930,6 +1931,7 @@ public:
 	void MakeDefaultBind(char * buf) {
 		Bitu key=0;
 		switch (defkey) {
+        case MK_nothing: *buf = 0; return;
 		case MK_f1:case MK_f2:case MK_f3:case MK_f4:
 		case MK_f5:case MK_f6:case MK_f7:case MK_f8:
 		case MK_f9:case MK_f10:case MK_f11:case MK_f12:	
@@ -2468,6 +2470,7 @@ static SDL_Color map_pal[5]={
 
 static void CreateStringBind(char * line,bool loading=false) {
 	line=trim(line);
+    if (*line == 0) return;
 	char * eventname=StripWord(line);
 	CEvent * event;
 	for (CEventVector_it ev_it=events.begin();ev_it!=events.end();ev_it++) {

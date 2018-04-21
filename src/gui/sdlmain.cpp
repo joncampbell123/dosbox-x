@@ -2878,7 +2878,7 @@ static void GUI_StartUp() {
 	MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","ShutDown"); /* KEEP: Most DOSBox-X users may have muscle memory for this */
 	MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Cap Mouse"); /* KEEP: Most DOSBox-X users may have muscle memory for this */
 	MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Fullscreen");
-	MAPPER_AddHandler(Restart,MK_home,MMOD1|MMOD2,"restart","Restart");
+	MAPPER_AddHandler(Restart,MK_nothing,0,"restart","Restart"); /* This is less useful, and now has no default binding */
 	void PasteClipboard(bool bPressed); // emendelson from dbDOS adds MMOD2 to this for Ctrl-Alt-F5 for PasteClipboard
 	MAPPER_AddHandler(PasteClipboard, MK_f4, MMOD1 | MMOD2, "paste", "Paste Clipboard"); //end emendelson
 #if C_DEBUG

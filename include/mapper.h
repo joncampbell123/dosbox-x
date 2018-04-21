@@ -20,6 +20,7 @@
 #define DOSBOX_MAPPER_H
 
 enum MapKeys {
+    MK_nothing,
 	MK_f1,MK_f2,MK_f3,MK_f4,MK_f5,MK_f6,MK_f7,MK_f8,MK_f9,MK_f10,MK_f11,MK_f12,
 	MK_return,MK_kpminus,MK_kpplus,MK_equals,MK_scrolllock,MK_printscreen,MK_pause,MK_home,
 	MK_1, MK_2, MK_3, MK_4,
