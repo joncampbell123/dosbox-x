@@ -2874,10 +2874,10 @@ static void GUI_StartUp() {
 #if defined(__WIN32__) && !defined(C_SDL2)
 	MAPPER_AddHandler(ToggleMenu,MK_return,MMOD1|MMOD2,"togglemenu","ToggleMenu");
 #endif // WIN32
-    MAPPER_AddHandler(ResetSystem, MK_pause, MMOD1|MMOD2, "reset", "Reset");
-	MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","ShutDown");
-	MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Cap Mouse");
-	MAPPER_AddHandler(SwitchFullScreen,MK_return,MMOD2,"fullscr","Fullscreen");
+    MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset"); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
+	MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","ShutDown"); /* KEEP: Most DOSBox-X users may have muscle memory for this */
+	MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Cap Mouse"); /* KEEP: Most DOSBox-X users may have muscle memory for this */
+	MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Fullscreen");
 	MAPPER_AddHandler(Restart,MK_home,MMOD1|MMOD2,"restart","Restart");
 	void PasteClipboard(bool bPressed); // emendelson from dbDOS adds MMOD2 to this for Ctrl-Alt-F5 for PasteClipboard
 	MAPPER_AddHandler(PasteClipboard, MK_f4, MMOD1 | MMOD2, "paste", "Paste Clipboard"); //end emendelson

@@ -1908,6 +1908,12 @@ public:
 		case MK_4:
 			key=SDL_SCANCODE_4;
 			break;
+        case MK_f:
+            key=SDL_SCANCODE_F;
+            break;
+        case MK_r:
+            key=SDL_SCANCODE_R;
+            break;
         default:
             break;
 		}
@@ -1973,6 +1979,12 @@ public:
 		case MK_4:
 			key=SDLK_4;
 			break;
+        case MK_f:
+            key=SDLK_f;
+            break;
+        case MK_r:
+            key=SDLK_r;
+            break;
 		}
 		sprintf(buf,"%s \"key %d%s%s%s%s\"",
 			entry,
