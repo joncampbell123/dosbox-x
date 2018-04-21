@@ -3238,8 +3238,7 @@ private:
 		fclose(diskfile);
 		// check it is not dynamic VHD image
 		if (!strcmp((const char*)buf, "conectix")) {
-			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
-			LOG_MSG("Dynamic VHD images are not supported");
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED"));
 			return false;
 		}
 		// check MBR signature for unknown images
@@ -3957,6 +3956,7 @@ void DOS_SetupPrograms(void) {
 		"\033[34;1mIMGMOUNT drive-letter location-of-image -size bps,spc,hpc,cyl\033[0m\n");
 	MSG_Add("PROGRAM_IMGMOUNT_INVALID_IMAGE","Could not load image file.\n"
 		"Check that the path is correct and the image is accessible.\n");
+	MSG_Add("PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED", "Dynamic VHD files are not supported.\n");
 	MSG_Add("PROGRAM_IMGMOUNT_INVALID_GEOMETRY","Could not extract drive geometry from image.\n"
 		"Use parameter -size bps,spc,hpc,cyl to specify the geometry.\n");
 	MSG_Add("PROGRAM_IMGMOUNT_AUTODET_VALUES","Image geometry auto detection: -size %u,%u,%u,%u\n");
