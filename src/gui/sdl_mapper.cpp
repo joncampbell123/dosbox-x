@@ -1927,6 +1927,15 @@ public:
         case MK_r:
             key=SDL_SCANCODE_R;
             break;
+        case MK_s:
+            key=SDL_SCANCODE_S;
+            break;
+        case MK_v:
+            key=SDL_SCANCODE_V;
+            break;
+        case MK_w:
+            key=SDL_SCANCODE_W;
+            break;
         default:
             break;
 		}
@@ -2010,6 +2019,15 @@ public:
             break;
         case MK_r:
             key=SDLK_r;
+            break;
+        case MK_s:
+            key=SDLK_s;
+            break;
+        case MK_v:
+            key=SDLK_v;
+            break;
+        case MK_w:
+            key=SDLK_w;
             break;
 		}
 		sprintf(buf,"%s \"key %d%s%s%s%s\"",
