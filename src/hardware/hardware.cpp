@@ -1761,8 +1761,8 @@ void CAPTURE_Init() {
 
 	// mapper shortcuts for capture
 	MAPPER_AddHandler(CAPTURE_WaveEvent,MK_f6,MMOD1,"recwave","Rec Wave");
-	MAPPER_AddHandler(CAPTURE_MTWaveEvent,MK_f7,MMOD1,"recmtwave","Rec MTWav");
-	MAPPER_AddHandler(CAPTURE_MidiEvent,MK_f8,MMOD1|MMOD2,"caprawmidi","Cap MIDI");
+	MAPPER_AddHandler(CAPTURE_MTWaveEvent,MK_nothing,0,"recmtwave","Rec MTWav");
+	MAPPER_AddHandler(CAPTURE_MidiEvent,MK_nothing,0,"caprawmidi","Cap MIDI");
 #if (C_SSHOT)
 	MAPPER_AddHandler(CAPTURE_ScreenShotEvent,MK_f5,MMOD1,"scrshot","Screenshot");
 	MAPPER_AddHandler(CAPTURE_VideoEvent,MK_f5,MMOD1|MMOD2,"video","Video");

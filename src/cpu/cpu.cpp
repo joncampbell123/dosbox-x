@@ -2868,12 +2868,12 @@ public:
 #endif
 		MAPPER_AddHandler(CPU_CycleDecrease,MK_f11,MMOD1,"cycledown","Dec Cycles");
 		MAPPER_AddHandler(CPU_CycleIncrease,MK_f12,MMOD1,"cycleup"  ,"Inc Cycles");
-		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_equals,MMOD1,"cycauto","AutoCycles");
-		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_1,MMOD1,"normal"  ,"NormalCore");
-		MAPPER_AddHandler(CPU_ToggleFullCore,MK_2,MMOD1,"full","Full Core");
-		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_4,MMOD1,"simple","SimpleCore");
+		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_nothing,0,"cycauto","AutoCycles");
+		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_nothing,0,"normal"  ,"NormalCore");
+		MAPPER_AddHandler(CPU_ToggleFullCore,MK_nothing,0,"full","Full Core");
+		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_nothing,0,"simple","SimpleCore");
 #if (C_DYNAMIC_X86)
-		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_3,MMOD1,"dynamic","DynCore");
+		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_nothing,0,"dynamic","DynCore");
 #endif
 		Change_Config(configuration);	
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core

@@ -691,8 +691,8 @@ void Init_VGABIOS() {
 void DOSBOX_RealInit() {
 	LOG(LOG_MISC,LOG_DEBUG)("DOSBOX_RealInit: loading settings and initializing");
 
-	MAPPER_AddHandler(DOSBOX_UnlockSpeed, MK_f12, MMOD2,"speedlock","Speedlock");
-	MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_f11, MMOD2,"speedlock2","Speedlock2");
+	MAPPER_AddHandler(DOSBOX_UnlockSpeed, MK_rightarrow, MMODHOST,"speedlock","Speedlock");
+	MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_nothing, 0,"speedlock2","Speedlock2");
 
 	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);

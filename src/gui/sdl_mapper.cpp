@@ -1876,6 +1876,9 @@ public:
 		case MK_f9:case MK_f10:case MK_f11:case MK_f12:	
 			key=SDL_SCANCODE_F1+(defkey-MK_f1);
 			break;
+        case MK_rightarrow:
+            key=SDL_SCANCODE_RIGHT;
+            break;
 		case MK_return:
 			key=SDL_SCANCODE_RETURN;
 			break;
@@ -1937,6 +1940,9 @@ public:
 		case MK_f9:case MK_f10:case MK_f11:case MK_f12:	
 			key=SDLK_F1+(defkey-MK_f1);
 			break;
+        case MK_rightarrow:
+            key=SDLK_RIGHT;
+            break;
 		case MK_return:
 			key=SDLK_RETURN;
 			break;
