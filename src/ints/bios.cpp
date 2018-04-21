@@ -5228,10 +5228,14 @@ private:
 		extern Bitu call_default,call_default2;
 
         if (IS_PC98_ARCH) {
-            /* INT 40h-FFh generic stub routine */
+            /* INT 00h-FFh generic stub routine */
+            /* NTS: MS-DOS on PC-98 will fill all yet-unused interrupt vectors with a stub.
+             *      No vector is left at 0000:0000. On a related note, PC-98 games apparently
+             *      like to call INT 33h (mouse functions) without first checking that the
+             *      vector is non-null. */
             callback[18].Uninstall();
             callback[18].Install(&INTGEN_PC98_Handler,CB_IRET,"Int stub ???");
-            for (unsigned int i=0x40;i < 0x100;i++) RealSetVec(i,callback[18].Get_RealPointer());
+            for (unsigned int i=0x00;i < 0x100;i++) RealSetVec(i,callback[18].Get_RealPointer());
 
             /* need handler at INT 07h */
             real_writed(0,0x07*4,BIOS_DEFAULT_HANDLER_LOCATION);
