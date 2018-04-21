@@ -693,15 +693,6 @@ static Bit8u * VGA_Draw_LIN16_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
 }
 
 static Bit8u * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
-	Bitu offset = vidstart & vga.draw.linear_mask;
-
-    /* FIXME: Mac OS X rendition of cursor output, as below */
-	for (i=0;i < vga.draw.width;i++)
-		((uint32_t*)TempLine)[i] = guest_bgr_to_macosx_rgba(*((uint32_t*)(vga.draw.linear_base+offset+(i*4))));
-
-    return TempLine;
-#else
 	if (!svga.hardware_cursor_active || !svga.hardware_cursor_active())
 		return &vga.mem.linear[vidstart];
 
@@ -737,7 +728,6 @@ static Bit8u * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
 		}
 		return TempLine;
 	}
-#endif
 }
 
 static const Bit32u* VGA_Planar_Memwrap(Bitu vidstart) {
