@@ -66,13 +66,14 @@ enum BB_Types {
 };
 
 enum BC_Types {
-	BC_Mod1,BC_Mod2,BC_Mod3,
+	BC_Mod1,BC_Mod2,BC_Mod3,BC_Host,
 	BC_Hold
 };
 
 #define BMOD_Mod1 0x0001
 #define BMOD_Mod2 0x0002
 #define BMOD_Mod3 0x0004
+#define BMOD_Host 0x0008
 
 #define BFLG_Hold 0x0001
 #define BFLG_Repeat 0x0004
@@ -223,6 +224,7 @@ public:
 		if (mods & BMOD_Mod1) strcat(buf," mod1");
 		if (mods & BMOD_Mod2) strcat(buf," mod2");
 		if (mods & BMOD_Mod3) strcat(buf," mod3");
+		if (mods & BMOD_Host) strcat(buf," host");
 		if (flags & BFLG_Hold) strcat(buf," hold");
 	}
 	void SetFlags(char * buf) {
@@ -231,6 +233,7 @@ public:
 			if (!strcasecmp(word,"mod1")) mods|=BMOD_Mod1;
 			if (!strcasecmp(word,"mod2")) mods|=BMOD_Mod2;
 			if (!strcasecmp(word,"mod3")) mods|=BMOD_Mod3;
+			if (!strcasecmp(word,"host")) mods|=BMOD_Host;
 			if (!strcasecmp(word,"hold")) flags|=BFLG_Hold;
 		}
 	}
@@ -1668,8 +1671,11 @@ public:
 		case BC_Mod3:
 			checked=(mapper.abind->mods&BMOD_Mod3)>0;
 			break;
-		case BC_Hold:
-			checked=(mapper.abind->flags&BFLG_Hold)>0;
+        case BC_Host:
+            checked=(mapper.abind->mods&BMOD_Host)>0;
+            break;
+        case BC_Hold:
+            checked=(mapper.abind->flags&BFLG_Hold)>0;
 			break;
 		}
 		CTextButton::Draw();
@@ -1699,6 +1705,9 @@ public:
 			break;
 		case BC_Mod3:
 			mapper.abind->mods^=BMOD_Mod3;
+			break;
+		case BC_Host:
+			mapper.abind->mods^=BMOD_Host;
 			break;
 		case BC_Hold:
 			mapper.abind->flags^=BFLG_Hold;
@@ -1902,12 +1911,13 @@ public:
         default:
             break;
 		}
-		sprintf(buf,"%s \"key %d%s%s%s\"",
+		sprintf(buf,"%s \"key %d%s%s%s%s\"",
 			entry,
 			(int)key,
 			defmod & 1 ? " mod1" : "",
 			defmod & 2 ? " mod2" : "",
-			defmod & 4 ? " mod3" : ""
+			defmod & 4 ? " mod3" : "",
+			defmod & 8 ? " host" : ""
 		);
 	}
 #else
@@ -1964,12 +1974,13 @@ public:
 			key=SDLK_4;
 			break;
 		}
-		sprintf(buf,"%s \"key %d%s%s%s\"",
+		sprintf(buf,"%s \"key %d%s%s%s%s\"",
 			entry,
 			(int)key,
 			defmod & 1 ? " mod1" : "",
 			defmod & 2 ? " mod2" : "",
-			defmod & 4 ? " mod3" : ""
+			defmod & 4 ? " mod3" : "",
+			defmod & 8 ? " host" : ""
 		);
 	}
 #endif
@@ -1998,7 +2009,7 @@ static struct {
 	CBindButton * add;
 	CBindButton * del;
 	CBindButton * next;
-	CCheckButton * mod1,* mod2,* mod3,* hold;
+	CCheckButton * mod1,* mod2,* mod3,* host,* hold;
 } bind_but;
 
 
@@ -2019,6 +2030,7 @@ static void SetActiveBind(CBind * _bind) {
 		bind_but.mod1->Enable(true);
 		bind_but.mod2->Enable(true);
 		bind_but.mod3->Enable(true);
+		bind_but.host->Enable(true);
 		bind_but.hold->Enable(true);
 	} else {
 		bind_but.bind_title->Enable(false);
@@ -2027,6 +2039,7 @@ static void SetActiveBind(CBind * _bind) {
 		bind_but.mod1->Enable(false);
 		bind_but.mod2->Enable(false);
 		bind_but.mod3->Enable(false);
+		bind_but.host->Enable(false);
 		bind_but.hold->Enable(false);
 	}
 }
@@ -2122,7 +2135,12 @@ static void AddJHatButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title
 
 static void AddModButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,Bitu _mod) {
 	char buf[64];
-	sprintf(buf,"mod_%d",(int)_mod);
+
+    if (_mod == 4)
+        sprintf(buf,"host");
+    else
+        sprintf(buf,"mod_%d",(int)_mod);
+
 	CModEvent * event=new CModEvent(buf,_mod);
 	CEventButton *button=new CEventButton(x,y,dx,dy,title,event);
     event->notifybutton(button);
@@ -2377,6 +2395,7 @@ static void CreateLayout(void) {
 	AddModButton(PX(0),PY(17),50,20,"Mod1",1);
 	AddModButton(PX(2),PY(17),50,20,"Mod2",2);
 	AddModButton(PX(4),PY(17),50,20,"Mod3",3);
+	AddModButton(PX(6),PY(17),50,20,"Host",4);
 	/* Create Handler buttons */
 	Bitu xpos=3;Bitu ypos=11;
 	for (CHandlerEventVector_it hit=handlergroup.begin();hit!=handlergroup.end();hit++) {
@@ -2407,7 +2426,8 @@ static void CreateLayout(void) {
 	bind_but.mod1=new CCheckButton(20,410,60,20, "mod1",BC_Mod1);
 	bind_but.mod2=new CCheckButton(20,432,60,20, "mod2",BC_Mod2);
 	bind_but.mod3=new CCheckButton(20,454,60,20, "mod3",BC_Mod3);
-	bind_but.hold=new CCheckButton(100,410,60,20,"hold",BC_Hold);
+	bind_but.host=new CCheckButton(100,410,60,20,"host",BC_Host);
+	bind_but.hold=new CCheckButton(100,432,60,20,"hold",BC_Hold);
 
 	bind_but.next=new CBindButton(250,400,50,20,"Next",BB_Next);
 
@@ -2630,11 +2650,13 @@ static void CreateDefaultBinds(void) {
 	sprintf(buffer,"mod_1 \"key %d\"",SDL_SCANCODE_LCTRL);CreateStringBind(buffer);
 	sprintf(buffer,"mod_2 \"key %d\"",SDL_SCANCODE_RALT);CreateStringBind(buffer);
 	sprintf(buffer,"mod_2 \"key %d\"",SDL_SCANCODE_LALT);CreateStringBind(buffer);
+	sprintf(buffer,"host \"key %d\"",SDL_SCANCODE_F12);CreateStringBind(buffer);
 #else
 	sprintf(buffer,"mod_1 \"key %d\"",SDLK_RCTRL);CreateStringBind(buffer);
 	sprintf(buffer,"mod_1 \"key %d\"",SDLK_LCTRL);CreateStringBind(buffer);
 	sprintf(buffer,"mod_2 \"key %d\"",SDLK_RALT);CreateStringBind(buffer);
 	sprintf(buffer,"mod_2 \"key %d\"",SDLK_LALT);CreateStringBind(buffer);
+	sprintf(buffer,"host \"key %d\"",SDLK_F12);CreateStringBind(buffer);
 #endif
 
 	for (CHandlerEventVector_it hit=handlergroup.begin();hit!=handlergroup.end();hit++) {
