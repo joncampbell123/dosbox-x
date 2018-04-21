@@ -1915,6 +1915,12 @@ public:
 		case MK_4:
 			key=SDL_SCANCODE_4;
 			break;
+        case MK_c:
+            key=SDL_SCANCODE_C;
+            break;
+        case MK_d:
+            key=SDL_SCANCODE_D;
+            break;
         case MK_f:
             key=SDL_SCANCODE_F;
             break;
@@ -1992,7 +1998,13 @@ public:
 			break;
 		case MK_4:
 			key=SDLK_4;
-			break;
+            break;
+        case MK_c:
+            key=SDLK_c;
+            break;
+        case MK_d:
+            key=SDLK_d;
+            break;
         case MK_f:
             key=SDLK_f;
             break;
