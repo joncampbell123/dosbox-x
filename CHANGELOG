@@ -1,4 +1,11 @@
 0.82.6 (next)
+  - Added 4th modifier "host" key to the mapper.
+    This "host" key is F12 by default. The intent
+    is to eventually move most mapper shortcuts
+    to some combination of F12 and another key,
+    rather than many shortcuts scattered over the
+    keyboard. Existing dosbox mapper files should
+    continue to work.
   - Renderer and 32bpp VGA display code fixed to
     reorder RGBA order for correct display on Intel
     Mac OS X systems. Mac OS X, on Intel systems,
