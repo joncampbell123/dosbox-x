@@ -6,6 +6,6 @@
         <h1>DOSBox-X testing and development log.</h1>
         <h2>An ongoing log of testing and development for your enjoyment, in chronological order.</h2>
         <hr>
-%LIST_PLACEHOLDER%
+<LIST_PLACEHOLDER/>
     </body>
 </html>

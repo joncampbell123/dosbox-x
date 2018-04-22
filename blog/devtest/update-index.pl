@@ -7,15 +7,7 @@ my $line;
 while ($line = <TMPL>) {
     chomp $line;
 
-    if ($line =~ m/^%.*%$/) {
-        $line =~ s/^%//;
-        $line =~ s/%$//;
-
-        if ($line eq "LIST_PLACEHOLDER") {
-        }
-        else {
-            die "Unknown placeholder or directive '$line'";
-        }
+    if ($line eq "<LIST_PLACEHOLDER/>") {
     }
     else {
         print INDEX "$line\n";
