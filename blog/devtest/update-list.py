@@ -5,6 +5,31 @@ import stat
 import os
 import re
 
+# ent to date
+def ent2date(x):
+    # YYYY-MM-DD-HHMMSS
+    # YYYY-MM-DD-HHMM
+    y = x.split('-')
+    r = ''
+    #
+    year = y[0]
+    mon = y[1]
+    day = y[2]
+    hm = y[3]
+    hour = hm[0:2]
+    minute = hm[2:4]
+    second = hm[4:6]
+    #
+    r = year + '/' + mon + '/' + day
+    if not hour == None and not hour == "":
+        r += ' ' + hour
+        if not minute == None and not minute == "":
+            r += ':' + minute
+            if not second == None and not second == "":
+                r += ':' + second
+    #
+    return r
+
 # open the template page file.
 # Python will blow up with an exception here on failure.
 htmt_tree = etree.parse("_page.html")
@@ -75,7 +100,7 @@ if not list_placeholder == None:
         rowtitle.append(rowtitle_p1)
         #
         rowtitle_p2 = etree.SubElement(rowtitle, "span")
-        rowtitle_p2.text = u" \u2014 " + ent
+        rowtitle_p2.text = u" \u2014 " + ent2date(ent)
         rowtitle_p2.set("style","font-size: 0.85em;");
         rowtitle.append(rowtitle_p2)
         #
