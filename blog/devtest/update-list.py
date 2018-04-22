@@ -85,6 +85,7 @@ if not list_placeholder == None:
         content = tree.find('./body')
         if not content == None:
             content.tag = 'div'
+            content.set("style","position: relative; top: 0px; left: 0px;");
             row.append(content)
             #
             rowpad1 = etree.SubElement(row, "br")
