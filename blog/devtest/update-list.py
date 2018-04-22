@@ -19,9 +19,21 @@ for dirname in os.listdir("."):
         st = os.lstat(dirname)
         if stat.S_ISDIR(st.st_mode):
             if dirreg.match(dirname):
-                blogents.append(dirname)
+                try:
+                    st2 = os.lstat(dirname+"/_page.html")
+                    if stat.S_ISREG(st2.st_mode):
+                        blogents.append(dirname)
+                except:
+                    True
     except:
         True
+
+# load each blog
+blogtree = { }
+for ent in blogents:
+    print "Loading ent..."
+    broot = etree.parse(ent+"/_page.html")
+    blogtree[ent] = broot
 
 # find the LIST_PLACEHOLDER and remove it from the tree
 list_placeholder = htmt_tree_root.find("./body/LIST_PLACEHOLDER")
