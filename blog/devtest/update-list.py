@@ -35,6 +35,16 @@ for ent in blogents:
     broot = etree.parse(ent+"/_page.html")
     blogtree[ent] = broot
 
+# get the title, if possible
+blogtitles = { }
+for ent in blogtree:
+    tree = blogtree[ent]
+    root = tree.getroot()
+    title = root.find("./head/title")
+    if not title == None:
+        if not title.text == None and not title.text == "":
+            blogtitles[ent] = title.text
+
 # find the LIST_PLACEHOLDER and remove it from the tree
 list_placeholder = htmt_tree_root.find("./body/LIST_PLACEHOLDER")
 if not list_placeholder == None:
