@@ -5,6 +5,13 @@ import stat
 import os
 import re
 
+# parameters---------
+
+# maximum blog posts to show contents on main page
+max_posts_on_page = 10
+
+# end parameters-----------
+
 # ent to date
 def ent2date(x):
     # YYYY-MM-DD-HHMMSS
@@ -73,6 +80,14 @@ for ent in blogtree:
         if not title.text == None and not title.text == "":
             blogtitles[ent] = title.text
 
+# free all but first. the array is sorted in descending order.
+count = 0
+for ent in blogents:
+    if ent in blogtree and count > max_posts_on_page:
+        tree = blogtree[ent]
+        blogtree.pop(ent, None)
+    count = count + 1
+
 # find the LIST_PLACEHOLDER and remove it from the tree
 list_placeholder = htmt_tree_root.find("./body/LIST_PLACEHOLDER")
 if not list_placeholder == None:
@@ -82,8 +97,12 @@ if not list_placeholder == None:
     #
     list_tbl = etree.SubElement(list_placeholder_parent, "table", attrib={"width":"100%"})
     #
-    for ent in blogtree:
-        tree = blogtree[ent] # I want Python to blow up with an exception if this is ever None or invalid
+    for ent in blogents:
+        if ent in blogtree:
+            tree = blogtree[ent] # I want Python to blow up with an exception if this is ever None or invalid
+        else:
+            tree = None
+
         title = blogtitles[ent]
         if title == None or title == "":
             title = "(no title)"
@@ -108,15 +127,16 @@ if not list_placeholder == None:
         rowtitle.append(rowtitle_p3)
         #
         row.append(rowtitle)
-        # TODO: Put the content of each entry in the main page... but only going back so far.
-        content = tree.find('./body')
-        if not content == None:
-            content.tag = 'div'
-            content.set("style","position: relative; top: 0px; left: 0px;");
-            row.append(content)
-            #
-            rowpad1 = etree.SubElement(row, "br")
-            row.append(rowpad1)
+        #
+        if not tree == None:
+            content = tree.find('./body')
+            if not content == None:
+                content.tag = 'div'
+                content.set("style","position: relative; top: 0px; left: 0px;");
+                row.append(content)
+                #
+                rowpad1 = etree.SubElement(row, "br")
+                row.append(rowpad1)
     #
     list_placeholder_parent.insert(list_placeholder_index,list_tbl)
 
