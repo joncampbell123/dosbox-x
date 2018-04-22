@@ -54,6 +54,28 @@ if not list_placeholder == None:
     #
     list_tbl = etree.SubElement(list_placeholder_parent, "table", attrib={"width":"100%"})
     #
+    for ent in blogtree:
+        tree = blogtree[ent] # I want Python to blow up with an exception if this is ever None or invalid
+        title = blogtitles[ent]
+        if title == None or title == "":
+            title = "(no title)"
+        #
+        row = etree.SubElement(list_tbl, "tr")
+        list_tbl.append(row)
+        #
+        rowtitle = etree.SubElement(row, "div")
+        #
+        href = ent + "/index.html";
+        rowtitle_p1 = etree.SubElement(rowtitle, "a", attrib={"href":href})
+        rowtitle_p1.text = title
+        rowtitle.append(rowtitle_p1)
+        #
+        rowtitle_p2 = etree.SubElement(rowtitle, "span")
+        rowtitle_p2.text = u" \u2014 " + ent
+        rowtitle.append(rowtitle_p2)
+        #
+        row.append(rowtitle)
+    #
     list_placeholder_parent.insert(list_placeholder_index,list_tbl)
 
 # write the final result
