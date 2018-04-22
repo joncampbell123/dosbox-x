@@ -6,4 +6,5 @@ for i in 2*; do
         fi
     fi
 done
+./update-list.py
 
