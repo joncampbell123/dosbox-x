@@ -1,11 +1,27 @@
 #!/usr/bin/python
 from lxml import html
 from lxml import etree
+import stat
+import os
+import re
 
 # open the template page file.
 # Python will blow up with an exception here on failure.
 htmt_tree = etree.parse("_page.html")
 htmt_tree_root = htmt_tree.getroot()
+
+# list and enumerate blog entries.
+# each one is a directory of the form YYYY-MM-DD-HHMMSS
+blogents = [ ]
+dirreg = re.compile('^\d+', re.IGNORECASE)
+for dirname in os.listdir("."):
+    try:
+        st = os.lstat(dirname)
+        if stat.S_ISDIR(st.st_mode):
+            if dirreg.match(dirname):
+                blogents.append(dirname)
+    except:
+        True
 
 # find the LIST_PLACEHOLDER and remove it from the tree
 list_placeholder = htmt_tree_root.find("./body/LIST_PLACEHOLDER")
