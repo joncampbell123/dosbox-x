@@ -81,6 +81,14 @@ if not list_placeholder == None:
         rowtitle.append(rowtitle_p3)
         #
         row.append(rowtitle)
+        # TODO: Put the content of each entry in the main page... but only going back so far.
+        content = tree.find('./body')
+        if not content == None:
+            content.tag = 'div'
+            row.append(content)
+            #
+            rowpad1 = etree.SubElement(row, "br")
+            row.append(rowpad1)
     #
     list_placeholder_parent.insert(list_placeholder_index,list_tbl)
 
