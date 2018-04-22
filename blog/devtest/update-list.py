@@ -74,6 +74,9 @@ if not list_placeholder == None:
         rowtitle_p2.text = u" \u2014 " + ent
         rowtitle.append(rowtitle_p2)
         #
+        rowtitle_p3 = etree.SubElement(rowtitle, "br")
+        rowtitle.append(rowtitle_p3)
+        #
         row.append(rowtitle)
     #
     list_placeholder_parent.insert(list_placeholder_index,list_tbl)
