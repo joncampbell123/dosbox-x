@@ -2910,7 +2910,8 @@ private:
 	}
 
 	bool MountFat(Bitu sizes[], const char drive, const bool isHardDrive, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
-		bool imgsizedetect = isHardDrive && sizes[0] == 0;
+		bool imgsizedetect = isHardDrive && sizes[0] == 0 && paths.size() == 1;
+		imageDisk* vhdImage = 0;
 		if (imgsizedetect) {
 			/* .HDI images contain the geometry explicitly in the header. */
 			if (str_size.size() == 0) {
@@ -2918,6 +2919,33 @@ private:
 				if (ext != NULL) {
 					if (!strcasecmp(ext, ".hdi")) {
 						imgsizedetect = false;
+					}
+					//for all vhd files where the system will autodetect the chs values,
+					if (!strcasecmp(ext, ".vhd")) {
+						//load the file with imageDiskVHD, which supports fixed/dynamic/differential disks
+						imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(temp_line.c_str(), false, &vhdImage);
+						switch (ret) {
+						case imageDiskVHD::OPEN_SUCCESS: {
+							//upon successful, go back to old code if using a fixed disk, which patches chs values for incorrectly identified disks
+							imgsizedetect = false;
+							imageDiskVHD* vhdDisk = dynamic_cast<imageDiskVHD*>(vhdImage);
+							if (vhdDisk == NULL || vhdDisk->vhdType == imageDiskVHD::VHD_TYPE_FIXED) { //fixed disks would be null here
+								delete vhdDisk;
+								vhdDisk = 0;
+								imgsizedetect = true;
+							}
+							break;
+						}
+						case imageDiskVHD::ERROR_OPENING: WriteOut(MSG_Get("VHD_ERROR_OPENING")); return false;
+						case imageDiskVHD::INVALID_DATA: WriteOut(MSG_Get("VHD_INVALID_DATA")); return false;
+						case imageDiskVHD::UNSUPPORTED_TYPE: WriteOut(MSG_Get("VHD_UNSUPPORTED_TYPE")); return false;
+						case imageDiskVHD::ERROR_OPENING_PARENT: WriteOut(MSG_Get("VHD_ERROR_OPENING_PARENT")); return false;
+						case imageDiskVHD::PARENT_INVALID_DATA: WriteOut(MSG_Get("VHD_PARENT_INVALID_DATA")); return false;
+						case imageDiskVHD::PARENT_UNSUPPORTED_TYPE: WriteOut(MSG_Get("VHD_PARENT_UNSUPPORTED_TYPE")); return false;
+						case imageDiskVHD::PARENT_INVALID_MATCH: WriteOut(MSG_Get("VHD_PARENT_INVALID_MATCH")); return false;
+						case imageDiskVHD::PARENT_INVALID_DATE: WriteOut(MSG_Get("VHD_PARENT_INVALID_DATE")); return false;
+						}
+
 					}
 				}
 			}
@@ -2934,9 +2962,16 @@ private:
 		std::vector<DOS_Drive*>::size_type ct;
 
 		for (i = 0; i < paths.size(); i++) {
-			DOS_Drive* newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3]);
-			imgDisks.push_back(newDrive);
-			if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
+			DOS_Drive* newDrive = 0;
+			if (vhdImage) {
+				newDrive = new fatDrive(vhdImage);
+				vhdImage = 0;
+			}
+			else {
+				newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3]);
+			}
+			if (newDrive) imgDisks.push_back(newDrive);
+			if (!newDrive || !(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
 				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
 				for (ct = 0; ct < imgDisks.size(); ct++) {
 					delete imgDisks[ct];
@@ -3361,8 +3396,30 @@ private:
 	}
 
 	imageDisk* MountImageNone(Bitu sizes[], const int reserved_cylinders) {
-		Bit32u imagesize;
 		imageDisk* newImage = 0;
+
+		//check for VHD files
+		if (sizes[0] == 0 /* auto detect size */) {
+			const char *ext = strrchr(temp_line.c_str(), '.');
+			if (ext != NULL) {
+				if (!strcasecmp(ext, ".vhd")) {
+					imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(temp_line.c_str(), false, &newImage);
+					switch (ret) {
+					case imageDiskVHD::ERROR_OPENING: WriteOut(MSG_Get("VHD_ERROR_OPENING")); break;
+					case imageDiskVHD::INVALID_DATA: WriteOut(MSG_Get("VHD_INVALID_DATA")); break;
+					case imageDiskVHD::UNSUPPORTED_TYPE: WriteOut(MSG_Get("VHD_UNSUPPORTED_TYPE")); break;
+					case imageDiskVHD::ERROR_OPENING_PARENT: WriteOut(MSG_Get("VHD_ERROR_OPENING_PARENT")); break;
+					case imageDiskVHD::PARENT_INVALID_DATA: WriteOut(MSG_Get("VHD_PARENT_INVALID_DATA")); break;
+					case imageDiskVHD::PARENT_UNSUPPORTED_TYPE: WriteOut(MSG_Get("VHD_PARENT_UNSUPPORTED_TYPE")); break;
+					case imageDiskVHD::PARENT_INVALID_MATCH: WriteOut(MSG_Get("VHD_PARENT_INVALID_MATCH")); break;
+					case imageDiskVHD::PARENT_INVALID_DATE: WriteOut(MSG_Get("VHD_PARENT_INVALID_DATE")); break;
+					}
+					return newImage;
+				}
+			}
+		}
+
+		Bit32u imagesize;
 		/* auto-fill: sector size */
 		if (sizes[0] == 0) sizes[0] = 512;
 
@@ -3945,6 +4002,15 @@ void DOS_SetupPrograms(void) {
 	MSG_Add("PROGRAM_BOOT_CART_WO_PCJR","PCjr cartridge found, but machine is not PCjr");
 	MSG_Add("PROGRAM_BOOT_CART_LIST_CMDS","Available PCjr cartridge commandos:%s");
 	MSG_Add("PROGRAM_BOOT_CART_NO_CMDS","No PCjr cartridge commandos found");
+
+	MSG_Add("VHD_ERROR_OPENING", "Could not open the specified VHD file.\n");
+	MSG_Add("VHD_INVALID_DATA", "The specified VHD file is corrupt and cannot be opened.\n");
+	MSG_Add("VHD_UNSUPPORTED_TYPE", "The specified VHD file is of an unsupported type.\n");
+	MSG_Add("VHD_ERROR_OPENING_PARENT", "The parent of the specified VHD file could not be found.\n");
+	MSG_Add("VHD_PARENT_INVALID_DATA", "The parent of the specified VHD file is corrupt and cannot be opened.\n");
+	MSG_Add("VHD_PARENT_UNSUPPORTED_TYPE", "The parent of the specified VHD file is of an unsupported type.\n");
+	MSG_Add("VHD_PARENT_INVALID_MATCH", "The parent of the specified VHD file does not contain the expected identifier.\n");
+	MSG_Add("VHD_PARENT_INVALID_DATE", "The parent of the specified VHD file has been changed and cannot be loaded.\n");
 
 	MSG_Add("PROGRAM_IMGMOUNT_SPECIFY_DRIVE","Must specify drive letter to mount image at.\n");
 	MSG_Add("PROGRAM_IMGMOUNT_SPECIFY2","Must specify drive number (0 or 3) to mount image at (0,1=fda,fdb;2,3=hda,hdb).\n");

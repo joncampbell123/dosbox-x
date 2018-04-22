@@ -175,6 +175,112 @@ private:
 	diskGeo floppyInfo;
 };
 
+class imageDiskVHD : public imageDisk {
+public:
+	enum ErrorCodes : int
+	{
+		OPEN_SUCCESS = 0,
+		ERROR_OPENING = 1,
+		INVALID_DATA = 2,
+		UNSUPPORTED_TYPE = 3,
+		INVALID_MATCH = 4,
+		INVALID_DATE = 5,
+		PARENT_ERROR = 0x10,
+		ERROR_OPENING_PARENT = 0x11,
+		PARENT_INVALID_DATA = 0x12,
+		PARENT_UNSUPPORTED_TYPE = 0x13,
+		PARENT_INVALID_MATCH = 0x14,
+		PARENT_INVALID_DATE = 0x15
+	};
+	enum VHDTypes : Bit32u
+	{
+		VHD_TYPE_NONE = 0,
+		VHD_TYPE_FIXED = 2,
+		VHD_TYPE_DYNAMIC = 3,
+		VHD_TYPE_DIFFERENCING = 4
+	};
+	VHDTypes vhdType;
+	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** imageDisk);
+	static VHDTypes GetVHDType(const char* fileName);
+	virtual ~imageDiskVHD();
+
+private:
+	struct Geometry {
+		Bit16u cylinders;
+		Bit8u heads;
+		Bit8u sectors;
+	};
+	struct VHDFooter {
+		char cookie[8];
+		Bit32u features;
+		Bit32u fileFormatVersion;
+		Bit64u dataOffset;
+		Bit32u timeStamp;
+		char creatorApp[4];
+		Bit32u creatorVersion;
+		Bit32u creatorHostOS;
+		Bit64u originalSize;
+		Bit64u currentSize;
+		Geometry geometry;
+		VHDTypes diskType;
+		Bit32u checksum;
+		char uniqueId[16];
+		char savedState;
+		char reserved[427];
+
+		void SwapByteOrder();
+		Bit32u CalculateChecksum();
+		bool IsValid();
+	};
+	struct ParentLocatorEntry {
+		Bit32u platformCode;
+		Bit32u platformDataSpace;
+		Bit32u platformDataLength;
+		Bit32u reserved;
+		Bit64u platformDataOffset;
+	};
+	struct DynamicHeader {
+		char cookie[8];
+		Bit64u dataOffset;
+		Bit64u tableOffset;
+		Bit32u headerVersion;
+		Bit32u maxTableEntries;
+		Bit32u blockSize;
+		Bit32u checksum;
+		char parentUniqueId[16];
+		Bit32u parentTimeStamp;
+		Bit32u reserved;
+		Bit16u parentUnicodeName[256];
+		ParentLocatorEntry parentLocatorEntry[8];
+		char reserved2[256];
+
+		void SwapByteOrder();
+		Bit32u CalculateChecksum();
+		bool IsValid();
+	};
+
+	imageDiskVHD() { }
+	static ErrorCodes TryOpenParent(const char* childFileName, const ParentLocatorEntry &entry, Bit8u* data, const Bit32u dataLength, imageDisk** disk, const char* uniqueId);
+	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** imageDisk, const Bit8u* matchUniqueId);
+	virtual bool loadBlock(const Bit32u blockNumber);
+
+	imageDisk* parentDisk = 0;
+	Bit64u footerPosition;
+	VHDFooter footer;
+	VHDFooter originalFooter;
+	bool copiedFooter = false;
+	DynamicHeader dynamicHeader;
+	Bit32u sectorsPerBlock;
+	Bit32u blockMapSectors;
+	Bit32u blockMapSize;
+	Bit32u currentBlock = 0xFFFFFFFF;
+	bool currentBlockAllocated = false;
+	Bit32u currentBlockSectorOffset;
+	Bit8u* currentBlockDirtyMap = 0;
+};
+
 void updateDPT(void);
 void incrementFDD(void);
 
