@@ -28,10 +28,13 @@ for dirname in os.listdir("."):
     except:
         True
 
+# sort into descending order
+blogents.sort(reverse=True)
+
 # load each blog
 blogtree = { }
 for ent in blogents:
-    print "Loading ent..."
+    print "Loading " + ent + "..."
     broot = etree.parse(ent+"/_page.html")
     blogtree[ent] = broot
 
