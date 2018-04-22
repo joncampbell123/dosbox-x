@@ -1,4 +1,6 @@
 0.82.6 (next)
+  - VHD image support fixed to explain that dynamic
+    VHD images are not supported (Shane32) 
   - INT 10 AH=9 background color fixed in 256-color
     VGA modes.
   - Intro text updated to reflect new default
