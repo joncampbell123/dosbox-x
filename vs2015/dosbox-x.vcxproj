@@ -716,6 +716,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\hardware\vga_pc98_egc.cpp" />
     <ClCompile Include="..\src\hardware\vga_pc98_gdc.cpp" />
     <ClCompile Include="..\src\ints\bios_memdisk.cpp" />
+    <ClCompile Include="..\src\ints\bios_vhd.cpp" />
     <ClCompile Include="..\src\misc\shiftjis.cpp" />
     <ClCompile Include="..\src\mt32\AReverbModel.cpp" />
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp" />
