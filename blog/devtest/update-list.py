@@ -158,6 +158,34 @@ if operate_on == None:
                     row.append(rowpad1)
         #
         list_placeholder_parent.insert(list_placeholder_index,list_tbl)
+# one page
+else:
+    page_body = htmt_tree_root.find("./body")
+    page_body.getparent().remove(page_body)
+    page_body.tag = 'div'
+    #
+    newbody = etree.SubElement(htmt_tree_root, "body")
+    #
+    titletext = "(no title)"
+    title = htmt_tree_root.find("./head/title")
+    if not title == None:
+        titletext = title.text
+        title.text = title.text + ' ' + ent2date(operate_on)
+    #
+    rowtitle = etree.SubElement(newbody, "h1")
+    rowtitle.set("style","font-size: 1.4em; padding-bottom: 1em;");
+    rowtitle.text = titletext
+    #
+    rowtitle_p2 = etree.SubElement(rowtitle, "span")
+    rowtitle_p2.text = u" \u2014 " + ent2date(operate_on)
+    rowtitle_p2.set("style","font-size: 0.85em;");
+    rowtitle.append(rowtitle_p2)
+    #
+    newbody.append(rowtitle)
+    #
+    newbody.append(page_body)
+    #
+    htmt_tree_root.append(newbody)
 
 # write the final result
 if operate_on == None:
