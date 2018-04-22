@@ -2,8 +2,18 @@
 from lxml import html
 from lxml import etree
 import stat
+import sys
 import os
 import re
+
+operate_on = None
+if len(sys.argv) > 1:
+    operate_on = sys.argv[1]
+    #
+    st = os.lstat(operate_on)
+    if not stat.S_ISDIR(st.st_mode):
+        print "Must be a blog entry"
+        sys.exit(1)
 
 # parameters---------
 
@@ -39,26 +49,33 @@ def ent2date(x):
 
 # open the template page file.
 # Python will blow up with an exception here on failure.
-htmt_tree = etree.parse("_page.html")
-htmt_tree_root = htmt_tree.getroot()
-
-# list and enumerate blog entries.
-# each one is a directory of the form YYYY-MM-DD-HHMMSS
 blogents = [ ]
-dirreg = re.compile('^\d+', re.IGNORECASE)
-for dirname in os.listdir("."):
-    try:
-        st = os.lstat(dirname)
-        if stat.S_ISDIR(st.st_mode):
-            if dirreg.match(dirname):
-                try:
-                    st2 = os.lstat(dirname+"/_page.html")
-                    if stat.S_ISREG(st2.st_mode):
-                        blogents.append(dirname)
-                except:
-                    True
-    except:
-        True
+if operate_on == None:
+    htmt_tree = etree.parse("_page.html")
+
+    #----------------------------------
+    # list and enumerate blog entries.
+    # each one is a directory of the form YYYY-MM-DD-HHMMSS
+    dirreg = re.compile('^\d+', re.IGNORECASE)
+    for dirname in os.listdir("."):
+        try:
+            st = os.lstat(dirname)
+            if stat.S_ISDIR(st.st_mode):
+                if dirreg.match(dirname):
+                    try:
+                        st2 = os.lstat(dirname+"/_page.html")
+                        if stat.S_ISREG(st2.st_mode):
+                            blogents.append(dirname)
+                    except:
+                        True
+        except:
+            True
+    #----------------------------------
+else:
+    htmt_tree = etree.parse(operate_on+"/_page.html")
+    blogents.append(operate_on)
+#
+htmt_tree_root = htmt_tree.getroot()
 
 # sort into descending order
 blogents.sort(reverse=True)
@@ -81,65 +98,70 @@ for ent in blogtree:
             blogtitles[ent] = title.text
 
 # free all but first. the array is sorted in descending order.
-count = 0
-for ent in blogents:
-    if ent in blogtree and count > max_posts_on_page:
-        tree = blogtree[ent]
-        blogtree.pop(ent, None)
-    count = count + 1
+if operate_on == None:
+    count = 0
+    for ent in blogents:
+        if ent in blogtree and count > max_posts_on_page:
+            tree = blogtree[ent]
+            blogtree.pop(ent, None)
+        count = count + 1
 
 # find the LIST_PLACEHOLDER and remove it from the tree
-list_placeholder = htmt_tree_root.find("./body/LIST_PLACEHOLDER")
-if not list_placeholder == None:
-    list_placeholder_index = list_placeholder.getparent().index(list_placeholder)
-    list_placeholder_parent = list_placeholder.getparent()
-    list_placeholder_parent.remove(list_placeholder)
-    #
-    list_tbl = etree.SubElement(list_placeholder_parent, "table", attrib={"width":"100%"})
-    #
-    for ent in blogents:
-        if ent in blogtree:
-            tree = blogtree[ent] # I want Python to blow up with an exception if this is ever None or invalid
-        else:
-            tree = None
-
-        title = blogtitles[ent]
-        if title == None or title == "":
-            title = "(no title)"
+if operate_on == None:
+    list_placeholder = htmt_tree_root.find("./body/LIST_PLACEHOLDER")
+    if not list_placeholder == None:
+        list_placeholder_index = list_placeholder.getparent().index(list_placeholder)
+        list_placeholder_parent = list_placeholder.getparent()
+        list_placeholder_parent.remove(list_placeholder)
         #
-        row = etree.SubElement(list_tbl, "tr")
-        list_tbl.append(row)
+        list_tbl = etree.SubElement(list_placeholder_parent, "table", attrib={"width":"100%"})
         #
-        rowtitle = etree.SubElement(row, "div")
-        rowtitle.set("style","font-size: 1.4em; padding-bottom: 1em;");
+        for ent in blogents:
+            if ent in blogtree:
+                tree = blogtree[ent] # I want Python to blow up with an exception if this is ever None or invalid
+            else:
+                tree = None
+            #
+            title = blogtitles[ent]
+            if title == None or title == "":
+                title = "(no title)"
+            #
+            row = etree.SubElement(list_tbl, "tr")
+            list_tbl.append(row)
+            #
+            rowtitle = etree.SubElement(row, "div")
+            rowtitle.set("style","font-size: 1.4em; padding-bottom: 1em;");
+            #
+            href = ent + "/index.html";
+            rowtitle_p1 = etree.SubElement(rowtitle, "a", attrib={"href":href})
+            rowtitle_p1.text = title
+            rowtitle.append(rowtitle_p1)
+            #
+            rowtitle_p2 = etree.SubElement(rowtitle, "span")
+            rowtitle_p2.text = u" \u2014 " + ent2date(ent)
+            rowtitle_p2.set("style","font-size: 0.85em;");
+            rowtitle.append(rowtitle_p2)
+            #
+            rowtitle_p3 = etree.SubElement(rowtitle, "br")
+            rowtitle.append(rowtitle_p3)
+            #
+            row.append(rowtitle)
+            #
+            if not tree == None:
+                content = tree.find('./body')
+                if not content == None:
+                    content.tag = 'div'
+                    content.set("style","position: relative; top: 0px; left: 0px;");
+                    row.append(content)
+                    #
+                    rowpad1 = etree.SubElement(row, "br")
+                    row.append(rowpad1)
         #
-        href = ent + "/index.html";
-        rowtitle_p1 = etree.SubElement(rowtitle, "a", attrib={"href":href})
-        rowtitle_p1.text = title
-        rowtitle.append(rowtitle_p1)
-        #
-        rowtitle_p2 = etree.SubElement(rowtitle, "span")
-        rowtitle_p2.text = u" \u2014 " + ent2date(ent)
-        rowtitle_p2.set("style","font-size: 0.85em;");
-        rowtitle.append(rowtitle_p2)
-        #
-        rowtitle_p3 = etree.SubElement(rowtitle, "br")
-        rowtitle.append(rowtitle_p3)
-        #
-        row.append(rowtitle)
-        #
-        if not tree == None:
-            content = tree.find('./body')
-            if not content == None:
-                content.tag = 'div'
-                content.set("style","position: relative; top: 0px; left: 0px;");
-                row.append(content)
-                #
-                rowpad1 = etree.SubElement(row, "br")
-                row.append(rowpad1)
-    #
-    list_placeholder_parent.insert(list_placeholder_index,list_tbl)
+        list_placeholder_parent.insert(list_placeholder_index,list_tbl)
 
 # write the final result
-htmt_tree.write("index.html", encoding='utf-8')
+if operate_on == None:
+    htmt_tree.write("index.html", encoding='utf-8')
+else:
+    htmt_tree.write(operate_on+"/index.html", encoding='utf-8')
 
