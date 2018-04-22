@@ -529,7 +529,7 @@ void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,bool useat
 	/* Externally used by the mouse routine */
 	RealPt fontdata;
 	Bitu x,y;
-	Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
+	Bit8u back, cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
 
     if (CurMode->type != M_PC98)
         chr &= 0xFF;
@@ -607,23 +607,33 @@ void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,bool useat
 	if ((CurMode->mode == 0x6)/* || (CurMode->mode==0x11)*/) attr = (attr&0x80)|1;
 	//(same fix for 11 fixes vgatest2, but it's not entirely correct according to wd)
 
-	x=8*col;
-	y=cheight*row;Bit8u xor_mask=(CurMode->type == M_VGA) ? 0x0 : 0x80;
-	//TODO Check for out of bounds
-	if (CurMode->type==M_EGA) {
+	switch (CurMode->type) {
+	case M_VGA:
+    case M_LIN8:
+        back=page;
+        page=0;
+		break;
+    case M_EGA:
 		/* enable all planes for EGA modes (Ultima 1 colour bug) */
 		/* might be put into INT10_PutPixel but different vga bios
 		   implementations have different opinions about this */
 		IO_Write(0x3c4,0x2);IO_Write(0x3c5,0xf);
-	}
-	for (Bit8u h=0;h<cheight;h++) {
+        /* fall through */
+    default:
+        back=attr&0x80;
+        break;
+    }
+
+	x=8*col;
+	y=cheight*row;
+
+    for (Bit8u h=0;h<cheight;h++) {
 		Bit8u bitsel=128;
 		Bit8u bitline = mem_readb(Real2Phys( fontdata ));
 		fontdata = RealMake( RealSeg( fontdata ), RealOff( fontdata ) + 1);
 		Bit16u tx=(Bit16u)x;
 		while (bitsel) {
-			if (bitline&bitsel) INT10_PutPixel(tx,(Bit16u)y,page,attr);
-			else INT10_PutPixel(tx,(Bit16u)y,page,attr & xor_mask);
+			INT10_PutPixel(tx,(Bit16u)y,page,(bitline&bitsel)?attr:back);
 			tx++;
 			bitsel>>=1;
 		}
@@ -632,36 +642,42 @@ void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,bool useat
 }
 
 void INT10_WriteChar(Bit16u chr,Bit8u attr,Bit8u page,Bit16u count,bool showattr) {
+	Bit8u pospage=page;
 	if (CurMode->type!=M_TEXT) {
 		showattr=true; //Use attr in graphics mode always
 		switch (machine) {
 			case EGAVGA_ARCH_CASE:
-				page%=CurMode->ptotal;
+				switch (CurMode->type) {
+				case M_VGA:
+				case M_LIN8:
+					pospage=0;
+					break;
+				default:
+					page%=CurMode->ptotal;
+					pospage=page;
+					break;
+				}
 				break;
 			case MCH_CGA:
 			case MCH_PCJR:
-            case MCH_PC98:
-			case MCH_AMSTRAD:
 				page=0;
-				break;
-			default:
+				pospage=0;
 				break;
 		}
 	}
 
-    Bit8u cur_row=CURSOR_POS_ROW(page);
-    Bit8u cur_col=CURSOR_POS_COL(page);
-    BIOS_NCOLS;
-
-    while (count>0) {
-        WriteChar(cur_col,cur_row,page,chr,attr,showattr);
-        count--;
-        cur_col++;
-        if(cur_col==ncols) {
-            cur_col=0;
-            cur_row++;
-        }
-    }
+	Bit8u cur_row=CURSOR_POS_ROW(pospage);
+	Bit8u cur_col=CURSOR_POS_COL(pospage);
+	BIOS_NCOLS;
+	while (count>0) {
+		WriteChar(cur_col,cur_row,page,chr,attr,showattr);
+		count--;
+		cur_col++;
+		if(cur_col==ncols) {
+			cur_col=0;
+			cur_row++;
+		}
+	}
 }
 
 static void INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr,Bit8u page) {
