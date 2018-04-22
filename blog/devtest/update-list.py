@@ -93,5 +93,5 @@ if not list_placeholder == None:
     list_placeholder_parent.insert(list_placeholder_index,list_tbl)
 
 # write the final result
-htmt_tree.write("index.html")
+htmt_tree.write("index.html", encoding='utf-8')
 
