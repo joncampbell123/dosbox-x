@@ -67,6 +67,7 @@ if not list_placeholder == None:
         list_tbl.append(row)
         #
         rowtitle = etree.SubElement(row, "div")
+        rowtitle.set("style","font-size: 1.4em; padding-bottom: 1em;");
         #
         href = ent + "/index.html";
         rowtitle_p1 = etree.SubElement(rowtitle, "a", attrib={"href":href})
@@ -75,6 +76,7 @@ if not list_placeholder == None:
         #
         rowtitle_p2 = etree.SubElement(rowtitle, "span")
         rowtitle_p2.text = u" \u2014 " + ent
+        rowtitle_p2.set("style","font-size: 0.85em;");
         rowtitle.append(rowtitle_p2)
         #
         rowtitle_p3 = etree.SubElement(rowtitle, "br")
