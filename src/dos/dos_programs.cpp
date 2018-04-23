@@ -823,6 +823,18 @@ public:
             swapInDisks();
         }
         else {
+            if (swapInDisksSpecificDrive == (drive - 65)) {
+                /* if we're replacing the diskSwap drive clear it now */
+                for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
+                    if (diskSwap[si] != NULL) {
+                        diskSwap[si]->Release();
+                        diskSwap[si] = NULL;
+                    }
+                }
+
+                swapInDisksSpecificDrive = -1;
+            }
+
             /* attach directly without using the swap list */
             if (imageDiskList[drive-65] != NULL) {
                 imageDiskList[drive-65]->Release();
@@ -2539,6 +2551,21 @@ public:
 			if (!MountIso(drive, paths, ide_index, ide_slave)) return;
 		} else if (fstype=="none") {
 			unsigned char driveIndex = drive - '0';
+
+            if (paths.size() > 1) {
+                if (driveIndex >= 0 && driveIndex <= 1) {
+                    if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1 &&
+                        swapInDisksSpecificDrive != driveIndex) {
+                        WriteOut("Multiple images given and another drive already uses multiple images");
+                        return;
+                    }
+                }
+                else {
+                    WriteOut("Multiple disk images not supported for that drive");
+                    return;
+                }
+            }
+
 			if (el_torito != "") {
 				newImage = new imageDiskElToritoFloppy(el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
 			}
@@ -2546,11 +2573,6 @@ public:
 				newImage = MountImageNoneRam(sizes, reserved_cylinders, driveIndex < 2);
 			}
 			else {
-				//does not support multiple files
-				if (paths.size() > 1) {
-					WriteOut("Mounting multiple files by number is not currently supported\n");
-					return;
-				}
 				newImage = MountImageNone(paths[0].c_str(), sizes, reserved_cylinders);
 			}
 			if (newImage == NULL) return;
@@ -2564,6 +2586,30 @@ public:
 			else {
 				if (AttachToBiosAndIdeByIndex(newImage, driveIndex, ide_index, ide_slave)) {
 					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', paths[0].c_str());
+
+                    if (paths.size() > 1) {
+                        for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
+                            if (diskSwap[si] != NULL) {
+                                diskSwap[si]->Release();
+                                diskSwap[si] = NULL;
+                            }
+                        }
+
+                        /* slot 0 is the image we already assigned */
+                        diskSwap[0] = newImage;
+                        diskSwap[0]->Addref();
+                        swapPosition = 0;
+                        swapInDisksSpecificDrive = driveIndex;
+
+                        for (size_t si=0;si < MAX_SWAPPABLE_DISKS && si < paths.size();si++) {
+				            imageDisk *img = MountImageNone(paths[si].c_str(), sizes, reserved_cylinders);
+
+                            if (img != NULL) {
+                                diskSwap[si] = img;
+                                diskSwap[si]->Addref();
+                            }
+                        }
+                    }
 				}
 				else {
 					WriteOut("Invalid mount number");
