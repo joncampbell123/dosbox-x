@@ -1,6 +1,20 @@
 0.82.6 (next)
-  - VHD image support fixed to explain that dynamic
-    VHD images are not supported (Shane32) 
+  - BOOT command fixed to make it possible to
+    IMGMOUNT multiple floppies to drive 1, and
+    boot from another disk in drive 0. This
+    should enable the use of DOSBox-X with
+    PC-98 games that expect to boot from drive
+    A and the user to rotate through floppies
+    in drive B.
+  - IMGMOUNT fixed to support mounting with no
+    filesystems and multiple disk images, and
+    using the "swap floppy" command to rotate
+    through them.
+  - Added options to BOOT command that allows
+    specifying multiple disk images and an option
+    that says to swap disk images only through
+    one drive.
+  - VHD dynamic support added (shane32)
   - INT 10 AH=9 background color fixed in 256-color
     VGA modes.
   - Intro text updated to reflect new default
