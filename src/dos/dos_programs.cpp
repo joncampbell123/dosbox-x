@@ -2434,8 +2434,9 @@ public:
 		}
 			
 		// find all file parameters, assuming that all option parameters have been removed
-		ParseFiles(paths);
+		ParseFiles(temp_line, paths);
 
+		// some generic checks
 		if (el_torito != "") {
 			if (paths.size() != 0) {
 				WriteOut("Do not specify files when mounting virtual floppy disk images from El Torito bootable CDs\n");
@@ -2447,15 +2448,12 @@ public:
 				WriteOut("Do not specify files when mounting ramdrives\n");
 				return;
 			}
-			temp_line = "";
 		}
 		else {
             if (paths.size() == 0) {
                 WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_FILE"));
                 return;	
             }
-            if (paths.size() == 1)
-                temp_line = paths[0];
         }
 
 		//====== call the proper subroutine ======
@@ -2468,6 +2466,7 @@ public:
 				if (!MountRam(sizes, drive, ide_index, ide_slave)) return;
 			}
 			else {
+				//supports multiple files
 				if (!MountFat(sizes, drive, type == "hdd", str_size, paths, ide_index, ide_slave)) return;
             }
 		} else if (fstype=="iso") {
@@ -2475,6 +2474,7 @@ public:
 				WriteOut("El Torito bootable CD: -fs iso mounting not supported\n"); /* <- NTS: Will never implement, either */
 				return;
 			}
+			//supports multiple files
 			if (!MountIso(drive, paths, ide_index, ide_slave)) return;
 		} else if (fstype=="none") {
 			unsigned char driveIndex = drive - '0';
@@ -2485,7 +2485,12 @@ public:
 				newImage = MountImageNoneRam(sizes, reserved_cylinders, driveIndex < 2);
 			}
 			else {
-				newImage = MountImageNone(sizes, reserved_cylinders);
+				//does not support multiple files
+				if (paths.size() > 1) {
+					WriteOut("Mounting multiple files by number is not currently supported\n");
+					return;
+				}
+				newImage = MountImageNone(paths[0].c_str(), sizes, reserved_cylinders);
 			}
 			if (newImage == NULL) return;
 			newImage->Addref();
@@ -2497,7 +2502,7 @@ public:
 			}
 			else {
 				if (AttachToBiosAndIdeByIndex(newImage, driveIndex, ide_index, ide_slave)) {
-					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', temp_line.c_str());
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', paths[0].c_str());
 				}
 				else {
 					WriteOut("Invalid mount number");
@@ -2598,33 +2603,33 @@ private:
 		}
 		return true;
 	}
-	void ParseFiles(std::vector<std::string> &paths) {
-		while (cmd->FindCommand((unsigned int)(paths.size() + 2), temp_line) && temp_line.size()) {
+	void ParseFiles(std::string &commandLine, std::vector<std::string> &paths) {
+		while (cmd->FindCommand((unsigned int)(paths.size() + 2), commandLine) && commandLine.size()) {
 #if defined (WIN32) || defined(OS2)
 			/* nothing */
 #else
 			// Linux: Convert backslash to forward slash
-			if (temp_line.size() > 0) {
-				for (size_t i = 0; i < temp_line.size(); i++) {
-					if (temp_line[i] == '\\')
-						temp_line[i] = '/';
+			if (commandLine.size() > 0) {
+				for (size_t i = 0; i < commandLine.size(); i++) {
+					if (commandLine[i] == '\\')
+						commandLine[i] = '/';
 				}
 			}
 #endif
 
 			pref_struct_stat test;
-			if (pref_stat(temp_line.c_str(), &test)) {
+			if (pref_stat(commandLine.c_str(), &test)) {
 				//See if it works if the ~ are written out
-				std::string homedir(temp_line);
+				std::string homedir(commandLine);
 				Cross::ResolveHomedir(homedir);
 				if (!pref_stat(homedir.c_str(), &test)) {
-					temp_line = homedir;
+					commandLine = homedir;
 				}
 				else {
 					// convert dosbox filename to system filename
 					char fullname[CROSS_LEN];
 					char tmp[CROSS_LEN];
-					safe_strncpy(tmp, temp_line.c_str(), CROSS_LEN);
+					safe_strncpy(tmp, commandLine.c_str(), CROSS_LEN);
 
 					Bit8u dummy;
 					if (!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) {
@@ -2638,9 +2643,9 @@ private:
 						return;
 					}
 					ldp->GetSystemFilename(tmp, fullname);
-					temp_line = tmp;
+					commandLine = tmp;
 
-					if (pref_stat(temp_line.c_str(), &test)) {
+					if (pref_stat(commandLine.c_str(), &test)) {
 						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
 						return;
 					}
@@ -2650,7 +2655,7 @@ private:
 				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT"));
 				return;
 			}
-			paths.push_back(temp_line);
+			paths.push_back(commandLine);
 		}
 	}
 
@@ -2910,69 +2915,93 @@ private:
 	}
 
 	bool MountFat(Bitu sizes[], const char drive, const bool isHardDrive, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
-		bool imgsizedetect = isHardDrive && sizes[0] == 0 && paths.size() == 1;
-		imageDisk* vhdImage = 0;
-		if (imgsizedetect) {
-			/* .HDI images contain the geometry explicitly in the header. */
-			if (str_size.size() == 0) {
-				const char *ext = strrchr(temp_line.c_str(), '.');
-				if (ext != NULL) {
-					if (!strcasecmp(ext, ".hdi")) {
-						imgsizedetect = false;
-					}
-					//for all vhd files where the system will autodetect the chs values,
-					if (!strcasecmp(ext, ".vhd")) {
-						//load the file with imageDiskVHD, which supports fixed/dynamic/differential disks
-						imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(temp_line.c_str(), false, &vhdImage);
-						switch (ret) {
-						case imageDiskVHD::OPEN_SUCCESS: {
-							//upon successful, go back to old code if using a fixed disk, which patches chs values for incorrectly identified disks
-							imgsizedetect = false;
-							imageDiskVHD* vhdDisk = dynamic_cast<imageDiskVHD*>(vhdImage);
-							if (vhdDisk == NULL || vhdDisk->vhdType == imageDiskVHD::VHD_TYPE_FIXED) { //fixed disks would be null here
-								delete vhdDisk;
-								vhdDisk = 0;
-								imgsizedetect = true;
-							}
-							break;
-						}
-						case imageDiskVHD::ERROR_OPENING: WriteOut(MSG_Get("VHD_ERROR_OPENING")); return false;
-						case imageDiskVHD::INVALID_DATA: WriteOut(MSG_Get("VHD_INVALID_DATA")); return false;
-						case imageDiskVHD::UNSUPPORTED_TYPE: WriteOut(MSG_Get("VHD_UNSUPPORTED_TYPE")); return false;
-						case imageDiskVHD::ERROR_OPENING_PARENT: WriteOut(MSG_Get("VHD_ERROR_OPENING_PARENT")); return false;
-						case imageDiskVHD::PARENT_INVALID_DATA: WriteOut(MSG_Get("VHD_PARENT_INVALID_DATA")); return false;
-						case imageDiskVHD::PARENT_UNSUPPORTED_TYPE: WriteOut(MSG_Get("VHD_PARENT_UNSUPPORTED_TYPE")); return false;
-						case imageDiskVHD::PARENT_INVALID_MATCH: WriteOut(MSG_Get("VHD_PARENT_INVALID_MATCH")); return false;
-						case imageDiskVHD::PARENT_INVALID_DATE: WriteOut(MSG_Get("VHD_PARENT_INVALID_DATE")); return false;
-						}
-
-					}
-				}
-			}
-			if (imgsizedetect && !DetectGeometry(sizes)) return false;
-		}
-
 		if (Drives[drive - 'A']) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
 			return false;
 		}
 
+		bool imgsizedetect = isHardDrive && sizes[0] == 0;
+		
 		std::vector<DOS_Drive*> imgDisks;
 		std::vector<std::string>::size_type i;
 		std::vector<DOS_Drive*>::size_type ct;
 
 		for (i = 0; i < paths.size(); i++) {
-			DOS_Drive* newDrive = 0;
-			if (vhdImage) {
-				newDrive = new fatDrive(vhdImage);
-				vhdImage = 0;
+			char* errorMessage = NULL;
+			imageDisk* vhdImage = NULL;
+
+			//detect hard drive geometry
+			if (imgsizedetect) {
+				bool skipDetectGeometry = false;
+				sizes[0] = 0;
+				sizes[1] = 0;
+				sizes[2] = 0;
+				sizes[3] = 0;
+
+				/* .HDI images contain the geometry explicitly in the header. */
+				if (str_size.size() == 0) {
+					const char *ext = strrchr(paths[i].c_str(), '.');
+					if (ext != NULL) {
+						if (!strcasecmp(ext, ".hdi")) {
+							skipDetectGeometry = true;
+						}
+						//for all vhd files where the system will autodetect the chs values,
+						if (!strcasecmp(ext, ".vhd")) {
+							//load the file with imageDiskVHD, which supports fixed/dynamic/differential disks
+							imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(paths[i].c_str(), false, &vhdImage);
+							switch (ret) {
+							case imageDiskVHD::OPEN_SUCCESS: {
+								//upon successful, go back to old code if using a fixed disk, which patches chs values for incorrectly identified disks
+								skipDetectGeometry = true;
+								imageDiskVHD* vhdDisk = dynamic_cast<imageDiskVHD*>(vhdImage);
+								if (vhdDisk == NULL || vhdDisk->vhdType == imageDiskVHD::VHD_TYPE_FIXED) { //fixed disks would be null here
+									delete vhdDisk;
+									vhdDisk = 0;
+									skipDetectGeometry = false;
+								}
+								break;
+							}
+							case imageDiskVHD::ERROR_OPENING: 
+								errorMessage = (char*)MSG_Get("VHD_ERROR_OPENING"); break;
+							case imageDiskVHD::INVALID_DATA: 
+								errorMessage = (char*)MSG_Get("VHD_INVALID_DATA"); break;
+							case imageDiskVHD::UNSUPPORTED_TYPE: 
+								errorMessage = (char*)MSG_Get("VHD_UNSUPPORTED_TYPE"); break;
+							case imageDiskVHD::ERROR_OPENING_PARENT: 
+								errorMessage = (char*)MSG_Get("VHD_ERROR_OPENING_PARENT"); break;
+							case imageDiskVHD::PARENT_INVALID_DATA: 
+								errorMessage = (char*)MSG_Get("VHD_PARENT_INVALID_DATA"); break;
+							case imageDiskVHD::PARENT_UNSUPPORTED_TYPE: 
+								errorMessage = (char*)MSG_Get("VHD_PARENT_UNSUPPORTED_TYPE"); break;
+							case imageDiskVHD::PARENT_INVALID_MATCH: 
+								errorMessage = (char*)MSG_Get("VHD_PARENT_INVALID_MATCH"); break;
+							case imageDiskVHD::PARENT_INVALID_DATE: 
+								errorMessage = (char*)MSG_Get("VHD_PARENT_INVALID_DATE"); break;
+							}
+						}
+					}
+				}
+				if (!skipDetectGeometry && !DetectGeometry(paths[i].c_str(), sizes)) {
+					errorMessage = "Unable to detect geometry\n";
+				}
 			}
-			else {
-				newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3]);
+
+			DOS_Drive* newDrive = NULL;
+			if (!errorMessage) {
+				if (vhdImage) {
+					newDrive = new fatDrive(vhdImage);
+					vhdImage = NULL;
+				}
+				else {
+					newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3]);
+				}
+				imgDisks.push_back(newDrive);
+				if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
+					errorMessage = (char*)MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE");
+				}
 			}
-			imgDisks.push_back(newDrive);
-			if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+			if (errorMessage) {
+				WriteOut(errorMessage);
 				for (ct = 0; ct < imgDisks.size(); ct++) {
 					delete imgDisks[ct];
 				}
@@ -3222,9 +3251,9 @@ private:
 
 	}
 
-	bool DetectGeometry(Bitu sizes[]) {
+	bool DetectGeometry(const char* fileName, Bitu sizes[]) {
 		bool yet_detected = false;
-		FILE * diskfile = fopen64(temp_line.c_str(), "rb+");
+		FILE * diskfile = fopen64(fileName, "rb+");
 		if (!diskfile) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
 			return false;
@@ -3395,15 +3424,15 @@ private:
 		return true;
 	}
 
-	imageDisk* MountImageNone(Bitu sizes[], const int reserved_cylinders) {
+	imageDisk* MountImageNone(const char* fileName, Bitu sizes[], const int reserved_cylinders) {
 		imageDisk* newImage = 0;
 
 		//check for VHD files
 		if (sizes[0] == 0 /* auto detect size */) {
-			const char *ext = strrchr(temp_line.c_str(), '.');
+			const char *ext = strrchr(fileName, '.');
 			if (ext != NULL) {
 				if (!strcasecmp(ext, ".vhd")) {
-					imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(temp_line.c_str(), false, &newImage);
+					imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(fileName, false, &newImage);
 					switch (ret) {
 					case imageDiskVHD::ERROR_OPENING: WriteOut(MSG_Get("VHD_ERROR_OPENING")); break;
 					case imageDiskVHD::INVALID_DATA: WriteOut(MSG_Get("VHD_INVALID_DATA")); break;
@@ -3423,9 +3452,9 @@ private:
 		/* auto-fill: sector size */
 		if (sizes[0] == 0) sizes[0] = 512;
 
-		FILE *newDisk = fopen64(temp_line.c_str(), "rb+");
+		FILE *newDisk = fopen64(fileName, "rb+");
 		if (!newDisk) {
-			WriteOut("Unable to open '%s'\n", temp_line.c_str());
+			WriteOut("Unable to open '%s'\n", fileName);
 			return NULL;
 		}
 
@@ -3441,7 +3470,7 @@ private:
 			sectors = (Bit64u)qcow2_header.size / (Bit64u)sizes[0];
 			imagesize = (Bit32u)(qcow2_header.size / 1024L);
 			setbuf(newDisk, NULL);
-			newImage = new QCow2Disk(qcow2_header, newDisk, (Bit8u *)temp_line.c_str(), imagesize, sizes[0], (imagesize > 2880));
+			newImage = new QCow2Disk(qcow2_header, newDisk, (Bit8u *)fileName, imagesize, sizes[0], (imagesize > 2880));
 		}
 		else {
 			char tmp[256];
@@ -3454,14 +3483,14 @@ private:
 				sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
 				imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
 				setbuf(newDisk, NULL);
-				newImage = new imageDiskVFD(newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
+				newImage = new imageDiskVFD(newDisk, (Bit8u *)fileName, imagesize, (imagesize > 2880));
 			}
 			else {
 				fseeko64(newDisk, 0L, SEEK_END);
 				sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
 				imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
 				setbuf(newDisk, NULL);
-				newImage = new imageDisk(newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
+				newImage = new imageDisk(newDisk, (Bit8u *)fileName, imagesize, (imagesize > 2880));
 			}
 		}
 
