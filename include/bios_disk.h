@@ -261,24 +261,24 @@ private:
 		bool IsValid();
 	};
 
-	imageDiskVHD() { }
+	imageDiskVHD() : parentDisk(NULL), copiedFooter(false), currentBlock(0xFFFFFFFF), currentBlockAllocated(false), currentBlockDirtyMap(NULL) { }
 	static ErrorCodes TryOpenParent(const char* childFileName, const ParentLocatorEntry &entry, Bit8u* data, const Bit32u dataLength, imageDisk** disk, const char* uniqueId);
 	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** imageDisk, const Bit8u* matchUniqueId);
 	virtual bool loadBlock(const Bit32u blockNumber);
 
-	imageDisk* parentDisk = 0;
+	imageDisk* parentDisk;// = 0;
 	Bit64u footerPosition;
 	VHDFooter footer;
 	VHDFooter originalFooter;
-	bool copiedFooter = false;
+	bool copiedFooter;// = false;
 	DynamicHeader dynamicHeader;
 	Bit32u sectorsPerBlock;
 	Bit32u blockMapSectors;
 	Bit32u blockMapSize;
-	Bit32u currentBlock = 0xFFFFFFFF;
-	bool currentBlockAllocated = false;
+	Bit32u currentBlock;// = 0xFFFFFFFF;
+	bool currentBlockAllocated;// = false;
 	Bit32u currentBlockSectorOffset;
-	Bit8u* currentBlockDirtyMap = 0;
+	Bit8u* currentBlockDirtyMap;// = 0;
 };
 
 void updateDPT(void);
