@@ -552,6 +552,8 @@ void DOS_DoShutDown();
 void GUS_DOS_Shutdown();
 void SBLASTER_DOS_Shutdown();
 
+extern int swapInDisksSpecificDrive;
+
 class BOOT : public Program {
 private:
    
@@ -649,9 +651,14 @@ private:
 public:
    
 	void Run(void) {
+        bool swaponedrive = false;
+
         boot_debug_break = false;
         if (cmd->FindExist("-debug",true))
             boot_debug_break = true;
+
+        if (cmd->FindExist("-swap-one-drive",true))
+            swaponedrive = true;
 
         if (cmd->FindExist("-force",true))
             { /* no-op */ }
@@ -782,6 +789,17 @@ public:
         if (imageDiskList[drive-65]->getSectSize() > sizeof(bootarea)) {
             WriteOut("Bytes/sector too large");
             return;
+        }
+
+        /* if more than one image is given, then this drive becomes the focus of the swaplist */
+        if (i > 1) {
+            if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive != (drive - 65)) {
+                WriteOut("Multiple disk images specified and another drive is already connected to a swap list");
+                return;
+            }
+            else if (swapInDisksSpecificDrive < 0 && swaponedrive) {
+                swapInDisksSpecificDrive = drive - 65;
+            }
         }
 
         unsigned int bootsize = imageDiskList[drive-65]->getSectSize();
