@@ -949,7 +949,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
 			// set codepage entries
 			dos.loaded_codepage=(Bit16u)(codepage_id&0xffff);
 
-			// update font if necessary
+			// update font if necessary (EGA/VGA/SVGA only)
 			if (font_changed && (CurMode->type==M_TEXT) && (IS_EGAVGA_ARCH)) {
 				INT10_ReloadFont();
 			}
