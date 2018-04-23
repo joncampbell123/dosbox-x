@@ -130,6 +130,11 @@ void incrementFDD(void) {
 	CMOS_SetRegister(0x14, (Bit8u)(equipment&0xff));
 }
 
+int swapInDisksSpecificDrive = -1;
+// -1 = swap across A: and B: (DOSBox / DOSBox-X default behavior)
+//  0 = swap across A: only
+//  1 = swap across B: only
+
 void swapInDisks(void) {
 	bool allNull = true;
 	Bits diskcount = 0;
@@ -148,6 +153,12 @@ void swapInDisks(void) {
 
 	/* No disks setup... fail */
 	if (allNull) return;
+
+    /* if a specific drive is to be swapped, then adjust to focus on it */
+    if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1) {
+        diskswapdrive = swapInDisksSpecificDrive;
+        diskswapcount = 1;
+    }
 
 	/* If only one disk is loaded, this loop will load the same disk in dive A and drive B */
 	while(diskcount < diskswapcount) {
