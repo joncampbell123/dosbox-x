@@ -131,7 +131,9 @@ AC_CHECK_CXXFLAGS([ -std=gnu++11 ], [  ], [
 ])
 
 if test x$warn_cpp0x = x1; then
-    AC_MSG_WARN([ C++0x is considered deprecated. Please use a C++11 compiler. C++0x support will be removed at a future date. ])
+    AC_MSG_ERROR([ C++0x is considered deprecated. Please use a C++11 compiler.
+C++0x support will be removed at a future date entirely.
+To disable this error, remove or comment out line 133-137 of configure.ac, run autogen.sh and try again. ])
 fi
 
 dnl This is how the build script can specify a HX DOS extender target
