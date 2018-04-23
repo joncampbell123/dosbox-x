@@ -4286,7 +4286,7 @@ void DOS_SetupPrograms(void) {
 
 	//PROGRAMS_MakeFile("MORE.COM", MORE_ProgramStart);
 
-    if (!IS_PC98_ARCH)
+    if (!IS_PC98_ARCH && IS_EGAVGA_ARCH)
         PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart);
 
     if (!IS_PC98_ARCH)
