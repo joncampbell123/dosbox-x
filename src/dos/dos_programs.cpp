@@ -3531,8 +3531,13 @@ private:
 		return true;
 	}
 
-	imageDisk* MountImageNone(const char* fileName, Bitu sizes[], const int reserved_cylinders) {
+	imageDisk* MountImageNone(const char* fileName, const Bitu sizesOriginal[], const int reserved_cylinders) {
 		imageDisk* newImage = 0;
+		Bitu sizes[4];
+		sizes[0] = sizesOriginal[0];
+		sizes[1] = sizesOriginal[1];
+		sizes[2] = sizesOriginal[2];
+		sizes[3] = sizesOriginal[3];
 
 		//check for VHD files
 		if (sizes[0] == 0 /* auto detect size */) {
