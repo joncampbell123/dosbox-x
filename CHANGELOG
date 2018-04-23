@@ -3,9 +3,6 @@
     ROM BIOS has allocated. This fixes a guest
     system crash if using KEYB.COM with
     machine=ega
-  - KEYB.COM fixed to appear only in EGA/VGA/SVGA
-    emulation modes. It will no longer appear
-    for CGA/MDA/Hercules/Tandy emulation modes.
   - Moved host key to F11 for Windows. F12 is
     already taken by some internal debugging
     voodoo within Windows itself.
