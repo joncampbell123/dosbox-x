@@ -2982,7 +2982,7 @@ private:
 					}
 				}
 				if (!skipDetectGeometry && !DetectGeometry(paths[i].c_str(), sizes)) {
-					errorMessage = "Unable to detect geometry\n";
+					errorMessage = (char*)("Unable to detect geometry\n");
 				}
 			}
 
