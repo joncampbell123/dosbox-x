@@ -163,7 +163,7 @@ void swapInDisks(void) {
 	/* If only one disk is loaded, this loop will load the same disk in dive A and drive B */
 	while(diskcount < diskswapcount) {
 		if(diskSwap[swapPos] != NULL) {
-			LOG_MSG("Loaded disk %d from swaplist position %d - \"%s\"", (int)diskcount, (int)swapPos, diskSwap[swapPos]->diskname.c_str());
+			LOG_MSG("Loaded drive %d disk %d from swaplist position %d - \"%s\"", (int)diskswapdrive, (int)diskcount, (int)swapPos, diskSwap[swapPos]->diskname.c_str());
 
 			if (imageDiskList[diskswapdrive] != NULL)
 				imageDiskList[diskswapdrive]->Release();
