@@ -2601,7 +2601,7 @@ public:
                         swapPosition = 0;
                         swapInDisksSpecificDrive = driveIndex;
 
-                        for (size_t si=0;si < MAX_SWAPPABLE_DISKS && si < paths.size();si++) {
+                        for (size_t si=1;si < MAX_SWAPPABLE_DISKS && si < paths.size();si++) {
 				            imageDisk *img = MountImageNone(paths[si].c_str(), sizes, reserved_cylinders);
 
                             if (img != NULL) {
