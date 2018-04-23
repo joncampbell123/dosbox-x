@@ -555,6 +555,21 @@ void SBLASTER_DOS_Shutdown();
 extern int swapInDisksSpecificDrive;
 
 class BOOT : public Program {
+public:
+    BOOT() {
+        for (size_t i=0;i < MAX_SWAPPABLE_DISKS;i++) newDiskSwap[i] = NULL;
+    }
+    virtual ~BOOT() {
+        for (size_t i=0;i < MAX_SWAPPABLE_DISKS;i++) {
+            if (newDiskSwap[i] != NULL) {
+                newDiskSwap[i]->Release();
+                newDiskSwap[i] = NULL;
+            }
+        }
+    }
+public:
+    imageDisk *newDiskSwap[MAX_SWAPPABLE_DISKS];
+
 private:
    
 	FILE *getFSFile_mounted(char const* filename, Bit32u *ksize, Bit32u *bsize, Bit8u *error) {
@@ -745,19 +760,22 @@ public:
 				if(usefile != NULL) {
                     char tmp[256];
 
-					if(diskSwap[i] != NULL) diskSwap[i]->Release();
+					if (newDiskSwap[i] != NULL) {
+                        newDiskSwap[i]->Release();
+                        newDiskSwap[i] = NULL;
+                    }
 
                     fseeko64(usefile, 0L, SEEK_SET);
                     fread(tmp,256,1,usefile); // look for magic signatures
 
                     if (!memcmp(tmp,"VFD1.",5)) { /* FDD files */
-                        diskSwap[i] = new imageDiskVFD(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
+                        newDiskSwap[i] = new imageDiskVFD(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
                     }
                     else {
-                        diskSwap[i] = new imageDisk(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
+                        newDiskSwap[i] = new imageDisk(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
                     }
-					diskSwap[i]->Addref();
-					if (diskSwap[i]->active && !diskSwap[i]->hardDrive) incrementFDD(); //moved from imageDisk constructor
+					newDiskSwap[i]->Addref();
+					if (newDiskSwap[i]->active && !newDiskSwap[i]->hardDrive) incrementFDD(); //moved from imageDisk constructor
 
 					if (usefile_1==NULL) {
 						usefile_1=usefile;
@@ -775,9 +793,45 @@ public:
 			i++;
 		}
 
-		swapPosition = 0;
+        if (i == 0) {
+            WriteOut("No images specified");
+            return;
+        }
 
-		swapInDisks();
+        if (i > 1) {
+            /* if more than one image is given, then this drive becomes the focus of the swaplist */
+            if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive != (drive - 65)) {
+                WriteOut("Multiple disk images specified and another drive is already connected to the swap list");
+                return;
+            }
+            else if (swapInDisksSpecificDrive < 0 && swaponedrive) {
+                swapInDisksSpecificDrive = drive - 65;
+            }
+
+            /* transfer to the diskSwap array */
+            for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
+                if (diskSwap[si] != NULL) {
+                    diskSwap[si]->Release();
+                    diskSwap[si] = NULL;
+                }
+
+                diskSwap[si] = newDiskSwap[si];
+                newDiskSwap[si] = NULL;
+            }
+
+            swapPosition = 0;
+            swapInDisks();
+        }
+        else {
+            /* attach directly without using the swap list */
+            if (imageDiskList[drive-65] != NULL) {
+                imageDiskList[drive-65]->Release();
+                imageDiskList[drive-65] = NULL;
+            }
+
+            imageDiskList[drive-65] = newDiskSwap[0];
+            newDiskSwap[0] = NULL;
+        }
 
 		if(imageDiskList[drive-65]==NULL) {
 			WriteOut(MSG_Get("PROGRAM_BOOT_UNABLE"), drive);
@@ -789,17 +843,6 @@ public:
         if (imageDiskList[drive-65]->getSectSize() > sizeof(bootarea)) {
             WriteOut("Bytes/sector too large");
             return;
-        }
-
-        /* if more than one image is given, then this drive becomes the focus of the swaplist */
-        if (i > 1) {
-            if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive != (drive - 65)) {
-                WriteOut("Multiple disk images specified and another drive is already connected to a swap list");
-                return;
-            }
-            else if (swapInDisksSpecificDrive < 0 && swaponedrive) {
-                swapInDisksSpecificDrive = drive - 65;
-            }
         }
 
         unsigned int bootsize = imageDiskList[drive-65]->getSectSize();
