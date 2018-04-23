@@ -1,4 +1,17 @@
 0.82.6 (next)
+  - KEYB.COM fixed to load only the fonts the
+    ROM BIOS has allocated. This fixes a guest
+    system crash if using KEYB.COM with
+    machine=ega
+  - KEYB.COM fixed to appear only in EGA/VGA/SVGA
+    emulation modes. It will no longer appear
+    for CGA/MDA/Hercules/Tandy emulation modes.
+  - Moved host key to F11 for Windows. F12 is
+    already taken by some internal debugging
+    voodoo within Windows itself.
+  - DOSBox-X codebase now strongly encourages
+    compilation with C++11, will become
+    required soon.
   - BOOT command fixed to make it possible to
     IMGMOUNT multiple floppies to drive 1, and
     boot from another disk in drive 0. This
