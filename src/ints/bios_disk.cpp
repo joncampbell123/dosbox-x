@@ -133,6 +133,8 @@ void incrementFDD(void) {
 void swapInDisks(void) {
 	bool allNull = true;
 	Bits diskcount = 0;
+    Bits diskswapcount = 2;
+    Bits diskswapdrive = 0;
 	Bits swapPos = swapPosition;
 	int i;
 
@@ -148,19 +150,21 @@ void swapInDisks(void) {
 	if (allNull) return;
 
 	/* If only one disk is loaded, this loop will load the same disk in dive A and drive B */
-	while(diskcount<2) {
+	while(diskcount < diskswapcount) {
 		if(diskSwap[swapPos] != NULL) {
 			LOG_MSG("Loaded disk %d from swaplist position %d - \"%s\"", (int)diskcount, (int)swapPos, diskSwap[swapPos]->diskname.c_str());
 
-			if (imageDiskList[diskcount] != NULL)
-				imageDiskList[diskcount]->Release();
+			if (imageDiskList[diskswapdrive] != NULL)
+				imageDiskList[diskswapdrive]->Release();
 
-			imageDiskList[diskcount] = diskSwap[swapPos];
-			imageDiskList[diskcount]->Addref();
+			imageDiskList[diskswapdrive] = diskSwap[swapPos];
+			imageDiskList[diskswapdrive]->Addref();
 
 			diskcount++;
+            diskswapdrive++;
 		}
-		swapPos++;
+
+        swapPos++;
 		if(swapPos>=MAX_SWAPPABLE_DISKS) swapPos=0;
 	}
 }
