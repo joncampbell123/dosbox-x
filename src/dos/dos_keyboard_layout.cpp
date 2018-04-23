@@ -907,31 +907,40 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
 				Bit8u font_height=cpi_buf[font_data_start];
 				font_data_start+=6;
 				if (font_height==0x10) {
-					// 16x8 font
-					PhysPt font16pt=Real2Phys(int10.rom.font_16);
-					for (Bitu i=0;i<256*16;i++) {
-						phys_writeb(font16pt+i,cpi_buf[font_data_start+i]);
-					}
-					font_changed=true;
+					// 16x8 font, IF supported by the video card
+                    if (int10.rom.font_16 != 0) {
+                        PhysPt font16pt=Real2Phys(int10.rom.font_16);
+                        for (Bitu i=0;i<256*16;i++) {
+                            phys_writeb(font16pt+i,cpi_buf[font_data_start+i]);
+                        }
+                        font_changed=true;
+                    }
 				} else if (font_height==0x0e) {
-					// 14x8 font
-					PhysPt font14pt=Real2Phys(int10.rom.font_14);
-					for (Bitu i=0;i<256*14;i++) {
-						phys_writeb(font14pt+i,cpi_buf[font_data_start+i]);
-					}
-					font_changed=true;
+					// 14x8 font, IF supported by the video card
+                    if (int10.rom.font_14 != 0) {
+                        PhysPt font14pt=Real2Phys(int10.rom.font_14);
+                        for (Bitu i=0;i<256*14;i++) {
+                            phys_writeb(font14pt+i,cpi_buf[font_data_start+i]);
+                        }
+                        font_changed=true;
+                    }
 				} else if (font_height==0x08) {
-					// 8x8 fonts
-					PhysPt font8pt=Real2Phys(int10.rom.font_8_first);
-					for (Bitu i=0;i<128*8;i++) {
-						phys_writeb(font8pt+i,cpi_buf[font_data_start+i]);
-					}
-					font8pt=Real2Phys(int10.rom.font_8_second);
-					for (Bitu i=0;i<128*8;i++) {
-						phys_writeb(font8pt+i,cpi_buf[font_data_start+i+128*8]);
-					}
-					font_changed=true;
-				}
+                    // 8x8 fonts. All video cards support it
+                    if (int10.rom.font_8_first != 0) {
+                        PhysPt font8pt=Real2Phys(int10.rom.font_8_first);
+                        for (Bitu i=0;i<128*8;i++) {
+                            phys_writeb(font8pt+i,cpi_buf[font_data_start+i]);
+                        }
+                        font_changed=true;
+                    }
+                    if (int10.rom.font_8_second != 0) {
+                        PhysPt font8pt=Real2Phys(int10.rom.font_8_second);
+                        for (Bitu i=0;i<128*8;i++) {
+                            phys_writeb(font8pt+i,cpi_buf[font_data_start+i+128*8]);
+                        }
+                        font_changed=true;
+                    }
+                }
 				font_data_start+=font_height*256;
 			}
 
