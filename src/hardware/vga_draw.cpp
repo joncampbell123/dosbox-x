@@ -58,6 +58,8 @@ extern float hretrace_fx_avg_weight;
 extern bool ignore_vblank_wraparound;
 extern bool vga_double_buffered_line_compare;
 
+extern bool pc98_31khz_mode;
+
 void memxor(void *_d,unsigned int byte,size_t count) {
 	unsigned char *d = (unsigned char*)_d;
 	while (count-- > 0) *d++ ^= byte;
@@ -2053,7 +2055,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         if (false/*future 15KHz hsync*/) {
             oscclock = 14318180;
         }
-        else if (true/*24KHz hsync*/) {
+        else if (!pc98_31khz_mode/*24KHz hsync*/) {
             oscclock = 21052600;
         }
         else {/*31KHz VGA-like hsync*/
@@ -2142,7 +2144,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             if (false/*future 15KHz hsync*/) {
                 oscclock = 14318180;
             }
-            else if (true/*24KHz hsync*/) {
+            else if (!pc98_31khz_mode/*24KHz hsync*/) {
                 oscclock = 21052600;
             }
             else {/*31KHz VGA-like hsync*/

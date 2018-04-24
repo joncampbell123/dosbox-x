@@ -181,6 +181,7 @@ bool pc98_allow_scanline_effect = true;
 bool pc98_allow_4_display_partitions = false;
 bool pc98_graphics_hide_odd_raster_200line = false;
 bool gdc_analog = true;
+bool pc98_31khz_mode = false;
 
 unsigned int vga_display_start_hretrace = 0;
 float hretrace_fx_avg_weight = 3;
@@ -506,6 +507,9 @@ void VGA_Reset(Section*) {
     // EGC implies 16-color
     if (enable_pc98_16color) enable_pc98_16color = true;
 
+	pc98_31khz_mode = section->Get_bool("pc-98 31-khz video mode");
+	//TODO: Announce 31-KHz mode in BIOS config area. --yksoft1
+	
     i = section->Get_int("pc-98 allow 4 display partition graphics");
     pc98_allow_4_display_partitions = (i < 0/*auto*/ || i == 1/*on*/);
     // TODO: "auto" will default to true if old PC-9801, false if PC-9821, or
@@ -837,15 +841,26 @@ void VGA_OnEnterPC98(Section *sec) {
     VGA_DAC_UpdateColorPalette();
     INT10_PC98_CurMode_Relocate(); /* make sure INT 10h knows */
 
-    /* Set up 24KHz hsync 56.42Hz rate */
-    vga.crtc.horizontal_total = 106 - 5;
-    vga.crtc.vertical_total = (440 - 2) & 0xFF;
-    vga.crtc.end_vertical_blanking = (440 - 2 - 8) & 0xFF; // FIXME
-    vga.crtc.vertical_retrace_start = (440 - 2 - 30) & 0xFF; // FIXME
-    vga.crtc.vertical_retrace_end = (440 - 2 - 28) & 0xFF; // FIXME
-    vga.crtc.start_vertical_blanking = (400 + 8) & 0xFF; // FIXME
-    vga.crtc.overflow |=  0x01;
-    vga.crtc.overflow &= ~0x20;
+	if(!pc98_31khz_mode) { /* Set up 24KHz hsync 56.42Hz rate */
+		vga.crtc.horizontal_total = 106 - 5;
+		vga.crtc.vertical_total = (440 - 2) & 0xFF;
+		vga.crtc.end_vertical_blanking = (440 - 2 - 8) & 0xFF; // FIXME
+		vga.crtc.vertical_retrace_start = (440 - 2 - 30) & 0xFF; // FIXME
+		vga.crtc.vertical_retrace_end = (440 - 2 - 28) & 0xFF; // FIXME
+		vga.crtc.start_vertical_blanking = (400 + 8) & 0xFF; // FIXME
+		vga.crtc.overflow |=  0x01;
+		vga.crtc.overflow &= ~0x20;
+	} else { //Set up 31-KHz mode. Values guessed according to other 640x400 modes in int10_modes.cpp.
+		//TODO: Find the right values by inspecting a real PC-9821 system.
+		vga.crtc.horizontal_total = 100 - 5;
+		vga.crtc.vertical_total = (449 - 2) & 0xFF;
+		vga.crtc.end_vertical_blanking = (449 - 2 - 8) & 0xFF; // FIXME
+		vga.crtc.vertical_retrace_start = (449 - 2 - 30) & 0xFF; // FIXME
+		vga.crtc.vertical_retrace_end = (449 - 2 - 28) & 0xFF; // FIXME
+		vga.crtc.start_vertical_blanking = (400 + 8) & 0xFF; // FIXME
+		vga.crtc.overflow |=  0x01;
+		vga.crtc.overflow &= ~0x20;
+	}
 
     /* 8-char wide mode. change to 25MHz clock to match. */
 	vga.config.addr_shift = 0;
@@ -938,18 +953,34 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     pc98_gdc[GDC_MASTER].active_display_words_per_line = 80;
     pc98_gdc[GDC_MASTER].display_partition_mask = 3;
 
-    pc98_gdc[GDC_MASTER].force_fifo_complete();
-    pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
-    pc98_gdc[GDC_MASTER].write_fifo_param(0x10);
-    pc98_gdc[GDC_MASTER].write_fifo_param(0x4E);
-    pc98_gdc[GDC_MASTER].write_fifo_param(0x07);
-    pc98_gdc[GDC_MASTER].write_fifo_param(0x25);
-    pc98_gdc[GDC_MASTER].force_fifo_complete();
-    pc98_gdc[GDC_MASTER].write_fifo_param(0x07);
-    pc98_gdc[GDC_MASTER].write_fifo_param(0x07);
-    pc98_gdc[GDC_MASTER].write_fifo_param(0x90);
-    pc98_gdc[GDC_MASTER].write_fifo_param(0x65);
-    pc98_gdc[GDC_MASTER].force_fifo_complete();
+	//TODO: Find the correct GDC SYNC parameters in 31-KHz mode by inspecting a real PC-9821.
+	if(!pc98_31khz_mode) { 
+		pc98_gdc[GDC_MASTER].force_fifo_complete();
+		pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x10);
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x4E);
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x07);
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x25);
+		pc98_gdc[GDC_MASTER].force_fifo_complete();
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x07);
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x07);
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x90);
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x65);
+		pc98_gdc[GDC_MASTER].force_fifo_complete();
+	} else { //Use 31KHz HS, VS, VFP, VBP
+		pc98_gdc[GDC_MASTER].force_fifo_complete();
+		pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x10);
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x4E);
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x41);
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x24);
+		pc98_gdc[GDC_MASTER].force_fifo_complete();
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x07); 
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x0C); 
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x90);
+		pc98_gdc[GDC_MASTER].write_fifo_param(0x8D);
+		pc98_gdc[GDC_MASTER].force_fifo_complete();		
+	}
 
     pc98_gdc[GDC_SLAVE].master_sync = false;
     pc98_gdc[GDC_SLAVE].display_enable = false;//FIXME
@@ -958,18 +989,32 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     pc98_gdc[GDC_SLAVE].active_display_words_per_line = 40; /* 40 16-bit WORDs per line */
     pc98_gdc[GDC_SLAVE].display_partition_mask = pc98_allow_4_display_partitions ? 3 : 1;
 
-    pc98_gdc[GDC_SLAVE].force_fifo_complete();
-    pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
-    pc98_gdc[GDC_SLAVE].write_fifo_param(0x02);
-    pc98_gdc[GDC_SLAVE].write_fifo_param(0x26);
-    pc98_gdc[GDC_SLAVE].write_fifo_param(0x03);
-    pc98_gdc[GDC_SLAVE].write_fifo_param(0x11);
-    pc98_gdc[GDC_SLAVE].force_fifo_complete();
-    pc98_gdc[GDC_SLAVE].write_fifo_param(0x83);
-    pc98_gdc[GDC_SLAVE].write_fifo_param(0x07);
-    pc98_gdc[GDC_SLAVE].write_fifo_param(0x90);
-    pc98_gdc[GDC_SLAVE].write_fifo_param(0x65);
-    pc98_gdc[GDC_SLAVE].force_fifo_complete();
+	if(!pc98_31khz_mode) {
+		pc98_gdc[GDC_SLAVE].force_fifo_complete();
+		pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x02);
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x26);
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x03);
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x11);
+		pc98_gdc[GDC_SLAVE].force_fifo_complete();
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x83);
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x07);
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x90);
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x65);
+		pc98_gdc[GDC_SLAVE].force_fifo_complete();
+	} else { //Use 31KHz HS, VS, VFP, VBP
+		pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x02);
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x26);
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x40);
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x10);
+		pc98_gdc[GDC_SLAVE].force_fifo_complete();
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x83);
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x0C);
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x90);
+		pc98_gdc[GDC_SLAVE].write_fifo_param(0x8D);
+		pc98_gdc[GDC_SLAVE].force_fifo_complete();
+	}
 
     VGA_StartResize();
 }
