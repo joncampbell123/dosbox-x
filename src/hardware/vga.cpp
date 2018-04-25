@@ -507,7 +507,13 @@ void VGA_Reset(Section*) {
     // EGC implies 16-color
     if (enable_pc98_16color) enable_pc98_16color = true;
 
-	pc98_31khz_mode = section->Get_bool("pc-98 31-khz video mode");
+    str = section->Get_string("pc-98 video mode");
+    if (str == "31khz")
+        pc98_31khz_mode = true;
+    else if (str == "15khz")/*TODO*/
+        pc98_31khz_mode = false;
+    else
+        pc98_31khz_mode = false;
 	//TODO: Announce 31-KHz mode in BIOS config area. --yksoft1
 	
     i = section->Get_int("pc-98 allow 4 display partition graphics");

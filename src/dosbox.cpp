@@ -866,6 +866,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* ps1opt[] = { "on", "off", 0};
 	const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     const char* pc98fmboards[] = { "auto", "off", "false", "board26k", "board86", "board86c", 0};
+    const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
 
 	const char* irqssbhack[] = {
 		"none", "cs_equ_ds", 0
@@ -1185,9 +1186,13 @@ void DOSBOX_SetupConfigSections(void) {
                     "in 200-line graphics modes upconverted to 400-line raster display. When enabled, odd\n"
                     "numbered scanlines are blanked instead of doubled");
 
-	Pbool = secprop->Add_bool("pc-98 31-khz video mode",Property::Changeable::WhenIdle,false);
-	Pbool->Set_help("Emulate PC-9821 31-KHz VGA compatible video mode when enabled. \n"
-					"Experimental and may not be accurate at all.");
+	Pstring = secprop->Add_string("pc-98 video mode",Property::Changeable::WhenIdle,"");
+	Pstring->Set_values(pc98videomodeopt);
+	Pstring->Set_help("Specify the preferred PC-98 video mode.\n"
+                      "Valid values are 15, 24, or 31 for each specific horizontal refresh rate on the platform.\n"
+                      "24khz is default and best supported at this time.\n"
+                      "15khz is not implemented at this time.\n"
+                      "31khz is experimental at this time.");
 
 	Pint = secprop->Add_int("pc-98 timer master frequency", Property::Changeable::WhenIdle,0);
 	Pint->SetMinMax(0,2457600);
