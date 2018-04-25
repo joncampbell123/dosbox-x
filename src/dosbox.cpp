@@ -1185,6 +1185,10 @@ void DOSBOX_SetupConfigSections(void) {
                     "in 200-line graphics modes upconverted to 400-line raster display. When enabled, odd\n"
                     "numbered scanlines are blanked instead of doubled");
 
+	Pbool = secprop->Add_bool("pc-98 31-khz video mode",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Emulate PC-9821 31-KHz VGA compatible video mode when enabled. \n"
+					"Experimental and may not be accurate at all.");
+
 	Pint = secprop->Add_int("pc-98 timer master frequency", Property::Changeable::WhenIdle,0);
 	Pint->SetMinMax(0,2457600);
 	Pint->Set_help("8254 timer clock frequency (NEC PC-98). Depending on the CPU frequency the clock frequency is one of two common values.\n"
