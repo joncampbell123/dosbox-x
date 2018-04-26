@@ -2367,6 +2367,12 @@ void update_pc98_function_row(bool enable) {
 void pc98_set_digpal_entry(unsigned char ent,unsigned char grb);
 void PC98_show_cursor(bool show);
 
+extern bool                         gdc_5mhz_mode;
+extern bool                         enable_pc98_egc;
+extern bool                         enable_pc98_grcg;
+extern bool                         enable_pc98_16color;
+extern bool                         pc98_31khz_mode;
+
 static Bitu INT18_PC98_Handler(void) {
     Bit16u temp16;
 
@@ -2548,6 +2554,45 @@ static Bitu INT18_PC98_Handler(void) {
                 }
             }
             break;
+        case 0x31: /* Return display mode and status */
+            if (enable_pc98_egc) { /* FIXME: INT 18h AH=31/30h availability is tied to EGC enable */
+                unsigned char b597 = mem_readb(0x597);
+                /* Return values:
+                 *
+                 * AL =
+                 *      bit [7:7] = ?
+                 *      bit [6:6] = ?
+                 *      bit [5:5] = ?
+                 *      bit [4:4] = ?
+                 *      bit [3:2] = horizontal sync
+                 *                   00 = 15.98KHz
+                 *                   01 = ?
+                 *                   10 = 24.83KHz
+                 *                   11 = 31.47KHz
+                 *      bit [1:1] = ?
+                 *      bit [0:0] = interlaced (1=yes 0=no)
+                 * BH =
+                 *      bit [7:7] = ?
+                 *      bit [6:6] = ?
+                 *      bit [5:4] = graphics video mode
+                 *                   00 = 640x200 (upper half)
+                 *                   01 = 640x200 (lower half)
+                 *                   10 = 640x400
+                 *                   11 = 640x480
+                 *      bit [3:3] = ?
+                 *      bit [2:2] = ?
+                 *      bit [1:0] = number of text rows
+                 *                   00 = 20 rows
+                 *                   01 = 25 rows
+                 *                   10 = 30 rows
+                 *                   11 = ?
+                 */
+                reg_al =
+                    ((pc98_31khz_mode ? 3 : 2) << 2)/*hsync*/;
+                reg_bh =
+                    ((b597 & 3) << 4)/*graphics video mode*/ + 1/*25 rows*/;
+            }
+            break;
         /* From this point on the INT 18h call list appears to wander off from the keyboard into CRT/GDC/display management. */
         case 0x40: /* Start displaying the graphics screen (グラフィック画面の表示開始) */
             pc98_gdc[GDC_SLAVE].force_fifo_complete();
@@ -2596,19 +2641,20 @@ static Bitu INT18_PC98_Handler(void) {
             if ((reg_ch & 0xC0) != 0) {
                 pc98_gdc[GDC_SLAVE].doublescan = ((reg_ch & 0xC0) == 0x40) || ((reg_ch & 0xC0) == 0x80);
                 pc98_gdc[GDC_SLAVE].row_height = pc98_gdc[GDC_SLAVE].doublescan ? 2 : 1;
+
+                /* update graphics mode bits */
+                {
+                    unsigned char b = mem_readb(0x597);
+
+                    b &= ~3;
+                    b |= ((reg_ch >> 6) - 1) & 3;
+
+                    mem_writeb(0x597,b);
+                }
             }
             else {
                 pc98_gdc[GDC_SLAVE].doublescan = false;
                 pc98_gdc[GDC_SLAVE].row_height = 1;
-            }
-
-            {
-                unsigned char b = mem_readb(0x597);
-
-                b &= ~3;
-                b |= (reg_ch - 1) & 3;
-
-                mem_writeb(0x597,b);
             }
 
             {
@@ -4997,11 +5043,6 @@ void write_FFFF_PC98_signature() {
     phys_writew(0xffffe,0xABCD);
 }
 
-extern bool                         gdc_5mhz_mode;
-extern bool                         enable_pc98_egc;
-extern bool                         enable_pc98_grcg;
-extern bool                         enable_pc98_16color;
-
 void gdc_egc_enable_update_vars(void) {
     unsigned char b;
 
@@ -5044,8 +5085,6 @@ void gdc_16color_enable_update_vars(void) {
 		pc98_port6A_command_write(0x00);
 	}
 }
-
-extern bool pc98_31khz_mode;
 
 class BIOS:public Module_base{
 private:
@@ -5184,7 +5223,8 @@ private:
              *             10 = 640x400             (2/8/16/256-color mode)
              *             11 = 640x480             256-color mode */
             mem_writeb(0x597,(enable_pc98_egc ? 0x04 : 0x00)/*EGC*/ |
-                             (enable_pc98_egc ? 0x80 : 0x00)/*supports INT 18h AH=30h and AH=31h*/);
+                             (enable_pc98_egc ? 0x80 : 0x00)/*supports INT 18h AH=30h and AH=31h*/ |
+                             2/*640x400*/);
             /* TODO: I would like to eventually add a dosbox.conf option that controls whether INT 18h AH=30h and 31h
              *       are enabled, so that retro-development can test code to see how it acts on a newer PC-9821
              *       that supports it vs an older PC-9821 that doesn't.
