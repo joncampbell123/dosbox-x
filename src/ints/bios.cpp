@@ -5099,6 +5099,17 @@ private:
             else                                /* 128KB */
                 memsize_real_code = 0;
 
+            /* CPU/Display */
+            /* bit[7:7] = 486SX equivalent (?)                                                                      1=yes
+             * bit[6:6] = PC-9821 Extended Graph Architecture supported (FIXME: Is this the same as having EGC?)    1=yes
+             * bit[5:5] = LCD display is color                                                                      1=yes 0=no
+             * bit[4:4] = ?
+             * bit[3:3] = ROM drive allow writing
+             * bit[2:2] = 98 NOTE PC-9801N-08 expansion I/O box connected
+             * bit[1:1] = 98 NOTE prohibit transition to power saving mode
+             * bit[0:0] = 98 NOTE coprocessor function available */
+            mem_writeb(0x45C,(enable_pc98_egc ? 0x40/*Extended Graphics*/ : 0x00));
+
             /* BIOS flags */
             /* bit[7:7] = Startup            1=hot start    0=cold start
              * bit[6:6] = BASIC type         ??
@@ -5135,11 +5146,54 @@ private:
             mem_writew(0x524/*tail*/,0x502);
             mem_writew(0x526/*tail*/,0x502);
 
-            /* various BIOS flags */
+            /* number of scanlines per text row - 1 */
             mem_writeb(0x53B,0x0F); // CRT_RASTER, 640x400 24.83KHz-hsync 56.42Hz-vsync
+
+            /* BIOS flags */
+            /* bit[7:7] = Graphics display state                    1=Visible       0=Blanked (hidden)
+             * bit[6:6] = CRT type                                  1=high res      0=standard
+             * bit[5:5] = Horizontal sync rate                      1=31.47KHz      0=24.83KHz
+             * bit[4:4] = CRT line mode                             1=480-line      0=400-line
+             * bit[3:3] = Number of user-defined characters         1=188+          0=63
+             * bit[2:2] = Extended graphics RAM (for 16-color)      1=present       0=absent
+             * bit[1:1] = Graphics Charger is present               1=present       0=absent
+             * bit[0:0] = DIP switch 1-8 at startup                 1=ON            0=OFF (?) */
             mem_writeb(0x54C,(enable_pc98_grcg ? 0x02 : 0x00) | (enable_pc98_16color ? 0x04 : 0x00) | (pc98_31khz_mode ? 0x20/*31khz*/ : 0x00/*24khz*/)); // PRXCRT, 16-color G-VRAM, GRCG
+
+            /* BIOS flags */
+            /* bit[7:7] = 256-color board present (PC-H98)
+             * bit[6:6] = Enhanced Graphics Charger (EGC) is present
+             * bit[5:5] = GDC at 5.0MHz at boot up (copy of DIP switch 2-8 at startup)      1=yes 0=no
+             * bit[4:4] = Always "flickerless" drawing mode
+             * bit[3:3] = Drawing mode with flicker
+             * bit[2:2] = GDC clock                                                         1=5MHz 0=2.5MHz
+             * bit[1:0] = Drawing mode of the GDC
+             *              00 = REPLACE
+             *              01 = COMPLEMENT
+             *              10 = CLEAR
+             *              11 = SET */
             mem_writeb(0x54D,(enable_pc98_egc ? 0x40 : 0x00) | (gdc_5mhz_mode ? 0x20 : 0x00) | (gdc_5mhz_mode ? 0x04 : 0x00)); // EGC
-            mem_writeb(0x597,(enable_pc98_egc ? 0x04 : 0x00/*FIXME*/)); // EGC
+
+            /* BIOS flags */
+            /* bit[7:7] = INT 18h AH=30h/31h support enabled
+             * bit[6:3] = 0 (unused)
+             * bit[2:2] = Enhanced Graphics Mode (EGC) supported
+             * bit[1:0] = Graphic resolution
+             *             00 = 640x200 upper half  (2/8/16-color mode)
+             *             01 = 640x200 lower half  (2/8/16-color mode)
+             *             10 = 640x400             (2/8/16/256-color mode)
+             *             11 = 640x480             256-color mode */
+            mem_writeb(0x597,(enable_pc98_egc ? 0x04 : 0x00)/*EGC*/ |
+                             (enable_pc98_egc ? 0x80 : 0x00)/*supports INT 18h AH=30h and AH=31h*/);
+            /* TODO: I would like to eventually add a dosbox.conf option that controls whether INT 18h AH=30h and 31h
+             *       are enabled, so that retro-development can test code to see how it acts on a newer PC-9821
+             *       that supports it vs an older PC-9821 that doesn't.
+             *
+             *       If the user doesn't set the option, then it is "auto" and determined by machine= PC-98 model and
+             *       by another option in dosbox.conf that determines whether 31khz support is enabled.
+             *
+             *       NOTED: Neko Project II determines INT 18h AH=30h availability by whether or not it was compiled
+             *              with 31khz hsync support (SUPPORT_CRT31KHZ) */
         }
 
         if (bios_user_reset_vector_blob != 0 && !bios_user_reset_vector_blob_run) {
