@@ -1134,11 +1134,16 @@ interrupted_char_begin:
                      * cell were 2 pixels wide 4 pixels high, and each pixel was repeated 4 times.
                      * In case you're wondering, the high byte doesn't appear to be used in this mode.
                      *
-                     * FIXME: What happens if you DO use the high byte in this mode? */
-                    unsigned char bits2 = (chr >> (pc98_gdc[GDC_MASTER].row_line >> 2)) & 0x11;
+                     * Setting the high byte seems to blank the cell entirely */
+                    if ((chr & 0xFF00) == 0x00) {
+                        unsigned char bits2 = (chr >> (pc98_gdc[GDC_MASTER].row_line >> 2)) & 0x11;
 
-                    font =      ((bits2 & 0x01) ? 0xF0 : 0x00) +
+                        font =  ((bits2 & 0x01) ? 0xF0 : 0x00) +
                                 ((bits2 & 0x10) ? 0x0F : 0x00);
+                    }
+                    else {
+                        font = 0;
+                    }
                 }
                 else {
                     // NTS: The display handles single-wide vs double-wide by whether or not the 8 bits are nonzero.
