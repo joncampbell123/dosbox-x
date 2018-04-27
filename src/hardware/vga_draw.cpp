@@ -1117,24 +1117,49 @@ interrupted_char_begin:
                 chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
                 attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
 
-                // NTS: The display handles single-wide vs double-wide by whether or not the 8 bits are nonzero.
-                //      If zero, the char is one cell wide.
-                //      If nonzero, the char is two cells wide (doublewide) and the current character is rendered
-                //      into both cells (the character code in the next cell is ignored). The attribute (as far
-                //      as I know) repeats for both.
-                //
-                //      NTS: It seems different character ROM is used between single and double wide chars.
-                //           Contrary to what this suggests, (chr & 0xFF00) == 0x8000 is doublewide but not the
-                //           same as single-wide (chr & 0xFF00) == 0x0000.
-                //
-                //      Specific ranges that would be fullwidth where bits[6:0] are 0x08 to 0x0B inclusive are
-                //      apparently not fullwidth (the halfwidth char repeats) if both cells filled in.
-                if ((chr & 0xFF00) != 0 && (chr & 0x7CU) != 0x08) {
-                    // left half of doublewide char. it appears only bits[14:8] and bits[6:0] have any real effect on which char is displayed.
-                    doublewide = true;
-                }
+                if (pc98_attr4_graphic && (attr & 0x10)) {
+                    /* the "vertical line" attribute (bit 4) can be redefined as a signal
+                     * to interpret the character as a low res bitmap instead compatible with
+                     * "simple graphics" of the PC-8001 (ref. Carat) */
+                    /* Contrary to what you normally expect of a "bitmap", the pixels are
+                     * in column order.
+                     *     0 1
+                     *     col
+                     *     0 4  r 0
+                     *     1 5  o 1
+                     *     2 6  w 2
+                     *     3 7    3
+                     */
+                    /* The only way a direct bitmap can be encoded in 8 bits is if one character
+                     * cell were 2 pixels wide 4 pixels high, and each pixel was repeated 4 times.
+                     * In case you're wondering, the high byte doesn't appear to be used in this mode.
+                     *
+                     * FIXME: What happens if you DO use the high byte in this mode? */
+                    unsigned char bits2 = (chr >> (pc98_gdc[GDC_MASTER].row_line >> 2)) & 0x11;
 
-                font = pc98_font_char_read(chr,pc98_gdc[GDC_MASTER].row_line,0);
+                    font =      ((bits2 & 0x01) ? 0xF0 : 0x00) +
+                                ((bits2 & 0x10) ? 0x0F : 0x00);
+                }
+                else {
+                    // NTS: The display handles single-wide vs double-wide by whether or not the 8 bits are nonzero.
+                    //      If zero, the char is one cell wide.
+                    //      If nonzero, the char is two cells wide (doublewide) and the current character is rendered
+                    //      into both cells (the character code in the next cell is ignored). The attribute (as far
+                    //      as I know) repeats for both.
+                    //
+                    //      NTS: It seems different character ROM is used between single and double wide chars.
+                    //           Contrary to what this suggests, (chr & 0xFF00) == 0x8000 is doublewide but not the
+                    //           same as single-wide (chr & 0xFF00) == 0x0000.
+                    //
+                    //      Specific ranges that would be fullwidth where bits[6:0] are 0x08 to 0x0B inclusive are
+                    //      apparently not fullwidth (the halfwidth char repeats) if both cells filled in.
+                    if ((chr & 0xFF00) != 0 && (chr & 0x7CU) != 0x08) {
+                        // left half of doublewide char. it appears only bits[14:8] and bits[6:0] have any real effect on which char is displayed.
+                        doublewide = true;
+                    }
+
+                    font = pc98_font_char_read(chr,pc98_gdc[GDC_MASTER].row_line,0);
+                }
             }
             else {
                 // right half of doublewide char.
