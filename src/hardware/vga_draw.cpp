@@ -1039,6 +1039,7 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	return TempLine+(16*4);
 }
 
+extern bool pc98_attr4_graphic;
 extern uint8_t GDC_display_plane;
 extern uint8_t GDC_display_plane_pending;
 extern bool pc98_graphics_hide_odd_raster_200line;
@@ -1192,7 +1193,7 @@ interrupted_char_begin:
             }
 
             /* "vertical line" bit puts a vertical line on the 4th pixel of the cell */
-            if (attr & 0x10) lineoverlay |= 1U << 7U;
+            if (!pc98_attr4_graphic && (attr & 0x10)) lineoverlay |= 1U << 7U;
 
             /* underline fills the row to underline the text */
             if ((attr & 0x08) && line == (vga.crtc.maximum_scan_line & 0x1FU)) lineoverlay |= 0xFFU;

@@ -18,6 +18,7 @@
 #include "pc98_gdc_const.h"
 #include "mixer.h"
 
+extern bool                 pc98_attr4_graphic;
 extern bool                 pc98_graphics_hide_odd_raster_200line;
 
 bool                        gdc_5mhz_mode = false;
@@ -106,6 +107,10 @@ void pc98_port6A_command_write(unsigned char b) {
 /* Port 0x68 command handling */
 void pc98_port68_command_write(unsigned char b) {
     switch (b) {
+        case 0x00: // text screeen attribute bit 4 meaning: 0=vertical line
+        case 0x01: //                                       1=simple graphic
+            pc98_attr4_graphic = !!(b&1);
+            break;
         case 0x08: // 200-line mode: show odd raster
         case 0x09: //                don't show odd raster
             pc98_graphics_hide_odd_raster_200line = !!(b&1);
