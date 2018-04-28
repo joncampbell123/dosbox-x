@@ -2452,7 +2452,8 @@ static Bitu INT18_PC98_Handler(void) {
 			//TODO: set 25/20 lines mode and 80/40 columns mode.
 			//Attribute bit (bit 2)
 			pc98_attr4_graphic = !!(reg_al & 0x04);
-			
+
+            mem_writeb(0x53C,reg_al);
 			break;
 		case 0x0B: /* get CRT mode */
 			/* bit		off			on
@@ -2461,11 +2462,10 @@ static Bitu INT18_PC98_Handler(void) {
 				2		v.lines		simp.graphics
 				3		K-CG access mode(not used in PC-98) 
 				7		std CRT		hi-res CRT */
-				
-			//TODO: return corresponding values in al when 20-lines/40-columns modes are implemented.
-			//Attribute bit (bit 2)
-			reg_al = pc98_attr4_graphic ? 0x04 : 0x00;
-			
+            /* NTS: I assume that real hardware doesn't offer a way to read back the state of these bits,
+             *      so the BIOS's only option is to read the mode byte back from the data area.
+             *      Neko Project II agrees. */
+            reg_al = mem_readb(0x53C);
 			break;
         // TODO: "Edge" is using INT 18h AH=06h, what is that?
         //       Neko Project is also unaware of such a call.
