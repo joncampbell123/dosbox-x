@@ -2477,7 +2477,10 @@ static Bitu INT18_PC98_Handler(void) {
 
             pc98_update_text_lineheight_from_bda();
             pc98_update_text_layer_lineheight_from_bda();
-			break;
+
+            /* Apparently, this BIOS call also hides the cursor */
+            PC98_show_cursor(0);
+            break;
 		case 0x0B: /* get CRT mode */
 			/* bit		off			on
 				0		25lines		20lines
