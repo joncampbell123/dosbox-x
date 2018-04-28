@@ -1,4 +1,11 @@
 0.82.6 (next)
+  - INT 18h AH=0Ah updated to support 20-line
+    text mode. Some games use the 20-line text
+    mode to space the text out vertically.
+    Such games will display correctly now.
+  - INT 18h now maintains text layer state
+    in BIOS data area byte 0x53C, just as
+    the actual BIOS does.
   - Added PC-98 INT 18h function AH=0Ah and
     AH=0Bh to support BIOS calls that enable
     "Simple Graphics" mode. This fixes
