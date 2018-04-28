@@ -1,4 +1,29 @@
 0.82.6 (next)
+  - Added PC-98 INT 18h function AH=0Ah and
+    AH=0Bh to support BIOS calls that enable
+    "Simple Graphics" mode. This fixes
+    problems with other games having vertical
+    lines over the graphics, even though
+    these games do not appear to use the
+    simple graphics at all. (yksoft1)
+  - Added support for PC-98 "Simple Graphics"
+    mode of text layer attribute bit 4. When
+    enabled, the attribute bit 4 changes
+    meaning from vertical line to a bit
+    indicating that the 8-bit character is
+    a low resolution 2x4 bitmap to be
+    displayed in the text layer. This fixes
+    score and status display in Carat.
+  - PC-98 INT 18h now implements AH=31h to
+    report CRTC, text and graphics state and
+    24khz/31khz video mode selection. This
+    fix allows some games including Touhou
+    Project to pace it's gameplay correctly
+    in either video mode.
+  - MinGW HX DOS builds default to host key
+    F12 again
+  - PC-98 mode now offers selection between
+    24khz and 31khz video modes (yksoft1)
   - KEYB.COM fixed to load only the fonts the
     ROM BIOS has allocated. This fixes a guest
     system crash if using KEYB.COM with
