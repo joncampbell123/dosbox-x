@@ -2374,6 +2374,26 @@ extern bool                         enable_pc98_16color;
 extern bool                         pc98_31khz_mode;
 extern bool                         pc98_attr4_graphic;
 
+void pc98_update_text_layer_lineheight_from_bda(void) {
+    unsigned char c = mem_readb(0x53C);
+    unsigned char lineheight = mem_readb(0x53B) + 1;
+
+    pc98_gdc[GDC_MASTER].force_fifo_complete();
+    pc98_gdc[GDC_MASTER].row_height = lineheight;
+}
+
+void pc98_update_text_lineheight_from_bda(void) {
+    unsigned char c = mem_readb(0x53C);
+    unsigned char lineheight;
+
+    if (c & 0x01)/*20-line mode*/
+        lineheight = 20;
+    else         /*25-line mode*/
+        lineheight = 16;
+
+    mem_writeb(0x53B,lineheight - 1);
+}
+
 static Bitu INT18_PC98_Handler(void) {
     Bit16u temp16;
 
@@ -2454,6 +2474,9 @@ static Bitu INT18_PC98_Handler(void) {
 			pc98_attr4_graphic = !!(reg_al & 0x04);
 
             mem_writeb(0x53C,reg_al);
+
+            pc98_update_text_lineheight_from_bda();
+            pc98_update_text_layer_lineheight_from_bda();
 			break;
 		case 0x0B: /* get CRT mode */
 			/* bit		off			on
