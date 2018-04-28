@@ -1055,6 +1055,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     Bit16u lineoverlay = 0; // vertical + underline overlay over the character cell, but apparently with a 4-pixel delay
     bool doublewide = false;
     unsigned char font,foreground;
+    unsigned char fline;
     bool ok_raster = true;
 
     // 200-line modes: The BIOS or DOS game can elect to hide odd raster lines
@@ -1112,6 +1113,15 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         blocks = vga.draw.blocks;
         vidmem = pc98_gdc[GDC_MASTER].scan_address;
         while (blocks--) { // for each character in the line
+            /* NTS: On real hardware, in 20-line mode, either the hardware or the BIOS sets
+             *      up the text mode in such a way that the text is centered vertically
+             *      against the cursor, and the cursor fills all 20 lines */
+            fline = pc98_gdc[GDC_MASTER].row_line;
+            if (pc98_gdc[GDC_MASTER].row_height > 16) /* 20-line */
+                fline -= 2; /* vertically center */
+
+            /* Amusing question: How does it handle the "simple graphics" in 20-line mode? */
+
             if (!doublewide) {
 interrupted_char_begin:
                 chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
@@ -1163,9 +1173,9 @@ interrupted_char_begin:
                         doublewide = true;
                     }
 
-                    /* FIXME: Is this what hardware does? Confirm! */
-                    if (pc98_gdc[GDC_MASTER].row_line < 0x10)
-                        font = pc98_font_char_read(chr,pc98_gdc[GDC_MASTER].row_line,0);
+                    /* the hardware appears to blank the lines beyond the 16-line cell */
+                    if (fline < 0x10)
+                        font = pc98_font_char_read(chr,fline,0);
                     else
                         font = 0;
                 }
@@ -1201,9 +1211,9 @@ interrupted_char_begin:
                         goto interrupted_char_begin;
                 }
 
-                    /* FIXME: Is this what hardware does? Confirm! */
-                if (pc98_gdc[GDC_MASTER].row_line < 0x10)
-                    font = pc98_font_char_read(chr,pc98_gdc[GDC_MASTER].row_line,1);
+                /* the hardware appears to blank the lines beyond the 16-line cell */
+                if (fline < 0x10)
+                    font = pc98_font_char_read(chr,fline,1);
                 else
                     font = 0;
             }
