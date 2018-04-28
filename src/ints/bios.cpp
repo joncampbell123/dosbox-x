@@ -2475,6 +2475,11 @@ static Bitu INT18_PC98_Handler(void) {
 
             mem_writeb(0x53C,reg_al);
 
+            if (reg_al & 2)
+                LOG_MSG("INT 18H AH=0Ah warning: 40-column PC-98 text mode not supported");
+            if (reg_al & 8)
+                LOG_MSG("INT 18H AH=0Ah warning: K-CG dot access mode not supported");
+
             pc98_update_text_lineheight_from_bda();
             pc98_update_text_layer_lineheight_from_bda();
 
