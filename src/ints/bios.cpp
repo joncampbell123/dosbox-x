@@ -2372,6 +2372,7 @@ extern bool                         enable_pc98_egc;
 extern bool                         enable_pc98_grcg;
 extern bool                         enable_pc98_16color;
 extern bool                         pc98_31khz_mode;
+extern bool                         pc98_attr4_graphic;
 
 static Bitu INT18_PC98_Handler(void) {
     Bit16u temp16;
@@ -2441,6 +2442,31 @@ static Bitu INT18_PC98_Handler(void) {
                 reg_bh = 0;
             }
             break;
+		case 0x0A: /* set CRT mode */
+			/* bit		off			on
+				0		25lines		20lines
+				1		80cols		40cols
+				2		v.lines		simp.graphics
+				3		K-CG access mode(not used in PC-98) */
+			
+			//TODO: set 25/20 lines mode and 80/40 columns mode.
+			//Attribute bit (bit 2)
+			pc98_attr4_graphic = !!(reg_al & 0x04);
+			
+			break;
+		case 0x0B: /* get CRT mode */
+			/* bit		off			on
+				0		25lines		20lines
+				1		80cols		40cols
+				2		v.lines		simp.graphics
+				3		K-CG access mode(not used in PC-98) 
+				7		std CRT		hi-res CRT */
+				
+			//TODO: return corresponding values in al when 20-lines/40-columns modes are implemented.
+			//Attribute bit (bit 2)
+			reg_al = pc98_attr4_graphic ? 0x04 : 0x00;
+			
+			break;
         // TODO: "Edge" is using INT 18h AH=06h, what is that?
         //       Neko Project is also unaware of such a call.
         case 0x0C: /* text layer enable */
