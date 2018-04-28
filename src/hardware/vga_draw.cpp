@@ -1163,7 +1163,11 @@ interrupted_char_begin:
                         doublewide = true;
                     }
 
-                    font = pc98_font_char_read(chr,pc98_gdc[GDC_MASTER].row_line,0);
+                    /* FIXME: Is this what hardware does? Confirm! */
+                    if (pc98_gdc[GDC_MASTER].row_line < 0x10)
+                        font = pc98_font_char_read(chr,pc98_gdc[GDC_MASTER].row_line,0);
+                    else
+                        font = 0;
                 }
             }
             else {
@@ -1197,7 +1201,11 @@ interrupted_char_begin:
                         goto interrupted_char_begin;
                 }
 
-                font = pc98_font_char_read(chr,pc98_gdc[GDC_MASTER].row_line,1);
+                    /* FIXME: Is this what hardware does? Confirm! */
+                if (pc98_gdc[GDC_MASTER].row_line < 0x10)
+                    font = pc98_font_char_read(chr,pc98_gdc[GDC_MASTER].row_line,1);
+                else
+                    font = 0;
             }
 
             lineoverlay <<= 8;
