@@ -2583,6 +2583,7 @@ static Bitu INT18_PC98_Handler(void) {
         case 0x31: /* Return display mode and status */
             if (enable_pc98_egc) { /* FIXME: INT 18h AH=31/30h availability is tied to EGC enable */
                 unsigned char b597 = mem_readb(0x597);
+                unsigned char tstat = mem_readb(0x53C);
                 /* Return values:
                  *
                  * AL =
@@ -2616,7 +2617,11 @@ static Bitu INT18_PC98_Handler(void) {
                 reg_al =
                     ((pc98_31khz_mode ? 3 : 2) << 2)/*hsync*/;
                 reg_bh =
-                    ((b597 & 3) << 4)/*graphics video mode*/ + 1/*25 rows*/;
+                    ((b597 & 3) << 4)/*graphics video mode*/;
+                if (tstat & 0x10)
+                    reg_bh |= 2;/*30 rows*/
+                else if ((tstat & 0x01) == 0)
+                    reg_bh |= 1;/*25 rows*/
             }
             break;
         /* From this point on the INT 18h call list appears to wander off from the keyboard into CRT/GDC/display management. */
@@ -5213,6 +5218,18 @@ private:
 
             /* number of scanlines per text row - 1 */
             mem_writeb(0x53B,0x0F); // CRT_RASTER, 640x400 24.83KHz-hsync 56.42Hz-vsync
+
+            /* Text screen status.
+             * Note that most of the bits are used verbatim in INT 18h AH=0Ah/AH=0Bh */
+            /* bit[7:7] = High resolution display                   1=yes           0=no (standard)
+             * bit[6:6] = vsync                                     1=VSYNC wait    0=end of vsync handling
+             * bit[5:5] = unused
+             * bit[4:4] = Number of lines                           1=30 lines      0=20/25 lines
+             * bit[3:3] = K-CG access mode                          1=dot access    0=code access
+             * bit[2:2] = Attribute mode (how to handle bit 4)      1=Simp. graphic 0=Vertical line
+             * bit[1:1] = Number of columns                         1=40 cols       0=80 cols
+             * bit[0:0] = Number of lines                           1=20/30 lines   0=25 lines */
+            mem_writeb(0x53C,0x00);
 
             /* BIOS flags */
             /* bit[7:7] = Graphics display state                    1=Visible       0=Blanked (hidden)
