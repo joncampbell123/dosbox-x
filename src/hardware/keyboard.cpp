@@ -1280,11 +1280,11 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_kpcomma:       ret=0x4F;break;     // , (KEYPAD)
     case KBD_kpperiod:      ret=0x50;break;     // . (KEYPAD)
 /*  case KBD_???????:       ret=0x51;break; */  // NFER
-/*  case KBD_???????:       ret=0x52;break; */  // vf･1
-/*  case KBD_???????:       ret=0x53;break; */  // vf･2
-/*  case KBD_???????:       ret=0x54;break; */  // vf･3
-/*  case KBD_???????:       ret=0x55;break; */  // vf･4
-/*  case KBD_???????:       ret=0x56;break; */  // vf･5
+    case KBD_vf1:           ret=0x52;break;     // vf･1
+    case KBD_vf2:           ret=0x53;break;     // vf･2
+    case KBD_vf3:           ret=0x54;break;     // vf･3
+    case KBD_vf4:           ret=0x55;break;     // vf･4
+    case KBD_vf5:           ret=0x56;break;     // vf･5
     case KBD_stop:          ret=0x60;break;     // STOP
     case KBD_copy:          ret=0x61;break;     // COPY
     case KBD_f1:            ret=0x62;break;     // f･1
