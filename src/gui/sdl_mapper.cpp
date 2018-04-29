@@ -2342,13 +2342,12 @@ static void CreateLayout(void) {
 
         AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW*2,BH,"COPY","copy",KBD_copy);
 
-        AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW*1,BH,"Ro","jp_ro",KBD_jp_ro);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+2),BW*1,BH,"VF1","vf1",KBD_vf1);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW*1,BH,"VF2","vf2",KBD_vf2);
-        AddKeyButtonEvent(PX(XO+3),PY(YO+2),BW*1,BH,"VF3","vf3",KBD_vf3);
-
-        AddKeyButtonEvent(PX(XO+0),PY(YO+3),BW*1,BH,"VF4","vf4",KBD_vf4);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+3),BW*1,BH,"VF5","vf5",KBD_vf5);
+        AddKeyButtonEvent(PX(XO+0),PY(YO+3),BW*1,BH,"VF1","vf1",KBD_vf1);
+        AddKeyButtonEvent(PX(XO+1),PY(YO+3),BW*1,BH,"VF2","vf2",KBD_vf2);
+        AddKeyButtonEvent(PX(XO+2),PY(YO+3),BW*1,BH,"VF3","vf3",KBD_vf3);
+        AddKeyButtonEvent(PX(XO+0),PY(YO+4),BW*1,BH,"VF4","vf4",KBD_vf4);
+        AddKeyButtonEvent(PX(XO+1),PY(YO+4),BW*1,BH,"VF5","vf5",KBD_vf5);
+        AddKeyButtonEvent(PX(XO+2),PY(YO+4),BW*1,BH,"Ro","jp_ro",KBD_jp_ro);
     }
     else {
         /* F13-F24 block */
