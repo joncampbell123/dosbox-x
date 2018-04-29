@@ -862,7 +862,10 @@ public:
         /* NTS: Load address is 128KB - sector size */
         load_seg=IS_PC98_ARCH ? (0x2000 - (bootsize/16U)) : 0x07C0;
 
-		imageDiskList[drive-65]->Read_Sector(0,0,1,(Bit8u *)&bootarea);
+		if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (Bit8u *)&bootarea) != 0) {
+			WriteOut("Error reading drive");
+			return;
+		};
 
 		Bitu pcjr_hdr_length = 0;
 		Bit8u pcjr_hdr_type = 0; // not a PCjr cartridge
