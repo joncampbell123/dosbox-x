@@ -1222,7 +1222,7 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_i:             ret=0x17;break;     // i  I  ニ
     case KBD_o:             ret=0x18;break;     // o  O  ラ
     case KBD_p:             ret=0x19;break;     // p  P  セ
-/*  case KBD_???????:       ret=0x1A;break; */  // @  ~  ﾞ
+    case KBD_atsign:        ret=0x1A;break;     // @  ~  ﾞ
     case KBD_leftbracket:   ret=0x1B;break;     // [  {  ﾟ  ｢
     case KBD_enter:         ret=0x1C;break;     // ENTER/RETURN
     case KBD_kpenter:       ret=0x1C;break;     // ENTER/RETURN (KEYPAD)
