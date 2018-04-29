@@ -971,7 +971,14 @@ static Bitu IRQ1_Handler_PC98(void) {
                         add_key(scan_add + ';');
                 }
                 break;
-
+            case 0x27: //   :           :       *       ---     ケ
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '*');
+                    else
+                        add_key(scan_add + ':');
+                }
+                break;
             case 0x28: //   ]           ]       }       ---     ム      ｣
                 if (pressed) {
                     if (flags1 & 3) /* shift */
