@@ -2354,6 +2354,7 @@ static void CreateLayout(void) {
 	AddKeyButtonEvent(PX(XO+6),PY(YO+0),BW*1,BH,"YEN",     "jp_yen",     KBD_jp_yen);
 	AddKeyButtonEvent(PX(XO+6),PY(YO+1),BW*1,BH,"\\",      "jp_bckslash",KBD_jp_backslash);
 	AddKeyButtonEvent(PX(XO+6),PY(YO+2),BW*1,BH,":",       "colon",      KBD_colon);
+	AddKeyButtonEvent(PX(XO+7),PY(YO+0),BW*1,BH,"^",       "caret",      KBD_caret);
 	/* Korean */
 	AddKeyButtonEvent(PX(XO+3),PY(YO+1),BW*3,BH,"HANCHA",  "kor_hancha", KBD_kor_hancha);
 	AddKeyButtonEvent(PX(XO+3),PY(YO+2),BW*3,BH,"HANYONG", "kor_hanyong",KBD_kor_hanyong);
@@ -2690,6 +2691,7 @@ static struct {
 	{"jp_henkan", SDLK_WORLD_14 },
 	{"jp_hiragana", SDLK_WORLD_15 },
     {"colon", SDLK_COLON },
+    {"caret", SDLK_CARET },
 #endif
 
 	{0,0}

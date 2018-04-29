@@ -1206,7 +1206,8 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_9:             ret=0x09;break;     // 9  )  ヨ ョ
     case KBD_0:             ret=0x0A;break;     // 0     ワ ヲ
     case KBD_minus:         ret=0x0B;break;     // -  =  ホ
-    case KBD_equals:        ret=0x0C;break;     // ^  `  ヘ
+    case KBD_equals:        ret=0x0C;break;     // ^  `  ヘ             US keyboard layout hack
+    case KBD_caret:         ret=0x0C;break;     // ^  `  ヘ
     case KBD_backslash:     ret=0x0D;break;     // ¥  |  ｰ
     case KBD_jp_yen:        ret=0x0D;break;     // ¥  |  ｰ
     case KBD_backspace:     ret=0x0E;break;     // BS (BACKSPACE)
