@@ -673,29 +673,33 @@ static Bitu IRQ1_Handler_PC98(void) {
          *          as laid out on Japanese keyboards.
          *        - This will use a lookup table with special cases such as
          *          modifier keys. */
+        //                  Keyboard layout and processing, copied from an actual PC-98 keyboard
+        //
+        //                  KEY         UNSHIFT SHIFT   CTRL    KANA
+        //                  ----------------------------------------
         switch (sc_8251) {
-            case 0x00: // ESC
+            case 0x00: //   ESC         ESC     ???     ???     ???
                 if (pressed) {
                     add_key(scan_add + 27);
                 }
                 break;
-            case 0x01: // 1
+            case 0x01: //   1           1       !       ???     ヌ
                 if (pressed) {
-                    if (flags1 & 3) /* shift */
+                    if (flags1 & 3) /* either shift */
                         add_key(scan_add + '!');
                     else
                         add_key(scan_add + '1');
                 }
                 break;
-            case 0x02: // 2
+            case 0x02:  //  2           2       "       ???     フ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key(scan_add + '@');
+                        add_key(scan_add + '\"');
                     else
                         add_key(scan_add + '2');
                 }
                 break;
-            case 0x03: // 3
+            case 0x03:  //  3           3       #       ???     ア
                 if (pressed) {
                     if (flags1 & 3) /* shift */
                         add_key(scan_add + '#');
@@ -703,7 +707,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                         add_key(scan_add + '3');
                 }
                 break;
-            case 0x04: // 4
+            case 0x04:  //  4           4       $       ???     ウ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
                         add_key(scan_add + '$');
@@ -711,7 +715,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                         add_key(scan_add + '4');
                 }
                 break;
-            case 0x05: // 5
+            case 0x05:  //  5           5       %       ???     エ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
                         add_key(scan_add + '%');
@@ -719,68 +723,68 @@ static Bitu IRQ1_Handler_PC98(void) {
                         add_key(scan_add + '5');
                 }
                 break;
-            case 0x06: // 6
-                if (pressed) {
-                    if (flags1 & 3) /* shift */
-                        add_key(scan_add + '^');
-                    else
-                        add_key(scan_add + '6');
-                }
-                break;
-            case 0x07: // 7
+            case 0x06:  //  6           6       &       ???     オ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
                         add_key(scan_add + '&');
                     else
+                        add_key(scan_add + '6');
+                }
+                break;
+            case 0x07:  //  7           7       '       ???     ヤ
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '\'');
+                    else
                         add_key(scan_add + '7');
                 }
                 break;
-            case 0x08: // 8
+            case 0x08:  //  8           8       (       ???     ユ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key(scan_add + '*');
+                        add_key(scan_add + '(');
                     else
                         add_key(scan_add + '8');
                 }
                 break;
-            case 0x09: // 9
+            case 0x09:  //  9           9       )       ???     ヨ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key(scan_add + '(');
+                        add_key(scan_add + ')');
                     else
                         add_key(scan_add + '9');
                 }
                 break;
-            case 0x0A: // 0
+            case 0x0A:  //  0           0       ---     ???     ワ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key(scan_add + '(');
+                        { /* nothing */ }
                     else
                         add_key(scan_add + '0');
                 }
                 break;
-            case 0x0B: // -
+            case 0x0B:  //  -           -       =       ???     ホ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key(scan_add + '_');
+                        add_key(scan_add + '=');
                     else
                         add_key(scan_add + '-');
                 }
                 break;
-            case 0x0C: // =
+            case 0x0C:  //  ^           ^       `       ???     ヘ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key(scan_add + '+');
+                        add_key(scan_add + '`');
                     else
-                        add_key(scan_add + '=');
+                        add_key(scan_add + '^');
                 }
                 break;
-            case 0x0D: // \ backslash
+            case 0x0D:  //  ¥           ¥       |       ???     ???
                 if (pressed) {
                     if (flags1 & 3) /* shift */
                         add_key(scan_add + '|');
                     else
-                        add_key(scan_add + '\\');
+                        add_key(scan_add + '\\'); /* In Shift-JIS, backslash becomes the Yen symbol */
                 }
                 break;
             case 0x0E: // backspace
@@ -951,10 +955,10 @@ static Bitu IRQ1_Handler_PC98(void) {
                         add_key(scan_add + 'l');
                 }
                 break;
-            case 0x26: // ;
+            case 0x26: //   ;           ;       +       ---     レ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key(scan_add + ':');
+                        add_key(scan_add + '+');
                     else
                         add_key(scan_add + ';');
                 }
@@ -1016,7 +1020,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                         add_key(scan_add + 'm');
                 }
                 break;
-            case 0x30: // ,
+            case 0x30: //   ,           ,       <       ---     ネ      ､
                 if (pressed) {
                     if (flags1 & 3) /* shift */
                         add_key(scan_add + '<');
@@ -1024,7 +1028,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                         add_key(scan_add + ',');
                 }
                 break;
-            case 0x31: // .
+            case 0x31: //   .           .       >       ---     ル      ｡
                 if (pressed) {
                     if (flags1 & 3) /* shift */
                         add_key(scan_add + '>');
@@ -1032,7 +1036,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                         add_key(scan_add + '.');
                 }
                 break;
-            case 0x32: // /
+            case 0x32: //   /           /       ?       ---     メ      ･
                 if (pressed) {
                     if (flags1 & 3) /* shift */
                         add_key(scan_add + '?');
@@ -1050,16 +1054,16 @@ static Bitu IRQ1_Handler_PC98(void) {
                 // does not pass it on
                 break;
 
-            case 0x62: // F1
-            case 0x63: // F2
-            case 0x64: // F3
-            case 0x65: // F4
-            case 0x66: // F5
-            case 0x67: // F6
-            case 0x68: // F7
-            case 0x69: // F8
-            case 0x6A: // F9
-            case 0x6B: // F10
+            case 0x62: // F1            f･1     ???     ???     ???     ???
+            case 0x63: // F2            f･2     ???     ???     ???     ???
+            case 0x64: // F3            f･3     ???     ???     ???     ???
+            case 0x65: // F4            f･4     ???     ???     ???     ???
+            case 0x66: // F5            f･5     ???     ???     ???     ???
+            case 0x67: // F6            f･6     ???     ???     ???     ???
+            case 0x68: // F7            f･7     ???     ???     ???     ???
+            case 0x69: // F8            f･8     ???     ???     ???     ???
+            case 0x6A: // F9            f･9     ???     ???     ???     ???
+            case 0x6B: // F10           f･10    ???     ???     ???     ???
                 if (pressed) {
                     if (flags1 & 4) /* CTRL */
                         add_key(scan_add + 0x3000); /* 0x92-0x9B */
