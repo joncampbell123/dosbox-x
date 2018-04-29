@@ -2337,8 +2337,10 @@ static void CreateLayout(void) {
 #define YO 7
     if (IS_PC98_ARCH) {
         /* PC-98 extra keys */
-        AddKeyButtonEvent(PX(XO+0),PY(YO+0),BW*2,BH,"Ro","jp_ro",KBD_jp_ro);
+        AddKeyButtonEvent(PX(XO+0),PY(YO+0),BW*2,BH,"STOP","stop",KBD_stop);
         AddKeyButtonEvent(PX(XO+2),PY(YO+0),BW*2,BH,"HELP","help",KBD_help);
+        AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW*2,BH,"COPY","copy",KBD_copy);
+        AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW*1,BH,"Ro","jp_ro",KBD_jp_ro);
     }
     else {
         /* F13-F24 block */

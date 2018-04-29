@@ -1285,8 +1285,8 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
 /*  case KBD_???????:       ret=0x54;break; */  // vf･3
 /*  case KBD_???????:       ret=0x55;break; */  // vf･4
 /*  case KBD_???????:       ret=0x56;break; */  // vf･5
-/*  case KBD_???????:       ret=0x60;break; */  // STOP
-/*  case KBD_???????:       ret=0x61;break; */  // COPY
+    case KBD_stop:          ret=0x60;break;     // STOP
+    case KBD_copy:          ret=0x61;break;     // COPY
     case KBD_f1:            ret=0x62;break;     // f･1
     case KBD_f2:            ret=0x63;break;     // f･2
     case KBD_f3:            ret=0x64;break;     // f･3
