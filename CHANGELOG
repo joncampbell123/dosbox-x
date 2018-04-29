@@ -1,4 +1,7 @@
 0.82.6 (next)
+  - "Hold" modifier for mapper bindings fixed.
+    It is now possible to tap the key again to
+    release the hold.
   - VHD differencing disk support added (Shane32)
   - INT 18h AH=0Ah updated to support 20-line
     text mode. Some games use the 20-line text
