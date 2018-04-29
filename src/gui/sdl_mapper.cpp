@@ -243,7 +243,7 @@ public:
 			if (_value>25000) {
 				event->SetValue(_value);
 				if (active) return;
-				event->ActivateEvent(ev_trigger,skip_action);
+				if (!holding) event->ActivateEvent(ev_trigger,skip_action);
 				active=true;
 			} else {
 				if (active) {
