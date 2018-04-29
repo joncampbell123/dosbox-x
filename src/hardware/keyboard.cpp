@@ -1253,7 +1253,7 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_slash:         ret=0x32;break;     // /  ?  メ ･
     case KBD_jp_ro:         ret=0x33;break;     //    _  ロ
     case KBD_space:         ret=0x34;break;     // SPACEBAR
-/*  case KBD_???????:       ret=0x35;break; */  // XFER
+    case KBD_xfer:          ret=0x35;break;     // XFER
     case KBD_pageup:        ret=0x36;break;     // ROLL UP
     case KBD_pagedown:      ret=0x37;break;     // ROLL DOWN
     case KBD_insert:        ret=0x38;break;     // INS
@@ -1281,7 +1281,7 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_kp0:           ret=0x4E;break;     // 0 (KEYPAD)
     case KBD_kpcomma:       ret=0x4F;break;     // , (KEYPAD)
     case KBD_kpperiod:      ret=0x50;break;     // . (KEYPAD)
-/*  case KBD_???????:       ret=0x51;break; */  // NFER
+    case KBD_nfer:          ret=0x51;break;     // NFER
     case KBD_vf1:           ret=0x52;break;     // vf･1
     case KBD_vf2:           ret=0x53;break;     // vf･2
     case KBD_vf3:           ret=0x54;break;     // vf･3

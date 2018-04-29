@@ -68,6 +68,7 @@ enum KBD_KEYS {
 	/* see reference image [https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/KB_Japanese.svg/1280px-KB_Japanese.svg.png] */
 	KBD_jp_yen, KBD_jp_backslash, KBD_colon, KBD_caret, KBD_atsign, KBD_jp_ro, KBD_help, KBD_kpcomma,
     KBD_stop, KBD_copy, KBD_vf1, KBD_vf2, KBD_vf3, KBD_vf4, KBD_vf5, KBD_kana,
+    KBD_nfer, KBD_xfer,
 
 	KBD_LAST
 };
