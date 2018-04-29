@@ -1109,6 +1109,12 @@ static Bitu IRQ1_Handler_PC98(void) {
                 flags1 |= pressed ? 3 : 0;
                 break;
 
+            case 0x71: // caps. do nothing
+                break;
+
+            case 0x72: // kana. do nothing
+                break;
+
             case 0x74: // left/right ctrl
                 flags1 &= ~4; // emulate AT BIOS l+r ctrl with PC-98 ctrl
                 flags1 |= pressed ? 4 : 0;

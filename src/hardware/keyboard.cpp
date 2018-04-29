@@ -1184,7 +1184,9 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 }
 
 bool pc98_caps(void);
+bool pc98_kana(void);
 void pc98_caps_toggle(void);
+void pc98_kana_toggle(void);
 void pc98_numlock_toggle(void);
 void pc98_keyboard_send(const unsigned char b);
 
@@ -1315,12 +1317,12 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
         pc98_numlock_toggle();
         return;
 
-/*  case KBD_???????:                           // KANA
- *      if (pressed) {                          // sends only on keypress, does not resend if held down
- *                                              // TODO: Scan code 0x72, make if switched on, break if switched off
- *      }
- *      return;
- */
+    case KBD_kana:                              // KANA
+        if (pressed) {                          // sends only on keypress, does not resend if held down
+            pc98_kana_toggle();
+            pc98_keyboard_send(0x72 | (!pc98_kana() ? 0x80 : 0x00)); // make code if caps switched on, break if caps switched off
+        }
+        return;
 
     default: return;
     };
@@ -1724,8 +1726,16 @@ bool pc98_caps(void) {
     return pc98_keyboard_state.caps;
 }
 
+bool pc98_kana(void) {
+    return pc98_keyboard_state.kana;
+}
+
 void pc98_caps_toggle(void) {
     pc98_keyboard_state.caps = !pc98_keyboard_state.caps;
+}
+
+void pc98_kana_toggle(void) {
+    pc98_keyboard_state.kana = !pc98_keyboard_state.kana;
 }
 
 void pc98_numlock_toggle(void) {
