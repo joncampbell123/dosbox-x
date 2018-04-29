@@ -2224,6 +2224,14 @@ static KeyBlock combo_1[14]={
 	{"=+","equals",KBD_equals},	{"\x1B","bspace",KBD_backspace},
 };
 
+static KeyBlock combo_1_pc98[14]={
+	{"`~","grave",KBD_grave},	{"1!","1",KBD_1},	{"2\"","2",KBD_2},
+	{"3#","3",KBD_3},			{"4$","4",KBD_4},	{"5%","5",KBD_5},
+	{"6&","6",KBD_6},			{"7'","7",KBD_7},	{"8(","8",KBD_8},
+	{"9)","9",KBD_9},			{"0","0",KBD_0},	{"-=","minus",KBD_minus},	
+	{"=+","equals",KBD_equals},	{"\x1B","bspace",KBD_backspace},
+};
+
 static KeyBlock combo_2[12]={
 	{"q","q",KBD_q},			{"w","w",KBD_w},	{"e","e",KBD_e},
 	{"r","r",KBD_r},			{"t","t",KBD_t},	{"y","y",KBD_y},
@@ -2261,7 +2269,13 @@ static void CreateLayout(void) {
 #define PY(_Y_) (10+(_Y_)*BH)
 	AddKeyButtonEvent(PX(0),PY(0),BW,BH,"ESC","esc",KBD_esc);
 	for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(0),BW,BH,combo_f[i].title,combo_f[i].entry,combo_f[i].key);
-	for (i=0;i<14;i++) AddKeyButtonEvent(PX(  i),PY(1),BW,BH,combo_1[i].title,combo_1[i].entry,combo_1[i].key);
+
+    if (IS_PC98_ARCH) {
+        for (i=0;i<14;i++) AddKeyButtonEvent(PX(  i),PY(1),BW,BH,combo_1_pc98[i].title,combo_1_pc98[i].entry,combo_1_pc98[i].key);
+    }
+    else {
+        for (i=0;i<14;i++) AddKeyButtonEvent(PX(  i),PY(1),BW,BH,combo_1[i].title,combo_1[i].entry,combo_1[i].key);
+    }
 
 	AddKeyButtonEvent(PX(0),PY(2),BW*2,BH,"TAB","tab",KBD_tab);
 	for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(2),BW,BH,combo_2[i].title,combo_2[i].entry,combo_2[i].key);
