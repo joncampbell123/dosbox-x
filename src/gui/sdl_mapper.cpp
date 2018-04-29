@@ -2248,6 +2248,14 @@ static KeyBlock combo_3[12]={
 	{"\\","backslash",KBD_backslash},	
 };
 
+static KeyBlock combo_3_pc98[12]={
+	{"a","a",KBD_a},			{"s","s",KBD_s},	{"d","d",KBD_d},
+	{"f","f",KBD_f},			{"g","g",KBD_g},	{"h","h",KBD_h},
+	{"j","j",KBD_j},			{"k","k",KBD_k},	{"l","l",KBD_l},
+	{";+","semicolon",KBD_semicolon},				{"'","quote",KBD_quote},
+	{"\\","backslash",KBD_backslash},	
+};
+
 static KeyBlock combo_4[11]={
 	{"<","lessthan",KBD_extra_lt_gt},
 	{"z","z",KBD_z},			{"x","x",KBD_x},	{"c","c",KBD_c},
@@ -2283,7 +2291,13 @@ static void CreateLayout(void) {
 	AddKeyButtonEvent(PX(14),PY(2),BW*2,BH*2,"ENTER","enter",KBD_enter);
 	
 	caps_lock_event=AddKeyButtonEvent(PX(0),PY(3),BW*2,BH,"CLCK","capslock",KBD_capslock);
-	for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(3),BW,BH,combo_3[i].title,combo_3[i].entry,combo_3[i].key);
+
+    if (IS_PC98_ARCH) {
+        for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(3),BW,BH,combo_3_pc98[i].title,combo_3_pc98[i].entry,combo_3_pc98[i].key);
+    }
+    else {
+        for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(3),BW,BH,combo_3[i].title,combo_3[i].entry,combo_3[i].key);
+    }
 
 	AddKeyButtonEvent(PX(0),PY(4),BW*2,BH,"SHIFT","lshift",KBD_leftshift);
 	for (i=0;i<11;i++) AddKeyButtonEvent(PX(2+i),PY(4),BW,BH,combo_4[i].title,combo_4[i].entry,combo_4[i].key);
@@ -2393,9 +2407,9 @@ static void CreateLayout(void) {
 	AddKeyButtonEvent(PX(XO+3),PY(YO+0),BW*3,BH,"HIRAGANA","jp_hiragana",KBD_jp_hiragana);
 	AddKeyButtonEvent(PX(XO+6),PY(YO+0),BW*1,BH,"YEN",     "jp_yen",     KBD_jp_yen);
 	AddKeyButtonEvent(PX(XO+6),PY(YO+1),BW*1,BH,"\\",      "jp_bckslash",KBD_jp_backslash);
-	AddKeyButtonEvent(PX(XO+6),PY(YO+2),BW*1,BH,":",       "colon",      KBD_colon);
-	AddKeyButtonEvent(PX(XO+7),PY(YO+0),BW*1,BH,"^",       "caret",      KBD_caret);
-    AddKeyButtonEvent(PX(XO+7),PY(YO+1),BW*1,BH,"@",       "atsign",     KBD_atsign);
+	AddKeyButtonEvent(PX(XO+6),PY(YO+2),BW*1,BH,":*",      "colon",      KBD_colon);
+	AddKeyButtonEvent(PX(XO+7),PY(YO+0),BW*1,BH,"^`",      "caret",      KBD_caret);
+    AddKeyButtonEvent(PX(XO+7),PY(YO+1),BW*1,BH,"@~",      "atsign",     KBD_atsign);
 	/* Korean */
 	AddKeyButtonEvent(PX(XO+3),PY(YO+1),BW*3,BH,"HANCHA",  "kor_hancha", KBD_kor_hancha);
 	AddKeyButtonEvent(PX(XO+3),PY(YO+2),BW*3,BH,"HANYONG", "kor_hanyong",KBD_kor_hanyong);
