@@ -1,4 +1,5 @@
 0.82.6 (next)
+  - VHD differencing disk support added (Shane32)
   - INT 18h AH=0Ah updated to support 20-line
     text mode. Some games use the 20-line text
     mode to space the text out vertically.
