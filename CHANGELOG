@@ -1,4 +1,10 @@
 0.82.6 (next)
+  - PC-98 keyboard BIOS handling updated to generate
+    ASCII codes according to PC-98 layout, instead
+    of by US keyboard layout.
+  - Mapper updated to support @ (at sign) key,
+    ^ (caret) key, and a few other keys that
+    exist on JP keyboards.
   - "Hold" modifier for mapper bindings fixed.
     It is now possible to tap the key again to
     release the hold.
