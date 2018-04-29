@@ -2323,7 +2323,13 @@ static void CreateLayout(void) {
 	AddKeyButtonEvent(PX(XO+1),PY(YO+3),BW,BH,"2","kp_2",KBD_kp2);
 	AddKeyButtonEvent(PX(XO+2),PY(YO+3),BW,BH,"3","kp_3",KBD_kp3);
 	AddKeyButtonEvent(PX(XO+3),PY(YO+3),BW,BH*2,"ENT","kp_enter",KBD_kpenter);
-	AddKeyButtonEvent(PX(XO),PY(YO+4),BW*2,BH,"0","kp_0",KBD_kp0);
+    if (IS_PC98_ARCH) {
+        AddKeyButtonEvent(PX(XO+0),PY(YO+4),BW*1,BH,"0","kp_0",KBD_kp0);
+        AddKeyButtonEvent(PX(XO+1),PY(YO+4),BW*1,BH,",","kp_comma",KBD_kpcomma);
+    }
+    else {
+        AddKeyButtonEvent(PX(XO+0),PY(YO+4),BW*2,BH,"0","kp_0",KBD_kp0);
+    }
 	AddKeyButtonEvent(PX(XO+2),PY(YO+4),BW,BH,".","kp_period",KBD_kpperiod);
 #undef XO
 #undef YO
@@ -2331,7 +2337,8 @@ static void CreateLayout(void) {
 #define YO 7
     if (IS_PC98_ARCH) {
         /* PC-98 extra keys */
-        AddKeyButtonEvent(PX(XO+0),PY(YO+0),BW,BH,"Ro","jp_ro",KBD_jp_ro);
+        AddKeyButtonEvent(PX(XO+0),PY(YO+0),BW*2,BH,"Ro","jp_ro",KBD_jp_ro);
+        AddKeyButtonEvent(PX(XO+2),PY(YO+0),BW*2,BH,"HELP","help",KBD_help);
     }
     else {
         /* F13-F24 block */

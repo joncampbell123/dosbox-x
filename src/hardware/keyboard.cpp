@@ -1261,7 +1261,7 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_right:         ret=0x3C;break;     // RIGHT ARROW
     case KBD_down:          ret=0x3D;break;     // DOWN ARROW
     case KBD_home:          ret=0x3E;break;     // HOME / CLR
-/*  case KBD_???????:       ret=0x3F;break; */  // HELP
+    case KBD_help:          ret=0x3F;break;     // HELP
     case KBD_kpminus:       ret=0x40;break;     // - (KEYPAD)
     case KBD_kpdivide:      ret=0x41;break;     // / (KEYPAD)
     case KBD_kp7:           ret=0x42;break;     // 7 (KEYPAD)
@@ -1277,7 +1277,7 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_kp3:           ret=0x4C;break;     // 3 (KEYPAD)
     case KBD_kpequals:      ret=0x4D;break;     // = (KEYPAD)
     case KBD_kp0:           ret=0x4E;break;     // 0 (KEYPAD)
-/*  case KBD_???????:       ret=0x4F;break; */  // , (KEYPAD)
+    case KBD_kpcomma:       ret=0x4F;break;     // , (KEYPAD)
     case KBD_kpperiod:      ret=0x50;break;     // . (KEYPAD)
 /*  case KBD_???????:       ret=0x51;break; */  // NFER
 /*  case KBD_???????:       ret=0x52;break; */  // vf･1
