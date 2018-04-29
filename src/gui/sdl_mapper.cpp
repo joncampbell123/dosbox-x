@@ -108,8 +108,6 @@ typedef std::vector<CEvent *>::iterator CEventVector_it;
 typedef std::vector<CHandlerEvent *>::iterator CHandlerEventVector_it;
 typedef std::vector<CBindGroup *>::iterator CBindGroup_it;
 
-static CBindList holdlist;
-
 class CEvent {
 public:
 	CEvent(char const * const _entry) {
@@ -263,11 +261,9 @@ public:
 			active=false;
 			if (flags & BFLG_Hold) {
 				if (!holding) {
-					holdlist.push_back(this);
 					holding=true;
 					return;
 				} else {
-					holdlist.remove(this);
 					holding=false;
 				}
 			}
