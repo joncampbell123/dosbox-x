@@ -42,6 +42,8 @@
 * - code does not prevent loading if the VHD is marked as being part of a saved state
 * - code prevents loading if parent does not match correct guid
 * - code does not prevent loading if parent does not match correct datestamp
+* - for differencing disks, parent paths are converted to ASCII; unicode characters will cancel loading
+* - differencing disks only support absolute paths on Windows platforms
 *
 */
 
@@ -203,7 +205,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	return OPEN_SUCCESS;
 }
 
-bool ConvertUTF16toASCII(std::string &string, const void* data, const Bit32u dataLength) {
+bool imageDiskVHD::ConvertUTF16toASCII(std::string &string, const void* data, const Bit32u dataLength) {
 	size_t wcharcount = dataLength / 2;
 	string.reserve((size_t)(string.size() + wcharcount + 1));
 	const wchar_t* wchar = (const wchar_t*)data;
@@ -370,6 +372,7 @@ imageDiskVHD::VHDTypes imageDiskVHD::GetVHDType(const char* fileName) {
 
 bool imageDiskVHD::loadBlock(const Bit32u blockNumber) {
 	if (currentBlock == blockNumber) return true;
+	if (blockNumber >= dynamicHeader.maxTableEntries) return false;
 	if (fseeko64(diskimg, dynamicHeader.tableOffset + (blockNumber * 4), SEEK_SET)) return false;
 	Bit32u blockSectorOffset;
 	if (fread(&blockSectorOffset, sizeof(Bit8u), 4, diskimg) != 4) return false;
