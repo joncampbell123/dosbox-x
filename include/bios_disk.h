@@ -249,7 +249,7 @@ private:
 		Bit32u maxTableEntries;
 		Bit32u blockSize;
 		Bit32u checksum;
-		char parentUniqueId[16];
+		Bit8u parentUniqueId[16];
 		Bit32u parentTimeStamp;
 		Bit32u reserved;
 		Bit16u parentUnicodeName[256];
@@ -262,7 +262,7 @@ private:
 	};
 
 	imageDiskVHD() : parentDisk(NULL), copiedFooter(false), currentBlock(0xFFFFFFFF), currentBlockAllocated(false), currentBlockDirtyMap(NULL) { }
-	static ErrorCodes TryOpenParent(const char* childFileName, const ParentLocatorEntry &entry, Bit8u* data, const Bit32u dataLength, imageDisk** disk, const char* uniqueId);
+	static ErrorCodes TryOpenParent(const char* childFileName, const ParentLocatorEntry &entry, Bit8u* data, const Bit32u dataLength, imageDisk** disk, const Bit8u* uniqueId);
 	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** imageDisk, const Bit8u* matchUniqueId);
 	virtual bool loadBlock(const Bit32u blockNumber);
 
