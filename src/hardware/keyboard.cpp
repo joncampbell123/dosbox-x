@@ -1236,7 +1236,7 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_l:             ret=0x25;break;     // l  L  リ
     case KBD_semicolon:     ret=0x26;break;     // ;  +  レ
     case KBD_quote:         ret=0x27;break;     // :  *  ケ         American US keyboard layout hack
-/*  case KBD_???????:       ret=0x27;break; */  // :  *  ケ
+    case KBD_colon:         ret=0x27;break;     // :  *  ケ
     case KBD_rightbracket:  ret=0x28;break;     // ]  }  ム ｣
     case KBD_z:             ret=0x29;break;     // z  Z  ツ ッ
     case KBD_x:             ret=0x2A;break;     // x  X  サ
