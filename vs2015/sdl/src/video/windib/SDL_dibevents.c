@@ -487,14 +487,13 @@ void DIB_CheckMouse(void) {
 	last_dib_mouse_motion = SDL_GetTicks();
 }
 
-void DIB_InitOSKeymap(_THIS)
-{
+void DIB_InitOSKeymapPriv(void) {
 	int	i;
 
 	hLayout = GetKeyboardLayout(0);
 
 	/* Map the VK keysyms */
-	for ( i=0; i<SDL_arraysize(VK_keymap); ++i )
+	for (i = 0; i<SDL_arraysize(VK_keymap); ++i)
 		VK_keymap[i] = SDLK_UNKNOWN;
 
 	VK_keymap[VK_BACK] = SDLK_BACKSPACE;
@@ -523,7 +522,6 @@ void DIB_InitOSKeymap(_THIS)
 	VK_keymap[VK_EQUALS] = SDLK_EQUALS;
 	VK_keymap[VK_LBRACKET] = SDLK_LEFTBRACKET;
 	VK_keymap[VK_BACKSLASH] = SDLK_BACKSLASH;
-	VK_keymap[VK_OEM_102] = SDLK_LESS;
 	VK_keymap[VK_RBRACKET] = SDLK_RIGHTBRACKET;
 	VK_keymap[VK_GRAVE] = SDLK_BACKQUOTE;
 	VK_keymap[VK_BACKTICK] = SDLK_BACKQUOTE;
@@ -617,10 +615,17 @@ void DIB_InitOSKeymap(_THIS)
 	VK_keymap[VK_CANCEL] = SDLK_BREAK;
 	VK_keymap[VK_APPS] = SDLK_MENU;
 
+	VK_keymap[VK_OEM_102] = SDLK_LESS;
+
 	Arrows_keymap[3] = 0x25;
 	Arrows_keymap[2] = 0x26;
 	Arrows_keymap[1] = 0x27;
 	Arrows_keymap[0] = 0x28;
+}
+
+void DIB_InitOSKeymap(_THIS)
+{
+	DIB_InitOSKeymapPriv();
 }
 
 #define EXTKEYPAD(keypad) ((scancode & 0x100)?(mvke):(keypad))

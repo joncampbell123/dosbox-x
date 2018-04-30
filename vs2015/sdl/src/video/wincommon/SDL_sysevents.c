@@ -264,6 +264,8 @@ unsigned int SDL1_hax_inhibit_WM_PAINT = 0;
 
 LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+void DIB_InitOSKeymapPriv(void);
+
 /* The main Win32 event handler
 DJM: This is no longer static as (DX5/DIB)_CreateWindow needs it
 */
@@ -712,6 +714,7 @@ this->hidden->hiresFix, &x, &y);
 			if (hLayout != hLayoutNew) {
 				hLayoutChanged = 1;
 				hLayout = hLayoutNew;
+				DIB_InitOSKeymap();
 			}
 #ifndef _WIN64
 			codepage = GetCodePage();
