@@ -2548,11 +2548,11 @@ static void CreateLayout(void) {
 	bind_but.del=new CBindButton(70,384,50,20,"Del",BB_Del);
 	bind_but.next=new CBindButton(120,384,50,20,"Next",BB_Next);
 
-	bind_but.save=new CBindButton(400,440,50,20,"Save",BB_Save);
-	bind_but.exit=new CBindButton(450,440,50,20,"Exit",BB_Exit);
-	bind_but.cap=new CBindButton(500,440,50,20,"Capt",BB_Capture);
+	bind_but.save=new CBindButton(180,440,50,20,"Save",BB_Save);
+	bind_but.exit=new CBindButton(230,440,50,20,"Exit",BB_Exit);
+	bind_but.cap=new CBindButton(280,440,50,20,"Capt",BB_Capture);
 
-	bind_but.dbg=new CCaptionButton(180,460,460,20); // right below the Save button
+	bind_but.dbg=new CCaptionButton(180,462,460,20); // right below the Save button
 	bind_but.dbg->Change("(event debug)");
 
 	bind_but.bind_title->Change("Bind Title");
