@@ -1240,7 +1240,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
              * First, determine sector size according to the boot sector. */
             vfdentry *ent;
 
-            ent = findSector(/*head*/0,/*track*/0,/*sector*/1+i);
+            ent = findSector(/*head*/0,/*track*/0,/*sector*/1);
             if (ent != NULL) {
                 if (ent->sizebyte <= 3) /* x <= 1024 */
                     sector_size = ent->getSectorSize();
@@ -1251,7 +1251,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
              * in the boot sector and the rest is 256 bytes/sector elsewhere. I have no idea why
              * but quite a few FDD images have this arrangement. */
             if (sector_size != 0 && sector_size < 512) {
-                ent = findSector(/*head*/0,/*track*/1,/*sector*/1+i);
+                ent = findSector(/*head*/0,/*track*/1,/*sector*/1);
                 if (ent != NULL) {
                     if (ent->sizebyte <= 3) { /* x <= 1024 */
                         unsigned int nsz = ent->getSectorSize();
