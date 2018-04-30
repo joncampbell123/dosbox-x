@@ -14,6 +14,52 @@
 void UpdateWindowDimensions(Bitu width, Bitu height);
 void UpdateWindowMaximized(bool flag);
 
+#if !defined(C_SDL2)
+extern "C" void SDL1_hax_X11_jpfix(int ro_scan,int yen_scan);
+#endif
+
+void Linux_JPXKBFix(void) {
+#if !defined(C_SDL2)
+    SDL_SysWMinfo wminfo;
+    memset(&wminfo,0,sizeof(wminfo));
+    SDL_VERSION(&wminfo.version);
+    if (SDL_GetWMInfo(&wminfo) >= 0) {
+        if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
+            /* detect xkbmap with Ro and Yen keys mapped to \, determine the scan codes,
+             * and then hack the SDL 1.x X11 driver to handle it.
+             *
+             * Never assume specific scan codes, even though on my system the scan codes
+             * are 97 (Yen) and 132 (Ro) both mapped to \ backslash.
+             *
+             * We can use the index to look for keysyms that mention backslash and underscore (Ro)
+             * or backslash and bar (Yen) */
+            /* TODO: If xkbmap actually maps these keys properly, how can we tell? */
+            int ro=-1,yen=-1;
+            unsigned int i,j;
+            KeySym sym[4];
+
+            for (i=0;i < 256;i++) {
+                for (j=0;j < 4;j++)
+                    sym[j] = XKeycodeToKeysym(wminfo.info.x11.display,(KeyCode)i,j);
+
+                if (sym[0] == '\\') {
+                    if (sym[1] == '_') { /* shift + backslash == _   means we found Ro */
+                        if (ro < 0) ro = i;
+                    }
+                    else if (sym[1] == '|') { /* shift + backslash == |   means we found Yen */
+                        if (yen < 0) yen = i;
+                    }
+                }
+            }
+
+            LOG_MSG("JP Linux/X11 fix: Found Ro=%d Yen=%d",ro,yen);
+
+            SDL1_hax_X11_jpfix(ro,yen);
+        }
+    }
+#endif
+}
+
 unsigned int Linux_GetKeyboardLayout(void) {
     unsigned int ret = DKM_US;
 

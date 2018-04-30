@@ -1117,6 +1117,25 @@ void X11_InitKeymap(void)
 	MISC_keymap[XK_Hyper_R&0xFF] = SDLK_MENU;   /* Windows "Menu" key */
 }
 
+/* HACK: Set up hack/fix for JP keyboards and Ro/Yen keys */
+static int keybhack_jp = 0;
+static int keybhack_jp_ro = -1;
+static int keybhack_jp_yen = -1;
+
+void SDL1_hax_X11_clearfix(void) {
+    keybhack_jp = 0;
+    keybhack_jp_ro = -1;
+    keybhack_jp_yen = -1;
+}
+
+void SDL1_hax_X11_jpfix(int ro_scan,int yen_scan) {
+    SDL1_hax_X11_clearfix();
+
+    keybhack_jp = 1;
+    keybhack_jp_ro = ro_scan;
+    keybhack_jp_yen = yen_scan;
+}
+
 /* Get the translated SDL virtual keysym */
 SDLKey X11_TranslateKeycode(Display *display, KeyCode kc)
 {
@@ -1128,6 +1147,15 @@ SDLKey X11_TranslateKeycode(Display *display, KeyCode kc)
 	fprintf(stderr, "Translating key code %d -> 0x%.4x\n", kc, xsym);
 #endif
 	key = SDLK_UNKNOWN;
+
+    /* JP Linux/X11 hack for Ro/Yen keys */
+    if (keybhack_jp && xsym == '\\') {
+        if (keybhack_jp_ro >= 0 && kc == keybhack_jp_ro)
+            return SDLK_JP_RO;
+        if (keybhack_jp_yen >= 0 && kc == keybhack_jp_yen)
+            return SDLK_JP_YEN;
+    }
+
 	if ( xsym ) {
 		switch (xsym>>8) {
 		    case 0x1005FF:
