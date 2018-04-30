@@ -1,4 +1,12 @@
 0.82.6 (next)
+  - SDL 1.x for Linux/X11 modified to differentiate
+    Ro and Yen keys despite X11 xkbmap apparently
+    mapping both to the backslash. The keymap is
+    queried to detect the scancodes at startup
+    in order to return the correct SDLK constant.
+  - SDL 1.x and DOSBox-X mapper code updated to
+    correctly map Ro, Yen, @ ^ ; : keys on a JP
+    keyboard in Windows and Linux.
   - PC-98 keyboard BIOS handling updated to generate
     ASCII codes according to PC-98 layout, instead
     of by US keyboard layout.
