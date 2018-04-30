@@ -2060,6 +2060,7 @@ static struct {
 	CCaptionButton *  bind_title;
 	CCaptionButton *  selected;
 	CCaptionButton *  action;
+	CCaptionButton *  dbg2;
 	CCaptionButton *  dbg;
 	CBindButton * save;
 	CBindButton * exit;   
@@ -2552,8 +2553,11 @@ static void CreateLayout(void) {
 	bind_but.exit=new CBindButton(230,440,50,20,"Exit",BB_Exit);
 	bind_but.cap=new CBindButton(280,440,50,20,"Capt",BB_Capture);
 
-	bind_but.dbg=new CCaptionButton(180,462,460,20); // right below the Save button
+	bind_but.dbg = new CCaptionButton(180, 462, 460, 20); // right below the Save button
 	bind_but.dbg->Change("(event debug)");
+
+	bind_but.dbg2 = new CCaptionButton(330, 440, 310, 20); // right next to the Save button
+	bind_but.dbg2->Change("");
 
 	bind_but.bind_title->Change("Bind Title");
 
@@ -3024,6 +3028,31 @@ void BIND_MappingEvents(void) {
 
 				LOG(LOG_GUI,LOG_DEBUG)("Mapper keyboard event: %s",tmp);
 				bind_but.dbg->Change("%s",tmp);
+
+				tmpl = 0;
+#if defined(WIN32)
+# if defined(C_SDL2)
+# else
+				{
+					char nm[256];
+					int	mvke;
+
+					nm[0] = 0;
+#if !defined(HX_DOS) /* I assume HX DOS doesn't bother with keyboard scancode names */
+					GetKeyNameText(s.scancode << 16,nm,sizeof(nm)-1);
+#endif
+
+					mvke = MapVirtualKeyEx(s.scancode & 0xFF, 1, GetKeyboardLayout(0));
+
+					tmpl = sprintf(tmp, "Win32: VK=0x%x kn=%s",mvke,nm);
+				}
+# endif
+#endif
+				while (tmpl < (310 / 8)) tmp[tmpl++] = ' ';
+				assert(tmpl < sizeof(tmp));
+				tmp[tmpl] = 0;
+				bind_but.dbg2->Change("%s", tmp);
+
 				event_count++;
 			}
 			/* fall through to mapper UI processing */
