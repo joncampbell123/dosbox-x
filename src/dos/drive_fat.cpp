@@ -788,7 +788,7 @@ Bit32u fatDrive::getSectSize(void) {
     return sector_size;
 }
 
-void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u filesize) {
+void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize) {
 	Bit32u startSector;
 	bool pc98_512_to_1024_allow = false;
 	struct partTable mbrData;
