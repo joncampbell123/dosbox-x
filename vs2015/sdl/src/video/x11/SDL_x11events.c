@@ -48,6 +48,7 @@
 #include "SDL_x11mouse_c.h"
 #include "SDL_x11events_c.h"
 
+KeySym xlate_last = 0;
 
 /* Define this if you want to debug X11 events */
 /*#define DEBUG_XEVENTS*/
@@ -568,6 +569,7 @@ printf("KeyPress (X11 keycode = 0x%X)\n", xevent.xkey.keycode);
 			/* Get the translated SDL virtual keysym and put it on the queue.*/
 			keysym.scancode = keycode;
 			keysym.sym = X11_TranslateKeycode(SDL_Display, keycode);
+            keysym.x11_sym = xlate_last;
 			keysym.mod = KMOD_NONE;
 			keysym.unicode = 0;
 			posted = SDL_PrivateKeyboard(SDL_PRESSED, &keysym);
@@ -676,6 +678,7 @@ printf("KeyPress (X11 keycode = 0x%X)\n", xevent.xkey.keycode);
 			  if (utf16length > 0) {			       
 			    keysym.scancode = keycode;
 			    keysym.sym = (keycode ? X11_TranslateKeycode(SDL_Display, keycode) : 0);
+                keysym.x11_sym = keycode ? xlate_last : 0;
 			    keysym.mod = KMOD_NONE;
 			    keysym.unicode = utf16data[utf16length - 1];
 			    posted = SDL_PrivateKeyboard(SDL_PRESSED, &keysym);
@@ -696,6 +699,7 @@ printf("KeyPress (X11 keycode = 0x%X)\n", xevent.xkey.keycode);
 			  if (keycode) {
 			    keysym.scancode = keycode;
 			    keysym.sym = X11_TranslateKeycode(SDL_Display, keycode);
+                keysym.x11_sym = xlate_last;
 			    keysym.mod = KMOD_NONE;
 			    keysym.unicode = 0;
 			    posted = SDL_PrivateKeyboard(SDL_PRESSED, &keysym);
@@ -729,7 +733,8 @@ printf("KeyPress (X11 keycode = 0x%X)\n", xevent.xkey.keycode);
 
 			keysym.scancode = keycode;
 			keysym.sym = X11_TranslateKeycode(SDL_Display, keycode);
-			keysym.mod = KMOD_NONE;
+            keysym.x11_sym = xlate_last;
+            keysym.mod = KMOD_NONE;
 			keysym.unicode = 0;
 			if ( XLookupString(&xevent.xkey,
 			                    keybuf, sizeof(keybuf),
@@ -768,7 +773,8 @@ printf("KeyRelease (X11 keycode = 0x%X)\n", xevent.xkey.keycode);
 		/* Get the translated SDL virtual keysym */
 		keysym.scancode = keycode;
 		keysym.sym = X11_TranslateKeycode(SDL_Display, keycode);
-		keysym.mod = KMOD_NONE;
+        keysym.x11_sym = xlate_last;
+        keysym.mod = KMOD_NONE;
 		keysym.unicode = 0;
 
 		posted = SDL_PrivateKeyboard(SDL_RELEASED, &keysym);
@@ -1142,7 +1148,7 @@ SDLKey X11_TranslateKeycode(Display *display, KeyCode kc)
 	KeySym xsym;
 	SDLKey key;
 
-	xsym = XKeycodeToKeysym(display, kc, 0);
+	xsym = xlate_last = XKeycodeToKeysym(display, kc, 0);
 #ifdef DEBUG_KEYS
 	fprintf(stderr, "Translating key code %d -> 0x%.4x\n", kc, xsym);
 #endif

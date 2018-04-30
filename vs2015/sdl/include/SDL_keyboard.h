@@ -27,6 +27,7 @@
 #ifndef _SDL_keyboard_h
 #define _SDL_keyboard_h
 
+#include "SDL_config.h"
 #include "SDL_stdinc.h"
 #include "SDL_error.h"
 #include "SDL_keysym.h"
@@ -63,6 +64,9 @@ typedef struct SDL_keysym {
 	Uint16 unicode;			/**< translated character */
 #if defined(_WIN32)
 	Uint32 win32_vk;	/**< Windows virtual key */
+#endif
+#if defined(SDL_VIDEO_DRIVER_X11)
+    Uint32 x11_sym;     /**< X11 sym */
 #endif
 } SDL_keysym;
 

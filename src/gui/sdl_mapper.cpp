@@ -3045,6 +3045,16 @@ void BIND_MappingEvents(void) {
 				}
 # endif
 #endif
+#if defined(SDL_VIDEO_DRIVER_X11)
+                {
+                    char *LinuxX11_KeySymName(Uint32 x);
+
+                    char *name;
+
+                    name = LinuxX11_KeySymName(s.x11_sym);
+                    tmpl = sprintf(tmp,"X11: Sym=0x%x sn=%s",(unsigned int)s.x11_sym,name ? name : "");
+                }
+#endif
 				while (tmpl < (310 / 8)) tmp[tmpl++] = ' ';
 				assert(tmpl < sizeof(tmp));
 				tmp[tmpl] = 0;

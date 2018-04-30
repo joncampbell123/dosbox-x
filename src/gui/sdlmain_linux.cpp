@@ -18,6 +18,21 @@ void UpdateWindowMaximized(bool flag);
 extern "C" void SDL1_hax_X11_jpfix(int ro_scan,int yen_scan);
 #endif
 
+char *LinuxX11_KeySymName(Uint32 x) {
+#if !defined(C_SDL2)
+    SDL_SysWMinfo wminfo;
+    memset(&wminfo,0,sizeof(wminfo));
+    SDL_VERSION(&wminfo.version);
+    if (SDL_GetWMInfo(&wminfo) >= 0) {
+        if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
+            return XKeysymToString(x);
+        }
+    }
+#endif
+
+    return NULL;
+}
+
 void Linux_JPXKBFix(void) {
 #if !defined(C_SDL2)
     SDL_SysWMinfo wminfo;
