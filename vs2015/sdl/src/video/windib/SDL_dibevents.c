@@ -630,6 +630,7 @@ void DIB_InitOSKeymapPriv(void) {
 			VK_keymap[VK_OEM_3] = SDLK_AT;
 			VK_keymap[VK_OEM_4] = SDLK_LEFTBRACKET;
 			VK_keymap[VK_OEM_6] = SDLK_RIGHTBRACKET;
+			VK_keymap[VK_OEM_5] = SDLK_JP_YEN;
 			break;
 	};
 
@@ -654,7 +655,7 @@ static int SDL_MapVirtualKey(int scancode, int vkey)
 	int	mvke  = MapVirtualKey(scancode & 0xFF, 1);
 #endif
 
-#if 1 /* set to 1 to debug VK scancodes i.e. if debugging foreign keyboard layouts and SDL 1.x */
+#if 0 /* set to 1 to debug VK scancodes i.e. if debugging foreign keyboard layouts and SDL 1.x */
 	{
 		char tmp[128];
 		char tmp2[256];
