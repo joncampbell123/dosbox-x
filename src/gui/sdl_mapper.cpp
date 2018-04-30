@@ -2544,10 +2544,9 @@ static void CreateLayout(void) {
 	bind_but.host=new CCheckButton(100,410,60,20,"host",BC_Host);
 	bind_but.hold=new CCheckButton(100,432,60,20,"hold",BC_Hold);
 
-	bind_but.next=new CBindButton(250,400,50,20,"Next",BB_Next);
-
-	bind_but.add=new CBindButton(250,380,50,20,"Add",BB_Add);
-	bind_but.del=new CBindButton(300,380,50,20,"Del",BB_Del);
+	bind_but.add=new CBindButton(20,384,50,20,"Add",BB_Add);
+	bind_but.del=new CBindButton(70,384,50,20,"Del",BB_Del);
+	bind_but.next=new CBindButton(120,384,50,20,"Next",BB_Next);
 
 	bind_but.save=new CBindButton(400,440,50,20,"Save",BB_Save);
 	bind_but.exit=new CBindButton(450,440,50,20,"Exit",BB_Exit);
