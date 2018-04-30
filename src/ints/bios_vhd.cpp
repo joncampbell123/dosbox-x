@@ -209,7 +209,8 @@ int iso8859_1_encode(int utf32code) {
 	return ((utf32code >= 32 && utf32code <= 126) || (utf32code >= 160 && utf32code <= 255)) ? utf32code : -1;
 }
 
-bool imageDiskVHD::ConvertUTF16toASCII(std::string &string, const void* data, const Bit32u dataLength) {
+//this function (1) converts data from UTF-16 to a native string for fopen (depending on the host OS), and (2) converts slashes, if necessary
+bool imageDiskVHD::convert_UTF16_for_fopen(std::string &string, const void* data, const Bit32u dataLength) {
 	//note: data is UTF-16 and always little-endian, with no null terminator
 	//dataLength is not the number of characters, but the number of bytes
 
@@ -274,7 +275,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, 
 		}
 
 		//convert byte order, and UTF-16 to ASCII, and change backslashes to slashes if on Linux
-		if (!ConvertUTF16toASCII(str, data, dataLength)) break;
+		if (!convert_UTF16_for_fopen(str, data, dataLength)) break;
 
 		return imageDiskVHD::Open(str.c_str(), true, disk, uniqueId);
 
@@ -290,7 +291,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::TryOpenParent(const char* childFileName, 
 #endif
 
 		//convert byte order, and UTF-16 to ASCII, and change backslashes to slashes if on Linux
-		if (!ConvertUTF16toASCII(str, data, dataLength)) break;
+		if (!convert_UTF16_for_fopen(str, data, dataLength)) break;
 
 		return imageDiskVHD::Open(str.c_str(), true, disk, uniqueId);
 
