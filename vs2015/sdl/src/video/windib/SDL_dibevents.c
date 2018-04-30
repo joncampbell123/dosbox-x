@@ -617,6 +617,21 @@ void DIB_InitOSKeymapPriv(void) {
 
 	VK_keymap[VK_OEM_102] = SDLK_LESS;
 
+	/* per-layout adjustments */
+	switch (LOWORD(hLayout)) {
+		case 0x411: /* JP */
+			VK_keymap[VK_OEM_PERIOD] = SDLK_PERIOD;
+			VK_keymap[VK_OEM_MINUS] = SDLK_MINUS;
+			VK_keymap[VK_OEM_COMMA] = SDLK_COMMA;
+			VK_keymap[VK_OEM_PLUS] = SDLK_SEMICOLON;
+			VK_keymap[VK_OEM_1] = SDLK_COLON;
+			VK_keymap[VK_OEM_7] = SDLK_CARET;
+			VK_keymap[VK_OEM_3] = SDLK_AT;
+			VK_keymap[VK_OEM_4] = SDLK_LEFTBRACKET;
+			VK_keymap[VK_OEM_6] = SDLK_RIGHTBRACKET;
+			break;
+	};
+
 	Arrows_keymap[3] = 0x25;
 	Arrows_keymap[2] = 0x26;
 	Arrows_keymap[1] = 0x27;
@@ -636,6 +651,18 @@ static int SDL_MapVirtualKey(int scancode, int vkey)
 	int	mvke  = MapVirtualKeyEx(scancode & 0xFF, 1, hLayout);
 #else
 	int	mvke  = MapVirtualKey(scancode & 0xFF, 1);
+#endif
+
+#if 0 /* set to 1 to debug VK scancodes i.e. if debugging foreign keyboard layouts and SDL 1.x */
+	{
+		char tmp[128];
+		char tmp2[256];
+
+		tmp[0] = 0;
+		GetKeyNameText(scancode << 16, tmp, sizeof(tmp) - 1);
+		sprintf(tmp2, "Scan 0x%x VK 0x%x name=%s\n", scancode, mvke, tmp);
+		OutputDebugString(tmp2);
+	}
 #endif
 
 	switch(vkey) {
