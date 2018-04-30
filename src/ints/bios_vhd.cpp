@@ -52,6 +52,9 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 }
 
 imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool readOnly, imageDisk** disk, const Bit8u* matchUniqueId) {
+	//validate input parameters
+	if (fileName == NULL) return ERROR_OPENING;
+	if (disk == NULL) return ERROR_OPENING;
 	//verify that C++ didn't add padding to the structure layout
 	assert(sizeof(VHDFooter) == 512);
 	assert(sizeof(DynamicHeader) == 1024);
@@ -111,6 +114,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	vhd->sector_size = 512;
 	vhd->diskSizeK = calcDiskSize / 1024;
 	vhd->diskimg = file;
+	vhd->diskname = fileName;
 	vhd->hardDrive = true;
 	vhd->active = true;
 	//use delete vhd from now on to release the disk image upon failure

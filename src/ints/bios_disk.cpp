@@ -313,7 +313,7 @@ imageDisk::imageDisk(IMAGE_TYPE class_id) {
 }
 
 imageDisk::imageDisk(FILE* diskimg, const char* diskName, Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sector_size, bool hardDrive) {
-	this->diskname = diskName;
+	if (diskName) this->diskname = diskName;
 	this->cylinders = cylinders;
 	this->heads = heads;
 	this->sectors = sectors;
