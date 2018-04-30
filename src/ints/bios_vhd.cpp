@@ -205,25 +205,48 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	return OPEN_SUCCESS;
 }
 
+int iso8859_1_encode(int utf32code) {
+	return ((utf32code >= 32 && utf32code <= 126) || (utf32code >= 160 && utf32code <= 255)) ? utf32code : -1;
+}
+
 bool imageDiskVHD::ConvertUTF16toASCII(std::string &string, const void* data, const Bit32u dataLength) {
-	size_t wcharcount = dataLength / 2;
-	string.reserve((size_t)(string.size() + wcharcount + 1));
-	const wchar_t* wchar = (const wchar_t*)data;
-	for (size_t i = 0; i < wcharcount; i++) {
-		wchar_t wc = SDL_SwapLE16(wchar[i]);
-		if (wc >= 32 && wc <= 127) {
-			char asciichar = (char)(wc);
+	//note: data is UTF-16 and always little-endian, with no null terminator
+	//dataLength is not the number of characters, but the number of bytes
+
+	string.reserve((size_t)(string.size() + (dataLength / 2) + 10)); //allocate a few extra bytes
+	char* indata = (char*)data;
+	char* lastchar = indata + dataLength;
+	int utf32code = 0;
 #if defined (WIN32) || defined(OS2)
-			/* nothing */
+	int iso8859_1code = 0;
 #else
-			// Linux: Convert backslash to forward slash
-			if (asciichar == '\\') asciichar = '/';
+	char temp[10];
+	char* tempout;
+	char* tempout2;
+	char* tempoutmax = &temp[10];
 #endif
-			string += asciichar;
-		}
-		else {
-			return false;
-		}
+	while (indata < lastchar) {
+		//decode the character
+		utf32code = utf16le_decode((const char**)&indata, lastchar);
+		if (utf32code < 0) return false;
+#if defined (WIN32) || defined(OS2)
+		//MSDN docs define fopen to accept strings in the windows default code page, which is typically Windows-1252
+		//convert unicode string to ISO-8859, which is a subset of Windows-1252, and a lot easier to implement
+		iso8859_1code = iso8859_1_encode(utf32code);
+		if (iso8859_1code < 0) return false;
+		//and note that backslashes stay as backslashes on windows
+		string += (char)iso8859_1code;
+#else
+		//backslashes become slashes on Linux
+		if (utf32code == '\\') utf32code = '/';
+		//Linux ext3 filenames are byte strings, typically in UTF-8
+		//encode the character to a temporary buffer
+		tempout = temp;
+		if (utf8_encode(&tempout, tempoutmax, utf32code) < 0) return false;
+		//and append the byte(s) to the string
+		tempout2 = temp;
+		while (tempout2 < tempout) string += *tempout2++;
+#endif
 	}
 	return true;
 }
