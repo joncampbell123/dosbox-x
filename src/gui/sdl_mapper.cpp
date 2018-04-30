@@ -2737,7 +2737,8 @@ static struct {
     // TODO??
 #else
 	/* hack for Japanese keyboards with \ and _ */
-	{"jp_bckslash",SDLK_WORLD_10},	// FIXME: Apparently there's a name length limit in the mapper?
+	{"jp_bckslash",SDLK_JP_RO},	// Same difference
+	{"jp_ro",SDLK_JP_RO}, // DOSBox proprietary
 	/* hack for Japanese keyboards with Yen and | */
 	{"jp_yen",SDLK_WORLD_11 },
 	/* more */

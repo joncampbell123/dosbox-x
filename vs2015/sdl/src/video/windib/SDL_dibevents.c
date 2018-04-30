@@ -624,6 +624,7 @@ void DIB_InitOSKeymapPriv(void) {
 			VK_keymap[VK_OEM_MINUS] = SDLK_MINUS;
 			VK_keymap[VK_OEM_COMMA] = SDLK_COMMA;
 			VK_keymap[VK_OEM_PLUS] = SDLK_SEMICOLON;
+			VK_keymap[VK_OEM_102] = SDLK_JP_RO;
 			VK_keymap[VK_OEM_1] = SDLK_COLON;
 			VK_keymap[VK_OEM_7] = SDLK_CARET;
 			VK_keymap[VK_OEM_3] = SDLK_AT;
@@ -653,7 +654,7 @@ static int SDL_MapVirtualKey(int scancode, int vkey)
 	int	mvke  = MapVirtualKey(scancode & 0xFF, 1);
 #endif
 
-#if 0 /* set to 1 to debug VK scancodes i.e. if debugging foreign keyboard layouts and SDL 1.x */
+#if 1 /* set to 1 to debug VK scancodes i.e. if debugging foreign keyboard layouts and SDL 1.x */
 	{
 		char tmp[128];
 		char tmp2[256];
