@@ -707,10 +707,11 @@ static int SDL_MapVirtualKey(int scancode, int vkey)
 static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, int pressed)
 {
 	/* Set the keysym information */
+	keysym->win32_vk = vkey;
 	keysym->scancode = (unsigned char) scancode;
 	keysym->mod = KMOD_NONE;
 	keysym->unicode = 0;
-	
+
 	if ((vkey == VK_RETURN) && (scancode & 0x100)) {
 		/* No VK_ code for the keypad enter key */
 		keysym->sym = SDLK_KP_ENTER;

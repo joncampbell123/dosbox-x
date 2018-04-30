@@ -3035,16 +3035,13 @@ void BIND_MappingEvents(void) {
 # else
 				{
 					char nm[256];
-					int	mvke;
 
 					nm[0] = 0;
 #if !defined(HX_DOS) /* I assume HX DOS doesn't bother with keyboard scancode names */
 					GetKeyNameText(s.scancode << 16,nm,sizeof(nm)-1);
 #endif
 
-					mvke = MapVirtualKeyEx(s.scancode & 0xFF, 1, GetKeyboardLayout(0));
-
-					tmpl = sprintf(tmp, "Win32: VK=0x%x kn=%s",mvke,nm);
+					tmpl = sprintf(tmp, "Win32: VK=0x%x kn=%s",(unsigned int)s.win32_vk,nm);
 				}
 # endif
 #endif

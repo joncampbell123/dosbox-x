@@ -61,6 +61,9 @@ typedef struct SDL_keysym {
 	SDLKey sym;			/**< SDL virtual keysym */
 	SDLMod mod;			/**< current key modifiers */
 	Uint16 unicode;			/**< translated character */
+#if defined(_WIN32)
+	Uint32 win32_vk;	/**< Windows virtual key */
+#endif
 } SDL_keysym;
 
 /** This is the mask which refers to all hotkey bindings */
