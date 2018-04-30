@@ -232,7 +232,11 @@ Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	int got;
 
 	bytenum = (Bit64u)sectnum * (Bit64u)sector_size;
-    bytenum += image_base;
+	if ((bytenum + sector_size) > this->image_length) {
+		LOG_MSG("Attempt to read invalid sector in Read_AbsoluteSector for sector %lu.\n", (unsigned long)sectnum);
+		return 0x05;
+	}
+	bytenum += image_base;
 
 	//LOG_MSG("Reading sectors %ld at bytenum %I64d", sectnum, bytenum);
 
@@ -267,13 +271,17 @@ Bit8u imageDisk::Write_AbsoluteSector(Bit32u sectnum, void *data) {
 	Bit64u bytenum;
 
 	bytenum = (Bit64u)sectnum * sector_size;
-    bytenum += image_base;
+	if ((bytenum + sector_size) > this->image_length) {
+		LOG_MSG("Attempt to read invalid sector in Write_AbsoluteSector for sector %lu.\n", (unsigned long)sectnum);
+		return 0x05;
+	}
+	bytenum += image_base;
 
 	//LOG_MSG("Writing sectors to %ld at bytenum %d", sectnum, bytenum);
 
 	fseeko64(diskimg,bytenum,SEEK_SET);
 	if ((Bit64u)ftello64(diskimg) != bytenum)
-		LOG_MSG("WARNING: fseek() failed in Read_AbsoluteSector for sector %lu\n",(unsigned long)sectnum);
+		LOG_MSG("WARNING: fseek() failed in Write_AbsoluteSector for sector %lu\n",(unsigned long)sectnum);
 
 	size_t ret=fwrite(data, sector_size, 1, diskimg);
 
