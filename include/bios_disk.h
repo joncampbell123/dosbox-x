@@ -265,7 +265,7 @@ private:
 	static ErrorCodes TryOpenParent(const char* childFileName, const ParentLocatorEntry &entry, Bit8u* data, const Bit32u dataLength, imageDisk** disk, const Bit8u* uniqueId);
 	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** imageDisk, const Bit8u* matchUniqueId);
 	virtual bool loadBlock(const Bit32u blockNumber);
-	static bool ConvertUTF16toASCII(std::string &string, const void* data, const Bit32u dataLength);
+	static bool convert_UTF16_for_fopen(std::string &string, const void* data, const Bit32u dataLength);
 
 	imageDisk* parentDisk;// = 0;
 	Bit64u footerPosition;
