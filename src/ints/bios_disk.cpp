@@ -289,19 +289,36 @@ Bit32u imageDisk::Get_Reserved_Cylinders() {
 	return reserved_cylinders;
 }
 
-imageDisk::imageDisk() {
+imageDisk::imageDisk(IMAGE_TYPE class_id) {
 	heads = 0;
 	cylinders = 0;
     image_base = 0;
     sectors = 0;
 	refcount = 0;
 	sector_size = 512;
+	image_length = 0;
 	reserved_cylinders = 0;
-	auto_delete_on_refcount_zero = true;
 	diskimg = NULL;
-	class_id = ID_BASE;
+	this->class_id = class_id;
 	active = false;
 	hardDrive = false;
+}
+
+imageDisk::imageDisk(FILE* diskimg, const char* diskName, Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sector_size, bool hardDrive) {
+	this->diskname = diskName;
+	this->cylinders = cylinders;
+	this->heads = heads;
+	this->sectors = sectors;
+	image_base = 0;
+	this->image_length = (Bit64u)cylinders * heads * sectors * sector_size;
+	refcount = 0;
+	this->sector_size = sector_size;
+	this->diskSizeK = this->image_length / 1024;
+	reserved_cylinders = 0;
+	this->diskimg = diskimg;
+	class_id = ID_BASE;
+	active = true;
+	this->hardDrive = hardDrive;
 }
 
 /* .HDI header (NP2) */
@@ -322,11 +339,11 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 	heads = 0;
 	cylinders = 0;
     image_base = 0;
+	image_length = imgSizeK * 1024;
     sectors = 0;
 	refcount = 0;
 	sector_size = 512;
 	reserved_cylinders = 0;
-	auto_delete_on_refcount_zero = true;
 	diskimg = imgFile;
 	class_id = ID_BASE;
     diskSizeK = imgSizeK;
@@ -349,6 +366,7 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
                         // followed by a straight sector dump of the disk.
                         imgSizeK -= 4; // minus 4K
                         image_base += 4096; // +4K
+						image_length -= 4096; // -4K
                         LOG_MSG("Image file has .FDI extension, assuming 4K offset");
                     }
                 }
@@ -406,6 +424,7 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
                                 sector_size = sectorsize;
                                 imgSizeK -= (ofs / 1024);
                                 image_base = ofs;
+								image_length -= ofs;
                                 LOG_MSG("HDI header: sectorsize is %u bytes/sector, header is %u bytes, hdd size (plus header) is %u bytes",
                                     (unsigned int)sectorsize,(unsigned int)ofs,(unsigned int)hddsize);
 
@@ -1111,21 +1130,18 @@ Bit8u imageDiskVFD::Write_AbsoluteSector(Bit32u sectnum, void *data) {
     return Write_Sector(h,c,s,data);
 }
 
-imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) : imageDisk() {
+imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) : imageDisk(ID_VFD) {
     unsigned char tmp[16];
 
 	heads = 1;
 	cylinders = 0;
     image_base = 0;
     sectors = 0;
-	refcount = 0;
 	active = false;
 	sector_size = 0;
 	reserved_cylinders = 0;
-	auto_delete_on_refcount_zero = true;
     diskSizeK = imgSizeK;
 	diskimg = imgFile;
-	class_id = ID_VFD;
 
 	if (imgName != NULL)
 		diskname = (const char*)imgName;
@@ -1237,7 +1253,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
                             sector_size = nsz;
                     }
                 }
-           }
+            }
 
             if (sector_size != 0) {
                 i=0;

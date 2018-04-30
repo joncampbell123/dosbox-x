@@ -51,12 +51,14 @@ extern const Bit8u freedos_mbr[];
 
 class imageDisk {
 public:
-	enum {
+	enum IMAGE_TYPE {
 		ID_BASE=0,
 		ID_EL_TORITO_FLOPPY,
-        ID_VFD
+        ID_VFD,
+		ID_MEMORY,
+		ID_VHD
 	};
-public:
+
 	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
 	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
@@ -68,28 +70,31 @@ public:
 	virtual void Get_Geometry(Bit32u * getHeads, Bit32u *getCyl, Bit32u *getSect, Bit32u *getSectSize);
 	virtual Bit8u GetBiosType(void);
 	virtual Bit32u getSectSize(void);
-    imageDisk();
 	imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk);
+	imageDisk(FILE* diskimg, const char* diskName, Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sector_size, bool hardDrive);
 	virtual ~imageDisk() { if(diskimg != NULL) { fclose(diskimg); diskimg=NULL; } };
 
-	int class_id;
-
-	bool hardDrive;
-	bool active;
-	FILE *diskimg;
+	IMAGE_TYPE class_id;
 	std::string diskname;
+	bool active;
+	Bit32u sector_size;
+	Bit32u heads, cylinders, sectors;
+	bool hardDrive;
+	Bit64u diskSizeK;
+
+protected:
+	imageDisk(IMAGE_TYPE class_id);
+	FILE *diskimg;
 	Bit8u floppytype;
 
-	Bit32u sector_size;
-	Bit32u heads,cylinders,sectors;
 	Bit32u reserved_cylinders;
-	Bit64u current_fpos;
     Bit64u image_base;
-    Bit32u diskSizeK;
+	Bit64u image_length;
 
+private:
 	volatile int refcount;
-	bool auto_delete_on_refcount_zero;
 
+public:
 	int Addref() {
 		return ++refcount;
 	}
@@ -99,7 +104,7 @@ public:
 			fprintf(stderr,"WARNING: imageDisk Release() changed refcount to %d\n",ret);
 			abort();
 		}
-		if (ret == 0 && auto_delete_on_refcount_zero) delete this;
+		if (ret == 0) delete this;
 		return ret;
 	}
 };
@@ -154,7 +159,7 @@ public:
 	// Create a hard drive image of a specified size; automatically select c/h/s
 	imageDiskMemory(Bit32u imgSizeK);
 	// Create a hard drive image of a specified geometry
-	imageDiskMemory(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize);
+	imageDiskMemory(Bit16u cylinders, Bit16u heads, Bit16u sectors, Bit16u sectorSize);
 	// Create a floppy image of a specified geometry
 	imageDiskMemory(diskGeo floppyGeometry);
 	// Create a copy-on-write memory image of an existing image
@@ -261,7 +266,7 @@ private:
 		bool IsValid();
 	};
 
-	imageDiskVHD() : parentDisk(NULL), copiedFooter(false), currentBlock(0xFFFFFFFF), currentBlockAllocated(false), currentBlockDirtyMap(NULL) { }
+	imageDiskVHD() : imageDisk(ID_VHD), parentDisk(NULL), copiedFooter(false), currentBlock(0xFFFFFFFF), currentBlockAllocated(false), currentBlockDirtyMap(NULL) { }
 	static ErrorCodes TryOpenParent(const char* childFileName, const ParentLocatorEntry &entry, Bit8u* data, const Bit32u dataLength, imageDisk** disk, const Bit8u* uniqueId);
 	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** imageDisk, const Bit8u* matchUniqueId);
 	virtual bool loadBlock(const Bit32u blockNumber);

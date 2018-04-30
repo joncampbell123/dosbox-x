@@ -2338,7 +2338,7 @@ public:
 			LOG_MSG("BUG! unsupported floppy_emu_type in El Torito floppy object\n");
 		}
 
-        diskSizeK = (((heads * cylinders * sectors * sector_size) + 1023) / 1024);
+        diskSizeK = ((Bit64u)heads * cylinders * sectors * sector_size) / 1024;
 		active = true;
 	}
 	virtual ~imageDiskElToritoFloppy() {

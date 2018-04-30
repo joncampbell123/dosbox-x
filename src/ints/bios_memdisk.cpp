@@ -41,7 +41,7 @@
 */
 
 // Create a hard drive image of a specified size; automatically select c/h/s
-imageDiskMemory::imageDiskMemory(Bit32u imgSizeK) {
+imageDiskMemory::imageDiskMemory(Bit32u imgSizeK) : imageDisk(ID_MEMORY), total_sectors(0), underlyingImage(NULL) {
 	//notes:
 	//  this code always returns HARD DRIVES with 512 byte sectors
 	//  the code will round up in case it cannot make an exact match
@@ -113,12 +113,12 @@ imageDiskMemory::imageDiskMemory(Bit32u imgSizeK) {
 }
 
 // Create a floppy image of a specified geometry
-imageDiskMemory::imageDiskMemory(diskGeo floppyGeometry) {
+imageDiskMemory::imageDiskMemory(diskGeo floppyGeometry) : imageDisk(ID_MEMORY), total_sectors(0), underlyingImage(NULL) {
 	init(floppyGeometry, false, 0);
 }
 
 // Create a hard drive image of a specified geometry
-imageDiskMemory::imageDiskMemory(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sector_size) {
+imageDiskMemory::imageDiskMemory(Bit16u cylinders, Bit16u heads, Bit16u sectors, Bit16u sector_size) : imageDisk(ID_MEMORY), total_sectors(0), underlyingImage(NULL) {
 	diskGeo diskParams;
 	diskParams.secttrack = sectors;
 	diskParams.cylcount = cylinders;
@@ -134,12 +134,14 @@ imageDiskMemory::imageDiskMemory(Bit32u cylinders, Bit32u heads, Bit32u sectors,
 }
 
 // Create a copy-on-write memory image of an existing image
-imageDiskMemory::imageDiskMemory(imageDisk* underlyingImage) {
+imageDiskMemory::imageDiskMemory(imageDisk* underlyingImage) : imageDisk(ID_MEMORY), total_sectors(0), underlyingImage(NULL) {
 	diskGeo diskParams;
-	diskParams.secttrack = underlyingImage->sectors;
-	diskParams.cylcount = underlyingImage->cylinders;
-	diskParams.headscyl = underlyingImage->heads;
-	diskParams.bytespersect = underlyingImage->sector_size;
+	Bit32u heads, cylinders, sectors, bytesPerSector;
+	underlyingImage->Get_Geometry(&heads, &cylinders, &sectors, &bytesPerSector);
+	diskParams.headscyl = (Bit16u)heads;
+	diskParams.cylcount = (Bit16u)cylinders;
+	diskParams.secttrack = (Bit16u)sectors;
+	diskParams.bytespersect = (Bit16u)bytesPerSector;
 	diskParams.biosval = 0;
 	diskParams.ksize = 0;
 	diskParams.mediaid = 0xF0;
@@ -152,13 +154,7 @@ imageDiskMemory::imageDiskMemory(imageDisk* underlyingImage) {
 // Internal initialization code to create a image of a specified geometry
 void imageDiskMemory::init(diskGeo diskParams, bool isHardDrive, imageDisk* underlyingImage) {
 	//initialize internal variables in case we fail out
-	this->active = false;
-	this->cylinders = 0;
-	this->heads = 0;
-	this->sectors = 0;
-	this->sector_size = 0;
 	this->total_sectors = 0;
-	this->auto_delete_on_refcount_zero = true;
 	this->underlyingImage = underlyingImage;
 	if (underlyingImage) underlyingImage->Addref();
 
@@ -211,7 +207,7 @@ void imageDiskMemory::init(diskGeo diskParams, bool isHardDrive, imageDisk* unde
 	this->cylinders = diskParams.cylcount;
 	this->sectors = diskParams.secttrack;
 	this->sector_size = diskParams.bytespersect;
-	this->diskSizeK = (Bit32u)diskSizeK;
+	this->diskSizeK = diskSizeK;
 	this->total_sectors = (Bit32u)absoluteSectors;
 	this->reserved_cylinders = 0;
 	this->hardDrive = isHardDrive;
