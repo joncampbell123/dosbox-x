@@ -561,6 +561,7 @@ irq1_end:
 }
 
 unsigned char AT_read_60(void);
+extern bool pc98_force_ibm_layout;
 
 /* BIOS INT 18h output vs keys:
  *
@@ -694,7 +695,10 @@ static Bitu IRQ1_Handler_PC98(void) {
             case 0x02:  //  2           2       "       ???     フ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key(scan_add + '\"');
+						if(!pc98_force_ibm_layout)
+							add_key(scan_add + '\"');
+						else
+							add_key(scan_add + '@');
                     else
                         add_key(scan_add + '2');
                 }
@@ -726,7 +730,10 @@ static Bitu IRQ1_Handler_PC98(void) {
             case 0x06:  //  6           6       &       ???     オ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key(scan_add + '&');
+						if(!pc98_force_ibm_layout)
+							add_key(scan_add + '&');
+						else
+							add_key(scan_add + '^');
                     else
                         add_key(scan_add + '6');
                 }
@@ -734,7 +741,10 @@ static Bitu IRQ1_Handler_PC98(void) {
             case 0x07:  //  7           7       '       ???     ヤ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key(scan_add + '\'');
+						if(!pc98_force_ibm_layout)
+							add_key(scan_add + '\'');
+						else
+							add_key(scan_add + '&');
                     else
                         add_key(scan_add + '7');
                 }
@@ -742,7 +752,10 @@ static Bitu IRQ1_Handler_PC98(void) {
             case 0x08:  //  8           8       (       ???     ユ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key(scan_add + '(');
+						if(!pc98_force_ibm_layout)
+							add_key(scan_add + '(');
+						else
+							add_key(scan_add + '*');
                     else
                         add_key(scan_add + '8');
                 }
@@ -750,7 +763,10 @@ static Bitu IRQ1_Handler_PC98(void) {
             case 0x09:  //  9           9       )       ???     ヨ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key(scan_add + ')');
+						if(!pc98_force_ibm_layout)
+							add_key(scan_add + ')');
+						else
+							add_key(scan_add + '(');
                     else
                         add_key(scan_add + '9');
                 }
@@ -758,7 +774,10 @@ static Bitu IRQ1_Handler_PC98(void) {
             case 0x0A:  //  0           0       ---     ???     ワ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        { /* nothing */ }
+						if(!pc98_force_ibm_layout)
+							{ /* nothing */ }
+						else
+							add_key(scan_add + ')');
                     else
                         add_key(scan_add + '0');
                 }
@@ -766,17 +785,27 @@ static Bitu IRQ1_Handler_PC98(void) {
             case 0x0B:  //  -           -       =       ???     ホ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key(scan_add + '=');
+						if(!pc98_force_ibm_layout)
+							add_key(scan_add + '=');
+						else
+							add_key(scan_add + '_');
                     else
                         add_key(scan_add + '-');
                 }
                 break;
             case 0x0C:  //  ^           ^       `       ???     ヘ
                 if (pressed) {
-                    if (flags1 & 3) /* shift */
-                        add_key(scan_add + '`');
-                    else
-                        add_key(scan_add + '^');
+					if(!pc98_force_ibm_layout) {
+						if (flags1 & 3) /* shift */
+							add_key(scan_add + '`');
+						else
+							add_key(scan_add + '^');
+					} else {
+						if (flags1 & 3) /* shift */
+							add_key(scan_add + '+');
+						else
+							add_key(scan_add + '=');					
+					}
                 }
                 break;
             case 0x0D:  //  ¥           ¥       |       ???     ???
@@ -882,7 +911,10 @@ static Bitu IRQ1_Handler_PC98(void) {
                     if (flags1 & 3) /* shift */
                         add_key(scan_add + '~');
                     else
-                        add_key(scan_add + '@');
+						if(!pc98_force_ibm_layout)
+							add_key(scan_add + '@');
+						else
+							add_key(scan_add + '`');
                 }
                 break;
             case 0x1B: // [             [       {       --      ﾟ       ｢
@@ -973,17 +1005,27 @@ static Bitu IRQ1_Handler_PC98(void) {
             case 0x26: //   ;           ;       +       ---     レ
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key(scan_add + '+');
+						if(!pc98_force_ibm_layout)
+							add_key(scan_add + '+');
+						else
+							add_key(scan_add + ':');
                     else
                         add_key(scan_add + ';');
                 }
                 break;
             case 0x27: //   :           :       *       ---     ケ
                 if (pressed) {
-                    if (flags1 & 3) /* shift */
-                        add_key(scan_add + '*');
-                    else
-                        add_key(scan_add + ':');
+					if(!pc98_force_ibm_layout) {
+						if (flags1 & 3) /* shift */
+							add_key(scan_add + '*');
+						else
+							add_key(scan_add + ':');
+					} else {
+						if (flags1 & 3) /* shift */
+							add_key(scan_add + '\"');
+						else
+							add_key(scan_add + '\'');
+					}
                 }
                 break;
             case 0x28: //   ]           ]       }       ---     ム      ｣

@@ -1213,6 +1213,10 @@ void DOSBOX_SetupConfigSections(void) {
                    "    0: Disable\n"
                    "    1: Enable");
 
+	Pbool = secprop->Add_bool("pc-98 force ibm keyboard layout",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Force to use a default keyboard layout like IBM US-English for PC-98 emulation.\n"
+					"Will only work with apps and games using BIOS for keyboard.");
+
 	Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
 	Pint->SetMinMax(512,65536);
 	Pint->Set_help("VGA BIOS size override. Override the size of the VGA BIOS (normally 32KB in compatible or 12KB in non-compatible).");
