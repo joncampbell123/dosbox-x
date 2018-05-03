@@ -755,6 +755,7 @@ volatile int	ParentWindowInit = 0;
 volatile int	ParentWindowShutdown = 0;
 volatile int	ParentWindowReady = 0;
 volatile BOOL	ParentWindowIsBeingResized = FALSE;
+volatile RECT	ParentWindowDeferredResizeRect = { -1,-1,-1,-1 };
 
 LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_CREATE) {
@@ -795,6 +796,7 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		}
 		else if ((wParam & 0xFFF0) == SC_SIZE) {
 			LRESULT r;
+			RECT nr;
 
 			/* Windows 10 has recently developed a problem where calling SetWindowPos() from the main thread
 			   on this window while the user is resizing the window eventually results in a deadlock where
@@ -804,7 +806,18 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			   NOT to use SetWindowPos() */
 			ParentWindowIsBeingResized = TRUE;
 			r = DefWindowProc(hwnd, msg, wParam, lParam);
+			nr = ParentWindowDeferredResizeRect;
+			ParentWindowDeferredResizeRect.top = -1;
+			ParentWindowDeferredResizeRect.left = -1;
+			ParentWindowDeferredResizeRect.right = -1;
+			ParentWindowDeferredResizeRect.bottom = -1;
 			ParentWindowIsBeingResized = FALSE;
+
+			/* SetWindowPos() gave us a deferred window position/size to apply after resize */
+			if (nr.right > 0 && nr.bottom > 0)
+				SetWindowPos(ParentWindowHWND, NULL,
+					nr.left, nr.top, nr.right - nr.left, nr.bottom - nr.top, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOMOVE);
+
 			return r;
 		}
 		else {

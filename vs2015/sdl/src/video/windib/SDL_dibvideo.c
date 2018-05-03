@@ -511,6 +511,7 @@ static int DIB_SussScreenDepth()
 }
 
 extern volatile BOOL ParentWindowIsBeingResized;
+extern volatile RECT ParentWindowDeferredResizeRect;
 
 /* Various screen update functions available */
 static void DIB_NormalUpdate(_THIS, int numrects, SDL_Rect *rects);
@@ -582,8 +583,15 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 
 		/* Windows 10 has developed a strange deadlock that can happen if the user is resizing the parent window
 		   and we call SetWindowPos() to confirm the size here. Use SWP_NOMOVE just in case that's problematic too. */
-		if (ParentWindowIsBeingResized)
+		if (ParentWindowIsBeingResized) {
+			/* record the window position/size to be applied when the user is finished resizing */
+			ParentWindowDeferredResizeRect.top = y;
+			ParentWindowDeferredResizeRect.left = x;
+			ParentWindowDeferredResizeRect.right = x + width;
+			ParentWindowDeferredResizeRect.bottom = y + height;
+			/* tell SetWindowPos() not to move or resize */
 			swp_flags |= SWP_NOSIZE | SWP_NOMOVE;
+		}
 
 		SetWindowPos(ParentWindowHWND, top, x, y, width, height, swp_flags);
 
