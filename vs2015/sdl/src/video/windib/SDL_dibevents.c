@@ -754,6 +754,7 @@ HWND			ParentWindowHWND = NULL;
 volatile int	ParentWindowInit = 0;
 volatile int	ParentWindowShutdown = 0;
 volatile int	ParentWindowReady = 0;
+volatile BOOL	ParentWindowIsBeingResized = FALSE;
 
 LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_CREATE) {
@@ -791,6 +792,20 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		if (wParam < 0xF000) {
 			PostMessage(SDL_Window, WM_SYSCOMMAND, wParam, lParam);
 			return(0);
+		}
+		else if ((wParam & 0xFFF0) == SC_SIZE) {
+			LRESULT r;
+
+			/* Windows 10 has recently developed a problem where calling SetWindowPos() from the main thread
+			   on this window while the user is resizing the window eventually results in a deadlock where
+			   the user is unable to move or resize the window anymore.
+
+			   To avoid this, set a flag and run DefWindowProc() here so that SDL_SetVideoMode() will know
+			   NOT to use SetWindowPos() */
+			ParentWindowIsBeingResized = TRUE;
+			r = DefWindowProc(hwnd, msg, wParam, lParam);
+			ParentWindowIsBeingResized = FALSE;
+			return r;
 		}
 		else {
 			/* fall through, to DefWindowProc() */
