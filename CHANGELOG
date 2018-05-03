@@ -1,4 +1,10 @@
 0.82.6
+  - Resizing the window in SDL 1.x Windows builds
+    fixed to work correctly in the latest build
+    (1803) of Windows 10. Prior to this fix, resizing
+    the window on that build would quickly hit a deadlock
+    that prevented the user from moving or resizing the
+    window again after that point.
   - PC-98 dosbox.conf option added to select between
     accurate key/shift mapping, vs an alternate mapping
     appropriate for US keyboards (Yksoft1)
