@@ -1,4 +1,4 @@
-0.82.6 (next)
+0.82.6
   - PC-98 dosbox.conf option added to select between
     accurate key/shift mapping, vs an alternate mapping
     appropriate for US keyboards (Yksoft1)
