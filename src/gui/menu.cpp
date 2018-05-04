@@ -101,16 +101,10 @@ class DOSBoxMenu {
                 inline const std::string get_text(void) const {
                     return text;
                 }
-                template <class STR> inline item &set_text(const STR &str) {
+                inline item &set_text(const std::string &str) {
                     status.changed = 1;
                     text = str;
                     return *this;
-                }
-                inline item &set_text(const char * const &str) {
-                    return set_text<const char *>(str);
-                }
-                inline item &set_text(const std::string &str) {
-                    return set_text<std::string>(str);
                 }
         };
     public:
