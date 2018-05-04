@@ -97,6 +97,17 @@ class DOSBoxMenu {
                 identifier_t            id = unassigned_identifier;
                 callback_t              callback_func = unassigned_callback;
                 mapper_event_t          mapper_event_ptr = unassigned_mapper_event;
+            protected:
+                inline item &allocate(const item_handle_t id) {
+                    status.allocated = 1;
+                    master_id = id;
+                    return *this;
+                }
+                void deallocate(void) {
+                    status.allocated = 0;
+                    master_id = unassigned_item_handle;
+                    status.changed = 1;
+                }
             public:
                 inline const std::string &get_text(void) const {
                     return text;
@@ -140,9 +151,11 @@ class DOSBoxMenu {
     public:
         item&                           get_item(const item_handle_t i);
         item&                           alloc_item(const enum item_type_t type = item_type_id);
+        void                            delete_item(const item_handle_t i);
+        void                            clear_all_menu_items(void);
     protected:
         std::vector<item>               master_list;
-        size_t                          master_list_alloc = 0;
+        item_handle_t                   master_list_alloc = 0;
     public:
         static constexpr size_t         master_list_limit = 4096;
 };
@@ -151,6 +164,7 @@ DOSBoxMenu::DOSBoxMenu() {
 }
 
 DOSBoxMenu::~DOSBoxMenu() {
+    clear_all_menu_items();
 }
 
 DOSBoxMenu::item& DOSBoxMenu::get_item(const item_handle_t i) {
@@ -168,7 +182,7 @@ DOSBoxMenu::item& DOSBoxMenu::alloc_item(const enum item_type_t type) {
 
     while (master_list_alloc < master_list.size()) {
         if (!master_list[master_list_alloc].status.allocated)
-            return master_list[master_list_alloc++];
+            return master_list[master_list_alloc].allocate(master_list_alloc);
 
         master_list_alloc++;
     }
@@ -183,7 +197,21 @@ DOSBoxMenu::item& DOSBoxMenu::alloc_item(const enum item_type_t type) {
 
     assert(master_list_alloc < master_list.size());
 
-    return master_list[master_list_alloc++];
+    return master_list[master_list_alloc].allocate(master_list_alloc);
+}
+
+void DOSBoxMenu::delete_item(const item_handle_t i) {
+    if (i == unassigned_item_handle)
+        E_Exit("DOSBoxMenu::delete_item() attempt to get unassigned handle");
+    else if (i >= master_list.size())
+        E_Exit("DOSBoxMenu::delete_item() attempt to get out of range handle");
+
+    master_list[i].deallocate();
+}
+
+void DOSBoxMenu::clear_all_menu_items(void) {
+    for (auto &id : master_list) id.deallocate();
+    master_list.clear();
 }
 
 DOSBoxMenu::item::item() {
