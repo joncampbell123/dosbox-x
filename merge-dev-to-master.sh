@@ -1,4 +1,7 @@
 #!/bin/bash
+rm -f include/build_timestamp.h
+git checkout include/build_timestamp.h
+
 git checkout develop
 git pull
 git push
