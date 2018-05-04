@@ -30,6 +30,150 @@
 #include "timer.h"
 #include "inout.h"
 
+/* menu interface mode */
+#define DOSBOXMENU_NULL     (0)
+#define DOSBOXMENU_HMENU    (1)
+#if defined(WIN32) && !defined(C_SDL2)
+# define DOSBOXMENU_TYPE    DOSBOXMENU_HMENU
+#else
+# define DOSBOXMENU_TYPE    DOSBOXMENU_NULL
+#endif
+
+#include <vector>
+
+class DOSBoxMenu {
+    public:
+        class item;
+    public:
+        enum item_type_t {
+            item_type_id=0,
+            submenu_type_id,
+            separator_type_id,
+            vseparator_type_id,
+
+            MAX_id
+        };
+    public:
+        typedef uint16_t                item_handle_t;
+        typedef uint16_t                identifier_t;       /* e.g. used by WM_COMMAND */
+        typedef void                  (*callback_t)(DOSBoxMenu * const,item * const);
+        typedef void*                   mapper_event_t;     /* CEvent* pointer */
+    public:
+        static constexpr item_handle_t  unassigned_item_handle = ((item_handle_t)(0xFFFFU)); 
+        static constexpr identifier_t   unassigned_identifier = 0;
+        static constexpr callback_t     unassigned_callback = NULL;
+        static constexpr mapper_event_t unassigned_mapper_event = NULL;
+    public:
+        struct accelerator {
+            char                        key = 0;            /* ascii code i.e. 'g' */
+            unsigned char               key_instance = 0;   /* which occurrence of the letter in the text */
+        };
+    public:
+        class item {
+            friend DOSBoxMenu;
+
+            public:
+                                        item();
+                                        ~item();
+            protected:
+                std::string             text;               /* item text */
+                std::string             shortcut_text;      /* shortcut text on the right */
+                std::string             description;        /* description text */
+                struct accelerator      accelerator;        /* menu accelerator */
+            protected:
+                item_handle_t           master_id = unassigned_item_handle;
+                enum item_type_t        type = item_type_id;
+            protected:
+                struct status {
+                                        status() : changed(false), allocated(false), in_use(false), enabled(false), checked(false) { };
+
+                    unsigned int        changed:1;
+                    unsigned int        allocated:1;
+                    unsigned int        in_use:1;
+                    unsigned int        enabled:1;
+                    unsigned int        checked:1;
+                } status;
+            protected:
+                identifier_t            id = unassigned_identifier;
+                callback_t              callback_func = unassigned_callback;
+                mapper_event_t          mapper_event_ptr = unassigned_mapper_event;
+            public:
+                inline const std::string get_text(void) const {
+                    return text;
+                }
+                template <class STR> inline item &set_text(const STR &str) {
+                    status.changed = 1;
+                    text = str;
+                    return *this;
+                }
+                inline item &set_text(const char * const &str) {
+                    return set_text<const char *>(str);
+                }
+                inline item &set_text(const std::string &str) {
+                    return set_text<std::string>(str);
+                }
+        };
+    public:
+                                        DOSBoxMenu();
+                                        ~DOSBoxMenu();
+    public:
+        item&                           get_item(const item_handle_t i);
+        item&                           alloc_item(const enum item_type_t type = item_type_id);
+    protected:
+        std::vector<item>               master_list;
+        size_t                          master_list_alloc = 0;
+    public:
+        static constexpr size_t         master_list_limit = 4096;
+};
+
+DOSBoxMenu::DOSBoxMenu() {
+}
+
+DOSBoxMenu::~DOSBoxMenu() {
+}
+
+DOSBoxMenu::item& DOSBoxMenu::get_item(const item_handle_t i) {
+    if (i == unassigned_item_handle)
+        E_Exit("DOSBoxMenu::get_item() attempt to get unassigned handle");
+    else if (i >= master_list.size())
+        E_Exit("DOSBoxMenu::get_item() attempt to get out of range handle");
+
+    return master_list[(size_t)i];
+}
+
+DOSBoxMenu::item& DOSBoxMenu::alloc_item(const enum item_type_t type) {
+    if (type >= MAX_id)
+        E_Exit("DOSBoxMenu::alloc_item() illegal menu type value");
+
+    while (master_list_alloc < master_list.size()) {
+        if (!master_list[master_list_alloc].status.allocated)
+            return master_list[master_list_alloc++];
+
+        master_list_alloc++;
+    }
+
+    if (master_list_alloc >= master_list_limit)
+        E_Exit("DOSBoxMenu::alloc_item() no slots are free");
+
+    size_t newsize = master_list.size() + (master_list.size() / 2);
+    if (newsize < 64) newsize = 64;
+    if (newsize > master_list_limit) newsize = master_list_limit;
+    master_list.resize(newsize);
+
+    assert(master_list_alloc < master_list.size());
+
+    return master_list[master_list_alloc++];
+}
+
+DOSBoxMenu::item::item() {
+}
+
+DOSBoxMenu::item::~item() {
+}
+
+/* this is THE menu */
+DOSBoxMenu mainMenu;
+
 extern int NonUserResizeCounter;
 
 extern bool dos_kernel_disabled;
