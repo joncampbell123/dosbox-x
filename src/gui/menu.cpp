@@ -112,6 +112,42 @@ class DOSBoxMenu {
                 inline bool has_vis_accelerator(void) const {
                     return type <= item_type_id;
                 }
+                inline bool has_vis_enabled(void) const {
+                    return type <= submenu_type_id;
+                }
+                inline bool can_enable(void) const {
+                    return type <= submenu_type_id;
+                }
+                inline bool has_vis_checked(void) const {
+                    return type <= item_type_id;
+                }
+                inline bool can_check(void) const {
+                    return type <= item_type_id;
+                }
+            public:
+                inline item &check(const bool f=true) {
+                    if (status.checked != f) {
+                        status.checked  = f;
+                        if (can_check() && has_vis_checked())
+                            status.changed = 1;
+                    }
+
+                    return *this;
+                }
+            public:
+                inline item &enable(const bool f=true) {
+                    if (status.enabled != f) {
+                        status.enabled  = f;
+                        if (can_enable() && has_vis_enabled())
+                            status.changed = 1;
+                    }
+
+                    return *this;
+                }
+            public:
+                inline item_type_t get_type(void) const {
+                    return type;
+                }
             public:
                 inline const callback_t get_callback_function(void) const {
                     return callback_func;
