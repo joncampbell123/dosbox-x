@@ -39,6 +39,7 @@
 # define DOSBOXMENU_TYPE    DOSBOXMENU_NULL
 #endif
 
+#include <map>
 #include <vector>
 
 class DOSBoxMenu {
@@ -74,6 +75,7 @@ class DOSBoxMenu {
                                         item();
                                         ~item();
             protected:
+                std::string             name;               /* item name */
                 std::string             text;               /* item text */
                 std::string             shortcut_text;      /* shortcut text on the right */
                 std::string             description;        /* description text */
@@ -99,7 +101,7 @@ class DOSBoxMenu {
             public:
                 uint64_t                user_defined = 0;
             protected:
-                item&                   allocate(const item_handle_t id,const enum item_type_t type);
+                item&                   allocate(const item_handle_t id,const enum item_type_t type,const std::string &name);
                 void                    deallocate(void);
             public:
                 inline bool has_vis_text(void) const {
@@ -211,11 +213,12 @@ class DOSBoxMenu {
                                         ~DOSBoxMenu();
     public:
         item&                           get_item(const item_handle_t i);
-        item&                           alloc_item(const enum item_type_t type = item_type_id);
+        item&                           alloc_item(const enum item_type_t type,const std::string &name);
         void                            delete_item(const item_handle_t i);
         void                            clear_all_menu_items(void);
     protected:
         std::vector<item>               master_list;
+        std::map<std::string,item_handle_t> name_map;
         item_handle_t                   master_list_alloc = 0;
     public:
         static constexpr size_t         master_list_limit = 4096;
@@ -237,13 +240,13 @@ DOSBoxMenu::item& DOSBoxMenu::get_item(const item_handle_t i) {
     return master_list[(size_t)i];
 }
 
-DOSBoxMenu::item& DOSBoxMenu::alloc_item(const enum item_type_t type) {
+DOSBoxMenu::item& DOSBoxMenu::alloc_item(const enum item_type_t type,const std::string &name) {
     if (type >= MAX_id)
         E_Exit("DOSBoxMenu::alloc_item() illegal menu type value");
 
     while (master_list_alloc < master_list.size()) {
         if (!master_list[master_list_alloc].status.allocated)
-            return master_list[master_list_alloc].allocate(master_list_alloc,type);
+            return master_list[master_list_alloc].allocate(master_list_alloc,type,name);
 
         master_list_alloc++;
     }
@@ -258,7 +261,7 @@ DOSBoxMenu::item& DOSBoxMenu::alloc_item(const enum item_type_t type) {
 
     assert(master_list_alloc < master_list.size());
 
-    return master_list[master_list_alloc].allocate(master_list_alloc,type);
+    return master_list[master_list_alloc].allocate(master_list_alloc,type,name);
 }
 
 void DOSBoxMenu::delete_item(const item_handle_t i) {
@@ -281,8 +284,9 @@ DOSBoxMenu::item::item() {
 DOSBoxMenu::item::~item() {
 }
 
-DOSBoxMenu::item &DOSBoxMenu::item::allocate(const item_handle_t id,const enum item_type_t new_type) {
+DOSBoxMenu::item &DOSBoxMenu::item::allocate(const item_handle_t id,const enum item_type_t new_type,const std::string &new_name) {
     status.allocated = 1;
+    name = new_name;
     type = new_type;
     master_id = id;
     return *this;
