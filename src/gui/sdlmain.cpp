@@ -5311,8 +5311,10 @@ int main(int argc, char* argv[]) {
 		if (control->opt_console)
 			DOSBox_ShowConsole();
 
+#if defined(WIN32) && !defined(C_SDL2)
 		/* -- menu */
 		MainMenu = LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MENU));
+#endif
 
 		/* -- Handle some command line options */
 		if (control->opt_eraseconf || control->opt_resetconf)
