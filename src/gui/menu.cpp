@@ -97,7 +97,7 @@ class DOSBoxMenu {
             public:
                 uint64_t                user_defined = 0;
             protected:
-                item&                   allocate(const item_handle_t id);
+                item&                   allocate(const item_handle_t id,const enum item_type_t type);
                 void                    deallocate(void);
             public:
                 inline bool has_vis_text(void) const {
@@ -194,7 +194,7 @@ DOSBoxMenu::item& DOSBoxMenu::alloc_item(const enum item_type_t type) {
 
     while (master_list_alloc < master_list.size()) {
         if (!master_list[master_list_alloc].status.allocated)
-            return master_list[master_list_alloc].allocate(master_list_alloc);
+            return master_list[master_list_alloc].allocate(master_list_alloc,type);
 
         master_list_alloc++;
     }
@@ -209,7 +209,7 @@ DOSBoxMenu::item& DOSBoxMenu::alloc_item(const enum item_type_t type) {
 
     assert(master_list_alloc < master_list.size());
 
-    return master_list[master_list_alloc].allocate(master_list_alloc);
+    return master_list[master_list_alloc].allocate(master_list_alloc,type);
 }
 
 void DOSBoxMenu::delete_item(const item_handle_t i) {
@@ -232,8 +232,9 @@ DOSBoxMenu::item::item() {
 DOSBoxMenu::item::~item() {
 }
 
-DOSBoxMenu::item &DOSBoxMenu::item::allocate(const item_handle_t id) {
+DOSBoxMenu::item &DOSBoxMenu::item::allocate(const item_handle_t id,const enum item_type_t new_type) {
     status.allocated = 1;
+    type = new_type;
     master_id = id;
     return *this;
 }
