@@ -98,7 +98,7 @@ class DOSBoxMenu {
                 callback_t              callback_func = unassigned_callback;
                 mapper_event_t          mapper_event_ptr = unassigned_mapper_event;
             public:
-                inline const std::string get_text(void) const {
+                inline const std::string &get_text(void) const {
                     return text;
                 }
                 inline item &set_text(const std::string &str) {
@@ -106,9 +106,36 @@ class DOSBoxMenu {
                     text = str;
                     return *this;
                 }
+            public:
+                inline const std::string &get_shortcut_text(void) const {
+                    return shortcut_text;
+                }
+                inline item &set_shortcut_text(const std::string &str) {
+                    status.changed = 1;
+                    shortcut_text = str;
+                    return *this;
+                }
+            public:
+                inline const std::string &get_description(void) const {
+                    return description;
+                }
+                inline item &set_description(const std::string &str) {
+                    status.changed = 1;
+                    description = str;
+                    return *this;
+                }
+            public:
+                inline const struct accelerator &get_accelerator(void) const {
+                    return accelerator;
+                }
+                inline item &set_accelerator(const struct accelerator &str) {
+                    status.changed = 1;
+                    accelerator = str;
+                    return *this;
+                }
         };
     public:
-                                        DOSBoxMenu();
+        DOSBoxMenu();
                                         ~DOSBoxMenu();
     public:
         item&                           get_item(const item_handle_t i);
