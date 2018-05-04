@@ -27,6 +27,7 @@
 #include "callback.h"
 #include "support.h"
 #include "builtin.h"
+#include "build_timestamp.h"
 
 extern bool dos_shell_running_program;
 

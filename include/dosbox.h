@@ -22,7 +22,6 @@
 
 #include "config.h"
 #include "logging.h"
-#include "build_timestamp.h"
 
 #if defined(_MSC_VER)
 # include <sys/types.h>

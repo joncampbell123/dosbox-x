@@ -39,6 +39,7 @@
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
 #include "regionalloctracking.h"
+#include "build_timestamp.h"
 extern bool PS1AudioCard;
 #include "parport.h"
 #include <time.h>
