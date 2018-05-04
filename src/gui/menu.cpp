@@ -55,12 +55,10 @@ class DOSBoxMenu {
         };
     public:
         typedef uint16_t                item_handle_t;
-        typedef uint16_t                identifier_t;       /* e.g. used by WM_COMMAND */
         typedef void                  (*callback_t)(DOSBoxMenu * const,item * const);
         typedef void*                   mapper_event_t;     /* CEvent* pointer */
     public:
         static constexpr item_handle_t  unassigned_item_handle = ((item_handle_t)(0xFFFFU)); 
-        static constexpr identifier_t   unassigned_identifier = 0;
         static constexpr callback_t     unassigned_callback = NULL;
         static constexpr mapper_event_t unassigned_mapper_event = NULL;
     public:
@@ -94,9 +92,10 @@ class DOSBoxMenu {
                     unsigned int        checked:1;
                 } status;
             protected:
-                identifier_t            id = unassigned_identifier;
                 callback_t              callback_func = unassigned_callback;
                 mapper_event_t          mapper_event_ptr = unassigned_mapper_event;
+            public:
+                uint64_t                user_defined = 0;
             protected:
                 item&                   allocate(const item_handle_t id);
                 void                    deallocate(void);
