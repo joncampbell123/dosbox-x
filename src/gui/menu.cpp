@@ -83,11 +83,11 @@ class DOSBoxMenu {
                 enum item_type_t        type = item_type_id;
             protected:
                 struct status {
-                                        status() : changed(false), allocated(false), in_use(false), enabled(true), checked(false) { };
+                                        status() : changed(false), allocated(false),
+                                                   enabled(true), checked(false) { };
 
                     unsigned int        changed:1;
                     unsigned int        allocated:1;
-                    unsigned int        in_use:1;
                     unsigned int        enabled:1;
                     unsigned int        checked:1;
                 } status;
