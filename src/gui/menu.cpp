@@ -98,16 +98,8 @@ class DOSBoxMenu {
                 callback_t              callback_func = unassigned_callback;
                 mapper_event_t          mapper_event_ptr = unassigned_mapper_event;
             protected:
-                inline item &allocate(const item_handle_t id) {
-                    status.allocated = 1;
-                    master_id = id;
-                    return *this;
-                }
-                void deallocate(void) {
-                    status.allocated = 0;
-                    master_id = unassigned_item_handle;
-                    status.changed = 1;
-                }
+                item&                   allocate(const item_handle_t id);
+                void                    deallocate(void);
             public:
                 inline bool has_vis_text(void) const {
                     return type <= submenu_type_id;
@@ -167,7 +159,7 @@ class DOSBoxMenu {
                 }
         };
     public:
-        DOSBoxMenu();
+                                        DOSBoxMenu();
                                         ~DOSBoxMenu();
     public:
         item&                           get_item(const item_handle_t i);
@@ -239,6 +231,18 @@ DOSBoxMenu::item::item() {
 }
 
 DOSBoxMenu::item::~item() {
+}
+
+DOSBoxMenu::item &DOSBoxMenu::item::allocate(const item_handle_t id) {
+    status.allocated = 1;
+    master_id = id;
+    return *this;
+}
+
+void DOSBoxMenu::item::deallocate(void) {
+    master_id = unassigned_item_handle;
+    status.allocated = 0;
+    status.changed = 1;
 }
 
 /* this is THE menu */
