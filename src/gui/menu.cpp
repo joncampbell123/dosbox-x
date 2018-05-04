@@ -84,12 +84,14 @@ class DOSBoxMenu {
             protected:
                 struct status {
                                         status() : changed(false), allocated(false),
-                                                   enabled(true), checked(false) { };
+                                                   enabled(true), checked(false),
+                                                   in_use(false) { };
 
                     unsigned int        changed:1;
                     unsigned int        allocated:1;
                     unsigned int        enabled:1;
                     unsigned int        checked:1;
+                    unsigned int        in_use:1;
                 } status;
             protected:
                 callback_t              callback_func = unassigned_callback;
