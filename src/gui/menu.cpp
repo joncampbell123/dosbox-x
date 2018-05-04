@@ -109,11 +109,26 @@ class DOSBoxMenu {
                     status.changed = 1;
                 }
             public:
+                inline bool has_vis_text(void) const {
+                    return type <= submenu_type_id;
+                }
+                inline bool has_vis_shortcut_text(void) const {
+                    return type <= item_type_id;
+                }
+                inline bool has_vis_description(void) const {
+                    return false;
+                }
+                inline bool has_vis_accelerator(void) const {
+                    return type <= item_type_id;
+                }
+            public:
                 inline const std::string &get_text(void) const {
                     return text;
                 }
                 inline item &set_text(const std::string &str) {
-                    status.changed = 1;
+                    if (has_vis_text())
+                        status.changed = 1;
+
                     text = str;
                     return *this;
                 }
@@ -122,7 +137,9 @@ class DOSBoxMenu {
                     return shortcut_text;
                 }
                 inline item &set_shortcut_text(const std::string &str) {
-                    status.changed = 1;
+                    if (has_vis_shortcut_text())
+                        status.changed = 1;
+
                     shortcut_text = str;
                     return *this;
                 }
@@ -131,7 +148,9 @@ class DOSBoxMenu {
                     return description;
                 }
                 inline item &set_description(const std::string &str) {
-                    status.changed = 1;
+                    if (has_vis_description())
+                        status.changed = 1;
+
                     description = str;
                     return *this;
                 }
@@ -140,7 +159,9 @@ class DOSBoxMenu {
                     return accelerator;
                 }
                 inline item &set_accelerator(const struct accelerator &str) {
-                    status.changed = 1;
+                    if (has_vis_accelerator())
+                        status.changed = 1;
+
                     accelerator = str;
                     return *this;
                 }
