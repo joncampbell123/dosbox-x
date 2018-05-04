@@ -790,6 +790,7 @@ void DOSBox_SetSysMenu(void) {
 }
 
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
+extern HMENU MainMenu;
 
 void DOSBox_SetMenu(void) {
 #if !defined(HX_DOS)
@@ -799,7 +800,7 @@ void DOSBox_SetMenu(void) {
 
 	menu.toggle=true;
     NonUserResizeCounter=1;
-	SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MENU)));
+	SDL1_hax_SetMenu(MainMenu);
 
 	Reflect_Menu();
 
@@ -887,7 +888,7 @@ void DOSBox_RefreshMenu2(void) {
 	if(menu.toggle) {
 		menu.toggle=true;
         NonUserResizeCounter=1;
-        SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
+        SDL1_hax_SetMenu(MainMenu);
 	} else {
 		menu.toggle=false;
         NonUserResizeCounter=1;
