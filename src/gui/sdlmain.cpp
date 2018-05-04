@@ -103,6 +103,13 @@ bool OpenGL_using(void);
 #include "keymap.h"
 #include "control.h"
 
+#if !defined(C_SDL2)
+# include "SDL_version.h"
+# ifndef SDL_DOSBOX_X_SPECIAL
+#  error This code must be compiled using the SDL 1.x library provided in this source repository
+# endif
+#endif
+
 #if defined(WIN32) && !defined(S_ISREG)
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif

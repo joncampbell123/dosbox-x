@@ -35,6 +35,9 @@
 extern "C" {
 #endif
 
+/* This is the DOSBox-X specific version of SDL 1.x, not the general library */
+#define SDL_DOSBOX_X_SPECIAL 1
+
 /** @name Version Number
  *  Printable format: "%d.%d.%d", MAJOR, MINOR, PATCHLEVEL
  */
