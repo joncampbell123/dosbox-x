@@ -83,7 +83,7 @@ class DOSBoxMenu {
                 enum item_type_t        type = item_type_id;
             protected:
                 struct status {
-                                        status() : changed(false), allocated(false), in_use(false), enabled(false), checked(false) { };
+                                        status() : changed(false), allocated(false), in_use(false), enabled(true), checked(false) { };
 
                     unsigned int        changed:1;
                     unsigned int        allocated:1;
@@ -111,6 +111,17 @@ class DOSBoxMenu {
                 }
                 inline bool has_vis_accelerator(void) const {
                     return type <= item_type_id;
+                }
+            public:
+                inline const callback_t get_callback_function(void) const {
+                    return callback_func;
+                }
+                inline item &set_callback_function(const callback_t f) {
+                    callback_func = f;
+                }
+            public:
+                inline item &set_mapper_event(const mapper_event_t e) {
+                    mapper_event_ptr = e;
                 }
             public:
                 inline const std::string &get_text(void) const {
