@@ -114,11 +114,7 @@ static std::map<std::string, size_t> name_to_events;
 
 class CEvent;
 
-CEvent *get_mapper_event_by_name_private(const std::string &x);
-
-void *get_mapper_event_by_name(const std::string &x) {
-    return (void*)get_mapper_event_by_name_private(x);
-}
+CEvent *get_mapper_event_by_name(const std::string &x);
 
 class CEvent {
 public:
@@ -138,7 +134,7 @@ public:
 		activity=0;
 		current_value=0;
 
-        assert(get_mapper_event_by_name_private(entry) == this);
+        assert(get_mapper_event_by_name(entry) == this);
 	}
 	void AddBind(CBind * bind);
 	virtual ~CEvent();
@@ -164,7 +160,7 @@ protected:
 	Bits current_value;
 };
 
-CEvent *get_mapper_event_by_name_private(const std::string &x) {
+CEvent *get_mapper_event_by_name(const std::string &x) {
     auto i = name_to_events.find(x);
 
     if (i != name_to_events.end()) {
