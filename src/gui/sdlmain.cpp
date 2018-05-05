@@ -6047,12 +6047,6 @@ fresh_boot:
 #endif
 	SDL_ShowCursor(SDL_ENABLE);
 
-#if defined(WIN32) && !defined(C_SDL2)
-# if !defined(HX_DOS)
-	SDL1_hax_SetMenu(NULL);
-# endif
-#endif
-
 	/* Exit functions */
 	while (!exitfunctions.empty()) {
 		Function_wrapper &ent = exitfunctions.front();
@@ -6063,6 +6057,14 @@ fresh_boot:
 	}
 
 	LOG::Exit();
+
+#if defined(WIN32) && !defined(C_SDL2)
+# if !defined(HX_DOS)
+	ShowWindow(GetHWND(), SW_HIDE);
+	SDL1_hax_SetMenu(NULL);/* detach menu from window, or else Windows will destroy the menu out from under the C++ class */
+# endif
+#endif
+
 	SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
 
 	mainMenu.unbuild();
