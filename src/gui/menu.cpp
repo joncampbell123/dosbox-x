@@ -278,7 +278,7 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
     }
     else if (type == submenu_type_id) {
         if (winMenu != NULL)
-            AppendMenu(handle, MF_POPUP | MF_STRING, (UINTPTR_T)winMenu, text.c_str());
+            AppendMenu(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, text.c_str());
     }
     else if (type == item_type_id) {
         unsigned int attr = MF_STRING;
@@ -286,7 +286,7 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
         attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
         attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
-        AppendMenu(handle, attr, (UINTPTR_T)(master_id + winMenuMinimumID), text.c_str());
+        AppendMenu(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), text.c_str());
     }
 }
 
@@ -294,7 +294,7 @@ bool DOSBoxMenu::winMenuSubInit(DOSBoxMenu::item &p_item) {
     if (p_item.winMenu == NULL) {
         p_item.winMenu = CreatePopupMenu();
         if (p_item.winMenu != NULL) {
-            for (auto id : p_item.disp_list) {
+            for (auto id : p_item.display_list.disp_list) {
                 DOSBoxMenu::item &item = get_item(id);
 
                 /* if a submenu, make the submenu */

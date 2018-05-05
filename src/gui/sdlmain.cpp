@@ -6053,9 +6053,6 @@ fresh_boot:
 # endif
 #endif
 
-    mainMenu.unbuild();
-    mainMenu.clear_all_menu_items();
-
 	/* Exit functions */
 	while (!exitfunctions.empty()) {
 		Function_wrapper &ent = exitfunctions.front();
@@ -6067,6 +6064,10 @@ fresh_boot:
 
 	LOG::Exit();
 	SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
+
+	mainMenu.unbuild();
+	mainMenu.clear_all_menu_items();
+
 	return 0;
 }
 
