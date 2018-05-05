@@ -131,7 +131,8 @@ class DOSBoxMenu {
                                         displaylist();
                                         ~displaylist();
             protected:
-                bool                    changed = false;
+                bool                    items_changed = false;
+                bool                    order_changed = false;
                 std::vector<item_handle_t> disp_list;
         };
     public:
