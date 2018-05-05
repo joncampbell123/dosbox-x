@@ -95,6 +95,8 @@ extern void GetDefaultSize(void);
 #define VER_PLATFORM_WIN32_NT (1)
 #define DOSBox_Kor() !strncmp("ko", getenv("LANG"), 2) // dirty hack.
 
+#endif
+
 /* menu interface mode */
 #define DOSBOXMENU_NULL     (0)
 #define DOSBOXMENU_HMENU    (1)
@@ -306,5 +308,3 @@ class DOSBoxMenu {
     public:
         static constexpr size_t         master_list_limit = 4096;
 };
-
-#endif
