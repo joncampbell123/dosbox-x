@@ -398,9 +398,9 @@ bool DOSBoxMenu::mainMenuWM_COMMAND(unsigned int id) {
 
 void MAPPER_TriggerEventByName(const std::string name);
 
-void DOSBoxMenu::item::refresh_item(void) {
+void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
-    if (winMenu != NULL && status.changed) {
+    if (menu.winMenu != NULL && status.changed) {
         if (type == separator_type_id) {
             /* none */
         }
@@ -416,7 +416,7 @@ void DOSBoxMenu::item::refresh_item(void) {
             attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
             attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
-            ModifyMenu(winMenu, (uintptr_t)(master_id + winMenuMinimumID),
+            ModifyMenu(menu.winMenu, (uintptr_t)(master_id + winMenuMinimumID),
                 attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID),
                 winConstructMenuText().c_str());
         }

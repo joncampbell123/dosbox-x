@@ -148,7 +148,7 @@ public:
             DOSBoxMenu::item& item = mainMenu.get_item(std::string("mapper_") + std::string(eventname));
             std::string str = GetBindMenuText();
             item.set_shortcut_text(str);
-            item.refresh_item();
+            item.refresh_item(mainMenu);
 //            LOG_MSG("%s",str.c_str());
         }
     }

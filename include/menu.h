@@ -234,7 +234,7 @@ class DOSBoxMenu {
                     return type <= item_type_id;
                 }
             public:
-                void refresh_item(void);
+                void refresh_item(DOSBoxMenu &menu);
             public:
                 inline item &check(const bool f=true) {
                     if (status.checked != f) {
