@@ -133,6 +133,8 @@ class DOSBoxMenu {
         typedef std::string             mapper_event_t;     /* event name */
     public:
         class displaylist {
+            friend DOSBoxMenu;
+
             public:
                                         displaylist();
                                         ~displaylist();
@@ -167,6 +169,7 @@ class DOSBoxMenu {
                 std::string             description;        /* description text */
                 struct accelerator      accelerator;        /* menu accelerator */
             protected:
+                item_handle_t           parent_id = unassigned_item_handle;
                 item_handle_t           master_id = unassigned_item_handle;
                 enum item_type_t        type = item_type_id;
             protected:
@@ -322,6 +325,10 @@ class DOSBoxMenu {
         item_handle_t                   master_list_alloc = 0;
     public:
         static constexpr size_t         master_list_limit = 4096;
+    public:
+        void                            displaylist_append(displaylist &ls,DOSBoxMenu::item &item);
+        void                            displaylist_remove(displaylist &ls,DOSBoxMenu::item &item);
+        void                            displaylist_clear(displaylist &ls);
 };
 
 extern DOSBoxMenu mainMenu;

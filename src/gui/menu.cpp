@@ -176,6 +176,43 @@ void DOSBoxMenu::item::deallocate(void) {
     name.clear();
 }
 
+void DOSBoxMenu::displaylist_append(DOSBoxMenu::displaylist &ls,DOSBoxMenu::item &item) {
+    if (item.status.in_use)
+        E_Exit("DOSBoxMenu::displaylist_append() item already in use");
+
+    ls.disp_list.push_back(item.master_id);
+    item.status.in_use = true;
+    ls.order_changed = true;
+}
+
+void DOSBoxMenu::displaylist_remove(DOSBoxMenu::displaylist &ls,DOSBoxMenu::item &item) {
+    if (!item.status.in_use)
+        E_Exit("DOSBoxMenu::displaylist_remove() item not in use");
+
+    for (auto i=ls.disp_list.begin();i!=ls.disp_list.end();i++) {
+        if (*i == item.master_id) {
+            ls.disp_list.erase(i);
+            break;
+        }
+    }
+
+    item.status.in_use = false;
+    ls.order_changed = true;
+}
+
+void DOSBoxMenu::displaylist_clear(DOSBoxMenu::displaylist &ls) {
+    for (auto &id : ls.disp_list) {
+        if (id != DOSBoxMenu::unassigned_item_handle) {
+            get_item(id).deallocate();
+            id = DOSBoxMenu::unassigned_item_handle;
+        }
+    }
+
+    ls.disp_list.clear();
+    ls.items_changed = true;
+    ls.order_changed = true;
+}
+
 /* this is THE menu */
 DOSBoxMenu mainMenu;
 

@@ -5603,6 +5603,36 @@ int main(int argc, char* argv[]) {
 			}
 		}
 
+        /* stock top-level menu items */
+        {
+            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"MainMenu");
+            item.set_text("Main");
+        }
+        {
+            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CpuMenu");
+            item.set_text("CPU");
+        }
+        {
+            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoMenu");
+            item.set_text("Video");
+        }
+        {
+            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"SoundMenu");
+            item.set_text("Sound");
+        }
+        {
+            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSMenu");
+            item.set_text("DOS");
+        }
+        {
+            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureMenu");
+            item.set_text("Capture");
+        }
+        {
+            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DriveMenu");
+            item.set_text("Drive");
+        }
+
 #if (HAVE_D3D9_H) && defined(WIN32)
 		D3D_reconfigure();
 #endif
