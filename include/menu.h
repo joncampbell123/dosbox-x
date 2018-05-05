@@ -183,6 +183,9 @@ class DOSBoxMenu {
                 item&                   allocate(const item_handle_t id,const enum item_type_t type,const std::string &name);
                 void                    deallocate(void);
             public:
+                inline bool is_allocated(void) const {
+                    return master_id != unassigned_item_handle;
+                }
                 inline bool has_vis_text(void) const {
                     return type <= submenu_type_id;
                 }
@@ -310,3 +313,6 @@ class DOSBoxMenu {
     public:
         static constexpr size_t         master_list_limit = 4096;
 };
+
+extern DOSBoxMenu mainMenu;
+

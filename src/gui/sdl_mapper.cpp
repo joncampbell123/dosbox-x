@@ -2873,6 +2873,9 @@ void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const
 	strcat(tempname,eventname);
 	CHandlerEvent *event = new CHandlerEvent(tempname,handler,key,mods,buttonname);
 
+    /* The mapper now automatically makes menu items for mapper events */
+    DOSBoxMenu::item &menuitem = mainMenu.alloc_item(DOSBoxMenu::item_type_id, tempname);
+
     if (mapper_addhandler_create_buttons) {
         // and a button in the mapper UI
         {
