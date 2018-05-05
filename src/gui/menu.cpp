@@ -59,6 +59,14 @@ class DOSBoxMenu {
         typedef void                  (*callback_t)(DOSBoxMenu * const,item * const);
         typedef void*                   mapper_event_t;     /* CEvent* pointer */
     public:
+        class displaylist : public std::vector<item_handle_t> {
+            public:
+                                        displaylist();
+                                        ~displaylist();
+            protected:
+                bool                    changed = false;
+        };
+    public:
         static constexpr item_handle_t  unassigned_item_handle = ((item_handle_t)(0xFFFFU)); 
         static constexpr callback_t     unassigned_callback = NULL;
         static constexpr mapper_event_t unassigned_mapper_event = NULL;
@@ -98,6 +106,8 @@ class DOSBoxMenu {
             protected:
                 callback_t              callback_func = unassigned_callback;
                 mapper_event_t          mapper_event_ptr = unassigned_mapper_event;
+            public:
+                displaylist             display_list;
             public:
                 uint64_t                user_defined = 0;
             protected:
@@ -216,6 +226,8 @@ class DOSBoxMenu {
         item&                           alloc_item(const enum item_type_t type,const std::string &name);
         void                            delete_item(const item_handle_t i);
         void                            clear_all_menu_items(void);
+    public:
+        displaylist                     display_list;
     protected:
         std::vector<item>               master_list;
         std::map<std::string,item_handle_t> name_map;
@@ -229,6 +241,12 @@ DOSBoxMenu::DOSBoxMenu() {
 
 DOSBoxMenu::~DOSBoxMenu() {
     clear_all_menu_items();
+}
+
+DOSBoxMenu::displaylist::displaylist() : std::vector<item_handle_t>() {
+}
+
+DOSBoxMenu::displaylist::~displaylist() {
 }
 
 DOSBoxMenu::item& DOSBoxMenu::get_item(const item_handle_t i) {
