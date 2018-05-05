@@ -36,6 +36,7 @@ DOSBoxMenu::DOSBoxMenu() {
 }
 
 DOSBoxMenu::~DOSBoxMenu() {
+    unbuild();
     clear_all_menu_items();
 }
 
@@ -253,12 +254,98 @@ void DOSBoxMenu::displaylist_clear(DOSBoxMenu::displaylist &ls) {
 }
 
 void DOSBoxMenu::rebuild(void) {
-    /* TODO: generate the menu resource */
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
+    if (winMenu == NULL) {
+        if (!winMenuInit())
+            return;
+    }
+#endif
 }
 
 void DOSBoxMenu::unbuild(void) {
-    /* TODO: destroy menu resource */
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
+    winMenuDestroy();
+#endif
 }
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
+void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
+    if (type == separator_type_id) {
+        AppendMenu(handle, MF_MENUBREAK, 0, NULL);
+    }
+    else if (type == vseparator_type_id) {
+        AppendMenu(handle, MF_MENUBARBREAK, 0, NULL);
+    }
+    else if (type == submenu_type_id) {
+        if (winMenu != NULL)
+            AppendMenu(handle, MF_POPUP | MF_STRING, (UINTPTR_T)winMenu, text.c_str());
+    }
+    else if (type == item_type_id) {
+        unsigned int attr = MF_STRING;
+
+        attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
+        attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
+
+        AppendMenu(handle, attr, (UINTPTR_T)(master_id + winMenuMinimumID), text.c_str());
+    }
+}
+
+bool DOSBoxMenu::winMenuSubInit(DOSBoxMenu::item &p_item) {
+    if (p_item.winMenu == NULL) {
+        p_item.winMenu = CreatePopupMenu();
+        if (p_item.winMenu != NULL) {
+            for (auto id : p_item.disp_list) {
+                DOSBoxMenu::item &item = get_item(id);
+
+                /* if a submenu, make the submenu */
+                if (item.type == submenu_type_id)
+                    winMenuSubInit(item);
+
+                item.winAppendMenu(p_item.winMenu);
+            }
+        }
+    }
+
+    return true;
+}
+
+bool DOSBoxMenu::winMenuInit(void) {
+    if (winMenu == NULL) {
+        winMenu = CreateMenu();
+        if (winMenu == NULL) return false;
+
+        /* top level */
+        for (auto id : display_list.disp_list) {
+            DOSBoxMenu::item &item = get_item(id);
+
+            /* if a submenu, make the submenu */
+            if (item.type == submenu_type_id)
+                winMenuSubInit(item);
+
+            item.winAppendMenu(winMenu);
+        }
+    }
+
+    return true;
+}
+
+void DOSBoxMenu::winMenuDestroy(void) {
+    if (winMenu != NULL) {
+        /* go through all menu items, and clear the menu handle */
+        for (auto &id : master_list)
+            id.winMenu = NULL;
+
+        /* destroy the menu.
+         * By MSDN docs it destroys submenus automatically */
+        DestroyMenu(winMenu);
+        winMenu = NULL;
+    }
+}
+
+HMENU DOSBoxMenu::getWinMenu(void) const {
+    return winMenu;
+}
+#endif
 
 /* this is THE menu */
 DOSBoxMenu mainMenu;
@@ -1108,6 +1195,8 @@ void DOSBox_SetMenu(void) {
 #if !defined(HX_DOS)
 	if(!menu.gui) return;
 
+    if (MainMenu == NULL) return;
+
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
 
 	menu.toggle=true;
@@ -1268,6 +1357,9 @@ int Reflect_Menu(void) {
 #if !defined(HX_DOS)
 	extern bool Mouse_Drv;
 	static char name[9];
+
+    // TODO
+    return 0;
 
 	if (!menu.gui) return 0;
 	HMENU m_handle = GetMenu(GetHWND());

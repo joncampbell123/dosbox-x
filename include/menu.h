@@ -191,6 +191,13 @@ class DOSBoxMenu {
                 displaylist             display_list;
             public:
                 uint64_t                user_defined = 0;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
+            protected:
+                HMENU                   winMenu = NULL;
+            protected:
+                void                    winAppendMenu(HMENU handle);
+#endif
+
             protected:
                 item&                   allocate(const item_handle_t id,const enum item_type_t type,const std::string &name);
                 void                    deallocate(void);
@@ -330,6 +337,17 @@ class DOSBoxMenu {
         std::vector<item>               master_list;
         std::map<std::string,item_handle_t> name_map;
         item_handle_t                   master_list_alloc = 0;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
+    protected:
+        HMENU                           winMenu = NULL;
+        bool                            winMenuInit(void);
+        void                            winMenuDestroy(void);
+        bool                            winMenuSubInit(DOSBoxMenu::item &item);
+    public:
+        HMENU                           getWinMenu(void) const;
+    public:
+        static constexpr unsigned int   winMenuMinimumID = 0x1000;
+#endif
     public:
         static constexpr size_t         master_list_limit = 4096;
     public:

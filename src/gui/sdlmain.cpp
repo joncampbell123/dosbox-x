@@ -5311,11 +5311,6 @@ int main(int argc, char* argv[]) {
 		if (control->opt_console)
 			DOSBox_ShowConsole();
 
-#if defined(WIN32) && !defined(C_SDL2)
-		/* -- menu */
-		MainMenu = LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MENU));
-#endif
-
 		/* -- Handle some command line options */
 		if (control->opt_eraseconf || control->opt_resetconf)
 			eraseconfigfile();
@@ -5780,17 +5775,23 @@ fresh_boot:
 		reboot_machine = false;
 		dos_kernel_shutdown = false;
 
-#if defined(WIN32) && !defined(C_SDL2)
-		int Reflect_Menu(void);
-		Reflect_Menu();
-#endif
-
         void ConstructMenu(void);
         ConstructMenu();
 
         mainMenu.dump_log_debug(); /*DEBUG*/
 
         mainMenu.rebuild();
+
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+		/* -- menu */
+		MainMenu = mainMenu.getWinMenu();
+        DOSBox_SetMenu();
+#endif
+
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
 
 		/* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
 		 *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
