@@ -223,6 +223,7 @@ class DOSBoxMenu {
                                         ~DOSBoxMenu();
     public:
         item&                           get_item(const item_handle_t i);
+        item&                           get_item(const std::string &name);
         item&                           alloc_item(const enum item_type_t type,const std::string &name);
         void                            delete_item(const item_handle_t i);
         void                            clear_all_menu_items(void);
@@ -247,6 +248,15 @@ DOSBoxMenu::displaylist::displaylist() : std::vector<item_handle_t>() {
 }
 
 DOSBoxMenu::displaylist::~displaylist() {
+}
+
+DOSBoxMenu::item& DOSBoxMenu::get_item(const std::string &name) {
+    auto i = name_map.find(name);
+
+    if (i == name_map.end()) /* TODO: Need a sentinel value to say not found */
+        E_Exit("DOSBoxMenu::get_item() no such item \"%s\" found",name.c_str());
+
+    return get_item(i->second);
 }
 
 DOSBoxMenu::item& DOSBoxMenu::get_item(const item_handle_t i) {
