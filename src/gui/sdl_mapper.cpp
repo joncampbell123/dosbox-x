@@ -257,8 +257,9 @@ public:
 		active=holding=false;
         type = _type;
 	}
+    virtual std::string GetModifierText(void);
     virtual std::string GetBindMenuText(void) {
-        return std::string();
+        return GetModifierText();
     }
 	void AddFlags(char * buf) {
 		if (mods & BMOD_Mod1) strcat(buf," mod1");
@@ -590,27 +591,44 @@ public:
 #endif
 	}
     virtual std::string GetBindMenuText(void) {
-        return std::string();
+        const char *s;
+        std::string r,m;
+
+#if defined(C_SDL2)
+        s = SDL_GetScancodeName(key);
+#else
+		s = SDL_GetKeyName(MapSDLCode((Bitu)key));
+#endif
+        if (s != NULL) r = s;
+
+        m = GetModifierText();
+        if (!m.empty()) r = m + "+" + r;
+
+        return r;
     }
 public:
 	SDLKey key;
 };
 
 std::string CEvent::GetBindMenuText(void) {
+    std::string r;
+
     if (bindlist.empty())
         return std::string();
 
-    CBind *b = bindlist.front();
-    if (b == NULL)
-        return std::string();
-    if (b->type != CBind::keybind_t)
-        return std::string();
+    for (auto i=bindlist.begin();i!=bindlist.end();i++) {
+        CBind *b = *i;
+        if (b == NULL) continue;
+        if (b->type != CBind::keybind_t) continue;
 
-    CKeyBind *kb = reinterpret_cast<CKeyBind*>(b);
-    if (kb == NULL)
-        return std::string();
+        CKeyBind *kb = reinterpret_cast<CKeyBind*>(b);
+        if (kb == NULL) continue;
 
-    return kb->GetBindMenuText();
+        r += kb->GetBindMenuText();
+        break;
+    }
+
+    return r;
 }
 
 class CKeyBindGroup : public  CBindGroup {
@@ -1880,7 +1898,6 @@ protected:
 	Bitu stick,hat,dir;
 };
 
-
 class CModEvent : public CTriggeredEvent {
 public:
 	CModEvent(char const * const _entry,Bitu _wmod) : CTriggeredEvent(_entry), notify_button(NULL) {
@@ -1901,6 +1918,22 @@ public:
 protected:
 	Bitu wmod;
 };
+
+static CModEvent* mod_event[8] = {NULL};
+
+std::string CBind::GetModifierText(void) {
+    std::string r,t;
+
+    for (size_t m=4/*Host key first*/;m >= 1;m--) {
+        if ((mods & (1 << (m - 1))) && mod_event[m] != NULL) {
+            t = mod_event[m]->GetBindMenuText();
+            if (!r.empty()) r += "+";
+            r += t;
+        }
+    }
+
+    return r;
+}
 
 class CHandlerEvent : public CTriggeredEvent {
 public:
@@ -2255,8 +2288,6 @@ static void AddJHatButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title
 	CJHatEvent * event=new CJHatEvent(buf,_stick,_hat,_dir);
 	new CEventButton(x,y,dx,dy,title,event);
 }
-
-static CModEvent* mod_event[8] = {NULL};
 
 static void AddModButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,Bitu _mod) {
 	char buf[64];
@@ -2642,6 +2673,8 @@ static SDL_Color map_pal[5]={
 };
 
 static void CreateStringBind(char * line,bool loading=false) {
+    std::string o_line = line;
+
 	line=trim(line);
     if (*line == 0) return;
 	char * eventname=StripWord(line);
