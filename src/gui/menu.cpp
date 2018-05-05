@@ -168,10 +168,12 @@ class DOSBoxMenu {
                 }
                 inline item &set_callback_function(const callback_t f) {
                     callback_func = f;
+                    return *this;
                 }
             public:
                 inline item &set_mapper_event(const mapper_event_t e) {
                     mapper_event_ptr = e;
+                    return *this;
                 }
             public:
                 inline const std::string &get_text(void) const {
