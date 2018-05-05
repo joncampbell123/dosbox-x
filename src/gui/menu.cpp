@@ -333,8 +333,10 @@ bool DOSBoxMenu::winMenuSubInit(DOSBoxMenu::item &p_item) {
                 DOSBoxMenu::item &item = get_item(id);
 
                 /* if a submenu, make the submenu */
-                if (item.type == submenu_type_id)
+                if (item.type == submenu_type_id) {
+                    item.parent_id = p_item.master_id;
                     winMenuSubInit(item);
+                }
 
                 item.winAppendMenu(p_item.winMenu);
             }
@@ -354,8 +356,10 @@ bool DOSBoxMenu::winMenuInit(void) {
             DOSBoxMenu::item &item = get_item(id);
 
             /* if a submenu, make the submenu */
-            if (item.type == submenu_type_id)
+            if (item.type == submenu_type_id) {
+                item.parent_id = unassigned_item_handle;
                 winMenuSubInit(item);
+            }
 
             item.winAppendMenu(winMenu);
         }
@@ -401,6 +405,13 @@ void MAPPER_TriggerEventByName(const std::string name);
 void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
     if (menu.winMenu != NULL && status.changed) {
+        HMENU phandle = NULL;
+
+        if (parent_id != unassigned_item_handle)
+            phandle = get_item(parent_id).winMenu;
+        else
+            phandle = menu.winMenu;
+
         if (type == separator_type_id) {
             /* none */
         }
@@ -416,7 +427,7 @@ void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
             attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
             attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
-            ModifyMenu(menu.winMenu, (uintptr_t)(master_id + winMenuMinimumID),
+            ModifyMenu(phandle, (uintptr_t)(master_id + winMenuMinimumID),
                 attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID),
                 winConstructMenuText().c_str());
         }
