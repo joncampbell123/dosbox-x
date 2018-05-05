@@ -108,15 +108,37 @@ typedef std::vector<CEvent *>::iterator CEventVector_it;
 typedef std::vector<CHandlerEvent *>::iterator CHandlerEventVector_it;
 typedef std::vector<CBindGroup *>::iterator CBindGroup_it;
 
+#include <map>
+
+static std::map<std::string, size_t> name_to_events;
+
+class CEvent;
+
+CEvent *get_mapper_event_by_name_private(const std::string &x);
+
+void *get_mapper_event_by_name(const std::string &x) {
+    return (void*)get_mapper_event_by_name_private(x);
+}
+
 class CEvent {
 public:
 	CEvent(char const * const _entry) {
-		safe_strncpy(entry,_entry,16);
+		safe_strncpy(entry,_entry,sizeof(entry));
+
+        {
+            if (name_to_events.find(entry) != name_to_events.end())
+                E_Exit("Mapper: Event \"%s\" already defined",entry);
+        }
+
+        name_to_events[entry] = events.size();
+
 		events.push_back(this);
 		bindlist.clear();
         active=false;
 		activity=0;
 		current_value=0;
+
+        assert(get_mapper_event_by_name_private(entry) == this);
 	}
 	void AddBind(CBind * bind);
 	virtual ~CEvent();
@@ -141,6 +163,19 @@ protected:
 	char entry[16];
 	Bits current_value;
 };
+
+CEvent *get_mapper_event_by_name_private(const std::string &x) {
+    auto i = name_to_events.find(x);
+
+    if (i != name_to_events.end()) {
+        if (i->second >= events.size())
+            E_Exit("Mapper: name to events contains out of range index for \"%s\"",x.c_str());
+
+        return events[i->second];
+    }
+
+    return NULL;
+}
 
 /* class for events which can be ON/OFF only: key presses, joystick buttons, joystick hat */
 class CTriggeredEvent : public CEvent {
@@ -3547,6 +3582,7 @@ void MAPPER_Shutdown() {
 			events[i] = NULL;
 		}
 	}
+    name_to_events.clear();
 	events.clear();
 
 	for (size_t i=0;i < buttons.size();i++) {
