@@ -237,7 +237,12 @@ DOSBoxMenu::item& DOSBoxMenu::get_item(const item_handle_t i) {
     else if (i >= master_list.size())
         E_Exit("DOSBoxMenu::get_item() attempt to get out of range handle");
 
-    return master_list[(size_t)i];
+    item &ret = master_list[(size_t)i];
+
+    if (!ret.status.allocated || ret.master_id == unassigned_item_handle)
+        E_Exit("DOSBoxMenu::get_item() attempt to read unallocated item");
+
+    return ret;
 }
 
 DOSBoxMenu::item& DOSBoxMenu::alloc_item(const enum item_type_t type,const std::string &name) {
