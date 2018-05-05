@@ -292,11 +292,14 @@ void DOSBoxMenu::delete_item(const item_handle_t i) {
     }
 
     master_list[i].deallocate();
+    master_list_alloc = i;
 }
 
 void DOSBoxMenu::clear_all_menu_items(void) {
     for (auto &id : master_list) id.deallocate();
+    master_list_alloc = 0;
     master_list.clear();
+    name_map.clear();
 }
 
 DOSBoxMenu::item::item() {
