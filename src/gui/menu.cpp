@@ -479,7 +479,7 @@ static const char *def_menu_main[] = {
 
 /* cpu menu ("CpuMenu") */
 static const char *def_menu_cpu[] = {
-    "mapper_speedlock",
+    "mapper_speedlock2", /* NTS: "mapper_speedlock" doesn't work for a menu item because it requires holding the key */
     "--",
     "mapper_cycleup",
     "mapper_cycledown",
