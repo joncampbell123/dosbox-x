@@ -6044,6 +6044,12 @@ fresh_boot:
 #endif
 	SDL_ShowCursor(SDL_ENABLE);
 
+#if defined(WIN32) && !defined(C_SDL2)
+# if !defined(HX_DOS)
+	SDL1_hax_SetMenu(NULL);
+# endif
+#endif
+
 	/* Exit functions */
 	while (!exitfunctions.empty()) {
 		Function_wrapper &ent = exitfunctions.front();
