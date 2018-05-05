@@ -408,29 +408,31 @@ void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
         HMENU phandle = NULL;
 
         if (parent_id != unassigned_item_handle)
-            phandle = get_item(parent_id).winMenu;
+            phandle = menu.get_item(parent_id).winMenu;
         else
             phandle = menu.winMenu;
 
-        if (type == separator_type_id) {
-            /* none */
-        }
-        else if (type == vseparator_type_id) {
-            /* none */
-        }
-        else if (type == submenu_type_id) {
-            /* TODO: Can't change by ID, have to change by position */
-        }
-        else if (type == item_type_id) {
-            unsigned int attr = MF_STRING;
+		if (phandle != NULL) {
+			if (type == separator_type_id) {
+				/* none */
+			}
+			else if (type == vseparator_type_id) {
+				/* none */
+			}
+			else if (type == submenu_type_id) {
+				/* TODO: Can't change by ID, have to change by position */
+			}
+			else if (type == item_type_id) {
+				unsigned int attr = MF_STRING;
 
-            attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
-            attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
+				attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
+				attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
-            ModifyMenu(phandle, (uintptr_t)(master_id + winMenuMinimumID),
-                attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID),
-                winConstructMenuText().c_str());
-        }
+				ModifyMenu(phandle, (uintptr_t)(master_id + winMenuMinimumID),
+					attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID),
+					winConstructMenuText().c_str());
+			}
+		}
     }
 
     status.changed = false;
