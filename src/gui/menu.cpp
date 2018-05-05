@@ -470,6 +470,7 @@ static const char *def_menu_main[] = {
     "mapper_pause",
     "--",
     "mapper_reset",
+    "mapper_restart",
     "--",
     "mapper_shutdown",
     NULL
