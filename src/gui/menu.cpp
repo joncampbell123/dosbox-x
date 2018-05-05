@@ -404,7 +404,7 @@ void MAPPER_TriggerEventByName(const std::string name);
 
 void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
-    if (menu.winMenu != NULL && status.changed) {
+    if (menu.winMenu != NULL && status.in_use && status.changed) {
         HMENU phandle = NULL;
 
         if (parent_id != unassigned_item_handle)
