@@ -398,6 +398,34 @@ bool DOSBoxMenu::mainMenuWM_COMMAND(unsigned int id) {
 
 void MAPPER_TriggerEventByName(const std::string name);
 
+void DOSBoxMenu::item::refresh_item(void) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
+    if (winMenu != NULL && status.changed) {
+        if (type == separator_type_id) {
+            /* none */
+        }
+        else if (type == vseparator_type_id) {
+            /* none */
+        }
+        else if (type == submenu_type_id) {
+            /* TODO: Can't change by ID, have to change by position */
+        }
+        else if (type == item_type_id) {
+            unsigned int attr = MF_STRING;
+
+            attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
+            attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
+
+            ModifyMenu(winMenu, (uintptr_t)(master_id + winMenuMinimumID),
+                attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID),
+                winConstructMenuText().c_str());
+        }
+    }
+
+    status.changed = false;
+#endif
+}
+
 void DOSBoxMenu::dispatchItemCommand(item &item) {
     if (item.callback_func)
         item.callback_func(this,&item);
