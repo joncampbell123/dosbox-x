@@ -136,6 +136,7 @@ public:
 
         assert(get_mapper_event_by_name(entry) == this);
 	}
+    virtual std::string GetBindMenuText(void);
 	void AddBind(CBind * bind);
 	virtual ~CEvent();
 	virtual void Active(bool yesno) {
@@ -152,6 +153,7 @@ public:
 	}
 	char * GetName(void) { return entry; }
 	virtual bool IsTrigger(void)=0;
+    std::string eventname;
 	CBindList bindlist;
     bool active;
 protected:
@@ -239,16 +241,25 @@ public:
 
 class CBind {
 public:
+    enum CBindType {
+        bind_t=0,
+        keybind_t
+    };
+public:
 	virtual ~CBind () {
 		list->remove(this);
 	}
-	CBind(CBindList * _list) {
+	CBind(CBindList * _list,enum CBindType _type = bind_t) {
 		list=_list;
 		_list->push_back(this);
 		mods=flags=0;
 		event=0;
 		active=holding=false;
+        type = _type;
 	}
+    virtual std::string GetBindMenuText(void) {
+        return std::string();
+    }
 	void AddFlags(char * buf) {
 		if (mods & BMOD_Mod1) strcat(buf," mod1");
 		if (mods & BMOD_Mod2) strcat(buf," mod2");
@@ -313,6 +324,8 @@ public:
 	CEvent * event;
 	CBindList * list;
 	bool active,holding;
+
+    enum CBindType type;
 };
 
 CEvent::~CEvent() {
@@ -558,7 +571,7 @@ class CKeyBindGroup;
 
 class CKeyBind : public CBind {
 public:
-	CKeyBind(CBindList * _list,SDLKey _key) : CBind(_list) {
+	CKeyBind(CBindList * _list,SDLKey _key) : CBind(_list, CBind::keybind_t) {
 		key = _key;
 	}
 	virtual ~CKeyBind() {}
@@ -576,9 +589,29 @@ public:
 		sprintf(buf,"key %d",MapSDLCode((Bitu)key));
 #endif
 	}
+    virtual std::string GetBindMenuText(void) {
+        return std::string();
+    }
 public:
 	SDLKey key;
 };
+
+std::string CEvent::GetBindMenuText(void) {
+    if (bindlist.empty())
+        return std::string();
+
+    CBind *b = bindlist.front();
+    if (b == NULL)
+        return std::string();
+    if (b->type != CBind::keybind_t)
+        return std::string();
+
+    CKeyBind *kb = reinterpret_cast<CKeyBind*>(b);
+    if (kb == NULL)
+        return std::string();
+
+    return kb->GetBindMenuText();
+}
 
 class CKeyBindGroup : public  CBindGroup {
 public:
@@ -2223,6 +2256,8 @@ static void AddJHatButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title
 	new CEventButton(x,y,dx,dy,title,event);
 }
 
+static CModEvent* mod_event[8] = {NULL};
+
 static void AddModButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,Bitu _mod) {
 	char buf[64];
 
@@ -2234,6 +2269,9 @@ static void AddModButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,
 	CModEvent * event=new CModEvent(buf,_mod);
 	CEventButton *button=new CEventButton(x,y,dx,dy,title,event);
     event->notifybutton(button);
+
+    assert(_mod < 8);
+    mod_event[_mod] = event;
 }
 
 struct KeyBlock {
@@ -2882,6 +2920,7 @@ void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const
     }
 
     CHandlerEvent *event = new CHandlerEvent(tempname,handler,key,mods,buttonname);
+    event->eventname = eventname;
 
     /* The mapper now automatically makes menu items for mapper events */
     DOSBoxMenu::item &menuitem = mainMenu.alloc_item(DOSBoxMenu::item_type_id, std::string("mapper_") + std::string(eventname));
