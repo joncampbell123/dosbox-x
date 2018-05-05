@@ -196,6 +196,7 @@ class DOSBoxMenu {
                 HMENU                   winMenu = NULL;
             protected:
                 void                    winAppendMenu(HMENU handle);
+                std::string             winConstructMenuText(void);
 #endif
 
             protected:

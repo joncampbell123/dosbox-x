@@ -269,6 +269,41 @@ void DOSBoxMenu::unbuild(void) {
 }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
+std::string DOSBoxMenu::item::winConstructMenuText(void) {
+    std::string r;
+
+    /* copy text, converting '&' to '&&' for Windows.
+     * TODO: Use accelerator to place '&' for underline */
+    for (auto i=text.begin();i!=text.end();i++) {
+        char c = *i;
+
+        if (c == '&') {
+            r += "&&";
+        }
+        else {
+            r += c;
+        }
+    }
+
+    /* then the shortcut text */
+    if (!shortcut_text.empty()) {
+        r += "\t";
+
+        for (auto i=shortcut_text.begin();i!=shortcut_text.end();i++) {
+            char c = *i;
+
+            if (c == '&') {
+                r += "&&";
+            }
+            else {
+                r += c;
+            }
+        }
+    }
+
+    return r;
+}
+
 void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
     if (type == separator_type_id) {
         AppendMenu(handle, MF_MENUBREAK, 0, NULL);
@@ -278,7 +313,7 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
     }
     else if (type == submenu_type_id) {
         if (winMenu != NULL)
-            AppendMenu(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, text.c_str());
+            AppendMenu(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, winConstructMenuText().c_str());
     }
     else if (type == item_type_id) {
         unsigned int attr = MF_STRING;
@@ -286,7 +321,7 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
         attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
         attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
-        AppendMenu(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), text.c_str());
+        AppendMenu(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), winConstructMenuText().c_str());
     }
 }
 
