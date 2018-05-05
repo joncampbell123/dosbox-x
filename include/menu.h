@@ -278,7 +278,7 @@ class DOSBoxMenu {
                     return text;
                 }
                 inline item &set_text(const std::string &str) {
-                    if (has_vis_text())
+                    if (has_vis_text() && text != str)
                         status.changed = 1;
 
                     text = str;
@@ -289,7 +289,7 @@ class DOSBoxMenu {
                     return shortcut_text;
                 }
                 inline item &set_shortcut_text(const std::string &str) {
-                    if (has_vis_shortcut_text())
+                    if (has_vis_shortcut_text() && shortcut_text != str)
                         status.changed = 1;
 
                     shortcut_text = str;
@@ -300,7 +300,7 @@ class DOSBoxMenu {
                     return description;
                 }
                 inline item &set_description(const std::string &str) {
-                    if (has_vis_description())
+                    if (has_vis_description() && description != str)
                         status.changed = 1;
 
                     description = str;
@@ -311,7 +311,7 @@ class DOSBoxMenu {
                     return accelerator;
                 }
                 inline item &set_accelerator(const struct accelerator &str) {
-                    if (has_vis_accelerator())
+                    if (has_vis_accelerator()/* && accelerator != str*//*TODO*/)
                         status.changed = 1;
 
                     accelerator = str;
