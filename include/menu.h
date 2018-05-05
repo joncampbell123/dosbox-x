@@ -100,7 +100,7 @@ extern void GetDefaultSize(void);
 /* menu interface mode */
 #define DOSBOXMENU_NULL     (0)
 #define DOSBOXMENU_HMENU    (1)
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 # define DOSBOXMENU_TYPE    DOSBOXMENU_HMENU
 #else
 # define DOSBOXMENU_TYPE    DOSBOXMENU_NULL
