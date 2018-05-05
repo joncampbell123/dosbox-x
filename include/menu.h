@@ -324,6 +324,8 @@ class DOSBoxMenu {
                                         DOSBoxMenu();
                                         ~DOSBoxMenu();
     public:
+        bool                            item_exists(const item_handle_t i);
+        bool                            item_exists(const std::string &name);
         item&                           get_item(const item_handle_t i);
         item&                           get_item(const std::string &name);
         item&                           alloc_item(const enum item_type_t type,const std::string &name);

@@ -45,6 +45,31 @@ DOSBoxMenu::displaylist::displaylist() {
 
 DOSBoxMenu::displaylist::~displaylist() {
 }
+        
+bool DOSBoxMenu::item_exists(const std::string &name) {
+    auto i = name_map.find(name);
+
+    if (i == name_map.end())
+       return false;
+
+    return item_exists(i->second);
+}
+
+bool DOSBoxMenu::item_exists(const item_handle_t i) {
+    if (i == unassigned_item_handle)
+        return false;
+    else if (i >= master_list.size())
+        return false;
+
+    item &ret = master_list[(size_t)i];
+
+    if (!ret.status.allocated || ret.master_id == unassigned_item_handle)
+        return false;
+    else if (ret.master_id != i)
+        return false;
+
+    return true;
+}
 
 DOSBoxMenu::item& DOSBoxMenu::get_item(const std::string &name) {
     auto i = name_map.find(name);
@@ -555,7 +580,7 @@ void ConstructSubMenu(DOSBoxMenu::item &item, const char * const * list) {
             mainMenu.displaylist_append(
                 item.display_list, separator_get());
         }
-        else {
+        else if (mainMenu.item_exists(ref)) {
             mainMenu.displaylist_append(
                 item.display_list, mainMenu.get_item(ref));
         }
