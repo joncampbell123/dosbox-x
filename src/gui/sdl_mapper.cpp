@@ -118,7 +118,12 @@ CEvent *get_mapper_event_by_name(const std::string &x);
 
 class CEvent {
 public:
-	CEvent(char const * const _entry) {
+    enum event_type {
+        event_t=0,
+        handler_event_t
+    };
+public:
+	CEvent(char const * const _entry,const enum event_type _type = event_t) {
 		safe_strncpy(entry,_entry,sizeof(entry));
 
         {
@@ -133,6 +138,7 @@ public:
         active=false;
 		activity=0;
 		current_value=0;
+        type = _type;
 
         assert(get_mapper_event_by_name(entry) == this);
 	}
@@ -162,6 +168,7 @@ public:
 	char * GetName(void) { return entry; }
 	virtual bool IsTrigger(void)=0;
     std::string eventname;
+    enum event_type type;
 	CBindList bindlist;
     bool active;
 protected:
@@ -1953,6 +1960,7 @@ public:
 		defkey=_key;
 		buttonname=_buttonname;
 		handlergroup.push_back(this);
+        type = handler_event_t;
 	}
 	virtual ~CHandlerEvent() {}
 	virtual void Active(bool yesno) {
@@ -2153,14 +2161,26 @@ public:
         notify_button = n;
     }
     CTextButton *notify_button;
+	MAPPER_Handler * handler;
 protected:
 	MapKeys defkey;
 	Bitu defmod;
-	MAPPER_Handler * handler;
 public:
 	const char * buttonname;
 };
 
+void MAPPER_TriggerEventByName(const std::string name) {
+    CEvent *event = get_mapper_event_by_name(name);
+    if (event != NULL) {
+        if (event->type == CEvent::handler_event_t) {
+            CHandlerEvent *he = reinterpret_cast<CHandlerEvent*>(event);
+            if (he->handler != NULL) {
+                he->handler(true);
+                he->handler(false);
+            }
+        }
+    }
+}
 
 static struct {
 	CCaptionButton *  event_title;

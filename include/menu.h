@@ -345,9 +345,12 @@ class DOSBoxMenu {
         bool                            winMenuSubInit(DOSBoxMenu::item &item);
     public:
         HMENU                           getWinMenu(void) const;
+        bool                            mainMenuWM_COMMAND(unsigned int id);
     public:
         static constexpr unsigned int   winMenuMinimumID = 0x1000;
 #endif
+    public:
+        void                            dispatchItemCommand(item &item);
     public:
         static constexpr size_t         master_list_limit = 4096;
     public:

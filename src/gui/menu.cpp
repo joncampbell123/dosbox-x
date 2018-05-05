@@ -345,7 +345,31 @@ void DOSBoxMenu::winMenuDestroy(void) {
 HMENU DOSBoxMenu::getWinMenu(void) const {
     return winMenu;
 }
+
+/* call this from WM_COMMAND */
+bool DOSBoxMenu::mainMenuWM_COMMAND(unsigned int id) {
+    if (id < winMenuMinimumID) return false;
+    id -= winMenuMinimumID;
+
+    if (id >= master_list.size()) return false;
+
+    item &item = master_list[id];
+    if (!item.allocated || item.master_id == unassigned_item_handle) return false;
+
+    dispatchItemCommand(item);
+    return true;
+}
 #endif
+
+void MAPPER_TriggerEventByName(const std::string name);
+
+void DOSBoxMenu::dispatchItemCommand(item &item) {
+    if (item.callback_func)
+        item.callback_func(this,&item);
+
+    if (item.mapper_event != unassigned_mapper_event)
+        MAPPER_TriggerEventByName(item.mapper_event);
+}
 
 /* this is THE menu */
 DOSBoxMenu mainMenu;
