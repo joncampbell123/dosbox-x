@@ -137,6 +137,14 @@ public:
         assert(get_mapper_event_by_name(entry) == this);
 	}
     virtual std::string GetBindMenuText(void);
+    void update_menu_shortcut(void) {
+        if (!eventname.empty()) {
+            DOSBoxMenu::item& item = mainMenu.get_item(std::string("mapper_") + std::string(eventname));
+            std::string str = GetBindMenuText();
+            item.set_shortcut_text(str);
+            LOG_MSG("%s",str.c_str());
+        }
+    }
 	void AddBind(CBind * bind);
 	virtual ~CEvent();
 	virtual void Active(bool yesno) {
@@ -1705,6 +1713,7 @@ public:
 			}
 			if (mapper.abindit!=mapper.aevent->bindlist.end()) SetActiveBind(*(mapper.abindit));
 			else SetActiveBind(0);
+            mapper.aevent->update_menu_shortcut();
 			break;
 		case BB_Next:
 			if (mapper.abindit!=mapper.aevent->bindlist.end()) 
@@ -1792,6 +1801,7 @@ public:
 			break;
 		}
 		mapper.redraw=true;
+        mapper.aevent->update_menu_shortcut();
 	}
 protected:
 	BC_Types type;
@@ -2704,6 +2714,7 @@ foundevent:
 			if (bind) {
 				event->AddBind(bind);
 				bind->SetFlags(bindline);
+                event->update_menu_shortcut();
 				break;
 			}
 		}
@@ -3196,6 +3207,7 @@ void BIND_MappingEvents(void) {
                     mapper.aevent->AddBind(newbind);
                     SetActiveEvent(mapper.aevent);
                     mapper.addbind=false;
+                    mapper.aevent->update_menu_shortcut();
                     break;
                 }
             }
