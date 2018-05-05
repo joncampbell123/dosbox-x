@@ -5762,19 +5762,6 @@ int main(int argc, char* argv[]) {
         GUI_ResetResize(true);
 #endif
 
-        bool reboot_dos;
-		bool run_machine;
-        bool wait_debugger;
-		bool reboot_machine;
-		bool dos_kernel_shutdown;
-
-fresh_boot:
-        reboot_dos = false;
-		run_machine = false;
-        wait_debugger = false;
-		reboot_machine = false;
-		dos_kernel_shutdown = false;
-
         void ConstructMenu(void);
         ConstructMenu();
 
@@ -5792,6 +5779,19 @@ fresh_boot:
 		int Reflect_Menu(void);
 		Reflect_Menu();
 #endif
+
+        bool reboot_dos;
+        bool run_machine;
+        bool wait_debugger;
+        bool reboot_machine;
+        bool dos_kernel_shutdown;
+
+fresh_boot:
+        reboot_dos = false;
+        run_machine = false;
+        wait_debugger = false;
+        reboot_machine = false;
+        dos_kernel_shutdown = false;
 
 		/* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
 		 *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
