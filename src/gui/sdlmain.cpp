@@ -5790,6 +5790,8 @@ fresh_boot:
 
         mainMenu.dump_log_debug(); /*DEBUG*/
 
+        mainMenu.rebuild();
+
 		/* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
 		 *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
 		/* FIXME: throwing int() is a stupid and nondescriptive way to signal shutdown/reset. */

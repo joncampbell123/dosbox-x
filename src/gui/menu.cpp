@@ -252,6 +252,10 @@ void DOSBoxMenu::displaylist_clear(DOSBoxMenu::displaylist &ls) {
     ls.order_changed = true;
 }
 
+void DOSBoxMenu::rebuild(void) {
+    /* TODO: generate the menu */
+}
+
 /* this is THE menu */
 DOSBoxMenu mainMenu;
 
