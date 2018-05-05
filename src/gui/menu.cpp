@@ -2363,6 +2363,7 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 	if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
 	if (!GetMenu(GetHWND())) return;
 	if (Message.msg != WM_COMMAND) return;
+    if (DOSBoxMenu::mainMenuWM_COMMAND(Message.wParam)) return;
 
 	switch (LOWORD(Message.wParam)) {
 	case ID_USESCANCODES: {
