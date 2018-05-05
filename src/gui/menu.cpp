@@ -241,6 +241,8 @@ DOSBoxMenu::item& DOSBoxMenu::get_item(const item_handle_t i) {
 
     if (!ret.status.allocated || ret.master_id == unassigned_item_handle)
         E_Exit("DOSBoxMenu::get_item() attempt to read unallocated item");
+    else if (ret.master_id != i)
+        E_Exit("DOSBoxMenu::get_item() ID mismatch");
 
     return ret;
 }
