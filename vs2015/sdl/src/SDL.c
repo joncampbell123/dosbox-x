@@ -221,7 +221,7 @@ void SDL_Quit(void)
 #endif
 	SDL_QuitSubSystem(SDL_INIT_EVERYTHING);
 
-#if defined(WIN32)
+#if defined(_WIN32)
 #ifndef SDL_WIN32_NO_PARENT_WINDOW
 	// windib
 	void StopParentWindow(void);
