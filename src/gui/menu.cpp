@@ -244,9 +244,14 @@ DOSBoxMenu::item& DOSBoxMenu::alloc_item(const enum item_type_t type,const std::
     if (type >= MAX_id)
         E_Exit("DOSBoxMenu::alloc_item() illegal menu type value");
 
+    if (name_map.find(name) != name_map.end())
+        E_Exit("DOSBoxMenu::alloc_item() name '%s' already taken",name.c_str());
+
     while (master_list_alloc < master_list.size()) {
-        if (!master_list[master_list_alloc].status.allocated)
+        if (!master_list[master_list_alloc].status.allocated) {
+            name_map[name] = master_list_alloc;
             return master_list[master_list_alloc].allocate(master_list_alloc,type,name);
+        }
 
         master_list_alloc++;
     }
@@ -261,6 +266,7 @@ DOSBoxMenu::item& DOSBoxMenu::alloc_item(const enum item_type_t type,const std::
 
     assert(master_list_alloc < master_list.size());
 
+    name_map[name] = master_list_alloc;
     return master_list[master_list_alloc].allocate(master_list_alloc,type,name);
 }
 
@@ -269,6 +275,14 @@ void DOSBoxMenu::delete_item(const item_handle_t i) {
         E_Exit("DOSBoxMenu::delete_item() attempt to get unassigned handle");
     else if (i >= master_list.size())
         E_Exit("DOSBoxMenu::delete_item() attempt to get out of range handle");
+
+    {
+        auto it = name_map.find(master_list[i].name);
+        if (it != name_map.end()) {
+            if (it->second != i) E_Exit("DOSBoxMenu::delete_item() master_id mismatch");
+            name_map.erase(it);
+        }
+    }
 
     master_list[i].deallocate();
 }
@@ -285,6 +299,9 @@ DOSBoxMenu::item::~item() {
 }
 
 DOSBoxMenu::item &DOSBoxMenu::item::allocate(const item_handle_t id,const enum item_type_t new_type,const std::string &new_name) {
+    if (master_id != unassigned_item_handle || status.allocated)
+        E_Exit("DOSBoxMenu::item::allocate() called on item already allocated");
+
     status.allocated = 1;
     name = new_name;
     type = new_type;
@@ -293,9 +310,16 @@ DOSBoxMenu::item &DOSBoxMenu::item::allocate(const item_handle_t id,const enum i
 }
 
 void DOSBoxMenu::item::deallocate(void) {
+    if (master_id == unassigned_item_handle || !status.allocated)
+        E_Exit("DOSBoxMenu::item::deallocate() called on item already deallocated");
+
     master_id = unassigned_item_handle;
     status.allocated = 0;
     status.changed = 1;
+    shortcut_text.clear();
+    description.clear();
+    text.clear();
+    name.clear();
 }
 
 /* this is THE menu */
