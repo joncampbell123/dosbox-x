@@ -465,6 +465,7 @@ static const char *def_menu__toplevel[] = {
 /* main menu ("MainMenu") */
 static const char *def_menu_main[] = {
     "mapper_mapper",
+    "mapper_gui",
     "--",
     "mapper_capmouse",
     "mapper_pause",
@@ -473,6 +474,51 @@ static const char *def_menu_main[] = {
     "mapper_restart",
     "--",
     "mapper_shutdown",
+    NULL
+};
+
+/* cpu menu ("CpuMenu") */
+static const char *def_menu_cpu[] = {
+    "mapper_speedlock",
+    "--",
+    "mapper_cycleup",
+    "mapper_cycledown",
+    "--",
+    "mapper_cycauto",
+    "--",
+    "mapper_normal",
+    "mapper_full",
+    "mapper_simple",
+#if (C_DYNAMIC_X86)
+    "mapper_dynamic",
+#endif
+    NULL
+};
+
+/* video menu ("VideoMenu") */
+static const char *def_menu_video[] = {
+    "mapper_fullscr",
+    "mapper_resetsize",
+    NULL
+};
+
+/* sound menu ("SoundMenu") */
+static const char *def_menu_sound[] = {
+    "mapper_volup",
+    "mapper_voldown",
+    NULL
+};
+
+
+/* capture menu ("CaptureMenu") */
+static const char *def_menu_capture[] = {
+    "mapper_scrshot",
+    "--",
+    "mapper_video",
+    "mapper_recwave",
+    "mapper_recmtwave",
+    "mapper_caprawopl",
+    "mapper_caprawmidi",
     NULL
 };
 
@@ -528,6 +574,19 @@ void ConstructMenu(void) {
 
     /* main menu */
     ConstructSubMenu(mainMenu.get_item("MainMenu"), def_menu_main);
+
+    /* cpu menu */
+    ConstructSubMenu(mainMenu.get_item("CpuMenu"), def_menu_cpu);
+
+    /* video menu */
+    ConstructSubMenu(mainMenu.get_item("VideoMenu"), def_menu_video);
+
+    /* sound menu */
+    ConstructSubMenu(mainMenu.get_item("SoundMenu"), def_menu_sound);
+
+
+    /* capture menu */
+    ConstructSubMenu(mainMenu.get_item("CaptureMenu"), def_menu_capture);
 }
 
 extern int NonUserResizeCounter;
