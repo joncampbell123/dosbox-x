@@ -5785,6 +5785,9 @@ fresh_boot:
 		Reflect_Menu();
 #endif
 
+        void ConstructMenu(void);
+        ConstructMenu();
+
         mainMenu.dump_log_debug(); /*DEBUG*/
 
 		/* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,

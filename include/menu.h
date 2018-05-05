@@ -195,6 +195,9 @@ class DOSBoxMenu {
                 item&                   allocate(const item_handle_t id,const enum item_type_t type,const std::string &name);
                 void                    deallocate(void);
             public:
+                inline item_handle_t get_master_id(void) const {
+                    return master_id;
+                }
                 inline bool is_allocated(void) const {
                     return master_id != unassigned_item_handle;
                 }
@@ -317,6 +320,8 @@ class DOSBoxMenu {
         void                            delete_item(const item_handle_t i);
         void                            clear_all_menu_items(void);
         void                            dump_log_debug(void);
+        void                            dump_log_displaylist(DOSBoxMenu::displaylist &ls, unsigned int indent);
+        const char*                     TypeToString(const enum item_type_t type);
     public:
         displaylist                     display_list;
     protected:

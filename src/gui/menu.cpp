@@ -118,13 +118,51 @@ void DOSBoxMenu::delete_item(const item_handle_t i) {
     master_list_alloc = i;
 }
 
+const char *DOSBoxMenu::TypeToString(const enum item_type_t type) {
+    switch (type) {
+        case item_type_id:              return "Item";
+        case submenu_type_id:           return "Submenu";
+        case separator_type_id:         return "Separator";
+        case vseparator_type_id:        return "VSeparator";
+    };
+
+    return "";
+}
+
+void DOSBoxMenu::dump_log_displaylist(DOSBoxMenu::displaylist &ls, unsigned int indent) {
+    std::string prep;
+
+    for (unsigned int i=0;i < indent;i++)
+        prep += "+ ";
+
+    for (auto &id : ls.disp_list) {
+        DOSBoxMenu::item &item = get_item(id);
+
+        if (!item.is_allocated()) {
+            LOG_MSG("%s (NOT ALLOCATED!!!)",prep.c_str());
+            continue;
+        }
+
+        LOG_MSG("%sid=%u type=\"%s\" name=\"%s\" text=\"%s\"",
+            prep.c_str(),
+            (unsigned int)item.master_id,
+            TypeToString(item.type),
+            item.name.c_str(),
+            item.text.c_str());
+
+        if (item.type == submenu_type_id)
+            dump_log_displaylist(item.display_list, indent+1);
+    }
+}
+
 void DOSBoxMenu::dump_log_debug(void) {
     LOG_MSG("Menu dump log (%p)",(void*)this);
     LOG_MSG("---- Master list ----");
     for (auto &id : master_list) {
         if (id.is_allocated()) {
-            LOG_MSG("+ id=%u name=\"%s\" text=\"%s\" shortcut=\"%s\" desc=\"%s\"",
+            LOG_MSG("+ id=%u type=\"%s\" name=\"%s\" text=\"%s\" shortcut=\"%s\" desc=\"%s\"",
                 (unsigned int)id.master_id,
+                TypeToString(id.type),
                 id.name.c_str(),
                 id.text.c_str(),
                 id.shortcut_text.c_str(),
@@ -134,6 +172,8 @@ void DOSBoxMenu::dump_log_debug(void) {
                 LOG_MSG("+ + mapper_event=\"%s\"",id.get_mapper_event().c_str());
         }
     }
+    LOG_MSG("---- display list ----");
+    dump_log_displaylist(display_list, 1);
 }
 
 void DOSBoxMenu::clear_all_menu_items(void) {
@@ -203,7 +243,6 @@ void DOSBoxMenu::displaylist_remove(DOSBoxMenu::displaylist &ls,DOSBoxMenu::item
 void DOSBoxMenu::displaylist_clear(DOSBoxMenu::displaylist &ls) {
     for (auto &id : ls.disp_list) {
         if (id != DOSBoxMenu::unassigned_item_handle) {
-            get_item(id).deallocate();
             id = DOSBoxMenu::unassigned_item_handle;
         }
     }
@@ -215,6 +254,85 @@ void DOSBoxMenu::displaylist_clear(DOSBoxMenu::displaylist &ls) {
 
 /* this is THE menu */
 DOSBoxMenu mainMenu;
+
+/* top level menu ("") */
+static const char *def_menu__toplevel[] = {
+    "MainMenu",
+    "CpuMenu",
+    "VideoMenu",
+    "SoundMenu",
+    "DOSMenu",
+    "CaptureMenu",
+    "DriveMenu",
+    NULL
+};
+
+/* main menu ("MainMenu") */
+static const char *def_menu_main[] = {
+    "mapper_mapper",
+    "--",
+    "mapper_capmouse",
+    "mapper_pause",
+    "--",
+    "mapper_reset",
+    "--",
+    "mapper_shutdown",
+    NULL
+};
+
+static DOSBoxMenu::item_handle_t separator_alloc = 0;
+static std::vector<DOSBoxMenu::item_handle_t> separators;
+
+static std::string separator_id(const DOSBoxMenu::item_handle_t r) {
+    char tmp[32];
+
+    sprintf(tmp,"%u",(unsigned int)r);
+    return std::string("_separator_") + std::string(tmp);
+}
+
+static DOSBoxMenu::item &separator_get(void) {
+    DOSBoxMenu::item_handle_t r;
+
+    assert(separator_alloc <= separators.size());
+    if (separator_alloc == separators.size()) {
+        DOSBoxMenu::item &nitem = mainMenu.alloc_item(DOSBoxMenu::separator_type_id, separator_id(separator_alloc));
+        separators.push_back(nitem.get_master_id());
+    }
+
+    assert(separator_alloc < separators.size());
+    r = separators[separator_alloc++];
+
+    return mainMenu.get_item(r);
+}
+
+void ConstructSubMenu(DOSBoxMenu::item &item, const char * const * list) {
+    for (size_t i=0;list[i] != NULL;i++) {
+        const char *ref = list[i];
+
+        if (!strcmp(ref,"--")) {
+            mainMenu.displaylist_append(
+                item.display_list, separator_get());
+        }
+        else {
+            mainMenu.displaylist_append(
+                item.display_list, mainMenu.get_item(ref));
+        }
+    }
+}
+
+void ConstructMenu(void) {
+    mainMenu.displaylist_clear(mainMenu.display_list);
+    separator_alloc = 0;
+
+    /* top level */
+    for (size_t i=0;def_menu__toplevel[i] != NULL;i++)
+        mainMenu.displaylist_append(
+            mainMenu.display_list,
+            mainMenu.get_item(def_menu__toplevel[i]));
+
+    /* main menu */
+    ConstructSubMenu(mainMenu.get_item("MainMenu"), def_menu_main);
+}
 
 extern int NonUserResizeCounter;
 
