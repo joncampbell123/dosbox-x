@@ -3542,6 +3542,11 @@ void MAPPER_Init(void) {
 #endif
 		}
 	}
+
+    /* and then the menu items need to be updated */
+    for (auto &ev : events) {
+        if (ev != NULL) ev->update_menu_shortcut();
+    }
 }
 //Somehow including them at the top conflicts with something in setup.h
 #ifdef C_X11_XKB
