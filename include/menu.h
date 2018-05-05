@@ -112,6 +112,9 @@ extern void GetDefaultSize(void);
 #include <map>
 #include <vector>
 
+#ifndef MENU_DOSBOXMENU_H
+#define MENU_DOSBOXMENU_H
+
 class DOSBoxMenu {
     public:
         class item;
@@ -144,6 +147,9 @@ class DOSBoxMenu {
         static const mapper_event_t     unassigned_mapper_event; /* empty std::string */
     public:
         struct accelerator {
+                                        accelerator() { }
+                                        accelerator(char _key,unsigned char _instance=0) : key(_key), key_instance(_instance) { }
+
             char                        key = 0;            /* ascii code i.e. 'g' */
             unsigned char               key_instance = 0;   /* which occurrence of the letter in the text */
         };
@@ -318,4 +324,6 @@ class DOSBoxMenu {
 };
 
 extern DOSBoxMenu mainMenu;
+
+#endif /* MENU_DOSBOXMENU_H */
 

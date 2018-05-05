@@ -2863,20 +2863,34 @@ static void CreateDefaultBinds(void) {
 	sprintf(buffer,"jhat_0_0_3 \"stick_0 hat 0 8\" ");CreateStringBind(buffer);
 }
 
-void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const * const eventname,char const * const buttonname) {
-	//Check if it already exists=> if so return.
-	for(CHandlerEventVector_it it=handlergroup.begin();it!=handlergroup.end();it++)
-		if(strcmp((*it)->buttonname,buttonname) == 0) return;
+void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const * const eventname,char const * const buttonname,DOSBoxMenu::item **ret_menuitem) {
+    if (ret_menuitem != NULL)
+        *ret_menuitem = NULL;
 
-	char tempname[27];
-	strcpy(tempname,"hand_");
-	strcat(tempname,eventname);
-	CHandlerEvent *event = new CHandlerEvent(tempname,handler,key,mods,buttonname);
+    char tempname[27];
+    strcpy(tempname,"hand_");
+    strcat(tempname,eventname);
+
+    //Check if it already exists=> if so return.
+    for(CHandlerEventVector_it it=handlergroup.begin();it!=handlergroup.end();it++) {
+        if(strcmp((*it)->buttonname,buttonname) == 0) {
+            if (ret_menuitem != NULL)
+                *ret_menuitem = &mainMenu.get_item(std::string("mapper_") + std::string(eventname));
+
+            return;
+        }
+    }
+
+    CHandlerEvent *event = new CHandlerEvent(tempname,handler,key,mods,buttonname);
 
     /* The mapper now automatically makes menu items for mapper events */
     DOSBoxMenu::item &menuitem = mainMenu.alloc_item(DOSBoxMenu::item_type_id, std::string("mapper_") + std::string(eventname));
     menuitem.set_mapper_event(tempname);
-    menuitem.set_text(buttonname);
+
+    if (ret_menuitem == NULL)
+        menuitem.set_text(buttonname);
+    else
+        *ret_menuitem = &menuitem;
 
     if (mapper_addhandler_create_buttons) {
         // and a button in the mapper UI
@@ -3573,7 +3587,15 @@ void MAPPER_StartUp() {
 
 	Prop_path* pp = section->Get_path("mapperfile");
 	mapper.filename = pp->realpath;
-	MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper");
+
+    {
+        DOSBoxMenu::item *itemp = NULL;
+
+        MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper",&itemp);
+        itemp->set_accelerator(DOSBoxMenu::accelerator('m'));
+        itemp->set_description("Bring up the mapper UI");
+        itemp->set_text("Mapper");
+    }
 }
 
 void MAPPER_Shutdown() {

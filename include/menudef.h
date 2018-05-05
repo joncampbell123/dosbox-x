@@ -33,6 +33,9 @@
 
 #define menu_startup menu.startup
 
+#ifndef MENUDEF_H
+#define MENUDEF_H
+
 struct MENU_Block {
 	bool toggle;      // toggle menu bar
 	bool startup;     // verify if DOSBox is started with menu patch
@@ -46,4 +49,6 @@ struct MENU_Block {
 	MENU_Block():toggle(false),startup(false),hidecycles(false),boot(false),gui(true),resizeusing(false),compatible(false),maxwindow(false){ }
 };
 extern MENU_Block menu;
+
+#endif /* MENUDEF_H */
 

@@ -19,6 +19,8 @@
 #ifndef DOSBOX_MAPPER_H
 #define DOSBOX_MAPPER_H
 
+#include "include/menu.h"
+
 enum MapKeys {
     MK_nothing,
 	MK_f1,MK_f2,MK_f3,MK_f4,MK_f5,MK_f6,MK_f7,MK_f8,MK_f9,MK_f10,MK_f11,MK_f12,
@@ -28,7 +30,7 @@ enum MapKeys {
 };
 
 typedef void (MAPPER_Handler)(bool pressed);
-void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const * const eventname,char const * const buttonname);
+void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const * const eventname,char const * const buttonname,DOSBoxMenu::item **ret_menuitem=NULL);
 void MAPPER_Init(void);
 void MAPPER_StartUp();
 void MAPPER_Run(bool pressed);
