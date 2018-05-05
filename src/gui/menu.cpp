@@ -39,7 +39,7 @@ DOSBoxMenu::~DOSBoxMenu() {
     clear_all_menu_items();
 }
 
-DOSBoxMenu::displaylist::displaylist() : std::vector<item_handle_t>() {
+DOSBoxMenu::displaylist::displaylist() {
 }
 
 DOSBoxMenu::displaylist::~displaylist() {

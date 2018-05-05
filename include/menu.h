@@ -126,12 +126,13 @@ class DOSBoxMenu {
         typedef void                  (*callback_t)(DOSBoxMenu * const,item * const);
         typedef std::string             mapper_event_t;     /* event name */
     public:
-        class displaylist : public std::vector<item_handle_t> {
+        class displaylist {
             public:
                                         displaylist();
                                         ~displaylist();
             protected:
                 bool                    changed = false;
+                std::vector<item_handle_t> disp_list;
         };
     public:
         static constexpr item_handle_t  unassigned_item_handle = ((item_handle_t)(0xFFFFU)); 
