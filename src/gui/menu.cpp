@@ -253,7 +253,11 @@ void DOSBoxMenu::displaylist_clear(DOSBoxMenu::displaylist &ls) {
 }
 
 void DOSBoxMenu::rebuild(void) {
-    /* TODO: generate the menu */
+    /* TODO: generate the menu resource */
+}
+
+void DOSBoxMenu::unbuild(void) {
+    /* TODO: destroy menu resource */
 }
 
 /* this is THE menu */

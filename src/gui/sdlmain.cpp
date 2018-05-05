@@ -6052,6 +6052,9 @@ fresh_boot:
 # endif
 #endif
 
+    mainMenu.unbuild();
+    mainMenu.clear_all_menu_items();
+
 	/* Exit functions */
 	while (!exitfunctions.empty()) {
 		Function_wrapper &ent = exitfunctions.front();

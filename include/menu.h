@@ -323,6 +323,7 @@ class DOSBoxMenu {
         void                            dump_log_displaylist(DOSBoxMenu::displaylist &ls, unsigned int indent);
         const char*                     TypeToString(const enum item_type_t type);
         void                            rebuild(void);
+        void                            unbuild(void);
     public:
         displaylist                     display_list;
     protected:
