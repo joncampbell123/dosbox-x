@@ -313,6 +313,7 @@ class DOSBoxMenu {
         item&                           alloc_item(const enum item_type_t type,const std::string &name);
         void                            delete_item(const item_handle_t i);
         void                            clear_all_menu_items(void);
+        void                            dump_log_debug(void);
     public:
         displaylist                     display_list;
     protected:

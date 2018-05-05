@@ -118,6 +118,21 @@ void DOSBoxMenu::delete_item(const item_handle_t i) {
     master_list_alloc = i;
 }
 
+void DOSBoxMenu::dump_log_debug(void) {
+    LOG_MSG("Menu dump log (%p)",(void*)this);
+    LOG_MSG("---- Master list ----");
+    for (auto &id : master_list) {
+        if (id.is_allocated()) {
+            LOG_MSG("+ id=%u name=\"%s\" text=\"%s\" shortcut=\"%s\" desc=\"%s\"",
+                (unsigned int)id.master_id,
+                id.name.c_str(),
+                id.text.c_str(),
+                id.shortcut_text.c_str(),
+                id.description.c_str());
+        }
+    }
+}
+
 void DOSBoxMenu::clear_all_menu_items(void) {
     for (auto &id : master_list) {
         if (id.is_allocated())
