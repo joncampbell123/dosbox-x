@@ -129,6 +129,9 @@ void DOSBoxMenu::dump_log_debug(void) {
                 id.text.c_str(),
                 id.shortcut_text.c_str(),
                 id.description.c_str());
+
+            if (!id.get_mapper_event().empty())
+                LOG_MSG("+ + mapper_event=\"%s\"",id.get_mapper_event().c_str());
         }
     }
 }
