@@ -106,6 +106,9 @@ extern void GetDefaultSize(void);
 # define DOSBOXMENU_TYPE    DOSBOXMENU_NULL
 #endif
 
+#define DOSBOXMENU_ACCELMARK_STR        "\x01"
+#define DOSBOXMENU_ACCELMARK_CHAR       '\x01'
+
 #include <map>
 #include <vector>
 
