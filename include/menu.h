@@ -122,7 +122,7 @@ class DOSBoxMenu {
     public:
         typedef uint16_t                item_handle_t;
         typedef void                  (*callback_t)(DOSBoxMenu * const,item * const);
-        typedef void*                   mapper_event_t;     /* CEvent* pointer */
+        typedef std::string             mapper_event_t;     /* event name */
     public:
         class displaylist : public std::vector<item_handle_t> {
             public:
@@ -134,7 +134,7 @@ class DOSBoxMenu {
     public:
         static constexpr item_handle_t  unassigned_item_handle = ((item_handle_t)(0xFFFFU)); 
         static constexpr callback_t     unassigned_callback = NULL;
-        static constexpr mapper_event_t unassigned_mapper_event = NULL;
+        static const mapper_event_t     unassigned_mapper_event; /* empty std::string */
     public:
         struct accelerator {
             char                        key = 0;            /* ascii code i.e. 'g' */
@@ -170,7 +170,7 @@ class DOSBoxMenu {
                 } status;
             protected:
                 callback_t              callback_func = unassigned_callback;
-                mapper_event_t          mapper_event_ptr = unassigned_mapper_event;
+                mapper_event_t          mapper_event = unassigned_mapper_event;
             public:
                 displaylist             display_list;
             public:
@@ -236,8 +236,11 @@ class DOSBoxMenu {
                     return *this;
                 }
             public:
+                inline const mapper_event_t get_mapper_event(void) const {
+                    return mapper_event;
+                }
                 inline item &set_mapper_event(const mapper_event_t e) {
-                    mapper_event_ptr = e;
+                    mapper_event = e;
                     return *this;
                 }
             public:

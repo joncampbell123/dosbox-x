@@ -30,6 +30,8 @@
 #include "timer.h"
 #include "inout.h"
 
+const DOSBoxMenu::mapper_event_t DOSBoxMenu::unassigned_mapper_event; /* empty std::string */
+
 DOSBoxMenu::DOSBoxMenu() {
 }
 
