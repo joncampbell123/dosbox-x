@@ -540,6 +540,9 @@ void DOSBOX_UnlockSpeed2( bool pressed ) {
 	if (pressed) {
 		ticksLocked =! ticksLocked;
 		DOSBOX_UnlockSpeed(ticksLocked?true:false);
+
+        /* make sure the menu item keeps up with our state */
+        mainMenu.get_item("mapper_speedlock2").check(ticksLocked).refresh_item(mainMenu);
 	}
 }
 
