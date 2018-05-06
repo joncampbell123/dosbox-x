@@ -5296,6 +5296,11 @@ bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
 	return true;
 }
 
+bool set_cycles_count_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+	GUI_Shortcut(16);
+	return true;
+}
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
     CommandLine com_line(argc,argv);
@@ -5816,6 +5821,7 @@ int main(int argc, char* argv[]) {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show console").set_callback_function(show_console_menu_callback);
 		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
 		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"enter_cycles_count").set_text("Set cycles count").set_callback_function(set_cycles_count_menu_callback);
 
 		/* The machine just "powered on", and then reset finished */
 		if (!VM_PowerOn()) E_Exit("VM failed to power on");
