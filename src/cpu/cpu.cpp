@@ -170,6 +170,26 @@ void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
 void CPU_Core_Dyn_X86_Cache_Reset(void);
 #endif
 
+void menu_update_core(void) {
+	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
+	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
+    bool allow_dynamic = false;
+
+    (void)cpu_section;
+    (void)cpu_sec_type;
+    (void)allow_dynamic;
+
+    /* cannot select Dynamic core if prefetch cpu types are in use */
+    allow_dynamic = (strstr(cpu_sec_type.c_str(),"_prefetch") == NULL);
+
+    mainMenu.get_item("mapper_normal").check(cpudecoder == &CPU_Core_Normal_Run).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_simple").check(cpudecoder == &CPU_Core_Simple_Run).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_full").check(cpudecoder == &CPU_Core_Full_Run).refresh_item(mainMenu);
+#if (C_DYNAMIC_X86)
+    mainMenu.get_item("mapper_dynamic").check(cpudecoder == &CPU_Core_Dyn_X86_Run).enable(allow_dynamic).refresh_item(mainMenu);
+#endif
+}
+
 void menu_update_autocycle(void) {
     DOSBoxMenu::item &item = mainMenu.get_item("mapper_cycauto");
     if (CPU_CycleAutoAdjust)
@@ -3037,9 +3057,11 @@ public:
 #endif
 		} else {
 			strcpy(core_mode,"normal");
+			cpudecoder=&CPU_Core_Normal_Run;
 			LOG_MSG("CPU:Unknown core type %s, switching back to normal.",core.c_str());
 		}
-  
+
+        menu_update_core();
 
 #if (C_DYNAMIC_X86)
 		CPU_Core_Dyn_X86_Cache_Init((core == "dynamic") || (core == "dynamic_nodhfpu"));
