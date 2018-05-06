@@ -496,6 +496,7 @@ static const char *def_menu_main[] = {
     "show_console",
     "--",
     "mapper_capmouse",
+	"auto_lock_mouse",
 	"--",
 	"mapper_pause",
     "--",
