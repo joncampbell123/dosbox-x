@@ -251,27 +251,14 @@ void DOSBoxMenu::item::deallocate(void) {
     name.clear();
 }
 
-void DOSBoxMenu::displaylist_append(DOSBoxMenu::displaylist &ls,DOSBoxMenu::item &item) {
+void DOSBoxMenu::displaylist_append(displaylist &ls,const DOSBoxMenu::item_handle_t item_id) {
+    DOSBoxMenu::item &item = get_item(item_id);
+
     if (item.status.in_use)
         E_Exit("DOSBoxMenu::displaylist_append() item already in use");
 
     ls.disp_list.push_back(item.master_id);
     item.status.in_use = true;
-    ls.order_changed = true;
-}
-
-void DOSBoxMenu::displaylist_remove(DOSBoxMenu::displaylist &ls,DOSBoxMenu::item &item) {
-    if (!item.status.in_use)
-        E_Exit("DOSBoxMenu::displaylist_remove() item not in use");
-
-    for (auto i=ls.disp_list.begin();i!=ls.disp_list.end();i++) {
-        if (*i == item.master_id) {
-            ls.disp_list.erase(i);
-            break;
-        }
-    }
-
-    item.status.in_use = false;
     ls.order_changed = true;
 }
 
@@ -599,9 +586,7 @@ static std::string separator_id(const DOSBoxMenu::item_handle_t r) {
     return std::string("_separator_") + std::string(tmp);
 }
 
-static DOSBoxMenu::item &separator_get(void) {
-    DOSBoxMenu::item_handle_t r;
-
+static DOSBoxMenu::item_handle_t separator_get(void) {
     assert(separator_alloc <= separators.size());
     if (separator_alloc == separators.size()) {
         DOSBoxMenu::item &nitem = mainMenu.alloc_item(DOSBoxMenu::separator_type_id, separator_id(separator_alloc));
@@ -609,22 +594,34 @@ static DOSBoxMenu::item &separator_get(void) {
     }
 
     assert(separator_alloc < separators.size());
-    r = separators[separator_alloc++];
-
-    return mainMenu.get_item(r);
+    return separators[separator_alloc++];
 }
 
-void ConstructSubMenu(DOSBoxMenu::item &item, const char * const * list) {
+void ConstructSubMenu(DOSBoxMenu::item_handle_t item_id, const char * const * list) {
     for (size_t i=0;list[i] != NULL;i++) {
         const char *ref = list[i];
 
+        /* NTS: This code calls mainMenu.get_item(item_id) every iteration.
+         *      
+         *      This seemingly inefficient method of populating the display
+         *      list is REQUIRED because DOSBoxMenu::item& is a reference
+         *      to a std::vector, and the reference becomes invalid when
+         *      the vector reallocates to accomodate more entries.
+         *
+         *      Holding onto one reference for the entire loop risks a
+         *      segfault (use after free) bug if the vector should reallocate
+         *      in separator_get() -> alloc_item()
+         *
+         *      Since get_item(item_id) is literally just a constant time
+         *      array lookup, this is not very inefficient at all. */
+
         if (!strcmp(ref,"--")) {
             mainMenu.displaylist_append(
-                item.display_list, separator_get());
+                mainMenu.get_item(item_id).display_list, separator_get());
         }
         else if (mainMenu.item_exists(ref)) {
             mainMenu.displaylist_append(
-                item.display_list, mainMenu.get_item(ref));
+                mainMenu.get_item(item_id).display_list, mainMenu.get_item_id_by_name(ref));
         }
     }
 }
@@ -637,29 +634,28 @@ void ConstructMenu(void) {
     for (size_t i=0;def_menu__toplevel[i] != NULL;i++)
         mainMenu.displaylist_append(
             mainMenu.display_list,
-            mainMenu.get_item(def_menu__toplevel[i]));
+            mainMenu.get_item_id_by_name(def_menu__toplevel[i]));
 
     /* main menu */
-    ConstructSubMenu(mainMenu.get_item("MainMenu"), def_menu_main);
+    ConstructSubMenu(mainMenu.get_item("MainMenu").get_master_id(), def_menu_main);
 
     /* cpu menu */
-    ConstructSubMenu(mainMenu.get_item("CpuMenu"), def_menu_cpu);
+    ConstructSubMenu(mainMenu.get_item("CpuMenu").get_master_id(), def_menu_cpu);
 
     /* cpu core menu */
-    ConstructSubMenu(mainMenu.get_item("CpuCoreMenu"), def_menu_cpu_core);
+    ConstructSubMenu(mainMenu.get_item("CpuCoreMenu").get_master_id(), def_menu_cpu_core);
 
     /* cpu type menu */
-    ConstructSubMenu(mainMenu.get_item("CpuTypeMenu"), def_menu_cpu_type);
+    ConstructSubMenu(mainMenu.get_item("CpuTypeMenu").get_master_id(), def_menu_cpu_type);
 
     /* video menu */
-    ConstructSubMenu(mainMenu.get_item("VideoMenu"), def_menu_video);
+    ConstructSubMenu(mainMenu.get_item("VideoMenu").get_master_id(), def_menu_video);
 
     /* sound menu */
-    ConstructSubMenu(mainMenu.get_item("SoundMenu"), def_menu_sound);
-
+    ConstructSubMenu(mainMenu.get_item("SoundMenu").get_master_id(), def_menu_sound);
 
     /* capture menu */
-    ConstructSubMenu(mainMenu.get_item("CaptureMenu"), def_menu_capture);
+    ConstructSubMenu(mainMenu.get_item("CaptureMenu").get_master_id(), def_menu_capture);
 }
 
 extern int NonUserResizeCounter;

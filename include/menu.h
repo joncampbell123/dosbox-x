@@ -363,8 +363,7 @@ class DOSBoxMenu {
     public:
         static constexpr size_t         master_list_limit = 4096;
     public:
-        void                            displaylist_append(displaylist &ls,DOSBoxMenu::item &item);
-        void                            displaylist_remove(displaylist &ls,DOSBoxMenu::item &item);
+        void                            displaylist_append(displaylist &ls,const DOSBoxMenu::item_handle_t item_id);
         void                            displaylist_clear(displaylist &ls);
 };
 
