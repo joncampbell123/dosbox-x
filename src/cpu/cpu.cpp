@@ -170,6 +170,12 @@ void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
 void CPU_Core_Dyn_X86_Cache_Reset(void);
 #endif
 
+void menu_update_autocycle(void) {
+    DOSBoxMenu::item &item = mainMenu.get_item("mapper_cycauto");
+    item.check(CPU_CycleAutoAdjust || (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES));
+    item.refresh_item(mainMenu);
+}
+
 /* called to signal an NMI. */
 
 /* NTS: From the Intel 80386 programmer's reference manual:
@@ -2052,6 +2058,7 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 						printed_cycles_auto_info = true;
 						LOG_MSG("DOSBox switched to max cycles, because of the setting: cycles=auto. If the game runs too fast try a fixed cycles amount in DOSBox's options.");
 					}
+                    menu_update_autocycle();
 				} else {
 					GFX_SetTitle(-1,-1,-1,false);
 				}
@@ -2990,6 +2997,8 @@ public:
 			}
 			CPU_CycleAutoAdjust=false;
 		}
+
+        menu_update_autocycle();
 
 		enable_fpu=section->Get_bool("fpu");
 		cpu_rep_max=section->Get_int("interruptible rep string op");
