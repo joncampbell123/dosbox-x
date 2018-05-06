@@ -646,6 +646,9 @@ public:
 		name->setText(cycles.c_str());
 		(new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
 		(new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
+
+		name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
+		this->raise(); /* make sure THIS WINDOW has the keyboard focus */
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
