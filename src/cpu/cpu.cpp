@@ -186,35 +186,35 @@ void menu_update_cputype(void) {
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_8086_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder == &CPU_Core_Prefetch_Run)).
-        enable(cpudecoder == &CPU_Core_Normal_Run || &CPU_Core_Prefetch_Run).
+        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_80186").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder != &CPU_Core_Prefetch_Run)).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_80186_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder == &CPU_Core_Prefetch_Run)).
-        enable(cpudecoder == &CPU_Core_Normal_Run || &CPU_Core_Prefetch_Run).
+        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_286").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder != &CPU_Core_Prefetch_Run)).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_286_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder == &CPU_Core_Prefetch_Run)).
-        enable(cpudecoder == &CPU_Core_Normal_Run || &CPU_Core_Prefetch_Run).
+        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_386").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder != &CPU_Core_Prefetch_Run)).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_386_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder == &CPU_Core_Prefetch_Run)).
-        enable(cpudecoder == &CPU_Core_Normal_Run || &CPU_Core_Prefetch_Run).
+        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_486").
         check(is486 && (cpudecoder != &CPU_Core_Prefetch_Run)).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_486_prefetch").
         check(is486 && (cpudecoder == &CPU_Core_Prefetch_Run)).
-        enable(cpudecoder == &CPU_Core_Normal_Run || &CPU_Core_Prefetch_Run).
+        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_pentium").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM).
@@ -240,7 +240,7 @@ void menu_update_core(void) {
     allow_dynamic = (strstr(cpu_sec_type.c_str(),"_prefetch") == NULL);
 
     mainMenu.get_item("mapper_normal").
-        check(cpudecoder == &CPU_Core_Normal_Run || &CPU_Core_Prefetch_Run).
+        check(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
         refresh_item(mainMenu);
     mainMenu.get_item("mapper_simple").
         check(cpudecoder == &CPU_Core_Simple_Run).
