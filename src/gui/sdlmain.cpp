@@ -4814,11 +4814,23 @@ void CheckNumLockState(void) {
 
 extern bool log_keyboard_scan_codes;
 
+bool showconsole_init = false;
+
+bool DEBUG_IsDebuggerConsoleVisible(void);
+
 void DOSBox_ShowConsole() {
 #if defined(WIN32) && !defined(HX_DOS)
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	COORD crd;
 	HWND hwnd;
+
+	/* if the debugger has already taken the console, do nothing */
+	if (DEBUG_IsDebuggerConsoleVisible())
+		return;
+
+	/* if WE have already opened the console, do nothing */
+	if (showconsole_init)
+		return;
 
 	/* Microsoft Windows: Allocate a console and begin spewing to it.
 	   DOSBox is compiled on Windows platforms as a Win32 application, and therefore, no console. */
@@ -4836,6 +4848,8 @@ void DOSBox_ShowConsole() {
 	freopen("CONIN$", "r", stdin);
 	freopen("CONOUT$", "w", stdout);
 	freopen("CONOUT$", "w", stderr);
+
+	showconsole_init = true;
 #endif
 }
 

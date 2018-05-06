@@ -515,6 +515,10 @@ void DBGUI_NextWindowIfActiveHidden(void) {
         DBGUI_NextWindow();
 }
 
+bool DEBUG_IsDebuggerConsoleVisible(void) {
+	return (dbg.win_main != NULL);
+}
+
 void DBGUI_StartUp(void) {
 	mainMenu.get_item("show_console").check(true).refresh_item(mainMenu);
 

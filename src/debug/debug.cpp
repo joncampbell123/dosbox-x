@@ -679,6 +679,7 @@ static bool StepOver()
         }
 
 		DrawCode();
+		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
 		DOSBOX_SetNormalLoop();
 		return true;
 	} 
@@ -1378,6 +1379,7 @@ bool ParseCommand(char* str) {
 
         CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);						
         ignoreAddressOnce = SegPhys(cs)+reg_eip;
+		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
         DOSBOX_SetNormalLoop();	
         return true;
     }
@@ -1536,6 +1538,7 @@ bool ParseCommand(char* str) {
 		CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip-1,true);
 		debugging = false;
 		DrawCode();
+		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
 		DOSBOX_SetNormalLoop();
 		CPU_HW_Interrupt(intNr);
 		return true;
@@ -2147,6 +2150,7 @@ Bit32u DEBUG_CheckKeys(void) {
 
 				CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);						
 				ignoreAddressOnce = SegPhys(cs)+reg_eip;
+				mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
 				DOSBOX_SetNormalLoop();	
 				break;
 		case KEY_F(9):	// Set/Remove Breakpoint
@@ -2307,6 +2311,7 @@ Bitu DEBUG_Loop(void) {
                 DEBUG_RefreshPage(0);
             }
 
+			mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
             DOSBOX_SetNormalLoop();
             DrawRegistersUpdateOld();
             return 0;
@@ -2361,6 +2366,7 @@ void DEBUG_Enable(bool pressed) {
 	SetCodeWinStart();
 	DEBUG_DrawScreen();
 	DOSBOX_SetLoop(&DEBUG_Loop);
+	mainMenu.get_item("mapper_debugger").check(true).refresh_item(mainMenu);
 	if(!showhelp) { 
 		showhelp=true;
 		DEBUG_ShowMsg("***| TYPE HELP (+ENTER) TO GET AN OVERVIEW OF ALL COMMANDS |***\n");
