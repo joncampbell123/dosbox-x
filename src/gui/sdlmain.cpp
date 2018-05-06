@@ -2917,7 +2917,8 @@ static void GUI_StartUp() {
 	MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Cap Mouse", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
 	item->set_text("Capture mouse");
 
-	MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Fullscreen");
+	MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Fullscreen", &item);
+	item->set_text("Toggle fullscreen");
 
 	MAPPER_AddHandler(Restart,MK_nothing,0,"restart","Restart", &item); /* This is less useful, and now has no default binding */
 	item->set_text("Restart DOSBox-X");
