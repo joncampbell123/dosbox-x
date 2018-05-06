@@ -487,6 +487,8 @@ static const char *def_menu__toplevel[] = {
 static const char *def_menu_main[] = {
     "mapper_mapper",
     "mapper_gui",
+	"--",
+	"wait_on_error",
 #if C_DEBUG
 	"--",
 	"mapper_debugger",
