@@ -172,6 +172,13 @@ void CPU_Core_Dyn_X86_Cache_Reset(void);
 
 void menu_update_autocycle(void) {
     DOSBoxMenu::item &item = mainMenu.get_item("mapper_cycauto");
+    if (CPU_CycleAutoAdjust)
+        item.set_text("Auto cycles [max]");
+    else if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES)
+        item.set_text("Auto cycles [auto]");
+    else
+        item.set_text("Auto cycles [off]");
+
     item.check(CPU_CycleAutoAdjust || (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES));
     item.refresh_item(mainMenu);
 }
