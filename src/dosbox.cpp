@@ -692,10 +692,16 @@ void Init_VGABIOS() {
 }
 
 void DOSBOX_RealInit() {
+	DOSBoxMenu::item *item;
+
 	LOG(LOG_MISC,LOG_DEBUG)("DOSBOX_RealInit: loading settings and initializing");
 
 	MAPPER_AddHandler(DOSBOX_UnlockSpeed, MK_rightarrow, MMODHOST,"speedlock","Speedlock");
-	MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_nothing, 0,"speedlock2","Speedlock2");
+	{
+		MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_nothing, 0, "speedlock2", "Speedlock2", &item);
+		item->set_description("Toggle emulation speed, to allow running faster than realtime (fast forward)");
+		item->set_text("Turbo (Fast Forward)");
+	}
 
 	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
