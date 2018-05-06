@@ -220,11 +220,15 @@ void menu_update_core(void) {
     /* cannot select Dynamic core if prefetch cpu types are in use */
     allow_dynamic = (strstr(cpu_sec_type.c_str(),"_prefetch") == NULL);
 
-    mainMenu.get_item("mapper_normal").check(cpudecoder == &CPU_Core_Normal_Run).refresh_item(mainMenu);
-    mainMenu.get_item("mapper_simple").check(cpudecoder == &CPU_Core_Simple_Run).refresh_item(mainMenu);
-    mainMenu.get_item("mapper_full").check(cpudecoder == &CPU_Core_Full_Run).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_normal").
+        check(cpudecoder == &CPU_Core_Normal_Run || &CPU_Core_Prefetch_Run).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_simple").
+        check(cpudecoder == &CPU_Core_Simple_Run).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_full").
+        check(cpudecoder == &CPU_Core_Full_Run).refresh_item(mainMenu);
 #if (C_DYNAMIC_X86)
-    mainMenu.get_item("mapper_dynamic").check(cpudecoder == &CPU_Core_Dyn_X86_Run).enable(allow_dynamic).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_dynamic").
+        check(cpudecoder == &CPU_Core_Dyn_X86_Run).enable(allow_dynamic).refresh_item(mainMenu);
 #endif
 }
 
