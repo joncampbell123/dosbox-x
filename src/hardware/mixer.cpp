@@ -939,10 +939,19 @@ void MAPPER_RecVolumeDown(bool pressed) {
 }
 
 void MIXER_Controls_Init() {
-	MAPPER_AddHandler(MAPPER_VolumeUp  ,MK_kpplus, MMODHOST,"volup","VolUp");
-	MAPPER_AddHandler(MAPPER_VolumeDown,MK_kpminus,MMODHOST,"voldown","VolDown");
-	MAPPER_AddHandler(MAPPER_RecVolumeUp  ,MK_nothing, 0,"recvolup","RecVolUp");
-	MAPPER_AddHandler(MAPPER_RecVolumeDown,MK_nothing, 0,"recvoldown","RecVolDn");
+	DOSBoxMenu::item *item;
+
+	MAPPER_AddHandler(MAPPER_VolumeUp  ,MK_kpplus, MMODHOST,"volup","VolUp",&item);
+	item->set_text("Increase volume");
+	
+	MAPPER_AddHandler(MAPPER_VolumeDown,MK_kpminus,MMODHOST,"voldown","VolDown",&item);
+	item->set_text("Decrease volume");
+
+	MAPPER_AddHandler(MAPPER_RecVolumeUp  ,MK_nothing, 0,"recvolup","RecVolUp",&item);
+	item->set_text("Increase recording volume");
+
+	MAPPER_AddHandler(MAPPER_RecVolumeDown,MK_nothing, 0,"recvoldown","RecVolDn",&item);
+	item->set_text("Decrease recording volume");
 }
 
 void MIXER_Init() {
