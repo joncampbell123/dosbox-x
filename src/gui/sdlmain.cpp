@@ -1947,6 +1947,9 @@ void GFX_CaptureMouse(void) {
 		if (sdl.mouse.autoenable || !sdl.mouse.autolock) SDL_ShowCursor(SDL_ENABLE);
 	}
         mouselocked=sdl.mouse.locked;
+
+	/* keep the menu updated */
+	mainMenu.get_item("mapper_capmouse").check(sdl.mouse.locked).refresh_item(mainMenu);
 }
 
 void GFX_UpdateSDLCaptureState(void) {
