@@ -3294,6 +3294,9 @@ public:
 		menu_update_core();
 		menu_update_cputype();
 
+        void CPU_Core_Prefetch_reset(void);
+        CPU_Core_Prefetch_reset();
+
 		if (CPU_CycleAutoAdjust) GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 		else GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 		return true;
