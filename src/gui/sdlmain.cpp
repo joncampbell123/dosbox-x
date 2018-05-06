@@ -5296,9 +5296,29 @@ bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
 	return true;
 }
 
+void SetCyclesCount_mapper_shortcut_RunInternal(void) {
+	void MAPPER_ReleaseAllKeys(void);
+	MAPPER_ReleaseAllKeys();
+
+	GFX_LosingFocus();
+
+	GUI_Shortcut(16);
+
+	void MAPPER_ReleaseAllKeys(void);
+	MAPPER_ReleaseAllKeys();
+
+	GFX_LosingFocus();
+}
+
+void SetCyclesCount_mapper_shortcut_RunEvent(Bitu /*val*/) {
+	KEYBOARD_ClrBuffer();	//Clear buffer
+	GFX_LosingFocus();		//Release any keys pressed (buffer gets filled again).
+	SetCyclesCount_mapper_shortcut_RunInternal();
+}
+
 void SetCyclesCount_mapper_shortcut(bool pressed) {
 	if (!pressed) return;
-	GUI_Shortcut(16);
+	PIC_AddEvent(SetCyclesCount_mapper_shortcut_RunEvent, 0.0001f);	//In case mapper deletes the key object that ran it
 }
 
 //extern void UI_Init(void);
