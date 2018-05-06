@@ -547,7 +547,7 @@ static const char *def_menu_cpu[] = {
     "--",
     "mapper_cycleup",
     "mapper_cycledown",
-	"enter_cycles_count",
+	"mapper_editcycles",
     "--",
     "CpuCoreMenu",
     "CpuTypeMenu",
