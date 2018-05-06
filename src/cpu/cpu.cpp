@@ -2674,20 +2674,22 @@ void CPU_CycleDecrease(bool pressed) {
 
 static void CPU_ToggleAutoCycles(bool pressed) {
     if (!pressed)
-	return;
+        return;
+
     Section* sec=control->GetSection("cpu");
-    if(sec) {
-	std::string tmp("cycles=");
-	if(CPU_CycleAutoAdjust) {
-	    std::ostringstream str;
-	    str << "fixed " << CPU_CyclesSet;
-	    tmp.append(str.str());
-	} else if(CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-	    tmp.append("max");
-	} else {
-	    tmp.append("auto");
-	}
-	sec->HandleInputline(tmp);
+    if (sec) {
+        std::string tmp("cycles=");
+        if (CPU_CycleAutoAdjust) {
+            std::ostringstream str;
+            str << "fixed " << CPU_CyclesSet;
+            tmp.append(str.str());
+        } else if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
+            tmp.append("max");
+        } else {
+            tmp.append("auto");
+        }
+
+        sec->HandleInputline(tmp);
     }
 }
 
