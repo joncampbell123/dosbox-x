@@ -508,13 +508,8 @@ static const char *def_menu_main[] = {
     NULL
 };
 
-/* cpu menu ("CpuMenu") */
-static const char *def_menu_cpu[] = {
-    "mapper_speedlock2", /* NTS: "mapper_speedlock" doesn't work for a menu item because it requires holding the key */
-    "--",
-    "mapper_cycleup",
-    "mapper_cycledown",
-    "--",
+/* cpu -> core menu ("CpuCoreMenu") */
+static const char *def_menu_cpu_core[] = {
     "mapper_cycauto",
     "--",
     "mapper_normal",
@@ -523,6 +518,17 @@ static const char *def_menu_cpu[] = {
 #if (C_DYNAMIC_X86)
     "mapper_dynamic",
 #endif
+    NULL
+};
+
+/* cpu menu ("CpuMenu") */
+static const char *def_menu_cpu[] = {
+    "mapper_speedlock2", /* NTS: "mapper_speedlock" doesn't work for a menu item because it requires holding the key */
+    "--",
+    "mapper_cycleup",
+    "mapper_cycledown",
+    "--",
+    "CpuCoreMenu",
     NULL
 };
 
@@ -608,6 +614,9 @@ void ConstructMenu(void) {
 
     /* cpu menu */
     ConstructSubMenu(mainMenu.get_item("CpuMenu"), def_menu_cpu);
+
+    /* cpu core menu */
+    ConstructSubMenu(mainMenu.get_item("CpuCoreMenu"), def_menu_cpu_core);
 
     /* video menu */
     ConstructSubMenu(mainMenu.get_item("VideoMenu"), def_menu_video);
