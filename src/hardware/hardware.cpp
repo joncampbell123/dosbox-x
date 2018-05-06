@@ -620,6 +620,8 @@ void CAPTURE_VideoEvent(bool pressed) {
 	} else {
 		CaptureState |= CAPTURE_VIDEO;
 	}
+
+	mainMenu.get_item("mapper_video").check(!!(CaptureState & CAPTURE_VIDEO)).refresh_item(mainMenu);
 }
 
 extern uint32_t GFX_palette32bpp[256];
@@ -1589,6 +1591,8 @@ void CAPTURE_MTWaveEvent(bool pressed) {
     else {
         CaptureState |= CAPTURE_MULTITRACK_WAVE;
     }
+
+	mainMenu.get_item("mapper_recmtwave").check(!!(CaptureState & CAPTURE_MULTITRACK_WAVE)).refresh_item(mainMenu);
 }
 
 void CAPTURE_WaveEvent(bool pressed) {
@@ -1610,6 +1614,8 @@ void CAPTURE_WaveEvent(bool pressed) {
     else {
         CaptureState |= CAPTURE_WAVE;
     }
+
+	mainMenu.get_item("mapper_recwave").check(!!(CaptureState & CAPTURE_WAVE)).refresh_item(mainMenu);
 }
 
 /* MIDI capturing */
@@ -1698,6 +1704,8 @@ void CAPTURE_MidiEvent(bool pressed) {
 	} else {
 		LOG_MSG("Stopped capturing raw midi before any data arrived.");
 	}
+
+	mainMenu.get_item("mapper_caprawmidi").check(!!(CaptureState & CAPTURE_MIDI)).refresh_item(mainMenu);
 }
 
 void CAPTURE_Destroy(Section *sec) {

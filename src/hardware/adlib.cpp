@@ -696,6 +696,8 @@ void OPL_SaveRawEvent(bool pressed) {
 		LOG_MSG("Preparing to capture Raw OPL, will start with first note played.");
 		module->capture = new Adlib::Capture( &module->cache );
 	}
+
+	mainMenu.get_item("mapper_caprawopl").check(module->capture != NULL).refresh_item(mainMenu);
 }
 
 namespace Adlib {
