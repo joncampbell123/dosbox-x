@@ -3114,9 +3114,6 @@ public:
 			LOG_MSG("CPU:Unknown core type %s, switching back to normal.",core.c_str());
 		}
 
-        menu_update_core();
-        menu_update_cputype();
-
 #if (C_DYNAMIC_X86)
 		CPU_Core_Dyn_X86_Cache_Init((core == "dynamic") || (core == "dynamic_nodhfpu"));
 #endif
@@ -3259,6 +3256,9 @@ public:
 		if(CPU_CycleDown <= 0) CPU_CycleDown = 20;
 
         if (enable_cmpxchg8b && CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) LOG_MSG("Pentium CMPXCHG8B emulation is enabled");
+
+		menu_update_core();
+		menu_update_cputype();
 
 		if (CPU_CycleAutoAdjust) GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 		else GFX_SetTitle(CPU_CycleMax,-1,-1,false);
