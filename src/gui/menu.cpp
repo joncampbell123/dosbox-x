@@ -521,6 +521,28 @@ static const char *def_menu_cpu_core[] = {
     NULL
 };
 
+/* cpu -> type menu ("CpuTypeMenu") */
+static const char *def_menu_cpu_type[] = {
+    "cputype_auto",
+    "--",
+    "cputype_8086",
+    "cputype_8086_prefetch",
+#if 0
+    "cputype_80186",
+    "cputype_80186_prefetch",
+    "cputype_286",
+    "cputype_286_prefetch",
+    "cputype_386",
+    "cputype_386_prefetch",
+    "cputype_486",
+    "cputype_486_prefetch",
+    "cputype_pentium",
+    "cputype_pentium_mmx",
+    "cputype_pentium_pro",
+#endif
+    NULL
+};
+
 /* cpu menu ("CpuMenu") */
 static const char *def_menu_cpu[] = {
     "mapper_speedlock2", /* NTS: "mapper_speedlock" doesn't work for a menu item because it requires holding the key */
@@ -529,6 +551,7 @@ static const char *def_menu_cpu[] = {
     "mapper_cycledown",
     "--",
     "CpuCoreMenu",
+    "CpuTypeMenu",
     NULL
 };
 
@@ -617,6 +640,9 @@ void ConstructMenu(void) {
 
     /* cpu core menu */
     ConstructSubMenu(mainMenu.get_item("CpuCoreMenu"), def_menu_cpu_core);
+
+    /* cpu type menu */
+    ConstructSubMenu(mainMenu.get_item("CpuTypeMenu"), def_menu_cpu_type);
 
     /* video menu */
     ConstructSubMenu(mainMenu.get_item("VideoMenu"), def_menu_video);

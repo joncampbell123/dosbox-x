@@ -129,7 +129,7 @@ class DOSBoxMenu {
         };
     public:
         typedef uint16_t                item_handle_t;
-        typedef void                  (*callback_t)(DOSBoxMenu * const,item * const);
+        typedef bool                  (*callback_t)(DOSBoxMenu * const,item * const);
         typedef std::string             mapper_event_t;     /* event name */
     public:
         class displaylist {
@@ -203,6 +203,9 @@ class DOSBoxMenu {
                 item&                   allocate(const item_handle_t id,const enum item_type_t type,const std::string &name);
                 void                    deallocate(void);
             public:
+                inline const std::string &get_name(void) const {
+                    return name;
+                }
                 inline item_handle_t get_master_id(void) const {
                     return master_id;
                 }

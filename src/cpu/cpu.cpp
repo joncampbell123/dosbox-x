@@ -170,6 +170,18 @@ void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
 void CPU_Core_Dyn_X86_Cache_Reset(void);
 #endif
 
+void menu_update_cputype(void) {
+	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
+	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
+
+    mainMenu.get_item("cputype_auto").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_MIXED).refresh_item(mainMenu);
+    mainMenu.get_item("cputype_8086").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder != &CPU_Core_Prefetch_Run)).refresh_item(mainMenu);
+    mainMenu.get_item("cputype_8086_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder == &CPU_Core_Prefetch_Run)).refresh_item(mainMenu);
+}
+
 void menu_update_core(void) {
 	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
 	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
@@ -2842,6 +2854,24 @@ PageHandler* weitek_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
     return &weitek_pagehandler;
 }
 
+bool CpuType_Auto(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    Section* sec=control->GetSection("cpu");
+    if (sec) sec->HandleInputline("cputype=auto");
+    return true;
+}
+
+bool CpuType_ByName(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    const char *name = menuitem->get_name().c_str();
+
+    /* name should be cputype_... */
+    if (!strncmp(name,"cputype_",8)) name += 8;
+    else abort();
+
+    Section* sec=control->GetSection("cpu");
+    if (sec) sec->HandleInputline(std::string("cputype=")+name);
+    return true;
+}
+
 class CPU: public Module_base {
 private:
 	static bool inited;
@@ -2925,6 +2955,29 @@ public:
 		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_nothing,0,"dynamic","DynCore",&item);
 		item->set_text("Dynamic core");
 #endif
+
+        /* these are not mapper shortcuts, and probably should not be mapper shortcuts */
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_auto").
+            set_text("Auto").set_callback_function(CpuType_Auto);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_8086").
+            set_text("8086").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_8086_prefetch").
+            set_text("8086 with prefetch").set_callback_function(CpuType_ByName);
+
+#if 0
+    "cputype_80186",
+    "cputype_80186_prefetch",
+    "cputype_286",
+    "cputype_286_prefetch",
+    "cputype_386",
+    "cputype_386_prefetch",
+    "cputype_486",
+    "cputype_486_prefetch",
+    "cputype_pentium",
+    "cputype_pentium_mmx",
+    "cputype_pentium_pro",
+#endif
+
 		Change_Config(configuration);	
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core
 	}
@@ -3062,6 +3115,7 @@ public:
 		}
 
         menu_update_core();
+        menu_update_cputype();
 
 #if (C_DYNAMIC_X86)
 		CPU_Core_Dyn_X86_Cache_Init((core == "dynamic") || (core == "dynamic_nodhfpu"));
