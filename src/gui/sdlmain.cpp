@@ -5834,7 +5834,7 @@ int main(int argc, char* argv[]) {
 		{
 			DOSBoxMenu::item *item;
 
-			MAPPER_AddHandler(&SetCyclesCount_mapper_shortcut, MK_minus, MMOD3 | MMODHOST, "editcycles", "EditCycles", &item);
+			MAPPER_AddHandler(&SetCyclesCount_mapper_shortcut, MK_nothing, 0, "editcycles", "EditCycles", &item);
 			item->set_text("Edit cycles");
 		}
 
