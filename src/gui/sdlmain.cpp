@@ -5297,6 +5297,7 @@ bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
 }
 
 void SetCyclesCount_mapper_shortcut_RunInternal(void) {
+#if !defined(C_SDL2)
 	void MAPPER_ReleaseAllKeys(void);
 	MAPPER_ReleaseAllKeys();
 
@@ -5308,6 +5309,7 @@ void SetCyclesCount_mapper_shortcut_RunInternal(void) {
 	MAPPER_ReleaseAllKeys();
 
 	GFX_LosingFocus();
+#endif
 }
 
 void SetCyclesCount_mapper_shortcut_RunEvent(Bitu /*val*/) {
