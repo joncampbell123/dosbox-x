@@ -3704,7 +3704,7 @@ void MAPPER_StartUp() {
         MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper",&itemp);
         itemp->set_accelerator(DOSBoxMenu::accelerator('m'));
         itemp->set_description("Bring up the mapper UI");
-        itemp->set_text("Mapper");
+        itemp->set_text("Mapper editor");
     }
 }
 

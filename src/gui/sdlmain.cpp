@@ -2679,6 +2679,8 @@ void ResetSystem(bool pressed) {
 bool has_GUI_StartUp = false;
 
 static void GUI_StartUp() {
+	DOSBoxMenu::item *item;
+
 	if (has_GUI_StartUp) return;
 	has_GUI_StartUp = true;
 
@@ -2897,11 +2899,20 @@ static void GUI_StartUp() {
 #if defined(__WIN32__) && !defined(C_SDL2)
 	MAPPER_AddHandler(ToggleMenu,MK_return,MMOD1|MMOD2,"togglemenu","ToggleMenu");
 #endif // WIN32
-    MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset"); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
-	MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","ShutDown"); /* KEEP: Most DOSBox-X users may have muscle memory for this */
-	MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Cap Mouse"); /* KEEP: Most DOSBox-X users may have muscle memory for this */
+    MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
+	item->set_text("Reset guest system");
+
+	MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","ShutDown", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
+	item->set_text("Quit");
+
+	MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Cap Mouse", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
+	item->set_text("Capture mouse");
+
 	MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Fullscreen");
-	MAPPER_AddHandler(Restart,MK_nothing,0,"restart","Restart"); /* This is less useful, and now has no default binding */
+
+	MAPPER_AddHandler(Restart,MK_nothing,0,"restart","Restart", &item); /* This is less useful, and now has no default binding */
+	item->set_text("Restart DOSBox-X");
+
 	void PasteClipboard(bool bPressed); // emendelson from dbDOS adds MMOD2 to this for Ctrl-Alt-F5 for PasteClipboard
 	MAPPER_AddHandler(PasteClipboard, MK_nothing, 0, "paste", "Paste Clipboard"); //end emendelson
 #if C_DEBUG
@@ -2911,8 +2922,11 @@ static void GUI_StartUp() {
 	MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD2, "pause", "Pause");
 #endif
 #if !defined(C_SDL2)
-	MAPPER_AddHandler(&GUI_Run, MK_nothing, 0, "gui", "ShowGUI");
-	MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "ResetSize");
+	MAPPER_AddHandler(&GUI_Run, MK_nothing, 0, "gui", "ShowGUI", &item);
+	item->set_text("Configuration GUI");
+
+	MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "ResetSize", &item);
+	item->set_text("Reset window size");
 #endif
 	/* Get Keyboard state of numlock and capslock */
 #if defined(C_SDL2)

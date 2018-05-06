@@ -491,12 +491,18 @@ static const char *def_menu__toplevel[] = {
 static const char *def_menu_main[] = {
     "mapper_mapper",
     "mapper_gui",
+#if C_DEBUG
+	"--",
+	"mapper_debugger",
+#endif
     "--",
     "mapper_capmouse",
-    "mapper_pause",
+	"--",
+	"mapper_pause",
     "--",
     "mapper_reset",
-    "mapper_restart",
+	"--",
+	"mapper_restart",
     "--",
     "mapper_shutdown",
     NULL
