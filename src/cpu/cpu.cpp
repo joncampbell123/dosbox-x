@@ -174,12 +174,38 @@ void menu_update_cputype(void) {
 	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
 	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
 
+    bool is486 =
+        (CPU_ArchitectureType == CPU_ARCHTYPE_486OLD) ||
+        (CPU_ArchitectureType == CPU_ARCHTYPE_486NEW);
+
     mainMenu.get_item("cputype_auto").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_MIXED).refresh_item(mainMenu);
     mainMenu.get_item("cputype_8086").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder != &CPU_Core_Prefetch_Run)).refresh_item(mainMenu);
     mainMenu.get_item("cputype_8086_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder == &CPU_Core_Prefetch_Run)).refresh_item(mainMenu);
+    mainMenu.get_item("cputype_80186").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder != &CPU_Core_Prefetch_Run)).refresh_item(mainMenu);
+    mainMenu.get_item("cputype_80186_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder == &CPU_Core_Prefetch_Run)).refresh_item(mainMenu);
+    mainMenu.get_item("cputype_286").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder != &CPU_Core_Prefetch_Run)).refresh_item(mainMenu);
+    mainMenu.get_item("cputype_286_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder == &CPU_Core_Prefetch_Run)).refresh_item(mainMenu);
+    mainMenu.get_item("cputype_386").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder != &CPU_Core_Prefetch_Run)).refresh_item(mainMenu);
+    mainMenu.get_item("cputype_386_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder == &CPU_Core_Prefetch_Run)).refresh_item(mainMenu);
+    mainMenu.get_item("cputype_486").
+        check(is486 && (cpudecoder != &CPU_Core_Prefetch_Run)).refresh_item(mainMenu);
+    mainMenu.get_item("cputype_486_prefetch").
+        check(is486 && (cpudecoder == &CPU_Core_Prefetch_Run)).refresh_item(mainMenu);
+    mainMenu.get_item("cputype_pentium").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM).refresh_item(mainMenu);
+    mainMenu.get_item("cputype_pentium_mmx").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_P55CSLOW).refresh_item(mainMenu);
+    mainMenu.get_item("cputype_pentium_pro").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW).refresh_item(mainMenu);
 }
 
 void menu_update_core(void) {
@@ -2963,20 +2989,28 @@ public:
             set_text("8086").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_8086_prefetch").
             set_text("8086 with prefetch").set_callback_function(CpuType_ByName);
-
-#if 0
-    "cputype_80186",
-    "cputype_80186_prefetch",
-    "cputype_286",
-    "cputype_286_prefetch",
-    "cputype_386",
-    "cputype_386_prefetch",
-    "cputype_486",
-    "cputype_486_prefetch",
-    "cputype_pentium",
-    "cputype_pentium_mmx",
-    "cputype_pentium_pro",
-#endif
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_80186").
+            set_text("80186").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_80186_prefetch").
+            set_text("80186 with prefetch").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_286").
+            set_text("286").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_286_prefetch").
+            set_text("286 with prefetch").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_386").
+            set_text("386").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_386_prefetch").
+            set_text("386 with prefetch").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486").
+            set_text("486").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486_prefetch").
+            set_text("486 with prefetch").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium").
+            set_text("Pentium").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium_mmx").
+            set_text("Pentium MMX").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium_pro").
+            set_text("Pentium Pro").set_callback_function(CpuType_ByName);
 
 		Change_Config(configuration);	
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core

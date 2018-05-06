@@ -527,7 +527,6 @@ static const char *def_menu_cpu_type[] = {
     "--",
     "cputype_8086",
     "cputype_8086_prefetch",
-#if 0
     "cputype_80186",
     "cputype_80186_prefetch",
     "cputype_286",
@@ -539,7 +538,6 @@ static const char *def_menu_cpu_type[] = {
     "cputype_pentium",
     "cputype_pentium_mmx",
     "cputype_pentium_pro",
-#endif
     NULL
 };
 
