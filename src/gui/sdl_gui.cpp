@@ -598,15 +598,48 @@ public:
 	}
 };
 
+// override Input field with one that responds to the Enter key as a keyboard-based cue to click "OK"
+class InputWithEnterKey : public GUI::Input {
+public:
+										InputWithEnterKey(Window *parent, int x, int y, int w, int h = 0) : GUI::Input(parent,x,y,w,h) { };
+public:
+	void								set_trigger_target(GUI::ToplevelWindow *_who) { trigger_who = _who; };
+protected:
+	GUI::ToplevelWindow*				trigger_who = NULL;
+public:
+	std::string							trigger_enter = "OK";
+	std::string							trigger_esc = "Cancel";
+public:
+	virtual bool						keyDown(const GUI::Key &key) {
+		if (key.special == GUI::Key::Special::Enter) {
+			if (trigger_who != NULL && !trigger_enter.empty())
+				trigger_who->actionExecuted(this, trigger_enter);
+
+			return true;
+		}
+		else if (key.special == GUI::Key::Special::Escape) {
+			if (trigger_who != NULL && !trigger_esc.empty())
+				trigger_who->actionExecuted(this, trigger_esc);
+
+			return true;
+		}
+		else {
+			return GUI::Input::keyDown(key);
+		}
+	}
+};
+
 class SetCycles : public GUI::ToplevelWindow {
 protected:
-	GUI::Input *name;
+	InputWithEnterKey *name;
 public:
 	SetCycles(GUI::Screen *parent, int x, int y, const char *title) :
 		ToplevelWindow(parent, x, y, 400, 150, title) {
 		new GUI::Label(this, 5, 10, "Enter CPU cycles:");
-		name = new GUI::Input(this, 5, 30, 350);
-	    std::ostringstream str;
+//		name = new GUI::Input(this, 5, 30, 350);
+		name = new InputWithEnterKey(this, 5, 30, 350);
+		name->set_trigger_target(this);
+		std::ostringstream str;
 		str << "fixed " << CPU_CycleMax;
 
 		std::string cycles=str.str();
