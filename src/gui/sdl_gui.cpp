@@ -620,11 +620,8 @@ public:
 			Section* sec = control->GetSection("cpu");
 			if (sec) {
 				std::string tmp("cycles=");
-				const char* well = name->getText();
-				std::string s(well, 20);
-				tmp.append(s);
+				tmp.append((const char*)(name->getText()));
 				sec->HandleInputline(tmp);
-				delete well;
 			}
 		}
 		close();
