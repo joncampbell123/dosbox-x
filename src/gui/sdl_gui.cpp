@@ -649,6 +649,8 @@ public:
 
 		name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
 		this->raise(); /* make sure THIS WINDOW has the keyboard focus */
+
+		name->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {

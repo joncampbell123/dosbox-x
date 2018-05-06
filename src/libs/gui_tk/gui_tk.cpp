@@ -762,6 +762,11 @@ void ToplevelWindow::paint(Drawable &d) const
 	d.drawText(31+(width-39-font->getWidth(title))/2,5+(26-font->getHeight())/2+font->getAscent(),title,false,0);
 }
 
+void Input::posToEnd(void) {
+	pos = text.size();
+	checkOffset();
+}
+
 void Input::paint(Drawable &d) const
 {
 	d.clear(Color::EditableBackground);

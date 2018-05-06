@@ -1547,6 +1547,8 @@ public:
 	virtual Ticks timerExpired(Ticks time)
 	{ blink = !blink; setDirty(); return 30; }
 
+	/// Move the cursor to the end of the text field
+	virtual void posToEnd(void);
 };
 
 class ToplevelWindow;
