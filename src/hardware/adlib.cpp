@@ -701,6 +701,8 @@ void OPL_SaveRawEvent(bool pressed) {
 namespace Adlib {
 
 Module::Module( Section* configuration ) : Module_base(configuration) {
+	DOSBoxMenu::item *item;
+
 	reg.dual[0] = 0;
 	reg.dual[1] = 0;
 	reg.normal = 0;
@@ -762,7 +764,8 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	WriteHandler[2].Install(base+8,OPL_Write,IO_MB, 2);
 	ReadHandler[2].Install(base+8,OPL_Read,IO_MB, 1);
 
-	MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,"caprawopl","Cap OPL");
+	MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,"caprawopl","Cap OPL",&item);
+	item->set_text("Record FM (OPL) output");
 }
 
 Module::~Module() {
