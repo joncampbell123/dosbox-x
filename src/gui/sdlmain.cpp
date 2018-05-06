@@ -719,6 +719,9 @@ void PauseDOSBox(bool pressed) {
 
 	if (!pressed) return;
 
+	/* reflect in the menu that we're paused now */
+	mainMenu.get_item("mapper_pause").check(true).refresh_item(mainMenu);
+
     void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
@@ -741,7 +744,7 @@ void PauseDOSBox(bool pressed) {
 		SDL_WaitEvent(&event);    // since we're not polling, cpu usage drops to 0.
 #ifdef __WIN32__
   #if !defined(C_SDL2)
-		if (event.type==SDL_SYSWMEVENT && event.syswm.msg->msg==WM_COMMAND && event.syswm.msg->wParam==ID_PAUSE) {
+		if (event.type==SDL_SYSWMEVENT && event.syswm.msg->msg == WM_COMMAND && event.syswm.msg->wParam == (mainMenu.get_item("mapper_pause").get_master_id()+DOSBoxMenu::winMenuMinimumID)) {
 			paused=false;
 			GFX_SetTitle(-1,-1,-1,false);	
 			break;
@@ -788,6 +791,9 @@ void PauseDOSBox(bool pressed) {
 
 	// redraw screen (ex. fullscreen - pause - alt+tab x2 - unpause)
 	if (sdl.draw.callback) (sdl.draw.callback)( GFX_CallBackReset );
+
+	/* reflect in the menu that we're paused now */
+	mainMenu.get_item("mapper_pause").check(false).refresh_item(mainMenu);
 }
 
 #if defined(C_SDL2)
