@@ -71,13 +71,22 @@ bool DOSBoxMenu::item_exists(const item_handle_t i) {
     return true;
 }
 
-DOSBoxMenu::item& DOSBoxMenu::get_item(const std::string &name) {
+DOSBoxMenu::item_handle_t DOSBoxMenu::get_item_id_by_name(const std::string &name) {
     auto i = name_map.find(name);
 
-    if (i == name_map.end()) /* TODO: Need a sentinel value to say not found */
-        E_Exit("DOSBoxMenu::get_item() no such item \"%s\" found",name.c_str());
+    if (i == name_map.end())
+        return unassigned_item_handle;
 
-    return get_item(i->second);
+    return i->second;
+}
+
+DOSBoxMenu::item& DOSBoxMenu::get_item(const std::string &name) {
+    item_handle_t handle = get_item_id_by_name(name);
+
+    if (handle == unassigned_item_handle)
+        E_Exit("DOSBoxMenu::get_item() No such item '%s'",name.c_str());
+
+    return get_item(handle);
 }
 
 DOSBoxMenu::item& DOSBoxMenu::get_item(const item_handle_t i) {

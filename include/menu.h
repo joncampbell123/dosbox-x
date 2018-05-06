@@ -331,6 +331,7 @@ class DOSBoxMenu {
         bool                            item_exists(const std::string &name);
         item&                           get_item(const item_handle_t i);
         item&                           get_item(const std::string &name);
+        item_handle_t                   get_item_id_by_name(const std::string &name);
         item&                           alloc_item(const enum item_type_t type,const std::string &name);
         void                            delete_item(const item_handle_t i);
         void                            clear_all_menu_items(void);
