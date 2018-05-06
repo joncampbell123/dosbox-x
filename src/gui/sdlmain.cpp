@@ -5264,6 +5264,11 @@ bool VM_PowerOn() {
 	return true;
 }
 
+bool show_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    DOSBox_ShowConsole();
+    return true;
+}
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
     CommandLine com_line(argc,argv);
@@ -5779,6 +5784,9 @@ int main(int argc, char* argv[]) {
 			LOG(LOG_MISC,LOG_DEBUG)("Running mapper interface, during startup, as instructed");
 			MAPPER_RunInternal();
 		}
+
+        /* more */
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show console").set_callback_function(show_console_menu_callback);
 
 		/* The machine just "powered on", and then reset finished */
 		if (!VM_PowerOn()) E_Exit("VM failed to power on");
