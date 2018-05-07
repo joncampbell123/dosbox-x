@@ -3676,6 +3676,7 @@ godefault:
 	return;
 #endif
 }
+#endif
 
 void* GetSetSDLValue(int isget, std::string target, void* setval) {
 	if (target == "wait_on_error") {
@@ -3746,7 +3747,6 @@ void* GetSetSDLValue(int isget, std::string target, void* setval) {
 #endif
 	}
 }
-#endif
 
 #if defined(C_SDL2)
 static const SDL_TouchID no_touch_id = (SDL_TouchID)(~0ULL);
@@ -5296,6 +5296,12 @@ bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
 	return true;
 }
 
+bool doublebuf_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    SetVal("sdl", "fulldouble", (GetSetSDLValue(1, "desktop.doublebuf", 0)) ? "false" : "true"); res_init();
+    mainMenu.get_item("doublebuf").check(!!GetSetSDLValue(1, "desktop.doublebuf", 0));
+    return true;
+}
+
 bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     if (menuitem->get_name() == "sendkey_ctrlesc") {
         KEYBOARD_AddKey(KBD_leftctrl, true);
@@ -5919,6 +5925,7 @@ int main(int argc, char* argv[]) {
 		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Logo key").set_callback_function(sendkey_preset_menu_callback);
 		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Menu key").set_callback_function(sendkey_preset_menu_callback);
 		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_cad").set_text("Ctrl+Alt+Del").set_callback_function(sendkey_preset_menu_callback);
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, "desktop.doublebuf", 0));
 
 		/* The machine just "powered on", and then reset finished */
 		if (!VM_PowerOn()) E_Exit("VM failed to power on");
