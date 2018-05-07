@@ -595,9 +595,13 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 			/* tell SetWindowPos() not to move or resize */
 			swp_flags |= SWP_NOSIZE | SWP_NOMOVE;
 		}
-#endif
+
+		/* do not change topmost/notopmost status out from under DOSBox-X unless fullscreen or window is just coming up for the first time */
+		if (!(flags & SDL_FULLSCREEN))
+			swp_flags |= SWP_NOZORDER;
 
 		SetWindowPos(ParentWindowHWND, top, x, y, width, height, swp_flags);
+#endif
 
 		if ( !(flags & SDL_FULLSCREEN) ) {
 			SDL_windowX = SDL_bounds.left;
