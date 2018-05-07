@@ -205,6 +205,12 @@ class DOSBoxMenu {
                 void                    winAppendMenu(HMENU handle);
                 std::string             winConstructMenuText(void);
 #endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+            protected:
+                void*                   nsMenu = NULL;
+            protected:
+                void                    nsAppendMenu(void *handle);
+#endif
             protected:
                 item&                   allocate(const item_handle_t id,const enum item_type_t type,const std::string &name);
                 void                    deallocate(void);

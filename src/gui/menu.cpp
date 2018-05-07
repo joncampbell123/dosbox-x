@@ -306,10 +306,59 @@ void DOSBoxMenu::unbuild(void) {
 }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+void DOSBoxMenu::item::nsAppendMenu(HMENU handle) {
+    if (type == separator_type_id) {
+    }
+    else if (type == vseparator_type_id) {
+    }
+    else if (type == submenu_type_id) {
+    }
+    else if (type == item_type_id) {
+    }
+}
+
+bool DOSBoxMenu::nsMenuSubInit(DOSBoxMenu::item &p_item) {
+    if (p_item.nsMenu == NULL) {
+        p_item.nsMenu = sdl_hax_nsMenuAlloc("");
+        if (p_item.nsMenu != NULL) {
+            for (auto id : p_item.display_list.disp_list) {
+                DOSBoxMenu::item &item = get_item(id);
+
+                /* if a submenu, make the submenu */
+                if (item.type == submenu_type_id) {
+                    item.parent_id = p_item.master_id;
+                    nsMenuSubInit(item);
+                }
+
+                item.nsAppendMenu(p_item.nsMenu);
+            }
+        }
+    }
+
+    return true;
+}
+
 bool DOSBoxMenu::nsMenuInit(void) {
     if (nsMenu == NULL) {
         if ((nsMenu = sdl_hax_nsMenuAlloc("")) == NULL)
             return false;
+
+        /* top level */
+        for (auto id : display_list.disp_list) {
+            DOSBoxMenu::item &item = get_item(id);
+
+            /* if a submenu, make the submenu */
+            if (item.type == submenu_type_id) {
+                item.parent_id = unassigned_item_handle;
+                nsMenuSubInit(item);
+            }
+
+            item.nsAppendMenu(nsMenu);
+        }
+
+        /* TODO: enumerate items, and release the nsMenu ref.
+         *       If it was put into the menu, Mac OS X keeps it alive by holding onto it.
+         *       Then when the menu is destroyed the submenus are automatically destroyed as well. */
     }
 
     return true;
