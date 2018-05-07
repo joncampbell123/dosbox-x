@@ -30,6 +30,13 @@
 #include "timer.h"
 #include "inout.h"
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+void* sdl_hax_nsMenuAlloc(const char *initWithText);
+void sdl_hax_nsMenuRelease(void *nsMenu);
+void* sdl_hax_nsMenuItemAlloc(const char *initWithText);
+void sdl_hax_nsMenuItemRelease(void *nsMenuItem);
+#endif
+
 const DOSBoxMenu::mapper_event_t DOSBoxMenu::unassigned_mapper_event; /* empty std::string */
 
 DOSBoxMenu::DOSBoxMenu() {
@@ -222,9 +229,16 @@ void DOSBoxMenu::clear_all_menu_items(void) {
 }
 
 DOSBoxMenu::item::item() {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+	nsMenuItem = sdl_hax_nsMenuItemAlloc("");
+#endif
 }
 
 DOSBoxMenu::item::~item() {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+	sdl_hax_nsMenuItemRelease(nsMenuItem);
+	nsMenuItem = NULL;
+#endif
 }
 
 DOSBoxMenu::item &DOSBoxMenu::item::allocate(const item_handle_t id,const enum item_type_t new_type,const std::string &new_name) {
@@ -299,11 +313,6 @@ void DOSBoxMenu::unbuild(void) {
 }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
-void* sdl_hax_nsMenuAlloc(const char *initWithText);
-void sdl_hax_nsMenuRelease(void *nsMenu);
-void* sdl_hax_nsMenuItemAlloc(const char *initWithText);
-void sdl_hax_nsMenuItemRelease(void *nsMenuItem);
-
 bool DOSBoxMenu::nsMenuInit(void) {
     if (nsMenu == NULL) {
         if ((nsMenu = sdl_hax_nsMenuAlloc("")) == NULL)

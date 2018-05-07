@@ -38,7 +38,7 @@ void sdl_hax_macosx_setmenu(void *nsMenu) {
 
 void* sdl_hax_nsMenuItemAlloc(const char *initWithText) {
 	NSString *title = [[NSString alloc] initWithUTF8String:initWithText];
-	NSMenuItem *item = [[NSMenuItem alloc] initWithTitle: title];
+	NSMenuItem *item = [[NSMenuItem alloc] initWithTitle: title action:nil keyEquivalent:@""];
 	[title release];
 	return (void*)item;
 }
