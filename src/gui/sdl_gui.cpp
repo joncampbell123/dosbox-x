@@ -854,7 +854,6 @@ static void UI_Execute(GUI::ScreenSDL *screen) {
 	}
 }
 
-#ifdef WIN32
 static void UI_Select(GUI::ScreenSDL *screen, int select) {
 	SDL_Surface *sdlscreen = NULL;
 	Section_line *section2 = NULL;
@@ -975,7 +974,10 @@ void GUI_Shortcut(int select) {
         return;
     }
 
+#ifdef WIN32
 	if(menu.maxwindow) ShowWindow(GetHWND(), SW_RESTORE);
+#endif
+
 	shortcut=true;
 	GUI::ScreenSDL *screen = UI_Startup(NULL);
 	UI_Select(screen,select);
@@ -983,7 +985,6 @@ void GUI_Shortcut(int select) {
 	shortcut=false;
 	delete screen;
 }
-#endif
 
 void GUI_Run(bool pressed) {
 	if (pressed || running) return;

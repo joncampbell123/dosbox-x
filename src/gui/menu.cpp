@@ -717,13 +717,13 @@ void SetVal(const std::string secname, std::string preval, const std::string val
 
 MENU_Block menu;
 
+unsigned int hdd_defsize=16000;
+char hdd_size[20]="";
+
 #if defined(WIN32) && !defined(C_SDL2)
 #include <shlobj.h>
 
 extern void RENDER_CallBack( GFX_CallBackFunctions_t function );
-
-unsigned int hdd_defsize=16000;
-char hdd_size[20]="";
 
 HWND GetHWND(void) {
 	SDL_SysWMinfo wmi;
