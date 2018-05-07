@@ -4001,14 +4001,17 @@ void GFX_Events() {
 							break;
 						case ID_WIN_SYSMENU_RESTOREMENU:
                             /* prevent removing the menu in 3Dfx mode */
-                            if (!GFX_GetPreventFullscreen())
-                                DOSBox_SetMenu();
+							if (!GFX_GetPreventFullscreen()) {
+								DOSBox_SetMenu();
+								mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+							}
 							break;
 						case ID_WIN_SYSMENU_TOGGLEMENU:
 							/* prevent removing the menu in 3Dfx mode */
 							if (!GFX_GetPreventFullscreen())
 							{
 								if (menu.toggle) DOSBox_NoMenu(); else DOSBox_SetMenu();
+								mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
 							}
 							break;
 					}
@@ -5298,12 +5301,12 @@ bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
 
 bool doublebuf_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     SetVal("sdl", "fulldouble", (GetSetSDLValue(1, "desktop.doublebuf", 0)) ? "false" : "true"); res_init();
-    mainMenu.get_item("doublebuf").check(!!GetSetSDLValue(1, "desktop.doublebuf", 0));
+    mainMenu.get_item("doublebuf").check(!!GetSetSDLValue(1, "desktop.doublebuf", 0)).refresh_item(mainMenu);
     return true;
 }
 
 bool is_always_on_top(void) {
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(C_SDL2)
 	DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
 	return !!(dwExStyle & WS_EX_TOPMOST);
 #else
@@ -5311,17 +5314,20 @@ bool is_always_on_top(void) {
 #endif
 }
 
+#if defined(_WIN32) && !defined(C_SDL2)
+extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
+#endif
+
 void toggle_always_on_top(void) {
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(C_SDL2)
     bool cur = is_always_on_top();
-    HWND top = (!cur) ? HWND_TOPMOST : HWND_NOTOPMOST;
-    SetWindowPos(GetHWND(), top, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
+	sdl1_hax_set_topmost(!cur);
 #endif
 }
 
 bool alwaysontop_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     toggle_always_on_top();
-    mainMenu.get_item("alwaysontop").check(is_always_on_top());
+    mainMenu.get_item("alwaysontop").check(is_always_on_top()).refresh_item(mainMenu);
     return true;
 }
 
