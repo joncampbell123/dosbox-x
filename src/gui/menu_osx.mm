@@ -36,11 +36,23 @@ void sdl_hax_macosx_setmenu(void *nsMenu) {
 	}
 }
 
+void sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu) {
+	[((NSMenu*)nsMenuItem) setSubmenu:((NSMenu*)nsMenu)];
+}
+
 void* sdl_hax_nsMenuItemAlloc(const char *initWithText) {
 	NSString *title = [[NSString alloc] initWithUTF8String:initWithText];
 	NSMenuItem *item = [[NSMenuItem alloc] initWithTitle: title action:nil keyEquivalent:@""];
 	[title release];
 	return (void*)item;
+}
+
+void sdl_hax_nsMenuAddItem(void *nsMenu,void *nsMenuItem) {
+	[((NSMenu*)nsMenu) addItem:((NSMenuItem*)nsMenuItem)];
+}
+
+void* sdl_hax_nsMenuAllocSeparator(void) {
+	return (void*)([NSMenuItem separatorItem]);
 }
 
 void sdl_hax_nsMenuItemRelease(void *nsMenuItem) {
