@@ -5365,6 +5365,15 @@ void AspectRatio_mapper_shortcut(bool pressed) {
 	}
 }
 
+void HideMenu_mapper_shortcut(bool pressed) {
+	if (!pressed) return;
+
+    void ToggleMenu(bool pressed);
+    ToggleMenu(true);
+
+    mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+}
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
     CommandLine com_line(argc,argv);
@@ -5886,6 +5895,10 @@ int main(int argc, char* argv[]) {
 			MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "AspRatio", &item);
 			item->set_text("Fit to aspect ratio");
 			item->check(render.aspect);
+
+			MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_nothing, 0, "togmenu", "TogMenu", &item);
+			item->set_text("Hide/show menu bar");
+			item->check(!menu.toggle);
 		}
 
 		/* finally, the mapper */

@@ -573,6 +573,8 @@ static const char *def_menu_video[] = {
 	"--",
 	"mapper_fullscr",
 	"--",
+    "mapper_togmenu",
+	"--",
 	"mapper_resetsize",
     NULL
 };
@@ -3522,5 +3524,7 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 }
 #else
 void DOSBox_SetSysMenu(void) {
+}
+void ToggleMenu(bool pressed) {
 }
 #endif
