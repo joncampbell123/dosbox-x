@@ -8,6 +8,9 @@
 # include <Cocoa/Cocoa.h>
 # include <Foundation/NSString.h>
 
+@interface NSApplication (DOSBoxX)
+@end
+
 extern "C" void* sdl1_hax_stock_osx_menu(void);
 
 void *sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag) {
@@ -68,7 +71,7 @@ void sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu) {
 
 void* sdl_hax_nsMenuItemAlloc(const char *initWithText) {
 	NSString *title = [[NSString alloc] initWithUTF8String:initWithText];
-	NSMenuItem *item = [[NSMenuItem alloc] initWithTitle: title action:nil keyEquivalent:@""];
+	NSMenuItem *item = [[NSMenuItem alloc] initWithTitle: title action:@selector(DOSBoxXMenuAction:) keyEquivalent:@""];
 	[title release];
 	return (void*)item;
 }
@@ -84,5 +87,11 @@ void* sdl_hax_nsMenuAllocSeparator(void) {
 void sdl_hax_nsMenuItemRelease(void *nsMenuItem) {
 	[((NSMenuItem*)nsMenuItem) release];
 }
+
+@implementation NSApplication (DOSBoxX)
+- (void)DOSBoxXMenuAction:(id)sender
+{
+}
+@end
 #endif
 
