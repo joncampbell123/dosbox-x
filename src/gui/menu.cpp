@@ -306,7 +306,7 @@ void DOSBoxMenu::unbuild(void) {
 }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
-void DOSBoxMenu::item::nsAppendMenu(HMENU handle) {
+void DOSBoxMenu::item::nsAppendMenu(void* nsMenu) {
     if (type == separator_type_id) {
     }
     else if (type == vseparator_type_id) {

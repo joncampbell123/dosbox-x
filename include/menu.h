@@ -209,7 +209,7 @@ class DOSBoxMenu {
             protected:
                 void*                   nsMenu = NULL;
             protected:
-                void                    nsAppendMenu(void *handle);
+                void                    nsAppendMenu(void *nsMenu);
 #endif
             protected:
                 item&                   allocate(const item_handle_t id,const enum item_type_t type,const std::string &name);
@@ -375,6 +375,7 @@ class DOSBoxMenu {
         void*                           nsMenu = NULL;
         bool                            nsMenuInit(void);
         void                            nsMenuDestroy(void);
+        bool                            nsMenuSubInit(DOSBoxMenu::item &item);
     public:
         void*                           getNsMenu(void) const;
     public:
