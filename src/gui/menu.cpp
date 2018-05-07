@@ -303,8 +303,8 @@ void* sdl_hax_nsMenuAlloc(const char *initWithText);
 void sdl_hax_nsMenuRelease(void *nsMenu);
 bool DOSBoxMenu::nsMenuInit(void) {
     if (nsMenu == NULL) {
-	if ((nsMenu = sdl_hax_nsMenuAlloc("")) == NULL)
-	        return false;
+        if ((nsMenu = sdl_hax_nsMenuAlloc("")) == NULL)
+            return false;
     }
 
     return true;
