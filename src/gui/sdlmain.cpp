@@ -5809,6 +5809,22 @@ int main(int argc, char* argv[]) {
             item.set_text("Drive");
         }
 
+		/* more */
+		{
+			DOSBoxMenu::item *item;
+
+			MAPPER_AddHandler(&SetCyclesCount_mapper_shortcut, MK_nothing, 0, "editcycles", "EditCycles", &item);
+			item->set_text("Edit cycles");
+
+			MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "AspRatio", &item);
+			item->set_text("Fit to aspect ratio");
+			item->check(render.aspect);
+
+			MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_nothing, 0, "togmenu", "TogMenu", &item);
+			item->set_text("Hide/show menu bar");
+			item->check(!menu.toggle);
+		}
+
 #if (HAVE_D3D9_H) && defined(WIN32)
 		D3D_reconfigure();
 #endif
@@ -5919,22 +5935,6 @@ int main(int argc, char* argv[]) {
 		 * upon booting into a guest OS, since memory handles no longer have meaning in the guest OS
 		 * memory layout. */
 		Init_MemHandles();
-
-		/* more */
-		{
-			DOSBoxMenu::item *item;
-
-			MAPPER_AddHandler(&SetCyclesCount_mapper_shortcut, MK_nothing, 0, "editcycles", "EditCycles", &item);
-			item->set_text("Edit cycles");
-
-			MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "AspRatio", &item);
-			item->set_text("Fit to aspect ratio");
-			item->check(render.aspect);
-
-			MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_nothing, 0, "togmenu", "TogMenu", &item);
-			item->set_text("Hide/show menu bar");
-			item->check(!menu.toggle);
-		}
 
 		/* finally, the mapper */
 		MAPPER_Init();
