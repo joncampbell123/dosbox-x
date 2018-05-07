@@ -5314,11 +5314,14 @@ bool is_always_on_top(void) {
 #endif
 }
 
+#if defined(_WIN32)
+extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
+#endif
+
 void toggle_always_on_top(void) {
 #if defined(_WIN32)
     bool cur = is_always_on_top();
-    HWND top = (!cur) ? HWND_TOPMOST : HWND_NOTOPMOST;
-    SetWindowPos(GetHWND(), top, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
+	sdl1_hax_set_topmost(!cur);
 #endif
 }
 

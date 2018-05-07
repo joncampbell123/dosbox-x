@@ -515,6 +515,19 @@ extern volatile BOOL ParentWindowIsBeingResized;
 extern volatile RECT ParentWindowDeferredResizeRect;
 #endif
 
+unsigned char wants_topmost = 0;
+
+void sdl1_hax_set_topmost(unsigned char topmost) {
+	wants_topmost = topmost;
+
+	HWND top = wants_topmost ? HWND_TOPMOST : HWND_NOTOPMOST;
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
+	SetWindowPos(ParentWindowHWND, top, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
+#else
+	SetWindowPos(SDL_Window, top, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
+#endif
+}
+
 /* Various screen update functions available */
 static void DIB_NormalUpdate(_THIS, int numrects, SDL_Rect *rects);
 
@@ -574,16 +587,16 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 			x = y = -1;
 			swp_flags |= SWP_NOMOVE;
 		}
-		if ( flags & SDL_FULLSCREEN ) {
+		if ((flags & SDL_FULLSCREEN) || wants_topmost) {
 			top = HWND_TOPMOST;
 		} else {
 			top = HWND_NOTOPMOST;
 		}
 
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
 		if (SDL_VideoSurface != NULL)
 			SetWindowPos(SDL_Window, HWND_TOP, 0, 0, SDL_VideoSurface->w, SDL_VideoSurface->h, SWP_NOACTIVATE | SWP_SHOWWINDOW);
 
-#ifndef SDL_WIN32_NO_PARENT_WINDOW
 		/* Windows 10 has developed a strange deadlock that can happen if the user is resizing the parent window
 		   and we call SetWindowPos() to confirm the size here. Use SWP_NOMOVE just in case that's problematic too. */
 		if (ParentWindowIsBeingResized) {
@@ -596,11 +609,9 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 			swp_flags |= SWP_NOSIZE | SWP_NOMOVE;
 		}
 
-		/* do not change topmost/notopmost status out from under DOSBox-X unless fullscreen or window is just coming up for the first time */
-		if (!(flags & SDL_FULLSCREEN))
-			swp_flags |= SWP_NOZORDER;
-
 		SetWindowPos(ParentWindowHWND, top, x, y, width, height, swp_flags);
+#else
+		SetWindowPos(SDL_Window, top, x, y, width, height, swp_flags);
 #endif
 
 		if ( !(flags & SDL_FULLSCREEN) ) {
