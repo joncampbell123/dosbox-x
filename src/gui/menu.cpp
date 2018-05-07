@@ -281,13 +281,40 @@ void DOSBoxMenu::rebuild(void) {
             return;
     }
 #endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+    if (nsMenu == NULL) {
+        if (!nsMenuInit())
+            return;
+    }
+#endif
 }
 
 void DOSBoxMenu::unbuild(void) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
     winMenuDestroy();
 #endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+    nsMenuDestroy();
+#endif
 }
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+bool DOSBoxMenu::nsMenuInit(void) {
+    if (nsMenu == NULL) {
+        /* TODO */
+        return false;
+    }
+
+    return true;
+}
+
+void DOSBoxMenu::nsMenuDestroy(void) {
+    if (nsMenu != NULL) {
+        /* TODO */
+        nsMenu = NULL;
+    }
+}
+#endif
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
 std::string DOSBoxMenu::item::winConstructMenuText(void) {
