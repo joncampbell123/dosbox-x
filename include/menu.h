@@ -202,7 +202,7 @@ class DOSBoxMenu {
                 void                    winAppendMenu(HMENU handle);
                 std::string             winConstructMenuText(void);
 #endif
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Mac OS X NSMenu / NSMenuItem handle */
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X NSMenu / NSMenuItem handle */
                 /* We cannot use NSMenu / NSMenuItem Objective C++ directly here,
                  * so use void* pointers here and the Objective C++ code in SDL 1.x
                  * will typecast to NSMenu / NSMenuItem as needed */
@@ -367,7 +367,7 @@ class DOSBoxMenu {
     public:
         static constexpr unsigned int   winMenuMinimumID = 0x1000;
 #endif
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Mac OS X NSMenu / NSMenuItem handle */
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X NSMenu / NSMenuItem handle */
     protected:
         void*                           nsMenu = NULL;
         bool                            nsMenuInit(void);
