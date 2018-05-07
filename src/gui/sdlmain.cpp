@@ -5323,6 +5323,15 @@ void SetCyclesCount_mapper_shortcut(bool pressed) {
 	PIC_AddEvent(SetCyclesCount_mapper_shortcut_RunEvent, 0.0001f);	//In case mapper deletes the key object that ran it
 }
 
+void AspectRatio_mapper_shortcut(bool pressed) {
+	if (!pressed) return;
+
+	if (!GFX_GetPreventFullscreen()) {
+		SetVal("render", "aspect", render.aspect ? "false" : "true");
+		mainMenu.get_item("mapper_aspratio").check(render.aspect).refresh_item(mainMenu);
+	}
+}
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
     CommandLine com_line(argc,argv);
@@ -5836,6 +5845,10 @@ int main(int argc, char* argv[]) {
 
 			MAPPER_AddHandler(&SetCyclesCount_mapper_shortcut, MK_nothing, 0, "editcycles", "EditCycles", &item);
 			item->set_text("Edit cycles");
+
+			MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "AspRatio", &item);
+			item->set_text("Fit to aspect ratio");
+			item->check(render.aspect);
 		}
 
 		/* finally, the mapper */
