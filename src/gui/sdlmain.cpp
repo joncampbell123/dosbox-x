@@ -5306,7 +5306,7 @@ bool doublebuf_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const m
 }
 
 bool is_always_on_top(void) {
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(C_SDL2)
 	DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
 	return !!(dwExStyle & WS_EX_TOPMOST);
 #else
@@ -5314,12 +5314,12 @@ bool is_always_on_top(void) {
 #endif
 }
 
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(C_SDL2)
 extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
 #endif
 
 void toggle_always_on_top(void) {
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(C_SDL2)
     bool cur = is_always_on_top();
 	sdl1_hax_set_topmost(!cur);
 #endif
