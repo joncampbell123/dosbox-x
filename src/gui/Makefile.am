@@ -20,3 +20,8 @@ libgui_a_SOURCES += \
 	midi_mt32.h
 endif
 
+if MACOSX
+libgui_a_SOURCES += \
+	menu_osx.mm
+endif
+

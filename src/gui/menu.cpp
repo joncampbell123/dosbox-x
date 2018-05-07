@@ -299,10 +299,12 @@ void DOSBoxMenu::unbuild(void) {
 }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+void* sdl_hax_nsMenuAlloc(const char *initWithText);
+void sdl_hax_nsMenuRelease(void *nsMenu);
 bool DOSBoxMenu::nsMenuInit(void) {
     if (nsMenu == NULL) {
-        /* TODO */
-        return false;
+	if ((nsMenu = sdl_hax_nsMenuAlloc("")) == NULL)
+	        return false;
     }
 
     return true;
@@ -310,7 +312,7 @@ bool DOSBoxMenu::nsMenuInit(void) {
 
 void DOSBoxMenu::nsMenuDestroy(void) {
     if (nsMenu != NULL) {
-        /* TODO */
+        sdl_hax_nsMenuRelease(nsMenu);
         nsMenu = NULL;
     }
 }

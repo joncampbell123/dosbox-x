@@ -288,6 +288,9 @@ case "$host" in
        dnl the same signature "powerpc-apple-darwin*" - so we have
        dnl to do more to distinguish them.
        dnl For now I am lazy and do not add proper detection code.
+       macosx=1
+       AC_PROG_OBJCXX
+       OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++0x";
        AC_DEFINE(MACOSX, 1, [Compiling on Mac OS X])
        LIBS="$LIBS -framework CoreMIDI -framework AudioUnit -framework AudioToolbox"
        ;;
@@ -309,6 +312,8 @@ case "$host" in
        AC_DEFINE(OS2, 1, [Compiling on OS/2 EMX])
        ;;
 esac
+
+AM_CONDITIONAL(MACOSX, test x"$macosx" == x"1")
 
 dnl The target cpu checks for dynamic cores
 AH_TEMPLATE(C_TARGETCPU,[The type of cpu this target has])
