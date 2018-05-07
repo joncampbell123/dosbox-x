@@ -8,6 +8,8 @@
 # include <Cocoa/Cocoa.h>
 # include <Foundation/NSString.h>
 
+extern "C" void* sdl1_hax_stock_osx_menu(void);
+
 void* sdl_hax_nsMenuAlloc(const char *initWithText) {
 	NSString *title = [[NSString alloc] initWithUTF8String:initWithText];
 	NSMenu *menu = [[NSMenu alloc] initWithTitle: title];
@@ -17,6 +19,21 @@ void* sdl_hax_nsMenuAlloc(const char *initWithText) {
 
 void sdl_hax_nsMenuRelease(void *nsMenu) {
 	[((NSMenu*)nsMenu) release];
+}
+
+void sdl_hax_macosx_setmenu(void *nsMenu) {
+	if (nsMenu != NULL) {
+		/* I like how Apple's shiny developer page on NSApplication mentions mainMenu
+		   like you can assign to it but never mentions setMainMenu.
+
+		   Come on Apple fix your documentation. List the headers you need to include.
+		   List ALL the methods. Even Microsoft figured this out years ago >:( */
+		[NSApp setMainMenu:((NSMenu*)nsMenu)];
+	}
+	else {
+		/* switch back to the menu SDL 1.x made */
+		[NSApp setMainMenu:((NSMenu*)sdl1_hax_stock_osx_menu())];
+	}
 }
 #endif
 

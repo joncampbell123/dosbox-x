@@ -5983,6 +5983,10 @@ int main(int argc, char* argv[]) {
 		MainMenu = mainMenu.getWinMenu();
         DOSBox_SetMenu();
 #endif
+#if defined(MACOSX)
+	void sdl_hax_macosx_setmenu(void *nsMenu);
+	sdl_hax_macosx_setmenu(mainMenu.getNsMenu());
+#endif
 
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 		int Reflect_Menu(void);
@@ -6272,6 +6276,10 @@ fresh_boot:
 	ShowWindow(GetHWND(), SW_HIDE);
 	SDL1_hax_SetMenu(NULL);/* detach menu from window, or else Windows will destroy the menu out from under the C++ class */
 # endif
+#endif
+#if defined(MACOSX)
+	void sdl_hax_macosx_setmenu(void *nsMenu);
+	sdl_hax_macosx_setmenu(NULL);
 #endif
 
 	SDL_Quit();//Let's hope sdl will quit as well when it catches an exception

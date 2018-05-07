@@ -316,6 +316,10 @@ void DOSBoxMenu::nsMenuDestroy(void) {
         nsMenu = NULL;
     }
 }
+
+void* DOSBoxMenu::getNsMenu(void) const {
+	return nsMenu;
+}
 #endif
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */

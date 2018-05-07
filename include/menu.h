@@ -373,6 +373,8 @@ class DOSBoxMenu {
         bool                            nsMenuInit(void);
         void                            nsMenuDestroy(void);
     public:
+        void*                           getNsMenu(void) const;
+    public:
         static constexpr unsigned int   nsMenuMinimumID = 0x1000;
 #endif
     public:
