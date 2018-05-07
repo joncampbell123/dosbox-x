@@ -1460,6 +1460,7 @@ void DOSBox_SetMenu(void) {
 	menu.toggle=true;
     NonUserResizeCounter=1;
 	SDL1_hax_SetMenu(MainMenu);
+	mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
 
 	Reflect_Menu();
 
@@ -1477,6 +1478,7 @@ void DOSBox_NoMenu(void) {
 	menu.toggle=false;
     NonUserResizeCounter=1;
 	SDL1_hax_SetMenu(NULL);
+	mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
 	RENDER_CallBack( GFX_CallBackReset );
 
     void DOSBox_SetSysMenu(void);

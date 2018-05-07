@@ -4001,14 +4001,17 @@ void GFX_Events() {
 							break;
 						case ID_WIN_SYSMENU_RESTOREMENU:
                             /* prevent removing the menu in 3Dfx mode */
-                            if (!GFX_GetPreventFullscreen())
-                                DOSBox_SetMenu();
+							if (!GFX_GetPreventFullscreen()) {
+								DOSBox_SetMenu();
+								mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+							}
 							break;
 						case ID_WIN_SYSMENU_TOGGLEMENU:
 							/* prevent removing the menu in 3Dfx mode */
 							if (!GFX_GetPreventFullscreen())
 							{
 								if (menu.toggle) DOSBox_NoMenu(); else DOSBox_SetMenu();
+								mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
 							}
 							break;
 					}
@@ -5321,7 +5324,7 @@ void toggle_always_on_top(void) {
 
 bool alwaysontop_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     toggle_always_on_top();
-    mainMenu.get_item("alwaysontop").check(is_always_on_top());
+    mainMenu.get_item("alwaysontop").check(is_always_on_top()).refresh_item(mainMenu);
     return true;
 }
 
