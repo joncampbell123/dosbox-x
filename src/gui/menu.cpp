@@ -556,9 +556,11 @@ static const char *def_menu_cpu[] = {
 
 /* video menu ("VideoMenu") */
 static const char *def_menu_video[] = {
-    "mapper_fullscr",
-    "mapper_resetsize",
 	"mapper_aspratio",
+	"--",
+	"mapper_fullscr",
+	"--",
+	"mapper_resetsize",
     NULL
 };
 
