@@ -50,6 +50,7 @@ void* sdl_hax_nsMenuAlloc(const char *initWithText) {
 	NSString *title = [[NSString alloc] initWithUTF8String:initWithText];
 	NSMenu *menu = [[NSMenu alloc] initWithTitle: title];
 	[title release];
+	[menu setAutoenablesItems:NO];
 	return (void*)menu;
 }
 
