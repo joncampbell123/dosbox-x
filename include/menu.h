@@ -121,6 +121,9 @@ void GUI_Shortcut(int select);
 
 class DOSBoxMenu {
     public:
+        DOSBoxMenu(const DOSBoxMenu &src) = delete;             /* don't copy me */
+        DOSBoxMenu(const DOSBoxMenu &&src) = delete;            /* don't move me */
+    public:
         class item;
     public:
         enum item_type_t {
