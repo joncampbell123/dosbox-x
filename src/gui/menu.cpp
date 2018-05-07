@@ -31,6 +31,7 @@
 #include "inout.h"
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu);
 void *sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag);
 void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item);
 void sdl_hax_nsMenuItemSetTag(void *nsMenuItem, unsigned int id);
@@ -379,6 +380,10 @@ bool DOSBoxMenu::nsMenuInit(void) {
     if (nsMenu == NULL) {
         if ((nsMenu = sdl_hax_nsMenuAlloc("")) == NULL)
             return false;
+
+	/* For whatever reason, Mac OS X will always make the first top level menu
+	   the Application menu and will put the name of the app there NO MATTER WHAT */
+	sdl_hax_nsMenuAddApplicationMenu(nsMenu);
 
         /* top level */
         for (auto id : display_list.disp_list) {

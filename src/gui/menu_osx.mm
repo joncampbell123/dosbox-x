@@ -88,6 +88,22 @@ void sdl_hax_nsMenuItemRelease(void *nsMenuItem) {
 	[((NSMenuItem*)nsMenuItem) release];
 }
 
+void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu) {
+	/* make up an Application menu and stick it in first.
+	   the caller should have passed us an empty menu */
+	NSMenu *appMenu;
+	NSMenuItem *appMenuItem;
+
+	appMenu = [[NSMenu alloc] initWithTitle:@""];
+	[appMenu addItemWithTitle:@"About DOSBox-X" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
+
+	appMenuItem = [[NSMenuItem alloc] initWithTitle:@"" action:nil keyEquivalent:@""];
+	[appMenuItem setSubmenu:appMenu];
+	[((NSMenu*)nsMenu) addItem:appMenuItem];
+	[appMenuItem release];
+	[appMenu release];
+}
+
 @implementation NSApplication (DOSBoxX)
 - (void)DOSBoxXMenuAction:(id)sender
 {
