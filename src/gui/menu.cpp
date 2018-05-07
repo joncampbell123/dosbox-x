@@ -31,6 +31,8 @@
 #include "inout.h"
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+void *sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag);
+void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item);
 void sdl_hax_nsMenuItemSetTag(void *nsMenuItem, unsigned int id);
 void sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu);
 void sdl_hax_nsMenuAddItem(void *nsMenu,void *nsMenuItem);
@@ -324,6 +326,7 @@ void DOSBoxMenu::item::nsAppendMenu(void* parent_nsMenu) {
 		sdl_hax_nsMenuItemSetTag(nsMenuItem, master_id + nsMenuMinimumID);
 		sdl_hax_nsMenuItemSetSubmenu(nsMenuItem, nsMenu);
 		sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
+		sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
 		sdl_hax_nsMenuItemRelease(nsMenuItem);
 	}
     }
@@ -331,6 +334,7 @@ void DOSBoxMenu::item::nsAppendMenu(void* parent_nsMenu) {
 	void *nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
 	sdl_hax_nsMenuItemSetTag(nsMenuItem, master_id + nsMenuMinimumID);
 	sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
+	sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
 	sdl_hax_nsMenuItemRelease(nsMenuItem);
     }
 }
@@ -568,6 +572,13 @@ void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
     }
 
     status.changed = false;
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+    void *nsMenuItem = sdl_hax_nsMenuItemFromTag(nsMenu, master_id + nsMenuMinimumID);
+    if (nsMenuItem != NULL)
+	    sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
+    else
+	    LOG_MSG("nsMenuItem warning tag %u not found",master_id + nsMenuMinimumID);
 #endif
 }
 

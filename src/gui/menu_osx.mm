@@ -10,6 +10,28 @@
 
 extern "C" void* sdl1_hax_stock_osx_menu(void);
 
+void *sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag) {
+	NSMenuItem *ns_item = [((NSMenu*)nsMenu) itemWithTag: tag];
+	return (ns_item != nil) ? ns_item : NULL;
+}
+
+void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item) {
+	if (item.has_changed()) {
+		NSMenuItem *ns_item = (NSMenuItem*)nsMenuItem;
+
+		[ns_item setEnabled:(item.is_enabled() ? YES : NO)];
+		[ns_item setState:(item.is_checked() ? NSOnState : NSOffState)];
+
+		{
+			NSString *title = [[NSString alloc] initWithUTF8String:item.get_text().c_str()];
+			[ns_item setTitle:title];
+			[title release];
+		}
+
+		item.clear_changed();
+	}
+}
+
 void* sdl_hax_nsMenuAlloc(const char *initWithText) {
 	NSString *title = [[NSString alloc] initWithUTF8String:initWithText];
 	NSMenu *menu = [[NSMenu alloc] initWithTitle: title];
@@ -41,7 +63,7 @@ void sdl_hax_nsMenuItemSetTag(void *nsMenuItem, unsigned int new_id) {
 }
 
 void sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu) {
-	[((NSMenu*)nsMenuItem) setSubmenu:((NSMenu*)nsMenu)];
+	[((NSMenuItem*)nsMenuItem) setSubmenu:((NSMenu*)nsMenu)];
 }
 
 void* sdl_hax_nsMenuItemAlloc(const char *initWithText) {
