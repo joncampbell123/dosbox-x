@@ -5302,6 +5302,29 @@ bool doublebuf_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const m
     return true;
 }
 
+bool is_always_on_top(void) {
+#if defined(_WIN32)
+	DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
+	return !!(dwExStyle & WS_EX_TOPMOST);
+#else
+    return false;
+#endif
+}
+
+void toggle_always_on_top(void) {
+#if defined(_WIN32)
+    bool cur = is_always_on_top();
+    HWND top = (!cur) ? HWND_TOPMOST : HWND_NOTOPMOST;
+    SetWindowPos(GetHWND(), top, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
+#endif
+}
+
+bool alwaysontop_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    toggle_always_on_top();
+    mainMenu.get_item("alwaysontop").check(is_always_on_top());
+    return true;
+}
+
 bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     if (menuitem->get_name() == "sendkey_ctrlesc") {
         KEYBOARD_AddKey(KBD_leftctrl, true);
@@ -5926,6 +5949,7 @@ int main(int argc, char* argv[]) {
 		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Menu key").set_callback_function(sendkey_preset_menu_callback);
 		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_cad").set_text("Ctrl+Alt+Del").set_callback_function(sendkey_preset_menu_callback);
 		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, "desktop.doublebuf", 0));
+		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
 
 		/* The machine just "powered on", and then reset finished */
 		if (!VM_PowerOn()) E_Exit("VM failed to power on");

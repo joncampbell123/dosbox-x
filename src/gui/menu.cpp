@@ -570,9 +570,11 @@ static const char *def_menu_cpu[] = {
 /* video menu ("VideoMenu") */
 static const char *def_menu_video[] = {
 	"mapper_aspratio",
-    "doublebuf",
 	"--",
 	"mapper_fullscr",
+	"--",
+    "alwaysontop",
+    "doublebuf",
 	"--",
     "mapper_togmenu",
 	"--",
