@@ -25,8 +25,19 @@ void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item) 
 		[ns_item setEnabled:(item.is_enabled() ? YES : NO)];
 		[ns_item setState:(item.is_checked() ? NSOnState : NSOffState)];
 
+		const std::string &it = item.get_text();
+		const std::string &st = item.get_shortcut_text();
+		std::string ft = it;
+
+		/* TODO: Figure out how to put the shortcut text right-aligned while leaving the main text left-aligned */
+		if (!st.empty()) {
+			ft += "   (";
+			ft += st;
+			ft += ")";
+		}
+
 		{
-			NSString *title = [[NSString alloc] initWithUTF8String:item.get_text().c_str()];
+			NSString *title = [[NSString alloc] initWithUTF8String:ft.c_str()];
 			[ns_item setTitle:title];
 			[title release];
 		}
