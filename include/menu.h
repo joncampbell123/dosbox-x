@@ -207,6 +207,7 @@ class DOSBoxMenu {
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
             protected:
+		void*			nsMenuItem = NULL;
                 void*                   nsMenu = NULL;
             protected:
                 void                    nsAppendMenu(void *nsMenu);

@@ -335,7 +335,8 @@ void DOSBoxMenu::item::nsAppendMenu(void* parent_nsMenu) {
     else if (type == submenu_type_id) {
 	if (nsMenu != NULL) {
 		// NTS: You have to make a menu ITEM who's submenu is the submenu object
-		void *nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
+		nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
+
 		sdl_hax_nsMenuItemSetTag(nsMenuItem, master_id + nsMenuMinimumID);
 		sdl_hax_nsMenuItemSetSubmenu(nsMenuItem, nsMenu);
 		sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
@@ -344,7 +345,8 @@ void DOSBoxMenu::item::nsAppendMenu(void* parent_nsMenu) {
 	}
     }
     else if (type == item_type_id) {
-	void *nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
+	nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
+
 	sdl_hax_nsMenuItemSetTag(nsMenuItem, master_id + nsMenuMinimumID);
 	sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
 	sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
@@ -587,11 +589,8 @@ void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
     status.changed = false;
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
-    void *nsMenuItem = sdl_hax_nsMenuItemFromTag(nsMenu, master_id + nsMenuMinimumID);
     if (nsMenuItem != NULL)
 	    sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
-    else
-	    LOG_MSG("nsMenuItem warning tag %u not found",master_id + nsMenuMinimumID);
 #endif
 }
 
