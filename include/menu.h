@@ -97,10 +97,13 @@ extern void GetDefaultSize(void);
 #endif
 
 /* menu interface mode */
-#define DOSBOXMENU_NULL     (0)
-#define DOSBOXMENU_HMENU    (1)
+#define DOSBOXMENU_NULL     (0)     /* nothing */
+#define DOSBOXMENU_HMENU    (1)     /* Windows HMENU resources */
+#define DOSBOXMENU_NSMENU   (2)     /* Mac OS X NSMenu / NSMenuItem resources */
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 # define DOSBOXMENU_TYPE    DOSBOXMENU_HMENU
+#elif defined(MACOSX)
+# define DOSBOXMENU_TYPE    DOSBOXMENU_NSMENU
 #else
 # define DOSBOXMENU_TYPE    DOSBOXMENU_NULL
 #endif
