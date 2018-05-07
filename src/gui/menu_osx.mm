@@ -36,6 +36,10 @@ void sdl_hax_macosx_setmenu(void *nsMenu) {
 	}
 }
 
+void sdl_hax_nsMenuItemSetTag(void *nsMenuItem, unsigned int new_id) {
+	[((NSMenuItem*)nsMenuItem) setTag:new_id];
+}
+
 void sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu) {
 	[((NSMenu*)nsMenuItem) setSubmenu:((NSMenu*)nsMenu)];
 }

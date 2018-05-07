@@ -31,6 +31,7 @@
 #include "inout.h"
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+void sdl_hax_nsMenuItemSetTag(void *nsMenuItem, unsigned int id);
 void sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu);
 void sdl_hax_nsMenuAddItem(void *nsMenu,void *nsMenuItem);
 void* sdl_hax_nsMenuAllocSeparator(void);
@@ -320,6 +321,7 @@ void DOSBoxMenu::item::nsAppendMenu(void* parent_nsMenu) {
 	if (nsMenu != NULL) {
 		// NTS: You have to make a menu ITEM who's submenu is the submenu object
 		void *nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
+		sdl_hax_nsMenuItemSetTag(nsMenuItem, master_id + nsMenuMinimumID);
 		sdl_hax_nsMenuItemSetSubmenu(nsMenuItem, nsMenu);
 		sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
 		sdl_hax_nsMenuItemRelease(nsMenuItem);
@@ -327,6 +329,7 @@ void DOSBoxMenu::item::nsAppendMenu(void* parent_nsMenu) {
     }
     else if (type == item_type_id) {
 	void *nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
+	sdl_hax_nsMenuItemSetTag(nsMenuItem, master_id + nsMenuMinimumID);
 	sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
 	sdl_hax_nsMenuItemRelease(nsMenuItem);
     }
