@@ -207,6 +207,7 @@ class DOSBoxMenu {
                  * so use void* pointers here and the Objective C++ code in SDL 1.x
                  * will typecast to NSMenu / NSMenuItem as needed */
                 void*                   nsMenu = NULL;
+		void*			nsMenuItem = NULL;
 #endif
             protected:
                 item&                   allocate(const item_handle_t id,const enum item_type_t type,const std::string &name);

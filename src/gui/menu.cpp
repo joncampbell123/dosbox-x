@@ -301,6 +301,9 @@ void DOSBoxMenu::unbuild(void) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
 void* sdl_hax_nsMenuAlloc(const char *initWithText);
 void sdl_hax_nsMenuRelease(void *nsMenu);
+void* sdl_hax_nsMenuItemAlloc(const char *initWithText);
+void sdl_hax_nsMenuItemRelease(void *nsMenuItem);
+
 bool DOSBoxMenu::nsMenuInit(void) {
     if (nsMenu == NULL) {
         if ((nsMenu = sdl_hax_nsMenuAlloc("")) == NULL)

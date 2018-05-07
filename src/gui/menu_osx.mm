@@ -35,5 +35,16 @@ void sdl_hax_macosx_setmenu(void *nsMenu) {
 		[NSApp setMainMenu:((NSMenu*)sdl1_hax_stock_osx_menu())];
 	}
 }
+
+void* sdl_hax_nsMenuItemAlloc(const char *initWithText) {
+	NSString *title = [[NSString alloc] initWithUTF8String:initWithText];
+	NSMenuItem *item = [[NSMenuItem alloc] initWithTitle: title];
+	[title release];
+	return (void*)item;
+}
+
+void sdl_hax_nsMenuItemRelease(void *nsMenuItem) {
+	[((NSMenuItem*)nsMenuItem) release];
+}
 #endif
 
