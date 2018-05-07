@@ -322,10 +322,13 @@ void DOSBoxMenu::item::nsAppendMenu(void* parent_nsMenu) {
 		void *nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
 		sdl_hax_nsMenuItemSetSubmenu(nsMenuItem, nsMenu);
 		sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
+		sdl_hax_nsMenuItemRelease(nsMenuItem);
 	}
     }
     else if (type == item_type_id) {
-	sdl_hax_nsMenuAddItem(parent_nsMenu, sdl_hax_nsMenuItemAlloc(text.c_str()));
+	void *nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
+	sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
+	sdl_hax_nsMenuItemRelease(nsMenuItem);
     }
 }
 
