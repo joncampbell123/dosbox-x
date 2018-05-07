@@ -356,9 +356,15 @@ bool DOSBoxMenu::nsMenuInit(void) {
             item.nsAppendMenu(nsMenu);
         }
 
-        /* TODO: enumerate items, and release the nsMenu ref.
-         *       If it was put into the menu, Mac OS X keeps it alive by holding onto it.
-         *       Then when the menu is destroyed the submenus are automatically destroyed as well. */
+	/* release our handle on the nsMenus. Mac OS X will keep them alive with it's
+	   reference until the menu is destroyed at which point all items and submenus
+	   will be automatically destroyed */
+	for (auto &id : master_list) {
+		if (id.nsMenu != NULL) {
+		    sdl_hax_nsMenuRelease(id.nsMenu);
+		    id.nsMenu = NULL;
+		}
+	}
     }
 
     return true;
