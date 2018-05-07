@@ -390,6 +390,7 @@ class DOSBoxMenu {
         bool                            nsMenuSubInit(DOSBoxMenu::item &item);
     public:
         void*                           getNsMenu(void) const;
+        bool                            mainMenuAction(unsigned int id);
     public:
         static constexpr unsigned int   nsMenuMinimumID = 0x1000;
 #endif

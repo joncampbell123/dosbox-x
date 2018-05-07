@@ -312,6 +312,19 @@ void DOSBoxMenu::unbuild(void) {
 }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
+bool DOSBoxMenu::mainMenuAction(unsigned int id) {
+    if (id < nsMenuMinimumID) return false;
+    id -= nsMenuMinimumID;
+
+    if (id >= master_list.size()) return false;
+
+    item &item = master_list[id];
+    if (!item.status.allocated || item.master_id == unassigned_item_handle) return false;
+
+    dispatchItemCommand(item);
+    return true;
+}
+
 void DOSBoxMenu::item::nsAppendMenu(void* parent_nsMenu) {
     if (type == separator_type_id) {
 	sdl_hax_nsMenuAddItem(parent_nsMenu, sdl_hax_nsMenuAllocSeparator());

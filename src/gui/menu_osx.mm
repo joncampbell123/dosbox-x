@@ -91,6 +91,8 @@ void sdl_hax_nsMenuItemRelease(void *nsMenuItem) {
 @implementation NSApplication (DOSBoxX)
 - (void)DOSBoxXMenuAction:(id)sender
 {
+	/* sorry! */
+	mainMenu.mainMenuAction([sender tag]);
 }
 @end
 #endif
