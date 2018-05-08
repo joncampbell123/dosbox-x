@@ -634,7 +634,9 @@ static const char *def_menu_main[] = {
 	"--",
 	"mapper_debugger",
 #endif
+#ifndef MACOSX
     "show_console",
+#endif
     "--",
     "mapper_capmouse",
 	"auto_lock_mouse",
