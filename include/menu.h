@@ -207,7 +207,7 @@ class DOSBoxMenu {
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
             protected:
-		void*			nsMenuItem = NULL;
+                void*                   nsMenuItem = NULL;
                 void*                   nsMenu = NULL;
             protected:
                 void                    nsAppendMenu(void *nsMenu);
@@ -251,12 +251,12 @@ class DOSBoxMenu {
                 }
             public:
                 void refresh_item(DOSBoxMenu &menu);
-		inline bool has_changed(void) const {
-			return status.changed;
-		}
-		void clear_changed(void) {
-			status.changed = false;
-		}
+                inline bool has_changed(void) const {
+                    return status.changed;
+                }
+                void clear_changed(void) {
+                    status.changed = false;
+                }
             public:
                 inline item &check(const bool f=true) {
                     if (status.checked != f) {
@@ -267,10 +267,10 @@ class DOSBoxMenu {
 
                     return *this;
                 }
-		inline bool is_checked(void) const {
-			return status.checked;
-		}
-	    public:
+                inline bool is_checked(void) const {
+                    return status.checked;
+                }
+            public:
                 inline item &enable(const bool f=true) {
                     if (status.enabled != f) {
                         status.enabled  = f;
@@ -280,9 +280,9 @@ class DOSBoxMenu {
 
                     return *this;
                 }
-		inline bool is_enabled(void) const {
-			return status.enabled;
-		}
+                inline bool is_enabled(void) const {
+                    return status.enabled;
+                }
             public:
                 inline item_type_t get_type(void) const {
                     return type;
