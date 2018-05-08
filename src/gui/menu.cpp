@@ -714,11 +714,15 @@ static const char *def_menu_video[] = {
 	"--",
 	"mapper_fullscr",
 	"--",
+#ifndef MACOSX
     "alwaysontop",
+#endif
     "doublebuf",
 	"--",
+#ifndef MACOSX
     "mapper_togmenu",
 	"--",
+#endif
 	"mapper_resetsize",
     NULL
 };
