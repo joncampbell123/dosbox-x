@@ -2350,6 +2350,21 @@ void DEBUG_Enable(bool pressed) {
 		return;
 	static bool showhelp=false;
 
+#ifdef MACOSX
+	/* Mac OS X does not have a console for us to just allocate on a whim like Windows does.
+	   So the debugger interface is useless UNLESS the user has started us from a terminal
+	   (whether over SSH or from the Terminal app). */
+    bool allow = true;
+
+    if (!isatty(0) || !isatty(1) || !isatty(2))
+	    allow = false;
+
+    if (!allow) {
+	    LOG_MSG("Debugger in Mac OS X is not available unless you start DOSBox-X from a terminal or from the Terminal application");
+	    return;
+    }
+#endif
+
     CPU_CycleLeft+=CPU_Cycles;
     CPU_Cycles=0;
 
