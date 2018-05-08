@@ -31,9 +31,9 @@ void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item) 
 
 		/* TODO: Figure out how to put the shortcut text right-aligned while leaving the main text left-aligned */
 		if (!st.empty()) {
-			ft += "   (";
+			ft += " [";
 			ft += st;
-			ft += ")";
+			ft += "]";
 		}
 
 		{
