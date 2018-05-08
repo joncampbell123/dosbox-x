@@ -2972,6 +2972,18 @@ void DEBUG_Init() {
 
     AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(DEBUG_DOSStartUp));
 
+#ifdef MACOSX
+	/* Mac OS X does not have a console for us to just allocate on a whim like Windows does.
+	   So the debugger interface is useless UNLESS the user has started us from a terminal
+	   (whether over SSH or from the Terminal app). */
+    bool allow = true;
+
+    if (!isatty(0) || !isatty(1) || !isatty(2))
+	    allow = false;
+
+    mainMenu.get_item("mapper_debugger").enable(allow).refresh_item(mainMenu);
+#endif
+
 	/* shutdown function */
 	AddExitFunction(AddExitFunctionFuncPair(DEBUG_ShutDown));
 }
