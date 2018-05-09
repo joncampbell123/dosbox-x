@@ -2541,7 +2541,9 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 	sdl.updating=false;
     switch (sdl.desktop.type) {
         case SCREEN_SURFACE:
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+#endif
             if (SDL_MUSTLOCK(sdl.surface)) {
                 if (sdl.blit.surface) {
                     SDL_UnlockSurface(sdl.blit.surface);
