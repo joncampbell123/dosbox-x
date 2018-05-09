@@ -3454,6 +3454,48 @@ void MenuFullScreenRedraw(void) {
     SDL_Flip(sdl.surface);
 #endif
 }
+
+static struct {
+    unsigned char*      bmp = NULL;
+    unsigned int        stride = 0,height = 0;
+} menuSavedScreen;
+
+void MenuSaveScreen(void) {
+    if (menuSavedScreen.bmp == NULL) {
+        menuSavedScreen.height = sdl.surface->h;
+        menuSavedScreen.stride = sdl.surface->pitch;
+        menuSavedScreen.bmp = new unsigned char[menuSavedScreen.height * menuSavedScreen.stride];
+    }
+
+    if (SDL_MUSTLOCK(sdl.surface))
+        SDL_LockSurface(sdl.surface);
+
+    memcpy(menuSavedScreen.bmp, sdl.surface->pixels, menuSavedScreen.height * menuSavedScreen.stride);
+
+    if (SDL_MUSTLOCK(sdl.surface))
+        SDL_UnlockSurface(sdl.surface);
+}
+
+void MenuRestoreScreen(void) {
+    if (menuSavedScreen.bmp == NULL)
+        return;
+
+    if (SDL_MUSTLOCK(sdl.surface))
+        SDL_LockSurface(sdl.surface);
+
+    memcpy(sdl.surface->pixels, menuSavedScreen.bmp, menuSavedScreen.height * menuSavedScreen.stride);
+
+    if (SDL_MUSTLOCK(sdl.surface))
+        SDL_UnlockSurface(sdl.surface);
+}
+
+void MenuFreeScreen(void) {
+    if (menuSavedScreen.bmp == NULL)
+        return;
+
+    delete[] menuSavedScreen.bmp;
+    menuSavedScreen.bmp = NULL;
+}
 #endif
 
 static void HandleMouseButton(SDL_MouseButtonEvent * button) {
@@ -3472,6 +3514,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
         if (button->state == SDL_PRESSED) {
             bool runloop=true;
             SDL_Event event;
+
+            MenuSaveScreen();
 
             GFX_SDLMenuTrackHilight(mainMenu,mainMenu.menuUserHoverAt);
 
@@ -3493,6 +3537,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
             /* then return */
             GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
+
+            MenuRestoreScreen();
+            MenuFullScreenRedraw();
+            MenuFreeScreen();
             return;
         }
         else {
