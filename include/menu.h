@@ -20,6 +20,8 @@
 #include "menudef.h"
 void SetVal(const std::string secname, std::string preval, const std::string val);
 
+#include <SDL_video.h>
+
 #ifdef __WIN32__
 #include "programs.h"
 
@@ -100,12 +102,13 @@ extern void GetDefaultSize(void);
 #define DOSBOXMENU_NULL     (0)     /* nothing */
 #define DOSBOXMENU_HMENU    (1)     /* Windows HMENU resources */
 #define DOSBOXMENU_NSMENU   (2)     /* Mac OS X NSMenu / NSMenuItem resources */
+#define DOSBOXMENU_SDLDRAW  (3)     /* menus that WE draw on the SDL surface */
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 # define DOSBOXMENU_TYPE    DOSBOXMENU_HMENU
 #elif defined(MACOSX)
 # define DOSBOXMENU_TYPE    DOSBOXMENU_NSMENU
 #else
-# define DOSBOXMENU_TYPE    DOSBOXMENU_NULL
+# define DOSBOXMENU_TYPE    DOSBOXMENU_SDLDRAW
 #endif
 
 void GUI_Shortcut(int select);
@@ -211,6 +214,24 @@ class DOSBoxMenu {
                 void*                   nsMenu = NULL;
             protected:
                 void                    nsAppendMenu(void *nsMenu);
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            protected:
+                SDL_Rect                screenBox;      /* absolute screen coords */
+                SDL_Rect                checkBox;       /* relative to screenbox */
+                SDL_Rect                textBox;        /* relative to screenbox */
+                SDL_Rect                shortBox;       /* relative to screenbox */
+                SDL_Rect                popupBox;       /* absolute screen coords */
+                bool                    boxInit = false;
+                bool                    needRedraw = false;
+                bool                    itemHilight = false;
+                bool                    itemVisible = false;
+            public:
+                void                    removeFocus(DOSBoxMenu &menu);
+                void                    showItem(DOSBoxMenu &menu,bool show=true);
+                void                    setHilight(DOSBoxMenu &menu,bool hi=true);
+                void                    placeItem(DOSBoxMenu &menu,int x,int y,bool isTopLevel=false);
+                void                    placeItemFinal(DOSBoxMenu &menu,int finalwidth,bool isTopLevel=false);
 #endif
             protected:
                 item&                   allocate(const item_handle_t id,const enum item_type_t type,const std::string &name);
@@ -394,6 +415,25 @@ class DOSBoxMenu {
         bool                            mainMenuAction(unsigned int id);
     public:
         static constexpr unsigned int   nsMenuMinimumID = 0x1000;
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    protected:
+        bool                            needRedraw = false;
+        bool                            menuVisible = false;
+        bool                            menuUserAttention = false; /* user is USING the menu, so keyboard and mouse input should be directed here */
+        item_handle_t                   menuUserAttentionAt = unassigned_item_handle;
+        SDL_Rect                        menuBox = {0,0,0,0};
+    public:
+        void                            showMenu(bool show=true);
+        void                            removeFocus(void);
+        void                            updateRect(void);
+        void                            layoutMenu(void);
+    public:
+        size_t                          menuBarHeight = (14 + 2);
+        size_t                          screenWidth = 320;
+    public:
+        static constexpr size_t         fontCharWidth = 8;
+        static constexpr size_t         fontCharHeight = 14;
 #endif
     public:
         void                            dispatchItemCommand(item &item);

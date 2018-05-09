@@ -301,6 +301,9 @@ void DOSBoxMenu::rebuild(void) {
             return;
     }
 #endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
+    layoutMenu();
+#endif
 }
 
 void DOSBoxMenu::unbuild(void) {
@@ -3678,3 +3681,168 @@ void DOSBox_SetSysMenu(void) {
 void ToggleMenu(bool pressed) {
 }
 #endif
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+void DOSBoxMenu::item::showItem(DOSBoxMenu &menu,bool show) {
+    if (itemVisible != show) {
+        itemVisible = show;
+        needRedraw = true;
+    }
+    else {
+    }
+}
+
+void DOSBoxMenu::item::setHilight(DOSBoxMenu &menu,bool hi) {
+    if (itemHilight != hi) {
+        itemHilight = hi;
+        needRedraw = true;
+    }
+}
+
+void DOSBoxMenu::item::removeFocus(DOSBoxMenu &menu) {
+    if (menu.menuUserAttentionAt == master_id) {
+        menu.menuUserAttentionAt = unassigned_item_handle;
+        setHilight(menu,false);
+    }
+}
+
+void DOSBoxMenu::showMenu(bool show) {
+    if (menuVisible != show) {
+        menuVisible = show;
+        needRedraw = true;
+        removeFocus();
+        updateRect();
+    }
+}
+
+void DOSBoxMenu::removeFocus(void) {
+    if (menuUserAttention) {
+        for (auto &id : master_list) {
+            id.removeFocus(*this);
+            id.showItem(*this,false);
+        }
+        menuUserAttentionAt = unassigned_item_handle;
+        menuUserAttention = false;
+        needRedraw = true;
+    }
+}
+
+void DOSBoxMenu::updateRect(void) {
+    menuBox.x = 0;
+    menuBox.y = 0;
+    menuBox.w = menuVisible ? screenWidth : 0;
+    menuBox.h = menuVisible ? menuBarHeight : 0;
+}
+
+void DOSBoxMenu::layoutMenu(void) {
+    int x, y;
+
+    x = menuBox.x;
+    y = menuBox.y;
+
+    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++) {
+        DOSBoxMenu::item &item = get_item(*i);
+
+        item.placeItem(*this, x, y, /*toplevel*/true);
+        x += item.screenBox.w;
+    }
+
+    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++)
+        get_item(*i).placeItemFinal(*this, /*finalwidth*/x, /*toplevel*/true);
+
+    LOG_MSG("Layout complete");
+}
+
+void DOSBoxMenu::item::placeItemFinal(DOSBoxMenu &menu,int finalwidth,bool isTopLevel) {
+    if (type < separator_type_id) {
+        int x = 0,rx = 0;
+
+        /* from the left */
+        checkBox.x = x;
+        x += checkBox.w;
+
+        textBox.x = x;
+        x += textBox.w;
+
+        /* from the right */
+        rx = screenBox.w;
+
+        rx -= fontCharWidth;
+
+        rx -= shortBox.w;
+        shortBox.x = rx;
+
+        /* check */
+        if (x > rx) LOG_MSG("placeItemFinal warning: text and shorttext overlap by %d pixels",x-rx);
+    }
+    else {
+        if (!isTopLevel) {
+            screenBox.w = finalwidth;
+        }
+    }
+
+    LOG_MSG("Item id=%u name=\"%s\" placed at x,y,w,h=%d,%d,%d,%d. text:x,y,w,h=%d,%d,%d,%d",
+        master_id,name.c_str(),
+        screenBox.x,screenBox.y,
+        screenBox.w,screenBox.h,
+        textBox.x,textBox.y,
+        textBox.w,textBox.h);
+    boxInit = true;
+}
+
+void DOSBoxMenu::item::placeItem(DOSBoxMenu &menu,int x,int y,bool isTopLevel) {
+    if (type < separator_type_id) {
+        screenBox.x = x;
+        screenBox.y = y;
+        screenBox.w = 0;
+        screenBox.h = fontCharHeight;
+
+        checkBox.x = 0;
+        checkBox.y = 0;
+        checkBox.w = fontCharWidth;
+        checkBox.h = fontCharHeight;
+        screenBox.w += checkBox.w;
+
+        textBox.x = 0;
+        textBox.y = 0;
+        textBox.w = fontCharWidth * text.length();
+        textBox.h = fontCharHeight;
+        screenBox.w += textBox.w;
+
+        shortBox.x = 0;
+        shortBox.y = 0;
+        shortBox.w = 0;
+        shortBox.h = 0;
+        if (!isTopLevel && !shortcut_text.empty()) {
+            screenBox.w += fontCharWidth;
+            shortBox.w += fontCharWidth * shortcut_text.length();
+            shortBox.h = fontCharHeight;
+            screenBox.w += shortBox.w;
+        }
+
+        screenBox.w += fontCharWidth;
+    }
+    else {
+        screenBox.x = x;
+        screenBox.y = y;
+        screenBox.w = fontCharWidth * 2;
+        screenBox.h = 5;
+
+        checkBox.x = 0;
+        checkBox.y = 0;
+        checkBox.w = 0;
+        checkBox.h = 0;
+
+        textBox.x = 0;
+        textBox.y = 0;
+        textBox.w = 0;
+        textBox.h = 0;
+
+        shortBox.x = 0;
+        shortBox.y = 0;
+        shortBox.w = 0;
+        shortBox.h = 0;
+    }
+}
+#endif
+
