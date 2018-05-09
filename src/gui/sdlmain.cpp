@@ -1163,6 +1163,46 @@ extern "C" unsigned int SDL1_hax_inhibit_WM_PAINT;
 #endif
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+void MenuShadeRect(int x,int y,int w,int h) {
+    if (x < 0) {
+        w += x;
+        x = 0;
+    }
+    if (y < 0) {
+        y += h;
+        y = 0;
+    }
+    if ((x+w) > sdl.surface->w)
+        w = sdl.surface->w - x;
+    if ((y+h) > sdl.surface->h)
+        h = sdl.surface->h - y;
+    if (w <= 0 || h <= 0)
+        return;
+
+    if (sdl.surface->format->BitsPerPixel == 32) {
+        unsigned char *scan;
+        uint32_t *row,mask;
+
+        mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
+               ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
+               ((sdl.surface->format->Bmask >> 2) & sdl.surface->format->Bmask);
+
+        assert(sdl.surface->pixels != NULL);
+
+        scan  = (unsigned char*)sdl.surface->pixels;
+        scan += y * sdl.surface->pitch;
+        scan += x * 4;
+        while (h-- > 0) {
+            row = (uint32_t*)scan;
+            scan += sdl.surface->pitch;
+            for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
+        }
+    }
+    else {
+        /* TODO */
+    }
+}
+
 void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
     if (x < 0) {
         w += x;
@@ -3371,6 +3411,8 @@ void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
 void DOSBoxMenu::item::updateScreenFromPopup(DOSBoxMenu &menu) {
     SDL_Rect uprect = popupBox;
 
+    uprect.w += DOSBoxMenu::dropshadowX;
+    uprect.h += DOSBoxMenu::dropshadowY;
     SDL_rect_cliptoscreen(uprect);
 
 #if defined(C_SDL2)
@@ -3396,6 +3438,11 @@ void DOSBoxMenu::item::drawBackground(DOSBoxMenu &menu) {
 
     MenuDrawRect(popupBox.x, popupBox.y, 1, popupBox.h, bordercolor);
     MenuDrawRect(popupBox.x + popupBox.w - 1, popupBox.y, 1, popupBox.h, bordercolor);
+
+    MenuShadeRect(popupBox.x + popupBox.w, popupBox.y + DOSBoxMenu::dropshadowY,
+                  DOSBoxMenu::dropshadowX, popupBox.h);
+    MenuShadeRect(popupBox.x + DOSBoxMenu::dropshadowX, popupBox.y + popupBox.h,
+                  popupBox.w - DOSBoxMenu::dropshadowX, DOSBoxMenu::dropshadowY);
 }
 #endif
 

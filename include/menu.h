@@ -473,6 +473,8 @@ class DOSBoxMenu {
     public:
         static constexpr size_t         fontCharWidth = 8;
         static constexpr size_t         fontCharHeight = 16;
+        static constexpr size_t         dropshadowX = 8;
+        static constexpr size_t         dropshadowY = 8;
 #endif
     public:
         void                            dispatchItemCommand(item &item);
