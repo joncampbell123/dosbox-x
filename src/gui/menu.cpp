@@ -694,7 +694,7 @@ static const char *def_menu_cpu_type[] = {
     "cputype_486_prefetch",
     "cputype_pentium",
     "cputype_pentium_mmx",
-    "cputype_pentium_pro",
+    "cputype_ppro_slow",
     NULL
 };
 

@@ -222,7 +222,7 @@ void menu_update_cputype(void) {
     mainMenu.get_item("cputype_pentium_mmx").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_P55CSLOW).
         refresh_item(mainMenu);
-    mainMenu.get_item("cputype_pentium_pro").
+    mainMenu.get_item("cputype_ppro_slow").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW).
         refresh_item(mainMenu);
 }
@@ -3039,7 +3039,7 @@ public:
             set_text("Pentium").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium_mmx").
             set_text("Pentium MMX").set_callback_function(CpuType_ByName);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium_pro").
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_ppro_slow").
             set_text("Pentium Pro").set_callback_function(CpuType_ByName);
 
 		Change_Config(configuration);	
