@@ -3535,6 +3535,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
             if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
                 std::vector<DOSBoxMenu::item_handle_t> popup_stack;
                 DOSBoxMenu::item_handle_t sel_item;
+                bool button_holding=true;
                 bool runloop=true;
                 SDL_Event event;
 
@@ -3583,7 +3584,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                                 popup_stack.pop_back();
                                             }
                                             mainMenu.get_item(sel_item).setHover(mainMenu,true);
-                                            if (mainMenu.get_item(sel_item).get_type() == DOSBoxMenu::submenu_type_id)
+                                            if (mainMenu.get_item(sel_item).get_type() == DOSBoxMenu::submenu_type_id || button_holding)
                                                 mainMenu.get_item(sel_item).setHilight(mainMenu,true);
                                             mainMenu.menuUserHoverAt = sel_item;
                                             popup_stack.push_back(sel_item);
@@ -3609,7 +3610,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                         popup_stack.push_back(sel_item);
                                         mainMenu.menuUserHoverAt = sel_item;
                                         mainMenu.get_item(sel_item).setHover(mainMenu,true);
-                                        if (mainMenu.get_item(sel_item).get_type() == DOSBoxMenu::submenu_type_id)
+                                        if (mainMenu.get_item(sel_item).get_type() == DOSBoxMenu::submenu_type_id || button_holding)
                                             mainMenu.get_item(sel_item).setHilight(mainMenu,true);
                                     }
                                 }
