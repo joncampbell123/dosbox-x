@@ -3297,7 +3297,11 @@ void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
 
 static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-    if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && motion->y < mainMenu.menuBox.h) {
+    if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() &&
+        mainMenu.menuUserAttentionAt != DOSBoxMenu::unassigned_item_handle) {
+        /* nothing */
+    }
+    else if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && motion->y < mainMenu.menuBox.h) {
         DOSBoxMenu::item_handle_t item_id =
             mainMenu.display_list.itemFromPoint(mainMenu,motion->x,motion->y);
 
@@ -3356,6 +3360,68 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 }
 
 static void HandleMouseButton(SDL_MouseButtonEvent * button) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
+    if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && button->y < mainMenu.menuBox.h) {
+        DOSBoxMenu::item_handle_t item_id,hover_id;
+
+        hover_id = mainMenu.display_list.itemFromPoint(mainMenu,button->x,button->y);
+        if (button->state == SDL_PRESSED && button->button == SDL_BUTTON_LEFT)
+            item_id = hover_id;
+        else
+            item_id = DOSBoxMenu::unassigned_item_handle;
+
+        if (mainMenu.menuUserAttentionAt != item_id) {
+            if (mainMenu.menuUserAttentionAt != DOSBoxMenu::unassigned_item_handle) {
+                mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,false);
+                mainMenu.get_item(mainMenu.menuUserAttentionAt).drawMenuItem(mainMenu);
+                mainMenu.get_item(mainMenu.menuUserAttentionAt).updateScreenFromItem(mainMenu);
+            }
+
+            mainMenu.menuUserAttentionAt = item_id;
+
+            if (mainMenu.menuUserAttentionAt != DOSBoxMenu::unassigned_item_handle) {
+                mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,true);
+                mainMenu.get_item(mainMenu.menuUserAttentionAt).drawMenuItem(mainMenu);
+                mainMenu.get_item(mainMenu.menuUserAttentionAt).updateScreenFromItem(mainMenu);
+            }
+        }
+
+        if (mainMenu.menuUserHoverAt != hover_id) {
+            if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
+                mainMenu.get_item(mainMenu.menuUserHoverAt).setHover(mainMenu,false);
+                mainMenu.get_item(mainMenu.menuUserHoverAt).drawMenuItem(mainMenu);
+                mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
+            }
+
+            mainMenu.menuUserHoverAt = hover_id;
+
+            if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
+                mainMenu.get_item(mainMenu.menuUserHoverAt).setHover(mainMenu,true);
+                mainMenu.get_item(mainMenu.menuUserHoverAt).drawMenuItem(mainMenu);
+                mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
+            }
+        }
+
+        return;
+    }
+    else {
+        if (mainMenu.menuUserAttentionAt != DOSBoxMenu::unassigned_item_handle) {
+            DOSBoxMenu::item_handle_t oh = mainMenu.menuUserAttentionAt;
+
+            mainMenu.removeFocus();
+            mainMenu.get_item(oh).drawMenuItem(mainMenu);
+            mainMenu.get_item(oh).updateScreenFromItem(mainMenu);
+        }
+        if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
+            DOSBoxMenu::item_handle_t oh = mainMenu.menuUserHoverAt;
+
+            mainMenu.removeHover();
+            mainMenu.get_item(oh).drawMenuItem(mainMenu);
+            mainMenu.get_item(oh).updateScreenFromItem(mainMenu);
+        }
+    }
+#endif
+ 
 	switch (button->state) {
 	case SDL_PRESSED:
 		if (sdl.mouse.requestlock && !sdl.mouse.locked && mouse_notify_mode == 0) {
