@@ -1257,13 +1257,20 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
     if (textBox.w != 0 && textBox.h != 0)
         MenuDrawText(screenBox.x+textBox.x, screenBox.y+textBox.y, text.c_str(), fgcolor);
 
+    if (type >= separator_type_id)
+        MenuDrawRect(screenBox.x, screenBox.y + (screenBox.h/2), screenBox.w, 1, fgcolor);
+
     if (SDL_MUSTLOCK(sdl.surface))
         SDL_UnlockSurface(sdl.surface);
 }
 
-void DOSBoxMenu::displaylist::DrawDisplayList(DOSBoxMenu &menu) {
-    for (auto &id : disp_list)
-        menu.get_item(id).drawMenuItem(menu);
+void DOSBoxMenu::displaylist::DrawDisplayList(DOSBoxMenu &menu,bool updateScreen) {
+    for (auto &id : disp_list) {
+        DOSBoxMenu::item &item = menu.get_item(id);
+
+        item.drawMenuItem(menu);
+        if (updateScreen) item.updateScreenFromItem(menu);
+    }
 }
 
 void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl) {
@@ -1280,7 +1287,7 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl) {
             SDL_UnlockSurface(sdl.surface);
 
         menu.clearRedraw();
-        menu.display_list.DrawDisplayList(menu);
+        menu.display_list.DrawDisplayList(menu,/*updateScreen*/false);
 
 #if defined(C_SDL2)
         SDL_UpdateWindowSurfaceRects( sdl.window, &menu.menuBox, 1 );

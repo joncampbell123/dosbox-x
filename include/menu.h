@@ -155,7 +155,7 @@ class DOSBoxMenu {
                                         ~displaylist();
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
             public:
-                void                    DrawDisplayList(DOSBoxMenu &menu);
+                void                    DrawDisplayList(DOSBoxMenu &menu,bool updateScreen=true);
                 item_handle_t           itemFromPoint(DOSBoxMenu &menu,int x,int y);
 #endif
             protected:

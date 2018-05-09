@@ -3779,7 +3779,7 @@ void DOSBoxMenu::layoutMenu(void) {
 }
 
 void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
-    int x, y;
+    int x, y, maxx;
 
     x = screenBox.x;
     y = screenBox.y;
@@ -3794,15 +3794,19 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
     popupBox.x = x;
     popupBox.y = y;
 
+    maxx = x;
     for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++) {
         DOSBoxMenu::item &item = menu.get_item(*i);
 
         item.placeItem(menu, x, y, /*toplevel*/false);
         y += item.screenBox.h;
+
+        if (maxx < (item.screenBox.x + item.screenBox.w))
+            maxx = (item.screenBox.x + item.screenBox.w);
     }
 
     for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++)
-        menu.get_item(*i).placeItemFinal(menu, /*finalwidth*/x - popupBox.x, /*toplevel*/false);
+        menu.get_item(*i).placeItemFinal(menu, /*finalwidth*/maxx - popupBox.x, /*toplevel*/false);
 
     for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++)
         menu.get_item(*i).layoutSubmenu(menu, /*toplevel*/false);
@@ -3826,6 +3830,10 @@ void DOSBoxMenu::item::placeItemFinal(DOSBoxMenu &menu,int finalwidth,bool isTop
 
         rx -= shortBox.w;
         shortBox.x = rx;
+
+        if (!isTopLevel) {
+            screenBox.w = finalwidth;
+        }
 
         /* check */
         if (x > rx) LOG_MSG("placeItemFinal warning: text and shorttext overlap by %d pixels",x-rx);
