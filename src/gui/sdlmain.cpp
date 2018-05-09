@@ -3646,11 +3646,12 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 MenuSaveScreen();
 
                 /* show the menu */
+                mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,true);
+                mainMenu.get_item(mainMenu.menuUserAttentionAt).setHover(mainMenu,true);
                 mainMenu.get_item(mainMenu.menuUserAttentionAt).drawBackground(mainMenu);
                 mainMenu.get_item(mainMenu.menuUserAttentionAt).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
                 mainMenu.get_item(mainMenu.menuUserAttentionAt).updateScreenFromPopup(mainMenu);
                 popup_stack.push_back(mainMenu.menuUserAttentionAt);
-                mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,true);
 
                 /* hack */
                 mainMenu.menuUserAttentionAt = DOSBoxMenu::unassigned_item_handle;
