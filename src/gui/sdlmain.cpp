@@ -2108,7 +2108,17 @@ void GFX_CaptureMouse(void) {
 	}
         mouselocked=sdl.mouse.locked;
 
-	/* keep the menu updated */
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
+        if (sdl.mouse.locked) {
+            void GFX_SDLMenuTrackHover(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
+            void GFX_SDLMenuTrackHilight(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id);
+
+            GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
+            GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
+        }
+#endif
+
+        /* keep the menu updated */
 	mainMenu.get_item("mapper_capmouse").check(sdl.mouse.locked).refresh_item(mainMenu);
 }
 
