@@ -724,9 +724,13 @@ static const char *def_menu_video[] = {
 	"--",
 #ifndef MACOSX
     "mapper_togmenu",
+# if !defined(C_SDL2)
 	"--",
+# endif
 #endif
+#if !defined(C_SDL2)
 	"mapper_resetsize",
+#endif
     NULL
 };
 
