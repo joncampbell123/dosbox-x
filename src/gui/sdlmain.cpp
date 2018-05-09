@@ -1261,6 +1261,11 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
         SDL_LockSurface(sdl.surface);
 
     MenuDrawRect(screenBox.x, screenBox.y, screenBox.w, screenBox.h, bgcolor);
+    if (checkBox.w != 0 && checkBox.h != 0) {
+        const char *str = status.checked ? "\xFB" : " ";
+
+        MenuDrawText(screenBox.x+checkBox.x, screenBox.y+checkBox.y, str, fgshortcolor);
+    }
     if (textBox.w != 0 && textBox.h != 0)
         MenuDrawText(screenBox.x+textBox.x, screenBox.y+textBox.y, text.c_str(), fgcolor);
     if (shortBox.w != 0 && shortBox.h != 0)
