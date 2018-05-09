@@ -17,6 +17,7 @@
  */
 
 #include <string>
+#include "config.h"
 #include "menudef.h"
 void SetVal(const std::string secname, std::string preval, const std::string val);
 
@@ -110,7 +111,7 @@ extern void GetDefaultSize(void);
 #elif !defined(C_SDL2) /* SDL 1.x only */
 # define DOSBOXMENU_TYPE    DOSBOXMENU_SDLDRAW
 #else
-# define DOSBOXMENU_TYPE    DOSBOXMENU_SDLDRAW
+# define DOSBOXMENU_TYPE    DOSBOXMENU_NULL
 #endif
 
 void GUI_Shortcut(int select);
