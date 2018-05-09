@@ -6544,13 +6544,8 @@ int main(int argc, char* argv[]) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
         mainMenu.screenWidth = sdl.surface->w;
         mainMenu.updateRect();
-
-        /* FIXME: SDL menu is NOT AVAILABLE if OpenGL surface is used */
-        if (sdl.desktop.want_type != SCREEN_OPENGL) {
-            mainMenu.showMenu();
-            mainMenu.setRedraw();
-            GFX_ResetScreen();
-        }
+        DOSBox_SetMenu();
+        mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
 #endif
 
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)

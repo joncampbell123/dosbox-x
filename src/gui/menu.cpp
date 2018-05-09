@@ -893,6 +893,34 @@ MENU_Block menu;
 unsigned int hdd_defsize=16000;
 char hdd_size[20]="";
 
+#if !(defined(WIN32) && !defined(C_SDL2))
+bool OpenGL_using(void);
+
+void DOSBox_SetMenu(void) {
+# if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    /* FIXME: SDL menu is NOT AVAILABLE if OpenGL surface is used */
+    if (!OpenGL_using()) {
+        menu.toggle=true;
+        mainMenu.showMenu();
+        mainMenu.setRedraw();
+        GFX_ResetScreen();
+    }
+# endif
+}
+
+void DOSBox_NoMenu(void) {
+# if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    /* FIXME: SDL menu is NOT AVAILABLE if OpenGL surface is used */
+    if (!OpenGL_using()) {
+        menu.toggle=false;
+        mainMenu.showMenu(false);
+        mainMenu.setRedraw();
+        GFX_ResetScreen();
+    }
+# endif
+}
+#endif
+
 #if defined(WIN32) && !defined(C_SDL2)
 #include <shlobj.h>
 
@@ -3683,6 +3711,25 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 void DOSBox_SetSysMenu(void) {
 }
 void ToggleMenu(bool pressed) {
+    bool GFX_GetPreventFullscreen(void);
+
+    /* prevent removing the menu in 3Dfx mode */
+    if (GFX_GetPreventFullscreen())
+        return;
+
+    menu.resizeusing=true;
+	int width, height; bool fullscreen;
+	void GFX_GetSize(int &width, int &height, bool &fullscreen);
+	GFX_GetSize(width, height, fullscreen);
+    if(!menu.gui || !pressed || fullscreen) return;
+	if(!menu.toggle) {
+		menu.toggle=true;
+		DOSBox_SetMenu();
+	} else {
+		menu.toggle=false;
+		DOSBox_NoMenu();
+	}
+	DOSBox_SetSysMenu();
 }
 #endif
 
