@@ -3272,6 +3272,16 @@ int user_cursor_x = 0,user_cursor_y = 0;
 int user_cursor_sw = 640,user_cursor_sh = 480;
 
 static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
+    if (mainMenu.isVisible() && motion->y < mainMenu.menuBox.h) {
+    }
+    else {
+        if (mainMenu.menuUserAttentionAt != DOSBoxMenu::unassigned_item_handle)
+            mainMenu.removeFocus();
+        if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle)
+            mainMenu.removeHover();
+    }
+#endif
     user_cursor_x = motion->x - sdl.clip.x;
     user_cursor_y = motion->y - sdl.clip.y;
     user_cursor_locked = sdl.mouse.locked;

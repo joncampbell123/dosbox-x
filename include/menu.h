@@ -236,8 +236,10 @@ class DOSBoxMenu {
                 bool                    itemVisible = false;
             public:
                 void                    removeFocus(DOSBoxMenu &menu);
+                void                    removeHover(DOSBoxMenu &menu);
                 void                    drawMenuItem(DOSBoxMenu &menu);
                 void                    showItem(DOSBoxMenu &menu,bool show=true);
+                void                    setHover(DOSBoxMenu &menu,bool ho=true);
                 void                    setHilight(DOSBoxMenu &menu,bool hi=true);
                 void                    placeItem(DOSBoxMenu &menu,int x,int y,bool isTopLevel=false);
                 void                    placeItemFinal(DOSBoxMenu &menu,int finalwidth,bool isTopLevel=false);
@@ -426,7 +428,7 @@ class DOSBoxMenu {
         static constexpr unsigned int   nsMenuMinimumID = 0x1000;
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    protected:
+    public:
         bool                            needRedraw = false;
         bool                            menuVisible = false;
         item_handle_t                   menuUserAttentionAt = unassigned_item_handle;
@@ -448,6 +450,7 @@ class DOSBoxMenu {
         }
     public:
         void                            showMenu(bool show=true);
+        void                            removeHover(void);
         void                            removeFocus(void);
         void                            updateRect(void);
         void                            layoutMenu(void);

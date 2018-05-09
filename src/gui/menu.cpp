@@ -3699,10 +3699,24 @@ void DOSBoxMenu::item::setHilight(DOSBoxMenu &menu,bool hi) {
     }
 }
 
+void DOSBoxMenu::item::setHover(DOSBoxMenu &menu,bool ho) {
+    if (itemHover != ho) {
+        itemHover = ho;
+        needRedraw = true;
+    }
+}
+
 void DOSBoxMenu::item::removeFocus(DOSBoxMenu &menu) {
     if (menu.menuUserAttentionAt == master_id) {
         menu.menuUserAttentionAt = unassigned_item_handle;
         setHilight(menu,false);
+    }
+}
+
+void DOSBoxMenu::item::removeHover(DOSBoxMenu &menu) {
+    if (menu.menuUserHoverAt == master_id) {
+        menu.menuUserHoverAt = unassigned_item_handle;
+        setHover(menu,false);
     }
 }
 
@@ -3722,6 +3736,14 @@ void DOSBoxMenu::removeFocus(void) {
             id.showItem(*this,false);
         }
         menuUserAttentionAt = unassigned_item_handle;
+        needRedraw = true;
+    }
+}
+
+void DOSBoxMenu::removeHover(void) {
+    if (menuUserHoverAt != unassigned_item_handle) {
+        get_item(menuUserHoverAt).removeHover(*this);
+        menuUserHoverAt = unassigned_item_handle;
         needRedraw = true;
     }
 }
