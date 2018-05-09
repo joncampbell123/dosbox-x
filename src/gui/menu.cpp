@@ -3770,9 +3770,42 @@ void DOSBoxMenu::layoutMenu(void) {
     }
 
     for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++)
-        get_item(*i).placeItemFinal(*this, /*finalwidth*/x, /*toplevel*/true);
+        get_item(*i).placeItemFinal(*this, /*finalwidth*/x - menuBox.x, /*toplevel*/true);
+
+    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++)
+        get_item(*i).layoutSubmenu(*this, /*toplevel*/true);
 
     LOG_MSG("Layout complete");
+}
+
+void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
+    int x, y;
+
+    x = screenBox.x;
+    y = screenBox.y;
+
+    if (isTopLevel) {
+        y += textBox.h;
+    }
+    else {
+        x += screenBox.w;
+    }
+
+    popupBox.x = x;
+    popupBox.y = y;
+
+    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++) {
+        DOSBoxMenu::item &item = menu.get_item(*i);
+
+        item.placeItem(menu, x, y, /*toplevel*/false);
+        y += item.screenBox.h;
+    }
+
+    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++)
+        menu.get_item(*i).placeItemFinal(menu, /*finalwidth*/x - popupBox.x, /*toplevel*/false);
+
+    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++)
+        menu.get_item(*i).layoutSubmenu(menu, /*toplevel*/false);
 }
 
 void DOSBoxMenu::item::placeItemFinal(DOSBoxMenu &menu,int finalwidth,bool isTopLevel) {
