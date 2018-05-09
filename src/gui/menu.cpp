@@ -3732,6 +3732,7 @@ void DOSBoxMenu::updateRect(void) {
     menuBox.y = 0;
     menuBox.w = menuVisible ? screenWidth : 0;
     menuBox.h = menuVisible ? menuBarHeight : 0;
+    LOG_MSG("SDL menuBox w=%d h=%d",menuBox.w,menuBox.h);
 }
 
 void DOSBoxMenu::layoutMenu(void) {

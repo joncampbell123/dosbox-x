@@ -148,6 +148,10 @@ class DOSBoxMenu {
             public:
                                         displaylist();
                                         ~displaylist();
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            public:
+                void                    DrawDisplayList(DOSBoxMenu &menu);
+#endif
             protected:
                 bool                    items_changed = false;
                 bool                    order_changed = false;
@@ -223,11 +227,13 @@ class DOSBoxMenu {
                 SDL_Rect                shortBox;       /* relative to screenbox */
                 SDL_Rect                popupBox;       /* absolute screen coords */
                 bool                    boxInit = false;
+                bool                    itemHover = false;
                 bool                    needRedraw = false;
                 bool                    itemHilight = false;
                 bool                    itemVisible = false;
             public:
                 void                    removeFocus(DOSBoxMenu &menu);
+                void                    drawMenuItem(DOSBoxMenu &menu);
                 void                    showItem(DOSBoxMenu &menu,bool show=true);
                 void                    setHilight(DOSBoxMenu &menu,bool hi=true);
                 void                    placeItem(DOSBoxMenu &menu,int x,int y,bool isTopLevel=false);
@@ -422,7 +428,21 @@ class DOSBoxMenu {
         bool                            menuVisible = false;
         bool                            menuUserAttention = false; /* user is USING the menu, so keyboard and mouse input should be directed here */
         item_handle_t                   menuUserAttentionAt = unassigned_item_handle;
+    public:
         SDL_Rect                        menuBox = {0,0,0,0};
+    public:
+        inline bool isVisible(void) const {
+            return menuVisible;
+        }
+        inline bool needsRedraw(void) const {
+            return needRedraw;
+        }
+        inline void setRedraw(void) {
+            needRedraw = true;
+        }
+        inline void clearRedraw(void) {
+            needRedraw = false;
+        }
     public:
         void                            showMenu(bool show=true);
         void                            removeFocus(void);

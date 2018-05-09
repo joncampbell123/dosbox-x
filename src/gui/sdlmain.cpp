@@ -1162,6 +1162,124 @@ static void GFX_ResetSDL() {
 extern "C" unsigned int SDL1_hax_inhibit_WM_PAINT;
 #endif
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
+    if (x < 0) {
+        w += x;
+        x = 0;
+    }
+    if (y < 0) {
+        y += h;
+        y = 0;
+    }
+    if ((x+w) > sdl.surface->w)
+        w = sdl.surface->w - x;
+    if ((y+h) > sdl.surface->h)
+        h = sdl.surface->h - y;
+    if (w <= 0 || h <= 0)
+        return;
+
+    if (sdl.surface->format->BitsPerPixel == 32) {
+        unsigned char *scan;
+        uint32_t *row;
+
+        assert(sdl.surface->pixels != NULL);
+
+        scan  = (unsigned char*)sdl.surface->pixels;
+        scan += y * sdl.surface->pitch;
+        scan += x * 4;
+        while (h-- > 0) {
+            row = (uint32_t*)scan;
+            scan += sdl.surface->pitch;
+            for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint32_t)color;
+        }
+    }
+    else {
+        /* TODO */
+    }
+}
+
+extern Bit8u int10_font_14[256 * 14];
+
+void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
+    if (x < 0 || y < 0 || (x+8) > sdl.surface->w || (y+14) > sdl.surface->h)
+        return;
+
+    unsigned char *bmp = (unsigned char*)int10_font_14 + (c * 14U);
+    unsigned char *scan;
+    uint32_t *row;
+
+    assert(sdl.surface->pixels != NULL);
+
+    scan  = (unsigned char*)sdl.surface->pixels;
+    scan += y * sdl.surface->pitch;
+    scan += x * 4;
+
+    for (unsigned int row=0;row < 14;row++) {
+        unsigned char rb = bmp[row];
+
+        if (sdl.surface->format->BitsPerPixel == 32) {
+            uint32_t *dp = (uint32_t*)scan;
+            for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                if (rb & colm) *dp = (uint32_t)color;
+                dp++;
+            }
+        }
+
+        scan += sdl.surface->pitch;
+    }
+}
+
+void MenuDrawText(int x,int y,const char *text,Bitu color) {
+    while (*text != 0) {
+        MenuDrawTextChar(x,y,(unsigned char)(*text++),color);
+        x += DOSBoxMenu::fontCharWidth;
+    }
+}
+
+void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
+    Bitu bgcolor = GFX_GetRGB(63, 63, 63);
+    Bitu fgcolor = GFX_GetRGB(191, 191, 191);
+
+    if (itemHilight) {
+        bgcolor = GFX_GetRGB(0, 0, 63);
+        fgcolor = GFX_GetRGB(255, 255, 255);
+    }
+    else if (itemHover) {
+        bgcolor = GFX_GetRGB(127, 127, 127);
+        fgcolor = GFX_GetRGB(255, 255, 255);
+    }
+
+    MenuDrawRect(screenBox.x, screenBox.y, screenBox.w, screenBox.h, bgcolor);
+    if (textBox.w != 0 && textBox.h != 0)
+        MenuDrawText(screenBox.x+textBox.x, screenBox.y+textBox.y, text.c_str(), fgcolor);
+}
+
+void DOSBoxMenu::displaylist::DrawDisplayList(DOSBoxMenu &menu) {
+    for (auto &id : disp_list)
+        menu.get_item(id).drawMenuItem(menu);
+}
+
+void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl) {
+    if (menu.needsRedraw() && !sdl.updating) {
+        if (SDL_MUSTLOCK(sdl.surface))
+            SDL_LockSurface(sdl.surface);
+
+        if (&dl == &menu.display_list) { /* top level menu, draw background */
+            MenuDrawRect(menu.menuBox.x, menu.menuBox.y, menu.menuBox.w, menu.menuBox.h - 1, GFX_GetRGB(63, 63, 63));
+            MenuDrawRect(menu.menuBox.x, menu.menuBox.y + menu.menuBox.h - 1, menu.menuBox.w, 1, GFX_GetRGB(31, 31, 31));
+        }
+
+        menu.display_list.DrawDisplayList(menu);
+        if (SDL_MUSTLOCK(sdl.surface))
+            SDL_UnlockSurface(sdl.surface);
+
+        menu.clearRedraw();
+        SDL_UpdateRects( sdl.surface, 1, &menu.menuBox );
+    }
+}
+#endif
+
 Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,GFX_CallBack_t callback) {
 	if (sdl.updating)
 		GFX_EndUpdate( 0 );
@@ -1317,6 +1435,13 @@ dosurface:
 //				sdl.clip.w = currentWindowWidth - sdl.clip.x;
 //				sdl.clip.h = currentWindowHeight - sdl.clip.y;
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+                if (mainMenu.isVisible()) {
+                    final_height += mainMenu.menuBox.h;
+                    sdl.clip.y += mainMenu.menuBox.h;
+                }
+#endif
+
                 LOG_MSG("surface consider=%ux%u final=%ux%u",
                     (unsigned int)consider_width,
                     (unsigned int)consider_height,
@@ -1392,6 +1517,13 @@ dosurface:
 				/* If this one fails be ready for some flickering... */
 			}
 		}
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+        mainMenu.screenWidth = sdl.surface->w;
+        mainMenu.updateRect();
+        mainMenu.setRedraw();
+        GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+#endif
 		break;
 #endif
 #if C_OPENGL
@@ -2409,6 +2541,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 	sdl.updating=false;
     switch (sdl.desktop.type) {
         case SCREEN_SURFACE:
+            GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
             if (SDL_MUSTLOCK(sdl.surface)) {
                 if (sdl.blit.surface) {
                     SDL_UnlockSurface(sdl.blit.surface);
@@ -5984,8 +6117,15 @@ int main(int argc, char* argv[]) {
         DOSBox_SetMenu();
 #endif
 #if defined(MACOSX)
-	void sdl_hax_macosx_setmenu(void *nsMenu);
-	sdl_hax_macosx_setmenu(mainMenu.getNsMenu());
+        void sdl_hax_macosx_setmenu(void *nsMenu);
+        sdl_hax_macosx_setmenu(mainMenu.getNsMenu());
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+        mainMenu.screenWidth = sdl.surface->w;
+        mainMenu.updateRect();
+        mainMenu.showMenu();
+        mainMenu.setRedraw();
+        GFX_ResetScreen();
 #endif
 
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
