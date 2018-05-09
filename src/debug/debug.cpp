@@ -2350,7 +2350,7 @@ void DEBUG_Enable(bool pressed) {
 		return;
 	static bool showhelp=false;
 
-#ifdef MACOSX
+#if defined(MACOSX) || defined(LINUX)
 	/* Mac OS X does not have a console for us to just allocate on a whim like Windows does.
 	   So the debugger interface is useless UNLESS the user has started us from a terminal
 	   (whether over SSH or from the Terminal app). */
