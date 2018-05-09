@@ -237,6 +237,7 @@ class DOSBoxMenu {
                 bool                    needRedraw = false;
                 bool                    itemHilight = false;
                 bool                    itemVisible = false;
+                bool                    borderTop = false;
             public:
                 void                    removeFocus(DOSBoxMenu &menu);
                 void                    removeHover(DOSBoxMenu &menu);
@@ -249,6 +250,7 @@ class DOSBoxMenu {
                 void                    layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel=false);
                 void                    updateScreenFromPopup(DOSBoxMenu &menu);
                 void                    updateScreenFromItem(DOSBoxMenu &menu);
+                void                    drawBackground(DOSBoxMenu &menu);
 #endif
             protected:
                 item&                   allocate(const item_handle_t id,const enum item_type_t type,const std::string &name);

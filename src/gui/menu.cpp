@@ -3816,8 +3816,12 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
 
     /* 1 pixel border, top */
     if (!isTopLevel) {
+        borderTop = true;
         popupBox.y -= 1;
         popupBox.h += 1;
+    }
+    else {
+        borderTop = false;
     }
     /* 1 pixel border, left */
     popupBox.x -= 1;

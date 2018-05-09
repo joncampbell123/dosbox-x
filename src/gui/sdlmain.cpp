@@ -3354,6 +3354,24 @@ void DOSBoxMenu::item::updateScreenFromPopup(DOSBoxMenu &menu) {
     SDL_UpdateRects( sdl.surface, 1, &uprect );
 #endif
 }
+
+void DOSBoxMenu::item::drawBackground(DOSBoxMenu &menu) {
+    Bitu bordercolor = GFX_GetRGB(31, 31, 31);
+    Bitu bgcolor = GFX_GetRGB(63, 63, 63);
+
+    if (popupBox.w <= 1 || popupBox.h <= 1)
+        return;
+
+    MenuDrawRect(popupBox.x, popupBox.y, popupBox.w, popupBox.h, bgcolor);
+
+    if (borderTop)
+        MenuDrawRect(popupBox.x, popupBox.y, popupBox.w, 1, bordercolor);
+
+    MenuDrawRect(popupBox.x, popupBox.y + popupBox.h - 1, popupBox.w, 1, bordercolor);
+
+    MenuDrawRect(popupBox.x, popupBox.y, 1, popupBox.h, bordercolor);
+    MenuDrawRect(popupBox.x + popupBox.w - 1, popupBox.y, 1, popupBox.h, bordercolor);
+}
 #endif
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
@@ -3448,6 +3466,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
             GFX_SDLMenuTrackHilight(mainMenu,mainMenu.menuUserHoverAt);
 
             /* show the menu */
+            mainMenu.get_item(mainMenu.menuUserHoverAt).drawBackground(mainMenu);
             mainMenu.get_item(mainMenu.menuUserHoverAt).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
             mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromPopup(mainMenu);
 
