@@ -1250,9 +1250,15 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
         fgcolor = GFX_GetRGB(255, 255, 255);
     }
 
+    if (SDL_MUSTLOCK(sdl.surface))
+        SDL_LockSurface(sdl.surface);
+
     MenuDrawRect(screenBox.x, screenBox.y, screenBox.w, screenBox.h, bgcolor);
     if (textBox.w != 0 && textBox.h != 0)
         MenuDrawText(screenBox.x+textBox.x, screenBox.y+textBox.y, text.c_str(), fgcolor);
+
+    if (SDL_MUSTLOCK(sdl.surface))
+        SDL_UnlockSurface(sdl.surface);
 }
 
 void DOSBoxMenu::displaylist::DrawDisplayList(DOSBoxMenu &menu) {
@@ -1270,11 +1276,11 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl) {
             MenuDrawRect(menu.menuBox.x, menu.menuBox.y + menu.menuBox.h - 1, menu.menuBox.w, 1, GFX_GetRGB(31, 31, 31));
         }
 
-        menu.display_list.DrawDisplayList(menu);
         if (SDL_MUSTLOCK(sdl.surface))
             SDL_UnlockSurface(sdl.surface);
 
         menu.clearRedraw();
+        menu.display_list.DrawDisplayList(menu);
 
 #if defined(C_SDL2)
         SDL_UpdateWindowSurfaceRects( sdl.window, &menu.menuBox, 1 );
