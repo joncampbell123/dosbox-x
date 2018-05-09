@@ -3631,11 +3631,13 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
             if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
                 std::vector<DOSBoxMenu::item_handle_t> popup_stack;
                 DOSBoxMenu::item_handle_t choice_item;
+                DOSBoxMenu::item_handle_t psel_item;
                 DOSBoxMenu::item_handle_t sel_item;
                 bool button_holding=true;
                 bool runloop=true;
                 SDL_Event event;
 
+                psel_item = DOSBoxMenu::unassigned_item_handle;
                 choice_item = mainMenu.menuUserHoverAt = mainMenu.menuUserAttentionAt;
 
                 mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,false);
@@ -3676,9 +3678,16 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                             button_holding=false;
                             choice_item = mainMenu.menuUserHoverAt;
                             if (choice_item != DOSBoxMenu::unassigned_item_handle) {
-                                DOSBoxMenu::item &item = mainMenu.get_item(choice_item);
-                                if (item.get_type() == DOSBoxMenu::item_type_id && item.is_enabled())
+                                if (choice_item == psel_item) { /* clicking something twice should dismiss */
                                     runloop = false;
+                                }
+                                else {
+                                    DOSBoxMenu::item &item = mainMenu.get_item(choice_item);
+                                    if (item.get_type() == DOSBoxMenu::item_type_id && item.is_enabled())
+                                        runloop = false;
+                                }
+
+                                psel_item = choice_item;
                             }
                             else {
                                 /* not selecting anything counts as a reason to exit */
