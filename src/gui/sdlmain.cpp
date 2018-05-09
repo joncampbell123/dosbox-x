@@ -3539,6 +3539,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
         if (button->state == SDL_PRESSED) {
             GFX_SDLMenuTrackHilight(mainMenu,mainMenu.menuUserHoverAt);
             if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
+                DOSBoxMenu::item_handle_t choice_item = DOSBoxMenu::unassigned_item_handle;
                 std::vector<DOSBoxMenu::item_handle_t> popup_stack;
                 DOSBoxMenu::item_handle_t sel_item;
                 bool button_holding=true;
@@ -3567,7 +3568,9 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
                     switch (event.type) {
                         case SDL_MOUSEBUTTONUP:
-                            runloop=false;
+                            /* break the loop, after noting what item the user released the button over */
+                            choice_item = mainMenu.menuUserHoverAt;
+                            runloop = false;
                             break;
                         case SDL_MOUSEMOTION:
                             {
@@ -3681,6 +3684,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                     item.setHover(mainMenu,false);
                     popup_stack.pop_back();
                 }
+
+                /* action! */
+                if (choice_item != DOSBoxMenu::unassigned_item_handle)
+                    mainMenu.dispatchItemCommand(mainMenu.get_item(choice_item));
 
                 return;
             }
