@@ -154,6 +154,7 @@ class DOSBoxMenu {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
             public:
                 void                    DrawDisplayList(DOSBoxMenu &menu);
+                item_handle_t           itemFromPoint(DOSBoxMenu &menu,int x,int y);
 #endif
             protected:
                 bool                    items_changed = false;
@@ -243,6 +244,7 @@ class DOSBoxMenu {
                 void                    setHilight(DOSBoxMenu &menu,bool hi=true);
                 void                    placeItem(DOSBoxMenu &menu,int x,int y,bool isTopLevel=false);
                 void                    placeItemFinal(DOSBoxMenu &menu,int finalwidth,bool isTopLevel=false);
+                void                    updateScreenFromItem(DOSBoxMenu &menu);
 #endif
             protected:
                 item&                   allocate(const item_handle_t id,const enum item_type_t type,const std::string &name);

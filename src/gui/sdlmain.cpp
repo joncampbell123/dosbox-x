@@ -3271,15 +3271,67 @@ bool user_cursor_locked = false;
 int user_cursor_x = 0,user_cursor_y = 0;
 int user_cursor_sw = 640,user_cursor_sh = 480;
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
+DOSBoxMenu::item_handle_t DOSBoxMenu::displaylist::itemFromPoint(DOSBoxMenu &menu,int x,int y) {
+    for (auto &id : disp_list) {
+        DOSBoxMenu::item &item = menu.get_item(id);
+        if (x >= item.screenBox.x && y >= item.screenBox.y) {
+            int sx = x - item.screenBox.x;
+            int sy = y - item.screenBox.y;
+            if (sx < item.screenBox.w && sy < item.screenBox.h)
+                return id;
+        }
+    }
+
+    return unassigned_item_handle;
+}
+
+void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
+#if defined(C_SDL2)
+        /* TODO */
+#else
+    SDL_UpdateRects( sdl.surface, 1, &screenBox );
+#endif
+}
+#endif
+
 static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
     if (mainMenu.isVisible() && motion->y < mainMenu.menuBox.h) {
+        DOSBoxMenu::item_handle_t item_id =
+            mainMenu.display_list.itemFromPoint(mainMenu,motion->x,motion->y);
+
+        if (mainMenu.menuUserHoverAt != item_id) {
+            if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
+                mainMenu.get_item(mainMenu.menuUserHoverAt).setHover(mainMenu,false);
+                mainMenu.get_item(mainMenu.menuUserHoverAt).drawMenuItem(mainMenu);
+                mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
+            }
+
+            mainMenu.menuUserHoverAt = item_id;
+
+            if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
+                mainMenu.get_item(mainMenu.menuUserHoverAt).setHover(mainMenu,true);
+                mainMenu.get_item(mainMenu.menuUserHoverAt).drawMenuItem(mainMenu);
+                mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
+            }
+        }
     }
     else {
-        if (mainMenu.menuUserAttentionAt != DOSBoxMenu::unassigned_item_handle)
+        if (mainMenu.menuUserAttentionAt != DOSBoxMenu::unassigned_item_handle) {
+            DOSBoxMenu::item_handle_t oh = mainMenu.menuUserAttentionAt;
+
             mainMenu.removeFocus();
-        if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle)
+            mainMenu.get_item(oh).drawMenuItem(mainMenu);
+            mainMenu.get_item(oh).updateScreenFromItem(mainMenu);
+        }
+        if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
+            DOSBoxMenu::item_handle_t oh = mainMenu.menuUserHoverAt;
+
             mainMenu.removeHover();
+            mainMenu.get_item(oh).drawMenuItem(mainMenu);
+            mainMenu.get_item(oh).updateScreenFromItem(mainMenu);
+        }
     }
 #endif
     user_cursor_x = motion->x - sdl.clip.x;
