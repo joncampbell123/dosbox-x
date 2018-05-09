@@ -2360,7 +2360,11 @@ void DEBUG_Enable(bool pressed) {
 	    allow = false;
 
     if (!allow) {
+# if defined(MACOSX)
 	    LOG_MSG("Debugger in Mac OS X is not available unless you start DOSBox-X from a terminal or from the Terminal application");
+# else
+	    LOG_MSG("Debugger is not available unless you start DOSBox-X from a terminal");
+# endif
 	    return;
     }
 #endif
