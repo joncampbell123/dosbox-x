@@ -3297,7 +3297,7 @@ void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
 
 static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-    if (mainMenu.isVisible() && motion->y < mainMenu.menuBox.h) {
+    if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && motion->y < mainMenu.menuBox.h) {
         DOSBoxMenu::item_handle_t item_id =
             mainMenu.display_list.itemFromPoint(mainMenu,motion->x,motion->y);
 
