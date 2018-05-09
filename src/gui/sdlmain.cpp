@@ -1241,10 +1241,12 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
     Bitu bgcolor = GFX_GetRGB(63, 63, 63);
     Bitu fgcolor = GFX_GetRGB(191, 191, 191);
     Bitu fgshortcolor = GFX_GetRGB(127, 127, 191);
+    Bitu fgcheckcolor = GFX_GetRGB(191, 191, 127);
 
     if (!status.enabled) {
         fgcolor = GFX_GetRGB(144, 144, 144);
         fgshortcolor = GFX_GetRGB(63, 63, 144);
+        fgcheckcolor = GFX_GetRGB(144, 144, 63);
     }
     else if (itemHilight) {
         bgcolor = GFX_GetRGB(0, 0, 63);
@@ -1264,7 +1266,7 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
     if (checkBox.w != 0 && checkBox.h != 0) {
         const char *str = status.checked ? "\xFB" : " ";
 
-        MenuDrawText(screenBox.x+checkBox.x, screenBox.y+checkBox.y, str, fgshortcolor);
+        MenuDrawText(screenBox.x+checkBox.x, screenBox.y+checkBox.y, str, fgcheckcolor);
     }
     if (textBox.w != 0 && textBox.h != 0)
         MenuDrawText(screenBox.x+textBox.x, screenBox.y+textBox.y, text.c_str(), fgcolor);
@@ -3550,9 +3552,9 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 }
 
                 /* then return */
-                GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
-
                 MenuRestoreScreen();
+                GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
+                GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
                 MenuFullScreenRedraw();
                 MenuFreeScreen();
                 return;
