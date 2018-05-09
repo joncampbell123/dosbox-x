@@ -2051,6 +2051,9 @@ public:
         case MK_w:
             key=SDL_SCANCODE_W;
             break;
+        case MK_escape:
+            key=SDL_SCANCODE_ESCAPE;
+            break;
         default:
             break;
 		}
@@ -2146,6 +2149,9 @@ public:
             break;
         case MK_w:
             key=SDLK_w;
+            break;
+        case MK_escape:
+            key=SDLK_ESCAPE;
             break;
 		}
 		sprintf(buf,"%s \"key %d%s%s%s%s\"",
