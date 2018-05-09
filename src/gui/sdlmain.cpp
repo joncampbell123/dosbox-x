@@ -1279,6 +1279,9 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
     if (shortBox.w != 0 && shortBox.h != 0)
         MenuDrawText(screenBox.x+shortBox.x, screenBox.y+shortBox.y, shortcut_text.c_str(), fgshortcolor);
 
+    if (type == submenu_type_id && borderTop/*not toplevel*/)
+        MenuDrawText(screenBox.x+screenBox.w - DOSBoxMenu::fontCharWidth - 1, screenBox.y+textBox.y, "\x10", fgcheckcolor);
+
     if (type >= separator_type_id)
         MenuDrawRect(screenBox.x, screenBox.y + (screenBox.h/2), screenBox.w, 1, fgcolor);
 
