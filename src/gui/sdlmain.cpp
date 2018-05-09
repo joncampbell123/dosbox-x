@@ -3384,10 +3384,15 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 
 static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-    if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && button->y < mainMenu.menuBox.h)
+    bool inMenu = false;
+
+    if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && button->y < mainMenu.menuBox.h) {
         GFX_SDLMenuTrackHover(mainMenu,mainMenu.display_list.itemFromPoint(mainMenu,button->x,button->y));
-    else
+        inMenu = true;
+    }
+    else {
         GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
+    }
 
     if (button->button == SDL_BUTTON_LEFT) {
         if (button->state == SDL_PRESSED && mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
@@ -3397,6 +3402,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
             GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
         }
     }
+
+    if (inMenu) return;
 #endif
  
 	switch (button->state) {
