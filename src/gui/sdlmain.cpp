@@ -3579,6 +3579,12 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                             search++;
                                             while (search != popup_stack.end()) {
                                                 assert(popup_stack.begin() != popup_stack.end());
+
+                                                for (auto &id : mainMenu.get_item(*search).display_list.get_disp_list()) {
+                                                    mainMenu.get_item(id).setHilight(mainMenu,false);
+                                                    mainMenu.get_item(id).setHover(mainMenu,false);
+                                                }
+
                                                 mainMenu.get_item(*search).setHilight(mainMenu,false);
                                                 mainMenu.get_item(*search).setHover(mainMenu,false);
                                                 popup_stack.pop_back();
@@ -3653,6 +3659,12 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
                 while (!popup_stack.empty()) {
                     DOSBoxMenu::item &item = mainMenu.get_item(popup_stack.back());
+ 
+                    for (auto &id : item.display_list.get_disp_list()) {
+                        mainMenu.get_item(id).setHilight(mainMenu,false);
+                        mainMenu.get_item(id).setHover(mainMenu,false);
+                    }
+
                     item.setHilight(mainMenu,false);
                     item.setHover(mainMenu,false);
                     popup_stack.pop_back();

@@ -162,6 +162,10 @@ class DOSBoxMenu {
                 bool                    items_changed = false;
                 bool                    order_changed = false;
                 std::vector<item_handle_t> disp_list;
+            public:
+                const std::vector<item_handle_t> &get_disp_list(void) const {
+                    return disp_list;
+                }
         };
     public:
         static constexpr item_handle_t  unassigned_item_handle = ((item_handle_t)(0xFFFFU)); 
