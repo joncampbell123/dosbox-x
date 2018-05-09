@@ -108,6 +108,8 @@ extern void GetDefaultSize(void);
 # define DOSBOXMENU_TYPE    DOSBOXMENU_HMENU
 #elif defined(MACOSX)
 # define DOSBOXMENU_TYPE    DOSBOXMENU_NSMENU
+#elif defined(C_SDL2) /* SDL 2.x only */
+# define DOSBOXMENU_TYPE    DOSBOXMENU_SDLDRAW
 #elif !defined(C_SDL2) /* SDL 1.x only */
 # define DOSBOXMENU_TYPE    DOSBOXMENU_SDLDRAW
 #else

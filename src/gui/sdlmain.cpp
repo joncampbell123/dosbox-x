@@ -1277,7 +1277,7 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl) {
         menu.clearRedraw();
 
 #if defined(C_SDL2)
-        /* TODO */
+        SDL_UpdateWindowSurfaceRects( sdl.window, &menu.menuBox, 1 );
 #else
         SDL_UpdateRects( sdl.surface, 1, &menu.menuBox );
 #endif
@@ -1346,9 +1346,14 @@ dosurface:
                 goto dosurface;
             }
         } else {
+            int menuheight = 0;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            if (mainMenu.isVisible()) menuheight = mainMenu.menuBox.h;
+#endif
+
             sdl.clip.x=sdl.overscan_width;
-            sdl.clip.y=sdl.overscan_width;
-            sdl.window=GFX_SetSDLWindowMode(width+2*sdl.overscan_width, height+2*sdl.overscan_width,
+            sdl.clip.y=sdl.overscan_width + menuheight;
+            sdl.window=GFX_SetSDLWindowMode(width+2*sdl.overscan_width, height+menuheight+2*sdl.overscan_width,
                                             sdl.desktop.type);
             if (sdl.window == NULL)
                 E_Exit("Could not set windowed video mode %ix%i: %s",(int)width,(int)height,SDL_GetError());
@@ -1373,6 +1378,12 @@ dosurface:
         /* Fix a glitch with aspect=true occuring when
         changing between modes with different dimensions */
         SDL_FillRect(sdl.surface, NULL, SDL_MapRGB(sdl.surface->format, 0, 0, 0));
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+        mainMenu.screenWidth = sdl.surface->w;
+        mainMenu.updateRect();
+        mainMenu.setRedraw();
+        GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+#endif
         SDL_UpdateWindowSurface(sdl.window);
         break;
     }
@@ -3288,7 +3299,7 @@ DOSBoxMenu::item_handle_t DOSBoxMenu::displaylist::itemFromPoint(DOSBoxMenu &men
 
 void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
 #if defined(C_SDL2)
-        /* TODO */
+    SDL_UpdateWindowSurfaceRects(sdl.window, &screenBox, 1);
 #else
     SDL_UpdateRects( sdl.surface, 1, &screenBox );
 #endif
