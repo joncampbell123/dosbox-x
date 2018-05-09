@@ -1275,7 +1275,12 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl) {
             SDL_UnlockSurface(sdl.surface);
 
         menu.clearRedraw();
+
+#if defined(C_SDL2)
+        /* TODO */
+#else
         SDL_UpdateRects( sdl.surface, 1, &menu.menuBox );
+#endif
     }
 }
 #endif
