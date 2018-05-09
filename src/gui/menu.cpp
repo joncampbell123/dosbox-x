@@ -704,7 +704,9 @@ static const char *def_menu_cpu[] = {
     "--",
     "mapper_cycleup",
     "mapper_cycledown",
+#if !defined(C_SDL2)
 	"mapper_editcycles",
+#endif
     "--",
     "CpuCoreMenu",
     "CpuTypeMenu",
