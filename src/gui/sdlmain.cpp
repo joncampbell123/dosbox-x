@@ -3629,12 +3629,14 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
         if (button->state == SDL_PRESSED) {
             GFX_SDLMenuTrackHilight(mainMenu,mainMenu.menuUserHoverAt);
             if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
-                DOSBoxMenu::item_handle_t choice_item = DOSBoxMenu::unassigned_item_handle;
                 std::vector<DOSBoxMenu::item_handle_t> popup_stack;
+                DOSBoxMenu::item_handle_t choice_item;
                 DOSBoxMenu::item_handle_t sel_item;
                 bool button_holding=true;
                 bool runloop=true;
                 SDL_Event event;
+
+                choice_item = mainMenu.menuUserHoverAt = mainMenu.menuUserAttentionAt;
 
                 mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,false);
                 mainMenu.get_item(mainMenu.menuUserAttentionAt).setHover(mainMenu,false);
@@ -3650,17 +3652,38 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
                 /* hack */
                 mainMenu.menuUserAttentionAt = DOSBoxMenu::unassigned_item_handle;
-                mainMenu.menuUserHoverAt = DOSBoxMenu::unassigned_item_handle;
 
                 /* fall into another loop to process the menu */
                 while (runloop) {
                     if (!SDL_WaitEvent(&event)) break;
 
                     switch (event.type) {
-                        case SDL_MOUSEBUTTONUP:
-                            /* break the loop, after noting what item the user released the button over */
+                        case SDL_MOUSEBUTTONDOWN:
+                            button_holding=true;
                             choice_item = mainMenu.menuUserHoverAt;
-                            runloop = false;
+                            if (choice_item != DOSBoxMenu::unassigned_item_handle) {
+                                DOSBoxMenu::item &item = mainMenu.get_item(choice_item);
+                                item.setHilight(mainMenu,true);
+                                item.drawMenuItem(mainMenu);
+                                item.updateScreenFromItem(mainMenu);
+                            }
+                            else {
+                                /* clicking on nothing should dismiss */
+                                runloop = false;
+                            }
+                            break;
+                        case SDL_MOUSEBUTTONUP:
+                            button_holding=false;
+                            choice_item = mainMenu.menuUserHoverAt;
+                            if (choice_item != DOSBoxMenu::unassigned_item_handle) {
+                                DOSBoxMenu::item &item = mainMenu.get_item(choice_item);
+                                if (item.get_type() == DOSBoxMenu::item_type_id && item.is_enabled())
+                                    runloop = false;
+                            }
+                            else {
+                                /* not selecting anything counts as a reason to exit */
+                                runloop = false;
+                            }
                             break;
                         case SDL_MOUSEMOTION:
                             {
