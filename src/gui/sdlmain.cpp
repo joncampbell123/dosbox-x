@@ -1261,7 +1261,7 @@ void DOSBoxMenu::displaylist::DrawDisplayList(DOSBoxMenu &menu) {
 }
 
 void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl) {
-    if (menu.needsRedraw() && !sdl.updating) {
+    if (menu.needsRedraw() && !sdl.updating && !sdl.desktop.fullscreen) {
         if (SDL_MUSTLOCK(sdl.surface))
             SDL_LockSurface(sdl.surface);
 
