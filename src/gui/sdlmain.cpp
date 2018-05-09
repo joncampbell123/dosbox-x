@@ -1246,7 +1246,10 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
     Bitu fgshortcolor = GFX_GetRGB(127, 127, 191);
     Bitu fgcheckcolor = GFX_GetRGB(191, 191, 127);
 
-    if (!status.enabled) {
+    if (type >= separator_type_id) {
+        /* separators never change visual state on hover/select */
+    }
+    else if (!status.enabled) {
         fgcolor = GFX_GetRGB(144, 144, 144);
         fgshortcolor = GFX_GetRGB(63, 63, 144);
         fgcheckcolor = GFX_GetRGB(144, 144, 63);
