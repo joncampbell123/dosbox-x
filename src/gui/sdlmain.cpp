@@ -6365,10 +6365,6 @@ int main(int argc, char* argv[]) {
 			MAPPER_AddHandler(&SetCyclesCount_mapper_shortcut, MK_nothing, 0, "editcycles", "EditCycles", &item);
 			item->set_text("Edit cycles");
 
-			MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "AspRatio", &item);
-			item->set_text("Fit to aspect ratio");
-			item->check(render.aspect);
-
 			MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_nothing, 0, "togmenu", "TogMenu", &item);
 			item->set_text("Hide/show menu bar");
 			item->check(!menu.toggle);
@@ -6403,6 +6399,15 @@ int main(int argc, char* argv[]) {
             SetMapperKeyboardLayout(DKM_JPN_PC98);
 
 		RENDER_Init();
+
+        { /* Depends on RENDER_Init */
+			DOSBoxMenu::item *item;
+
+			MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "AspRatio", &item);
+			item->set_text("Fit to aspect ratio");
+			item->check(render.aspect);
+        }
+
 		CAPTURE_Init();
 		IO_Init();
 		HARDWARE_Init();
