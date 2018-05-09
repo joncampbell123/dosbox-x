@@ -467,7 +467,7 @@ class DOSBoxMenu {
         size_t                          screenWidth = 320;
     public:
         static constexpr size_t         fontCharWidth = 8;
-        static constexpr size_t         fontCharHeight = 14;
+        static constexpr size_t         fontCharHeight = 16;
 #endif
     public:
         void                            dispatchItemCommand(item &item);

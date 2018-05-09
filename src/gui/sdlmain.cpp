@@ -1200,12 +1200,15 @@ void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
 }
 
 extern Bit8u int10_font_14[256 * 14];
+extern Bit8u int10_font_16[256 * 16];
 
 void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
-    if (x < 0 || y < 0 || (x+8) > sdl.surface->w || (y+14) > sdl.surface->h)
+    static const unsigned int fontHeight = 16;
+
+    if (x < 0 || y < 0 || (x+8) > sdl.surface->w || (y+fontHeight) > sdl.surface->h)
         return;
 
-    unsigned char *bmp = (unsigned char*)int10_font_14 + (c * 14U);
+    unsigned char *bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
     unsigned char *scan;
     uint32_t *row;
 
@@ -1215,7 +1218,7 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
     scan += y * sdl.surface->pitch;
     scan += x * 4;
 
-    for (unsigned int row=0;row < 14;row++) {
+    for (unsigned int row=0;row < fontHeight;row++) {
         unsigned char rb = bmp[row];
 
         if (sdl.surface->format->BitsPerPixel == 32) {
