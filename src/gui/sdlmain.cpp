@@ -3397,12 +3397,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
     }
 
     if (button->button == SDL_BUTTON_LEFT) {
-        if (button->state == SDL_PRESSED && mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
+        if (button->state == SDL_PRESSED)
             GFX_SDLMenuTrackHilight(mainMenu,mainMenu.menuUserHoverAt);
-        }
-        else {
+        else
             GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
-        }
     }
 #endif
  
