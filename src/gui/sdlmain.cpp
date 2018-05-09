@@ -1198,6 +1198,25 @@ void MenuShadeRect(int x,int y,int w,int h) {
             for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
         }
     }
+    else if (sdl.surface->format->BitsPerPixel == 16) {
+        unsigned char *scan;
+        uint16_t *row,mask;
+
+        mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
+               ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
+               ((sdl.surface->format->Bmask >> 2) & sdl.surface->format->Bmask);
+
+        assert(sdl.surface->pixels != NULL);
+
+        scan  = (unsigned char*)sdl.surface->pixels;
+        scan += y * sdl.surface->pitch;
+        scan += x * 2;
+        while (h-- > 0) {
+            row = (uint16_t*)scan;
+            scan += sdl.surface->pitch;
+            for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
+        }
+    }
     else {
         /* TODO */
     }
@@ -1234,6 +1253,21 @@ void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
             for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint32_t)color;
         }
     }
+    else if (sdl.surface->format->BitsPerPixel == 16) {
+        unsigned char *scan;
+        uint16_t *row;
+
+        assert(sdl.surface->pixels != NULL);
+
+        scan  = (unsigned char*)sdl.surface->pixels;
+        scan += y * sdl.surface->pitch;
+        scan += x * 2;
+        while (h-- > 0) {
+            row = (uint16_t*)scan;
+            scan += sdl.surface->pitch;
+            for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint16_t)color;
+        }
+    }
     else {
         /* TODO */
     }
@@ -1256,7 +1290,7 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
 
     scan  = (unsigned char*)sdl.surface->pixels;
     scan += y * sdl.surface->pitch;
-    scan += x * 4;
+    scan += x * ((sdl.surface->format->BitsPerPixel+7)/8);
 
     for (unsigned int row=0;row < fontHeight;row++) {
         unsigned char rb = bmp[row];
@@ -1265,6 +1299,13 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
             uint32_t *dp = (uint32_t*)scan;
             for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
                 if (rb & colm) *dp = (uint32_t)color;
+                dp++;
+            }
+        }
+        else if (sdl.surface->format->BitsPerPixel == 16) {
+            uint16_t *dp = (uint16_t*)scan;
+            for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                if (rb & colm) *dp = (uint16_t)color;
                 dp++;
             }
         }
