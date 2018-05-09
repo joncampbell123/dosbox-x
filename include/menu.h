@@ -467,7 +467,7 @@ class DOSBoxMenu {
         void                            updateRect(void);
         void                            layoutMenu(void);
     public:
-        size_t                          menuBarHeight = (14 + 2);
+        size_t                          menuBarHeight = (16 + 1);
         size_t                          screenWidth = 320;
     public:
         static constexpr size_t         fontCharWidth = 8;
