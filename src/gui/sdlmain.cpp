@@ -3439,10 +3439,12 @@ void DOSBoxMenu::item::drawBackground(DOSBoxMenu &menu) {
     MenuDrawRect(popupBox.x, popupBox.y, 1, popupBox.h, bordercolor);
     MenuDrawRect(popupBox.x + popupBox.w - 1, popupBox.y, 1, popupBox.h, bordercolor);
 
-    MenuShadeRect(popupBox.x + popupBox.w, popupBox.y + DOSBoxMenu::dropshadowY,
-                  DOSBoxMenu::dropshadowX, popupBox.h);
-    MenuShadeRect(popupBox.x + DOSBoxMenu::dropshadowX, popupBox.y + popupBox.h,
-                  popupBox.w - DOSBoxMenu::dropshadowX, DOSBoxMenu::dropshadowY);
+    if (type == DOSBoxMenu::submenu_type_id) {
+        MenuShadeRect(popupBox.x + popupBox.w, popupBox.y + DOSBoxMenu::dropshadowY,
+                      DOSBoxMenu::dropshadowX, popupBox.h);
+        MenuShadeRect(popupBox.x + DOSBoxMenu::dropshadowX, popupBox.y + popupBox.h,
+                      popupBox.w - DOSBoxMenu::dropshadowX, DOSBoxMenu::dropshadowY);
+    }
 }
 #endif
 
