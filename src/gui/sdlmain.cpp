@@ -1242,7 +1242,11 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
     Bitu fgcolor = GFX_GetRGB(191, 191, 191);
     Bitu fgshortcolor = GFX_GetRGB(127, 127, 191);
 
-    if (itemHilight) {
+    if (!status.enabled) {
+        fgcolor = GFX_GetRGB(144, 144, 144);
+        fgshortcolor = GFX_GetRGB(63, 63, 144);
+    }
+    else if (itemHilight) {
         bgcolor = GFX_GetRGB(0, 0, 63);
         fgcolor = GFX_GetRGB(255, 255, 255);
         fgshortcolor = GFX_GetRGB(191, 191, 255);
