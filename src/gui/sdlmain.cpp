@@ -3408,6 +3408,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
  
 	switch (button->state) {
 	case SDL_PRESSED:
+        if (inMenu) return;
 		if (sdl.mouse.requestlock && !sdl.mouse.locked && mouse_notify_mode == 0) {
 			GFX_CaptureMouse();
 			// Dont pass klick to mouse handler
@@ -3417,7 +3418,6 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 			GFX_CaptureMouse();
 			break;
 		}
-        if (inMenu) return;
 		switch (button->button) {
 		case SDL_BUTTON_LEFT:
 			Mouse_ButtonPressed(0);
