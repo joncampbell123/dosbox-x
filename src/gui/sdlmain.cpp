@@ -3548,6 +3548,11 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 mainMenu.get_item(mainMenu.menuUserAttentionAt).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
                 mainMenu.get_item(mainMenu.menuUserAttentionAt).updateScreenFromPopup(mainMenu);
                 popup_stack.push_back(mainMenu.menuUserAttentionAt);
+                mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,true);
+
+                /* hack */
+                mainMenu.menuUserAttentionAt = DOSBoxMenu::unassigned_item_handle;
+                mainMenu.menuUserHoverAt = DOSBoxMenu::unassigned_item_handle;
 
                 /* fall into another loop to process the menu */
                 while (runloop) {
@@ -3561,6 +3566,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                             {
                                 sel_item = DOSBoxMenu::unassigned_item_handle;
 
+                                bool redrawAll = false;
                                 auto search = popup_stack.end();
                                 if (search != popup_stack.begin()) {
                                     do {
@@ -3572,9 +3578,16 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                             search++;
                                             while (search != popup_stack.end()) {
                                                 assert(popup_stack.begin() != popup_stack.end());
+                                                mainMenu.get_item(*search).setHilight(mainMenu,false);
+                                                mainMenu.get_item(*search).setHover(mainMenu,false);
                                                 popup_stack.pop_back();
                                             }
+                                            mainMenu.get_item(sel_item).setHover(mainMenu,true);
+                                            if (mainMenu.get_item(sel_item).get_type() == DOSBoxMenu::submenu_type_id)
+                                                mainMenu.get_item(sel_item).setHilight(mainMenu,true);
+                                            mainMenu.menuUserHoverAt = sel_item;
                                             popup_stack.push_back(sel_item);
+                                            redrawAll = true;
                                             break;
                                         }
                                     } while (search != popup_stack.begin());
@@ -3583,32 +3596,47 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                 if (sel_item == DOSBoxMenu::unassigned_item_handle) {
                                     sel_item = mainMenu.display_list.itemFromPoint(mainMenu,event.button.x,event.button.y);
                                     if (sel_item != DOSBoxMenu::unassigned_item_handle) {
+                                        if (popup_stack.size() > 1)
+                                            redrawAll = true;
+                                        else if (popup_stack.size() == 1)
+                                            redrawAll = (popup_stack[0] != sel_item);
+
+                                        for (auto &id : popup_stack) {
+                                            mainMenu.get_item(id).setHilight(mainMenu,false);
+                                            mainMenu.get_item(id).setHover(mainMenu,false);
+                                        }
                                         popup_stack.clear();
                                         popup_stack.push_back(sel_item);
+                                        mainMenu.menuUserHoverAt = sel_item;
+                                        mainMenu.get_item(sel_item).setHover(mainMenu,true);
+                                        if (mainMenu.get_item(sel_item).get_type() == DOSBoxMenu::submenu_type_id)
+                                            mainMenu.get_item(sel_item).setHilight(mainMenu,true);
                                     }
                                 }
 
                                 if (mainMenu.menuUserHoverAt != sel_item) {
-                                    GFX_SDLMenuTrackHover(mainMenu,sel_item);
-
-#if 0
-                                    fprintf(stderr,"sz=%zu\n",popup_stack.size());
-                                    if (popup_stack.size() != 0) {
-                                        fprintf(stderr," [ ");
-                                        for (auto i=popup_stack.begin();i!=popup_stack.end();i++) fprintf(stderr,"%u ",*i);
-                                        fprintf(stderr,"]\n");
-                                    }
-#endif
-
                                     if (sel_item != DOSBoxMenu::unassigned_item_handle) {
                                         if (mainMenu.get_item(sel_item).get_type() == DOSBoxMenu::submenu_type_id) {
-                                            MenuRestoreScreen();
-                                            GFX_SDLMenuTrackHilight(mainMenu,sel_item);
-                                            mainMenu.get_item(mainMenu.menuUserAttentionAt).drawBackground(mainMenu);
-                                            mainMenu.get_item(mainMenu.menuUserAttentionAt).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
-                                            MenuFullScreenRedraw();
+                                            mainMenu.menuUserAttentionAt = sel_item;
+                                            redrawAll = true;
+                                        }
+                                        else {
+                                            GFX_SDLMenuTrackHover(mainMenu,sel_item);
                                         }
                                     }
+                                    else {
+                                        GFX_SDLMenuTrackHover(mainMenu,sel_item);
+                                    }
+                                }
+
+                                if (redrawAll) {
+                                    MenuRestoreScreen();
+                                    mainMenu.display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
+                                    for (auto i=popup_stack.begin();i!=popup_stack.end();i++) {
+                                        mainMenu.get_item(*i).drawBackground(mainMenu);
+                                        mainMenu.get_item(*i).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
+                                    }
+                                    MenuFullScreenRedraw();
                                 }
                             }
                             break;
@@ -3616,11 +3644,19 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 }
 
                 /* then return */
-                MenuRestoreScreen();
                 GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
                 GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
+                MenuRestoreScreen();
                 MenuFullScreenRedraw();
                 MenuFreeScreen();
+
+                while (!popup_stack.empty()) {
+                    DOSBoxMenu::item &item = mainMenu.get_item(popup_stack.back());
+                    item.setHilight(mainMenu,false);
+                    item.setHover(mainMenu,false);
+                    popup_stack.pop_back();
+                }
+
                 return;
             }
         }
