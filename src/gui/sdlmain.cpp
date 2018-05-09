@@ -3352,10 +3352,14 @@ void GFX_SDLMenuTrackHilight(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id)
 
 static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
-    if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && motion->y < mainMenu.menuBox.h)
+    if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && motion->y < mainMenu.menuBox.h) {
         GFX_SDLMenuTrackHover(mainMenu,mainMenu.display_list.itemFromPoint(mainMenu,motion->x,motion->y));
-    else
+        SDL_ShowCursor(SDL_ENABLE);
+        return;
+    }
+    else {
         GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
+    }
 #endif
     user_cursor_x = motion->x - sdl.clip.x;
     user_cursor_y = motion->y - sdl.clip.y;
