@@ -3446,6 +3446,16 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     }
 }
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
+void MenuFullScreenRedraw(void) {
+#if defined(C_SDL2)
+    SDL_UpdateWindowSurface(sdl.window);
+#else
+    SDL_Flip(sdl.surface);
+#endif
+}
+#endif
+
 static void HandleMouseButton(SDL_MouseButtonEvent * button) {
     bool inMenu = false;
 
