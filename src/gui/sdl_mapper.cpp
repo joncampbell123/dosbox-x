@@ -3496,6 +3496,10 @@ void MAPPER_RunInternal() {
 //	KEYBOARD_ClrBuffer();
 	GFX_LosingFocus();
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    mainMenu.rebuild();
+#endif
+
 	void GFX_ForceRedrawScreen(void);
 	GFX_ForceRedrawScreen();
 }
