@@ -1429,9 +1429,13 @@ dosurface:
 
 			/* center the screen in the window */
 			{
-                Bitu consider_height = menu.maxwindow ? currentWindowHeight : height;
+                int menuheight = 0;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+                if (mainMenu.isVisible()) menuheight = mainMenu.menuBox.h;
+#endif
+                Bitu consider_height = menu.maxwindow ? currentWindowHeight : (height + menuheight);
                 Bitu consider_width = menu.maxwindow ? currentWindowWidth : width;
-                int final_height = max(max(consider_height,userResizeWindowHeight),(Bitu)(sdl.clip.y+sdl.clip.h));
+                int final_height = max(max(consider_height,userResizeWindowHeight),(Bitu)(sdl.clip.y+sdl.clip.h)) - menuheight;
                 int final_width = max(max(consider_width,userResizeWindowWidth),(Bitu)(sdl.clip.x+sdl.clip.w));
 				int ax = (final_width - (sdl.clip.x + sdl.clip.w)) / 2;
 				int ay = (final_height - (sdl.clip.y + sdl.clip.h)) / 2;
@@ -1440,12 +1444,8 @@ dosurface:
 //				sdl.clip.w = currentWindowWidth - sdl.clip.x;
 //				sdl.clip.h = currentWindowHeight - sdl.clip.y;
 
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-                if (mainMenu.isVisible()) {
-                    final_height += mainMenu.menuBox.h;
-                    sdl.clip.y += mainMenu.menuBox.h;
-                }
-#endif
+                final_height += menuheight;
+                sdl.clip.y += menuheight;
 
                 LOG_MSG("surface consider=%ux%u final=%ux%u",
                     (unsigned int)consider_width,
