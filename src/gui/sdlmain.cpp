@@ -3407,10 +3407,33 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
     }
 
     if (button->button == SDL_BUTTON_LEFT) {
-        if (button->state == SDL_PRESSED)
+        if (button->state == SDL_PRESSED) {
+            bool runloop=true;
+            SDL_Event event;
+
             GFX_SDLMenuTrackHilight(mainMenu,mainMenu.menuUserHoverAt);
-        else
+
+            /* show the menu */
+            mainMenu.get_item(mainMenu.menuUserHoverAt).display_list.DrawDisplayList(mainMenu);
+
+            /* fall into another loop to process the menu */
+            while (runloop) {
+                if (!SDL_WaitEvent(&event)) break;
+
+                switch (event.type) {
+                    case SDL_MOUSEBUTTONUP:
+                        runloop=false;
+                        break;
+                }
+            }
+
+            /* then return */
             GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
+            return;
+        }
+        else {
+            GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
+        }
     }
 #endif
  
