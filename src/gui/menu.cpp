@@ -717,7 +717,7 @@ static const char *def_menu_video[] = {
 	"--",
 	"mapper_fullscr",
 	"--",
-#ifndef MACOSX
+#if !defined(MACOSX) && !defined(LINUX)
     "alwaysontop",
 #endif
     "doublebuf",
