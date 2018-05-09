@@ -3634,7 +3634,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                             GFX_SDLMenuTrackHover(mainMenu,sel_item);
                                         }
                                     }
-                                    else {
+                                    else { /* sel_item == unassigned_item_handle */
                                         if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
                                             mainMenu.get_item(mainMenu.menuUserHoverAt).setHilight(mainMenu,false);
                                             mainMenu.get_item(mainMenu.menuUserHoverAt).setHover(mainMenu,false);
@@ -3642,8 +3642,6 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                             mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
                                             mainMenu.menuUserHoverAt = DOSBoxMenu::unassigned_item_handle;
                                         }
-
-                                        GFX_SDLMenuTrackHover(mainMenu,sel_item);
                                     }
                                 }
 
