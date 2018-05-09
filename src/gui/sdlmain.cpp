@@ -3686,8 +3686,12 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 }
 
                 /* action! */
-                if (choice_item != DOSBoxMenu::unassigned_item_handle)
-                    mainMenu.dispatchItemCommand(mainMenu.get_item(choice_item));
+                if (choice_item != DOSBoxMenu::unassigned_item_handle) {
+                    DOSBoxMenu::item &item = mainMenu.get_item(choice_item);
+
+                    if (item.get_type() == DOSBoxMenu::item_type_id && item.is_enabled())
+                        mainMenu.dispatchItemCommand(item);
+                }
 
                 return;
             }
