@@ -3512,36 +3512,37 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
     if (button->button == SDL_BUTTON_LEFT) {
         if (button->state == SDL_PRESSED) {
-            bool runloop=true;
-            SDL_Event event;
-
-            MenuSaveScreen();
-
             GFX_SDLMenuTrackHilight(mainMenu,mainMenu.menuUserHoverAt);
+            if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
+                bool runloop=true;
+                SDL_Event event;
 
-            /* show the menu */
-            mainMenu.get_item(mainMenu.menuUserHoverAt).drawBackground(mainMenu);
-            mainMenu.get_item(mainMenu.menuUserHoverAt).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
-            mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromPopup(mainMenu);
+                MenuSaveScreen();
 
-            /* fall into another loop to process the menu */
-            while (runloop) {
-                if (!SDL_WaitEvent(&event)) break;
+                /* show the menu */
+                mainMenu.get_item(mainMenu.menuUserHoverAt).drawBackground(mainMenu);
+                mainMenu.get_item(mainMenu.menuUserHoverAt).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
+                mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromPopup(mainMenu);
 
-                switch (event.type) {
-                    case SDL_MOUSEBUTTONUP:
-                        runloop=false;
-                        break;
+                /* fall into another loop to process the menu */
+                while (runloop) {
+                    if (!SDL_WaitEvent(&event)) break;
+
+                    switch (event.type) {
+                        case SDL_MOUSEBUTTONUP:
+                            runloop=false;
+                            break;
+                    }
                 }
+
+                /* then return */
+                GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
+
+                MenuRestoreScreen();
+                MenuFullScreenRedraw();
+                MenuFreeScreen();
+                return;
             }
-
-            /* then return */
-            GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
-
-            MenuRestoreScreen();
-            MenuFullScreenRedraw();
-            MenuFreeScreen();
-            return;
         }
         else {
             GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
