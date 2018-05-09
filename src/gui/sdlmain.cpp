@@ -3617,7 +3617,6 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                         }
                                         popup_stack.clear();
                                         popup_stack.push_back(sel_item);
-                                        mainMenu.menuUserHoverAt = sel_item;
                                         mainMenu.get_item(sel_item).setHover(mainMenu,true);
                                         if (mainMenu.get_item(sel_item).get_type() == DOSBoxMenu::submenu_type_id || button_holding)
                                             mainMenu.get_item(sel_item).setHilight(mainMenu,true);
@@ -3628,6 +3627,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                     if (sel_item != DOSBoxMenu::unassigned_item_handle) {
                                         if (mainMenu.get_item(sel_item).get_type() == DOSBoxMenu::submenu_type_id) {
                                             mainMenu.menuUserAttentionAt = sel_item;
+                                            mainMenu.menuUserHoverAt = sel_item;
                                             redrawAll = true;
                                         }
                                         else {
