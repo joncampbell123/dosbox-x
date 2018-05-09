@@ -3320,11 +3320,38 @@ DOSBoxMenu::item_handle_t DOSBoxMenu::displaylist::itemFromPoint(DOSBoxMenu &men
     return unassigned_item_handle;
 }
 
+void SDL_rect_cliptoscreen(SDL_Rect &r) {
+    if (r.x < 0) {
+        r.w += r.x;
+        r.x = 0;
+    }
+    if (r.y < 0) {
+        r.h += r.y;
+        r.y = 0;
+    }
+}
+
 void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
+    SDL_Rect uprect = screenBox;
+
+    SDL_rect_cliptoscreen(uprect);
+
 #if defined(C_SDL2)
-    SDL_UpdateWindowSurfaceRects(sdl.window, &screenBox, 1);
+    SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
 #else
-    SDL_UpdateRects( sdl.surface, 1, &screenBox );
+    SDL_UpdateRects( sdl.surface, 1, &uprect );
+#endif
+}
+
+void DOSBoxMenu::item::updateScreenFromPopup(DOSBoxMenu &menu) {
+    SDL_Rect uprect = popupBox;
+
+    SDL_rect_cliptoscreen(uprect);
+
+#if defined(C_SDL2)
+    SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
+#else
+    SDL_UpdateRects( sdl.surface, 1, &uprect );
 #endif
 }
 #endif
@@ -3421,7 +3448,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
             GFX_SDLMenuTrackHilight(mainMenu,mainMenu.menuUserHoverAt);
 
             /* show the menu */
-            mainMenu.get_item(mainMenu.menuUserHoverAt).display_list.DrawDisplayList(mainMenu);
+            mainMenu.get_item(mainMenu.menuUserHoverAt).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
+            mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromPopup(mainMenu);
 
             /* fall into another loop to process the menu */
             while (runloop) {

@@ -3810,6 +3810,22 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
 
     for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++)
         menu.get_item(*i).layoutSubmenu(menu, /*toplevel*/false);
+
+    popupBox.w = maxx - popupBox.x;
+    popupBox.h = y - popupBox.y;
+
+    /* 1 pixel border, top */
+    if (!isTopLevel) {
+        popupBox.y -= 1;
+        popupBox.h += 1;
+    }
+    /* 1 pixel border, left */
+    popupBox.x -= 1;
+    popupBox.w += 1;
+    /* 1 pixel border, right */
+    popupBox.w += 1;
+    /* 1 pixel border, bottom */
+    popupBox.h += 1;
 }
 
 void DOSBoxMenu::item::placeItemFinal(DOSBoxMenu &menu,int finalwidth,bool isTopLevel) {

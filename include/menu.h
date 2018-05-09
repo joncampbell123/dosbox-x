@@ -247,6 +247,7 @@ class DOSBoxMenu {
                 void                    placeItem(DOSBoxMenu &menu,int x,int y,bool isTopLevel=false);
                 void                    placeItemFinal(DOSBoxMenu &menu,int finalwidth,bool isTopLevel=false);
                 void                    layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel=false);
+                void                    updateScreenFromPopup(DOSBoxMenu &menu);
                 void                    updateScreenFromItem(DOSBoxMenu &menu);
 #endif
             protected:
