@@ -3716,13 +3716,12 @@ void DOSBoxMenu::showMenu(bool show) {
 }
 
 void DOSBoxMenu::removeFocus(void) {
-    if (menuUserAttention) {
+    if (menuUserAttentionAt != unassigned_item_handle) {
         for (auto &id : master_list) {
             id.removeFocus(*this);
             id.showItem(*this,false);
         }
         menuUserAttentionAt = unassigned_item_handle;
-        menuUserAttention = false;
         needRedraw = true;
     }
 }

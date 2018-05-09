@@ -426,8 +426,8 @@ class DOSBoxMenu {
     protected:
         bool                            needRedraw = false;
         bool                            menuVisible = false;
-        bool                            menuUserAttention = false; /* user is USING the menu, so keyboard and mouse input should be directed here */
         item_handle_t                   menuUserAttentionAt = unassigned_item_handle;
+        item_handle_t                   menuUserHoverAt = unassigned_item_handle;
     public:
         SDL_Rect                        menuBox = {0,0,0,0};
     public:
