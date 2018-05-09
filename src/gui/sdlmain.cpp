@@ -1240,14 +1240,17 @@ void MenuDrawText(int x,int y,const char *text,Bitu color) {
 void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
     Bitu bgcolor = GFX_GetRGB(63, 63, 63);
     Bitu fgcolor = GFX_GetRGB(191, 191, 191);
+    Bitu fgshortcolor = GFX_GetRGB(127, 127, 191);
 
     if (itemHilight) {
         bgcolor = GFX_GetRGB(0, 0, 63);
         fgcolor = GFX_GetRGB(255, 255, 255);
+        fgshortcolor = GFX_GetRGB(191, 191, 255);
     }
     else if (itemHover) {
         bgcolor = GFX_GetRGB(127, 127, 127);
         fgcolor = GFX_GetRGB(255, 255, 255);
+        fgshortcolor = GFX_GetRGB(191, 191, 255);
     }
 
     if (SDL_MUSTLOCK(sdl.surface))
@@ -1256,6 +1259,8 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
     MenuDrawRect(screenBox.x, screenBox.y, screenBox.w, screenBox.h, bgcolor);
     if (textBox.w != 0 && textBox.h != 0)
         MenuDrawText(screenBox.x+textBox.x, screenBox.y+textBox.y, text.c_str(), fgcolor);
+    if (shortBox.w != 0 && shortBox.h != 0)
+        MenuDrawText(screenBox.x+shortBox.x, screenBox.y+shortBox.y, shortcut_text.c_str(), fgshortcolor);
 
     if (type >= separator_type_id)
         MenuDrawRect(screenBox.x, screenBox.y + (screenBox.h/2), screenBox.w, 1, fgcolor);

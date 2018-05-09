@@ -3836,6 +3836,10 @@ void DOSBoxMenu::item::placeItemFinal(DOSBoxMenu &menu,int finalwidth,bool isTop
     if (type < separator_type_id) {
         int x = 0,rx = 0;
 
+        if (!isTopLevel) {
+            screenBox.w = finalwidth;
+        }
+
         /* from the left */
         checkBox.x = x;
         x += checkBox.w;
