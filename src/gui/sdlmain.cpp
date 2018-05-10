@@ -2507,6 +2507,7 @@ void change_output(int output) {
 
 void GFX_SwitchFullScreen(void)
 {
+#if !defined(HX_DOS)
     if (sdl.desktop.prevent_fullscreen)
         return;
 
@@ -2565,7 +2566,7 @@ void GFX_SwitchFullScreen(void)
 		}
 	}
 #endif
-
+#endif
 }
 
 static void SwitchFullScreen(bool pressed) {

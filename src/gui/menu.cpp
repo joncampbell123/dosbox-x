@@ -721,7 +721,7 @@ static const char *def_menu_video[] = {
 	"mapper_aspratio",
 	"--",
 #endif
-#if !defined(C_SDL2)
+#if !defined(C_SDL2) && !defined(HX_DOS)
 	"mapper_fullscr",
 	"--",
 #endif
