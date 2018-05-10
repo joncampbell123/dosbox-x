@@ -614,6 +614,10 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 		SetWindowPos(SDL_Window, top, x, y, width, height, swp_flags);
 #endif
 
+#if defined(SDL_WIN32_HX_DOS)
+		ShowWindow(SDL_Window, SW_MAXIMIZE);
+#endif
+
 		if ( !(flags & SDL_FULLSCREEN) ) {
 			SDL_windowX = SDL_bounds.left;
 			SDL_windowY = SDL_bounds.top;
