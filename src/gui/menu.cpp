@@ -637,7 +637,7 @@ static const char *def_menu_main[] = {
 	"--",
 	"mapper_debugger",
 #endif
-#if !defined(MACOSX) && !defined(LINUX)
+#if !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS)
     "show_console",
 #endif
     "--",
@@ -648,8 +648,10 @@ static const char *def_menu_main[] = {
     "--",
     "mapper_reset",
 	"--",
+#if !defined(HX_DOS)
 	"mapper_restart",
     "--",
+#endif
     "mapper_shutdown",
     NULL
 };
