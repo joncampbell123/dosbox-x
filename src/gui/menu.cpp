@@ -752,8 +752,10 @@ static const char *def_menu_sound[] = {
 
 /* capture menu ("CaptureMenu") */
 static const char *def_menu_capture[] = {
+#if defined(C_SSHOT)
     "mapper_scrshot",
     "--",
+#endif
     "mapper_video",
     "mapper_recwave",
     "mapper_recmtwave",
