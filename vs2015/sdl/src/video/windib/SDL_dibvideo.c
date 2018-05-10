@@ -593,6 +593,10 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 			top = HWND_NOTOPMOST;
 		}
 
+#if defined(SDL_WIN32_HX_DOS)
+		swp_flags |= SWP_NOSIZE;
+#endif
+
 #ifndef SDL_WIN32_NO_PARENT_WINDOW
 		if (SDL_VideoSurface != NULL)
 			SetWindowPos(SDL_Window, HWND_TOP, 0, 0, SDL_VideoSurface->w, SDL_VideoSurface->h, SWP_NOACTIVATE | SWP_SHOWWINDOW);
