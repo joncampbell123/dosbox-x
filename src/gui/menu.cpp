@@ -927,6 +927,39 @@ void DOSBox_NoMenu(void) {
     }
 # endif
 }
+
+int Reflect_Menu(void) {
+    return 0;
+}
+
+void DOSBox_RefreshMenu(void) {
+}
+
+void DOSBox_CheckOS(int &id, int &major, int &minor) {
+    id=major=minor=0;
+}
+
+# if defined(HX_DOS)
+HWND GetHWND(void) {
+	SDL_SysWMinfo wmi;
+	SDL_VERSION(&wmi.version);
+
+	if(!SDL_GetWMInfo(&wmi)) {
+		return NULL;
+	}
+	return wmi.window;
+}
+
+HWND GetSurfaceHWND(void) {
+	SDL_SysWMinfo wmi;
+	SDL_VERSION(&wmi.version);
+
+	if (!SDL_GetWMInfo(&wmi)) {
+		return NULL;
+	}
+	return wmi.child_window;
+}
+# endif
 #endif
 
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
