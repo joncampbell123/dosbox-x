@@ -270,7 +270,7 @@ public:
 			} else if (type=="dir") {
 				// 512*32*32765==~500MB total size
 				// 512*32*16000==~250MB total free size
-#if defined(__WIN32__) && !defined(C_SDL2)
+#if defined(__WIN32__) && !defined(C_SDL2) && !defined(HX_DOS)
 				GetDefaultSize();
 				str_size=hdd_size;
 #else
