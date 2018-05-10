@@ -5131,7 +5131,9 @@ void SDL_SetupConfigSection() {
 #endif
 		0 };
 #ifdef __WIN32__
-# ifdef __MINGW32__
+# if defined(HX_DOS)
+		Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "surface"); /* HX DOS should stick to surface */
+# elif defined(__MINGW32__)
 		Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "opengl"); /* MinGW builds do not yet have Direct3D */
 # else
 		Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "direct3d");
