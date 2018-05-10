@@ -5495,7 +5495,9 @@ extern bool log_keyboard_scan_codes;
 
 bool showconsole_init = false;
 
+#if C_DEBUG
 bool DEBUG_IsDebuggerConsoleVisible(void);
+#endif
 
 void DOSBox_ShowConsole() {
 #if defined(WIN32) && !defined(HX_DOS)
@@ -5503,9 +5505,11 @@ void DOSBox_ShowConsole() {
 	COORD crd;
 	HWND hwnd;
 
+#if C_DEBUG
 	/* if the debugger has already taken the console, do nothing */
 	if (DEBUG_IsDebuggerConsoleVisible())
 		return;
+#endif
 
 	/* if WE have already opened the console, do nothing */
 	if (showconsole_init)
