@@ -901,7 +901,7 @@ MENU_Block menu;
 unsigned int hdd_defsize=16000;
 char hdd_size[20]="";
 
-#if !(defined(WIN32) && !defined(C_SDL2))
+#if !defined(WIN32) || !defined(C_SDL2)
 bool OpenGL_using(void);
 
 void DOSBox_SetMenu(void) {
