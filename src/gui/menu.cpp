@@ -901,7 +901,7 @@ MENU_Block menu;
 unsigned int hdd_defsize=16000;
 char hdd_size[20]="";
 
-#if !(defined(WIN32) && !defined(C_SDL2))
+#if !(defined(WIN32) && !defined(C_SDL2) && defined(HX_DOS))
 bool OpenGL_using(void);
 
 void DOSBox_SetMenu(void) {
@@ -929,7 +929,7 @@ void DOSBox_NoMenu(void) {
 }
 #endif
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && defined(HX_DOS)
 #include <shlobj.h>
 
 extern void RENDER_CallBack( GFX_CallBackFunctions_t function );
