@@ -120,6 +120,37 @@ HMENU MainMenu = NULL;
 
 using namespace std;
 
+const char *scaler_menu_opts[][2] = {
+    { "none",                   "None" },
+    { "normal2x",               "Normal 2X" },
+    { "normal3x",               "Normal 3X" },
+    { "normal4x",               "Normal 4X" },
+    { "normal5x",               "Normal 5X" },
+    { "hardware_none",          "Hardware None" },
+    { "hardware2x",             "Hardware 2X" },
+    { "hardware3x",             "Hardware 3X" },
+    { "hardware4x",             "Hardware 4X" },
+    { "hardware5x",             "Hardware 5X" },
+    { "tv2x",                   "TV 2X" },
+    { "tv3x",                   "TV 3X" },
+    { "scan2x",                 "Scan 2X" },
+    { "scan3x",                 "Scan 3X" },
+    { "rgb2x",                  "RGB 2X" },
+    { "rgb3x",                  "RGB 3X" },
+    { "advmame2x",              "Advanced MAME 2X" },
+    { "advmame3x",              "Advanced MAME 3X" },
+    { "hq2x",                   "HQ 2X" },
+    { "hq3x",                   "HQ 3X" },
+    { "advinterp2x",            "Advanced Interpolation 2X" },
+    { "advinterp3x",            "Advanced Interpolation 3X" },
+    { "2xsai",                  "2xSai" },
+    { "super2xsai",             "Super2xSai" },
+    { "supereagle",             "SuperEagle" },
+    { "xbrz",                   "xBRZ" },           /* <- FIXME: Not implemented? No ref in the code! */
+
+    { NULL, NULL }
+};
+
 const char *DKM_to_string(const unsigned int dkm) {
     switch (dkm) {
         case DKM_US:        return "us";
@@ -5970,6 +6001,28 @@ bool scaler_forced_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     return true;
 }
 
+bool scaler_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    const char *scaler = menuitem->get_name().c_str();
+    if (!strncmp(scaler,"scaler_set_",11))
+        scaler += 11;
+    else
+        abort();
+
+	auto value = std::string(scaler) + (render.scale.forced ? " forced" : "");
+	SetVal("render", "scaler", value);
+
+    void RENDER_UpdateFromScalerSetting(void);
+    RENDER_UpdateFromScalerSetting();
+
+    void RENDER_UpdateScalerMenu(void);
+    RENDER_UpdateScalerMenu();
+
+    void RENDER_CallBack( GFX_CallBackFunctions_t function );
+    RENDER_CallBack(GFX_CallBackReset);
+
+    return true;
+}
+
 bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     int f = atoi(menuitem->get_text().c_str()); /* Off becomes 0 */
     char tmp[64];
@@ -6519,6 +6572,13 @@ int main(int argc, char* argv[]) {
 
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"scaler_forced").set_text("Forced").
                     set_callback_function(scaler_forced_menu_callback);
+
+                for (size_t i=0;scaler_menu_opts[i][0] != NULL;i++) {
+                    const std::string name = std::string("scaler_set_") + scaler_menu_opts[i][0];
+
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(scaler_menu_opts[i][1]).
+                        set_callback_function(scaler_set_menu_callback);
+                }
             }
         }
         {

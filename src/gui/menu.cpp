@@ -735,6 +735,7 @@ static const char *def_menu_video_frameskip[] = {
 /* video scaler menu ("VideoScalerMenu") */
 static const char *def_menu_video_scaler[] = {
     "scaler_forced",
+    "--",
     NULL
 };
 
@@ -842,6 +843,8 @@ void ConstructSubMenu(DOSBoxMenu::item_handle_t item_id, const char * const * li
     }
 }
 
+extern const char *scaler_menu_opts[][2];
+
 void ConstructMenu(void) {
     mainMenu.displaylist_clear(mainMenu.display_list);
     separator_alloc = 0;
@@ -875,6 +878,15 @@ void ConstructMenu(void) {
 
     /* video scaler menu */
     ConstructSubMenu(mainMenu.get_item("VideoScalerMenu").get_master_id(), def_menu_video_scaler);
+    for (size_t i=0;scaler_menu_opts[i][0] != NULL;i++) {
+        const std::string name = std::string("scaler_set_") + scaler_menu_opts[i][0];
+
+        if (mainMenu.item_exists(name)) {
+            mainMenu.displaylist_append(
+                mainMenu.get_item("VideoScalerMenu").display_list,
+                mainMenu.get_item_id_by_name(name));
+        }
+    }
 
     /* sound menu */
     ConstructSubMenu(mainMenu.get_item("SoundMenu").get_master_id(), def_menu_sound);

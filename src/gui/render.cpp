@@ -740,6 +740,63 @@ void RENDER_OnSectionPropChange(Section *x) {
     RENDER_UpdateFrameskipMenu();
 }
 
+std::string RENDER_GetScaler(void) {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
+	Prop_multival* prop = section->Get_multival("scaler");
+	return prop->GetSection()->Get_string("type");
+}
+
+extern const char *scaler_menu_opts[][2];
+
+void RENDER_UpdateScalerMenu(void) {
+    const std::string scaler = RENDER_GetScaler();
+
+    for (size_t i=0;scaler_menu_opts[i][0] != NULL;i++) {
+        const std::string name = std::string("scaler_set_") + scaler_menu_opts[i][0];
+        mainMenu.get_item(name).check(scaler == scaler_menu_opts[i][0]).refresh_item(mainMenu);
+    }
+}
+
+void RENDER_UpdateFromScalerSetting(void) {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
+	Prop_multival* prop = section->Get_multival("scaler");
+	std::string f = prop->GetSection()->Get_string("force");
+    std::string scaler = prop->GetSection()->Get_string("type");
+
+    render.scale.forced = false;
+	if(f == "forced") render.scale.forced = true;
+   
+	if (scaler == "none") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware=false; }
+	else if (scaler == "normal2x") { render.scale.op = scalerOpNormal; render.scale.size = 2; render.scale.hardware=false; }
+	else if (scaler == "normal3x") { render.scale.op = scalerOpNormal; render.scale.size = 3; render.scale.hardware=false; }
+	else if (scaler == "normal4x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=false; }
+	else if (scaler == "normal5x") { render.scale.op = scalerOpNormal; render.scale.size = 5; render.scale.hardware=false; }
+#if RENDER_USE_ADVANCED_SCALERS>2
+	else if (scaler == "advmame2x") { render.scale.op = scalerOpAdvMame; render.scale.size = 2; render.scale.hardware=false; }
+	else if (scaler == "advmame3x") { render.scale.op = scalerOpAdvMame; render.scale.size = 3; render.scale.hardware=false; }
+	else if (scaler == "advinterp2x") { render.scale.op = scalerOpAdvInterp; render.scale.size = 2; render.scale.hardware=false; }
+	else if (scaler == "advinterp3x") { render.scale.op = scalerOpAdvInterp; render.scale.size = 3; render.scale.hardware=false; }
+	else if (scaler == "hq2x") { render.scale.op = scalerOpHQ; render.scale.size = 2; render.scale.hardware=false; }
+	else if (scaler == "hq3x") { render.scale.op = scalerOpHQ; render.scale.size = 3; render.scale.hardware=false; }
+	else if (scaler == "2xsai") { render.scale.op = scalerOpSaI; render.scale.size = 2; render.scale.hardware=false; }
+	else if (scaler == "super2xsai") { render.scale.op = scalerOpSuperSaI; render.scale.size = 2; render.scale.hardware=false; }
+	else if (scaler == "supereagle") { render.scale.op = scalerOpSuperEagle; render.scale.size = 2; render.scale.hardware=false; }
+#endif
+#if RENDER_USE_ADVANCED_SCALERS>0
+	else if (scaler == "tv2x") { render.scale.op = scalerOpTV; render.scale.size = 2; render.scale.hardware=false; }
+	else if (scaler == "tv3x") { render.scale.op = scalerOpTV; render.scale.size = 3; render.scale.hardware=false; }
+	else if (scaler == "rgb2x"){ render.scale.op = scalerOpRGB; render.scale.size = 2; render.scale.hardware=false; }
+	else if (scaler == "rgb3x"){ render.scale.op = scalerOpRGB; render.scale.size = 3; render.scale.hardware=false; }
+	else if (scaler == "scan2x"){ render.scale.op = scalerOpScan; render.scale.size = 2; render.scale.hardware=false; }
+	else if (scaler == "scan3x"){ render.scale.op = scalerOpScan; render.scale.size = 3; render.scale.hardware=false; }
+#endif
+	else if (scaler == "hardware_none") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware=true; }
+	else if (scaler == "hardware2x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=true; }
+	else if (scaler == "hardware3x") { render.scale.op = scalerOpNormal; render.scale.size = 6; render.scale.hardware=true; }
+	else if (scaler == "hardware4x") { render.scale.op = scalerOpNormal; render.scale.size = 8; render.scale.hardware=true; }
+	else if (scaler == "hardware5x") { render.scale.op = scalerOpNormal; render.scale.size = 10; render.scale.hardware=true; }
+}
+
 void RENDER_Init() {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
 
@@ -781,43 +838,8 @@ void RENDER_Init() {
 	} else if (control->cmdline->FindString("-forcescaler",cline,false)) {
 		section->HandleInputline(std::string("scaler=") + cline + " forced");
 	}
-	   
-	Prop_multival* prop = section->Get_multival("scaler");
-	scaler = prop->GetSection()->Get_string("type");
-	std::string f = prop->GetSection()->Get_string("force");
-	render.scale.forced = false;
-	if(f == "forced") render.scale.forced = true;
-   
-	if (scaler == "none") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware=false; }
-	else if (scaler == "normal2x") { render.scale.op = scalerOpNormal; render.scale.size = 2; render.scale.hardware=false; }
-	else if (scaler == "normal3x") { render.scale.op = scalerOpNormal; render.scale.size = 3; render.scale.hardware=false; }
-	else if (scaler == "normal4x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=false; }
-	else if (scaler == "normal5x") { render.scale.op = scalerOpNormal; render.scale.size = 5; render.scale.hardware=false; }
-#if RENDER_USE_ADVANCED_SCALERS>2
-	else if (scaler == "advmame2x") { render.scale.op = scalerOpAdvMame; render.scale.size = 2; render.scale.hardware=false; }
-	else if (scaler == "advmame3x") { render.scale.op = scalerOpAdvMame; render.scale.size = 3; render.scale.hardware=false; }
-	else if (scaler == "advinterp2x") { render.scale.op = scalerOpAdvInterp; render.scale.size = 2; render.scale.hardware=false; }
-	else if (scaler == "advinterp3x") { render.scale.op = scalerOpAdvInterp; render.scale.size = 3; render.scale.hardware=false; }
-	else if (scaler == "hq2x") { render.scale.op = scalerOpHQ; render.scale.size = 2; render.scale.hardware=false; }
-	else if (scaler == "hq3x") { render.scale.op = scalerOpHQ; render.scale.size = 3; render.scale.hardware=false; }
-	else if (scaler == "2xsai") { render.scale.op = scalerOpSaI; render.scale.size = 2; render.scale.hardware=false; }
-	else if (scaler == "super2xsai") { render.scale.op = scalerOpSuperSaI; render.scale.size = 2; render.scale.hardware=false; }
-	else if (scaler == "supereagle") { render.scale.op = scalerOpSuperEagle; render.scale.size = 2; render.scale.hardware=false; }
-#endif
-#if RENDER_USE_ADVANCED_SCALERS>0
-	else if (scaler == "tv2x") { render.scale.op = scalerOpTV; render.scale.size = 2; render.scale.hardware=false; }
-	else if (scaler == "tv3x") { render.scale.op = scalerOpTV; render.scale.size = 3; render.scale.hardware=false; }
-	else if (scaler == "rgb2x"){ render.scale.op = scalerOpRGB; render.scale.size = 2; render.scale.hardware=false; }
-	else if (scaler == "rgb3x"){ render.scale.op = scalerOpRGB; render.scale.size = 3; render.scale.hardware=false; }
-	else if (scaler == "scan2x"){ render.scale.op = scalerOpScan; render.scale.size = 2; render.scale.hardware=false; }
-	else if (scaler == "scan3x"){ render.scale.op = scalerOpScan; render.scale.size = 3; render.scale.hardware=false; }
-#endif
-	else if (scaler == "hardware_none") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware=true; }
-	else if (scaler == "hardware2x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=true; }
-	else if (scaler == "hardware3x") { render.scale.op = scalerOpNormal; render.scale.size = 6; render.scale.hardware=true; }
-	else if (scaler == "hardware4x") { render.scale.op = scalerOpNormal; render.scale.size = 8; render.scale.hardware=true; }
-	else if (scaler == "hardware5x") { render.scale.op = scalerOpNormal; render.scale.size = 10; render.scale.hardware=true; }
 
+    RENDER_UpdateFromScalerSetting();
 
 	render.autofit=section->Get_bool("autofit");
 
@@ -836,5 +858,7 @@ void RENDER_Init() {
 	MAPPER_AddHandler(IncreaseFrameSkip,MK_nothing,0,"incfskip","Inc Fskip");
 
 	GFX_SetTitle(-1,render.frameskip.max,-1,false);
+
+    RENDER_UpdateScalerMenu();
 }
 
