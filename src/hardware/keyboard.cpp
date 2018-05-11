@@ -949,8 +949,8 @@ void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
 	case KBD_jp_henkan:ret=0x86;break;
 	case KBD_jp_hiragana:ret=0x87;break;/*also Katakana */
 	default:
-		E_Exit("Unsupported key press");
-		break;
+        LOG(LOG_MISC, LOG_WARN)("Unsupported key press %lu", (char)keytype);
+		return;
 	}
 
 	/* Add the actual key in the keyboard queue */
@@ -1154,8 +1154,8 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 	case KBD_jp_henkan:ret=0x64;break;
 	case KBD_jp_hiragana:ret=0x13;break;/*also Katakana */
 	default:
-		E_Exit("Unsupported key press");
-		break;
+        LOG(LOG_MISC, LOG_WARN)("Unsupported key press %lu", (char)keytype);
+		return;
 	}
 	/* Add the actual key in the keyboard queue */
 	if (pressed) {
@@ -1554,8 +1554,8 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 	case KBD_jp_backslash:ret=0x73;break;/*JP 106-key: _ \ or ろ (ro)  <-- WARNING: UTF-8 unicode */
 	case KBD_jp_yen:ret=0x7d;break;/*JP 106-key: | ¥ (yen) or ー (prolonged sound mark)  <-- WARNING: UTF-8 unicode */
 	default:
-		E_Exit("Unsupported key press");
-		break;
+        LOG(LOG_MISC, LOG_WARN)("Unsupported key press %lu", (char)keytype);
+		return;
 	}
 
 	/* Add the actual key in the keyboard queue */
