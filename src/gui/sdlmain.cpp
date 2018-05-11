@@ -3818,8 +3818,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                     MenuRestoreScreen();
                                     mainMenu.display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
                                     for (auto i=popup_stack.begin();i!=popup_stack.end();i++) {
-                                        mainMenu.get_item(*i).drawBackground(mainMenu);
-                                        mainMenu.get_item(*i).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
+                                        if (mainMenu.get_item(*i).get_type() == DOSBoxMenu::submenu_type_id) {
+                                            mainMenu.get_item(*i).drawBackground(mainMenu);
+                                            mainMenu.get_item(*i).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
+                                        }
                                     }
                                     MenuFullScreenRedraw();
                                 }
