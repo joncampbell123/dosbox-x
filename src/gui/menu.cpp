@@ -734,8 +734,6 @@ static const char *def_menu_video_frameskip[] = {
 
 /* video scaler menu ("VideoScalerMenu") */
 static const char *def_menu_video_scaler[] = {
-    "scaler_forced",
-    "--",
     NULL
 };
 
@@ -767,6 +765,8 @@ static const char *def_menu_video[] = {
 #endif
 	"--",
 	"VideoFrameskipMenu",
+	"--",
+    "scaler_forced",
     "VideoScalerMenu",
     NULL
 };
@@ -803,14 +803,15 @@ static std::string separator_id(const DOSBoxMenu::item_handle_t r) {
     return std::string("_separator_") + std::string(tmp);
 }
 
-static DOSBoxMenu::item_handle_t separator_get(void) {
+static DOSBoxMenu::item_handle_t separator_get(const DOSBoxMenu::item_type_t t=DOSBoxMenu::separator_type_id) {
     assert(separator_alloc <= separators.size());
     if (separator_alloc == separators.size()) {
-        DOSBoxMenu::item &nitem = mainMenu.alloc_item(DOSBoxMenu::separator_type_id, separator_id(separator_alloc));
+        DOSBoxMenu::item &nitem = mainMenu.alloc_item(t, separator_id(separator_alloc));
         separators.push_back(nitem.get_master_id());
     }
 
     assert(separator_alloc < separators.size());
+    mainMenu.get_item(separators[separator_alloc]).set_type(t);
     return separators[separator_alloc++];
 }
 
@@ -834,7 +835,7 @@ void ConstructSubMenu(DOSBoxMenu::item_handle_t item_id, const char * const * li
 
         if (!strcmp(ref,"--")) {
             mainMenu.displaylist_append(
-                mainMenu.get_item(item_id).display_list, separator_get());
+                mainMenu.get_item(item_id).display_list, separator_get(DOSBoxMenu::separator_type_id));
         }
         else if (mainMenu.item_exists(ref)) {
             mainMenu.displaylist_append(
@@ -878,13 +879,25 @@ void ConstructMenu(void) {
 
     /* video scaler menu */
     ConstructSubMenu(mainMenu.get_item("VideoScalerMenu").get_master_id(), def_menu_video_scaler);
-    for (size_t i=0;scaler_menu_opts[i][0] != NULL;i++) {
-        const std::string name = std::string("scaler_set_") + scaler_menu_opts[i][0];
+    {
+        size_t count=0;
 
-        if (mainMenu.item_exists(name)) {
-            mainMenu.displaylist_append(
-                mainMenu.get_item("VideoScalerMenu").display_list,
-                mainMenu.get_item_id_by_name(name));
+        for (size_t i=0;scaler_menu_opts[i][0] != NULL;i++) {
+            const std::string name = std::string("scaler_set_") + scaler_menu_opts[i][0];
+
+            if (mainMenu.item_exists(name)) {
+                mainMenu.displaylist_append(
+                    mainMenu.get_item("VideoScalerMenu").display_list,
+                    mainMenu.get_item_id_by_name(name));
+
+                if ((count % 15) == 14) {
+                    mainMenu.displaylist_append(
+                        mainMenu.get_item("VideoScalerMenu").display_list,
+                        separator_get(DOSBoxMenu::vseparator_type_id));
+                }
+
+                count++;
+            }
         }
     }
 
@@ -3922,7 +3935,7 @@ void DOSBoxMenu::layoutMenu(void) {
 }
 
 void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
-    int x, y, maxx;
+    int x, y, minx, maxx;
 
     x = screenBox.x;
     y = screenBox.y;
@@ -3937,19 +3950,44 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
     popupBox.x = x;
     popupBox.y = y;
 
+    minx = x;
     maxx = x;
+
+    auto arr_follow=display_list.disp_list.begin();
     for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++) {
         DOSBoxMenu::item &item = menu.get_item(*i);
 
-        item.placeItem(menu, x, y, /*toplevel*/false);
-        y += item.screenBox.h;
+        if (item.get_type() == DOSBoxMenu::vseparator_type_id) {
+            for (;arr_follow < i;arr_follow++)
+                menu.get_item(*arr_follow).placeItemFinal(menu, /*finalwidth*/maxx - minx, /*toplevel*/false);
 
-        if (maxx < (item.screenBox.x + item.screenBox.w))
-            maxx = (item.screenBox.x + item.screenBox.w);
+            x = maxx;
+
+            item.screenBox.x = x;
+            item.screenBox.y = popupBox.y;
+            item.screenBox.w = 5;
+            item.screenBox.h = y - popupBox.y;
+
+            minx = maxx = x = item.screenBox.x + item.screenBox.w;
+            y = popupBox.y;
+        }
+        else {
+            item.placeItem(menu, x, y, /*toplevel*/false);
+            y += item.screenBox.h;
+
+            if (maxx < (item.screenBox.x + item.screenBox.w))
+                maxx = (item.screenBox.x + item.screenBox.w);
+        }
     }
 
-    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++)
-        menu.get_item(*i).placeItemFinal(menu, /*finalwidth*/maxx - popupBox.x, /*toplevel*/false);
+    for (;arr_follow < display_list.disp_list.end();arr_follow++)
+        menu.get_item(*arr_follow).placeItemFinal(menu, /*finalwidth*/maxx - minx, /*toplevel*/false);
+
+    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++) {
+        DOSBoxMenu::item &item = menu.get_item(*i);
+        int my = item.screenBox.y + item.screenBox.h;
+        if (y < my) y = my;
+    }
 
     for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++)
         menu.get_item(*i).layoutSubmenu(menu, /*toplevel*/false);
@@ -4005,7 +4043,7 @@ void DOSBoxMenu::item::placeItemFinal(DOSBoxMenu &menu,int finalwidth,bool isTop
         /* check */
         if (x > rx) LOG_MSG("placeItemFinal warning: text and shorttext overlap by %d pixels",x-rx);
     }
-    else {
+    else if (type == separator_type_id) {
         if (!isTopLevel) {
             screenBox.w = finalwidth;
         }

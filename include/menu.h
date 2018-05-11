@@ -332,6 +332,10 @@ class DOSBoxMenu {
                 inline item_type_t get_type(void) const {
                     return type;
                 }
+                void set_type(const item_type_t t) {
+                    if (type >= separator_type_id && t >= separator_type_id)
+                        type = t;
+                }
             public:
                 inline const callback_t get_callback_function(void) const {
                     return callback_func;

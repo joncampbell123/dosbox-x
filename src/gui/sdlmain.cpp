@@ -1394,8 +1394,10 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
     if (type == submenu_type_id && borderTop/*not toplevel*/)
         MenuDrawText(screenBox.x+screenBox.w - DOSBoxMenu::fontCharWidth - 1, screenBox.y+textBox.y, "\x10", fgcheckcolor);
 
-    if (type >= separator_type_id)
+    if (type == separator_type_id)
         MenuDrawRect(screenBox.x, screenBox.y + (screenBox.h/2), screenBox.w, 1, fgcolor);
+    else if (type == vseparator_type_id)
+        MenuDrawRect(screenBox.x + (screenBox.w/2), screenBox.y, 1, screenBox.h, fgcolor);
 
     if (SDL_MUSTLOCK(sdl.surface))
         SDL_UnlockSurface(sdl.surface);
@@ -6570,7 +6572,7 @@ int main(int argc, char* argv[]) {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoScalerMenu");
                 item.set_text("Scaler");
 
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"scaler_forced").set_text("Forced").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"scaler_forced").set_text("Force scaler").
                     set_callback_function(scaler_forced_menu_callback);
 
                 for (size_t i=0;scaler_menu_opts[i][0] != NULL;i++) {
