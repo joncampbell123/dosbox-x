@@ -3723,6 +3723,12 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                         case SDL_QUIT:
                             throw(0);
                             break;
+                        case SDL_KEYUP:
+                            if (event.key.keysym.sym == SDLK_ESCAPE) {
+                                choice_item = DOSBoxMenu::unassigned_item_handle;
+                                runloop = false;
+                            }
+                            break;
                         case SDL_VIDEORESIZE:
                             GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
                             GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
