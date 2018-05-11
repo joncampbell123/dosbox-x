@@ -633,6 +633,7 @@ static const char *def_menu_main[] = {
     "MainSendKey",
 	"--",
 	"wait_on_error",
+    "showdetails",
 #if C_DEBUG
 	"--",
 	"mapper_debugger",
