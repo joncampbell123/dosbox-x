@@ -724,7 +724,7 @@ public:
          *
          *       So later on, this remap should disable itself IF that byte is sent to signal
          *       Windows 95 is running and the Windows keys should be enabled. */
-        if (host_keyboard_layout != DKM_JPN && key == SDLK_MENU) key = SDLK_JP_RO;
+        if (IS_PC98_ARCH && host_keyboard_layout != DKM_JPN && key == SDLK_MENU) key = SDLK_JP_RO;
 #endif
 
         if (event->type==SDL_KEYDOWN) ActivateBindList(&lists[key],0x7fff,true);
