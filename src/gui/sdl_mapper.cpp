@@ -729,14 +729,24 @@ public:
          *       Windows 95 is running and the Windows keys should be enabled. */
         if (IS_PC98_ARCH && host_keyboard_layout != DKM_JPN && key == SDLK_MENU) {
             CEvent *x = get_mapper_event_by_name("key_jp_ro");
-            bool roBound = false;
+            bool RoMenuRemap = false;
 
             if (x != NULL) {
-                if (!x->bindlist.empty())
-                    roBound = true;
+                if (!x->bindlist.empty()) {
+                    RoMenuRemap = true;
+
+                    /* but, if the Ro key has been bound to Menu, do not remap */
+                    auto &i = x->bindlist.front();
+                    if (i->type == CBind::keybind_t) {
+                        auto ik = reinterpret_cast<CKeyBind*>(i);
+                        RoMenuRemap = false;
+                        if (ik->key == SDLK_JP_RO)
+                            RoMenuRemap = true;
+                    }
+                }
             }
 
-            if (roBound) key = SDLK_JP_RO;
+            if (RoMenuRemap) key = SDLK_JP_RO;
         }
 #endif
 
