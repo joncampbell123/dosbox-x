@@ -890,11 +890,13 @@ void ConstructMenu(void) {
                     mainMenu.get_item("VideoScalerMenu").display_list,
                     mainMenu.get_item_id_by_name(name));
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
                 if ((count % 15) == 14) {
                     mainMenu.displaylist_append(
                         mainMenu.get_item("VideoScalerMenu").display_list,
                         separator_get(DOSBoxMenu::vseparator_type_id));
                 }
+#endif
 
                 count++;
             }
