@@ -3469,6 +3469,12 @@ void SDL_rect_cliptoscreen(SDL_Rect &r) {
         r.h += r.y;
         r.y = 0;
     }
+    if ((r.x+r.w) > sdl.surface->w)
+        r.w = sdl.surface->w - r.x;
+    if ((r.y+r.h) > sdl.surface->h)
+        r.h = sdl.surface->h - r.y;
+    if (r.w < 0) r.w = 0;
+    if (r.h < 0) r.h = 0;
 }
 
 void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
