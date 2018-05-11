@@ -739,9 +739,9 @@ public:
 class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
 	ConfigurationWindow(GUI::Screen *parent, GUI::Size x, GUI::Size y, GUI::String title) :
-		GUI::ToplevelWindow(parent, x, y, 470, 380, title) {
+		GUI::ToplevelWindow(parent, x, y, 580, 380, title) {
 
-		(new GUI::Button(this, 185, 305, "Close", 80))->addActionHandler(this);
+		(new GUI::Button(this, 240, 305, "Close", 80))->addActionHandler(this);
 
 		GUI::Menubar *bar = new GUI::Menubar(this, 0, 0, getWidth());
 		bar->addMenu("Configuration");
