@@ -3452,7 +3452,8 @@ DOSBoxMenu::item_handle_t DOSBoxMenu::displaylist::itemFromPoint(DOSBoxMenu &men
         if (x >= item.screenBox.x && y >= item.screenBox.y) {
             int sx = x - item.screenBox.x;
             int sy = y - item.screenBox.y;
-            if (sx < item.screenBox.w && sy < item.screenBox.h)
+            int adj = (this != &menu.display_list && item.get_type() == DOSBoxMenu::submenu_type_id) ? 2 : 0;
+            if (sx < (item.screenBox.w+adj) && sy < item.screenBox.h)
                 return id;
         }
     }
