@@ -3730,6 +3730,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                 runloop = false;
                             }
                             break;
+#if !defined(C_SDL2)
                         case SDL_VIDEORESIZE:
                             GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
                             GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
@@ -3739,6 +3740,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                             runloop = false;
                             resized = true;
                             break;
+#endif
                         case SDL_MOUSEBUTTONDOWN:
                             button_holding=true;
                             choice_item = mainMenu.menuUserHoverAt;
