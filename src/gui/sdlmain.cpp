@@ -6088,12 +6088,16 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
         change_output(0);
     }
     else if (!strcmp(what,"opengl")) {
+#if C_OPENGL
         if (sdl.desktop.want_type == SCREEN_OPENGL && sdl.opengl.bilinear) return true;
         change_output(3);
+#endif
     }
     else if (!strcmp(what,"openglnb")) {
+#if C_OPENGL
         if (sdl.desktop.want_type == SCREEN_OPENGL && !sdl.opengl.bilinear) return true;
         change_output(4);
+#endif
     }
     else if (!strcmp(what,"direct3d")) {
         if (sdl.desktop.want_type == SCREEN_DIRECT3D) return true;
@@ -6274,8 +6278,10 @@ void HideMenu_mapper_shortcut(bool pressed) {
 void OutputSettingMenuUpdate(void) {
     mainMenu.get_item("output_surface").check(sdl.desktop.want_type==SCREEN_SURFACE).refresh_item(mainMenu);
     mainMenu.get_item("output_direct3d").check(sdl.desktop.want_type==SCREEN_DIRECT3D).refresh_item(mainMenu);
+#if C_OPENGL
     mainMenu.get_item("output_opengl").check(sdl.desktop.want_type==SCREEN_OPENGL && sdl.opengl.bilinear).refresh_item(mainMenu);
     mainMenu.get_item("output_openglnb").check(sdl.desktop.want_type==SCREEN_OPENGL && !sdl.opengl.bilinear).refresh_item(mainMenu);
+#endif
 }
 
 //extern void UI_Init(void);
