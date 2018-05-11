@@ -712,6 +712,9 @@ public:
         /* HACK: As requested on the issue tracker, on US keyboards, remap the Windows menu key
          *       to the "Ro" key.
          *
+         *       If the user has un-bound the Ro key, then allow the menu key to go through
+         *       unmodified.
+         *
          * TODO: I understand that later PC-9821 systems (post Windows 95, prior to the platform's
          *       demise) actually did have Windows and Windows Menu keys.
          *
@@ -724,7 +727,17 @@ public:
          *
          *       So later on, this remap should disable itself IF that byte is sent to signal
          *       Windows 95 is running and the Windows keys should be enabled. */
-        if (IS_PC98_ARCH && host_keyboard_layout != DKM_JPN && key == SDLK_MENU) key = SDLK_JP_RO;
+        if (IS_PC98_ARCH && host_keyboard_layout != DKM_JPN && key == SDLK_MENU) {
+            CEvent *x = get_mapper_event_by_name("key_jp_ro");
+            bool roBound = false;
+
+            if (x != NULL) {
+                if (!x->bindlist.empty())
+                    roBound = true;
+            }
+
+            if (roBound) key = SDLK_JP_RO;
+        }
 #endif
 
         if (event->type==SDL_KEYDOWN) ActivateBindList(&lists[key],0x7fff,true);
