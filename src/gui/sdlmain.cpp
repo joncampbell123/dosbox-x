@@ -3719,6 +3719,9 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                     if (!SDL_WaitEvent(&event)) break;
 
                     switch (event.type) {
+                        case SDL_QUIT:
+                            throw(0);
+                            break;
                         case SDL_MOUSEBUTTONDOWN:
                             button_holding=true;
                             choice_item = mainMenu.menuUserHoverAt;
