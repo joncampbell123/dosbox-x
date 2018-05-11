@@ -732,6 +732,12 @@ static const char *def_menu_video_frameskip[] = {
     NULL
 };
 
+/* video scaler menu ("VideoScalerMenu") */
+static const char *def_menu_video_scaler[] = {
+    "scaler_forced",
+    NULL
+};
+
 /* video menu ("VideoMenu") */
 static const char *def_menu_video[] = {
 #if !defined(C_SDL2)
@@ -760,6 +766,7 @@ static const char *def_menu_video[] = {
 #endif
 	"--",
 	"VideoFrameskipMenu",
+    "VideoScalerMenu",
     NULL
 };
 
@@ -866,11 +873,34 @@ void ConstructMenu(void) {
     /* video frameskip menu */
     ConstructSubMenu(mainMenu.get_item("VideoFrameskipMenu").get_master_id(), def_menu_video_frameskip);
 
+    /* video scaler menu */
+    ConstructSubMenu(mainMenu.get_item("VideoScalerMenu").get_master_id(), def_menu_video_scaler);
+
     /* sound menu */
     ConstructSubMenu(mainMenu.get_item("SoundMenu").get_master_id(), def_menu_sound);
 
     /* capture menu */
     ConstructSubMenu(mainMenu.get_item("CaptureMenu").get_master_id(), def_menu_capture);
+}
+
+void RENDER_CallBack( GFX_CallBackFunctions_t function );
+
+// Sets the scaler 'forced' flag.
+void SetScaleForced(bool forced)
+{
+	render.scale.forced = forced;
+	RENDER_CallBack(GFX_CallBackReset);
+    mainMenu.get_item("scaler_forced").check(render.scale.forced);
+}
+
+// Sets the scaler to use.
+void SetScaler(scalerOperation_t op, Bitu size, std::string prefix)
+{
+	auto value = prefix + (render.scale.forced ? " forced" : "");
+	SetVal("render", "scaler", value);
+	render.scale.size = size;
+	render.scale.op = op;
+	RENDER_CallBack(GFX_CallBackReset);
 }
 
 extern int NonUserResizeCounter;
@@ -2820,23 +2850,6 @@ void reflectmenu_INITMENU_cb() {
 				sure to keep Windows waiting while we take our time to reset the checkmarks in
 				the menus before the menu is displayed. */
 	Reflect_Menu();
-}
-
-// Sets the scaler to use.
-void SetScaler(scalerOperation_t op, Bitu size, std::string prefix)
-{
-	auto value = prefix + (render.scale.forced ? " forced" : "");
-	SetVal("render", "scaler", value);
-	render.scale.size = size;
-	render.scale.op = op;
-	RENDER_CallBack(GFX_CallBackReset);
-}
-
-// Sets the scaler 'forced' flag.
-void SetScaleForced(bool forced)
-{
-	render.scale.forced = forced;
-	RENDER_CallBack(GFX_CallBackReset);
 }
 
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {

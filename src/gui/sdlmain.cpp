@@ -5962,6 +5962,14 @@ bool VM_PowerOn() {
 	return true;
 }
 
+void SetScaleForced(bool forced);
+
+bool scaler_forced_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    SetScaleForced(!render.scale.forced);
+    menuitem->check(render.scale.forced);
+    return true;
+}
+
 bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     int f = atoi(menuitem->get_text().c_str()); /* Off becomes 0 */
     char tmp[64];
@@ -6505,6 +6513,13 @@ int main(int argc, char* argv[]) {
                         set_callback_function(video_frameskip_common_menu_callback);
                 }
             }
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoScalerMenu");
+                item.set_text("Scaler");
+
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"scaler_forced").set_text("Forced").
+                    set_callback_function(scaler_forced_menu_callback);
+            }
         }
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"SoundMenu");
@@ -6676,6 +6691,8 @@ int main(int argc, char* argv[]) {
 		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, "desktop.doublebuf", 0));
 		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
 		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles);
+
+        mainMenu.get_item("scaler_forced").check(render.scale.forced);
 
 		/* The machine just "powered on", and then reset finished */
 		if (!VM_PowerOn()) E_Exit("VM failed to power on");
