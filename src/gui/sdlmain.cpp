@@ -1437,6 +1437,10 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl) {
 }
 #endif
 
+#if C_OPENGL
+bool initedOpenGL = false;
+#endif
+
 Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,GFX_CallBack_t callback) {
 	if (sdl.updating)
 		GFX_EndUpdate( 0 );
@@ -1704,8 +1708,12 @@ dosurface:
 			free(sdl.opengl.framebuf);
 		}
 
-        glFinish();
-        glFlush();
+        /* NTS: Apparently calling glFinish/glFlush before setup causes a segfault within
+         *      the OpenGL library on Mac OS X. */
+        if (initedOpenGL) {
+            glFinish();
+            glFlush();
+        }
 
 		sdl.opengl.framebuf=0;
 
@@ -1807,6 +1815,7 @@ dosurface:
         glFinish();
         glFlush();
 
+        initedOpenGL = true;
 		sdl.desktop.type=SCREEN_OPENGL;
 		retFlags = GFX_CAN_32 | GFX_SCALING;
 		if (sdl.opengl.pixel_buffer_object)
