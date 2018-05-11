@@ -3675,6 +3675,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 DOSBoxMenu::item_handle_t sel_item;
                 bool button_holding=true;
                 bool runloop=true;
+                SDL_Rect uprect;
                 SDL_Event event;
 
                 psel_item = DOSBoxMenu::unassigned_item_handle;
@@ -3684,6 +3685,23 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 mainMenu.get_item(mainMenu.menuUserAttentionAt).setHover(mainMenu,false);
                 mainMenu.get_item(mainMenu.menuUserAttentionAt).drawMenuItem(mainMenu);
                 MenuSaveScreen();
+
+                /* give the menu bar a drop shadow */
+                MenuShadeRect(
+                        mainMenu.menuBox.x + DOSBoxMenu::dropshadowX,
+                        mainMenu.menuBox.y + mainMenu.menuBox.h,
+                        mainMenu.menuBox.w,
+                        DOSBoxMenu::dropshadowY - 1);
+
+                uprect.x = 0;
+                uprect.y = mainMenu.menuBox.y + mainMenu.menuBox.h;
+                uprect.w = mainMenu.menuBox.w;
+                uprect.h = DOSBoxMenu::dropshadowY;
+#if defined(C_SDL2)
+                SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
+#else
+                SDL_UpdateRects( sdl.surface, 1, &uprect );
+#endif
 
                 /* show the menu */
                 mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,true);
@@ -3817,6 +3835,14 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                 if (redrawAll) {
                                     MenuRestoreScreen();
                                     mainMenu.display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
+
+                                    /* give the menu bar a drop shadow */
+                                    MenuShadeRect(
+                                            mainMenu.menuBox.x + DOSBoxMenu::dropshadowX,
+                                            mainMenu.menuBox.y + mainMenu.menuBox.h,
+                                            mainMenu.menuBox.w,
+                                            DOSBoxMenu::dropshadowY - 1);
+
                                     for (auto i=popup_stack.begin();i!=popup_stack.end();i++) {
                                         if (mainMenu.get_item(*i).get_type() == DOSBoxMenu::submenu_type_id) {
                                             mainMenu.get_item(*i).drawBackground(mainMenu);
