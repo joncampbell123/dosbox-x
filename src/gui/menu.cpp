@@ -3946,7 +3946,7 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
         y += textBox.h;
     }
     else {
-        x += screenBox.w;
+        x += screenBox.w + 2/*popup border*/;
     }
 
     popupBox.x = x;

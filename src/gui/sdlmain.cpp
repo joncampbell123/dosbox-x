@@ -3692,7 +3692,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                         mainMenu.menuBox.x + DOSBoxMenu::dropshadowX,
                         mainMenu.menuBox.y + mainMenu.menuBox.h,
                         mainMenu.menuBox.w,
-                        DOSBoxMenu::dropshadowY - 1);
+                        DOSBoxMenu::dropshadowY - 1/*menubar border*/);
 
                 uprect.x = 0;
                 uprect.y = mainMenu.menuBox.y + mainMenu.menuBox.h;
@@ -3860,7 +3860,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                             mainMenu.menuBox.x + DOSBoxMenu::dropshadowX,
                                             mainMenu.menuBox.y + mainMenu.menuBox.h,
                                             mainMenu.menuBox.w,
-                                            DOSBoxMenu::dropshadowY - 1);
+                                            DOSBoxMenu::dropshadowY - 1/*menubar border*/);
 
                                     for (auto i=popup_stack.begin();i!=popup_stack.end();i++) {
                                         if (mainMenu.get_item(*i).get_type() == DOSBoxMenu::submenu_type_id) {
