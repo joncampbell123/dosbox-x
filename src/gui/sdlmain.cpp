@@ -3674,6 +3674,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 DOSBoxMenu::item_handle_t psel_item;
                 DOSBoxMenu::item_handle_t sel_item;
                 bool button_holding=true;
+                bool resized=false;
                 bool runloop=true;
                 SDL_Rect uprect;
                 SDL_Event event;
@@ -3721,6 +3722,15 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                     switch (event.type) {
                         case SDL_QUIT:
                             throw(0);
+                            break;
+                        case SDL_VIDEORESIZE:
+                            GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
+                            GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
+                            UpdateWindowDimensions(); // FIXME: Use SDL window dimensions, except that on Windows, SDL won't tell us our actual dimensions
+                            HandleVideoResize(&event.resize);
+
+                            runloop = false;
+                            resized = true;
                             break;
                         case SDL_MOUSEBUTTONDOWN:
                             button_holding=true;
@@ -3862,13 +3872,15 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 /* then return */
                 GFX_SDLMenuTrackHilight(mainMenu,DOSBoxMenu::unassigned_item_handle);
                 GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
-                MenuRestoreScreen();
-                MenuFullScreenRedraw();
+                if (!resized) {
+                    MenuRestoreScreen();
+                    MenuFullScreenRedraw();
+                }
                 MenuFreeScreen();
 
                 while (!popup_stack.empty()) {
                     DOSBoxMenu::item &item = mainMenu.get_item(popup_stack.back());
- 
+
                     for (auto &id : item.display_list.get_disp_list()) {
                         mainMenu.get_item(id).setHilight(mainMenu,false);
                         mainMenu.get_item(id).setHover(mainMenu,false);
@@ -3880,7 +3892,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 }
 
                 /* action! */
-                if (choice_item != DOSBoxMenu::unassigned_item_handle) {
+                if (!resized && choice_item != DOSBoxMenu::unassigned_item_handle) {
                     DOSBoxMenu::item &item = mainMenu.get_item(choice_item);
 
                     if (item.get_type() == DOSBoxMenu::item_type_id && item.is_enabled())
