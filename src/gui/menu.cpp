@@ -465,10 +465,10 @@ std::string DOSBoxMenu::item::winConstructMenuText(void) {
 
 void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
     if (type == separator_type_id) {
-        AppendMenu(handle, MF_MENUBREAK, 0, NULL);
+        AppendMenu(handle, MF_SEPARATOR, 0, NULL);
     }
     else if (type == vseparator_type_id) {
-        AppendMenu(handle, MF_MENUBARBREAK, 0, NULL);
+        AppendMenu(handle, MF_MENUBREAK, 0, NULL);
     }
     else if (type == submenu_type_id) {
         if (winMenu != NULL)
