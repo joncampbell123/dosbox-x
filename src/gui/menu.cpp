@@ -737,6 +737,21 @@ static const char *def_menu_video_scaler[] = {
     NULL
 };
 
+/* video output menu ("VideoOutputMenu") */
+static const char *def_menu_video_output[] = {
+    "output_surface",
+#if !defined(C_SDL2) && !defined(HX_DOS)
+# if (HAVE_D3D9_H) && defined(WIN32)
+    "output_direct3d",
+# endif
+# if (C_OPENGL)
+    "output_opengl",
+    "output_openglnb",
+# endif
+#endif
+    NULL
+};
+
 /* video menu ("VideoMenu") */
 static const char *def_menu_video[] = {
 #if !defined(C_SDL2)
@@ -768,6 +783,7 @@ static const char *def_menu_video[] = {
 	"--",
     "scaler_forced",
     "VideoScalerMenu",
+    "VideoOutputMenu",
     NULL
 };
 
@@ -902,6 +918,9 @@ void ConstructMenu(void) {
             }
         }
     }
+
+    /* video output menu */
+    ConstructSubMenu(mainMenu.get_item("VideoOutputMenu").get_master_id(), def_menu_video_output);
 
     /* sound menu */
     ConstructSubMenu(mainMenu.get_item("SoundMenu").get_master_id(), def_menu_sound);

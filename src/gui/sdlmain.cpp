@@ -6054,10 +6054,41 @@ bool VM_PowerOn() {
 }
 
 void SetScaleForced(bool forced);
+void OutputSettingMenuUpdate(void);
 
 bool scaler_forced_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     SetScaleForced(!render.scale.forced);
     menuitem->check(render.scale.forced);
+    return true;
+}
+
+bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    const char *what = menuitem->get_name().c_str();
+
+    if (!strncmp(what,"output_",7))
+        what += 7;
+    else
+        return true;
+
+    if (!strcmp(what,"surface")) {
+        if (sdl.desktop.want_type == SCREEN_SURFACE) return true;
+        change_output(0);
+    }
+    else if (!strcmp(what,"opengl")) {
+        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl.opengl.bilinear) return true;
+        change_output(3);
+    }
+    else if (!strcmp(what,"openglnb")) {
+        if (sdl.desktop.want_type == SCREEN_OPENGL && !sdl.opengl.bilinear) return true;
+        change_output(4);
+    }
+    else if (!strcmp(what,"direct3d")) {
+        if (sdl.desktop.want_type == SCREEN_DIRECT3D) return true;
+        change_output(5);
+    }
+
+    SetVal("sdl", "output", what);
+    OutputSettingMenuUpdate();
     return true;
 }
 
@@ -6225,6 +6256,13 @@ void HideMenu_mapper_shortcut(bool pressed) {
     ToggleMenu(true);
 
     mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+}
+
+void OutputSettingMenuUpdate(void) {
+    mainMenu.get_item("output_surface").check(sdl.desktop.want_type==SCREEN_SURFACE).refresh_item(mainMenu);
+    mainMenu.get_item("output_direct3d").check(sdl.desktop.want_type==SCREEN_DIRECT3D).refresh_item(mainMenu);
+    mainMenu.get_item("output_opengl").check(sdl.desktop.want_type==SCREEN_OPENGL && sdl.opengl.bilinear).refresh_item(mainMenu);
+    mainMenu.get_item("output_openglnb").check(sdl.desktop.want_type==SCREEN_OPENGL && !sdl.opengl.bilinear).refresh_item(mainMenu);
 }
 
 //extern void UI_Init(void);
@@ -6640,6 +6678,19 @@ int main(int argc, char* argv[]) {
                         set_callback_function(scaler_set_menu_callback);
                 }
             }
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoOutputMenu");
+                item.set_text("Output");
+
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_surface").set_text("Surface").
+                    set_callback_function(output_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_direct3d").set_text("Direct3D").
+                    set_callback_function(output_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_opengl").set_text("OpenGL").
+                    set_callback_function(output_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_openglnb").set_text("OpenGL NB").
+                    set_callback_function(output_menu_callback);
+            }
         }
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"SoundMenu");
@@ -6813,6 +6864,8 @@ int main(int argc, char* argv[]) {
 		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles);
 
         mainMenu.get_item("scaler_forced").check(render.scale.forced);
+
+        OutputSettingMenuUpdate();
 
 		/* The machine just "powered on", and then reset finished */
 		if (!VM_PowerOn()) E_Exit("VM failed to power on");
