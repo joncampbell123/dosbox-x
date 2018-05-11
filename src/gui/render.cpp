@@ -715,6 +715,16 @@ void RENDER_SetForceUpdate(bool f) {
 	render.forceUpdate = f;
 }
 
+void RENDER_UpdateFrameskipMenu(void) {
+    char tmp[64];
+
+    for (unsigned int f=0;f <= 10;f++) {
+        sprintf(tmp,"frameskip_%u",f);
+        DOSBoxMenu::item &item = mainMenu.get_item(tmp);
+        item.check(render.frameskip.max == f);
+    }
+}
+
 void RENDER_OnSectionPropChange(Section *x) {
 	Section_prop * section = static_cast<Section_prop *>(control->GetSection("render"));
 
@@ -726,6 +736,8 @@ void RENDER_OnSectionPropChange(Section *x) {
 	if (render.aspect != p_aspect) {
 		RENDER_CallBack(GFX_CallBackReset);
 	}
+
+    RENDER_UpdateFrameskipMenu();
 }
 
 void RENDER_Init() {
@@ -752,6 +764,8 @@ void RENDER_Init() {
 	render.pal.last=255;
 	render.aspect=section->Get_bool("aspect");
 	render.frameskip.max=section->Get_int("frameskip");
+
+    RENDER_UpdateFrameskipMenu();
 
 	/* BUG FIX: Some people's dosbox.conf files have frameskip=-1 WTF?? */
 	/* without this fix, nothing displays, EVER */

@@ -716,6 +716,22 @@ static const char *def_menu_cpu[] = {
     NULL
 };
 
+/* video frameskip menu ("VideoFrameskipMenu") */
+static const char *def_menu_video_frameskip[] = {
+    "frameskip_0",
+    "frameskip_1",
+    "frameskip_2",
+    "frameskip_3",
+    "frameskip_4",
+    "frameskip_5",
+    "frameskip_6",
+    "frameskip_7",
+    "frameskip_8",
+    "frameskip_9",
+    "frameskip_10",
+    NULL
+};
+
 /* video menu ("VideoMenu") */
 static const char *def_menu_video[] = {
 #if !defined(C_SDL2)
@@ -742,6 +758,8 @@ static const char *def_menu_video[] = {
 #if !defined(C_SDL2) && !defined(HX_DOS)
 	"mapper_resetsize",
 #endif
+	"--",
+	"VideoFrameskipMenu",
     NULL
 };
 
@@ -844,6 +862,9 @@ void ConstructMenu(void) {
 
     /* video menu */
     ConstructSubMenu(mainMenu.get_item("VideoMenu").get_master_id(), def_menu_video);
+
+    /* video frameskip menu */
+    ConstructSubMenu(mainMenu.get_item("VideoFrameskipMenu").get_master_id(), def_menu_video_frameskip);
 
     /* sound menu */
     ConstructSubMenu(mainMenu.get_item("SoundMenu").get_master_id(), def_menu_sound);
