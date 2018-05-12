@@ -1691,6 +1691,8 @@ dosurface:
                 int final_width = max(max(consider_width,userResizeWindowWidth),(Bitu)(sdl.clip.x+sdl.clip.w)) - (sdl.overscan_width * 2);
 				int ax = (final_width - (sdl.clip.x + sdl.clip.w)) / 2;
 				int ay = (final_height - (sdl.clip.y + sdl.clip.h)) / 2;
+                if (ax < 0) ax = 0;
+                if (ay < 0) ay = 0;
 				sdl.clip.x += ax + sdl.overscan_width;
 				sdl.clip.y += ay + sdl.overscan_width;
 //				sdl.clip.w = currentWindowWidth - sdl.clip.x;
