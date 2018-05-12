@@ -6078,13 +6078,6 @@ bool scaler_forced_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     return true;
 }
 
-bool mixer_gui_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-#if !defined(C_SDL2)
-    GUI_Shortcut(4);
-#endif
-    return true;
-}
-
 void MENU_swapstereo(bool enabled);
 bool MENU_get_swapstereo(void);
 
@@ -7009,8 +7002,6 @@ int main(int argc, char* argv[]) {
             item.set_text("Sound");
 
             {
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"mixer_gui").set_text("Mixer GUI").
-                    set_callback_function(mixer_gui_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"mixer_swapstereo").set_text("Swap stereo").
                     set_callback_function(mixer_swapstereo_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"mixer_mute").set_text("Mute").

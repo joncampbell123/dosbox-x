@@ -851,10 +851,6 @@ static const char *def_menu_sound[] = {
     "--",
     "mixer_mute",
     "mixer_swapstereo",
-#if !defined(C_SDL2)
-    "--",
-    "mixer_gui",
-#endif
     NULL
 };
 
