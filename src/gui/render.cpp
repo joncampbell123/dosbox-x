@@ -217,7 +217,6 @@ bool RENDER_StartUpdate(void) {
 		if (GCC_UNLIKELY(!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch )))
 			return false;
 		render.fullFrame = true;
-		render.scale.clearCache = false;
 		RENDER_DrawLine = RENDER_ClearCacheHandler;
 	} else {
 		if (render.pal.changed) {
@@ -252,6 +251,10 @@ void PauseDOSBox(bool pressed);
 void RENDER_EndUpdate( bool abort ) {
 	if (GCC_UNLIKELY(!render.updating))
 		return;
+
+    if (!abort && render.active && RENDER_DrawLine == RENDER_ClearCacheHandler)
+		render.scale.clearCache = false;
+
 	RENDER_DrawLine = RENDER_EmptyLineHandler;
 	if (GCC_UNLIKELY(CaptureState & (CAPTURE_IMAGE|CAPTURE_VIDEO))) {
 		Bitu pitch, flags;
