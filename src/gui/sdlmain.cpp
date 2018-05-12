@@ -3393,6 +3393,7 @@ static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
 		return;
 	}
 #endif
+#if 0 /* FIXME: This code misbehaves when doublescan=false on Linux/X11 */
 	if((Bitu)nWidth == (Bitu)width && (Bitu)nHeight == (Bitu)height) {
 		RENDER_CallBack( GFX_CallBackReset);
 		return;
@@ -3438,6 +3439,7 @@ static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
 				break;
 		}
 	}
+#endif
     RENDER_CallBack( GFX_CallBackReset);
 }
 
