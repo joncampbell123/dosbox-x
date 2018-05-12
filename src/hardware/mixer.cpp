@@ -731,6 +731,9 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
 	int remains;
 	Bit32s *in;
 
+    if (mixer.mute)
+        mixer.work_in = mixer.work_out = 0;
+
     if (mixer.prebuffer_wait) {
         remains = (int)mixer.work_in - (int)mixer.work_out;
         if (remains < 0) remains += mixer.work_wrap;
