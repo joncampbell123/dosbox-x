@@ -6070,6 +6070,7 @@ void SetScaleForced(bool forced);
 void OutputSettingMenuUpdate(void);
 
 bool scaler_forced_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    SetScaleForced(!render.scale.forced);
     return true;
 }
 
