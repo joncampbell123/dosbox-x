@@ -32,6 +32,7 @@
 #include "../gui/render_scalers.h"
 #include "vga.h"
 #include "pic.h"
+#include "menu.h"
 #include "timer.h"
 #include "config.h"
 #include "control.h"
@@ -108,7 +109,16 @@ struct vsync_state vsync;
 
 float uservsyncjolt=0.0f;
 
+VGA_Vsync vsyncmode_current = VS_Off;
+
 void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode) {
+    vsyncmode_current = vsyncmode;
+
+    mainMenu.get_item("vsync_off").check(vsyncmode_current == VS_Off).refresh_item(mainMenu);
+    mainMenu.get_item("vsync_on").check(vsyncmode_current == VS_On).refresh_item(mainMenu);
+    mainMenu.get_item("vsync_force").check(vsyncmode_current == VS_Force).refresh_item(mainMenu);
+    mainMenu.get_item("vsync_host").check(vsyncmode_current == VS_Host).refresh_item(mainMenu);
+
 	switch(vsyncmode) {
 	case VS_Off:
 		vsync.manual	= false;

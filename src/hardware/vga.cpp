@@ -483,6 +483,17 @@ extern uint8_t GDC_display_plane_wait_for_vsync;
 
 void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
 
+VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr) {
+    if (!strcasecmp(vsyncmodestr,"off")) return VS_Off;
+    else if (!strcasecmp(vsyncmodestr,"on")) return VS_On;
+    else if (!strcasecmp(vsyncmodestr,"force")) return VS_Force;
+    else if (!strcasecmp(vsyncmodestr,"host")) return VS_Host;
+    else
+        LOG_MSG("Illegal vsync type %s, falling back to off.",vsyncmodestr);
+
+    return VS_Off;
+}
+
 void VGA_Reset(Section*) {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	string str;
@@ -715,18 +726,9 @@ void VGA_Reset(Section*) {
 
 	const char * vsyncmodestr;
 	vsyncmodestr=section2->Get_string("vsyncmode");
-	VGA_Vsync vsyncmode;
-	if (!strcasecmp(vsyncmodestr,"off")) vsyncmode=VS_Off;
-	else if (!strcasecmp(vsyncmodestr,"on")) vsyncmode=VS_On;
-	else if (!strcasecmp(vsyncmodestr,"force")) vsyncmode=VS_Force;
-	else if (!strcasecmp(vsyncmodestr,"host")) vsyncmode=VS_Host;
-	else {
-		vsyncmode=VS_Off;
-		LOG_MSG("Illegal vsync type %s, falling back to off.",vsyncmodestr);
-	}
 	void change_output(int output);
 	change_output(8);
-	VGA_VsyncUpdateMode(vsyncmode);
+	VGA_VsyncUpdateMode(VGA_Vsync_Decode(vsyncmodestr));
 
 	const char * vsyncratestr;
 	vsyncratestr=section2->Get_string("vsyncrate");

@@ -6254,6 +6254,13 @@ bool vsync_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
         return true;
 
 	SetVal("vsync", "vsyncmode", val);
+
+	void change_output(int output);
+	change_output(8);
+
+    VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr);
+    void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
+	VGA_VsyncUpdateMode(VGA_Vsync_Decode(val));
 #endif
     return true;
 }
