@@ -2934,19 +2934,21 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 		break;
 #endif
 	default:
-		break;
-	}
+        break;
+    }
 
-    sdl.must_redraw_all = false;
+    if (changedLines != NULL) {
+        sdl.must_redraw_all = false;
 
-    if (changedLines != NULL && sdl.deferred_resize) {
-        sdl.deferred_resize = false;
+        if (changedLines != NULL && sdl.deferred_resize) {
+            sdl.deferred_resize = false;
 #if defined(C_SDL2)
 #else
-        void GFX_RedrawScreen(Bit32u nWidth, Bit32u nHeight);
+            void GFX_RedrawScreen(Bit32u nWidth, Bit32u nHeight);
 
-        GFX_RedrawScreen(sdl.draw.width, sdl.draw.height);
+            GFX_RedrawScreen(sdl.draw.width, sdl.draw.height);
 #endif
+        }
     }
 }
 
