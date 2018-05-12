@@ -3384,11 +3384,13 @@ static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
 	height=sdl.draw.height;
 #endif
 	void RENDER_CallBack( GFX_CallBackFunctions_t function );
+#if 0
 	while (sdl.desktop.fullscreen) {
 		int temp_size;
 		temp_size=render.scale.size;
 		if(!sdl.desktop.fullscreen) { render.scale.size=temp_size; RENDER_CallBack( GFX_CallBackReset); return; }
     }
+#endif
 #ifdef WIN32
 	if(menu.resizeusing) {
 		RENDER_CallBack( GFX_CallBackReset);
