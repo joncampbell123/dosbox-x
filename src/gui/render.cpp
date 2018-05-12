@@ -124,9 +124,9 @@ static void RENDER_StartLineHandler(const void * s) {
 		Bitu *cache = (Bitu*)(render.scale.cacheRead);
 		Bits count = render.src.start;
 #if defined(__SSE__)
-		if(sse2_available) {
+		if (sse2_available) {
 #if defined (_MSC_VER)
-#define SIZEOF_INT_P 4
+#define SIZEOF_INT_P sizeof(*src)
 #endif
 			static const Bitu simd_inc = 16/SIZEOF_INT_P;
 			while (count >= (Bits)simd_inc) {
@@ -138,12 +138,15 @@ static void RENDER_StartLineHandler(const void * s) {
 				count-=simd_inc; src+=simd_inc; cache+=simd_inc;
 			}
 		}
+        else
 #endif
-		while (count) {
-			if (GCC_UNLIKELY(src[0] != cache[0]))
-				goto cacheMiss;
-			count--; src++; cache++;
-		}
+        {
+            while (count) {
+                if (GCC_UNLIKELY(src[0] != cache[0]))
+                    goto cacheMiss;
+                count--; src++; cache++;
+            }
+        }
 	}
 /* cacheHit */
 	render.scale.cacheRead += render.scale.cachePitch;
