@@ -430,6 +430,10 @@ AC_CHECK_LIB(GL, main, have_gl_lib=yes, have_gl_lib=no , )
 AC_CHECK_LIB(opengl32, main, have_opengl32_lib=yes,have_opengl32_lib=no , )
 AC_CHECK_HEADER(GL/gl.h, have_gl_h=yes , have_gl_h=no , )
 
+dnl LIBRARY TEST: Direct3D 9 header support
+AC_CHECK_HEADER(d3d9.h, have_d3d9_h=yes , have_d3d9_h=no , )
+AC_CHECK_HEADER(d3dx9math.h, have_d3dx9math_h=yes , have_d3dx9math_h=no , )
+
 dnl ================== SDL net special test for OS/2
 if test x$host = xi386-pc-os2-emx ; then
   LIBS_BACKUP=$LIBS;
@@ -679,6 +683,34 @@ case "$host" in
        fi
        ;;
 esac
+fi
+
+dnl FEATURE: Whether to use Direct3D 9 output
+AH_TEMPLATE(HAVE_D3D9_H,[Define to 1 to use Direct3D 9 display output support])
+AC_ARG_ENABLE(d3d9,AC_HELP_STRING([--disable-d3d9],[Disable Direct3D 9 support]),,enable_d3d9=yes)
+AC_MSG_CHECKING(whether Direct3D 9 display output will be enabled)
+
+# HACK: Don't enable Direct 3D 9 on SDL2
+if test -n "$SDL2_LIBS"; then
+    enable_d3d9=no
+fi
+
+if test x$enable_d3d9 = xyes; then
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+      if test x$have_d3d9_h = xyes -a x$have_d3dx9math_h = xyes ; then
+        AC_MSG_RESULT(yes)
+        AC_DEFINE(HAVE_D3D9_H,1)
+	  else
+        AC_MSG_RESULT(no)
+      fi
+    ;;
+    *)
+     AC_MSG_RESULT(no)
+    ;;
+esac
+else
+  AC_MSG_RESULT(no)
 fi
 
 AC_CONFIG_FILES([ 
