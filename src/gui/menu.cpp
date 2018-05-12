@@ -752,6 +752,19 @@ static const char *def_menu_video_output[] = {
     NULL
 };
 
+/* video vsync menu ("VideoVsyncMenu") */
+static const char *def_menu_video_vsync[] = {
+#if !defined(C_SDL2)
+    "vsync_on",
+    "vsync_force",
+    "vsync_host",
+    "vsync_off",
+    "--",
+    "vsync_set_syncrate",
+#endif
+    NULL
+};
+
 /* video overscan menu ("VideoOverscanMenu") */
 static const char *def_menu_video_overscan[] = {
     "overscan_0",
@@ -822,6 +835,9 @@ static const char *def_menu_video[] = {
     "scaler_forced",
     "VideoScalerMenu",
     "VideoOutputMenu",
+#if !defined(C_SDL2)
+    "VideoVsyncMenu",
+#endif
     "VideoOverscanMenu",
     "VideoCompatMenu",
     "VideoPC98Menu",
@@ -962,6 +978,9 @@ void ConstructMenu(void) {
 
     /* video output menu */
     ConstructSubMenu(mainMenu.get_item("VideoOutputMenu").get_master_id(), def_menu_video_output);
+
+    /* video vsync menu */
+    ConstructSubMenu(mainMenu.get_item("VideoVsyncMenu").get_master_id(), def_menu_video_vsync);
 
     /* video overscan menu */
     ConstructSubMenu(mainMenu.get_item("VideoOverscanMenu").get_master_id(), def_menu_video_overscan);

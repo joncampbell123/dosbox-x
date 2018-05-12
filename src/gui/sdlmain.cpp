@@ -6245,6 +6245,26 @@ void UpdateOverscanMenu(void) {
     }
 }
 
+bool vsync_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+#if !defined(C_SDL2)
+    const char *val = menuitem->get_name().c_str();
+    if (!strncmp(val,"vsync_",6))
+        val += 6;
+    else
+        return true;
+
+	SetVal("vsync", "vsyncmode", val);
+#endif
+    return true;
+}
+
+bool vsync_set_syncrate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+#if !defined(C_SDL2)
+    GUI_Shortcut(17);
+#endif
+    return true;
+}
+
 bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     const char *what = menuitem->get_name().c_str();
 
@@ -6900,6 +6920,21 @@ int main(int argc, char* argv[]) {
                     set_callback_function(output_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_openglnb").set_text("OpenGL NB").
                     set_callback_function(output_menu_callback);
+            }
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoVsyncMenu");
+                item.set_text("V-Sync");
+
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vsync_on").set_text("On").
+                    set_callback_function(vsync_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vsync_force").set_text("Force").
+                    set_callback_function(vsync_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vsync_host").set_text("Host").
+                    set_callback_function(vsync_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vsync_off").set_text("Off").
+                    set_callback_function(vsync_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vsync_set_syncrate").set_text("Set syncrate").
+                    set_callback_function(vsync_set_syncrate_menu_callback);
             }
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoOverscanMenu");
