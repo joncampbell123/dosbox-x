@@ -151,6 +151,8 @@ const char *scaler_menu_opts[][2] = {
     { NULL, NULL }
 };
 
+void UpdateOverscanMenu(void);
+
 const char *DKM_to_string(const unsigned int dkm) {
     switch (dkm) {
         case DKM_US:        return "us";
@@ -2475,6 +2477,7 @@ void change_output(int output) {
 	Section * sec = control->GetSection("sdl");
 	Section_prop * section=static_cast<Section_prop *>(sec);
 	sdl.overscan_width=section->Get_int("overscan");
+    UpdateOverscanMenu();
 	switch (output) {
 	case 0:
 		sdl.desktop.want_type=SCREEN_SURFACE;
@@ -6223,6 +6226,24 @@ bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
     return true;
 }
 
+bool overscan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    int f = atoi(menuitem->get_text().c_str()); /* Off becomes 0 */
+    char tmp[64];
+
+    sprintf(tmp,"%u",f);
+	SetVal("sdl", "overscan", tmp);
+    change_output(7);
+    return true;
+}
+
+void UpdateOverscanMenu(void) {
+    for (size_t i=0;i <= 10;i++) {
+        char tmp[64];
+        sprintf(tmp,"overscan_%zu",i);
+        mainMenu.get_item(tmp).check(sdl.overscan_width == i).refresh_item(mainMenu);
+    }
+}
+
 bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     const char *what = menuitem->get_name().c_str();
 
@@ -6880,6 +6901,22 @@ int main(int argc, char* argv[]) {
                     set_callback_function(output_menu_callback);
             }
             {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoOverscanMenu");
+                item.set_text("Overscan");
+
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"overscan_0").set_text("Off").
+                    set_callback_function(overscan_menu_callback);
+
+                for (size_t i=1;i <= 10;i++) {
+                    char tmp1[64],tmp2[64];
+
+                    sprintf(tmp1,"overscan_%zu",i);
+                    sprintf(tmp2,"%zu",i);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,tmp1).set_text(tmp2).
+                        set_callback_function(overscan_menu_callback);
+                }
+            }
+            {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoPC98Menu");
                 item.set_text("PC-98");
 
@@ -7096,6 +7133,8 @@ int main(int argc, char* argv[]) {
         UpdateWindowDimensions();
         userResizeWindowWidth = 0;
         userResizeWindowHeight = 0;
+
+        UpdateOverscanMenu();
 
 #if !defined(C_SDL2)
         void GUI_ResetResize(bool pressed);
