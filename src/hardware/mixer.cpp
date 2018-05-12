@@ -882,11 +882,14 @@ MixerObject::~MixerObject(){
 	MIXER_DelChannel(MIXER_FindChannel(m_name));
 }
 
-#ifdef WIN32
 void MENU_swapstereo(bool enabled) {
 	mixer.swapstereo=enabled;
+    mainMenu.get_item("mixer_swapstereo").check(mixer.swapstereo).refresh_item(mainMenu);
 }
-#endif
+
+bool MENU_get_swapstereo(void) {
+    return mixer.swapstereo;
+}
 
 void MAPPER_VolumeUp(bool pressed) {
     if (!pressed) return;

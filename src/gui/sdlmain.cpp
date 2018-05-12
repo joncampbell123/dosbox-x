@@ -6078,6 +6078,21 @@ bool scaler_forced_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     return true;
 }
 
+void MENU_swapstereo(bool enabled);
+bool MENU_get_swapstereo(void);
+
+bool mixer_gui_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+#if !defined(C_SDL2)
+    GUI_Shortcut(4);
+#endif
+    return true;
+}
+
+bool mixer_swapstereo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    MENU_swapstereo(!MENU_get_swapstereo());
+    return true;
+}
+
 bool vid_pc98_5mhz_gdc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     if (IS_PC98_ARCH) {
         void gdc_5mhz_mode_update_vars(void);
@@ -6984,6 +6999,13 @@ int main(int argc, char* argv[]) {
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"SoundMenu");
             item.set_text("Sound");
+
+            {
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"mixer_gui").set_text("Mixer GUI").
+                    set_callback_function(mixer_gui_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"mixer_swapstereo").set_text("Swap stereo").
+                    set_callback_function(mixer_swapstereo_menu_callback);
+            }
         }
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSMenu");
@@ -7151,6 +7173,10 @@ int main(int argc, char* argv[]) {
 		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, "desktop.doublebuf", 0));
 		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
 		mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles);
+
+        bool MENU_get_swapstereo(void);
+
+        mainMenu.get_item("mixer_swapstereo").check(MENU_get_swapstereo()).refresh_item(mainMenu);
 
         mainMenu.get_item("scaler_forced").check(render.scale.forced);
 

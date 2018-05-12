@@ -848,6 +848,12 @@ static const char *def_menu_video[] = {
 static const char *def_menu_sound[] = {
     "mapper_volup",
     "mapper_voldown",
+    "--",
+    "mixer_swapstereo",
+#if !defined(C_SDL2)
+    "--",
+    "mixer_gui",
+#endif
     NULL
 };
 
