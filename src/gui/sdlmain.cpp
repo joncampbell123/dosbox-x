@@ -7074,6 +7074,18 @@ int main(int argc, char* argv[]) {
 
         mainMenu.get_item("scaler_forced").check(render.scale.forced);
 
+        mainMenu.get_item("vga_9widetext").enable(!IS_PC98_ARCH);
+        mainMenu.get_item("doublescan").enable(!IS_PC98_ARCH);
+
+        mainMenu.get_item("pc98_5mhz_gdc").enable(IS_PC98_ARCH);
+        mainMenu.get_item("pc98_allow_200scanline").enable(IS_PC98_ARCH);
+        mainMenu.get_item("pc98_allow_4partitions").enable(IS_PC98_ARCH);
+        mainMenu.get_item("pc98_enable_egc").enable(IS_PC98_ARCH);
+        mainMenu.get_item("pc98_enable_grcg").enable(IS_PC98_ARCH);
+        mainMenu.get_item("pc98_enable_analog").enable(IS_PC98_ARCH);
+        mainMenu.get_item("pc98_clear_text").enable(IS_PC98_ARCH);
+        mainMenu.get_item("pc98_clear_graphics").enable(IS_PC98_ARCH);
+
         OutputSettingMenuUpdate();
 
 		/* The machine just "powered on", and then reset finished */
