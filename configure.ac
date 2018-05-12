@@ -687,7 +687,7 @@ fi
 
 dnl FEATURE: Whether to use Direct3D 9 output
 AH_TEMPLATE(HAVE_D3D9_H,[Define to 1 to use Direct3D 9 display output support])
-AC_ARG_ENABLE(d3d9,AC_HELP_STRING([--disable-d3d9],[Disable Direct3D 9 support]),,enable_d3d9=yes)
+AC_ARG_ENABLE(d3d9,AC_HELP_STRING([--enable-d3d9],[Enable Direct3D 9 support]),,enable_d3d9=no)
 AC_MSG_CHECKING(whether Direct3D 9 display output will be enabled)
 
 # HACK: Don't enable Direct 3D 9 on SDL2
