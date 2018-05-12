@@ -4076,7 +4076,7 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
 
             item.screenBox.x = x;
             item.screenBox.y = popupBox.y;
-            item.screenBox.w = 5 * menu.fontCharScale;
+            item.screenBox.w = (4 * menu.fontCharScale) + 1;
             item.screenBox.h = y - popupBox.y;
 
             minx = maxx = x = item.screenBox.x + item.screenBox.w;
@@ -4205,7 +4205,7 @@ void DOSBoxMenu::item::placeItem(DOSBoxMenu &menu,int x,int y,bool isTopLevel) {
         screenBox.x = x;
         screenBox.y = y;
         screenBox.w = menu.fontCharWidth * 2;
-        screenBox.h = 5 * menu.fontCharScale;
+        screenBox.h = (4 * menu.fontCharScale) + 1;
 
         checkBox.x = 0;
         checkBox.y = 0;
