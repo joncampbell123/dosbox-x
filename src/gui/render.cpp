@@ -725,17 +725,28 @@ void RENDER_UpdateFrameskipMenu(void) {
     }
 }
 
+void VGA_SetupDrawing(Bitu /*val*/);
+
 void RENDER_OnSectionPropChange(Section *x) {
 	Section_prop * section = static_cast<Section_prop *>(control->GetSection("render"));
 
+    bool p_doublescan = vga.draw.doublescan_set;
+    bool p_char9 = vga.draw.char9_set;
 	bool p_aspect = render.aspect;
 
 	render.aspect = section->Get_bool("aspect");
 	render.frameskip.max = section->Get_int("frameskip");
 
-	if (render.aspect != p_aspect) {
+	vga.draw.doublescan_set=section->Get_bool("doublescan");
+	vga.draw.char9_set=section->Get_bool("char9");
+
+	if (render.aspect != p_aspect || vga.draw.doublescan_set != p_doublescan || vga.draw.char9_set != p_char9)
 		RENDER_CallBack(GFX_CallBackReset);
-	}
+	if (vga.draw.doublescan_set != p_doublescan || vga.draw.char9_set != p_char9)
+	    VGA_StartResize();
+
+    mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
+    mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
 
     RENDER_UpdateFrameskipMenu();
 }
@@ -806,6 +817,9 @@ void RENDER_Init() {
 
 	vga.draw.doublescan_set=section->Get_bool("doublescan");
 	vga.draw.char9_set=section->Get_bool("char9");
+
+    mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
+    mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
 
 	//For restarting the renderer.
 	static bool running = false;

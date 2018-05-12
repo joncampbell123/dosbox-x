@@ -6256,6 +6256,18 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     return true;
 }
 
+bool MENU_SetBool(std::string secname, std::string value);
+
+bool vga_9widetext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+	MENU_SetBool("render", "char9");
+    return true;
+}
+
+bool doublescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+	MENU_SetBool("render", "doublescan");
+    return true;
+}
+
 bool scaler_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     const char *scaler = menuitem->get_name().c_str();
     if (!strncmp(scaler,"scaler_set_",11))
@@ -6843,6 +6855,15 @@ int main(int argc, char* argv[]) {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(scaler_menu_opts[i][1]).
                         set_callback_function(scaler_set_menu_callback);
                 }
+            }
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoCompatMenu");
+                item.set_text("Compatibility");
+
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vga_9widetext").set_text("Allow 9-pixel wide text mode").
+                    set_callback_function(vga_9widetext_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublescan").set_text("Doublescan").
+                    set_callback_function(doublescan_menu_callback);
             }
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoOutputMenu");

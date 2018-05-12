@@ -752,6 +752,13 @@ static const char *def_menu_video_output[] = {
     NULL
 };
 
+/* video output menu ("VideoCompatMenu") */
+static const char *def_menu_video_compat[] = {
+    "vga_9widetext",
+    "doublescan",
+    NULL
+};
+
 /* video output menu ("VideoPC98Menu") */
 static const char *def_menu_video_pc98[] = {
     "pc98_5mhz_gdc",
@@ -799,6 +806,7 @@ static const char *def_menu_video[] = {
     "scaler_forced",
     "VideoScalerMenu",
     "VideoOutputMenu",
+    "VideoCompatMenu",
     "VideoPC98Menu",
     NULL
 };
@@ -938,6 +946,9 @@ void ConstructMenu(void) {
     /* video output menu */
     ConstructSubMenu(mainMenu.get_item("VideoOutputMenu").get_master_id(), def_menu_video_output);
 
+    /* video compat menu */
+    ConstructSubMenu(mainMenu.get_item("VideoCompatMenu").get_master_id(), def_menu_video_compat);
+
     /* video PC-98 menu */
     ConstructSubMenu(mainMenu.get_item("VideoPC98Menu").get_master_id(), def_menu_video_pc98);
 
@@ -946,6 +957,12 @@ void ConstructMenu(void) {
 
     /* capture menu */
     ConstructSubMenu(mainMenu.get_item("CaptureMenu").get_master_id(), def_menu_capture);
+}
+
+bool MENU_SetBool(std::string secname, std::string value) {
+	Section_prop * sec = static_cast<Section_prop *>(control->GetSection(secname));
+	if(sec) SetVal(secname, value, sec->Get_bool(value) ? "false" : "true");
+	return sec->Get_bool(value);
 }
 
 void RENDER_CallBack( GFX_CallBackFunctions_t function );
@@ -1937,12 +1954,6 @@ void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image,
 	if(sec) EnableMenuItem(handle, automount, AUTOMOUNT(full_drive.c_str(), drive) && !menu.boot && sec->Get_bool("automount") ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(handle, umount, (!Drives[drive - 'A']) || menu.boot ? MF_GRAYED : MF_ENABLED);
 #endif
-}
-
-bool MENU_SetBool(std::string secname, std::string value) {
-	Section_prop * sec = static_cast<Section_prop *>(control->GetSection(secname));
-	if(sec) SetVal(secname, value, sec->Get_bool(value) ? "false" : "true");
-	return sec->Get_bool(value);
 }
 
 void MENU_KeyDelayRate(int delay, int rate) {
