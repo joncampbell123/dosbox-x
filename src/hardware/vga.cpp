@@ -134,6 +134,7 @@
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
 #include "mixer.h"
+#include "menu.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -490,13 +491,16 @@ void VGA_Reset(Section*) {
 	LOG(LOG_MISC,LOG_DEBUG)("VGA_Reset() reinitializing VGA emulation");
 
     GDC_display_plane_wait_for_vsync = section->Get_bool("pc-98 buffer page flip");
+
     pc98_allow_scanline_effect = section->Get_bool("pc-98 allow scanline effect");
+    mainMenu.get_item("pc98_allow_200scanline").check(pc98_allow_scanline_effect).refresh_item(mainMenu);
 
     // whether the GDC is running at 2.5MHz or 5.0MHz.
     // Some games require the GDC to run at 5.0MHz.
     // To enable these games we default to 5.0MHz.
     // NTS: There are also games that refuse to run if 5MHz switched on (TH03)
     gdc_5mhz_mode = section->Get_bool("pc-98 start gdc at 5mhz");
+    mainMenu.get_item("pc98_5mhz_gdc").check(gdc_5mhz_mode).refresh_item(mainMenu);
 
     enable_pc98_egc = section->Get_bool("pc-98 enable egc");
     enable_pc98_grcg = section->Get_bool("pc-98 enable grcg");
@@ -519,8 +523,13 @@ void VGA_Reset(Section*) {
 	
     i = section->Get_int("pc-98 allow 4 display partition graphics");
     pc98_allow_4_display_partitions = (i < 0/*auto*/ || i == 1/*on*/);
+    mainMenu.get_item("pc98_allow_4partitions").check(pc98_allow_4_display_partitions).refresh_item(mainMenu);
     // TODO: "auto" will default to true if old PC-9801, false if PC-9821, or
     //       a more refined automatic choice according to actual hardware.
+
+    mainMenu.get_item("pc98_enable_egc").check(enable_pc98_egc).refresh_item(mainMenu);
+    mainMenu.get_item("pc98_enable_grcg").check(enable_pc98_grcg).refresh_item(mainMenu);
+    mainMenu.get_item("pc98_enable_analog").check(enable_pc98_16color).refresh_item(mainMenu);
 
 	vga_force_refresh_rate = -1;
 	str=section->Get_string("forcerate");

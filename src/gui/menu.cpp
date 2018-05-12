@@ -752,6 +752,21 @@ static const char *def_menu_video_output[] = {
     NULL
 };
 
+/* video output menu ("VideoPC98Menu") */
+static const char *def_menu_video_pc98[] = {
+    "pc98_5mhz_gdc",
+    "pc98_allow_200scanline",
+    "pc98_allow_4partitions",
+    "--",
+    "pc98_enable_egc",
+    "pc98_enable_grcg",
+    "pc98_enable_analog",
+    "--",
+    "pc98_clear_text",
+    "pc98_clear_graphics",
+    NULL
+};
+
 /* video menu ("VideoMenu") */
 static const char *def_menu_video[] = {
 #if !defined(C_SDL2)
@@ -784,6 +799,7 @@ static const char *def_menu_video[] = {
     "scaler_forced",
     "VideoScalerMenu",
     "VideoOutputMenu",
+    "VideoPC98Menu",
     NULL
 };
 
@@ -921,6 +937,9 @@ void ConstructMenu(void) {
 
     /* video output menu */
     ConstructSubMenu(mainMenu.get_item("VideoOutputMenu").get_master_id(), def_menu_video_output);
+
+    /* video PC-98 menu */
+    ConstructSubMenu(mainMenu.get_item("VideoPC98Menu").get_master_id(), def_menu_video_pc98);
 
     /* sound menu */
     ConstructSubMenu(mainMenu.get_item("SoundMenu").get_master_id(), def_menu_sound);

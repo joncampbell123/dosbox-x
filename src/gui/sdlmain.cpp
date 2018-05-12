@@ -6070,8 +6070,155 @@ void SetScaleForced(bool forced);
 void OutputSettingMenuUpdate(void);
 
 bool scaler_forced_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    SetScaleForced(!render.scale.forced);
-    menuitem->check(render.scale.forced);
+    return true;
+}
+
+bool vid_pc98_5mhz_gdc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    if (IS_PC98_ARCH) {
+        void gdc_5mhz_mode_update_vars(void);
+        extern bool gdc_5mhz_mode;
+
+        gdc_5mhz_mode = !gdc_5mhz_mode;
+        gdc_5mhz_mode_update_vars();
+
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        if (gdc_5mhz_mode)
+            dosbox_section->HandleInputline("pc-98 start gdc at 5mhz=1");
+        else
+            dosbox_section->HandleInputline("pc-98 start gdc at 5mhz=0");
+
+        mainMenu.get_item("pc98_5mhz_gdc").check(gdc_5mhz_mode).refresh_item(mainMenu);
+    }
+
+    return true;
+}
+
+bool vid_pc98_200scanline_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    if (IS_PC98_ARCH) {
+        extern bool pc98_allow_scanline_effect;
+
+        pc98_allow_scanline_effect = !pc98_allow_scanline_effect;
+
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        if (pc98_allow_scanline_effect)
+            dosbox_section->HandleInputline("pc-98 allow scanline effect=1");
+        else
+            dosbox_section->HandleInputline("pc-98 allow scanline effect=0");
+
+        mainMenu.get_item("pc98_allow_200scanline").check(pc98_allow_scanline_effect).refresh_item(mainMenu);
+    }
+
+    return true;
+}
+
+bool vid_pc98_4parts_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    if (IS_PC98_ARCH) {
+        extern bool pc98_allow_4_display_partitions;
+        void updateGDCpartitions4(bool enable);
+
+        updateGDCpartitions4(!pc98_allow_4_display_partitions);
+
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        if (pc98_allow_4_display_partitions)
+            dosbox_section->HandleInputline("pc-98 allow 4 display partition graphics=1");
+        else
+            dosbox_section->HandleInputline("pc-98 allow 4 display partition graphics=0");
+
+        mainMenu.get_item("pc98_allow_4partitions").check(pc98_allow_4_display_partitions).refresh_item(mainMenu);
+    }
+
+    return true;
+}
+
+bool vid_pc98_enable_egc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    void gdc_egc_enable_update_vars(void);
+    extern bool enable_pc98_egc;
+    extern bool enable_pc98_grcg;
+    extern bool enable_pc98_16color;
+
+    if(IS_PC98_ARCH) {
+        enable_pc98_egc = !enable_pc98_egc;
+        gdc_egc_enable_update_vars();
+
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        if (enable_pc98_egc) {
+            dosbox_section->HandleInputline("pc-98 enable egc=1");
+
+            if(!enable_pc98_grcg) { //Also enable GRCG if GRCG is disabled when enabling EGC
+                enable_pc98_grcg = !enable_pc98_grcg;
+                mem_writeb(0x54C,(enable_pc98_grcg ? 0x02 : 0x00) | (enable_pc98_16color ? 0x04 : 0x00));	
+                dosbox_section->HandleInputline("pc-98 enable grcg=1");
+            }
+        }
+        else
+            dosbox_section->HandleInputline("pc-98 enable egc=0");
+
+        mainMenu.get_item("pc98_enable_egc").check(enable_pc98_egc).refresh_item(mainMenu);
+        mainMenu.get_item("pc98_enable_grcg").check(enable_pc98_grcg).refresh_item(mainMenu);
+    }
+	
+    return true;
+}
+
+bool vid_pc98_enable_grcg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    extern bool enable_pc98_grcg;
+    extern bool enable_pc98_egc;
+    void gdc_grcg_enable_update_vars(void);
+
+    if(IS_PC98_ARCH) {
+        enable_pc98_grcg = !enable_pc98_grcg;
+        gdc_grcg_enable_update_vars();
+
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        if (enable_pc98_grcg)
+            dosbox_section->HandleInputline("pc-98 enable grcg=1");
+        else
+            dosbox_section->HandleInputline("pc-98 enable grcg=0");
+
+        if ((!enable_pc98_grcg) && enable_pc98_egc) { // Also disable EGC if switching off GRCG
+            void gdc_egc_enable_update_vars(void);
+            enable_pc98_egc = !enable_pc98_egc;
+            gdc_egc_enable_update_vars();	
+            dosbox_section->HandleInputline("pc-98 enable egc=0");
+        }
+
+        mainMenu.get_item("pc98_enable_egc").check(enable_pc98_egc).refresh_item(mainMenu);
+        mainMenu.get_item("pc98_enable_grcg").check(enable_pc98_grcg).refresh_item(mainMenu);
+    }
+
+    return true;
+}
+
+bool vid_pc98_enable_analog_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    //NOTE: I thought that even later PC-9801s and some PC-9821s could use EGC features in digital 8-colors mode? 
+    extern bool enable_pc98_16color;
+    void gdc_16color_enable_update_vars(void);
+
+    if(IS_PC98_ARCH) {
+        enable_pc98_16color = !enable_pc98_16color;
+        gdc_16color_enable_update_vars();
+
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        if (enable_pc98_16color)
+            dosbox_section->HandleInputline("pc-98 enable 16-color=1");
+        else
+            dosbox_section->HandleInputline("pc-98 enable 16-color=0");
+
+        mainMenu.get_item("pc98_enable_analog").check(enable_pc98_16color).refresh_item(mainMenu);
+    }
+
+    return true;
+}
+
+bool vid_pc98_cleartext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    void pc98_clear_text(void);
+    if (IS_PC98_ARCH) pc98_clear_text();
+    return true;
+}
+
+bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    void pc98_clear_graphics(void);
+    if (IS_PC98_ARCH) pc98_clear_graphics();
     return true;
 }
 
@@ -6709,6 +6856,27 @@ int main(int argc, char* argv[]) {
                     set_callback_function(output_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_openglnb").set_text("OpenGL NB").
                     set_callback_function(output_menu_callback);
+            }
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoPC98Menu");
+                item.set_text("PC-98");
+
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_5mhz_gdc").set_text("5MHz GDC clock").
+                    set_callback_function(vid_pc98_5mhz_gdc_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_allow_200scanline").set_text("Allow 200-line scanline effect").
+                    set_callback_function(vid_pc98_200scanline_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_allow_4partitions").set_text("Allow 4 display partitions in graphics layer").
+                    set_callback_function(vid_pc98_4parts_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_enable_egc").set_text("Enable EGC").
+                    set_callback_function(vid_pc98_enable_egc_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_enable_grcg").set_text("Enable GRCG").
+                    set_callback_function(vid_pc98_enable_grcg_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_enable_analog").set_text("Enable analog display").
+                    set_callback_function(vid_pc98_enable_analog_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_clear_text").set_text("Clear text layer").
+                    set_callback_function(vid_pc98_cleartext_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_clear_graphics").set_text("Clear graphics layer").
+                    set_callback_function(vid_pc98_graphics_menu_callback);
             }
         }
         {
