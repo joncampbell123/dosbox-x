@@ -3989,6 +3989,20 @@ void DOSBoxMenu::removeFocus(void) {
     }
 }
 
+void DOSBoxMenu::setScale(size_t s) {
+    if (s == 0) s = 1;
+    if (s > 2) s = 2;
+
+    if (fontCharScale != s) {
+        fontCharScale = s;
+        menuBarHeight = menuBarHeightBase * fontCharScale;
+        fontCharWidth = fontCharWidthBase * fontCharScale;
+        fontCharHeight = fontCharHeightBase * fontCharScale;
+        updateRect();
+        layoutMenu();
+    }
+}
+
 void DOSBoxMenu::removeHover(void) {
     if (menuUserHoverAt != unassigned_item_handle) {
         get_item(menuUserHoverAt).removeHover(*this);
@@ -4058,7 +4072,7 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
 
             item.screenBox.x = x;
             item.screenBox.y = popupBox.y;
-            item.screenBox.w = 5;
+            item.screenBox.w = 5 * menu.fontCharScale;
             item.screenBox.h = y - popupBox.y;
 
             minx = maxx = x = item.screenBox.x + item.screenBox.w;
@@ -4187,7 +4201,7 @@ void DOSBoxMenu::item::placeItem(DOSBoxMenu &menu,int x,int y,bool isTopLevel) {
         screenBox.x = x;
         screenBox.y = y;
         screenBox.w = menu.fontCharWidth * 2;
-        screenBox.h = 5;
+        screenBox.h = 5 * menu.fontCharScale;
 
         checkBox.x = 0;
         checkBox.y = 0;

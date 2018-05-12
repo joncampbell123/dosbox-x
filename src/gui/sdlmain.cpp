@@ -1347,9 +1347,61 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
     }
 }
 
+void MenuDrawTextChar2x(int x,int y,unsigned char c,Bitu color) {
+    static const unsigned int fontHeight = 16;
+
+    if (x < 0 || y < 0 || (x+8) > sdl.surface->w || (y+fontHeight) > sdl.surface->h)
+        return;
+
+    unsigned char *bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
+    unsigned char *scan;
+    uint32_t *row;
+
+    assert(sdl.surface->pixels != NULL);
+
+    scan  = (unsigned char*)sdl.surface->pixels;
+    scan += y * sdl.surface->pitch;
+    scan += x * ((sdl.surface->format->BitsPerPixel+7)/8);
+
+    for (unsigned int row=0;row < (fontHeight*2);row++) {
+        unsigned char rb = bmp[row>>1U];
+
+        if (sdl.surface->format->BitsPerPixel == 32) {
+            uint32_t *dp = (uint32_t*)scan;
+            for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                if (rb & colm) {
+                    *dp++ = (uint32_t)color;
+                    *dp++ = (uint32_t)color;
+                }
+                else {
+                    dp += 2;
+                }
+            }
+        }
+        else if (sdl.surface->format->BitsPerPixel == 16) {
+            uint16_t *dp = (uint16_t*)scan;
+            for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                if (rb & colm) {
+                    *dp++ = (uint16_t)color;
+                    *dp++ = (uint16_t)color;
+                }
+                else {
+                    dp += 2;
+                }
+            }
+        }
+
+        scan += sdl.surface->pitch;
+    }
+}
+
 void MenuDrawText(int x,int y,const char *text,Bitu color) {
     while (*text != 0) {
-        MenuDrawTextChar(x,y,(unsigned char)(*text++),color);
+        if (mainMenu.fontCharScale >= 2)
+            MenuDrawTextChar2x(x,y,(unsigned char)(*text++),color);
+        else
+            MenuDrawTextChar(x,y,(unsigned char)(*text++),color);
+
         x += mainMenu.fontCharWidth;
     }
 }
@@ -1595,6 +1647,23 @@ dosurface:
 		} else {
 			sdl.clip.x=0;
             sdl.clip.y=0;
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            /* scale the menu bar if the window is large enough */
+            {
+                Bitu consider_height = menu.maxwindow ? currentWindowHeight : height;
+                Bitu consider_width = menu.maxwindow ? currentWindowWidth : width;
+                Bitu final_height = max(max(consider_height,userResizeWindowHeight),(Bitu)(sdl.clip.y+sdl.clip.h));
+                Bitu final_width = max(max(consider_width,userResizeWindowWidth),(Bitu)(sdl.clip.x+sdl.clip.w));
+                Bitu scale = 1;
+
+                while ((final_width/scale) >= (640*2) && (final_height/scale) >= (400*2))
+                    scale++;
+
+                LOG_MSG("menuScale=%lu",(unsigned long)scale);
+                mainMenu.setScale(scale);
+            }
+#endif
 
 			/* center the screen in the window */
 			{

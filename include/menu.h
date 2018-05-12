@@ -467,12 +467,15 @@ class DOSBoxMenu {
         }
     public:
         void                            showMenu(bool show=true);
+        void                            setScale(size_t s);
         void                            removeHover(void);
         void                            removeFocus(void);
         void                            updateRect(void);
         void                            layoutMenu(void);
     public:
-        size_t                          menuBarHeight = (16 + 1);
+        static constexpr size_t         menuBarHeightBase = (16 + 1);
+        size_t                          menuBarHeight = menuBarHeightBase;
+    public:
         size_t                          screenWidth = 320;
     public:
         static constexpr size_t         fontCharWidthBase = 8;
@@ -480,6 +483,7 @@ class DOSBoxMenu {
         static constexpr size_t         dropshadowX = 8;
         static constexpr size_t         dropshadowY = 8;
     public:
+        size_t                          fontCharScale = 1;
         size_t                          fontCharWidth = fontCharWidthBase;
         size_t                          fontCharHeight = fontCharHeightBase;
 #endif
