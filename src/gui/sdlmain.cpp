@@ -1593,8 +1593,8 @@ dosurface:
 				goto dosurface;
 			}
 		} else {
-			sdl.clip.x=sdl.overscan_width;
-            sdl.clip.y=sdl.overscan_width;
+			sdl.clip.x=0;
+            sdl.clip.y=0;
 
 			/* center the screen in the window */
 			{
@@ -1602,18 +1602,19 @@ dosurface:
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
                 if (mainMenu.isVisible()) menuheight = mainMenu.menuBox.h;
 #endif
-                Bitu consider_height = menu.maxwindow ? currentWindowHeight : (height + menuheight);
-                Bitu consider_width = menu.maxwindow ? currentWindowWidth : width;
-                int final_height = max(max(consider_height,userResizeWindowHeight),(Bitu)(sdl.clip.y+sdl.clip.h)) - menuheight;
-                int final_width = max(max(consider_width,userResizeWindowWidth),(Bitu)(sdl.clip.x+sdl.clip.w));
+                Bitu consider_height = menu.maxwindow ? currentWindowHeight : (height + menuheight + (sdl.overscan_width * 2));
+                Bitu consider_width = menu.maxwindow ? currentWindowWidth : (width + (sdl.overscan_width * 2));
+                int final_height = max(max(consider_height,userResizeWindowHeight),(Bitu)(sdl.clip.y+sdl.clip.h)) - menuheight - (sdl.overscan_width * 2);
+                int final_width = max(max(consider_width,userResizeWindowWidth),(Bitu)(sdl.clip.x+sdl.clip.w)) - (sdl.overscan_width * 2);
 				int ax = (final_width - (sdl.clip.x + sdl.clip.w)) / 2;
 				int ay = (final_height - (sdl.clip.y + sdl.clip.h)) / 2;
-				sdl.clip.x += ax;
-				sdl.clip.y += ay;
+				sdl.clip.x += ax + sdl.overscan_width;
+				sdl.clip.y += ay + sdl.overscan_width;
 //				sdl.clip.w = currentWindowWidth - sdl.clip.x;
 //				sdl.clip.h = currentWindowHeight - sdl.clip.y;
 
-                final_height += menuheight;
+                final_width += sdl.overscan_width*2;
+                final_height += menuheight + sdl.overscan_width*2;
                 sdl.clip.y += menuheight;
 
                 LOG_MSG("surface consider=%ux%u final=%ux%u",
