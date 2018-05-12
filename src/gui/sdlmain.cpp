@@ -1350,7 +1350,7 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
 void MenuDrawText(int x,int y,const char *text,Bitu color) {
     while (*text != 0) {
         MenuDrawTextChar(x,y,(unsigned char)(*text++),color);
-        x += DOSBoxMenu::fontCharWidth;
+        x += mainMenu.fontCharWidth;
     }
 }
 
@@ -1394,7 +1394,7 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
         MenuDrawText(screenBox.x+shortBox.x, screenBox.y+shortBox.y, shortcut_text.c_str(), fgshortcolor);
 
     if (type == submenu_type_id && borderTop/*not toplevel*/)
-        MenuDrawText(screenBox.x+screenBox.w - DOSBoxMenu::fontCharWidth - 1, screenBox.y+textBox.y, "\x10", fgcheckcolor);
+        MenuDrawText(screenBox.x+screenBox.w - mainMenu.fontCharWidth - 1, screenBox.y+textBox.y, "\x10", fgcheckcolor);
 
     if (type == separator_type_id)
         MenuDrawRect(screenBox.x, screenBox.y + (screenBox.h/2), screenBox.w, 1, fgcolor);
