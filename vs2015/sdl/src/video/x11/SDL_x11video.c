@@ -1260,8 +1260,8 @@ SDL_Surface *X11_SetVideoMode(_THIS, SDL_Surface *current,
 	}
 
 	/* Clear these flags and set them only if they are in the new set. */
-	current->flags &= ~(SDL_RESIZABLE|SDL_NOFRAME);
-	current->flags |= (flags&(SDL_RESIZABLE|SDL_NOFRAME));
+	current->flags &= ~(SDL_RESIZABLE|SDL_NOFRAME|SDL_HAX_NOREFRESH);
+	current->flags |= (flags&(SDL_RESIZABLE|SDL_NOFRAME|SDL_HAX_NOREFRESH));
 
   done:
 	/* Release the event thread */

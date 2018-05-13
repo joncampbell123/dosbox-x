@@ -303,6 +303,11 @@ void X11_RefreshDisplay(_THIS)
 		SDL_PrivateExpose();
 		return;
 	}
+
+    /* DOSBox-X: SDL_SetVideoMode() can specify a flag not to auto-redraw (to avoid flickering) */
+    if (this->screen->flags & SDL_HAX_NOREFRESH)
+        return;
+
 #ifndef NO_SHARED_MEMORY
 	if ( this->UpdateRects == X11_MITSHMUpdate ) {
 		XShmPutImage(SDL_Display, SDL_Window, SDL_GC, SDL_Ximage,

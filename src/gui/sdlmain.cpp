@@ -1708,7 +1708,8 @@ dosurface:
                     (unsigned int)final_width,
                     (unsigned int)final_height);
 
-				sdl.surface = SDL_SetVideoMode(final_width, final_height, bpp, (flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE | SDL_RESIZABLE : SDL_HWSURFACE | SDL_RESIZABLE);
+				sdl.surface = SDL_SetVideoMode(final_width, final_height, bpp,
+                    ((flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) | SDL_HAX_NOREFRESH | SDL_RESIZABLE);
                 sdl.deferred_resize = false;
                 sdl.must_redraw_all = true;
 
@@ -2939,6 +2940,10 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 
     if (changedLines != NULL) {
         sdl.must_redraw_all = false;
+
+#if !defined(C_SDL2)
+        sdl.surface->flags &= ~SDL_HAX_NOREFRESH;
+#endif
 
         if (changedLines != NULL && sdl.deferred_resize) {
             sdl.deferred_resize = false;
