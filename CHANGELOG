@@ -1,4 +1,76 @@
 0.82.7 (next)
+  - Added code to force redrawing additional frames when
+    output=opengl, in order to correct a bug with Linux/X11
+    and MesaGL where the first OpenGL buffer swap after
+    SDL_SetVideoMode() is misplaced when the window size
+    changes.
+  - Renderer SSE line comparison fixed to use correct sizeof()
+    of the integer type during compare.
+  - Renderer fixed not to use SSE and non-SSE line comparision
+    at the same time, if SSE was enabled at compile time.
+  - Fixed in-tree SDL 1.x library to allow DOSBox-X to disable
+    auto-refresh of the window in Linux/X11 after SDL_SetVideoMode
+    to prevent visible flickering when resizing the window.
+  - Conditional support for Direct3D (9) output enabled for
+    MinGW builds, if the MinGW headers are available (yksoft1).
+    Option is disabled by default.
+  - Configuration GUI dialog box widened to accomodate buttons
+    that were previously cut off on the right.
+  - Replace E_Exit() with LOG_MSG() for key codes from the mapper
+    that a keyboard scan code generator does not recognize. This
+    fixes E_Exit() crashes if typing certain keys on a Japanese
+    keyboard with no equivalent in IBM PC/AT mode.
+  - Added code to double the size of the menu and menu items if
+    the window is 1280x800 or larger, for users with high
+    definition laptop displays and screens.
+  - Enforce minimum window size of 640x400 if the menu bar is
+    visible and DOSBox-X is drawing them, to make sure the menus
+    are accessible on screen.
+  - Removed auto-scalar-size code when output=surface that was
+    causing problems when resizing the window.
+  - Do not show "screenshot" menu item if screenshot support not
+    available at compile time.
+  - Remove "always on top" for anything but Windows at this time.
+  - Disable "Show debugger" option on Linux and Mac OS X if no
+    console attached to STDIN/STDOUT/STDERR.
+  - Disable "Show console" option on Linux and Mac OS X since
+    the console is not under our control.
+  - Windows "Always on top" fixed to remember selection and
+    enforce it between SDL_SetVideoMode and fullscreen entry/exit.
+  - Windows builds fixed NOT to change window Z-order on the
+    screen when updating the window on SDL_SetVideoMode.
+  - HX DOS builds fixed to keep window maximized at all times
+    to fill the otherwise unused space on the screen since
+    HXGUI only supports one window.
+  - Menu framework support for any other platform (including
+    Linux) added. The menus are drawn by DOSBox-X itself
+    using the 8x16 VGA font. This also gives SDL 2.x builds
+    a working menu. These menus are used if no other platform
+    specific menus are available. These menus are NOT AVAILABLE
+    at this time if output=opengl.
+  - Cycle count edit dialog box fixed to immediately place
+    keyboard focus in the text field, and to process
+    ENTER and ESCAPE keyboard input as OK and CANCEL
+    button input. You can type a new cycles count without
+    having to click on the text field first.
+  - Menu framework and mapper fixed so that menus always
+    reflect the mapper binding in the menu.
+  - Windows SDL 1.x fixed async hack to properly destroy
+    and shut down the parent window again.
+  - Fixed output=opengl crash on Mac OS X.
+  - Menu framework support for Mac OS X NSMenu objects added.
+    This gives DOSBox-X the same useful menu on Mac OS X
+    instead of the useless default menu SDL 1.x offers.
+  - Menu framework support for Windows win32 menu resources
+    added. The Windows menu is now generated at runtime,
+    the static IDR_MENU resource is no longer used.
+  - New platform independent menu framework added. Menus
+    that were once Windows-only are now available on
+    any other platform including Linux and Mac OS X.
+  - In-tree SDL 1.x library fixed to #define a special
+    variable that the code now requires to compile
+    SDL 1.x builds. The option to use your host SDL 2.x
+    library is left open.
   - C++11 is now mandatory to compile DOSBox-X
 0.82.6
   - Resizing the window in SDL 1.x Windows builds
