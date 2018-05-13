@@ -1014,7 +1014,7 @@ void SetScaleForced(bool forced)
 {
 	render.scale.forced = forced;
 	RENDER_CallBack(GFX_CallBackReset);
-    mainMenu.get_item("scaler_forced").check(render.scale.forced);
+    mainMenu.get_item("scaler_forced").check(render.scale.forced).refresh_item(mainMenu);
 }
 
 // Sets the scaler to use.
