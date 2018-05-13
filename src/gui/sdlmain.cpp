@@ -1790,19 +1790,19 @@ dosurface:
 #if C_OPENGL
 	case SCREEN_OPENGL:
 	{
-		if (sdl.opengl.pixel_buffer_object) {
-			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-			if (sdl.opengl.buffer) glDeleteBuffersARB(1, &sdl.opengl.buffer);
-		} else if (sdl.opengl.framebuf) {
-			free(sdl.opengl.framebuf);
-		}
-
         /* NTS: Apparently calling glFinish/glFlush before setup causes a segfault within
          *      the OpenGL library on Mac OS X. */
         if (initedOpenGL) {
             glFinish();
             glFlush();
         }
+
+		if (sdl.opengl.pixel_buffer_object) {
+			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
+			if (sdl.opengl.buffer) glDeleteBuffersARB(1, &sdl.opengl.buffer);
+		} else if (sdl.opengl.framebuf) {
+			free(sdl.opengl.framebuf);
+		}
 
 		sdl.opengl.framebuf=0;
 
