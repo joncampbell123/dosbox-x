@@ -551,6 +551,7 @@ struct SDL_Block {
     bool must_redraw_all;
     bool deferred_resize;
     bool init_ignore;
+    unsigned int gfx_force_redraw_count = 0;
 };
 
 static SDL_Block sdl;
@@ -1170,6 +1171,11 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
         sdl.deferred_resize = false;
         sdl.must_redraw_all = true;
     }
+
+    /* There seems to be a problem with MesaGL in Linux/X11 where
+     * the first swap buffer we do is misplaced according to the
+     * previous window size. */
+    sdl.gfx_force_redraw_count = 2;
 
 	UpdateWindowDimensions();
 	GFX_LogSDLState();
@@ -2953,6 +2959,11 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 
             GFX_RedrawScreen(sdl.draw.width, sdl.draw.height);
 #endif
+        }
+        else if (sdl.gfx_force_redraw_count > 0) {
+            void RENDER_CallBack( GFX_CallBackFunctions_t function );
+            RENDER_CallBack(GFX_CallBackRedraw);
+            sdl.gfx_force_redraw_count--;
         }
     }
 }
