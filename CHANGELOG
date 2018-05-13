@@ -1,4 +1,7 @@
 0.82.7 (next)
+  - US keyboards can now enter the "Ro" key in PC-98 mode.
+    Default binding is set up to map the Windows Menu key
+    as Ro in PC-98 mode.
   - Added code to force redrawing additional frames when
     output=opengl, in order to correct a bug with Linux/X11
     and MesaGL where the first OpenGL buffer swap after
