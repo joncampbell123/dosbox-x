@@ -3530,8 +3530,14 @@ static void HandleVideoResize(void * event) {
     if (NonUserResizeCounter > 0)
         NonUserResizeCounter--;
 
-    /* act on resize when updating is complete */
-    sdl.deferred_resize = true;
+    if (sdl.updating && !GFX_MustActOnResize()) {
+        /* act on resize when updating is complete */
+        sdl.deferred_resize = true;
+    }
+    else {
+        sdl.deferred_resize = false;
+        RedrawScreen(ResizeEvent->w, ResizeEvent->h);
+    }
 
 /*	if(sdl.desktop.want_type!=SCREEN_DIRECT3D) {
 		HWND hwnd=GetHWND();
