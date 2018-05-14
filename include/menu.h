@@ -232,11 +232,11 @@ class DOSBoxMenu {
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
             protected:
-                SDL_Rect                screenBox;      /* absolute screen coords */
-                SDL_Rect                checkBox;       /* relative to screenbox */
-                SDL_Rect                textBox;        /* relative to screenbox */
-                SDL_Rect                shortBox;       /* relative to screenbox */
-                SDL_Rect                popupBox;       /* absolute screen coords */
+                SDL_Rect                screenBox = {0,0,0,0};      /* absolute screen coords */
+                SDL_Rect                checkBox = {0,0,0,0};       /* relative to screenbox */
+                SDL_Rect                textBox = {0,0,0,0};        /* relative to screenbox */
+                SDL_Rect                shortBox = {0,0,0,0};       /* relative to screenbox */
+                SDL_Rect                popupBox = {0,0,0,0};       /* absolute screen coords */
                 bool                    boxInit = false;
                 bool                    itemHover = false;
                 bool                    needRedraw = false;
