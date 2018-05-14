@@ -6210,6 +6210,9 @@ bool dos_mouse_y_axis_reverse_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::
 }
 
 bool dos_mouse_sensitivity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+#if !defined(C_SDL2)
+    GUI_Shortcut(2);
+#endif
     return true;
 }
 

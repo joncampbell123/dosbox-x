@@ -854,8 +854,10 @@ static const char *def_menu_dos[] = {
 static const char *def_menu_dos_mouse[] = {
     "dos_mouse_enable_int33",
     "dos_mouse_y_axis_reverse",
+#if !defined(C_SDL2)
     "--",
     "dos_mouse_sensitivity",
+#endif
     NULL
 };
 
