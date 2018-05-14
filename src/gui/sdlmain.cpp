@@ -1882,9 +1882,7 @@ dosurface:
 		}
 		sdl.opengl.pitch=width*4;
 
-		glViewport(sdl.clip.x,sdl.clip.y,sdl.clip.w,sdl.clip.h);
-		glMatrixMode (GL_PROJECTION);
-		glLoadIdentity ();
+		glViewport(0,0,sdl.surface->w,sdl.surface->h);
 		glDeleteTextures(1,&sdl.opengl.texture);
  		glGenTextures(1,&sdl.opengl.texture);
 		glBindTexture(GL_TEXTURE_2D,sdl.opengl.texture);
@@ -1919,11 +1917,17 @@ dosurface:
         glDisable(GL_SCISSOR_TEST);
         glDisable(GL_STENCIL_TEST);
 		glEnable(GL_TEXTURE_2D);
-		glMatrixMode (GL_MODELVIEW);
+
+        glMatrixMode (GL_MODELVIEW);
 		glLoadIdentity ();
 
-		GLfloat tex_width=((GLfloat)(width)/(GLfloat)texsize);
-		GLfloat tex_height=((GLfloat)(height)/(GLfloat)texsize);
+        glMatrixMode (GL_PROJECTION);
+		glLoadIdentity ();
+        glOrtho(0, sdl.surface->w, sdl.surface->h, 0, -1, 1);
+
+        glMatrixMode (GL_TEXTURE);
+		glLoadIdentity ();
+        glScaled(1.0 / texsize, 1.0 / texsize, 1.0);
 
 		//if (glIsList(sdl.opengl.displaylist)) glDeleteLists(sdl.opengl.displaylist, 1);
 		//sdl.opengl.displaylist = glGenLists(1);
@@ -1932,13 +1936,13 @@ dosurface:
 		glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
 		glBegin(GL_QUADS);
 		// lower left
-		glTexCoord2f(0,tex_height); glVertex2f(-1.0f,-1.0f);
+		glTexCoord2i(0,    0     ); glVertex2i(0,             0);
 		// lower right
-		glTexCoord2f(tex_width,tex_height); glVertex2f(1.0f, -1.0f);
+		glTexCoord2i(width,0     ); glVertex2i(sdl.surface->w,0);
 		// upper right
-		glTexCoord2f(tex_width,0); glVertex2f(1.0f, 1.0f);
+		glTexCoord2i(width,height); glVertex2i(sdl.surface->w,sdl.surface->h);
 		// upper left
-		glTexCoord2f(0,0); glVertex2f(-1.0f, 1.0f);
+		glTexCoord2i(0,    height); glVertex2i(0,             sdl.surface->h);
 		glEnd();
 		glEndList();
 
