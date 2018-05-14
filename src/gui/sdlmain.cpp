@@ -1151,6 +1151,26 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
         fixedWidth = final_width;
         fixedHeight = final_height;
     }
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    /* scale the menu bar if the window is large enough */
+    {
+        int cw = fixedWidth,ch = fixedHeight;
+        Bitu scale = 1;
+
+        if (cw == 0) cw = (Bit16u)(sdl.draw.width*sdl.draw.scalex);
+        if (ch == 0) ch = (Bit16u)(sdl.draw.height*sdl.draw.scaley);
+
+        while ((cw/scale) >= (640*2) && (ch/scale) >= (400*2))
+            scale++;
+
+        LOG_MSG("menuScale=%lu",(unsigned long)scale);
+        mainMenu.setScale(scale);
+
+        if (mainMenu.isVisible()) fixedHeight -= mainMenu.menuBox.h;
+    }
+#endif
+
     if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 &&
         Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen) { /* 3Dfx openGL do not allow resize */
         sdl.clip.x=0;sdl.clip.y=0;
@@ -1194,6 +1214,13 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
         (unsigned int)sdl.clip.w,
         (unsigned int)sdl.clip.h);
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    if (mainMenu.isVisible()) {
+        windowHeight += mainMenu.menuBox.h;
+        sdl.clip.y += mainMenu.menuBox.h;
+    }
+#endif
+
     sdl.surface=SDL_SetVideoMode(windowWidth,windowHeight,bpp,sdl_flags);
     sdl.deferred_resize = false;
     sdl.must_redraw_all = true;
@@ -1209,6 +1236,13 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
 
 	UpdateWindowDimensions();
 	GFX_LogSDLState();
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    mainMenu.screenWidth = sdl.surface->w;
+    mainMenu.updateRect();
+    mainMenu.setRedraw();
+#endif
+
 	return sdl.surface;
 }
 #endif

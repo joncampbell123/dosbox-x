@@ -1125,7 +1125,7 @@ bool DOSBox_isMenuVisible(void) {
 void DOSBox_SetMenu(void) {
 # if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     /* FIXME: SDL menu is NOT AVAILABLE if OpenGL surface is used */
-    if (!OpenGL_using()) {
+    {
         menu.toggle=true;
         mainMenu.showMenu();
         mainMenu.setRedraw();
@@ -1137,7 +1137,7 @@ void DOSBox_SetMenu(void) {
 void DOSBox_NoMenu(void) {
 # if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     /* FIXME: SDL menu is NOT AVAILABLE if OpenGL surface is used */
-    if (!OpenGL_using()) {
+    {
         menu.toggle=false;
         mainMenu.showMenu(false);
         mainMenu.setRedraw();
