@@ -86,8 +86,8 @@ unsigned int Linux_GetKeyboardLayout(void) {
     SDL_VERSION(&wminfo.version);
     if (SDL_GetWMInfo(&wminfo) >= 0) {
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
-            XkbRF_VarDefsRec vd;
-            XkbStateRec state;
+            XkbRF_VarDefsRec vd = {0};
+            XkbStateRec state = {0};
 
             XkbGetState(wminfo.info.x11.display, XkbUseCoreKbd, &state);
 
