@@ -7337,6 +7337,12 @@ int main(int argc, char* argv[]) {
         mainMenu.get_item("pc98_clear_text").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_clear_graphics").enable(IS_PC98_ARCH);
 
+        extern bool Mouse_Vertical;
+        extern bool Mouse_Drv;
+
+        mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);
+        mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
+
         OutputSettingMenuUpdate();
 
 		/* The machine just "powered on", and then reset finished */
