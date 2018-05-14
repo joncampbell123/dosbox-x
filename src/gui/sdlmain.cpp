@@ -2970,11 +2970,9 @@ void GFX_OpenGLRedrawScreen(void) {
             glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
             glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
             glCallList(sdl.opengl.displaylist);
-            SDL_GL_SwapBuffers();
         } else {
             glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
             glCallList(sdl.opengl.displaylist);
-            SDL_GL_SwapBuffers();
         }
     }
 #endif
@@ -4048,7 +4046,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                 DOSBoxMenu::item &item = mainMenu.get_item(choice_item);
                                 item.setHilight(mainMenu,true);
                                 item.drawMenuItem(mainMenu);
-                                item.updateScreenFromItem(mainMenu);
+                                if (OpenGL_using())
+                                    redrawAll = true;
+                                else
+                                    item.updateScreenFromItem(mainMenu);
                             }
                             else {
                                 /* clicking on nothing should dismiss */
@@ -4148,7 +4149,12 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                             mainMenu.get_item(mainMenu.menuUserHoverAt).setHilight(mainMenu,false);
                                             mainMenu.get_item(mainMenu.menuUserHoverAt).setHover(mainMenu,false);
                                             mainMenu.get_item(mainMenu.menuUserHoverAt).drawMenuItem(mainMenu);
-                                            mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
+
+                                            if (OpenGL_using())
+                                                redrawAll = true;
+                                            else
+                                                mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
+
                                             mainMenu.menuUserHoverAt = DOSBoxMenu::unassigned_item_handle;
                                         }
                                     }
@@ -4159,8 +4165,20 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
                     if (redrawAll) {
                         redrawAll = false;
-                        MenuRestoreScreen();
-                        mainMenu.display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
+
+                        if (OpenGL_using()) {
+                            glClearColor (0.0, 0.0, 0.0, 1.0);
+                            glClear(GL_COLOR_BUFFER_BIT);
+
+                            GFX_OpenGLRedrawScreen();
+  
+                            mainMenu.setRedraw();                  
+                            GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+                        }
+                        else {
+                            MenuRestoreScreen();
+                            mainMenu.display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
+                        }
 
                         /* give the menu bar a drop shadow */
                         MenuShadeRect(
@@ -4175,7 +4193,11 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                 mainMenu.get_item(*i).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
                             }
                         }
-                        MenuFullScreenRedraw();
+
+                        if (OpenGL_using())
+                            SDL_GL_SwapBuffers();
+                        else
+                            MenuFullScreenRedraw();
                     }
                 }
 
@@ -4184,7 +4206,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
                 if (!resized) {
                     MenuRestoreScreen();
-                    MenuFullScreenRedraw();
+                    if (!OpenGL_using())
+                        MenuFullScreenRedraw();
                 }
                 MenuFreeScreen();
 
