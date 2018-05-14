@@ -4220,6 +4220,9 @@ void DOSBoxMenu::item::placeItem(DOSBoxMenu &menu,int x,int y,bool isTopLevel) {
             screenBox.w += shortBox.w;
         }
 
+        if (!isTopLevel && type == submenu_type_id)
+            screenBox.w += menu.fontCharWidth;
+
         screenBox.w += menu.fontCharWidth;
     }
     else {
