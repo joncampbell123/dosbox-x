@@ -1267,112 +1267,120 @@ extern "C" unsigned int SDL1_hax_inhibit_WM_PAINT;
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
 void MenuShadeRect(int x,int y,int w,int h) {
-    if (x < 0) {
-        w += x;
-        x = 0;
-    }
-    if (y < 0) {
-        y += h;
-        y = 0;
-    }
-    if ((x+w) > sdl.surface->w)
-        w = sdl.surface->w - x;
-    if ((y+h) > sdl.surface->h)
-        h = sdl.surface->h - y;
-    if (w <= 0 || h <= 0)
-        return;
-
-    if (sdl.surface->format->BitsPerPixel == 32) {
-        unsigned char *scan;
-        uint32_t *row,mask;
-
-        mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
-               ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
-               ((sdl.surface->format->Bmask >> 2) & sdl.surface->format->Bmask);
-
-        assert(sdl.surface->pixels != NULL);
-
-        scan  = (unsigned char*)sdl.surface->pixels;
-        scan += y * sdl.surface->pitch;
-        scan += x * 4;
-        while (h-- > 0) {
-            row = (uint32_t*)scan;
-            scan += sdl.surface->pitch;
-            for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
-        }
-    }
-    else if (sdl.surface->format->BitsPerPixel == 16) {
-        unsigned char *scan;
-        uint16_t *row,mask;
-
-        mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
-               ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
-               ((sdl.surface->format->Bmask >> 2) & sdl.surface->format->Bmask);
-
-        assert(sdl.surface->pixels != NULL);
-
-        scan  = (unsigned char*)sdl.surface->pixels;
-        scan += y * sdl.surface->pitch;
-        scan += x * 2;
-        while (h-- > 0) {
-            row = (uint16_t*)scan;
-            scan += sdl.surface->pitch;
-            for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
-        }
+    if (OpenGL_using()) {
     }
     else {
-        /* TODO */
+        if (x < 0) {
+            w += x;
+            x = 0;
+        }
+        if (y < 0) {
+            y += h;
+            y = 0;
+        }
+        if ((x+w) > sdl.surface->w)
+            w = sdl.surface->w - x;
+        if ((y+h) > sdl.surface->h)
+            h = sdl.surface->h - y;
+        if (w <= 0 || h <= 0)
+            return;
+
+        if (sdl.surface->format->BitsPerPixel == 32) {
+            unsigned char *scan;
+            uint32_t *row,mask;
+
+            mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
+                ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
+                ((sdl.surface->format->Bmask >> 2) & sdl.surface->format->Bmask);
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 4;
+            while (h-- > 0) {
+                row = (uint32_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
+            }
+        }
+        else if (sdl.surface->format->BitsPerPixel == 16) {
+            unsigned char *scan;
+            uint16_t *row,mask;
+
+            mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
+                ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
+                ((sdl.surface->format->Bmask >> 2) & sdl.surface->format->Bmask);
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 2;
+            while (h-- > 0) {
+                row = (uint16_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
+            }
+        }
+        else {
+            /* TODO */
+        }
     }
 }
 
 void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
-    if (x < 0) {
-        w += x;
-        x = 0;
-    }
-    if (y < 0) {
-        y += h;
-        y = 0;
-    }
-    if ((x+w) > sdl.surface->w)
-        w = sdl.surface->w - x;
-    if ((y+h) > sdl.surface->h)
-        h = sdl.surface->h - y;
-    if (w <= 0 || h <= 0)
-        return;
-
-    if (sdl.surface->format->BitsPerPixel == 32) {
-        unsigned char *scan;
-        uint32_t *row;
-
-        assert(sdl.surface->pixels != NULL);
-
-        scan  = (unsigned char*)sdl.surface->pixels;
-        scan += y * sdl.surface->pitch;
-        scan += x * 4;
-        while (h-- > 0) {
-            row = (uint32_t*)scan;
-            scan += sdl.surface->pitch;
-            for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint32_t)color;
-        }
-    }
-    else if (sdl.surface->format->BitsPerPixel == 16) {
-        unsigned char *scan;
-        uint16_t *row;
-
-        assert(sdl.surface->pixels != NULL);
-
-        scan  = (unsigned char*)sdl.surface->pixels;
-        scan += y * sdl.surface->pitch;
-        scan += x * 2;
-        while (h-- > 0) {
-            row = (uint16_t*)scan;
-            scan += sdl.surface->pitch;
-            for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint16_t)color;
-        }
+    if (OpenGL_using()) {
     }
     else {
-        /* TODO */
+        if (x < 0) {
+            w += x;
+            x = 0;
+        }
+        if (y < 0) {
+            y += h;
+            y = 0;
+        }
+        if ((x+w) > sdl.surface->w)
+            w = sdl.surface->w - x;
+        if ((y+h) > sdl.surface->h)
+            h = sdl.surface->h - y;
+        if (w <= 0 || h <= 0)
+            return;
+
+        if (sdl.surface->format->BitsPerPixel == 32) {
+            unsigned char *scan;
+            uint32_t *row;
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 4;
+            while (h-- > 0) {
+                row = (uint32_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint32_t)color;
+            }
+        }
+        else if (sdl.surface->format->BitsPerPixel == 16) {
+            unsigned char *scan;
+            uint16_t *row;
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 2;
+            while (h-- > 0) {
+                row = (uint16_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint16_t)color;
+            }
+        }
+        else {
+            /* TODO */
+        }
     }
 }
 
@@ -1386,34 +1394,38 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
         return;
 
     unsigned char *bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
-    unsigned char *scan;
-    uint32_t *row;
 
-    assert(sdl.surface->pixels != NULL);
+    if (OpenGL_using()) {
+    }
+    else {
+        unsigned char *scan;
 
-    scan  = (unsigned char*)sdl.surface->pixels;
-    scan += y * sdl.surface->pitch;
-    scan += x * ((sdl.surface->format->BitsPerPixel+7)/8);
+        assert(sdl.surface->pixels != NULL);
 
-    for (unsigned int row=0;row < fontHeight;row++) {
-        unsigned char rb = bmp[row];
+        scan  = (unsigned char*)sdl.surface->pixels;
+        scan += y * sdl.surface->pitch;
+        scan += x * ((sdl.surface->format->BitsPerPixel+7)/8);
 
-        if (sdl.surface->format->BitsPerPixel == 32) {
-            uint32_t *dp = (uint32_t*)scan;
-            for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
-                if (rb & colm) *dp = (uint32_t)color;
-                dp++;
+        for (unsigned int row=0;row < fontHeight;row++) {
+            unsigned char rb = bmp[row];
+
+            if (sdl.surface->format->BitsPerPixel == 32) {
+                uint32_t *dp = (uint32_t*)scan;
+                for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                    if (rb & colm) *dp = (uint32_t)color;
+                    dp++;
+                }
             }
-        }
-        else if (sdl.surface->format->BitsPerPixel == 16) {
-            uint16_t *dp = (uint16_t*)scan;
-            for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
-                if (rb & colm) *dp = (uint16_t)color;
-                dp++;
+            else if (sdl.surface->format->BitsPerPixel == 16) {
+                uint16_t *dp = (uint16_t*)scan;
+                for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                    if (rb & colm) *dp = (uint16_t)color;
+                    dp++;
+                }
             }
-        }
 
-        scan += sdl.surface->pitch;
+            scan += sdl.surface->pitch;
+        }
     }
 }
 
@@ -1424,44 +1436,48 @@ void MenuDrawTextChar2x(int x,int y,unsigned char c,Bitu color) {
         return;
 
     unsigned char *bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
-    unsigned char *scan;
-    uint32_t *row;
 
-    assert(sdl.surface->pixels != NULL);
+    if (OpenGL_using()) {
+    }
+    else { 
+        unsigned char *scan;
 
-    scan  = (unsigned char*)sdl.surface->pixels;
-    scan += y * sdl.surface->pitch;
-    scan += x * ((sdl.surface->format->BitsPerPixel+7)/8);
+        assert(sdl.surface->pixels != NULL);
 
-    for (unsigned int row=0;row < (fontHeight*2);row++) {
-        unsigned char rb = bmp[row>>1U];
+        scan  = (unsigned char*)sdl.surface->pixels;
+        scan += y * sdl.surface->pitch;
+        scan += x * ((sdl.surface->format->BitsPerPixel+7)/8);
 
-        if (sdl.surface->format->BitsPerPixel == 32) {
-            uint32_t *dp = (uint32_t*)scan;
-            for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
-                if (rb & colm) {
-                    *dp++ = (uint32_t)color;
-                    *dp++ = (uint32_t)color;
-                }
-                else {
-                    dp += 2;
-                }
-            }
-        }
-        else if (sdl.surface->format->BitsPerPixel == 16) {
-            uint16_t *dp = (uint16_t*)scan;
-            for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
-                if (rb & colm) {
-                    *dp++ = (uint16_t)color;
-                    *dp++ = (uint16_t)color;
-                }
-                else {
-                    dp += 2;
+        for (unsigned int row=0;row < (fontHeight*2);row++) {
+            unsigned char rb = bmp[row>>1U];
+
+            if (sdl.surface->format->BitsPerPixel == 32) {
+                uint32_t *dp = (uint32_t*)scan;
+                for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                    if (rb & colm) {
+                        *dp++ = (uint32_t)color;
+                        *dp++ = (uint32_t)color;
+                    }
+                    else {
+                        dp += 2;
+                    }
                 }
             }
-        }
+            else if (sdl.surface->format->BitsPerPixel == 16) {
+                uint16_t *dp = (uint16_t*)scan;
+                for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                    if (rb & colm) {
+                        *dp++ = (uint16_t)color;
+                        *dp++ = (uint16_t)color;
+                    }
+                    else {
+                        dp += 2;
+                    }
+                }
+            }
 
-        scan += sdl.surface->pitch;
+            scan += sdl.surface->pitch;
+        }
     }
 }
 
@@ -1540,25 +1556,31 @@ bool DOSBox_isMenuVisible(void);
 
 void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl) {
     if (menu.needsRedraw() && DOSBox_isMenuVisible() && !sdl.updating && !sdl.desktop.fullscreen) {
-        if (SDL_MUSTLOCK(sdl.surface))
-            SDL_LockSurface(sdl.surface);
+        if (!OpenGL_using()) {
+            if (SDL_MUSTLOCK(sdl.surface))
+                SDL_LockSurface(sdl.surface);
+        }
 
         if (&dl == &menu.display_list) { /* top level menu, draw background */
             MenuDrawRect(menu.menuBox.x, menu.menuBox.y, menu.menuBox.w, menu.menuBox.h - 1, GFX_GetRGB(63, 63, 63));
             MenuDrawRect(menu.menuBox.x, menu.menuBox.y + menu.menuBox.h - 1, menu.menuBox.w, 1, GFX_GetRGB(31, 31, 31));
         }
 
-        if (SDL_MUSTLOCK(sdl.surface))
-            SDL_UnlockSurface(sdl.surface);
+        if (!OpenGL_using()) {
+            if (SDL_MUSTLOCK(sdl.surface))
+                SDL_UnlockSurface(sdl.surface);
+        }
 
         menu.clearRedraw();
         menu.display_list.DrawDisplayList(menu,/*updateScreen*/false);
 
+        if (!OpenGL_using()) {
 #if defined(C_SDL2)
-        SDL_UpdateWindowSurfaceRects( sdl.window, &menu.menuBox, 1 );
+            SDL_UpdateWindowSurfaceRects( sdl.window, &menu.menuBox, 1 );
 #else
-        SDL_UpdateRects( sdl.surface, 1, &menu.menuBox );
+            SDL_UpdateRects( sdl.surface, 1, &menu.menuBox );
 #endif
+        }
     }
 }
 #endif
@@ -3663,29 +3685,33 @@ DOSBoxMenu::item_handle_t DOSBoxMenu::displaylist::itemFromPoint(DOSBoxMenu &men
 }
 
 void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
-    SDL_Rect uprect = screenBox;
+    if (!OpenGL_using()) {
+        SDL_Rect uprect = screenBox;
 
-    SDL_rect_cliptoscreen(uprect);
+        SDL_rect_cliptoscreen(uprect);
 
 #if defined(C_SDL2)
-    SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
+        SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
 #else
-    SDL_UpdateRects( sdl.surface, 1, &uprect );
+        SDL_UpdateRects( sdl.surface, 1, &uprect );
 #endif
+    }
 }
 
 void DOSBoxMenu::item::updateScreenFromPopup(DOSBoxMenu &menu) {
-    SDL_Rect uprect = popupBox;
+    if (!OpenGL_using()) {
+        SDL_Rect uprect = popupBox;
 
-    uprect.w += DOSBoxMenu::dropshadowX;
-    uprect.h += DOSBoxMenu::dropshadowY;
-    SDL_rect_cliptoscreen(uprect);
+        uprect.w += DOSBoxMenu::dropshadowX;
+        uprect.h += DOSBoxMenu::dropshadowY;
+        SDL_rect_cliptoscreen(uprect);
 
 #if defined(C_SDL2)
-    SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
+        SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
 #else
-    SDL_UpdateRects( sdl.surface, 1, &uprect );
+        SDL_UpdateRects( sdl.surface, 1, &uprect );
 #endif
+    }
 }
 
 void DOSBoxMenu::item::drawBackground(DOSBoxMenu &menu) {
@@ -3801,32 +3827,36 @@ static struct {
 } menuSavedScreen;
 
 void MenuSaveScreen(void) {
-    if (menuSavedScreen.bmp == NULL) {
-        menuSavedScreen.height = sdl.surface->h;
-        menuSavedScreen.stride = sdl.surface->pitch;
-        menuSavedScreen.bmp = new unsigned char[menuSavedScreen.height * menuSavedScreen.stride];
+    if (!OpenGL_using()) {
+        if (menuSavedScreen.bmp == NULL) {
+            menuSavedScreen.height = sdl.surface->h;
+            menuSavedScreen.stride = sdl.surface->pitch;
+            menuSavedScreen.bmp = new unsigned char[menuSavedScreen.height * menuSavedScreen.stride];
+        }
+
+        if (SDL_MUSTLOCK(sdl.surface))
+            SDL_LockSurface(sdl.surface);
+
+        memcpy(menuSavedScreen.bmp, sdl.surface->pixels, menuSavedScreen.height * menuSavedScreen.stride);
+
+        if (SDL_MUSTLOCK(sdl.surface))
+            SDL_UnlockSurface(sdl.surface);
     }
-
-    if (SDL_MUSTLOCK(sdl.surface))
-        SDL_LockSurface(sdl.surface);
-
-    memcpy(menuSavedScreen.bmp, sdl.surface->pixels, menuSavedScreen.height * menuSavedScreen.stride);
-
-    if (SDL_MUSTLOCK(sdl.surface))
-        SDL_UnlockSurface(sdl.surface);
 }
 
 void MenuRestoreScreen(void) {
-    if (menuSavedScreen.bmp == NULL)
-        return;
+    if (!OpenGL_using()) {
+        if (menuSavedScreen.bmp == NULL)
+            return;
 
-    if (SDL_MUSTLOCK(sdl.surface))
-        SDL_LockSurface(sdl.surface);
+        if (SDL_MUSTLOCK(sdl.surface))
+            SDL_LockSurface(sdl.surface);
 
-    memcpy(sdl.surface->pixels, menuSavedScreen.bmp, menuSavedScreen.height * menuSavedScreen.stride);
+        memcpy(sdl.surface->pixels, menuSavedScreen.bmp, menuSavedScreen.height * menuSavedScreen.stride);
 
-    if (SDL_MUSTLOCK(sdl.surface))
-        SDL_UnlockSurface(sdl.surface);
+        if (SDL_MUSTLOCK(sdl.surface))
+            SDL_UnlockSurface(sdl.surface);
+    }
 }
 
 void MenuFreeScreen(void) {
