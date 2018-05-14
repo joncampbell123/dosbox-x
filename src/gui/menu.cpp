@@ -844,6 +844,21 @@ static const char *def_menu_video[] = {
     NULL
 };
 
+/* DOS menu ("DOSMenu") */
+static const char *def_menu_dos[] = {
+    "DOSMouseMenu",
+    NULL
+};
+
+/* DOS mouse menu ("DOSMouseMenu") */
+static const char *def_menu_dos_mouse[] = {
+    "dos_mouse_enable_int33",
+    "dos_mouse_y_axis_reverse",
+    "--",
+    "dos_mouse_sensitivity",
+    NULL
+};
+
 /* sound menu ("SoundMenu") */
 static const char *def_menu_sound[] = {
     "mapper_volup",
@@ -996,6 +1011,12 @@ void ConstructMenu(void) {
 
     /* sound menu */
     ConstructSubMenu(mainMenu.get_item("SoundMenu").get_master_id(), def_menu_sound);
+
+    /* DOS menu */
+    ConstructSubMenu(mainMenu.get_item("DOSMenu").get_master_id(), def_menu_dos);
+
+    /* DOS mouse menu */
+    ConstructSubMenu(mainMenu.get_item("DOSMouseMenu").get_master_id(), def_menu_dos_mouse);
 
     /* capture menu */
     ConstructSubMenu(mainMenu.get_item("CaptureMenu").get_master_id(), def_menu_capture);
