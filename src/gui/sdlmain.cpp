@@ -1936,13 +1936,13 @@ dosurface:
 		glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
 		glBegin(GL_QUADS);
 		// lower left
-		glTexCoord2i(0,    0     ); glVertex2i(0,             0);
+		glTexCoord2i(0,    0     ); glVertex2i(sdl.clip.x,           sdl.clip.y           );
 		// lower right
-		glTexCoord2i(width,0     ); glVertex2i(sdl.surface->w,0);
+		glTexCoord2i(width,0     ); glVertex2i(sdl.clip.x+sdl.clip.w,sdl.clip.y           );
 		// upper right
-		glTexCoord2i(width,height); glVertex2i(sdl.surface->w,sdl.surface->h);
+		glTexCoord2i(width,height); glVertex2i(sdl.clip.x+sdl.clip.w,sdl.clip.y+sdl.clip.h);
 		// upper left
-		glTexCoord2i(0,    height); glVertex2i(0,             sdl.surface->h);
+		glTexCoord2i(0,    height); glVertex2i(sdl.clip.x,           sdl.clip.y+sdl.clip.h);
 		glEnd();
 		glEndList();
 
