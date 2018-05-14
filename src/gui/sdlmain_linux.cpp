@@ -118,6 +118,7 @@ unsigned int Linux_GetKeyboardLayout(void) {
                 }
             }
 
+            if (group) XFree(group);
             if (desc) XFree(desc);
         }
     }
