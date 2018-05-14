@@ -3868,9 +3868,11 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         SDL_ShowCursor(SDL_ENABLE);
 
         if (OpenGL_using()) {
+#if C_OPENGL
             GFX_OpenGLRedrawScreen();
             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
             SDL_GL_SwapBuffers();
+#endif
         }
  
         return;
@@ -3879,9 +3881,11 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
 
         if (OpenGL_using()) {
+#if C_OPENGL
             GFX_OpenGLRedrawScreen();
             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
             SDL_GL_SwapBuffers();
+#endif
         }
     }
 #endif
@@ -4027,7 +4031,9 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 popup_stack.push_back(mainMenu.menuUserAttentionAt);
 
                 if (OpenGL_using()) {
+#if C_OPENGL
                     SDL_GL_SwapBuffers();
+#endif
                 }
 
                 /* hack */
@@ -4186,6 +4192,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                         redrawAll = false;
 
                         if (OpenGL_using()) {
+#if C_OPENGL
                             glClearColor (0.0, 0.0, 0.0, 1.0);
                             glClear(GL_COLOR_BUFFER_BIT);
 
@@ -4193,6 +4200,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
   
                             mainMenu.setRedraw();                  
                             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+#endif
                         }
                         else {
                             MenuRestoreScreen();
@@ -4213,9 +4221,11 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                             }
                         }
 
+#if C_OPENGL
                         if (OpenGL_using())
                             SDL_GL_SwapBuffers();
                         else
+#endif
                             MenuFullScreenRedraw();
                     }
                 }
@@ -4244,6 +4254,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 }
 
                 if (OpenGL_using()) {
+#if C_OPENGL
                     glClearColor (0.0, 0.0, 0.0, 1.0);
                     glClear(GL_COLOR_BUFFER_BIT);
         
@@ -4253,6 +4264,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                     GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 
                     SDL_GL_SwapBuffers();
+#endif
                 }
 
                 /* action! */
