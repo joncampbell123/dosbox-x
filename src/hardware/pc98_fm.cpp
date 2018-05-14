@@ -230,6 +230,11 @@ void PC98_FM_Destroy(Section *sec) {
     if (pc98fm_init) {
         rhythm_deinitialize();
     }
+
+    if (pc98_mixer) {
+        MIXER_DelChannel(pc98_mixer);
+        pc98_mixer = NULL;
+    }
 }
 
 void PC98_FM_OnEnterPC98(Section *sec) {
