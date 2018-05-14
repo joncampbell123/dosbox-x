@@ -7389,6 +7389,8 @@ int main(int argc, char* argv[]) {
         mainMenu.get_item("pc98_enable_analog").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_clear_text").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_clear_graphics").enable(IS_PC98_ARCH);
+        mainMenu.get_item("dos_pc98_pit_4mhz").enable(IS_PC98_ARCH);
+        mainMenu.get_item("dos_pc98_pit_5mhz").enable(IS_PC98_ARCH);
 
         extern bool Mouse_Vertical;
         extern bool Mouse_Drv;
