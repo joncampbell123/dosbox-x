@@ -3831,6 +3831,9 @@ void GFX_SDLMenuTrackHover(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id) {
             mainMenu.get_item(mainMenu.menuUserHoverAt).drawMenuItem(mainMenu);
             mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
         }
+
+        if (OpenGL_using())
+            mainMenu.setRedraw();
     }
 }
 
@@ -3849,6 +3852,9 @@ void GFX_SDLMenuTrackHilight(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id)
             mainMenu.get_item(mainMenu.menuUserAttentionAt).drawMenuItem(mainMenu);
             mainMenu.get_item(mainMenu.menuUserAttentionAt).updateScreenFromItem(mainMenu);
         }
+
+        if (OpenGL_using())
+            mainMenu.setRedraw();
     }
 }
 #endif
@@ -3860,10 +3866,23 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && motion->y < mainMenu.menuBox.h && Mouse_GetButtonState() == 0) {
         GFX_SDLMenuTrackHover(mainMenu,mainMenu.display_list.itemFromPoint(mainMenu,motion->x,motion->y));
         SDL_ShowCursor(SDL_ENABLE);
+
+        if (OpenGL_using()) {
+            GFX_OpenGLRedrawScreen();
+            GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+            SDL_GL_SwapBuffers();
+        }
+ 
         return;
     }
     else {
         GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
+
+        if (OpenGL_using()) {
+            GFX_OpenGLRedrawScreen();
+            GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+            SDL_GL_SwapBuffers();
+        }
     }
 #endif
     user_cursor_x = motion->x - sdl.clip.x;
