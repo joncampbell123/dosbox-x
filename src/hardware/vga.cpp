@@ -1037,6 +1037,11 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     VGA_StartResize();
 }
 
+void VGA_Destroy(Section*) {
+    void PC98_FM_Destroy(Section *sec);
+    PC98_FM_Destroy(NULL);
+}
+
 void VGA_Init() {
 	string str;
 	Bitu i,j;
@@ -1099,6 +1104,7 @@ void VGA_Init() {
 		}
 	}
 
+	AddExitFunction(AddExitFunctionFuncPair(VGA_Destroy));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(VGA_Reset));
 }
 
