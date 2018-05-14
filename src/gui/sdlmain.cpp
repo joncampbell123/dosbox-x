@@ -114,6 +114,8 @@ bool OpenGL_using(void);
 HMENU MainMenu = NULL;
 #endif
 
+bool OpenGL_using(void);
+
 #if defined(WIN32) && !defined(S_ISREG)
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
@@ -7754,7 +7756,11 @@ void GFX_ShutDown(void) {
 }
 
 bool OpenGL_using(void) {
+#if C_OPENGL
 	return (sdl.desktop.want_type==SCREEN_OPENGL?true:false);
+#else
+    return false;
+#endif
 }
 
 bool Get_Custom_SaveDir(std::string& savedir) {
