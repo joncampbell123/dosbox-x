@@ -1523,6 +1523,11 @@ bool initedOpenGL = false;
 #endif
 
 Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,GFX_CallBack_t callback) {
+    if (width == 0 || height == 0) {
+        E_Exit("GFX_SetSize with width=%d height=%d zero dimensions not allowed",(int)width,(int)height);
+        return 0;
+    }
+
 	if (sdl.updating)
 		GFX_EndUpdate( 0 );
 
@@ -2780,6 +2785,9 @@ void GFX_PreventFullscreen(bool lockout) {
 }
 
 void GFX_RestoreMode(void) {
+    if (sdl.draw.width == 0 || sdl.draw.height == 0)
+        return;
+
 	GFX_SetSize(sdl.draw.width,sdl.draw.height,sdl.draw.flags,sdl.draw.scalex,sdl.draw.scaley,sdl.draw.callback);
 	GFX_UpdateSDLCaptureState();
     GFX_ResetScreen();
