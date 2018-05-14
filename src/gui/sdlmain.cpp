@@ -556,6 +556,23 @@ struct SDL_Block {
 
 static SDL_Block sdl;
 
+void SDL_rect_cliptoscreen(SDL_Rect &r) {
+    if (r.x < 0) {
+        r.w += r.x;
+        r.x = 0;
+    }
+    if (r.y < 0) {
+        r.h += r.y;
+        r.y = 0;
+    }
+    if ((r.x+r.w) > sdl.surface->w)
+        r.w = sdl.surface->w - r.x;
+    if ((r.y+r.h) > sdl.surface->h)
+        r.h = sdl.surface->h - r.y;
+    if (r.w < 0) r.w = 0;
+    if (r.h < 0) r.h = 0;
+}
+
 Bitu GUI_JoystickCount(void) {
     return sdl.num_joysticks;
 }
@@ -2865,6 +2882,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                         rect->w = (Bit16u)sdl.draw.width;
                         rect->h = changedLines[index];
                         y += changedLines[index];
+                        SDL_rect_cliptoscreen(*rect);
                     }
                     index++;
                 }
@@ -3583,23 +3601,6 @@ DOSBoxMenu::item_handle_t DOSBoxMenu::displaylist::itemFromPoint(DOSBoxMenu &men
     }
 
     return unassigned_item_handle;
-}
-
-void SDL_rect_cliptoscreen(SDL_Rect &r) {
-    if (r.x < 0) {
-        r.w += r.x;
-        r.x = 0;
-    }
-    if (r.y < 0) {
-        r.h += r.y;
-        r.y = 0;
-    }
-    if ((r.x+r.w) > sdl.surface->w)
-        r.w = sdl.surface->w - r.x;
-    if ((r.y+r.h) > sdl.surface->h)
-        r.h = sdl.surface->h - r.y;
-    if (r.w < 0) r.w = 0;
-    if (r.h < 0) r.h = 0;
 }
 
 void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
