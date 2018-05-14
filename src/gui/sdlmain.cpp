@@ -38,6 +38,7 @@
 #endif
 
 bool OpenGL_using(void);
+void GFX_OpenGLRedrawScreen(void);
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
@@ -1268,6 +1269,30 @@ extern "C" unsigned int SDL1_hax_inhibit_WM_PAINT;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
 void MenuShadeRect(int x,int y,int w,int h) {
     if (OpenGL_using()) {
+#if C_OPENGL
+		glShadeModel (GL_FLAT);
+        glBlendFunc(GL_ONE, GL_SRC_ALPHA);
+		glDisable (GL_DEPTH_TEST);
+		glDisable (GL_LIGHTING);
+        glEnable(GL_BLEND);
+		glDisable(GL_CULL_FACE);
+        glDisable(GL_ALPHA_TEST);
+        glDisable(GL_FOG);
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_STENCIL_TEST);
+		glDisable(GL_TEXTURE_2D);
+
+        glColor4ub(0, 0, 0, 64);
+        glBegin(GL_QUADS);
+        glVertex2i(x  ,y  );
+        glVertex2i(x+w,y  );
+        glVertex2i(x+w,y+h);
+        glVertex2i(x  ,y+h);
+        glEnd();
+
+        glBlendFunc(GL_ONE, GL_ZERO);
+		glEnable(GL_TEXTURE_2D);
+#endif
     }
     else {
         if (x < 0) {
@@ -1331,6 +1356,7 @@ void MenuShadeRect(int x,int y,int w,int h) {
 
 void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
     if (OpenGL_using()) {
+#if C_OPENGL
 		glShadeModel (GL_FLAT);
         glBlendFunc(GL_ONE, GL_ZERO);
 		glDisable (GL_DEPTH_TEST);
@@ -1353,6 +1379,7 @@ void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
 
         glBlendFunc(GL_ONE, GL_ZERO);
 		glEnable(GL_TEXTURE_2D);
+#endif
     }
     else {
         if (x < 0) {
@@ -2935,6 +2962,23 @@ bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
 	return false;
 }
 
+void GFX_OpenGLRedrawScreen(void) {
+#if C_OPENGL
+    if (OpenGL_using()) {
+        if (sdl.opengl.pixel_buffer_object) {
+            glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
+            glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
+            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
+            glCallList(sdl.opengl.displaylist);
+            SDL_GL_SwapBuffers();
+        } else {
+            glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
+            glCallList(sdl.opengl.displaylist);
+            SDL_GL_SwapBuffers();
+        }
+    }
+#endif
+}
 
 void GFX_EndUpdate( const Bit16u *changedLines ) {
 #if (HAVE_DDRAW_H) && defined(WIN32)
@@ -3930,10 +3974,12 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 psel_item = DOSBoxMenu::unassigned_item_handle;
                 choice_item = mainMenu.menuUserHoverAt = mainMenu.menuUserAttentionAt;
 
-                mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,false);
-                mainMenu.get_item(mainMenu.menuUserAttentionAt).setHover(mainMenu,false);
-                mainMenu.get_item(mainMenu.menuUserAttentionAt).drawMenuItem(mainMenu);
-                MenuSaveScreen();
+                if (!OpenGL_using()) {
+                    mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,false);
+                    mainMenu.get_item(mainMenu.menuUserAttentionAt).setHover(mainMenu,false);
+                    mainMenu.get_item(mainMenu.menuUserAttentionAt).drawMenuItem(mainMenu);
+                    MenuSaveScreen();
+                }
 
                 /* give the menu bar a drop shadow */
                 MenuShadeRect(
@@ -3942,15 +3988,17 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                         mainMenu.menuBox.w,
                         DOSBoxMenu::dropshadowY - 1/*menubar border*/);
 
-                uprect.x = 0;
-                uprect.y = mainMenu.menuBox.y + mainMenu.menuBox.h;
-                uprect.w = mainMenu.menuBox.w;
-                uprect.h = DOSBoxMenu::dropshadowY;
+                if (!OpenGL_using()) {
+                    uprect.x = 0;
+                    uprect.y = mainMenu.menuBox.y + mainMenu.menuBox.h;
+                    uprect.w = mainMenu.menuBox.w;
+                    uprect.h = DOSBoxMenu::dropshadowY;
 #if defined(C_SDL2)
-                SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
+                    SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
 #else
-                SDL_UpdateRects( sdl.surface, 1, &uprect );
+                    SDL_UpdateRects( sdl.surface, 1, &uprect );
 #endif
+                }
 
                 /* show the menu */
                 mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,true);
@@ -3959,6 +4007,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 mainMenu.get_item(mainMenu.menuUserAttentionAt).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
                 mainMenu.get_item(mainMenu.menuUserAttentionAt).updateScreenFromPopup(mainMenu);
                 popup_stack.push_back(mainMenu.menuUserAttentionAt);
+
+                if (OpenGL_using()) {
+                    SDL_GL_SwapBuffers();
+                }
 
                 /* hack */
                 mainMenu.menuUserAttentionAt = DOSBoxMenu::unassigned_item_handle;
@@ -4145,6 +4197,18 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                     item.setHilight(mainMenu,false);
                     item.setHover(mainMenu,false);
                     popup_stack.pop_back();
+                }
+
+                if (OpenGL_using()) {
+                    glClearColor (0.0, 0.0, 0.0, 1.0);
+                    glClear(GL_COLOR_BUFFER_BIT);
+        
+                    GFX_OpenGLRedrawScreen();
+
+                    mainMenu.setRedraw();
+                    GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+
+                    SDL_GL_SwapBuffers();
                 }
 
                 /* action! */
