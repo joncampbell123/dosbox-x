@@ -1331,6 +1331,28 @@ void MenuShadeRect(int x,int y,int w,int h) {
 
 void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
     if (OpenGL_using()) {
+		glShadeModel (GL_FLAT);
+        glBlendFunc(GL_ONE, GL_ZERO);
+		glDisable (GL_DEPTH_TEST);
+		glDisable (GL_LIGHTING);
+        glDisable(GL_BLEND);
+		glDisable(GL_CULL_FACE);
+        glDisable(GL_ALPHA_TEST);
+        glDisable(GL_FOG);
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_STENCIL_TEST);
+		glDisable(GL_TEXTURE_2D);
+
+        glColor3ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF);
+        glBegin(GL_QUADS);
+        glVertex2i(x  ,y  );
+        glVertex2i(x+w,y  );
+        glVertex2i(x+w,y+h);
+        glVertex2i(x  ,y+h);
+        glEnd();
+
+        glBlendFunc(GL_ONE, GL_ZERO);
+		glEnable(GL_TEXTURE_2D);
     }
     else {
         if (x < 0) {
@@ -2001,6 +2023,12 @@ dosurface:
 		glTexCoord2i(0,    height); glVertex2i(sdl.clip.x,           sdl.clip.y+sdl.clip.h);
 		glEnd();
 		glEndList();
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+        void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl);
+        mainMenu.setRedraw();
+        GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+#endif
 
         glFinish();
         glFlush();
@@ -2985,6 +3013,11 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                     gl_clear_countdown--;
                     glClearColor (0.0, 0.0, 0.0, 1.0);
                     glClear(GL_COLOR_BUFFER_BIT);
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+                    mainMenu.setRedraw();
+                    GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+#endif
                 }
 
                 if (sdl.opengl.pixel_buffer_object) {
