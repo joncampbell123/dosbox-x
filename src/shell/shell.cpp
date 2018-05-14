@@ -24,6 +24,7 @@
 #include "regs.h"
 #include "control.h"
 #include "shell.h"
+#include "menu.h"
 #include "callback.h"
 #include "support.h"
 #include "builtin.h"
@@ -949,8 +950,12 @@ void SHELL_Init() {
 	env_write+=2;
 	MEM_BlockWrite(env_write,full_name,(Bitu)(strlen(full_name)+1));
 
+    extern bool Mouse_Vertical;
 	extern bool Mouse_Drv;
 	Mouse_Drv = true;
+
+    mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);
+    mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
 
 	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE);

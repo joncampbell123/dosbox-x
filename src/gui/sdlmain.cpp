@@ -6202,10 +6202,16 @@ bool mixer_mute_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 }
 
 bool dos_mouse_enable_int33_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    extern bool Mouse_Drv;
+    Mouse_Drv = !Mouse_Drv;
+    mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);
     return true;
 }
 
 bool dos_mouse_y_axis_reverse_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    extern bool Mouse_Vertical;
+    Mouse_Vertical = !Mouse_Vertical;
+    mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
     return true;
 }
 
