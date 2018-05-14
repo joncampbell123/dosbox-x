@@ -7211,10 +7211,6 @@ int main(int argc, char* argv[]) {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureMenu");
             item.set_text("Capture");
         }
-        {
-            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DriveMenu");
-            item.set_text("Drive");
-        }
 
 		/* more */
 		{

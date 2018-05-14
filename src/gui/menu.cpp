@@ -621,7 +621,6 @@ static const char *def_menu__toplevel[] = {
     "SoundMenu",
     "DOSMenu",
     "CaptureMenu",
-    "DriveMenu",
     NULL
 };
 
