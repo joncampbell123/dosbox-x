@@ -1193,8 +1193,12 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
 
     /* There seems to be a problem with MesaGL in Linux/X11 where
      * the first swap buffer we do is misplaced according to the
-     * previous window size. */
-    sdl.gfx_force_redraw_count = 2;
+     * previous window size.
+     *
+     * NTS: This seems to have been fixed, which is why this is
+     *      commented out. I guess not calling GFX_SetSize()
+     *      with a 0x0 widthxheight helps! */
+//    sdl.gfx_force_redraw_count = 2;
 
 	UpdateWindowDimensions();
 	GFX_LogSDLState();
