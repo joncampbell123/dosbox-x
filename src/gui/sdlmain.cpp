@@ -1120,6 +1120,8 @@ void GFX_LogSDLState(void) {
 static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) {
 	Bit16u fixedWidth;
 	Bit16u fixedHeight;
+    Bit16u windowWidth;
+    Bit16u windowHeight;
 
     int Voodoo_OGL_GetWidth();
     int Voodoo_OGL_GetHeight();
@@ -1152,11 +1154,8 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
     if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 &&
         Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen) { /* 3Dfx openGL do not allow resize */
         sdl.clip.x=0;sdl.clip.y=0;
-        sdl.clip.w=(Bit16u)Voodoo_OGL_GetWidth();
-        sdl.clip.h=(Bit16u)Voodoo_OGL_GetHeight();
-        sdl.surface=SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,bpp,sdl_flags);
-        sdl.deferred_resize = false;
-        sdl.must_redraw_all = true;
+        sdl.clip.w=windowWidth=(Bit16u)Voodoo_OGL_GetWidth();
+        sdl.clip.h=windowHeight=(Bit16u)Voodoo_OGL_GetHeight();
     }
     else if (fixedWidth && fixedHeight) {
         if (render.aspect) {
@@ -1176,20 +1175,28 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
             sdl.clip.h=fixedHeight;
         }
 
-        sdl.surface = SDL_SetVideoMode(fixedWidth,fixedHeight,bpp,sdl_flags);
 		sdl.clip.x = (fixedWidth - sdl.clip.w) / 2;
         sdl.clip.y = (fixedHeight - sdl.clip.h) / 2;
-        sdl.deferred_resize = false;
-        sdl.must_redraw_all = true;
+        windowWidth = fixedWidth;
+        windowHeight = fixedHeight;
     }
     else {
         sdl.clip.x=0;sdl.clip.y=0;
-        sdl.clip.w=(Bit16u)(sdl.draw.width*sdl.draw.scalex);
-        sdl.clip.h=(Bit16u)(sdl.draw.height*sdl.draw.scaley);
-        sdl.surface=SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,bpp,sdl_flags);
-        sdl.deferred_resize = false;
-        sdl.must_redraw_all = true;
+        sdl.clip.w=windowWidth=(Bit16u)(sdl.draw.width*sdl.draw.scalex);
+        sdl.clip.h=windowHeight=(Bit16u)(sdl.draw.height*sdl.draw.scaley);
     }
+
+    LOG(LOG_MISC,LOG_DEBUG)("GFX_SetSize OpenGL window=%ux%u clip=x,y,w,h=%d,%d,%d,%d",
+        (unsigned int)windowWidth,
+        (unsigned int)windowHeight,
+        (unsigned int)sdl.clip.x,
+        (unsigned int)sdl.clip.y,
+        (unsigned int)sdl.clip.w,
+        (unsigned int)sdl.clip.h);
+
+    sdl.surface=SDL_SetVideoMode(windowWidth,windowHeight,bpp,sdl_flags);
+    sdl.deferred_resize = false;
+    sdl.must_redraw_all = true;
 
     /* There seems to be a problem with MesaGL in Linux/X11 where
      * the first swap buffer we do is misplaced according to the
