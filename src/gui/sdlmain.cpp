@@ -6177,6 +6177,47 @@ bool VM_PowerOn() {
 	return true;
 }
 
+void update_pc98_clock_pit_menu(void) {
+    Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+
+    int pc98rate = dosbox_section->Get_int("pc-98 timer master frequency");
+    if (pc98rate > 6) pc98rate /= 2;
+    if (pc98rate == 0) pc98rate = 5; /* Pick the most likely to work with DOS games (FIXME: This is a GUESS!! Is this correct?) */
+    else if (pc98rate < 5) pc98rate = 4;
+    else pc98rate = 5;
+
+    mainMenu.get_item("dos_pc98_pit_4mhz").check(pc98rate == 4).refresh_item(mainMenu);
+    mainMenu.get_item("dos_pc98_pit_5mhz").check(pc98rate == 5).refresh_item(mainMenu);
+}
+
+bool dos_pc98_clock_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    void TIMER_OnEnterPC98_Phase2(Section*);
+    void TIMER_OnEnterPC98_Phase2_UpdateBDA(void);
+
+    const char *ts = menuitem->get_name().c_str();
+    if (!strncmp(ts,"dos_pc98_pit_",13))
+        ts += 13;
+    else
+        return true;
+
+    std::string tmp = "pc-98 timer master frequency=";
+
+    {
+        char tmp1[64];
+        sprintf(tmp1,"%u",atoi(ts));
+        tmp += tmp1;
+    }
+
+    Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+    dosbox_section->HandleInputline(tmp.c_str());
+
+    TIMER_OnEnterPC98_Phase2(NULL);
+    TIMER_OnEnterPC98_Phase2_UpdateBDA();
+
+    update_pc98_clock_pit_menu();
+    return true;
+}
+
 void SetScaleForced(bool forced);
 void OutputSettingMenuUpdate(void);
 
@@ -7153,6 +7194,18 @@ int main(int argc, char* argv[]) {
                         set_callback_function(dos_mouse_sensitivity_menu_callback);
                 }
             }
+
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSPC98Menu");
+                item.set_text("PC-98 PIT master clock");
+
+                {
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_pc98_pit_4mhz").set_text("4MHz/8MHz").
+                        set_callback_function(dos_pc98_clock_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_pc98_pit_5mhz").set_text("5MHz/10MHz").
+                        set_callback_function(dos_pc98_clock_menu_callback);
+                }
+            }
         }
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureMenu");
@@ -7344,6 +7397,7 @@ int main(int argc, char* argv[]) {
         mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
 
         OutputSettingMenuUpdate();
+        update_pc98_clock_pit_menu();
 
 		/* The machine just "powered on", and then reset finished */
 		if (!VM_PowerOn()) E_Exit("VM failed to power on");
