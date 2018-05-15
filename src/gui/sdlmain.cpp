@@ -268,6 +268,7 @@ Bitu currentWindowWidth = 640, currentWindowHeight = 480;
 
 int NonUserResizeCounter = 0;
 
+int gl_menudraw_countdown = 0;
 int gl_clear_countdown = 0;
 
 Bitu time_limit_ms = 0;
@@ -1694,6 +1695,10 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl) {
                 SDL_UnlockSurface(sdl.surface);
         }
 
+#if 0
+        LOG_MSG("menudraw %u",(unsigned int)SDL_GetTicks());
+#endif
+
         menu.clearRedraw();
         menu.display_list.DrawDisplayList(menu,/*updateScreen*/false);
 
@@ -2088,6 +2093,7 @@ dosurface:
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texsize, texsize, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
 
+        gl_menudraw_countdown = 2; // two GL buffers
         gl_clear_countdown = 2; // two GL buffers
 		glClearColor (0.0, 0.0, 0.0, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -3193,10 +3199,13 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                     glClear(GL_COLOR_BUFFER_BIT);
                 }
 
+                if (gl_menudraw_countdown > 0) {
+                    gl_menudraw_countdown--;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-                mainMenu.setRedraw();
-                GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+                    mainMenu.setRedraw();
+                    GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 #endif
+                }
 
                 if (sdl.opengl.pixel_buffer_object) {
                     if(changedLines && (changedLines[0] == sdl.draw.height)) 
@@ -4045,6 +4054,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 
         if (OpenGL_using() && mainMenu.needsRedraw()) {
 #if C_OPENGL
+            gl_menudraw_countdown = 2; // two GL buffers
             GFX_OpenGLRedrawScreen();
             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
             SDL_GL_SwapBuffers();
@@ -4058,6 +4068,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 
         if (OpenGL_using() && mainMenu.needsRedraw()) {
 #if C_OPENGL
+            gl_menudraw_countdown = 2; // two GL buffers
             GFX_OpenGLRedrawScreen();
             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
             SDL_GL_SwapBuffers();
@@ -4471,6 +4482,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                     SDL_GL_SwapBuffers();
 
                     gl_clear_countdown = 2;
+                    gl_menudraw_countdown = 2; // two GL buffers
 #endif
                 }
 
