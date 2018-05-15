@@ -2061,6 +2061,14 @@ dosurface:
 		}
 		sdl.opengl.pitch=width*4;
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+        if (SDLDrawGenFontTextureInit) {
+            glDeleteTextures(1,&SDLDrawGenFontTexture);
+            SDLDrawGenFontTexture = (GLuint)(~0UL);
+            SDLDrawGenFontTextureInit = 0;
+        }
+#endif
+
 		glViewport(0,0,sdl.surface->w,sdl.surface->h);
 		glDeleteTextures(1,&sdl.opengl.texture);
  		glGenTextures(1,&sdl.opengl.texture);
@@ -2130,7 +2138,8 @@ dosurface:
         mainMenu.setRedraw();
         GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 
-        if (!SDLDrawGenFontTextureInit) {
+//      FIXME: Why do we have to reinitialize the font texture?
+        /*if (!SDLDrawGenFontTextureInit) */{
             SDLDrawGenFontTexture = (GLuint)(~0UL);
             glGenTextures(1,&SDLDrawGenFontTexture);
             if (SDLDrawGenFontTexture == (GLuint)(~0UL) || glGetError() != 0) {
@@ -2141,6 +2150,7 @@ dosurface:
                     (unsigned long)SDLDrawGenFontTexture,
                     (unsigned int)SDLDrawGenFontTextureWidth,
                     (unsigned int)SDLDrawGenFontTextureHeight);
+
                 SDLDrawGenFontTextureInit = 1;
 
 		        glBindTexture(GL_TEXTURE_2D,SDLDrawGenFontTexture);
@@ -2853,10 +2863,6 @@ void change_output(int output) {
 		sdl.desktop.want_type=SCREEN_SURFACE;
 		break;
 	case 2: /* do nothing */
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-        LOG_MSG("FIXME: SDL drawn menus not supported in OpenGL mode");
-        DOSBox_NoMenu();
-#endif
 		break;
 	case 3:
 #if C_OPENGL
