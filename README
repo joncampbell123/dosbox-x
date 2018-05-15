@@ -213,6 +213,9 @@ design as implemented now cannot accomodate.
   The focus is on implementing hardware emulation for hardware made
   before that point.
 
+  Contributers are free to focus on emulating hardware within the
+  1980-2001 timeframe of their choice.
+
 * Windows guest emulation, Windows XP or later.
 
   DOSBox-X emulation, in terms of running Windows in DOSBox-X, will
