@@ -105,6 +105,36 @@ If your Linux distribution has it enabled, consider using the auditing
 system to limit what the DOSBox-X executable is allowed to do.
 
 
+
+Comments on DOSBox-X development
+--------------------------------
+
+The three major operating systems and platforms of DOSBox-X are (in this order):
+
+1. Linux (with X11) 32-bit and 64-bit x86.
+
+2. Windows 10 (followed by Windows 8, and Windows 7) for 32-bit and 64-bit x86.
+
+3. Linux (with X11) on a Raspberry Pi 3 (arm 7).
+
+4. Mac OS X Sierra 10.12 or higher 64-bit.
+
+
+Linux and MinGW Windows builds are expected to compile with the GNU autotools.
+
+There is an alternate branch maintained by other devs on Github if compilation
+with CMake is desired.
+
+Stright Windows builds are expected to compile using the free community edition
+of Visual Studio 2015 and Visual Studio 2017 and the DirectX 2010 SDK.
+
+Mac OS X builds are expected to compile on the terminal using GNU autotools
+and the LLVM/Clang compiler provided by XCode.
+
+In all cases, the code requires a C++ compiler that can support the C++11
+standard.
+
+
 Comments on what DOSBox-X is lacking
 ------------------------------------
 
