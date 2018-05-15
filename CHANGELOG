@@ -1,4 +1,11 @@
 0.82.7 (next)
+  - OpenGL SDL drawn menus fixed to ensure the menu contents
+    have been redrawn at least twice. One for each OpenGL
+    buffer because DOSBox-X uses the double-buffered mode.
+  - SDL drawn menus implemented for output=opengl. The menu
+    bar in Linux builds is now available in OpenGL mode.
+  - SDL drawn menus fixed to redraw only when state changes,
+    and to clean up menu drawing code.
   - US keyboards can now enter the "Ro" key in PC-98 mode.
     Default binding is set up to map the Windows Menu key
     as Ro in PC-98 mode.
