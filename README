@@ -81,3 +81,94 @@ greatly appreciated:
 If you want to tweak or write some code and you don't know what to work
 on, feel free to visit the issue tracker to get some ideas.
 
+
+Software security comments
+--------------------------
+
+DOSBox-X cannot claim to be a "secure" application. It contains a lot of
+code designed for performance, not security. There may be vulnerabilities,
+bugs, and flaws in the emulation that could permit malicious DOS executables
+within to cause problems or exploit bugs in the emulator to cause harm.
+There is no guarantee of complete containment by DOSBox-X of the guest
+operating system or application.
+
+If security is a priority, then:
+
+Do not use DOSBox-X on a secure system.
+
+Do not run DOSBox-X as root or Administrator.
+
+If you need to use DOSBox-X, run it under a lesser privileged user, or in
+a chroot jail or sandbox.
+
+If your Linux distribution has it enabled, consider using the auditing
+system to limit what the DOSBox-X executable is allowed to do.
+
+
+Comments on what DOSBox-X is lacking
+------------------------------------
+
+DOSBox-X aims for accuracy in emulation however there are some things the
+design as implemented now cannot accomodate.
+
+* Cycle-accurate timing of x86 instructions and execution.
+
+  Instructions generally run one per cycle in DOSBox-X, except for I/O
+  and memory access.
+
+  If accurate emulation of cycles per instruction is needed, please
+  consider using PCem or PCem-X instead.
+
+* Pentium II or higher CPU level emulation.
+
+  DOSBox-X contains code only to emulate the 8088 through the Pentium Pro.
+
+  If Pentium II or higher emulation is desired, consider using Bochs
+  or QEMU instead. DOSBox-X may eventually develop Pentium II emulation,
+  if wanted by the DOSBox-X community in general.
+
+* Emulation of PC hardware 2001 or later.
+
+  The official cutoff for DOSBox-X is 2001, when updated "PC 2001"
+  specifications from Microsoft mandated the removal of the ISA slots
+  from motherboards. 
+
+  The focus is on implementing hardware emulation for hardware made
+  before that point.
+
+* Windows guest emulation, Windows XP or later.
+
+  DOSBox-X emulation, in terms of running Windows in DOSBox-X, will
+  focus primarily on Windows 1.0 through Windows Millenium Edition,
+  and then on Windows NT through Windows 2000. Windows XP and later
+  versions are not a priority and will not be considered at this time.
+
+  If you need to run Windows XP and later, please consider using
+  QEMU, Bochs, or VirtualBox.
+
+* Any MS-DOS system other than IBM PC/XT/AT, Tandy, PCjr, and NEC PC-98.
+
+  Only the above listed systems will be considered for development
+  in DOSBox-X. This restriction prevents stretching of the codebase
+  to an unmanageable level and helps keep the code base organized.
+
+  However, if adding emulation of the system requires only small
+  minimal changes, then the new system in question may be considered.
+
+  You are strongly encouraged to fork this project and implement
+  your own variation if you need to develop MS-DOS emulation for
+  any other system or console. In doing that, you gain the complete
+  freedom to focus on implementing the particular MS-DOS based
+  system of interest, and if desired, the ability to strip away
+  conflicting IBM PC/XT/AT emulation and unnecessary code to keep
+  your branch's code manageable and maintainable.
+
+  It would be easier on myself and the open source community if
+  people could focus on emulating their platform of interest in
+  parallel instead of putting everything into one project that,
+  most likely, will do a worse job overall emulating all platforms.
+
+  If you are starting a fork, feel free to let me know where your
+  fork is and what system it is emulating, so I can list it in
+  this README file for others seeking emulation of that system.
+
