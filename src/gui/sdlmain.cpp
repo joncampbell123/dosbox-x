@@ -4172,21 +4172,47 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 psel_item = DOSBoxMenu::unassigned_item_handle;
                 choice_item = mainMenu.menuUserHoverAt = mainMenu.menuUserAttentionAt;
 
-                if (!OpenGL_using()) {
+                if (OpenGL_using()) {
+#if C_OPENGL
+                    mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,false);
+                    mainMenu.get_item(mainMenu.menuUserAttentionAt).setHover(mainMenu,false);
+
+                    /* show the menu */
+                    mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,true);
+                    mainMenu.get_item(mainMenu.menuUserAttentionAt).setHover(mainMenu,true);
+                    popup_stack.push_back(mainMenu.menuUserAttentionAt);
+
+                    glClearColor (0.0, 0.0, 0.0, 1.0);
+                    glClear(GL_COLOR_BUFFER_BIT);
+
+                    GFX_OpenGLRedrawScreen();
+
+                    mainMenu.setRedraw();                  
+                    GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+
+                    for (auto i=popup_stack.begin();i!=popup_stack.end();i++) {
+                        if (mainMenu.get_item(*i).get_type() == DOSBoxMenu::submenu_type_id) {
+                            mainMenu.get_item(*i).drawBackground(mainMenu);
+                            mainMenu.get_item(*i).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
+                        }
+                    }
+
+                    SDL_GL_SwapBuffers();
+#endif
+                }
+                else {
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,false);
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).setHover(mainMenu,false);
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).drawMenuItem(mainMenu);
                     MenuSaveScreen();
-                }
 
-                /* give the menu bar a drop shadow */
-                MenuShadeRect(
-                        mainMenu.menuBox.x + DOSBoxMenu::dropshadowX,
-                        mainMenu.menuBox.y + mainMenu.menuBox.h,
-                        mainMenu.menuBox.w,
-                        DOSBoxMenu::dropshadowY - 1/*menubar border*/);
+                    /* give the menu bar a drop shadow */
+                    MenuShadeRect(
+                            mainMenu.menuBox.x + DOSBoxMenu::dropshadowX,
+                            mainMenu.menuBox.y + mainMenu.menuBox.h,
+                            mainMenu.menuBox.w,
+                            DOSBoxMenu::dropshadowY - 1/*menubar border*/);
 
-                if (!OpenGL_using()) {
                     uprect.x = 0;
                     uprect.y = mainMenu.menuBox.y + mainMenu.menuBox.h;
                     uprect.w = mainMenu.menuBox.w;
@@ -4196,20 +4222,14 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 #else
                     SDL_UpdateRects( sdl.surface, 1, &uprect );
 #endif
-                }
 
-                /* show the menu */
-                mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,true);
-                mainMenu.get_item(mainMenu.menuUserAttentionAt).setHover(mainMenu,true);
-                mainMenu.get_item(mainMenu.menuUserAttentionAt).drawBackground(mainMenu);
-                mainMenu.get_item(mainMenu.menuUserAttentionAt).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
-                mainMenu.get_item(mainMenu.menuUserAttentionAt).updateScreenFromPopup(mainMenu);
-                popup_stack.push_back(mainMenu.menuUserAttentionAt);
-
-                if (OpenGL_using()) {
-#if C_OPENGL
-                    SDL_GL_SwapBuffers();
-#endif
+                    /* show the menu */
+                    mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,true);
+                    mainMenu.get_item(mainMenu.menuUserAttentionAt).setHover(mainMenu,true);
+                    mainMenu.get_item(mainMenu.menuUserAttentionAt).drawBackground(mainMenu);
+                    mainMenu.get_item(mainMenu.menuUserAttentionAt).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
+                    mainMenu.get_item(mainMenu.menuUserAttentionAt).updateScreenFromPopup(mainMenu);
+                    popup_stack.push_back(mainMenu.menuUserAttentionAt);
                 }
 
                 /* hack */
