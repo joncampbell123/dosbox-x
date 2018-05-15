@@ -959,6 +959,15 @@ static SDL_Window * GFX_SetSDLOpenGLWindow(Bit16u width, Bit16u height) {
 }
 #endif
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+const unsigned int SDLDrawGenFontTextureUnitPerRow = 16;
+const unsigned int SDLDrawGenFontTextureRows = 16;
+const unsigned int SDLDrawGenFontTextureWidth = SDLDrawGenFontTextureUnitPerRow * 8;
+const unsigned int SDLDrawGenFontTextureHeight = SDLDrawGenFontTextureRows * 16;
+bool SDLDrawGenFontTextureInit = false;
+GLuint SDLDrawGenFontTexture = (GLuint)(~0UL);
+#endif
+
 #if !defined(C_SDL2)
 /* Reset the screen with current values in the sdl structure */
 Bitu GFX_GetBestMode(Bitu flags) {
@@ -2055,6 +2064,56 @@ dosurface:
         void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl);
         mainMenu.setRedraw();
         GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+
+        if (!SDLDrawGenFontTextureInit) {
+            SDLDrawGenFontTexture = (GLuint)(~0UL);
+            glGenTextures(1,&SDLDrawGenFontTexture);
+            if (SDLDrawGenFontTexture == (GLuint)(~0UL) || glGetError() != 0) {
+                LOG_MSG("WARNING: Unable to make font texture");
+            }
+            else {
+                LOG_MSG("font texture id=%lu will make %u x %u",
+                    (unsigned long)SDLDrawGenFontTexture,
+                    (unsigned int)SDLDrawGenFontTextureWidth,
+                    (unsigned int)SDLDrawGenFontTextureHeight);
+                SDLDrawGenFontTextureInit = 1;
+
+		        glBindTexture(GL_TEXTURE_2D,SDLDrawGenFontTexture);
+
+                glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, GL_REPLACE);
+                // No borders
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, SDLDrawGenFontTextureWidth, SDLDrawGenFontTextureHeight, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
+
+                /* load the font */
+                {
+                    extern Bit8u int10_font_16[256 * 16];
+
+                    unsigned char *bmp;
+                    uint32_t tmp[8*16];
+                    unsigned int x,y,c;
+
+                    for (c=0;c < 256;c++) {
+                        bmp = int10_font_16 + (c * 16);
+                        for (y=0;y < 16;y++) {
+                            for (x=0;x < 8;x++) {
+                                tmp[(y*8)+x] = (bmp[y] & (0x80 >> x)) ? 0xFFFFFFFFUL : 0x00000000UL;
+                            }
+                        }
+
+                        glTexSubImage2D(GL_TEXTURE_2D, /*level*/0, /*x*/(c % 16) * 8, /*y*/(c / 16) * 16,
+                            8, 16, GL_BGRA_EXT, GL_UNSIGNED_INT_8_8_8_8_REV, (void*)tmp);
+                    }
+                }
+
+                glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
+            }
+        }
 #endif
 
         glFinish();
@@ -3099,6 +3158,46 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                         index++;
                     }
                     glCallList(sdl.opengl.displaylist);
+
+#if 0 /* DEBUG Prove to me that you're drawing the damn texture */
+                    glBindTexture(GL_TEXTURE_2D,SDLDrawGenFontTexture);
+
+                    glPushMatrix();
+
+                    glMatrixMode (GL_TEXTURE);
+                    glLoadIdentity ();
+                    glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
+
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                    glEnable(GL_ALPHA_TEST);
+                    glEnable(GL_BLEND);
+
+                    glBegin(GL_QUADS);
+
+                    // lower left
+                    glTexCoord2i(0,                         0                          );
+                    glVertex2i(  0,                         0                          );
+                    // lower right
+                    glTexCoord2i(SDLDrawGenFontTextureWidth,0                          );
+                    glVertex2i(  SDLDrawGenFontTextureWidth,0                          );
+                    // upper right
+                    glTexCoord2i(SDLDrawGenFontTextureWidth,SDLDrawGenFontTextureHeight); 
+                    glVertex2i(  SDLDrawGenFontTextureWidth,SDLDrawGenFontTextureHeight);
+                    // upper left
+                    glTexCoord2i(0,                         SDLDrawGenFontTextureHeight); 
+                    glVertex2i(  0,                         SDLDrawGenFontTextureHeight);
+
+                    glEnd();
+
+                    glBlendFunc(GL_ONE, GL_ZERO);
+                    glDisable(GL_ALPHA_TEST);
+                    glEnable(GL_TEXTURE_2D);
+
+                    glPopMatrix();
+
+                    glBindTexture(GL_TEXTURE_2D,sdl.opengl.texture);
+#endif
+
                     SDL_GL_SwapBuffers();
                 }
 
@@ -3867,7 +3966,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         GFX_SDLMenuTrackHover(mainMenu,mainMenu.display_list.itemFromPoint(mainMenu,motion->x,motion->y));
         SDL_ShowCursor(SDL_ENABLE);
 
-        if (OpenGL_using()) {
+        if (OpenGL_using() && mainMenu.needsRedraw()) {
 #if C_OPENGL
             GFX_OpenGLRedrawScreen();
             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
@@ -3880,7 +3979,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     else {
         GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
 
-        if (OpenGL_using()) {
+        if (OpenGL_using() && mainMenu.needsRedraw()) {
 #if C_OPENGL
             GFX_OpenGLRedrawScreen();
             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
