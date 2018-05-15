@@ -4172,6 +4172,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 psel_item = DOSBoxMenu::unassigned_item_handle;
                 choice_item = mainMenu.menuUserHoverAt = mainMenu.menuUserAttentionAt;
 
+                popup_stack.push_back(mainMenu.menuUserAttentionAt);
+
                 if (OpenGL_using()) {
 #if C_OPENGL
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,false);
@@ -4236,8 +4238,6 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).updateScreenFromPopup(mainMenu);
                 }
-
-                popup_stack.push_back(mainMenu.menuUserAttentionAt);
 
                 /* hack */
                 mainMenu.menuUserAttentionAt = DOSBoxMenu::unassigned_item_handle;
