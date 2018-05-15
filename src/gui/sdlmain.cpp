@@ -4180,7 +4180,6 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                     /* show the menu */
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,true);
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).setHover(mainMenu,true);
-                    popup_stack.push_back(mainMenu.menuUserAttentionAt);
 
                     glClearColor (0.0, 0.0, 0.0, 1.0);
                     glClear(GL_COLOR_BUFFER_BIT);
@@ -4236,8 +4235,9 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).drawBackground(mainMenu);
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).display_list.DrawDisplayList(mainMenu,/*updateScreen*/false);
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).updateScreenFromPopup(mainMenu);
-                    popup_stack.push_back(mainMenu.menuUserAttentionAt);
                 }
+
+                popup_stack.push_back(mainMenu.menuUserAttentionAt);
 
                 /* hack */
                 mainMenu.menuUserAttentionAt = DOSBoxMenu::unassigned_item_handle;
