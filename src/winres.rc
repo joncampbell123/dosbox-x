@@ -19,14 +19,14 @@ BEGIN
     BEGIN
 		BLOCK "040904b0"
 		BEGIN
-		    VALUE "Comments", "(C) 2002-2014 DOSBox Team, published under GNU GPL"
-		    VALUE "CompanyName", "DOSBox Team"
-		    VALUE "FileDescription", "DOSBox DOS Emulator"
+		    VALUE "Comments", "(C) 2002-2018 TheGreatCodeholio, a fork of the DOSBox project, published under GNU GPL"
+		    VALUE "CompanyName", "DOSBox-X"
+		    VALUE "FileDescription", "DOSBox-X DOS Emulator"
 		    VALUE "FileVersion", "0, 74, 0, 0"
-		    VALUE "InternalName", "DOSBox"
-		    VALUE "LegalCopyright", "Copyright ?2002-2014 DOSBox Team"
-		    VALUE "OriginalFilename", "dosbox.exe"
-		    VALUE "ProductName", "DOSBox DOS Emulator"
+		    VALUE "InternalName", "DOSBox-X"
+		    VALUE "LegalCopyright", "Copyright ?2002-2018 TheGreatCodeholio"
+		    VALUE "OriginalFilename", "dosbox-x.exe"
+		    VALUE "ProductName", "DOSBox-X DOS Emulator"
 		    VALUE "ProductVersion", "0, 74, 0, 0"
 		END
     END
