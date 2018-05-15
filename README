@@ -126,7 +126,7 @@ There is an alternate branch maintained by other devs on Github if compilation
 with CMake is desired.
 
 Stright Windows builds are expected to compile using the free community edition
-of Visual Studio 2015 and Visual Studio 2017 and the DirectX 2010 SDK.
+of Visual Studio 2015 or Visual Studio 2017 and the DirectX 2010 SDK.
 
 Mac OS X builds are expected to compile on the terminal using GNU autotools
 and the LLVM/Clang compiler provided by XCode.
