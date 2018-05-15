@@ -266,9 +266,13 @@ class DOSBoxMenu {
                 void                    deallocate(void);
             public:
                 inline bool checkResetRedraw(void) {
-                    bool r = needRedraw;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+					bool r = needRedraw;
                     needRedraw = false;
                     return r;
+#else
+					return false;
+#endif
                 }
                 inline const std::string &get_name(void) const {
                     return name;
