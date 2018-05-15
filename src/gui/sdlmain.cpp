@@ -1454,6 +1454,22 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
     unsigned char *bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
 
     if (OpenGL_using()) {
+#if C_OPENGL
+        unsigned int tx = (c % 16) * 8;
+        unsigned int ty = (c / 16) * 16;
+
+        /* MenuDrawText() has prepared OpenGL state for us */
+		glBegin(GL_QUADS);
+		// lower left
+		glTexCoord2i(tx+0,    ty           ); glVertex2i(x,  y           );
+		// lower right
+		glTexCoord2i(tx+8,    ty           ); glVertex2i(x+8,y           );
+		// upper right
+		glTexCoord2i(tx+8,    ty+fontHeight); glVertex2i(x+8,y+fontHeight);
+		// upper left
+		glTexCoord2i(tx+0,    ty+fontHeight); glVertex2i(x,  y+fontHeight);
+		glEnd();
+#endif
     }
     else {
         unsigned char *scan;
@@ -1496,6 +1512,22 @@ void MenuDrawTextChar2x(int x,int y,unsigned char c,Bitu color) {
     unsigned char *bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
 
     if (OpenGL_using()) {
+#if C_OPENGL
+        unsigned int tx = (c % 16) * 8;
+        unsigned int ty = (c / 16) * 16;
+
+        /* MenuDrawText() has prepared OpenGL state for us */
+		glBegin(GL_QUADS);
+		// lower left
+		glTexCoord2i(tx+0,    ty           ); glVertex2i(x,      y               );
+		// lower right
+		glTexCoord2i(tx+8,    ty           ); glVertex2i(x+(8*2),y               );
+		// upper right
+		glTexCoord2i(tx+8,    ty+fontHeight); glVertex2i(x+(8*2),y+(fontHeight*2));
+		// upper left
+		glTexCoord2i(tx+0,    ty+fontHeight); glVertex2i(x,      y+(fontHeight*2));
+		glEnd();
+#endif
     }
     else { 
         unsigned char *scan;
@@ -1540,6 +1572,23 @@ void MenuDrawTextChar2x(int x,int y,unsigned char c,Bitu color) {
 }
 
 void MenuDrawText(int x,int y,const char *text,Bitu color) {
+#if C_OPENGL
+    if (OpenGL_using()) {
+        glBindTexture(GL_TEXTURE_2D,SDLDrawGenFontTexture);
+
+        glPushMatrix();
+
+        glMatrixMode (GL_TEXTURE);
+        glLoadIdentity ();
+        glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_ALPHA_TEST);
+        glEnable(GL_BLEND);
+    }
+#endif
+
     while (*text != 0) {
         if (mainMenu.fontCharScale >= 2)
             MenuDrawTextChar2x(x,y,(unsigned char)(*text++),color);
@@ -1548,6 +1597,18 @@ void MenuDrawText(int x,int y,const char *text,Bitu color) {
 
         x += mainMenu.fontCharWidth;
     }
+
+#if C_OPENGL
+    if (OpenGL_using()) {
+        glBlendFunc(GL_ONE, GL_ZERO);
+        glDisable(GL_ALPHA_TEST);
+        glEnable(GL_TEXTURE_2D);
+
+        glPopMatrix();
+
+        glBindTexture(GL_TEXTURE_2D,sdl.opengl.texture);
+    }
+#endif
 }
 
 void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
