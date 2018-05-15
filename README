@@ -174,6 +174,28 @@ design as implemented now cannot accomodate.
   If accurate emulation of cycles per instruction is needed, please
   consider using PCem or PCem-X instead.
 
+* Full precision floating point emulation.
+
+  Unless using the dynamic core, DOSBox and DOSBox-X emulate the FPU
+  registers using the "double" 64-bit floating point data type.
+
+  The Intel FPU registers are 80-bit "extended precision" floating
+  point values, not 64-bit double precision, so this is effectively
+  12 bits of precision loss and 5 bits of range loss (64 to 53 mantissa
+  bits and 16 to 11 exponent bits).
+
+  This slight loss of precision is perfectly fine considering DOSBox's
+  original goal in supporting DOS games, but may cause problems in
+  other cases that need the full precision.
+
+  It is known at this time that this lack of precision is enough to
+  cause otherwise straightforward comparisons against integers to
+  fail in DOS applications originally written in QBasic or Turbo Basic.
+  There are such DOS games written that check their file size using
+  a floating point compare that will fail in this manner. To run these
+  games, you will need to disable FPU emulation (fpu=false) to force
+  the QBasic/TurboBasic runtime to use software emulation instead.
+
 * Pentium II or higher CPU level emulation.
 
   DOSBox-X contains code only to emulate the 8088 through the Pentium Pro.
