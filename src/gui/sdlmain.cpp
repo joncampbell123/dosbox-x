@@ -1582,6 +1582,9 @@ void MenuDrawText(int x,int y,const char *text,Bitu color) {
         glLoadIdentity ();
         glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
 
+        glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glEnable(GL_TEXTURE_2D);
         glEnable(GL_ALPHA_TEST);
@@ -1600,6 +1603,7 @@ void MenuDrawText(int x,int y,const char *text,Bitu color) {
 
 #if C_OPENGL
     if (OpenGL_using()) {
+        glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
         glBlendFunc(GL_ONE, GL_ZERO);
         glDisable(GL_ALPHA_TEST);
         glEnable(GL_TEXTURE_2D);
@@ -2062,7 +2066,7 @@ dosurface:
  		glGenTextures(1,&sdl.opengl.texture);
 		glBindTexture(GL_TEXTURE_2D,sdl.opengl.texture);
 		glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-		glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, GL_REPLACE);
+		glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, 0);
 		// No borders
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
@@ -2142,7 +2146,7 @@ dosurface:
 		        glBindTexture(GL_TEXTURE_2D,SDLDrawGenFontTexture);
 
                 glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-                glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, GL_REPLACE);
+		        glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, 0);
                 // No borders
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
