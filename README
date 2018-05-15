@@ -9,6 +9,49 @@ I am rewriting this README, and new information will be added over time --J.C.
 
 
 
+How to compile DOSBox-X in Ubuntu (kapper1224)
+----------------------------------------------
+
+sudo apt install libavformat-* libswscale-* libavcodec-*
+./autogen.sh
+./configure
+make
+sudo make install
+
+
+
+How to compile in general
+-------------------------
+
+General Linux compile (FFMPEG/libav support required)
+./build-debug
+
+
+General Linux compile if FFMPEG/libav not desired
+./build-debug-no-avcodec
+
+
+MinGW compile (on Windows) for 32-bit Windows XP
+./build-mingw
+
+
+MinGW compile (on Windows) for 32-bit Windows XP, lower-end systems that lack MMX/SSE
+./build-mingw-lowend
+
+
+MinGW compile (on Windows) to target MS-DOS and the HX DOS extender
+./build-mingw-hx-dos
+
+
+Visual Studio 2017 compile for 32/64-bit Windows Vista or higher
+Use the ./vs2015/dosbox-x.sln "solution" file and compile.
+You will need the DirectX 2010 SDK for Direct3D9 support.
+
+
+XCode (on Mac OS X, from the Terminal) to target Mac OS X
+./build-debug
+
+
 Open source development
 -----------------------
 
