@@ -4307,7 +4307,6 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                         case SDL_MOUSEMOTION:
                             {
                                 sel_item = DOSBoxMenu::unassigned_item_handle;
-                                redrawAll = true;
 
                                 auto search = popup_stack.end();
                                 if (search != popup_stack.begin()) {
@@ -4329,13 +4328,13 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                                 mainMenu.get_item(*search).setHilight(mainMenu,false);
                                                 mainMenu.get_item(*search).setHover(mainMenu,false);
                                                 popup_stack.pop_back();
+                                                redrawAll = true;
                                             }
                                             mainMenu.get_item(sel_item).setHover(mainMenu,true);
                                             if (mainMenu.get_item(sel_item).get_type() == DOSBoxMenu::submenu_type_id || button_holding)
                                                 mainMenu.get_item(sel_item).setHilight(mainMenu,true);
                                             mainMenu.menuUserHoverAt = sel_item;
                                             popup_stack.push_back(sel_item);
-                                            redrawAll = true;
                                             break;
                                         }
                                     } while (search != popup_stack.begin());

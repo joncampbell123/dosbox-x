@@ -261,6 +261,11 @@ class DOSBoxMenu {
                 item&                   allocate(const item_handle_t id,const enum item_type_t type,const std::string &name);
                 void                    deallocate(void);
             public:
+                inline bool checkResetRedraw(void) {
+                    bool r = needRedraw;
+                    needRedraw = false;
+                    return r;
+                }
                 inline const std::string &get_name(void) const {
                     return name;
                 }
