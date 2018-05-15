@@ -4187,6 +4187,13 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
                     GFX_OpenGLRedrawScreen();
 
+                    /* give the menu bar a drop shadow */
+                    MenuShadeRect(
+                            mainMenu.menuBox.x + DOSBoxMenu::dropshadowX,
+                            mainMenu.menuBox.y + mainMenu.menuBox.h,
+                            mainMenu.menuBox.w,
+                            DOSBoxMenu::dropshadowY - 1/*menubar border*/);
+
                     mainMenu.setRedraw();                  
                     GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 
