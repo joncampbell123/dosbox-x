@@ -3095,6 +3095,12 @@ bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
 void GFX_OpenGLRedrawScreen(void) {
 #if C_OPENGL
     if (OpenGL_using()) {
+        if (gl_clear_countdown > 0) {
+            gl_clear_countdown--;
+            glClearColor (0.0, 0.0, 0.0, 1.0);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
+
         if (sdl.opengl.pixel_buffer_object) {
             glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
             glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
@@ -3185,12 +3191,12 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                     gl_clear_countdown--;
                     glClearColor (0.0, 0.0, 0.0, 1.0);
                     glClear(GL_COLOR_BUFFER_BIT);
+                }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-                    mainMenu.setRedraw();
-                    GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+                mainMenu.setRedraw();
+                GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 #endif
-                }
 
                 if (sdl.opengl.pixel_buffer_object) {
                     if(changedLines && (changedLines[0] == sdl.draw.height)) 
@@ -4434,6 +4440,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                     GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 
                     SDL_GL_SwapBuffers();
+
+                    gl_clear_countdown = 2;
 #endif
                 }
 
