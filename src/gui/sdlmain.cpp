@@ -7886,7 +7886,7 @@ int main(int argc, char* argv[]) {
 
         mainMenu.rebuild();
 
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 		/* -- menu */
 		MainMenu = mainMenu.getWinMenu();
         DOSBox_SetMenu();
@@ -7902,7 +7902,7 @@ int main(int argc, char* argv[]) {
         mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
 #endif
 
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 		int Reflect_Menu(void);
 		Reflect_Menu();
 #endif
