@@ -105,7 +105,10 @@ void DOSBox_NoMenu(void);
 #define DOSBOXMENU_HMENU    (1)     /* Windows HMENU resources */
 #define DOSBOXMENU_NSMENU   (2)     /* Mac OS X NSMenu / NSMenuItem resources */
 #define DOSBOXMENU_SDLDRAW  (3)     /* menus that WE draw on the SDL surface */
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+
+#if C_FORCE_MENU_SDLDRAW /* Programmer/Dev wants to compile with SDL drawn menus even if host OS offers menus (shrug) Ok */
+# define DOSBOXMENU_TYPE    DOSBOXMENU_SDLDRAW
+#elif defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 # define DOSBOXMENU_TYPE    DOSBOXMENU_HMENU
 #elif defined(MACOSX)
 # define DOSBOXMENU_TYPE    DOSBOXMENU_NSMENU
