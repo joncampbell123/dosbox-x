@@ -1119,6 +1119,11 @@ bool DOSBox_isMenuVisible(void) {
     return menu.toggle;
 }
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+extern "C" void SDL1_hax_SetMenu(HMENU menu);
+extern HMENU MainMenu;
+#endif
+
 void DOSBox_SetMenu(void) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     /* FIXME: SDL menu is NOT AVAILABLE if OpenGL surface is used */
@@ -1940,9 +1945,6 @@ void DOSBox_SetSysMenu(void) {
 	}
 #endif
 }
-
-extern "C" void SDL1_hax_SetMenu(HMENU menu);
-extern HMENU MainMenu;
 
 void DOSBox_CheckOS(int &id, int &major, int &minor) {
 	OSVERSIONINFO osi;
