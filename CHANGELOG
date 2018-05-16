@@ -1,4 +1,8 @@
 0.82.7 (next)
+  - Added code to read and discard OpenGL error code before
+    creating font texture, to avoid false failure handling.
+    This fixes font rendering on Windows MinGW builds when
+    output=opengl.
   - OpenGL SDL drawn menus fixed to ensure the menu contents
     have been redrawn at least twice. One for each OpenGL
     buffer because DOSBox-X uses the double-buffered mode.
