@@ -109,7 +109,7 @@ system to limit what the DOSBox-X executable is allowed to do.
 Comments on DOSBox-X development
 --------------------------------
 
-The three major operating systems and platforms of DOSBox-X are (in this order):
+The four major operating systems and platforms of DOSBox-X are (in this order):
 
 1. Linux (with X11) 32-bit and 64-bit x86.
 
