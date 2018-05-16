@@ -362,3 +362,6 @@ PC-98 FM board emulation (Neko Project II)
 QCOW image support (Michael Greger)
   src/ints/qcow2_disk.cpp
 
+HQ2X and HQ3X render scaler (ScummVM, Maxim Stepin)
+  src/gui/render_templates_hq2x.h
+
