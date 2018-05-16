@@ -2066,6 +2066,8 @@ dosurface:
 		}
 		sdl.opengl.pitch=width*4;
 
+		glBindTexture(GL_TEXTURE_2D,0);
+
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
         if (SDLDrawGenFontTextureInit) {
             glDeleteTextures(1,&SDLDrawGenFontTexture);
@@ -2139,6 +2141,8 @@ dosurface:
 		glEnd();
 		glEndList();
 
+		glBindTexture(GL_TEXTURE_2D,0);
+
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
         void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl);
         mainMenu.setRedraw();
@@ -2192,7 +2196,7 @@ dosurface:
                     }
                 }
 
-                glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
+                glBindTexture(GL_TEXTURE_2D,0);
             }
         }
 #endif
