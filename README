@@ -252,3 +252,110 @@ design as implemented now cannot accomodate.
   fork is and what system it is emulating, so I can list it in
   this README file for others seeking emulation of that system.
 
+
+
+Origins, and crediting of source code
+-------------------------------------
+
+by Jonathan Campbell.
+
+As the developer of DOSBox-X, I cannot legitimately claim to have
+written all of the code in this project.
+
+DOSBox-X started as a fork of the main DOSBox project sometime
+mid 2011. It was started out of a desire to improve the emulator
+without having to fight with or worry about submitting patches
+upstream.
+
+As the forums make it clear, DOSBox's main focus is on DOS games.
+This is evident by the fact that much of the code is somewhat
+accurate code with kludges to make DOS games run, instead of
+focusing on what hardware actually does.
+
+Many of the changes I wanted to make were non-game related, and
+therefore were unlikely to be accepted by the developers.
+
+Since then, I have been modifying the source code over time to
+improve emulation, fix bugs, and resolve incompatibilities with
+Windows 95 through ME. I have added options so that DOSBox-X
+by default can emulate a wider variety of configurations more
+accurately, while allowing the user to enable hacks if needed
+to run their favorite DOS game. I have also been cleaning up
+and organizing the code to improve stability and portability
+where possible.
+
+It's more accurate to say then, that I wrote *some* of the code,
+that I rewrote other parts of the code, and the rest is the DOSBox
+SVN code as it existed since mid 2011.
+
+The purpose of this section, is to try and build a comprehensive
+list of source code in this repository that was borrowed from
+other projects.
+
+Some of the code is DOSBox SVN code in which some of the SVN
+commits made since 2011 were incorporated into DOSBox-X.
+
+The main DOSBox project was not written by one programmer. It has
+been under development since late 2000 with patches, fixes, and
+improvements from members all over the Vogons forums. Despite
+not having an official release since DOSBox 0.74 over 10 years
+ago, the project is still in active development today. Some of
+the changes themselves incorporated code from other projects,
+which are also credited in the list below.
+
+Some of the code in this source tree also came from another
+branch of DOSBox known as DOSBox Daum (http://ykhwong.x-y.net)
+which itself incorporated code from the main DOSBox project,
+DOSBox-X, and many experimental patches. Although the Daum
+branch seems to be dead, the code borrowed from it still
+exists in DOSBox-X.
+
+This is my attempt to properly credit the code and it's
+sources below. Feel free to revise and correct this list
+if there are errors.
+
+NE2000 network card emulation (Bochs)
+  src/hardware/ne2000.cpp
+
+MT32 synthesizer (MUNT)
+  src/mt32/*.cpp
+  src/mt32/*.h
+
+AVI writer with OpenDML support (written by myself)
+  src/aviwriter/*.cpp
+  src/aviwriter/*.h
+
+Framework-agnostic GUI toolkit (Jorg Walter)
+  src/libs/gui_tk/*.cpp
+  src/libs/gui_tk/*.h
+
+Porttalk library, to read/write I/O ports directly (Unknown source)
+  src/libs/porttalk/*.cpp
+  src/libs/porttalk/*.h
+
+FreeDOS utilities as binary blobs (FreeDOS)
+  src/builtin/*.cpp
+
+NukedOPL OPL3 emulation (Alexey Khokholov)
+  src/hardware/nukedopl.cpp
+
+OPL emulation based on Ken Silverman OPL2 emulation
+  src/hardware/opl.cpp
+
+MOS6581 SID emulation
+  src/hardware/reSID/*.cpp
+  src/hardware/reSID/*.h
+
+SN76496 emulation (MAME project)
+  src/hardware/sn76496.h
+  src/hardware/tandy_sound.cpp
+
+PC-98 video rendering and I/O handling code (written by myself)
+  src/hardware/vga_pc98*.cpp
+
+3dfx Voodoo Graphics SST-1/2 emulation (Aaron Giles)
+  src/hardware/voodoo_emu.cpp
+
+PC-98 FM board emulation (Neko Project II)
+  src/hardware/snd_pc98/*
+
