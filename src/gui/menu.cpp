@@ -1965,7 +1965,7 @@ bool DOSBox_Kor(void) {
 }
 
 void DOSBox_RefreshMenu(void) {
-#if !defined(HX_DOS)
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     int width, height; bool fullscreen;
     void GFX_GetSize(int &width, int &height, bool &fullscreen);
     GFX_GetSize(width,height,fullscreen);
@@ -1994,7 +1994,7 @@ void DOSBox_RefreshMenu(void) {
 }
 
 void DOSBox_RefreshMenu2(void) {
-#if !defined(HX_DOS)
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 	if(!menu.gui) return;
    int width, height; bool fullscreen;
    void GFX_GetSize(int &width, int &height, bool &fullscreen);
