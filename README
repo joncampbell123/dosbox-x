@@ -359,3 +359,6 @@ PC-98 video rendering and I/O handling code (written by myself)
 PC-98 FM board emulation (Neko Project II)
   src/hardware/snd_pc98/*
 
+QCOW image support (Michael Greger)
+  src/ints/qcow2_disk.cpp
+
