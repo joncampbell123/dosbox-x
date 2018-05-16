@@ -60,11 +60,7 @@ void sdl_hax_nsMenuRelease(void *nsMenu) {
 
 void sdl_hax_macosx_setmenu(void *nsMenu) {
 	if (nsMenu != NULL) {
-		/* I like how Apple's shiny developer page on NSApplication mentions mainMenu
-		   like you can assign to it but never mentions setMainMenu.
-
-		   Come on Apple fix your documentation. List the headers you need to include.
-		   List ALL the methods. Even Microsoft figured this out years ago >:( */
+        /* switch to the menu object given */
 		[NSApp setMainMenu:((NSMenu*)nsMenu)];
 	}
 	else {
