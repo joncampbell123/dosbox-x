@@ -3009,7 +3009,7 @@ void reflectmenu_INITMENU_cb() {
 }
 
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
-#if !defined(HX_DOS)
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 	bool GFX_GetPreventFullscreen(void);
 
 	if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
