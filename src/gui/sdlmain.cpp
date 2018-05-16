@@ -2150,10 +2150,15 @@ dosurface:
 
 //      FIXME: Why do we have to reinitialize the font texture?
         /*if (!SDLDrawGenFontTextureInit) */{
+            GLuint err;
+
+            glGetError(); /* read and discard last error */
+
             SDLDrawGenFontTexture = (GLuint)(~0UL);
             glGenTextures(1,&SDLDrawGenFontTexture);
-            if (SDLDrawGenFontTexture == (GLuint)(~0UL) || glGetError() != 0) {
-                LOG_MSG("WARNING: Unable to make font texture");
+            if (SDLDrawGenFontTexture == (GLuint)(~0UL) || (err=glGetError()) != 0) {
+                LOG_MSG("WARNING: Unable to make font texture. id=%llu err=%lu",
+                    (unsigned long long)SDLDrawGenFontTexture,(unsigned long)err);
             }
             else {
                 LOG_MSG("font texture id=%lu will make %u x %u",
