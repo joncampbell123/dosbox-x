@@ -135,6 +135,10 @@ if test x$warn_cpp0x = x1; then
     AC_MSG_ERROR([ Your compiler must support C++11 or better ])
 fi
 
+dnl Yksoft1 wants a MinGW build for Windows that doesn't use the Windows menu system.
+AH_TEMPLATE(C_FORCE_MENU_SDLDRAW,[Define to 1 to force SDL-drawn menus])
+AC_ARG_ENABLE(force-menu-sdldraw,AC_HELP_STRING([--enable-force-menu-sdldraw],[Force SDL drawn menus]),enable_force_menu_sdldraw=yes)
+
 dnl This is how the build script can specify a HX DOS extender target
 AH_TEMPLATE(C_HX_DOS,[Define to 1 to target HX DOS])
 AC_ARG_ENABLE(hx-dos,AC_HELP_STRING([--enable-hx-dos],[Enable HX target]),enable_hx=yes)
@@ -148,6 +152,11 @@ case "$host" in
     fi
     ;;
 esac
+
+if test x$enable_force_menu_sdldraw == xyes; then
+    CXXFLAGS="$CXXFLAGS -DFORCE_SDLDRAW"
+    AC_DEFINE(C_FORCE_MENU_SDLDRAW,1,[Force SDL drawn menus])
+fi
 
 dnl TEST: Environ can be included
 AC_MSG_CHECKING(if environ can be included)
