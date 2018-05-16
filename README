@@ -244,7 +244,7 @@ design as implemented now cannot accomodate.
   your branch's code manageable and maintainable.
 
   It would be easier on myself and the open source community if
-  people could focus on emulating their platform of interest in
+  developers could focus on emulating their platform of interest in
   parallel instead of putting everything into one project that,
   most likely, will do a worse job overall emulating all platforms.
 
