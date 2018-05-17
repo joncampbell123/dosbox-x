@@ -5105,6 +5105,8 @@ void* GetSetSDLValue(int isget, std::string target, void* setval) {
 		else sdl.using_windib = setval;
 #endif
 	}
+
+	return NULL;
 }
 
 #if defined(C_SDL2)
