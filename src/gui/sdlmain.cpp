@@ -7898,7 +7898,7 @@ int main(int argc, char* argv[]) {
 		MainMenu = mainMenu.getWinMenu();
         DOSBox_SetMenu();
 #endif
-#if defined(MACOSX)
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
         void sdl_hax_macosx_setmenu(void *nsMenu);
         sdl_hax_macosx_setmenu(mainMenu.getNsMenu());
 #endif
@@ -8198,7 +8198,7 @@ fresh_boot:
 	SDL1_hax_SetMenu(NULL);/* detach menu from window, or else Windows will destroy the menu out from under the C++ class */
 # endif
 #endif
-#if defined(MACOSX)
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
 	void sdl_hax_macosx_setmenu(void *nsMenu);
 	sdl_hax_macosx_setmenu(NULL);
 #endif
