@@ -49,7 +49,3 @@ fi
 make -j || exit 1
 make install || exit 1  # will install into ./linux-host
 
-# STOP DELETING THE FILE!!!!! I need it for Windows builds!
-cd "$srcdir" || exit 1
-cp -v include/SDL_config.h.default include/SDL_config.h
-
