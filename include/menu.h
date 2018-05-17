@@ -110,7 +110,7 @@ void DOSBox_NoMenu(void);
 # define DOSBOXMENU_TYPE    DOSBOXMENU_SDLDRAW
 #elif defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 # define DOSBOXMENU_TYPE    DOSBOXMENU_HMENU
-#elif defined(MACOSX)
+#elif defined(MACOSX) && !defined(C_SDL2)
 # define DOSBOXMENU_TYPE    DOSBOXMENU_NSMENU
 #elif defined(C_SDL2) /* SDL 2.x only */
 # define DOSBOXMENU_TYPE    DOSBOXMENU_SDLDRAW

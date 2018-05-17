@@ -823,7 +823,7 @@ void PauseDOSBox(bool pressed) {
 				GFX_SetTitle(-1,-1,-1,false);
 				break;
 			}
-#if defined (MACOSX)
+#if defined (MACOSX) && !defined(C_SDL2)
 			if (event.key.keysym.sym == SDLK_q && (event.key.keysym.mod == KMOD_RMETA || event.key.keysym.mod == KMOD_LMETA) ) {
 				/* On macs, all apps exit when pressing cmd-q */
 				KillSwitch(true);
