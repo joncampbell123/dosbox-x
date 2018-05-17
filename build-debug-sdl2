@@ -10,7 +10,6 @@ chmod +x vs2015/sdl/build-scripts/strip_fPIC.sh
 
 # prefer to compile against our own copy of SDL 2.x IF the system does not provide one
 x=`which sdl2-config`
-x= # debug
 if test -z "$x" ; then
     echo Compiling our internal SDL 2.x
     (cd vs2015/sdl2 && ./build-dosbox.sh) || exit 1
