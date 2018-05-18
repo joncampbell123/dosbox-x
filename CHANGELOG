@@ -1,4 +1,9 @@
 0.82.7 (next)
+  - Added PC-98 INT DCh emulation for function call that
+    writes a char to the screen, allowing Eve Burst Error
+    to clear the function row
+  - Added command line option to allow skipping the 1-second
+    wait in the BIOS startup screen.
   - SDL2 builds now support use of the SDL drawn menu with
     a touchscreen device.
   - Fixed up SDL2 support code to compile correctly on
