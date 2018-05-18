@@ -1,4 +1,10 @@
 0.82.7 (next)
+  - Fixed up SDL2 support code to compile correctly on
+    Mac OS X.
+  - Fixed up SDL2 compilation to automatically use the
+    SDL2 library on the system, or if that is not available,
+    use the SDL2 library in-tree. There are no plans to make
+    modifications to the in-tree SDL2 code.
   - Added code to read and discard OpenGL error code before
     creating font texture, to avoid false failure handling.
     This fixes font rendering on Windows MinGW builds when
