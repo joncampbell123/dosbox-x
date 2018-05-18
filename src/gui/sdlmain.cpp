@@ -6401,6 +6401,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"                                          Make sure to surround the command in quotes to cover spaces.\n");
             fprintf(stderr,"  -break-start                            Break into debugger at startup\n");
             fprintf(stderr,"  -time-limit <n>                         Kill the emulator after 'n' seconds\n");
+            fprintf(stderr,"  -fastbioslogo                           Fast BIOS logo (skip 1-second pause)\n");
             fprintf(stderr,"  -log-con                                Log CON output to a log file\n");
 
 #if defined(WIN32)
@@ -6468,6 +6469,9 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "lang") {
             if (!control->cmdline->NextOptArgv(control->opt_lang)) return false;
+        }
+        else if (optname == "fastbioslogo") {
+            control->opt_fastbioslogo = true;
         }
         else if (optname == "conf") {
             if (!control->cmdline->NextOptArgv(tmp)) return false;

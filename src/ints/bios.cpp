@@ -6395,20 +6395,39 @@ private:
 		//       a "BIOS setup" screen where all DOSBox configuration options can be
 		//       modified, with the same look and feel of an old BIOS.
 
-		bool wait_for_user = false;
-		Bit32u lasttick=GetTicks();
-		while ((GetTicks()-lasttick)<1000) {
-            if (machine == MCH_PC98) {
-                reg_eax = 0x0100;   // sense key
-                CALLBACK_RunRealInt(0x18);
-                SETFLAGBIT(ZF,reg_bh == 0);
-            }
-            else {
-                reg_eax = 0x0100;
-                CALLBACK_RunRealInt(0x16);
+        if (!control->opt_fastbioslogo) {
+            bool wait_for_user = false;
+            Bit32u lasttick=GetTicks();
+            while ((GetTicks()-lasttick)<1000) {
+                if (machine == MCH_PC98) {
+                    reg_eax = 0x0100;   // sense key
+                    CALLBACK_RunRealInt(0x18);
+                    SETFLAGBIT(ZF,reg_bh == 0);
+                }
+                else {
+                    reg_eax = 0x0100;
+                    CALLBACK_RunRealInt(0x16);
+                }
+
+                if (!GETFLAG(ZF)) {
+                    if (machine == MCH_PC98) {
+                        reg_eax = 0x0000;   // read key
+                        CALLBACK_RunRealInt(0x18);
+                    }
+                    else {
+                        reg_eax = 0x0000;
+                        CALLBACK_RunRealInt(0x16);
+                    }
+
+                    if (reg_al == 32) { // user hit space
+                        BIOS_Int10RightJustifiedPrint(x,y,"Hit ENTER or ESC to continue                    \n"); // overprint
+                        wait_for_user = true;
+                        break;
+                    }
+                }
             }
 
-			if (!GETFLAG(ZF)) {
+            while (wait_for_user) {
                 if (machine == MCH_PC98) {
                     reg_eax = 0x0000;   // read key
                     CALLBACK_RunRealInt(0x18);
@@ -6418,26 +6437,9 @@ private:
                     CALLBACK_RunRealInt(0x16);
                 }
 
-				if (reg_al == 32) { // user hit space
-					BIOS_Int10RightJustifiedPrint(x,y,"Hit ENTER or ESC to continue                    \n"); // overprint
-					wait_for_user = true;
-					break;
-				}
-			}
-		}
-
-        while (wait_for_user) {
-            if (machine == MCH_PC98) {
-                reg_eax = 0x0000;   // read key
-                CALLBACK_RunRealInt(0x18);
+                if (reg_al == 27/*ESC*/ || reg_al == 13/*ENTER*/)
+                    break;
             }
-            else {
-                reg_eax = 0x0000;
-                CALLBACK_RunRealInt(0x16);
-            }
-
-            if (reg_al == 27/*ESC*/ || reg_al == 13/*ENTER*/)
-                break;
         }
 
         if (machine == MCH_PC98) {
