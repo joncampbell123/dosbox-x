@@ -1,4 +1,6 @@
 0.82.7 (next)
+  - SDL2 builds now support use of the SDL drawn menu with
+    a touchscreen device.
   - Fixed up SDL2 support code to compile correctly on
     Mac OS X.
   - Fixed up SDL2 compilation to automatically use the
