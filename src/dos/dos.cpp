@@ -1817,6 +1817,15 @@ static Bitu DOS_27Handler(void) {
 
 extern DOS_Device *DOS_CON;
 
+/* PC-98 INT DC CL=0x10 AH=0x00 DL=cjar */
+void PC98_INTDC_WriteChar(unsigned char b) {
+    if (DOS_CON != NULL) {
+        Bit16u sz = 1;
+
+        DOS_CON->Write(&b,&sz);
+    }
+}
+
 static Bitu INT29_HANDLER(void) {
     if (DOS_CON != NULL) {
         unsigned char b = reg_al;

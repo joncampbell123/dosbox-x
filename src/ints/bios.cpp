@@ -3476,7 +3476,34 @@ static Bitu INTGEN_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+/* This interrupt should only exist while the DOS kernel is active.
+ * On actual PC-98 MS-DOS this is a direct interface to MS-DOS's built-in ANSI CON driver.
+ *
+ * CL = major function call number
+ * AL = minor function call number
+ * DX = data?? */
+extern bool dos_kernel_disabled;
+
+void PC98_INTDC_WriteChar(unsigned char b);
+
 static Bitu INTDC_PC98_Handler(void) {
+    if (dos_kernel_disabled) goto unknown;
+
+    switch (reg_cl) {
+        case 0x10:
+            if (reg_ah == 0x00) { /* CL=0x10 AL=0x00 DL=char write char to CON */
+                PC98_INTDC_WriteChar(reg_dl);
+                goto done;
+            }
+            goto unknown;
+        default: /* some compilers don't like not having a default case */
+            goto unknown;
+    };
+
+done:
+    return CBRET_NONE;
+
+unknown:
     LOG_MSG("PC-98 INT DCh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
         reg_ax,
         reg_bx,
