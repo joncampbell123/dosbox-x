@@ -2548,7 +2548,7 @@ static Bitu INT18_PC98_Handler(void) {
                 }
                 else if ((reg_dh & 0xFC) == 0x28) { /* 8x16 kanji */
                     i = (reg_bx << 4) + reg_cx + 2;
-                    mem_writew(i-2,0x0202);
+                    mem_writew(i-2,0x0102);
                     for (r=0;r < 16;r++) {
                         o = (((((reg_dl & 0x7F)*128)+((reg_dh - 0x20) & 0x7F))*16)+r)*2;
 
