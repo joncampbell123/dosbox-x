@@ -1,4 +1,10 @@
 0.82.7 (next)
+  - Added code to auto-detect the VirtualBox display driver
+    in Windows build, because OpenGL output doesn't work
+    in Windows XP under VirtualBox. The change will switch
+    the default output to "surface" if VirtualBox is detected,
+    else will retain the "opengl" default. This change applies
+    only to MinGW builds and not HX DOS or main VS2017 builds.
   - Added PC-98 INT DCh emulation for function call that
     writes a char to the screen, allowing Eve Burst Error
     to clear the function row
