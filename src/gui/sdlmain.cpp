@@ -7352,6 +7352,9 @@ int main(int argc, char* argv[]) {
 				if (!EnumDisplayDevices(NULL, i, &dd, 0)) break;
 				LOG_MSG("Win32 EnumDisplayDevices #%d: name=%s string=%s", i, dd.DeviceName, dd.DeviceString);
 				i++;
+
+				if (strstr(dd.DeviceString, "VirtualBox") != NULL)
+					isVirtualBox = true;
 			} while (1);
 		}
 #endif
