@@ -1335,6 +1335,10 @@ template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT va
 
 unsigned char pc98_mem_msw_m[8] = {0};
 
+void pc98_msw3_set_ramsize(const unsigned char b) {
+    pc98_mem_msw_m[2/*MSW3*/] = b;
+}
+
 unsigned char pc98_mem_msw(unsigned char which) {
     return pc98_mem_msw_m[which&7];
 }

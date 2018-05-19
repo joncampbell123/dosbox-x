@@ -5228,6 +5228,9 @@ private:
             else                                /* 128KB */
                 memsize_real_code = 0;
 
+            void pc98_msw3_set_ramsize(const unsigned char b);
+            pc98_msw3_set_ramsize(memsize_real_code);
+
             /* CPU/Display */
             /* bit[7:7] = 486SX equivalent (?)                                                                      1=yes
              * bit[6:6] = PC-9821 Extended Graph Architecture supported (FIXME: Is this the same as having EGC?)    1=yes
