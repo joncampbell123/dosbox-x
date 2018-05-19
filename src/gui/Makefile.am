@@ -11,7 +11,7 @@ libgui_a_SOURCES = \
 	midi.cpp midi_win32.h midi_oss.h midi_coreaudio.h midi_alsa.h \
 	direct3d.cpp direct3d.h \
 	hq2x_d3d.cpp hq2x_d3d.h \
-	midi_coremidi.h sdl_gui.cpp dosbox_splash.h menu.cpp
+	midi_coremidi.h sdl_gui.cpp dosbox_splash.h menu.cpp ScalingEffect.cpp
 
 if C_MT32
 AM_CPPFLAGS += -I$(top_srcdir)/src/mt32
