@@ -76,9 +76,9 @@ class CDirect3D {
 private:
 
     // globals
-    HMODULE			mhmodDX9;
-    IDirect3D9*			pD3D9;
-    IDirect3DDevice9*		pD3DDevice9;
+    HMODULE			mhmodDX9 = NULL;
+    IDirect3D9*			pD3D9 = NULL;
+    IDirect3DDevice9*		pD3DDevice9 = NULL;
 
     D3DPRESENT_PARAMETERS 	d3dpp;			// Present parameters
     D3DLOCKED_RECT		d3dlr;			// Texture lock rectangle

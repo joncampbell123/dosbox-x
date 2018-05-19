@@ -63,9 +63,10 @@ HRESULT CDirect3D::InitializeDX(HWND wnd, bool triplebuf)
 
     hwnd = wnd;
 
-    mhmodDX9 = LoadLibrary("d3d9.dll");
-    if(!mhmodDX9)
-	return E_FAIL;
+	if (mhmodDX9 == NULL)
+		mhmodDX9 = LoadLibrary("d3d9.dll");
+    if (mhmodDX9 == NULL)
+		return E_FAIL;
 
     // Set the presentation parameters
     ZeroMemory(&d3dpp, sizeof(d3dpp));
