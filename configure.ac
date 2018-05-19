@@ -699,9 +699,14 @@ AH_TEMPLATE(HAVE_D3D9_H,[Define to 1 to use Direct3D 9 display output support])
 AC_ARG_ENABLE(d3d9,AC_HELP_STRING([--enable-d3d9],[Enable Direct3D 9 support]),,enable_d3d9=no)
 AC_MSG_CHECKING(whether Direct3D 9 display output will be enabled)
 
+dnl FEATURE: Direct3D9 shaders
+AH_TEMPLATE(C_D3DSHADERS,[Define to 1 to use Direct3D shaders])
+AC_ARG_ENABLE(d3dshaders,AC_HELP_STRING([--enable-d3d-shaders],[Enable Direct3D shaders]),,enable_d3dshaders=no)
+
 # HACK: Don't enable Direct 3D 9 on SDL2
 if test -n "$SDL2_LIBS"; then
     enable_d3d9=no
+    enable_d3dshaders=no
 fi
 
 if test x$enable_d3d9 = xyes; then
@@ -710,6 +715,9 @@ case "$host" in
       if test x$have_d3d9_h = xyes -a x$have_d3dx9math_h = xyes ; then
         AC_MSG_RESULT(yes)
         AC_DEFINE(HAVE_D3D9_H,1)
+	if x$enable_d3dshaders = xyes; then
+		AC_DEFINE(C_D3DSHADERS,1)
+	fi
 	  else
         AC_MSG_RESULT(no)
       fi
