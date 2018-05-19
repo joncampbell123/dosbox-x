@@ -7422,6 +7422,21 @@ int main(int argc, char* argv[]) {
 		/* -- initialize logging first, so that higher level inits can report problems to the log file */
 		LOG::Init();
 
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+		{
+			DISPLAY_DEVICE dd;
+			unsigned int i = 0;
+
+			do {
+				memset(&dd, 0, sizeof(dd));
+				dd.cb = sizeof(dd);
+				if (!EnumDisplayDevices(NULL, i, &dd, 0)) break;
+				LOG_MSG("Win32 EnumDisplayDevices #%d: name=%s string=%s", i, dd.DeviceName, dd.DeviceString);
+				i++;
+			} while (1);
+		}
+#endif
+
 		/* -- Welcome to DOSBox-X! */
 		LOG_MSG("DOSBox-X version %s",VERSION);
 		LOG(LOG_MISC,LOG_NORMAL)("Copyright 2002-2015 enhanced branch by The Great Codeholio, forked from the main project by the DOSBox Team, published under GNU GPL.");
