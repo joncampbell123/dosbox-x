@@ -31,15 +31,15 @@ General Linux compile if FFMPEG/libav not desired
 ./build-debug-no-avcodec
 
 
-MinGW compile (on Windows) for 32-bit Windows XP
+MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP
 ./build-mingw
 
 
-MinGW compile (on Windows) for 32-bit Windows XP, lower-end systems that lack MMX/SSE
+MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP, lower-end systems that lack MMX/SSE
 ./build-mingw-lowend
 
 
-MinGW compile (on Windows) to target MS-DOS and the HX DOS extender
+MinGW compile (on Windows, using MinGW, not MinGW64) to target MS-DOS and the HX DOS extender
 ./build-mingw-hx-dos
 
 
