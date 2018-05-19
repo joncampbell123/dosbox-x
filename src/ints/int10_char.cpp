@@ -197,10 +197,11 @@ static void VGA_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u att
 
 static unsigned char VGA_FG_to_PC98(unsigned char vga_attr) {
     /* VGA:
-     *    bbbb ffff        b=background color (irgb)    f=foreground color (irgb)
+     *    lbbb ffff        b=background color (irgb)    f=foreground color (irgb)    l=blink
      * PC-98:
      *    grb xxxxx        g=green r=red b=blue xxxxxx dont care */
     return
+        ((vga_attr & 0x80 /*blink*/) ? 0x02/*PC-98 blink*/ : 0) +
         ((vga_attr & 2/*VGA green*/) ? 0x80/*PC-98 green*/ : 0) +
         ((vga_attr & 4/*VGA red  */) ? 0x40/*PC-98 red*/   : 0) +
         ((vga_attr & 1/*VGA blue */) ? 0x20/*PC-98 blue*/  : 0) +
