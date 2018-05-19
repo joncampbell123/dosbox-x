@@ -112,6 +112,7 @@ void GFX_OpenGLRedrawScreen(void);
 #endif
 
 #if defined(WIN32) && !defined(C_SDL2)
+bool isVirtualBox = false; /* OpenGL never works with Windows XP inside VirtualBox */
 HMENU MainMenu = NULL;
 #endif
 
@@ -7339,6 +7340,21 @@ int main(int argc, char* argv[]) {
 		/* -- Early logging init, in case these details are needed to debug problems at this level */
 		/*    If --early-debug was given this opens up logging to STDERR until Log::Init() */
 		LOG::EarlyInit();
+
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+		{
+			DISPLAY_DEVICE dd;
+			unsigned int i = 0;
+
+			do {
+				memset(&dd, 0, sizeof(dd));
+				dd.cb = sizeof(dd);
+				if (!EnumDisplayDevices(NULL, i, &dd, 0)) break;
+				LOG_MSG("Win32 EnumDisplayDevices #%d: name=%s string=%s", i, dd.DeviceName, dd.DeviceString);
+				i++;
+			} while (1);
+		}
+#endif
 
 		/* -- Init the configuration system and add default values */
 		CheckNumLockState();
