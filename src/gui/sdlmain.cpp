@@ -7435,6 +7435,8 @@ int main(int argc, char* argv[]) {
 				i++;
 			} while (1);
 		}
+
+		if (isVirtualBox) LOG_MSG("Win32 VirtualBox graphics adapter detected");
 #endif
 
 		/* -- Welcome to DOSBox-X! */
