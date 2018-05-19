@@ -7139,10 +7139,16 @@ bool doublebuf_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const m
     return true;
 }
 
+#if defined(LINUX) && !defined(C_SDL2)
+bool x11_on_top = false;
+#endif
+
 bool is_always_on_top(void) {
 #if defined(_WIN32) && !defined(C_SDL2)
 	DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
 	return !!(dwExStyle & WS_EX_TOPMOST);
+#elif defined(LINUX) && !defined(C_SDL2)
+    return x11_on_top;
 #else
     return false;
 #endif
@@ -7153,9 +7159,14 @@ extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
 #endif
 
 void toggle_always_on_top(void) {
-#if defined(_WIN32) && !defined(C_SDL2)
     bool cur = is_always_on_top();
+#if defined(_WIN32) && !defined(C_SDL2)
 	sdl1_hax_set_topmost(!cur);
+#elif defined(LINUX) && !defined(C_SDL2)
+    void LinuxX11_OnTop(bool f);
+    LinuxX11_OnTop(x11_on_top = (!cur));
+#else
+    (void)cur;
 #endif
 }
 

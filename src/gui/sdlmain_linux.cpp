@@ -16,7 +16,48 @@ void UpdateWindowMaximized(bool flag);
 
 #if !defined(C_SDL2)
 extern "C" void SDL1_hax_X11_jpfix(int ro_scan,int yen_scan);
+
+# define _NET_WM_STATE_REMOVE        0    // remove/unset property
+# define _NET_WM_STATE_ADD           1    // add/set property
+# define _NET_WM_STATE_TOGGLE        2    // toggle property
 #endif
+
+void LinuxX11_OnTop(bool f) {
+#if !defined(C_SDL2)
+    SDL_SysWMinfo wminfo;
+    memset(&wminfo,0,sizeof(wminfo));
+    SDL_VERSION(&wminfo.version);
+    if (SDL_GetWMInfo(&wminfo) >= 0) {
+        if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
+            Atom wmStateAbove = XInternAtom(wminfo.info.x11.display, "_NET_WM_STATE_ABOVE", 1);
+            if (wmStateAbove == None) return;
+
+            Atom wmNetWmState = XInternAtom(wminfo.info.x11.display, "_NET_WM_STATE", 1);
+            if (wmNetWmState == None) return;
+
+            XClientMessageEvent xclient;
+            memset(&xclient,0,sizeof(xclient));
+
+            xclient.type = ClientMessage;
+            xclient.window = wminfo.info.x11.wmwindow;
+            xclient.message_type = wmNetWmState;
+            xclient.format = 32;
+            xclient.data.l[0] = f ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE;
+            xclient.data.l[1] = wmStateAbove;
+            xclient.data.l[2] = 0;
+            xclient.data.l[3] = 0;
+            xclient.data.l[4] = 0;
+
+            XSendEvent(
+                    wminfo.info.x11.display,
+                    DefaultRootWindow(wminfo.info.x11.display),
+                    False,
+                    SubstructureRedirectMask | SubstructureNotifyMask,
+                    (XEvent *)&xclient );
+        }
+    }
+#endif
+}
 
 char *LinuxX11_KeySymName(Uint32 x) {
 #if !defined(C_SDL2)
