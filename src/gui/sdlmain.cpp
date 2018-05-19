@@ -5928,7 +5928,8 @@ void SDL_SetupConfigSection() {
 # if defined(HX_DOS)
 		Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "surface"); /* HX DOS should stick to surface */
 # elif defined(__MINGW32__) && !(HAVE_D3D9_H)
-		Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "opengl"); /* MinGW builds do not yet have Direct3D */
+		/* NTS: OpenGL output never seems to work in VirtualBox under Windows XP */
+		Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, isVirtualBox ? "surface" : "opengl"); /* MinGW builds do not yet have Direct3D */
 # else
 		Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "direct3d");
 #endif
