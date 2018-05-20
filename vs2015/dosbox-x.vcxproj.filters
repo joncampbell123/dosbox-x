@@ -816,7 +816,9 @@
     <ClCompile Include="..\src\ints\bios_memdisk.cpp">
       <Filter>Sources\ints</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\ints\bios_vhd.cpp" />
+    <ClCompile Include="..\src\ints\bios_vhd.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
