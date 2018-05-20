@@ -2,8 +2,8 @@
 #if 0 /* in case someone actually tries to compile this */
 
 /* example.c - an example of using libpng
- * Last changed in libpng 1.6.3 [July 18, 2013]
- * Maintained 1998-2013 Glenn Randers-Pehrson
+ * Last changed in libpng 1.6.24 [August 4, 2016]
+ * Maintained 1998-2016 Glenn Randers-Pehrson
  * Maintained 1996, 1997 Andreas Dilger)
  * Written 1995, 1996 Guy Eric Schalnat, Group 42, Inc.)
  * To the extent possible under law, the authors have waived
@@ -52,7 +52,7 @@ int main(int argc, const char **argv)
       image.version = PNG_IMAGE_VERSION;
 
       /* The first argument is the file to read: */
-      if (png_image_begin_read_from_file(&image, argv[1]))
+      if (png_image_begin_read_from_file(&image, argv[1]) != 0)
       {
          png_bytep buffer;
 
@@ -97,7 +97,7 @@ int main(int argc, const char **argv)
           */
          if (buffer != NULL &&
             png_image_finish_read(&image, NULL/*background*/, buffer,
-               0/*row_stride*/, NULL/*colormap*/))
+                0/*row_stride*/, NULL/*colormap*/) != 0)
          {
             /* Now write the image out to the second argument.  In the write
              * call 'convert_to_8bit' allows 16-bit data to be squashed down to
@@ -105,7 +105,7 @@ int main(int argc, const char **argv)
              * to the 8-bit format.
              */
             if (png_image_write_to_file(&image, argv[2], 0/*convert_to_8bit*/,
-               buffer, 0/*row_stride*/, NULL/*colormap*/))
+                buffer, 0/*row_stride*/, NULL/*colormap*/) != 0)
             {
                /* The image has been written successfully. */
                exit(0);
@@ -114,13 +114,13 @@ int main(int argc, const char **argv)
 
          else
          {
-            /* Calling png_free_image is optional unless the simplified API was
+            /* Calling png_image_free is optional unless the simplified API was
              * not run to completion.  In this case if there wasn't enough
              * memory for 'buffer' we didn't complete the read, so we must free
              * the image:
              */
             if (buffer == NULL)
-               png_free_image(&image);
+               png_image_free(&image);
 
             else
                free(buffer);
@@ -188,13 +188,13 @@ int main(int argc, const char **argv)
  *
  * Don't repeatedly convert between the 8-bit and 16-bit forms.  There is
  * significant data loss when 16-bit data is converted to the 8-bit encoding and
- * the current libpng implementation of convertion to 16-bit is also
+ * the current libpng implementation of conversion to 16-bit is also
  * significantly lossy.  The latter will be fixed in the future, but the former
  * is unavoidable - the 8-bit format just doesn't have enough resolution.
  */
 
 /* If your program needs more information from the PNG data it reads, or if you
- * need to do more complex transformations, or minimise transformations, on the
+ * need to do more complex transformations, or minimize transformations, on the
  * data you read, then you must use one of the several lower level libpng
  * interfaces.
  *
@@ -271,7 +271,7 @@ void read_png(char *file_name)  /* We need to open the file */
 {
    png_structp png_ptr;
    png_infop info_ptr;
-   unsigned int sig_read = 0;
+   int sig_read = 0;
    png_uint_32 width, height;
    int bit_depth, color_type, interlace_type;
    FILE *fp;
@@ -280,7 +280,7 @@ void read_png(char *file_name)  /* We need to open the file */
       return (ERROR);
 
 #else no_open_file /* prototype 2 */
-void read_png(FILE *fp, unsigned int sig_read)  /* File is already open */
+void read_png(FILE *fp, int sig_read)  /* File is already open */
 {
    png_structp png_ptr;
    png_infop info_ptr;
@@ -295,7 +295,7 @@ void read_png(FILE *fp, unsigned int sig_read)  /* File is already open */
     * was compiled with a compatible version of the library.  REQUIRED
     */
    png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
-      png_voidp user_error_ptr, user_error_fn, user_warning_fn);
+       png_voidp user_error_ptr, user_error_fn, user_warning_fn);
 
    if (png_ptr == NULL)
    {
@@ -370,12 +370,12 @@ void read_png(FILE *fp, unsigned int sig_read)  /* File is already open */
     * are mutually exclusive.
     */
 
-   /* Tell libpng to strip 16 bit/color files down to 8 bits/color.
+   /* Tell libpng to strip 16 bits/color files down to 8 bits/color.
     * Use accurate scaling if it's available, otherwise just chop off the
     * low byte.
     */
 #ifdef PNG_READ_SCALE_16_TO_8_SUPPORTED
-    png_set_scale_16(png_ptr);
+   png_set_scale_16(png_ptr);
 #else
    png_set_strip_16(png_ptr);
 #endif
@@ -405,7 +405,7 @@ void read_png(FILE *fp, unsigned int sig_read)  /* File is already open */
    /* Expand paletted or RGB images with transparency to full alpha channels
     * so the data will be available as RGBA quartets.
     */
-   if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
+   if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS) != 0)
       png_set_tRNS_to_alpha(png_ptr);
 
    /* Set the background color to draw transparent and alpha images over.
@@ -417,12 +417,12 @@ void read_png(FILE *fp, unsigned int sig_read)  /* File is already open */
 
    png_color_16 my_background, *image_background;
 
-   if (png_get_bKGD(png_ptr, info_ptr, &image_background))
+   if (png_get_bKGD(png_ptr, info_ptr, &image_background) != 0)
       png_set_background(png_ptr, image_background,
-                         PNG_BACKGROUND_GAMMA_FILE, 1, 1.0);
+          PNG_BACKGROUND_GAMMA_FILE, 1, 1.0);
    else
       png_set_background(png_ptr, &my_background,
-                         PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
+          PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
 
    /* Some suggestions as to how to get a screen gamma value
     *
@@ -454,22 +454,22 @@ void read_png(FILE *fp, unsigned int sig_read)  /* File is already open */
 
    int intent;
 
-   if (png_get_sRGB(png_ptr, info_ptr, &intent))
+   if (png_get_sRGB(png_ptr, info_ptr, &intent) != 0)
       png_set_gamma(png_ptr, screen_gamma, PNG_DEFAULT_sRGB);
    else
    {
       double image_gamma;
-      if (png_get_gAMA(png_ptr, info_ptr, &image_gamma))
+      if (png_get_gAMA(png_ptr, info_ptr, &image_gamma) != 0)
          png_set_gamma(png_ptr, screen_gamma, image_gamma);
       else
          png_set_gamma(png_ptr, screen_gamma, 0.45455);
    }
 
 #ifdef PNG_READ_QUANTIZE_SUPPORTED
-   /* Quantize RGB files down to 8 bit palette or reduce palettes
+   /* Quantize RGB files down to 8-bit palette or reduce palettes
     * to the number of colors available on your screen.
     */
-   if (color_type & PNG_COLOR_MASK_COLOR)
+   if ((color_type & PNG_COLOR_MASK_COLOR) != 0)
    {
       int num_palette;
       png_colorp palette;
@@ -481,20 +481,20 @@ void read_png(FILE *fp, unsigned int sig_read)  /* File is already open */
          png_color std_color_cube[MAX_SCREEN_COLORS];
 
          png_set_quantize(png_ptr, std_color_cube, MAX_SCREEN_COLORS,
-            MAX_SCREEN_COLORS, NULL, 0);
+             MAX_SCREEN_COLORS, NULL, 0);
       }
       /* This reduces the image to the palette supplied in the file */
-      else if (png_get_PLTE(png_ptr, info_ptr, &palette, &num_palette))
+      else if (png_get_PLTE(png_ptr, info_ptr, &palette, &num_palette) != 0)
       {
          png_uint_16p histogram = NULL;
 
          png_get_hIST(png_ptr, info_ptr, &histogram);
 
          png_set_quantize(png_ptr, palette, num_palette,
-                        max_screen_colors, histogram, 0);
+             max_screen_colors, histogram, 0);
       }
    }
-#endif /* PNG_READ_QUANTIZE_SUPPORTED */
+#endif /* READ_QUANTIZE */
 
    /* Invert monochrome files to have 0 as white and 1 as black */
    png_set_invert_mono(png_ptr);
@@ -503,7 +503,7 @@ void read_png(FILE *fp, unsigned int sig_read)  /* File is already open */
     * [0,65535] to the original [0,7] or [0,31], or whatever range the
     * colors were originally in:
     */
-   if (png_get_valid(png_ptr, info_ptr, PNG_INFO_sBIT))
+   if (png_get_valid(png_ptr, info_ptr, PNG_INFO_sBIT) != 0)
    {
       png_color_8p sig_bit_p;
 
@@ -512,17 +512,17 @@ void read_png(FILE *fp, unsigned int sig_read)  /* File is already open */
    }
 
    /* Flip the RGB pixels to BGR (or RGBA to BGRA) */
-   if (color_type & PNG_COLOR_MASK_COLOR)
+   if ((color_type & PNG_COLOR_MASK_COLOR) != 0)
       png_set_bgr(png_ptr);
 
    /* Swap the RGBA or GA data to ARGB or AG (or BGRA to ABGR) */
    png_set_swap_alpha(png_ptr);
 
-   /* Swap bytes of 16 bit files to least significant byte first */
+   /* Swap bytes of 16-bit files to least significant byte first */
    png_set_swap(png_ptr);
 
    /* Add filler (or alpha) byte (before/after each RGB triplet) */
-   png_set_filler(png_ptr, 0xff, PNG_FILLER_AFTER);
+   png_set_filler(png_ptr, 0xffff, PNG_FILLER_AFTER);
 
 #ifdef PNG_READ_INTERLACING_SUPPORTED
    /* Turn on interlace handling.  REQUIRED if you are not using
@@ -530,9 +530,9 @@ void read_png(FILE *fp, unsigned int sig_read)  /* File is already open */
     * see the png_read_row() method below:
     */
    number_passes = png_set_interlace_handling(png_ptr);
-#else
+#else /* !READ_INTERLACING */
    number_passes = 1;
-#endif /* PNG_READ_INTERLACING_SUPPORTED */
+#endif /* READ_INTERLACING */
 
 
    /* Optional call to gamma correct and add the background to the palette
@@ -552,7 +552,7 @@ void read_png(FILE *fp, unsigned int sig_read)  /* File is already open */
 
    for (row = 0; row < height; row++)
       row_pointers[row] = png_malloc(png_ptr, png_get_rowbytes(png_ptr,
-         info_ptr));
+          info_ptr));
 
    /* Now it's time to read the image.  One of these methods is REQUIRED */
 #ifdef entire /* Read the entire image in one go */
@@ -574,10 +574,10 @@ void read_png(FILE *fp, unsigned int sig_read)  /* File is already open */
       {
 #ifdef sparkle /* Read the image using the "sparkle" effect. */
          png_read_rows(png_ptr, &row_pointers[y], NULL,
-            number_of_rows);
+             number_of_rows);
 #else no_sparkle /* Read the image using the "rectangle" effect */
          png_read_rows(png_ptr, NULL, &row_pointers[y],
-            number_of_rows);
+             number_of_rows);
 #endif no_sparkle /* Use only one of these two methods */
       }
 
@@ -614,7 +614,7 @@ initialize_png_reader(png_structp *png_ptr, png_infop *info_ptr)
     * linked libraries.
     */
    *png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING,
-       png_voidp user_error_ptr, user_error_fn, user_warning_fn);
+        png_voidp user_error_ptr, user_error_fn, user_warning_fn);
 
    if (*png_ptr == NULL)
    {
@@ -649,14 +649,14 @@ initialize_png_reader(png_structp *png_ptr, png_infop *info_ptr)
     * the function png_get_progressive_ptr(png_ptr).
     */
    png_set_progressive_read_fn(*png_ptr, (void *)stream_data,
-      info_callback, row_callback, end_callback);
+       info_callback, row_callback, end_callback);
 
    return (OK);
 }
 
 int
 process_data(png_structp *png_ptr, png_infop *info_ptr,
-   png_bytep buffer, png_uint_32 length)
+    png_bytep buffer, png_uint_32 length)
 {
    if (setjmp(png_jmpbuf((*png_ptr))))
    {
@@ -691,7 +691,7 @@ info_callback(png_structp png_ptr, png_infop info)
 }
 
 row_callback(png_structp png_ptr, png_bytep new_row,
-   png_uint_32 row_num, int pass)
+    png_uint_32 row_num, int pass)
 {
    /*
     * This function is called for every row in the image.  If the
@@ -744,7 +744,7 @@ row_callback(png_structp png_ptr, png_bytep new_row,
     * to pass the current row as new_row, and the function will combine
     * the old row and the new row.
     */
-#endif /* PNG_READ_INTERLACING_SUPPORTED */
+#endif /* READ_INTERLACING */
 }
 
 end_callback(png_structp png_ptr, png_infop info)
@@ -780,7 +780,7 @@ void write_png(char *file_name /* , ... other image information ... */)
     * in case we are using dynamically linked libraries.  REQUIRED.
     */
    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING,
-      png_voidp user_error_ptr, user_error_fn, user_warning_fn);
+       png_voidp user_error_ptr, user_error_fn, user_warning_fn);
 
    if (png_ptr == NULL)
    {
@@ -819,7 +819,7 @@ void write_png(char *file_name /* , ... other image information ... */)
     * png_init_io() here you would call
     */
    png_set_write_fn(png_ptr, (void *)user_io_ptr, user_write_fn,
-      user_IO_flush_function);
+       user_IO_flush_function);
    /* where user_io_ptr is a structure you want available to the callbacks */
 #endif no_streams /* Only use one initialization method */
 
@@ -842,7 +842,7 @@ void write_png(char *file_name /* , ... other image information ... */)
     * currently be PNG_COMPRESSION_TYPE_BASE and PNG_FILTER_TYPE_BASE. REQUIRED
     */
    png_set_IHDR(png_ptr, info_ptr, width, height, bit_depth, PNG_COLOR_TYPE_???,
-      PNG_INTERLACE_????, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+       PNG_INTERLACE_????, PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
    /* Set the palette if there is one.  REQUIRED for indexed-color images */
    palette = (png_colorp)png_malloc(png_ptr, PNG_MAX_PALETTE_LENGTH
@@ -932,7 +932,7 @@ void write_png(char *file_name /* , ... other image information ... */)
     */
 
    /* Once we write out the header, the compression type on the text
-    * chunks gets changed to PNG_TEXT_COMPRESSION_NONE_WR or
+    * chunk gets changed to PNG_TEXT_COMPRESSION_NONE_WR or
     * PNG_TEXT_COMPRESSION_zTXt_WR, so it doesn't get written out again
     * at the end.
     */
@@ -966,11 +966,11 @@ void write_png(char *file_name /* , ... other image information ... */)
    /* Swap bytes of 16-bit files to most significant byte first */
    png_set_swap(png_ptr);
 
-   /* Swap bits of 1, 2, 4 bit packed pixel formats */
+   /* Swap bits of 1-bit, 2-bit, 4-bit packed pixel formats */
    png_set_packswap(png_ptr);
 
    /* Turn on interlace handling if you are not using png_write_image() */
-   if (interlacing)
+   if (interlacing != 0)
       number_passes = png_set_interlace_handling(png_ptr);
 
    else
@@ -983,16 +983,21 @@ void write_png(char *file_name /* , ... other image information ... */)
    png_uint_32 k, height, width;
 
    /* In this example, "image" is a one-dimensional array of bytes */
+
+   /* Guard against integer overflow */
+   if (height > PNG_SIZE_MAX/(width*bytes_per_pixel)) {
+      png_error(png_ptr, "Image_data buffer would be too large");
+   }
    png_byte image[height*width*bytes_per_pixel];
 
    png_bytep row_pointers[height];
 
    if (height > PNG_UINT_32_MAX/(sizeof (png_bytep)))
-     png_error (png_ptr, "Image is too tall to process in memory");
+      png_error (png_ptr, "Image is too tall to process in memory");
 
    /* Set up pointers into your "image" byte array */
    for (k = 0; k < height; k++)
-     row_pointers[k] = image + k*width*bytes_per_pixel;
+      row_pointers[k] = image + k*width*bytes_per_pixel;
 
    /* One of the following output methods is REQUIRED */
 
