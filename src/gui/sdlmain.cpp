@@ -7546,7 +7546,6 @@ int main(int argc, char* argv[]) {
 		if (control->opt_nogui || menu.compatible)
 			menu.gui=false;
 
-#if !defined(C_SDL2)
 		{
 			Section_prop *section = static_cast<Section_prop *>(control->GetSection("SDL"));
 			assert(section != NULL);
@@ -7559,7 +7558,6 @@ int main(int argc, char* argv[]) {
 			else
 				DOSBox_NoMenu();
 		}
-#endif
 
 		/* -- -- helpful advice */
 		LOG(LOG_GUI,LOG_NORMAL)("Press Ctrl-F10 to capture/release mouse, Alt-F10 for configuration.");
