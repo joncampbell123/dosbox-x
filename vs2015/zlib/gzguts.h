@@ -3,6 +3,14 @@
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
 
+#ifndef _CRT_SECURE_NO_WARNINGS /* shut the fuck up */
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#ifndef _CRT_NONSTDC_NO_WARNINGS /* shut the fuck up */
+#define _CRT_NONSTDC_NO_WARNINGS
+#endif
+
 #ifdef _LARGEFILE64_SOURCE
 #  ifndef _LARGEFILE_SOURCE
 #    define _LARGEFILE_SOURCE 1
@@ -39,9 +47,9 @@
 #  include <io.h>
 #endif
 
-#if defined(_WIN32) || defined(__CYGWIN__)
-#  define WIDECHAR
-#endif
+//#if defined(_WIN32) || defined(__CYGWIN__)
+//#  define WIDECHAR
+//#endif
 
 #ifdef WINAPI_FAMILY
 #  define open _open

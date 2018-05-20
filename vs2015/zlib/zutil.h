@@ -13,6 +13,14 @@
 #ifndef ZUTIL_H
 #define ZUTIL_H
 
+#ifndef _CRT_SECURE_NO_WARNINGS /* shut the fuck up */
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#ifndef _CRT_NONSTDC_NO_WARNINGS /* shut the fuck up */
+#define _CRT_NONSTDC_NO_WARNINGS
+#endif
+
 #ifdef HAVE_HIDDEN
 #  define ZLIB_INTERNAL __attribute__((visibility ("hidden")))
 #else

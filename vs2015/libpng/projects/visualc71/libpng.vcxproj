@@ -218,7 +218,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <MinimalRebuild>true</MinimalRebuild>
+      <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>false</StringPooling>
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderOutputFile />
@@ -244,7 +244,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <MinimalRebuild>true</MinimalRebuild>
+      <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>false</StringPooling>
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderOutputFile />
@@ -329,7 +329,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <MinimalRebuild>true</MinimalRebuild>
+      <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>false</StringPooling>
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderOutputFile />
@@ -358,7 +358,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <CompileAs>Default</CompileAs>
       <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
-      <MinimalRebuild>true</MinimalRebuild>
+      <MinimalRebuild>false</MinimalRebuild>
       <StringPooling>false</StringPooling>
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderOutputFile />
