@@ -607,6 +607,13 @@ if test -z "$SDL2_LIBS"; then
   fi
 fi
 
+dnl FEATURE: Whether to support libz, and enable snapshots
+AH_TEMPLATE(C_LIBZ,[Define to 1 if you have libz])
+if test x$have_zlib_lib = xyes -a x$have_zlib_h = xyes ; then
+  LIBS="$LIBS -lz"
+  AC_DEFINE(C_LIBZ,1)
+fi
+
 dnl FEATURE: Whether to support libpng, and enable snapshots
 AH_TEMPLATE(C_LIBPNG,[Define to 1 if you have libpng])
 AH_TEMPLATE(C_SSHOT,[Define to 1 to enable screenshots, requires libpng])
