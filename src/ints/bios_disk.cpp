@@ -219,8 +219,13 @@ void swapInNextCD(bool pressed) {
 }
 
 
-Bit8u imageDisk::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data) {
+Bit8u imageDisk::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size) {
 	Bit32u sectnum;
+
+    if (req_sector_size == 0)
+        req_sector_size = sector_size;
+    if (req_sector_size != sector_size)
+        return 0x05;
 
 	sectnum = ( (cylinder * heads + head) * sectors ) + sector - 1L;
 
@@ -258,8 +263,13 @@ Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	return 0x00;
 }
 
-Bit8u imageDisk::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data) {
+Bit8u imageDisk::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size) {
 	Bit32u sectnum;
+
+    if (req_sector_size == 0)
+        req_sector_size = sector_size;
+    if (req_sector_size != sector_size)
+        return 0x05;
 
 	sectnum = ( (cylinder * heads + head) * sectors ) + sector - 1L;
 
@@ -985,23 +995,26 @@ void BIOS_SetupDisks(void) {
 
 // VFD *.FDD floppy disk format support
 
-Bit8u imageDiskVFD::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data) {
+Bit8u imageDiskVFD::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size) {
     vfdentry *ent;
 
-//    LOG_MSG("VFD read sector: CHS %u/%u/%u",cylinder,head,sector);
+    if (req_sector_size == 0)
+        req_sector_size = sector_size;
+
+//    LOG_MSG("VFD read sector: CHS %u/%u/%u sz=%u",cylinder,head,sector,req_sector_size);
 
     ent = findSector(head,cylinder,sector);
     if (ent == NULL) return 0x05;
-    if (ent->getSectorSize() != sector_size) return 0x05;
+    if (ent->getSectorSize() != req_sector_size) return 0x05;
 
     if (ent->hasSectorData()) {
         fseek(diskimg,ent->data_offset,SEEK_SET);
         if (ftell(diskimg) != ent->data_offset) return 0x05;
-        if (fread(data,sector_size,1,diskimg) != 1) return 0x05;
+        if (fread(data,req_sector_size,1,diskimg) != 1) return 0x05;
         return 0;
     }
     else if (ent->hasFill()) {
-        memset(data,ent->fillbyte,sector_size);
+        memset(data,ent->fillbyte,req_sector_size);
         return 0x00;
     }
 
@@ -1037,21 +1050,24 @@ imageDiskVFD::vfdentry *imageDiskVFD::findSector(Bit8u head,Bit8u track,Bit8u se
     return NULL;
 }
 
-Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data) {
+Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size) {
     unsigned long new_offset;
     unsigned char tmp[12];
     vfdentry *ent;
 
 //    LOG_MSG("VFD write sector: CHS %u/%u/%u",cylinder,head,sector);
 
+    if (req_sector_size == 0)
+        req_sector_size = sector_size;
+
     ent = findSector(head,cylinder,sector);
     if (ent == NULL) return 0x05;
-    if (ent->getSectorSize() != sector_size) return 0x05;
+    if (ent->getSectorSize() != req_sector_size) return 0x05;
 
     if (ent->hasSectorData()) {
         fseek(diskimg,ent->data_offset,SEEK_SET);
         if (ftell(diskimg) != ent->data_offset) return 0x05;
-        if (fwrite(data,sector_size,1,diskimg) != 1) return 0x05;
+        if (fwrite(data,req_sector_size,1,diskimg) != 1) return 0x05;
         return 0;
     }
     else if (ent->hasFill()) {
@@ -1064,7 +1080,7 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void 
 
             do {
                 if (((unsigned char*)data)[i] == ((unsigned char*)data)[0]) {
-                    if ((++i) == sector_size) {
+                    if ((++i) == req_sector_size) {
                         isfill = true;
                         break; // yes!
                     }
@@ -1119,7 +1135,7 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void 
 
             fseek(diskimg,ent->data_offset,SEEK_SET);
             if (ftell(diskimg) != ent->data_offset) return 0x05;
-            if (fwrite(data,sector_size,1,diskimg) != 1) return 0x05;
+            if (fwrite(data,req_sector_size,1,diskimg) != 1) return 0x05;
         }
     }
 

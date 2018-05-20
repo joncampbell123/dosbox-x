@@ -59,8 +59,8 @@ public:
 		ID_VHD
 	};
 
-	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
-	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
+	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size=0);
+	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size=0);
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
 	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
 
@@ -111,8 +111,8 @@ public:
 
 class imageDiskVFD : public imageDisk {
 public:
-	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
-	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
+	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size=0);
+	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size=0);
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
 	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
 

@@ -3063,7 +3063,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             while (size > 0) {
                 accsize = size > unitsize ? unitsize : size;
 
-                if (floppy->Read_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER) != 0) {
+                if (floppy->Read_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER,unitsize) != 0) {
                     CALLBACK_SCF(true);
                     reg_ah = 0x00;
                     /* TODO? Error code? */
@@ -3157,7 +3157,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 for (unsigned int i=0;i < accsize;i++)
                     PC98_BIOS_FLOPPY_BUFFER[i] = mem_readb(memaddr+i);
 
-                if (floppy->Write_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER) != 0) {
+                if (floppy->Write_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER,unitsize) != 0) {
                     CALLBACK_SCF(true);
                     reg_ah = 0x00;
                     /* TODO? Error code? */
