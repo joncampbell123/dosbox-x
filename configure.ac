@@ -410,6 +410,10 @@ AC_CHECK_LIB(tinfo, nodelay,
 	       LIBS="$LIBS -ltinfo";
 	     fi)
 
+dnl LIBRARY TEST: libzlib
+AC_CHECK_HEADER(zlib.h,have_zlib_h=yes,)
+AC_CHECK_LIB(z, inflateEnd, have_zlib_lib=yes, ,)
+
 dnl LIBRARY TEST: libpng
 AC_CHECK_HEADER(png.h,have_png_h=yes,)
 AC_CHECK_LIB(png, png_get_io_ptr, have_png_lib=yes, ,-lz)
