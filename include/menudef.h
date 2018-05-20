@@ -20,18 +20,11 @@
 #include <windows.h>
 #include <windowsx.h>
 #include "resource.h"
-
-#define menu_compatible menu.compatible
-#define menu_gui menu.gui
-#else
-
-// If these are used, the optimizer can completely remove code that is not
-// needed on Linux. This way, code is less cluttered with #ifdefs
-#define menu_compatible (false)
-#define menu_gui (false)
 #endif
 
+#define menu_compatible menu.compatible
 #define menu_startup menu.startup
+#define menu_gui menu.gui
 
 #ifndef MENUDEF_H
 #define MENUDEF_H
