@@ -2670,8 +2670,9 @@ void GFX_CaptureMouse(void) {
         }
 #endif
 
-        /* keep the menu updated */
-	mainMenu.get_item("mapper_capmouse").check(sdl.mouse.locked).refresh_item(mainMenu);
+    /* keep the menu updated (it might not exist yet) */
+    if (mainMenu.item_exists("mapper_capmouse"))
+        mainMenu.get_item("mapper_capmouse").check(sdl.mouse.locked).refresh_item(mainMenu);
 }
 
 void GFX_UpdateSDLCaptureState(void) {
