@@ -125,15 +125,28 @@ dnl This warning will stay here for a long enough period of time before making C
 
 dnl AC_CHECK_CXXFLAGS will prepend gnu++11 to CXXFLAGS if supported, for us.
 dnl our code adds -std=gnu++0x if not supported where the function would not do anything.
+dnl This code checks the CXX flags but does not keep the changes because AC_CHECK_CXXFLAGS
+dnl also adds it to CPPFLAGS which then also affects the C compilation (with warnings like
+dnl "-std=gnu++11 is not valid for C")
+OLDCFLAGS="$CFLAGS"
+OLDCPPFLAGS="$CPPFLAGS"
+OLDCXXFLAGS="$CXXFLAGS"
+
 AC_MSG_CHECKING([checking for C++11 support])
 AC_CHECK_CXXFLAGS([ -std=gnu++11 ], [  ], [
-    CXXFLAGS="$CXXFLAGS -std=gnu++0x";
     warn_cpp0x=1
 ])
+
+CXXFLAGS="$OLDCXXFLAGS"
+CPPFLAGS="$OLDCPPFLAGS"
+CFLAGS="$OLDCFLAGS"
 
 if test x$warn_cpp0x = x1; then
     AC_MSG_ERROR([ Your compiler must support C++11 or better ])
 fi
+
+CFLAGS="$CFLAGS -std=gnu11";
+CXXFLAGS="$CXXFLAGS -std=gnu++0x";
 
 dnl Yksoft1 wants a MinGW build for Windows that doesn't use the Windows menu system.
 AH_TEMPLATE(C_FORCE_MENU_SDLDRAW,[Define to 1 to force SDL-drawn menus])
