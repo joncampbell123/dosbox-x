@@ -343,6 +343,12 @@ vs2015/sdl/linux-build/*
 
 vs2015/sdl/include/SDL_config.h
 
+vs2015/zlib/linux-host
+vs2015/zlib/linux-host/*
+
+vs2015/zlib/linux-build
+vs2015/zlib/linux-build/*
+
 /vs2015/libpdcurses/wincon/xmas.exe
 /vs2015/libpdcurses/wincon/worm.exe
 /vs2015/libpdcurses/wincon/tuidemo.exe
