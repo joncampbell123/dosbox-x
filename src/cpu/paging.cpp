@@ -361,9 +361,9 @@ private:
 	}
 public:
 	PageFoilHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-	Bitu readb(PhysPt addr) {read();return 0;}
-	Bitu readw(PhysPt addr) {read();return 0;}
-	Bitu readd(PhysPt addr) {read();return 0;}
+	Bitu readb(PhysPt addr) {(void)addr;read();return 0;}
+	Bitu readw(PhysPt addr) {(void)addr;read();return 0;}
+	Bitu readd(PhysPt addr) {(void)addr;read();return 0;}
 
 	void writeb(PhysPt addr,Bitu val) {
 		work(addr);
@@ -381,9 +381,9 @@ public:
 		mem_writed(addr,val);
 	}
 
-	bool readb_checked(PhysPt addr, Bit8u * val) {read();return true;}
-	bool readw_checked(PhysPt addr, Bit16u * val) {read();return true;}
-	bool readd_checked(PhysPt addr, Bit32u * val) {read();return true;}
+	bool readb_checked(PhysPt addr, Bit8u * val) {(void)addr;(void)val;read();return true;}
+	bool readw_checked(PhysPt addr, Bit16u * val) {(void)addr;(void)val;read();return true;}
+	bool readd_checked(PhysPt addr, Bit32u * val) {(void)addr;(void)val;read();return true;}
 
 	bool writeb_checked(PhysPt addr,Bitu val) {
 		work(addr);
@@ -567,18 +567,22 @@ public:
 	}
 	// returning true means an exception was triggered for these _checked functions
 	bool readb_checked(PhysPt addr, Bit8u * val) {
+        (void)val;//UNUSED
 		Exception(addr, false, true);
 		return true;
 	}
 	bool readw_checked(PhysPt addr, Bit16u * val) {
+        (void)val;//UNUSED
 		Exception(addr, false, true);
 		return true;
 			}
 	bool readd_checked(PhysPt addr, Bit32u * val) {
+        (void)val;//UNUSED
 		Exception(addr, false, true);
 		return true;
 		}
 	bool writeb_checked(PhysPt addr,Bitu val) {
+        (void)val;//UNUSED
 		Exception(addr, true, true);
 		return true;
 	}
@@ -593,6 +597,7 @@ public:
 		return true;
 	}
 	bool writed_checked(PhysPt addr,Bitu val) {
+        (void)val;//UNUSED
 		Exception(addr, true, true);
 		return true;
 	}
