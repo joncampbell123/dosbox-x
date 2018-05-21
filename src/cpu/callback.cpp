@@ -55,7 +55,7 @@ void CALLBACK_Dump(void) {
 
         LOG(LOG_CPU,LOG_DEBUG)("  [%u] func=%p desc='%s'",
             (unsigned int)i,
-            (void*)CallBack_Handlers[i],
+            (void*)((uintptr_t)CallBack_Handlers[i]), /* shut the compiler up by func -> uintptr_t -> void* conversion */
             CallBack_Description[i] != NULL ? CallBack_Description[i] : "");
     }
 	LOG(LOG_CPU,LOG_DEBUG)("--------------");
