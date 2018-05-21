@@ -1213,7 +1213,7 @@ bool ParseCommand(char* str) {
             return true;
         }
         else {
-            LOG_MSG("No such window '%s'. Windows are: ",found,dbg.windowlist_by_name().c_str());
+            LOG_MSG("No such window '%s'. Windows are: %s",found,dbg.windowlist_by_name().c_str());
             return false;
         }
     }
@@ -1890,6 +1890,8 @@ void win_code_ui_up(int count) {
         int y,x;
 
         getmaxyx(dbg.win_code,y,x);
+
+        (void)y; // SET, BUT UNUSED
 
         while (count-- > 0) {
             if (codeViewData.cursorPos>0)
