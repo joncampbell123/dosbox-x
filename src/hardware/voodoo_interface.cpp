@@ -320,6 +320,3 @@ PageHandler* Voodoo_GetPageHandler() {
 	return voodoo_pagehandler;
 }
 
-// save state support
-void *Voodoo_UpdateScreen_PIC_Event = (void*)Voodoo_UpdateScreen;
-void *Voodoo_VerticalTimer_PIC_Event = (void*)Voodoo_VerticalTimer;

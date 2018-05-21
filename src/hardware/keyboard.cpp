@@ -2344,8 +2344,3 @@ void KEYBOARD_Reset() {
 	KEYBOARD_SetLEDs(0);
 }
 
-
-//save state support
-void *KEYBOARD_TransferBuffer_PIC_Event = (void*)KEYBOARD_TransferBuffer;
-void *KEYBOARD_TickHandler_PIC_Timer = (void*)KEYBOARD_TickHandler;
-

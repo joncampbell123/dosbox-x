@@ -3802,5 +3802,3 @@ void MAPPER_Shutdown() {
 	handlergroup.clear();
 }
 
-// save state support
-void *MAPPER_RunEvent_PIC_Event = (void*)MAPPER_RunEvent;
