@@ -197,7 +197,7 @@ Bit64u LinMakeProt(Bit16u selector, Bit32u offset)
     }
 
 	return mem_no_address;
-};
+}
 
 Bit64u GetAddress(Bit16u seg, Bit32u offset)
 {
@@ -260,7 +260,7 @@ bool GetDescriptorInfo(char* selname, char* out1, char* out2)
 		strcpy(out2,"                                  ");
 	}
 	return false;
-};
+}
 
 /********************/
 /* DebugVar   stuff */
@@ -359,7 +359,7 @@ public:
 	static CBreakpoint*				ignoreOnce;
 };
 
-CBreakpoint::CBreakpoint(void):type(BKPNT_UNKNOWN),location(0),segment(0),offset(0),intNr(0),ahValue(0),active(false),once(false) { };
+CBreakpoint::CBreakpoint(void):type(BKPNT_UNKNOWN),location(0),segment(0),offset(0),intNr(0),ahValue(0),active(false),once(false) { }
 
 void CBreakpoint::Activate(bool _active)
 {
@@ -381,7 +381,7 @@ void CBreakpoint::Activate(bool _active)
 	}
 #endif
 	active = _active;
-};
+}
 
 // Statics
 std::list<CBreakpoint*> CBreakpoint::BPoints;
@@ -395,7 +395,7 @@ CBreakpoint* CBreakpoint::AddBreakpoint(Bit16u seg, Bit32u off, bool once)
 	bp->SetOnce			(once);
 	BPoints.push_front	(bp);
 	return bp;
-};
+}
 
 CBreakpoint* CBreakpoint::AddIntBreakpoint(Bit8u intNum, Bit16u ah, bool once)
 {
@@ -404,7 +404,7 @@ CBreakpoint* CBreakpoint::AddIntBreakpoint(Bit8u intNum, Bit16u ah, bool once)
 	bp->SetOnce			(once);
 	BPoints.push_front	(bp);
 	return bp;
-};
+}
 
 CBreakpoint* CBreakpoint::AddMemBreakpoint(Bit16u seg, Bit32u off)
 {
@@ -414,7 +414,7 @@ CBreakpoint* CBreakpoint::AddMemBreakpoint(Bit16u seg, Bit32u off)
 	bp->SetType			(BKPNT_MEMORY);
 	BPoints.push_front	(bp);
 	return bp;
-};
+}
 
 void CBreakpoint::ActivateBreakpoints(PhysPt adr, bool activate)
 {
@@ -429,8 +429,8 @@ void CBreakpoint::ActivateBreakpoints(PhysPt adr, bool activate)
 			continue;
 		}
 		bp->Activate(activate);	
-	};
-};
+	}
+}
 
 bool CBreakpoint::CheckBreakpoint(Bitu seg, Bitu off)
 // Checks if breakpoint is valid and should stop execution
@@ -488,13 +488,13 @@ bool CBreakpoint::CheckBreakpoint(Bitu seg, Bitu off)
 					DEBUG_ShowMsg("DEBUG: Memory breakpoint %s: %04X:%04X - %02X -> %02X\n",(bp->GetType()==BKPNT_MEMORY_PROT)?"(Prot)":"",bp->GetSegment(),bp->GetOffset(),bp->GetValue(),value);
 					bp->SetValue(value);
 					return true;
-				};		
-			} 		
-		};
+				}		
+			}
+		}
 #endif
-	};
+	}
 	return false;
-};
+}
 
 bool CBreakpoint::CheckIntBreakpoint(PhysPt adr, Bit8u intNr, Bit16u ahValue)
 // Checks if interrupt breakpoint is valid and should stop execution
@@ -529,10 +529,10 @@ bool CBreakpoint::CheckIntBreakpoint(PhysPt adr, Bit8u intNr, Bit16u ahValue)
 				}
 				return true;
 			}
-		};
-	};
+		}
+	}
 	return false;
-};
+}
 
 void CBreakpoint::DeleteAll() 
 {
@@ -542,9 +542,9 @@ void CBreakpoint::DeleteAll()
 		bp = (*i);
 		bp->Activate(false);
 		delete bp;
-	};
+	}
 	(BPoints.clear)();
-};
+}
 
 
 bool CBreakpoint::DeleteByIndex(Bit16u index) 
@@ -562,9 +562,9 @@ bool CBreakpoint::DeleteByIndex(Bit16u index)
 			return true;
 		}
 		nr++;
-	};
+	}
 	return false;
-};
+}
 
 bool CBreakpoint::DeleteBreakpoint(PhysPt where) 
 {
@@ -579,9 +579,9 @@ bool CBreakpoint::DeleteBreakpoint(PhysPt where)
 			delete bp;
 			return true;
 		}
-	};
+	}
 	return false;
-};
+}
 
 bool CBreakpoint::IsBreakpoint(PhysPt adr) 
 // is there a breakpoint at address ?
@@ -593,13 +593,13 @@ bool CBreakpoint::IsBreakpoint(PhysPt adr)
 		bp = (*i);
 		if ((bp->GetType()==BKPNT_PHYSICAL) && (bp->GetSegment()==adr)) {
 			return true;
-		};
+		}
 		if ((bp->GetType()==BKPNT_PHYSICAL) && (bp->GetLocation()==adr)) {
 			return true;
-		};
-	};
+		}
+	}
 	return false;
-};
+}
 
 bool CBreakpoint::IsBreakpointDrawn(PhysPt adr) 
 // valid breakpoint, that should be drawn ?
@@ -612,10 +612,10 @@ bool CBreakpoint::IsBreakpointDrawn(PhysPt adr)
 		if ((bp->GetType()==BKPNT_PHYSICAL) && (bp->GetLocation()==adr)) {
 			// Only draw, if breakpoint is not only once, 
 			return !bp->GetOnce();
-		};
-	};
+		}
+	}
 	return false;
-};
+}
 
 void CBreakpoint::ShowList(void)
 {
@@ -638,7 +638,7 @@ void CBreakpoint::ShowList(void)
 		};
 		nr++;
 	}
-};
+}
 
 bool DEBUG_Breakpoint(void)
 {
@@ -648,7 +648,7 @@ bool DEBUG_Breakpoint(void)
 	PhysPt where=(Bitu)GetAddress(SegValue(cs),reg_eip);
 	CBreakpoint::ActivateBreakpoints(where,false);	// Deactivate all breakpoints
 	return true;
-};
+}
 
 bool DEBUG_IntBreakpoint(Bit8u intNum)
 {
@@ -658,7 +658,7 @@ bool DEBUG_IntBreakpoint(Bit8u intNum)
 	// Found. Breakpoint is valid
 	CBreakpoint::ActivateBreakpoints(where,false);	// Deactivate all breakpoints
 	return true;
-};
+}
 
 static bool StepOver()
 {
@@ -684,7 +684,7 @@ static bool StepOver()
 		return true;
 	} 
 	return false;
-};
+}
 
 bool DEBUG_ExitLoop(void)
 {
@@ -697,7 +697,7 @@ bool DEBUG_ExitLoop(void)
 		return true;
 	}
 	return false;
-};
+}
 
 /********************/
 /*   Draw windows   */
@@ -783,7 +783,7 @@ static void DrawData(void) {
         }
 	}	
 	wrefresh(dbg.win_data);
-};
+}
 
 void DrawRegistersUpdateOld(void) {
 	/* Main Registers */
@@ -886,7 +886,7 @@ static void DrawRegisters(void) {
 	wattrset(dbg.win_reg,0);
 	mvwprintw(dbg.win_reg,3,60,"%u       ",cycle_count);
 	wrefresh(dbg.win_reg);
-};
+}
 
 static void DrawInput(void) {
     if (!debugging) {
@@ -1049,7 +1049,7 @@ static void SetCodeWinStart()
 		codeViewData.useEIP	= reg_eip;
 	}
 	codeViewData.cursorPos = -1;	// Recalc Cursor position
-};
+}
 
 void DEBUG_CheckCSIP() {
     SetCodeWinStart();
@@ -1099,9 +1099,10 @@ Bit32u GetHexValue(char* str, char*& hex)
 			break; // No valid char
 		}
 		hex++;
-	};
+	}
+
 	return regval + value;
-};
+}
 
 bool ChangeRegister(char* str)
 {
@@ -1141,7 +1142,7 @@ bool ChangeRegister(char* str)
 	if (strstr(hex,"SF")==hex) { hex+=2; SETFLAGBIT(SF,GetHexValue(hex,hex)); } else
 	{ return false; };
 	return true;
-};
+}
 
 void DEBUG_GUI_Rebuild(void);
 void DBGUI_NextWindowIfActiveHidden(void);
@@ -1680,9 +1681,10 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("HELP                      - Help\n");
 		
 		return true;
-	};
+	}
+
 	return false;
-};
+}
 
 char* AnalyzeInstruction(char* inst, bool saveSelector) {
 	static char result[256];
@@ -1856,7 +1858,7 @@ char* AnalyzeInstruction(char* inst, bool saveSelector) {
 		}
 	}
 	return result;
-};
+}
 
 // data window
 void win_data_ui_down(int count) {
@@ -2254,7 +2256,7 @@ Bit32u DEBUG_CheckKeys(void) {
 		DEBUG_DrawScreen();
 	}
 	return ret;
-};
+}
 
 Bitu DEBUG_LastRunningUpdate = 0;
 
@@ -2628,8 +2630,8 @@ static void LogGDT(void)
 		sprintf(out1,"      l:%08lX dpl : %01X  %1X%1X%1X%1X%1X",(unsigned long)desc.GetLimit(),desc.saved.seg.dpl,desc.saved.seg.p,desc.saved.seg.avl,desc.saved.seg.r,desc.saved.seg.big,desc.saved.seg.g);
 		LOG(LOG_MISC,LOG_ERROR)("%s",out1);
 		address+=8; i++;
-	};
-};
+	}
+}
 
 static void LogLDT(void) {
 	char out1[512];
@@ -2648,8 +2650,8 @@ static void LogLDT(void) {
 		sprintf(out1,"      l:%08lX dpl : %01X  %1X%1X%1X%1X%1X",(unsigned long)desc.GetLimit(),desc.saved.seg.dpl,desc.saved.seg.p,desc.saved.seg.avl,desc.saved.seg.r,desc.saved.seg.big,desc.saved.seg.g);
 		LOG(LOG_MISC,LOG_ERROR)("%s",out1);
 		address+=8; i++;
-	};
-};
+	}
+}
 
 static void LogIDT(void) {
 	char out1[512];
@@ -2661,8 +2663,8 @@ static void LogIDT(void) {
 			LOG(LOG_MISC,LOG_ERROR)("%s",out1);
 		}
 		address+=8;
-	};
-};
+	}
+}
 
 void LogPages(char* selname) {
 	char out1[512];
@@ -2708,7 +2710,7 @@ void LogPages(char* selname) {
 			}
 		}
 	}
-};
+}
 
 static void LogCPUInfo(void) {
 	char out1[512];
@@ -2744,7 +2746,7 @@ static void LogCPUInfo(void) {
 		sprintf(out1,"LDT selector=%04X, base=%08lX limit=%08lX*%X",(int)sel,(unsigned long)desc.GetBase(),(unsigned long)desc.GetLimit(),desc.saved.seg.g?0x4000:1);
 		LOG(LOG_MISC,LOG_ERROR)("%s",out1);
 	}
-};
+}
 
 #if C_HEAVY_DEBUG
 static void LogInstruction(Bit16u segValue, Bit32u eipValue,  ofstream& out) {
@@ -2803,7 +2805,7 @@ static void LogInstruction(Bit16u segValue, Bit32u eipValue,  ofstream& out) {
 		    << " CR0:" << setw(8) << cpu.cr0;	
 	}
 	out << endl;
-};
+}
 #endif
 
 #if 0
@@ -2886,7 +2888,7 @@ void DEBUG_CheckExecuteBreakpoint(Bit16u seg, Bit32u off)
 		pDebugcom = 0;
 	};
 #endif
-};
+}
 
 Bitu DEBUG_EnableDebugger(void)
 {
@@ -2894,10 +2896,11 @@ Bitu DEBUG_EnableDebugger(void)
 	DEBUG_Enable(true);
 	CPU_Cycles=CPU_CycleLeft=0;
 	return 0;
-};
+}
 
 static void DEBUG_ProgramStart(Program * * make) {
-//	*make=new DEBUG;
+    // FIXME: REMOVE THIS
+    (void)make; // unused
 }
 
 // INIT 
@@ -2965,6 +2968,9 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 Bitu debugCallback;
 
 void DEBUG_DOSStartUp(Section *x) {
+    (void)x; // UNUSED
+
+// FIXME: REMOVE THIS
 //	/* setup debug.com */
 //	PROGRAMS_MakeFile("DEBUGBOX.COM",DEBUG_ProgramStart);
 }
@@ -3015,7 +3021,7 @@ void DEBUG_Init() {
 void CDebugVar::InsertVariable(char* name, PhysPt adr)
 {
 	varList.push_back(new CDebugVar(name,adr));
-};
+}
 
 void CDebugVar::DeleteAll(void) 
 {
@@ -3024,9 +3030,9 @@ void CDebugVar::DeleteAll(void)
 	for(i=varList.begin(); i != varList.end(); i++) {
 		bp = static_cast<CDebugVar*>(*i);
 		delete bp;
-	};
+	}
 	(varList.clear)();
-};
+}
 
 CDebugVar* CDebugVar::FindVar(PhysPt pt)
 {
@@ -3035,9 +3041,9 @@ CDebugVar* CDebugVar::FindVar(PhysPt pt)
 	for(i=varList.begin(); i != varList.end(); i++) {
 		bp = static_cast<CDebugVar*>(*i);
 		if (bp->GetAdr()==pt) return bp;
-	};
+	}
 	return 0;
-};
+}
 
 bool CDebugVar::SaveVars(char* name) {
 	if (varList.size()>65535) return false;
@@ -3061,7 +3067,7 @@ bool CDebugVar::SaveVars(char* name) {
 	};
 	fclose(f);
 	return true;
-};
+}
 
 bool CDebugVar::LoadVars(char* name)
 {
@@ -3084,7 +3090,7 @@ bool CDebugVar::LoadVars(char* name)
 	};
 	fclose(f);
 	return true;
-};
+}
 
 static void SaveMemory(Bit16u seg, Bit32u ofs1, Bit32u num) {
 	FILE* f = fopen("MEMDUMP.TXT","wt");
@@ -3186,7 +3192,7 @@ static void DrawVariables(void) {
 	}
 
 	wrefresh(dbg.win_var);
-};
+}
 #undef DEBUG_VAR_BUF_LEN
 // HEAVY DEBUGGING STUFF
 
@@ -3271,7 +3277,7 @@ void DEBUG_HeavyLogInstruction(void) {
 	inst.i    = GETFLAGBOOL(IF);
 
 	if (++logCount >= LOGCPUMAX) logCount = 0;
-};
+}
 
 void DEBUG_HeavyWriteLogInstruction(void) {
 	if (!logHeavy) return;
@@ -3310,7 +3316,7 @@ void DEBUG_HeavyWriteLogInstruction(void) {
 	
 	out.close();
 	DEBUG_ShowMsg("DEBUG: Done.\n");	
-};
+}
 
 bool DEBUG_HeavyIsBreakpoint(void) {
 	static Bitu zero_count = 0;
