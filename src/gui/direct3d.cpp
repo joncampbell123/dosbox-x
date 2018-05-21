@@ -1274,6 +1274,7 @@ HRESULT CDirect3D::CreateVertex(void)
     vertices[3].texcoord = D3DXVECTOR2( sizex,               sizey );
 
     // Additional vertices required for some PS effects
+    // FIXME: Recent changes may have BROKEN pixel shader support here!!!!!
     if(preProcess) {
 	vertices[4].position = D3DXVECTOR3( 0.0f, 0.0f, 0.0f);
 	vertices[4].diffuse  = 0xFFFFFF00;
