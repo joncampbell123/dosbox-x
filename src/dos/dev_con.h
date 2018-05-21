@@ -772,6 +772,8 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
 }
 
 bool device_CON::Seek(Bit32u * pos,Bit32u type) {
+    (void)pos; // UNUSED
+    (void)type; // UNUSED
 	// seek is valid
 	*pos = 0;
 	return true;
