@@ -365,41 +365,41 @@ public:
 	Bitu readw(PhysPt addr) {(void)addr;read();return 0;}
 	Bitu readd(PhysPt addr) {(void)addr;read();return 0;}
 
-	void writeb(PhysPt addr,Bitu val) {
-		work(addr);
-		// execute the write:
-		// no need to care about mpl because we won't be entered
-		// if write isn't allowed
-		mem_writeb(addr,val);
-	}
-	void writew(PhysPt addr,Bitu val) {
-		work(addr);
-		mem_writew(addr,val);
-	}
-	void writed(PhysPt addr,Bitu val) {
-		work(addr);
-		mem_writed(addr,val);
-	}
+    void writeb(PhysPt addr,Bitu val) {
+        work(addr);
+        // execute the write:
+        // no need to care about mpl because we won't be entered
+        // if write isn't allowed
+        mem_writeb(addr,val);
+    }
+    void writew(PhysPt addr,Bitu val) {
+        work(addr);
+        mem_writew(addr,val);
+    }
+    void writed(PhysPt addr,Bitu val) {
+        work(addr);
+        mem_writed(addr,val);
+    }
 
-	bool readb_checked(PhysPt addr, Bit8u * val) {(void)addr;(void)val;read();return true;}
-	bool readw_checked(PhysPt addr, Bit16u * val) {(void)addr;(void)val;read();return true;}
-	bool readd_checked(PhysPt addr, Bit32u * val) {(void)addr;(void)val;read();return true;}
+    bool readb_checked(PhysPt addr, Bit8u * val) {(void)addr;(void)val;read();return true;}
+    bool readw_checked(PhysPt addr, Bit16u * val) {(void)addr;(void)val;read();return true;}
+    bool readd_checked(PhysPt addr, Bit32u * val) {(void)addr;(void)val;read();return true;}
 
-	bool writeb_checked(PhysPt addr,Bitu val) {
-		work(addr);
-			mem_writeb(addr,val);
-			return false;
-	}
-	bool writew_checked(PhysPt addr,Bitu val) {
-		work(addr);
-			mem_writew(addr,val);
-			return false;
-	}
-	bool writed_checked(PhysPt addr,Bitu val) {
-		work(addr);
-			mem_writed(addr,val);
-			return false;
-	}
+    bool writeb_checked(PhysPt addr,Bitu val) {
+        work(addr);
+        mem_writeb(addr,val);
+        return false;
+    }
+    bool writew_checked(PhysPt addr,Bitu val) {
+        work(addr);
+        mem_writew(addr,val);
+        return false;
+    }
+    bool writed_checked(PhysPt addr,Bitu val) {
+        work(addr);
+        mem_writed(addr,val);
+        return false;
+    }
 };
 
 class ExceptionPageHandler : public PageHandler {
