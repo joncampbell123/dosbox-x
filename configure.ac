@@ -284,6 +284,10 @@ AC_CHECK_CXXFLAGS([ -Wall ])
 AC_CHECK_CXXFLAGS([ -Wextra ])
 AC_CHECK_CXXFLAGS([ -pedantic ])
 
+dnl Let GCC 7.3.x know that the "fall through" switch cases in this codebase
+dnl are often intentional.
+AC_CHECK_CXXFLAGS([ -Wno-implicit-fallthrough ])
+
 dnl Stop reporting "type punning" warnings, I'm sick of hearing about it.
 AC_CHECK_CXXFLAGS([ -Wno-strict-aliasing ])
 
