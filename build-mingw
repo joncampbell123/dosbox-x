@@ -5,6 +5,10 @@
 # and just autoregen.
 ./autogen.sh || exit 1
 
+# where are we?
+top=`pwd`
+if test -z "$top" ; then exit 1; fi
+
 # fix
 chmod +x vs2015/sdl/build-scripts/strip_fPIC.sh
 
@@ -15,8 +19,18 @@ echo Compiling our internal SDL 1.x
 # perfer to compile against our own zlib (comment this out to disable)
 echo Compiling our internal zlib
 (cd vs2015/zlib && ./build-dosbox.sh) || exit 1
-new="-Ivs2015/zlib/linux-host/include "
-nld="-Lvs2015/zlib/linux-host/lib "
+new="-I$top/vs2015/zlib/linux-host/include "
+nld="-L$top/vs2015/zlib/linux-host/lib "
+export CFLAGS="$new$CFLAGS"
+export LDFLAGS="$nld$LDFLAGS"
+export CPPFLAGS="$new$CPPFLAGS"
+export CXXFLAGS="$new$CXXFLAGS"
+
+# perfer to compile against our own libpng (comment this out to disable)
+echo Compiling our internal libpng
+(cd vs2015/libpng && ./build-dosbox.sh) || exit 1
+new="-I$top/vs2015/libpng/linux-host/include "
+nld="-L$top/vs2015/libpng/linux-host/lib "
 export CFLAGS="$new$CFLAGS"
 export LDFLAGS="$nld$LDFLAGS"
 export CPPFLAGS="$new$CPPFLAGS"
