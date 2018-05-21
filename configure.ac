@@ -265,6 +265,12 @@ if test x$host = xi386-pc-os2-emx ; then
     LIBS="$LIBS -los2me"
 fi
 
+dnl I would like to know of any concerns given by the C++ compiler.
+dnl Clang/LLVM already does this to some degree, let's get GCC to do it too.
+AC_CHECK_CXXFLAGS([ -Wall ])
+AC_CHECK_CXXFLAGS([ -Wextra ])
+AC_CHECK_CXXFLAGS([ -pedantic ])
+
 dnl Stop reporting "type punning" warnings, I'm sick of hearing about it.
 AC_CHECK_CXXFLAGS([ -Wno-strict-aliasing ])
 
