@@ -920,7 +920,7 @@ HRESULT CDirect3D::LoadPixelShader(void)
     return S_OK;
 }
 
-HRESULT CDirect3D::Resize3DEnvironment(Bitu window_width, Bitu window_height, Bitu width, Bitu height, Bitu rwidth, Bitu rheight, bool fullscreen)
+HRESULT CDirect3D::Resize3DEnvironment(Bitu window_width, Bitu window_height, Bitu x, Bitu y, Bitu width, Bitu height, Bitu rwidth, Bitu rheight, bool fullscreen)
 {
 #if LOG_D3D
     LOG_MSG("D3D:Resizing D3D screen...");

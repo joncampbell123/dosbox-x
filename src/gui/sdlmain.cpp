@@ -2320,83 +2320,6 @@ dosurface:
             }
 #endif
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-			Bitu window_width = 0;
-			Bitu window_height = 0;
-
-		sdl.clip.x=0; sdl.clip.y=0;
-		if(sdl.desktop.fullscreen) {
-		    if(sdl.desktop.full.fixed) {
-				sdl.clip.w=sdl.desktop.full.width;
-				sdl.clip.h=sdl.desktop.full.height;
-				scalex=(double)sdl.desktop.full.width/width;
-				scaley=(double)sdl.desktop.full.height/height;
-		    }
-			else if (render.aspect) {
-				sdl.clip.w = (Bit16u)floor((width*scalex) + 0.5);
-				sdl.clip.h = (Bit16u)floor((height*scaley) + 0.5);
-			}
-			else {
-				sdl.clip.w = width;
-				sdl.clip.h = height;
-			}
-		} else {
-			Bitu consider_height = menu.maxwindow ? currentWindowHeight : sdl.desktop.window.height;
-			Bitu consider_width = menu.maxwindow ? currentWindowWidth : sdl.desktop.window.width;
-			int final_height = max(consider_height, userResizeWindowHeight);
-			int final_width = max(consider_width, userResizeWindowWidth);
-
-		    if(final_width && final_height) {
-				scalex=(double)final_width / (sdl.draw.width*sdl.draw.scalex);
-				scaley=(double)final_height / (sdl.draw.height*sdl.draw.scaley);
-				if(scalex < scaley) {
-				    sdl.clip.w=(Bit16u)final_width;
-					sdl.clip.h=(Bit16u)floor((sdl.draw.height*sdl.draw.scaley*scalex)+0.5);
-				} else {
-				    sdl.clip.w=(Bit16u)floor((sdl.draw.width*sdl.draw.scalex*scaley)+0.5);
-					sdl.clip.h=(Bit16u)final_height;
-				}
-				scalex=(double)sdl.clip.w/width;
-				scaley=(double)sdl.clip.h/height;
-		    } else {
-				sdl.clip.w=(Bit16u)floor((width*scalex)+0.5);
-				sdl.clip.h=(Bit16u)floor((height*scaley)+0.5);
-		    }
-		}
-
 #if (C_D3DSHADERS)
 		Section_prop *section=static_cast<Section_prop *>(control->GetSection("sdl"));
 		if(section) {
@@ -2408,71 +2331,34 @@ dosurface:
 		}
 #endif
 
-		d3d->aspect=RENDER_GetAspect();
-		d3d->autofit=RENDER_GetAutofit() && sdl.desktop.fullscreen; //scale to 5:4 monitors in fullscreen only
-		if((sdl.desktop.fullscreen) && (!sdl.desktop.full.fixed)) {
-		    // Don't do aspect ratio correction when fullscreen and fullresolution=original
-			d3d->aspect=0;
-
-		    sdl.clip.w=(Uint16)scalex;
-			sdl.clip.h=(Uint16)scaley;
-		    // Do fullscreen scaling if pixel shaders are enabled
-			// or the game uses some weird resolution
-			if((d3d->psActive) || (sdl.clip.w != sdl.clip.h)) {
-				sdl.clip.w*=width;
-				sdl.clip.h*=height;
-			} else { // just use native resolution
-				sdl.clip.w=width;
-				sdl.clip.h=height;
-			}
-
-			window_width = sdl.clip.w;
-			window_height = sdl.clip.h;
-		}
-		else if (menu.maxwindow) {
-			window_width = currentWindowWidth;
-			window_height = currentWindowHeight;
-			if (!render.aspect) {
-				sdl.clip.w = window_width;
-				sdl.clip.h = window_height;
-			}
-		}
-		else {
-			int final_height = max((Bitu)sdl.clip.h, userResizeWindowHeight);
-			int final_width = max((Bitu)sdl.clip.w, userResizeWindowWidth);
-
-			window_width = final_width;
-			window_height = final_height;
-			if (!render.aspect) {
-				sdl.clip.w = window_width;
-				sdl.clip.h = window_height;
-			}
-		}
+		d3d->aspect=false;//RENDER_GetAspect();
+		d3d->autofit=false;//TODO RENDER_GetAutofit() && sdl.desktop.fullscreen; //scale to 5:4 monitors in fullscreen only
 
 		// Create a dummy sdl surface
 		// D3D will hang or crash when using fullscreen with ddraw surface, therefore we hack SDL to provide
 		// a GDI window with an additional 0x40 flag. If this fails or stock SDL is used, use WINDIB output
 		if(GCC_UNLIKELY(d3d->bpp16)) {
-            sdl.surface=SDL_SetVideoMode(window_width, window_height,16,sdl.desktop.fullscreen ? SDL_FULLSCREEN|0x40 : SDL_RESIZABLE|0x40);
-            sdl.deferred_resize = false;
-            sdl.must_redraw_all = true;
-            retFlags = GFX_CAN_16 | GFX_SCALING;
-        } else {
-            sdl.surface=SDL_SetVideoMode(window_width, window_height,0,sdl.desktop.fullscreen ? SDL_FULLSCREEN|0x40 : SDL_RESIZABLE|0x40);
-            sdl.deferred_resize = false;
-            sdl.must_redraw_all = true;
-            retFlags = GFX_CAN_32 | GFX_SCALING;
-        }
+			sdl.surface=SDL_SetVideoMode(windowWidth, windowHeight,16,sdl.desktop.fullscreen ? SDL_FULLSCREEN|0x40 : SDL_RESIZABLE|0x40);
+			sdl.deferred_resize = false;
+			sdl.must_redraw_all = true;
+			retFlags = GFX_CAN_16 | GFX_SCALING;
+		} else {
+			sdl.surface=SDL_SetVideoMode(windowWidth, windowHeight,0,sdl.desktop.fullscreen ? SDL_FULLSCREEN|0x40 : SDL_RESIZABLE|0x40);
+			sdl.deferred_resize = false;
+			sdl.must_redraw_all = true;
+			retFlags = GFX_CAN_32 | GFX_SCALING;
+		}
 
-		if (sdl.surface == NULL) E_Exit("Could not set video mode %ix%i-%i: %s",sdl.clip.w,sdl.clip.h,
-					d3d->bpp16 ? 16:32,SDL_GetError());
+		if (sdl.surface == NULL)
+			E_Exit("Could not set video mode %ix%i-%i: %s",sdl.clip.w,sdl.clip.h,d3d->bpp16 ? 16:32,SDL_GetError());
+
 		sdl.desktop.type=SCREEN_DIRECT3D;
 
 		if(d3d->dynamic) retFlags |= GFX_HARDWARE;
 
 		SDL1_hax_inhibit_WM_PAINT = 1;
 
-		if(GCC_UNLIKELY(d3d->Resize3DEnvironment(window_width,window_height,sdl.clip.w,sdl.clip.h,width,
+		if(GCC_UNLIKELY(d3d->Resize3DEnvironment(windowWidth,windowHeight,sdl.clip.x,sdl.clip.y,sdl.clip.w,sdl.clip.h,width,
 						    height,sdl.desktop.fullscreen) != S_OK)) {
 		    retFlags = 0;
 		}
