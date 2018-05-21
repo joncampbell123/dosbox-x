@@ -1801,6 +1801,8 @@ call_code:
 
 
 void CPU_RET(bool use32,Bitu bytes,Bitu oldeip) {
+    (void)oldeip;//UNUSED
+
 	Bitu orig_esp = reg_esp;
 
 	if (!cpu.pmode || (reg_flags & FLAG_VM)) {
@@ -2907,16 +2909,22 @@ void Weitek_PageHandler::writed(PhysPt addr,Bitu val) {
 Weitek_PageHandler weitek_pagehandler(0);
 
 PageHandler* weitek_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
+    (void)co; // UNUSED
+    (void)phys_page; // UNUSED
     return &weitek_pagehandler;
 }
 
 bool CpuType_Auto(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     Section* sec=control->GetSection("cpu");
     if (sec) sec->HandleInputline("cputype=auto");
     return true;
 }
 
 bool CpuType_ByName(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+
     const char *name = menuitem->get_name().c_str();
 
     /* name should be cputype_... */
@@ -3057,7 +3065,11 @@ public:
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
 		cpu_allow_big16 = section->Get_bool("realbig16");
-		if (cpu_allow_big16) LOG(LOG_CPU,LOG_DEBUG)("Emulation of the B (big) bit in real mode enabled\n");
+
+        if (cpu_allow_big16) {
+            /* FIXME: GCC 4.8: How is this an empty body? Explain. */
+            LOG(LOG_CPU,LOG_DEBUG)("Emulation of the B (big) bit in real mode enabled\n");
+        }
 
 		always_report_double_fault = section->Get_bool("always report double fault");
 		always_report_triple_fault = section->Get_bool("always report triple fault");
@@ -3337,6 +3349,8 @@ public:
 static CPU * test;
 
 void CPU_ShutDown(Section* sec) {
+    (void)sec;//UNUSED
+
 #if (C_DYNAMIC_X86)
 	CPU_Core_Dyn_X86_Cache_Close();
 #endif
@@ -3344,6 +3358,8 @@ void CPU_ShutDown(Section* sec) {
 }
 
 void CPU_OnReset(Section* sec) {
+    (void)sec;//UNUSED
+
 	LOG(LOG_CPU,LOG_DEBUG)("CPU reset");
 
 	CPU_Snap_Back_To_Real_Mode();
@@ -3389,6 +3405,8 @@ bool CPU::inited=false;
 
 Bit16u CPU_FindDecoderType( CPU_Decoder *decoder )
 {
+    (void)decoder;//UNUSED
+
 	Bit16u decoder_idx;
 
 	decoder_idx = 0xffff;
