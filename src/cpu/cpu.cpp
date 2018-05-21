@@ -1170,6 +1170,7 @@ do_interrupt:
 		}
 		}
 		catch (GuestPageFaultException &pf) {
+            (void)pf;//UNUSED
 			LOG_MSG("CPU_Interrupt() interrupted");
 			CPU_SetSegGeneral(ss,old_ss);
 			reg_esp = old_esp;
@@ -1249,7 +1250,8 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 				}
 				}
 				catch (GuestPageFaultException &pf) {
-					LOG_MSG("CPU_IRET() interrupted prot vm86");
+                    (void)pf;//UNUSED
+                    LOG_MSG("CPU_IRET() interrupted prot vm86");
 					reg_esp = orig_esp;
 					throw;
 				}
@@ -1310,7 +1312,8 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 				return;
 				}
 				catch (GuestPageFaultException &pf) {
-					LOG_MSG("CPU_IRET() interrupted prot use32");
+                    (void)pf;//UNUSED
+                    LOG_MSG("CPU_IRET() interrupted prot use32");
 					reg_esp = orig_esp;
 					throw;
 				}
@@ -1542,6 +1545,7 @@ void CPU_CALL(bool use32,Bitu selector,Bitu offset,Bitu oldeip) {
 		}
 		}
 		catch (GuestPageFaultException &pf) {
+            (void)pf;//UNUSED
 			reg_esp = old_esp;
 			reg_eip = old_eip;
 			throw;
@@ -1595,7 +1599,8 @@ call_code:
 			}
 			}
 			catch (GuestPageFaultException &pf) {
-				reg_esp = old_esp;
+                (void)pf;//UNUSED
+                reg_esp = old_esp;
 				reg_eip = old_eip;
 				throw;
 			}
@@ -1754,7 +1759,8 @@ call_code:
 					}
 					}
 					catch (GuestPageFaultException &pf) {
-						reg_esp = old_esp;
+                        (void)pf;//UNUSED
+                        reg_esp = old_esp;
 						reg_eip = old_eip;
 						throw;
 					}
@@ -1822,7 +1828,8 @@ void CPU_RET(bool use32,Bitu bytes,Bitu oldeip) {
 		return;
 		}
 		catch (GuestPageFaultException &pf) {
-			LOG_MSG("CPU_RET() interrupted real/vm86");
+            (void)pf;//UNUSED
+            LOG_MSG("CPU_RET() interrupted real/vm86");
 			reg_esp = orig_esp;
 			throw;
 		}
@@ -1882,7 +1889,8 @@ RET_same_level:
 			}
 			}
 			catch (GuestPageFaultException &pf) {
-				LOG_MSG("CPU_RET() interrupted prot rpl==cpl");
+                (void)pf;//UNUSED
+                LOG_MSG("CPU_RET() interrupted prot rpl==cpl");
 				reg_esp = orig_esp;
 				throw;
 			}
@@ -1941,7 +1949,8 @@ RET_same_level:
 			}
 			}
 			catch (GuestPageFaultException &pf) {
-				LOG_MSG("CPU_RET() interrupted prot #2");
+                (void)pf;//UNUSED
+                LOG_MSG("CPU_RET() interrupted prot #2");
 				reg_esp = orig_esp;
 				throw;
 			}
