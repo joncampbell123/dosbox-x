@@ -1128,7 +1128,7 @@ void GFX_LogSDLState(void) {
 	GFX_Ashift = sdl.surface->format->Ashift;
 }
 
-#if !defined(C_SDL2)
+#if !defined(C_SDL2) && C_OPENGL
 static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) {
 	Bit16u fixedWidth;
 	Bit16u fixedHeight;
