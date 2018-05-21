@@ -819,7 +819,7 @@ void DispatchVMEvent(enum vm_event event) {
 
 	vm_dispatch_state.begin_event(event);
 	for (std::list<Function_wrapper>::iterator i=vm_event_functions[event].begin();i!=vm_event_functions[event].end();i++) {
-		LOG(LOG_MISC,LOG_DEBUG)("Calling event %s handler (%p) '%s'",GetVMEventName(event),(void*)((*i).function),(*i).name.c_str());
+		LOG(LOG_MISC,LOG_DEBUG)("Calling event %s handler (%p) '%s'",GetVMEventName(event),(void*)((uintptr_t)((*i).function)),(*i).name.c_str());
 		(*i).function(NULL);
 	}
 
