@@ -2898,11 +2898,6 @@ Bitu DEBUG_EnableDebugger(void)
 	return 0;
 }
 
-static void DEBUG_ProgramStart(Program * * make) {
-    // FIXME: REMOVE THIS
-    (void)make; // unused
-}
-
 // INIT 
 
 void DBGBlock::set_data_view(unsigned int view) {
@@ -2967,14 +2962,6 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 
 Bitu debugCallback;
 
-void DEBUG_DOSStartUp(Section *x) {
-    (void)x; // UNUSED
-
-// FIXME: REMOVE THIS
-//	/* setup debug.com */
-//	PROGRAMS_MakeFile("DEBUGBOX.COM",DEBUG_ProgramStart);
-}
-
 void DEBUG_Init() {
 	DOSBoxMenu::item *item;
 
@@ -2994,8 +2981,6 @@ void DEBUG_Init() {
 	/* Setup callback */
 	debugCallback=CALLBACK_Allocate();
 	CALLBACK_Setup(debugCallback,DEBUG_EnableDebugger,CB_RETF,"debugger");
-
-    AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(DEBUG_DOSStartUp));
 
 #if defined(MACOSX) || defined(LINUX)
 	/* Mac OS X does not have a console for us to just allocate on a whim like Windows does.
