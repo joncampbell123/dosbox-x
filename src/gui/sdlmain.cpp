@@ -3368,16 +3368,9 @@ Bitu GFX_GetRGB(Bit8u red,Bit8u green,Bit8u blue) {
 	case SCREEN_SURFACE:
 		return SDL_MapRGB(sdl.surface->format,red,green,blue);
 	case SCREEN_OPENGL:
-//		return ((red << 0) | (green << 8) | (blue << 16)) | (255 << 24);
-		//USE BGRA
 		return ((blue << 0) | (green << 8) | (red << 16)) | (255 << 24);
 	case SCREEN_DIRECT3D:
-#if (HAVE_D3D9_H) && defined(WIN32)
-		if(GCC_UNLIKELY(d3d->bpp16))
-		    return SDL_MapRGB(sdl.surface->format,red,green,blue);
-		else
-#endif
-		    return ((blue << 0) | (green << 8) | (red << 16)) | (255 << 24);
+		return SDL_MapRGB(sdl.surface->format,red,green,blue);
 	default:
 		break;
 	}
