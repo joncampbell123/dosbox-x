@@ -1257,21 +1257,21 @@ HRESULT CDirect3D::CreateVertex(void)
     vertexBuffer->Lock(0, 0, (void**)&vertices, 0);
 
     //Setup vertices
-    vertices[0].position = D3DXVECTOR3( 0.0f,  0.0f, 0.0f);
+    vertices[0].position = D3DXVECTOR3( dwX,                 dwY, 0.0f );
     vertices[0].diffuse  = 0xFFFFFFFF;
-    vertices[0].texcoord = D3DXVECTOR2( 0.0f,  0.0f);
+    vertices[0].texcoord = D3DXVECTOR2( 0.0f,                0.0f );
 
-    vertices[1].position = D3DXVECTOR3( 0.0f,  dwScaledHeight, 0.0f);
+    vertices[1].position = D3DXVECTOR3( dwX,                 dwY + dwScaledHeight, 0.0f );
     vertices[1].diffuse  = 0xFFFFFFFF;
-    vertices[1].texcoord = D3DXVECTOR2( 0.0f,  sizey);
+    vertices[1].texcoord = D3DXVECTOR2( 0.0f,                sizey );
     
-    vertices[2].position = D3DXVECTOR3( dwScaledWidth, 0.0f, 0.0f);
+    vertices[2].position = D3DXVECTOR3( dwX + dwScaledWidth, dwY, 0.0f );
     vertices[2].diffuse  = 0xFFFFFFFF;
-    vertices[2].texcoord = D3DXVECTOR2( sizex, 0.0f);
+    vertices[2].texcoord = D3DXVECTOR2( sizex,               0.0f );
     
-    vertices[3].position = D3DXVECTOR3( dwScaledWidth, dwScaledHeight, 0.0f);
+    vertices[3].position = D3DXVECTOR3( dwX + dwScaledWidth, dwY + dwScaledHeight, 0.0f );
     vertices[3].diffuse  = 0xFFFFFFFF;
-    vertices[3].texcoord = D3DXVECTOR2( sizex, sizey);
+    vertices[3].texcoord = D3DXVECTOR2( sizex,               sizey );
 
     // Additional vertices required for some PS effects
     if(preProcess) {
