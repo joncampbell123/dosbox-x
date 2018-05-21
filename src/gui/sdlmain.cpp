@@ -2220,20 +2220,142 @@ dosurface:
 #endif	//C_OPENGL
 #if (HAVE_D3D9_H) && defined(WIN32)
 	    case SCREEN_DIRECT3D: {
+            Bit16u fixedWidth;
+            Bit16u fixedHeight;
+            Bit16u windowWidth;
+            Bit16u windowHeight;
+
+            // Calculate texture size
+            if((!d3d->square) && (!d3d->pow2)) {
+                d3d->dwTexWidth=width;
+                d3d->dwTexHeight=height;
+            } else if(d3d->square) {
+                int texsize=2 << int_log2(width > height ? width : height);
+                d3d->dwTexWidth=d3d->dwTexHeight=texsize;
+            } else {
+                d3d->dwTexWidth=2 << int_log2(width);
+                d3d->dwTexHeight=2 << int_log2(height);
+            }
+
+            if (sdl.desktop.fullscreen) {
+                fixedWidth = sdl.desktop.full.fixed ? sdl.desktop.full.width : 0;
+                fixedHeight = sdl.desktop.full.fixed ? sdl.desktop.full.height : 0;
+            } else {
+                fixedWidth = sdl.desktop.window.width;
+                fixedHeight = sdl.desktop.window.height;
+            }
+
+            if (fixedWidth == 0 || fixedHeight == 0) {
+                Bitu consider_height = menu.maxwindow ? currentWindowHeight : 0;
+                Bitu consider_width = menu.maxwindow ? currentWindowWidth : 0;
+                int final_height = max(consider_height,userResizeWindowHeight);
+                int final_width = max(consider_width,userResizeWindowWidth);
+
+                fixedWidth = final_width;
+                fixedHeight = final_height;
+            }
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            /* scale the menu bar if the window is large enough */
+            {
+                int cw = fixedWidth,ch = fixedHeight;
+                Bitu scale = 1;
+
+                if (cw == 0) cw = (Bit16u)(sdl.draw.width*sdl.draw.scalex);
+                if (ch == 0) ch = (Bit16u)(sdl.draw.height*sdl.draw.scaley);
+
+                while ((cw/scale) >= (640*2) && (ch/scale) >= (400*2))
+                    scale++;
+
+                LOG_MSG("menuScale=%lu",(unsigned long)scale);
+                mainMenu.setScale(scale);
+
+                if (mainMenu.isVisible()) fixedHeight -= mainMenu.menuBox.h;
+            }
+#endif
+
+            if (fixedWidth && fixedHeight) {
+                if (render.aspect) {
+                    double ratio_w=(double)fixedWidth/(sdl.draw.width*sdl.draw.scalex);
+                    double ratio_h=(double)fixedHeight/(sdl.draw.height*sdl.draw.scaley);
+
+                    if (ratio_w < ratio_h) {
+                        sdl.clip.w=(Bit16u)fixedWidth;
+                        sdl.clip.h=(Bit16u)floor((sdl.draw.height*sdl.draw.scaley*ratio_w)+0.5);
+                    } else {
+                        sdl.clip.w=(Bit16u)floor((sdl.draw.width*sdl.draw.scalex*ratio_h)+0.5);
+                        sdl.clip.h=(Bit16u)fixedHeight;
+                    }
+                }
+                else {
+                    sdl.clip.w=fixedWidth;
+                    sdl.clip.h=fixedHeight;
+                }
+
+                sdl.clip.x = (fixedWidth - sdl.clip.w) / 2;
+                sdl.clip.y = (fixedHeight - sdl.clip.h) / 2;
+                windowWidth = fixedWidth;
+                windowHeight = fixedHeight;
+            }
+            else {
+                sdl.clip.x=0;sdl.clip.y=0;
+                sdl.clip.w=windowWidth=(Bit16u)(sdl.draw.width*sdl.draw.scalex);
+                sdl.clip.h=windowHeight=(Bit16u)(sdl.draw.height*sdl.draw.scaley);
+            }
+
+            LOG(LOG_MISC,LOG_DEBUG)("GFX_SetSize Direct3D texture=%ux%u window=%ux%u clip=x,y,w,h=%d,%d,%d,%d",
+                    (unsigned int)d3d->dwTexWidth,
+                    (unsigned int)d3d->dwTexHeight,
+                    (unsigned int)windowWidth,
+                    (unsigned int)windowHeight,
+                    (unsigned int)sdl.clip.x,
+                    (unsigned int)sdl.clip.y,
+                    (unsigned int)sdl.clip.w,
+                    (unsigned int)sdl.clip.h);
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+            if (mainMenu.isVisible()) {
+                windowHeight += mainMenu.menuBox.h;
+                sdl.clip.y += mainMenu.menuBox.h;
+            }
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 			Bitu window_width = 0;
 			Bitu window_height = 0;
-
-		// Calculate texture size
-		if((!d3d->square) && (!d3d->pow2)) {
-		    d3d->dwTexWidth=width;
-		    d3d->dwTexHeight=height;
-		} else if(d3d->square) {
-		    int texsize=2 << int_log2(width > height ? width : height);
-		    d3d->dwTexWidth=d3d->dwTexHeight=texsize;
-		} else {
-		    d3d->dwTexWidth=2 << int_log2(width);
-		    d3d->dwTexHeight=2 << int_log2(height);
-		}
 
 		sdl.clip.x=0; sdl.clip.y=0;
 		if(sdl.desktop.fullscreen) {
