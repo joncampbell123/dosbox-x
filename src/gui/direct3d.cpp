@@ -18,6 +18,7 @@
 
 #include "dosbox.h"
 #include "control.h"
+#include "menu.h"
 
 #if (HAVE_D3D9_H) && defined(WIN32)
 
@@ -532,6 +533,10 @@ void CDirect3D::DestroyD3D(void)
     }
 }
 
+// copy a rect from the SDL surface to the Direct3D9 backbuffer
+void CDirect3D::UpdateRectFromSDLSurface(int x,int y,int w,int h) {
+}
+
 // Draw a textured quad on the back-buffer
 bool CDirect3D::D3DSwapBuffers(void)
 {
@@ -542,6 +547,12 @@ bool CDirect3D::D3DSwapBuffers(void)
 		backbuffer_clear_countdown--;
 		pD3DDevice9->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 	}
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    // If the SDL drawn menus are visible, copy the SDL surface to the Direct3D surface to keep them visible on-screen
+    if (mainMenu.isVisible() && mainMenu.menuBox.h != 0 && dwY >= mainMenu.menuBox.h)
+	UpdateRectFromSDLSurface(0, 0, mainMenu.menuBox.w, mainMenu.menuBox.h);
+#endif
 
     // begin rendering
     pD3DDevice9->BeginScene();

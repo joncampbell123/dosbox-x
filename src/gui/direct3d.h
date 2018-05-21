@@ -231,6 +231,8 @@ public:
 
     }
 
+    void UpdateRectFromSDLSurface(int x,int y,int w,int h);
+
     bool getForceUpdate(void) {
 #if C_D3DSHADERS
 	if (psEffect) return psEffect->getForceUpdate();
