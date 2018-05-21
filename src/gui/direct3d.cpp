@@ -937,6 +937,9 @@ HRESULT CDirect3D::Resize3DEnvironment(Bitu window_width, Bitu window_height, Bi
     dwScaledWidth = width;
     dwScaledHeight = height;
 
+    dwX = x;
+    dwY = y;
+
     dwWidth = rwidth;
     dwHeight = rheight;
 

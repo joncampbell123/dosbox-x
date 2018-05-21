@@ -84,6 +84,7 @@ private:
     D3DLOCKED_RECT		d3dlr;			// Texture lock rectangle
 
     HWND hwnd;						// DOSBow window
+    DWORD dwX,dwY;					// X,Y position
     DWORD dwWidth, dwHeight;                            // DOSBox framebuffer size
     DWORD dwScaledWidth, dwScaledHeight;                // D3D backbuffer size
     const Bit16u* changedLines;
