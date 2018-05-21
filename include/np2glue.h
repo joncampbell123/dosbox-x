@@ -80,9 +80,9 @@ enum {
 	PCCBUS_MPU98		= 0x0002
 };
 
-// GLUE TYPEDEFS
-// WARNING: Windows targets will want to IFDEF some of these out as they will
-//          conflict with the typedefs in windows.h
+/* GLUE TYPEDEFS
+ * WARNING: Windows targets will want to IFDEF some of these out as they will
+ *          conflict with the typedefs in windows.h */
 typedef uint32_t UINT32;
 typedef int32_t SINT32;
 typedef uint16_t UINT16;
@@ -175,7 +175,7 @@ static inline void _TRACEOUT(const char *fmt,...) { };
 #endif
 
 typedef struct {
-	// G~[gÉæ­QÆ³êéz
+	/* G~[gÉæ­QÆ³êéz */
 	UINT8	uPD72020;
 	UINT8	DISPSYNC;
 	UINT8	RASTER;
@@ -196,7 +196,7 @@ typedef struct {
 	UINT8	usefd144;
 	UINT8	wait[6];
 
-	// ZbgÆ© ñÜèQÆ³êÈ¢z
+	/* ZbgÆ© ñÜèQÆ³êÈ¢z */
 	OEMCHAR	model[8];
 	UINT	baseclock;
 	UINT	multiple;
@@ -219,9 +219,9 @@ typedef struct {
 	UINT8	snd26opt;
 	UINT8	snd86opt;
 	UINT8	spbopt;
-	UINT8	spb_vrc;												// ver0.30
-	UINT8	spb_vrl;												// ver0.30
-	UINT8	spb_x;													// ver0.30
+	UINT8	spb_vrc;												/* ver0.30 */
+	UINT8	spb_vrl;												/* ver0.30 */
+	UINT8	spb_x;													/* ver0.30 */
 
 	UINT8	BEEP_VOL;
 	UINT8	vol14[6];
@@ -244,9 +244,9 @@ typedef struct {
 	UINT8	PROTECTMEM;
 	UINT8	hdrvacc;
 
-	OEMCHAR	sasihdd[2][MAX_PATH];									// ver0.74
+	OEMCHAR	sasihdd[2][MAX_PATH];									/* ver0.74 */
 #if defined(SUPPORT_SCSI)
-	OEMCHAR	scsihdd[4][MAX_PATH];									// ver0.74
+	OEMCHAR	scsihdd[4][MAX_PATH];									/* ver0.74 */
 #endif
 	OEMCHAR	fontfile[MAX_PATH];
 	OEMCHAR	biospath[MAX_PATH];
