@@ -52,13 +52,13 @@ static const Bitu MEMMASK_FULL      = 0x000FFFFFU; /* full 32-bit decode (32 - 1
 /* WARNING: Will only produce a correct result if 'x' is a nonzero power of two.
  * For use with MEMMASK_Combine. 'x' is in units of PAGES not BYTES.
  */
-static inline const Bitu MEMMASK_Range(const Bitu x) {
+static inline Bitu MEMMASK_Range(const Bitu x) {
     return ~(x - 1);
 }
 
 /* combine range mask with MEMMASK value.
  */
-static inline const Bitu MEMMASK_Combine(const Bitu a,const Bitu b) {
+static inline Bitu MEMMASK_Combine(const Bitu a,const Bitu b) {
     return a & b;
 }
 
@@ -106,10 +106,10 @@ public:
 	virtual bool writed_checked(PhysPt addr,Bitu val);
    PageHandler (void) { }
 	Bitu flags; 
-	const Bitu getFlags() const {
+	Bitu getFlags() const {
 		return flags;
 	}
-	void setFlags(Bitu flagsNew) {
+	void setFlags(const Bitu flagsNew) {
 		flags = flagsNew;
 	}
 

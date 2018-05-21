@@ -353,7 +353,7 @@ class DOSBoxMenu {
                         type = t;
                 }
             public:
-                inline const callback_t get_callback_function(void) const {
+                inline callback_t get_callback_function(void) const {
                     return callback_func;
                 }
                 inline item &set_callback_function(const callback_t f) {
@@ -361,7 +361,7 @@ class DOSBoxMenu {
                     return *this;
                 }
             public:
-                inline const mapper_event_t get_mapper_event(void) const {
+                inline mapper_event_t get_mapper_event(void) const {
                     return mapper_event;
                 }
                 inline item &set_mapper_event(const mapper_event_t e) {

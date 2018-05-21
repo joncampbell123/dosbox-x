@@ -437,7 +437,7 @@ public:
 	const Partial *getPartial(unsigned int partialNum) const;
 
 	void setPartialLimit( unsigned int partialLimit );
-	const unsigned int getPartialLimit() const;
+	unsigned int getPartialLimit() const;
 	
 	void readMemory(Bit32u addr, Bit32u len, Bit8u *data);
 

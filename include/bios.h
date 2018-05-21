@@ -195,20 +195,20 @@ public:
 		IRQFormatInfo_LowTrueLevelSensitive =	0x8
 	};
 	// IRQ format, helper IRQ mask generator
-	static inline const uint16_t irq2mask(const int IRQ) {
+	static inline uint16_t irq2mask(const int IRQ) {
 		if (IRQ < 0 || IRQ > 15) return 0;
 		return (uint16_t)1 << (unsigned char)IRQ;
 	}
-	static inline const uint16_t irq2mask(const int a,const int b) {
+	static inline uint16_t irq2mask(const int a,const int b) {
 		return irq2mask(a) | irq2mask(b);
 	}
-	static inline const uint16_t irq2mask(const int a,const int b,const int c) {
+	static inline uint16_t irq2mask(const int a,const int b,const int c) {
 		return irq2mask(a) | irq2mask(b) | irq2mask(c);
 	}
-	static inline const uint16_t irq2mask(const int a,const int b,const int c,const int d) {
+	static inline uint16_t irq2mask(const int a,const int b,const int c,const int d) {
 		return irq2mask(a) | irq2mask(b) | irq2mask(c) | irq2mask(d);
 	}
-	static inline const uint16_t irq2mask(const int a,const int b,const int c,const int d,const int e) {
+	static inline uint16_t irq2mask(const int a,const int b,const int c,const int d,const int e) {
 		return irq2mask(a) | irq2mask(b) | irq2mask(c) | irq2mask(d) | irq2mask(e);
 	}
 	// DMA format transfer type
@@ -224,20 +224,20 @@ public:
 		DMASpeedSupported_TypeF=3
 	};
 	// DMA format
-	static inline const uint16_t dma2mask(const int DMA) {
+	static inline uint16_t dma2mask(const int DMA) {
 		if (DMA < 0 || DMA > 7 || DMA == 4) return 0;
 		return (uint16_t)1 << (unsigned char)DMA;
 	}
-	static inline const uint16_t dma2mask(const int a,const int b) {
+	static inline uint16_t dma2mask(const int a,const int b) {
 		return dma2mask(a) | dma2mask(b);
 	}
-	static inline const uint16_t dma2mask(const int a,const int b,const int c) {
+	static inline uint16_t dma2mask(const int a,const int b,const int c) {
 		return dma2mask(a) | dma2mask(b) | dma2mask(c);
 	}
-	static inline const uint16_t dma2mask(const int a,const int b,const int c,const int d) {
+	static inline uint16_t dma2mask(const int a,const int b,const int c,const int d) {
 		return dma2mask(a) | dma2mask(b) | dma2mask(c) | dma2mask(d);
 	}
-	static inline const uint16_t dma2mask(const int a,const int b,const int c,const int d,const int e) {
+	static inline uint16_t dma2mask(const int a,const int b,const int c,const int d,const int e) {
 		return dma2mask(a) | dma2mask(b) | dma2mask(c) | dma2mask(d) | dma2mask(e);
 	}
 public:

@@ -73,7 +73,7 @@ static const Bitu IOMASK_FULL = 0xFFFFU; /* full 16-bit decode */
  *       ~(0x10 - 1) = ~0xF = 0xFFFFFFF0
  *
  */
-static inline const Bitu IOMASK_Range(const Bitu x) {
+static inline Bitu IOMASK_Range(const Bitu x) {
     return ~(x - 1);
 }
 
@@ -84,7 +84,7 @@ static inline const Bitu IOMASK_Range(const Bitu x) {
  *     IOMASK_Combine(IOMASK_ISA_10BIT,IOMASK_Range(16));
  *
  */
-static inline const Bitu IOMASK_Combine(const Bitu a,const Bitu b) {
+static inline Bitu IOMASK_Combine(const Bitu a,const Bitu b) {
     return a & b;
 }
 

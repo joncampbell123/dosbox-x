@@ -1624,7 +1624,7 @@ void Synth::setPartialLimit( unsigned int _partialLimit )
 }
 
 
-const unsigned int Synth::getPartialLimit() const
+unsigned int Synth::getPartialLimit() const
 {
 	return partialLimit;
 }
