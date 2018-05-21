@@ -33,6 +33,11 @@
 #include "support.h"
 #include "control.h"
 
+#if defined(_MSC_VER)
+/* we don't care about switch statements with no case labels */
+#pragma warning(disable:4065)
+#endif
+
 /* caution: do not uncomment unless you want a lot of spew */
 //#define CPU_DEBUG_SPEW
 
