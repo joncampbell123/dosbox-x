@@ -47,8 +47,8 @@ public:
 	bool Close();
 	void ClearAnsi(void);
 	Bit16u GetInformation(void);
-	bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode){return false;}
-	bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode){return false;}
+	bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+	bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 private:
 	Bit8u readcache;
 	Bit8u lastwrite;
@@ -164,7 +164,7 @@ private:
 
         if (IS_PC98_ARCH) {
             if (con_sjis.take(xChar)) {
-                BIOS_NCOLS;BIOS_NROWS;
+                BIOS_NCOLS;
                 Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
                 Bit8u cur_row=CURSOR_POS_ROW(page);
                 Bit8u cur_col=CURSOR_POS_COL(page);
@@ -303,7 +303,7 @@ private:
 			//* Draw the actual Character
             if (IS_PC98_ARCH) {
                 if (con_sjis.take(chr)) {
-                    BIOS_NCOLS;BIOS_NROWS;
+                    BIOS_NCOLS;
                     unsigned char cw = con_sjis.doublewide ? 2 : 1;
 
                     /* FIXME: I'm not sure what NEC's ANSI driver does if a doublewide character is printed at column 79 */
