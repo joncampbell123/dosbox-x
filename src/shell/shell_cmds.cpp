@@ -1489,7 +1489,7 @@ void DOS_Shell::CMD_DATE(char * args) {
 	} else
 	WriteOut("%s %s\n",day, buffer);
 	if(!dateonly) WriteOut(MSG_Get("SHELL_CMD_DATE_SETHLP"));
-};
+}
 
 void DOS_Shell::CMD_TIME(char * args) {
 	HELP("TIME");
@@ -1529,7 +1529,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 		WriteOut(MSG_Get("SHELL_CMD_TIME_NOW"));
 		WriteOut("%2u:%02u:%02u,%02u\n",reg_ch,reg_cl,reg_dh,reg_dl);
 	}
-};
+}
 
 void DOS_Shell::CMD_SUBST (char * args) {
 /* If more that one type can be substed think of something else 
@@ -1805,50 +1805,50 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 			}
 		}
 		if (!strcasecmp(word,"enter")) {
-			word[0] = 10;
-			word[1] = 0;
+			word[0] = (char)10;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"space")) {
-			word[0] = 32;
-			word[1] = 0;
+			word[0] = (char)32;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"bs")) {
-			word[0] = 8;
-			word[1] = 0;
+			word[0] = (char)8;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"tab")) {
-			word[0] = 9;
-			word[1] = 0;
+			word[0] = (char)9;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"escape")) {
-			word[0] = 27;
-			word[1] = 0;
+			word[0] = (char)27;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"up")) {
-			word[0] = 141;
-			word[1] = 0;
+			word[0] = (char)141;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"down")) {
-			word[0] = 142;
-			word[1] = 0;
+			word[0] = (char)142;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"left")) {
-			word[0] = 143;
-			word[1] = 0;
+			word[0] = (char)143;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"right")) {
-			word[0] = 144;
-			word[1] = 0;
+			word[0] = (char)144;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"ins")) {
-			word[0] = 145;
-			word[1] = 0;
+			word[0] = (char)145;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"del")) {
-			word[0] = 146;
-			word[1] = 0;
+			word[0] = (char)146;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"home")) {
-			word[0] = 147;
-			word[1] = 0;
+			word[0] = (char)147;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"end")) {
-			word[0] = 148;
-			word[1] = 0;
+			word[0] = (char)148;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"pgup")) {
-			word[0] = 149;
-			word[1] = 0;
+			word[0] = (char)149;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"pgdown")) {
-			word[0] = 150;
-			word[1] = 0;
+			word[0] = (char)150;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"normal")) {
 			core = 1;
 		} else if (!strcasecmp(word,"simple")) {
@@ -1975,6 +1975,7 @@ void DOS_Shell::CMD_DEBUGBOX(char * args) {
 #endif
 
 void DOS_Shell::CMD_FOR(char *args){
+    (void)args;//UNUSED
 }
 
 void DOS_Shell::CMD_CTTY(char * args) {

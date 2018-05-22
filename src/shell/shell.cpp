@@ -530,6 +530,7 @@ nomount:
 static AUTOEXEC* test = NULL;
 	
 static void AUTOEXEC_ShutDown(Section * sec) {
+    (void)sec;//UNUSED
 	if (test != NULL) {
 		delete test;
 		test = NULL;
@@ -545,6 +546,7 @@ static void AUTOEXEC_ShutDown(Section * sec) {
 }
 
 void AUTOEXEC_Startup(Section *sec) {
+    (void)sec;//UNUSED
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating AUTOEXEC.BAT emulation");
 		test = new AUTOEXEC(control->GetSection("autoexec"));
@@ -950,7 +952,7 @@ void SHELL_Init() {
 	env_write+=2;
 	MEM_BlockWrite(env_write,full_name,(Bitu)(strlen(full_name)+1));
 
-    extern bool Mouse_Vertical;
+//    extern bool Mouse_Vertical;
 	extern bool Mouse_Drv;
 	Mouse_Drv = true;
 
