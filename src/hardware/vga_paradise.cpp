@@ -59,6 +59,7 @@ static void bank_setup_pvga1a() {
 }
 
 void write_p3cf_pvga1a(Bitu reg,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if (pvga1a.locked() && reg >= 0x09 && reg <= 0x0e)
 		return;
 
@@ -109,6 +110,7 @@ void write_p3cf_pvga1a(Bitu reg,Bitu val,Bitu iolen) {
 }
 
 Bitu read_p3cf_pvga1a(Bitu reg,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if (pvga1a.locked() && reg >= 0x09 && reg <= 0x0e)
 		return 0x0;
 
