@@ -173,6 +173,7 @@ const char *DOSBoxMenu::TypeToString(const enum item_type_t type) {
         case submenu_type_id:           return "Submenu";
         case separator_type_id:         return "Separator";
         case vseparator_type_id:        return "VSeparator";
+        default:                        break;
     };
 
     return "";
@@ -562,6 +563,7 @@ bool DOSBoxMenu::mainMenuWM_COMMAND(unsigned int id) {
 void MAPPER_TriggerEventByName(const std::string name);
 
 void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
+    (void)menu;//POSSIBLY UNUSED
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU /* Windows menu handle */
     if (menu.winMenu != NULL && status.in_use && status.changed) {
         HMENU phandle = NULL;
@@ -3950,6 +3952,7 @@ void DOSBox_SetSysMenu(void) {
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
 void DOSBoxMenu::item::showItem(DOSBoxMenu &menu,bool show) {
+    (void)menu;//UNUSED
     if (itemVisible != show) {
         itemVisible = show;
         needRedraw = true;
@@ -3959,6 +3962,7 @@ void DOSBoxMenu::item::showItem(DOSBoxMenu &menu,bool show) {
 }
 
 DOSBoxMenu::item &DOSBoxMenu::item::setHilight(DOSBoxMenu &menu,bool hi) {
+    (void)menu;//UNUSED
     if (itemHilight != hi) {
         itemHilight = hi;
         needRedraw = true;
@@ -3968,6 +3972,7 @@ DOSBoxMenu::item &DOSBoxMenu::item::setHilight(DOSBoxMenu &menu,bool hi) {
 }
 
 DOSBoxMenu::item &DOSBoxMenu::item::setHover(DOSBoxMenu &menu,bool ho) {
+    (void)menu;//UNUSED
     if (itemHover != ho) {
         itemHover = ho;
         needRedraw = true;
