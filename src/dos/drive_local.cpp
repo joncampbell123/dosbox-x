@@ -475,7 +475,11 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 #endif
 			if (hmm) {
 				fclose(hmm);
+#ifdef host_cnv_use_wchar
+				LOG_MSG("Warning: file %ls exists and failed to open in write mode.\nPlease Remove write-protection",host_name);
+#else
 				LOG_MSG("Warning: file %s exists and failed to open in write mode.\nPlease Remove write-protection",host_name);
+#endif
 			}
 		}
 		return false;
@@ -1002,7 +1006,11 @@ bool localDrive::read_directory_first(void *handle, char* entry_name, bool& is_d
         // guest to host code page translation
         char *n_temp_name = CodePageHostToGuest(tmp);
         if (n_temp_name == NULL) {
+#ifdef host_cnv_use_wchar
+            LOG_MSG("%s: Filename '%ls' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
+#else
             LOG_MSG("%s: Filename '%s' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
+#endif
             return false;
         }
         strcpy(entry_name,n_temp_name);
@@ -1020,7 +1028,11 @@ next:
         // guest to host code page translation
         char *n_temp_name = CodePageHostToGuest(tmp);
         if (n_temp_name == NULL) {
+#ifdef host_cnv_use_wchar
+            LOG_MSG("%s: Filename '%ls' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
+#else
             LOG_MSG("%s: Filename '%s' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
+#endif
             goto next;
         }
         strcpy(entry_name,n_temp_name);
