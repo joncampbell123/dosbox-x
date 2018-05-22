@@ -311,10 +311,12 @@ void VGA_StartResize(Bitu delay /*=50*/) {
 // would need some attention
 
 void VGA_SequReset(bool reset) {
+    (void)reset;//UNUSED
 	//if(!reset && !IS_SCREEN_ON) hadReset=true;
 }
 
 void VGA_Screenstate(bool enabled) {
+    (void)enabled;//UNUSED
 	/*if(enabled && hadReset) {
 		hadReset=false;
 		PIC_RemoveEvents(VGA_SetupDrawing);
@@ -780,6 +782,7 @@ void VGA_UnsetupSEQ(void);
 #define crtc(blah) vga.crtc.blah
 
 void VGA_OnEnterPC98(Section *sec) {
+    (void)sec;//UNUSED
     VGA_UnsetupMisc();
     VGA_UnsetupAttr();
     VGA_UnsetupDAC();
@@ -911,6 +914,7 @@ void updateGDCpartitions4(bool enable) {
 }
 
 void VGA_OnEnterPC98_phase2(Section *sec) {
+    (void)sec;//UNUSED
     VGA_SetupHandlers();
 
     /* GDC 2.5/5.0MHz setting is also reflected in BIOS data area and DIP switch registers */
