@@ -39,7 +39,6 @@ using namespace std;
 static bool has_LOG_Init = false;
 static bool has_LOG_EarlyInit = false;
 static bool do_LOG_stderr = false;
-static bool logBuffHasDiscarded = false;
 
 bool logBuffSuppressConsole = false;
 bool logBuffSuppressConsoleNeedUpdate = false;
@@ -48,6 +47,8 @@ _LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
 FILE* debuglog = NULL;
 
 #if C_DEBUG
+static bool logBuffHasDiscarded = false;
+
 #include <curses.h>
 
 #include <list>

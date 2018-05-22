@@ -283,7 +283,7 @@ static INLINE void dyn_set_eip_end(void) {
 	gen_dop_word_imm(DOP_ADD,cpu.code.big,DREG(EIP),decode.code-decode.code_start);
 }
 
-static INLINE void dyn_set_eip_end(DynReg * endreg) {
+static INLINE void dyn_set_eip_end(DynReg * /*endreg*/) {
 	gen_protectflags();
 	if (cpu.code.big) gen_dop_word(DOP_MOV,true,DREG(TMPW),DREG(EIP));
 	else gen_extend_word(false,DREG(TMPW),DREG(EIP));
