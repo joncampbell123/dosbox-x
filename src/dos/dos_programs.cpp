@@ -1832,7 +1832,7 @@ restart_int:
 			memcpy(footer,"conectix" "\0\0\0\2\0\1\0\0" "\xff\xff\xff\xff\xff\xff\xff\xff" "????rawv" "\0\1\0\0Wi2k",40);
 			memset(footer+40,0,512-40);
 			// time
-			struct tm tm20000101 = { 0,0,0, 1,0,100, 0,0,0 };
+			struct tm tm20000101 = { /*sec*/0,/*min*/0,/*hours*/0, /*day of month*/1,/*month*/0,/*year*/100, /*wday*/0,/*yday*/0,/*isdst*/0 };
 			time_t basetime = mktime(&tm20000101);
 			time_t vhdtime = time(NULL) - basetime;
 #if defined (_MSC_VER)
