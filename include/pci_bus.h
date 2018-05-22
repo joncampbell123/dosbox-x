@@ -19,8 +19,8 @@
 #ifndef DOSBOX_PCI_H
 #define DOSBOX_PCI_H
 
-#define PCI_MAX_PCIBUSSES		256
-#define PCI_MAX_PCIDEVICES		32
+#define PCI_MAX_PCIBUSSES		    255
+#define PCI_MAX_PCIDEVICES		    32
 #define PCI_MAX_PCIFUNCTIONS		8
 
 class PCI_Device {

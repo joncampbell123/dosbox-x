@@ -51,7 +51,9 @@ static PCI_Device* pci_devices[PCI_MAX_PCIBUSSES][PCI_MAX_PCIDEVICES]={{NULL}};	
 //  7- 2 - config register #	(0x000000fc)
 
 static void write_pci_addr(Bitu port,Bitu val,Bitu iolen) {
-	if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("Write PCI address :=%x",(int)val);
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
+    if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("Write PCI address :=%x",(int)val);
 	pci_caddress=val;
 }
 
@@ -76,6 +78,8 @@ static void write_pci(Bitu port,Bitu val,Bitu iolen) {
 
 
 static Bitu read_pci_addr(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("Read PCI address -> %x",pci_caddress);
 	return pci_caddress;
 }
@@ -441,6 +445,7 @@ bool PCI_IsInitialized() {
 }
 
 void PCI_OnPowerOn(Section *sec) {
+    (void)sec;//UNUSED
 	Section_prop * secprop=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(secprop != NULL);
 
@@ -451,6 +456,7 @@ void PCI_OnPowerOn(Section *sec) {
 }
 
 void PCI_ShutDown(Section* sec) {
+    (void)sec;//UNUSED
 	Deinitialize();
 }
 

@@ -627,10 +627,12 @@ public:
 static PCSPEAKER* test;
 
 void PCSPEAKER_ShutDown(Section* sec){
+    (void)sec;//UNUSED
 	delete test;
 }
 
 void PCSPEAKER_OnReset(Section* sec) {
+    (void)sec;//UNUSED
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating PC speaker emulation");
 		test = new PCSPEAKER(control->GetSection("speaker"));
