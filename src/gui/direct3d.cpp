@@ -535,7 +535,7 @@ void CDirect3D::DestroyD3D(void)
 
 // copy a rect from the SDL surface to the Direct3D9 backbuffer
 void CDirect3D::UpdateRectFromSDLSurface(int x,int y,int w,int h) {
-	if (x < 0 || y < 0 || (x+w) > d3dpp.BackBufferWidth || (y+h) > d3dpp.BackBufferHeight)
+	if (x < 0 || y < 0 || (unsigned int)(x+w) > d3dpp.BackBufferWidth || (unsigned int)(y+h) > d3dpp.BackBufferHeight)
 		return;
 	if (w <= 0 || h <= 0)
 		return;
@@ -593,7 +593,7 @@ void CDirect3D::UpdateRectFromSDLSurface(int x,int y,int w,int h) {
 
 // copy a rect to the SDL surface from the Direct3D9 backbuffer
 void CDirect3D::UpdateRectToSDLSurface(int x,int y,int w,int h) {
-	if (x < 0 || y < 0 || (x+w) > d3dpp.BackBufferWidth || (y+h) > d3dpp.BackBufferHeight)
+	if (x < 0 || y < 0 || (unsigned int)(x+w) > d3dpp.BackBufferWidth || (unsigned int)(y+h) > d3dpp.BackBufferHeight)
 		return;
 	if (w <= 0 || h <= 0)
 		return;
@@ -633,16 +633,6 @@ void CDirect3D::UpdateRectToSDLSurface(int x,int y,int w,int h) {
 				}
 
 				tsurf->UnlockRect();
-
-				RECT rc;
-				POINT pt;
-
-				rc.top = 0;
-				rc.left = 0;
-				rc.right = w;
-				rc.bottom = h;
-				pt.x = 0;
-				pt.y = 0;
 			}
 		}
 	}
@@ -1055,6 +1045,8 @@ HRESULT CDirect3D::Resize3DEnvironment(Bitu window_width, Bitu window_height, Bi
     Wait(false);
 #endif
 
+	(void)fullscreen; // FIXME: This should be stored and used!
+
     // set the presentation parameters
 	d3dpp.BackBufferWidth = window_width;
 	d3dpp.BackBufferHeight = window_height;
@@ -1185,7 +1177,7 @@ HRESULT CDirect3D::CreateDisplayTexture(void)
     }
 
     if(FAILED(hr)) {
-	LOG_MSG("D3D:Failed to create %stexture: 0x%x", (dynamic ? "dynamic " : ""), hr);
+	LOG_MSG("D3D:Failed to create %stexture: 0x%lx", (dynamic ? "dynamic " : ""), (unsigned long)hr);
 
 	switch(hr) {
 	case D3DERR_INVALIDCALL:
@@ -1227,7 +1219,7 @@ HRESULT CDirect3D::CreateDisplayTexture(void)
 	// Working textures for pixel shader
 	if(FAILED(hr=pD3DDevice9->CreateTexture(dwTexWidth, dwTexHeight, 1, D3DUSAGE_RENDERTARGET,
 			    D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &lpWorkTexture1, NULL))) {
-	    LOG_MSG("D3D:Failed to create working texture: 0x%x", hr);
+	    LOG_MSG("D3D:Failed to create working texture: 0x%lx", (unsigned long)hr);
 
 	    switch(hr) {
 	    case D3DERR_INVALIDCALL:
@@ -1247,7 +1239,7 @@ HRESULT CDirect3D::CreateDisplayTexture(void)
 
 	if(FAILED(hr=pD3DDevice9->CreateTexture(dwTexWidth, dwTexHeight, 1, D3DUSAGE_RENDERTARGET,
 			    D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &lpWorkTexture2, NULL))) {
-	    LOG_MSG("D3D:Failed to create working texture: 0x%x", hr);
+	    LOG_MSG("D3D:Failed to create working texture: 0x%lx", (unsigned long)hr);
 
 	    switch(hr) {
 	    case D3DERR_INVALIDCALL:
@@ -1267,7 +1259,7 @@ HRESULT CDirect3D::CreateDisplayTexture(void)
 
 	if(FAILED(hr=pD3DDevice9->CreateVolumeTexture(256, 16, 256, 1, 0, D3DFMT_A8R8G8B8,
 			    D3DPOOL_MANAGED, &lpHq2xLookupTexture, NULL))) {
-	    LOG_MSG("D3D:Failed to create volume texture: 0x%x", hr);
+	    LOG_MSG("D3D:Failed to create volume texture: 0x%lx", (unsigned long)hr);
 
 	    switch(hr) {
 	    case D3DERR_INVALIDCALL:
@@ -1289,7 +1281,7 @@ HRESULT CDirect3D::CreateDisplayTexture(void)
 	D3DLOCKED_BOX lockedBox;
 
 	if(FAILED(hr = lpHq2xLookupTexture->LockBox(0, &lockedBox, NULL, 0))) {
-	    LOG_MSG("D3D:Failed to lock box of volume texture: 0x%x", hr);
+	    LOG_MSG("D3D:Failed to lock box of volume texture: 0x%lx", (unsigned long)hr);
 
 	    switch(hr) {
 		case D3DERR_INVALIDCALL:
@@ -1314,7 +1306,7 @@ HRESULT CDirect3D::CreateDisplayTexture(void)
 #endif
 
 	if(FAILED(hr = lpHq2xLookupTexture->UnlockBox(0))) {
-	    LOG_MSG("D3D:Failed to unlock box of volume texture: 0x%x", hr);
+	    LOG_MSG("D3D:Failed to unlock box of volume texture: 0x%lx", (unsigned long)hr);
 
 	    switch(hr) {
 		case D3DERR_INVALIDCALL:
