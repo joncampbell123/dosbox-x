@@ -102,6 +102,7 @@ static double intersect_any_h(double xcenter, double ycenter, double xsize, doub
 static double intersect_v(double xcenter, double ycenter, double xsize, double ysize) {
     (void)xsize;
     (void)ysize;
+    (void)xcenter;
     return fmax(0.0,fmin(1.0,(.55-fabs(ycenter)+ysize/2.0)/ysize));
 }
 
