@@ -4251,6 +4251,20 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
 #if (HAVE_D3D9_H) && defined(WIN32)
 		if (sdl.desktop.want_type == SCREEN_DIRECT3D) {
+            /* In output=direct3d mode, SDL still has a surface but this code ignores SDL
+             * and draws directly to a Direct3D9 backbuffer which is presented to the window
+             * client area. However, GDI output to the window still works, and this code
+             * uses the SDL surface still. Therefore, for menus to draw correctly atop the
+             * Direct3D output, this code copies the Direct3D backbuffer to the SDL surface
+             * first.
+             *
+             * WARNING: This happens to work with Windows (even Windows 10 build 18xx as of
+             * 2018/05/21) because Windows appears to permit mixing Direct3D and GDI rendering
+             * to the window.
+             *
+             * Someday, if Microsoft should break that ability, this code will need to be
+             * revised to send screen "updates" to the Direct3D backbuffer first, then
+             * Present to the window client area. */
 			if (d3d) d3d->UpdateRectToSDLSurface(0, 0, sdl.surface->w, sdl.surface->h);
 		}
 #endif
