@@ -591,6 +591,66 @@ void CDirect3D::UpdateRectFromSDLSurface(int x,int y,int w,int h) {
 	SAFE_RELEASE(tsurf);
 }
 
+// copy a rect to the SDL surface from the Direct3D9 backbuffer
+void CDirect3D::UpdateRectToSDLSurface(int x,int y,int w,int h) {
+	if (x < 0 || y < 0 || (x+w) > d3dpp.BackBufferWidth || (y+h) > d3dpp.BackBufferHeight)
+		return;
+	if (w <= 0 || h <= 0)
+		return;
+
+	IDirect3DSurface9 *bbsurf = NULL;
+	IDirect3DSurface9 *tsurf = NULL;
+
+	if (pD3DDevice9->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &bbsurf) == D3D_OK) {
+		/* NTS: Microsoft doesn't seem to offer a way to capture only a part of the backbuffer :( */
+		if (pD3DDevice9->CreateOffscreenPlainSurface(d3dpp.BackBufferWidth, d3dpp.BackBufferHeight, d3dpp.BackBufferFormat, D3DPOOL_SYSTEMMEM, &tsurf, NULL) == D3D_OK) {
+			D3DLOCKED_RECT rl;
+
+			if (pD3DDevice9->GetRenderTargetData(/*source*/bbsurf, /*dest*/tsurf) != D3D_OK)
+				fprintf(stderr,"FAIL\n");
+
+			if (tsurf->LockRect(&rl, NULL, 0) == D3D_OK) {
+				unsigned char *GFX_GetSurfacePtr(size_t *pitch, unsigned int x, unsigned int y);
+				void GFX_ReleaseSurfacePtr(void);
+
+				size_t sdl_pitch = 0,sdl_copy;
+				unsigned char *sdl_surface = GFX_GetSurfacePtr(&sdl_pitch, x, y);
+
+				if (sdl_surface != NULL) {
+					sdl_copy = w * (bpp16 ? 2 : 4);
+
+//					fprintf(stderr,"sdl_copy=%u sdl_pitch=%u dxpitch=%u\n",
+//						(unsigned int)sdl_copy,(unsigned int)sdl_pitch,(unsigned int)rl.Pitch);
+
+					for (unsigned int iy=0;iy < (unsigned int)h;iy++) {
+						unsigned char *sp = (unsigned char*)rl.pBits + ((iy + y) * rl.Pitch) + (x * (bpp16 ? 2 : 4));
+						unsigned char *dp = sdl_surface + (iy * sdl_pitch);
+
+						memcpy(dp, sp, sdl_copy);
+					}
+
+					GFX_ReleaseSurfacePtr();
+				}
+
+				tsurf->UnlockRect();
+
+				RECT rc;
+				POINT pt;
+
+				rc.top = 0;
+				rc.left = 0;
+				rc.right = w;
+				rc.bottom = h;
+				pt.x = 0;
+				pt.y = 0;
+			}
+		}
+	}
+
+	SAFE_RELEASE(bbsurf);
+	SAFE_RELEASE(tsurf);
+}
+
 // Draw a textured quad on the back-buffer
 bool CDirect3D::D3DSwapBuffers(void)
 {

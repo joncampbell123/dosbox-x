@@ -232,6 +232,7 @@ public:
     }
 
     void UpdateRectFromSDLSurface(int x,int y,int w,int h);
+    void UpdateRectToSDLSurface(int x,int y,int w,int h);
 
     bool getForceUpdate(void) {
 #if C_D3DSHADERS

@@ -4249,6 +4249,12 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
                 popup_stack.push_back(mainMenu.menuUserAttentionAt);
 
+#if (HAVE_D3D9_H) && defined(WIN32)
+		if (sdl.desktop.want_type == SCREEN_DIRECT3D) {
+			if (d3d) d3d->UpdateRectToSDLSurface(0, 0, sdl.surface->w, sdl.surface->h);
+		}
+#endif
+
                 if (OpenGL_using()) {
 #if C_OPENGL
                     mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,false);
