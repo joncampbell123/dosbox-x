@@ -3120,10 +3120,13 @@ IDEController *match_ide_controller(Bitu port) {
 }
 
 Bitu IDEDevice::data_read(Bitu iolen) {
+    (void)iolen;//UNUSED
 	return 0xAAAAU;
 }
 
 void IDEDevice::data_write(Bitu v,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)v;//UNUSED
 }
 
 IDEDevice::IDEDevice(IDEController *c) {
@@ -3496,6 +3499,8 @@ void IDEDevice::deselect() {
 /* the hard disk or CD-ROM class override of this member is responsible for checking
    the head value and clamping within range if C/H/S mode is selected */
 void IDEDevice::select(uint8_t ndh,bool switched_to) {
+    (void)switched_to;//UNUSED
+    (void)ndh;//UNUSED
 	/* NTS: I thought there was some delay between selecting a drive and sending a command.
 		Apparently I was wrong. */
 	if (allow_writing) drivehead = ndh;
@@ -3868,6 +3873,7 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static void IDE_Destroy(Section* sec) {
+    (void)sec;//UNUSED
 	for (unsigned int i=0;i < MAX_IDE_CONTROLLERS;i++) {
 		if (idecontroller[i] != NULL) {
 			delete idecontroller[i];
@@ -3959,6 +3965,7 @@ void (*ide_inits[MAX_IDE_CONTROLLERS])(Section *) = {
 };
 
 void IDE_OnReset(Section *sec) {
+    (void)sec;//UNUSED
     if (IS_PC98_ARCH) return;
 
 	for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) ide_inits[i](control->GetSection(ide_names[i]));
