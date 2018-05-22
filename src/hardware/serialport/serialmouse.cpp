@@ -142,12 +142,15 @@ void CSerialMouse::handleUpperEvent(Bit16u type) {
 /* parameters baudrate, stopbits, number of databits, parity.               **/
 /*****************************************************************************/
 void CSerialMouse::updatePortConfig(Bit16u divider, Bit8u lcr) {
+    (void)divider;//UNUSED
+    (void)lcr;//UNUSED
 	//LOG_MSG("Serial port at 0x%x: Port params changed: %d Baud", base,dcb.BaudRate);
 }
 
 void CSerialMouse::updateMSR() {
 }
 void CSerialMouse::transmitByte(Bit8u val, bool first) {
+    (void)val;//UNUSED
 	if(first) setEvent(SERIAL_THR_EVENT, bytetime/10); 
 	else setEvent(SERIAL_TX_EVENT, bytetime);
 }
@@ -157,6 +160,7 @@ void CSerialMouse::transmitByte(Bit8u val, bool first) {
 /*****************************************************************************/
 
 void CSerialMouse::setBreak(bool value) {
+    (void)value;//UNUSED
 	//LOG_MSG("UART 0x%x: Break toggeled: %d", base, value);
 }
 
