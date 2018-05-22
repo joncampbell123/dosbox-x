@@ -115,6 +115,8 @@ bool Virtual_File::Read(Bit8u * data,Bit16u * size) {
 }
 
 bool Virtual_File::Write(Bit8u * data,Bit16u * size){
+    (void)data;//UNUSED
+    (void)size;//UNUSED
 	/* Not really writable */
 	return false;
 }
@@ -170,18 +172,24 @@ bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 }
 
 bool Virtual_Drive::FileCreate(DOS_File * * file,const char * name,Bit16u attributes) {
+    (void)file;//UNUSED
+    (void)name;//UNUSED
+    (void)attributes;//UNUSED
 	return false;
 }
 
 bool Virtual_Drive::FileUnlink(const char * name) {
+    (void)name;//UNUSED
 	return false;
 }
 
 bool Virtual_Drive::RemoveDir(const char * dir) {
+    (void)dir;//UNUSED
 	return false;
 }
 
 bool Virtual_Drive::MakeDir(const char * dir) {
+    (void)dir;//UNUSED
 	return false;
 }
 
@@ -215,6 +223,7 @@ bool Virtual_Drive::FileExists(const char* name){
 }
 
 bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
+    (void)_dir;//UNUSED
 	search_file=first_file;
 	Bit8u attr;char pattern[DOS_NAMELENGTH_ASCII];
 	dta.GetSearchParams(attr,pattern);
@@ -258,6 +267,8 @@ bool Virtual_Drive::GetFileAttr(const char * name,Bit16u * attr) {
 }
 
 bool Virtual_Drive::Rename(const char * oldname,const char * newname) {
+    (void)oldname;//UNUSED
+    (void)newname;//UNUSED
 	return false;
 }
 
