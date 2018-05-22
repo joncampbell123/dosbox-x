@@ -132,8 +132,10 @@ static Bitu pq_start;
 static Bitu pq_fill;
 static Bitu pq_limit;
 static Bitu pq_reload;
+#ifdef PREFETCH_DEBUG
 static double pq_next_dbg=0;
 static unsigned int pq_hit=0,pq_miss=0;
+#endif
 
 //#define PREFETCH_DEBUG
 
@@ -146,6 +148,7 @@ template <class T> static inline bool prefetch_hit(const Bitu w) {
 template <class T> static inline T prefetch_read(const Bitu w);
 
 template <class T> static inline void prefetch_read_check(const Bitu w) {
+    (void)w;//POSSIBLY UNUSED
 #ifdef PREFETCH_DEBUG
     if (!pq_valid) E_Exit("CPU: Prefetch read when not valid!");
     if (w < pq_start) E_Exit("CPU: Prefetch read below prefetch base");
