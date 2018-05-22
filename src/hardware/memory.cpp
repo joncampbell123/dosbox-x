@@ -125,6 +125,7 @@ class IllegalPageHandler : public PageHandler {
 public:
 	IllegalPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
 	Bitu readb(PhysPt addr) {
+		(void)addr;
 #if C_DEBUG
 		LOG_MSG("Warning: Illegal read from %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
 #else

@@ -65,12 +65,7 @@
 
 CDirectLPT::CDirectLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd)
                               :CParallel (cmd, nr, initIrq) {
-	int err=0;
      HINSTANCE hLib;
-
-     short x;
-     int i;
-
 
      /* Load the library for win 64 driver */
      hLib = LoadLibrary("inpout32.dll");
@@ -346,7 +341,7 @@ void CDirectLPT::Write_IOSEL(Bitu val) {
 	Out32(realbaseaddress+1,val);
 }
 
-void CDirectLPT::handleUpperEvent(Bit16u type) {}
+void CDirectLPT::handleUpperEvent(Bit16u type) { (void)type; }
 
 
 #endif
