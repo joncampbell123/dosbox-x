@@ -497,6 +497,7 @@ void CMS_Init(Section* sec) {
     	test = new CMS(sec);
 }
 void CMS_ShutDown(Section* sec) {
+    (void)sec;//UNUSED
     if (test) {
         delete test;
         test = NULL;
