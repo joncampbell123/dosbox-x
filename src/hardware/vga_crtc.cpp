@@ -39,6 +39,8 @@ Bitu DEBUG_EnableDebugger(void);
 extern bool vga_ignore_hdispend_change_if_smaller;
 
 void vga_write_p3d4(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	crtc(index)=val;
 }
 
@@ -47,10 +49,13 @@ void vga_pc98_direct_cursor_pos(Bit16u address) {
 }
 
 Bitu vga_read_p3d4(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	return crtc(index);
 }
 
 void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
+    (void)port;//UNUSED
 //	if((crtc(index)!=0xe)&&(crtc(index)!=0xf)) 
 //		LOG_MSG("CRTC w #%2x val %2x",crtc(index),val);
 	switch(crtc(index)) {
@@ -398,6 +403,8 @@ Bitu vga_read_p3d5(Bitu port,Bitu iolen) {
 }
 
 Bitu vga_read_p3d5x(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	switch(crtc(index)) {
 	case 0x00:	/* Horizontal Total Register */
 		return crtc(horizontal_total);
