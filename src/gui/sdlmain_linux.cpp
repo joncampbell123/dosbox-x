@@ -243,7 +243,7 @@ void Linux_GetDesktopResolution(int *width,int *height) {
 			LOG_MSG("GetDesktopResolution reading X11 desktop resolution");
 
 			Window rootWindow = DefaultRootWindow(wminfo.info.x11.display);
-			if (rootWindow >= 0) {
+			if (rootWindow != 0) {
 				XWindowAttributes rootWinAttr;
 
 				memset(&rootWinAttr,0,sizeof(rootWinAttr));
