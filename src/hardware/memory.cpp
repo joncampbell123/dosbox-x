@@ -112,9 +112,12 @@ class UnmappedPageHandler : public PageHandler {
 public:
 	UnmappedPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
 	Bitu readb(PhysPt addr) {
+        (void)addr;//UNUSED
 		return 0xFF; /* Real hardware returns 0xFF not 0x00 */
 	} 
 	void writeb(PhysPt addr,Bitu val) {
+        (void)addr;//UNUSED
+        (void)val;//UNUSED
 	}
 };
 
@@ -134,6 +137,8 @@ public:
 		return 0xFF; /* Real hardware returns 0xFF not 0x00 */
 	} 
 	void writeb(PhysPt addr,Bitu val) {
+        (void)addr;//UNUSED
+        (void)val;//UNUSED
 #if C_DEBUG
 		LOG_MSG("Warning: Illegal write to %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
 #else
@@ -203,6 +208,8 @@ template <enum MEM_Type_t iotype> static unsigned int MEM_Gen_Callout(Bitu &ret,
     unsigned int match = 0;
     PageHandler *t_f;
     size_t scan = 0;
+
+    (void)ret;//UNUSED
 
     while (scan < vec.size()) {
         MEM_CalloutObject &obj = vec[scan++];
@@ -517,6 +524,7 @@ void lfb_mem_cb_free(void) {
 }
 
 PageHandler* lfb_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
+    (void)co;//UNUSED
     if (memory.lfb.start_page == 0 || memory.lfb.pages == 0)
         return NULL;
     if (phys_page >= memory.lfb.start_page || phys_page < memory.lfb.end_page)
@@ -1382,6 +1390,8 @@ void On_Software_CPU_Reset() {
 bool allow_port_92_reset = true;
 
 static void write_p92(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	memory.a20.controlport = val & ~2;
 	MEM_A20_Enable((val & 2)>0);
 
@@ -1398,10 +1408,13 @@ static void write_p92(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static Bitu read_p92(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	return memory.a20.controlport | (memory.a20.enabled ? 0x02 : 0);
 }
 
 static Bitu read_pc98_a20(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
     if (port == 0xF2)
     	return (memory.a20.enabled ? 0x00 : 0x01); // bit 0 indicates whether A20 is MASKED, not ENABLED
 
@@ -1409,6 +1422,7 @@ static Bitu read_pc98_a20(Bitu port,Bitu iolen) {
 }
 
 static void write_pc98_a20(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
     if (port == 0xF2) {
 	    MEM_A20_Enable(1); // writing port 0xF2 unmasks (enables) A20 regardless of value
     }
@@ -1667,6 +1681,7 @@ void Init_AddressLimitAndGateMask() {
 }
 
 void ShutDownRAM(Section * sec) {
+    (void)sec;//UNUSED
 	if (MemBase != NULL) {
 		delete [] MemBase;
 		MemBase = NULL;
@@ -1705,7 +1720,7 @@ void Init_RAM() {
 		Bitu memsize = section->Get_int("memsize");
 
 		if (memsizekb == 0 && memsize < 1) memsize = 1;
-		else if (memsizekb != 0 && memsize < 0) memsize = 0;
+		else if (memsizekb != 0 && (Bits)memsize < 0) memsize = 0;
 
 		/* round up memsizekb to 4KB multiple */
 		memsizekb = (memsizekb + 3) & (~3);
@@ -1792,6 +1807,7 @@ static IO_WriteHandleObject PS2_Port_92h_WriteHandler;
 static IO_WriteHandleObject PS2_Port_92h_WriteHandler2;
 
 void ShutDownMemoryAccessArray(Section * sec) {
+    (void)sec;//UNUSED
 	if (memory.phandlers != NULL) {
 		delete [] memory.phandlers;
 		memory.phandlers = NULL;
@@ -1799,6 +1815,7 @@ void ShutDownMemoryAccessArray(Section * sec) {
 }
 
 void ShutDownMemHandles(Section * sec) {
+    (void)sec;//UNUSED
 	if (memory.mhandles != NULL) {
 		delete [] memory.mhandles;
 		memory.mhandles = NULL;
@@ -1809,6 +1826,7 @@ void ShutDownMemHandles(Section * sec) {
  * this temporarily switches on the A20 gate and lets it function as normal despite user settings.
  * BIOS will POST and then permit the A20 gate to go back to whatever emulation setting given in dosbox.conf */
 void A20Gate_OnReset(Section *sec) {
+    (void)sec;//UNUSED
 	void A20Gate_OverrideOn(Section *sec);
 
 	memory.a20.controlport = 0;
@@ -1817,6 +1835,7 @@ void A20Gate_OnReset(Section *sec) {
 }
 
 void A20Gate_OverrideOn(Section *sec) {
+    (void)sec;//UNUSED
 	memory.a20.enabled = 1;
 	a20_fake_changeable = false;
 	a20_guest_changeable = true;
@@ -1824,6 +1843,7 @@ void A20Gate_OverrideOn(Section *sec) {
 
 /* this is called after BIOS boot. the BIOS needs the A20 gate ON to boot properly on 386 or higher! */
 void A20Gate_TakeUserSetting(Section *sec) {
+    (void)sec;//UNUSED
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
 	memory.a20.enabled = 0;
@@ -1871,6 +1891,7 @@ void Init_A20_Gate() {
 }
 
 void PS2Port92_OnReset(Section *sec) {
+    (void)sec;//UNUSED
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
 	PS2_Port_92h_WriteHandler2.Uninstall();
