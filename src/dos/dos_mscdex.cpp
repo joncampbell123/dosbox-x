@@ -1414,6 +1414,7 @@ void MSCDEX_DOS_ShutDown(Section* /*sec*/) {
 }
 
 void MSCDEX_Startup(Section* sec) {
+    (void)sec;//UNUSED
 	if (mscdex == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating MSCDEX.EXE emulation");
 
