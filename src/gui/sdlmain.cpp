@@ -574,8 +574,9 @@ void SDL_rect_cliptoscreen(SDL_Rect &r) {
         r.w = sdl.surface->w - r.x;
     if ((r.y+r.h) > sdl.surface->h)
         r.h = sdl.surface->h - r.y;
-    if (r.w < 0) r.w = 0;
-    if (r.h < 0) r.h = 0;
+    /* NTS: Apparently r.w and r.h are unsigned, therefore no need to check if negative */
+//    if (r.w < 0) r.w = 0;
+//    if (r.h < 0) r.h = 0;
 }
 
 Bitu GUI_JoystickCount(void) {
@@ -633,9 +634,11 @@ void GFX_SetIcon(void) {
 extern std::string dosbox_title;
 
 void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
-	static Bits internal_frameskip=0;
+    (void)frameskip;//UNUSED
+    (void)timing;//UNUSED
+//	static Bits internal_frameskip=0;
 	static Bit32s internal_cycles=0;
-	static Bits internal_timing=0;
+//	static Bits internal_timing=0;
 	char title[200] = {0};
 
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("SDL"));
@@ -643,8 +646,8 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
     titlebar = section->Get_string("titlebar");
 
 	if (cycles != -1) internal_cycles = cycles;
-	if (timing != -1) internal_timing = timing;
-	if (frameskip != -1) internal_frameskip = frameskip;
+//	if (timing != -1) internal_timing = timing;
+//	if (frameskip != -1) internal_frameskip = frameskip;
 
     sprintf(title,"%s%sDOSBox-X %s, %d cyc/ms",
         dosbox_title.c_str(),dosbox_title.empty()?"":": ",
@@ -1450,7 +1453,9 @@ extern Bit8u int10_font_16[256 * 16];
 void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
     static const unsigned int fontHeight = 16;
 
-    if (x < 0 || y < 0 || (x+8) > sdl.surface->w || (y+fontHeight) > sdl.surface->h)
+    if (x < 0 || y < 0 ||
+        (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
+        (unsigned int)(y+fontHeight) > (unsigned int)sdl.surface->h)
         return;
 
     unsigned char *bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
@@ -1508,7 +1513,9 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
 void MenuDrawTextChar2x(int x,int y,unsigned char c,Bitu color) {
     static const unsigned int fontHeight = 16;
 
-    if (x < 0 || y < 0 || (x+8) > sdl.surface->w || (y+fontHeight) > sdl.surface->h)
+    if (x < 0 || y < 0 ||
+        (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
+        (unsigned int)(y+fontHeight) > (unsigned int)sdl.surface->h)
         return;
 
     unsigned char *bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
@@ -1618,6 +1625,8 @@ void MenuDrawText(int x,int y,const char *text,Bitu color) {
 }
 
 void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
+
     Bitu bgcolor = GFX_GetRGB(63, 63, 63);
     Bitu fgcolor = GFX_GetRGB(191, 191, 191);
     Bitu fgshortcolor = GFX_GetRGB(127, 127, 191);
@@ -1743,7 +1752,7 @@ Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,G
 
 	Bitu bpp=0;
 	Bitu retFlags = 0;
-	Uint32 sdl_flags;
+//	Uint32 sdl_flags;
 
 	if (sdl.blit.surface) {
 		SDL_FreeSurface(sdl.blit.surface);
@@ -2151,7 +2160,7 @@ dosurface:
 
 //      FIXME: Why do we have to reinitialize the font texture?
         /*if (!SDLDrawGenFontTextureInit) */{
-            GLuint err;
+            GLuint err = 0;
 
             glGetError(); /* read and discard last error */
 
@@ -2564,6 +2573,7 @@ Bitu Keyboard_Guest_LED_State();
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */);
 
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */) {
+    (void)led_state;//POSSIBLY UNUSED
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) /* Microsoft Windows */
 	if (exthook_enabled) { // ONLY if ext hook is enabled, else we risk infinite loops with keyboard events
 		WinSetKeyToggleState(VK_NUMLOCK, !!(led_state & 2));
@@ -3810,14 +3820,16 @@ void Mouse_AutoLock(bool enable) {
 }
 
 static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
-	int width;
-	int height;
+    (void)nWidth;//UNUSED
+    (void)nHeight;//UNUSED
+//	int width;
+//	int height;
 #ifdef __WIN32__
-   width=sdl.clip.w; 
-   height=sdl.clip.h;
+//   width=sdl.clip.w; 
+//   height=sdl.clip.h;
 #else
-	width=sdl.draw.width; 
-	height=sdl.draw.height;
+//	width=sdl.draw.width; 
+//	height=sdl.draw.height;
 #endif
 	void RENDER_CallBack( GFX_CallBackFunctions_t function );
 #if 0
@@ -4002,6 +4014,7 @@ DOSBoxMenu::item_handle_t DOSBoxMenu::displaylist::itemFromPoint(DOSBoxMenu &men
 }
 
 void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
     if (!OpenGL_using()) {
         SDL_Rect uprect = screenBox;
 
@@ -4016,6 +4029,7 @@ void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
 }
 
 void DOSBoxMenu::item::updateScreenFromPopup(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
     if (!OpenGL_using()) {
         SDL_Rect uprect = popupBox;
 
@@ -4032,6 +4046,7 @@ void DOSBoxMenu::item::updateScreenFromPopup(DOSBoxMenu &menu) {
 }
 
 void DOSBoxMenu::item::drawBackground(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
     Bitu bordercolor = GFX_GetRGB(31, 31, 31);
     Bitu bgcolor = GFX_GetRGB(63, 63, 63);
 
@@ -4059,6 +4074,7 @@ void DOSBoxMenu::item::drawBackground(DOSBoxMenu &menu) {
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
 void GFX_SDLMenuTrackHover(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id) {
+    (void)menu;//UNUSED
     if (mainMenu.menuUserHoverAt != item_id) {
         if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
             mainMenu.get_item(mainMenu.menuUserHoverAt).setHover(mainMenu,false);
@@ -4080,6 +4096,7 @@ void GFX_SDLMenuTrackHover(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id) {
 }
 
 void GFX_SDLMenuTrackHilight(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id) {
+    (void)menu;//UNUSED
     if (mainMenu.menuUserAttentionAt != item_id) {
         if (mainMenu.menuUserAttentionAt != DOSBoxMenu::unassigned_item_handle) {
             mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,false);
@@ -5927,6 +5944,7 @@ void PasteClipboard(bool bPressed)
 /// TODO: add menu items here 
 #else // end emendelson from dbDOS
 void PasteClipboard(bool bPressed) {
+    (void)bPressed;//UNUSED
 	// stub
 }
 
@@ -6204,6 +6222,7 @@ void restart_program(std::vector<std::string> & parameters) {
 }
 
 void Restart(bool pressed) { // mapper handler
+    (void)pressed;//UNUSED
 	restart_program(control->startup_params);
 }
 
@@ -6839,6 +6858,8 @@ void update_pc98_clock_pit_menu(void) {
 }
 
 bool dos_pc98_clock_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     void TIMER_OnEnterPC98_Phase2(Section*);
     void TIMER_OnEnterPC98_Phase2_UpdateBDA(void);
 
@@ -6870,6 +6891,8 @@ void SetScaleForced(bool forced);
 void OutputSettingMenuUpdate(void);
 
 bool scaler_forced_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     SetScaleForced(!render.scale.forced);
     return true;
 }
@@ -6878,6 +6901,8 @@ void MENU_swapstereo(bool enabled);
 bool MENU_get_swapstereo(void);
 
 bool mixer_swapstereo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     MENU_swapstereo(!MENU_get_swapstereo());
     return true;
 }
@@ -6886,11 +6911,15 @@ void MENU_mute(bool enabled);
 bool MENU_get_mute(void);
 
 bool mixer_mute_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     MENU_mute(!MENU_get_mute());
     return true;
 }
 
 bool dos_mouse_enable_int33_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     extern bool Mouse_Drv;
     Mouse_Drv = !Mouse_Drv;
     mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);
@@ -6898,6 +6927,8 @@ bool dos_mouse_enable_int33_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::it
 }
 
 bool dos_mouse_y_axis_reverse_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     extern bool Mouse_Vertical;
     Mouse_Vertical = !Mouse_Vertical;
     mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
@@ -6905,6 +6936,8 @@ bool dos_mouse_y_axis_reverse_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::
 }
 
 bool dos_mouse_sensitivity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
 #if !defined(C_SDL2)
     GUI_Shortcut(2);
 #endif
@@ -6912,6 +6945,8 @@ bool dos_mouse_sensitivity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::ite
 }
 
 bool vid_pc98_5mhz_gdc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     if (IS_PC98_ARCH) {
         void gdc_5mhz_mode_update_vars(void);
         extern bool gdc_5mhz_mode;
@@ -6932,6 +6967,8 @@ bool vid_pc98_5mhz_gdc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
 }
 
 bool vid_pc98_200scanline_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     if (IS_PC98_ARCH) {
         extern bool pc98_allow_scanline_effect;
 
@@ -6950,6 +6987,8 @@ bool vid_pc98_200scanline_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item
 }
 
 bool vid_pc98_4parts_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     if (IS_PC98_ARCH) {
         extern bool pc98_allow_4_display_partitions;
         void updateGDCpartitions4(bool enable);
@@ -6969,6 +7008,8 @@ bool vid_pc98_4parts_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
 }
 
 bool vid_pc98_enable_egc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     void gdc_egc_enable_update_vars(void);
     extern bool enable_pc98_egc;
     extern bool enable_pc98_grcg;
@@ -6999,6 +7040,8 @@ bool vid_pc98_enable_egc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item 
 }
 
 bool vid_pc98_enable_grcg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     extern bool enable_pc98_grcg;
     extern bool enable_pc98_egc;
     void gdc_grcg_enable_update_vars(void);
@@ -7028,6 +7071,8 @@ bool vid_pc98_enable_grcg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item
 }
 
 bool vid_pc98_enable_analog_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     //NOTE: I thought that even later PC-9801s and some PC-9821s could use EGC features in digital 8-colors mode? 
     extern bool enable_pc98_16color;
     void gdc_16color_enable_update_vars(void);
@@ -7049,18 +7094,23 @@ bool vid_pc98_enable_analog_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::it
 }
 
 bool vid_pc98_cleartext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     void pc98_clear_text(void);
     if (IS_PC98_ARCH) pc98_clear_text();
     return true;
 }
 
 bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     void pc98_clear_graphics(void);
     if (IS_PC98_ARCH) pc98_clear_graphics();
     return true;
 }
 
 bool overscan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
     int f = atoi(menuitem->get_text().c_str()); /* Off becomes 0 */
     char tmp[64];
 
@@ -7079,6 +7129,8 @@ void UpdateOverscanMenu(void) {
 }
 
 bool vsync_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
 #if !defined(C_SDL2)
     const char *val = menuitem->get_name().c_str();
     if (!strncmp(val,"vsync_",6))
@@ -7099,6 +7151,8 @@ bool vsync_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
 }
 
 bool vsync_set_syncrate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
 #if !defined(C_SDL2)
     GUI_Shortcut(17);
 #endif
@@ -7106,6 +7160,8 @@ bool vsync_set_syncrate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item *
 }
 
 bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+
     const char *what = menuitem->get_name().c_str();
 
     if (!strncmp(what,"output_",7))
@@ -7142,16 +7198,22 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
 bool MENU_SetBool(std::string secname, std::string value);
 
 bool vga_9widetext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
 	MENU_SetBool("render", "char9");
     return true;
 }
 
 bool doublescan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
 	MENU_SetBool("render", "doublescan");
     return true;
 }
 
 bool scaler_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+
     const char *scaler = menuitem->get_name().c_str();
     if (!strncmp(scaler,"scaler_set_",11))
         scaler += 11;
@@ -7174,6 +7236,8 @@ bool scaler_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 }
 
 bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+
     int f = atoi(menuitem->get_text().c_str()); /* Off becomes 0 */
     char tmp[64];
 
@@ -7183,24 +7247,32 @@ bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::it
 }
 
 bool show_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     DOSBox_ShowConsole();
 	mainMenu.get_item("show_console").check(true).refresh_item(mainMenu);
     return true;
 }
 
 bool wait_on_error_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
 	sdl.wait_on_error = !sdl.wait_on_error;
 	mainMenu.get_item("wait_on_error").check(sdl.wait_on_error).refresh_item(mainMenu);
 	return true;
 }
 
 bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
 	sdl.mouse.autoenable = !sdl.mouse.autoenable;
 	mainMenu.get_item("auto_lock_mouse").check(sdl.mouse.autoenable).refresh_item(mainMenu);
 	return true;
 }
 
 bool doublebuf_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     SetVal("sdl", "fulldouble", (GetSetSDLValue(1, "desktop.doublebuf", 0)) ? "false" : "true"); res_init();
     mainMenu.get_item("doublebuf").check(!!GetSetSDLValue(1, "desktop.doublebuf", 0)).refresh_item(mainMenu);
     return true;
@@ -7238,6 +7310,8 @@ void toggle_always_on_top(void) {
 }
 
 bool showdetails_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
+    (void)xmenu;//UNUSED
+    (void)menuitem;//UNUSED
     menu.hidecycles = !menu.hidecycles;
     GFX_SetTitle(CPU_CycleMax, -1, -1, false);
     mainMenu.get_item("showdetails").check(!menu.hidecycles).refresh_item(mainMenu);
@@ -7245,12 +7319,15 @@ bool showdetails_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
 }
 
 bool alwaysontop_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
     toggle_always_on_top();
     mainMenu.get_item("alwaysontop").check(is_always_on_top()).refresh_item(mainMenu);
     return true;
 }
 
 bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
     if (menuitem->get_name() == "sendkey_ctrlesc") {
         KEYBOARD_AddKey(KBD_leftctrl, true);
         KEYBOARD_AddKey(KBD_esc, true);
@@ -8450,6 +8527,7 @@ bool OpenGL_using(void) {
 }
 
 bool Get_Custom_SaveDir(std::string& savedir) {
+    (void)savedir;//UNUSED
 	if (custom_savedir.length() != 0)
 		return true;
 
