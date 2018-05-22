@@ -36,6 +36,7 @@ uint8_t                     pc98_gdc_vramop=0;
 egc_quad                    pc98_gdc_tiles;
 
 void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
     switch (port&0xE) {
         case 0x0C:      // 0x7C: mode reg / vram operation mode (also, reset tile counter)
             if (enable_pc98_grcg) {
@@ -59,6 +60,7 @@ void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
 }
 
 Bitu pc98_crtc_read(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
     LOG_MSG("PC98 CRTC r: port=0x%02X unknown",(unsigned int)port);
     return ~0;
 }

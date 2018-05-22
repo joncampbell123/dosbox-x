@@ -31,6 +31,7 @@ uint8_t                     a1_font_char_offset = 0;
  * This is in fact officially documented by NEC in
  * a 1986 book published about NEC BIOS and BASIC ROM. */
 Bitu pc98_a1_read(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
     switch (port) {
         case 0xA9: // an 8-bit I/O port to access font RAM by...
             // NOTES: On a PC-9821 Lt2 laptop, the character ROM doesn't seem to latch valid data beyond
@@ -50,6 +51,7 @@ Bitu pc98_a1_read(Bitu port,Bitu iolen) {
  * This is in fact officially documented by NEC in
  * a 1986 book published about NEC BIOS and BASIC ROM. */
 void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
     switch (port) {
         /* A3,A1 (out only) two JIS bytes that make up the char code */
         case 0xA1:

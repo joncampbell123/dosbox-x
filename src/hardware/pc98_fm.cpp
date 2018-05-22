@@ -111,12 +111,14 @@ struct CBUS4PORT {
 static std::map<UINT,CBUS4PORT> cbuscore_map;
 
 void pc98_fm86_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
     auto &cbusm = cbuscore_map[port];
     auto &func = cbusm.out;
     if (func) func(port,val);
 }
 
 Bitu pc98_fm86_read(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
     auto &cbusm = cbuscore_map[port];
     auto &func = cbusm.inp;
     if (func) return func(port);
@@ -154,10 +156,12 @@ void fmport_a(NEVENTITEM item);
 void fmport_b(NEVENTITEM item);
 
 static void fmport_a_pic_event(Bitu val) {
+    (void)val;//UNUSED
     fmport_a(NULL);
 }
 
 static void fmport_b_pic_event(Bitu val) {
+    (void)val;//UNUSED
     fmport_b(NULL);
 }
 
@@ -227,6 +231,7 @@ UINT8 board26k_encodeirqidx(const unsigned char idx) {
 }
 
 void PC98_FM_Destroy(Section *sec) {
+    (void)sec;//UNUSED
     if (pc98fm_init) {
         rhythm_deinitialize();
     }
@@ -238,6 +243,7 @@ void PC98_FM_Destroy(Section *sec) {
 }
 
 void PC98_FM_OnEnterPC98(Section *sec) {
+    (void)sec;//UNUSED
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
     bool was_pc98fm_init = pc98fm_init;
 

@@ -108,6 +108,9 @@ void PC98UTIL_ProgramStart(Program * * make) {
 
 /* wait-delay I/O port of some kind */
 void pc98_wait_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
+    (void)val;//UNUSED
     unsigned int wait_cycles = (unsigned int)(CPU_CycleMax * 0.0006); /* 0.6us = 0.0006ms */
 
     CPU_Cycles -= wait_cycles;

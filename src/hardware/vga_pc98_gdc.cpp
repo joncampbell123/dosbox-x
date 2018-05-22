@@ -565,6 +565,7 @@ void gdc_5mhz_mode_update_vars(void) {
 /*==================================================*/
 
 void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
     PC98_GDC_state *gdc;
 
     if (port >= 0xA0)
@@ -686,6 +687,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
 }
 
 Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
     PC98_GDC_state *gdc;
 
     if (port >= 0xA0)

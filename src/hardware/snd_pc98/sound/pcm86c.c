@@ -70,6 +70,7 @@ void pcm86_setpcmrate(REG8 val) {
 }
 
 void pcm86_cb(NEVENTITEM item) {
+    (void)item;//UNUSED
 #if 0
 	if (pcm86.reqirq) {
 		sound_sync();
