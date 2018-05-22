@@ -724,6 +724,7 @@ static void MIXER_Mix(void) {
 }
 
 static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
+    (void)userdata;//UNUSED
     Bit32s volscale1 = (Bit32s)(mixer.mastervol[0] * (1 << MIXER_VOLSHIFT));
     Bit32s volscale2 = (Bit32s)(mixer.mastervol[1] * (1 << MIXER_VOLSHIFT));
 	Bitu need = (Bitu)len/MIXER_SSIZE;
@@ -737,8 +738,9 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
     if (mixer.prebuffer_wait) {
         remains = (int)mixer.work_in - (int)mixer.work_out;
         if (remains < 0) remains += mixer.work_wrap;
+        if (remains < 0) remains = 0;
 
-        if (remains >= mixer.prebuffer_samples)
+        if ((unsigned int)remains >= mixer.prebuffer_samples)
             mixer.prebuffer_wait = false;
     }
 
@@ -787,6 +789,7 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
 }
 
 static void MIXER_Stop(Section* sec) {
+    (void)sec;//UNUSED
 }
 
 class MIXER : public Program {
