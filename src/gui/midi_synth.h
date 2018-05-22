@@ -55,9 +55,9 @@ static void synth_CallBack(Bitu len) {
 }
 
 #if defined (WIN32) || defined (OS2)
-#	define PATH_SEP "\\";
+#	define PATH_SEP "\\"
 #else
-#	define PATH_SEP "/";
+#	define PATH_SEP "/"
 #endif
 
 class MidiHandler_synth: public MidiHandler {
@@ -163,7 +163,7 @@ public:
 		sfont_id = fluid_synth_sfload(synth_soft, conf, 0);
 		if (sfont_id == -1) {
 			extern std::string capturedir;
-			std::string str = capturedir + PATH_SEP + conf; /* <- GCC 4.8 "Statement has no effect" -Wunused-value? What?? */
+			std::string str = capturedir + std::string(PATH_SEP) + std::string(conf);
 			sfont_id = fluid_synth_sfload(synth_soft, str.c_str(), 0);
 		}
 
