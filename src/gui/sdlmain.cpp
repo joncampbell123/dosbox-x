@@ -2366,6 +2366,13 @@ dosurface:
 		LOG_MSG("SDL:D3D:Display mode set to: %dx%d with %fx%f scale",
 				    sdl.clip.w, sdl.clip.h,sdl.draw.scalex, sdl.draw.scaley);
 #endif
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+        	mainMenu.screenWidth = sdl.surface->w;
+        	mainMenu.updateRect();
+        	mainMenu.setRedraw();
+        	GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+#endif
 		break;
 	    }
 #endif
