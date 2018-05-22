@@ -291,6 +291,9 @@ AC_CHECK_CXXFLAGS([ -Wno-implicit-fallthrough ])
 dnl Stop reporting "type punning" warnings, I'm sick of hearing about it.
 AC_CHECK_CXXFLAGS([ -Wno-strict-aliasing ])
 
+dnl other
+AC_CHECK_CXXFLAGS([ -Wno-missing-field-initializers ])
+
 dnl Some stuff for the icon.
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
