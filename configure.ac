@@ -293,6 +293,7 @@ AC_CHECK_CXXFLAGS([ -Wno-strict-aliasing ])
 
 dnl other
 AC_CHECK_CXXFLAGS([ -Wno-missing-field-initializers ])
+AC_CHECK_CXXFLAGS([ -Wno-format-zero-length ])
 
 dnl Some stuff for the icon.
 case "$host" in
