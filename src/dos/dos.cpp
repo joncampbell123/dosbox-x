@@ -2430,6 +2430,8 @@ void DOS_OnReset(Section* /*sec*/) {
 }
 
 void DOS_Startup(Section* sec) {
+    (void)sec;//UNUSED
+
 	if (test == NULL) {
         DOS_GetMemLog.clear();
         DOS_GetMemory_reinit();
