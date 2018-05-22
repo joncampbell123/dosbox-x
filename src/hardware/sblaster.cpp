@@ -965,6 +965,8 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
         (int)freq,(int)sb.dma.rate,(int)sb.dma.total,
         (int)sb.dma_dac_mode
     );
+#else
+    (void)type;
 #endif
 }
 

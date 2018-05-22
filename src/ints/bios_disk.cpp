@@ -1066,7 +1066,7 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void 
 
     if (ent->hasSectorData()) {
         fseek(diskimg,ent->data_offset,SEEK_SET);
-        if (ftell(diskimg) != ent->data_offset) return 0x05;
+        if ((uint32_t)ftell(diskimg) != ent->data_offset) return 0x05;
         if (fwrite(data,req_sector_size,1,diskimg) != 1) return 0x05;
         return 0;
     }
@@ -1095,7 +1095,7 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void 
 
         if (isfill) {
             fseek(diskimg,ent->entry_offset,SEEK_SET);
-            if (ftell(diskimg) != ent->entry_offset) return 0x05;
+            if ((uint32_t)ftell(diskimg) != ent->entry_offset) return 0x05;
             if (fread(tmp,12,1,diskimg) != 1) return 0x05;
 
             tmp[0x04] = ((unsigned char*)data)[0]; // change the fill byte
@@ -1103,7 +1103,7 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void 
             LOG_MSG("VFD write: 'fill' sector changing fill byte to 0x%x",tmp[0x04]);
 
             fseek(diskimg,ent->entry_offset,SEEK_SET);
-            if (ftell(diskimg) != ent->entry_offset) return 0x05;
+            if ((uint32_t)ftell(diskimg) != ent->entry_offset) return 0x05;
             if (fwrite(tmp,12,1,diskimg) != 1) return 0x05;
         }
         else {
@@ -1114,7 +1114,7 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void 
             LOG_MSG("VFD write: changing 'fill' sector to one with data (data at %lu)",(unsigned long)new_offset);
 
             fseek(diskimg,ent->entry_offset,SEEK_SET);
-            if (ftell(diskimg) != ent->entry_offset) return 0x05;
+            if ((uint32_t)ftell(diskimg) != ent->entry_offset) return 0x05;
             if (fread(tmp,12,1,diskimg) != 1) return 0x05;
 
             tmp[0x00] = ent->track;
@@ -1130,11 +1130,11 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void 
             ent->data_offset = (uint32_t)new_offset;
 
             fseek(diskimg,ent->entry_offset,SEEK_SET);
-            if (ftell(diskimg) != ent->entry_offset) return 0x05;
+            if ((uint32_t)ftell(diskimg) != ent->entry_offset) return 0x05;
             if (fwrite(tmp,12,1,diskimg) != 1) return 0x05;
 
             fseek(diskimg,ent->data_offset,SEEK_SET);
-            if (ftell(diskimg) != ent->data_offset) return 0x05;
+            if ((uint32_t)ftell(diskimg) != ent->data_offset) return 0x05;
             if (fwrite(data,req_sector_size,1,diskimg) != 1) return 0x05;
         }
     }
