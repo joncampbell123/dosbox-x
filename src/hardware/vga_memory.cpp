@@ -1027,6 +1027,7 @@ void pc98_egc_shift_reinit() {
 }
 
 static egc_quad &ope_xx(uint8_t ope, const PhysPt ad) {
+    (void)ad;//UNUSED
     LOG_MSG("EGC ROP 0x%2x not impl",ope);
     return pc98_egc_last_vram;
 }
@@ -1463,6 +1464,8 @@ public:
     }
 
     template <class AWT> static inline void modeEGC_w(const PhysPt vramoff,const PhysPt fulloff,const AWT val) {
+        (void)fulloff;//UNUSED
+
         /* assume: vramoff is even IF AWT is 16-bit wide */
 
         /* 0x4A4:
@@ -2135,6 +2138,7 @@ public:
 		flags=PFLAG_READABLE|PFLAG_WRITEABLE;
 	}
 	HostPt GetHostReadPt(Bitu phys_page) {
+        (void)phys_page;//UNUSED
 		// The 4kB map area is repeated in the 32kB range
 		return &vga.mem.linear[0];
 	}

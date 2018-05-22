@@ -156,6 +156,7 @@ static Bitu read_crtc_data_other(Bitu /*port*/,Bitu /*iolen*/) {
 }
 
 static void write_lightpen(Bitu port,Bitu val,Bitu) {
+    (void)val;//UNUSED
 	switch (port) {
 	case 0x3db:	// Clear lightpen latch
 		vga.other.lightpen_triggered = false;
