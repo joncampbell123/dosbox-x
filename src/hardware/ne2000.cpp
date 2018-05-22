@@ -90,18 +90,22 @@ int (*PacketFindALlDevsEx)(char *, struct pcap_rmtauth *, pcap_if_t **, char *) 
 #define BX_RESET_SOFTWARE 1
 
 static inline void BX_INFO(const char *msg,...) {
+    (void)msg;//UNUSED
 	/* TODO: #if DEBUG or such, to enable debugging messages */
 }
 
 static inline void BX_DEBUG(const char *msg,...) {
+    (void)msg;//UNUSED
 	/* TODO: #if DEBUG or such, to enable debugging messages */
 }
 
 static inline void BX_ERROR(const char *msg,...) {
+    (void)msg;//UNUSED
 	/* TODO: #if DEBUG or such, to enable debugging messages */
 }
 
 static inline void BX_PANIC(const char *msg,...) {
+    (void)msg;//UNUSED
 	/* TODO: #if DEBUG or such, to enable debugging messages */
 }
 
@@ -125,6 +129,7 @@ bx_ne2k_c::~bx_ne2k_c(void)
 void
 bx_ne2k_c::reset(unsigned type)
 {
+    (void)type;//UNUSED
   BX_DEBUG ("reset");
   // Zero out registers and memory
   memset( & BX_NE2K_THIS s.CR,  0, sizeof(BX_NE2K_THIS s.CR) );
@@ -326,7 +331,7 @@ Bit32u bx_ne2k_c::chipmem_read(Bit32u address, unsigned int io_len)
     BX_PANIC(("unaligned chipmem word read"));
 
   // ROM'd MAC address
-  if ((address >=0) && (address <= 31)) {
+  if (/*(address >=0) && */(address <= 31)) {
     retval = BX_NE2K_THIS s.macaddr[address];
     if ((io_len == 2) || (io_len == 4)) {
       retval |= (BX_NE2K_THIS s.macaddr[address + 1] << 8);
@@ -827,6 +832,7 @@ bx_ne2k_c::page1_read(Bit32u offset, unsigned int io_len)
 void
 bx_ne2k_c::page1_write(Bit32u offset, Bit32u value, unsigned io_len)
 {
+    (void)io_len;//UNUSED
   BX_DEBUG("page 1 w offset %04x", (unsigned) offset);
   switch (offset) {
   case 0x1:  // PAR0-5
@@ -948,11 +954,12 @@ bx_ne2k_c::page2_read(Bit32u offset, unsigned int io_len)
   }
 
   return (0);
-};
+}
 
 void
 bx_ne2k_c::page2_write(Bit32u offset, Bit32u value, unsigned io_len)
 {
+    (void)io_len;//UNUSED
   // Maybe all writes here should be BX_PANIC()'d, since they
   // affect internal operation, but let them through for now
   // and print a warning.
@@ -1019,6 +1026,8 @@ bx_ne2k_c::page2_write(Bit32u offset, Bit32u value, unsigned io_len)
 Bit32u
 bx_ne2k_c::page3_read(Bit32u offset, unsigned int io_len)
 {
+    (void)offset;//UNUSED
+    (void)io_len;//UNUSED
   BX_PANIC(("page 3 read attempted"));
   return (0);
 }
@@ -1026,6 +1035,9 @@ bx_ne2k_c::page3_read(Bit32u offset, unsigned int io_len)
 void
 bx_ne2k_c::page3_write(Bit32u offset, Bit32u value, unsigned io_len)
 {
+    (void)value;//UNUSED
+    (void)offset;//UNUSED
+    (void)io_len;//UNUSED
   BX_PANIC(("page 3 write attempted"));
 }
 
@@ -1418,6 +1430,7 @@ void bx_ne2k_c::init()
 }
 
 static void NE2000_TX_Event(Bitu val) {
+    (void)val;//UNUSED
 	theNE2kDevice->tx_timer();
 }
 
@@ -1664,6 +1677,7 @@ public:
 static NE2K* test = NULL;
 
 void NE2K_ShutDown(Section* sec) {
+    (void)sec;//UNUSED
 	if (test) {
         delete test;	
         test = NULL;
@@ -1671,6 +1685,7 @@ void NE2K_ShutDown(Section* sec) {
 }
 
 void NE2K_OnReset(Section* sec) {
+    (void)sec;//UNUSED
 	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating NE2000 emulation");
 		test = new NE2K(control->GetSection("ne2000"));
