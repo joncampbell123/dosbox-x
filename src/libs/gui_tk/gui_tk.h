@@ -603,7 +603,7 @@ public:
 	virtual void paintAll(Drawable &d) const;
 
 	/// Draw this window's content.
-	virtual void paint(Drawable &d) const {};
+	virtual void paint(Drawable &d) const { (void)d; };
 
 	/// Show or hide this window.
 	/** By default, most windows are shown when created. Hidden windows do not receive any events. */
@@ -840,10 +840,10 @@ public:
 class ScreenSDL : public Screen {
 protected:
 	/// not used.
-	virtual void rgbToSurface(RGB color, void **pixel) {};
+	virtual void rgbToSurface(RGB color, void **pixel) { (void)color; (void)pixel; };
 
 	/// not used.
-	virtual RGB surfaceToRGB(void *pixel) { return 0; };
+	virtual RGB surfaceToRGB(void *pixel) { (void)pixel; return 0; };
 
 	/// The SDL surface being drawn to.
 	SDL_Surface *surface;
@@ -1067,14 +1067,14 @@ public:
 
 	/// Draw a text string at a fixed position.
 	/** see drawText(const String& text, bool interpret, Size start, Size len) */
-	template <typename STR> void drawText(int x, int y, const STR text, bool interpret, Size start, Size len = (Size)-1) { gotoXY(x,y); drawText(String(text), interpret, start, len); };
+	template <typename STR> void drawText(int x, int y, const STR text, bool interpret, Size start, Size len = (Size)-1) { gotoXY(x,y); drawText(String(text), interpret, start, len); }
 	/// Draw a single character.
 	/** see drawText(const STR text, bool interpret), except wrapping is
 	    performed on this character only */
 	void drawText(const Char c, bool interpret = false);
 	/// Draw a single character at a fixed position.
 	/** see drawText(const Char c, bool interpret). */
-	void drawText(int x, int y, const Char c, bool interpret = false) { gotoXY(x,y); drawText(c, interpret); };
+	void drawText(int x, int y, const Char c, bool interpret = false) { gotoXY(x,y); drawText(c, interpret); }
 
 	/// Copy the contents of another Drawable to this one.
 	/** The top left corner of the source Drawable is put at the current
@@ -1085,7 +1085,7 @@ public:
 	/// Copy the contents of another Drawable to this one at a given position.
 	/** see drawDrawable(Drawable &d, unsigned char alpha). The current position
 	    is moved to the given coordinates. */
-	void drawDrawable(int x, int y, Drawable &d, unsigned char alpha = 1) { gotoXY(x,y); drawDrawable(d, alpha); };
+	void drawDrawable(int x, int y, Drawable &d, unsigned char alpha = 1) { gotoXY(x,y); drawDrawable(d, alpha); }
 
 };
 
@@ -1416,6 +1416,7 @@ public:
 
 	/// Calculate label size. Parameters are ignored.
 	virtual void resize(int w = -1, int h = -1) {
+        (void)h;//UNUSED
 		if (w == -1) w = (interpret?getWidth():0);
 		else interpret = (w != 0);
 		Drawable d((w?w:1), 1);
@@ -1530,7 +1531,7 @@ public:
 	Size findPos(int x, int y);
 
 	/// Set text to be edited.
-	template <typename STR> void setText(const STR text) { this->text = text; setDirty(); };
+	template <typename STR> void setText(const STR text) { this->text = text; setDirty(); }
 	/// Get the entered text. If you need it longer, copy it immediately.
 	const String& getText() { return text; };
 
@@ -1545,7 +1546,7 @@ public:
 
 	/// Timer callback function
 	virtual Ticks timerExpired(Ticks time)
-	{ blink = !blink; setDirty(); return 30; }
+	{ (void)time; blink = !blink; setDirty(); return 30; }
 
 	/// Move the cursor to the end of the text field
 	virtual void posToEnd(void);
@@ -1603,6 +1604,7 @@ public:
 
 	/// Menu callback function
 	virtual void actionExecuted(ActionEventSource *src, const String &item) {
+        (void)src;
 		if (item == String("Close")) close();
 	}
 
@@ -1703,11 +1705,12 @@ public:
 
 	/// Handle automatic delete
 	void windowClosed(ToplevelWindow *win) {
+        (void)win;
 		delete this;
 	}
 
 	/// No-op
-	bool windowClosing(ToplevelWindow *win) { return true; }
+	bool windowClosing(ToplevelWindow *win) { (void)win; return true; }
 
 	/// Create a transient window with given position and size
 	/** \a parent is the logical parent. The true parent object is
@@ -1741,7 +1744,7 @@ public:
 	virtual int getX() const { return x-realparent->getScreenX(); }
 	virtual int getY() const { return y-realparent->getScreenY(); }
 	virtual void setVisible(bool v) { if (v) raise(); Window::setVisible(v); }
-	virtual void windowMoved(Window *src, int x, int y) { move(relx,rely); }
+	virtual void windowMoved(Window *src, int x, int y) { (void)src; (void)x; (void)y; move(relx,rely); }
 
 	/// Put window on top of all other windows without changing their relative order
 	virtual bool raise() {
@@ -1785,6 +1788,7 @@ protected:
 	/// Selects menu item at position (x,y).
 	/** \a selected is set to -1 if there is no active item at that location. */
 	virtual void selectItem(int x, int y) {
+        (void)x;//UNUSED
 		y -= 2;
 		selected = -1;
 		const int height = Font::getFont("menu")->getHeight()+2;
@@ -1840,15 +1844,23 @@ public:
 	}
 
 	/// Highlight current item.
-	virtual bool mouseDragged(int x, int y, MouseButton b)  {
+	virtual bool mouseDragged(int x, int y, MouseButton button)  {
+        (void)button;//UNUSED	
 		selectItem(x,y);
 		return true;
 	}
 
-	virtual bool mouseDown(int x, int y, MouseButton button)  { return true; }
+	virtual bool mouseDown(int x, int y, MouseButton button)  {
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED	
+        return true;
+    }
 
 	/// Possibly select item.
 	virtual bool mouseUp(int x, int y, MouseButton button)  {
+        (void)button;//UNUSED
+	
 		selectItem(x,y);
 		if (firstMouseUp) firstMouseUp = false;
 		else setVisible(false);
@@ -1925,6 +1937,10 @@ public:
 
 	/// Press button.
 	virtual bool mouseDown(int x, int y, MouseButton button) {
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED
+	
 		if (button == Left) {
 			border_left = 7; border_right = 5; border_top = 7; border_bottom = 3;
 			pressed = true;
@@ -1934,6 +1950,10 @@ public:
 
 	/// Release button.
 	virtual bool mouseUp(int x, int y, MouseButton button)  {
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED
+	
 		if (button == Left) {
 			border_left = 6; border_right = 6; border_top = 5; border_bottom = 5;
 			pressed = false;
@@ -1943,6 +1963,10 @@ public:
 
 	/// Handle mouse activation.
 	virtual bool mouseClicked(int x, int y, MouseButton button) {
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED
+	
 		if (button == Left) {
 			executeAction();
 			return true;
@@ -2000,6 +2024,8 @@ public:
 
 	/// Open menu.
 	virtual bool mouseDown(int x, int y, MouseButton button) {
+        (void)button;//UNUSED
+        (void)y;//UNUSED
 		int oldselected = selected;
 		if (selected >= 0 && !menus[selected]->isVisible()) oldselected = -1;
 		if (selected >= 0) menus[selected]->setVisible(false);
@@ -2011,10 +2037,10 @@ public:
 	}
 
 	/// Handle keyboard input.
-	virtual bool keyDown(const Key &key) { return true; };
+	virtual bool keyDown(const Key &key) { (void)key; return true; }
 
 	/// Handle keyboard input.
-	virtual bool keyUp(const Key &key) { return true; };
+	virtual bool keyUp(const Key &key) { (void)key; return true; }
 
 	virtual void actionExecuted(ActionEventSource *src, const String &arg) {
 		std::list<ActionEventSource_Callback*>::iterator i = actionHandlers.begin();
@@ -2056,12 +2082,18 @@ public:
 
 	/// Press checkbox.
 	virtual bool mouseDown(int x, int y, MouseButton button) {
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED	
 		checked = !checked;
 		return true;
 	}
 
 	/// Release checkbox.
 	virtual bool mouseUp(int x, int y, MouseButton button)  {
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED	
 		execute();
 		return true;
 	}
@@ -2110,12 +2142,18 @@ public:
 
 	/// Press radio box.
 	virtual bool mouseDown(int x, int y, MouseButton button) {
-		checked = true;
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED
+        checked = true;
 		return true;
 	}
 
 	/// Release checkbox.
 	virtual bool mouseUp(int x, int y, MouseButton button)  {
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED
 		executeAction();
 		return true;
 	}
@@ -2142,6 +2180,7 @@ protected:
 
 	/// Execute handlers.
 	virtual void actionExecuted(ActionEventSource *src, const String &arg) {
+        (void)arg;//UNUSED
 		for (std::list<Window *>::iterator i = children.begin(); i != children.end(); ++i) {
 			Radiobox *r = dynamic_cast<Radiobox*>(*i);
 			if (r != NULL && src != dynamic_cast<ActionEventSource*>(r)) r->setChecked(false);
@@ -2235,6 +2274,6 @@ template <typename STR> Radiobox::Radiobox(Frame *parent, int x, int y, const ST
 	addActionHandler(parent);
 }
 
-};
+}
 
 #endif
