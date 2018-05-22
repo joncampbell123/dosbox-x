@@ -274,7 +274,7 @@ public:
 	bool	PlayAudioSector		(unsigned long start,unsigned long len);
 	bool	PauseAudio			(bool resume);
 	bool	StopAudio			(void);
-	void	ChannelControl		(TCtrl ctrl) { return; };
+	void	ChannelControl		(TCtrl ctrl) { (void)ctrl; return; };
 	
 	bool	ReadSectors			(PhysPt buffer, bool raw, unsigned long sector, unsigned long num);
 	/* This is needed for IDE hack, who's buffer does not exist in DOS physical memory */
