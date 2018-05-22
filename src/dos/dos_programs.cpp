@@ -335,6 +335,8 @@ public:
 			//rest: substiture ~ for home
 			bool failed = false;
 
+            (void)failed;// MAY BE UNUSED
+
 #if defined (WIN32) || defined(OS2)
 			/* nothing */
 #else
