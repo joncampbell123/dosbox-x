@@ -81,6 +81,7 @@ static struct {
 } cmos;
 
 static void cmos_timerevent(Bitu val) {
+    (void)val;//UNUSED
 	if (cmos.timer.acknowledged) {
 		cmos.timer.acknowledged=false;
 		PIC_ActivateIRQ(8);
@@ -105,6 +106,8 @@ static void cmos_checktimer(void) {
 }
 
 void cmos_selreg(Bitu port,Bitu val,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	if (machine != MCH_PCJR) {
 		/* bit 7 also controls NMI masking, if set, NMI is disabled */
 		CPU_NMI_gate = (val&0x80) ? false : true;
@@ -115,6 +118,8 @@ void cmos_selreg(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	if (date_host_forced && (cmos.reg <= 0x09 || cmos.reg == 0x32)) {	// date/time related registers
 		if (cmos.bcd)			// values supplied are BCD, convert to binary values
 		{
@@ -304,6 +309,8 @@ unsigned char CMOS_GetShutdownByte() {
 #define MAKE_RETURN(_VAL) (cmos.bcd ? ((((_VAL) / 10) << 4) | ((_VAL) % 10)) : (_VAL));
 
 static Bitu cmos_readreg(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	if (cmos.reg>0x3f) {
 		LOG(LOG_BIOS,LOG_ERROR)("CMOS:Read from illegal register %x",cmos.reg);
 		return 0xff;
@@ -548,9 +555,11 @@ static IO_ReadHandleObject ReadHandler[2];
 static IO_WriteHandleObject WriteHandler[2];	
 
 void CMOS_Destroy(Section* sec) {
+    (void)sec;//UNUSED
 }
 
 void CMOS_Reset(Section* sec) {
+    (void)sec;//UNUSED
 	LOG(LOG_MISC,LOG_DEBUG)("CMOS_Reset(): reinitializing CMOS/RTC controller");
 
 	WriteHandler[0].Uninstall();
