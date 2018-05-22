@@ -912,6 +912,7 @@ Bitu adlib_reg_read(Bitu port) {
 }
 
 void adlib_write_index(Bitu port, Bit8u val) {
+    (void)port;//POSSIBLY UNUSED
 	opl_index = val;
 #if defined(OPLTYPE_IS_OPL3)
 	if ((port&3)!=0) {
