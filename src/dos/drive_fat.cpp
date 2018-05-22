@@ -397,7 +397,7 @@ void fatDrive::setClusterValue(Bit32u clustNum, Bit32u clustValue) {
 	for(int fc=0;fc<bootbuffer.fatcopies;fc++) {
 		Write_AbsoluteSector(fatsectnum + (fc * bootbuffer.sectorsperfat), &fatSectBuffer[0]);
 		if (fattype==FAT12) {
-			if (fatentoff >= (bootbuffer.bytespersector-1))
+			if (fatentoff >= (bootbuffer.bytespersector-1U))
 				Write_AbsoluteSector(fatsectnum+1+(fc * bootbuffer.sectorsperfat), &fatSectBuffer[bootbuffer.bytespersector]);
 		}
 	}
@@ -1393,6 +1393,8 @@ bool fatDrive::directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s
 	Bit32u entryoffset = 0;	/* Index offset within sector */
 	Bit32u tmpsector;
 	Bit16u dirPos = 0;
+
+    (void)start;//UNUSED
 
     size_t dirent_per_sector = getSectSize() / sizeof(direntry);
     assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
