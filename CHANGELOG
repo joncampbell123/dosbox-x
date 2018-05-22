@@ -1,4 +1,31 @@
 0.82.7 (next)
+  - Code cleanup, refactor, according to compiler warnings.
+  - SDL drawn menus fixed to copy Direct3D backbuffer to
+    the SDL surface when popup occurs. This allows the
+    menus to overlap the Direct3D display correctly.
+  - Fixed Direct3D output so that when composing the next
+    frame in the backbuffer, it also copies the SDL drawn
+    menu from the SDL surface in order to keep it on
+    screen.
+  - Direct3D output updated to follow SDL clip rectangle
+    struct, in the same exact manner as the OpenGL output.
+    This also permits the Direct3D output to correctly size
+    itself and leave space at the top for the SDL drawn
+    menus.
+  - Fixed dynamic core entry point to push/pop EBP because
+    debug builds need the compiler to track the stack frame.
+  - Updated in-tree zlib and libpng libraries to the latest
+    provided by both projects.
+  - Fixed VFD (FDD) disk image support to signal to FAT driver
+    properly an error if it could not determine a geometry.
+  - Fixed code breakage with SDL2 that prevented compilation
+    with Munt (MT32) emulation enabled. SDL2 builds now allow
+    MT32 emulation.
+  - Mac OS X builds now compile against the in-tree zlib and
+    libpng libraries for consistency.
+  - MinGW builds now compile against the MinGW provided zlib
+    and the in-tree libpng library for consistency.
+  - Enabled MinGW builds to use Direct3D and Direct3D shaders.
   - Added code to auto-detect the VirtualBox display driver
     in Windows build, because OpenGL output doesn't work
     in Windows XP under VirtualBox. The change will switch
