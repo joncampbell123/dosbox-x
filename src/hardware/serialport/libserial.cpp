@@ -152,7 +152,7 @@ void SERIAL_getErrorString(char* buffer, int length) {
 		memcpy(buffer,err2text,sysmsg_offset);
 	}
 
-	if((length - sysmsg_offset - strlen((const char*)sysmessagebuffer)) >= 0)
+	if((length - sysmsg_offset - (int)strlen((const char*)sysmessagebuffer)) >= 0)
 		memcpy(buffer + sysmsg_offset, sysmessagebuffer,
 		strlen((const char*)sysmessagebuffer));
 		
