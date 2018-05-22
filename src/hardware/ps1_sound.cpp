@@ -130,6 +130,7 @@ static void PS1DAC_Reset(bool bTotal)
 
 #include "regs.h"
 static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if( port != 0x0205 ) {
 		ps1.last_writeDAC=PIC_Ticks;
 		if (!ps1.enabledDAC) {
@@ -217,6 +218,7 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 }
 
 static Bitu PS1SOUNDRead(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
 	ps1.last_writeDAC=PIC_Ticks;
 	if (!ps1.enabledDAC) {
 		ps1.chanDAC->Enable(true);
@@ -389,6 +391,7 @@ public:
 static PS1SOUND* test = NULL;
 
 void PS1SOUND_ShutDown(Section* sec) {
+    (void)sec;//UNUSED
     if (test) {
         delete test;
         test = NULL;
@@ -396,6 +399,7 @@ void PS1SOUND_ShutDown(Section* sec) {
 }
 
 void PS1SOUND_OnReset(Section* sec) {
+    (void)sec;//UNUSED
 	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating PS/1 sound emulation");
 		test = new PS1SOUND(control->GetSection("speaker"));

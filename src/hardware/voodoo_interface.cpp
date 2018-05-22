@@ -39,10 +39,13 @@ Voodoo_PageHandler * voodoo_pagehandler;
 
 
 Bitu Voodoo_PageHandler::readb(PhysPt addr) {
+    (void)addr;//UNUSED
 //	LOG_MSG("voodoo readb at %x",addr);
 	return (Bitu)-1;
 }
 void Voodoo_PageHandler::writeb(PhysPt addr,Bitu val) {
+    (void)addr;//UNUSED
+    (void)val;//UNUSED
 //	LOG_MSG("voodoo writeb at %x",addr);
 }
 
