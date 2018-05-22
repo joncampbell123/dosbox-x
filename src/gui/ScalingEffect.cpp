@@ -320,11 +320,11 @@ HRESULT ScalingEffect::ParseParameters(LPD3DXEFFECTCOMPILER lpEffectCompiler)
 				0, &pTextureShader, &lpErrors, NULL))) {
 		SAFE_RELEASE(lpErrors);
 
-		if(Width == D3DX_DEFAULT)
+		if((UINT)Width == D3DX_DEFAULT)
                     Width = 64;
-		if(Height == D3DX_DEFAULT)
+		if((UINT)Height == D3DX_DEFAULT)
                     Height = 64;
-		if(Depth == D3DX_DEFAULT)
+		if((UINT)Depth == D3DX_DEFAULT)
                     Depth = 64;
 
 #if D3DX_SDK_VERSION >= 22
