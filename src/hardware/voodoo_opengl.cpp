@@ -1420,6 +1420,7 @@ void voodoo_ogl_draw_pixel_pipeline(int x, int y, int r, int g, int b) {
 
 
 void voodoo_ogl_clip_window(voodoo_state *v) {
+    (void)v;//UNUSED
 /*	VOGL_ClearBeginMode();
 
 	int sx = (v->reg[clipLeftRight].u >> 16) & 0x3ff;
@@ -1851,10 +1852,10 @@ void voodoo_ogl_leave(bool leavemode) {
 				info->shader_ulocations=NULL;
 
 				if (info->so_shader_program > 0) {
-					if (info->so_vertex_shader >= 0) glDetachObjectARB((GLhandleARB)info->so_shader_program, (GLhandleARB)info->so_vertex_shader);
-					if (info->so_fragment_shader >= 0) glDetachObjectARB((GLhandleARB)info->so_shader_program, (GLhandleARB)info->so_fragment_shader);
-					if (info->so_vertex_shader >= 0) glDeleteObjectARB((GLhandleARB)info->so_vertex_shader);
-					if (info->so_fragment_shader >= 0) glDeleteObjectARB((GLhandleARB)info->so_fragment_shader);
+					if (info->so_vertex_shader > 0) glDetachObjectARB((GLhandleARB)info->so_shader_program, (GLhandleARB)info->so_vertex_shader);
+					if (info->so_fragment_shader > 0) glDetachObjectARB((GLhandleARB)info->so_shader_program, (GLhandleARB)info->so_fragment_shader);
+					if (info->so_vertex_shader > 0) glDeleteObjectARB((GLhandleARB)info->so_vertex_shader);
+					if (info->so_fragment_shader > 0) glDeleteObjectARB((GLhandleARB)info->so_fragment_shader);
 					glDeleteObjectARB((GLhandleARB)info->so_shader_program);
 				}
 
