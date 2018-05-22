@@ -1272,6 +1272,7 @@ public:
 } GUS_CS4231;
 
 static Bitu read_gus_cs4231(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if (myGUS.gUltraMAXControl & 0x40/*codec enable*/)
 		return GUS_CS4231.ioread((port - GUS_BASE) & 3); // FIXME: UltraMAX allows this to be relocatable
 
@@ -1279,6 +1280,7 @@ static Bitu read_gus_cs4231(Bitu port,Bitu iolen) {
 }
 
 static void write_gus_cs4231(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if (myGUS.gUltraMAXControl & 0x40/*codec enable*/)
 		GUS_CS4231.iowrite((port - GUS_BASE) & 3,val&0xFF);
 }
@@ -1286,6 +1288,7 @@ static void write_gus_cs4231(Bitu port,Bitu val,Bitu iolen) {
 static Bitu read_gus(Bitu port,Bitu iolen) {
 	Bit16u reg16;
 
+    (void)iolen;//UNUSED
 //	LOG_MSG("read from gus port %x",port);
 	switch(port - GUS_BASE) {
 	case 0x206:
@@ -1768,6 +1771,7 @@ void GUS_DMA_Event_Transfer(DmaChannel *chan,Bitu dmawords) {
 }
 
 void GUS_DMA_Event(Bitu val) {
+    (void)val;//UNUSED
 	DmaChannel *chan = GetDMAChannel(myGUS.dma1);
 	if (chan == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("GUS DMA event: DMA channel no longer exists, stopping DMA transfer events");
@@ -1822,6 +1826,7 @@ void GUS_StartDMA() {
 }
 
 static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event) {
+    (void)chan;//UNUSED
 	if (event == DMA_UNMASKED) {
 		LOG(LOG_MISC,LOG_DEBUG)("GUS: DMA unmasked");
 		if (myGUS.DMAControl & 0x01/*DMA enable*/) GUS_StartDMA();
@@ -2220,6 +2225,7 @@ void GUS_ShutDown(Section* /*sec*/) {
 }
 
 void GUS_OnReset(Section *sec) {
+    (void)sec;//UNUSED
 	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating GUS emulation");
 		test = new GUS(control->GetSection("gus"));
@@ -2227,10 +2233,12 @@ void GUS_OnReset(Section *sec) {
 }
 
 void GUS_DOS_Exit(Section *sec) {
+    (void)sec;//UNUSED
     GUS_DOS_Shutdown();
 }
 
 void GUS_DOS_Boot(Section *sec) {
+    (void)sec;//UNUSED
     if (test != NULL) test->DOS_Startup();
 }
 
