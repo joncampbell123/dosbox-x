@@ -228,14 +228,17 @@ uint8_t Intel8255::inPortC(void) const {
 }
 
 void Intel8255::outPortA(const uint8_t mask) {
+    (void)mask;//UNUSED
     /* override this */
 }
 
 void Intel8255::outPortB(const uint8_t mask) {
+    (void)mask;//UNUSED
     /* override this */
 }
 
 void Intel8255::outPortC(const uint8_t mask) {
+    (void)mask;//UNUSED
     /* override this */
 }
 

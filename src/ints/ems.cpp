@@ -59,9 +59,9 @@ Bitu GetEMSPageFrameSegment(void) {
     return EMM_PAGEFRAME;
 }
 
-#define	EMM_MAX_HANDLES	200				/* 255 Max */
-#define EMM_PAGE_SIZE	(16*1024U)
-#define EMM_MAX_PHYS	4				/* 4 16kb pages in pageframe */
+#define	EMM_MAX_HANDLES	200U			/* 255 Max */
+#define EMM_PAGE_SIZE	(16U*1024U)
+#define EMM_MAX_PHYS	4U				/* 4 16kb pages in pageframe */
 
 Bitu GetEMSPageFrameSize(void) {
     return EMM_MAX_PHYS * EMM_PAGE_SIZE;
@@ -475,12 +475,12 @@ static Bit8u EMM_MapSegment(Bitu segment,Bit16u handle,Bit16u log_page) {
 	bool valid_segment=false;
 
 	if ((ems_type == EMS_MIXED) || (ems_type == EMS_EMM386)) {
-		if (segment<0xf000+0x1000) valid_segment=true;
+		if (segment<0xf000U+0x1000U) valid_segment=true;
 	} else {
-		if ((segment>=0xa000) && (segment<0xb000)) {
+		if ((segment>=0xa000U) && (segment<0xb000U)) {
 			valid_segment=true;		// allow mapping of graphics memory
 		}
-		if ((segment>=EMM_PAGEFRAME) && (segment<EMM_PAGEFRAME+0x1000)) {
+		if ((segment>=EMM_PAGEFRAME) && (segment<EMM_PAGEFRAME+0x1000U)) {
 			valid_segment=true;		// allow mapping of EMS page frame
 		}
 /*		if ((segment>=EMM_PAGEFRAME-0x1000) && (segment<EMM_PAGEFRAME)) {
@@ -494,7 +494,7 @@ static Bit8u EMM_MapSegment(Bitu segment,Bit16u handle,Bit16u log_page) {
 		/* unmapping doesn't need valid handle (as handle isn't used) */
 		if (log_page==NULL_PAGE) {
 			/* Unmapping */
-			if ((tphysPage>=0) && (tphysPage<EMM_MAX_PHYS)) {
+			if ((tphysPage>=0) && ((Bit32u)tphysPage<EMM_MAX_PHYS)) {
 				emm_mappings[tphysPage].handle=NULL_HANDLE;
 				emm_mappings[tphysPage].page=NULL_PAGE;
 			} else {
@@ -511,7 +511,7 @@ static Bit8u EMM_MapSegment(Bitu segment,Bit16u handle,Bit16u log_page) {
 		
 		if (log_page<emm_handles[handle].pages) {
 			/* Mapping it is */
-			if ((tphysPage>=0) && (tphysPage<EMM_MAX_PHYS)) {
+			if ((tphysPage>=0) && ((Bit32u)tphysPage<EMM_MAX_PHYS)) {
 				emm_mappings[tphysPage].handle=handle;
 				emm_mappings[tphysPage].page=log_page;
 			} else {
@@ -1219,6 +1219,7 @@ bool vcpi_virtual_a20 = true;
 
 /* if we handle the read, we're expected to write over AL/AX */
 bool VCPI_trapio_r(uint16_t port,unsigned int sz) {
+    (void)sz;//UNUSED
 	switch (port) {
 		case 0x92:
 			reg_al = vcpi_virtual_a20?0x02:0x00;
@@ -1229,6 +1230,7 @@ bool VCPI_trapio_r(uint16_t port,unsigned int sz) {
 }
 
 bool VCPI_trapio_w(uint16_t port,uint32_t data,unsigned int sz) {
+    (void)sz;//UNUSED
 	switch (port) {
 		case 0x92:
 			vcpi_virtual_a20 = (data & 2) ? true : false;
@@ -1823,6 +1825,7 @@ void EMS_ShutDown(Section* /*sec*/) {
 }
 
 void EMS_Startup(Section* sec) {
+    (void)sec;//UNUSED
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating EMS emulation");
 		test = new EMS(control->GetSection("dos"));

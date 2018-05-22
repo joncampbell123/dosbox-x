@@ -664,6 +664,8 @@ void INT10_WriteChar(Bit16u chr,Bit8u attr,Bit8u page,Bit16u count,bool showattr
 				page=0;
 				pospage=0;
 				break;
+            default:
+                break;
 		}
 	}
 
