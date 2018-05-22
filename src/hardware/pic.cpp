@@ -123,6 +123,7 @@ bool enable_slave_pic = true; /* if set, emulate slave with cascade to master. i
 bool enable_pc_xt_nmi_mask = false;
 
 void PIC_IRQCheckDelayed(Bitu val) {
+    (void)val;//UNUSED
     PIC_IRQCheck = 1;
     PIC_IRQCheckPending = 0;
 }
@@ -201,6 +202,7 @@ static struct {
 } pic_queue;
 
 static void write_command(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	PIC_Controller * pic=&pics[(port==0x20/*IBM*/ || port==0x00/*PC-98*/) ? 0 : 1];
 
 	if (GCC_UNLIKELY(val&0x10)) {		// ICW1 issued
@@ -252,6 +254,7 @@ static void write_command(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static void write_data(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	PIC_Controller * pic=&pics[(port==0x21/*IBM*/ || port==0x02/*PC-98*/) ? 0 : 1];
 
 	switch(pic->icw_index) {
@@ -294,6 +297,7 @@ static void write_data(Bitu port,Bitu val,Bitu iolen) {
 
 
 static Bitu read_command(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
 	PIC_Controller * pic=&pics[(port==0x20/*IBM*/ || port==0x00/*PC-98*/) ? 0 : 1];
 	if (pic->request_issr){
 		return pic->isr;
@@ -304,6 +308,7 @@ static Bitu read_command(Bitu port,Bitu iolen) {
 
 
 static Bitu read_data(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
 	PIC_Controller * pic=&pics[(port==0x21/*IBM*/ || port==0x02/*PC-98*/) ? 0 : 1];
 	return pic->imr;
 }
@@ -313,6 +318,8 @@ static Bitu read_data(Bitu port,Bitu iolen) {
  * agree that bit 7 is used to enable/disable the NMI (1=enable,
  * 0=disable) */
 static void pc_xt_nmi_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	CPU_NMI_gate = (val & 0x80) ? true : false;
 }
 
@@ -741,6 +748,7 @@ static IO_ReadHandleObject ReadHandler[4];
 static IO_WriteHandleObject WriteHandler[4];
 
 void PIC_Reset(Section *sec) {
+    (void)sec;//UNUSED
 	Bitu i;
 
 	ReadHandler[0].Uninstall();
@@ -835,6 +843,7 @@ void PIC_Reset(Section *sec) {
 }
 
 void PIC_Destroy(Section* sec) {
+    (void)sec;//UNUSED
 }
 
 void Init_PIC() {
@@ -861,8 +870,8 @@ void Init_PIC() {
 void DEBUG_LogPIC_C(PIC_Controller &pic) {
     LOG_MSG("%s interrupt controller state",&pic == &master ? "Master" : "Slave");
     LOG_MSG("ICW %u/%u special=%u auto-eoi=%u rotate-eoi=%u single=%u request_issr=%u vectorbase=0x%02x active_irq=%u",
-        pic.icw_index,
-        pic.icw_words,
+        (unsigned int)pic.icw_index,
+        (unsigned int)pic.icw_words,
         pic.special?1:0,
         pic.auto_eoi?1:0,
         pic.rotate_on_auto_eoi?1:0,
@@ -882,7 +891,7 @@ void DEBUG_LogPIC_C(PIC_Controller &pic) {
             (pic.irr & (1U << si))?'R':' ',
             (pic.imr & (1U << si))?'M':' ',
             (pic.isr & (1U << si))?'S':' ',
-            (IRQ == master_cascade_irq) ? "CASCADE" : "");
+            ((unsigned int)IRQ == (unsigned int)master_cascade_irq) ? "CASCADE" : "");
     }
 }
 
