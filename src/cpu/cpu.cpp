@@ -548,46 +548,84 @@ bool CPU_PUSHF(Bitu use32) {
 }
 
 void CPU_CheckSegments(void) {
-	bool needs_invalidation=false;
+	bool needs_invalidation;
 	Descriptor desc;
-	if (!cpu.gdt.GetDescriptor(SegValue(es),desc)) needs_invalidation=true;
-	else switch (desc.Type()) {
-		case DESC_DATA_EU_RO_NA:	case DESC_DATA_EU_RO_A:	case DESC_DATA_EU_RW_NA:	case DESC_DATA_EU_RW_A:
-		case DESC_DATA_ED_RO_NA:	case DESC_DATA_ED_RO_A:	case DESC_DATA_ED_RW_NA:	case DESC_DATA_ED_RW_A:
-		case DESC_CODE_N_NC_A:	case DESC_CODE_N_NC_NA:	case DESC_CODE_R_NC_A:	case DESC_CODE_R_NC_NA:
-			if (cpu.cpl>desc.DPL()) needs_invalidation=true; break;
-		default: break;	}
-	if (needs_invalidation) CPU_SetSegGeneral(es,0);
 
-	needs_invalidation=false;
-	if (!cpu.gdt.GetDescriptor(SegValue(ds),desc)) needs_invalidation=true;
-	else switch (desc.Type()) {
-		case DESC_DATA_EU_RO_NA:	case DESC_DATA_EU_RO_A:	case DESC_DATA_EU_RW_NA:	case DESC_DATA_EU_RW_A:
-		case DESC_DATA_ED_RO_NA:	case DESC_DATA_ED_RO_A:	case DESC_DATA_ED_RW_NA:	case DESC_DATA_ED_RW_A:
-		case DESC_CODE_N_NC_A:	case DESC_CODE_N_NC_NA:	case DESC_CODE_R_NC_A:	case DESC_CODE_R_NC_NA:
-			if (cpu.cpl>desc.DPL()) needs_invalidation=true; break;
-		default: break;	}
-	if (needs_invalidation) CPU_SetSegGeneral(ds,0);
 
-	needs_invalidation=false;
-	if (!cpu.gdt.GetDescriptor(SegValue(fs),desc)) needs_invalidation=true;
-	else switch (desc.Type()) {
-		case DESC_DATA_EU_RO_NA:	case DESC_DATA_EU_RO_A:	case DESC_DATA_EU_RW_NA:	case DESC_DATA_EU_RW_A:
-		case DESC_DATA_ED_RO_NA:	case DESC_DATA_ED_RO_A:	case DESC_DATA_ED_RW_NA:	case DESC_DATA_ED_RW_A:
-		case DESC_CODE_N_NC_A:	case DESC_CODE_N_NC_NA:	case DESC_CODE_R_NC_A:	case DESC_CODE_R_NC_NA:
-			if (cpu.cpl>desc.DPL()) needs_invalidation=true; break;
-		default: break;	}
-	if (needs_invalidation) CPU_SetSegGeneral(fs,0);
+    needs_invalidation=false;
+    if (!cpu.gdt.GetDescriptor(SegValue(es),desc)) {
+        needs_invalidation=true;
+    }
+    else {
+        switch (desc.Type()) {
+            case DESC_DATA_EU_RO_NA:    case DESC_DATA_EU_RO_A: case DESC_DATA_EU_RW_NA:    case DESC_DATA_EU_RW_A:
+            case DESC_DATA_ED_RO_NA:    case DESC_DATA_ED_RO_A: case DESC_DATA_ED_RW_NA:    case DESC_DATA_ED_RW_A:
+            case DESC_CODE_N_NC_A:      case DESC_CODE_N_NC_NA: case DESC_CODE_R_NC_A:      case DESC_CODE_R_NC_NA:
+                if (cpu.cpl>desc.DPL()) needs_invalidation=true;
+                break;
+            default:
+                break;
+        }
+    }
+    if (needs_invalidation)
+        CPU_SetSegGeneral(es,0);
 
-	needs_invalidation=false;
-	if (!cpu.gdt.GetDescriptor(SegValue(gs),desc)) needs_invalidation=true;
-	else switch (desc.Type()) {
-		case DESC_DATA_EU_RO_NA:	case DESC_DATA_EU_RO_A:	case DESC_DATA_EU_RW_NA:	case DESC_DATA_EU_RW_A:
-		case DESC_DATA_ED_RO_NA:	case DESC_DATA_ED_RO_A:	case DESC_DATA_ED_RW_NA:	case DESC_DATA_ED_RW_A:
-		case DESC_CODE_N_NC_A:	case DESC_CODE_N_NC_NA:	case DESC_CODE_R_NC_A:	case DESC_CODE_R_NC_NA:
-			if (cpu.cpl>desc.DPL()) needs_invalidation=true; break;
-		default: break;	}
-	if (needs_invalidation) CPU_SetSegGeneral(gs,0);
+
+    needs_invalidation=false;
+    if (!cpu.gdt.GetDescriptor(SegValue(ds),desc)) {
+        needs_invalidation=true;
+    }
+    else {
+        switch (desc.Type()) {
+            case DESC_DATA_EU_RO_NA:    case DESC_DATA_EU_RO_A: case DESC_DATA_EU_RW_NA:    case DESC_DATA_EU_RW_A:
+            case DESC_DATA_ED_RO_NA:    case DESC_DATA_ED_RO_A: case DESC_DATA_ED_RW_NA:    case DESC_DATA_ED_RW_A:
+            case DESC_CODE_N_NC_A:      case DESC_CODE_N_NC_NA: case DESC_CODE_R_NC_A:      case DESC_CODE_R_NC_NA:
+                if (cpu.cpl>desc.DPL()) needs_invalidation=true;
+                break;
+            default:
+                break;
+        }
+    }
+    if (needs_invalidation)
+        CPU_SetSegGeneral(ds,0);
+
+
+    needs_invalidation=false;
+    if (!cpu.gdt.GetDescriptor(SegValue(fs),desc)) {
+        needs_invalidation=true;
+    }
+    else {
+        switch (desc.Type()) {
+            case DESC_DATA_EU_RO_NA:    case DESC_DATA_EU_RO_A: case DESC_DATA_EU_RW_NA:    case DESC_DATA_EU_RW_A:
+            case DESC_DATA_ED_RO_NA:    case DESC_DATA_ED_RO_A: case DESC_DATA_ED_RW_NA:    case DESC_DATA_ED_RW_A:
+            case DESC_CODE_N_NC_A:      case DESC_CODE_N_NC_NA: case DESC_CODE_R_NC_A:      case DESC_CODE_R_NC_NA:
+                if (cpu.cpl>desc.DPL()) needs_invalidation=true;
+                break;
+            default:
+                break;
+        }
+    }
+    if (needs_invalidation)
+        CPU_SetSegGeneral(fs,0);
+
+
+    needs_invalidation=false;
+    if (!cpu.gdt.GetDescriptor(SegValue(gs),desc)) {
+        needs_invalidation=true;
+    }
+    else {
+        switch (desc.Type()) {
+            case DESC_DATA_EU_RO_NA:    case DESC_DATA_EU_RO_A: case DESC_DATA_EU_RW_NA:    case DESC_DATA_EU_RW_A:
+            case DESC_DATA_ED_RO_NA:    case DESC_DATA_ED_RO_A: case DESC_DATA_ED_RW_NA:    case DESC_DATA_ED_RW_A:
+            case DESC_CODE_N_NC_A:      case DESC_CODE_N_NC_NA: case DESC_CODE_R_NC_A:      case DESC_CODE_R_NC_NA:
+                if (cpu.cpl>desc.DPL()) needs_invalidation=true;
+                break;
+            default:
+                break;
+        }
+    }
+    if (needs_invalidation)
+        CPU_SetSegGeneral(gs,0);
 }
 
 
