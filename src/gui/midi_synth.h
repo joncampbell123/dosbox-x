@@ -163,7 +163,7 @@ public:
 		sfont_id = fluid_synth_sfload(synth_soft, conf, 0);
 		if (sfont_id == -1) {
 			extern std::string capturedir;
-			std::string str = capturedir + PATH_SEP + conf;
+			std::string str = capturedir + PATH_SEP + conf; /* <- GCC 4.8 "Statement has no effect" -Wunused-param? What?? */
 			sfont_id = fluid_synth_sfload(synth_soft, str.c_str(), 0);
 		}
 
