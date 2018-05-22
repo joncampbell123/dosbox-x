@@ -10,10 +10,12 @@
 #include <limits.h>
 
 #if defined(WIN32)
-#include <windows.h>
-#include <io.h>
+# include <windows.h>
+# include <io.h>
 
-#pragma warning(disable:4996)
+# if defined(_MSC_VER)
+#  pragma warning(disable:4996)
+# endif
 #endif
 
 #if defined(WIN32) && !defined(strcasecmp)
