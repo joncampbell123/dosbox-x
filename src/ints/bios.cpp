@@ -105,6 +105,7 @@ static void bochs_port_e9_flush() {
 }
 
 void bochs_port_e9_write(Bitu port,Bitu val,Bitu /*iolen*/) {
+    (void)port;//UNUSED
 	if (val == '\n' || val == '\r') {
 		bochs_port_e9_flush();
 	}
@@ -448,6 +449,7 @@ void dosbox_integration_trigger_write() {
  *      read one byte out of 4. */
 
 static Bitu dosbox_integration_port00_index_r(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
 	Bitu retb = 0;
 	Bitu ret = 0;
 
@@ -462,6 +464,7 @@ static Bitu dosbox_integration_port00_index_r(Bitu port,Bitu iolen) {
 }
 
 static void dosbox_integration_port00_index_w(Bitu port,Bitu val,Bitu iolen) {
+    (void)port;//UNUSED
 	uint32_t msk;
 
     while (iolen > 0) {
@@ -474,6 +477,7 @@ static void dosbox_integration_port00_index_w(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static Bitu dosbox_integration_port01_data_r(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
 	Bitu retb = 0;
 	Bitu ret = 0;
 
@@ -489,6 +493,7 @@ static Bitu dosbox_integration_port01_data_r(Bitu port,Bitu iolen) {
 }
 
 static void dosbox_integration_port01_data_w(Bitu port,Bitu val,Bitu iolen) {
+    (void)port;//UNUSED
 	uint32_t msk;
 
     while (iolen > 0) {
@@ -502,6 +507,8 @@ static void dosbox_integration_port01_data_w(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static Bitu dosbox_integration_port02_status_r(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	/* status */
     /* 7:6 = regsel byte index
      * 5:4 = register byte index
@@ -513,6 +520,8 @@ static Bitu dosbox_integration_port02_status_r(Bitu port,Bitu iolen) {
 }
 
 static void dosbox_integration_port02_command_w(Bitu port,Bitu val,Bitu iolen) {
+    (void)port;
+    (void)iolen;
     switch (val) {
         case 0x00: /* reset latch */
             dosbox_int_register_shf = 0;
@@ -583,6 +592,8 @@ static const IO_ReadHandler* dosbox_integration_cb_ports_r[4] = {
 };
 
 static IO_ReadHandler* dosbox_integration_cb_port_r(IO_CalloutObject &co,Bitu port,Bitu iolen) {
+    (void)co;
+    (void)iolen;
     return dosbox_integration_cb_ports_r[port&3];
 }
 
@@ -594,6 +605,8 @@ static const IO_WriteHandler* dosbox_integration_cb_ports_w[4] = {
 };
 
 static IO_WriteHandler* dosbox_integration_cb_port_w(IO_CalloutObject &co,Bitu port,Bitu iolen) {
+    (void)co;
+    (void)iolen;
     return dosbox_integration_cb_ports_w[port&3];
 }
 
@@ -789,6 +802,8 @@ void ISAPnPDevice::write_End_Dependent_Functions() {
 }
 
 void ISAPnPDevice::write_nstring(const char *str,const size_t l) {
+    (void)l;
+
 	if (alloc_res == NULL || alloc_write >= alloc_sz) return;
 
 	while (*str != 0 && alloc_write < alloc_sz)
@@ -833,9 +848,11 @@ void ISAPnPDevice::end_write_res() {
 }
 
 void ISAPnPDevice::config(Bitu val) {
+    (void)val;
 }
 
 void ISAPnPDevice::wakecsn(Bitu val) {
+    (void)val;
 	ident_bp = 0;
 	ident_2nd = 0;
 	resource_data_pos = 0;
@@ -843,6 +860,7 @@ void ISAPnPDevice::wakecsn(Bitu val) {
 }
 
 void ISAPnPDevice::select_logical_device(Bitu val) {
+    (void)val;
 }
 	
 void ISAPnPDevice::checksum_ident() {
@@ -864,10 +882,13 @@ void ISAPnPDevice::on_pnp_key() {
 }
 
 uint8_t ISAPnPDevice::read(Bitu addr) {
+    (void)addr;
 	return 0x00;
 }
 
 void ISAPnPDevice::write(Bitu addr,Bitu val) {
+    (void)addr;
+    (void)val;
 }
 
 #define MAX_ISA_PNP_DEVICES		64
@@ -969,6 +990,7 @@ void ISA_PNP_devreg(ISAPnPDevice *x) {
 }
 
 static Bitu isapnp_read_port(Bitu port,Bitu /*iolen*/) {
+    (void)port;//UNUSED
 	Bitu ret=0xff;
 
 	switch (ISA_PNP_CUR_ADDR) {
@@ -1138,6 +1160,7 @@ static Bitu INT15_Handler(void);
 //        Need to separate APM BIOS init from ISA PNP init from ISA PNP BIOS init!
 //        It might also be appropriate to move this into the BIOS init sequence.
 void ISAPNP_Cfg_Reset(Section *sec) {
+    (void)sec;//UNUSED
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("cpu"));
 
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing ISA PnP emulation");
@@ -2376,7 +2399,7 @@ extern bool                         pc98_31khz_mode;
 extern bool                         pc98_attr4_graphic;
 
 void pc98_update_text_layer_lineheight_from_bda(void) {
-    unsigned char c = mem_readb(0x53C);
+//    unsigned char c = mem_readb(0x53C);
     unsigned char lineheight = mem_readb(0x53B) + 1;
 
     pc98_gdc[GDC_MASTER].force_fifo_complete();
@@ -5064,6 +5087,7 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
             }
             else if (*s == '\r') {
                 s++; /* ignore */
+                continue;
             }
             else {
                 bo = ((y * 80) + (bios_pc98_posx++)) * 2; /* NTS: note the post increment */
@@ -6351,6 +6375,9 @@ private:
 				case MCH_AMSTRAD:
 					card = "Amstrad graphics";
 					break;
+                default:
+                    abort(); // should not happen
+                    break;
 			};
 
 			sprintf(tmp,"Video card is %s\n",card);
@@ -6974,6 +7001,7 @@ void BIOS_Destroy(Section* /*sec*/){
 }
 
 void BIOS_OnPowerOn(Section* sec) {
+    (void)sec;//UNUSED
 	if (test) delete test;
 	test = new BIOS(control->GetSection("joystick"));
 }
@@ -6988,6 +7016,7 @@ void MOUSE_Unsetup_DOS(void);
 void MOUSE_Unsetup_BIOS(void);
 
 void BIOS_OnResetComplete(Section *x) {
+    (void)x;//UNUSED
     INT10_OnResetComplete();
 
     if (biosConfigSeg != 0) {

@@ -1155,6 +1155,7 @@ Bit8u imageDiskVFD::Write_AbsoluteSector(Bit32u sectnum, void *data) {
 }
 
 imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) : imageDisk(ID_VFD) {
+    (void)isHardDisk;//UNUSED
     unsigned char tmp[16];
 
 	heads = 1;
