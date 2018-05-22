@@ -252,6 +252,12 @@ design as implemented now cannot accomodate.
   fork is and what system it is emulating, so I can list it in
   this README file for others seeking emulation of that system.
 
+  To help, I have added machine and video mode enumerations as
+  "stubs" to provide a starting point for your branch's implementation
+  of the platform.
+
+  Stubs implemented so far:
+    - FM Towns emulation (machine=fm_towns)
 
 
 Origins, and crediting of source code

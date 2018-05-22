@@ -2753,6 +2753,9 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		"M_HERC_GFX", "M_HERC_TEXT",
 		"M_CGA16", "M_TANDY2", "M_TANDY4", "M_TANDY16", "M_TANDY_TEXT",
         "M_AMSTRAD", "M_PC98",
+
+        "M_FM_TOWNS",//STUB
+
 		"M_ERROR"
 	};
 

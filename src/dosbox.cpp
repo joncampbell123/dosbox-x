@@ -779,6 +779,9 @@ void DOSBOX_RealInit() {
 	else if (mtype == "pc98")          { machine = MCH_PC98; }
 	else if (mtype == "pc9801")        { machine = MCH_PC98; } /* Future differentiation */
 	else if (mtype == "pc9821")        { machine = MCH_PC98; } /* Future differentiation */
+
+	else if (mtype == "fm_towns")      { machine = MCH_FM_TOWNS; }
+
 	else E_Exit("DOSBOX:Unknown machine type %s",mtype.c_str());
 
 	// TODO: should be parsed by motherboard emulation
@@ -817,6 +820,9 @@ void DOSBOX_RealInit() {
 	clockdom_8250_UART.set_name("8250 UART");
 	clockdom_ISA_BCLK.set_name("ISA BCLK");
 	clockdom_PCI_BCLK.set_name("PCI BCLK");
+
+    // FM TOWNS is stub!!!
+    if (IS_FM_TOWNS) E_Exit("FM Towns emulation not yet implemented");
 }
 
 void DOSBOX_SetupConfigSections(void) {
@@ -885,7 +891,11 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* machines[] = {
 		"hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega",
 		"vgaonly", "svga_s3", "svga_et3000", "svga_et4000",
-		"svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", "pc9801", "pc9821", 0 };
+		"svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", "pc9801", "pc9821",
+
+        "fm_towns", // STUB
+
+        0 };
 
 	const char* scalers[] = { 
 		"none", "normal2x", "normal3x", "normal4x", "normal5x",
