@@ -2590,7 +2590,7 @@ void DoExtendedKeyboardHook(bool enable) {
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
     if (enable) {
         if (!exthook_winhook) {
-            exthook_winhook = SetWindowsHookEx(WH_KEYBOARD_LL, WinExtHookKeyboardHookProc, GetModuleHandle(NULL), NULL);
+            exthook_winhook = SetWindowsHookEx(WH_KEYBOARD_LL, WinExtHookKeyboardHookProc, GetModuleHandle(NULL), 0);
             if (exthook_winhook == NULL) return;
         }
 
@@ -4880,7 +4880,7 @@ search:
 
         SetCurrentDirectory( Temp_CurrentDir );
         do {
-            shell.Execute(name1," ");
+            shell.Execute(name1,(char*)(" "));
             if(!strcmp(ext,".bat")) shell.RunInternal();
             if (!strlen(name)) break;
         } while (1);
@@ -4951,7 +4951,7 @@ search:
 
         if((!strcmp(ext,".img")) || (!strcmp(ext,".pcjr")) || (!strcmp(ext,".jrc")) || (!strcmp(ext,".ima"))) {
             extern Bitu ZDRIVE_NUM;
-            char root[4] = {'A'+ZDRIVE_NUM,':','\\',0};
+            char root[4] = {(char)('A'+ZDRIVE_NUM),':','\\',0};
             char cmd[20];
             DOS_Shell shell;
             Bit16u n=1; Bit8u c='\n';
@@ -4996,7 +4996,7 @@ void Go_Boot2(const char boot_drive[_MAX_DRIVE]) {
     DOS_WriteFile(STDOUT,&c,&n);
     char temp[7];
     extern Bitu ZDRIVE_NUM;
-    char root[4] = {'A'+ZDRIVE_NUM,':','\\',0};
+    char root[4] = {(char)('A'+ZDRIVE_NUM),':','\\',0};
     char cmd[20];
     temp[0] = 0;
     cmd[0] = 0;
@@ -5052,7 +5052,7 @@ void Drag_Drop( char * path_arg ) {
 HHOOK hhk;
 LRESULT CALLBACK CBTProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 #if !defined(HX_DOS)
-    lParam;
+    (void)lParam;
     if( HCBT_ACTIVATE == nCode ) {
         HWND hChildWnd;
         hChildWnd = (HWND)wParam;
@@ -5182,10 +5182,10 @@ void D3D_PS(void) {
     OpenFileName.lpTemplateName = NULL;
     OpenFileName.Flags = OFN_EXPLORER;
 
-search:
+//search:
     if(GetOpenFileName( &OpenFileName )) {
-        WIN32_FIND_DATA FindFileData;
-        HANDLE hFind;
+//        WIN32_FIND_DATA FindFileData;
+//        HANDLE hFind;
         char drive  [_MAX_DRIVE]; 
         char dir    [_MAX_DIR]; 
         char fname  [_MAX_FNAME]; 
