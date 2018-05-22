@@ -174,7 +174,7 @@ bool initPorttalk() {
             }
 
         }
-        for(int i = 0; i < sizeof(ioperm); i++) ioperm[i]=0xff;
+        for(size_t i = 0; i < sizeof(ioperm); i++) ioperm[i]=0xff;
         int retval;
 
         DeviceIoControl(    porttalkhandle,
@@ -203,7 +203,7 @@ bool setPermissionList() {
         int reetval=0;
         Bit32u retval=0;
         //output permission list to driver
-        for(int i = 0; i < sizeof(ioperm);i++) {
+        for(size_t i = 0; i < sizeof(ioperm);i++) {
             b.offset=i;
             b.value=ioperm[i];
             
