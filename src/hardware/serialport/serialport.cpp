@@ -73,6 +73,7 @@ bool device_COM::Write(Bit8u * data,Bit16u * size) {
 }
 
 bool device_COM::Seek(Bit32u * pos,Bit32u type) {
+    (void)type;//UNUSED
 	*pos = 0;
 	return true;
 }
@@ -102,6 +103,7 @@ device_COM::~device_COM() {
 CSerial* serialports[4] ={0,0,0,0};
 
 static Bitu SERIAL_Read (Bitu port, Bitu iolen) {
+    (void)iolen;//UNUSED
 	Bitu i;
 	Bitu retval;
 	Bitu index = port & 0x7;
@@ -890,6 +892,8 @@ void CSerial::Write_SPR (Bit8u data) {
 /* Write_reserved                                                           **/
 /*****************************************************************************/
 void CSerial::Write_reserved (Bit8u data, Bit8u address) {
+    (void)data;//UNUSED
+    (void)address;//UNUSED
 	/*LOG_UART("Serial%d: Write to reserved register, value 0x%x, register %x",
 		COMNUMBER, data, address);*/
 }
@@ -1195,7 +1199,7 @@ CSerial::~CSerial(void) {
 		delete errorfifo;
 		errorfifo = NULL;
 	}
-};
+}
 
 bool CSerial::Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout) {
 	double starttime=PIC_FullIndex();
@@ -1373,6 +1377,7 @@ public:
 static SERIALPORTS *testSerialPortsBaseclass;
 
 void SERIAL_Destroy (Section * sec) {
+    (void)sec;//UNUSED
 	if (testSerialPortsBaseclass) {
 		LOG(LOG_MISC,LOG_DEBUG)("Deleting serial port base class");
 		delete testSerialPortsBaseclass;
@@ -1381,6 +1386,7 @@ void SERIAL_Destroy (Section * sec) {
 }
 
 void SERIAL_OnPowerOn (Section * sec) {
+    (void)sec;//UNUSED
 	// should never happen
 	LOG(LOG_MISC,LOG_DEBUG)("Reinitializing serial emulation");
 	if (testSerialPortsBaseclass) delete testSerialPortsBaseclass;
@@ -1388,6 +1394,7 @@ void SERIAL_OnPowerOn (Section * sec) {
 }
 
 void SERIAL_OnDOSKernelInit (Section * sec) {
+    (void)sec;//UNUSED
 	unsigned int i;
 
 	LOG(LOG_MISC,LOG_DEBUG)("DOS kernel initializing, creating COMx devices");
@@ -1399,6 +1406,7 @@ void SERIAL_OnDOSKernelInit (Section * sec) {
 }
 
 void SERIAL_OnDOSKernelExit (Section * sec) {
+    (void)sec;//UNUSED
 	unsigned int i;
 
 	for (i=0;i < 3;i++) {
@@ -1408,6 +1416,7 @@ void SERIAL_OnDOSKernelExit (Section * sec) {
 }
 
 void SERIAL_OnReset (Section * sec) {
+    (void)sec;//UNUSED
 	unsigned int i;
 
 	// FIXME: Unregister/destroy the DOS devices, but consider that the DOS kernel at reset is gone.
