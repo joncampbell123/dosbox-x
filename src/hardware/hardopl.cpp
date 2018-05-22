@@ -171,6 +171,9 @@ void HWOPL_Cleanup() {
 
 void HWOPL_Cleanup() {}
 void HARDOPL_Init(Bitu hardwareaddr, Bitu blasteraddr, bool isCMSp) {
+    (void)hardwareaddr;//UNUSED
+    (void)blasteraddr;//UNUSED
+    (void)isCMSp;//UNUSED
 	LOG_MSG("OPL passthrough is not supported on this operating system.");
 }
 #endif

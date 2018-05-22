@@ -42,6 +42,8 @@ static bool voodoo_pci_enabled = false;
 static MEM_Callout_t voodoo_lfb_cb = MEM_Callout_t_none;
 
 PageHandler* voodoo_lfb_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
+    (void)phys_page;//UNUSED
+    (void)co;//UNUSED
     if (voodoo_current_lfb == 0)
         return NULL;
 

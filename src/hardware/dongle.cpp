@@ -61,6 +61,8 @@ static unsigned short MEMORY[0x40]=
 //#include <windows.h>
 
 static void dongle_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	static int DI, SK;
 	/*
 	LOG(LOG_MISC,LOG_NORMAL)("write dongle port=%x val=%d%d%d%d%d%d%d%d\n",
@@ -131,6 +133,8 @@ static void dongle_write(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static Bitu dongle_read(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	Bitu retval;
 	switch (port-DONGLE_BASE) 
 	{
@@ -174,6 +178,7 @@ public:
 static DONGLE* test = NULL;
 
 static void DONGLE_ShutDown(Section* sec){
+    (void)sec;//UNUSED
     if (test) {
         delete test;
         test = NULL;
@@ -181,6 +186,7 @@ static void DONGLE_ShutDown(Section* sec){
 }
 
 void DONGLE_OnReset(Section* sec) {
+    (void)sec;//UNUSED
 	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating parallel dongle emulation");
 		test = new DONGLE(control->GetSection("parallel"));
