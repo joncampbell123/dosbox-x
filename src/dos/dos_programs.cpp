@@ -2264,7 +2264,7 @@ static void INTRO_ProgramStart(Program * * make) {
 }
 
 bool ElTorito_ScanForBootRecord(CDROM_Interface *drv,unsigned long &boot_record,unsigned long &el_torito_base) {
-	char buffer[2048];
+	unsigned char buffer[2048];
 	unsigned int sec;
 
 	for (sec=16;sec < 32;sec++) {
@@ -2311,6 +2311,8 @@ public:
 		return 0x00;
 	}
 	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data) {
+        (void)sectnum;//UNUSED
+        (void)data;//UNUSED
 		return 0x05; /* fail, read only */
 	}
 	imageDiskElToritoFloppy(unsigned char new_CDROM_drive,unsigned long new_cdrom_sector_offset,unsigned char floppy_emu_type) : imageDisk(NULL,NULL,0,false) {
@@ -2380,7 +2382,6 @@ public:
 			return;
 		}
 		//initialize variables
-		DOS_Drive * newdrive = NULL;
 		imageDisk * newImage = NULL;
 		char drive;
 		std::vector<std::string> paths;
@@ -2560,7 +2561,7 @@ public:
 			unsigned char driveIndex = drive - '0';
 
             if (paths.size() > 1) {
-                if (driveIndex >= 0 && driveIndex <= 1) {
+                if (driveIndex <= 1) {
                     if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1 &&
                         swapInDisksSpecificDrive != driveIndex) {
                         WriteOut("Multiple images given and another drive already uses multiple images");
@@ -2630,8 +2631,6 @@ public:
 			return;
 		}
 
-		// check if volume label is given. becareful for cdrom
-		//if (cmd->FindString("-label",label,true)) newdrive->dirCache.SetLabel(label.c_str());
 		return;
 	}
 
@@ -3000,6 +2999,8 @@ private:
 	bool MountElToritoFat(const char drive, const Bitu sizes[], const char el_torito_cd_drive, const unsigned long el_torito_floppy_base, const unsigned char el_torito_floppy_type) {
 		unsigned char driveIndex = drive - 'A';
 
+        (void)sizes;//UNUSED
+
 		if (driveIndex > 1) {
 			WriteOut("Invalid drive letter");
 			return false;
@@ -3091,6 +3092,7 @@ private:
 								errorMessage = (char*)MSG_Get("VHD_PARENT_INVALID_MATCH"); break;
 							case imageDiskVHD::PARENT_INVALID_DATE: 
 								errorMessage = (char*)MSG_Get("VHD_PARENT_INVALID_DATE"); break;
+                            default: break;
 							}
 						}
 					}
@@ -3269,7 +3271,7 @@ private:
 		if (!AttachToBiosByIndex(image, bios_drive_index)) return false;
 		//if hard drive image, and if ide controller is specified
 		if (bios_drive_index >= 2 || bios_drive_index < MAX_DISK_IMAGES) {
-			if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index, ide_slave, bios_drive_index);
+			IDE_Hard_Disk_Attach(ide_index, ide_slave, bios_drive_index);
 			updateDPT();
 		}
 		return true;
@@ -3561,6 +3563,7 @@ private:
 					case imageDiskVHD::PARENT_UNSUPPORTED_TYPE: WriteOut(MSG_Get("VHD_PARENT_UNSUPPORTED_TYPE")); break;
 					case imageDiskVHD::PARENT_INVALID_MATCH: WriteOut(MSG_Get("VHD_PARENT_INVALID_MATCH")); break;
 					case imageDiskVHD::PARENT_INVALID_DATE: WriteOut(MSG_Get("VHD_PARENT_INVALID_DATE")); break;
+                    default: break;
 					}
 					return newImage;
 				}
