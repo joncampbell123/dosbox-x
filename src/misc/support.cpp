@@ -166,6 +166,7 @@ Bits ConvHexWord(char * word) {
 }
 
 double ConvDblWord(char * word) {
+    (void)word;//UNUSED
 	return 0.0f;
 }
 

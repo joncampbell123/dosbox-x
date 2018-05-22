@@ -237,6 +237,7 @@ static bool LocateEnvironmentBlock(PhysPt &env_base,PhysPt &env_fence,Bitu env_s
 }
 
 int EnvPhys_StrCmp(PhysPt es,PhysPt ef,const char *ls) {
+    (void)ef;//UNUSED
 	unsigned char a,b;
 
 	while (1) {
@@ -506,6 +507,7 @@ private:
 	void restart(const char* useconfig);
 	
 	void writeconf(std::string name, bool configdir,bool everything) {
+        (void)configdir;//UNUSED
 #if 0 /* I'd rather have an option stating the user wants to write to user homedir */
 		if (configdir) {
 			// write file to the default config directory

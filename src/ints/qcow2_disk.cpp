@@ -330,6 +330,7 @@ using namespace std;
 
 //Read a table entry at the given offset.
 	inline Bit8u QCow2Image::read_table(Bit64u entry_offset, Bit64u entry_mask, Bit64u& entry_value){
+        (void)entry_mask;//UNUSED
 		Bit64u buffer;
 		if (0 != read_allocated_data(entry_offset, (Bit8u*)&buffer, sizeof buffer)){
 			return 0x05;

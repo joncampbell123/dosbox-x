@@ -651,6 +651,7 @@ bool Section_line::HandleInputline(string const& line){
 }
 
 void Section_line::PrintData(FILE* outfile,bool everything) {
+    (void)everything;//UNUSED
 	fprintf(outfile,"%s",data.c_str());
 }
 
@@ -750,6 +751,8 @@ bool Config::PrintConfig(char const * const configfilename,bool everything) cons
    
 
 Section_prop* Config::AddSection_prop(char const * const _name,void (*_initfunction)(Section*),bool canchange){
+    (void)_initfunction;//UNUSED
+    (void)canchange;//UNUSED
 	Section_prop* blah = new Section_prop(_name);
 	sectionlist.push_back(blah);
 	return blah;
@@ -763,6 +766,7 @@ Section_prop::~Section_prop() {
 
 
 Section_line* Config::AddSection_line(char const * const _name,void (*_initfunction)(Section*)){
+    (void)_initfunction;//UNUSED
 	Section_line* blah = new Section_line(_name);
 	sectionlist.push_back(blah);
 	return blah;
@@ -810,7 +814,7 @@ VMDispatchState vm_dispatch_state;
 const char *GetVMEventName(enum vm_event event) {
 	if (event >= VM_EVENT_MAX) return "";
 	return VM_EVENT_string[event];
-};
+}
 
 void DispatchVMEvent(enum vm_event event) {
 	assert(event < VM_EVENT_MAX);
@@ -948,7 +952,7 @@ bool CommandLine::FindHex(char const * const name,int & value,bool remove) {
 	cmd_it it,it_next;
 	if (!(FindEntry(name,it,true))) return false;
 	it_next=it;it_next++;
-	sscanf((*it_next).c_str(),"%X",&value);
+	sscanf((*it_next).c_str(),"%X",(unsigned int*)(&value));
 	if (remove) cmds.erase(it,++it_next);
 	return true;
 }
