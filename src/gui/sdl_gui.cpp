@@ -134,10 +134,10 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	}
 
     if (!fs) {
-        if (w < currentWindowWidth)
-            w = currentWindowWidth;
-        if (h < currentWindowHeight)
-            h = currentWindowHeight;
+        if (w < (int)currentWindowWidth)
+            w = (int)currentWindowWidth;
+        if (h < (int)currentWindowHeight)
+            h = (int)currentWindowHeight;
     }
 
 	old_unicode = SDL_EnableUNICODE(1);
@@ -318,6 +318,8 @@ public:
 	virtual bool prepare(std::string &buffer) = 0;
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        (void)arg;//UNUSED
 		std::string line;
 		if (prepare(line)) {
 			prop->SetValue(GUI::String(line));
@@ -572,6 +574,8 @@ public:
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        (void)arg;//UNUSED
 		if (arg == "OK") control->PrintConfig(name->getText());
 		close();
 		if(shortcut) running=false;
@@ -592,6 +596,7 @@ public:
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
 		if (arg == "OK") MSG_Write(name->getText());
 		close();
 		if(shortcut) running=false;
@@ -654,6 +659,7 @@ public:
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
 		if (arg == "OK") {
 			Section* sec = control->GetSection("cpu");
 			if (sec) {
@@ -685,6 +691,7 @@ public:
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
 		Section_prop * sec = static_cast<Section_prop *>(control->GetSection("vsync"));
 		if (arg == "OK") {
 			if (sec) {
@@ -720,6 +727,7 @@ public:
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
 		if (arg == "OK") {
 			extern unsigned int hdd_defsize;
 			int human_readable = atoi(name->getText());
