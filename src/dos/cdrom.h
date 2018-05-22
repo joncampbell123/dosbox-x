@@ -115,7 +115,7 @@ public:
 	virtual bool	PlayAudioSector		(unsigned long start,unsigned long len);
 	virtual bool	PauseAudio			(bool resume);
 	virtual bool	StopAudio			(void);
-	virtual void	ChannelControl		(TCtrl ctrl) { return; };
+	virtual void	ChannelControl		(TCtrl ctrl) { (void)ctrl; return; };
 	virtual bool	ReadSectors			(PhysPt /*buffer*/, bool /*raw*/, unsigned long /*sector*/, unsigned long /*num*/) { return false; };
 	/* This is needed for IDE hack, who's buffer does not exist in DOS physical memory */
 	virtual bool	ReadSectorsHost			(void* buffer, bool raw, unsigned long sector, unsigned long num);
@@ -146,7 +146,7 @@ public:
 	bool	PlayAudioSector		(unsigned long /*start*/,unsigned long /*len*/) { return true; };
 	bool	PauseAudio			(bool /*resume*/) { return true; };
 	bool	StopAudio			(void) { return true; };
-	void	ChannelControl		(TCtrl ctrl) { return; };
+	void	ChannelControl		(TCtrl ctrl) { (void)ctrl; return; };
 	bool	ReadSectors			(PhysPt /*buffer*/, bool /*raw*/, unsigned long /*sector*/, unsigned long /*num*/) { return true; };
 	/* This is needed for IDE hack, who's buffer does not exist in DOS physical memory */
 	bool	ReadSectorsHost			(void* buffer, bool raw, unsigned long sector, unsigned long num);
