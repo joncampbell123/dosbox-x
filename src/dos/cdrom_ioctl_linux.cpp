@@ -100,7 +100,11 @@ bool CDROM_Interface_Ioctl::SetDevice(char* path, int forceCD)
 
 bool CDROM_Interface_Ioctl::ReadSectorsHost(void *buffer, bool raw, unsigned long sector, unsigned long num)
 {
+    (void)buffer;//UNUSED
+    (void)sector;//UNUSED
+    (void)raw;//UNUSED
+    (void)num;//UNUSED
 	return false;/*TODO*/
-};
+}
 
 #endif

@@ -1308,6 +1308,7 @@ void DOS_KeyboardLayout_ShutDown(Section* /*sec*/) {
 }
 
 void DOS_KeyboardLayout_Startup(Section* sec) {
+    (void)sec;//UNUSED
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Reinitializing DOS keyboard layout support");
 		test = new DOS_KeyboardLayout(control->GetSection("dos"));

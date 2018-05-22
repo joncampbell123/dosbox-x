@@ -108,6 +108,8 @@ void CDROM_Interface_Image::InitNewMedia()
 
 bool CDROM_Interface_Image::SetDevice(char* path, int forceCD)
 {
+    (void)forceCD;//UNUSED
+    (void)path;//UNUSED
 	if (LoadCueSheet(path)) return true;
 	if (LoadIsoFile(path)) return true;
 	
@@ -243,6 +245,7 @@ bool CDROM_Interface_Image::ReadSectorsHost(void *buffer, bool raw, unsigned lon
 
 bool CDROM_Interface_Image::LoadUnloadMedia(bool unload)
 {
+    (void)unload;//UNUSED
 	return true;
 }
 
