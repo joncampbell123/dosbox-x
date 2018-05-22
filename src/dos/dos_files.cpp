@@ -442,6 +442,9 @@ bool DOS_LockFile(Bit16u entry,Bit8u mode,Bit32u pos,Bit32u size) {
 #ifdef WIN32
 	return Files[handle]->LockFile(mode,pos,size);
 #else
+    (void)mode;//UNUSED
+    (void)size;//UNUSED
+    (void)pos;//UNUSED
 	return true;
 #endif
 }
@@ -1352,7 +1355,7 @@ bool DOS_SetFileDate(Bit16u entry, Bit16u ntime, Bit16u ndate)
 	Files[handle]->newtime = true;
 
 	return true;
-};
+}
 
 void DOS_SetupFiles (void) {
 	/* Setup the File Handles */
