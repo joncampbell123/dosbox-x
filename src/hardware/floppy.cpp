@@ -183,10 +183,11 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 			fdc->current_cylinder[devidx] = 0;
 			fdc->motor_steps = 0;
 		}
-		else if (fdc->current_cylinder[devidx] > 255) {
+/* NTS: fdc->current_cylinder[] is unsigned char, will never exceed 255 */
+/*		else if (fdc->current_cylinder[devidx] > 255) {
 			fdc->current_cylinder[devidx] = 255;
 			fdc->motor_steps = 0;
-		}
+		} */
 
 		if (dev != NULL)
 			dev->motor_step(fdc->motor_dir);
@@ -247,6 +248,7 @@ FloppyDevice::~FloppyDevice() {
 }
 
 FloppyDevice::FloppyDevice(FloppyController *c) {
+    (void)c;//UNUSED
 	motor = select = false;
 	current_track = 0;
 	int13_disk = -1;
@@ -263,7 +265,7 @@ void FloppyDevice::set_motor(bool enable) {
 
 void FloppyDevice::motor_step(int dir) {
 	current_track += dir;
-	if (current_track < 0) current_track = 0;
+//	if (current_track < 0) current_track = 0;
 	if (current_track > 84) current_track = 84;
 	track0 = (current_track == 0);
 }
@@ -277,6 +279,7 @@ bool FloppyController::dma_irq_enabled() {
 }
 
 static void FDC_Destroy(Section* sec) {
+    (void)sec;//UNUSED
 	for (unsigned int i=0;i < MAX_FLOPPY_CONTROLLERS;i++) {
 		if (floppycontroller[i] != NULL) {
 			delete floppycontroller[i];
@@ -312,6 +315,7 @@ static void FDC_Init(Section* sec,unsigned char fdc_interface) {
 }
 
 void FDC_OnReset(Section *sec) {
+    (void)sec;//UNUSED
 	FDC_Init(control->GetSection("fdc, primary"),0);
 }
 
