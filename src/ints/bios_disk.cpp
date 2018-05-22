@@ -1009,7 +1009,7 @@ Bit8u imageDiskVFD::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void *
 
     if (ent->hasSectorData()) {
         fseek(diskimg,ent->data_offset,SEEK_SET);
-        if (ftell(diskimg) != ent->data_offset) return 0x05;
+        if ((uint32_t)ftell(diskimg) != ent->data_offset) return 0x05;
         if (fread(data,req_sector_size,1,diskimg) != 1) return 0x05;
         return 0;
     }
