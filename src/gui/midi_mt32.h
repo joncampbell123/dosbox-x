@@ -98,6 +98,8 @@ public:
     }
 
 	bool Open(const char *conf) {
+        (void)conf;//UNUSED
+
 		MT32Emu::FileStream controlROMFile;
 		MT32Emu::FileStream pcmROMFile;
 

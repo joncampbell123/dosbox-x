@@ -707,6 +707,8 @@ void MIDI_Init() {
 }
 
 void MIDI_GUI_OnSectionPropChange(Section *x) {
+    (void)x;//UNUSED
+
 	if (test != NULL) {
 		delete test;
 		test = NULL;

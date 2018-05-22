@@ -229,8 +229,8 @@ public:
 	virtual void process(const float *inLeft, const float *inRight, float *outLeft, float *outRight, unsigned long numSamples) = 0;
 	virtual bool isActive() const = 0;
 	
-	virtual void saveState( std::ostream &stream ) {}
-	virtual void loadState( std::istream &stream ) {}
+	virtual void saveState( std::ostream &stream ) { (void)stream; }
+	virtual void loadState( std::istream &stream ) { (void)stream; }
 };
 
 class ReportHandler {

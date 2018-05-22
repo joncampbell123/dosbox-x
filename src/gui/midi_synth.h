@@ -29,6 +29,8 @@ static fluid_synth_t *synth_soft = NULL;
 static int synthsamplerate = 0;
 
 static void synth_log(int level, char *message, void *data) {
+    (void)data;//UNUSED
+
 	switch (level) {
 	case FLUID_PANIC:
 	case FLUID_ERR:
