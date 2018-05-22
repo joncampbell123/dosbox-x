@@ -116,6 +116,7 @@ void RENDER_SetPal(Bit8u entry,Bit8u red,Bit8u green,Bit8u blue) {
 }
 
 static void RENDER_EmptyLineHandler(const void * src) {
+    (void)src;//UNUSED
 }
 
 /*HACK*/
@@ -743,6 +744,7 @@ void RENDER_UpdateFrameskipMenu(void) {
 void VGA_SetupDrawing(Bitu /*val*/);
 
 void RENDER_OnSectionPropChange(Section *x) {
+    (void)x;//UNUSED
 	Section_prop * section = static_cast<Section_prop *>(control->GetSection("render"));
 
     bool p_doublescan = vga.draw.doublescan_set;

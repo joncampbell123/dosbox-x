@@ -1584,18 +1584,14 @@ public:
         invert=false;
 	}
 	virtual void Draw(void) {
-        Bit8u fg,bg;
+        Bit8u bg;
 
 		if (!enabled) return;
 
-        if (!invert) {
-            fg = color;
+        if (!invert)
             bg = bkcolor;
-        }
-        else {
-            fg = bkcolor;
+        else
             bg = color;
-        }
 
 #if defined(C_SDL2)
         Bit8u * point=((Bit8u *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
@@ -2195,6 +2191,9 @@ public:
         case MK_escape:
             key=SDLK_ESCAPE;
             break;
+        default:
+            *buf = 0;
+            return;
 		}
 		sprintf(buf,"%s \"key %d%s%s%s%s\"",
 			entry,
