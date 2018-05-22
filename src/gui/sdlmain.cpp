@@ -3076,6 +3076,40 @@ void GFX_RestoreMode(void) {
     GFX_ResetScreen();
 }
 
+#if !defined(C_SDL2)
+static bool GFX_GetSurfacePtrLock = false;
+
+unsigned char *GFX_GetSurfacePtr(size_t *pitch, unsigned int x, unsigned int y) {
+	if (sdl.surface->pixels == NULL) {
+		if (!GFX_GetSurfacePtrLock) {
+			if (SDL_MUSTLOCK(sdl.surface) && SDL_LockSurface(sdl.surface))
+				return NULL;
+
+			GFX_GetSurfacePtrLock = true;
+		}
+	}
+
+	*pitch = sdl.surface->pitch;
+	if (sdl.surface->pixels != NULL) {
+		unsigned char *p = (unsigned char*)(sdl.surface->pixels);
+		p += y * sdl.surface->pitch;
+		p += x * (sdl.surface->format->BitsPerPixel >> 3U);
+		return p;
+	}
+
+	return NULL;
+}
+
+void GFX_ReleaseSurfacePtr(void) {
+	if (GFX_GetSurfacePtrLock) {
+		if (SDL_MUSTLOCK(sdl.surface))
+			SDL_UnlockSurface(sdl.surface);
+ 
+		GFX_GetSurfacePtrLock = false;
+	}
+}
+#endif
+
 bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
 	if (!sdl.active || sdl.updating)
 		return false;
