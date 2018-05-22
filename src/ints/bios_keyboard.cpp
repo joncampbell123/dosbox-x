@@ -592,7 +592,7 @@ static Bitu IRQ1_Handler_PC98(void) {
     while (status & 2/*RxRDY*/) {
         sc_8251 = IO_ReadB(0x41); /* 8251 data */
 
-        Bit8u flags1,flags2,flags3,leds,leds_orig;
+        Bit8u flags1,flags2,flags3,leds;
         flags1=mem_readb(BIOS_KEYBOARD_FLAGS1);
         flags2=mem_readb(BIOS_KEYBOARD_FLAGS2);
         flags3=mem_readb(BIOS_KEYBOARD_FLAGS3);
