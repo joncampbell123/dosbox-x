@@ -100,10 +100,10 @@ static _SMP_OUT *FUNC_DOWN(GETSND trk, _SMP_OUT *pcm, _SMP_OUT *pcmterm) {
 static _SMP_OUT *FUNC_UP(GETSND trk, _SMP_OUT *pcm, _SMP_OUT *pcmterm) {
 
 	_SMP_IN	*samp;
-	long	mrate;
+//	long	mrate;
 
 	samp = (_SMP_IN *)trk->buf;
-	mrate = trk->mrate;
+//	mrate = trk->mrate;
 	do {
 		long tmp;
 		tmp = UPMIXBASE - trk->rem;
