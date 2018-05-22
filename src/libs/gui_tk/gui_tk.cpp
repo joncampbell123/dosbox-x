@@ -1277,6 +1277,7 @@ void Screen::paint(Drawable &d) const
 
 unsigned int Screen::update(void *surface, unsigned int ticks)
 {
+    (void)ticks;//UNUSED
 	paintAll(*buffer);
 	RGB *buf = buffer->buffer;
 	for (y = 0; y < height; y++) {
@@ -1295,10 +1296,14 @@ unsigned int Screen::update(void *surface, unsigned int ticks)
 
 void Screen::move(int x, int y)
 {
+    (void)x;//UNUSED
+    (void)y;//UNUSED
 }
 
 void Screen::resize(int w, int h)
 {
+    (void)w;//UNUSED
+    (void)h;//UNUSED
 }
 
 #ifdef TESTING
