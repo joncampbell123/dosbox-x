@@ -244,12 +244,14 @@ static void KEYBOARD_SetPort60(Bit16u val) {
 }
 
 static void KEYBOARD_ResetDelay(Bitu val) {
+    (void)val;//UNUSED
 	keyb.reset=false;
 	KEYBOARD_SetLEDs(0);
 	KEYBOARD_Add8042Response(0x00);	/* BAT */
 }
 
 static void KEYBOARD_TransferBuffer(Bitu val) {
+    (void)val;//UNUSED
 	/* 8042 responses take priority over the keyboard */
 	if (keyb.enable_aux && keyb.buf8042_len != 0) {
 		KEYBOARD_SetPort60(keyb.buf8042[keyb.buf8042_pos]);
@@ -332,6 +334,8 @@ void KEYBOARD_SetLEDs(Bit8u bits) {
 }
 
 static Bitu read_p60(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	keyb.p60changed=false;
 	keyb.auxchanged=false;
 	if (!keyb.scheduled && keyb.used) {
@@ -505,6 +509,8 @@ void On_Software_CPU_Reset();
 void restart_program(std::vector<std::string> & parameters);
 
 static void write_p60(Bitu port,Bitu val,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	switch (keyb.command) {
 	case CMD_NONE:	/* None */
 		if (keyb.reset)
@@ -672,6 +678,8 @@ static void write_p61(Bitu, Bitu val, Bitu) {
 }
 
 static void write_p64(Bitu port,Bitu val,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	if (keyb.reset)
 		return;
 
@@ -779,6 +787,8 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static Bitu read_p64(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	Bit8u status= 0x1c | (keyb.p60changed?0x1:0x0) | (keyb.auxchanged?0x20:0x00);
 	return status;
 }
@@ -949,7 +959,7 @@ void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
 	case KBD_jp_henkan:ret=0x86;break;
 	case KBD_jp_hiragana:ret=0x87;break;/*also Katakana */
 	default:
-        LOG(LOG_MISC, LOG_WARN)("Unsupported key press %lu", (char)keytype);
+        LOG(LOG_MISC, LOG_WARN)("Unsupported key press %lu", (unsigned long)keytype);
 		return;
 	}
 
@@ -1154,7 +1164,7 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 	case KBD_jp_henkan:ret=0x64;break;
 	case KBD_jp_hiragana:ret=0x13;break;/*also Katakana */
 	default:
-        LOG(LOG_MISC, LOG_WARN)("Unsupported key press %lu", (char)keytype);
+        LOG(LOG_MISC, LOG_WARN)("Unsupported key press %lu", (unsigned long)keytype);
 		return;
 	}
 	/* Add the actual key in the keyboard queue */
@@ -1554,7 +1564,7 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 	case KBD_jp_backslash:ret=0x73;break;/*JP 106-key: _ \ or ろ (ro)  <-- WARNING: UTF-8 unicode */
 	case KBD_jp_yen:ret=0x7d;break;/*JP 106-key: | ¥ (yen) or ー (prolonged sound mark)  <-- WARNING: UTF-8 unicode */
 	default:
-        LOG(LOG_MISC, LOG_WARN)("Unsupported key press %lu", (char)keytype);
+        LOG(LOG_MISC, LOG_WARN)("Unsupported key press %lu", (unsigned long)keytype);
 		return;
 	}
 
@@ -1622,6 +1632,7 @@ void KEYBOARD_AddKey(KBD_KEYS keytype,bool pressed) {
 }
 	
 static void KEYBOARD_ShutDown(Section * sec) {
+    (void)sec;//UNUSED
 	TIMER_DelTickHandler(&KEYBOARD_TickHandler);
 }
 
@@ -1704,6 +1715,7 @@ public:
 static PC98_System_8255 pc98_sys_8255;
 
 static void pc98_reset_write(Bitu port,Bitu val,Bitu /*iolen*/) {
+    (void)port;//UNUSED
     LOG_MSG("Restart by port F0h requested: val=%02x SHUT0=%u SHUT1=%u\n",(unsigned int)val,PC98_SHUT0,PC98_SHUT1);
     On_Software_CPU_Reset();
 }
@@ -1950,10 +1962,12 @@ static struct pc98_8251_keyboard_uart {
 } pc98_8251_keyboard_uart_state;
 
 void uart_tx_load(Bitu val) {
+    (void)val;//UNUSED
     pc98_8251_keyboard_uart_state.tx_load_complete();
 }
 
 void uart_rx_load(Bitu val) {
+    (void)val;//UNUSED
     pc98_8251_keyboard_uart_state.rx_load_complete();
 }
 
@@ -1967,18 +1981,22 @@ void pc98_keyboard_recv_byte(Bitu val) {
 }
 
 static Bitu keyboard_pc98_8251_uart_41_read(Bitu port,Bitu /*iolen*/) {
+    (void)port;//UNUSED
     return pc98_8251_keyboard_uart_state.read_data();
 }
 
 static void keyboard_pc98_8251_uart_41_write(Bitu port,Bitu val,Bitu /*iolen*/) {
+    (void)port;//UNUSED
     pc98_8251_keyboard_uart_state.write_data((unsigned char)val);
 }
 
 static Bitu keyboard_pc98_8251_uart_43_read(Bitu port,Bitu /*iolen*/) {
+    (void)port;//UNUSED
     return pc98_8251_keyboard_uart_state.read_status();
 }
 
 static void keyboard_pc98_8251_uart_43_write(Bitu port,Bitu val,Bitu /*iolen*/) {
+    (void)port;//UNUSED
     pc98_8251_keyboard_uart_state.writecmd((unsigned char)val);
 }
 
@@ -2138,6 +2156,7 @@ static Bitu read_p7fd9_mouse(Bitu port,Bitu /*iolen*/) {
 //////////
 
 void KEYBOARD_OnEnterPC98(Section *sec) {
+    (void)sec;//UNUSED
     unsigned int i;
 
     /* TODO: Keyboard interface change, layout change. */
@@ -2170,6 +2189,7 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
 }
 
 void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
+    (void)sec;//UNUSED
     unsigned int i;
 
     /* Keyboard UART (8251) is at 0x41, 0x43. */
@@ -2229,6 +2249,7 @@ void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
 }
 
 void KEYBOARD_OnReset(Section *sec) {
+    (void)sec;//UNUSED
 	Section_prop *section=static_cast<Section_prop *>(control->GetSection("keyboard"));
 
 	LOG(LOG_MISC,LOG_DEBUG)("Keyboard reinitializing");
