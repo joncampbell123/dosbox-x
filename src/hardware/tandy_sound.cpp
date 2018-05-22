@@ -87,6 +87,7 @@ static struct {
 } tandy;
 
 void SN76496Write(struct SN76496 *R,Bitu port,Bitu data) {
+    (void)port;//UNUSED
 	/* update the output buffer before changing the registers */
 
 	if (data & 0x80)
@@ -245,6 +246,7 @@ void SN76496Update(struct SN76496 *R, Bit16s *buffer, Bitu length) {
 }
 
 static void TandySN76496Write(Bitu port,Bitu data,Bitu iolen) {
+    (void)iolen;//UNUSED
 	struct SN76496 *R = &sn;
  
 	tandy.last_write=PIC_Ticks;
@@ -274,6 +276,7 @@ static void TandySN76496Update(Bitu length) {
 }
 
 static void TandyDACWrite(Bitu port,Bitu data,Bitu iolen) {
+    (void)iolen;//UNUSED
 	LOG_MSG("Write tandy dac %X val %X",(int)port,(int)data);
 }
 
@@ -521,6 +524,7 @@ void TANDYSOUND_ShutDown(Section* /*sec*/) {
 }
 
 void TANDYSOUND_OnReset(Section* sec) {
+    (void)sec;//UNUSED
 	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating Tandy speaker emulation");
 		test = new TANDYSOUND(control->GetSection("speaker"));

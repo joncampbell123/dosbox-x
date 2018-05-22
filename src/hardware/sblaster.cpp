@@ -719,6 +719,7 @@ static void DMA_Silent_Event(Bitu val) {
 #include <assert.h>
 
 static void DMA_DAC_Event(Bitu val) {
+    (void)val;//UNUSED
 	unsigned char tmp[4];
 	Bitu read,expct;
 	signed int L,R;
@@ -3569,6 +3570,7 @@ void SBLASTER_ShutDown(Section* /*sec*/) {
 }
 
 void SBLASTER_OnReset(Section *sec) {
+    (void)sec;//UNUSED
     SBLASTER_DOS_Shutdown();
 
     if (test != NULL) {
@@ -3584,10 +3586,12 @@ void SBLASTER_OnReset(Section *sec) {
 }
 
 void SBLASTER_DOS_Exit(Section *sec) {
+    (void)sec;//UNUSED
     SBLASTER_DOS_Shutdown();
 }
 
 void SBLASTER_DOS_Boot(Section *sec) {
+    (void)sec;//UNUSED
     if (test != NULL) test->DOS_Startup();
 }
 
