@@ -108,6 +108,8 @@ void VGA_DAC_UpdateColorPalette() {
 }
 
 void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	if((IS_VGA_ARCH) && (svgaCard==SVGA_None) && (vga.dac.hidac_counter>3)) {
 		vga.dac.reg02=val;
 		vga.dac.hidac_counter=0;
@@ -123,6 +125,8 @@ void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
 
 
 Bitu read_p3c6(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	if (vga_enable_3C6_ramdac)
 		vga.dac.hidac_counter++;
 
@@ -131,6 +135,8 @@ Bitu read_p3c6(Bitu port,Bitu iolen) {
 
 
 void write_p3c7(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	vga.dac.hidac_counter=0;
 	vga.dac.pel_index=0;
 	vga.dac.state=DAC_READ;
@@ -139,12 +145,16 @@ void write_p3c7(Bitu port,Bitu val,Bitu iolen) {
 }
 
 Bitu read_p3c7(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	vga.dac.hidac_counter=0;
 	if (vga.dac.state==DAC_READ) return 0x3;
 	else return 0x0;
 }
 
 void write_p3c8(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	vga.dac.hidac_counter=0;
 	vga.dac.pel_index=0;
 	vga.dac.state=DAC_WRITE;
@@ -152,11 +162,15 @@ void write_p3c8(Bitu port,Bitu val,Bitu iolen) {
 }
 
 Bitu read_p3c8(Bitu port, Bitu iolen){
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	vga.dac.hidac_counter=0;
 	return vga.dac.write_index;
 }
 
 void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	vga.dac.hidac_counter=0;
 	val&=0x3f;
 	switch (vga.dac.pel_index) {
@@ -201,6 +215,8 @@ void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
 }
 
 Bitu read_p3c9(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	vga.dac.hidac_counter=0;
 	Bit8u ret;
 	switch (vga.dac.pel_index) {
