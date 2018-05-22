@@ -64,6 +64,8 @@ void CSerialLog::handleUpperEvent(Bit16u type) {
 /* parameters baudrate, stopbits, number of databits, parity.               **/
 /*****************************************************************************/
 void CSerialLog::updatePortConfig(Bit16u divider, Bit8u lcr) {
+    (void)divider;//UNUSED
+    (void)lcr;//UNUSED
 	//LOG_MSG("Serial port at 0x%x: Port params changed: %d Baud", base,dcb.BaudRate);
 }
 
@@ -87,6 +89,7 @@ void CSerialLog::transmitByte(Bit8u val, bool first) {
 /*****************************************************************************/
 
 void CSerialLog::setBreak(bool value) {
+    (void)value;//UNUSED
 	//LOG_MSG("UART 0x%x: Break toggeled: %d", base, value);
 }
 
