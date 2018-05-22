@@ -1247,6 +1247,7 @@ Bitu MOUSE_UserInt_CB_Handler(void) {
 bool MouseTypeNone();
 
 void MOUSE_OnReset(Section *sec) {
+    (void)sec;//UNUSED
     if (IS_PC98_ARCH)
         MOUSE_IRQ = 13; // PC-98 standard
     else
@@ -1256,12 +1257,15 @@ void MOUSE_OnReset(Section *sec) {
 }
 
 void MOUSE_ShutDown(Section *sec) {
+    (void)sec;//UNUSED
 }
 
 void BIOS_PS2MOUSE_ShutDown(Section *sec) {
+    (void)sec;//UNUSED
 }
 
 void BIOS_PS2Mouse_Startup(Section *sec) {
+    (void)sec;//UNUSED
 	Section_prop *section=static_cast<Section_prop *>(control->GetSection("dos"));
 
 	/* NTS: This assumes MOUSE_Init() is called after KEYBOARD_Init() */
@@ -1314,6 +1318,7 @@ void BIOS_PS2Mouse_Startup(Section *sec) {
 }
 
 void MOUSE_Startup(Section *sec) {
+    (void)sec;//UNUSED
 	Section_prop *section=static_cast<Section_prop *>(control->GetSection("dos"));
 	RealPt i33loc=0;
 

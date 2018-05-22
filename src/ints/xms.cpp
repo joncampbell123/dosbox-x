@@ -809,6 +809,7 @@ bool XMS_Active(void) {
 }
 
 void XMS_Startup(Section *sec) {
+    (void)sec;//UNUSED
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating XMS emulation");
 		test = new XMS(control->GetSection("dos"));
