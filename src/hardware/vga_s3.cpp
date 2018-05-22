@@ -24,6 +24,7 @@
 #include "pci_bus.h"
 
 void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	switch (reg) {
 	case 0x31:	/* CR31 Memory Configuration */
 //TODO Base address
@@ -366,6 +367,7 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
 }
 
 Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
+    (void)iolen;//UNUSED
 	switch (reg) {
 	case 0x24:	/* attribute controller index (read only) */
 	case 0x26:
@@ -455,6 +457,7 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
 }
 
 void SVGA_S3_WriteSEQ(Bitu reg,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if (reg>0x8 && vga.s3.pll.lock!=0x6) return;
 	switch (reg) {
 	case 0x08:
@@ -489,6 +492,7 @@ const Bit8u reg17ret[] ={0x7b, 0xc0, 0x0, 0xda};
 Bit8u reg17index=0;
 
 Bitu SVGA_S3_ReadSEQ(Bitu reg,Bitu iolen) {
+    (void)iolen;//UNUSED
 	/* S3 specific group */
 	if (reg>0x8 && vga.s3.pll.lock!=0x6) {
 		if (reg<0x1b) return 0;

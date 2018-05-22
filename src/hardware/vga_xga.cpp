@@ -73,6 +73,7 @@ struct XGAStatus {
 } xga;
 
 void XGA_Write_Multifunc(Bitu val, Bitu len) {
+    (void)len;//UNUSED
 	Bitu regselect = val >> 12;
 	Bitu dataval = val & 0xfff;
 	switch(regselect) {
@@ -909,6 +910,7 @@ void XGA_DrawPattern(Bitu val) {
 }
 
 void XGA_DrawCmd(Bitu val, Bitu len) {
+    (void)len;//UNUSED
 	Bit16u cmd;
 	cmd = val >> 13;
 	if (val & 0x800) cmd |= 0x8; // S3 CMD bit 3
