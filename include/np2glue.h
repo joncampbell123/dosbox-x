@@ -97,7 +97,7 @@ typedef uint8_t BYTE;
 #endif
 typedef char OEMCHAR;
 typedef void* NEVENTITEM;
-#define OEMTEXT(x) (x)
+#define OEMTEXT(x) x
 #define SOUNDCALL
 
 static inline uint16_t LOADINTELWORD(void *x) {
