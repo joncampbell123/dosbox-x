@@ -19,6 +19,10 @@
 #include "dos_inc.h"
 static void gen_init(void);
 
+#if defined(_MSC_VER)
+#pragma warning(disable:4731) /* frame pointer register 'ebp' modified by inline assembly code */
+#endif
+
 /* End of needed */
 
 #define X86_REGS		7
