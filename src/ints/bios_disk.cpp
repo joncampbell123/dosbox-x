@@ -1007,7 +1007,7 @@ Bit8u imageDiskVFD::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void *
 
 //    LOG_MSG("VFD read sector: CHS %u/%u/%u sz=%u",cylinder,head,sector,req_sector_size);
 
-    ent = findSector(head,cylinder,sector);
+    ent = findSector(head,cylinder,sector,req_sector_size);
     if (ent == NULL) return 0x05;
     if (ent->getSectorSize() != req_sector_size) return 0x05;
 
@@ -1082,7 +1082,7 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void 
     if (req_sector_size == 0)
         req_sector_size = sector_size;
 
-    ent = findSector(head,cylinder,sector);
+    ent = findSector(head,cylinder,sector,req_sector_size);
     if (ent == NULL) return 0x05;
     if (ent->getSectorSize() != req_sector_size) return 0x05;
 
