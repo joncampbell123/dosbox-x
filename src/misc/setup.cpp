@@ -33,6 +33,7 @@
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+# pragma warning(disable:4267) /* ... possible loss of data */
 # pragma warning(disable:4305) /* truncation from double to float */
 #endif
 
