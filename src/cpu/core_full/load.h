@@ -351,6 +351,7 @@ l_M_Ed:
 				Push_16(old_sp);Push_16(reg_bp);Push_16(reg_si);Push_16(reg_di);
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				LOG_MSG("PUSHA interrupted by page fault");
 				reg_esp = old_esp;
 				throw;
@@ -365,6 +366,7 @@ l_M_Ed:
 				Push_32(tmpesp);Push_32(reg_ebp);Push_32(reg_esi);Push_32(reg_edi);
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				LOG_MSG("PUSHAD interrupted by page fault");
 				reg_esp = old_esp;
 				throw;
@@ -379,6 +381,7 @@ l_M_Ed:
 				reg_bx=Pop_16();reg_dx=Pop_16();reg_cx=Pop_16();reg_ax=Pop_16();
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				LOG_MSG("POPA interrupted by page fault");
 				reg_esp = old_esp;
 				throw;
@@ -392,6 +395,7 @@ l_M_Ed:
 				reg_ebx=Pop_32();reg_edx=Pop_32();reg_ecx=Pop_32();reg_eax=Pop_32();
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				LOG_MSG("POPAD interrupted by page fault");
 				reg_esp = old_esp;
 				throw;
@@ -508,6 +512,7 @@ l_M_Ed:
 				reg_bp = Pop_16();
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				reg_esp = old_esp;
 				throw;
 			}
@@ -522,6 +527,7 @@ l_M_Ed:
 				reg_ebp = Pop_32();
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				reg_esp = old_esp;
 				throw;
 			}

@@ -24,6 +24,10 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4996) /* Nobody cares that GetVersionExA() is deprecated */
+#endif
+
 /* Make sure XBUTTON stuff is defined that isn't in older Platform SDKs... */
 #ifndef WM_XBUTTONDOWN
 #define WM_XBUTTONDOWN 0x020B
@@ -714,7 +718,7 @@ this->hidden->hiresFix, &x, &y);
 			if (hLayout != hLayoutNew) {
 				hLayoutChanged = 1;
 				hLayout = hLayoutNew;
-				DIB_InitOSKeymap();
+				DIB_InitOSKeymapPriv();
 			}
 #ifndef _WIN64
 			codepage = GetCodePage();

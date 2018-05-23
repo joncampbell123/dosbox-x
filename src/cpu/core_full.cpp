@@ -110,7 +110,8 @@ restartopcode:
 			#include "core_full/save.h"
 		}
 		catch (GuestPageFaultException &pf) {
-            reg_flags = old_flags; /* core_full/op.h may have modified flags */
+			(void)pf;
+			reg_flags = old_flags; /* core_full/op.h may have modified flags */
 			reg_esp = old_esp;
 			throw;
 		}

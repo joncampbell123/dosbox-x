@@ -330,6 +330,7 @@
 			}
 		}
 		catch (GuestPageFaultException &pf) {
+			(void)pf;
 			/* Clean up after certain amount of instructions */
 			reg_esi&=(~add_mask);
 			reg_esi|=(si_index & add_mask);

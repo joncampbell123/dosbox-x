@@ -237,6 +237,7 @@
 				Push_16(old_sp);Push_16(reg_bp);Push_16(reg_si);Push_16(reg_di);
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				LOG_MSG("PUSHA interrupted by page fault");
 				reg_esp = old_esp;
 				throw;
@@ -251,6 +252,7 @@
 				reg_bx=Pop_16();reg_dx=Pop_16();reg_cx=Pop_16();reg_ax=Pop_16();
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				LOG_MSG("POPA interrupted by page fault");
 				reg_esp = old_esp;
 				throw;
@@ -582,6 +584,7 @@
 				else {GetEAa;SaveMw(eaa,val);}
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				reg_esp = old_esp;
 				throw;
 			}
@@ -754,6 +757,7 @@
 				reg_eip = new_eip;
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				reg_esp = old_esp; /* restore stack pointer */
 				throw;
 			}
@@ -812,6 +816,7 @@
 				reg_bp = Pop_16();
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				reg_esp = old_esp;
 				throw;
 			}

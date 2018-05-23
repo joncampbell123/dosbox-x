@@ -21,6 +21,10 @@
 */
 #include "SDL_config.h"
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4996) /* Nobody cares that GetVersionExA() is deprecated */
+#endif
+
 /* This file provides a general interface for SDL to read and write
    data sources.  It can easily be extended to files, memory, etc.
 */
