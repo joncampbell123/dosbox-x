@@ -1,4 +1,11 @@
 0.82.7 (next)
+  - PC-98 BOOT fixed to check for and support booting from
+    FDD images where track 0 contains 128 byte/sector
+    boot sectors.
+  - PC-98 INT 1Bh support fixed to support reading/writing
+    sector sizes other than the one sector size reported
+    by the image. It is now possible to read the other
+    sector sizes from an FDD/VFD image.
   - Fixed somewhat serious bug that, when compiled against
     Microsoft C++, causes the AVI writer to use the 32-bit
     lseek() function instead of the 64-bit lseek64() function.
