@@ -1093,10 +1093,7 @@ std::string MSCDEX_Output(int num) {
 static std::string not_recommended = "Mounting C:\\ is NOT recommended.\nDo you want to continue?";
 
 void SetVal(const std::string secname, std::string preval, const std::string val) {
-	if (dos_kernel_disabled)
-		return;
-
-	if(preval=="keyboardlayout") {
+	if(preval=="keyboardlayout" && !dos_kernel_disabled) {
 		DOS_MCB mcb(dos.psp()-1);
 		static char name[9];
 		mcb.GetFileName(name);
