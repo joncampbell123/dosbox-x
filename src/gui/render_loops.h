@@ -18,10 +18,14 @@
 
 #if defined (SCALERLINEAR)
 static void conc3d(SCALERNAME,SBPP,L)(void) {
-    (void)conc3d(SCALERNAME,SBPP,L);
+# if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
+	(void)conc3d(SCALERNAME,SBPP,L);
+# endif
 #else
 static void conc3d(SCALERNAME,SBPP,R)(void) {
-    (void)conc3d(SCALERNAME,SBPP,R);
+# if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
+	(void)conc3d(SCALERNAME,SBPP,R);
+# endif
 #endif
 //Skip the first one for multiline input scalers
 	if (!render.scale.outLine) {

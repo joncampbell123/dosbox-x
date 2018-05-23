@@ -87,7 +87,9 @@
 
 inline void conc2d(Hq2x,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fc)
 {
-    (void)conc2d(Hq2x,SBPP);
+# if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
+	(void)conc2d(Hq2x,SBPP);
+# endif
 
 	if (_RGBtoYUV == 0) conc2d(InitLUTs,SBPP)();
 

@@ -37,7 +37,9 @@ static inline int conc2d(GetResult,SBPP)(PTYPE A, PTYPE B, PTYPE C, PTYPE D) {
 
 inline void conc2d(Super2xSaI,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fc)
 {
-    (void)conc2d(Super2xSaI,SBPP);
+# if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
+	(void)conc2d(Super2xSaI,SBPP);
+# endif
 
 	//--------------------------------------
 	if (C7 == C5 && C4 != C8) {

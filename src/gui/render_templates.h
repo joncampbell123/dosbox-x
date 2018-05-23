@@ -165,8 +165,9 @@
 
 #if RENDER_USE_ADVANCED_SCALERS>1
 static void conc3d(Cache,SBPP,DBPP) (const void * s) {
-    (void)conc3d(Cache,SBPP,DBPP);
-
+# if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
+	(void)conc3d(Cache,SBPP,DBPP);
+# endif
 #ifdef RENDER_NULL_INPUT
 	if (!s) {
 		render.scale.cacheRead += render.scale.cachePitch;
