@@ -53,8 +53,8 @@ static inline void __w_le_u16(const void *p,const uint16_t val) {
 }
 
 static inline void __w_be_u16(const void *p,const uint16_t val) {
-	((uint8_t*)(p))[0] = val >> 8UL;
-	((uint8_t*)(p))[1] = val;
+	((uint8_t*)(p))[0] = (uint8_t)(val >> 8UL);
+	((uint8_t*)(p))[1] = (uint8_t)(val);
 }
 
 static inline uint32_t __le_u24(const void *p) {
@@ -146,14 +146,14 @@ static inline uint64_t __be_u64(void *p) {
 }
 
 static inline void __w_be_u64(const void *p,const uint64_t val) {
-	((uint8_t*)(p))[0] = val >> 56ULL;
-	((uint8_t*)(p))[1] = val >> 48ULL;
-	((uint8_t*)(p))[2] = val >> 40ULL;
-	((uint8_t*)(p))[3] = val >> 32ULL;
-	((uint8_t*)(p))[4] = val >> 24UL;
-	((uint8_t*)(p))[5] = val >> 16UL;
-	((uint8_t*)(p))[6] = val >> 8UL;
-	((uint8_t*)(p))[7] = val;
+	((uint8_t*)(p))[0] = (uint8_t)(val >> 56ULL);
+	((uint8_t*)(p))[1] = (uint8_t)(val >> 48ULL);
+	((uint8_t*)(p))[2] = (uint8_t)(val >> 40ULL);
+	((uint8_t*)(p))[3] = (uint8_t)(val >> 32ULL);
+	((uint8_t*)(p))[4] = (uint8_t)(val >> 24UL);
+	((uint8_t*)(p))[5] = (uint8_t)(val >> 16UL);
+	((uint8_t*)(p))[6] = (uint8_t)(val >> 8UL);
+	((uint8_t*)(p))[7] = (uint8_t)(val);
 }
 
 static inline uint16_t __be_to_he_16(uint16_t val) {

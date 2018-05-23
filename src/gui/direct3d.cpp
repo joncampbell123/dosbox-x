@@ -1011,7 +1011,7 @@ HRESULT CDirect3D::LoadPixelShader(void)
     LOG_MSG("D3D:Loading pixel shader from %s", pshader);
 #endif
 
-    psEffect->setinputDim(dwWidth, dwHeight);
+    psEffect->setinputDim((float)dwWidth, (float)dwHeight);
     if(FAILED(psEffect->LoadEffect(pshader)) || FAILED(psEffect->Validate())) {
 	/*LOG_MSG("D3D:Pixel shader error:");
 
@@ -1200,7 +1200,7 @@ HRESULT CDirect3D::CreateDisplayTexture(void)
 	Bit8u * pixels = (Bit8u *)d3dlr.pBits;
 
 	for(Bitu lines = dwTexHeight; lines; lines--) {
-	    memset(pixels, 0, (dwTexWidth<<2)>>bpp16);
+	    memset(pixels, 0, (dwTexWidth<<2)>>(bpp16?1:0));
 	    pixels += d3dlr.Pitch;
 	}
 
@@ -1374,21 +1374,21 @@ HRESULT CDirect3D::CreateVertex(void)
     vertexBuffer->Lock(0, 0, (void**)&vertices, 0);
 
     //Setup vertices
-    vertices[0].position = D3DXVECTOR3( dwX,                 dwY, 0.0f );
+    vertices[0].position = D3DXVECTOR3( (float)dwX,					  (float)dwY,					 0.0f );
     vertices[0].diffuse  = 0xFFFFFFFF;
-    vertices[0].texcoord = D3DXVECTOR2( 0.0f,                0.0f );
+    vertices[0].texcoord = D3DXVECTOR2( 0.0f,						  0.0f );
 
-    vertices[1].position = D3DXVECTOR3( dwX,                 dwY + dwScaledHeight, 0.0f );
+    vertices[1].position = D3DXVECTOR3( (float)dwX,					  (float)(dwY + dwScaledHeight), 0.0f );
     vertices[1].diffuse  = 0xFFFFFFFF;
-    vertices[1].texcoord = D3DXVECTOR2( 0.0f,                sizey );
+    vertices[1].texcoord = D3DXVECTOR2( 0.0f,						  (float)sizey );
     
-    vertices[2].position = D3DXVECTOR3( dwX + dwScaledWidth, dwY, 0.0f );
+    vertices[2].position = D3DXVECTOR3( (float)(dwX + dwScaledWidth), (float)dwY,				     0.0f );
     vertices[2].diffuse  = 0xFFFFFFFF;
-    vertices[2].texcoord = D3DXVECTOR2( sizex,               0.0f );
+    vertices[2].texcoord = D3DXVECTOR2( (float)sizex,				  0.0f );
     
-    vertices[3].position = D3DXVECTOR3( dwX + dwScaledWidth, dwY + dwScaledHeight, 0.0f );
+    vertices[3].position = D3DXVECTOR3( (float)(dwX + dwScaledWidth), (float)(dwY + dwScaledHeight), 0.0f );
     vertices[3].diffuse  = 0xFFFFFFFF;
-    vertices[3].texcoord = D3DXVECTOR2( sizex,               sizey );
+    vertices[3].texcoord = D3DXVECTOR2( (float)sizex,				  (float)sizey );
 
     // Additional vertices required for some PS effects
     // FIXME: Recent changes may have BROKEN pixel shader support here!!!!!

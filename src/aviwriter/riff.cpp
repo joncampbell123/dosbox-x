@@ -46,7 +46,11 @@ int64_t riff_std_seek(void *a,int64_t offset) {
 	riff_stack *rs = (riff_stack*)a;
 	if (rs->fd < 0) return -1;
 	if (!rs->always_lseek && offset == rs->trk_file_pointer) return offset;
-	rs->trk_file_pointer = lseek(rs->fd,offset,SEEK_SET);
+#if defined(_MSC_VER)
+	rs->trk_file_pointer = _lseeki64(rs->fd, offset, SEEK_SET);
+#else
+	rs->trk_file_pointer = lseek(rs->fd, offset, SEEK_SET);
+#endif
 	return rs->trk_file_pointer;
 }
 
