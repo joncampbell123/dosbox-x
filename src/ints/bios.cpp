@@ -3305,7 +3305,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
 
             if (reg_ah & 0x10) { // seek to track number in CL
-                if (reg_cl >= img_cyl) {
+                if (img_cyl != 0 && reg_cl >= img_cyl) {
                     CALLBACK_SCF(true);
                     reg_ah = 0x00;
                     /* TODO? Error code? */
