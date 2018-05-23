@@ -1893,6 +1893,7 @@ void voodoo_ogl_shutdown(voodoo_state *v) {
 
 
 bool voodoo_ogl_init(voodoo_state *v) {
+    (void)v;
 	return false;
 }
 
@@ -1900,9 +1901,11 @@ void voodoo_ogl_leave(void) {
 }
 
 void voodoo_ogl_shutdown(voodoo_state *v) {
+    (void)v;
 }
 
 void voodoo_ogl_set_window(voodoo_state *v) {
+    (void)v;
 	E_Exit("invalid call to voodoo_ogl_set_window");
 }
 
@@ -1923,10 +1926,13 @@ void voodoo_ogl_fastfill(void) {
 }
 
 void voodoo_ogl_clip_window(voodoo_state *v) {
+    (void)v;
 	E_Exit("invalid call to voodoo_ogl_clip_window");
 }
 
 void voodoo_ogl_texture_clear(UINT32 texbase, int TMU) {
+    (void)texbase;
+    (void)TMU;
 	E_Exit("invalid call to voodoo_ogl_texture_clear");
 }
 
@@ -1935,26 +1941,44 @@ void voodoo_ogl_invalidate_paltex(void) {
 }
 
 void voodoo_ogl_draw_pixel(int x, int y, bool has_rgb, bool has_alpha, int r, int g, int b, int a) {
+    (void)has_alpha;
+    (void)has_rgb;
+    (void)x;
+    (void)y;
+    (void)r;
+    (void)g;
+    (void)b;
+    (void)a;
 	E_Exit("invalid call to voodoo_ogl_draw_pixel");
 }
 
 void voodoo_ogl_draw_z(int x, int y, int z1, int z2) {
+    (void)z1;
+    (void)z2;
+    (void)x;
+    (void)y;
 	E_Exit("invalid call to voodoo_ogl_draw_z");
 }
 
 void voodoo_ogl_draw_pixel_pipeline(int x, int y, int r, int g, int b) {
+    (void)x;
+    (void)y;
+    (void)r;
+    (void)g;
+    (void)b;
 	E_Exit("invalid call to voodoo_ogl_draw_pixel_pipeline");
 }
 
 UINT32 voodoo_ogl_read_pixel(int x, int y) {
+    (void)x;
+    (void)y;
 	E_Exit("invalid call to voodoo_ogl_read_pixel");
-
 	return 0;
 }
 
 void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
+    (void)extra;
 	E_Exit("invalid call to voodoo_ogl_draw_triangle");
 }
-
 
 #endif

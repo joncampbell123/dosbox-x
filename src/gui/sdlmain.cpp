@@ -960,10 +960,12 @@ SDL_Rect GFX_GetSDLSurfaceSubwindowDims(Bit16u width, Bit16u height) {
     return rect;
 }
 
+# if !defined(C_SDL2)
 // Currently used for an initial test here
 static SDL_Window * GFX_SetSDLOpenGLWindow(Bit16u width, Bit16u height) {
     return GFX_SetSDLWindowMode(width, height, SCREEN_OPENGL);
 }
+# endif
 #endif
 
 #if C_OPENGL && !defined(C_SDL2) && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
@@ -4755,7 +4757,9 @@ void GFX_LosingFocus(void) {
     DoExtendedKeyboardHook(false);
 }
 
+#if !defined(C_SDL2)
 static bool PasteClipboardNext(); // added emendelson from dbDOS
+#endif
 
 #if !defined(C_SDL2)
 bool GFX_IsFullscreen(void) {
@@ -5948,10 +5952,12 @@ void PasteClipboard(bool bPressed) {
     // stub
 }
 
+# if !defined(C_SDL2)
 bool PasteClipboardNext() {
     // stub
     return false;
 }
+# endif
 #endif
 
 
