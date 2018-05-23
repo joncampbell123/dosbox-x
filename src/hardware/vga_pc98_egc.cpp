@@ -23,6 +23,10 @@
 #include <string>
 #include <stdio.h>
 
+#if defined(_MSC_VER)
+#pragma warning(disable:4065) /* switch statements without case labels */
+#endif
+
 void pc98_egc_shift_reinit();
 
 extern egc_quad             pc98_egc_bgcm;
