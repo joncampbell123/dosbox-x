@@ -207,7 +207,7 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 		fdc->data_register_ready = 1;
 		fdc->busy_status = 0;
 		fdc->ST[0] &= 0x1F;
-		if (fdc->current_cylinder == 0) fdc->ST[0] |= 0x20;
+		if (fdc->current_cylinder[devidx] == 0) fdc->ST[0] |= 0x20;
 		/* fire IRQ */
 		fdc->raise_irq();
 		/* no result phase */
