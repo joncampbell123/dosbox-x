@@ -56,6 +56,7 @@ extern bool			MSG_Write(const char *);
 extern void			LoadMessageFile(const char * fname);
 extern void			GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
 
+#if !defined(C_SDL2)
 static int			cursor;
 static bool			running;
 static int			saved_bpp;
@@ -65,6 +66,7 @@ static bool			mousetoggle;
 static bool			shortcut=false;
 static SDL_Surface*		screenshot;
 static SDL_Surface*		background;
+#endif
 
 #if !defined(C_SDL2)
 /* Prepare screen for UI */
