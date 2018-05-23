@@ -720,10 +720,10 @@ static void SDL_Overscan(void) {
             if ((Bitu)sdl.clip.x > (Bitu)sdl.overscan_width) { rect->x += (sdl.clip.x-sdl.overscan_width); rect->w -= 2*(sdl.clip.x-sdl.overscan_width); }
             rect = &sdl.updateRects[1];
             rect->x = 0; rect->y = sdl.clip.y; rect->w = sdl.clip.x; rect->h = sdl.draw.height; // left
-            if (rect->w > sdl.overscan_width) { rect->x += (rect->w-sdl.overscan_width); rect->w = sdl.overscan_width; }
+            if ((unsigned int)rect->w > (unsigned int)sdl.overscan_width) { rect->x += (rect->w-sdl.overscan_width); rect->w = sdl.overscan_width; }
             rect = &sdl.updateRects[2];
             rect->x = sdl.clip.x+sdl.draw.width; rect->y = sdl.clip.y; rect->w = sdl.clip.x; rect->h = sdl.draw.height; // right
-            if (rect->w > sdl.overscan_width) { rect->w = sdl.overscan_width; }
+            if ((unsigned int)rect->w > (unsigned int)sdl.overscan_width) { rect->w = sdl.overscan_width; }
             rect = &sdl.updateRects[3];
             rect->x = 0; rect->y = sdl.clip.y+sdl.draw.height; rect->w = sdl.draw.width+2*sdl.clip.x; rect->h = sdl.clip.y; // bottom
             if ((Bitu)rect->h > (Bitu)sdl.overscan_width) { rect->h = sdl.overscan_width; }
@@ -1765,6 +1765,7 @@ Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,G
 
     switch (sdl.desktop.want_type) {
 #if defined(C_SDL2)
+    (void)bpp;
     case SCREEN_SURFACE:
     {
         GFX_ResetSDL();
@@ -3396,6 +3397,9 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 }
 
 void GFX_SetPalette(Bitu start,Bitu count,GFX_PalEntry * entries) {
+    (void)start;
+    (void)count;
+    (void)entries;
 #if !defined(C_SDL2)
     /* I should probably not change the GFX_PalEntry :) */
     if (sdl.surface->flags & SDL_HWPALETTE) {
