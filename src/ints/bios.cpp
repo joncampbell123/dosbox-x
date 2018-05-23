@@ -3084,7 +3084,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
 
             PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
             unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
-            if (unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0) {
+            if (0/*unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0*/) {
                 CALLBACK_SCF(true);
                 reg_ah = 0x00;
                 /* TODO? Error code? */
@@ -3175,7 +3175,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
 
             PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
             unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
-            if (unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0) {
+            if (0/*unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0*/) {
                 CALLBACK_SCF(true);
                 reg_ah = 0x00;
                 /* TODO? Error code? */
