@@ -6704,7 +6704,7 @@ public:
         }
 
         /* pick locations */
-        if (mainline_compatible_bios_mapping) { /* mapping BIOS the way mainline DOSBox does */
+        if (!IS_PC98_ARCH && mainline_compatible_bios_mapping) { /* mapping BIOS the way mainline DOSBox does */
             BIOS_DEFAULT_RESET_LOCATION = RealMake(0xf000,0xe05b);
             BIOS_DEFAULT_HANDLER_LOCATION = RealMake(0xf000,0xff53);
             BIOS_DEFAULT_IRQ0_LOCATION = RealMake(0xf000,0xfea5);
@@ -7217,14 +7217,19 @@ void ROMBIOS_Init() {
     oi = section->Get_int("rom bios allocation max"); /* in KB */
     oi = (oi + 3) & ~3; /* round to 4KB page */
     if (oi > 128) oi = 128;
-    if (oi == 0) oi = (mainline_compatible_bios_mapping && machine != MCH_PCJR) ? 128 : 64;
+    if (oi == 0) {
+        if (IS_PC98_ARCH)
+            oi = 96;
+        else
+            oi = (mainline_compatible_bios_mapping && machine != MCH_PCJR) ? 128 : 64;
+    }
     if (oi < 8) oi = 8; /* because of some of DOSBox's fixed ROM structures we can only go down to 8KB */
     oi <<= 10;
     if (oi < rombios_minimum_size) oi = rombios_minimum_size;
     rombios_minimum_location = 0x100000 - oi; /* convert to minimum, using size coming downward from 1MB */
 
     /* in mainline compatible, make sure we cover the 0xF0000-0xFFFFF range */
-    if (mainline_compatible_bios_mapping && rombios_minimum_location > 0xF0000) {
+    if (!IS_PC98_ARCH && mainline_compatible_bios_mapping && rombios_minimum_location > 0xF0000) {
         rombios_minimum_location = 0xF0000;
         rombios_minimum_size = 0x10000;
     }
@@ -7275,7 +7280,7 @@ void ROMBIOS_Init() {
         }
     }
 
-    if (mainline_compatible_bios_mapping) {
+    if (!IS_PC98_ARCH && mainline_compatible_bios_mapping) {
         /* then mark the region 0xE000-0xFFF0 as off-limits.
          * believe it or not, there's this whole range between 0xF3000 and 0xFE000 that remains unused! */
         if (ROMBIOS_GetMemory(0xFFFF0-0xFE000,"BIOS with fixed layout",1,0xFE000) == 0)
