@@ -1,4 +1,15 @@
 0.82.7 (next)
+  - Fixed somewhat serious bug that, when compiled against
+    Microsoft C++, causes the AVI writer to use the 32-bit
+    lseek() function instead of the 64-bit lseek64() function.
+    Prior to this fix, AVI captures would begin to corrupt
+    themselves after growing past 2GB in size.
+  - Cleanup code, fix compiler warnings, typecast problems,
+    C/C++ conformance problems as reported by GCC 4.8,
+    GCC 7.3.0 (MinGW), Visual Studio 2017, and Clang/LLVM
+    on Mac OS X.
+  - FM Towns machine type stub, for anyone interested in
+    forking DOSBox-X to implement FM Towns emulation.
   - Code cleanup, refactor, according to compiler warnings.
   - SDL drawn menus fixed to copy Direct3D backbuffer to
     the SDL surface when popup occurs. This allows the
