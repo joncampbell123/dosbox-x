@@ -628,11 +628,14 @@ void MixerChannel::AddSamples_s32_nonnative(Bitu len,const Bit32s * data) {
 }
 
 extern bool ticksLocked;
+
+#if 0//unused
 static inline bool Mixer_irq_important(void) {
     /* In some states correct timing of the irqs is more important then 
      * non stuttering audo */
     return (ticksLocked || (CaptureState & (CAPTURE_WAVE|CAPTURE_VIDEO|CAPTURE_MULTITRACK_WAVE)));
 }
+#endif
 
 unsigned long long mixer_sample_counter = 0;
 double mixer_start_pic_time = 0;
