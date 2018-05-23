@@ -3312,7 +3312,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                     return;
                 }
 
-                fdc_cyl[drive] = img_cyl;
+                fdc_cyl[drive] = reg_cl;
             }
 
             if (fdc_sect[drive] == 0)
