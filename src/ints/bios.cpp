@@ -60,7 +60,13 @@ extern bool mainline_compatible_bios_mapping;
 extern bool rom_bios_8x8_cga_font;
 extern bool pcibus_enable;
 
+uint32_t Keyb_ig_status();
 bool VM_Boot_DOSBox_Kernel();
+Bit32u MEM_get_address_bits();
+Bitu bios_post_parport_count();
+Bitu bios_post_comport_count();
+bool KEYBOARD_Report_BIOS_PS2Mouse();
+bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
 
 bool bochs_port_e9 = false;
 bool isa_memory_hole_512kb = false;
@@ -266,7 +272,6 @@ void dosbox_integration_trigger_read() {
 //          break;
 
         case 0x804201: /* keyboard status */
-            uint32_t Keyb_ig_status();
             dosbox_int_register = Keyb_ig_status();
             break;
 
@@ -2310,17 +2315,17 @@ const char *pc98_func_key[10] = {
 // shortcuts offered by SHIFT F1-F10. You can bring this onscreen using CTRL+F7. This row shows '*' in col 2.
 // [0] is onscreen display, [1] is what is entered to STDIN.
 const char *pc98_shcut_key[10][2] = {
-    "dir a:",   "dir a:\x0D",
-    "dir b:",   "dir b:\x0D",
-    "copy  ",   "copy ",
-    "del   ",   "del ",
-    "ren   ",   "ren ",
+    {"dir a:",   "dir a:\x0D"},
+    {"dir b:",   "dir b:\x0D"},
+    {"copy  ",   "copy "},
+    {"del   ",   "del "},
+    {"ren   ",   "ren "},
 
-    "chkdsk",   "chkdsk a:\x0D",
-    "chkdsk",   "chkdsk b:\x0D",
-    "type  ",   "type ",
-    "date\x0D ","date\x0D",         // display includes CR
-    "time\x0D ","time\x0D"
+    {"chkdsk",   "chkdsk a:\x0D"},
+    {"chkdsk",   "chkdsk b:\x0D"},
+    {"type  ",   "type "},
+    {"date\x0D ","date\x0D"},           // display includes CR
+    {"time\x0D ","time\x0D"}
 };
 
 #include "int10.h"
@@ -5784,10 +5789,7 @@ private:
             //Bit16u config=0x4400; //1 Floppy, 2 serial and 1 parallel 
             Bit16u config = 0x0;
 
-            Bitu bios_post_parport_count();
             config |= bios_post_parport_count() << 14;
-
-            Bitu bios_post_comport_count();
             config |= bios_post_comport_count() << 9;
 
 #if (C_FPU)
@@ -5816,7 +5818,6 @@ private:
             }
 
             // PS2 mouse
-            bool KEYBOARD_Report_BIOS_PS2Mouse();
             if (KEYBOARD_Report_BIOS_PS2Mouse())
                 config |= 0x04;
 
@@ -7135,9 +7136,6 @@ void ROMBIOS_Init() {
     /* and the BIOS alias at the top of memory (TODO: what about 486/Pentium emulation where the BIOS at the 4GB top is different
      * from the BIOS at the legacy 1MB boundary because of shadowing and/or decompressing from ROM at boot? */
     {
-        bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
-        Bit32u MEM_get_address_bits();
-
         uint64_t top = (uint64_t)1UL << (uint64_t)MEM_get_address_bits();
         if (top >= ((uint64_t)1UL << (uint64_t)21UL)) { /* 2MB or more */
             unsigned long alias_base,alias_end;
