@@ -863,15 +863,29 @@ public:
             return;
         }
 
+        bool has_read = false;
         unsigned int bootsize = imageDiskList[drive-65]->getSectSize();
+
+        if (!has_read && IS_PC98_ARCH) {
+            /* this may be one of those odd FDD images where track 0, head 0 is all 128-byte sectors
+             * and the rest of the disk is 256-byte sectors. */
+            if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (Bit8u *)&bootarea, 128) == 0 &&
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 2, (Bit8u *)&bootarea + 128, 128) == 0) {
+                LOG_MSG("First sector is 128 byte/sector. Booting from first two sectors.");
+                has_read = true;
+                bootsize = 256; // 128 x 2
+            }
+        }
 
         /* NTS: Load address is 128KB - sector size */
         load_seg=IS_PC98_ARCH ? (0x2000 - (bootsize/16U)) : 0x07C0;
 
-        if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (Bit8u *)&bootarea) != 0) {
-            WriteOut("Error reading drive");
-            return;
-        };
+        if (!has_read) {
+            if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (Bit8u *)&bootarea) != 0) {
+                WriteOut("Error reading drive");
+                return;
+            };
+        }
 
         Bitu pcjr_hdr_length = 0;
         Bit8u pcjr_hdr_type = 0; // not a PCjr cartridge
