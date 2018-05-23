@@ -2828,6 +2828,7 @@ static void SBLASTER_CallBack(Bitu len) {
     (((id) >> 16) & 0xFF), \
     (((id) >> 24) & 0xFF)
 
+#if 0
 static const unsigned char ViBRA_sysdev[] = {
     ISAPNP_IO_RANGE(
             0x01,                   /* decodes 16-bit ISA addr */
@@ -2864,6 +2865,7 @@ static const unsigned char ViBRA_sysdev[] = {
     ISAPNP_COMPATIBLE(ISAPNP_ID('C','T','L',0x0,0x0,0x0,0x1)),  /* <- Windows 95 doesn't know CTL0070 but does know CTL0001, this hack causes Win95 to offer it's internal driver as an option */
     ISAPNP_END
 };
+#endif
 
 class ViBRA_PnP : public ISAPnPDevice {
     public:
@@ -3089,6 +3091,7 @@ class ViBRA_PnP : public ISAPnPDevice {
         }
 };
 
+bool Mixer_SampleAccurate();
 bool JOYSTICK_IsEnabled(Bitu which);
 extern void HARDOPL_Init(Bitu hardwareaddr, Bitu sbbase, bool isCMS);
 
@@ -3249,7 +3252,6 @@ public:
          */
         sb.write_status_must_return_7f=section->Get_bool("dsp write buffer status must return 0x7f or 0xff");
 
-        bool Mixer_SampleAccurate();
         if (Mixer_SampleAccurate() && sb.goldplay) {
             LOG_MSG("Sound Blaster goldplay mode is incompatible with mixer sample-accurate mode.");
             sb.goldplay=false;
