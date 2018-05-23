@@ -693,6 +693,7 @@ public:
             return;
         }
 
+        bool bootbyDrive=false;
         FILE *usefile_1=NULL;
         FILE *usefile_2=NULL;
         Bitu i=0; 
@@ -730,6 +731,7 @@ public:
             if(cmd->FindCommand(i+1, temp_line)) {
                 if((temp_line == "-l") || (temp_line == "-L")) {
                     /* Specifying drive... next argument then is the drive */
+                    bootbyDrive = true;
                     i++;
                     if(cmd->FindCommand(i+1, temp_line)) {
                         drive=toupper(temp_line[0]);
@@ -799,56 +801,58 @@ public:
             i++;
         }
 
-        if (i == 0) {
-            WriteOut("No images specified");
-            return;
-        }
-
-        if (i > 1) {
-            /* if more than one image is given, then this drive becomes the focus of the swaplist */
-            if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive != (drive - 65)) {
-                WriteOut("Multiple disk images specified and another drive is already connected to the swap list");
+        if (!bootbyDrive) {
+            if (i == 0) {
+                WriteOut("No images specified");
                 return;
             }
-            else if (swapInDisksSpecificDrive < 0 && swaponedrive) {
-                swapInDisksSpecificDrive = drive - 65;
-            }
 
-            /* transfer to the diskSwap array */
-            for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
-                if (diskSwap[si] != NULL) {
-                    diskSwap[si]->Release();
-                    diskSwap[si] = NULL;
+            if (i > 1) {
+                /* if more than one image is given, then this drive becomes the focus of the swaplist */
+                if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive != (drive - 65)) {
+                    WriteOut("Multiple disk images specified and another drive is already connected to the swap list");
+                    return;
+                }
+                else if (swapInDisksSpecificDrive < 0 && swaponedrive) {
+                    swapInDisksSpecificDrive = drive - 65;
                 }
 
-                diskSwap[si] = newDiskSwap[si];
-                newDiskSwap[si] = NULL;
-            }
-
-            swapPosition = 0;
-            swapInDisks();
-        }
-        else {
-            if (swapInDisksSpecificDrive == (drive - 65)) {
-                /* if we're replacing the diskSwap drive clear it now */
+                /* transfer to the diskSwap array */
                 for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
                     if (diskSwap[si] != NULL) {
                         diskSwap[si]->Release();
                         diskSwap[si] = NULL;
                     }
+
+                    diskSwap[si] = newDiskSwap[si];
+                    newDiskSwap[si] = NULL;
                 }
 
-                swapInDisksSpecificDrive = -1;
+                swapPosition = 0;
+                swapInDisks();
             }
+            else {
+                if (swapInDisksSpecificDrive == (drive - 65)) {
+                    /* if we're replacing the diskSwap drive clear it now */
+                    for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
+                        if (diskSwap[si] != NULL) {
+                            diskSwap[si]->Release();
+                            diskSwap[si] = NULL;
+                        }
+                    }
 
-            /* attach directly without using the swap list */
-            if (imageDiskList[drive-65] != NULL) {
-                imageDiskList[drive-65]->Release();
-                imageDiskList[drive-65] = NULL;
+                    swapInDisksSpecificDrive = -1;
+                }
+
+                /* attach directly without using the swap list */
+                if (imageDiskList[drive-65] != NULL) {
+                    imageDiskList[drive-65]->Release();
+                    imageDiskList[drive-65] = NULL;
+                }
+
+                imageDiskList[drive-65] = newDiskSwap[0];
+                newDiskSwap[0] = NULL;
             }
-
-            imageDiskList[drive-65] = newDiskSwap[0];
-            newDiskSwap[0] = NULL;
         }
 
         if(imageDiskList[drive-65]==NULL) {
