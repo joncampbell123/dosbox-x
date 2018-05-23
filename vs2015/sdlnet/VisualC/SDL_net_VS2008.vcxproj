@@ -213,6 +213,7 @@
     </Bscmake>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|Win32'">
@@ -261,6 +262,7 @@
     </Bscmake>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -402,6 +404,7 @@
     </Bscmake>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'">
@@ -449,6 +452,7 @@
     </Bscmake>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

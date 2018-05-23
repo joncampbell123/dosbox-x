@@ -179,6 +179,7 @@
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'">
@@ -201,6 +202,7 @@
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -274,6 +276,7 @@
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|Win32'">
@@ -297,6 +300,7 @@
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

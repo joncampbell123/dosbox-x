@@ -136,6 +136,7 @@
     </Link>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|x64'">
@@ -216,6 +217,7 @@
     </Link>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|x64'">
