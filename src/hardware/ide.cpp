@@ -96,17 +96,21 @@ enum {
 
 class IDEController;
 
+#if 0//unused
 static inline bool drivehead_is_lba48(uint8_t val) {
     return (val&0xE0) == 0x40;
 }
+#endif
 
 static inline bool drivehead_is_lba(uint8_t val) {
     return (val&0xE0) == 0xE0;
 }
 
+#if 0//unused
 static inline bool drivehead_is_chs(uint8_t val) {
     return (val&0xE0) == 0xA0;
 }
+#endif
 
 class IDEDevice {
 public:
