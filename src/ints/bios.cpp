@@ -3103,9 +3103,9 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
 
                 size -= accsize;
 
-                if ((++fdc_sect[drive]) > img_sect) {
+                if ((++fdc_sect[drive]) > img_sect && img_sect != 0) {
                     fdc_sect[drive] = 1;
-                    if ((++fdc_head[drive]) >= img_heads) {
+                    if ((++fdc_head[drive]) >= img_heads && img_heads != 0) {
                         fdc_head[drive] = 0;
                         fdc_cyl[drive]++;
                     }
@@ -3180,9 +3180,9 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 memaddr += accsize;
                 size -= accsize;
 
-                if ((++fdc_sect[drive]) > img_sect) {
+                if ((++fdc_sect[drive]) > img_sect && img_sect != 0) {
                     fdc_sect[drive] = 1;
-                    if ((++fdc_head[drive]) >= img_heads) {
+                    if ((++fdc_head[drive]) >= img_heads && img_heads != 0) {
                         fdc_head[drive] = 0;
                         fdc_cyl[drive]++;
                     }
@@ -3271,9 +3271,9 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 memaddr += accsize;
                 size -= accsize;
 
-                if ((++fdc_sect[drive]) > img_sect) {
+                if ((++fdc_sect[drive]) > img_sect && img_sect != 0) {
                     fdc_sect[drive] = 1;
-                    if ((++fdc_head[drive]) >= img_heads) {
+                    if ((++fdc_head[drive]) >= img_heads && img_heads != 0) {
                         fdc_head[drive] = 0;
                         fdc_cyl[drive]++;
                     }
