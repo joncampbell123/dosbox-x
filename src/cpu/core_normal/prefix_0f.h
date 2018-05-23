@@ -16,9 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-bool CPU_RDMSR();
-bool CPU_WRMSR();
-
 	CASE_0F_W(0x00)												/* GRP 6 Exxx */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
 		{

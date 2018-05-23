@@ -135,7 +135,7 @@ Bitu DEBUG_EnableDebugger(void);
 #define ACCESS_UR  2
 #define ACCESS_URW 3
 #define ACCESS_TABLEFAULT 4
-const char* const mtr[] = {"KR ","KRW","UR ","URW","PFL"};
+//const char* const mtr[] = {"KR ","KRW","UR ","URW","PFL"};
 
 // bit0 entry write
 // bit1 entry access
@@ -173,7 +173,7 @@ static const Bit8u translate_array[] = {
 #define ACMAP_RE 1
 #define ACMAP_EE 2
 
-static const char* const lnm[] = {"RW ","RE ","EE "}; // debug stuff
+//static const char* const lnm[] = {"RW ","RE ","EE "}; // debug stuff
 
 // bit0-1 ACCESS_ type
 // bit2   1=user mode

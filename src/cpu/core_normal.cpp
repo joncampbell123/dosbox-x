@@ -29,6 +29,9 @@
 #include "paging.h"
 #include "mmx.h"
 
+bool CPU_RDMSR();
+bool CPU_WRMSR();
+
 #define CPU_CORE CPU_ARCHTYPE_386
 
 #define DoString DoString_Normal

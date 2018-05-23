@@ -257,6 +257,9 @@ static Bit32u Fetchd() {
 	return Fetch<uint32_t>();
 }
 
+bool CPU_RDMSR();
+bool CPU_WRMSR();
+
 #define Push_16 CPU_Push16
 #define Push_32 CPU_Push32
 #define Pop_16 CPU_Pop16

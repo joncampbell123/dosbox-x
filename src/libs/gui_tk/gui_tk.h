@@ -326,14 +326,14 @@ protected:
 	friend class String;
 
 	/// Converts a native string into a String object
-	static void getString(String &dest, const STR &src)  { STR::_this_string_type_is_not_supported_(); }
+	static void getString(String &dest, const STR &src)  { (void)dest; (void)src; STR::_this_string_type_is_not_supported_(); }
 
 	/** \brief Converts a string object to native representation.
 	*
 	*  If some characters cannot be converted, they should silently be skipped. Apart from that,
 	*  \c nativeString(stringNative(String(),X)) should be value-equal to \c X.
 	*/
-	static STR& getNative(const String &src) { STR::_this_string_type_is_not_supported_();return*new STR(); }
+	static STR& getNative(const String &src) { (void)src; STR::_this_string_type_is_not_supported_();return*new STR(); }
 };
 
 template <typename STR> class NativeString<STR*> {

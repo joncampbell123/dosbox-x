@@ -132,6 +132,9 @@ static INLINE Bit32u Fetchd() {
 #define Pop_16 CPU_Pop16
 #define Pop_32 CPU_Pop32
 
+bool CPU_RDMSR();
+bool CPU_WRMSR();
+
 #include "instructions.h"
 #include "core_normal/support.h"
 #include "core_normal/string.h"

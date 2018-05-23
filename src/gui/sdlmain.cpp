@@ -583,13 +583,15 @@ Bitu GUI_JoystickCount(void) {
     return sdl.num_joysticks;
 }
 
+#if 0
 /* TODO: should move to it's own file ================================================ */
 static unsigned char logo[32*32*4]= {
 #include "dosbox_logo.h"
 };
+#endif
 
-static void DOSBox_SetOriginalIcon(void) {
 #if !defined(MACOSX)
+static void DOSBox_SetOriginalIcon(void) {
     SDL_Surface *logos;
 
 #if WORDS_BIGENDIAN
@@ -603,8 +605,8 @@ static void DOSBox_SetOriginalIcon(void) {
 #else
         SDL_WM_SetIcon(logos,NULL);
 #endif
-#endif
 }
+#endif
 /* =================================================================================== */
 
 #if defined (WIN32)
@@ -1130,15 +1132,15 @@ void GFX_LogSDLState(void) {
 }
 
 #if !defined(C_SDL2) && C_OPENGL
+int Voodoo_OGL_GetWidth();
+int Voodoo_OGL_GetHeight();
+bool Voodoo_OGL_Active();
+
 static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) {
     Bit16u fixedWidth;
     Bit16u fixedHeight;
     Bit16u windowWidth;
     Bit16u windowHeight;
-
-    int Voodoo_OGL_GetWidth();
-    int Voodoo_OGL_GetHeight();
-    bool Voodoo_OGL_Active();
 
     if (sdl.desktop.prevent_fullscreen) /* 3Dfx openGL do not allow resize */
         sdl_flags &= ~SDL_RESIZABLE;
