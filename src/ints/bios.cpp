@@ -3044,6 +3044,77 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
         /* TODO: 0x0A = Read ID */
         /* TODO: 0x0D = Format track */
         /* TODO: 0x0E = ?? */
+        case 0x01: /* test read */
+            /* AH bits[4:4] = If set, seek to track specified */
+            /* CL           = cylinder (track) */
+            /* CH           = sector size (0=128 1=256 2=512 3=1024 etc) */
+            /* DL           = sector number (1-based) */
+            /* DH           = head */
+            /* BX           = size (in bytes) of data to read */
+            /* ES:BP        = buffer to read data into */
+            if (floppy == NULL) {
+                CALLBACK_SCF(true);
+                reg_ah = 0x00;
+                /* TODO? Error code? */
+                return;
+            }
+            floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+
+            /* Prevent reading 1.44MB floppyies using 1.2MB read commands and vice versa.
+             * FIXME: It seems MS-DOS 5.0 booted from a HDI image has trouble understanding
+             *        when Drive A: (the first floppy) is a 1.44MB drive or not and fails
+             *        because it only attempts it using 1.2MB format read commands. */
+            if (flags & PC98_FLOPPY_RPM_IBMPC) {
+                if (img_ssz == 1024) { /* reject 1.2MB 3-mode format */
+                    CALLBACK_SCF(true);
+                    reg_ah = 0x00;
+                    /* TODO? Error code? */
+                    return;
+                }
+            }
+            else {
+                if (img_ssz == 512) { /* reject IBM PC 1.44MB format */
+                    CALLBACK_SCF(true);
+                    reg_ah = 0x00;
+                    /* TODO? Error code? */
+                    return;
+                }
+            }
+
+            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
+            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
+            if (0/*unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0*/) {
+                CALLBACK_SCF(true);
+                reg_ah = 0x00;
+                /* TODO? Error code? */
+                return;
+            }
+
+            size = reg_bx;
+            while (size > 0) {
+                accsize = size > unitsize ? unitsize : size;
+
+                if (floppy->Read_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER,unitsize) != 0) {
+                    CALLBACK_SCF(true);
+                    reg_ah = 0x00;
+                    /* TODO? Error code? */
+                    return;
+                }
+
+                size -= accsize;
+
+                if ((++fdc_sect[drive]) > img_sect) {
+                    fdc_sect[drive] = 1;
+                    if ((++fdc_head[drive]) >= img_heads) {
+                        fdc_head[drive] = 0;
+                        fdc_cyl[drive]++;
+                    }
+                }
+            }
+
+            reg_ah = 0x00;
+            CALLBACK_SCF(false);
+            break;
         case 0x02: /* read sectors */
         case 0x06: /* read sectors (what's the difference from 0x02?) */
             /* AH bits[4:4] = If set, seek to track specified */
