@@ -142,7 +142,7 @@ public:
         }
     };
 
-    vfdentry *findSector(Bit8u head,Bit8u track,Bit8u sector/*TODO: physical head?*/);
+    vfdentry *findSector(Bit8u head,Bit8u track,Bit8u sector/*TODO: physical head?*/,unsigned int req_sector_size=0);
 
     std::vector<vfdentry> dents;
 };
