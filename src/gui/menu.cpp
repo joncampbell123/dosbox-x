@@ -1538,8 +1538,12 @@ void reflectmenu_INITMENU_cb() {
 }
 
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
-	(void)Message;//UNUSED
-	//REMOVE THIS
+    bool GFX_GetPreventFullscreen(void);
+
+    if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
+    if (!GetMenu(GetHWND())) return;
+    if (Message.msg != WM_COMMAND) return;
+    if (mainMenu.mainMenuWM_COMMAND(Message.wParam)) return;
 }
 #else
 void DOSBox_SetSysMenu(void) {
