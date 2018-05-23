@@ -583,7 +583,7 @@ Bitu GUI_JoystickCount(void) {
     return sdl.num_joysticks;
 }
 
-#if 0
+#if !defined(MACOSX)
 /* TODO: should move to it's own file ================================================ */
 static unsigned char logo[32*32*4]= {
 #include "dosbox_logo.h"
