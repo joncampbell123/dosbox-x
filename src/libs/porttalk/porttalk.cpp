@@ -1,6 +1,12 @@
 #include "config.h"
 #include "logging.h"
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+# pragma warning(disable:4267) /* ... possible loss of data */
+# pragma warning(disable:4305) /* truncation from double to float */
+#endif
+
 #if defined (_MSC_VER)
 # if defined (_M_IX86)/*x86 only*/
 void outportb(Bit32u portid, Bit8u value) {

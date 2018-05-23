@@ -31,6 +31,10 @@
 #include <math.h>
 #include "8255.h"
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
+
 #define KEYBUFSIZE 32*3
 #define RESETDELAY 400
 #define KEYDELAY 0.300f         //Considering 20-30 khz serial clock and 11 bits/char

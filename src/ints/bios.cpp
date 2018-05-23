@@ -45,6 +45,11 @@ extern bool PS1AudioCard;
 #include <time.h>
 #include <sys/timeb.h>
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+# pragma warning(disable:4305) /* truncation from double to float */
+#endif
+
 #if defined(WIN32) && !defined(S_ISREG)
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
@@ -584,7 +589,7 @@ static void dosbox_integration_port02_command_w(Bitu port,Bitu val,Bitu iolen) {
     }
 }
 
-static const IO_ReadHandler* dosbox_integration_cb_ports_r[4] = {
+static IO_ReadHandler* const dosbox_integration_cb_ports_r[4] = {
     dosbox_integration_port00_index_r,
     dosbox_integration_port01_data_r,
     dosbox_integration_port02_status_r,
@@ -597,7 +602,7 @@ static IO_ReadHandler* dosbox_integration_cb_port_r(IO_CalloutObject &co,Bitu po
     return dosbox_integration_cb_ports_r[port&3];
 }
 
-static const IO_WriteHandler* dosbox_integration_cb_ports_w[4] = {
+static IO_WriteHandler* const dosbox_integration_cb_ports_w[4] = {
     dosbox_integration_port00_index_w,
     dosbox_integration_port01_data_w,
     dosbox_integration_port02_command_w,

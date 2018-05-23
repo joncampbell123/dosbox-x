@@ -27,6 +27,10 @@
 #include "dos_inc.h"
 #include "SDL.h"
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
+
 /* SDL by default treats numlock and scrolllock different from all other keys.
  * In recent versions this can disabled by a environment variable which we set in sdlmain.cpp
  * Define the following if this is the case */

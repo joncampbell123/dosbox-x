@@ -21,6 +21,10 @@
 
 #if C_DIRECTLPT
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
+
 /* Windows version */
 #if defined (WIN32)
 

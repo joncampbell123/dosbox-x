@@ -40,6 +40,11 @@
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+# pragma warning(disable:4305) /* truncation from double to float */
+#endif
+
 //#undef C_DEBUG
 //#define C_DEBUG 1
 //#define LOG(X,Y) LOG_MSG

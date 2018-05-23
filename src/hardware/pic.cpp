@@ -25,6 +25,10 @@
 #include "setup.h"
 #include "control.h"
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
+
 #define PIC_QUEUESIZE 512
 
 unsigned long PIC_irq_delay_ns = 0;

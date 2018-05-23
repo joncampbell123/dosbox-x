@@ -27,6 +27,10 @@
 #include "shiftjis.h"
 #include "callback.h"
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
+
 static void CGA2_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt base) {
     Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
     PhysPt dest=base+((CurMode->twidth*rnew)*(cheight/2)+cleft);

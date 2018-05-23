@@ -40,6 +40,12 @@
  *        FIFO anyway, and which cards have it? Would it also be possible to eliminate
  *        the need for sb.dma.min? */
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+# pragma warning(disable:4305) /* truncation from double to float */
+# pragma warning(disable:4065) /* switch without case */
+#endif
+
 #include <iomanip>
 #include <sstream>
 #include <string.h>

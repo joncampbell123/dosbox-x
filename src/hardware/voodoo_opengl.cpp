@@ -30,6 +30,10 @@
 
 #if C_OPENGL
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
+
 #include "voodoo_def.h"
 
 SDL_Surface* ogl_surface = NULL;

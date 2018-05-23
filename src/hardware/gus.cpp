@@ -32,6 +32,10 @@
 #include "regs.h"
 using namespace std;
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
+
 enum GUSType {
 	GUS_CLASSIC=0,
 	GUS_MAX,

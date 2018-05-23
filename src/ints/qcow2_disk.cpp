@@ -19,6 +19,9 @@
 
 #include "qcow2_disk.h"
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
 
 using namespace std;
 

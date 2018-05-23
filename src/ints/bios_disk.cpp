@@ -27,6 +27,10 @@
 #include "mapper.h"
 #include "ide.h"
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
+
 extern bool int13_extensions_enable;
 
 diskGeo DiskGeometryList[] = {

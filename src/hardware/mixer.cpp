@@ -27,6 +27,10 @@
 #define _USE_MATH_DEFINES // needed for M_PI in Visual Studio as documented [https://msdn.microsoft.com/en-us/library/4hwaceh6.aspx]
 #include <math.h>
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
+
 #if defined (WIN32)
 //Midi listing
 #ifndef WIN32_LEAN_AND_MEAN

@@ -39,6 +39,10 @@
 #include "setup.h"
 #include "control.h"
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
+
 /* ints/bios.cpp */
 void bios_enable_ps2();
 
