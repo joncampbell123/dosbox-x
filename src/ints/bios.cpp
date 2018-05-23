@@ -7179,7 +7179,7 @@ void write_ID_version_string() {
     str_ver_at = 0xFE061;
     str_id_len = strlen(bios_type_string)+1;
     str_ver_len = strlen(bios_version_string)+1;
-    if (!mainline_compatible_bios_mapping) {
+    if (!mainline_compatible_bios_mapping && !IS_PC98_ARCH) {
         /* need to mark these strings off-limits so dynamic allocation does not overwrite them */
         ROMBIOS_GetMemory(str_id_len+1,"BIOS ID string",1,str_id_at);
         ROMBIOS_GetMemory(str_ver_len+1,"BIOS version string",1,str_ver_at);
@@ -7252,7 +7252,7 @@ void ROMBIOS_Init() {
     write_ID_version_string();
 
     /* some structures when enabled are fixed no matter what */
-    if (!mainline_compatible_bios_mapping && rom_bios_8x8_cga_font) {
+    if (!mainline_compatible_bios_mapping && rom_bios_8x8_cga_font && !IS_PC98_ARCH) {
         /* line 139, int10_memory.cpp: the 8x8 font at 0xF000:FA6E, first 128 chars.
          * allocate this NOW before other things get in the way */
         if (ROMBIOS_GetMemory(128*8,"BIOS 8x8 font (first 128 chars)",1,0xFFA6E) == 0) {
