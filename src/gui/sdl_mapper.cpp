@@ -954,7 +954,7 @@ public:
     }
     CBind * CreateEventBind(SDL_Event * event) {
         if (event->type==SDL_JOYAXISMOTION) {
-            if (event->jaxis.which!=stick) return 0;
+            if ((unsigned int)event->jaxis.which!=(unsigned int)stick) return 0;
 #if defined (REDUCE_JOYSTICK_POLLING)
             if (event->jaxis.axis>=axes) return 0;
 #endif
@@ -968,7 +968,7 @@ public:
             return CreateButtonBind(event->jbutton.button);
 #endif
         } else if (event->type==SDL_JOYHATMOTION) {
-            if (event->jhat.which!=stick) return 0;
+            if ((unsigned int)event->jhat.which!=(unsigned int)stick) return 0;
             if (event->jhat.value==0) return 0;
             if (event->jhat.value>(SDL_HAT_UP|SDL_HAT_RIGHT|SDL_HAT_DOWN|SDL_HAT_LEFT)) return 0;
             return CreateHatBind(event->jhat.hat,event->jhat.value);
@@ -983,7 +983,7 @@ public:
         switch(event->type) {
             case SDL_JOYAXISMOTION:
                 jaxis = &event->jaxis;
-                if(jaxis->which == stick) {
+                if((unsigned int)jaxis->which == (unsigned int)stick) {
                     if(jaxis->axis == 0)
                         JOYSTICK_Move_X(emustick,(float)(jaxis->value/32768.0));
                     else if(jaxis->axis == 1)
@@ -997,7 +997,7 @@ public:
                     bool state;
                     state=jbutton->type==SDL_JOYBUTTONDOWN;
                     but = jbutton->button % emulated_buttons;
-                    if (jbutton->which == stick) {
+                    if ((unsigned int)jbutton->which == (unsigned int)stick) {
                         JOYSTICK_Button(emustick, but, state);
                     }
                 }
@@ -1181,7 +1181,7 @@ public:
         switch(event->type) {
             case SDL_JOYAXISMOTION:
                 jaxis = &event->jaxis;
-                if(jaxis->which == stick && jaxis->axis < 4) {
+                if((unsigned int)jaxis->which == (unsigned int)stick && jaxis->axis < 4) {
                     if(jaxis->axis & 1)
                         JOYSTICK_Move_Y(jaxis->axis>>1 & 1,(float)(jaxis->value/32768.0));
                     else
@@ -1194,7 +1194,7 @@ public:
                 bool state;
                 state=jbutton->type==SDL_JOYBUTTONDOWN;
                 but = jbutton->button % emulated_buttons;
-                if (jbutton->which == stick) {
+                if ((unsigned int)jbutton->which == (unsigned int)stick) {
                     JOYSTICK_Button((but >> 1),(but & 1),state);
                 }
                 break;
@@ -1256,7 +1256,7 @@ public:
         switch(event->type) {
             case SDL_JOYAXISMOTION:
                 jaxis = &event->jaxis;
-                if(jaxis->which == stick) {
+                if((unsigned int)jaxis->which == (unsigned int)stick) {
                     if(jaxis->axis == 0)
                         JOYSTICK_Move_X(0,(float)(jaxis->value/32768.0));
                     else if(jaxis->axis == 1)
@@ -1267,7 +1267,7 @@ public:
                 break;
             case SDL_JOYHATMOTION:
                 jhat = &event->jhat;
-                if(jhat->which == stick) DecodeHatPosition(jhat->value);
+                if((unsigned int)jhat->which == (unsigned int)stick) DecodeHatPosition(jhat->value);
                 break;
             case SDL_JOYBUTTONDOWN:
             case SDL_JOYBUTTONUP:
@@ -1275,7 +1275,7 @@ public:
                 bool state;
                 state=jbutton->type==SDL_JOYBUTTONDOWN;
                 but = jbutton->button % emulated_buttons;
-                if (jbutton->which == stick) {
+                if ((unsigned int)jbutton->which == (unsigned int)stick) {
                         JOYSTICK_Button((but >> 1),(but & 1),state);
                 }
                 break;
@@ -1395,7 +1395,7 @@ public:
         switch(event->type) {
             case SDL_JOYAXISMOTION:
                 jaxis = &event->jaxis;
-                if(jaxis->which == stick && jaxis->axis < 4) {
+                if((unsigned int)jaxis->which == (unsigned int)stick && jaxis->axis < 4) {
                     if(jaxis->axis & 1)
                         JOYSTICK_Move_Y(jaxis->axis>>1 & 1,(float)(jaxis->value/32768.0));
                     else
@@ -1404,7 +1404,7 @@ public:
                 break;
             case SDL_JOYHATMOTION:
                 jhat = &event->jhat;
-                if(jhat->which == stick && jhat->hat < 2) {
+                if((unsigned int)jhat->which == (unsigned int)stick && jhat->hat < 2) {
                     if(jhat->value == SDL_HAT_CENTERED)
                         button_state&=~hat_magic[jhat->hat][0];
                     if(jhat->value & SDL_HAT_UP)
@@ -1420,13 +1420,13 @@ public:
             case SDL_JOYBUTTONDOWN:
                 jbutton = &event->jbutton;
                 but = jbutton->button % emulated_buttons;
-                if (jbutton->which == stick)
+                if ((unsigned int)jbutton->which == (unsigned int)stick)
                     button_state|=button_magic[but];
                 break;
             case SDL_JOYBUTTONUP:
                 jbutton = &event->jbutton;
                 but = jbutton->button % emulated_buttons;
-                if (jbutton->which == stick)
+                if ((unsigned int)jbutton->which == (unsigned int)stick)
                     button_state&=~button_magic[but];
                 break;
         }
