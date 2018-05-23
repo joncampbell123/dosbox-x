@@ -295,6 +295,13 @@ dnl other
 AC_CHECK_CXXFLAGS([ -Wno-missing-field-initializers ])
 AC_CHECK_CXXFLAGS([ -Wno-format-zero-length ])
 
+dnl Clang/LLVM warning: don't care the address of a member may be unaligned, unless targeting ARM!
+AC_CHECK_CXXFLAGS([ -Wno-address-of-packed-member ])
+dnl Clang/LLVM warning: don't care about int to void*, since void* is either same size or larger
+AC_CHECK_CXXFLAGS([ -Wno-int-to-void-pointer-cast ])
+dnl Clang/LLVM warning: extended field designator
+AC_CHECK_CXXFLAGS([ -Wno-extended-offsetof ])
+
 dnl Some stuff for the icon.
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
