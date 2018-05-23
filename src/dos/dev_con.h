@@ -172,7 +172,7 @@ private:
 
                 /* FIXME: I'm not sure what NEC's ANSI driver does if a doublewide character is printed at column 79 */
                 if ((cur_col+cw) > ncols) {
-                    cur_col = ncols;
+                    cur_col = (Bit8u)ncols;
                     AdjustCursorPosition(cur_col,cur_row);
                 }
 
@@ -308,7 +308,7 @@ private:
 
                     /* FIXME: I'm not sure what NEC's ANSI driver does if a doublewide character is printed at column 79 */
                     if ((cur_col+cw) > ncols) {
-                        cur_col = ncols;
+                        cur_col = (Bit8u)ncols;
                         AdjustCursorPosition(cur_col,cur_row);
                     }
 

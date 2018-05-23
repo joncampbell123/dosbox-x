@@ -306,7 +306,7 @@ class CBreakpoint
 public:
 
 	CBreakpoint(void);
-	void					SetAddress		(Bit16u seg, Bit32u off)	{ location = GetAddress(seg,off);	type = BKPNT_PHYSICAL; segment = seg; offset = off; };
+	void					SetAddress		(Bit16u seg, Bit32u off)	{ location = (PhysPt)GetAddress(seg,off); type = BKPNT_PHYSICAL; segment = seg; offset = off; };
 	void					SetAddress		(PhysPt adr)				{ location = adr;				type = BKPNT_PHYSICAL; };
 	void					SetInt			(Bit8u _intNr, Bit16u ah)	{ intNr = _intNr, ahValue = ah; type = BKPNT_INTERRUPT; };
 	void					SetOnce			(bool _once)				{ once = _once; };
@@ -733,14 +733,14 @@ static void DrawData(void) {
                  * we must hack the phys page tlb to make the hardware handler map 1:1 the page for this call. */
                 PhysPt opg = paging.tlb.phys_page[address>>12];
 
-                paging.tlb.phys_page[address>>12] = address>>12;
+                paging.tlb.phys_page[address>>12] = (Bit32u)(address>>12);
 
-                PageHandler *ph = MEM_GetPageHandler(address>>12);
+                PageHandler *ph = MEM_GetPageHandler((Bitu)(address>>12));
 
                 if (ph->flags & PFLAG_READABLE)
-	                ch = ph->GetHostReadPt(address>>12)[address&0xFFF];
+	                ch = ph->GetHostReadPt((Bitu)(address>>12))[address&0xFFF];
                 else
-                    ch = ph->readb(address);
+                    ch = ph->readb((PhysPt)address);
 
                 paging.tlb.phys_page[address>>12] = opg;
 
@@ -760,7 +760,7 @@ static void DrawData(void) {
                     address = add;
 
                 if (address != mem_no_address) {
-                    if (!mem_readb_checked(address,&ch)) {
+                    if (!mem_readb_checked((PhysPt)address,&ch)) {
                         wattrset (dbg.win_data,0);
                         mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
                         if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
@@ -953,7 +953,7 @@ static void DrawCode(void) {
 				codeViewData.cursorSeg = codeViewData.useCS;
 				codeViewData.cursorOfs = disEIP;
 				saveSel = true;
-			} else if (CBreakpoint::IsBreakpointDrawn(start)) {
+			} else if (CBreakpoint::IsBreakpointDrawn((PhysPt)start)) {
                 wbkgdset(dbg.win_code,COLOR_PAIR(PAIR_GREY_RED));
 				wattrset(dbg.win_code,COLOR_PAIR(PAIR_GREY_RED));			
 			} else {
@@ -968,7 +968,7 @@ static void DrawCode(void) {
 		Bitu drawsize;
 
         if (start != mem_no_address) {
-            drawsize=size=DasmI386(dline, start, disEIP, cpu.code.big);
+            drawsize=size=DasmI386(dline, (PhysPt)start, disEIP, cpu.code.big);
         }
         else {
             drawsize=size=1;
@@ -981,7 +981,7 @@ static void DrawCode(void) {
         if (start != mem_no_address) {
             for (c=0;c<drawsize;c++) {
                 Bit8u value;
-                if (!mem_readb_checked(start+c,&value)) {
+                if (!mem_readb_checked((PhysPt)(start+c),&value)) {
                     wattrset (dbg.win_code,0);
                     wprintw(dbg.win_code,"%02X",value);
                 }
@@ -1246,7 +1246,7 @@ bool ParseCommand(char* str) {
 
 		if(!name[0]) return false;
 		DEBUG_ShowMsg("DEBUG: Created debug var %s at %04X:%04X\n",name,seg,ofs);
-		CDebugVar::InsertVariable(name,GetAddress(seg,ofs));
+		CDebugVar::InsertVariable(name,(PhysPt)GetAddress(seg,ofs));
 		return true;
 	};
 
@@ -1288,7 +1288,7 @@ bool ParseCommand(char* str) {
 			if (*found) {
 				Bit8u value = (Bit8u)GetHexValue(found,found);
 				if(*found) found++;
-				mem_writeb_checked(GetAddress(seg,ofs+count),value);
+				mem_writeb_checked((PhysPt)GetAddress(seg,ofs+count),value);
 				count++;
 			}
 		};
@@ -1728,7 +1728,7 @@ char* AnalyzeInstruction(char* inst, bool saveSelector) {
 			} else 
 				pos++;
 		};
-		Bit32u address = GetAddress(seg,adr);
+		Bit32u address = (Bit32u)GetAddress(seg,adr);
 		if (!(get_tlb_readhandler(address)->flags & PFLAG_INIT)) {
 			static char outmask[] = "%s:[%04X]=%02X";
 			
@@ -1903,7 +1903,7 @@ void win_code_ui_up(int count) {
                 Bit32u newEIP = codeViewData.useEIP - 1;
                 if(codeViewData.useEIP) {
                     for (; bytes < 10; bytes++) {
-                        PhysPt start = GetAddress(codeViewData.useCS,newEIP);
+                        PhysPt start = (PhysPt)GetAddress(codeViewData.useCS,newEIP);
                         size = DasmI386(dline, start, newEIP, cpu.code.big);
                         if(codeViewData.useEIP == newEIP+size) break;
                         newEIP--;
@@ -2158,7 +2158,7 @@ Bit32u DEBUG_CheckKeys(void) {
 				DOSBOX_SetNormalLoop();	
 				break;
 		case KEY_F(9):	// Set/Remove Breakpoint
-				{	PhysPt ptr = GetAddress(codeViewData.cursorSeg,codeViewData.cursorOfs);
+				{	PhysPt ptr = (PhysPt)GetAddress(codeViewData.cursorSeg,codeViewData.cursorOfs);
 					if (CBreakpoint::IsBreakpoint(ptr)) {
 						CBreakpoint::DeleteBreakpoint(ptr);
 						DEBUG_ShowMsg("DEBUG: Breakpoint deletion success.\n");
@@ -3093,7 +3093,7 @@ static void SaveMemory(Bit16u seg, Bit32u ofs1, Bit32u num) {
 		sprintf(buffer,"%04X:%04X   ",seg,ofs1);
 		for (Bit16u x=0; x<16; x++) {
 			Bit8u value;
-			if (mem_readb_checked(GetAddress(seg,ofs1+x),&value)) sprintf(temp,"%s","?? ");
+			if (mem_readb_checked((PhysPt)GetAddress(seg,ofs1+x),&value)) sprintf(temp,"%s","?? ");
 			else sprintf(temp,"%02X ",value);
 			strcat(buffer,temp);
 		}
@@ -3106,7 +3106,7 @@ static void SaveMemory(Bit16u seg, Bit32u ofs1, Bit32u num) {
 		sprintf(buffer,"%04X:%04X   ",seg,ofs1);
 		for (Bit16u x=0; x<num; x++) {
 			Bit8u value;
-			if (mem_readb_checked(GetAddress(seg,ofs1+x),&value)) sprintf(temp,"%s","?? ");
+			if (mem_readb_checked((PhysPt)GetAddress(seg,ofs1+x),&value)) sprintf(temp,"%s","?? ");
 			else sprintf(temp,"%02X ",value);
 			strcat(buffer,temp);
 		}
@@ -3125,7 +3125,7 @@ static void SaveMemoryBin(Bit16u seg, Bit32u ofs1, Bit32u num) {
 
 	for (Bitu x = 0; x < num;x++) {
 		Bit8u val;
-		if (mem_readb_checked(GetAddress(seg,ofs1+x),&val)) val=0;
+		if (mem_readb_checked((PhysPt)GetAddress(seg,ofs1+x),&val)) val=0;
 		fwrite(&val,1,1,f);
 	}
 

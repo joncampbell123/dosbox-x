@@ -406,7 +406,7 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 				loadseg = (pspseg+memsize);
 				loadseg -= (imagesize+0xF)/0x10;
 				if (loadseg < (pspseg+16)) loadseg = pspseg+16;
-				if ((loadseg+((imagesize+0xF)/0x10)) > (pspseg+memsize))
+				if ((unsigned int)(loadseg+((imagesize+0xF)/0x10)) > (unsigned int)(pspseg+memsize))
 					E_Exit("EXE loading error, unable to load to top of block, nor able to fit into block");
 			}
 		}
@@ -420,13 +420,13 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 		readsize = pos;
 		if (readsize > (0xffff-256)) readsize = 0xffff-256;
 		pos += 256; /* plus stack */
-		if (pos > (memsize*0x10)) E_Exit("DOS:Not enough memory for COM executable");
+		if (pos > (unsigned int)(memsize*0x10)) E_Exit("DOS:Not enough memory for COM executable");
 
 		pos=0;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);	
 		DOS_ReadFile(fhandle,loadbuf,&readsize);
 		MEM_BlockWrite(loadaddress,loadbuf,readsize);
 	} else {	/* EXE Load in 32kb blocks and then relocate */
-		if (imagesize > (memsize*0x10)) E_Exit("DOS:Not enough memory for EXE image");
+		if (imagesize > (unsigned int)(memsize*0x10)) E_Exit("DOS:Not enough memory for EXE image");
 		pos=headersize;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);	
 		while (imagesize>0x7FFF) {
 			readsize=0x8000;DOS_ReadFile(fhandle,loadbuf,&readsize);
