@@ -64,8 +64,10 @@ public:
 	bool loadedSector;
 	fatDrive *myDrive;
 private:
-	enum { NONE,READ,WRITE } last_action;
+#if 0/*unused*/
+    enum { NONE,READ,WRITE } last_action;
 	Bit16u info;
+#endif
 };
 
 

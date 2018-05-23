@@ -67,7 +67,7 @@ void MOUSE::Run(void) {
         WriteOut(MSG_Get("PROGRAM_MOUSE_HELP"));
         return;
     }
-    switch (Mouse_Drv) {
+    switch ((unsigned char)Mouse_Drv) { /* FIXME: Mouse_Drv is boolean, clang/llvm complains here */
     case 0:
         if (cmd->FindExist("/u",false))
             WriteOut(MSG_Get("PROGRAM_MOUSE_NOINSTALLED"));
