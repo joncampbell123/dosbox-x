@@ -185,10 +185,11 @@ class Capture {
 	Bit32u	lastTicks;			//Last ticks when last last cmd was added
 	Bit8u	buf[1024];	//16 added for delay commands and what not
 	Bit32u	bufUsed;
-	Bit8u	cmd[2];				//Last cmd's sent to either ports
+#if 0//unused
+    Bit8u	cmd[2];				//Last cmd's sent to either ports
 	bool	doneOpl3;
 	bool	doneDualOpl2;
-
+#endif
 	RegisterCache* cache;
 
 	void MakeEntry( Bit8u reg, Bit8u& raw ) {

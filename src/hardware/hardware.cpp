@@ -629,6 +629,8 @@ void CAPTURE_VideoEvent(bool pressed) {
 extern uint32_t GFX_palette32bpp[256];
 #endif
 
+unsigned int GFX_GetBShift();
+
 void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags, float fps, Bit8u * data, Bit8u * pal) {
 #if (C_SSHOT)
 	Bitu i;
@@ -1105,8 +1107,6 @@ skip_shot:
 				LOG_MSG("Failed to alloc audio frame buffer");
 				goto skip_video;
 			}
-
-			unsigned int GFX_GetBShift();
 
 			av_frame_set_colorspace(ffmpeg_vidrgb_frame,AVCOL_SPC_RGB);
 			ffmpeg_vidrgb_frame->width = capture.video.width;

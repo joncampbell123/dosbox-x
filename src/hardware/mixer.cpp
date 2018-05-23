@@ -394,7 +394,7 @@ void MixerChannel::Mix(Bitu whole,Bitu frac) {
 void MixerChannel::AddSilence(void) {
 }
 
-template<class Type,bool stereo,bool signeddata,bool nativeorder,bool lowpass>
+template<class Type,bool stereo,bool signeddata,bool nativeorder,bool T_lowpass>
 inline void MixerChannel::loadCurrentSample(Bitu &len, const Type* &data) {
     last[0] = current[0];
     last[1] = current[1];
@@ -448,7 +448,7 @@ inline void MixerChannel::loadCurrentSample(Bitu &len, const Type* &data) {
         len = 0;
     }
 
-    if (lowpass && lowpass_on_load)
+    if (T_lowpass && lowpass_on_load)
         lowpassProc(current);
 
     if (stereo) {

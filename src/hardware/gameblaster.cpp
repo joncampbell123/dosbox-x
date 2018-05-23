@@ -406,7 +406,8 @@ static void CMS_CallBack(Bitu len) {
 	 Bit16s * stream=(Bit16s *) MixTemp;
 	/* Mix chip outputs */
 	for (Bitu l=0;l<len;l++) {
-		register Bits left, right;
+		Bits left, right;
+
 		left = cms_buffer[0][LEFT][l] + cms_buffer[1][LEFT][l];
 		right = cms_buffer[0][RIGHT][l] + cms_buffer[1][RIGHT][l];
 
