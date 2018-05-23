@@ -18,12 +18,12 @@
 
 
 #if defined (SCALERLINEAR)
-static void conc4d(SCALERNAME,SBPP,DBPP,L)(const void *s) {
+static inline void conc4d(SCALERNAME,SBPP,DBPP,L)(const void *s) {
 # if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
 	(void)conc4d(SCALERNAME,SBPP,DBPP,L);
 # endif
 #else
-static void conc4d(SCALERNAME,SBPP,DBPP,R)(const void *s) {
+static inline void conc4d(SCALERNAME,SBPP,DBPP,R)(const void *s) {
 # if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
 	(void)conc4d(SCALERNAME,SBPP,DBPP,R);
 # endif
