@@ -1,4 +1,9 @@
 0.82.7 (next)
+  - Most 128 byte/sector FDD images appear to jump to
+    E800:0002. I'm guessing that's ROM BASIC, so add a
+    callback at that location to catch these boot disks
+    and show a message instead of allowing the boot
+    sector to jump to nothing and crash.
   - PC-98 BOOT fixed to check for and support booting from
     FDD images where track 0 contains 128 byte/sector
     boot sectors.
