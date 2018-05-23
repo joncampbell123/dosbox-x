@@ -29,6 +29,10 @@
 # define MIN(a,b) std::min(a,b)
 #endif
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4065) /* switch statement no case labels */
+#endif
+
 static unsigned char init_ide = 0;
 
 static const unsigned char IDE_default_IRQs[4] = {
