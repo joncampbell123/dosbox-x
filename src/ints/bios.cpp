@@ -3301,6 +3301,8 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             CALLBACK_SCF(false);
             break;
         case 0x0A: /* read ID */
+            /* NTS: PC-98 "MEGDOS" used by some games seems to rely heavily on this call to
+             *      verify the floppy head is where it thinks it should be! */
             if (floppy == NULL) {
                 CALLBACK_SCF(true);
                 reg_ah = 0x00;
