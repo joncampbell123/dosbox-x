@@ -133,7 +133,7 @@ void Drawable::drawText(const String& text, bool interpret, Size start, Size len
 						c = font->toSpecial(text[start]);
 					} while (start < len && ((c >= '0' && c <= '9') || c == ';' || c == '['));
 					if (c == 'm' && start < len) {
-						if (font->toSpecial(text[seqstart++]) != '[') break;
+						if (font->toSpecial(text[seqstart++]) != '[') break; /* FIXME: Clang/LLVM claims this comparison will never happen */
 						c = font->toSpecial(text[seqstart++]);
 						while (c != 'm') {
 							int param = 0;
