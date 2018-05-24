@@ -1,4 +1,22 @@
 0.82.7 (next)
+  - PC-98 INT 1Bh "read id" floppy disk call fixed to
+    cycle through sector numbers. Some bootable PC-98
+    games use "MEGDOS" which polls this BIOS call before
+    attempting to read the disk. If the sector numbers
+    never cycle, "MEGDOS" will not attempt to read the
+    disk.
+  - Fixed bug that prevented some menu options (such as
+    "aspect ratio") from working if still in the BIOS or
+    booted into a guest OS.
+  - PC-98 mode fixed to ignore "mainline compatible mapping".
+    That mapping mode refers to DOSBox SVN which never
+    supported PC-98 mode anyway.
+  - Fix PC-98 INT 1Bh "test read" call, which then allows
+    "cherry bomb" to run.
+  - Remove geometry checks in PC-98 INT 1Bh BIOS call, so
+    that FDD images with odd sector sizes can work.
+  - ROM BIOS now automatically occupies E8000-FFFFF instead
+    of F0000-FFFFF when in PC-98 mode.
   - Most 128 byte/sector FDD images appear to jump to
     E800:0002. I'm guessing that's ROM BASIC, so add a
     callback at that location to catch these boot disks
