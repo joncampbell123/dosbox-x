@@ -1,0 +1,34 @@
+SDL1
+====
+
+Compilation
+-----------
+
+Additional options can be passed while building SDL1 project, e.g. :
+
+SET SDL1AdditionalOptions=/DMY_DEFINE
+MSBUILD ...
+
+
+CMake
+-----
+
+(still a work in progress)
+
+Requirements/limitations:
+
+- vcpkg is the package manager used to fetch dependencies
+- as a consequence of using vcpkg, only SDL2 builds are possible
+
+(for SDL1, use the solution in 'vs2015' folder instead)
+
+
+Joystick
+--------
+
+XInput is now supported through SDL_JOYSTICK_XINPUT define, you can finally enjoy both thumbsticks on your Xbox 360/One controller; triggers will act as the 5th and 6th axes when using 'ch' joystick type.
+
+Support is enabled only through command-line compilation:
+
+	set SDL1AdditionalOptions=/DSDL_JOYSTICK_XINPUT
+	msbuild dosbox-x.sln /p:Configuration=Debug /p:Platform=Win32
