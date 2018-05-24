@@ -3343,6 +3343,13 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
              *          are moving past the head. */
             reg_ch = fdc_sz[drive];
 
+            /* per read ID call, increment the sector through the range on disk.
+             * This is REQUIRED or else MEGDOS will not attempt to read this disk. */
+            if (img_sect != 0) {
+                if ((++fdc_sect[drive]) > img_sect)
+                    fdc_sect[drive] = 1;
+            }
+
             reg_ah = 0x00;
             CALLBACK_SCF(false);
             break;
