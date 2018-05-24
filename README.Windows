@@ -1,8 +1,7 @@
-SDL1
-====
-
 Compilation
 -----------
+
+(using the solution in 'vs2015' folder)
 
 Additional options can be passed while building SDL1 project, e.g. :
 
@@ -13,7 +12,7 @@ MSBUILD ...
 CMake
 -----
 
-(still a work in progress)
+(as an alternative to solution in 'vs2015' folder, still a work in progress)
 
 Requirements/limitations:
 
