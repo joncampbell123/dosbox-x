@@ -5423,6 +5423,9 @@ private:
              * bit[0:0] = Number of lines                           1=20/30 lines   0=25 lines */
             mem_writeb(0x53C,0x00);
 
+            /* BIOS raster location */
+            mem_writew(0x54A,0x1900);
+
             /* BIOS flags */
             /* bit[7:7] = Graphics display state                    1=Visible       0=Blanked (hidden)
              * bit[6:6] = CRT type                                  1=high res      0=standard
