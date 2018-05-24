@@ -4533,28 +4533,33 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                     if (sel_item != DOSBoxMenu::unassigned_item_handle) {
                                         if (mainMenu.get_item(sel_item).get_type() == DOSBoxMenu::submenu_type_id) {
                                             if (!mainMenu.get_item(sel_item).isHilight()) {
-                                                while (search != popup_stack.end()) {
-                                                    for (auto &id : mainMenu.get_item(*search).display_list.get_disp_list())
+                                                /* use a copy of the iterator to scan forward and un-hilight the menu items.
+                                                 * then use the original iterator to erase from the vector. */
+                                                for (auto ss=search;ss != popup_stack.end();ss++) {
+                                                    for (auto &id : mainMenu.get_item(*ss).display_list.get_disp_list())
                                                         mainMenu.get_item(id).setHilight(mainMenu,false).setHover(mainMenu,false);
 
-                                                    mainMenu.get_item(*search).setHilight(mainMenu,false).setHover(mainMenu,false);
-                                                    popup_stack.pop_back();
+                                                    mainMenu.get_item(*ss).setHilight(mainMenu,false).setHover(mainMenu,false);
                                                 }
 
+                                                popup_stack.erase(search,popup_stack.end());
                                                 mainMenu.get_item(sel_item).setHilight(mainMenu,true).setHover(mainMenu,true);
                                                 popup_stack.push_back(sel_item);
                                                 redrawAll = true;
                                             }
                                         }
                                         else {
-                                            while (search != popup_stack.end()) {
-                                                for (auto &id : mainMenu.get_item(*search).display_list.get_disp_list())
+                                            /* use a copy of the iterator to scan forward and un-hilight the menu items.
+                                             * then use the original iterator to erase from the vector. */
+                                            for (auto ss=search;ss != popup_stack.end();ss++) {
+                                                for (auto &id : mainMenu.get_item(*ss).display_list.get_disp_list())
                                                     mainMenu.get_item(id).setHilight(mainMenu,false).setHover(mainMenu,false);
 
-                                                mainMenu.get_item(*search).setHilight(mainMenu,false).setHover(mainMenu,false);
-                                                popup_stack.pop_back();
+                                                mainMenu.get_item(*ss).setHilight(mainMenu,false).setHover(mainMenu,false);
                                                 redrawAll = true;
                                             }
+
+                                            popup_stack.erase(search,popup_stack.end());
                                         }
 
                                         if (OpenGL_using())
