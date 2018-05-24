@@ -5351,6 +5351,16 @@ private:
             void pc98_msw3_set_ramsize(const unsigned char b);
             pc98_msw3_set_ramsize(memsize_real_code);
 
+            /* CRT status */
+            /* bit[7:6] = 00=conventional compatible  01=extended attr JEH  10=extended attr EGH
+             * bit[5:5] = Single event timer in use flag    1=busy  0=not used
+             * bit[4:4] = ?
+             * bit[3:3] = raster scan    1=non-interlaced     0=interlaced
+             * bit[2:2] = Content ruled line color  1=I/O set value    0=attributes of VRAM
+             * bit[1:1] = ?
+             * bit[0:0] = 480-line mode    1=640x480     0=640x400 or 640x200 */
+            mem_writeb(0x459,0x08/*non-interlaced*/);
+
             /* CPU/Display */
             /* bit[7:7] = 486SX equivalent (?)                                                                      1=yes
              * bit[6:6] = PC-9821 Extended Graph Architecture supported (FIXME: Is this the same as having EGC?)    1=yes
