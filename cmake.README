@@ -1,0 +1,10 @@
+This lays out the improvements to the previous CMake build.
+
+ - it has been splitted as many lists, much easier to maintain and read
+ - uses vcpkg for Windows, dependencies are fetched with ```vcpkg install fluidsynth libpng pdcurses sdl2 zlib```
+ - nearly all config.h options are now presented in the CMake GUI (help wanted)
+ 
+Caveats
+
+ - linux compatibility is commented out for the time being
+ - SDL2-only build
