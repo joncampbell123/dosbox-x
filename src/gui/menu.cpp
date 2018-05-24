@@ -1540,7 +1540,9 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
     if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
     if (!GetMenu(GetHWND())) return;
     if (Message.msg != WM_COMMAND) return;
-    if (mainMenu.mainMenuWM_COMMAND(Message.wParam)) return;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+	if (mainMenu.mainMenuWM_COMMAND(Message.wParam)) return;
+#endif
 }
 #else
 void DOSBox_SetSysMenu(void) {
