@@ -558,6 +558,7 @@
     <ClCompile Include="..\..\src\file\SDL_rwops.c" />
     <ClCompile Include="..\..\src\joystick\SDL_joystick.c" />
     <ClCompile Include="..\..\src\joystick\win32\SDL_mmjoystick.c" />
+    <ClCompile Include="..\..\src\joystick\win32\SDL_xinputjoystick.c" />
     <ClCompile Include="..\..\src\loadso\win32\SDL_sysloadso.c" />
     <ClCompile Include="..\..\src\SDL.c" />
     <ClCompile Include="..\..\src\SDL_error.c" />
