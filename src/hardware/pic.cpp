@@ -193,7 +193,7 @@ void PIC_Controller::start_irq(Bit8u val){
 }
 
 struct PICEntry {
-    float index;
+    pic_tickindex_t index;
     Bitu value;
     PIC_EventHandler pic_event;
     PICEntry * next;
@@ -545,9 +545,9 @@ static void AddEntry(PICEntry * entry) {
 }
 
 static bool InEventService = false;
-static float srv_lag = 0;
+static pic_tickindex_t srv_lag = 0;
 
-void PIC_AddEvent(PIC_EventHandler handler,float delay,Bitu val) {
+void PIC_AddEvent(PIC_EventHandler handler,pic_tickindex_t delay,Bitu val) {
     if (GCC_UNLIKELY(!pic_queue.free_entry)) {
         LOG(LOG_PIC,LOG_ERROR)("Event queue full");
         return;
