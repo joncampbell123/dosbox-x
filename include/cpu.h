@@ -426,9 +426,9 @@ public:
 	void	SetLimit		(Bitu _limit)	{ table_limit= _limit;	}
 
 	bool GetDescriptor	(Bitu selector, Descriptor& desc) {
-		selector&=~7;
+		selector&=~7U;
 		if (selector>=table_limit) return false;
-		desc.Load(table_base+(selector));
+		desc.Load((PhysPt)(table_base+selector));
 		return true;
 	}
 
@@ -443,11 +443,11 @@ public:
 		Bitu address=selector & ~7;
 		if (selector & 4) {
 			if (address>=ldt_limit) return false;
-			desc.Load(ldt_base+address);
+			desc.Load((PhysPt)(ldt_base+address));
 			return true;
 		} else {
 			if (address>=table_limit) return false;
-			desc.Load(table_base+address);
+			desc.Load((PhysPt)(table_base+address));
 			return true;
 		}
 	}
@@ -455,11 +455,11 @@ public:
 		Bitu address=selector & ~7;
 		if (selector & 4) {
 			if (address>=ldt_limit) return false;
-			desc.Save(ldt_base+address);
+			desc.Save((PhysPt)(ldt_base+address));
 			return true;
 		} else {
 			if (address>=table_limit) return false;
-			desc.Save(table_base+address);
+			desc.Save((PhysPt)(table_base+address));
 			return true;
 		}
 	} 
@@ -498,8 +498,8 @@ public:
 		return saved.seg.type & 8;
 	}
 	void SetBusy(bool busy) {
-		if (busy) saved.seg.type|=2;
-		else saved.seg.type&=~2;
+		if (busy) saved.seg.type|=(2U);
+		else saved.seg.type&=(~2U);
 	}
 };
 
