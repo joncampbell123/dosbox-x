@@ -91,7 +91,7 @@ avi_writer_stream *avi_writer_new_stream(avi_writer *w) { /* reminder: you are n
 		w->avi_stream_max = 1;
 		w->avi_stream_alloc = 8;
 		w->avi_stream = (avi_writer_stream*)
-			malloc(sizeof(avi_writer_stream) * w->avi_stream_alloc);
+			malloc(sizeof(avi_writer_stream) * (unsigned int)w->avi_stream_alloc);
 		if (w->avi_stream == NULL) {
 			w->avi_stream_max = 0;
 			w->avi_stream_alloc = 0;
@@ -100,13 +100,13 @@ avi_writer_stream *avi_writer_new_stream(avi_writer *w) { /* reminder: you are n
 		s = w->avi_stream;
 	}
 	else if (w->avi_stream_max >= w->avi_stream_alloc) {
-		int na = w->avi_stream_alloc + 64;
+		unsigned int na = (unsigned int)w->avi_stream_alloc + 64U;
 		avi_writer_stream *n = (avi_writer_stream*)
-			realloc((void*)(w->avi_stream),sizeof(avi_writer_stream) * na);
+			realloc((void*)(w->avi_stream),sizeof(avi_writer_stream) * (unsigned int)na);
 		if (n == NULL)
 			return NULL;
 		w->avi_stream = n;
-		w->avi_stream_alloc = na;
+		w->avi_stream_alloc = (int)na;
 		s = w->avi_stream + (w->avi_stream_max++);
 	}
 	else {
@@ -230,7 +230,7 @@ int avi_writer_begin_header(avi_writer *w) {
 	if (w->state != AVI_WRITER_STATE_INIT) return 0;
 
 	/* update the main header */
-	__w_le_u32(&w->main_header.dwStreams,w->avi_stream_max);
+	__w_le_u32(&w->main_header.dwStreams,(unsigned int)w->avi_stream_max);
 
 	/* [1] RIFF:AVI */
 	assert(riff_stack_begin_new_chunk_here(w->riff,&chunk));
@@ -284,8 +284,8 @@ int avi_writer_begin_header(avi_writer *w) {
 				/* TODO */
 			}
 
-			s->chunk_fourcc |= (((s->index / 10) % 10) + '0') << 0;
-			s->chunk_fourcc |= ((s->index % 10) + '0') << 8;
+			s->chunk_fourcc |= ((((unsigned int)s->index / 10U) % 10U) + (unsigned char)('0')) << 0UL;
+			s->chunk_fourcc |= ( ((unsigned int)s->index % 10U)        + (unsigned char)('0')) << 8UL;
 		}
 
 		/* [3] LIST:strl */
@@ -307,7 +307,7 @@ int avi_writer_begin_header(avi_writer *w) {
 		assert(riff_stack_set_chunk_data_type(&chunk,riff_fourcc_const('s','t','r','f')));
 		assert(riff_stack_push(w->riff,&chunk)); /* NTS: we can reuse chunk, the stack copies it here */
 		if (s->format && s->format_len > 0)
-			assert((int)riff_stack_write(w->riff,riff_stack_top(w->riff),s->format,(int)s->format_len) == (int)s->format_len);
+			assert((int)riff_stack_write(w->riff,riff_stack_top(w->riff),s->format,(size_t)s->format_len) == (int)s->format_len);
 		riff_stack_pop(w->riff);
 
         /* [5] strn (if name given) */
@@ -317,7 +317,7 @@ int avi_writer_begin_header(avi_writer *w) {
             assert(riff_stack_begin_new_chunk_here(w->riff,&chunk));
             assert(riff_stack_set_chunk_data_type(&chunk,riff_fourcc_const('s','t','r','n')));
             assert(riff_stack_push(w->riff,&chunk)); /* NTS: we can reuse chunk, the stack copies it here */
-            assert((int)riff_stack_write(w->riff,riff_stack_top(w->riff),s->name,(int)len) == (int)len);
+            assert((int)riff_stack_write(w->riff,riff_stack_top(w->riff),s->name,(size_t)len) == (int)len);
             riff_stack_pop(w->riff);
         }
 
@@ -468,7 +468,7 @@ int avi_writer_stream_write(avi_writer *w,avi_writer_stream *s,void *data,size_t
 	if (w->enable_opendml) {
 		/* if we're writing an OpenDML 2.0 compliant file, and we're approaching a movi size of 1GB,
 		 * then split the movi chunk and start another RIFF:AVIX */
-		if ((unsigned long long)(w->riff->top->write_offset + len) >= 0x3FF00000ULL) { /* 1GB - 16MB */
+		if (((unsigned long long)w->riff->top->write_offset + (unsigned long long)len) >= 0x3FF00000ULL) { /* 1GB - 16MB */
 			riff_stack_writing_sync(w->riff); /* sync all headers and pop all chunks */
 			assert(w->riff->current == -1); /* should be at top level */
 
@@ -503,8 +503,10 @@ int avi_writer_stream_write(avi_writer *w,avi_writer_stream *s,void *data,size_t
 	else {
 		/* else, if we're about to pass 2GB, then stop allowing any more data, because the traditional
 		 * AVI format uses 32-bit integers and most implementations treat them as signed. */
-		if ((w->movi.absolute_data_offset + w->riff->top->write_offset + len) >= 0x7FF00000LL) /* 2GB - 16MB */
-			return 0;
+        if (((unsigned long long)w->movi.absolute_data_offset +
+             (unsigned long long)w->riff->top->write_offset +
+             (unsigned long long)len) >= 0x7FF00000ULL) /* 2GB - 16MB */
+            return 0;
 	}
 
 	/* write chunk into movi */
@@ -514,13 +516,13 @@ int avi_writer_stream_write(avi_writer *w,avi_writer_stream *s,void *data,size_t
 	if (w->enable_stream_writing) {
 		/* use an optimized version of riff_stack_write() that blasts the RIFF chunk header + data in one go */
 		if (data != NULL && len > 0)
-			assert((int)riff_stack_streamwrite(w->riff,riff_stack_top(w->riff),data,(int)len) == (int)len);
+			assert((int)riff_stack_streamwrite(w->riff,riff_stack_top(w->riff),data,(size_t)len) == (int)len);
 		else
-			assert((int)riff_stack_streamwrite(w->riff,riff_stack_top(w->riff),NULL,(int)0) == (int)0);
+			assert((int)riff_stack_streamwrite(w->riff,riff_stack_top(w->riff),NULL,(size_t)0) == (int)0);
 	}
 	else {
 		if (data != NULL && len > 0)
-			assert((int)riff_stack_write(w->riff,riff_stack_top(w->riff),data,(int)len) == (int)len);
+			assert((int)riff_stack_write(w->riff,riff_stack_top(w->riff),data,(size_t)len) == (int)len);
 	}
 	riff_stack_pop(w->riff);
 
@@ -533,7 +535,7 @@ int avi_writer_stream_write(avi_writer *w,avi_writer_stream *s,void *data,size_t
 	si = s->sample_index + s->sample_write_chunk;
 
 	si->stream_offset = s->sample_write_offset;
-	si->offset = chunk.absolute_data_offset;
+	si->offset = (uint64_t)chunk.absolute_data_offset;
 	si->length = (uint32_t)len;
 	si->dwFlags = flags;
 
@@ -730,8 +732,8 @@ uint64_t avi_writer_stream_alloc_superindex(avi_writer *w,avi_writer_stream *s) 
 		if ((s->indx_entryofs + sizeof(riff_indx_AVISUPERINDEX_entry)) > s->indx.data_length)
 			return 0ULL;
 
-		ofs = s->indx.absolute_data_offset + s->indx_entryofs;
-		s->indx_entryofs += sizeof(riff_indx_AVISUPERINDEX_entry);
+		ofs = (uint64_t)s->indx.absolute_data_offset + (uint64_t)s->indx_entryofs;
+		s->indx_entryofs += (unsigned int)sizeof(riff_indx_AVISUPERINDEX_entry);
 		return ofs;
 	}
 
@@ -850,7 +852,7 @@ int avi_writer_emit_opendml_indexes(avi_writer *w) {
 			newchunk = *riff_stack_top(w->riff);
 			riff_stack_pop(w->riff); /* end ix## */
 
-			suie.qwOffset = newchunk.absolute_header_offset;
+			suie.qwOffset = (uint64_t)newchunk.absolute_header_offset;
 			suie.dwDuration = out_chunks;
 			suie.dwSize = newchunk.data_length + 8;
 			assert(riff_stack_seek(w->riff,NULL,(int64_t)superindex) == (int64_t)superindex);
