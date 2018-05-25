@@ -499,7 +499,7 @@ public:
 	}
 	void SetBusy(bool busy) {
 		if (busy) saved.seg.type|=(2U);
-		else saved.seg.type&=(~2U);
+		else saved.seg.type&=(~2U); /* -Wconversion cannot silence without hard-coding ~2U & 0x1F */
 	}
 };
 
