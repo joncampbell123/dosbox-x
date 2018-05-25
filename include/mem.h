@@ -148,33 +148,33 @@ static INLINE void var_write(Bit64u * const var, const Bit64u val) {
 
 /* The Folowing six functions are slower but they recognize the paged memory system */
 
-Bit8u  mem_readb(PhysPt pt);
-Bit16u mem_readw(PhysPt pt);
-Bit32u mem_readd(PhysPt pt);
+Bit8u  mem_readb(const PhysPt pt);
+Bit16u mem_readw(const PhysPt pt);
+Bit32u mem_readd(const PhysPt pt);
 
-void mem_writeb(PhysPt pt,Bit8u val);
-void mem_writew(PhysPt pt,Bit16u val);
-void mem_writed(PhysPt pt,Bit32u val);
+void mem_writeb(const PhysPt pt,const Bit8u val);
+void mem_writew(const PhysPt pt,const Bit16u val);
+void mem_writed(const PhysPt pt,const Bit32u val);
 
 void phys_writes(PhysPt addr, const char* string, Bitu length);
 
-static INLINE void phys_writeb(PhysPt addr,Bit8u val) {
+static INLINE void phys_writeb(const PhysPt addr,const Bit8u val) {
 	host_writeb(MemBase+addr,val);
 }
-static INLINE void phys_writew(PhysPt addr,Bit16u val){
+static INLINE void phys_writew(const PhysPt addr,const Bit16u val) {
 	host_writew(MemBase+addr,val);
 }
-static INLINE void phys_writed(PhysPt addr,Bit32u val){
+static INLINE void phys_writed(const PhysPt addr,const Bit32u val) {
 	host_writed(MemBase+addr,val);
 }
 
-static INLINE Bit8u phys_readb(PhysPt addr) {
+static INLINE Bit8u phys_readb(const PhysPt addr) {
 	return host_readb(MemBase+addr);
 }
-static INLINE Bit16u phys_readw(PhysPt addr){
+static INLINE Bit16u phys_readw(const PhysPt addr) {
 	return host_readw(MemBase+addr);
 }
-static INLINE Bit32u phys_readd(PhysPt addr){
+static INLINE Bit32u phys_readd(const PhysPt addr) {
 	return host_readd(MemBase+addr);
 }
 
