@@ -1149,15 +1149,15 @@ bool mem_unalignedwrited_checked(PhysPt address,Bit32u val) {
     return false;
 }
 
-Bit8u mem_readb(PhysPt address) {
+Bit8u mem_readb(const PhysPt address) {
     return mem_readb_inline(address);
 }
 
-Bit16u mem_readw(PhysPt address) {
+Bit16u mem_readw(const PhysPt address) {
     return mem_readw_inline(address);
 }
 
-Bit32u mem_readd(PhysPt address) {
+Bit32u mem_readd(const PhysPt address) {
     return mem_readd_inline(address);
 }
 
