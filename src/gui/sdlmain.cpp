@@ -7426,7 +7426,7 @@ void OutputSettingMenuUpdate(void) {
 }
 
 //extern void UI_Init(void);
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
 
