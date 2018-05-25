@@ -197,7 +197,7 @@ public:
 	// IRQ format, helper IRQ mask generator
 	static inline uint16_t irq2mask(const int IRQ) {
 		if (IRQ < 0 || IRQ > 15) return 0;
-		return (uint16_t)1 << (unsigned char)IRQ;
+		return (uint16_t)(1U << (unsigned char)IRQ);
 	}
 	static inline uint16_t irq2mask(const int a,const int b) {
 		return irq2mask(a) | irq2mask(b);
@@ -226,7 +226,7 @@ public:
 	// DMA format
 	static inline uint16_t dma2mask(const int DMA) {
 		if (DMA < 0 || DMA > 7 || DMA == 4) return 0;
-		return (uint16_t)1 << (unsigned char)DMA;
+		return (uint16_t)(1U << (unsigned char)DMA);
 	}
 	static inline uint16_t dma2mask(const int a,const int b) {
 		return dma2mask(a) | dma2mask(b);
