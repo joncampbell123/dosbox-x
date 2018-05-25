@@ -26,14 +26,14 @@ public:
     uint8_t             readPortC(void);
     uint8_t             readControl(void);
 
-    uint8_t             readByPort(uint8_t p03);
+    uint8_t             readByPort(const uint8_t p03);
 
-    void                writePortA(uint8_t data,uint8_t mask=0xFFU);
-    void                writePortB(uint8_t data,uint8_t mask=0xFFU);
-    void                writePortC(uint8_t data,uint8_t mask=0xFFU);
-    void                writeControl(uint8_t data);
+    void                writePortA(const uint8_t data,uint8_t mask=0xFFU);
+    void                writePortB(const uint8_t data,uint8_t mask=0xFFU);
+    void                writePortC(const uint8_t data,uint8_t mask=0xFFU);
+    void                writeControl(const uint8_t data);
 
-    void                writeByPort(uint8_t p03,uint8_t data);
+    void                writeByPort(const uint8_t p03,const uint8_t data);
 public:
     virtual uint8_t     inPortA(void) const;
     virtual uint8_t     inPortB(void) const;
