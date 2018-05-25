@@ -25,6 +25,8 @@
 
 #include "byteorder.h"
 
+typedef Bit8u const * ConstHostPt;		/* host (virtual) memory address aka ptr */
+
 typedef Bit8u *HostPt;		/* host (virtual) memory address aka ptr */
 
 typedef Bit32u PhysPt;		/* guest physical memory pointer */
@@ -68,79 +70,79 @@ MemHandle MEM_NextHandleAt(MemHandle handle,Bitu where);
             on such processors typecasting memory as uint16_t and higher can cause a fault if the
 	    address is not aligned to that datatype when we read/write through it. */
 
-static INLINE Bit8u host_readb(HostPt off) {
+static INLINE Bit8u host_readb(ConstHostPt const off) {
 	return *off;
 }
-static INLINE Bit16u host_readw(HostPt off) {
-	return (Bit16u)host_readb(off) + ((Bit16u)host_readb(off+1) << (Bit16u)8);
+static INLINE Bit16u host_readw(ConstHostPt const off) {
+	return (Bit16u)host_readb(off) + ((Bit16u)host_readb(off+(ConstHostPt)1U) << (Bit16u)8U);
 }
-static INLINE Bit32u host_readd(HostPt off) {
-	return (Bit32u)host_readw(off) + ((Bit32u)host_readw(off+2) << (Bit32u)16);
+static INLINE Bit32u host_readd(ConstHostPt const off) {
+	return (Bit32u)host_readw(off) + ((Bit32u)host_readw(off+(ConstHostPt)2U) << (Bit32u)16U);
 }
-static INLINE Bit64u host_readq(HostPt off) {
-	return (Bit64u)host_readd(off) + ((Bit64u)host_readd(off+4) << (Bit64u)32);
+static INLINE Bit64u host_readq(ConstHostPt const off) {
+	return (Bit64u)host_readd(off) + ((Bit64u)host_readd(off+(ConstHostPt)4U) << (Bit64u)32U);
 }
 
-static INLINE void host_writeb(HostPt off,Bit8u val) {
+static INLINE void host_writeb(HostPt const off,const Bit8u val) {
 	*off = val;
 }
-static INLINE void host_writew(HostPt off,Bit16u val) {
-	host_writeb(off,(Bit8u)(val));
-	host_writeb(off+1,(Bit8u)(val >> (Bit16u)8));
+static INLINE void host_writew(HostPt const off,const Bit16u val) {
+	host_writeb(off,   (Bit8u)(val));
+	host_writeb(off+1U,(Bit8u)(val >> (Bit16u)8U));
 }
-static INLINE void host_writed(HostPt off,Bit32u val) {
-	host_writew(off,(Bit16u)(val));
-	host_writew(off+2,(Bit16u)(val >> (Bit32u)16));
+static INLINE void host_writed(HostPt const off,const Bit32u val) {
+	host_writew(off,   (Bit16u)(val));
+	host_writew(off+2U,(Bit16u)(val >> (Bit32u)16U));
 }
-static INLINE void host_writeq(HostPt off,Bit64u val) {
-	host_writed(off,(Bit32u)(val));
-	host_writed(off+4,(Bit32u)(val >> (Bit64u)32));
+static INLINE void host_writeq(HostPt const off,const Bit64u val) {
+	host_writed(off,   (Bit32u)(val));
+	host_writed(off+4U,(Bit32u)(val >> (Bit64u)32U));
 }
 
 #else
 
-static INLINE Bit8u host_readb(HostPt off) {
-	return *(Bit8u *)off;
+static INLINE Bit8u host_readb(ConstHostPt const off) {
+	return *(const Bit8u *)off;
 }
-static INLINE Bit16u host_readw(HostPt off) {
-	return le16toh((*(Bit16u *)off)); // BSD endian.h
+static INLINE Bit16u host_readw(ConstHostPt const off) {
+	return le16toh((*(const Bit16u *)off)); // BSD endian.h
 }
-static INLINE Bit32u host_readd(HostPt off) {
-	return le32toh((*(Bit32u *)off)); // BSD endian.h
+static INLINE Bit32u host_readd(ConstHostPt const off) {
+	return le32toh((*(const Bit32u *)off)); // BSD endian.h
 }
-static INLINE Bit64u host_readq(HostPt off) {
-	return le64toh((*(Bit64u *)off)); // BSD endian.h
+static INLINE Bit64u host_readq(ConstHostPt const off) {
+	return le64toh((*(const Bit64u *)off)); // BSD endian.h
 }
 
-static INLINE void host_writeb(HostPt off,Bit8u val) {
+static INLINE void host_writeb(HostPt const off,const Bit8u val) {
 	*(Bit8u *)(off) = val;
 }
-static INLINE void host_writew(HostPt off,Bit16u val) {
+static INLINE void host_writew(HostPt const off,const Bit16u val) {
 	*(Bit16u *)(off) = htole16(val);
 }
-static INLINE void host_writed(HostPt off,Bit32u val) {
+static INLINE void host_writed(HostPt const off,const Bit32u val) {
 	*(Bit32u *)(off) = htole32(val);
 }
-static INLINE void host_writeq(HostPt off,Bit64u val) {
+static INLINE void host_writeq(HostPt const off,const Bit64u val) {
 	*(Bit64u *)(off) = htole64(val);
 }
 
 #endif
 
 
-static INLINE void var_write(Bit8u * var, Bit8u val) {
+static INLINE void var_write(Bit8u * const var, const Bit8u val) {
 	host_writeb((HostPt)var, val);
 }
 
-static INLINE void var_write(Bit16u * var, Bit16u val) {
+static INLINE void var_write(Bit16u * const var, const Bit16u val) {
 	host_writew((HostPt)var, val);
 }
 
-static INLINE void var_write(Bit32u * var, Bit32u val) {
+static INLINE void var_write(Bit32u * const var, const Bit32u val) {
 	host_writed((HostPt)var, val);
 }
 
-static INLINE void var_write(Bit64u * var, Bit64u val) {
+static INLINE void var_write(Bit64u * const var, const Bit64u val) {
 	host_writeq((HostPt)var, val);
 }
 
@@ -191,24 +193,24 @@ void mem_strcpy(PhysPt dest,PhysPt src);
 
 /* The folowing functions are all shortcuts to the above functions using physical addressing */
 
-static INLINE Bit8u real_readb(Bit16u seg,Bit16u off) {
-	return mem_readb((seg<<4)+off);
+static INLINE Bit8u real_readb(const Bit16u seg,const Bit16u off) {
+	return mem_readb(((Bit32u)seg << 4U) + (Bit32u)off);
 }
-static INLINE Bit16u real_readw(Bit16u seg,Bit16u off) {
-	return mem_readw((seg<<4)+off);
+static INLINE Bit16u real_readw(const Bit16u seg,const Bit16u off) {
+	return mem_readw(((Bit32u)seg << 4U) + (Bit32u)off);
 }
-static INLINE Bit32u real_readd(Bit16u seg,Bit16u off) {
-	return mem_readd((seg<<4)+off);
+static INLINE Bit32u real_readd(const Bit16u seg,const Bit16u off) {
+	return mem_readd(((Bit32u)seg << 4U) + (Bit32u)off);
 }
 
-static INLINE void real_writeb(Bit16u seg,Bit16u off,Bit8u val) {
-	mem_writeb(((seg<<4)+off),val);
+static INLINE void real_writeb(const Bit16u seg,const Bit16u off,const Bit8u val) {
+	mem_writeb((((Bit32u)seg << 4U) + (Bit32u)off),val);
 }
-static INLINE void real_writew(Bit16u seg,Bit16u off,Bit16u val) {
-	mem_writew(((seg<<4)+off),val);
+static INLINE void real_writew(const Bit16u seg,const Bit16u off,const Bit16u val) {
+	mem_writew((((Bit32u)seg << 4U) + (Bit32u)off),val);
 }
-static INLINE void real_writed(Bit16u seg,Bit16u off,Bit32u val) {
-	mem_writed(((seg<<4)+off),val);
+static INLINE void real_writed(const Bit16u seg,const Bit16u off,const Bit32u val) {
+	mem_writed((((Bit32u)seg << 4U) + (Bit32u)off),val);
 }
 
 
