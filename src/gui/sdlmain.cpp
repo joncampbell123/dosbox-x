@@ -122,6 +122,10 @@ bool OpenGL_using(void);
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
 
+#ifndef SDL_MAIN_NOEXCEPT
+#define SDL_MAIN_NOEXCEPT
+#endif
+
 using namespace std;
 
 const char *scaler_menu_opts[][2] = {
@@ -7426,7 +7430,7 @@ void OutputSettingMenuUpdate(void) {
 }
 
 //extern void UI_Init(void);
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
 
