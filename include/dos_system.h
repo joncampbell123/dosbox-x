@@ -78,7 +78,7 @@ public:
 	DOS_File & operator= (const DOS_File & orig);
 	virtual	~DOS_File(){if(name) delete [] name;};
 	virtual bool	Read(Bit8u * data,Bit16u * size)=0;
-	virtual bool	Write(Bit8u * data,Bit16u * size)=0;
+	virtual bool	Write(const Bit8u * data,Bit16u * size)=0;
 	virtual bool	Seek(Bit32u * pos,Bit32u type)=0;
 	virtual bool	Close()=0;
 	/* ert, 20100711: Locking extensions */
@@ -125,7 +125,7 @@ public:
 	DOS_Device():DOS_File(),devnum(0){};
 	virtual ~DOS_Device() {};
 	virtual bool	Read(Bit8u * data,Bit16u * size);
-	virtual bool	Write(Bit8u * data,Bit16u * size);
+	virtual bool	Write(const Bit8u * data,Bit16u * size);
 	virtual bool	Seek(Bit32u * pos,Bit32u type);
 	virtual bool	Close();
 	virtual Bit16u	GetInformation(void);
