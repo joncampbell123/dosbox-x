@@ -267,7 +267,7 @@ Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
     return 0x00;
 }
 
-Bit8u imageDisk::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size) {
+Bit8u imageDisk::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size) {
     Bit32u sectnum;
 
     if (req_sector_size == 0)
@@ -281,7 +281,7 @@ Bit8u imageDisk::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * d
 }
 
 
-Bit8u imageDisk::Write_AbsoluteSector(Bit32u sectnum, void *data) {
+Bit8u imageDisk::Write_AbsoluteSector(Bit32u sectnum, const void *data) {
     Bit64u bytenum;
 
     bytenum = (Bit64u)sectnum * sector_size;
@@ -1072,7 +1072,7 @@ imageDiskVFD::vfdentry *imageDiskVFD::findSector(Bit8u head,Bit8u track,Bit8u se
     return NULL;
 }
 
-Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size) {
+Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size) {
     unsigned long new_offset;
     unsigned char tmp[12];
     vfdentry *ent;
@@ -1164,7 +1164,7 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void 
     return 0x05;
 }
 
-Bit8u imageDiskVFD::Write_AbsoluteSector(Bit32u sectnum, void *data) {
+Bit8u imageDiskVFD::Write_AbsoluteSector(Bit32u sectnum,const void *data) {
     unsigned int c,h,s;
 
     if (sectors == 0 || heads == 0)

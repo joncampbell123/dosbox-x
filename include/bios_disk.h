@@ -60,9 +60,9 @@ public:
 	};
 
 	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size=0);
-	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size=0);
+	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size=0);
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, const void * data);
 
 	virtual void Set_Reserved_Cylinders(Bitu resCyl);
 	virtual Bit32u Get_Reserved_Cylinders();
@@ -112,9 +112,9 @@ public:
 class imageDiskVFD : public imageDisk {
 public:
 	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size=0);
-	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size=0);
+	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size=0);
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, const void * data);
 
 	imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk);
 	virtual ~imageDiskVFD();
@@ -150,7 +150,7 @@ public:
 class imageDiskMemory : public imageDisk {
 public:
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, const void * data);
 	virtual Bit8u GetBiosType(void);
 	virtual void Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize);
 	// Parition and format the ramdrive
@@ -206,7 +206,7 @@ public:
 	};
 	VHDTypes vhdType;
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, const void * data);
 	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** imageDisk);
 	static VHDTypes GetVHDType(const char* fileName);
 	virtual ~imageDiskVHD();

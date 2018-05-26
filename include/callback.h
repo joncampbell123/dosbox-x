@@ -54,8 +54,8 @@ static INLINE PhysPt CALLBACK_PhysPointer(Bitu callback) {
 	return PhysMake(CB_SEG,(Bit16u)(CB_SOFFSET+callback*CB_SIZE));
 }
 
-static INLINE PhysPt CALLBACK_GetBase(void) {
-	return (CB_SEG << 4) + CB_SOFFSET;
+static inline PhysPt CALLBACK_GetBase(void) {
+	return (PhysPt)(((PhysPt)CB_SEG << (PhysPt)4U) + (PhysPt)CB_SOFFSET);
 }
 
 Bitu CALLBACK_Allocate();
