@@ -8170,6 +8170,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);
         mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
+		mainMenu.get_item("show_console").check(showconsole_init).refresh_item(mainMenu);
 
         OutputSettingMenuUpdate();
         update_pc98_clock_pit_menu();
