@@ -284,7 +284,7 @@ Bit8u imageDiskMemory::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 }
 
 // Write a specific sector from the ramdrive
-Bit8u imageDiskMemory::Write_AbsoluteSector(Bit32u sectnum, void * data) {
+Bit8u imageDiskMemory::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 	//sector number is a zero-based offset
 
 	//verify the sector number is valid
