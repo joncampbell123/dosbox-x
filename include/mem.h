@@ -25,40 +25,40 @@
 
 #include "byteorder.h"
 
-typedef Bit8u const * ConstHostPt;      /* host (virtual) memory address aka ptr */
+#define MEM_PAGESIZE        (4096U)
 
-typedef Bit8u *HostPt;      /* host (virtual) memory address aka ptr */
+typedef Bit8u const *       ConstHostPt;        /* host (virtual) memory address aka ptr */
 
-typedef Bit32u PhysPt;      /* guest physical memory pointer */
-typedef Bit32u LinearPt;    /* guest linear memory address */
-typedef Bit32u RealPt;      /* guest real-mode memory address (16:16 -> seg:offset) */
-typedef Bit16u SegmentVal;  /* guest segment value */
+typedef Bit8u *             HostPt;             /* host (virtual) memory address aka ptr */
 
-typedef Bit32s MemHandle;
+typedef Bit32u              PhysPt;      /* guest physical memory pointer */
+typedef Bit32u              LinearPt;    /* guest linear memory address */
+typedef Bit32u              RealPt;      /* guest real-mode memory address (16:16 -> seg:offset) */
+typedef Bit16u              SegmentVal;  /* guest segment value */
 
-#define MEM_PAGESIZE 4096
+typedef Bit32s              MemHandle;
 
-extern HostPt MemBase;
-HostPt GetMemBase(void);
+extern HostPt               MemBase;
 
-bool MEM_A20_Enabled(void);
-void MEM_A20_Enable(bool enable);
+HostPt                      GetMemBase(void);
+bool                        MEM_A20_Enabled(void);
+void                        MEM_A20_Enable(bool enable);
 
 /* Memory management / EMS mapping */
-HostPt MEM_GetBlockPage(void);
-Bitu MEM_FreeTotal(void);           //Free 4 kb pages
-Bitu MEM_FreeLargest(void);         //Largest free 4 kb pages block
-Bitu MEM_TotalPages(void);          //Total amount of 4 kb pages
-Bitu MEM_AllocatedPages(MemHandle handle); // amount of allocated pages of handle
-MemHandle MEM_AllocatePages(Bitu pages,bool sequence);
-MemHandle MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence);
-MemHandle MEM_GetNextFreePage(void);
-PhysPt MEM_AllocatePage(void);
-void MEM_ReleasePages(MemHandle handle);
-bool MEM_ReAllocatePages(MemHandle & handle,Bitu pages,bool sequence);
+HostPt                      MEM_GetBlockPage(void);
+Bitu                        MEM_FreeTotal(void);           //Free 4 kb pages
+Bitu                        MEM_FreeLargest(void);         //Largest free 4 kb pages block
+Bitu                        MEM_TotalPages(void);          //Total amount of 4 kb pages
+Bitu                        MEM_AllocatedPages(MemHandle handle); // amount of allocated pages of handle
+MemHandle                   MEM_AllocatePages(Bitu pages,bool sequence);
+MemHandle                   MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence);
+MemHandle                   MEM_GetNextFreePage(void);
+PhysPt                      MEM_AllocatePage(void);
+void                        MEM_ReleasePages(MemHandle handle);
+bool                        MEM_ReAllocatePages(MemHandle & handle,Bitu pages,bool sequence);
 
-MemHandle MEM_NextHandle(MemHandle handle);
-MemHandle MEM_NextHandleAt(MemHandle handle,Bitu where);
+MemHandle                   MEM_NextHandle(MemHandle handle);
+MemHandle                   MEM_NextHandleAt(MemHandle handle,Bitu where);
 
 /* 
     The folowing six functions are used everywhere in the end so these should be changed for
