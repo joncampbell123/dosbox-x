@@ -52,25 +52,25 @@
 #define CPU_ARCHTYPE_PPROSLOW		0x60
 
 /* CPU Cycle Timing */
-extern Bit32s CPU_Cycles;
-extern Bit32s CPU_CycleLeft;
-extern Bit32s CPU_CycleMax;
-extern Bit32s CPU_OldCycleMax;
-extern Bit32s CPU_CyclePercUsed;
-extern Bit32s CPU_CycleLimit;
-extern Bit64s CPU_IODelayRemoved;
+extern cpu_cycles_count_t CPU_Cycles;
+extern cpu_cycles_count_t CPU_CycleLeft;
+extern cpu_cycles_count_t CPU_CycleMax;
+extern cpu_cycles_count_t CPU_OldCycleMax;
+extern cpu_cycles_count_t CPU_CyclePercUsed;
+extern cpu_cycles_count_t CPU_CycleLimit;
+extern cpu_cycles_count_t CPU_IODelayRemoved;
+extern cpu_cycles_count_t CPU_CyclesSet;
+extern unsigned char CPU_AutoDetermineMode;
+extern char core_mode[16];
+
 extern bool CPU_CycleAutoAdjust;
 extern bool CPU_SkipCycleAutoAdjust;
-extern Bitu CPU_AutoDetermineMode;
-extern Bitu CPU_CyclesCur;
-extern Bit32s CPU_CyclesSet;
-extern char core_mode[16];
 
 extern bool enable_weitek;
 
-extern Bitu CPU_ArchitectureType;
+extern unsigned char CPU_ArchitectureType;
 
-extern Bitu CPU_PrefetchQueueSize;
+extern unsigned int CPU_PrefetchQueueSize;
 
 /* Some common Defines */
 /* A CPU Handler */
@@ -358,9 +358,12 @@ public:
 	void Load(PhysPt address);
 	void Save(PhysPt address);
 
-	PhysPt GetBase (void) { 
-		return (saved.seg.base_24_31<<24) | (saved.seg.base_16_23<<16) | saved.seg.base_0_15; 
-	}
+    PhysPt GetBase (void) const {
+        return (PhysPt)(
+            ((PhysPt)saved.seg.base_24_31 << (PhysPt)24U) |
+            ((PhysPt)saved.seg.base_16_23 << (PhysPt)16U) |
+             (PhysPt)saved.seg.base_0_15);
+    }
 	bool GetExpandDown (void) {
 #if 0
 	Bit32u limit_0_15	:16;
@@ -387,27 +390,27 @@ public:
 		/* it's data. return the 'E' bit */
 		return (saved.seg.type & 4) != 0;
 	}
-	Bitu GetLimit (void) {
-		Bitu limit = (saved.seg.limit_16_19<<16) | saved.seg.limit_0_15;
-		if (saved.seg.g)	return (limit<<12) | 0xFFF;
+	Bitu GetLimit (void) const {
+		const Bitu limit = ((Bitu)saved.seg.limit_16_19 << (Bitu)16U) | (Bitu)saved.seg.limit_0_15;
+		if (saved.seg.g) return ((Bitu)limit << (Bitu)12U) | (Bitu)0xFFFU;
 		return limit;
 	}
-	Bitu GetOffset(void) {
-		return (saved.gate.offset_16_31 << 16) | saved.gate.offset_0_15;
+	Bitu GetOffset(void) const {
+		return ((Bitu)saved.gate.offset_16_31 << (Bitu)16U) | (Bitu)saved.gate.offset_0_15;
 	}
-	Bitu GetSelector(void) {
+	Bitu GetSelector(void) const {
 		return saved.gate.selector;
 	}
-	Bitu Type(void) {
+	Bitu Type(void) const {
 		return saved.seg.type;
 	}
-	Bitu Conforming(void) {
-		return saved.seg.type & 8;
+	Bitu Conforming(void) const {
+		return saved.seg.type & 8U;
 	}
-	Bitu DPL(void) {
+	Bitu DPL(void) const {
 		return saved.seg.dpl;
 	}
-	Bitu Big(void) {
+	Bitu Big(void) const {
 		return saved.seg.big;
 	}
 public:
@@ -420,21 +423,21 @@ public:
 
 class DescriptorTable {
 public:
-	PhysPt	GetBase			(void)			{ return table_base;	}
-	Bitu	GetLimit		(void)			{ return table_limit;	}
-	void	SetBase			(PhysPt _base)	{ table_base = _base;	}
-	void	SetLimit		(Bitu _limit)	{ table_limit= _limit;	}
+    PhysPt  GetBase         (void) const    { return table_base;    }
+    Bitu    GetLimit        (void) const    { return table_limit;   }
+    void    SetBase         (PhysPt _base)  { table_base = _base;   }
+    void    SetLimit        (Bitu _limit)   { table_limit= _limit;  }
 
-	bool GetDescriptor	(Bitu selector, Descriptor& desc) {
-		selector&=~7U;
-		if (selector>=table_limit) return false;
-		desc.Load((PhysPt)(table_base+selector));
-		return true;
-	}
+    bool GetDescriptor  (Bitu selector, Descriptor& desc) {
+        selector&=~7U;
+        if (selector>=table_limit) return false;
+        desc.Load((PhysPt)(table_base+selector));
+        return true;
+    }
 
 protected:
-	PhysPt table_base;
-	Bitu table_limit;
+    PhysPt table_base;
+    Bitu table_limit;
 };
 
 class GDTDescriptorTable : public DescriptorTable {
@@ -463,10 +466,10 @@ public:
 			return true;
 		}
 	} 
-	Bitu SLDT(void)	{
+	Bitu SLDT(void) const {
 		return ldt_value;
 	}
-	bool LLDT(Bitu value)	{
+	bool LLDT(Bitu value) {
 		if ((value&0xfffc)==0) {
 			ldt_value=0;
 			ldt_base=0;
@@ -491,13 +494,13 @@ private:
 
 class TSS_Descriptor : public Descriptor {
 public:
-	Bitu IsBusy(void) {
+	Bitu IsBusy(void) const {
 		return saved.seg.type & 2;
 	}
-	Bitu Is386(void) {
+	Bitu Is386(void) const {
 		return saved.seg.type & 8;
 	}
-	void SetBusy(bool busy) {
+	void SetBusy(const bool busy) {
 		if (busy) saved.seg.type|=(2U);
 		else saved.seg.type&=(~2U); /* -Wconversion cannot silence without hard-coding ~2U & 0x1F */
 	}
@@ -538,13 +541,13 @@ struct CPUBlock {
 
 extern CPUBlock cpu;
 
-static INLINE void CPU_SetFlagsd(Bitu word) {
-	Bitu mask=cpu.cpl ? FMASK_NORMAL : FMASK_ALL;
+static INLINE void CPU_SetFlagsd(const Bitu word) {
+	const Bitu mask=cpu.cpl ? FMASK_NORMAL : FMASK_ALL;
 	CPU_SetFlags(word,mask);
 }
 
-static INLINE void CPU_SetFlagsw(Bitu word) {
-	Bitu mask=(cpu.cpl ? FMASK_NORMAL : FMASK_ALL) & 0xffff;
+static INLINE void CPU_SetFlagsw(const Bitu word) {
+	const Bitu mask=(cpu.cpl ? FMASK_NORMAL : FMASK_ALL) & 0xffff;
 	CPU_SetFlags(word,mask);
 }
 

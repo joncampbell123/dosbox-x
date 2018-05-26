@@ -323,7 +323,7 @@ Bit8u imageDiskVHD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	}
 }
 
-Bit8u imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, void * data) {
+Bit8u imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 	Bit32u blockNumber = sectnum / sectorsPerBlock;
 	Bit32u sectorOffset = sectnum % sectorsPerBlock;
 	if (!loadBlock(blockNumber)) return 0x05; //can't load block

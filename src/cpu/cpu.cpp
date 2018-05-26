@@ -142,27 +142,27 @@ Segments Segs;
  *             --J.C. */
 bool cpu_allow_big16 = false;
 
-Bit32s CPU_Cycles = 0;
-Bit32s CPU_CycleLeft = 3000;
-Bit32s CPU_CycleMax = 3000;
-Bit32s CPU_OldCycleMax = 3000;
-Bit32s CPU_CyclePercUsed = 100;
-Bit32s CPU_CycleLimit = -1;
-Bit32s CPU_CycleUp = 0;
-Bit32s CPU_CycleDown = 0;
-Bit32s CPU_CyclesSet = 3000;
-Bit64s CPU_IODelayRemoved = 0;
+cpu_cycles_count_t CPU_Cycles = 0;
+cpu_cycles_count_t CPU_CycleLeft = 3000;
+cpu_cycles_count_t CPU_CycleMax = 3000;
+cpu_cycles_count_t CPU_OldCycleMax = 3000;
+cpu_cycles_count_t CPU_CyclePercUsed = 100;
+cpu_cycles_count_t CPU_CycleLimit = -1;
+cpu_cycles_count_t CPU_CycleUp = 0;
+cpu_cycles_count_t CPU_CycleDown = 0;
+cpu_cycles_count_t CPU_CyclesSet = 3000;
+cpu_cycles_count_t CPU_IODelayRemoved = 0;
 char core_mode[16];
 CPU_Decoder * cpudecoder;
 bool CPU_CycleAutoAdjust = false;
 bool CPU_SkipCycleAutoAdjust = false;
-Bitu CPU_AutoDetermineMode = 0;
+unsigned char CPU_AutoDetermineMode = 0;
 
-Bitu CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
+unsigned char CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
 
 Bitu CPU_extflags_toggle=0;	// ID and AC flags may be toggled depending on emulated CPU architecture
 
-Bitu CPU_PrefetchQueueSize=0;
+unsigned int CPU_PrefetchQueueSize=0;
 
 void CPU_Core_Full_Init(void);
 void CPU_Core_Normal_Init(void);
@@ -2721,7 +2721,7 @@ void CPU_CycleIncrease(bool pressed) {
 	if (CPU_CycleAutoAdjust) {
 		CPU_CyclePercUsed+=5;
 		if (CPU_CyclePercUsed>105) CPU_CyclePercUsed=105;
-		LOG_MSG("CPU speed: max %d percent.",CPU_CyclePercUsed);
+		LOG_MSG("CPU speed: max %ld percent.",CPU_CyclePercUsed);
 		GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 	} else {
 		Bit32s old_cycles=CPU_CycleMax;
@@ -2734,15 +2734,15 @@ void CPU_CycleIncrease(bool pressed) {
 		CPU_CycleLeft=0;CPU_Cycles=0;
 		if (CPU_CycleMax==old_cycles) CPU_CycleMax++;
 		if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-		    LOG_MSG("CPU:%d cycles (auto)",CPU_CycleMax);
+		    LOG_MSG("CPU:%ld cycles (auto)",CPU_CycleMax);
 		} else {
 		    CPU_CyclesSet=CPU_CycleMax;
 #if (C_DYNAMIC_X86)
             if (CPU_CycleMax > 15000 && cpudecoder != &CPU_Core_Dyn_X86_Run)
-                LOG_MSG("CPU speed: fixed %d cycles. If you need more than 20000, try core=dynamic in DOSBox's options.",CPU_CycleMax);
+                LOG_MSG("CPU speed: fixed %ld cycles. If you need more than 20000, try core=dynamic in DOSBox's options.",CPU_CycleMax);
             else
 #endif
-                LOG_MSG("CPU speed: fixed %d cycles.",CPU_CycleMax);
+                LOG_MSG("CPU speed: fixed %ld cycles.",CPU_CycleMax);
         }
 		GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 	}
@@ -2754,9 +2754,9 @@ void CPU_CycleDecrease(bool pressed) {
 		CPU_CyclePercUsed-=5;
 		if (CPU_CyclePercUsed<=0) CPU_CyclePercUsed=1;
 		if(CPU_CyclePercUsed <=70)
-			LOG_MSG("CPU speed: max %d percent. If the game runs too fast, try a fixed cycles amount in DOSBox's options.",CPU_CyclePercUsed);
+			LOG_MSG("CPU speed: max %ld percent. If the game runs too fast, try a fixed cycles amount in DOSBox's options.",CPU_CyclePercUsed);
 		else
-			LOG_MSG("CPU speed: max %d percent.",CPU_CyclePercUsed);
+			LOG_MSG("CPU speed: max %ld percent.",CPU_CyclePercUsed);
 		GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 	} else {
 		if (CPU_CycleDown < 100) {
@@ -2767,10 +2767,10 @@ void CPU_CycleDecrease(bool pressed) {
 		CPU_CycleLeft=0;CPU_Cycles=0;
 		if (CPU_CycleMax <= 0) CPU_CycleMax=1;
 		if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-		    LOG_MSG("CPU:%d cycles (auto)",CPU_CycleMax);
+		    LOG_MSG("CPU:%ld cycles (auto)",CPU_CycleMax);
 		} else {
 		    CPU_CyclesSet=CPU_CycleMax;
-		    LOG_MSG("CPU speed: fixed %d cycles.",CPU_CycleMax);
+		    LOG_MSG("CPU speed: fixed %ld cycles.",CPU_CycleMax);
 		}
 		GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 	}
