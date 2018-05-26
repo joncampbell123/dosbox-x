@@ -122,8 +122,7 @@ The four major operating systems and platforms of DOSBox-X are (in this order):
 
 Linux and MinGW Windows builds are expected to compile with the GNU autotools.
 
-There is an alternate branch maintained by other devs on Github if compilation
-with CMake is desired.
+A preliminary CMake build system is available, see README.cmake.md for details.
 
 Stright Windows builds are expected to compile using the free community edition
 of Visual Studio 2015 or Visual Studio 2017 and the DirectX 2010 SDK.
