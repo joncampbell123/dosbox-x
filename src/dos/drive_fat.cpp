@@ -44,7 +44,7 @@ class fatFile : public DOS_File {
 public:
 	fatFile(const char* name, Bit32u startCluster, Bit32u fileLen, fatDrive *useDrive);
 	bool Read(Bit8u * data,Bit16u * size);
-	bool Write(Bit8u * data,Bit16u * size);
+	bool Write(const Bit8u * data,Bit16u * size);
 	bool Seek(Bit32u * pos,Bit32u type);
 	bool Close();
 	Bit16u GetInformation(void);
@@ -160,7 +160,7 @@ bool fatFile::Read(Bit8u * data, Bit16u *size) {
 	return true;
 }
 
-bool fatFile::Write(Bit8u * data, Bit16u *size) {
+bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 	/* TODO: Check for read-only bit */
 
 	if ((this->flags & 0xf) == OPEN_READ) {	// check if file opened in read-only mode

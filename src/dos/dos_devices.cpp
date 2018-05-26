@@ -43,7 +43,7 @@ public:
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:READ",GetName());
 		return true;
 	}
-	virtual bool Write(Bit8u * data,Bit16u * size) {
+	virtual bool Write(const Bit8u * data,Bit16u * size) {
         (void)data; // UNUSED
         (void)size; // UNUSED
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:WRITE",GetName());
@@ -72,7 +72,7 @@ public:
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
-	bool Write(Bit8u * data,Bit16u * size) {
+	bool Write(const Bit8u * data,Bit16u * size) {
 		for(int i = 0; i < 3; i++) {
 			// look up a parallel port
 			if(parallelPortObjects[i] != NULL) {
@@ -102,7 +102,7 @@ bool DOS_Device::Read(Bit8u * data,Bit16u * size) {
 	return Devices[devnum]->Read(data,size);
 }
 
-bool DOS_Device::Write(Bit8u * data,Bit16u * size) {
+bool DOS_Device::Write(const Bit8u * data,Bit16u * size) {
 	return Devices[devnum]->Write(data,size);
 }
 

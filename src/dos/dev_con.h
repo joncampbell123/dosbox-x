@@ -42,7 +42,7 @@ class device_CON : public DOS_Device {
 public:
 	device_CON();
 	bool Read(Bit8u * data,Bit16u * size);
-	bool Write(Bit8u * data,Bit16u * size);
+	bool Write(const Bit8u * data,Bit16u * size);
 	bool Seek(Bit32u * pos,Bit32u type);
 	bool Close();
 	void ClearAnsi(void);
@@ -457,7 +457,7 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 bool log_dev_con = false;
 std::string log_dev_con_str;
 
-bool device_CON::Write(Bit8u * data,Bit16u * size) {
+bool device_CON::Write(const Bit8u * data,Bit16u * size) {
     Bit16u count=0;
     Bitu i;
     Bit8u col,row;
