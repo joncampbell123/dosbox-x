@@ -158,6 +158,9 @@ void mem_writed(const PhysPt pt,const Bit32u val);
 
 void phys_writes(PhysPt addr, const char* string, Bitu length);
 
+/* WARNING: This will cause a segfault or out of bounds access IF
+ *          addr is beyond the end of memory */
+
 static INLINE void phys_writeb(const PhysPt addr,const Bit8u val) {
     host_writeb(MemBase+addr,val);
 }
@@ -193,9 +196,35 @@ void mem_strcpy(PhysPt dest,PhysPt src);
 
 /* The folowing functions are all shortcuts to the above functions using physical addressing */
 
-static INLINE PhysPt PhysMake(const Bit16u seg,const Bit16u off) {
+static inline constexpr PhysPt PhysMake(const Bit16u seg,const Bit16u off) {
     return ((PhysPt)seg << (PhysPt)4U) + (PhysPt)off;
 }
+
+static inline constexpr Bit16u RealSeg(const RealPt pt) {
+    return (Bit16u)((RealPt)pt >> (RealPt)16U);
+}
+
+static inline constexpr Bit16u RealOff(const RealPt pt) {
+    return (Bit16u)((RealPt)pt & (RealPt)0xffffu);
+}
+
+static inline constexpr PhysPt Real2Phys(const RealPt pt) {
+    return (PhysPt)(((PhysPt)RealSeg(pt) << (PhysPt)4U) + (PhysPt)RealOff(pt));
+}
+
+static inline constexpr RealPt RealMake(const Bit16u seg,const Bit16u off) {
+    return (RealPt)(((RealPt)seg << (RealPt)16U) + (RealPt)off);
+}
+
+/* convert physical address to 4:16 real pointer (example: 0xABCDE -> 0xA000:0xBCDE) */
+static inline constexpr RealPt PhysToReal416(const PhysPt phys) {
+    return RealMake((Bit16u)(((PhysPt)phys >> (PhysPt)4U) & (PhysPt)0xF000U),(Bit16u)((PhysPt)phys & (PhysPt)0xFFFFU));
+}
+
+static inline constexpr PhysPt RealVecAddress(const Bit8u vec) {
+    return (PhysPt)((unsigned int)vec << 2U);
+}
+
 
 static INLINE Bit8u real_readb(const Bit16u seg,const Bit16u off) {
     return mem_readb(PhysMake(seg,off));
@@ -217,31 +246,6 @@ static INLINE void real_writed(const Bit16u seg,const Bit16u off,const Bit32u va
     mem_writed(PhysMake(seg,off),val);
 }
 
-
-static INLINE Bit16u RealSeg(const RealPt pt) {
-    return (Bit16u)((RealPt)pt >> (RealPt)16U);
-}
-
-static INLINE Bit16u RealOff(const RealPt pt) {
-    return (Bit16u)((RealPt)pt & (RealPt)0xffffu);
-}
-
-static INLINE PhysPt Real2Phys(const RealPt pt) {
-    return (PhysPt)(((PhysPt)RealSeg(pt) << (PhysPt)4U) + (PhysPt)RealOff(pt));
-}
-
-static INLINE RealPt RealMake(const Bit16u seg,const Bit16u off) {
-    return (RealPt)(((RealPt)seg << (RealPt)16U) + (RealPt)off);
-}
-
-/* convert physical address to 4:16 real pointer (example: 0xABCDE -> 0xA000:0xBCDE) */
-static INLINE RealPt PhysToReal416(const PhysPt phys) {
-    return RealMake((Bit16u)(((PhysPt)phys >> (PhysPt)4U) & (PhysPt)0xF000U),(Bit16u)((PhysPt)phys & (PhysPt)0xFFFFU));
-}
-
-static INLINE PhysPt RealVecAddress(const Bit8u vec) {
-    return (PhysPt)((unsigned int)vec << 2U);
-}
 
 static INLINE RealPt RealGetVec(const Bit8u vec) {
     return mem_readd(RealVecAddress(vec));
