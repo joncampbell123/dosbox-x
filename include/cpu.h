@@ -466,10 +466,10 @@ public:
 			return true;
 		}
 	} 
-	Bitu SLDT(void)	{
+	Bitu SLDT(void) const {
 		return ldt_value;
 	}
-	bool LLDT(Bitu value)	{
+	bool LLDT(Bitu value) {
 		if ((value&0xfffc)==0) {
 			ldt_value=0;
 			ldt_base=0;
@@ -494,13 +494,13 @@ private:
 
 class TSS_Descriptor : public Descriptor {
 public:
-	Bitu IsBusy(void) {
+	Bitu IsBusy(void) const {
 		return saved.seg.type & 2;
 	}
-	Bitu Is386(void) {
+	Bitu Is386(void) const {
 		return saved.seg.type & 8;
 	}
-	void SetBusy(bool busy) {
+	void SetBusy(const bool busy) {
 		if (busy) saved.seg.type|=(2U);
 		else saved.seg.type&=(~2U); /* -Wconversion cannot silence without hard-coding ~2U & 0x1F */
 	}
@@ -541,13 +541,13 @@ struct CPUBlock {
 
 extern CPUBlock cpu;
 
-static INLINE void CPU_SetFlagsd(Bitu word) {
-	Bitu mask=cpu.cpl ? FMASK_NORMAL : FMASK_ALL;
+static INLINE void CPU_SetFlagsd(const Bitu word) {
+	const Bitu mask=cpu.cpl ? FMASK_NORMAL : FMASK_ALL;
 	CPU_SetFlags(word,mask);
 }
 
-static INLINE void CPU_SetFlagsw(Bitu word) {
-	Bitu mask=(cpu.cpl ? FMASK_NORMAL : FMASK_ALL) & 0xffff;
+static INLINE void CPU_SetFlagsw(const Bitu word) {
+	const Bitu mask=(cpu.cpl ? FMASK_NORMAL : FMASK_ALL) & 0xffff;
 	CPU_SetFlags(word,mask);
 }
 
