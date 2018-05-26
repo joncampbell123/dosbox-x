@@ -158,7 +158,7 @@ void mem_writed(const PhysPt pt,const Bit32u val);
 
 void phys_writes(PhysPt addr, const char* string, Bitu length);
 
-/* WARNING: This will cause a segfault or out of bounds access IF
+/* WARNING: These will cause a segfault or out of bounds access IF
  *          addr is beyond the end of memory */
 
 static INLINE void phys_writeb(const PhysPt addr,const Bit8u val) {
