@@ -1,1 +1,0 @@
-This is so that the solution folders appears in VS, delete it once done
