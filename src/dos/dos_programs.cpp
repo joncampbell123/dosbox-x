@@ -776,7 +776,10 @@ public:
                     fseeko64(usefile, 0L, SEEK_SET);
                     fread(tmp,256,1,usefile); // look for magic signatures
 
-                    if (!memcmp(tmp,"VFD1.",5)) { /* FDD files */
+                    if (strcasestr(temp_line.c_str(), ".d88") != NULL) {
+                        newDiskSwap[i] = new imageDiskD88(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
+                    }
+                    else if (!memcmp(tmp,"VFD1.",5)) { /* FDD files */
                         newDiskSwap[i] = new imageDiskVFD(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
                     }
                     else {
@@ -3622,7 +3625,14 @@ private:
             fseeko64(newDisk, 0L, SEEK_SET);
             fread(tmp, 256, 1, newDisk); // look for magic signatures
 
-            if (!memcmp(tmp, "VFD1.", 5)) { /* FDD files */
+            if (strcasestr(fileName, ".d88") != NULL) {
+                fseeko64(newDisk, 0L, SEEK_END);
+                sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
+                imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
+                setbuf(newDisk, NULL);
+                newImage = new imageDiskD88(newDisk, (Bit8u *)fileName, imagesize, (imagesize > 2880));
+            }
+            else if (!memcmp(tmp, "VFD1.", 5)) { /* FDD files */
                 fseeko64(newDisk, 0L, SEEK_END);
                 sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
                 imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
