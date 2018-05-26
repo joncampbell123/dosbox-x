@@ -358,7 +358,7 @@ public:
 	void Load(PhysPt address);
 	void Save(PhysPt address);
 
-    PhysPt GetBase (void) {
+    PhysPt GetBase (void) const {
         return (PhysPt)(
             ((PhysPt)saved.seg.base_24_31 << (PhysPt)24U) |
             ((PhysPt)saved.seg.base_16_23 << (PhysPt)16U) |
@@ -390,27 +390,27 @@ public:
 		/* it's data. return the 'E' bit */
 		return (saved.seg.type & 4) != 0;
 	}
-	Bitu GetLimit (void) {
+	Bitu GetLimit (void) const {
 		const Bitu limit = ((Bitu)saved.seg.limit_16_19 << (Bitu)16U) | (Bitu)saved.seg.limit_0_15;
 		if (saved.seg.g) return ((Bitu)limit << (Bitu)12U) | (Bitu)0xFFFU;
 		return limit;
 	}
-	Bitu GetOffset(void) {
+	Bitu GetOffset(void) const {
 		return ((Bitu)saved.gate.offset_16_31 << (Bitu)16U) | (Bitu)saved.gate.offset_0_15;
 	}
-	Bitu GetSelector(void) {
+	Bitu GetSelector(void) const {
 		return saved.gate.selector;
 	}
-	Bitu Type(void) {
+	Bitu Type(void) const {
 		return saved.seg.type;
 	}
-	Bitu Conforming(void) {
-		return saved.seg.type & 8;
+	Bitu Conforming(void) const {
+		return saved.seg.type & 8U;
 	}
-	Bitu DPL(void) {
+	Bitu DPL(void) const {
 		return saved.seg.dpl;
 	}
-	Bitu Big(void) {
+	Bitu Big(void) const {
 		return saved.seg.big;
 	}
 public:
@@ -423,21 +423,21 @@ public:
 
 class DescriptorTable {
 public:
-	PhysPt	GetBase			(void)			{ return table_base;	}
-	Bitu	GetLimit		(void)			{ return table_limit;	}
-	void	SetBase			(PhysPt _base)	{ table_base = _base;	}
-	void	SetLimit		(Bitu _limit)	{ table_limit= _limit;	}
+    PhysPt  GetBase         (void) const    { return table_base;    }
+    Bitu    GetLimit        (void) const    { return table_limit;   }
+    void    SetBase         (PhysPt _base)  { table_base = _base;   }
+    void    SetLimit        (Bitu _limit)   { table_limit= _limit;  }
 
-	bool GetDescriptor	(Bitu selector, Descriptor& desc) {
-		selector&=~7U;
-		if (selector>=table_limit) return false;
-		desc.Load((PhysPt)(table_base+selector));
-		return true;
-	}
+    bool GetDescriptor  (Bitu selector, Descriptor& desc) {
+        selector&=~7U;
+        if (selector>=table_limit) return false;
+        desc.Load((PhysPt)(table_base+selector));
+        return true;
+    }
 
 protected:
-	PhysPt table_base;
-	Bitu table_limit;
+    PhysPt table_base;
+    Bitu table_limit;
 };
 
 class GDTDescriptorTable : public DescriptorTable {
