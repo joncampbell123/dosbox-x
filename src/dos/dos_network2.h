@@ -106,7 +106,11 @@ extern Bit16u	NetworkHandleList[127];	/*in dos_files.cpp*/
 	return false;
 }//bool	Network_OpenFile(char * filename,Bit8u flags,Bit16u * entry)
 
- extern "C" int _nhandle;
+#ifndef CMAKE_BUILD // TODO there must be a better way to fix this problem
+extern "C"
+#endif
+int _nhandle;
+
  bool	Network_CloseFile(Bit16u entry)
 {
 		Bit32u handle=RealHandle(entry);
