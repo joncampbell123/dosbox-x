@@ -40,7 +40,7 @@ class localFile : public DOS_File {
 public:
 	localFile(const char* name, FILE * handle);
 	bool Read(Bit8u * data,Bit16u * size);
-	bool Write(Bit8u * data,Bit16u * size);
+	bool Write(const Bit8u * data,Bit16u * size);
 	bool Seek(Bit32u * pos,Bit32u type);
 	bool Close();
 #ifdef WIN32
@@ -1075,7 +1075,7 @@ bool localFile::Read(Bit8u * data,Bit16u * size) {
 	return true;
 }
 
-bool localFile::Write(Bit8u * data,Bit16u * size) {
+bool localFile::Write(const Bit8u * data,Bit16u * size) {
 	if ((this->flags & 0xf) == OPEN_READ) {	// check if file opened in read-only mode
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
