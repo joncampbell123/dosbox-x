@@ -673,6 +673,7 @@ public:
    
     void Run(void) {
         bool swaponedrive = false;
+        bool force = false;
 
         boot_debug_break = false;
         if (cmd->FindExist("-debug",true))
@@ -682,7 +683,7 @@ public:
             swaponedrive = true;
 
         if (cmd->FindExist("-force",true))
-            { /* no-op */ }
+            force = true;
 
         //Hack To allow long commandlines
         ChangeToLongCmd();
@@ -862,6 +863,20 @@ public:
             WriteOut(MSG_Get("PROGRAM_BOOT_UNABLE"), drive);
             return;
         }
+
+        // .D88 images come from PC-88 which usually means the boot sector is full
+        // of Z80 executable code, therefore it's very unlikely the boot sector will
+        // work with our x86 emulation!
+        //
+        // If the user is REALLY REALLY SURE they want to try executing Z80 bootsector
+        // code as x86, they're free to use --force.
+        if (!force && imageDiskList[drive-65]->class_id == imageDisk::ID_D88) {
+            WriteOut("D88 images cannot be booted from in this emulator.\n"
+                     "D88 is normally associated with PC-88 and the Z80 instruction set\n"
+                     "which this emulator does not support.");
+            return;
+        }
+
 
         bootSector bootarea;
 
