@@ -52,25 +52,25 @@
 #define CPU_ARCHTYPE_PPROSLOW		0x60
 
 /* CPU Cycle Timing */
-extern Bit32s CPU_Cycles;
-extern Bit32s CPU_CycleLeft;
-extern Bit32s CPU_CycleMax;
-extern Bit32s CPU_OldCycleMax;
-extern Bit32s CPU_CyclePercUsed;
-extern Bit32s CPU_CycleLimit;
-extern Bit64s CPU_IODelayRemoved;
+extern cpu_cycles_count_t CPU_Cycles;
+extern cpu_cycles_count_t CPU_CycleLeft;
+extern cpu_cycles_count_t CPU_CycleMax;
+extern cpu_cycles_count_t CPU_OldCycleMax;
+extern cpu_cycles_count_t CPU_CyclePercUsed;
+extern cpu_cycles_count_t CPU_CycleLimit;
+extern cpu_cycles_count_t CPU_IODelayRemoved;
+extern cpu_cycles_count_t CPU_CyclesSet;
+extern unsigned char CPU_AutoDetermineMode;
+extern char core_mode[16];
+
 extern bool CPU_CycleAutoAdjust;
 extern bool CPU_SkipCycleAutoAdjust;
-extern Bitu CPU_AutoDetermineMode;
-extern Bitu CPU_CyclesCur;
-extern Bit32s CPU_CyclesSet;
-extern char core_mode[16];
 
 extern bool enable_weitek;
 
-extern Bitu CPU_ArchitectureType;
+extern unsigned char CPU_ArchitectureType;
 
-extern Bitu CPU_PrefetchQueueSize;
+extern unsigned int CPU_PrefetchQueueSize;
 
 /* Some common Defines */
 /* A CPU Handler */
