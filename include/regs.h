@@ -123,8 +123,8 @@ static INLINE RealPt RealMakeSeg(SegNames index,Bit16u off) {
 
 
 static INLINE void SegSet16(Bitu index,Bit16u val) {
-	Segs.val[index]=val;
-	Segs.phys[index]=val << 4;
+	Segs.val[index]=(Bitu)val;
+	Segs.phys[index]=(PhysPt)((unsigned int)val << 4U);
 	/* real mode does not update limit */
 }
 

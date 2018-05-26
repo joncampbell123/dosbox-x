@@ -358,9 +358,12 @@ public:
 	void Load(PhysPt address);
 	void Save(PhysPt address);
 
-	PhysPt GetBase (void) { 
-		return (saved.seg.base_24_31<<24) | (saved.seg.base_16_23<<16) | saved.seg.base_0_15; 
-	}
+    PhysPt GetBase (void) {
+        return (PhysPt)(
+            ((PhysPt)saved.seg.base_24_31 << (PhysPt)24U) |
+            ((PhysPt)saved.seg.base_16_23 << (PhysPt)16U) |
+             (PhysPt)saved.seg.base_0_15);
+    }
 	bool GetExpandDown (void) {
 #if 0
 	Bit32u limit_0_15	:16;
@@ -388,12 +391,12 @@ public:
 		return (saved.seg.type & 4) != 0;
 	}
 	Bitu GetLimit (void) {
-		Bitu limit = (saved.seg.limit_16_19<<16) | saved.seg.limit_0_15;
-		if (saved.seg.g)	return (limit<<12) | 0xFFF;
+		const Bitu limit = ((Bitu)saved.seg.limit_16_19 << (Bitu)16U) | (Bitu)saved.seg.limit_0_15;
+		if (saved.seg.g) return ((Bitu)limit << (Bitu)12U) | (Bitu)0xFFFU;
 		return limit;
 	}
 	Bitu GetOffset(void) {
-		return (saved.gate.offset_16_31 << 16) | saved.gate.offset_0_15;
+		return ((Bitu)saved.gate.offset_16_31 << (Bitu)16U) | (Bitu)saved.gate.offset_0_15;
 	}
 	Bitu GetSelector(void) {
 		return saved.gate.selector;
