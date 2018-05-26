@@ -1462,13 +1462,21 @@ imageDiskD88::vfdentry *imageDiskD88::findSector(Bit8u head,Bit8u track,Bit8u se
 }
 
 Bit8u imageDiskD88::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size) {
-    (void)head;
-    (void)cylinder;
-    (void)sector;
-    (void)data;
-    (void)req_sector_size;
-    // TODO
-    return 0x05;
+    vfdentry *ent;
+
+    if (req_sector_size == 0)
+        req_sector_size = sector_size;
+
+//    LOG_MSG("D88 read sector: CHS %u/%u/%u sz=%u",cylinder,head,sector,req_sector_size);
+
+    ent = findSector(head,cylinder,sector,req_sector_size);
+    if (ent == NULL) return 0x05;
+    if (ent->getSectorSize() != req_sector_size) return 0x05;
+
+    fseek(diskimg,ent->data_offset,SEEK_SET);
+    if ((uint32_t)ftell(diskimg) != ent->data_offset) return 0x05;
+    if (fwrite(data,req_sector_size,1,diskimg) != 1) return 0x05;
+    return 0;
 }
 
 Bit8u imageDiskD88::Write_AbsoluteSector(Bit32u sectnum,const void *data) {
