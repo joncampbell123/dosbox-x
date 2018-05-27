@@ -1184,6 +1184,10 @@ void DOSBOX_SetupConfigSections(void) {
     Phex = secprop->Add_hex("pc-98 fm board io port", Property::Changeable::WhenIdle,0);
     Phex->Set_help("If set, helps to determine the base I/O port of the FM board. A setting of zero means to auto-determine the port number.");
 
+    Pbool = secprop->Add_bool("pc-98 sound bios",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Set Sound BIOS enabled bit in MEMSW 4 for some games that require it.\n"
+                    "TODO: Real emulation of PC-9801-26K/86 Sound BIOS");
+
     Pbool = secprop->Add_bool("pc-98 buffer page flip",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, the game's request to page flip will be delayed to vertical retrace, which can eliminate tearline artifacts.\n"
                     "Note that this is NOT the behavior of actual hardware. This option is provided for the user's preference.");
