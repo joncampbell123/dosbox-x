@@ -908,6 +908,19 @@ public:
             }
         }
 
+        if (!has_read && IS_PC98_ARCH) {
+            /* another nonstandard one with track 0 having 256 bytes/sector while the rest have 1024 bytes/sector */
+            if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (Bit8u *)&bootarea,       256) == 0 &&
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 2, (Bit8u *)&bootarea + 256, 256) == 0 &&
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 3, (Bit8u *)&bootarea + 512, 256) == 0 &&
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 4, (Bit8u *)&bootarea + 768, 256) == 0) {
+                LOG_MSG("First sector is 256 byte/sector. Booting from first two sectors.");
+                has_read = true;
+                bootsize = 1024; // 256 x 4
+                pc98_sect128 = true;
+            }
+        }
+
         /* NTS: Load address is 128KB - sector size */
         load_seg=IS_PC98_ARCH ? (0x2000 - (bootsize/16U)) : 0x07C0;
 
