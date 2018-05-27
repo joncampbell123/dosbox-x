@@ -707,7 +707,9 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         assert(sizeof(bootbuffer.bootcode) >= 256);
         fread(bootbuffer.bootcode,256,1,diskfile); // look for magic signatures
 
-        if (strcasestr(sysFilename, ".d88") != NULL) {
+        const char *ext = strrchr(sysFilename,'.');
+
+        if (ext != NULL && !strcasecmp(ext, ".d88")) {
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (Bit32u)(ftello64(diskfile) / 1024L);
             loadedDisk = new imageDiskD88(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
