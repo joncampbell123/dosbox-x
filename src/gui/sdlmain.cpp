@@ -8202,7 +8202,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* -- menu */
         MainMenu = mainMenu.getWinMenu();
 #endif
-#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* TODO: Move to menu.cpp DOSBox_SetMenu() and add setmenu(NULL) to DOSBox_NoMenu() @emendelson request showmenu=false */
         void sdl_hax_macosx_setmenu(void *nsMenu);
         sdl_hax_macosx_setmenu(mainMenu.getNsMenu());
 #endif
