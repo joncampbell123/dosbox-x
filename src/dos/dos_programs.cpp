@@ -53,6 +53,10 @@ bool Mouse_Vertical = false;
 #include "os2.h"
 #endif
 
+#if !defined(__MINGW32__) && defined(__GNUC__)
+# define stristr strcasestr
+#endif
+
 #if C_DEBUG
 Bitu DEBUG_EnableDebugger(void);
 #endif
@@ -777,7 +781,7 @@ public:
                     fseeko64(usefile, 0L, SEEK_SET);
                     fread(tmp,256,1,usefile); // look for magic signatures
 
-                    if (strcasestr(temp_line.c_str(), ".d88") != NULL) {
+                    if (stristr(temp_line.c_str(), ".d88") != NULL) {
                         newDiskSwap[i] = new imageDiskD88(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
                     }
                     else if (!memcmp(tmp,"VFD1.",5)) { /* FDD files */
@@ -3640,7 +3644,7 @@ private:
             fseeko64(newDisk, 0L, SEEK_SET);
             fread(tmp, 256, 1, newDisk); // look for magic signatures
 
-            if (strcasestr(fileName, ".d88") != NULL) {
+            if (stristr(fileName, ".d88") != NULL) {
                 fseeko64(newDisk, 0L, SEEK_END);
                 sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
                 imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */

@@ -32,6 +32,10 @@
 
 #include <algorithm>
 
+#if !defined(__MINGW32__) && defined(__GNUC__)
+# define stristr strcasestr
+#endif
+
 #define IMGTYPE_FLOPPY 0
 #define IMGTYPE_ISO    1
 #define IMGTYPE_HDD	   2
@@ -707,7 +711,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         assert(sizeof(bootbuffer.bootcode) >= 256);
         fread(bootbuffer.bootcode,256,1,diskfile); // look for magic signatures
 
-        if (strcasestr(sysFilename, ".d88") != NULL) {
+        if (stristr(sysFilename, ".d88") != NULL) {
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (Bit32u)(ftello64(diskfile) / 1024L);
             loadedDisk = new imageDiskD88(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
