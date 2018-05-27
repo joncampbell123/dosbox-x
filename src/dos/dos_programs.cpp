@@ -1183,6 +1183,15 @@ public:
                 reg_eax = 0x30;
                 reg_edx = 0x1;
 
+                /* Guess: If the boot sector is smaller than 512 bytes/sector, the PC-98 BIOS
+                 *        probably sets the graphics layer to 640x200. Some games (Ys) do not
+                 *        set but assume instead that is the mode of the graphics layer */
+                if (pc98_sect128) {
+                    reg_eax = 0x4200;   // setup 640x200 graphics
+                    reg_ecx = 0x8000;   // lower
+                    CALLBACK_RunRealInt(0x18);
+                }
+
                 /* PC-98 MS-DOS boot sector behavior suggests that the BIOS does a CALL FAR
                  * to the boot sector, and the boot sector can RETF back to the BIOS on failure. */
                 CPU_Push16(BIOS_bootfail_code_offset >> 4); /* segment */
