@@ -872,11 +872,16 @@ public:
         //
         // If the user is REALLY REALLY SURE they want to try executing Z80 bootsector
         // code as x86, they're free to use --force.
+        //
+        // However PC-98 games are also distributed as .D88 images and therefore
+        // we probably CAN boot the image.
+        //
+        // It depends on the fd_type field of the image.
         if (!force && imageDiskList[drive-65]->class_id == imageDisk::ID_D88) {
-            WriteOut("D88 images cannot be booted from in this emulator.\n"
-                     "D88 is normally associated with PC-88 and the Z80 instruction set\n"
-                     "which this emulator does not support.");
-            return;
+            if (reinterpret_cast<imageDiskD88*>(imageDiskList[drive-65])->fd_type_major == imageDiskD88::DISKTYPE_2D) {
+                WriteOut("The D88 image appears to target PC-88 and cannot be booted.");
+                return;
+            }
         }
 
 

@@ -1495,6 +1495,9 @@ imageDiskD88::imageDiskD88(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
     (void)isHardDisk;//UNUSED
     D88HEAD head;
 
+    fd_type_major = DISKTYPE_2D;
+    fd_type_minor = 0;
+
     assert(sizeof(D88HEAD) == 0x2B0);
     assert(sizeof(D88SEC) == 0x10);
 
@@ -1535,6 +1538,9 @@ imageDiskD88::imageDiskD88(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
 
     // validate fd_size
     if (host_readd((ConstHostPt)(&head.fd_size)) > fsz) return;
+
+    fd_type_major = head.fd_type >> 4U;
+    fd_type_minor = head.fd_type & 0xFU;
 
     // validate that none of the track offsets extend past the file
     {
