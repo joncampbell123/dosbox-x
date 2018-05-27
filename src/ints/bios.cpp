@@ -3431,6 +3431,10 @@ static Bitu INT1B_PC98_Handler(void) {
         case 0xB0:
             PC98_BIOS_FDC_CALL(PC98_FLOPPY_HIGHDENSITY|PC98_FLOPPY_2HEAD|PC98_FLOPPY_RPM_IBMPC);
             break;
+        case 0x70: /* 720KB DD (??) */
+        case 0xF0:
+            PC98_BIOS_FDC_CALL(PC98_FLOPPY_2HEAD|PC98_FLOPPY_RPM_3MODE); // FIXME, correct??
+            break;
         case 0x20: /* SCSI hard disk BIOS */
         case 0xA0: /* SCSI hard disk BIOS */
         case 0x00: /* SASI hard disk BIOS */
