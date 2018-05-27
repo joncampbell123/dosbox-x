@@ -1573,7 +1573,7 @@ imageDiskD88::imageDiskD88(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
                 uint16_t sector_count = host_readw((ConstHostPt)(&s.sectors));
                 uint16_t sector_size = host_readw((ConstHostPt)(&s.size));
 
-                if (sector_count == 0U || sector_size < 256U) break;
+                if (sector_count == 0U || sector_size < 128U) break;
                 if (sector_count > 128U || sector_size > 16384U) break;
                 if (s.n > 8U) s.n = 8U;
 
