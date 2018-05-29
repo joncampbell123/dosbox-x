@@ -1537,7 +1537,7 @@ imageDiskD88::imageDiskD88(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
     if (fread(&head,sizeof(head),1,diskimg) != 1) return;
 
     // validate fd_size
-    if (host_readd((ConstHostPt)(&head.fd_size)) > fsz) return;
+    if ((uint32_t)host_readd((ConstHostPt)(&head.fd_size)) > (uint32_t)fsz) return;
 
     fd_type_major = head.fd_type >> 4U;
     fd_type_minor = head.fd_type & 0xFU;
