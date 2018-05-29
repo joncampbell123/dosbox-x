@@ -1,4 +1,38 @@
 0.82.7 (next)
+  - Add dosbox.conf option to set Sound BIOS enable
+    bit in non-volatile RAM (PC-98) that tells older
+    PC-98 games the FM card is present (Yksoft)
+  - BOOT updated to boot D88 except for 2D format which
+    is generally used by PC-88 disk images.
+  - Added D88 disk image support
+  - CMake files added (Aybe)
+  - PIC timing updated to use "double" float type for
+    more precision, but as a typedef for future support
+    as a compile time option.
+  - Removed geometry checks from INT 1Bh FDC functions,
+    to allow non-uniform disks to work.
+  - MinGW builds now allowed to use Direct3D.
+  - Direct3D output fixed to use the same texture
+    coordinate, window fitting, and positioning
+    logic as OpenGL.
+  - Update zlib and libpng libraries in-tree.
+  - Fixed VFD disk image support to correctly signal
+    failure to detect geometry, to avoid divide by
+    zero crash with FAT driver.
+  - showmenu= now taken into consideration whether to
+    show the menu bar at startup
+  - Fixed get_item() E_Exit crash if menus asked to
+    show from dosbox.conf
+  - SDL drawn menus fixed to integrate with Direct3D
+    output on Windows.
+  - PC-98 mode can now boot floppy disk images where the
+    boot sector is 128 or 256 bytes/sector despite
+    track 1 and higher having 1024 bytes/sector.
+  - General codebase cleanup, compiler warning cleanup.
+  - Enable XInput support on Windows (Aybe)
+  - Fixed SDL drawn menus to use std::vector properly,
+    not to hold onto iterators while resizing the vector
+    and popping things off the top.
   - PC-98 INT 1Bh "read id" floppy disk call fixed to
     cycle through sector numbers. Some bootable PC-98
     games use "MEGDOS" which polls this BIOS call before
