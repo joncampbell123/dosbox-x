@@ -763,7 +763,7 @@ void ToplevelWindow::paint(Drawable &d) const
 }
 
 void Input::posToEnd(void) {
-	pos = text.size();
+	pos = (GUI::Size)text.size();
 	checkOffset();
 }
 

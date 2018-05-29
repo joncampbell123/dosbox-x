@@ -1411,7 +1411,7 @@ void DOSBox_SetSysMenu(void) {
 		mii.fState = (menu.toggle ? MFS_CHECKED : 0) | (GFX_GetPreventFullscreen() ? MFS_DISABLED : MFS_ENABLED);
 		mii.wID = ID_WIN_SYSMENU_TOGGLEMENU;
 		mii.dwTypeData = (LPTSTR)(msg);
-		mii.cch = strlen(msg)+1;
+		mii.cch = (UINT)(strlen(msg)+1);
 
 		InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
 	}
@@ -1541,7 +1541,7 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
     if (!GetMenu(GetHWND())) return;
     if (Message.msg != WM_COMMAND) return;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-	if (mainMenu.mainMenuWM_COMMAND(Message.wParam)) return;
+	if (mainMenu.mainMenuWM_COMMAND((unsigned int)Message.wParam)) return;
 #endif
 }
 #else

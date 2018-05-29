@@ -1734,7 +1734,7 @@ void DOS_Shell::CMD_VOL(char *args){
 	Bit8u drive=DOS_GetDefaultDrive();
 	if(args && *args && strlen(args)){
 		args++;
-		Bit32u argLen = strlen(args);
+		Bit32u argLen = (Bit32u)strlen(args);
 		switch (args[argLen-1]) {
 		case ':' :
 			if(!strcasecmp(args,":")) return;

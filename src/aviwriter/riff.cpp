@@ -19,7 +19,7 @@ int riff_std_read(void *a,void *b,size_t c) {
 	rs = (riff_stack*)a;
 	if (rs->fd < 0) return -1;
 	if (rs->trk_file_pointer < (int64_t)0) return -1;
-	rd = (int)read(rs->fd,b,c);
+	rd = (int)read(rs->fd,b,(unsigned int)c);
 
 	if (rd < 0) rs->trk_file_pointer = -1LL;
 	else rs->trk_file_pointer += rd;
@@ -34,7 +34,7 @@ int riff_std_write(void *a,const void *b,size_t c) {
 	rs = (riff_stack*)a;
 	if (rs->fd < 0) return -1;
 	if (rs->trk_file_pointer < (int64_t)0) return -1;
-	rd = (int)write(rs->fd,b,c);
+	rd = (int)write(rs->fd,b,(unsigned int)c);
 
 	if (rd < 0) rs->trk_file_pointer = -1LL;
 	else rs->trk_file_pointer += rd;
@@ -334,7 +334,7 @@ int riff_stack_streamwrite(riff_stack *s,riff_chunk *c,const void *buf,size_t le
 		abort(); /* TODO */
 	}
 
-	return len;
+	return (int)len;
 }
 
 int riff_stack_write(riff_stack *s,riff_chunk *c,const void *buf,size_t len) {

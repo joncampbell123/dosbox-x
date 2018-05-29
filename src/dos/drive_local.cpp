@@ -185,7 +185,7 @@ template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS(host_cnv_char_t *d/*CROSS_
 template <class MT> int SBCS_From_Host_Find(int c,const MT *map,const size_t map_max) {
     for (size_t i=0;i < map_max;i++) {
         if ((MT)c == map[i])
-            return i;
+            return (int)i;
     }
 
     return -1;
@@ -201,7 +201,7 @@ template <class MT> int DBCS_SHIFTJIS_From_Host_Find(int c,const MT *hitbl,const
 
         for (size_t l=0;l < 0x40;l++) {
             if ((MT)c == rawtbl[ofs+l])
-                return (h << 6) + l;
+                return (int)((h << 6) + l);
         }
     }
 

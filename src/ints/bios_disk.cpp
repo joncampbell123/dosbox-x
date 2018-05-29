@@ -257,7 +257,7 @@ Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
         return 0x05;
     }
 
-    got = fread(data, 1, sector_size, diskimg);
+    got = (int)fread(data, 1, sector_size, diskimg);
     if ((unsigned int)got != sector_size) {
         LOG_MSG("fread() failed in Read_AbsoluteSector for sector %lu. Want=%u got=%d\n",
             (unsigned long)sectnum,(unsigned int)sector_size,(unsigned int)got);

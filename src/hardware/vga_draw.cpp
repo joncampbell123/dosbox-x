@@ -940,7 +940,7 @@ static Bit8u* EGA_TEXT_Xlat8_Draw_Line(Bitu vidstart, Bitu line) {
         VGA_Latch pixels;
 
         pixels.d = *vidmem;
-        vidmem += 1<<vga.config.addr_shift;
+        vidmem += (uintptr_t)1U << (uintptr_t)vga.config.addr_shift;
 
         Bitu chr = pixels.b[0];
         Bitu attr = pixels.b[1];
@@ -1003,7 +1003,7 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         VGA_Latch pixels;
 
         pixels.d = *vidmem;
-        vidmem += 1<<vga.config.addr_shift;
+        vidmem += (uintptr_t)1U << (uintptr_t)vga.config.addr_shift;
 
         Bitu chr = pixels.b[0];
         Bitu attr = pixels.b[1];

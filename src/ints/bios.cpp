@@ -824,7 +824,7 @@ void ISAPnPDevice::write_Identifier_String(const char *str) {
     const size_t l = strlen(str);
     if (l > 4096) return;
 
-    write_begin_LARGETAG(LargeTags::IdentifierStringANSI,l);
+    write_begin_LARGETAG(LargeTags::IdentifierStringANSI,(unsigned int)l);
     if (l != 0) write_nstring(str,l);
 }
 
@@ -7227,14 +7227,14 @@ void write_ID_version_string() {
     str_ver_len = strlen(bios_version_string)+1;
     if (!mainline_compatible_bios_mapping && !IS_PC98_ARCH) {
         /* need to mark these strings off-limits so dynamic allocation does not overwrite them */
-        ROMBIOS_GetMemory(str_id_len+1,"BIOS ID string",1,str_id_at);
-        ROMBIOS_GetMemory(str_ver_len+1,"BIOS version string",1,str_ver_at);
+        ROMBIOS_GetMemory((Bitu)str_id_len+1,"BIOS ID string",1,str_id_at);
+        ROMBIOS_GetMemory((Bitu)str_ver_len+1,"BIOS version string",1,str_ver_at);
     }
     if (str_id_at != 0) {
-        for (size_t i=0;i < str_id_len;i++) phys_writeb(str_id_at+i,bios_type_string[i]);
+        for (size_t i=0;i < str_id_len;i++) phys_writeb(str_id_at+(PhysPt)i,bios_type_string[i]);
     }
     if (str_ver_at != 0) {
-        for (size_t i=0;i < str_ver_len;i++) phys_writeb(str_ver_at+i,bios_version_string[i]);
+        for (size_t i=0;i < str_ver_len;i++) phys_writeb(str_ver_at+(PhysPt)i,bios_version_string[i]);
     }
 }
 

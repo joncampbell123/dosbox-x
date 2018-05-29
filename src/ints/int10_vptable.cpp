@@ -563,11 +563,11 @@ void INT10_SetupBasicVideoParameterTable(void) {
 		if (rom_bios_vptable_enable) {
 			/* TODO: Free previous block */
 
-			BIOS_VIDEO_TABLE_SIZE = copy_sz;
+			BIOS_VIDEO_TABLE_SIZE = (Bitu)copy_sz;
 			if (mainline_compatible_bios_mapping)
 				BIOS_VIDEO_TABLE_LOCATION = RealMake(0xf000,0xf0a4);
 			else
-				BIOS_VIDEO_TABLE_LOCATION = PhysToReal416(ROMBIOS_GetMemory(copy_sz,"BIOS video table (INT 1Dh)")); /* TODO: make option */
+				BIOS_VIDEO_TABLE_LOCATION = (Bitu)PhysToReal416(ROMBIOS_GetMemory((Bitu)copy_sz,"BIOS video table (INT 1Dh)")); /* TODO: make option */
 
 			/* NTS: Failure to allocate means BIOS_VIDEO_TABLE_LOCATION == 0 */
 		}
@@ -581,7 +581,7 @@ void INT10_SetupBasicVideoParameterTable(void) {
 	if (ofs != 0) {
 		if (copy && copy_sz <= BIOS_VIDEO_TABLE_SIZE) {
 			for (size_t i=0;i < copy_sz;i++)
-				phys_writeb(ofs+i,copy[i]);
+				phys_writeb(ofs+(PhysPt)i,copy[i]);
 		}
 		else {
 			E_Exit("Somehow, INT 10 video param table too large");

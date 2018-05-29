@@ -41,7 +41,7 @@ bool SERIAL_open(const char* portname, COMPORT* port) {
 
 	// open the port in NT object space (recommended by Microsoft)
 	// allows the user to open COM10+ and custom port names.
-	int len = strlen(portname);
+	int len = (int)strlen(portname);
 	if(len > 240) {
 		SetLastError(ERROR_BUFFER_OVERFLOW);
 		free(cp);
@@ -144,11 +144,11 @@ void SERIAL_getErrorString(char* buffer, int length) {
 	int sysmsg_offset = 0;
 
 	if(error == 5) {
-		sysmsg_offset = strlen(err5text);
+		sysmsg_offset = (int)strlen(err5text);
 		memcpy(buffer,err5text,sysmsg_offset);
 
 	} else if(error == 2) {
-		sysmsg_offset = strlen(err2text);
+		sysmsg_offset = (int)strlen(err2text);
 		memcpy(buffer,err2text,sysmsg_offset);
 	}
 

@@ -43,7 +43,7 @@ const char *File::getSHA1() {
 	SHA1 sha1;
 	unsigned int fileDigest[5];
 
-	sha1.Input(data, fileSize);
+	sha1.Input(data, (unsigned int)fileSize);
 	if (sha1.Result(fileDigest)) {
 		SHA1DigestToString(sha1Digest, fileDigest);
 	}

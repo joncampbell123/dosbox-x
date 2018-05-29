@@ -758,7 +758,7 @@ try_again:
         size_t nsz = vec.size() * 2;
 
         LOG(LOG_MISC,LOG_WARN)("IO_AllocateCallout type %u expanding array to %u",(unsigned int)t,(unsigned int)nsz);
-        vec.alloc_from = vec.size(); /* allocate from end of old vector size */
+        vec.alloc_from = (unsigned int)vec.size(); /* allocate from end of old vector size */
         vec.resize(nsz);
         goto try_again;
     }

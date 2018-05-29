@@ -216,7 +216,7 @@ void CSerial::log_ser(bool active, char const* format,...) {
 		vsprintf(buf+strlen(buf),format,msg);
 		va_end(msg);
 		// Add newline if not present
-		Bitu len=strlen(buf);
+		Bitu len=(Bitu)strlen(buf);
 		if(buf[len-1]!='\n') strcat(buf,"\r\n");
 		fputs(buf,debugfp);
 	}

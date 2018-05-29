@@ -49,7 +49,7 @@ void VFILE_Shutdown(void) {
 }
 
 void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b) {
-	VFILE_Register(b.recommended_file_name, (Bit8u*)b.data, b.length);
+	VFILE_Register(b.recommended_file_name, (Bit8u*)b.data, (Bit32u)b.length);
 }
 
 void VFILE_Register(const char * name,Bit8u * data,Bit32u size) {

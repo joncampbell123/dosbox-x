@@ -2541,7 +2541,7 @@ static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARA
                             ((wParam == WM_KEYUP || wParam == WM_SYSKEYUP) ? 0xC0000000 : 0);
 
                         // catch the keystroke, post it to ourself, do not pass it on
-                        PostMessage(myHwnd, wParam, st_hook->vkCode, lParam);
+                        PostMessage(myHwnd, (UINT)wParam, st_hook->vkCode, lParam);
                         return TRUE;
                     }
                 }
