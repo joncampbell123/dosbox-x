@@ -5322,8 +5322,8 @@ static void FingerToFakeMouseMotion(SDL_TouchFingerEvent * finger) {
     fake.x = finger->x;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
     fake.y = finger->y;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
 #endif
-    fake.xrel = finger->dx;
-    fake.yrel = finger->dy;
+    fake.xrel = (Sint32)finger->dx;
+    fake.yrel = (Sint32)finger->dy;
     HandleMouseMotion(&fake);
 
     if (finger->type == SDL_FINGERDOWN || finger->type == SDL_FINGERUP) {
