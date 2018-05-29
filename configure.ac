@@ -284,7 +284,7 @@ AC_CHECK_CXXFLAGS([ -Wall ])
 AC_CHECK_CXXFLAGS([ -Wextra ])
 AC_CHECK_CXXFLAGS([ -pedantic ])
 #AC_CHECK_CXXFLAGS([ -Wconversion ])
-AC_CHECK_CXXFLAGS([ -Wsign-conversion ])
+#AC_CHECK_CXXFLAGS([ -Wsign-conversion ])
 AC_CHECK_CXXFLAGS([ -Wconversion-null ])
 
 dnl Let GCC 7.3.x know that the "fall through" switch cases in this codebase
