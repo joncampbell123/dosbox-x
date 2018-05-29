@@ -2662,7 +2662,7 @@ public:
             }
             else {
                 if (AttachToBiosAndIdeByIndex(newImage, driveIndex, ide_index, ide_slave)) {
-                    WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', paths[0].c_str());
+                    WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', (!paths.empty()) ? paths[0].c_str() : "");
 
                     if (paths.size() > 1) {
                         for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
