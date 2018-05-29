@@ -359,8 +359,8 @@ bool Synth::initPCMList(Bit16u mapAddress, Bit16u count) {
             printDebug("Control ROM error: Wave map entry %d points to invalid PCM address 0x%04X, length 0x%04X", i, rAddr, rLen);
             return false;
         }
-        pcmWaves[i].addr = rAddr;
-        pcmWaves[i].len = rLen;
+        pcmWaves[i].addr = (Bit32u)rAddr;
+        pcmWaves[i].len = (Bit32u)rLen;
         pcmWaves[i].loop = (tps[i].len & 0x80) != 0;
         pcmWaves[i].controlROMPCMStruct = &tps[i];
         //int pitch = (tps[i].pitchMSB << 8) | tps[i].pitchLSB;
