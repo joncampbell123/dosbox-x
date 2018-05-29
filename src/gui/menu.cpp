@@ -1133,6 +1133,10 @@ void DOSBox_SetMenu(void) {
         GFX_ResetScreen();
     }
 #endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* TODO: Move to menu.cpp DOSBox_SetMenu() and add setmenu(NULL) to DOSBox_NoMenu() @emendelson request showmenu=false */
+    void sdl_hax_macosx_setmenu(void *nsMenu);
+    sdl_hax_macosx_setmenu(mainMenu.getNsMenu());
+#endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 	if(!menu.gui) return;
 
@@ -1165,6 +1169,10 @@ void DOSBox_NoMenu(void) {
         mainMenu.setRedraw();
         GFX_ResetScreen();
     }
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
+    void sdl_hax_macosx_setmenu(void *nsMenu);
+    sdl_hax_macosx_setmenu(NULL);
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 	if(!menu.gui) return;
