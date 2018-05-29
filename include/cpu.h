@@ -443,8 +443,8 @@ protected:
 class GDTDescriptorTable : public DescriptorTable {
 public:
 	bool GetDescriptor(Bitu selector, Descriptor& desc) {
-		Bitu address=selector & ~7;
-		if (selector & 4) {
+		Bitu address=selector & ~7U;
+		if (selector & 4U) {
 			if (address>=ldt_limit) return false;
 			desc.Load((PhysPt)(ldt_base+address));
 			return true;
@@ -455,8 +455,8 @@ public:
 		}
 	}
 	bool SetDescriptor(Bitu selector, Descriptor& desc) {
-		Bitu address=selector & ~7;
-		if (selector & 4) {
+		Bitu address=selector & ~7U;
+		if (selector & 4U) {
 			if (address>=ldt_limit) return false;
 			desc.Save((PhysPt)(ldt_base+address));
 			return true;

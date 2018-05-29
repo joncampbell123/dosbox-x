@@ -474,23 +474,23 @@ void CPU_SetFlags(Bitu word,Bitu mask) {
 	/* 8086: bits 12-15 cannot be zeroed */
 	if (CPU_ArchitectureType <= CPU_ARCHTYPE_80186) {
 		/* update mask and word to ensure bits 12-15 are set */
-		word |= 0xF000;
-		mask |= 0xF000;
+		word |= 0xF000U;
+		mask |= 0xF000U;
 	}
 	/* 286 real mode: bits 12-15 bits cannot be set, always zero */
 	else if (CPU_ArchitectureType <= CPU_ARCHTYPE_286) {
 		if (!(cpu.cr0 & CR0_PROTECTION)) {
 			/* update mask and word to ensure bits 12-15 are zero */
-			word &= ~0xF000;
-			mask |= 0xF000;
+			word &= ~0xF000U;
+			mask |= 0xF000U;
 		}
 	}
 	else {
 		mask |= CPU_extflags_toggle;	// ID-flag and AC-flag can be toggled on CPUID-supporting CPUs
 	}
 
-	reg_flags=(reg_flags & ~mask)|(word & mask)|2;
-	cpu.direction=1-((reg_flags & FLAG_DF) >> 9);
+	reg_flags=(reg_flags & ~mask)|(word & mask)|2U;
+	cpu.direction=1 - (int)((reg_flags & FLAG_DF) >> 9U);
 	// ^ NTS: Notice the DF flag is bit 10. This code computes (reg_flags & FLAG_DF) >> 9 on purpose.
 	//        It's not a typo (9 vs 10), it's done to set cpu.direction to either 1 or -1.
 }
@@ -847,7 +847,7 @@ bool CPU_IO_Exception(Bitu port,Bitu size) {
 		if (ofs>cpu_tss.limit) goto doexception;
 		bwhere=cpu_tss.base+ofs+(port/8);
 		Bitu map=mem_readw(bwhere);
-		Bitu mask=(0xffff>>(16-size)) << (port&7);
+		Bitu mask=(0xffffu >> (16u - size)) << (port & 7u);
 		if (map & mask) goto doexception;
 		cpu.mpl=3;
 	}
@@ -3364,7 +3364,7 @@ void CPU_OnReset(Section* sec) {
 
 	CPU_Snap_Back_To_Real_Mode();
 	CPU_Snap_Back_Forget();
-	CPU_SetFlags(0,~0);
+	CPU_SetFlags(0,~0UL);
 
 	Segs.limit[cs]=0xFFFF;
 	Segs.expanddown[cs]=false;
