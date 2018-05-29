@@ -608,7 +608,7 @@ unsigned int dosbox_shell_env_size = 0;
 void clocktree_build_conversion_list();
 
 void Null_Init(Section *sec) {
-    sec = sec;
+	(void)sec;
 }
 
 extern Bit8u cga_comp;
