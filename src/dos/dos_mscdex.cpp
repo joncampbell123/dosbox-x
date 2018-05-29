@@ -1312,7 +1312,7 @@ class device_MSCDEX : public DOS_Device {
 public:
 	device_MSCDEX() { SetName("MSCD001"); }
 	bool Read (Bit8u * /*data*/,Bit16u * /*size*/) { return false;}
-	bool Write(Bit8u * /*data*/,Bit16u * /*size*/) { 
+	bool Write(const Bit8u * /*data*/,Bit16u * /*size*/) { 
 		LOG(LOG_ALL,LOG_NORMAL)("Write to mscdex device");	
 		return false;
 	}
