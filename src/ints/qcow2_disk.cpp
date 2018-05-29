@@ -454,6 +454,6 @@ using namespace std;
 
 
 //Public function to a write a sector.
-	Bit8u QCow2Disk::Write_AbsoluteSector(Bit32u sectnum, void* data){
+	Bit8u QCow2Disk::Write_AbsoluteSector(Bit32u sectnum,const void* data){
 		return qcowImage.write_sector(sectnum, (Bit8u*)data);
 	}
