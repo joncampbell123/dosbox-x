@@ -1,4 +1,9 @@
 0.82.7 (next)
+  - Default minimum MCB free/base is now 0x100, to sidestep
+    unknown unstable DOS application behavior when DOS
+    applications are loaded at around segment 0x800.
+    This also puts DOSBox-X at parity with the base memory
+    behavior of DOSBox SVN.
   - Add dosbox.conf option to set Sound BIOS enable
     bit in non-volatile RAM (PC-98) that tells older
     PC-98 games the FM card is present (Yksoft)
