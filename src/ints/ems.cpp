@@ -192,7 +192,7 @@ public:
 		GEMMIS_seg=0;
 	}
 	bool Read(Bit8u * /*data*/,Bit16u * /*size*/) { return false;}
-	bool Write(Bit8u * /*data*/,Bit16u * /*size*/){ 
+	bool Write(const Bit8u * /*data*/,Bit16u * /*size*/){ 
 		LOG(LOG_IOCTL,LOG_NORMAL)("EMS:Write to device");	
 		return false;
 	}

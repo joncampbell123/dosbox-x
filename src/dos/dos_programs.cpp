@@ -2379,7 +2379,7 @@ public:
         memcpy(data,buffer+((sectnum&3)*512),512);
         return 0x00;
     }
-    virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data) {
+    virtual Bit8u Write_AbsoluteSector(Bit32u sectnum,const void * data) {
         (void)sectnum;//UNUSED
         (void)data;//UNUSED
         return 0x05; /* fail, read only */
