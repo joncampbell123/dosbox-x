@@ -66,10 +66,10 @@ typedef struct {
 #define SPKR_ENTRIES 1024
 #define SPKR_VOLUME 10000
 //#define SPKR_SHIFT 8
-#define SPKR_SPEED (float)((SPKR_VOLUME*2)/0.050f) // TODO: replace with runtime value
+#define SPKR_SPEED (pic_tickindex_t)((SPKR_VOLUME*2)/0.050) // TODO: replace with runtime value
 
 struct DelayEntry {
-	float index;
+	pic_tickindex_t index;
 	bool output_level;
 };
 
@@ -81,23 +81,23 @@ static struct {
 	bool  pit_output_enabled;
 	bool  pit_clock_gate_enabled;
 	bool  pit_output_level;
-	float pit_new_max,pit_new_half;
-	float pit_max,pit_half;
-	float pit_index;
+	pic_tickindex_t pit_new_max,pit_new_half;
+	pic_tickindex_t pit_max,pit_half;
+	pic_tickindex_t pit_index;
 	bool  pit_mode1_waiting_for_counter;
 	bool  pit_mode1_waiting_for_trigger;
-	float pit_mode1_pending_max;
+	pic_tickindex_t pit_mode1_pending_max;
 
 	bool  pit_mode3_counting;
-	float volwant,volcur;
+	pic_tickindex_t volwant,volcur;
 	Bitu last_ticks;
-	float last_index;
+	pic_tickindex_t last_index;
 	Bitu minimum_counter;
 	DelayEntry entries[SPKR_ENTRIES];
 	Bitu used;
 } spkr;
 
-inline static void AddDelayEntry(float index, bool new_output_level) {
+inline static void AddDelayEntry(pic_tickindex_t index, bool new_output_level) {
 #ifdef SPKR_DEBUGGING
 	if (index < 0 || index > 1) {
 		LOG_MSG("AddDelayEntry: index out of range %f at %f", index, PIC_FullIndex());
@@ -117,20 +117,20 @@ inline static void AddDelayEntry(float index, bool new_output_level) {
 	spkr.used++;
 }
 
-inline static void AddPITOutput(float index) {
+inline static void AddPITOutput(pic_tickindex_t index) {
 	if (spkr.pit_output_enabled) {
 		AddDelayEntry(index, spkr.pit_output_level);
 	}
 }
 
-static void ForwardPIT(float newindex) {
+static void ForwardPIT(pic_tickindex_t newindex) {
 #ifdef SPKR_DEBUGGING
 	if (newindex < 0 || newindex > 1) {
 		LOG_MSG("ForwardPIT: index out of range %f at %f", newindex, PIC_FullIndex());
 	}
 #endif
-	float passed=(newindex-spkr.last_index);
-	float delay_base=spkr.last_index;
+	pic_tickindex_t passed=(newindex-spkr.last_index);
+	pic_tickindex_t delay_base=spkr.last_index;
 	spkr.last_index=newindex;
 	switch (spkr.pit_mode) {
 	case 6: // dummy
@@ -142,7 +142,7 @@ static void ForwardPIT(float newindex) {
 		spkr.pit_index += passed;
 		if (spkr.pit_index >= spkr.pit_max) {
 			// counter reached zero between previous and this call
-			float delay = delay_base;
+			pic_tickindex_t delay = delay_base;
 			delay += spkr.pit_max - spkr.pit_index + passed;
 			spkr.pit_output_level = 1;
 			AddPITOutput(delay);
@@ -163,7 +163,7 @@ static void ForwardPIT(float newindex) {
 		spkr.pit_index += passed;
 		if (spkr.pit_index >= spkr.pit_max) {
 			// counter reached zero between previous and this call
-			float delay = delay_base;
+			pic_tickindex_t delay = delay_base;
 			delay += spkr.pit_max - spkr.pit_index + passed;
 			spkr.pit_output_level = 1;
 			AddPITOutput(delay);
@@ -177,7 +177,7 @@ static void ForwardPIT(float newindex) {
 			if (spkr.pit_index>=spkr.pit_half) {
 				/* Start a new low cycle */
 				if ((spkr.pit_index+passed)>=spkr.pit_max) {
-					float delay=spkr.pit_max-spkr.pit_index;
+					pic_tickindex_t delay=spkr.pit_max-spkr.pit_index;
 					delay_base+=delay;passed-=delay;
 					spkr.pit_output_level = 0;
 					AddPITOutput(delay_base);
@@ -188,7 +188,7 @@ static void ForwardPIT(float newindex) {
 				}
 			} else {
 				if ((spkr.pit_index+passed)>=spkr.pit_half) {
-					float delay=spkr.pit_half-spkr.pit_index;
+					pic_tickindex_t delay=spkr.pit_half-spkr.pit_index;
 					delay_base+=delay;passed-=delay;
 					spkr.pit_output_level = 1;
 					AddPITOutput(delay_base);
@@ -207,7 +207,7 @@ static void ForwardPIT(float newindex) {
 			/* Determine where in the wave we're located */
 			if (spkr.pit_index>=spkr.pit_half) {
 				if ((spkr.pit_index+passed)>=spkr.pit_max) {
-					float delay=spkr.pit_max-spkr.pit_index;
+					pic_tickindex_t delay=spkr.pit_max-spkr.pit_index;
 					delay_base+=delay;passed-=delay;
 					spkr.pit_output_level = 1;
 					AddPITOutput(delay_base);
@@ -221,7 +221,7 @@ static void ForwardPIT(float newindex) {
 				}
 			} else {
 				if ((spkr.pit_index+passed)>=spkr.pit_half) {
-					float delay=spkr.pit_half-spkr.pit_index;
+					pic_tickindex_t delay=spkr.pit_half-spkr.pit_index;
 					delay_base+=delay;passed-=delay;
 					spkr.pit_output_level = 0;
 					AddPITOutput(delay_base);
@@ -241,7 +241,7 @@ static void ForwardPIT(float newindex) {
 		if (spkr.pit_index<spkr.pit_max) {
 			/* Check if we're gonna pass the end this block */
 			if (spkr.pit_index+passed>=spkr.pit_max) {
-				float delay=spkr.pit_max-spkr.pit_index;
+				pic_tickindex_t delay=spkr.pit_max-spkr.pit_index;
 				delay_base+=delay;passed-=delay;
 				spkr.pit_output_level = 0;
 				AddPITOutput(delay_base); //No new events unless reprogrammed
@@ -254,7 +254,7 @@ static void ForwardPIT(float newindex) {
 }
 
 void PCSPEAKER_SetPITControl(Bitu mode) {
-	float newindex = PIC_TickIndex();
+	pic_tickindex_t newindex = PIC_TickIndex();
 	ForwardPIT(newindex);
 #ifdef SPKR_DEBUGGING
 	fprintf(PCSpeakerLog, "%f pit command: %u\n", PIC_FullIndex(), mode);
@@ -304,14 +304,14 @@ void PCSPEAKER_SetCounter(Bitu cntr, Bitu mode) {
 		spkr.last_index=0;
 	}
 	spkr.last_ticks=PIC_Ticks;
-	float newindex=PIC_TickIndex();
+	pic_tickindex_t newindex=PIC_TickIndex();
 	ForwardPIT(newindex);
 	switch (mode) {
 	case 0:		/* Mode 0 one shot, used with "realsound" (PWM) */
 		//if (cntr>80) { 
 		//	cntr=80;
 		//}
-		//spkr.pit_output_level=((float)cntr-40)*(SPKR_VOLUME/40.0f);
+		//spkr.pit_output_level=((pic_tickindex_t)cntr-40)*(SPKR_VOLUME/40.0f);
 		spkr.pit_output_level = 0;
 		spkr.pit_index = 0;
 		spkr.pit_max = (1000.0f / PIT_TICK_RATE) * cntr;
@@ -399,7 +399,7 @@ void PCSPEAKER_SetType(bool pit_clock_gate_enabled, bool pit_output_enabled) {
 		spkr.last_index=0;
 	}
 	spkr.last_ticks=PIC_Ticks;
-	float newindex=PIC_TickIndex();
+	pic_tickindex_t newindex=PIC_TickIndex();
 	ForwardPIT(newindex);
 	// pit clock gate enable rising edge is a trigger
 	bool pit_trigger = pit_clock_gate_enabled && !spkr.pit_clock_gate_enabled;
@@ -469,17 +469,17 @@ static void PCSPEAKER_CallBack(Bitu len) {
 	spkr.last_index=0;
 	Bitu count=len;
 	Bitu pos=0;
-	float sample_base=0;
-	float sample_add=(1.0001f)/len;
+	pic_tickindex_t sample_base=0;
+	pic_tickindex_t sample_add=(pic_tickindex_t)(1.0001/len);
 	while (count--) {
-		float index=sample_base;
+		pic_tickindex_t index=sample_base;
 		sample_base+=sample_add;
-		float end=sample_base;
+		pic_tickindex_t end=sample_base;
 		double value=0;
 		while(index<end) {
 			/* Check if there is an upcoming event */
 			if (spkr.used && spkr.entries[pos].index<=index) {
-				spkr.volwant=SPKR_VOLUME*(float)spkr.entries[pos].output_level;
+				spkr.volwant=SPKR_VOLUME*(pic_tickindex_t)spkr.entries[pos].output_level;
 #ifdef SPKR_DEBUGGING
 				fprintf(
 						PCSpeakerOutputLevelLog,
@@ -494,19 +494,19 @@ static void PCSPEAKER_CallBack(Bitu len) {
 				pos++;spkr.used--;
 				continue;
 			}
-			float vol_end;
+			pic_tickindex_t vol_end;
 			if (spkr.used && spkr.entries[pos].index<end) {
 				vol_end=spkr.entries[pos].index;
 			} else vol_end=end;
-			float vol_len=vol_end-index;
+			pic_tickindex_t vol_len=vol_end-index;
             /* Check if we have to slide the volume */
-			float vol_diff=spkr.volwant-spkr.volcur;
+			pic_tickindex_t vol_diff=spkr.volwant-spkr.volcur;
 			if (vol_diff == 0) {
 				value+=spkr.volcur*vol_len;
 				index+=vol_len;
 			} else {
 				/* Check how long it will take to goto new level */
-				float vol_time=fabs(vol_diff)/SPKR_SPEED;
+				pic_tickindex_t vol_time=fabs(vol_diff)/SPKR_SPEED;
 				if (vol_time<=vol_len) {
 					/* Volume reaches endpoint in this block, calc until that point */
 					value+=vol_time*spkr.volcur;
