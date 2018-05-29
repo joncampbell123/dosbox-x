@@ -45,7 +45,7 @@ bool device_LPT::Read(Bit8u * data,Bit16u * size) {
 }
 
 
-bool device_LPT::Write(Bit8u * data,Bit16u * size) {
+bool device_LPT::Write(const Bit8u * data,Bit16u * size) {
 	for (Bit16u i=0; i<*size; i++)
 	{
 		if(!pportclass->Putchar(data[i])) return false;

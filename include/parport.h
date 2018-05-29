@@ -38,7 +38,7 @@ public:
 	device_LPT(Bit8u num, class CParallel* pp);
 	virtual ~device_LPT();
 	bool Read(Bit8u * data,Bit16u * size);
-	bool Write(Bit8u * data,Bit16u * size);
+	bool Write(const Bit8u * data,Bit16u * size);
 	bool Seek(Bit32u * pos,Bit32u type);
 	bool Close();
 	Bit16u GetInformation(void);

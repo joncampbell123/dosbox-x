@@ -56,7 +56,7 @@ bool device_COM::Read(Bit8u * data,Bit16u * size) {
 }
 
 
-bool device_COM::Write(Bit8u * data,Bit16u * size) {
+bool device_COM::Write(const Bit8u * data,Bit16u * size) {
 	// DTR + RTS on
 	sclass->Write_MCR(0x03);
 	for (Bit16u i=0; i<*size; i++)
