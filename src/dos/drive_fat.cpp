@@ -1294,8 +1294,8 @@ bool fatDrive::FindNextInternal(Bit32u dirClustNumber, DOS_DTA &dta, direntry *f
 	dirPos = dta.GetDirID();
 
 nextfile:
-	logentsector = dirPos / dirent_per_sector;
-	entryoffset = dirPos % dirent_per_sector;
+	logentsector = (Bit32u)((size_t)dirPos / dirent_per_sector);
+	entryoffset = (Bit32u)((size_t)dirPos % dirent_per_sector);
 
 	if(dirClustNumber==0) {
 		if(dirPos >= bootbuffer.rootdirentries) {
@@ -1410,9 +1410,8 @@ bool fatDrive::directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s
     assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
 	while(entNum>=0) {
-
-		logentsector = dirPos / dirent_per_sector;
-		entryoffset = dirPos % dirent_per_sector;
+		logentsector = ((Bit32u)((size_t)dirPos / dirent_per_sector));
+		entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector));
 
 		if(dirClustNumber==0) {
 			if(dirPos >= bootbuffer.rootdirentries) return false;
@@ -1447,10 +1446,9 @@ bool fatDrive::directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s
     assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
     assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
-	while(entNum>=0) {
-		
-		logentsector = dirPos / dirent_per_sector;
-		entryoffset = dirPos % dirent_per_sector;
+	while(entNum>=0) {		
+		logentsector = ((Bit32u)((size_t)dirPos / dirent_per_sector));
+		entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector));
 
 		if(dirClustNumber==0) {
 			if(dirPos >= bootbuffer.rootdirentries) return false;
@@ -1489,10 +1487,9 @@ bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, direntry useEntry) {
     assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
     assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
-	for(;;) {
-		
-		logentsector = dirPos / dirent_per_sector;
-		entryoffset = dirPos % dirent_per_sector;
+	for(;;) {		
+		logentsector = ((Bit32u)((size_t)dirPos / dirent_per_sector));
+		entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector));
 
 		if(dirClustNumber==0) {
 			if(dirPos >= bootbuffer.rootdirentries) return false;

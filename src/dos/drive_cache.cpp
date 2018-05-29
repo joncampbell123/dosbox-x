@@ -431,7 +431,7 @@ static Bits wine_hash_short_file_name( char* name, char* buffer )
             *dst++ = (*ext < 0 || strchr( invalid_chars, *ext ) != NULL) ? '_' : toupper(*ext);
     }
 
-    return dst - buffer;
+    return (Bits)(dst - buffer);
 }
 #endif
 

@@ -906,7 +906,7 @@ static void DrawInput(void) {
                 (codeViewData.ovrMode?'O':'I'),dispPtr,(*curPtr?' ':'_'));
         wclrtoeol(dbg.win_inp); // not correct in pdcurses if full line
         if (*curPtr) {
-            mvwchgat(dbg.win_inp,0,(curPtr-dispPtr+4),1,0,(PAIR_BLACK_GREY),NULL);
+            mvwchgat(dbg.win_inp,0,(int)(curPtr-dispPtr+4),1,0,(PAIR_BLACK_GREY),NULL);
         } 
     }
 
@@ -1013,7 +1013,7 @@ static void DrawCode(void) {
 		// Spacepad it up to 28 characters
         if (no_bytes) dline[0] = 0;
 		size_t dline_len = strlen(dline);
-		if(dline_len < 28) for (c = dline_len; c < 28;c++) dline[c] = ' '; dline[28] = 0;
+		if(dline_len < 28) for (c = (Bitu)dline_len; c < 28;c++) dline[c] = ' '; dline[28] = 0;
 		waddstr(dbg.win_code,dline);
 		// Spacepad it up to 20 characters
 		size_t res_len = strlen(res);
@@ -2124,7 +2124,7 @@ Bit32u DEBUG_CheckKeys(void) {
 					safe_strncpy(codeViewData.suspInputStr, codeViewData.inputStr, sizeof(codeViewData.suspInputStr));
 				}
 				safe_strncpy(codeViewData.inputStr,(*--histBuffPos).c_str(),sizeof(codeViewData.inputStr));
-				codeViewData.inputPos = strlen(codeViewData.inputStr);
+				codeViewData.inputPos = (int)strlen(codeViewData.inputStr);
 				break;
 		case KEY_F(7):	// next command (f1-f4 generate rubbish at my place)
 		case KEY_F(4):	// next command
@@ -2135,7 +2135,7 @@ Bit32u DEBUG_CheckKeys(void) {
 					// copy suspInputStr back into inputStr
 					safe_strncpy(codeViewData.inputStr, codeViewData.suspInputStr, sizeof(codeViewData.inputStr));
 				}
-				codeViewData.inputPos = strlen(codeViewData.inputStr);
+				codeViewData.inputPos = (int)strlen(codeViewData.inputStr);
 				break; 
 		case KEY_F(5):	// Run Program
                 DrawRegistersUpdateOld();
@@ -2204,7 +2204,7 @@ Bit32u DEBUG_CheckKeys(void) {
 					histBuffPos = histBuff.end();
 					ClearInputLine();
 				} else { 
-					codeViewData.inputPos = strlen(codeViewData.inputStr);
+					codeViewData.inputPos = (int)strlen(codeViewData.inputStr);
 				} 
 				break;
 		case KEY_BACKSPACE: //backspace (linux)
