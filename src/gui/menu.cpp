@@ -1639,8 +1639,8 @@ void DOSBoxMenu::removeHover(void) {
 void DOSBoxMenu::updateRect(void) {
     menuBox.x = 0;
     menuBox.y = 0;
-    menuBox.w = menuVisible ? screenWidth : 0;
-    menuBox.h = menuVisible ? menuBarHeight : 0;
+    menuBox.w = menuVisible ? (unsigned int)screenWidth : 0;
+    menuBox.h = menuVisible ? (unsigned int)menuBarHeight : 0;
     LOG_MSG("SDL menuBox w=%d h=%d",menuBox.w,menuBox.h);
 }
 
@@ -1697,7 +1697,7 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
 
             item.screenBox.x = x;
             item.screenBox.y = popupBox.y;
-            item.screenBox.w = (4 * menu.fontCharScale) + 1;
+            item.screenBox.w = (unsigned int)((4 * menu.fontCharScale) + 1);
             item.screenBox.h = y - popupBox.y;
 
             minx = maxx = x = item.screenBox.x + item.screenBox.w;
@@ -1763,7 +1763,7 @@ void DOSBoxMenu::item::placeItemFinal(DOSBoxMenu &menu,int finalwidth,bool isTop
         /* from the right */
         rx = screenBox.w;
 
-        rx -= menu.fontCharWidth;
+        rx -= (int)menu.fontCharWidth;
 
         rx -= shortBox.w;
         shortBox.x = rx;
@@ -1795,41 +1795,41 @@ void DOSBoxMenu::item::placeItem(DOSBoxMenu &menu,int x,int y,bool isTopLevel) {
         screenBox.x = x;
         screenBox.y = y;
         screenBox.w = 0;
-        screenBox.h = menu.fontCharHeight;
+        screenBox.h = (unsigned int)menu.fontCharHeight;
 
         checkBox.x = 0;
         checkBox.y = 0;
-        checkBox.w = menu.fontCharWidth;
-        checkBox.h = menu.fontCharHeight;
-        screenBox.w += checkBox.w;
+        checkBox.w = (unsigned int)menu.fontCharWidth;
+        checkBox.h = (unsigned int)menu.fontCharHeight;
+        screenBox.w += (unsigned int)checkBox.w;
 
         textBox.x = 0;
         textBox.y = 0;
-        textBox.w = menu.fontCharWidth * text.length();
-        textBox.h = menu.fontCharHeight;
-        screenBox.w += textBox.w;
+        textBox.w = (unsigned int)menu.fontCharWidth * (unsigned int)text.length();
+        textBox.h = (unsigned int)menu.fontCharHeight;
+        screenBox.w += (unsigned int)textBox.w;
 
         shortBox.x = 0;
         shortBox.y = 0;
         shortBox.w = 0;
         shortBox.h = 0;
         if (!isTopLevel && !shortcut_text.empty()) {
-            screenBox.w += menu.fontCharWidth;
-            shortBox.w += menu.fontCharWidth * shortcut_text.length();
-            shortBox.h = menu.fontCharHeight;
-            screenBox.w += shortBox.w;
+            screenBox.w += (unsigned int)menu.fontCharWidth;
+            shortBox.w += (unsigned int)menu.fontCharWidth * (unsigned int)shortcut_text.length();
+            shortBox.h = (unsigned int)menu.fontCharHeight;
+            screenBox.w += (unsigned int)shortBox.w;
         }
 
         if (!isTopLevel && type == submenu_type_id)
-            screenBox.w += menu.fontCharWidth;
+            screenBox.w += (unsigned int)menu.fontCharWidth;
 
-        screenBox.w += menu.fontCharWidth;
+        screenBox.w += (unsigned int)menu.fontCharWidth;
     }
     else {
         screenBox.x = x;
         screenBox.y = y;
-        screenBox.w = menu.fontCharWidth * 2;
-        screenBox.h = (4 * menu.fontCharScale) + 1;
+        screenBox.w = (unsigned int)menu.fontCharWidth * 2;
+        screenBox.h = (unsigned int)((4 * menu.fontCharScale) + 1);
 
         checkBox.x = 0;
         checkBox.y = 0;

@@ -1613,7 +1613,7 @@ void MenuDrawText(int x,int y,const char *text,Bitu color) {
         else
             MenuDrawTextChar(x,y,(unsigned char)(*text++),color);
 
-        x += mainMenu.fontCharWidth;
+        x += (int)mainMenu.fontCharWidth;
     }
 
 #if C_OPENGL
@@ -1672,7 +1672,7 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
         MenuDrawText(screenBox.x+shortBox.x, screenBox.y+shortBox.y, shortcut_text.c_str(), fgshortcolor);
 
     if (type == submenu_type_id && borderTop/*not toplevel*/)
-        MenuDrawText(screenBox.x+screenBox.w - mainMenu.fontCharWidth - 1, screenBox.y+textBox.y, "\x10", fgcheckcolor);
+        MenuDrawText((int)(screenBox.x+screenBox.w - mainMenu.fontCharWidth - 1), (int)(screenBox.y+textBox.y), "\x10", fgcheckcolor);
 
     if (type == separator_type_id)
         MenuDrawRect(screenBox.x, screenBox.y + (screenBox.h/2), screenBox.w, 1, fgcolor);
