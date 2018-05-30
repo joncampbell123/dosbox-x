@@ -194,61 +194,61 @@ void CPU_Push32(Bitu value);
 void CPU_SetFlags(Bitu word,Bitu mask);
 
 
-#define EXCEPTION_UD			6
-#define EXCEPTION_DF                    8
-#define EXCEPTION_TS			10
-#define EXCEPTION_NP			11
-#define EXCEPTION_SS			12
-#define EXCEPTION_GP			13
-#define EXCEPTION_PF			14
+#define EXCEPTION_UD			6u
+#define EXCEPTION_DF            8u
+#define EXCEPTION_TS			10u
+#define EXCEPTION_NP			11u
+#define EXCEPTION_SS			12u
+#define EXCEPTION_GP			13u
+#define EXCEPTION_PF			14u
 
-#define CR0_PROTECTION			0x00000001
-#define CR0_MONITORPROCESSOR	0x00000002
-#define CR0_FPUEMULATION		0x00000004
-#define CR0_TASKSWITCH			0x00000008
-#define CR0_FPUPRESENT			0x00000010
-#define CR0_WRITEPROTECT		0x00010000
-#define CR0_PAGING				0x80000000
+#define CR0_PROTECTION			0x00000001u
+#define CR0_MONITORPROCESSOR	0x00000002u
+#define CR0_FPUEMULATION		0x00000004u
+#define CR0_TASKSWITCH			0x00000008u
+#define CR0_FPUPRESENT			0x00000010u
+#define CR0_WRITEPROTECT		0x00010000u
+#define CR0_PAGING				0x80000000u
 
 
 // *********************************************************************
 // Descriptor
 // *********************************************************************
 
-#define DESC_INVALID				0x00
-#define DESC_286_TSS_A				0x01
-#define DESC_LDT					0x02
-#define DESC_286_TSS_B				0x03
-#define DESC_286_CALL_GATE			0x04
-#define DESC_TASK_GATE				0x05
-#define DESC_286_INT_GATE			0x06
-#define DESC_286_TRAP_GATE			0x07
+#define DESC_INVALID				0x00u
+#define DESC_286_TSS_A				0x01u
+#define DESC_LDT					0x02u
+#define DESC_286_TSS_B				0x03u
+#define DESC_286_CALL_GATE			0x04u
+#define DESC_TASK_GATE				0x05u
+#define DESC_286_INT_GATE			0x06u
+#define DESC_286_TRAP_GATE			0x07u
 
-#define DESC_386_TSS_A				0x09
-#define DESC_386_TSS_B				0x0b
-#define DESC_386_CALL_GATE			0x0c
-#define DESC_386_INT_GATE			0x0e
-#define DESC_386_TRAP_GATE			0x0f
+#define DESC_386_TSS_A				0x09u
+#define DESC_386_TSS_B				0x0bu
+#define DESC_386_CALL_GATE			0x0cu
+#define DESC_386_INT_GATE			0x0eu
+#define DESC_386_TRAP_GATE			0x0fu
 
 /* EU/ED Expand UP/DOWN RO/RW Read Only/Read Write NA/A Accessed */
-#define DESC_DATA_EU_RO_NA			0x10
-#define DESC_DATA_EU_RO_A			0x11
-#define DESC_DATA_EU_RW_NA			0x12
-#define DESC_DATA_EU_RW_A			0x13
-#define DESC_DATA_ED_RO_NA			0x14
-#define DESC_DATA_ED_RO_A			0x15
-#define DESC_DATA_ED_RW_NA			0x16
-#define DESC_DATA_ED_RW_A			0x17
+#define DESC_DATA_EU_RO_NA			0x10u
+#define DESC_DATA_EU_RO_A			0x11u
+#define DESC_DATA_EU_RW_NA			0x12u
+#define DESC_DATA_EU_RW_A			0x13u
+#define DESC_DATA_ED_RO_NA			0x14u
+#define DESC_DATA_ED_RO_A			0x15u
+#define DESC_DATA_ED_RW_NA			0x16u
+#define DESC_DATA_ED_RW_A			0x17u
 
 /* N/R Readable  NC/C Confirming A/NA Accessed */
-#define DESC_CODE_N_NC_A			0x18
-#define DESC_CODE_N_NC_NA			0x19
-#define DESC_CODE_R_NC_A			0x1a
-#define DESC_CODE_R_NC_NA			0x1b
-#define DESC_CODE_N_C_A				0x1c
-#define DESC_CODE_N_C_NA			0x1d
-#define DESC_CODE_R_C_A				0x1e
-#define DESC_CODE_R_C_NA			0x1f
+#define DESC_CODE_N_NC_A			0x18u
+#define DESC_CODE_N_NC_NA			0x19u
+#define DESC_CODE_R_NC_A			0x1au
+#define DESC_CODE_R_NC_NA			0x1bu
+#define DESC_CODE_N_C_A				0x1cu
+#define DESC_CODE_N_C_NA			0x1du
+#define DESC_CODE_R_C_A				0x1eu
+#define DESC_CODE_R_C_NA			0x1fu
 
 #ifdef _MSC_VER
 #pragma pack (1)
