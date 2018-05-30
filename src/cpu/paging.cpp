@@ -225,10 +225,10 @@ static const Bit8u fault_table[] = {
 
 // helper functions for calculating table entry addresses
 static inline PhysPt GetPageDirectoryEntryAddr(PhysPt lin_addr) {
-	return paging.base.addr | ((lin_addr >> 22) << 2);
+	return paging.base.addr | ((lin_addr >> 22u) << 2u);
 }
 static inline PhysPt GetPageTableEntryAddr(PhysPt lin_addr, X86PageEntry& dir_entry) {
-	return (dir_entry.block.base<<12) | ((lin_addr >> 10) & 0xffc);
+	return ((PhysPt)dir_entry.block.base << (PhysPt)12U) | ((lin_addr >> 10U) & 0xffcu);
 }
 /*
 void PrintPageInfo(const char* string, PhysPt lin_addr, bool writing, bool prepare_only) {
@@ -447,7 +447,7 @@ private:
 			//tableaddr=(paging.base.page<<12) | (d_index<<2);
 		} 
 		PAGING_NewPageFault(addr, tableaddr, checked,
-			1 | (writing? 2:0) | (((cpu.cpl&cpu.mpl)==3)? 4:0));
+			1u | (writing ? 2u : 0u) | (((cpu.cpl&cpu.mpl) == 3u) ? 4u : 0u));
 		
 		PAGING_ClearTLB(); // TODO got a better idea?
 	}
@@ -679,7 +679,7 @@ initpage_retry:
 			if (!dir_entry.block.p) {
 				// table pointer is not present, do a page fault
 				PAGING_NewPageFault(lin_addr, dirEntryAddr, prepare_only,
-					(writing? 2:0) | (isUser? 4:0));
+					(writing ? 2u : 0u) | (isUser ? 4u : 0u));
 				
 				if (prepare_only) return true;
 				else goto initpage_retry; // TODO maybe E_Exit after a few loops
@@ -697,7 +697,7 @@ initpage_retry:
 			if (!table_entry.block.p) {
 				// physpage pointer is not present, do a page fault
 				PAGING_NewPageFault(lin_addr, tableEntryAddr, prepare_only,
-					 (writing? 2:0) | (isUser? 4:0));
+					 (writing ? 2u : 0u) | (isUser ? 4u : 0u));
 				
 				if (prepare_only) return true;
 				else goto initpage_retry;
@@ -710,14 +710,14 @@ initpage_retry:
 			// If a page access right exception occurs we shouldn't change a or d
 			// I'd prefer running into the prepared exception handler but we'd need
 			// an additional handler that sets the 'a' bit - idea - foiler read?
-			Bitu ft_index = result | (writing? 8:0) | (isUser? 4:0) |
-				(paging.wp? 16:0);
+			Bitu ft_index = result | (writing ? 8u : 0u) | (isUser ? 4u : 0u) |
+				(paging.wp ? 16u : 0u);
 			
 			if (GCC_UNLIKELY(fault_table[ft_index])) {
 				// exception error code format: 
 				// bit0 - protection violation, bit1 - writing, bit2 - user mode
 				PAGING_NewPageFault(lin_addr, tableEntryAddr, prepare_only,
-					1 | (writing? 2:0) | (isUser? 4:0));
+					1u | (writing ? 2u : 0u) | (isUser ? 4u : 0u));
 				
 				if (prepare_only) return true;
 				else goto initpage_retry; // unlikely to happen?
@@ -1153,8 +1153,8 @@ void PAGING_LinkPage_ReadOnly(Bitu lin_page,Bitu phys_page) {
 void PAGING_SetDirBase(Bitu cr3) {
 	paging.cr3=cr3;
 	
-	paging.base.page=cr3 >> 12;
-	paging.base.addr=cr3 & ~0xFFF;
+	paging.base.page=cr3 >> 12U;
+	paging.base.addr=cr3 & ~0xFFFU;
 //	LOG(LOG_PAGING,LOG_NORMAL)("CR3:%X Base %X",cr3,paging.base.page);
 	if (paging.enabled) {
 		PAGING_ClearTLB();
