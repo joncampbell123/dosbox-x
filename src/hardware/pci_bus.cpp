@@ -87,22 +87,22 @@ static Bitu read_pci_addr(Bitu port,Bitu iolen) {
 static Bitu read_pci(Bitu port,Bitu iolen) {
 	if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("Read PCI data -> %x",pci_caddress);
 
-	if (pci_caddress & 0x80000000) {
-		Bit8u busnum = (Bit8u)((pci_caddress >> 16) & 0xff);
-		Bit8u devnum = (Bit8u)((pci_caddress >> 11) & 0x1f);
-		Bit8u fctnum = (Bit8u)((pci_caddress >> 8) & 0x7);
-		Bit8u regnum = (Bit8u)((pci_caddress & 0xfc) + (port & 0x03));
+	if (pci_caddress & 0x80000000UL) {
+		Bit8u busnum = (Bit8u)((pci_caddress >> 16U) & 0xffU);
+		Bit8u devnum = (Bit8u)((pci_caddress >> 11U) & 0x1fU);
+		Bit8u fctnum = (Bit8u)((pci_caddress >> 8U) & 0x7U);
+		Bit8u regnum = (Bit8u)((pci_caddress & 0xfcu) + (port & 0x03U));
 		if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("  Read from device %x register %x (function %x)",(int)devnum,(int)regnum,(int)fctnum);
 
-		if (busnum >= PCI_MAX_PCIBUSSES) return ~0;
-		if (devnum >= PCI_MAX_PCIDEVICES) return ~0;
+		if (busnum >= PCI_MAX_PCIBUSSES) return ~0UL;
+		if (devnum >= PCI_MAX_PCIDEVICES) return ~0UL;
 
 		PCI_Device* dev=pci_devices[busnum][devnum];
-		if (dev == NULL) return ~0;
+		if (dev == NULL) return ~0UL;
 		return dev->config_read(regnum,iolen);
 	}
 
-	return ~0;
+	return ~0UL;
 }
 
 
@@ -199,9 +199,13 @@ public:
 
 	virtual void config_write(Bit8u regnum,Bitu iolen,Bit32u value) {
 		if (iolen == 1) {
+            const unsigned char mask = config_writemask[regnum];
+            const unsigned char nmask = ~mask;
+
 			/* configuration write masks apply here as well */
-			config[regnum] = (value & config_writemask[regnum]) +
-				(config[regnum] & (~config_writemask[regnum]));
+			config[regnum] =
+                ((unsigned char)value & mask) +
+				(config[regnum] & nmask);
 
 			switch (regnum) { /* FIXME: I hope I ported this right --J.C. */
 				case 0x10:
@@ -241,20 +245,20 @@ public:
 					if (getDeviceID() >= 2) {
 						oscillator_ctr++;
 						pci_ctr--;
-						return (oscillator_ctr | ((pci_ctr<<16) & 0x0fff0000)) & 0xff;
+						return (oscillator_ctr | ((pci_ctr<<16ul) & 0x0fff0000ul)) & 0xffu;
 					}
 					break;
 				case 0x55:
 					if (getDeviceID() >= 2)
-						return ((oscillator_ctr | ((pci_ctr<<16) & 0x0fff0000)) >> 8) & 0xff;
+						return ((oscillator_ctr | ((pci_ctr<<16ul) & 0x0fff0000ul)) >> 8ul) & 0xffu;
 					break;
 				case 0x56:
 					if (getDeviceID() >= 2)
-						return ((oscillator_ctr | ((pci_ctr<<16) & 0x0fff0000)) >> 16) & 0xff;
+						return ((oscillator_ctr | ((pci_ctr<<16ul) & 0x0fff0000ul)) >> 16ul) & 0xffu;
 					break;
 				case 0x57:
 					if (getDeviceID() >= 2)
-						return ((oscillator_ctr | ((pci_ctr<<16) & 0x0fff0000)) >> 24) & 0xff;
+						return ((oscillator_ctr | ((pci_ctr<<16ul) & 0x0fff0000ul)) >> 24ul) & 0xffu;
 					break;
 				default:
 					break;

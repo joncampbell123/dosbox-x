@@ -276,10 +276,10 @@ unsigned long long update_clockdom_from_now(ClockDomain &dst) {
 
     /* PIC_Ticks (if I read the code correctly) is millisecond ticks, units of 1/1000 seconds.
      * PIC_TickIndexND() units of submillisecond time in units of 1/CPU_CycleMax. */
-    s  = (signed long long)PIC_Ticks * dst.freq;
-    s += ((signed long long)PIC_TickIndexND() * dst.freq) / (signed long long)CPU_CycleMax;
+    s  = (signed long long)((unsigned long long)PIC_Ticks * (unsigned long long)dst.freq);
+    s += (signed long long)(((unsigned long long)PIC_TickIndexND() * (unsigned long long)dst.freq) / (unsigned long long)CPU_CycleMax);
     /* convert down to frequency counts, not freq x 1000 */
-    s /= 1000LL * (signed long long)dst.freq_div;
+    s /= (signed long long)(1000ULL * (unsigned long long)dst.freq_div);
 
     /* guard against time going backwards slightly (as PIC_TickIndexND() will do sometimes by tiny amounts) */
     if (dst.counter < (unsigned long long)s) dst.counter = (unsigned long long)s;
@@ -363,7 +363,7 @@ static Bitu Normal_Loop(void) {
                     dosbox_allow_nonrecursive_page_fault = false;
                     Bitu blah = (*CallBack_Handlers[ret])();
                     dosbox_allow_nonrecursive_page_fault = saved_allow;
-                    if (GCC_UNLIKELY(blah))
+                    if (GCC_UNLIKELY(blah > 0U))
                         return blah;
                 }
 #if C_DEBUG
@@ -394,7 +394,7 @@ increaseticks:
             if (ticksNew > ticksLast) {
                 ticksRemain = ticksNew-ticksLast;
                 ticksLast = ticksNew;
-                ticksDone += ticksRemain;
+                ticksDone += (Bit32s)ticksRemain;
                 if ( ticksRemain > 20 ) {
                     ticksRemain = 20;
                 }
@@ -466,7 +466,7 @@ increaseticks:
             } else {
                 ticksAdded = 0;
                 SDL_Delay(1);
-                ticksDone -= GetTicks() - ticksNew;
+                ticksDone -= (Bit32s)((Bit32u)(GetTicks() - ticksNew));
                 if (ticksDone < 0)
                     ticksDone = 0;
             }
@@ -646,8 +646,8 @@ void Init_VGABIOS() {
     // We can remove this once the device callout system is in place.
     assert(MemBase != NULL);
 
-    VGA_BIOS_Size_override = section->Get_int("vga bios size override");
-    if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FF)&(~0xFFF);
+    VGA_BIOS_Size_override = (Bitu)section->Get_int("vga bios size override");
+    if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FFU)&(~0xFFFU);
 
     VGA_BIOS_dont_duplicate_CGA_first_half = section->Get_bool("video bios dont duplicate cga first half rom font");
     VIDEO_BIOS_always_carry_14_high_font = section->Get_bool("video bios always offer 14-pixel high rom font");
@@ -662,7 +662,7 @@ void Init_VGABIOS() {
         VGA_BIOS_dont_duplicate_CGA_first_half = false;
 
     if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
-        VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FF) & (~0xFFF);
+        VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FFU) & (~0xFFFU);
     else if (IS_VGA_ARCH)
         VGA_BIOS_Size = mainline_compatible_mapping ? 0x8000 : 0x3000; /* <- Experimentation shows the S3 emulation can fit in 12KB, doesn't need all 32KB */
     else if (machine == MCH_EGA) {
@@ -716,7 +716,7 @@ void DOSBOX_RealInit() {
     dosbox_title = section->Get_string("title");
 
     // TODO: these should be parsed by DOS kernel at startup
-    dosbox_shell_env_size = section->Get_int("shell environment size");
+    dosbox_shell_env_size = (unsigned int)section->Get_int("shell environment size");
 
     /* these ARE general DOSBox configuration options */
     mainline_compatible_mapping = section->Get_bool("mainline compatible mapping");
@@ -729,7 +729,7 @@ void DOSBOX_RealInit() {
     //       areas as well, then we should also consider making it look like adapter ROM at startup
     //       so it can be enumerated properly by DOS programs scanning the ROM area.
     /* private area size param in bytes. round up to nearest paragraph */
-    DOS_PRIVATE_SEGMENT_Size = (section->Get_int("private area size") + 8) / 16;
+    DOS_PRIVATE_SEGMENT_Size = (Bitu)((section->Get_int("private area size") + 8) / 16);
 
     // TODO: these should be parsed by BIOS startup
     mainline_compatible_bios_mapping = section->Get_bool("mainline compatible bios mapping");
@@ -2786,34 +2786,34 @@ int utf16le_encode(char **ptr,char *fence,uint32_t code) {
 
 int utf16le_decode(const char **ptr,const char *fence) {
     const char *p = *ptr;
-    int ret,b=2;
+    unsigned int ret,b=2;
 
     if (!p) return UTF8ERR_NO_ROOM;
     if ((p+1) >= fence) return UTF8ERR_NO_ROOM;
 
     ret = (unsigned char)p[0];
     ret |= ((unsigned int)((unsigned char)p[1])) << 8;
-    if (ret >= 0xD800 && ret <= 0xDBFF)
+    if (ret >= 0xD800U && ret <= 0xDBFFU)
         b=4;
-    else if (ret >= 0xDC00 && ret <= 0xDFFF)
+    else if (ret >= 0xDC00U && ret <= 0xDFFFU)
         { p++; return UTF8ERR_INVALID; }
 
     if ((p+b) > fence)
         return UTF8ERR_NO_ROOM;
 
     p += 2;
-    if (ret >= 0xD800 && ret <= 0xDBFF) {
+    if (ret >= 0xD800U && ret <= 0xDBFFU) {
         /* decode surrogate pair */
-        int hi = ret & 0x3FF;
-        int lo = (unsigned char)p[0];
+        unsigned int hi = ret & 0x3FFU;
+        unsigned int lo = (unsigned char)p[0];
         lo |= ((unsigned int)((unsigned char)p[1])) << 8;
         p += 2;
-        if (lo < 0xDC00 || lo > 0xDFFF) return UTF8ERR_INVALID;
-        lo &= 0x3FF;
-        ret = ((hi << 10) | lo) + 0x10000;
+        if (lo < 0xDC00U || lo > 0xDFFFU) return UTF8ERR_INVALID;
+        lo &= 0x3FFU;
+        ret = ((hi << 10U) | lo) + 0x10000U;
     }
 
     *ptr = p;
-    return ret;
+    return (int)ret;
 }
 

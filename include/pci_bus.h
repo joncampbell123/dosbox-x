@@ -51,8 +51,10 @@ public:
 	/* configuration space I/O */
 	virtual void config_write(Bit8u regnum,Bitu iolen,Bit32u value) {
 		if (iolen == 1) {
+            const unsigned char mask = config_writemask[regnum];
+            const unsigned char nmask = ~mask;
 			/* only allow writing to the bits marked off as writeable */
-			config[regnum] = (config[regnum] & (~config_writemask[regnum])) + (config_writemask[regnum] & value);
+			config[regnum] = (config[regnum] & nmask) + ((unsigned char)value & mask);
 		}
 		else if (iolen == 4 && (regnum&3) == 2) { /* unaligned DWORD write (subdividable into two WORD writes) */
 			config_write(regnum,2,value&0xFFFF);
