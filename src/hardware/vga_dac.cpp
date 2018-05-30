@@ -62,20 +62,30 @@ static void VGA_DAC_SendColor( Bitu index, Bitu src ) {
     if (vga.mode == M_CGA16)
         return;
 
+    /* FIXME: Can someone behind the GCC project explain how (unsigned int) OR (unsigned int) somehow becomes (signed int)?? */
+
     if (GFX_bpp >= 24) /* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */
-        vga.dac.xlat32[index] = (blue<<(2+GFX_Bshift)) | (green<<(2+GFX_Gshift)) | (red<<(2+GFX_Rshift)) | GFX_Amask;
+        vga.dac.xlat32[index] =
+            (uint32_t)(blue << (2u + GFX_Bshift)) |
+            (uint32_t)(green << (2u + GFX_Gshift)) |
+            (uint32_t)(red<<(2u + GFX_Rshift)) |
+            (uint32_t)GFX_Amask;
     else {
         /* FIXME: Assumes 5:6:5. I need to test against 5:5:5 format sometime. Perhaps I could dig out some older VGA cards and XFree86 drivers that support that format? */
-        vga.dac.xlat16[index] = ((((blue&0x3f)>>1)<<GFX_Bshift)) | ((green&0x3f)<<GFX_Gshift) | (((red&0x3f)>>1)<<GFX_Rshift) | GFX_Amask;
+        vga.dac.xlat16[index] =
+            (uint16_t)(((blue&0x3fu)>>1u)<<GFX_Bshift) |
+            (uint16_t)((green&0x3fu)<<GFX_Gshift) |
+            (uint16_t)(((red&0x3fu)>>1u)<<GFX_Rshift) |
+            (uint16_t)GFX_Amask;
 
         /* PC-98 mode always renders 32bpp, therefore needs this fix */
         if (GFX_Bshift == 0)
-            vga.dac.xlat32[index] = (blue << 2U) | (green << 10U) | (red << 18U);
+            vga.dac.xlat32[index] = (uint32_t)(blue << 2U) | (uint32_t)(green << 10U) | (uint32_t)(red << 18U);
         else
-            vga.dac.xlat32[index] = (blue << 18U) | (green << 10U) | (red << 2U);
+            vga.dac.xlat32[index] = (uint32_t)(blue << 18U) | (uint32_t)(green << 10U) | (uint32_t)(red << 2U);
     }
 
-    RENDER_SetPal( index, (red << 2) | ( red >> 4 ), (green << 2) | ( green >> 4 ), (blue << 2) | ( blue >> 4 ) );
+    RENDER_SetPal( index, (red << 2u) | ( red >> 4u ), (green << 2u) | ( green >> 4u ), (blue << 2u) | ( blue >> 4u ) );
 }
 
 void VGA_DAC_UpdateColor( Bitu index ) {
