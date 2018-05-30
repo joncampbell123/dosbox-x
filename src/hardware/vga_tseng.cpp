@@ -159,7 +159,7 @@ void write_p3d5_et4k(Bitu reg,Bitu val,Bitu iolen) {
     case 0x37:
         if (val != et4k.store_3d4_37) {
             et4k.store_3d4_37 = val;
-            vga.vmemwrap = ((64*1024)<<((val&8)>>2))<<((val&3)-1);
+            vga.vmemwrap = ((64u*1024u)<<((val&8u)>>2u))<<((val&3u)-1u);
             VGA_SetupHandlers();
         }
         break;
@@ -250,15 +250,15 @@ bit 0-3  64k Write bank number (0..15)
 void write_p3cd_et4k(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
-    vga.svga.bank_write = val & 0x0f;
-    vga.svga.bank_read = (val>>4) & 0x0f;
+    vga.svga.bank_write = val & 0x0fu;
+    vga.svga.bank_read = (val>>4u) & 0x0fu;
     VGA_SetupHandlers();
 }
 
 Bitu read_p3cd_et4k(Bitu port,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
-    return (vga.svga.bank_read<<4)|vga.svga.bank_write;
+    return (Bitu)((vga.svga.bank_read<<4u)|vga.svga.bank_write);
 }
 
 void write_p3c0_et4k(Bitu reg,Bitu val,Bitu iolen) {
@@ -328,19 +328,19 @@ static Bitu get_clock_index_et4k() {
 
 static void set_clock_index_et4k(Bitu index) {
     // Shortwiring register reads/writes for simplicity
-    IO_Write(0x3c2, (vga.misc_output&~0x0c)|((index&3)<<2));
-    et4k.store_3d4_34 = (et4k.store_3d4_34&~0x02)|((index&4)>>1);
-    et4k.store_3d4_31 = (et4k.store_3d4_31&~0xc0)|((index&8)<<3); // (index&0x18) if 32 clock frequencies are to be supported
+    IO_Write(0x3c2, (vga.misc_output&~0x0cu)|((index&3u)<<2u));
+    et4k.store_3d4_34 = (et4k.store_3d4_34&~0x02u)|((index&4u)>>1u);
+    et4k.store_3d4_31 = (et4k.store_3d4_31&~0xc0u)|((index&8u)<<3u); // (index&0x18) if 32 clock frequencies are to be supported
 }
 
 void FinishSetMode_ET4K(Bitu crtc_base, VGA_ModeExtraData* modeData) {
     // Note that switching to a mode always puts the DAC in 15-bit color. An extra BIOS call is necessary to switch to 16-bit color.
     // We are also forcing the mode back to work exactly the way it did on the real hardware
-    if (modeData->modeNo & 0x200) {
-        et4k.hicolorDACcommand = 0xa0;
-        modeData->modeNo &= ~0x200;
+    if (modeData->modeNo & 0x200u) {
+        et4k.hicolorDACcommand = 0xa0u;
+        modeData->modeNo &= ~0x200u;
     } else {
-        et4k.hicolorDACcommand = 0x00;
+        et4k.hicolorDACcommand = 0x00u;
     }
 
     et4k.biosMode = modeData->modeNo;
@@ -818,7 +818,7 @@ void write_p3cd_et3k(Bitu port,Bitu val,Bitu iolen) {
 Bitu read_p3cd_et3k(Bitu port,Bitu iolen) {
     (void)port;
     (void)iolen;//UNUSED
-    return (vga.svga.bank_read<<3)|vga.svga.bank_write|((vga.svga.bank_size==128*1024)?0:0x40);
+    return (Bitu)(((Bitu)vga.svga.bank_read<<3u)|(Bitu)vga.svga.bank_write|((vga.svga.bank_size==128u*1024u)?0u:0x40u));
 }
 
 void write_p3c0_et3k(Bitu reg,Bitu val,Bitu iolen) {
@@ -864,8 +864,8 @@ static Bitu get_clock_index_et3k() {
 
 static void set_clock_index_et3k(Bitu index) {
     // Shortwiring register reads/writes for simplicity
-    IO_Write(0x3c2, (vga.misc_output&~0x0c)|((index&3)<<2));
-    et3k.store_3d4_24 = (et3k.store_3d4_24&~0x02)|((index&4)>>1);
+    IO_Write(0x3c2, (vga.misc_output&~0x0cu)|((index&3u)<<2u));
+    et3k.store_3d4_24 = (et3k.store_3d4_24&~0x02u)|((index&4u)>>1u);
 }
 
 void FinishSetMode_ET3K(Bitu crtc_base, VGA_ModeExtraData* modeData) {
