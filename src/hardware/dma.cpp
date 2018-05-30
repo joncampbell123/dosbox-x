@@ -58,7 +58,7 @@ static void DMA_BlockRead(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u
 	Bitu highpart_addr_page = spage>>12;
 	size <<= dma16;
 	offset <<= dma16;
-	Bit32u dma_wrap = (((0xffff<<dma16)+dma16)&DMA16_ADDRMASK) | dma_wrapping;
+	Bit32u dma_wrap = (((0xfffful << dma16) + dma16)&DMA16_ADDRMASK) | dma_wrapping;
 	for ( ; size ; size--, offset++) {
 		offset &= dma_wrap;
 		Bitu page = highpart_addr_page+(offset >> 12);
@@ -82,7 +82,7 @@ static void DMA_BlockReadBackwards(PhysPt spage,PhysPt offset,void * data,Bitu s
 
 	size <<= dma16;
 	offset <<= dma16;
-	Bit32u dma_wrap = (((0xffff<<dma16)+dma16)&DMA16_ADDRMASK) | dma_wrapping;
+	Bit32u dma_wrap = (((0xfffful << dma16) + dma16)&DMA16_ADDRMASK) | dma_wrapping;
 
 	if (dma16) {
 		/* I'm going to assume by how ISA DMA works that you can't just copy bytes backwards,
@@ -122,7 +122,7 @@ static void DMA_BlockWrite(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8
 	Bitu highpart_addr_page = spage>>12;
 	size <<= dma16;
 	offset <<= dma16;
-	Bit32u dma_wrap = (((0xffff<<dma16)+dma16)&DMA16_ADDRMASK) | dma_wrapping;
+	Bit32u dma_wrap = (((0xfffful << dma16) + dma16) & DMA16_ADDRMASK) | dma_wrapping;
 	for ( ; size ; size--, offset++) {
 		if (offset>(dma_wrapping<<dma16)) {
 			LOG_MSG("DMA segbound wrapping (write): %x:%x size %x [%x] wrap %x",(int)spage,(int)offset,(int)size,dma16,(int)dma_wrapping);
@@ -201,7 +201,7 @@ static Bitu DMA_Read_Port(Bitu port,Bitu iolen) {
 		/* if we're emulating PC/XT DMA controller behavior, then the page registers
 		 * are write-only and cannot be read */
 		if (dma_page_register_writeonly)
-			return ~0;
+			return ~0UL;
 
 		switch (port) {
 			/* read DMA page register */
@@ -221,7 +221,8 @@ static Bitu DMA_Read_Port(Bitu port,Bitu iolen) {
 				  break;
 		}
 	}
-	return ~0;
+
+	return ~0UL;
 }
 
 void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
@@ -324,9 +325,9 @@ Bitu DmaController::ReadControllerReg(Bitu reg,Bitu /*len*/) {
 		ret=0;
 		for (Bit8u ct=0;ct<4;ct++) {
 			chan=GetChannel(ct);
-			if (chan->tcount) ret|=1 << ct;
+			if (chan->tcount) ret |= 1U << ct;
 			chan->tcount=false;
-			if (chan->request) ret|=1 << (4+ct);
+			if (chan->request) ret |= 1U << (4U + ct);
 		}
 		return ret;
 	case 0xc:		/* Clear Flip/Flip (apparently most motherboards will treat read OR write as reset) */
@@ -375,7 +376,7 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
 	}
 
 again:
-	Bitu left=(currcnt+1);
+	Bitu left=(currcnt+1UL);
 	if (want<left) {
 		if (increment) {
 			DMA_BlockRead(pagebase,curraddr,buffer,want,DMA16,DMA16_ADDRMASK);
@@ -433,7 +434,7 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
 	}
 
 again:
-	Bitu left=(currcnt+1);
+	Bitu left=(currcnt+1UL);
 	if (want<left) {
 		DMA_BlockWrite(pagebase,curraddr,buffer,want,DMA16,DMA16_ADDRMASK);
 		done+=want;
