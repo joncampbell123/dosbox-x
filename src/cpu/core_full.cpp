@@ -91,16 +91,16 @@ Bits CPU_Core_Full_Run(void) {
 #if C_HEAVY_DEBUG
 		if (DEBUG_HeavyIsBreakpoint()) {
 			FillFlags();
-			return debugCallback;
+			return (Bits)debugCallback;
 		};
 #endif
 #endif
 
 		LoadIP();
-		inst.entry=cpu.code.big*0x200;
+		inst.entry=cpu.code.big*0x200u;
 		inst.prefix=cpu.code.big;
 restartopcode:
-		inst.entry=(inst.entry & 0xffffff00) | Fetchb();
+		inst.entry=(inst.entry & 0xffffff00u) | Fetchb();
 		inst.code=OpCodeTable[inst.entry];
         Bitu old_flags = reg_flags;
 		Bitu old_esp = reg_esp; // always restore stack pointer on page fault
