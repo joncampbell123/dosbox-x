@@ -60,27 +60,27 @@ struct vsync_state {
 extern struct vsync_state vsync;
 extern float uservsyncjolt;
 
-#define CLK_25 25175
-#define CLK_28 28322
+#define CLK_25 25175u
+#define CLK_28 28322u
 
-#define MIN_VCO	180000
-#define MAX_VCO 360000
+#define MIN_VCO	180000u
+#define MAX_VCO 360000u
 
-#define S3_CLOCK_REF	14318	/* KHz */
-#define S3_CLOCK(_M,_N,_R)	((S3_CLOCK_REF * ((_M) + 2)) / (((_N) + 2) * (1 << (_R))))
-#define S3_MAX_CLOCK	150000	/* KHz */
+#define S3_CLOCK_REF	14318u	/* KHz */
+#define S3_CLOCK(_M,_N,_R)	((S3_CLOCK_REF * (((Bitu)_M) + 2ul)) / ((((Bitu)_N) + 2ul) * (1ul << ((Bitu)_R))))
+#define S3_MAX_CLOCK	150000u	/* KHz */
 
-#define S3_XGA_1024		0x00
-#define S3_XGA_1152		0x01
-#define S3_XGA_640		0x40
-#define S3_XGA_800		0x80
-#define S3_XGA_1280		0xc0
-#define S3_XGA_1600		0x81
+#define S3_XGA_1024		0x00u
+#define S3_XGA_1152		0x01u
+#define S3_XGA_640		0x40u
+#define S3_XGA_800		0x80u
+#define S3_XGA_1280		0xc0u
+#define S3_XGA_1600		0x81u
 #define S3_XGA_WMASK	(S3_XGA_640|S3_XGA_800|S3_XGA_1024|S3_XGA_1152|S3_XGA_1280)
 
-#define S3_XGA_8BPP  0x00
-#define S3_XGA_16BPP 0x10
-#define S3_XGA_32BPP 0x30
+#define S3_XGA_8BPP  0x00u
+#define S3_XGA_16BPP 0x10u
+#define S3_XGA_32BPP 0x30u
 #define S3_XGA_CMASK (S3_XGA_8BPP|S3_XGA_16BPP|S3_XGA_32BPP)
 
 typedef struct {

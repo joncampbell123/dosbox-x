@@ -337,26 +337,26 @@ void VGA_SetClock(Bitu which,Bitu target) {
         Bitu n,m;
         Bits err;
     } best;
-    best.err=target;
-    best.m=1;
-    best.n=1;
+    best.err=(Bits)target;
+    best.m=1u;
+    best.n=1u;
     Bitu n,r;
     Bits m;
 
     for (r = 0; r <= 3; r++) {
-        Bitu f_vco = target * (1 << r);
+        Bitu f_vco = target * (1u << r);
         if (MIN_VCO <= f_vco && f_vco < MAX_VCO) break;
     }
     for (n=1;n<=31;n++) {
-        m=(target * (n + 2) * (1 << r) + (S3_CLOCK_REF/2)) / S3_CLOCK_REF - 2;
+        m=(Bits)((target * (n + 2u) * (1u << r) + (S3_CLOCK_REF / 2u)) / S3_CLOCK_REF) - 2u;
         if (0 <= m && m <= 127) {
-            Bitu temp_target = S3_CLOCK(m,n,r);
-            Bits err = target - temp_target;
+            Bitu temp_target = (Bitu)S3_CLOCK(m,n,r);
+            Bits err = (Bits)(target - temp_target);
             if (err < 0) err = -err;
             if (err < best.err) {
                 best.err = err;
-                best.m = m;
-                best.n = n;
+                best.m = (Bitu)m;
+                best.n = (Bitu)n;
             }
         }
     }
@@ -368,37 +368,37 @@ void VGA_SetClock(Bitu which,Bitu target) {
 }
 
 void VGA_SetCGA2Table(Bit8u val0,Bit8u val1) {
-    Bit8u total[2]={ val0,val1};
-    for (Bitu i=0;i<16;i++) {
+    const Bit8u total[2] = {val0,val1};
+    for (Bitu i=0;i<16u;i++) {
         CGA_2_Table[i]=
 #ifdef WORDS_BIGENDIAN
-            (total[(i >> 0) & 1] << 0  ) | (total[(i >> 1) & 1] << 8  ) |
-            (total[(i >> 2) & 1] << 16 ) | (total[(i >> 3) & 1] << 24 );
+            ((Bitu)total[(i >> 0u) & 1u] << 0u  ) | ((Bitu)total[(i >> 1u) & 1u] << 8u  ) |
+            ((Bitu)total[(i >> 2u) & 1u] << 16u ) | ((Bitu)total[(i >> 3u) & 1u] << 24u );
 #else 
-            (total[(i >> 3) & 1] << 0  ) | (total[(i >> 2) & 1] << 8  ) |
-            (total[(i >> 1) & 1] << 16 ) | (total[(i >> 0) & 1] << 24 );
+            ((Bitu)total[(i >> 3u) & 1u] << 0u  ) | ((Bitu)total[(i >> 2u) & 1u] << 8u  ) |
+            ((Bitu)total[(i >> 1u) & 1u] << 16u ) | ((Bitu)total[(i >> 0u) & 1u] << 24u );
 #endif
     }
 }
 
 void VGA_SetCGA4Table(Bit8u val0,Bit8u val1,Bit8u val2,Bit8u val3) {
-    Bit8u total[4]={ val0,val1,val2,val3};
-    for (Bitu i=0;i<256;i++) {
+    const Bit8u total[4] = {val0,val1,val2,val3};
+    for (Bitu i=0;i<256u;i++) {
         CGA_4_Table[i]=
 #ifdef WORDS_BIGENDIAN
-            (total[(i >> 0) & 3] << 0  ) | (total[(i >> 2) & 3] << 8  ) |
-            (total[(i >> 4) & 3] << 16 ) | (total[(i >> 6) & 3] << 24 );
+            ((Bitu)total[(i >> 0u) & 3u] << 0u  ) | ((Bitu)total[(i >> 2u) & 3u] << 8u  ) |
+            ((Bitu)total[(i >> 4u) & 3u] << 16u ) | ((Bitu)total[(i >> 6u) & 3u] << 24u );
 #else
-            (total[(i >> 6) & 3] << 0  ) | (total[(i >> 4) & 3] << 8  ) |
-            (total[(i >> 2) & 3] << 16 ) | (total[(i >> 0) & 3] << 24 );
+            ((Bitu)total[(i >> 6u) & 3u] << 0u  ) | ((Bitu)total[(i >> 4u) & 3u] << 8u  ) |
+            ((Bitu)total[(i >> 2u) & 3u] << 16u ) | ((Bitu)total[(i >> 0u) & 3u] << 24u );
 #endif
         CGA_4_HiRes_Table[i]=
 #ifdef WORDS_BIGENDIAN
-            (total[((i >> 0) & 1) | ((i >> 3) & 2)] << 0  ) | (total[((i >> 1) & 1) | ((i >> 4) & 2)] << 8  ) |
-            (total[((i >> 2) & 1) | ((i >> 5) & 2)] << 16 ) | (total[((i >> 3) & 1) | ((i >> 6) & 2)] << 24 );
+            ((Bitu)total[((i >> 0u) & 1u) | ((i >> 3u) & 2u)] << 0u  ) | (Bitu)(total[((i >> 1u) & 1u) | ((i >> 4u) & 2u)] << 8u  ) |
+            ((Bitu)total[((i >> 2u) & 1u) | ((i >> 5u) & 2u)] << 16u ) | (Bitu)(total[((i >> 3u) & 1u) | ((i >> 6u) & 2u)] << 24u );
 #else
-            (total[((i >> 3) & 1) | ((i >> 6) & 2)] << 0  ) | (total[((i >> 2) & 1) | ((i >> 5) & 2)] << 8  ) |
-            (total[((i >> 1) & 1) | ((i >> 4) & 2)] << 16 ) | (total[((i >> 0) & 1) | ((i >> 3) & 2)] << 24 );
+            ((Bitu)total[((i >> 3u) & 1u) | ((i >> 6u) & 2u)] << 0u  ) | (Bitu)(total[((i >> 2u) & 1u) | ((i >> 5u) & 2u)] << 8u  ) |
+            ((Bitu)total[((i >> 1u) & 1u) | ((i >> 4u) & 2u)] << 16u ) | (Bitu)(total[((i >> 0u) & 1u) | ((i >> 3u) & 2u)] << 24u );
 #endif
     }   
 }
@@ -477,9 +477,9 @@ static void CGASNOW_ProgramStart(Program * * make) {
 }
 
 /* TODO: move to general header */
-static inline int int_log2(int val) {
-    int log = 0;
-    while ((val >>= 1) != 0) log++;
+static inline unsigned int int_log2(unsigned int val) {
+    unsigned int log = 0;
+    while ((val >>= 1u) != 0u) log++;
     return log;
 }
 
@@ -661,7 +661,7 @@ void VGA_Reset(Section*) {
      *        Chips & Tech VGA implementations? */
     vga.vmemsize  = _MB_bytes(section->Get_int("vmemsize"));
     vga.vmemsize += _KB_bytes(section->Get_int("vmemsizekb"));
-    vga.vmemsize  = (vga.vmemsize + 0xFFF) & (~0xFFF);
+    vga.vmemsize  = (vga.vmemsize + 0xFFFu) & (~0xFFFu);
     /* mainline compatible: vmemsize == 0 means 512KB */
     if (vga.vmemsize == 0) vga.vmemsize = _KB_bytes(512);
 
@@ -669,8 +669,8 @@ void VGA_Reset(Section*) {
      * A lot of DOSBox's VGA emulation code assumes power-of-2 VRAM sizes especially when wrapping
      * memory addresses with (a & (vmemsize - 1)) type code. */
     if (!is_power_of_2(vga.vmemsize)) {
-        Bitu i = int_log2(vga.vmemsize)+1;
-        vga.vmemsize = 1 << i;
+        Bitu i = int_log2(vga.vmemsize) + 1u;
+        vga.vmemsize = 1u << i;
         LOG(LOG_VGA,LOG_WARN)("VGA RAM size requested is not a power of 2, rounding up to %uKB",vga.vmemsize>>10);
     }
 
@@ -833,15 +833,15 @@ void VGA_OnEnterPC98(Section *sec) {
             b = (i & 1) ? 255 : 0;
 
             if (GFX_bpp >= 24) /* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */
-                pc98_text_palette[i] = (b << GFX_Bshift) | (g << GFX_Gshift) | (r << GFX_Rshift) | GFX_Amask;
+                pc98_text_palette[i] = ((Bitu)(((Bitu)b << GFX_Bshift) + ((Bitu)g << GFX_Gshift) + ((Bitu)r << GFX_Rshift) + (Bitu)GFX_Amask));
             else {
                 /* FIXME: PC-98 mode renders as 32bpp regardless (at this time), so we have to fake 32bpp order */
                 /*        Since PC-98 itself has 4-bit RGB precision, it might be best to offer a 16bpp rendering mode,
                  *        or even just have PC-98 mode stay in 16bpp entirely. */
                 if (GFX_Bshift == 0)
-                    pc98_text_palette[i] = (b << 0U) | (g << 8U) | (r << 16U);
+                    pc98_text_palette[i] = (Bitu)(((Bitu)b <<  0U) + ((Bitu)g <<  8U) + ((Bitu)r << 16U));
                 else
-                    pc98_text_palette[i] = (b << 16U) | (g << 8U) | (r << 0U);
+                    pc98_text_palette[i] = (Bitu)(((Bitu)b << 16U) + ((Bitu)g <<  8U) + ((Bitu)r <<  0U));
             }
         }
     }
@@ -1065,49 +1065,49 @@ void VGA_Init() {
     VGA_TweakUserVsyncOffset(0.0f);
 
     for (i=0;i<256;i++) {
-        ExpandTable[i]=i | (i << 8)| (i <<16) | (i << 24);
+        ExpandTable[i]=(Bitu)(i + (i << 8u) + (i << 16u) + (i << 24u));
     }
     for (i=0;i<16;i++) {
-        TXT_FG_Table[i]=i | (i << 8)| (i <<16) | (i << 24);
-        TXT_BG_Table[i]=i | (i << 8)| (i <<16) | (i << 24);
+        TXT_FG_Table[i]=(Bitu)(i + (i << 8u) + (i << 16u) + (i << 24u));
+        TXT_BG_Table[i]=(Bitu)(i + (i << 8u) + (i << 16u) + (i << 24u));
 #ifdef WORDS_BIGENDIAN
         FillTable[i]=
-            ((i & 1) ? 0xff000000 : 0) |
-            ((i & 2) ? 0x00ff0000 : 0) |
-            ((i & 4) ? 0x0000ff00 : 0) |
-            ((i & 8) ? 0x000000ff : 0) ;
+            ((i & 1u) ? 0xff000000u : 0u) |
+            ((i & 2u) ? 0x00ff0000u : 0u) |
+            ((i & 4u) ? 0x0000ff00u : 0u) |
+            ((i & 8u) ? 0x000000ffu : 0u) ;
         TXT_Font_Table[i]=
-            ((i & 1) ? 0x000000ff : 0) |
-            ((i & 2) ? 0x0000ff00 : 0) |
-            ((i & 4) ? 0x00ff0000 : 0) |
-            ((i & 8) ? 0xff000000 : 0) ;
+            ((i & 1u) ? 0x000000ffu : 0u) |
+            ((i & 2u) ? 0x0000ff00u : 0u) |
+            ((i & 4u) ? 0x00ff0000u : 0u) |
+            ((i & 8u) ? 0xff000000u : 0u) ;
 #else 
         FillTable[i]=
-            ((i & 1) ? 0x000000ff : 0) |
-            ((i & 2) ? 0x0000ff00 : 0) |
-            ((i & 4) ? 0x00ff0000 : 0) |
-            ((i & 8) ? 0xff000000 : 0) ;
+            ((i & 1u) ? 0x000000ffu : 0u) |
+            ((i & 2u) ? 0x0000ff00u : 0u) |
+            ((i & 4u) ? 0x00ff0000u : 0u) |
+            ((i & 8u) ? 0xff000000u : 0u) ;
         TXT_Font_Table[i]=  
-            ((i & 1) ? 0xff000000 : 0) |
-            ((i & 2) ? 0x00ff0000 : 0) |
-            ((i & 4) ? 0x0000ff00 : 0) |
-            ((i & 8) ? 0x000000ff : 0) ;
+            ((i & 1u) ? 0xff000000u : 0u) |
+            ((i & 2u) ? 0x00ff0000u : 0u) |
+            ((i & 4u) ? 0x0000ff00u : 0u) |
+            ((i & 8u) ? 0x000000ffu : 0u) ;
 #endif
     }
     for (j=0;j<4;j++) {
         for (i=0;i<16;i++) {
 #ifdef WORDS_BIGENDIAN
             Expand16Table[j][i] =
-                ((i & 1) ? 1 << j : 0) |
-                ((i & 2) ? 1 << (8 + j) : 0) |
-                ((i & 4) ? 1 << (16 + j) : 0) |
-                ((i & 8) ? 1 << (24 + j) : 0);
+                ((i & 1u) ? 1u <<        j  : 0u) |
+                ((i & 2u) ? 1u << (8u +  j) : 0u) |
+                ((i & 4u) ? 1u << (16u + j) : 0u) |
+                ((i & 8u) ? 1u << (24u + j) : 0u);
 #else
             Expand16Table[j][i] =
-                ((i & 1) ? 1 << (24 + j) : 0) |
-                ((i & 2) ? 1 << (16 + j) : 0) |
-                ((i & 4) ? 1 << (8 + j) : 0) |
-                ((i & 8) ? 1 << j : 0);
+                ((i & 1u) ? 1u << (24u + j) : 0u) |
+                ((i & 2u) ? 1u << (16u + j) : 0u) |
+                ((i & 4u) ? 1u << (8u  + j) : 0u) |
+                ((i & 8u) ? 1u <<        j  : 0u);
 #endif
         }
     }
