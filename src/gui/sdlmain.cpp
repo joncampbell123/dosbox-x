@@ -7421,6 +7421,14 @@ template <typename T> static inline constexpr unsigned int type_bits(void) {
     return (unsigned int)sizeof(T) * 8u;
 }
 
+template <typename T> static inline constexpr T allzero(void) {
+    return (T)0;
+}
+
+template <typename T> static inline constexpr T allones(void) {
+    return (T)( ~((T)0) );
+}
+
 template <const unsigned int a,typename T=unsigned int> static inline constexpr T bit2mask(void) {
     static_assert(a < type_bits<T>(), "bit2mask constexpr bit count too large for data type");
     return (T)1U << (T)a;
@@ -7430,12 +7438,31 @@ template <typename T=unsigned int> static inline constexpr T bit2mask(const unsi
     return (T)1U << (T)a;
 }
 
+template <const unsigned int a,typename T=unsigned int> static inline constexpr T bitcount2masklsb(void) {
+    /* NTS: special case for a == type_bits because shifting the size of a register OR LARGER is undefined.
+     *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used */
+    static_assert(a <= type_bits<T>(), "bitcount2masklsb constexpr bit count too large for data type");
+    return (a < type_bits<T>()) ? (bit2mask<a,T>() - (T)1u) : allones<T>();
+}
+
+template <typename T=unsigned int> static inline constexpr T bitcount2masklsb(const unsigned int a) {
+    /* NTS: special case for a == type_bits because shifting the size of a register OR LARGER is undefined.
+     *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used */
+    return (a < type_bits<T>()) ? (bit2mask<T>(a) - (T)1u) : allones<T>();
+}
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
 
     // DEBUG
+    static_assert(bitcount2masklsb<0u>() == 0u, "whoops");
+    static_assert(bitcount2masklsb<1u>() == 1u, "whoops");
+    static_assert(bitcount2masklsb<2u>() == 3u, "whoops");
+    static_assert(allones<uint32_t>() == (uint32_t)0xFFFFFFFFU, "whoops");
+    static_assert(allzero<uint32_t>() == (uint32_t)0, "whoops");
+    static_assert((uint32_t)((allones<uint32_t>() + 1u) == allzero<uint32_t>()), "whoops");
     assert(type_bits<uint64_t>() == 64u);
     assert(type_bits<uint32_t>() == 32u);
     assert(type_bits<uint16_t>() == 16u);
