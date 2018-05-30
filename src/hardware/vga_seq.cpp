@@ -91,14 +91,14 @@ void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 		if (val!=seq(clocking_mode)) {
 			if((seq(clocking_mode)^val)&0x20) VGA_Screenstate((val&0x20)==0);
 			// don't resize if only the screen off bit was changed
-			if ((val&(~0x20))!=(seq(clocking_mode)&(~0x20))) {
+			if ((val&(~0x20u))!=(seq(clocking_mode)&(~0x20u))) {
 				seq(clocking_mode)=val;
 				VGA_StartResize();
 			} else {
 				seq(clocking_mode)=val;
 			}
-			if (val & 0x20) vga.attr.disabled |= 0x2;
-			else vga.attr.disabled &= ~0x2;
+			if (val & 0x20) vga.attr.disabled |= 0x2u;
+			else vga.attr.disabled &= ~0x2u;
 		}
 		/* TODO Figure this out :)
 			0	If set character clocks are 8 dots wide, else 9.
