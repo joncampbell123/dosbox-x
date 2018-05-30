@@ -78,7 +78,7 @@ void write_p3cf_pvga1a(Bitu reg,Bitu val,Bitu iolen) {
 		break;
 	case 0x0b:
 		// Memory size. We only allow to mess with bit 3 here (enable bank B) - this may break some detection schemes
-		pvga1a.PR1 = (pvga1a.PR1 & ~0x08) | (val & 0x08);
+		pvga1a.PR1 = (pvga1a.PR1 & ~0x08u) | (val & 0x08u);
 		bank_setup_pvga1a();
 		break;
 	case 0x0c:
@@ -91,8 +91,8 @@ void write_p3cf_pvga1a(Bitu reg,Bitu val,Bitu iolen) {
 		// TODO: Implement bit 2 (CRT address doubling - this mechanism is present in other chipsets as well,
 		// but not implemented in DosBox core)
 		pvga1a.PR3 = val;
-		vga.config.display_start = (vga.config.display_start & 0xffff) | ((val & 0x18)<<13);
-		vga.config.cursor_start = (vga.config.cursor_start & 0xffff) | ((val & 0x18)<<13);
+		vga.config.display_start = (vga.config.display_start & 0xffffu) | ((val & 0x18u)<<13u);
+		vga.config.cursor_start = (vga.config.cursor_start & 0xffffu) | ((val & 0x18u)<<13u);
 		break;
 	case 0x0e:
 		// Video control
