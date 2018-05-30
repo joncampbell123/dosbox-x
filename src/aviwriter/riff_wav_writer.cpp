@@ -78,7 +78,7 @@ int riff_wav_writer_set_format_ex(riff_wav_writer *w,windows_WAVEFORMATEX *f,siz
 		return 0;
 
 	w->fmt_len = sizeof(windows_WAVEFORMAT);
-	if (__le_u16(&f->cbSize) != 0) w->fmt_len += 2 + __le_u16(&f->cbSize);
+	if (__le_u16(&f->cbSize) != 0u) w->fmt_len += 2u + __le_u16(&f->cbSize);
 	if (w->fmt_len > len)
 		return 0;
 	if ((w->fmt = malloc(w->fmt_len)) == NULL)
@@ -143,7 +143,7 @@ int riff_wav_writer_begin_header(riff_wav_writer *w) {
 	assert(riff_stack_begin_new_chunk_here(w->riff,&chunk));
 	assert(riff_stack_set_chunk_data_type(&chunk,riff_fourcc_const('f','m','t',' ')));
 	assert(riff_stack_push(w->riff,&chunk)); /* NTS: we can reuse chunk, the stack copies it here */
-	assert((int)riff_stack_write(w->riff,riff_stack_top(w->riff),w->fmt,(int)w->fmt_len) == (int)w->fmt_len);
+	assert((int)riff_stack_write(w->riff,riff_stack_top(w->riff),w->fmt,w->fmt_len) == (int)w->fmt_len);
 	riff_stack_pop(w->riff);
 
 	/* state change */
@@ -191,7 +191,7 @@ int riff_wav_writer_data_write(riff_wav_writer *w,void *buffer,size_t len) {
 	if (c->fourcc != riff_fourcc_const('d','a','t','a'))
 		return 0;
 
-	return (int)riff_stack_write(w->riff,riff_stack_top(w->riff),buffer,(int)len);
+	return (int)riff_stack_write(w->riff,riff_stack_top(w->riff),buffer,len);
 }
 
 int64_t riff_wav_writer_data_seek(riff_wav_writer *w,int64_t offset) {
