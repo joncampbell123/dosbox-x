@@ -197,7 +197,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
 
         case 0x32:      /* Century */
             if (val < 19) return;               // invalid century value?
-            loctime->tm_year += (val * 100) - 1900;
+            loctime->tm_year += (int)((val * 100) - 1900);
             break;
 
         case 0x01:      /* Seconds Alarm */
@@ -306,7 +306,7 @@ unsigned char CMOS_GetShutdownByte() {
     return cmos.regs[0x0F];
 }
 
-#define MAKE_RETURN(_VAL) (cmos.bcd ? ((((_VAL) / 10) << 4) | ((_VAL) % 10)) : (_VAL));
+#define MAKE_RETURN(_VAL) ((unsigned char)(cmos.bcd ? (((((unsigned int)_VAL) / 10U) << 4U) | (((unsigned int)_VAL) % 10U)) : ((unsigned int)_VAL)))
 
 static Bitu cmos_readreg(Bitu port,Bitu iolen) {
     (void)port;//UNUSED
