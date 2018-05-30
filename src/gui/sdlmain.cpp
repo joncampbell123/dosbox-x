@@ -7417,10 +7417,34 @@ void OutputSettingMenuUpdate(void) {
 #endif
 }
 
+template <typename T> static inline constexpr unsigned int type_bits(void) {
+    return (unsigned int)sizeof(T) * 8u;
+}
+
+template <const unsigned int a,typename T=unsigned int> static inline constexpr T bit2mask(void) {
+    static_assert(a < type_bits<T>(), "bit2mask constexpr bit count too large for data type");
+    return (T)1U << (T)a;
+}
+
+template <typename T=unsigned int> static inline constexpr T bit2mask(const unsigned int a) {
+    return (T)1U << (T)a;
+}
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
+
+    // DEBUG
+    assert(type_bits<uint64_t>() == 64u);
+    assert(type_bits<uint32_t>() == 32u);
+    assert(type_bits<uint16_t>() == 16u);
+    assert(type_bits<uint8_t>() == 8u);
+    assert(bit2mask(0u) == 1u);
+    assert(bit2mask(8u) == 256u);
+    assert(bit2mask<8u>() == 256u);
+    static_assert(bit2mask<9u>() == 512u, "whoops");
+    static_assert(bit2mask<33u,uint64_t>() == (1ull << 33ull), "whoops");
 
     memset(&sdl,0,sizeof(sdl)); // struct sdl isn't initialized anywhere that I can tell
 
