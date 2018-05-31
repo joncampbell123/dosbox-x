@@ -77,9 +77,7 @@ template <const unsigned int v> static inline constexpr unsigned int bitseqlengt
     return bitseqlengthlsb<unsigned int,v>();
 }
 
-template <typename T=unsigned int> static inline unsigned int bitseqlengthlsb(T v) {
-    unsigned int c = 0;
-
+template <typename T=unsigned int> static inline void _bitseqlengthlsb_1(unsigned int &c,T &v) {
     while ((v & 0xFFUL) == 0xFFUL) {
         v >>= (T)8UL;
         c += (T)8;
@@ -88,7 +86,11 @@ template <typename T=unsigned int> static inline unsigned int bitseqlengthlsb(T 
         v >>= (T)1UL;
         c++;
     }
+}
 
+template <typename T=unsigned int> static inline unsigned int bitseqlengthlsb(T v) {
+    unsigned int c = 0;
+    _bitseqlengthlsb_1(/*&*/c,/*&*/v);
     return c;
 }
 
