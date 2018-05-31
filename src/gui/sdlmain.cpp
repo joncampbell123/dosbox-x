@@ -7464,7 +7464,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     static_assert(bitcount2masklsb<type_bits<>()>() == allones(), "whoops");
     static_assert(allones<uint32_t>() == (uint32_t)0xFFFFFFFFU, "whoops");
     static_assert(allzero<uint32_t>() == (uint32_t)0, "whoops");
-    static_assert((uint32_t)((allones<uint32_t>() + (uint32_t)1u) == allzero<uint32_t>()), "whoops");
+    static_assert(((uint32_t)(allones<uint32_t>() + (uint32_t)1u) == allzero<uint32_t>()), "whoops");
     assert(type_bits<uint64_t>() == 64u);
     assert(type_bits<uint32_t>() == 32u);
     assert(type_bits<uint16_t>() == 16u);
