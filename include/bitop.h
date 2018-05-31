@@ -23,6 +23,14 @@ template <typename T=unsigned int> static inline constexpr unsigned int bitlengt
     return _bitlength_recursion(v,0);
 }
 
+template <typename T=unsigned int> static inline constexpr unsigned int _bitseqlength_recursionlsb(const T v,const unsigned int bits) {
+    return (v & 1u) ? _bitseqlength_recursionlsb(v >> (T)1u,bits + 1u) : bits;
+}
+
+template <typename T=unsigned int> static inline constexpr unsigned int bitseqlengthlsb(const T v) {
+    return _bitseqlength_recursionlsb(v,0);
+}
+
 template <const unsigned int a,typename T=unsigned int> static inline constexpr T bit2mask(void) {
     static_assert(a < type_bits<T>(), "bit2mask constexpr bit count too large for data type");
     return (T)1U << (T)a;
