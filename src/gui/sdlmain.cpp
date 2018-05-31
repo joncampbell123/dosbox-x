@@ -7429,6 +7429,14 @@ template <typename T=unsigned int> static inline constexpr T allones(void) {
     return (T)( ~((T)0) );
 }
 
+template <typename T=unsigned int> static inline constexpr unsigned int _bitlength_recursion(const T v,const unsigned int bits) {
+    return (v != allzero()) ? _bitlength_recursion(v >> (T)1u,bits + 1u) : bits;
+}
+
+template <typename T=unsigned int> static inline constexpr unsigned int bitlength(const T v) {
+    return _bitlength_recursion(v,0);
+}
+
 template <const unsigned int a,typename T=unsigned int> static inline constexpr T bit2mask(void) {
     static_assert(a < type_bits<T>(), "bit2mask constexpr bit count too large for data type");
     return (T)1U << (T)a;
@@ -7478,6 +7486,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     assert(bit2mask<8u>() == 256u);
     static_assert(bit2mask<9u>() == 512u, "whoops");
     static_assert(bit2mask<33u,uint64_t>() == (1ull << 33ull), "whoops");
+    static_assert(bitlength(0u) == 0u, "whoops");
+    static_assert(bitlength(1u) == 1u, "whoops");
+    static_assert(bitlength(2u) == 2u, "whoops");
+    static_assert(bitlength(3u) == 2u, "whoops");
+    static_assert(bitlength(4u) == 3u, "whoops");
+    static_assert(bitlength(7u) == 3u, "whoops");
+    static_assert(bitlength(8u) == 4u, "whoops");
+    static_assert(bitlength(~0u) == type_bits(), "whoops");
 
     memset(&sdl,0,sizeof(sdl)); // struct sdl isn't initialized anywhere that I can tell
 
