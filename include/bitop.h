@@ -32,6 +32,10 @@ template <typename T=unsigned int> static inline constexpr T bit2mask(const unsi
     return (T)1U << (T)a;
 }
 
+template <typename T=unsigned int> static inline constexpr T type_msb_mask(void) {
+    return bit2mask<T>(type_bits<T>() - 1u);
+}
+
 template <const unsigned int a,const unsigned int offset,typename T=unsigned int> static inline constexpr T bitcount2masklsb(void) {
     /* NTS: special case for a == type_bits because shifting the size of a register OR LARGER is undefined.
      *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used 

@@ -38,6 +38,10 @@ void self_test(void) {
     static_assert(bitlength(7u) == 3u, "whoops");
     static_assert(bitlength(8u) == 4u, "whoops");
     static_assert(bitlength(~0u) == type_bits(), "whoops");
+    static_assert(type_msb_mask<uint8_t>() == 0x80u, "whoops");
+    static_assert(type_msb_mask<uint16_t>() == 0x8000u, "whoops");
+    static_assert(type_msb_mask<uint32_t>() == 0x80000000ul, "whoops");
+    static_assert(type_msb_mask<uint64_t>() == 0x8000000000000000ull, "whoops");
 }
 
 }
