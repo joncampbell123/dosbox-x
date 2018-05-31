@@ -32,19 +32,25 @@ template <typename T=unsigned int> static inline constexpr T bit2mask(const unsi
     return (T)1U << (T)a;
 }
 
-template <const unsigned int a,typename T=unsigned int> static inline constexpr T bitcount2masklsb(void) {
+template <const unsigned int a,const unsigned int offset,typename T=unsigned int> static inline constexpr T bitcount2masklsb(void) {
     /* NTS: special case for a == type_bits because shifting the size of a register OR LARGER is undefined.
      *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used 
      *      a % type_bits<T>() is there to keep a < type_bits<T> in case your C++11 compiler likes to trigger
      *      all static_assert<> clauses even if the ternary would not choose that path. */
     static_assert(a <= type_bits<T>(), "bitcount2masklsb constexpr bit count too large for data type");
-    return (a < type_bits<T>()) ? (bit2mask<a % type_bits<T>(),T>() - (T)1u) : allones<T>();
+    static_assert(offset < type_bits<T>(), "bitcount2masklsb constexpr offset count too large for data type");
+    static_assert((a+offset) <= type_bits<T>(), "bitcount2masklsb constexpr bit count + offset count too large for data type");
+    return ((a < type_bits<T>()) ? (bit2mask<a % type_bits<T>(),T>() - (T)1u) : allones<T>()) << (T)offset;
 }
 
-template <typename T=unsigned int> static inline constexpr T bitcount2masklsb(const unsigned int a) {
+template <const unsigned int a,typename T=unsigned int> static inline constexpr T bitcount2masklsb(void) {
+    return bitcount2masklsb<a,0u,T>();
+}
+
+template <typename T=unsigned int> static inline constexpr T bitcount2masklsb(const unsigned int a,const unsigned int offset=0) {
     /* NTS: special case for a == type_bits because shifting the size of a register OR LARGER is undefined.
      *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used */
-    return (a < type_bits<T>()) ? (bit2mask<T>(a) - (T)1u) : allones<T>();
+    return ((a < type_bits<T>()) ? (bit2mask<T>(a) - (T)1u) : allones<T>()) << (T)offset;
 }
 
 void self_test();

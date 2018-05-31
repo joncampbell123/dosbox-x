@@ -10,6 +10,10 @@ void self_test(void) {
     static_assert(bitcount2masklsb<0u>() == 0u, "whoops");
     static_assert(bitcount2masklsb<1u>() == 1u, "whoops");
     static_assert(bitcount2masklsb<2u>() == 3u, "whoops");
+    static_assert(bitcount2masklsb<2u,1u>() == 6u, "whoops");
+    static_assert(bitcount2masklsb<2u,uint8_t>() == 3u, "whoops");
+    static_assert(bitcount2masklsb<2u,0u,uint8_t>() == 3u, "whoops");
+    static_assert(bitcount2masklsb<2u,1u,uint8_t>() == 6u, "whoops");
     static_assert(bitcount2masklsb<type_bits<>()>() == allones(), "whoops");
     static_assert(allones<uint32_t>() == (uint32_t)0xFFFFFFFFUL, "whoops");
     static_assert(allzero<uint32_t>() == (uint32_t)0, "whoops");
