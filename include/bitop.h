@@ -15,21 +15,32 @@ template <typename T=unsigned int> static inline constexpr T allones(void) {
     return (T)( ~((T)0) );
 }
 
+
 template <typename T=unsigned int> static inline constexpr unsigned int _bitlength_recursion(const T v,const unsigned int bits) {
     return (v != allzero()) ? _bitlength_recursion(v >> (T)1u,bits + 1u) : bits;
 }
 
-template <typename T=unsigned int> static inline constexpr unsigned int bitlength(const T v) {
-    return _bitlength_recursion(v,0);
+template <typename T=unsigned int,const T v> static inline constexpr unsigned int bitlength(void) {
+    return _bitlength_recursion<T>(v,0);
 }
+
+template <const unsigned int v> static inline constexpr unsigned int bitlength(void) {
+    return bitlength<unsigned int,v>();
+}
+
 
 template <typename T=unsigned int> static inline constexpr unsigned int _bitseqlength_recursionlsb(const T v,const unsigned int bits) {
-    return (v & 1u) ? _bitseqlength_recursionlsb(v >> (T)1u,bits + 1u) : bits;
+    return (v & 1u) ? _bitseqlength_recursionlsb<T>(v >> (T)1u,bits + 1u) : bits;
 }
 
-template <typename T=unsigned int> static inline constexpr unsigned int bitseqlengthlsb(const T v) {
+template <typename T=unsigned int,const T v> static inline constexpr unsigned int bitseqlengthlsb(void) {
     return _bitseqlength_recursionlsb(v,0);
 }
+
+template <const unsigned int v> static inline constexpr unsigned int bitseqlengthlsb(void) {
+    return bitseqlengthlsb<unsigned int,v>();
+}
+
 
 template <const unsigned int a,typename T=unsigned int> static inline constexpr T bit2mask(void) {
     static_assert(a < type_bits<T>(), "bit2mask constexpr bit count too large for data type");
@@ -40,9 +51,11 @@ template <typename T=unsigned int> static inline constexpr T bit2mask(const unsi
     return (T)1U << (T)a;
 }
 
+
 template <typename T=unsigned int> static inline constexpr T type_msb_mask(void) {
     return bit2mask<T>(type_bits<T>() - 1u);
 }
+
 
 template <const unsigned int a,const unsigned int offset,typename T=unsigned int> static inline constexpr T bitcount2masklsb(void) {
     /* NTS: special case for a == type_bits because shifting the size of a register OR LARGER is undefined.
@@ -64,6 +77,7 @@ template <typename T=unsigned int> static inline constexpr T bitcount2masklsb(co
      *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used */
     return ((a < type_bits<T>()) ? (bit2mask<T>(a) - (T)1u) : allones<T>()) << (T)offset;
 }
+
 
 void self_test();
 
