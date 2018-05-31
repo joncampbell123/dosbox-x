@@ -3,23 +3,40 @@
 
 namespace bitop {
 
+/* Return the number of bits of the data type.
+ *
+ * @return Number of bits in data type T
+ */
 template <typename T=unsigned int> static inline constexpr unsigned int type_bits(void) {
     return (unsigned int)sizeof(T) * 8u;
 }
 
+/* Return data type T with all bits 0
+ *
+ * @return Type T with zero bits
+ */
 template <typename T=unsigned int> static inline constexpr T allzero(void) {
     return (T)0;
 }
 
+/* Return data type T with all bits 1
+ *
+ * @return Type T with set bits
+ */
 template <typename T=unsigned int> static inline constexpr T allones(void) {
     return (T)( ~((T)0) );
 }
 
 
+/* private */
 template <typename T=unsigned int> static inline constexpr unsigned int _bitlength_recursion(const T v,const unsigned int bits) {
     return (v != allzero()) ? _bitlength_recursion(v >> (T)1u,bits + 1u) : bits;
 }
 
+/* Return minimum number of bits required to represent value 'v' in data type 'T'
+ *
+ * @return Number of bits needed
+ */
 template <typename T=unsigned int,const T v> static inline constexpr unsigned int bitlength(void) {
     return _bitlength_recursion<T>(v,0);
 }
@@ -44,6 +61,10 @@ template <typename T=unsigned int> static inline unsigned int bitlength(T v) {
 }
 
 
+/* Return number of sequential 1 bits counting from LSB in value 'v' of type 'T'
+ *
+ * @return Number of bits
+ */
 template <typename T=unsigned int> static inline constexpr unsigned int _bitseqlength_recursionlsb(const T v,const unsigned int bits) {
     return (v & 1u) ? _bitseqlength_recursionlsb<T>(v >> (T)1u,bits + 1u) : bits;
 }
@@ -72,6 +93,10 @@ template <typename T=unsigned int> static inline unsigned int bitseqlengthlsb(T 
 }
 
 
+/* Return binary mask of bit 'a'
+ *
+ * @return Bitmask
+ */
 template <const unsigned int a,typename T=unsigned int> static inline constexpr T bit2mask(void) {
     static_assert(a < type_bits<T>(), "bit2mask constexpr bit count too large for data type");
     return (T)1U << (T)a;
@@ -82,11 +107,19 @@ template <typename T=unsigned int> static inline constexpr T bit2mask(const unsi
 }
 
 
+/* Return binary mask of MSB in type 'T'
+ *
+ * @return Bitmask
+ */
 template <typename T=unsigned int> static inline constexpr T type_msb_mask(void) {
     return bit2mask<T>(type_bits<T>() - 1u);
 }
 
 
+/* Return binary mask of 'a' LSB bits starting at bit offset 'offset' in type 'T'
+ *
+ * @return Bitmask
+ */
 template <const unsigned int a,const unsigned int offset,typename T=unsigned int> static inline constexpr T bitcount2masklsb(void) {
     /* NTS: special case for a == type_bits because shifting the size of a register OR LARGER is undefined.
      *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used 
