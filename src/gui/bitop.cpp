@@ -73,6 +73,21 @@ void self_test(void) {
     assert(bitlength(1024u) == 11u);
     assert(bitlength(32767u) == 15u);
     assert(bitlength(32768u) == 16u);
+
+    assert(bitseqlengthlsb(0u) == 0u);
+    assert(bitseqlengthlsb(1u) == 1u);
+    assert(bitseqlengthlsb(2u) == 0u);
+    assert(bitseqlengthlsb(3u) == 2u);
+    assert(bitseqlengthlsb(4u) == 0u);
+    assert(bitseqlengthlsb(5u) == 1u);
+    assert(bitseqlengthlsb(6u) == 0u);
+    assert(bitseqlengthlsb(7u) == 3u);
+    assert(bitseqlengthlsb(255u) == 8u);
+    assert(bitseqlengthlsb(256u) == 0u);
+    assert(bitseqlengthlsb(512u) == 0u);
+    assert(bitseqlengthlsb(1024u) == 0u);
+    assert(bitseqlengthlsb(32767u) == 15u);
+    assert(bitseqlengthlsb(32768u) == 0u);
 }
 
 }

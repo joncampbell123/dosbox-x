@@ -56,6 +56,21 @@ template <const unsigned int v> static inline constexpr unsigned int bitseqlengt
     return bitseqlengthlsb<unsigned int,v>();
 }
 
+template <typename T=unsigned int> static inline unsigned int bitseqlengthlsb(T v) {
+    unsigned int c = 0;
+
+    while ((v & 0xFFUL) == 0xFFUL) {
+        v >>= (T)8UL;
+        c += (T)8;
+    }
+    while (v & 1u) {
+        v >>= (T)1UL;
+        c++;
+    }
+
+    return c;
+}
+
 
 template <const unsigned int a,typename T=unsigned int> static inline constexpr T bit2mask(void) {
     static_assert(a < type_bits<T>(), "bit2mask constexpr bit count too large for data type");
