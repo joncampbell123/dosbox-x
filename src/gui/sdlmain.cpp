@@ -7443,6 +7443,7 @@ template <const unsigned int a,typename T=unsigned int> static inline constexpr 
      *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used 
      *      a % type_bits<T>() is there to keep a < type_bits<T> in case your C++11 compiler likes to trigger
      *      all static_assert<> clauses even if the ternary would not choose that path. */
+    static_assert(a <= type_bits<T>(), "bitcount2masklsb constexpr bit count too large for data type");
     return (a < type_bits<T>()) ? (bit2mask<a % type_bits<T>(),T>() - (T)1u) : allones<T>();
 }
 
