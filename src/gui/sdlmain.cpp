@@ -7430,8 +7430,8 @@ template <typename T=unsigned int> static inline constexpr T allones(void) {
 }
 
 template <const unsigned int a,typename T=unsigned int> static inline constexpr T bit2mask(void) {
-    static_assert(a < type_bits<T>(), "bit2mask constexpr bit count too large for data type");
-    return (T)1U << (T)a;
+    static_assert(a <= type_bits<T>(), "bit2mask constexpr bit count too large for data type");
+    return (a < type_bits<T>()) ? ((T)1U << (T)a) : allzero<T>();
 }
 
 template <typename T=unsigned int> static inline constexpr T bit2mask(const unsigned int a) {
@@ -7439,16 +7439,13 @@ template <typename T=unsigned int> static inline constexpr T bit2mask(const unsi
 }
 
 template <const unsigned int a,typename T=unsigned int> static inline constexpr T bitcount2masklsb(void) {
-    /* NTS: special case for a == type_bits because shifting the size of a register OR LARGER is undefined.
-     *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used */
-    static_assert(a <= type_bits<T>(), "bitcount2masklsb constexpr bit count too large for data type");
-    return (a < type_bits<T>()) ? (((T)1U << (T)a) - (T)1u) : allones<T>();
+    return bit2mask<a,T>() - (T)1u;
 }
 
 template <typename T=unsigned int> static inline constexpr T bitcount2masklsb(const unsigned int a) {
     /* NTS: special case for a == type_bits because shifting the size of a register OR LARGER is undefined.
      *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used */
-    return (a < type_bits<T>()) ? (((T)1U << (T)a) - (T)1u) : allones<T>();
+    return bit2mask<T>(a) - (T)1u;
 }
 
 //extern void UI_Init(void);
