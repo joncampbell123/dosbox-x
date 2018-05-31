@@ -14,7 +14,7 @@ void self_test(void) {
     static_assert(bitcount2masklsb<2u,uint8_t>() == 3u, "whoops");
     static_assert(bitcount2masklsb<2u,0u,uint8_t>() == 3u, "whoops");
     static_assert(bitcount2masklsb<2u,1u,uint8_t>() == 6u, "whoops");
-    static_assert(bitcount2masklsb<type_bits<>()>() == allones(), "whoops");
+    static_assert(bitcount2masklsb<type_bits()>() == allones(), "whoops");
     static_assert(allones<uint32_t>() == (uint32_t)0xFFFFFFFFUL, "whoops");
     static_assert(allzero<uint32_t>() == (uint32_t)0, "whoops");
     static_assert(allones<uint64_t>() == (uint64_t)0xFFFFFFFFFFFFFFFFULL, "whoops");
@@ -96,7 +96,25 @@ void self_test(void) {
     static_assert(bitcount2maskmsb<2u,uint8_t>() == (3u << 6u), "whoops");
     static_assert(bitcount2maskmsb<2u,0u,uint8_t>() == (3u << 6u), "whoops");
     static_assert(bitcount2maskmsb<2u,1u,uint8_t>() == (3u << 5u), "whoops");
-    static_assert(bitcount2maskmsb<type_bits<>()>() == allones(), "whoops");
+    static_assert(bitcount2maskmsb<type_bits()>() == allones(), "whoops");
+
+    assert(bitcount2masklsb(0u) == 0u);
+    assert(bitcount2masklsb(1u) == 1u);
+    assert(bitcount2masklsb(2u) == 3u);
+    assert(bitcount2masklsb(2u,1u) == 6u);
+    assert(bitcount2masklsb<uint8_t>(2u) == 3u);
+    assert(bitcount2masklsb<uint8_t>(2u,0u) == 3u);
+    assert(bitcount2masklsb<uint8_t>(2u,1u) == 6u);
+    assert(bitcount2masklsb(type_bits()) == allones());
+
+    assert(bitcount2maskmsb(0u) == 0u);
+    assert(bitcount2maskmsb(1u) == (1u << (type_bits() - 1u)));
+    assert(bitcount2maskmsb(2u) == (3u << (type_bits() - 2u)));
+    assert(bitcount2maskmsb(2u,1u) == (3u << (type_bits() - 3u)));
+    assert(bitcount2maskmsb<uint8_t>(2u) == (3u << 6u));
+    assert(bitcount2maskmsb<uint8_t>(2u,0u) == (3u << 6u));
+    assert(bitcount2maskmsb<uint8_t>(2u,1u) == (3u << 5u));
+    assert(bitcount2maskmsb(type_bits()) == allones());
 }
 
 }
