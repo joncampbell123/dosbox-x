@@ -28,6 +28,21 @@ template <const unsigned int v> static inline constexpr unsigned int bitlength(v
     return bitlength<unsigned int,v>();
 }
 
+template <typename T=unsigned int> static inline unsigned int bitlength(T v) {
+    unsigned int c = 0;
+
+    while ((v & 0xFFUL) == 0xFFUL) {
+        v >>= (T)8UL;
+        c += (T)8;
+    }
+    while (v != allzero<T>()) {
+        v >>= (T)1UL;
+        c++;
+    }
+
+    return c;
+}
+
 
 template <typename T=unsigned int> static inline constexpr unsigned int _bitseqlength_recursionlsb(const T v,const unsigned int bits) {
     return (v & 1u) ? _bitseqlength_recursionlsb<T>(v >> (T)1u,bits + 1u) : bits;

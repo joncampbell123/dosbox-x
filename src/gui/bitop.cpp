@@ -60,6 +60,19 @@ void self_test(void) {
     static_assert(bitseqlengthlsb<23u>() == 3u, "whoops"); // 10111
     static_assert(bitseqlengthlsb<31u>() == 5u, "whoops"); // 11111
     static_assert(bitseqlengthlsb<~0u>() == type_bits(), "whoops");
+
+    assert(bitlength(0u) == 0u);
+    assert(bitlength(1u) == 1u);
+    assert(bitlength(2u) == 2u);
+    assert(bitlength(3u) == 2u);
+    assert(bitlength(4u) == 3u);
+    assert(bitlength(7u) == 3u);
+    assert(bitlength(255u) == 8u);
+    assert(bitlength(256u) == 9u);
+    assert(bitlength(512u) == 10u);
+    assert(bitlength(1024u) == 11u);
+    assert(bitlength(32767u) == 15u);
+    assert(bitlength(32768u) == 16u);
 }
 
 }
