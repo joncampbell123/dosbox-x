@@ -88,6 +88,15 @@ void self_test(void) {
     assert(bitseqlengthlsb(1024u) == 0u);
     assert(bitseqlengthlsb(32767u) == 15u);
     assert(bitseqlengthlsb(32768u) == 0u);
+
+    static_assert(bitcount2maskmsb<0u>() == 0u, "whoops");
+    static_assert(bitcount2maskmsb<1u>() == (1u << (type_bits() - 1u)), "whoops");
+    static_assert(bitcount2maskmsb<2u>() == (3u << (type_bits() - 2u)), "whoops");
+    static_assert(bitcount2maskmsb<2u,1u>() == (3u << (type_bits() - 3u)), "whoops");
+    static_assert(bitcount2maskmsb<2u,uint8_t>() == (3u << 6u), "whoops");
+    static_assert(bitcount2maskmsb<2u,0u,uint8_t>() == (3u << 6u), "whoops");
+    static_assert(bitcount2maskmsb<2u,1u,uint8_t>() == (3u << 5u), "whoops");
+    static_assert(bitcount2maskmsb<type_bits<>()>() == allones(), "whoops");
 }
 
 }

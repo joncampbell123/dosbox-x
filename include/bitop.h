@@ -144,6 +144,32 @@ template <typename T=unsigned int> static inline constexpr T bitcount2masklsb(co
 }
 
 
+/* Return binary mask of 'a' MSB bits starting at bit offset 'offset' in type 'T'
+ *
+ * @return Bitmask
+ */
+template <const unsigned int a,const unsigned int offset,typename T=unsigned int> static inline constexpr T bitcount2maskmsb(void) {
+    /* NTS: special case for a == type_bits because shifting the size of a register OR LARGER is undefined.
+     *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used 
+     *      a % type_bits<T>() is there to keep a < type_bits<T> in case your C++11 compiler likes to trigger
+     *      all static_assert<> clauses even if the ternary would not choose that path. */
+    static_assert(a <= type_bits<T>(), "bitcount2maskmsb constexpr bit count too large for data type");
+    static_assert(offset < type_bits<T>(), "bitcount2maskmsb constexpr offset count too large for data type");
+    static_assert((a+offset) <= type_bits<T>(), "bitcount2maskmsb constexpr bit count + offset count too large for data type");
+    return ((a != (T)0) ? ((T)(allones<T>() << (T)(type_bits<T>() - a)) >> (T)offset) : allzero<T>());
+}
+
+template <const unsigned int a,typename T=unsigned int> static inline constexpr T bitcount2maskmsb(void) {
+    return bitcount2maskmsb<a,0u,T>();
+}
+
+template <typename T=unsigned int> static inline constexpr T bitcount2maskmsb(const unsigned int a,const unsigned int offset=0) {
+    /* NTS: special case for a == type_bits because shifting the size of a register OR LARGER is undefined.
+     *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used */
+    return ((a != (T)0) ? ((T)(allones<T>() << (T)(type_bits<T>() - a)) >> (T)offset) : allzero<T>());
+}
+
+
 void self_test();
 
 }
