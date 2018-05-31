@@ -7430,8 +7430,8 @@ template <typename T=unsigned int> static inline constexpr T allones(void) {
 }
 
 template <const unsigned int a,typename T=unsigned int> static inline constexpr T bit2mask(void) {
-    static_assert(a <= type_bits<T>(), "bit2mask constexpr bit count too large for data type");
-    return (a < type_bits<T>()) ? ((T)1U << (T)a) : allzero<T>();
+    static_assert(a < type_bits<T>(), "bit2mask constexpr bit count too large for data type");
+    return (T)1U << (T)a;
 }
 
 template <typename T=unsigned int> static inline constexpr T bit2mask(const unsigned int a) {
@@ -7439,13 +7439,17 @@ template <typename T=unsigned int> static inline constexpr T bit2mask(const unsi
 }
 
 template <const unsigned int a,typename T=unsigned int> static inline constexpr T bitcount2masklsb(void) {
-    return bit2mask<a,T>() - (T)1u;
+    /* NTS: special case for a == type_bits because shifting the size of a register OR LARGER is undefined.
+     *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used 
+     *      a % type_bits<T>() is there to keep a < type_bits<T> in case your C++11 compiler likes to trigger
+     *      all static_assert<> clauses even if the ternary would not choose that path. */
+    return (a < type_bits<T>()) ? (bit2mask<a % type_bits<T>(),T>() - (T)1u) : allones<T>();
 }
 
 template <typename T=unsigned int> static inline constexpr T bitcount2masklsb(const unsigned int a) {
     /* NTS: special case for a == type_bits because shifting the size of a register OR LARGER is undefined.
      *      On Intel x86 processors, with 32-bit integers, x >> 32 == x >> 0 because only the low 5 bits are used */
-    return bit2mask<T>(a) - (T)1u;
+    return (a < type_bits<T>()) ? (bit2mask<T>(a) - (T)1u) : allones<T>();
 }
 
 //extern void UI_Init(void);
