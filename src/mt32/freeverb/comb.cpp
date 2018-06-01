@@ -58,7 +58,7 @@ void comb::saveState( std::ostream &stream)
 	stream.write(reinterpret_cast<const char*>(&filterstore), sizeof(filterstore) );
 	stream.write(reinterpret_cast<const char*>(&damp1), sizeof(damp1) );
 	stream.write(reinterpret_cast<const char*>(&damp2), sizeof(damp2) );
-	stream.write(reinterpret_cast<const char*>(buffer), bufsize * sizeof(float) );
+	stream.write(reinterpret_cast<const char*>(buffer), (std::streamsize)((size_t)bufsize * sizeof(float)) );
 	stream.write(reinterpret_cast<const char*>(&bufsize), sizeof(bufsize) );
 	stream.write(reinterpret_cast<const char*>(&bufidx), sizeof(bufidx) );
 }
@@ -70,7 +70,7 @@ void comb::loadState( std::istream &stream)
 	stream.read(reinterpret_cast<char*>(&filterstore), sizeof(filterstore) );
 	stream.read(reinterpret_cast<char*>(&damp1), sizeof(damp1) );
 	stream.read(reinterpret_cast<char*>(&damp2), sizeof(damp2) );
-	stream.read(reinterpret_cast<char*>(buffer), bufsize * sizeof(float) );
+	stream.read(reinterpret_cast<char*>(buffer), (std::streamsize)((size_t)bufsize * sizeof(float)) );
 	stream.read(reinterpret_cast<char*>(&bufsize), sizeof(bufsize) );
 	stream.read(reinterpret_cast<char*>(&bufidx), sizeof(bufidx) );
 }
