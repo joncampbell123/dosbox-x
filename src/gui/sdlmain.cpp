@@ -105,6 +105,10 @@ void GFX_OpenGLRedrawScreen(void);
 #include "keymap.h"
 #include "control.h"
 
+#include <xBRZ/xbrz.h>
+#include <xBRZ/xbrz_tools.h>
+#include <ppl.h>
+
 #if !defined(C_SDL2)
 # include "SDL_version.h"
 # ifndef SDL_DOSBOX_X_SPECIAL
@@ -155,7 +159,8 @@ const char *scaler_menu_opts[][2] = {
     { "2xsai",                  "2xSai" },
     { "super2xsai",             "Super2xSai" },
     { "supereagle",             "SuperEagle" },
-    { "xbrz",                   "xBRZ" },           /* <- FIXME: Not implemented? No ref in the code! */
+    { "xbrz",                   "xBRZ" },
+    { "xbrz_bilinear",          "xBRZ Bilinear" },
 
     { NULL, NULL }
 };
@@ -562,6 +567,9 @@ struct SDL_Block {
     bool deferred_resize;
     bool init_ignore;
     unsigned int gfx_force_redraw_count = 0;
+    bool xBRZ;
+    bool xBRZ_Bilinear;
+    int xBRZ_task_granularity = 16;
 };
 
 static SDL_Block sdl;
@@ -1781,7 +1789,7 @@ dosurface:
         sdl.clip.w=width;
         sdl.clip.h=height;
         if (GFX_IsFullscreen()) {
-            if (sdl.desktop.full.fixed) {
+            if (sdl.desktop.full.fixed || sdl.xBRZ) {
                 sdl.clip.x=(Sint16)((sdl.desktop.full.width-width)/2);
                 sdl.clip.y=(Sint16)((sdl.desktop.full.height-height)/2);
                 sdl.window = GFX_SetSDLWindowMode(sdl.desktop.full.width,
@@ -1869,8 +1877,8 @@ dosurface:
             Uint32 wflags = SDL_FULLSCREEN | SDL_HWPALETTE |
                 ((flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
                 (sdl.desktop.doublebuf ? SDL_DOUBLEBUF|SDL_ASYNCBLIT : 0);
-            if (sdl.desktop.full.fixed
-            ) {
+            if (sdl.desktop.full.fixed || sdl.xBRZ) 
+            {
                 sdl.clip.x=(Sint16)((sdl.desktop.full.width-width)/2);
                 sdl.clip.y=(Sint16)((sdl.desktop.full.height-height)/2);
                 sdl.surface=SDL_SetVideoMode(sdl.desktop.full.width,
@@ -3135,23 +3143,42 @@ void GFX_ReleaseSurfacePtr(void) {
 }
 #endif
 
+std::vector<uint32_t> renderBuffer;
+
+bool supportsXBRZ(const SDL_PixelFormat& fmt)
+{
+    return fmt.BytesPerPixel == sizeof(uint32_t) &&
+        fmt.Rmask == 0xff0000 && //
+        fmt.Gmask == 0x00ff00 && //xBRZ scaler needs BGRA byte order
+        fmt.Bmask == 0x0000ff;   //
+}
+
 bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
     if (!sdl.active || sdl.updating)
         return false;
     switch (sdl.desktop.type) {
     case SCREEN_SURFACE:
-        if (sdl.blit.surface) {
-            if (SDL_MUSTLOCK(sdl.blit.surface) && SDL_LockSurface(sdl.blit.surface))
-                return false;
-            pixels=(Bit8u *)sdl.blit.surface->pixels;
-            pitch=sdl.blit.surface->pitch;
-        } else {
-            if (SDL_MUSTLOCK(sdl.surface) && SDL_LockSurface(sdl.surface))
-                return false;
-            pixels=(Bit8u *)sdl.surface->pixels;
-            pixels+=sdl.clip.y*sdl.surface->pitch;
-            pixels+=sdl.clip.x*sdl.surface->format->BytesPerPixel;
-            pitch=sdl.surface->pitch;
+        if (sdl.xBRZ && supportsXBRZ(*sdl.surface->format)) {
+            renderBuffer.resize(sdl.draw.width * sdl.draw.height);
+            pixels = renderBuffer.empty() ? nullptr : reinterpret_cast<Bit8u*>(&renderBuffer[0]);
+            pitch = sdl.draw.width * sizeof(uint32_t);
+        }
+        else
+        {
+            if (sdl.blit.surface) {
+                if (SDL_MUSTLOCK(sdl.blit.surface) && SDL_LockSurface(sdl.blit.surface))
+                    return false;
+                pixels = (Bit8u *)sdl.blit.surface->pixels;
+                pitch = sdl.blit.surface->pitch;
+            }
+            else {
+                if (SDL_MUSTLOCK(sdl.surface) && SDL_LockSurface(sdl.surface))
+                    return false;
+                pixels = (Bit8u *)sdl.surface->pixels;
+                pixels += sdl.clip.y*sdl.surface->pitch;
+                pixels += sdl.clip.x*sdl.surface->format->BytesPerPixel;
+                pitch = sdl.surface->pitch;
+            }
         }
         SDL_Overscan();
         sdl.updating=true;
@@ -3218,49 +3245,206 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 #endif
-            if (SDL_MUSTLOCK(sdl.surface)) {
-                if (sdl.blit.surface) {
-                    SDL_UnlockSurface(sdl.blit.surface);
-                    int Blit = SDL_BlitSurface( sdl.blit.surface, 0, sdl.surface, &sdl.clip );
-                    LOG(LOG_MISC,LOG_WARN)("BlitSurface returned %d",Blit);
-                } else {
-                    SDL_UnlockSurface(sdl.surface);
-                }
-                if(changedLines && (changedLines[0] == sdl.draw.height)) 
-                    return; 
-                if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
-#if !defined(C_SDL2)
-                SDL_Flip(sdl.surface);
-#endif
-            } else if (sdl.must_redraw_all) {
-#if !defined(C_SDL2)
-                if (changedLines != NULL) SDL_Flip(sdl.surface);
-#endif
-            } else if (changedLines) {
-                if(changedLines[0] == sdl.draw.height) 
-                    return; 
-                if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
-                Bitu y = 0, index = 0, rectCount = 0;
-                while (y < sdl.draw.height) {
-                    if (!(index & 1)) {
-                        y += changedLines[index];
-                    } else {
-                        SDL_Rect *rect = &sdl.updateRects[rectCount++];
-                        rect->x = sdl.clip.x;
-                        rect->y = sdl.clip.y + y;
-                        rect->w = (Bit16u)sdl.draw.width;
-                        rect->h = changedLines[index];
-                        y += changedLines[index];
-                        SDL_rect_cliptoscreen(*rect);
+            if (sdl.xBRZ && supportsXBRZ(*sdl.surface->format)) {
+                const int srcWidth = sdl.draw.width;
+                const int srcHeight = sdl.draw.height;
+                if (renderBuffer.size() == srcWidth * srcHeight &&
+                    srcWidth > 0 && srcHeight > 0)
+                {
+                    // we assume renderBuffer is *not* scaled!
+                    const int outputHeight = sdl.surface->h; // in full screen mode surface == screen
+                    const int outputWidth = sdl.surface->w; 
+                                                            // scale to full screen (preserving input aspect)
+                                                            // aspectOutput = outputWidth / outputHeight;
+                    int clipX = 0;
+                    int clipY = 0;
+                    int clipWidth = outputWidth;
+                    int clipHeight = outputHeight;
+                    // const double srcAspect = 1.0 * srcWidth / srcHeight;
+                    const double srcAspect = 4.0 / 3;
+
+                    if (outputWidth > srcAspect * outputHeight) // output broader than input => black bars left and right
+                    {
+                        clipWidth = static_cast<int>(outputHeight * srcAspect);
+                        clipX = (outputWidth - clipWidth) / 2;
                     }
-                    index++;
-                }
-                if (rectCount) {
+                    else // black bars top and bottom
+                    {
+                        clipHeight = static_cast<int>(outputWidth / srcAspect);
+                        clipY = (outputHeight - clipHeight) / 2;
+                    }
+
+                    // 1. xBRZ-scale renderBuffer into xbrzBuffer
+                    int scalingFactor = static_cast<int>(std::sqrt(1.0 * clipWidth * clipHeight / (srcWidth * srcHeight)) + 0.5);
+                    // the ideal scaling factor scales source image to have roughly similar pixel count like target
+
+                    int xbrzWidth = 0;
+                    int xbrzHeight = 0;
+                    static std::vector<uint32_t> xbrzBuffer;
+                    if (scalingFactor >= 2)
+                    {
+                        scalingFactor = min(scalingFactor, xbrz::SCALE_FACTOR_MAX);
+
+                        xbrzWidth = srcWidth * scalingFactor;
+                        xbrzHeight = srcHeight * scalingFactor;
+                        xbrzBuffer.resize(xbrzWidth * xbrzHeight);
+
+                        const uint32_t* renderBuf = &renderBuffer[0]; // help VS compiler a little + support capture by value
+                        uint32_t*       xbrzBuf = &xbrzBuffer[0];
+
+                        if (changedLines) // perf: in worst case similar to full input scaling
+                        {
+                            concurrency::task_group tg; // perf: task_group is slightly faster than pure prallel_for
+                            const int xBRZ_task_granularity = sdl.xBRZ_task_granularity;
+                            int yLast = 0;
+                            Bitu y = 0, index = 0;
+                            while (y < sdl.draw.height)
+                            {
+                                if (!(index & 1))
+                                    y += changedLines[index];
+                                else
+                                {
+                                    const int sliceFirst = y;
+                                    const int sliceLast = y + changedLines[index];
+                                    y += changedLines[index];
+
+                                    int yFirst = max(yLast, sliceFirst - 2); // we need to update two adjacent lines as well since they are analyzed by xBRZ!
+                                    yLast = min(srcHeight, sliceLast + 2);   // (and make sure to not overlap with last slice!)
+
+                                    for (int i = yFirst; i < yLast; i += xBRZ_task_granularity)
+                                    {
+                                        const int iLast = min(i + xBRZ_task_granularity, yLast);
+                                        tg.run([=] { xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, xbrz::ColorFormat::RGB, xbrz::ScalerCfg(), i, iLast); });
+                                    }
+                                }
+                                index++;
+                            }
+                            tg.wait();
+                        }
+                        else // process complete input image
+                        {
+                            concurrency::task_group tg;
+                            const int xBRZ_task_granularity = sdl.xBRZ_task_granularity;
+                            for (int i = 0; i < srcHeight; i += xBRZ_task_granularity)
+                                tg.run([=]
+                            {
+                                const int iLast = min(i + xBRZ_task_granularity, srcHeight);
+                                xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, xbrz::ColorFormat::RGB, xbrz::ScalerCfg(), i, iLast);
+                            });
+                            tg.wait();
+                        }
+                    }
+                    else // no scaling
+                    {
+                        xbrzWidth = srcWidth;
+                        xbrzHeight = srcHeight;
+                        xbrzBuffer = renderBuffer;
+
+                        // don't change aspect when showing unscaled image:
+                        clipWidth = min(srcWidth, outputWidth);
+                        clipHeight = min(srcHeight, outputHeight);
+                        clipX = (outputWidth - clipWidth) / 2;
+                        clipY = (outputHeight - clipHeight) / 2;
+                    }
+
+                    // 2. nearest neighbor/bilinear scale xbrzBuffer into output surface clipping area
+                    const bool mustLock = SDL_MUSTLOCK(sdl.surface);
+                    if (mustLock) SDL_LockSurface(sdl.surface);
+                    if (sdl.surface->pixels) // if locking fails, this can be nullptr
+                    {
+                        uint32_t* clipTrg = reinterpret_cast<uint32_t*>(static_cast<char*>(sdl.surface->pixels) + clipY * sdl.surface->pitch + clipX * sizeof(uint32_t));
+
+                        if (sdl.xBRZ_Bilinear) {
+                            concurrency::task_group tg;
+                            const int xBRZ_task_granularity = sdl.xBRZ_task_granularity;
+                            for (int i = 0; i < clipHeight; i += xBRZ_task_granularity)
+                                tg.run([=]
+                            {
+                                const int iLast = min(i + xBRZ_task_granularity, clipHeight);
+
+                                xbrz::bilinearScale(&xbrzBuffer[0], // const uint32_t* src,
+                                    xbrzWidth, xbrzHeight, xbrzWidth * sizeof(uint32_t), // int srcWidth, int srcHeight, int srcPitch,
+                                    clipTrg,        //PixTrg* trg,
+                                    clipWidth, clipHeight, sdl.surface->pitch, // int trgWidth, int trgHeight, int trgPitch,
+                                    i, iLast,       // int yFirst, int yLast,
+                                    [](uint32_t pix) { return pix; });  // PixConverter pixCvrt
+                            });
+                            tg.wait();
+                        } 
+                        else
+                        {
+                            concurrency::task_group tg;
+                            const int xBRZ_task_granularity = sdl.xBRZ_task_granularity;
+                            for (int i = 0; i < clipHeight; i += xBRZ_task_granularity)
+                                tg.run([=]
+                            {
+                                const int iLast = min(i + xBRZ_task_granularity, clipHeight);
+
+                                xbrz::nearestNeighborScale(&xbrzBuffer[0], xbrzWidth, xbrzHeight, xbrzWidth * sizeof(uint32_t),
+                                    clipTrg, clipWidth, clipHeight, sdl.surface->pitch,
+                                    i, iLast, [](uint32_t pix) { return pix; }); // perf: going over target is by factor 4 faster than going over source for similar image sizes
+                            });
+                            tg.wait();
+                        }
+                    }
+                    if (mustLock) SDL_UnlockSurface(sdl.surface);
 #if defined(C_SDL2)
-                    SDL_UpdateWindowSurfaceRects( sdl.window, sdl.updateRects, rectCount );
+                    SDL_UpdateWindowSurfaceRect(sdl.window, 0, 0, 0, 0);
 #else
-                    SDL_UpdateRects( sdl.surface, rectCount, sdl.updateRects );
+                    SDL_Flip(sdl.surface);
 #endif
+                }
+            }
+            else 
+            {
+                if (SDL_MUSTLOCK(sdl.surface)) {
+                    if (sdl.blit.surface) {
+                        SDL_UnlockSurface(sdl.blit.surface);
+                        int Blit = SDL_BlitSurface(sdl.blit.surface, 0, sdl.surface, &sdl.clip);
+                        LOG(LOG_MISC, LOG_WARN)("BlitSurface returned %d", Blit);
+                    }
+                    else {
+                        SDL_UnlockSurface(sdl.surface);
+                    }
+                    if (changedLines && (changedLines[0] == sdl.draw.height))
+                        return;
+                    if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
+#if !defined(C_SDL2)
+                    SDL_Flip(sdl.surface);
+#endif
+                }
+                else if (sdl.must_redraw_all) {
+#if !defined(C_SDL2)
+                    if (changedLines != NULL) SDL_Flip(sdl.surface);
+#endif
+                }
+                else if (changedLines) {
+                    if (changedLines[0] == sdl.draw.height)
+                        return;
+                    if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
+                    Bitu y = 0, index = 0, rectCount = 0;
+                    while (y < sdl.draw.height) {
+                        if (!(index & 1)) {
+                            y += changedLines[index];
+                        }
+                        else {
+                            SDL_Rect *rect = &sdl.updateRects[rectCount++];
+                            rect->x = sdl.clip.x;
+                            rect->y = sdl.clip.y + y;
+                            rect->w = (Bit16u)sdl.draw.width;
+                            rect->h = changedLines[index];
+                            y += changedLines[index];
+                            SDL_rect_cliptoscreen(*rect);
+                        }
+                        index++;
+                    }
+                    if (rectCount) {
+#if defined(C_SDL2)
+                        SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, rectCount);
+#else
+                        SDL_UpdateRects(sdl.surface, rectCount, sdl.updateRects);
+#endif
+                    }
                 }
             }
             break;
@@ -3683,6 +3867,21 @@ static void GUI_StartUp() {
 
     /* Setup Mouse correctly if fullscreen */
     if(sdl.desktop.fullscreen) GFX_CaptureMouse();
+
+    // yes, we read render section settings here, because xBRZ is integrated here but has settings in "render"
+    {
+        Section_prop * r_section = static_cast<Section_prop *>(control->GetSection("render"));
+        Prop_multival* r_prop = r_section->Get_multival("scaler");
+        std::string r_scaler = r_prop->GetSection()->Get_string("type");
+        sdl.xBRZ = ((r_scaler == "xbrz") || (r_scaler == "xbrz_bilinear"));
+        sdl.xBRZ_Bilinear = (r_scaler == "xbrz_bilinear");
+        sdl.xBRZ_task_granularity = r_section->Get_int("xbrz slice");
+    }
+
+    if (sdl.xBRZ) {
+        // xBRZ requirements
+        output = "surface";
+    }
 
     if (output == "surface") {
         sdl.desktop.want_type=SCREEN_SURFACE;

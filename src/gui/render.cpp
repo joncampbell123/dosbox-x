@@ -791,6 +791,8 @@ void RENDER_UpdateFromScalerSetting(void) {
     std::string f = prop->GetSection()->Get_string("force");
     std::string scaler = prop->GetSection()->Get_string("type");
 
+    render.scale.xBRZ = false;
+
     render.scale.forced = false;
     if(f == "forced") render.scale.forced = true;
    
@@ -823,6 +825,8 @@ void RENDER_UpdateFromScalerSetting(void) {
     else if (scaler == "hardware3x") { render.scale.op = scalerOpNormal; render.scale.size = 6; render.scale.hardware=true; }
     else if (scaler == "hardware4x") { render.scale.op = scalerOpNormal; render.scale.size = 8; render.scale.hardware=true; }
     else if (scaler == "hardware5x") { render.scale.op = scalerOpNormal; render.scale.size = 10; render.scale.hardware=true; }
+    else if (scaler == "xbrz") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware = false; render.scale.xBRZ = true; }
+    else if (scaler == "xbrz_bilinear") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware = false; render.scale.xBRZ = true; }
 }
 
 void RENDER_Init() {
@@ -871,6 +875,11 @@ void RENDER_Init() {
     }
 
     RENDER_UpdateFromScalerSetting();
+
+    if (render.scale.xBRZ) {
+        // xBRZ requirements
+        render.aspect = false;
+    }
 
     render.autofit=section->Get_bool("autofit");
 

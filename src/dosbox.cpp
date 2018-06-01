@@ -906,6 +906,7 @@ void DOSBOX_SetupConfigSections(void) {
         "tv2x", "tv3x", "rgb2x", "rgb3x", "scan2x", "scan3x",
 #endif
         "hardware_none", "hardware2x", "hardware3x", "hardware4x", "hardware5x",
+        "xbrz", "xbrz_bilinear",
         0 };
 
     const char* cores[] = { "auto",
@@ -1472,6 +1473,10 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
     Pstring->Set_values(force);
+
+    Pint = secprop->Add_int("xbrz slice",Property::Changeable::OnlyAtStart,16);
+    Pint->SetMinMax(1,1024);
+    Pint->Set_help("Number of screen lines to process in single xBRZ scaler taskset task, affects xBRZ performance, 16 is the default");
 
     Pbool = secprop->Add_bool("autofit",Property::Changeable::Always,true);
     Pbool->Set_help(
