@@ -115,6 +115,42 @@ void self_test(void) {
     assert(bitcount2maskmsb<uint8_t>(2u,0u) == (3u << 6u));
     assert(bitcount2maskmsb<uint8_t>(2u,1u) == (3u << 5u));
     assert(bitcount2maskmsb(type_bits()) == allones());
+
+    static_assert(ispowerof2(1u) == true, "whoops");
+    static_assert(ispowerof2(2u) == true, "whoops");
+    static_assert(ispowerof2(3u) == false, "whoops");
+    static_assert(ispowerof2(4u) == true, "whoops");
+    static_assert(ispowerof2(5u) == false, "whoops");
+    static_assert(ispowerof2(6u) == false, "whoops");
+    static_assert(ispowerof2(7u) == false, "whoops");
+    static_assert(ispowerof2(8u) == true, "whoops");
+    static_assert(ispowerof2(9u) == false, "whoops");
+    static_assert(ispowerof2(10u) == false, "whoops");
+    static_assert(ispowerof2(11u) == false, "whoops");
+    static_assert(ispowerof2(255u) == false, "whoops");
+    static_assert(ispowerof2(256u) == true, "whoops");
+    static_assert(ispowerof2(257u) == false, "whoops");
+    static_assert(ispowerof2(32767u) == false, "whoops");
+    static_assert(ispowerof2(32768u) == true, "whoops");
+    static_assert(ispowerof2(32769u) == false, "whoops");
+
+    assert(ispowerof2(1u) == true);
+    assert(ispowerof2(2u) == true);
+    assert(ispowerof2(3u) == false);
+    assert(ispowerof2(4u) == true);
+    assert(ispowerof2(5u) == false);
+    assert(ispowerof2(6u) == false);
+    assert(ispowerof2(7u) == false);
+    assert(ispowerof2(8u) == true);
+    assert(ispowerof2(9u) == false);
+    assert(ispowerof2(10u) == false);
+    assert(ispowerof2(11u) == false);
+    assert(ispowerof2(255u) == false);
+    assert(ispowerof2(256u) == true);
+    assert(ispowerof2(257u) == false);
+    assert(ispowerof2(32767u) == false);
+    assert(ispowerof2(32768u) == true);
+    assert(ispowerof2(32769u) == false);
 }
 
 }
