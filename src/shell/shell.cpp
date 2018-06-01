@@ -182,8 +182,8 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn,bool * append) {
 //				*lr++=0; 
 //			else 
 //				*lr=0;
-			t = (char*)malloc(lr-*ofn+1);
-			safe_strncpy(t,*ofn,lr-*ofn+1);
+			t = (char*)malloc(lr-*ofn+1); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
+			safe_strncpy(t,*ofn,lr-*ofn+1); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
 			*ofn=t;
 			continue;
 		case '<':
@@ -196,8 +196,8 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn,bool * append) {
 //				*lr++=0; 
 //			else 
 //				*lr=0;
-			t = (char*)malloc(lr-*ifn+1);
-			safe_strncpy(t,*ifn,lr-*ifn+1);
+			t = (char*)malloc(lr-*ifn+1); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
+			safe_strncpy(t,*ifn,lr-*ifn+1); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
 			*ifn=t;
 			continue;
 		case '|':
@@ -891,9 +891,9 @@ void SHELL_Init() {
 
     // decide shell env size
     if (dosbox_shell_env_size == 0)
-        dosbox_shell_env_size = (0x158 - (0x118 + 19)) << 4; /* equivalent to mainline DOSBox */
+        dosbox_shell_env_size = (0x158u - (0x118u + 19u)) << 4u; /* equivalent to mainline DOSBox */
     else
-        dosbox_shell_env_size = (dosbox_shell_env_size+15)&(~15); /* round up to paragraph */
+        dosbox_shell_env_size = (dosbox_shell_env_size+15u)&(~15u); /* round up to paragraph */
 
     LOG_MSG("COMMAND.COM env size:             %u bytes",dosbox_shell_env_size);
 
@@ -1010,7 +1010,7 @@ void SHELL_Init() {
 	if (!DOS_OpenFile("PRN",OPEN_READWRITE,&dummy)) DOS_OpenFile("CON",OPEN_READWRITE,&dummy);	/* STDPRN */
 
     psp.SetSize(psp_seg + total_sz);
-    psp.SetStack((stack_seg << 16) + reg_sp);
+    psp.SetStack(((unsigned int)stack_seg << 16u) + (unsigned int)reg_sp);
 	psp.SetParent(psp_seg);
 	/* Set the environment */
 	psp.SetEnvironment(env_seg);
