@@ -87,6 +87,7 @@ typedef struct {
 		Bitu cachePitch;
 		Bit8u *cacheRead;
 		Bitu inHeight, inLine, outLine;
+		bool xBRZ;
 	} scale;
 	RenderPal_t pal;
 	bool updating;
