@@ -82,6 +82,9 @@
     <Filter Include="Sources\pc98fmboards">
       <UniqueIdentifier>{77588c09-bef2-4f95-a219-8ac9d696a7ff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\xBRZ">
+      <UniqueIdentifier>{6212d2c1-4c3f-4ec6-ad0e-88413d9f1b6c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -822,6 +825,9 @@
     <ClCompile Include="..\src\gui\bitop.cpp">
       <Filter>Sources\gui</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\xBRZ\xbrz.cpp">
+      <Filter>Sources\xBRZ</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -1447,6 +1453,15 @@
     </ClInclude>
     <ClInclude Include="..\include\bitop.h">
       <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\xBRZ\xbrz.h">
+      <Filter>Sources\xBRZ</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\xBRZ\xbrz_config.h">
+      <Filter>Sources\xBRZ</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\xBRZ\xbrz_tools.h">
+      <Filter>Sources\xBRZ</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
