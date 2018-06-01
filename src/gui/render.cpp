@@ -879,6 +879,7 @@ void RENDER_Init() {
     if (render.scale.xBRZ) {
         // xBRZ requirements
         render.aspect = false;
+		vga.draw.doublescan_set = false;
     }
 
     render.autofit=section->Get_bool("autofit");
