@@ -171,7 +171,7 @@ Bit32u DOS_InfoBlock::GetDeviceChain(void) {
 
 Bit16u DOS_PSP::rootpsp = 0;
 
-#define CPM_MAX_SEG_SIZE	0xfff
+#define CPM_MAX_SEG_SIZE	0xfffu
 
 extern unsigned char cpm_compat_mode;
 
@@ -182,7 +182,7 @@ void DOS_PSP::MakeNew(Bit16u mem_size) {
 	Bitu i;
 	for (i=0;i<sizeof(sPSP);i++) mem_writeb(pt+i,0);
 	// Set size
-	sSave(sPSP,next_seg,seg+mem_size);
+	sSave(sPSP,next_seg,(unsigned int)seg+mem_size);
     /* cpm_entry is an alias for the int 30 vector (0:c0 = c:0); the offset is also the maximum program size */
     if (cpm_compat_mode == CPM_COMPAT_MSDOS2) { /* MS-DOS 2.x behavior, where offset is the memory size (for some reason) */
 	    /* far call opcode */
@@ -484,10 +484,10 @@ void DOS_FCB::SetRandom(Bit32u _random) {
 }
 
 void DOS_FCB::FileOpen(Bit8u _fhandle) {
-	sSave(sFCB,drive,GetDrive()+1);
+	sSave(sFCB,drive,GetDrive()+1u);
 	sSave(sFCB,file_handle,_fhandle);
-	sSave(sFCB,cur_block,0);
-	sSave(sFCB,rec_size,128);
+	sSave(sFCB,cur_block,0u);
+	sSave(sFCB,rec_size,128u);
 //	sSave(sFCB,rndm,0); // breaks Jewels of darkness. 
 	Bit8u temp = RealHandle(_fhandle);
 	Bit32u size = 0;
