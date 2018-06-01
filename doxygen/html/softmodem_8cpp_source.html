@@ -219,7 +219,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00123"></a>00123 <span class="keywordtype">void</span> CSerialModem::SendLine(<span class="keyword">const</span> <span class="keywordtype">char</span> *line) {
 <a name="l00124"></a>00124         rqueue-&gt;addb(0xd);
 <a name="l00125"></a>00125         rqueue-&gt;addb(0xa);
-<a name="l00126"></a>00126         rqueue-&gt;adds((Bit8u *)line,strlen(line));
+<a name="l00126"></a>00126         rqueue-&gt;adds((Bit8u *)line,(Bitu)strlen(line));
 <a name="l00127"></a>00127         rqueue-&gt;addb(0xd);
 <a name="l00128"></a>00128         rqueue-&gt;addb(0xa);
 <a name="l00129"></a>00129 }
@@ -917,7 +917,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

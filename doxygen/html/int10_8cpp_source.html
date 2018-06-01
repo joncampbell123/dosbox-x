@@ -1086,115 +1086,117 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00990"></a>00990 }
 <a name="l00991"></a>00991 
 <a name="l00992"></a>00992 <span class="keywordtype">void</span> INT10_EnterPC98(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l00993"></a>00993     <span class="comment">/* deprecated */</span>
-<a name="l00994"></a>00994 }
-<a name="l00995"></a>00995 
-<a name="l00996"></a>00996 <span class="keywordtype">void</span> INT10_Startup(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l00997"></a>00997         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;INT 10h reinitializing&quot;</span>);
-<a name="l00998"></a>00998 
-<a name="l00999"></a>00999     unmask_irq0_on_int10_setmode = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>))-&gt;Get_bool(<span class="stringliteral">&quot;unmask timer on int 10 setmode&quot;</span>);
-<a name="l01000"></a>01000         int16_unmask_irq1_on_read = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>))-&gt;Get_bool(<span class="stringliteral">&quot;unmask keyboard on int 16 read&quot;</span>);
-<a name="l01001"></a>01001     int16_ah_01_cf_undoc = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>))-&gt;Get_bool(<span class="stringliteral">&quot;int16 keyboard polling undocumented cf behavior&quot;</span>);
-<a name="l01002"></a>01002 
-<a name="l01003"></a>01003     <span class="keywordflow">if</span> (!IS_PC98_ARCH) {
-<a name="l01004"></a>01004         INT10_InitVGA();
-<a name="l01005"></a>01005         <span class="keywordflow">if</span> (IS_TANDY_ARCH) SetupTandyBios();
-<a name="l01006"></a>01006         <span class="comment">/* Setup the INT 10 vector */</span>
-<a name="l01007"></a>01007         call_10=CALLBACK_Allocate();    
-<a name="l01008"></a>01008         CALLBACK_Setup(call_10,&amp;INT10_Handler,CB_IRET,<span class="stringliteral">&quot;Int 10 video&quot;</span>);
-<a name="l01009"></a>01009         RealSetVec(0x10,CALLBACK_RealPointer(call_10));
-<a name="l01010"></a>01010         <span class="comment">//Init the 0x40 segment and init the datastructures in the the video rom area</span>
-<a name="l01011"></a>01011         INT10_SetupRomMemory();
-<a name="l01012"></a>01012         INT10_Seg40Init();
-<a name="l01013"></a>01013         INT10_SetupVESA();
-<a name="l01014"></a>01014         INT10_SetupRomMemoryChecksum();<span class="comment">//SetupVesa modifies the rom as well.</span>
-<a name="l01015"></a>01015         INT10_SetupBasicVideoParameterTable();
-<a name="l01016"></a>01016 
-<a name="l01017"></a>01017         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;INT 10: VGA bios used %d / %d memory&quot;</span>,(int)int10.rom.used,(<span class="keywordtype">int</span>)VGA_BIOS_Size);
-<a name="l01018"></a>01018         <span class="keywordflow">if</span> (int10.rom.used &gt; VGA_BIOS_Size) <span class="comment">/* &lt;- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */</span>
-<a name="l01019"></a>01019             E_Exit(<span class="stringliteral">&quot;VGA BIOS size too small&quot;</span>);
-<a name="l01020"></a>01020 
-<a name="l01021"></a>01021         <span class="comment">/* NTS: Uh, this does seem bass-ackwards... INT 10h making the VGA BIOS appear. Can we refactor this a bit? */</span>
-<a name="l01022"></a>01022         <span class="keywordflow">if</span> (VGA_BIOS_Size &gt; 0) {
-<a name="l01023"></a>01023             <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;VGA BIOS occupies segment 0x%04x-0x%04x&quot;</span>,(int)VGA_BIOS_SEG,(<span class="keywordtype">int</span>)VGA_BIOS_SEG_END-1);
-<a name="l01024"></a>01024             <span class="keywordflow">if</span> (!MEM_map_ROM_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1))
-<a name="l01025"></a>01025                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;INT 10 video: unable to map BIOS&quot;</span>);
-<a name="l01026"></a>01026         }
-<a name="l01027"></a>01027         <span class="keywordflow">else</span> {
-<a name="l01028"></a>01028             <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Not mapping VGA BIOS&quot;</span>);
-<a name="l01029"></a>01029         }
-<a name="l01030"></a>01030 
-<a name="l01031"></a>01031         INT10_SetVideoMode(0x3);
-<a name="l01032"></a>01032     }
-<a name="l01033"></a>01033     <span class="keywordflow">else</span> {
-<a name="l01034"></a>01034         <span class="comment">/* load PC-98 character ROM data, if possible */</span>
-<a name="l01035"></a>01035         {
-<a name="l01036"></a>01036             <span class="keywordtype">bool</span> ok = <span class="keyword">false</span>;
-<a name="l01037"></a>01037 
-<a name="l01038"></a>01038             <span class="comment">/* We can use FONT.ROM as generated by T98Tools */</span>
-<a name="l01039"></a>01039             <span class="keywordflow">if</span> (!ok) ok = Load_FONT_ROM();
-<a name="l01040"></a>01040             <span class="comment">/* We can use ANEX86.BMP from the Anex86 emulator */</span>
-<a name="l01041"></a>01041             <span class="keywordflow">if</span> (!ok) ok = Load_Anex86_Font();
-<a name="l01042"></a>01042             <span class="comment">/* Failing all else we can just re-use the IBM VGA 8x16 font to show SOMETHING on the screen.</span>
-<a name="l01043"></a>01043 <span class="comment">             * Japanese text will not display properly though. */</span>
-<a name="l01044"></a>01044             <span class="keywordflow">if</span> (!ok) ok = Load_VGAFont_As_PC98();
-<a name="l01045"></a>01045         }
-<a name="l01046"></a>01046 
-<a name="l01047"></a>01047         CurMode = &amp;PC98_Mode;
+<a name="l00993"></a>00993     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l00994"></a>00994     <span class="comment">/* deprecated */</span>
+<a name="l00995"></a>00995 }
+<a name="l00996"></a>00996 
+<a name="l00997"></a>00997 <span class="keywordtype">void</span> INT10_Startup(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l00998"></a>00998     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l00999"></a>00999         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;INT 10h reinitializing&quot;</span>);
+<a name="l01000"></a>01000 
+<a name="l01001"></a>01001     unmask_irq0_on_int10_setmode = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>))-&gt;Get_bool(<span class="stringliteral">&quot;unmask timer on int 10 setmode&quot;</span>);
+<a name="l01002"></a>01002         int16_unmask_irq1_on_read = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>))-&gt;Get_bool(<span class="stringliteral">&quot;unmask keyboard on int 16 read&quot;</span>);
+<a name="l01003"></a>01003     int16_ah_01_cf_undoc = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>))-&gt;Get_bool(<span class="stringliteral">&quot;int16 keyboard polling undocumented cf behavior&quot;</span>);
+<a name="l01004"></a>01004 
+<a name="l01005"></a>01005     <span class="keywordflow">if</span> (!IS_PC98_ARCH) {
+<a name="l01006"></a>01006         INT10_InitVGA();
+<a name="l01007"></a>01007         <span class="keywordflow">if</span> (IS_TANDY_ARCH) SetupTandyBios();
+<a name="l01008"></a>01008         <span class="comment">/* Setup the INT 10 vector */</span>
+<a name="l01009"></a>01009         call_10=CALLBACK_Allocate();    
+<a name="l01010"></a>01010         CALLBACK_Setup(call_10,&amp;INT10_Handler,CB_IRET,<span class="stringliteral">&quot;Int 10 video&quot;</span>);
+<a name="l01011"></a>01011         RealSetVec(0x10,CALLBACK_RealPointer(call_10));
+<a name="l01012"></a>01012         <span class="comment">//Init the 0x40 segment and init the datastructures in the the video rom area</span>
+<a name="l01013"></a>01013         INT10_SetupRomMemory();
+<a name="l01014"></a>01014         INT10_Seg40Init();
+<a name="l01015"></a>01015         INT10_SetupVESA();
+<a name="l01016"></a>01016         INT10_SetupRomMemoryChecksum();<span class="comment">//SetupVesa modifies the rom as well.</span>
+<a name="l01017"></a>01017         INT10_SetupBasicVideoParameterTable();
+<a name="l01018"></a>01018 
+<a name="l01019"></a>01019         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;INT 10: VGA bios used %d / %d memory&quot;</span>,(int)int10.rom.used,(<span class="keywordtype">int</span>)VGA_BIOS_Size);
+<a name="l01020"></a>01020         <span class="keywordflow">if</span> (int10.rom.used &gt; VGA_BIOS_Size) <span class="comment">/* &lt;- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */</span>
+<a name="l01021"></a>01021             E_Exit(<span class="stringliteral">&quot;VGA BIOS size too small&quot;</span>);
+<a name="l01022"></a>01022 
+<a name="l01023"></a>01023         <span class="comment">/* NTS: Uh, this does seem bass-ackwards... INT 10h making the VGA BIOS appear. Can we refactor this a bit? */</span>
+<a name="l01024"></a>01024         <span class="keywordflow">if</span> (VGA_BIOS_Size &gt; 0) {
+<a name="l01025"></a>01025             <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;VGA BIOS occupies segment 0x%04x-0x%04x&quot;</span>,(int)VGA_BIOS_SEG,(<span class="keywordtype">int</span>)VGA_BIOS_SEG_END-1);
+<a name="l01026"></a>01026             <span class="keywordflow">if</span> (!MEM_map_ROM_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1))
+<a name="l01027"></a>01027                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;INT 10 video: unable to map BIOS&quot;</span>);
+<a name="l01028"></a>01028         }
+<a name="l01029"></a>01029         <span class="keywordflow">else</span> {
+<a name="l01030"></a>01030             <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Not mapping VGA BIOS&quot;</span>);
+<a name="l01031"></a>01031         }
+<a name="l01032"></a>01032 
+<a name="l01033"></a>01033         INT10_SetVideoMode(0x3);
+<a name="l01034"></a>01034     }
+<a name="l01035"></a>01035     <span class="keywordflow">else</span> {
+<a name="l01036"></a>01036         <span class="comment">/* load PC-98 character ROM data, if possible */</span>
+<a name="l01037"></a>01037         {
+<a name="l01038"></a>01038             <span class="keywordtype">bool</span> ok = <span class="keyword">false</span>;
+<a name="l01039"></a>01039 
+<a name="l01040"></a>01040             <span class="comment">/* We can use FONT.ROM as generated by T98Tools */</span>
+<a name="l01041"></a>01041             <span class="keywordflow">if</span> (!ok) ok = Load_FONT_ROM();
+<a name="l01042"></a>01042             <span class="comment">/* We can use ANEX86.BMP from the Anex86 emulator */</span>
+<a name="l01043"></a>01043             <span class="keywordflow">if</span> (!ok) ok = Load_Anex86_Font();
+<a name="l01044"></a>01044             <span class="comment">/* Failing all else we can just re-use the IBM VGA 8x16 font to show SOMETHING on the screen.</span>
+<a name="l01045"></a>01045 <span class="comment">             * Japanese text will not display properly though. */</span>
+<a name="l01046"></a>01046             <span class="keywordflow">if</span> (!ok) ok = Load_VGAFont_As_PC98();
+<a name="l01047"></a>01047         }
 <a name="l01048"></a>01048 
-<a name="l01049"></a>01049         <span class="comment">/* FIXME: This belongs in MS-DOS kernel init, because these reside in the CON driver */</span>
-<a name="l01050"></a>01050         <span class="comment">/* Some PC-98 game behavior seems to suggest the BIOS data area stretches all the way from segment 0x40:0x00 to segment 0x7F:0x0F inclusive.</span>
-<a name="l01051"></a>01051 <span class="comment">         * Compare that to IBM PC platform, where segment fills only 0x40:0x00 to 0x50:0x00 inclusive and extra state is held in the &quot;Extended BIOS Data Area&quot;.</span>
-<a name="l01052"></a>01052 <span class="comment">         */</span>
-<a name="l01053"></a>01053 
-<a name="l01054"></a>01054         <span class="comment">/* number of text rows on the screen.</span>
-<a name="l01055"></a>01055 <span class="comment">         * Touhou Project will not clear/format the text layer properly without this variable. */</span>
-<a name="l01056"></a>01056         mem_writeb(0x710,25 - 1); <span class="comment">/* cursor position Y coordinate */</span>
-<a name="l01057"></a>01057         mem_writeb(0x711,1); <span class="comment">/* function definition display status flag */</span>
-<a name="l01058"></a>01058         mem_writeb(0x712,25 - 1); <span class="comment">/* number of rows - 1 */</span>
-<a name="l01059"></a>01059         mem_writeb(0x713,1); <span class="comment">/* normal 25 lines */</span>
-<a name="l01060"></a>01060         mem_writeb(0x714,0xE1); <span class="comment">/* content erase attribute */</span>
-<a name="l01061"></a>01061 
-<a name="l01062"></a>01062         mem_writeb(0x719,0x20); <span class="comment">/* content erase character */</span>
+<a name="l01049"></a>01049         CurMode = &amp;PC98_Mode;
+<a name="l01050"></a>01050 
+<a name="l01051"></a>01051         <span class="comment">/* FIXME: This belongs in MS-DOS kernel init, because these reside in the CON driver */</span>
+<a name="l01052"></a>01052         <span class="comment">/* Some PC-98 game behavior seems to suggest the BIOS data area stretches all the way from segment 0x40:0x00 to segment 0x7F:0x0F inclusive.</span>
+<a name="l01053"></a>01053 <span class="comment">         * Compare that to IBM PC platform, where segment fills only 0x40:0x00 to 0x50:0x00 inclusive and extra state is held in the &quot;Extended BIOS Data Area&quot;.</span>
+<a name="l01054"></a>01054 <span class="comment">         */</span>
+<a name="l01055"></a>01055 
+<a name="l01056"></a>01056         <span class="comment">/* number of text rows on the screen.</span>
+<a name="l01057"></a>01057 <span class="comment">         * Touhou Project will not clear/format the text layer properly without this variable. */</span>
+<a name="l01058"></a>01058         mem_writeb(0x710,25 - 1); <span class="comment">/* cursor position Y coordinate */</span>
+<a name="l01059"></a>01059         mem_writeb(0x711,1); <span class="comment">/* function definition display status flag */</span>
+<a name="l01060"></a>01060         mem_writeb(0x712,25 - 1); <span class="comment">/* number of rows - 1 */</span>
+<a name="l01061"></a>01061         mem_writeb(0x713,1); <span class="comment">/* normal 25 lines */</span>
+<a name="l01062"></a>01062         mem_writeb(0x714,0xE1); <span class="comment">/* content erase attribute */</span>
 <a name="l01063"></a>01063 
-<a name="l01064"></a>01064         mem_writeb(0x71B,0x01); <span class="comment">/* cursor displayed */</span>
+<a name="l01064"></a>01064         mem_writeb(0x719,0x20); <span class="comment">/* content erase character */</span>
 <a name="l01065"></a>01065 
-<a name="l01066"></a>01066         mem_writeb(0x71D,0xE1); <span class="comment">/* content display attribute */</span>
+<a name="l01066"></a>01066         mem_writeb(0x71B,0x01); <span class="comment">/* cursor displayed */</span>
 <a name="l01067"></a>01067 
-<a name="l01068"></a>01068         mem_writeb(0x71F,0x01); <span class="comment">/* scrolling speed is normal */</span>
+<a name="l01068"></a>01068         mem_writeb(0x71D,0xE1); <span class="comment">/* content display attribute */</span>
 <a name="l01069"></a>01069 
-<a name="l01070"></a>01070         <span class="comment">/* however, our console functions still use IBM PC values! */</span>
-<a name="l01071"></a>01071         mem_writeb(0x400+BIOSMEM_CURRENT_MODE,0);
-<a name="l01072"></a>01072         mem_writew(0x400+BIOSMEM_NB_COLS,80);
-<a name="l01073"></a>01073         mem_writew(0x400+BIOSMEM_PAGE_SIZE,0);
-<a name="l01074"></a>01074         mem_writew(0x400+BIOSMEM_CURRENT_START,0);
-<a name="l01075"></a>01075         mem_writew(0x400+BIOSMEM_CURSOR_POS,0);
-<a name="l01076"></a>01076         mem_writew(0x400+BIOSMEM_CURRENT_PAGE,0);
-<a name="l01077"></a>01077         mem_writeb(0x400+BIOSMEM_NB_ROWS,25);
-<a name="l01078"></a>01078         mem_writeb(0x400+BIOSMEM_CHAR_HEIGHT,16);
-<a name="l01079"></a>01079 
-<a name="l01080"></a>01080         <span class="comment">/* init text RAM */</span>
-<a name="l01081"></a>01081         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; 0x2000;i += 2) {
-<a name="l01082"></a>01082             mem_writew(0xA0000+i,0);
-<a name="l01083"></a>01083             mem_writeb(0xA2000+i,0xE1);
-<a name="l01084"></a>01084         }
-<a name="l01085"></a>01085         <span class="comment">/* clear graphics RAM */</span>
-<a name="l01086"></a>01086         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; 0x8000;i += 2) {
-<a name="l01087"></a>01087             mem_writew(0xA8000+i,0);
-<a name="l01088"></a>01088             mem_writew(0xB0000+i,0);
-<a name="l01089"></a>01089             mem_writew(0xB8000+i,0);
-<a name="l01090"></a>01090         }
-<a name="l01091"></a>01091     }
-<a name="l01092"></a>01092 }
-<a name="l01093"></a>01093 
-<a name="l01094"></a>01094 <span class="keywordtype">void</span> INT10_Init() {
-<a name="l01095"></a>01095 }
-<a name="l01096"></a>01096 
+<a name="l01070"></a>01070         mem_writeb(0x71F,0x01); <span class="comment">/* scrolling speed is normal */</span>
+<a name="l01071"></a>01071 
+<a name="l01072"></a>01072         <span class="comment">/* however, our console functions still use IBM PC values! */</span>
+<a name="l01073"></a>01073         mem_writeb(0x400+BIOSMEM_CURRENT_MODE,0);
+<a name="l01074"></a>01074         mem_writew(0x400+BIOSMEM_NB_COLS,80);
+<a name="l01075"></a>01075         mem_writew(0x400+BIOSMEM_PAGE_SIZE,0);
+<a name="l01076"></a>01076         mem_writew(0x400+BIOSMEM_CURRENT_START,0);
+<a name="l01077"></a>01077         mem_writew(0x400+BIOSMEM_CURSOR_POS,0);
+<a name="l01078"></a>01078         mem_writew(0x400+BIOSMEM_CURRENT_PAGE,0);
+<a name="l01079"></a>01079         mem_writeb(0x400+BIOSMEM_NB_ROWS,25);
+<a name="l01080"></a>01080         mem_writeb(0x400+BIOSMEM_CHAR_HEIGHT,16);
+<a name="l01081"></a>01081 
+<a name="l01082"></a>01082         <span class="comment">/* init text RAM */</span>
+<a name="l01083"></a>01083         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; 0x2000;i += 2) {
+<a name="l01084"></a>01084             mem_writew(0xA0000+i,0);
+<a name="l01085"></a>01085             mem_writeb(0xA2000+i,0xE1);
+<a name="l01086"></a>01086         }
+<a name="l01087"></a>01087         <span class="comment">/* clear graphics RAM */</span>
+<a name="l01088"></a>01088         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; 0x8000;i += 2) {
+<a name="l01089"></a>01089             mem_writew(0xA8000+i,0);
+<a name="l01090"></a>01090             mem_writew(0xB0000+i,0);
+<a name="l01091"></a>01091             mem_writew(0xB8000+i,0);
+<a name="l01092"></a>01092         }
+<a name="l01093"></a>01093     }
+<a name="l01094"></a>01094 }
+<a name="l01095"></a>01095 
+<a name="l01096"></a>01096 <span class="keywordtype">void</span> INT10_Init() {
+<a name="l01097"></a>01097 }
+<a name="l01098"></a>01098 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

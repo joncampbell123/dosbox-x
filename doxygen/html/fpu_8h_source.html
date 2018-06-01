@@ -295,38 +295,38 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00199"></a>00199 
 <a name="l00200"></a>00200 
 <a name="l00201"></a>00201 <span class="keyword">static</span> INLINE Bitu FPU_GET_TOP(<span class="keywordtype">void</span>) {
-<a name="l00202"></a>00202         <span class="keywordflow">return</span> (fpu.sw &amp; 0x3800)&gt;&gt;11;
+<a name="l00202"></a>00202         <span class="keywordflow">return</span> (fpu.sw &amp; 0x3800U) &gt;&gt; 11U;
 <a name="l00203"></a>00203 }
 <a name="l00204"></a>00204 
 <a name="l00205"></a>00205 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> FPU_SET_TOP(Bitu val){
-<a name="l00206"></a>00206         fpu.sw &amp;= ~0x3800;
-<a name="l00207"></a>00207         fpu.sw |= (val&amp;7)&lt;&lt;11;
+<a name="l00206"></a>00206         fpu.sw &amp;= ~0x3800U;
+<a name="l00207"></a>00207         fpu.sw |= (val &amp; 7U) &lt;&lt; 11U;
 <a name="l00208"></a>00208 }
 <a name="l00209"></a>00209 
 <a name="l00210"></a>00210 
 <a name="l00211"></a>00211 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> FPU_SET_C0(Bitu C){
-<a name="l00212"></a>00212         fpu.sw &amp;= ~0x0100;
-<a name="l00213"></a>00213         <span class="keywordflow">if</span>(C) fpu.sw |=  0x0100;
+<a name="l00212"></a>00212         fpu.sw &amp;= ~0x0100U;
+<a name="l00213"></a>00213         <span class="keywordflow">if</span>(C) fpu.sw |=  0x0100U;
 <a name="l00214"></a>00214 }
 <a name="l00215"></a>00215 
 <a name="l00216"></a>00216 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> FPU_SET_C1(Bitu C){
-<a name="l00217"></a>00217         fpu.sw &amp;= ~0x0200;
-<a name="l00218"></a>00218         <span class="keywordflow">if</span>(C) fpu.sw |=  0x0200;
+<a name="l00217"></a>00217         fpu.sw &amp;= ~0x0200U;
+<a name="l00218"></a>00218         <span class="keywordflow">if</span>(C) fpu.sw |=  0x0200U;
 <a name="l00219"></a>00219 }
 <a name="l00220"></a>00220 
 <a name="l00221"></a>00221 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> FPU_SET_C2(Bitu C){
-<a name="l00222"></a>00222         fpu.sw &amp;= ~0x0400;
-<a name="l00223"></a>00223         <span class="keywordflow">if</span>(C) fpu.sw |=  0x0400;
+<a name="l00222"></a>00222         fpu.sw &amp;= ~0x0400U;
+<a name="l00223"></a>00223         <span class="keywordflow">if</span>(C) fpu.sw |=  0x0400U;
 <a name="l00224"></a>00224 }
 <a name="l00225"></a>00225 
 <a name="l00226"></a>00226 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> FPU_SET_C3(Bitu C){
-<a name="l00227"></a>00227         fpu.sw &amp;= ~0x4000;
-<a name="l00228"></a>00228         <span class="keywordflow">if</span>(C) fpu.sw |= 0x4000;
+<a name="l00227"></a>00227         fpu.sw &amp;= ~0x4000U;
+<a name="l00228"></a>00228         <span class="keywordflow">if</span>(C) fpu.sw |= 0x4000U;
 <a name="l00229"></a>00229 }
 <a name="l00230"></a>00230 
 <a name="l00231"></a>00231 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> FPU_SET_D(Bitu C){
-<a name="l00232"></a>00232         fpu.sw &amp;= ~0x0002;
-<a name="l00233"></a>00233         <span class="keywordflow">if</span>(C) fpu.sw |= 0x0002;
+<a name="l00232"></a>00232         fpu.sw &amp;= ~0x0002U;
+<a name="l00233"></a>00233         <span class="keywordflow">if</span>(C) fpu.sw |= 0x0002U;
 <a name="l00234"></a>00234 }
 <a name="l00235"></a>00235 
 <a name="l00236"></a>00236 
@@ -335,7 +335,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:40:59 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

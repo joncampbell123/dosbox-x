@@ -7293,27 +7293,28 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l07197"></a>07197 }
 <a name="l07198"></a>07198 
 <a name="l07199"></a>07199 D3DXMATRIX* WINAPI D3DXMatrixOrthoOffCenterLH(D3DXMATRIX *pOut, FLOAT l, FLOAT r, FLOAT b, FLOAT t, FLOAT zn, FLOAT zf) {
-<a name="l07200"></a>07200     pOut-&gt;_11=2.0f/r; pOut-&gt;_12=0.0f;   pOut-&gt;_13=0.0f;  pOut-&gt;_14=0.0f;
-<a name="l07201"></a>07201     pOut-&gt;_21=0.0f;   pOut-&gt;_22=2.0f/t; pOut-&gt;_23=0.0f;  pOut-&gt;_24=0.0f;
-<a name="l07202"></a>07202     pOut-&gt;_31=0.0f;   pOut-&gt;_32=0.0f;   pOut-&gt;_33=1.0f;  pOut-&gt;_34=0.0f;
-<a name="l07203"></a>07203     pOut-&gt;_41=-1.0f;  pOut-&gt;_42=-1.0f;  pOut-&gt;_43=0.0f;  pOut-&gt;_44=1.0f;
-<a name="l07204"></a>07204 
-<a name="l07205"></a>07205     <span class="keywordflow">return</span> pOut;
-<a name="l07206"></a>07206 }
-<a name="l07207"></a>07207 
-<a name="l07208"></a>07208 D3DXMATRIX* WINAPI D3DXMatrixScaling(D3DXMATRIX *pOut, FLOAT sx, FLOAT sy, FLOAT sz) {
-<a name="l07209"></a>07209     pOut-&gt;_11=sx;     pOut-&gt;_12=0.0f;   pOut-&gt;_13=0.0f;  pOut-&gt;_14=0.0f;
-<a name="l07210"></a>07210     pOut-&gt;_21=0.0f;   pOut-&gt;_22=sy;     pOut-&gt;_23=0.0f;  pOut-&gt;_24=0.0f;
-<a name="l07211"></a>07211     pOut-&gt;_31=0.0f;   pOut-&gt;_32=0.0f;   pOut-&gt;_33=sz;    pOut-&gt;_34=0.0f;
-<a name="l07212"></a>07212     pOut-&gt;_41=0.0f;   pOut-&gt;_42=0.0f;   pOut-&gt;_43=0.0f;  pOut-&gt;_44=1.0f;
-<a name="l07213"></a>07213 
-<a name="l07214"></a>07214     <span class="keywordflow">return</span> pOut;
-<a name="l07215"></a>07215 }
+<a name="l07200"></a>07200     (void)l; (void)b; (void)zn; (void)zf;
+<a name="l07201"></a>07201     pOut-&gt;_11=2.0f/r; pOut-&gt;_12=0.0f;   pOut-&gt;_13=0.0f;  pOut-&gt;_14=0.0f;
+<a name="l07202"></a>07202     pOut-&gt;_21=0.0f;   pOut-&gt;_22=2.0f/t; pOut-&gt;_23=0.0f;  pOut-&gt;_24=0.0f;
+<a name="l07203"></a>07203     pOut-&gt;_31=0.0f;   pOut-&gt;_32=0.0f;   pOut-&gt;_33=1.0f;  pOut-&gt;_34=0.0f;
+<a name="l07204"></a>07204     pOut-&gt;_41=-1.0f;  pOut-&gt;_42=-1.0f;  pOut-&gt;_43=0.0f;  pOut-&gt;_44=1.0f;
+<a name="l07205"></a>07205 
+<a name="l07206"></a>07206     <span class="keywordflow">return</span> pOut;
+<a name="l07207"></a>07207 }
+<a name="l07208"></a>07208 
+<a name="l07209"></a>07209 D3DXMATRIX* WINAPI D3DXMatrixScaling(D3DXMATRIX *pOut, FLOAT sx, FLOAT sy, FLOAT sz) {
+<a name="l07210"></a>07210     pOut-&gt;_11=sx;     pOut-&gt;_12=0.0f;   pOut-&gt;_13=0.0f;  pOut-&gt;_14=0.0f;
+<a name="l07211"></a>07211     pOut-&gt;_21=0.0f;   pOut-&gt;_22=sy;     pOut-&gt;_23=0.0f;  pOut-&gt;_24=0.0f;
+<a name="l07212"></a>07212     pOut-&gt;_31=0.0f;   pOut-&gt;_32=0.0f;   pOut-&gt;_33=sz;    pOut-&gt;_34=0.0f;
+<a name="l07213"></a>07213     pOut-&gt;_41=0.0f;   pOut-&gt;_42=0.0f;   pOut-&gt;_43=0.0f;  pOut-&gt;_44=1.0f;
+<a name="l07214"></a>07214 
+<a name="l07215"></a>07215     <span class="keywordflow">return</span> pOut;
+<a name="l07216"></a>07216 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:01 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:32 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

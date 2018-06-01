@@ -163,21 +163,22 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00067"></a>00067         }
 <a name="l00068"></a>00068         
 <a name="l00069"></a>00069         <span class="comment">// If the Current Buffer *is* the Size we want, Don&#39;t do anything! </span>
-<a name="l00070"></a>00070         <span class="keywordflow">return</span>;
-<a name="l00071"></a>00071    }
-<a name="l00072"></a>00072 
+<a name="l00070"></a>00070     (void)bSuccess;<span class="comment">//UNUSED</span>
+<a name="l00071"></a>00071         <span class="keywordflow">return</span>;
+<a name="l00072"></a>00072    }
 <a name="l00073"></a>00073 
-<a name="l00074"></a>00074 <span class="keywordtype">void</span> WIN32_Console() {
-<a name="l00075"></a>00075         AllocConsole();
-<a name="l00076"></a>00076         SetConsoleTitle(<span class="stringliteral">&quot;DOSBox Debugger&quot;</span>);
-<a name="l00077"></a>00077         ResizeConsole(GetStdHandle(STD_OUTPUT_HANDLE),80,50);
-<a name="l00078"></a>00078 }
-<a name="l00079"></a>00079 <span class="preprocessor">#endif</span>
+<a name="l00074"></a>00074 
+<a name="l00075"></a>00075 <span class="keywordtype">void</span> WIN32_Console() {
+<a name="l00076"></a>00076         AllocConsole();
+<a name="l00077"></a>00077         SetConsoleTitle(<span class="stringliteral">&quot;DOSBox Debugger&quot;</span>);
+<a name="l00078"></a>00078         ResizeConsole(GetStdHandle(STD_OUTPUT_HANDLE),80,50);
+<a name="l00079"></a>00079 }
+<a name="l00080"></a>00080 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:00 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

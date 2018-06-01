@@ -106,7 +106,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00010"></a>00010 
 <a name="l00011"></a>00011 <span class="keywordtype">void</span> SOUNDCALL psggen_getpcm(<a class="code" href="struct__PSGGEN.html">PSGGEN</a> psg, SINT32 *pcm, UINT count) {
 <a name="l00012"></a>00012 
-<a name="l00013"></a>00013         SINT32  noisevol;
+<a name="l00013"></a>00013 <span class="comment">//      SINT32  noisevol;</span>
 <a name="l00014"></a>00014         UINT8   mixer;
 <a name="l00015"></a>00015         UINT    noisetbl = 0;
 <a name="l00016"></a>00016         <a class="code" href="structPSGTONE.html">PSGTONE</a> *tone;
@@ -125,7 +125,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00029"></a>00029                 <span class="keywordflow">return</span>;
 <a name="l00030"></a>00030         }
 <a name="l00031"></a>00031         <span class="keywordflow">do</span> {
-<a name="l00032"></a>00032                 noisevol = 0;
+<a name="l00032"></a>00032 <span class="comment">//              noisevol = 0;</span>
 <a name="l00033"></a>00033                 <span class="keywordflow">if</span> (psg-&gt;envcnt) {
 <a name="l00034"></a>00034                         psg-&gt;envcnt--;
 <a name="l00035"></a>00035                         <span class="keywordflow">if</span> (psg-&gt;envcnt == 0) {
@@ -224,7 +224,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

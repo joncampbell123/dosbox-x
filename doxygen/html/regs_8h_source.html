@@ -121,22 +121,22 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00025"></a>00025 <span class="preprocessor"></span><span class="preprocessor">#include &quot;mem.h&quot;</span>
 <a name="l00026"></a>00026 <span class="preprocessor">#endif</span>
 <a name="l00027"></a>00027 <span class="preprocessor"></span>
-<a name="l00028"></a>00028 <span class="preprocessor">#define FLAG_CF         0x00000001</span>
-<a name="l00029"></a>00029 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_PF         0x00000004</span>
-<a name="l00030"></a>00030 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_AF         0x00000010</span>
-<a name="l00031"></a>00031 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_ZF         0x00000040</span>
-<a name="l00032"></a>00032 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_SF         0x00000080</span>
-<a name="l00033"></a>00033 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_OF         0x00000800</span>
+<a name="l00028"></a>00028 <span class="preprocessor">#define FLAG_CF         0x00000001U</span>
+<a name="l00029"></a>00029 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_PF         0x00000004U</span>
+<a name="l00030"></a>00030 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_AF         0x00000010U</span>
+<a name="l00031"></a>00031 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_ZF         0x00000040U</span>
+<a name="l00032"></a>00032 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_SF         0x00000080U</span>
+<a name="l00033"></a>00033 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_OF         0x00000800U</span>
 <a name="l00034"></a>00034 <span class="preprocessor"></span>
-<a name="l00035"></a>00035 <span class="preprocessor">#define FLAG_TF         0x00000100</span>
-<a name="l00036"></a>00036 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_IF         0x00000200</span>
-<a name="l00037"></a>00037 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_DF         0x00000400</span>
+<a name="l00035"></a>00035 <span class="preprocessor">#define FLAG_TF         0x00000100U</span>
+<a name="l00036"></a>00036 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_IF         0x00000200U</span>
+<a name="l00037"></a>00037 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_DF         0x00000400U</span>
 <a name="l00038"></a>00038 <span class="preprocessor"></span>
-<a name="l00039"></a>00039 <span class="preprocessor">#define FLAG_IOPL       0x00003000</span>
-<a name="l00040"></a>00040 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_NT         0x00004000</span>
-<a name="l00041"></a>00041 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_VM         0x00020000</span>
-<a name="l00042"></a>00042 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_AC         0x00040000</span>
-<a name="l00043"></a>00043 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_ID         0x00200000</span>
+<a name="l00039"></a>00039 <span class="preprocessor">#define FLAG_IOPL       0x00003000U</span>
+<a name="l00040"></a>00040 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_NT         0x00004000U</span>
+<a name="l00041"></a>00041 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_VM         0x00020000U</span>
+<a name="l00042"></a>00042 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_AC         0x00040000U</span>
+<a name="l00043"></a>00043 <span class="preprocessor"></span><span class="preprocessor">#define FLAG_ID         0x00200000U</span>
 <a name="l00044"></a>00044 <span class="preprocessor"></span>
 <a name="l00045"></a>00045 <span class="preprocessor">#define FMASK_TEST              (FLAG_CF | FLAG_PF | FLAG_AF | FLAG_ZF | FLAG_SF | FLAG_OF)</span>
 <a name="l00046"></a>00046 <span class="preprocessor"></span><span class="preprocessor">#define FMASK_NORMAL    (FMASK_TEST | FLAG_DF | FLAG_TF | FLAG_IF )     </span>
@@ -219,8 +219,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00123"></a>00123 
 <a name="l00124"></a>00124 
 <a name="l00125"></a>00125 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> SegSet16(Bitu index,Bit16u val) {
-<a name="l00126"></a>00126         Segs.val[index]=val;
-<a name="l00127"></a>00127         Segs.phys[index]=val &lt;&lt; 4;
+<a name="l00126"></a>00126         Segs.val[index]=(Bitu)val;
+<a name="l00127"></a>00127         Segs.phys[index]=(PhysPt)((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)val &lt;&lt; 4U);
 <a name="l00128"></a>00128         <span class="comment">/* real mode does not update limit */</span>
 <a name="l00129"></a>00129 }
 <a name="l00130"></a>00130 
@@ -284,7 +284,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:40:59 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -138,13 +138,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00042"></a>00042 <span class="keyword">public</span>:
 <a name="l00043"></a>00043         <a class="code" href="classdevice__CON.html">device_CON</a>();
 <a name="l00044"></a>00044         <span class="keywordtype">bool</span> Read(Bit8u * data,Bit16u * size);
-<a name="l00045"></a>00045         <span class="keywordtype">bool</span> Write(Bit8u * data,Bit16u * size);
+<a name="l00045"></a>00045         <span class="keywordtype">bool</span> Write(<span class="keyword">const</span> Bit8u * data,Bit16u * size);
 <a name="l00046"></a>00046         <span class="keywordtype">bool</span> Seek(Bit32u * pos,Bit32u type);
 <a name="l00047"></a>00047         <span class="keywordtype">bool</span> Close();
 <a name="l00048"></a>00048         <span class="keywordtype">void</span> ClearAnsi(<span class="keywordtype">void</span>);
 <a name="l00049"></a>00049         Bit16u GetInformation(<span class="keywordtype">void</span>);
-<a name="l00050"></a>00050         <span class="keywordtype">bool</span> ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode){<span class="keywordflow">return</span> <span class="keyword">false</span>;}
-<a name="l00051"></a>00051         <span class="keywordtype">bool</span> WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode){<span class="keywordflow">return</span> <span class="keyword">false</span>;}
+<a name="l00050"></a>00050         <span class="keywordtype">bool</span> ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; <span class="keywordflow">return</span> <span class="keyword">false</span>; }
+<a name="l00051"></a>00051         <span class="keywordtype">bool</span> WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; <span class="keywordflow">return</span> <span class="keyword">false</span>; }
 <a name="l00052"></a>00052 <span class="keyword">private</span>:
 <a name="l00053"></a>00053         Bit8u readcache;
 <a name="l00054"></a>00054         Bit8u lastwrite;
@@ -260,7 +260,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00164"></a>00164 
 <a name="l00165"></a>00165         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
 <a name="l00166"></a>00166             <span class="keywordflow">if</span> (con_sjis.take(xChar)) {
-<a name="l00167"></a>00167                 BIOS_NCOLS;BIOS_NROWS;
+<a name="l00167"></a>00167                 BIOS_NCOLS;
 <a name="l00168"></a>00168                 Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 <a name="l00169"></a>00169                 Bit8u cur_row=CURSOR_POS_ROW(page);
 <a name="l00170"></a>00170                 Bit8u cur_col=CURSOR_POS_COL(page);
@@ -268,7 +268,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00172"></a>00172 
 <a name="l00173"></a>00173                 <span class="comment">/* FIXME: I&#39;m not sure what NEC&#39;s ANSI driver does if a doublewide character is printed at column 79 */</span>
 <a name="l00174"></a>00174                 <span class="keywordflow">if</span> ((cur_col+cw) &gt; ncols) {
-<a name="l00175"></a>00175                     cur_col = ncols;
+<a name="l00175"></a>00175                     cur_col = (Bit8u)ncols;
 <a name="l00176"></a>00176                     AdjustCursorPosition(cur_col,cur_row);
 <a name="l00177"></a>00177                 }
 <a name="l00178"></a>00178 
@@ -399,12 +399,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00303"></a>00303                         <span class="comment">//* Draw the actual Character</span>
 <a name="l00304"></a>00304             <span class="keywordflow">if</span> (IS_PC98_ARCH) {
 <a name="l00305"></a>00305                 <span class="keywordflow">if</span> (con_sjis.take(chr)) {
-<a name="l00306"></a>00306                     BIOS_NCOLS;BIOS_NROWS;
+<a name="l00306"></a>00306                     BIOS_NCOLS;
 <a name="l00307"></a>00307                     <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> cw = con_sjis.doublewide ? 2 : 1;
 <a name="l00308"></a>00308 
 <a name="l00309"></a>00309                     <span class="comment">/* FIXME: I&#39;m not sure what NEC&#39;s ANSI driver does if a doublewide character is printed at column 79 */</span>
 <a name="l00310"></a>00310                     <span class="keywordflow">if</span> ((cur_col+cw) &gt; ncols) {
-<a name="l00311"></a>00311                         cur_col = ncols;
+<a name="l00311"></a>00311                         cur_col = (Bit8u)ncols;
 <a name="l00312"></a>00312                         AdjustCursorPosition(cur_col,cur_row);
 <a name="l00313"></a>00313                     }
 <a name="l00314"></a>00314 
@@ -553,7 +553,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00457"></a>00457 <span class="keywordtype">bool</span> log_dev_con = <span class="keyword">false</span>;
 <a name="l00458"></a>00458 std::string log_dev_con_str;
 <a name="l00459"></a>00459 
-<a name="l00460"></a>00460 <span class="keywordtype">bool</span> device_CON::Write(Bit8u * data,Bit16u * size) {
+<a name="l00460"></a>00460 <span class="keywordtype">bool</span> device_CON::Write(<span class="keyword">const</span> Bit8u * data,Bit16u * size) {
 <a name="l00461"></a>00461     Bit16u count=0;
 <a name="l00462"></a>00462     Bitu i;
 <a name="l00463"></a>00463     Bit8u col,row;
@@ -868,129 +868,131 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00772"></a>00772 }
 <a name="l00773"></a>00773 
 <a name="l00774"></a>00774 <span class="keywordtype">bool</span> device_CON::Seek(Bit32u * pos,Bit32u type) {
-<a name="l00775"></a>00775         <span class="comment">// seek is valid</span>
-<a name="l00776"></a>00776         *pos = 0;
-<a name="l00777"></a>00777         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00778"></a>00778 }
-<a name="l00779"></a>00779 
-<a name="l00780"></a>00780 <span class="keywordtype">bool</span> device_CON::Close() {
-<a name="l00781"></a>00781         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00782"></a>00782 }
-<a name="l00783"></a>00783 
-<a name="l00784"></a>00784 <span class="keyword">extern</span> <span class="keywordtype">bool</span> dos_con_use_int16_to_detect_input;
+<a name="l00775"></a>00775     (void)pos; <span class="comment">// UNUSED</span>
+<a name="l00776"></a>00776     (void)type; <span class="comment">// UNUSED</span>
+<a name="l00777"></a>00777         <span class="comment">// seek is valid</span>
+<a name="l00778"></a>00778         *pos = 0;
+<a name="l00779"></a>00779         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00780"></a>00780 }
+<a name="l00781"></a>00781 
+<a name="l00782"></a>00782 <span class="keywordtype">bool</span> device_CON::Close() {
+<a name="l00783"></a>00783         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00784"></a>00784 }
 <a name="l00785"></a>00785 
-<a name="l00786"></a>00786 Bit16u device_CON::GetInformation(<span class="keywordtype">void</span>) {
-<a name="l00787"></a>00787         <span class="keywordflow">if</span> (dos_con_use_int16_to_detect_input || IS_PC98_ARCH) {
-<a name="l00788"></a>00788                 Bit16u ret = 0x80D3; <span class="comment">/* No Key Available */</span>
-<a name="l00789"></a>00789 
-<a name="l00790"></a>00790                 <span class="comment">/* DOSBox-X behavior: Use INT 16h AH=0x11 Query keyboard status/preview key.</span>
-<a name="l00791"></a>00791 <span class="comment">                 * The reason we do this is some DOS programs actually rely on hooking INT 16h</span>
-<a name="l00792"></a>00792 <span class="comment">                 * to manipulate, hide, or transform what the DOS CON driver sees as well as</span>
-<a name="l00793"></a>00793 <span class="comment">                 * itself. Perhaps the most disgusting example of this behavior would be the</span>
-<a name="l00794"></a>00794 <span class="comment">                 * SCANDISK.EXE utility in Microsoft MS-DOS 6.22, which apparently relies on</span>
-<a name="l00795"></a>00795 <span class="comment">                 * hooking INT 16h in this way to catch the Escape, CTRL+C, and some other</span>
-<a name="l00796"></a>00796 <span class="comment">                 * scan codes in order to &quot;eat&quot; the scan codes before they get back to DOS.</span>
-<a name="l00797"></a>00797 <span class="comment">                 * The reason they can get away with it apparently and still respond properly</span>
-<a name="l00798"></a>00798 <span class="comment">                 * to those keys, is because the MS-DOS 6.22 CON driver always calls INT 16h</span>
-<a name="l00799"></a>00799 <span class="comment">                 * AH=0x11 first before calling INT 16h AH=0x10 to fetch the scan code.</span>
-<a name="l00800"></a>00800 <span class="comment">                 *</span>
-<a name="l00801"></a>00801 <span class="comment">                 * Without this fix, SCANDISK.EXE does not respond properly to Escape and</span>
-<a name="l00802"></a>00802 <span class="comment">                 * a few other keys. Pressing Escape will do nothing until you hit any other</span>
-<a name="l00803"></a>00803 <span class="comment">                 * key, at which point it suddenly acts upon the Escape key.</span>
-<a name="l00804"></a>00804 <span class="comment">                 *</span>
-<a name="l00805"></a>00805 <span class="comment">                 * Since Scandisk is using INT 21h AH=0x0B to query STDIN during this time,</span>
-<a name="l00806"></a>00806 <span class="comment">                 * this implementation is a good &quot;halfway&quot; compromise in that this call</span>
-<a name="l00807"></a>00807 <span class="comment">                 * will trigger the INT 16h AH=0x11 hook it relies on. */</span>
-<a name="l00808"></a>00808                 <span class="keywordflow">if</span> (readcache || dev_con_pos &lt; dev_con_max) <span class="keywordflow">return</span> 0x8093; <span class="comment">/* key available */</span>
-<a name="l00809"></a>00809 
-<a name="l00810"></a>00810                 Bitu saved_ax = reg_ax;
+<a name="l00786"></a>00786 <span class="keyword">extern</span> <span class="keywordtype">bool</span> dos_con_use_int16_to_detect_input;
+<a name="l00787"></a>00787 
+<a name="l00788"></a>00788 Bit16u device_CON::GetInformation(<span class="keywordtype">void</span>) {
+<a name="l00789"></a>00789         <span class="keywordflow">if</span> (dos_con_use_int16_to_detect_input || IS_PC98_ARCH) {
+<a name="l00790"></a>00790                 Bit16u ret = 0x80D3; <span class="comment">/* No Key Available */</span>
+<a name="l00791"></a>00791 
+<a name="l00792"></a>00792                 <span class="comment">/* DOSBox-X behavior: Use INT 16h AH=0x11 Query keyboard status/preview key.</span>
+<a name="l00793"></a>00793 <span class="comment">                 * The reason we do this is some DOS programs actually rely on hooking INT 16h</span>
+<a name="l00794"></a>00794 <span class="comment">                 * to manipulate, hide, or transform what the DOS CON driver sees as well as</span>
+<a name="l00795"></a>00795 <span class="comment">                 * itself. Perhaps the most disgusting example of this behavior would be the</span>
+<a name="l00796"></a>00796 <span class="comment">                 * SCANDISK.EXE utility in Microsoft MS-DOS 6.22, which apparently relies on</span>
+<a name="l00797"></a>00797 <span class="comment">                 * hooking INT 16h in this way to catch the Escape, CTRL+C, and some other</span>
+<a name="l00798"></a>00798 <span class="comment">                 * scan codes in order to &quot;eat&quot; the scan codes before they get back to DOS.</span>
+<a name="l00799"></a>00799 <span class="comment">                 * The reason they can get away with it apparently and still respond properly</span>
+<a name="l00800"></a>00800 <span class="comment">                 * to those keys, is because the MS-DOS 6.22 CON driver always calls INT 16h</span>
+<a name="l00801"></a>00801 <span class="comment">                 * AH=0x11 first before calling INT 16h AH=0x10 to fetch the scan code.</span>
+<a name="l00802"></a>00802 <span class="comment">                 *</span>
+<a name="l00803"></a>00803 <span class="comment">                 * Without this fix, SCANDISK.EXE does not respond properly to Escape and</span>
+<a name="l00804"></a>00804 <span class="comment">                 * a few other keys. Pressing Escape will do nothing until you hit any other</span>
+<a name="l00805"></a>00805 <span class="comment">                 * key, at which point it suddenly acts upon the Escape key.</span>
+<a name="l00806"></a>00806 <span class="comment">                 *</span>
+<a name="l00807"></a>00807 <span class="comment">                 * Since Scandisk is using INT 21h AH=0x0B to query STDIN during this time,</span>
+<a name="l00808"></a>00808 <span class="comment">                 * this implementation is a good &quot;halfway&quot; compromise in that this call</span>
+<a name="l00809"></a>00809 <span class="comment">                 * will trigger the INT 16h AH=0x11 hook it relies on. */</span>
+<a name="l00810"></a>00810                 <span class="keywordflow">if</span> (readcache || dev_con_pos &lt; dev_con_max) <span class="keywordflow">return</span> 0x8093; <span class="comment">/* key available */</span>
 <a name="l00811"></a>00811 
-<a name="l00812"></a>00812                 reg_ah = (IS_EGAVGA_ARCH)?0x11:0x1; <span class="comment">// check for keystroke</span>
+<a name="l00812"></a>00812                 Bitu saved_ax = reg_ax;
 <a name="l00813"></a>00813 
-<a name="l00814"></a>00814         <span class="comment">/* FIXME: PC-98 emulation should eventually use CONIO emulation that</span>
-<a name="l00815"></a>00815 <span class="comment">         *        better emulates the actual platform. The purpose of this</span>
-<a name="l00816"></a>00816 <span class="comment">         *        hack is to allow our code to call into INT 16h without</span>
-<a name="l00817"></a>00817 <span class="comment">         *        setting up an INT 16h vector */</span>
-<a name="l00818"></a>00818         <span class="keywordflow">if</span> (IS_PC98_ARCH)
-<a name="l00819"></a>00819             INT16_Handler_Wrap();
-<a name="l00820"></a>00820         <span class="keywordflow">else</span>
-<a name="l00821"></a>00821             CALLBACK_RunRealInt(0x16);
-<a name="l00822"></a>00822 
-<a name="l00823"></a>00823         <span class="keywordflow">if</span> (!GETFLAG(ZF)) { <span class="comment">/* key is present, waiting to be returned on AH=0x10 or AH=0x00 */</span>
-<a name="l00824"></a>00824             <span class="keywordflow">if</span> (IS_PC98_ARCH &amp;&amp; reg_al == 0) {
-<a name="l00825"></a>00825                 <span class="comment">/* some scan codes are ignored by CON, and wouldn&#39;t read anything.</span>
-<a name="l00826"></a>00826 <span class="comment">                 * while we&#39;re at it, take the scan code and convert it into ANSI here</span>
-<a name="l00827"></a>00827 <span class="comment">                 * so that Read() returns it immediately instead of doing this conversion itself.</span>
-<a name="l00828"></a>00828 <span class="comment">                 * This way we never block when we SAID a key was available that gets ignored. */</span>
-<a name="l00829"></a>00829                 <span class="keywordflow">if</span> (CommonPC98ExtScanConversionToReadBuf(reg_ah))
-<a name="l00830"></a>00830                     ret = 0x8093; <span class="comment">/* Key Available */</span>
-<a name="l00831"></a>00831                 <span class="keywordflow">else</span>
-<a name="l00832"></a>00832                     ret = 0x80D3; <span class="comment">/* No Key Available */</span>
-<a name="l00833"></a>00833 
-<a name="l00834"></a>00834                 <span class="comment">/* need to consume the key. if it generated anything it will be returned to Read()</span>
-<a name="l00835"></a>00835 <span class="comment">                 * through dev_con_readbuf[] */</span>
-<a name="l00836"></a>00836                 reg_ah=0x0;
-<a name="l00837"></a>00837 
-<a name="l00838"></a>00838                 <span class="comment">/* FIXME: PC-98 emulation should eventually use CONIO emulation that</span>
-<a name="l00839"></a>00839 <span class="comment">                 *        better emulates the actual platform. The purpose of this</span>
-<a name="l00840"></a>00840 <span class="comment">                 *        hack is to allow our code to call into INT 16h without</span>
-<a name="l00841"></a>00841 <span class="comment">                 *        setting up an INT 16h vector */</span>
-<a name="l00842"></a>00842                 INT16_Handler_Wrap();
-<a name="l00843"></a>00843             }
-<a name="l00844"></a>00844             <span class="keywordflow">else</span> {
-<a name="l00845"></a>00845                 ret = 0x8093; <span class="comment">/* Key Available */</span>
-<a name="l00846"></a>00846             }
-<a name="l00847"></a>00847         }
-<a name="l00848"></a>00848 
-<a name="l00849"></a>00849                 reg_ax = saved_ax;
-<a name="l00850"></a>00850                 <span class="keywordflow">return</span> ret;
-<a name="l00851"></a>00851         }
-<a name="l00852"></a>00852         <span class="keywordflow">else</span> {
-<a name="l00853"></a>00853                 <span class="comment">/* DOSBox mainline behavior: alternate &quot;fast&quot; way through direct manipulation of keyboard scan buffer */</span>
-<a name="l00854"></a>00854                 Bit16u head=mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
-<a name="l00855"></a>00855                 Bit16u tail=mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
-<a name="l00856"></a>00856 
-<a name="l00857"></a>00857                 <span class="keywordflow">if</span> ((head==tail) &amp;&amp; !readcache) <span class="keywordflow">return</span> 0x80D3;  <span class="comment">/* No Key Available */</span>
-<a name="l00858"></a>00858                 <span class="keywordflow">if</span> (readcache || real_readw(0x40,head)) <span class="keywordflow">return</span> 0x8093;          <span class="comment">/* Key Available */</span>
-<a name="l00859"></a>00859 
-<a name="l00860"></a>00860                 <span class="comment">/* remove the zero from keyboard buffer */</span>
-<a name="l00861"></a>00861                 Bit16u start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
-<a name="l00862"></a>00862                 Bit16u end      =mem_readw(BIOS_KEYBOARD_BUFFER_END);
-<a name="l00863"></a>00863                 head+=2;
-<a name="l00864"></a>00864                 <span class="keywordflow">if</span> (head&gt;=end) head=start;
-<a name="l00865"></a>00865                 mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,head);
-<a name="l00866"></a>00866         }
-<a name="l00867"></a>00867 
-<a name="l00868"></a>00868         <span class="keywordflow">return</span> 0x80D3; <span class="comment">/* No Key Available */</span>
-<a name="l00869"></a>00869 }
-<a name="l00870"></a>00870 
-<a name="l00871"></a>00871 device_CON::device_CON() {
-<a name="l00872"></a>00872         SetName(<span class="stringliteral">&quot;CON&quot;</span>);
-<a name="l00873"></a>00873         readcache=0;
-<a name="l00874"></a>00874         lastwrite=0;
-<a name="l00875"></a>00875         ansi.enabled=<span class="keyword">false</span>;
-<a name="l00876"></a>00876         ansi.attr=0x7;
-<a name="l00877"></a>00877         ansi.ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS); <span class="comment">//should be updated once set/reset mode is implemented</span>
-<a name="l00878"></a>00878         ansi.nrows=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
-<a name="l00879"></a>00879         ansi.saverow=0;
-<a name="l00880"></a>00880         ansi.savecol=0;
-<a name="l00881"></a>00881         ansi.warned=<span class="keyword">false</span>;
-<a name="l00882"></a>00882         ClearAnsi();
-<a name="l00883"></a>00883 }
-<a name="l00884"></a>00884 
-<a name="l00885"></a>00885 <span class="keywordtype">void</span> device_CON::ClearAnsi(<span class="keywordtype">void</span>){
-<a name="l00886"></a>00886         <span class="keywordflow">for</span>(Bit8u i=0; i&lt;NUMBER_ANSI_DATA;i++) ansi.data[i]=0;
-<a name="l00887"></a>00887     ansi.pc98rab=<span class="keyword">false</span>;
-<a name="l00888"></a>00888         ansi.esc=<span class="keyword">false</span>;
-<a name="l00889"></a>00889         ansi.sci=<span class="keyword">false</span>;
-<a name="l00890"></a>00890         ansi.numberofarg=0;
-<a name="l00891"></a>00891 }
-<a name="l00892"></a>00892 
+<a name="l00814"></a>00814                 reg_ah = (IS_EGAVGA_ARCH)?0x11:0x1; <span class="comment">// check for keystroke</span>
+<a name="l00815"></a>00815 
+<a name="l00816"></a>00816         <span class="comment">/* FIXME: PC-98 emulation should eventually use CONIO emulation that</span>
+<a name="l00817"></a>00817 <span class="comment">         *        better emulates the actual platform. The purpose of this</span>
+<a name="l00818"></a>00818 <span class="comment">         *        hack is to allow our code to call into INT 16h without</span>
+<a name="l00819"></a>00819 <span class="comment">         *        setting up an INT 16h vector */</span>
+<a name="l00820"></a>00820         <span class="keywordflow">if</span> (IS_PC98_ARCH)
+<a name="l00821"></a>00821             INT16_Handler_Wrap();
+<a name="l00822"></a>00822         <span class="keywordflow">else</span>
+<a name="l00823"></a>00823             CALLBACK_RunRealInt(0x16);
+<a name="l00824"></a>00824 
+<a name="l00825"></a>00825         <span class="keywordflow">if</span> (!GETFLAG(ZF)) { <span class="comment">/* key is present, waiting to be returned on AH=0x10 or AH=0x00 */</span>
+<a name="l00826"></a>00826             <span class="keywordflow">if</span> (IS_PC98_ARCH &amp;&amp; reg_al == 0) {
+<a name="l00827"></a>00827                 <span class="comment">/* some scan codes are ignored by CON, and wouldn&#39;t read anything.</span>
+<a name="l00828"></a>00828 <span class="comment">                 * while we&#39;re at it, take the scan code and convert it into ANSI here</span>
+<a name="l00829"></a>00829 <span class="comment">                 * so that Read() returns it immediately instead of doing this conversion itself.</span>
+<a name="l00830"></a>00830 <span class="comment">                 * This way we never block when we SAID a key was available that gets ignored. */</span>
+<a name="l00831"></a>00831                 <span class="keywordflow">if</span> (CommonPC98ExtScanConversionToReadBuf(reg_ah))
+<a name="l00832"></a>00832                     ret = 0x8093; <span class="comment">/* Key Available */</span>
+<a name="l00833"></a>00833                 <span class="keywordflow">else</span>
+<a name="l00834"></a>00834                     ret = 0x80D3; <span class="comment">/* No Key Available */</span>
+<a name="l00835"></a>00835 
+<a name="l00836"></a>00836                 <span class="comment">/* need to consume the key. if it generated anything it will be returned to Read()</span>
+<a name="l00837"></a>00837 <span class="comment">                 * through dev_con_readbuf[] */</span>
+<a name="l00838"></a>00838                 reg_ah=0x0;
+<a name="l00839"></a>00839 
+<a name="l00840"></a>00840                 <span class="comment">/* FIXME: PC-98 emulation should eventually use CONIO emulation that</span>
+<a name="l00841"></a>00841 <span class="comment">                 *        better emulates the actual platform. The purpose of this</span>
+<a name="l00842"></a>00842 <span class="comment">                 *        hack is to allow our code to call into INT 16h without</span>
+<a name="l00843"></a>00843 <span class="comment">                 *        setting up an INT 16h vector */</span>
+<a name="l00844"></a>00844                 INT16_Handler_Wrap();
+<a name="l00845"></a>00845             }
+<a name="l00846"></a>00846             <span class="keywordflow">else</span> {
+<a name="l00847"></a>00847                 ret = 0x8093; <span class="comment">/* Key Available */</span>
+<a name="l00848"></a>00848             }
+<a name="l00849"></a>00849         }
+<a name="l00850"></a>00850 
+<a name="l00851"></a>00851                 reg_ax = saved_ax;
+<a name="l00852"></a>00852                 <span class="keywordflow">return</span> ret;
+<a name="l00853"></a>00853         }
+<a name="l00854"></a>00854         <span class="keywordflow">else</span> {
+<a name="l00855"></a>00855                 <span class="comment">/* DOSBox mainline behavior: alternate &quot;fast&quot; way through direct manipulation of keyboard scan buffer */</span>
+<a name="l00856"></a>00856                 Bit16u head=mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
+<a name="l00857"></a>00857                 Bit16u tail=mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+<a name="l00858"></a>00858 
+<a name="l00859"></a>00859                 <span class="keywordflow">if</span> ((head==tail) &amp;&amp; !readcache) <span class="keywordflow">return</span> 0x80D3;  <span class="comment">/* No Key Available */</span>
+<a name="l00860"></a>00860                 <span class="keywordflow">if</span> (readcache || real_readw(0x40,head)) <span class="keywordflow">return</span> 0x8093;          <span class="comment">/* Key Available */</span>
+<a name="l00861"></a>00861 
+<a name="l00862"></a>00862                 <span class="comment">/* remove the zero from keyboard buffer */</span>
+<a name="l00863"></a>00863                 Bit16u start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
+<a name="l00864"></a>00864                 Bit16u end      =mem_readw(BIOS_KEYBOARD_BUFFER_END);
+<a name="l00865"></a>00865                 head+=2;
+<a name="l00866"></a>00866                 <span class="keywordflow">if</span> (head&gt;=end) head=start;
+<a name="l00867"></a>00867                 mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,head);
+<a name="l00868"></a>00868         }
+<a name="l00869"></a>00869 
+<a name="l00870"></a>00870         <span class="keywordflow">return</span> 0x80D3; <span class="comment">/* No Key Available */</span>
+<a name="l00871"></a>00871 }
+<a name="l00872"></a>00872 
+<a name="l00873"></a>00873 device_CON::device_CON() {
+<a name="l00874"></a>00874         SetName(<span class="stringliteral">&quot;CON&quot;</span>);
+<a name="l00875"></a>00875         readcache=0;
+<a name="l00876"></a>00876         lastwrite=0;
+<a name="l00877"></a>00877         ansi.enabled=<span class="keyword">false</span>;
+<a name="l00878"></a>00878         ansi.attr=0x7;
+<a name="l00879"></a>00879         ansi.ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS); <span class="comment">//should be updated once set/reset mode is implemented</span>
+<a name="l00880"></a>00880         ansi.nrows=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
+<a name="l00881"></a>00881         ansi.saverow=0;
+<a name="l00882"></a>00882         ansi.savecol=0;
+<a name="l00883"></a>00883         ansi.warned=<span class="keyword">false</span>;
+<a name="l00884"></a>00884         ClearAnsi();
+<a name="l00885"></a>00885 }
+<a name="l00886"></a>00886 
+<a name="l00887"></a>00887 <span class="keywordtype">void</span> device_CON::ClearAnsi(<span class="keywordtype">void</span>){
+<a name="l00888"></a>00888         <span class="keywordflow">for</span>(Bit8u i=0; i&lt;NUMBER_ANSI_DATA;i++) ansi.data[i]=0;
+<a name="l00889"></a>00889     ansi.pc98rab=<span class="keyword">false</span>;
+<a name="l00890"></a>00890         ansi.esc=<span class="keyword">false</span>;
+<a name="l00891"></a>00891         ansi.sci=<span class="keyword">false</span>;
+<a name="l00892"></a>00892         ansi.numberofarg=0;
+<a name="l00893"></a>00893 }
+<a name="l00894"></a>00894 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:01 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

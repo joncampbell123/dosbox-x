@@ -379,7 +379,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00283"></a>00283         gen_dop_word_imm(DOP_ADD,cpu.code.big,DREG(EIP),decode.code-decode.code_start);
 <a name="l00284"></a>00284 }
 <a name="l00285"></a>00285 
-<a name="l00286"></a>00286 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> dyn_set_eip_end(DynReg * endreg) {
+<a name="l00286"></a>00286 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> dyn_set_eip_end(DynReg * <span class="comment">/*endreg*/</span>) {
 <a name="l00287"></a>00287         gen_protectflags();
 <a name="l00288"></a>00288         <span class="keywordflow">if</span> (cpu.code.big) gen_dop_word(DOP_MOV,<span class="keyword">true</span>,DREG(TMPW),DREG(EIP));
 <a name="l00289"></a>00289         <span class="keywordflow">else</span> gen_extend_word(<span class="keyword">false</span>,DREG(TMPW),DREG(EIP));
@@ -2828,7 +2828,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:00 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

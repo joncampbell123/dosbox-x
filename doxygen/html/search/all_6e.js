@@ -18,5 +18,7 @@ var searchData=
   ['nmitest',['NMITEST',['../classNMITEST.html',1,'']]],
   ['nodetype',['nodeType',['../structnodeType.html',1,'']]],
   ['now',['now',['../classGUI_1_1Timer.html#aeaf90bbc6251a55bb4f8c839813592bf',1,'GUI::Timer']]],
-  ['np2cfg',['NP2CFG',['../structNP2CFG.html',1,'']]]
+  ['np2cfg',['NP2CFG',['../structNP2CFG.html',1,'']]],
+  ['nsapplication',['NSApplication',['../classNSApplication.html',1,'']]],
+  ['nsapplication_28dosboxx_29',['NSApplication(DOSBoxX)',['../interfaceNSApplication_07DOSBoxX_08.html',1,'']]]
 ];

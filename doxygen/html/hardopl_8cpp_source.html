@@ -267,14 +267,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00171"></a>00171 <span class="preprocessor"></span>
 <a name="l00172"></a>00172 <span class="keywordtype">void</span> HWOPL_Cleanup() {}
 <a name="l00173"></a>00173 <span class="keywordtype">void</span> HARDOPL_Init(Bitu hardwareaddr, Bitu blasteraddr, <span class="keywordtype">bool</span> isCMSp) {
-<a name="l00174"></a>00174         LOG_MSG(<span class="stringliteral">&quot;OPL passthrough is not supported on this operating system.&quot;</span>);
-<a name="l00175"></a>00175 }
-<a name="l00176"></a>00176 <span class="preprocessor">#endif</span>
+<a name="l00174"></a>00174     (void)hardwareaddr;<span class="comment">//UNUSED</span>
+<a name="l00175"></a>00175     (void)blasteraddr;<span class="comment">//UNUSED</span>
+<a name="l00176"></a>00176     (void)isCMSp;<span class="comment">//UNUSED</span>
+<a name="l00177"></a>00177         LOG_MSG(<span class="stringliteral">&quot;OPL passthrough is not supported on this operating system.&quot;</span>);
+<a name="l00178"></a>00178 }
+<a name="l00179"></a>00179 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

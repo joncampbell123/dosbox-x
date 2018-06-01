@@ -7,9 +7,11 @@ var searchData=
   ['illegalpagehandler',['IllegalPageHandler',['../classIllegalPageHandler.html',1,'']]],
   ['ima_5fadpcmwaveformat_5ftag',['ima_adpcmwaveformat_tag',['../structima__adpcmwaveformat__tag.html',1,'']]],
   ['imagedisk',['imageDisk',['../classimageDisk.html',1,'']]],
+  ['imagediskd88',['imageDiskD88',['../classimageDiskD88.html',1,'']]],
   ['imagediskeltoritofloppy',['imageDiskElToritoFloppy',['../classimageDiskElToritoFloppy.html',1,'']]],
   ['imagediskmemory',['imageDiskMemory',['../classimageDiskMemory.html',1,'']]],
   ['imagediskvfd',['imageDiskVFD',['../classimageDiskVFD.html',1,'']]],
+  ['imagediskvhd',['imageDiskVHD',['../classimageDiskVHD.html',1,'']]],
   ['imgmake',['IMGMAKE',['../classIMGMAKE.html',1,'']]],
   ['imgmount',['IMGMOUNT',['../classIMGMOUNT.html',1,'']]],
   ['improperfraction',['improperFraction',['../structimproperFraction.html',1,'']]],
@@ -17,6 +19,7 @@ var searchData=
   ['innova',['INNOVA',['../classINNOVA.html',1,'']]],
   ['input',['Input',['../classGUI_1_1Input.html',1,'GUI']]],
   ['input',['Input',['../classGUI_1_1Input.html#acf596747bc99bee86e0ad0cd4f0b3a7e',1,'GUI::Input']]],
+  ['inputwithenterkey',['InputWithEnterKey',['../classInputWithEnterKey.html',1,'']]],
   ['insert',['insert',['../classGUI_1_1Input.html#af399004f35a82c4ef01e392ec17f30d5',1,'GUI::Input']]],
   ['int10data',['Int10Data',['../structInt10Data.html',1,'']]],
   ['intel8255',['Intel8255',['../classIntel8255.html',1,'']]],
@@ -38,5 +41,6 @@ var searchData=
   ['isopvd',['isoPVD',['../structisoPVD.html',1,'']]],
   ['isr_5ft',['ISR_t',['../structbx__ne2k__t_1_1ISR__t.html',1,'bx_ne2k_t']]],
   ['isvisible',['isVisible',['../classGUI_1_1Window.html#a2e8f1ec9d2487a885444bb14bbfddc0b',1,'GUI::Window']]],
+  ['item',['item',['../classDOSBoxMenu_1_1item.html',1,'DOSBoxMenu']]],
   ['items',['items',['../classGUI_1_1Menu.html#a79489d4aad9217752d8ca11e5153071a',1,'GUI::Menu']]]
 ];

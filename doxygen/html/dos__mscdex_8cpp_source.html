@@ -419,24 +419,24 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00323"></a>00323                 Bit16u driverSize = <span class="keyword">sizeof</span>(<a class="code" href="structDOS__DeviceHeader_1_1sDeviceHeader.html">DOS_DeviceHeader::sDeviceHeader</a>) + 10; <span class="comment">// 10 = Bytes for 3 callbacks</span>
 <a name="l00324"></a>00324                 
 <a name="l00325"></a>00325                 <span class="comment">// Create Device Header</span>
-<a name="l00326"></a>00326                 Bit16u seg = DOS_GetMemory(driverSize/16+((driverSize%16)&gt;0),<span class="stringliteral">&quot;MSCDEX device header&quot;</span>);
-<a name="l00327"></a>00327                 <a class="code" href="classDOS__DeviceHeader.html">DOS_DeviceHeader</a> devHeader(PhysMake(seg,0));
-<a name="l00328"></a>00328                 devHeader.SetNextDeviceHeader   (0xFFFFFFFF);
-<a name="l00329"></a>00329                 devHeader.SetAttribute(0xc800);
-<a name="l00330"></a>00330                 devHeader.SetDriveLetter                (_drive+1);
-<a name="l00331"></a>00331                 devHeader.SetNumSubUnits                (1);
+<a name="l00326"></a>00326                 Bit16u seg = DOS_GetMemory(driverSize/16u+((driverSize%16u)&gt;0u),<span class="stringliteral">&quot;MSCDEX device header&quot;</span>);
+<a name="l00327"></a>00327                 <a class="code" href="classDOS__DeviceHeader.html">DOS_DeviceHeader</a> devHeader(PhysMake(seg,0u));
+<a name="l00328"></a>00328                 devHeader.SetNextDeviceHeader   (0xFFFFFFFFul);
+<a name="l00329"></a>00329                 devHeader.SetAttribute(0xc800u);
+<a name="l00330"></a>00330                 devHeader.SetDriveLetter                (_drive+1u);
+<a name="l00331"></a>00331                 devHeader.SetNumSubUnits                (1u);
 <a name="l00332"></a>00332                 devHeader.SetName                               (<span class="stringliteral">&quot;MSCD001 &quot;</span>);
 <a name="l00333"></a>00333 
 <a name="l00334"></a>00334                 <span class="comment">//Link it in the device chain</span>
 <a name="l00335"></a>00335                 Bit32u start = dos_infoblock.GetDeviceChain();
-<a name="l00336"></a>00336                 Bit16u segm  = (Bit16u)(start&gt;&gt;16);
-<a name="l00337"></a>00337                 Bit16u offm  = (Bit16u)(start&amp;0xFFFF);
-<a name="l00338"></a>00338                 <span class="keywordflow">while</span>(start != 0xFFFFFFFF) {
-<a name="l00339"></a>00339                         segm  = (Bit16u)(start&gt;&gt;16);
-<a name="l00340"></a>00340                         offm  = (Bit16u)(start&amp;0xFFFF);
+<a name="l00336"></a>00336                 Bit16u segm  = (Bit16u)(start&gt;&gt;16ul);
+<a name="l00337"></a>00337                 Bit16u offm  = (Bit16u)(start&amp;0xFFFFu);
+<a name="l00338"></a>00338                 <span class="keywordflow">while</span>(start != 0xFFFFFFFFul) {
+<a name="l00339"></a>00339                         segm  = (Bit16u)(start&gt;&gt;16u);
+<a name="l00340"></a>00340                         offm  = (Bit16u)(start&amp;0xFFFFu);
 <a name="l00341"></a>00341                         start = real_readd(segm,offm);
 <a name="l00342"></a>00342                 }
-<a name="l00343"></a>00343                 real_writed(segm,offm,seg&lt;&lt;16);
+<a name="l00343"></a>00343                 real_writed(segm,offm,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)seg&lt;&lt;16u);
 <a name="l00344"></a>00344 
 <a name="l00345"></a>00345                 <span class="comment">// Create Callback Strategy</span>
 <a name="l00346"></a>00346                 Bit16u off = <span class="keyword">sizeof</span>(<a class="code" href="structDOS__DeviceHeader_1_1sDeviceHeader.html">DOS_DeviceHeader::sDeviceHeader</a>);
@@ -584,7 +584,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00488"></a>00488         Bit8u min               = (Bit8u)(start&gt;&gt;16) &amp; 0xFF;
 <a name="l00489"></a>00489         Bit8u sec               = (Bit8u)(start&gt;&gt; 8) &amp; 0xFF;
 <a name="l00490"></a>00490         Bit8u fr                = (Bit8u)(start&gt;&gt; 0) &amp; 0xFF;
-<a name="l00491"></a>00491         Bit32u sector   = min*60*75+sec*75+fr - 150;
+<a name="l00491"></a>00491         Bit32u sector   = min*60u*75u+sec*75u+fr - 150u;
 <a name="l00492"></a>00492         <span class="keywordflow">return</span> dinfo[subUnit].lastResult = PlayAudioSector(subUnit,sector,length);
 <a name="l00493"></a>00493 }
 <a name="l00494"></a>00494 
@@ -643,7 +643,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00547"></a>00547                 <span class="keywordflow">if</span> (dinfo[subUnit].audioPlay) {
 <a name="l00548"></a>00548                         <a class="code" href="structSMSF.html">TMSF</a> pos;
 <a name="l00549"></a>00549                         GetCurrentPos(subUnit,pos);
-<a name="l00550"></a>00550                         dinfo[subUnit].audioStart       = pos.min*60*75+pos.sec*75+pos.fr - 150;
+<a name="l00550"></a>00550                         dinfo[subUnit].audioStart       = pos.min*60u*75u+pos.sec*75u+pos.fr - 150u;
 <a name="l00551"></a>00551                         dinfo[subUnit].audioPaused  = <span class="keyword">true</span>;
 <a name="l00552"></a>00552                 } <span class="keywordflow">else</span> {        
 <a name="l00553"></a>00553                         dinfo[subUnit].audioPaused  = <span class="keyword">false</span>;
@@ -665,7 +665,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00569"></a>00569         Bit8u tr1,tr2;
 <a name="l00570"></a>00570         <a class="code" href="structSMSF.html">TMSF</a> leadOut;
 <a name="l00571"></a>00571         dinfo[subUnit].lastResult = GetCDInfo(subUnit,tr1,tr2,leadOut);
-<a name="l00572"></a>00572         <span class="keywordflow">if</span> (dinfo[subUnit].lastResult) <span class="keywordflow">return</span> (leadOut.min*60*75)+(leadOut.sec*75)+leadOut.fr;
+<a name="l00572"></a>00572         <span class="keywordflow">if</span> (dinfo[subUnit].lastResult) <span class="keywordflow">return</span> (leadOut.min*60u*75u)+(leadOut.sec*75u)+leadOut.fr;
 <a name="l00573"></a>00573         <span class="keywordflow">return</span> 0;
 <a name="l00574"></a>00574 }
 <a name="l00575"></a>00575 
@@ -675,7 +675,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00579"></a>00579 <span class="comment">                error=MSCDEX_ERROR_UNKNOWN_DRIVE;</span>
 <a name="l00580"></a>00580 <span class="comment">                return false;</span>
 <a name="l00581"></a>00581 <span class="comment">        } */</span>
-<a name="l00582"></a>00582         <span class="keywordflow">if</span> (!ReadSectors(subunit,<span class="keyword">false</span>,16+volume,1,data)) {
+<a name="l00582"></a>00582         <span class="keywordflow">if</span> (!ReadSectors(subunit,<span class="keyword">false</span>,16u+volume,1u,data)) {
 <a name="l00583"></a>00583                 error=MSCDEX_ERROR_DRIVE_NOT_READY;
 <a name="l00584"></a>00584                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00585"></a>00585         }
@@ -771,8 +771,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00675"></a>00675 
 <a name="l00676"></a>00676 <span class="keywordtype">bool</span> CMscdex::ReadSectors(Bit8u subUnit, <span class="keywordtype">bool</span> raw, Bit32u sector, Bit16u num, PhysPt data) {
 <a name="l00677"></a>00677         <span class="keywordflow">if</span> (subUnit&gt;=numDrives) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00678"></a>00678         <span class="keywordflow">if</span> ((4*num*2048+5) &lt; CPU_Cycles) CPU_Cycles -= 4*num*2048;
-<a name="l00679"></a>00679         <span class="keywordflow">else</span> CPU_Cycles = 5;
+<a name="l00678"></a>00678         <span class="keywordflow">if</span> ((4u*num*2048u+5u) &lt; CPU_Cycles) CPU_Cycles -= 4u*num*2048u;
+<a name="l00679"></a>00679         <span class="keywordflow">else</span> CPU_Cycles = 5u;
 <a name="l00680"></a>00680         dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;ReadSectors(data,raw,sector,num);
 <a name="l00681"></a>00681         <span class="keywordflow">return</span> dinfo[subUnit].lastResult;
 <a name="l00682"></a>00682 }
@@ -782,7 +782,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00686"></a>00686         Bit8u min               = (Bit8u)(start&gt;&gt;16) &amp; 0xFF;
 <a name="l00687"></a>00687         Bit8u sec               = (Bit8u)(start&gt;&gt; 8) &amp; 0xFF;
 <a name="l00688"></a>00688         Bit8u fr                = (Bit8u)(start&gt;&gt; 0) &amp; 0xFF;
-<a name="l00689"></a>00689         Bit32u sector   = min*60*75+sec*75+fr - 150;
+<a name="l00689"></a>00689         Bit32u sector   = min*60u*75u+sec*75u+fr - 150u;
 <a name="l00690"></a>00690         <span class="keywordflow">return</span> ReadSectors(subUnit,raw,sector,num,data);
 <a name="l00691"></a>00691 }
 <a name="l00692"></a>00692 
@@ -939,14 +939,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00843"></a>00843                         dinfo[subUnit].audioPlay = <span class="keyword">false</span>;
 <a name="l00844"></a>00844         }
 <a name="l00845"></a>00845 
-<a name="l00846"></a>00846         Bit32u status = ((trayOpen?1:0) &lt;&lt; 0)                                   |       <span class="comment">// Drive is open ?</span>
-<a name="l00847"></a>00847                                         ((dinfo[subUnit].locked?1:0) &lt;&lt; 1)              |       <span class="comment">// Drive is locked ?</span>
-<a name="l00848"></a>00848                                         (1&lt;&lt;2)                                                                  |       <span class="comment">// raw + cooked sectors</span>
-<a name="l00849"></a>00849                                         (1&lt;&lt;4)                                                                  |       <span class="comment">// Can read sudio</span>
-<a name="l00850"></a>00850                                         (1&lt;&lt;8)                                                                  |       <span class="comment">// Can control audio</span>
-<a name="l00851"></a>00851                                         (1&lt;&lt;9)                                                                  |       <span class="comment">// Red book &amp; HSG</span>
-<a name="l00852"></a>00852                                         ((dinfo[subUnit].audioPlay?1:0) &lt;&lt; 10)  |       <span class="comment">// Audio is playing ?</span>
-<a name="l00853"></a>00853                                         ((media?0:1) &lt;&lt; 11);                                            <span class="comment">// Drive is empty ?</span>
+<a name="l00846"></a>00846         Bit32u status = ((trayOpen?1u:0u) &lt;&lt; 0u)                                        |       <span class="comment">// Drive is open ?</span>
+<a name="l00847"></a>00847                                         ((dinfo[subUnit].locked?1u:0u) &lt;&lt; 1u)           |       <span class="comment">// Drive is locked ?</span>
+<a name="l00848"></a>00848                                         (1u&lt;&lt;2u)                                                                        |       <span class="comment">// raw + cooked sectors</span>
+<a name="l00849"></a>00849                                         (1u&lt;&lt;4u)                                                                        |       <span class="comment">// Can read sudio</span>
+<a name="l00850"></a>00850                                         (1u&lt;&lt;8u)                                                                        |       <span class="comment">// Can control audio</span>
+<a name="l00851"></a>00851                                         (1u&lt;&lt;9u)                                                                        |       <span class="comment">// Red book &amp; HSG</span>
+<a name="l00852"></a>00852                                         ((dinfo[subUnit].audioPlay?1u:0u) &lt;&lt; 10u)       |       <span class="comment">// Audio is playing ?</span>
+<a name="l00853"></a>00853                                         ((media?0u:1u) &lt;&lt; 11u);                                         <span class="comment">// Drive is empty ?</span>
 <a name="l00854"></a>00854         <span class="keywordflow">return</span> status;
 <a name="l00855"></a>00855 }
 <a name="l00856"></a>00856 
@@ -1073,8 +1073,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00977"></a>00977                                         <a class="code" href="structSCtrl.html">TCtrl</a> ctrl;
 <a name="l00978"></a>00978                                         <span class="keywordflow">if</span> (!mscdex-&gt;GetChannelControl(drive_unit,ctrl)) <span class="keywordflow">return</span> 0x01;
 <a name="l00979"></a>00979                                         <span class="keywordflow">for</span> (Bit8u chan=0;chan&lt;4;chan++) {
-<a name="l00980"></a>00980                                                 mem_writeb(buffer+chan*2+1,ctrl.out[chan]);
-<a name="l00981"></a>00981                                                 mem_writeb(buffer+chan*2+2,ctrl.vol[chan]);
+<a name="l00980"></a>00980                                                 mem_writeb(buffer+chan*2u+1u,ctrl.out[chan]);
+<a name="l00981"></a>00981                                                 mem_writeb(buffer+chan*2u+2u,ctrl.vol[chan]);
 <a name="l00982"></a>00982                                         }
 <a name="l00983"></a>00983                                         <span class="keywordflow">break</span>;
 <a name="l00984"></a>00984                 <span class="keywordflow">case</span> 0x06 : <span class="comment">/* Get Device status */</span>
@@ -1134,24 +1134,24 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01038"></a>01038                 <span class="keywordflow">case</span> 0x0E :{ <span class="comment">/* Get UPC */</span>      
 <a name="l01039"></a>01039                                         Bit8u attr; <span class="keywordtype">char</span> upc[8];
 <a name="l01040"></a>01040                                         mscdex-&gt;GetUPC(drive_unit,attr,&amp;upc[0]);
-<a name="l01041"></a>01041                                         mem_writeb(buffer+1,attr);
-<a name="l01042"></a>01042                                         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i=0; i&lt;7; i++) mem_writeb(buffer+2+i,upc[i]);
-<a name="l01043"></a>01043                                         mem_writeb(buffer+9,0x00);
+<a name="l01041"></a>01041                                         mem_writeb(buffer+1u,attr);
+<a name="l01042"></a>01042                                         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0; i&lt;7; i++) mem_writeb(buffer+2u+i,(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>)upc[i]);
+<a name="l01043"></a>01043                                         mem_writeb(buffer+9,0x00u);
 <a name="l01044"></a>01044                                         <span class="keywordflow">break</span>;
 <a name="l01045"></a>01045                                    };
 <a name="l01046"></a>01046                 <span class="keywordflow">case</span> 0x0F :{ <span class="comment">/* Get Audio Status */</span>     
 <a name="l01047"></a>01047                                         <span class="keywordtype">bool</span> playing,pause;
 <a name="l01048"></a>01048                                         <a class="code" href="structSMSF.html">TMSF</a> resStart,resEnd;
 <a name="l01049"></a>01049                                         mscdex-&gt;GetAudioStatus(drive_unit,playing,pause,resStart,resEnd);
-<a name="l01050"></a>01050                                         mem_writeb(buffer+1,pause);
-<a name="l01051"></a>01051                                         mem_writeb(buffer+3,resStart.min);
-<a name="l01052"></a>01052                                         mem_writeb(buffer+4,resStart.sec);
-<a name="l01053"></a>01053                                         mem_writeb(buffer+5,resStart.fr);
-<a name="l01054"></a>01054                                         mem_writeb(buffer+6,0x00);
-<a name="l01055"></a>01055                                         mem_writeb(buffer+7,resEnd.min);
-<a name="l01056"></a>01056                                         mem_writeb(buffer+8,resEnd.sec);
-<a name="l01057"></a>01057                                         mem_writeb(buffer+9,resEnd.fr);
-<a name="l01058"></a>01058                                         mem_writeb(buffer+10,0x00);
+<a name="l01050"></a>01050                                         mem_writeb(buffer+1u,pause);
+<a name="l01051"></a>01051                                         mem_writeb(buffer+3u,resStart.min);
+<a name="l01052"></a>01052                                         mem_writeb(buffer+4u,resStart.sec);
+<a name="l01053"></a>01053                                         mem_writeb(buffer+5u,resStart.fr);
+<a name="l01054"></a>01054                                         mem_writeb(buffer+6u,0x00u);
+<a name="l01055"></a>01055                                         mem_writeb(buffer+7u,resEnd.min);
+<a name="l01056"></a>01056                                         mem_writeb(buffer+8u,resEnd.sec);
+<a name="l01057"></a>01057                                         mem_writeb(buffer+9u,resEnd.fr);
+<a name="l01058"></a>01058                                         mem_writeb(buffer+10u,0x00u);
 <a name="l01059"></a>01059                                         <span class="keywordflow">break</span>;
 <a name="l01060"></a>01060                                    };
 <a name="l01061"></a>01061                 <span class="keywordflow">default</span> :       <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_ERROR)(<span class="stringliteral">&quot;MSCDEX: Unsupported IOCTL INPUT Subfunction %02X&quot;</span>,(int)ioctl_fct);
@@ -1170,8 +1170,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01074"></a>01074                 <span class="keywordflow">case</span> 0x03: <span class="comment">//Audio Channel control</span>
 <a name="l01075"></a>01075                                         <a class="code" href="structSCtrl.html">TCtrl</a> ctrl;
 <a name="l01076"></a>01076                                         <span class="keywordflow">for</span> (Bit8u chan=0;chan&lt;4;chan++) {
-<a name="l01077"></a>01077                                                 ctrl.out[chan]=mem_readb(buffer+chan*2+1);
-<a name="l01078"></a>01078                                                 ctrl.vol[chan]=mem_readb(buffer+chan*2+2);
+<a name="l01077"></a>01077                                                 ctrl.out[chan]=mem_readb(buffer+chan*2u+1u);
+<a name="l01078"></a>01078                                                 ctrl.vol[chan]=mem_readb(buffer+chan*2u+2u);
 <a name="l01079"></a>01079                                         }
 <a name="l01080"></a>01080                                         <span class="keywordflow">if</span> (!mscdex-&gt;ChannelControl(drive_unit,ctrl)) <span class="keywordflow">return</span> 0x01;
 <a name="l01081"></a>01081                                         <span class="keywordflow">break</span>;
@@ -1336,7 +1336,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01240"></a>01240                                          };
 <a name="l01241"></a>01241                                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l01242"></a>01242                 <span class="keywordflow">case</span> 0x1508: {  <span class="comment">// read sectors </span>
-<a name="l01243"></a>01243                                                 Bit32u sector = (reg_si&lt;&lt;16)+reg_di;
+<a name="l01243"></a>01243                                                 Bit32u sector = ((Bit32u)reg_si &lt;&lt; 16u) + (Bit32u)reg_di;
 <a name="l01244"></a>01244                                                 <span class="keywordflow">if</span> (mscdex-&gt;ReadSectors(reg_cx,sector,reg_dx,data)) {
 <a name="l01245"></a>01245                                                         reg_ax = 0;
 <a name="l01246"></a>01246                                                         CALLBACK_SCF(<span class="keyword">false</span>);
@@ -1408,7 +1408,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01312"></a>01312 <span class="keyword">public</span>:
 <a name="l01313"></a>01313         <a class="code" href="classdevice__MSCDEX.html">device_MSCDEX</a>() { SetName(<span class="stringliteral">&quot;MSCD001&quot;</span>); }
 <a name="l01314"></a>01314         <span class="keywordtype">bool</span> Read (Bit8u * <span class="comment">/*data*/</span>,Bit16u * <span class="comment">/*size*/</span>) { <span class="keywordflow">return</span> <span class="keyword">false</span>;}
-<a name="l01315"></a>01315         <span class="keywordtype">bool</span> Write(Bit8u * <span class="comment">/*data*/</span>,Bit16u * <span class="comment">/*size*/</span>) { 
+<a name="l01315"></a>01315         <span class="keywordtype">bool</span> Write(<span class="keyword">const</span> Bit8u * <span class="comment">/*data*/</span>,Bit16u * <span class="comment">/*size*/</span>) { 
 <a name="l01316"></a>01316                 <a class="code" href="classLOG.html">LOG</a>(LOG_ALL,LOG_NORMAL)(<span class="stringliteral">&quot;Write to mscdex device&quot;</span>);      
 <a name="l01317"></a>01317                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l01318"></a>01318         }
@@ -1510,35 +1510,36 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01414"></a>01414 }
 <a name="l01415"></a>01415 
 <a name="l01416"></a>01416 <span class="keywordtype">void</span> MSCDEX_Startup(<a class="code" href="classSection.html">Section</a>* sec) {
-<a name="l01417"></a>01417         <span class="keywordflow">if</span> (mscdex == NULL) {
-<a name="l01418"></a>01418                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Allocating MSCDEX.EXE emulation&quot;</span>);
-<a name="l01419"></a>01419 
-<a name="l01420"></a>01420                 <span class="comment">/* Register the mscdex device */</span>
-<a name="l01421"></a>01421                 <a class="code" href="classDOS__Device.html">DOS_Device</a> * newdev = <span class="keyword">new</span> <a class="code" href="classdevice__MSCDEX.html">device_MSCDEX</a>();
-<a name="l01422"></a>01422                 DOS_AddDevice(newdev);
-<a name="l01423"></a>01423                 curReqheaderPtr = 0;
-<a name="l01424"></a>01424                 <span class="comment">/* Add Multiplexer */</span>
-<a name="l01425"></a>01425                 DOS_AddMultiplexHandler(MSCDEX_Handler);
-<a name="l01426"></a>01426                 <span class="comment">/* Create MSCDEX */</span>
-<a name="l01427"></a>01427                 mscdex = <span class="keyword">new</span> <a class="code" href="classCMscdex.html">CMscdex</a>;
-<a name="l01428"></a>01428         }
-<a name="l01429"></a>01429 }
-<a name="l01430"></a>01430 
-<a name="l01431"></a>01431 <span class="keywordtype">void</span> MSCDEX_Init() {
-<a name="l01432"></a>01432         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing MSCDEX.EXE emulation&quot;</span>);
-<a name="l01433"></a>01433 
-<a name="l01434"></a>01434         AddExitFunction(AddExitFunctionFuncPair(MSCDEX_ShutDown));
-<a name="l01435"></a>01435 
-<a name="l01436"></a>01436         <span class="comment">/* in any event that the DOS kernel is shutdown or abruptly wiped from memory */</span>
-<a name="l01437"></a>01437         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MSCDEX_ShutDown));
-<a name="l01438"></a>01438         AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(MSCDEX_DOS_ShutDown));
-<a name="l01439"></a>01439 }
-<a name="l01440"></a>01440 
+<a name="l01417"></a>01417     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01418"></a>01418         <span class="keywordflow">if</span> (mscdex == NULL) {
+<a name="l01419"></a>01419                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Allocating MSCDEX.EXE emulation&quot;</span>);
+<a name="l01420"></a>01420 
+<a name="l01421"></a>01421                 <span class="comment">/* Register the mscdex device */</span>
+<a name="l01422"></a>01422                 <a class="code" href="classDOS__Device.html">DOS_Device</a> * newdev = <span class="keyword">new</span> <a class="code" href="classdevice__MSCDEX.html">device_MSCDEX</a>();
+<a name="l01423"></a>01423                 DOS_AddDevice(newdev);
+<a name="l01424"></a>01424                 curReqheaderPtr = 0;
+<a name="l01425"></a>01425                 <span class="comment">/* Add Multiplexer */</span>
+<a name="l01426"></a>01426                 DOS_AddMultiplexHandler(MSCDEX_Handler);
+<a name="l01427"></a>01427                 <span class="comment">/* Create MSCDEX */</span>
+<a name="l01428"></a>01428                 mscdex = <span class="keyword">new</span> <a class="code" href="classCMscdex.html">CMscdex</a>;
+<a name="l01429"></a>01429         }
+<a name="l01430"></a>01430 }
+<a name="l01431"></a>01431 
+<a name="l01432"></a>01432 <span class="keywordtype">void</span> MSCDEX_Init() {
+<a name="l01433"></a>01433         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing MSCDEX.EXE emulation&quot;</span>);
+<a name="l01434"></a>01434 
+<a name="l01435"></a>01435         AddExitFunction(AddExitFunctionFuncPair(MSCDEX_ShutDown));
+<a name="l01436"></a>01436 
+<a name="l01437"></a>01437         <span class="comment">/* in any event that the DOS kernel is shutdown or abruptly wiped from memory */</span>
+<a name="l01438"></a>01438         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MSCDEX_ShutDown));
+<a name="l01439"></a>01439         AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(MSCDEX_DOS_ShutDown));
+<a name="l01440"></a>01440 }
+<a name="l01441"></a>01441 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:01 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

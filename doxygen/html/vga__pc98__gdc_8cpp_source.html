@@ -661,208 +661,210 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00565"></a>00565 <span class="comment">/*==================================================*/</span>
 <a name="l00566"></a>00566 
 <a name="l00567"></a>00567 <span class="keywordtype">void</span> pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
-<a name="l00568"></a>00568     <a class="code" href="structPC98__GDC__state.html">PC98_GDC_state</a> *gdc;
-<a name="l00569"></a>00569 
-<a name="l00570"></a>00570     <span class="keywordflow">if</span> (port &gt;= 0xA0)
-<a name="l00571"></a>00571         gdc = &amp;pc98_gdc[GDC_SLAVE];
-<a name="l00572"></a>00572     <span class="keywordflow">else</span>
-<a name="l00573"></a>00573         gdc = &amp;pc98_gdc[GDC_MASTER];
-<a name="l00574"></a>00574 
-<a name="l00575"></a>00575     <span class="keywordflow">switch</span> (port&amp;0xE) {
-<a name="l00576"></a>00576         <span class="keywordflow">case</span> 0x00:      <span class="comment">/* 0x60/0xA0 param write fifo */</span>
-<a name="l00577"></a>00577             <span class="keywordflow">if</span> (!gdc-&gt;write_fifo_param(val))
-<a name="l00578"></a>00578                 LOG_MSG(<span class="stringliteral">&quot;GDC warning: FIFO param overrun&quot;</span>);
-<a name="l00579"></a>00579             <span class="keywordflow">break</span>;
-<a name="l00580"></a>00580         <span class="keywordflow">case</span> 0x02:      <span class="comment">/* 0x62/0xA2 command write fifo */</span>
-<a name="l00581"></a>00581             <span class="keywordflow">if</span> (!gdc-&gt;write_fifo_command(val))
-<a name="l00582"></a>00582                 LOG_MSG(<span class="stringliteral">&quot;GDC warning: FIFO command overrun&quot;</span>);
-<a name="l00583"></a>00583             <span class="keywordflow">break</span>;
-<a name="l00584"></a>00584         <span class="keywordflow">case</span> 0x04:      <span class="comment">/* 0x64: set trigger to signal vsync interrupt (IRQ 2) */</span>
-<a name="l00585"></a>00585                         <span class="comment">/* 0xA4: Bit 0 select display &quot;plane&quot; */</span>
-<a name="l00586"></a>00586             <span class="keywordflow">if</span> (port == 0x64)
-<a name="l00587"></a>00587                 GDC_vsync_interrupt = <span class="keyword">true</span>;
-<a name="l00588"></a>00588             <span class="keywordflow">else</span> {
-<a name="l00589"></a>00589                 <span class="comment">/* NTS: Testing on real hardware suggests that this bit is NOT double buffered,</span>
-<a name="l00590"></a>00590 <span class="comment">                 *      therefore you can cause a tearline flipping the bit mid-screen without</span>
-<a name="l00591"></a>00591 <span class="comment">                 *      waiting for vertical blanking.</span>
-<a name="l00592"></a>00592 <span class="comment">                 *</span>
-<a name="l00593"></a>00593 <span class="comment">                 * But: For the user&#39;s preference, we do offer a hack to delay display plane</span>
-<a name="l00594"></a>00594 <span class="comment">                 *      change until vsync to try to alleviate tearlines. */</span>
-<a name="l00595"></a>00595                 GDC_display_plane_pending = (val&amp;1);
-<a name="l00596"></a>00596                 <span class="keywordflow">if</span> (!GDC_display_plane_wait_for_vsync)
-<a name="l00597"></a>00597                     GDC_display_plane = GDC_display_plane_pending;
-<a name="l00598"></a>00598             }
-<a name="l00599"></a>00599             <span class="keywordflow">break</span>;
-<a name="l00600"></a>00600         <span class="keywordflow">case</span> 0x06:      <span class="comment">/* 0x66: ??</span>
-<a name="l00601"></a>00601 <span class="comment">                           0xA6: Bit 0 select CPU access &quot;plane&quot; */</span>
-<a name="l00602"></a>00602             <span class="keywordflow">if</span> (port == 0xA6) {
-<a name="l00603"></a>00603                 pc98_gdc_vramop &amp;= ~(1 &lt;&lt; VOPBIT_ACCESS);
-<a name="l00604"></a>00604                 pc98_gdc_vramop |=  (val&amp;1) &lt;&lt; VOPBIT_ACCESS;
-<a name="l00605"></a>00605             }
-<a name="l00606"></a>00606             <span class="keywordflow">else</span> {
-<a name="l00607"></a>00607                 <span class="keywordflow">goto</span> unknown;
-<a name="l00608"></a>00608             }
-<a name="l00609"></a>00609             <span class="keywordflow">break</span>;
-<a name="l00610"></a>00610         <span class="keywordflow">case</span> 0x08:      <span class="comment">/* 0xA8: One of two meanings, depending on 8 or 16/256--color mode */</span>
-<a name="l00611"></a>00611                         <span class="comment">/*         8-color: 0xA8-0xAB are 8 4-bit packed fields remapping the 3-bit GRB colors. This defines colors #3 [7:4] and #7 [3:0]</span>
-<a name="l00612"></a>00612 <span class="comment">                         *         16-color: GRB color palette index */</span>
-<a name="l00613"></a>00613                         <span class="comment">/* 0x68: A command */</span>
-<a name="l00614"></a>00614                         <span class="comment">/* NTS: Sadly, &quot;undocumented PC-98&quot; reference does not mention the analog 16-color palette. */</span>
-<a name="l00615"></a>00615             <span class="keywordflow">if</span> (port == 0xA8) {
-<a name="l00616"></a>00616                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
-<a name="l00617"></a>00617                     pc98_16col_analog_rgb_palette_index = val; <span class="comment">/* it takes all 8 bits I assume because of 256-color mode */</span>
-<a name="l00618"></a>00618                 }
-<a name="l00619"></a>00619                 <span class="keywordflow">else</span> {
-<a name="l00620"></a>00620                     pc98_set_digpal_pair(3,val);
-<a name="l00621"></a>00621                 }
-<a name="l00622"></a>00622             }
-<a name="l00623"></a>00623             <span class="keywordflow">else</span> {
-<a name="l00624"></a>00624                 pc98_port68_command_write(val);
-<a name="l00625"></a>00625             }
-<a name="l00626"></a>00626             <span class="keywordflow">break</span>;
-<a name="l00627"></a>00627         <span class="keywordflow">case</span> 0x0A:      <span class="comment">/* 0xAA:</span>
-<a name="l00628"></a>00628 <span class="comment">                           8-color: Defines color #1 [7:4] and color #5 [3:0] (FIXME: Or is it 2 and 6, by undocumented PC-98???)</span>
-<a name="l00629"></a>00629 <span class="comment">                           16-color: 4-bit green intensity. Color index is low 4 bits of palette index.</span>
-<a name="l00630"></a>00630 <span class="comment">                           256-color: 4-bit green intensity. Color index is 8-bit palette index. */</span>
-<a name="l00631"></a>00631             <span class="keywordflow">if</span> (port == 0xAA) { <span class="comment">/* TODO: If 8-color... else if 16-color... else if 256-color... */</span>
-<a name="l00632"></a>00632                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
-<a name="l00633"></a>00633                     pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&amp;0xF)) + 0] = val&amp;0x0F;
-<a name="l00634"></a>00634                     vga.dac.rgb[pc98_16col_analog_rgb_palette_index &amp; 0xF].green = dac_4to6(val&amp;0xF); <span class="comment">/* re-use VGA DAC */</span>
-<a name="l00635"></a>00635                     VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index &amp; 0xF);
-<a name="l00636"></a>00636                 }
-<a name="l00637"></a>00637                 <span class="keywordflow">else</span> {
-<a name="l00638"></a>00638                     pc98_set_digpal_pair(1,val);
-<a name="l00639"></a>00639                 }
-<a name="l00640"></a>00640             }
-<a name="l00641"></a>00641             <span class="keywordflow">else</span> {
-<a name="l00642"></a>00642                 pc98_port6A_command_write(val);
-<a name="l00643"></a>00643             }
-<a name="l00644"></a>00644             <span class="keywordflow">break</span>;
-<a name="l00645"></a>00645         <span class="keywordflow">case</span> 0x0C:      <span class="comment">/* 0xAC:</span>
-<a name="l00646"></a>00646 <span class="comment">                           8-color: Defines color #2 [7:4] and color #6 [3:0] (FIXME: Or is it 1 and 4, by undocumented PC-98???)</span>
-<a name="l00647"></a>00647 <span class="comment">                           16-color: 4-bit red intensity. Color index is low 4 bits of palette index.</span>
-<a name="l00648"></a>00648 <span class="comment">                           256-color: 4-bit red intensity. Color index is 8-bit palette index. */</span>
-<a name="l00649"></a>00649             <span class="keywordflow">if</span> (port == 0xAC) { <span class="comment">/* TODO: If 8-color... else if 16-color... else if 256-color... */</span>
-<a name="l00650"></a>00650                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
-<a name="l00651"></a>00651                     pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&amp;0xF)) + 1] = val&amp;0x0F;
-<a name="l00652"></a>00652                     vga.dac.rgb[pc98_16col_analog_rgb_palette_index &amp; 0xF].red = dac_4to6(val&amp;0xF); <span class="comment">/* re-use VGA DAC */</span>
-<a name="l00653"></a>00653                     VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index &amp; 0xF);
-<a name="l00654"></a>00654                 }
-<a name="l00655"></a>00655                 <span class="keywordflow">else</span> {
-<a name="l00656"></a>00656                     pc98_set_digpal_pair(2,val);
-<a name="l00657"></a>00657                 }
-<a name="l00658"></a>00658             }
-<a name="l00659"></a>00659             <span class="keywordflow">else</span> {
-<a name="l00660"></a>00660                 <span class="keywordflow">goto</span> unknown;
-<a name="l00661"></a>00661             }
-<a name="l00662"></a>00662             <span class="keywordflow">break</span>;
-<a name="l00663"></a>00663         <span class="keywordflow">case</span> 0x0E:      <span class="comment">/* 0xAE:</span>
-<a name="l00664"></a>00664 <span class="comment">                           8-color: Defines color #2 [7:4] and color #6 [3:0] (FIXME: Or is it 1 and 4, by undocumented PC-98???)</span>
-<a name="l00665"></a>00665 <span class="comment">                           16-color: 4-bit blue intensity. Color index is low 4 bits of palette index.</span>
-<a name="l00666"></a>00666 <span class="comment">                           256-color: 4-bit blue intensity. Color index is 8-bit palette index. */</span>
-<a name="l00667"></a>00667             <span class="keywordflow">if</span> (port == 0xAE) { <span class="comment">/* TODO: If 8-color... else if 16-color... else if 256-color... */</span>
-<a name="l00668"></a>00668                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
-<a name="l00669"></a>00669                     pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&amp;0xF)) + 2] = val&amp;0x0F;
-<a name="l00670"></a>00670                     vga.dac.rgb[pc98_16col_analog_rgb_palette_index &amp; 0xF].blue = dac_4to6(val&amp;0xF); <span class="comment">/* re-use VGA DAC */</span>
-<a name="l00671"></a>00671                     VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index &amp; 0xF);
-<a name="l00672"></a>00672                 }
-<a name="l00673"></a>00673                 <span class="keywordflow">else</span> {
-<a name="l00674"></a>00674                     pc98_set_digpal_pair(0,val);
-<a name="l00675"></a>00675                 }
-<a name="l00676"></a>00676             }
-<a name="l00677"></a>00677             <span class="keywordflow">else</span> {
-<a name="l00678"></a>00678                 <span class="keywordflow">goto</span> unknown;
-<a name="l00679"></a>00679             }
-<a name="l00680"></a>00680             <span class="keywordflow">break</span>;
-<a name="l00681"></a>00681         <span class="keywordflow">default</span>:
-<a name="l00682"></a>00682             unknown:
-<a name="l00683"></a>00683             LOG_MSG(<span class="stringliteral">&quot;GDC unexpected write to port 0x%x val=0x%x&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)port,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)val);
-<a name="l00684"></a>00684             <span class="keywordflow">break</span>;
-<a name="l00685"></a>00685     };
-<a name="l00686"></a>00686 }
-<a name="l00687"></a>00687 
-<a name="l00688"></a>00688 Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
-<a name="l00689"></a>00689     <a class="code" href="structPC98__GDC__state.html">PC98_GDC_state</a> *gdc;
-<a name="l00690"></a>00690 
-<a name="l00691"></a>00691     <span class="keywordflow">if</span> (port &gt;= 0xA0)
-<a name="l00692"></a>00692         gdc = &amp;pc98_gdc[GDC_SLAVE];
-<a name="l00693"></a>00693     <span class="keywordflow">else</span>
-<a name="l00694"></a>00694         gdc = &amp;pc98_gdc[GDC_MASTER];
-<a name="l00695"></a>00695 
-<a name="l00696"></a>00696     <span class="keywordflow">switch</span> (port&amp;0xE) {
-<a name="l00697"></a>00697         <span class="keywordflow">case</span> 0x00:      <span class="comment">/* 0x60/0xA0 read status */</span>
-<a name="l00698"></a>00698             <span class="keywordflow">return</span> gdc-&gt;read_status();
-<a name="l00699"></a>00699         <span class="keywordflow">case</span> 0x02:      <span class="comment">/* 0x62/0xA2 read fifo */</span>
-<a name="l00700"></a>00700             <span class="keywordflow">if</span> (!gdc-&gt;rfifo_has_content())
-<a name="l00701"></a>00701                 LOG_MSG(<span class="stringliteral">&quot;GDC warning: FIFO read underrun&quot;</span>);
-<a name="l00702"></a>00702             <span class="keywordflow">return</span> gdc-&gt;rfifo_read_data();
-<a name="l00703"></a>00703 
-<a name="l00704"></a>00704         <span class="keywordflow">case</span> 0x08:
-<a name="l00705"></a>00705             <span class="keywordflow">if</span> (port == 0xA8) {
-<a name="l00706"></a>00706                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
-<a name="l00707"></a>00707                     <span class="keywordflow">return</span> pc98_16col_analog_rgb_palette_index;
-<a name="l00708"></a>00708                 }
-<a name="l00709"></a>00709                 <span class="keywordflow">else</span> {
-<a name="l00710"></a>00710                     <span class="keywordflow">return</span> pc98_get_digpal_pair(3);
-<a name="l00711"></a>00711                 }
-<a name="l00712"></a>00712             }
-<a name="l00713"></a>00713             <span class="keywordflow">else</span> {
-<a name="l00714"></a>00714                 <span class="keywordflow">goto</span> unknown;
-<a name="l00715"></a>00715             }
-<a name="l00716"></a>00716             <span class="keywordflow">break</span>;
-<a name="l00717"></a>00717         <span class="keywordflow">case</span> 0x0A:
-<a name="l00718"></a>00718             <span class="keywordflow">if</span> (port == 0xAA) { <span class="comment">/* TODO: If 8-color... else if 16-color... else if 256-color... */</span>
-<a name="l00719"></a>00719                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
-<a name="l00720"></a>00720                     <span class="keywordflow">return</span> pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&amp;0xF)) + 0];
-<a name="l00721"></a>00721                 }
-<a name="l00722"></a>00722                 <span class="keywordflow">else</span> {
-<a name="l00723"></a>00723                     <span class="keywordflow">return</span> pc98_get_digpal_pair(1);
-<a name="l00724"></a>00724                 }
-<a name="l00725"></a>00725             }
-<a name="l00726"></a>00726             <span class="keywordflow">else</span> {
-<a name="l00727"></a>00727                 <span class="keywordflow">goto</span> unknown;
-<a name="l00728"></a>00728             }
-<a name="l00729"></a>00729             <span class="keywordflow">break</span>;
-<a name="l00730"></a>00730         <span class="keywordflow">case</span> 0x0C:
-<a name="l00731"></a>00731             <span class="keywordflow">if</span> (port == 0xAC) { <span class="comment">/* TODO: If 8-color... else if 16-color... else if 256-color... */</span>
-<a name="l00732"></a>00732                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
-<a name="l00733"></a>00733                     <span class="keywordflow">return</span> pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&amp;0xF)) + 1];
-<a name="l00734"></a>00734                 }
-<a name="l00735"></a>00735                 <span class="keywordflow">else</span> {
-<a name="l00736"></a>00736                     <span class="keywordflow">return</span> pc98_get_digpal_pair(2);
-<a name="l00737"></a>00737                 }
-<a name="l00738"></a>00738             }
-<a name="l00739"></a>00739             <span class="keywordflow">else</span> {
-<a name="l00740"></a>00740                 <span class="keywordflow">goto</span> unknown;
-<a name="l00741"></a>00741             }
-<a name="l00742"></a>00742             <span class="keywordflow">break</span>;
-<a name="l00743"></a>00743         <span class="keywordflow">case</span> 0x0E:
-<a name="l00744"></a>00744             <span class="keywordflow">if</span> (port == 0xAE) { <span class="comment">/* TODO: If 8-color... else if 16-color... else if 256-color... */</span>
-<a name="l00745"></a>00745                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
-<a name="l00746"></a>00746                     <span class="keywordflow">return</span> pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&amp;0xF)) + 2];
-<a name="l00747"></a>00747                 }
-<a name="l00748"></a>00748                 <span class="keywordflow">else</span> {
-<a name="l00749"></a>00749                     <span class="keywordflow">return</span> pc98_get_digpal_pair(0);
-<a name="l00750"></a>00750                 }
-<a name="l00751"></a>00751             }
-<a name="l00752"></a>00752             <span class="keywordflow">else</span> {
-<a name="l00753"></a>00753                 <span class="keywordflow">goto</span> unknown;
-<a name="l00754"></a>00754             }
-<a name="l00755"></a>00755             <span class="keywordflow">break</span>;
-<a name="l00756"></a>00756         <span class="keywordflow">default</span>:
-<a name="l00757"></a>00757             unknown:
-<a name="l00758"></a>00758             LOG_MSG(<span class="stringliteral">&quot;GDC unexpected read from port 0x%x&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)port);
-<a name="l00759"></a>00759             <span class="keywordflow">break</span>;
-<a name="l00760"></a>00760     };
-<a name="l00761"></a>00761 
-<a name="l00762"></a>00762     <span class="keywordflow">return</span> ~0;
-<a name="l00763"></a>00763 }
-<a name="l00764"></a>00764 
+<a name="l00568"></a>00568     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00569"></a>00569     <a class="code" href="structPC98__GDC__state.html">PC98_GDC_state</a> *gdc;
+<a name="l00570"></a>00570 
+<a name="l00571"></a>00571     <span class="keywordflow">if</span> (port &gt;= 0xA0)
+<a name="l00572"></a>00572         gdc = &amp;pc98_gdc[GDC_SLAVE];
+<a name="l00573"></a>00573     <span class="keywordflow">else</span>
+<a name="l00574"></a>00574         gdc = &amp;pc98_gdc[GDC_MASTER];
+<a name="l00575"></a>00575 
+<a name="l00576"></a>00576     <span class="keywordflow">switch</span> (port&amp;0xE) {
+<a name="l00577"></a>00577         <span class="keywordflow">case</span> 0x00:      <span class="comment">/* 0x60/0xA0 param write fifo */</span>
+<a name="l00578"></a>00578             <span class="keywordflow">if</span> (!gdc-&gt;write_fifo_param(val))
+<a name="l00579"></a>00579                 LOG_MSG(<span class="stringliteral">&quot;GDC warning: FIFO param overrun&quot;</span>);
+<a name="l00580"></a>00580             <span class="keywordflow">break</span>;
+<a name="l00581"></a>00581         <span class="keywordflow">case</span> 0x02:      <span class="comment">/* 0x62/0xA2 command write fifo */</span>
+<a name="l00582"></a>00582             <span class="keywordflow">if</span> (!gdc-&gt;write_fifo_command(val))
+<a name="l00583"></a>00583                 LOG_MSG(<span class="stringliteral">&quot;GDC warning: FIFO command overrun&quot;</span>);
+<a name="l00584"></a>00584             <span class="keywordflow">break</span>;
+<a name="l00585"></a>00585         <span class="keywordflow">case</span> 0x04:      <span class="comment">/* 0x64: set trigger to signal vsync interrupt (IRQ 2) */</span>
+<a name="l00586"></a>00586                         <span class="comment">/* 0xA4: Bit 0 select display &quot;plane&quot; */</span>
+<a name="l00587"></a>00587             <span class="keywordflow">if</span> (port == 0x64)
+<a name="l00588"></a>00588                 GDC_vsync_interrupt = <span class="keyword">true</span>;
+<a name="l00589"></a>00589             <span class="keywordflow">else</span> {
+<a name="l00590"></a>00590                 <span class="comment">/* NTS: Testing on real hardware suggests that this bit is NOT double buffered,</span>
+<a name="l00591"></a>00591 <span class="comment">                 *      therefore you can cause a tearline flipping the bit mid-screen without</span>
+<a name="l00592"></a>00592 <span class="comment">                 *      waiting for vertical blanking.</span>
+<a name="l00593"></a>00593 <span class="comment">                 *</span>
+<a name="l00594"></a>00594 <span class="comment">                 * But: For the user&#39;s preference, we do offer a hack to delay display plane</span>
+<a name="l00595"></a>00595 <span class="comment">                 *      change until vsync to try to alleviate tearlines. */</span>
+<a name="l00596"></a>00596                 GDC_display_plane_pending = (val&amp;1);
+<a name="l00597"></a>00597                 <span class="keywordflow">if</span> (!GDC_display_plane_wait_for_vsync)
+<a name="l00598"></a>00598                     GDC_display_plane = GDC_display_plane_pending;
+<a name="l00599"></a>00599             }
+<a name="l00600"></a>00600             <span class="keywordflow">break</span>;
+<a name="l00601"></a>00601         <span class="keywordflow">case</span> 0x06:      <span class="comment">/* 0x66: ??</span>
+<a name="l00602"></a>00602 <span class="comment">                           0xA6: Bit 0 select CPU access &quot;plane&quot; */</span>
+<a name="l00603"></a>00603             <span class="keywordflow">if</span> (port == 0xA6) {
+<a name="l00604"></a>00604                 pc98_gdc_vramop &amp;= ~(1 &lt;&lt; VOPBIT_ACCESS);
+<a name="l00605"></a>00605                 pc98_gdc_vramop |=  (val&amp;1) &lt;&lt; VOPBIT_ACCESS;
+<a name="l00606"></a>00606             }
+<a name="l00607"></a>00607             <span class="keywordflow">else</span> {
+<a name="l00608"></a>00608                 <span class="keywordflow">goto</span> unknown;
+<a name="l00609"></a>00609             }
+<a name="l00610"></a>00610             <span class="keywordflow">break</span>;
+<a name="l00611"></a>00611         <span class="keywordflow">case</span> 0x08:      <span class="comment">/* 0xA8: One of two meanings, depending on 8 or 16/256--color mode */</span>
+<a name="l00612"></a>00612                         <span class="comment">/*         8-color: 0xA8-0xAB are 8 4-bit packed fields remapping the 3-bit GRB colors. This defines colors #3 [7:4] and #7 [3:0]</span>
+<a name="l00613"></a>00613 <span class="comment">                         *         16-color: GRB color palette index */</span>
+<a name="l00614"></a>00614                         <span class="comment">/* 0x68: A command */</span>
+<a name="l00615"></a>00615                         <span class="comment">/* NTS: Sadly, &quot;undocumented PC-98&quot; reference does not mention the analog 16-color palette. */</span>
+<a name="l00616"></a>00616             <span class="keywordflow">if</span> (port == 0xA8) {
+<a name="l00617"></a>00617                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
+<a name="l00618"></a>00618                     pc98_16col_analog_rgb_palette_index = val; <span class="comment">/* it takes all 8 bits I assume because of 256-color mode */</span>
+<a name="l00619"></a>00619                 }
+<a name="l00620"></a>00620                 <span class="keywordflow">else</span> {
+<a name="l00621"></a>00621                     pc98_set_digpal_pair(3,val);
+<a name="l00622"></a>00622                 }
+<a name="l00623"></a>00623             }
+<a name="l00624"></a>00624             <span class="keywordflow">else</span> {
+<a name="l00625"></a>00625                 pc98_port68_command_write(val);
+<a name="l00626"></a>00626             }
+<a name="l00627"></a>00627             <span class="keywordflow">break</span>;
+<a name="l00628"></a>00628         <span class="keywordflow">case</span> 0x0A:      <span class="comment">/* 0xAA:</span>
+<a name="l00629"></a>00629 <span class="comment">                           8-color: Defines color #1 [7:4] and color #5 [3:0] (FIXME: Or is it 2 and 6, by undocumented PC-98???)</span>
+<a name="l00630"></a>00630 <span class="comment">                           16-color: 4-bit green intensity. Color index is low 4 bits of palette index.</span>
+<a name="l00631"></a>00631 <span class="comment">                           256-color: 4-bit green intensity. Color index is 8-bit palette index. */</span>
+<a name="l00632"></a>00632             <span class="keywordflow">if</span> (port == 0xAA) { <span class="comment">/* TODO: If 8-color... else if 16-color... else if 256-color... */</span>
+<a name="l00633"></a>00633                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
+<a name="l00634"></a>00634                     pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&amp;0xF)) + 0] = val&amp;0x0F;
+<a name="l00635"></a>00635                     vga.dac.rgb[pc98_16col_analog_rgb_palette_index &amp; 0xF].green = dac_4to6(val&amp;0xF); <span class="comment">/* re-use VGA DAC */</span>
+<a name="l00636"></a>00636                     VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index &amp; 0xF);
+<a name="l00637"></a>00637                 }
+<a name="l00638"></a>00638                 <span class="keywordflow">else</span> {
+<a name="l00639"></a>00639                     pc98_set_digpal_pair(1,val);
+<a name="l00640"></a>00640                 }
+<a name="l00641"></a>00641             }
+<a name="l00642"></a>00642             <span class="keywordflow">else</span> {
+<a name="l00643"></a>00643                 pc98_port6A_command_write(val);
+<a name="l00644"></a>00644             }
+<a name="l00645"></a>00645             <span class="keywordflow">break</span>;
+<a name="l00646"></a>00646         <span class="keywordflow">case</span> 0x0C:      <span class="comment">/* 0xAC:</span>
+<a name="l00647"></a>00647 <span class="comment">                           8-color: Defines color #2 [7:4] and color #6 [3:0] (FIXME: Or is it 1 and 4, by undocumented PC-98???)</span>
+<a name="l00648"></a>00648 <span class="comment">                           16-color: 4-bit red intensity. Color index is low 4 bits of palette index.</span>
+<a name="l00649"></a>00649 <span class="comment">                           256-color: 4-bit red intensity. Color index is 8-bit palette index. */</span>
+<a name="l00650"></a>00650             <span class="keywordflow">if</span> (port == 0xAC) { <span class="comment">/* TODO: If 8-color... else if 16-color... else if 256-color... */</span>
+<a name="l00651"></a>00651                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
+<a name="l00652"></a>00652                     pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&amp;0xF)) + 1] = val&amp;0x0F;
+<a name="l00653"></a>00653                     vga.dac.rgb[pc98_16col_analog_rgb_palette_index &amp; 0xF].red = dac_4to6(val&amp;0xF); <span class="comment">/* re-use VGA DAC */</span>
+<a name="l00654"></a>00654                     VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index &amp; 0xF);
+<a name="l00655"></a>00655                 }
+<a name="l00656"></a>00656                 <span class="keywordflow">else</span> {
+<a name="l00657"></a>00657                     pc98_set_digpal_pair(2,val);
+<a name="l00658"></a>00658                 }
+<a name="l00659"></a>00659             }
+<a name="l00660"></a>00660             <span class="keywordflow">else</span> {
+<a name="l00661"></a>00661                 <span class="keywordflow">goto</span> unknown;
+<a name="l00662"></a>00662             }
+<a name="l00663"></a>00663             <span class="keywordflow">break</span>;
+<a name="l00664"></a>00664         <span class="keywordflow">case</span> 0x0E:      <span class="comment">/* 0xAE:</span>
+<a name="l00665"></a>00665 <span class="comment">                           8-color: Defines color #2 [7:4] and color #6 [3:0] (FIXME: Or is it 1 and 4, by undocumented PC-98???)</span>
+<a name="l00666"></a>00666 <span class="comment">                           16-color: 4-bit blue intensity. Color index is low 4 bits of palette index.</span>
+<a name="l00667"></a>00667 <span class="comment">                           256-color: 4-bit blue intensity. Color index is 8-bit palette index. */</span>
+<a name="l00668"></a>00668             <span class="keywordflow">if</span> (port == 0xAE) { <span class="comment">/* TODO: If 8-color... else if 16-color... else if 256-color... */</span>
+<a name="l00669"></a>00669                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
+<a name="l00670"></a>00670                     pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&amp;0xF)) + 2] = val&amp;0x0F;
+<a name="l00671"></a>00671                     vga.dac.rgb[pc98_16col_analog_rgb_palette_index &amp; 0xF].blue = dac_4to6(val&amp;0xF); <span class="comment">/* re-use VGA DAC */</span>
+<a name="l00672"></a>00672                     VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index &amp; 0xF);
+<a name="l00673"></a>00673                 }
+<a name="l00674"></a>00674                 <span class="keywordflow">else</span> {
+<a name="l00675"></a>00675                     pc98_set_digpal_pair(0,val);
+<a name="l00676"></a>00676                 }
+<a name="l00677"></a>00677             }
+<a name="l00678"></a>00678             <span class="keywordflow">else</span> {
+<a name="l00679"></a>00679                 <span class="keywordflow">goto</span> unknown;
+<a name="l00680"></a>00680             }
+<a name="l00681"></a>00681             <span class="keywordflow">break</span>;
+<a name="l00682"></a>00682         <span class="keywordflow">default</span>:
+<a name="l00683"></a>00683             unknown:
+<a name="l00684"></a>00684             LOG_MSG(<span class="stringliteral">&quot;GDC unexpected write to port 0x%x val=0x%x&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)port,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)val);
+<a name="l00685"></a>00685             <span class="keywordflow">break</span>;
+<a name="l00686"></a>00686     };
+<a name="l00687"></a>00687 }
+<a name="l00688"></a>00688 
+<a name="l00689"></a>00689 Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
+<a name="l00690"></a>00690     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00691"></a>00691     <a class="code" href="structPC98__GDC__state.html">PC98_GDC_state</a> *gdc;
+<a name="l00692"></a>00692 
+<a name="l00693"></a>00693     <span class="keywordflow">if</span> (port &gt;= 0xA0)
+<a name="l00694"></a>00694         gdc = &amp;pc98_gdc[GDC_SLAVE];
+<a name="l00695"></a>00695     <span class="keywordflow">else</span>
+<a name="l00696"></a>00696         gdc = &amp;pc98_gdc[GDC_MASTER];
+<a name="l00697"></a>00697 
+<a name="l00698"></a>00698     <span class="keywordflow">switch</span> (port&amp;0xE) {
+<a name="l00699"></a>00699         <span class="keywordflow">case</span> 0x00:      <span class="comment">/* 0x60/0xA0 read status */</span>
+<a name="l00700"></a>00700             <span class="keywordflow">return</span> gdc-&gt;read_status();
+<a name="l00701"></a>00701         <span class="keywordflow">case</span> 0x02:      <span class="comment">/* 0x62/0xA2 read fifo */</span>
+<a name="l00702"></a>00702             <span class="keywordflow">if</span> (!gdc-&gt;rfifo_has_content())
+<a name="l00703"></a>00703                 LOG_MSG(<span class="stringliteral">&quot;GDC warning: FIFO read underrun&quot;</span>);
+<a name="l00704"></a>00704             <span class="keywordflow">return</span> gdc-&gt;rfifo_read_data();
+<a name="l00705"></a>00705 
+<a name="l00706"></a>00706         <span class="keywordflow">case</span> 0x08:
+<a name="l00707"></a>00707             <span class="keywordflow">if</span> (port == 0xA8) {
+<a name="l00708"></a>00708                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
+<a name="l00709"></a>00709                     <span class="keywordflow">return</span> pc98_16col_analog_rgb_palette_index;
+<a name="l00710"></a>00710                 }
+<a name="l00711"></a>00711                 <span class="keywordflow">else</span> {
+<a name="l00712"></a>00712                     <span class="keywordflow">return</span> pc98_get_digpal_pair(3);
+<a name="l00713"></a>00713                 }
+<a name="l00714"></a>00714             }
+<a name="l00715"></a>00715             <span class="keywordflow">else</span> {
+<a name="l00716"></a>00716                 <span class="keywordflow">goto</span> unknown;
+<a name="l00717"></a>00717             }
+<a name="l00718"></a>00718             <span class="keywordflow">break</span>;
+<a name="l00719"></a>00719         <span class="keywordflow">case</span> 0x0A:
+<a name="l00720"></a>00720             <span class="keywordflow">if</span> (port == 0xAA) { <span class="comment">/* TODO: If 8-color... else if 16-color... else if 256-color... */</span>
+<a name="l00721"></a>00721                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
+<a name="l00722"></a>00722                     <span class="keywordflow">return</span> pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&amp;0xF)) + 0];
+<a name="l00723"></a>00723                 }
+<a name="l00724"></a>00724                 <span class="keywordflow">else</span> {
+<a name="l00725"></a>00725                     <span class="keywordflow">return</span> pc98_get_digpal_pair(1);
+<a name="l00726"></a>00726                 }
+<a name="l00727"></a>00727             }
+<a name="l00728"></a>00728             <span class="keywordflow">else</span> {
+<a name="l00729"></a>00729                 <span class="keywordflow">goto</span> unknown;
+<a name="l00730"></a>00730             }
+<a name="l00731"></a>00731             <span class="keywordflow">break</span>;
+<a name="l00732"></a>00732         <span class="keywordflow">case</span> 0x0C:
+<a name="l00733"></a>00733             <span class="keywordflow">if</span> (port == 0xAC) { <span class="comment">/* TODO: If 8-color... else if 16-color... else if 256-color... */</span>
+<a name="l00734"></a>00734                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
+<a name="l00735"></a>00735                     <span class="keywordflow">return</span> pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&amp;0xF)) + 1];
+<a name="l00736"></a>00736                 }
+<a name="l00737"></a>00737                 <span class="keywordflow">else</span> {
+<a name="l00738"></a>00738                     <span class="keywordflow">return</span> pc98_get_digpal_pair(2);
+<a name="l00739"></a>00739                 }
+<a name="l00740"></a>00740             }
+<a name="l00741"></a>00741             <span class="keywordflow">else</span> {
+<a name="l00742"></a>00742                 <span class="keywordflow">goto</span> unknown;
+<a name="l00743"></a>00743             }
+<a name="l00744"></a>00744             <span class="keywordflow">break</span>;
+<a name="l00745"></a>00745         <span class="keywordflow">case</span> 0x0E:
+<a name="l00746"></a>00746             <span class="keywordflow">if</span> (port == 0xAE) { <span class="comment">/* TODO: If 8-color... else if 16-color... else if 256-color... */</span>
+<a name="l00747"></a>00747                 <span class="keywordflow">if</span> (gdc_analog) { <span class="comment">/* 16/256-color mode */</span>
+<a name="l00748"></a>00748                     <span class="keywordflow">return</span> pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&amp;0xF)) + 2];
+<a name="l00749"></a>00749                 }
+<a name="l00750"></a>00750                 <span class="keywordflow">else</span> {
+<a name="l00751"></a>00751                     <span class="keywordflow">return</span> pc98_get_digpal_pair(0);
+<a name="l00752"></a>00752                 }
+<a name="l00753"></a>00753             }
+<a name="l00754"></a>00754             <span class="keywordflow">else</span> {
+<a name="l00755"></a>00755                 <span class="keywordflow">goto</span> unknown;
+<a name="l00756"></a>00756             }
+<a name="l00757"></a>00757             <span class="keywordflow">break</span>;
+<a name="l00758"></a>00758         <span class="keywordflow">default</span>:
+<a name="l00759"></a>00759             unknown:
+<a name="l00760"></a>00760             LOG_MSG(<span class="stringliteral">&quot;GDC unexpected read from port 0x%x&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)port);
+<a name="l00761"></a>00761             <span class="keywordflow">break</span>;
+<a name="l00762"></a>00762     };
+<a name="l00763"></a>00763 
+<a name="l00764"></a>00764     <span class="keywordflow">return</span> ~0;
+<a name="l00765"></a>00765 }
+<a name="l00766"></a>00766 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

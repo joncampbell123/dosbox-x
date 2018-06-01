@@ -905,25 +905,26 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00809"></a>00809 }
 <a name="l00810"></a>00810 
 <a name="l00811"></a>00811 <span class="keywordtype">void</span> XMS_Startup(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l00812"></a>00812         <span class="keywordflow">if</span> (test == NULL) {
-<a name="l00813"></a>00813                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Allocating XMS emulation&quot;</span>);
-<a name="l00814"></a>00814                 test = <span class="keyword">new</span> <a class="code" href="classXMS.html">XMS</a>(control-&gt;GetSection(<span class="stringliteral">&quot;dos&quot;</span>));
-<a name="l00815"></a>00815         }
-<a name="l00816"></a>00816 }
-<a name="l00817"></a>00817 
-<a name="l00818"></a>00818 <span class="keywordtype">void</span> XMS_Init() {
-<a name="l00819"></a>00819         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing XMS extended memory services&quot;</span>);
-<a name="l00820"></a>00820 
-<a name="l00821"></a>00821         AddExitFunction(AddExitFunctionFuncPair(XMS_ShutDown),<span class="keyword">true</span>);
-<a name="l00822"></a>00822         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(XMS_ShutDown));
-<a name="l00823"></a>00823         AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(XMS_ShutDown));
-<a name="l00824"></a>00824 }
-<a name="l00825"></a>00825 
+<a name="l00812"></a>00812     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l00813"></a>00813         <span class="keywordflow">if</span> (test == NULL) {
+<a name="l00814"></a>00814                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Allocating XMS emulation&quot;</span>);
+<a name="l00815"></a>00815                 test = <span class="keyword">new</span> <a class="code" href="classXMS.html">XMS</a>(control-&gt;GetSection(<span class="stringliteral">&quot;dos&quot;</span>));
+<a name="l00816"></a>00816         }
+<a name="l00817"></a>00817 }
+<a name="l00818"></a>00818 
+<a name="l00819"></a>00819 <span class="keywordtype">void</span> XMS_Init() {
+<a name="l00820"></a>00820         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing XMS extended memory services&quot;</span>);
+<a name="l00821"></a>00821 
+<a name="l00822"></a>00822         AddExitFunction(AddExitFunctionFuncPair(XMS_ShutDown),<span class="keyword">true</span>);
+<a name="l00823"></a>00823         AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(XMS_ShutDown));
+<a name="l00824"></a>00824         AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(XMS_ShutDown));
+<a name="l00825"></a>00825 }
+<a name="l00826"></a>00826 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

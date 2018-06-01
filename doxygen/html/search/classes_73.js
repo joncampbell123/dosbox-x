@@ -53,6 +53,7 @@ var searchData=
   ['srb_5fhainquiry',['SRB_HAInquiry',['../structSRB__HAInquiry.html',1,'']]],
   ['srb_5frescanport',['SRB_RescanPort',['../structSRB__RescanPort.html',1,'']]],
   ['state',['State',['../classSID2_1_1State.html',1,'SID2']]],
+  ['status',['status',['../structDOSBoxMenu_1_1item_1_1status.html',1,'DOSBoxMenu::item']]],
   ['stereovolume',['StereoVolume',['../structMT32Emu_1_1StereoVolume.html',1,'MT32Emu']]],
   ['string',['String',['../classGUI_1_1String.html',1,'GUI']]],
   ['svga_5fdriver',['SVGA_Driver',['../structSVGA__Driver.html',1,'']]],

@@ -104,8 +104,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00008"></a>00008 <span class="preprocessor">#include &quot;dosio.h&quot;</span>
 <a name="l00009"></a>00009 
 <a name="l00010"></a>00010 
-<a name="l00011"></a>00011 <span class="keyword">static</span> OEMCHAR curpath[MAX_PATH];
-<a name="l00012"></a>00012 <span class="keyword">static</span> OEMCHAR *curfilep = curpath;
+<a name="l00011"></a>00011 <span class="comment">//static OEMCHAR curpath[MAX_PATH];</span>
+<a name="l00012"></a>00012 <span class="comment">//static OEMCHAR *curfilep = curpath;</span>
 <a name="l00013"></a>00013 
 <a name="l00014"></a>00014 <span class="preprocessor">#define ISKANJI(c)      ((((c) - 0xa1) &amp; 0xff) &lt; 0x5c)</span>
 <a name="l00015"></a>00015 <span class="preprocessor"></span>
@@ -532,7 +532,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00436"></a>00436 {
 <a name="l00437"></a>00437         <span class="keywordtype">int</span> pos;
 <a name="l00438"></a>00438 
-<a name="l00439"></a>00439         pos = strlen(path) - 1;
+<a name="l00439"></a>00439         pos = (int)strlen(path) - 1;
 <a name="l00440"></a>00440         <span class="keywordflow">if</span> ((pos &gt; 0) &amp;&amp; (path[pos] == _G_DIR_SEPARATOR)) {
 <a name="l00441"></a>00441                 path[pos] = <span class="charliteral">&#39;\0&#39;</span>;
 <a name="l00442"></a>00442         }
@@ -543,7 +543,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00447"></a>00447 {
 <a name="l00448"></a>00448         <span class="keywordtype">int</span> pos;
 <a name="l00449"></a>00449 
-<a name="l00450"></a>00450         pos = strlen(path);
+<a name="l00450"></a>00450         pos = (int)strlen(path);
 <a name="l00451"></a>00451         <span class="keywordflow">if</span> ((pos) &amp;&amp; (path[pos-1] != _G_DIR_SEPARATOR) &amp;&amp; ((pos + 2) &lt; maxlen)) {
 <a name="l00452"></a>00452                 path[pos++] = _G_DIR_SEPARATOR;
 <a name="l00453"></a>00453                 path[pos] = <span class="charliteral">&#39;\0&#39;</span>;
@@ -553,7 +553,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

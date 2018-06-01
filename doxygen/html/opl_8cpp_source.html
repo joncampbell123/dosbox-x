@@ -1008,562 +1008,563 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00912"></a>00912 <span class="preprocessor"></span>}
 <a name="l00913"></a>00913 
 <a name="l00914"></a>00914 <span class="keywordtype">void</span> adlib_write_index(Bitu port, Bit8u val) {
-<a name="l00915"></a>00915         opl_index = val;
-<a name="l00916"></a>00916 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
-<a name="l00917"></a>00917 <span class="preprocessor"></span>        <span class="keywordflow">if</span> ((port&amp;3)!=0) {
-<a name="l00918"></a>00918                 <span class="comment">// possibly second set</span>
-<a name="l00919"></a>00919                 <span class="keywordflow">if</span> (((adlibreg[0x105]&amp;1)!=0) || (opl_index==5)) opl_index |= ARC_SECONDSET;
-<a name="l00920"></a>00920         }
-<a name="l00921"></a>00921 <span class="preprocessor">#endif</span>
-<a name="l00922"></a>00922 <span class="preprocessor"></span>}
-<a name="l00923"></a>00923 
-<a name="l00924"></a>00924 <span class="keyword">static</span> <span class="keywordtype">void</span> OPL_INLINE clipit16(Bit32s ival, Bit16s* outval) {
-<a name="l00925"></a>00925         <span class="keywordflow">if</span> (ival&lt;32768) {
-<a name="l00926"></a>00926                 <span class="keywordflow">if</span> (ival&gt;-32769) {
-<a name="l00927"></a>00927                         *outval=(Bit16s)ival;
-<a name="l00928"></a>00928                 } <span class="keywordflow">else</span> {
-<a name="l00929"></a>00929                         *outval = -32768;
-<a name="l00930"></a>00930                 }
-<a name="l00931"></a>00931         } <span class="keywordflow">else</span> {
-<a name="l00932"></a>00932                 *outval = 32767;
-<a name="l00933"></a>00933         }
-<a name="l00934"></a>00934 }
-<a name="l00935"></a>00935 
+<a name="l00915"></a>00915     (void)port;<span class="comment">//POSSIBLY UNUSED</span>
+<a name="l00916"></a>00916         opl_index = val;
+<a name="l00917"></a>00917 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
+<a name="l00918"></a>00918 <span class="preprocessor"></span>        <span class="keywordflow">if</span> ((port&amp;3)!=0) {
+<a name="l00919"></a>00919                 <span class="comment">// possibly second set</span>
+<a name="l00920"></a>00920                 <span class="keywordflow">if</span> (((adlibreg[0x105]&amp;1)!=0) || (opl_index==5)) opl_index |= ARC_SECONDSET;
+<a name="l00921"></a>00921         }
+<a name="l00922"></a>00922 <span class="preprocessor">#endif</span>
+<a name="l00923"></a>00923 <span class="preprocessor"></span>}
+<a name="l00924"></a>00924 
+<a name="l00925"></a>00925 <span class="keyword">static</span> <span class="keywordtype">void</span> OPL_INLINE clipit16(Bit32s ival, Bit16s* outval) {
+<a name="l00926"></a>00926         <span class="keywordflow">if</span> (ival&lt;32768) {
+<a name="l00927"></a>00927                 <span class="keywordflow">if</span> (ival&gt;-32769) {
+<a name="l00928"></a>00928                         *outval=(Bit16s)ival;
+<a name="l00929"></a>00929                 } <span class="keywordflow">else</span> {
+<a name="l00930"></a>00930                         *outval = -32768;
+<a name="l00931"></a>00931                 }
+<a name="l00932"></a>00932         } <span class="keywordflow">else</span> {
+<a name="l00933"></a>00933                 *outval = 32767;
+<a name="l00934"></a>00934         }
+<a name="l00935"></a>00935 }
 <a name="l00936"></a>00936 
 <a name="l00937"></a>00937 
-<a name="l00938"></a>00938 <span class="comment">// be careful with this</span>
-<a name="l00939"></a>00939 <span class="comment">// uses cptr and chanval, outputs into outbufl(/outbufr)</span>
-<a name="l00940"></a>00940 <span class="comment">// for opl3 check if opl3-mode is enabled (which uses stereo panning)</span>
-<a name="l00941"></a>00941 <span class="preprocessor">#undef CHANVAL_OUT</span>
-<a name="l00942"></a>00942 <span class="preprocessor"></span><span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
-<a name="l00943"></a>00943 <span class="preprocessor"></span><span class="preprocessor">#define CHANVAL_OUT                                                                     \</span>
-<a name="l00944"></a>00944 <span class="preprocessor">        if (adlibreg[0x105]&amp;1) {                                                \</span>
-<a name="l00945"></a>00945 <span class="preprocessor">                outbufl[i] += chanval*cptr[0].left_pan;         \</span>
-<a name="l00946"></a>00946 <span class="preprocessor">                outbufr[i] += chanval*cptr[0].right_pan;        \</span>
-<a name="l00947"></a>00947 <span class="preprocessor">        } else {                                                                                \</span>
-<a name="l00948"></a>00948 <span class="preprocessor">                outbufl[i] += chanval;                                          \</span>
-<a name="l00949"></a>00949 <span class="preprocessor">        }</span>
-<a name="l00950"></a>00950 <span class="preprocessor"></span><span class="preprocessor">#else</span>
-<a name="l00951"></a>00951 <span class="preprocessor"></span><span class="preprocessor">#define CHANVAL_OUT                                                                     \</span>
-<a name="l00952"></a>00952 <span class="preprocessor">        outbufl[i] += chanval;</span>
-<a name="l00953"></a>00953 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
-<a name="l00954"></a>00954 <span class="preprocessor"></span>
-<a name="l00955"></a>00955 <span class="keywordtype">void</span> adlib_getsample(Bit16s* sndptr, Bits numsamples) {
-<a name="l00956"></a>00956         Bits i, endsamples;
-<a name="l00957"></a>00957         <a class="code" href="structoperator__struct.html">op_type</a>* cptr;
-<a name="l00958"></a>00958 
-<a name="l00959"></a>00959         Bit32s outbufl[BLOCKBUF_SIZE];
-<a name="l00960"></a>00960 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
-<a name="l00961"></a>00961 <span class="preprocessor"></span>        <span class="comment">// second output buffer (right channel for opl3 stereo)</span>
-<a name="l00962"></a>00962         Bit32s outbufr[BLOCKBUF_SIZE];
-<a name="l00963"></a>00963 <span class="preprocessor">#endif</span>
-<a name="l00964"></a>00964 <span class="preprocessor"></span>
-<a name="l00965"></a>00965         <span class="comment">// vibrato/tremolo lookup tables (global, to possibly be used by all operators)</span>
-<a name="l00966"></a>00966         Bit32s vib_lut[BLOCKBUF_SIZE];
-<a name="l00967"></a>00967         Bit32s trem_lut[BLOCKBUF_SIZE];
-<a name="l00968"></a>00968 
-<a name="l00969"></a>00969         Bits samples_to_process = numsamples;
-<a name="l00970"></a>00970 
-<a name="l00971"></a>00971         <span class="keywordflow">for</span> (Bits cursmp=0; cursmp&lt;samples_to_process; cursmp+=endsamples) {
-<a name="l00972"></a>00972                 endsamples = samples_to_process-cursmp;
-<a name="l00973"></a>00973                 <span class="keywordflow">if</span> (endsamples&gt;BLOCKBUF_SIZE) endsamples = BLOCKBUF_SIZE;
-<a name="l00974"></a>00974 
-<a name="l00975"></a>00975                 memset((<span class="keywordtype">void</span>*)&amp;outbufl,0,endsamples*<span class="keyword">sizeof</span>(Bit32s));
-<a name="l00976"></a>00976 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
-<a name="l00977"></a>00977 <span class="preprocessor"></span>                <span class="comment">// clear second output buffer (opl3 stereo)</span>
-<a name="l00978"></a>00978                 <span class="keywordflow">if</span> (adlibreg[0x105]&amp;1) memset((<span class="keywordtype">void</span>*)&amp;outbufr,0,endsamples*<span class="keyword">sizeof</span>(Bit32s));
-<a name="l00979"></a>00979 <span class="preprocessor">#endif</span>
-<a name="l00980"></a>00980 <span class="preprocessor"></span>
-<a name="l00981"></a>00981                 <span class="comment">// calculate vibrato/tremolo lookup tables</span>
-<a name="l00982"></a>00982                 Bit32s vib_tshift = ((adlibreg[ARC_PERC_MODE]&amp;0x40)==0) ? 1 : 0;        <span class="comment">// 14cents/7cents switching</span>
-<a name="l00983"></a>00983                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l00984"></a>00984                         <span class="comment">// cycle through vibrato table</span>
-<a name="l00985"></a>00985                         vibtab_pos += vibtab_add;
-<a name="l00986"></a>00986                         <span class="keywordflow">if</span> (vibtab_pos/FIXEDPT_LFO&gt;=VIBTAB_SIZE) vibtab_pos-=VIBTAB_SIZE*FIXEDPT_LFO;
-<a name="l00987"></a>00987                         vib_lut[i] = vib_table[vibtab_pos/FIXEDPT_LFO]&gt;&gt;vib_tshift;             <span class="comment">// 14cents (14/100 of a semitone) or 7cents</span>
-<a name="l00988"></a>00988 
-<a name="l00989"></a>00989                         <span class="comment">// cycle through tremolo table</span>
-<a name="l00990"></a>00990                         tremtab_pos += tremtab_add;
-<a name="l00991"></a>00991                         <span class="keywordflow">if</span> (tremtab_pos/FIXEDPT_LFO&gt;=TREMTAB_SIZE) tremtab_pos-=TREMTAB_SIZE*FIXEDPT_LFO;
-<a name="l00992"></a>00992                         <span class="keywordflow">if</span> (adlibreg[ARC_PERC_MODE]&amp;0x80) trem_lut[i] = trem_table[tremtab_pos/FIXEDPT_LFO];
-<a name="l00993"></a>00993                         <span class="keywordflow">else</span> trem_lut[i] = trem_table[TREMTAB_SIZE+tremtab_pos/FIXEDPT_LFO];
-<a name="l00994"></a>00994                 }
-<a name="l00995"></a>00995 
-<a name="l00996"></a>00996                 <span class="keywordflow">if</span> (adlibreg[ARC_PERC_MODE]&amp;0x20) {
-<a name="l00997"></a>00997                         <span class="comment">//BassDrum</span>
-<a name="l00998"></a>00998                         cptr = &amp;op[6];
-<a name="l00999"></a>00999                         <span class="keywordflow">if</span> (adlibreg[ARC_FEEDBACK+6]&amp;1) {
-<a name="l01000"></a>01000                                 <span class="comment">// additive synthesis</span>
-<a name="l01001"></a>01001                                 <span class="keywordflow">if</span> (cptr[9].op_state != OF_TYPE_OFF) {
-<a name="l01002"></a>01002                                         <span class="keywordflow">if</span> (cptr[9].vibrato) {
-<a name="l01003"></a>01003                                                 vibval1 = vibval_var1;
-<a name="l01004"></a>01004                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01005"></a>01005                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01006"></a>01006                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
-<a name="l01007"></a>01007                                         <span class="keywordflow">if</span> (cptr[9].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01008"></a>01008                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
-<a name="l01009"></a>01009 
-<a name="l01010"></a>01010                                         <span class="comment">// calculate channel output</span>
-<a name="l01011"></a>01011                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01012"></a>01012                                                 operator_advance(&amp;cptr[9],vibval1[i]);
-<a name="l01013"></a>01013                                                 opfuncs[cptr[9].op_state](&amp;cptr[9]);
-<a name="l01014"></a>01014                                                 operator_output(&amp;cptr[9],0,tremval1[i]);
-<a name="l01015"></a>01015                                                 
-<a name="l01016"></a>01016                                                 Bit32s chanval = cptr[9].cval*2;
-<a name="l01017"></a>01017                                                 CHANVAL_OUT
-<a name="l01018"></a>01018                                         }
-<a name="l01019"></a>01019                                 }
-<a name="l01020"></a>01020                         } <span class="keywordflow">else</span> {
-<a name="l01021"></a>01021                                 <span class="comment">// frequency modulation</span>
-<a name="l01022"></a>01022                                 <span class="keywordflow">if</span> ((cptr[9].op_state != OF_TYPE_OFF) || (cptr[0].op_state != OF_TYPE_OFF)) {
-<a name="l01023"></a>01023                                         <span class="keywordflow">if</span> ((cptr[0].vibrato) &amp;&amp; (cptr[0].op_state != OF_TYPE_OFF)) {
-<a name="l01024"></a>01024                                                 vibval1 = vibval_var1;
-<a name="l01025"></a>01025                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01026"></a>01026                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01027"></a>01027                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
-<a name="l01028"></a>01028                                         <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state != OF_TYPE_OFF)) {
-<a name="l01029"></a>01029                                                 vibval2 = vibval_var2;
-<a name="l01030"></a>01030                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01031"></a>01031                                                         vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01032"></a>01032                                         } <span class="keywordflow">else</span> vibval2 = vibval_const;
-<a name="l01033"></a>01033                                         <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01034"></a>01034                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
-<a name="l01035"></a>01035                                         <span class="keywordflow">if</span> (cptr[9].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01036"></a>01036                                         <span class="keywordflow">else</span> tremval2 = tremval_const;
-<a name="l01037"></a>01037 
-<a name="l01038"></a>01038                                         <span class="comment">// calculate channel output</span>
-<a name="l01039"></a>01039                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01040"></a>01040                                                 operator_advance(&amp;cptr[0],vibval1[i]);
-<a name="l01041"></a>01041                                                 opfuncs[cptr[0].op_state](&amp;cptr[0]);
-<a name="l01042"></a>01042                                                 operator_output(&amp;cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
-<a name="l01043"></a>01043 
-<a name="l01044"></a>01044                                                 operator_advance(&amp;cptr[9],vibval2[i]);
-<a name="l01045"></a>01045                                                 opfuncs[cptr[9].op_state](&amp;cptr[9]);
-<a name="l01046"></a>01046                                                 operator_output(&amp;cptr[9],cptr[0].cval*FIXEDPT,tremval2[i]);
-<a name="l01047"></a>01047                                                 
-<a name="l01048"></a>01048                                                 Bit32s chanval = cptr[9].cval*2;
-<a name="l01049"></a>01049                                                 CHANVAL_OUT
-<a name="l01050"></a>01050                                         }
-<a name="l01051"></a>01051                                 }
-<a name="l01052"></a>01052                         }
-<a name="l01053"></a>01053 
-<a name="l01054"></a>01054                         <span class="comment">//TomTom (j=8)</span>
-<a name="l01055"></a>01055                         <span class="keywordflow">if</span> (op[8].op_state != OF_TYPE_OFF) {
-<a name="l01056"></a>01056                                 cptr = &amp;op[8];
-<a name="l01057"></a>01057                                 <span class="keywordflow">if</span> (cptr[0].vibrato) {
-<a name="l01058"></a>01058                                         vibval3 = vibval_var1;
-<a name="l01059"></a>01059                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01060"></a>01060                                                 vibval3[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01061"></a>01061                                 } <span class="keywordflow">else</span> vibval3 = vibval_const;
-<a name="l01062"></a>01062 
-<a name="l01063"></a>01063                                 <span class="keywordflow">if</span> (cptr[0].tremolo) tremval3 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01064"></a>01064                                 <span class="keywordflow">else</span> tremval3 = tremval_const;
-<a name="l01065"></a>01065 
-<a name="l01066"></a>01066                                 <span class="comment">// calculate channel output</span>
-<a name="l01067"></a>01067                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01068"></a>01068                                         operator_advance(&amp;cptr[0],vibval3[i]);
-<a name="l01069"></a>01069                                         opfuncs[cptr[0].op_state](&amp;cptr[0]);            <span class="comment">//TomTom</span>
-<a name="l01070"></a>01070                                         operator_output(&amp;cptr[0],0,tremval3[i]);
-<a name="l01071"></a>01071                                         Bit32s chanval = cptr[0].cval*2;
-<a name="l01072"></a>01072                                         CHANVAL_OUT
-<a name="l01073"></a>01073                                 }
-<a name="l01074"></a>01074                         }
-<a name="l01075"></a>01075 
-<a name="l01076"></a>01076                         <span class="comment">//Snare/Hihat (j=7), Cymbal (j=8)</span>
-<a name="l01077"></a>01077                         <span class="keywordflow">if</span> ((op[7].op_state != OF_TYPE_OFF) || (op[16].op_state != OF_TYPE_OFF) ||
-<a name="l01078"></a>01078                                 (op[17].op_state != OF_TYPE_OFF)) {
-<a name="l01079"></a>01079                                 cptr = &amp;op[7];
-<a name="l01080"></a>01080                                 <span class="keywordflow">if</span> ((cptr[0].vibrato) &amp;&amp; (cptr[0].op_state != OF_TYPE_OFF)) {
-<a name="l01081"></a>01081                                         vibval1 = vibval_var1;
-<a name="l01082"></a>01082                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01083"></a>01083                                                 vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01084"></a>01084                                 } <span class="keywordflow">else</span> vibval1 = vibval_const;
-<a name="l01085"></a>01085                                 <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state == OF_TYPE_OFF)) {
-<a name="l01086"></a>01086                                         vibval2 = vibval_var2;
-<a name="l01087"></a>01087                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01088"></a>01088                                                 vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01089"></a>01089                                 } <span class="keywordflow">else</span> vibval2 = vibval_const;
-<a name="l01090"></a>01090 
-<a name="l01091"></a>01091                                 <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01092"></a>01092                                 <span class="keywordflow">else</span> tremval1 = tremval_const;
-<a name="l01093"></a>01093                                 <span class="keywordflow">if</span> (cptr[9].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01094"></a>01094                                 <span class="keywordflow">else</span> tremval2 = tremval_const;
-<a name="l01095"></a>01095 
-<a name="l01096"></a>01096                                 cptr = &amp;op[8];
-<a name="l01097"></a>01097                                 <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state == OF_TYPE_OFF)) {
-<a name="l01098"></a>01098                                         vibval4 = vibval_var2;
-<a name="l01099"></a>01099                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01100"></a>01100                                                 vibval4[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01101"></a>01101                                 } <span class="keywordflow">else</span> vibval4 = vibval_const;
-<a name="l01102"></a>01102 
-<a name="l01103"></a>01103                                 <span class="keywordflow">if</span> (cptr[9].tremolo) tremval4 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01104"></a>01104                                 <span class="keywordflow">else</span> tremval4 = tremval_const;
-<a name="l01105"></a>01105 
-<a name="l01106"></a>01106                                 <span class="comment">// calculate channel output</span>
-<a name="l01107"></a>01107                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01108"></a>01108                                         operator_advance_drums(&amp;op[7],vibval1[i],&amp;op[7+9],vibval2[i],&amp;op[8+9],vibval4[i]);
-<a name="l01109"></a>01109 
-<a name="l01110"></a>01110                                         opfuncs[op[7].op_state](&amp;op[7]);                        <span class="comment">//Hihat</span>
-<a name="l01111"></a>01111                                         operator_output(&amp;op[7],0,tremval1[i]);
-<a name="l01112"></a>01112 
-<a name="l01113"></a>01113                                         opfuncs[op[7+9].op_state](&amp;op[7+9]);            <span class="comment">//Snare</span>
-<a name="l01114"></a>01114                                         operator_output(&amp;op[7+9],0,tremval2[i]);
-<a name="l01115"></a>01115 
-<a name="l01116"></a>01116                                         opfuncs[op[8+9].op_state](&amp;op[8+9]);            <span class="comment">//Cymbal</span>
-<a name="l01117"></a>01117                                         operator_output(&amp;op[8+9],0,tremval4[i]);
-<a name="l01118"></a>01118 
-<a name="l01119"></a>01119                                         Bit32s chanval = (op[7].cval + op[7+9].cval + op[8+9].cval)*2;
-<a name="l01120"></a>01120                                         CHANVAL_OUT
-<a name="l01121"></a>01121                                 }
-<a name="l01122"></a>01122                         }
-<a name="l01123"></a>01123                 }
-<a name="l01124"></a>01124 
-<a name="l01125"></a>01125                 Bitu max_channel = NUM_CHANNELS;
-<a name="l01126"></a>01126 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
-<a name="l01127"></a>01127 <span class="preprocessor"></span>                <span class="keywordflow">if</span> ((adlibreg[0x105]&amp;1)==0) max_channel = NUM_CHANNELS/2;
-<a name="l01128"></a>01128 <span class="preprocessor">#endif</span>
-<a name="l01129"></a>01129 <span class="preprocessor"></span>                <span class="keywordflow">for</span> (Bits cur_ch=max_channel-1; cur_ch&gt;=0; cur_ch--) {
-<a name="l01130"></a>01130                         <span class="comment">// skip drum/percussion operators</span>
-<a name="l01131"></a>01131                         <span class="keywordflow">if</span> ((adlibreg[ARC_PERC_MODE]&amp;0x20) &amp;&amp; (cur_ch &gt;= 6) &amp;&amp; (cur_ch &lt; 9)) <span class="keywordflow">continue</span>;
-<a name="l01132"></a>01132 
-<a name="l01133"></a>01133                         Bitu k = cur_ch;
-<a name="l01134"></a>01134 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
-<a name="l01135"></a>01135 <span class="preprocessor"></span>                        <span class="keywordflow">if</span> (cur_ch &lt; 9) {
-<a name="l01136"></a>01136                                 cptr = &amp;op[cur_ch];
-<a name="l01137"></a>01137                         } <span class="keywordflow">else</span> {
-<a name="l01138"></a>01138                                 cptr = &amp;op[cur_ch+9];   <span class="comment">// second set is operator18-operator35</span>
-<a name="l01139"></a>01139                                 k += (-9+256);          <span class="comment">// second set uses registers 0x100 onwards</span>
-<a name="l01140"></a>01140                         }
-<a name="l01141"></a>01141                         <span class="comment">// check if this operator is part of a 4-op</span>
-<a name="l01142"></a>01142                         <span class="keywordflow">if</span> ((adlibreg[0x105]&amp;1) &amp;&amp; cptr-&gt;is_4op_attached) <span class="keywordflow">continue</span>;
-<a name="l01143"></a>01143 <span class="preprocessor">#else</span>
-<a name="l01144"></a>01144 <span class="preprocessor"></span>                        cptr = &amp;op[cur_ch];
-<a name="l01145"></a>01145 <span class="preprocessor">#endif</span>
-<a name="l01146"></a>01146 <span class="preprocessor"></span>
-<a name="l01147"></a>01147                         <span class="comment">// check for FM/AM</span>
-<a name="l01148"></a>01148                         <span class="keywordflow">if</span> (adlibreg[ARC_FEEDBACK+k]&amp;1) {
-<a name="l01149"></a>01149 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
-<a name="l01150"></a>01150 <span class="preprocessor"></span>                                <span class="keywordflow">if</span> ((adlibreg[0x105]&amp;1) &amp;&amp; cptr-&gt;is_4op) {
-<a name="l01151"></a>01151                                         <span class="keywordflow">if</span> (adlibreg[ARC_FEEDBACK+k+3]&amp;1) {
-<a name="l01152"></a>01152                                                 <span class="comment">// AM-AM-style synthesis (op1[fb] + (op2 * op3) + op4)</span>
-<a name="l01153"></a>01153                                                 <span class="keywordflow">if</span> (cptr[0].op_state != OF_TYPE_OFF) {
-<a name="l01154"></a>01154                                                         <span class="keywordflow">if</span> (cptr[0].vibrato) {
-<a name="l01155"></a>01155                                                                 vibval1 = vibval_var1;
-<a name="l01156"></a>01156                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01157"></a>01157                                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01158"></a>01158                                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
-<a name="l01159"></a>01159                                                         <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01160"></a>01160                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
-<a name="l01161"></a>01161 
-<a name="l01162"></a>01162                                                         <span class="comment">// calculate channel output</span>
-<a name="l01163"></a>01163                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01164"></a>01164                                                                 operator_advance(&amp;cptr[0],vibval1[i]);
-<a name="l01165"></a>01165                                                                 opfuncs[cptr[0].op_state](&amp;cptr[0]);
-<a name="l01166"></a>01166                                                                 operator_output(&amp;cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
-<a name="l01167"></a>01167 
-<a name="l01168"></a>01168                                                                 Bit32s chanval = cptr[0].cval;
-<a name="l01169"></a>01169                                                                 CHANVAL_OUT
-<a name="l01170"></a>01170                                                         }
-<a name="l01171"></a>01171                                                 }
-<a name="l01172"></a>01172 
-<a name="l01173"></a>01173                                                 <span class="keywordflow">if</span> ((cptr[3].op_state != OF_TYPE_OFF) || (cptr[9].op_state != OF_TYPE_OFF)) {
-<a name="l01174"></a>01174                                                         <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state != OF_TYPE_OFF)) {
-<a name="l01175"></a>01175                                                                 vibval1 = vibval_var1;
-<a name="l01176"></a>01176                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01177"></a>01177                                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01178"></a>01178                                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
-<a name="l01179"></a>01179                                                         <span class="keywordflow">if</span> (cptr[9].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01180"></a>01180                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
-<a name="l01181"></a>01181                                                         <span class="keywordflow">if</span> (cptr[3].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01182"></a>01182                                                         <span class="keywordflow">else</span> tremval2 = tremval_const;
-<a name="l01183"></a>01183 
-<a name="l01184"></a>01184                                                         <span class="comment">// calculate channel output</span>
-<a name="l01185"></a>01185                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01186"></a>01186                                                                 operator_advance(&amp;cptr[9],vibval1[i]);
-<a name="l01187"></a>01187                                                                 opfuncs[cptr[9].op_state](&amp;cptr[9]);
-<a name="l01188"></a>01188                                                                 operator_output(&amp;cptr[9],0,tremval1[i]);
-<a name="l01189"></a>01189 
-<a name="l01190"></a>01190                                                                 operator_advance(&amp;cptr[3],0);
-<a name="l01191"></a>01191                                                                 opfuncs[cptr[3].op_state](&amp;cptr[3]);
-<a name="l01192"></a>01192                                                                 operator_output(&amp;cptr[3],cptr[9].cval*FIXEDPT,tremval2[i]);
-<a name="l01193"></a>01193 
-<a name="l01194"></a>01194                                                                 Bit32s chanval = cptr[3].cval;
-<a name="l01195"></a>01195                                                                 CHANVAL_OUT
-<a name="l01196"></a>01196                                                         }
-<a name="l01197"></a>01197                                                 }
-<a name="l01198"></a>01198 
-<a name="l01199"></a>01199                                                 <span class="keywordflow">if</span> (cptr[3+9].op_state != OF_TYPE_OFF) {
-<a name="l01200"></a>01200                                                         <span class="keywordflow">if</span> (cptr[3+9].tremolo) tremval1 = trem_lut;     <span class="comment">// tremolo enabled, use table</span>
-<a name="l01201"></a>01201                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
-<a name="l01202"></a>01202 
-<a name="l01203"></a>01203                                                         <span class="comment">// calculate channel output</span>
-<a name="l01204"></a>01204                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01205"></a>01205                                                                 operator_advance(&amp;cptr[3+9],0);
-<a name="l01206"></a>01206                                                                 opfuncs[cptr[3+9].op_state](&amp;cptr[3+9]);
-<a name="l01207"></a>01207                                                                 operator_output(&amp;cptr[3+9],0,tremval1[i]);
-<a name="l01208"></a>01208 
-<a name="l01209"></a>01209                                                                 Bit32s chanval = cptr[3+9].cval;
-<a name="l01210"></a>01210                                                                 CHANVAL_OUT
-<a name="l01211"></a>01211                                                         }
-<a name="l01212"></a>01212                                                 }
-<a name="l01213"></a>01213                                         } <span class="keywordflow">else</span> {
-<a name="l01214"></a>01214                                                 <span class="comment">// AM-FM-style synthesis (op1[fb] + (op2 * op3 * op4))</span>
-<a name="l01215"></a>01215                                                 <span class="keywordflow">if</span> (cptr[0].op_state != OF_TYPE_OFF) {
-<a name="l01216"></a>01216                                                         <span class="keywordflow">if</span> (cptr[0].vibrato) {
-<a name="l01217"></a>01217                                                                 vibval1 = vibval_var1;
-<a name="l01218"></a>01218                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01219"></a>01219                                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01220"></a>01220                                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
-<a name="l01221"></a>01221                                                         <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01222"></a>01222                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
-<a name="l01223"></a>01223 
-<a name="l01224"></a>01224                                                         <span class="comment">// calculate channel output</span>
-<a name="l01225"></a>01225                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01226"></a>01226                                                                 operator_advance(&amp;cptr[0],vibval1[i]);
-<a name="l01227"></a>01227                                                                 opfuncs[cptr[0].op_state](&amp;cptr[0]);
-<a name="l01228"></a>01228                                                                 operator_output(&amp;cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
-<a name="l01229"></a>01229 
-<a name="l01230"></a>01230                                                                 Bit32s chanval = cptr[0].cval;
-<a name="l01231"></a>01231                                                                 CHANVAL_OUT
-<a name="l01232"></a>01232                                                         }
-<a name="l01233"></a>01233                                                 }
-<a name="l01234"></a>01234 
-<a name="l01235"></a>01235                                                 <span class="keywordflow">if</span> ((cptr[9].op_state != OF_TYPE_OFF) || (cptr[3].op_state != OF_TYPE_OFF) || (cptr[3+9].op_state != OF_TYPE_OFF)) {
-<a name="l01236"></a>01236                                                         <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state != OF_TYPE_OFF)) {
-<a name="l01237"></a>01237                                                                 vibval1 = vibval_var1;
-<a name="l01238"></a>01238                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01239"></a>01239                                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01240"></a>01240                                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
-<a name="l01241"></a>01241                                                         <span class="keywordflow">if</span> (cptr[9].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01242"></a>01242                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
-<a name="l01243"></a>01243                                                         <span class="keywordflow">if</span> (cptr[3].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01244"></a>01244                                                         <span class="keywordflow">else</span> tremval2 = tremval_const;
-<a name="l01245"></a>01245                                                         <span class="keywordflow">if</span> (cptr[3+9].tremolo) tremval3 = trem_lut;     <span class="comment">// tremolo enabled, use table</span>
-<a name="l01246"></a>01246                                                         <span class="keywordflow">else</span> tremval3 = tremval_const;
-<a name="l01247"></a>01247 
-<a name="l01248"></a>01248                                                         <span class="comment">// calculate channel output</span>
-<a name="l01249"></a>01249                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01250"></a>01250                                                                 operator_advance(&amp;cptr[9],vibval1[i]);
-<a name="l01251"></a>01251                                                                 opfuncs[cptr[9].op_state](&amp;cptr[9]);
-<a name="l01252"></a>01252                                                                 operator_output(&amp;cptr[9],0,tremval1[i]);
-<a name="l01253"></a>01253 
-<a name="l01254"></a>01254                                                                 operator_advance(&amp;cptr[3],0);
-<a name="l01255"></a>01255                                                                 opfuncs[cptr[3].op_state](&amp;cptr[3]);
-<a name="l01256"></a>01256                                                                 operator_output(&amp;cptr[3],cptr[9].cval*FIXEDPT,tremval2[i]);
-<a name="l01257"></a>01257 
-<a name="l01258"></a>01258                                                                 operator_advance(&amp;cptr[3+9],0);
-<a name="l01259"></a>01259                                                                 opfuncs[cptr[3+9].op_state](&amp;cptr[3+9]);
-<a name="l01260"></a>01260                                                                 operator_output(&amp;cptr[3+9],cptr[3].cval*FIXEDPT,tremval3[i]);
-<a name="l01261"></a>01261 
-<a name="l01262"></a>01262                                                                 Bit32s chanval = cptr[3+9].cval;
-<a name="l01263"></a>01263                                                                 CHANVAL_OUT
-<a name="l01264"></a>01264                                                         }
-<a name="l01265"></a>01265                                                 }
-<a name="l01266"></a>01266                                         }
-<a name="l01267"></a>01267                                         <span class="keywordflow">continue</span>;
-<a name="l01268"></a>01268                                 }
-<a name="l01269"></a>01269 <span class="preprocessor">#endif</span>
-<a name="l01270"></a>01270 <span class="preprocessor"></span>                                <span class="comment">// 2op additive synthesis</span>
-<a name="l01271"></a>01271                                 <span class="keywordflow">if</span> ((cptr[9].op_state == OF_TYPE_OFF) &amp;&amp; (cptr[0].op_state == OF_TYPE_OFF)) <span class="keywordflow">continue</span>;
-<a name="l01272"></a>01272                                 <span class="keywordflow">if</span> ((cptr[0].vibrato) &amp;&amp; (cptr[0].op_state != OF_TYPE_OFF)) {
-<a name="l01273"></a>01273                                         vibval1 = vibval_var1;
-<a name="l01274"></a>01274                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01275"></a>01275                                                 vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01276"></a>01276                                 } <span class="keywordflow">else</span> vibval1 = vibval_const;
-<a name="l01277"></a>01277                                 <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state != OF_TYPE_OFF)) {
-<a name="l01278"></a>01278                                         vibval2 = vibval_var2;
-<a name="l01279"></a>01279                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01280"></a>01280                                                 vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01281"></a>01281                                 } <span class="keywordflow">else</span> vibval2 = vibval_const;
-<a name="l01282"></a>01282                                 <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01283"></a>01283                                 <span class="keywordflow">else</span> tremval1 = tremval_const;
-<a name="l01284"></a>01284                                 <span class="keywordflow">if</span> (cptr[9].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01285"></a>01285                                 <span class="keywordflow">else</span> tremval2 = tremval_const;
-<a name="l01286"></a>01286 
-<a name="l01287"></a>01287                                 <span class="comment">// calculate channel output</span>
-<a name="l01288"></a>01288                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01289"></a>01289                                         <span class="comment">// carrier1</span>
-<a name="l01290"></a>01290                                         operator_advance(&amp;cptr[0],vibval1[i]);
-<a name="l01291"></a>01291                                         opfuncs[cptr[0].op_state](&amp;cptr[0]);
-<a name="l01292"></a>01292                                         operator_output(&amp;cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
-<a name="l01293"></a>01293 
-<a name="l01294"></a>01294                                         <span class="comment">// carrier2</span>
-<a name="l01295"></a>01295                                         operator_advance(&amp;cptr[9],vibval2[i]);
-<a name="l01296"></a>01296                                         opfuncs[cptr[9].op_state](&amp;cptr[9]);
-<a name="l01297"></a>01297                                         operator_output(&amp;cptr[9],0,tremval2[i]);
-<a name="l01298"></a>01298 
-<a name="l01299"></a>01299                                         Bit32s chanval = cptr[9].cval + cptr[0].cval;
-<a name="l01300"></a>01300                                         CHANVAL_OUT
-<a name="l01301"></a>01301                                 }
-<a name="l01302"></a>01302                         } <span class="keywordflow">else</span> {
-<a name="l01303"></a>01303 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
-<a name="l01304"></a>01304 <span class="preprocessor"></span>                                <span class="keywordflow">if</span> ((adlibreg[0x105]&amp;1) &amp;&amp; cptr-&gt;is_4op) {
-<a name="l01305"></a>01305                                         <span class="keywordflow">if</span> (adlibreg[ARC_FEEDBACK+k+3]&amp;1) {
-<a name="l01306"></a>01306                                                 <span class="comment">// FM-AM-style synthesis ((op1[fb] * op2) + (op3 * op4))</span>
-<a name="l01307"></a>01307                                                 <span class="keywordflow">if</span> ((cptr[0].op_state != OF_TYPE_OFF) || (cptr[9].op_state != OF_TYPE_OFF)) {
-<a name="l01308"></a>01308                                                         <span class="keywordflow">if</span> ((cptr[0].vibrato) &amp;&amp; (cptr[0].op_state != OF_TYPE_OFF)) {
-<a name="l01309"></a>01309                                                                 vibval1 = vibval_var1;
-<a name="l01310"></a>01310                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01311"></a>01311                                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01312"></a>01312                                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
-<a name="l01313"></a>01313                                                         <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state != OF_TYPE_OFF)) {
-<a name="l01314"></a>01314                                                                 vibval2 = vibval_var2;
-<a name="l01315"></a>01315                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01316"></a>01316                                                                         vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01317"></a>01317                                                         } <span class="keywordflow">else</span> vibval2 = vibval_const;
-<a name="l01318"></a>01318                                                         <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01319"></a>01319                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
-<a name="l01320"></a>01320                                                         <span class="keywordflow">if</span> (cptr[9].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01321"></a>01321                                                         <span class="keywordflow">else</span> tremval2 = tremval_const;
-<a name="l01322"></a>01322 
-<a name="l01323"></a>01323                                                         <span class="comment">// calculate channel output</span>
-<a name="l01324"></a>01324                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01325"></a>01325                                                                 operator_advance(&amp;cptr[0],vibval1[i]);
-<a name="l01326"></a>01326                                                                 opfuncs[cptr[0].op_state](&amp;cptr[0]);
-<a name="l01327"></a>01327                                                                 operator_output(&amp;cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
-<a name="l01328"></a>01328 
-<a name="l01329"></a>01329                                                                 operator_advance(&amp;cptr[9],vibval2[i]);
-<a name="l01330"></a>01330                                                                 opfuncs[cptr[9].op_state](&amp;cptr[9]);
-<a name="l01331"></a>01331                                                                 operator_output(&amp;cptr[9],cptr[0].cval*FIXEDPT,tremval2[i]);
-<a name="l01332"></a>01332 
-<a name="l01333"></a>01333                                                                 Bit32s chanval = cptr[9].cval;
-<a name="l01334"></a>01334                                                                 CHANVAL_OUT
-<a name="l01335"></a>01335                                                         }
-<a name="l01336"></a>01336                                                 }
-<a name="l01337"></a>01337 
-<a name="l01338"></a>01338                                                 <span class="keywordflow">if</span> ((cptr[3].op_state != OF_TYPE_OFF) || (cptr[3+9].op_state != OF_TYPE_OFF)) {
-<a name="l01339"></a>01339                                                         <span class="keywordflow">if</span> (cptr[3].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01340"></a>01340                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
-<a name="l01341"></a>01341                                                         <span class="keywordflow">if</span> (cptr[3+9].tremolo) tremval2 = trem_lut;     <span class="comment">// tremolo enabled, use table</span>
-<a name="l01342"></a>01342                                                         <span class="keywordflow">else</span> tremval2 = tremval_const;
-<a name="l01343"></a>01343 
-<a name="l01344"></a>01344                                                         <span class="comment">// calculate channel output</span>
-<a name="l01345"></a>01345                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01346"></a>01346                                                                 operator_advance(&amp;cptr[3],0);
-<a name="l01347"></a>01347                                                                 opfuncs[cptr[3].op_state](&amp;cptr[3]);
-<a name="l01348"></a>01348                                                                 operator_output(&amp;cptr[3],0,tremval1[i]);
-<a name="l01349"></a>01349 
-<a name="l01350"></a>01350                                                                 operator_advance(&amp;cptr[3+9],0);
-<a name="l01351"></a>01351                                                                 opfuncs[cptr[3+9].op_state](&amp;cptr[3+9]);
-<a name="l01352"></a>01352                                                                 operator_output(&amp;cptr[3+9],cptr[3].cval*FIXEDPT,tremval2[i]);
-<a name="l01353"></a>01353 
-<a name="l01354"></a>01354                                                                 Bit32s chanval = cptr[3+9].cval;
-<a name="l01355"></a>01355                                                                 CHANVAL_OUT
-<a name="l01356"></a>01356                                                         }
-<a name="l01357"></a>01357                                                 }
-<a name="l01358"></a>01358 
-<a name="l01359"></a>01359                                         } <span class="keywordflow">else</span> {
-<a name="l01360"></a>01360                                                 <span class="comment">// FM-FM-style synthesis (op1[fb] * op2 * op3 * op4)</span>
-<a name="l01361"></a>01361                                                 <span class="keywordflow">if</span> ((cptr[0].op_state != OF_TYPE_OFF) || (cptr[9].op_state != OF_TYPE_OFF) || 
-<a name="l01362"></a>01362                                                         (cptr[3].op_state != OF_TYPE_OFF) || (cptr[3+9].op_state != OF_TYPE_OFF)) {
-<a name="l01363"></a>01363                                                         <span class="keywordflow">if</span> ((cptr[0].vibrato) &amp;&amp; (cptr[0].op_state != OF_TYPE_OFF)) {
-<a name="l01364"></a>01364                                                                 vibval1 = vibval_var1;
-<a name="l01365"></a>01365                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01366"></a>01366                                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01367"></a>01367                                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
-<a name="l01368"></a>01368                                                         <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state != OF_TYPE_OFF)) {
-<a name="l01369"></a>01369                                                                 vibval2 = vibval_var2;
-<a name="l01370"></a>01370                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01371"></a>01371                                                                         vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01372"></a>01372                                                         } <span class="keywordflow">else</span> vibval2 = vibval_const;
-<a name="l01373"></a>01373                                                         <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01374"></a>01374                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
-<a name="l01375"></a>01375                                                         <span class="keywordflow">if</span> (cptr[9].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01376"></a>01376                                                         <span class="keywordflow">else</span> tremval2 = tremval_const;
-<a name="l01377"></a>01377                                                         <span class="keywordflow">if</span> (cptr[3].tremolo) tremval3 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01378"></a>01378                                                         <span class="keywordflow">else</span> tremval3 = tremval_const;
-<a name="l01379"></a>01379                                                         <span class="keywordflow">if</span> (cptr[3+9].tremolo) tremval4 = trem_lut;     <span class="comment">// tremolo enabled, use table</span>
-<a name="l01380"></a>01380                                                         <span class="keywordflow">else</span> tremval4 = tremval_const;
-<a name="l01381"></a>01381 
-<a name="l01382"></a>01382                                                         <span class="comment">// calculate channel output</span>
-<a name="l01383"></a>01383                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01384"></a>01384                                                                 operator_advance(&amp;cptr[0],vibval1[i]);
-<a name="l01385"></a>01385                                                                 opfuncs[cptr[0].op_state](&amp;cptr[0]);
-<a name="l01386"></a>01386                                                                 operator_output(&amp;cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
-<a name="l01387"></a>01387 
-<a name="l01388"></a>01388                                                                 operator_advance(&amp;cptr[9],vibval2[i]);
-<a name="l01389"></a>01389                                                                 opfuncs[cptr[9].op_state](&amp;cptr[9]);
-<a name="l01390"></a>01390                                                                 operator_output(&amp;cptr[9],cptr[0].cval*FIXEDPT,tremval2[i]);
-<a name="l01391"></a>01391 
-<a name="l01392"></a>01392                                                                 operator_advance(&amp;cptr[3],0);
-<a name="l01393"></a>01393                                                                 opfuncs[cptr[3].op_state](&amp;cptr[3]);
-<a name="l01394"></a>01394                                                                 operator_output(&amp;cptr[3],cptr[9].cval*FIXEDPT,tremval3[i]);
-<a name="l01395"></a>01395 
-<a name="l01396"></a>01396                                                                 operator_advance(&amp;cptr[3+9],0);
-<a name="l01397"></a>01397                                                                 opfuncs[cptr[3+9].op_state](&amp;cptr[3+9]);
-<a name="l01398"></a>01398                                                                 operator_output(&amp;cptr[3+9],cptr[3].cval*FIXEDPT,tremval4[i]);
-<a name="l01399"></a>01399 
-<a name="l01400"></a>01400                                                                 Bit32s chanval = cptr[3+9].cval;
-<a name="l01401"></a>01401                                                                 CHANVAL_OUT
-<a name="l01402"></a>01402                                                         }
-<a name="l01403"></a>01403                                                 }
-<a name="l01404"></a>01404                                         }
-<a name="l01405"></a>01405                                         <span class="keywordflow">continue</span>;
-<a name="l01406"></a>01406                                 }
-<a name="l01407"></a>01407 <span class="preprocessor">#endif</span>
-<a name="l01408"></a>01408 <span class="preprocessor"></span>                                <span class="comment">// 2op frequency modulation</span>
-<a name="l01409"></a>01409                                 <span class="keywordflow">if</span> ((cptr[9].op_state == OF_TYPE_OFF) &amp;&amp; (cptr[0].op_state == OF_TYPE_OFF)) <span class="keywordflow">continue</span>;
-<a name="l01410"></a>01410                                 <span class="keywordflow">if</span> ((cptr[0].vibrato) &amp;&amp; (cptr[0].op_state != OF_TYPE_OFF)) {
-<a name="l01411"></a>01411                                         vibval1 = vibval_var1;
-<a name="l01412"></a>01412                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01413"></a>01413                                                 vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01414"></a>01414                                 } <span class="keywordflow">else</span> vibval1 = vibval_const;
-<a name="l01415"></a>01415                                 <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state != OF_TYPE_OFF)) {
-<a name="l01416"></a>01416                                         vibval2 = vibval_var2;
-<a name="l01417"></a>01417                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01418"></a>01418                                                 vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
-<a name="l01419"></a>01419                                 } <span class="keywordflow">else</span> vibval2 = vibval_const;
-<a name="l01420"></a>01420                                 <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01421"></a>01421                                 <span class="keywordflow">else</span> tremval1 = tremval_const;
-<a name="l01422"></a>01422                                 <span class="keywordflow">if</span> (cptr[9].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
-<a name="l01423"></a>01423                                 <span class="keywordflow">else</span> tremval2 = tremval_const;
-<a name="l01424"></a>01424 
-<a name="l01425"></a>01425                                 <span class="comment">// calculate channel output</span>
-<a name="l01426"></a>01426                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01427"></a>01427                                         <span class="comment">// modulator</span>
-<a name="l01428"></a>01428                                         operator_advance(&amp;cptr[0],vibval1[i]);
-<a name="l01429"></a>01429                                         opfuncs[cptr[0].op_state](&amp;cptr[0]);
-<a name="l01430"></a>01430                                         operator_output(&amp;cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
-<a name="l01431"></a>01431 
-<a name="l01432"></a>01432                                         <span class="comment">// carrier</span>
-<a name="l01433"></a>01433                                         operator_advance(&amp;cptr[9],vibval2[i]);
-<a name="l01434"></a>01434                                         opfuncs[cptr[9].op_state](&amp;cptr[9]);
-<a name="l01435"></a>01435                                         operator_output(&amp;cptr[9],cptr[0].cval*FIXEDPT,tremval2[i]);
-<a name="l01436"></a>01436 
-<a name="l01437"></a>01437                                         Bit32s chanval = cptr[9].cval;
-<a name="l01438"></a>01438                                         CHANVAL_OUT
-<a name="l01439"></a>01439                                 }
-<a name="l01440"></a>01440                         }
-<a name="l01441"></a>01441                 }
-<a name="l01442"></a>01442 
-<a name="l01443"></a>01443 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
-<a name="l01444"></a>01444 <span class="preprocessor"></span>                <span class="keywordflow">if</span> (adlibreg[0x105]&amp;1) {
-<a name="l01445"></a>01445                         <span class="comment">// convert to 16bit samples (stereo)</span>
-<a name="l01446"></a>01446                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01447"></a>01447                                 clipit16(outbufl[i],sndptr++);
-<a name="l01448"></a>01448                                 clipit16(outbufr[i],sndptr++);
-<a name="l01449"></a>01449                         }
-<a name="l01450"></a>01450                 } <span class="keywordflow">else</span> {
-<a name="l01451"></a>01451                         <span class="comment">// convert to 16bit samples (mono)</span>
-<a name="l01452"></a>01452                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
-<a name="l01453"></a>01453                                 clipit16(outbufl[i],sndptr++);
+<a name="l00938"></a>00938 
+<a name="l00939"></a>00939 <span class="comment">// be careful with this</span>
+<a name="l00940"></a>00940 <span class="comment">// uses cptr and chanval, outputs into outbufl(/outbufr)</span>
+<a name="l00941"></a>00941 <span class="comment">// for opl3 check if opl3-mode is enabled (which uses stereo panning)</span>
+<a name="l00942"></a>00942 <span class="preprocessor">#undef CHANVAL_OUT</span>
+<a name="l00943"></a>00943 <span class="preprocessor"></span><span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
+<a name="l00944"></a>00944 <span class="preprocessor"></span><span class="preprocessor">#define CHANVAL_OUT                                                                     \</span>
+<a name="l00945"></a>00945 <span class="preprocessor">        if (adlibreg[0x105]&amp;1) {                                                \</span>
+<a name="l00946"></a>00946 <span class="preprocessor">                outbufl[i] += chanval*cptr[0].left_pan;         \</span>
+<a name="l00947"></a>00947 <span class="preprocessor">                outbufr[i] += chanval*cptr[0].right_pan;        \</span>
+<a name="l00948"></a>00948 <span class="preprocessor">        } else {                                                                                \</span>
+<a name="l00949"></a>00949 <span class="preprocessor">                outbufl[i] += chanval;                                          \</span>
+<a name="l00950"></a>00950 <span class="preprocessor">        }</span>
+<a name="l00951"></a>00951 <span class="preprocessor"></span><span class="preprocessor">#else</span>
+<a name="l00952"></a>00952 <span class="preprocessor"></span><span class="preprocessor">#define CHANVAL_OUT                                                                     \</span>
+<a name="l00953"></a>00953 <span class="preprocessor">        outbufl[i] += chanval;</span>
+<a name="l00954"></a>00954 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
+<a name="l00955"></a>00955 <span class="preprocessor"></span>
+<a name="l00956"></a>00956 <span class="keywordtype">void</span> adlib_getsample(Bit16s* sndptr, Bits numsamples) {
+<a name="l00957"></a>00957         Bits i, endsamples;
+<a name="l00958"></a>00958         <a class="code" href="structoperator__struct.html">op_type</a>* cptr;
+<a name="l00959"></a>00959 
+<a name="l00960"></a>00960         Bit32s outbufl[BLOCKBUF_SIZE];
+<a name="l00961"></a>00961 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
+<a name="l00962"></a>00962 <span class="preprocessor"></span>        <span class="comment">// second output buffer (right channel for opl3 stereo)</span>
+<a name="l00963"></a>00963         Bit32s outbufr[BLOCKBUF_SIZE];
+<a name="l00964"></a>00964 <span class="preprocessor">#endif</span>
+<a name="l00965"></a>00965 <span class="preprocessor"></span>
+<a name="l00966"></a>00966         <span class="comment">// vibrato/tremolo lookup tables (global, to possibly be used by all operators)</span>
+<a name="l00967"></a>00967         Bit32s vib_lut[BLOCKBUF_SIZE];
+<a name="l00968"></a>00968         Bit32s trem_lut[BLOCKBUF_SIZE];
+<a name="l00969"></a>00969 
+<a name="l00970"></a>00970         Bits samples_to_process = numsamples;
+<a name="l00971"></a>00971 
+<a name="l00972"></a>00972         <span class="keywordflow">for</span> (Bits cursmp=0; cursmp&lt;samples_to_process; cursmp+=endsamples) {
+<a name="l00973"></a>00973                 endsamples = samples_to_process-cursmp;
+<a name="l00974"></a>00974                 <span class="keywordflow">if</span> (endsamples&gt;BLOCKBUF_SIZE) endsamples = BLOCKBUF_SIZE;
+<a name="l00975"></a>00975 
+<a name="l00976"></a>00976                 memset((<span class="keywordtype">void</span>*)&amp;outbufl,0,endsamples*<span class="keyword">sizeof</span>(Bit32s));
+<a name="l00977"></a>00977 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
+<a name="l00978"></a>00978 <span class="preprocessor"></span>                <span class="comment">// clear second output buffer (opl3 stereo)</span>
+<a name="l00979"></a>00979                 <span class="keywordflow">if</span> (adlibreg[0x105]&amp;1) memset((<span class="keywordtype">void</span>*)&amp;outbufr,0,endsamples*<span class="keyword">sizeof</span>(Bit32s));
+<a name="l00980"></a>00980 <span class="preprocessor">#endif</span>
+<a name="l00981"></a>00981 <span class="preprocessor"></span>
+<a name="l00982"></a>00982                 <span class="comment">// calculate vibrato/tremolo lookup tables</span>
+<a name="l00983"></a>00983                 Bit32s vib_tshift = ((adlibreg[ARC_PERC_MODE]&amp;0x40)==0) ? 1 : 0;        <span class="comment">// 14cents/7cents switching</span>
+<a name="l00984"></a>00984                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l00985"></a>00985                         <span class="comment">// cycle through vibrato table</span>
+<a name="l00986"></a>00986                         vibtab_pos += vibtab_add;
+<a name="l00987"></a>00987                         <span class="keywordflow">if</span> (vibtab_pos/FIXEDPT_LFO&gt;=VIBTAB_SIZE) vibtab_pos-=VIBTAB_SIZE*FIXEDPT_LFO;
+<a name="l00988"></a>00988                         vib_lut[i] = vib_table[vibtab_pos/FIXEDPT_LFO]&gt;&gt;vib_tshift;             <span class="comment">// 14cents (14/100 of a semitone) or 7cents</span>
+<a name="l00989"></a>00989 
+<a name="l00990"></a>00990                         <span class="comment">// cycle through tremolo table</span>
+<a name="l00991"></a>00991                         tremtab_pos += tremtab_add;
+<a name="l00992"></a>00992                         <span class="keywordflow">if</span> (tremtab_pos/FIXEDPT_LFO&gt;=TREMTAB_SIZE) tremtab_pos-=TREMTAB_SIZE*FIXEDPT_LFO;
+<a name="l00993"></a>00993                         <span class="keywordflow">if</span> (adlibreg[ARC_PERC_MODE]&amp;0x80) trem_lut[i] = trem_table[tremtab_pos/FIXEDPT_LFO];
+<a name="l00994"></a>00994                         <span class="keywordflow">else</span> trem_lut[i] = trem_table[TREMTAB_SIZE+tremtab_pos/FIXEDPT_LFO];
+<a name="l00995"></a>00995                 }
+<a name="l00996"></a>00996 
+<a name="l00997"></a>00997                 <span class="keywordflow">if</span> (adlibreg[ARC_PERC_MODE]&amp;0x20) {
+<a name="l00998"></a>00998                         <span class="comment">//BassDrum</span>
+<a name="l00999"></a>00999                         cptr = &amp;op[6];
+<a name="l01000"></a>01000                         <span class="keywordflow">if</span> (adlibreg[ARC_FEEDBACK+6]&amp;1) {
+<a name="l01001"></a>01001                                 <span class="comment">// additive synthesis</span>
+<a name="l01002"></a>01002                                 <span class="keywordflow">if</span> (cptr[9].op_state != OF_TYPE_OFF) {
+<a name="l01003"></a>01003                                         <span class="keywordflow">if</span> (cptr[9].vibrato) {
+<a name="l01004"></a>01004                                                 vibval1 = vibval_var1;
+<a name="l01005"></a>01005                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01006"></a>01006                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01007"></a>01007                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
+<a name="l01008"></a>01008                                         <span class="keywordflow">if</span> (cptr[9].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01009"></a>01009                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
+<a name="l01010"></a>01010 
+<a name="l01011"></a>01011                                         <span class="comment">// calculate channel output</span>
+<a name="l01012"></a>01012                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l01013"></a>01013                                                 operator_advance(&amp;cptr[9],vibval1[i]);
+<a name="l01014"></a>01014                                                 opfuncs[cptr[9].op_state](&amp;cptr[9]);
+<a name="l01015"></a>01015                                                 operator_output(&amp;cptr[9],0,tremval1[i]);
+<a name="l01016"></a>01016                                                 
+<a name="l01017"></a>01017                                                 Bit32s chanval = cptr[9].cval*2;
+<a name="l01018"></a>01018                                                 CHANVAL_OUT
+<a name="l01019"></a>01019                                         }
+<a name="l01020"></a>01020                                 }
+<a name="l01021"></a>01021                         } <span class="keywordflow">else</span> {
+<a name="l01022"></a>01022                                 <span class="comment">// frequency modulation</span>
+<a name="l01023"></a>01023                                 <span class="keywordflow">if</span> ((cptr[9].op_state != OF_TYPE_OFF) || (cptr[0].op_state != OF_TYPE_OFF)) {
+<a name="l01024"></a>01024                                         <span class="keywordflow">if</span> ((cptr[0].vibrato) &amp;&amp; (cptr[0].op_state != OF_TYPE_OFF)) {
+<a name="l01025"></a>01025                                                 vibval1 = vibval_var1;
+<a name="l01026"></a>01026                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01027"></a>01027                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01028"></a>01028                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
+<a name="l01029"></a>01029                                         <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state != OF_TYPE_OFF)) {
+<a name="l01030"></a>01030                                                 vibval2 = vibval_var2;
+<a name="l01031"></a>01031                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01032"></a>01032                                                         vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01033"></a>01033                                         } <span class="keywordflow">else</span> vibval2 = vibval_const;
+<a name="l01034"></a>01034                                         <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01035"></a>01035                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
+<a name="l01036"></a>01036                                         <span class="keywordflow">if</span> (cptr[9].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01037"></a>01037                                         <span class="keywordflow">else</span> tremval2 = tremval_const;
+<a name="l01038"></a>01038 
+<a name="l01039"></a>01039                                         <span class="comment">// calculate channel output</span>
+<a name="l01040"></a>01040                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l01041"></a>01041                                                 operator_advance(&amp;cptr[0],vibval1[i]);
+<a name="l01042"></a>01042                                                 opfuncs[cptr[0].op_state](&amp;cptr[0]);
+<a name="l01043"></a>01043                                                 operator_output(&amp;cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
+<a name="l01044"></a>01044 
+<a name="l01045"></a>01045                                                 operator_advance(&amp;cptr[9],vibval2[i]);
+<a name="l01046"></a>01046                                                 opfuncs[cptr[9].op_state](&amp;cptr[9]);
+<a name="l01047"></a>01047                                                 operator_output(&amp;cptr[9],cptr[0].cval*FIXEDPT,tremval2[i]);
+<a name="l01048"></a>01048                                                 
+<a name="l01049"></a>01049                                                 Bit32s chanval = cptr[9].cval*2;
+<a name="l01050"></a>01050                                                 CHANVAL_OUT
+<a name="l01051"></a>01051                                         }
+<a name="l01052"></a>01052                                 }
+<a name="l01053"></a>01053                         }
+<a name="l01054"></a>01054 
+<a name="l01055"></a>01055                         <span class="comment">//TomTom (j=8)</span>
+<a name="l01056"></a>01056                         <span class="keywordflow">if</span> (op[8].op_state != OF_TYPE_OFF) {
+<a name="l01057"></a>01057                                 cptr = &amp;op[8];
+<a name="l01058"></a>01058                                 <span class="keywordflow">if</span> (cptr[0].vibrato) {
+<a name="l01059"></a>01059                                         vibval3 = vibval_var1;
+<a name="l01060"></a>01060                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01061"></a>01061                                                 vibval3[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01062"></a>01062                                 } <span class="keywordflow">else</span> vibval3 = vibval_const;
+<a name="l01063"></a>01063 
+<a name="l01064"></a>01064                                 <span class="keywordflow">if</span> (cptr[0].tremolo) tremval3 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01065"></a>01065                                 <span class="keywordflow">else</span> tremval3 = tremval_const;
+<a name="l01066"></a>01066 
+<a name="l01067"></a>01067                                 <span class="comment">// calculate channel output</span>
+<a name="l01068"></a>01068                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l01069"></a>01069                                         operator_advance(&amp;cptr[0],vibval3[i]);
+<a name="l01070"></a>01070                                         opfuncs[cptr[0].op_state](&amp;cptr[0]);            <span class="comment">//TomTom</span>
+<a name="l01071"></a>01071                                         operator_output(&amp;cptr[0],0,tremval3[i]);
+<a name="l01072"></a>01072                                         Bit32s chanval = cptr[0].cval*2;
+<a name="l01073"></a>01073                                         CHANVAL_OUT
+<a name="l01074"></a>01074                                 }
+<a name="l01075"></a>01075                         }
+<a name="l01076"></a>01076 
+<a name="l01077"></a>01077                         <span class="comment">//Snare/Hihat (j=7), Cymbal (j=8)</span>
+<a name="l01078"></a>01078                         <span class="keywordflow">if</span> ((op[7].op_state != OF_TYPE_OFF) || (op[16].op_state != OF_TYPE_OFF) ||
+<a name="l01079"></a>01079                                 (op[17].op_state != OF_TYPE_OFF)) {
+<a name="l01080"></a>01080                                 cptr = &amp;op[7];
+<a name="l01081"></a>01081                                 <span class="keywordflow">if</span> ((cptr[0].vibrato) &amp;&amp; (cptr[0].op_state != OF_TYPE_OFF)) {
+<a name="l01082"></a>01082                                         vibval1 = vibval_var1;
+<a name="l01083"></a>01083                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01084"></a>01084                                                 vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01085"></a>01085                                 } <span class="keywordflow">else</span> vibval1 = vibval_const;
+<a name="l01086"></a>01086                                 <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state == OF_TYPE_OFF)) {
+<a name="l01087"></a>01087                                         vibval2 = vibval_var2;
+<a name="l01088"></a>01088                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01089"></a>01089                                                 vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01090"></a>01090                                 } <span class="keywordflow">else</span> vibval2 = vibval_const;
+<a name="l01091"></a>01091 
+<a name="l01092"></a>01092                                 <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01093"></a>01093                                 <span class="keywordflow">else</span> tremval1 = tremval_const;
+<a name="l01094"></a>01094                                 <span class="keywordflow">if</span> (cptr[9].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01095"></a>01095                                 <span class="keywordflow">else</span> tremval2 = tremval_const;
+<a name="l01096"></a>01096 
+<a name="l01097"></a>01097                                 cptr = &amp;op[8];
+<a name="l01098"></a>01098                                 <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state == OF_TYPE_OFF)) {
+<a name="l01099"></a>01099                                         vibval4 = vibval_var2;
+<a name="l01100"></a>01100                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01101"></a>01101                                                 vibval4[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01102"></a>01102                                 } <span class="keywordflow">else</span> vibval4 = vibval_const;
+<a name="l01103"></a>01103 
+<a name="l01104"></a>01104                                 <span class="keywordflow">if</span> (cptr[9].tremolo) tremval4 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01105"></a>01105                                 <span class="keywordflow">else</span> tremval4 = tremval_const;
+<a name="l01106"></a>01106 
+<a name="l01107"></a>01107                                 <span class="comment">// calculate channel output</span>
+<a name="l01108"></a>01108                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l01109"></a>01109                                         operator_advance_drums(&amp;op[7],vibval1[i],&amp;op[7+9],vibval2[i],&amp;op[8+9],vibval4[i]);
+<a name="l01110"></a>01110 
+<a name="l01111"></a>01111                                         opfuncs[op[7].op_state](&amp;op[7]);                        <span class="comment">//Hihat</span>
+<a name="l01112"></a>01112                                         operator_output(&amp;op[7],0,tremval1[i]);
+<a name="l01113"></a>01113 
+<a name="l01114"></a>01114                                         opfuncs[op[7+9].op_state](&amp;op[7+9]);            <span class="comment">//Snare</span>
+<a name="l01115"></a>01115                                         operator_output(&amp;op[7+9],0,tremval2[i]);
+<a name="l01116"></a>01116 
+<a name="l01117"></a>01117                                         opfuncs[op[8+9].op_state](&amp;op[8+9]);            <span class="comment">//Cymbal</span>
+<a name="l01118"></a>01118                                         operator_output(&amp;op[8+9],0,tremval4[i]);
+<a name="l01119"></a>01119 
+<a name="l01120"></a>01120                                         Bit32s chanval = (op[7].cval + op[7+9].cval + op[8+9].cval)*2;
+<a name="l01121"></a>01121                                         CHANVAL_OUT
+<a name="l01122"></a>01122                                 }
+<a name="l01123"></a>01123                         }
+<a name="l01124"></a>01124                 }
+<a name="l01125"></a>01125 
+<a name="l01126"></a>01126                 Bitu max_channel = NUM_CHANNELS;
+<a name="l01127"></a>01127 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
+<a name="l01128"></a>01128 <span class="preprocessor"></span>                <span class="keywordflow">if</span> ((adlibreg[0x105]&amp;1)==0) max_channel = NUM_CHANNELS/2;
+<a name="l01129"></a>01129 <span class="preprocessor">#endif</span>
+<a name="l01130"></a>01130 <span class="preprocessor"></span>                <span class="keywordflow">for</span> (Bits cur_ch=max_channel-1; cur_ch&gt;=0; cur_ch--) {
+<a name="l01131"></a>01131                         <span class="comment">// skip drum/percussion operators</span>
+<a name="l01132"></a>01132                         <span class="keywordflow">if</span> ((adlibreg[ARC_PERC_MODE]&amp;0x20) &amp;&amp; (cur_ch &gt;= 6) &amp;&amp; (cur_ch &lt; 9)) <span class="keywordflow">continue</span>;
+<a name="l01133"></a>01133 
+<a name="l01134"></a>01134                         Bitu k = cur_ch;
+<a name="l01135"></a>01135 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
+<a name="l01136"></a>01136 <span class="preprocessor"></span>                        <span class="keywordflow">if</span> (cur_ch &lt; 9) {
+<a name="l01137"></a>01137                                 cptr = &amp;op[cur_ch];
+<a name="l01138"></a>01138                         } <span class="keywordflow">else</span> {
+<a name="l01139"></a>01139                                 cptr = &amp;op[cur_ch+9];   <span class="comment">// second set is operator18-operator35</span>
+<a name="l01140"></a>01140                                 k += (-9+256);          <span class="comment">// second set uses registers 0x100 onwards</span>
+<a name="l01141"></a>01141                         }
+<a name="l01142"></a>01142                         <span class="comment">// check if this operator is part of a 4-op</span>
+<a name="l01143"></a>01143                         <span class="keywordflow">if</span> ((adlibreg[0x105]&amp;1) &amp;&amp; cptr-&gt;is_4op_attached) <span class="keywordflow">continue</span>;
+<a name="l01144"></a>01144 <span class="preprocessor">#else</span>
+<a name="l01145"></a>01145 <span class="preprocessor"></span>                        cptr = &amp;op[cur_ch];
+<a name="l01146"></a>01146 <span class="preprocessor">#endif</span>
+<a name="l01147"></a>01147 <span class="preprocessor"></span>
+<a name="l01148"></a>01148                         <span class="comment">// check for FM/AM</span>
+<a name="l01149"></a>01149                         <span class="keywordflow">if</span> (adlibreg[ARC_FEEDBACK+k]&amp;1) {
+<a name="l01150"></a>01150 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
+<a name="l01151"></a>01151 <span class="preprocessor"></span>                                <span class="keywordflow">if</span> ((adlibreg[0x105]&amp;1) &amp;&amp; cptr-&gt;is_4op) {
+<a name="l01152"></a>01152                                         <span class="keywordflow">if</span> (adlibreg[ARC_FEEDBACK+k+3]&amp;1) {
+<a name="l01153"></a>01153                                                 <span class="comment">// AM-AM-style synthesis (op1[fb] + (op2 * op3) + op4)</span>
+<a name="l01154"></a>01154                                                 <span class="keywordflow">if</span> (cptr[0].op_state != OF_TYPE_OFF) {
+<a name="l01155"></a>01155                                                         <span class="keywordflow">if</span> (cptr[0].vibrato) {
+<a name="l01156"></a>01156                                                                 vibval1 = vibval_var1;
+<a name="l01157"></a>01157                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01158"></a>01158                                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01159"></a>01159                                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
+<a name="l01160"></a>01160                                                         <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01161"></a>01161                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
+<a name="l01162"></a>01162 
+<a name="l01163"></a>01163                                                         <span class="comment">// calculate channel output</span>
+<a name="l01164"></a>01164                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l01165"></a>01165                                                                 operator_advance(&amp;cptr[0],vibval1[i]);
+<a name="l01166"></a>01166                                                                 opfuncs[cptr[0].op_state](&amp;cptr[0]);
+<a name="l01167"></a>01167                                                                 operator_output(&amp;cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
+<a name="l01168"></a>01168 
+<a name="l01169"></a>01169                                                                 Bit32s chanval = cptr[0].cval;
+<a name="l01170"></a>01170                                                                 CHANVAL_OUT
+<a name="l01171"></a>01171                                                         }
+<a name="l01172"></a>01172                                                 }
+<a name="l01173"></a>01173 
+<a name="l01174"></a>01174                                                 <span class="keywordflow">if</span> ((cptr[3].op_state != OF_TYPE_OFF) || (cptr[9].op_state != OF_TYPE_OFF)) {
+<a name="l01175"></a>01175                                                         <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state != OF_TYPE_OFF)) {
+<a name="l01176"></a>01176                                                                 vibval1 = vibval_var1;
+<a name="l01177"></a>01177                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01178"></a>01178                                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01179"></a>01179                                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
+<a name="l01180"></a>01180                                                         <span class="keywordflow">if</span> (cptr[9].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01181"></a>01181                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
+<a name="l01182"></a>01182                                                         <span class="keywordflow">if</span> (cptr[3].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01183"></a>01183                                                         <span class="keywordflow">else</span> tremval2 = tremval_const;
+<a name="l01184"></a>01184 
+<a name="l01185"></a>01185                                                         <span class="comment">// calculate channel output</span>
+<a name="l01186"></a>01186                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l01187"></a>01187                                                                 operator_advance(&amp;cptr[9],vibval1[i]);
+<a name="l01188"></a>01188                                                                 opfuncs[cptr[9].op_state](&amp;cptr[9]);
+<a name="l01189"></a>01189                                                                 operator_output(&amp;cptr[9],0,tremval1[i]);
+<a name="l01190"></a>01190 
+<a name="l01191"></a>01191                                                                 operator_advance(&amp;cptr[3],0);
+<a name="l01192"></a>01192                                                                 opfuncs[cptr[3].op_state](&amp;cptr[3]);
+<a name="l01193"></a>01193                                                                 operator_output(&amp;cptr[3],cptr[9].cval*FIXEDPT,tremval2[i]);
+<a name="l01194"></a>01194 
+<a name="l01195"></a>01195                                                                 Bit32s chanval = cptr[3].cval;
+<a name="l01196"></a>01196                                                                 CHANVAL_OUT
+<a name="l01197"></a>01197                                                         }
+<a name="l01198"></a>01198                                                 }
+<a name="l01199"></a>01199 
+<a name="l01200"></a>01200                                                 <span class="keywordflow">if</span> (cptr[3+9].op_state != OF_TYPE_OFF) {
+<a name="l01201"></a>01201                                                         <span class="keywordflow">if</span> (cptr[3+9].tremolo) tremval1 = trem_lut;     <span class="comment">// tremolo enabled, use table</span>
+<a name="l01202"></a>01202                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
+<a name="l01203"></a>01203 
+<a name="l01204"></a>01204                                                         <span class="comment">// calculate channel output</span>
+<a name="l01205"></a>01205                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l01206"></a>01206                                                                 operator_advance(&amp;cptr[3+9],0);
+<a name="l01207"></a>01207                                                                 opfuncs[cptr[3+9].op_state](&amp;cptr[3+9]);
+<a name="l01208"></a>01208                                                                 operator_output(&amp;cptr[3+9],0,tremval1[i]);
+<a name="l01209"></a>01209 
+<a name="l01210"></a>01210                                                                 Bit32s chanval = cptr[3+9].cval;
+<a name="l01211"></a>01211                                                                 CHANVAL_OUT
+<a name="l01212"></a>01212                                                         }
+<a name="l01213"></a>01213                                                 }
+<a name="l01214"></a>01214                                         } <span class="keywordflow">else</span> {
+<a name="l01215"></a>01215                                                 <span class="comment">// AM-FM-style synthesis (op1[fb] + (op2 * op3 * op4))</span>
+<a name="l01216"></a>01216                                                 <span class="keywordflow">if</span> (cptr[0].op_state != OF_TYPE_OFF) {
+<a name="l01217"></a>01217                                                         <span class="keywordflow">if</span> (cptr[0].vibrato) {
+<a name="l01218"></a>01218                                                                 vibval1 = vibval_var1;
+<a name="l01219"></a>01219                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01220"></a>01220                                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01221"></a>01221                                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
+<a name="l01222"></a>01222                                                         <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01223"></a>01223                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
+<a name="l01224"></a>01224 
+<a name="l01225"></a>01225                                                         <span class="comment">// calculate channel output</span>
+<a name="l01226"></a>01226                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l01227"></a>01227                                                                 operator_advance(&amp;cptr[0],vibval1[i]);
+<a name="l01228"></a>01228                                                                 opfuncs[cptr[0].op_state](&amp;cptr[0]);
+<a name="l01229"></a>01229                                                                 operator_output(&amp;cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
+<a name="l01230"></a>01230 
+<a name="l01231"></a>01231                                                                 Bit32s chanval = cptr[0].cval;
+<a name="l01232"></a>01232                                                                 CHANVAL_OUT
+<a name="l01233"></a>01233                                                         }
+<a name="l01234"></a>01234                                                 }
+<a name="l01235"></a>01235 
+<a name="l01236"></a>01236                                                 <span class="keywordflow">if</span> ((cptr[9].op_state != OF_TYPE_OFF) || (cptr[3].op_state != OF_TYPE_OFF) || (cptr[3+9].op_state != OF_TYPE_OFF)) {
+<a name="l01237"></a>01237                                                         <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state != OF_TYPE_OFF)) {
+<a name="l01238"></a>01238                                                                 vibval1 = vibval_var1;
+<a name="l01239"></a>01239                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01240"></a>01240                                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01241"></a>01241                                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
+<a name="l01242"></a>01242                                                         <span class="keywordflow">if</span> (cptr[9].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01243"></a>01243                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
+<a name="l01244"></a>01244                                                         <span class="keywordflow">if</span> (cptr[3].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01245"></a>01245                                                         <span class="keywordflow">else</span> tremval2 = tremval_const;
+<a name="l01246"></a>01246                                                         <span class="keywordflow">if</span> (cptr[3+9].tremolo) tremval3 = trem_lut;     <span class="comment">// tremolo enabled, use table</span>
+<a name="l01247"></a>01247                                                         <span class="keywordflow">else</span> tremval3 = tremval_const;
+<a name="l01248"></a>01248 
+<a name="l01249"></a>01249                                                         <span class="comment">// calculate channel output</span>
+<a name="l01250"></a>01250                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l01251"></a>01251                                                                 operator_advance(&amp;cptr[9],vibval1[i]);
+<a name="l01252"></a>01252                                                                 opfuncs[cptr[9].op_state](&amp;cptr[9]);
+<a name="l01253"></a>01253                                                                 operator_output(&amp;cptr[9],0,tremval1[i]);
+<a name="l01254"></a>01254 
+<a name="l01255"></a>01255                                                                 operator_advance(&amp;cptr[3],0);
+<a name="l01256"></a>01256                                                                 opfuncs[cptr[3].op_state](&amp;cptr[3]);
+<a name="l01257"></a>01257                                                                 operator_output(&amp;cptr[3],cptr[9].cval*FIXEDPT,tremval2[i]);
+<a name="l01258"></a>01258 
+<a name="l01259"></a>01259                                                                 operator_advance(&amp;cptr[3+9],0);
+<a name="l01260"></a>01260                                                                 opfuncs[cptr[3+9].op_state](&amp;cptr[3+9]);
+<a name="l01261"></a>01261                                                                 operator_output(&amp;cptr[3+9],cptr[3].cval*FIXEDPT,tremval3[i]);
+<a name="l01262"></a>01262 
+<a name="l01263"></a>01263                                                                 Bit32s chanval = cptr[3+9].cval;
+<a name="l01264"></a>01264                                                                 CHANVAL_OUT
+<a name="l01265"></a>01265                                                         }
+<a name="l01266"></a>01266                                                 }
+<a name="l01267"></a>01267                                         }
+<a name="l01268"></a>01268                                         <span class="keywordflow">continue</span>;
+<a name="l01269"></a>01269                                 }
+<a name="l01270"></a>01270 <span class="preprocessor">#endif</span>
+<a name="l01271"></a>01271 <span class="preprocessor"></span>                                <span class="comment">// 2op additive synthesis</span>
+<a name="l01272"></a>01272                                 <span class="keywordflow">if</span> ((cptr[9].op_state == OF_TYPE_OFF) &amp;&amp; (cptr[0].op_state == OF_TYPE_OFF)) <span class="keywordflow">continue</span>;
+<a name="l01273"></a>01273                                 <span class="keywordflow">if</span> ((cptr[0].vibrato) &amp;&amp; (cptr[0].op_state != OF_TYPE_OFF)) {
+<a name="l01274"></a>01274                                         vibval1 = vibval_var1;
+<a name="l01275"></a>01275                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01276"></a>01276                                                 vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01277"></a>01277                                 } <span class="keywordflow">else</span> vibval1 = vibval_const;
+<a name="l01278"></a>01278                                 <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state != OF_TYPE_OFF)) {
+<a name="l01279"></a>01279                                         vibval2 = vibval_var2;
+<a name="l01280"></a>01280                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01281"></a>01281                                                 vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01282"></a>01282                                 } <span class="keywordflow">else</span> vibval2 = vibval_const;
+<a name="l01283"></a>01283                                 <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01284"></a>01284                                 <span class="keywordflow">else</span> tremval1 = tremval_const;
+<a name="l01285"></a>01285                                 <span class="keywordflow">if</span> (cptr[9].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01286"></a>01286                                 <span class="keywordflow">else</span> tremval2 = tremval_const;
+<a name="l01287"></a>01287 
+<a name="l01288"></a>01288                                 <span class="comment">// calculate channel output</span>
+<a name="l01289"></a>01289                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l01290"></a>01290                                         <span class="comment">// carrier1</span>
+<a name="l01291"></a>01291                                         operator_advance(&amp;cptr[0],vibval1[i]);
+<a name="l01292"></a>01292                                         opfuncs[cptr[0].op_state](&amp;cptr[0]);
+<a name="l01293"></a>01293                                         operator_output(&amp;cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
+<a name="l01294"></a>01294 
+<a name="l01295"></a>01295                                         <span class="comment">// carrier2</span>
+<a name="l01296"></a>01296                                         operator_advance(&amp;cptr[9],vibval2[i]);
+<a name="l01297"></a>01297                                         opfuncs[cptr[9].op_state](&amp;cptr[9]);
+<a name="l01298"></a>01298                                         operator_output(&amp;cptr[9],0,tremval2[i]);
+<a name="l01299"></a>01299 
+<a name="l01300"></a>01300                                         Bit32s chanval = cptr[9].cval + cptr[0].cval;
+<a name="l01301"></a>01301                                         CHANVAL_OUT
+<a name="l01302"></a>01302                                 }
+<a name="l01303"></a>01303                         } <span class="keywordflow">else</span> {
+<a name="l01304"></a>01304 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
+<a name="l01305"></a>01305 <span class="preprocessor"></span>                                <span class="keywordflow">if</span> ((adlibreg[0x105]&amp;1) &amp;&amp; cptr-&gt;is_4op) {
+<a name="l01306"></a>01306                                         <span class="keywordflow">if</span> (adlibreg[ARC_FEEDBACK+k+3]&amp;1) {
+<a name="l01307"></a>01307                                                 <span class="comment">// FM-AM-style synthesis ((op1[fb] * op2) + (op3 * op4))</span>
+<a name="l01308"></a>01308                                                 <span class="keywordflow">if</span> ((cptr[0].op_state != OF_TYPE_OFF) || (cptr[9].op_state != OF_TYPE_OFF)) {
+<a name="l01309"></a>01309                                                         <span class="keywordflow">if</span> ((cptr[0].vibrato) &amp;&amp; (cptr[0].op_state != OF_TYPE_OFF)) {
+<a name="l01310"></a>01310                                                                 vibval1 = vibval_var1;
+<a name="l01311"></a>01311                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01312"></a>01312                                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01313"></a>01313                                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
+<a name="l01314"></a>01314                                                         <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state != OF_TYPE_OFF)) {
+<a name="l01315"></a>01315                                                                 vibval2 = vibval_var2;
+<a name="l01316"></a>01316                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01317"></a>01317                                                                         vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01318"></a>01318                                                         } <span class="keywordflow">else</span> vibval2 = vibval_const;
+<a name="l01319"></a>01319                                                         <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01320"></a>01320                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
+<a name="l01321"></a>01321                                                         <span class="keywordflow">if</span> (cptr[9].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01322"></a>01322                                                         <span class="keywordflow">else</span> tremval2 = tremval_const;
+<a name="l01323"></a>01323 
+<a name="l01324"></a>01324                                                         <span class="comment">// calculate channel output</span>
+<a name="l01325"></a>01325                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l01326"></a>01326                                                                 operator_advance(&amp;cptr[0],vibval1[i]);
+<a name="l01327"></a>01327                                                                 opfuncs[cptr[0].op_state](&amp;cptr[0]);
+<a name="l01328"></a>01328                                                                 operator_output(&amp;cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
+<a name="l01329"></a>01329 
+<a name="l01330"></a>01330                                                                 operator_advance(&amp;cptr[9],vibval2[i]);
+<a name="l01331"></a>01331                                                                 opfuncs[cptr[9].op_state](&amp;cptr[9]);
+<a name="l01332"></a>01332                                                                 operator_output(&amp;cptr[9],cptr[0].cval*FIXEDPT,tremval2[i]);
+<a name="l01333"></a>01333 
+<a name="l01334"></a>01334                                                                 Bit32s chanval = cptr[9].cval;
+<a name="l01335"></a>01335                                                                 CHANVAL_OUT
+<a name="l01336"></a>01336                                                         }
+<a name="l01337"></a>01337                                                 }
+<a name="l01338"></a>01338 
+<a name="l01339"></a>01339                                                 <span class="keywordflow">if</span> ((cptr[3].op_state != OF_TYPE_OFF) || (cptr[3+9].op_state != OF_TYPE_OFF)) {
+<a name="l01340"></a>01340                                                         <span class="keywordflow">if</span> (cptr[3].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01341"></a>01341                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
+<a name="l01342"></a>01342                                                         <span class="keywordflow">if</span> (cptr[3+9].tremolo) tremval2 = trem_lut;     <span class="comment">// tremolo enabled, use table</span>
+<a name="l01343"></a>01343                                                         <span class="keywordflow">else</span> tremval2 = tremval_const;
+<a name="l01344"></a>01344 
+<a name="l01345"></a>01345                                                         <span class="comment">// calculate channel output</span>
+<a name="l01346"></a>01346                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l01347"></a>01347                                                                 operator_advance(&amp;cptr[3],0);
+<a name="l01348"></a>01348                                                                 opfuncs[cptr[3].op_state](&amp;cptr[3]);
+<a name="l01349"></a>01349                                                                 operator_output(&amp;cptr[3],0,tremval1[i]);
+<a name="l01350"></a>01350 
+<a name="l01351"></a>01351                                                                 operator_advance(&amp;cptr[3+9],0);
+<a name="l01352"></a>01352                                                                 opfuncs[cptr[3+9].op_state](&amp;cptr[3+9]);
+<a name="l01353"></a>01353                                                                 operator_output(&amp;cptr[3+9],cptr[3].cval*FIXEDPT,tremval2[i]);
+<a name="l01354"></a>01354 
+<a name="l01355"></a>01355                                                                 Bit32s chanval = cptr[3+9].cval;
+<a name="l01356"></a>01356                                                                 CHANVAL_OUT
+<a name="l01357"></a>01357                                                         }
+<a name="l01358"></a>01358                                                 }
+<a name="l01359"></a>01359 
+<a name="l01360"></a>01360                                         } <span class="keywordflow">else</span> {
+<a name="l01361"></a>01361                                                 <span class="comment">// FM-FM-style synthesis (op1[fb] * op2 * op3 * op4)</span>
+<a name="l01362"></a>01362                                                 <span class="keywordflow">if</span> ((cptr[0].op_state != OF_TYPE_OFF) || (cptr[9].op_state != OF_TYPE_OFF) || 
+<a name="l01363"></a>01363                                                         (cptr[3].op_state != OF_TYPE_OFF) || (cptr[3+9].op_state != OF_TYPE_OFF)) {
+<a name="l01364"></a>01364                                                         <span class="keywordflow">if</span> ((cptr[0].vibrato) &amp;&amp; (cptr[0].op_state != OF_TYPE_OFF)) {
+<a name="l01365"></a>01365                                                                 vibval1 = vibval_var1;
+<a name="l01366"></a>01366                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01367"></a>01367                                                                         vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01368"></a>01368                                                         } <span class="keywordflow">else</span> vibval1 = vibval_const;
+<a name="l01369"></a>01369                                                         <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state != OF_TYPE_OFF)) {
+<a name="l01370"></a>01370                                                                 vibval2 = vibval_var2;
+<a name="l01371"></a>01371                                                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01372"></a>01372                                                                         vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01373"></a>01373                                                         } <span class="keywordflow">else</span> vibval2 = vibval_const;
+<a name="l01374"></a>01374                                                         <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01375"></a>01375                                                         <span class="keywordflow">else</span> tremval1 = tremval_const;
+<a name="l01376"></a>01376                                                         <span class="keywordflow">if</span> (cptr[9].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01377"></a>01377                                                         <span class="keywordflow">else</span> tremval2 = tremval_const;
+<a name="l01378"></a>01378                                                         <span class="keywordflow">if</span> (cptr[3].tremolo) tremval3 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01379"></a>01379                                                         <span class="keywordflow">else</span> tremval3 = tremval_const;
+<a name="l01380"></a>01380                                                         <span class="keywordflow">if</span> (cptr[3+9].tremolo) tremval4 = trem_lut;     <span class="comment">// tremolo enabled, use table</span>
+<a name="l01381"></a>01381                                                         <span class="keywordflow">else</span> tremval4 = tremval_const;
+<a name="l01382"></a>01382 
+<a name="l01383"></a>01383                                                         <span class="comment">// calculate channel output</span>
+<a name="l01384"></a>01384                                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l01385"></a>01385                                                                 operator_advance(&amp;cptr[0],vibval1[i]);
+<a name="l01386"></a>01386                                                                 opfuncs[cptr[0].op_state](&amp;cptr[0]);
+<a name="l01387"></a>01387                                                                 operator_output(&amp;cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
+<a name="l01388"></a>01388 
+<a name="l01389"></a>01389                                                                 operator_advance(&amp;cptr[9],vibval2[i]);
+<a name="l01390"></a>01390                                                                 opfuncs[cptr[9].op_state](&amp;cptr[9]);
+<a name="l01391"></a>01391                                                                 operator_output(&amp;cptr[9],cptr[0].cval*FIXEDPT,tremval2[i]);
+<a name="l01392"></a>01392 
+<a name="l01393"></a>01393                                                                 operator_advance(&amp;cptr[3],0);
+<a name="l01394"></a>01394                                                                 opfuncs[cptr[3].op_state](&amp;cptr[3]);
+<a name="l01395"></a>01395                                                                 operator_output(&amp;cptr[3],cptr[9].cval*FIXEDPT,tremval3[i]);
+<a name="l01396"></a>01396 
+<a name="l01397"></a>01397                                                                 operator_advance(&amp;cptr[3+9],0);
+<a name="l01398"></a>01398                                                                 opfuncs[cptr[3+9].op_state](&amp;cptr[3+9]);
+<a name="l01399"></a>01399                                                                 operator_output(&amp;cptr[3+9],cptr[3].cval*FIXEDPT,tremval4[i]);
+<a name="l01400"></a>01400 
+<a name="l01401"></a>01401                                                                 Bit32s chanval = cptr[3+9].cval;
+<a name="l01402"></a>01402                                                                 CHANVAL_OUT
+<a name="l01403"></a>01403                                                         }
+<a name="l01404"></a>01404                                                 }
+<a name="l01405"></a>01405                                         }
+<a name="l01406"></a>01406                                         <span class="keywordflow">continue</span>;
+<a name="l01407"></a>01407                                 }
+<a name="l01408"></a>01408 <span class="preprocessor">#endif</span>
+<a name="l01409"></a>01409 <span class="preprocessor"></span>                                <span class="comment">// 2op frequency modulation</span>
+<a name="l01410"></a>01410                                 <span class="keywordflow">if</span> ((cptr[9].op_state == OF_TYPE_OFF) &amp;&amp; (cptr[0].op_state == OF_TYPE_OFF)) <span class="keywordflow">continue</span>;
+<a name="l01411"></a>01411                                 <span class="keywordflow">if</span> ((cptr[0].vibrato) &amp;&amp; (cptr[0].op_state != OF_TYPE_OFF)) {
+<a name="l01412"></a>01412                                         vibval1 = vibval_var1;
+<a name="l01413"></a>01413                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01414"></a>01414                                                 vibval1[i] = (Bit32s)((vib_lut[i]*cptr[0].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01415"></a>01415                                 } <span class="keywordflow">else</span> vibval1 = vibval_const;
+<a name="l01416"></a>01416                                 <span class="keywordflow">if</span> ((cptr[9].vibrato) &amp;&amp; (cptr[9].op_state != OF_TYPE_OFF)) {
+<a name="l01417"></a>01417                                         vibval2 = vibval_var2;
+<a name="l01418"></a>01418                                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01419"></a>01419                                                 vibval2[i] = (Bit32s)((vib_lut[i]*cptr[9].freq_high/8)*FIXEDPT*VIBFAC);
+<a name="l01420"></a>01420                                 } <span class="keywordflow">else</span> vibval2 = vibval_const;
+<a name="l01421"></a>01421                                 <span class="keywordflow">if</span> (cptr[0].tremolo) tremval1 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01422"></a>01422                                 <span class="keywordflow">else</span> tremval1 = tremval_const;
+<a name="l01423"></a>01423                                 <span class="keywordflow">if</span> (cptr[9].tremolo) tremval2 = trem_lut;       <span class="comment">// tremolo enabled, use table</span>
+<a name="l01424"></a>01424                                 <span class="keywordflow">else</span> tremval2 = tremval_const;
+<a name="l01425"></a>01425 
+<a name="l01426"></a>01426                                 <span class="comment">// calculate channel output</span>
+<a name="l01427"></a>01427                                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l01428"></a>01428                                         <span class="comment">// modulator</span>
+<a name="l01429"></a>01429                                         operator_advance(&amp;cptr[0],vibval1[i]);
+<a name="l01430"></a>01430                                         opfuncs[cptr[0].op_state](&amp;cptr[0]);
+<a name="l01431"></a>01431                                         operator_output(&amp;cptr[0],(cptr[0].lastcval+cptr[0].cval)*cptr[0].mfbi/2,tremval1[i]);
+<a name="l01432"></a>01432 
+<a name="l01433"></a>01433                                         <span class="comment">// carrier</span>
+<a name="l01434"></a>01434                                         operator_advance(&amp;cptr[9],vibval2[i]);
+<a name="l01435"></a>01435                                         opfuncs[cptr[9].op_state](&amp;cptr[9]);
+<a name="l01436"></a>01436                                         operator_output(&amp;cptr[9],cptr[0].cval*FIXEDPT,tremval2[i]);
+<a name="l01437"></a>01437 
+<a name="l01438"></a>01438                                         Bit32s chanval = cptr[9].cval;
+<a name="l01439"></a>01439                                         CHANVAL_OUT
+<a name="l01440"></a>01440                                 }
+<a name="l01441"></a>01441                         }
+<a name="l01442"></a>01442                 }
+<a name="l01443"></a>01443 
+<a name="l01444"></a>01444 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
+<a name="l01445"></a>01445 <span class="preprocessor"></span>                <span class="keywordflow">if</span> (adlibreg[0x105]&amp;1) {
+<a name="l01446"></a>01446                         <span class="comment">// convert to 16bit samples (stereo)</span>
+<a name="l01447"></a>01447                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
+<a name="l01448"></a>01448                                 clipit16(outbufl[i],sndptr++);
+<a name="l01449"></a>01449                                 clipit16(outbufr[i],sndptr++);
+<a name="l01450"></a>01450                         }
+<a name="l01451"></a>01451                 } <span class="keywordflow">else</span> {
+<a name="l01452"></a>01452                         <span class="comment">// convert to 16bit samples (mono)</span>
+<a name="l01453"></a>01453                         <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++) {
 <a name="l01454"></a>01454                                 clipit16(outbufl[i],sndptr++);
-<a name="l01455"></a>01455                         }
-<a name="l01456"></a>01456                 }
-<a name="l01457"></a>01457 <span class="preprocessor">#else</span>
-<a name="l01458"></a>01458 <span class="preprocessor"></span>                <span class="comment">// convert to 16bit samples</span>
-<a name="l01459"></a>01459                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
-<a name="l01460"></a>01460                         clipit16(outbufl[i],sndptr++);
-<a name="l01461"></a>01461 <span class="preprocessor">#endif</span>
-<a name="l01462"></a>01462 <span class="preprocessor"></span>
-<a name="l01463"></a>01463         }
-<a name="l01464"></a>01464 }
-<a name="l01465"></a>01465 
+<a name="l01455"></a>01455                                 clipit16(outbufl[i],sndptr++);
+<a name="l01456"></a>01456                         }
+<a name="l01457"></a>01457                 }
+<a name="l01458"></a>01458 <span class="preprocessor">#else</span>
+<a name="l01459"></a>01459 <span class="preprocessor"></span>                <span class="comment">// convert to 16bit samples</span>
+<a name="l01460"></a>01460                 <span class="keywordflow">for</span> (i=0;i&lt;endsamples;i++)
+<a name="l01461"></a>01461                         clipit16(outbufl[i],sndptr++);
+<a name="l01462"></a>01462 <span class="preprocessor">#endif</span>
+<a name="l01463"></a>01463 <span class="preprocessor"></span>
+<a name="l01464"></a>01464         }
+<a name="l01465"></a>01465 }
+<a name="l01466"></a>01466 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

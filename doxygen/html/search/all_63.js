@@ -70,7 +70,7 @@ var searchData=
   ['commandline',['CommandLine',['../classCommandLine.html',1,'']]],
   ['commandtail',['CommandTail',['../structCommandTail.html',1,'']]],
   ['commonparam',['CommonParam',['../structMT32Emu_1_1TimbreParam_1_1CommonParam.html',1,'MT32Emu::TimbreParam']]],
-  ['config',['CONFIG',['../classCONFIG.html',1,'CONFIG'],['../classConfig.html',1,'Config']]],
+  ['config',['Config',['../classConfig.html',1,'Config'],['../classCONFIG.html',1,'CONFIG']]],
   ['configurationwindow',['ConfigurationWindow',['../classConfigurationWindow.html',1,'']]],
   ['controlrommap',['ControlROMMap',['../structMT32Emu_1_1ControlROMMap.html',1,'MT32Emu']]],
   ['controlrompcmstruct',['ControlROMPCMStruct',['../structMT32Emu_1_1ControlROMPCMStruct.html',1,'MT32Emu']]],

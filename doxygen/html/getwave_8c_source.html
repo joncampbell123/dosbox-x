@@ -177,7 +177,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00081"></a>00081                 CopyMemory(dst, snd-&gt;datptr, size);
 <a name="l00082"></a>00082                 snd-&gt;datptr += size;
 <a name="l00083"></a>00083                 snd-&gt;datsize -= size;
-<a name="l00084"></a>00084                 size &gt;&gt;= (int)(<span class="keywordtype">long</span>)snd-&gt;snd;
+<a name="l00084"></a>00084                 size &gt;&gt;= (int)((uintptr_t)snd-&gt;snd);
 <a name="l00085"></a>00085         }
 <a name="l00086"></a>00086         <span class="keywordflow">return</span>(size);
 <a name="l00087"></a>00087 }
@@ -206,7 +206,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00110"></a>00110                 }
 <a name="l00111"></a>00111                 snd-&gt;datptr += size;
 <a name="l00112"></a>00112                 snd-&gt;datsize -= size;
-<a name="l00113"></a>00113                 size &gt;&gt;= (int)(<span class="keywordtype">long</span>)snd-&gt;snd;
+<a name="l00113"></a>00113                 size &gt;&gt;= (int)((uintptr_t)snd-&gt;snd);
 <a name="l00114"></a>00114         }
 <a name="l00115"></a>00115         <span class="keywordflow">return</span>(size);
 <a name="l00116"></a>00116 }
@@ -227,7 +227,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00131"></a>00131         }
 <a name="l00132"></a>00132         snd-&gt;blocksamples = 0x800;                                      <span class="comment">// ìKìñÇ…ÅB</span>
 <a name="l00133"></a>00133         snd-&gt;blocksize *= snd-&gt;blocksamples;
-<a name="l00134"></a>00134         snd-&gt;snd = (<span class="keywordtype">void</span> *)(<span class="keywordtype">long</span>)abits[align - 1];
+<a name="l00134"></a>00134         snd-&gt;snd = (<span class="keywordtype">void</span>*)((uintptr_t)abits[align - 1]);
 <a name="l00135"></a>00135         snd-&gt;dec = (GSDEC)pcm_dec;
 <a name="l00136"></a>00136         <span class="keywordflow">return</span>(SUCCESS);
 <a name="l00137"></a>00137 
@@ -675,7 +675,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

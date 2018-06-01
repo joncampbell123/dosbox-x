@@ -1,5 +1,7 @@
 var searchData=
 [
+  ['d88head',['D88HEAD',['../structD88HEAD.html',1,'']]],
+  ['d88sec',['D88SEC',['../structD88SEC.html',1,'']]],
   ['dcr_5ft',['DCR_t',['../structbx__ne2k__t_1_1DCR__t.html',1,'bx_ne2k_t']]],
   ['delayentry',['DelayEntry',['../structDelayEntry.html',1,'']]],
   ['delayreverb',['DelayReverb',['../classMT32Emu_1_1DelayReverb.html',1,'MT32Emu']]],
@@ -19,6 +21,7 @@ var searchData=
   ['direntry',['direntry',['../structdirentry.html',1,'']]],
   ['diskgeo',['diskGeo',['../structdiskGeo.html',1,'']]],
   ['disney',['DISNEY',['../classDISNEY.html',1,'']]],
+  ['displaylist',['displaylist',['../classDOSBoxMenu_1_1displaylist.html',1,'DOSBoxMenu']]],
   ['displaymemoryregion',['DisplayMemoryRegion',['../classMT32Emu_1_1DisplayMemoryRegion.html',1,'MT32Emu']]],
   ['dmachannel',['DmaChannel',['../classDmaChannel.html',1,'']]],
   ['dmacontroller',['DmaController',['../classDmaController.html',1,'']]],
@@ -44,6 +47,7 @@ var searchData=
   ['dos_5ftablecase',['DOS_TableCase',['../structDOS__TableCase.html',1,'']]],
   ['dos_5fversion',['DOS_Version',['../structDOS__Version.html',1,'']]],
   ['dosbox_5fint_5fsaved_5fstate',['dosbox_int_saved_state',['../structdosbox__int__saved__state.html',1,'']]],
+  ['dosboxmenu',['DOSBoxMenu',['../classDOSBoxMenu.html',1,'']]],
   ['dosdate',['DOSDATE',['../structDOSDATE.html',1,'']]],
   ['dostime',['DOSTIME',['../structDOSTIME.html',1,'']]],
   ['drawable',['Drawable',['../classGUI_1_1Drawable.html',1,'GUI']]],

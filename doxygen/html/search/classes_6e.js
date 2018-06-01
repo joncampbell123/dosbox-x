@@ -15,5 +15,7 @@ var searchData=
   ['newinitpagehandler',['NewInitPageHandler',['../classNewInitPageHandler.html',1,'']]],
   ['nmitest',['NMITEST',['../classNMITEST.html',1,'']]],
   ['nodetype',['nodeType',['../structnodeType.html',1,'']]],
-  ['np2cfg',['NP2CFG',['../structNP2CFG.html',1,'']]]
+  ['np2cfg',['NP2CFG',['../structNP2CFG.html',1,'']]],
+  ['nsapplication',['NSApplication',['../classNSApplication.html',1,'']]],
+  ['nsapplication_28dosboxx_29',['NSApplication(DOSBoxX)',['../interfaceNSApplication_07DOSBoxX_08.html',1,'']]]
 ];

@@ -106,7 +106,7 @@ This is the complete list of members for <a class="el" href="classCHandlerEvent.
   <tr bgcolor="#f0f0f0"><td><b>bindlist</b> (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>ButtonName</b>(void) (defined in <a class="el" href="classCHandlerEvent.html">CHandlerEvent</a>)</td><td><a class="el" href="classCHandlerEvent.html">CHandlerEvent</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>buttonname</b> (defined in <a class="el" href="classCHandlerEvent.html">CHandlerEvent</a>)</td><td><a class="el" href="classCHandlerEvent.html">CHandlerEvent</a></td><td></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>CEvent</b>(char const *const _entry) (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>CEvent</b>(char const *const _entry, const enum event_type _type=event_t) (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>CHandlerEvent</b>(char const *const _entry, MAPPER_Handler *_handler, MapKeys _key, Bitu _mod, char const *const _buttonname) (defined in <a class="el" href="classCHandlerEvent.html">CHandlerEvent</a>)</td><td><a class="el" href="classCHandlerEvent.html">CHandlerEvent</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>CTriggeredEvent</b>(char const *const _entry) (defined in <a class="el" href="classCTriggeredEvent.html">CTriggeredEvent</a>)</td><td><a class="el" href="classCTriggeredEvent.html">CTriggeredEvent</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>current_value</b> (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [protected]</code></td></tr>
@@ -115,14 +115,21 @@ This is the complete list of members for <a class="el" href="classCHandlerEvent.
   <tr bgcolor="#f0f0f0"><td><b>defkey</b> (defined in <a class="el" href="classCHandlerEvent.html">CHandlerEvent</a>)</td><td><a class="el" href="classCHandlerEvent.html">CHandlerEvent</a></td><td><code> [protected]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>defmod</b> (defined in <a class="el" href="classCHandlerEvent.html">CHandlerEvent</a>)</td><td><a class="el" href="classCHandlerEvent.html">CHandlerEvent</a></td><td><code> [protected]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>entry</b> (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [protected]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>event_t</b> enum value (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>event_type</b> enum name (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>eventname</b> (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>GetBindMenuText</b>(void) (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetName</b>(void) (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetValue</b>(void) (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline]</code></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>handler</b> (defined in <a class="el" href="classCHandlerEvent.html">CHandlerEvent</a>)</td><td><a class="el" href="classCHandlerEvent.html">CHandlerEvent</a></td><td><code> [protected]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>handler</b> (defined in <a class="el" href="classCHandlerEvent.html">CHandlerEvent</a>)</td><td><a class="el" href="classCHandlerEvent.html">CHandlerEvent</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>handler_event_t</b> enum value (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>IsTrigger</b>(void) (defined in <a class="el" href="classCTriggeredEvent.html">CTriggeredEvent</a>)</td><td><a class="el" href="classCTriggeredEvent.html">CTriggeredEvent</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>MakeDefaultBind</b>(char *buf) (defined in <a class="el" href="classCHandlerEvent.html">CHandlerEvent</a>)</td><td><a class="el" href="classCHandlerEvent.html">CHandlerEvent</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>notify_button</b> (defined in <a class="el" href="classCHandlerEvent.html">CHandlerEvent</a>)</td><td><a class="el" href="classCHandlerEvent.html">CHandlerEvent</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>notifybutton</b>(CTextButton *n) (defined in <a class="el" href="classCHandlerEvent.html">CHandlerEvent</a>)</td><td><a class="el" href="classCHandlerEvent.html">CHandlerEvent</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetValue</b>(Bits value) (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>type</b> (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>update_menu_shortcut</b>(void) (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>~CEvent</b>() (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>~CHandlerEvent</b>() (defined in <a class="el" href="classCHandlerEvent.html">CHandlerEvent</a>)</td><td><a class="el" href="classCHandlerEvent.html">CHandlerEvent</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>~CTriggeredEvent</b>() (defined in <a class="el" href="classCTriggeredEvent.html">CTriggeredEvent</a>)</td><td><a class="el" href="classCTriggeredEvent.html">CTriggeredEvent</a></td><td><code> [inline, virtual]</code></td></tr>
@@ -130,7 +137,7 @@ This is the complete list of members for <a class="el" href="classCHandlerEvent.
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

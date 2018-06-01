@@ -154,7 +154,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00058"></a>00058         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;filterstore), <span class="keyword">sizeof</span>(filterstore) );
 <a name="l00059"></a>00059         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;damp1), <span class="keyword">sizeof</span>(damp1) );
 <a name="l00060"></a>00060         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;damp2), <span class="keyword">sizeof</span>(damp2) );
-<a name="l00061"></a>00061         stream.write(reinterpret_cast&lt;const char*&gt;(buffer), bufsize * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>) );
+<a name="l00061"></a>00061         stream.write(reinterpret_cast&lt;const char*&gt;(buffer), (std::streamsize)((<span class="keywordtype">size_t</span>)bufsize * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>)) );
 <a name="l00062"></a>00062         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;bufsize), <span class="keyword">sizeof</span>(bufsize) );
 <a name="l00063"></a>00063         stream.write(reinterpret_cast&lt;const char*&gt;(&amp;bufidx), <span class="keyword">sizeof</span>(bufidx) );
 <a name="l00064"></a>00064 }
@@ -166,7 +166,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00070"></a>00070         stream.read(reinterpret_cast&lt;char*&gt;(&amp;filterstore), <span class="keyword">sizeof</span>(filterstore) );
 <a name="l00071"></a>00071         stream.read(reinterpret_cast&lt;char*&gt;(&amp;damp1), <span class="keyword">sizeof</span>(damp1) );
 <a name="l00072"></a>00072         stream.read(reinterpret_cast&lt;char*&gt;(&amp;damp2), <span class="keyword">sizeof</span>(damp2) );
-<a name="l00073"></a>00073         stream.read(reinterpret_cast&lt;char*&gt;(buffer), bufsize * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>) );
+<a name="l00073"></a>00073         stream.read(reinterpret_cast&lt;char*&gt;(buffer), (std::streamsize)((<span class="keywordtype">size_t</span>)bufsize * <span class="keyword">sizeof</span>(<span class="keywordtype">float</span>)) );
 <a name="l00074"></a>00074         stream.read(reinterpret_cast&lt;char*&gt;(&amp;bufsize), <span class="keyword">sizeof</span>(bufsize) );
 <a name="l00075"></a>00075         stream.read(reinterpret_cast&lt;char*&gt;(&amp;bufidx), <span class="keyword">sizeof</span>(bufidx) );
 <a name="l00076"></a>00076 }
@@ -174,7 +174,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

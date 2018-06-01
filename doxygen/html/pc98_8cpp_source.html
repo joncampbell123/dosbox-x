@@ -204,16 +204,19 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00108"></a>00108 
 <a name="l00109"></a>00109 <span class="comment">/* wait-delay I/O port of some kind */</span>
 <a name="l00110"></a>00110 <span class="keywordtype">void</span> pc98_wait_write(Bitu port,Bitu val,Bitu iolen) {
-<a name="l00111"></a>00111     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wait_cycles = (<span class="keywordtype">unsigned</span> int)(CPU_CycleMax * 0.0006); <span class="comment">/* 0.6us = 0.0006ms */</span>
-<a name="l00112"></a>00112 
-<a name="l00113"></a>00113     CPU_Cycles -= wait_cycles;
-<a name="l00114"></a>00114 }
+<a name="l00111"></a>00111     (void)iolen;<span class="comment">//UNUSED</span>
+<a name="l00112"></a>00112     (void)port;<span class="comment">//UNUSED</span>
+<a name="l00113"></a>00113     (void)val;<span class="comment">//UNUSED</span>
+<a name="l00114"></a>00114     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wait_cycles = (<span class="keywordtype">unsigned</span> int)(CPU_CycleMax * 0.0006); <span class="comment">/* 0.6us = 0.0006ms */</span>
 <a name="l00115"></a>00115 
+<a name="l00116"></a>00116     CPU_Cycles -= wait_cycles;
+<a name="l00117"></a>00117 }
+<a name="l00118"></a>00118 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

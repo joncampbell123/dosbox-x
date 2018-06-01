@@ -106,15 +106,20 @@ This is the complete list of members for <a class="el" href="classCJAxisEvent.ht
   <tr bgcolor="#f0f0f0"><td><b>axis</b> (defined in <a class="el" href="classCJAxisEvent.html">CJAxisEvent</a>)</td><td><a class="el" href="classCJAxisEvent.html">CJAxisEvent</a></td><td><code> [protected]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>bindlist</b> (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>CContinuousEvent</b>(char const *const _entry) (defined in <a class="el" href="classCContinuousEvent.html">CContinuousEvent</a>)</td><td><a class="el" href="classCContinuousEvent.html">CContinuousEvent</a></td><td><code> [inline]</code></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>CEvent</b>(char const *const _entry) (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>CEvent</b>(char const *const _entry, const enum event_type _type=event_t) (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>CJAxisEvent</b>(char const *const _entry, Bitu _stick, Bitu _axis, bool _positive, CJAxisEvent *_opposite_axis) (defined in <a class="el" href="classCJAxisEvent.html">CJAxisEvent</a>)</td><td><a class="el" href="classCJAxisEvent.html">CJAxisEvent</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>current_value</b> (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [protected]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>DeActivateAll</b>(void) (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>DeActivateEvent</b>(bool ev_trigger) (defined in <a class="el" href="classCContinuousEvent.html">CContinuousEvent</a>)</td><td><a class="el" href="classCContinuousEvent.html">CContinuousEvent</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>entry</b> (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [protected]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>event_t</b> enum value (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>event_type</b> enum name (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>eventname</b> (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetActivityCount</b>(void) (defined in <a class="el" href="classCJAxisEvent.html">CJAxisEvent</a>)</td><td><a class="el" href="classCJAxisEvent.html">CJAxisEvent</a></td><td><code> [inline, virtual]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>GetBindMenuText</b>(void) (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetName</b>(void) (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>GetValue</b>(void) (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>handler_event_t</b> enum value (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>IsTrigger</b>(void) (defined in <a class="el" href="classCContinuousEvent.html">CContinuousEvent</a>)</td><td><a class="el" href="classCContinuousEvent.html">CContinuousEvent</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>notify_button</b> (defined in <a class="el" href="classCJAxisEvent.html">CJAxisEvent</a>)</td><td><a class="el" href="classCJAxisEvent.html">CJAxisEvent</a></td><td></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>notifybutton</b>(CTextButton *n) (defined in <a class="el" href="classCJAxisEvent.html">CJAxisEvent</a>)</td><td><a class="el" href="classCJAxisEvent.html">CJAxisEvent</a></td><td><code> [inline]</code></td></tr>
@@ -124,6 +129,8 @@ This is the complete list of members for <a class="el" href="classCJAxisEvent.ht
   <tr bgcolor="#f0f0f0"><td><b>SetOppositeAxis</b>(CJAxisEvent *_opposite_axis) (defined in <a class="el" href="classCJAxisEvent.html">CJAxisEvent</a>)</td><td><a class="el" href="classCJAxisEvent.html">CJAxisEvent</a></td><td><code> [inline, protected]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>SetValue</b>(Bits value) (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>stick</b> (defined in <a class="el" href="classCJAxisEvent.html">CJAxisEvent</a>)</td><td><a class="el" href="classCJAxisEvent.html">CJAxisEvent</a></td><td><code> [protected]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>type</b> (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>update_menu_shortcut</b>(void) (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>~CContinuousEvent</b>() (defined in <a class="el" href="classCContinuousEvent.html">CContinuousEvent</a>)</td><td><a class="el" href="classCContinuousEvent.html">CContinuousEvent</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>~CEvent</b>() (defined in <a class="el" href="classCEvent.html">CEvent</a>)</td><td><a class="el" href="classCEvent.html">CEvent</a></td><td><code> [virtual]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>~CJAxisEvent</b>() (defined in <a class="el" href="classCJAxisEvent.html">CJAxisEvent</a>)</td><td><a class="el" href="classCJAxisEvent.html">CJAxisEvent</a></td><td><code> [inline, virtual]</code></td></tr>
@@ -131,7 +138,7 @@ This is the complete list of members for <a class="el" href="classCJAxisEvent.ht
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

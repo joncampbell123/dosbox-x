@@ -161,31 +161,33 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00065"></a>00065         <span class="keywordtype">int</span> r, g, b;
 <a name="l00066"></a>00066         <span class="keywordtype">int</span> Y, u, v;
 <a name="l00067"></a>00067 
-<a name="l00068"></a>00068     (void)conc2d(InitLUTs,SBPP);
-<a name="l00069"></a>00069 
-<a name="l00070"></a>00070         _RGBtoYUV = (Bit32u *)malloc(65536 * <span class="keyword">sizeof</span>(Bit32u));
-<a name="l00071"></a>00071 
-<a name="l00072"></a>00072         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> color = 0; color &lt; 65536; ++color) {
-<a name="l00073"></a>00073 <span class="preprocessor">#if SBPP == 32</span>
-<a name="l00074"></a>00074 <span class="preprocessor"></span>                r = ((color &amp; 0xF800) &gt;&gt; 11) &lt;&lt; (8 - 5);
-<a name="l00075"></a>00075                 g = ((color &amp; 0x07E0) &gt;&gt; 5) &lt;&lt; (8 - 6);
-<a name="l00076"></a>00076                 b = ((color &amp; 0x001F) &gt;&gt; 0) &lt;&lt; (8 - 5);
-<a name="l00077"></a>00077 <span class="preprocessor">#else</span>
-<a name="l00078"></a>00078 <span class="preprocessor"></span>                r = ((color &amp; redMask) &gt;&gt; redShift) &lt;&lt; (8 - redBits);
-<a name="l00079"></a>00079                 g = ((color &amp; greenMask) &gt;&gt; greenShift) &lt;&lt; (8 - greenBits);
-<a name="l00080"></a>00080                 b = ((color &amp; blueMask) &gt;&gt; blueShift) &lt;&lt; (8 - blueBits);
-<a name="l00081"></a>00081 <span class="preprocessor">#endif</span>
-<a name="l00082"></a>00082 <span class="preprocessor"></span>                Y = (r + g + b) &gt;&gt; 2;
-<a name="l00083"></a>00083                 u = 128 + ((r - b) &gt;&gt; 2);
-<a name="l00084"></a>00084                 v = 128 + ((-r + 2 * g - b) &gt;&gt; 3);
-<a name="l00085"></a>00085                 _RGBtoYUV[color] = (Y &lt;&lt; 16) | (u &lt;&lt; 8) | v;
-<a name="l00086"></a>00086         }
-<a name="l00087"></a>00087 }
+<a name="l00068"></a>00068 <span class="preprocessor"># if !defined(_MSC_VER) </span><span class="comment">/* Microsoft C++ thinks this is a failed attempt at a function call---it&#39;s not */</span>
+<a name="l00069"></a>00069         (void)conc2d(InitLUTs,SBPP);
+<a name="l00070"></a>00070 <span class="preprocessor"># endif</span>
+<a name="l00071"></a>00071 <span class="preprocessor"></span>
+<a name="l00072"></a>00072         _RGBtoYUV = (Bit32u *)malloc(65536 * <span class="keyword">sizeof</span>(Bit32u));
+<a name="l00073"></a>00073 
+<a name="l00074"></a>00074         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> color = 0; color &lt; 65536; ++color) {
+<a name="l00075"></a>00075 <span class="preprocessor">#if SBPP == 32</span>
+<a name="l00076"></a>00076 <span class="preprocessor"></span>                r = ((color &amp; 0xF800) &gt;&gt; 11) &lt;&lt; (8 - 5);
+<a name="l00077"></a>00077                 g = ((color &amp; 0x07E0) &gt;&gt; 5) &lt;&lt; (8 - 6);
+<a name="l00078"></a>00078                 b = ((color &amp; 0x001F) &gt;&gt; 0) &lt;&lt; (8 - 5);
+<a name="l00079"></a>00079 <span class="preprocessor">#else</span>
+<a name="l00080"></a>00080 <span class="preprocessor"></span>                r = ((color &amp; redMask) &gt;&gt; redShift) &lt;&lt; (8 - redBits);
+<a name="l00081"></a>00081                 g = ((color &amp; greenMask) &gt;&gt; greenShift) &lt;&lt; (8 - greenBits);
+<a name="l00082"></a>00082                 b = ((color &amp; blueMask) &gt;&gt; blueShift) &lt;&lt; (8 - blueBits);
+<a name="l00083"></a>00083 <span class="preprocessor">#endif</span>
+<a name="l00084"></a>00084 <span class="preprocessor"></span>                Y = (r + g + b) &gt;&gt; 2;
+<a name="l00085"></a>00085                 u = 128 + ((r - b) &gt;&gt; 2);
+<a name="l00086"></a>00086                 v = 128 + ((-r + 2 * g - b) &gt;&gt; 3);
+<a name="l00087"></a>00087                 _RGBtoYUV[color] = (Y &lt;&lt; 16) | (u &lt;&lt; 8) | v;
+<a name="l00088"></a>00088         }
+<a name="l00089"></a>00089 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:02 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:32 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

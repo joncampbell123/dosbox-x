@@ -537,7 +537,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00441"></a>00441         <a class="code" href="classdevice__COM.html">device_COM</a>(<span class="keyword">class</span> <a class="code" href="classCSerial.html">CSerial</a>* sc);
 <a name="l00442"></a>00442         <span class="keyword">virtual</span> ~<a class="code" href="classdevice__COM.html">device_COM</a>();
 <a name="l00443"></a>00443         <span class="keywordtype">bool</span> Read(Bit8u * data,Bit16u * size);
-<a name="l00444"></a>00444         <span class="keywordtype">bool</span> Write(Bit8u * data,Bit16u * size);
+<a name="l00444"></a>00444         <span class="keywordtype">bool</span> Write(<span class="keyword">const</span> Bit8u * data,Bit16u * size);
 <a name="l00445"></a>00445         <span class="keywordtype">bool</span> Seek(Bit32u * pos,Bit32u type);
 <a name="l00446"></a>00446         <span class="keywordtype">bool</span> Close();
 <a name="l00447"></a>00447         Bit16u GetInformation(<span class="keywordtype">void</span>);
@@ -550,7 +550,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:40:59 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

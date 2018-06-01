@@ -185,125 +185,130 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00089"></a>00089 }
 <a name="l00090"></a>00090 
 <a name="l00091"></a>00091 <span class="keyword">static</span> <span class="keywordtype">double</span> intersect_h(<span class="keywordtype">double</span> xcenter, <span class="keywordtype">double</span> ycenter, <span class="keywordtype">double</span> xsize, <span class="keywordtype">double</span> ysize) {
-<a name="l00092"></a>00092     <span class="keywordflow">return</span> fmax(0.0,fmin(1.0,(.55-fabs(xcenter)+xsize/2.0)/xsize));
-<a name="l00093"></a>00093 }
-<a name="l00094"></a>00094 
-<a name="l00095"></a>00095 <span class="keyword">static</span> <span class="keywordtype">double</span> intersect_any_h(<span class="keywordtype">double</span> xcenter, <span class="keywordtype">double</span> ycenter, <span class="keywordtype">double</span> xsize, <span class="keywordtype">double</span> ysize, <span class="keywordtype">double</span> yoffset, <span class="keywordtype">double</span> gradient) {
-<a name="l00096"></a>00096     <span class="keywordtype">double</span> hinside = intersect_h(xcenter,ycenter,xsize,ysize);
-<a name="l00097"></a>00097     <span class="keywordflow">return</span> hinside*hinside*intersect_any(xcenter,ycenter,xsize,ysize,yoffset,gradient);
-<a name="l00098"></a>00098 }
-<a name="l00099"></a>00099 
-<a name="l00100"></a>00100 <span class="keyword">static</span> <span class="keywordtype">double</span> intersect_v(<span class="keywordtype">double</span> xcenter, <span class="keywordtype">double</span> ycenter, <span class="keywordtype">double</span> xsize, <span class="keywordtype">double</span> ysize) {
-<a name="l00101"></a>00101     <span class="keywordflow">return</span> fmax(0.0,fmin(1.0,(.55-fabs(ycenter)+ysize/2.0)/ysize));
-<a name="l00102"></a>00102 }
-<a name="l00103"></a>00103 
-<a name="l00104"></a>00104 <span class="keyword">static</span> <span class="keywordtype">double</span> intersect_any_v(<span class="keywordtype">double</span> xcenter, <span class="keywordtype">double</span> ycenter, <span class="keywordtype">double</span> xsize, <span class="keywordtype">double</span> ysize, <span class="keywordtype">double</span> yoffset, <span class="keywordtype">double</span> gradient) {
-<a name="l00105"></a>00105     <span class="keywordtype">double</span> vinside = intersect_v(xcenter,ycenter,xsize,ysize);
-<a name="l00106"></a>00106     <span class="keywordflow">return</span> vinside*vinside*intersect_any(xcenter,ycenter,xsize,ysize,yoffset,gradient);
+<a name="l00092"></a>00092     (void)ycenter;<span class="comment">//UNUSED</span>
+<a name="l00093"></a>00093     (void)ysize;
+<a name="l00094"></a>00094     <span class="keywordflow">return</span> fmax(0.0,fmin(1.0,(.55-fabs(xcenter)+xsize/2.0)/xsize));
+<a name="l00095"></a>00095 }
+<a name="l00096"></a>00096 
+<a name="l00097"></a>00097 <span class="keyword">static</span> <span class="keywordtype">double</span> intersect_any_h(<span class="keywordtype">double</span> xcenter, <span class="keywordtype">double</span> ycenter, <span class="keywordtype">double</span> xsize, <span class="keywordtype">double</span> ysize, <span class="keywordtype">double</span> yoffset, <span class="keywordtype">double</span> gradient) {
+<a name="l00098"></a>00098     <span class="keywordtype">double</span> hinside = intersect_h(xcenter,ycenter,xsize,ysize);
+<a name="l00099"></a>00099     <span class="keywordflow">return</span> hinside*hinside*intersect_any(xcenter,ycenter,xsize,ysize,yoffset,gradient);
+<a name="l00100"></a>00100 }
+<a name="l00101"></a>00101 
+<a name="l00102"></a>00102 <span class="keyword">static</span> <span class="keywordtype">double</span> intersect_v(<span class="keywordtype">double</span> xcenter, <span class="keywordtype">double</span> ycenter, <span class="keywordtype">double</span> xsize, <span class="keywordtype">double</span> ysize) {
+<a name="l00103"></a>00103     (void)xsize;
+<a name="l00104"></a>00104     (void)ysize;
+<a name="l00105"></a>00105     (void)xcenter;
+<a name="l00106"></a>00106     <span class="keywordflow">return</span> fmax(0.0,fmin(1.0,(.55-fabs(ycenter)+ysize/2.0)/ysize));
 <a name="l00107"></a>00107 }
 <a name="l00108"></a>00108 
-<a name="l00109"></a>00109 <span class="keyword">static</span> <span class="keywordtype">double</span> intersect_hv(<span class="keywordtype">double</span> xcenter, <span class="keywordtype">double</span> ycenter, <span class="keywordtype">double</span> xsize, <span class="keywordtype">double</span> ysize) {
-<a name="l00110"></a>00110     <span class="keywordtype">double</span> hinside = intersect_h(xcenter,ycenter,xsize,ysize);
-<a name="l00111"></a>00111     <span class="keywordtype">double</span> vinside = intersect_v(xcenter,ycenter,xsize,ysize);
-<a name="l00112"></a>00112     <span class="keywordflow">return</span> (1-hinside)*(1-vinside)+hinside*vinside;
-<a name="l00113"></a>00113 }
-<a name="l00114"></a>00114 
-<a name="l00115"></a>00115 <span class="comment">/* FIXME: not sure if this is correct, but it is rare enough and most likely near enough. fixes welcome :) */</span>
-<a name="l00116"></a>00116 <span class="keyword">static</span> <span class="keywordtype">double</span> intersect_any_hv(<span class="keywordtype">double</span> xcenter, <span class="keywordtype">double</span> ycenter, <span class="keywordtype">double</span> xsize, <span class="keywordtype">double</span> ysize, <span class="keywordtype">double</span> yoffset, <span class="keywordtype">double</span> gradient) {
-<a name="l00117"></a>00117     <span class="keywordtype">double</span> hvinside = intersect_hv(xcenter,ycenter,xsize,ysize);
-<a name="l00118"></a>00118     <span class="keywordflow">return</span> hvinside*hvinside*intersect_any(xcenter,ycenter,xsize,ysize,yoffset,gradient);
-<a name="l00119"></a>00119 }
-<a name="l00120"></a>00120 
-<a name="l00121"></a>00121 <span class="keyword">static</span> <span class="keywordtype">double</span> intersect_hvd(<span class="keywordtype">double</span> xcenter, <span class="keywordtype">double</span> ycenter, <span class="keywordtype">double</span> xsize, <span class="keywordtype">double</span> ysize) {
-<a name="l00122"></a>00122     <span class="keywordflow">return</span> intersect_h(xcenter,ycenter,xsize,ysize)*intersect_v(xcenter,ycenter,xsize,ysize);
-<a name="l00123"></a>00123 }
-<a name="l00124"></a>00124 
-<a name="l00125"></a>00125 <span class="keyword">static</span> <span class="keywordtype">void</span> setinterp(<span class="keywordtype">double</span> xcenter, <span class="keywordtype">double</span> ycenter, <span class="keywordtype">double</span> percentage_inside, <span class="keywordtype">int</span> i1, <span class="keywordtype">int</span> i2, <span class="keywordtype">int</span> i3, <span class="keywordtype">int</span> o1, <span class="keywordtype">int</span> o2, <span class="keywordtype">int</span> o3, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *factors) {
-<a name="l00126"></a>00126     <span class="keywordtype">double</span> d0, d1, d2, d3, percentage_outside, totaldistance_i, totaldistance_o;
-<a name="l00127"></a>00127     xcenter = fabs(xcenter);
-<a name="l00128"></a>00128     ycenter = fabs(ycenter);
-<a name="l00129"></a>00129     d0 = (1-xcenter)*(1-ycenter);
-<a name="l00130"></a>00130     d1 = xcenter*(1-ycenter);
-<a name="l00131"></a>00131     d2 = (1-xcenter)*ycenter;
-<a name="l00132"></a>00132     d3 = xcenter*ycenter;
-<a name="l00133"></a>00133     <span class="keywordflow">if</span> (i1 &amp;&amp; i2) i3 = 0;
-<a name="l00134"></a>00134     <span class="keywordflow">if</span> (o1 &amp;&amp; o2) o3 = 0;
-<a name="l00135"></a>00135     percentage_outside = 1.0-percentage_inside;
-<a name="l00136"></a>00136     totaldistance_i = d0+i1*d1+i2*d2+i3*d3;
-<a name="l00137"></a>00137     totaldistance_o = o1*d1+o2*d2+o3*d3+1e-12; <span class="comment">/* +1e-12: prevent division by zero */</span>
-<a name="l00138"></a>00138 
-<a name="l00139"></a>00139     factors[1] = (<span class="keywordtype">unsigned</span> char)(((d1/totaldistance_i*percentage_inside*i1)+(d1/totaldistance_o*percentage_outside*o1))*255+.5);
-<a name="l00140"></a>00140     factors[2] = (<span class="keywordtype">unsigned</span> char)(((d2/totaldistance_i*percentage_inside*i2)+(d2/totaldistance_o*percentage_outside*o2))*255+.5);
-<a name="l00141"></a>00141     factors[3] = (<span class="keywordtype">unsigned</span> char)(((d3/totaldistance_i*percentage_inside*i3)+(d3/totaldistance_o*percentage_outside*o3))*255+.5);
-<a name="l00142"></a>00142     factors[0] = 255-factors[1]-factors[2]-factors[3];<span class="comment">/*(unsigned char)((d0/totaldistance_i*percentage_inside)*255+.5);*/</span>
-<a name="l00143"></a>00143 }
-<a name="l00144"></a>00144 
-<a name="l00145"></a>00145 <span class="comment">/* Wanna have gcc fun? #define this as a macro, get a fast machine and go fetch a coffe or two. See how it is used to get an idea why.</span>
-<a name="l00146"></a>00146 <span class="comment">   I aborted compilation after 5 minutes of CPU time on an Athlon64 3700+. */</span>
-<a name="l00147"></a>00147 <span class="keyword">static</span> <span class="keywordtype">int</span> swap_bits(<span class="keywordtype">int</span> num, <span class="keywordtype">int</span> bit1, <span class="keywordtype">int</span> bit2) {
-<a name="l00148"></a>00148     <span class="keywordflow">return</span> ((num &amp; ~(bit1|bit2))|((num&amp;bit1)?bit2:0)|((num&amp;bit2)?bit1:0));
-<a name="l00149"></a>00149 }
-<a name="l00150"></a>00150 
-<a name="l00151"></a>00151 
-<a name="l00152"></a>00152 <span class="comment">// width, height == rwidth, rheight</span>
-<a name="l00153"></a>00153 <span class="comment">// outwidth, outheight == width, height</span>
-<a name="l00154"></a>00154 <span class="keywordtype">void</span> BuildHq2xLookupTexture(Bitu outWidth, Bitu outHeight, Bitu rwidth, Bitu rheight, Bit8u* texture)
-<a name="l00155"></a>00155 {
-<a name="l00156"></a>00156     <span class="keywordtype">double</span> xsize, ysize;
-<a name="l00157"></a>00157     <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> table[4096] = HQ2X_D3D_TABLE_DATA;
-<a name="l00158"></a>00158 
-<a name="l00159"></a>00159     xsize = (double)rwidth / (<span class="keywordtype">double</span>)outWidth;
-<a name="l00160"></a>00160     ysize = (double)rheight / (<span class="keywordtype">double</span>)outHeight;
-<a name="l00161"></a>00161 
-<a name="l00162"></a>00162     <span class="keywordflow">for</span> (<span class="keywordtype">int</span> border = 0; border &lt; 4096; border++) {
-<a name="l00163"></a>00163         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> y = 0; y &lt; HQ2X_RESOLUTION; y++) {
-<a name="l00164"></a>00164             <span class="keywordflow">for</span> (<span class="keywordtype">int</span> x = 0; x &lt; HQ2X_RESOLUTION; x++) {
-<a name="l00165"></a>00165                 <span class="keywordtype">double</span> xcenter = fabs((((<span class="keywordtype">double</span>)x)+0.5) / (<span class="keywordtype">double</span>)(HQ2X_RESOLUTION)-0.5)/0.958;
-<a name="l00166"></a>00166                 <span class="keywordtype">double</span> ycenter = fabs((((<span class="keywordtype">double</span>)y)+0.5) / (<span class="keywordtype">double</span>)(HQ2X_RESOLUTION)-0.5)/0.958;
-<a name="l00167"></a>00167                 <span class="keywordtype">int</span> sx = (x &lt; HQ2X_RESOLUTION/2?-1:1);
-<a name="l00168"></a>00168                 <span class="keywordtype">int</span> sy = (y &lt; HQ2X_RESOLUTION/2?-1:1);
-<a name="l00169"></a>00169                 <span class="keywordtype">int</span> b = (sy &gt; 0?(sx &gt; 0?border:hmirror(border)):(sx &gt; 0?vmirror(border):vmirror(hmirror(border))));
-<a name="l00170"></a>00170 
-<a name="l00171"></a>00171                 <span class="keywordflow">if</span> ((table[b] &amp; NODIAG) == NODIAG) {
-<a name="l00172"></a>00172                     <span class="keywordflow">if</span> (table[b] &amp; H) {
-<a name="l00173"></a>00173                         <span class="keywordflow">if</span> (table[b] &amp; V) {
-<a name="l00174"></a>00174                             <span class="keywordflow">if</span> (table[b] &amp; D) SETINTERP(intersect_hvd(xcenter,ycenter,xsize,ysize));
-<a name="l00175"></a>00175                             <span class="keywordflow">else</span> SETINTERP(intersect_hv(xcenter,ycenter,xsize,ysize));
-<a name="l00176"></a>00176                         } <span class="keywordflow">else</span> {
-<a name="l00177"></a>00177                             SETINTERP(intersect_h(xcenter,ycenter,xsize,ysize));
-<a name="l00178"></a>00178                         }
-<a name="l00179"></a>00179                     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (table[b] &amp; V) {
-<a name="l00180"></a>00180                         SETINTERP(intersect_v(xcenter,ycenter,xsize,ysize));
-<a name="l00181"></a>00181                     } <span class="keywordflow">else</span> {
-<a name="l00182"></a>00182                         SETINTERP(1.0);
-<a name="l00183"></a>00183                     }
-<a name="l00184"></a>00184                 } <span class="keywordflow">else</span> {
-<a name="l00185"></a>00185                     <span class="keywordtype">double</span> yoff = (table[b]&amp;4?1:-1)*(((table[b] &gt;&gt; 3) &amp; 3) + 1)/4.0;
-<a name="l00186"></a>00186                     <span class="keywordtype">double</span> grad = (table[b]&amp;32?1:-1)*(((table[b] &gt;&gt; 6) &amp; 3) + 1)/2.0;
-<a name="l00187"></a>00187                     <span class="keywordflow">if</span> (table[b] &amp; H) {
-<a name="l00188"></a>00188                         <span class="keywordflow">if</span> (table[b] &amp; V) {
-<a name="l00189"></a>00189                             SETINTERP(intersect_any_hv(xcenter,ycenter,xsize,ysize,yoff,grad));
-<a name="l00190"></a>00190                         } <span class="keywordflow">else</span> {
-<a name="l00191"></a>00191                             SETINTERP(intersect_any_h(xcenter,ycenter,xsize,ysize,yoff,grad));
-<a name="l00192"></a>00192                         }
-<a name="l00193"></a>00193                     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (table[b] &amp; V) {
-<a name="l00194"></a>00194                         SETINTERP(intersect_any_v(xcenter,ycenter,xsize,ysize,yoff,grad));
-<a name="l00195"></a>00195                     } <span class="keywordflow">else</span> {
-<a name="l00196"></a>00196                         SETINTERP(intersect_any(xcenter,ycenter,xsize,ysize,yoff,grad));
-<a name="l00197"></a>00197                     }
-<a name="l00198"></a>00198                 }
-<a name="l00199"></a>00199 
-<a name="l00200"></a>00200             }
-<a name="l00201"></a>00201         }
-<a name="l00202"></a>00202     }
-<a name="l00203"></a>00203 }
+<a name="l00109"></a>00109 <span class="keyword">static</span> <span class="keywordtype">double</span> intersect_any_v(<span class="keywordtype">double</span> xcenter, <span class="keywordtype">double</span> ycenter, <span class="keywordtype">double</span> xsize, <span class="keywordtype">double</span> ysize, <span class="keywordtype">double</span> yoffset, <span class="keywordtype">double</span> gradient) {
+<a name="l00110"></a>00110     <span class="keywordtype">double</span> vinside = intersect_v(xcenter,ycenter,xsize,ysize);
+<a name="l00111"></a>00111     <span class="keywordflow">return</span> vinside*vinside*intersect_any(xcenter,ycenter,xsize,ysize,yoffset,gradient);
+<a name="l00112"></a>00112 }
+<a name="l00113"></a>00113 
+<a name="l00114"></a>00114 <span class="keyword">static</span> <span class="keywordtype">double</span> intersect_hv(<span class="keywordtype">double</span> xcenter, <span class="keywordtype">double</span> ycenter, <span class="keywordtype">double</span> xsize, <span class="keywordtype">double</span> ysize) {
+<a name="l00115"></a>00115     <span class="keywordtype">double</span> hinside = intersect_h(xcenter,ycenter,xsize,ysize);
+<a name="l00116"></a>00116     <span class="keywordtype">double</span> vinside = intersect_v(xcenter,ycenter,xsize,ysize);
+<a name="l00117"></a>00117     <span class="keywordflow">return</span> (1-hinside)*(1-vinside)+hinside*vinside;
+<a name="l00118"></a>00118 }
+<a name="l00119"></a>00119 
+<a name="l00120"></a>00120 <span class="comment">/* FIXME: not sure if this is correct, but it is rare enough and most likely near enough. fixes welcome :) */</span>
+<a name="l00121"></a>00121 <span class="keyword">static</span> <span class="keywordtype">double</span> intersect_any_hv(<span class="keywordtype">double</span> xcenter, <span class="keywordtype">double</span> ycenter, <span class="keywordtype">double</span> xsize, <span class="keywordtype">double</span> ysize, <span class="keywordtype">double</span> yoffset, <span class="keywordtype">double</span> gradient) {
+<a name="l00122"></a>00122     <span class="keywordtype">double</span> hvinside = intersect_hv(xcenter,ycenter,xsize,ysize);
+<a name="l00123"></a>00123     <span class="keywordflow">return</span> hvinside*hvinside*intersect_any(xcenter,ycenter,xsize,ysize,yoffset,gradient);
+<a name="l00124"></a>00124 }
+<a name="l00125"></a>00125 
+<a name="l00126"></a>00126 <span class="keyword">static</span> <span class="keywordtype">double</span> intersect_hvd(<span class="keywordtype">double</span> xcenter, <span class="keywordtype">double</span> ycenter, <span class="keywordtype">double</span> xsize, <span class="keywordtype">double</span> ysize) {
+<a name="l00127"></a>00127     <span class="keywordflow">return</span> intersect_h(xcenter,ycenter,xsize,ysize)*intersect_v(xcenter,ycenter,xsize,ysize);
+<a name="l00128"></a>00128 }
+<a name="l00129"></a>00129 
+<a name="l00130"></a>00130 <span class="keyword">static</span> <span class="keywordtype">void</span> setinterp(<span class="keywordtype">double</span> xcenter, <span class="keywordtype">double</span> ycenter, <span class="keywordtype">double</span> percentage_inside, <span class="keywordtype">int</span> i1, <span class="keywordtype">int</span> i2, <span class="keywordtype">int</span> i3, <span class="keywordtype">int</span> o1, <span class="keywordtype">int</span> o2, <span class="keywordtype">int</span> o3, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *factors) {
+<a name="l00131"></a>00131     <span class="keywordtype">double</span> d0, d1, d2, d3, percentage_outside, totaldistance_i, totaldistance_o;
+<a name="l00132"></a>00132     xcenter = fabs(xcenter);
+<a name="l00133"></a>00133     ycenter = fabs(ycenter);
+<a name="l00134"></a>00134     d0 = (1-xcenter)*(1-ycenter);
+<a name="l00135"></a>00135     d1 = xcenter*(1-ycenter);
+<a name="l00136"></a>00136     d2 = (1-xcenter)*ycenter;
+<a name="l00137"></a>00137     d3 = xcenter*ycenter;
+<a name="l00138"></a>00138     <span class="keywordflow">if</span> (i1 &amp;&amp; i2) i3 = 0;
+<a name="l00139"></a>00139     <span class="keywordflow">if</span> (o1 &amp;&amp; o2) o3 = 0;
+<a name="l00140"></a>00140     percentage_outside = 1.0-percentage_inside;
+<a name="l00141"></a>00141     totaldistance_i = d0+i1*d1+i2*d2+i3*d3;
+<a name="l00142"></a>00142     totaldistance_o = o1*d1+o2*d2+o3*d3+1e-12; <span class="comment">/* +1e-12: prevent division by zero */</span>
+<a name="l00143"></a>00143 
+<a name="l00144"></a>00144     factors[1] = (<span class="keywordtype">unsigned</span> char)(((d1/totaldistance_i*percentage_inside*i1)+(d1/totaldistance_o*percentage_outside*o1))*255+.5);
+<a name="l00145"></a>00145     factors[2] = (<span class="keywordtype">unsigned</span> char)(((d2/totaldistance_i*percentage_inside*i2)+(d2/totaldistance_o*percentage_outside*o2))*255+.5);
+<a name="l00146"></a>00146     factors[3] = (<span class="keywordtype">unsigned</span> char)(((d3/totaldistance_i*percentage_inside*i3)+(d3/totaldistance_o*percentage_outside*o3))*255+.5);
+<a name="l00147"></a>00147     factors[0] = 255-factors[1]-factors[2]-factors[3];<span class="comment">/*(unsigned char)((d0/totaldistance_i*percentage_inside)*255+.5);*/</span>
+<a name="l00148"></a>00148 }
+<a name="l00149"></a>00149 
+<a name="l00150"></a>00150 <span class="comment">/* Wanna have gcc fun? #define this as a macro, get a fast machine and go fetch a coffe or two. See how it is used to get an idea why.</span>
+<a name="l00151"></a>00151 <span class="comment">   I aborted compilation after 5 minutes of CPU time on an Athlon64 3700+. */</span>
+<a name="l00152"></a>00152 <span class="keyword">static</span> <span class="keywordtype">int</span> swap_bits(<span class="keywordtype">int</span> num, <span class="keywordtype">int</span> bit1, <span class="keywordtype">int</span> bit2) {
+<a name="l00153"></a>00153     <span class="keywordflow">return</span> ((num &amp; ~(bit1|bit2))|((num&amp;bit1)?bit2:0)|((num&amp;bit2)?bit1:0));
+<a name="l00154"></a>00154 }
+<a name="l00155"></a>00155 
+<a name="l00156"></a>00156 
+<a name="l00157"></a>00157 <span class="comment">// width, height == rwidth, rheight</span>
+<a name="l00158"></a>00158 <span class="comment">// outwidth, outheight == width, height</span>
+<a name="l00159"></a>00159 <span class="keywordtype">void</span> BuildHq2xLookupTexture(Bitu outWidth, Bitu outHeight, Bitu rwidth, Bitu rheight, Bit8u* texture)
+<a name="l00160"></a>00160 {
+<a name="l00161"></a>00161     <span class="keywordtype">double</span> xsize, ysize;
+<a name="l00162"></a>00162     <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> table[4096] = HQ2X_D3D_TABLE_DATA;
+<a name="l00163"></a>00163 
+<a name="l00164"></a>00164     xsize = (double)rwidth / (<span class="keywordtype">double</span>)outWidth;
+<a name="l00165"></a>00165     ysize = (double)rheight / (<span class="keywordtype">double</span>)outHeight;
+<a name="l00166"></a>00166 
+<a name="l00167"></a>00167     <span class="keywordflow">for</span> (<span class="keywordtype">int</span> border = 0; border &lt; 4096; border++) {
+<a name="l00168"></a>00168         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> y = 0; y &lt; HQ2X_RESOLUTION; y++) {
+<a name="l00169"></a>00169             <span class="keywordflow">for</span> (<span class="keywordtype">int</span> x = 0; x &lt; HQ2X_RESOLUTION; x++) {
+<a name="l00170"></a>00170                 <span class="keywordtype">double</span> xcenter = fabs((((<span class="keywordtype">double</span>)x)+0.5) / (<span class="keywordtype">double</span>)(HQ2X_RESOLUTION)-0.5)/0.958;
+<a name="l00171"></a>00171                 <span class="keywordtype">double</span> ycenter = fabs((((<span class="keywordtype">double</span>)y)+0.5) / (<span class="keywordtype">double</span>)(HQ2X_RESOLUTION)-0.5)/0.958;
+<a name="l00172"></a>00172                 <span class="keywordtype">int</span> sx = (x &lt; HQ2X_RESOLUTION/2?-1:1);
+<a name="l00173"></a>00173                 <span class="keywordtype">int</span> sy = (y &lt; HQ2X_RESOLUTION/2?-1:1);
+<a name="l00174"></a>00174                 <span class="keywordtype">int</span> b = (sy &gt; 0?(sx &gt; 0?border:hmirror(border)):(sx &gt; 0?vmirror(border):vmirror(hmirror(border))));
+<a name="l00175"></a>00175 
+<a name="l00176"></a>00176                 <span class="keywordflow">if</span> ((table[b] &amp; NODIAG) == NODIAG) {
+<a name="l00177"></a>00177                     <span class="keywordflow">if</span> (table[b] &amp; H) {
+<a name="l00178"></a>00178                         <span class="keywordflow">if</span> (table[b] &amp; V) {
+<a name="l00179"></a>00179                             <span class="keywordflow">if</span> (table[b] &amp; D) SETINTERP(intersect_hvd(xcenter,ycenter,xsize,ysize));
+<a name="l00180"></a>00180                             <span class="keywordflow">else</span> SETINTERP(intersect_hv(xcenter,ycenter,xsize,ysize));
+<a name="l00181"></a>00181                         } <span class="keywordflow">else</span> {
+<a name="l00182"></a>00182                             SETINTERP(intersect_h(xcenter,ycenter,xsize,ysize));
+<a name="l00183"></a>00183                         }
+<a name="l00184"></a>00184                     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (table[b] &amp; V) {
+<a name="l00185"></a>00185                         SETINTERP(intersect_v(xcenter,ycenter,xsize,ysize));
+<a name="l00186"></a>00186                     } <span class="keywordflow">else</span> {
+<a name="l00187"></a>00187                         SETINTERP(1.0);
+<a name="l00188"></a>00188                     }
+<a name="l00189"></a>00189                 } <span class="keywordflow">else</span> {
+<a name="l00190"></a>00190                     <span class="keywordtype">double</span> yoff = (table[b]&amp;4?1:-1)*(((table[b] &gt;&gt; 3) &amp; 3) + 1)/4.0;
+<a name="l00191"></a>00191                     <span class="keywordtype">double</span> grad = (table[b]&amp;32?1:-1)*(((table[b] &gt;&gt; 6) &amp; 3) + 1)/2.0;
+<a name="l00192"></a>00192                     <span class="keywordflow">if</span> (table[b] &amp; H) {
+<a name="l00193"></a>00193                         <span class="keywordflow">if</span> (table[b] &amp; V) {
+<a name="l00194"></a>00194                             SETINTERP(intersect_any_hv(xcenter,ycenter,xsize,ysize,yoff,grad));
+<a name="l00195"></a>00195                         } <span class="keywordflow">else</span> {
+<a name="l00196"></a>00196                             SETINTERP(intersect_any_h(xcenter,ycenter,xsize,ysize,yoff,grad));
+<a name="l00197"></a>00197                         }
+<a name="l00198"></a>00198                     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (table[b] &amp; V) {
+<a name="l00199"></a>00199                         SETINTERP(intersect_any_v(xcenter,ycenter,xsize,ysize,yoff,grad));
+<a name="l00200"></a>00200                     } <span class="keywordflow">else</span> {
+<a name="l00201"></a>00201                         SETINTERP(intersect_any(xcenter,ycenter,xsize,ysize,yoff,grad));
+<a name="l00202"></a>00202                     }
+<a name="l00203"></a>00203                 }
 <a name="l00204"></a>00204 
-<a name="l00205"></a>00205 <span class="preprocessor">#endif</span>
+<a name="l00205"></a>00205             }
+<a name="l00206"></a>00206         }
+<a name="l00207"></a>00207     }
+<a name="l00208"></a>00208 }
+<a name="l00209"></a>00209 
+<a name="l00210"></a>00210 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:02 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:32 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

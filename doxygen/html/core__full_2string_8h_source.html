@@ -426,32 +426,33 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00330"></a>00330                         }
 <a name="l00331"></a>00331                 }
 <a name="l00332"></a>00332                 <span class="keywordflow">catch</span> (<a class="code" href="classGuestPageFaultException.html">GuestPageFaultException</a> &amp;pf) {
-<a name="l00333"></a>00333                         <span class="comment">/* Clean up after certain amount of instructions */</span>
-<a name="l00334"></a>00334                         reg_esi&amp;=(~add_mask);
-<a name="l00335"></a>00335                         reg_esi|=(si_index &amp; add_mask);
-<a name="l00336"></a>00336                         reg_edi&amp;=(~add_mask);
-<a name="l00337"></a>00337                         reg_edi|=(di_index &amp; add_mask);
-<a name="l00338"></a>00338                         <span class="keywordflow">if</span> (inst.prefix &amp; PREFIX_REP) {
-<a name="l00339"></a>00339                                 count+=count_left;
-<a name="l00340"></a>00340                                 reg_ecx&amp;=(~add_mask);
-<a name="l00341"></a>00341                                 reg_ecx|=(count &amp; add_mask);
-<a name="l00342"></a>00342                         }
-<a name="l00343"></a>00343 
-<a name="l00344"></a>00344                         <span class="comment">/* rethrow the exception.</span>
-<a name="l00345"></a>00345 <span class="comment">                         * NOTE: this means the normal core has no chance to execute SAVEIP, therefore</span>
-<a name="l00346"></a>00346 <span class="comment">                         *       when the guest OS has finished handling the page fault the instruction</span>
-<a name="l00347"></a>00347 <span class="comment">                         *       pointer will come right back to the string op that caused the fault</span>
-<a name="l00348"></a>00348 <span class="comment">                         *       and the string op will restart where it left off. */</span>
-<a name="l00349"></a>00349                         <span class="keywordflow">throw</span>;
-<a name="l00350"></a>00350                 }
-<a name="l00351"></a>00351         }
-<a name="l00352"></a>00352 }
-<a name="l00353"></a>00353 
+<a name="l00333"></a>00333                         (void)pf;
+<a name="l00334"></a>00334                         <span class="comment">/* Clean up after certain amount of instructions */</span>
+<a name="l00335"></a>00335                         reg_esi&amp;=(~add_mask);
+<a name="l00336"></a>00336                         reg_esi|=(si_index &amp; add_mask);
+<a name="l00337"></a>00337                         reg_edi&amp;=(~add_mask);
+<a name="l00338"></a>00338                         reg_edi|=(di_index &amp; add_mask);
+<a name="l00339"></a>00339                         <span class="keywordflow">if</span> (inst.prefix &amp; PREFIX_REP) {
+<a name="l00340"></a>00340                                 count+=count_left;
+<a name="l00341"></a>00341                                 reg_ecx&amp;=(~add_mask);
+<a name="l00342"></a>00342                                 reg_ecx|=(count &amp; add_mask);
+<a name="l00343"></a>00343                         }
+<a name="l00344"></a>00344 
+<a name="l00345"></a>00345                         <span class="comment">/* rethrow the exception.</span>
+<a name="l00346"></a>00346 <span class="comment">                         * NOTE: this means the normal core has no chance to execute SAVEIP, therefore</span>
+<a name="l00347"></a>00347 <span class="comment">                         *       when the guest OS has finished handling the page fault the instruction</span>
+<a name="l00348"></a>00348 <span class="comment">                         *       pointer will come right back to the string op that caused the fault</span>
+<a name="l00349"></a>00349 <span class="comment">                         *       and the string op will restart where it left off. */</span>
+<a name="l00350"></a>00350                         <span class="keywordflow">throw</span>;
+<a name="l00351"></a>00351                 }
+<a name="l00352"></a>00352         }
+<a name="l00353"></a>00353 }
+<a name="l00354"></a>00354 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:00 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

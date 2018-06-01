@@ -154,53 +154,58 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00058"></a>00058 <span class="comment">/* parameters baudrate, stopbits, number of databits, parity.               **/</span>
 <a name="l00059"></a>00059 <span class="comment">/*****************************************************************************/</span>
 <a name="l00060"></a>00060 <span class="keywordtype">void</span> CSerialDummy::updatePortConfig(Bit16u divider, Bit8u lcr) {
-<a name="l00061"></a>00061         <span class="comment">//LOG_MSG(&quot;Serial port at 0x%x: Port params changed: %d Baud&quot;, base,dcb.BaudRate);</span>
-<a name="l00062"></a>00062 }
-<a name="l00063"></a>00063 
-<a name="l00064"></a>00064 <span class="keywordtype">void</span> CSerialDummy::updateMSR() {
-<a name="l00065"></a>00065 }
-<a name="l00066"></a>00066 <span class="keywordtype">void</span> CSerialDummy::transmitByte(Bit8u val, <span class="keywordtype">bool</span> first) {
-<a name="l00067"></a>00067 
-<a name="l00068"></a>00068         <span class="keywordflow">if</span>(first) setEvent(SERIAL_THR_EVENT, bytetime/10); 
-<a name="l00069"></a>00069         <span class="keywordflow">else</span> setEvent(SERIAL_TX_EVENT, bytetime);
-<a name="l00070"></a>00070 
-<a name="l00071"></a>00071 <span class="preprocessor">#ifdef CHECKIT_TESTPLUG</span>
-<a name="l00072"></a>00072 <span class="preprocessor"></span>        loopbackdata=val;
-<a name="l00073"></a>00073 <span class="preprocessor">#endif</span>
-<a name="l00074"></a>00074 <span class="preprocessor"></span>}
-<a name="l00075"></a>00075 
-<a name="l00076"></a>00076 <span class="comment">/*****************************************************************************/</span>
-<a name="l00077"></a>00077 <span class="comment">/* setBreak(val) switches break on or off                                   **/</span>
+<a name="l00061"></a>00061     (void)divider;<span class="comment">//UNUSED</span>
+<a name="l00062"></a>00062     (void)lcr;<span class="comment">//UNUSED</span>
+<a name="l00063"></a>00063         <span class="comment">//LOG_MSG(&quot;Serial port at 0x%x: Port params changed: %d Baud&quot;, base,dcb.BaudRate);</span>
+<a name="l00064"></a>00064 }
+<a name="l00065"></a>00065 
+<a name="l00066"></a>00066 <span class="keywordtype">void</span> CSerialDummy::updateMSR() {
+<a name="l00067"></a>00067 }
+<a name="l00068"></a>00068 <span class="keywordtype">void</span> CSerialDummy::transmitByte(Bit8u val, <span class="keywordtype">bool</span> first) {
+<a name="l00069"></a>00069     (void)val;<span class="comment">//POSSIBLY UNUSED</span>
+<a name="l00070"></a>00070         <span class="keywordflow">if</span>(first) setEvent(SERIAL_THR_EVENT, bytetime/10); 
+<a name="l00071"></a>00071         <span class="keywordflow">else</span> setEvent(SERIAL_TX_EVENT, bytetime);
+<a name="l00072"></a>00072 
+<a name="l00073"></a>00073 <span class="preprocessor">#ifdef CHECKIT_TESTPLUG</span>
+<a name="l00074"></a>00074 <span class="preprocessor"></span>        loopbackdata=val;
+<a name="l00075"></a>00075 <span class="preprocessor">#endif</span>
+<a name="l00076"></a>00076 <span class="preprocessor"></span>}
+<a name="l00077"></a>00077 
 <a name="l00078"></a>00078 <span class="comment">/*****************************************************************************/</span>
-<a name="l00079"></a>00079 
-<a name="l00080"></a>00080 <span class="keywordtype">void</span> CSerialDummy::setBreak(<span class="keywordtype">bool</span> value) {
-<a name="l00081"></a>00081         <span class="comment">//LOG_MSG(&quot;UART 0x%x: Break toggeled: %d&quot;, base, value);</span>
-<a name="l00082"></a>00082 }
-<a name="l00083"></a>00083 
-<a name="l00084"></a>00084 <span class="comment">/*****************************************************************************/</span>
-<a name="l00085"></a>00085 <span class="comment">/* setRTSDTR sets the modem control lines                                   **/</span>
-<a name="l00086"></a>00086 <span class="comment">/*****************************************************************************/</span>
-<a name="l00087"></a>00087 <span class="keywordtype">void</span> CSerialDummy::setRTSDTR(<span class="keywordtype">bool</span> rts, <span class="keywordtype">bool</span> dtr) {
-<a name="l00088"></a>00088         setRTS(rts);
-<a name="l00089"></a>00089         setDTR(dtr);
-<a name="l00090"></a>00090 }
-<a name="l00091"></a>00091 <span class="keywordtype">void</span> CSerialDummy::setRTS(<span class="keywordtype">bool</span> val) {
-<a name="l00092"></a>00092 <span class="preprocessor">#ifdef CHECKIT_TESTPLUG</span>
-<a name="l00093"></a>00093 <span class="preprocessor"></span>        setCTS(val);
-<a name="l00094"></a>00094 <span class="preprocessor">#endif</span>
-<a name="l00095"></a>00095 <span class="preprocessor"></span>}
-<a name="l00096"></a>00096 <span class="keywordtype">void</span> CSerialDummy::setDTR(<span class="keywordtype">bool</span> val) {
-<a name="l00097"></a>00097 <span class="preprocessor">#ifdef CHECKIT_TESTPLUG</span>
-<a name="l00098"></a>00098 <span class="preprocessor"></span>        setDSR(val);
-<a name="l00099"></a>00099         setRI(val);
-<a name="l00100"></a>00100         setCD(val);
-<a name="l00101"></a>00101 <span class="preprocessor">#endif</span>
-<a name="l00102"></a>00102 <span class="preprocessor"></span>}
+<a name="l00079"></a>00079 <span class="comment">/* setBreak(val) switches break on or off                                   **/</span>
+<a name="l00080"></a>00080 <span class="comment">/*****************************************************************************/</span>
+<a name="l00081"></a>00081 
+<a name="l00082"></a>00082 <span class="keywordtype">void</span> CSerialDummy::setBreak(<span class="keywordtype">bool</span> value) {
+<a name="l00083"></a>00083     (void)value;<span class="comment">//UNUSED</span>
+<a name="l00084"></a>00084         <span class="comment">//LOG_MSG(&quot;UART 0x%x: Break toggeled: %d&quot;, base, value);</span>
+<a name="l00085"></a>00085 }
+<a name="l00086"></a>00086 
+<a name="l00087"></a>00087 <span class="comment">/*****************************************************************************/</span>
+<a name="l00088"></a>00088 <span class="comment">/* setRTSDTR sets the modem control lines                                   **/</span>
+<a name="l00089"></a>00089 <span class="comment">/*****************************************************************************/</span>
+<a name="l00090"></a>00090 <span class="keywordtype">void</span> CSerialDummy::setRTSDTR(<span class="keywordtype">bool</span> rts, <span class="keywordtype">bool</span> dtr) {
+<a name="l00091"></a>00091         setRTS(rts);
+<a name="l00092"></a>00092         setDTR(dtr);
+<a name="l00093"></a>00093 }
+<a name="l00094"></a>00094 <span class="keywordtype">void</span> CSerialDummy::setRTS(<span class="keywordtype">bool</span> val) {
+<a name="l00095"></a>00095     (void)val;<span class="comment">//UNUSED</span>
+<a name="l00096"></a>00096 <span class="preprocessor">#ifdef CHECKIT_TESTPLUG</span>
+<a name="l00097"></a>00097 <span class="preprocessor"></span>        setCTS(val);
+<a name="l00098"></a>00098 <span class="preprocessor">#endif</span>
+<a name="l00099"></a>00099 <span class="preprocessor"></span>}
+<a name="l00100"></a>00100 <span class="keywordtype">void</span> CSerialDummy::setDTR(<span class="keywordtype">bool</span> val) {
+<a name="l00101"></a>00101     (void)val;<span class="comment">//UNUSED</span>
+<a name="l00102"></a>00102 <span class="preprocessor">#ifdef CHECKIT_TESTPLUG</span>
+<a name="l00103"></a>00103 <span class="preprocessor"></span>        setDSR(val);
+<a name="l00104"></a>00104         setRI(val);
+<a name="l00105"></a>00105         setCD(val);
+<a name="l00106"></a>00106 <span class="preprocessor">#endif</span>
+<a name="l00107"></a>00107 <span class="preprocessor"></span>}
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

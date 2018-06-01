@@ -176,7 +176,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00080"></a>00080         }
 <a name="l00081"></a>00081         <span class="keywordtype">void</span> SetPage(Bit8u val) {
 <a name="l00082"></a>00082                 pagenum=val;
-<a name="l00083"></a>00083                 pagebase=(pagenum &gt;&gt; DMA16_PAGESHIFT) &lt;&lt; (16+DMA16_PAGESHIFT);
+<a name="l00083"></a>00083                 pagebase=(Bitu)((Bitu)(pagenum &gt;&gt; DMA16_PAGESHIFT) &lt;&lt; (Bitu)(16u + DMA16_PAGESHIFT));
 <a name="l00084"></a>00084         }
 <a name="l00085"></a>00085         <span class="keywordtype">void</span> Raise_Request(<span class="keywordtype">void</span>) {
 <a name="l00086"></a>00086                 request=<span class="keyword">true</span>;
@@ -234,7 +234,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:40:59 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

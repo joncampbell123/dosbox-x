@@ -4,6 +4,7 @@ var searchData=
   ['vdraw',['vdraw',['../structvdraw.html',1,'']]],
   ['vec2f',['vec2f',['../structvec2f.html',1,'']]],
   ['vec3f',['vec3f',['../structvec3f.html',1,'']]],
+  ['vfdentry',['vfdentry',['../structimageDiskD88_1_1vfdentry.html',1,'imageDiskD88']]],
   ['vfdentry',['vfdentry',['../structimageDiskVFD_1_1vfdentry.html',1,'imageDiskVFD']]],
   ['vfile_5fblock',['VFILE_Block',['../structVFILE__Block.html',1,'']]],
   ['vfrcrate',['VFRCRATE',['../classVFRCRATE.html',1,'']]],

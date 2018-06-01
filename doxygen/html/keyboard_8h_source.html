@@ -162,21 +162,23 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00066"></a>00066 
 <a name="l00067"></a>00067         <span class="comment">/* for Japanese A01 (106) key [http://www.mediafire.com/download/t968ydz6ky92myl/dosbox74.zip] */</span>
 <a name="l00068"></a>00068         <span class="comment">/* see reference image [https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/KB_Japanese.svg/1280px-KB_Japanese.svg.png] */</span>
-<a name="l00069"></a>00069         KBD_jp_yen, KBD_jp_backslash,
-<a name="l00070"></a>00070 
-<a name="l00071"></a>00071         KBD_LAST
-<a name="l00072"></a>00072 };
-<a name="l00073"></a>00073 
-<a name="l00074"></a>00074 <span class="keywordtype">void</span> KEYBOARD_ClrBuffer(<span class="keywordtype">void</span>);
-<a name="l00075"></a>00075 <span class="keywordtype">void</span> KEYBOARD_AddKey(KBD_KEYS keytype,<span class="keywordtype">bool</span> pressed);
-<a name="l00076"></a>00076 <span class="keywordtype">size_t</span> KEYBOARD_BufferSpaceAvail();  <span class="comment">// emendelson from dbDOS</span>
-<a name="l00077"></a>00077 
-<a name="l00078"></a>00078 <span class="preprocessor">#endif</span>
+<a name="l00069"></a>00069         KBD_jp_yen, KBD_jp_backslash, KBD_colon, KBD_caret, KBD_atsign, KBD_jp_ro, KBD_help, KBD_kpcomma,
+<a name="l00070"></a>00070     KBD_stop, KBD_copy, KBD_vf1, KBD_vf2, KBD_vf3, KBD_vf4, KBD_vf5, KBD_kana,
+<a name="l00071"></a>00071     KBD_nfer, KBD_xfer,
+<a name="l00072"></a>00072 
+<a name="l00073"></a>00073         KBD_LAST
+<a name="l00074"></a>00074 };
+<a name="l00075"></a>00075 
+<a name="l00076"></a>00076 <span class="keywordtype">void</span> KEYBOARD_ClrBuffer(<span class="keywordtype">void</span>);
+<a name="l00077"></a>00077 <span class="keywordtype">void</span> KEYBOARD_AddKey(KBD_KEYS keytype,<span class="keywordtype">bool</span> pressed);
+<a name="l00078"></a>00078 <span class="keywordtype">size_t</span> KEYBOARD_BufferSpaceAvail();  <span class="comment">// emendelson from dbDOS</span>
+<a name="l00079"></a>00079 
+<a name="l00080"></a>00080 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:40:59 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

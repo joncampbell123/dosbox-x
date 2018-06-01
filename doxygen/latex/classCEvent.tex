@@ -7,10 +7,23 @@ Inheritance diagram for C\-Event\-:\begin{figure}[H]
 \includegraphics[height=2.258065cm]{classCEvent}
 \end{center}
 \end{figure}
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum {\bfseries event\-\_\-type} \{ {\bfseries event\-\_\-t} = 0, 
+{\bfseries handler\-\_\-event\-\_\-t}
+ \}
+\end{DoxyCompactItemize}
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classCEvent_a2bce0859850093fecded7a9e0e221734}{{\bfseries C\-Event} (char const $\ast$const \-\_\-entry)}\label{classCEvent_a2bce0859850093fecded7a9e0e221734}
+\hypertarget{classCEvent_a1dccd12980b4a85ca70ca6d77d631b45}{{\bfseries C\-Event} (char const $\ast$const \-\_\-entry, const enum event\-\_\-type \-\_\-type=event\-\_\-t)}\label{classCEvent_a1dccd12980b4a85ca70ca6d77d631b45}
+
+\item 
+\hypertarget{classCEvent_adcc4bad114bb2f135e354d018cbe1d8c}{virtual std\-::string {\bfseries Get\-Bind\-Menu\-Text} (void)}\label{classCEvent_adcc4bad114bb2f135e354d018cbe1d8c}
+
+\item 
+\hypertarget{classCEvent_a0ebaf9dbda3dc862fb61e21280dd987f}{void {\bfseries update\-\_\-menu\-\_\-shortcut} (void)}\label{classCEvent_a0ebaf9dbda3dc862fb61e21280dd987f}
 
 \item 
 \hypertarget{classCEvent_a2665ebd0551c2b437b02d521f1c7adda}{void {\bfseries Add\-Bind} (\hyperlink{classCBind}{C\-Bind} $\ast$bind)}\label{classCEvent_a2665ebd0551c2b437b02d521f1c7adda}
@@ -43,6 +56,12 @@ Inheritance diagram for C\-Event\-:\begin{figure}[H]
 \subsection*{Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
+\hypertarget{classCEvent_a9543179cd76d08369201e992ca41728c}{std\-::string {\bfseries eventname}}\label{classCEvent_a9543179cd76d08369201e992ca41728c}
+
+\item 
+\hypertarget{classCEvent_a5612c4e4e1d0cfc08e1640fee8bacf85}{enum event\-\_\-type {\bfseries type}}\label{classCEvent_a5612c4e4e1d0cfc08e1640fee8bacf85}
+
+\item 
 \hypertarget{classCEvent_a0c900c0aab7bf38d7ac8769d5e4f6a5a}{C\-Bind\-List {\bfseries bindlist}}\label{classCEvent_a0c900c0aab7bf38d7ac8769d5e4f6a5a}
 
 \item 
@@ -66,7 +85,7 @@ Inheritance diagram for C\-Event\-:\begin{figure}[H]
 \subsection{Detailed Description}
 
 
-Definition at line 112 of file sdl\-\_\-mapper.\-cpp.
+Definition at line 120 of file sdl\-\_\-mapper.\-cpp.
 
 
 

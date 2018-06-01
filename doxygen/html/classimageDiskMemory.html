@@ -115,8 +115,8 @@ Inheritance diagram for imageDiskMemory:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a67a4fdb7bfea226898ca6c9801350708"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a67a4fdb7bfea226898ca6c9801350708"></a>
 virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Read_AbsoluteSector</b> (Bit32u sectnum, void *data)</td></tr>
-<tr class="memitem:a5baed0452656feaad2c7a9157af0b2b5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5baed0452656feaad2c7a9157af0b2b5"></a>
-virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Write_AbsoluteSector</b> (Bit32u sectnum, void *data)</td></tr>
+<tr class="memitem:aeb828d76bb273e76bb7a5c7f6f333c9c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aeb828d76bb273e76bb7a5c7f6f333c9c"></a>
+virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Write_AbsoluteSector</b> (Bit32u sectnum, const void *data)</td></tr>
 <tr class="memitem:a608088213822277c5fa95c90929d4ec2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a608088213822277c5fa95c90929d4ec2"></a>
 virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>GetBiosType</b> (void)</td></tr>
 <tr class="memitem:a72accc9b21eae2c51f9960803501e221"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a72accc9b21eae2c51f9960803501e221"></a>
@@ -125,8 +125,8 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Set_Geometry<
 virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Format</b> ()</td></tr>
 <tr class="memitem:ae32d8a89882a15795e0199b0c0f08df3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae32d8a89882a15795e0199b0c0f08df3"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>imageDiskMemory</b> (Bit32u imgSizeK)</td></tr>
-<tr class="memitem:a24a38d78040f47ba1e405c04abc3a05c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a24a38d78040f47ba1e405c04abc3a05c"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>imageDiskMemory</b> (Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize)</td></tr>
+<tr class="memitem:a675c60b8edb18d977a1d234e4d25ac1b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a675c60b8edb18d977a1d234e4d25ac1b"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>imageDiskMemory</b> (Bit16u cylinders, Bit16u heads, Bit16u sectors, Bit16u sectorSize)</td></tr>
 <tr class="memitem:a381a4894bb6e5931f75877728d40f0e8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a381a4894bb6e5931f75877728d40f0e8"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>imageDiskMemory</b> (<a class="el" href="structdiskGeo.html">diskGeo</a> floppyGeometry)</td></tr>
 <tr class="memitem:a45479f6fe646d2e184809cd5c37dc1d8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a45479f6fe646d2e184809cd5c37dc1d8"></a>
@@ -134,7 +134,7 @@ virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Format</b> (
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
-<p>Definition at line <a class="el" href="bios__disk_8h_source.html#l00145">145</a> of file <a class="el" href="bios__disk_8h_source.html">bios_disk.h</a>.</p>
+<p>Definition at line <a class="el" href="bios__disk_8h_source.html#l00190">190</a> of file <a class="el" href="bios__disk_8h_source.html">bios_disk.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/<a class="el" href="bios__disk_8h_source.html">bios_disk.h</a></li>
 <li>src/ints/<a class="el" href="bios__memdisk_8cpp_source.html">bios_memdisk.cpp</a></li>
@@ -143,7 +143,7 @@ virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Format</b> (
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:08 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:36 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

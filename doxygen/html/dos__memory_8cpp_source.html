@@ -141,7 +141,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00045"></a>00045         <span class="keywordtype">char</span> c;
 <a name="l00046"></a>00046 
 <a name="l00047"></a>00047         LOG_MSG(<span class="stringliteral">&quot;DOS MCB dump:\n&quot;</span>);
-<a name="l00048"></a>00048         <span class="keywordflow">while</span> ((c=mcb.GetType()) != <span class="charliteral">&#39;Z&#39;</span>) {
+<a name="l00048"></a>00048         <span class="keywordflow">while</span> ((c=(<span class="keywordtype">char</span>)mcb.GetType()) != <span class="charliteral">&#39;Z&#39;</span>) {
 <a name="l00049"></a>00049                 <span class="keywordflow">if</span> (counter++ &gt; 10000) <span class="keywordflow">break</span>;
 <a name="l00050"></a>00050                 <span class="keywordflow">if</span> (c != <span class="charliteral">&#39;M&#39;</span>) <span class="keywordflow">break</span>;
 <a name="l00051"></a>00051 
@@ -155,7 +155,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00059"></a>00059         }
 <a name="l00060"></a>00060 
 <a name="l00061"></a>00061         mcb.GetFileName(name);
-<a name="l00062"></a>00062         c = mcb.GetType(); <span class="keywordflow">if</span> (c &lt; 32) c = <span class="charliteral">&#39;.&#39;</span>;
+<a name="l00062"></a>00062         c = (char)mcb.GetType(); <span class="keywordflow">if</span> (c &lt; 32) c = <span class="charliteral">&#39;.&#39;</span>;
 <a name="l00063"></a>00063         LOG_MSG(<span class="stringliteral">&quot;FINAL: Type=0x%02x(%c) Seg=0x%04x size=0x%04x name=&#39;%s&#39;\n&quot;</span>,
 <a name="l00064"></a>00064                 mcb.GetType(),c,mcb_segment+1,mcb.GetSize(),name);
 <a name="l00065"></a>00065         LOG_MSG(<span class="stringliteral">&quot;End dump\n&quot;</span>);
@@ -624,7 +624,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00528"></a>00528         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> max_conv;
 <a name="l00529"></a>00529         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> seg_limit;
 <a name="l00530"></a>00530 
-<a name="l00531"></a>00531         max_conv = mem_readw(BIOS_MEMORY_SIZE) &lt;&lt; (10-4);
+<a name="l00531"></a>00531         max_conv = (<span class="keywordtype">unsigned</span> int)mem_readw(BIOS_MEMORY_SIZE) &lt;&lt; (10u - 4u);
 <a name="l00532"></a>00532         seg_limit = MEM_TotalPages()*256;
 <a name="l00533"></a>00533         <span class="keywordflow">if</span> (seg_limit &gt; max_conv) seg_limit = max_conv;
 <a name="l00534"></a>00534         UMB_START_SEG = max_conv - 1;
@@ -746,7 +746,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:01 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

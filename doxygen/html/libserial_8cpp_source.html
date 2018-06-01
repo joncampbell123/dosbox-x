@@ -137,7 +137,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00041"></a>00041 
 <a name="l00042"></a>00042         <span class="comment">// open the port in NT object space (recommended by Microsoft)</span>
 <a name="l00043"></a>00043         <span class="comment">// allows the user to open COM10+ and custom port names.</span>
-<a name="l00044"></a>00044         <span class="keywordtype">int</span> len = strlen(portname);
+<a name="l00044"></a>00044         <span class="keywordtype">int</span> len = (int)strlen(portname);
 <a name="l00045"></a>00045         <span class="keywordflow">if</span>(len &gt; 240) {
 <a name="l00046"></a>00046                 SetLastError(ERROR_BUFFER_OVERFLOW);
 <a name="l00047"></a>00047                 free(cp);
@@ -240,15 +240,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00144"></a>00144         <span class="keywordtype">int</span> sysmsg_offset = 0;
 <a name="l00145"></a>00145 
 <a name="l00146"></a>00146         <span class="keywordflow">if</span>(error == 5) {
-<a name="l00147"></a>00147                 sysmsg_offset = strlen(err5text);
+<a name="l00147"></a>00147                 sysmsg_offset = (int)strlen(err5text);
 <a name="l00148"></a>00148                 memcpy(buffer,err5text,sysmsg_offset);
 <a name="l00149"></a>00149 
 <a name="l00150"></a>00150         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(error == 2) {
-<a name="l00151"></a>00151                 sysmsg_offset = strlen(err2text);
+<a name="l00151"></a>00151                 sysmsg_offset = (int)strlen(err2text);
 <a name="l00152"></a>00152                 memcpy(buffer,err2text,sysmsg_offset);
 <a name="l00153"></a>00153         }
 <a name="l00154"></a>00154 
-<a name="l00155"></a>00155         <span class="keywordflow">if</span>((length - sysmsg_offset - strlen((<span class="keyword">const</span> <span class="keywordtype">char</span>*)sysmessagebuffer)) &gt;= 0)
+<a name="l00155"></a>00155         <span class="keywordflow">if</span>((length - sysmsg_offset - (<span class="keywordtype">int</span>)strlen((<span class="keyword">const</span> <span class="keywordtype">char</span>*)sysmessagebuffer)) &gt;= 0)
 <a name="l00156"></a>00156                 memcpy(buffer + sysmsg_offset, sysmessagebuffer,
 <a name="l00157"></a>00157                 strlen((<span class="keyword">const</span> <span class="keywordtype">char</span>*)sysmessagebuffer));
 <a name="l00158"></a>00158                 
@@ -803,7 +803,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

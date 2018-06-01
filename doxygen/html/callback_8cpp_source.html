@@ -151,7 +151,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00055"></a>00055 
 <a name="l00056"></a>00056         <a class="code" href="classLOG.html">LOG</a>(LOG_CPU,LOG_DEBUG)(<span class="stringliteral">&quot;  [%u] func=%p desc=&#39;%s&#39;&quot;</span>,
 <a name="l00057"></a>00057             (<span class="keywordtype">unsigned</span> int)i,
-<a name="l00058"></a>00058             (<span class="keywordtype">void</span>*)CallBack_Handlers[i],
+<a name="l00058"></a>00058             (<span class="keywordtype">void</span>*)((uintptr_t)CallBack_Handlers[i]), <span class="comment">/* shut the compiler up by func -&gt; uintptr_t -&gt; void* conversion */</span>
 <a name="l00059"></a>00059             CallBack_Description[i] != NULL ? CallBack_Description[i] : <span class="stringliteral">&quot;&quot;</span>);
 <a name="l00060"></a>00060     }
 <a name="l00061"></a>00061         <a class="code" href="classLOG.html">LOG</a>(LOG_CPU,LOG_DEBUG)(<span class="stringliteral">&quot;--------------&quot;</span>);
@@ -244,7 +244,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00148"></a>00148 <span class="keywordtype">void</span> CALLBACK_RunRealInt_retcsip(Bit8u intnum,Bitu &amp;rcs,Bitu &amp;rip) {
 <a name="l00149"></a>00149         Bit32u oldeip=reg_eip;
 <a name="l00150"></a>00150         Bit16u oldcs=SegValue(cs);
-<a name="l00151"></a>00151         reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*6);
+<a name="l00151"></a>00151         reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*6U);
 <a name="l00152"></a>00152         SegSet16(cs,CB_SEG);
 <a name="l00153"></a>00153         DOSBOX_RunMachine();
 <a name="l00154"></a>00154         rcs = SegValue(cs);
@@ -256,7 +256,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00160"></a>00160 <span class="keywordtype">void</span> CALLBACK_RunRealInt(Bit8u intnum) {
 <a name="l00161"></a>00161         Bit32u oldeip=reg_eip;
 <a name="l00162"></a>00162         Bit16u oldcs=SegValue(cs);
-<a name="l00163"></a>00163         reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*6);
+<a name="l00163"></a>00163         reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*6U);
 <a name="l00164"></a>00164         SegSet16(cs,CB_SEG);
 <a name="l00165"></a>00165         DOSBOX_RunMachine();
 <a name="l00166"></a>00166         reg_eip=oldeip;
@@ -948,7 +948,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:00 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -116,38 +116,36 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00020"></a>00020 <span class="preprocessor"></span><span class="preprocessor">#include &lt;windows.h&gt;</span>
 <a name="l00021"></a>00021 <span class="preprocessor">#include &lt;windowsx.h&gt;</span>
 <a name="l00022"></a>00022 <span class="preprocessor">#include &quot;resource.h&quot;</span>
-<a name="l00023"></a>00023 
-<a name="l00024"></a>00024 <span class="preprocessor">#define menu_compatible menu.compatible</span>
-<a name="l00025"></a>00025 <span class="preprocessor"></span><span class="preprocessor">#define menu_gui menu.gui</span>
-<a name="l00026"></a>00026 <span class="preprocessor"></span><span class="preprocessor">#else</span>
-<a name="l00027"></a>00027 <span class="preprocessor"></span>
-<a name="l00028"></a>00028 <span class="comment">// If these are used, the optimizer can completely remove code that is not</span>
-<a name="l00029"></a>00029 <span class="comment">// needed on Linux. This way, code is less cluttered with #ifdefs</span>
-<a name="l00030"></a>00030 <span class="preprocessor">#define menu_compatible (false)</span>
-<a name="l00031"></a>00031 <span class="preprocessor"></span><span class="preprocessor">#define menu_gui (false)</span>
-<a name="l00032"></a>00032 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
-<a name="l00033"></a>00033 <span class="preprocessor"></span>
-<a name="l00034"></a>00034 <span class="preprocessor">#define menu_startup menu.startup</span>
-<a name="l00035"></a>00035 <span class="preprocessor"></span>
-<a name="l00036"></a><a class="code" href="structMENU__Block.html">00036</a> <span class="keyword">struct </span><a class="code" href="structMENU__Block.html">MENU_Block</a> {
-<a name="l00037"></a>00037         <span class="keywordtype">bool</span> toggle;      <span class="comment">// toggle menu bar</span>
-<a name="l00038"></a>00038         <span class="keywordtype">bool</span> startup;     <span class="comment">// verify if DOSBox is started with menu patch</span>
-<a name="l00039"></a>00039         <span class="keywordtype">bool</span> hidecycles;  <span class="comment">// toggle cycles, fps, cpu usage information on title bar</span>
-<a name="l00040"></a>00040     <span class="keywordtype">bool</span> showrt;      <span class="comment">// show realtime percentage</span>
-<a name="l00041"></a>00041         <span class="keywordtype">bool</span> boot;        <span class="comment">// verify if boot is being used (if enabled, it is unable to mount drives)</span>
-<a name="l00042"></a>00042         <span class="keywordtype">bool</span> gui;         <span class="comment">// enable or disable gui system (if disabled, it is unable to use/toggle menu bar)</span>
-<a name="l00043"></a>00043         <span class="keywordtype">bool</span> resizeusing; <span class="comment">// check if resizable window can be used</span>
-<a name="l00044"></a>00044         <span class="keywordtype">bool</span> compatible;  <span class="comment">// compatible mode for win9x/2000 (if enabled, GUI system will be disabled)</span>
-<a name="l00045"></a>00045         <span class="keywordtype">bool</span> maxwindow; <span class="comment">// check window state</span>
-<a name="l00046"></a>00046         <a class="code" href="structMENU__Block.html">MENU_Block</a>():toggle(<span class="keyword">false</span>),startup(<span class="keyword">false</span>),hidecycles(<span class="keyword">false</span>),boot(<span class="keyword">false</span>),gui(<span class="keyword">true</span>),resizeusing(<span class="keyword">false</span>),compatible(<span class="keyword">false</span>),maxwindow(<span class="keyword">false</span>){ }
-<a name="l00047"></a>00047 };
-<a name="l00048"></a>00048 <span class="keyword">extern</span> <a class="code" href="structMENU__Block.html">MENU_Block</a> menu;
-<a name="l00049"></a>00049 
+<a name="l00023"></a>00023 <span class="preprocessor">#endif</span>
+<a name="l00024"></a>00024 <span class="preprocessor"></span>
+<a name="l00025"></a>00025 <span class="preprocessor">#define menu_compatible menu.compatible</span>
+<a name="l00026"></a>00026 <span class="preprocessor"></span><span class="preprocessor">#define menu_startup menu.startup</span>
+<a name="l00027"></a>00027 <span class="preprocessor"></span><span class="preprocessor">#define menu_gui menu.gui</span>
+<a name="l00028"></a>00028 <span class="preprocessor"></span>
+<a name="l00029"></a>00029 <span class="preprocessor">#ifndef MENUDEF_H</span>
+<a name="l00030"></a>00030 <span class="preprocessor"></span><span class="preprocessor">#define MENUDEF_H</span>
+<a name="l00031"></a>00031 <span class="preprocessor"></span>
+<a name="l00032"></a><a class="code" href="structMENU__Block.html">00032</a> <span class="keyword">struct </span><a class="code" href="structMENU__Block.html">MENU_Block</a> {
+<a name="l00033"></a>00033         <span class="keywordtype">bool</span> toggle;      <span class="comment">// toggle menu bar</span>
+<a name="l00034"></a>00034         <span class="keywordtype">bool</span> startup;     <span class="comment">// verify if DOSBox is started with menu patch</span>
+<a name="l00035"></a>00035         <span class="keywordtype">bool</span> hidecycles;  <span class="comment">// toggle cycles, fps, cpu usage information on title bar</span>
+<a name="l00036"></a>00036     <span class="keywordtype">bool</span> showrt;      <span class="comment">// show realtime percentage</span>
+<a name="l00037"></a>00037         <span class="keywordtype">bool</span> boot;        <span class="comment">// verify if boot is being used (if enabled, it is unable to mount drives)</span>
+<a name="l00038"></a>00038         <span class="keywordtype">bool</span> gui;         <span class="comment">// enable or disable gui system (if disabled, it is unable to use/toggle menu bar)</span>
+<a name="l00039"></a>00039         <span class="keywordtype">bool</span> resizeusing; <span class="comment">// check if resizable window can be used</span>
+<a name="l00040"></a>00040         <span class="keywordtype">bool</span> compatible;  <span class="comment">// compatible mode for win9x/2000 (if enabled, GUI system will be disabled)</span>
+<a name="l00041"></a>00041         <span class="keywordtype">bool</span> maxwindow; <span class="comment">// check window state</span>
+<a name="l00042"></a>00042         <a class="code" href="structMENU__Block.html">MENU_Block</a>():toggle(<span class="keyword">false</span>),startup(<span class="keyword">false</span>),hidecycles(<span class="keyword">false</span>),boot(<span class="keyword">false</span>),gui(<span class="keyword">true</span>),resizeusing(<span class="keyword">false</span>),compatible(<span class="keyword">false</span>),maxwindow(<span class="keyword">false</span>){ }
+<a name="l00043"></a>00043 };
+<a name="l00044"></a>00044 <span class="keyword">extern</span> <a class="code" href="structMENU__Block.html">MENU_Block</a> menu;
+<a name="l00045"></a>00045 
+<a name="l00046"></a>00046 <span class="preprocessor">#endif </span><span class="comment">/* MENUDEF_H */</span>
+<a name="l00047"></a>00047 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:40:59 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

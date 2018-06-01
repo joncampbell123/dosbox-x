@@ -121,6 +121,7 @@ Inheritance diagram for GUI::Input:</div>
 <area href="classGUI_1_1Window.html" title="A Window is a rectangular sub-area of another window." alt="GUI::Window" shape="rect" coords="0,0,147,24"/>
 <area href="structGUI_1_1Timer__Callback.html" title="Timer callback type." alt="GUI::Timer_Callback" shape="rect" coords="157,0,304,24"/>
 <area href="classGUI_1_1ActionEventSource.html" title="Event class for action events." alt="GUI::ActionEventSource" shape="rect" coords="314,0,461,24"/>
+<area href="classInputWithEnterKey.html" alt="InputWithEnterKey" shape="rect" coords="157,112,304,136"/>
 </map>
  </div></div>
 
@@ -168,6 +169,9 @@ virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hr
 <tr class="memitem:a71fe106bc0e16593414b5b94cfe2893c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a71fe106bc0e16593414b5b94cfe2893c"></a>
 virtual <a class="el" href="namespaceGUI.html#af396fee5d5c26b98218f5803f85e3b65">Ticks</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Input.html#a71fe106bc0e16593414b5b94cfe2893c">timerExpired</a> (<a class="el" href="namespaceGUI.html#af396fee5d5c26b98218f5803f85e3b65">Ticks</a> time)</td></tr>
 <tr class="memdesc:a71fe106bc0e16593414b5b94cfe2893c"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classGUI_1_1Timer.html" title="Timing service. Time is measured in ticks. A tick is about 10 msec.">Timer</a> callback function. <br/></td></tr>
+<tr class="memitem:a98bf8ee0e5ccb2e6a387fd1a463b60cd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a98bf8ee0e5ccb2e6a387fd1a463b60cd"></a>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classGUI_1_1Input.html#a98bf8ee0e5ccb2e6a387fd1a463b60cd">posToEnd</a> (void)</td></tr>
+<tr class="memdesc:a98bf8ee0e5ccb2e6a387fd1a463b60cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Move the cursor to the end of the text field. <br/></td></tr>
 <tr><td colspan="2"><h2><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:ab081f47beee40c4872ac7728623b3e82"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab081f47beee40c4872ac7728623b3e82"></a>
@@ -211,7 +215,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class
 <div class="textblock"><p>A single-line text input. </p>
 <p>It uses <a class="el" href="classGUI_1_1Font.html#a19c023d747809a4cfa6142d33bdff53a" title="Return a font with the given name (case-sensitive).">Font::getFont</a>("input") to display content. It supports selection, the clipboard and all well-known key bindings (except undo). </p>
 
-<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01439">1439</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
+<p>Definition at line <a class="el" href="gui__tk_8h_source.html#l01440">1440</a> of file <a class="el" href="gui__tk_8h_source.html">gui_tk.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>src/libs/gui_tk/<a class="el" href="gui__tk_8h_source.html">gui_tk.h</a></li>
 <li>src/libs/gui_tk/<a class="el" href="gui__tk_8cpp_source.html">gui_tk.cpp</a></li>
@@ -220,7 +224,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:10 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:38 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

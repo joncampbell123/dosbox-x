@@ -1,6 +1,7 @@
 var searchData=
 [
   ['a20gate',['A20GATE',['../classA20GATE.html',1,'']]],
+  ['accelerator',['accelerator',['../structDOSBoxMenu_1_1accelerator.html',1,'DOSBoxMenu']]],
   ['actioneventsource',['ActionEventSource',['../classGUI_1_1ActionEventSource.html',1,'GUI']]],
   ['actioneventsource_5fcallback',['ActionEventSource_Callback',['../structGUI_1_1ActionEventSource__Callback.html',1,'GUI']]],
   ['addrtype',['addrtype',['../unionIPXHeader_1_1transport_1_1addrtype.html',1,'IPXHeader::transport']]],

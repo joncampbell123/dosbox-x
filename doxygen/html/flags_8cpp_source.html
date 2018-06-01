@@ -600,15 +600,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00504"></a>00504 <span class="preprocessor"></span>
 <a name="l00505"></a>00505 <span class="preprocessor">#define DOFLAG_PF       reg_flags=(reg_flags &amp; ~FLAG_PF) | parity_lookup[lf_resb];</span>
 <a name="l00506"></a>00506 <span class="preprocessor"></span>
-<a name="l00507"></a>00507 <span class="preprocessor">#define DOFLAG_AF       reg_flags=(reg_flags &amp; ~FLAG_AF) | (((lf_var1b ^ lf_var2b) ^ lf_resb) &amp; 0x10);</span>
+<a name="l00507"></a>00507 <span class="preprocessor">#define DOFLAG_AF       reg_flags=(reg_flags &amp; ~FLAG_AF) | (((lf_var1b ^ lf_var2b) ^ lf_resb) &amp; 0x10U);</span>
 <a name="l00508"></a>00508 <span class="preprocessor"></span>
 <a name="l00509"></a>00509 <span class="preprocessor">#define DOFLAG_ZFb      SETFLAGBIT(ZF,lf_resb==0);</span>
 <a name="l00510"></a>00510 <span class="preprocessor"></span><span class="preprocessor">#define DOFLAG_ZFw      SETFLAGBIT(ZF,lf_resw==0);</span>
 <a name="l00511"></a>00511 <span class="preprocessor"></span><span class="preprocessor">#define DOFLAG_ZFd      SETFLAGBIT(ZF,lf_resd==0);</span>
 <a name="l00512"></a>00512 <span class="preprocessor"></span>
-<a name="l00513"></a>00513 <span class="preprocessor">#define DOFLAG_SFb      reg_flags=(reg_flags &amp; ~FLAG_SF) | ((lf_resb &amp; 0x80) &gt;&gt; 0);</span>
-<a name="l00514"></a>00514 <span class="preprocessor"></span><span class="preprocessor">#define DOFLAG_SFw      reg_flags=(reg_flags &amp; ~FLAG_SF) | ((lf_resw &amp; 0x8000) &gt;&gt; 8);</span>
-<a name="l00515"></a>00515 <span class="preprocessor"></span><span class="preprocessor">#define DOFLAG_SFd      reg_flags=(reg_flags &amp; ~FLAG_SF) | ((lf_resd &amp; 0x80000000) &gt;&gt; 24);</span>
+<a name="l00513"></a>00513 <span class="preprocessor">#define DOFLAG_SFb      reg_flags=(reg_flags &amp; ~FLAG_SF) | ((lf_resb &amp; 0x80U) &gt;&gt; 0U);</span>
+<a name="l00514"></a>00514 <span class="preprocessor"></span><span class="preprocessor">#define DOFLAG_SFw      reg_flags=(reg_flags &amp; ~FLAG_SF) | ((lf_resw &amp; 0x8000U) &gt;&gt; 8U);</span>
+<a name="l00515"></a>00515 <span class="preprocessor"></span><span class="preprocessor">#define DOFLAG_SFd      reg_flags=(reg_flags &amp; ~FLAG_SF) | ((lf_resd &amp; 0x80000000U) &gt;&gt; 24U);</span>
 <a name="l00516"></a>00516 <span class="preprocessor"></span>
 <a name="l00517"></a>00517 <span class="preprocessor">#define SETCF(NEWBIT) reg_flags=(reg_flags &amp; ~FLAG_CF)|(NEWBIT);</span>
 <a name="l00518"></a>00518 <span class="preprocessor"></span>
@@ -809,7 +809,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00713"></a>00713                 <span class="keywordflow">else</span> SET_FLAG(CF,(lf_var1b &gt;&gt; (8-lf_var2b)) &amp; 1);
 <a name="l00714"></a>00714                 DOFLAG_ZFb;
 <a name="l00715"></a>00715                 DOFLAG_SFb;
-<a name="l00716"></a>00716                 SET_FLAG(OF,(lf_resb &gt;&gt; 7) ^ GETFLAG(CF)); <span class="comment">/* MSB of result XOR CF. WARNING: This only works because FLAGS_CF == 1 */</span>
+<a name="l00716"></a>00716                 SET_FLAG(OF,((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)lf_resb &gt;&gt; 7U) ^ GETFLAG(CF)); <span class="comment">/* MSB of result XOR CF. WARNING: This only works because FLAGS_CF == 1 */</span>
 <a name="l00717"></a>00717                 DOFLAG_PF;
 <a name="l00718"></a>00718                 SET_FLAG(AF,(lf_var2b&amp;0x1f));
 <a name="l00719"></a>00719                 <span class="keywordflow">break</span>;
@@ -818,7 +818,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00722"></a>00722                 <span class="keywordflow">else</span> SET_FLAG(CF,(lf_var1w &gt;&gt; (16-lf_var2b)) &amp; 1);
 <a name="l00723"></a>00723                 DOFLAG_ZFw;
 <a name="l00724"></a>00724                 DOFLAG_SFw;
-<a name="l00725"></a>00725                 SET_FLAG(OF,(lf_resw &gt;&gt; 15) ^ GETFLAG(CF)); <span class="comment">/* MSB of result XOR CF. WARNING: This only works because FLAGS_CF == 1 */</span>
+<a name="l00725"></a>00725                 SET_FLAG(OF,((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)lf_resw &gt;&gt; 15U) ^ GETFLAG(CF)); <span class="comment">/* MSB of result XOR CF. WARNING: This only works because FLAGS_CF == 1 */</span>
 <a name="l00726"></a>00726                 DOFLAG_PF;
 <a name="l00727"></a>00727                 SET_FLAG(AF,(lf_var2w&amp;0x1f));
 <a name="l00728"></a>00728                 <span class="keywordflow">break</span>;
@@ -826,7 +826,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00730"></a>00730                 SET_FLAG(CF,(lf_var1d &gt;&gt; (32 - lf_var2b)) &amp; 1);
 <a name="l00731"></a>00731                 DOFLAG_ZFd;
 <a name="l00732"></a>00732                 DOFLAG_SFd;
-<a name="l00733"></a>00733                 SET_FLAG(OF,(lf_resd &gt;&gt; 31) ^ GETFLAG(CF)); <span class="comment">/* MSB of result XOR CF. WARNING: This only works because FLAGS_CF == 1 */</span>
+<a name="l00733"></a>00733                 SET_FLAG(OF,((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)lf_resd &gt;&gt; 31U) ^ GETFLAG(CF)); <span class="comment">/* MSB of result XOR CF. WARNING: This only works because FLAGS_CF == 1 */</span>
 <a name="l00734"></a>00734                 DOFLAG_PF;
 <a name="l00735"></a>00735                 SET_FLAG(AF,(lf_var2d&amp;0x1f));
 <a name="l00736"></a>00736                 <span class="keywordflow">break</span>;
@@ -1310,7 +1310,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Apr 20 2018 12:41:00 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>
