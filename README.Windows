@@ -5,6 +5,7 @@ Getting started with DOSBox-X development under Windows 10
 - launch the installer
 - in 'Workloads' tab, tick 'Desktop development with C++'
 - in 'Individual components' tab, 'SDKs, libraries, and frameworks' section, tick 'Windows 8.1 SDK'
+- in 'Individual components' tab, 'Compilers, build tools, and runtimes' section, tick 'Windows Universal CRT SDK'
 - download the DirectX SDK (June 2010) from https://www.microsoft.com/en-us/download/details.aspx?id=6812
 - launch the installer and follow the instructions
 - if you encounter error S1023 during installation, follow the instructions at https://support.microsoft.com/en-us/help/2728613/s1023-error-when-you-install-the-directx-sdk-june-2010
