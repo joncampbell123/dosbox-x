@@ -249,8 +249,8 @@ Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 
     //LOG_MSG("Reading sectors %ld at bytenum %I64d", sectnum, bytenum);
 
-    fseeko64(diskimg,bytenum,SEEK_SET);
-    res = ftello64(diskimg);
+    fseeko64(diskimg,(off_t)bytenum,SEEK_SET);
+    res = (Bit64u)ftello64(diskimg);
     if (res != bytenum) {
         LOG_MSG("fseek() failed in Read_AbsoluteSector for sector %lu. Want=%llu Got=%llu\n",
             (unsigned long)sectnum,(unsigned long long)bytenum,(unsigned long long)res);
@@ -293,7 +293,7 @@ Bit8u imageDisk::Write_AbsoluteSector(Bit32u sectnum, const void *data) {
 
     //LOG_MSG("Writing sectors to %ld at bytenum %d", sectnum, bytenum);
 
-    fseeko64(diskimg,bytenum,SEEK_SET);
+    fseeko64(diskimg,(off_t)bytenum,SEEK_SET);
     if ((Bit64u)ftello64(diskimg) != bytenum)
         LOG_MSG("WARNING: fseek() failed in Write_AbsoluteSector for sector %lu\n",(unsigned long)sectnum);
 
@@ -956,7 +956,7 @@ void BIOS_UnsetupDisks(void) {
 }
 
 void BIOS_SetupDisks(void) {
-    int i;
+    unsigned int i;
 
     if (IS_PC98_ARCH) {
         // TODO
@@ -1130,7 +1130,7 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const
         }
         else {
             fseek(diskimg,0,SEEK_END);
-            new_offset = ftell(diskimg);
+            new_offset = (unsigned long)ftell(diskimg);
 
             /* we have to change it from a fill sector to an actual sector */
             LOG_MSG("VFD write: changing 'fill' sector to one with data (data at %lu)",(unsigned long)new_offset);
@@ -1225,7 +1225,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
         // that OR the first sector offset whichever is smaller.
         // the table seems to trail off into a long series of 0xFF at the end.
         fseek(diskimg,0xDC,SEEK_SET);
-        while ((entof=(ftell(diskimg)+12)) <= stop_at) {
+        while ((entof=((unsigned long)ftell(diskimg)+12ul)) <= stop_at) {
             memset(tmp,0xFF,12);
             fread(tmp,12,1,diskimg);
 
