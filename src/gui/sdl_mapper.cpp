@@ -660,7 +660,7 @@ public:
     CBind * CreateConfigBind(char *& buf) {
         if (strncasecmp(buf,configname,strlen(configname))) return 0;
         StripWord(buf);char * num=StripWord(buf);
-        Bitu code=ConvDecWord(num);
+        Bitu code=(Bitu)ConvDecWord(num);
 #if defined(C_SDL2)
         CBind * bind=CreateKeyBind((SDL_Scancode)code);
 #else
@@ -901,17 +901,17 @@ public:
             return;
         }
 
-        axes=SDL_JoystickNumAxes(sdl_joystick);
+        axes=(Bitu)SDL_JoystickNumAxes(sdl_joystick);
         if (axes > MAXAXIS) axes = MAXAXIS;
         axes_cap=emulated_axes;
         if (axes_cap>axes) axes_cap=axes;
 
-        hats=SDL_JoystickNumHats(sdl_joystick);
+        hats=(Bitu)SDL_JoystickNumHats(sdl_joystick);
         if (hats > MAXHAT) hats = MAXHAT;
         hats_cap=emulated_hats;
         if (hats_cap>hats) hats_cap=hats;
 
-        buttons=SDL_JoystickNumButtons(sdl_joystick);
+        buttons=(Bitu)SDL_JoystickNumButtons(sdl_joystick);
         button_wrap=buttons;
         button_cap=buttons;
         if (button_wrapping_enabled) {
@@ -939,14 +939,14 @@ public:
         StripWord(buf);char * type=StripWord(buf);
         CBind * bind=0;
         if (!strcasecmp(type,"axis")) {
-            Bitu ax=ConvDecWord(StripWord(buf));
+            Bitu ax=(Bitu)ConvDecWord(StripWord(buf));
             bool pos=ConvDecWord(StripWord(buf)) > 0;
             bind=CreateAxisBind(ax,pos);
         } else if (!strcasecmp(type,"button")) {
-            Bitu but=ConvDecWord(StripWord(buf));           
+            Bitu but=(Bitu)ConvDecWord(StripWord(buf));           
             bind=CreateButtonBind(but);
         } else if (!strcasecmp(type,"hat")) {
-            Bitu hat=ConvDecWord(StripWord(buf));           
+            Bitu hat=(Bitu)ConvDecWord(StripWord(buf));           
             Bit8u dir=(Bit8u)ConvDecWord(StripWord(buf));           
             bind=CreateHatBind(hat,dir);
         }
@@ -1964,8 +1964,8 @@ public:
         if (notify_button != NULL)
             notify_button->SetInvert(yesno);
 
-        if (yesno) mapper.mods|=(1 << (wmod-1));
-        else mapper.mods&=~(1 << (wmod-1));
+        if (yesno) mapper.mods|=(1u << (wmod-1u));
+        else mapper.mods&=~(1u << (wmod-1u));
     };
     void notifybutton(CTextButton *n) {
         notify_button = n;
@@ -1980,8 +1980,8 @@ static CModEvent* mod_event[8] = {NULL};
 std::string CBind::GetModifierText(void) {
     std::string r,t;
 
-    for (size_t m=4/*Host key first*/;m >= 1;m--) {
-        if ((mods & (1 << (m - 1))) && mod_event[m] != NULL) {
+    for (size_t m=4u/*Host key first*/;m >= 1u;m--) {
+        if ((mods & (1u << (m - 1u))) && mod_event[m] != NULL) {
             t = mod_event[m]->GetBindMenuText();
             if (!r.empty()) r += "+";
             r += t;
@@ -2112,7 +2112,7 @@ public:
         case MK_f1:case MK_f2:case MK_f3:case MK_f4:
         case MK_f5:case MK_f6:case MK_f7:case MK_f8:
         case MK_f9:case MK_f10:case MK_f11:case MK_f12: 
-            key=SDLK_F1+(defkey-MK_f1);
+            key=(Bitu)(SDLK_F1+(defkey-MK_f1));
             break;
         case MK_rightarrow:
             key=SDLK_RIGHT;
@@ -3206,7 +3206,7 @@ void BIND_MappingEvents(void) {
 
                 size_t tmpl;
 #if defined(C_SDL2)
-                tmpl = sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh name=%s",
+                tmpl = (size_t)sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh name=%s",
                     (event.type == SDL_KEYDOWN ? 'D' : 'U'),
                     event_count&0xFF,
                     s.scancode,
@@ -3214,14 +3214,14 @@ void BIND_MappingEvents(void) {
                     s.mod,
                     SDL_GetScancodeName(s.scancode));
 #else
-                tmpl = sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh u=%xh name=%s",
+                tmpl = (size_t)sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh u=%xh name=%s",
                     (event.type == SDL_KEYDOWN ? 'D' : 'U'),
                     event_count&0xFF,
                     s.scancode,
                     s.sym,
                     s.mod,
                     s.unicode,
-                    SDL_GetKeyName(MapSDLCode((Bitu)s.sym)));
+                    SDL_GetKeyName((SDLKey)MapSDLCode((Bitu)s.sym)));
 #endif
                 while (tmpl < (440/8)) tmp[tmpl++] = ' ';
                 assert(tmpl < sizeof(tmp));
@@ -3255,7 +3255,7 @@ void BIND_MappingEvents(void) {
                     char *name;
 
                     name = LinuxX11_KeySymName(s.x11_sym);
-                    tmpl = sprintf(tmp,"X11: Sym=0x%x sn=%s",(unsigned int)s.x11_sym,name ? name : "");
+                    tmpl = (size_t)sprintf(tmp,"X11: Sym=0x%x sn=%s",(unsigned int)s.x11_sym,name ? name : "");
                 }
 # endif
 #endif
@@ -3290,7 +3290,7 @@ static void InitializeJoysticks(void) {
     mapper.sticks.num=0;
     mapper.sticks.num_groups=0;
     if (joytype != JOY_NONE) {
-        mapper.sticks.num=SDL_NumJoysticks();
+        mapper.sticks.num=(Bitu)SDL_NumJoysticks();
         LOG(LOG_MISC,LOG_DEBUG)("Joystick type != none, SDL reports %u sticks",(unsigned int)mapper.sticks.num);
         if (joytype==JOY_AUTO) {
             // try to figure out what joystick type to select
