@@ -114,14 +114,14 @@ const char *DBGBlock::get_wintitle(int idx) {
 int DBGBlock::name_to_win(const char *name) {
     for (unsigned int i=0;i < DBGBlock::WINI_MAX_INDEX;i++) {
         if (!strcasecmp(name,dbg_win_names[i]))
-            return i;
+            return (int)i;
     }
 
     return -1;
 }
 
 void DBGBlock::next_window(void) {
-    int order = win_find_order(active_win);
+    int order = win_find_order((int)active_win);
 
     if (order < 0) order = 0;
 
@@ -151,13 +151,13 @@ WINDOW* DBGBlock::get_win(int idx) {
 }
 
 WINDOW *DBGBlock::get_active_win(void) {
-    return get_win(active_win);
+    return get_win((int)active_win);
 }
 
 int DBGBlock::win_find_order(int wnd) {
     for (unsigned int i=0;i < DBGBlock::WINI_MAX_INDEX;i++) {
         if (dbg.win_order[i] == wnd)
-            return i;
+            return (int)i;
     }
 
     return -1;
@@ -212,7 +212,7 @@ void DBGUI_DrawDebugOutputLine(int y,std::string line) {
 
     /* cut the line short if it's too long for the terminal window */
     if (line.length() > (size_t)maxx) {
-        line = line.substr(0,maxx-3);
+        line = line.substr(0,(size_t)(maxx - 3));
         ellipsisEnd = true;
     }
 
@@ -377,9 +377,9 @@ void DrawBars(void) {
 		return;
 
     for (unsigned int wnd=0;wnd < DBGBlock::WINI_MAX_INDEX;wnd++) {
-        WINDOW* &ref = dbg.get_win_ref(wnd);
+        WINDOW* &ref = dbg.get_win_ref((int)wnd);
 
-        if (ref != NULL) DrawSubWinBox(ref,dbg.get_wintitle(wnd));
+        if (ref != NULL) DrawSubWinBox(ref,dbg.get_wintitle((int)wnd));
     }
 
 	attrset(0);
@@ -387,7 +387,7 @@ void DrawBars(void) {
 
 static void DestroySubWindows(void) {
     for (unsigned int wnd=0;wnd < DBGBlock::WINI_MAX_INDEX;wnd++) {
-        WINDOW* &ref = dbg.get_win_ref(wnd);
+        WINDOW* &ref = dbg.get_win_ref((int)wnd);
 
         if (ref != NULL) {
             if (ref) delwin(ref);
@@ -423,15 +423,15 @@ static void MakeSubWindows(void) {
         if (dbg.win_height[wnd] > 1 &&
             dbg.win_vis[wnd] && (outy+1) < win_limit) {
             outy++; // header
-            height=dbg.win_height[wnd]-1;
+            height=(int)dbg.win_height[wnd] - 1;
             if ((outy+height) > win_limit) height = win_limit - outy;
             assert(height > 0);
-            yofs[wndi]=outy;
-            yheight[wndi]=height;
+            yofs[wndi]=(unsigned int)outy;
+            yheight[wndi]=(unsigned int)height;
             outy+=height;
 
             if (wnd == DBGBlock::WINI_OUT)
-                expand_wndi = wndi;
+                expand_wndi = (int)wndi;
         }
         else {
             yofs[wndi]=0;
@@ -454,25 +454,25 @@ static void MakeSubWindows(void) {
         int expand_by = win_limit - outy;
 
         if (expand_wndi >= 0 && expand_wndi < DBGBlock::WINI_MAX_INDEX) {
-            unsigned int wndi = expand_wndi;
+            unsigned int wndi = (unsigned int)expand_wndi;
 
             /* add height to the window */
-            yheight[wndi] += expand_by;
-            outy += wndi;
+            yheight[wndi] += (unsigned int)expand_by;
+            outy += (int)wndi;
             wndi++;
 
             /* move the others down */
             for (;wndi < DBGBlock::WINI_MAX_INDEX;wndi++)
-                yofs[wndi] += expand_by;
+                yofs[wndi] += (unsigned int)expand_by;
         }
     }
 
     for (unsigned int wndi=0;wndi < DBGBlock::WINI_MAX_INDEX;wndi++) {
         if (yheight[wndi] != 0) {
             unsigned int wnd = dbg.win_order[wndi];
-            WINDOW* &ref = dbg.get_win_ref(wnd);
+            WINDOW* &ref = dbg.get_win_ref((int)wnd);
             assert(ref == NULL);
-            ref=subwin(dbg.win_main,yheight[wndi],win_main_maxx,yofs[wndi],0);
+            ref = subwin(dbg.win_main,(int)yheight[wndi],win_main_maxx,(int)yofs[wndi],0);
         }
     }
 
@@ -558,7 +558,7 @@ void DEBUG_ShowMsg(char const* format,...) {
 	size_t len;
 
 	va_start(msg,format);
-	len = vsnprintf(buf,sizeof(buf)-2,format,msg); /* <- NTS: Did you know sprintf/vsnprintf returns number of chars written? */
+	len = (size_t)vsnprintf(buf,sizeof(buf)-2u,format,msg); /* <- NTS: Did you know sprintf/vsnprintf returns number of chars written? */
 	va_end(msg);
 
     /* remove newlines if present */
