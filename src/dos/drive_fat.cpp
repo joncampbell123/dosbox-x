@@ -229,10 +229,10 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 	if(curSectOff>0 && loadedSector) myDrive->Write_AbsoluteSector(currentSector, sectorBuffer);
 
 finalizeWrite:
-	myDrive->directoryBrowse(dirCluster, &tmpentry, dirIndex);
+	myDrive->directoryBrowse(dirCluster, &tmpentry, (Bit32s)dirIndex);
 	tmpentry.entrysize = filelength;
 	tmpentry.loFirstClust = (Bit16u)firstCluster;
-	myDrive->directoryChange(dirCluster, &tmpentry, dirIndex);
+	myDrive->directoryChange(dirCluster, &tmpentry, (Bit32s)dirIndex);
 
 	*size =sizecount;
 	return true;
@@ -396,11 +396,11 @@ void fatDrive::setClusterValue(Bit32u clustNum, Bit32u clustValue) {
 			*((Bit32u *)&fatSectBuffer[fatentoff]) = clustValue;
 			break;
 	}
-	for(int fc=0;fc<bootbuffer.fatcopies;fc++) {
+	for(unsigned int fc=0;fc<bootbuffer.fatcopies;fc++) {
 		Write_AbsoluteSector(fatsectnum + (fc * bootbuffer.sectorsperfat), &fatSectBuffer[0]);
 		if (fattype==FAT12) {
 			if (fatentoff >= (bootbuffer.bytespersector-1U))
-				Write_AbsoluteSector(fatsectnum+1+(fc * bootbuffer.sectorsperfat), &fatSectBuffer[bootbuffer.bytespersector]);
+				Write_AbsoluteSector(fatsectnum+1u+(fc * bootbuffer.sectorsperfat), &fatSectBuffer[bootbuffer.bytespersector]);
 		}
 	}
 }
@@ -518,8 +518,8 @@ Bit32u fatDrive::getAbsoluteSectFromBytePos(Bit32u startClustNum, Bit32u bytePos
 }
 
 Bit32u fatDrive::getAbsoluteSectFromChain(Bit32u startClustNum, Bit32u logicalSector) {
-	Bit32s skipClust = logicalSector / bootbuffer.sectorspercluster;
-	Bit32u sectClust = logicalSector % bootbuffer.sectorspercluster;
+	Bit32s skipClust = (Bit32s)(logicalSector / bootbuffer.sectorspercluster);
+	Bit32u sectClust = (Bit32u)(logicalSector % bootbuffer.sectorspercluster);
 
 	Bit32u currentClust = startClustNum;
 	Bit32u testvalue;
@@ -694,7 +694,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 	QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(diskfile);
 
 	if (qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)){
-		Bit32u cluster_size = 1 << qcow2_header.cluster_bits;
+		Bit32u cluster_size = 1u << qcow2_header.cluster_bits;
 		if ((bytesector < 512) || ((cluster_size % bytesector) != 0)){
 			created_successfully = false;
 			return;
@@ -1066,18 +1066,18 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 
 	/* Get size of root dir in sectors */
 	/* TODO: Get 32-bit total sector count if needed */
-	Bit32u RootDirSectors = ((bootbuffer.rootdirentries * 32) + (bootbuffer.bytespersector - 1)) / bootbuffer.bytespersector;
+	Bit32u RootDirSectors = ((bootbuffer.rootdirentries * 32u) + (bootbuffer.bytespersector - 1u)) / bootbuffer.bytespersector;
 	Bit32u DataSectors;
 	if(bootbuffer.totalsectorcount != 0) {
-		DataSectors = bootbuffer.totalsectorcount - (bootbuffer.reservedsectors + (bootbuffer.fatcopies * bootbuffer.sectorsperfat) + RootDirSectors);
+		DataSectors = (Bitu)bootbuffer.totalsectorcount - ((Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)RootDirSectors);
 	} else {
-		DataSectors = bootbuffer.totalsecdword - (bootbuffer.reservedsectors + (bootbuffer.fatcopies * bootbuffer.sectorsperfat) + RootDirSectors);
+		DataSectors = (Bitu)bootbuffer.totalsecdword - ((Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)RootDirSectors);
 
 	}
 	CountOfClusters = DataSectors / bootbuffer.sectorspercluster;
 
-	firstDataSector = (bootbuffer.reservedsectors + (bootbuffer.fatcopies * bootbuffer.sectorsperfat) + RootDirSectors) + partSectOff;
-	firstRootDirSect = bootbuffer.reservedsectors + (bootbuffer.fatcopies * bootbuffer.sectorsperfat) + partSectOff;
+	firstDataSector = ((Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)RootDirSectors) + (Bitu)partSectOff;
+	firstRootDirSect = (Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)partSectOff;
 
 	if(CountOfClusters < 4085) {
 		/* Volume is FAT12 */
@@ -1154,7 +1154,7 @@ bool fatDrive::FileCreate(DOS_File **file, const char *name, Bit16u attributes) 
 	if(getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) {
 		/* Truncate file */
 		fileEntry.entrysize=0;
-		directoryChange(dirClust, &fileEntry, subEntry);
+		directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
 	} else {
 		/* Can we even get the name of the file itself? */
 		if(!getEntryName(name, &dirName[0])) return false;
@@ -1219,7 +1219,7 @@ bool fatDrive::FileUnlink(const char * name) {
 	if(!getFileDirEntry(name, &fileEntry, &dirClust, &subEntry)) return false;
 
 	fileEntry.entryname[0] = 0xe5;
-	directoryChange(dirClust, &fileEntry, subEntry);
+	directoryChange(dirClust, &fileEntry, (Bit32s)subEntry);
 
 	if(fileEntry.loFirstClust != 0) deleteClustChain(fileEntry.loFirstClust);
 
@@ -1526,7 +1526,7 @@ void fatDrive::zeroOutCluster(Bit32u clustNumber) {
 
 	memset(&secBuffer[0], 0, SECTOR_SIZE_MAX);
 
-	int i;
+	unsigned int i;
 	for(i=0;i<bootbuffer.sectorspercluster;i++) {
 		Write_AbsoluteSector(getAbsoluteSectFromChain(clustNumber,i), &secBuffer[0]);
 	}
@@ -1667,7 +1667,7 @@ bool fatDrive::Rename(const char * oldname, const char * newname) {
 
 		/* Remove old entry */
 		fileEntry1.entryname[0] = 0xe5;
-		directoryChange(dirClust1, &fileEntry1, subEntry1);
+		directoryChange(dirClust1, &fileEntry1, (Bit32s)subEntry1);
 
 		return true;
 	}
