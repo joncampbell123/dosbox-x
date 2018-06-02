@@ -203,7 +203,7 @@
 		if (CPU_ArchitectureType >= CPU_ARCHTYPE_286)
 			Push_16(reg_sp);
 		else /* 8086 decrements SP then pushes it */
-			Push_16(reg_sp-2);
+			Push_16(reg_sp-2u);
 		break;
 	CASE_W(0x55)												/* PUSH BP */
 		Push_16(reg_bp);break;
@@ -263,8 +263,8 @@
 		{
 			Bit16s bound_min, bound_max;
 			GetRMrw;GetEAa;
-			bound_min=LoadMw(eaa);
-			bound_max=LoadMw(eaa+2);
+			bound_min=(Bit16s)LoadMw(eaa);
+			bound_max=(Bit16s)LoadMw(eaa+2u);
 			if ( (((Bit16s)*rmrw) < bound_min) || (((Bit16s)*rmrw) > bound_max) ) {
 				EXCEPTION(5);
 			}
@@ -294,7 +294,7 @@
 		DO_PREFIX_SEG(gs);break;
 #if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_B(0x66)												/* Operand Size Prefix (386+) */
-		core.opcode_index=(cpu.code.big^0x1)*0x200;
+		core.opcode_index=(cpu.code.big^0x1u)*0x200u;
 		goto restart_opcode;
 #endif
 #if CPU_CORE >= CPU_ARCHTYPE_386
@@ -310,7 +310,7 @@
 		break;
 	CASE_W(0x6a)												/* PUSH Ib */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
-		Push_16(Fetchbs());
+		Push_16((Bitu)Fetchbs());
 		break;
 	CASE_W(0x6b)												/* IMUL Gw,Ew,Ib */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
@@ -429,7 +429,7 @@
 		{
 			GetRM;Bitu which=(rm>>3)&7;
 			if (rm>= 0xc0) {
-				GetEArw;Bit16u iw=(Bit16s)Fetchbs();
+				GetEArw;Bit16u iw=(Bit16u)Fetchbs();
 				switch (which) {
 				case 0x00:ADDW(*earw,iw,LoadRw,SaveRw);break;
 				case 0x01: ORW(*earw,iw,LoadRw,SaveRw);break;
@@ -441,7 +441,7 @@
 				case 0x07:CMPW(*earw,iw,LoadRw,SaveRw);break;
 				}
 			} else {
-				GetEAa;Bit16u iw=(Bit16s)Fetchbs();
+				GetEAa;Bit16u iw=(Bit16u)Fetchbs();
 				switch (which) {
 				case 0x00:ADDW(eaa,iw,LoadMw,SaveMw);break;
 				case 0x01: ORW(eaa,iw,LoadMw,SaveMw);break;
@@ -613,7 +613,7 @@
 		{ Bit16u temp=reg_ax;reg_ax=reg_di;reg_di=temp; }
 		break;
 	CASE_W(0x98)												/* CBW */
-		reg_ax=(Bit8s)reg_al;break;
+		reg_ax=(Bit16u)((Bit8s)reg_al);break;
 	CASE_W(0x99)												/* CWD */
 		if (reg_ax & 0x8000) reg_dx=0xffff;else reg_dx=0;
 		break;
@@ -836,9 +836,9 @@
 #if C_DEBUG	
 		FillFlags();
 		if (DEBUG_Breakpoint())
-			return debugCallback;
+			return (Bits)debugCallback;
 		if (DEBUG_IntBreakpoint(3))
-			return debugCallback;
+			return (Bits)debugCallback;
 #endif			
 		CPU_SW_Interrupt_NoIOPLCheck(3,GETIP);
 #if CPU_TRAP_CHECK
@@ -851,7 +851,7 @@
 #if C_DEBUG
 			FillFlags();
 			if (DEBUG_IntBreakpoint(num)) {
-				return debugCallback;
+				return (Bits)debugCallback;
 			}
 #endif
 			CPU_SW_Interrupt(num,GETIP);
@@ -1050,7 +1050,7 @@
 		{ 
 			/* must not adjust (E)IP until we have completed the instruction.
 			 * if interrupted by a page fault, EIP must be unmodified. */
-			Bit16u addip=Fetchws();
+			Bit16u addip=(Bit16u)Fetchws();
 			Bit16u here=GETIP;
 			Push_16(here);
 			reg_eip=(Bit16u)(addip+here);
@@ -1058,7 +1058,7 @@
 		}
 	CASE_W(0xe9)												/* JMP Jw */
 		{ 
-			Bit16u addip=Fetchws();
+			Bit16u addip=(Bit16u)Fetchws();
 			SAVEIP;
 			reg_eip=(Bit16u)(reg_eip+addip);
 			continue;
@@ -1081,7 +1081,7 @@
 		{ 
 			Bit16s addip=Fetchbs();
 			SAVEIP;
-			reg_eip=(Bit16u)(reg_eip+addip);
+			reg_eip=(Bit16u)(reg_eip+(Bit32u)addip);
 			continue;
 		}
 	CASE_B(0xec)												/* IN AL,DX */
@@ -1183,7 +1183,7 @@
 			case 0x02:											/* NOT Ew */
 				{
 					if (rm >= 0xc0 ) {GetEArw;*earw=~*earw;}
-					else {GetEAa;SaveMw(eaa,~LoadMw(eaa));}
+					else {GetEAa;SaveMw(eaa,(Bitu)(~LoadMw(eaa)));}
 					break;
 				}
 			case 0x03:											/* NEG Ew */
@@ -1252,7 +1252,7 @@
 				{
 					Bitu cb=Fetchw();
 					FillFlags();SAVEIP;
-					return cb;
+					return (Bits)cb;
 				}
 			default:
 				LOG(LOG_CPU,LOG_DEBUG)("Illegal GRP4 Call %d",(rm>>3) & 7);
