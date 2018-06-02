@@ -181,7 +181,7 @@ void Intel8255::writeControl(const uint8_t data) {
          * bit[3:1] = bit           bit select
          * bit[0:0] = set/reset     1=set 0=reset */
         /* single bit set/reset port C */
-        const uint8_t bit = (data >> 1U) & 7U;
+        const uint8_t bit = ((unsigned int)data >> 1U) & 7U;
 
         if (mode & 0x40) { /* Port A mode 2 */
             if (bit == 4) {
