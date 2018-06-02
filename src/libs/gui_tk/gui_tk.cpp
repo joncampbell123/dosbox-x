@@ -125,7 +125,7 @@ void Drawable::drawText(const String& text, bool interpret, Size start, Size len
 				}
 				wordstart++;
 				do {
-					int seqstart = start+1;
+					Size seqstart = start+1u;
 					Char c;
 					do {
 						start++;
@@ -136,17 +136,17 @@ void Drawable::drawText(const String& text, bool interpret, Size start, Size len
 						if (font->toSpecial(text[seqstart++]) != '[') break; /* FIXME: Clang/LLVM claims this comparison will never happen */
 						c = font->toSpecial(text[seqstart++]);
 						while (c != 'm') {
-							int param = 0;
+							unsigned int param = 0;
 							if (c == ';') c = '0';
 							while (c != 'm' && c != ';') {
-								param = param * 10 + c-'0';
+								param = param * 10u + (unsigned int)c - '0';
 								c = font->toSpecial(text[seqstart++]);
 							}
-							const RGB bright = 0x00808080;
-							const RGB intensity = (color&bright?~0:~bright);
+							const RGB bright = 0x00808080u;
+							const RGB intensity = (color&bright?~0u:~bright);
 							switch (param) {
 							case 0: setColor(Color::Black); break;
-							case 1: setColor(color | 0x00808080); break;
+							case 1: setColor(color | 0x00808080u); break;
 							case 30: setColor((Color::Black|bright) & intensity); break;
 							case 31: setColor(Color::Red & intensity); break;
 							case 32: setColor(Color::Green & intensity); break;
@@ -221,8 +221,8 @@ Drawable::Drawable(Drawable &src, RGB clear) :
 	if (clear != 0) {
 		this->clear(clear);
 	} else {
-		for (int h = 0; h < src.ch; h++) {
-			memcpy(buffer+src.cw*h,src.buffer+src.width*(h+src.ty)+src.tx,4*src.cw);
+		for (unsigned int h = 0; (int)h < src.ch; h++) {
+			memcpy(buffer+(unsigned int)src.cw*h,src.buffer+(unsigned int)src.width*(h+(unsigned int)src.ty)+src.tx,4u*(unsigned int)src.cw);
 		}
 	}
 }
@@ -461,8 +461,8 @@ void Timer::check(unsigned int ticks)
 	}
 
 	if (Timer::ticks > (Timer::ticks+ticks)) {
-		ticks -= -1-Timer::ticks;
-		check(-1-Timer::ticks);
+		ticks -= (unsigned int)(-Timer::ticks - 1);
+		check((unsigned int)(-Timer::ticks - 1));
 	}
 
 	std::multimap<unsigned int,Timer_Callback*,Timer::ltuint>::iterator old, i = timers.lower_bound(Timer::ticks+1);
@@ -718,7 +718,7 @@ bool BorderedWindow::mouseDragged(int x, int y, MouseButton button)
 
 void ToplevelWindow::paint(Drawable &d) const
 {
-	int mask = (systemMenu->isVisible()?Color::RedMask|Color::GreenMask|Color::BlueMask:0);
+	unsigned int mask = (systemMenu->isVisible()?Color::RedMask|Color::GreenMask|Color::BlueMask:0);
 	d.clear(Color::Background);
 
 	d.setColor(Color::Border);
@@ -1252,10 +1252,10 @@ Screen *Window::getScreen() { return (parent == NULL?dynamic_cast<Screen*>(this)
 
 Screen::Screen(unsigned int width, unsigned int height) :
 	Window(),
-	buffer(new Drawable(width, height))
+	buffer(new Drawable((int)width, (int)height))
 {
-	this->width = width;
-	this->height = height;
+	this->width = (int)width;
+	this->height = (int)height;
 }
 
 Screen::Screen(Drawable *d) :
@@ -1284,7 +1284,7 @@ unsigned int Screen::update(void *surface, unsigned int ticks)
 		for (x = 0; x < width; x++, buf++) {
 			RGB sval = surfaceToRGB(surface);
 			RGB bval = *buf;
-			int a = Color::A(bval);
+			unsigned int a = Color::A(bval);
 			bval = ((((sval&Color::MagentaMask)*a+(bval&Color::MagentaMask)*(256-a))>>8)&Color::MagentaMask)
 				| ((((sval&Color::GreenMask)*a+(bval&Color::GreenMask)*(256-a))>>8)&Color::GreenMask);
 			rgbToSurface(bval, &surface);
