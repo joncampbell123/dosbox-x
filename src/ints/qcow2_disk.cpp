@@ -69,12 +69,12 @@ using namespace std;
 		if (header.backing_file_offset != 0 && header.backing_file_size != 0){
 			char* backing_file_name = new char[header.backing_file_size + 1];
 			backing_file_name[header.backing_file_size] = 0;
-			fseeko64(file, header.backing_file_offset, SEEK_SET);
+			fseeko64(file, (off_t)header.backing_file_offset, SEEK_SET);
 			fread(backing_file_name, header.backing_file_size, 1, file);
 			if (backing_file_name[0] != 0x2F){
 				for (int image_name_index = (int)strlen(imageName); image_name_index > -1; image_name_index--){
 					if (imageName[image_name_index] == 0x2F){
-						int full_name_length = header.backing_file_size + image_name_index + 2;
+						int full_name_length = (int)((unsigned int)header.backing_file_size + (unsigned int)image_name_index + 2u);
 						char* full_name = new char[full_name_length];
 						for(int full_name_index = 0; full_name_index < full_name_length; full_name_index++){
 							if (full_name_index <= image_name_index){
@@ -228,19 +228,22 @@ using namespace std;
 
 	inline Bit16u QCow2Image::host_read16(Bit16u buffer) {
 		Bit8u* b = (Bit8u*)&buffer;
-		return  b[1] | (b[0] << 8);
+		return (unsigned int)b[1] | ((unsigned int)b[0] << 8u);
 	}
 
 
 	inline Bit32u QCow2Image::host_read32(Bit32u buffer) {
 		Bit8u* b = (Bit8u*)&buffer;
-		return b[3] | (b[2] << 8) | (b[1] << 16) | (b[0] << 24);
+		return (Bit32u)b[3] | ((Bit32u)b[2] << 8u) | ((Bit32u)b[1] << 16u) | ((Bit32u)b[0] << 24u);
 	}
 
 
 	inline Bit64u QCow2Image::host_read64(Bit64u buffer) {
 		Bit8u* b = (Bit8u*)&buffer;
-		return b[7] | (b[6] << 8) | (b[5] << 16) | (b[4] << 24) |  ((Bit64u)b[3] << 32) | ((Bit64u)b[2] << 40) | ((Bit64u)b[1] << 48) | ((Bit64u)b[0] << 56);
+		return
+            (unsigned int)b[7] | ((unsigned int)b[6] << 8u) |
+            ((unsigned int)b[5] << 16u) | ((unsigned int)b[4] << 24u) |
+            ((Bit64u)b[3] << 32u) | ((Bit64u)b[2] << 40u) | ((Bit64u)b[1] << 48u) | ((Bit64u)b[0] << 56u);
 	}
 
 
@@ -249,7 +252,7 @@ using namespace std;
 
 //Generate a mask for a given number of bits.
 	inline Bit64u QCow2Image::mask64(Bit64u bits){
-		return (1 << bits) - 1;
+		return (1ull << bits) - 1ull;
 	}
 
 
@@ -258,7 +261,7 @@ using namespace std;
 		if (0 != fseeko64(file, 0, SEEK_END)){
 			return 0x05;
 		}
-		const Bit64u old_file_length = ftello64(file);
+		const Bit64u old_file_length = (Bit64u)ftello64(file);
 		const Bit64u padding_size = (cluster_size - (old_file_length % cluster_size)) % cluster_size;
 		new_file_length = old_file_length + padding_size;
 		if (0 == padding_size){
@@ -275,7 +278,7 @@ using namespace std;
 //Read data of arbitrary length that is present in the image file.
 	Bit8u QCow2Image::read_allocated_data(Bit64u file_offset, Bit8u* data, Bit64u data_size)
 	{
-		if (0 != fseeko64(file, file_offset, SEEK_SET)){
+		if (0 != fseeko64(file, (off_t)file_offset, SEEK_SET)){
 			return 0x05;
 		}
 		if (1 != fread(data, data_size, 1, file)){
@@ -391,7 +394,7 @@ using namespace std;
 
 //Write data of arbitrary length to the image file.
 	Bit8u QCow2Image::write_data(Bit64u file_offset, Bit8u* data, Bit64u data_size){
-		if (0 != fseeko64(file, file_offset, SEEK_SET)){
+		if (0 != fseeko64(file, (off_t)file_offset, SEEK_SET)){
 			return 0x05;
 		}
 		if (1 != fwrite(data, data_size, 1, file)){
