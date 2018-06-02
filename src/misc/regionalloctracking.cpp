@@ -39,24 +39,24 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 	size_t si;
 	Bitu base;
 
-	if (bytes == 0) return alloc_failed;
-	if (alignment > 1 && must_be_at != 0) return alloc_failed; /* avoid nonsense! */
+	if (bytes == 0u) return alloc_failed;
+	if (alignment > 1u && must_be_at != 0u) return alloc_failed; /* avoid nonsense! */
 	if (who == NULL) who = "";
 	if (alist.empty()) E_Exit("getMemory called when '%s' allocation list not initialized",name.c_str());
 
 	/* alignment must be power of 2 */
-	if (alignment == 0)
-		alignment = 1;
-	else if ((alignment & (alignment-1)) != 0)
+	if (alignment == 0u)
+		alignment = 1u;
+	else if ((alignment & (alignment-1u)) != 0u)
 		E_Exit("getMemory called with non-power of 2 alignment value %u on '%s'",(int)alignment,name.c_str());
 
 	{
 		/* allocate downward from the top */
-		si = topDownAlloc ? (alist.size() - 1) : 0;
+		si = topDownAlloc ? (alist.size() - 1u) : 0u;
 		while ((ssize_t)si >= 0) {
 			Block &blk = alist[si];
 
-			if (!blk.free || (blk.end+1-blk.start) < bytes) {
+			if (!blk.free || (blk.end+1u-blk.start) < bytes) {
 				if (topDownAlloc) si--;
 				else si++;
 				continue;
@@ -66,24 +66,24 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 			if (must_be_at != 0) {
 				/* well, is there room to fit the forced block? if it starts before
 				 * this block or the forced block would end past the block then, no. */
-				if (must_be_at < blk.start || (must_be_at+bytes-1) > blk.end) {
+				if (must_be_at < blk.start || (must_be_at+bytes-1u) > blk.end) {
 					if (topDownAlloc) si--;
 					else si++;
 					continue;
 				}
 
 				base = must_be_at;
-				if (base == blk.start && (base+bytes-1) == blk.end) { /* easy case: perfect match */
+				if (base == blk.start && (base+bytes-1u) == blk.end) { /* easy case: perfect match */
 					blk.free = false;
 					blk.who = who;
 				}
 				else if (base == blk.start) { /* need to split */
 					Block newblk = blk; /* this becomes the new block we insert */
 					blk.start = base+bytes;
-					newblk.end = base+bytes-1;
+					newblk.end = base+bytes-1u;
 					newblk.free = false;
 					newblk.who = who;
-					alist.insert(alist.begin()+si,newblk);
+					alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si,newblk);
 				}
 				else if ((base+bytes-1) == blk.end) { /* need to split */
 					Block newblk = blk; /* this becomes the new block we insert */
@@ -91,35 +91,35 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 					newblk.start = base;
 					newblk.free = false;
 					newblk.who = who;
-					alist.insert(alist.begin()+si+1,newblk);
+					alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk);
 				}
 				else { /* complex split */
 					Block newblk = blk,newblk2 = blk; /* this becomes the new block we insert */
 					Bitu orig_end = blk.end;
-					blk.end = base-1;
+					blk.end = base-1u;
 					newblk.start = base+bytes;
 					newblk.end = orig_end;
-					alist.insert(alist.begin()+si+1,newblk);
+					alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk);
 					newblk2.start = base;
-					newblk2.end = base+bytes-1;
+					newblk2.end = base+bytes-1u;
 					newblk2.free = false;
 					newblk2.who = who;
-					alist.insert(alist.begin()+si+1,newblk2);
+					alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk2);
 				}
 			}
 			else {
 				if (topDownAlloc) {
-					base = blk.end + 1 - bytes; /* allocate downward from the top */
+					base = blk.end + 1u - bytes; /* allocate downward from the top */
 					assert(base >= blk.start);
 				}
 				else {
 					base = blk.start; /* allocate upward from the bottom */
 					assert(base <= blk.end);
-					base += alignment - 1; /* alignment round up */
+					base += alignment - 1u; /* alignment round up */
 				}
 
-				base &= ~(alignment - 1); /* NTS: alignment == 16 means ~0xF or 0xFFFF0 */
-				if (base < blk.start || (base+bytes-1) > blk.end) { /* if not possible after alignment, then skip */
+				base &= ~(alignment - 1u); /* NTS: alignment == 16 means ~0xF or 0xFFFF0 */
+				if (base < blk.start || (base+bytes-1u) > blk.end) { /* if not possible after alignment, then skip */
 					if (topDownAlloc) si--;
 					else si++;
 					continue;
@@ -138,17 +138,17 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 					newblk.start = base;
 					newblk.free = false;
 					newblk.who = who;
-					blk.end = base - 1;
+					blk.end = base - 1u;
 
 					if (blk.start > blk.end) {
 						sanityCheck();
 						abort();
 					}
 
-					alist.insert(alist.begin()+si+1,newblk);
+					alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1,newblk);
 				}
 				else {
-					if ((base+bytes-1) == blk.end) {
+					if ((base+bytes-1u) == blk.end) {
 						blk.free = false;
 						blk.who = who;
 						return blk.start;
@@ -159,14 +159,14 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 					newblk.start = base+bytes;
 					blk.free = false;
 					blk.who = who;
-					blk.end = base+bytes-1;
+					blk.end = base+bytes-1u;
 
 					if (blk.start > blk.end) {
 						sanityCheck();
 						abort();
 					}
 
-					alist.insert(alist.begin()+si+1,newblk);
+					alist.insert(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u,newblk);
 				}
 			}
 
@@ -274,14 +274,14 @@ Bitu RegionAllocTracking::freeUnusedMinToLoc(Bitu phys) {
 void RegionAllocTracking::compactFree() {
 	size_t si=0;
 
-	while ((si+1) < alist.size()) {
+	while ((si+1u) < alist.size()) {
 		RegionAllocTracking::Block &blk1 = alist[si];
-		RegionAllocTracking::Block &blk2 = alist[si+1];
+		RegionAllocTracking::Block &blk2 = alist[si+1u];
 
 		if (blk1.free && blk2.free) {
-			if ((blk1.end+(Bitu)1) == blk2.start) {
+			if ((blk1.end+(Bitu)1u) == blk2.start) {
 				blk1.end = blk2.end;
-				alist.erase(alist.begin()+si+1);
+				alist.erase(alist.begin()+(std::vector<RegionAllocTracking::Block>::difference_type)si+1u);
 				continue;
 			}
 		}
