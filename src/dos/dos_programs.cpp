@@ -207,7 +207,7 @@ public:
             newz[0] = toupper(newz[0]);
             int i_newz = newz[0] - 'A';
             if (i_newz >= 0 && i_newz < DOS_DRIVES-1 && !Drives[i_newz]) {
-                ZDRIVE_NUM = i_newz;
+                ZDRIVE_NUM = (unsigned int)i_newz;
                 /* remap drives */
                 Drives[i_newz] = Drives[25];
                 Drives[25] = 0;
@@ -489,7 +489,7 @@ public:
         if (!newdrive) E_Exit("DOS:Can't create drive");
         Drives[drive-'A']=newdrive;
         /* Set the correct media byte in the table */
-        mem_writeb(Real2Phys(dos.tables.mediaid)+(drive-'A')*2,newdrive->GetMediaByte());
+        mem_writeb(Real2Phys(dos.tables.mediaid)+((unsigned int)drive-'A')*2u,newdrive->GetMediaByte());
         if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"),drive,newdrive->GetInfo());
         /* check if volume label is given and don't allow it to updated in the future */
         if (cmd->FindString("-label",label,true)) newdrive->SetLabel(label.c_str(),iscdrom,false);
@@ -963,7 +963,7 @@ public:
                             upcase(buf);
                             strcat(cmdlist," ");
                             strcat(cmdlist,buf);
-                            ct+=1+clen+3;
+                            ct+=1u+(Bitu)clen+3u;
                             if (ct>sizeof(cmdlist)) break;
                             clen=rombuf[ct];
                         }
@@ -987,10 +987,10 @@ public:
                             upcase(buf);
                             strcat(cmdlist," ");
                             strcat(cmdlist,buf);
-                            ct+=1+clen;
+                            ct+=1u+(Bitu)clen;
 
                             if (cart_cmd==buf) {
-                                cfound_at=ct;
+                                cfound_at=(Bits)ct;
                                 break;
                             }
 
@@ -1223,20 +1223,20 @@ public:
 
                 for (unsigned int i=0;i < 2;i++) {
                     if (imageDiskList[i] != NULL) {
-                        disk_equip |= (1 << i);
-                        disk_equip_144 |= (1 << i);
+                        disk_equip |= (1u << i);
+                        disk_equip_144 |= (1u << i);
                     }
                 }
 
                 for (unsigned int i=0;i < 2;i++) {
                     if (imageDiskList[i+2] != NULL) {
-                        scsi_equip |= (1 << i);
+                        scsi_equip |= (1u << i);
 
-                        Bitu m = 0x460 + (i * 4);
+                        Bitu m = 0x460u + (i * 4u);
 
                         mem_writeb(m+0,sects);
                         mem_writeb(m+1,heads);
-                        mem_writew(m+2,(cyls & 0xFFF) + (ssize == 512 ? 0x1000 : 0) + (ssize == 1024 ? 0x2000 : 0) + 0x8000/*NP2:hwsec*/);
+                        mem_writew(m+2,(cyls & 0xFFFu) + (ssize == 512u ? 0x1000u : 0u) + (ssize == 1024u ? 0x2000u : 0) + 0x8000u/*NP2:hwsec*/);
                     }
                 }
 
@@ -1282,9 +1282,9 @@ public:
                 reg_eax = 0;
                 reg_edx = 0; //Head 0
                 if (drive >= 'A' && drive <= 'B')
-                    reg_edx += (drive-'A');
+                    reg_edx += (unsigned int)(drive-'A');
                 else if (drive >= 'C' && drive <= 'Z')
-                    reg_edx += 0x80+(drive-'C');
+                    reg_edx += 0x80u+(unsigned int)(drive-'C');
             }
 #ifdef __WIN32__
             // let menu know it boots
@@ -1705,8 +1705,8 @@ restart_int:
                         printHelp();
                         return;
                     }
-                    size = c*h*s*512LL;
-                    if((size < 3*1024*1024) || (size > 0x1FFFFFFFFLL)) {
+                    size = (unsigned long long)c * (unsigned long long)h * (unsigned long long)s * 512ULL;
+                    if((size < 3u*1024u*1024u) || (size > 0x1FFFFFFFFLL)) {
                         // user picked geometry resulting in wrong size
                         printHelp();
                         return;
@@ -1747,7 +1747,7 @@ restart_int:
             t2 = "-bat";
         }
 
-        size = c*h*s*512LL;
+        size = (unsigned long long)c * (unsigned long long)h * (unsigned long long)s * 512ULL;
         Bits bootsect_pos = 0; // offset of the boot sector in clusters
         if(cmd->FindExist("-nofs",true) || (size>(2048*1024*1024LL))) {
             bootsect_pos = -1;
@@ -1780,7 +1780,7 @@ restart_int:
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
             return;
         }
-        if(fseeko64(f,size-1,SEEK_SET)) {
+        if(fseeko64(f,(off_t)(size-1ull),SEEK_SET)) {
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
             return;
         }
@@ -1887,10 +1887,10 @@ restart_int:
             if(mediadesc == 0xF8) host_writed(&sbuf[0],0xFFFFFFF8);
             else host_writed(&sbuf[0],0xFFFFF0);
             // 1st FAT
-            fseeko64(f,(bootsect_pos+1)*512,SEEK_SET);
+            fseeko64(f,(off_t)((bootsect_pos+1ll)*512ll),SEEK_SET);
             fwrite(&sbuf,512,1,f);
             // 2nd FAT
-            fseeko64(f,(bootsect_pos+1+sect_per_fat)*512,SEEK_SET);
+            fseeko64(f,(off_t)(((unsigned long long)bootsect_pos+1ull+(unsigned long long)sect_per_fat)*512ull),SEEK_SET);
             fwrite(&sbuf,512,1,f);
         }
         // write VHD footer if requested, largely copied from RAW2VHD program, no license was included
@@ -2005,7 +2005,7 @@ void LOADFIX::Run(void)
                 return;
             } else {
                 // Set mem amount to allocate
-                kb = atoi(temp_line.c_str()+1);
+                kb = (Bitu)atoi(temp_line.c_str()+1);
                 if (kb==0) kb=xms?1024:64;
                 commandNr++;
             }
@@ -2644,7 +2644,7 @@ public:
             }
 
             if (el_torito != "") {
-                newImage = new imageDiskElToritoFloppy(el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
+                newImage = new imageDiskElToritoFloppy((unsigned char)el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
             }
             else if (type == "ram") {
                 newImage = MountImageNoneRam(sizes, reserved_cylinders, driveIndex < 2);
@@ -2661,7 +2661,7 @@ public:
                 WriteOut("Cannot mount floppy in hard drive position");
             }
             else {
-                if (AttachToBiosAndIdeByIndex(newImage, driveIndex, ide_index, ide_slave)) {
+                if (AttachToBiosAndIdeByIndex(newImage, (unsigned char)driveIndex, (unsigned char)ide_index, ide_slave)) {
                     WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', (!paths.empty()) ? paths[0].c_str() : "");
 
                     if (paths.size() > 1) {
@@ -2738,7 +2738,7 @@ private:
                     WriteOut("Invalid size parameter\n");
                     return false;
                 }
-                sizes[count++] = val;
+                sizes[count++] = (unsigned int)val;
                 index = 0;
                 if (count == 4) {
                     //too many commas
@@ -2763,7 +2763,7 @@ private:
             WriteOut("Invalid size parameter\n");
             return false;
         }
-        sizes[count++] = val;
+        sizes[count++] = (unsigned int)val;
         if (isCHS) {
             if (count == 3) sizes[count++] = 512; //set sector size automatically
             if (count != 4) {
@@ -2997,7 +2997,7 @@ private:
                 }
 
                 header_final = (entry[0] == 0x91);
-                header_more = ((unsigned int)entry[2]) + (((unsigned int)entry[3]) << 8);
+                header_more = (int)(((unsigned int)entry[2]) + (((unsigned int)entry[3]) << 8u));
                 header_platform = entry[1];
                 LOG_MSG("El Torito entry: first header platform=0x%02x more=%u final=%u\n", header_platform, header_more, header_final);
                 header_count++;
@@ -3080,7 +3080,7 @@ private:
             return false;
         }
 
-        imageDisk * newImage = new imageDiskElToritoFloppy(el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
+        imageDisk * newImage = new imageDiskElToritoFloppy((unsigned char)el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
         newImage->Addref();
 
         DOS_Drive* newDrive = new fatDrive(newImage);
@@ -3204,7 +3204,7 @@ private:
 
         if (imgDisks.size() == 1) {
             imageDisk* image = ((fatDrive*)imgDisks[0])->loadedDisk;
-            AttachToBiosAndIdeByLetter(image, drive, ide_index, ide_slave);
+            AttachToBiosAndIdeByLetter(image, drive, (unsigned char)ide_index, ide_slave);
         }
         return true;
     }
@@ -3270,7 +3270,7 @@ private:
             delete dsk;
             return NULL;
         }
-        dsk->Set_Reserved_Cylinders(reserved_cylinders);
+        dsk->Set_Reserved_Cylinders((Bitu)reserved_cylinders);
         return dsk;
     }
 
@@ -3312,7 +3312,7 @@ private:
 
         WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_RAMDRIVE"), drive);
 
-        AttachToBiosAndIdeByLetter(dsk, drive, ide_index, ide_slave);
+        AttachToBiosAndIdeByLetter(dsk, drive, (unsigned char)ide_index, ide_slave);
 
         return true;
     }
@@ -3340,7 +3340,7 @@ private:
         if (!AttachToBiosByIndex(image, bios_drive_index)) return false;
         //if hard drive image, and if ide controller is specified
         if (bios_drive_index >= 2 || bios_drive_index < MAX_DISK_IMAGES) {
-            IDE_Hard_Disk_Attach(ide_index, ide_slave, bios_drive_index);
+            IDE_Hard_Disk_Attach((signed char)ide_index, ide_slave, bios_drive_index);
             updateDPT();
         }
         return true;
@@ -3420,7 +3420,7 @@ private:
         DriveManager::InitializeDrive(drive - 'A');
 
         // Set the correct media byte in the table 
-        mem_writeb(Real2Phys(dos.tables.mediaid) + (drive - 'A') * 2, mediaid);
+        mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * 2u, mediaid);
 
         /* Command uses dta so set it to our internal dta */
         RealPt save_dta = dos.dta();
@@ -3458,12 +3458,12 @@ private:
             sizes[0] = 512; // sector size
             sizes[1] = buf[0x3b];   // sectors
             sizes[2] = buf[0x3a];   // heads
-            sizes[3] = SDL_SwapBE16(*(Bit16s*)(buf + 0x38));    // cylinders
+            sizes[3] = SDL_SwapBE16((Bit16u)(*(Bit16s*)(buf + 0x38)));    // cylinders
 
                                                                 // Do translation (?)
-            while ((sizes[2] < 128) && (sizes[3] > 1023)) {
-                sizes[2] <<= 1;
-                sizes[3] >>= 1;
+            while ((sizes[2] < 128u) && (sizes[3] > 1023u)) {
+                sizes[2] <<= 1u;
+                sizes[3] >>= 1u;
             }
 
             if (sizes[3]>1023) {
@@ -3497,27 +3497,27 @@ private:
         }
         // check MBR partition entry 1
         Bitu starthead = buf[0x1bf];
-        Bitu startsect = (buf[0x1c0] & 0x3f) - 1;
-        Bitu startcyl = buf[0x1c1] | ((buf[0x1c0] & 0xc0) << 2);
-        Bitu endcyl = buf[0x1c5] | ((buf[0x1c4] & 0xc0) << 2);
+        Bitu startsect = (buf[0x1c0] & 0x3fu) - 1u;
+        Bitu startcyl = (unsigned char)buf[0x1c1] | (unsigned int)((buf[0x1c0] & 0xc0) << 2u);
+        Bitu endcyl = (unsigned char)buf[0x1c5] | (unsigned int)((buf[0x1c4] & 0xc0) << 2u);
 
-        Bitu heads = buf[0x1c3] + 1;
-        Bitu sectors = buf[0x1c4] & 0x3f;
+        Bitu heads = buf[0x1c3] + 1u;
+        Bitu sectors = buf[0x1c4] & 0x3fu;
 
         Bitu pe1_size = host_readd(&buf[0x1ca]);
         if (pe1_size != 0) {
             Bitu part_start = startsect + sectors * starthead +
                 startcyl * sectors*heads;
             Bitu part_end = heads * sectors*endcyl;
-            Bits part_len = part_end - part_start;
+            Bits part_len = (Bits)(part_end - part_start);
             // partition start/end sanity check
             // partition length should not exceed file length
             // real partition size can be a few cylinders less than pe1_size
             // if more than 1023 cylinders see if first partition fits
             // into 1023, else bail.
             if ((part_len<0) || ((Bitu)part_len > pe1_size) || (pe1_size > fcsize) ||
-                ((pe1_size - part_len) / (sectors*heads)>2) ||
-                ((pe1_size / (heads*sectors))>1023)) {
+                ((pe1_size - (Bitu)part_len) / (sectors*heads)>2u) ||
+                ((pe1_size / (heads*sectors))>1023u)) {
                 //LOG_MSG("start(c,h,s) %u,%u,%u",startcyl,starthead,startsect);
                 //LOG_MSG("endcyl %u heads %u sectors %u",endcyl,heads,sectors);
                 //LOG_MSG("psize %u start %u end %u",pe1_size,part_start,part_end);
@@ -3594,7 +3594,7 @@ private:
         DriveManager::InitializeDrive(drive - 'A');
 
         // Set the correct media byte in the table 
-        mem_writeb(Real2Phys(dos.tables.mediaid) + (drive - 'A') * 2, mediaid);
+        mem_writeb(Real2Phys(dos.tables.mediaid) + ((unsigned int)drive - 'A') * 2u, mediaid);
 
         // If instructed, attach to IDE controller as ATAPI CD-ROM device
         if (ide_index >= 0) IDE_CDROM_Attach(ide_index, ide_slave, drive - 'A');
@@ -3653,7 +3653,7 @@ private:
 
         Bit64u sectors;
         if (qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
-            Bit32u cluster_size = 1 << qcow2_header.cluster_bits;
+            Bit32u cluster_size = 1u << qcow2_header.cluster_bits;
             if ((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)) {
                 WriteOut("Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.\n", cluster_size);
                 return 0;
@@ -3734,7 +3734,7 @@ private:
             (unsigned int)sizes[3], (unsigned int)sizes[2], (unsigned int)sizes[1], (unsigned int)sizes[0]);
 
         if (imagesize > 2880) newImage->Set_Geometry(sizes[2], sizes[3], sizes[1], sizes[0]);
-        if (reserved_cylinders > 0) newImage->Set_Reserved_Cylinders(reserved_cylinders);
+        if (reserved_cylinders > 0) newImage->Set_Reserved_Cylinders((Bitu)reserved_cylinders);
 
         return newImage;
     }
