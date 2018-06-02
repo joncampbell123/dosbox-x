@@ -189,8 +189,8 @@ void imageDiskMemory::init(diskGeo diskParams, bool isHardDrive, imageDisk* unde
 	//then the chunk size grows up to a 8gb drive, while the map consumes 30-60k of memory (on 64bit PCs)
 	//with a 8gb drive, the chunks are about 1mb each, and the map consumes about 60k of memory 
 	//and for larger drives (with over 1023 cylinders), the chunks remain at 1mb each while the map grows
-	this->sectors_per_chunk = (diskParams.headscyl + 7) / 8 * diskParams.secttrack;
-	this->total_chunks = (Bit32u)((absoluteSectors + sectors_per_chunk - 1) / sectors_per_chunk);
+	this->sectors_per_chunk = (diskParams.headscyl + 7u) / 8u * diskParams.secttrack;
+	this->total_chunks = (Bit32u)((absoluteSectors + sectors_per_chunk - 1u) / sectors_per_chunk);
 	this->chunk_size = sectors_per_chunk * diskParams.bytespersect;
 	//allocate a map of chunks that have been allocated and their memory addresses
 	ChunkMap = (Bit8u**)malloc(total_chunks * sizeof(Bit8u*));
@@ -492,10 +492,10 @@ Bit8u imageDiskMemory::Format() {
 	}
 	// set the special markers for cluster 0 and cluster 1
 	if (isFat16) {
-		host_writed(&sbuf[0], 0xFFFFFF00 | mediaID);
+		host_writed(&sbuf[0], 0xFFFFFF00u | mediaID);
 	}
 	else {
-		host_writed(&sbuf[0], 0xFFFF00 | mediaID);
+		host_writed(&sbuf[0], 0xFFFF00u | mediaID);
 	}
 	this->Write_AbsoluteSector(partitionStart + reservedSectors, sbuf);
 	this->Write_AbsoluteSector(partitionStart + reservedSectors + fatSectors, sbuf);
