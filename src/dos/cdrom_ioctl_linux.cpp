@@ -57,7 +57,9 @@ bool CDROM_Interface_Ioctl::ReadSectors(PhysPt buffer, bool raw, unsigned long s
 	int cdrom_fd = open(device_name, O_RDONLY | O_NONBLOCK);
 	if (cdrom_fd == -1) return false;
 	
-	Bits buflen = raw ? num * CD_FRAMESIZE_RAW : num * CD_FRAMESIZE;
+	Bitu buflen = raw ? num * (unsigned int)CD_FRAMESIZE_RAW : num * (unsigned int)CD_FRAMESIZE;
+    assert(buflen != 0u);
+
 	Bit8u* buf = new Bit8u[buflen];	
 	int ret;
 	
@@ -69,9 +71,9 @@ bool CDROM_Interface_Ioctl::ReadSectors(PhysPt buffer, bool raw, unsigned long s
 		
 		ret = ioctl(cdrom_fd, CDROMREADRAW, &cdrom_read);		
 	} else {
-		ret = lseek(cdrom_fd, sector * CD_FRAMESIZE, SEEK_SET);
+		ret = lseek(cdrom_fd, (off_t)(sector * (unsigned long)CD_FRAMESIZE), SEEK_SET);
 		if (ret >= 0) ret = read(cdrom_fd, buf, buflen);
-		if (ret != buflen) ret = -1;
+		if ((Bitu)ret != buflen) ret = -1;
 	}
 	close(cdrom_fd);
 
