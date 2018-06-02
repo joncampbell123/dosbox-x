@@ -154,9 +154,9 @@ static INLINE Bit32u Fetchd() {
 Bits CPU_Core_Normal_Run(void) {
 	while (CPU_Cycles-->0) {
 		LOADIP;
-		core.opcode_index=cpu.code.big*0x200;
+		core.opcode_index=cpu.code.big*0x200u;
 		core.prefixes=cpu.code.big;
-		core.ea_table=&EATable[cpu.code.big*256];
+		core.ea_table=&EATable[cpu.code.big*256u];
 		BaseDS=SegBase(ds);
 		BaseSS=SegBase(ss);
 		core.base_val_ds=ds;
@@ -164,7 +164,7 @@ Bits CPU_Core_Normal_Run(void) {
 #if C_HEAVY_DEBUG
 		if (DEBUG_HeavyIsBreakpoint()) {
 			FillFlags();
-			return debugCallback;
+			return (Bits)debugCallback;
 		};
 #endif
 #endif
