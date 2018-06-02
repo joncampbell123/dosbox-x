@@ -202,7 +202,7 @@ void Program::WriteOut(const char * format,...) {
 		if (buf[i] == 0xA && last_written_character != 0xD) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 		}
-		last_written_character = out = buf[i];
+		last_written_character = (char)(out = (Bit8u)buf[i]);
 		DOS_WriteFile(STDOUT,&out,&s);
 	}
 	
@@ -217,7 +217,7 @@ void Program::WriteOut_NoParsing(const char * format) {
 		if (buf[i] == 0xA && last_written_character != 0xD) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 		}
-		last_written_character = out = buf[i];
+		last_written_character = (char)(out = (Bit8u)buf[i]);
 		DOS_WriteFile(STDOUT,&out,&s);
 	}
 
@@ -232,7 +232,7 @@ static bool LocateEnvironmentBlock(PhysPt &env_base,PhysPt &env_fence,Bitu env_s
 
 	DOS_MCB env_mcb(env_seg-1); /* read the environment block's MCB to determine how large it is */
 	env_base = PhysMake(env_seg,0);
-	env_fence = env_base + (env_mcb.GetSize() << 4);
+	env_fence = env_base + (PhysPt)(env_mcb.GetSize() << 4u);
 	return true;
 }
 
@@ -404,7 +404,7 @@ void Program::DebugDumpEnv() {
 
 		while (env_scan < env_fence) {
 			if ((c=mem_readb(env_scan++)) == 0) break;
-			tmp += c;
+			tmp += (char)c;
 		}
 
 		LOG_MSG("...%s",tmp.c_str());
@@ -483,11 +483,11 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 		}
 
 		assert(env_scan < env_fence);
-		for (const char *s=bigentry.c_str();*s != 0;) mem_writeb(env_scan++,*s++);
+		for (const char *s=bigentry.c_str();*s != 0;) mem_writeb(env_scan++,(Bit8u)(*s++));
 		mem_writeb(env_scan++,'=');
 
 		assert(env_scan < env_fence);
-		for (const char *s=new_string;*s != 0;) mem_writeb(env_scan++,*s++);
+		for (const char *s=new_string;*s != 0;) mem_writeb(env_scan++,(Bit8u)(*s++));
 		mem_writeb(env_scan++,0);
 		mem_writeb(env_scan++,0);
 
