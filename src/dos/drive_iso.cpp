@@ -68,11 +68,11 @@ bool isoFile::Read(Bit8u *data, Bit16u *size) {
 		*size = (Bit16u)(fileEnd - filePos);
 	
 	Bit16u nowSize = 0;
-	int sector = filePos / ISO_FRAMESIZE;
+	int sector = (int)(filePos / ISO_FRAMESIZE);
 	Bit16u sectorPos = (Bit16u)(filePos % ISO_FRAMESIZE);
 	
 	if (sector != cachedSector) {
-		if (drive->readSector(buffer, sector)) cachedSector = sector;
+		if (drive->readSector(buffer, (unsigned int)sector)) cachedSector = sector;
 		else { *size = 0; cachedSector = -1; }
 	}
 	while (nowSize < *size) {
@@ -84,7 +84,7 @@ bool isoFile::Read(Bit8u *data, Bit16u *size) {
 			sectorPos = 0;
 			sector++;
 			cachedSector++;
-			if (!drive->readSector(buffer, sector)) {
+			if (!drive->readSector(buffer, (unsigned int)sector)) {
 				*size = nowSize;
 				cachedSector = -1;
 			}
@@ -438,7 +438,7 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de) {
 		 // read sector and advance sector pointer
 		 int length = readDirEntry(de, &buffer[dirIterator.pos]);
 		 result = length >= 0;
-		 dirIterator.pos += length;
+         if (length > 0) dirIterator.pos += (unsigned int)length;
 	}
 	return result;
 }
@@ -458,7 +458,7 @@ void isoDrive::FreeDirIterator(const int dirIterator) {
 
 bool isoDrive::ReadCachedSector(Bit8u** buffer, const Bit32u sector) {
 	// get hash table entry
-	int pos = sector % ISO_MAX_HASH_TABLE_SIZE;
+	unsigned int pos = sector % ISO_MAX_HASH_TABLE_SIZE;
 	SectorHashEntry& he = sectorHashEntries[pos];
 	
 	// check if the entry is valid and contains the correct sector

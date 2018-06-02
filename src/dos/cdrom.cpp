@@ -127,8 +127,8 @@ bool CDROM_Interface_SDL::GetAudioSub(unsigned char& attr, unsigned char& track,
 		track	= cd->cur_track;
 		index	= cd->cur_track;
 		attr	= cd->track[track].type<<4;
-		FRAMES_TO_MSF(cd->cur_frame,&relPos.min,&relPos.sec,&relPos.fr);
-		FRAMES_TO_MSF(cd->cur_frame+cd->track[track].offset,&absPos.min,&absPos.sec,&absPos.fr);
+		FRAMES_TO_MSF((unsigned int)cd->cur_frame,&relPos.min,&relPos.sec,&relPos.fr);
+		FRAMES_TO_MSF((unsigned int)cd->cur_frame+cd->track[track].offset,&absPos.min,&absPos.sec,&absPos.fr);
 	}
 	return CD_INDRIVE(SDL_CDStatus(cd));		
 #else
