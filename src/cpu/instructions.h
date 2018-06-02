@@ -633,8 +633,8 @@ extern bool enable_fpu;
 		lflags.type=t_UNKNOWN;								\
 	}
 
-#define PARITY16(x)  (parity_lookup[((x)>>8)&0xff]^parity_lookup[(x)&0xff]^FLAG_PF)
-#define PARITY32(x)  (PARITY16((x)&0xffff)^PARITY16(((x)>>16)&0xffff)^FLAG_PF)
+#define PARITY16(x)  (parity_lookup[((unsigned int)((Bit16u)(x))>>8u)&0xffu]^parity_lookup[((Bit8u)(x))&0xffu]^FLAG_PF)
+#define PARITY32(x)  (PARITY16(((Bit16u)(x))&0xffffu)^PARITY16(((unsigned int)((Bit32u)(x))>>16u)&0xffffu)^FLAG_PF)
 
 #define MULB(op1,load,save)									\
 	reg_ax=reg_al*load(op1);								\
@@ -795,7 +795,7 @@ extern bool enable_fpu;
 	SETFLAGBIT(OF,0);/*FIXME*/									\
 	SETFLAGBIT(ZF,(rem==0)&&((quo32s&1)!=0));								\
 	SETFLAGBIT(CF,((rem&3) >= 1 && (rem&3) <= 2)); \
-	SETFLAGBIT(PF,PARITY32(rem&0xffffffff)^PARITY32(quo32s&0xffffffff)^FLAG_PF);					\
+	SETFLAGBIT(PF,PARITY32((Bit32u)rem&0xffffffffu)^PARITY32((Bit32u)quo32s&0xffffffffu)^FLAG_PF);					\
 }
 
 #define IMULB(op1,load,save)								\
