@@ -74,17 +74,17 @@ bool int15_wait_force_unmask_irq = false;
 
 Bit16u biosConfigSeg=0;
 
-Bitu BIOS_DEFAULT_IRQ0_LOCATION = ~0;       // (RealMake(0xf000,0xfea5))
-Bitu BIOS_DEFAULT_IRQ1_LOCATION = ~0;       // (RealMake(0xf000,0xe987))
-Bitu BIOS_DEFAULT_IRQ07_DEF_LOCATION = ~0;  // (RealMake(0xf000,0xff55))
-Bitu BIOS_DEFAULT_IRQ815_DEF_LOCATION = ~0; // (RealMake(0xf000,0xe880))
+Bitu BIOS_DEFAULT_IRQ0_LOCATION = ~0u;       // (RealMake(0xf000,0xfea5))
+Bitu BIOS_DEFAULT_IRQ1_LOCATION = ~0u;       // (RealMake(0xf000,0xe987))
+Bitu BIOS_DEFAULT_IRQ07_DEF_LOCATION = ~0u;  // (RealMake(0xf000,0xff55))
+Bitu BIOS_DEFAULT_IRQ815_DEF_LOCATION = ~0u; // (RealMake(0xf000,0xe880))
 
-Bitu BIOS_DEFAULT_HANDLER_LOCATION = ~0;    // (RealMake(0xf000,0xff53))
+Bitu BIOS_DEFAULT_HANDLER_LOCATION = ~0u;    // (RealMake(0xf000,0xff53))
 
-Bitu BIOS_VIDEO_TABLE_LOCATION = ~0;        // RealMake(0xf000,0xf0a4)
-Bitu BIOS_VIDEO_TABLE_SIZE = 0;
+Bitu BIOS_VIDEO_TABLE_LOCATION = ~0u;        // RealMake(0xf000,0xf0a4)
+Bitu BIOS_VIDEO_TABLE_SIZE = 0u;
 
-Bitu BIOS_DEFAULT_RESET_LOCATION = ~0;      // RealMake(0xf000,0xe05b)
+Bitu BIOS_DEFAULT_RESET_LOCATION = ~0u;      // RealMake(0xf000,0xe05b)
 
 bool allow_more_than_640kb = false;
 
@@ -138,10 +138,10 @@ void ROMBIOS_SanityCheck() {
 Bitu ROMBIOS_MinAllocatedLoc() {
     Bitu r = rombios_alloc.getMinAddress();
 
-    if (r > (0x100000 - rombios_minimum_size))
-        r = (0x100000 - rombios_minimum_size);
+    if (r > (0x100000u - rombios_minimum_size))
+        r = (0x100000u - rombios_minimum_size);
 
-    return r & ~0xFFF;
+    return r & ~0xFFFu;
 }
 
 void ROMBIOS_FreeUnusedMinToLoc(Bitu phys) {
@@ -525,8 +525,9 @@ static Bitu dosbox_integration_port02_status_r(Bitu port,Bitu iolen) {
      * 3:2 = reserved
      *   1 = error
      *   0 = busy */
-    return (dosbox_int_regsel_shf << 6) + (dosbox_int_register_shf << 4) +
-        (dosbox_int_error ? 2 : 0) + (dosbox_int_busy ? 1 : 0);
+    return
+        ((unsigned int)dosbox_int_regsel_shf << 6u) + ((unsigned int)dosbox_int_register_shf << 4u) +
+        (dosbox_int_error ? 2u : 0u) + (dosbox_int_busy ? 1u : 0u);
 }
 
 static void dosbox_integration_port02_command_w(Bitu port,Bitu val,Bitu iolen) {
@@ -817,7 +818,7 @@ void ISAPnPDevice::write_nstring(const char *str,const size_t l) {
     if (alloc_res == NULL || alloc_write >= alloc_sz) return;
 
     while (*str != 0 && alloc_write < alloc_sz)
-        alloc_res[alloc_write++] = *str++;
+        alloc_res[alloc_write++] = (unsigned char)(*str++);
 }
 
 void ISAPnPDevice::write_Identifier_String(const char *str) {
@@ -932,7 +933,7 @@ ISAPnPIntegrationDevice *isapnpigdevice = NULL;
 
 class ISAPNP_SysDevNode {
 public:
-    ISAPNP_SysDevNode(const unsigned char *ir,int len,bool already_alloc=false) {
+    ISAPNP_SysDevNode(const unsigned char *ir,size_t len,bool already_alloc=false) {
         if (already_alloc) {
             raw = (unsigned char*)ir;
             raw_len = len;
@@ -940,9 +941,9 @@ public:
         }
         else {
             if (len > 65535) E_Exit("ISAPNP_SysDevNode data too long");
-            raw = new unsigned char[len+1];
+            raw = new unsigned char[(size_t)len+1u];
             if (ir == NULL) E_Exit("ISAPNP_SysDevNode cannot allocate buffer");
-            memcpy(raw,ir,len);
+            memcpy(raw,ir,(size_t)len);
             raw_len = len;
             raw[len] = 0;
             own = true;
@@ -953,8 +954,8 @@ public:
     }
 public:
     unsigned char*      raw;
-    int         raw_len;
-    bool            own;
+    size_t              raw_len;
+    bool                own;
 };
 
 static ISAPNP_SysDevNode*   ISAPNP_SysDevNodes[MAX_ISA_PNP_SYSDEVNODES] = {NULL};
@@ -1853,8 +1854,8 @@ static bool Tandy_TransferInProgress(void) {
     else if (tandy_dac.port) tandy_dma = tandy_dac.dma;
 
     IO_Write(0x0c,0x00);
-    Bit16u datalen=(Bit8u)(IO_ReadB(tandy_dma*2+1)&0xff);
-    datalen|=(IO_ReadB(tandy_dma*2+1)<<8);
+    Bit16u datalen=(Bit8u)(IO_ReadB(tandy_dma*2u+1u)&0xffu);
+    datalen|=(IO_ReadB(tandy_dma*2u+1u)<<8u);
     if (datalen==0xffff) return false;  /* no DMA transfer */
     else if ((datalen<0x10) && (real_readb(0x40,0xd4)==0x0f) && (real_readw(0x40,0xd2)==0x1c)) {
         /* stop already requested */
@@ -1888,12 +1889,12 @@ static void Tandy_SetupTransfer(PhysPt bufpt,bool isplayback) {
     else if (tandy_dac.port) tandy_dma = tandy_dac.dma;
 
     if (tandy_sb.port) {
-        IO_Write(tandy_sb.port+0xc,0xd0);               /* stop DMA transfer */
-        IO_Write(0x21,IO_Read(0x21)&(~(1<<tandy_irq))); /* unmask IRQ */
-        IO_Write(tandy_sb.port+0xc,0xd1);               /* turn speaker on */
+        IO_Write(tandy_sb.port+0xcu,0xd0);               /* stop DMA transfer */
+        IO_Write(0x21,IO_Read(0x21)&(~(1u<<tandy_irq))); /* unmask IRQ */
+        IO_Write(tandy_sb.port+0xcu,0xd1);               /* turn speaker on */
     } else {
         IO_Write(tandy_dac.port,IO_Read(tandy_dac.port)&0x60);  /* disable DAC */
-        IO_Write(0x21,IO_Read(0x21)&(~(1<<tandy_irq)));         /* unmask IRQ */
+        IO_Write(0x21,IO_Read(0x21)&(~(1u<<tandy_irq)));         /* unmask IRQ */
     }
 
     IO_Write(0x0a,0x04|tandy_dma);  /* mask DMA channel */
@@ -1901,9 +1902,9 @@ static void Tandy_SetupTransfer(PhysPt bufpt,bool isplayback) {
     if (isplayback) IO_Write(0x0b,0x48|tandy_dma);
     else IO_Write(0x0b,0x44|tandy_dma);
     /* set physical address of buffer */
-    Bit8u bufpage=(Bit8u)((bufpt>>16)&0xff);
-    IO_Write(tandy_dma*2,(Bit8u)(bufpt&0xff));
-    IO_Write(tandy_dma*2,(Bit8u)((bufpt>>8)&0xff));
+    Bit8u bufpage=(Bit8u)((bufpt>>16u)&0xff);
+    IO_Write(tandy_dma*2u,(Bit8u)(bufpt&0xff));
+    IO_Write(tandy_dma*2u,(Bit8u)((bufpt>>8u)&0xff));
     switch (tandy_dma) {
         case 0: IO_Write(0x87,bufpage); break;
         case 1: IO_Write(0x83,bufpage); break;
@@ -1919,28 +1920,28 @@ static void Tandy_SetupTransfer(PhysPt bufpt,bool isplayback) {
     tlength--;
 
     /* set transfer size */
-    IO_Write(tandy_dma*2+1,(Bit8u)(tlength&0xff));
-    IO_Write(tandy_dma*2+1,(Bit8u)((tlength>>8)&0xff));
+    IO_Write(tandy_dma*2u+1u,(Bit8u)(tlength&0xffu));
+    IO_Write(tandy_dma*2u+1u,(Bit8u)((tlength>>8u)&0xffu));
 
     Bit16u delay=(Bit16u)(real_readw(0x40,0xd2)&0xfff);
-    Bit8u amplitude=(Bit8u)((real_readw(0x40,0xd2)>>13)&0x7);
+    Bit8u amplitude=(Bit8u)(((unsigned int)real_readw(0x40,0xd2)>>13u)&0x7u);
     if (tandy_sb.port) {
         IO_Write(0x0a,tandy_dma);   /* enable DMA channel */
         /* set frequency */
-        IO_Write(tandy_sb.port+0xc,0x40);
-        IO_Write(tandy_sb.port+0xc,256-delay*100/358);
+        IO_Write(tandy_sb.port+0xcu,0x40);
+        IO_Write(tandy_sb.port+0xcu,256u - delay*100u/358u);
         /* set playback type to 8bit */
-        if (isplayback) IO_Write(tandy_sb.port+0xc,0x14);
-        else IO_Write(tandy_sb.port+0xc,0x24);
+        if (isplayback) IO_Write(tandy_sb.port+0xcu,0x14u);
+        else IO_Write(tandy_sb.port+0xcu,0x24u);
         /* set transfer size */
-        IO_Write(tandy_sb.port+0xc,(Bit8u)(tlength&0xff));
-        IO_Write(tandy_sb.port+0xc,(Bit8u)((tlength>>8)&0xff));
+        IO_Write(tandy_sb.port+0xcu,(Bit8u)(tlength&0xffu));
+        IO_Write(tandy_sb.port+0xcu,(Bit8u)((tlength>>8)&0xffu));
     } else {
-        if (isplayback) IO_Write(tandy_dac.port,(IO_Read(tandy_dac.port)&0x7c) | 0x03);
-        else IO_Write(tandy_dac.port,(IO_Read(tandy_dac.port)&0x7c) | 0x02);
-        IO_Write(tandy_dac.port+2,(Bit8u)(delay&0xff));
-        IO_Write(tandy_dac.port+3,(Bit8u)(((delay>>8)&0xf) | (amplitude<<5)));
-        if (isplayback) IO_Write(tandy_dac.port,(IO_Read(tandy_dac.port)&0x7c) | 0x1f);
+        if (isplayback) IO_Write(tandy_dac.port,(IO_Read(tandy_dac.port)&0x7cu) | 0x03u);
+        else IO_Write(tandy_dac.port,(IO_Read(tandy_dac.port)&0x7cu) | 0x02u);
+        IO_Write(tandy_dac.port+2u,(Bit8u)(delay&0xffu));
+        IO_Write(tandy_dac.port+3u,(Bit8u)((((unsigned int)delay>>8u)&0xfu) | ((unsigned int)amplitude<<5u)));
+        if (isplayback) IO_Write(tandy_dac.port,(IO_Read(tandy_dac.port)&0x7cu) | 0x1fu);
         else IO_Write(tandy_dac.port,(IO_Read(tandy_dac.port)&0x7c) | 0x1e);
         IO_Write(0x0a,tandy_dma);   /* enable DMA channel */
     }
@@ -1959,36 +1960,36 @@ static Bitu IRQ_TandyDAC(void) {
         /* acknowledge IRQ */
         IO_Write(0x20,0x20);
         if (tandy_sb.port) {
-            IO_Read(tandy_sb.port+0xe);
+            IO_Read(tandy_sb.port+0xeu);
         }
 
         /* buffer starts at the next page */
-        Bit8u npage=real_readb(0x40,0xd4)+1;
+        Bit8u npage=real_readb(0x40,0xd4)+1u;
         real_writeb(0x40,0xd4,npage);
 
         Bitu rb=real_readb(0x40,0xd3);
         if (rb&0x10) {
             /* start recording */
-            real_writeb(0x40,0xd3,rb&0xef);
-            Tandy_SetupTransfer(npage<<16,false);
+            real_writeb(0x40,0xd3,rb&0xefu);
+            Tandy_SetupTransfer((unsigned int)npage<<16u,false);
         } else {
             /* start playback */
-            Tandy_SetupTransfer(npage<<16,true);
+            Tandy_SetupTransfer((unsigned int)npage<<16u,true);
         }
     } else {    /* playing/recording is finished */
-        Bit8u tandy_irq = 7;
+        Bit8u tandy_irq = 7u;
         if (tandy_sb.port) tandy_irq = tandy_sb.irq;
         else if (tandy_dac.port) tandy_irq = tandy_dac.irq;
         Bit8u tandy_irq_vector = tandy_irq;
-        if (tandy_irq_vector<8) tandy_irq_vector += 8;
-        else tandy_irq_vector += (0x70-8);
+        if (tandy_irq_vector<8u) tandy_irq_vector += 8u;
+        else tandy_irq_vector += (0x70u-8u);
 
         RealSetVec(tandy_irq_vector,real_readd(0x40,0xd6));
 
         /* turn off speaker and acknowledge soundblaster IRQ */
         if (tandy_sb.port) {
-            IO_Write(tandy_sb.port+0xc,0xd3);
-            IO_Read(tandy_sb.port+0xe);
+            IO_Write(tandy_sb.port+0xcu,0xd3u);
+            IO_Read(tandy_sb.port+0xeu);
         }
 
         /* issue BIOS tandy sound device busy callout */
@@ -2066,7 +2067,7 @@ static void InitRtc () {
     // leave bits 6 (pirq), 5 (airq), 0 (dst) untouched
     // reset bits 7 (freeze), 4 (uirq), 3 (sqw), 2 (bcd)
     // set bit 1 (24h)
-    WriteCmosByte(0x0b, (ReadCmosByte(0x0b) & 0x61) | 0x02);
+    WriteCmosByte(0x0b, (ReadCmosByte(0x0b) & 0x61u) | 0x02u);
 
     ReadCmosByte(0x0c);             // clear any bits set
 }
@@ -2079,12 +2080,12 @@ static Bitu INT1A_Handler(void) {
             Bit32u ticks=mem_readd(BIOS_TIMER);
             reg_al=mem_readb(BIOS_24_HOURS_FLAG);
             mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
-            reg_cx=(Bit16u)(ticks >> 16);
+            reg_cx=(Bit16u)(ticks >> 16u);
             reg_dx=(Bit16u)(ticks & 0xffff);
             break;
         }
     case 0x01:  /* Set System time */
-        mem_writed(BIOS_TIMER,(reg_cx<<16)|reg_dx);
+        mem_writed(BIOS_TIMER,((unsigned int)reg_cx<<16u)|reg_dx);
         break;
     case 0x02:  /* GET REAL-TIME CLOCK TIME (AT,XT286,PS) */
         if(date_host_forced) {
@@ -2110,11 +2111,11 @@ static Bitu INT1A_Handler(void) {
     case 0x03:  // set RTC time
         if(date_host_forced) {
             InitRtc();                          // make sure BCD and no am/pm
-            WriteCmosByte(0x0b, ReadCmosByte(0x0b) | 0x80);     // prohibit updates
+            WriteCmosByte(0x0b, ReadCmosByte(0x0b) | 0x80u);     // prohibit updates
             WriteCmosByte(0x04, reg_ch);        // hours
             WriteCmosByte(0x02, reg_cl);        // minutes
             WriteCmosByte(0x00, reg_dh);        // seconds
-            WriteCmosByte(0x0b, (ReadCmosByte(0x0b) & 0x7e) | (reg_dh & 0x01)); // dst + implicitly allow updates
+            WriteCmosByte(0x0b, (ReadCmosByte(0x0b) & 0x7eu) | (reg_dh & 0x01u)); // dst + implicitly allow updates
         }
         break;
     case 0x04:  /* GET REAL-TIME ClOCK DATE  (AT,XT286,PS) */
@@ -2178,15 +2179,15 @@ static Bitu INT1A_Handler(void) {
                     }
                     break;
                 case 0x02: {    // find device
-                    Bitu devnr=0;
-                    Bitu count=0x100;
-                    Bit32u devicetag=(reg_cx<<16)|reg_dx;
+                    Bitu devnr=0u;
+                    Bitu count=0x100u;
+                    Bit32u devicetag=((unsigned int)reg_cx<<16u)|reg_dx;
                     Bits found=-1;
                     for (Bitu i=0; i<=count; i++) {
-                        IO_WriteD(0xcf8,0x80000000|(i<<8)); // query unique device/subdevice entries
+                        IO_WriteD(0xcf8,0x80000000u|(i<<8u)); // query unique device/subdevice entries
                         if (IO_ReadD(0xcfc)==devicetag) {
                             if (devnr==reg_si) {
-                                found=i;
+                                found=(Bits)i;
                                 break;
                             } else {
                                 // device found, but not the SIth device
@@ -2207,16 +2208,16 @@ static Bitu INT1A_Handler(void) {
                     break;
                 case 0x03: {    // find device by class code
                     Bitu devnr=0;
-                    Bitu count=0x100;
-                    Bit32u classtag=reg_ecx&0xffffff;
+                    Bitu count=0x100u;
+                    Bit32u classtag=reg_ecx&0xffffffu;
                     Bits found=-1;
                     for (Bitu i=0; i<=count; i++) {
-                        IO_WriteD(0xcf8,0x80000000|(i<<8)); // query unique device/subdevice entries
-                        if (IO_ReadD(0xcfc)!=0xffffffff) {
-                            IO_WriteD(0xcf8,0x80000000|(i<<8)|0x08);
-                            if ((IO_ReadD(0xcfc)>>8)==classtag) {
+                        IO_WriteD(0xcf8,0x80000000u|(i<<8u)); // query unique device/subdevice entries
+                        if (IO_ReadD(0xcfc)!=0xffffffffu) {
+                            IO_WriteD(0xcf8,0x80000000u|(i<<8u)|0x08u);
+                            if ((IO_ReadD(0xcfc)>>8u)==classtag) {
                                 if (devnr==reg_si) {
-                                    found=i;
+                                    found=(Bits)i;
                                     break;
                                 } else {
                                     // device found, but not the SIth device
@@ -2228,7 +2229,7 @@ static Bitu INT1A_Handler(void) {
                     if (found>=0) {
                         reg_ah=0x00;
                         reg_bh=0x00;    // bus 0
-                        reg_bl=(Bit8u)(found&0xff);
+                        reg_bl=(Bit8u)(found&0xffu);
                         CALLBACK_SCF(false);
                     } else {
                         reg_ah=0x86;    // device not found
@@ -2237,38 +2238,38 @@ static Bitu INT1A_Handler(void) {
                     }
                     break;
                 case 0x08:  // read configuration byte
-                    IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
-                    reg_cl=IO_ReadB(0xcfc+(reg_di&3));
+                    IO_WriteD(0xcf8,0x80000000u|((unsigned int)reg_bx<<8u)|(reg_di&0xfcu));
+                    reg_cl=IO_ReadB(0xcfc+(reg_di&3u));
                     CALLBACK_SCF(false);
                     reg_ah=0x00;
                     break;
                 case 0x09:  // read configuration word
-                    IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
-                    reg_cx=IO_ReadW(0xcfc+(reg_di&2));
+                    IO_WriteD(0xcf8,0x80000000u|((unsigned int)reg_bx<<8u)|(reg_di&0xfcu));
+                    reg_cx=IO_ReadW(0xcfc+(reg_di&2u));
                     CALLBACK_SCF(false);
                     reg_ah=0x00;
                     break;
                 case 0x0a:  // read configuration dword
-                    IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
-                    reg_ecx=IO_ReadD(0xcfc+(reg_di&3));
+                    IO_WriteD(0xcf8,0x80000000u|((unsigned int)reg_bx<<8u)|(reg_di&0xfcu));
+                    reg_ecx=IO_ReadD(0xcfc+(reg_di&3u));
                     CALLBACK_SCF(false);
                     reg_ah=0x00;
                     break;
                 case 0x0b:  // write configuration byte
-                    IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
-                    IO_WriteB(0xcfc+(reg_di&3),reg_cl);
+                    IO_WriteD(0xcf8,0x80000000u|((unsigned int)reg_bx<<8u)|(reg_di&0xfcu));
+                    IO_WriteB(0xcfc+(reg_di&3u),reg_cl);
                     CALLBACK_SCF(false);
                     reg_ah=0x00;
                     break;
                 case 0x0c:  // write configuration word
-                    IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
-                    IO_WriteW(0xcfc+(reg_di&2),reg_cx);
+                    IO_WriteD(0xcf8,0x80000000u|((unsigned int)reg_bx<<8u)|(reg_di&0xfcu));
+                    IO_WriteW(0xcfc+(reg_di&2u),reg_cx);
                     CALLBACK_SCF(false);
                     reg_ah=0x00;
                     break;
                 case 0x0d:  // write configuration dword
-                    IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
-                    IO_WriteD(0xcfc+(reg_di&3),reg_ecx);
+                    IO_WriteD(0xcf8,0x80000000u|((unsigned int)reg_bx<<8u)|(reg_di&0xfcu));
+                    IO_WriteD(0xcfc+((unsigned int)reg_di&3u),reg_ecx);
                     CALLBACK_SCF(false);
                     reg_ah=0x00;
                     break;
@@ -2363,23 +2364,23 @@ void update_pc98_function_row(bool enable) {
                 i++;
         }
 
-        for (unsigned int i=0;i < 5;i++) {
-            unsigned int co = 4 + (i * 7);
+        for (unsigned int i=0;i < 5u;i++) {
+            unsigned int co = 4u + (i * 7u);
             const char *str = pc98_func_key[i];
 
-            for (unsigned int j=0;j < 6;j++) {
-                mem_writew(0xA0000+((o+co+j)*2),str[j]);
-                mem_writeb(0xA2000+((o+co+j)*2),0xE5); // white  reverse  visible
+            for (unsigned int j=0;j < 6u;j++) {
+                mem_writew(0xA0000+((o+co+j)*2u),(unsigned char)str[j]);
+                mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
            }
         }
 
         for (unsigned int i=5;i < 10;i++) {
-            unsigned int co = 42 + ((i - 5) * 7);
+            unsigned int co = 42u + ((i - 5u) * 7u);
             const char *str = pc98_func_key[i];
 
-            for (unsigned int j=0;j < 6;j++) {
-                mem_writew(0xA0000+((o+co+j)*2),str[j]);
-                mem_writeb(0xA2000+((o+co+j)*2),0xE5); // white  reverse  visible
+            for (unsigned int j=0;j < 6u;j++) {
+                mem_writew(0xA0000+((o+co+j)*2u),(unsigned char)str[j]);
+                mem_writeb(0xA2000+((o+co+j)*2u),0xE5); // white  reverse  visible
            }
         }
     }
@@ -2483,7 +2484,7 @@ static Bitu INT18_PC98_Handler(void) {
             /* TODO */
             break;
         case 0x04: /* Sense of key input state (キー入力状態のセンス) */
-            reg_ah = mem_readb(0x52A + (reg_al & 0x0F));
+            reg_ah = mem_readb(0x52A + (unsigned int)(reg_al & 0x0Fu));
             break;
         case 0x05: /* Key input sense (キー入力センス) */
             /* This appears to return a key from the buffer (and remove from
@@ -2568,38 +2569,38 @@ static Bitu INT18_PC98_Handler(void) {
 
                 /* DX = code (must be 0x76xx or 0x7700)
                  * BX:CX = 34-byte region to write to */
-                if (reg_dh == 0x80) { /* 8x16 ascii */
-                    i = (reg_bx << 4) + reg_cx + 2;
-                    mem_writew(i-2,0x0102);
-                    for (r=0;r < 16;r++) {
-                        o = (reg_dl*16)+r;
+                if (reg_dh == 0x80u) { /* 8x16 ascii */
+                    i = ((unsigned int)reg_bx << 4u) + reg_cx + 2u;
+                    mem_writew(i-2u,0x0102u);
+                    for (r=0;r < 16u;r++) {
+                        o = (reg_dl*16u)+r;
 
-                        assert((o+2) <= sizeof(vga.draw.font));
+                        assert((o+2u) <= sizeof(vga.draw.font));
 
                         mem_writeb(i+r,vga.draw.font[o]);
                     }
                 }
                 else if ((reg_dh & 0xFC) == 0x28) { /* 8x16 kanji */
-                    i = (reg_bx << 4) + reg_cx + 2;
-                    mem_writew(i-2,0x0102);
-                    for (r=0;r < 16;r++) {
-                        o = (((((reg_dl & 0x7F)*128)+((reg_dh - 0x20) & 0x7F))*16)+r)*2;
+                    i = ((unsigned int)reg_bx << 4u) + reg_cx + 2u;
+                    mem_writew(i-2u,0x0102u);
+                    for (r=0;r < 16u;r++) {
+                        o = (((((reg_dl & 0x7Fu)*128u)+((reg_dh - 0x20u) & 0x7Fu))*16u)+r)*2u;
 
-                        assert((o+2) <= sizeof(vga.draw.font));
+                        assert((o+2u) <= sizeof(vga.draw.font));
 
-                        mem_writeb(i+r+0,vga.draw.font[o+0]);
+                        mem_writeb(i+r+0u,vga.draw.font[o+0u]);
                     }
                 }
                 else if (reg_dh != 0) { /* 16x16 kanji */
-                    i = (reg_bx << 4) + reg_cx + 2;
-                    mem_writew(i-2,0x0202);
-                    for (r=0;r < 16;r++) {
-                        o = (((((reg_dl & 0x7F)*128)+((reg_dh - 0x20) & 0x7F))*16)+r)*2;
+                    i = ((unsigned int)reg_bx << 4u) + reg_cx + 2u;
+                    mem_writew(i-2u,0x0202u);
+                    for (r=0;r < 16u;r++) {
+                        o = (((((reg_dl & 0x7Fu)*128u)+((reg_dh - 0x20u) & 0x7Fu))*16u)+r)*2u;
 
-                        assert((o+2) <= sizeof(vga.draw.font));
+                        assert((o+2u) <= sizeof(vga.draw.font));
 
-                        mem_writeb(i+(r*2)+0,vga.draw.font[o+0]);
-                        mem_writeb(i+(r*2)+1,vga.draw.font[o+1]);
+                        mem_writeb(i+(r*2u)+0u,vga.draw.font[o+0u]);
+                        mem_writeb(i+(r*2u)+1u,vga.draw.font[o+1u]);
                     }
                 }
                 else {
@@ -2629,15 +2630,15 @@ static Bitu INT18_PC98_Handler(void) {
 
                 /* DX = code (must be 0x76xx or 0x7700)
                  * BX:CX = 34-byte region to read from */
-                if ((reg_dh & 0x7E) == 0x76) {
-                    i = (reg_bx << 4) + reg_cx + 2;
-                    for (r=0;r < 16;r++) {
-                        o = (((((reg_dl & 0x7F)*128)+((reg_dh - 0x20) & 0x7F))*16)+r)*2;
+                if ((reg_dh & 0x7Eu) == 0x76u) {
+                    i = ((unsigned int)reg_bx << 4u) + reg_cx + 2u;
+                    for (r=0;r < 16u;r++) {
+                        o = (((((reg_dl & 0x7Fu)*128u)+((reg_dh - 0x20u) & 0x7Fu))*16u)+r)*2u;
 
-                        assert((o+2) <= sizeof(vga.draw.font));
+                        assert((o+2u) <= sizeof(vga.draw.font));
 
-                        vga.draw.font[o+0] = mem_readb(i+(r*2)+0);
-                        vga.draw.font[o+1] = mem_readb(i+(r*2)+1);
+                        vga.draw.font[o+0u] = mem_readb(i+(r*2u)+0u);
+                        vga.draw.font[o+1u] = mem_readb(i+(r*2u)+1u);
                     }
                 }
                 else {
@@ -2773,12 +2774,12 @@ static Bitu INT18_PC98_Handler(void) {
                     //
                     // TODO: Validate this against real PC-98 hardware and BIOS
             {
-                unsigned int gbcpc = SegValue(ds)*0x10 + reg_bx;
-                for(int i=0;i<4;i++)
+                unsigned int gbcpc = SegValue(ds)*0x10u + reg_bx;
+                for(unsigned int i=0;i<4;i++)
                 {
-                    unsigned char p=mem_readb(gbcpc+4+i);
-                    pc98_set_digpal_entry(7-2*i, p&0xF);
-                    pc98_set_digpal_entry(6-2*i, p>>4);
+                    unsigned char p=mem_readb(gbcpc+4u+i);
+                    pc98_set_digpal_entry(7u-2u*i, p&0xFu);
+                    pc98_set_digpal_entry(6u-2u*i, p>>4u);
                 }
                 LOG_MSG("PC-98 INT 18 AH=43h CX=0x%04X DS=0x%04X", reg_cx, SegValue(ds));
                 break;
@@ -2836,7 +2837,7 @@ int PC98_BIOS_SCSI_POS(imageDisk *floppy,Bit32u &sector) {
     }
     else {
         /* Linear LBA addressing */
-        sector = (reg_dl << 16UL) + reg_cx;
+        sector = ((unsigned int)reg_dl << 16UL) + reg_cx;
         /* TODO: SASI caps at 0x1FFFFF according to NP2 */
     }
 
@@ -2887,7 +2888,7 @@ void PC98_BIOS_SCSI_CALL(void) {
 
                 size = reg_bx;
                 if (size == 0) size = 0x10000U;
-                memaddr = (SegValue(es) << 4) + reg_bp;
+                memaddr = ((unsigned int)SegValue(es) << 4u) + reg_bp;
 
                 reg_ah = 0;
                 CALLBACK_SCF(false);
@@ -2928,7 +2929,7 @@ void PC98_BIOS_SCSI_CALL(void) {
 
                 size = reg_bx;
                 if (size == 0) size = 0x10000U;
-                memaddr = (SegValue(es) << 4) + reg_bp;
+                memaddr = ((unsigned int)SegValue(es) << 4u) + reg_bp;
 
                 reg_ah = 0;
                 CALLBACK_SCF(false);
@@ -3179,7 +3180,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             }
 
             size = reg_bx;
-            memaddr = (SegValue(es) << 4U) + reg_bp;
+            memaddr = ((unsigned int)SegValue(es) << 4U) + reg_bp;
             while (size > 0) {
                 accsize = size > unitsize ? unitsize : size;
 
@@ -3272,7 +3273,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             }
 
             size = reg_bx;
-            memaddr = (SegValue(es) << 4U) + reg_bp;
+            memaddr = ((unsigned int)SegValue(es) << 4U) + reg_bp;
             while (size > 0) {
                 accsize = size > unitsize ? unitsize : size;
 
@@ -3473,7 +3474,7 @@ void PC98_Interval_Timer_Continue(void) {
 }
 
 unsigned char pc98_dec2bcd(unsigned char c) {
-    return ((c / 10) << 4) + (c % 10);
+    return ((c / 10u) << 4u) + (c % 10u);
 }
 
 static Bitu INT1C_PC98_Handler(void) {
@@ -3485,14 +3486,14 @@ static Bitu INT1C_PC98_Handler(void) {
 
         unsigned char tmp[6];
 
-        tmp[0] = pc98_dec2bcd(loctime->tm_year % 100);
-        tmp[1] = ((loctime->tm_mon + 1) << 4) + loctime->tm_wday;
+        tmp[0] = pc98_dec2bcd((unsigned int)loctime->tm_year % 100u);
+        tmp[1] = (((unsigned int)loctime->tm_mon + 1u) << 4u) + (unsigned int)loctime->tm_wday;
         tmp[2] = pc98_dec2bcd(loctime->tm_mday);
         tmp[3] = pc98_dec2bcd(loctime->tm_hour);
         tmp[4] = pc98_dec2bcd(loctime->tm_min);
         tmp[5] = pc98_dec2bcd(loctime->tm_sec);
 
-        unsigned long mem = (SegValue(es) << 4) + reg_bx;
+        unsigned long mem = ((unsigned int)SegValue(es) << 4u) + reg_bx;
 
         for (unsigned int i=0;i < 6;i++)
             mem_writeb(mem+i,tmp[i]);
@@ -3558,10 +3559,10 @@ void PC98_EXTMEMCPY(void) {
     bool enabled = MEM_A20_Enabled();
     MEM_A20_Enable(true);
 
-    Bitu   bytes    = ((reg_cx - 1) & 0xFFFF) + 1; // bytes, except that 0 == 64KB
+    Bitu   bytes    = ((reg_cx - 1u) & 0xFFFFu) + 1u; // bytes, except that 0 == 64KB
     PhysPt data     = SegPhys(es)+reg_bx;
-    PhysPt source   = (mem_readd(data+0x12) & 0x00FFFFFF) + (mem_readb(data+0x17)<<24);
-    PhysPt dest     = (mem_readd(data+0x1A) & 0x00FFFFFF) + (mem_readb(data+0x1F)<<24);
+    PhysPt source   = (mem_readd(data+0x12u) & 0x00FFFFFFu) + ((unsigned int)mem_readb(data+0x17u)<<24u);
+    PhysPt dest     = (mem_readd(data+0x1Au) & 0x00FFFFFFu) + ((unsigned int)mem_readb(data+0x1Fu)<<24u);
 
     LOG_MSG("PC-98 memcpy: src=0x%x dst=0x%x data=0x%x count=0x%x",
         (unsigned int)source,(unsigned int)dest,(unsigned int)data,(unsigned int)bytes);
@@ -3717,8 +3718,8 @@ void KEYBOARD_SetLEDs(Bit8u bits);
 void BIOS_KEYBOARD_SetLEDs(Bitu state) {
     Bitu x = mem_readb(BIOS_KEYBOARD_LEDS);
 
-    x &= ~7;
-    x |= (state & 7);
+    x &= ~7u;
+    x |= (state & 7u);
     mem_writeb(BIOS_KEYBOARD_LEDS,x);
     KEYBOARD_SetLEDs(state);
 }
@@ -3895,8 +3896,8 @@ static Bitu INT14_Handler(void) {
         return CBRET_NONE;
     }
     
-    Bit16u port = real_readw(0x40,reg_dx*2); // DX is always port number
-    Bit8u timeout = mem_readb(BIOS_COM1_TIMEOUT + reg_dx);
+    Bit16u port = real_readw(0x40,reg_dx * 2u); // DX is always port number
+    Bit8u timeout = mem_readb((PhysPt)((unsigned int)BIOS_COM1_TIMEOUT + (unsigned int)reg_dx));
     if (port==0)    {
         LOG(LOG_BIOS,LOG_NORMAL)("BIOS INT14: port %d does not exist.",reg_dx);
         return CBRET_NONE;
@@ -3909,34 +3910,34 @@ static Bitu INT14_Handler(void) {
         //                          AH: line status
 
         // set baud rate
-        Bitu baudrate = 9600;
+        Bitu baudrate = 9600u;
         Bit16u baudresult;
-        Bitu rawbaud=reg_al>>5;
+        Bitu rawbaud=(Bitu)reg_al>>5u;
         
-        if (rawbaud==0){ baudrate=110;}
-        else if (rawbaud==1){ baudrate=150;}
-        else if (rawbaud==2){ baudrate=300;}
-        else if (rawbaud==3){ baudrate=600;}
-        else if (rawbaud==4){ baudrate=1200;}
-        else if (rawbaud==5){ baudrate=2400;}
-        else if (rawbaud==6){ baudrate=4800;}
-        else if (rawbaud==7){ baudrate=9600;}
+        if (rawbaud==0){ baudrate=110u;}
+        else if (rawbaud==1){ baudrate=150u;}
+        else if (rawbaud==2){ baudrate=300u;}
+        else if (rawbaud==3){ baudrate=600u;}
+        else if (rawbaud==4){ baudrate=1200u;}
+        else if (rawbaud==5){ baudrate=2400u;}
+        else if (rawbaud==6){ baudrate=4800u;}
+        else if (rawbaud==7){ baudrate=9600u;}
 
-        baudresult = (Bit16u)(115200 / baudrate);
+        baudresult = (Bit16u)(115200u / baudrate);
 
-        IO_WriteB(port+3, 0x80);    // enable divider access
-        IO_WriteB(port, (Bit8u)baudresult&0xff);
-        IO_WriteB(port+1, (Bit8u)(baudresult>>8));
+        IO_WriteB(port+3u, 0x80u);    // enable divider access
+        IO_WriteB(port, (Bit8u)baudresult&0xffu);
+        IO_WriteB(port+1u, (Bit8u)(baudresult>>8u));
 
         // set line parameters, disable divider access
-        IO_WriteB(port+3, reg_al&0x1F); // LCR
+        IO_WriteB(port+3u, reg_al&0x1Fu); // LCR
         
         // disable interrupts
-        IO_WriteB(port+1, 0); // IER
+        IO_WriteB(port+1u, 0u); // IER
 
         // get result
-        reg_ah=(Bit8u)(IO_ReadB(port+5)&0xff);
-        reg_al=(Bit8u)(IO_ReadB(port+6)&0xff);
+        reg_ah=(Bit8u)(IO_ReadB(port+5u)&0xffu);
+        reg_al=(Bit8u)(IO_ReadB(port+6u)&0xffu);
         CALLBACK_SCF(false);
         break;
     }
@@ -3949,17 +3950,17 @@ static Bitu INT14_Handler(void) {
         //                      [undoc] (0x80 | modem status) in case of dsr/cts timeout
 
         // set DTR & RTS on
-        IO_WriteB(port+4,0x3);
+        IO_WriteB(port+4u,0x3u);
         // wait for DSR & CTS
-        if (INT14_Wait(port+6, 0x30, timeout, &reg_ah)) {
+        if (INT14_Wait(port+6u, 0x30u, timeout, &reg_ah)) {
             // wait for TX buffer empty
-            if (INT14_Wait(port+5, 0x20, timeout, &reg_ah)) {
+            if (INT14_Wait(port+5u, 0x20u, timeout, &reg_ah)) {
                 // fianlly send the character
                 IO_WriteB(port,reg_al);
             } else
-                reg_ah |= 0x80;
+                reg_ah |= 0x80u;
         } else // timed out
-            reg_ah |= 0x80;
+            reg_ah |= 0x80u;
 
         CALLBACK_SCF(false);
         break;
@@ -3973,7 +3974,7 @@ static Bitu INT14_Handler(void) {
         //                      [undoc] (0x80 | modem status) in case of dsr timeout
 
         // set DTR on
-        IO_WriteB(port+4,0x1);
+        IO_WriteB(port+4u,0x1u);
 
         // wait for DSR
         if (INT14_Wait(port+6, 0x20, timeout, &reg_ah)) {
@@ -3989,8 +3990,8 @@ static Bitu INT14_Handler(void) {
         CALLBACK_SCF(false);
         break;
     case 0x03: // get status
-        reg_ah=(Bit8u)(IO_ReadB(port+5)&0xff);
-        reg_al=(Bit8u)(IO_ReadB(port+6)&0xff);
+        reg_ah=(Bit8u)(IO_ReadB(port+5u)&0xffu);
+        reg_al=(Bit8u)(IO_ReadB(port+6u)&0xffu);
         CALLBACK_SCF(false);
         break;
 
@@ -4087,7 +4088,7 @@ static Bitu INT15_Handler(void) {
                 CALLBACK_SCF(true);
                 break;
             }
-            Bit32u count=(reg_cx<<16)|reg_dx;
+            Bit32u count=((Bit32u)reg_cx<<16u)|reg_dx;
             mem_writed(BIOS_WAIT_FLAG_POINTER,RealMake(SegValue(es),reg_bx));
             mem_writed(BIOS_WAIT_FLAG_COUNT,count);
             mem_writeb(BIOS_WAIT_FLAG_ACTIVE,1);
@@ -4141,7 +4142,7 @@ static Bitu INT15_Handler(void) {
                 break;
             }
             Bit8u t;
-            Bit32u count=(reg_cx<<16)|reg_dx;
+            Bit32u count=((Bit32u)reg_cx<<16u)|reg_dx;
             mem_writed(BIOS_WAIT_FLAG_POINTER,RealMake(0,BIOS_WAIT_FLAG_TEMP));
             mem_writed(BIOS_WAIT_FLAG_COUNT,count);
             mem_writeb(BIOS_WAIT_FLAG_ACTIVE,1);
@@ -4191,10 +4192,10 @@ static Bitu INT15_Handler(void) {
         {
             bool enabled = MEM_A20_Enabled();
             MEM_A20_Enable(true);
-            Bitu   bytes    = reg_cx * 2;
+            Bitu   bytes    = reg_cx * 2u;
             PhysPt data     = SegPhys(es)+reg_si;
-            PhysPt source   = (mem_readd(data+0x12) & 0x00FFFFFF) + (mem_readb(data+0x17)<<24);
-            PhysPt dest     = (mem_readd(data+0x1A) & 0x00FFFFFF) + (mem_readb(data+0x1F)<<24);
+            PhysPt source   = (mem_readd(data+0x12u) & 0x00FFFFFFu) + ((unsigned int)mem_readb(data+0x17u)<<24u);
+            PhysPt dest     = (mem_readd(data+0x1Au) & 0x00FFFFFFu) + ((unsigned int)mem_readb(data+0x1Fu)<<24u);
             MEM_BlockCopy(dest,source,bytes);
             reg_ax = 0x00;
             MEM_A20_Enable(enabled);
@@ -4383,7 +4384,7 @@ static Bitu INT15_Handler(void) {
                         reg_ah=0;
                     }
                     else if ((reg_bh==0x01) || (reg_bh==0x02)) { /* set scaling */
-                        KEYBOARD_AUX_Write(0xE6+reg_bh-1); /* 0xE6 1:1   or 0xE7 2:1 */
+                        KEYBOARD_AUX_Write(0xE6u+reg_bh-1u); /* 0xE6 1:1   or 0xE7 2:1 */
                         KEYBOARD_ClrBuffer();
                         CALLBACK_SCF(false); 
                         reg_ah=0;
@@ -5174,7 +5175,7 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
         while (*s != 0) {
             if (*s == '\n') {
                 y++;
-                reg_eax = 0x0200;   // set cursor pos
+                reg_eax = 0x0200u;   // set cursor pos
                 reg_ebx = 0;        // page zero
                 reg_dh = y;     // row 4
                 reg_dl = x;     // column 20
@@ -5182,8 +5183,8 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
                 s++;
             }
             else {
-                reg_eax = 0x0E00 | ((unsigned char)(*s++));
-                reg_ebx = 0x07;
+                reg_eax = 0x0E00u | ((unsigned char)(*s++));
+                reg_ebx = 0x07u;
                 CALLBACK_RunRealInt(0x10);
             }
         }
@@ -5197,16 +5198,16 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
                 s++;
                 bios_pc98_posx = x;
 
-                bo = ((y * 80) + bios_pc98_posx) * 2;
+                bo = (((unsigned int)y * 80u) + (unsigned int)bios_pc98_posx) * 2u;
             }
             else if (*s == '\r') {
                 s++; /* ignore */
                 continue;
             }
             else {
-                bo = ((y * 80) + (bios_pc98_posx++)) * 2; /* NTS: note the post increment */
+                bo = (((unsigned int)y * 80u) + (unsigned int)(bios_pc98_posx++)) * 2u; /* NTS: note the post increment */
 
-                mem_writew(0xA0000+bo,*s++);
+                mem_writew(0xA0000+bo,(unsigned char)(*s++));
                 mem_writeb(0xA2000+bo,0xE1);
 
                 bo += 2; /* and keep the cursor following the text */
@@ -6036,8 +6037,8 @@ private:
         // ISA Plug & Play BIOS entrypoint
         // NTS: Apparently, Windows 95, 98, and ME will re-enumerate and re-install PnP devices if our entry point changes it's address.
         if (!IS_PC98_ARCH && ISAPNPBIOS) {
-            int i;
             Bitu base;
+            unsigned int i;
             unsigned char c,tmp[256];
 
             if (mainline_compatible_bios_mapping)
@@ -6343,7 +6344,7 @@ private:
             rowheight = 16;
             reg_eax = 18;       // 640x480 16-color
             CALLBACK_RunRealInt(0x10);
-            DrawDOSBoxLogoVGA(logo_x*8,logo_y*rowheight);
+            DrawDOSBoxLogoVGA((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
         }
         else if (machine == MCH_EGA) {
             rowheight = 14;
@@ -6357,14 +6358,14 @@ private:
             IO_Read(0x3DA); IO_Read(0x3BA);
             IO_Write(0x3C0,0x20);
 
-            DrawDOSBoxLogoVGA(logo_x*8,logo_y*rowheight);
+            DrawDOSBoxLogoVGA((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
         }
         else if (machine == MCH_CGA || machine == MCH_PCJR || machine == MCH_AMSTRAD || machine == MCH_TANDY) {
             rowheight = 8;
             reg_eax = 6;        // 640x200 2-color
             CALLBACK_RunRealInt(0x10);
 
-            DrawDOSBoxLogoCGA6(logo_x*8,logo_y*rowheight);
+            DrawDOSBoxLogoCGA6((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
         }
         else if (machine == MCH_PC98) {
             // clear the graphics layer
@@ -6417,7 +6418,7 @@ private:
                 }
             }
 
-            DrawDOSBoxLogoPC98(logo_x*8,logo_y*rowheight);
+            DrawDOSBoxLogoPC98((unsigned int)logo_x*8u,(unsigned int)logo_y*(unsigned int)rowheight);
 
             reg_eax = 0x4000;   // show the graphics layer (PC-98) so we can render the DOSBox logo
             CALLBACK_RunRealInt(0x18);
@@ -6564,8 +6565,8 @@ private:
             CALLBACK_RunRealInt(0x10);
         }
         else {
-            reg_eax = 0x1300;   // set cursor pos (PC-98)
-            reg_edx = ((y * 80) + x) * 2; // byte position
+            reg_eax = 0x1300u;   // set cursor pos (PC-98)
+            reg_edx = (((unsigned int)y * 80u) + (unsigned int)x) * 2u; // byte position
             CALLBACK_RunRealInt(0x18);
         }
 
@@ -6706,7 +6707,7 @@ public:
         phys_writew(0xffff3,RealSeg(BIOS_DEFAULT_RESET_LOCATION));  // segment
 
         // write system BIOS date
-        for(Bitu i = 0; i < strlen(bios_date_string); i++) phys_writeb(0xffff5+i,bios_date_string[i]);
+        for(Bitu i = 0; i < strlen(bios_date_string); i++) phys_writeb(0xffff5+i,(Bit8u)bios_date_string[i]);
 
         /* model byte */
         if (machine==MCH_TANDY || machine==MCH_AMSTRAD) phys_writeb(0xffffe,0xff);  /* Tandy model */
@@ -6732,7 +6733,7 @@ public:
 
             // FIXME: Erm, well this couldv'e been named better. It refers to the amount of conventional memory
             //        made available to the operating system below 1MB, which is usually DOS.
-            dos_conventional_limit = section->Get_int("dos mem limit");
+            dos_conventional_limit = (unsigned int)section->Get_int("dos mem limit");
         }
 
         if (bochs_port_e9) {
@@ -7003,8 +7004,8 @@ public:
 
         /* abort DAC playing */
         if (tandy_sb.port) {
-            IO_Write(tandy_sb.port+0xc,0xd3);
-            IO_Write(tandy_sb.port+0xc,0xd0);
+            IO_Write(tandy_sb.port+0xcu,0xd3u);
+            IO_Write(tandy_sb.port+0xcu,0xd0u);
         }
         real_writeb(0x40,0xd4,0x00);
         if (tandy_DAC_callback[0]) {
@@ -7091,7 +7092,7 @@ void BIOS_PnP_ComPortRegister(Bitu port,Bitu irq) {
     /* add to PnP BIOS */
     if (ISAPNPBIOS) {
         unsigned char tmp[256];
-        int i;
+        unsigned int i;
 
         /* register serial ports */
         const unsigned char h1[9] = {
@@ -7167,9 +7168,9 @@ void BIOS_OnResetComplete(Section *x) {
     (void)x;//UNUSED
     INT10_OnResetComplete();
 
-    if (biosConfigSeg != 0) {
-        ROMBIOS_FreeMemory(biosConfigSeg << 4); /* remember it was alloc'd paragraph aligned, then saved >> 4 */
-        biosConfigSeg = 0;
+    if (biosConfigSeg != 0u) {
+        ROMBIOS_FreeMemory((Bitu)(biosConfigSeg << 4u)); /* remember it was alloc'd paragraph aligned, then saved >> 4 */
+        biosConfigSeg = 0u;
     }
 
     call_pnp_rp = 0;
@@ -7231,10 +7232,10 @@ void write_ID_version_string() {
         ROMBIOS_GetMemory((Bitu)str_ver_len+1,"BIOS version string",1,str_ver_at);
     }
     if (str_id_at != 0) {
-        for (size_t i=0;i < str_id_len;i++) phys_writeb(str_id_at+(PhysPt)i,bios_type_string[i]);
+        for (size_t i=0;i < str_id_len;i++) phys_writeb(str_id_at+(PhysPt)i,(Bit8u)bios_type_string[i]);
     }
     if (str_ver_at != 0) {
-        for (size_t i=0;i < str_ver_len;i++) phys_writeb(str_ver_at+(PhysPt)i,bios_version_string[i]);
+        for (size_t i=0;i < str_ver_len;i++) phys_writeb(str_ver_at+(PhysPt)i,(Bit8u)bios_version_string[i]);
     }
 }
 
@@ -7248,36 +7249,36 @@ void ROMBIOS_Init() {
     // log
     LOG(LOG_MISC,LOG_DEBUG)("Initializing ROM BIOS");
 
-    oi = section->Get_int("rom bios minimum size"); /* in KB */
-    oi = (oi + 3) & ~3; /* round to 4KB page */
-    if (oi > 128) oi = 128;
-    if (oi == 0) {
+    oi = (Bitu)section->Get_int("rom bios minimum size"); /* in KB */
+    oi = (oi + 3u) & ~3u; /* round to 4KB page */
+    if (oi > 128u) oi = 128u;
+    if (oi == 0u) {
         if (IS_PC98_ARCH)
-            oi = 96; // BIOS standard range is E8000-FFFFF
+            oi = 96u; // BIOS standard range is E8000-FFFFF
         else
-            oi = (mainline_compatible_bios_mapping && machine != MCH_PCJR) ? 128 : 64;
+            oi = (mainline_compatible_bios_mapping && machine != MCH_PCJR) ? 128u : 64u;
     }
     if (oi < 8) oi = 8; /* because of some of DOSBox's fixed ROM structures we can only go down to 8KB */
     rombios_minimum_size = (oi << 10); /* convert to minimum, using size coming downward from 1MB */
 
-    oi = section->Get_int("rom bios allocation max"); /* in KB */
-    oi = (oi + 3) & ~3; /* round to 4KB page */
-    if (oi > 128) oi = 128;
-    if (oi == 0) {
+    oi = (Bitu)section->Get_int("rom bios allocation max"); /* in KB */
+    oi = (oi + 3u) & ~3u; /* round to 4KB page */
+    if (oi > 128u) oi = 128u;
+    if (oi == 0u) {
         if (IS_PC98_ARCH)
-            oi = 96;
+            oi = 96u;
         else
-            oi = (mainline_compatible_bios_mapping && machine != MCH_PCJR) ? 128 : 64;
+            oi = (mainline_compatible_bios_mapping && machine != MCH_PCJR) ? 128u : 64u;
     }
-    if (oi < 8) oi = 8; /* because of some of DOSBox's fixed ROM structures we can only go down to 8KB */
-    oi <<= 10;
+    if (oi < 8u) oi = 8u; /* because of some of DOSBox's fixed ROM structures we can only go down to 8KB */
+    oi <<= 10u;
     if (oi < rombios_minimum_size) oi = rombios_minimum_size;
-    rombios_minimum_location = 0x100000 - oi; /* convert to minimum, using size coming downward from 1MB */
+    rombios_minimum_location = 0x100000ul - oi; /* convert to minimum, using size coming downward from 1MB */
 
     /* in mainline compatible, make sure we cover the 0xF0000-0xFFFFF range */
-    if (!IS_PC98_ARCH && mainline_compatible_bios_mapping && rombios_minimum_location > 0xF0000) {
-        rombios_minimum_location = 0xF0000;
-        rombios_minimum_size = 0x10000;
+    if (!IS_PC98_ARCH && mainline_compatible_bios_mapping && rombios_minimum_location > 0xF0000u) {
+        rombios_minimum_location = 0xF0000u;
+        rombios_minimum_size = 0x10000u;
     }
 
     LOG(LOG_BIOS,LOG_DEBUG)("ROM BIOS range: 0x%05X-0xFFFFF",(int)rombios_minimum_location);
@@ -7339,8 +7340,8 @@ void ROMBIOS_Init() {
         std::string path = section->Get_string("call binary on reset");
         struct stat st;
 
-        if (!path.empty() && stat(path.c_str(),&st) == 0 && S_ISREG(st.st_mode) && st.st_size <= (128*1024)) {
-            Bitu base = ROMBIOS_GetMemory(st.st_size,"User reset vector binary",16/*page align*/,0);
+        if (!path.empty() && stat(path.c_str(),&st) == 0 && S_ISREG(st.st_mode) && st.st_size <= (128u*1024u)) {
+            Bitu base = ROMBIOS_GetMemory((Bitu)st.st_size,"User reset vector binary",16u/*page align*/,0u);
 
             if (base != 0) {
                 FILE *fp = fopen(path.c_str(),"rb");
@@ -7351,8 +7352,8 @@ void ROMBIOS_Init() {
                      *      guest memory is less than 1MB because ROM BIOS emulation
                      *      depends on it. */
                     assert(GetMemBase() != NULL);
-                    assert((base+st.st_size) <= 0x100000);
-                    fread(GetMemBase()+base,st.st_size,1,fp);
+                    assert((base+(Bitu)st.st_size) <= 0x100000ul);
+                    fread(GetMemBase()+base,(size_t)st.st_size,1u,fp);
                     fclose(fp);
 
                     LOG_MSG("User reset vector binary '%s' loaded at 0x%lx",path.c_str(),(unsigned long)base);
@@ -7374,8 +7375,8 @@ void ROMBIOS_Init() {
         std::string path = section->Get_string("call binary on boot");
         struct stat st;
 
-        if (!path.empty() && stat(path.c_str(),&st) == 0 && S_ISREG(st.st_mode) && st.st_size <= (128*1024)) {
-            Bitu base = ROMBIOS_GetMemory(st.st_size,"User boot hook binary",16/*page align*/,0);
+        if (!path.empty() && stat(path.c_str(),&st) == 0 && S_ISREG(st.st_mode) && st.st_size <= (128u*1024u)) {
+            Bitu base = ROMBIOS_GetMemory((Bitu)st.st_size,"User boot hook binary",16u/*page align*/,0u);
 
             if (base != 0) {
                 FILE *fp = fopen(path.c_str(),"rb");
@@ -7386,8 +7387,8 @@ void ROMBIOS_Init() {
                      *      guest memory is less than 1MB because ROM BIOS emulation
                      *      depends on it. */
                     assert(GetMemBase() != NULL);
-                    assert((base+st.st_size) <= 0x100000);
-                    fread(GetMemBase()+base,st.st_size,1,fp);
+                    assert((base+(Bitu)st.st_size) <= 0x100000ul);
+                    fread(GetMemBase()+base,(size_t)st.st_size,1u,fp);
                     fclose(fp);
 
                     LOG_MSG("User boot hook binary '%s' loaded at 0x%lx",path.c_str(),(unsigned long)base);
