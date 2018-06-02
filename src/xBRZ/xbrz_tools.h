@@ -66,6 +66,35 @@ void fillBlock(Pix* trg, int pitch, Pix col, int blockWidth, int blockHeight)
             trg[x] = col;
 }
 
+// pitch change (use to change image pitch without any scaling, useful for fitting scaled image into D3D texture)
+template <class PixSrc, class PixTrg, class PixConverter>
+void pitchChange(const PixSrc* src, PixTrg* trg, int width, int height, int srcPitch, int trgPitch,
+    int yFirst, int yLast, PixConverter pixCvrt /*convert PixSrc to PixTrg*/)
+{
+    static_assert(std::is_integral<PixSrc>::value, "PixSrc* is expected to be cast-able to char*");
+    static_assert(std::is_integral<PixTrg>::value, "PixTrg* is expected to be cast-able to char*");
+
+    static_assert(std::is_same<decltype(pixCvrt(PixSrc())), PixTrg>::value, "PixConverter returning wrong pixel format");
+
+    if (srcPitch < width * static_cast<int>(sizeof(PixSrc)) ||
+        trgPitch < width * static_cast<int>(sizeof(PixTrg)))
+    {
+        assert(false);
+        return;
+    }
+
+    yFirst = (std::max)(yFirst, 0);
+    yLast = (std::min)(yLast, height);
+    if (yFirst >= yLast || height <= 0 || width <= 0) return;
+
+    for (int y = yFirst; y < yLast; ++y)
+    {
+        const PixSrc* const srcLine = byteAdvance(src, y * srcPitch);
+        PixTrg*       const trgLine = byteAdvance(trg, y * trgPitch);
+        for (int x = 0; x < width; ++x)
+            trgLine[x] = pixCvrt(srcLine[x]);
+    }
+}
 
 //nearest-neighbor (going over target image - slow for upscaling, since source is read multiple times missing out on cache! Fast for similar image sizes!)
 template <class PixSrc, class PixTrg, class PixConverter>

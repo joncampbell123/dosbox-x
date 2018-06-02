@@ -1478,6 +1478,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(1,1024);
     Pint->Set_help("Number of screen lines to process in single xBRZ scaler taskset task, affects xBRZ performance, 16 is the default");
 
+    Pint = secprop->Add_int("xbrz fixed scale factor",Property::Changeable::OnlyAtStart, 0);
+    Pint->SetMinMax(0,6);
+    Pint->Set_help("To use fixed xBRZ scale factor (i.e. to attune performance), set it to 2-6, 0 - use automatic calculation (default)");
+
+    Pint = secprop->Add_int("xbrz max scale factor",Property::Changeable::OnlyAtStart, 0);
+    Pint->SetMinMax(0,6);
+    Pint->Set_help("To cap maximum xBRZ scale factor used (i.e. to attune performance), set it to 2-6, 0 - use scaler allowed maximum (default)");
+
     Pbool = secprop->Add_bool("autofit",Property::Changeable::Always,true);
     Pbool->Set_help(
         "Best fits image to window\n"
