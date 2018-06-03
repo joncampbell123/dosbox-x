@@ -822,6 +822,9 @@
     <ClCompile Include="..\src\gui\bitop.cpp">
       <Filter>Sources\gui</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\gui\ptrop.cpp">
+      <Filter>Sources\gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -1446,6 +1449,9 @@
       <Filter>Includes</Filter>
     </ClInclude>
     <ClInclude Include="..\include\bitop.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ptrop.h">
       <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>
