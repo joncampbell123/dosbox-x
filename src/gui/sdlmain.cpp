@@ -2016,19 +2016,19 @@ dosurface:
             if (retFlags && (sdl.surface->flags & SDL_HWSURFACE))
                 retFlags |= GFX_HARDWARE;
             if (retFlags && (sdl.surface->flags & SDL_DOUBLEBUF)) {
-                sdl.blit.surface=SDL_CreateRGBSurface(SDL_HWSURFACE,
-                    sdl.draw.width, sdl.draw.height,
-                    sdl.surface->format->BitsPerPixel,
-                    sdl.surface->format->Rmask,
-                    sdl.surface->format->Gmask,
-                    sdl.surface->format->Bmask,
-                0);
+                sdl.blit.surface=SDL_CreateRGBSurface((Uint32)SDL_HWSURFACE,
+                    (int)sdl.draw.width, (int)sdl.draw.height,
+                    (int)sdl.surface->format->BitsPerPixel,
+                    (Uint32)sdl.surface->format->Rmask,
+                    (Uint32)sdl.surface->format->Gmask,
+                    (Uint32)sdl.surface->format->Bmask,
+                    (Uint32)0u);
                 /* If this one fails be ready for some flickering... */
             }
         }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-        mainMenu.screenWidth = sdl.surface->w;
+        mainMenu.screenWidth = (size_t)sdl.surface->w;
         mainMenu.updateRect();
         mainMenu.setRedraw();
         GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
@@ -2082,7 +2082,7 @@ dosurface:
         if (sdl.opengl.pixel_buffer_object) {
             glGenBuffersARB(1, &sdl.opengl.buffer);
             glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, sdl.opengl.buffer);
-            glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_EXT, width*height*4, NULL, GL_STREAM_DRAW_ARB);
+            glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_EXT, (GLsizeiptrARB)(width*height*4), NULL, GL_STREAM_DRAW_ARB);
             glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
         } else {
             sdl.opengl.framebuf=calloc(width*height, 4);        //32 bit color
@@ -2219,7 +2219,7 @@ dosurface:
                             }
                         }
 
-                        glTexSubImage2D(GL_TEXTURE_2D, /*level*/0, /*x*/(c % 16) * 8, /*y*/(c / 16) * 16,
+                        glTexSubImage2D(GL_TEXTURE_2D, /*level*/0, /*x*/(int)((c % 16) * 8), /*y*/(int)((c / 16) * 16),
                             8, 16, GL_BGRA_EXT, GL_UNSIGNED_INT_8_8_8_8_REV, (void*)tmp);
                     }
                 }
@@ -2910,7 +2910,7 @@ void change_output(int output) {
     GFX_Stop();
     Section * sec = control->GetSection("sdl");
     Section_prop * section=static_cast<Section_prop *>(sec);
-    sdl.overscan_width=section->Get_int("overscan");
+    sdl.overscan_width=(unsigned int)section->Get_int("overscan");
     UpdateOverscanMenu();
     switch (output) {
     case 0:
@@ -3123,7 +3123,7 @@ unsigned char *GFX_GetSurfacePtr(size_t *pitch, unsigned int x, unsigned int y) 
     if (sdl.surface->pixels != NULL) {
         unsigned char *p = (unsigned char*)(sdl.surface->pixels);
         p += y * sdl.surface->pitch;
-        p += x * (sdl.surface->format->BitsPerPixel >> 3U);
+        p += x * ((unsigned int)sdl.surface->format->BitsPerPixel >> 3U);
         return p;
     }
 
@@ -3252,7 +3252,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                     } else {
                         SDL_Rect *rect = &sdl.updateRects[rectCount++];
                         rect->x = sdl.clip.x;
-                        rect->y = sdl.clip.y + y;
+                        rect->y = (unsigned int)sdl.clip.y + (unsigned int)y;
                         rect->w = (Bit16u)sdl.draw.width;
                         rect->h = changedLines[index];
                         y += changedLines[index];
@@ -3294,8 +3294,8 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                     glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
                     glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
                     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                            sdl.draw.width, sdl.draw.height, GL_BGRA_EXT,
-                            GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+                            (int)sdl.draw.width, (int)sdl.draw.height, GL_BGRA_EXT,
+                            GL_UNSIGNED_INT_8_8_8_8_REV, (int)0);
                     glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
                     glCallList(sdl.opengl.displaylist);
                     SDL_GL_SwapBuffers();
@@ -3310,8 +3310,8 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                         } else {
                             Bit8u *pixels = (Bit8u *)sdl.opengl.framebuf + y * sdl.opengl.pitch;
                             Bitu height = changedLines[index];
-                            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, y,
-                                    sdl.draw.width, height, GL_BGRA_EXT,
+                            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, (int)y,
+                                    (int)sdl.draw.width, (int)height, GL_BGRA_EXT,
 #if defined (MACOSX)
                                     // needed for proper looking graphics on macOS 10.12, 10.13
                                     GL_UNSIGNED_INT_8_8_8_8,
@@ -3319,7 +3319,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                                     // works on Linux
                                     GL_UNSIGNED_INT_8_8_8_8_REV,
 #endif
-                                    pixels );
+                                    (void*)pixels );
                             y += height;
                         }
                         index++;
@@ -3388,7 +3388,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
         sdl.must_redraw_all = false;
 
 #if !defined(C_SDL2)
-        sdl.surface->flags &= ~SDL_HAX_NOREFRESH;
+        sdl.surface->flags &= ~((unsigned int)SDL_HAX_NOREFRESH);
 #endif
 
         if (changedLines != NULL && sdl.deferred_resize) {
@@ -3431,7 +3431,7 @@ Bitu GFX_GetRGB(Bit8u red,Bit8u green,Bit8u blue) {
     case SCREEN_SURFACE:
         return SDL_MapRGB(sdl.surface->format,red,green,blue);
     case SCREEN_OPENGL:
-        return ((blue << 0) | (green << 8) | (red << 16)) | (255 << 24);
+        return (((unsigned int)blue << 0u) | ((unsigned int)green << 8u) | ((unsigned int)red << 16u)) | (255u << 24u);
     case SCREEN_DIRECT3D:
         return SDL_MapRGB(sdl.surface->format,red,green,blue);
     default:
@@ -3683,7 +3683,7 @@ static void GUI_StartUp() {
     sdl.mouse.autoenable=section->Get_bool("autolock");
     if (!sdl.mouse.autoenable) SDL_ShowCursor(SDL_DISABLE);
     sdl.mouse.autolock=false;
-    sdl.mouse.sensitivity=section->Get_int("sensitivity");
+    sdl.mouse.sensitivity=(unsigned int)section->Get_int("sensitivity");
     std::string output=section->Get_string("output");
 
     /* Setup Mouse correctly if fullscreen */
@@ -3714,7 +3714,7 @@ static void GUI_StartUp() {
         LOG_MSG("SDL:Unsupported output device %s, switching back to surface",output.c_str());
         sdl.desktop.want_type=SCREEN_SURFACE;//SHOULDN'T BE POSSIBLE anymore
     }
-    sdl.overscan_width=section->Get_int("overscan");
+    sdl.overscan_width=(unsigned int)section->Get_int("overscan");
 //  sdl.overscan_color=section->Get_int("overscancolor");
 
 #if defined(C_SDL2)
@@ -3962,15 +3962,15 @@ static void HandleVideoResize(void * event) {
      * is fullscreen or maximized */
     if (!menu.maxwindow && !sdl.desktop.fullscreen && !sdl.init_ignore && NonUserResizeCounter == 0 && !window_was_maximized) {
         UpdateWindowDimensions();
-        UpdateWindowDimensions(ResizeEvent->w, ResizeEvent->h);
+        UpdateWindowDimensions((unsigned int)ResizeEvent->w, (unsigned int)ResizeEvent->h);
 
         /* if the dimensions actually changed from our surface dimensions, then
            assume it's the user's input. Linux/X11 is good at doing this anyway,
            but the Windows SDL 1.x support will return us a resize event for the
            window size change resulting from SDL mode set. */
         if (ResizeEvent->w != sdl.surface->w || ResizeEvent->h != sdl.surface->h) {
-            userResizeWindowWidth = ResizeEvent->w;
-            userResizeWindowHeight = ResizeEvent->h;
+            userResizeWindowWidth = (unsigned int)ResizeEvent->w;
+            userResizeWindowHeight = (unsigned int)ResizeEvent->h;
         }
     }
     else {
@@ -3987,7 +3987,7 @@ static void HandleVideoResize(void * event) {
     }
     else {
         sdl.deferred_resize = false;
-        RedrawScreen(ResizeEvent->w, ResizeEvent->h);
+        RedrawScreen((unsigned int)ResizeEvent->w, (unsigned int)ResizeEvent->h);
     }
 
 /*  if(sdl.desktop.want_type!=SCREEN_DIRECT3D) {
@@ -4076,10 +4076,10 @@ void DOSBoxMenu::item::drawBackground(DOSBoxMenu &menu) {
     MenuDrawRect(popupBox.x + popupBox.w - 1, popupBox.y, 1, popupBox.h, bordercolor);
 
     if (type == DOSBoxMenu::submenu_type_id) {
-        MenuShadeRect(popupBox.x + popupBox.w, popupBox.y + DOSBoxMenu::dropshadowY,
-                      DOSBoxMenu::dropshadowX, popupBox.h);
-        MenuShadeRect(popupBox.x + DOSBoxMenu::dropshadowX, popupBox.y + popupBox.h,
-                      popupBox.w - DOSBoxMenu::dropshadowX, DOSBoxMenu::dropshadowY);
+        MenuShadeRect((int)popupBox.x + (int)popupBox.w, (int)popupBox.y + (int)DOSBoxMenu::dropshadowY,
+                      (int)DOSBoxMenu::dropshadowX, (int)popupBox.h);
+        MenuShadeRect((int)popupBox.x + (int)DOSBoxMenu::dropshadowX, (int)popupBox.y + (int)popupBox.h,
+                      (int)popupBox.w - (int)DOSBoxMenu::dropshadowX, (int)DOSBoxMenu::dropshadowY);
     }
 }
 #endif
@@ -4213,8 +4213,8 @@ static struct {
 void MenuSaveScreen(void) {
     if (!OpenGL_using()) {
         if (menuSavedScreen.bmp == NULL) {
-            menuSavedScreen.height = sdl.surface->h;
-            menuSavedScreen.stride = sdl.surface->pitch;
+            menuSavedScreen.height = (unsigned int)sdl.surface->h;
+            menuSavedScreen.stride = (unsigned int)sdl.surface->pitch;
             menuSavedScreen.bmp = new unsigned char[menuSavedScreen.height * menuSavedScreen.stride];
         }
 
@@ -4320,10 +4320,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
                     /* give the menu bar a drop shadow */
                     MenuShadeRect(
-                            mainMenu.menuBox.x + DOSBoxMenu::dropshadowX,
-                            mainMenu.menuBox.y + mainMenu.menuBox.h,
-                            mainMenu.menuBox.w,
-                            DOSBoxMenu::dropshadowY - 1/*menubar border*/);
+                            (int)mainMenu.menuBox.x + (int)DOSBoxMenu::dropshadowX,
+                            (int)mainMenu.menuBox.y + (int)mainMenu.menuBox.h,
+                            (int)mainMenu.menuBox.w,
+                            (int)DOSBoxMenu::dropshadowY - 1/*menubar border*/);
 
                     mainMenu.setRedraw();                  
                     GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
@@ -4346,10 +4346,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
                     /* give the menu bar a drop shadow */
                     MenuShadeRect(
-                            mainMenu.menuBox.x + DOSBoxMenu::dropshadowX,
-                            mainMenu.menuBox.y + mainMenu.menuBox.h,
-                            mainMenu.menuBox.w,
-                            DOSBoxMenu::dropshadowY - 1/*menubar border*/);
+                            (int)mainMenu.menuBox.x + (int)DOSBoxMenu::dropshadowX,
+                            (int)mainMenu.menuBox.y + (int)mainMenu.menuBox.h,
+                            (int)mainMenu.menuBox.w,
+                            (int)DOSBoxMenu::dropshadowY - 1/*menubar border*/);
 
                     uprect.x = 0;
                     uprect.y = mainMenu.menuBox.y + mainMenu.menuBox.h;
@@ -4631,10 +4631,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
                         /* give the menu bar a drop shadow */
                         MenuShadeRect(
-                                mainMenu.menuBox.x + DOSBoxMenu::dropshadowX,
-                                mainMenu.menuBox.y + mainMenu.menuBox.h,
-                                mainMenu.menuBox.w,
-                                DOSBoxMenu::dropshadowY - 1/*menubar border*/);
+                                (int)mainMenu.menuBox.x + (int)DOSBoxMenu::dropshadowX,
+                                (int)mainMenu.menuBox.y + (int)mainMenu.menuBox.h,
+                                (int)mainMenu.menuBox.w,
+                                (int)DOSBoxMenu::dropshadowY - 1/*menubar border*/);
 
                         for (auto i=popup_stack.begin();i!=popup_stack.end();i++) {
                             if (mainMenu.get_item(*i).get_type() == DOSBoxMenu::submenu_type_id) {
@@ -5518,9 +5518,9 @@ void GFX_Events() {
 #else /* SDL 1.x---------------------------------- */
     SDL_Event event;
 #if defined (REDUCE_JOYSTICK_POLLING)
-    static int poll_delay=0;
-    int time=GetTicks();
-    if (time-poll_delay>20) {
+    static uint32_t poll_delay=0;
+    uint32_t time=GetTicks();
+    if ((int32_t)(time-poll_delay)>20) {
         poll_delay=time;
         if (sdl.num_joysticks>0) SDL_JoystickUpdate();
         MAPPER_UpdateJoysticks();
@@ -6128,7 +6128,7 @@ static void show_warning(char const * const message) {
         if(c>d) a=b=d; else a=b=c;
         if( a != std::string::npos) b++; 
         m2 = m.substr(0,a); m.erase(0,b);
-        OutputString(x,y,m2.c_str(),0xffffffff,0,splash_surf);
+        OutputString((unsigned int)x,(unsigned int)y,m2.c_str(),0xffffffffu,0,splash_surf);
         y += 20;
     }
    
@@ -7710,7 +7710,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* -- -- Initialise Joystick seperately. This way we can warn when it fails instead of exiting the application */
         LOG(LOG_MISC,LOG_DEBUG)("Initializing SDL joystick subsystem...");
         if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) >= 0) {
-            sdl.num_joysticks = SDL_NumJoysticks();
+            sdl.num_joysticks = (Bitu)SDL_NumJoysticks();
             LOG(LOG_MISC,LOG_DEBUG)("SDL reports %u joysticks",(unsigned int)sdl.num_joysticks);
         }
         else {
@@ -8193,7 +8193,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         MainMenu = mainMenu.getWinMenu();
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-        mainMenu.screenWidth = sdl.surface->w;
+        mainMenu.screenWidth = (unsigned int)sdl.surface->w;
         mainMenu.updateRect();
 #endif
 
