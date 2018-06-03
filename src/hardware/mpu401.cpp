@@ -413,7 +413,7 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 				}
 				if (val==0) mpu.state.send_now=true;
 				else mpu.state.send_now=false;
-				mpu.condbuf.counter=val;
+				mpu.condbuf.counter=(Bits)val;
 				break;
 			case  1: /* Command byte #1 */
 				mpu.condbuf.type=T_COMMAND;
@@ -443,7 +443,7 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 			}
 			if (val==0) mpu.state.send_now=true;
 			else mpu.state.send_now=false;
-			mpu.playbuf[mpu.state.channel].counter=val;
+			mpu.playbuf[mpu.state.channel].counter=(Bits)val;
 			break;
 		case    1: /* MIDI */
 			mpu.playbuf[mpu.state.channel].vlength++;
@@ -558,7 +558,7 @@ static void MPU401_Event(Bitu val) {
 next_event:
 	PIC_RemoveEvents(MPU401_Event);
 	Bitu new_time;
-	if ((new_time=((mpu.clock.tempo*mpu.clock.timebase*mpu.clock.tempo_rel)/0x40))==0) return;
+	if ((new_time=(Bitu)((mpu.clock.tempo*mpu.clock.timebase*mpu.clock.tempo_rel)/0x40))==0) return;
 	PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/new_time);
 }
 
@@ -716,7 +716,7 @@ public:
             int x = section->Get_int("mpuirq");
 
             if (x >= 2)
-                mpu.irq = x;
+                mpu.irq = (unsigned int)x;
 
             if (!IS_PC98_ARCH && mpu.irq == 2) mpu.irq = 9;
         }
