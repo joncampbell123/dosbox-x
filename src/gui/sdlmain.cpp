@@ -3296,7 +3296,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                     glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
                     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                             (int)sdl.draw.width, (int)sdl.draw.height, GL_BGRA_EXT,
-                            GL_UNSIGNED_INT_8_8_8_8_REV, (int)0);
+                            GL_UNSIGNED_INT_8_8_8_8_REV, (void*)0);
                     glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
                     glCallList(sdl.opengl.displaylist);
                     SDL_GL_SwapBuffers();
