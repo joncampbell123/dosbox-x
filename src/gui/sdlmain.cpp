@@ -7423,11 +7423,109 @@ void OutputSettingMenuUpdate(void) {
 #endif
 }
 
+#if 1
+namespace ptrop {
+
+template <typename A> static inline constexpr uintptr_t misalignment(const uintptr_t p) {
+    return p % (uintptr_t)sizeof(A);
+}
+
+template <typename T=unsigned char,typename A=T> static inline constexpr uintptr_t misalignment(T* const p) {
+    return misalignment<A>((uintptr_t)((unsigned char*)p));
+}
+
+template <typename A> static inline constexpr bool isaligned(const uintptr_t p) {
+    return misalignment<A>(p) == 0;
+}
+
+template <typename T=unsigned char,typename A=T> static inline constexpr bool isaligned(T* const p) {
+    return misalignment<T,A>(p) == 0;
+}
+
+template <typename A> static inline constexpr uintptr_t aligndown(const uintptr_t p) {
+    return p - misalignment<A>(p);
+}
+
+template <typename T=unsigned char,typename A=T> static inline constexpr T* aligndown(T* const p) {
+    return (T*)aligndown<A>((uintptr_t)((unsigned char*)p));
+}
+
+template <typename A> static inline constexpr uintptr_t alignup(const uintptr_t p) {
+    return aligndown<A>(p + (uintptr_t)sizeof(A) - (uintptr_t)1u);
+}
+
+template <typename T=unsigned char,typename A=T> static inline constexpr T* alignup(T* const p) {
+    return (T*)alignup<A>((uintptr_t)((unsigned char*)p));
+}
+
+}
+#endif
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
 
+#if 1
+    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)NULL      )) == true,  "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)NULL +  1u)) == false, "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)NULL +  2u)) == false, "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)NULL +  3u)) == false, "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)NULL +  4u)) == false, "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)NULL +  5u)) == false, "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)NULL +  6u)) == false, "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)NULL +  7u)) == false, "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)NULL +  8u)) == true,  "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)NULL +  9u)) == false, "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)NULL + 10u)) == false, "whoops" );
+
+    static_assert( ptrop::isaligned<uint64_t>((uintptr_t)0 ) == true,  "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uintptr_t)1 ) == false, "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uintptr_t)2 ) == false, "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uintptr_t)3 ) == false, "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uintptr_t)4 ) == false, "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uintptr_t)6 ) == false, "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uintptr_t)7 ) == false, "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uintptr_t)8 ) == true,  "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uintptr_t)9 ) == false, "whoops" );
+    static_assert( ptrop::isaligned<uint64_t>((uintptr_t)10) == false, "whoops" );
+
+    static_assert( ptrop::misalignment<uint64_t>((uintptr_t)0 ) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::misalignment<uint64_t>((uintptr_t)1 ) == (uintptr_t)1,  "whoops" );
+    static_assert( ptrop::misalignment<uint64_t>((uintptr_t)2 ) == (uintptr_t)2,  "whoops" );
+    static_assert( ptrop::misalignment<uint64_t>((uintptr_t)3 ) == (uintptr_t)3,  "whoops" );
+    static_assert( ptrop::misalignment<uint64_t>((uintptr_t)4 ) == (uintptr_t)4,  "whoops" );
+    static_assert( ptrop::misalignment<uint64_t>((uintptr_t)5 ) == (uintptr_t)5,  "whoops" );
+    static_assert( ptrop::misalignment<uint64_t>((uintptr_t)6 ) == (uintptr_t)6,  "whoops" );
+    static_assert( ptrop::misalignment<uint64_t>((uintptr_t)7 ) == (uintptr_t)7,  "whoops" );
+    static_assert( ptrop::misalignment<uint64_t>((uintptr_t)8 ) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::misalignment<uint64_t>((uintptr_t)9 ) == (uintptr_t)1,  "whoops" );
+    static_assert( ptrop::misalignment<uint64_t>((uintptr_t)10) == (uintptr_t)2,  "whoops" );
+
+    static_assert( ptrop::aligndown<uint64_t>((uintptr_t)0 ) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown<uint64_t>((uintptr_t)1 ) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown<uint64_t>((uintptr_t)2 ) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown<uint64_t>((uintptr_t)3 ) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown<uint64_t>((uintptr_t)4 ) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown<uint64_t>((uintptr_t)5 ) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown<uint64_t>((uintptr_t)6 ) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown<uint64_t>((uintptr_t)7 ) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown<uint64_t>((uintptr_t)8 ) == (uintptr_t)8,  "whoops" );
+    static_assert( ptrop::aligndown<uint64_t>((uintptr_t)9 ) == (uintptr_t)8,  "whoops" );
+    static_assert( ptrop::aligndown<uint64_t>((uintptr_t)10) == (uintptr_t)8,  "whoops" );
+
+    static_assert( ptrop::alignup<uint64_t>((uintptr_t)0 ) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::alignup<uint64_t>((uintptr_t)1 ) == (uintptr_t)8,  "whoops" );
+    static_assert( ptrop::alignup<uint64_t>((uintptr_t)2 ) == (uintptr_t)8,  "whoops" );
+    static_assert( ptrop::alignup<uint64_t>((uintptr_t)3 ) == (uintptr_t)8,  "whoops" );
+    static_assert( ptrop::alignup<uint64_t>((uintptr_t)4 ) == (uintptr_t)8,  "whoops" );
+    static_assert( ptrop::alignup<uint64_t>((uintptr_t)5 ) == (uintptr_t)8,  "whoops" );
+    static_assert( ptrop::alignup<uint64_t>((uintptr_t)6 ) == (uintptr_t)8,  "whoops" );
+    static_assert( ptrop::alignup<uint64_t>((uintptr_t)7 ) == (uintptr_t)8,  "whoops" );
+    static_assert( ptrop::alignup<uint64_t>((uintptr_t)8 ) == (uintptr_t)8,  "whoops" );
+    static_assert( ptrop::alignup<uint64_t>((uintptr_t)9 ) == (uintptr_t)16, "whoops" );
+    static_assert( ptrop::alignup<uint64_t>((uintptr_t)10) == (uintptr_t)16, "whoops" );
+#endif
     bitop::self_test();
 
     memset(&sdl,0,sizeof(sdl)); // struct sdl isn't initialized anywhere that I can tell
