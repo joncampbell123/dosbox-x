@@ -128,6 +128,19 @@ void self_test(void) {
     static_assert( ptrop::aligndown<8>((uintptr_t)9 ) == (uintptr_t)8,  "whoops" );
     static_assert( ptrop::aligndown<8>((uintptr_t)10) == (uintptr_t)8,  "whoops" );
 
+    static_assert( ptrop::aligndown((uintptr_t)0, (uintptr_t)8) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown((uintptr_t)1, (uintptr_t)8) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown((uintptr_t)2, (uintptr_t)8) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown((uintptr_t)3, (uintptr_t)8) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown((uintptr_t)4, (uintptr_t)8) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown((uintptr_t)5, (uintptr_t)8) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown((uintptr_t)6, (uintptr_t)8) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown((uintptr_t)7, (uintptr_t)8) == (uintptr_t)0,  "whoops" );
+    static_assert( ptrop::aligndown((uintptr_t)8, (uintptr_t)8) == (uintptr_t)8,  "whoops" );
+    static_assert( ptrop::aligndown((uintptr_t)9, (uintptr_t)8) == (uintptr_t)8,  "whoops" );
+    static_assert( ptrop::aligndown((uintptr_t)10,(uintptr_t)8) == (uintptr_t)8,  "whoops" );
+
+
     static_assert( ptrop::alignup<uint64_t>((uintptr_t)0 ) == (uintptr_t)0,  "whoops" );
     static_assert( ptrop::alignup<uint64_t>((uintptr_t)1 ) == (uintptr_t)8,  "whoops" );
     static_assert( ptrop::alignup<uint64_t>((uintptr_t)2 ) == (uintptr_t)8,  "whoops" );
