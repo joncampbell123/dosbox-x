@@ -8,18 +8,6 @@ namespace ptrop {
 
 void self_test(void) {
     // DEBUG
-    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)((void*)0)      )) == true,  "whoops" );
-    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)((void*)0) +  1u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)((void*)0) +  2u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)((void*)0) +  3u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)((void*)0) +  4u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)((void*)0) +  5u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)((void*)0) +  6u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)((void*)0) +  7u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)((void*)0) +  8u)) == true,  "whoops" );
-    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)((void*)0) +  9u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t>((uint64_t*)((unsigned char*)((void*)0) + 10u)) == false, "whoops" );
-
     static_assert( ptrop::isaligned<uint64_t>((uintptr_t)0 ) == true,  "whoops" );
     static_assert( ptrop::isaligned<uint64_t>((uintptr_t)1 ) == false, "whoops" );
     static_assert( ptrop::isaligned<uint64_t>((uintptr_t)2 ) == false, "whoops" );
@@ -41,19 +29,6 @@ void self_test(void) {
     static_assert( ptrop::isaligned((uintptr_t)8, (uintptr_t)8) == true,  "whoops" );
     static_assert( ptrop::isaligned((uintptr_t)9, (uintptr_t)8) == false, "whoops" );
     static_assert( ptrop::isaligned((uintptr_t)10,(uintptr_t)8) == false, "whoops" );
-
-
-    static_assert( ptrop::isaligned<uint64_t,8>((uint64_t*)((unsigned char*)((void*)0)      )) == true,  "whoops" );
-    static_assert( ptrop::isaligned<uint64_t,8>((uint64_t*)((unsigned char*)((void*)0) +  1u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t,8>((uint64_t*)((unsigned char*)((void*)0) +  2u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t,8>((uint64_t*)((unsigned char*)((void*)0) +  3u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t,8>((uint64_t*)((unsigned char*)((void*)0) +  4u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t,8>((uint64_t*)((unsigned char*)((void*)0) +  5u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t,8>((uint64_t*)((unsigned char*)((void*)0) +  6u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t,8>((uint64_t*)((unsigned char*)((void*)0) +  7u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t,8>((uint64_t*)((unsigned char*)((void*)0) +  8u)) == true,  "whoops" );
-    static_assert( ptrop::isaligned<uint64_t,8>((uint64_t*)((unsigned char*)((void*)0) +  9u)) == false, "whoops" );
-    static_assert( ptrop::isaligned<uint64_t,8>((uint64_t*)((unsigned char*)((void*)0) + 10u)) == false, "whoops" );
 
     static_assert( ptrop::isaligned<8>((uintptr_t)0 ) == true,  "whoops" );
     static_assert( ptrop::isaligned<8>((uintptr_t)1 ) == false, "whoops" );
