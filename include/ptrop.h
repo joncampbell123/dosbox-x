@@ -3,37 +3,45 @@
 
 namespace ptrop {
 
-template <const uintptr_t A> static inline constexpr uintptr_t misalignment(const uintptr_t p) {
-    return p % (uintptr_t)A;
+static inline constexpr uintptr_t misalignment(const uintptr_t p,const uintptr_t A) {
+    return p % A;
 }
 
-template <typename A> static inline constexpr uintptr_t misalignment(const uintptr_t p) {
+template <const uintptr_t A> static inline constexpr uintptr_t misalignment(const uintptr_t p) { // DEFER
+    return misalignment(p,A);
+}
+
+template <typename A> static inline constexpr uintptr_t misalignment(const uintptr_t p) { // DEFER
     return misalignment<(uintptr_t)sizeof(A)>(p);
 }
 
-template <typename T=unsigned char,typename A=T> static inline constexpr uintptr_t misalignment(T* const p) {
+template <typename T=unsigned char,typename A=T> static inline constexpr uintptr_t misalignment(T* const p) { // DEFER
     return misalignment<A>((uintptr_t)((unsigned char*)p));
 }
 
-template <typename T=unsigned char,const uintptr_t A> static inline constexpr uintptr_t misalignment(T* const p) {
+template <typename T=unsigned char,const uintptr_t A> static inline constexpr uintptr_t misalignment(T* const p) { // DEFER
     return misalignment<A>((uintptr_t)((unsigned char*)p));
 }
 
 
-template <const uintptr_t A> static inline constexpr bool isaligned(const uintptr_t p) {
-    return misalignment<A>(p) == 0;
+static inline constexpr bool isaligned(const uintptr_t p,const uintptr_t A) {
+    return misalignment(p,A) == (uintptr_t)0;
 }
 
-template <typename A> static inline constexpr bool isaligned(const uintptr_t p) {
-    return misalignment<A>(p) == 0;
+template <const uintptr_t A> static inline constexpr bool isaligned(const uintptr_t p) { // DEFER
+    return isaligned(p,A);
 }
 
-template <typename T=unsigned char,typename A=T> static inline constexpr bool isaligned(T* const p) {
-    return misalignment<T,A>(p) == 0;
+template <typename A> static inline constexpr bool isaligned(const uintptr_t p) { // DEFER
+    return isaligned<(uintptr_t)sizeof(A)>(p);
 }
 
-template <typename T=unsigned char,const uintptr_t A> static inline constexpr bool isaligned(T* const p) {
-    return misalignment<T,A>(p) == 0;
+template <typename T=unsigned char,typename A=T> static inline constexpr bool isaligned(T* const p) { // DEFER
+    return isaligned<A>((uintptr_t)((unsigned char*)p));
+}
+
+template <typename T=unsigned char,const uintptr_t A> static inline constexpr bool isaligned(T* const p) { // DEFER
+    return isaligned<A>((uintptr_t)((unsigned char*)p));
 }
 
 
