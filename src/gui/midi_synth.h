@@ -175,7 +175,7 @@ public:
 			return false;
 		}
 
-		synthchan = MIXER_AddChannel(synth_CallBack, synthsamplerate, "SYNTH");
+		synthchan = MIXER_AddChannel(synth_CallBack, (unsigned int)synthsamplerate, "SYNTH");
 		synthchan->Enable(false);
 		isOpen = true;
 		return true;
