@@ -35,5 +35,7 @@ template <typename T=unsigned char,typename A=T> static inline constexpr T* alig
     return (T*)alignup<A>((uintptr_t)((unsigned char*)p));
 }
 
+void self_test(void);
+
 }
 

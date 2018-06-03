@@ -179,7 +179,7 @@ template <typename T=unsigned int> static inline constexpr T ispowerof2(const un
     return (a & (a-(T)1u)) == 0;
 }
 
-void self_test();
+void self_test(void);
 
 }
 
