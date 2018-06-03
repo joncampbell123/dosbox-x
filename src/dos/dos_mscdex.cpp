@@ -675,7 +675,7 @@ bool CMscdex::GetUPC(Bit8u subUnit, Bit8u& attr, char* upc)
 
 bool CMscdex::ReadSectors(Bit8u subUnit, bool raw, Bit32u sector, Bit16u num, PhysPt data) {
 	if (subUnit>=numDrives) return false;
-	if ((4u*num*2048u+5u) < CPU_Cycles) CPU_Cycles -= 4u*num*2048u;
+	if ((int)(4u*num*2048u+5u) < CPU_Cycles) CPU_Cycles -= 4u*num*2048u;
 	else CPU_Cycles = 5u;
 	dinfo[subUnit].lastResult = cdrom[subUnit]->ReadSectors(data,raw,sector,num);
 	return dinfo[subUnit].lastResult;

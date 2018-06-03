@@ -1684,7 +1684,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 
             ISAPNP_SysDevNode *nd = ISAPNP_SysDevNodes[Node];
 
-            mem_writew(devNodeBuffer_ptr+0,nd->raw_len+3); /* Length */
+            mem_writew(devNodeBuffer_ptr+0,(Bit16u)(nd->raw_len+3)); /* Length */
             mem_writeb(devNodeBuffer_ptr+2,Node); /* on most PnP BIOS implementations I've seen "handle" is set to the same value as Node */
             for (i=0;i < (Bitu)nd->raw_len;i++)
                 mem_writeb(devNodeBuffer_ptr+i+3,nd->raw[i]);

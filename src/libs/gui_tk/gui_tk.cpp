@@ -461,8 +461,8 @@ void Timer::check(unsigned int ticks)
 	}
 
 	if (Timer::ticks > (Timer::ticks+ticks)) {
-		ticks -= (unsigned int)(-Timer::ticks - 1);
-		check((unsigned int)(-Timer::ticks - 1));
+		ticks -= (unsigned int)(-(int)Timer::ticks) - 1u;
+		check((unsigned int)(-(int)Timer::ticks) - 1u);
 	}
 
 	std::multimap<unsigned int,Timer_Callback*,Timer::ltuint>::iterator old, i = timers.lower_bound(Timer::ticks+1);
