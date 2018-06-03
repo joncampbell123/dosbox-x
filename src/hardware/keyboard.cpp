@@ -441,9 +441,9 @@ void KEYBOARD_AUX_Write(Bitu val) {
                 case 0xeb:  /* read data */
                     KEYBOARD_AddBuffer(AUX|0xfa);   /* ack */
                     KEYBOARD_AUX_Event(0,0,
-                        (keyb.ps2mouse.m << 2)|
-                        (keyb.ps2mouse.r << 1)|
-                        (keyb.ps2mouse.l << 0),
+                        ((unsigned int)keyb.ps2mouse.m << 2u) |
+                        ((unsigned int)keyb.ps2mouse.r << 1u) |
+                        ((unsigned int)keyb.ps2mouse.l << 0u),
                         0);
                     break;
                 case 0xea:  /* set stream mode */
@@ -622,8 +622,8 @@ static void write_p60(Bitu port,Bitu val,Bitu iolen) {
             return;
 
         {
-            static const int delay[] = { 250, 500, 750, 1000 };
-            static const int repeat[] =
+            static const unsigned int delay[] = { 250, 500, 750, 1000 };
+            static const unsigned int repeat[] =
             { 33,37,42,46,50,54,58,63,67,75,83,92,100,
               109,118,125,133,149,167,182,200,217,233,
               250,270,303,333,370,400,435,476,500 };

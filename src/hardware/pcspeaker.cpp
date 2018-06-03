@@ -582,7 +582,7 @@ public:
 		spkr.pit_mode1_waiting_for_trigger = 1;
 		spkr.last_ticks=0;
 		spkr.last_index=0;
-		spkr.rate=section->Get_int("pcrate");
+		spkr.rate=(unsigned int)section->Get_int("pcrate");
 
 		// PIT initially in mode 3 at ~903 Hz
 		spkr.pit_mode = 3;

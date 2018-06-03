@@ -153,7 +153,7 @@ INLINE int VideoCodec::PossibleBlock(int vx,int vy,FrameBlock * block) {
 	P * pnew=((P*)newframe)+block->start;;	
 	for (int y=0;y<block->dy;y+=4) {
 		for (int x=0;x<block->dx;x+=4) {
-			int test=0-((pold[x]-pnew[x])&0x00ffffff);
+			int test=0-(int)((pold[x]-pnew[x])&0x00ffffffu);
 			ret-=(test>>31);
 		}
 		pold+=pitch*4;
@@ -169,7 +169,7 @@ INLINE int VideoCodec::CompareBlock(int vx,int vy,FrameBlock * block) {
 	P * pnew=((P*)newframe)+block->start;;	
 	for (int y=0;y<block->dy;y++) {
 		for (int x=0;x<block->dx;x++) {
-			int test=0-((pold[x]-pnew[x])&0x00ffffff);
+			int test=0-(int)((pold[x]-pnew[x])&0x00ffffffu);
 			ret-=(test>>31);
 		}
 		pold+=pitch;
@@ -185,7 +185,7 @@ INLINE void VideoCodec::AddXorBlock(int vx,int vy,FrameBlock * block) {
 	for (int y=0;y<block->dy;y++) {
 		for (int x=0;x<block->dx;x++) {
 			*((P*)&work[workUsed])=pnew[x] ^ pold[x];
-			workUsed+=sizeof(P);
+			workUsed+=(int)sizeof(P);
 		}
 		pold+=pitch;
 		pnew+=pitch;
@@ -373,7 +373,7 @@ INLINE void VideoCodec::UnXorBlock(int vx,int vy,FrameBlock * block) {
 	for (int y=0;y<block->dy;y++) {
 		for (int x=0;x<block->dx;x++) {
 			pnew[x]=pold[x]^*((P*)&work[workPos]);
-			workPos+=sizeof(P);
+			workPos+=(int)sizeof(P);
 		}
 		pold+=pitch;
 		pnew+=pitch;
