@@ -37,22 +37,22 @@ struct GFX_PalEntry {
 	Bit8u unused;
 };
 
-#define GFX_CAN_8		0x0001
-#define GFX_CAN_15		0x0002
-#define GFX_CAN_16		0x0004
-#define GFX_CAN_32		0x0008
+#define GFX_CAN_8		0x0001u
+#define GFX_CAN_15		0x0002u
+#define GFX_CAN_16		0x0004u
+#define GFX_CAN_32		0x0008u
 
-#define GFX_LOVE_8		0x0010
-#define GFX_LOVE_15		0x0020
-#define GFX_LOVE_16		0x0040
-#define GFX_LOVE_32		0x0080
+#define GFX_LOVE_8		0x0010u
+#define GFX_LOVE_15		0x0020u
+#define GFX_LOVE_16		0x0040u
+#define GFX_LOVE_32		0x0080u
 
-#define GFX_RGBONLY		0x0100
+#define GFX_RGBONLY		0x0100u
 
-#define GFX_SCALING		0x1000
-#define GFX_HARDWARE	0x2000
+#define GFX_SCALING		0x1000u
+#define GFX_HARDWARE	0x2000u
 
-#define GFX_CAN_RANDOM	0x4000		//If the interface can also do random access surface
+#define GFX_CAN_RANDOM	0x4000u		//If the interface can also do random access surface
 
 void GFX_Events(void);
 void GFX_SetPalette(Bitu start,Bitu count,GFX_PalEntry * entries);
