@@ -45,19 +45,23 @@ template <typename T=unsigned char,const uintptr_t A> static inline constexpr bo
 }
 
 
-template <const uintptr_t A> static inline constexpr uintptr_t aligndown(const uintptr_t p) {
-    return p - misalignment<A>(p);
+static inline constexpr uintptr_t aligndown(const uintptr_t p,const uintptr_t A) {
+    return p - misalignment(p,A);
 }
 
-template <typename A> static inline constexpr uintptr_t aligndown(const uintptr_t p) {
+template <const uintptr_t A> static inline constexpr uintptr_t aligndown(const uintptr_t p) { // DEFER
+    return aligndown(p,A);
+}
+
+template <typename A> static inline constexpr uintptr_t aligndown(const uintptr_t p) { // DEFER
     return aligndown<(uintptr_t)sizeof(A)>(p);
 }
 
-template <typename T=unsigned char,typename A=T> static inline constexpr T* aligndown(T* const p) {
+template <typename T=unsigned char,typename A=T> static inline constexpr T* aligndown(T* const p) { // DEFER
     return (T*)aligndown<A>((uintptr_t)((unsigned char*)p));
 }
 
-template <typename T=unsigned char,const uintptr_t A> static inline constexpr T* aligndown(T* const p) {
+template <typename T=unsigned char,const uintptr_t A> static inline constexpr T* aligndown(T* const p) { // DEFER
     return (T*)aligndown<A>((uintptr_t)((unsigned char*)p));
 }
 
