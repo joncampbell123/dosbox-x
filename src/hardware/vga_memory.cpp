@@ -160,7 +160,7 @@ public:
 		unsigned char bplane;
 
 		if (vga.gfx.miscellaneous&2) /* Odd/Even mode */
-			memstart &= ~1;
+			memstart &= ~1u;
 
 		vga.latch.d=((Bit32u*)vga.mem.linear)[memstart];
 		switch (vga.config.read_mode) {
@@ -171,7 +171,7 @@ public:
 				 *      Windows 95 and Windows 3.1 will exhibit glitches in the standard VGA 640x480x16
 				 *      planar mode */
 				if (!(vga.seq.memory_mode&4) && (vga.gfx.miscellaneous&2)) /* FIXME: How exactly do SVGA cards determine this? */
-					bplane = (bplane & ~1) + (start & 1); /* FIXME: Is this what VGA cards do? It makes sense to me */
+					bplane = (bplane & ~1u) + (start & 1u); /* FIXME: Is this what VGA cards do? It makes sense to me */
 				return (vga.latch.b[bplane]);
 			case 1:
 				VGA_Latch templatch;
@@ -334,7 +334,7 @@ class VGA_ChainedVGA_Slow_Handler : public PageHandler {
 public:
 	VGA_ChainedVGA_Slow_Handler() : PageHandler(PFLAG_NOCODE) {}
 	static INLINE Bitu readHandler8(PhysPt addr ) {
-		vga.latch.d=((Bit32u*)vga.mem.linear)[addr&~3];
+		vga.latch.d=((Bit32u*)vga.mem.linear)[addr&~3u];
 		return vga.latch.b[addr&3];
 	}
 	static INLINE void writeHandler8(PhysPt addr, Bitu val) {
@@ -343,7 +343,7 @@ public:
 		/* byte-sized template specialization with masking */
 		pixels.d = ModeOperation(val);
 		/* Update video memory and the pixel buffer */
-		hostWrite<Bit8u>( &vga.mem.linear[((addr&~3)<<2)+(addr&3)], pixels.b[addr&3] );
+		hostWrite<Bit8u>( &vga.mem.linear[((addr&~3u)<<2u)+(addr&3u)], pixels.b[addr&3u] );
 	}
 	Bitu readb(PhysPt addr ) {
 		VGAMEM_USEC_read_delay();
@@ -639,7 +639,7 @@ public:
 		VGA_Latch pixels;
 
 		if (vga.gfx.miscellaneous&2) /* Odd/Even mode masks off A0 */
-			memaddr &= ~1;
+			memaddr &= ~1u;
 
 		pixels.d=((Bit32u*)vga.mem.linear)[memaddr];
 
@@ -867,7 +867,7 @@ struct pc98_egc_shifter {
             }
         }
 
-        *((AWT*)(pc98_egc_srcmask+odd)) = ~0;
+        *((AWT*)(pc98_egc_srcmask+odd)) = (AWT)(~0ull);
     }
 
     inline uint8_t dstbit_mask(void) {
@@ -1540,12 +1540,12 @@ public:
             case 0:     /* A0000-A1FFF Character RAM */
                 return *((AWT*)(vga.mem.linear+addr));
             case 1:     /* A2000-A3FFF Attribute RAM */
-                if (addr & 1) return ~0; /* ignore odd bytes */
+                if (addr & 1) return (AWT)(~0ull); /* ignore odd bytes */
                 return *((AWT*)(vga.mem.linear+addr)) | 0xFF00; /* odd bytes 0xFF */
             case 2:     /* A4000-A5FFF Unknown ?? */
                 return *((AWT*)(vga.mem.linear+addr));
             case 3:     /* A6000-A7FFF Not present */
-                return ~0;
+                return (AWT)(~0ull);
             default:    /* A8000-BFFFF G-RAM */
                 vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x20000 : 0;
                 break;
@@ -1599,7 +1599,7 @@ public:
                 return *((AWT*)(vga.mem.linear+addr+vop_offset));
         };
 
-		return ~0;
+		return (AWT)(~0ull);
 	}
 
 	template <class AWT> void writec(PhysPt addr,AWT val){
@@ -1715,8 +1715,8 @@ public:
         if (!(addr & 1)) /* if WORD aligned */
             return readc<uint16_t>(addr);
         else {
-            return   readc<uint8_t>(addr+0U) +
-                    (readc<uint8_t>(addr+1U) << 8);
+            return   (unsigned int)readc<uint8_t>(addr+0U) +
+                    ((unsigned int)readc<uint8_t>(addr+1U) << 8u);
         }
     }
 	void writew(PhysPt addr,Bitu val) {
@@ -1741,9 +1741,9 @@ public:
 		bplane = vga.gfx.read_map_select;
 
 		if (!(vga.seq.memory_mode&4))
-			bplane = (bplane & ~1) + (addr & 1); /* FIXME: Is this what VGA cards do? It makes sense to me */
+			bplane = (bplane & ~1u) + (addr & 1u); /* FIXME: Is this what VGA cards do? It makes sense to me */
 		if (vga.gfx.miscellaneous&2) /* Odd/Even mode */
-			addr &= ~1;
+			addr &= ~1u;
 
 		return vga.mem.linear[CHECKED3(vga.svga.bank_read_full+(addr<<2)+bplane)];
 	}
@@ -1758,7 +1758,7 @@ public:
 
 		/* Chain Odd/Even enable: A0 is replaced by a "higher order bit" (0 apparently) */
 		if (vga.gfx.miscellaneous&2)
-			memaddr &= ~1;
+			memaddr &= ~1u;
 
 		pixels.d=((Bit32u*)vga.mem.linear)[memaddr];
 
@@ -2087,27 +2087,27 @@ public:
 	}
 	Bitu readb(PhysPt addr) {
 		VGAMEM_USEC_read_delay();
-		addr = wrAddr( addr ) + ( vga.amstrad.read_plane * 16384 );
-		addr &= (64*1024-1);
+		addr = wrAddr( addr ) + ( vga.amstrad.read_plane * 16384u );
+		addr &= (64u*1024u-1u);
 		return readHandler(addr);
 	}
 	Bitu readw(PhysPt addr) {
 		VGAMEM_USEC_read_delay();
-		addr = wrAddr( addr ) + ( vga.amstrad.read_plane * 16384 );
-		addr &= (64*1024-1);
+		addr = wrAddr( addr ) + ( vga.amstrad.read_plane * 16384u );
+		addr &= (64u*1024u-1u);
 		return 
-			(readHandler(addr+0) << 0) |
-			(readHandler(addr+1) << 8);
+			((Bitu)readHandler(addr+0) << 0u) |
+			((Bitu)readHandler(addr+1) << 8u);
 	}
 	Bitu readd(PhysPt addr) {
 		VGAMEM_USEC_read_delay();
-		addr = wrAddr( addr ) + ( vga.amstrad.read_plane * 16384 );
-		addr &= (64*1024-1);
+		addr = wrAddr( addr ) + ( vga.amstrad.read_plane * 16384u );
+		addr &= (64u*1024u-1u);
 		return 
-			(readHandler(addr+0) << 0)  |
-			(readHandler(addr+1) << 8)  |
-			(readHandler(addr+2) << 16) |
-			(readHandler(addr+3) << 24);
+			((Bitu)readHandler(addr+0) << 0u)  |
+			((Bitu)readHandler(addr+1) << 8u)  |
+			((Bitu)readHandler(addr+2) << 16u) |
+			((Bitu)readHandler(addr+3) << 24u);
 	}
 
 /*
@@ -2409,16 +2409,16 @@ void VGA_StartUpdateLFB(void) {
 		if (winsz != 0x10000) // 64KB window normal for entering a DOS VM in Windows 3.1 or legacy bank switching in DOS
 			LOG(LOG_MISC,LOG_WARN)("S3 warning: Window size != 64KB and address conflict with system RAM!");
 
-		vga.lfb.page = vga.s3.la_window << 4;
-		vga.lfb.addr = vga.s3.la_window << 16;
+		vga.lfb.page = (unsigned int)vga.s3.la_window << 4u;
+		vga.lfb.addr = (unsigned int)vga.s3.la_window << 16u;
 		vga.lfb.handler = NULL;
 		MEM_SetLFB(0,0,NULL,NULL);
 	}
 	else {
-		vga.lfb.page = vga.s3.la_window << 4;
-		vga.lfb.addr = vga.s3.la_window << 16;
+		vga.lfb.page = (unsigned int)vga.s3.la_window << 4u;
+		vga.lfb.addr = (unsigned int)vga.s3.la_window << 16u;
 		vga.lfb.handler = &vgaph.lfb;
-		MEM_SetLFB(vga.s3.la_window << 4 ,vga.vmemsize/4096, vga.lfb.handler, &vgaph.mmio);
+		MEM_SetLFB((unsigned int)vga.s3.la_window << 4u,(unsigned int)vga.vmemsize/4096u, vga.lfb.handler, &vgaph.mmio);
 	}
 }
 
@@ -2442,9 +2442,9 @@ void VGA_SetupMemory() {
     if (1 || vga.vmemsize_alloced != vga.vmemsize) {
         VGA_Memory_ShutDown(NULL);
 
-        vga.mem.linear_orgptr = new Bit8u[vga.vmemsize+32];
-        memset(vga.mem.linear_orgptr,0,vga.vmemsize+32);
-        vga.mem.linear=(Bit8u*)(((uintptr_t)vga.mem.linear_orgptr + 16-1) & ~(16-1));
+        vga.mem.linear_orgptr = new Bit8u[vga.vmemsize+32u];
+        memset(vga.mem.linear_orgptr,0,vga.vmemsize+32u);
+        vga.mem.linear=(Bit8u*)(((uintptr_t)vga.mem.linear_orgptr + 16ul-1ul) & ~(16ul-1ul));
         vga.vmemsize_alloced = vga.vmemsize;
 
         /* HACK. try to avoid stale pointers */
