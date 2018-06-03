@@ -720,33 +720,33 @@ static void SDL_Overscan(void) {
 
         // Find four rectangles forming the border
             SDL_Rect *rect = &sdl.updateRects[0];
-            rect->x = 0; rect->y = 0; rect->w = sdl.draw.width+2*sdl.clip.x; rect->h = sdl.clip.y; // top
-            if ((Bitu)rect->h > (Bitu)sdl.overscan_width) { rect->y += (rect->h-sdl.overscan_width); rect->h = sdl.overscan_width; }
-            if ((Bitu)sdl.clip.x > (Bitu)sdl.overscan_width) { rect->x += (sdl.clip.x-sdl.overscan_width); rect->w -= 2*(sdl.clip.x-sdl.overscan_width); }
+            rect->x = 0; rect->y = 0; rect->w = sdl.draw.width+(unsigned int)(2*sdl.clip.x); rect->h = (uint16_t)sdl.clip.y; // top
+            if ((Bitu)rect->h > (Bitu)sdl.overscan_width) { rect->y += (int)(rect->h-sdl.overscan_width); rect->h = (uint16_t)sdl.overscan_width; }
+            if ((Bitu)sdl.clip.x > (Bitu)sdl.overscan_width) { rect->x += (int)sdl.clip.x-(int)sdl.overscan_width; rect->w -= (uint16_t)(2*((int)sdl.clip.x-(int)sdl.overscan_width)); }
             rect = &sdl.updateRects[1];
-            rect->x = 0; rect->y = sdl.clip.y; rect->w = sdl.clip.x; rect->h = sdl.draw.height; // left
-            if ((unsigned int)rect->w > (unsigned int)sdl.overscan_width) { rect->x += (rect->w-sdl.overscan_width); rect->w = sdl.overscan_width; }
+            rect->x = 0; rect->y = sdl.clip.y; rect->w = (uint16_t)sdl.clip.x; rect->h = (uint16_t)sdl.draw.height; // left
+            if ((unsigned int)rect->w > (unsigned int)sdl.overscan_width) { rect->x += (int)rect->w-(int)sdl.overscan_width; rect->w = (uint16_t)sdl.overscan_width; }
             rect = &sdl.updateRects[2];
-            rect->x = sdl.clip.x+sdl.draw.width; rect->y = sdl.clip.y; rect->w = sdl.clip.x; rect->h = sdl.draw.height; // right
-            if ((unsigned int)rect->w > (unsigned int)sdl.overscan_width) { rect->w = sdl.overscan_width; }
+            rect->x = (int)sdl.clip.x+(int)sdl.draw.width; rect->y = sdl.clip.y; rect->w = (uint16_t)sdl.clip.x; rect->h = (uint16_t)sdl.draw.height; // right
+            if ((unsigned int)rect->w > (unsigned int)sdl.overscan_width) { rect->w = (uint16_t)sdl.overscan_width; }
             rect = &sdl.updateRects[3];
-            rect->x = 0; rect->y = sdl.clip.y+sdl.draw.height; rect->w = sdl.draw.width+2*sdl.clip.x; rect->h = sdl.clip.y; // bottom
-            if ((Bitu)rect->h > (Bitu)sdl.overscan_width) { rect->h = sdl.overscan_width; }
-            if ((Bitu)sdl.clip.x > (Bitu)sdl.overscan_width) { rect->x += (sdl.clip.x-sdl.overscan_width); rect->w -= 2*(sdl.clip.x-sdl.overscan_width); }
+            rect->x = 0; rect->y = (int)sdl.clip.y+(int)sdl.draw.height; rect->w = sdl.draw.width+(unsigned int)(2*sdl.clip.x); rect->h = (uint16_t)sdl.clip.y; // bottom
+            if ((Bitu)rect->h > (Bitu)sdl.overscan_width) { rect->h = (uint16_t)sdl.overscan_width; }
+            if ((Bitu)sdl.clip.x > (Bitu)sdl.overscan_width) { rect->x += (int)sdl.clip.x-(int)sdl.overscan_width; rect->w -= (unsigned int)(2*((int)sdl.clip.x-(int)sdl.overscan_width)); }
 
             if (sdl.surface->format->BitsPerPixel == 8) { // SDL_FillRect seems to have some issues with palettized hw surfaces
                 Bit8u* pixelptr = (Bit8u*)sdl.surface->pixels;
                 Bitu linepitch = sdl.surface->pitch;
-                for (Bits i=0; i<4; i++) {
+                for (Bitu i=0; i<4; i++) {
                     rect = &sdl.updateRects[i];
-                    Bit8u* start = pixelptr + rect->y*linepitch + rect->x;
-                    for (Bits j=0; j<rect->h; j++) {
+                    Bit8u* start = pixelptr + (unsigned int)rect->y*(unsigned int)linepitch + (unsigned int)rect->x;
+                    for (Bitu j=0; j<rect->h; j++) {
                         memset(start, vga.attr.overscan_color, rect->w);
                         start += linepitch;
                     }
                 }
             } else {
-                for (Bits i=0; i<4; i++)
+                for (Bitu i=0; i<4; i++)
                     SDL_FillRect(sdl.surface, &sdl.updateRects[i], border_color);
 
 #if defined(C_SDL2)
@@ -997,8 +997,11 @@ check_surface:
         else if (flags & GFX_LOVE_32) testbpp=32;
         else testbpp=0;
 
-		if (sdl.desktop.fullscreen) gotbpp=SDL_VideoModeOK(640,480,testbpp,SDL_FULLSCREEN|SDL_HWSURFACE|SDL_HWPALETTE);
-        else gotbpp=sdl.desktop.bpp;
+		if (sdl.desktop.fullscreen)
+            gotbpp=(unsigned int)SDL_VideoModeOK(640,480,testbpp,
+                (unsigned int)SDL_FULLSCREEN | (unsigned int)SDL_HWSURFACE | (unsigned int)SDL_HWPALETTE);
+        else
+            gotbpp=sdl.desktop.bpp;
 
         /* SDL 1.x and sometimes SDL 2.x mistake 15-bit 5:5:5 RGB for 16-bit 5:6:5 RGB
          * which causes colors to mis-display. This seems to be common with Windows and Linux.
@@ -1150,19 +1153,19 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
     Bit16u windowHeight;
 
     if (sdl.desktop.prevent_fullscreen) /* 3Dfx openGL do not allow resize */
-        sdl_flags &= ~SDL_RESIZABLE;
+        sdl_flags &= ~((unsigned int)SDL_RESIZABLE);
 
     if (sdl.desktop.want_type == SCREEN_OPENGL)
-        sdl_flags |= SDL_OPENGL;
+        sdl_flags |= (unsigned int)SDL_OPENGL;
 
     if (sdl.desktop.fullscreen) {
         fixedWidth = sdl.desktop.full.fixed ? sdl.desktop.full.width : 0;
         fixedHeight = sdl.desktop.full.fixed ? sdl.desktop.full.height : 0;
-        sdl_flags |= SDL_FULLSCREEN|SDL_HWSURFACE;
+        sdl_flags |= (unsigned int)(SDL_FULLSCREEN|SDL_HWSURFACE);
     } else {
         fixedWidth = sdl.desktop.window.width;
         fixedHeight = sdl.desktop.window.height;
-        sdl_flags |= SDL_HWSURFACE;
+        sdl_flags |= (unsigned int)SDL_HWSURFACE;
     }
     if (fixedWidth == 0 || fixedHeight == 0) {
         Bitu consider_height = menu.maxwindow ? currentWindowHeight : 0;
@@ -1178,7 +1181,7 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
     /* scale the menu bar if the window is large enough */
     {
         int cw = fixedWidth,ch = fixedHeight;
-        Bitu scale = 1;
+        int scale = 1;
 
         if (cw == 0) cw = (Bit16u)(sdl.draw.width*sdl.draw.scalex);
         if (ch == 0) ch = (Bit16u)(sdl.draw.height*sdl.draw.scaley);
@@ -1186,8 +1189,8 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
         while ((cw/scale) >= (640*2) && (ch/scale) >= (400*2))
             scale++;
 
-        LOG_MSG("menuScale=%lu",(unsigned long)scale);
-        mainMenu.setScale(scale);
+        LOG_MSG("menuScale=%d",scale);
+        mainMenu.setScale((unsigned int)scale);
 
         if (mainMenu.isVisible()) fixedHeight -= mainMenu.menuBox.h;
     }
@@ -1243,7 +1246,7 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
     }
 #endif
 
-    sdl.surface=SDL_SetVideoMode(windowWidth,windowHeight,bpp,sdl_flags);
+    sdl.surface=SDL_SetVideoMode(windowWidth,windowHeight,(int)bpp,(unsigned int)sdl_flags);
     sdl.deferred_resize = false;
     sdl.must_redraw_all = true;
 
@@ -1260,7 +1263,7 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
     GFX_LogSDLState();
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    mainMenu.screenWidth = sdl.surface->w;
+    mainMenu.screenWidth = (size_t)(sdl.surface->w);
     mainMenu.updateRect();
     mainMenu.setRedraw();
 #endif
@@ -1462,26 +1465,26 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
 
     if (x < 0 || y < 0 ||
         (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
-        (unsigned int)(y+fontHeight) > (unsigned int)sdl.surface->h)
+        (unsigned int)(y+(int)fontHeight) > (unsigned int)sdl.surface->h)
         return;
 
     unsigned char *bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
 
     if (OpenGL_using()) {
 #if C_OPENGL
-        unsigned int tx = (c % 16) * 8;
-        unsigned int ty = (c / 16) * 16;
+        unsigned int tx = (c % 16u) * 8u;
+        unsigned int ty = (c / 16u) * 16u;
 
         /* MenuDrawText() has prepared OpenGL state for us */
         glBegin(GL_QUADS);
         // lower left
-        glTexCoord2i(tx+0,    ty           ); glVertex2i(x,  y           );
+        glTexCoord2i((int)tx+0,    (int)ty                ); glVertex2i((int)x,  (int)y                );
         // lower right
-        glTexCoord2i(tx+8,    ty           ); glVertex2i(x+8,y           );
+        glTexCoord2i((int)tx+8,    (int)ty                ); glVertex2i((int)x+8,(int)y                );
         // upper right
-        glTexCoord2i(tx+8,    ty+fontHeight); glVertex2i(x+8,y+fontHeight);
+        glTexCoord2i((int)tx+8,    (int)ty+(int)fontHeight); glVertex2i((int)x+8,(int)y+(int)fontHeight);
         // upper left
-        glTexCoord2i(tx+0,    ty+fontHeight); glVertex2i(x,  y+fontHeight);
+        glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i((int)x,  (int)y+(int)fontHeight);
         glEnd();
 #endif
     }
@@ -1491,8 +1494,8 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
         assert(sdl.surface->pixels != NULL);
 
         scan  = (unsigned char*)sdl.surface->pixels;
-        scan += y * sdl.surface->pitch;
-        scan += x * ((sdl.surface->format->BitsPerPixel+7)/8);
+        scan += (unsigned int)y * (unsigned int)sdl.surface->pitch;
+        scan += (unsigned int)x * (((unsigned int)sdl.surface->format->BitsPerPixel+7u)/8u);
 
         for (unsigned int row=0;row < fontHeight;row++) {
             unsigned char rb = bmp[row];
@@ -1512,7 +1515,7 @@ void MenuDrawTextChar(int x,int y,unsigned char c,Bitu color) {
                 }
             }
 
-            scan += sdl.surface->pitch;
+            scan += (size_t)sdl.surface->pitch;
         }
     }
 }
@@ -1522,26 +1525,26 @@ void MenuDrawTextChar2x(int x,int y,unsigned char c,Bitu color) {
 
     if (x < 0 || y < 0 ||
         (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
-        (unsigned int)(y+fontHeight) > (unsigned int)sdl.surface->h)
+        (unsigned int)(y+(int)fontHeight) > (unsigned int)sdl.surface->h)
         return;
 
     unsigned char *bmp = (unsigned char*)int10_font_16 + (c * fontHeight);
 
     if (OpenGL_using()) {
 #if C_OPENGL
-        unsigned int tx = (c % 16) * 8;
-        unsigned int ty = (c / 16) * 16;
+        unsigned int tx = (c % 16u) * 8u;
+        unsigned int ty = (c / 16u) * 16u;
 
         /* MenuDrawText() has prepared OpenGL state for us */
         glBegin(GL_QUADS);
         // lower left
-        glTexCoord2i(tx+0,    ty           ); glVertex2i(x,      y               );
+        glTexCoord2i((int)tx+0,    (int)ty                ); glVertex2i(x,      y                    );
         // lower right
-        glTexCoord2i(tx+8,    ty           ); glVertex2i(x+(8*2),y               );
+        glTexCoord2i((int)tx+8,    (int)ty                ); glVertex2i(x+(8*2),y                    );
         // upper right
-        glTexCoord2i(tx+8,    ty+fontHeight); glVertex2i(x+(8*2),y+(fontHeight*2));
+        glTexCoord2i((int)tx+8,    (int)ty+(int)fontHeight); glVertex2i(x+(8*2),y+((int)fontHeight*2));
         // upper left
-        glTexCoord2i(tx+0,    ty+fontHeight); glVertex2i(x,      y+(fontHeight*2));
+        glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i(x,      y+((int)fontHeight*2));
         glEnd();
 #endif
     }
@@ -1673,12 +1676,12 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
         MenuDrawText(screenBox.x+shortBox.x, screenBox.y+shortBox.y, shortcut_text.c_str(), fgshortcolor);
 
     if (type == submenu_type_id && borderTop/*not toplevel*/)
-        MenuDrawText((int)(screenBox.x+screenBox.w - mainMenu.fontCharWidth - 1), (int)(screenBox.y+textBox.y), "\x10", fgcheckcolor);
+        MenuDrawText((int)((int)screenBox.x+(int)screenBox.w - (int)mainMenu.fontCharWidth - 1), (int)((int)screenBox.y+(int)textBox.y), "\x10", fgcheckcolor);
 
     if (type == separator_type_id)
-        MenuDrawRect(screenBox.x, screenBox.y + (screenBox.h/2), screenBox.w, 1, fgcolor);
+        MenuDrawRect((int)screenBox.x, (int)screenBox.y + ((int)screenBox.h/2), (int)screenBox.w, 1, fgcolor);
     else if (type == vseparator_type_id)
-        MenuDrawRect(screenBox.x + (screenBox.w/2), screenBox.y, 1, screenBox.h, fgcolor);
+        MenuDrawRect((int)screenBox.x + ((int)screenBox.w/2), (int)screenBox.y, 1, (int)screenBox.h, fgcolor);
 
     if (SDL_MUSTLOCK(sdl.surface))
         SDL_UnlockSurface(sdl.surface);
@@ -1916,7 +1919,7 @@ dosurface:
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
                 if (mainMenu.isVisible()) menuheight = mainMenu.menuBox.h;
 #endif
-                Bitu consider_height = menu.maxwindow ? currentWindowHeight : (height + menuheight + (sdl.overscan_width * 2));
+                Bitu consider_height = menu.maxwindow ? currentWindowHeight : (height + (unsigned int)menuheight + (sdl.overscan_width * 2));
                 Bitu consider_width = menu.maxwindow ? currentWindowWidth : (width + (sdl.overscan_width * 2));
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
@@ -1925,25 +1928,25 @@ dosurface:
                      * the menus are useless below 640x400 */
                     if (consider_width < (640+(sdl.overscan_width * 2)))
                         consider_width = (640+(sdl.overscan_width * 2));
-                    if (consider_height < (400+(sdl.overscan_width * 2)+menuheight))
-                        consider_height = (400+(sdl.overscan_width * 2)+menuheight);
+                    if (consider_height < (400+(sdl.overscan_width * 2)+(unsigned int)menuheight))
+                        consider_height = (400+(sdl.overscan_width * 2)+(unsigned int)menuheight);
                 }
 #endif
 
-                int final_height = max(max(consider_height,userResizeWindowHeight),(Bitu)(sdl.clip.y+sdl.clip.h)) - menuheight - (sdl.overscan_width * 2);
-                int final_width = max(max(consider_width,userResizeWindowWidth),(Bitu)(sdl.clip.x+sdl.clip.w)) - (sdl.overscan_width * 2);
+                int final_height = (int)max(max(consider_height,userResizeWindowHeight),(Bitu)(sdl.clip.y+sdl.clip.h)) - (int)menuheight - ((int)sdl.overscan_width * 2);
+                int final_width = (int)max(max(consider_width,userResizeWindowWidth),(Bitu)(sdl.clip.x+sdl.clip.w)) - ((int)sdl.overscan_width * 2);
                 int ax = (final_width - (sdl.clip.x + sdl.clip.w)) / 2;
                 int ay = (final_height - (sdl.clip.y + sdl.clip.h)) / 2;
                 if (ax < 0) ax = 0;
                 if (ay < 0) ay = 0;
-                sdl.clip.x += ax + sdl.overscan_width;
-                sdl.clip.y += ay + sdl.overscan_width;
+                sdl.clip.x += ax + (int)sdl.overscan_width;
+                sdl.clip.y += ay + (int)sdl.overscan_width;
 //              sdl.clip.w = currentWindowWidth - sdl.clip.x;
 //              sdl.clip.h = currentWindowHeight - sdl.clip.y;
 
-                final_width += sdl.overscan_width*2;
-                final_height += menuheight + sdl.overscan_width*2;
-                sdl.clip.y += menuheight;
+                final_width += (int)sdl.overscan_width*2;
+                final_height += (int)menuheight + (int)sdl.overscan_width*2;
+                sdl.clip.y += (int)menuheight;
 
                 LOG_MSG("surface consider=%ux%u final=%ux%u",
                     (unsigned int)consider_width,
@@ -1952,14 +1955,16 @@ dosurface:
                     (unsigned int)final_height);
 
                 sdl.surface = SDL_SetVideoMode(final_width, final_height, bpp,
-                    ((flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) | SDL_HAX_NOREFRESH | SDL_RESIZABLE);
+                    (unsigned int)((flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
+                    (unsigned int)SDL_HAX_NOREFRESH |
+                    (unsigned int)SDL_RESIZABLE);
                 sdl.deferred_resize = false;
                 sdl.must_redraw_all = true;
 
                 if (SDL_MUSTLOCK(sdl.surface))
                     SDL_LockSurface(sdl.surface);
 
-                memset(sdl.surface->pixels, 0, sdl.surface->pitch * sdl.surface->h);
+                memset(sdl.surface->pixels, 0, (unsigned int)sdl.surface->pitch * (unsigned int)sdl.surface->h);
 
                 if (SDL_MUSTLOCK(sdl.surface))
                     SDL_UnlockSurface(sdl.surface);
