@@ -321,7 +321,7 @@ void MixerChannel::EndFrame(Bitu samples) {
         memmove(&msbuffer[0][0],&msbuffer[samples][0],msbuffer_o*sizeof(Bit32s)*2/*stereo*/);
     }
 
-    last_sample_write -= samples;
+    last_sample_write -= (unsigned int)samples;
 }
 
 void MixerChannel::Mix(Bitu whole,Bitu frac) {
@@ -744,7 +744,7 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
 
     if (mixer.prebuffer_wait) {
         remains = (int)mixer.work_in - (int)mixer.work_out;
-        if (remains < 0) remains += mixer.work_wrap;
+        if (remains < 0) remains += (int)mixer.work_wrap;
         if (remains < 0) remains = 0;
 
         if ((unsigned int)remains >= mixer.prebuffer_samples)
@@ -776,7 +776,7 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
     }
 
     remains = (int)mixer.work_in - (int)mixer.work_out;
-    if (remains < 0) remains += mixer.work_wrap;
+    if (remains < 0) remains += (int)mixer.work_wrap;
 
     if ((unsigned long)remains >= (mixer.blocksize*2UL)) {
         /* drop some samples to keep time */
@@ -987,9 +987,9 @@ void MIXER_Init() {
 
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("mixer"));
     /* Read out config section */
-    mixer.freq=section->Get_int("rate");
+    mixer.freq=(unsigned int)section->Get_int("rate");
     mixer.nosound=section->Get_bool("nosound");
-    mixer.blocksize=section->Get_int("blocksize");
+    mixer.blocksize=(unsigned int)section->Get_int("blocksize");
     mixer.swapstereo=section->Get_bool("swapstereo");
     mixer.sampleaccurate=section->Get_bool("sample accurate");//FIXME: Make this bool mean something again!
     mixer.mute=false;
@@ -1010,7 +1010,7 @@ void MIXER_Init() {
     SDL_AudioSpec spec;
     SDL_AudioSpec obtained;
 
-    spec.freq=mixer.freq;
+    spec.freq=(int)mixer.freq;
     spec.format=AUDIO_S16SYS;
     spec.channels=2;
     spec.callback=MIXER_CallBack;
@@ -1028,7 +1028,7 @@ void MIXER_Init() {
         if(((Bitu)mixer.freq != (Bitu)obtained.freq) || ((Bitu)mixer.blocksize != (Bitu)obtained.samples))
             LOG(LOG_MISC,LOG_DEBUG)("MIXER:Got different values from SDL: freq %d, blocksize %d",(int)obtained.freq,(int)obtained.samples);
 
-        mixer.freq=obtained.freq;
+        mixer.freq=(unsigned int)obtained.freq;
         mixer.blocksize=obtained.samples;
         TIMER_AddTickHandler(MIXER_Mix);
         SDL_PauseAudio(0);
@@ -1044,7 +1044,7 @@ void MIXER_Init() {
 
         if (ms < 0) ms = 20;
 
-        mixer.prebuffer_samples = (ms * mixer.freq) / 1000;
+        mixer.prebuffer_samples = ((unsigned int)ms * (unsigned int)mixer.freq) / 1000u;
         if (mixer.prebuffer_samples > (mixer.work_wrap / 2))
             mixer.prebuffer_samples = (mixer.work_wrap / 2);
     }
