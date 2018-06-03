@@ -90,12 +90,12 @@ static void Parallel_EventHandler(Bitu val) {
 }
 
 void CParallel::setEvent(Bit16u type, float duration) {
-    PIC_AddEvent(Parallel_EventHandler,duration,(type<<2)|port_nr);
+    PIC_AddEvent(Parallel_EventHandler,duration,((Bitu)type<<2u)|(Bitu)port_nr);
 }
 
 void CParallel::removeEvent(Bit16u type) {
     // TODO
-	PIC_RemoveSpecificEvents(Parallel_EventHandler,(type<<2)|port_nr);
+	PIC_RemoveSpecificEvents(Parallel_EventHandler,((Bitu)type<<2u)|(Bitu)port_nr);
 }
 
 void CParallel::handleEvent(Bit16u type) {

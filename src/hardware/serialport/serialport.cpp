@@ -249,12 +249,12 @@ static void Serial_EventHandler(Bitu val) {
 }
 
 void CSerial::setEvent(Bit16u type, float duration) {
-    PIC_AddEvent(Serial_EventHandler,duration,(type<<2)|idnumber);
+    PIC_AddEvent(Serial_EventHandler,duration,(Bitu)(((unsigned int)type<<2u)|(unsigned int)idnumber));
 }
 
 void CSerial::removeEvent(Bit16u type) {
     // TODO
-	PIC_RemoveSpecificEvents(Serial_EventHandler,(type<<2)|idnumber);
+	PIC_RemoveSpecificEvents(Serial_EventHandler,(Bitu)(((unsigned int)type<<2u)|(unsigned int)idnumber));
 }
 
 void CSerial::handleEvent(Bit16u type) {
@@ -590,7 +590,7 @@ Bitu CSerial::Read_IER () {
 	// 3	modem status 
 	// 4-7	0
 
-	if (LCR & LCR_DIVISOR_Enable_MASK) return baud_divider>>8;
+	if (LCR & LCR_DIVISOR_Enable_MASK) return (Bitu)baud_divider>>8u;
 	else return IER&0x0f;
 }
 
