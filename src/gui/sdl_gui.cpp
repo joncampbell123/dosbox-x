@@ -85,28 +85,28 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
 	Bit32u pixel;
 	switch (render.scale.inMode) {
 	case scalerMode8:
-		pixel = *(x+(Bit8u*)(src+y*render.scale.cachePitch));
-		r += render.pal.rgb[pixel].red >> shift;
-		g += render.pal.rgb[pixel].green >> shift;
-		b += render.pal.rgb[pixel].blue >> shift;
+		pixel = *((unsigned int)x+(Bit8u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+		r += (int)((unsigned int)render.pal.rgb[pixel].red >> (unsigned int)shift);
+		g += (int)((unsigned int)render.pal.rgb[pixel].green >> (unsigned int)shift);
+		b += (int)((unsigned int)render.pal.rgb[pixel].blue >> (unsigned int)shift);
 		break;
 	case scalerMode15:
-		pixel = *(x+(Bit16u*)(src+y*render.scale.cachePitch));
-		r += (pixel >> (7+shift)) & (0xf8 >> shift);
-		g += (pixel >> (2+shift)) & (0xf8 >> shift);
-		b += (pixel << (3-shift)) & (0xf8 >> shift);
+		pixel = *((unsigned int)x+(Bit16u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+		r += (int)((pixel >> (7u+(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
+		g += (int)((pixel >> (2u+(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
+		b += (int)((pixel << (3u-(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
 		break;
 	case scalerMode16:
-		pixel = *(x+(Bit16u*)(src+y*render.scale.cachePitch));
-		r += (pixel >> (8+shift)) & (0xf8 >> shift);
-		g += (pixel >> (3+shift)) & (0xfc >> shift);
-		b += (pixel << (3-shift)) & (0xf8 >> shift);
+		pixel = *((unsigned int)x+(Bit16u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+		r += (int)((pixel >> (8u+(unsigned int)shift)) & (0xf8u >> shift));
+		g += (int)((pixel >> (3u+(unsigned int)shift)) & (0xfcu >> shift));
+		b += (int)((pixel << (3u-(unsigned int)shift)) & (0xf8u >> shift));
 		break;
 	case scalerMode32:
-		pixel = *(x+(Bit32u*)(src+y*render.scale.cachePitch));
-		r += (pixel >> (16+shift)) & (0xff >> shift);
-		g += (pixel >> (8+shift))  & (0xff >> shift);
-		b += (pixel >> shift)      & (0xff >> shift);
+		pixel = *((unsigned int)x+(Bit32u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+		r += (int)((pixel >> (16u+(unsigned int)shift)) & (0xffu >> shift));
+		g += (int)((pixel >> ( 8u+(unsigned int)shift)) & (0xffu >> shift));
+		b += (int)((pixel >>      (unsigned int)shift)  & (0xffu >> shift));
 		break;
 	}
 }
@@ -147,13 +147,17 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	screenshot = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
 
 	// create screenshot for fade effect
-	int rs = screenshot->format->Rshift, gs = screenshot->format->Gshift, bs = screenshot->format->Bshift, am = GUI::Color::AlphaMask;
-	for (int y = 0; y < h; y++) {
-		Bit32u *bg = (Bit32u*)(y*screenshot->pitch + (char*)screenshot->pixels);
-		for (int x = 0; x < w; x++) {
+	unsigned int rs = screenshot->format->Rshift, gs = screenshot->format->Gshift, bs = screenshot->format->Bshift, am = GUI::Color::AlphaMask;
+	for (unsigned int y = 0; (int)y < h; y++) {
+		Bit32u *bg = (Bit32u*)(y*(unsigned int)screenshot->pitch + (char*)screenshot->pixels);
+		for (unsigned int x = 0; (int)x < w; x++) {
 			int r = 0, g = 0, b = 0;
-			getPixel(x    *(int)render.src.width/w, y    *(int)render.src.height/h, r, g, b, 0);
-			bg[x] = r << rs | g << gs | b << bs;
+			getPixel((int)(x*(unsigned int)render.src.width/(unsigned int)w),
+                     (int)(y*(unsigned int)render.src.height/(unsigned int)h),
+                     r, g, b, 0);
+			bg[x] = ((unsigned int)r << (unsigned int)rs) |
+                    ((unsigned int)g << (unsigned int)gs) |
+                    ((unsigned int)b << (unsigned int)bs);
 		}
 	}
 
@@ -178,7 +182,10 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 			int r1 = (int)((r * 393 + g * 769 + b * 189) / 1351); // 1351 -- tweak colors 
 			int g1 = (int)((r * 349 + g * 686 + b * 168) / 1503); // 1203 -- for a nice 
 			int b1 = (int)((r * 272 + g * 534 + b * 131) / 2340); // 2140 -- golden hue 
-			bg[x] = r1 << rs | g1 << gs | b1 << bs | am; 
+			bg[x] = ((unsigned int)r1 << (unsigned int)rs) |
+                    ((unsigned int)g1 << (unsigned int)gs) |
+                    ((unsigned int)b1 << (unsigned int)bs) |
+                     (unsigned int)am; 
 #endif
 		}
 	}
@@ -219,12 +226,12 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 /* Restore screen */
 static void UI_Shutdown(GUI::ScreenSDL *screen) {
 	SDL_Surface *sdlscreen = screen->getSurface();
-	render.src.bpp = saved_bpp;
+	render.src.bpp = (Bitu)saved_bpp;
 
 	// fade in
 	// Jonathan C: do it FASTER!
 	SDL_Event event;
-	for (int i = 0x00; i < 0xff; i += 0x30) {
+	for (unsigned int i = 0x00; i < 0xff; i += 0x30) {
 		SDL_SetAlpha(screenshot, SDL_SRCALPHA, i);
 		SDL_BlitSurface(background, NULL, sdlscreen, NULL);
 		SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
@@ -720,9 +727,9 @@ public:
 			new GUI::Label(this, 5, 10, "Enter default local freesize (MB, min=0, max=1024):");
 			name = new GUI::Input(this, 5, 30, 400);
 			extern unsigned int hdd_defsize;
-			int human_readable = 512 * 32 * hdd_defsize / 1024 / 1024;
+			unsigned int human_readable = 512u * 32u * hdd_defsize / 1024u / 1024u;
 			char buffer[6];
-			sprintf(buffer, "%d", human_readable);
+			sprintf(buffer, "%u", human_readable);
 			name->setText(buffer);
 			(new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
 			(new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
@@ -734,12 +741,12 @@ public:
 			extern unsigned int hdd_defsize;
 			int human_readable = atoi(name->getText());
 			if (human_readable < 0)
-				hdd_defsize = 0;
+				hdd_defsize = 0u;
 			else if (human_readable > 1024)
-				hdd_defsize = 256000;
+				hdd_defsize = 256000u;
 			else
-				hdd_defsize = human_readable * 1024 * 1024 / 512 / 32;
-			LOG_MSG("GUI: Current default freesize for local disk: %dMB", 512 * 32 * hdd_defsize / 1024 / 1024);
+				hdd_defsize = (unsigned int)human_readable * 1024u * 1024u / 512u / 32u;
+			LOG_MSG("GUI: Current default freesize for local disk: %dMB", 512u * 32u * hdd_defsize / 1024u / 1024u);
 		}
 		close();
 		if (shortcut) running = false;
@@ -749,7 +756,7 @@ public:
 class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
 	ConfigurationWindow(GUI::Screen *parent, GUI::Size x, GUI::Size y, GUI::String title) :
-		GUI::ToplevelWindow(parent, x, y, 580, 380, title) {
+		GUI::ToplevelWindow(parent, (int)x, (int)y, 580, 380, title) {
 
 		(new GUI::Button(this, 240, 305, "Close", 80))->addActionHandler(this);
 
@@ -793,7 +800,7 @@ public:
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
 		GUI::String sname = arg;
-		sname.at(0) = std::tolower(sname.at(0));
+		sname.at(0) = (unsigned int)std::tolower((int)sname.at(0));
 		Section *sec;
 		if (arg == "Close" || arg == "Cancel" || arg == "Close") {
 			running = false;
