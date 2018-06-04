@@ -151,6 +151,70 @@ void self_test(void) {
     assert(ispowerof2(32767u) == false);
     assert(ispowerof2(32768u) == true);
     assert(ispowerof2(32769u) == false);
+
+    static_assert(log2<1u << 31>() == 31, "whoops");
+    static_assert(log2<1u << 16>() == 16, "whoops");
+    static_assert(log2<1u << 8>() == 8, "whoops");
+    static_assert(log2<1u << 4>() == 4, "whoops");
+    static_assert(log2<1u << 3>() == 3, "whoops");
+    static_assert(log2<1u << 2>() == 2, "whoops");
+    static_assert(log2<1u << 1>() == 1, "whoops");
+    static_assert(log2<1u << 0>() == 0, "whoops");
+    static_assert(log2<256u>() == 8, "whoops");
+    static_assert(log2<128u>() == 7, "whoops");
+    static_assert(log2<16u>() == 4, "whoops");
+    static_assert(log2<1u>() == 0, "whoops");
+    static_assert(log2<0u>() == ~0u, "whoops");
+
+    if (sizeof(unsigned long long) >= 8) { /* we're assuming unsigned long long is at least 64 bits here */
+    static_assert(log2<unsigned long long,1ull << 63ull>() == 63, "whoops");
+    static_assert(log2<unsigned long long,1ull << 48ull>() == 48, "whoops");
+    }
+    static_assert(log2<unsigned long long,1ull << 31ull>() == 31, "whoops");
+    static_assert(log2<unsigned long long,1ull << 16ull>() == 16, "whoops");
+    static_assert(log2<unsigned long long,1ull << 8ull>() == 8, "whoops");
+    static_assert(log2<unsigned long long,1ull << 4ull>() == 4, "whoops");
+    static_assert(log2<unsigned long long,1ull << 3ull>() == 3, "whoops");
+    static_assert(log2<unsigned long long,1ull << 2ull>() == 2, "whoops");
+    static_assert(log2<unsigned long long,1ull << 1ull>() == 1, "whoops");
+    static_assert(log2<unsigned long long,1ull << 0ull>() == 0, "whoops");
+    static_assert(log2<unsigned long long,256ull>() == 8, "whoops");
+    static_assert(log2<unsigned long long,128ull>() == 7, "whoops");
+    static_assert(log2<unsigned long long,16ull>() == 4, "whoops");
+    static_assert(log2<unsigned long long,1ull>() == 0, "whoops");
+    static_assert(log2<unsigned long long,0ull>() == ~0u, "whoops");
+
+    assert(log2(1u << 31) == 31);
+    assert(log2(1u << 16) == 16);
+    assert(log2(1u << 8) == 8);
+    assert(log2(1u << 4) == 4);
+    assert(log2(1u << 3) == 3);
+    assert(log2(1u << 2) == 2);
+    assert(log2(1u << 1) == 1);
+    assert(log2(1u << 0) == 0);
+    assert(log2(256u) == 8);
+    assert(log2(128u) == 7);
+    assert(log2(16u) == 4);
+    assert(log2(1u) == 0);
+    assert(log2(0u) == ~0u);
+
+    if (sizeof(unsigned long long) >= 8) { /* we're assuming unsigned long long is at least 64 bits here */
+    assert(log2<unsigned long long>(1ull << 63ull) == 63);
+    assert(log2<unsigned long long>(1ull << 48ull) == 48);
+    }
+    assert(log2<unsigned long long>(1ull << 31ull) == 31);
+    assert(log2<unsigned long long>(1ull << 16ull) == 16);
+    assert(log2<unsigned long long>(1ull << 8ull) == 8);
+    assert(log2<unsigned long long>(1ull << 4ull) == 4);
+    assert(log2<unsigned long long>(1ull << 3ull) == 3);
+    assert(log2<unsigned long long>(1ull << 2ull) == 2);
+    assert(log2<unsigned long long>(1ull << 1ull) == 1);
+    assert(log2<unsigned long long>(1ull << 0ull) == 0);
+    assert(log2<unsigned long long>(256ull) == 8);
+    assert(log2<unsigned long long>(128ull) == 7);
+    assert(log2<unsigned long long>(16ull) == 4);
+    assert(log2<unsigned long long>(1ull) == 0);
+    assert(log2<unsigned long long>(0ull) == ~0u);
 }
 
 }
