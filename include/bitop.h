@@ -300,7 +300,7 @@ template <typename T=unsigned int> static inline constexpr unsigned int _log2_re
     /* NTS: The additional check against v == allzero() is needed to avoid an infinite recursion loop */
     return (v != allzero<T>()) ?
         (((v & type_msb_mask<T>()) == allzero<T>()) ? _log2_recursion(v << (T)1u,bits - 1u) : bits) :
-        allones<T>();
+        (~0u);
 }
 
 template <typename T=unsigned int,const T v> static inline constexpr unsigned int log2(void) {
