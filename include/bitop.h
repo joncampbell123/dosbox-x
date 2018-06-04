@@ -257,13 +257,13 @@ template <typename T=unsigned int> static inline constexpr T bitcount2maskmsb(co
  * 9 & 8 == 1001 & 1000         00001000
  * 10 & 9 == 1010 & 1001        00001000
  *
- * AND truth table:
- *
- * OUTPUT = a AND b
- *
- * OUTPUT is '1' if both a and b are '1'
- *
- *    0 1
+ * AND truth table:                                     +---------
+ *                                                      |         --
+ * OUTPUT = a AND b                             --------+           -
+ *                                                      |            +-----         A · B
+ * OUTPUT is '1' if both a and b are '1'        --------+           -
+ *                                                      |         --
+ *    0 1                                               +---------
  *   +------<- a
  * 0 |0 0
  * 1 |0 1
