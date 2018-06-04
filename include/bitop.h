@@ -223,6 +223,53 @@ template <typename T=unsigned int> static inline constexpr T bitcount2maskmsb(co
  * Note that in real mathematics, there is no value x for which 2 to the power of 'x' equals zero.
  * But you might be able to plug infinity into x to get really close to zero.
  *
+ * The reason this works is that the binary value of an unsigned integer that holds a power of 2,
+ * when the power is 0 <= x < (number of bits), is exactly one '1' bit surrounded by zeros.
+ *
+ * 2^0 == 1                     00000001
+ * 2^1 == 2                     00000010
+ * 2^2 == 4                     00000100
+ * 2^3 == 8                     00001000
+ * 2^4 == 16                    00010000
+ * 2^5 == 32                    00100000
+ * 2^6 == 64                    01000000
+ * 2^7 == 128                   10000000
+ * 
+ * Subtracting 1 from the power of 2 changes bit 'x' to zero and all bits 0 to (x-1) to one.
+ *
+ * 2^0 - 1 == 0                 00000000        |       00000001            2^0 == 1
+ * 2^1 - 1 == 1                 00000001        |       00000010            2^1 == 2
+ * 2^2 - 1 == 3                 00000011        |       00000100            2^2 == 4
+ * 2^3 - 1 == 7                 00000111        |       00001000            2^3 == 8
+ * 2^4 - 1 == 15                00001111        |       00010000            2^4 == 16
+ * 2^5 - 1 == 31                00011111        |       00100000            2^5 == 32
+ * 2^6 - 1 == 63                00111111        |       01000000            2^6 == 64
+ * 2^7 - 1 == 127               01111111        |       10000000            2^7 == 128
+ *
+ * Since subtracting 1 from 2^x changes the single bit to zero, ANDing (2^x) and (2^x - 1) should always
+ * produce a zero value.
+ *
+ * No other integer value has this property.
+ *
+ * 6 & 5 == 110 & 101           00000100
+ * 7 & 6 == 111 & 110           00000110
+ * 8 & 7 == 1000 & 0111         00000000
+ * 9 & 8 == 1001 & 1000         00001000
+ * 10 & 9 == 1010 & 1001        00001000
+ *
+ * AND truth table:
+ *
+ * OUTPUT = a AND b
+ *
+ * OUTPUT is '1' if both a and b are '1'
+ *
+ *    0 1
+ *   +------<- a
+ * 0 |0 0
+ * 1 |0 1
+ *   ^
+ *   b
+ *
  * @return Boolean true if 'a' is a power of 2 */
 template <typename T=unsigned int> static inline constexpr bool ispowerof2(const unsigned int a) {
     return (a & (a-(T)1u)) == 0;
