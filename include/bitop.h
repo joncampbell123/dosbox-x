@@ -1,14 +1,19 @@
 
+#include <limits.h>
 #include <stdint.h>
 
 namespace bitop {
 
 /* Return the number of bits of the data type.
  *
+ * The return value is sizeof() * CHAR_BIT. On most platforms today, CHAR_BIT == 8.
+ * CHAR_BIT could be other values if this is compiled on older mainframe platforms where
+ * a 'char' is less or more than 8 bits.
+ *
  * @return Number of bits in data type T
  */
 template <typename T=unsigned int> static inline constexpr unsigned int type_bits(void) {
-    return (unsigned int)sizeof(T) * 8u;
+    return (unsigned int)sizeof(T) * (unsigned int)CHAR_BIT;
 }
 
 /* Return data type T with all bits 0
