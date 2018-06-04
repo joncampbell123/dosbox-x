@@ -18,6 +18,11 @@ template <typename T=unsigned int> static inline constexpr unsigned int type_bit
 
 /* Return data type T with all bits 0
  *
+ * The memory storage of such a value should show ALL bits set to 0.
+ * 
+ * On CPUs today that use signed 2's complement integers, it is expected that: allzero() - (T)1u == allones()
+ * Subtracting 1 from all zeros should result in all ones.
+ *
  * @return Type T with zero bits
  */
 template <typename T=unsigned int> static inline constexpr T allzero(void) {
@@ -26,6 +31,11 @@ template <typename T=unsigned int> static inline constexpr T allzero(void) {
 
 /* Return data type T with all bits 1
  *
+ * The memory storage of such a value should show ALL bits set to 1.
+ * 
+ * On CPUs today that use signed 2's complement integers, it is expected that: allones() + (T)1u == allzero()
+ * Adding 1 to all ones should result in all zeros.
+ * 
  * @return Type T with set bits
  */
 template <typename T=unsigned int> static inline constexpr T allones(void) {
@@ -33,12 +43,16 @@ template <typename T=unsigned int> static inline constexpr T allones(void) {
 }
 
 
-/* private */
+/* private recursion function */
 template <typename T=unsigned int> static inline constexpr unsigned int _bitlength_recursion(const T v,const unsigned int bits) {
     return (v != allzero()) ? _bitlength_recursion(v >> (T)1u,bits + 1u) : bits;
 }
 
 /* Return minimum number of bits required to represent value 'v' in data type 'T'
+ *
+ * This function is declared constexpr so that the compiler can evaluate a constant value at compile
+ * time and insert the result as constant into the code. Since constexpr cannot use if(), while() and
+ * so on, recursion is used instead.
  *
  * @return Number of bits needed
  */
@@ -50,6 +64,7 @@ template <const unsigned int v> static inline constexpr unsigned int bitlength(v
     return bitlength<unsigned int,v>();
 }
 
+/* non-constant version for runtime use */
 template <typename T=unsigned int> static inline unsigned int bitlength(T v) {
     unsigned int c = 0;
 
@@ -66,22 +81,12 @@ template <typename T=unsigned int> static inline unsigned int bitlength(T v) {
 }
 
 
-/* Return number of sequential 1 bits counting from LSB in value 'v' of type 'T'
- *
- * @return Number of bits
- */
+/* private recursion function */
 template <typename T=unsigned int> static inline constexpr unsigned int _bitseqlength_recursionlsb(const T v,const unsigned int bits) {
     return (v & 1u) ? _bitseqlength_recursionlsb<T>(v >> (T)1u,bits + 1u) : bits;
 }
 
-template <typename T=unsigned int,const T v> static inline constexpr unsigned int bitseqlengthlsb(void) {
-    return _bitseqlength_recursionlsb(v,0);
-}
-
-template <const unsigned int v> static inline constexpr unsigned int bitseqlengthlsb(void) {
-    return bitseqlengthlsb<unsigned int,v>();
-}
-
+/* private common function */
 template <typename T=unsigned int> static inline void _bitseqlengthlsb_1(unsigned int &c,T &v) {
     while ((v & 0xFFUL) == 0xFFUL) {
         v >>= (T)8UL;
@@ -93,6 +98,23 @@ template <typename T=unsigned int> static inline void _bitseqlengthlsb_1(unsigne
     }
 }
 
+/* Return number of sequential 1 bits counting from LSB in value 'v' of type 'T'
+ *
+ * THis counts bits from the LSB upward until a zero bit is encountered.
+ *
+ * A constexpr version is provided for use at compile time and a non-constexpr
+ * version is provided for use at runtime.
+ *
+ * @return Number of bits
+ */
+template <typename T=unsigned int,const T v> static inline constexpr unsigned int bitseqlengthlsb(void) {
+    return _bitseqlength_recursionlsb(v,0);
+}
+
+template <const unsigned int v> static inline constexpr unsigned int bitseqlengthlsb(void) {
+    return bitseqlengthlsb<unsigned int,v>();
+}
+
 template <typename T=unsigned int> static inline unsigned int bitseqlengthlsb(T v) {
     unsigned int c = 0;
     _bitseqlengthlsb_1(/*&*/c,/*&*/v);
@@ -101,6 +123,10 @@ template <typename T=unsigned int> static inline unsigned int bitseqlengthlsb(T 
 
 
 /* Return binary mask of bit 'a'
+ *
+ * The returned bitmask should be usable to mask off bit 'a' and only bit 'a'.
+ *
+ * The function is constexpr to enable compile-time evaluation.
  *
  * @return Bitmask
  */
@@ -116,6 +142,8 @@ template <typename T=unsigned int> static inline constexpr T bit2mask(const unsi
 
 /* Return binary mask of MSB in type 'T'
  *
+ * The returned bitmask should be usable to mask off the most significant bit of data type 'T'
+ *
  * @return Bitmask
  */
 template <typename T=unsigned int> static inline constexpr T type_msb_mask(void) {
@@ -124,6 +152,13 @@ template <typename T=unsigned int> static inline constexpr T type_msb_mask(void)
 
 
 /* Return binary mask of 'a' LSB bits starting at bit offset 'offset' in type 'T'
+ *
+ * The returned bitmask should be usable to mask off 'a' bits starting from the bottom (LSB) at bit 'offset'.
+ *
+ * Examples:    bitcount2masklsb<1,0>() = 0x00000001U           a=1 offset=0        bits 0 to 0
+ *              bitcount2masklsb<4,0>() = 0x0000000FU           a=4 offset=0        bits 3 to 0
+ *              bitcount2masklsb<16,0>() = 0x0000FFFFU          a=16 offset=0       bits 15 to 0
+ *              bitcount2masklsb<4,4>() = 0x000000F0U           a=4 offset=4        bits 7 to 4
  *
  * @return Bitmask
  */
@@ -150,6 +185,13 @@ template <typename T=unsigned int> static inline constexpr T bitcount2masklsb(co
 
 
 /* Return binary mask of 'a' MSB bits starting at bit offset 'offset' in type 'T'
+ *
+ * The returned bitmask should be usable to mask off 'a' bits starting from the top (MSB) at bit 'offset'.
+ *
+ * Examples:    bitcount2maskmsb<1,0>() = 0x80000000U           a=1 offset=0        bits 31 to 31
+ *              bitcount2maskmsb<4,0>() = 0xF0000000U           a=4 offset=0        bits 31 to 28
+ *              bitcount2maskmsb<16,0>() = 0xFFFF0000U          a=16 offset=0       bits 31 to 16
+ *              bitcount2maskmsb<4,4>() = 0x0F000000U           a=4 offset=4        bits 27 to 24
  *
  * @return Bitmask
  */
@@ -178,6 +220,8 @@ template <typename T=unsigned int> static inline constexpr T bitcount2maskmsb(co
 /* Indicate whether 'a' is a power of 2.
  *
  * This code will NOT work correctly if a == 0, the result is to be considered undefined.
+ * Note that in real mathematics, there is no value x for which 2 to the power of 'x' equals zero.
+ * But you might be able to plug infinity into x to get really close to zero.
  *
  * @return Boolean true if 'a' is a power of 2 */
 template <typename T=unsigned int> static inline constexpr bool ispowerof2(const unsigned int a) {
