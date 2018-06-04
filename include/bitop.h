@@ -270,6 +270,8 @@ template <typename T=unsigned int> static inline constexpr T bitcount2maskmsb(co
  *   ^
  *   b
  *
+ * For integer values, apply the AND operator to the same bit position from both integers.
+ *
  * @return Boolean true if 'a' is a power of 2 */
 template <typename T=unsigned int> static inline constexpr bool ispowerof2(const unsigned int a) {
     return (a & (a-(T)1u)) == 0;
