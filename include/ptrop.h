@@ -3,7 +3,10 @@
 
 namespace ptrop {
 
-/* return the misalignment in bytes of 'p' in the context of a data type of size 'A' */
+/* return the misalignment in bytes of 'p' in the context of a data type of size 'A'
+ * for best performance, enable optimizations in your C++ compiler and use a constant power of 2 for parameter 'A'.
+ * If you meet that constraint, your C++ compiler should know to convert "p % A" into "p & (A - 1)" to use
+ * bit masking instead of slower division. */
 static inline constexpr uintptr_t misalignment(const uintptr_t p,const uintptr_t A) {
     return p % A;
 }
