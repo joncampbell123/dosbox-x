@@ -432,7 +432,7 @@ static void slave_startIRQ(){
 
     slave.start_irq(pic1_irq);
     master.start_irq(master_cascade_irq);
-    CPU_HW_Interrupt(slave.vector_base + pic1_irq);
+    CPU_HW_Interrupt((unsigned int)slave.vector_base + (unsigned int)pic1_irq);
 }
 
 static void inline master_startIRQ(Bitu i){
@@ -492,9 +492,9 @@ void PIC_SetIRQMask(Bitu irq, bool masked) {
 void DEBUG_PICSignal(int irq,bool raise) {
     if (irq >= 0 && irq <= 15) {
         if (raise)
-            PIC_ActivateIRQ(irq);
+            PIC_ActivateIRQ((unsigned int)irq);
         else
-            PIC_DeActivateIRQ(irq);
+            PIC_DeActivateIRQ((unsigned int)irq);
     }
 }
 
@@ -502,7 +502,7 @@ void DEBUG_PICAck(int irq) {
     if (irq >= 0 && irq <= 15) {
         PIC_Controller * pic=&pics[irq>7 ? 1 : 0];
 
-        pic->isr &= ~(1 << (irq & 7U));
+        pic->isr &= ~(1u << ((unsigned int)irq & 7U));
         pic->isrr = ~pic->isr;
         pic->check_after_EOI();
     }
@@ -510,7 +510,7 @@ void DEBUG_PICAck(int irq) {
 
 void DEBUG_PICMask(int irq,bool mask) {
     if (irq >= 0 && irq <= 15)
-        PIC_SetIRQMask(irq,mask);
+        PIC_SetIRQMask((unsigned int)irq,mask);
 }
 
 static void AddEntry(PICEntry * entry) {
@@ -777,7 +777,7 @@ void PIC_Reset(Section *sec) {
     PIC_irq_delay_ns = 1000000000UL / (unsigned long)PIT_TICK_RATE;
     {
         int x = section->Get_int("irq delay ns");
-        if (x >= 0) PIC_irq_delay_ns = x;
+        if (x >= 0) PIC_irq_delay_ns = (unsigned int)x;
     }
 
     if (enable_slave_pic)
@@ -817,7 +817,7 @@ void PIC_Reset(Section *sec) {
     PIC_SetIRQMask(8,false);                    /* Enable RTC IRQ */
 
     if (master_cascade_irq >= 0)
-        PIC_SetIRQMask(master_cascade_irq,false);/* Enable second pic */
+        PIC_SetIRQMask((unsigned int)master_cascade_irq,false);/* Enable second pic */
 
     /* I/O port map
      *
