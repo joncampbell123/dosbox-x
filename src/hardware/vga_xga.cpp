@@ -322,11 +322,11 @@ void XGA_DrawLineVector(Bitu val) {
 						srcval = 0;
 						break;
 				}
-				dstdata = XGA_GetPoint(xat,yat);
+				dstdata = XGA_GetPoint((Bitu)xat,(Bitu)yat);
 
 				destval = XGA_GetMixResult(mixmode, srcval, dstdata);
 
-				XGA_DrawPoint(xat,yat, destval);
+				XGA_DrawPoint((Bitu)xat, (Bitu)yat, destval);
 				break;
 			default: 
 				LOG_MSG("XGA: DrawLine: Needs mixmode %x", (int)mixmode);
@@ -422,17 +422,17 @@ void XGA_DrawLineBresenham(Bitu val) {
 					}
 
 					if(steep) {
-						dstdata = XGA_GetPoint(xat,yat);
+						dstdata = XGA_GetPoint((Bitu)xat,(Bitu)yat);
 					} else {
-						dstdata = XGA_GetPoint(yat,xat);
+						dstdata = XGA_GetPoint((Bitu)yat,(Bitu)xat);
 					}
 
 					destval = XGA_GetMixResult(mixmode, srcval, dstdata);
 
 					if(steep) {
-						XGA_DrawPoint(xat,yat, destval);
+						XGA_DrawPoint((Bitu)xat,(Bitu)yat, destval);
 					} else {
-						XGA_DrawPoint(yat,xat, destval);
+						XGA_DrawPoint((Bitu)yat,(Bitu)xat, destval);
 					}
 
 					break;
@@ -505,11 +505,11 @@ void XGA_DrawRectangle(Bitu val) {
 							srcval = 0;
 							break;
 					}
-					dstdata = XGA_GetPoint(srcx,srcy);
+					dstdata = XGA_GetPoint((Bitu)srcx,(Bitu)srcy);
 
 					destval = XGA_GetMixResult(mixmode, srcval, dstdata);
 
-					XGA_DrawPoint(srcx,srcy, destval);
+					XGA_DrawPoint((Bitu)srcx,(Bitu)srcy, destval);
 					break;
 				default: 
 					LOG_MSG("XGA: DrawRect: Needs mixmode %x", (int)mixmode);
@@ -689,7 +689,7 @@ void XGA_DrawWait(Bitu val, Bitu len) {
 							Bitu mixmode;
 							
 							// This formula can rule the world ;)
-							Bitu mask = 1 << ((((n&0xF8)+(8-(n&0x7)))-1)+chunksize*k);
+							Bitu mask = 1ul << ((((n&0xF8u)+(8u-(n&0x7u)))-1u)+chunksize*k);
 							if(val&mask) mixmode = xga.foremix;
 							else mixmode = xga.backmix;
 							
@@ -776,8 +776,8 @@ void XGA_BlitRect(Bitu val) {
 		tarx = xga.destx;
 
 		for(xat=0;xat<=xga.MAPcount;xat++) {
-			srcdata = XGA_GetPoint(srcx, srcy);
-			dstdata = XGA_GetPoint(tarx, tary);
+			srcdata = XGA_GetPoint((Bitu)srcx, (Bitu)srcy);
+			dstdata = XGA_GetPoint((Bitu)tarx, (Bitu)tary);
 
 			if(mixselect == 0x3) {
 				if(srcdata == xga.forecolor) {
@@ -815,7 +815,7 @@ void XGA_BlitRect(Bitu val) {
 			destval = XGA_GetMixResult(mixmode, srcval, dstdata);
 			//LOG_MSG("XGA: DrawPattern: Mixmode: %x Mixselect: %x", mixmode, mixselect);
 
-			XGA_DrawPoint(tarx, tary, destval);
+			XGA_DrawPoint((Bitu)tarx, (Bitu)tary, destval);
 
 			srcx += dx;
 			tarx += dx;
@@ -866,9 +866,9 @@ void XGA_DrawPattern(Bitu val) {
 		tarx = xga.destx;
 		for(xat=0;xat<=xga.MAPcount;xat++) {
 
-			srcdata = XGA_GetPoint(srcx + (tarx & 0x7), srcy + (tary & 0x7));
+			srcdata = XGA_GetPoint((Bitu)srcx + (tarx & 0x7), (Bitu)srcy + (tary & 0x7));
 			//LOG_MSG("patternpoint (%3d/%3d)v%x",srcx + (tarx & 0x7), srcy + (tary & 0x7),srcdata);
-			dstdata = XGA_GetPoint(tarx, tary);
+			dstdata = XGA_GetPoint((Bitu)tarx, (Bitu)tary);
 			
 
 			if(mixselect == 0x3) {
@@ -901,7 +901,7 @@ void XGA_DrawPattern(Bitu val) {
 
 			destval = XGA_GetMixResult(mixmode, srcval, dstdata);
 
-			XGA_DrawPoint(tarx, tary, destval);
+			XGA_DrawPoint((Bitu)tarx, (Bitu)tary, destval);
 			
 			tarx += dx;
 		}
@@ -958,7 +958,7 @@ void XGA_DrawCmd(Bitu val, Bitu len) {
 				xga.waitcmd.sizex = xga.MAPcount;
 				xga.waitcmd.sizey = xga.MIPcount + 1;
 				xga.waitcmd.cmd = 2;
-				xga.waitcmd.buswidth = vga.mode | ((val&0x600) >> 4);
+				xga.waitcmd.buswidth = (Bitu)vga.mode | (Bitu)((val&0x600u) >> 4u);
 				xga.waitcmd.data = 0;
 				xga.waitcmd.datasize = 0;
 
