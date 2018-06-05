@@ -314,7 +314,7 @@ static void FDC_Init(Section* sec,unsigned char fdc_interface) {
         fdc = floppycontroller[fdc_interface] = new FloppyController(sec,fdc_interface);
         fdc->install_io_port();
 
-		PIC_SetIRQMask(fdc->IRQ, false);
+		PIC_SetIRQMask((unsigned int)(fdc->IRQ), false);
 	}
 }
 
@@ -545,8 +545,8 @@ void FloppyController::on_dor_change(unsigned char b) {
 
 	/* DMA/IRQ enable */
 	if (chg & 0x08 && IRQ >= 0) {
-		if ((b&0x08) && irq_pending) PIC_ActivateIRQ(IRQ);
-		else PIC_DeActivateIRQ(IRQ);
+		if ((b&0x08) && irq_pending) PIC_ActivateIRQ((unsigned int)IRQ);
+		else PIC_DeActivateIRQ((unsigned int)IRQ);
 	}
 
 	/* drive motors */
@@ -970,7 +970,7 @@ void FloppyController::on_fdc_in_command() {
 			}
 			else {
 				/* delay due to stepping the head to the desired cylinder */
-				motor_steps = abs(in_cmd[2] - current_cylinder[devidx]);
+				motor_steps = (unsigned int)abs((int)in_cmd[2] - (int)current_cylinder[devidx]);
 				motor_dir = in_cmd[2] > current_cylinder[devidx] ? 1 : -1;
 
 				/* the command takes time to move the head */
@@ -1276,12 +1276,12 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 
 void FloppyController::raise_irq() {
 	irq_pending = true;
-	if (dma_irq_enabled() && IRQ >= 0) PIC_ActivateIRQ(IRQ);
+	if (dma_irq_enabled() && IRQ >= 0) PIC_ActivateIRQ((unsigned int)IRQ);
 }
 
 void FloppyController::lower_irq() {
 	irq_pending = false;
-	if (IRQ >= 0) PIC_DeActivateIRQ(IRQ);
+	if (IRQ >= 0) PIC_DeActivateIRQ((unsigned int)IRQ);
 }
 
 void BIOS_Post_register_FDC() {
