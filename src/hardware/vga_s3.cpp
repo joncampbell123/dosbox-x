@@ -32,7 +32,7 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
         vga.config.compatible_chain4 = !(val&0x08);
         if (vga.config.compatible_chain4) vga.vmemwrap = 256*1024;
         else vga.vmemwrap = vga.vmemsize;
-        vga.config.display_start = (vga.config.display_start&~0x30000)|((val&0x30)<<12);
+        vga.config.display_start = (vga.config.display_start&~0x30000ul)|((val&0x30u)<<12ul);
         VGA_DetermineMode();
         VGA_SetupHandlers();
         break;
@@ -98,7 +98,7 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
        */
         break;
     case 0x43:  /* CR43 Extended Mode */
-        vga.s3.reg_43=val & ~0x4;
+        vga.s3.reg_43=val & ~0x4u;
         if (((val & 0x4) ^ (vga.config.scan_len >> 6)) & 0x4) {
             vga.config.scan_len&=0x2ff;
             vga.config.scan_len|=(val & 0x4) << 6;
@@ -371,7 +371,7 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
     switch (reg) {
     case 0x24:  /* attribute controller index (read only) */
     case 0x26:
-        return ((vga.attr.disabled & 1)?0x00:0x20) | (vga.attr.index & 0x1f);
+        return ((vga.attr.disabled & 1u)?0x00u:0x20u) | (vga.attr.index & 0x1fu);
     case 0x2d:  /* Extended Chip ID (high byte of PCI device ID) */
         return 0x88;
     case 0x2e:  /* New Chip ID  (low byte of PCI device ID) */
@@ -385,7 +385,7 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
 //TODO mix in bits from baseaddress;
         return  vga.s3.reg_31;  
     case 0x35:  /* CR35 CRT Register Lock */
-        return vga.s3.reg_35|(vga.svga.bank_read & 0xf);
+        return vga.s3.reg_35|(vga.svga.bank_read & 0xfu);
     case 0x36: /* CR36 Reset State Read 1 */
         return vga.s3.reg_36;
     case 0x37: /* Reset state read 2 */
@@ -407,15 +407,15 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
     case 0x45:  /* Hardware cursor mode */
         vga.s3.hgc.bstackpos = 0;
         vga.s3.hgc.fstackpos = 0;
-        return vga.s3.hgc.curmode|0xa0;
+        return vga.s3.hgc.curmode|0xa0u;
     case 0x46:
-        return vga.s3.hgc.originx>>8;
+        return (unsigned int)vga.s3.hgc.originx>>8u;
     case 0x47:  /*  HGC orgX */
-        return vga.s3.hgc.originx&0xff;
+        return vga.s3.hgc.originx&0xffu;
     case 0x48:
-        return vga.s3.hgc.originy>>8;
+        return (unsigned int)vga.s3.hgc.originy>>8u;
     case 0x49:  /*  HGC orgY */
-        return vga.s3.hgc.originy&0xff;
+        return vga.s3.hgc.originy&0xffu;
     case 0x4A:  /* HGC foreground stack */
         return vga.s3.hgc.forestack[vga.s3.hgc.fstackpos];
     case 0x4B:  /* HGC background stack */
@@ -423,9 +423,9 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
     case 0x50:  // CR50 Extended System Control 1
         return vga.s3.reg_50;
     case 0x51:  /* Extended System Control 2 */
-        return ((vga.config.display_start >> 16) & 3 ) |
-                ((vga.svga.bank_read & 0x30) >> 2) |
-                ((vga.config.scan_len & 0x300) >> 4) |
+        return ((vga.config.display_start >> 16u) & 3u) |
+                ((vga.svga.bank_read & 0x30u) >> 2u) |
+                ((vga.config.scan_len & 0x300u) >> 4u) |
                 vga.s3.reg_51;
     case 0x52:  // CR52 Extended BIOS flags 1
         return vga.s3.reg_52;
@@ -436,7 +436,7 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
     case 0x58:  /* Linear Address Window Control */
         return  vga.s3.reg_58;
     case 0x59:  /* Linear Address Window Position High */
-        return (vga.s3.la_window >> 8);
+        return ((unsigned int)vga.s3.la_window >> 8u);
     case 0x5a:  /* Linear Address Window Position Low */
         return (vga.s3.la_window & 0xff);
     case 0x5D:  /* Extended Horizontal Overflow */
