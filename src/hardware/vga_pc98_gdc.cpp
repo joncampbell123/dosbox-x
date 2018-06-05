@@ -78,7 +78,7 @@ PC98_GDC_state::PC98_GDC_state() {
 }
 
 size_t PC98_GDC_state::fifo_can_read(void) {
-    return fifo_write - fifo_read;
+    return (size_t)((unsigned int)fifo_write - (unsigned int)fifo_read);
 }
 
 void PC98_GDC_state::take_reset_sync_parameters(void) {
@@ -174,16 +174,16 @@ void PC98_GDC_state::take_cursor_pos(unsigned char bi) {
      *   0 = [3:2] = 0
      *   EAD(H) = [1:0] = address[17:16] */
     if (bi == 1) {
-		vga.config.cursor_start &= ~(0xFF << 0);
-		vga.config.cursor_start |=  cmd_parm_tmp[0] << 0;
+		vga.config.cursor_start &= ~(0xFFu << 0u);
+		vga.config.cursor_start |=  cmd_parm_tmp[0] << 0u;
     }
     else if (bi == 2) {
-		vga.config.cursor_start &= ~(0xFF << 8);
-		vga.config.cursor_start |=  cmd_parm_tmp[1] << 8;
+		vga.config.cursor_start &= ~(0xFFu << 8u);
+		vga.config.cursor_start |=  (unsigned int)cmd_parm_tmp[1] << 8u;
     }
     else if (bi == 3) {
-		vga.config.cursor_start &= ~(0x03 << 16);
-		vga.config.cursor_start |=  (cmd_parm_tmp[2] & 3) << 16;
+		vga.config.cursor_start &= ~(0x03u << 16u);
+		vga.config.cursor_start |=  (cmd_parm_tmp[2] & 3u) << 16u;
 
         // TODO: "dot address within the word"
     }
@@ -198,7 +198,7 @@ void PC98_GDC_state::take_cursor_char_setup(unsigned char bi) {
         cursor_enable = !!(cmd_parm_tmp[0] & 0x80);
 
 		vga.crtc.maximum_scan_line = cmd_parm_tmp[0] & 0x1F;
-		vga.draw.address_line_total = vga.crtc.maximum_scan_line + 1;
+		vga.draw.address_line_total = vga.crtc.maximum_scan_line + 1u;
         row_height = vga.draw.address_line_total;
         if (!master_sync) doublescan = (row_height > 1);
     }
@@ -435,7 +435,7 @@ void PC98_GDC_state::reset_rfifo(void) {
 
 void PC98_GDC_state::flush_fifo_old(void) {
     if (fifo_read != 0) {
-        unsigned int sz = (fifo_read <= fifo_write) ? (fifo_write - fifo_read) : 0;
+        unsigned int sz = (fifo_read <= fifo_write) ? ((unsigned int)fifo_write - (unsigned int)fifo_read) : 0u;
 
         for (unsigned int i=0;i < sz;i++)
             fifo[i] = fifo[i+fifo_read];
@@ -761,6 +761,6 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
             break;
     };
 
-    return ~0;
+    return ~0ul;
 }
 

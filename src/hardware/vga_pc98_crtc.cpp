@@ -62,7 +62,7 @@ void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
 Bitu pc98_crtc_read(Bitu port,Bitu iolen) {
     (void)iolen;//UNUSED
     LOG_MSG("PC98 CRTC r: port=0x%02X unknown",(unsigned int)port);
-    return ~0;
+    return ~0ul;
 }
 
 /* Port 0x6A command handling */
