@@ -43,6 +43,17 @@ template <typename T=unsigned int> static inline constexpr T allones(void) {
 }
 
 
+/* Return data type T with value negated
+ *
+ * This is to avoid typecast messes when masking by the inverse of a constant
+ * 
+ * @return Type T with value negated
+ */
+template <typename T=unsigned int> static inline constexpr T negate(const T v) {
+    return (T)( ~v );
+}
+
+
 /* private recursion function */
 template <typename T=unsigned int> static inline constexpr unsigned int _bitlength_recursion(const T v,const unsigned int bits) {
     return (v != allzero()) ? _bitlength_recursion(v >> (T)1u,bits + 1u) : bits;

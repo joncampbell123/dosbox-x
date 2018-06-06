@@ -231,6 +231,20 @@ void self_test(void) {
     assert(log2<unsigned long long>(16ull) == 4);
     assert(log2<unsigned long long>(1ull) == 0);
     assert(log2<unsigned long long>(0ull) == ~0u);
+
+    static_assert(negate<unsigned int>(0) == ~0u, "whoops");
+    static_assert(negate<unsigned int>(1) == ~1u, "whoops");
+    static_assert(negate<unsigned long>(0) == ~0ul, "whoops");
+    static_assert(negate<unsigned long>(1) == ~1ul, "whoops");
+    static_assert(negate<unsigned long long>(0) == ~0ull, "whoops");
+    static_assert(negate<unsigned long long>(1) == ~1ull, "whoops");
+
+    assert(negate<unsigned int>(0) == ~0u);
+    assert(negate<unsigned int>(1) == ~1u);
+    assert(negate<unsigned long>(0) == ~0ul);
+    assert(negate<unsigned long>(1) == ~1ul);
+    assert(negate<unsigned long long>(0) == ~0ull);
+    assert(negate<unsigned long long>(1) == ~1ull);
 }
 
 }
