@@ -171,7 +171,7 @@ bx_ne2k_c::reset(unsigned type)
     BX_NE2K_THIS s.CR.rdma_cmd  = 4;
   BX_NE2K_THIS s.ISR.reset    = 1;
   BX_NE2K_THIS s.DCR.longaddr = 1;
-  PIC_DeActivateIRQ(s.base_irq);
+  PIC_DeActivateIRQ((unsigned int)s.base_irq);
   //DEV_pic_lower_irq(BX_NE2K_THIS s.base_irq);
 }
 
@@ -183,11 +183,11 @@ Bit32u
 bx_ne2k_c::read_cr(void)
 {
   Bit32u val = 
-         (((BX_NE2K_THIS s.CR.pgsel    & 0x03) << 6) |
-	  ((BX_NE2K_THIS s.CR.rdma_cmd & 0x07) << 3) |
-	  (BX_NE2K_THIS s.CR.tx_packet << 2) |
-	  (BX_NE2K_THIS s.CR.start     << 1) |
-	  (BX_NE2K_THIS s.CR.stop));
+    (((unsigned int)(BX_NE2K_THIS s.CR.pgsel    & 0x03u) << 6u) |
+	 ((unsigned int)(BX_NE2K_THIS s.CR.rdma_cmd & 0x07u) << 3u) |
+	  (unsigned int)(BX_NE2K_THIS s.CR.tx_packet << 2u) |
+	  (unsigned int)(BX_NE2K_THIS s.CR.start     << 1u) |
+	  (unsigned int)(BX_NE2K_THIS s.CR.stop));
   BX_DEBUG("read CR returns 0x%08x", val);
   return val;
 }
@@ -249,7 +249,7 @@ bx_ne2k_c::write_cr(Bit32u value)
 			// Generate an interrupt if not masked and not one in progress
 			if (BX_NE2K_THIS s.IMR.tx_inte && !BX_NE2K_THIS s.ISR.pkt_tx) {
 				//LOG_MSG("tx complete interrupt");
-				PIC_ActivateIRQ(s.base_irq);
+				PIC_ActivateIRQ((unsigned int)s.base_irq);
 			}
 			BX_NE2K_THIS s.ISR.pkt_tx = 1;
 		}
@@ -309,7 +309,7 @@ bx_ne2k_c::write_cr(Bit32u value)
       BX_NE2K_THIS s.remote_bytes == 0) {
     BX_NE2K_THIS s.ISR.rdma_done = 1;
     if (BX_NE2K_THIS s.IMR.rdma_inte) {
-		PIC_ActivateIRQ(s.base_irq);
+		PIC_ActivateIRQ((unsigned int)s.base_irq);
       //DEV_pic_raise_irq(BX_NE2K_THIS s.base_irq);
     }
   }
@@ -333,11 +333,11 @@ Bit32u bx_ne2k_c::chipmem_read(Bit32u address, unsigned int io_len)
   // ROM'd MAC address
   if (/*(address >=0) && */(address <= 31)) {
     retval = BX_NE2K_THIS s.macaddr[address];
-    if ((io_len == 2) || (io_len == 4)) {
-      retval |= (BX_NE2K_THIS s.macaddr[address + 1] << 8);
-	  if (io_len == 4) {
-			retval |= (BX_NE2K_THIS s.macaddr[address + 2] << 16);
-			retval |= (BX_NE2K_THIS s.macaddr[address + 3] << 24);
+    if ((io_len == 2u) || (io_len == 4u)) {
+      retval |= (unsigned int)(BX_NE2K_THIS s.macaddr[address + 1u] << 8u);
+	  if (io_len == 4u) {
+			retval |= (unsigned int)(BX_NE2K_THIS s.macaddr[address + 2u] << 16u);
+			retval |= (unsigned int)(BX_NE2K_THIS s.macaddr[address + 3u] << 24u);
 	  }
     }
     return (retval);
@@ -345,12 +345,12 @@ Bit32u bx_ne2k_c::chipmem_read(Bit32u address, unsigned int io_len)
 
   if ((address >= BX_NE2K_MEMSTART) && (address < BX_NE2K_MEMEND)) {
     retval = BX_NE2K_THIS s.mem[address - BX_NE2K_MEMSTART];
-    if ((io_len == 2) || (io_len == 4)) {
-      retval |= (BX_NE2K_THIS s.mem[address - BX_NE2K_MEMSTART + 1] << 8);
+    if ((io_len == 2u) || (io_len == 4u)) {
+      retval |= (unsigned int)(BX_NE2K_THIS s.mem[address - BX_NE2K_MEMSTART + 1] << 8u);
     }
-	if (io_len == 4) {
-       retval |= (BX_NE2K_THIS s.mem[address - BX_NE2K_MEMSTART + 2] << 16);
-       retval |= (BX_NE2K_THIS s.mem[address - BX_NE2K_MEMSTART + 3] << 24);
+	if (io_len == 4u) {
+       retval |= (unsigned int)(BX_NE2K_THIS s.mem[address - BX_NE2K_MEMSTART + 2] << 16u);
+       retval |= (unsigned int)(BX_NE2K_THIS s.mem[address - BX_NE2K_MEMSTART + 3] << 24u);
     }
     return (retval);
   }
@@ -423,7 +423,7 @@ bx_ne2k_c::asic_read(Bit32u offset, unsigned int io_len)
 	if (BX_NE2K_THIS s.remote_bytes == 0) {
 	    BX_NE2K_THIS s.ISR.rdma_done = 1;
 	    if (BX_NE2K_THIS s.IMR.rdma_inte) {
-			PIC_ActivateIRQ(s.base_irq);
+			PIC_ActivateIRQ((unsigned int)s.base_irq);
 		//DEV_pic_raise_irq(BX_NE2K_THIS s.base_irq);
 		}
 	}
@@ -472,7 +472,7 @@ bx_ne2k_c::asic_write(Bit32u offset, Bit32u value, unsigned io_len)
     if (BX_NE2K_THIS s.remote_bytes == 0) {
       BX_NE2K_THIS s.ISR.rdma_done = 1;
       if (BX_NE2K_THIS s.IMR.rdma_inte) {
-	  PIC_ActivateIRQ(s.base_irq);
+	  PIC_ActivateIRQ((unsigned int)s.base_irq);
 	  //DEV_pic_raise_irq(BX_NE2K_THIS s.base_irq);
       }
     }
@@ -510,7 +510,7 @@ bx_ne2k_c::page0_read(Bit32u offset, unsigned int io_len)
     break;
 
   case 0x2:  // CLDA1
-    return (BX_NE2K_THIS s.local_dma >> 8);
+    return (unsigned int)(BX_NE2K_THIS s.local_dma >> 8u);
     break;
 
   case 0x3:  // BNRY
@@ -518,13 +518,14 @@ bx_ne2k_c::page0_read(Bit32u offset, unsigned int io_len)
     break;
 
   case 0x4:  // TSR
-    return ((BX_NE2K_THIS s.TSR.ow_coll    << 7) |
-	    (BX_NE2K_THIS s.TSR.cd_hbeat   << 6) |
-	    (BX_NE2K_THIS s.TSR.fifo_ur    << 5) |
-	    (BX_NE2K_THIS s.TSR.no_carrier << 4) |
-	    (BX_NE2K_THIS s.TSR.aborted    << 3) |
-	    (BX_NE2K_THIS s.TSR.collided   << 2) |
-	    (BX_NE2K_THIS s.TSR.tx_ok));
+    return
+       ((unsigned int)(BX_NE2K_THIS s.TSR.ow_coll    << 7u) |
+	    (unsigned int)(BX_NE2K_THIS s.TSR.cd_hbeat   << 6u) |
+	    (unsigned int)(BX_NE2K_THIS s.TSR.fifo_ur    << 5u) |
+	    (unsigned int)(BX_NE2K_THIS s.TSR.no_carrier << 4u) |
+	    (unsigned int)(BX_NE2K_THIS s.TSR.aborted    << 3u) |
+	    (unsigned int)(BX_NE2K_THIS s.TSR.collided   << 2u) |
+	    (unsigned int)(BX_NE2K_THIS s.TSR.tx_ok));
     break;
 
   case 0x5:  // NCR
@@ -538,14 +539,15 @@ bx_ne2k_c::page0_read(Bit32u offset, unsigned int io_len)
     break;
 
   case 0x7:  // ISR
-    return ((BX_NE2K_THIS s.ISR.reset     << 7) |
-	    (BX_NE2K_THIS s.ISR.rdma_done << 6) |
-	    (BX_NE2K_THIS s.ISR.cnt_oflow << 5) |
-	    (BX_NE2K_THIS s.ISR.overwrite << 4) |
-	    (BX_NE2K_THIS s.ISR.tx_err    << 3) |
-	    (BX_NE2K_THIS s.ISR.rx_err    << 2) |
-	    (BX_NE2K_THIS s.ISR.pkt_tx    << 1) |
-	    (BX_NE2K_THIS s.ISR.pkt_rx));
+    return
+       ((unsigned int)(BX_NE2K_THIS s.ISR.reset     << 7u) |
+	    (unsigned int)(BX_NE2K_THIS s.ISR.rdma_done << 6u) |
+	    (unsigned int)(BX_NE2K_THIS s.ISR.cnt_oflow << 5u) |
+	    (unsigned int)(BX_NE2K_THIS s.ISR.overwrite << 4u) |
+	    (unsigned int)(BX_NE2K_THIS s.ISR.tx_err    << 3u) |
+	    (unsigned int)(BX_NE2K_THIS s.ISR.rx_err    << 2u) |
+	    (unsigned int)(BX_NE2K_THIS s.ISR.pkt_tx    << 1u) |
+	    (unsigned int)(BX_NE2K_THIS s.ISR.pkt_rx));
     break;
     
   case 0x8:  // CRDA0
@@ -553,7 +555,7 @@ bx_ne2k_c::page0_read(Bit32u offset, unsigned int io_len)
     break;
 
   case 0x9:  // CRDA1
-    return (BX_NE2K_THIS s.remote_dma >> 8);
+    return (unsigned int)(BX_NE2K_THIS s.remote_dma >> 8u);
     break;
 
   case 0xa:  // reserved
@@ -567,14 +569,15 @@ bx_ne2k_c::page0_read(Bit32u offset, unsigned int io_len)
     break;
     
   case 0xc:  // RSR
-    return ((BX_NE2K_THIS s.RSR.deferred    << 7) |
-	    (BX_NE2K_THIS s.RSR.rx_disabled << 6) |
-	    (BX_NE2K_THIS s.RSR.rx_mbit     << 5) |
-	    (BX_NE2K_THIS s.RSR.rx_missed   << 4) |
-	    (BX_NE2K_THIS s.RSR.fifo_or     << 3) |
-	    (BX_NE2K_THIS s.RSR.bad_falign  << 2) |
-	    (BX_NE2K_THIS s.RSR.bad_crc     << 1) |
-	    (BX_NE2K_THIS s.RSR.rx_ok));
+    return
+       ((unsigned int)(BX_NE2K_THIS s.RSR.deferred    << 7u) |
+	    (unsigned int)(BX_NE2K_THIS s.RSR.rx_disabled << 6u) |
+	    (unsigned int)(BX_NE2K_THIS s.RSR.rx_mbit     << 5u) |
+	    (unsigned int)(BX_NE2K_THIS s.RSR.rx_missed   << 4u) |
+	    (unsigned int)(BX_NE2K_THIS s.RSR.fifo_or     << 3u) |
+	    (unsigned int)(BX_NE2K_THIS s.RSR.bad_falign  << 2u) |
+	    (unsigned int)(BX_NE2K_THIS s.RSR.bad_crc     << 1u) |
+	    (unsigned int)(BX_NE2K_THIS s.RSR.rx_ok));
     break;
     
   case 0xd:  // CNTR0
@@ -651,49 +654,49 @@ bx_ne2k_c::page0_write(Bit32u offset, Bit32u value, unsigned io_len)
     BX_NE2K_THIS s.ISR.overwrite &= ~((bx_bool)((value & 0x10) == 0x10));
     BX_NE2K_THIS s.ISR.cnt_oflow &= ~((bx_bool)((value & 0x20) == 0x20));
     BX_NE2K_THIS s.ISR.rdma_done &= ~((bx_bool)((value & 0x40) == 0x40));
-    value = ((BX_NE2K_THIS s.ISR.rdma_done << 6) |
-             (BX_NE2K_THIS s.ISR.cnt_oflow << 5) |
-             (BX_NE2K_THIS s.ISR.overwrite << 4) |
-             (BX_NE2K_THIS s.ISR.tx_err    << 3) |
-             (BX_NE2K_THIS s.ISR.rx_err    << 2) |
-             (BX_NE2K_THIS s.ISR.pkt_tx    << 1) |
-             (BX_NE2K_THIS s.ISR.pkt_rx));
-    value &= ((BX_NE2K_THIS s.IMR.rdma_inte << 6) |
-              (BX_NE2K_THIS s.IMR.cofl_inte << 5) |
-              (BX_NE2K_THIS s.IMR.overw_inte << 4) |
-              (BX_NE2K_THIS s.IMR.txerr_inte << 3) |
-              (BX_NE2K_THIS s.IMR.rxerr_inte << 2) |
-              (BX_NE2K_THIS s.IMR.tx_inte << 1) |
-              (BX_NE2K_THIS s.IMR.rx_inte));
+    value = ((unsigned int)(BX_NE2K_THIS s.ISR.rdma_done << 6u) |
+             (unsigned int)(BX_NE2K_THIS s.ISR.cnt_oflow << 5u) |
+             (unsigned int)(BX_NE2K_THIS s.ISR.overwrite << 4u) |
+             (unsigned int)(BX_NE2K_THIS s.ISR.tx_err    << 3u) |
+             (unsigned int)(BX_NE2K_THIS s.ISR.rx_err    << 2u) |
+             (unsigned int)(BX_NE2K_THIS s.ISR.pkt_tx    << 1u) |
+             (unsigned int)(BX_NE2K_THIS s.ISR.pkt_rx));
+    value &= ((unsigned int)(BX_NE2K_THIS s.IMR.rdma_inte  << 6u) |
+              (unsigned int)(BX_NE2K_THIS s.IMR.cofl_inte  << 5u) |
+              (unsigned int)(BX_NE2K_THIS s.IMR.overw_inte << 4u) |
+              (unsigned int)(BX_NE2K_THIS s.IMR.txerr_inte << 3u) |
+              (unsigned int)(BX_NE2K_THIS s.IMR.rxerr_inte << 2u) |
+              (unsigned int)(BX_NE2K_THIS s.IMR.tx_inte    << 1u) |
+              (unsigned int)(BX_NE2K_THIS s.IMR.rx_inte));
     if (value == 0)
-	  PIC_DeActivateIRQ(s.base_irq);
+	  PIC_DeActivateIRQ((unsigned int)s.base_irq);
       //DEV_pic_lower_irq(BX_NE2K_THIS s.base_irq);
     break;
 
   case 0x8:  // RSAR0
     // Clear out low byte and re-insert
-    BX_NE2K_THIS s.remote_start &= 0xff00;
-    BX_NE2K_THIS s.remote_start |= (value & 0xff);
+    BX_NE2K_THIS s.remote_start &= 0xff00u;
+    BX_NE2K_THIS s.remote_start |= (value & 0xffu);
     BX_NE2K_THIS s.remote_dma = BX_NE2K_THIS s.remote_start;
     break;
 
   case 0x9:  // RSAR1
     // Clear out high byte and re-insert
-    BX_NE2K_THIS s.remote_start &= 0x00ff;
-    BX_NE2K_THIS s.remote_start |= ((value & 0xff) << 8);
+    BX_NE2K_THIS s.remote_start &= 0x00ffu;
+    BX_NE2K_THIS s.remote_start |= ((value & 0xffu) << 8u);
     BX_NE2K_THIS s.remote_dma = BX_NE2K_THIS s.remote_start;
     break;
 
   case 0xa:  // RBCR0
     // Clear out low byte and re-insert
-    BX_NE2K_THIS s.remote_bytes &= 0xff00;
-    BX_NE2K_THIS s.remote_bytes |= (value & 0xff);
+    BX_NE2K_THIS s.remote_bytes &= 0xff00u;
+    BX_NE2K_THIS s.remote_bytes |= (value & 0xffu);
     break;
 
   case 0xb:  // RBCR1
     // Clear out high byte and re-insert
-    BX_NE2K_THIS s.remote_bytes &= 0x00ff;
-    BX_NE2K_THIS s.remote_bytes |= ((value & 0xff) << 8);
+    BX_NE2K_THIS s.remote_bytes &= 0x00ffu;
+    BX_NE2K_THIS s.remote_bytes |= ((value & 0xffu) << 8u);
     break;
 
   case 0xc:  // RCR
@@ -702,12 +705,12 @@ bx_ne2k_c::page0_write(Bit32u offset, Bit32u value, unsigned io_len)
       BX_INFO(("RCR write, reserved bits set"));
 
     // Set all other bit-fields
-    BX_NE2K_THIS s.RCR.errors_ok = ((value & 0x01) == 0x01);
-    BX_NE2K_THIS s.RCR.runts_ok  = ((value & 0x02) == 0x02);
-    BX_NE2K_THIS s.RCR.broadcast = ((value & 0x04) == 0x04);
-    BX_NE2K_THIS s.RCR.multicast = ((value & 0x08) == 0x08);
-    BX_NE2K_THIS s.RCR.promisc   = ((value & 0x10) == 0x10);
-    BX_NE2K_THIS s.RCR.monitor   = ((value & 0x20) == 0x20);
+    BX_NE2K_THIS s.RCR.errors_ok = ((value & 0x01u) == 0x01u);
+    BX_NE2K_THIS s.RCR.runts_ok  = ((value & 0x02u) == 0x02u);
+    BX_NE2K_THIS s.RCR.broadcast = ((value & 0x04u) == 0x04u);
+    BX_NE2K_THIS s.RCR.multicast = ((value & 0x08u) == 0x08u);
+    BX_NE2K_THIS s.RCR.promisc   = ((value & 0x10u) == 0x10u);
+    BX_NE2K_THIS s.RCR.monitor   = ((value & 0x20u) == 0x20u);
 
     // Monitor bit is a little suspicious...
     if (value & 0x20)
@@ -775,7 +778,7 @@ bx_ne2k_c::page0_write(Bit32u offset, Bit32u value, unsigned io_len)
     BX_NE2K_THIS s.IMR.rdma_inte  = ((value & 0x40) == 0x40);
 	if(BX_NE2K_THIS s.ISR.pkt_tx && BX_NE2K_THIS s.IMR.tx_inte) {
 	  LOG_MSG("tx irq retrigger");
-	  PIC_ActivateIRQ(s.base_irq);
+	  PIC_ActivateIRQ((unsigned int)s.base_irq);
 	}
     break;
   default:
@@ -899,11 +902,11 @@ bx_ne2k_c::page2_read(Bit32u offset, unsigned int io_len)
     break;
 
   case 0x6:  // Address counter (upper)
-    return (BX_NE2K_THIS s.address_cnt >> 8);
+    return (unsigned int)(BX_NE2K_THIS s.address_cnt >> 8u);
     break;
 
   case 0x7:  // Address counter (lower)
-    return (BX_NE2K_THIS s.address_cnt & 0xff);
+    return (unsigned int)(BX_NE2K_THIS s.address_cnt & 0xff);
     break;
 
   case 0x8:  // Reserved
@@ -915,38 +918,42 @@ bx_ne2k_c::page2_read(Bit32u offset, unsigned int io_len)
     break;
 
   case 0xc:  // RCR
-    return ((BX_NE2K_THIS s.RCR.monitor   << 5) |
-	    (BX_NE2K_THIS s.RCR.promisc   << 4) |
-	    (BX_NE2K_THIS s.RCR.multicast << 3) |
-	    (BX_NE2K_THIS s.RCR.broadcast << 2) |
-	    (BX_NE2K_THIS s.RCR.runts_ok  << 1) |
-	    (BX_NE2K_THIS s.RCR.errors_ok));
+    return
+       ((unsigned int)(BX_NE2K_THIS s.RCR.monitor   << 5u) |
+	    (unsigned int)(BX_NE2K_THIS s.RCR.promisc   << 4u) |
+	    (unsigned int)(BX_NE2K_THIS s.RCR.multicast << 3u) |
+	    (unsigned int)(BX_NE2K_THIS s.RCR.broadcast << 2u) |
+	    (unsigned int)(BX_NE2K_THIS s.RCR.runts_ok  << 1u) |
+	    (unsigned int)(BX_NE2K_THIS s.RCR.errors_ok));
     break;
 
   case 0xd:  // TCR
-    return ((BX_NE2K_THIS s.TCR.coll_prio   << 4) |
-	    (BX_NE2K_THIS s.TCR.ext_stoptx  << 3) |
-	    ((BX_NE2K_THIS s.TCR.loop_cntl & 0x3) << 1) |
-	    (BX_NE2K_THIS s.TCR.crc_disable));
+    return
+       ((unsigned int)(BX_NE2K_THIS s.TCR.coll_prio         << 4u) |
+	    (unsigned int)(BX_NE2K_THIS s.TCR.ext_stoptx        << 3u) |
+	   ((unsigned int)(BX_NE2K_THIS s.TCR.loop_cntl & 0x3u) << 1u) |
+	    (unsigned int)(BX_NE2K_THIS s.TCR.crc_disable));
     break;
 
   case 0xe:  // DCR
-    return (((BX_NE2K_THIS s.DCR.fifo_size & 0x3) << 5) |
-	    (BX_NE2K_THIS s.DCR.auto_rx  << 4) |
-	    (BX_NE2K_THIS s.DCR.loop     << 3) |
-	    (BX_NE2K_THIS s.DCR.longaddr << 2) |
-	    (BX_NE2K_THIS s.DCR.endian   << 1) |
-	    (BX_NE2K_THIS s.DCR.wdsize));
+    return
+      (((unsigned int)(BX_NE2K_THIS s.DCR.fifo_size & 0x3) << 5u) |
+	    (unsigned int)(BX_NE2K_THIS s.DCR.auto_rx          << 4u) |
+	    (unsigned int)(BX_NE2K_THIS s.DCR.loop             << 3u) |
+	    (unsigned int)(BX_NE2K_THIS s.DCR.longaddr         << 2u) |
+	    (unsigned int)(BX_NE2K_THIS s.DCR.endian           << 1u) |
+	    (unsigned int)(BX_NE2K_THIS s.DCR.wdsize));
     break;
 
   case 0xf:  // IMR
-    return ((BX_NE2K_THIS s.IMR.rdma_inte  << 6) |
-	    (BX_NE2K_THIS s.IMR.cofl_inte  << 5) |
-	    (BX_NE2K_THIS s.IMR.overw_inte << 4) |
-	    (BX_NE2K_THIS s.IMR.txerr_inte << 3) |
-	    (BX_NE2K_THIS s.IMR.rxerr_inte << 2) |
-	    (BX_NE2K_THIS s.IMR.tx_inte    << 1) |
-	    (BX_NE2K_THIS s.IMR.rx_inte));
+    return
+       ((unsigned int)(BX_NE2K_THIS s.IMR.rdma_inte  << 6u) |
+	    (unsigned int)(BX_NE2K_THIS s.IMR.cofl_inte  << 5u) |
+	    (unsigned int)(BX_NE2K_THIS s.IMR.overw_inte << 4u) |
+	    (unsigned int)(BX_NE2K_THIS s.IMR.txerr_inte << 3u) |
+	    (unsigned int)(BX_NE2K_THIS s.IMR.rxerr_inte << 2u) |
+	    (unsigned int)(BX_NE2K_THIS s.IMR.tx_inte    << 1u) |
+	   (unsigned int) (BX_NE2K_THIS s.IMR.rx_inte));
     break;
 
   default:
@@ -976,7 +983,7 @@ bx_ne2k_c::page2_write(Bit32u offset, Bit32u value, unsigned io_len)
   case 0x2:  // CLDA1
     // Clear out high byte and re-insert
     BX_NE2K_THIS s.local_dma &= 0x00ff;
-    BX_NE2K_THIS s.local_dma |= ((value & 0xff) << 8);
+    BX_NE2K_THIS s.local_dma |= ((value & 0xff) << 8u);
     break;
 
   case 0x3:  // Remote Next-pkt pointer
@@ -1060,7 +1067,7 @@ bx_ne2k_c::tx_timer(void)
   // Generate an interrupt if not masked and not one in progress
   if (BX_NE2K_THIS s.IMR.tx_inte && !BX_NE2K_THIS s.ISR.pkt_tx) {
 		//LOG_MSG("tx complete interrupt");
-	  PIC_ActivateIRQ(s.base_irq);
+	  PIC_ActivateIRQ((unsigned int)s.base_irq);
     //DEV_pic_raise_irq(BX_NE2K_THIS s.base_irq);
   } //else 	  LOG_MSG("no tx complete interrupt");
   BX_NE2K_THIS s.ISR.pkt_tx = 1;
@@ -1088,7 +1095,7 @@ Bit32u bx_ne2k_c::read(Bit32u address, unsigned io_len)
 #endif  // !BX_USE_NE2K_SMF
   BX_DEBUG("read addr %x, len %d", address, io_len);
   Bit32u retval = 0;
-  int offset = address - BX_NE2K_THIS s.base_address;
+  unsigned int offset = (unsigned int)address - (unsigned int)(BX_NE2K_THIS s.base_address);
 
   if (offset >= 0x10) {
     retval = asic_read(offset - 0x10, io_len);
@@ -1143,7 +1150,7 @@ bx_ne2k_c::write(Bit32u address, Bit32u value, unsigned io_len)
   UNUSED(this_ptr);
 #endif  // !BX_USE_NE2K_SMF
   BX_DEBUG("write with length %d", io_len);
-  int offset = address - BX_NE2K_THIS s.base_address;
+  unsigned int offset = (unsigned int)address - (unsigned int)(BX_NE2K_THIS s.base_address);
 
   //
   // The high 16 bytes of i/o space are for the ne2000 asic -
@@ -1195,16 +1202,17 @@ bx_ne2k_c::mcast_index(const void *dst)
   unsigned char *ep = (unsigned char *) dst;
 
   for (i = 6; --i >= 0;) {
-    b = *ep++;
-    for (j = 8; --j >= 0;) {
-      carry = ((crc & 0x80000000L) ? 1 : 0) ^ (b & 0x01);
-      crc <<= 1;
-      b >>= 1;
-      if (carry)
-	crc = ((crc ^ POLYNOMIAL) | carry);
-    }
+      b = *ep++;
+      for (j = 8; --j >= 0;) {
+          carry = ((crc & 0x80000000L) ? 1 : 0) ^ (b & 0x01);
+          crc <<= 1;
+          b >>= 1;
+          if (carry)
+              crc = ((crc ^ POLYNOMIAL) | (unsigned int)carry);
+      }
   }
-  return (crc >> 26);
+
+  return (crc >> 26u);
 #undef POLYNOMIAL
 }
 
@@ -1257,7 +1265,7 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
 
   // Add the pkt header + CRC to the length, and work
   // out how many 256-byte pages the frame would occupy
-  pages = (io_len + 4 + 4 + 255)/256;
+  pages = (int)((io_len + 4u + 4u + 255u)/256u);
 
   if (BX_NE2K_THIS s.curr_page < BX_NE2K_THIS s.bound_ptr) {
     avail = BX_NE2K_THIS s.bound_ptr - BX_NE2K_THIS s.curr_page;    
@@ -1337,14 +1345,14 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
     memcpy(startptr + 4, buf, io_len);
     BX_NE2K_THIS s.curr_page = nextpage;
   } else {
-    int endbytes = (BX_NE2K_THIS s.page_stop - BX_NE2K_THIS s.curr_page) 
-      * 256;
+    unsigned int endbytes = (unsigned int)(BX_NE2K_THIS s.page_stop - BX_NE2K_THIS s.curr_page) 
+      * 256u;
     memcpy(startptr, pkthdr, 4);
-    memcpy(startptr + 4, buf, endbytes - 4);
-    startptr = & BX_NE2K_THIS s.mem[BX_NE2K_THIS s.page_start * 256 -
+    memcpy(startptr + 4, buf, (size_t)(endbytes - 4u));
+    startptr = & BX_NE2K_THIS s.mem[BX_NE2K_THIS s.page_start * 256u -
 				 BX_NE2K_MEMSTART];
-    memcpy(startptr, (void *)(pktbuf + endbytes - 4),
-	   io_len - endbytes + 8);    
+    memcpy(startptr, (void *)(pktbuf + endbytes - 4u),
+	   (size_t)(io_len - endbytes + 8u));
     BX_NE2K_THIS s.curr_page = nextpage;
   }
   
@@ -1357,7 +1365,7 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
 
   if (BX_NE2K_THIS s.IMR.rx_inte) {
 	//LOG_MSG("packet rx interrupt");
-	  PIC_ActivateIRQ(s.base_irq);
+	  PIC_ActivateIRQ((unsigned int)s.base_irq);
     //DEV_pic_raise_irq(BX_NE2K_THIS s.base_irq);
   } //else LOG_MSG("no packet rx interrupt");
 
@@ -1527,12 +1535,12 @@ public:
 #endif
 
 		// get irq and base
-		Bitu irq = section->Get_int("nicirq");
+		Bitu irq = (Bitu)section->Get_int("nicirq");
 		if(!(irq==3 || irq==4  || irq==5  || irq==6 ||irq==7 ||
 			irq==9 || irq==10 || irq==11 || irq==12 ||irq==14 ||irq==15)) {
 			irq=3;
 		}
-		Bitu base = section->Get_hex("nicbase");
+		Bitu base = (Bitu)section->Get_hex("nicbase");
 		if(!(base==0x260||base==0x280||base==0x300||base==0x320||base==0x340||base==0x380)) {
 			base=0x300;
 		}
