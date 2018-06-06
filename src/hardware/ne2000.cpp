@@ -89,24 +89,49 @@ int (*PacketFindALlDevsEx)(char *, struct pcap_rmtauth *, pcap_if_t **, char *) 
 #define BX_RESET_HARDWARE 0
 #define BX_RESET_SOFTWARE 1
 
+static char bxtmp[1024];
+
 static inline void BX_INFO(const char *msg,...) {
-    (void)msg;//UNUSED
-	/* TODO: #if DEBUG or such, to enable debugging messages */
+    va_list va;
+
+    va_start(va,msg);
+    vsnprintf(bxtmp,sizeof(bxtmp)-1,msg,va);
+    va_end(va);
+
+    LOG(LOG_MISC,LOG_NORMAL)("BX_INFO: %s",bxtmp);
 }
 
 static inline void BX_DEBUG(const char *msg,...) {
-    (void)msg;//UNUSED
-	/* TODO: #if DEBUG or such, to enable debugging messages */
+    if (false/*TOO MUCH DEBUG INFO*/) {
+        va_list va;
+
+        va_start(va,msg);
+        vsnprintf(bxtmp,sizeof(bxtmp)-1,msg,va);
+        va_end(va);
+
+        LOG(LOG_MISC,LOG_DEBUG)("BX_DEBUG: %s",bxtmp);
+    }
 }
 
 static inline void BX_ERROR(const char *msg,...) {
-    (void)msg;//UNUSED
-	/* TODO: #if DEBUG or such, to enable debugging messages */
+    va_list va;
+
+    va_start(va,msg);
+    vsnprintf(bxtmp,sizeof(bxtmp)-1,msg,va);
+    va_end(va);
+
+    LOG_MSG("BX_ERROR: %s",bxtmp);
 }
 
 static inline void BX_PANIC(const char *msg,...) {
-    (void)msg;//UNUSED
-	/* TODO: #if DEBUG or such, to enable debugging messages */
+    va_list va;
+
+    va_start(va,msg);
+    vsnprintf(bxtmp,sizeof(bxtmp)-1,msg,va);
+    va_end(va);
+
+    LOG_MSG("BX_PANIC: %s",bxtmp);
+    E_Exit("BX_PANIC condition");
 }
 
 bx_ne2k_c* theNE2kDevice = NULL;
