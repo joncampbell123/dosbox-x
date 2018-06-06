@@ -494,17 +494,17 @@ void IDEATAPICDROMDevice::read_subchannel() {
         else {
             uint32_t sec;
 
-            sec = (abs.min*60*75)+(abs.sec*75)+abs.fr - 150;
-            *write++ = (unsigned char)(sec >> 24);
-            *write++ = (unsigned char)(sec >> 16);
-            *write++ = (unsigned char)(sec >> 8);
-            *write++ = (unsigned char)(sec >> 0);
+            sec = (abs.min*60u*75u)+(abs.sec*75u)+abs.fr - 150u;
+            *write++ = (unsigned char)(sec >> 24u);
+            *write++ = (unsigned char)(sec >> 16u);
+            *write++ = (unsigned char)(sec >> 8u);
+            *write++ = (unsigned char)(sec >> 0u);
 
-            sec = (rel.min*60*75)+(rel.sec*75)+rel.fr - 150;
-            *write++ = (unsigned char)(sec >> 24);
-            *write++ = (unsigned char)(sec >> 16);
-            *write++ = (unsigned char)(sec >> 8);
-            *write++ = (unsigned char)(sec >> 0);
+            sec = (rel.min*60u*75u)+(rel.sec*75u)+rel.fr - 150u;
+            *write++ = (unsigned char)(sec >> 24u);
+            *write++ = (unsigned char)(sec >> 16u);
+            *write++ = (unsigned char)(sec >> 8u);
+            *write++ = (unsigned char)(sec >> 0u);
         }
     }
 
@@ -636,22 +636,22 @@ void IDEATAPICDROMDevice::play_audio_msf() {
     if (atapi_cmd[3] == 0xFF && atapi_cmd[4] == 0xFF && atapi_cmd[5] == 0xFF)
         start_lba = 0xFFFFFFFF;
     else {
-        start_lba = (atapi_cmd[3] * 60 * 75) +
-            (atapi_cmd[4] * 75) +
+        start_lba = (atapi_cmd[3] * 60u * 75u) +
+            (atapi_cmd[4] * 75u) +
             atapi_cmd[5];
 
-        if (start_lba >= 150) start_lba -= 150; /* LBA sector 0 == M:S:F sector 0:2:0 */
+        if (start_lba >= 150u) start_lba -= 150u; /* LBA sector 0 == M:S:F sector 0:2:0 */
         else end_lba = 0;
     }
 
     if (atapi_cmd[6] == 0xFF && atapi_cmd[7] == 0xFF && atapi_cmd[8] == 0xFF)
         end_lba = 0xFFFFFFFF;
     else {
-        end_lba = (atapi_cmd[6] * 60 * 75) +
-            (atapi_cmd[7] * 75) +
+        end_lba = (atapi_cmd[6] * 60u * 75u) +
+            (atapi_cmd[7] * 75u) +
             atapi_cmd[8];
 
-        if (end_lba >= 150) end_lba -= 150; /* LBA sector 0 == M:S:F sector 0:2:0 */
+        if (end_lba >= 150u) end_lba -= 150u; /* LBA sector 0 == M:S:F sector 0:2:0 */
         else end_lba = 0;
     }
 
@@ -782,11 +782,11 @@ void IDEATAPICDROMDevice::read_toc() {
             *write++ = start.fr;
         }
         else {
-            uint32_t sec = (start.min*60*75)+(start.sec*75)+start.fr - 150;
-            *write++ = (unsigned char)(sec >> 24);
-            *write++ = (unsigned char)(sec >> 16);
-            *write++ = (unsigned char)(sec >> 8);
-            *write++ = (unsigned char)(sec >> 0);
+            uint32_t sec = (start.min*60u*75u)+(start.sec*75u)+start.fr - 150u;
+            *write++ = (unsigned char)(sec >> 24u);
+            *write++ = (unsigned char)(sec >> 16u);
+            *write++ = (unsigned char)(sec >> 8u);
+            *write++ = (unsigned char)(sec >> 0u);
         }
     }
     else if (Format == 0) { /* Read table of contents */
@@ -823,11 +823,11 @@ void IDEATAPICDROMDevice::read_toc() {
                 *write++ = start.fr;
             }
             else {
-                uint32_t sec = (start.min*60*75)+(start.sec*75)+start.fr - 150;
-                *write++ = (unsigned char)(sec >> 24);
-                *write++ = (unsigned char)(sec >> 16);
-                *write++ = (unsigned char)(sec >> 8);
-                *write++ = (unsigned char)(sec >> 0);
+                uint32_t sec = (start.min*60u*75u)+(start.sec*75u)+start.fr - 150u;
+                *write++ = (unsigned char)(sec >> 24u);
+                *write++ = (unsigned char)(sec >> 16u);
+                *write++ = (unsigned char)(sec >> 8u);
+                *write++ = (unsigned char)(sec >> 0u);
             }
         }
 
@@ -843,11 +843,11 @@ void IDEATAPICDROMDevice::read_toc() {
                 *write++ = leadOut.fr;
             }
             else {
-                uint32_t sec = (leadOut.min*60*75)+(leadOut.sec*75)+leadOut.fr - 150;
-                *write++ = (unsigned char)(sec >> 24);
-                *write++ = (unsigned char)(sec >> 16);
-                *write++ = (unsigned char)(sec >> 8);
-                *write++ = (unsigned char)(sec >> 0);
+                uint32_t sec = (leadOut.min*60u*75u)+(leadOut.sec*75u)+leadOut.fr - 150u;
+                *write++ = (unsigned char)(sec >> 24u);
+                *write++ = (unsigned char)(sec >> 16u);
+                *write++ = (unsigned char)(sec >> 8u);
+                *write++ = (unsigned char)(sec >> 0u);
             }
         }
     }
@@ -943,16 +943,16 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
             if (!cdrom->GetAudioTracks(first,last,leadOut))
                 LOG_MSG("WARNING: ATAPI READ TOC failed to get track info\n");
 
-            uint32_t sec = (leadOut.min*60*75)+(leadOut.sec*75)+leadOut.fr - 150;
+            uint32_t sec = (leadOut.min*60u*75u)+(leadOut.sec*75u)+leadOut.fr - 150u;
 
             prepare_read(0,MIN((unsigned int)8,(unsigned int)host_maximum_byte_count));
-            sector[0] = sec >> 24;
-            sector[1] = sec >> 16;
-            sector[2] = sec >> 8;
+            sector[0] = sec >> 24u;
+            sector[1] = sec >> 16u;
+            sector[2] = sec >> 8u;
             sector[3] = sec & 0xFF;
-            sector[4] = secsize >> 24;
-            sector[5] = secsize >> 16;
-            sector[6] = secsize >> 8;
+            sector[4] = secsize >> 24u;
+            sector[5] = secsize >> 16u;
+            sector[6] = secsize >> 8u;
             sector[7] = secsize & 0xFF;
 //          LOG_MSG("sec=%lu secsize=%lu\n",sec,secsize);
 
@@ -1139,16 +1139,16 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
             {
                 unsigned int x;
 
-                x = lba[1] + (lba[2] << 8);
+                x = (unsigned int)lba[1] + ((unsigned int)lba[2] << 8u);
 
                 /* Windows 95 likes to set 0xFFFF here for whatever reason.
                  * Negotiate it down to a maximum of 512 for sanity's sake */
                 if (x > 512) x = 512;
-                lba[2] = x >> 8;
+                lba[2] = x >> 8u;
                 lba[1] = x;
 
 //              LOG_MSG("MODE SELECT expecting %u bytes\n",x);
-                prepare_write(0,(x+1)&(~1));
+                prepare_write(0,(x+1u)&(~1u));
             }
 
             feature = 0x00;
@@ -1441,7 +1441,7 @@ void IDEATADevice::io_completion() {
 }
 
 Bitu IDEATAPICDROMDevice::data_read(Bitu iolen) {
-    Bitu w = ~0;
+    Bitu w = ~0u;
 
     if (state != IDE_DEV_DATA_READ)
         return 0xFFFFUL;
@@ -1745,7 +1745,7 @@ void IDEATAPICDROMDevice::data_write(Bitu v,Bitu iolen) {
 }
 
 Bitu IDEATADevice::data_read(Bitu iolen) {
-    Bitu w = ~0;
+    Bitu w = ~0u;
 
     if (state != IDE_DEV_DATA_READ)
         return 0xFFFFUL;
@@ -1864,17 +1864,17 @@ void IDEATAPICDROMDevice::generate_mmc_inquiry() {
     sector[4] = 36 - 5;     /* additional length */
 
     for (i=0;i < 8 && i < id_mmc_vendor_id.length();i++)
-        sector[i+8] = id_mmc_vendor_id[i];
+        sector[i+8] = (unsigned char)id_mmc_vendor_id[i];
     for (;i < 8;i++)
         sector[i+8] = ' ';
 
     for (i=0;i < 16 && i < id_mmc_product_id.length();i++)
-        sector[i+16] = id_mmc_product_id[i];
+        sector[i+16] = (unsigned char)id_mmc_product_id[i];
     for (;i < 16;i++)
         sector[i+16] = ' ';
 
     for (i=0;i < 4 && i < id_mmc_product_rev.length();i++)
-        sector[i+32] = id_mmc_product_rev[i];
+        sector[i+32] = (unsigned char)id_mmc_product_rev[i];
     for (;i < 4;i++)
         sector[i+32] = ' ';
 }
@@ -1890,17 +1890,17 @@ void IDEATAPICDROMDevice::generate_identify_device() {
     host_writew(sector+(0*2),0x85C0U);  /* ATAPI device, command set #5 (what the fuck does that mean?), removable, */
 
     for (i=0;i < 20 && i < id_serial.length();i++)
-        sector[(i^1)+(10*2)] = id_serial[i];
+        sector[(i^1)+(10*2)] = (unsigned char)id_serial[i];
     for (;i < 20;i++)
         sector[(i^1)+(10*2)] = ' ';
 
     for (i=0;i < 8 && i < id_firmware_rev.length();i++)
-        sector[(i^1)+(23*2)] = id_firmware_rev[i];
+        sector[(i^1)+(23*2)] = (unsigned char)id_firmware_rev[i];
     for (;i < 8;i++)
         sector[(i^1)+(23*2)] = ' ';
 
     for (i=0;i < 40 && i < id_model.length();i++)
-        sector[(i^1)+(27*2)] = id_model[i];
+        sector[(i^1)+(27*2)] = (unsigned char)id_model[i];
     for (;i < 40;i++)
         sector[(i^1)+(27*2)] = ' ';
 
@@ -1958,7 +1958,7 @@ void IDEATADevice::generate_identify_device() {
     host_writew(sector+(6*2),phys_sects);
 
     for (i=0;i < 20 && i < id_serial.length();i++)
-        sector[(i^1)+(10*2)] = id_serial[i];
+        sector[(i^1)+(10*2)] = (unsigned char)id_serial[i];
     for (;i < 20;i++)
         sector[(i^1)+(10*2)] = ' ';
 
@@ -1966,12 +1966,12 @@ void IDEATADevice::generate_identify_device() {
     host_writew(sector+(21*2),4);       /* ATA-1: ECC bytes on read/write long */
 
     for (i=0;i < 8 && i < id_firmware_rev.length();i++)
-        sector[(i^1)+(23*2)] = id_firmware_rev[i];
+        sector[(i^1)+(23*2)] = (unsigned char)id_firmware_rev[i];
     for (;i < 8;i++)
         sector[(i^1)+(23*2)] = ' ';
 
     for (i=0;i < 40 && i < id_model.length();i++)
-        sector[(i^1)+(27*2)] = id_model[i];
+        sector[(i^1)+(27*2)] = (unsigned char)id_model[i];
     for (;i < 40;i++)
         sector[(i^1)+(27*2)] = ' ';
 
@@ -2321,8 +2321,8 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {
 
             /* Issue I/O to ourself to select drive */
             dev->faked_command = true;
-            IDE_SelfIO_In(ide,ide->base_io+7,1);
-            IDE_SelfIO_Out(ide,ide->base_io+6,0x00+(ms<<4),1);
+            IDE_SelfIO_In(ide,ide->base_io+7u,1);
+            IDE_SelfIO_Out(ide,ide->base_io+6u,0x00+(ms<<4u),1);
             dev->faked_command = false;
 
             if (dev->type == IDE_TYPE_HDD) {
@@ -2354,36 +2354,36 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {
                          * drive. So to get 32-bit disk access to work in Windows 95,
                          * we have to put on a good show to convince Windows 95 we're
                          * a legitimate BIOS INT 13h call doing it's job. */
-                        IDE_SelfIO_In(ide,ide->base_io+7,1);        /* dum de dum reading status */
-                        IDE_SelfIO_Out(ide,ide->base_io+6,(ms<<4)+0xE0+(lba>>24),1); /* drive and head */
-                        IDE_SelfIO_In(ide,ide->base_io+7,1);        /* dum de dum reading status */
-                        IDE_SelfIO_Out(ide,ide->base_io+2,0x01,1);  /* sector count */
-                        IDE_SelfIO_Out(ide,ide->base_io+3,lba&0xFF,1);  /* sector number */
-                        IDE_SelfIO_Out(ide,ide->base_io+4,(lba>>8)&0xFF,1); /* cylinder lo */
-                        IDE_SelfIO_Out(ide,ide->base_io+5,(lba>>16)&0xFF,1); /* cylinder hi */
-                        IDE_SelfIO_Out(ide,ide->base_io+6,(ms<<4)+0xE0+(lba>>24),1); /* drive and head */
-                        IDE_SelfIO_In(ide,ide->base_io+7,1);        /* dum de dum reading status */
-                        IDE_SelfIO_Out(ide,ide->base_io+7,0x20,1);  /* issue READ */
+                        IDE_SelfIO_In(ide,ide->base_io+7u,1);        /* dum de dum reading status */
+                        IDE_SelfIO_Out(ide,ide->base_io+6u,(ms<<4u)+0xE0u+(lba>>24u),1); /* drive and head */
+                        IDE_SelfIO_In(ide,ide->base_io+7u,1);        /* dum de dum reading status */
+                        IDE_SelfIO_Out(ide,ide->base_io+2u,0x01,1);  /* sector count */
+                        IDE_SelfIO_Out(ide,ide->base_io+3u,lba&0xFF,1);  /* sector number */
+                        IDE_SelfIO_Out(ide,ide->base_io+4u,(lba>>8u)&0xFF,1); /* cylinder lo */
+                        IDE_SelfIO_Out(ide,ide->base_io+5u,(lba>>16u)&0xFF,1); /* cylinder hi */
+                        IDE_SelfIO_Out(ide,ide->base_io+6u,(ms<<4u)+0xE0+(lba>>24u),1); /* drive and head */
+                        IDE_SelfIO_In(ide,ide->base_io+7u,1);        /* dum de dum reading status */
+                        IDE_SelfIO_Out(ide,ide->base_io+7u,0x20,1);  /* issue READ */
 
                         do {
                             /* TODO: Timeout needed */
                             unsigned int i = IDE_SelfIO_In(ide,ide->alt_io,1);
                             if ((i&0x80) == 0) break;
                         } while (1);
-                        IDE_SelfIO_In(ide,ide->base_io+7,1);
+                        IDE_SelfIO_In(ide,ide->base_io+7u,1);
 
                         /* for brevity assume it worked. we're here to bullshit Windows 95 after all */
                         for (unsigned int i=0;i < 256;i++)
-                            IDE_SelfIO_In(ide,ide->base_io+0,2); /* 16-bit IDE data read */
+                            IDE_SelfIO_In(ide,ide->base_io+0u,2); /* 16-bit IDE data read */
 
                         /* one more */
-                        IDE_SelfIO_In(ide,ide->base_io+7,1);        /* dum de dum reading status */
+                        IDE_SelfIO_In(ide,ide->base_io+7u,1);        /* dum de dum reading status */
 
                         /* assume IRQ happened and clear it */
                         if (ide->IRQ >= 8)
-                            IDE_SelfIO_Out(ide,0xA0,0x60+ide->IRQ-8,1);     /* specific EOI */
+                            IDE_SelfIO_Out(ide,0xA0,0x60u+(unsigned int)ide->IRQ-8u,1);     /* specific EOI */
                         else
-                            IDE_SelfIO_Out(ide,0x20,0x60+ide->IRQ,1);       /* specific EOI */
+                            IDE_SelfIO_Out(ide,0x20,0x60u+(unsigned int)ide->IRQ,1);       /* specific EOI */
 
                         ata->abort_normal();
                         dev->faked_command = false;
@@ -2396,9 +2396,9 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {
                         dev->feature = 0x00;        /* clear error (WDCTRL test phase 5/C/13) */
                         dev->count = 0x00;      /* clear sector count (WDCTRL test phase 6/D/14) */
                         dev->lba[0] = lba&0xFF;     /* leave sector number the same (WDCTRL test phase 7/E/15) */
-                        dev->lba[1] = (lba>>8)&0xFF;    /* leave cylinder the same (WDCTRL test phase 8/F/16) */
-                        dev->lba[2] = (lba>>16)&0xFF;   /* ...ditto */
-                        ide->drivehead = dev->drivehead = 0xE0 | (ms<<4) | (lba>>24); /* drive head and master/slave (WDCTRL test phase 9/10/17) */
+                        dev->lba[1] = (lba>>8u)&0xFF;    /* leave cylinder the same (WDCTRL test phase 8/F/16) */
+                        dev->lba[2] = (lba>>16u)&0xFF;   /* ...ditto */
+                        ide->drivehead = dev->drivehead = 0xE0u | (ms<<4u) | (lba>>24u); /* drive head and master/slave (WDCTRL test phase 9/10/17) */
                         dev->status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE; /* status (WDCTRL test phase A/11/18) */
                         dev->allow_writing = true;
 
@@ -2448,8 +2448,8 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 
             /* Issue I/O to ourself to select drive */
             dev->faked_command = true;
-            IDE_SelfIO_In(ide,ide->base_io+7,1);
-            IDE_SelfIO_Out(ide,ide->base_io+6,0x00+(ms<<4),1);
+            IDE_SelfIO_In(ide,ide->base_io+7u,1);
+            IDE_SelfIO_Out(ide,ide->base_io+6u,0x00u+(ms<<4u),1);
             dev->faked_command = false;
 
             if (dev->type == IDE_TYPE_HDD) {
@@ -2523,36 +2523,36 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
                          * drive. So to get 32-bit disk access to work in Windows 95,
                          * we have to put on a good show to convince Windows 95 we're
                          * a legitimate BIOS INT 13h call doing it's job. */
-                        IDE_SelfIO_In(ide,ide->base_io+7,1);        /* dum de dum reading status */
-                        IDE_SelfIO_Out(ide,ide->base_io+6,(ms<<4)+0xA0+head,1); /* drive and head */
-                        IDE_SelfIO_In(ide,ide->base_io+7,1);        /* dum de dum reading status */
-                        IDE_SelfIO_Out(ide,ide->base_io+2,0x01,1);  /* sector count */
-                        IDE_SelfIO_Out(ide,ide->base_io+3,sect,1);  /* sector number */
-                        IDE_SelfIO_Out(ide,ide->base_io+4,cyl&0xFF,1);  /* cylinder lo */
-                        IDE_SelfIO_Out(ide,ide->base_io+5,(cyl>>8)&0xFF,1); /* cylinder hi */
-                        IDE_SelfIO_Out(ide,ide->base_io+6,(ms<<4)+0xA0+head,1); /* drive and head */
-                        IDE_SelfIO_In(ide,ide->base_io+7,1);        /* dum de dum reading status */
-                        IDE_SelfIO_Out(ide,ide->base_io+7,0x20,1);  /* issue READ */
+                        IDE_SelfIO_In(ide,ide->base_io+7u,1);        /* dum de dum reading status */
+                        IDE_SelfIO_Out(ide,ide->base_io+6u,(ms<<4u)+0xA0u+head,1); /* drive and head */
+                        IDE_SelfIO_In(ide,ide->base_io+7u,1);        /* dum de dum reading status */
+                        IDE_SelfIO_Out(ide,ide->base_io+2u,0x01,1);  /* sector count */
+                        IDE_SelfIO_Out(ide,ide->base_io+3u,sect,1);  /* sector number */
+                        IDE_SelfIO_Out(ide,ide->base_io+4u,cyl&0xFF,1);  /* cylinder lo */
+                        IDE_SelfIO_Out(ide,ide->base_io+5u,(cyl>>8u)&0xFF,1); /* cylinder hi */
+                        IDE_SelfIO_Out(ide,ide->base_io+6u,(ms<<4u)+0xA0u+head,1); /* drive and head */
+                        IDE_SelfIO_In(ide,ide->base_io+7u,1);        /* dum de dum reading status */
+                        IDE_SelfIO_Out(ide,ide->base_io+7u,0x20u,1);  /* issue READ */
 
                         do {
                             /* TODO: Timeout needed */
                             unsigned int i = IDE_SelfIO_In(ide,ide->alt_io,1);
                             if ((i&0x80) == 0) break;
                         } while (1);
-                        IDE_SelfIO_In(ide,ide->base_io+7,1);
+                        IDE_SelfIO_In(ide,ide->base_io+7u,1);
 
                         /* for brevity assume it worked. we're here to bullshit Windows 95 after all */
                         for (unsigned int i=0;i < 256;i++)
                             IDE_SelfIO_In(ide,ide->base_io+0,2); /* 16-bit IDE data read */
 
                         /* one more */
-                        IDE_SelfIO_In(ide,ide->base_io+7,1);        /* dum de dum reading status */
+                        IDE_SelfIO_In(ide,ide->base_io+7u,1);        /* dum de dum reading status */
 
                         /* assume IRQ happened and clear it */
                         if (ide->IRQ >= 8)
-                            IDE_SelfIO_Out(ide,0xA0,0x60+ide->IRQ-8,1);     /* specific EOI */
+                            IDE_SelfIO_Out(ide,0xA0,0x60u+(unsigned int)ide->IRQ-8u,1);     /* specific EOI */
                         else
-                            IDE_SelfIO_Out(ide,0x20,0x60+ide->IRQ,1);       /* specific EOI */
+                            IDE_SelfIO_Out(ide,0x20,0x60u+(unsigned int)ide->IRQ,1);       /* specific EOI */
 
                         ata->abort_normal();
                         dev->faked_command = false;
@@ -2566,8 +2566,8 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
                         dev->count = 0x00;      /* clear sector count (WDCTRL test phase 6/D/14) */
                         dev->lba[0] = sect;     /* leave sector number the same (WDCTRL test phase 7/E/15) */
                         dev->lba[1] = cyl;      /* leave cylinder the same (WDCTRL test phase 8/F/16) */
-                        dev->lba[2] = cyl >> 8;     /* ...ditto */
-                        ide->drivehead = dev->drivehead = 0xA0 | (ms<<4) | head; /* drive head and master/slave (WDCTRL test phase 9/10/17) */
+                        dev->lba[2] = cyl >> 8u;     /* ...ditto */
+                        ide->drivehead = dev->drivehead = 0xA0u | (ms<<4u) | head; /* drive head and master/slave (WDCTRL test phase 9/10/17) */
                         dev->status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE; /* status (WDCTRL test phase A/11/18) */
                         dev->allow_writing = true;
 
@@ -2615,8 +2615,8 @@ void IDE_ResetDiskByBIOS(unsigned char disk) {
             /* TODO: Forcibly device-reset the IDE device */
 
             /* Issue I/O to ourself to select drive */
-            IDE_SelfIO_In(ide,ide->base_io+7,1);
-            IDE_SelfIO_Out(ide,ide->base_io+6,0x00+(ms<<4),1);
+            IDE_SelfIO_In(ide,ide->base_io+7u,1);
+            IDE_SelfIO_Out(ide,ide->base_io+6u,0x00+(ms<<4u),1);
 
             /* TODO: Forcibly device-reset the IDE device */
 
@@ -2631,16 +2631,16 @@ void IDE_ResetDiskByBIOS(unsigned char disk) {
 
                     if (ide->int13fakev86io && IDE_CPU_Is_Vm86()) {
                         /* issue the DEVICE RESET command */
-                        IDE_SelfIO_In(ide,ide->base_io+7,1);
-                        IDE_SelfIO_Out(ide,ide->base_io+7,0x08,1);
+                        IDE_SelfIO_In(ide,ide->base_io+7u,1);
+                        IDE_SelfIO_Out(ide,ide->base_io+7u,0x08,1);
 
-                        IDE_SelfIO_In(ide,ide->base_io+7,1);
+                        IDE_SelfIO_In(ide,ide->base_io+7u,1);
 
                         /* assume IRQ happened and clear it */
                         if (ide->IRQ >= 8)
-                            IDE_SelfIO_Out(ide,0xA0,0x60+ide->IRQ-8,1);     /* specific EOI */
+                            IDE_SelfIO_Out(ide,0xA0,0x60u+(unsigned int)ide->IRQ-8u,1);     /* specific EOI */
                         else
-                            IDE_SelfIO_Out(ide,0x20,0x60+ide->IRQ,1);       /* specific EOI */
+                            IDE_SelfIO_Out(ide,0x20,0x60u+(unsigned int)ide->IRQ,1);       /* specific EOI */
                     }
                     else {
                         /* Windows 3.1 WDCTRL needs this, or else, it will read the
@@ -2681,9 +2681,9 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
                 if (sectcount == 0) sectcount = 256;
                 if (drivehead_is_lba(ata->drivehead)) {
                     /* LBA */
-                    sectorn = ((ata->drivehead & 0xF) << 24) | ata->lba[0] |
-                        (ata->lba[1] << 8) |
-                        (ata->lba[2] << 16);
+                    sectorn = ((ata->drivehead & 0xFu) << 24u) | (unsigned int)ata->lba[0] |
+                        ((unsigned int)ata->lba[1] << 8u) |
+                        ((unsigned int)ata->lba[2] << 16u);
                 }
                 else {
                     /* C/H/S */
@@ -2693,12 +2693,12 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
                         dev->controller->raise_irq();
                         return;
                     }
-                    else if ((unsigned int)(ata->drivehead & 0xF) >= (unsigned int)ata->heads ||
+                    else if ((unsigned int)(ata->drivehead & 0xFu) >= (unsigned int)ata->heads ||
                         (unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
-                        (unsigned int)(ata->lba[1] | (ata->lba[2] << 8)) >= (unsigned int)ata->cyls) {
+                        (unsigned int)(ata->lba[1] | (ata->lba[2] << 8u)) >= (unsigned int)ata->cyls) {
                         LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
-                            (unsigned int)(ata->lba[1] | (ata->lba[2] << 8)),
-                            (unsigned int)(ata->drivehead&0xF),
+                            (unsigned int)(ata->lba[1] | (ata->lba[2] << 8u)),
+                            (unsigned int)(ata->drivehead&0xFu),
                             (unsigned int)(ata->lba[0]),
                             (unsigned int)ata->cyls,
                             (unsigned int)ata->heads,
@@ -2709,8 +2709,8 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
                     }
 
                     sectorn = ((ata->drivehead & 0xF) * ata->sects) +
-                        ((ata->lba[1] | (ata->lba[2] << 8)) * ata->sects * ata->heads) +
-                        (ata->lba[0] - 1);
+                        (((unsigned int)ata->lba[1] | ((unsigned int)ata->lba[2] << 8u)) * ata->sects * ata->heads) +
+                        ((unsigned int)ata->lba[0] - 1u);
                 }
 
                 if (disk->Write_AbsoluteSector(sectorn, ata->sector) != 0) {
@@ -2763,9 +2763,9 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
                 if (sectcount == 0) sectcount = 256;
                 if (drivehead_is_lba(ata->drivehead)) {
                     /* LBA */
-                    sectorn = ((ata->drivehead & 0xF) << 24) | ata->lba[0] |
-                        (ata->lba[1] << 8) |
-                        (ata->lba[2] << 16);
+                    sectorn = (((unsigned int)ata->drivehead & 0xFu) << 24u) | (unsigned int)ata->lba[0] |
+                        ((unsigned int)ata->lba[1] << 8u) |
+                        ((unsigned int)ata->lba[2] << 16u);
                 }
                 else {
                     /* C/H/S */
@@ -2777,9 +2777,9 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
                     }
                     else if ((unsigned int)(ata->drivehead & 0xF) >= (unsigned int)ata->heads ||
                         (unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
-                        (unsigned int)(ata->lba[1] | (ata->lba[2] << 8)) >= (unsigned int)ata->cyls) {
+                        (unsigned int)(ata->lba[1] | ((unsigned int)ata->lba[2] << 8u)) >= (unsigned int)ata->cyls) {
                         LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
-                            (unsigned int)(ata->lba[1] | (ata->lba[2] << 8)),
+                            (unsigned int)(ata->lba[1] | ((unsigned int)ata->lba[2] << 8u)),
                             (unsigned int)(ata->drivehead&0xF),
                             (unsigned int)ata->lba[0],
                             (unsigned int)ata->cyls,
@@ -2790,9 +2790,9 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
                         return;
                     }
 
-                    sectorn = ((ata->drivehead & 0xF) * ata->sects) +
-                        ((ata->lba[1] | (ata->lba[2] << 8)) * ata->sects * ata->heads) +
-                        (ata->lba[0] - 1);
+                    sectorn = ((ata->drivehead & 0xFu) * ata->sects) +
+                        (((unsigned int)ata->lba[1] | ((unsigned int)ata->lba[2] << 8u)) * ata->sects * ata->heads) +
+                        ((unsigned int)ata->lba[0] - 1u);
                 }
 
                 if (disk->Read_AbsoluteSector(sectorn, ata->sector) != 0) {
@@ -2827,9 +2827,9 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
                 if (sectcount == 0) sectcount = 256;
                 if (drivehead_is_lba(ata->drivehead)) {
                     /* LBA */
-                    sectorn = ((ata->drivehead & 0xF) << 24) | ata->lba[0] |
-                        (ata->lba[1] << 8) |
-                        (ata->lba[2] << 16);
+                    sectorn = (((unsigned int)ata->drivehead & 0xFu) << 24u) | (unsigned int)ata->lba[0] |
+                        ((unsigned int)ata->lba[1] << 8u) |
+                        ((unsigned int)ata->lba[2] << 16u);
                 }
                 else {
                     /* C/H/S */
@@ -2841,10 +2841,10 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
                     }
                     else if ((unsigned int)(ata->drivehead & 0xF) >= (unsigned int)ata->heads ||
                         (unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
-                        (unsigned int)(ata->lba[1] | (ata->lba[2] << 8)) >= (unsigned int)ata->cyls) {
+                        (unsigned int)(ata->lba[1] | ((unsigned int)ata->lba[2] << 8u)) >= (unsigned int)ata->cyls) {
                         LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
-                            (unsigned int)(ata->lba[1] | (ata->lba[2] << 8)),
-                            (unsigned int)(ata->drivehead&0xF),
+                            (unsigned int)(ata->lba[1] | ((unsigned int)ata->lba[2] << 8u)),
+                            (unsigned int)(ata->drivehead&0xFu),
                             (unsigned int)ata->lba[0],
                             (unsigned int)ata->cyls,
                             (unsigned int)ata->heads,
@@ -2854,9 +2854,9 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
                         return;
                     }
 
-                    sectorn = ((ata->drivehead & 0xF) * ata->sects) +
-                        ((ata->lba[1] | (ata->lba[2] << 8)) * ata->sects * ata->heads) +
-                        (ata->lba[0] - 1);
+                    sectorn = (((unsigned int)ata->drivehead & 0xFu) * ata->sects) +
+                        (((unsigned int)ata->lba[1] | ((unsigned int)ata->lba[2] << 8u)) * ata->sects * ata->heads) +
+                        ((unsigned int)ata->lba[0] - 1u);
                 }
 
                 if (disk->Read_AbsoluteSector(sectorn, ata->sector) != 0) {
@@ -2903,9 +2903,9 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
                 if (sectcount == 0) sectcount = 256;
                 if (drivehead_is_lba(ata->drivehead)) {
                     /* LBA */
-                    sectorn = ((ata->drivehead & 0xF) << 24) | ata->lba[0] |
-                        (ata->lba[1] << 8) |
-                        (ata->lba[2] << 16);
+                    sectorn = (((unsigned int)ata->drivehead & 0xFu) << 24u) | (unsigned int)ata->lba[0] |
+                        ((unsigned int)ata->lba[1] << 8u) |
+                        ((unsigned int)ata->lba[2] << 16u);
                 }
                 else {
                     /* C/H/S */
@@ -2917,9 +2917,9 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
                     }
                     else if ((unsigned int)(ata->drivehead & 0xF) >= (unsigned int)ata->heads ||
                         (unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
-                        (unsigned int)(ata->lba[1] | (ata->lba[2] << 8)) >= (unsigned int)ata->cyls) {
+                        (unsigned int)(ata->lba[1] | ((unsigned int)ata->lba[2] << 8u)) >= (unsigned int)ata->cyls) {
                         LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
-                            (unsigned int)(ata->lba[1] | (ata->lba[2] << 8)),
+                            (unsigned int)(ata->lba[1] | ((unsigned int)ata->lba[2] << 8u)),
                             (unsigned int)(ata->drivehead&0xF),
                             (unsigned int)ata->lba[0],
                             (unsigned int)ata->cyls,
@@ -2931,8 +2931,8 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
                     }
 
                     sectorn = ((ata->drivehead & 0xF) * ata->sects) +
-                        ((ata->lba[1] | (ata->lba[2] << 8)) * ata->sects * ata->heads) +
-                        (ata->lba[0] - 1);
+                        (((unsigned int)ata->lba[1] | ((unsigned int)ata->lba[2] << 8u)) * ata->sects * ata->heads) +
+                        ((unsigned int)ata->lba[0] - 1);
                 }
 
                 if ((512*ata->multiple_sector_count) > sizeof(ata->sector))
@@ -2972,9 +2972,9 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
                 if (sectcount == 0) sectcount = 256;
                 if (drivehead_is_lba(ata->drivehead)) {
                     /* LBA */
-                    sectorn = ((ata->drivehead & 0xF) << 24) | ata->lba[0] |
-                        (ata->lba[1] << 8) |
-                        (ata->lba[2] << 16);
+                    sectorn = (((unsigned int)ata->drivehead & 0xF) << 24) | (unsigned int)ata->lba[0] |
+                        ((unsigned int)ata->lba[1] << 8) |
+                        ((unsigned int)ata->lba[2] << 16);
                 }
                 else {
                     /* C/H/S */
@@ -2986,9 +2986,9 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
                     }
                     else if ((unsigned int)(ata->drivehead & 0xF) >= (unsigned int)ata->heads ||
                         (unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
-                        (unsigned int)(ata->lba[1] | (ata->lba[2] << 8)) >= (unsigned int)ata->cyls) {
+                        (unsigned int)(ata->lba[1] | ((unsigned int)ata->lba[2] << 8)) >= (unsigned int)ata->cyls) {
                         LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
-                            (unsigned int)(ata->lba[1] | (ata->lba[2] << 8)),
+                            (unsigned int)(ata->lba[1] | ((unsigned int)ata->lba[2] << 8)),
                             (unsigned int)(ata->drivehead&0xF),
                             (unsigned int)ata->lba[0],
                             (unsigned int)ata->cyls,
@@ -2999,9 +2999,9 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
                         return;
                     }
 
-                    sectorn = ((ata->drivehead & 0xF) * ata->sects) +
-                        ((ata->lba[1] | (ata->lba[2] << 8)) * ata->sects * ata->heads) +
-                        (ata->lba[0] - 1);
+                    sectorn = ((unsigned int)(ata->drivehead & 0xF) * ata->sects) +
+                        (((unsigned int)ata->lba[1] | ((unsigned int)ata->lba[2] << 8)) * ata->sects * ata->heads) +
+                        ((unsigned int)ata->lba[0] - 1);
                 }
 
                 for (unsigned int cc=0;cc < MIN((Bitu)ata->multiple_sector_count,(Bitu)sectcount);cc++) {
@@ -3111,12 +3111,12 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 
 void IDEController::raise_irq() {
     irq_pending = true;
-    if (IRQ >= 0 && interrupt_enable) PIC_ActivateIRQ(IRQ);
+    if (IRQ >= 0 && interrupt_enable) PIC_ActivateIRQ((unsigned int)IRQ);
 }
 
 void IDEController::lower_irq() {
     irq_pending = false;
-    if (IRQ >= 0) PIC_DeActivateIRQ(IRQ);
+    if (IRQ >= 0) PIC_DeActivateIRQ((unsigned int)IRQ);
 }
 
 IDEController *match_ide_controller(Bitu port) {
@@ -3295,7 +3295,7 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
                 state = IDE_DEV_BUSY;
                 status = IDE_STATUS_BUSY;
                 atapi_to_host = (feature >> 2) & 1; /* 0=to device 1=to host */
-                host_maximum_byte_count = (lba[2] << 8) + lba[1]; /* LBA field bits 23:8 are byte count */
+                host_maximum_byte_count = ((unsigned int)lba[2] << 8) + (unsigned int)lba[1]; /* LBA field bits 23:8 are byte count */
                 if (host_maximum_byte_count == 0) host_maximum_byte_count = 0x10000UL;
                 PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.25)/*ms*/,controller->interface_index);
             }
@@ -3340,14 +3340,14 @@ void IDEATADevice::writecommand(uint8_t cmd) {
         if (drivehead_is_lba(drivehead)) {
             uint64_t n;
 
-            n = ((drivehead&0xF)<<24)+(lba[2]<<16)+(lba[1]<<8)+lba[0];
+            n = ((unsigned int)(drivehead&0xF)<<24)+((unsigned int)lba[2]<<16)+((unsigned int)lba[1]<<8)+(unsigned int)lba[0];
             LOG_MSG("IDE ATA command %02x dh=0x%02x count=0x%02x lba=%07llx/%07llx\n",cmd,
                 drivehead,count,(unsigned long long)n,
                 (unsigned long long)(phys_sects * phys_cyls * phys_heads));
         }
         else {
             LOG_MSG("IDE ATA command %02x dh=0x%02x count=0x%02x chs=%02x/%02x/%02x\n",cmd,
-                drivehead,count,(lba[2]<<8)+lba[1],drivehead&0xF,lba[0]);
+                drivehead,count,((unsigned int)lba[2]<<8)+(unsigned int)lba[1],(unsigned int)(drivehead&0xF),(unsigned int)lba[0]);
         }
 
         LOG(LOG_SB,LOG_NORMAL)("IDE ATA command %02x",cmd);
@@ -3425,8 +3425,8 @@ void IDEATADevice::writecommand(uint8_t cmd) {
                     unsigned int ncyls;
 
                     ncyls = (phys_cyls * phys_heads * phys_sects);
-                    ncyls += (count * ((drivehead&0xF)+1)) - 1;
-                    ncyls /= count * ((drivehead&0xF)+1);
+                    ncyls += (count * ((unsigned int)(drivehead&0xF)+1u)) - 1u;
+                    ncyls /= count * ((unsigned int)(drivehead&0xF)+1u);
 
                     /* the OS is changing logical disk geometry, so update our head/sector count (needed for Windows ME) */
                     LOG_MSG("IDE warning: OS is changing logical geometry from C/H/S %u/%u/%u to logical H/S %u/%u/%u\n",
@@ -3436,7 +3436,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 
                     cyls = ncyls;
                     sects = count;
-                    heads = (drivehead&0xF)+1;
+                    heads = (drivehead&0xFu)+1u;
                 }
             }
 
@@ -3551,10 +3551,10 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
     if (i > 0 && i <= 15) IRQ = i;
 
     i = section->Get_hex("io");
-    if (i >= 0x100 && i <= 0x3FF) base_io = i & ~7;
+    if (i >= 0x100 && i <= 0x3FF) base_io = (unsigned int)(i & ~7);
 
     i = section->Get_hex("altio");
-    if (i >= 0x100 && i <= 0x3FF) alt_io = i & ~1;
+    if (i >= 0x100 && i <= 0x3FF) alt_io = (unsigned int)(i & ~1);
 
     if (index < sizeof(IDE_default_IRQs)) {
         if (IRQ < 0) IRQ = IDE_default_IRQs[index];
@@ -3645,8 +3645,8 @@ void IDEController::install_io_port(){
             LOG_MSG("IDE: Not registering port 3F7h, FDC will occupy it.\n");
         }
         else {
-            WriteHandlerAlt[1].Install(alt_io+1,ide_altio_w,IO_MA);
-            ReadHandlerAlt[1].Install(alt_io+1,ide_altio_r,IO_MA);
+            WriteHandlerAlt[1].Install(alt_io+1u,ide_altio_w,IO_MA);
+            ReadHandlerAlt[1].Install(alt_io+1u,ide_altio_r,IO_MA);
         }
     }
 }
@@ -3671,7 +3671,7 @@ static void ide_altio_w(Bitu port,Bitu val,Bitu iolen) {
 
     if (!ide->enable_pio32 && iolen == 4) {
         ide_altio_w(port,val&0xFFFF,2);
-        ide_altio_w(port+2,val>>16,2);
+        ide_altio_w(port+2u,val>>16u,2);
         return;
     }
     else if (ide->ignore_pio32 && iolen == 4)
@@ -3679,12 +3679,12 @@ static void ide_altio_w(Bitu port,Bitu val,Bitu iolen) {
 
     port &= 1;
     if (port == 0) {/*3F6*/
-        ide->interrupt_enable = (val&2)?0:1;
+        ide->interrupt_enable = (val&2u)?0:1;
         if (ide->interrupt_enable) {
             if (ide->irq_pending) ide->raise_irq();
         }
         else {
-            if (ide->IRQ >= 0) PIC_DeActivateIRQ(ide->IRQ);
+            if (ide->IRQ >= 0) PIC_DeActivateIRQ((unsigned int)ide->IRQ);
         }
 
         if ((val&4) && !ide->host_reset) {
@@ -3710,17 +3710,17 @@ static Bitu ide_altio_r(Bitu port,Bitu iolen) {
     }
 
     if (!ide->enable_pio32 && iolen == 4)
-        return ide_altio_r(port,2) + (ide_altio_r(port+2,2) << 16);
+        return ide_altio_r(port,2) + (ide_altio_r(port+2u,2) << 16u);
     else if (ide->ignore_pio32 && iolen == 4)
-        return ~0;
+        return ~0ul;
 
     dev = ide->device[ide->select];
     port &= 1;
     if (port == 0)/*3F6(R) status, does NOT clear interrupt*/
         return (dev != NULL) ? dev->status : ide->status;
     else /*3F7(R) Drive Address Register*/
-        return 0x80|(ide->select==0?0:1)|(ide->select==1?0:2)|
-            ((dev != NULL) ? (((dev->drivehead&0xF)^0xF) << 2) : 0x3C);
+        return 0x80u|(ide->select==0?0u:1u)|(ide->select==1?0u:2u)|
+            ((dev != NULL) ? (((dev->drivehead&0xFu)^0xFu) << 2u) : 0x3Cu);
 
     return ~(0UL);
 }
@@ -3728,7 +3728,7 @@ static Bitu ide_altio_r(Bitu port,Bitu iolen) {
 static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
     IDEController *ide = match_ide_controller(port);
     IDEDevice *dev;
-    Bitu ret = ~0;
+    Bitu ret = ~0ul;
 
     if (ide == NULL) {
         LOG_MSG("WARNING: port read from I/O port not registered to IDE, yet callback triggered\n");
@@ -3738,7 +3738,7 @@ static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
     if (!ide->enable_pio32 && iolen == 4)
         return ide_baseio_r(port,2) + (ide_baseio_r(port+2,2) << 16);
     else if (ide->ignore_pio32 && iolen == 4)
-        return ~0;
+        return ~0ul;
 
     dev = ide->device[ide->select];
     port &= 7;
@@ -3921,7 +3921,7 @@ static void IDE_Init(Section* sec,unsigned char ide_interface) {
     ide = idecontroller[ide_interface] = new IDEController(sec,ide_interface);
     ide->install_io_port();
 
-    PIC_SetIRQMask(ide->IRQ,false);
+    PIC_SetIRQMask((unsigned int)ide->IRQ,false);
 }
 
 void IDE_Primary_Init(Section *sec) {
