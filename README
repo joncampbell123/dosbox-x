@@ -42,6 +42,9 @@ MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP, lower-end syste
 MinGW compile (on Windows, using MinGW, not MinGW64) to target MS-DOS and the HX DOS extender
 ./build-mingw-hx-dos
 
+NOTICE: Use the 32-bit toolchain from the main MinGW project, not the MinGW64 project.
+        Binaries compiled with MinGW64 have extra dependencies not provided by the HX DOS extender.
+
 
 Visual Studio 2017 compile for 32/64-bit Windows Vista or higher
 Use the ./vs2015/dosbox-x.sln "solution" file and compile.
