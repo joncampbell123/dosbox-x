@@ -109,7 +109,8 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <SDLCheck>false</SDLCheck>
+      <SDLCheck>
+      </SDLCheck>
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -140,7 +141,8 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <SDLCheck>false</SDLCheck>
+      <SDLCheck>
+      </SDLCheck>
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -169,7 +171,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <StringPooling>false</StringPooling>
-      <SDLCheck>false</SDLCheck>
+      <SDLCheck>
+      </SDLCheck>
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
@@ -199,7 +202,8 @@
       <OmitFramePointers>false</OmitFramePointers>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <StringPooling>false</StringPooling>
-      <SDLCheck>false</SDLCheck>
+      <SDLCheck>
+      </SDLCheck>
     </ClCompile>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
