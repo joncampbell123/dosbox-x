@@ -241,6 +241,24 @@ like fgets() or fprintf(). For other uses, please use C
 functions open, close, read, write, lseek and learn to use
 file handles.
 
+C file handles are signed integers. They can be negative.
+File handles returned by the C runtime however are never
+negative except to indicate an error.
+
+A good way to track whether an int holds an open file therefore,
+is to initialize at startup that integer to -1, and then when
+open succeeds, assign that value the file handle. When closing
+the file, assign -1 to the integer to record that the handle was
+closed.
+
+Other parts of the code can also check if the file handle is
+non-negative before operating on the file as a safety measure
+against calling that function when the file was never opened.
+
+On Windows, the HANDLE value at the Win32 API level can be obtained
+from an integer file handle using _get_osfhandle() for use with
+the Win32 API functions directly.
+
 When using open(), make sure to use O_BINARY to avoid
 CR/LF translation on DOS and Windows systems. Make sure
 there is a header that defines O_BINARY as (0) if the
