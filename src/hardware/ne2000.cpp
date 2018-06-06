@@ -1431,8 +1431,8 @@ void bx_ne2k_c::init()
 
 
   BX_INFO("port 0x%x/32 irq %d mac %02x:%02x:%02x:%02x:%02x:%02x",
-           BX_NE2K_THIS s.base_address,
-           BX_NE2K_THIS s.base_irq,
+           (unsigned int)(BX_NE2K_THIS s.base_address),
+           (int)(BX_NE2K_THIS s.base_irq),
            BX_NE2K_THIS s.physaddr[0],
            BX_NE2K_THIS s.physaddr[1],
            BX_NE2K_THIS s.physaddr[2],
@@ -1570,6 +1570,8 @@ public:
 			base=0x300;
 		}
 
+        LOG_MSG("NE2000: Base=0x%x irq=%u",(unsigned int)base,(unsigned int)irq);
+
 		// mac address
 		const char* macstring=section->Get_string("macaddr");
 		unsigned int macint[6];
@@ -1682,10 +1684,11 @@ public:
 		// create the bochs NIC class
 		theNE2kDevice = new bx_ne2k_c ();
 		memcpy(theNE2kDevice->s.physaddr, mac, 6);
-		theNE2kDevice->init();
 
 		theNE2kDevice->s.base_address=base;
 		theNE2kDevice->s.base_irq=irq;
+
+		theNE2kDevice->init();
 
 		// install I/O-handlers and timer
 		for(Bitu i = 0; i < 0x20; i++) {
