@@ -85,6 +85,169 @@ If you want to tweak or write some code and you don't know what to work
 on, feel free to visit the issue tracker to get some ideas.
 
 
+Warnings regarding C integer types
+----------------------------------
+
+Contrary to initial assumptions, never assume that int and long have specific
+sizes. Even long long.
+
+The general assumption is that int is 32 bit and long is 32 bit.
+That is not always true, and that can get you in trouble when
+working on this or other projects.
+
+Another common problem is the use of integers for pointer manipulation.
+Storing pointers or computing differences between pointers may happen
+to work on 32-bit, where ints and pointers are the same size, but the
+same code may break on 64-bit.
+
+Therefore, for manipulating pointers, use uintptr_t instead of int or
+long.
+
+For quick reference, here is a breakdown of the development
+targets and their sizes:
+
+Windows (Microsoft C++) 32-bit:
+  sizeof(int) == 32-bit
+  sizeof(long) == 32-bit
+  sizeof(long long) == 64-bit
+  sizeof(uintptr_t) == 32-bit
+
+Windows (Microsoft C++) 64-bit:
+  sizeof(int) == 32-bit
+  sizeof(long) == 32-bit
+  sizeof(long long) == 64-bit
+  sizeof(uintptr_t) == 64-bit
+
+NOTE: If you ever intend to compile against older versions of Microsoft C++/Visual Studio,
+      the "long long" type will need to be replaced by __int64.
+
+Linux 32-bit:
+  sizeof(int) == 32-bit
+  sizeof(long) == 32-bit
+  sizeof(long long) == 64-bit
+  sizeof(uintptr_t) == 32-bit
+
+Linux 64-bit:
+  sizeof(int) == 32-bit
+  sizeof(long) == 64-bit
+  sizeof(long long) == 64-bit
+  sizeof(uintptr_t) == 64-bit
+
+
+This code is written to assume that sizeof(int) >= 32-bit.
+However know that there are platforms where sizeof(int) is
+even smaller. In real-mode MS-DOS and 16-bit Windows for
+example, sizeof(int) == 16. DOSBox-X will not target 16-bit
+DOS and Windows, so this is not a problem so far.
+
+For obvious reasons, far pointers are not supported. The
+memory map of the runtime environment is assumed to be
+flat with possible virtual memory and paging.
+
+When working on this code, please understand the limits of
+the integer type in the code you are writing to avoid
+problems. Pick a data type that is large enough for the
+expected range of input.
+
+It is suggested to use C header constants if possible
+for min and max integer values, like UINT_MAX.
+
+If the code needs to operate with specific widths of
+integer, please use data type uint16_t, uint32_t, int16_t
+and int32_t, and do not assume the width of int and log.
+
+If compiling with older versions of Visual Studio, you will
+need to include a header file to provide the uintptr_t and
+uint32_t datatypes to fill in what is lacking in the C library.
+
+When multiplying integers, overflow cases can be avoided
+with a * b by rejecting the operation if b > (UINT_MAX / a)
+or by multiplying a * b with a and b typecast to the next
+largest datatype.
+
+Remember that signed and unsigned integers have the same
+width but the MSB changes the interpretation. This code
+is written for processors (such as x86) where signed integers
+are 2's complement. It will not work correctly with any
+other type of signed integer.
+
+2's complement means that the MSB bit of an integer indicates
+the number is negative. When it is negative, the value could
+be thought of as N - (2^sizeof_in_bits(int)). For a 16-bit
+signed integer:
+
+   2^16 = 0x10000 = 65536
+
+     hex         int    unsigned int        equiv
+   0x7FFE       32766       32766           32766 - 0
+   0x7FFF       32767       32767           32767 - 0
+   0x8000      -32768       32768           32768 - 65536
+   0x8001      -32767       32769           32769 - 65536
+   ...
+   0xFFFE      -2           65534           65534 - 65536
+   0xFFFF      -1           65535           65535 - 65536
+   (carry, overflow all 16-bits, roll back to 0)
+   0x0000       0           0               0 - 0
+   0x0001       1           1               1 - 0
+
+Another possible problem may lie in using negation (-) or
+inverting all bits (~) of an integer for masking. The
+result may be treated by the compiler as an integer. Make
+sure to typecast it to clarify.
+
+Another possible incompatiblity lies with printf() and
+long long integers.
+
+Always typecast the printf() parameters to the data type
+intended to avoid problems and warnings.
+
+While Mac OS X and Linux have runtimes that can take %llu
+or %llx, Microsoft's runtime in Windows cannot. Either
+avoid printing long long integers or add conditional code
+to use %llx or %llx on Linux and %I64u or %I64d on Windows.
+
+Note that MinGW compilation on Windows suffers from the
+same limitation due to use of Microsoft C runtime.
+
+When dealing with sizes, including file I/O and byte counts,
+use size_t (unsigned value) and ssize_t (signed value) instead.
+This will help with using the C++ standard template library
+and the C file I/O library. If compiling for a target where
+read and write use int for a return value instead, then
+use typecasting.
+
+When handling file offsets, use off_t instead of long.
+Modern C runtime versions of lseek and tell will use that
+datatype. For older runtimes that use "long", make a typecast
+in a header file for your target to declare off_t. Remember
+that off_t is a signed value and that it can be negative.
+
+Make sure to use the 64-bit version of lseek (often named
+lseek64 or _lseeki64) in order to support files 4GB or
+larger if allowed by the runtime environment.
+
+Remember that lseek() can return -1 to indicate an error.
+lseek() however will permit seeking past the end of a file.
+
+writing at that point will extend the file to allow the
+file write to occur at that offset. Depending on the platform,
+that will either cause a sparse file (Linux + ext) or will
+cause a loop within the filesystem driver to extend the file
+and zero clusters to make it happen (Windows XP through 10).
+
+Use of the FILE* file I/O layer is OK, but not recommended
+unless there is a need to use text parsing with functions
+like fgets() or fprintf(). For other uses, please use C
+functions open, close, read, write, lseek and learn to use
+file handles.
+
+When using open(), make sure to use O_BINARY to avoid
+CR/LF translation on DOS and Windows systems. Make sure
+there is a header that defines O_BINARY as (0) if the
+platform does not provide O_BINARY to avoid #ifdef's
+around each open() call.
+
+
 Software security comments
 --------------------------
 
