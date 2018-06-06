@@ -349,7 +349,7 @@ void RestoreCursorBackgroundText() {
     if (mouse.hidden || mouse.inhibit_draw) return;
 
     if (mouse.background) {
-        WriteChar(mouse.backposx,mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[0],mouse.backData[1],true);
+        WriteChar((Bit16u)mouse.backposx,(Bit16u)mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[0],mouse.backData[1],true);
         mouse.background = false;
     }
 }
@@ -368,13 +368,13 @@ void DrawCursorText() {
     Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
     Bit16u result;
 
-    ReadCharAttr(mouse.backposx,mouse.backposy,page,&result);
+    ReadCharAttr((Bit16u)mouse.backposx,(Bit16u)mouse.backposy,page,&result);
     mouse.backData[0]   = (Bit8u)(result & 0xFF);
     mouse.backData[1]   = (Bit8u)(result>>8);
     mouse.background    = true;
     // Write Cursor
     result = (result & mouse.textAndMask) ^ mouse.textXorMask;
-    WriteChar(mouse.backposx,mouse.backposy,page,(Bit8u)(result&0xFF),(Bit8u)(result>>8),true);
+    WriteChar((Bit16u)mouse.backposx,(Bit16u)mouse.backposy,page,(Bit8u)(result&0xFF),(Bit8u)(result>>8),true);
 }
 
 // ***************************************************************************
@@ -460,7 +460,7 @@ void RestoreCursorBackground() {
         for (y=y1; y<=y2; y++) {
             dataPos += addx1;
             for (x=x1; x<=x2; x++) {
-                INT10_PutPixel(x,y,mouse.page,mouse.backData[dataPos++]);
+                INT10_PutPixel((Bit16u)x,(Bit16u)y,mouse.page,mouse.backData[dataPos++]);
             };
             dataPos += addx2;
         };
@@ -500,7 +500,7 @@ void DrawCursor() {
 
     /* might be vidmode == 0x13?2:1 */
     Bit16s xratio = 640;
-    if (CurMode->swidth>0) xratio/=CurMode->swidth;
+    if (CurMode->swidth>0) xratio/=(Bit16u)CurMode->swidth;
     if (xratio==0) xratio = 1;
     
     RestoreCursorBackground();
@@ -522,7 +522,7 @@ void DrawCursor() {
     for (y=y1; y<=y2; y++) {
         dataPos += addx1;
         for (x=x1; x<=x2; x++) {
-            INT10_GetPixel(x,y,mouse.page,&mouse.backData[dataPos++]);
+            INT10_GetPixel((Bit16u)x,(Bit16u)y,mouse.page,&mouse.backData[dataPos++]);
         };
         dataPos += addx2;
     };
@@ -545,7 +545,7 @@ void DrawCursor() {
             if (cuMask & HIGHESTBIT) pixel = pixel ^ 0x0F;
             cuMask<<=1;
             // Set Pixel
-            INT10_PutPixel(x,y,mouse.page,pixel);
+            INT10_PutPixel((Bit16u)x,(Bit16u)y,mouse.page,pixel);
             dataPos++;
         };
         dataPos += addx2;
@@ -673,8 +673,8 @@ void Mouse_ButtonPressed(Bit8u button) {
         return;
     }
     mouse.times_pressed[button]++;
-    mouse.last_pressed_x[button]=POS_X;
-    mouse.last_pressed_y[button]=POS_Y;
+    mouse.last_pressed_x[button]=(Bit16u)POS_X;
+    mouse.last_pressed_y[button]=(Bit16u)POS_Y;
 
     /* serial mouse, if connected, also wants to know about it */
     on_mouse_event_for_serial(0,0,mouse.buttons);
@@ -733,8 +733,8 @@ void Mouse_ButtonReleased(Bit8u button) {
         return;
     }
     mouse.times_released[button]++; 
-    mouse.last_released_x[button]=POS_X;
-    mouse.last_released_y[button]=POS_Y;
+    mouse.last_released_x[button]=(Bit16u)POS_X;
+    mouse.last_released_y[button]=(Bit16u)POS_Y;
 
     /* serial mouse, if connected, also wants to know about it */
     on_mouse_event_for_serial(0,0,mouse.buttons);
@@ -904,8 +904,8 @@ static Bitu INT33_Handler(void) {
         break;
     case 0x03:  /* Return position and Button Status */
         reg_bx=mouse.buttons;
-        reg_cx=POS_X;
-        reg_dx=POS_Y;
+        reg_cx=(Bit16u)POS_X;
+        reg_dx=(Bit16u)POS_Y;
         break;
     case 0x04:  /* Position Mouse */
         /* If position isn't different from current position
@@ -983,8 +983,8 @@ static Bitu INT33_Handler(void) {
             MEM_BlockRead(src+CURSORY*2,userdefCursorMask,CURSORY*2);
             mouse.screenMask = userdefScreenMask;
             mouse.cursorMask = userdefCursorMask;
-            mouse.hotx       = reg_bx;
-            mouse.hoty       = reg_cx;
+            mouse.hotx       = (Bit16s)reg_bx;
+            mouse.hoty       = (Bit16s)reg_cx;
             mouse.cursorType = 2;
             DrawCursor();
         }
@@ -995,8 +995,8 @@ static Bitu INT33_Handler(void) {
         mouse.textXorMask = reg_dx;
         break;
     case 0x0b:  /* Read Motion Data */
-        reg_cx=static_cast<Bit16s>(mouse.mickey_x);
-        reg_dx=static_cast<Bit16s>(mouse.mickey_y);
+        reg_cx=(Bit16u)static_cast<Bit16s>(mouse.mickey_x);
+        reg_dx=(Bit16u)static_cast<Bit16s>(mouse.mickey_y);
         mouse.mickey_x=0;
         mouse.mickey_y=0;
         break;
@@ -1007,7 +1007,7 @@ static Bitu INT33_Handler(void) {
         Mouse_AutoLock(true); //Some games don't seem to reset the mouse before using
         break;
     case 0x0f:  /* Define mickey/pixel rate */
-        Mouse_SetMickeyPixelRate(reg_cx,reg_dx);
+        Mouse_SetMickeyPixelRate((Bit16s)reg_cx,(Bit16s)reg_dx);
         break;
     case 0x10:      /* Define screen region for updating */
         mouse.updateRegion_x[0]=reg_cx;
@@ -1032,8 +1032,8 @@ static Bitu INT33_Handler(void) {
             mouse.sub_seg = SegValue(es);
             mouse.sub_ofs = reg_dx;
             // Return old values
-            reg_cx = oldMask;
-            reg_dx = oldOfs;
+            reg_cx = (Bit16u)oldMask;
+            reg_dx = (Bit16u)oldOfs;
             SegSet16(es,oldSeg);
         }
         break;      
@@ -1212,10 +1212,10 @@ static Bitu INT74_Handler(void) {
         if (mouse.sub_mask & mouse.event_queue[mouse.events].type) {
             reg_ax=mouse.event_queue[mouse.events].type;
             reg_bx=mouse.event_queue[mouse.events].buttons;
-            reg_cx=POS_X;
-            reg_dx=POS_Y;
-            reg_si=static_cast<Bit16s>(mouse.mickey_x);
-            reg_di=static_cast<Bit16s>(mouse.mickey_y);
+            reg_cx=(Bit16u)POS_X;
+            reg_dx=(Bit16u)POS_Y;
+            reg_si=(Bit16u)static_cast<Bit16s>(mouse.mickey_x);
+            reg_di=(Bit16u)static_cast<Bit16s>(mouse.mickey_y);
             CPU_Push16(RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
             CPU_Push16(RealOff(CALLBACK_RealPointer(int74_ret_callback)));
             SegSet16(cs, mouse.sub_seg);
