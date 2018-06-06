@@ -2444,7 +2444,7 @@ void VGA_SetupMemory() {
 
         vga.mem.linear_orgptr = new Bit8u[vga.vmemsize+32u];
         memset(vga.mem.linear_orgptr,0,vga.vmemsize+32u);
-        vga.mem.linear=(Bit8u*)(((uintptr_t)vga.mem.linear_orgptr + 16ul-1ul) & ~(16ul-1ul));
+        vga.mem.linear=(Bit8u*)(((uintptr_t)vga.mem.linear_orgptr + 16ull-1ull) & ~(16ull-1ull));
         vga.vmemsize_alloced = vga.vmemsize;
 
         /* HACK. try to avoid stale pointers */
