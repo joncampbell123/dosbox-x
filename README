@@ -247,6 +247,29 @@ there is a header that defines O_BINARY as (0) if the
 platform does not provide O_BINARY to avoid #ifdef's
 around each open() call.
 
+When using arithmetic with C pointers and integers,
+understand that the pointer is adjusted by the value of the
+integer times the size of the pointer type. If you intend
+to adjust by bytes, then typecast the pointer to char* or
+unsigned char* first, or typecast to uintptr_t to operate
+on the pointer value as if an integer, then add the integer
+value to the pointer.
+
+At the lowest level, a pointer could be thought of as an
+integer that is interepreted by the CPU as a memory address
+to operate on, rather than an integer value directly.
+
+Therefore, when adding an integer to a pointer value, the
+result could be thought of as:
+
+  (new pointer value in bytes) = (current pointer value in bytes) + integer value * sizeof(pointer data type)
+
+If the pointer is char, then adding 4 will advance by 4 bytes.
+If the pointer is int, then adding 4 will advance by 4 * sizeof(int) bytes, or, 4 memory locations of type int.
+
+Keep this in mind when manipulating pointers while working
+on this code.
+
 
 Software security comments
 --------------------------
