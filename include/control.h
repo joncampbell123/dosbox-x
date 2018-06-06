@@ -21,8 +21,8 @@
 #define DOSBOX_CONTROL_H
 
 #ifdef _MSC_VER
-#pragma warning ( disable : 4786 )
-#pragma warning ( disable : 4290 )
+//#pragma warning ( disable : 4786 )
+//#pragma warning ( disable : 4290 )
 #endif
 
 #ifndef DOSBOX_PROGRAMS_H
