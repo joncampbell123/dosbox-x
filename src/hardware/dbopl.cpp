@@ -330,7 +330,7 @@ static const WaveHandler WaveHandlerTable[8] = {
 	Bit32u tl = reg40 & 0x3f;
 	Bit8u kslShift = KslShiftTable[ reg40 >> 6 ];
 	//Make sure the attenuation goes to the right bits
-	totalLevel = tl << ( ENV_BITS - 7 );	//Total level goes 2 bits below max
+	totalLevel = (Bit32s)(tl << ( ENV_BITS - 7 ));	//Total level goes 2 bits below max
 	totalLevel += ( kslBase << ENV_EXTRA ) >> kslShift;
 }
 
@@ -338,18 +338,18 @@ void Operator::UpdateFrequency(  ) {
 	Bit32u freq = chanData & (( 1 << 10 ) - 1);
 	Bit32u block = (chanData >> 10) & 0xff;
 #ifdef WAVE_PRECISION
-	block = 7 - block;
+	block = 7u - block;
 	waveAdd = ( freq * freqMul ) >> block;
 #else
 	waveAdd = ( freq << block ) * freqMul;
 #endif
 	if ( reg20 & MASK_VIBRATO ) {
-		vibStrength = (Bit8u)(freq >> 7);
+		vibStrength = (Bit8u)(freq >> 7u);
 
 #ifdef WAVE_PRECISION
-		vibrato = ( vibStrength * freqMul ) >> block;
+		vibrato = ( (Bitu)vibStrength * freqMul ) >> block;
 #else
-		vibrato = ( vibStrength << block ) * freqMul;
+		vibrato = ( (Bitu)vibStrength << block ) * freqMul;
 #endif
 	} else {
 		vibStrength = 0;
@@ -374,7 +374,7 @@ void Operator::UpdateRates( const Chip* chip ) {
 
 /*INLINE*/ Bit32s Operator::RateForward( Bit32u add ) {
 	rateIndex += add;
-	Bit32s ret = rateIndex >> RATE_SH;
+	Bit32s ret = (Bit32s)(rateIndex >> RATE_SH);
 	rateIndex = rateIndex & RATE_MASK;
 	return ret;
 }
@@ -439,7 +439,7 @@ static const VolumeHandler VolumeHandlerTable[5] = {
 };
 
 /*INLINE*/ Bitu Operator::ForwardVolume() {
-	return currentLevel + (this->*volHandler)();
+	return (Bitu)(currentLevel + (this->*volHandler)());
 }
 
 
@@ -515,7 +515,7 @@ void Operator::WriteE0( const Chip* chip, Bit8u val ) {
 	waveHandler = WaveHandlerTable[ waveForm ];
 #else
 	waveBase = WaveTable + WaveBaseTable[ waveForm ];
-	waveStart = WaveStartTable[ waveForm ] << WAVE_SH;
+	waveStart = (Bitu)WaveStartTable[ waveForm ] << WAVE_SH;
 	waveMask = WaveMaskTable[ waveForm ];
 #endif
 }
@@ -534,15 +534,15 @@ void Operator::WriteE0( const Chip* chip, Bit8u val ) {
 }
 
 /*INLINE*/ void Operator::Prepare( const Chip* chip )  {
-	currentLevel = totalLevel + (chip->tremoloValue & tremoloMask);
+	currentLevel = (Bit32u)(totalLevel + (Bit32s)(chip->tremoloValue & tremoloMask));
 	waveCurrent = waveAdd;
 	if ( vibStrength >> chip->vibratoShift ) {
-		Bit32s add = vibrato >> chip->vibratoShift;
+		Bit32s add = (Bit32s)(vibrato >> chip->vibratoShift);
 		//Sign extend over the shift value
 		Bit32s neg = chip->vibratoSign;
 		//Negate the add with -1 or 0
 		add = ( add ^ neg ) - neg; 
-		waveCurrent += add;
+		waveCurrent += (Bitu)add;
 	}
 }
 
@@ -594,7 +594,7 @@ Bits /*INLINE*/ Operator::GetSample( Bits modulation ) {
 		return 0;
 	} else {
 		Bitu index = ForwardWave();
-		index += modulation;
+		index += (unsigned long)modulation;
 		return GetWave( index, vol );
 	}
 }
@@ -645,11 +645,11 @@ void Channel::SetChanData( const Chip* chip, Bit32u data ) {
 	//Since a frequency update triggered this, always update frequency
 	Op( 0 )->UpdateFrequency();
 	Op( 1 )->UpdateFrequency();
-	if ( change & ( 0xff << SHIFT_KSLBASE ) ) {
+	if ( change & ( 0xffu << SHIFT_KSLBASE ) ) {
 		Op( 0 )->UpdateAttenuation();
 		Op( 1 )->UpdateAttenuation();
 	}
-	if ( change & ( 0xff << SHIFT_KEYCODE ) ) {
+	if ( change & ( 0xffu << SHIFT_KEYCODE ) ) {
 		Op( 0 )->UpdateRates( chip );
 		Op( 1 )->UpdateRates( chip );
 	}
@@ -690,7 +690,7 @@ void Channel::WriteB0( const Chip* chip, Bit8u val ) {
 	//Don't handle writes to silent fourop channels
 	if ( fourOp > 0x80 )
 		return;
-	Bitu change = (chanData ^ ( val << 8 ) ) & 0x1f00;
+	Bitu change = (chanData ^ ( (unsigned int)val << 8u ) ) & 0x1f00u;
 	if ( change ) {
 		chanData ^= change;
 		UpdateFrequency( chip, fourOp );
@@ -793,7 +793,7 @@ template< bool opl3Mode>
 	Channel* chan = this;
 
 	//BassDrum
-	Bit32s mod = (Bit32u)((old[0] + old[1])) >> feedback;
+	Bit32s mod = (Bit32s)((Bit32u)((old[0] + old[1])) >> feedback);
 	old[0] = old[1];
 	old[1] = Op(0)->GetSample( mod ); 
 
@@ -908,7 +908,7 @@ Channel* Channel::BlockTemplate( Chip* chip, Bit32u samples, Bit32s* output ) {
 		}
 
 		//Do unsigned shift so we can shift out all bits but still stay in 10 bit range otherwise
-		Bit32s mod = (Bit32u)((old[0] + old[1])) >> feedback;
+		Bit32s mod = (Bit32s)((Bit32u)((old[0] + old[1])) >> feedback);
 		old[0] = old[1];
 		old[1] = Op(0)->GetSample( mod );
 		Bit32s sample;
@@ -1169,12 +1169,12 @@ Bit32u Chip::WriteAddr( Bit32u port, Bit8u val ) {
 	case 0:
 		return val;
 	case 2:
-		if ( opl3Active || (val == 0x05) )
-			return 0x100 | val;
+		if ( opl3Active || (val == 0x05u) )
+			return 0x100u | val;
 		else 
 			return val;
 	}
-	return 0;
+	return 0u;
 }
 
 void Chip::GenerateBlock2( Bitu total, Bit32s* output ) {
@@ -1246,9 +1246,9 @@ void Chip::Setup( Bit32u rate ) {
 		Bit8u index, shift;
 		EnvelopeSelect( i, index, shift );
 		//Original amount of samples the attack would take
-		Bit32s original = (Bit32u)( (AttackSamplesTable[ index ] << shift) / scale);
+		Bit32s original = (Bit32s)((Bit32u)( (AttackSamplesTable[ index ] << shift) / scale));
 		 
-		Bit32s guessAdd = (Bit32u)( scale * (EnvelopeIncreaseTable[ index ] << ( RATE_SH - shift - 3 )));
+		Bit32s guessAdd = (Bit32s)((Bit32u)( scale * (EnvelopeIncreaseTable[ index ] << ( RATE_SH - shift - 3 ))));
 		Bit32s bestAdd = guessAdd;
 		Bit32u bestDiff = 1 << 30;
 		for( Bit32u passes = 0; passes < 16; passes ++ ) {
@@ -1256,8 +1256,8 @@ void Chip::Setup( Bit32u rate ) {
 			Bit32s samples = 0;
 			Bit32u count = 0;
 			while ( volume > 0 && samples < original * 2 ) {
-				count += guessAdd;
-				Bit32s change = count >> RATE_SH;
+				count += (Bit32u)guessAdd;
+				Bit32s change = (Bit32s)(count >> RATE_SH);
 				count &= RATE_MASK;
 				if ( GCC_UNLIKELY(change) ) { // less than 1 % 
 					volume += ( ~volume * change ) >> 3;
@@ -1286,11 +1286,11 @@ void Chip::Setup( Bit32u rate ) {
 				guessAdd--;
 			}
 		}
-		attackRates[i] = bestAdd;
+		attackRates[i] = (Bit32u)bestAdd;
 	}
 	for ( Bit8u i = 62; i < 76; i++ ) {
 		//This should provide instant volume maximizing
-		attackRates[i] = 8 << RATE_SH;
+		attackRates[i] = 8u << RATE_SH;
 	}
 	//Setup the channels with the correct four op flags
 	//Channels are accessed through a table so they appear linear here
@@ -1315,7 +1315,7 @@ void Chip::Setup( Bit32u rate ) {
 
 	//Clear Everything in opl3 mode
 	WriteReg( 0x105, 0x1 );
-	for ( int i = 0; i < 512; i++ ) {
+	for ( unsigned int i = 0; i < 512; i++ ) {
 		if ( i == 0x105 )
 			continue;
 		WriteReg( i, 0xff );
@@ -1323,7 +1323,7 @@ void Chip::Setup( Bit32u rate ) {
 	}
 	WriteReg( 0x105, 0x0 );
 	//Clear everything in opl2 mode
-	for ( int i = 0; i < 255; i++ ) {
+	for ( unsigned int i = 0; i < 255; i++ ) {
 		WriteReg( i, 0xff );
 		WriteReg( i, 0x0 );
 	}
