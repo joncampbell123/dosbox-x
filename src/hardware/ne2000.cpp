@@ -1237,7 +1237,7 @@ bx_ne2k_c::mcast_index(const void *dst)
       }
   }
 
-  return (crc >> 26u);
+  return (uint32_t)(crc >> 26u); /* WARNING: Caller directly uses our 6-bit return as index. If not truncated, will cause a segfault */
 #undef POLYNOMIAL
 }
 
