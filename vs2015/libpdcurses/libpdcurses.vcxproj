@@ -185,14 +185,15 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Lib>
     <ClCompile>
-      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS=1;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)libpdcurses;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <StringPooling>false</StringPooling>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|Win32'">
@@ -201,14 +202,15 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Lib>
     <ClCompile>
-      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS=1;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)libpdcurses;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <StringPooling>false</StringPooling>
       <ControlFlowGuard>Guard</ControlFlowGuard>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -217,7 +219,7 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Lib>
     <ClCompile>
-      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS=1;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)libpdcurses;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -229,8 +231,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
-      <SDLCheck>
-      </SDLCheck>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'">
@@ -239,7 +240,7 @@
       <TargetMachine>MachineX86</TargetMachine>
     </Lib>
     <ClCompile>
-      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS=1;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)libpdcurses;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -251,8 +252,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
-      <SDLCheck>
-      </SDLCheck>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -260,7 +260,7 @@
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
     <ClCompile>
-      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS=1;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)libpdcurses;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <StringPooling>false</StringPooling>
@@ -268,7 +268,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|x64'">
@@ -276,7 +277,7 @@
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
     <ClCompile>
-      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS=1;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)libpdcurses;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <StringPooling>false</StringPooling>
@@ -284,7 +285,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -292,7 +294,7 @@
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
     <ClCompile>
-      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS=1;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)libpdcurses;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -304,8 +306,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
-      <SDLCheck>
-      </SDLCheck>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|x64'">
@@ -313,7 +314,7 @@
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
     <ClCompile>
-      <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_MBCS;_CRT_SECURE_NO_WARNINGS=1;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir)libpdcurses;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -325,8 +326,7 @@
       <OmitFramePointers>true</OmitFramePointers>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
-      <SDLCheck>
-      </SDLCheck>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
