@@ -241,6 +241,14 @@ like fgets() or fprintf(). For other uses, please use C
 functions open, close, read, write, lseek and learn to use
 file handles.
 
+Understand that when fgets() returns with the buffer filled
+with the line of text, the end of the string will always include
+the newline (\n) that fgets() stopped reading at.
+
+If fopen() was called with the "b" flag on DOS and Windows
+formatted text files, the end of the string will probably
+contain \r\n (CR LF).
+
 C file handles are signed integers. They can be negative.
 File handles returned by the C runtime however are never
 negative except to indicate an error.
