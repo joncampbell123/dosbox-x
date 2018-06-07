@@ -669,6 +669,10 @@ function DOS21_Handler(), for example. That native code
 function can then manipulate CPU registers and memory as
 needed to emulate the DOS call.
 
+Some callback functions will also modify the stack frame
+to set or clear specific CPU flags on return, using
+functions CALLBACK_SCF(), CALLBACK_SZF(), and CALLBACK_SIF().
+
 The callback instruction is 0xFE 0x38 <uint16_t>. This
 is an invalid opcode on actual x86 hardware, but it is
 a call into a callback function within the DOSBox
@@ -695,6 +699,37 @@ generation is done within the callback framework itself
 using CALLBACK_SetupExtra to write common patterns of
 x86 code depending on how the native code is meant to
 execute or return to the caller.
+
+When the CPU core encounters a callback instruction,
+the index of the instruction (nonzero, remember) is
+returned from the execution loop with the expectation
+the caller will then index the callback array with it.
+
+If the callback instruction is called from protected
+mode, memory and I/O access may cause recursion of
+the emulator. Memory access functions called by the
+native code may trigger an I/O port or page fault
+exception within the guest. DOSBox and DOSBox-X
+resolve the fault by pushing an exception frame
+onto the stack and then recursing into another
+emulation loop which does not break until the fault
+is resolved. While this is perfectly fine for
+DOS and Windows 3.1 simple fault handling, this
+may cause recursion issues with more advanced
+task switching and fault handling in Windows 95
+and later.
+
+The most common reason a callback handler might
+get caught with a page fault is the emulation
+of DOS and BIOS interrupts while running within
+the virtualization environment of Windows 3.0
+through Windows ME.
+
+Another possible source of page faults may occur
+with DOS extenders that enable paging of memory
+to disk.
+
+Callback functions will typically return CBRET_NONE.
 
 
 General description of source code
