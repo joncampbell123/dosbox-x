@@ -655,3 +655,70 @@ a setting or referring to settings before the
 creation of them can cause this code to crash
 until that reference is removed.
 
+
+General description of source code
+----------------------------------
+
+src/shell/shell.cpp         SHELL init, SHELL run, fake COMMAND.COM setup,
+                                startup messages and ANSI art, AUTOEXEC.BAT
+                                emulation and setup, shell interface,
+                                input, parsing, and execution
+
+src/shell/shell_batch.cpp   Batch file (*.BAT) handling
+
+src/shell/shell_cmds.cpp    Shell internal command handling, shell commands:
+                                DIR     CHDIR   ATTRIB  CALL    CD      CHOICE
+                                CLS     COPY    DATE    DEL     DELETE  ERASE
+                                ECHO    EXIT    GOTO    HELP    IF      LOADHIGH
+                                LH      MKDIR   MD      PATH    PAUSE   RMDIR
+                                RD      REM     RENAME  REN     SET     SHIFT
+                                SUBST   TIME    TYPE    VER     ADDKEY  VOL
+                                PROMPT  LABEL   MORE    FOR     INT2FDBG
+                                CTTY    DEBUGBOX
+
+src/shell/shell_misc.cpp    PROMPT generator, command line input interface,
+                            shell execution, and command location via PATH
+                            interface.
+
+src/gui/sdlmain.cpp         Entry point, emulator setup, runtime execution,
+                            cleanup. Menu management, GFX start/end handling,
+                            GFX mode setup and management. Menu handling.
+                            Logging of GFX state. A lot of other misc code.
+
+src/gui/sdlmain_linux.cpp   Linux-specific state tracking and handling.
+
+src/gui/sdl_mapper.cpp      Mapper interface, mapper event handling and routing,
+                            mapper file reading and writing. Keyboard, mouse,
+                            joystick, and shortcut handling. In DOSBox-X,
+                            also ties mapper shortcuts to the menu system.
+
+src/gui/sdl_gui.cpp         Configuration GUI (using gui_tk), dialog boxes,
+                            background "golden blur" behind dialog boxes,
+                            input management and display of dialog boxes.
+
+src/gui/menu.cpp            Menu handling and management, processing,
+                            application of menu to host OS menu framework
+                            if applicable. In DOSBox-X, contains the menu
+                            C++ class and menu item object system which then
+                            maps to Windows HMENU, Mac OS X NSMenu, or the
+                            custom drawn SDL menus if neither are available.
+
+                            Which menu framework is used depends on the
+                            assignment of the DOSBOXMENU_* constant as defined
+                            in include/menu.h. By default:
+
+                                Windows (HMENU) is used if targeting Windows
+                                and not HX DOS and not SDL2
+
+                                Mac OS X (NSMENU) is used if targeting Apple
+                                Mac OS X and not SDL2
+
+                                SDL drawn menus are used in all other cases.
+
+                                A define is available via configure.ac if
+                                SDL drawn menus should be used regardless of
+                                the host OS and environment.
+
+                                A NULL menu define is provided if a build
+                                with no visible menus is desired.
+
