@@ -141,8 +141,9 @@ Linux 64-bit:
 This code is written to assume that sizeof(int) >= 32-bit.
 However know that there are platforms where sizeof(int) is
 even smaller. In real-mode MS-DOS and 16-bit Windows for
-example, sizeof(int) == 16. DOSBox-X will not target 16-bit
-DOS and Windows, so this is not a problem so far.
+example, sizeof(int) == 16 bits (2 bytes). DOSBox-X will
+not target 16-bit DOS and Windows, so this is not a problem
+so far.
 
 For obvious reasons, far pointers are not supported. The
 memory map of the runtime environment is assumed to be
