@@ -751,6 +751,25 @@ include/ptrop.h             Header file to provide compile-time and runtime
                             inline functions for pointer manipulation and
                             alignment. Additional code is in src/gui/ptrop.cpp.
 
+src/aviwriter/*             AVI writer library, written by Jonathan Campbell
+                            sometime around 2010, and incorporated into DOSBox-X.
+                            Unlike the initial code from DOSBox SVN, this code
+                            can support writing OpenDML AVI files that exceed
+                            the 2GB file size limit.
+
+                            All definitions, including Windows PCM formats and
+                            GUIDs, are provided here.
+
+src/misc/cross.cpp          Cross-platform utility functions.
+
+src/misc/messages.cpp       Message translation table functions.
+
+src/misc/setup.cpp          Configuration, section, and setting management.
+
+src/misc/shiftjis.cpp       Shift-JIS utility functions.
+
+src/misc/support.cpp        String support functions including case conversion.
+
 DOSBox-X menu framework
 -----------------------
 
