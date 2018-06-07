@@ -592,3 +592,66 @@ QCOW image support (Michael Greger)
 HQ2X and HQ3X render scaler (ScummVM, Maxim Stepin)
   src/gui/render_templates_hq2x.h
 
+
+Tips for hacking and modifying the source code
+----------------------------------------------
+
+As a SDL (Simple Directmedia Layer) based application,
+DOSBox-X starts execution from main(), which is either
+the real main() function or a redefined main() function
+called from SDLmain depending on the platform.
+
+On Linux and Mac OS X, main() is the real main function.
+
+On Windows, main() is SDLmain() and is called from the
+WinMain function defined in the SDL library.
+
+The entry point main() is in src/gui/sdlmain.cpp,
+somewhere closer to the bottom.
+
+
+Configuration and control state (from dosbox.conf and
+the command line) are accessible through a globally
+scoped pointer named "control".
+
+In the original DOSBox SVN project, "control" is
+most often used for accessing the sections and
+settings of dosbox.conf.
+
+In DOSBox-X, "control" also holds flags and variables
+gathered from the command line (such as -conf).
+
+Most (though not all) of the sections and settings
+are defined in src/dosbox.cpp. There is one function
+DOSBox_SetupConfigSections() that adds sections and
+settings.
+
+Each section has a list of settings by name. Each
+setting can be defined as an int, hexadecimal,
+string, double, and multivalue item. Read
+include/setup.h and src/misc/setup.cpp for more
+information.
+
+There is one section (the autoexec section) that
+is defined as lines of text.
+
+In the original DOSBox SVN project, each section
+also has an init and destructor function. The
+codebase in SVN is heavily written around emulator
+setup from each section, which is why the order
+of the sections is important. DOSBox-X eliminated
+these init and destructor functions and encourages
+initial setup from functions called in main(),
+and additional setup/teardown through VM event
+callbacks (see include/setup.h). A callback
+mechanism is provided however (at a section level)
+when settings change.
+
+Most of the code in this codebase assumes that
+it can retrieve a section by name, and a setting
+by name, without checking whether the returned
+referce to a setting is NULL. Therefore, removing
+a setting or referring to settings before the
+creation of them can cause this code to crash
+until that reference is removed.
+
