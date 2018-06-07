@@ -247,7 +247,8 @@ the newline (\n) that fgets() stopped reading at.
 
 If fopen() was called with the "b" flag on DOS and Windows
 formatted text files, the end of the string will probably
-contain \r\n (CR LF).
+contain \r\n (CR LF). On platforms other than DOS and Windows,
+\r\n will always appear if it is in the file.
 
 C file handles are signed integers. They can be negative.
 File handles returned by the C runtime however are never
