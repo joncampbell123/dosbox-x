@@ -727,6 +727,30 @@ src/gui/render.cpp          RENDER_ and render scaler code. Also handles
                             The selection of render scaler is defined and
                             chosen here.
 
+src/gui/render_scalers.cpp  Render scaler definitions and code. Note that
+                            scalers are defined using header files and
+                            templates and #defines to support each color
+                            format.
+
+src/gui/midi.cpp            MIDI output framework. Header files include
+                            additional platform-specific code.
+
+src/gui/menu_osx.mm         Mac OS X Objective C++ code to bridge Objective C
+                            and C++ so that the menu manipulation code can
+                            work correctly.
+
+src/gui/direct3d.cpp        Windows Direct3D9 support code. This code allows
+                            output=direct3d to work properly. Uses DirectX 9
+                            interfaces.
+
+include/bitop.h             Header file to provide compile-time and runtime
+                            inline functions for bit manipulation and masking.
+                            Additional code is in src/gui/bitop.cpp
+
+include/ptrop.h             Header file to provide compile-time and runtime
+                            inline functions for pointer manipulation and
+                            alignment. Additional code is in src/gui/ptrop.cpp.
+
 DOSBox-X menu framework
 -----------------------
 
