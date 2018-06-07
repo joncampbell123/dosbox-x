@@ -158,8 +158,9 @@ It is suggested to use C header constants if possible
 for min and max integer values, like UINT_MAX.
 
 If the code needs to operate with specific widths of
-integer, please use data type uint16_t, uint32_t, int16_t
-and int32_t, and do not assume the width of int and log.
+integer, please use data types like uint16_t, uint32_t,
+int16_t and int32_t provided by modern C libraries, and
+do not assume the width of int and long.
 
 If compiling with older versions of Visual Studio, you will
 need to include a header file to provide the uintptr_t and
