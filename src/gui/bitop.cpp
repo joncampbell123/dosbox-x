@@ -245,6 +245,44 @@ void self_test(void) {
     assert(negate<unsigned long>(1) == ~1ul);
     assert(negate<unsigned long long>(0) == ~0ull);
     assert(negate<unsigned long long>(1) == ~1ull);
+
+    assert(bitseqlengthandpos(0)   == bitseqlengthandpos_ret_t(0,0));
+    assert(bitseqlengthandpos(1)   == bitseqlengthandpos_ret_t(0,1));
+    assert(bitseqlengthandpos(3)   == bitseqlengthandpos_ret_t(0,2));
+    assert(bitseqlengthandpos(7)   == bitseqlengthandpos_ret_t(0,3));
+    assert(bitseqlengthandpos(15)  == bitseqlengthandpos_ret_t(0,4));
+    assert(bitseqlengthandpos(31)  == bitseqlengthandpos_ret_t(0,5));
+    assert(bitseqlengthandpos(63)  == bitseqlengthandpos_ret_t(0,6));
+    assert(bitseqlengthandpos(127) == bitseqlengthandpos_ret_t(0,7));
+    assert(bitseqlengthandpos(255) == bitseqlengthandpos_ret_t(0,8));
+
+    assert(bitseqlengthandpos(1)   == bitseqlengthandpos_ret_t(0,1));
+    assert(bitseqlengthandpos(2)   == bitseqlengthandpos_ret_t(1,1));
+    assert(bitseqlengthandpos(4)   == bitseqlengthandpos_ret_t(2,1));
+    assert(bitseqlengthandpos(8)   == bitseqlengthandpos_ret_t(3,1));
+    assert(bitseqlengthandpos(16)  == bitseqlengthandpos_ret_t(4,1));
+    assert(bitseqlengthandpos(32)  == bitseqlengthandpos_ret_t(5,1));
+    assert(bitseqlengthandpos(64)  == bitseqlengthandpos_ret_t(6,1));
+    assert(bitseqlengthandpos(128) == bitseqlengthandpos_ret_t(7,1));
+    assert(bitseqlengthandpos(256) == bitseqlengthandpos_ret_t(8,1));
+
+    assert(bitseqlengthandpos(2)   == bitseqlengthandpos_ret_t(1,1));
+    assert(bitseqlengthandpos(6)   == bitseqlengthandpos_ret_t(1,2));
+    assert(bitseqlengthandpos(14)  == bitseqlengthandpos_ret_t(1,3));
+    assert(bitseqlengthandpos(30)  == bitseqlengthandpos_ret_t(1,4));
+    assert(bitseqlengthandpos(62)  == bitseqlengthandpos_ret_t(1,5));
+    assert(bitseqlengthandpos(126) == bitseqlengthandpos_ret_t(1,6));
+    assert(bitseqlengthandpos(254) == bitseqlengthandpos_ret_t(1,7));
+    assert(bitseqlengthandpos(510) == bitseqlengthandpos_ret_t(1,8));
+
+    assert(bitseqlengthandpos(4)   == bitseqlengthandpos_ret_t(2,1));
+    assert(bitseqlengthandpos(12)  == bitseqlengthandpos_ret_t(2,2));
+    assert(bitseqlengthandpos(28)  == bitseqlengthandpos_ret_t(2,3));
+    assert(bitseqlengthandpos(60)  == bitseqlengthandpos_ret_t(2,4));
+    assert(bitseqlengthandpos(124) == bitseqlengthandpos_ret_t(2,5));
+    assert(bitseqlengthandpos(252) == bitseqlengthandpos_ret_t(2,6));
+    assert(bitseqlengthandpos(508) == bitseqlengthandpos_ret_t(2,7));
+    assert(bitseqlengthandpos(1020)== bitseqlengthandpos_ret_t(2,8));
 }
 
 }
