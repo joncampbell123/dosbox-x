@@ -656,6 +656,47 @@ creation of them can cause this code to crash
 until that reference is removed.
 
 
+How DOSBox and DOSBox-X mix x86 and native code
+-----------------------------------------------
+
+Much of the DOS and BIOS handling in DOSBox and DOSBox-X
+is done through the use of the "callback" instruction
+and a callback system in src/cpu/callback.cpp.
+
+Each BIOS interrupt is a callback, as is the DOS kernel
+interrupts. INT 21h is handled as a callback to src/dos/dos.cpp
+function DOS21_Handler(), for example. That native code
+function can then manipulate CPU registers and memory as
+needed to emulate the DOS call.
+
+The callback instruction is 0xFE 0x38 <uint16_t>. This
+is an invalid opcode on actual x86 hardware, but it is
+a call into a callback function within the DOSBox
+emulation. The uint16_t value specifies which callback.
+
+Callbacks are registered through CALLBACK_Allocate(),
+which then returns an integer value that is an index into
+the callback table. 0 is an invalid callback value that
+indicates no callback was allocated, though at this time,
+CALLBACK_Allocate() is written to E_Exit() and abort
+emulation in the case that none are available, instead
+of returning zero.
+
+CALLBACK_DeAllocate() can be used with the index to
+free that slot so that other code can use CALLBACK_Allocate()
+to take that slot if needed, though it is rare to use
+CALLBACK_DeAllocate() so far.
+
+When allocated, the emulation code can then write x86
+instructions where needed that include the callback
+instruction in order to work from native code at that
+point in execution. Generally, most of the x86 code
+generation is done within the callback framework itself
+using CALLBACK_SetupExtra to write common patterns of
+x86 code depending on how the native code is meant to
+execute or return to the caller.
+
+
 General description of source code
 ----------------------------------
 
