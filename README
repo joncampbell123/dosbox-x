@@ -722,3 +722,57 @@ src/gui/menu.cpp            Menu handling and management, processing,
                                 A NULL menu define is provided if a build
                                 with no visible menus is desired.
 
+DOSBox-X menu framework
+-----------------------
+
+Instead of using a specific menu system directly, DOSBox-X uses a menu
+framework as defined in include/menu.h and src/gui/menu.cpp.
+
+This menu framework allows using the same menu item and menu layout
+on all supported targets.
+
+Prior to the framework, DOSBox-X menus were exclusively for Windows only
+and defined in an *.rc file.
+
+The design of the system is that all components of the emulator define
+and register their menu items during init by a specific name. Mapper
+shortcuts automatically register a menu item named "mapper_" + mapper
+shortcut name.
+
+Popup menus are also menu items by name, controlled by src/gui/menu.cpp.
+
+The final layout is controlled by src/gui/menu.cpp which refers to
+menu items by name and the order that they are arranged in.
+
+The final layout can be seen through the display list in the menu object
+and the display list in each menu item that was created as a submenu.
+The display list contains the exact order that menu items are arranged.
+
+In the SDL drawn menus, each menu item also contains the screen and
+relative coordinates that were decided on when the menu object was last
+called to rebuild or arrange the menus.
+
+The SDL drawn menus are the only type that requires the main DOSBox-X
+event loop to process menu events on their behalf including drawing
+and reacting to mouse/touchscreen input. Windows and Mac OS X menus do
+not require the main event loop's attention except when the user selects
+an item.
+
+Access to the menu items is by name, as well. get_item() returns a menu
+item by reference, which itself contains methods to control the state
+of the menu item and to reflect the changes to the menu framework.
+
+Menu item methods return a reference to themselves to permit chaining
+the calls on one line to keep visual clutter to a minimum.
+
+The menu framework will call E_Exit() if the menu item by name does
+not exist. Another method exists in the menu object to test if an
+item exists by name.
+
+It is expected that references returned from get_item() are used
+short-term and never held onto for longer than needed. References
+point directly to a vector within the menu object that can become
+invalid if anything is done to cause the vector to resize. Always
+call get_item() for a menu item to operate on it, never cache or
+store the return value. Never add items while holding a reference.
+
