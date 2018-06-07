@@ -722,6 +722,11 @@ src/gui/menu.cpp            Menu handling and management, processing,
                                 A NULL menu define is provided if a build
                                 with no visible menus is desired.
 
+src/gui/render.cpp          RENDER_ and render scaler code. Also handles
+                            color palette, aspect ratio, autofit options.
+                            The selection of render scaler is defined and
+                            chosen here.
+
 DOSBox-X menu framework
 -----------------------
 
