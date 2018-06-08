@@ -232,6 +232,15 @@ Make sure to use the 64-bit version of lseek (often named
 lseek64 or _lseeki64) in order to support files 4GB or
 larger if allowed by the runtime environment.
 
+On most modern runtimes, an alternate version of open()
+may be required in order to open or create files larger
+than 2GB. However the alternate open() reference can be
+eliminated in certain cases.
+
+On 32-bit Linux, direct calls to open64() can be avoided
+if CFLAGS contains -D_FILE_OFFSET_BITS=64 or
+#define _FILE_OFFSET_BITS=64 is added to the project.
+
 Remember that lseek() can return -1 to indicate an error.
 lseek() however will permit seeking past the end of a file.
 
