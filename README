@@ -656,6 +656,59 @@ creation of them can cause this code to crash
 until that reference is removed.
 
 
+Time and cycles in DOSBox-X
+---------------------------
+
+Time is handled as a macro unit of 1ms time called "ticks",
+tied heavily to SDL_GetTicks() to track time.
+
+Within each 1ms tick, a cycle count specified by the user
+is executed as CPU time.
+
+Setting cycles=3000 therefore, instructs DOSBox and DOSBox-X
+to execute 3000 cpu cycles per millisecond. That generally
+means (though not always) that 3000 instructions are executed
+per millisecond.
+
+Other parts of emulation may consume additional CPU cycles
+to simulate I/O or video RAM delay.
+
+Normal_Loop() in src/dosbox.cpp controls per-tick execution
+as directed by PIC_RunQueue() whether or not the 1ms tick
+has completed.
+
+Generally the CPU core will execute instructions for the
+entire 1ms tick, but the loop will cut short if events
+are scheduled to execute sooner.
+
+Events are scheduled in src/hardware/timer.cpp, using
+PIC_AddEvent() given a callback and a delay in milliseconds.
+Scheduling an event will cut the CPU cycle count back to
+enable the event to execute on time.
+
+PIC_AddEvent() events are scheduled once. Periodic events
+should call PIC_AddEvent() again within the callback.
+
+Events can be removed using PIC_RemoveEvents().
+
+Per-tick event handlers can be added using the
+TIMER_AddTickHandler() function in src/hardware/pic.cpp.
+The callback will be called at the completion of the
+1ms tick.
+
+Emulator code can query emulator time at any time
+using the functions in include/pic.h.
+
+PIC_TickIndex() returns the time within the 1ms
+tick as a floating point value from 0.0 to 1.0.
+
+PIC_TickIndexND() returns the same as cycle counts
+within the 1ms tick.
+
+PIC_FullIndex() returns absolute emulator time
+by combining ticks and cycle count time.
+
+
 How DOSBox and DOSBox-X mix x86 and native code
 -----------------------------------------------
 
