@@ -1106,6 +1106,10 @@ F5                  Resume emulation
 F9                  Set/clear breakpoint
 F10                 Single step (over)
 F11                 Single step (into)
+Up arrow            Scroll up one line (if applicable)
+Down arrow          Scroll down one line (if applicable)
+Page Up             Scroll up by window height (if applicable)
+Page Down           Scroll down by window height (if applicable)
 
 
 Debugger commands
