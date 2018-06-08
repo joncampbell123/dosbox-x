@@ -922,6 +922,53 @@ src/builtin/*.cpp           Built-in executable binaries, defined as unsigned ch
                                 HEXMEM32.EXE    LASTDRIV.COM    MEM.COM         MOVE.EXE
                                 TREE.EXE        XCOPY.EXE
 
+src/cpu/paging.cpp          Paging and page handling code, TLB (translation lookaside buffer),
+                            Page handlers
+
+src/cpu/modrm.cpp           x86 mod/reg/rm effective address handling and lookup
+
+src/cpu/mmx.cpp             Minimalist MMX register handling and effective address lookup
+
+src/cpu/lazyflags.cpp       Lazy CPU flag evalulation. CPU flags are evaluated only if needed.
+
+src/cpu/flags.cpp           CPU flag evaluation code.
+
+src/cpu/cpu.cpp             NMI emulation, protected mode descriptors, stack push/pop,
+                            Selector base/limit handling, CPL, flags, exception handling,
+                            TSS (Task State Segment), task switching, I/O exception
+                            handling, general exception handling, interrupt handling,
+                            general flow control instruction handling, evaluation of
+                            [cpu] section settings and application of settings and
+                            changes to settings, I/O instruction stubs, model-specific
+                            register emulation, CMPXCHG8B.
+
+src/cpu/core_simple.cpp     Simple CPU core (core=simple). Uses normal core header files.
+                            Core cannot be used if paging is enabled or when executing
+                            from memory outside the valid range of system memory.
+
+src/cpu/core_prefetch.cpp   Prefetch CPU core (cputype=*_prefetch). Uses normal core header files.
+                            This core should be used for any application that is dependent
+                            on CPU prefetch including anti-debugger, copy protection, or
+                            self modifying code.
+
+src/cpu/core_normal.cpp     Normal CPU core.
+
+src/cpu/core_normal_286.cpp Normal CPU core, 286 emulation.
+
+src/cpu/core_normal_8086.cpp Normal CPU core, 8086 emulation.
+
+src/cpu/core_full.cpp       Full CPU core (core=full). Appears to have been borrowed from
+                            Bochs.
+
+src/cpu/core_dyn_x86.cpp    Dynamic CPU core (core=dynamic). On 32-bit x86 builds, this code
+                            interprets the guest executable code and produces executable
+                            code for the host process. This core is faster than the other
+                            cores however it may have problems with paging and it does not
+                            emulate CPU cycle counts accurately.
+
+src/cpu/callback.cpp        DOSBox/DOSBox-X callback instruction and callback handling system.
+
+
 DOSBox-X menu framework
 -----------------------
 
