@@ -687,7 +687,11 @@ Scheduling an event will cut the CPU cycle count back to
 enable the event to execute on time.
 
 PIC_AddEvent() events are scheduled once. Periodic events
-should call PIC_AddEvent() again within the callback.
+should call PIC_AddEvent() again within the callback. For
+precision reasons, PIC_AddEvent() can identify whether it
+is being called from an event callback, and it will use
+the delta time differently to help periodic events maintain
+regular intervals.
 
 Events can be removed using PIC_RemoveEvents().
 
