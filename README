@@ -1043,6 +1043,9 @@ Debugger interface
 In builds where it is enabled, DOSBox-X supports breaking into the debugger
 interface, which is shown on the console.
 
+A mapper shortcut is provided to break into the debugger on demand. Normally
+this shortcut is set to Alt+Pause.
+
 In Windows, DOSBox-X can create a console and show the debugger interface
 on it.
 
@@ -1093,4 +1096,55 @@ messages will appear by default.
 The lowest row of the terminal is reserved for a line where
 the user can enter debugger commands. An underscore shows
 where the cursor is positioned.
+
+
+Debugger keyboard shortcuts
+---------------------------
+
+Tab                 Switch between windows
+F5                  Resume emulation
+F9                  Set/clear breakpoint
+F10                 Single step (over)
+F11                 Single step (into)
+
+
+Debugger commands
+-----------------
+
+MOVEWINDN                                   Move current window down
+MOVEWINDU                                   Move current window up
+SHOWWIN <winname>                           Show window (by name)
+HIDEWIN <winname>                           Hide window (by name)
+MEMDUMP <seg> <off> <bytecount>             Dump memory to file (MEMDUMP.TXT)
+MEMDUMPBIN <seg> <off> <bytecount>          Dump memory to file (MEMDUMP.BIN)
+IV <seg> <off> <name>                       Insert variable
+SV <name>                                   Save variables to <name>
+LV <name>                                   Load variables from <name>
+SR <reg> <value>                            Set register <reg> value to <value>
+SM <seg> <off> [bytes in hex]               Set memory at <seg>:<off> to byte values given
+BP <seg> <off>                              Add breakpoint (real mode)
+BPM <seg> <off>                             Add breakpoint (protected mode)
+BPLM <offset>                               Add breakpoint (linear/virtual address)
+BPINT <intnum>                              Add breakpoint on interrupt
+BPINT <intnum> <value>                      Add breakpoint on interrupt and AH=<value>
+BPLIST                                      List breakpoints
+BPDEL <breakpoint number>                   Delete breakpoint
+RUN                                         Resume emulation
+RUNWATCH                                    Resume emulation, but show state while running
+A20                                         Show A20 gate state
+A20 ON                                      Turn on A20 gate
+A20 OFF                                     Turn off A20 gate
+PIC                                         Show interrupt controller state
+PIC MASKIRQ <irq>                           Mask IRQ at interrupt controller
+PIC UNMASKIRQ <irq>                         Unmask IRQ at interrupt controller
+PIC ACKIRQ <irq>                            Acknowledge IRQ at interrupt controller
+PIC LOWERIRQ <irq>                          Manually lower interrupt signal
+PIC RAISEIRQ <irq>                          Manually raise interrupt signal
+C <seg> <off>                               Set code view to address
+D <seg> <off>                               Set data view to address (segment:offset)
+DV <offset>                                 Set data view to address (linear/virtual address)
+DP <offset>                                 Set data view to address (physical)
+LOG <hexadecimal count>                     Log CPU state, for the specified number of instructions, to LOGCPU.TXT
+LOGS <hexadecimal count>                    Log CPU state, short log, to LOGCPU.TXT
+LOGL <hexadecimal count>                    Log CPU state, long log, to LOGCPU.TXT
 
