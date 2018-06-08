@@ -968,6 +968,19 @@ src/cpu/core_dyn_x86.cpp    Dynamic CPU core (core=dynamic). On 32-bit x86 build
 
 src/cpu/callback.cpp        DOSBox/DOSBox-X callback instruction and callback handling system.
 
+src/debug/debug.cpp         Debugger, breakpoint handling and enforcement, debugger commands,
+                            debugger interface, debug runtime loop (when broken into the
+                            debugger)
+
+src/debug/debug_gui.cpp     Debugger interface windowing system, GUI drawing, logging system
+                            and LOG() C++ class, LOG_MSG() function, log file writing
+
+src/debug/debug_disasm.cpp  16/32-bit i486 instruction disassembler, used in the debugger
+                            to show instructions in the code window. Apparently taken from
+                            the GNU debugger.
+
+src/debug/debug_win32.cpp   Win32 console handling code, including resizing.
+
 
 DOSBox-X menu framework
 -----------------------
