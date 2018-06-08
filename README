@@ -1036,3 +1036,61 @@ invalid if anything is done to cause the vector to resize. Always
 call get_item() for a menu item to operate on it, never cache or
 store the return value. Never add items while holding a reference.
 
+
+Debugger interface
+------------------
+
+In builds where it is enabled, DOSBox-X supports breaking into the debugger
+interface, which is shown on the console.
+
+In Windows, DOSBox-X can create a console and show the debugger interface
+on it.
+
+On other systems including Linux and Mac OS X, DOSBox-X must be started
+from a terminal in order to enable the debugger.
+
+The debugger interface should scale and respond to resizing of the
+terminal window.
+
+WARNING: Fitting to the window was added in DOSBox-X. The debugger
+         interface in DOSBox SVN requires a minimum terminal window
+         size to function, and may segfault if the terminal is too
+         small.
+
+The debugger interface is written against the "ncurses" library.
+
+The window regions of the debugger interface are:
+ - Register Overview
+ - Data view
+ - Code Overview
+ - Variable (not shown by default)
+ - Output
+
+The register window will show at all times the contents of the CPU
+registers and segment registers as well as other important CPU
+state.
+
+Data view allows viewing the contents of memory while debugging.
+The location shown is controlled by a segment:offset pair.
+
+In DOSBox-X, the Data view also permits viewing data as a linear
+(pageable) offset and as a physical memory view (outside the
+CPU's paging control).
+
+The code overview/disassembly window shows the contents of a
+memory location as disassembled x86 instructions. Normally, this
+is set to the instruction pointer, but it can be set anywhere.
+Decoding is based on the CPU mode.
+
+The variable list is used when the debugger is given variables
+to debug by.
+
+The output window allows you to scroll through the last 1000
+or so log messages written from within the codebase by LOG()
+or LOG_MSG(). If the window is scrolled to the bottom, new
+messages will appear by default.
+
+The lowest row of the terminal is reserved for a line where
+the user can enter debugger commands. An underscore shows
+where the cursor is positioned.
+
