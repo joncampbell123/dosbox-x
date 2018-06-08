@@ -1097,6 +1097,24 @@ The lowest row of the terminal is reserved for a line where
 the user can enter debugger commands. An underscore shows
 where the cursor is positioned.
 
+The code and data views have been fixed in DOSBox-X to indicate
+when data is not available to view for a specific segment:offset
+or linear address.
+
+If the CPU is in protected mode, and the segment portion refers
+to a segment that does not exist, or the offset extends past
+the limit of that segment, the code or data view will show
+'na' instead of a byte value.
+
+If 80386 paging is enabled, and the segment:offset or linear
+address refers to a page that is not present, then the data
+view will show 'pf' to indicate this.
+
+  na = segment does not exist, or offset exceeds segment limit
+
+  pf = segment:offset or linear address is paged out or
+       not present according to page tables.
+
 
 Debugger keyboard shortcuts
 ---------------------------
