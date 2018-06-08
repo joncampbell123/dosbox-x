@@ -1147,4 +1147,24 @@ DP <offset>                                 Set data view to address (physical)
 LOG <hexadecimal count>                     Log CPU state, for the specified number of instructions, to LOGCPU.TXT
 LOGS <hexadecimal count>                    Log CPU state, short log, to LOGCPU.TXT
 LOGL <hexadecimal count>                    Log CPU state, long log, to LOGCPU.TXT
+INTT <intnum>                               Trace interrupt
+INT <intnum>                                Start interrupt
+SELINFO <n>                                 Show selector information
+DOS MCBS                                    Dump DOS kernel MCB chain (conventional memory allocation chain)
+DOS KERN                                    Dump DOS kernel memory allocation list
+DOS XMS                                     Dump XMS (extended memory) allocation list
+DOS EMS                                     Dump EMS (expanded memory) allocation list
+BIOS MEM                                    Dump BIOS allocation and layout list
+GDT                                         Dump GDT (global descriptor table)
+LDT                                         Dump LDT (local descriptor table)
+IDT                                         Dump IDT (interrupt descriptor table)
+PAGING                                      Dump page table information
+CPU                                         Dump additional CPU information
+INTVEC <file>                               Dump interrupt vector table to <file>
+INTHAND <intnum>                            Set code view to start of interrupt handler
+EXTEND                                      Toggle additional information
+TIMERIRQ                                    Start timer IRQ
+HEAVYLOG                                    Toggle heavy CPU logging
+ZEROPROTECT                                 Toggle zero protection
+HELP                                        Show some debugger commands for reference
 
