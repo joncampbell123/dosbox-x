@@ -346,7 +346,7 @@ Linux and MinGW Windows builds are expected to compile with the GNU autotools.
 
 A preliminary CMake build system is available, see README.cmake.md for details.
 
-Stright Windows builds are expected to compile using the free community edition
+Straight Windows builds are expected to compile using the free community edition
 of Visual Studio 2015 or Visual Studio 2017 and the DirectX 2010 SDK.
 
 Mac OS X builds are expected to compile on the terminal using GNU autotools
@@ -861,7 +861,7 @@ src/gui/render.cpp          RENDER_ and render scaler code. Also handles
                             chosen here.
 
 src/gui/render_scalers.cpp  Render scaler definitions and code. Note that
-                            scalers are defined using header files and
+                            scalers are defined using header files as
                             templates and #defines to support each color
                             format.
 
