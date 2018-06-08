@@ -912,6 +912,15 @@ src/misc/shiftjis.cpp       Shift-JIS utility functions.
 
 src/misc/support.cpp        String support functions including case conversion.
 
+src/builtin/*.cpp           Built-in executable binaries, defined as unsigned char[]
+                            arrays and registered at runtime:
+
+                                25.COM          28.COM          50.COM          APPEND.EXE
+                                BUFFERS.COM     COPY.EXE        CWSDPMI.EXE     DEBUG.EXE
+                                DEVICE.COM      DOS32A.EXE      DOS4GW.EXE      DOSIDLE.EXE
+                                EDIT.COM        FCBS.COM        FIND.EXE        HEXMEM16.EXE
+                                HEXMEM32.EXE    LASTDRIV.COM    MEM.COM         MOVE.EXE
+                                TREE.EXE        XCOPY.EXE
 
 DOSBox-X menu framework
 -----------------------
