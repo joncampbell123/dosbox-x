@@ -981,6 +981,11 @@ src/debug/debug_disasm.cpp  16/32-bit i486 instruction disassembler, used in the
 
 src/debug/debug_win32.cpp   Win32 console handling code, including resizing.
 
+src/hardware/iohandler.cpp  I/O port handling code and registration system.
+
+src/hardware/memory.cpp     Memory mapping, handling code, registration,
+                            system RAM allocation, A20 gate control,
+                            CPU reset vector handling, A20 config setting.
 
 DOSBox-X menu framework
 -----------------------
