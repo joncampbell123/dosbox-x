@@ -1292,3 +1292,13 @@ the ability to selectively disable unrelated audio or extract
 game music without the sound effects in ways appropriate for
 video production.
 
+In DOSBox SVN, audio rendering is driven by the SDL audio device,
+which may (usually) or may not drift slightly from emulation.
+
+In DOSBox-X, audio rendering is tied to emulation time, and
+audio/video sync will never drift in a captured AVI file.
+
+In DOSBox-X, if compiled against FFMPEG, the captured audio may
+be sent instead to the AAC codec and muxed into an MPEG transport
+stream as part of video capture.
+
