@@ -1280,3 +1280,15 @@ Sound Blaster 16 and ESS emulation simulates the newer DACs using
 normal linear interpolation and the lowpass filter according to
 the source rate.
 
+Within the mixer framework, audio routing is provided to render
+to a WAV file if instructed by the user, and to the audio track
+of an AVI file if also instructed by the user.
+
+In DOSBox-X, individual audio channels from each source are also
+recorded to an AVI file that has one audio track per channel, to
+allow recording each channel individually. The intent of this
+setup is to enable editing audio and video from a DOS game with
+the ability to selectively disable unrelated audio or extract
+game music without the sound effects in ways appropriate for
+video production.
+
