@@ -997,6 +997,15 @@ src/hardware/mixer.cpp      Audio mixer, audio system. All audio is mixed
                             also provides MIXER.COM on drive Z:, volume control
                             mapper shortcuts, menu controls "mute" and "swap stereo".
 
+src/hardware/adlib.cpp      Adlib OPL2 and OPL3 emulation. Also provides the NukedOPL
+                            emulation. Note that this is accomplished by including
+                            nukedopl.h, and including opl.cpp twice inline. Once
+                            for OPL2, and once for OPL3.
+
+src/hardware/opl.cpp        This is the OPL2/OPL3 implementation, except for NukedOPL.
+
+src/hardware/nukedopl.cpp   NukedOPL FM emulation.
+
 DOSBox-X menu framework
 -----------------------
 
