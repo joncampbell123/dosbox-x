@@ -1203,3 +1203,72 @@ HEAVYLOG                                    Toggle heavy CPU logging
 ZEROPROTECT                                 Toggle zero protection
 HELP                                        Show some debugger commands for reference
 
+
+Mixer audio framework
+---------------------
+
+Audio is rendered from all sources once a millisecond (once per tick).
+
+Audio is rendered to 16-bit stereo at the sample rate of the user's
+choice (in dosbox.conf).
+
+Audio may be rendered within the 1ms tick at any point if code calls
+the MIXER_FillUp() function or FillUp() member of a mixer channel.
+Typically that is done when a significant state change is made to
+an audio source in order to render accurately while not rendering
+once per sample in an inefficient manner.
+
+When the 1ms tick is completed, the audio is filled out to 1ms
+and then sent off to a circular buffer where it can be picked up
+and sent to the sound card when the Simple Directmedia Library
+calls to pick it up.
+
+The mixer channel specifies the sample rate of the source, so that
+the mixer can upsample properly. The source format is determined
+at the time of writing to the mixer channel. The source is free
+to change from 8/16-bit PCM mono/stereo at any time.
+
+In DOSBox-X, there is additional framework provided to emulate
+analog properties and DAC characteristics through lowpass filters
+and rate vs slew rate interpolation.
+
+Normally, the source does not specify a lowpass filter nor does
+it provide a slew rate. In that case, normal linear interpolation
+is applied on upsample.
+
+If the source provides a slew rate, the slew rate is used for
+linear interpolation. If the slew rate is higher than the sample
+rate, then the interpolation within the sample completes faster.
+If the slew rate is lower than the sample rate, the interpolation
+will be done too slow to complete fully before the next sample.
+
+The reason for slew rate rendering is simple. DACs without filters
+change instantaneously between samples. This is what gives older
+sound cards (including the older Sound Blaster cards) their grungy
+metallic characteristic. Sound cards since then filter the audio
+after the DAC (or filter as part of DAC output) to smooth
+transitions between samples to improve sound quality for low sample
+rates.
+
+However, as anyone knows in the analog domain, transistors do not
+actually change instantaneously. There is a transition period from
+ON to OFF, and OFF to ON, however fast it is. The slew rate parameter
+specifies the "sample rate" that defines the transition period.
+The higher the slew rate, the faster the transition.
+
+The lowpass filter is there to simulate the analog filtering post
+DAC. In most cases, a sound card could be thought of as a DAC with
+or without DAC interpolation, put through an audio amplifier
+circuit that can only amplify and pass up to about 20KHz.
+
+Sound Blaster 1.0/2.0 emulation in DOSBox-X for example is written
+to simulate a DAC with a slew rate of 16-20KHz and a lowpass filter
+of 20KHz, to simulate the grungy metallic flavor of the sound.
+
+Sound Blaster Pro adds to the setup by using the lowpass parameter
+according to the "filter bit" in the mixer registers.
+
+Sound Blaster 16 and ESS emulation simulates the newer DACs using
+normal linear interpolation and the lowpass filter according to
+the source rate.
+
