@@ -1220,6 +1220,10 @@ Typically that is done when a significant state change is made to
 an audio source in order to render accurately while not rendering
 once per sample in an inefficient manner.
 
+It is important to note that when a significant state change happens,
+the device calls FillUp() first to render audio UP TO THAT POINT,
+then applies the state change.
+
 When the 1ms tick is completed, the audio is filled out to 1ms
 and then sent off to a circular buffer where it can be picked up
 and sent to the sound card when the Simple Directmedia Library
