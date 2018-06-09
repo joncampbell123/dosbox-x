@@ -1223,6 +1223,14 @@ and then sent off to a circular buffer where it can be picked up
 and sent to the sound card when the Simple Directmedia Library
 calls to pick it up.
 
+In DOSBox-X, the mixer is written to render exactly 1ms at the
+sample rate per 1ms of emulator time. Fractional integer math
+is carried out in src/hardware/mixer.cpp to ensure the exact
+number of samples is rendered.
+
+Audio is rendered down to a common mixer buffer that is at least
+16384 samples large.
+
 The mixer channel specifies the sample rate of the source, so that
 the mixer can upsample properly. The source format is determined
 at the time of writing to the mixer channel. The source is free
