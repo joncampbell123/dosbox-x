@@ -991,7 +991,9 @@ src/hardware/mixer.cpp      Audio mixer, audio system. All audio is mixed
                             in 1ms frames from all mixer channels. Other parts of
                             the emulator register mixer callbacks, where they are
                             called on to render up to 1ms of audio. All audio is
-                            processed and rendered as 16-bit stereo PCM.
+                            processed and rendered as 16-bit stereo PCM even if
+                            the audio source provides 8/16-bit mono/stereo. See
+                            mixer framework section for more information.
 
 DOSBox-X menu framework
 -----------------------
