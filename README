@@ -993,7 +993,9 @@ src/hardware/mixer.cpp      Audio mixer, audio system. All audio is mixed
                             called on to render up to 1ms of audio. All audio is
                             processed and rendered as 16-bit stereo PCM even if
                             the audio source provides 8/16-bit mono/stereo. See
-                            mixer framework section for more information.
+                            mixer framework section for more information. This
+                            also provides MIXER.COM on drive Z:, volume control
+                            mapper shortcuts, menu controls "mute" and "swap stereo".
 
 DOSBox-X menu framework
 -----------------------
