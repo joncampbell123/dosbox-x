@@ -1302,3 +1302,21 @@ In DOSBox-X, if compiled against FFMPEG, the captured audio may
 be sent instead to the AAC codec and muxed into an MPEG transport
 stream as part of video capture.
 
+A device creates a mixer channel by calling MIXER_AddChannel()
+to create another audio channel. The function will return a pointer
+to a mixer channel object which can then be directed to start,
+stop, and render audio. The function will also call the callback
+handler function given at creation time when audio rendering is
+needed.
+
+When a device is finished with the channel, it should call
+MIXER_DelChannel() to destroy the channel.
+
+Mixer channel enumeration is possible with MIXER_FirstChannel()
+or MIXER_FindChannel(). Mixer channels are linked together in
+a singly linked list when active.
+
+src/hardware/mixer.cpp also registers a .COM program on
+drive Z: that can be used to list mixer channels and control
+mixer volume.
+
