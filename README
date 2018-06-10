@@ -1006,6 +1006,11 @@ src/hardware/opl.cpp        This is the OPL2/OPL3 implementation, except for Nuk
 
 src/hardware/nukedopl.cpp   NukedOPL FM emulation.
 
+src/hardware/sblaster.cpp   Sound Blaster emulation, overall. The same codebase
+                            emulates Sound Blaster 1.0 through Sound Blaster 16
+                            as well as ESS688 and Reveal SC400.
+
+
 DOSBox-X menu framework
 -----------------------
 
@@ -1334,4 +1339,44 @@ a singly linked list when active.
 src/hardware/mixer.cpp also registers a .COM program on
 drive Z: that can be used to list mixer channels and control
 mixer volume.
+
+
+Sound Blaster emulation
+-----------------------
+
+src/hardware/sblaster.cpp emulates all models of Sound Blaster
+from Sound Blaster 1.0 through Sound Blaster 16. In DOSBox-X,
+additional code was added to emulate the ESS688 and SC400
+cards as well.
+
+The code is written to be as accurate as possible about
+the state and function of Sound Blaster cards, including many
+undocumented quirks.
+
+Additional hacks were added for additional tricks the some
+old DOS games and demos use. One such hack is "goldplay" mode,
+referring to an old music tracker playback library that
+supported playing MOD files to LPT DAC, PC speaker, and
+Sound Blaster. The reason a hack was added is due to the
+way this library renders single-sample output via DMA.
+Instead of normal DMA, the library allocates a 1-sample
+buffer and instructs the DMA controller to loop over the
+single sample. The timer interrupt then overwrites the
+1-sample buffer at the sample rate it believes is the
+best to render at.
+
+In DOSBox SVN, sample rates are not capped.
+
+In DOSBox-X, sample rates are capped according to the
+behavior of the actual hardware. That includes the 23KHz
+cap for non-highspeed and 45KHz cap for highspeed DSP
+playback.
+
+The emulation is written in a fairly straightforward way
+that should be easy to modify if needed. DSP commands are
+collected into a buffer according to a table that indicates
+how long each command is from the first byte.
+
+A buffer is used to return DSP bytes read back from the
+sound card.
 
