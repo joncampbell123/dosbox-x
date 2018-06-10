@@ -1380,3 +1380,8 @@ how long each command is from the first byte.
 A buffer is used to return DSP bytes read back from the
 sound card.
 
+Unless otherwise asked, the Sound Blaster code will also
+register I/O handlers for and initialize OPL2/OPL3 FM
+emulation at port 0x388. The code may initialize Game
+Blaster compatible CMS emulation as well.
+
