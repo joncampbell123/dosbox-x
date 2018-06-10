@@ -1385,3 +1385,9 @@ register I/O handlers for and initialize OPL2/OPL3 FM
 emulation at port 0x388. The code may initialize Game
 Blaster compatible CMS emulation as well.
 
+On DOS kernel initialization, the Sound Blaster emulation
+will also automatically create the BLASTER environment
+variable. This environment variable is used by many DOS
+games to find the sound card. Some games require it,
+while others will probe manually for the sound card.
+
