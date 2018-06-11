@@ -1562,8 +1562,11 @@ HostPt GetMemBase(void) { return MemBase; }
 
 extern bool mainline_compatible_mapping;
 
+/*! \brief          REDOS.COM utility command on drive Z: to trigger restart of the DOS kernel
+ */
 class REDOS : public Program {
 public:
+    /*! \brief      Program entry point, when the command is run */
     void Run(void) {
         throw int(6);
     }
@@ -1573,8 +1576,13 @@ void REDOS_ProgramStart(Program * * make) {
     *make=new REDOS;
 }
 
+/*! \brief          A20GATE.COM built-in command on drive Z:
+ *  
+ *  \description    Utility command for the user to set/view the A20 gate state
+ */
 class A20GATE : public Program {
 public:
+    /*! \brief      Program entry point, when the command is run */
     void Run(void) {
         if (cmd->FindString("SET",temp_line,false)) {
             char *x = (char*)temp_line.c_str();
