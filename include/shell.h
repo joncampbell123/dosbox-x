@@ -58,6 +58,11 @@ public:
 };
 
 class AutoexecEditor;
+
+/*! \brief          DOS shell program object
+ *
+ *  \description    This is the DOS shell, including built-in commands
+ */
 class DOS_Shell : public Program {
 private:
 	friend class AutoexecEditor;
@@ -73,14 +78,38 @@ public:
 	DOS_Shell();
 	virtual ~DOS_Shell();
 
+    /*! \brief      Program entry point, when the command is run
+     */
 	void Run(void);
+
+    /*! \brief      Alternate execution if /C switch is given
+     */
 	void RunInternal(void); //for command /C
+
 /* A load of subfunctions */
+
+    /*! \brief      Line parsing function
+     */
 	void ParseLine(char * line);
+
+    /*! \brief      Redirection handling
+     */
 	Bitu GetRedirection(char *s, char **ifn, char **ofn,bool * append);
+
+    /*! \brief      Command line input and keyboard handling
+     */
 	void InputCommand(char * line);
+
+    /*! \brief      Render and output command prompt
+     */
 	void ShowPrompt();
+
+    /*! \brief      Process and execute command (internal or external)
+     */
 	void DoCommand(char * cmd);
+
+    /*! \brief      Execute a command
+     */
 	bool Execute(char * name,char * args);
 	/* Checks if it matches a hardware-property */
 	bool CheckConfig(char* cmd_in,char*line);
