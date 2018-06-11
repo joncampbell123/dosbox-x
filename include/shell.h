@@ -111,58 +111,169 @@ public:
     /*! \brief      Execute a command
      */
 	bool Execute(char * name,char * args);
-	/* Checks if it matches a hardware-property */
+
+	/*! \brief      Checks if it matches a hardware-property */
 	bool CheckConfig(char* cmd_in,char*line);
-/* Some internal used functions */
+
+    /*! \brief      Given a command, look up the path using default paths and the PATH variable
+     */
 	char * Which(char * name);
-/* Some supported commands */
+
+    /*! \brief      INT 2Fh debugging tool
+     */
 	void CMD_INT2FDBG(char * args);
+
+    /*! \brief      Online HELP for the shell
+     */
 	void CMD_HELP(char * args);
+
+    /*! \brief      Clear screen (CLS)
+     */
 	void CMD_CLS(char * args);
+
+    /*! \brief      File copy command
+     */
 	void CMD_COPY(char * args);
+
+    /*! \brief      Command to set date (DATE)
+     */
 	void CMD_DATE(char * args);
+
+    /*! \brief      Command to set time (TIME)
+     */
 	void CMD_TIME(char * args);
+
+    /*! \brief      Directory listing (DIR)
+     */
 	void CMD_DIR(char * args);
+
+    /*! \brief      Deletion command (DEL)
+     */
 	void CMD_DELETE(char * args);
+
+    /*! \brief      Echo command (ECHO)
+     */
 	void CMD_ECHO(char * args);
+
+    /*! \brief      Exit command (EXIT)
+     */
 	void CMD_EXIT(char * args);
+
+    /*! \brief      Directory creation (MKDIR)
+     */
 	void CMD_MKDIR(char * args);
+
+    /*! \brief      Change current directory (CD)
+     */
 	void CMD_CHDIR(char * args);
+
+    /*! \brief      Directory deletion (RMDIR)
+     */
 	void CMD_RMDIR(char * args);
+
+    /*! \brief      Environment variable setting/management (SET)
+     */
 	void CMD_SET(char * args);
+
+    /*! \brief      Conditional execution (IF)
+     */
 	void CMD_IF(char * args);
+
+    /*! \brief      Batch file branching (GOTO)
+     */
 	void CMD_GOTO(char * args);
+
+    /*! \brief      Print file to console (TYPE)
+     */
 	void CMD_TYPE(char * args);
+
+    /*! \brief      Human readable comment (REM)
+     */
 	void CMD_REM(char * args);
+
+    /*! \brief      File rename (REN)
+     */
 	void CMD_RENAME(char * args);
+
+    /*! \brief      Execute batch file as sub-program (CALL)
+     */
 	void CMD_CALL(char * args);
+
 	void SyntaxError(void);
+
+    /*! \brief      Pause and wait for user to hit Enter (PAUSE)
+     */
 	void CMD_PAUSE(char * args);
+
+    /*! \brief      Map drive letter to folder (SUBST)
+     */
 	void CMD_SUBST(char* args);
+
+    /*! \brief      Load a program into high memory if possible
+     */
 	void CMD_LOADHIGH(char* args);
+
+    /*! \brief      Prompt for a choice (CHOICE)
+     */
 	void CMD_CHOICE(char * args);
+
+    /*! \brief      Set file attributes (ATTRIB)
+     */
 	void CMD_ATTRIB(char * args);
+
+    /*! \brief      Set PATH variable (PATH)
+     */
 	void CMD_PATH(char * args);
+
+    /*! \brief      Consume one command line argument (SHIFT)
+     */
 	void CMD_SHIFT(char * args);
+
+    /*! \brief      Print DOS version (VER)
+     */
 	void CMD_VER(char * args);
+
+    /*! \brief      TODO?
+     */
 	void CMD_ADDKEY(char * args);
+
+    /*! \brief      TODO?
+     */
 	void CMD_VOL(char * args);
+
+    /*! \brief      Change DOS prompt pattern (PROMPT)
+     */
 	void CMD_PROMPT(char * args);
+
+    /*! \brief      Change volume label (LABEL)
+     */
 	void CMD_LABEL(char * args);
+
+    /*! \brief      Text pager (MORE)
+     */
 	void CMD_MORE(char * args);
+
+    /*! \brief      Change TTY (console) device (CTTY)
+     */
 	void CMD_CTTY(char * args);
+
+    /*! \brief      Looping execution (FOR)
+     */
 	void CMD_FOR(char * args);
+
 #if C_DEBUG
+    /*! \brief      Execute command within debugger (break at entry point)
+     */
 	void CMD_DEBUGBOX(char * args);
 #endif
 	/* The shell's variables */
 	Bit16u input_handle;
-	BatchFile * bf;
+	BatchFile * bf;                     //! Batch file to execute
 	bool echo;
 	bool exit;
 	bool call;
     /* Status */
-    bool input_eof;
+    bool input_eof;                     //! STDIN has hit EOF
 };
 
 struct SHELL_Cmd {
