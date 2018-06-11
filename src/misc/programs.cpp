@@ -500,8 +500,15 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 bool MSG_Write(const char *);
 void restart_program(std::vector<std::string> & parameters);
 
+/*! \brief          CONFIG.COM utility to control configuration and files
+ *
+ *  \description    Utility to write configuration, set configuration,
+ *                  and other configuration related functions.
+ */
 class CONFIG : public Program {
 public:
+    /*! \brief      Program entry point, when the command is run
+     */
 	void Run(void);
 private:
 	void restart(const char* useconfig);
