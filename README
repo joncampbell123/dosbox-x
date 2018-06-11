@@ -1061,6 +1061,13 @@ src/hardware/voodoo_opengl.cpp 3Dfx Voodoo emulation
 
 src/hardware/voodoo_vogl.cpp 3Dfx Voodoo emulation
 
+src/hardware/pc98.cpp       PC98UTIL.COM utility built-in command
+
+src/hardware/pc98_fm.cpp    PC-98 FM board emulation (ties DOSBox-X to emulation
+                            code borrowed from Neko Project II)
+
+src/hardware/snd_pc98/*     PC-98 FM board emulation (code borrowed from
+                            Neko Project II)
 
 DOSBox-X menu framework
 -----------------------
