@@ -446,8 +446,16 @@ static void VFRCRATE_ProgramStart(Program * * make) {
     *make=new VFRCRATE;
 }
 
+/*! \brief          CGASNOW.COM utility to control CGA snow emulation
+ *
+ *  \description    Utility to enable, disable, or query CGA snow emulation.
+ *                  This command is only available when machine=cga and
+ *                  the video mode is 80x25 text mode.
+ */
 class CGASNOW : public Program {
 public:
+    /*! \brief      Program entry point, when the command is run
+     */
     void Run(void) {
         if(cmd->FindExist("ON")) {
             WriteOut("CGA snow enabled\n");
