@@ -1010,6 +1010,57 @@ src/hardware/sblaster.cpp   Sound Blaster emulation, overall. The same codebase
                             emulates Sound Blaster 1.0 through Sound Blaster 16
                             as well as ESS688 and Reveal SC400.
 
+src/hardware/pci_bus.cpp    PCI bus emulation and framework.
+
+src/hardware/vga.cpp        VGA emulation, modeset, resize event, lookup tables,
+                            config parsing.
+
+src/hardware/vga_attr.cpp   VGA attribute controller emulation
+
+src/hardware/vga_crtc.cpp   VGA CRTC emulation
+
+src/hardware/vga_dac.cpp    VGA DAC (palette) emulation
+
+src/hardware/vga_draw.cpp   Code to draw pixels in each VGA mode, including PC-98
+
+src/hardware/vga_gfx.cpp    VGA GFX (0x3CE-0x3CF) emulation
+
+src/hardware/vga_memory.cpp VGA RAM and RAM access emulation, video RAM allocation
+
+src/hardware/vga_misc.cpp   Misc VGA ports, including port 3DAh, 3C2h, 3CCh, 3CAh, 3C8h
+
+src/hardware/vga_other.cpp  Other emulation, including CGA functions
+
+src/hardware/vga_paradise.cpp Paradise SVGA emulation
+
+src/hardware/vga_s3.cpp     S3 SVGA emulation
+
+src/hardware/vga_seq.cpp    VGA sequencer emulation
+
+src/hardware/vga_tseng.cpp  Tseng ET3000/ET4000 emulation
+
+src/hardware/vga_xga.cpp    VGA XGA emulation
+
+src/hardware/vga_pc98_cg.cpp PC-98 CG (character generator) emulation
+
+src/hardware/vga_pc98_crtc.cpp PC-98 CRTC emulation
+
+src/hardware/vga_pc98_dac.cpp PC-98 DAC (palette) emulation
+
+src/hardware/vga_pc98_egc.cpp PC-98 EGC (extended graphics charger) emulation
+
+src/hardware/vga_pc98_gdc.cpp PC-98 GDC (graphics display controller) emulation
+
+src/hardware/voodoo.cpp     3Dfx Voodoo emulation
+
+src/hardware/voodoo_emu.cpp 3Dfx Voodoo emulation
+
+src/hardware/voodoo_interface.cpp 3Dfx Voodoo emulation
+
+src/hardware/voodoo_opengl.cpp 3Dfx Voodoo emulation
+
+src/hardware/voodoo_vogl.cpp 3Dfx Voodoo emulation
+
 
 DOSBox-X menu framework
 -----------------------
