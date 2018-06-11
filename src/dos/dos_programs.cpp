@@ -560,6 +560,13 @@ void SBLASTER_DOS_Shutdown();
 
 extern int swapInDisksSpecificDrive;
 
+/*! \brief          BOOT.COM utility to boot a floppy or hard disk device.
+ *
+ *  \description    Users will use this command to boot a guest operating system from
+ *                  a disk image. Options are provided to specify the device to boot
+ *                  from (if the image is already assigned) or a floppy disk image
+ *                  specified on the command line.
+ */
 class BOOT : public Program {
 public:
     BOOT() {
@@ -574,10 +581,14 @@ public:
         }
     }
 public:
+    /*! \brief      Array of disk images to add to floppy swaplist
+     */
     imageDisk *newDiskSwap[MAX_SWAPPABLE_DISKS];
 
 private:
-   
+
+    /*! \brief      Open a file as a disk image and return FILE* handle and size
+     */
     FILE *getFSFile_mounted(char const* filename, Bit32u *ksize, Bit32u *bsize, Bit8u *error) {
         //if return NULL then put in error the errormessage code if an error was requested
         bool tryload = (*error)?true:false;
@@ -623,7 +634,9 @@ private:
             return NULL;
         }
     }
-   
+
+    /*! \brief      Open a file as a disk image and return FILE* handle and size
+     */
     FILE *getFSFile(char const * filename, Bit32u *ksize, Bit32u *bsize,bool tryload=false) {
         Bit8u error = tryload?1:0;
         FILE* tmpfile = getFSFile_mounted(filename,ksize,bsize,&error);
@@ -654,10 +667,14 @@ private:
         return tmpfile;
     }
 
+    /*! \brief      Utility function to print generic boot error
+     */
     void printError(void) {
         WriteOut(MSG_Get("PROGRAM_BOOT_PRINT_ERROR"));
     }
 
+    /*! \brief      Utility function to disable UMB, EMS, XMS
+     */
     void disable_umb_ems_xms(void) {
         Section* dos_sec = control->GetSection("dos");
         char test[20];
@@ -671,6 +688,8 @@ private:
 
 public:
    
+    /*! \brief      Program entry point, when the command is run
+     */
     void Run(void) {
         bool swaponedrive = false;
         bool force = false;
