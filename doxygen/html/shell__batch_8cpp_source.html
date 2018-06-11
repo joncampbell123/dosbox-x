@@ -119,10 +119,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00023"></a>00023 <span class="preprocessor">#include &quot;shell.h&quot;</span>
 <a name="l00024"></a>00024 <span class="preprocessor">#include &quot;support.h&quot;</span>
 <a name="l00025"></a>00025 
-<a name="l00026"></a>00026 BatchFile::BatchFile(<a class="code" href="classDOS__Shell.html">DOS_Shell</a> * host,<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> resolved_name,<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> entered_name, <span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> cmd_line) {
+<a name="l00026"></a>00026 BatchFile::BatchFile(<a class="code" href="classDOS__Shell.html" title="DOS shell program object.">DOS_Shell</a> * host,<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> resolved_name,<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> entered_name, <span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> cmd_line) {
 <a name="l00027"></a>00027         location = 0;
 <a name="l00028"></a>00028         prev=host-&gt;bf;
-<a name="l00029"></a>00029         echo=host-&gt;echo;
+<a name="l00029"></a>00029         echo=host-&gt;<a class="code" href="classDOS__Shell.html#ab4ee052352ed1dedccf0854bcacadac2" title="Batch file to execute.">echo</a>;
 <a name="l00030"></a>00030         shell=host;
 <a name="l00031"></a>00031         <span class="keywordtype">char</span> totalname[DOS_PATHLENGTH+4];
 <a name="l00032"></a>00032         DOS_Canonicalize(resolved_name,totalname); <span class="comment">// Get fullname including drive specificiation</span>
@@ -140,7 +140,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00044"></a>00044 BatchFile::~BatchFile() {
 <a name="l00045"></a>00045         <span class="keyword">delete</span> cmd;
 <a name="l00046"></a>00046         shell-&gt;bf=prev;
-<a name="l00047"></a>00047         shell-&gt;echo=echo;
+<a name="l00047"></a>00047         shell-&gt;<a class="code" href="classDOS__Shell.html#ab4ee052352ed1dedccf0854bcacadac2" title="Batch file to execute.">echo</a>=echo;
 <a name="l00048"></a>00048 }
 <a name="l00049"></a>00049 
 <a name="l00050"></a>00050 <span class="keywordtype">bool</span> BatchFile::ReadLine(<span class="keywordtype">char</span> * line) {
@@ -165,7 +165,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00069"></a>00069 <span class="comment">                         * escape for ansi</span>
 <a name="l00070"></a>00070 <span class="comment">                         * backspace for alien odyssey */</span>
 <a name="l00071"></a>00071                         <span class="keywordflow">if</span> (c&gt;31 || c==0x1b || c==<span class="charliteral">&#39;\t&#39;</span> || c==8)
-<a name="l00072"></a>00072                                 *cmd_write++=c;
+<a name="l00072"></a>00072                                 *cmd_write++=(char)c;
 <a name="l00073"></a>00073                 }
 <a name="l00074"></a>00074         } <span class="keywordflow">while</span> (c!=<span class="charliteral">&#39;\n&#39;</span> &amp;&amp; n);
 <a name="l00075"></a>00075         *cmd_write=0;
@@ -203,7 +203,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00107"></a>00107                                 next -= <span class="charliteral">&#39;0&#39;</span>;
 <a name="l00108"></a>00108                                 <span class="keywordflow">if</span> (cmd-&gt;GetCount()&lt;(<span class="keywordtype">unsigned</span> int)next) <span class="keywordflow">continue</span>;
 <a name="l00109"></a>00109                                 std::string word;
-<a name="l00110"></a>00110                                 <span class="keywordflow">if</span> (!cmd-&gt;FindCommand(next,word)) <span class="keywordflow">continue</span>;
+<a name="l00110"></a>00110                                 <span class="keywordflow">if</span> (!cmd-&gt;FindCommand((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)next,word)) <span class="keywordflow">continue</span>;
 <a name="l00111"></a>00111                                 strcpy(cmd_write,word.c_str());
 <a name="l00112"></a>00112                                 cmd_write+=strlen(word.c_str());
 <a name="l00113"></a>00113                                 <span class="keywordflow">continue</span>;
@@ -214,7 +214,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00118"></a>00118                                 <span class="keywordflow">if</span> (!first) {*cmd_write++ = <span class="charliteral">&#39;%&#39;</span>;<span class="keywordflow">continue</span>;}
 <a name="l00119"></a>00119                                 *first++ = 0;
 <a name="l00120"></a>00120                                 std::string env;
-<a name="l00121"></a>00121                                 <span class="keywordflow">if</span> (shell-&gt;GetEnvStr(cmd_read,env)) {
+<a name="l00121"></a>00121                                 <span class="keywordflow">if</span> (shell-&gt;<a class="code" href="classProgram.html#a0012adb877f24b04d836a37ab48f2c60" title="Run() method, called when the program is run. Subclass must override this.">GetEnvStr</a>(cmd_read,env)) {
 <a name="l00122"></a>00122                                         <span class="keyword">const</span> <span class="keywordtype">char</span> * equals=strchr(env.c_str(),<span class="charliteral">&#39;=&#39;</span>);
 <a name="l00123"></a>00123                                         <span class="keywordflow">if</span> (!equals) <span class="keywordflow">continue</span>;
 <a name="l00124"></a>00124                                         equals++;
@@ -255,7 +255,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00159"></a>00159                 DOS_ReadFile(file_handle,&amp;c,&amp;n);
 <a name="l00160"></a>00160                 <span class="keywordflow">if</span> (n&gt;0) {
 <a name="l00161"></a>00161                         <span class="keywordflow">if</span> (c&gt;31)
-<a name="l00162"></a>00162                                 *cmd_write++=c;
+<a name="l00162"></a>00162                                 *cmd_write++=(char)c;
 <a name="l00163"></a>00163                 }
 <a name="l00164"></a>00164         } <span class="keywordflow">while</span> (c!=<span class="charliteral">&#39;\n&#39;</span> &amp;&amp; n);
 <a name="l00165"></a>00165         *cmd_write++ = 0;
@@ -297,7 +297,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:07 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

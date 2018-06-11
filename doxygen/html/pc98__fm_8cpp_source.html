@@ -159,18 +159,18 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00063"></a>00063 
 <a name="l00064"></a>00064 <span class="keywordtype">void</span> getbiospath(OEMCHAR *path, <span class="keyword">const</span> OEMCHAR *fname, <span class="keywordtype">int</span> maxlen) {
 <a name="l00065"></a>00065     LOG_MSG(<span class="stringliteral">&quot;PC98FM getbiospath fname=&#39;%s&#39;&quot;</span>,fname);
-<a name="l00066"></a>00066     snprintf(path,maxlen,<span class="stringliteral">&quot;%s&quot;</span>,fname);
+<a name="l00066"></a>00066     snprintf(path,(<span class="keywordtype">size_t</span>)maxlen,<span class="stringliteral">&quot;%s&quot;</span>,fname);
 <a name="l00067"></a>00067 }
 <a name="l00068"></a>00068 
 <a name="l00069"></a>00069 <span class="keyword">enum</span> {
-<a name="l00070"></a>00070         JOY_UP_BIT                  = (1 &lt;&lt; 0),
-<a name="l00071"></a>00071         JOY_DOWN_BIT            = (1 &lt;&lt; 1),
-<a name="l00072"></a>00072         JOY_LEFT_BIT            = (1 &lt;&lt; 2),
-<a name="l00073"></a>00073         JOY_RIGHT_BIT           = (1 &lt;&lt; 3),
-<a name="l00074"></a>00074         JOY_RAPIDBTN1_BIT       = (1 &lt;&lt; 4),
-<a name="l00075"></a>00075         JOY_RAPIDBTN2_BIT       = (1 &lt;&lt; 5),
-<a name="l00076"></a>00076         JOY_BTN1_BIT            = (1 &lt;&lt; 6),
-<a name="l00077"></a>00077         JOY_BTN2_BIT            = (1 &lt;&lt; 7)
+<a name="l00070"></a>00070         JOY_UP_BIT                  = (1u &lt;&lt; 0u),
+<a name="l00071"></a>00071         JOY_DOWN_BIT            = (1u &lt;&lt; 1u),
+<a name="l00072"></a>00072         JOY_LEFT_BIT            = (1u &lt;&lt; 2u),
+<a name="l00073"></a>00073         JOY_RIGHT_BIT           = (1u &lt;&lt; 3u),
+<a name="l00074"></a>00074         JOY_RAPIDBTN1_BIT       = (1u &lt;&lt; 4u),
+<a name="l00075"></a>00075         JOY_RAPIDBTN2_BIT       = (1u &lt;&lt; 5u),
+<a name="l00076"></a>00076         JOY_BTN1_BIT            = (1u &lt;&lt; 6u),
+<a name="l00077"></a>00077         JOY_BTN2_BIT            = (1u &lt;&lt; 7u)
 <a name="l00078"></a>00078 };
 <a name="l00079"></a>00079 
 <a name="l00080"></a>00080 
@@ -225,7 +225,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00129"></a>00129     <span class="keyword">auto</span> &amp;cbusm = cbuscore_map[port];
 <a name="l00130"></a>00130     <span class="keyword">auto</span> &amp;func = cbusm.inp;
 <a name="l00131"></a>00131     <span class="keywordflow">if</span> (func) <span class="keywordflow">return</span> func(port);
-<a name="l00132"></a>00132     <span class="keywordflow">return</span> ~0;
+<a name="l00132"></a>00132     <span class="keywordflow">return</span> ~0ul;
 <a name="l00133"></a>00133 }
 <a name="l00134"></a>00134 
 <a name="l00135"></a>00135 <span class="comment">// four I/O ports, 2 ports apart</span>
@@ -374,7 +374,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00278"></a>00278         }
 <a name="l00279"></a>00279 
 <a name="l00280"></a>00280         irq = section-&gt;Get_int(<span class="stringliteral">&quot;pc-98 fm board irq&quot;</span>);
-<a name="l00281"></a>00281         baseio = section-&gt;Get_hex(<span class="stringliteral">&quot;pc-98 fm board io port&quot;</span>);
+<a name="l00281"></a>00281         baseio = (<span class="keywordtype">unsigned</span> int)section-&gt;Get_hex(<span class="stringliteral">&quot;pc-98 fm board io port&quot;</span>);
 <a name="l00282"></a>00282 
 <a name="l00283"></a>00283         pc98_soundbios_enabled = section-&gt;Get_bool(<span class="stringliteral">&quot;pc-98 sound bios&quot;</span>);
 <a name="l00284"></a>00284         pc98_set_msw4_soundbios();
@@ -495,7 +495,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -345,12 +345,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00249"></a>00249 }
 <a name="l00250"></a>00250 
 <a name="l00251"></a>00251 <span class="keywordtype">void</span> CSerial::setEvent(Bit16u type, <span class="keywordtype">float</span> duration) {
-<a name="l00252"></a>00252     PIC_AddEvent(Serial_EventHandler,duration,(type&lt;&lt;2)|idnumber);
+<a name="l00252"></a>00252     PIC_AddEvent(Serial_EventHandler,duration,(Bitu)(((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)type&lt;&lt;2u)|(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)idnumber));
 <a name="l00253"></a>00253 }
 <a name="l00254"></a>00254 
 <a name="l00255"></a>00255 <span class="keywordtype">void</span> CSerial::removeEvent(Bit16u type) {
 <a name="l00256"></a>00256     <span class="comment">// TODO</span>
-<a name="l00257"></a>00257         PIC_RemoveSpecificEvents(Serial_EventHandler,(type&lt;&lt;2)|idnumber);
+<a name="l00257"></a>00257         PIC_RemoveSpecificEvents(Serial_EventHandler,(Bitu)(((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)type&lt;&lt;2u)|(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)idnumber));
 <a name="l00258"></a>00258 }
 <a name="l00259"></a>00259 
 <a name="l00260"></a>00260 <span class="keywordtype">void</span> CSerial::handleEvent(Bit16u type) {
@@ -686,7 +686,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00590"></a>00590         <span class="comment">// 3    modem status </span>
 <a name="l00591"></a>00591         <span class="comment">// 4-7  0</span>
 <a name="l00592"></a>00592 
-<a name="l00593"></a>00593         <span class="keywordflow">if</span> (LCR &amp; LCR_DIVISOR_Enable_MASK) <span class="keywordflow">return</span> baud_divider&gt;&gt;8;
+<a name="l00593"></a>00593         <span class="keywordflow">if</span> (LCR &amp; LCR_DIVISOR_Enable_MASK) <span class="keywordflow">return</span> (Bitu)baud_divider&gt;&gt;8u;
 <a name="l00594"></a>00594         <span class="keywordflow">else</span> <span class="keywordflow">return</span> IER&amp;0x0f;
 <a name="l00595"></a>00595 }
 <a name="l00596"></a>00596 
@@ -1539,7 +1539,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

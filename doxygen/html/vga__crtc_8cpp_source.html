@@ -434,20 +434,20 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00338"></a>00338                 <span class="keywordflow">break</span>;
 <a name="l00339"></a>00339         <span class="keywordflow">case</span> 0x17:      <span class="comment">/* Mode Control Register */</span>
 <a name="l00340"></a>00340                 crtc(mode_control)=val;
-<a name="l00341"></a>00341                 vga.tandy.line_mask = (~val) &amp; 3;
+<a name="l00341"></a>00341                 vga.tandy.line_mask = (~val) &amp; 3u;
 <a name="l00342"></a>00342                 <span class="comment">//Byte,word,dword mode</span>
 <a name="l00343"></a>00343                 <span class="keywordflow">if</span> ( crtc(underline_location) &amp; 0x40 )
-<a name="l00344"></a>00344                         vga.config.addr_shift = 2;
+<a name="l00344"></a>00344                         vga.config.addr_shift = 2u;
 <a name="l00345"></a>00345                 <span class="keywordflow">else</span> if ( crtc( mode_control) &amp; 0x40 )
-<a name="l00346"></a>00346                         vga.config.addr_shift = 0;
+<a name="l00346"></a>00346                         vga.config.addr_shift = 0u;
 <a name="l00347"></a>00347                 <span class="keywordflow">else</span>
-<a name="l00348"></a>00348                         vga.config.addr_shift = 1;
+<a name="l00348"></a>00348                         vga.config.addr_shift = 1u;
 <a name="l00349"></a>00349 
 <a name="l00350"></a>00350                 if ( vga.tandy.line_mask ) {
-<a name="l00351"></a>00351                         vga.tandy.line_shift = 13;
-<a name="l00352"></a>00352                         vga.tandy.addr_mask = (1 &lt;&lt; 13) - 1;
+<a name="l00351"></a>00351                         vga.tandy.line_shift = 13u;
+<a name="l00352"></a>00352                         vga.tandy.addr_mask = (1u &lt;&lt; 13u) - 1u;
 <a name="l00353"></a>00353                 } <span class="keywordflow">else</span> {
-<a name="l00354"></a>00354                         vga.tandy.addr_mask = ~0;
+<a name="l00354"></a>00354                         vga.tandy.addr_mask = ~0u;
 <a name="l00355"></a>00355                         vga.tandy.line_shift = 0;
 <a name="l00356"></a>00356                 }
 <a name="l00357"></a>00357                 VGA_CheckScanLength();
@@ -566,7 +566,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

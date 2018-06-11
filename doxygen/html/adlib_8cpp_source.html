@@ -144,7 +144,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00048"></a>00048                         <span class="keywordflow">while</span>( samples &gt; 0 ) {
 <a name="l00049"></a>00049                                 Bitu todo = samples &gt; 1024 ? 1024 : samples;
 <a name="l00050"></a>00050                                 samples -= todo;
-<a name="l00051"></a>00051                                 adlib_getsample(buf, todo);
+<a name="l00051"></a>00051                                 adlib_getsample(buf, (Bits)todo);
 <a name="l00052"></a>00052                                 chan-&gt;AddSamples_m16( todo, buf );
 <a name="l00053"></a>00053                         }
 <a name="l00054"></a>00054                 }
@@ -175,7 +175,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00079"></a>00079                         <span class="keywordflow">while</span>( samples &gt; 0 ) {
 <a name="l00080"></a>00080                                 Bitu todo = samples &gt; 1024 ? 1024 : samples;
 <a name="l00081"></a>00081                                 samples -= todo;
-<a name="l00082"></a>00082                                 adlib_getsample(buf, todo);
+<a name="l00082"></a>00082                                 adlib_getsample(buf, (Bits)todo);
 <a name="l00083"></a>00083                                 chan-&gt;AddSamples_s16( todo, buf );
 <a name="l00084"></a>00084                         }
 <a name="l00085"></a>00085                 }
@@ -602,7 +602,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00506"></a>00506                 val &amp;= 0x0f;
 <a name="l00507"></a>00507                 val |= index ? 0xA0 : 0x50;
 <a name="l00508"></a>00508         }
-<a name="l00509"></a>00509         Bit32u fullReg = reg + (index ? 0x100 : 0);
+<a name="l00509"></a>00509         Bit32u fullReg = reg + (index ? 0x100u : 0u);
 <a name="l00510"></a>00510         handler-&gt;WriteReg( fullReg, val );
 <a name="l00511"></a>00511         CacheWrite( fullReg, val );
 <a name="l00512"></a>00512 }
@@ -741,8 +741,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00645"></a>00645 <span class="comment">        Save the current state of the operators as instruments in an reality adlib tracker file</span>
 <a name="l00646"></a>00646 <span class="comment">*/</span>
 <a name="l00647"></a>00647 <span class="keywordtype">void</span> SaveRad() {
-<a name="l00648"></a>00648         <span class="keywordtype">char</span> b[16 * 1024];
-<a name="l00649"></a>00649         <span class="keywordtype">int</span> w = 0;
+<a name="l00648"></a>00648         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> b[16 * 1024];
+<a name="l00649"></a>00649         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> w = 0;
 <a name="l00650"></a>00650 
 <a name="l00651"></a>00651         FILE* handle = OpenCaptureFile(<span class="stringliteral">&quot;RAD Capture&quot;</span>,<span class="stringliteral">&quot;.rad&quot;</span>);
 <a name="l00652"></a>00652         <span class="keywordflow">if</span> ( !handle )
@@ -752,7 +752,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00656"></a>00656         b[w++] = 0x10;          <span class="comment">//version</span>
 <a name="l00657"></a>00657         b[w++] = 0x06;          <span class="comment">//default speed and no description</span>
 <a name="l00658"></a>00658         <span class="comment">//Write 18 instuments for all operators in the cache</span>
-<a name="l00659"></a>00659         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 18; i++ ) {
+<a name="l00659"></a>00659         <span class="keywordflow">for</span> ( <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i = 0; i &lt; 18; i++ ) {
 <a name="l00660"></a>00660                 Bit8u* <span class="keyword">set</span> = module-&gt;cache + ( i / 9 ) * 256;
 <a name="l00661"></a>00661                 Bitu offset = ((i % 9) / 3) * 8 + (i % 3);
 <a name="l00662"></a>00662                 Bit8u* base = <span class="keyword">set</span> + offset;
@@ -772,7 +772,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00676"></a>00676         b[w++] = 0;             <span class="comment">//instrument 0, no more instruments following</span>
 <a name="l00677"></a>00677         b[w++] = 1;             <span class="comment">//1 pattern following</span>
 <a name="l00678"></a>00678         <span class="comment">//Zero out the remaing part of the file a bit to make rad happy</span>
-<a name="l00679"></a>00679         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 64; i++ ) {
+<a name="l00679"></a>00679         <span class="keywordflow">for</span> ( <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i = 0; i &lt; 64; i++ ) {
 <a name="l00680"></a>00680                 b[w++] = 0;
 <a name="l00681"></a>00681         }
 <a name="l00682"></a>00682         fwrite( b, 1, w, handle );
@@ -812,8 +812,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00716"></a>00716         capture = 0;
 <a name="l00717"></a>00717 
 <a name="l00718"></a>00718         <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(configuration);
-<a name="l00719"></a>00719         Bitu base = section-&gt;Get_hex(<span class="stringliteral">&quot;sbbase&quot;</span>);
-<a name="l00720"></a>00720         Bitu rate = section-&gt;Get_int(<span class="stringliteral">&quot;oplrate&quot;</span>);
+<a name="l00719"></a>00719         Bitu base = (Bitu)section-&gt;Get_hex(<span class="stringliteral">&quot;sbbase&quot;</span>);
+<a name="l00720"></a>00720         Bitu rate = (Bitu)section-&gt;Get_int(<span class="stringliteral">&quot;oplrate&quot;</span>);
 <a name="l00721"></a>00721         <span class="comment">//Make sure we can&#39;t select lower than 8000 to prevent fixed point issues</span>
 <a name="l00722"></a>00722         <span class="keywordflow">if</span> ( rate &lt; 8000 )
 <a name="l00723"></a>00723                 rate = 8000;
@@ -900,7 +900,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:32 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

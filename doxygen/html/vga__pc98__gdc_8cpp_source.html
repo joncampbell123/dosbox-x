@@ -174,7 +174,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00078"></a>00078 }
 <a name="l00079"></a>00079 
 <a name="l00080"></a>00080 <span class="keywordtype">size_t</span> PC98_GDC_state::fifo_can_read(<span class="keywordtype">void</span>) {
-<a name="l00081"></a>00081     <span class="keywordflow">return</span> fifo_write - fifo_read;
+<a name="l00081"></a>00081     <span class="keywordflow">return</span> (<span class="keywordtype">size_t</span>)((<span class="keywordtype">unsigned</span> int)fifo_write - (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)fifo_read);
 <a name="l00082"></a>00082 }
 <a name="l00083"></a>00083 
 <a name="l00084"></a>00084 <span class="keywordtype">void</span> PC98_GDC_state::take_reset_sync_parameters(<span class="keywordtype">void</span>) {
@@ -270,16 +270,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00174"></a>00174 <span class="comment">     *   0 = [3:2] = 0</span>
 <a name="l00175"></a>00175 <span class="comment">     *   EAD(H) = [1:0] = address[17:16] */</span>
 <a name="l00176"></a>00176     <span class="keywordflow">if</span> (bi == 1) {
-<a name="l00177"></a>00177                 vga.config.cursor_start &amp;= ~(0xFF &lt;&lt; 0);
-<a name="l00178"></a>00178                 vga.config.cursor_start |=  cmd_parm_tmp[0] &lt;&lt; 0;
+<a name="l00177"></a>00177                 vga.config.cursor_start &amp;= ~(0xFFu &lt;&lt; 0u);
+<a name="l00178"></a>00178                 vga.config.cursor_start |=  cmd_parm_tmp[0] &lt;&lt; 0u;
 <a name="l00179"></a>00179     }
 <a name="l00180"></a>00180     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (bi == 2) {
-<a name="l00181"></a>00181                 vga.config.cursor_start &amp;= ~(0xFF &lt;&lt; 8);
-<a name="l00182"></a>00182                 vga.config.cursor_start |=  cmd_parm_tmp[1] &lt;&lt; 8;
+<a name="l00181"></a>00181                 vga.config.cursor_start &amp;= ~(0xFFu &lt;&lt; 8u);
+<a name="l00182"></a>00182                 vga.config.cursor_start |=  (<span class="keywordtype">unsigned</span> int)cmd_parm_tmp[1] &lt;&lt; 8u;
 <a name="l00183"></a>00183     }
 <a name="l00184"></a>00184     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (bi == 3) {
-<a name="l00185"></a>00185                 vga.config.cursor_start &amp;= ~(0x03 &lt;&lt; 16);
-<a name="l00186"></a>00186                 vga.config.cursor_start |=  (cmd_parm_tmp[2] &amp; 3) &lt;&lt; 16;
+<a name="l00185"></a>00185                 vga.config.cursor_start &amp;= ~(0x03u &lt;&lt; 16u);
+<a name="l00186"></a>00186                 vga.config.cursor_start |=  (cmd_parm_tmp[2] &amp; 3u) &lt;&lt; 16u;
 <a name="l00187"></a>00187 
 <a name="l00188"></a>00188         <span class="comment">// TODO: &quot;dot address within the word&quot;</span>
 <a name="l00189"></a>00189     }
@@ -294,7 +294,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00198"></a>00198         cursor_enable = !!(cmd_parm_tmp[0] &amp; 0x80);
 <a name="l00199"></a>00199 
 <a name="l00200"></a>00200                 vga.crtc.maximum_scan_line = cmd_parm_tmp[0] &amp; 0x1F;
-<a name="l00201"></a>00201                 vga.draw.address_line_total = vga.crtc.maximum_scan_line + 1;
+<a name="l00201"></a>00201                 vga.draw.address_line_total = vga.crtc.maximum_scan_line + 1u;
 <a name="l00202"></a>00202         row_height = vga.draw.address_line_total;
 <a name="l00203"></a>00203         <span class="keywordflow">if</span> (!master_sync) doublescan = (row_height &gt; 1);
 <a name="l00204"></a>00204     }
@@ -531,7 +531,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00435"></a>00435 
 <a name="l00436"></a>00436 <span class="keywordtype">void</span> PC98_GDC_state::flush_fifo_old(<span class="keywordtype">void</span>) {
 <a name="l00437"></a>00437     <span class="keywordflow">if</span> (fifo_read != 0) {
-<a name="l00438"></a>00438         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> sz = (fifo_read &lt;= fifo_write) ? (fifo_write - fifo_read) : 0;
+<a name="l00438"></a>00438         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> sz = (fifo_read &lt;= fifo_write) ? ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)fifo_write - (<span class="keywordtype">unsigned</span> int)fifo_read) : 0u;
 <a name="l00439"></a>00439 
 <a name="l00440"></a>00440         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; sz;i++)
 <a name="l00441"></a>00441             fifo[i] = fifo[i+fifo_read];
@@ -857,14 +857,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00761"></a>00761             <span class="keywordflow">break</span>;
 <a name="l00762"></a>00762     };
 <a name="l00763"></a>00763 
-<a name="l00764"></a>00764     <span class="keywordflow">return</span> ~0;
+<a name="l00764"></a>00764     <span class="keywordflow">return</span> ~0ul;
 <a name="l00765"></a>00765 }
 <a name="l00766"></a>00766 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

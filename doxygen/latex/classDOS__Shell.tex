@@ -1,6 +1,15 @@
 \hypertarget{classDOS__Shell}{\section{D\-O\-S\-\_\-\-Shell Class Reference}
 \label{classDOS__Shell}\index{D\-O\-S\-\_\-\-Shell@{D\-O\-S\-\_\-\-Shell}}
 }
+
+
+\hyperlink{classDOS}{D\-O\-S} shell program object.  
+
+
+
+
+{\ttfamily \#include $<$shell.\-h$>$}
+
 Inheritance diagram for D\-O\-S\-\_\-\-Shell\-:\begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -10,144 +19,144 @@ Inheritance diagram for D\-O\-S\-\_\-\-Shell\-:\begin{figure}[H]
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classDOS__Shell_a37ec1896f94ab70c29368bd09fb71997}{void {\bfseries Run} (void)}\label{classDOS__Shell_a37ec1896f94ab70c29368bd09fb71997}
+\hypertarget{classDOS__Shell_a37ec1896f94ab70c29368bd09fb71997}{void \hyperlink{classDOS__Shell_a37ec1896f94ab70c29368bd09fb71997}{Run} (void)}\label{classDOS__Shell_a37ec1896f94ab70c29368bd09fb71997}
 
-\item 
-\hypertarget{classDOS__Shell_abba5a3bde7767e73ebbd1452de6ba3c0}{void {\bfseries Run\-Internal} (void)}\label{classDOS__Shell_abba5a3bde7767e73ebbd1452de6ba3c0}
+\begin{DoxyCompactList}\small\item\em \hyperlink{classProgram}{Program} entry point, when the command is run. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_abba5a3bde7767e73ebbd1452de6ba3c0}{void \hyperlink{classDOS__Shell_abba5a3bde7767e73ebbd1452de6ba3c0}{Run\-Internal} (void)}\label{classDOS__Shell_abba5a3bde7767e73ebbd1452de6ba3c0}
 
-\item 
-\hypertarget{classDOS__Shell_ad4280cf9e2c07d534b7e32f9c58749d3}{void {\bfseries Parse\-Line} (char $\ast$line)}\label{classDOS__Shell_ad4280cf9e2c07d534b7e32f9c58749d3}
+\begin{DoxyCompactList}\small\item\em Alternate execution if /\-C switch is given. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_ad4280cf9e2c07d534b7e32f9c58749d3}{void \hyperlink{classDOS__Shell_ad4280cf9e2c07d534b7e32f9c58749d3}{Parse\-Line} (char $\ast$line)}\label{classDOS__Shell_ad4280cf9e2c07d534b7e32f9c58749d3}
 
-\item 
-\hypertarget{classDOS__Shell_a0b5e187d0f5a8a0230ea9e741079018d}{Bitu {\bfseries Get\-Redirection} (char $\ast$s, char $\ast$$\ast$ifn, char $\ast$$\ast$ofn, bool $\ast$append)}\label{classDOS__Shell_a0b5e187d0f5a8a0230ea9e741079018d}
+\begin{DoxyCompactList}\small\item\em Line parsing function. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a0b5e187d0f5a8a0230ea9e741079018d}{Bitu \hyperlink{classDOS__Shell_a0b5e187d0f5a8a0230ea9e741079018d}{Get\-Redirection} (char $\ast$s, char $\ast$$\ast$ifn, char $\ast$$\ast$ofn, bool $\ast$append)}\label{classDOS__Shell_a0b5e187d0f5a8a0230ea9e741079018d}
 
-\item 
-\hypertarget{classDOS__Shell_a3e2a3258d53dc6309adc9f1d3c8cde49}{void {\bfseries Input\-Command} (char $\ast$line)}\label{classDOS__Shell_a3e2a3258d53dc6309adc9f1d3c8cde49}
+\begin{DoxyCompactList}\small\item\em Redirection handling. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a3e2a3258d53dc6309adc9f1d3c8cde49}{void \hyperlink{classDOS__Shell_a3e2a3258d53dc6309adc9f1d3c8cde49}{Input\-Command} (char $\ast$line)}\label{classDOS__Shell_a3e2a3258d53dc6309adc9f1d3c8cde49}
 
-\item 
-\hypertarget{classDOS__Shell_af64acad6a303bf9e0343dc5affb0642b}{void {\bfseries Show\-Prompt} ()}\label{classDOS__Shell_af64acad6a303bf9e0343dc5affb0642b}
+\begin{DoxyCompactList}\small\item\em Command line input and keyboard handling. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_af64acad6a303bf9e0343dc5affb0642b}{void \hyperlink{classDOS__Shell_af64acad6a303bf9e0343dc5affb0642b}{Show\-Prompt} ()}\label{classDOS__Shell_af64acad6a303bf9e0343dc5affb0642b}
 
-\item 
-\hypertarget{classDOS__Shell_a35c1864ac6ee344e53e76dc2811653bc}{void {\bfseries Do\-Command} (char $\ast$cmd)}\label{classDOS__Shell_a35c1864ac6ee344e53e76dc2811653bc}
+\begin{DoxyCompactList}\small\item\em Render and output command prompt. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a35c1864ac6ee344e53e76dc2811653bc}{void \hyperlink{classDOS__Shell_a35c1864ac6ee344e53e76dc2811653bc}{Do\-Command} (char $\ast$\hyperlink{classProgram_af637f18e9637b148fbecbd3f0bc748fc}{cmd})}\label{classDOS__Shell_a35c1864ac6ee344e53e76dc2811653bc}
 
-\item 
-\hypertarget{classDOS__Shell_afd2875b08f791d9100ef111800855f09}{bool {\bfseries Execute} (char $\ast$name, char $\ast$args)}\label{classDOS__Shell_afd2875b08f791d9100ef111800855f09}
+\begin{DoxyCompactList}\small\item\em Process and execute command (internal or external) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_afd2875b08f791d9100ef111800855f09}{bool \hyperlink{classDOS__Shell_afd2875b08f791d9100ef111800855f09}{Execute} (char $\ast$name, char $\ast$args)}\label{classDOS__Shell_afd2875b08f791d9100ef111800855f09}
 
-\item 
-\hypertarget{classDOS__Shell_a76295a24e50b9f37bff152be05c8ea93}{bool {\bfseries Check\-Config} (char $\ast$cmd\-\_\-in, char $\ast$line)}\label{classDOS__Shell_a76295a24e50b9f37bff152be05c8ea93}
+\begin{DoxyCompactList}\small\item\em Execute a command. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a76295a24e50b9f37bff152be05c8ea93}{bool \hyperlink{classDOS__Shell_a76295a24e50b9f37bff152be05c8ea93}{Check\-Config} (char $\ast$cmd\-\_\-in, char $\ast$line)}\label{classDOS__Shell_a76295a24e50b9f37bff152be05c8ea93}
 
-\item 
-\hypertarget{classDOS__Shell_af11150e3f79f620378398abad5117222}{char $\ast$ {\bfseries Which} (char $\ast$name)}\label{classDOS__Shell_af11150e3f79f620378398abad5117222}
+\begin{DoxyCompactList}\small\item\em Checks if it matches a hardware-\/property. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_af11150e3f79f620378398abad5117222}{char $\ast$ \hyperlink{classDOS__Shell_af11150e3f79f620378398abad5117222}{Which} (char $\ast$name)}\label{classDOS__Shell_af11150e3f79f620378398abad5117222}
 
-\item 
-\hypertarget{classDOS__Shell_afbae9c2b8f7002fe029296b381bb7903}{void {\bfseries C\-M\-D\-\_\-\-I\-N\-T2\-F\-D\-B\-G} (char $\ast$args)}\label{classDOS__Shell_afbae9c2b8f7002fe029296b381bb7903}
+\begin{DoxyCompactList}\small\item\em Given a command, look up the path using default paths and the P\-A\-T\-H variable. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_afbae9c2b8f7002fe029296b381bb7903}{void \hyperlink{classDOS__Shell_afbae9c2b8f7002fe029296b381bb7903}{C\-M\-D\-\_\-\-I\-N\-T2\-F\-D\-B\-G} (char $\ast$args)}\label{classDOS__Shell_afbae9c2b8f7002fe029296b381bb7903}
 
-\item 
-\hypertarget{classDOS__Shell_a5bd467ce4762cd07c612b39bf788968d}{void {\bfseries C\-M\-D\-\_\-\-H\-E\-L\-P} (char $\ast$args)}\label{classDOS__Shell_a5bd467ce4762cd07c612b39bf788968d}
+\begin{DoxyCompactList}\small\item\em I\-N\-T 2\-Fh debugging tool. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a5bd467ce4762cd07c612b39bf788968d}{void \hyperlink{classDOS__Shell_a5bd467ce4762cd07c612b39bf788968d}{C\-M\-D\-\_\-\-H\-E\-L\-P} (char $\ast$args)}\label{classDOS__Shell_a5bd467ce4762cd07c612b39bf788968d}
 
-\item 
-\hypertarget{classDOS__Shell_a6564e9090602f43c480e818692ef233a}{void {\bfseries C\-M\-D\-\_\-\-C\-L\-S} (char $\ast$args)}\label{classDOS__Shell_a6564e9090602f43c480e818692ef233a}
+\begin{DoxyCompactList}\small\item\em Online H\-E\-L\-P for the shell. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a6564e9090602f43c480e818692ef233a}{void \hyperlink{classDOS__Shell_a6564e9090602f43c480e818692ef233a}{C\-M\-D\-\_\-\-C\-L\-S} (char $\ast$args)}\label{classDOS__Shell_a6564e9090602f43c480e818692ef233a}
 
-\item 
-\hypertarget{classDOS__Shell_a8469d25012d305a92072cb7ea4c83bf5}{void {\bfseries C\-M\-D\-\_\-\-C\-O\-P\-Y} (char $\ast$args)}\label{classDOS__Shell_a8469d25012d305a92072cb7ea4c83bf5}
+\begin{DoxyCompactList}\small\item\em Clear screen (C\-L\-S) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a8469d25012d305a92072cb7ea4c83bf5}{void \hyperlink{classDOS__Shell_a8469d25012d305a92072cb7ea4c83bf5}{C\-M\-D\-\_\-\-C\-O\-P\-Y} (char $\ast$args)}\label{classDOS__Shell_a8469d25012d305a92072cb7ea4c83bf5}
 
-\item 
-\hypertarget{classDOS__Shell_a71bce062b4315aef9f424b6bf10eac43}{void {\bfseries C\-M\-D\-\_\-\-D\-A\-T\-E} (char $\ast$args)}\label{classDOS__Shell_a71bce062b4315aef9f424b6bf10eac43}
+\begin{DoxyCompactList}\small\item\em File copy command. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a71bce062b4315aef9f424b6bf10eac43}{void \hyperlink{classDOS__Shell_a71bce062b4315aef9f424b6bf10eac43}{C\-M\-D\-\_\-\-D\-A\-T\-E} (char $\ast$args)}\label{classDOS__Shell_a71bce062b4315aef9f424b6bf10eac43}
 
-\item 
-\hypertarget{classDOS__Shell_ae09196969a104be192e657329a0c1617}{void {\bfseries C\-M\-D\-\_\-\-T\-I\-M\-E} (char $\ast$args)}\label{classDOS__Shell_ae09196969a104be192e657329a0c1617}
+\begin{DoxyCompactList}\small\item\em Command to set date (D\-A\-T\-E) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_ae09196969a104be192e657329a0c1617}{void \hyperlink{classDOS__Shell_ae09196969a104be192e657329a0c1617}{C\-M\-D\-\_\-\-T\-I\-M\-E} (char $\ast$args)}\label{classDOS__Shell_ae09196969a104be192e657329a0c1617}
 
-\item 
-\hypertarget{classDOS__Shell_a9644152e3eca0220d95e2c5ae554c987}{void {\bfseries C\-M\-D\-\_\-\-D\-I\-R} (char $\ast$args)}\label{classDOS__Shell_a9644152e3eca0220d95e2c5ae554c987}
+\begin{DoxyCompactList}\small\item\em Command to set time (T\-I\-M\-E) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a9644152e3eca0220d95e2c5ae554c987}{void \hyperlink{classDOS__Shell_a9644152e3eca0220d95e2c5ae554c987}{C\-M\-D\-\_\-\-D\-I\-R} (char $\ast$args)}\label{classDOS__Shell_a9644152e3eca0220d95e2c5ae554c987}
 
-\item 
-\hypertarget{classDOS__Shell_a70104121e98a7ccf0639d48d6a4bc3d6}{void {\bfseries C\-M\-D\-\_\-\-D\-E\-L\-E\-T\-E} (char $\ast$args)}\label{classDOS__Shell_a70104121e98a7ccf0639d48d6a4bc3d6}
+\begin{DoxyCompactList}\small\item\em Directory listing (D\-I\-R) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a70104121e98a7ccf0639d48d6a4bc3d6}{void \hyperlink{classDOS__Shell_a70104121e98a7ccf0639d48d6a4bc3d6}{C\-M\-D\-\_\-\-D\-E\-L\-E\-T\-E} (char $\ast$args)}\label{classDOS__Shell_a70104121e98a7ccf0639d48d6a4bc3d6}
 
-\item 
-\hypertarget{classDOS__Shell_a3ea9cb9a184c0350cabbee915386ad64}{void {\bfseries C\-M\-D\-\_\-\-E\-C\-H\-O} (char $\ast$args)}\label{classDOS__Shell_a3ea9cb9a184c0350cabbee915386ad64}
+\begin{DoxyCompactList}\small\item\em Deletion command (D\-E\-L) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a3ea9cb9a184c0350cabbee915386ad64}{void \hyperlink{classDOS__Shell_a3ea9cb9a184c0350cabbee915386ad64}{C\-M\-D\-\_\-\-E\-C\-H\-O} (char $\ast$args)}\label{classDOS__Shell_a3ea9cb9a184c0350cabbee915386ad64}
 
-\item 
-\hypertarget{classDOS__Shell_ae552bec3418d3bee565f7f8a2bf9c8cf}{void {\bfseries C\-M\-D\-\_\-\-E\-X\-I\-T} (char $\ast$args)}\label{classDOS__Shell_ae552bec3418d3bee565f7f8a2bf9c8cf}
+\begin{DoxyCompactList}\small\item\em Echo command (E\-C\-H\-O) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_ae552bec3418d3bee565f7f8a2bf9c8cf}{void \hyperlink{classDOS__Shell_ae552bec3418d3bee565f7f8a2bf9c8cf}{C\-M\-D\-\_\-\-E\-X\-I\-T} (char $\ast$args)}\label{classDOS__Shell_ae552bec3418d3bee565f7f8a2bf9c8cf}
 
-\item 
-\hypertarget{classDOS__Shell_a585866333c2d3953164701b55c6e981b}{void {\bfseries C\-M\-D\-\_\-\-M\-K\-D\-I\-R} (char $\ast$args)}\label{classDOS__Shell_a585866333c2d3953164701b55c6e981b}
+\begin{DoxyCompactList}\small\item\em Exit command (E\-X\-I\-T) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a585866333c2d3953164701b55c6e981b}{void \hyperlink{classDOS__Shell_a585866333c2d3953164701b55c6e981b}{C\-M\-D\-\_\-\-M\-K\-D\-I\-R} (char $\ast$args)}\label{classDOS__Shell_a585866333c2d3953164701b55c6e981b}
 
-\item 
-\hypertarget{classDOS__Shell_a6edb8644f0d513d8704f3b6570d0530c}{void {\bfseries C\-M\-D\-\_\-\-C\-H\-D\-I\-R} (char $\ast$args)}\label{classDOS__Shell_a6edb8644f0d513d8704f3b6570d0530c}
+\begin{DoxyCompactList}\small\item\em Directory creation (M\-K\-D\-I\-R) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a6edb8644f0d513d8704f3b6570d0530c}{void \hyperlink{classDOS__Shell_a6edb8644f0d513d8704f3b6570d0530c}{C\-M\-D\-\_\-\-C\-H\-D\-I\-R} (char $\ast$args)}\label{classDOS__Shell_a6edb8644f0d513d8704f3b6570d0530c}
 
-\item 
-\hypertarget{classDOS__Shell_a99cdab0015b968a2363091b073db69ea}{void {\bfseries C\-M\-D\-\_\-\-R\-M\-D\-I\-R} (char $\ast$args)}\label{classDOS__Shell_a99cdab0015b968a2363091b073db69ea}
+\begin{DoxyCompactList}\small\item\em Change current directory (C\-D) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a99cdab0015b968a2363091b073db69ea}{void \hyperlink{classDOS__Shell_a99cdab0015b968a2363091b073db69ea}{C\-M\-D\-\_\-\-R\-M\-D\-I\-R} (char $\ast$args)}\label{classDOS__Shell_a99cdab0015b968a2363091b073db69ea}
 
-\item 
-\hypertarget{classDOS__Shell_a5d80bed57ef834ce2b5069ca28491d1d}{void {\bfseries C\-M\-D\-\_\-\-S\-E\-T} (char $\ast$args)}\label{classDOS__Shell_a5d80bed57ef834ce2b5069ca28491d1d}
+\begin{DoxyCompactList}\small\item\em Directory deletion (R\-M\-D\-I\-R) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a5d80bed57ef834ce2b5069ca28491d1d}{void \hyperlink{classDOS__Shell_a5d80bed57ef834ce2b5069ca28491d1d}{C\-M\-D\-\_\-\-S\-E\-T} (char $\ast$args)}\label{classDOS__Shell_a5d80bed57ef834ce2b5069ca28491d1d}
 
-\item 
-\hypertarget{classDOS__Shell_a9c7b48b6688fc5aeb0badb2833c5c476}{void {\bfseries C\-M\-D\-\_\-\-I\-F} (char $\ast$args)}\label{classDOS__Shell_a9c7b48b6688fc5aeb0badb2833c5c476}
+\begin{DoxyCompactList}\small\item\em Environment variable setting/management (S\-E\-T) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a9c7b48b6688fc5aeb0badb2833c5c476}{void \hyperlink{classDOS__Shell_a9c7b48b6688fc5aeb0badb2833c5c476}{C\-M\-D\-\_\-\-I\-F} (char $\ast$args)}\label{classDOS__Shell_a9c7b48b6688fc5aeb0badb2833c5c476}
 
-\item 
-\hypertarget{classDOS__Shell_a2713ccf9b804d37188bd8690cfd87636}{void {\bfseries C\-M\-D\-\_\-\-G\-O\-T\-O} (char $\ast$args)}\label{classDOS__Shell_a2713ccf9b804d37188bd8690cfd87636}
+\begin{DoxyCompactList}\small\item\em Conditional execution (I\-F) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a2713ccf9b804d37188bd8690cfd87636}{void \hyperlink{classDOS__Shell_a2713ccf9b804d37188bd8690cfd87636}{C\-M\-D\-\_\-\-G\-O\-T\-O} (char $\ast$args)}\label{classDOS__Shell_a2713ccf9b804d37188bd8690cfd87636}
 
-\item 
-\hypertarget{classDOS__Shell_affab86b93caa9facacbcc89dbc4bb4d9}{void {\bfseries C\-M\-D\-\_\-\-T\-Y\-P\-E} (char $\ast$args)}\label{classDOS__Shell_affab86b93caa9facacbcc89dbc4bb4d9}
+\begin{DoxyCompactList}\small\item\em Batch file branching (G\-O\-T\-O) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_affab86b93caa9facacbcc89dbc4bb4d9}{void \hyperlink{classDOS__Shell_affab86b93caa9facacbcc89dbc4bb4d9}{C\-M\-D\-\_\-\-T\-Y\-P\-E} (char $\ast$args)}\label{classDOS__Shell_affab86b93caa9facacbcc89dbc4bb4d9}
 
-\item 
-\hypertarget{classDOS__Shell_a2ea0be510dfddf5a21dab337c8050deb}{void {\bfseries C\-M\-D\-\_\-\-R\-E\-M} (char $\ast$args)}\label{classDOS__Shell_a2ea0be510dfddf5a21dab337c8050deb}
+\begin{DoxyCompactList}\small\item\em Print file to console (T\-Y\-P\-E) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a2ea0be510dfddf5a21dab337c8050deb}{void \hyperlink{classDOS__Shell_a2ea0be510dfddf5a21dab337c8050deb}{C\-M\-D\-\_\-\-R\-E\-M} (char $\ast$args)}\label{classDOS__Shell_a2ea0be510dfddf5a21dab337c8050deb}
 
-\item 
-\hypertarget{classDOS__Shell_aca327ef18fc0c45f5f526221c4691906}{void {\bfseries C\-M\-D\-\_\-\-R\-E\-N\-A\-M\-E} (char $\ast$args)}\label{classDOS__Shell_aca327ef18fc0c45f5f526221c4691906}
+\begin{DoxyCompactList}\small\item\em Human readable comment (R\-E\-M) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_aca327ef18fc0c45f5f526221c4691906}{void \hyperlink{classDOS__Shell_aca327ef18fc0c45f5f526221c4691906}{C\-M\-D\-\_\-\-R\-E\-N\-A\-M\-E} (char $\ast$args)}\label{classDOS__Shell_aca327ef18fc0c45f5f526221c4691906}
 
-\item 
-\hypertarget{classDOS__Shell_ac8ddeb041aa1c57c5e97ac97e926357e}{void {\bfseries C\-M\-D\-\_\-\-C\-A\-L\-L} (char $\ast$args)}\label{classDOS__Shell_ac8ddeb041aa1c57c5e97ac97e926357e}
+\begin{DoxyCompactList}\small\item\em File rename (R\-E\-N) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_ac8ddeb041aa1c57c5e97ac97e926357e}{void \hyperlink{classDOS__Shell_ac8ddeb041aa1c57c5e97ac97e926357e}{C\-M\-D\-\_\-\-C\-A\-L\-L} (char $\ast$args)}\label{classDOS__Shell_ac8ddeb041aa1c57c5e97ac97e926357e}
 
-\item 
-\hypertarget{classDOS__Shell_aac7d57d83c368abf38cd7fb16ae36807}{void {\bfseries Syntax\-Error} (void)}\label{classDOS__Shell_aac7d57d83c368abf38cd7fb16ae36807}
+\begin{DoxyCompactList}\small\item\em Execute batch file as sub-\/program (C\-A\-L\-L) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_aac7d57d83c368abf38cd7fb16ae36807}{void \hyperlink{classDOS__Shell_aac7d57d83c368abf38cd7fb16ae36807}{Syntax\-Error} (void)}\label{classDOS__Shell_aac7d57d83c368abf38cd7fb16ae36807}
 
-\item 
-\hypertarget{classDOS__Shell_a2734250cf37333fa861f38903742fab9}{void {\bfseries C\-M\-D\-\_\-\-P\-A\-U\-S\-E} (char $\ast$args)}\label{classDOS__Shell_a2734250cf37333fa861f38903742fab9}
+\begin{DoxyCompactList}\small\item\em Print generic Syntax Error message to console. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a2734250cf37333fa861f38903742fab9}{void \hyperlink{classDOS__Shell_a2734250cf37333fa861f38903742fab9}{C\-M\-D\-\_\-\-P\-A\-U\-S\-E} (char $\ast$args)}\label{classDOS__Shell_a2734250cf37333fa861f38903742fab9}
 
-\item 
-\hypertarget{classDOS__Shell_a065ef1b041d6b1fd6e9c9df105d2d287}{void {\bfseries C\-M\-D\-\_\-\-S\-U\-B\-S\-T} (char $\ast$args)}\label{classDOS__Shell_a065ef1b041d6b1fd6e9c9df105d2d287}
+\begin{DoxyCompactList}\small\item\em Pause and wait for user to hit Enter (P\-A\-U\-S\-E) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a065ef1b041d6b1fd6e9c9df105d2d287}{void \hyperlink{classDOS__Shell_a065ef1b041d6b1fd6e9c9df105d2d287}{C\-M\-D\-\_\-\-S\-U\-B\-S\-T} (char $\ast$args)}\label{classDOS__Shell_a065ef1b041d6b1fd6e9c9df105d2d287}
 
-\item 
-\hypertarget{classDOS__Shell_a579342df494d3257531fcabcc424b614}{void {\bfseries C\-M\-D\-\_\-\-L\-O\-A\-D\-H\-I\-G\-H} (char $\ast$args)}\label{classDOS__Shell_a579342df494d3257531fcabcc424b614}
+\begin{DoxyCompactList}\small\item\em Map drive letter to folder (S\-U\-B\-S\-T) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a579342df494d3257531fcabcc424b614}{void \hyperlink{classDOS__Shell_a579342df494d3257531fcabcc424b614}{C\-M\-D\-\_\-\-L\-O\-A\-D\-H\-I\-G\-H} (char $\ast$args)}\label{classDOS__Shell_a579342df494d3257531fcabcc424b614}
 
-\item 
-\hypertarget{classDOS__Shell_a497ed2a6a4077d25f96bdd19a414287d}{void {\bfseries C\-M\-D\-\_\-\-C\-H\-O\-I\-C\-E} (char $\ast$args)}\label{classDOS__Shell_a497ed2a6a4077d25f96bdd19a414287d}
+\begin{DoxyCompactList}\small\item\em Load a program into high memory if possible. \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a497ed2a6a4077d25f96bdd19a414287d}{void \hyperlink{classDOS__Shell_a497ed2a6a4077d25f96bdd19a414287d}{C\-M\-D\-\_\-\-C\-H\-O\-I\-C\-E} (char $\ast$args)}\label{classDOS__Shell_a497ed2a6a4077d25f96bdd19a414287d}
 
-\item 
-\hypertarget{classDOS__Shell_a98658a3e13ac8476c4c2bdd8b481de13}{void {\bfseries C\-M\-D\-\_\-\-A\-T\-T\-R\-I\-B} (char $\ast$args)}\label{classDOS__Shell_a98658a3e13ac8476c4c2bdd8b481de13}
+\begin{DoxyCompactList}\small\item\em Prompt for a choice (C\-H\-O\-I\-C\-E) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a98658a3e13ac8476c4c2bdd8b481de13}{void \hyperlink{classDOS__Shell_a98658a3e13ac8476c4c2bdd8b481de13}{C\-M\-D\-\_\-\-A\-T\-T\-R\-I\-B} (char $\ast$args)}\label{classDOS__Shell_a98658a3e13ac8476c4c2bdd8b481de13}
 
-\item 
-\hypertarget{classDOS__Shell_a53558bb0585808e6f894f33fbb582058}{void {\bfseries C\-M\-D\-\_\-\-P\-A\-T\-H} (char $\ast$args)}\label{classDOS__Shell_a53558bb0585808e6f894f33fbb582058}
+\begin{DoxyCompactList}\small\item\em Set file attributes (A\-T\-T\-R\-I\-B) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a53558bb0585808e6f894f33fbb582058}{void \hyperlink{classDOS__Shell_a53558bb0585808e6f894f33fbb582058}{C\-M\-D\-\_\-\-P\-A\-T\-H} (char $\ast$args)}\label{classDOS__Shell_a53558bb0585808e6f894f33fbb582058}
 
-\item 
-\hypertarget{classDOS__Shell_a44cd9147b18559ae2377e0255c4784e9}{void {\bfseries C\-M\-D\-\_\-\-S\-H\-I\-F\-T} (char $\ast$args)}\label{classDOS__Shell_a44cd9147b18559ae2377e0255c4784e9}
+\begin{DoxyCompactList}\small\item\em Set P\-A\-T\-H variable (P\-A\-T\-H) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a44cd9147b18559ae2377e0255c4784e9}{void \hyperlink{classDOS__Shell_a44cd9147b18559ae2377e0255c4784e9}{C\-M\-D\-\_\-\-S\-H\-I\-F\-T} (char $\ast$args)}\label{classDOS__Shell_a44cd9147b18559ae2377e0255c4784e9}
 
-\item 
-\hypertarget{classDOS__Shell_ac9dfaa8312e2a2df60ba39cb1c4bd46a}{void {\bfseries C\-M\-D\-\_\-\-V\-E\-R} (char $\ast$args)}\label{classDOS__Shell_ac9dfaa8312e2a2df60ba39cb1c4bd46a}
+\begin{DoxyCompactList}\small\item\em Consume one command line argument (S\-H\-I\-F\-T) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_ac9dfaa8312e2a2df60ba39cb1c4bd46a}{void \hyperlink{classDOS__Shell_ac9dfaa8312e2a2df60ba39cb1c4bd46a}{C\-M\-D\-\_\-\-V\-E\-R} (char $\ast$args)}\label{classDOS__Shell_ac9dfaa8312e2a2df60ba39cb1c4bd46a}
 
-\item 
-\hypertarget{classDOS__Shell_a655bd9d7fd3f518861ed96332ef5b10c}{void {\bfseries C\-M\-D\-\_\-\-A\-D\-D\-K\-E\-Y} (char $\ast$args)}\label{classDOS__Shell_a655bd9d7fd3f518861ed96332ef5b10c}
+\begin{DoxyCompactList}\small\item\em Print \hyperlink{classDOS}{D\-O\-S} version (V\-E\-R) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a655bd9d7fd3f518861ed96332ef5b10c}{void \hyperlink{classDOS__Shell_a655bd9d7fd3f518861ed96332ef5b10c}{C\-M\-D\-\_\-\-A\-D\-D\-K\-E\-Y} (char $\ast$args)}\label{classDOS__Shell_a655bd9d7fd3f518861ed96332ef5b10c}
 
-\item 
-\hypertarget{classDOS__Shell_ad4529bb89fb7c10cc6e98cde3b84f876}{void {\bfseries C\-M\-D\-\_\-\-V\-O\-L} (char $\ast$args)}\label{classDOS__Shell_ad4529bb89fb7c10cc6e98cde3b84f876}
+\begin{DoxyCompactList}\small\item\em T\-O\-D\-O? \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_ad4529bb89fb7c10cc6e98cde3b84f876}{void \hyperlink{classDOS__Shell_ad4529bb89fb7c10cc6e98cde3b84f876}{C\-M\-D\-\_\-\-V\-O\-L} (char $\ast$args)}\label{classDOS__Shell_ad4529bb89fb7c10cc6e98cde3b84f876}
 
-\item 
-\hypertarget{classDOS__Shell_a11b29015ed77577516d699150068d3fe}{void {\bfseries C\-M\-D\-\_\-\-P\-R\-O\-M\-P\-T} (char $\ast$args)}\label{classDOS__Shell_a11b29015ed77577516d699150068d3fe}
+\begin{DoxyCompactList}\small\item\em T\-O\-D\-O? \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a11b29015ed77577516d699150068d3fe}{void \hyperlink{classDOS__Shell_a11b29015ed77577516d699150068d3fe}{C\-M\-D\-\_\-\-P\-R\-O\-M\-P\-T} (char $\ast$args)}\label{classDOS__Shell_a11b29015ed77577516d699150068d3fe}
 
-\item 
-\hypertarget{classDOS__Shell_adcca6e4501250456d1a04a9eac322be6}{void {\bfseries C\-M\-D\-\_\-\-L\-A\-B\-E\-L} (char $\ast$args)}\label{classDOS__Shell_adcca6e4501250456d1a04a9eac322be6}
+\begin{DoxyCompactList}\small\item\em Change \hyperlink{classDOS}{D\-O\-S} prompt pattern (P\-R\-O\-M\-P\-T) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_adcca6e4501250456d1a04a9eac322be6}{void \hyperlink{classDOS__Shell_adcca6e4501250456d1a04a9eac322be6}{C\-M\-D\-\_\-\-L\-A\-B\-E\-L} (char $\ast$args)}\label{classDOS__Shell_adcca6e4501250456d1a04a9eac322be6}
 
-\item 
-\hypertarget{classDOS__Shell_a31d3f8107e9fc6bf368b02f5b15c861e}{void {\bfseries C\-M\-D\-\_\-\-M\-O\-R\-E} (char $\ast$args)}\label{classDOS__Shell_a31d3f8107e9fc6bf368b02f5b15c861e}
+\begin{DoxyCompactList}\small\item\em Change volume label (L\-A\-B\-E\-L) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a31d3f8107e9fc6bf368b02f5b15c861e}{void \hyperlink{classDOS__Shell_a31d3f8107e9fc6bf368b02f5b15c861e}{C\-M\-D\-\_\-\-M\-O\-R\-E} (char $\ast$args)}\label{classDOS__Shell_a31d3f8107e9fc6bf368b02f5b15c861e}
 
-\item 
-\hypertarget{classDOS__Shell_ab4e4f875c54408e1c040ee0aa65b5314}{void {\bfseries C\-M\-D\-\_\-\-C\-T\-T\-Y} (char $\ast$args)}\label{classDOS__Shell_ab4e4f875c54408e1c040ee0aa65b5314}
+\begin{DoxyCompactList}\small\item\em Text pager (M\-O\-R\-E) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_ab4e4f875c54408e1c040ee0aa65b5314}{void \hyperlink{classDOS__Shell_ab4e4f875c54408e1c040ee0aa65b5314}{C\-M\-D\-\_\-\-C\-T\-T\-Y} (char $\ast$args)}\label{classDOS__Shell_ab4e4f875c54408e1c040ee0aa65b5314}
 
-\item 
-\hypertarget{classDOS__Shell_a0d8acfd37eae2734a4a2cf623eafa536}{void {\bfseries C\-M\-D\-\_\-\-F\-O\-R} (char $\ast$args)}\label{classDOS__Shell_a0d8acfd37eae2734a4a2cf623eafa536}
+\begin{DoxyCompactList}\small\item\em Change T\-T\-Y (console) device (C\-T\-T\-Y) \end{DoxyCompactList}\item 
+\hypertarget{classDOS__Shell_a0d8acfd37eae2734a4a2cf623eafa536}{void \hyperlink{classDOS__Shell_a0d8acfd37eae2734a4a2cf623eafa536}{C\-M\-D\-\_\-\-F\-O\-R} (char $\ast$args)}\label{classDOS__Shell_a0d8acfd37eae2734a4a2cf623eafa536}
 
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Looping execution (F\-O\-R) \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
@@ -157,9 +166,9 @@ Inheritance diagram for D\-O\-S\-\_\-\-Shell\-:\begin{figure}[H]
 \hypertarget{classDOS__Shell_a812e2fbcc49d3523e5939235c1784a8f}{\hyperlink{classBatchFile}{Batch\-File} $\ast$ {\bfseries bf}}\label{classDOS__Shell_a812e2fbcc49d3523e5939235c1784a8f}
 
 \item 
-\hypertarget{classDOS__Shell_ab4ee052352ed1dedccf0854bcacadac2}{bool {\bfseries echo}}\label{classDOS__Shell_ab4ee052352ed1dedccf0854bcacadac2}
+\hypertarget{classDOS__Shell_ab4ee052352ed1dedccf0854bcacadac2}{bool \hyperlink{classDOS__Shell_ab4ee052352ed1dedccf0854bcacadac2}{echo}}\label{classDOS__Shell_ab4ee052352ed1dedccf0854bcacadac2}
 
-\item 
+\begin{DoxyCompactList}\small\item\em Batch file to execute. \end{DoxyCompactList}\item 
 \hypertarget{classDOS__Shell_ad687b7ce53d445c65c56891acd4aa660}{bool {\bfseries exit}}\label{classDOS__Shell_ad687b7ce53d445c65c56891acd4aa660}
 
 \item 
@@ -178,9 +187,11 @@ Inheritance diagram for D\-O\-S\-\_\-\-Shell\-:\begin{figure}[H]
 
 
 \subsection{Detailed Description}
+\hyperlink{classDOS}{D\-O\-S} shell program object. 
 
+This is the \hyperlink{classDOS}{D\-O\-S} shell, including built-\/in commands 
 
-Definition at line 61 of file shell.\-h.
+Definition at line 66 of file shell.\-h.
 
 
 

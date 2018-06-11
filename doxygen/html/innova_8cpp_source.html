@@ -158,7 +158,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00062"></a>00062         Bitu bufindex = 0;
 <a name="l00063"></a>00063 
 <a name="l00064"></a>00064         <span class="keywordflow">while</span>(delta_t &amp;&amp; bufindex != len) {
-<a name="l00065"></a>00065                 bufindex += innova.sid-&gt;clock(delta_t, buffer+bufindex, len-bufindex);
+<a name="l00065"></a>00065                 bufindex += (Bitu)innova.sid-&gt;clock(delta_t, buffer+bufindex, len-bufindex);
 <a name="l00066"></a>00066         }
 <a name="l00067"></a>00067         innova.chan-&gt;AddSamples_m16(len, buffer);
 <a name="l00068"></a>00068 
@@ -177,8 +177,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00081"></a>00081         <a class="code" href="classINNOVA.html">INNOVA</a>(<a class="code" href="classSection.html">Section</a>* configuration):<a class="code" href="classModule__base.html">Module_base</a>(configuration) {
 <a name="l00082"></a>00082                 <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(configuration);
 <a name="l00083"></a>00083                 <span class="keywordflow">if</span>(!section-&gt;Get_bool(<span class="stringliteral">&quot;innova&quot;</span>)) <span class="keywordflow">return</span>;
-<a name="l00084"></a>00084                 innova.rate = section-&gt;Get_int(<span class="stringliteral">&quot;samplerate&quot;</span>);
-<a name="l00085"></a>00085                 innova.basePort = section-&gt;Get_hex(<span class="stringliteral">&quot;sidbase&quot;</span>);
+<a name="l00084"></a>00084                 innova.rate = (<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;samplerate&quot;</span>);
+<a name="l00085"></a>00085                 innova.basePort = (<span class="keywordtype">unsigned</span> int)section-&gt;Get_hex(<span class="stringliteral">&quot;sidbase&quot;</span>);
 <a name="l00086"></a>00086                 sampling_method method = SAMPLE_FAST;
 <a name="l00087"></a>00087                 <span class="keywordtype">int</span> m = section-&gt;Get_int(<span class="stringliteral">&quot;quality&quot;</span>);
 <a name="l00088"></a>00088                 <span class="keywordflow">switch</span>(m) {
@@ -238,7 +238,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

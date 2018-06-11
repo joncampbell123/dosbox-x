@@ -294,8 +294,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00198"></a>00198         <span class="keywordflow">if</span> (!saa-&gt;all_ch_enable)
 <a name="l00199"></a>00199         {
 <a name="l00200"></a>00200                 <span class="comment">/* init output data */</span>
-<a name="l00201"></a>00201                 memset(buffer[LEFT],0,length*<span class="keyword">sizeof</span>(INT16));
-<a name="l00202"></a>00202                 memset(buffer[RIGHT],0,length*<span class="keyword">sizeof</span>(INT16));
+<a name="l00201"></a>00201                 memset(buffer[LEFT],0,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)length*<span class="keyword">sizeof</span>(INT16));
+<a name="l00202"></a>00202                 memset(buffer[RIGHT],0,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)length*<span class="keyword">sizeof</span>(INT16));
 <a name="l00203"></a>00203         <span class="keywordflow">return</span>;
 <a name="l00204"></a>00204         }
 <a name="l00205"></a>00205 
@@ -558,9 +558,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00462"></a>00462 <span class="keyword">public</span>:
 <a name="l00463"></a>00463         <a class="code" href="classCMS.html">CMS</a>(<a class="code" href="classSection.html">Section</a>* configuration):<a class="code" href="classModule__base.html">Module_base</a>(configuration) {
 <a name="l00464"></a>00464                 <a class="code" href="classSection__prop.html">Section_prop</a> * section = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(configuration);
-<a name="l00465"></a>00465                 Bitu sample_rate_temp = section-&gt;Get_int(<span class="stringliteral">&quot;oplrate&quot;</span>);
+<a name="l00465"></a>00465                 Bitu sample_rate_temp = (Bitu)section-&gt;Get_int(<span class="stringliteral">&quot;oplrate&quot;</span>);
 <a name="l00466"></a>00466                 sample_rate = <span class="keyword">static_cast&lt;</span><span class="keywordtype">double</span><span class="keyword">&gt;</span>(sample_rate_temp);
-<a name="l00467"></a>00467                 base_port = section-&gt;Get_hex(<span class="stringliteral">&quot;sbbase&quot;</span>);
+<a name="l00467"></a>00467                 base_port = (<span class="keywordtype">unsigned</span> int)section-&gt;Get_hex(<span class="stringliteral">&quot;sbbase&quot;</span>);
 <a name="l00468"></a>00468                 WriteHandler.Install(base_port, write_cms, IO_MB,4);
 <a name="l00469"></a>00469 
 <a name="l00470"></a>00470                 <span class="comment">// A standalone Gameblaster has a magic chip on it which is</span>
@@ -605,7 +605,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

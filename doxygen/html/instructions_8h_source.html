@@ -126,7 +126,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00030"></a>00030 <span class="preprocessor">#define ADCB(op1,op2,load,save)                                                         \</span>
 <a name="l00031"></a>00031 <span class="preprocessor">        lflags.oldcf=get_CF()!=0;                                                               \</span>
 <a name="l00032"></a>00032 <span class="preprocessor">        lf_var1b=load(op1);lf_var2b=op2;                                        \</span>
-<a name="l00033"></a>00033 <span class="preprocessor">        lf_resb=lf_var1b+lf_var2b+lflags.oldcf;         \</span>
+<a name="l00033"></a>00033 <span class="preprocessor">        lf_resb=(unsigned int)lf_var1b+(unsigned int)lf_var2b+(unsigned int)lflags.oldcf;               \</span>
 <a name="l00034"></a>00034 <span class="preprocessor">        save(op1,lf_resb);                                                              \</span>
 <a name="l00035"></a>00035 <span class="preprocessor">        lflags.type=t_ADCb;</span>
 <a name="l00036"></a>00036 <span class="preprocessor"></span>
@@ -182,7 +182,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00086"></a>00086 <span class="preprocessor">#define ADCW(op1,op2,load,save)                                                         \</span>
 <a name="l00087"></a>00087 <span class="preprocessor">        lflags.oldcf=get_CF()!=0;                                                                       \</span>
 <a name="l00088"></a>00088 <span class="preprocessor">        lf_var1w=load(op1);lf_var2w=op2;                                        \</span>
-<a name="l00089"></a>00089 <span class="preprocessor">        lf_resw=lf_var1w+lf_var2w+lflags.oldcf;         \</span>
+<a name="l00089"></a>00089 <span class="preprocessor">        lf_resw=(unsigned int)lf_var1w+(unsigned int)lf_var2w+(unsigned int)lflags.oldcf;               \</span>
 <a name="l00090"></a>00090 <span class="preprocessor">        save(op1,lf_resw);                                                              \</span>
 <a name="l00091"></a>00091 <span class="preprocessor">        lflags.type=t_ADCw;</span>
 <a name="l00092"></a>00092 <span class="preprocessor"></span>
@@ -430,8 +430,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00334"></a>00334 <span class="preprocessor">                        (cf &lt;&lt; (lf_var2b-1)) |                                          \</span>
 <a name="l00335"></a>00335 <span class="preprocessor">                        (lf_var1b &gt;&gt; (9-lf_var2b));                                     \</span>
 <a name="l00336"></a>00336 <span class="preprocessor">        save(op1,lf_resb);                                                                      \</span>
-<a name="l00337"></a>00337 <span class="preprocessor">        SETFLAGBIT(CF,((lf_var1b &gt;&gt; (8-lf_var2b)) &amp; 1));        \</span>
-<a name="l00338"></a>00338 <span class="preprocessor">        SETFLAGBIT(OF,(reg_flags &amp; 1) ^ (lf_resb &gt;&gt; 7));        \</span>
+<a name="l00337"></a>00337 <span class="preprocessor">        SETFLAGBIT(CF,(((unsigned int)lf_var1b &gt;&gt; (8u-lf_var2b)) &amp; 1u));        \</span>
+<a name="l00338"></a>00338 <span class="preprocessor">        SETFLAGBIT(OF,(reg_flags &amp; 1u) ^ ((unsigned int)lf_resb &gt;&gt; 7u));        \</span>
 <a name="l00339"></a>00339 <span class="preprocessor">}</span>
 <a name="l00340"></a>00340 <span class="preprocessor"></span>
 <a name="l00341"></a>00341 <span class="preprocessor">#define RCLW(op1,op2,load,save)                                                 \</span>
@@ -443,8 +443,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00347"></a>00347 <span class="preprocessor">                        (cf &lt;&lt; (lf_var2b-1)) |                                          \</span>
 <a name="l00348"></a>00348 <span class="preprocessor">                        (lf_var1w &gt;&gt; (17-lf_var2b));                            \</span>
 <a name="l00349"></a>00349 <span class="preprocessor">        save(op1,lf_resw);                                                                      \</span>
-<a name="l00350"></a>00350 <span class="preprocessor">        SETFLAGBIT(CF,((lf_var1w &gt;&gt; (16-lf_var2b)) &amp; 1));       \</span>
-<a name="l00351"></a>00351 <span class="preprocessor">        SETFLAGBIT(OF,(reg_flags &amp; 1) ^ (lf_resw &gt;&gt; 15));       \</span>
+<a name="l00350"></a>00350 <span class="preprocessor">        SETFLAGBIT(CF,(((unsigned int)lf_var1w &gt;&gt; (16u-lf_var2b)) &amp; 1u));       \</span>
+<a name="l00351"></a>00351 <span class="preprocessor">        SETFLAGBIT(OF,(reg_flags &amp; 1u) ^ ((unsigned int)lf_resw &gt;&gt; 15u));       \</span>
 <a name="l00352"></a>00352 <span class="preprocessor">}</span>
 <a name="l00353"></a>00353 <span class="preprocessor"></span>
 <a name="l00354"></a>00354 <span class="preprocessor">#define RCLD(op1,op2,load,save)                                                 \</span>
@@ -460,8 +460,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00364"></a>00364 <span class="preprocessor">                (lf_var1d &gt;&gt; (33-lf_var2b));                                    \</span>
 <a name="l00365"></a>00365 <span class="preprocessor">        }                                                                                                       \</span>
 <a name="l00366"></a>00366 <span class="preprocessor">        save(op1,lf_resd);                                                                      \</span>
-<a name="l00367"></a>00367 <span class="preprocessor">        SETFLAGBIT(CF,((lf_var1d &gt;&gt; (32-lf_var2b)) &amp; 1));       \</span>
-<a name="l00368"></a>00368 <span class="preprocessor">        SETFLAGBIT(OF,(reg_flags &amp; 1) ^ (lf_resd &gt;&gt; 31));       \</span>
+<a name="l00367"></a>00367 <span class="preprocessor">        SETFLAGBIT(CF,(((unsigned int)lf_var1d &gt;&gt; (32u-lf_var2b)) &amp; 1u));       \</span>
+<a name="l00368"></a>00368 <span class="preprocessor">        SETFLAGBIT(OF,(reg_flags &amp; 1u) ^ ((unsigned int)lf_resd &gt;&gt; 31u));       \</span>
 <a name="l00369"></a>00369 <span class="preprocessor">}</span>
 <a name="l00370"></a>00370 <span class="preprocessor"></span>
 <a name="l00371"></a>00371 
@@ -475,8 +475,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00379"></a>00379 <span class="preprocessor">                                (cf &lt;&lt; (8-lf_var2b)) |                                          \</span>
 <a name="l00380"></a>00380 <span class="preprocessor">                                (lf_var1b &lt;&lt; (9-lf_var2b));                                     \</span>
 <a name="l00381"></a>00381 <span class="preprocessor">                save(op1,lf_resb);                                                                      \</span>
-<a name="l00382"></a>00382 <span class="preprocessor">                SETFLAGBIT(CF,(lf_var1b &gt;&gt; (lf_var2b - 1)) &amp; 1);        \</span>
-<a name="l00383"></a>00383 <span class="preprocessor">                SETFLAGBIT(OF,(lf_resb ^ (lf_resb&lt;&lt;1)) &amp; 0x80);         \</span>
+<a name="l00382"></a>00382 <span class="preprocessor">                SETFLAGBIT(CF,((unsigned int)lf_var1b &gt;&gt; (lf_var2b - 1u)) &amp; 1u);        \</span>
+<a name="l00383"></a>00383 <span class="preprocessor">                SETFLAGBIT(OF,(lf_resb ^ ((unsigned int)lf_resb&lt;&lt;1u)) &amp; 0x80u);         \</span>
 <a name="l00384"></a>00384 <span class="preprocessor">        }</span>
 <a name="l00385"></a>00385 <span class="preprocessor"></span>
 <a name="l00386"></a>00386 <span class="preprocessor">#define RCRW(op1,op2,load,save)                                                         \</span>
@@ -488,8 +488,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00392"></a>00392 <span class="preprocessor">                                (cf &lt;&lt; (16-lf_var2b)) |                                         \</span>
 <a name="l00393"></a>00393 <span class="preprocessor">                                (lf_var1w &lt;&lt; (17-lf_var2b));                            \</span>
 <a name="l00394"></a>00394 <span class="preprocessor">                save(op1,lf_resw);                                                                      \</span>
-<a name="l00395"></a>00395 <span class="preprocessor">                SETFLAGBIT(CF,(lf_var1w &gt;&gt; (lf_var2b - 1)) &amp; 1);        \</span>
-<a name="l00396"></a>00396 <span class="preprocessor">                SETFLAGBIT(OF,(lf_resw ^ (lf_resw&lt;&lt;1)) &amp; 0x8000);       \</span>
+<a name="l00395"></a>00395 <span class="preprocessor">                SETFLAGBIT(CF,((unsigned int)lf_var1w &gt;&gt; (lf_var2b - 1u)) &amp; 1u);        \</span>
+<a name="l00396"></a>00396 <span class="preprocessor">                SETFLAGBIT(OF,(lf_resw ^ ((unsigned int)lf_resw&lt;&lt;1u)) &amp; 0x8000u);       \</span>
 <a name="l00397"></a>00397 <span class="preprocessor">        }</span>
 <a name="l00398"></a>00398 <span class="preprocessor"></span>
 <a name="l00399"></a>00399 <span class="preprocessor">#define RCRD(op1,op2,load,save)                                                         \</span>
@@ -505,29 +505,29 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00409"></a>00409 <span class="preprocessor">                                (lf_var1d &lt;&lt; (33-lf_var2b));                            \</span>
 <a name="l00410"></a>00410 <span class="preprocessor">                }                                                                                                       \</span>
 <a name="l00411"></a>00411 <span class="preprocessor">                save(op1,lf_resd);                                                                      \</span>
-<a name="l00412"></a>00412 <span class="preprocessor">                SETFLAGBIT(CF,(lf_var1d &gt;&gt; (lf_var2b - 1)) &amp; 1);        \</span>
-<a name="l00413"></a>00413 <span class="preprocessor">                SETFLAGBIT(OF,(lf_resd ^ (lf_resd&lt;&lt;1)) &amp; 0x80000000);   \</span>
+<a name="l00412"></a>00412 <span class="preprocessor">                SETFLAGBIT(CF,((unsigned int)lf_var1d &gt;&gt; (lf_var2b - 1u)) &amp; 1u);        \</span>
+<a name="l00413"></a>00413 <span class="preprocessor">                SETFLAGBIT(OF,(lf_resd ^ ((unsigned int)lf_resd&lt;&lt;1u)) &amp; 0x80000000u);   \</span>
 <a name="l00414"></a>00414 <span class="preprocessor">        }</span>
 <a name="l00415"></a>00415 <span class="preprocessor"></span>
 <a name="l00416"></a>00416 
 <a name="l00417"></a>00417 <span class="preprocessor">#define SHLB(op1,op2,load,save)                                                         \</span>
 <a name="l00418"></a>00418 <span class="preprocessor">        if (!op2) break;                                                                                \</span>
 <a name="l00419"></a>00419 <span class="preprocessor">        lf_var1b=load(op1);lf_var2b=op2;                                \</span>
-<a name="l00420"></a>00420 <span class="preprocessor">        lf_resb=(lf_var2b &lt; 8) ? (lf_var1b &lt;&lt; lf_var2b) : 0;                    \</span>
+<a name="l00420"></a>00420 <span class="preprocessor">        lf_resb=(lf_var2b &lt; 8u) ? ((unsigned int)lf_var1b &lt;&lt; lf_var2b) : 0;                     \</span>
 <a name="l00421"></a>00421 <span class="preprocessor">        save(op1,lf_resb);                                                              \</span>
 <a name="l00422"></a>00422 <span class="preprocessor">        lflags.type=t_SHLb;</span>
 <a name="l00423"></a>00423 <span class="preprocessor"></span>
 <a name="l00424"></a>00424 <span class="preprocessor">#define SHLW(op1,op2,load,save)                                                         \</span>
 <a name="l00425"></a>00425 <span class="preprocessor">        if (!op2) break;                                                                                \</span>
 <a name="l00426"></a>00426 <span class="preprocessor">        lf_var1w=load(op1);lf_var2b=op2 ;                               \</span>
-<a name="l00427"></a>00427 <span class="preprocessor">        lf_resw=(lf_var2b &lt; 16) ? (lf_var1w &lt;&lt; lf_var2b) : 0;                   \</span>
+<a name="l00427"></a>00427 <span class="preprocessor">        lf_resw=(lf_var2b &lt; 16u) ? ((unsigned int)lf_var1w &lt;&lt; lf_var2b) : 0;                    \</span>
 <a name="l00428"></a>00428 <span class="preprocessor">        save(op1,lf_resw);                                                              \</span>
 <a name="l00429"></a>00429 <span class="preprocessor">        lflags.type=t_SHLw;</span>
 <a name="l00430"></a>00430 <span class="preprocessor"></span>
 <a name="l00431"></a>00431 <span class="preprocessor">#define SHLD(op1,op2,load,save)                                                         \</span>
 <a name="l00432"></a>00432 <span class="preprocessor">        if (!op2) break;                                                                                \</span>
 <a name="l00433"></a>00433 <span class="preprocessor">        lf_var1d=load(op1);lf_var2b=op2;                                \</span>
-<a name="l00434"></a>00434 <span class="preprocessor">        lf_resd=(lf_var2b &lt; 32) ? (lf_var1d &lt;&lt; lf_var2b) : 0;                   \</span>
+<a name="l00434"></a>00434 <span class="preprocessor">        lf_resd=(lf_var2b &lt; 32u) ? ((unsigned int)lf_var1d &lt;&lt; lf_var2b) : 0;                    \</span>
 <a name="l00435"></a>00435 <span class="preprocessor">        save(op1,lf_resd);                                                              \</span>
 <a name="l00436"></a>00436 <span class="preprocessor">        lflags.type=t_SHLd;</span>
 <a name="l00437"></a>00437 <span class="preprocessor"></span>
@@ -535,21 +535,21 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00439"></a>00439 <span class="preprocessor">#define SHRB(op1,op2,load,save)                                                         \</span>
 <a name="l00440"></a>00440 <span class="preprocessor">        if (!op2) break;                                                                                \</span>
 <a name="l00441"></a>00441 <span class="preprocessor">        lf_var1b=load(op1);lf_var2b=op2;                                \</span>
-<a name="l00442"></a>00442 <span class="preprocessor">        lf_resb=(lf_var2b &lt; 8) ? (lf_var1b &gt;&gt; lf_var2b) : 0;                    \</span>
+<a name="l00442"></a>00442 <span class="preprocessor">        lf_resb=(lf_var2b &lt; 8u) ? ((unsigned int)lf_var1b &gt;&gt; lf_var2b) : 0;                     \</span>
 <a name="l00443"></a>00443 <span class="preprocessor">        save(op1,lf_resb);                                                              \</span>
 <a name="l00444"></a>00444 <span class="preprocessor">        lflags.type=t_SHRb;</span>
 <a name="l00445"></a>00445 <span class="preprocessor"></span>
 <a name="l00446"></a>00446 <span class="preprocessor">#define SHRW(op1,op2,load,save)                                                         \</span>
 <a name="l00447"></a>00447 <span class="preprocessor">        if (!op2) break;                                                                                \</span>
 <a name="l00448"></a>00448 <span class="preprocessor">        lf_var1w=load(op1);lf_var2b=op2;                                \</span>
-<a name="l00449"></a>00449 <span class="preprocessor">        lf_resw=(lf_var2b &lt; 16) ? (lf_var1w &gt;&gt; lf_var2b) : 0;                   \</span>
+<a name="l00449"></a>00449 <span class="preprocessor">        lf_resw=(lf_var2b &lt; 16u) ? ((unsigned int)lf_var1w &gt;&gt; lf_var2b) : 0;                    \</span>
 <a name="l00450"></a>00450 <span class="preprocessor">        save(op1,lf_resw);                                                              \</span>
 <a name="l00451"></a>00451 <span class="preprocessor">        lflags.type=t_SHRw;</span>
 <a name="l00452"></a>00452 <span class="preprocessor"></span>
 <a name="l00453"></a>00453 <span class="preprocessor">#define SHRD(op1,op2,load,save)                                                         \</span>
 <a name="l00454"></a>00454 <span class="preprocessor">        if (!op2) break;                                                                                \</span>
 <a name="l00455"></a>00455 <span class="preprocessor">        lf_var1d=load(op1);lf_var2b=op2;                                \</span>
-<a name="l00456"></a>00456 <span class="preprocessor">        lf_resd=(lf_var2b &lt; 32) ? (lf_var1d &gt;&gt; lf_var2b) : 0;                   \</span>
+<a name="l00456"></a>00456 <span class="preprocessor">        lf_resd=(lf_var2b &lt; 32u) ? ((unsigned int)lf_var1d &gt;&gt; lf_var2b) : 0;                    \</span>
 <a name="l00457"></a>00457 <span class="preprocessor">        save(op1,lf_resd);                                                              \</span>
 <a name="l00458"></a>00458 <span class="preprocessor">        lflags.type=t_SHRd;</span>
 <a name="l00459"></a>00459 <span class="preprocessor"></span>
@@ -729,8 +729,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00633"></a>00633 <span class="preprocessor">                lflags.type=t_UNKNOWN;                                                          \</span>
 <a name="l00634"></a>00634 <span class="preprocessor">        }</span>
 <a name="l00635"></a>00635 <span class="preprocessor"></span>
-<a name="l00636"></a>00636 <span class="preprocessor">#define PARITY16(x)  (parity_lookup[((x)&gt;&gt;8)&amp;0xff]^parity_lookup[(x)&amp;0xff]^FLAG_PF)</span>
-<a name="l00637"></a>00637 <span class="preprocessor"></span><span class="preprocessor">#define PARITY32(x)  (PARITY16((x)&amp;0xffff)^PARITY16(((x)&gt;&gt;16)&amp;0xffff)^FLAG_PF)</span>
+<a name="l00636"></a>00636 <span class="preprocessor">#define PARITY16(x)  (parity_lookup[((unsigned int)((Bit16u)(x))&gt;&gt;8u)&amp;0xffu]^parity_lookup[((Bit8u)(x))&amp;0xffu]^FLAG_PF)</span>
+<a name="l00637"></a>00637 <span class="preprocessor"></span><span class="preprocessor">#define PARITY32(x)  (PARITY16(((Bit16u)(x))&amp;0xffffu)^PARITY16(((unsigned int)((Bit32u)(x))&gt;&gt;16u)&amp;0xffffu)^FLAG_PF)</span>
 <a name="l00638"></a>00638 <span class="preprocessor"></span>
 <a name="l00639"></a>00639 <span class="preprocessor">#define MULB(op1,load,save)                                                                     \</span>
 <a name="l00640"></a>00640 <span class="preprocessor">        reg_ax=reg_al*load(op1);                                                                \</span>
@@ -842,8 +842,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00746"></a>00746 <span class="preprocessor">        Bit8s rem=(Bit8s)((Bit16s)reg_ax % val);                                \</span>
 <a name="l00747"></a>00747 <span class="preprocessor">        Bit8s quo8s=(Bit8s)(quo&amp;0xff);                                                  \</span>
 <a name="l00748"></a>00748 <span class="preprocessor">        if (quo!=(Bit16s)quo8s) EXCEPTION(0);                                   \</span>
-<a name="l00749"></a>00749 <span class="preprocessor">        reg_ah=rem;                                                                                             \</span>
-<a name="l00750"></a>00750 <span class="preprocessor">        reg_al=quo8s;                                                                                   \</span>
+<a name="l00749"></a>00749 <span class="preprocessor">        reg_ah=(Bit8u)rem;                                                                                              \</span>
+<a name="l00750"></a>00750 <span class="preprocessor">        reg_al=(Bit8u)quo8s;                                                                                    \</span>
 <a name="l00751"></a>00751 <span class="preprocessor">        FillFlags();                                                                                    \</span>
 <a name="l00752"></a>00752 <span class="preprocessor">        SETFLAGBIT(AF,0);</span><span class="comment">/*FIXME*/</span>                                                                      \
 <a name="l00753"></a>00753         SETFLAGBIT(SF,0);<span class="comment">/*FIXME*/</span>                                                                      \
@@ -858,13 +858,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00762"></a>00762 <span class="preprocessor">{                                                                                                                       \</span>
 <a name="l00763"></a>00763 <span class="preprocessor">        Bits val=(Bit16s)(load(op1));                                                   \</span>
 <a name="l00764"></a>00764 <span class="preprocessor">        if (val==0) EXCEPTION(0);                                                                       \</span>
-<a name="l00765"></a>00765 <span class="preprocessor">        Bits num=(Bit32s)((reg_dx&lt;&lt;16)|reg_ax);                                 \</span>
+<a name="l00765"></a>00765 <span class="preprocessor">        Bits num=(Bit32s)(((unsigned int)reg_dx&lt;&lt;16u)|(unsigned int)reg_ax);                                    \</span>
 <a name="l00766"></a>00766 <span class="preprocessor">        Bits quo=num/val;                                                                               \</span>
 <a name="l00767"></a>00767 <span class="preprocessor">        Bit16s rem=(Bit16s)(num % val);                                                 \</span>
 <a name="l00768"></a>00768 <span class="preprocessor">        Bit16s quo16s=(Bit16s)quo;                                                              \</span>
 <a name="l00769"></a>00769 <span class="preprocessor">        if (quo!=(Bit32s)quo16s) EXCEPTION(0);                                  \</span>
-<a name="l00770"></a>00770 <span class="preprocessor">        reg_dx=rem;                                                                                             \</span>
-<a name="l00771"></a>00771 <span class="preprocessor">        reg_ax=quo16s;                                                                                  \</span>
+<a name="l00770"></a>00770 <span class="preprocessor">        reg_dx=(Bit16u)rem;                                                                                             \</span>
+<a name="l00771"></a>00771 <span class="preprocessor">        reg_ax=(Bit16u)quo16s;                                                                                  \</span>
 <a name="l00772"></a>00772 <span class="preprocessor">        FillFlags();                                                                                    \</span>
 <a name="l00773"></a>00773 <span class="preprocessor">        SETFLAGBIT(AF,0);</span><span class="comment">/*FIXME*/</span>                                                                      \
 <a name="l00774"></a>00774         SETFLAGBIT(SF,0);<span class="comment">/*FIXME*/</span>                                                                      \
@@ -878,20 +878,20 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00782"></a>00782 <span class="preprocessor">{                                                                                                                       \</span>
 <a name="l00783"></a>00783 <span class="preprocessor">        Bits val=(Bit32s)(load(op1));                                                   \</span>
 <a name="l00784"></a>00784 <span class="preprocessor">        if (val==0) EXCEPTION(0);                                                                       \</span>
-<a name="l00785"></a>00785 <span class="preprocessor">        Bit64s num=(((Bit64u)reg_edx)&lt;&lt;32)|reg_eax;                             \</span>
+<a name="l00785"></a>00785 <span class="preprocessor">        Bit64s num=(Bit64s)((((Bit64u)reg_edx)&lt;&lt;(Bit64u)32)|(Bit64u)reg_eax);                           \</span>
 <a name="l00786"></a>00786 <span class="preprocessor">        Bit64s quo=num/val;                                                                             \</span>
 <a name="l00787"></a>00787 <span class="preprocessor">        Bit32s rem=(Bit32s)(num % val);                                                 \</span>
 <a name="l00788"></a>00788 <span class="preprocessor">        Bit32s quo32s=(Bit32s)(quo&amp;0xffffffff);                                 \</span>
 <a name="l00789"></a>00789 <span class="preprocessor">        if (quo!=(Bit64s)quo32s) EXCEPTION(0);                                  \</span>
-<a name="l00790"></a>00790 <span class="preprocessor">        reg_edx=rem;                                                                                    \</span>
-<a name="l00791"></a>00791 <span class="preprocessor">        reg_eax=quo32s;                                                                                 \</span>
+<a name="l00790"></a>00790 <span class="preprocessor">        reg_edx=(Bit32u)rem;                                                                                    \</span>
+<a name="l00791"></a>00791 <span class="preprocessor">        reg_eax=(Bit32u)quo32s;                                                                                 \</span>
 <a name="l00792"></a>00792 <span class="preprocessor">        FillFlags();                                                                                    \</span>
 <a name="l00793"></a>00793 <span class="preprocessor">        SETFLAGBIT(AF,0);</span><span class="comment">/*FIXME*/</span>                                                                      \
 <a name="l00794"></a>00794         SETFLAGBIT(SF,0);<span class="comment">/*FIXME*/</span>                                                                      \
 <a name="l00795"></a>00795         SETFLAGBIT(OF,0);<span class="comment">/*FIXME*/</span>                                                                      \
 <a name="l00796"></a>00796         SETFLAGBIT(ZF,(rem==0)&amp;&amp;((quo32s&amp;1)!=0));                                                               \
 <a name="l00797"></a>00797         SETFLAGBIT(CF,((rem&amp;3) &gt;= 1 &amp;&amp; (rem&amp;3) &lt;= 2)); \
-<a name="l00798"></a>00798         SETFLAGBIT(PF,PARITY32(rem&amp;0xffffffff)^PARITY32(quo32s&amp;0xffffffff)^FLAG_PF);                                    \
+<a name="l00798"></a>00798         SETFLAGBIT(PF,PARITY32((Bit32u)rem&amp;0xffffffffu)^PARITY32((Bit32u)quo32s&amp;0xffffffffu)^FLAG_PF);                                  \
 <a name="l00799"></a>00799 }
 <a name="l00800"></a>00800 
 <a name="l00801"></a>00801 <span class="preprocessor">#define IMULB(op1,load,save)                                                            \</span>
@@ -910,8 +910,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00814"></a>00814 <span class="preprocessor">#define IMULW(op1,load,save)                                                            \</span>
 <a name="l00815"></a>00815 <span class="preprocessor">{                                                                                                                       \</span>
 <a name="l00816"></a>00816 <span class="preprocessor">        Bits temps=((Bit16s)reg_ax)*((Bit16s)(load(op1)));              \</span>
-<a name="l00817"></a>00817 <span class="preprocessor">        reg_ax=(Bit16s)(temps);                                                                 \</span>
-<a name="l00818"></a>00818 <span class="preprocessor">        reg_dx=(Bit16s)(temps &gt;&gt; 16);                                                   \</span>
+<a name="l00817"></a>00817 <span class="preprocessor">        reg_ax=(Bit16u)(temps);                                                                 \</span>
+<a name="l00818"></a>00818 <span class="preprocessor">        reg_dx=(Bit16u)(temps &gt;&gt; 16);                                                   \</span>
 <a name="l00819"></a>00819 <span class="preprocessor">        FillFlagsNoCFOF();                                                                              \</span>
 <a name="l00820"></a>00820 <span class="preprocessor">        if (((temps &amp; 0xffff8000)==0xffff8000 ||                                \</span>
 <a name="l00821"></a>00821 <span class="preprocessor">                (temps &amp; 0xffff8000)==0x0000)) {                                        \</span>
@@ -1083,39 +1083,39 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00987"></a>00987 <span class="comment">/* let&#39;s hope bochs has it correct with the higher than 16 shifts */</span>
 <a name="l00988"></a>00988 <span class="comment">/* double-precision shift left has low bits in second argument */</span>
 <a name="l00989"></a>00989 <span class="preprocessor">#define DSHLW(op1,op2,op3,load,save)                                                                    \</span>
-<a name="l00990"></a>00990 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1F;                                                                                           \</span>
+<a name="l00990"></a>00990 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1Fu;                                                                                          \</span>
 <a name="l00991"></a>00991 <span class="preprocessor">        if (!val) break;                                                                                                        \</span>
-<a name="l00992"></a>00992 <span class="preprocessor">        lf_var2b=val;lf_var1d=(load(op1)&lt;&lt;16)|op2;                                      \</span>
+<a name="l00992"></a>00992 <span class="preprocessor">        lf_var2b=val;lf_var1d=((unsigned int)load(op1)&lt;&lt;16u)|op2;                                       \</span>
 <a name="l00993"></a>00993 <span class="preprocessor">        Bit32u tempd=lf_var1d &lt;&lt; lf_var2b;                                                      \</span>
-<a name="l00994"></a>00994 <span class="preprocessor">        if (lf_var2b&gt;16) tempd |= (op2 &lt;&lt; (lf_var2b - 16));                     \</span>
-<a name="l00995"></a>00995 <span class="preprocessor">        lf_resw=(Bit16u)(tempd &gt;&gt; 16);                                                          \</span>
+<a name="l00994"></a>00994 <span class="preprocessor">        if (lf_var2b&gt;16u) tempd |= ((unsigned int)op2 &lt;&lt; (lf_var2b - 16u));                     \</span>
+<a name="l00995"></a>00995 <span class="preprocessor">        lf_resw=(Bit16u)((unsigned int)tempd &gt;&gt; 16u);                                                           \</span>
 <a name="l00996"></a>00996 <span class="preprocessor">        save(op1,lf_resw);                                                                                      \</span>
 <a name="l00997"></a>00997 <span class="preprocessor">        lflags.type=t_DSHLw;</span>
 <a name="l00998"></a>00998 <span class="preprocessor"></span>
 <a name="l00999"></a>00999 <span class="preprocessor">#define DSHLD(op1,op2,op3,load,save)                                                                    \</span>
-<a name="l01000"></a>01000 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1F;                                                                                           \</span>
+<a name="l01000"></a>01000 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1Fu;                                                                                          \</span>
 <a name="l01001"></a>01001 <span class="preprocessor">        if (!val) break;                                                                                                        \</span>
 <a name="l01002"></a>01002 <span class="preprocessor">        lf_var2b=val;lf_var1d=load(op1);                                                        \</span>
-<a name="l01003"></a>01003 <span class="preprocessor">        lf_resd=(lf_var1d &lt;&lt; lf_var2b) | (op2 &gt;&gt; (32-lf_var2b));        \</span>
+<a name="l01003"></a>01003 <span class="preprocessor">        lf_resd=((unsigned int)lf_var1d &lt;&lt; lf_var2b) | ((unsigned int)op2 &gt;&gt; (32u-lf_var2b));   \</span>
 <a name="l01004"></a>01004 <span class="preprocessor">        save(op1,lf_resd);                                                                                      \</span>
 <a name="l01005"></a>01005 <span class="preprocessor">        lflags.type=t_DSHLd;</span>
 <a name="l01006"></a>01006 <span class="preprocessor"></span>
 <a name="l01007"></a>01007 <span class="comment">/* double-precision shift right has high bits in second argument */</span>
 <a name="l01008"></a>01008 <span class="preprocessor">#define DSHRW(op1,op2,op3,load,save)                                                                    \</span>
-<a name="l01009"></a>01009 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1F;                                                                                           \</span>
+<a name="l01009"></a>01009 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1Fu;                                                                                          \</span>
 <a name="l01010"></a>01010 <span class="preprocessor">        if (!val) break;                                                                                                        \</span>
-<a name="l01011"></a>01011 <span class="preprocessor">        lf_var2b=val;lf_var1d=(op2&lt;&lt;16)|load(op1);                                      \</span>
-<a name="l01012"></a>01012 <span class="preprocessor">        Bit32u tempd=lf_var1d &gt;&gt; lf_var2b;                                                      \</span>
-<a name="l01013"></a>01013 <span class="preprocessor">        if (lf_var2b&gt;16) tempd |= (op2 &lt;&lt; (32-lf_var2b ));                      \</span>
+<a name="l01011"></a>01011 <span class="preprocessor">        lf_var2b=val;lf_var1d=((unsigned int)op2&lt;&lt;16u)|load(op1);                                       \</span>
+<a name="l01012"></a>01012 <span class="preprocessor">        Bit32u tempd=(unsigned int)lf_var1d &gt;&gt; lf_var2b;                                                        \</span>
+<a name="l01013"></a>01013 <span class="preprocessor">        if (lf_var2b&gt;16u) tempd |= ((unsigned int)op2 &lt;&lt; (32u-lf_var2b));                       \</span>
 <a name="l01014"></a>01014 <span class="preprocessor">        lf_resw=(Bit16u)(tempd);                                                                                \</span>
 <a name="l01015"></a>01015 <span class="preprocessor">        save(op1,lf_resw);                                                                                      \</span>
 <a name="l01016"></a>01016 <span class="preprocessor">        lflags.type=t_DSHRw;</span>
 <a name="l01017"></a>01017 <span class="preprocessor"></span>
 <a name="l01018"></a>01018 <span class="preprocessor">#define DSHRD(op1,op2,op3,load,save)                                                                    \</span>
-<a name="l01019"></a>01019 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1F;                                                                                           \</span>
+<a name="l01019"></a>01019 <span class="preprocessor">        Bit8u val=op3 &amp; 0x1Fu;                                                                                          \</span>
 <a name="l01020"></a>01020 <span class="preprocessor">        if (!val) break;                                                                                                        \</span>
 <a name="l01021"></a>01021 <span class="preprocessor">        lf_var2b=val;lf_var1d=load(op1);                                                        \</span>
-<a name="l01022"></a>01022 <span class="preprocessor">        lf_resd=(lf_var1d &gt;&gt; lf_var2b) | (op2 &lt;&lt; (32-lf_var2b));        \</span>
+<a name="l01022"></a>01022 <span class="preprocessor">        lf_resd=((unsigned int)lf_var1d &gt;&gt; lf_var2b) | ((unsigned int)op2 &lt;&lt; (32u-lf_var2b));   \</span>
 <a name="l01023"></a>01023 <span class="preprocessor">        save(op1,lf_resd);                                                                                      \</span>
 <a name="l01024"></a>01024 <span class="preprocessor">        lflags.type=t_DSHRd;</span>
 <a name="l01025"></a>01025 <span class="preprocessor"></span>
@@ -1128,7 +1128,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:02 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

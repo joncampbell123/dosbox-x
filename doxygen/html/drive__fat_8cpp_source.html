@@ -325,10 +325,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00229"></a>00229         <span class="keywordflow">if</span>(curSectOff&gt;0 &amp;&amp; loadedSector) myDrive-&gt;Write_AbsoluteSector(currentSector, sectorBuffer);
 <a name="l00230"></a>00230 
 <a name="l00231"></a>00231 finalizeWrite:
-<a name="l00232"></a>00232         myDrive-&gt;directoryBrowse(dirCluster, &amp;tmpentry, dirIndex);
+<a name="l00232"></a>00232         myDrive-&gt;directoryBrowse(dirCluster, &amp;tmpentry, (Bit32s)dirIndex);
 <a name="l00233"></a>00233         tmpentry.entrysize = filelength;
 <a name="l00234"></a>00234         tmpentry.loFirstClust = (Bit16u)firstCluster;
-<a name="l00235"></a>00235         myDrive-&gt;directoryChange(dirCluster, &amp;tmpentry, dirIndex);
+<a name="l00235"></a>00235         myDrive-&gt;directoryChange(dirCluster, &amp;tmpentry, (Bit32s)dirIndex);
 <a name="l00236"></a>00236 
 <a name="l00237"></a>00237         *size =sizecount;
 <a name="l00238"></a>00238         <span class="keywordflow">return</span> <span class="keyword">true</span>;
@@ -492,11 +492,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00396"></a>00396                         *((Bit32u *)&amp;fatSectBuffer[fatentoff]) = clustValue;
 <a name="l00397"></a>00397                         <span class="keywordflow">break</span>;
 <a name="l00398"></a>00398         }
-<a name="l00399"></a>00399         <span class="keywordflow">for</span>(<span class="keywordtype">int</span> fc=0;fc&lt;bootbuffer.fatcopies;fc++) {
+<a name="l00399"></a>00399         <span class="keywordflow">for</span>(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> fc=0;fc&lt;bootbuffer.fatcopies;fc++) {
 <a name="l00400"></a>00400                 Write_AbsoluteSector(fatsectnum + (fc * bootbuffer.sectorsperfat), &amp;fatSectBuffer[0]);
 <a name="l00401"></a>00401                 <span class="keywordflow">if</span> (fattype==FAT12) {
 <a name="l00402"></a>00402                         <span class="keywordflow">if</span> (fatentoff &gt;= (bootbuffer.bytespersector-1U))
-<a name="l00403"></a>00403                                 Write_AbsoluteSector(fatsectnum+1+(fc * bootbuffer.sectorsperfat), &amp;fatSectBuffer[bootbuffer.bytespersector]);
+<a name="l00403"></a>00403                                 Write_AbsoluteSector(fatsectnum+1u+(fc * bootbuffer.sectorsperfat), &amp;fatSectBuffer[bootbuffer.bytespersector]);
 <a name="l00404"></a>00404                 }
 <a name="l00405"></a>00405         }
 <a name="l00406"></a>00406 }
@@ -614,8 +614,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00518"></a>00518 }
 <a name="l00519"></a>00519 
 <a name="l00520"></a>00520 Bit32u fatDrive::getAbsoluteSectFromChain(Bit32u startClustNum, Bit32u logicalSector) {
-<a name="l00521"></a>00521         Bit32s skipClust = logicalSector / bootbuffer.sectorspercluster;
-<a name="l00522"></a>00522         Bit32u sectClust = logicalSector % bootbuffer.sectorspercluster;
+<a name="l00521"></a>00521         Bit32s skipClust = (Bit32s)(logicalSector / bootbuffer.sectorspercluster);
+<a name="l00522"></a>00522         Bit32u sectClust = (Bit32u)(logicalSector % bootbuffer.sectorspercluster);
 <a name="l00523"></a>00523 
 <a name="l00524"></a>00524         Bit32u currentClust = startClustNum;
 <a name="l00525"></a>00525         Bit32u testvalue;
@@ -790,7 +790,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00694"></a>00694         <a class="code" href="structQCow2Image_1_1QCow2Header.html">QCow2Image::QCow2Header</a> qcow2_header = QCow2Image::read_header(diskfile);
 <a name="l00695"></a>00695 
 <a name="l00696"></a>00696         <span class="keywordflow">if</span> (qcow2_header.magic == QCow2Image::magic &amp;&amp; (qcow2_header.version == 2 || qcow2_header.version == 3)){
-<a name="l00697"></a>00697                 Bit32u cluster_size = 1 &lt;&lt; qcow2_header.cluster_bits;
+<a name="l00697"></a>00697                 Bit32u cluster_size = 1u &lt;&lt; qcow2_header.cluster_bits;
 <a name="l00698"></a>00698                 <span class="keywordflow">if</span> ((bytesector &lt; 512) || ((cluster_size % bytesector) != 0)){
 <a name="l00699"></a>00699                         created_successfully = <span class="keyword">false</span>;
 <a name="l00700"></a>00700                         <span class="keywordflow">return</span>;
@@ -1162,18 +1162,18 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01066"></a>01066 
 <a name="l01067"></a>01067         <span class="comment">/* Get size of root dir in sectors */</span>
 <a name="l01068"></a>01068         <span class="comment">/* TODO: Get 32-bit total sector count if needed */</span>
-<a name="l01069"></a>01069         Bit32u RootDirSectors = ((bootbuffer.rootdirentries * 32) + (bootbuffer.bytespersector - 1)) / bootbuffer.bytespersector;
+<a name="l01069"></a>01069         Bit32u RootDirSectors = ((bootbuffer.rootdirentries * 32u) + (bootbuffer.bytespersector - 1u)) / bootbuffer.bytespersector;
 <a name="l01070"></a>01070         Bit32u DataSectors;
 <a name="l01071"></a>01071         <span class="keywordflow">if</span>(bootbuffer.totalsectorcount != 0) {
-<a name="l01072"></a>01072                 DataSectors = bootbuffer.totalsectorcount - (bootbuffer.reservedsectors + (bootbuffer.fatcopies * bootbuffer.sectorsperfat) + RootDirSectors);
+<a name="l01072"></a>01072                 DataSectors = (Bitu)bootbuffer.totalsectorcount - ((Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)RootDirSectors);
 <a name="l01073"></a>01073         } <span class="keywordflow">else</span> {
-<a name="l01074"></a>01074                 DataSectors = bootbuffer.totalsecdword - (bootbuffer.reservedsectors + (bootbuffer.fatcopies * bootbuffer.sectorsperfat) + RootDirSectors);
+<a name="l01074"></a>01074                 DataSectors = (Bitu)bootbuffer.totalsecdword - ((Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)RootDirSectors);
 <a name="l01075"></a>01075 
 <a name="l01076"></a>01076         }
 <a name="l01077"></a>01077         CountOfClusters = DataSectors / bootbuffer.sectorspercluster;
 <a name="l01078"></a>01078 
-<a name="l01079"></a>01079         firstDataSector = (bootbuffer.reservedsectors + (bootbuffer.fatcopies * bootbuffer.sectorsperfat) + RootDirSectors) + partSectOff;
-<a name="l01080"></a>01080         firstRootDirSect = bootbuffer.reservedsectors + (bootbuffer.fatcopies * bootbuffer.sectorsperfat) + partSectOff;
+<a name="l01079"></a>01079         firstDataSector = ((Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)RootDirSectors) + (Bitu)partSectOff;
+<a name="l01080"></a>01080         firstRootDirSect = (Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)partSectOff;
 <a name="l01081"></a>01081 
 <a name="l01082"></a>01082         <span class="keywordflow">if</span>(CountOfClusters &lt; 4085) {
 <a name="l01083"></a>01083                 <span class="comment">/* Volume is FAT12 */</span>
@@ -1250,7 +1250,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01154"></a>01154         <span class="keywordflow">if</span>(getFileDirEntry(name, &amp;fileEntry, &amp;dirClust, &amp;subEntry)) {
 <a name="l01155"></a>01155                 <span class="comment">/* Truncate file */</span>
 <a name="l01156"></a>01156                 fileEntry.entrysize=0;
-<a name="l01157"></a>01157                 directoryChange(dirClust, &amp;fileEntry, subEntry);
+<a name="l01157"></a>01157                 directoryChange(dirClust, &amp;fileEntry, (Bit32s)subEntry);
 <a name="l01158"></a>01158         } <span class="keywordflow">else</span> {
 <a name="l01159"></a>01159                 <span class="comment">/* Can we even get the name of the file itself? */</span>
 <a name="l01160"></a>01160                 <span class="keywordflow">if</span>(!getEntryName(name, &amp;dirName[0])) <span class="keywordflow">return</span> <span class="keyword">false</span>;
@@ -1315,7 +1315,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01219"></a>01219         <span class="keywordflow">if</span>(!getFileDirEntry(name, &amp;fileEntry, &amp;dirClust, &amp;subEntry)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l01220"></a>01220 
 <a name="l01221"></a>01221         fileEntry.entryname[0] = 0xe5;
-<a name="l01222"></a>01222         directoryChange(dirClust, &amp;fileEntry, subEntry);
+<a name="l01222"></a>01222         directoryChange(dirClust, &amp;fileEntry, (Bit32s)subEntry);
 <a name="l01223"></a>01223 
 <a name="l01224"></a>01224         <span class="keywordflow">if</span>(fileEntry.loFirstClust != 0) deleteClustChain(fileEntry.loFirstClust);
 <a name="l01225"></a>01225 
@@ -1622,7 +1622,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01526"></a>01526 
 <a name="l01527"></a>01527         memset(&amp;secBuffer[0], 0, SECTOR_SIZE_MAX);
 <a name="l01528"></a>01528 
-<a name="l01529"></a>01529         <span class="keywordtype">int</span> i;
+<a name="l01529"></a>01529         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
 <a name="l01530"></a>01530         <span class="keywordflow">for</span>(i=0;i&lt;bootbuffer.sectorspercluster;i++) {
 <a name="l01531"></a>01531                 Write_AbsoluteSector(getAbsoluteSectFromChain(clustNumber,i), &amp;secBuffer[0]);
 <a name="l01532"></a>01532         }
@@ -1763,7 +1763,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01667"></a>01667 
 <a name="l01668"></a>01668                 <span class="comment">/* Remove old entry */</span>
 <a name="l01669"></a>01669                 fileEntry1.entryname[0] = 0xe5;
-<a name="l01670"></a>01670                 directoryChange(dirClust1, &amp;fileEntry1, subEntry1);
+<a name="l01670"></a>01670                 directoryChange(dirClust1, &amp;fileEntry1, (Bit32s)subEntry1);
 <a name="l01671"></a>01671 
 <a name="l01672"></a>01672                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l01673"></a>01673         }
@@ -1781,7 +1781,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

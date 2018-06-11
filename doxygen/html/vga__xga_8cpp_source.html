@@ -418,11 +418,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00322"></a>00322                                                 srcval = 0;
 <a name="l00323"></a>00323                                                 <span class="keywordflow">break</span>;
 <a name="l00324"></a>00324                                 }
-<a name="l00325"></a>00325                                 dstdata = XGA_GetPoint(xat,yat);
+<a name="l00325"></a>00325                                 dstdata = XGA_GetPoint((Bitu)xat,(Bitu)yat);
 <a name="l00326"></a>00326 
 <a name="l00327"></a>00327                                 destval = XGA_GetMixResult(mixmode, srcval, dstdata);
 <a name="l00328"></a>00328 
-<a name="l00329"></a>00329                                 XGA_DrawPoint(xat,yat, destval);
+<a name="l00329"></a>00329                                 XGA_DrawPoint((Bitu)xat, (Bitu)yat, destval);
 <a name="l00330"></a>00330                                 <span class="keywordflow">break</span>;
 <a name="l00331"></a>00331                         <span class="keywordflow">default</span>: 
 <a name="l00332"></a>00332                                 LOG_MSG(<span class="stringliteral">&quot;XGA: DrawLine: Needs mixmode %x&quot;</span>, (<span class="keywordtype">int</span>)mixmode);
@@ -518,17 +518,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00422"></a>00422                                         }
 <a name="l00423"></a>00423 
 <a name="l00424"></a>00424                                         <span class="keywordflow">if</span>(steep) {
-<a name="l00425"></a>00425                                                 dstdata = XGA_GetPoint(xat,yat);
+<a name="l00425"></a>00425                                                 dstdata = XGA_GetPoint((Bitu)xat,(Bitu)yat);
 <a name="l00426"></a>00426                                         } <span class="keywordflow">else</span> {
-<a name="l00427"></a>00427                                                 dstdata = XGA_GetPoint(yat,xat);
+<a name="l00427"></a>00427                                                 dstdata = XGA_GetPoint((Bitu)yat,(Bitu)xat);
 <a name="l00428"></a>00428                                         }
 <a name="l00429"></a>00429 
 <a name="l00430"></a>00430                                         destval = XGA_GetMixResult(mixmode, srcval, dstdata);
 <a name="l00431"></a>00431 
 <a name="l00432"></a>00432                                         <span class="keywordflow">if</span>(steep) {
-<a name="l00433"></a>00433                                                 XGA_DrawPoint(xat,yat, destval);
+<a name="l00433"></a>00433                                                 XGA_DrawPoint((Bitu)xat,(Bitu)yat, destval);
 <a name="l00434"></a>00434                                         } <span class="keywordflow">else</span> {
-<a name="l00435"></a>00435                                                 XGA_DrawPoint(yat,xat, destval);
+<a name="l00435"></a>00435                                                 XGA_DrawPoint((Bitu)yat,(Bitu)xat, destval);
 <a name="l00436"></a>00436                                         }
 <a name="l00437"></a>00437 
 <a name="l00438"></a>00438                                         <span class="keywordflow">break</span>;
@@ -601,11 +601,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00505"></a>00505                                                         srcval = 0;
 <a name="l00506"></a>00506                                                         <span class="keywordflow">break</span>;
 <a name="l00507"></a>00507                                         }
-<a name="l00508"></a>00508                                         dstdata = XGA_GetPoint(srcx,srcy);
+<a name="l00508"></a>00508                                         dstdata = XGA_GetPoint((Bitu)srcx,(Bitu)srcy);
 <a name="l00509"></a>00509 
 <a name="l00510"></a>00510                                         destval = XGA_GetMixResult(mixmode, srcval, dstdata);
 <a name="l00511"></a>00511 
-<a name="l00512"></a>00512                                         XGA_DrawPoint(srcx,srcy, destval);
+<a name="l00512"></a>00512                                         XGA_DrawPoint((Bitu)srcx,(Bitu)srcy, destval);
 <a name="l00513"></a>00513                                         <span class="keywordflow">break</span>;
 <a name="l00514"></a>00514                                 <span class="keywordflow">default</span>: 
 <a name="l00515"></a>00515                                         LOG_MSG(<span class="stringliteral">&quot;XGA: DrawRect: Needs mixmode %x&quot;</span>, (<span class="keywordtype">int</span>)mixmode);
@@ -785,7 +785,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00689"></a>00689                                                         Bitu mixmode;
 <a name="l00690"></a>00690                                                         
 <a name="l00691"></a>00691                                                         <span class="comment">// This formula can rule the world ;)</span>
-<a name="l00692"></a>00692                                                         Bitu mask = 1 &lt;&lt; ((((n&amp;0xF8)+(8-(n&amp;0x7)))-1)+chunksize*k);
+<a name="l00692"></a>00692                                                         Bitu mask = 1ul &lt;&lt; ((((n&amp;0xF8u)+(8u-(n&amp;0x7u)))-1u)+chunksize*k);
 <a name="l00693"></a>00693                                                         <span class="keywordflow">if</span>(val&amp;mask) mixmode = xga.foremix;
 <a name="l00694"></a>00694                                                         <span class="keywordflow">else</span> mixmode = xga.backmix;
 <a name="l00695"></a>00695                                                         
@@ -872,8 +872,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00776"></a>00776                 tarx = xga.destx;
 <a name="l00777"></a>00777 
 <a name="l00778"></a>00778                 <span class="keywordflow">for</span>(xat=0;xat&lt;=xga.MAPcount;xat++) {
-<a name="l00779"></a>00779                         srcdata = XGA_GetPoint(srcx, srcy);
-<a name="l00780"></a>00780                         dstdata = XGA_GetPoint(tarx, tary);
+<a name="l00779"></a>00779                         srcdata = XGA_GetPoint((Bitu)srcx, (Bitu)srcy);
+<a name="l00780"></a>00780                         dstdata = XGA_GetPoint((Bitu)tarx, (Bitu)tary);
 <a name="l00781"></a>00781 
 <a name="l00782"></a>00782                         <span class="keywordflow">if</span>(mixselect == 0x3) {
 <a name="l00783"></a>00783                                 <span class="keywordflow">if</span>(srcdata == xga.forecolor) {
@@ -911,7 +911,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00815"></a>00815                         destval = XGA_GetMixResult(mixmode, srcval, dstdata);
 <a name="l00816"></a>00816                         <span class="comment">//LOG_MSG(&quot;XGA: DrawPattern: Mixmode: %x Mixselect: %x&quot;, mixmode, mixselect);</span>
 <a name="l00817"></a>00817 
-<a name="l00818"></a>00818                         XGA_DrawPoint(tarx, tary, destval);
+<a name="l00818"></a>00818                         XGA_DrawPoint((Bitu)tarx, (Bitu)tary, destval);
 <a name="l00819"></a>00819 
 <a name="l00820"></a>00820                         srcx += dx;
 <a name="l00821"></a>00821                         tarx += dx;
@@ -962,9 +962,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00866"></a>00866                 tarx = xga.destx;
 <a name="l00867"></a>00867                 <span class="keywordflow">for</span>(xat=0;xat&lt;=xga.MAPcount;xat++) {
 <a name="l00868"></a>00868 
-<a name="l00869"></a>00869                         srcdata = XGA_GetPoint(srcx + (tarx &amp; 0x7), srcy + (tary &amp; 0x7));
+<a name="l00869"></a>00869                         srcdata = XGA_GetPoint((Bitu)srcx + (tarx &amp; 0x7), (Bitu)srcy + (tary &amp; 0x7));
 <a name="l00870"></a>00870                         <span class="comment">//LOG_MSG(&quot;patternpoint (%3d/%3d)v%x&quot;,srcx + (tarx &amp; 0x7), srcy + (tary &amp; 0x7),srcdata);</span>
-<a name="l00871"></a>00871                         dstdata = XGA_GetPoint(tarx, tary);
+<a name="l00871"></a>00871                         dstdata = XGA_GetPoint((Bitu)tarx, (Bitu)tary);
 <a name="l00872"></a>00872                         
 <a name="l00873"></a>00873 
 <a name="l00874"></a>00874                         <span class="keywordflow">if</span>(mixselect == 0x3) {
@@ -997,7 +997,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00901"></a>00901 
 <a name="l00902"></a>00902                         destval = XGA_GetMixResult(mixmode, srcval, dstdata);
 <a name="l00903"></a>00903 
-<a name="l00904"></a>00904                         XGA_DrawPoint(tarx, tary, destval);
+<a name="l00904"></a>00904                         XGA_DrawPoint((Bitu)tarx, (Bitu)tary, destval);
 <a name="l00905"></a>00905                         
 <a name="l00906"></a>00906                         tarx += dx;
 <a name="l00907"></a>00907                 }
@@ -1054,7 +1054,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00958"></a>00958                                 xga.waitcmd.sizex = xga.MAPcount;
 <a name="l00959"></a>00959                                 xga.waitcmd.sizey = xga.MIPcount + 1;
 <a name="l00960"></a>00960                                 xga.waitcmd.cmd = 2;
-<a name="l00961"></a>00961                                 xga.waitcmd.buswidth = vga.mode | ((val&amp;0x600) &gt;&gt; 4);
+<a name="l00961"></a>00961                                 xga.waitcmd.buswidth = (Bitu)vga.mode | (Bitu)((val&amp;0x600u) &gt;&gt; 4u);
 <a name="l00962"></a>00962                                 xga.waitcmd.data = 0;
 <a name="l00963"></a>00963                                 xga.waitcmd.datasize = 0;
 <a name="l00964"></a>00964 
@@ -1441,7 +1441,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -26,6 +26,7 @@ var searchData=
   ['midihandler_5fsynth',['MidiHandler_synth',['../classMidiHandler__synth.html',1,'']]],
   ['midihandler_5fwin32',['MidiHandler_win32',['../classMidiHandler__win32.html',1,'']]],
   ['mixcontrol',['mixcontrol',['../structgus__ICS2101_1_1mixcontrol.html',1,'gus_ICS2101']]],
+  ['mixedfraction',['mixedFraction',['../structmixedFraction.html',1,'']]],
   ['mixer',['MIXER',['../classMIXER.html',1,'']]],
   ['mixerchannel',['MixerChannel',['../classMixerChannel.html',1,'']]],
   ['mixerobject',['MixerObject',['../classMixerObject.html',1,'']]],

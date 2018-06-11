@@ -128,7 +128,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00032"></a>00032         vga.config.compatible_chain4 = !(val&amp;0x08);
 <a name="l00033"></a>00033         <span class="keywordflow">if</span> (vga.config.compatible_chain4) vga.vmemwrap = 256*1024;
 <a name="l00034"></a>00034         <span class="keywordflow">else</span> vga.vmemwrap = vga.vmemsize;
-<a name="l00035"></a>00035         vga.config.display_start = (vga.config.display_start&amp;~0x30000)|((val&amp;0x30)&lt;&lt;12);
+<a name="l00035"></a>00035         vga.config.display_start = (vga.config.display_start&amp;~0x30000ul)|((val&amp;0x30u)&lt;&lt;12ul);
 <a name="l00036"></a>00036         VGA_DetermineMode();
 <a name="l00037"></a>00037         VGA_SetupHandlers();
 <a name="l00038"></a>00038         <span class="keywordflow">break</span>;
@@ -194,7 +194,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00098"></a>00098 <span class="comment">       */</span>
 <a name="l00099"></a>00099         <span class="keywordflow">break</span>;
 <a name="l00100"></a>00100     <span class="keywordflow">case</span> 0x43:  <span class="comment">/* CR43 Extended Mode */</span>
-<a name="l00101"></a>00101         vga.s3.reg_43=val &amp; ~0x4;
+<a name="l00101"></a>00101         vga.s3.reg_43=val &amp; ~0x4u;
 <a name="l00102"></a>00102         <span class="keywordflow">if</span> (((val &amp; 0x4) ^ (vga.config.scan_len &gt;&gt; 6)) &amp; 0x4) {
 <a name="l00103"></a>00103             vga.config.scan_len&amp;=0x2ff;
 <a name="l00104"></a>00104             vga.config.scan_len|=(val &amp; 0x4) &lt;&lt; 6;
@@ -467,7 +467,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00371"></a>00371     <span class="keywordflow">switch</span> (reg) {
 <a name="l00372"></a>00372     <span class="keywordflow">case</span> 0x24:  <span class="comment">/* attribute controller index (read only) */</span>
 <a name="l00373"></a>00373     <span class="keywordflow">case</span> 0x26:
-<a name="l00374"></a>00374         <span class="keywordflow">return</span> ((vga.attr.disabled &amp; 1)?0x00:0x20) | (vga.attr.index &amp; 0x1f);
+<a name="l00374"></a>00374         <span class="keywordflow">return</span> ((vga.attr.disabled &amp; 1u)?0x00u:0x20u) | (vga.attr.index &amp; 0x1fu);
 <a name="l00375"></a>00375     <span class="keywordflow">case</span> 0x2d:  <span class="comment">/* Extended Chip ID (high byte of PCI device ID) */</span>
 <a name="l00376"></a>00376         <span class="keywordflow">return</span> 0x88;
 <a name="l00377"></a>00377     <span class="keywordflow">case</span> 0x2e:  <span class="comment">/* New Chip ID  (low byte of PCI device ID) */</span>
@@ -481,7 +481,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00385"></a>00385 <span class="comment">//TODO mix in bits from baseaddress;</span>
 <a name="l00386"></a>00386         <span class="keywordflow">return</span>  vga.s3.reg_31;  
 <a name="l00387"></a>00387     <span class="keywordflow">case</span> 0x35:  <span class="comment">/* CR35 CRT Register Lock */</span>
-<a name="l00388"></a>00388         <span class="keywordflow">return</span> vga.s3.reg_35|(vga.svga.bank_read &amp; 0xf);
+<a name="l00388"></a>00388         <span class="keywordflow">return</span> vga.s3.reg_35|(vga.svga.bank_read &amp; 0xfu);
 <a name="l00389"></a>00389     <span class="keywordflow">case</span> 0x36: <span class="comment">/* CR36 Reset State Read 1 */</span>
 <a name="l00390"></a>00390         <span class="keywordflow">return</span> vga.s3.reg_36;
 <a name="l00391"></a>00391     <span class="keywordflow">case</span> 0x37: <span class="comment">/* Reset state read 2 */</span>
@@ -503,15 +503,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00407"></a>00407     <span class="keywordflow">case</span> 0x45:  <span class="comment">/* Hardware cursor mode */</span>
 <a name="l00408"></a>00408         vga.s3.hgc.bstackpos = 0;
 <a name="l00409"></a>00409         vga.s3.hgc.fstackpos = 0;
-<a name="l00410"></a>00410         <span class="keywordflow">return</span> vga.s3.hgc.curmode|0xa0;
+<a name="l00410"></a>00410         <span class="keywordflow">return</span> vga.s3.hgc.curmode|0xa0u;
 <a name="l00411"></a>00411     <span class="keywordflow">case</span> 0x46:
-<a name="l00412"></a>00412         <span class="keywordflow">return</span> vga.s3.hgc.originx&gt;&gt;8;
+<a name="l00412"></a>00412         <span class="keywordflow">return</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vga.s3.hgc.originx&gt;&gt;8u;
 <a name="l00413"></a>00413     <span class="keywordflow">case</span> 0x47:  <span class="comment">/*  HGC orgX */</span>
-<a name="l00414"></a>00414         <span class="keywordflow">return</span> vga.s3.hgc.originx&amp;0xff;
+<a name="l00414"></a>00414         <span class="keywordflow">return</span> vga.s3.hgc.originx&amp;0xffu;
 <a name="l00415"></a>00415     <span class="keywordflow">case</span> 0x48:
-<a name="l00416"></a>00416         <span class="keywordflow">return</span> vga.s3.hgc.originy&gt;&gt;8;
+<a name="l00416"></a>00416         <span class="keywordflow">return</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vga.s3.hgc.originy&gt;&gt;8u;
 <a name="l00417"></a>00417     <span class="keywordflow">case</span> 0x49:  <span class="comment">/*  HGC orgY */</span>
-<a name="l00418"></a>00418         <span class="keywordflow">return</span> vga.s3.hgc.originy&amp;0xff;
+<a name="l00418"></a>00418         <span class="keywordflow">return</span> vga.s3.hgc.originy&amp;0xffu;
 <a name="l00419"></a>00419     <span class="keywordflow">case</span> 0x4A:  <span class="comment">/* HGC foreground stack */</span>
 <a name="l00420"></a>00420         <span class="keywordflow">return</span> vga.s3.hgc.forestack[vga.s3.hgc.fstackpos];
 <a name="l00421"></a>00421     <span class="keywordflow">case</span> 0x4B:  <span class="comment">/* HGC background stack */</span>
@@ -519,9 +519,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00423"></a>00423     <span class="keywordflow">case</span> 0x50:  <span class="comment">// CR50 Extended System Control 1</span>
 <a name="l00424"></a>00424         <span class="keywordflow">return</span> vga.s3.reg_50;
 <a name="l00425"></a>00425     <span class="keywordflow">case</span> 0x51:  <span class="comment">/* Extended System Control 2 */</span>
-<a name="l00426"></a>00426         <span class="keywordflow">return</span> ((vga.config.display_start &gt;&gt; 16) &amp; 3 ) |
-<a name="l00427"></a>00427                 ((vga.svga.bank_read &amp; 0x30) &gt;&gt; 2) |
-<a name="l00428"></a>00428                 ((vga.config.scan_len &amp; 0x300) &gt;&gt; 4) |
+<a name="l00426"></a>00426         <span class="keywordflow">return</span> ((vga.config.display_start &gt;&gt; 16u) &amp; 3u) |
+<a name="l00427"></a>00427                 ((vga.svga.bank_read &amp; 0x30u) &gt;&gt; 2u) |
+<a name="l00428"></a>00428                 ((vga.config.scan_len &amp; 0x300u) &gt;&gt; 4u) |
 <a name="l00429"></a>00429                 vga.s3.reg_51;
 <a name="l00430"></a>00430     <span class="keywordflow">case</span> 0x52:  <span class="comment">// CR52 Extended BIOS flags 1</span>
 <a name="l00431"></a>00431         <span class="keywordflow">return</span> vga.s3.reg_52;
@@ -532,7 +532,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00436"></a>00436     <span class="keywordflow">case</span> 0x58:  <span class="comment">/* Linear Address Window Control */</span>
 <a name="l00437"></a>00437         <span class="keywordflow">return</span>  vga.s3.reg_58;
 <a name="l00438"></a>00438     <span class="keywordflow">case</span> 0x59:  <span class="comment">/* Linear Address Window Position High */</span>
-<a name="l00439"></a>00439         return (vga.s3.la_window &gt;&gt; 8);
+<a name="l00439"></a>00439         return ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vga.s3.la_window &gt;&gt; 8u);
 <a name="l00440"></a>00440     <span class="keywordflow">case</span> 0x5a:  <span class="comment">/* Linear Address Window Position Low */</span>
 <a name="l00441"></a>00441         <span class="keywordflow">return</span> (vga.s3.la_window &amp; 0xff);
 <a name="l00442"></a>00442     <span class="keywordflow">case</span> 0x5D:  <span class="comment">/* Extended Horizontal Overflow */</span>
@@ -689,7 +689,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

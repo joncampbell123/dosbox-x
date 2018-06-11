@@ -823,14 +823,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00727"></a>00727                 <span class="keywordflow">else</span> {
 <a name="l00728"></a>00728                         Bit32s product0 = (Bit32s)dest-&gt;sw.w0 * (Bit32s)src.sw.w0;
 <a name="l00729"></a>00729                         Bit32s product1 = (Bit32s)dest-&gt;sw.w1 * (Bit32s)src.sw.w1;
-<a name="l00730"></a>00730                         dest-&gt;ud.d0 = product0 + product1;
+<a name="l00730"></a>00730                         dest-&gt;ud.d0 = (uint32_t)(product0 + product1);
 <a name="l00731"></a>00731                 }
 <a name="l00732"></a>00732                 <span class="keywordflow">if</span> (dest-&gt;ud.d1 == 0x80008000 &amp;&amp; src.ud.d1 == 0x80008000)
 <a name="l00733"></a>00733                         dest-&gt;ud.d1 = 0x80000000;
 <a name="l00734"></a>00734                 <span class="keywordflow">else</span> {
 <a name="l00735"></a>00735                         Bit32s product2 = (Bit32s)dest-&gt;sw.w2 * (Bit32s)src.sw.w2;
 <a name="l00736"></a>00736                         Bit32s product3 = (Bit32s)dest-&gt;sw.w3 * (Bit32s)src.sw.w3;
-<a name="l00737"></a>00737                         dest-&gt;sd.d1 = product2 + product3;
+<a name="l00737"></a>00737                         dest-&gt;sd.d1 = (int32_t)(product2 + product3);
 <a name="l00738"></a>00738                 }
 <a name="l00739"></a>00739                 <span class="keywordflow">break</span>;
 <a name="l00740"></a>00740         }
@@ -1112,7 +1112,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:02 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -158,7 +158,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00062"></a>00062 Bitu pc98_crtc_read(Bitu port,Bitu iolen) {
 <a name="l00063"></a>00063     (void)iolen;<span class="comment">//UNUSED</span>
 <a name="l00064"></a>00064     LOG_MSG(<span class="stringliteral">&quot;PC98 CRTC r: port=0x%02X unknown&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)port);
-<a name="l00065"></a>00065     <span class="keywordflow">return</span> ~0;
+<a name="l00065"></a>00065     <span class="keywordflow">return</span> ~0ul;
 <a name="l00066"></a>00066 }
 <a name="l00067"></a>00067 
 <a name="l00068"></a>00068 <span class="comment">/* Port 0x6A command handling */</span>
@@ -227,7 +227,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

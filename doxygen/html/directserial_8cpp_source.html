@@ -391,8 +391,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00295"></a>00295 
 <a name="l00296"></a>00296         <span class="comment">// baudrate</span>
 <a name="l00297"></a>00297         Bitu baudrate;
-<a name="l00298"></a>00298         <span class="keywordflow">if</span>(divider==0) baudrate=115200;
-<a name="l00299"></a>00299         <span class="keywordflow">else</span> baudrate = 115200 / divider;
+<a name="l00298"></a>00298         <span class="keywordflow">if</span>(divider==0) baudrate=115200u;
+<a name="l00299"></a>00299         <span class="keywordflow">else</span> baudrate = 115200u / divider;
 <a name="l00300"></a>00300 
 <a name="l00301"></a>00301         <span class="comment">// stopbits</span>
 <a name="l00302"></a>00302         Bit8u stopbits;
@@ -401,7 +401,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00305"></a>00305                 <span class="keywordflow">else</span> stopbits = SERIAL_2STOP;
 <a name="l00306"></a>00306         } <span class="keywordflow">else</span> stopbits = SERIAL_1STOP;
 <a name="l00307"></a>00307 
-<a name="l00308"></a>00308         <span class="keywordflow">if</span>(!SERIAL_setCommParameters(comport, baudrate, parity, stopbits, bytelength)) {
+<a name="l00308"></a>00308         <span class="keywordflow">if</span>(!SERIAL_setCommParameters(comport, baudrate, (<span class="keywordtype">char</span>)parity, (<span class="keywordtype">char</span>)stopbits, (<span class="keywordtype">char</span>)bytelength)) {
 <a name="l00309"></a>00309 <span class="preprocessor">#if SERIAL_DEBUG</span>
 <a name="l00310"></a>00310 <span class="preprocessor"></span>                log_ser(dbg_aux,<span class="stringliteral">&quot;Serial port settings not supported by host.&quot;</span> );
 <a name="l00311"></a>00311 <span class="preprocessor">#endif</span>
@@ -421,7 +421,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00325"></a>00325 }
 <a name="l00326"></a>00326 
 <a name="l00327"></a>00327 <span class="keywordtype">void</span> CDirectSerial::transmitByte (Bit8u val, <span class="keywordtype">bool</span> first) {
-<a name="l00328"></a>00328         <span class="keywordflow">if</span>(!SERIAL_sendchar(comport, val))
+<a name="l00328"></a>00328         <span class="keywordflow">if</span>(!SERIAL_sendchar(comport, (<span class="keywordtype">char</span>)val))
 <a name="l00329"></a>00329                 LOG_MSG(<span class="stringliteral">&quot;Serial%d: COM port error: write failed!&quot;</span>, (<span class="keywordtype">int</span>)COMNUMBER);
 <a name="l00330"></a>00330         <span class="keywordflow">if</span>(first) setEvent(SERIAL_THR_EVENT, bytetime/8);
 <a name="l00331"></a>00331         <span class="keywordflow">else</span> setEvent(SERIAL_TX_EVENT, bytetime);
@@ -452,7 +452,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

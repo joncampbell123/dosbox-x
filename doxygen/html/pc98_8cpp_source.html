@@ -125,9 +125,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00029"></a>00029 <span class="keywordtype">void</span> gdc_grcg_enable_update_vars(<span class="keywordtype">void</span>);
 <a name="l00030"></a>00030 
 <a name="l00031"></a>00031 <span class="comment">/* ====================== PC98UTIL.COM ====================== */</span>
-<a name="l00032"></a><a class="code" href="classPC98UTIL.html">00032</a> <span class="keyword">class </span><a class="code" href="classPC98UTIL.html">PC98UTIL</a> : <span class="keyword">public</span> <a class="code" href="classProgram.html">Program</a> {
+<a name="l00032"></a><a class="code" href="classPC98UTIL.html">00032</a> <span class="keyword">class </span><a class="code" href="classPC98UTIL.html">PC98UTIL</a> : <span class="keyword">public</span> <a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> {
 <a name="l00033"></a>00033 <span class="keyword">public</span>:
-<a name="l00034"></a>00034         <span class="keywordtype">void</span> Run(<span class="keywordtype">void</span>) {
+<a name="l00034"></a><a class="code" href="classPC98UTIL.html#a707ed1ec88edc877739dc492b9b2d752">00034</a>         <span class="keywordtype">void</span> <a class="code" href="classPC98UTIL.html#a707ed1ec88edc877739dc492b9b2d752" title="DOS kernel Program Segment Prefix associated with this program at runtime.">Run</a>(<span class="keywordtype">void</span>) {
 <a name="l00035"></a>00035         <span class="keywordtype">string</span> arg;
 <a name="l00036"></a>00036                 <span class="keywordtype">bool</span> got_opt=<span class="keyword">false</span>;
 <a name="l00037"></a>00037                 
@@ -197,7 +197,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00101"></a>00101     }
 <a name="l00102"></a>00102 };
 <a name="l00103"></a>00103 
-<a name="l00104"></a>00104 <span class="keywordtype">void</span> PC98UTIL_ProgramStart(<a class="code" href="classProgram.html">Program</a> * * make) {
+<a name="l00104"></a>00104 <span class="keywordtype">void</span> PC98UTIL_ProgramStart(<a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> * * make) {
 <a name="l00105"></a>00105         *make=<span class="keyword">new</span> <a class="code" href="classPC98UTIL.html">PC98UTIL</a>;
 <a name="l00106"></a>00106 }
 <a name="l00107"></a>00107 <span class="comment">/*==============================================*/</span>
@@ -216,7 +216,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

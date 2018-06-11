@@ -396,11 +396,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00300"></a>00300 
 <a name="l00301"></a>00301     <span class="keywordflow">while</span> (low&lt;=high) {
 <a name="l00302"></a>00302         mid = (low+high)/2;
-<a name="l00303"></a>00303         res = strcmp(fullname,curDir-&gt;longNameList[mid]-&gt;orgname);
+<a name="l00303"></a>00303         res = strcmp(fullname,curDir-&gt;longNameList[(<span class="keywordtype">size_t</span>)mid]-&gt;orgname);
 <a name="l00304"></a>00304         <span class="keywordflow">if</span> (res&gt;0)  low  = mid+1; <span class="keywordflow">else</span>
 <a name="l00305"></a>00305         <span class="keywordflow">if</span> (res&lt;0)  high = mid-1; 
 <a name="l00306"></a>00306         <span class="keywordflow">else</span> {
-<a name="l00307"></a>00307             strcpy(shortname,curDir-&gt;longNameList[mid]-&gt;shortname);
+<a name="l00307"></a>00307             strcpy(shortname,curDir-&gt;longNameList[(<span class="keywordtype">size_t</span>)mid]-&gt;shortname);
 <a name="l00308"></a>00308             <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00309"></a>00309         };
 <a name="l00310"></a>00310     }
@@ -449,16 +449,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00353"></a>00353 
 <a name="l00354"></a>00354     <span class="keywordflow">while</span> (low&lt;=high) {
 <a name="l00355"></a>00355         mid = (low+high)/2;
-<a name="l00356"></a>00356         res = CompareShortname(name,curDir-&gt;longNameList[mid]-&gt;shortname);
+<a name="l00356"></a>00356         res = CompareShortname(name,curDir-&gt;longNameList[(<span class="keywordtype">size_t</span>)mid]-&gt;shortname);
 <a name="l00357"></a>00357         
 <a name="l00358"></a>00358         <span class="keywordflow">if</span> (res&gt;0)  low  = mid+1; <span class="keywordflow">else</span>
 <a name="l00359"></a>00359         <span class="keywordflow">if</span> (res&lt;0)  high = mid-1; 
 <a name="l00360"></a>00360         <span class="keywordflow">else</span> {
 <a name="l00361"></a>00361             <span class="comment">// any more same x chars in next entries ?  </span>
 <a name="l00362"></a>00362             <span class="keywordflow">do</span> {
-<a name="l00363"></a>00363                 foundNr = curDir-&gt;longNameList[mid]-&gt;shortNr;
+<a name="l00363"></a>00363                 foundNr = curDir-&gt;longNameList[(size_t)mid]-&gt;shortNr;
 <a name="l00364"></a>00364                 mid++;
-<a name="l00365"></a>00365             } <span class="keywordflow">while</span>((Bitu)mid&lt;curDir-&gt;longNameList.size() &amp;&amp; (CompareShortname(name,curDir-&gt;longNameList[mid]-&gt;shortname)==0));
+<a name="l00365"></a>00365             } <span class="keywordflow">while</span>((Bitu)mid&lt;curDir-&gt;longNameList.size() &amp;&amp; (CompareShortname(name,curDir-&gt;longNameList[(<span class="keywordtype">size_t</span>)mid]-&gt;shortname)==0));
 <a name="l00366"></a>00366             <span class="keywordflow">break</span>;
 <a name="l00367"></a>00367         };
 <a name="l00368"></a>00368     }
@@ -543,11 +543,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00447"></a>00447     Bits mid,res;
 <a name="l00448"></a>00448     <span class="keywordflow">while</span> (low&lt;=high) {
 <a name="l00449"></a>00449         mid = (low+high)/2;
-<a name="l00450"></a>00450         res = strcmp(shortName,curDir-&gt;fileList[mid]-&gt;shortname);
+<a name="l00450"></a>00450         res = strcmp(shortName,curDir-&gt;fileList[(<span class="keywordtype">size_t</span>)mid]-&gt;shortname);
 <a name="l00451"></a>00451         <span class="keywordflow">if</span> (res&gt;0)  low  = mid+1; <span class="keywordflow">else</span>
 <a name="l00452"></a>00452         <span class="keywordflow">if</span> (res&lt;0)  high = mid-1; <span class="keywordflow">else</span>
 <a name="l00453"></a>00453         {   <span class="comment">// Found</span>
-<a name="l00454"></a>00454             strcpy(shortName,curDir-&gt;fileList[mid]-&gt;orgname);
+<a name="l00454"></a>00454             strcpy(shortName,curDir-&gt;fileList[(<span class="keywordtype">size_t</span>)mid]-&gt;orgname);
 <a name="l00455"></a>00455             <span class="keywordflow">return</span> mid;
 <a name="l00456"></a>00456         };
 <a name="l00457"></a>00457     }
@@ -631,8 +631,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00535"></a>00535         <span class="comment">// Copy first letters</span>
 <a name="l00536"></a>00536         Bits tocopy = 0;
 <a name="l00537"></a>00537         <span class="keywordtype">size_t</span> buflen = strlen(buffer);
-<a name="l00538"></a>00538         <span class="keywordflow">if</span> (len+buflen+1&gt;8) tocopy = (Bits)(8 - buflen - 1);
-<a name="l00539"></a>00539         <span class="keywordflow">else</span>                tocopy = len;
+<a name="l00538"></a>00538         <span class="keywordflow">if</span> ((<span class="keywordtype">size_t</span>)len+buflen+1u&gt;8u) tocopy = (Bits)(8u - buflen - 1u);
+<a name="l00539"></a>00539         <span class="keywordflow">else</span>                          tocopy = len;
 <a name="l00540"></a>00540         safe_strncpy(info-&gt;shortname,tmpName,tocopy+1);
 <a name="l00541"></a>00541         <span class="comment">// Copy number</span>
 <a name="l00542"></a>00542         strcat(info-&gt;shortname,<span class="stringliteral">&quot;~&quot;</span>);
@@ -731,8 +731,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00635"></a>00635 <span class="comment">        };</span>
 <a name="l00636"></a>00636 <span class="comment">*/</span>
 <a name="l00637"></a>00637         <span class="comment">// Follow Directory</span>
-<a name="l00638"></a>00638         <span class="keywordflow">if</span> ((nextDir&gt;=0) &amp;&amp; curDir-&gt;fileList[nextDir]-&gt;isDir) {
-<a name="l00639"></a>00639             curDir = curDir-&gt;fileList[nextDir];
+<a name="l00638"></a>00638         <span class="keywordflow">if</span> ((nextDir&gt;=0) &amp;&amp; curDir-&gt;fileList[(<span class="keywordtype">size_t</span>)nextDir]-&gt;isDir) {
+<a name="l00639"></a>00639             curDir = curDir-&gt;fileList[(size_t)nextDir];
 <a name="l00640"></a>00640             strcpy (curDir-&gt;orgname,dir);
 <a name="l00641"></a>00641             <span class="keywordflow">if</span> (!IsCachedIn(curDir)) {
 <a name="l00642"></a>00642                 <span class="keywordflow">if</span> (OpenDir(curDir,expandedPath,<span class="keywordtype">id</span>)) {
@@ -990,7 +990,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

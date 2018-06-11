@@ -301,7 +301,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00205"></a>00205         <span class="keywordflow">return</span> LinMakeProt(seg,offset);
 <a name="l00206"></a>00206 
 <a name="l00207"></a>00207         <span class="keywordflow">if</span> (seg==SegValue(cs)) <span class="keywordflow">return</span> SegPhys(cs)+offset;
-<a name="l00208"></a>00208         <span class="keywordflow">return</span> (seg&lt;&lt;4)+offset;
+<a name="l00208"></a>00208         <span class="keywordflow">return</span> ((Bit64u)seg&lt;&lt;4u)+offset;
 <a name="l00209"></a>00209 }
 <a name="l00210"></a>00210 
 <a name="l00211"></a>00211 <span class="keyword">static</span> <span class="keywordtype">char</span> empty_sel[] = { <span class="charliteral">&#39; &#39;</span>,<span class="charliteral">&#39; &#39;</span>,0 };
@@ -1187,8 +1187,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01091"></a>01091         <span class="keywordflow">if</span> (strstr(hex,<span class="stringliteral">&quot;SS&quot;</span>)==hex) { hex+=2; regval = SegValue(ss); };
 <a name="l01092"></a>01092 
 <a name="l01093"></a>01093         <span class="keywordflow">while</span> (*hex) {
-<a name="l01094"></a>01094                 <span class="keywordflow">if</span> ((*hex&gt;=<span class="charliteral">&#39;0&#39;</span>) &amp;&amp; (*hex&lt;=<span class="charliteral">&#39;9&#39;</span>)) value = (value&lt;&lt;4)+*hex-<span class="charliteral">&#39;0&#39;</span>;
-<a name="l01095"></a>01095                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((*hex&gt;=<span class="charliteral">&#39;A&#39;</span>) &amp;&amp; (*hex&lt;=<span class="charliteral">&#39;F&#39;</span>)) value = (value&lt;&lt;4)+*hex-<span class="charliteral">&#39;A&#39;</span>+10; 
+<a name="l01094"></a>01094                 <span class="keywordflow">if</span> ((*hex&gt;=<span class="charliteral">&#39;0&#39;</span>) &amp;&amp; (*hex&lt;=<span class="charliteral">&#39;9&#39;</span>)) value = (value&lt;&lt;4u) + ((Bit32u)(*hex)) - <span class="charliteral">&#39;0&#39;</span>;
+<a name="l01095"></a>01095                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((*hex&gt;=<span class="charliteral">&#39;A&#39;</span>) &amp;&amp; (*hex&lt;=<span class="charliteral">&#39;F&#39;</span>)) value = (value&lt;&lt;4u) + ((Bit32u)(*hex)) - <span class="charliteral">&#39;A&#39;</span> + 10u;
 <a name="l01096"></a>01096                 <span class="keywordflow">else</span> { 
 <a name="l01097"></a>01097                         <span class="keywordflow">if</span>(*hex == <span class="charliteral">&#39;+&#39;</span>) {hex++;<span class="keywordflow">return</span> regval + value + GetHexValue(hex,hex); };
 <a name="l01098"></a>01098                         <span class="keywordflow">if</span>(*hex == <span class="charliteral">&#39;-&#39;</span>) {hex++;<span class="keywordflow">return</span> regval + value - GetHexValue(hex,hex); };
@@ -1259,7 +1259,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01163"></a>01163         found = <span class="keyword">const_cast&lt;</span><span class="keywordtype">char</span>*<span class="keyword">&gt;</span>(s_found.c_str());
 <a name="l01164"></a>01164 
 <a name="l01165"></a>01165     <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;MOVEWINDN&quot;</span>) { <span class="comment">// MOVE WINDOW DOWN (by swapping)</span>
-<a name="l01166"></a>01166         <span class="keywordtype">int</span> order1 = dbg.win_find_order(dbg.active_win);
+<a name="l01166"></a>01166         <span class="keywordtype">int</span> order1 = dbg.win_find_order((<span class="keywordtype">int</span>)dbg.active_win);
 <a name="l01167"></a>01167         <span class="keywordtype">int</span> order2 = dbg.win_next_by_order(order1);
 <a name="l01168"></a>01168 
 <a name="l01169"></a>01169         <span class="keywordflow">if</span> (order1 &gt;= 0 &amp;&amp; order2 &gt;= 0 &amp;&amp; order1 &lt; order2) {
@@ -1272,7 +1272,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01176"></a>01176     }
 <a name="l01177"></a>01177 
 <a name="l01178"></a>01178     <span class="keywordflow">if</span> (command == <span class="stringliteral">&quot;MOVEWINUP&quot;</span>) { <span class="comment">// MOVE WINDOW UP (by swapping)</span>
-<a name="l01179"></a>01179         <span class="keywordtype">int</span> order1 = dbg.win_find_order(dbg.active_win);
+<a name="l01179"></a>01179         <span class="keywordtype">int</span> order1 = dbg.win_find_order((<span class="keywordtype">int</span>)dbg.active_win);
 <a name="l01180"></a>01180         <span class="keywordtype">int</span> order2 = dbg.win_prev_by_order(order1);
 <a name="l01181"></a>01181 
 <a name="l01182"></a>01182         <span class="keywordflow">if</span> (order1 &gt;= 0 &amp;&amp; order2 &gt;= 0 &amp;&amp; order1 &gt; order2) {
@@ -1609,7 +1609,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01513"></a>01513                 <span class="comment">//Initialize log object</span>
 <a name="l01514"></a>01514                 cpuLogFile &lt;&lt; hex &lt;&lt; noshowbase &lt;&lt; setfill(<span class="charliteral">&#39;0&#39;</span>) &lt;&lt; uppercase;
 <a name="l01515"></a>01515                 cpuLog = <span class="keyword">true</span>;
-<a name="l01516"></a>01516                 cpuLogCounter = GetHexValue(found,found);
+<a name="l01516"></a>01516                 cpuLogCounter = (int)GetHexValue(found,found);
 <a name="l01517"></a>01517 
 <a name="l01518"></a>01518                 debugging = <span class="keyword">false</span>;
 <a name="l01519"></a>01519                 CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,<span class="keyword">true</span>);                                             
@@ -1687,8 +1687,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01591"></a>01591                 <span class="keywordflow">if</span> (found[0] != 0) {
 <a name="l01592"></a>01592                         Bit8u intNr = (Bit8u)GetHexValue(found,found);
 <a name="l01593"></a>01593                         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Set code overview to interrupt handler %X\n&quot;</span>,intNr);
-<a name="l01594"></a>01594                         codeViewData.useCS      = mem_readw(intNr*4+2);
-<a name="l01595"></a>01595                         codeViewData.useEIP = mem_readw(intNr*4);
+<a name="l01594"></a>01594                         codeViewData.useCS      = mem_readw(intNr*4u+2u);
+<a name="l01595"></a>01595                         codeViewData.useEIP = mem_readw(intNr*4u);
 <a name="l01596"></a>01596                         codeViewData.cursorPos = 0;
 <a name="l01597"></a>01597                         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l01598"></a>01598                 }
@@ -2343,7 +2343,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02247"></a>02247                         <span class="keywordflow">if</span> (GCC_UNLIKELY(ret &gt;= CB_MAX)) 
 <a name="l02248"></a>02248                                 ret = 0;
 <a name="l02249"></a>02249                         <span class="keywordflow">else</span>
-<a name="l02250"></a>02250                                 ret = (*CallBack_Handlers[ret])();
+<a name="l02250"></a>02250                                 ret = (Bits)(*CallBack_Handlers[ret])();
 <a name="l02251"></a>02251                         <span class="keywordflow">if</span> (ret) {
 <a name="l02252"></a>02252                                 exitLoop=<span class="keyword">true</span>;
 <a name="l02253"></a>02253                                 CPU_Cycles=CPU_CycleLeft=0;
@@ -2424,7 +2424,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02328"></a>02328             check_rescroll = <span class="keyword">false</span>;
 <a name="l02329"></a>02329             ocs = codeViewData.useCS;
 <a name="l02330"></a>02330             oip = codeViewData.useEIP;
-<a name="l02331"></a>02331             ocr = codeViewData.cursorPos;
+<a name="l02331"></a>02331             ocr = (Bitu)codeViewData.cursorPos;
 <a name="l02332"></a>02332             SetCodeWinStart();
 <a name="l02333"></a>02333             <span class="keywordflow">if</span> (ocs != codeViewData.useCS ||
 <a name="l02334"></a>02334                     oip != codeViewData.useEIP) {
@@ -2769,13 +2769,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02673"></a>02673         <span class="keywordflow">if</span> (paging.enabled) {
 <a name="l02674"></a>02674                 Bitu sel = GetHexValue(selname,selname);
 <a name="l02675"></a>02675                 <span class="keywordflow">if</span> ((sel==0x00) &amp;&amp; ((*selname==0) || (*selname==<span class="charliteral">&#39;*&#39;</span>))) {
-<a name="l02676"></a>02676                         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i=0; i&lt;0xfffff; i++) {
-<a name="l02677"></a>02677                                 Bitu table_addr=(paging.base.page&lt;&lt;12)+(i &gt;&gt; 10)*4;
+<a name="l02676"></a>02676                         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0; i&lt;0xfffff; i++) {
+<a name="l02677"></a>02677                                 Bitu table_addr=((Bitu)paging.base.page&lt;&lt;12u)+(i &gt;&gt; 10u)*4u;
 <a name="l02678"></a>02678                                 <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> table;
 <a name="l02679"></a>02679                                 table.load=phys_readd(table_addr);
 <a name="l02680"></a>02680                                 <span class="keywordflow">if</span> (table.block.p) {
 <a name="l02681"></a>02681                                         <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> entry;
-<a name="l02682"></a>02682                                         Bitu entry_addr=(table.block.base&lt;&lt;12)+(i &amp; 0x3ff)*4;
+<a name="l02682"></a>02682                                         Bitu entry_addr=((Bitu)table.block.base&lt;&lt;12u)+(i &amp; 0x3ffu)*4u;
 <a name="l02683"></a>02683                                         entry.load=phys_readd(entry_addr);
 <a name="l02684"></a>02684                                         <span class="keywordflow">if</span> (entry.block.p) {
 <a name="l02685"></a>02685                                                 sprintf(out1,<span class="stringliteral">&quot;page %05Xxxx -&gt; %04Xxxx  flags [uw] %x:%x::%x:%x [d=%x|a=%x]&quot;</span>,
@@ -2786,12 +2786,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02690"></a>02690                                 }
 <a name="l02691"></a>02691                         }
 <a name="l02692"></a>02692                 } <span class="keywordflow">else</span> {
-<a name="l02693"></a>02693                         Bitu table_addr=(paging.base.page&lt;&lt;12)+(sel &gt;&gt; 10)*4;
+<a name="l02693"></a>02693                         Bitu table_addr=(paging.base.page&lt;&lt;12u)+(sel &gt;&gt; 10u)*4u;
 <a name="l02694"></a>02694                         <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> table;
 <a name="l02695"></a>02695                         table.load=phys_readd(table_addr);
 <a name="l02696"></a>02696                         <span class="keywordflow">if</span> (table.block.p) {
 <a name="l02697"></a>02697                                 <a class="code" href="unionX86PageEntry.html">X86PageEntry</a> entry;
-<a name="l02698"></a>02698                                 Bitu entry_addr=(table.block.base&lt;&lt;12)+(sel &amp; 0x3ff)*4;
+<a name="l02698"></a>02698                                 Bitu entry_addr=((Bitu)table.block.base&lt;&lt;12u)+(sel &amp; 0x3ffu)*4u;
 <a name="l02699"></a>02699                                 entry.load=phys_readd(entry_addr);
 <a name="l02700"></a>02700                                 sprintf(out1,<span class="stringliteral">&quot;page %05lXxxx -&gt; %04lXxxx  flags [puw] %x:%x::%x:%x::%x:%x&quot;</span>,
 <a name="l02701"></a>02701                                         (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)sel,
@@ -2909,14 +2909,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02813"></a>02813 <span class="preprocessor">#if 0</span>
 <a name="l02814"></a>02814 <span class="preprocessor"></span><span class="comment">// DEBUG.COM stuff</span>
 <a name="l02815"></a>02815 
-<a name="l02816"></a>02816 <span class="keyword">class </span>DEBUG : <span class="keyword">public</span> <a class="code" href="classProgram.html">Program</a> {
+<a name="l02816"></a>02816 <span class="keyword">class </span>DEBUG : <span class="keyword">public</span> <a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> {
 <a name="l02817"></a>02817 <span class="keyword">public</span>:
 <a name="l02818"></a>02818         DEBUG()         { pDebugcom     = <span class="keyword">this</span>; active = <span class="keyword">false</span>; };
 <a name="l02819"></a>02819         ~DEBUG()        { pDebugcom     = 0; };
 <a name="l02820"></a>02820 
 <a name="l02821"></a>02821         <span class="keywordtype">bool</span> IsActive() { <span class="keywordflow">return</span> active; };
 <a name="l02822"></a>02822 
-<a name="l02823"></a>02823         <span class="keywordtype">void</span> Run(<span class="keywordtype">void</span>)
+<a name="l02823"></a>02823         <span class="keywordtype">void</span> <a class="code" href="classProgram.html#acd37c94c3c12a55650a05ee1449aa176" title="DOS kernel Program Segment Prefix associated with this program at runtime.">Run</a>(<span class="keywordtype">void</span>)
 <a name="l02824"></a>02824         {
 <a name="l02825"></a>02825                 <span class="keywordflow">if</span>(cmd-&gt;FindExist(<span class="stringliteral">&quot;/NOMOUSE&quot;</span>,<span class="keyword">false</span>)) {
 <a name="l02826"></a>02826                         real_writed(0,0x33&lt;&lt;2,0);
@@ -2950,8 +2950,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02854"></a>02854                         SegSet16(ss,segment);
 <a name="l02855"></a>02855                         reg_sp = 0x200;
 <a name="l02856"></a>02856                         <span class="comment">// Start shell</span>
-<a name="l02857"></a>02857                         <a class="code" href="classDOS__Shell.html">DOS_Shell</a> shell;
-<a name="l02858"></a>02858                         shell.Execute(filename,args);
+<a name="l02857"></a>02857                         <a class="code" href="classDOS__Shell.html" title="DOS shell program object.">DOS_Shell</a> shell;
+<a name="l02858"></a>02858                         shell.<a class="code" href="classDOS__Shell.html#afd2875b08f791d9100ef111800855f09" title="Execute a command.">Execute</a>(filename,args);
 <a name="l02859"></a>02859                         DOS_FreeMemory(segment);
 <a name="l02860"></a>02860                 }
 <a name="l02861"></a>02861                 <span class="comment">// set old reg values</span>
@@ -3237,8 +3237,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03141"></a>03141                 <span class="keywordflow">return</span>;
 <a name="l03142"></a>03142         }
 <a name="l03143"></a>03143 
-<a name="l03144"></a>03144         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i=0; i&lt;256; i++)
-<a name="l03145"></a>03145                 fprintf(f,<span class="stringliteral">&quot;INT %02X:  %04X:%04X\n&quot;</span>, i, mem_readw(i*4+2), mem_readw(i*4));
+<a name="l03144"></a>03144         <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0; i&lt;256; i++)
+<a name="l03145"></a>03145                 fprintf(f,<span class="stringliteral">&quot;INT %02X:  %04X:%04X\n&quot;</span>, i, mem_readw(i * 4u + 2u), mem_readw(i * 4u));
 <a name="l03146"></a>03146 
 <a name="l03147"></a>03147         fclose(f);
 <a name="l03148"></a>03148         DEBUG_ShowMsg(<span class="stringliteral">&quot;DEBUG: Interrupt vector table written to %s.\n&quot;</span>, filename);
@@ -3457,7 +3457,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

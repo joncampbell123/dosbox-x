@@ -285,8 +285,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00189"></a>00189         <span class="comment">//then the chunk size grows up to a 8gb drive, while the map consumes 30-60k of memory (on 64bit PCs)</span>
 <a name="l00190"></a>00190         <span class="comment">//with a 8gb drive, the chunks are about 1mb each, and the map consumes about 60k of memory </span>
 <a name="l00191"></a>00191         <span class="comment">//and for larger drives (with over 1023 cylinders), the chunks remain at 1mb each while the map grows</span>
-<a name="l00192"></a>00192         this-&gt;sectors_per_chunk = (diskParams.headscyl + 7) / 8 * diskParams.secttrack;
-<a name="l00193"></a>00193         this-&gt;total_chunks = (Bit32u)((absoluteSectors + sectors_per_chunk - 1) / sectors_per_chunk);
+<a name="l00192"></a>00192         this-&gt;sectors_per_chunk = (diskParams.headscyl + 7u) / 8u * diskParams.secttrack;
+<a name="l00193"></a>00193         this-&gt;total_chunks = (Bit32u)((absoluteSectors + sectors_per_chunk - 1u) / sectors_per_chunk);
 <a name="l00194"></a>00194         this-&gt;chunk_size = sectors_per_chunk * diskParams.bytespersect;
 <a name="l00195"></a>00195         <span class="comment">//allocate a map of chunks that have been allocated and their memory addresses</span>
 <a name="l00196"></a>00196         ChunkMap = (Bit8u**)malloc(total_chunks * <span class="keyword">sizeof</span>(Bit8u*));
@@ -588,10 +588,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00492"></a>00492         }
 <a name="l00493"></a>00493         <span class="comment">// set the special markers for cluster 0 and cluster 1</span>
 <a name="l00494"></a>00494         <span class="keywordflow">if</span> (isFat16) {
-<a name="l00495"></a>00495                 host_writed(&amp;sbuf[0], 0xFFFFFF00 | mediaID);
+<a name="l00495"></a>00495                 host_writed(&amp;sbuf[0], 0xFFFFFF00u | mediaID);
 <a name="l00496"></a>00496         }
 <a name="l00497"></a>00497         <span class="keywordflow">else</span> {
-<a name="l00498"></a>00498                 host_writed(&amp;sbuf[0], 0xFFFF00 | mediaID);
+<a name="l00498"></a>00498                 host_writed(&amp;sbuf[0], 0xFFFF00u | mediaID);
 <a name="l00499"></a>00499         }
 <a name="l00500"></a>00500         this-&gt;Write_AbsoluteSector(partitionStart + reservedSectors, sbuf);
 <a name="l00501"></a>00501         this-&gt;Write_AbsoluteSector(partitionStart + reservedSectors + fatSectors, sbuf);
@@ -704,7 +704,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

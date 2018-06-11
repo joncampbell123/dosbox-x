@@ -4,6 +4,7 @@ var searchData=
   ['batchfile',['BatchFile',['../classBatchFile.html',1,'']]],
   ['bios',['BIOS',['../classBIOS.html',1,'']]],
   ['bitmapfont',['BitmapFont',['../classGUI_1_1BitmapFont.html',1,'GUI']]],
+  ['bitseqlengthandpos_5fret_5ft',['bitseqlengthandpos_ret_t',['../classbitop_1_1bitseqlengthandpos__ret__t.html',1,'bitop']]],
   ['block',['Block',['../classRegionAllocTracking_1_1Block.html',1,'RegionAllocTracking']]],
   ['boot',['BOOT',['../classBOOT.html',1,'']]],
   ['bootsector',['bootSector',['../unionbootSector.html',1,'']]],

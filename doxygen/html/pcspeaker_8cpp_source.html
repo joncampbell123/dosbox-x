@@ -678,7 +678,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00582"></a>00582                 spkr.pit_mode1_waiting_for_trigger = 1;
 <a name="l00583"></a>00583                 spkr.last_ticks=0;
 <a name="l00584"></a>00584                 spkr.last_index=0;
-<a name="l00585"></a>00585                 spkr.rate=section-&gt;Get_int(<span class="stringliteral">&quot;pcrate&quot;</span>);
+<a name="l00585"></a>00585                 spkr.rate=(<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;pcrate&quot;</span>);
 <a name="l00586"></a>00586 
 <a name="l00587"></a>00587                 <span class="comment">// PIT initially in mode 3 at ~903 Hz</span>
 <a name="l00588"></a>00588                 spkr.pit_mode = 3;
@@ -746,7 +746,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

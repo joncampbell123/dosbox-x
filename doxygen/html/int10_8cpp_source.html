@@ -183,10 +183,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00087"></a>00087                 <span class="keywordflow">else</span> INT10_SetActivePage(reg_al);
 <a name="l00088"></a>00088                 <span class="keywordflow">break</span>;  
 <a name="l00089"></a>00089         <span class="keywordflow">case</span> 0x06:                                                              <span class="comment">/* Scroll Up */</span>
-<a name="l00090"></a>00090                 INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,-reg_al,reg_bh,0xFF);
+<a name="l00090"></a>00090                 INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,-(Bit8s)reg_al,reg_bh,0xFF);
 <a name="l00091"></a>00091                 <span class="keywordflow">break</span>;
 <a name="l00092"></a>00092         <span class="keywordflow">case</span> 0x07:                                                              <span class="comment">/* Scroll Down */</span>
-<a name="l00093"></a>00093                 INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,reg_al,reg_bh,0xFF);
+<a name="l00093"></a>00093                 INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,(Bit8s)reg_al,reg_bh,0xFF);
 <a name="l00094"></a>00094                 <span class="keywordflow">break</span>;
 <a name="l00095"></a>00095         <span class="keywordflow">case</span> 0x08:                                                              <span class="comment">/* Read character &amp; attribute at cursor */</span>
 <a name="l00096"></a>00096                 INT10_ReadCharAttr(&amp;reg_ax,reg_bh);
@@ -714,19 +714,19 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00618"></a>00618                                 reg_ax=0x004f;
 <a name="l00619"></a>00619                                 <span class="keywordflow">break</span>;
 <a name="l00620"></a>00620                         <span class="keywordflow">case</span> 0x01:                                              <span class="comment">/* Get code for &quot;set window&quot; */</span>
-<a name="l00621"></a>00621                                 reg_edi=RealOff(int10.rom.pmode_interface)+int10.rom.pmode_interface_window;
+<a name="l00621"></a>00621                                 reg_edi=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_window;
 <a name="l00622"></a>00622                                 SegSet16(es,RealSeg(int10.rom.pmode_interface));
 <a name="l00623"></a>00623                                 reg_cx=0x10;            <span class="comment">//0x10 should be enough for the callbacks</span>
 <a name="l00624"></a>00624                                 reg_ax=0x004f;
 <a name="l00625"></a>00625                                 <span class="keywordflow">break</span>;
 <a name="l00626"></a>00626                         <span class="keywordflow">case</span> 0x02:                                              <span class="comment">/* Get code for &quot;set display start&quot; */</span>
-<a name="l00627"></a>00627                                 reg_edi=RealOff(int10.rom.pmode_interface)+int10.rom.pmode_interface_start;
+<a name="l00627"></a>00627                                 reg_edi=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_start;
 <a name="l00628"></a>00628                                 SegSet16(es,RealSeg(int10.rom.pmode_interface));
 <a name="l00629"></a>00629                                 reg_cx=0x10;            <span class="comment">//0x10 should be enough for the callbacks</span>
 <a name="l00630"></a>00630                                 reg_ax=0x004f;
 <a name="l00631"></a>00631                                 <span class="keywordflow">break</span>;
 <a name="l00632"></a>00632                         <span class="keywordflow">case</span> 0x03:                                              <span class="comment">/* Get code for &quot;set palette&quot; */</span>
-<a name="l00633"></a>00633                                 reg_edi=RealOff(int10.rom.pmode_interface)+int10.rom.pmode_interface_palette;
+<a name="l00633"></a>00633                                 reg_edi=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_palette;
 <a name="l00634"></a>00634                                 SegSet16(es,RealSeg(int10.rom.pmode_interface));
 <a name="l00635"></a>00635                                 reg_cx=0x10;            <span class="comment">//0x10 should be enough for the callbacks</span>
 <a name="l00636"></a>00636                                 reg_ax=0x004f;
@@ -858,7 +858,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00762"></a>00762     <span class="keywordflow">if</span> (BIOS_VIDEO_TABLE_LOCATION != (~0U) &amp;&amp; BIOS_VIDEO_TABLE_LOCATION != 0) {
 <a name="l00763"></a>00763         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;INT 10h freeing BIOS VIDEO TABLE LOCATION&quot;</span>);
 <a name="l00764"></a>00764         ROMBIOS_FreeMemory(RealToPhys(BIOS_VIDEO_TABLE_LOCATION));
-<a name="l00765"></a>00765         BIOS_VIDEO_TABLE_LOCATION = ~0;         <span class="comment">// RealMake(0xf000,0xf0a4)</span>
+<a name="l00765"></a>00765         BIOS_VIDEO_TABLE_LOCATION = ~0u;                <span class="comment">// RealMake(0xf000,0xf0a4)</span>
 <a name="l00766"></a>00766     }
 <a name="l00767"></a>00767 
 <a name="l00768"></a>00768     <span class="keywordtype">void</span> VESA_OnReset_Clear_Callbacks(<span class="keywordtype">void</span>);
@@ -1196,7 +1196,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -349,7 +349,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00253"></a>00253 <span class="keyword">static</span> <a class="code" href="classPageHandler.html">PageHandler</a> *MEM_SlowPath(Bitu page) {
 <a name="l00254"></a>00254     <a class="code" href="classPageHandler.html">PageHandler</a> *f = &amp;unmapped_page_handler;
 <a name="l00255"></a>00255     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> match = 0;
-<a name="l00256"></a>00256     Bitu ret = ~0;
+<a name="l00256"></a>00256     Bitu ret = ~0ul;
 <a name="l00257"></a>00257 
 <a name="l00258"></a>00258     <span class="keywordflow">if</span> (page &gt;= memory.handler_pages)
 <a name="l00259"></a>00259         <span class="keywordflow">return</span> &amp;illegal_page_handler;
@@ -847,7 +847,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00751"></a>00751     <span class="keywordflow">while</span> (size--) {
 <a name="l00752"></a>00752         Bit8u r=mem_readb_inline(pt++);
 <a name="l00753"></a>00753         <span class="keywordflow">if</span> (!r) <span class="keywordflow">break</span>;
-<a name="l00754"></a>00754         *data++=r;
+<a name="l00754"></a>00754         *data++=(char)r;
 <a name="l00755"></a>00755     }
 <a name="l00756"></a>00756     *data=0;
 <a name="l00757"></a>00757 }
@@ -1130,7 +1130,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01034"></a>01034                 <span class="comment">/* Not Enough space allocate new block and copy */</span>
 <a name="l01035"></a>01035                 MemHandle newhandle=MEM_AllocatePages(pages,<span class="keyword">true</span>);
 <a name="l01036"></a>01036                 <span class="keywordflow">if</span> (!newhandle) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01037"></a>01037                 MEM_BlockCopy(newhandle*4096,handle*4096,old_pages*4096);
+<a name="l01037"></a>01037                 MEM_BlockCopy((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)newhandle*4096u,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)handle*4096u,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)old_pages*4096u);
 <a name="l01038"></a>01038                 MEM_ReleasePages(handle);
 <a name="l01039"></a>01039                 handle=newhandle;
 <a name="l01040"></a>01040                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
@@ -1173,8 +1173,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01077"></a>01077     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;MEM_A20_Enable(%u)&quot;</span>,enabled?1:0);
 <a name="l01078"></a>01078 
 <a name="l01079"></a>01079     <span class="keywordflow">if</span> (!a20_fake_changeable) {
-<a name="l01080"></a>01080         <span class="keywordflow">if</span> (memory.a20.enabled) memory.mem_alias_pagemask_active |= 0x100;
-<a name="l01081"></a>01081         <span class="keywordflow">else</span> memory.mem_alias_pagemask_active &amp;= ~0x100;
+<a name="l01080"></a>01080         <span class="keywordflow">if</span> (memory.a20.enabled) memory.mem_alias_pagemask_active |= 0x100ul;
+<a name="l01081"></a>01081         <span class="keywordflow">else</span> memory.mem_alias_pagemask_active &amp;= ~0x100ul;
 <a name="l01082"></a>01082         PAGING_ClearTLB();
 <a name="l01083"></a>01083     }
 <a name="l01084"></a>01084 }
@@ -1182,30 +1182,30 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01086"></a>01086 
 <a name="l01087"></a>01087 <span class="comment">/* Memory access functions */</span>
 <a name="l01088"></a>01088 Bit16u mem_unalignedreadw(PhysPt address) {
-<a name="l01089"></a>01089     Bit16u ret = mem_readb_inline(address);
-<a name="l01090"></a>01090     ret       |= mem_readb_inline(address+1) &lt;&lt; 8;
+<a name="l01089"></a>01089     Bit16u ret = (Bit16u)mem_readb_inline(address);
+<a name="l01090"></a>01090     ret       |= (Bit16u)mem_readb_inline(address+1u) &lt;&lt; 8u;
 <a name="l01091"></a>01091     <span class="keywordflow">return</span> ret;
 <a name="l01092"></a>01092 }
 <a name="l01093"></a>01093 
 <a name="l01094"></a>01094 Bit32u mem_unalignedreadd(PhysPt address) {
-<a name="l01095"></a>01095     Bit32u ret = mem_readb_inline(address);
-<a name="l01096"></a>01096     ret       |= mem_readb_inline(address+1) &lt;&lt; 8;
-<a name="l01097"></a>01097     ret       |= mem_readb_inline(address+2) &lt;&lt; 16;
-<a name="l01098"></a>01098     ret       |= mem_readb_inline(address+3) &lt;&lt; 24;
+<a name="l01095"></a>01095     Bit32u ret = (Bit32u)mem_readb_inline(address   );
+<a name="l01096"></a>01096     ret       |= (Bit32u)mem_readb_inline(address+1u) &lt;&lt; 8u;
+<a name="l01097"></a>01097     ret       |= (Bit32u)mem_readb_inline(address+2u) &lt;&lt; 16u;
+<a name="l01098"></a>01098     ret       |= (Bit32u)mem_readb_inline(address+3u) &lt;&lt; 24u;
 <a name="l01099"></a>01099     <span class="keywordflow">return</span> ret;
 <a name="l01100"></a>01100 }
 <a name="l01101"></a>01101 
 <a name="l01102"></a>01102 
 <a name="l01103"></a>01103 <span class="keywordtype">void</span> mem_unalignedwritew(PhysPt address,Bit16u val) {
-<a name="l01104"></a>01104     mem_writeb_inline(address,(Bit8u)val);val&gt;&gt;=8;
-<a name="l01105"></a>01105     mem_writeb_inline(address+1,(Bit8u)val);
+<a name="l01104"></a>01104     mem_writeb_inline(address,   (Bit8u)val);val&gt;&gt;=8u;
+<a name="l01105"></a>01105     mem_writeb_inline(address+1u,(Bit8u)val);
 <a name="l01106"></a>01106 }
 <a name="l01107"></a>01107 
 <a name="l01108"></a>01108 <span class="keywordtype">void</span> mem_unalignedwrited(PhysPt address,Bit32u val) {
-<a name="l01109"></a>01109     mem_writeb_inline(address,(Bit8u)val);val&gt;&gt;=8;
-<a name="l01110"></a>01110     mem_writeb_inline(address+1,(Bit8u)val);val&gt;&gt;=8;
-<a name="l01111"></a>01111     mem_writeb_inline(address+2,(Bit8u)val);val&gt;&gt;=8;
-<a name="l01112"></a>01112     mem_writeb_inline(address+3,(Bit8u)val);
+<a name="l01109"></a>01109     mem_writeb_inline(address,   (Bit8u)val);val&gt;&gt;=8u;
+<a name="l01110"></a>01110     mem_writeb_inline(address+1u,(Bit8u)val);val&gt;&gt;=8u;
+<a name="l01111"></a>01111     mem_writeb_inline(address+2u,(Bit8u)val);val&gt;&gt;=8u;
+<a name="l01112"></a>01112     mem_writeb_inline(address+3u,(Bit8u)val);
 <a name="l01113"></a>01113 }
 <a name="l01114"></a>01114 
 <a name="l01115"></a>01115 
@@ -1278,7 +1278,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01182"></a>01182 }
 <a name="l01183"></a>01183 
 <a name="l01184"></a>01184 <span class="keywordtype">void</span> phys_writes(PhysPt addr, <span class="keyword">const</span> <span class="keywordtype">char</span>* <span class="keywordtype">string</span>, Bitu length) {
-<a name="l01185"></a>01185     <span class="keywordflow">for</span>(Bitu i = 0; i &lt; length; i++) host_writeb(MemBase+addr+i,<span class="keywordtype">string</span>[i]);
+<a name="l01185"></a>01185     <span class="keywordflow">for</span>(Bitu i = 0; i &lt; length; i++) host_writeb(MemBase+addr+i,(Bit8u)<span class="keywordtype">string</span>[i]);
 <a name="l01186"></a>01186 }
 <a name="l01187"></a>01187 
 <a name="l01188"></a>01188 <span class="preprocessor">#include &quot;control.h&quot;</span>
@@ -1493,8 +1493,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01397"></a>01397 <span class="keyword">static</span> <span class="keywordtype">void</span> write_p92(Bitu port,Bitu val,Bitu iolen) {
 <a name="l01398"></a>01398     (void)iolen;<span class="comment">//UNUSED</span>
 <a name="l01399"></a>01399     (void)port;<span class="comment">//UNUSED</span>
-<a name="l01400"></a>01400     memory.a20.controlport = val &amp; ~2;
-<a name="l01401"></a>01401     MEM_A20_Enable((val &amp; 2)&gt;0);
+<a name="l01400"></a>01400     memory.a20.controlport = val &amp; ~2u;
+<a name="l01401"></a>01401     MEM_A20_Enable((val &amp; 2u)&gt;0);
 <a name="l01402"></a>01402 
 <a name="l01403"></a>01403     <span class="comment">// Bit 0 = system reset (switch back to real mode)</span>
 <a name="l01404"></a>01404     <span class="keywordflow">if</span> (val &amp; 1) {
@@ -1511,7 +1511,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01415"></a>01415 <span class="keyword">static</span> Bitu read_p92(Bitu port,Bitu iolen) {
 <a name="l01416"></a>01416     (void)iolen;<span class="comment">//UNUSED</span>
 <a name="l01417"></a>01417     (void)port;<span class="comment">//UNUSED</span>
-<a name="l01418"></a>01418     <span class="keywordflow">return</span> memory.a20.controlport | (memory.a20.enabled ? 0x02 : 0);
+<a name="l01418"></a>01418     <span class="keywordflow">return</span> (Bitu)memory.a20.controlport | (memory.a20.enabled ? 0x02u : 0);
 <a name="l01419"></a>01419 }
 <a name="l01420"></a>01420 
 <a name="l01421"></a>01421 <span class="keyword">static</span> Bitu read_pc98_a20(Bitu port,Bitu iolen) {
@@ -1519,7 +1519,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01423"></a>01423     <span class="keywordflow">if</span> (port == 0xF2)
 <a name="l01424"></a>01424         <span class="keywordflow">return</span> (memory.a20.enabled ? 0x00 : 0x01); <span class="comment">// bit 0 indicates whether A20 is MASKED, not ENABLED</span>
 <a name="l01425"></a>01425 
-<a name="l01426"></a>01426     <span class="keywordflow">return</span> ~0;
+<a name="l01426"></a>01426     <span class="keywordflow">return</span> ~0ul;
 <a name="l01427"></a>01427 }
 <a name="l01428"></a>01428 
 <a name="l01429"></a>01429 <span class="keyword">static</span> <span class="keywordtype">void</span> write_pc98_a20(Bitu port,Bitu val,Bitu iolen) {
@@ -1658,454 +1658,454 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01562"></a>01562 
 <a name="l01563"></a>01563 <span class="keyword">extern</span> <span class="keywordtype">bool</span> mainline_compatible_mapping;
 <a name="l01564"></a>01564 
-<a name="l01565"></a><a class="code" href="classREDOS.html">01565</a> <span class="keyword">class </span><a class="code" href="classREDOS.html">REDOS</a> : <span class="keyword">public</span> <a class="code" href="classProgram.html">Program</a> {
-<a name="l01566"></a>01566 <span class="keyword">public</span>:
-<a name="l01567"></a>01567     <span class="keywordtype">void</span> Run(<span class="keywordtype">void</span>) {
-<a name="l01568"></a>01568         <span class="keywordflow">throw</span> int(6);
-<a name="l01569"></a>01569     }
-<a name="l01570"></a>01570 };
-<a name="l01571"></a>01571 
-<a name="l01572"></a>01572 <span class="keywordtype">void</span> REDOS_ProgramStart(<a class="code" href="classProgram.html">Program</a> * * make) {
-<a name="l01573"></a>01573     *make=<span class="keyword">new</span> <a class="code" href="classREDOS.html">REDOS</a>;
-<a name="l01574"></a>01574 }
-<a name="l01575"></a>01575 
-<a name="l01576"></a><a class="code" href="classA20GATE.html">01576</a> <span class="keyword">class </span><a class="code" href="classA20GATE.html">A20GATE</a> : <span class="keyword">public</span> <a class="code" href="classProgram.html">Program</a> {
-<a name="l01577"></a>01577 <span class="keyword">public</span>:
-<a name="l01578"></a>01578     <span class="keywordtype">void</span> Run(<span class="keywordtype">void</span>) {
-<a name="l01579"></a>01579         <span class="keywordflow">if</span> (cmd-&gt;FindString(<span class="stringliteral">&quot;SET&quot;</span>,temp_line,<span class="keyword">false</span>)) {
-<a name="l01580"></a>01580             <span class="keywordtype">char</span> *x = (<span class="keywordtype">char</span>*)temp_line.c_str();
-<a name="l01581"></a>01581 
-<a name="l01582"></a>01582             a20_fake_changeable = <span class="keyword">false</span>;
-<a name="l01583"></a>01583             a20_guest_changeable = <span class="keyword">true</span>;
-<a name="l01584"></a>01584             MEM_A20_Enable(<span class="keyword">true</span>);
-<a name="l01585"></a>01585 
-<a name="l01586"></a>01586             <span class="keywordflow">if</span> (!strncasecmp(x,<span class="stringliteral">&quot;off_fake&quot;</span>,8)) {
-<a name="l01587"></a>01587                 MEM_A20_Enable(<span class="keyword">false</span>);
-<a name="l01588"></a>01588                 a20_guest_changeable = <span class="keyword">false</span>;
-<a name="l01589"></a>01589                 a20_fake_changeable = <span class="keyword">true</span>;
-<a name="l01590"></a>01590                 WriteOut(<span class="stringliteral">&quot;A20 gate now off_fake mode\n&quot;</span>);
-<a name="l01591"></a>01591             }
-<a name="l01592"></a>01592             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strncasecmp(x,<span class="stringliteral">&quot;off&quot;</span>,3)) {
-<a name="l01593"></a>01593                 MEM_A20_Enable(<span class="keyword">false</span>);
-<a name="l01594"></a>01594                 a20_guest_changeable = <span class="keyword">false</span>;
-<a name="l01595"></a>01595                 a20_fake_changeable = <span class="keyword">false</span>;
-<a name="l01596"></a>01596                 WriteOut(<span class="stringliteral">&quot;A20 gate now off mode\n&quot;</span>);
-<a name="l01597"></a>01597             }
-<a name="l01598"></a>01598             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strncasecmp(x,<span class="stringliteral">&quot;on_fake&quot;</span>,7)) {
-<a name="l01599"></a>01599                 MEM_A20_Enable(<span class="keyword">true</span>);
-<a name="l01600"></a>01600                 a20_guest_changeable = <span class="keyword">false</span>;
-<a name="l01601"></a>01601                 a20_fake_changeable = <span class="keyword">true</span>;
-<a name="l01602"></a>01602                 WriteOut(<span class="stringliteral">&quot;A20 gate now on_fake mode\n&quot;</span>);
-<a name="l01603"></a>01603             }
-<a name="l01604"></a>01604             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strncasecmp(x,<span class="stringliteral">&quot;on&quot;</span>,2)) {
-<a name="l01605"></a>01605                 MEM_A20_Enable(<span class="keyword">true</span>);
-<a name="l01606"></a>01606                 a20_guest_changeable = <span class="keyword">false</span>;
-<a name="l01607"></a>01607                 a20_fake_changeable = <span class="keyword">false</span>;
-<a name="l01608"></a>01608                 WriteOut(<span class="stringliteral">&quot;A20 gate now on mode\n&quot;</span>);
-<a name="l01609"></a>01609             }
-<a name="l01610"></a>01610             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strncasecmp(x,<span class="stringliteral">&quot;mask&quot;</span>,4)) {
-<a name="l01611"></a>01611                 MEM_A20_Enable(<span class="keyword">false</span>);
-<a name="l01612"></a>01612                 a20_guest_changeable = <span class="keyword">true</span>;
-<a name="l01613"></a>01613                 a20_fake_changeable = <span class="keyword">false</span>;
-<a name="l01614"></a>01614                 memory.a20.enabled = 0;
-<a name="l01615"></a>01615                 WriteOut(<span class="stringliteral">&quot;A20 gate now mask mode\n&quot;</span>);
-<a name="l01616"></a>01616             }
-<a name="l01617"></a>01617             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strncasecmp(x,<span class="stringliteral">&quot;fast&quot;</span>,4)) {
-<a name="l01618"></a>01618                 MEM_A20_Enable(<span class="keyword">false</span>);
-<a name="l01619"></a>01619                 a20_guest_changeable = <span class="keyword">true</span>;
-<a name="l01620"></a>01620                 a20_fake_changeable = <span class="keyword">false</span>;
-<a name="l01621"></a>01621                 WriteOut(<span class="stringliteral">&quot;A20 gate now fast mode\n&quot;</span>);
-<a name="l01622"></a>01622             }
-<a name="l01623"></a>01623             <span class="keywordflow">else</span> {
-<a name="l01624"></a>01624                 WriteOut(<span class="stringliteral">&quot;Unknown setting\n&quot;</span>);
-<a name="l01625"></a>01625             }
-<a name="l01626"></a>01626         }
-<a name="l01627"></a>01627         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (cmd-&gt;FindExist(<span class="stringliteral">&quot;ON&quot;</span>)) {
-<a name="l01628"></a>01628             MEM_A20_Enable(<span class="keyword">true</span>);
-<a name="l01629"></a>01629             WriteOut(<span class="stringliteral">&quot;Enabling A20 gate\n&quot;</span>);
-<a name="l01630"></a>01630         }
-<a name="l01631"></a>01631         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (cmd-&gt;FindExist(<span class="stringliteral">&quot;OFF&quot;</span>)) {
-<a name="l01632"></a>01632             MEM_A20_Enable(<span class="keyword">false</span>);
-<a name="l01633"></a>01633             WriteOut(<span class="stringliteral">&quot;Disabling A20 gate\n&quot;</span>);
+<a name="l01567"></a><a class="code" href="classREDOS.html">01567</a> <span class="keyword">class </span><a class="code" href="classREDOS.html" title="REDOS.COM utility command on drive Z: to trigger restart of the DOS kernel.">REDOS</a> : <span class="keyword">public</span> <a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> {
+<a name="l01568"></a>01568 <span class="keyword">public</span>:
+<a name="l01570"></a><a class="code" href="classREDOS.html#aa2d659599de1058d1b59069bfad7da76">01570</a>     <span class="keywordtype">void</span> <a class="code" href="classREDOS.html#aa2d659599de1058d1b59069bfad7da76" title="Program entry point, when the command is run.">Run</a>(<span class="keywordtype">void</span>) {
+<a name="l01571"></a>01571         <span class="keywordflow">throw</span> int(6);
+<a name="l01572"></a>01572     }
+<a name="l01573"></a>01573 };
+<a name="l01574"></a>01574 
+<a name="l01575"></a>01575 <span class="keywordtype">void</span> REDOS_ProgramStart(<a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> * * make) {
+<a name="l01576"></a>01576     *make=<span class="keyword">new</span> <a class="code" href="classREDOS.html" title="REDOS.COM utility command on drive Z: to trigger restart of the DOS kernel.">REDOS</a>;
+<a name="l01577"></a>01577 }
+<a name="l01578"></a>01578 
+<a name="l01583"></a><a class="code" href="classA20GATE.html">01583</a> <span class="keyword">class </span><a class="code" href="classA20GATE.html" title="A20GATE.COM built-in command on drive Z:">A20GATE</a> : <span class="keyword">public</span> <a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> {
+<a name="l01584"></a>01584 <span class="keyword">public</span>:
+<a name="l01586"></a><a class="code" href="classA20GATE.html#a7d53ddb7d6453f710b7e829b5c0f6ca3">01586</a>     <span class="keywordtype">void</span> <a class="code" href="classA20GATE.html#a7d53ddb7d6453f710b7e829b5c0f6ca3" title="Program entry point, when the command is run.">Run</a>(<span class="keywordtype">void</span>) {
+<a name="l01587"></a>01587         <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;FindString(<span class="stringliteral">&quot;SET&quot;</span>,<a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>,<span class="keyword">false</span>)) {
+<a name="l01588"></a>01588             <span class="keywordtype">char</span> *x = (<span class="keywordtype">char</span>*)<a class="code" href="classProgram.html#ade1241ef2184833339588494094f7d4f" title="Exit status, returned to the parent DOS process.">temp_line</a>.c_str();
+<a name="l01589"></a>01589 
+<a name="l01590"></a>01590             a20_fake_changeable = <span class="keyword">false</span>;
+<a name="l01591"></a>01591             a20_guest_changeable = <span class="keyword">true</span>;
+<a name="l01592"></a>01592             MEM_A20_Enable(<span class="keyword">true</span>);
+<a name="l01593"></a>01593 
+<a name="l01594"></a>01594             <span class="keywordflow">if</span> (!strncasecmp(x,<span class="stringliteral">&quot;off_fake&quot;</span>,8)) {
+<a name="l01595"></a>01595                 MEM_A20_Enable(<span class="keyword">false</span>);
+<a name="l01596"></a>01596                 a20_guest_changeable = <span class="keyword">false</span>;
+<a name="l01597"></a>01597                 a20_fake_changeable = <span class="keyword">true</span>;
+<a name="l01598"></a>01598                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;A20 gate now off_fake mode\n&quot;</span>);
+<a name="l01599"></a>01599             }
+<a name="l01600"></a>01600             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strncasecmp(x,<span class="stringliteral">&quot;off&quot;</span>,3)) {
+<a name="l01601"></a>01601                 MEM_A20_Enable(<span class="keyword">false</span>);
+<a name="l01602"></a>01602                 a20_guest_changeable = <span class="keyword">false</span>;
+<a name="l01603"></a>01603                 a20_fake_changeable = <span class="keyword">false</span>;
+<a name="l01604"></a>01604                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;A20 gate now off mode\n&quot;</span>);
+<a name="l01605"></a>01605             }
+<a name="l01606"></a>01606             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strncasecmp(x,<span class="stringliteral">&quot;on_fake&quot;</span>,7)) {
+<a name="l01607"></a>01607                 MEM_A20_Enable(<span class="keyword">true</span>);
+<a name="l01608"></a>01608                 a20_guest_changeable = <span class="keyword">false</span>;
+<a name="l01609"></a>01609                 a20_fake_changeable = <span class="keyword">true</span>;
+<a name="l01610"></a>01610                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;A20 gate now on_fake mode\n&quot;</span>);
+<a name="l01611"></a>01611             }
+<a name="l01612"></a>01612             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strncasecmp(x,<span class="stringliteral">&quot;on&quot;</span>,2)) {
+<a name="l01613"></a>01613                 MEM_A20_Enable(<span class="keyword">true</span>);
+<a name="l01614"></a>01614                 a20_guest_changeable = <span class="keyword">false</span>;
+<a name="l01615"></a>01615                 a20_fake_changeable = <span class="keyword">false</span>;
+<a name="l01616"></a>01616                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;A20 gate now on mode\n&quot;</span>);
+<a name="l01617"></a>01617             }
+<a name="l01618"></a>01618             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strncasecmp(x,<span class="stringliteral">&quot;mask&quot;</span>,4)) {
+<a name="l01619"></a>01619                 MEM_A20_Enable(<span class="keyword">false</span>);
+<a name="l01620"></a>01620                 a20_guest_changeable = <span class="keyword">true</span>;
+<a name="l01621"></a>01621                 a20_fake_changeable = <span class="keyword">false</span>;
+<a name="l01622"></a>01622                 memory.a20.enabled = 0;
+<a name="l01623"></a>01623                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;A20 gate now mask mode\n&quot;</span>);
+<a name="l01624"></a>01624             }
+<a name="l01625"></a>01625             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strncasecmp(x,<span class="stringliteral">&quot;fast&quot;</span>,4)) {
+<a name="l01626"></a>01626                 MEM_A20_Enable(<span class="keyword">false</span>);
+<a name="l01627"></a>01627                 a20_guest_changeable = <span class="keyword">true</span>;
+<a name="l01628"></a>01628                 a20_fake_changeable = <span class="keyword">false</span>;
+<a name="l01629"></a>01629                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;A20 gate now fast mode\n&quot;</span>);
+<a name="l01630"></a>01630             }
+<a name="l01631"></a>01631             <span class="keywordflow">else</span> {
+<a name="l01632"></a>01632                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;Unknown setting\n&quot;</span>);
+<a name="l01633"></a>01633             }
 <a name="l01634"></a>01634         }
-<a name="l01635"></a>01635         <span class="keywordflow">else</span> {
-<a name="l01636"></a>01636             WriteOut(<span class="stringliteral">&quot;A20GATE SET [off | off_fake | on | on_fake | mask | fast]\n&quot;</span>);
-<a name="l01637"></a>01637             WriteOut(<span class="stringliteral">&quot;A20GATE [ON | OFF]\n&quot;</span>);
+<a name="l01635"></a>01635         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;FindExist(<span class="stringliteral">&quot;ON&quot;</span>)) {
+<a name="l01636"></a>01636             MEM_A20_Enable(<span class="keyword">true</span>);
+<a name="l01637"></a>01637             <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;Enabling A20 gate\n&quot;</span>);
 <a name="l01638"></a>01638         }
-<a name="l01639"></a>01639     }
-<a name="l01640"></a>01640 };
-<a name="l01641"></a>01641 
-<a name="l01642"></a>01642 <span class="keywordtype">void</span> A20GATE_ProgramStart(<a class="code" href="classProgram.html">Program</a> * * make) {
-<a name="l01643"></a>01643     *make=<span class="keyword">new</span> <a class="code" href="classA20GATE.html">A20GATE</a>;
-<a name="l01644"></a>01644 }
-<a name="l01645"></a>01645 
-<a name="l01646"></a>01646 <span class="keywordtype">void</span> Init_AddressLimitAndGateMask() {
-<a name="l01647"></a>01647     <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>));
-<a name="l01648"></a>01648 
-<a name="l01649"></a>01649     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing address limit/gate system&quot;</span>);
-<a name="l01650"></a>01650 
-<a name="l01651"></a>01651     <span class="comment">// TODO: this option should be handled by the CPU init since it concerns emulation</span>
-<a name="l01652"></a>01652     <span class="comment">//       of older 386 and 486 boards with fewer than 32 address lines:</span>
-<a name="l01653"></a>01653     <span class="comment">//</span>
-<a name="l01654"></a>01654     <span class="comment">//         24-bit addressing on the 386SX vs full 32-bit addressing on the 386DX</span>
-<a name="l01655"></a>01655     <span class="comment">//         26-bit addressing on the 486SX vs full 32-bit addressing on the 486DX</span>
-<a name="l01656"></a>01656     <span class="comment">//</span>
-<a name="l01657"></a>01657     <span class="comment">//       Also this code should automatically cap itself at 24 for 286 emulation and</span>
-<a name="l01658"></a>01658     <span class="comment">//       20 for 8086 emulation.</span>
-<a name="l01659"></a>01659     memory.address_bits=section-&gt;Get_int(<span class="stringliteral">&quot;memalias&quot;</span>);
-<a name="l01660"></a>01660 
-<a name="l01661"></a>01661     <span class="keywordflow">if</span> (memory.address_bits == 0)
-<a name="l01662"></a>01662         memory.address_bits = 32;
-<a name="l01663"></a>01663     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (memory.address_bits &lt; 20)
-<a name="l01664"></a>01664         memory.address_bits = 20;
-<a name="l01665"></a>01665     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (memory.address_bits &gt; 32)
-<a name="l01666"></a>01666         memory.address_bits = 32;
-<a name="l01667"></a>01667 
-<a name="l01668"></a>01668     <span class="comment">// TODO: This should be ...? CPU init? Motherboard init?</span>
-<a name="l01669"></a>01669     <span class="comment">/* WARNING: Binary arithmetic done with 64-bit integers because under Microsoft C++</span>
-<a name="l01670"></a>01670 <span class="comment">       ((1UL &lt;&lt; 32UL) - 1UL) == 0, which is WRONG.</span>
-<a name="l01671"></a>01671 <span class="comment">       But I&#39;ll never get back the 4 days I wasted chasing it down, trying to</span>
-<a name="l01672"></a>01672 <span class="comment">       figure out why DOSBox was getting stuck reopening it&#39;s own CON file handle. */</span>
-<a name="l01673"></a>01673     memory.mem_alias_pagemask = (uint32_t)
-<a name="l01674"></a>01674         (((((uint64_t)1) &lt;&lt; (uint64_t)memory.address_bits) - (uint64_t)1) &gt;&gt; (uint64_t)12);
+<a name="l01639"></a>01639         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;FindExist(<span class="stringliteral">&quot;OFF&quot;</span>)) {
+<a name="l01640"></a>01640             MEM_A20_Enable(<span class="keyword">false</span>);
+<a name="l01641"></a>01641             <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;Disabling A20 gate\n&quot;</span>);
+<a name="l01642"></a>01642         }
+<a name="l01643"></a>01643         <span class="keywordflow">else</span> {
+<a name="l01644"></a>01644             <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;A20GATE SET [off | off_fake | on | on_fake | mask | fast]\n&quot;</span>);
+<a name="l01645"></a>01645             <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;A20GATE [ON | OFF]\n&quot;</span>);
+<a name="l01646"></a>01646         }
+<a name="l01647"></a>01647     }
+<a name="l01648"></a>01648 };
+<a name="l01649"></a>01649 
+<a name="l01650"></a>01650 <span class="keywordtype">void</span> A20GATE_ProgramStart(<a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> * * make) {
+<a name="l01651"></a>01651     *make=<span class="keyword">new</span> <a class="code" href="classA20GATE.html" title="A20GATE.COM built-in command on drive Z:">A20GATE</a>;
+<a name="l01652"></a>01652 }
+<a name="l01653"></a>01653 
+<a name="l01654"></a>01654 <span class="keywordtype">void</span> Init_AddressLimitAndGateMask() {
+<a name="l01655"></a>01655     <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>));
+<a name="l01656"></a>01656 
+<a name="l01657"></a>01657     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing address limit/gate system&quot;</span>);
+<a name="l01658"></a>01658 
+<a name="l01659"></a>01659     <span class="comment">// TODO: this option should be handled by the CPU init since it concerns emulation</span>
+<a name="l01660"></a>01660     <span class="comment">//       of older 386 and 486 boards with fewer than 32 address lines:</span>
+<a name="l01661"></a>01661     <span class="comment">//</span>
+<a name="l01662"></a>01662     <span class="comment">//         24-bit addressing on the 386SX vs full 32-bit addressing on the 386DX</span>
+<a name="l01663"></a>01663     <span class="comment">//         26-bit addressing on the 486SX vs full 32-bit addressing on the 486DX</span>
+<a name="l01664"></a>01664     <span class="comment">//</span>
+<a name="l01665"></a>01665     <span class="comment">//       Also this code should automatically cap itself at 24 for 286 emulation and</span>
+<a name="l01666"></a>01666     <span class="comment">//       20 for 8086 emulation.</span>
+<a name="l01667"></a>01667     memory.address_bits=(<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;memalias&quot;</span>);
+<a name="l01668"></a>01668 
+<a name="l01669"></a>01669     <span class="keywordflow">if</span> (memory.address_bits == 0)
+<a name="l01670"></a>01670         memory.address_bits = 32;
+<a name="l01671"></a>01671     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (memory.address_bits &lt; 20)
+<a name="l01672"></a>01672         memory.address_bits = 20;
+<a name="l01673"></a>01673     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (memory.address_bits &gt; 32)
+<a name="l01674"></a>01674         memory.address_bits = 32;
 <a name="l01675"></a>01675 
-<a name="l01676"></a>01676     <span class="comment">/* memory aliasing cannot go below 1MB or serious problems may result. */</span>
-<a name="l01677"></a>01677     <span class="keywordflow">if</span> ((memory.mem_alias_pagemask &amp; 0xFF) != 0xFF) E_Exit(<span class="stringliteral">&quot;alias pagemask &lt; 1MB&quot;</span>);
-<a name="l01678"></a>01678 
-<a name="l01679"></a>01679     <span class="comment">/* update alias pagemask according to A20 gate */</span>
-<a name="l01680"></a>01680     memory.mem_alias_pagemask_active = memory.mem_alias_pagemask;
-<a name="l01681"></a>01681     <span class="keywordflow">if</span> (a20_fake_changeable &amp;&amp; !memory.a20.enabled)
-<a name="l01682"></a>01682         memory.mem_alias_pagemask_active &amp;= ~0x100;
+<a name="l01676"></a>01676     <span class="comment">// TODO: This should be ...? CPU init? Motherboard init?</span>
+<a name="l01677"></a>01677     <span class="comment">/* WARNING: Binary arithmetic done with 64-bit integers because under Microsoft C++</span>
+<a name="l01678"></a>01678 <span class="comment">       ((1UL &lt;&lt; 32UL) - 1UL) == 0, which is WRONG.</span>
+<a name="l01679"></a>01679 <span class="comment">       But I&#39;ll never get back the 4 days I wasted chasing it down, trying to</span>
+<a name="l01680"></a>01680 <span class="comment">       figure out why DOSBox was getting stuck reopening it&#39;s own CON file handle. */</span>
+<a name="l01681"></a>01681     memory.mem_alias_pagemask = (uint32_t)
+<a name="l01682"></a>01682         (((((uint64_t)1) &lt;&lt; (uint64_t)memory.address_bits) - (uint64_t)1) &gt;&gt; (uint64_t)12);
 <a name="l01683"></a>01683 
-<a name="l01684"></a>01684     <span class="comment">/* log */</span>
-<a name="l01685"></a>01685     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Memory: address_bits=%u alias_pagemask=%lx&quot;</span>,(<span class="keywordtype">unsigned</span> int)memory.address_bits,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)memory.mem_alias_pagemask);
-<a name="l01686"></a>01686 }
-<a name="l01687"></a>01687 
-<a name="l01688"></a>01688 <span class="keywordtype">void</span> ShutDownRAM(<a class="code" href="classSection.html">Section</a> * sec) {
-<a name="l01689"></a>01689     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01690"></a>01690     <span class="keywordflow">if</span> (MemBase != NULL) {
-<a name="l01691"></a>01691         <span class="keyword">delete</span> [] MemBase;
-<a name="l01692"></a>01692         MemBase = NULL;
-<a name="l01693"></a>01693     }
+<a name="l01684"></a>01684     <span class="comment">/* memory aliasing cannot go below 1MB or serious problems may result. */</span>
+<a name="l01685"></a>01685     <span class="keywordflow">if</span> ((memory.mem_alias_pagemask &amp; 0xFF) != 0xFF) E_Exit(<span class="stringliteral">&quot;alias pagemask &lt; 1MB&quot;</span>);
+<a name="l01686"></a>01686 
+<a name="l01687"></a>01687     <span class="comment">/* update alias pagemask according to A20 gate */</span>
+<a name="l01688"></a>01688     memory.mem_alias_pagemask_active = memory.mem_alias_pagemask;
+<a name="l01689"></a>01689     <span class="keywordflow">if</span> (a20_fake_changeable &amp;&amp; !memory.a20.enabled)
+<a name="l01690"></a>01690         memory.mem_alias_pagemask_active &amp;= ~0x100u;
+<a name="l01691"></a>01691 
+<a name="l01692"></a>01692     <span class="comment">/* log */</span>
+<a name="l01693"></a>01693     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Memory: address_bits=%u alias_pagemask=%lx&quot;</span>,(<span class="keywordtype">unsigned</span> int)memory.address_bits,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)memory.mem_alias_pagemask);
 <a name="l01694"></a>01694 }
 <a name="l01695"></a>01695 
-<a name="l01696"></a>01696 <span class="keywordtype">void</span> MEM_InitCallouts(<span class="keywordtype">void</span>) {
-<a name="l01697"></a>01697     <span class="comment">/* make sure each vector has enough for a typical load */</span>
-<a name="l01698"></a>01698     MEM_callouts[MEM_callouts_index(MEM_TYPE_ISA)].resize(64);
-<a name="l01699"></a>01699     MEM_callouts[MEM_callouts_index(MEM_TYPE_PCI)].resize(64);
-<a name="l01700"></a>01700     MEM_callouts[MEM_callouts_index(MEM_TYPE_MB)].resize(64);
-<a name="l01701"></a>01701 }
-<a name="l01702"></a>01702 
-<a name="l01703"></a>01703 <span class="keywordtype">void</span> Init_RAM() {
-<a name="l01704"></a>01704     <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>));
-<a name="l01705"></a>01705     Bitu i;
-<a name="l01706"></a>01706 
-<a name="l01707"></a>01707     <span class="comment">/* please let me know about shutdown! */</span>
-<a name="l01708"></a>01708     <span class="keywordflow">if</span> (!has_Init_RAM) {
-<a name="l01709"></a>01709         AddExitFunction(AddExitFunctionFuncPair(ShutDownRAM));
-<a name="l01710"></a>01710         has_Init_RAM = <span class="keyword">true</span>;
-<a name="l01711"></a>01711     }
-<a name="l01712"></a>01712 
-<a name="l01713"></a>01713     <span class="comment">/* prepare callouts */</span>
-<a name="l01714"></a>01714     MEM_InitCallouts();
-<a name="l01715"></a>01715 
-<a name="l01716"></a>01716     <span class="comment">// LOG</span>
-<a name="l01717"></a>01717     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing RAM emulation (system memory)&quot;</span>);
-<a name="l01718"></a>01718 
-<a name="l01719"></a>01719     <span class="comment">// CHECK: address mask init must have been called!</span>
-<a name="l01720"></a>01720     assert(memory.mem_alias_pagemask &gt; 0xFF);
-<a name="l01721"></a>01721 
-<a name="l01722"></a>01722     <span class="comment">/* Setup the Physical Page Links */</span>
-<a name="l01723"></a>01723     Bitu memsizekb = section-&gt;Get_int(<span class="stringliteral">&quot;memsizekb&quot;</span>);
-<a name="l01724"></a>01724     {
-<a name="l01725"></a>01725         Bitu memsize = section-&gt;Get_int(<span class="stringliteral">&quot;memsize&quot;</span>);
+<a name="l01696"></a>01696 <span class="keywordtype">void</span> ShutDownRAM(<a class="code" href="classSection.html">Section</a> * sec) {
+<a name="l01697"></a>01697     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01698"></a>01698     <span class="keywordflow">if</span> (MemBase != NULL) {
+<a name="l01699"></a>01699         <span class="keyword">delete</span> [] MemBase;
+<a name="l01700"></a>01700         MemBase = NULL;
+<a name="l01701"></a>01701     }
+<a name="l01702"></a>01702 }
+<a name="l01703"></a>01703 
+<a name="l01704"></a>01704 <span class="keywordtype">void</span> MEM_InitCallouts(<span class="keywordtype">void</span>) {
+<a name="l01705"></a>01705     <span class="comment">/* make sure each vector has enough for a typical load */</span>
+<a name="l01706"></a>01706     MEM_callouts[MEM_callouts_index(MEM_TYPE_ISA)].resize(64);
+<a name="l01707"></a>01707     MEM_callouts[MEM_callouts_index(MEM_TYPE_PCI)].resize(64);
+<a name="l01708"></a>01708     MEM_callouts[MEM_callouts_index(MEM_TYPE_MB)].resize(64);
+<a name="l01709"></a>01709 }
+<a name="l01710"></a>01710 
+<a name="l01711"></a>01711 <span class="keywordtype">void</span> Init_RAM() {
+<a name="l01712"></a>01712     <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>));
+<a name="l01713"></a>01713     Bitu i;
+<a name="l01714"></a>01714 
+<a name="l01715"></a>01715     <span class="comment">/* please let me know about shutdown! */</span>
+<a name="l01716"></a>01716     <span class="keywordflow">if</span> (!has_Init_RAM) {
+<a name="l01717"></a>01717         AddExitFunction(AddExitFunctionFuncPair(ShutDownRAM));
+<a name="l01718"></a>01718         has_Init_RAM = <span class="keyword">true</span>;
+<a name="l01719"></a>01719     }
+<a name="l01720"></a>01720 
+<a name="l01721"></a>01721     <span class="comment">/* prepare callouts */</span>
+<a name="l01722"></a>01722     MEM_InitCallouts();
+<a name="l01723"></a>01723 
+<a name="l01724"></a>01724     <span class="comment">// LOG</span>
+<a name="l01725"></a>01725     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing RAM emulation (system memory)&quot;</span>);
 <a name="l01726"></a>01726 
-<a name="l01727"></a>01727         <span class="keywordflow">if</span> (memsizekb == 0 &amp;&amp; memsize &lt; 1) memsize = 1;
-<a name="l01728"></a>01728         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (memsizekb != 0 &amp;&amp; (Bits)memsize &lt; 0) memsize = 0;
+<a name="l01727"></a>01727     <span class="comment">// CHECK: address mask init must have been called!</span>
+<a name="l01728"></a>01728     assert(memory.mem_alias_pagemask &gt; 0xFF);
 <a name="l01729"></a>01729 
-<a name="l01730"></a>01730         <span class="comment">/* round up memsizekb to 4KB multiple */</span>
-<a name="l01731"></a>01731         memsizekb = (memsizekb + 3) &amp; (~3);
-<a name="l01732"></a>01732 
-<a name="l01733"></a>01733         <span class="comment">/* roll memsize into memsizekb, simplify this code */</span>
-<a name="l01734"></a>01734         memsizekb += memsize * 1024;
-<a name="l01735"></a>01735     }
-<a name="l01736"></a>01736 
-<a name="l01737"></a>01737     <span class="comment">/* we can&#39;t have more memory than the memory aliasing allows */</span>
-<a name="l01738"></a>01738     <span class="keywordflow">if</span> ((memory.mem_alias_pagemask+1) != 0<span class="comment">/*32-bit integer overflow avoidance*/</span> &amp;&amp;
-<a name="l01739"></a>01739         (memsizekb/4) &gt; (memory.mem_alias_pagemask+1)) {
-<a name="l01740"></a>01740         LOG_MSG(<span class="stringliteral">&quot;%u-bit memory aliasing limits you to %uKB&quot;</span>,
-<a name="l01741"></a>01741             (<span class="keywordtype">int</span>)memory.address_bits,(<span class="keywordtype">int</span>)((memory.mem_alias_pagemask+1)*4));
-<a name="l01742"></a>01742         memsizekb = (memory.mem_alias_pagemask+1) * 4;
+<a name="l01730"></a>01730     <span class="comment">/* Setup the Physical Page Links */</span>
+<a name="l01731"></a>01731     Bitu memsizekb = (Bitu)section-&gt;Get_int(<span class="stringliteral">&quot;memsizekb&quot;</span>);
+<a name="l01732"></a>01732     {
+<a name="l01733"></a>01733         Bitu memsize = (Bitu)section-&gt;Get_int(<span class="stringliteral">&quot;memsize&quot;</span>);
+<a name="l01734"></a>01734 
+<a name="l01735"></a>01735         <span class="keywordflow">if</span> (memsizekb == 0 &amp;&amp; memsize &lt; 1) memsize = 1;
+<a name="l01736"></a>01736         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (memsizekb != 0 &amp;&amp; (Bits)memsize &lt; 0) memsize = 0;
+<a name="l01737"></a>01737 
+<a name="l01738"></a>01738         <span class="comment">/* round up memsizekb to 4KB multiple */</span>
+<a name="l01739"></a>01739         memsizekb = (memsizekb + 3ul) &amp; (~3ul);
+<a name="l01740"></a>01740 
+<a name="l01741"></a>01741         <span class="comment">/* roll memsize into memsizekb, simplify this code */</span>
+<a name="l01742"></a>01742         memsizekb += memsize * 1024ul;
 <a name="l01743"></a>01743     }
 <a name="l01744"></a>01744 
-<a name="l01745"></a>01745     <span class="comment">/* cap at just under 4GB */</span>
-<a name="l01746"></a>01746     <span class="keywordflow">if</span> ((memsizekb/4) &gt; ((1 &lt;&lt; (32 - 10)) - 4)) {
-<a name="l01747"></a>01747         LOG_MSG(<span class="stringliteral">&quot;Maximum memory size is %dKB&quot;</span>,(1 &lt;&lt; (32 - 10)) - 4);
-<a name="l01748"></a>01748         memsizekb = (1 &lt;&lt; (32 - 10)) - 4;
-<a name="l01749"></a>01749     }
-<a name="l01750"></a>01750     memory.reported_pages = memory.pages = memsizekb/4;
-<a name="l01751"></a>01751 
-<a name="l01752"></a>01752     <span class="comment">// FIXME: Hopefully our refactoring will remove the need for this hack</span>
-<a name="l01753"></a>01753     <span class="comment">/* if the config file asks for less than 1MB of memory</span>
-<a name="l01754"></a>01754 <span class="comment">     * then say so to the DOS program. but way too much code</span>
-<a name="l01755"></a>01755 <span class="comment">     * here assumes memsize &gt;= 1MB */</span>
-<a name="l01756"></a>01756     <span class="keywordflow">if</span> (memory.pages &lt; ((1024*1024)/4096))
-<a name="l01757"></a>01757         memory.pages = ((1024*1024)/4096);
-<a name="l01758"></a>01758 
-<a name="l01759"></a>01759     <span class="comment">// DEBUG message</span>
-<a name="l01760"></a>01760     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Memory: %u pages (%uKB) of RAM, %u (%uKB) reported to OS, %u (0x%x) (%uKB) pages of memory handlers&quot;</span>,
-<a name="l01761"></a>01761         (<span class="keywordtype">unsigned</span> int)memory.pages,
-<a name="l01762"></a>01762         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)memory.pages*4,
-<a name="l01763"></a>01763         (<span class="keywordtype">unsigned</span> int)memory.reported_pages,
-<a name="l01764"></a>01764         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)memory.reported_pages*4,
-<a name="l01765"></a>01765         (<span class="keywordtype">unsigned</span> int)memory.handler_pages,
-<a name="l01766"></a>01766         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)memory.handler_pages,
-<a name="l01767"></a>01767         (<span class="keywordtype">unsigned</span> int)memory.handler_pages*4);
-<a name="l01768"></a>01768 
-<a name="l01769"></a>01769     <span class="comment">// sanity check!</span>
-<a name="l01770"></a>01770     assert(memory.handler_pages &gt;= memory.pages);
-<a name="l01771"></a>01771     assert(memory.reported_pages &lt;= memory.pages);
-<a name="l01772"></a>01772     assert(memory.handler_pages &gt;= memory.reported_pages);
-<a name="l01773"></a>01773     assert(memory.handler_pages &gt;= 0x100); <span class="comment">/* enough for at minimum 1MB of addressable memory */</span>
-<a name="l01774"></a>01774 
-<a name="l01775"></a>01775     <span class="comment">/* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,</span>
-<a name="l01776"></a>01776 <span class="comment">     * so we then must zero the buffer. */</span>
-<a name="l01777"></a>01777     MemBase = <span class="keyword">new</span> Bit8u[memory.pages*4096];
-<a name="l01778"></a>01778     <span class="keywordflow">if</span> (!MemBase) E_Exit(<span class="stringliteral">&quot;Can&#39;t allocate main memory of %d KB&quot;</span>,(<span class="keywordtype">int</span>)memsizekb);
-<a name="l01779"></a>01779     <span class="comment">/* Clear the memory, as new doesn&#39;t always give zeroed memory</span>
-<a name="l01780"></a>01780 <span class="comment">     * (Visual C debug mode). We want zeroed memory though. */</span>
-<a name="l01781"></a>01781     memset((<span class="keywordtype">void</span>*)MemBase,0,memory.reported_pages*4096);
-<a name="l01782"></a>01782     <span class="comment">/* the rest of &quot;ROM&quot; is for unmapped devices so we need to fill it appropriately */</span>
-<a name="l01783"></a>01783     <span class="keywordflow">if</span> (memory.reported_pages &lt; memory.pages)
-<a name="l01784"></a>01784         memset((<span class="keywordtype">char</span>*)MemBase+(memory.reported_pages*4096),0xFF,
-<a name="l01785"></a>01785             (memory.pages - memory.reported_pages)*4096);
-<a name="l01786"></a>01786     <span class="comment">/* adapter ROM */</span>
-<a name="l01787"></a>01787     memset((<span class="keywordtype">char</span>*)MemBase+0xA0000,0xFF,0x60000);
-<a name="l01788"></a>01788     <span class="comment">/* except for 0xF0000-0xFFFFF */</span>
-<a name="l01789"></a>01789     memset((<span class="keywordtype">char</span>*)MemBase+0xF0000,0x00,0x10000);
-<a name="l01790"></a>01790 
-<a name="l01791"></a>01791     <span class="comment">// sanity check. if this condition is false the loops below will overrun the array!</span>
-<a name="l01792"></a>01792     assert(memory.reported_pages &lt;= memory.handler_pages);
-<a name="l01793"></a>01793 
-<a name="l01794"></a>01794     <a class="code" href="classPageHandler.html">PageHandler</a> *ram_ptr = (<a class="code" href="classPageHandler.html">PageHandler</a>*)(&amp;ram_page_handler);
-<a name="l01795"></a>01795 
-<a name="l01796"></a>01796     <span class="keywordflow">for</span> (i=0;i &lt; memory.reported_pages;i++)
-<a name="l01797"></a>01797         memory.phandlers[i] = ram_ptr;
-<a name="l01798"></a>01798     for (;i &lt; memory.handler_pages;i++)
-<a name="l01799"></a>01799         memory.phandlers[i] = NULL;<span class="comment">//&amp;illegal_page_handler;</span>
-<a name="l01800"></a>01800 
-<a name="l01801"></a>01801     if (!adapter_rom_is_ram) {
-<a name="l01802"></a>01802         <span class="comment">/* FIXME: VGA emulation will selectively respond to 0xA0000-0xBFFFF according to the video mode,</span>
-<a name="l01803"></a>01803 <span class="comment">         *        what we want however is for the VGA emulation to assign illegal_page_handler for</span>
-<a name="l01804"></a>01804 <span class="comment">         *        address ranges it is not responding to when mapping changes. */</span>
-<a name="l01805"></a>01805         <span class="keywordflow">for</span> (i=0xa0;i&lt;0x100;i++) <span class="comment">/* we want to make sure adapter ROM is unmapped entirely! */</span>
-<a name="l01806"></a>01806             memory.phandlers[i] = NULL;<span class="comment">//&amp;unmapped_page_handler;</span>
-<a name="l01807"></a>01807     }
-<a name="l01808"></a>01808 }
-<a name="l01809"></a>01809 
-<a name="l01810"></a>01810 <span class="keyword">static</span> <a class="code" href="classIO__ReadHandleObject.html">IO_ReadHandleObject</a> PS2_Port_92h_ReadHandler;
-<a name="l01811"></a>01811 <span class="keyword">static</span> <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> PS2_Port_92h_WriteHandler;
-<a name="l01812"></a>01812 <span class="keyword">static</span> <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> PS2_Port_92h_WriteHandler2;
-<a name="l01813"></a>01813 
-<a name="l01814"></a>01814 <span class="keywordtype">void</span> ShutDownMemoryAccessArray(<a class="code" href="classSection.html">Section</a> * sec) {
-<a name="l01815"></a>01815     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01816"></a>01816     <span class="keywordflow">if</span> (memory.phandlers != NULL) {
-<a name="l01817"></a>01817         <span class="keyword">delete</span> [] memory.phandlers;
-<a name="l01818"></a>01818         memory.phandlers = NULL;
-<a name="l01819"></a>01819     }
-<a name="l01820"></a>01820 }
+<a name="l01745"></a>01745     <span class="comment">/* we can&#39;t have more memory than the memory aliasing allows */</span>
+<a name="l01746"></a>01746     <span class="keywordflow">if</span> ((memory.mem_alias_pagemask+1) != 0<span class="comment">/*32-bit integer overflow avoidance*/</span> &amp;&amp;
+<a name="l01747"></a>01747         (memsizekb/4) &gt; (memory.mem_alias_pagemask+1)) {
+<a name="l01748"></a>01748         LOG_MSG(<span class="stringliteral">&quot;%u-bit memory aliasing limits you to %uKB&quot;</span>,
+<a name="l01749"></a>01749             (<span class="keywordtype">int</span>)memory.address_bits,(<span class="keywordtype">int</span>)((memory.mem_alias_pagemask+1)*4));
+<a name="l01750"></a>01750         memsizekb = (memory.mem_alias_pagemask+1) * 4;
+<a name="l01751"></a>01751     }
+<a name="l01752"></a>01752 
+<a name="l01753"></a>01753     <span class="comment">/* cap at just under 4GB */</span>
+<a name="l01754"></a>01754     <span class="keywordflow">if</span> ((memsizekb/4) &gt; ((1 &lt;&lt; (32 - 10)) - 4)) {
+<a name="l01755"></a>01755         LOG_MSG(<span class="stringliteral">&quot;Maximum memory size is %dKB&quot;</span>,(1 &lt;&lt; (32 - 10)) - 4);
+<a name="l01756"></a>01756         memsizekb = (1 &lt;&lt; (32 - 10)) - 4;
+<a name="l01757"></a>01757     }
+<a name="l01758"></a>01758     memory.reported_pages = memory.pages = memsizekb/4;
+<a name="l01759"></a>01759 
+<a name="l01760"></a>01760     <span class="comment">// FIXME: Hopefully our refactoring will remove the need for this hack</span>
+<a name="l01761"></a>01761     <span class="comment">/* if the config file asks for less than 1MB of memory</span>
+<a name="l01762"></a>01762 <span class="comment">     * then say so to the DOS program. but way too much code</span>
+<a name="l01763"></a>01763 <span class="comment">     * here assumes memsize &gt;= 1MB */</span>
+<a name="l01764"></a>01764     <span class="keywordflow">if</span> (memory.pages &lt; ((1024*1024)/4096))
+<a name="l01765"></a>01765         memory.pages = ((1024*1024)/4096);
+<a name="l01766"></a>01766 
+<a name="l01767"></a>01767     <span class="comment">// DEBUG message</span>
+<a name="l01768"></a>01768     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Memory: %u pages (%uKB) of RAM, %u (%uKB) reported to OS, %u (0x%x) (%uKB) pages of memory handlers&quot;</span>,
+<a name="l01769"></a>01769         (<span class="keywordtype">unsigned</span> int)memory.pages,
+<a name="l01770"></a>01770         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)memory.pages*4,
+<a name="l01771"></a>01771         (<span class="keywordtype">unsigned</span> int)memory.reported_pages,
+<a name="l01772"></a>01772         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)memory.reported_pages*4,
+<a name="l01773"></a>01773         (<span class="keywordtype">unsigned</span> int)memory.handler_pages,
+<a name="l01774"></a>01774         (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)memory.handler_pages,
+<a name="l01775"></a>01775         (<span class="keywordtype">unsigned</span> int)memory.handler_pages*4);
+<a name="l01776"></a>01776 
+<a name="l01777"></a>01777     <span class="comment">// sanity check!</span>
+<a name="l01778"></a>01778     assert(memory.handler_pages &gt;= memory.pages);
+<a name="l01779"></a>01779     assert(memory.reported_pages &lt;= memory.pages);
+<a name="l01780"></a>01780     assert(memory.handler_pages &gt;= memory.reported_pages);
+<a name="l01781"></a>01781     assert(memory.handler_pages &gt;= 0x100); <span class="comment">/* enough for at minimum 1MB of addressable memory */</span>
+<a name="l01782"></a>01782 
+<a name="l01783"></a>01783     <span class="comment">/* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,</span>
+<a name="l01784"></a>01784 <span class="comment">     * so we then must zero the buffer. */</span>
+<a name="l01785"></a>01785     MemBase = <span class="keyword">new</span> Bit8u[memory.pages*4096];
+<a name="l01786"></a>01786     <span class="keywordflow">if</span> (!MemBase) E_Exit(<span class="stringliteral">&quot;Can&#39;t allocate main memory of %d KB&quot;</span>,(<span class="keywordtype">int</span>)memsizekb);
+<a name="l01787"></a>01787     <span class="comment">/* Clear the memory, as new doesn&#39;t always give zeroed memory</span>
+<a name="l01788"></a>01788 <span class="comment">     * (Visual C debug mode). We want zeroed memory though. */</span>
+<a name="l01789"></a>01789     memset((<span class="keywordtype">void</span>*)MemBase,0,memory.reported_pages*4096);
+<a name="l01790"></a>01790     <span class="comment">/* the rest of &quot;ROM&quot; is for unmapped devices so we need to fill it appropriately */</span>
+<a name="l01791"></a>01791     <span class="keywordflow">if</span> (memory.reported_pages &lt; memory.pages)
+<a name="l01792"></a>01792         memset((<span class="keywordtype">char</span>*)MemBase+(memory.reported_pages*4096),0xFF,
+<a name="l01793"></a>01793             (memory.pages - memory.reported_pages)*4096);
+<a name="l01794"></a>01794     <span class="comment">/* adapter ROM */</span>
+<a name="l01795"></a>01795     memset((<span class="keywordtype">char</span>*)MemBase+0xA0000,0xFF,0x60000);
+<a name="l01796"></a>01796     <span class="comment">/* except for 0xF0000-0xFFFFF */</span>
+<a name="l01797"></a>01797     memset((<span class="keywordtype">char</span>*)MemBase+0xF0000,0x00,0x10000);
+<a name="l01798"></a>01798 
+<a name="l01799"></a>01799     <span class="comment">// sanity check. if this condition is false the loops below will overrun the array!</span>
+<a name="l01800"></a>01800     assert(memory.reported_pages &lt;= memory.handler_pages);
+<a name="l01801"></a>01801 
+<a name="l01802"></a>01802     <a class="code" href="classPageHandler.html">PageHandler</a> *ram_ptr = (<a class="code" href="classPageHandler.html">PageHandler</a>*)(&amp;ram_page_handler);
+<a name="l01803"></a>01803 
+<a name="l01804"></a>01804     <span class="keywordflow">for</span> (i=0;i &lt; memory.reported_pages;i++)
+<a name="l01805"></a>01805         memory.phandlers[i] = ram_ptr;
+<a name="l01806"></a>01806     for (;i &lt; memory.handler_pages;i++)
+<a name="l01807"></a>01807         memory.phandlers[i] = NULL;<span class="comment">//&amp;illegal_page_handler;</span>
+<a name="l01808"></a>01808 
+<a name="l01809"></a>01809     if (!adapter_rom_is_ram) {
+<a name="l01810"></a>01810         <span class="comment">/* FIXME: VGA emulation will selectively respond to 0xA0000-0xBFFFF according to the video mode,</span>
+<a name="l01811"></a>01811 <span class="comment">         *        what we want however is for the VGA emulation to assign illegal_page_handler for</span>
+<a name="l01812"></a>01812 <span class="comment">         *        address ranges it is not responding to when mapping changes. */</span>
+<a name="l01813"></a>01813         <span class="keywordflow">for</span> (i=0xa0;i&lt;0x100;i++) <span class="comment">/* we want to make sure adapter ROM is unmapped entirely! */</span>
+<a name="l01814"></a>01814             memory.phandlers[i] = NULL;<span class="comment">//&amp;unmapped_page_handler;</span>
+<a name="l01815"></a>01815     }
+<a name="l01816"></a>01816 }
+<a name="l01817"></a>01817 
+<a name="l01818"></a>01818 <span class="keyword">static</span> <a class="code" href="classIO__ReadHandleObject.html">IO_ReadHandleObject</a> PS2_Port_92h_ReadHandler;
+<a name="l01819"></a>01819 <span class="keyword">static</span> <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> PS2_Port_92h_WriteHandler;
+<a name="l01820"></a>01820 <span class="keyword">static</span> <a class="code" href="classIO__WriteHandleObject.html">IO_WriteHandleObject</a> PS2_Port_92h_WriteHandler2;
 <a name="l01821"></a>01821 
-<a name="l01822"></a>01822 <span class="keywordtype">void</span> ShutDownMemHandles(<a class="code" href="classSection.html">Section</a> * sec) {
+<a name="l01822"></a>01822 <span class="keywordtype">void</span> ShutDownMemoryAccessArray(<a class="code" href="classSection.html">Section</a> * sec) {
 <a name="l01823"></a>01823     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01824"></a>01824     <span class="keywordflow">if</span> (memory.mhandles != NULL) {
-<a name="l01825"></a>01825         <span class="keyword">delete</span> [] memory.mhandles;
-<a name="l01826"></a>01826         memory.mhandles = NULL;
+<a name="l01824"></a>01824     <span class="keywordflow">if</span> (memory.phandlers != NULL) {
+<a name="l01825"></a>01825         <span class="keyword">delete</span> [] memory.phandlers;
+<a name="l01826"></a>01826         memory.phandlers = NULL;
 <a name="l01827"></a>01827     }
 <a name="l01828"></a>01828 }
 <a name="l01829"></a>01829 
-<a name="l01830"></a>01830 <span class="comment">/* this is called on hardware reset. the BIOS needs the A20 gate ON to boot properly on 386 or higher!</span>
-<a name="l01831"></a>01831 <span class="comment"> * this temporarily switches on the A20 gate and lets it function as normal despite user settings.</span>
-<a name="l01832"></a>01832 <span class="comment"> * BIOS will POST and then permit the A20 gate to go back to whatever emulation setting given in dosbox.conf */</span>
-<a name="l01833"></a>01833 <span class="keywordtype">void</span> A20Gate_OnReset(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l01834"></a>01834     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01835"></a>01835     <span class="keywordtype">void</span> A20Gate_OverrideOn(<a class="code" href="classSection.html">Section</a> *sec);
-<a name="l01836"></a>01836 
-<a name="l01837"></a>01837     memory.a20.controlport = 0;
-<a name="l01838"></a>01838     A20Gate_OverrideOn(sec);
-<a name="l01839"></a>01839     MEM_A20_Enable(<span class="keyword">true</span>);
-<a name="l01840"></a>01840 }
-<a name="l01841"></a>01841 
-<a name="l01842"></a>01842 <span class="keywordtype">void</span> A20Gate_OverrideOn(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l01843"></a>01843     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01844"></a>01844     memory.a20.enabled = 1;
-<a name="l01845"></a>01845     a20_fake_changeable = <span class="keyword">false</span>;
-<a name="l01846"></a>01846     a20_guest_changeable = <span class="keyword">true</span>;
-<a name="l01847"></a>01847 }
-<a name="l01848"></a>01848 
-<a name="l01849"></a>01849 <span class="comment">/* this is called after BIOS boot. the BIOS needs the A20 gate ON to boot properly on 386 or higher! */</span>
-<a name="l01850"></a>01850 <span class="keywordtype">void</span> A20Gate_TakeUserSetting(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l01830"></a>01830 <span class="keywordtype">void</span> ShutDownMemHandles(<a class="code" href="classSection.html">Section</a> * sec) {
+<a name="l01831"></a>01831     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01832"></a>01832     <span class="keywordflow">if</span> (memory.mhandles != NULL) {
+<a name="l01833"></a>01833         <span class="keyword">delete</span> [] memory.mhandles;
+<a name="l01834"></a>01834         memory.mhandles = NULL;
+<a name="l01835"></a>01835     }
+<a name="l01836"></a>01836 }
+<a name="l01837"></a>01837 
+<a name="l01838"></a>01838 <span class="comment">/* this is called on hardware reset. the BIOS needs the A20 gate ON to boot properly on 386 or higher!</span>
+<a name="l01839"></a>01839 <span class="comment"> * this temporarily switches on the A20 gate and lets it function as normal despite user settings.</span>
+<a name="l01840"></a>01840 <span class="comment"> * BIOS will POST and then permit the A20 gate to go back to whatever emulation setting given in dosbox.conf */</span>
+<a name="l01841"></a>01841 <span class="keywordtype">void</span> A20Gate_OnReset(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l01842"></a>01842     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01843"></a>01843     <span class="keywordtype">void</span> A20Gate_OverrideOn(<a class="code" href="classSection.html">Section</a> *sec);
+<a name="l01844"></a>01844 
+<a name="l01845"></a>01845     memory.a20.controlport = 0;
+<a name="l01846"></a>01846     A20Gate_OverrideOn(sec);
+<a name="l01847"></a>01847     MEM_A20_Enable(<span class="keyword">true</span>);
+<a name="l01848"></a>01848 }
+<a name="l01849"></a>01849 
+<a name="l01850"></a>01850 <span class="keywordtype">void</span> A20Gate_OverrideOn(<a class="code" href="classSection.html">Section</a> *sec) {
 <a name="l01851"></a>01851     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01852"></a>01852     <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>));
-<a name="l01853"></a>01853 
-<a name="l01854"></a>01854     memory.a20.enabled = 0;
-<a name="l01855"></a>01855     a20_fake_changeable = <span class="keyword">false</span>;
-<a name="l01856"></a>01856     a20_guest_changeable = <span class="keyword">true</span>;
-<a name="l01857"></a>01857 
-<a name="l01858"></a>01858     <span class="comment">// TODO: A20 gate control should also be handled by a motherboard init routine</span>
-<a name="l01859"></a>01859     std::string ss = section-&gt;Get_string(<span class="stringliteral">&quot;a20&quot;</span>);
-<a name="l01860"></a>01860     <span class="keywordflow">if</span> (ss == <span class="stringliteral">&quot;mask&quot;</span> || ss == <span class="stringliteral">&quot;&quot;</span>) {
-<a name="l01861"></a>01861         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;A20: masking emulation&quot;</span>);
-<a name="l01862"></a>01862         a20_guest_changeable = <span class="keyword">true</span>;
-<a name="l01863"></a>01863     }
-<a name="l01864"></a>01864     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ss == <span class="stringliteral">&quot;on&quot;</span>) {
-<a name="l01865"></a>01865         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;A20: locked on&quot;</span>);
-<a name="l01866"></a>01866         a20_guest_changeable = <span class="keyword">false</span>;
-<a name="l01867"></a>01867         memory.a20.enabled = 1;
-<a name="l01868"></a>01868     }
-<a name="l01869"></a>01869     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ss == <span class="stringliteral">&quot;on_fake&quot;</span>) {
-<a name="l01870"></a>01870         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;A20: locked on (but will fake control bit)&quot;</span>);
-<a name="l01871"></a>01871         a20_guest_changeable = <span class="keyword">false</span>;
-<a name="l01872"></a>01872         a20_fake_changeable = <span class="keyword">true</span>;
-<a name="l01873"></a>01873         memory.a20.enabled = 1;
-<a name="l01874"></a>01874     }
-<a name="l01875"></a>01875     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ss == <span class="stringliteral">&quot;off&quot;</span>) {
-<a name="l01876"></a>01876         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;A20: locked off&quot;</span>);
-<a name="l01877"></a>01877         a20_guest_changeable = <span class="keyword">false</span>;
-<a name="l01878"></a>01878         memory.a20.enabled = 0;
-<a name="l01879"></a>01879     }
-<a name="l01880"></a>01880     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ss == <span class="stringliteral">&quot;off_fake&quot;</span>) {
-<a name="l01881"></a>01881         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;A20: locked off (but will fake control bit)&quot;</span>);
-<a name="l01882"></a>01882         a20_guest_changeable = <span class="keyword">false</span>;
-<a name="l01883"></a>01883         a20_fake_changeable = <span class="keyword">true</span>;
-<a name="l01884"></a>01884         memory.a20.enabled = 0;
-<a name="l01885"></a>01885     }
-<a name="l01886"></a>01886     <span class="keywordflow">else</span> { <span class="comment">/* &quot;&quot; or &quot;fast&quot; */</span>
-<a name="l01887"></a>01887         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;A20: masking emulation (fast mode no longer supported)&quot;</span>);
-<a name="l01888"></a>01888         a20_guest_changeable = <span class="keyword">true</span>;
-<a name="l01889"></a>01889     }
-<a name="l01890"></a>01890 }
-<a name="l01891"></a>01891 
-<a name="l01892"></a>01892 <span class="keywordtype">void</span> Init_A20_Gate() {
-<a name="l01893"></a>01893     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing A20 gate emulation&quot;</span>);
-<a name="l01894"></a>01894 
-<a name="l01895"></a>01895     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(A20Gate_OnReset));
-<a name="l01896"></a>01896 }
-<a name="l01897"></a>01897 
-<a name="l01898"></a>01898 <span class="keywordtype">void</span> PS2Port92_OnReset(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l01899"></a>01899     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01900"></a>01900     <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>));
-<a name="l01901"></a>01901 
-<a name="l01902"></a>01902     PS2_Port_92h_WriteHandler2.Uninstall();
-<a name="l01903"></a>01903     PS2_Port_92h_WriteHandler.Uninstall();
-<a name="l01904"></a>01904     PS2_Port_92h_ReadHandler.Uninstall();
+<a name="l01852"></a>01852     memory.a20.enabled = 1;
+<a name="l01853"></a>01853     a20_fake_changeable = <span class="keyword">false</span>;
+<a name="l01854"></a>01854     a20_guest_changeable = <span class="keyword">true</span>;
+<a name="l01855"></a>01855 }
+<a name="l01856"></a>01856 
+<a name="l01857"></a>01857 <span class="comment">/* this is called after BIOS boot. the BIOS needs the A20 gate ON to boot properly on 386 or higher! */</span>
+<a name="l01858"></a>01858 <span class="keywordtype">void</span> A20Gate_TakeUserSetting(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l01859"></a>01859     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01860"></a>01860     <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>));
+<a name="l01861"></a>01861 
+<a name="l01862"></a>01862     memory.a20.enabled = 0;
+<a name="l01863"></a>01863     a20_fake_changeable = <span class="keyword">false</span>;
+<a name="l01864"></a>01864     a20_guest_changeable = <span class="keyword">true</span>;
+<a name="l01865"></a>01865 
+<a name="l01866"></a>01866     <span class="comment">// TODO: A20 gate control should also be handled by a motherboard init routine</span>
+<a name="l01867"></a>01867     std::string ss = section-&gt;Get_string(<span class="stringliteral">&quot;a20&quot;</span>);
+<a name="l01868"></a>01868     <span class="keywordflow">if</span> (ss == <span class="stringliteral">&quot;mask&quot;</span> || ss == <span class="stringliteral">&quot;&quot;</span>) {
+<a name="l01869"></a>01869         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;A20: masking emulation&quot;</span>);
+<a name="l01870"></a>01870         a20_guest_changeable = <span class="keyword">true</span>;
+<a name="l01871"></a>01871     }
+<a name="l01872"></a>01872     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ss == <span class="stringliteral">&quot;on&quot;</span>) {
+<a name="l01873"></a>01873         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;A20: locked on&quot;</span>);
+<a name="l01874"></a>01874         a20_guest_changeable = <span class="keyword">false</span>;
+<a name="l01875"></a>01875         memory.a20.enabled = 1;
+<a name="l01876"></a>01876     }
+<a name="l01877"></a>01877     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ss == <span class="stringliteral">&quot;on_fake&quot;</span>) {
+<a name="l01878"></a>01878         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;A20: locked on (but will fake control bit)&quot;</span>);
+<a name="l01879"></a>01879         a20_guest_changeable = <span class="keyword">false</span>;
+<a name="l01880"></a>01880         a20_fake_changeable = <span class="keyword">true</span>;
+<a name="l01881"></a>01881         memory.a20.enabled = 1;
+<a name="l01882"></a>01882     }
+<a name="l01883"></a>01883     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ss == <span class="stringliteral">&quot;off&quot;</span>) {
+<a name="l01884"></a>01884         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;A20: locked off&quot;</span>);
+<a name="l01885"></a>01885         a20_guest_changeable = <span class="keyword">false</span>;
+<a name="l01886"></a>01886         memory.a20.enabled = 0;
+<a name="l01887"></a>01887     }
+<a name="l01888"></a>01888     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ss == <span class="stringliteral">&quot;off_fake&quot;</span>) {
+<a name="l01889"></a>01889         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;A20: locked off (but will fake control bit)&quot;</span>);
+<a name="l01890"></a>01890         a20_guest_changeable = <span class="keyword">false</span>;
+<a name="l01891"></a>01891         a20_fake_changeable = <span class="keyword">true</span>;
+<a name="l01892"></a>01892         memory.a20.enabled = 0;
+<a name="l01893"></a>01893     }
+<a name="l01894"></a>01894     <span class="keywordflow">else</span> { <span class="comment">/* &quot;&quot; or &quot;fast&quot; */</span>
+<a name="l01895"></a>01895         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;A20: masking emulation (fast mode no longer supported)&quot;</span>);
+<a name="l01896"></a>01896         a20_guest_changeable = <span class="keyword">true</span>;
+<a name="l01897"></a>01897     }
+<a name="l01898"></a>01898 }
+<a name="l01899"></a>01899 
+<a name="l01900"></a>01900 <span class="keywordtype">void</span> Init_A20_Gate() {
+<a name="l01901"></a>01901     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing A20 gate emulation&quot;</span>);
+<a name="l01902"></a>01902 
+<a name="l01903"></a>01903     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(A20Gate_OnReset));
+<a name="l01904"></a>01904 }
 <a name="l01905"></a>01905 
-<a name="l01906"></a>01906     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l01907"></a>01907         <span class="comment">// TODO: add separate dosbox.conf variable for A20 gate control on PC-98</span>
-<a name="l01908"></a>01908         enable_port92 = <span class="keyword">true</span>;
-<a name="l01909"></a>01909         <span class="keywordflow">if</span> (enable_port92) {
-<a name="l01910"></a>01910             PS2_Port_92h_WriteHandler2.Install(0xF6,write_pc98_a20,IO_MB);
-<a name="l01911"></a>01911             PS2_Port_92h_WriteHandler.Install(0xF2,write_pc98_a20,IO_MB);
-<a name="l01912"></a>01912             PS2_Port_92h_ReadHandler.Install(0xF2,read_pc98_a20,IO_MB);
-<a name="l01913"></a>01913         }
-<a name="l01914"></a>01914     }
-<a name="l01915"></a>01915     <span class="keywordflow">else</span> {
-<a name="l01916"></a>01916         <span class="comment">// TODO: this should be handled in a motherboard init routine</span>
-<a name="l01917"></a>01917         enable_port92 = section-&gt;Get_bool(<span class="stringliteral">&quot;enable port 92&quot;</span>);
-<a name="l01918"></a>01918         <span class="keywordflow">if</span> (enable_port92) {
-<a name="l01919"></a>01919             <span class="comment">// A20 Line - PS/2 system control port A</span>
-<a name="l01920"></a>01920             <span class="comment">// TODO: This should exist in the motherboard emulation code yet to come! The motherboard</span>
-<a name="l01921"></a>01921             <span class="comment">//       determines A20 gating, not the RAM!</span>
-<a name="l01922"></a>01922             <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Port 92h installed, emulating PS/2 system control port A&quot;</span>);
-<a name="l01923"></a>01923             PS2_Port_92h_WriteHandler.Install(0x92,write_p92,IO_MB);
-<a name="l01924"></a>01924             PS2_Port_92h_ReadHandler.Install(0x92,read_p92,IO_MB);
-<a name="l01925"></a>01925         }
-<a name="l01926"></a>01926     }
-<a name="l01927"></a>01927 }
-<a name="l01928"></a>01928 
-<a name="l01929"></a>01929 <span class="keywordtype">void</span> Init_PS2_Port_92h() {
-<a name="l01930"></a>01930     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing PS/2 port 92h emulation&quot;</span>);
-<a name="l01931"></a>01931 
-<a name="l01932"></a>01932     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PS2Port92_OnReset));
-<a name="l01933"></a>01933 }
-<a name="l01934"></a>01934 
-<a name="l01935"></a>01935 <span class="keywordtype">void</span> Init_MemHandles() {
-<a name="l01936"></a>01936     Bitu i;
-<a name="l01937"></a>01937 
-<a name="l01938"></a>01938     <span class="keywordflow">if</span> (!has_Init_MemHandles) {
-<a name="l01939"></a>01939         AddExitFunction(AddExitFunctionFuncPair(ShutDownMemHandles));
-<a name="l01940"></a>01940         has_Init_MemHandles = <span class="keyword">true</span>;
-<a name="l01941"></a>01941     }
+<a name="l01906"></a>01906 <span class="keywordtype">void</span> PS2Port92_OnReset(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l01907"></a>01907     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01908"></a>01908     <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dosbox&quot;</span>));
+<a name="l01909"></a>01909 
+<a name="l01910"></a>01910     PS2_Port_92h_WriteHandler2.Uninstall();
+<a name="l01911"></a>01911     PS2_Port_92h_WriteHandler.Uninstall();
+<a name="l01912"></a>01912     PS2_Port_92h_ReadHandler.Uninstall();
+<a name="l01913"></a>01913 
+<a name="l01914"></a>01914     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l01915"></a>01915         <span class="comment">// TODO: add separate dosbox.conf variable for A20 gate control on PC-98</span>
+<a name="l01916"></a>01916         enable_port92 = <span class="keyword">true</span>;
+<a name="l01917"></a>01917         <span class="keywordflow">if</span> (enable_port92) {
+<a name="l01918"></a>01918             PS2_Port_92h_WriteHandler2.Install(0xF6,write_pc98_a20,IO_MB);
+<a name="l01919"></a>01919             PS2_Port_92h_WriteHandler.Install(0xF2,write_pc98_a20,IO_MB);
+<a name="l01920"></a>01920             PS2_Port_92h_ReadHandler.Install(0xF2,read_pc98_a20,IO_MB);
+<a name="l01921"></a>01921         }
+<a name="l01922"></a>01922     }
+<a name="l01923"></a>01923     <span class="keywordflow">else</span> {
+<a name="l01924"></a>01924         <span class="comment">// TODO: this should be handled in a motherboard init routine</span>
+<a name="l01925"></a>01925         enable_port92 = section-&gt;Get_bool(<span class="stringliteral">&quot;enable port 92&quot;</span>);
+<a name="l01926"></a>01926         <span class="keywordflow">if</span> (enable_port92) {
+<a name="l01927"></a>01927             <span class="comment">// A20 Line - PS/2 system control port A</span>
+<a name="l01928"></a>01928             <span class="comment">// TODO: This should exist in the motherboard emulation code yet to come! The motherboard</span>
+<a name="l01929"></a>01929             <span class="comment">//       determines A20 gating, not the RAM!</span>
+<a name="l01930"></a>01930             <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Port 92h installed, emulating PS/2 system control port A&quot;</span>);
+<a name="l01931"></a>01931             PS2_Port_92h_WriteHandler.Install(0x92,write_p92,IO_MB);
+<a name="l01932"></a>01932             PS2_Port_92h_ReadHandler.Install(0x92,read_p92,IO_MB);
+<a name="l01933"></a>01933         }
+<a name="l01934"></a>01934     }
+<a name="l01935"></a>01935 }
+<a name="l01936"></a>01936 
+<a name="l01937"></a>01937 <span class="keywordtype">void</span> Init_PS2_Port_92h() {
+<a name="l01938"></a>01938     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing PS/2 port 92h emulation&quot;</span>);
+<a name="l01939"></a>01939 
+<a name="l01940"></a>01940     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PS2Port92_OnReset));
+<a name="l01941"></a>01941 }
 <a name="l01942"></a>01942 
-<a name="l01943"></a>01943     <span class="comment">// LOG</span>
-<a name="l01944"></a>01944     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing memory handle array (EMS/XMS handle management). mem_pages=%lx&quot;</span>,(<span class="keywordtype">unsigned</span> long)memory.pages);
+<a name="l01943"></a>01943 <span class="keywordtype">void</span> Init_MemHandles() {
+<a name="l01944"></a>01944     Bitu i;
 <a name="l01945"></a>01945 
-<a name="l01946"></a>01946     <span class="keywordflow">if</span> (memory.mhandles == NULL)
-<a name="l01947"></a>01947         memory.mhandles = <span class="keyword">new</span> MemHandle[memory.pages];
-<a name="l01948"></a>01948 
-<a name="l01949"></a>01949     <span class="keywordflow">for</span> (i = 0;i &lt; memory.pages;i++)
-<a name="l01950"></a>01950         memory.mhandles[i] = 0;             <span class="comment">//Set to 0 for memory allocation</span>
-<a name="l01951"></a>01951 }
-<a name="l01952"></a>01952 
-<a name="l01953"></a>01953 <span class="keywordtype">void</span> Init_MemoryAccessArray() {
-<a name="l01954"></a>01954     Bitu i;
-<a name="l01955"></a>01955 
-<a name="l01956"></a>01956     <span class="comment">/* HACK: need to zero these! */</span>
-<a name="l01957"></a>01957     memory.lfb.handler=NULL;
-<a name="l01958"></a>01958     memory.lfb.start_page=0;
-<a name="l01959"></a>01959     memory.lfb.end_page=0;
-<a name="l01960"></a>01960     memory.lfb.pages=0;
-<a name="l01961"></a>01961 
-<a name="l01962"></a>01962     memory.lfb_mmio.handler=NULL;
-<a name="l01963"></a>01963     memory.lfb_mmio.start_page=0;
-<a name="l01964"></a>01964     memory.lfb_mmio.end_page=0;
-<a name="l01965"></a>01965     memory.lfb_mmio.pages=0;
-<a name="l01966"></a>01966 
-<a name="l01967"></a>01967     <span class="keywordflow">if</span> (!has_Init_MemoryAccessArray) {
-<a name="l01968"></a>01968         has_Init_MemoryAccessArray = <span class="keyword">true</span>;
-<a name="l01969"></a>01969         AddExitFunction(AddExitFunctionFuncPair(ShutDownMemoryAccessArray));
-<a name="l01970"></a>01970     }
-<a name="l01971"></a>01971 
-<a name="l01972"></a>01972     <span class="comment">// LOG</span>
-<a name="l01973"></a>01973     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing memory access array (page handler callback system). mem_alias_pagemask=%lx&quot;</span>,(<span class="keywordtype">unsigned</span> long)memory.mem_alias_pagemask);
+<a name="l01946"></a>01946     <span class="keywordflow">if</span> (!has_Init_MemHandles) {
+<a name="l01947"></a>01947         AddExitFunction(AddExitFunctionFuncPair(ShutDownMemHandles));
+<a name="l01948"></a>01948         has_Init_MemHandles = <span class="keyword">true</span>;
+<a name="l01949"></a>01949     }
+<a name="l01950"></a>01950 
+<a name="l01951"></a>01951     <span class="comment">// LOG</span>
+<a name="l01952"></a>01952     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing memory handle array (EMS/XMS handle management). mem_pages=%lx&quot;</span>,(<span class="keywordtype">unsigned</span> long)memory.pages);
+<a name="l01953"></a>01953 
+<a name="l01954"></a>01954     <span class="keywordflow">if</span> (memory.mhandles == NULL)
+<a name="l01955"></a>01955         memory.mhandles = <span class="keyword">new</span> MemHandle[memory.pages];
+<a name="l01956"></a>01956 
+<a name="l01957"></a>01957     <span class="keywordflow">for</span> (i = 0;i &lt; memory.pages;i++)
+<a name="l01958"></a>01958         memory.mhandles[i] = 0;             <span class="comment">//Set to 0 for memory allocation</span>
+<a name="l01959"></a>01959 }
+<a name="l01960"></a>01960 
+<a name="l01961"></a>01961 <span class="keywordtype">void</span> Init_MemoryAccessArray() {
+<a name="l01962"></a>01962     Bitu i;
+<a name="l01963"></a>01963 
+<a name="l01964"></a>01964     <span class="comment">/* HACK: need to zero these! */</span>
+<a name="l01965"></a>01965     memory.lfb.handler=NULL;
+<a name="l01966"></a>01966     memory.lfb.start_page=0;
+<a name="l01967"></a>01967     memory.lfb.end_page=0;
+<a name="l01968"></a>01968     memory.lfb.pages=0;
+<a name="l01969"></a>01969 
+<a name="l01970"></a>01970     memory.lfb_mmio.handler=NULL;
+<a name="l01971"></a>01971     memory.lfb_mmio.start_page=0;
+<a name="l01972"></a>01972     memory.lfb_mmio.end_page=0;
+<a name="l01973"></a>01973     memory.lfb_mmio.pages=0;
 <a name="l01974"></a>01974 
-<a name="l01975"></a>01975     <span class="comment">// CHECK: address mask init must have been called!</span>
-<a name="l01976"></a>01976     assert(memory.mem_alias_pagemask &gt; 0xFF);
-<a name="l01977"></a>01977 
-<a name="l01978"></a>01978     <span class="comment">// we maintain a different page count for page handlers because we want to maintain a</span>
-<a name="l01979"></a>01979     <span class="comment">// &quot;cache&quot; of sorts of what device responds to a given memory address.</span>
-<a name="l01980"></a>01980     memory.handler_pages = (1 &lt;&lt; (32 - 12)); <span class="comment">/* enough for 4GB */</span>
-<a name="l01981"></a>01981     <span class="keywordflow">if</span> ((memory.mem_alias_pagemask+1) != 0<span class="comment">/*integer overflow check*/</span> &amp;&amp;
-<a name="l01982"></a>01982         memory.handler_pages &gt; (memory.mem_alias_pagemask+1))
-<a name="l01983"></a>01983         memory.handler_pages = (memory.mem_alias_pagemask+1);
-<a name="l01984"></a>01984 
-<a name="l01985"></a>01985     <span class="keywordflow">if</span> (memory.phandlers == NULL)
-<a name="l01986"></a>01986         memory.phandlers = <span class="keyword">new</span> <a class="code" href="classPageHandler.html">PageHandler</a>* [memory.handler_pages];
-<a name="l01987"></a>01987 
-<a name="l01988"></a>01988     <span class="keywordflow">for</span> (i=0;i &lt; memory.handler_pages;i++) <span class="comment">// FIXME: This will eventually init all pages to the &quot;slow path&quot; for device lookup</span>
-<a name="l01989"></a>01989         memory.phandlers[i] = NULL;<span class="comment">//&amp;illegal_page_handler;</span>
-<a name="l01990"></a>01990 }
-<a name="l01991"></a>01991 
-<a name="l01992"></a>01992 <span class="keywordtype">void</span> Init_PCJR_CartridgeROM() {
-<a name="l01993"></a>01993     Bitu i;
-<a name="l01994"></a>01994 
-<a name="l01995"></a>01995     <span class="comment">// log</span>
-<a name="l01996"></a>01996     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Mapping ROM handler for PCjr cartridge emulation&quot;</span>);
-<a name="l01997"></a>01997 
-<a name="l01998"></a>01998     <span class="comment">/* Setup cartridge rom at 0xe0000-0xf0000.</span>
-<a name="l01999"></a>01999 <span class="comment">     * Don&#39;t call this function unless emulating PCjr! */</span>
-<a name="l02000"></a>02000     <span class="keywordflow">for</span> (i=0xe0;i&lt;0xf0;i++)
-<a name="l02001"></a>02001         memory.phandlers[i] = &amp;rom_page_handler;
-<a name="l02002"></a>02002 }
-<a name="l02003"></a>02003 
-<a name="l02004"></a>02004 Bitu MEM_PageMask(<span class="keywordtype">void</span>) {
-<a name="l02005"></a>02005     <span class="keywordflow">return</span> memory.mem_alias_pagemask;
-<a name="l02006"></a>02006 }
-<a name="l02007"></a>02007 
+<a name="l01975"></a>01975     <span class="keywordflow">if</span> (!has_Init_MemoryAccessArray) {
+<a name="l01976"></a>01976         has_Init_MemoryAccessArray = <span class="keyword">true</span>;
+<a name="l01977"></a>01977         AddExitFunction(AddExitFunctionFuncPair(ShutDownMemoryAccessArray));
+<a name="l01978"></a>01978     }
+<a name="l01979"></a>01979 
+<a name="l01980"></a>01980     <span class="comment">// LOG</span>
+<a name="l01981"></a>01981     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing memory access array (page handler callback system). mem_alias_pagemask=%lx&quot;</span>,(<span class="keywordtype">unsigned</span> long)memory.mem_alias_pagemask);
+<a name="l01982"></a>01982 
+<a name="l01983"></a>01983     <span class="comment">// CHECK: address mask init must have been called!</span>
+<a name="l01984"></a>01984     assert(memory.mem_alias_pagemask &gt; 0xFF);
+<a name="l01985"></a>01985 
+<a name="l01986"></a>01986     <span class="comment">// we maintain a different page count for page handlers because we want to maintain a</span>
+<a name="l01987"></a>01987     <span class="comment">// &quot;cache&quot; of sorts of what device responds to a given memory address.</span>
+<a name="l01988"></a>01988     memory.handler_pages = (1 &lt;&lt; (32 - 12)); <span class="comment">/* enough for 4GB */</span>
+<a name="l01989"></a>01989     <span class="keywordflow">if</span> ((memory.mem_alias_pagemask+1) != 0<span class="comment">/*integer overflow check*/</span> &amp;&amp;
+<a name="l01990"></a>01990         memory.handler_pages &gt; (memory.mem_alias_pagemask+1))
+<a name="l01991"></a>01991         memory.handler_pages = (memory.mem_alias_pagemask+1);
+<a name="l01992"></a>01992 
+<a name="l01993"></a>01993     <span class="keywordflow">if</span> (memory.phandlers == NULL)
+<a name="l01994"></a>01994         memory.phandlers = <span class="keyword">new</span> <a class="code" href="classPageHandler.html">PageHandler</a>* [memory.handler_pages];
+<a name="l01995"></a>01995 
+<a name="l01996"></a>01996     <span class="keywordflow">for</span> (i=0;i &lt; memory.handler_pages;i++) <span class="comment">// FIXME: This will eventually init all pages to the &quot;slow path&quot; for device lookup</span>
+<a name="l01997"></a>01997         memory.phandlers[i] = NULL;<span class="comment">//&amp;illegal_page_handler;</span>
+<a name="l01998"></a>01998 }
+<a name="l01999"></a>01999 
+<a name="l02000"></a>02000 <span class="keywordtype">void</span> Init_PCJR_CartridgeROM() {
+<a name="l02001"></a>02001     Bitu i;
+<a name="l02002"></a>02002 
+<a name="l02003"></a>02003     <span class="comment">// log</span>
+<a name="l02004"></a>02004     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Mapping ROM handler for PCjr cartridge emulation&quot;</span>);
+<a name="l02005"></a>02005 
+<a name="l02006"></a>02006     <span class="comment">/* Setup cartridge rom at 0xe0000-0xf0000.</span>
+<a name="l02007"></a>02007 <span class="comment">     * Don&#39;t call this function unless emulating PCjr! */</span>
+<a name="l02008"></a>02008     <span class="keywordflow">for</span> (i=0xe0;i&lt;0xf0;i++)
+<a name="l02009"></a>02009         memory.phandlers[i] = &amp;rom_page_handler;
+<a name="l02010"></a>02010 }
+<a name="l02011"></a>02011 
+<a name="l02012"></a>02012 Bitu MEM_PageMask(<span class="keywordtype">void</span>) {
+<a name="l02013"></a>02013     <span class="keywordflow">return</span> memory.mem_alias_pagemask;
+<a name="l02014"></a>02014 }
+<a name="l02015"></a>02015 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -14,7 +14,6 @@ var searchData=
   ['imagediskvhd',['imageDiskVHD',['../classimageDiskVHD.html',1,'']]],
   ['imgmake',['IMGMAKE',['../classIMGMAKE.html',1,'']]],
   ['imgmount',['IMGMOUNT',['../classIMGMOUNT.html',1,'']]],
-  ['improperfraction',['improperFraction',['../structimproperFraction.html',1,'']]],
   ['imr_5ft',['IMR_t',['../structbx__ne2k__t_1_1IMR__t.html',1,'bx_ne2k_t']]],
   ['innova',['INNOVA',['../classINNOVA.html',1,'']]],
   ['input',['Input',['../classGUI_1_1Input.html',1,'GUI']]],

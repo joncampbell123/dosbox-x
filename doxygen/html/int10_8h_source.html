@@ -116,29 +116,29 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00020"></a>00020 <span class="preprocessor">#include &quot;vga.h&quot;</span>
 <a name="l00021"></a>00021 
 <a name="l00022"></a>00022 <span class="comment">/* TODO: Make this user-configurable */</span>
-<a name="l00023"></a>00023 <span class="preprocessor">#define S3_LFB_BASE             0xE0000000</span>
+<a name="l00023"></a>00023 <span class="preprocessor">#define S3_LFB_BASE             0xE0000000u</span>
 <a name="l00024"></a>00024 <span class="preprocessor"></span>
-<a name="l00025"></a>00025 <span class="preprocessor">#define BIOSMEM_SEG             0x40</span>
+<a name="l00025"></a>00025 <span class="preprocessor">#define BIOSMEM_SEG             0x40u</span>
 <a name="l00026"></a>00026 <span class="preprocessor"></span>
-<a name="l00027"></a>00027 <span class="preprocessor">#define BIOSMEM_INITIAL_MODE  0x10</span>
-<a name="l00028"></a>00028 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CURRENT_MODE  0x49</span>
-<a name="l00029"></a>00029 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_NB_COLS       0x4A</span>
-<a name="l00030"></a>00030 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_PAGE_SIZE     0x4C</span>
-<a name="l00031"></a>00031 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CURRENT_START 0x4E</span>
-<a name="l00032"></a>00032 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CURSOR_POS    0x50</span>
-<a name="l00033"></a>00033 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CURSOR_TYPE   0x60</span>
-<a name="l00034"></a>00034 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CURRENT_PAGE  0x62</span>
-<a name="l00035"></a>00035 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CRTC_ADDRESS  0x63</span>
-<a name="l00036"></a>00036 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CURRENT_MSR   0x65</span>
-<a name="l00037"></a>00037 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CURRENT_PAL   0x66</span>
-<a name="l00038"></a>00038 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_NB_ROWS       0x84</span>
-<a name="l00039"></a>00039 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CHAR_HEIGHT   0x85</span>
-<a name="l00040"></a>00040 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_VIDEO_CTL     0x87</span>
-<a name="l00041"></a>00041 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_SWITCHES      0x88</span>
-<a name="l00042"></a>00042 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_MODESET_CTL   0x89</span>
-<a name="l00043"></a>00043 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_DCC_INDEX     0x8A</span>
-<a name="l00044"></a>00044 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CRTCPU_PAGE   0x8A</span>
-<a name="l00045"></a>00045 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_VS_POINTER    0xA8</span>
+<a name="l00027"></a>00027 <span class="preprocessor">#define BIOSMEM_INITIAL_MODE  0x10u</span>
+<a name="l00028"></a>00028 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CURRENT_MODE  0x49u</span>
+<a name="l00029"></a>00029 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_NB_COLS       0x4Au</span>
+<a name="l00030"></a>00030 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_PAGE_SIZE     0x4Cu</span>
+<a name="l00031"></a>00031 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CURRENT_START 0x4Eu</span>
+<a name="l00032"></a>00032 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CURSOR_POS    0x50u</span>
+<a name="l00033"></a>00033 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CURSOR_TYPE   0x60u</span>
+<a name="l00034"></a>00034 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CURRENT_PAGE  0x62u</span>
+<a name="l00035"></a>00035 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CRTC_ADDRESS  0x63u</span>
+<a name="l00036"></a>00036 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CURRENT_MSR   0x65u</span>
+<a name="l00037"></a>00037 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CURRENT_PAL   0x66u</span>
+<a name="l00038"></a>00038 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_NB_ROWS       0x84u</span>
+<a name="l00039"></a>00039 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CHAR_HEIGHT   0x85u</span>
+<a name="l00040"></a>00040 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_VIDEO_CTL     0x87u</span>
+<a name="l00041"></a>00041 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_SWITCHES      0x88u</span>
+<a name="l00042"></a>00042 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_MODESET_CTL   0x89u</span>
+<a name="l00043"></a>00043 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_DCC_INDEX     0x8Au</span>
+<a name="l00044"></a>00044 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_CRTCPU_PAGE   0x8Au</span>
+<a name="l00045"></a>00045 <span class="preprocessor"></span><span class="preprocessor">#define BIOSMEM_VS_POINTER    0xA8u</span>
 <a name="l00046"></a>00046 <span class="preprocessor"></span>
 <a name="l00047"></a>00047 
 <a name="l00048"></a>00048 <span class="comment">/*</span>
@@ -146,53 +146,53 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00050"></a>00050 <span class="comment"> * VGA registers</span>
 <a name="l00051"></a>00051 <span class="comment"> *</span>
 <a name="l00052"></a>00052 <span class="comment"> */</span>
-<a name="l00053"></a>00053 <span class="preprocessor">#define VGAREG_ACTL_ADDRESS            0x3c0</span>
-<a name="l00054"></a>00054 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_ACTL_WRITE_DATA         0x3c0</span>
-<a name="l00055"></a>00055 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_ACTL_READ_DATA          0x3c1</span>
+<a name="l00053"></a>00053 <span class="preprocessor">#define VGAREG_ACTL_ADDRESS            0x3c0u</span>
+<a name="l00054"></a>00054 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_ACTL_WRITE_DATA         0x3c0u</span>
+<a name="l00055"></a>00055 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_ACTL_READ_DATA          0x3c1u</span>
 <a name="l00056"></a>00056 <span class="preprocessor"></span>
-<a name="l00057"></a>00057 <span class="preprocessor">#define VGAREG_INPUT_STATUS            0x3c2</span>
-<a name="l00058"></a>00058 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_WRITE_MISC_OUTPUT       0x3c2</span>
-<a name="l00059"></a>00059 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_VIDEO_ENABLE            0x3c3</span>
-<a name="l00060"></a>00060 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_SEQU_ADDRESS            0x3c4</span>
-<a name="l00061"></a>00061 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_SEQU_DATA               0x3c5</span>
+<a name="l00057"></a>00057 <span class="preprocessor">#define VGAREG_INPUT_STATUS            0x3c2u</span>
+<a name="l00058"></a>00058 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_WRITE_MISC_OUTPUT       0x3c2u</span>
+<a name="l00059"></a>00059 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_VIDEO_ENABLE            0x3c3u</span>
+<a name="l00060"></a>00060 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_SEQU_ADDRESS            0x3c4u</span>
+<a name="l00061"></a>00061 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_SEQU_DATA               0x3c5u</span>
 <a name="l00062"></a>00062 <span class="preprocessor"></span>
-<a name="l00063"></a>00063 <span class="preprocessor">#define VGAREG_PEL_MASK                0x3c6</span>
-<a name="l00064"></a>00064 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_DAC_STATE               0x3c7</span>
-<a name="l00065"></a>00065 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_DAC_READ_ADDRESS        0x3c7</span>
-<a name="l00066"></a>00066 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_DAC_WRITE_ADDRESS       0x3c8</span>
-<a name="l00067"></a>00067 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_DAC_DATA                0x3c9</span>
+<a name="l00063"></a>00063 <span class="preprocessor">#define VGAREG_PEL_MASK                0x3c6u</span>
+<a name="l00064"></a>00064 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_DAC_STATE               0x3c7u</span>
+<a name="l00065"></a>00065 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_DAC_READ_ADDRESS        0x3c7u</span>
+<a name="l00066"></a>00066 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_DAC_WRITE_ADDRESS       0x3c8u</span>
+<a name="l00067"></a>00067 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_DAC_DATA                0x3c9u</span>
 <a name="l00068"></a>00068 <span class="preprocessor"></span>
-<a name="l00069"></a>00069 <span class="preprocessor">#define VGAREG_READ_FEATURE_CTL        0x3ca</span>
-<a name="l00070"></a>00070 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_READ_MISC_OUTPUT        0x3cc</span>
+<a name="l00069"></a>00069 <span class="preprocessor">#define VGAREG_READ_FEATURE_CTL        0x3cau</span>
+<a name="l00070"></a>00070 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_READ_MISC_OUTPUT        0x3ccu</span>
 <a name="l00071"></a>00071 <span class="preprocessor"></span>
-<a name="l00072"></a>00072 <span class="preprocessor">#define VGAREG_GRDC_ADDRESS            0x3ce</span>
-<a name="l00073"></a>00073 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_GRDC_DATA               0x3cf</span>
+<a name="l00072"></a>00072 <span class="preprocessor">#define VGAREG_GRDC_ADDRESS            0x3ceu</span>
+<a name="l00073"></a>00073 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_GRDC_DATA               0x3cfu</span>
 <a name="l00074"></a>00074 <span class="preprocessor"></span>
-<a name="l00075"></a>00075 <span class="preprocessor">#define VGAREG_MDA_CRTC_ADDRESS        0x3b4</span>
-<a name="l00076"></a>00076 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_MDA_CRTC_DATA           0x3b5</span>
-<a name="l00077"></a>00077 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_VGA_CRTC_ADDRESS        0x3d4</span>
-<a name="l00078"></a>00078 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_VGA_CRTC_DATA           0x3d5</span>
+<a name="l00075"></a>00075 <span class="preprocessor">#define VGAREG_MDA_CRTC_ADDRESS        0x3b4u</span>
+<a name="l00076"></a>00076 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_MDA_CRTC_DATA           0x3b5u</span>
+<a name="l00077"></a>00077 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_VGA_CRTC_ADDRESS        0x3d4u</span>
+<a name="l00078"></a>00078 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_VGA_CRTC_DATA           0x3d5u</span>
 <a name="l00079"></a>00079 <span class="preprocessor"></span>
-<a name="l00080"></a>00080 <span class="preprocessor">#define VGAREG_MDA_WRITE_FEATURE_CTL   0x3ba</span>
-<a name="l00081"></a>00081 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_VGA_WRITE_FEATURE_CTL   0x3da</span>
-<a name="l00082"></a>00082 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_ACTL_RESET              0x3da</span>
-<a name="l00083"></a>00083 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_TDY_RESET               0x3da</span>
-<a name="l00084"></a>00084 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_TDY_ADDRESS             0x3da</span>
-<a name="l00085"></a>00085 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_TDY_DATA                0x3de</span>
-<a name="l00086"></a>00086 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_PCJR_DATA               0x3da</span>
+<a name="l00080"></a>00080 <span class="preprocessor">#define VGAREG_MDA_WRITE_FEATURE_CTL   0x3bau</span>
+<a name="l00081"></a>00081 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_VGA_WRITE_FEATURE_CTL   0x3dau</span>
+<a name="l00082"></a>00082 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_ACTL_RESET              0x3dau</span>
+<a name="l00083"></a>00083 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_TDY_RESET               0x3dau</span>
+<a name="l00084"></a>00084 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_TDY_ADDRESS             0x3dau</span>
+<a name="l00085"></a>00085 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_TDY_DATA                0x3deu</span>
+<a name="l00086"></a>00086 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_PCJR_DATA               0x3dau</span>
 <a name="l00087"></a>00087 <span class="preprocessor"></span>
-<a name="l00088"></a>00088 <span class="preprocessor">#define VGAREG_MDA_MODECTL             0x3b8</span>
-<a name="l00089"></a>00089 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_CGA_MODECTL             0x3d8</span>
-<a name="l00090"></a>00090 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_CGA_PALETTE             0x3d9</span>
+<a name="l00088"></a>00088 <span class="preprocessor">#define VGAREG_MDA_MODECTL             0x3b8u</span>
+<a name="l00089"></a>00089 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_CGA_MODECTL             0x3d8u</span>
+<a name="l00090"></a>00090 <span class="preprocessor"></span><span class="preprocessor">#define VGAREG_CGA_PALETTE             0x3d9u</span>
 <a name="l00091"></a>00091 <span class="preprocessor"></span>
 <a name="l00092"></a>00092 <span class="comment">/* Video memory */</span>
-<a name="l00093"></a>00093 <span class="preprocessor">#define VGAMEM_GRAPH 0xA000</span>
-<a name="l00094"></a>00094 <span class="preprocessor"></span><span class="preprocessor">#define VGAMEM_CTEXT 0xB800</span>
-<a name="l00095"></a>00095 <span class="preprocessor"></span><span class="preprocessor">#define VGAMEM_MTEXT 0xB000</span>
+<a name="l00093"></a>00093 <span class="preprocessor">#define VGAMEM_GRAPH 0xA000u</span>
+<a name="l00094"></a>00094 <span class="preprocessor"></span><span class="preprocessor">#define VGAMEM_CTEXT 0xB800u</span>
+<a name="l00095"></a>00095 <span class="preprocessor"></span><span class="preprocessor">#define VGAMEM_MTEXT 0xB000u</span>
 <a name="l00096"></a>00096 <span class="preprocessor"></span>
 <a name="l00097"></a>00097 <span class="comment">/* FIXME: Wait, what?? What the hell kind of preprocessor macro is this??? Kill these macros! --J.C. */</span>
 <a name="l00098"></a>00098 <span class="preprocessor">#define BIOS_NCOLS Bit16u ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);</span>
-<a name="l00099"></a>00099 <span class="preprocessor"></span><span class="preprocessor">#define BIOS_NROWS Bit16u nrows=(Bit16u)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;</span>
+<a name="l00099"></a>00099 <span class="preprocessor"></span><span class="preprocessor">#define BIOS_NROWS Bit16u nrows=(Bit16u)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1u;</span>
 <a name="l00100"></a>00100 <span class="preprocessor"></span>
 <a name="l00101"></a>00101 <span class="keyword">extern</span> Bit8u int10_font_08[256 * 8];
 <a name="l00102"></a>00102 <span class="keyword">extern</span> Bit8u int10_font_14[256 * 14];
@@ -251,11 +251,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00155"></a>00155 <span class="keyword">extern</span> <a class="code" href="structInt10Data.html">Int10Data</a> int10;
 <a name="l00156"></a>00156 
 <a name="l00157"></a>00157 <span class="keyword">static</span> <span class="keyword">inline</span> Bit8u CURSOR_POS_COL(Bit8u page) {
-<a name="l00158"></a>00158         <span class="keywordflow">return</span> real_readb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2);
+<a name="l00158"></a>00158         <span class="keywordflow">return</span> real_readb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2u);
 <a name="l00159"></a>00159 }
 <a name="l00160"></a>00160 
 <a name="l00161"></a>00161 <span class="keyword">static</span> <span class="keyword">inline</span> Bit8u CURSOR_POS_ROW(Bit8u page) {
-<a name="l00162"></a>00162         <span class="keywordflow">return</span> real_readb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2+1);
+<a name="l00162"></a>00162         <span class="keywordflow">return</span> real_readb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2u+1u);
 <a name="l00163"></a>00163 }
 <a name="l00164"></a>00164 
 <a name="l00165"></a>00165 <span class="keywordtype">bool</span> INT10_SetVideoMode(Bit16u mode);
@@ -343,7 +343,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

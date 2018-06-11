@@ -281,7 +281,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00185"></a>00185 
 <a name="l00186"></a>00186     <span class="keywordflow">for</span> (Bitu x=0;x&lt;vga.draw.blocks;x++) {
 <a name="l00187"></a>00187         pixels.d = base[vidstart &amp; vga.tandy.addr_mask];
-<a name="l00188"></a>00188         vidstart += 1&lt;&lt;vga.config.addr_shift;
+<a name="l00188"></a>00188         vidstart += 1u&lt;&lt;vga.config.addr_shift;
 <a name="l00189"></a>00189 
 <a name="l00190"></a>00190         <span class="comment">/* CGA odd/even mode, first plane */</span>
 <a name="l00191"></a>00191         val=pixels.b[0];
@@ -304,7 +304,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00208"></a>00208 
 <a name="l00209"></a>00209     <span class="keywordflow">for</span> (Bitu x=0;x&lt;vga.draw.blocks;x++) {
 <a name="l00210"></a>00210         pixels.d = base[vidstart &amp; vga.tandy.addr_mask];
-<a name="l00211"></a>00211         vidstart += 1&lt;&lt;vga.config.addr_shift;
+<a name="l00211"></a>00211         vidstart += 1u&lt;&lt;vga.config.addr_shift;
 <a name="l00212"></a>00212 
 <a name="l00213"></a>00213         <span class="comment">/* CGA odd/even mode, first plane */</span>
 <a name="l00214"></a>00214         val=pixels.b[0];
@@ -327,7 +327,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00231"></a>00231 
 <a name="l00232"></a>00232     <span class="keywordflow">for</span> (Bitu x=0;x&lt;vga.draw.blocks;x++) {
 <a name="l00233"></a>00233         pixels.d = base[vidstart &amp; vga.tandy.addr_mask];
-<a name="l00234"></a>00234         vidstart += 1&lt;&lt;vga.config.addr_shift;
+<a name="l00234"></a>00234         vidstart += 1u&lt;&lt;vga.config.addr_shift;
 <a name="l00235"></a>00235 
 <a name="l00236"></a>00236         val=pixels.b[0];
 <a name="l00237"></a>00237         <span class="keywordflow">for</span> (i=0;i &lt; 8;i++,val &lt;&lt;= 1)
@@ -344,7 +344,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00248"></a>00248 
 <a name="l00249"></a>00249     <span class="keywordflow">for</span> (Bitu x=0;x&lt;vga.draw.blocks;x++) {
 <a name="l00250"></a>00250         pixels.d = base[vidstart &amp; vga.tandy.addr_mask];
-<a name="l00251"></a>00251         vidstart += 1&lt;&lt;vga.config.addr_shift;
+<a name="l00251"></a>00251         vidstart += 1u&lt;&lt;vga.config.addr_shift;
 <a name="l00252"></a>00252 
 <a name="l00253"></a>00253         val=pixels.b[0];
 <a name="l00254"></a>00254         <span class="keywordflow">for</span> (i=0;i &lt; 8;i++,val &lt;&lt;= 1)
@@ -481,10 +481,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00385"></a>00385     
 <a name="l00386"></a>00386     <span class="comment">// in case (vga.draw.line_length + offset) has bits set that</span>
 <a name="l00387"></a>00387     <span class="comment">// are not set in the mask: ((x|y)!=y) equals (x&amp;~y)</span>
-<a name="l00388"></a>00388     <span class="keywordflow">if</span> (GCC_UNLIKELY((vga.draw.line_length + offset)&amp; ~vga.draw.linear_mask)) {
+<a name="l00388"></a>00388     <span class="keywordflow">if</span> (GCC_UNLIKELY(((vga.draw.line_length + offset) &amp; (~vga.draw.linear_mask)) != 0u)) {
 <a name="l00389"></a>00389         <span class="comment">// this happens, if at all, only once per frame (1 of 480 lines)</span>
 <a name="l00390"></a>00390         <span class="comment">// in some obscure games</span>
-<a name="l00391"></a>00391         Bitu end = (offset + vga.draw.line_length) &amp; vga.draw.linear_mask;
+<a name="l00391"></a>00391         Bitu end = (Bitu)((Bitu)offset + (Bitu)vga.draw.line_length) &amp; (Bitu)vga.draw.linear_mask;
 <a name="l00392"></a>00392         
 <a name="l00393"></a>00393         <span class="comment">// assuming lines not longer than 4096 pixels</span>
 <a name="l00394"></a>00394         Bitu wrapped_len = end &amp; 0xFFF;
@@ -510,14 +510,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00414"></a>00414 <span class="comment">/* WARNING: This routine assumes (vidstart&amp;3) == 0 */</span>
 <a name="l00415"></a>00415 <span class="keyword">static</span> Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu <span class="comment">/*line*/</span>) {
 <a name="l00416"></a>00416     Bit32u* temps = (Bit32u*) TempLine;
-<a name="l00417"></a>00417     <span class="keywordtype">int</span> poff = 0;
+<a name="l00417"></a>00417     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> poff = 0;
 <a name="l00418"></a>00418     Bitu skip; <span class="comment">/* how much to skip after drawing 4 pixels */</span>
 <a name="l00419"></a>00419 
-<a name="l00420"></a>00420     skip = 4 &lt;&lt; vga.config.addr_shift;
+<a name="l00420"></a>00420     skip = 4u &lt;&lt; vga.config.addr_shift;
 <a name="l00421"></a>00421 
 <a name="l00422"></a>00422     <span class="comment">/* *sigh* it looks like DOSBox&#39;s VGA scanline code will pass nonzero bits 0-1 in vidstart */</span>
-<a name="l00423"></a>00423     poff += vidstart &amp; 3;
-<a name="l00424"></a>00424     vidstart &amp;= ~3;
+<a name="l00423"></a>00423     poff += vidstart &amp; 3u;
+<a name="l00424"></a>00424     vidstart &amp;= ~3ul;
 <a name="l00425"></a>00425 
 <a name="l00426"></a>00426     <span class="comment">/* hack for Surprise! productions &quot;copper&quot; demo.</span>
 <a name="l00427"></a>00427 <span class="comment">     * when the demo talks about making the picture waver, what it&#39;s doing is diddling</span>
@@ -542,7 +542,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00446"></a>00446         hretrace_fx_avg += a * skip * ((int)vga_display_start_hretrace - (<span class="keywordtype">int</span>)vga.crtc.start_horizontal_retrace);
 <a name="l00447"></a>00447         <span class="keywordtype">int</span> x = (<span class="keywordtype">int</span>)floor(hretrace_fx_avg + 0.5);
 <a name="l00448"></a>00448 
-<a name="l00449"></a>00449         vidstart += skip * (x &gt;&gt; 2);
+<a name="l00449"></a>00449         vidstart += (Bitu)((<span class="keywordtype">int</span>)skip * (x &gt;&gt; 2));
 <a name="l00450"></a>00450         poff += x &amp; 3;
 <a name="l00451"></a>00451     }
 <a name="l00452"></a>00452 
@@ -671,11 +671,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00575"></a>00575         <span class="comment">// convert to video memory addr and bit index</span>
 <a name="l00576"></a>00576         <span class="comment">// start adjusted to the pattern structure (thus shift address by 2 instead of 3)</span>
 <a name="l00577"></a>00577         <span class="comment">// Need to get rid of the third bit, so &quot;/8 *2&quot; becomes &quot;&gt;&gt; 2 &amp; ~1&quot;</span>
-<a name="l00578"></a>00578         Bitu cursorMemStart = ((sourceStartBit &gt;&gt; 2)&amp; ~1) + (((Bit32u)vga.s3.hgc.startaddr) &lt;&lt; 10);
-<a name="l00579"></a>00579         Bitu cursorStartBit = sourceStartBit &amp; 0x7;
+<a name="l00578"></a>00578         Bitu cursorMemStart = ((sourceStartBit &gt;&gt; 2ul) &amp; ~1ul) + (((Bit32u)vga.s3.hgc.startaddr) &lt;&lt; 10ul);
+<a name="l00579"></a>00579         Bitu cursorStartBit = sourceStartBit &amp; 0x7u;
 <a name="l00580"></a>00580         <span class="comment">// stay at the right position in the pattern</span>
 <a name="l00581"></a>00581         <span class="keywordflow">if</span> (cursorMemStart &amp; 0x2) cursorMemStart--;
-<a name="l00582"></a>00582         Bitu cursorMemEnd = cursorMemStart + ((64-vga.s3.hgc.posx) &gt;&gt; 2);
+<a name="l00582"></a>00582         Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) &gt;&gt; 2);
 <a name="l00583"></a>00583         Bit32u* xat = &amp;temp[vga.s3.hgc.originx]; <span class="comment">// mouse data start pos. in scanline</span>
 <a name="l00584"></a>00584         <span class="keywordflow">for</span> (Bitu m = cursorMemStart; m &lt; cursorMemEnd; (m&amp;1)?(m+=3):m++) {
 <a name="l00585"></a>00585             <span class="comment">// for each byte of cursor data</span>
@@ -722,11 +722,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00626"></a>00626         <span class="comment">// convert to video memory addr and bit index</span>
 <a name="l00627"></a>00627         <span class="comment">// start adjusted to the pattern structure (thus shift address by 2 instead of 3)</span>
 <a name="l00628"></a>00628         <span class="comment">// Need to get rid of the third bit, so &quot;/8 *2&quot; becomes &quot;&gt;&gt; 2 &amp; ~1&quot;</span>
-<a name="l00629"></a>00629         Bitu cursorMemStart = ((sourceStartBit &gt;&gt; 2)&amp; ~1) + (((Bit32u)vga.s3.hgc.startaddr) &lt;&lt; 10);
-<a name="l00630"></a>00630         Bitu cursorStartBit = sourceStartBit &amp; 0x7;
+<a name="l00629"></a>00629         Bitu cursorMemStart = ((sourceStartBit &gt;&gt; 2) &amp; ~1ul) + (((Bit32u)vga.s3.hgc.startaddr) &lt;&lt; 10ul);
+<a name="l00630"></a>00630         Bitu cursorStartBit = sourceStartBit &amp; 0x7u;
 <a name="l00631"></a>00631         <span class="comment">// stay at the right position in the pattern</span>
 <a name="l00632"></a>00632         <span class="keywordflow">if</span> (cursorMemStart &amp; 0x2) cursorMemStart--;
-<a name="l00633"></a>00633         Bitu cursorMemEnd = cursorMemStart + ((64-vga.s3.hgc.posx) &gt;&gt; 2);
+<a name="l00633"></a>00633         Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) &gt;&gt; 2);
 <a name="l00634"></a>00634         Bit8u* xat = &amp;TempLine[vga.s3.hgc.originx]; <span class="comment">// mouse data start pos. in scanline</span>
 <a name="l00635"></a>00635         <span class="keywordflow">for</span> (Bitu m = cursorMemStart; m &lt; cursorMemEnd; (m&amp;1)?(m+=3):m++) {
 <a name="l00636"></a>00636             <span class="comment">// for each byte of cursor data</span>
@@ -775,10 +775,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00679"></a>00679     } <span class="keywordflow">else</span> {
 <a name="l00680"></a>00680         memcpy(TempLine, &amp;vga.mem.linear[ vidstart ], vga.draw.width*2);
 <a name="l00681"></a>00681         Bitu sourceStartBit = ((lineat - vga.s3.hgc.originy) + vga.s3.hgc.posy)*64 + vga.s3.hgc.posx; 
-<a name="l00682"></a>00682         Bitu cursorMemStart = ((sourceStartBit &gt;&gt; 2)&amp; ~1) + (((Bit32u)vga.s3.hgc.startaddr) &lt;&lt; 10);
-<a name="l00683"></a>00683         Bitu cursorStartBit = sourceStartBit &amp; 0x7;
+<a name="l00682"></a>00682         Bitu cursorMemStart = ((sourceStartBit &gt;&gt; 2) &amp; ~1ul) + (((Bit32u)vga.s3.hgc.startaddr) &lt;&lt; 10ul);
+<a name="l00683"></a>00683         Bitu cursorStartBit = sourceStartBit &amp; 0x7u;
 <a name="l00684"></a>00684         <span class="keywordflow">if</span> (cursorMemStart &amp; 0x2) cursorMemStart--;
-<a name="l00685"></a>00685         Bitu cursorMemEnd = cursorMemStart + ((64-vga.s3.hgc.posx) &gt;&gt; 2);
+<a name="l00685"></a>00685         Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) &gt;&gt; 2);
 <a name="l00686"></a>00686         Bit16u* xat = &amp;((Bit16u*)TempLine)[vga.s3.hgc.originx];
 <a name="l00687"></a>00687         <span class="keywordflow">for</span> (Bitu m = cursorMemStart; m &lt; cursorMemEnd; (m&amp;1)?(m+=3):m++) {
 <a name="l00688"></a>00688             <span class="comment">// for each byte of cursor data</span>
@@ -826,10 +826,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00730"></a>00730     } <span class="keywordflow">else</span> {
 <a name="l00731"></a>00731         memcpy(TempLine, &amp;vga.mem.linear[ vidstart ], vga.draw.width*4);
 <a name="l00732"></a>00732         Bitu sourceStartBit = ((lineat - vga.s3.hgc.originy) + vga.s3.hgc.posy)*64 + vga.s3.hgc.posx; 
-<a name="l00733"></a>00733         Bitu cursorMemStart = ((sourceStartBit &gt;&gt; 2)&amp; ~1) + (((Bit32u)vga.s3.hgc.startaddr) &lt;&lt; 10);
-<a name="l00734"></a>00734         Bitu cursorStartBit = sourceStartBit &amp; 0x7;
+<a name="l00733"></a>00733         Bitu cursorMemStart = ((sourceStartBit &gt;&gt; 2) &amp; ~1ul) + (((Bit32u)vga.s3.hgc.startaddr) &lt;&lt; 10ul);
+<a name="l00734"></a>00734         Bitu cursorStartBit = sourceStartBit &amp; 0x7u;
 <a name="l00735"></a>00735         <span class="keywordflow">if</span> (cursorMemStart &amp; 0x2) cursorMemStart--;
-<a name="l00736"></a>00736         Bitu cursorMemEnd = cursorMemStart + ((64-vga.s3.hgc.posx) &gt;&gt; 2);
+<a name="l00736"></a>00736         Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) &gt;&gt; 2);
 <a name="l00737"></a>00737         Bit32u* xat = &amp;((Bit32u*)TempLine)[vga.s3.hgc.originx];
 <a name="l00738"></a>00738         <span class="keywordflow">for</span> (Bitu m = cursorMemStart; m &lt; cursorMemEnd; (m&amp;1)?(m+=3):m++) {
 <a name="l00739"></a>00739             <span class="comment">// for each byte of cursor data</span>
@@ -909,12 +909,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00813"></a>00813     }
 <a name="l00814"></a>00814     memset(vga.draw.cga_snow,0,<span class="keyword">sizeof</span>(vga.draw.cga_snow));
 <a name="l00815"></a>00815     <span class="keywordflow">if</span> (!vga.draw.cursor.enabled || !(vga.draw.cursor.count&amp;0x8)) <span class="keywordflow">goto</span> skip_cursor;
-<a name="l00816"></a>00816     font_addr = (vga.draw.cursor.address-vidstart) &gt;&gt; 1;
+<a name="l00816"></a>00816     font_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) &gt;&gt; 1ll;
 <a name="l00817"></a>00817     <span class="keywordflow">if</span> (font_addr&gt;=0 &amp;&amp; font_addr&lt;(Bits)vga.draw.blocks) {
 <a name="l00818"></a>00818         <span class="keywordflow">if</span> (line&lt;vga.draw.cursor.sline) <span class="keywordflow">goto</span> skip_cursor;
 <a name="l00819"></a>00819         <span class="keywordflow">if</span> (line&gt;vga.draw.cursor.eline) <span class="keywordflow">goto</span> skip_cursor;
-<a name="l00820"></a>00820         draw=(Bit32u *)&amp;TempLine[font_addr*8];
-<a name="l00821"></a>00821         Bit32u att=TXT_FG_Table[vga.tandy.draw_base[vga.draw.cursor.address+1]&amp;0xf];
+<a name="l00820"></a>00820         draw=(Bit32u *)&amp;TempLine[(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)font_addr*8ul];
+<a name="l00821"></a>00821         Bit32u att=TXT_FG_Table[vga.tandy.draw_base[vga.draw.cursor.address+1ul]&amp;0xfu];
 <a name="l00822"></a>00822         *draw++=att;*draw++=att;
 <a name="l00823"></a>00823     }
 <a name="l00824"></a>00824 skip_cursor:
@@ -931,12 +931,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00835"></a>00835             Bitu chr=vidmem[cx*2];
 <a name="l00836"></a>00836             Bitu col=vidmem[cx*2+1];
 <a name="l00837"></a>00837             Bitu font=vga.draw.font_tables[(col &gt;&gt; 3)&amp;1][chr*32+line];
-<a name="l00838"></a>00838             Bit32u font_mask = (((Bit32s)col) &lt;&lt; 24) &gt;&gt; 31;
+<a name="l00838"></a>00838             Bit32u font_mask = (Bit32u)((((Bit32s)col) &lt;&lt; 24) &gt;&gt; 31);
 <a name="l00839"></a>00839             font_mask = ~font_mask;
-<a name="l00840"></a>00840             Bit32u mask1=TXT_Font_Table[font&gt;&gt;4] &amp; font_mask;
-<a name="l00841"></a>00841             Bit32u mask2=TXT_Font_Table[font&amp;0xf] &amp; font_mask;
-<a name="l00842"></a>00842             Bit32u fg=TXT_FG_Table[col&amp;0xf];
-<a name="l00843"></a>00843             Bit32u bg=TXT_BG_Table[col&gt;&gt;4];
+<a name="l00840"></a>00840             Bit32u mask1=TXT_Font_Table[font&gt;&gt;4ul] &amp; font_mask;
+<a name="l00841"></a>00841             Bit32u mask2=TXT_Font_Table[font&amp;0xful] &amp; font_mask;
+<a name="l00842"></a>00842             Bit32u fg=TXT_FG_Table[col&amp;0xful];
+<a name="l00843"></a>00843             Bit32u bg=TXT_BG_Table[col&gt;&gt;4ul];
 <a name="l00844"></a>00844             *draw++=(fg&amp;mask1) | (bg&amp;~mask1);
 <a name="l00845"></a>00845             *draw++=(fg&amp;mask2) | (bg&amp;~mask2);
 <a name="l00846"></a>00846         }
@@ -955,11 +955,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00859"></a>00859         }
 <a name="l00860"></a>00860     }
 <a name="l00861"></a>00861     <span class="keywordflow">if</span> (!vga.draw.cursor.enabled || !(vga.draw.cursor.count&amp;0x8)) <span class="keywordflow">goto</span> skip_cursor;
-<a name="l00862"></a>00862     font_addr = (vga.draw.cursor.address-vidstart) &gt;&gt; 1;
+<a name="l00862"></a>00862     font_addr = ((Bits)vga.draw.cursor.address-(Bits)vidstart) &gt;&gt; 1ll;
 <a name="l00863"></a>00863     <span class="keywordflow">if</span> (font_addr&gt;=0 &amp;&amp; font_addr&lt;(Bits)vga.draw.blocks) {
 <a name="l00864"></a>00864         <span class="keywordflow">if</span> (line&lt;vga.draw.cursor.sline) <span class="keywordflow">goto</span> skip_cursor;
 <a name="l00865"></a>00865         <span class="keywordflow">if</span> (line&gt;vga.draw.cursor.eline) <span class="keywordflow">goto</span> skip_cursor;
-<a name="l00866"></a>00866         draw=(Bit32u *)&amp;TempLine[font_addr*8];
+<a name="l00866"></a>00866         draw=(Bit32u *)&amp;TempLine[(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)font_addr*8ul];
 <a name="l00867"></a>00867         Bit32u att=TXT_FG_Table[vga.tandy.draw_base[vga.draw.cursor.address+1]&amp;0xf];
 <a name="l00868"></a>00868         *draw++=att;*draw++=att;
 <a name="l00869"></a>00869     }
@@ -1004,11 +1004,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00908"></a>00908         }
 <a name="l00909"></a>00909     }
 <a name="l00910"></a>00910     <span class="keywordflow">if</span> (!vga.draw.cursor.enabled || !(vga.draw.cursor.count&amp;0x8)) <span class="keywordflow">goto</span> skip_cursor;
-<a name="l00911"></a>00911     font_addr = (vga.draw.cursor.address-vidstart) &gt;&gt; 1;
+<a name="l00911"></a>00911     font_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) &gt;&gt; 1ll;
 <a name="l00912"></a>00912     <span class="keywordflow">if</span> (font_addr&gt;=0 &amp;&amp; font_addr&lt;(Bits)vga.draw.blocks) {
 <a name="l00913"></a>00913         <span class="keywordflow">if</span> (line&lt;vga.draw.cursor.sline) <span class="keywordflow">goto</span> skip_cursor;
 <a name="l00914"></a>00914         <span class="keywordflow">if</span> (line&gt;vga.draw.cursor.eline) <span class="keywordflow">goto</span> skip_cursor;
-<a name="l00915"></a>00915         draw=(Bit32u *)&amp;TempLine[font_addr*8];
+<a name="l00915"></a>00915         draw=(Bit32u *)&amp;TempLine[(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)font_addr*8ul];
 <a name="l00916"></a>00916         Bit8u attr = vga.tandy.draw_base[vga.draw.cursor.address+1];
 <a name="l00917"></a>00917         Bit32u cg;
 <a name="l00918"></a>00918         <span class="keywordflow">if</span> (attr&amp;0x8) {
@@ -1043,9 +1043,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00947"></a>00947         <span class="comment">// the font pattern</span>
 <a name="l00948"></a>00948         Bitu font = vga.draw.font_tables[(attr &gt;&gt; 3)&amp;1][(chr&lt;&lt;5)+line];
 <a name="l00949"></a>00949         
-<a name="l00950"></a>00950         Bitu background = attr &gt;&gt; 4;
+<a name="l00950"></a>00950         Bitu background = attr &gt;&gt; 4u;
 <a name="l00951"></a>00951         <span class="comment">// if blinking is enabled bit7 is not mapped to attributes</span>
-<a name="l00952"></a>00952         <span class="keywordflow">if</span> (vga.draw.blinking) background &amp;= ~0x8;
+<a name="l00952"></a>00952         <span class="keywordflow">if</span> (vga.draw.blinking) background &amp;= ~0x8u;
 <a name="l00953"></a>00953         <span class="comment">// choose foreground color if blinking not set for this cell or blink on</span>
 <a name="l00954"></a>00954         Bitu foreground = (vga.draw.blink || (!(attr&amp;0x80)))?
 <a name="l00955"></a>00955             (attr&amp;0xf):background;
@@ -1073,12 +1073,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00977"></a>00977     <span class="keywordflow">if</span> ((vga.draw.cursor.count&amp;0x8) &amp;&amp; (line &gt;= vga.draw.cursor.sline) &amp;&amp;
 <a name="l00978"></a>00978         (line &lt;= vga.draw.cursor.eline) &amp;&amp; vga.draw.cursor.enabled) {
 <a name="l00979"></a>00979         <span class="comment">// the adress of the attribute that makes up the cell the cursor is in</span>
-<a name="l00980"></a>00980         Bits attr_addr = (vga.draw.cursor.address - vidstart) &gt;&gt; vga.config.addr_shift; <span class="comment">/* &lt;- FIXME: This right? */</span>
-<a name="l00981"></a>00981         if (attr_addr &gt;= 0 &amp;&amp; attr_addr &lt; (Bits)vga.draw.blocks) {
-<a name="l00982"></a>00982             Bitu index = attr_addr * (vga.draw.char9dot?9:8);
+<a name="l00980"></a>00980         Bits attr_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) &gt;&gt; (Bits)vga.config.addr_shift; <span class="comment">/* &lt;- FIXME: This right? */</span>
+<a name="l00981"></a>00981         <span class="keywordflow">if</span> (attr_addr &gt;= 0 &amp;&amp; attr_addr &lt; (Bits)vga.draw.blocks) {
+<a name="l00982"></a>00982             Bitu index = (Bitu)attr_addr * (vga.draw.char9dot ? 9u : 8u);
 <a name="l00983"></a>00983             draw = (Bit8u*)(&amp;TempLine[index]) + 16 - vga.draw.panning;
 <a name="l00984"></a>00984             
-<a name="l00985"></a>00985             Bitu foreground = vga.tandy.draw_base[(vga.draw.cursor.address&lt;&lt;2)+1] &amp; 0xf;
+<a name="l00985"></a>00985             Bitu foreground = vga.tandy.draw_base[(vga.draw.cursor.address&lt;&lt;2ul)+1] &amp; 0xf;
 <a name="l00986"></a>00986             <span class="keywordflow">for</span> (Bitu i = 0; i &lt; 8; i++) {
 <a name="l00987"></a>00987                 *draw++ = vga.attr.palette[foreground];
 <a name="l00988"></a>00988             }
@@ -1104,11 +1104,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01008"></a>01008         Bitu chr = pixels.b[0];
 <a name="l01009"></a>01009         Bitu attr = pixels.b[1];
 <a name="l01010"></a>01010         <span class="comment">// the font pattern</span>
-<a name="l01011"></a>01011         Bitu font = vga.draw.font_tables[(attr &gt;&gt; 3)&amp;1][(chr&lt;&lt;5)+line];
+<a name="l01011"></a>01011         Bitu font = vga.draw.font_tables[(attr &gt;&gt; 3u)&amp;1u][(chr&lt;&lt;5u)+line];
 <a name="l01012"></a>01012         
-<a name="l01013"></a>01013         Bitu background = attr &gt;&gt; 4;
+<a name="l01013"></a>01013         Bitu background = attr &gt;&gt; 4u;
 <a name="l01014"></a>01014         <span class="comment">// if blinking is enabled bit7 is not mapped to attributes</span>
-<a name="l01015"></a>01015         <span class="keywordflow">if</span> (vga.draw.blinking) background &amp;= ~0x8;
+<a name="l01015"></a>01015         <span class="keywordflow">if</span> (vga.draw.blinking) background &amp;= ~0x8u;
 <a name="l01016"></a>01016         <span class="comment">// choose foreground color if blinking not set for this cell or blink on</span>
 <a name="l01017"></a>01017         Bitu foreground = (vga.draw.blink || (!(attr&amp;0x80)))?
 <a name="l01018"></a>01018             (attr&amp;0xf):background;
@@ -1136,9 +1136,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01040"></a>01040     <span class="keywordflow">if</span> ((vga.draw.cursor.count&amp;0x8) &amp;&amp; (line &gt;= vga.draw.cursor.sline) &amp;&amp;
 <a name="l01041"></a>01041         (line &lt;= vga.draw.cursor.eline) &amp;&amp; vga.draw.cursor.enabled) {
 <a name="l01042"></a>01042         <span class="comment">// the adress of the attribute that makes up the cell the cursor is in</span>
-<a name="l01043"></a>01043         Bits attr_addr = (vga.draw.cursor.address - vidstart) &gt;&gt; vga.config.addr_shift; <span class="comment">/* &lt;- FIXME: This right? */</span>
-<a name="l01044"></a>01044         if (attr_addr &gt;= 0 &amp;&amp; attr_addr &lt; (Bits)vga.draw.blocks) {
-<a name="l01045"></a>01045             Bitu index = attr_addr * (vga.draw.char9dot?9:8) * 4;
+<a name="l01043"></a>01043         Bits attr_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) &gt;&gt; (Bits)vga.config.addr_shift; <span class="comment">/* &lt;- FIXME: This right? */</span>
+<a name="l01044"></a>01044         <span class="keywordflow">if</span> (attr_addr &gt;= 0 &amp;&amp; attr_addr &lt; (Bits)vga.draw.blocks) {
+<a name="l01045"></a>01045             Bitu index = (Bitu)attr_addr * (vga.draw.char9dot?9u:8u) * 4u;
 <a name="l01046"></a>01046             draw = (Bit32u*)(&amp;TempLine[index]) + 16 - vga.draw.panning;
 <a name="l01047"></a>01047             
 <a name="l01048"></a>01048             Bitu foreground = vga.tandy.draw_base[(vga.draw.cursor.address&lt;&lt;2)+1] &amp; 0xf;
@@ -1182,7 +1182,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01086"></a>01086 
 <a name="l01087"></a>01087         draw = ((Bit32u*)TempLine);
 <a name="l01088"></a>01088         blocks = vga.draw.blocks;
-<a name="l01089"></a>01089         vidmem = pc98_gdc[GDC_SLAVE].scan_address &lt;&lt; 1;
+<a name="l01089"></a>01089         vidmem = (<span class="keywordtype">unsigned</span> int)pc98_gdc[GDC_SLAVE].scan_address &lt;&lt; 1u;
 <a name="l01090"></a>01090         disp_base = GDC_display_plane ? 0x20000U : 0x00000U;
 <a name="l01091"></a>01091 
 <a name="l01092"></a>01092         <span class="keywordflow">while</span> (blocks--) {
@@ -1358,10 +1358,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01262"></a>01262             <span class="keywordflow">if</span> ((attr &amp; 0x08) &amp;&amp; line == (vga.crtc.maximum_scan_line &amp; 0x1FU)) lineoverlay |= 0xFFU;
 <a name="l01263"></a>01263 
 <a name="l01264"></a>01264             <span class="comment">/* lineoverlay overlays font with 4-pixel delay */</span>
-<a name="l01265"></a>01265             font |= (lineoverlay &gt;&gt; 4) &amp; 0xFFU;
+<a name="l01265"></a>01265             font |= (<span class="keywordtype">unsigned</span> char)(((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)lineoverlay &gt;&gt; 4u) &amp; 0xFFU);
 <a name="l01266"></a>01266 
 <a name="l01267"></a>01267             <span class="comment">/* color? */</span>
-<a name="l01268"></a>01268             foreground = (attr &gt;&gt; 5) &amp; 7; <span class="comment">/* bits[7:5] are GRB foreground color */</span>
+<a name="l01268"></a>01268             foreground = ((<span class="keywordtype">unsigned</span> int)attr &gt;&gt; 5u) &amp; 7u; <span class="comment">/* bits[7:5] are GRB foreground color */</span>
 <a name="l01269"></a>01269 
 <a name="l01270"></a>01270             <span class="comment">/* draw it!</span>
 <a name="l01271"></a>01271 <span class="comment">             * NTS: Based on real hardware (and this is probably why there&#39;s no provisions for both fore and background color)</span>
@@ -1373,7 +1373,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01277"></a>01277                 <span class="keywordflow">else</span>
 <a name="l01278"></a>01278                     draw++;
 <a name="l01279"></a>01279 
-<a name="l01280"></a>01280                 font &lt;&lt;= 1;
+<a name="l01280"></a>01280                 font &lt;&lt;= 1u;
 <a name="l01281"></a>01281             }
 <a name="l01282"></a>01282 
 <a name="l01283"></a>01283             vidmem++;
@@ -1778,7 +1778,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01682"></a>01682         Bits current_tick = GetTicks();
 <a name="l01683"></a>01683         <span class="keyword">static</span> Bitu jolt_tick = 0;
 <a name="l01684"></a>01684         <span class="keywordflow">if</span>( uservsyncjolt &gt; 0.0f ) {
-<a name="l01685"></a>01685             jolt_tick = current_tick;
+<a name="l01685"></a>01685             jolt_tick = (Bitu)current_tick;
 <a name="l01686"></a>01686 
 <a name="l01687"></a>01687             <span class="comment">// set the update counter to a low value so that the user will almost</span>
 <a name="l01688"></a>01688             <span class="comment">// immediately see the effects of an auto-correction.  This gives the</span>
@@ -1789,7 +1789,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01693"></a>01693         <span class="keywordtype">float</span> real_diff = 0.0f;
 <a name="l01694"></a>01694         <span class="keywordflow">if</span>( vsync.persistent ) {
 <a name="l01695"></a>01695             <span class="keywordflow">if</span>( persistent_sync_counter == 0 ) {
-<a name="l01696"></a>01696                 <span class="keywordtype">float</span> ticks_since_jolt = current_tick - jolt_tick;
+<a name="l01696"></a>01696                 <span class="keywordtype">float</span> ticks_since_jolt = (<span class="keywordtype">signed</span> long)current_tick - (<span class="keywordtype">signed</span> <span class="keywordtype">long</span>)jolt_tick;
 <a name="l01697"></a>01697                 <span class="keywordtype">double</span> num_host_syncs_in_those_ticks = floor(ticks_since_jolt / vsync.period);
 <a name="l01698"></a>01698                 <span class="keywordtype">float</span> diff_thing = ticks_since_jolt - (num_host_syncs_in_those_ticks * (double)vsync.period);
 <a name="l01699"></a>01699 
@@ -1890,22 +1890,22 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01794"></a>01794 
 <a name="l01795"></a>01795     <span class="keywordflow">switch</span> (vga.mode) {
 <a name="l01796"></a>01796     <span class="keywordflow">case</span> M_EGA:
-<a name="l01797"></a>01797         <span class="keywordflow">if</span> (!(vga.crtc.mode_control&amp;0x1)) vga.draw.linear_mask &amp;= ~0x10000;
-<a name="l01798"></a>01798         <span class="keywordflow">else</span> vga.draw.linear_mask |= 0x10000;
+<a name="l01797"></a>01797         <span class="keywordflow">if</span> (!(vga.crtc.mode_control&amp;0x1u)) vga.draw.linear_mask &amp;= ~0x10000u;
+<a name="l01798"></a>01798         <span class="keywordflow">else</span> vga.draw.linear_mask |= 0x10000u;
 <a name="l01799"></a>01799     <span class="keywordflow">case</span> M_LIN4:
-<a name="l01800"></a>01800         vga.draw.byte_panning_shift = 4;
+<a name="l01800"></a>01800         vga.draw.byte_panning_shift = 4u;
 <a name="l01801"></a>01801         vga.draw.address += vga.draw.bytes_skip;
 <a name="l01802"></a>01802         vga.draw.address *= vga.draw.byte_panning_shift;
 <a name="l01803"></a>01803         <span class="keywordflow">break</span>;
 <a name="l01804"></a>01804     <span class="keywordflow">case</span> M_VGA:
 <a name="l01805"></a>01805         <span class="comment">/* TODO: Various SVGA chipsets have a bit to enable/disable 256KB wrapping */</span>
-<a name="l01806"></a>01806         vga.draw.linear_mask = 0x3ffff;
+<a name="l01806"></a>01806         vga.draw.linear_mask = 0x3ffffu;
 <a name="l01807"></a>01807         <span class="keywordflow">if</span> (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) {
 <a name="l01808"></a>01808             <span class="keywordflow">if</span> (vga.config.addr_shift == 1) <span class="comment">/* NTS: Remember the ET4K steps by 4 pixels, one per byteplane, treats BYTE and DWORD modes the same */</span>
-<a name="l01809"></a>01809                 vga.draw.address *= 2;
+<a name="l01809"></a>01809                 vga.draw.address *= 2u;
 <a name="l01810"></a>01810         }
 <a name="l01811"></a>01811         <span class="keywordflow">else</span> {
-<a name="l01812"></a>01812             vga.draw.address *= 1&lt;&lt;vga.config.addr_shift; <span class="comment">/* NTS: Remember the bizarre 4 x 4 mode most SVGA chipsets do */</span>
+<a name="l01812"></a>01812             vga.draw.address *= 1u&lt;&lt;vga.config.addr_shift; <span class="comment">/* NTS: Remember the bizarre 4 x 4 mode most SVGA chipsets do */</span>
 <a name="l01813"></a>01813         }
 <a name="l01814"></a>01814         <span class="comment">/* fall through */</span>
 <a name="l01815"></a>01815     <span class="keywordflow">case</span> M_LIN8:
@@ -1940,24 +1940,24 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01844"></a>01844         vga.draw.address *= 2;
 <a name="l01845"></a>01845 
 <a name="l01846"></a>01846         <span class="comment">/* check for blinking and blinking change delay */</span>
-<a name="l01847"></a>01847         FontMask[1]=(vga.draw.blinking &amp; (vga.draw.cursor.count &gt;&gt; 4)) ?
+<a name="l01847"></a>01847         FontMask[1]=(vga.draw.blinking &amp; (<span class="keywordtype">unsigned</span> int)(vga.draw.cursor.count &gt;&gt; 4u)) ?
 <a name="l01848"></a>01848             0 : 0xffffffff;
 <a name="l01849"></a>01849         <span class="comment">/* if blinking is enabled, &#39;blink&#39; will toggle between true</span>
 <a name="l01850"></a>01850 <span class="comment">         * and false. Otherwise it&#39;s true */</span>
-<a name="l01851"></a>01851         vga.draw.blink = ((vga.draw.blinking &amp; (vga.draw.cursor.count &gt;&gt; 4))
+<a name="l01851"></a>01851         vga.draw.blink = ((vga.draw.blinking &amp; (<span class="keywordtype">unsigned</span> int)(vga.draw.cursor.count &gt;&gt; 4u))
 <a name="l01852"></a>01852             || !vga.draw.blinking) ? <span class="keyword">true</span>:<span class="keyword">false</span>;
 <a name="l01853"></a>01853         <span class="keywordflow">break</span>;
 <a name="l01854"></a>01854     <span class="keywordflow">case</span> M_HERC_GFX:
 <a name="l01855"></a>01855     <span class="keywordflow">case</span> M_CGA4:
 <a name="l01856"></a>01856     <span class="keywordflow">case</span> M_CGA2:
-<a name="l01857"></a>01857         vga.draw.address=(vga.draw.address*2)&amp;0x1fff;
+<a name="l01857"></a>01857         vga.draw.address=(vga.draw.address*2u)&amp;0x1fffu;
 <a name="l01858"></a>01858         <span class="keywordflow">break</span>;
 <a name="l01859"></a>01859     <span class="keywordflow">case</span> M_AMSTRAD: <span class="comment">// Base address: No difference?</span>
-<a name="l01860"></a>01860         vga.draw.address=(vga.draw.address*2)&amp;0xffff;
+<a name="l01860"></a>01860         vga.draw.address=(vga.draw.address*2u)&amp;0xffffu;
 <a name="l01861"></a>01861         <span class="keywordflow">break</span>;
 <a name="l01862"></a>01862     <span class="keywordflow">case</span> M_CGA16:
 <a name="l01863"></a>01863     <span class="keywordflow">case</span> M_TANDY2:<span class="keywordflow">case</span> M_TANDY4:<span class="keywordflow">case</span> M_TANDY16:
-<a name="l01864"></a>01864         vga.draw.address *= 2;
+<a name="l01864"></a>01864         vga.draw.address *= 2u;
 <a name="l01865"></a>01865         <span class="keywordflow">break</span>;
 <a name="l01866"></a>01866     <span class="keywordflow">default</span>:
 <a name="l01867"></a>01867         <span class="keywordflow">break</span>;
@@ -1985,8 +1985,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01889"></a>01889 
 <a name="l01890"></a>01890         <span class="comment">/* if vblank_skip != 0, line compare can become a negative value! Fixes &quot;Warlock&quot; 1992 demo by Warlock */</span>
 <a name="l01891"></a>01891         <span class="keywordflow">if</span> (GCC_UNLIKELY((Bits)vga.draw.split_line &lt; 0)) {
-<a name="l01892"></a>01892             vga.draw.address_line += (-((Bits)vga.draw.split_line) % vga.draw.address_line_total);
-<a name="l01893"></a>01893             vga.draw.address += vga.draw.address_add * (-((Bits)vga.draw.split_line) / vga.draw.address_line_total);
+<a name="l01892"></a>01892             vga.draw.address_line += (Bitu)(-((Bits)vga.draw.split_line) % (Bits)vga.draw.address_line_total);
+<a name="l01893"></a>01893             vga.draw.address += vga.draw.address_add * (Bitu)(-((Bits)vga.draw.split_line) / (Bits)vga.draw.address_line_total);
 <a name="l01894"></a>01894         }
 <a name="l01895"></a>01895     }
 <a name="l01896"></a>01896 
@@ -2042,12 +2042,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01946"></a>01946                 <span class="comment">/* Most (almost ALL) VGA clones render chained modes as 4 8-bit planes one DWORD apart.</span>
 <a name="l01947"></a>01947 <span class="comment">                 * They all act as if writes to chained VGA memory are translated as:</span>
 <a name="l01948"></a>01948 <span class="comment">                 * addr = ((addr &amp; ~3) &lt;&lt; 2) + (addr &amp; 3) */</span>
-<a name="l01949"></a>01949                 vga.draw.address_add=vga.config.scan_len*((2*4)&lt;&lt;vga.config.addr_shift);
+<a name="l01949"></a>01949                 vga.draw.address_add=(<span class="keywordtype">unsigned</span> int)vga.config.scan_len*((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(2*4)&lt;&lt;(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vga.config.addr_shift);
 <a name="l01950"></a>01950             }
 <a name="l01951"></a>01951         }
 <a name="l01952"></a>01952         <span class="keywordflow">else</span> {
 <a name="l01953"></a>01953             <span class="comment">/* the rest (SVGA modes) can be rendered with sanity */</span>
-<a name="l01954"></a>01954             vga.draw.address_add=vga.config.scan_len*(2&lt;&lt;vga.config.addr_shift);
+<a name="l01954"></a>01954             vga.draw.address_add=vga.config.scan_len*(<span class="keywordtype">unsigned</span> int)(2u&lt;&lt;vga.config.addr_shift);
 <a name="l01955"></a>01955         }
 <a name="l01956"></a>01956         <span class="keywordflow">break</span>;
 <a name="l01957"></a>01957     <span class="keywordflow">case</span> M_PC98:
@@ -2059,12 +2059,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01963"></a>01963     <span class="keywordflow">case</span> M_CGA16:
 <a name="l01964"></a>01964     <span class="keywordflow">case</span> M_AMSTRAD: <span class="comment">// Next line.</span>
 <a name="l01965"></a>01965         <span class="keywordflow">if</span> (IS_EGAVGA_ARCH || IS_PC98_ARCH)
-<a name="l01966"></a>01966             vga.draw.address_add=vga.config.scan_len*(2&lt;&lt;vga.config.addr_shift);
+<a name="l01966"></a>01966             vga.draw.address_add=vga.config.scan_len*(<span class="keywordtype">unsigned</span> int)(2u&lt;&lt;vga.config.addr_shift);
 <a name="l01967"></a>01967         <span class="keywordflow">else</span>
 <a name="l01968"></a>01968             vga.draw.address_add=vga.draw.blocks;
 <a name="l01969"></a>01969         <span class="keywordflow">break</span>;
 <a name="l01970"></a>01970     <span class="keywordflow">case</span> M_TANDY2:
-<a name="l01971"></a>01971         vga.draw.address_add=vga.draw.blocks/4;
+<a name="l01971"></a>01971         vga.draw.address_add=vga.draw.blocks/4u;
 <a name="l01972"></a>01972         <span class="keywordflow">break</span>;
 <a name="l01973"></a>01973     <span class="keywordflow">case</span> M_TANDY4:
 <a name="l01974"></a>01974         vga.draw.address_add=vga.draw.blocks;
@@ -2231,34 +2231,34 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02135"></a>02135         hbstart = vga.crtc.start_horizontal_blanking;
 <a name="l02136"></a>02136         hrstart = vga.crtc.start_horizontal_retrace;
 <a name="l02137"></a>02137 
-<a name="l02138"></a>02138         vtotal= vga.crtc.vertical_total | ((vga.crtc.overflow &amp; 1) &lt;&lt; 8);
-<a name="l02139"></a>02139         vdend = vga.crtc.vertical_display_end | ((vga.crtc.overflow &amp; 2)&lt;&lt;7);
-<a name="l02140"></a>02140         vbstart = vga.crtc.start_vertical_blanking | ((vga.crtc.overflow &amp; 0x08) &lt;&lt; 5);
-<a name="l02141"></a>02141         vrstart = vga.crtc.vertical_retrace_start + ((vga.crtc.overflow &amp; 0x04) &lt;&lt; 6);
+<a name="l02138"></a>02138         vtotal= vga.crtc.vertical_total | ((vga.crtc.overflow &amp; 1u) &lt;&lt; 8u);
+<a name="l02139"></a>02139         vdend = vga.crtc.vertical_display_end | ((vga.crtc.overflow &amp; 2u) &lt;&lt; 7u);
+<a name="l02140"></a>02140         vbstart = vga.crtc.start_vertical_blanking | ((vga.crtc.overflow &amp; 0x08u) &lt;&lt; 5u);
+<a name="l02141"></a>02141         vrstart = vga.crtc.vertical_retrace_start + ((vga.crtc.overflow &amp; 0x04u) &lt;&lt; 6u);
 <a name="l02142"></a>02142         
 <a name="l02143"></a>02143         <span class="keywordflow">if</span> (IS_VGA_ARCH || IS_PC98_ARCH) {
 <a name="l02144"></a>02144             <span class="comment">// additional bits only present on vga cards</span>
-<a name="l02145"></a>02145             htotal |= (vga.s3.ex_hor_overflow &amp; 0x1) &lt;&lt; 8;
-<a name="l02146"></a>02146             htotal += 3;
-<a name="l02147"></a>02147             hdend |= (vga.s3.ex_hor_overflow &amp; 0x2) &lt;&lt; 7;
-<a name="l02148"></a>02148             hbend |= (vga.crtc.end_horizontal_retrace&amp;0x80) &gt;&gt; 2;
-<a name="l02149"></a>02149             hbstart |= (vga.s3.ex_hor_overflow &amp; 0x4) &lt;&lt; 6;
-<a name="l02150"></a>02150             hrstart |= (vga.s3.ex_hor_overflow &amp; 0x10) &lt;&lt; 4;
-<a name="l02151"></a>02151             hbend_mask = 0x3f;
+<a name="l02145"></a>02145             htotal |= (vga.s3.ex_hor_overflow &amp; 0x1u) &lt;&lt; 8u;
+<a name="l02146"></a>02146             htotal += 3u;
+<a name="l02147"></a>02147             hdend |= (vga.s3.ex_hor_overflow &amp; 0x2u) &lt;&lt; 7u;
+<a name="l02148"></a>02148             hbend |= (vga.crtc.end_horizontal_retrace&amp;0x80u) &gt;&gt; 2u;
+<a name="l02149"></a>02149             hbstart |= (vga.s3.ex_hor_overflow &amp; 0x4u) &lt;&lt; 6u;
+<a name="l02150"></a>02150             hrstart |= (vga.s3.ex_hor_overflow &amp; 0x10u) &lt;&lt; 4u;
+<a name="l02151"></a>02151             hbend_mask = 0x3fu;
 <a name="l02152"></a>02152             
-<a name="l02153"></a>02153             vtotal |= (vga.crtc.overflow &amp; 0x20) &lt;&lt; 4;
-<a name="l02154"></a>02154             vtotal |= (vga.s3.ex_ver_overflow &amp; 0x1) &lt;&lt; 10;
-<a name="l02155"></a>02155             vtotal += 2;
-<a name="l02156"></a>02156             vdend |= (vga.crtc.overflow &amp; 0x40) &lt;&lt; 3; 
-<a name="l02157"></a>02157             vdend |= (vga.s3.ex_ver_overflow &amp; 0x2) &lt;&lt; 9;
-<a name="l02158"></a>02158             vbstart |= (vga.crtc.maximum_scan_line &amp; 0x20) &lt;&lt; 4;
-<a name="l02159"></a>02159             vbstart |= (vga.s3.ex_ver_overflow &amp; 0x4) &lt;&lt; 8;
-<a name="l02160"></a>02160             vrstart |= ((vga.crtc.overflow &amp; 0x80) &lt;&lt; 2);
-<a name="l02161"></a>02161             vrstart |= (vga.s3.ex_ver_overflow &amp; 0x10) &lt;&lt; 6;
-<a name="l02162"></a>02162             vbend_mask = 0xff;
+<a name="l02153"></a>02153             vtotal |= (vga.crtc.overflow &amp; 0x20u) &lt;&lt; 4u;
+<a name="l02154"></a>02154             vtotal |= (vga.s3.ex_ver_overflow &amp; 0x1u) &lt;&lt; 10u;
+<a name="l02155"></a>02155             vtotal += 2u;
+<a name="l02156"></a>02156             vdend |= (vga.crtc.overflow &amp; 0x40u) &lt;&lt; 3u; 
+<a name="l02157"></a>02157             vdend |= (vga.s3.ex_ver_overflow &amp; 0x2u) &lt;&lt; 9u;
+<a name="l02158"></a>02158             vbstart |= (vga.crtc.maximum_scan_line &amp; 0x20u) &lt;&lt; 4u;
+<a name="l02159"></a>02159             vbstart |= (vga.s3.ex_ver_overflow &amp; 0x4u) &lt;&lt; 8u;
+<a name="l02160"></a>02160             vrstart |= ((vga.crtc.overflow &amp; 0x80u) &lt;&lt; 2u);
+<a name="l02161"></a>02161             vrstart |= (vga.s3.ex_ver_overflow &amp; 0x10u) &lt;&lt; 6u;
+<a name="l02162"></a>02162             vbend_mask = 0xffu;
 <a name="l02163"></a>02163         } <span class="keywordflow">else</span> { <span class="comment">// EGA</span>
-<a name="l02164"></a>02164             hbend_mask = 0x1f;
-<a name="l02165"></a>02165             vbend_mask = 0x1f;
+<a name="l02164"></a>02164             hbend_mask = 0x1fu;
+<a name="l02165"></a>02165             vbend_mask = 0x1fu;
 <a name="l02166"></a>02166         }
 <a name="l02167"></a>02167         htotal += 2;
 <a name="l02168"></a>02168         vtotal += 2;
@@ -2346,15 +2346,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02250"></a>02250         <span class="comment">// not EGAVGA_ARCH</span>
 <a name="l02251"></a>02251         vga.draw.split_line = 0x10000;  <span class="comment">// don&#39;t care</span>
 <a name="l02252"></a>02252 
-<a name="l02253"></a>02253         htotal = vga.other.htotal + 1;
+<a name="l02253"></a>02253         htotal = vga.other.htotal + 1u;
 <a name="l02254"></a>02254         hdend = vga.other.hdend;
 <a name="l02255"></a>02255         hbstart = hdend;
 <a name="l02256"></a>02256         hbend = htotal;
 <a name="l02257"></a>02257         hrstart = vga.other.hsyncp;
 <a name="l02258"></a>02258         hrend = hrstart + (vga.other.hsyncw) ;
 <a name="l02259"></a>02259 
-<a name="l02260"></a>02260         vga.draw.address_line_total = vga.other.max_scanline + 1;
-<a name="l02261"></a>02261         vtotal = vga.draw.address_line_total * (vga.other.vtotal+1)+vga.other.vadjust;
+<a name="l02260"></a>02260         vga.draw.address_line_total = vga.other.max_scanline + 1u;
+<a name="l02261"></a>02261         vtotal = vga.draw.address_line_total * (vga.other.vtotal+1u)+vga.other.vadjust;
 <a name="l02262"></a>02262         vdend = vga.draw.address_line_total * vga.other.vdend;
 <a name="l02263"></a>02263         vrstart = vga.draw.address_line_total * vga.other.vsyncp;
 <a name="l02264"></a>02264         vrend = vrstart + 16; <span class="comment">// vsync width is fixed to 16 lines on the MC6845 TODO Tandy</span>
@@ -2514,7 +2514,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02418"></a>02418     Bitu height=vdend;
 <a name="l02419"></a>02419 
 <a name="l02420"></a>02420     <span class="keywordflow">if</span> (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
-<a name="l02421"></a>02421         vga.draw.address_line_total=(vga.crtc.maximum_scan_line&amp;0x1f)+1;
+<a name="l02421"></a>02421         vga.draw.address_line_total=(vga.crtc.maximum_scan_line&amp;0x1fu)+1u;
 <a name="l02422"></a>02422         <span class="keywordflow">switch</span>(vga.mode) {
 <a name="l02423"></a>02423         <span class="keywordflow">case</span> M_CGA16:
 <a name="l02424"></a>02424         <span class="keywordflow">case</span> M_CGA2:
@@ -2929,7 +2929,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

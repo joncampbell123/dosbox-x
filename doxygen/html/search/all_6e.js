@@ -13,6 +13,7 @@ var searchData=
   ['nativestring_3c_20std_3a_3astring_20_3e',['NativeString< std::string >',['../classGUI_1_1NativeString_3_01std_1_1string_01_4.html',1,'GUI']]],
   ['nativestring_3c_20str_20_2a_20_3e',['NativeString< STR * >',['../classGUI_1_1NativeString_3_01STR_01_5_01_4.html',1,'GUI']]],
   ['nativestring_3c_20str_5bn_5d_3e',['NativeString< STR[N]>',['../classGUI_1_1NativeString_3_01STR[N]_4.html',1,'GUI']]],
+  ['newdiskswap',['newDiskSwap',['../classBOOT.html#ab165a586fbff98d26e21fba090440209',1,'BOOT']]],
   ['newinitpagehandler',['NewInitPageHandler',['../classNewInitPageHandler.html',1,'']]],
   ['next',['next',['../classGUI_1_1Timer.html#a44e2f3e6123c9513b87b81f244ef9311',1,'GUI::Timer']]],
   ['nmitest',['NMITEST',['../classNMITEST.html',1,'']]],

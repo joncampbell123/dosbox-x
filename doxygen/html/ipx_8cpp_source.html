@@ -945,83 +945,83 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00849"></a>00849         <span class="keywordflow">return</span>;
 <a name="l00850"></a>00850 }
 <a name="l00851"></a>00851 
-<a name="l00852"></a>00852 <span class="keyword">class </span>IPXNET : <span class="keyword">public</span> <a class="code" href="classProgram.html">Program</a> {
+<a name="l00852"></a>00852 <span class="keyword">class </span>IPXNET : <span class="keyword">public</span> <a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> {
 <a name="l00853"></a>00853 <span class="keyword">public</span>:
 <a name="l00854"></a>00854         <span class="keywordtype">void</span> HelpCommand(<span class="keyword">const</span> <span class="keywordtype">char</span> *helpStr) {
 <a name="l00855"></a>00855                 <span class="comment">// Help on connect command</span>
 <a name="l00856"></a>00856                 <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;connect&quot;</span>, helpStr) == 0) {
-<a name="l00857"></a>00857                         WriteOut(<span class="stringliteral">&quot;IPXNET CONNECT opens a connection to an IPX tunneling server running on another\n&quot;</span>);
-<a name="l00858"></a>00858                         WriteOut(<span class="stringliteral">&quot;DosBox session.  The \&quot;address\&quot; parameter specifies the IP address or host name\n&quot;</span>);
-<a name="l00859"></a>00859                         WriteOut(<span class="stringliteral">&quot;of the server computer.  One can also specify the UDP port to use.  By default\n&quot;</span>);
-<a name="l00860"></a>00860                         WriteOut(<span class="stringliteral">&quot;IPXNET uses port 213, the assigned IANA port for IPX tunneling, for its\nconnection.\n\n&quot;</span>);
-<a name="l00861"></a>00861                         WriteOut(<span class="stringliteral">&quot;The syntax for IPXNET CONNECT is:\n\n&quot;</span>);
-<a name="l00862"></a>00862                         WriteOut(<span class="stringliteral">&quot;IPXNET CONNECT address &lt;port&gt;\n\n&quot;</span>);
+<a name="l00857"></a>00857                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET CONNECT opens a connection to an IPX tunneling server running on another\n&quot;</span>);
+<a name="l00858"></a>00858                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;DosBox session.  The \&quot;address\&quot; parameter specifies the IP address or host name\n&quot;</span>);
+<a name="l00859"></a>00859                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;of the server computer.  One can also specify the UDP port to use.  By default\n&quot;</span>);
+<a name="l00860"></a>00860                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET uses port 213, the assigned IANA port for IPX tunneling, for its\nconnection.\n\n&quot;</span>);
+<a name="l00861"></a>00861                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;The syntax for IPXNET CONNECT is:\n\n&quot;</span>);
+<a name="l00862"></a>00862                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET CONNECT address &lt;port&gt;\n\n&quot;</span>);
 <a name="l00863"></a>00863                         <span class="keywordflow">return</span>;
 <a name="l00864"></a>00864                 }
 <a name="l00865"></a>00865                 <span class="comment">// Help on the disconnect command</span>
 <a name="l00866"></a>00866                 <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;disconnect&quot;</span>, helpStr) == 0) {
-<a name="l00867"></a>00867                         WriteOut(<span class="stringliteral">&quot;IPXNET DISCONNECT closes the connection to the IPX tunneling server.\n\n&quot;</span>);
-<a name="l00868"></a>00868                         WriteOut(<span class="stringliteral">&quot;The syntax for IPXNET DISCONNECT is:\n\n&quot;</span>);
-<a name="l00869"></a>00869                         WriteOut(<span class="stringliteral">&quot;IPXNET DISCONNECT\n\n&quot;</span>);
+<a name="l00867"></a>00867                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET DISCONNECT closes the connection to the IPX tunneling server.\n\n&quot;</span>);
+<a name="l00868"></a>00868                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;The syntax for IPXNET DISCONNECT is:\n\n&quot;</span>);
+<a name="l00869"></a>00869                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET DISCONNECT\n\n&quot;</span>);
 <a name="l00870"></a>00870                         <span class="keywordflow">return</span>;
 <a name="l00871"></a>00871                 }
 <a name="l00872"></a>00872                 <span class="comment">// Help on the startserver command</span>
 <a name="l00873"></a>00873                 <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;startserver&quot;</span>, helpStr) == 0) {
-<a name="l00874"></a>00874                         WriteOut(<span class="stringliteral">&quot;IPXNET STARTSERVER starts and IPX tunneling server on this DosBox session.  By\n&quot;</span>);
-<a name="l00875"></a>00875                         WriteOut(<span class="stringliteral">&quot;default, the server will accept connections on UDP port 213, though this can be\n&quot;</span>);
-<a name="l00876"></a>00876                         WriteOut(<span class="stringliteral">&quot;changed.  Once the server is started, DosBox will automatically start a client\n&quot;</span>);
-<a name="l00877"></a>00877                         WriteOut(<span class="stringliteral">&quot;connection to the IPX tunneling server.\n\n&quot;</span>);
-<a name="l00878"></a>00878                         WriteOut(<span class="stringliteral">&quot;The syntax for IPXNET STARTSERVER is:\n\n&quot;</span>);
-<a name="l00879"></a>00879                         WriteOut(<span class="stringliteral">&quot;IPXNET STARTSERVER &lt;port&gt;\n\n&quot;</span>);
+<a name="l00874"></a>00874                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET STARTSERVER starts and IPX tunneling server on this DosBox session.  By\n&quot;</span>);
+<a name="l00875"></a>00875                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;default, the server will accept connections on UDP port 213, though this can be\n&quot;</span>);
+<a name="l00876"></a>00876                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;changed.  Once the server is started, DosBox will automatically start a client\n&quot;</span>);
+<a name="l00877"></a>00877                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;connection to the IPX tunneling server.\n\n&quot;</span>);
+<a name="l00878"></a>00878                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;The syntax for IPXNET STARTSERVER is:\n\n&quot;</span>);
+<a name="l00879"></a>00879                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET STARTSERVER &lt;port&gt;\n\n&quot;</span>);
 <a name="l00880"></a>00880                         <span class="keywordflow">return</span>;
 <a name="l00881"></a>00881                 }
 <a name="l00882"></a>00882                 <span class="comment">// Help on the stop server command</span>
 <a name="l00883"></a>00883                 <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;stopserver&quot;</span>, helpStr) == 0) {
-<a name="l00884"></a>00884                         WriteOut(<span class="stringliteral">&quot;IPXNET STOPSERVER stops the IPX tunneling server running on this DosBox\nsession.&quot;</span>);
-<a name="l00885"></a>00885                         WriteOut(<span class="stringliteral">&quot;  Care should be taken to ensure that all other connections have\nterminated &quot;</span>);
-<a name="l00886"></a>00886                         WriteOut(<span class="stringliteral">&quot;as well sinnce stoping the server may cause lockups on other\nmachines still using &quot;</span>);
-<a name="l00887"></a>00887                         WriteOut(<span class="stringliteral">&quot;the IPX tunneling server.\n\n&quot;</span>);
-<a name="l00888"></a>00888                         WriteOut(<span class="stringliteral">&quot;The syntax for IPXNET STOPSERVER is:\n\n&quot;</span>);
-<a name="l00889"></a>00889                         WriteOut(<span class="stringliteral">&quot;IPXNET STOPSERVER\n\n&quot;</span>);
+<a name="l00884"></a>00884                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET STOPSERVER stops the IPX tunneling server running on this DosBox\nsession.&quot;</span>);
+<a name="l00885"></a>00885                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;  Care should be taken to ensure that all other connections have\nterminated &quot;</span>);
+<a name="l00886"></a>00886                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;as well sinnce stoping the server may cause lockups on other\nmachines still using &quot;</span>);
+<a name="l00887"></a>00887                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;the IPX tunneling server.\n\n&quot;</span>);
+<a name="l00888"></a>00888                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;The syntax for IPXNET STOPSERVER is:\n\n&quot;</span>);
+<a name="l00889"></a>00889                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET STOPSERVER\n\n&quot;</span>);
 <a name="l00890"></a>00890                         <span class="keywordflow">return</span>;
 <a name="l00891"></a>00891                 }
 <a name="l00892"></a>00892                 <span class="comment">// Help on the ping command</span>
 <a name="l00893"></a>00893                 <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;ping&quot;</span>, helpStr) == 0) {
-<a name="l00894"></a>00894                         WriteOut(<span class="stringliteral">&quot;IPXNET PING broadcasts a ping request through the IPX tunneled network.  In    \n&quot;</span>);
-<a name="l00895"></a>00895                         WriteOut(<span class="stringliteral">&quot;response, all other connected computers will respond to the ping and report\n&quot;</span>);
-<a name="l00896"></a>00896                         WriteOut(<span class="stringliteral">&quot;the time it took to receive and send the ping message.\n\n&quot;</span>);
-<a name="l00897"></a>00897                         WriteOut(<span class="stringliteral">&quot;The syntax for IPXNET PING is:\n\n&quot;</span>);
-<a name="l00898"></a>00898                         WriteOut(<span class="stringliteral">&quot;IPXNET PING\n\n&quot;</span>);
+<a name="l00894"></a>00894                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET PING broadcasts a ping request through the IPX tunneled network.  In    \n&quot;</span>);
+<a name="l00895"></a>00895                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;response, all other connected computers will respond to the ping and report\n&quot;</span>);
+<a name="l00896"></a>00896                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;the time it took to receive and send the ping message.\n\n&quot;</span>);
+<a name="l00897"></a>00897                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;The syntax for IPXNET PING is:\n\n&quot;</span>);
+<a name="l00898"></a>00898                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET PING\n\n&quot;</span>);
 <a name="l00899"></a>00899                         <span class="keywordflow">return</span>;
 <a name="l00900"></a>00900                 }
 <a name="l00901"></a>00901                 <span class="comment">// Help on the status command</span>
 <a name="l00902"></a>00902                 <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;status&quot;</span>, helpStr) == 0) {
-<a name="l00903"></a>00903                         WriteOut(<span class="stringliteral">&quot;IPXNET STATUS reports the current state of this DosBox&#39;s sessions IPX tunneling\n&quot;</span>);
-<a name="l00904"></a>00904                         WriteOut(<span class="stringliteral">&quot;network.  For a list of the computers connected to the network use the IPXNET \n&quot;</span>);
-<a name="l00905"></a>00905                         WriteOut(<span class="stringliteral">&quot;PING command.\n\n&quot;</span>);
-<a name="l00906"></a>00906                         WriteOut(<span class="stringliteral">&quot;The syntax for IPXNET STATUS is:\n\n&quot;</span>);
-<a name="l00907"></a>00907                         WriteOut(<span class="stringliteral">&quot;IPXNET STATUS\n\n&quot;</span>);
+<a name="l00903"></a>00903                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET STATUS reports the current state of this DosBox&#39;s sessions IPX tunneling\n&quot;</span>);
+<a name="l00904"></a>00904                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;network.  For a list of the computers connected to the network use the IPXNET \n&quot;</span>);
+<a name="l00905"></a>00905                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;PING command.\n\n&quot;</span>);
+<a name="l00906"></a>00906                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;The syntax for IPXNET STATUS is:\n\n&quot;</span>);
+<a name="l00907"></a>00907                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET STATUS\n\n&quot;</span>);
 <a name="l00908"></a>00908                         <span class="keywordflow">return</span>;
 <a name="l00909"></a>00909                 }
 <a name="l00910"></a>00910         }
 <a name="l00911"></a>00911 
-<a name="l00912"></a>00912         <span class="keywordtype">void</span> Run(<span class="keywordtype">void</span>)
+<a name="l00912"></a>00912         <span class="keywordtype">void</span> <a class="code" href="classProgram.html#acd37c94c3c12a55650a05ee1449aa176" title="DOS kernel Program Segment Prefix associated with this program at runtime.">Run</a>(<span class="keywordtype">void</span>)
 <a name="l00913"></a>00913         {
-<a name="l00914"></a>00914                 WriteOut(<span class="stringliteral">&quot;IPX Tunneling utility for DosBox\n\n&quot;</span>);
+<a name="l00914"></a>00914                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling utility for DosBox\n\n&quot;</span>);
 <a name="l00915"></a>00915                 <span class="keywordflow">if</span>(!cmd-&gt;GetCount()) {
-<a name="l00916"></a>00916                         WriteOut(<span class="stringliteral">&quot;The syntax of this command is:\n\n&quot;</span>);
-<a name="l00917"></a>00917                         WriteOut(<span class="stringliteral">&quot;IPXNET [ CONNECT | DISCONNECT | STARTSERVER | STOPSERVER | PING | HELP |\n         STATUS ]\n\n&quot;</span>);
+<a name="l00916"></a>00916                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;The syntax of this command is:\n\n&quot;</span>);
+<a name="l00917"></a>00917                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET [ CONNECT | DISCONNECT | STARTSERVER | STOPSERVER | PING | HELP |\n         STATUS ]\n\n&quot;</span>);
 <a name="l00918"></a>00918                         <span class="keywordflow">return</span>;
 <a name="l00919"></a>00919                 }
 <a name="l00920"></a>00920                 
 <a name="l00921"></a>00921                 <span class="keywordflow">if</span>(cmd-&gt;FindCommand(1, temp_line)) {
 <a name="l00922"></a>00922                         <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;help&quot;</span>, temp_line.c_str()) == 0) {
 <a name="l00923"></a>00923                                 <span class="keywordflow">if</span>(!cmd-&gt;FindCommand(2, temp_line)) {
-<a name="l00924"></a>00924                                         WriteOut(<span class="stringliteral">&quot;The following are valid IPXNET commands:\n\n&quot;</span>);
-<a name="l00925"></a>00925                                         WriteOut(<span class="stringliteral">&quot;IPXNET CONNECT        IPXNET DISCONNECT       IPXNET STARTSERVER\n&quot;</span>);
-<a name="l00926"></a>00926                                         WriteOut(<span class="stringliteral">&quot;IPXNET STOPSERVER     IPXNET PING             IPXNET STATUS\n\n&quot;</span>);
-<a name="l00927"></a>00927                                         WriteOut(<span class="stringliteral">&quot;To get help on a specific command, type:\n\n&quot;</span>);
-<a name="l00928"></a>00928                                         WriteOut(<span class="stringliteral">&quot;IPXNET HELP command\n\n&quot;</span>);
+<a name="l00924"></a>00924                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;The following are valid IPXNET commands:\n\n&quot;</span>);
+<a name="l00925"></a>00925                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET CONNECT        IPXNET DISCONNECT       IPXNET STARTSERVER\n&quot;</span>);
+<a name="l00926"></a>00926                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET STOPSERVER     IPXNET PING             IPXNET STATUS\n\n&quot;</span>);
+<a name="l00927"></a>00927                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;To get help on a specific command, type:\n\n&quot;</span>);
+<a name="l00928"></a>00928                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPXNET HELP command\n\n&quot;</span>);
 <a name="l00929"></a>00929 
 <a name="l00930"></a>00930                                 } <span class="keywordflow">else</span> {
 <a name="l00931"></a>00931                                         HelpCommand(temp_line.c_str());
@@ -1032,7 +1032,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00936"></a>00936                         <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;startserver&quot;</span>, temp_line.c_str()) == 0) {
 <a name="l00937"></a>00937                                 <span class="keywordflow">if</span>(!isIpxServer) {
 <a name="l00938"></a>00938                                         <span class="keywordflow">if</span>(incomingPacket.connected) {
-<a name="l00939"></a>00939                                                 WriteOut(<span class="stringliteral">&quot;IPX Tunneling Client already connected to another server.  Disconnect first.\n&quot;</span>);
+<a name="l00939"></a>00939                                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling Client already connected to another server.  Disconnect first.\n&quot;</span>);
 <a name="l00940"></a>00940                                                 <span class="keywordflow">return</span>;
 <a name="l00941"></a>00941                                         }
 <a name="l00942"></a>00942                                         <span class="keywordtype">bool</span> startsuccess;
@@ -1043,37 +1043,37 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00947"></a>00947                                         }
 <a name="l00948"></a>00948                                         startsuccess = IPX_StartServer((Bit16u)udpPort);
 <a name="l00949"></a>00949                                         <span class="keywordflow">if</span>(startsuccess) {
-<a name="l00950"></a>00950                                                 WriteOut(<span class="stringliteral">&quot;IPX Tunneling Server started\n&quot;</span>);
+<a name="l00950"></a>00950                                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling Server started\n&quot;</span>);
 <a name="l00951"></a>00951                                                 isIpxServer = <span class="keyword">true</span>;
 <a name="l00952"></a>00952                                                 ConnectToServer(<span class="stringliteral">&quot;localhost&quot;</span>);
 <a name="l00953"></a>00953                                         } <span class="keywordflow">else</span> {
-<a name="l00954"></a>00954                                                 WriteOut(<span class="stringliteral">&quot;IPX Tunneling Server failed to start.\n&quot;</span>);
-<a name="l00955"></a>00955                                                 <span class="keywordflow">if</span>(udpPort &lt; 1024) WriteOut(<span class="stringliteral">&quot;Try a port number above 1024. See IPXNET HELP CONNECT on how to specify a port.\n&quot;</span>);
+<a name="l00954"></a>00954                                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling Server failed to start.\n&quot;</span>);
+<a name="l00955"></a>00955                                                 <span class="keywordflow">if</span>(udpPort &lt; 1024) <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;Try a port number above 1024. See IPXNET HELP CONNECT on how to specify a port.\n&quot;</span>);
 <a name="l00956"></a>00956                                         }
 <a name="l00957"></a>00957                                 } <span class="keywordflow">else</span> {
-<a name="l00958"></a>00958                                         WriteOut(<span class="stringliteral">&quot;IPX Tunneling Server already started\n&quot;</span>);
+<a name="l00958"></a>00958                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling Server already started\n&quot;</span>);
 <a name="l00959"></a>00959                                 }
 <a name="l00960"></a>00960                                 <span class="keywordflow">return</span>;
 <a name="l00961"></a>00961                         }
 <a name="l00962"></a>00962                         <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;stopserver&quot;</span>, temp_line.c_str()) == 0) {
 <a name="l00963"></a>00963                                 <span class="keywordflow">if</span>(!isIpxServer) {
-<a name="l00964"></a>00964                                         WriteOut(<span class="stringliteral">&quot;IPX Tunneling Server not running in this DosBox session.\n&quot;</span>);
+<a name="l00964"></a>00964                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling Server not running in this DosBox session.\n&quot;</span>);
 <a name="l00965"></a>00965                                 } <span class="keywordflow">else</span> {
 <a name="l00966"></a>00966                                         isIpxServer = <span class="keyword">false</span>;
 <a name="l00967"></a>00967                                         DisconnectFromServer(<span class="keyword">false</span>);
 <a name="l00968"></a>00968                                         IPX_StopServer();
-<a name="l00969"></a>00969                                         WriteOut(<span class="stringliteral">&quot;IPX Tunneling Server stopped.&quot;</span>);
+<a name="l00969"></a>00969                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling Server stopped.&quot;</span>);
 <a name="l00970"></a>00970                                 }
 <a name="l00971"></a>00971                                 <span class="keywordflow">return</span>;
 <a name="l00972"></a>00972                         }
 <a name="l00973"></a>00973                         <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;connect&quot;</span>, temp_line.c_str()) == 0) {
 <a name="l00974"></a>00974                                 <span class="keywordtype">char</span> strHost[1024];
 <a name="l00975"></a>00975                                 <span class="keywordflow">if</span>(incomingPacket.connected) {
-<a name="l00976"></a>00976                                         WriteOut(<span class="stringliteral">&quot;IPX Tunneling Client already connected.\n&quot;</span>);
+<a name="l00976"></a>00976                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling Client already connected.\n&quot;</span>);
 <a name="l00977"></a>00977                                         <span class="keywordflow">return</span>;
 <a name="l00978"></a>00978                                 }
 <a name="l00979"></a>00979                                 <span class="keywordflow">if</span>(!cmd-&gt;FindCommand(2, temp_line)) {
-<a name="l00980"></a>00980                                         WriteOut(<span class="stringliteral">&quot;IPX Server address not specified.\n&quot;</span>);
+<a name="l00980"></a>00980                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Server address not specified.\n&quot;</span>);
 <a name="l00981"></a>00981                                         <span class="keywordflow">return</span>;
 <a name="l00982"></a>00982                                 }
 <a name="l00983"></a>00983                                 strcpy(strHost, temp_line.c_str());
@@ -1085,44 +1085,44 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00989"></a>00989                                 }
 <a name="l00990"></a>00990 
 <a name="l00991"></a>00991                                 <span class="keywordflow">if</span>(ConnectToServer(strHost)) {
-<a name="l00992"></a>00992                         WriteOut(<span class="stringliteral">&quot;IPX Tunneling Client connected to server at %s.\n&quot;</span>, strHost);
+<a name="l00992"></a>00992                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling Client connected to server at %s.\n&quot;</span>, strHost);
 <a name="l00993"></a>00993                                 } <span class="keywordflow">else</span> {
-<a name="l00994"></a>00994                                         WriteOut(<span class="stringliteral">&quot;IPX Tunneling Client failed to connect to server at %s.\n&quot;</span>, strHost);
+<a name="l00994"></a>00994                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling Client failed to connect to server at %s.\n&quot;</span>, strHost);
 <a name="l00995"></a>00995                                 }
 <a name="l00996"></a>00996                                 <span class="keywordflow">return</span>;
 <a name="l00997"></a>00997                         }
 <a name="l00998"></a>00998                         
 <a name="l00999"></a>00999                         <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;disconnect&quot;</span>, temp_line.c_str()) == 0) {
 <a name="l01000"></a>01000                                 <span class="keywordflow">if</span>(!incomingPacket.connected) {
-<a name="l01001"></a>01001                                         WriteOut(<span class="stringliteral">&quot;IPX Tunneling Client not connected.\n&quot;</span>);
+<a name="l01001"></a>01001                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling Client not connected.\n&quot;</span>);
 <a name="l01002"></a>01002                                         <span class="keywordflow">return</span>;
 <a name="l01003"></a>01003                                 }
 <a name="l01004"></a>01004                                 <span class="comment">// TODO: Send a packet to the server notifying of disconnect</span>
-<a name="l01005"></a>01005                                 WriteOut(<span class="stringliteral">&quot;IPX Tunneling Client disconnected from server.\n&quot;</span>);
+<a name="l01005"></a>01005                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling Client disconnected from server.\n&quot;</span>);
 <a name="l01006"></a>01006                                 DisconnectFromServer(<span class="keyword">false</span>);
 <a name="l01007"></a>01007                                 <span class="keywordflow">return</span>;
 <a name="l01008"></a>01008                         }
 <a name="l01009"></a>01009 
 <a name="l01010"></a>01010                         <span class="keywordflow">if</span>(strcasecmp(<span class="stringliteral">&quot;status&quot;</span>, temp_line.c_str()) == 0) {
-<a name="l01011"></a>01011                                 WriteOut(<span class="stringliteral">&quot;IPX Tunneling Status:\n\n&quot;</span>);
-<a name="l01012"></a>01012                                 WriteOut(<span class="stringliteral">&quot;Server status: &quot;</span>);
-<a name="l01013"></a>01013                                 <span class="keywordflow">if</span>(isIpxServer) WriteOut(<span class="stringliteral">&quot;ACTIVE\n&quot;</span>); <span class="keywordflow">else</span> WriteOut(<span class="stringliteral">&quot;INACTIVE\n&quot;</span>);
-<a name="l01014"></a>01014                                 WriteOut(<span class="stringliteral">&quot;Client status: &quot;</span>);
+<a name="l01011"></a>01011                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling Status:\n\n&quot;</span>);
+<a name="l01012"></a>01012                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;Server status: &quot;</span>);
+<a name="l01013"></a>01013                                 <span class="keywordflow">if</span>(isIpxServer) <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;ACTIVE\n&quot;</span>); <span class="keywordflow">else</span> <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;INACTIVE\n&quot;</span>);
+<a name="l01014"></a>01014                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;Client status: &quot;</span>);
 <a name="l01015"></a>01015                                 <span class="keywordflow">if</span>(incomingPacket.connected) {
-<a name="l01016"></a>01016                                         WriteOut(<span class="stringliteral">&quot;CONNECTED -- Server at %d.%d.%d.%d port %d\n&quot;</span>, CONVIP(ipxServConnIp.host), udpPort);
+<a name="l01016"></a>01016                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;CONNECTED -- Server at %d.%d.%d.%d port %d\n&quot;</span>, CONVIP(ipxServConnIp.host), udpPort);
 <a name="l01017"></a>01017                                 } <span class="keywordflow">else</span> {
-<a name="l01018"></a>01018                                         WriteOut(<span class="stringliteral">&quot;DISCONNECTED\n&quot;</span>);
+<a name="l01018"></a>01018                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;DISCONNECTED\n&quot;</span>);
 <a name="l01019"></a>01019                                 }
 <a name="l01020"></a>01020                                 <span class="keywordflow">if</span>(isIpxServer) {
-<a name="l01021"></a>01021                                         WriteOut(<span class="stringliteral">&quot;List of active connections:\n\n&quot;</span>);
+<a name="l01021"></a>01021                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;List of active connections:\n\n&quot;</span>);
 <a name="l01022"></a>01022                                         <span class="keywordtype">int</span> i;
 <a name="l01023"></a>01023                                         IPaddress *ptrAddr;
 <a name="l01024"></a>01024                                         <span class="keywordflow">for</span>(i=0;i&lt;SOCKETTABLESIZE;i++) {
 <a name="l01025"></a>01025                                                 <span class="keywordflow">if</span>(IPX_isConnectedToServer(i,&amp;ptrAddr)) {
-<a name="l01026"></a>01026                                                         WriteOut(<span class="stringliteral">&quot;     %d.%d.%d.%d from port %d\n&quot;</span>, CONVIP(ptrAddr-&gt;host), SDLNet_Read16(&amp;ptrAddr-&gt;port));
+<a name="l01026"></a>01026                                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;     %d.%d.%d.%d from port %d\n&quot;</span>, CONVIP(ptrAddr-&gt;host), SDLNet_Read16(&amp;ptrAddr-&gt;port));
 <a name="l01027"></a>01027                                                 }
 <a name="l01028"></a>01028                                         }
-<a name="l01029"></a>01029                                         WriteOut(<span class="stringliteral">&quot;\n&quot;</span>);
+<a name="l01029"></a>01029                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;\n&quot;</span>);
 <a name="l01030"></a>01030                                 }
 <a name="l01031"></a>01031                                 <span class="keywordflow">return</span>;
 <a name="l01032"></a>01032                         }
@@ -1132,17 +1132,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01036"></a>01036                                 <a class="code" href="structIPXHeader.html">IPXHeader</a> pingHead;
 <a name="l01037"></a>01037 
 <a name="l01038"></a>01038                                 <span class="keywordflow">if</span>(!incomingPacket.connected) {
-<a name="l01039"></a>01039                                         WriteOut(<span class="stringliteral">&quot;IPX Tunneling Client not connected.\n&quot;</span>);
+<a name="l01039"></a>01039                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;IPX Tunneling Client not connected.\n&quot;</span>);
 <a name="l01040"></a>01040                                         <span class="keywordflow">return</span>;
 <a name="l01041"></a>01041                                 }
 <a name="l01042"></a>01042                                 TIMER_DelTickHandler(&amp;IPX_ClientLoop);
-<a name="l01043"></a>01043                                 WriteOut(<span class="stringliteral">&quot;Sending broadcast ping:\n\n&quot;</span>);
+<a name="l01043"></a>01043                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;Sending broadcast ping:\n\n&quot;</span>);
 <a name="l01044"></a>01044                                 pingSend();
 <a name="l01045"></a>01045                                 ticks = GetTicks();
 <a name="l01046"></a>01046                                 <span class="keywordflow">while</span>((GetTicks() - ticks) &lt; 1500) {
 <a name="l01047"></a>01047                                         CALLBACK_Idle();
 <a name="l01048"></a>01048                                         <span class="keywordflow">if</span>(pingCheck(&amp;pingHead)) {
-<a name="l01049"></a>01049                                                 WriteOut(<span class="stringliteral">&quot;Response from %d.%d.%d.%d, port %d time=%dms\n&quot;</span>, CONVIP(pingHead.src.addr.byIP.host), SDLNet_Read16(&amp;pingHead.src.addr.byIP.port), GetTicks() - ticks);
+<a name="l01049"></a>01049                                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;Response from %d.%d.%d.%d, port %d time=%dms\n&quot;</span>, CONVIP(pingHead.src.addr.byIP.host), SDLNet_Read16(&amp;pingHead.src.addr.byIP.port), GetTicks() - ticks);
 <a name="l01050"></a>01050                                         }
 <a name="l01051"></a>01051                                 }
 <a name="l01052"></a>01052                                 TIMER_AddTickHandler(&amp;IPX_ClientLoop);
@@ -1152,7 +1152,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01056"></a>01056         }
 <a name="l01057"></a>01057 };
 <a name="l01058"></a>01058 
-<a name="l01059"></a>01059 <span class="keyword">static</span> <span class="keywordtype">void</span> IPXNET_ProgramStart(<a class="code" href="classProgram.html">Program</a> * * make) {
+<a name="l01059"></a>01059 <span class="keyword">static</span> <span class="keywordtype">void</span> IPXNET_ProgramStart(<a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> * * make) {
 <a name="l01060"></a>01060         *make=<span class="keyword">new</span> IPXNET;
 <a name="l01061"></a>01061 }
 <a name="l01062"></a>01062 
@@ -1312,7 +1312,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

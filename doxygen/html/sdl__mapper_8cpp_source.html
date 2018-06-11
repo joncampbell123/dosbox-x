@@ -756,7 +756,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00660"></a>00660     <a class="code" href="classCBind.html">CBind</a> * CreateConfigBind(<span class="keywordtype">char</span> *&amp; buf) {
 <a name="l00661"></a>00661         <span class="keywordflow">if</span> (strncasecmp(buf,configname,strlen(configname))) <span class="keywordflow">return</span> 0;
 <a name="l00662"></a>00662         StripWord(buf);<span class="keywordtype">char</span> * num=StripWord(buf);
-<a name="l00663"></a>00663         Bitu code=ConvDecWord(num);
+<a name="l00663"></a>00663         Bitu code=(Bitu)ConvDecWord(num);
 <a name="l00664"></a>00664 <span class="preprocessor">#if defined(C_SDL2)</span>
 <a name="l00665"></a>00665 <span class="preprocessor"></span>        <a class="code" href="classCBind.html">CBind</a> * bind=CreateKeyBind((SDL_Scancode)code);
 <a name="l00666"></a>00666 <span class="preprocessor">#else</span>
@@ -997,17 +997,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00901"></a>00901             <span class="keywordflow">return</span>;
 <a name="l00902"></a>00902         }
 <a name="l00903"></a>00903 
-<a name="l00904"></a>00904         axes=SDL_JoystickNumAxes(sdl_joystick);
+<a name="l00904"></a>00904         axes=(Bitu)SDL_JoystickNumAxes(sdl_joystick);
 <a name="l00905"></a>00905         <span class="keywordflow">if</span> (axes &gt; MAXAXIS) axes = MAXAXIS;
 <a name="l00906"></a>00906         axes_cap=emulated_axes;
 <a name="l00907"></a>00907         <span class="keywordflow">if</span> (axes_cap&gt;axes) axes_cap=axes;
 <a name="l00908"></a>00908 
-<a name="l00909"></a>00909         hats=SDL_JoystickNumHats(sdl_joystick);
+<a name="l00909"></a>00909         hats=(Bitu)SDL_JoystickNumHats(sdl_joystick);
 <a name="l00910"></a>00910         <span class="keywordflow">if</span> (hats &gt; MAXHAT) hats = MAXHAT;
 <a name="l00911"></a>00911         hats_cap=emulated_hats;
 <a name="l00912"></a>00912         <span class="keywordflow">if</span> (hats_cap&gt;hats) hats_cap=hats;
 <a name="l00913"></a>00913 
-<a name="l00914"></a>00914         buttons=SDL_JoystickNumButtons(sdl_joystick);
+<a name="l00914"></a>00914         buttons=(Bitu)SDL_JoystickNumButtons(sdl_joystick);
 <a name="l00915"></a>00915         button_wrap=buttons;
 <a name="l00916"></a>00916         button_cap=buttons;
 <a name="l00917"></a>00917         <span class="keywordflow">if</span> (button_wrapping_enabled) {
@@ -1035,14 +1035,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00939"></a>00939         StripWord(buf);<span class="keywordtype">char</span> * type=StripWord(buf);
 <a name="l00940"></a>00940         <a class="code" href="classCBind.html">CBind</a> * bind=0;
 <a name="l00941"></a>00941         <span class="keywordflow">if</span> (!strcasecmp(type,<span class="stringliteral">&quot;axis&quot;</span>)) {
-<a name="l00942"></a>00942             Bitu ax=ConvDecWord(StripWord(buf));
+<a name="l00942"></a>00942             Bitu ax=(Bitu)ConvDecWord(StripWord(buf));
 <a name="l00943"></a>00943             <span class="keywordtype">bool</span> pos=ConvDecWord(StripWord(buf)) &gt; 0;
 <a name="l00944"></a>00944             bind=CreateAxisBind(ax,pos);
 <a name="l00945"></a>00945         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcasecmp(type,<span class="stringliteral">&quot;button&quot;</span>)) {
-<a name="l00946"></a>00946             Bitu but=ConvDecWord(StripWord(buf));           
+<a name="l00946"></a>00946             Bitu but=(Bitu)ConvDecWord(StripWord(buf));           
 <a name="l00947"></a>00947             bind=CreateButtonBind(but);
 <a name="l00948"></a>00948         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!strcasecmp(type,<span class="stringliteral">&quot;hat&quot;</span>)) {
-<a name="l00949"></a>00949             Bitu hat=ConvDecWord(StripWord(buf));           
+<a name="l00949"></a>00949             Bitu hat=(Bitu)ConvDecWord(StripWord(buf));           
 <a name="l00950"></a>00950             Bit8u dir=(Bit8u)ConvDecWord(StripWord(buf));           
 <a name="l00951"></a>00951             bind=CreateHatBind(hat,dir);
 <a name="l00952"></a>00952         }
@@ -2060,8 +2060,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01964"></a>01964         <span class="keywordflow">if</span> (notify_button != NULL)
 <a name="l01965"></a>01965             notify_button-&gt;SetInvert(yesno);
 <a name="l01966"></a>01966 
-<a name="l01967"></a>01967         <span class="keywordflow">if</span> (yesno) mapper.mods|=(1 &lt;&lt; (wmod-1));
-<a name="l01968"></a>01968         <span class="keywordflow">else</span> mapper.mods&amp;=~(1 &lt;&lt; (wmod-1));
+<a name="l01967"></a>01967         <span class="keywordflow">if</span> (yesno) mapper.mods|=(1u &lt;&lt; (wmod-1u));
+<a name="l01968"></a>01968         <span class="keywordflow">else</span> mapper.mods&amp;=~(1u &lt;&lt; (wmod-1u));
 <a name="l01969"></a>01969     };
 <a name="l01970"></a>01970     <span class="keywordtype">void</span> notifybutton(<a class="code" href="classCTextButton.html">CTextButton</a> *n) {
 <a name="l01971"></a>01971         notify_button = n;
@@ -2076,8 +2076,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01980"></a>01980 std::string CBind::GetModifierText(<span class="keywordtype">void</span>) {
 <a name="l01981"></a>01981     std::string r,t;
 <a name="l01982"></a>01982 
-<a name="l01983"></a>01983     <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> m=4<span class="comment">/*Host key first*/</span>;m &gt;= 1;m--) {
-<a name="l01984"></a>01984         <span class="keywordflow">if</span> ((mods &amp; (1 &lt;&lt; (m - 1))) &amp;&amp; mod_event[m] != NULL) {
+<a name="l01983"></a>01983     <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> m=4u<span class="comment">/*Host key first*/</span>;m &gt;= 1u;m--) {
+<a name="l01984"></a>01984         <span class="keywordflow">if</span> ((mods &amp; (1u &lt;&lt; (m - 1u))) &amp;&amp; mod_event[m] != NULL) {
 <a name="l01985"></a>01985             t = mod_event[m]-&gt;GetBindMenuText();
 <a name="l01986"></a>01986             <span class="keywordflow">if</span> (!r.empty()) r += <span class="stringliteral">&quot;+&quot;</span>;
 <a name="l01987"></a>01987             r += t;
@@ -2208,7 +2208,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02112"></a>02112         <span class="keywordflow">case</span> MK_f1:<span class="keywordflow">case</span> MK_f2:<span class="keywordflow">case</span> MK_f3:<span class="keywordflow">case</span> MK_f4:
 <a name="l02113"></a>02113         <span class="keywordflow">case</span> MK_f5:<span class="keywordflow">case</span> MK_f6:<span class="keywordflow">case</span> MK_f7:<span class="keywordflow">case</span> MK_f8:
 <a name="l02114"></a>02114         <span class="keywordflow">case</span> MK_f9:<span class="keywordflow">case</span> MK_f10:<span class="keywordflow">case</span> MK_f11:<span class="keywordflow">case</span> MK_f12: 
-<a name="l02115"></a>02115             key=SDLK_F1+(defkey-MK_f1);
+<a name="l02115"></a>02115             key=(Bitu)(SDLK_F1+(defkey-MK_f1));
 <a name="l02116"></a>02116             <span class="keywordflow">break</span>;
 <a name="l02117"></a>02117         <span class="keywordflow">case</span> MK_rightarrow:
 <a name="l02118"></a>02118             key=SDLK_RIGHT;
@@ -3302,7 +3302,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03206"></a>03206 
 <a name="l03207"></a>03207                 <span class="keywordtype">size_t</span> tmpl;
 <a name="l03208"></a>03208 <span class="preprocessor">#if defined(C_SDL2)</span>
-<a name="l03209"></a>03209 <span class="preprocessor"></span>                tmpl = sprintf(tmp,<span class="stringliteral">&quot;%c%02x: scan=%u sym=%u mod=%xh name=%s&quot;</span>,
+<a name="l03209"></a>03209 <span class="preprocessor"></span>                tmpl = (size_t)sprintf(tmp,<span class="stringliteral">&quot;%c%02x: scan=%u sym=%u mod=%xh name=%s&quot;</span>,
 <a name="l03210"></a>03210                     (event.type == SDL_KEYDOWN ? <span class="charliteral">&#39;D&#39;</span> : <span class="charliteral">&#39;U&#39;</span>),
 <a name="l03211"></a>03211                     event_count&amp;0xFF,
 <a name="l03212"></a>03212                     s.scancode,
@@ -3310,14 +3310,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03214"></a>03214                     s.mod,
 <a name="l03215"></a>03215                     SDL_GetScancodeName(s.scancode));
 <a name="l03216"></a>03216 <span class="preprocessor">#else</span>
-<a name="l03217"></a>03217 <span class="preprocessor"></span>                tmpl = sprintf(tmp,<span class="stringliteral">&quot;%c%02x: scan=%u sym=%u mod=%xh u=%xh name=%s&quot;</span>,
+<a name="l03217"></a>03217 <span class="preprocessor"></span>                tmpl = (size_t)sprintf(tmp,<span class="stringliteral">&quot;%c%02x: scan=%u sym=%u mod=%xh u=%xh name=%s&quot;</span>,
 <a name="l03218"></a>03218                     (event.type == SDL_KEYDOWN ? <span class="charliteral">&#39;D&#39;</span> : <span class="charliteral">&#39;U&#39;</span>),
 <a name="l03219"></a>03219                     event_count&amp;0xFF,
 <a name="l03220"></a>03220                     s.scancode,
 <a name="l03221"></a>03221                     s.sym,
 <a name="l03222"></a>03222                     s.mod,
 <a name="l03223"></a>03223                     s.unicode,
-<a name="l03224"></a>03224                     SDL_GetKeyName(MapSDLCode((Bitu)s.sym)));
+<a name="l03224"></a>03224                     SDL_GetKeyName((SDLKey)MapSDLCode((Bitu)s.sym)));
 <a name="l03225"></a>03225 <span class="preprocessor">#endif</span>
 <a name="l03226"></a>03226 <span class="preprocessor"></span>                <span class="keywordflow">while</span> (tmpl &lt; (440/8)) tmp[tmpl++] = <span class="charliteral">&#39; &#39;</span>;
 <a name="l03227"></a>03227                 assert(tmpl &lt; <span class="keyword">sizeof</span>(tmp));
@@ -3351,7 +3351,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03255"></a>03255                     <span class="keywordtype">char</span> *name;
 <a name="l03256"></a>03256 
 <a name="l03257"></a>03257                     name = LinuxX11_KeySymName(s.x11_sym);
-<a name="l03258"></a>03258                     tmpl = sprintf(tmp,<span class="stringliteral">&quot;X11: Sym=0x%x sn=%s&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)s.x11_sym,name ? name : <span class="stringliteral">&quot;&quot;</span>);
+<a name="l03258"></a>03258                     tmpl = (size_t)sprintf(tmp,<span class="stringliteral">&quot;X11: Sym=0x%x sn=%s&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)s.x11_sym,name ? name : <span class="stringliteral">&quot;&quot;</span>);
 <a name="l03259"></a>03259                 }
 <a name="l03260"></a>03260 <span class="preprocessor"># endif</span>
 <a name="l03261"></a>03261 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
@@ -3386,7 +3386,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03290"></a>03290     mapper.sticks.num=0;
 <a name="l03291"></a>03291     mapper.sticks.num_groups=0;
 <a name="l03292"></a>03292     <span class="keywordflow">if</span> (joytype != JOY_NONE) {
-<a name="l03293"></a>03293         mapper.sticks.num=SDL_NumJoysticks();
+<a name="l03293"></a>03293         mapper.sticks.num=(Bitu)SDL_NumJoysticks();
 <a name="l03294"></a>03294         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Joystick type != none, SDL reports %u sticks&quot;</span>,(<span class="keywordtype">unsigned</span> int)mapper.sticks.num);
 <a name="l03295"></a>03295         <span class="keywordflow">if</span> (joytype==JOY_AUTO) {
 <a name="l03296"></a>03296             <span class="comment">// try to figure out what joystick type to select</span>
@@ -3901,7 +3901,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:32 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

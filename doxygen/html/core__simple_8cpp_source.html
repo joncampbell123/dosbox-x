@@ -147,18 +147,18 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00051"></a>00051 <span class="keyword">extern</span> Bitu cycle_count;
 <a name="l00052"></a>00052 
 <a name="l00053"></a>00053 <span class="preprocessor">#if C_FPU</span>
-<a name="l00054"></a>00054 <span class="preprocessor"></span><span class="preprocessor">#define CPU_FPU 1                       //Enable FPU escape instructions</span>
+<a name="l00054"></a>00054 <span class="preprocessor"></span><span class="preprocessor">#define CPU_FPU 1u                       //Enable FPU escape instructions</span>
 <a name="l00055"></a>00055 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
 <a name="l00056"></a>00056 <span class="preprocessor"></span>
-<a name="l00057"></a>00057 <span class="preprocessor">#define CPU_PIC_CHECK 1</span>
-<a name="l00058"></a>00058 <span class="preprocessor"></span><span class="preprocessor">#define CPU_TRAP_CHECK 1</span>
+<a name="l00057"></a>00057 <span class="preprocessor">#define CPU_PIC_CHECK 1u</span>
+<a name="l00058"></a>00058 <span class="preprocessor"></span><span class="preprocessor">#define CPU_TRAP_CHECK 1u</span>
 <a name="l00059"></a>00059 <span class="preprocessor"></span>
-<a name="l00060"></a>00060 <span class="preprocessor">#define OPCODE_NONE         0x000</span>
-<a name="l00061"></a>00061 <span class="preprocessor"></span><span class="preprocessor">#define OPCODE_0F           0x100</span>
-<a name="l00062"></a>00062 <span class="preprocessor"></span><span class="preprocessor">#define OPCODE_SIZE         0x200</span>
+<a name="l00060"></a>00060 <span class="preprocessor">#define OPCODE_NONE         0x000u</span>
+<a name="l00061"></a>00061 <span class="preprocessor"></span><span class="preprocessor">#define OPCODE_0F           0x100u</span>
+<a name="l00062"></a>00062 <span class="preprocessor"></span><span class="preprocessor">#define OPCODE_SIZE         0x200u</span>
 <a name="l00063"></a>00063 <span class="preprocessor"></span>
-<a name="l00064"></a>00064 <span class="preprocessor">#define PREFIX_ADDR         0x1</span>
-<a name="l00065"></a>00065 <span class="preprocessor"></span><span class="preprocessor">#define PREFIX_REP          0x2</span>
+<a name="l00064"></a>00064 <span class="preprocessor">#define PREFIX_ADDR         0x1u</span>
+<a name="l00065"></a>00065 <span class="preprocessor"></span><span class="preprocessor">#define PREFIX_REP          0x2u</span>
 <a name="l00066"></a>00066 <span class="preprocessor"></span>
 <a name="l00067"></a>00067 <span class="preprocessor">#define TEST_PREFIX_ADDR    (core.prefixes &amp; PREFIX_ADDR)</span>
 <a name="l00068"></a>00068 <span class="preprocessor"></span><span class="preprocessor">#define TEST_PREFIX_REP     (core.prefixes &amp; PREFIX_REP)</span>
@@ -172,7 +172,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00076"></a>00076 <span class="preprocessor">#define DO_PREFIX_ADDR()                                \</span>
 <a name="l00077"></a>00077 <span class="preprocessor">    core.prefixes=(core.prefixes &amp; ~PREFIX_ADDR) |      \</span>
 <a name="l00078"></a>00078 <span class="preprocessor">    (cpu.code.big ^ PREFIX_ADDR);                       \</span>
-<a name="l00079"></a>00079 <span class="preprocessor">    core.ea_table=&amp;EATable[(core.prefixes&amp;1) * 256];    \</span>
+<a name="l00079"></a>00079 <span class="preprocessor">    core.ea_table=&amp;EATable[(core.prefixes&amp;1u) * 256u];    \</span>
 <a name="l00080"></a>00080 <span class="preprocessor">    goto restart_opcode;</span>
 <a name="l00081"></a>00081 <span class="preprocessor"></span>
 <a name="l00082"></a>00082 <span class="preprocessor">#define DO_PREFIX_REP(_ZERO)                \</span>
@@ -182,7 +182,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00086"></a>00086 <span class="preprocessor"></span>
 <a name="l00087"></a>00087 <span class="keyword">typedef</span> PhysPt (*GetEAHandler)(void);
 <a name="l00088"></a>00088 
-<a name="l00089"></a>00089 <span class="keyword">static</span> <span class="keyword">const</span> Bit32u AddrMaskTable[2]={0x0000ffff,0xffffffff};
+<a name="l00089"></a>00089 <span class="keyword">static</span> <span class="keyword">const</span> Bit32u AddrMaskTable[2]={0x0000ffffu,0xffffffffu};
 <a name="l00090"></a>00090 
 <a name="l00091"></a>00091 <span class="keyword">static</span> <span class="keyword">struct </span>{
 <a name="l00092"></a>00092     Bitu                    opcode_index;
@@ -260,9 +260,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00164"></a>00164         <span class="comment">/* Simple core optimizes for non-paged linear memory access and can break (segfault) if beyond end of memory */</span>
 <a name="l00165"></a>00165         <span class="keywordflow">if</span> (core.cseip &gt;= safety_limit) <span class="keywordflow">break</span>;
 <a name="l00166"></a>00166 
-<a name="l00167"></a>00167         core.opcode_index=cpu.code.big*0x200;
+<a name="l00167"></a>00167         core.opcode_index=cpu.code.big*0x200u;
 <a name="l00168"></a>00168         core.prefixes=cpu.code.big;
-<a name="l00169"></a>00169         core.ea_table=&amp;EATable[cpu.code.big*256];
+<a name="l00169"></a>00169         core.ea_table=&amp;EATable[cpu.code.big*256u];
 <a name="l00170"></a>00170         BaseDS=SegBase(ds);
 <a name="l00171"></a>00171         BaseSS=SegBase(ss);
 <a name="l00172"></a>00172         core.base_val_ds=ds;
@@ -270,7 +270,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00174"></a>00174 <span class="preprocessor"></span><span class="preprocessor">#if C_HEAVY_DEBUG</span>
 <a name="l00175"></a>00175 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (DEBUG_HeavyIsBreakpoint()) {
 <a name="l00176"></a>00176             FillFlags();
-<a name="l00177"></a>00177             <span class="keywordflow">return</span> debugCallback;
+<a name="l00177"></a>00177             <span class="keywordflow">return</span> (Bits)debugCallback;
 <a name="l00178"></a>00178         };
 <a name="l00179"></a>00179 <span class="preprocessor">#endif</span>
 <a name="l00180"></a>00180 <span class="preprocessor"></span><span class="preprocessor">#endif</span>
@@ -321,7 +321,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:02 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -299,7 +299,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00203"></a>00203                 port = 0x3C2;
 <a name="l00204"></a>00204                 <span class="keywordflow">break</span>;
 <a name="l00205"></a>00205         <span class="keywordflow">case</span> 0x28: <span class="comment">/* Feature Control register (3BAh mono modes, 3DAh color modes) */</span>
-<a name="l00206"></a>00206                 port = real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6;
+<a name="l00206"></a>00206                 port = real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u;
 <a name="l00207"></a>00207                 <span class="keywordflow">break</span>;
 <a name="l00208"></a>00208         <span class="keywordflow">case</span> 0x30: <span class="comment">/* Graphics 1 Position register 3CCh */</span>
 <a name="l00209"></a>00209                 port = 0x3CC;
@@ -320,10 +320,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00224"></a>00224         <span class="keywordflow">if</span>(regs == 0) {
 <a name="l00225"></a>00225                 <span class="keywordflow">if</span>(port) bl = IO_Read(port);
 <a name="l00226"></a>00226         } <span class="keywordflow">else</span> {
-<a name="l00227"></a>00227                 <span class="keywordflow">if</span>(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+<a name="l00227"></a>00227                 <span class="keywordflow">if</span>(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 <a name="l00228"></a>00228                 IO_Write(port,bl);
-<a name="l00229"></a>00229                 bl = IO_Read(port+1);
-<a name="l00230"></a>00230                 <span class="keywordflow">if</span>(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+<a name="l00229"></a>00229                 bl = IO_Read(port+1u);
+<a name="l00230"></a>00230                 <span class="keywordflow">if</span>(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 <a name="l00231"></a>00231                 <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_NORMAL)(<span class="stringliteral">&quot;EGA RIL read used with multi-reg&quot;</span>);
 <a name="l00232"></a>00232         }
 <a name="l00233"></a>00233 }
@@ -336,12 +336,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00240"></a>00240                 <span class="keywordflow">if</span>(port) IO_Write(port,bl);
 <a name="l00241"></a>00241         } <span class="keywordflow">else</span> {
 <a name="l00242"></a>00242                 <span class="keywordflow">if</span>(port == 0x3c0) {
-<a name="l00243"></a>00243                         IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+<a name="l00243"></a>00243                         IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 <a name="l00244"></a>00244                         IO_Write(port,bl);
 <a name="l00245"></a>00245                         IO_Write(port,bh);
 <a name="l00246"></a>00246                 } <span class="keywordflow">else</span> {
 <a name="l00247"></a>00247                         IO_Write(port,bl);
-<a name="l00248"></a>00248                         IO_Write(port+1,bh);
+<a name="l00248"></a>00248                         IO_Write(port+1u,bh);
 <a name="l00249"></a>00249                 }
 <a name="l00250"></a>00250                 bl = bh;<span class="comment">//Not sure</span>
 <a name="l00251"></a>00251                 <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_NORMAL)(<span class="stringliteral">&quot;EGA RIL write used with multi-reg&quot;</span>);
@@ -358,11 +358,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00262"></a>00262                 <span class="keywordflow">if</span>(ch&lt;regs) {
 <a name="l00263"></a>00263                         <span class="keywordflow">if</span> ((Bitu)ch+cl&gt;regs) cl=(Bit8u)(regs-ch);
 <a name="l00264"></a>00264                         <span class="keywordflow">for</span> (Bitu i=0; i&lt;cl; i++) {
-<a name="l00265"></a>00265                                 <span class="keywordflow">if</span>(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+<a name="l00265"></a>00265                                 <span class="keywordflow">if</span>(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 <a name="l00266"></a>00266                                 IO_Write(port,ch+i);
-<a name="l00267"></a>00267                                 mem_writeb(dst++,IO_Read(port+1));
+<a name="l00267"></a>00267                                 mem_writeb(dst++,IO_Read(port+1u));
 <a name="l00268"></a>00268                         }
-<a name="l00269"></a>00269                         <span class="keywordflow">if</span>(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+<a name="l00269"></a>00269                         <span class="keywordflow">if</span>(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 <a name="l00270"></a>00270                 } <span class="keywordflow">else</span> <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;EGA RIL range read from %x for invalid register %x&quot;</span>,(int)port,(<span class="keywordtype">int</span>)ch);
 <a name="l00271"></a>00271         }
 <a name="l00272"></a>00272 }
@@ -377,7 +377,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00281"></a>00281                 <span class="keywordflow">if</span>(ch&lt;regs) {
 <a name="l00282"></a>00282                         <span class="keywordflow">if</span> ((Bitu)ch+cl&gt;regs) cl=(Bit8u)(regs-ch);
 <a name="l00283"></a>00283                         <span class="keywordflow">if</span>(port == 0x3c0) {
-<a name="l00284"></a>00284                                 IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+<a name="l00284"></a>00284                                 IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 <a name="l00285"></a>00285                                 <span class="keywordflow">for</span> (Bitu i=0; i&lt;cl; i++) {
 <a name="l00286"></a>00286                                         IO_Write(port,ch+i);
 <a name="l00287"></a>00287                                         IO_Write(port,mem_readb(src++));
@@ -385,7 +385,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00289"></a>00289                         } <span class="keywordflow">else</span> {
 <a name="l00290"></a>00290                                 <span class="keywordflow">for</span> (Bitu i=0; i&lt;cl; i++) {
 <a name="l00291"></a>00291                                         IO_Write(port,ch+i);
-<a name="l00292"></a>00292                                         IO_Write(port+1,mem_readb(src++));
+<a name="l00292"></a>00292                                         IO_Write(port+1u,mem_readb(src++));
 <a name="l00293"></a>00293                                 }
 <a name="l00294"></a>00294                         }
 <a name="l00295"></a>00295                 } <span class="keywordflow">else</span> <a class="code" href="classLOG.html">LOG</a>(LOG_INT10,LOG_ERROR)(<span class="stringliteral">&quot;EGA RIL range write to %x with invalid register %x&quot;</span>,(int)port,(<span class="keywordtype">int</span>)ch);
@@ -419,12 +419,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00323"></a>00323                 } <span class="keywordflow">else</span> {
 <a name="l00324"></a>00324                         Bit8u idx=mem_readb(tbl+2);
 <a name="l00325"></a>00325                         <span class="keywordflow">if</span>(port == 0x3c0) {
-<a name="l00326"></a>00326                                 IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+<a name="l00326"></a>00326                                 IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 <a name="l00327"></a>00327                                 IO_Write(port,idx);
 <a name="l00328"></a>00328                                 IO_Write(port,vl);
 <a name="l00329"></a>00329                         } <span class="keywordflow">else</span> {
 <a name="l00330"></a>00330                                 IO_Write(port,idx);
-<a name="l00331"></a>00331                                 IO_Write(port+1,vl);
+<a name="l00331"></a>00331                                 IO_Write(port+1u,vl);
 <a name="l00332"></a>00332                         }
 <a name="l00333"></a>00333                 }
 <a name="l00334"></a>00334                 tbl+=4;
@@ -434,7 +434,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

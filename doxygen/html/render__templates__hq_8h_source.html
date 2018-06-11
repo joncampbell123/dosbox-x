@@ -180,14 +180,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00084"></a>00084 <span class="preprocessor"></span>                Y = (r + g + b) &gt;&gt; 2;
 <a name="l00085"></a>00085                 u = 128 + ((r - b) &gt;&gt; 2);
 <a name="l00086"></a>00086                 v = 128 + ((-r + 2 * g - b) &gt;&gt; 3);
-<a name="l00087"></a>00087                 _RGBtoYUV[color] = (Y &lt;&lt; 16) | (u &lt;&lt; 8) | v;
+<a name="l00087"></a>00087                 _RGBtoYUV[color] = (Bit32u)((Y &lt;&lt; 16) | (u &lt;&lt; 8) | v);
 <a name="l00088"></a>00088         }
 <a name="l00089"></a>00089 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:32 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -9,6 +9,7 @@ var searchData=
   ['bitmap',['bitmap',['../classGUI_1_1BitmapFont.html#a23417d7e1828ded4b965f6a6670322fa',1,'GUI::BitmapFont']]],
   ['bitmapfont',['BitmapFont',['../classGUI_1_1BitmapFont.html',1,'GUI']]],
   ['bitmapfont',['BitmapFont',['../classGUI_1_1BitmapFont.html#a110d5562ff912779a85c909cc8d41a04',1,'GUI::BitmapFont']]],
+  ['bitseqlengthandpos_5fret_5ft',['bitseqlengthandpos_ret_t',['../classbitop_1_1bitseqlengthandpos__ret__t.html',1,'bitop']]],
   ['black',['Black',['../namespaceGUI_1_1Color.html#acd1c748baf35a0185c7afec4c6103485',1,'GUI::Color']]],
   ['blink',['blink',['../classGUI_1_1Input.html#a311ee1e868abf69ca6ba892a6794b68b',1,'GUI::Input']]],
   ['block',['Block',['../classRegionAllocTracking_1_1Block.html',1,'RegionAllocTracking']]],

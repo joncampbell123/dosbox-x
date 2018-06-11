@@ -821,7 +821,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00726"></a>00726         <span class="keywordflow">default</span>:
 <a name="l00727"></a>00727                 <span class="keywordflow">break</span>;
 <a name="l00728"></a>00728         }
-<a name="l00729"></a>00729         IO_WriteW(crtc_base,0x09 | (scanline-1) &lt;&lt; 8);
+<a name="l00729"></a>00729         IO_WriteW(crtc_base,0x09 | (scanline-1u) &lt;&lt; 8u);
 <a name="l00730"></a>00730         <span class="comment">//Setup the CGA palette using VGA DAC palette</span>
 <a name="l00731"></a>00731         <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;16;ct++) VGA_DAC_SetEntry(ct,cga_palette[ct][0],cga_palette[ct][1],cga_palette[ct][2]);
 <a name="l00732"></a>00732         <span class="comment">//Setup the tandy palette</span>
@@ -941,8 +941,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00846"></a>00846 
 <a name="l00847"></a>00847                 <span class="comment">// init CRTC registers</span>
 <a name="l00848"></a>00848                 <span class="keywordflow">for</span> (Bit16u i = 0; i &lt; 16; i++)
-<a name="l00849"></a>00849                         IO_WriteW(crtc_base, i | (real_readb(RealSeg(vparams), 
-<a name="l00850"></a>00850                                 RealOff(vparams) + i + crtc_block_index*16) &lt;&lt; 8));
+<a name="l00849"></a>00849                         IO_WriteW(crtc_base, (uint16_t)(i | (real_readb(RealSeg(vparams), 
+<a name="l00850"></a>00850                                 RealOff(vparams) + i + crtc_block_index*16) &lt;&lt; 8)));
 <a name="l00851"></a>00851         }
 <a name="l00852"></a>00852         FinishSetMode(clearmem);
 <a name="l00853"></a>00853 
@@ -1063,11 +1063,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00968"></a>00968         
 <a name="l00969"></a>00969         <span class="keywordflow">if</span> (IS_VGA_ARCH &amp;&amp; (svgaCard == SVGA_S3Trio)) {
 <a name="l00970"></a>00970         <span class="comment">// unlock the S3 registers</span>
-<a name="l00971"></a>00971                 IO_Write(crtc_base,0x38);IO_Write(crtc_base+1,0x48);    <span class="comment">//Register lock 1</span>
-<a name="l00972"></a>00972                 IO_Write(crtc_base,0x39);IO_Write(crtc_base+1,0xa5);    <span class="comment">//Register lock 2</span>
+<a name="l00971"></a>00971                 IO_Write(crtc_base,0x38);IO_Write(crtc_base+1u,0x48);   <span class="comment">//Register lock 1</span>
+<a name="l00972"></a>00972                 IO_Write(crtc_base,0x39);IO_Write(crtc_base+1u,0xa5);   <span class="comment">//Register lock 2</span>
 <a name="l00973"></a>00973                 IO_Write(0x3c4,0x8);IO_Write(0x3c5,0x06);
 <a name="l00974"></a>00974                 <span class="comment">// Disable MMIO here so we can read / write memory</span>
-<a name="l00975"></a>00975                 IO_Write(crtc_base,0x53);IO_Write(crtc_base+1,0x0);
+<a name="l00975"></a>00975                 IO_Write(crtc_base,0x53);IO_Write(crtc_base+1u,0x0);
 <a name="l00976"></a>00976         }
 <a name="l00977"></a>00977         
 <a name="l00978"></a>00978         <span class="comment">/* Program Sequencer */</span>
@@ -1151,32 +1151,32 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01056"></a>01056         <span class="comment">/* Program CRTC */</span>
 <a name="l01057"></a>01057         <span class="comment">/* First disable write protection */</span>
 <a name="l01058"></a>01058         IO_Write(crtc_base,0x11);
-<a name="l01059"></a>01059         IO_Write(crtc_base+1,IO_Read(crtc_base+1)&amp;0x7f);
+<a name="l01059"></a>01059         IO_Write(crtc_base+1u,IO_Read(crtc_base+1u)&amp;0x7f);
 <a name="l01060"></a>01060         <span class="comment">/* Clear all the regs */</span>
 <a name="l01061"></a>01061         <span class="keywordflow">for</span> (Bit8u ct=0x0;ct&lt;=0x18;ct++) {
-<a name="l01062"></a>01062                 IO_Write(crtc_base,ct);IO_Write(crtc_base+1,0);
+<a name="l01062"></a>01062                 IO_Write(crtc_base,ct);IO_Write(crtc_base+1u,0);
 <a name="l01063"></a>01063         }
 <a name="l01064"></a>01064         Bit8u overflow=0;Bit8u max_scanline=0;
 <a name="l01065"></a>01065         Bit8u ver_overflow=0;Bit8u hor_overflow=0;
 <a name="l01066"></a>01066         <span class="comment">/* Horizontal Total */</span>
-<a name="l01067"></a>01067         IO_Write(crtc_base,0x00);IO_Write(crtc_base+1,(Bit8u)(CurMode-&gt;htotal-5));
+<a name="l01067"></a>01067         IO_Write(crtc_base,0x00);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;htotal-5));
 <a name="l01068"></a>01068         hor_overflow|=((CurMode-&gt;htotal-5) &amp; 0x100) &gt;&gt; 8;
 <a name="l01069"></a>01069         <span class="comment">/* Horizontal Display End */</span>
-<a name="l01070"></a>01070         IO_Write(crtc_base,0x01);IO_Write(crtc_base+1,(Bit8u)(CurMode-&gt;hdispend-1));
+<a name="l01070"></a>01070         IO_Write(crtc_base,0x01);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;hdispend-1));
 <a name="l01071"></a>01071         hor_overflow|=((CurMode-&gt;hdispend-1) &amp; 0x100) &gt;&gt; 7;
 <a name="l01072"></a>01072         <span class="comment">/* Start horizontal Blanking */</span>
-<a name="l01073"></a>01073         IO_Write(crtc_base,0x02);IO_Write(crtc_base+1,(Bit8u)CurMode-&gt;hdispend);
+<a name="l01073"></a>01073         IO_Write(crtc_base,0x02);IO_Write(crtc_base+1u,(Bit8u)CurMode-&gt;hdispend);
 <a name="l01074"></a>01074         hor_overflow|=((CurMode-&gt;hdispend) &amp; 0x100) &gt;&gt; 6;
 <a name="l01075"></a>01075         <span class="comment">/* End horizontal Blanking */</span>
 <a name="l01076"></a>01076         Bitu blank_end=(CurMode-&gt;htotal-2) &amp; 0x7f;
-<a name="l01077"></a>01077         IO_Write(crtc_base,0x03);IO_Write(crtc_base+1,0x80|(blank_end &amp; 0x1f));
+<a name="l01077"></a>01077         IO_Write(crtc_base,0x03);IO_Write(crtc_base+1u,0x80|(blank_end &amp; 0x1f));
 <a name="l01078"></a>01078 
 <a name="l01079"></a>01079         <span class="comment">/* Start Horizontal Retrace */</span>
 <a name="l01080"></a>01080         Bitu ret_start;
 <a name="l01081"></a>01081         <span class="keywordflow">if</span> ((CurMode-&gt;special &amp; _EGA_HALF_CLOCK) &amp;&amp; (CurMode-&gt;type!=M_CGA2)) ret_start = (CurMode-&gt;hdispend+3);
 <a name="l01082"></a>01082         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CurMode-&gt;type==M_TEXT) ret_start = (CurMode-&gt;hdispend+5);
 <a name="l01083"></a>01083         <span class="keywordflow">else</span> ret_start = (CurMode-&gt;hdispend+4);
-<a name="l01084"></a>01084         IO_Write(crtc_base,0x04);IO_Write(crtc_base+1,(Bit8u)ret_start);
+<a name="l01084"></a>01084         IO_Write(crtc_base,0x04);IO_Write(crtc_base+1u,(Bit8u)ret_start);
 <a name="l01085"></a>01085         hor_overflow|=(ret_start &amp; 0x100) &gt;&gt; 4;
 <a name="l01086"></a>01086 
 <a name="l01087"></a>01087         <span class="comment">/* End Horizontal Retrace */</span>
@@ -1188,10 +1188,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01093"></a>01093         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CurMode-&gt;type==M_TEXT) ret_end = (CurMode-&gt;htotal-3) &amp; 0x1f;
 <a name="l01094"></a>01094         <span class="keywordflow">else</span> ret_end = (CurMode-&gt;htotal-4) &amp; 0x1f;
 <a name="l01095"></a>01095         
-<a name="l01096"></a>01096         IO_Write(crtc_base,0x05);IO_Write(crtc_base+1,(Bit8u)(ret_end | (blank_end &amp; 0x20) &lt;&lt; 2));
+<a name="l01096"></a>01096         IO_Write(crtc_base,0x05);IO_Write(crtc_base+1u,(Bit8u)(ret_end | (blank_end &amp; 0x20) &lt;&lt; 2));
 <a name="l01097"></a>01097 
 <a name="l01098"></a>01098         <span class="comment">/* Vertical Total */</span>
-<a name="l01099"></a>01099         IO_Write(crtc_base,0x06);IO_Write(crtc_base+1,(Bit8u)(CurMode-&gt;vtotal-2));
+<a name="l01099"></a>01099         IO_Write(crtc_base,0x06);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;vtotal-2));
 <a name="l01100"></a>01100         overflow|=((CurMode-&gt;vtotal-2) &amp; 0x100) &gt;&gt; 8;
 <a name="l01101"></a>01101         overflow|=((CurMode-&gt;vtotal-2) &amp; 0x200) &gt;&gt; 4;
 <a name="l01102"></a>01102         ver_overflow|=((CurMode-&gt;vtotal-2) &amp; 0x400) &gt;&gt; 10;
@@ -1216,16 +1216,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01121"></a>01121         }
 <a name="l01122"></a>01122 
 <a name="l01123"></a>01123         <span class="comment">/* Vertical Retrace Start */</span>
-<a name="l01124"></a>01124         IO_Write(crtc_base,0x10);IO_Write(crtc_base+1,(Bit8u)vretrace);
+<a name="l01124"></a>01124         IO_Write(crtc_base,0x10);IO_Write(crtc_base+1u,(Bit8u)vretrace);
 <a name="l01125"></a>01125         overflow|=(vretrace &amp; 0x100) &gt;&gt; 6;
 <a name="l01126"></a>01126         overflow|=(vretrace &amp; 0x200) &gt;&gt; 2;
 <a name="l01127"></a>01127         ver_overflow|=(vretrace &amp; 0x400) &gt;&gt; 6;
 <a name="l01128"></a>01128 
 <a name="l01129"></a>01129         <span class="comment">/* Vertical Retrace End */</span>
-<a name="l01130"></a>01130         IO_Write(crtc_base,0x11);IO_Write(crtc_base+1,(vretrace+2) &amp; 0xF);
+<a name="l01130"></a>01130         IO_Write(crtc_base,0x11);IO_Write(crtc_base+1u,(vretrace+2) &amp; 0xF);
 <a name="l01131"></a>01131 
 <a name="l01132"></a>01132         <span class="comment">/* Vertical Display End */</span>
-<a name="l01133"></a>01133         IO_Write(crtc_base,0x12);IO_Write(crtc_base+1,(Bit8u)(CurMode-&gt;vdispend-1));
+<a name="l01133"></a>01133         IO_Write(crtc_base,0x12);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;vdispend-1));
 <a name="l01134"></a>01134         overflow|=((CurMode-&gt;vdispend-1) &amp; 0x100) &gt;&gt; 7;
 <a name="l01135"></a>01135         overflow|=((CurMode-&gt;vdispend-1) &amp; 0x200) &gt;&gt; 3;
 <a name="l01136"></a>01136         ver_overflow|=((CurMode-&gt;vdispend-1) &amp; 0x400) &gt;&gt; 9;
@@ -1250,17 +1250,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01155"></a>01155         }
 <a name="l01156"></a>01156 
 <a name="l01157"></a>01157         <span class="comment">/* Vertical Blank Start */</span>
-<a name="l01158"></a>01158         IO_Write(crtc_base,0x15);IO_Write(crtc_base+1,(Bit8u)(CurMode-&gt;vdispend+vblank_trim));
+<a name="l01158"></a>01158         IO_Write(crtc_base,0x15);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;vdispend+vblank_trim));
 <a name="l01159"></a>01159         overflow|=((CurMode-&gt;vdispend+vblank_trim) &amp; 0x100) &gt;&gt; 5;
 <a name="l01160"></a>01160         max_scanline|=((CurMode-&gt;vdispend+vblank_trim) &amp; 0x200) &gt;&gt; 4;
 <a name="l01161"></a>01161         ver_overflow|=((CurMode-&gt;vdispend+vblank_trim) &amp; 0x400) &gt;&gt; 8;
 <a name="l01162"></a>01162 
 <a name="l01163"></a>01163         <span class="comment">/* Vertical Blank End */</span>
-<a name="l01164"></a>01164         IO_Write(crtc_base,0x16);IO_Write(crtc_base+1,(Bit8u)(CurMode-&gt;vtotal-vblank_trim-2));
+<a name="l01164"></a>01164         IO_Write(crtc_base,0x16);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;vtotal-vblank_trim-2));
 <a name="l01165"></a>01165 
 <a name="l01166"></a>01166         <span class="comment">/* Line Compare */</span>
 <a name="l01167"></a>01167         Bitu line_compare=(CurMode-&gt;vtotal &lt; 1024) ? 1023 : 2047;
-<a name="l01168"></a>01168         IO_Write(crtc_base,0x18);IO_Write(crtc_base+1,line_compare&amp;0xff);
+<a name="l01168"></a>01168         IO_Write(crtc_base,0x18);IO_Write(crtc_base+1u,line_compare&amp;0xff);
 <a name="l01169"></a>01169         overflow|=(line_compare &amp; 0x100) &gt;&gt; 4;
 <a name="l01170"></a>01170         max_scanline|=(line_compare &amp; 0x200) &gt;&gt; 3;
 <a name="l01171"></a>01171         ver_overflow|=(line_compare &amp; 0x400) &gt;&gt; 4;
@@ -1305,17 +1305,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01210"></a>01210     <span class="comment">/* do NOT apply this to VESA BIOS modes */</span>
 <a name="l01211"></a>01211         <span class="keywordflow">if</span> (CurMode-&gt;mode &lt; 0x100 &amp;&amp; CurMode-&gt;vdispend==350) underline=0x0f;
 <a name="l01212"></a>01212 
-<a name="l01213"></a>01213         IO_Write(crtc_base,0x09);IO_Write(crtc_base+1,max_scanline);
-<a name="l01214"></a>01214         IO_Write(crtc_base,0x14);IO_Write(crtc_base+1,underline);
+<a name="l01213"></a>01213         IO_Write(crtc_base,0x09);IO_Write(crtc_base+1u,max_scanline);
+<a name="l01214"></a>01214         IO_Write(crtc_base,0x14);IO_Write(crtc_base+1u,underline);
 <a name="l01215"></a>01215 
 <a name="l01216"></a>01216         <span class="comment">/* OverFlow */</span>
-<a name="l01217"></a>01217         IO_Write(crtc_base,0x07);IO_Write(crtc_base+1,overflow);
+<a name="l01217"></a>01217         IO_Write(crtc_base,0x07);IO_Write(crtc_base+1u,overflow);
 <a name="l01218"></a>01218 
 <a name="l01219"></a>01219         <span class="keywordflow">if</span> (svgaCard == SVGA_S3Trio) {
 <a name="l01220"></a>01220                 <span class="comment">/* Extended Horizontal Overflow */</span>
-<a name="l01221"></a>01221                 IO_Write(crtc_base,0x5d);IO_Write(crtc_base+1,hor_overflow);
+<a name="l01221"></a>01221                 IO_Write(crtc_base,0x5d);IO_Write(crtc_base+1u,hor_overflow);
 <a name="l01222"></a>01222                 <span class="comment">/* Extended Vertical Overflow */</span>
-<a name="l01223"></a>01223                 IO_Write(crtc_base,0x5e);IO_Write(crtc_base+1,ver_overflow);
+<a name="l01223"></a>01223                 IO_Write(crtc_base,0x5e);IO_Write(crtc_base+1u,ver_overflow);
 <a name="l01224"></a>01224         }
 <a name="l01225"></a>01225 
 <a name="l01226"></a>01226         <span class="comment">/* Offset Register */</span>
@@ -1338,18 +1338,18 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01243"></a>01243                 offset = CurMode-&gt;hdispend/2;
 <a name="l01244"></a>01244         }
 <a name="l01245"></a>01245         IO_Write(crtc_base,0x13);
-<a name="l01246"></a>01246         IO_Write(crtc_base + 1,offset &amp; 0xff);
+<a name="l01246"></a>01246         IO_Write(crtc_base + 1u,offset &amp; 0xff);
 <a name="l01247"></a>01247 
 <a name="l01248"></a>01248         <span class="keywordflow">if</span> (svgaCard == SVGA_S3Trio) {
 <a name="l01249"></a>01249                 <span class="comment">/* Extended System Control 2 Register  */</span>
 <a name="l01250"></a>01250                 <span class="comment">/* This register actually has more bits but only use the extended offset ones */</span>
 <a name="l01251"></a>01251                 IO_Write(crtc_base,0x51);
-<a name="l01252"></a>01252                 IO_Write(crtc_base + 1,(Bit8u)((offset &amp; 0x300) &gt;&gt; 4));
+<a name="l01252"></a>01252                 IO_Write(crtc_base + 1u,(Bit8u)((offset &amp; 0x300) &gt;&gt; 4));
 <a name="l01253"></a>01253                 <span class="comment">/* Clear remaining bits of the display start */</span>
 <a name="l01254"></a>01254                 IO_Write(crtc_base,0x69);
-<a name="l01255"></a>01255                 IO_Write(crtc_base + 1,0);
+<a name="l01255"></a>01255                 IO_Write(crtc_base + 1u,0);
 <a name="l01256"></a>01256                 <span class="comment">/* Extended Vertical Overflow */</span>
-<a name="l01257"></a>01257                 IO_Write(crtc_base,0x5e);IO_Write(crtc_base+1,ver_overflow);
+<a name="l01257"></a>01257                 IO_Write(crtc_base,0x5e);IO_Write(crtc_base+1u,ver_overflow);
 <a name="l01258"></a>01258         }
 <a name="l01259"></a>01259 
 <a name="l01260"></a>01260         <span class="comment">/* Mode Control */</span>
@@ -1385,10 +1385,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01290"></a>01290                 <span class="keywordflow">break</span>;
 <a name="l01291"></a>01291         }
 <a name="l01292"></a>01292 
-<a name="l01293"></a>01293         IO_Write(crtc_base,0x17);IO_Write(crtc_base+1,mode_control);
+<a name="l01293"></a>01293         IO_Write(crtc_base,0x17);IO_Write(crtc_base+1u,mode_control);
 <a name="l01294"></a>01294         <span class="comment">/* Renable write protection */</span>
 <a name="l01295"></a>01295         IO_Write(crtc_base,0x11);
-<a name="l01296"></a>01296         IO_Write(crtc_base+1,IO_Read(crtc_base+1)|0x80);
+<a name="l01296"></a>01296         IO_Write(crtc_base+1u,IO_Read(crtc_base+1u)|0x80);
 <a name="l01297"></a>01297 
 <a name="l01298"></a>01298         <span class="keywordflow">if</span> (svgaCard == SVGA_S3Trio) {
 <a name="l01299"></a>01299                 <span class="comment">/* Setup the correct clock */</span>
@@ -1418,7 +1418,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01323"></a>01323                         misc_control_2=0xd0;
 <a name="l01324"></a>01324                         <span class="keywordflow">break</span>;
 <a name="l01325"></a>01325                 }
-<a name="l01326"></a>01326                 IO_WriteB(crtc_base,0x67);IO_WriteB(crtc_base+1,misc_control_2);
+<a name="l01326"></a>01326                 IO_WriteB(crtc_base,0x67);IO_WriteB(crtc_base+1u,misc_control_2);
 <a name="l01327"></a>01327         }
 <a name="l01328"></a>01328 
 <a name="l01329"></a>01329         <span class="comment">/* Write Misc Output */</span>
@@ -1696,26 +1696,26 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01601"></a>01601         <span class="keywordflow">if</span> (svgaCard == SVGA_S3Trio) {
 <a name="l01602"></a>01602                 <span class="comment">/* Setup the CPU Window */</span>
 <a name="l01603"></a>01603                 IO_Write(crtc_base,0x6a);
-<a name="l01604"></a>01604                 IO_Write(crtc_base+1,0);
+<a name="l01604"></a>01604                 IO_Write(crtc_base+1u,0);
 <a name="l01605"></a>01605                 <span class="comment">/* Setup the linear frame buffer */</span>
 <a name="l01606"></a>01606                 IO_Write(crtc_base,0x59);
-<a name="l01607"></a>01607                 IO_Write(crtc_base+1,(Bit8u)((S3_LFB_BASE &gt;&gt; 24)&amp;0xff));
+<a name="l01607"></a>01607                 IO_Write(crtc_base+1u,(Bit8u)((S3_LFB_BASE &gt;&gt; 24)&amp;0xff));
 <a name="l01608"></a>01608                 IO_Write(crtc_base,0x5a);
-<a name="l01609"></a>01609                 IO_Write(crtc_base+1,(Bit8u)((S3_LFB_BASE &gt;&gt; 16)&amp;0xff));
+<a name="l01609"></a>01609                 IO_Write(crtc_base+1u,(Bit8u)((S3_LFB_BASE &gt;&gt; 16)&amp;0xff));
 <a name="l01610"></a>01610                 IO_Write(crtc_base,0x6b); <span class="comment">// BIOS scratchpad</span>
-<a name="l01611"></a>01611                 IO_Write(crtc_base+1,(Bit8u)((S3_LFB_BASE &gt;&gt; 24)&amp;0xff));
+<a name="l01611"></a>01611                 IO_Write(crtc_base+1u,(Bit8u)((S3_LFB_BASE &gt;&gt; 24)&amp;0xff));
 <a name="l01612"></a>01612                 
 <a name="l01613"></a>01613                 <span class="comment">/* Setup some remaining S3 registers */</span>
 <a name="l01614"></a>01614                 IO_Write(crtc_base,0x41); <span class="comment">// BIOS scratchpad</span>
-<a name="l01615"></a>01615                 IO_Write(crtc_base+1,0x88);
+<a name="l01615"></a>01615                 IO_Write(crtc_base+1u,0x88);
 <a name="l01616"></a>01616                 IO_Write(crtc_base,0x52); <span class="comment">// extended BIOS scratchpad</span>
-<a name="l01617"></a>01617                 IO_Write(crtc_base+1,0x80);
+<a name="l01617"></a>01617                 IO_Write(crtc_base+1u,0x80);
 <a name="l01618"></a>01618 
 <a name="l01619"></a>01619                 IO_Write(0x3c4,0x15);
 <a name="l01620"></a>01620                 IO_Write(0x3c5,0x03);
 <a name="l01621"></a>01621 
 <a name="l01622"></a>01622                 IO_Write(crtc_base,0x45);
-<a name="l01623"></a>01623                 IO_Write(crtc_base+1,0x00);
+<a name="l01623"></a>01623                 IO_Write(crtc_base+1u,0x00);
 <a name="l01624"></a>01624 
 <a name="l01625"></a>01625                 <span class="comment">// Accellerator setup </span>
 <a name="l01626"></a>01626                 Bitu reg_50=S3_XGA_8BPP;
@@ -1734,7 +1734,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01639"></a>01639                         <span class="keywordflow">case</span> 1600: reg_50|=S3_XGA_1600; <span class="keywordflow">break</span>;
 <a name="l01640"></a>01640                         <span class="keywordflow">default</span>: <span class="keywordflow">break</span>;
 <a name="l01641"></a>01641                 }
-<a name="l01642"></a>01642                 IO_WriteB(crtc_base,0x50); IO_WriteB(crtc_base+1,reg_50);
+<a name="l01642"></a>01642                 IO_WriteB(crtc_base,0x50); IO_WriteB(crtc_base+1u,reg_50);
 <a name="l01643"></a>01643 
 <a name="l01644"></a>01644                 Bit8u reg_31, reg_3a;
 <a name="l01645"></a>01645                 <span class="keywordflow">switch</span> (CurMode-&gt;type) {
@@ -1768,19 +1768,19 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01673"></a>01673                         reg_31 = 5;
 <a name="l01674"></a>01674                         <span class="keywordflow">break</span>;
 <a name="l01675"></a>01675                 }
-<a name="l01676"></a>01676                 IO_Write(crtc_base,0x3a);IO_Write(crtc_base+1,reg_3a);
-<a name="l01677"></a>01677                 IO_Write(crtc_base,0x31);IO_Write(crtc_base+1,reg_31);  <span class="comment">//Enable banked memory and 256k+ access</span>
+<a name="l01676"></a>01676                 IO_Write(crtc_base,0x3a);IO_Write(crtc_base+1u,reg_3a);
+<a name="l01677"></a>01677                 IO_Write(crtc_base,0x31);IO_Write(crtc_base+1u,reg_31); <span class="comment">//Enable banked memory and 256k+ access</span>
 <a name="l01678"></a>01678 
 <a name="l01679"></a>01679                 IO_Write(crtc_base,0x58);
 <a name="l01680"></a>01680                 <span class="keywordflow">if</span> (vga.vmemsize &gt;= (4*1024*1024))
-<a name="l01681"></a>01681                         IO_Write(crtc_base+1,0x3);              <span class="comment">// 4+ MB window</span>
+<a name="l01681"></a>01681                         IO_Write(crtc_base+1u,0x3);             <span class="comment">// 4+ MB window</span>
 <a name="l01682"></a>01682                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vga.vmemsize &gt;= (2*1024*1024))
-<a name="l01683"></a>01683                         IO_Write(crtc_base+1,0x2);              <span class="comment">// 2 MB window</span>
+<a name="l01683"></a>01683                         IO_Write(crtc_base+1u,0x2);             <span class="comment">// 2 MB window</span>
 <a name="l01684"></a>01684                 <span class="keywordflow">else</span>
-<a name="l01685"></a>01685                         IO_Write(crtc_base+1,0x1);              <span class="comment">// 1 MB window</span>
+<a name="l01685"></a>01685                         IO_Write(crtc_base+1u,0x1);             <span class="comment">// 1 MB window</span>
 <a name="l01686"></a>01686 
-<a name="l01687"></a>01687                 IO_Write(crtc_base,0x38);IO_Write(crtc_base+1,0x48);    <span class="comment">//Register lock 1</span>
-<a name="l01688"></a>01688                 IO_Write(crtc_base,0x39);IO_Write(crtc_base+1,0xa5);    <span class="comment">//Register lock 2</span>
+<a name="l01687"></a>01687                 IO_Write(crtc_base,0x38);IO_Write(crtc_base+1u,0x48);   <span class="comment">//Register lock 1</span>
+<a name="l01688"></a>01688                 IO_Write(crtc_base,0x39);IO_Write(crtc_base+1u,0xa5);   <span class="comment">//Register lock 2</span>
 <a name="l01689"></a>01689         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (svga.set_video_mode) {
 <a name="l01690"></a>01690                 <a class="code" href="structVGA__ModeExtraData.html">VGA_ModeExtraData</a> modeData;
 <a name="l01691"></a>01691                 modeData.ver_overflow = ver_overflow;
@@ -1850,29 +1850,29 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01755"></a>01755         }
 <a name="l01756"></a>01756 
 <a name="l01757"></a>01757         <span class="keywordflow">if</span> (!vmodeBlock)
-<a name="l01758"></a>01758                 <span class="keywordflow">return</span> ~0;
+<a name="l01758"></a>01758                 <span class="keywordflow">return</span> ~0ul;
 <a name="l01759"></a>01759 
 <a name="l01760"></a>01760         <span class="keywordflow">switch</span>(vmodeBlock-&gt;type) {
 <a name="l01761"></a>01761         <span class="keywordflow">case</span> M_LIN4:
-<a name="l01762"></a>01762                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_4bpp) <span class="keywordflow">return</span> ~0;
+<a name="l01762"></a>01762                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_4bpp) <span class="keywordflow">return</span> ~0ul;
 <a name="l01763"></a>01763                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight/2;
 <a name="l01764"></a>01764         <span class="keywordflow">case</span> M_LIN8:
-<a name="l01765"></a>01765                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_8bpp) <span class="keywordflow">return</span> ~0;
+<a name="l01765"></a>01765                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_8bpp) <span class="keywordflow">return</span> ~0ul;
 <a name="l01766"></a>01766                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight;
 <a name="l01767"></a>01767         <span class="keywordflow">case</span> M_LIN15:
-<a name="l01768"></a>01768                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_15bpp) <span class="keywordflow">return</span> ~0;
+<a name="l01768"></a>01768                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_15bpp) <span class="keywordflow">return</span> ~0ul;
 <a name="l01769"></a>01769                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight*2;
 <a name="l01770"></a>01770         <span class="keywordflow">case</span> M_LIN16:
-<a name="l01771"></a>01771                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_16bpp) <span class="keywordflow">return</span> ~0;
+<a name="l01771"></a>01771                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_16bpp) <span class="keywordflow">return</span> ~0ul;
 <a name="l01772"></a>01772                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight*2;
 <a name="l01773"></a>01773         <span class="keywordflow">case</span> M_LIN24:
-<a name="l01774"></a>01774                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_24bpp) <span class="keywordflow">return</span> ~0;
+<a name="l01774"></a>01774                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_24bpp) <span class="keywordflow">return</span> ~0ul;
 <a name="l01775"></a>01775                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight*3;
 <a name="l01776"></a>01776         <span class="keywordflow">case</span> M_LIN32:
-<a name="l01777"></a>01777                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_32bpp) <span class="keywordflow">return</span> ~0;
+<a name="l01777"></a>01777                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_32bpp) <span class="keywordflow">return</span> ~0ul;
 <a name="l01778"></a>01778                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight*4;
 <a name="l01779"></a>01779         <span class="keywordflow">case</span> M_TEXT:
-<a name="l01780"></a>01780                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_tty) <span class="keywordflow">return</span> ~0;
+<a name="l01780"></a>01780                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_tty) <span class="keywordflow">return</span> ~0ul;
 <a name="l01781"></a>01781                 <span class="keywordflow">return</span> vmodeBlock-&gt;twidth*vmodeBlock-&gt;theight*2;
 <a name="l01782"></a>01782         <span class="keywordflow">default</span>:
 <a name="l01783"></a>01783                 <span class="keywordflow">break</span>;
@@ -1884,7 +1884,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

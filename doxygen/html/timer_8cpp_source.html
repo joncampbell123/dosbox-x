@@ -593,7 +593,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00497"></a>00497         {
 <a name="l00498"></a>00498                 <a class="code" href="classSection__prop.html">Section_prop</a> *pcsec = <span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;speaker&quot;</span>));
 <a name="l00499"></a>00499                 <span class="keywordtype">int</span> freq = pcsec-&gt;Get_int(<span class="stringliteral">&quot;initial frequency&quot;</span>); <span class="comment">/* original code: 1320 */</span>
-<a name="l00500"></a>00500                 <span class="keywordtype">int</span> div;
+<a name="l00500"></a>00500                 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> div;
 <a name="l00501"></a>00501 
 <a name="l00502"></a>00502         <span class="comment">/* IBM PC defaults to 903Hz.</span>
 <a name="l00503"></a>00503 <span class="comment">         * NEC PC-98 defaults to 2KHz */</span>
@@ -604,7 +604,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00508"></a>00508                         div = 1;
 <a name="l00509"></a>00509                 }
 <a name="l00510"></a>00510                 <span class="keywordflow">else</span> {
-<a name="l00511"></a>00511                         div = PIT_TICK_RATE / freq;
+<a name="l00511"></a>00511                         div = (<span class="keywordtype">unsigned</span> int)PIT_TICK_RATE / (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)freq;
 <a name="l00512"></a>00512                         <span class="keywordflow">if</span> (div &gt; 65535) div = 65535;
 <a name="l00513"></a>00513                 }
 <a name="l00514"></a>00514 
@@ -826,7 +826,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

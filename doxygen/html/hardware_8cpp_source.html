@@ -237,8 +237,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00141"></a>00141 
 <a name="l00142"></a>00142                 <span class="keywordflow">if</span> (avcodec_encode_audio2(ffmpeg_aud_ctx,&amp;pkt,ffmpeg_aud_frame,&amp;gotit) == 0) {
 <a name="l00143"></a>00143                         <span class="keywordflow">if</span> (gotit) {
-<a name="l00144"></a>00144                                 pkt.pts = ffmpeg_audio_sample_counter;
-<a name="l00145"></a>00145                                 pkt.dts = ffmpeg_audio_sample_counter;
+<a name="l00144"></a>00144                                 pkt.pts = (int64_t)ffmpeg_audio_sample_counter;
+<a name="l00145"></a>00145                                 pkt.dts = (int64_t)ffmpeg_audio_sample_counter;
 <a name="l00146"></a>00146                                 pkt.stream_index = ffmpeg_aud_stream-&gt;index;
 <a name="l00147"></a>00147                                 av_packet_rescale_ts(&amp;pkt,ffmpeg_aud_ctx-&gt;time_base,ffmpeg_aud_stream-&gt;time_base);
 <a name="l00148"></a>00148 
@@ -255,7 +255,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00159"></a>00159         }
 <a name="l00160"></a>00160         av_packet_unref(&amp;pkt);
 <a name="l00161"></a>00161 
-<a name="l00162"></a>00162         ffmpeg_audio_sample_counter += ffmpeg_aud_frame-&gt;nb_samples;
+<a name="l00162"></a>00162         ffmpeg_audio_sample_counter += (Bit64u)ffmpeg_aud_frame-&gt;nb_samples;
 <a name="l00163"></a>00163 }
 <a name="l00164"></a>00164 
 <a name="l00165"></a>00165 <span class="keywordtype">void</span> ffmpeg_take_audio(Bit16s *raw,<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> samples) {
@@ -268,9 +268,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00172"></a>00172 
 <a name="l00173"></a>00173         <span class="keywordflow">if</span> (ffmpeg_aud_frame-&gt;format == AV_SAMPLE_FMT_FLTP) {
 <a name="l00174"></a>00174                 <span class="keywordflow">while</span> (samples &gt; 0) {
-<a name="l00175"></a>00175                         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> op = ffmpeg_aud_frame-&gt;nb_samples - ffmpeg_aud_write;
+<a name="l00175"></a>00175                         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> op = (<span class="keywordtype">unsigned</span> int)ffmpeg_aud_frame-&gt;nb_samples - ffmpeg_aud_write;
 <a name="l00176"></a>00176 
-<a name="l00177"></a>00177                         <span class="keywordflow">if</span> (op &gt; samples) op = samples;
+<a name="l00177"></a>00177                         if (op &gt; samples) op = samples;
 <a name="l00178"></a>00178 
 <a name="l00179"></a>00179                         <span class="keywordflow">while</span> (op &gt; 0) {
 <a name="l00180"></a>00180                                 <span class="comment">/* fixed stereo 16-bit -&gt; two channel planar float */</span>
@@ -290,9 +290,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00194"></a>00194         }
 <a name="l00195"></a>00195         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (ffmpeg_aud_frame-&gt;format == AV_SAMPLE_FMT_S16) {
 <a name="l00196"></a>00196                 <span class="keywordflow">while</span> (samples &gt; 0) {
-<a name="l00197"></a>00197                         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> op = ffmpeg_aud_frame-&gt;nb_samples - ffmpeg_aud_write;
+<a name="l00197"></a>00197                         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> op = (<span class="keywordtype">unsigned</span> int)ffmpeg_aud_frame-&gt;nb_samples - ffmpeg_aud_write;
 <a name="l00198"></a>00198 
-<a name="l00199"></a>00199                         <span class="keywordflow">if</span> (op &gt; samples) op = samples;
+<a name="l00199"></a>00199                         if (op &gt; samples) op = samples;
 <a name="l00200"></a>00200 
 <a name="l00201"></a>00201                         <span class="keywordflow">while</span> (op &gt; 0) {
 <a name="l00202"></a>00202                                 <span class="comment">/* 16-bit stereo -&gt; 16-bit stereo conversion */</span>
@@ -333,19 +333,19 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00237"></a>00237                                                         Bit64u tm;
 <a name="l00238"></a>00238 
 <a name="l00239"></a>00239                                                         again = <span class="keyword">true</span>;
-<a name="l00240"></a>00240                                                         tm = pkt.pts;
+<a name="l00240"></a>00240                                                         tm = (uint64_t)pkt.pts;
 <a name="l00241"></a>00241                                                         pkt.stream_index = ffmpeg_vid_stream-&gt;index;
 <a name="l00242"></a>00242                                                         av_packet_rescale_ts(&amp;pkt,ffmpeg_vid_ctx-&gt;time_base,ffmpeg_vid_stream-&gt;time_base);
-<a name="l00243"></a>00243                                                         pkt.pts += ffmpeg_video_frame_time_offset;
-<a name="l00244"></a>00244                                                         pkt.dts += ffmpeg_video_frame_time_offset;
+<a name="l00243"></a>00243                                                         pkt.pts += (int64_t)ffmpeg_video_frame_time_offset;
+<a name="l00244"></a>00244                                                         pkt.dts += (int64_t)ffmpeg_video_frame_time_offset;
 <a name="l00245"></a>00245 
 <a name="l00246"></a>00246                                                         <span class="keywordflow">if</span> (av_interleaved_write_frame(ffmpeg_fmt_ctx,&amp;pkt) &lt; 0)
 <a name="l00247"></a>00247                                                                 LOG_MSG(<span class="stringliteral">&quot;WARNING: av_interleaved_write_frame failed&quot;</span>);
 <a name="l00248"></a>00248 
-<a name="l00249"></a>00249                                                         pkt.pts = tm + 1;
-<a name="l00250"></a>00250                                                         pkt.dts = tm + 1;
+<a name="l00249"></a>00249                                                         pkt.pts = (int64_t)tm + (int64_t)1;
+<a name="l00250"></a>00250                                                         pkt.dts = (int64_t)tm + (int64_t)1;
 <a name="l00251"></a>00251                                                         av_packet_rescale_ts(&amp;pkt,ffmpeg_vid_ctx-&gt;time_base,ffmpeg_vid_stream-&gt;time_base);
-<a name="l00252"></a>00252                                                         ffmpeg_video_frame_last_time = pkt.pts;
+<a name="l00252"></a>00252                                                         ffmpeg_video_frame_last_time = (uint64_t)pkt.pts;
 <a name="l00253"></a>00253                                                 }
 <a name="l00254"></a>00254                                         }
 <a name="l00255"></a>00255                                 }
@@ -363,7 +363,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00267"></a>00267                         AVPacket pkt;
 <a name="l00268"></a>00268 
 <a name="l00269"></a>00269                         <span class="keywordflow">if</span> (ffmpeg_aud_write != 0)
-<a name="l00270"></a>00270                                 ffmpeg_aud_frame-&gt;nb_samples = ffmpeg_aud_write;
+<a name="l00270"></a>00270                                 ffmpeg_aud_frame-&gt;nb_samples = (int)ffmpeg_aud_write;
 <a name="l00271"></a>00271 
 <a name="l00272"></a>00272                         ffmpeg_audio_frame_send();
 <a name="l00273"></a>00273                         ffmpeg_aud_write = 0;
@@ -508,7 +508,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00412"></a>00412         ffmpeg_vid_ctx-&gt;bit_rate = 25000000; <span class="comment">// TODO: make configuration option!</span>
 <a name="l00413"></a>00413         ffmpeg_vid_ctx-&gt;keyint_min = 15; <span class="comment">// TODO: make configuration option!</span>
 <a name="l00414"></a>00414         ffmpeg_vid_ctx-&gt;time_base.num = 1000000;
-<a name="l00415"></a>00415         ffmpeg_vid_ctx-&gt;time_base.den = (uint32_t)(1000000 * fps);
+<a name="l00415"></a>00415         ffmpeg_vid_ctx-&gt;time_base.den = (int)(1000000 * fps);
 <a name="l00416"></a>00416         ffmpeg_vid_ctx-&gt;width = capture.video.width;
 <a name="l00417"></a>00417         ffmpeg_vid_ctx-&gt;height = capture.video.height;
 <a name="l00418"></a>00418         ffmpeg_vid_ctx-&gt;gop_size = 15; <span class="comment">// TODO: make config option</span>
@@ -609,7 +609,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00513"></a>00513                         <span class="keywordflow">continue</span>;
 <a name="l00514"></a>00514                 *test=0;
 <a name="l00515"></a>00515                 <span class="keywordflow">if</span> (strncasecmp(tempname,file_start,strlen(file_start))!=0) <span class="keywordflow">continue</span>;
-<a name="l00516"></a>00516                 Bitu num=atoi(&amp;tempname[strlen(file_start)]);
+<a name="l00516"></a>00516                 Bitu num=(Bitu)atoi(&amp;tempname[strlen(file_start)]);
 <a name="l00517"></a>00517                 <span class="keywordflow">if</span> (num&gt;=last) last=num+1;
 <a name="l00518"></a>00518         }
 <a name="l00519"></a>00519         close_directory( dir );
@@ -650,7 +650,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00554"></a>00554                         <span class="keywordflow">continue</span>;
 <a name="l00555"></a>00555                 *test=0;
 <a name="l00556"></a>00556                 <span class="keywordflow">if</span> (strncasecmp(tempname,file_start,strlen(file_start))!=0) <span class="keywordflow">continue</span>;
-<a name="l00557"></a>00557                 Bitu num=atoi(&amp;tempname[strlen(file_start)]);
+<a name="l00557"></a>00557                 Bitu num=(Bitu)atoi(&amp;tempname[strlen(file_start)]);
 <a name="l00558"></a>00558                 <span class="keywordflow">if</span> (num&gt;=last) last=num+1;
 <a name="l00559"></a>00559         }
 <a name="l00560"></a>00560         close_directory( dir );
@@ -684,7 +684,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00588"></a>00588                 <span class="keywordflow">return</span>;
 <a name="l00589"></a>00589         <span class="keywordflow">if</span> (CaptureState &amp; CAPTURE_VIDEO) {
 <a name="l00590"></a>00590                 <span class="comment">/* Close the video */</span>
-<a name="l00591"></a>00591                 CaptureState &amp;= ~CAPTURE_VIDEO;
+<a name="l00591"></a>00591                 CaptureState &amp;= ~((<span class="keywordtype">unsigned</span> int)CAPTURE_VIDEO);
 <a name="l00592"></a>00592                 LOG_MSG(<span class="stringliteral">&quot;Stopped capturing video.&quot;</span>);    
 <a name="l00593"></a>00593 
 <a name="l00594"></a>00594                 <span class="keywordflow">if</span> (capture.video.writer != NULL) {
@@ -748,7 +748,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00652"></a>00652                 png_infop info_ptr;
 <a name="l00653"></a>00653                 png_color palette[256];
 <a name="l00654"></a>00654 
-<a name="l00655"></a>00655                 CaptureState &amp;= ~CAPTURE_IMAGE;
+<a name="l00655"></a>00655                 CaptureState &amp;= ~((<span class="keywordtype">unsigned</span> int)CAPTURE_IMAGE);
 <a name="l00656"></a>00656                 <span class="comment">/* Open the actual file */</span>
 <a name="l00657"></a>00657                 FILE * fp=OpenCaptureFile(<span class="stringliteral">&quot;Screenshot&quot;</span>,<span class="stringliteral">&quot;.png&quot;</span>);
 <a name="l00658"></a>00658                 <span class="keywordflow">if</span> (!fp) <span class="keywordflow">goto</span> skip_shot;
@@ -912,7 +912,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00816"></a>00816 <span class="preprocessor">#endif</span>
 <a name="l00817"></a>00817 <span class="preprocessor"></span>                }
 <a name="l00818"></a>00818 
-<a name="l00819"></a>00819                 CaptureState &amp;= ~CAPTURE_VIDEO;
+<a name="l00819"></a>00819                 CaptureState &amp;= ~((<span class="keywordtype">unsigned</span> int)CAPTURE_VIDEO);
 <a name="l00820"></a>00820 
 <a name="l00821"></a>00821                 <span class="keywordflow">switch</span> (bpp) {
 <a name="l00822"></a>00822                 <span class="keywordflow">case</span> 8:format = ZMBV_FORMAT_8BPP;<span class="keywordflow">break</span>;
@@ -944,7 +944,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00848"></a>00848                         <span class="keywordflow">if</span> (!capture.video.codec-&gt;SetupCompress( width, height)) 
 <a name="l00849"></a>00849                                 <span class="keywordflow">goto</span> skip_video;
 <a name="l00850"></a>00850                         capture.video.bufSize = capture.video.codec-&gt;NeededSize(width, height, format);
-<a name="l00851"></a>00851                         capture.video.buf = malloc( capture.video.bufSize );
+<a name="l00851"></a>00851                         capture.video.buf = malloc( (<span class="keywordtype">size_t</span>)capture.video.bufSize );
 <a name="l00852"></a>00852                         <span class="keywordflow">if</span> (!capture.video.buf)
 <a name="l00853"></a>00853                                 <span class="keywordflow">goto</span> skip_video;
 <a name="l00854"></a>00854 
@@ -995,8 +995,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00899"></a>00899                         __w_le_u32(&amp;vsheader-&gt;dwStart,0);
 <a name="l00900"></a>00900                         __w_le_u32(&amp;vsheader-&gt;dwLength,0);                      <span class="comment">/* AVI writer updates this automatically */</span>
 <a name="l00901"></a>00901                         __w_le_u32(&amp;vsheader-&gt;dwSuggestedBufferSize,0);
-<a name="l00902"></a>00902                         __w_le_u32(&amp;vsheader-&gt;dwQuality,~0);
-<a name="l00903"></a>00903                         __w_le_u32(&amp;vsheader-&gt;dwSampleSize,0);
+<a name="l00902"></a>00902                         __w_le_u32(&amp;vsheader-&gt;dwQuality,~0u);
+<a name="l00903"></a>00903                         __w_le_u32(&amp;vsheader-&gt;dwSampleSize,0u);
 <a name="l00904"></a>00904                         __w_le_u16(&amp;vsheader-&gt;rcFrame.left,0);
 <a name="l00905"></a>00905                         __w_le_u16(&amp;vsheader-&gt;rcFrame.top,0);
 <a name="l00906"></a>00906                         __w_le_u16(&amp;vsheader-&gt;rcFrame.right,capture.video.width);
@@ -1037,7 +1037,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00941"></a>00941                         __w_le_u32(&amp;asheader-&gt;dwStart,0);
 <a name="l00942"></a>00942                         __w_le_u32(&amp;asheader-&gt;dwLength,0);                      <span class="comment">/* AVI writer updates this automatically */</span>
 <a name="l00943"></a>00943                         __w_le_u32(&amp;asheader-&gt;dwSuggestedBufferSize,0);
-<a name="l00944"></a>00944                         __w_le_u32(&amp;asheader-&gt;dwQuality,~0);
+<a name="l00944"></a>00944                         __w_le_u32(&amp;asheader-&gt;dwQuality,~0u);
 <a name="l00945"></a>00945                         __w_le_u32(&amp;asheader-&gt;dwSampleSize,2*2);
 <a name="l00946"></a>00946                         __w_le_u16(&amp;asheader-&gt;rcFrame.left,0);
 <a name="l00947"></a>00947                         __w_le_u16(&amp;asheader-&gt;rcFrame.top,0);
@@ -1116,7 +1116,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01020"></a>01020                         ffmpeg_vid_ctx-&gt;bit_rate = 25000000; <span class="comment">// TODO: make configuration option!</span>
 <a name="l01021"></a>01021                         ffmpeg_vid_ctx-&gt;keyint_min = 15; <span class="comment">// TODO: make configuration option!</span>
 <a name="l01022"></a>01022                         ffmpeg_vid_ctx-&gt;time_base.num = 1000000;
-<a name="l01023"></a>01023                         ffmpeg_vid_ctx-&gt;time_base.den = (uint32_t)(1000000 * fps);
+<a name="l01023"></a>01023                         ffmpeg_vid_ctx-&gt;time_base.den = (int)(1000000 * fps);
 <a name="l01024"></a>01024                         ffmpeg_vid_ctx-&gt;width = capture.video.width;
 <a name="l01025"></a>01025                         ffmpeg_vid_ctx-&gt;height = capture.video.height;
 <a name="l01026"></a>01026                         ffmpeg_vid_ctx-&gt;gop_size = 15; <span class="comment">// TODO: make config option</span>
@@ -1149,7 +1149,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01053"></a>01053                         }
 <a name="l01054"></a>01054 
 <a name="l01055"></a>01055                         ffmpeg_vid_stream-&gt;time_base.num = 1000000;
-<a name="l01056"></a>01056                         ffmpeg_vid_stream-&gt;time_base.den = (uint32_t)(1000000 * fps);
+<a name="l01056"></a>01056                         ffmpeg_vid_stream-&gt;time_base.den = (int)(1000000 * fps);
 <a name="l01057"></a>01057 
 <a name="l01058"></a>01058                         ffmpeg_aud_stream = avformat_new_stream(ffmpeg_fmt_ctx,ffmpeg_aud_codec);
 <a name="l01059"></a>01059                         <span class="keywordflow">if</span> (ffmpeg_aud_stream == NULL) {
@@ -1297,11 +1297,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01201"></a>01201                         <span class="keywordflow">if</span> (written &lt; 0)
 <a name="l01202"></a>01202                                 <span class="keywordflow">goto</span> skip_video;
 <a name="l01203"></a>01203 
-<a name="l01204"></a>01204                         CAPTURE_AddAviChunk( <span class="stringliteral">&quot;00dc&quot;</span>, written, capture.video.buf, codecFlags &amp; 1 ? 0x10 : 0x0, 0);
+<a name="l01204"></a>01204                         CAPTURE_AddAviChunk( <span class="stringliteral">&quot;00dc&quot;</span>, (Bit32u)written, capture.video.buf, (Bit32u)(codecFlags &amp; 1 ? 0x10 : 0x0), 0u);
 <a name="l01205"></a>01205                         capture.video.frames++;
 <a name="l01206"></a>01206 
 <a name="l01207"></a>01207                         <span class="keywordflow">if</span> ( capture.video.audioused ) {
-<a name="l01208"></a>01208                                 CAPTURE_AddAviChunk( <span class="stringliteral">&quot;01wb&quot;</span>, capture.video.audioused * 4, capture.video.audiobuf, <span class="comment">/*keyframe*/</span>0x10, 1);
+<a name="l01208"></a>01208                                 CAPTURE_AddAviChunk( <span class="stringliteral">&quot;01wb&quot;</span>, (Bit32u)(capture.video.audioused * 4u), capture.video.audiobuf, <span class="comment">/*keyframe*/</span>0x10u, 1u);
 <a name="l01209"></a>01209                                 capture.video.audiowritten = capture.video.audioused*4;
 <a name="l01210"></a>01210                                 capture.video.audioused = 0;
 <a name="l01211"></a>01211                         }
@@ -1319,7 +1319,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01223"></a>01223                                 <span class="comment">// copy from source to vidrgb frame</span>
 <a name="l01224"></a>01224                                 <span class="keywordflow">if</span> (bpp == 8 &amp;&amp; ffmpeg_vidrgb_frame-&gt;format != AV_PIX_FMT_PAL8) {
 <a name="l01225"></a>01225                                         <span class="keywordflow">for</span> (i=0;i&lt;height;i++) {
-<a name="l01226"></a>01226                                                 dstline = ffmpeg_vidrgb_frame-&gt;data[0] + (i * ffmpeg_vidrgb_frame-&gt;linesize[0]);
+<a name="l01226"></a>01226                                                 dstline = ffmpeg_vidrgb_frame-&gt;data[0] + ((<span class="keywordtype">unsigned</span> int)i * (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ffmpeg_vidrgb_frame-&gt;linesize[0]);
 <a name="l01227"></a>01227 
 <a name="l01228"></a>01228                                                 <span class="keywordflow">if</span> (flags &amp; CAPTURE_FLAG_DBLH)
 <a name="l01229"></a>01229                                                         srcline=(data+(i &gt;&gt; 1)*pitch);
@@ -1339,7 +1339,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01243"></a>01243                                 }
 <a name="l01244"></a>01244                                 <span class="keywordflow">else</span> {
 <a name="l01245"></a>01245                                         <span class="keywordflow">for</span> (i=0;i&lt;height;i++) {
-<a name="l01246"></a>01246                                                 dstline = ffmpeg_vidrgb_frame-&gt;data[0] + (i * ffmpeg_vidrgb_frame-&gt;linesize[0]);
+<a name="l01246"></a>01246                                                 dstline = ffmpeg_vidrgb_frame-&gt;data[0] + ((<span class="keywordtype">unsigned</span> int)i * (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ffmpeg_vidrgb_frame-&gt;linesize[0]);
 <a name="l01247"></a>01247 
 <a name="l01248"></a>01248                                                 <span class="keywordflow">if</span> (flags &amp; CAPTURE_FLAG_DBLW) {
 <a name="l01249"></a>01249                                                         <span class="keywordflow">if</span> (flags &amp; CAPTURE_FLAG_DBLH)
@@ -1389,27 +1389,27 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01293"></a>01293 
 <a name="l01294"></a>01294                                 <span class="comment">// encode it</span>
 <a name="l01295"></a>01295                                 <span class="keywordtype">int</span> gotit=0;
-<a name="l01296"></a>01296                                 pkt.pts = capture.video.frames;
-<a name="l01297"></a>01297                                 pkt.dts = capture.video.frames;
-<a name="l01298"></a>01298                                 ffmpeg_vid_frame-&gt;pts = capture.video.frames; <span class="comment">// or else libx264 complains about non-monotonic timestamps</span>
+<a name="l01296"></a>01296                                 pkt.pts = (int64_t)capture.video.frames;
+<a name="l01297"></a>01297                                 pkt.dts = (int64_t)capture.video.frames;
+<a name="l01298"></a>01298                                 ffmpeg_vid_frame-&gt;pts = (int64_t)capture.video.frames; <span class="comment">// or else libx264 complains about non-monotonic timestamps</span>
 <a name="l01299"></a>01299                                 ffmpeg_vid_frame-&gt;key_frame = ((capture.video.frames % 15) == 0)?1:0;
 <a name="l01300"></a>01300                                 <span class="keywordflow">if</span> (avcodec_encode_video2(ffmpeg_vid_ctx,&amp;pkt,ffmpeg_vid_frame,&amp;gotit) == 0) {
 <a name="l01301"></a>01301                                         <span class="keywordflow">if</span> (gotit) {
 <a name="l01302"></a>01302                                                 Bit64u tm;
 <a name="l01303"></a>01303 
-<a name="l01304"></a>01304                                                 tm = pkt.pts;
+<a name="l01304"></a>01304                                                 tm = (Bit64u)pkt.pts;
 <a name="l01305"></a>01305                                                 pkt.stream_index = ffmpeg_vid_stream-&gt;index;
 <a name="l01306"></a>01306                                                 av_packet_rescale_ts(&amp;pkt,ffmpeg_vid_ctx-&gt;time_base,ffmpeg_vid_stream-&gt;time_base);
-<a name="l01307"></a>01307                                                 pkt.pts += ffmpeg_video_frame_time_offset;
-<a name="l01308"></a>01308                                                 pkt.dts += ffmpeg_video_frame_time_offset;
+<a name="l01307"></a>01307                                                 pkt.pts += (int64_t)ffmpeg_video_frame_time_offset;
+<a name="l01308"></a>01308                                                 pkt.dts += (int64_t)ffmpeg_video_frame_time_offset;
 <a name="l01309"></a>01309 
 <a name="l01310"></a>01310                                                 <span class="keywordflow">if</span> (av_interleaved_write_frame(ffmpeg_fmt_ctx,&amp;pkt) &lt; 0)
 <a name="l01311"></a>01311                                                         LOG_MSG(<span class="stringliteral">&quot;WARNING: av_interleaved_write_frame failed&quot;</span>);
 <a name="l01312"></a>01312 
-<a name="l01313"></a>01313                                                 pkt.pts = tm + 1;
-<a name="l01314"></a>01314                                                 pkt.dts = tm + 1;
+<a name="l01313"></a>01313                                                 pkt.pts = (int64_t)tm + (int64_t)1;
+<a name="l01314"></a>01314                                                 pkt.dts = (int64_t)tm + (int64_t)1;
 <a name="l01315"></a>01315                                                 av_packet_rescale_ts(&amp;pkt,ffmpeg_vid_ctx-&gt;time_base,ffmpeg_vid_stream-&gt;time_base);
-<a name="l01316"></a>01316                                                 ffmpeg_video_frame_last_time = pkt.pts;
+<a name="l01316"></a>01316                                                 ffmpeg_video_frame_last_time = (uint64_t)pkt.pts;
 <a name="l01317"></a>01317                                         }
 <a name="l01318"></a>01318                                         <span class="keywordflow">else</span> {
 <a name="l01319"></a>01319                                                 LOG_MSG(<span class="stringliteral">&quot;DEBUG: avcodec_encode_video2 delayed frame&quot;</span>);
@@ -1538,7 +1538,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01442"></a>01442                     __w_le_u32(&amp;asheader-&gt;dwStart,0);
 <a name="l01443"></a>01443                     __w_le_u32(&amp;asheader-&gt;dwLength,0);                  <span class="comment">/* AVI writer updates this automatically */</span>
 <a name="l01444"></a>01444                     __w_le_u32(&amp;asheader-&gt;dwSuggestedBufferSize,0);
-<a name="l01445"></a>01445                     __w_le_u32(&amp;asheader-&gt;dwQuality,~0);
+<a name="l01445"></a>01445                     __w_le_u32(&amp;asheader-&gt;dwQuality,~0u);
 <a name="l01446"></a>01446                     __w_le_u32(&amp;asheader-&gt;dwSampleSize,2*2);
 <a name="l01447"></a>01447                     __w_le_u16(&amp;asheader-&gt;rcFrame.left,0);
 <a name="l01448"></a>01448                     __w_le_u16(&amp;asheader-&gt;rcFrame.top,0);
@@ -1613,13 +1613,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01517"></a>01517                 <span class="keywordflow">if</span> (capture.wave.writer == NULL) {
 <a name="l01518"></a>01518                         std::string path = GetCaptureFilePath(<span class="stringliteral">&quot;Wave Output&quot;</span>,<span class="stringliteral">&quot;.wav&quot;</span>);
 <a name="l01519"></a>01519                         <span class="keywordflow">if</span> (path == <span class="stringliteral">&quot;&quot;</span>) {
-<a name="l01520"></a>01520                                 CaptureState &amp;= ~CAPTURE_WAVE;
+<a name="l01520"></a>01520                                 CaptureState &amp;= ~((<span class="keywordtype">unsigned</span> int)CAPTURE_WAVE);
 <a name="l01521"></a>01521                                 <span class="keywordflow">return</span>;
 <a name="l01522"></a>01522                         }
 <a name="l01523"></a>01523 
 <a name="l01524"></a>01524                         capture.wave.writer = riff_wav_writer_create();
 <a name="l01525"></a>01525                         <span class="keywordflow">if</span> (capture.wave.writer == NULL) {
-<a name="l01526"></a>01526                                 CaptureState &amp;= ~CAPTURE_WAVE;
+<a name="l01526"></a>01526                                 CaptureState &amp;= ~((<span class="keywordtype">unsigned</span> int)CAPTURE_WAVE);
 <a name="l01527"></a>01527                                 capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
 <a name="l01528"></a>01528                                 <span class="keywordflow">return</span>;
 <a name="l01529"></a>01529                         }
@@ -1635,14 +1635,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01539"></a>01539                         __w_le_u32(&amp;fmt.nAvgBytesPerSec,freq*2*2);
 <a name="l01540"></a>01540 
 <a name="l01541"></a>01541                         <span class="keywordflow">if</span> (!riff_wav_writer_open_file(capture.wave.writer,path.c_str())) {
-<a name="l01542"></a>01542                                 CaptureState &amp;= ~CAPTURE_WAVE;
+<a name="l01542"></a>01542                                 CaptureState &amp;= ~((<span class="keywordtype">unsigned</span> int)CAPTURE_WAVE);
 <a name="l01543"></a>01543                                 capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
 <a name="l01544"></a>01544                                 <span class="keywordflow">return</span>;
 <a name="l01545"></a>01545                         }
 <a name="l01546"></a>01546                         <span class="keywordflow">if</span> (!riff_wav_writer_set_format(capture.wave.writer,&amp;fmt) ||
 <a name="l01547"></a>01547                                 !riff_wav_writer_begin_header(capture.wave.writer) ||
 <a name="l01548"></a>01548                                 !riff_wav_writer_begin_data(capture.wave.writer)) {
-<a name="l01549"></a>01549                                 CaptureState &amp;= ~CAPTURE_WAVE;
+<a name="l01549"></a>01549                                 CaptureState &amp;= ~((<span class="keywordtype">unsigned</span> int)CAPTURE_WAVE);
 <a name="l01550"></a>01550                                 capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
 <a name="l01551"></a>01551                                 <span class="keywordflow">return</span>;
 <a name="l01552"></a>01552                         }
@@ -1683,7 +1683,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01587"></a>01587             avi_writer_finish(capture.multitrack_wave.writer);
 <a name="l01588"></a>01588             avi_writer_close_file(capture.multitrack_wave.writer);
 <a name="l01589"></a>01589             capture.multitrack_wave.writer = avi_writer_destroy(capture.multitrack_wave.writer);
-<a name="l01590"></a>01590             CaptureState &amp;= ~CAPTURE_MULTITRACK_WAVE;
+<a name="l01590"></a>01590             CaptureState &amp;= ~((<span class="keywordtype">unsigned</span> int)CAPTURE_MULTITRACK_WAVE);
 <a name="l01591"></a>01591         }
 <a name="l01592"></a>01592     }
 <a name="l01593"></a>01593     <span class="keywordflow">else</span> {
@@ -1706,7 +1706,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01610"></a>01610             capture.wave.length+=capture.wave.used*4;
 <a name="l01611"></a>01611             riff_wav_writer_end_data(capture.wave.writer);
 <a name="l01612"></a>01612             capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
-<a name="l01613"></a>01613             CaptureState &amp;= ~CAPTURE_WAVE;
+<a name="l01613"></a>01613             CaptureState &amp;= ~((<span class="keywordtype">unsigned</span> int)CAPTURE_WAVE);
 <a name="l01614"></a>01614         }
 <a name="l01615"></a>01615     }
 <a name="l01616"></a>01616     <span class="keywordflow">else</span> {
@@ -1790,7 +1790,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01694"></a>01694                 fwrite(&amp;size,1,4,capture.midi.handle);
 <a name="l01695"></a>01695                 fclose(capture.midi.handle);
 <a name="l01696"></a>01696                 capture.midi.handle=0;
-<a name="l01697"></a>01697                 CaptureState &amp;= ~CAPTURE_MIDI;
+<a name="l01697"></a>01697                 CaptureState &amp;= ~((<span class="keywordtype">unsigned</span> int)CAPTURE_MIDI);
 <a name="l01698"></a>01698                 <span class="keywordflow">return</span>;
 <a name="l01699"></a>01699         } 
 <a name="l01700"></a>01700         CaptureState ^= CAPTURE_MIDI;
@@ -1903,7 +1903,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

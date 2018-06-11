@@ -244,54 +244,54 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00148"></a>00148 <span class="comment"> *************************************/</span>
 <a name="l00149"></a>00149 
 <a name="l00150"></a>00150 <span class="preprocessor">#define EXTRACT_565_TO_888(val, a, b, c)                                        \</span>
-<a name="l00151"></a>00151 <span class="preprocessor">        (a) = (((val) &gt;&gt; 8) &amp; 0xf8) | (((val) &gt;&gt; 13) &amp; 0x07);   \</span>
-<a name="l00152"></a>00152 <span class="preprocessor">        (b) = (((val) &gt;&gt; 3) &amp; 0xfc) | (((val) &gt;&gt; 9) &amp; 0x03);    \</span>
-<a name="l00153"></a>00153 <span class="preprocessor">        (c) = (((val) &lt;&lt; 3) &amp; 0xf8) | (((val) &gt;&gt; 2) &amp; 0x07);    \</span>
+<a name="l00151"></a>00151 <span class="preprocessor">        (a) = (int)((((unsigned int)(val) &gt;&gt; 8u) &amp; 0xf8u) | (((unsigned int)(val) &gt;&gt; 13u) &amp; 0x07u));    \</span>
+<a name="l00152"></a>00152 <span class="preprocessor">        (b) = (int)((((unsigned int)(val) &gt;&gt; 3u) &amp; 0xfcu) | (((unsigned int)(val) &gt;&gt;  9u) &amp; 0x03u));    \</span>
+<a name="l00153"></a>00153 <span class="preprocessor">        (c) = (int)((((unsigned int)(val) &lt;&lt; 3u) &amp; 0xf8u) | (((unsigned int)(val) &gt;&gt;  2u) &amp; 0x07u));    \</span>
 <a name="l00154"></a>00154 <span class="preprocessor"></span>
 <a name="l00155"></a>00155 <span class="preprocessor"></span><span class="preprocessor">#define EXTRACT_x555_TO_888(val, a, b, c)                                       \</span>
-<a name="l00156"></a>00156 <span class="preprocessor">        (a) = (((val) &gt;&gt; 7) &amp; 0xf8) | (((val) &gt;&gt; 12) &amp; 0x07);   \</span>
-<a name="l00157"></a>00157 <span class="preprocessor">        (b) = (((val) &gt;&gt; 2) &amp; 0xf8) | (((val) &gt;&gt; 7) &amp; 0x07);    \</span>
-<a name="l00158"></a>00158 <span class="preprocessor">        (c) = (((val) &lt;&lt; 3) &amp; 0xf8) | (((val) &gt;&gt; 2) &amp; 0x07);    \</span>
+<a name="l00156"></a>00156 <span class="preprocessor">        (a) = (int)((((unsigned int)(val) &gt;&gt; 7u) &amp; 0xf8u) | (((unsigned int)(val) &gt;&gt; 12u) &amp; 0x07u));    \</span>
+<a name="l00157"></a>00157 <span class="preprocessor">        (b) = (int)((((unsigned int)(val) &gt;&gt; 2u) &amp; 0xf8u) | (((unsigned int)(val) &gt;&gt;  7u) &amp; 0x07u));    \</span>
+<a name="l00158"></a>00158 <span class="preprocessor">        (c) = (int)((((unsigned int)(val) &lt;&lt; 3u) &amp; 0xf8u) | (((unsigned int)(val) &gt;&gt;  2u) &amp; 0x07u));    \</span>
 <a name="l00159"></a>00159 <span class="preprocessor"></span>
 <a name="l00160"></a>00160 <span class="preprocessor"></span><span class="preprocessor">#define EXTRACT_555x_TO_888(val, a, b, c)                                       \</span>
-<a name="l00161"></a>00161 <span class="preprocessor">        (a) = (((val) &gt;&gt; 8) &amp; 0xf8) | (((val) &gt;&gt; 13) &amp; 0x07);   \</span>
-<a name="l00162"></a>00162 <span class="preprocessor">        (b) = (((val) &gt;&gt; 3) &amp; 0xf8) | (((val) &gt;&gt; 8) &amp; 0x07);    \</span>
-<a name="l00163"></a>00163 <span class="preprocessor">        (c) = (((val) &lt;&lt; 2) &amp; 0xf8) | (((val) &gt;&gt; 3) &amp; 0x07);    \</span>
+<a name="l00161"></a>00161 <span class="preprocessor">        (a) = (int)((((unsigned int)(val) &gt;&gt; 8u) &amp; 0xf8u) | (((unsigned int)(val) &gt;&gt; 13u) &amp; 0x07u));    \</span>
+<a name="l00162"></a>00162 <span class="preprocessor">        (b) = (int)((((unsigned int)(val) &gt;&gt; 3u) &amp; 0xf8u) | (((unsigned int)(val) &gt;&gt;  8u) &amp; 0x07u));    \</span>
+<a name="l00163"></a>00163 <span class="preprocessor">        (c) = (int)((((unsigned int)(val) &lt;&lt; 2u) &amp; 0xf8u) | (((unsigned int)(val) &gt;&gt;  3u) &amp; 0x07u));    \</span>
 <a name="l00164"></a>00164 <span class="preprocessor"></span>
 <a name="l00165"></a>00165 <span class="preprocessor"></span><span class="preprocessor">#define EXTRACT_1555_TO_8888(val, a, b, c, d)                           \</span>
-<a name="l00166"></a>00166 <span class="preprocessor">        (a) = ((INT16)(val) &gt;&gt; 15) &amp; 0xff;                                              \</span>
+<a name="l00166"></a>00166 <span class="preprocessor">        (a) = (int)(((unsigned int)(val) &gt;&gt; 15u) &amp; 0xffu);                                              \</span>
 <a name="l00167"></a>00167 <span class="preprocessor">        EXTRACT_x555_TO_888(val, b, c, d)                                               \</span>
 <a name="l00168"></a>00168 <span class="preprocessor"></span>
 <a name="l00169"></a>00169 <span class="preprocessor"></span><span class="preprocessor">#define EXTRACT_5551_TO_8888(val, a, b, c, d)                           \</span>
 <a name="l00170"></a>00170 <span class="preprocessor">        EXTRACT_555x_TO_888(val, a, b, c)                                               \</span>
-<a name="l00171"></a>00171 <span class="preprocessor">        (d) = ((val) &amp; 0x0001) ? 0xff : 0x00;                                   \</span>
+<a name="l00171"></a>00171 <span class="preprocessor">        (d) = (int)(((unsigned int)(val) &amp; 0x0001u) ? 0xffu : 0x00u);                                   \</span>
 <a name="l00172"></a>00172 <span class="preprocessor"></span>
 <a name="l00173"></a>00173 <span class="preprocessor"></span><span class="preprocessor">#define EXTRACT_x888_TO_888(val, a, b, c)                                       \</span>
-<a name="l00174"></a>00174 <span class="preprocessor">        (a) = ((val) &gt;&gt; 16) &amp; 0xff;                                                             \</span>
-<a name="l00175"></a>00175 <span class="preprocessor">        (b) = ((val) &gt;&gt; 8) &amp; 0xff;                                                              \</span>
-<a name="l00176"></a>00176 <span class="preprocessor">        (c) = ((val) &gt;&gt; 0) &amp; 0xff;                                                              \</span>
+<a name="l00174"></a>00174 <span class="preprocessor">        (a) = (int)(((unsigned int)(val) &gt;&gt; 16u) &amp; 0xffu);                                                              \</span>
+<a name="l00175"></a>00175 <span class="preprocessor">        (b) = (int)(((unsigned int)(val) &gt;&gt;  8u) &amp; 0xffu);                                                              \</span>
+<a name="l00176"></a>00176 <span class="preprocessor">        (c) = (int)(((unsigned int)(val) &gt;&gt;  0u) &amp; 0xffu);                                                              \</span>
 <a name="l00177"></a>00177 <span class="preprocessor"></span>
 <a name="l00178"></a>00178 <span class="preprocessor"></span><span class="preprocessor">#define EXTRACT_888x_TO_888(val, a, b, c)                                       \</span>
-<a name="l00179"></a>00179 <span class="preprocessor">        (a) = ((val) &gt;&gt; 24) &amp; 0xff;                                                             \</span>
-<a name="l00180"></a>00180 <span class="preprocessor">        (b) = ((val) &gt;&gt; 16) &amp; 0xff;                                                             \</span>
-<a name="l00181"></a>00181 <span class="preprocessor">        (c) = ((val) &gt;&gt; 8) &amp; 0xff;                                                              \</span>
+<a name="l00179"></a>00179 <span class="preprocessor">        (a) = (int)(((unsigned int)(val) &gt;&gt; 24u) &amp; 0xffu);                                                              \</span>
+<a name="l00180"></a>00180 <span class="preprocessor">        (b) = (int)(((unsigned int)(val) &gt;&gt; 16u) &amp; 0xffu);                                                              \</span>
+<a name="l00181"></a>00181 <span class="preprocessor">        (c) = (int)(((unsigned int)(val) &gt;&gt;  8u) &amp; 0xffu);                                                              \</span>
 <a name="l00182"></a>00182 <span class="preprocessor"></span>
 <a name="l00183"></a>00183 <span class="preprocessor"></span><span class="preprocessor">#define EXTRACT_8888_TO_8888(val, a, b, c, d)                           \</span>
-<a name="l00184"></a>00184 <span class="preprocessor">        (a) = ((val) &gt;&gt; 24) &amp; 0xff;                                                             \</span>
-<a name="l00185"></a>00185 <span class="preprocessor">        (b) = ((val) &gt;&gt; 16) &amp; 0xff;                                                             \</span>
-<a name="l00186"></a>00186 <span class="preprocessor">        (c) = ((val) &gt;&gt; 8) &amp; 0xff;                                                              \</span>
-<a name="l00187"></a>00187 <span class="preprocessor">        (d) = ((val) &gt;&gt; 0) &amp; 0xff;                                                              \</span>
+<a name="l00184"></a>00184 <span class="preprocessor">        (a) = (int)(((unsigned int)(val) &gt;&gt; 24u) &amp; 0xffu);                                                              \</span>
+<a name="l00185"></a>00185 <span class="preprocessor">        (b) = (int)(((unsigned int)(val) &gt;&gt; 16u) &amp; 0xffu);                                                              \</span>
+<a name="l00186"></a>00186 <span class="preprocessor">        (c) = (int)(((unsigned int)(val) &gt;&gt;  8u) &amp; 0xffu);                                                              \</span>
+<a name="l00187"></a>00187 <span class="preprocessor">        (d) = (int)(((unsigned int)(val) &gt;&gt;  0u) &amp; 0xffu);                                                              \</span>
 <a name="l00188"></a>00188 <span class="preprocessor"></span>
 <a name="l00189"></a>00189 <span class="preprocessor"></span><span class="preprocessor">#define EXTRACT_4444_TO_8888(val, a, b, c, d)                           \</span>
-<a name="l00190"></a>00190 <span class="preprocessor">        (a) = (((val) &gt;&gt; 8) &amp; 0xf0) | (((val) &gt;&gt; 12) &amp; 0x0f);   \</span>
-<a name="l00191"></a>00191 <span class="preprocessor">        (b) = (((val) &gt;&gt; 4) &amp; 0xf0) | (((val) &gt;&gt; 8) &amp; 0x0f);    \</span>
-<a name="l00192"></a>00192 <span class="preprocessor">        (c) = (((val) &gt;&gt; 0) &amp; 0xf0) | (((val) &gt;&gt; 4) &amp; 0x0f);    \</span>
-<a name="l00193"></a>00193 <span class="preprocessor">        (d) = (((val) &lt;&lt; 4) &amp; 0xf0) | (((val) &gt;&gt; 0) &amp; 0x0f);    \</span>
+<a name="l00190"></a>00190 <span class="preprocessor">        (a) = (int)((((unsigned int)(val) &gt;&gt; 8u) &amp; 0xf0u) | (((unsigned int)(val) &gt;&gt; 12u) &amp; 0x0fu));    \</span>
+<a name="l00191"></a>00191 <span class="preprocessor">        (b) = (int)((((unsigned int)(val) &gt;&gt; 4u) &amp; 0xf0u) | (((unsigned int)(val) &gt;&gt;  8u) &amp; 0x0fu));    \</span>
+<a name="l00192"></a>00192 <span class="preprocessor">        (c) = (int)((((unsigned int)(val) &gt;&gt; 0u) &amp; 0xf0u) | (((unsigned int)(val) &gt;&gt;  4u) &amp; 0x0fu));    \</span>
+<a name="l00193"></a>00193 <span class="preprocessor">        (d) = (int)((((unsigned int)(val) &lt;&lt; 4u) &amp; 0xf0u) | (((unsigned int)(val) &gt;&gt;  0u) &amp; 0x0fu));    \</span>
 <a name="l00194"></a>00194 <span class="preprocessor"></span>
 <a name="l00195"></a>00195 <span class="preprocessor"></span><span class="preprocessor">#define EXTRACT_332_TO_888(val, a, b, c)                                        \</span>
-<a name="l00196"></a>00196 <span class="preprocessor">        (a) = (((val) &gt;&gt; 0) &amp; 0xe0) | (((val) &gt;&gt; 3) &amp; 0x1c) | (((val) &gt;&gt; 6) &amp; 0x03); \</span>
-<a name="l00197"></a>00197 <span class="preprocessor">        (b) = (((val) &lt;&lt; 3) &amp; 0xe0) | (((val) &gt;&gt; 0) &amp; 0x1c) | (((val) &gt;&gt; 3) &amp; 0x03); \</span>
-<a name="l00198"></a>00198 <span class="preprocessor">        (c) = (((val) &lt;&lt; 6) &amp; 0xc0) | (((val) &lt;&lt; 4) &amp; 0x30) | (((val) &lt;&lt; 2) &amp; 0x0c) | (((val) &lt;&lt; 0) &amp; 0x03); \</span>
+<a name="l00196"></a>00196 <span class="preprocessor">        (a) = (int)((((unsigned int)(val) &gt;&gt; 0u) &amp; 0xe0u) | (((unsigned int)(val) &gt;&gt; 3u) &amp; 0x1cu) | (((unsigned int)(val) &gt;&gt; 6u) &amp; 0x03u)); \</span>
+<a name="l00197"></a>00197 <span class="preprocessor">        (b) = (int)((((unsigned int)(val) &lt;&lt; 3u) &amp; 0xe0u) | (((unsigned int)(val) &gt;&gt; 0u) &amp; 0x1cu) | (((unsigned int)(val) &gt;&gt; 3u) &amp; 0x03u)); \</span>
+<a name="l00198"></a>00198 <span class="preprocessor">        (c) = (int)((((unsigned int)(val) &lt;&lt; 6u) &amp; 0xc0u) | (((unsigned int)(val) &lt;&lt; 4u) &amp; 0x30u) | (((unsigned int)(val) &lt;&lt; 2u) &amp; 0x0cu) | (((unsigned int)(val) &lt;&lt; 0u) &amp; 0x03u)); \</span>
 <a name="l00199"></a>00199 <span class="preprocessor"></span>
 <a name="l00200"></a>00200 <span class="preprocessor"></span>
 <a name="l00201"></a>00201 
@@ -1011,19 +1011,19 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00915"></a>00915 
 <a name="l00916"></a>00916         <span class="comment">/* the exponent is the non-fractional part of the log; normally, we would subtract it from rlog */</span>
 <a name="l00917"></a>00917         <span class="comment">/* but since we want the log(1/value) = -log(value), we subtract rlog from the exponent */</span>
-<a name="l00918"></a>00918         *log2 = ((exp - (31 - RECIPLOG_INPUT_PREC)) &lt;&lt; LOG_OUTPUT_PREC) - rlog;
+<a name="l00918"></a>00918         *log2 = (INT32)((((<span class="keywordtype">int</span>)exp - ((int)31 - (<span class="keywordtype">int</span>)RECIPLOG_INPUT_PREC)) &lt;&lt; (<span class="keywordtype">int</span>)LOG_OUTPUT_PREC) - (<span class="keywordtype">int</span>)rlog);
 <a name="l00919"></a>00919 
 <a name="l00920"></a>00920         <span class="comment">/* adjust the exponent to account for all the reciprocal-related parameters to arrive at a final shift amount */</span>
 <a name="l00921"></a>00921         exp += (RECIP_OUTPUT_PREC - RECIPLOG_LOOKUP_PREC) - (31 - RECIPLOG_INPUT_PREC);
 <a name="l00922"></a>00922 
 <a name="l00923"></a>00923         <span class="comment">/* shift by the exponent */</span>
-<a name="l00924"></a>00924         <span class="keywordflow">if</span> (exp &lt; 0)
+<a name="l00924"></a>00924         if (exp &lt; 0)
 <a name="l00925"></a>00925                 recip &gt;&gt;= -exp;
-<a name="l00926"></a>00926         <span class="keywordflow">else</span>
+<a name="l00926"></a>00926         else
 <a name="l00927"></a>00927                 recip &lt;&lt;= exp;
 <a name="l00928"></a>00928 
 <a name="l00929"></a>00929         <span class="comment">/* on the way out, apply the original sign to the reciprocal */</span>
-<a name="l00930"></a>00930         <span class="keywordflow">return</span> neg ? -(INT64)recip : (INT64)recip;
+<a name="l00930"></a>00930         return neg ? -(INT64)recip : (INT64)recip;
 <a name="l00931"></a>00931 }
 <a name="l00932"></a>00932 
 <a name="l00933"></a>00933 
@@ -1036,8 +1036,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00940"></a>00940 
 <a name="l00941"></a>00941 INLINE INT32 float_to_int32(UINT32 data, <span class="keywordtype">int</span> fixedbits)
 <a name="l00942"></a>00942 {
-<a name="l00943"></a>00943         <span class="keywordtype">int</span> exponent = ((data &gt;&gt; 23) &amp; 0xff) - 127 - 23 + fixedbits;
-<a name="l00944"></a>00944         INT32 result = (data &amp; 0x7fffff) | 0x800000;
+<a name="l00943"></a>00943         <span class="keywordtype">int</span> exponent = ((int)((data &gt;&gt; 23u) &amp; 0xffu) - 127 - 23 + fixedbits);
+<a name="l00944"></a>00944         INT32 result = (INT32)(data &amp; 0x7fffff) | 0x800000;
 <a name="l00945"></a>00945         <span class="keywordflow">if</span> (exponent &lt; 0)
 <a name="l00946"></a>00946         {
 <a name="l00947"></a>00947                 <span class="keywordflow">if</span> (exponent &gt; -32)
@@ -1060,8 +1060,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00964"></a>00964 
 <a name="l00965"></a>00965 INLINE INT64 float_to_int64(UINT32 data, <span class="keywordtype">int</span> fixedbits)
 <a name="l00966"></a>00966 {
-<a name="l00967"></a>00967         <span class="keywordtype">int</span> exponent = ((data &gt;&gt; 23) &amp; 0xff) - 127 - 23 + fixedbits;
-<a name="l00968"></a>00968         INT64 result = (data &amp; 0x7fffff) | 0x800000;
+<a name="l00967"></a>00967         <span class="keywordtype">int</span> exponent = (int)((data &gt;&gt; 23) &amp; 0xff) - 127 - 23 + fixedbits;
+<a name="l00968"></a>00968         INT64 result = (INT64)(data &amp; 0x7fffff) | 0x800000;
 <a name="l00969"></a>00969         <span class="keywordflow">if</span> (exponent &lt; 0)
 <a name="l00970"></a>00970         {
 <a name="l00971"></a>00971                 <span class="keywordflow">if</span> (exponent &gt; -64)
@@ -1092,7 +1092,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00996"></a>00996 INLINE UINT32 normalize_color_path(UINT32 eff_color_path)
 <a name="l00997"></a>00997 {
 <a name="l00998"></a>00998         <span class="comment">/* ignore the subpixel adjust and texture enable flags */</span>
-<a name="l00999"></a>00999         eff_color_path &amp;= ~((1 &lt;&lt; 26) | (1 &lt;&lt; 27));
+<a name="l00999"></a>00999         eff_color_path &amp;= ~((1u &lt;&lt; 26u) | (1u &lt;&lt; 27u));
 <a name="l01000"></a>01000 
 <a name="l01001"></a>01001         <span class="keywordflow">return</span> eff_color_path;
 <a name="l01002"></a>01002 }
@@ -1101,15 +1101,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01005"></a>01005 INLINE UINT32 normalize_alpha_mode(UINT32 eff_alpha_mode)
 <a name="l01006"></a>01006 {
 <a name="l01007"></a>01007         <span class="comment">/* always ignore alpha ref value */</span>
-<a name="l01008"></a>01008         eff_alpha_mode &amp;= ~(0xff &lt;&lt; 24);
+<a name="l01008"></a>01008         eff_alpha_mode &amp;= ~(0xffu &lt;&lt; 24u);
 <a name="l01009"></a>01009 
 <a name="l01010"></a>01010         <span class="comment">/* if not doing alpha testing, ignore the alpha function and ref value */</span>
 <a name="l01011"></a>01011         <span class="keywordflow">if</span> (!ALPHAMODE_ALPHATEST(eff_alpha_mode))
-<a name="l01012"></a>01012                 eff_alpha_mode &amp;= ~(7 &lt;&lt; 1);
+<a name="l01012"></a>01012                 eff_alpha_mode &amp;= ~(7u &lt;&lt; 1u);
 <a name="l01013"></a>01013 
 <a name="l01014"></a>01014         <span class="comment">/* if not doing alpha blending, ignore the source and dest blending factors */</span>
 <a name="l01015"></a>01015         <span class="keywordflow">if</span> (!ALPHAMODE_ALPHABLEND(eff_alpha_mode))
-<a name="l01016"></a>01016                 eff_alpha_mode &amp;= ~((15 &lt;&lt; 8) | (15 &lt;&lt; 12) | (15 &lt;&lt; 16) | (15 &lt;&lt; 20));
+<a name="l01016"></a>01016                 eff_alpha_mode &amp;= ~((15u &lt;&lt; 8u) | (15u &lt;&lt; 12u) | (15u &lt;&lt; 16u) | (15u &lt;&lt; 20u));
 <a name="l01017"></a>01017 
 <a name="l01018"></a>01018         <span class="keywordflow">return</span> eff_alpha_mode;
 <a name="l01019"></a>01019 }
@@ -1128,7 +1128,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01032"></a>01032 INLINE UINT32 normalize_fbz_mode(UINT32 eff_fbz_mode)
 <a name="l01033"></a>01033 {
 <a name="l01034"></a>01034         <span class="comment">/* ignore the draw buffer */</span>
-<a name="l01035"></a>01035         eff_fbz_mode &amp;= ~(3 &lt;&lt; 14);
+<a name="l01035"></a>01035         eff_fbz_mode &amp;= ~(3u &lt;&lt; 14u);
 <a name="l01036"></a>01036 
 <a name="l01037"></a>01037         <span class="keywordflow">return</span> eff_fbz_mode;
 <a name="l01038"></a>01038 }
@@ -1137,15 +1137,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01041"></a>01041 INLINE UINT32 normalize_tex_mode(UINT32 eff_tex_mode)
 <a name="l01042"></a>01042 {
 <a name="l01043"></a>01043         <span class="comment">/* ignore the NCC table and seq_8_downld flags */</span>
-<a name="l01044"></a>01044         eff_tex_mode &amp;= ~((1 &lt;&lt; 5) | (1 &lt;&lt; 31));
+<a name="l01044"></a>01044         eff_tex_mode &amp;= ~((1u &lt;&lt; 5u) | (1u &lt;&lt; 31u));
 <a name="l01045"></a>01045 
 <a name="l01046"></a>01046         <span class="comment">/* classify texture formats into 3 format categories */</span>
 <a name="l01047"></a>01047         <span class="keywordflow">if</span> (TEXMODE_FORMAT(eff_tex_mode) &lt; 8)
-<a name="l01048"></a>01048                 eff_tex_mode = (eff_tex_mode &amp; ~(0xf &lt;&lt; 8)) | (0 &lt;&lt; 8);
+<a name="l01048"></a>01048                 eff_tex_mode = (eff_tex_mode &amp; ~(0xfu &lt;&lt; 8u)) | (0u &lt;&lt; 8u);
 <a name="l01049"></a>01049         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (TEXMODE_FORMAT(eff_tex_mode) &gt;= 10 &amp;&amp; TEXMODE_FORMAT(eff_tex_mode) &lt;= 12)
-<a name="l01050"></a>01050                 eff_tex_mode = (eff_tex_mode &amp; ~(0xf &lt;&lt; 8)) | (10 &lt;&lt; 8);
+<a name="l01050"></a>01050                 eff_tex_mode = (eff_tex_mode &amp; ~(0xfu &lt;&lt; 8u)) | (10u &lt;&lt; 8u);
 <a name="l01051"></a>01051         <span class="keywordflow">else</span>
-<a name="l01052"></a>01052                 eff_tex_mode = (eff_tex_mode &amp; ~(0xf &lt;&lt; 8)) | (8 &lt;&lt; 8);
+<a name="l01052"></a>01052                 eff_tex_mode = (eff_tex_mode &amp; ~(0xfu &lt;&lt; 8u)) | (8u &lt;&lt; 8u);
 <a name="l01053"></a>01053 
 <a name="l01054"></a>01054         <span class="keywordflow">return</span> eff_tex_mode;
 <a name="l01055"></a>01055 }
@@ -1157,15 +1157,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01061"></a>01061 
 <a name="l01062"></a>01062         <span class="comment">/* make a hash */</span>
 <a name="l01063"></a>01063         hash = info-&gt;eff_color_path;
-<a name="l01064"></a>01064         hash = (hash &lt;&lt; 1) | (hash &gt;&gt; 31);
+<a name="l01064"></a>01064         hash = (hash &lt;&lt; 1u) | (hash &gt;&gt; 31u);
 <a name="l01065"></a>01065         hash ^= info-&gt;eff_fbz_mode;
-<a name="l01066"></a>01066         hash = (hash &lt;&lt; 1) | (hash &gt;&gt; 31);
+<a name="l01066"></a>01066         hash = (hash &lt;&lt; 1u) | (hash &gt;&gt; 31u);
 <a name="l01067"></a>01067         hash ^= info-&gt;eff_alpha_mode;
-<a name="l01068"></a>01068         hash = (hash &lt;&lt; 1) | (hash &gt;&gt; 31);
+<a name="l01068"></a>01068         hash = (hash &lt;&lt; 1u) | (hash &gt;&gt; 31u);
 <a name="l01069"></a>01069         hash ^= info-&gt;eff_fog_mode;
-<a name="l01070"></a>01070         hash = (hash &lt;&lt; 1) | (hash &gt;&gt; 31);
+<a name="l01070"></a>01070         hash = (hash &lt;&lt; 1u) | (hash &gt;&gt; 31u);
 <a name="l01071"></a>01071         hash ^= info-&gt;eff_tex_mode_0;
-<a name="l01072"></a>01072         hash = (hash &lt;&lt; 1) | (hash &gt;&gt; 31);
+<a name="l01072"></a>01072         hash = (hash &lt;&lt; 1u) | (hash &gt;&gt; 31u);
 <a name="l01073"></a>01073         hash ^= info-&gt;eff_tex_mode_1;
 <a name="l01074"></a>01074 
 <a name="l01075"></a>01075         <span class="keywordflow">return</span> hash % RASTER_HASH_SIZE;
@@ -1387,7 +1387,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01291"></a>01291                         high = (VV)-&gt;reg[chromaRange].rgb.b;                                                            \
 <a name="l01292"></a>01292                         test = COLOR.rgb.b;                                                                                                     \
 <a name="l01293"></a>01293                         results = (test &gt;= low &amp;&amp; test &lt;= high);                                                        \
-<a name="l01294"></a>01294                         results ^= CHROMARANGE_BLUE_EXCLUSIVE((VV)-&gt;reg[chromaRange].u);        \
+<a name="l01294"></a>01294                         results ^= (int)(CHROMARANGE_BLUE_EXCLUSIVE((VV)-&gt;reg[chromaRange].u)); \
 <a name="l01295"></a>01295                         results &lt;&lt;= 1;                                                                                                          \
 <a name="l01296"></a>01296                                                                                                                                                                 \
 <a name="l01297"></a>01297                         <span class="comment">/* check green */</span>                                                                                                       \
@@ -1395,7 +1395,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01299"></a>01299                         high = (VV)-&gt;reg[chromaRange].rgb.g;                                                            \
 <a name="l01300"></a>01300                         test = COLOR.rgb.g;                                                                                                     \
 <a name="l01301"></a>01301                         results |= (test &gt;= low &amp;&amp; test &lt;= high);                                                       \
-<a name="l01302"></a>01302                         results ^= CHROMARANGE_GREEN_EXCLUSIVE((VV)-&gt;reg[chromaRange].u);       \
+<a name="l01302"></a>01302                         results ^= (int)(CHROMARANGE_GREEN_EXCLUSIVE((VV)-&gt;reg[chromaRange].u));        \
 <a name="l01303"></a>01303                         results &lt;&lt;= 1;                                                                                                          \
 <a name="l01304"></a>01304                                                                                                                                                                 \
 <a name="l01305"></a>01305                         <span class="comment">/* check red */</span>                                                                                                         \
@@ -1403,7 +1403,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01307"></a>01307                         high = (VV)-&gt;reg[chromaRange].rgb.r;                                                            \
 <a name="l01308"></a>01308                         test = COLOR.rgb.r;                                                                                                     \
 <a name="l01309"></a>01309                         results |= (test &gt;= low &amp;&amp; test &lt;= high);                                                       \
-<a name="l01310"></a>01310                         results ^= CHROMARANGE_RED_EXCLUSIVE((VV)-&gt;reg[chromaRange].u);         \
+<a name="l01310"></a>01310                         results ^= (int)(CHROMARANGE_RED_EXCLUSIVE((VV)-&gt;reg[chromaRange].u));          \
 <a name="l01311"></a>01311                                                                                                                                                                 \
 <a name="l01312"></a>01312                         <span class="comment">/* final result */</span>                                                                                                      \
 <a name="l01313"></a>01313                         if (CHROMARANGE_UNION_MODE((VV)-&gt;reg[chromaRange].u))                           \
@@ -1865,8 +1865,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01769"></a>01769         texbase = (TT)-&gt;lodoffset[ilod];                                                                                        \
 <a name="l01770"></a>01770                                                                                                                                                                 \
 <a name="l01771"></a>01771         <span class="comment">/* compute the maximum s and t values at this LOD */</span>                                            \
-<a name="l01772"></a>01772         smax = (TT)-&gt;wmask &gt;&gt; ilod;                                                                                                     \
-<a name="l01773"></a>01773         tmax = (TT)-&gt;hmask &gt;&gt; ilod;                                                                                                     \
+<a name="l01772"></a>01772         smax = (INT32)((TT)-&gt;wmask &gt;&gt; ilod);                                                                                                    \
+<a name="l01773"></a>01773         tmax = (INT32)((TT)-&gt;hmask &gt;&gt; ilod);                                                                                                    \
 <a name="l01774"></a>01774                                                                                                                                                                 \
 <a name="l01775"></a>01775         <span class="comment">/* determine whether we are point-sampled or bilinear */</span>                                        \
 <a name="l01776"></a>01776         if ((lod == (TT)-&gt;lodmin &amp;&amp; !TEXMODE_MAGNIFICATION_FILTER(TEXMODE)) ||          \
@@ -1892,12 +1892,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01796"></a>01796                 <span class="comment">/* fetch texel data */</span>                                                                                                  \
 <a name="l01797"></a>01797                 if (TEXMODE_FORMAT(TEXMODE) &lt; 8)                                                                                \
 <a name="l01798"></a>01798                 {                                                                                                                                               \
-<a name="l01799"></a>01799                         texel0 = *(UINT8 *)&amp;(TT)-&gt;ram[(texbase + t + s) &amp; (TT)-&gt;mask];          \
+<a name="l01799"></a>01799                         texel0 = *(UINT8 *)&amp;(TT)-&gt;ram[(unsigned long)((unsigned long)texbase + (unsigned long)t + (unsigned long)s) &amp; (TT)-&gt;mask];              \
 <a name="l01800"></a>01800                         c_local.u = (LOOKUP)[texel0];                                                                           \
 <a name="l01801"></a>01801                 }                                                                                                                                               \
 <a name="l01802"></a>01802                 else                                                                                                                                    \
 <a name="l01803"></a>01803                 {                                                                                                                                               \
-<a name="l01804"></a>01804                         texel0 = *(UINT16 *)&amp;(TT)-&gt;ram[(texbase + 2*(t + s)) &amp; (TT)-&gt;mask];     \
+<a name="l01804"></a>01804                         texel0 = *(UINT16 *)&amp;(TT)-&gt;ram[(unsigned long)((unsigned long)texbase + 2ul*((unsigned long)t + (unsigned long)s)) &amp; (TT)-&gt;mask];       \
 <a name="l01805"></a>01805                         if (TEXMODE_FORMAT(TEXMODE) &gt;= 10 &amp;&amp; TEXMODE_FORMAT(TEXMODE) &lt;= 12)     \
 <a name="l01806"></a>01806                                 c_local.u = (LOOKUP)[texel0];                                                                   \
 <a name="l01807"></a>01807                         else                                                                                                                            \
@@ -1953,10 +1953,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01857"></a>01857                 <span class="comment">/* fetch texel data */</span>                                                                                                  \
 <a name="l01858"></a>01858                 if (TEXMODE_FORMAT(TEXMODE) &lt; 8)                                                                                \
 <a name="l01859"></a>01859                 {                                                                                                                                               \
-<a name="l01860"></a>01860                         texel0 = *(UINT8 *)&amp;(TT)-&gt;ram[(texbase + t + s) &amp; (TT)-&gt;mask];          \
-<a name="l01861"></a>01861                         texel1 = *(UINT8 *)&amp;(TT)-&gt;ram[(texbase + t + s1) &amp; (TT)-&gt;mask];         \
-<a name="l01862"></a>01862                         texel2 = *(UINT8 *)&amp;(TT)-&gt;ram[(texbase + t1 + s) &amp; (TT)-&gt;mask];         \
-<a name="l01863"></a>01863                         texel3 = *(UINT8 *)&amp;(TT)-&gt;ram[(texbase + t1 + s1) &amp; (TT)-&gt;mask];        \
+<a name="l01860"></a>01860                         texel0 = *(UINT8 *)&amp;(TT)-&gt;ram[((unsigned long)texbase + (unsigned long)t + (unsigned long)s) &amp; (TT)-&gt;mask];             \
+<a name="l01861"></a>01861                         texel1 = *(UINT8 *)&amp;(TT)-&gt;ram[((unsigned long)texbase + (unsigned long)t + (unsigned long)s1) &amp; (TT)-&gt;mask];            \
+<a name="l01862"></a>01862                         texel2 = *(UINT8 *)&amp;(TT)-&gt;ram[((unsigned long)texbase + (unsigned long)t1 + (unsigned long)s) &amp; (TT)-&gt;mask];            \
+<a name="l01863"></a>01863                         texel3 = *(UINT8 *)&amp;(TT)-&gt;ram[((unsigned long)texbase + (unsigned long)t1 + (unsigned long)s1) &amp; (TT)-&gt;mask];   \
 <a name="l01864"></a>01864                         texel0 = (LOOKUP)[texel0];                                                                                      \
 <a name="l01865"></a>01865                         texel1 = (LOOKUP)[texel1];                                                                                      \
 <a name="l01866"></a>01866                         texel2 = (LOOKUP)[texel2];                                                                                      \
@@ -1964,10 +1964,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01868"></a>01868                 }                                                                                                                                               \
 <a name="l01869"></a>01869                 else                                                                                                                                    \
 <a name="l01870"></a>01870                 {                                                                                                                                               \
-<a name="l01871"></a>01871                         texel0 = *(UINT16 *)&amp;(TT)-&gt;ram[(texbase + 2*(t + s)) &amp; (TT)-&gt;mask];     \
-<a name="l01872"></a>01872                         texel1 = *(UINT16 *)&amp;(TT)-&gt;ram[(texbase + 2*(t + s1)) &amp; (TT)-&gt;mask];\
-<a name="l01873"></a>01873                         texel2 = *(UINT16 *)&amp;(TT)-&gt;ram[(texbase + 2*(t1 + s)) &amp; (TT)-&gt;mask];\
-<a name="l01874"></a>01874                         texel3 = *(UINT16 *)&amp;(TT)-&gt;ram[(texbase + 2*(t1 + s1)) &amp; (TT)-&gt;mask];\
+<a name="l01871"></a>01871                         texel0 = *(UINT16 *)&amp;(TT)-&gt;ram[((unsigned long)texbase + 2ul*((unsigned long)t + (unsigned long)s)) &amp; (TT)-&gt;mask];      \
+<a name="l01872"></a>01872                         texel1 = *(UINT16 *)&amp;(TT)-&gt;ram[((unsigned long)texbase + 2ul*((unsigned long)t + (unsigned long)s1)) &amp; (TT)-&gt;mask];\
+<a name="l01873"></a>01873                         texel2 = *(UINT16 *)&amp;(TT)-&gt;ram[((unsigned long)texbase + 2ul*((unsigned long)t1 + (unsigned long)s)) &amp; (TT)-&gt;mask];\
+<a name="l01874"></a>01874                         texel3 = *(UINT16 *)&amp;(TT)-&gt;ram[((unsigned long)texbase + 2ul*((unsigned long)t1 + (unsigned long)s1)) &amp; (TT)-&gt;mask];\
 <a name="l01875"></a>01875                         if (TEXMODE_FORMAT(TEXMODE) &gt;= 10 &amp;&amp; TEXMODE_FORMAT(TEXMODE) &lt;= 12)     \
 <a name="l01876"></a>01876                         {                                                                                                                                       \
 <a name="l01877"></a>01877                                 texel0 = (LOOKUP)[texel0];                                                                              \
@@ -2202,7 +2202,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02106"></a>02106                 else                                                                                                                                    \
 <a name="l02107"></a>02107                 {                                                                                                                                               \
 <a name="l02108"></a>02108                         int exp = count_leading_zeros(temp);                                                            \
-<a name="l02109"></a>02109                         wfloat = ((exp &lt;&lt; 12) | ((~temp &gt;&gt; (19 - exp)) &amp; 0xfff)) + 1;                   \
+<a name="l02109"></a>02109                         wfloat = (INT32)(((unsigned int)exp &lt;&lt; 12) | ((~temp &gt;&gt; (19 - exp)) &amp; 0xfff)) + 1;                      \
 <a name="l02110"></a>02110                 }                                                                                                                                               \
 <a name="l02111"></a>02111         }                                                                                                                                                       \
 <a name="l02112"></a>02112         fogdepth = wfloat;                                                         \
@@ -2222,17 +2222,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02126"></a>02126                 depthval = wfloat;                                                      \
 <a name="l02127"></a>02127         else                                                                        \
 <a name="l02128"></a>02128         {                                                                           \
-<a name="l02129"></a>02129                 if ((ITERZ) &amp; 0xf0000000)                                               \
+<a name="l02129"></a>02129                 if ((ITERZ) &amp; 0xf0000000l)                                               \
 <a name="l02130"></a>02130                         depthval = 0x0000;                                                  \
 <a name="l02131"></a>02131                 else                                                                    \
 <a name="l02132"></a>02132                 {                                                                       \
-<a name="l02133"></a>02133                         UINT32 temp = (ITERZ &lt;&lt; 4);                             \
-<a name="l02134"></a>02134                         if (!(temp &amp; 0xffff0000))                                                           \
+<a name="l02133"></a>02133                         UINT32 temp = (UINT32)(ITERZ &lt;&lt; 4);                             \
+<a name="l02134"></a>02134                         if (!(temp &amp; 0xffff0000u))                                                           \
 <a name="l02135"></a>02135                                 depthval = 0xffff;                                              \
 <a name="l02136"></a>02136                         else                                                                \
 <a name="l02137"></a>02137                         {                                                                   \
 <a name="l02138"></a>02138                                 int exp = count_leading_zeros(temp);                            \
-<a name="l02139"></a>02139                                 depthval = ((exp &lt;&lt; 12) | ((~temp &gt;&gt; (19 - exp)) &amp; 0xfff)) + 1; \
+<a name="l02139"></a>02139                                 depthval = (INT32)(((unsigned int)exp &lt;&lt; 12) | ((~temp &gt;&gt; (19 - exp)) &amp; 0xfff)) + 1; \
 <a name="l02140"></a>02140                         }                                                                   \
 <a name="l02141"></a>02141                 }                                                                       \
 <a name="l02142"></a>02142         }                                                                            \
@@ -2370,7 +2370,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

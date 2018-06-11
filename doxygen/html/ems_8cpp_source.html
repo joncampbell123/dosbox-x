@@ -261,8 +261,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00165"></a>00165                 <span class="keywordflow">while</span> (i &lt; <span class="keyword">sizeof</span>(x.name) &amp;&amp; x.name[i] != 0) i++;
 <a name="l00166"></a>00166                 name = std::string(x.name,i);
 <a name="l00167"></a>00167             }
-<a name="l00168"></a>00168             size = x.pages &lt;&lt; 14UL; <span class="comment">// 16KB pages</span>
-<a name="l00169"></a>00169             addr = x.mem &lt;&lt; 12UL;
+<a name="l00168"></a>00168             size = (Bitu)x.pages &lt;&lt; 14UL; <span class="comment">// 16KB pages</span>
+<a name="l00169"></a>00169             addr = (PhysPt)x.mem &lt;&lt; 12UL;
 <a name="l00170"></a>00170             <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00171"></a>00171         }
 <a name="l00172"></a>00172     }
@@ -332,7 +332,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00236"></a>00236                         }
 <a name="l00237"></a>00237                         <span class="comment">/* build EMS page frame (0xe000-0xf000) */</span>
 <a name="l00238"></a>00238                         <span class="keywordflow">for</span> (Bitu frct=0; frct&lt;0x10U/4U; frct++) {
-<a name="l00239"></a>00239                                 Bitu frnr=(frct+EMM_PAGEFRAME4K/4)*6;
+<a name="l00239"></a>00239                                 Bitu frnr=(frct+EMM_PAGEFRAME4K/4u)*6u;
 <a name="l00240"></a>00240                                 mem_writeb(GEMMIS_addr+0x0a+frnr,0x03);         <span class="comment">// frame type: EMS frame in 64k page</span>
 <a name="l00241"></a>00241                                 mem_writeb(GEMMIS_addr+0x0b+frnr,0xff);         <span class="comment">// owner: NONE</span>
 <a name="l00242"></a>00242                                 mem_writew(GEMMIS_addr+0x0c+frnr,0x7fff);       <span class="comment">// no logical page number</span>
@@ -340,12 +340,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00244"></a>00244                                 mem_writeb(GEMMIS_addr+0x0f+frnr,0x00);         <span class="comment">// EMS frame</span>
 <a name="l00245"></a>00245                         }
 <a name="l00246"></a>00246                         <span class="comment">/* build non-EMS ROM frames (0xf000-0x10000) */</span>
-<a name="l00247"></a>00247                         <span class="keywordflow">for</span> (Bitu frct=(EMM_PAGEFRAME4K+0x10)/4; frct&lt;0xf0/4; frct++) {
-<a name="l00248"></a>00248                                 mem_writeb(GEMMIS_addr+0x0a+frct*6,0x00);       <span class="comment">// frame type: NONE</span>
-<a name="l00249"></a>00249                                 mem_writeb(GEMMIS_addr+0x0b+frct*6,0xff);       <span class="comment">// owner: NONE</span>
-<a name="l00250"></a>00250                                 mem_writew(GEMMIS_addr+0x0c+frct*6,0xffff);     <span class="comment">// non-EMS frame</span>
-<a name="l00251"></a>00251                                 mem_writeb(GEMMIS_addr+0x0e + frct*6,0xff);     <span class="comment">// EMS page number (NONE)</span>
-<a name="l00252"></a>00252                                 mem_writeb(GEMMIS_addr+0x0f+frct*6,0xaa);       <span class="comment">// flags: direct mapping</span>
+<a name="l00247"></a>00247                         <span class="keywordflow">for</span> (Bitu frct=(EMM_PAGEFRAME4K+0x10u)/4u; frct&lt;0xf0u/4u; frct++) {
+<a name="l00248"></a>00248                                 mem_writeb(GEMMIS_addr+0x0a+frct*6u,0x00);      <span class="comment">// frame type: NONE</span>
+<a name="l00249"></a>00249                                 mem_writeb(GEMMIS_addr+0x0b+frct*6u,0xff);      <span class="comment">// owner: NONE</span>
+<a name="l00250"></a>00250                                 mem_writew(GEMMIS_addr+0x0c+frct*6u,0xffff);    <span class="comment">// non-EMS frame</span>
+<a name="l00251"></a>00251                                 mem_writeb(GEMMIS_addr+0x0e + frct*6u,0xff);    <span class="comment">// EMS page number (NONE)</span>
+<a name="l00252"></a>00252                                 mem_writeb(GEMMIS_addr+0x0f+frct*6u,0xaa);      <span class="comment">// flags: direct mapping</span>
 <a name="l00253"></a>00253                         }
 <a name="l00254"></a>00254 
 <a name="l00255"></a>00255                         mem_writeb(GEMMIS_addr+0x18a,0x74);                     <span class="comment">// ???</span>
@@ -355,15 +355,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00259"></a>00259                         mem_writed(GEMMIS_addr+0x18f,0);                        <span class="comment">// handle name</span>
 <a name="l00260"></a>00260                         mem_writed(GEMMIS_addr+0x193,0);                        <span class="comment">// handle name</span>
 <a name="l00261"></a>00261                         <span class="keywordflow">if</span> (emm_handles[EMM_SYSTEM_HANDLE].pages != NULL_HANDLE) {
-<a name="l00262"></a>00262                                 mem_writew(GEMMIS_addr+0x197,(emm_handles[EMM_SYSTEM_HANDLE].pages+3)/4);
-<a name="l00263"></a>00263                                 mem_writed(GEMMIS_addr+0x199,emm_handles[EMM_SYSTEM_HANDLE].mem&lt;&lt;12);   <span class="comment">// physical address</span>
+<a name="l00262"></a>00262                                 mem_writew(GEMMIS_addr+0x197,(emm_handles[EMM_SYSTEM_HANDLE].pages+3u)/4u);
+<a name="l00263"></a>00263                                 mem_writed(GEMMIS_addr+0x199,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)emm_handles[EMM_SYSTEM_HANDLE].mem&lt;&lt;12u);    <span class="comment">// physical address</span>
 <a name="l00264"></a>00264                         } <span class="keywordflow">else</span> {
 <a name="l00265"></a>00265                                 mem_writew(GEMMIS_addr+0x197,0x0001);           <span class="comment">// system handle</span>
 <a name="l00266"></a>00266                                 mem_writed(GEMMIS_addr+0x199,0x00110000);       <span class="comment">// physical address</span>
 <a name="l00267"></a>00267                         }
 <a name="l00268"></a>00268 
 <a name="l00269"></a>00269                         <span class="comment">/* fill buffer with import structure */</span>
-<a name="l00270"></a>00270                         mem_writed(bufptr+0x00,GEMMIS_seg&lt;&lt;4);
+<a name="l00270"></a>00270                         mem_writed(bufptr+0x00,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)GEMMIS_seg&lt;&lt;4u);
 <a name="l00271"></a>00271                         mem_writew(bufptr+0x04,GEMMIS_VERSION);
 <a name="l00272"></a>00272                         *retcode=6;
 <a name="l00273"></a>00273                         <span class="keywordflow">return</span> <span class="keyword">true</span>;
@@ -371,7 +371,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00275"></a>00275                 <span class="keywordflow">case</span> 0x02:
 <a name="l00276"></a>00276                         <span class="keywordflow">if</span> (!is_emm386) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00277"></a>00277                         <span class="keywordflow">if</span> (size!=2) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00278"></a>00278                         mem_writeb(bufptr+0x00,EMM_VERSION&gt;&gt;4);         <span class="comment">// version 4</span>
+<a name="l00278"></a>00278                         mem_writeb(bufptr+0x00,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)EMM_VERSION&gt;&gt;4u);          <span class="comment">// version 4</span>
 <a name="l00279"></a>00279                         mem_writeb(bufptr+0x01,EMM_MINOR_VERSION);
 <a name="l00280"></a>00280                         *retcode=2;
 <a name="l00281"></a>00281                         <span class="keywordflow">return</span> <span class="keyword">true</span>;
@@ -379,7 +379,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00283"></a>00283                         <span class="keywordflow">if</span> (!is_emm386) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00284"></a>00284                         <span class="keywordflow">if</span> (EMM_MINOR_VERSION &lt; 0x2d) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00285"></a>00285                         <span class="keywordflow">if</span> (size!=4) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00286"></a>00286                         mem_writew(bufptr+0x00,(Bit16u)(MEM_TotalPages()*4));   <span class="comment">// max size (kb)</span>
+<a name="l00286"></a>00286                         mem_writew(bufptr+0x00,(Bit16u)(MEM_TotalPages()*4ul)); <span class="comment">// max size (kb)</span>
 <a name="l00287"></a>00287                         mem_writew(bufptr+0x02,0x80);                                                   <span class="comment">// min size (kb)</span>
 <a name="l00288"></a>00288                         *retcode=2;
 <a name="l00289"></a>00289                         <span class="keywordflow">return</span> <span class="keyword">true</span>;
@@ -429,10 +429,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00333"></a>00333         PhysPt address;
 <a name="l00334"></a>00334 
 <a name="l00335"></a>00335         <span class="keywordflow">if</span> (pages == 0) <span class="keywordflow">return</span>;
-<a name="l00336"></a>00336         address = mem*4096;
-<a name="l00337"></a>00337         pages *= 4096;
+<a name="l00336"></a>00336         address = (PhysPt)mem * 4096ul;
+<a name="l00337"></a>00337         pages *= 4096u;
 <a name="l00338"></a>00338 
-<a name="l00339"></a>00339         <span class="keywordflow">if</span> ((address+pages) &gt; 0xC0000000) E_Exit(<span class="stringliteral">&quot;EMS_ZeroAllocation out of range&quot;</span>);
+<a name="l00339"></a>00339         <span class="keywordflow">if</span> ((address+pages) &gt; 0xC0000000ul) E_Exit(<span class="stringliteral">&quot;EMS_ZeroAllocation out of range&quot;</span>);
 <a name="l00340"></a>00340         <span class="keywordflow">while</span> (pages != 0) {
 <a name="l00341"></a>00341                 mem_writeb(address++,0);
 <a name="l00342"></a>00342                 pages--;
@@ -456,9 +456,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00360"></a>00360         }
 <a name="l00361"></a>00361         MemHandle mem = 0;
 <a name="l00362"></a>00362         <span class="keywordflow">if</span> (pages) {
-<a name="l00363"></a>00363                 mem = MEM_AllocatePages(pages*4,<span class="keyword">false</span>);
+<a name="l00363"></a>00363                 mem = MEM_AllocatePages(pages*4u,<span class="keyword">false</span>);
 <a name="l00364"></a>00364                 <span class="keywordflow">if</span> (!mem) E_Exit(<span class="stringliteral">&quot;EMS:Memory allocation failure&quot;</span>);
-<a name="l00365"></a>00365                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (dbg_zero_on_ems_allocmem) EMS_ZeroAllocation(mem,pages*4);
+<a name="l00365"></a>00365                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (dbg_zero_on_ems_allocmem) EMS_ZeroAllocation(mem,pages*4u);
 <a name="l00366"></a>00366         }
 <a name="l00367"></a>00367         emm_handles[handle].pages = pages;
 <a name="l00368"></a>00368         emm_handles[handle].mem = mem;
@@ -488,17 +488,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00392"></a>00392 <span class="comment">         * doesn&#39;t work very well). */</span>
 <a name="l00393"></a>00393         mem = 0;
 <a name="l00394"></a>00394         <span class="keywordflow">if</span> (ems_syshandle_on_even_mb) {
-<a name="l00395"></a>00395                 mem = MEM_AllocatePages_A20_friendly(pages*4,<span class="comment">/*sequential=*/</span><span class="keyword">true</span>);
+<a name="l00395"></a>00395                 mem = MEM_AllocatePages_A20_friendly(pages*4u,<span class="comment">/*sequential=*/</span><span class="keyword">true</span>);
 <a name="l00396"></a>00396                 <span class="keywordflow">if</span> (!mem) <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;EMS: Despite configuration setting, I was unable to allocate EMS system handle on even megabyte&quot;</span>);
 <a name="l00397"></a>00397         }
-<a name="l00398"></a>00398         <span class="keywordflow">if</span> (!mem) mem = MEM_AllocatePages(pages*4,<span class="comment">/*sequential=*/</span><span class="keyword">true</span>);
+<a name="l00398"></a>00398         <span class="keywordflow">if</span> (!mem) mem = MEM_AllocatePages(pages*4u,<span class="comment">/*sequential=*/</span><span class="keyword">true</span>);
 <a name="l00399"></a>00399         <span class="keywordflow">if</span> (!mem) E_Exit(<span class="stringliteral">&quot;EMS:System handle memory allocation failure&quot;</span>);
 <a name="l00400"></a>00400         emm_handles[handle].pages = pages;
 <a name="l00401"></a>00401         emm_handles[handle].mem = mem;
 <a name="l00402"></a>00402         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;EMS: OS handle allocated %u 16KB pages 0x%08lx-0x%08lx&quot;</span>,
 <a name="l00403"></a>00403                 (<span class="keywordtype">unsigned</span> int)pages,
 <a name="l00404"></a>00404                 (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)mem * 4096UL,
-<a name="l00405"></a>00405                 ((<span class="keywordtype">unsigned</span> long)mem * 4096UL) + (pages * 16384UL) - 1);
+<a name="l00405"></a>00405                 ((<span class="keywordtype">unsigned</span> long)mem * 4096UL) + (pages * 16384UL) - 1ul);
 <a name="l00406"></a>00406         <span class="keywordflow">return</span> EMM_NO_ERROR;
 <a name="l00407"></a>00407 }
 <a name="l00408"></a>00408 
@@ -507,9 +507,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00411"></a>00411         <span class="keywordflow">if</span> (!ValidHandle(handle)) <span class="keywordflow">return</span> EMM_INVALID_HANDLE;
 <a name="l00412"></a>00412         <span class="keywordflow">if</span> (emm_handles[handle].pages != 0) {
 <a name="l00413"></a>00413                 <span class="comment">/* Check for enough pages */</span>
-<a name="l00414"></a>00414                 <span class="keywordflow">if</span> (!MEM_ReAllocatePages(emm_handles[handle].mem,pages*4,<span class="keyword">false</span>)) <span class="keywordflow">return</span> EMM_OUT_OF_LOG;
+<a name="l00414"></a>00414                 <span class="keywordflow">if</span> (!MEM_ReAllocatePages(emm_handles[handle].mem,pages*4u,<span class="keyword">false</span>)) <span class="keywordflow">return</span> EMM_OUT_OF_LOG;
 <a name="l00415"></a>00415         } <span class="keywordflow">else</span> {
-<a name="l00416"></a>00416                 MemHandle mem = MEM_AllocatePages(pages*4,<span class="keyword">false</span>);
+<a name="l00416"></a>00416                 MemHandle mem = MEM_AllocatePages(pages*4u,<span class="keyword">false</span>);
 <a name="l00417"></a>00417                 <span class="keywordflow">if</span> (!mem) E_Exit(<span class="stringliteral">&quot;EMS:Memory allocation failure during reallocation&quot;</span>);
 <a name="l00418"></a>00418                 emm_handles[handle].mem = mem;
 <a name="l00419"></a>00419         }
@@ -540,7 +540,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00444"></a>00444                 emm_mappings[phys_page].handle=NULL_HANDLE;
 <a name="l00445"></a>00445                 emm_mappings[phys_page].page=NULL_PAGE;
 <a name="l00446"></a>00446                 <span class="keywordflow">for</span> (Bitu i=0;i&lt;4;i++) 
-<a name="l00447"></a>00447                         PAGING_MapPage(EMM_PAGEFRAME4K+phys_page*4+i,EMM_PAGEFRAME4K+phys_page*4+i);
+<a name="l00447"></a>00447                         PAGING_MapPage(EMM_PAGEFRAME4K+phys_page*4u+i,EMM_PAGEFRAME4K+phys_page*4u+i);
 <a name="l00448"></a>00448                 PAGING_ClearTLB();
 <a name="l00449"></a>00449                 <span class="keywordflow">return</span> EMM_NO_ERROR;
 <a name="l00450"></a>00450         }
@@ -552,9 +552,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00456"></a>00456                 emm_mappings[phys_page].handle=handle;
 <a name="l00457"></a>00457                 emm_mappings[phys_page].page=log_page;
 <a name="l00458"></a>00458                 
-<a name="l00459"></a>00459                 MemHandle memh=MEM_NextHandleAt(emm_handles[handle].mem,log_page*4);;
+<a name="l00459"></a>00459                 MemHandle memh=MEM_NextHandleAt(emm_handles[handle].mem,log_page*4u);;
 <a name="l00460"></a>00460                 <span class="keywordflow">for</span> (Bitu i=0;i&lt;4;i++) {
-<a name="l00461"></a>00461                         PAGING_MapPage(EMM_PAGEFRAME4K+phys_page*4+i,memh);
+<a name="l00461"></a>00461                         PAGING_MapPage(EMM_PAGEFRAME4K+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)phys_page*4u+i,(Bitu)memh);
 <a name="l00462"></a>00462                         memh=MEM_NextHandle(memh);
 <a name="l00463"></a>00463                 }
 <a name="l00464"></a>00464                 PAGING_ClearTLB();
@@ -585,7 +585,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00489"></a>00489         }
 <a name="l00490"></a>00490 
 <a name="l00491"></a>00491         <span class="keywordflow">if</span> (valid_segment) {
-<a name="l00492"></a>00492                 Bit32s tphysPage = ((Bit32s)segment-EMM_PAGEFRAME)/(0x1000/EMM_MAX_PHYS);
+<a name="l00492"></a>00492                 Bit32s tphysPage = ((Bit32s)segment-(Bit32s)EMM_PAGEFRAME)/(Bit32s)(0x1000/EMM_MAX_PHYS);
 <a name="l00493"></a>00493 
 <a name="l00494"></a>00494                 <span class="comment">/* unmapping doesn&#39;t need valid handle (as handle isn&#39;t used) */</span>
 <a name="l00495"></a>00495                 <span class="keywordflow">if</span> (log_page==NULL_PAGE) {
@@ -598,7 +598,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00502"></a>00502                                 emm_segmentmappings[segment&gt;&gt;10].page=NULL_PAGE;
 <a name="l00503"></a>00503                         }
 <a name="l00504"></a>00504                         <span class="keywordflow">for</span> (Bitu i=0;i&lt;4;i++) 
-<a name="l00505"></a>00505                                 PAGING_MapPage(segment*16/4096+i,segment*16/4096+i);
+<a name="l00505"></a>00505                                 PAGING_MapPage(segment*16u/4096u+i,segment*16u/4096u+i);
 <a name="l00506"></a>00506                         PAGING_ClearTLB();
 <a name="l00507"></a>00507                         <span class="keywordflow">return</span> EMM_NO_ERROR;
 <a name="l00508"></a>00508                 }
@@ -611,13 +611,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00515"></a>00515                                 emm_mappings[tphysPage].handle=handle;
 <a name="l00516"></a>00516                                 emm_mappings[tphysPage].page=log_page;
 <a name="l00517"></a>00517                         } <span class="keywordflow">else</span> {
-<a name="l00518"></a>00518                                 emm_segmentmappings[segment&gt;&gt;10].handle=handle;
-<a name="l00519"></a>00519                                 emm_segmentmappings[segment&gt;&gt;10].page=log_page;
+<a name="l00518"></a>00518                                 emm_segmentmappings[segment&gt;&gt;10u].handle=handle;
+<a name="l00519"></a>00519                                 emm_segmentmappings[segment&gt;&gt;10u].page=log_page;
 <a name="l00520"></a>00520                         }
 <a name="l00521"></a>00521                         
-<a name="l00522"></a>00522                         MemHandle memh=MEM_NextHandleAt(emm_handles[handle].mem,log_page*4);;
+<a name="l00522"></a>00522                         MemHandle memh=MEM_NextHandleAt(emm_handles[handle].mem,log_page*4u);;
 <a name="l00523"></a>00523                         <span class="keywordflow">for</span> (Bitu i=0;i&lt;4;i++) {
-<a name="l00524"></a>00524                                 PAGING_MapPage(segment*16/4096+i,memh);
+<a name="l00524"></a>00524                                 PAGING_MapPage(segment*16u/4096u+i,(Bitu)memh);
 <a name="l00525"></a>00525                                 memh=MEM_NextHandle(memh);
 <a name="l00526"></a>00526                         }
 <a name="l00527"></a>00527                         PAGING_ClearTLB();
@@ -722,14 +722,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00626"></a>00626                 mem_writew(data,count);data+=2;
 <a name="l00627"></a>00627                 <span class="keywordflow">for</span> (;count&gt;0;count--) {
 <a name="l00628"></a>00628                         Bit16u segment=mem_readw(list);list+=2;
-<a name="l00629"></a>00629                         <span class="keywordflow">if</span> ((segment&gt;=EMM_PAGEFRAME) &amp;&amp; (segment&lt;EMM_PAGEFRAME+0x1000)) {
-<a name="l00630"></a>00630                                 Bit16u page = (segment-EMM_PAGEFRAME) / (EMM_PAGE_SIZE&gt;&gt;4);
+<a name="l00629"></a>00629                         <span class="keywordflow">if</span> ((segment&gt;=EMM_PAGEFRAME) &amp;&amp; (segment&lt;EMM_PAGEFRAME+0x1000u)) {
+<a name="l00630"></a>00630                                 Bit16u page = (<span class="keywordtype">unsigned</span> int)(segment-EMM_PAGEFRAME) / (<span class="keywordtype">unsigned</span> int)(EMM_PAGE_SIZE&gt;&gt;4u);
 <a name="l00631"></a>00631                                 mem_writew(data,segment);data+=2;
 <a name="l00632"></a>00632                                 MEM_BlockWrite(data,&amp;emm_mappings[page],<span class="keyword">sizeof</span>(<a class="code" href="structEMM__Mapping.html">EMM_Mapping</a>));
 <a name="l00633"></a>00633                                 data+=<span class="keyword">sizeof</span>(<a class="code" href="structEMM__Mapping.html">EMM_Mapping</a>);
 <a name="l00634"></a>00634                         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((ems_type == EMS_MIXED) || (ems_type == EMS_EMM386) || ((segment&gt;=EMM_PAGEFRAME-0x1000) &amp;&amp; (segment&lt;EMM_PAGEFRAME)) || ((segment&gt;=0xa000) &amp;&amp; (segment&lt;0xb000))) {
 <a name="l00635"></a>00635                                 mem_writew(data,segment);data+=2;
-<a name="l00636"></a>00636                                 MEM_BlockWrite(data,&amp;emm_segmentmappings[segment&gt;&gt;10],<span class="keyword">sizeof</span>(<a class="code" href="structEMM__Mapping.html">EMM_Mapping</a>));
+<a name="l00636"></a>00636                                 MEM_BlockWrite(data,&amp;emm_segmentmappings[segment&gt;&gt;10u],<span class="keyword">sizeof</span>(<a class="code" href="structEMM__Mapping.html">EMM_Mapping</a>));
 <a name="l00637"></a>00637                                 data+=<span class="keyword">sizeof</span>(<a class="code" href="structEMM__Mapping.html">EMM_Mapping</a>);
 <a name="l00638"></a>00638                         } <span class="keywordflow">else</span> {
 <a name="l00639"></a>00639                                 <span class="keywordflow">return</span> EMM_ILL_PHYS;
@@ -742,10 +742,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00646"></a>00646                 <span class="keywordflow">for</span> (;count&gt;0;count--) {
 <a name="l00647"></a>00647                         Bit16u segment=mem_readw(data);data+=2;
 <a name="l00648"></a>00648                         <span class="keywordflow">if</span> ((segment&gt;=EMM_PAGEFRAME) &amp;&amp; (segment&lt;EMM_PAGEFRAME+0x1000)) {
-<a name="l00649"></a>00649                                 Bit16u page = (segment-EMM_PAGEFRAME) / (EMM_PAGE_SIZE&gt;&gt;4);
+<a name="l00649"></a>00649                                 Bit16u page = (<span class="keywordtype">unsigned</span> int)(segment-EMM_PAGEFRAME) / (<span class="keywordtype">unsigned</span> int)(EMM_PAGE_SIZE&gt;&gt;4);
 <a name="l00650"></a>00650                                 MEM_BlockRead(data,&amp;emm_mappings[page],<span class="keyword">sizeof</span>(<a class="code" href="structEMM__Mapping.html">EMM_Mapping</a>));
 <a name="l00651"></a>00651                         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((ems_type == EMS_MIXED) || (ems_type == EMS_EMM386) || ((segment&gt;=EMM_PAGEFRAME-0x1000) &amp;&amp; (segment&lt;EMM_PAGEFRAME)) || ((segment&gt;=0xa000) &amp;&amp; (segment&lt;0xb000))) {
-<a name="l00652"></a>00652                                 MEM_BlockRead(data,&amp;emm_segmentmappings[segment&gt;&gt;10],<span class="keyword">sizeof</span>(<a class="code" href="structEMM__Mapping.html">EMM_Mapping</a>));
+<a name="l00652"></a>00652                                 MEM_BlockRead(data,&amp;emm_segmentmappings[segment&gt;&gt;10u],<span class="keyword">sizeof</span>(<a class="code" href="structEMM__Mapping.html">EMM_Mapping</a>));
 <a name="l00653"></a>00653                         } <span class="keywordflow">else</span> {
 <a name="l00654"></a>00654                                 <span class="keywordflow">return</span> EMM_ILL_PHYS;
 <a name="l00655"></a>00655                         }
@@ -754,7 +754,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00658"></a>00658                 <span class="keywordflow">return</span> EMM_RestoreMappingTable();
 <a name="l00659"></a>00659                 <span class="keywordflow">break</span>;
 <a name="l00660"></a>00660         <span class="keywordflow">case</span> 0x02:      <span class="comment">/* Get Partial Page Map Array Size */</span>
-<a name="l00661"></a>00661                 reg_al=(Bit8u)(2+reg_bx*(2+<span class="keyword">sizeof</span>(<a class="code" href="structEMM__Mapping.html">EMM_Mapping</a>)));
+<a name="l00661"></a>00661                 reg_al=(Bit8u)(2u+reg_bx*(2u+<span class="keyword">sizeof</span>(<a class="code" href="structEMM__Mapping.html">EMM_Mapping</a>)));
 <a name="l00662"></a>00662                 <span class="keywordflow">break</span>;
 <a name="l00663"></a>00663         <span class="keywordflow">default</span>:
 <a name="l00664"></a>00664                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_ERROR)(<span class="stringliteral">&quot;EMS:Call %2X Subfunction %2X not supported&quot;</span>,reg_ah,reg_al);
@@ -848,23 +848,23 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00752"></a>00752         MemHandle src_handle = 0,dest_handle = 0;
 <a name="l00753"></a>00753         Bitu src_off = 0,dest_off = 0 ;Bitu src_remain = 0,dest_remain = 0;
 <a name="l00754"></a>00754         <span class="keywordflow">if</span> (!region.src_type) {
-<a name="l00755"></a>00755                 src_mem=region.src_page_seg*16+region.src_offset;
+<a name="l00755"></a>00755                 src_mem=region.src_page_seg*16u+region.src_offset;
 <a name="l00756"></a>00756         } <span class="keywordflow">else</span> {
 <a name="l00757"></a>00757                 <span class="keywordflow">if</span> (!ValidHandle(region.src_handle)) <span class="keywordflow">return</span> EMM_INVALID_HANDLE;
 <a name="l00758"></a>00758                 <span class="keywordflow">if</span> ((emm_handles[region.src_handle].pages*EMM_PAGE_SIZE) &lt; ((region.src_page_seg*EMM_PAGE_SIZE)+region.src_offset+region.bytes)) <span class="keywordflow">return</span> EMM_LOG_OUT_RANGE;
 <a name="l00759"></a>00759                 src_handle=emm_handles[region.src_handle].mem;
-<a name="l00760"></a>00760                 Bitu pages=region.src_page_seg*4+(region.src_offset/MEM_PAGE_SIZE);
+<a name="l00760"></a>00760                 Bitu pages=region.src_page_seg*4u+(region.src_offset/MEM_PAGE_SIZE);
 <a name="l00761"></a>00761                 <span class="keywordflow">for</span> (;pages&gt;0;pages--) src_handle=MEM_NextHandle(src_handle);
 <a name="l00762"></a>00762                 src_off=region.src_offset&amp;(MEM_PAGE_SIZE-1);
 <a name="l00763"></a>00763                 src_remain=MEM_PAGE_SIZE-src_off;
 <a name="l00764"></a>00764         }
 <a name="l00765"></a>00765         <span class="keywordflow">if</span> (!region.dest_type) {
-<a name="l00766"></a>00766                 dest_mem=region.dest_page_seg*16+region.dest_offset;
+<a name="l00766"></a>00766                 dest_mem=region.dest_page_seg*16u+region.dest_offset;
 <a name="l00767"></a>00767         } <span class="keywordflow">else</span> {
 <a name="l00768"></a>00768                 <span class="keywordflow">if</span> (!ValidHandle(region.dest_handle)) <span class="keywordflow">return</span> EMM_INVALID_HANDLE;
 <a name="l00769"></a>00769                 <span class="keywordflow">if</span> (emm_handles[region.dest_handle].pages*EMM_PAGE_SIZE &lt; (region.dest_page_seg*EMM_PAGE_SIZE)+region.dest_offset+region.bytes) <span class="keywordflow">return</span> EMM_LOG_OUT_RANGE;
 <a name="l00770"></a>00770                 dest_handle=emm_handles[region.dest_handle].mem;
-<a name="l00771"></a>00771                 Bitu pages=region.dest_page_seg*4+(region.dest_offset/MEM_PAGE_SIZE);
+<a name="l00771"></a>00771                 Bitu pages=region.dest_page_seg*4u+(region.dest_offset/MEM_PAGE_SIZE);
 <a name="l00772"></a>00772                 <span class="keywordflow">for</span> (;pages&gt;0;pages--) dest_handle=MEM_NextHandle(dest_handle);
 <a name="l00773"></a>00773                 dest_off=region.dest_offset&amp;(MEM_PAGE_SIZE-1);
 <a name="l00774"></a>00774                 dest_remain=MEM_PAGE_SIZE-dest_off;
@@ -881,10 +881,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00785"></a>00785                         MEM_BlockRead(src_mem,buf_src,toread);
 <a name="l00786"></a>00786                 } <span class="keywordflow">else</span> {
 <a name="l00787"></a>00787                         <span class="keywordflow">if</span> (toread&lt;src_remain) {
-<a name="l00788"></a>00788                                 MEM_BlockRead((src_handle*MEM_PAGE_SIZE)+src_off,buf_src,toread);
+<a name="l00788"></a>00788                                 MEM_BlockRead(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)src_handle*(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_PAGE_SIZE)+src_off,buf_src,toread);
 <a name="l00789"></a>00789                         } <span class="keywordflow">else</span> {
-<a name="l00790"></a>00790                                 MEM_BlockRead((src_handle*MEM_PAGE_SIZE)+src_off,buf_src,src_remain);
-<a name="l00791"></a>00791                                 MEM_BlockRead((MEM_NextHandle(src_handle)*MEM_PAGE_SIZE),&amp;buf_src[src_remain],toread-src_remain);
+<a name="l00790"></a>00790                                 MEM_BlockRead(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)src_handle*(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_PAGE_SIZE)+src_off,buf_src,src_remain);
+<a name="l00791"></a>00791                                 MEM_BlockRead(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_NextHandle(src_handle)*(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_PAGE_SIZE),&amp;buf_src[src_remain],toread-src_remain);
 <a name="l00792"></a>00792                         }
 <a name="l00793"></a>00793                 }
 <a name="l00794"></a>00794                 <span class="comment">/* Check for a move */</span>
@@ -894,10 +894,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00798"></a>00798                                 MEM_BlockRead(dest_mem,buf_dest,toread);
 <a name="l00799"></a>00799                         } <span class="keywordflow">else</span> {
 <a name="l00800"></a>00800                                 <span class="keywordflow">if</span> (toread&lt;dest_remain) {
-<a name="l00801"></a>00801                                         MEM_BlockRead((dest_handle*MEM_PAGE_SIZE)+dest_off,buf_dest,toread);
+<a name="l00801"></a>00801                                         MEM_BlockRead(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)dest_handle*(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_PAGE_SIZE)+dest_off,buf_dest,toread);
 <a name="l00802"></a>00802                                 } <span class="keywordflow">else</span> {
-<a name="l00803"></a>00803                                         MEM_BlockRead((dest_handle*MEM_PAGE_SIZE)+dest_off,buf_dest,dest_remain);
-<a name="l00804"></a>00804                                         MEM_BlockRead((MEM_NextHandle(dest_handle)*MEM_PAGE_SIZE),&amp;buf_dest[dest_remain],toread-dest_remain);
+<a name="l00803"></a>00803                                         MEM_BlockRead(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)dest_handle*(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_PAGE_SIZE)+dest_off,buf_dest,dest_remain);
+<a name="l00804"></a>00804                                         MEM_BlockRead(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_NextHandle(dest_handle)*(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_PAGE_SIZE),&amp;buf_dest[dest_remain],toread-dest_remain);
 <a name="l00805"></a>00805                                 }
 <a name="l00806"></a>00806                         }
 <a name="l00807"></a>00807                         <span class="comment">/* Write to the source */</span>
@@ -905,10 +905,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00809"></a>00809                                 MEM_BlockWrite(src_mem,buf_dest,toread);
 <a name="l00810"></a>00810                         } <span class="keywordflow">else</span> {
 <a name="l00811"></a>00811                                 <span class="keywordflow">if</span> (toread&lt;src_remain) {
-<a name="l00812"></a>00812                                         MEM_BlockWrite((src_handle*MEM_PAGE_SIZE)+src_off,buf_dest,toread);
+<a name="l00812"></a>00812                                         MEM_BlockWrite(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)src_handle*(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_PAGE_SIZE)+src_off,buf_dest,toread);
 <a name="l00813"></a>00813                                 } <span class="keywordflow">else</span> {
-<a name="l00814"></a>00814                                         MEM_BlockWrite((src_handle*MEM_PAGE_SIZE)+src_off,buf_dest,src_remain);
-<a name="l00815"></a>00815                                         MEM_BlockWrite((MEM_NextHandle(src_handle)*MEM_PAGE_SIZE),&amp;buf_dest[src_remain],toread-src_remain);
+<a name="l00814"></a>00814                                         MEM_BlockWrite(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)src_handle*(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_PAGE_SIZE)+src_off,buf_dest,src_remain);
+<a name="l00815"></a>00815                                         MEM_BlockWrite(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_NextHandle(src_handle)*(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_PAGE_SIZE),&amp;buf_dest[src_remain],toread-src_remain);
 <a name="l00816"></a>00816                                 }
 <a name="l00817"></a>00817                         }
 <a name="l00818"></a>00818                 }
@@ -917,10 +917,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00821"></a>00821                         MEM_BlockWrite(dest_mem,buf_src,toread);
 <a name="l00822"></a>00822                 } <span class="keywordflow">else</span> {
 <a name="l00823"></a>00823                         <span class="keywordflow">if</span> (toread&lt;dest_remain) {
-<a name="l00824"></a>00824                                 MEM_BlockWrite((dest_handle*MEM_PAGE_SIZE)+dest_off,buf_src,toread);
+<a name="l00824"></a>00824                                 MEM_BlockWrite(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)dest_handle*(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_PAGE_SIZE)+dest_off,buf_src,toread);
 <a name="l00825"></a>00825                         } <span class="keywordflow">else</span> {
-<a name="l00826"></a>00826                                 MEM_BlockWrite((dest_handle*MEM_PAGE_SIZE)+dest_off,buf_src,dest_remain);
-<a name="l00827"></a>00827                                 MEM_BlockWrite((MEM_NextHandle(dest_handle)*MEM_PAGE_SIZE),&amp;buf_src[dest_remain],toread-dest_remain);
+<a name="l00826"></a>00826                                 MEM_BlockWrite(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)dest_handle*(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_PAGE_SIZE)+dest_off,buf_src,dest_remain);
+<a name="l00827"></a>00827                                 MEM_BlockWrite(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_NextHandle(dest_handle)*(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)MEM_PAGE_SIZE),&amp;buf_src[dest_remain],toread-dest_remain);
 <a name="l00828"></a>00828                         }
 <a name="l00829"></a>00829                 }
 <a name="l00830"></a>00830                 <span class="comment">/* Advance the pointers */</span>
@@ -1104,12 +1104,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01008"></a>01008                                 <span class="keywordflow">for</span> (ct=0; ct&lt;4; ct++) { 
 <a name="l01009"></a>01009                                         Bit16u handle=emm_mappings[ct].handle;
 <a name="l01010"></a>01010                                         <span class="keywordflow">if</span> (handle!=0xffff) {
-<a name="l01011"></a>01011                                                 Bit16u memh=(Bit16u)MEM_NextHandleAt(emm_handles[handle].mem,emm_mappings[ct].page*4);
-<a name="l01012"></a>01012                                                 Bit16u entry_addr=reg_di+(EMM_PAGEFRAME&gt;&gt;6)+(ct*0x10);
-<a name="l01013"></a>01013                                                 real_writew(SegValue(es),entry_addr+0x00+0x01,(memh+0)*0x10);           <span class="comment">// mapping of 1/4 of page</span>
-<a name="l01014"></a>01014                                                 real_writew(SegValue(es),entry_addr+0x04+0x01,(memh+1)*0x10);           <span class="comment">// mapping of 2/4 of page</span>
-<a name="l01015"></a>01015                                                 real_writew(SegValue(es),entry_addr+0x08+0x01,(memh+2)*0x10);           <span class="comment">// mapping of 3/4 of page</span>
-<a name="l01016"></a>01016                                                 real_writew(SegValue(es),entry_addr+0x0c+0x01,(memh+3)*0x10);           <span class="comment">// mapping of 4/4 of page</span>
+<a name="l01011"></a>01011                                                 Bit16u memh=(Bit16u)MEM_NextHandleAt(emm_handles[handle].mem,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)emm_mappings[ct].page*4u);
+<a name="l01012"></a>01012                                                 Bit16u entry_addr=(<span class="keywordtype">unsigned</span> int)reg_di+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(EMM_PAGEFRAME&gt;&gt;6u)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(ct*0x10u);
+<a name="l01013"></a>01013                                                 real_writew(SegValue(es),entry_addr+0x00u+0x01u,(memh+0u)*0x10u);               <span class="comment">// mapping of 1/4 of page</span>
+<a name="l01014"></a>01014                                                 real_writew(SegValue(es),entry_addr+0x04u+0x01u,(memh+1u)*0x10u);               <span class="comment">// mapping of 2/4 of page</span>
+<a name="l01015"></a>01015                                                 real_writew(SegValue(es),entry_addr+0x08u+0x01u,(memh+2u)*0x10u);               <span class="comment">// mapping of 3/4 of page</span>
+<a name="l01016"></a>01016                                                 real_writew(SegValue(es),entry_addr+0x0cu+0x01u,(memh+3u)*0x10u);               <span class="comment">// mapping of 4/4 of page</span>
 <a name="l01017"></a>01017                                         }
 <a name="l01018"></a>01018                                 }
 <a name="l01019"></a>01019                                 reg_di+=0x400;          <span class="comment">// advance pointer by 0x100*4</span>
@@ -1142,7 +1142,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01046"></a>01046                         <span class="keywordflow">case</span> 0x04: {    <span class="comment">/* VCPI Allocate one Page */</span>
 <a name="l01047"></a>01047                                 MemHandle mem = MEM_AllocatePages(1,<span class="keyword">false</span>);
 <a name="l01048"></a>01048                                 <span class="keywordflow">if</span> (mem) {
-<a name="l01049"></a>01049                                         reg_edx=mem&lt;&lt;12;
+<a name="l01049"></a>01049                                         reg_edx=(<span class="keywordtype">unsigned</span> int)mem&lt;&lt;12u;
 <a name="l01050"></a>01050                                         reg_ah=EMM_NO_ERROR;
 <a name="l01051"></a>01051                                 } <span class="keywordflow">else</span> {
 <a name="l01052"></a>01052                                         reg_ah=EMM_OUT_OF_LOG;
@@ -1150,15 +1150,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01054"></a>01054                                 <span class="keywordflow">break</span>;
 <a name="l01055"></a>01055                                 }
 <a name="l01056"></a>01056                         <span class="keywordflow">case</span> 0x05:              <span class="comment">/* VCPI Free Page */</span>
-<a name="l01057"></a>01057                                 MEM_ReleasePages(reg_edx&gt;&gt;12);
+<a name="l01057"></a>01057                                 MEM_ReleasePages((MemHandle)((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)reg_edx&gt;&gt;12u));
 <a name="l01058"></a>01058                                 reg_ah=EMM_NO_ERROR;
 <a name="l01059"></a>01059                                 <span class="keywordflow">break</span>;
 <a name="l01060"></a>01060                         <span class="keywordflow">case</span> 0x06: {    <span class="comment">/* VCPI Get Physical Address of Page in 1st MB */</span>
-<a name="l01061"></a>01061                                 <span class="keywordflow">if</span> (((reg_cx&lt;&lt;8)&gt;=EMM_PAGEFRAME) &amp;&amp; ((reg_cx&lt;&lt;8)&lt;EMM_PAGEFRAME+0x1000)) {
+<a name="l01061"></a>01061                                 <span class="keywordflow">if</span> (((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(reg_cx&lt;&lt;8u)&gt;=(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)EMM_PAGEFRAME) &amp;&amp; ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(reg_cx&lt;&lt;8u)&lt;(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)EMM_PAGEFRAME+0x1000u)) {
 <a name="l01062"></a>01062                                         <span class="comment">/* Page is in Pageframe, so check what EMS-page it is</span>
 <a name="l01063"></a>01063 <span class="comment">                                           and return the physical address */</span>
 <a name="l01064"></a>01064                                         Bit8u phys_page;
-<a name="l01065"></a>01065                                         Bit16u mem_seg=reg_cx&lt;&lt;8;
+<a name="l01065"></a>01065                                         Bit16u mem_seg=(<span class="keywordtype">unsigned</span> int)reg_cx&lt;&lt;8u;
 <a name="l01066"></a>01066                                         <span class="keywordflow">if</span> (mem_seg&lt;EMM_PAGEFRAME+0x400) phys_page=0;
 <a name="l01067"></a>01067                                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mem_seg&lt;EMM_PAGEFRAME+0x800) phys_page=1;
 <a name="l01068"></a>01068                                         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mem_seg&lt;EMM_PAGEFRAME+0xc00) phys_page=2;
@@ -1170,12 +1170,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01074"></a>01074                                         } <span class="keywordflow">else</span> {
 <a name="l01075"></a>01075                                                 MemHandle memh=MEM_NextHandleAt(
 <a name="l01076"></a>01076                                                         emm_handles[handle].mem,
-<a name="l01077"></a>01077                                                         emm_mappings[phys_page].page*4);
-<a name="l01078"></a>01078                                                 reg_edx=(memh+(reg_cx&amp;3))&lt;&lt;12;
+<a name="l01077"></a>01077                                                         emm_mappings[phys_page].page*4u);
+<a name="l01078"></a>01078                                                 reg_edx=((<span class="keywordtype">unsigned</span> int)memh+((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)reg_cx&amp;3u))&lt;&lt;12u;
 <a name="l01079"></a>01079                                         }
 <a name="l01080"></a>01080                                 } <span class="keywordflow">else</span> {
 <a name="l01081"></a>01081                                         <span class="comment">/* Page not in Pageframe, so just translate into physical address */</span>
-<a name="l01082"></a>01082                                         reg_edx=reg_cx&lt;&lt;12;
+<a name="l01082"></a>01082                                         reg_edx=(<span class="keywordtype">unsigned</span> int)reg_cx&lt;&lt;12u;
 <a name="l01083"></a>01083                                 }
 <a name="l01084"></a>01084 
 <a name="l01085"></a>01085                                 reg_ah=EMM_NO_ERROR;
@@ -1265,7 +1265,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01169"></a>01169         <span class="keywordflow">case</span> 0xDE04: {          <span class="comment">/* VCPI Allocate one Page */</span>
 <a name="l01170"></a>01170                 MemHandle mem = MEM_AllocatePages(1,<span class="keyword">false</span>);
 <a name="l01171"></a>01171                 <span class="keywordflow">if</span> (mem) {
-<a name="l01172"></a>01172                         reg_edx=mem&lt;&lt;12;
+<a name="l01172"></a>01172                         reg_edx=(<span class="keywordtype">unsigned</span> int)((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)mem&lt;&lt;12);
 <a name="l01173"></a>01173                         reg_ah=EMM_NO_ERROR;
 <a name="l01174"></a>01174                 } <span class="keywordflow">else</span> {
 <a name="l01175"></a>01175                         reg_ah=EMM_OUT_OF_LOG;
@@ -1273,7 +1273,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01177"></a>01177                 <span class="keywordflow">break</span>;
 <a name="l01178"></a>01178                 }
 <a name="l01179"></a>01179         <span class="keywordflow">case</span> 0xDE05:            <span class="comment">/* VCPI Free Page */</span>
-<a name="l01180"></a>01180                 MEM_ReleasePages(reg_edx&gt;&gt;12);
+<a name="l01180"></a>01180                 MEM_ReleasePages((MemHandle)(reg_edx&gt;&gt;12u));
 <a name="l01181"></a>01181                 reg_ah=EMM_NO_ERROR;
 <a name="l01182"></a>01182                 <span class="keywordflow">break</span>;
 <a name="l01183"></a>01183         <span class="keywordflow">case</span> 0xDE0C: {          <span class="comment">/* VCPI Switch from Protected Mode to V86 */</span>
@@ -1286,13 +1286,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01190"></a>01190                 CPU_SET_CRX(0, CPU_GET_CRX(0)&amp;0x7ffffff7);
 <a name="l01191"></a>01191                 CPU_SET_CRX(3, 0);
 <a name="l01192"></a>01192 
-<a name="l01193"></a>01193                 PhysPt tbaddr=vcpi.private_area+0x0000+(0x10&amp;0xfff8)+5;
+<a name="l01193"></a>01193                 PhysPt tbaddr=(PhysPt)vcpi.private_area+0x0000u+(0x10u&amp;0xfff8u)+5u;
 <a name="l01194"></a>01194                 Bit8u tb=mem_readb(tbaddr);
 <a name="l01195"></a>01195                 mem_writeb(tbaddr, tb&amp;0xfd);
 <a name="l01196"></a>01196 
 <a name="l01197"></a>01197                 <span class="comment">/* Load descriptor table registers */</span>
-<a name="l01198"></a>01198                 CPU_LGDT(0xff, vcpi.private_area+0x0000);
-<a name="l01199"></a>01199                 CPU_LIDT(0x7ff, vcpi.private_area+0x2000);
+<a name="l01198"></a>01198                 CPU_LGDT(0xff, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x0000u);
+<a name="l01199"></a>01199                 CPU_LIDT(0x7ff, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x2000u);
 <a name="l01200"></a>01200                 <span class="keywordflow">if</span> (CPU_LLDT(0x08)) LOG_MSG(<span class="stringliteral">&quot;VCPI:Could not load LDT&quot;</span>);
 <a name="l01201"></a>01201                 <span class="keywordflow">if</span> (CPU_LTR(0x10)) LOG_MSG(<span class="stringliteral">&quot;VCPI:Could not load TR&quot;</span>);
 <a name="l01202"></a>01202 
@@ -1338,7 +1338,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01242"></a>01242 
 <a name="l01243"></a>01243 <span class="keyword">static</span> Bitu V86_Monitor() {
 <a name="l01244"></a>01244         <span class="comment">/* Calculate which interrupt did occur */</span>
-<a name="l01245"></a>01245         Bitu int_num=(mem_readw(SegPhys(ss)+(reg_esp &amp; cpu.stack.mask))-0x2803);
+<a name="l01245"></a>01245         Bitu int_num=((<span class="keywordtype">unsigned</span> int)mem_readw(SegPhys(ss)+((<span class="keywordtype">unsigned</span> int)reg_esp &amp; (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)cpu.stack.mask)) - 0x2803u);
 <a name="l01246"></a>01246 
 <a name="l01247"></a>01247         <span class="comment">/* See if Exception 0x0d and not Interrupt 0x0d */</span>
 <a name="l01248"></a>01248         <span class="keywordflow">if</span> ((int_num==(0x0d*4)) &amp;&amp; ((reg_sp&amp;0xffff)!=0x1fda)) {
@@ -1350,15 +1350,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01254"></a>01254                 <span class="comment">/* Get address of faulting instruction */</span>
 <a name="l01255"></a>01255                 Bit16u v86_cs=mem_readw(SegPhys(ss)+((reg_esp+4) &amp; cpu.stack.mask));
 <a name="l01256"></a>01256                 Bit16u v86_ip=mem_readw(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask));
-<a name="l01257"></a>01257                 Bit8u v86_opcode=mem_readb((v86_cs&lt;&lt;4)+v86_ip);
+<a name="l01257"></a>01257                 Bit8u v86_opcode=mem_readb(((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_cs&lt;&lt;4u)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip);
 <a name="l01258"></a>01258 <span class="comment">//              LOG_MSG(&quot;v86 monitor caught protection violation at %x:%x, opcode=%x&quot;,v86_cs,v86_ip,v86_opcode);</span>
 <a name="l01259"></a>01259                 <span class="keywordflow">switch</span> (v86_opcode) {
 <a name="l01260"></a>01260                         <span class="keywordflow">case</span> 0x0f:              <span class="comment">// double byte opcode</span>
-<a name="l01261"></a>01261                                 v86_opcode=mem_readb((v86_cs&lt;&lt;4)+v86_ip+1);
+<a name="l01261"></a>01261                                 v86_opcode=mem_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(v86_cs&lt;&lt;4u)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+1u);
 <a name="l01262"></a>01262                                 <span class="keywordflow">switch</span> (v86_opcode) {
 <a name="l01263"></a>01263                                         <span class="keywordflow">case</span> 0x20: {    <span class="comment">// mov reg,CRx</span>
-<a name="l01264"></a>01264                                                 Bitu rm_val=mem_readb((v86_cs&lt;&lt;4)+v86_ip+2);
-<a name="l01265"></a>01265                                                 Bitu which=(rm_val &gt;&gt; 3) &amp; 7;
+<a name="l01264"></a>01264                                                 Bitu rm_val=mem_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(v86_cs&lt;&lt;4u)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+2u);
+<a name="l01265"></a>01265                                                 Bitu which=(<span class="keywordtype">unsigned</span> int)(rm_val &gt;&gt; 3u) &amp; 7u;
 <a name="l01266"></a>01266                                                 <span class="keywordflow">if</span> ((rm_val&lt;0xc0) || (rm_val&gt;=0xe8))
 <a name="l01267"></a>01267                                                         E_Exit(<span class="stringliteral">&quot;Invalid opcode 0x0f 0x20 %x caused a protection fault!&quot;</span>,static_cast&lt;unsigned int&gt;(rm_val));
 <a name="l01268"></a>01268                                                 Bit32u crx=CPU_GET_CRX(which);
@@ -1372,12 +1372,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01276"></a>01276                                                         <span class="keywordflow">case</span> 6: reg_esi=crx;    <span class="keywordflow">break</span>;
 <a name="l01277"></a>01277                                                         <span class="keywordflow">case</span> 7: reg_edi=crx;    <span class="keywordflow">break</span>;
 <a name="l01278"></a>01278                                                 }
-<a name="l01279"></a>01279                                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask),v86_ip+3);
+<a name="l01279"></a>01279                                                 mem_writew(SegPhys(ss)+((reg_esp+0u) &amp; cpu.stack.mask),(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+3u);
 <a name="l01280"></a>01280                                                 }
 <a name="l01281"></a>01281                                                 <span class="keywordflow">break</span>;
 <a name="l01282"></a>01282                                         <span class="keywordflow">case</span> 0x22: {    <span class="comment">// mov CRx,reg</span>
-<a name="l01283"></a>01283                                                 Bitu rm_val=mem_readb((v86_cs&lt;&lt;4)+v86_ip+2);
-<a name="l01284"></a>01284                                                 Bitu which=(rm_val &gt;&gt; 3) &amp; 7;
+<a name="l01283"></a>01283                                                 Bitu rm_val=mem_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(v86_cs&lt;&lt;4u)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+2u);
+<a name="l01284"></a>01284                                                 Bitu which=(rm_val &gt;&gt; 3u) &amp; 7u;
 <a name="l01285"></a>01285                                                 <span class="keywordflow">if</span> ((rm_val&lt;0xc0) || (rm_val&gt;=0xe8))
 <a name="l01286"></a>01286                                                         E_Exit(<span class="stringliteral">&quot;Invalid opcode 0x0f 0x22 %x caused a protection fault!&quot;</span>,static_cast&lt;unsigned int&gt;(rm_val));
 <a name="l01287"></a>01287                                                 Bit32u crx=0;
@@ -1401,52 +1401,52 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01305"></a>01305                                 }
 <a name="l01306"></a>01306                                 <span class="keywordflow">break</span>;
 <a name="l01307"></a>01307                         <span class="keywordflow">case</span> 0xe4:              <span class="comment">// IN AL,Ib</span>
-<a name="l01308"></a>01308                                 <span class="keywordflow">if</span> (!VCPI_trapio_r(mem_readb((v86_cs&lt;&lt;4)+v86_ip+1),1))
-<a name="l01309"></a>01309                                         reg_al=(Bit8u)(IO_ReadB(mem_readb((v86_cs&lt;&lt;4)+v86_ip+1))&amp;0xff);
-<a name="l01310"></a>01310                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask),v86_ip+2);
+<a name="l01308"></a>01308                                 <span class="keywordflow">if</span> (!VCPI_trapio_r(mem_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(v86_cs&lt;&lt;4u)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+1u),1))
+<a name="l01309"></a>01309                                         reg_al=(Bit8u)(IO_ReadB(mem_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(v86_cs&lt;&lt;4)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+1))&amp;0xff);
+<a name="l01310"></a>01310                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask),v86_ip+2u);
 <a name="l01311"></a>01311                                 <span class="keywordflow">break</span>;
 <a name="l01312"></a>01312                         <span class="keywordflow">case</span> 0xe5:              <span class="comment">// IN AX,Ib</span>
-<a name="l01313"></a>01313                                 <span class="keywordflow">if</span> (!VCPI_trapio_r(mem_readb((v86_cs&lt;&lt;4)+v86_ip+1),2))
-<a name="l01314"></a>01314                                         reg_ax=(Bit16u)(IO_ReadW(mem_readb((v86_cs&lt;&lt;4)+v86_ip+1))&amp;0xffff);
-<a name="l01315"></a>01315                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask),v86_ip+2);
+<a name="l01313"></a>01313                                 <span class="keywordflow">if</span> (!VCPI_trapio_r(mem_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(v86_cs&lt;&lt;4u)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+1u),2))
+<a name="l01314"></a>01314                                         reg_ax=(Bit16u)(IO_ReadW(mem_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(v86_cs&lt;&lt;4)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+1))&amp;0xffff);
+<a name="l01315"></a>01315                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask),v86_ip+2u);
 <a name="l01316"></a>01316                                 <span class="keywordflow">break</span>;
 <a name="l01317"></a>01317                         <span class="keywordflow">case</span> 0xe6:              <span class="comment">// OUT Ib,AL</span>
-<a name="l01318"></a>01318                                 <span class="keywordflow">if</span> (!VCPI_trapio_w(mem_readb((v86_cs&lt;&lt;4)+v86_ip+1),reg_al,1))
-<a name="l01319"></a>01319                                         IO_WriteB(mem_readb((v86_cs&lt;&lt;4)+v86_ip+1),reg_al);
-<a name="l01320"></a>01320                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask),v86_ip+2);
+<a name="l01318"></a>01318                                 <span class="keywordflow">if</span> (!VCPI_trapio_w(mem_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(v86_cs&lt;&lt;4u)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+1u),reg_al,1))
+<a name="l01319"></a>01319                                         IO_WriteB(mem_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(v86_cs&lt;&lt;4)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+1),reg_al);
+<a name="l01320"></a>01320                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask),v86_ip+2u);
 <a name="l01321"></a>01321                                 <span class="keywordflow">break</span>;
 <a name="l01322"></a>01322                         <span class="keywordflow">case</span> 0xe7:              <span class="comment">// OUT Ib,AX</span>
-<a name="l01323"></a>01323                                 <span class="keywordflow">if</span> (!VCPI_trapio_w(mem_readb((v86_cs&lt;&lt;4)+v86_ip+1),reg_ax,2))
-<a name="l01324"></a>01324                                         IO_WriteW(mem_readb((v86_cs&lt;&lt;4)+v86_ip+1),reg_ax);
-<a name="l01325"></a>01325                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask),v86_ip+2);
+<a name="l01323"></a>01323                                 <span class="keywordflow">if</span> (!VCPI_trapio_w(mem_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(v86_cs&lt;&lt;4u)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+1u),reg_ax,2u))
+<a name="l01324"></a>01324                                         IO_WriteW(mem_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(v86_cs&lt;&lt;4)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+1),reg_ax);
+<a name="l01325"></a>01325                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask),v86_ip+2u);
 <a name="l01326"></a>01326                                 <span class="keywordflow">break</span>;
 <a name="l01327"></a>01327                         <span class="keywordflow">case</span> 0xec:              <span class="comment">// IN AL,DX</span>
 <a name="l01328"></a>01328                                 <span class="keywordflow">if</span> (!VCPI_trapio_r(reg_dx,1))
 <a name="l01329"></a>01329                                         reg_al=(Bit8u)(IO_ReadB(reg_dx)&amp;0xff);
-<a name="l01330"></a>01330                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask),v86_ip+1);
+<a name="l01330"></a>01330                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)cpu.stack.mask),(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+1u);
 <a name="l01331"></a>01331                                 <span class="keywordflow">break</span>;
 <a name="l01332"></a>01332                         <span class="keywordflow">case</span> 0xed:              <span class="comment">// IN AX,DX</span>
 <a name="l01333"></a>01333                                 <span class="keywordflow">if</span> (!VCPI_trapio_r(reg_dx,2))
 <a name="l01334"></a>01334                                         reg_ax=(Bit16u)(IO_ReadW(reg_dx)&amp;0xffff);
-<a name="l01335"></a>01335                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask),v86_ip+1);
+<a name="l01335"></a>01335                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)cpu.stack.mask),(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+1u);
 <a name="l01336"></a>01336                                 <span class="keywordflow">break</span>;
 <a name="l01337"></a>01337                         <span class="keywordflow">case</span> 0xee:              <span class="comment">// OUT DX,AL</span>
 <a name="l01338"></a>01338                                 <span class="keywordflow">if</span> (!VCPI_trapio_w(reg_dx,reg_al,1))
 <a name="l01339"></a>01339                                         IO_WriteB(reg_dx,reg_al);
-<a name="l01340"></a>01340                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask),v86_ip+1);
+<a name="l01340"></a>01340                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)cpu.stack.mask),(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+1u);
 <a name="l01341"></a>01341                                 <span class="keywordflow">break</span>;
 <a name="l01342"></a>01342                         <span class="keywordflow">case</span> 0xef:              <span class="comment">// OUT DX,AX</span>
 <a name="l01343"></a>01343                                 <span class="keywordflow">if</span> (!VCPI_trapio_w(reg_dx,reg_ax,2))
 <a name="l01344"></a>01344                                         IO_WriteW(reg_dx,reg_ax);
-<a name="l01345"></a>01345                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask),v86_ip+1);
+<a name="l01345"></a>01345                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)cpu.stack.mask),(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+1u);
 <a name="l01346"></a>01346                                 <span class="keywordflow">break</span>;
 <a name="l01347"></a>01347                         <span class="keywordflow">case</span> 0xf0:              <span class="comment">// LOCK prefix</span>
-<a name="l01348"></a>01348                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask),v86_ip+1);
+<a name="l01348"></a>01348                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)cpu.stack.mask),(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+1u);
 <a name="l01349"></a>01349                                 <span class="keywordflow">break</span>;
 <a name="l01350"></a>01350                         <span class="keywordflow">case</span> 0xf4:              <span class="comment">// HLT</span>
 <a name="l01351"></a>01351                                 reg_flags|=FLAG_IF;
 <a name="l01352"></a>01352                                 CPU_HLT(reg_eip);
-<a name="l01353"></a>01353                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; cpu.stack.mask),v86_ip+1);
+<a name="l01353"></a>01353                                 mem_writew(SegPhys(ss)+((reg_esp+0) &amp; (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)cpu.stack.mask),(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_ip+1u);
 <a name="l01354"></a>01354                                 <span class="keywordflow">break</span>;
 <a name="l01355"></a>01355                         <span class="keywordflow">default</span>:
 <a name="l01356"></a>01356                                 E_Exit(<span class="stringliteral">&quot;Unhandled opcode %x caused a protection fault!&quot;</span>,v86_opcode);
@@ -1455,40 +1455,40 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01359"></a>01359         }
 <a name="l01360"></a>01360 
 <a name="l01361"></a>01361         <span class="comment">/* Get address to interrupt handler */</span>
-<a name="l01362"></a>01362         Bit16u vint_vector_seg=mem_readw(SegValue(ds)+int_num+2);
+<a name="l01362"></a>01362         Bit16u vint_vector_seg=mem_readw(SegValue(ds)+int_num+2u);
 <a name="l01363"></a>01363         Bit16u vint_vector_ofs=mem_readw(int_num);
-<a name="l01364"></a>01364         <span class="keywordflow">if</span> (reg_sp!=0x1fda) reg_esp+=(2+3*4);   <span class="comment">// Interrupt from within protected mode</span>
+<a name="l01364"></a>01364         <span class="keywordflow">if</span> (reg_sp!=0x1fdau) reg_esp+=(2u+3u*4u);       <span class="comment">// Interrupt from within protected mode</span>
 <a name="l01365"></a>01365         <span class="keywordflow">else</span> reg_esp+=2;
 <a name="l01366"></a>01366 
 <a name="l01367"></a>01367         <span class="comment">/* Read entries that were pushed onto the stack by the interrupt */</span>
 <a name="l01368"></a>01368         Bit16u return_ip=mem_readw(SegPhys(ss)+(reg_esp &amp; cpu.stack.mask));
-<a name="l01369"></a>01369         Bit16u return_cs=mem_readw(SegPhys(ss)+((reg_esp+4) &amp; cpu.stack.mask));
-<a name="l01370"></a>01370         Bit32u return_eflags=mem_readd(SegPhys(ss)+((reg_esp+8) &amp; cpu.stack.mask));
+<a name="l01369"></a>01369         Bit16u return_cs=mem_readw(SegPhys(ss)+((reg_esp+4u) &amp; cpu.stack.mask));
+<a name="l01370"></a>01370         Bit32u return_eflags=mem_readd(SegPhys(ss)+((reg_esp+8u) &amp; cpu.stack.mask));
 <a name="l01371"></a>01371 
 <a name="l01372"></a>01372         <span class="comment">/* Modify stack to call v86-interrupt handler */</span>
 <a name="l01373"></a>01373         mem_writed(SegPhys(ss)+(reg_esp &amp; cpu.stack.mask),vint_vector_ofs);
-<a name="l01374"></a>01374         mem_writed(SegPhys(ss)+((reg_esp+4) &amp; cpu.stack.mask),vint_vector_seg);
-<a name="l01375"></a>01375         mem_writed(SegPhys(ss)+((reg_esp+8) &amp; cpu.stack.mask),return_eflags&amp;(~(FLAG_IF|FLAG_TF)));
+<a name="l01374"></a>01374         mem_writed(SegPhys(ss)+((reg_esp+4u) &amp; cpu.stack.mask),vint_vector_seg);
+<a name="l01375"></a>01375         mem_writed(SegPhys(ss)+((reg_esp+8u) &amp; cpu.stack.mask),return_eflags&amp;(~(FLAG_IF|FLAG_TF)));
 <a name="l01376"></a>01376 
 <a name="l01377"></a>01377         <span class="comment">/* Adjust SP of v86-stack */</span>
-<a name="l01378"></a>01378         Bit16u v86_ss=mem_readw(SegPhys(ss)+((reg_esp+0x10) &amp; cpu.stack.mask));
-<a name="l01379"></a>01379         Bit16u v86_sp=mem_readw(SegPhys(ss)+((reg_esp+0x0c) &amp; cpu.stack.mask))-6;
-<a name="l01380"></a>01380         mem_writew(SegPhys(ss)+((reg_esp+0x0c) &amp; cpu.stack.mask),v86_sp);
+<a name="l01378"></a>01378         Bit16u v86_ss=mem_readw(SegPhys(ss)+((reg_esp+0x10u) &amp; cpu.stack.mask));
+<a name="l01379"></a>01379         Bit16u v86_sp=mem_readw(SegPhys(ss)+((reg_esp+0x0cu) &amp; cpu.stack.mask))-6u;
+<a name="l01380"></a>01380         mem_writew(SegPhys(ss)+((reg_esp+0x0cu) &amp; cpu.stack.mask),v86_sp);
 <a name="l01381"></a>01381 
 <a name="l01382"></a>01382         <span class="comment">/* Return to original code after v86-interrupt handler */</span>
-<a name="l01383"></a>01383         mem_writew((v86_ss&lt;&lt;4)+v86_sp+0,return_ip);
-<a name="l01384"></a>01384         mem_writew((v86_ss&lt;&lt;4)+v86_sp+2,return_cs);
-<a name="l01385"></a>01385         mem_writew((v86_ss&lt;&lt;4)+v86_sp+4,(Bit16u)(return_eflags&amp;0xffff));
+<a name="l01383"></a>01383         mem_writew((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(v86_ss&lt;&lt;4u)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_sp+0u,return_ip);
+<a name="l01384"></a>01384         mem_writew((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(v86_ss&lt;&lt;4u)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_sp+2u,return_cs);
+<a name="l01385"></a>01385         mem_writew((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(v86_ss&lt;&lt;4u)+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)v86_sp+4u,(Bit16u)(return_eflags&amp;0xffffu));
 <a name="l01386"></a>01386         <span class="keywordflow">return</span> CBRET_NONE;
 <a name="l01387"></a>01387 }
 <a name="l01388"></a>01388 
 <a name="l01389"></a>01389 <span class="keyword">inline</span> <span class="keywordtype">void</span> VCPI_iopermw(uint16_t port,<span class="keywordtype">bool</span> <span class="keyword">set</span>) {
 <a name="l01390"></a>01390         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> b;
 <a name="l01391"></a>01391 
-<a name="l01392"></a>01392         b = mem_readb(vcpi.private_area+0x3000+0x68+(port&gt;&gt;3));
-<a name="l01393"></a>01393         <span class="keywordflow">if</span> (<span class="keyword">set</span>) b |= 1&lt;&lt;(port&amp;7);
-<a name="l01394"></a>01394         <span class="keywordflow">else</span> b &amp;= ~(1&lt;&lt;(port&amp;7));
-<a name="l01395"></a>01395         mem_writeb(vcpi.private_area+0x3000+0x68+(port&gt;&gt;3),b);
+<a name="l01392"></a>01392         b = mem_readb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x3000u+0x68u+((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)port&gt;&gt;3u));
+<a name="l01393"></a>01393         <span class="keywordflow">if</span> (<span class="keyword">set</span>) b |= 1u&lt;&lt;(port&amp;7u);
+<a name="l01394"></a>01394         <span class="keywordflow">else</span> b &amp;= ~(1u&lt;&lt;(port&amp;7u));
+<a name="l01395"></a>01395         mem_writeb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x3000u+0x68u+((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)port&gt;&gt;3u),b);
 <a name="l01396"></a>01396 }
 <a name="l01397"></a>01397 
 <a name="l01398"></a>01398 <span class="keyword">static</span> <span class="keywordtype">void</span> SetupVCPI() {
@@ -1498,7 +1498,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01402"></a>01402 <span class="comment">         * And we&#39;re about to write that area directly. So for obvious</span>
 <a name="l01403"></a>01403 <span class="comment">         * reasons we should enable the A20 gate now. This fixes random</span>
 <a name="l01404"></a>01404 <span class="comment">         * crashes in v86 mode when a20=mask as opposed to a20=fast. */</span>
-<a name="l01405"></a>01405         <span class="keywordflow">if</span> ((emm_handles[vcpi.ems_handle].mem&lt;&lt;12) &amp; (1&lt;&lt;20)) {
+<a name="l01405"></a>01405         <span class="keywordflow">if</span> (((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)emm_handles[vcpi.ems_handle].mem&lt;&lt;12u) &amp; (1u&lt;&lt;20u)) {
 <a name="l01406"></a>01406                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;EMS:EMM OS handle is associated with memory on an odd megabyte. Enabling A20 gate to avoid corrupting DOS state, will restore A20 state after this setup phase.&quot;</span>);
 <a name="l01407"></a>01407                 XMS_EnableA20(<span class="keyword">true</span>);
 <a name="l01408"></a>01408         }
@@ -1512,64 +1512,64 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01416"></a>01416         vcpi.pic1_remapping=0x08;       <span class="comment">// master PIC base</span>
 <a name="l01417"></a>01417         vcpi.pic2_remapping=0x70;       <span class="comment">// slave PIC base</span>
 <a name="l01418"></a>01418 
-<a name="l01419"></a>01419         vcpi.private_area=emm_handles[vcpi.ems_handle].mem&lt;&lt;12;
+<a name="l01419"></a>01419         vcpi.private_area=(MemHandle)((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)emm_handles[vcpi.ems_handle].mem&lt;&lt;12u);
 <a name="l01420"></a>01420 
 <a name="l01421"></a>01421         <span class="comment">/* GDT */</span>
-<a name="l01422"></a>01422         mem_writed(vcpi.private_area+0x0000,0x00000000);        <span class="comment">// descriptor 0</span>
-<a name="l01423"></a>01423         mem_writed(vcpi.private_area+0x0004,0x00000000);        <span class="comment">// descriptor 0</span>
+<a name="l01422"></a>01422         mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x0000,0x00000000);  <span class="comment">// descriptor 0</span>
+<a name="l01423"></a>01423         mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x0004,0x00000000);  <span class="comment">// descriptor 0</span>
 <a name="l01424"></a>01424 
-<a name="l01425"></a>01425         Bit32u ldt_address=(vcpi.private_area+0x1000);
+<a name="l01425"></a>01425         Bit32u ldt_address=((<span class="keywordtype">unsigned</span> int)vcpi.private_area+0x1000);
 <a name="l01426"></a>01426         Bit16u ldt_limit=0xff;
-<a name="l01427"></a>01427         Bit32u ldt_desc_part=((ldt_address&amp;0xffff)&lt;&lt;16)|ldt_limit;
-<a name="l01428"></a>01428         mem_writed(vcpi.private_area+0x0008,ldt_desc_part);     <span class="comment">// descriptor 1 (LDT)</span>
-<a name="l01429"></a>01429         ldt_desc_part=((ldt_address&amp;0xff0000)&gt;&gt;16)|(ldt_address&amp;0xff000000)|0x8200;
-<a name="l01430"></a>01430         mem_writed(vcpi.private_area+0x000c,ldt_desc_part);     <span class="comment">// descriptor 1</span>
+<a name="l01427"></a>01427         Bit32u ldt_desc_part=(((<span class="keywordtype">unsigned</span> int)ldt_address&amp;0xffff)&lt;&lt;16u)|(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ldt_limit;
+<a name="l01428"></a>01428         mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x0008,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ldt_desc_part); <span class="comment">// descriptor 1 (LDT)</span>
+<a name="l01429"></a>01429         ldt_desc_part=(((<span class="keywordtype">unsigned</span> int)ldt_address&amp;0xff0000)&gt;&gt;16)|((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ldt_address&amp;0xff000000)|0x8200;
+<a name="l01430"></a>01430         mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x000c,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ldt_desc_part); <span class="comment">// descriptor 1</span>
 <a name="l01431"></a>01431 
-<a name="l01432"></a>01432         Bit32u tss_address=(vcpi.private_area+0x3000);
-<a name="l01433"></a>01433         Bit32u tss_desc_part=((tss_address&amp;0xffff)&lt;&lt;16)|(0x0068+0x200);
-<a name="l01434"></a>01434         mem_writed(vcpi.private_area+0x0010,tss_desc_part);     <span class="comment">// descriptor 2 (TSS)</span>
-<a name="l01435"></a>01435         tss_desc_part=((tss_address&amp;0xff0000)&gt;&gt;16)|(tss_address&amp;0xff000000)|0x8900;
-<a name="l01436"></a>01436         mem_writed(vcpi.private_area+0x0014,tss_desc_part);     <span class="comment">// descriptor 2</span>
+<a name="l01432"></a>01432         Bit32u tss_address=((<span class="keywordtype">unsigned</span> int)vcpi.private_area+0x3000);
+<a name="l01433"></a>01433         Bit32u tss_desc_part=(((<span class="keywordtype">unsigned</span> int)tss_address&amp;0xffff)&lt;&lt;16u)|(0x0068+0x200);
+<a name="l01434"></a>01434         mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x0010,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)tss_desc_part); <span class="comment">// descriptor 2 (TSS)</span>
+<a name="l01435"></a>01435         tss_desc_part=(((<span class="keywordtype">unsigned</span> int)tss_address&amp;0xff0000)&gt;&gt;16)|((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)tss_address&amp;0xff000000)|0x8900;
+<a name="l01436"></a>01436         mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x0014,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)tss_desc_part); <span class="comment">// descriptor 2</span>
 <a name="l01437"></a>01437 
 <a name="l01438"></a>01438         <span class="comment">/* LDT */</span>
-<a name="l01439"></a>01439         mem_writed(vcpi.private_area+0x1000,0x00000000);        <span class="comment">// descriptor 0</span>
-<a name="l01440"></a>01440         mem_writed(vcpi.private_area+0x1004,0x00000000);        <span class="comment">// descriptor 0</span>
-<a name="l01441"></a>01441         Bit32u cs_desc_part=((vcpi.private_area&amp;0xffff)&lt;&lt;16)|0xffff;
-<a name="l01442"></a>01442         mem_writed(vcpi.private_area+0x1008,cs_desc_part);      <span class="comment">// descriptor 1 (code)</span>
-<a name="l01443"></a>01443         cs_desc_part=((vcpi.private_area&amp;0xff0000)&gt;&gt;16)|(vcpi.private_area&amp;0xff000000)|0x9a00;
-<a name="l01444"></a>01444         mem_writed(vcpi.private_area+0x100c,cs_desc_part);      <span class="comment">// descriptor 1</span>
-<a name="l01445"></a>01445         Bit32u ds_desc_part=((vcpi.private_area&amp;0xffff)&lt;&lt;16)|0xffff;
-<a name="l01446"></a>01446         mem_writed(vcpi.private_area+0x1010,ds_desc_part);      <span class="comment">// descriptor 2 (data)</span>
-<a name="l01447"></a>01447         ds_desc_part=((vcpi.private_area&amp;0xff0000)&gt;&gt;16)|(vcpi.private_area&amp;0xff000000)|0x9200;
-<a name="l01448"></a>01448         mem_writed(vcpi.private_area+0x1014,ds_desc_part);      <span class="comment">// descriptor 2</span>
+<a name="l01439"></a>01439         mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x1000,0x00000000);  <span class="comment">// descriptor 0</span>
+<a name="l01440"></a>01440         mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x1004,0x00000000);  <span class="comment">// descriptor 0</span>
+<a name="l01441"></a>01441         Bit32u cs_desc_part=(((<span class="keywordtype">unsigned</span> int)vcpi.private_area&amp;0xffff)&lt;&lt;16u)|0xffff;
+<a name="l01442"></a>01442         mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x1008,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)cs_desc_part);  <span class="comment">// descriptor 1 (code)</span>
+<a name="l01443"></a>01443         cs_desc_part=(((<span class="keywordtype">unsigned</span> int)vcpi.private_area&amp;0xff0000)&gt;&gt;16u)|((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area&amp;0xff000000)|0x9a00;
+<a name="l01444"></a>01444         mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x100c,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)cs_desc_part);  <span class="comment">// descriptor 1</span>
+<a name="l01445"></a>01445         Bit32u ds_desc_part=(((<span class="keywordtype">unsigned</span> int)vcpi.private_area&amp;0xffff)&lt;&lt;16u)|0xffff;
+<a name="l01446"></a>01446         mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x1010,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ds_desc_part);  <span class="comment">// descriptor 2 (data)</span>
+<a name="l01447"></a>01447         ds_desc_part=(((<span class="keywordtype">unsigned</span> int)vcpi.private_area&amp;0xff0000)&gt;&gt;16u)|((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area&amp;0xff000000)|0x9200;
+<a name="l01448"></a>01448         mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x1014,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)ds_desc_part);  <span class="comment">// descriptor 2</span>
 <a name="l01449"></a>01449 
 <a name="l01450"></a>01450         <span class="comment">/* IDT setup */</span>
 <a name="l01451"></a>01451         <span class="keywordflow">for</span> (Bit16u int_ct=0; int_ct&lt;0x100; int_ct++) {
 <a name="l01452"></a>01452                 <span class="comment">/* build a CALL NEAR V86MON, the value of IP pushed by the</span>
 <a name="l01453"></a>01453 <span class="comment">                        CALL is used to identify the interrupt number */</span>
-<a name="l01454"></a>01454                 mem_writeb(vcpi.private_area+0x2800+int_ct*4+0,0xe8);   <span class="comment">// call</span>
-<a name="l01455"></a>01455                 mem_writew(vcpi.private_area+0x2800+int_ct*4+1,0x05fd-(int_ct*4));
-<a name="l01456"></a>01456                 mem_writeb(vcpi.private_area+0x2800+int_ct*4+3,0xcf);   <span class="comment">// iret (dummy)</span>
+<a name="l01454"></a>01454                 mem_writeb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x2800+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)int_ct*4u+0,0xe8);      <span class="comment">// call</span>
+<a name="l01455"></a>01455                 mem_writew((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x2800+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)int_ct*4u+1,0x05fd-((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)int_ct*4u));
+<a name="l01456"></a>01456                 mem_writeb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x2800+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)int_ct*4u+3,0xcf);      <span class="comment">// iret (dummy)</span>
 <a name="l01457"></a>01457 
 <a name="l01458"></a>01458                 <span class="comment">/* put a Gate-Descriptor into the IDT */</span>
-<a name="l01459"></a>01459                 mem_writed(vcpi.private_area+0x2000+int_ct*8+0,0x000c0000|(0x2800+int_ct*4));
-<a name="l01460"></a>01460                 mem_writed(vcpi.private_area+0x2000+int_ct*8+4,0x0000ee00);
+<a name="l01459"></a>01459                 mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x2000+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)int_ct*8u+0,0x000c0000|(0x2800+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)int_ct*4u));
+<a name="l01460"></a>01460                 mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x2000+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)int_ct*8u+4,0x0000ee00);
 <a name="l01461"></a>01461         }
 <a name="l01462"></a>01462 
 <a name="l01463"></a>01463         <span class="comment">/* TSS */</span>
 <a name="l01464"></a>01464         <span class="keywordflow">for</span> (Bitu tse_ct=0; tse_ct&lt;0x68+0x2000<span class="comment">/*all 65536 I/O ports*/</span>; tse_ct++) {
 <a name="l01465"></a>01465                 <span class="comment">/* clear the TSS as most entries are not used here */</span>
-<a name="l01466"></a>01466                 mem_writeb(vcpi.private_area+0x3000+tse_ct,0);
+<a name="l01466"></a>01466                 mem_writeb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x3000+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)tse_ct,0);
 <a name="l01467"></a>01467         }
 <a name="l01468"></a>01468 
 <a name="l01469"></a>01469         <span class="comment">/* trap some ports */</span>
 <a name="l01470"></a>01470         VCPI_iopermw(0x92,<span class="keyword">true</span>);
 <a name="l01471"></a>01471 
 <a name="l01472"></a>01472         <span class="comment">/* Set up the ring0-stack */</span>
-<a name="l01473"></a>01473         mem_writed(vcpi.private_area+0x3004,0x00002000);        <span class="comment">// esp</span>
-<a name="l01474"></a>01474         mem_writed(vcpi.private_area+0x3008,0x00000014);        <span class="comment">// ss</span>
+<a name="l01473"></a>01473         mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x3004,0x00002000);  <span class="comment">// esp</span>
+<a name="l01474"></a>01474         mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x3008,0x00000014);  <span class="comment">// ss</span>
 <a name="l01475"></a>01475 
-<a name="l01476"></a>01476         mem_writed(vcpi.private_area+0x3066,0x0068);            <span class="comment">// io-map base (map follows, all zero)</span>
+<a name="l01476"></a>01476         mem_writed((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x3066,0x0068);              <span class="comment">// io-map base (map follows, all zero)</span>
 <a name="l01477"></a>01477 
 <a name="l01478"></a>01478     XMS_EnableA20(old_a20 != 0);
 <a name="l01479"></a>01479 }
@@ -1714,9 +1714,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01618"></a>01618                         ENABLE_V86_STARTUP=<span class="keyword">false</span>;
 <a name="l01619"></a>01619                 }
 <a name="l01620"></a>01620 
-<a name="l01621"></a>01621                 oshandle_memsize_16kb = section-&gt;Get_int(<span class="stringliteral">&quot;ems system handle memory size&quot;</span>);
+<a name="l01621"></a>01621                 oshandle_memsize_16kb = (<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;ems system handle memory size&quot;</span>);
 <a name="l01622"></a>01622                 <span class="comment">/* convert KB to 16KB pages */</span>
-<a name="l01623"></a>01623                 oshandle_memsize_16kb = (oshandle_memsize_16kb+15)/16;
+<a name="l01623"></a>01623                 oshandle_memsize_16kb = (oshandle_memsize_16kb+15u)/16u;
 <a name="l01624"></a>01624                 <span class="keywordflow">if</span> (oshandle_memsize_16kb == 0) oshandle_memsize_16kb = 1;
 <a name="l01625"></a>01625 
 <a name="l01626"></a>01626                 ems_baseseg=DOS_GetMemory(2,<span class="stringliteral">&quot;ems_baseseg&quot;</span>);     <span class="comment">//We have 32 bytes</span>
@@ -1787,11 +1787,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01691"></a>01691 
 <a name="l01692"></a>01692                 XMS_EnableA20(<span class="keyword">true</span>);
 <a name="l01693"></a>01693 
-<a name="l01694"></a>01694                 mem_writeb(vcpi.private_area+0x2e00,(Bit8u)0xFE);       <span class="comment">//GRP 4</span>
-<a name="l01695"></a>01695                 mem_writeb(vcpi.private_area+0x2e01,(Bit8u)0x38);       <span class="comment">//Extra Callback instruction</span>
-<a name="l01696"></a>01696                 mem_writew(vcpi.private_area+0x2e02,call_v86mon.Get_callback());                <span class="comment">//The immediate word</span>
-<a name="l01697"></a>01697                 mem_writeb(vcpi.private_area+0x2e04,(Bit8u)0x66);
-<a name="l01698"></a>01698                 mem_writeb(vcpi.private_area+0x2e05,(Bit8u)0xCF);       <span class="comment">//A IRETD Instruction</span>
+<a name="l01694"></a>01694                 mem_writeb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x2e00,(Bit8u)0xFE);       <span class="comment">//GRP 4</span>
+<a name="l01695"></a>01695                 mem_writeb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x2e01,(Bit8u)0x38);       <span class="comment">//Extra Callback instruction</span>
+<a name="l01696"></a>01696                 mem_writew((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x2e02,call_v86mon.Get_callback());          <span class="comment">//The immediate word</span>
+<a name="l01697"></a>01697                 mem_writeb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x2e04,(Bit8u)0x66);
+<a name="l01698"></a>01698                 mem_writeb((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x2e05,(Bit8u)0xCF);       <span class="comment">//A IRETD Instruction</span>
 <a name="l01699"></a>01699 
 <a name="l01700"></a>01700                 XMS_EnableA20(old_a20 != 0);
 <a name="l01701"></a>01701             }
@@ -1810,7 +1810,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01714"></a>01714 
 <a name="l01715"></a>01715                                 <span class="comment">/* our V86 state may require A20 enabled to run. the EMM OS handle</span>
 <a name="l01716"></a>01716 <span class="comment">                                 * often resides on an odd megabyte */</span>
-<a name="l01717"></a>01717                                 <span class="keywordflow">if</span> ((emm_handles[vcpi.ems_handle].mem&lt;&lt;12) &amp; (1&lt;&lt;20)) {
+<a name="l01717"></a>01717                                 <span class="keywordflow">if</span> (((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)emm_handles[vcpi.ems_handle].mem&lt;&lt;12u) &amp; (1u&lt;&lt;20u)) {
 <a name="l01718"></a>01718                                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;EMS:EMM OS handle is associated with memory on an odd megabyte. Enabling A20 gate to safely enter V86 mode.&quot;</span>);
 <a name="l01719"></a>01719                                         XMS_EnableA20(<span class="keyword">true</span>);
 <a name="l01720"></a>01720                                 }
@@ -1818,8 +1818,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01722"></a>01722 
 <a name="l01723"></a>01723                                 <span class="comment">/* Prepare V86-task */</span>
 <a name="l01724"></a>01724                                 CPU_SET_CRX(0, 1);
-<a name="l01725"></a>01725                                 CPU_LGDT(0xff, vcpi.private_area+0x0000);
-<a name="l01726"></a>01726                                 CPU_LIDT(0x7ff, vcpi.private_area+0x2000);
+<a name="l01725"></a>01725                                 CPU_LGDT(0xff, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x0000);
+<a name="l01726"></a>01726                                 CPU_LIDT(0x7ff, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)vcpi.private_area+0x2000);
 <a name="l01727"></a>01727                                 <span class="keywordflow">if</span> (CPU_LLDT(0x08)) LOG_MSG(<span class="stringliteral">&quot;VCPI:Could not load LDT&quot;</span>);
 <a name="l01728"></a>01728                                 <span class="keywordflow">if</span> (CPU_LTR(0x10)) LOG_MSG(<span class="stringliteral">&quot;VCPI:Could not load TR&quot;</span>);
 <a name="l01729"></a>01729 
@@ -1941,7 +1941,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -385,7 +385,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00290"></a>00290                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00291"></a>00291         }
 <a name="l00292"></a>00292         <span class="keywordtype">char</span> extended_portname[256] = <span class="stringliteral">&quot;/dev/&quot;</span>;
-<a name="l00293"></a>00293         memcpy(extended_portname+5,portname,len);
+<a name="l00293"></a>00293         memcpy(extended_portname+5,portname,(<span class="keywordtype">size_t</span>)len);
 <a name="l00294"></a>00294 
 <a name="l00295"></a>00295         cp-&gt;porthandle = open (extended_portname, O_RDWR | O_NOCTTY | O_NONBLOCK);
 <a name="l00296"></a>00296         <span class="keywordflow">if</span> (cp-&gt;porthandle &lt; 0) <span class="keywordflow">goto</span> cleanup_error;
@@ -429,7 +429,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00334"></a>00334 <span class="keywordtype">void</span> SERIAL_getErrorString(<span class="keywordtype">char</span>* buffer, <span class="keywordtype">int</span> length) {
 <a name="l00335"></a>00335         <span class="keywordtype">int</span> error = errno;
 <a name="l00336"></a>00336         <span class="keywordflow">if</span>(length &lt; 50) <span class="keywordflow">return</span>;
-<a name="l00337"></a>00337         memset(buffer,0,length);
+<a name="l00337"></a>00337         memset(buffer,0,(<span class="keywordtype">size_t</span>)length);
 <a name="l00338"></a>00338         <span class="comment">// get the error message text from the operating system</span>
 <a name="l00339"></a>00339         <span class="comment">// TODO (or not)</span>
 <a name="l00340"></a>00340         
@@ -440,11 +440,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00345"></a>00345 
 <a name="l00346"></a>00346         <span class="keywordflow">if</span>(error == EBUSY) {
 <a name="l00347"></a>00347                 sysmsg_offset = strlen(err5text);
-<a name="l00348"></a>00348                 memcpy(buffer,err5text,sysmsg_offset);
+<a name="l00348"></a>00348                 memcpy(buffer,err5text,(<span class="keywordtype">size_t</span>)sysmsg_offset);
 <a name="l00349"></a>00349 
 <a name="l00350"></a>00350         } <span class="keywordflow">else</span> <span class="keywordflow">if</span>(error == 2) {
 <a name="l00351"></a>00351                 sysmsg_offset = strlen(err2text);
-<a name="l00352"></a>00352                 memcpy(buffer,err2text,sysmsg_offset);
+<a name="l00352"></a>00352                 memcpy(buffer,err2text,(<span class="keywordtype">size_t</span>)sysmsg_offset);
 <a name="l00353"></a>00353         }
 <a name="l00354"></a>00354         
 <a name="l00355"></a>00355         sprintf(buffer + sysmsg_offset, <span class="stringliteral">&quot;System error %d.&quot;</span>,error);
@@ -546,8 +546,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00451"></a>00451                 <span class="keywordflow">case</span>    110: posix_baudrate = B110; <span class="keywordflow">break</span>;
 <a name="l00452"></a>00452                 <span class="keywordflow">default</span>: <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00453"></a>00453         }
-<a name="l00454"></a>00454         cfsetospeed (&amp;termInfo, posix_baudrate);
-<a name="l00455"></a>00455         cfsetispeed (&amp;termInfo, posix_baudrate);
+<a name="l00454"></a>00454         cfsetospeed (&amp;termInfo, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)posix_baudrate);
+<a name="l00455"></a>00455         cfsetispeed (&amp;termInfo, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)posix_baudrate);
 <a name="l00456"></a>00456 
 <a name="l00457"></a>00457         <span class="keywordtype">int</span> retval = tcsetattr(port-&gt;porthandle, TCSANOW, &amp;termInfo);
 <a name="l00458"></a>00458         <span class="keywordflow">if</span>(retval==-1) <span class="keywordflow">return</span> <span class="keyword">false</span>;
@@ -803,7 +803,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

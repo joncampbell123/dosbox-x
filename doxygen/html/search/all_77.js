@@ -6,6 +6,7 @@ var searchData=
   ['waveformgenerator',['WaveformGenerator',['../classWaveformGenerator.html',1,'']]],
   ['weitek_5fpagehandler',['Weitek_PageHandler',['../classWeitek__PageHandler.html',1,'']]],
   ['wgparam',['WGParam',['../structMT32Emu_1_1TimbreParam_1_1PartialParam_1_1WGParam.html',1,'MT32Emu::TimbreParam::PartialParam']]],
+  ['which',['Which',['../classDOS__Shell.html#af11150e3f79f620378398abad5117222',1,'DOS_Shell']]],
   ['white',['White',['../namespaceGUI_1_1Color.html#a829219859d7031df61c849c3369c30b7',1,'GUI::Color']]],
   ['width',['width',['../classGUI_1_1Window.html#a6cd42974c2b9239d05dac79d284f427d',1,'GUI::Window::width()'],['../classGUI_1_1Drawable.html#a494b6f1edafb1d03279b43b244883a1e',1,'GUI::Drawable::width()'],['../classGUI_1_1BitmapFont.html#a0b9e1113ed04f7d766aeb961b64ab0c3',1,'GUI::BitmapFont::width()']]],
   ['widths',['widths',['../classGUI_1_1BitmapFont.html#a3b38670c62db18777d86dc9dac7d8b20',1,'GUI::BitmapFont']]],
@@ -17,5 +18,8 @@ var searchData=
   ['windowmoved',['windowMoved',['../structGUI_1_1Window__Callback.html#a65e7bae539620c03486613128701b96f',1,'GUI::Window_Callback::windowMoved()'],['../classGUI_1_1TransientWindow.html#a7d6a4d5dbcc98148e501734d8abb85b0',1,'GUI::TransientWindow::windowMoved()']]],
   ['windows',['windows',['../classGUI_1_1Key.html#abc017c8f165f2b4c857c757ef413da3c',1,'GUI::Key']]],
   ['windows_5fdvinfo',['windows_DVINFO',['../structwindows__DVINFO.html',1,'']]],
+  ['writeexitstatus',['WriteExitStatus',['../classProgram.html#ab1fa236943ef14b02c59bc4225d216a1',1,'Program']]],
+  ['writeout',['WriteOut',['../classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71',1,'Program']]],
+  ['writeout_5fnoparsing',['WriteOut_NoParsing',['../classProgram.html#aa45498c7e07ec784b72ed166ab69a847',1,'Program']]],
   ['wrongtype',['WrongType',['../classValue_1_1WrongType.html',1,'Value']]]
 ];

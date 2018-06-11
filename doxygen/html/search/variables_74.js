@@ -1,5 +1,6 @@
 var searchData=
 [
+  ['temp_5fline',['temp_line',['../classProgram.html#ade1241ef2184833339588494094f7d4f',1,'Program']]],
   ['text',['text',['../classGUI_1_1Input.html#af00a3f739e0695bfbdeeb4962b4b3b65',1,'GUI::Input::text()'],['../namespaceGUI_1_1Color.html#a03dba52f1c021d6f5a95ffee044dd839',1,'GUI::Color::Text()']]],
   ['ticks',['ticks',['../classGUI_1_1Timer.html#a619f8c17a217a4524de5ba0e2562870e',1,'GUI::Timer']]],
   ['timers',['timers',['../classGUI_1_1Timer.html#a09c091f0975773995b0a62228d734c21',1,'GUI::Timer']]],

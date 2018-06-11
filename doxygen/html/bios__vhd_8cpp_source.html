@@ -222,7 +222,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00126"></a>00126         }
 <a name="l00127"></a>00127         <span class="comment">//read dynamic disk header (applicable for dynamic and differencing types)</span>
 <a name="l00128"></a>00128         DynamicHeader dynHeader;
-<a name="l00129"></a>00129         <span class="keywordflow">if</span> (fseeko64(file, footer.dataOffset, SEEK_SET)) { <span class="keyword">delete</span> vhd; <span class="keywordflow">return</span> INVALID_DATA; }
+<a name="l00129"></a>00129         <span class="keywordflow">if</span> (fseeko64(file, (off_t)footer.dataOffset, SEEK_SET)) { <span class="keyword">delete</span> vhd; <span class="keywordflow">return</span> INVALID_DATA; }
 <a name="l00130"></a>00130         <span class="keywordflow">if</span> (fread(&amp;dynHeader, <span class="keyword">sizeof</span>(Bit8u), 1024, file) != 1024) { <span class="keyword">delete</span> vhd; <span class="keywordflow">return</span> INVALID_DATA; }
 <a name="l00131"></a>00131         <span class="comment">//swap byte order and validate checksum</span>
 <a name="l00132"></a>00132         dynHeader.SwapByteOrder();
@@ -242,7 +242,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00146"></a>00146                                 Bit32u dataLength = dynHeader.parentLocatorEntry[i].platformDataLength;
 <a name="l00147"></a>00147                                 Bit8u* buffer = 0;
 <a name="l00148"></a>00148                                 <span class="keywordflow">if</span> (dataOffset &amp;&amp; dataLength &amp;&amp; ((Bit64u)dataOffset + dataLength) &lt;= footerPosition) {
-<a name="l00149"></a>00149                                         <span class="keywordflow">if</span> (fseeko64(file, dataOffset, SEEK_SET)) { <span class="keyword">delete</span> vhd; <span class="keywordflow">return</span> INVALID_DATA; }
+<a name="l00149"></a>00149                                         <span class="keywordflow">if</span> (fseeko64(file, (off_t)dataOffset, SEEK_SET)) { <span class="keyword">delete</span> vhd; <span class="keywordflow">return</span> INVALID_DATA; }
 <a name="l00150"></a>00150                                         buffer = (Bit8u*)malloc(dataLength + 2);
 <a name="l00151"></a>00151                                         <span class="keywordflow">if</span> (buffer == 0) { <span class="keyword">delete</span> vhd; <span class="keywordflow">return</span> INVALID_DATA; }
 <a name="l00152"></a>00152                                         <span class="keywordflow">if</span> (fread(buffer, <span class="keyword">sizeof</span>(Bit8u), dataLength, file) != dataLength) { free(buffer); <span class="keyword">delete</span> vhd; <span class="keywordflow">return</span> INVALID_DATA; }
@@ -334,7 +334,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00238"></a>00238                 <span class="comment">//Linux ext3 filenames are byte strings, typically in UTF-8</span>
 <a name="l00239"></a>00239                 <span class="comment">//encode the character to a temporary buffer</span>
 <a name="l00240"></a>00240                 tempout = temp;
-<a name="l00241"></a>00241                 <span class="keywordflow">if</span> (utf8_encode(&amp;tempout, tempoutmax, utf32code) &lt; 0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00241"></a>00241                 <span class="keywordflow">if</span> (utf8_encode(&amp;tempout, tempoutmax, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)utf32code) &lt; 0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00242"></a>00242                 <span class="comment">//and append the byte(s) to the string</span>
 <a name="l00243"></a>00243                 tempout2 = temp;
 <a name="l00244"></a>00244                 <span class="keywordflow">while</span> (tempout2 &lt; tempout) <span class="keywordtype">string</span> += *tempout2++;
@@ -405,7 +405,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00309"></a>00309                 Bit32u bitNum = sectorOffset % 8;
 <a name="l00310"></a>00310                 <span class="keywordtype">bool</span> hasData = currentBlockDirtyMap[byteNum] &amp; (1 &lt;&lt; (7 - bitNum));
 <a name="l00311"></a>00311                 <span class="keywordflow">if</span> (hasData) {
-<a name="l00312"></a>00312                         <span class="keywordflow">if</span> (fseeko64(diskimg, ((Bit64u)currentBlockSectorOffset + blockMapSectors + sectorOffset) * 512, SEEK_SET)) <span class="keywordflow">return</span> 0x05; <span class="comment">//can&#39;t seek</span>
+<a name="l00312"></a>00312                         <span class="keywordflow">if</span> (fseeko64(diskimg, (off_t)(((Bit64u)currentBlockSectorOffset + blockMapSectors + sectorOffset) * 512ull), SEEK_SET)) <span class="keywordflow">return</span> 0x05; <span class="comment">//can&#39;t seek</span>
 <a name="l00313"></a>00313                         <span class="keywordflow">if</span> (fread(data, <span class="keyword">sizeof</span>(Bit8u), 512, diskimg) != 512) <span class="keywordflow">return</span> 0x05; <span class="comment">//can&#39;t read</span>
 <a name="l00314"></a>00314                         <span class="keywordflow">return</span> 0;
 <a name="l00315"></a>00315                 }
@@ -426,31 +426,31 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00330"></a>00330         <span class="keywordflow">if</span> (!currentBlockAllocated) {
 <a name="l00331"></a>00331                 <span class="keywordflow">if</span> (!copiedFooter) {
 <a name="l00332"></a>00332                         <span class="comment">//write backup of footer at start of file (should already exist, but we never checked to be sure it is readable or matches the footer we used)</span>
-<a name="l00333"></a>00333                         <span class="keywordflow">if</span> (fseeko64(diskimg, 0, SEEK_SET)) <span class="keywordflow">return</span> 0x05;
+<a name="l00333"></a>00333                         <span class="keywordflow">if</span> (fseeko64(diskimg, (off_t)0, SEEK_SET)) <span class="keywordflow">return</span> 0x05;
 <a name="l00334"></a>00334                         <span class="keywordflow">if</span> (fwrite(originalFooter.cookie, <span class="keyword">sizeof</span>(Bit8u), 512, diskimg) != 512) <span class="keywordflow">return</span> 0x05;
 <a name="l00335"></a>00335                         copiedFooter = <span class="keyword">true</span>;
 <a name="l00336"></a>00336                         <span class="comment">//flush the data to disk after writing the backup footer</span>
 <a name="l00337"></a>00337                         <span class="keywordflow">if</span> (fflush(diskimg)) <span class="keywordflow">return</span> 0x05;
 <a name="l00338"></a>00338                 }
 <a name="l00339"></a>00339                 <span class="comment">//calculate new location of footer, and round up to nearest 512 byte increment &quot;just in case&quot;</span>
-<a name="l00340"></a>00340                 Bit64u newFooterPosition = (((footerPosition - 512 + blockMapSize + dynamicHeader.blockSize) + 511) / 512) * 512;
+<a name="l00340"></a>00340                 Bit64u newFooterPosition = (((footerPosition - 512ull + blockMapSize + dynamicHeader.blockSize) + 511ull) / 512ull) * 512ull;
 <a name="l00341"></a>00341                 <span class="comment">//attempt to extend the length appropriately first (on some operating systems this will extend the file)</span>
-<a name="l00342"></a>00342                 <span class="keywordflow">if</span> (fseeko64(diskimg, newFooterPosition + 512, SEEK_SET)) <span class="keywordflow">return</span> 0x05;
+<a name="l00342"></a>00342                 <span class="keywordflow">if</span> (fseeko64(diskimg, (off_t)newFooterPosition + 512, SEEK_SET)) <span class="keywordflow">return</span> 0x05;
 <a name="l00343"></a>00343                 <span class="comment">//now write the footer</span>
-<a name="l00344"></a>00344                 <span class="keywordflow">if</span> (fseeko64(diskimg, newFooterPosition, SEEK_SET)) <span class="keywordflow">return</span> 0x05;
+<a name="l00344"></a>00344                 <span class="keywordflow">if</span> (fseeko64(diskimg, (off_t)newFooterPosition, SEEK_SET)) <span class="keywordflow">return</span> 0x05;
 <a name="l00345"></a>00345                 <span class="keywordflow">if</span> (fwrite(originalFooter.cookie, <span class="keyword">sizeof</span>(Bit8u), 512, diskimg) != 512) <span class="keywordflow">return</span> 0x05;
 <a name="l00346"></a>00346                 <span class="comment">//save the new block location and new footer position</span>
-<a name="l00347"></a>00347                 Bit32u newBlockSectorNumber = (Bit32u)((footerPosition + 511) / 512);
+<a name="l00347"></a>00347                 Bit32u newBlockSectorNumber = (Bit32u)((footerPosition + 511ul) / 512ul);
 <a name="l00348"></a>00348                 footerPosition = newFooterPosition;
 <a name="l00349"></a>00349                 <span class="comment">//clear the dirty flags for the new footer position</span>
 <a name="l00350"></a>00350                 <span class="keywordflow">for</span> (Bit32u i = 0; i &lt; blockMapSize; i++) currentBlockDirtyMap[i] = 0;
 <a name="l00351"></a>00351                 <span class="comment">//write the dirty map</span>
-<a name="l00352"></a>00352                 <span class="keywordflow">if</span> (fseeko64(diskimg, newBlockSectorNumber * 512, SEEK_SET)) <span class="keywordflow">return</span> 0x05;
+<a name="l00352"></a>00352                 <span class="keywordflow">if</span> (fseeko64(diskimg, (off_t)(newBlockSectorNumber * 512ull), SEEK_SET)) <span class="keywordflow">return</span> 0x05;
 <a name="l00353"></a>00353                 <span class="keywordflow">if</span> (fwrite(currentBlockDirtyMap, <span class="keyword">sizeof</span>(Bit8u), blockMapSize, diskimg) != blockMapSize) <span class="keywordflow">return</span> 0x05;
 <a name="l00354"></a>00354                 <span class="comment">//flush the data to disk after expanding the file, before allocating the block in the BAT</span>
 <a name="l00355"></a>00355                 <span class="keywordflow">if</span> (fflush(diskimg)) <span class="keywordflow">return</span> 0x05;
 <a name="l00356"></a>00356                 <span class="comment">//update the BAT</span>
-<a name="l00357"></a>00357                 <span class="keywordflow">if</span> (fseeko64(diskimg, dynamicHeader.tableOffset + (blockNumber * 4), SEEK_SET)) <span class="keywordflow">return</span> 0x05;
+<a name="l00357"></a>00357                 <span class="keywordflow">if</span> (fseeko64(diskimg, (off_t)(dynamicHeader.tableOffset + (blockNumber * 4ull)), SEEK_SET)) <span class="keywordflow">return</span> 0x05;
 <a name="l00358"></a>00358                 Bit32u newBlockSectorNumberBE = SDL_SwapBE32(newBlockSectorNumber);
 <a name="l00359"></a>00359                 <span class="keywordflow">if</span> (fwrite(&amp;newBlockSectorNumberBE, <span class="keyword">sizeof</span>(Bit8u), 4, diskimg) != 4) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00360"></a>00360                 currentBlockAllocated = <span class="keyword">true</span>;
@@ -465,12 +465,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00369"></a>00369         <span class="comment">//if the sector hasn&#39;t been marked as dirty, mark it as dirty</span>
 <a name="l00370"></a>00370         <span class="keywordflow">if</span> (!hasData) {
 <a name="l00371"></a>00371                 currentBlockDirtyMap[byteNum] |= 1 &lt;&lt; (7 - bitNum);
-<a name="l00372"></a>00372                 <span class="keywordflow">if</span> (fseeko64(diskimg, currentBlockSectorOffset * 512, SEEK_SET)) <span class="keywordflow">return</span> 0x05; <span class="comment">//can&#39;t seek</span>
+<a name="l00372"></a>00372                 <span class="keywordflow">if</span> (fseeko64(diskimg, (off_t)(currentBlockSectorOffset * 512ull), SEEK_SET)) <span class="keywordflow">return</span> 0x05; <span class="comment">//can&#39;t seek</span>
 <a name="l00373"></a>00373                 <span class="keywordflow">if</span> (fwrite(currentBlockDirtyMap, <span class="keyword">sizeof</span>(Bit8u), blockMapSize, diskimg) != blockMapSize) <span class="keywordflow">return</span> 0x05;
 <a name="l00374"></a>00374         }
 <a name="l00375"></a>00375         <span class="comment">//current sector has now been marked as dirty</span>
 <a name="l00376"></a>00376         <span class="comment">//write the sector</span>
-<a name="l00377"></a>00377         <span class="keywordflow">if</span> (fseeko64(diskimg, ((Bit64u)currentBlockSectorOffset + blockMapSectors + sectorOffset) * 512, SEEK_SET)) <span class="keywordflow">return</span> 0x05; <span class="comment">//can&#39;t seek</span>
+<a name="l00377"></a>00377         <span class="keywordflow">if</span> (fseeko64(diskimg, (off_t)(((Bit64u)currentBlockSectorOffset + (Bit64u)blockMapSectors + (Bit64u)sectorOffset) * 512ull), SEEK_SET)) <span class="keywordflow">return</span> 0x05; <span class="comment">//can&#39;t seek</span>
 <a name="l00378"></a>00378         <span class="keywordflow">if</span> (fwrite(data, <span class="keyword">sizeof</span>(Bit8u), 512, diskimg) != 512) <span class="keywordflow">return</span> 0x05; <span class="comment">//can&#39;t write</span>
 <a name="l00379"></a>00379         <span class="keywordflow">return</span> 0;
 <a name="l00380"></a>00380 }
@@ -488,17 +488,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00392"></a>00392 <span class="keywordtype">bool</span> imageDiskVHD::loadBlock(<span class="keyword">const</span> Bit32u blockNumber) {
 <a name="l00393"></a>00393         <span class="keywordflow">if</span> (currentBlock == blockNumber) <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00394"></a>00394         <span class="keywordflow">if</span> (blockNumber &gt;= dynamicHeader.maxTableEntries) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00395"></a>00395         <span class="keywordflow">if</span> (fseeko64(diskimg, dynamicHeader.tableOffset + (blockNumber * 4), SEEK_SET)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00395"></a>00395         <span class="keywordflow">if</span> (fseeko64(diskimg, (off_t)(dynamicHeader.tableOffset + (blockNumber * 4ull)), SEEK_SET)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00396"></a>00396         Bit32u blockSectorOffset;
 <a name="l00397"></a>00397         <span class="keywordflow">if</span> (fread(&amp;blockSectorOffset, <span class="keyword">sizeof</span>(Bit8u), 4, diskimg) != 4) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00398"></a>00398         blockSectorOffset = SDL_SwapBE32(blockSectorOffset);
-<a name="l00399"></a>00399         <span class="keywordflow">if</span> (blockSectorOffset == 0xFFFFFFFF) {
+<a name="l00399"></a>00399         <span class="keywordflow">if</span> (blockSectorOffset == 0xFFFFFFFFul) {
 <a name="l00400"></a>00400                 currentBlock = blockNumber;
 <a name="l00401"></a>00401                 currentBlockAllocated = <span class="keyword">false</span>;
 <a name="l00402"></a>00402         }
 <a name="l00403"></a>00403         <span class="keywordflow">else</span> {
-<a name="l00404"></a>00404                 <span class="keywordflow">if</span> (fseeko64(diskimg, blockSectorOffset * (Bit64u)512, SEEK_SET)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00405"></a>00405                 currentBlock = 0xFFFFFFFF;
+<a name="l00404"></a>00404                 <span class="keywordflow">if</span> (fseeko64(diskimg, (off_t)(blockSectorOffset * (Bit64u)512), SEEK_SET)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00405"></a>00405                 currentBlock = 0xFFFFFFFFul;
 <a name="l00406"></a>00406                 currentBlockAllocated = <span class="keyword">true</span>;
 <a name="l00407"></a>00407                 currentBlockSectorOffset = blockSectorOffset;
 <a name="l00408"></a>00408                 <span class="keywordflow">if</span> (fread(currentBlockDirtyMap, <span class="keyword">sizeof</span>(Bit8u), blockMapSize, diskimg) != blockMapSize) <span class="keywordflow">return</span> <span class="keyword">false</span>;
@@ -609,7 +609,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -115,35 +115,35 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00019"></a>00019 <span class="keyword">typedef</span> PhysPt (*EA_LookupHandler)(void);
 <a name="l00020"></a>00020 
 <a name="l00021"></a>00021 <span class="comment">/* The MOD/RM Decoder for EA for this decoder&#39;s addressing modes */</span>
-<a name="l00022"></a>00022 <span class="keyword">static</span> PhysPt EA_16_00_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+(Bit16s)reg_si); }
-<a name="l00023"></a>00023 static PhysPt EA_16_01_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+(Bit16s)reg_di); }
-<a name="l00024"></a>00024 static PhysPt EA_16_02_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+(Bit16s)reg_si); }
-<a name="l00025"></a>00025 static PhysPt EA_16_03_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+(Bit16s)reg_di); }
-<a name="l00026"></a>00026 static PhysPt EA_16_04_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_si); }
+<a name="l00022"></a>00022 <span class="keyword">static</span> PhysPt EA_16_00_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+reg_si); }
+<a name="l00023"></a>00023 <span class="keyword">static</span> PhysPt EA_16_01_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+reg_di); }
+<a name="l00024"></a>00024 <span class="keyword">static</span> PhysPt EA_16_02_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+reg_si); }
+<a name="l00025"></a>00025 <span class="keyword">static</span> PhysPt EA_16_03_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+reg_di); }
+<a name="l00026"></a>00026 <span class="keyword">static</span> PhysPt EA_16_04_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_si); }
 <a name="l00027"></a>00027 <span class="keyword">static</span> PhysPt EA_16_05_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_di); }
 <a name="l00028"></a>00028 <span class="keyword">static</span> PhysPt EA_16_06_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(Fetchw());}
 <a name="l00029"></a>00029 <span class="keyword">static</span> PhysPt EA_16_07_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx); }
 <a name="l00030"></a>00030 
-<a name="l00031"></a>00031 <span class="keyword">static</span> PhysPt EA_16_40_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+(Bit16s)reg_si+Fetchbs()); }
-<a name="l00032"></a>00032 static PhysPt EA_16_41_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+(Bit16s)reg_di+Fetchbs()); }
-<a name="l00033"></a>00033 static PhysPt EA_16_42_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+(Bit16s)reg_si+Fetchbs()); }
-<a name="l00034"></a>00034 static PhysPt EA_16_43_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+(Bit16s)reg_di+Fetchbs()); }
-<a name="l00035"></a>00035 static PhysPt EA_16_44_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_si+Fetchbs()); }
-<a name="l00036"></a>00036 <span class="keyword">static</span> PhysPt EA_16_45_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_di+Fetchbs()); }
-<a name="l00037"></a>00037 <span class="keyword">static</span> PhysPt EA_16_46_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+Fetchbs()); }
-<a name="l00038"></a>00038 <span class="keyword">static</span> PhysPt EA_16_47_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+Fetchbs()); }
+<a name="l00031"></a>00031 <span class="keyword">static</span> PhysPt EA_16_40_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+reg_si+(Bit16u)Fetchbs()); }
+<a name="l00032"></a>00032 static PhysPt EA_16_41_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+reg_di+(Bit16u)Fetchbs()); }
+<a name="l00033"></a>00033 static PhysPt EA_16_42_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+reg_si+(Bit16u)Fetchbs()); }
+<a name="l00034"></a>00034 static PhysPt EA_16_43_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+reg_di+(Bit16u)Fetchbs()); }
+<a name="l00035"></a>00035 static PhysPt EA_16_44_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_si+(Bit16u)Fetchbs()); }
+<a name="l00036"></a>00036 static PhysPt EA_16_45_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_di+(Bit16u)Fetchbs()); }
+<a name="l00037"></a>00037 static PhysPt EA_16_46_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+(Bit16u)Fetchbs()); }
+<a name="l00038"></a>00038 static PhysPt EA_16_47_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+(Bit16u)Fetchbs()); }
 <a name="l00039"></a>00039 
-<a name="l00040"></a>00040 <span class="keyword">static</span> PhysPt EA_16_80_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+(Bit16s)reg_si+Fetchws()); }
-<a name="l00041"></a>00041 static PhysPt EA_16_81_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+(Bit16s)reg_di+Fetchws()); }
-<a name="l00042"></a>00042 static PhysPt EA_16_82_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+(Bit16s)reg_si+Fetchws()); }
-<a name="l00043"></a>00043 static PhysPt EA_16_83_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+(Bit16s)reg_di+Fetchws()); }
-<a name="l00044"></a>00044 static PhysPt EA_16_84_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_si+Fetchws()); }
-<a name="l00045"></a>00045 <span class="keyword">static</span> PhysPt EA_16_85_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_di+Fetchws()); }
-<a name="l00046"></a>00046 <span class="keyword">static</span> PhysPt EA_16_86_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+Fetchws()); }
-<a name="l00047"></a>00047 <span class="keyword">static</span> PhysPt EA_16_87_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+Fetchws()); }
+<a name="l00040"></a>00040 static PhysPt EA_16_80_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+reg_si+(Bit16u)Fetchws()); }
+<a name="l00041"></a>00041 static PhysPt EA_16_81_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+reg_di+(Bit16u)Fetchws()); }
+<a name="l00042"></a>00042 static PhysPt EA_16_82_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+reg_si+(Bit16u)Fetchws()); }
+<a name="l00043"></a>00043 static PhysPt EA_16_83_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+reg_di+(Bit16u)Fetchws()); }
+<a name="l00044"></a>00044 static PhysPt EA_16_84_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_si+(Bit16u)Fetchws()); }
+<a name="l00045"></a>00045 static PhysPt EA_16_85_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_di+(Bit16u)Fetchws()); }
+<a name="l00046"></a>00046 static PhysPt EA_16_86_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+(Bit16u)(reg_bp+(Bit16u)Fetchws()); }
+<a name="l00047"></a>00047 static PhysPt EA_16_87_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+(Bit16u)(reg_bx+(Bit16u)Fetchws()); }
 <a name="l00048"></a>00048 
-<a name="l00049"></a>00049 <span class="keyword">static</span> Bit32u SIBZero=0;
-<a name="l00050"></a>00050 <span class="keyword">static</span> Bit32u * SIBIndex[8]= { &amp;reg_eax,&amp;reg_ecx,&amp;reg_edx,&amp;reg_ebx,&amp;SIBZero,&amp;reg_ebp,&amp;reg_esi,&amp;reg_edi };
+<a name="l00049"></a>00049 static Bit32u SIBZero=0;
+<a name="l00050"></a>00050 static Bit32u * SIBIndex[8]= { &amp;reg_eax,&amp;reg_ecx,&amp;reg_edx,&amp;reg_ebx,&amp;SIBZero,&amp;reg_ebp,&amp;reg_esi,&amp;reg_edi };
 <a name="l00051"></a>00051 
 <a name="l00052"></a>00052 <span class="keyword">static</span> INLINE PhysPt Sib(Bitu mode) {
 <a name="l00053"></a>00053         Bit8u sib=Fetchb();
@@ -183,25 +183,25 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00087"></a>00087 <span class="keyword">static</span> PhysPt EA_32_06_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_esi; }
 <a name="l00088"></a>00088 <span class="keyword">static</span> PhysPt EA_32_07_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_edi; }
 <a name="l00089"></a>00089 
-<a name="l00090"></a>00090 <span class="keyword">static</span> PhysPt EA_32_40_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_eax+Fetchbs(); }
-<a name="l00091"></a>00091 <span class="keyword">static</span> PhysPt EA_32_41_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_ecx+Fetchbs(); }
-<a name="l00092"></a>00092 <span class="keyword">static</span> PhysPt EA_32_42_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_edx+Fetchbs(); }
-<a name="l00093"></a>00093 <span class="keyword">static</span> PhysPt EA_32_43_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_ebx+Fetchbs(); }
-<a name="l00094"></a>00094 <span class="keyword">static</span> PhysPt EA_32_44_n(<span class="keywordtype">void</span>) { PhysPt temp=Sib(1);<span class="keywordflow">return</span> temp+Fetchbs();}
+<a name="l00090"></a>00090 <span class="keyword">static</span> PhysPt EA_32_40_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_eax+(PhysPt)Fetchbs(); }
+<a name="l00091"></a>00091 <span class="keyword">static</span> PhysPt EA_32_41_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_ecx+(PhysPt)Fetchbs(); }
+<a name="l00092"></a>00092 <span class="keyword">static</span> PhysPt EA_32_42_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_edx+(PhysPt)Fetchbs(); }
+<a name="l00093"></a>00093 <span class="keyword">static</span> PhysPt EA_32_43_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_ebx+(PhysPt)Fetchbs(); }
+<a name="l00094"></a>00094 <span class="keyword">static</span> PhysPt EA_32_44_n(<span class="keywordtype">void</span>) { PhysPt temp=Sib(1);<span class="keywordflow">return</span> temp+(PhysPt)Fetchbs();}
 <a name="l00095"></a>00095 <span class="comment">//static PhysPt EA_32_44_n(void) { return Sib(1)+Fetchbs();}</span>
-<a name="l00096"></a>00096 <span class="keyword">static</span> PhysPt EA_32_45_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+reg_ebp+Fetchbs(); }
-<a name="l00097"></a>00097 <span class="keyword">static</span> PhysPt EA_32_46_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_esi+Fetchbs(); }
-<a name="l00098"></a>00098 <span class="keyword">static</span> PhysPt EA_32_47_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_edi+Fetchbs(); }
+<a name="l00096"></a>00096 <span class="keyword">static</span> PhysPt EA_32_45_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+reg_ebp+(PhysPt)Fetchbs(); }
+<a name="l00097"></a>00097 <span class="keyword">static</span> PhysPt EA_32_46_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_esi+(PhysPt)Fetchbs(); }
+<a name="l00098"></a>00098 <span class="keyword">static</span> PhysPt EA_32_47_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_edi+(PhysPt)Fetchbs(); }
 <a name="l00099"></a>00099 
-<a name="l00100"></a>00100 <span class="keyword">static</span> PhysPt EA_32_80_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_eax+Fetchds(); }
-<a name="l00101"></a>00101 <span class="keyword">static</span> PhysPt EA_32_81_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_ecx+Fetchds(); }
-<a name="l00102"></a>00102 <span class="keyword">static</span> PhysPt EA_32_82_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_edx+Fetchds(); }
-<a name="l00103"></a>00103 <span class="keyword">static</span> PhysPt EA_32_83_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_ebx+Fetchds(); }
-<a name="l00104"></a>00104 <span class="keyword">static</span> PhysPt EA_32_84_n(<span class="keywordtype">void</span>) { PhysPt temp=Sib(2);<span class="keywordflow">return</span> temp+Fetchds();}
+<a name="l00100"></a>00100 <span class="keyword">static</span> PhysPt EA_32_80_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_eax+(PhysPt)Fetchds(); }
+<a name="l00101"></a>00101 <span class="keyword">static</span> PhysPt EA_32_81_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_ecx+(PhysPt)Fetchds(); }
+<a name="l00102"></a>00102 <span class="keyword">static</span> PhysPt EA_32_82_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_edx+(PhysPt)Fetchds(); }
+<a name="l00103"></a>00103 <span class="keyword">static</span> PhysPt EA_32_83_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_ebx+(PhysPt)Fetchds(); }
+<a name="l00104"></a>00104 <span class="keyword">static</span> PhysPt EA_32_84_n(<span class="keywordtype">void</span>) { PhysPt temp=Sib(2);<span class="keywordflow">return</span> temp+(PhysPt)Fetchds();}
 <a name="l00105"></a>00105 <span class="comment">//static PhysPt EA_32_84_n(void) { return Sib(2)+Fetchds();}</span>
-<a name="l00106"></a>00106 <span class="keyword">static</span> PhysPt EA_32_85_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+reg_ebp+Fetchds(); }
-<a name="l00107"></a>00107 <span class="keyword">static</span> PhysPt EA_32_86_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_esi+Fetchds(); }
-<a name="l00108"></a>00108 <span class="keyword">static</span> PhysPt EA_32_87_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_edi+Fetchds(); }
+<a name="l00106"></a>00106 <span class="keyword">static</span> PhysPt EA_32_85_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseSS+reg_ebp+(PhysPt)Fetchds(); }
+<a name="l00107"></a>00107 <span class="keyword">static</span> PhysPt EA_32_86_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_esi+(PhysPt)Fetchds(); }
+<a name="l00108"></a>00108 <span class="keyword">static</span> PhysPt EA_32_87_n(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> BaseDS+reg_edi+(PhysPt)Fetchds(); }
 <a name="l00109"></a>00109 
 <a name="l00110"></a>00110 <span class="keyword">static</span> GetEAHandler EATable[512]={
 <a name="l00111"></a>00111 <span class="comment">/* 00 */</span>
@@ -298,7 +298,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:02 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

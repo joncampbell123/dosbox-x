@@ -210,14 +210,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00114"></a>00114 <span class="keywordtype">int</span> DBGBlock::name_to_win(<span class="keyword">const</span> <span class="keywordtype">char</span> *name) {
 <a name="l00115"></a>00115     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; DBGBlock::WINI_MAX_INDEX;i++) {
 <a name="l00116"></a>00116         <span class="keywordflow">if</span> (!strcasecmp(name,dbg_win_names[i]))
-<a name="l00117"></a>00117             <span class="keywordflow">return</span> i;
+<a name="l00117"></a>00117             <span class="keywordflow">return</span> (<span class="keywordtype">int</span>)i;
 <a name="l00118"></a>00118     }
 <a name="l00119"></a>00119 
 <a name="l00120"></a>00120     <span class="keywordflow">return</span> -1;
 <a name="l00121"></a>00121 }
 <a name="l00122"></a>00122 
 <a name="l00123"></a>00123 <span class="keywordtype">void</span> DBGBlock::next_window(<span class="keywordtype">void</span>) {
-<a name="l00124"></a>00124     <span class="keywordtype">int</span> order = win_find_order(active_win);
+<a name="l00124"></a>00124     <span class="keywordtype">int</span> order = win_find_order((<span class="keywordtype">int</span>)active_win);
 <a name="l00125"></a>00125 
 <a name="l00126"></a>00126     <span class="keywordflow">if</span> (order &lt; 0) order = 0;
 <a name="l00127"></a>00127 
@@ -247,13 +247,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00151"></a>00151 }
 <a name="l00152"></a>00152 
 <a name="l00153"></a>00153 WINDOW *DBGBlock::get_active_win(<span class="keywordtype">void</span>) {
-<a name="l00154"></a>00154     <span class="keywordflow">return</span> get_win(active_win);
+<a name="l00154"></a>00154     <span class="keywordflow">return</span> get_win((<span class="keywordtype">int</span>)active_win);
 <a name="l00155"></a>00155 }
 <a name="l00156"></a>00156 
 <a name="l00157"></a>00157 <span class="keywordtype">int</span> DBGBlock::win_find_order(<span class="keywordtype">int</span> wnd) {
 <a name="l00158"></a>00158     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i=0;i &lt; DBGBlock::WINI_MAX_INDEX;i++) {
 <a name="l00159"></a>00159         <span class="keywordflow">if</span> (dbg.win_order[i] == wnd)
-<a name="l00160"></a>00160             <span class="keywordflow">return</span> i;
+<a name="l00160"></a>00160             <span class="keywordflow">return</span> (<span class="keywordtype">int</span>)i;
 <a name="l00161"></a>00161     }
 <a name="l00162"></a>00162 
 <a name="l00163"></a>00163     <span class="keywordflow">return</span> -1;
@@ -308,7 +308,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00212"></a>00212 
 <a name="l00213"></a>00213     <span class="comment">/* cut the line short if it&#39;s too long for the terminal window */</span>
 <a name="l00214"></a>00214     <span class="keywordflow">if</span> (line.length() &gt; (size_t)maxx) {
-<a name="l00215"></a>00215         line = line.substr(0,maxx-3);
+<a name="l00215"></a>00215         line = line.substr(0,(<span class="keywordtype">size_t</span>)(maxx - 3));
 <a name="l00216"></a>00216         ellipsisEnd = <span class="keyword">true</span>;
 <a name="l00217"></a>00217     }
 <a name="l00218"></a>00218 
@@ -473,9 +473,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00377"></a>00377                 <span class="keywordflow">return</span>;
 <a name="l00378"></a>00378 
 <a name="l00379"></a>00379     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wnd=0;wnd &lt; DBGBlock::WINI_MAX_INDEX;wnd++) {
-<a name="l00380"></a>00380         WINDOW* &amp;ref = dbg.get_win_ref(wnd);
+<a name="l00380"></a>00380         WINDOW* &amp;ref = dbg.get_win_ref((<span class="keywordtype">int</span>)wnd);
 <a name="l00381"></a>00381 
-<a name="l00382"></a>00382         <span class="keywordflow">if</span> (ref != NULL) DrawSubWinBox(ref,dbg.get_wintitle(wnd));
+<a name="l00382"></a>00382         <span class="keywordflow">if</span> (ref != NULL) DrawSubWinBox(ref,dbg.get_wintitle((<span class="keywordtype">int</span>)wnd));
 <a name="l00383"></a>00383     }
 <a name="l00384"></a>00384 
 <a name="l00385"></a>00385         attrset(0);
@@ -483,7 +483,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00387"></a>00387 
 <a name="l00388"></a>00388 <span class="keyword">static</span> <span class="keywordtype">void</span> DestroySubWindows(<span class="keywordtype">void</span>) {
 <a name="l00389"></a>00389     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wnd=0;wnd &lt; DBGBlock::WINI_MAX_INDEX;wnd++) {
-<a name="l00390"></a>00390         WINDOW* &amp;ref = dbg.get_win_ref(wnd);
+<a name="l00390"></a>00390         WINDOW* &amp;ref = dbg.get_win_ref((<span class="keywordtype">int</span>)wnd);
 <a name="l00391"></a>00391 
 <a name="l00392"></a>00392         <span class="keywordflow">if</span> (ref != NULL) {
 <a name="l00393"></a>00393             <span class="keywordflow">if</span> (ref) delwin(ref);
@@ -519,15 +519,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00423"></a>00423         <span class="keywordflow">if</span> (dbg.win_height[wnd] &gt; 1 &amp;&amp;
 <a name="l00424"></a>00424             dbg.win_vis[wnd] &amp;&amp; (outy+1) &lt; win_limit) {
 <a name="l00425"></a>00425             outy++; <span class="comment">// header</span>
-<a name="l00426"></a>00426             height=dbg.win_height[wnd]-1;
-<a name="l00427"></a>00427             <span class="keywordflow">if</span> ((outy+height) &gt; win_limit) height = win_limit - outy;
+<a name="l00426"></a>00426             height=(int)dbg.win_height[wnd] - 1;
+<a name="l00427"></a>00427             if ((outy+height) &gt; win_limit) height = win_limit - outy;
 <a name="l00428"></a>00428             assert(height &gt; 0);
-<a name="l00429"></a>00429             yofs[wndi]=outy;
-<a name="l00430"></a>00430             yheight[wndi]=height;
+<a name="l00429"></a>00429             yofs[wndi]=(<span class="keywordtype">unsigned</span> int)outy;
+<a name="l00430"></a>00430             yheight[wndi]=(<span class="keywordtype">unsigned</span> int)height;
 <a name="l00431"></a>00431             outy+=height;
 <a name="l00432"></a>00432 
 <a name="l00433"></a>00433             <span class="keywordflow">if</span> (wnd == DBGBlock::WINI_OUT)
-<a name="l00434"></a>00434                 expand_wndi = wndi;
+<a name="l00434"></a>00434                 expand_wndi = (int)wndi;
 <a name="l00435"></a>00435         }
 <a name="l00436"></a>00436         <span class="keywordflow">else</span> {
 <a name="l00437"></a>00437             yofs[wndi]=0;
@@ -550,25 +550,25 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00454"></a>00454         <span class="keywordtype">int</span> expand_by = win_limit - outy;
 <a name="l00455"></a>00455 
 <a name="l00456"></a>00456         <span class="keywordflow">if</span> (expand_wndi &gt;= 0 &amp;&amp; expand_wndi &lt; DBGBlock::WINI_MAX_INDEX) {
-<a name="l00457"></a>00457             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wndi = expand_wndi;
+<a name="l00457"></a>00457             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wndi = (<span class="keywordtype">unsigned</span> int)expand_wndi;
 <a name="l00458"></a>00458 
 <a name="l00459"></a>00459             <span class="comment">/* add height to the window */</span>
-<a name="l00460"></a>00460             yheight[wndi] += expand_by;
-<a name="l00461"></a>00461             outy += wndi;
+<a name="l00460"></a>00460             yheight[wndi] += (<span class="keywordtype">unsigned</span> int)expand_by;
+<a name="l00461"></a>00461             outy += (int)wndi;
 <a name="l00462"></a>00462             wndi++;
 <a name="l00463"></a>00463 
 <a name="l00464"></a>00464             <span class="comment">/* move the others down */</span>
 <a name="l00465"></a>00465             <span class="keywordflow">for</span> (;wndi &lt; DBGBlock::WINI_MAX_INDEX;wndi++)
-<a name="l00466"></a>00466                 yofs[wndi] += expand_by;
+<a name="l00466"></a>00466                 yofs[wndi] += (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)expand_by;
 <a name="l00467"></a>00467         }
 <a name="l00468"></a>00468     }
 <a name="l00469"></a>00469 
 <a name="l00470"></a>00470     <span class="keywordflow">for</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wndi=0;wndi &lt; DBGBlock::WINI_MAX_INDEX;wndi++) {
 <a name="l00471"></a>00471         <span class="keywordflow">if</span> (yheight[wndi] != 0) {
 <a name="l00472"></a>00472             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> wnd = dbg.win_order[wndi];
-<a name="l00473"></a>00473             WINDOW* &amp;ref = dbg.get_win_ref(wnd);
+<a name="l00473"></a>00473             WINDOW* &amp;ref = dbg.get_win_ref((<span class="keywordtype">int</span>)wnd);
 <a name="l00474"></a>00474             assert(ref == NULL);
-<a name="l00475"></a>00475             ref=subwin(dbg.win_main,yheight[wndi],win_main_maxx,yofs[wndi],0);
+<a name="l00475"></a>00475             ref = subwin(dbg.win_main,(<span class="keywordtype">int</span>)yheight[wndi],win_main_maxx,(<span class="keywordtype">int</span>)yofs[wndi],0);
 <a name="l00476"></a>00476         }
 <a name="l00477"></a>00477     }
 <a name="l00478"></a>00478 
@@ -654,7 +654,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00558"></a>00558         <span class="keywordtype">size_t</span> len;
 <a name="l00559"></a>00559 
 <a name="l00560"></a>00560         va_start(msg,format);
-<a name="l00561"></a>00561         len = vsnprintf(buf,<span class="keyword">sizeof</span>(buf)-2,format,msg); <span class="comment">/* &lt;- NTS: Did you know sprintf/vsnprintf returns number of chars written? */</span>
+<a name="l00561"></a>00561         len = (size_t)vsnprintf(buf,<span class="keyword">sizeof</span>(buf)-2u,format,msg); <span class="comment">/* &lt;- NTS: Did you know sprintf/vsnprintf returns number of chars written? */</span>
 <a name="l00562"></a>00562         va_end(msg);
 <a name="l00563"></a>00563 
 <a name="l00564"></a>00564     <span class="comment">/* remove newlines if present */</span>
@@ -902,7 +902,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

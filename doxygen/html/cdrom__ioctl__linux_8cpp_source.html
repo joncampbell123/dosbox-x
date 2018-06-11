@@ -153,62 +153,64 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00057"></a>00057         <span class="keywordtype">int</span> cdrom_fd = open(device_name, O_RDONLY | O_NONBLOCK);
 <a name="l00058"></a>00058         <span class="keywordflow">if</span> (cdrom_fd == -1) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00059"></a>00059         
-<a name="l00060"></a>00060         Bits buflen = raw ? num * CD_FRAMESIZE_RAW : num * CD_FRAMESIZE;
-<a name="l00061"></a>00061         Bit8u* buf = <span class="keyword">new</span> Bit8u[buflen]; 
-<a name="l00062"></a>00062         <span class="keywordtype">int</span> ret;
-<a name="l00063"></a>00063         
-<a name="l00064"></a>00064         <span class="keywordflow">if</span> (raw) {
-<a name="l00065"></a>00065                 <span class="keyword">struct </span>cdrom_read cdrom_read;
-<a name="l00066"></a>00066                 cdrom_read.cdread_lba = sector;
-<a name="l00067"></a>00067                 cdrom_read.cdread_bufaddr = (<span class="keywordtype">char</span>*)buf;
-<a name="l00068"></a>00068                 cdrom_read.cdread_buflen = buflen;
-<a name="l00069"></a>00069                 
-<a name="l00070"></a>00070                 ret = ioctl(cdrom_fd, CDROMREADRAW, &amp;cdrom_read);               
-<a name="l00071"></a>00071         } <span class="keywordflow">else</span> {
-<a name="l00072"></a>00072                 ret = lseek(cdrom_fd, sector * CD_FRAMESIZE, SEEK_SET);
-<a name="l00073"></a>00073                 <span class="keywordflow">if</span> (ret &gt;= 0) ret = read(cdrom_fd, buf, buflen);
-<a name="l00074"></a>00074                 <span class="keywordflow">if</span> (ret != buflen) ret = -1;
-<a name="l00075"></a>00075         }
-<a name="l00076"></a>00076         close(cdrom_fd);
-<a name="l00077"></a>00077 
-<a name="l00078"></a>00078         MEM_BlockWrite(buffer, buf, buflen);
-<a name="l00079"></a>00079         <span class="keyword">delete</span>[] buf;
-<a name="l00080"></a>00080         
-<a name="l00081"></a>00081         <span class="keywordflow">return</span> (ret &gt; 0);
-<a name="l00082"></a>00082 }
-<a name="l00083"></a>00083 
-<a name="l00084"></a>00084 <span class="keywordtype">bool</span> CDROM_Interface_Ioctl::SetDevice(<span class="keywordtype">char</span>* path, <span class="keywordtype">int</span> forceCD)
-<a name="l00085"></a>00085 {
-<a name="l00086"></a>00086         <span class="keywordtype">bool</span> success = CDROM_Interface_SDL::SetDevice(path, forceCD);
-<a name="l00087"></a>00087         
-<a name="l00088"></a>00088         <span class="keywordflow">if</span> (success) {
-<a name="l00089"></a>00089 <span class="preprocessor">#if defined(C_SDL2)</span>
-<a name="l00090"></a>00090 <span class="preprocessor"></span>        strcpy(device_name, <span class="stringliteral">&quot;unknown&quot;</span>);
-<a name="l00091"></a>00091 <span class="preprocessor">#else</span>
-<a name="l00092"></a>00092 <span class="preprocessor"></span>                <span class="keyword">const</span> <span class="keywordtype">char</span>* tmp = SDL_CDName(forceCD);
-<a name="l00093"></a>00093                 <span class="keywordflow">if</span> (tmp) safe_strncpy(device_name, tmp, 512);
-<a name="l00094"></a>00094                 <span class="keywordflow">else</span> success = <span class="keyword">false</span>;
-<a name="l00095"></a>00095 <span class="preprocessor">#endif</span>
-<a name="l00096"></a>00096 <span class="preprocessor"></span>        }
-<a name="l00097"></a>00097         
-<a name="l00098"></a>00098         <span class="keywordflow">return</span> success;
-<a name="l00099"></a>00099 }
-<a name="l00100"></a>00100 
-<a name="l00101"></a>00101 <span class="keywordtype">bool</span> CDROM_Interface_Ioctl::ReadSectorsHost(<span class="keywordtype">void</span> *buffer, <span class="keywordtype">bool</span> raw, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> sector, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> num)
-<a name="l00102"></a>00102 {
-<a name="l00103"></a>00103     (void)buffer;<span class="comment">//UNUSED</span>
-<a name="l00104"></a>00104     (void)sector;<span class="comment">//UNUSED</span>
-<a name="l00105"></a>00105     (void)raw;<span class="comment">//UNUSED</span>
-<a name="l00106"></a>00106     (void)num;<span class="comment">//UNUSED</span>
-<a name="l00107"></a>00107         <span class="keywordflow">return</span> <span class="keyword">false</span>;<span class="comment">/*TODO*/</span>
-<a name="l00108"></a>00108 }
-<a name="l00109"></a>00109 
-<a name="l00110"></a>00110 <span class="preprocessor">#endif</span>
+<a name="l00060"></a>00060         Bitu buflen = raw ? num * (<span class="keywordtype">unsigned</span> int)CD_FRAMESIZE_RAW : num * (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)CD_FRAMESIZE;
+<a name="l00061"></a>00061     assert(buflen != 0u);
+<a name="l00062"></a>00062 
+<a name="l00063"></a>00063         Bit8u* buf = <span class="keyword">new</span> Bit8u[buflen]; 
+<a name="l00064"></a>00064         <span class="keywordtype">int</span> ret;
+<a name="l00065"></a>00065         
+<a name="l00066"></a>00066         <span class="keywordflow">if</span> (raw) {
+<a name="l00067"></a>00067                 <span class="keyword">struct </span>cdrom_read cdrom_read;
+<a name="l00068"></a>00068                 cdrom_read.cdread_lba = sector;
+<a name="l00069"></a>00069                 cdrom_read.cdread_bufaddr = (<span class="keywordtype">char</span>*)buf;
+<a name="l00070"></a>00070                 cdrom_read.cdread_buflen = buflen;
+<a name="l00071"></a>00071                 
+<a name="l00072"></a>00072                 ret = ioctl(cdrom_fd, CDROMREADRAW, &amp;cdrom_read);               
+<a name="l00073"></a>00073         } <span class="keywordflow">else</span> {
+<a name="l00074"></a>00074                 ret = lseek(cdrom_fd, (off_t)(sector * (<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)CD_FRAMESIZE), SEEK_SET);
+<a name="l00075"></a>00075                 <span class="keywordflow">if</span> (ret &gt;= 0) ret = read(cdrom_fd, buf, buflen);
+<a name="l00076"></a>00076                 <span class="keywordflow">if</span> ((Bitu)ret != buflen) ret = -1;
+<a name="l00077"></a>00077         }
+<a name="l00078"></a>00078         close(cdrom_fd);
+<a name="l00079"></a>00079 
+<a name="l00080"></a>00080         MEM_BlockWrite(buffer, buf, buflen);
+<a name="l00081"></a>00081         <span class="keyword">delete</span>[] buf;
+<a name="l00082"></a>00082         
+<a name="l00083"></a>00083         <span class="keywordflow">return</span> (ret &gt; 0);
+<a name="l00084"></a>00084 }
+<a name="l00085"></a>00085 
+<a name="l00086"></a>00086 <span class="keywordtype">bool</span> CDROM_Interface_Ioctl::SetDevice(<span class="keywordtype">char</span>* path, <span class="keywordtype">int</span> forceCD)
+<a name="l00087"></a>00087 {
+<a name="l00088"></a>00088         <span class="keywordtype">bool</span> success = CDROM_Interface_SDL::SetDevice(path, forceCD);
+<a name="l00089"></a>00089         
+<a name="l00090"></a>00090         <span class="keywordflow">if</span> (success) {
+<a name="l00091"></a>00091 <span class="preprocessor">#if defined(C_SDL2)</span>
+<a name="l00092"></a>00092 <span class="preprocessor"></span>        strcpy(device_name, <span class="stringliteral">&quot;unknown&quot;</span>);
+<a name="l00093"></a>00093 <span class="preprocessor">#else</span>
+<a name="l00094"></a>00094 <span class="preprocessor"></span>                <span class="keyword">const</span> <span class="keywordtype">char</span>* tmp = SDL_CDName(forceCD);
+<a name="l00095"></a>00095                 <span class="keywordflow">if</span> (tmp) safe_strncpy(device_name, tmp, 512);
+<a name="l00096"></a>00096                 <span class="keywordflow">else</span> success = <span class="keyword">false</span>;
+<a name="l00097"></a>00097 <span class="preprocessor">#endif</span>
+<a name="l00098"></a>00098 <span class="preprocessor"></span>        }
+<a name="l00099"></a>00099         
+<a name="l00100"></a>00100         <span class="keywordflow">return</span> success;
+<a name="l00101"></a>00101 }
+<a name="l00102"></a>00102 
+<a name="l00103"></a>00103 <span class="keywordtype">bool</span> CDROM_Interface_Ioctl::ReadSectorsHost(<span class="keywordtype">void</span> *buffer, <span class="keywordtype">bool</span> raw, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> sector, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> num)
+<a name="l00104"></a>00104 {
+<a name="l00105"></a>00105     (void)buffer;<span class="comment">//UNUSED</span>
+<a name="l00106"></a>00106     (void)sector;<span class="comment">//UNUSED</span>
+<a name="l00107"></a>00107     (void)raw;<span class="comment">//UNUSED</span>
+<a name="l00108"></a>00108     (void)num;<span class="comment">//UNUSED</span>
+<a name="l00109"></a>00109         <span class="keywordflow">return</span> <span class="keyword">false</span>;<span class="comment">/*TODO*/</span>
+<a name="l00110"></a>00110 }
+<a name="l00111"></a>00111 
+<a name="l00112"></a>00112 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

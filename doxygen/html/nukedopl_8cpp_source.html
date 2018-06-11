@@ -313,7 +313,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00217"></a>00217     phase &amp;= 0x3ff;
 <a name="l00218"></a>00218     <span class="keywordflow">if</span> (phase &amp; 0x200)
 <a name="l00219"></a>00219     {
-<a name="l00220"></a>00220         neg = ~0;
+<a name="l00220"></a>00220         neg = ((Bit16u)(~0u));
 <a name="l00221"></a>00221     }
 <a name="l00222"></a>00222     <span class="keywordflow">if</span> (phase &amp; 0x100)
 <a name="l00223"></a>00223     {
@@ -323,7 +323,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00227"></a>00227     {
 <a name="l00228"></a>00228         out = logsinrom[phase &amp; 0xff];
 <a name="l00229"></a>00229     }
-<a name="l00230"></a>00230     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp(out + (envelope &lt;&lt; 3)) ^ neg;
+<a name="l00230"></a>00230     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)out + ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)envelope &lt;&lt; 3u)) ^ neg;
 <a name="l00231"></a>00231 }
 <a name="l00232"></a>00232 
 <a name="l00233"></a>00233 <span class="keyword">static</span> Bit16s OPL3_EnvelopeCalcSin1(Bit16u phase, Bit16u envelope)
@@ -342,7 +342,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00246"></a>00246     {
 <a name="l00247"></a>00247         out = logsinrom[phase &amp; 0xff];
 <a name="l00248"></a>00248     }
-<a name="l00249"></a>00249     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp(out + (envelope &lt;&lt; 3));
+<a name="l00249"></a>00249     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)out + ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)envelope &lt;&lt; 3u));
 <a name="l00250"></a>00250 }
 <a name="l00251"></a>00251 
 <a name="l00252"></a>00252 <span class="keyword">static</span> Bit16s OPL3_EnvelopeCalcSin2(Bit16u phase, Bit16u envelope)
@@ -357,7 +357,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00261"></a>00261     {
 <a name="l00262"></a>00262         out = logsinrom[phase &amp; 0xff];
 <a name="l00263"></a>00263     }
-<a name="l00264"></a>00264     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp(out + (envelope &lt;&lt; 3));
+<a name="l00264"></a>00264     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)out + ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)envelope &lt;&lt; 3u));
 <a name="l00265"></a>00265 }
 <a name="l00266"></a>00266 
 <a name="l00267"></a>00267 <span class="keyword">static</span> Bit16s OPL3_EnvelopeCalcSin3(Bit16u phase, Bit16u envelope)
@@ -372,7 +372,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00276"></a>00276     {
 <a name="l00277"></a>00277         out = logsinrom[phase &amp; 0xff];
 <a name="l00278"></a>00278     }
-<a name="l00279"></a>00279     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp(out + (envelope &lt;&lt; 3));
+<a name="l00279"></a>00279     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)out + ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)envelope &lt;&lt; 3u));
 <a name="l00280"></a>00280 }
 <a name="l00281"></a>00281 
 <a name="l00282"></a>00282 <span class="keyword">static</span> Bit16s OPL3_EnvelopeCalcSin4(Bit16u phase, Bit16u envelope)
@@ -382,7 +382,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00286"></a>00286     phase &amp;= 0x3ff;
 <a name="l00287"></a>00287     <span class="keywordflow">if</span> ((phase &amp; 0x300) == 0x100)
 <a name="l00288"></a>00288     {
-<a name="l00289"></a>00289         neg = ~0;
+<a name="l00289"></a>00289         neg = ((Bit16u)(~0u));
 <a name="l00290"></a>00290     }
 <a name="l00291"></a>00291     <span class="keywordflow">if</span> (phase &amp; 0x200)
 <a name="l00292"></a>00292     {
@@ -396,7 +396,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00300"></a>00300     {
 <a name="l00301"></a>00301         out = logsinrom[(phase &lt;&lt; 1) &amp; 0xff];
 <a name="l00302"></a>00302     }
-<a name="l00303"></a>00303     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp(out + (envelope &lt;&lt; 3)) ^ neg;
+<a name="l00303"></a>00303     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)out + ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)envelope &lt;&lt; 3u)) ^ neg;
 <a name="l00304"></a>00304 }
 <a name="l00305"></a>00305 
 <a name="l00306"></a>00306 <span class="keyword">static</span> Bit16s OPL3_EnvelopeCalcSin5(Bit16u phase, Bit16u envelope)
@@ -415,7 +415,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00319"></a>00319     {
 <a name="l00320"></a>00320         out = logsinrom[(phase &lt;&lt; 1) &amp; 0xff];
 <a name="l00321"></a>00321     }
-<a name="l00322"></a>00322     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp(out + (envelope &lt;&lt; 3));
+<a name="l00322"></a>00322     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)out + ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)envelope &lt;&lt; 3u));
 <a name="l00323"></a>00323 }
 <a name="l00324"></a>00324 
 <a name="l00325"></a>00325 <span class="keyword">static</span> Bit16s OPL3_EnvelopeCalcSin6(Bit16u phase, Bit16u envelope)
@@ -424,9 +424,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00328"></a>00328     phase &amp;= 0x3ff;
 <a name="l00329"></a>00329     <span class="keywordflow">if</span> (phase &amp; 0x200)
 <a name="l00330"></a>00330     {
-<a name="l00331"></a>00331         neg = ~0;
+<a name="l00331"></a>00331         neg = ((Bit16u)(~0u));
 <a name="l00332"></a>00332     }
-<a name="l00333"></a>00333     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp(envelope &lt;&lt; 3) ^ neg;
+<a name="l00333"></a>00333     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)envelope &lt;&lt; 3u) ^ neg;
 <a name="l00334"></a>00334 }
 <a name="l00335"></a>00335 
 <a name="l00336"></a>00336 <span class="keyword">static</span> Bit16s OPL3_EnvelopeCalcSin7(Bit16u phase, Bit16u envelope)
@@ -436,11 +436,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00340"></a>00340     phase &amp;= 0x3ff;
 <a name="l00341"></a>00341     <span class="keywordflow">if</span> (phase &amp; 0x200)
 <a name="l00342"></a>00342     {
-<a name="l00343"></a>00343         neg = ~0;
+<a name="l00343"></a>00343         neg = ((Bit16u)(~0u));
 <a name="l00344"></a>00344         phase = (phase &amp; 0x1ff) ^ 0x1ff;
 <a name="l00345"></a>00345     }
 <a name="l00346"></a>00346     out = phase &lt;&lt; 3;
-<a name="l00347"></a>00347     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp(out + (envelope &lt;&lt; 3)) ^ neg;
+<a name="l00347"></a>00347     <span class="keywordflow">return</span> OPL3_EnvelopeCalcExp((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)out + ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)envelope &lt;&lt; 3u)) ^ neg;
 <a name="l00348"></a>00348 }
 <a name="l00349"></a>00349 
 <a name="l00350"></a>00350 <span class="keyword">static</span> <span class="keyword">const</span> envelope_sinfunc envelope_sin[8] = {
@@ -662,8 +662,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00566"></a>00566         }
 <a name="l00567"></a>00567         f_num += range;
 <a name="l00568"></a>00568     }
-<a name="l00569"></a>00569     basefreq = (f_num &lt;&lt; slot-&gt;channel-&gt;block) &gt;&gt; 1;
-<a name="l00570"></a>00570     slot-&gt;pg_phase += (basefreq * mt[slot-&gt;reg_mult]) &gt;&gt; 1;
+<a name="l00569"></a>00569     basefreq = (Bit32u)((f_num &lt;&lt; slot-&gt;channel-&gt;block) &gt;&gt; 1);
+<a name="l00570"></a>00570     slot-&gt;pg_phase += (Bit32u)((basefreq * mt[slot-&gt;reg_mult]) &gt;&gt; 1);
 <a name="l00571"></a>00571 }
 <a name="l00572"></a>00572 
 <a name="l00573"></a>00573 <span class="comment">//</span>
@@ -736,7 +736,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00640"></a>00640 
 <a name="l00641"></a>00641 <span class="keyword">static</span> <span class="keywordtype">void</span> OPL3_SlotGeneratePhase(<a class="code" href="structopl3__slot.html">opl3_slot</a> *slot, Bit16u phase)
 <a name="l00642"></a>00642 {
-<a name="l00643"></a>00643     slot-&gt;out = envelope_sin[slot-&gt;reg_wf](phase, slot-&gt;eg_out);
+<a name="l00643"></a>00643     slot-&gt;out = envelope_sin[slot-&gt;reg_wf](phase, (Bit16u)slot-&gt;eg_out);
 <a name="l00644"></a>00644 }
 <a name="l00645"></a>00645 
 <a name="l00646"></a>00646 <span class="keyword">static</span> <span class="keywordtype">void</span> OPL3_SlotGenerate(<a class="code" href="structopl3__slot.html">opl3_slot</a> *slot)
@@ -1033,12 +1033,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00937"></a>00937     }
 <a name="l00938"></a>00938     <span class="keywordflow">if</span> (channel-&gt;chip-&gt;newm)
 <a name="l00939"></a>00939     {
-<a name="l00940"></a>00940         channel-&gt;cha = ((data &gt;&gt; 4) &amp; 0x01) ? ~0 : 0;
-<a name="l00941"></a>00941         channel-&gt;chb = ((data &gt;&gt; 5) &amp; 0x01) ? ~0 : 0;
+<a name="l00940"></a>00940         channel-&gt;cha = (Bit16u)(((data &gt;&gt; 4) &amp; 0x01) ? ~0 : 0);
+<a name="l00941"></a>00941         channel-&gt;chb = (Bit16u)(((data &gt;&gt; 5) &amp; 0x01) ? ~0 : 0);
 <a name="l00942"></a>00942     }
 <a name="l00943"></a>00943     <span class="keywordflow">else</span>
 <a name="l00944"></a>00944     {
-<a name="l00945"></a>00945         channel-&gt;cha = channel-&gt;chb = ~0;
+<a name="l00945"></a>00945         channel-&gt;cha = channel-&gt;chb = (Bit16u)(~0);
 <a name="l00946"></a>00946     }
 <a name="l00947"></a>00947 }
 <a name="l00948"></a>00948 
@@ -1176,10 +1176,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01080"></a>01080     phasebit = ((phase14 &amp; 0x08) | (((phase14 &gt;&gt; 5) ^ phase14) &amp; 0x04)
 <a name="l01081"></a>01081              | (((phase17 &gt;&gt; 2) ^ phase17) &amp; 0x08)) ? 0x01 : 0x00;
 <a name="l01082"></a>01082     <span class="comment">//sd</span>
-<a name="l01083"></a>01083     phase = (0x100 &lt;&lt; ((phase14 &gt;&gt; 8) &amp; 0x01)) ^ ((chip-&gt;noise &amp; 0x01) &lt;&lt; 8);
+<a name="l01083"></a>01083     phase = (Bit32u)(0x100 &lt;&lt; ((phase14 &gt;&gt; 8) &amp; 0x01)) ^ (Bit32u)((chip-&gt;noise &amp; 0x01) &lt;&lt; 8);
 <a name="l01084"></a>01084     OPL3_SlotGeneratePhase(channel7-&gt;slots[1], phase);
 <a name="l01085"></a>01085     <span class="comment">//tc</span>
-<a name="l01086"></a>01086     phase = 0x100 | (phasebit &lt;&lt; 9);
+<a name="l01086"></a>01086     phase = 0x100u | (Bit32u)(phasebit &lt;&lt; 9);
 <a name="l01087"></a>01087     OPL3_SlotGeneratePhase(channel8-&gt;slots[1], phase);
 <a name="l01088"></a>01088 }
 <a name="l01089"></a>01089 
@@ -1349,12 +1349,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01253"></a>01253         chip-&gt;channel[channum].out[2] = &amp;chip-&gt;zeromod;
 <a name="l01254"></a>01254         chip-&gt;channel[channum].out[3] = &amp;chip-&gt;zeromod;
 <a name="l01255"></a>01255         chip-&gt;channel[channum].chtype = ch_2op;
-<a name="l01256"></a>01256         chip-&gt;channel[channum].cha = ~0;
-<a name="l01257"></a>01257         chip-&gt;channel[channum].chb = ~0;
+<a name="l01256"></a>01256         chip-&gt;channel[channum].cha = (Bit16u)(~0);
+<a name="l01257"></a>01257         chip-&gt;channel[channum].chb = (Bit16u)(~0);
 <a name="l01258"></a>01258         OPL3_ChannelSetupAlg(&amp;chip-&gt;channel[channum]);
 <a name="l01259"></a>01259     }
 <a name="l01260"></a>01260     chip-&gt;noise = 0x306600;
-<a name="l01261"></a>01261     chip-&gt;rateratio = (samplerate &lt;&lt; RSM_FRAC) / 49716;
+<a name="l01261"></a>01261     chip-&gt;rateratio = (Bit32s)((samplerate &lt;&lt; RSM_FRAC) / 49716);
 <a name="l01262"></a>01262     chip-&gt;tremoloshift = 4;
 <a name="l01263"></a>01263     chip-&gt;vibshift = 1;
 <a name="l01264"></a>01264 }
@@ -1472,7 +1472,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

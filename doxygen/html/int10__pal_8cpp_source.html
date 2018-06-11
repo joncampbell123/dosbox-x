@@ -120,7 +120,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00024"></a>00024 <span class="preprocessor">#define ACTL_MAX_REG   0x14</span>
 <a name="l00025"></a>00025 <span class="preprocessor"></span>
 <a name="l00026"></a>00026 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> ResetACTL(<span class="keywordtype">void</span>) {
-<a name="l00027"></a>00027         IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+<a name="l00027"></a>00027         IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 <a name="l00028"></a>00028 }
 <a name="l00029"></a>00029 
 <a name="l00030"></a>00030 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> WriteTandyACTL(Bit8u creg,Bit8u val) {
@@ -314,7 +314,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00218"></a>00218                 IO_Write(VGAREG_DAC_DATA,blue);
 <a name="l00219"></a>00219         } <span class="keywordflow">else</span> {
 <a name="l00220"></a>00220                 <span class="comment">/* calculate clamped intensity, taken from VGABIOS */</span>
-<a name="l00221"></a>00221                 Bit32u i=(( 77*red + 151*green + 28*blue ) + 0x80) &gt;&gt; 8;
+<a name="l00221"></a>00221                 Bit32u i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) &gt;&gt; 8u;
 <a name="l00222"></a>00222                 Bit8u ic=(i&gt;0x3f) ? 0x3f : ((Bit8u)(i &amp; 0xff));
 <a name="l00223"></a>00223                 IO_Write(VGAREG_DAC_DATA,ic);
 <a name="l00224"></a>00224                 IO_Write(VGAREG_DAC_DATA,ic);
@@ -344,7 +344,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00248"></a>00248                         Bit8u blue=mem_readb(data++);
 <a name="l00249"></a>00249 
 <a name="l00250"></a>00250                         <span class="comment">/* calculate clamped intensity, taken from VGABIOS */</span>
-<a name="l00251"></a>00251                         Bit32u i=(( 77*red + 151*green + 28*blue ) + 0x80) &gt;&gt; 8;
+<a name="l00251"></a>00251                         Bit32u i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) &gt;&gt; 8u;
 <a name="l00252"></a>00252                         Bit8u ic=(i&gt;0x3f) ? 0x3f : ((Bit8u)(i &amp; 0xff));
 <a name="l00253"></a>00253                         IO_Write(VGAREG_DAC_DATA,ic);
 <a name="l00254"></a>00254                         IO_Write(VGAREG_DAC_DATA,ic);
@@ -521,7 +521,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00425"></a>00425                 Bit8u blue=IO_Read(VGAREG_DAC_DATA);
 <a name="l00426"></a>00426 
 <a name="l00427"></a>00427                 <span class="comment">/* calculate clamped intensity, taken from VGABIOS */</span>
-<a name="l00428"></a>00428                 Bit32u i=(( 77*red + 151*green + 28*blue ) + 0x80) &gt;&gt; 8;
+<a name="l00428"></a>00428                 Bit32u i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) &gt;&gt; 8u;
 <a name="l00429"></a>00429                 Bit8u ic=(i&gt;0x3f) ? 0x3f : ((Bit8u)(i &amp; 0xff));
 <a name="l00430"></a>00430                 INT10_SetSingleDACRegister(start_reg+ct,ic,ic,ic);
 <a name="l00431"></a>00431         }
@@ -530,7 +530,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

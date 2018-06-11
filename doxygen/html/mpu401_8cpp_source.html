@@ -509,7 +509,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00413"></a>00413                                 }
 <a name="l00414"></a>00414                                 <span class="keywordflow">if</span> (val==0) mpu.state.send_now=<span class="keyword">true</span>;
 <a name="l00415"></a>00415                                 <span class="keywordflow">else</span> mpu.state.send_now=<span class="keyword">false</span>;
-<a name="l00416"></a>00416                                 mpu.condbuf.counter=val;
+<a name="l00416"></a>00416                                 mpu.condbuf.counter=(Bits)val;
 <a name="l00417"></a>00417                                 <span class="keywordflow">break</span>;
 <a name="l00418"></a>00418                         <span class="keywordflow">case</span>  1: <span class="comment">/* Command byte #1 */</span>
 <a name="l00419"></a>00419                                 mpu.condbuf.type=T_COMMAND;
@@ -539,7 +539,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00443"></a>00443                         }
 <a name="l00444"></a>00444                         <span class="keywordflow">if</span> (val==0) mpu.state.send_now=<span class="keyword">true</span>;
 <a name="l00445"></a>00445                         <span class="keywordflow">else</span> mpu.state.send_now=<span class="keyword">false</span>;
-<a name="l00446"></a>00446                         mpu.playbuf[mpu.state.channel].counter=val;
+<a name="l00446"></a>00446                         mpu.playbuf[mpu.state.channel].counter=(Bits)val;
 <a name="l00447"></a>00447                         <span class="keywordflow">break</span>;
 <a name="l00448"></a>00448                 <span class="keywordflow">case</span>    1: <span class="comment">/* MIDI */</span>
 <a name="l00449"></a>00449                         mpu.playbuf[mpu.state.channel].vlength++;
@@ -654,7 +654,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00558"></a>00558 next_event:
 <a name="l00559"></a>00559         PIC_RemoveEvents(MPU401_Event);
 <a name="l00560"></a>00560         Bitu new_time;
-<a name="l00561"></a>00561         <span class="keywordflow">if</span> ((new_time=((mpu.clock.tempo*mpu.clock.timebase*mpu.clock.tempo_rel)/0x40))==0) <span class="keywordflow">return</span>;
+<a name="l00561"></a>00561         <span class="keywordflow">if</span> ((new_time=(Bitu)((mpu.clock.tempo*mpu.clock.timebase*mpu.clock.tempo_rel)/0x40))==0) <span class="keywordflow">return</span>;
 <a name="l00562"></a>00562         PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/new_time);
 <a name="l00563"></a>00563 }
 <a name="l00564"></a>00564 
@@ -812,7 +812,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00716"></a>00716             <span class="keywordtype">int</span> x = section-&gt;Get_int(<span class="stringliteral">&quot;mpuirq&quot;</span>);
 <a name="l00717"></a>00717 
 <a name="l00718"></a>00718             <span class="keywordflow">if</span> (x &gt;= 2)
-<a name="l00719"></a>00719                 mpu.irq = x;
+<a name="l00719"></a>00719                 mpu.irq = (<span class="keywordtype">unsigned</span> int)x;
 <a name="l00720"></a>00720 
 <a name="l00721"></a>00721             <span class="keywordflow">if</span> (!IS_PC98_ARCH &amp;&amp; mpu.irq == 2) mpu.irq = 9;
 <a name="l00722"></a>00722         }
@@ -872,7 +872,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -455,9 +455,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00359"></a>00359 <span class="preprocessor">#if C_DEBUG</span>
 <a name="l00360"></a>00360 <span class="preprocessor"></span>                FillFlags();
 <a name="l00361"></a>00361                 <span class="keywordflow">if</span> (((inst.entry &amp; 0xFF)==0xcc) &amp;&amp; DEBUG_Breakpoint()) 
-<a name="l00362"></a>00362                         <span class="keywordflow">return</span> debugCallback;
+<a name="l00362"></a>00362                         <span class="keywordflow">return</span> (Bits)debugCallback;
 <a name="l00363"></a>00363                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (DEBUG_IntBreakpoint(inst_op1_b)) 
-<a name="l00364"></a>00364                         <span class="keywordflow">return</span> debugCallback;
+<a name="l00364"></a>00364                         <span class="keywordflow">return</span> (Bits)debugCallback;
 <a name="l00365"></a>00365 <span class="preprocessor">#endif</span>
 <a name="l00366"></a>00366 <span class="preprocessor"></span>                CPU_SW_Interrupt(inst_op1_b,GetIP());
 <a name="l00367"></a>00367                 <span class="keywordflow">continue</span>;
@@ -662,41 +662,41 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00566"></a>00566                 <span class="keywordflow">break</span>;
 <a name="l00567"></a>00567         <span class="keywordflow">case</span> O_BTw:
 <a name="l00568"></a>00568                 FillFlags();
-<a name="l00569"></a>00569                 SETFLAGBIT(CF,(inst_op1_d &amp; (1 &lt;&lt; (inst_op2_d &amp; 15))));
+<a name="l00569"></a>00569                 SETFLAGBIT(CF,(inst_op1_d &amp; (1u &lt;&lt; (inst_op2_d &amp; 15u))));
 <a name="l00570"></a>00570                 <span class="keywordflow">break</span>;
 <a name="l00571"></a>00571         <span class="keywordflow">case</span> O_BTSw:
 <a name="l00572"></a>00572                 FillFlags();
-<a name="l00573"></a>00573                 SETFLAGBIT(CF,(inst_op1_d &amp; (1 &lt;&lt; (inst_op2_d &amp; 15))));
-<a name="l00574"></a>00574                 inst_op1_d|=(1 &lt;&lt; (inst_op2_d &amp; 15));
+<a name="l00573"></a>00573                 SETFLAGBIT(CF,(inst_op1_d &amp; (1u &lt;&lt; (inst_op2_d &amp; 15u))));
+<a name="l00574"></a>00574                 inst_op1_d|=(1u &lt;&lt; (inst_op2_d &amp; 15u));
 <a name="l00575"></a>00575                 <span class="keywordflow">break</span>;
 <a name="l00576"></a>00576         <span class="keywordflow">case</span> O_BTCw:
 <a name="l00577"></a>00577                 FillFlags();
-<a name="l00578"></a>00578                 SETFLAGBIT(CF,(inst_op1_d &amp; (1 &lt;&lt; (inst_op2_d &amp; 15))));
-<a name="l00579"></a>00579                 inst_op1_d^=(1 &lt;&lt; (inst_op2_d &amp; 15));
+<a name="l00578"></a>00578                 SETFLAGBIT(CF,(inst_op1_d &amp; (1u &lt;&lt; (inst_op2_d &amp; 15u))));
+<a name="l00579"></a>00579                 inst_op1_d^=(1u &lt;&lt; (inst_op2_d &amp; 15u));
 <a name="l00580"></a>00580                 <span class="keywordflow">break</span>;
 <a name="l00581"></a>00581         <span class="keywordflow">case</span> O_BTRw:
 <a name="l00582"></a>00582                 FillFlags();
-<a name="l00583"></a>00583                 SETFLAGBIT(CF,(inst_op1_d &amp; (1 &lt;&lt; (inst_op2_d &amp; 15))));
-<a name="l00584"></a>00584                 inst_op1_d&amp;=~(1 &lt;&lt; (inst_op2_d &amp; 15));
+<a name="l00583"></a>00583                 SETFLAGBIT(CF,(inst_op1_d &amp; (1u &lt;&lt; (inst_op2_d &amp; 15u))));
+<a name="l00584"></a>00584                 inst_op1_d&amp;=~(1u &lt;&lt; (inst_op2_d &amp; 15u));
 <a name="l00585"></a>00585                 <span class="keywordflow">break</span>;
 <a name="l00586"></a>00586         <span class="keywordflow">case</span> O_BTd:
 <a name="l00587"></a>00587                 FillFlags();
-<a name="l00588"></a>00588                 SETFLAGBIT(CF,(inst_op1_d &amp; (1 &lt;&lt; (inst_op2_d &amp; 31))));
+<a name="l00588"></a>00588                 SETFLAGBIT(CF,(inst_op1_d &amp; (1u &lt;&lt; (inst_op2_d &amp; 31u))));
 <a name="l00589"></a>00589                 <span class="keywordflow">break</span>;
 <a name="l00590"></a>00590         <span class="keywordflow">case</span> O_BTSd:
 <a name="l00591"></a>00591                 FillFlags();
-<a name="l00592"></a>00592                 SETFLAGBIT(CF,(inst_op1_d &amp; (1 &lt;&lt; (inst_op2_d &amp; 31))));
-<a name="l00593"></a>00593                 inst_op1_d|=(1 &lt;&lt; (inst_op2_d &amp; 31));
+<a name="l00592"></a>00592                 SETFLAGBIT(CF,(inst_op1_d &amp; (1u &lt;&lt; (inst_op2_d &amp; 31u))));
+<a name="l00593"></a>00593                 inst_op1_d|=(1u &lt;&lt; (inst_op2_d &amp; 31u));
 <a name="l00594"></a>00594                 <span class="keywordflow">break</span>;
 <a name="l00595"></a>00595         <span class="keywordflow">case</span> O_BTCd:
 <a name="l00596"></a>00596                 FillFlags();
-<a name="l00597"></a>00597                 SETFLAGBIT(CF,(inst_op1_d &amp; (1 &lt;&lt; (inst_op2_d &amp; 31))));
-<a name="l00598"></a>00598                 inst_op1_d^=(1 &lt;&lt; (inst_op2_d &amp; 31));
+<a name="l00597"></a>00597                 SETFLAGBIT(CF,(inst_op1_d &amp; (1u &lt;&lt; (inst_op2_d &amp; 31))));
+<a name="l00598"></a>00598                 inst_op1_d^=(1u &lt;&lt; (inst_op2_d &amp; 31u));
 <a name="l00599"></a>00599                 <span class="keywordflow">break</span>;
 <a name="l00600"></a>00600         <span class="keywordflow">case</span> O_BTRd:
 <a name="l00601"></a>00601                 FillFlags();
-<a name="l00602"></a>00602                 SETFLAGBIT(CF,(inst_op1_d &amp; (1 &lt;&lt; (inst_op2_d &amp; 31))));
-<a name="l00603"></a>00603                 inst_op1_d&amp;=~(1 &lt;&lt; (inst_op2_d &amp; 31));
+<a name="l00602"></a>00602                 SETFLAGBIT(CF,(inst_op1_d &amp; (1u &lt;&lt; (inst_op2_d &amp; 31u))));
+<a name="l00603"></a>00603                 inst_op1_d&amp;=~(1u &lt;&lt; (inst_op2_d &amp; 31u));
 <a name="l00604"></a>00604                 <span class="keywordflow">break</span>;
 <a name="l00605"></a>00605         <span class="keywordflow">case</span> O_BSWAPw:
 <a name="l00606"></a>00606                 <span class="keywordflow">if</span> (CPU_ArchitectureType&lt;CPU_ARCHTYPE_486OLD) <span class="keywordflow">goto</span> illegalopcode;
@@ -748,8 +748,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00652"></a>00652 <span class="preprocessor"></span>        <span class="keywordflow">case</span> O_BOUNDw:
 <a name="l00653"></a>00653                 {
 <a name="l00654"></a>00654                         Bit16s bound_min, bound_max;
-<a name="l00655"></a>00655                         bound_min=LoadMw(inst.rm_eaa);
-<a name="l00656"></a>00656                         bound_max=LoadMw(inst.rm_eaa+2);
+<a name="l00655"></a>00655                         bound_min=(Bit16s)LoadMw(inst.rm_eaa);
+<a name="l00656"></a>00656                         bound_max=(Bit16s)LoadMw(inst.rm_eaa+2);
 <a name="l00657"></a>00657                         <span class="keywordflow">if</span> ( (((Bit16s)inst_op1_w) &lt; bound_min) || (((Bit16s)inst_op1_w) &gt; bound_max) ) {
 <a name="l00658"></a>00658                                 EXCEPTION(5);
 <a name="l00659"></a>00659                         }
@@ -765,7 +765,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:02 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -713,7 +713,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00617"></a>00617     <span class="keywordflow">return</span>;
 <a name="l00618"></a>00618   }
 <a name="l00619"></a>00619   <span class="keywordflow">if</span> ((n == 4) &amp;&amp; !sign) {
-<a name="l00620"></a>00620     name = addr_to_hex(delta, 0);
+<a name="l00620"></a>00620     name = addr_to_hex((UINT32)delta, 0);
 <a name="l00621"></a>00621     uprintf(<span class="stringliteral">&quot;%s&quot;</span>, name);
 <a name="l00622"></a>00622     <span class="keywordflow">return</span>;
 <a name="l00623"></a>00623   }
@@ -925,7 +925,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00829"></a>00829 <span class="comment">/*------------------------------------------------------------------------*/</span>
 <a name="l00830"></a>00830 <span class="comment">/* Main table driver                                                      */</span>
 <a name="l00831"></a>00831 
-<a name="l00832"></a>00832 <span class="preprocessor">#define INSTRUCTION_SIZE (int)getbyte_mac - (int)startPtr</span>
+<a name="l00832"></a>00832 <span class="preprocessor">#define INSTRUCTION_SIZE ( (int)getbyte_mac - (int)startPtr )</span>
 <a name="l00833"></a>00833 <span class="preprocessor"></span>
 <a name="l00834"></a>00834 <span class="keyword">static</span> <span class="keywordtype">void</span> percent(<span class="keywordtype">char</span> type, <span class="keywordtype">char</span> subtype)
 <a name="l00835"></a>00835 {
@@ -969,21 +969,21 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00873"></a>00873        <span class="keywordflow">switch</span> (bytes(subtype)) {              <span class="comment">/* sizeof offset value */</span>
 <a name="l00874"></a>00874        <span class="keywordflow">case</span> 1:
 <a name="l00875"></a>00875             vofs = (INT8)getbyte();
-<a name="l00876"></a>00876                         name = addr_to_hex(vofs+instruction_offset+INSTRUCTION_SIZE,0);
+<a name="l00876"></a>00876                         name = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,0);
 <a name="l00877"></a>00877             <span class="keywordflow">break</span>;
 <a name="l00878"></a>00878        <span class="keywordflow">case</span> 2:
-<a name="l00879"></a>00879             vofs = getbyte();
-<a name="l00880"></a>00880             vofs += getbyte()&lt;&lt;8;
-<a name="l00881"></a>00881             vofs = (INT16)vofs;
-<a name="l00882"></a>00882                         name = addr_to_hex(vofs+instruction_offset+INSTRUCTION_SIZE,0);
+<a name="l00879"></a>00879             vofs  = (INT32)((UINT32)getbyte());
+<a name="l00880"></a>00880             vofs |= (INT32)((UINT32)getbyte() &lt;&lt; 8);
+<a name="l00881"></a>00881             vofs  = (INT16)vofs;
+<a name="l00882"></a>00882                         name  = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,0);
 <a name="l00883"></a>00883             <span class="keywordflow">break</span>;
 <a name="l00884"></a>00884                         <span class="comment">/* i386 */</span>
 <a name="l00885"></a>00885        <span class="keywordflow">case</span> 4:
-<a name="l00886"></a>00886             vofs = (UINT32)getbyte();           <span class="comment">/* yuk! */</span>
-<a name="l00887"></a>00887             vofs |= (UINT32)getbyte() &lt;&lt; 8;
-<a name="l00888"></a>00888             vofs |= (UINT32)getbyte() &lt;&lt; 16;
-<a name="l00889"></a>00889             vofs |= (UINT32)getbyte() &lt;&lt; 24;
-<a name="l00890"></a>00890                         name = addr_to_hex(vofs+instruction_offset+INSTRUCTION_SIZE,(addrsize == 32)?0:1);
+<a name="l00886"></a>00886             vofs  = (INT32)((UINT32)getbyte());           <span class="comment">/* yuk! */</span>
+<a name="l00887"></a>00887             vofs |= (INT32)((UINT32)getbyte() &lt;&lt; 8);
+<a name="l00888"></a>00888             vofs |= (INT32)((UINT32)getbyte() &lt;&lt; 16);
+<a name="l00889"></a>00889             vofs |= (INT32)((UINT32)getbyte() &lt;&lt; 24);
+<a name="l00890"></a>00890                         name = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,(addrsize == 32)?0:1);
 <a name="l00891"></a>00891             <span class="keywordflow">break</span>;
 <a name="l00892"></a>00892        }
 <a name="l00893"></a>00893            <span class="keywordflow">if</span> (vofs&lt;0)
@@ -1226,7 +1226,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

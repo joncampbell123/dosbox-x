@@ -196,8 +196,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00100"></a>00100                 <a class="code" href="unionFPU__Reg.html">FPU_Reg</a> eind;
 <a name="l00101"></a>00101         } test;
 <a name="l00102"></a>00102         test.eind.l.lower = mem_readd(addr);
-<a name="l00103"></a>00103         test.eind.l.upper = mem_readd(addr+4);
-<a name="l00104"></a>00104         test.begin = mem_readw(addr+8);
+<a name="l00103"></a>00103         test.eind.l.upper = (Bit32s)mem_readd(addr+4);
+<a name="l00104"></a>00104         test.begin = (Bit16s)mem_readw(addr+8);
 <a name="l00105"></a>00105    
 <a name="l00106"></a>00106         Bit64s exp64 = (((test.begin&amp;0x7fff) - BIAS80));
 <a name="l00107"></a>00107         Bit64s blah = ((exp64 &gt;0)?exp64:-exp64)&amp;0x3ff;
@@ -214,7 +214,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00118"></a>00118         }
 <a name="l00119"></a>00119 
 <a name="l00120"></a>00120         <span class="comment">/* store the raw value. */</span>
-<a name="l00121"></a>00121         raw.raw.l = test.eind.ll;
+<a name="l00121"></a>00121         raw.raw.l = (Bit64u)test.eind.ll;
 <a name="l00122"></a>00122         raw.raw.h = (Bit16u)test.begin;
 <a name="l00123"></a>00123 
 <a name="l00124"></a>00124         <span class="keywordflow">return</span> result.d;
@@ -235,22 +235,22 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00139"></a>00139                         Bit16s begin;
 <a name="l00140"></a>00140                         <a class="code" href="unionFPU__Reg.html">FPU_Reg</a> eind;
 <a name="l00141"></a>00141                 } test;
-<a name="l00142"></a>00142                 Bit64s sign80 = (fpu.regs[reg].ll&amp;LONGTYPE(0x8000000000000000))?1:0;
+<a name="l00142"></a>00142                 Bit64s sign80 = ((Bit64u)fpu.regs[reg].ll&amp;ULONGTYPE(0x8000000000000000))?1:0;
 <a name="l00143"></a>00143                 Bit64s exp80 =  fpu.regs[reg].ll&amp;LONGTYPE(0x7ff0000000000000);
 <a name="l00144"></a>00144                 Bit64s exp80final = (exp80&gt;&gt;52);
 <a name="l00145"></a>00145                 Bit64s mant80 = fpu.regs[reg].ll&amp;LONGTYPE(0x000fffffffffffff);
 <a name="l00146"></a>00146                 Bit64s mant80final = (mant80 &lt;&lt; 11);
 <a name="l00147"></a>00147                 <span class="keywordflow">if</span>(fpu.regs[reg].d != 0){ <span class="comment">//Zero is a special case</span>
 <a name="l00148"></a>00148                         <span class="comment">// Elvira wants the 8 and tcalc doesn&#39;t</span>
-<a name="l00149"></a>00149                         mant80final |= LONGTYPE(0x8000000000000000);
+<a name="l00149"></a>00149                         mant80final |= (Bit64s)ULONGTYPE(0x8000000000000000);
 <a name="l00150"></a>00150                         <span class="comment">//Ca-cyber doesn&#39;t like this when result is zero.</span>
 <a name="l00151"></a>00151                         exp80final += (BIAS80 - BIAS64);
 <a name="l00152"></a>00152                 }
 <a name="l00153"></a>00153                 test.begin = (<span class="keyword">static_cast&lt;</span>Bit16s<span class="keyword">&gt;</span>(sign80)&lt;&lt;15)| <span class="keyword">static_cast&lt;</span>Bit16s<span class="keyword">&gt;</span>(exp80final);
 <a name="l00154"></a>00154                 test.eind.ll = mant80final;
 <a name="l00155"></a>00155                 mem_writed(addr,test.eind.l.lower);
-<a name="l00156"></a>00156                 mem_writed(addr+4,test.eind.l.upper);
-<a name="l00157"></a>00157                 mem_writew(addr+8,test.begin);
+<a name="l00156"></a>00156                 mem_writed(addr+4,(uint32_t)test.eind.l.upper);
+<a name="l00157"></a>00157                 mem_writew(addr+8,(uint16_t)test.begin);
 <a name="l00158"></a>00158         }
 <a name="l00159"></a>00159 }
 <a name="l00160"></a>00160 
@@ -267,7 +267,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00171"></a>00171 
 <a name="l00172"></a>00172 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLD_F64(PhysPt addr,Bitu store_to) {
 <a name="l00173"></a>00173         fpu.regs[store_to].l.lower = mem_readd(addr);
-<a name="l00174"></a>00174         fpu.regs[store_to].l.upper = mem_readd(addr+4);
+<a name="l00174"></a>00174         fpu.regs[store_to].l.upper = (Bit32s)mem_readd(addr+4);
 <a name="l00175"></a>00175         fpu.use80[store_to] = <span class="keyword">false</span>;
 <a name="l00176"></a>00176 }
 <a name="l00177"></a>00177 
@@ -277,13 +277,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00181"></a>00181 }
 <a name="l00182"></a>00182 
 <a name="l00183"></a>00183 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLD_I16(PhysPt addr,Bitu store_to) {
-<a name="l00184"></a>00184         Bit16s blah = mem_readw(addr);
+<a name="l00184"></a>00184         Bit16s blah = (Bit16s)mem_readw(addr);
 <a name="l00185"></a>00185         fpu.regs[store_to].d = <span class="keyword">static_cast&lt;</span>Real64<span class="keyword">&gt;</span>(blah);
 <a name="l00186"></a>00186         fpu.use80[store_to] = <span class="keyword">false</span>;
 <a name="l00187"></a>00187 }
 <a name="l00188"></a>00188 
 <a name="l00189"></a>00189 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLD_I32(PhysPt addr,Bitu store_to) {
-<a name="l00190"></a>00190         Bit32s blah = mem_readd(addr);
+<a name="l00190"></a>00190         Bit32s blah = (Bit32s)mem_readd(addr);
 <a name="l00191"></a>00191         fpu.regs[store_to].d = <span class="keyword">static_cast&lt;</span>Real64<span class="keyword">&gt;</span>(blah);
 <a name="l00192"></a>00192         fpu.use80[store_to] = <span class="keyword">false</span>;
 <a name="l00193"></a>00193 }
@@ -291,13 +291,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00195"></a>00195 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FLD_I64(PhysPt addr,Bitu store_to) {
 <a name="l00196"></a>00196         <a class="code" href="unionFPU__Reg.html">FPU_Reg</a> blah;
 <a name="l00197"></a>00197         blah.l.lower = mem_readd(addr);
-<a name="l00198"></a>00198         blah.l.upper = mem_readd(addr+4);
+<a name="l00198"></a>00198         blah.l.upper = (Bit32s)mem_readd(addr+4);
 <a name="l00199"></a>00199         fpu.regs[store_to].d = <span class="keyword">static_cast&lt;</span>Real64<span class="keyword">&gt;</span>(blah.ll);
 <a name="l00200"></a>00200         <span class="comment">// store the signed 64-bit integer in the 80-bit format mantissa with faked exponent.</span>
 <a name="l00201"></a>00201         <span class="comment">// this is needed for DOS and Windows games that use the Pentium fast memcpy trick, using FLD/FST to copy 64 bits at a time.</span>
 <a name="l00202"></a>00202         <span class="comment">// I wonder if that trick is what helped spur Intel to make the MMX extensions :)</span>
-<a name="l00203"></a>00203         fpu.regs_80[store_to].raw.l = blah.ll;
-<a name="l00204"></a>00204         fpu.regs_80[store_to].raw.h = ((blah.ll<span class="comment">/*sign bit*/</span> &gt;&gt; (Bit64u)63) ? 0x8000 : 0x0000) + FPU_Reg_80_exponent_bias + 63; <span class="comment">// FIXME: Verify this is correct!</span>
+<a name="l00203"></a>00203         fpu.regs_80[store_to].raw.l = (Bit64u)blah.ll;
+<a name="l00204"></a>00204         fpu.regs_80[store_to].raw.h = ((blah.ll<span class="comment">/*sign bit*/</span> &gt;&gt; (Bit64u)63) ? 0x8000u : 0x0000u) + FPU_Reg_80_exponent_bias + 63u; <span class="comment">// FIXME: Verify this is correct!</span>
 <a name="l00205"></a>00205         fpu.use80[store_to] = <span class="keyword">true</span>;
 <a name="l00206"></a>00206 }
 <a name="l00207"></a>00207 
@@ -349,8 +349,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00253"></a>00253 }
 <a name="l00254"></a>00254 
 <a name="l00255"></a>00255 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FST_F64(PhysPt addr) {
-<a name="l00256"></a>00256         mem_writed(addr,fpu.regs[TOP].l.lower);
-<a name="l00257"></a>00257         mem_writed(addr+4,fpu.regs[TOP].l.upper);
+<a name="l00256"></a>00256         mem_writed(addr,(uint32_t)fpu.regs[TOP].l.lower);
+<a name="l00257"></a>00257         mem_writed(addr+4,(uint32_t)fpu.regs[TOP].l.upper);
 <a name="l00258"></a>00258 }
 <a name="l00259"></a>00259 
 <a name="l00260"></a>00260 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FST_F80(PhysPt addr) {
@@ -358,16 +358,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00262"></a>00262 }
 <a name="l00263"></a>00263 
 <a name="l00264"></a>00264 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FST_I16(PhysPt addr) {
-<a name="l00265"></a>00265         mem_writew(addr,static_cast&lt;Bit16s&gt;(FROUND(fpu.regs[TOP].d)));
+<a name="l00265"></a>00265         mem_writew(addr,(uint16_t)static_cast&lt;Bit16s&gt;(FROUND(fpu.regs[TOP].d)));
 <a name="l00266"></a>00266 }
 <a name="l00267"></a>00267 
 <a name="l00268"></a>00268 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FST_I32(PhysPt addr) {
-<a name="l00269"></a>00269         mem_writed(addr,static_cast&lt;Bit32s&gt;(FROUND(fpu.regs[TOP].d)));
+<a name="l00269"></a>00269         mem_writed(addr,(uint32_t)static_cast&lt;Bit32s&gt;(FROUND(fpu.regs[TOP].d)));
 <a name="l00270"></a>00270 }
 <a name="l00271"></a>00271 
 <a name="l00272"></a>00272 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FST_I64(PhysPt addr) {
 <a name="l00273"></a>00273         <a class="code" href="unionFPU__Reg.html">FPU_Reg</a> blah;
-<a name="l00274"></a>00274         <span class="keywordflow">if</span> (fpu.use80[TOP] &amp;&amp; (fpu.regs_80[TOP].raw.h &amp; 0x7FFF) == (0x0000 + FPU_Reg_80_exponent_bias + 63)) {
+<a name="l00274"></a>00274         <span class="keywordflow">if</span> (fpu.use80[TOP] &amp;&amp; (fpu.regs_80[TOP].raw.h &amp; 0x7FFFu) == (0x0000u + FPU_Reg_80_exponent_bias + 63u)) {
 <a name="l00275"></a>00275                 <span class="comment">// FIXME: This works so far for DOS demos that use the &quot;Pentium memcpy trick&quot; to copy 64 bits at a time.</span>
 <a name="l00276"></a>00276                 <span class="comment">//        What this code needs to do is take the exponent into account and then clamp the 64-bit int within range.</span>
 <a name="l00277"></a>00277                 <span class="comment">//        This cheap hack is good enough for now.</span>
@@ -376,15 +376,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00280"></a>00280         }
 <a name="l00281"></a>00281         <span class="keywordflow">else</span> {
 <a name="l00282"></a>00282                 blah.ll = <span class="keyword">static_cast&lt;</span>Bit64s<span class="keyword">&gt;</span>(FROUND(fpu.regs[TOP].d));
-<a name="l00283"></a>00283                 mem_writed(addr,blah.l.lower);
-<a name="l00284"></a>00284                 mem_writed(addr+4,blah.l.upper);
+<a name="l00283"></a>00283                 mem_writed(addr,(uint32_t)blah.l.lower);
+<a name="l00284"></a>00284                 mem_writed(addr+4,(uint32_t)blah.l.upper);
 <a name="l00285"></a>00285         }
 <a name="l00286"></a>00286 }
 <a name="l00287"></a>00287 
 <a name="l00288"></a>00288 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FBST(PhysPt addr) {
 <a name="l00289"></a>00289         <a class="code" href="unionFPU__Reg.html">FPU_Reg</a> val = fpu.regs[TOP];
 <a name="l00290"></a>00290         <span class="keywordtype">bool</span> sign = <span class="keyword">false</span>;
-<a name="l00291"></a>00291         <span class="keywordflow">if</span>(fpu.regs[TOP].ll &amp; LONGTYPE(0x8000000000000000)) { <span class="comment">//sign</span>
+<a name="l00291"></a>00291         <span class="keywordflow">if</span>((Bit64u)fpu.regs[TOP].ll &amp; ULONGTYPE(0x8000000000000000)) { <span class="comment">//sign</span>
 <a name="l00292"></a>00292                 sign=<span class="keyword">true</span>;
 <a name="l00293"></a>00293                 val.d=-val.d;
 <a name="l00294"></a>00294         }
@@ -642,7 +642,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00546"></a>00546 }
 <a name="l00547"></a>00547 
 <a name="l00548"></a>00548 <span class="keyword">static</span> <span class="keywordtype">void</span> FPU_FXAM(<span class="keywordtype">void</span>){
-<a name="l00549"></a>00549         <span class="keywordflow">if</span>(fpu.regs[TOP].ll &amp; LONGTYPE(0x8000000000000000))     <span class="comment">//sign</span>
+<a name="l00549"></a>00549         <span class="keywordflow">if</span>((Bit64u)fpu.regs[TOP].ll &amp; ULONGTYPE(0x8000000000000000))    <span class="comment">//sign</span>
 <a name="l00550"></a>00550         { 
 <a name="l00551"></a>00551                 FPU_SET_C1(1);
 <a name="l00552"></a>00552         } 
@@ -844,7 +844,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

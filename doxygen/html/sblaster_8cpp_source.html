@@ -836,7 +836,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00740"></a>00740 
 <a name="l00741"></a>00741     <span class="comment">/* NTS: chan-&gt;Read() deals with DMA unit transfers.</span>
 <a name="l00742"></a>00742 <span class="comment">     *      for 8-bit DMA, read/expct is in bytes, for 16-bit DMA, read/expct is in 16-bit words */</span>
-<a name="l00743"></a>00743     expct = (sb.dma.stereo ? 2 : 1) * (sb.dma.mode == DSP_DMA_16_ALIASED ? 2 : 1);
+<a name="l00743"></a>00743     expct = (sb.dma.stereo ? 2u : 1u) * (sb.dma.mode == DSP_DMA_16_ALIASED ? 2u : 1u);
 <a name="l00744"></a>00744     read = sb.dma.chan-&gt;Read(expct,tmp);
 <a name="l00745"></a>00745     <span class="comment">//if (read != expct)</span>
 <a name="l00746"></a>00746     <span class="comment">//      LOG_MSG(&quot;DMA read was not sample aligned. Sound may swap channels or become static. On real hardware the same may happen unless audio is prepared specifically.\n&quot;);</span>
@@ -1035,7 +1035,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00939"></a>00939     }
 <a name="l00940"></a>00940     <span class="keywordflow">if</span> (sb.dma.stereo) sb.dma.mul*=2;
 <a name="l00941"></a>00941     sb.dma.rate=(sb.dma_dac_srcrate*sb.dma.mul) &gt;&gt; SB_SH;
-<a name="l00942"></a>00942     sb.dma.min=(sb.dma.rate*(sb.min_dma_user &gt;= 0 ? sb.min_dma_user : <span class="comment">/*default*/</span>3))/1000;
+<a name="l00942"></a>00942     sb.dma.min=((Bitu)sb.dma.rate*(Bitu)(sb.min_dma_user &gt;= 0 ? sb.min_dma_user : <span class="comment">/*default*/</span>3))/1000u;
 <a name="l00943"></a>00943     <span class="keywordflow">if</span> (sb.dma_dac_mode &amp;&amp; sb.goldplay_stereo &amp;&amp; (stereo || sb.mixer.sbpro_stereo) &amp;&amp; sb.single_sample_dma) {
 <a name="l00944"></a>00944 <span class="comment">//        LOG(LOG_SB,LOG_DEBUG)(&quot;Goldplay stereo hack. freq=%u rawfreq=%u dacrate=%u&quot;,(unsigned int)freq,(unsigned int)sb.freq,(unsigned int)sb.dma_dac_srcrate);</span>
 <a name="l00945"></a>00945         sb.chan-&gt;SetFreq(sb.dma_dac_srcrate);
@@ -1129,7 +1129,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01033"></a>01033     <span class="keywordflow">if</span> (sb.dma.force_autoinit)
 <a name="l01034"></a>01034         autoinit = <span class="keyword">true</span>;
 <a name="l01035"></a>01035 
-<a name="l01036"></a>01036     sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] &lt;&lt; 8);
+<a name="l01036"></a>01036     sb.dma.total=1u+(<span class="keywordtype">unsigned</span> int)sb.dsp.in.data[0]+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(sb.dsp.in.data[1] &lt;&lt; 8u);
 <a name="l01037"></a>01037     sb.dma.autoinit=autoinit;
 <a name="l01038"></a>01038     sb.dsp.highspeed=hispeed;
 <a name="l01039"></a>01039     sb.dma.sign=sign;
@@ -1153,7 +1153,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01057"></a>01057 <span class="comment">         *         by the demo stays intact despite being limited to 22050Hz during the first</span>
 <a name="l01058"></a>01058 <span class="comment">         *         DSP block (command 0x14). */</span>
 <a name="l01059"></a>01059         final_tc = DSP_RateLimitedFinalTC_Old();
-<a name="l01060"></a>01060         sb.freq = (256000000 / (65536 - (final_tc &lt;&lt; 8)));
+<a name="l01060"></a>01060         sb.freq = (256000000ul / (65536ul - ((<span class="keywordtype">unsigned</span> long)final_tc &lt;&lt; 8ul)));
 <a name="l01061"></a>01061     }
 <a name="l01062"></a>01062     <span class="keywordflow">else</span> {
 <a name="l01063"></a>01063         <a class="code" href="classLOG.html">LOG</a>(LOG_SB,LOG_DEBUG)(<span class="stringliteral">&quot;Guest is using non-SB16 playback commands after using SB16 commands to set sample rate&quot;</span>);
@@ -1423,9 +1423,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01327"></a>01327         <span class="keywordflow">case</span> 0xA1: <span class="comment">/* Extended Mode Sample Rate Generator */</span>
 <a name="l01328"></a>01328             ESSreg(reg) = data;
 <a name="l01329"></a>01329             <span class="keywordflow">if</span> (data &amp; 0x80)
-<a name="l01330"></a>01330                 sb.freq = 795500UL / (256 - data);
+<a name="l01330"></a>01330                 sb.freq = 795500UL / (256ul - data);
 <a name="l01331"></a>01331             <span class="keywordflow">else</span>
-<a name="l01332"></a>01332                 sb.freq = 397700UL / (128 - data);
+<a name="l01332"></a>01332                 sb.freq = 397700UL / (128ul - data);
 <a name="l01333"></a>01333 
 <a name="l01334"></a>01334             sb.freq_derived_from_tc = <span class="keyword">false</span>;
 <a name="l01335"></a>01335             <span class="keywordflow">if</span> (sb.mode == MODE_DMA) {
@@ -1747,7 +1747,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01651"></a>01651         }
 <a name="l01652"></a>01652         <span class="keywordflow">break</span>;
 <a name="l01653"></a>01653     <span class="keywordflow">case</span> 0x24:  <span class="comment">/* Singe Cycle 8-Bit DMA ADC */</span>
-<a name="l01654"></a>01654         sb.dma.left=sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] &lt;&lt; 8);
+<a name="l01654"></a>01654         sb.dma.left=sb.dma.total=1u+(<span class="keywordtype">unsigned</span> int)sb.dsp.in.data[0]+((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)sb.dsp.in.data[1] &lt;&lt; 8u);
 <a name="l01655"></a>01655         sb.dma.sign=<span class="keyword">false</span>;
 <a name="l01656"></a>01656         <a class="code" href="classLOG.html">LOG</a>(LOG_SB,LOG_ERROR)(<span class="stringliteral">&quot;DSP:Faked ADC for %d bytes&quot;</span>,(int)sb.dma.total);
 <a name="l01657"></a>01657         GetDMAChannel(sb.hw.dma8)-&gt;Register_Callback(DSP_ADC_CallBack);
@@ -1770,7 +1770,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01674"></a>01674         <span class="keywordflow">break</span>;
 <a name="l01675"></a>01675     <span class="keywordflow">case</span> 0x40:  <span class="comment">/* Set Timeconstant */</span>
 <a name="l01676"></a>01676         sb.chan-&gt;FillUp();
-<a name="l01677"></a>01677         sb.freq=(256000000 / (65536 - (sb.dsp.in.data[0] &lt;&lt; 8)));
+<a name="l01677"></a>01677         sb.freq=(256000000ul / (65536ul - ((<span class="keywordtype">unsigned</span> int)sb.dsp.in.data[0] &lt;&lt; 8u)));
 <a name="l01678"></a>01678         sb.timeconst=sb.dsp.in.data[0];
 <a name="l01679"></a>01679         sb.freq_derived_from_tc=<span class="keyword">true</span>;
 <a name="l01680"></a>01680 
@@ -1789,13 +1789,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01693"></a>01693             DSP_SB16_ONLY;
 <a name="l01694"></a>01694         }
 <a name="l01695"></a>01695 
-<a name="l01696"></a>01696         sb.freq=(sb.dsp.in.data[0] &lt;&lt; 8)  | sb.dsp.in.data[1];
+<a name="l01696"></a>01696         sb.freq=((<span class="keywordtype">unsigned</span> int)sb.dsp.in.data[0] &lt;&lt; 8u) | (<span class="keywordtype">unsigned</span> int)sb.dsp.in.data[1];
 <a name="l01697"></a>01697         sb.freq_derived_from_tc=<span class="keyword">false</span>;
 <a name="l01698"></a>01698         <span class="keywordflow">break</span>;
 <a name="l01699"></a>01699     <span class="keywordflow">case</span> 0x48:  <span class="comment">/* Set DMA Block Size */</span>
 <a name="l01700"></a>01700         DSP_SB2_ABOVE;
 <a name="l01701"></a>01701         <span class="comment">//TODO Maybe check limit for new irq?</span>
-<a name="l01702"></a>01702         sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] &lt;&lt; 8);
+<a name="l01702"></a>01702         sb.dma.total=1u+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)sb.dsp.in.data[0]+((<span class="keywordtype">unsigned</span> int)sb.dsp.in.data[1] &lt;&lt; 8u);
 <a name="l01703"></a>01703         <span class="keywordflow">break</span>;
 <a name="l01704"></a>01704     <span class="keywordflow">case</span> 0x75:  <span class="comment">/* 075h : Single Cycle 4-bit ADPCM Reference */</span>
 <a name="l01705"></a>01705         sb.adpcm.haveref=<span class="keyword">true</span>;
@@ -1855,7 +1855,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01759"></a>01759 <span class="comment">//      DSP_SetSpeaker(true);       //SB16 always has speaker enabled</span>
 <a name="l01760"></a>01760         sb.dma.sign=(sb.dsp.in.data[0] &amp; 0x10) &gt; 0;
 <a name="l01761"></a>01761         DSP_PrepareDMA_New((sb.dsp.cmd &amp; 0x10) ? DSP_DMA_16 : DSP_DMA_8,
-<a name="l01762"></a>01762             1+sb.dsp.in.data[1]+(sb.dsp.in.data[2] &lt;&lt; 8),
+<a name="l01762"></a>01762             1u+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)sb.dsp.in.data[1]+((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)sb.dsp.in.data[2] &lt;&lt; 8u),
 <a name="l01763"></a>01763             (sb.dsp.cmd &amp; 0x4)&gt;0,
 <a name="l01764"></a>01764             (sb.dsp.in.data[0] &amp; 0x20) &gt; 0
 <a name="l01765"></a>01765         );
@@ -1988,7 +1988,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01892"></a>01892 
 <a name="l01893"></a>01893                 <span class="comment">/* NTS: Yes, this writes the terminating NUL as well. Not a bug. */</span>
 <a name="l01894"></a>01894                 <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i=0;i&lt;=strlen(gallant);i++) {
-<a name="l01895"></a>01895                     DSP_AddData(gallant[i]);
+<a name="l01895"></a>01895                     DSP_AddData((Bit8u)gallant[i]);
 <a name="l01896"></a>01896                 }
 <a name="l01897"></a>01897             }
 <a name="l01898"></a>01898             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (sb.type &lt;= SBT_PRO2) {
@@ -2000,7 +2000,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01904"></a>01904             <span class="keywordflow">else</span> {
 <a name="l01905"></a>01905                 <span class="comment">/* NTS: Yes, this writes the terminating NUL as well. Not a bug. */</span>
 <a name="l01906"></a>01906                 <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i=0;i&lt;=strlen(copyright_string);i++) {
-<a name="l01907"></a>01907                     DSP_AddData(copyright_string[i]);
+<a name="l01907"></a>01907                     DSP_AddData((Bit8u)copyright_string[i]);
 <a name="l01908"></a>01908                 }
 <a name="l01909"></a>01909             }
 <a name="l01910"></a>01910         }
@@ -2074,21 +2074,21 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01978"></a>01978         sb.sc400_cfg = sb.dsp.in.data[0];
 <a name="l01979"></a>01979 
 <a name="l01980"></a>01980         <span class="keywordflow">switch</span> (sb.dsp.in.data[0]&amp;3) {
-<a name="l01981"></a>01981             <span class="keywordflow">case</span> 0: sb.hw.dma8 = -1; <span class="keywordflow">break</span>;
-<a name="l01982"></a>01982             <span class="keywordflow">case</span> 1: sb.hw.dma8 =  0; <span class="keywordflow">break</span>;
-<a name="l01983"></a>01983             <span class="keywordflow">case</span> 2: sb.hw.dma8 =  1; <span class="keywordflow">break</span>;
-<a name="l01984"></a>01984             <span class="keywordflow">case</span> 3: sb.hw.dma8 =  3; <span class="keywordflow">break</span>;
+<a name="l01981"></a>01981             <span class="keywordflow">case</span> 0: sb.hw.dma8 = (Bit8u)(-1); <span class="keywordflow">break</span>;
+<a name="l01982"></a>01982             <span class="keywordflow">case</span> 1: sb.hw.dma8 =  0u; <span class="keywordflow">break</span>;
+<a name="l01983"></a>01983             <span class="keywordflow">case</span> 2: sb.hw.dma8 =  1u; <span class="keywordflow">break</span>;
+<a name="l01984"></a>01984             <span class="keywordflow">case</span> 3: sb.hw.dma8 =  3u; <span class="keywordflow">break</span>;
 <a name="l01985"></a>01985         };
 <a name="l01986"></a>01986         sb.hw.dma16 = sb.hw.dma8;
 <a name="l01987"></a>01987         <span class="keywordflow">switch</span> ((sb.dsp.in.data[0]&gt;&gt;3)&amp;7) {
-<a name="l01988"></a>01988             <span class="keywordflow">case</span> 0: sb.hw.irq = -1; <span class="keywordflow">break</span>;
-<a name="l01989"></a>01989             <span class="keywordflow">case</span> 1: sb.hw.irq =  7; <span class="keywordflow">break</span>;
-<a name="l01990"></a>01990             <span class="keywordflow">case</span> 2: sb.hw.irq =  9; <span class="keywordflow">break</span>;
-<a name="l01991"></a>01991             <span class="keywordflow">case</span> 3: sb.hw.irq = 10; <span class="keywordflow">break</span>;
-<a name="l01992"></a>01992             <span class="keywordflow">case</span> 4: sb.hw.irq = 11; <span class="keywordflow">break</span>;
-<a name="l01993"></a>01993             <span class="keywordflow">case</span> 5: sb.hw.irq =  5; <span class="keywordflow">break</span>;
-<a name="l01994"></a>01994             <span class="keywordflow">case</span> 6: sb.hw.irq = -1; <span class="keywordflow">break</span>;
-<a name="l01995"></a>01995             <span class="keywordflow">case</span> 7: sb.hw.irq = -1; <span class="keywordflow">break</span>;
+<a name="l01988"></a>01988             <span class="keywordflow">case</span> 0: sb.hw.irq =  (Bit8u)(-1); <span class="keywordflow">break</span>;
+<a name="l01989"></a>01989             <span class="keywordflow">case</span> 1: sb.hw.irq =  7u; <span class="keywordflow">break</span>;
+<a name="l01990"></a>01990             <span class="keywordflow">case</span> 2: sb.hw.irq =  9u; <span class="keywordflow">break</span>;
+<a name="l01991"></a>01991             <span class="keywordflow">case</span> 3: sb.hw.irq = 10u; <span class="keywordflow">break</span>;
+<a name="l01992"></a>01992             <span class="keywordflow">case</span> 4: sb.hw.irq = 11u; <span class="keywordflow">break</span>;
+<a name="l01993"></a>01993             <span class="keywordflow">case</span> 5: sb.hw.irq =  5u; <span class="keywordflow">break</span>;
+<a name="l01994"></a>01994             <span class="keywordflow">case</span> 6: sb.hw.irq =  (Bit8u)(-1); <span class="keywordflow">break</span>;
+<a name="l01995"></a>01995             <span class="keywordflow">case</span> 7: sb.hw.irq =  (Bit8u)(-1); <span class="keywordflow">break</span>;
 <a name="l01996"></a>01996         };
 <a name="l01997"></a>01997         {
 <a name="l01998"></a>01998             <span class="keywordtype">int</span> irq;
@@ -2378,7 +2378,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02282"></a>02282 <span class="comment">         *</span>
 <a name="l02283"></a>02283 <span class="comment">         * This implementation is matched aginst real hardware by ear, even though the reference hardware is a</span>
 <a name="l02284"></a>02284 <span class="comment">         * laptop with a cheap tinny amplifier */</span>
-<a name="l02285"></a>02285         Bit64u filter_raw = (Bit64u)7160000UL / (256 - ESSreg(0xA2));
+<a name="l02285"></a>02285         Bit64u filter_raw = (Bit64u)7160000ULL / (256u - ESSreg(0xA2));
 <a name="l02286"></a>02286         Bit64u filter_hz = (filter_raw * (Bit64u)11) / (Bit64u)(82 * 4); <span class="comment">/* match lowpass by ear compared to real hardware */</span>
 <a name="l02287"></a>02287 
 <a name="l02288"></a>02288         <span class="keywordflow">if</span> ((filter_hz * 2) &gt; sb.freq)
@@ -2426,13 +2426,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02330"></a>02330         updateSoundBlasterFilter(sb.freq/2);
 <a name="l02331"></a>02331         sb.dma.mul*=2;
 <a name="l02332"></a>02332         sb.dma.rate=(sb.freq*sb.dma.mul) &gt;&gt; SB_SH;
-<a name="l02333"></a>02333         sb.dma.min=(sb.dma.rate*(sb.min_dma_user &gt;= 0 ? sb.min_dma_user : <span class="comment">/*default*/</span>3))/1000;
+<a name="l02333"></a>02333         sb.dma.min=((Bitu)sb.dma.rate*(Bitu)(sb.min_dma_user &gt;= 0 ? sb.min_dma_user : <span class="comment">/*default*/</span>3))/1000u;
 <a name="l02334"></a>02334     } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (sb.dma.stereo &amp;&amp; !stereo) {
 <a name="l02335"></a>02335         sb.chan-&gt;SetFreq(sb.freq);
 <a name="l02336"></a>02336         updateSoundBlasterFilter(sb.freq);
 <a name="l02337"></a>02337         sb.dma.mul/=2;
 <a name="l02338"></a>02338         sb.dma.rate=(sb.freq*sb.dma.mul) &gt;&gt; SB_SH;
-<a name="l02339"></a>02339         sb.dma.min=(sb.dma.rate*(sb.min_dma_user &gt;= 0 ? sb.min_dma_user : <span class="comment">/*default*/</span>3))/1000;
+<a name="l02339"></a>02339         sb.dma.min=((Bitu)sb.dma.rate*(Bitu)(sb.min_dma_user &gt;= 0 ? sb.min_dma_user : <span class="comment">/*default*/</span>3))/1000;
 <a name="l02340"></a>02340     }
 <a name="l02341"></a>02341     sb.dma.stereo=stereo;
 <a name="l02342"></a>02342 }
@@ -2769,7 +2769,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02673"></a>02673         <span class="keywordflow">if</span> ((port-sb.hw.base) == DSP_ACK_16BIT &amp;&amp; sb.ess_type != ESS_NONE)
 <a name="l02674"></a>02674             { } <span class="comment">/* ESS AudioDrive does not alias DSP STATUS (0x22E) as seen on real hardware */</span>
 <a name="l02675"></a>02675         <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((port-sb.hw.base) &lt; MIXER_INDEX || (port-sb.hw.base) &gt; MIXER_DATA)
-<a name="l02676"></a>02676             port &amp;= ~1;
+<a name="l02676"></a>02676             port &amp;= ~1u;
 <a name="l02677"></a>02677     }
 <a name="l02678"></a>02678 
 <a name="l02679"></a>02679     <span class="keywordflow">switch</span> (port-sb.hw.base) {
@@ -2851,7 +2851,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02755"></a>02755         <span class="keywordflow">if</span> ((port-sb.hw.base) == DSP_ACK_16BIT &amp;&amp; sb.ess_type != ESS_NONE)
 <a name="l02756"></a>02756             { } <span class="comment">/* ESS AudioDrive does not alias DSP STATUS (0x22E) as seen on real hardware */</span>
 <a name="l02757"></a>02757         <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((port-sb.hw.base) &lt; MIXER_INDEX || (port-sb.hw.base) &gt; MIXER_DATA)
-<a name="l02758"></a>02758             port &amp;= ~1;
+<a name="l02758"></a>02758             port &amp;= ~1u;
 <a name="l02759"></a>02759     }
 <a name="l02760"></a>02760 
 <a name="l02761"></a>02761     Bit8u val8=(Bit8u)(val&amp;0xff);
@@ -3288,7 +3288,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03192"></a>03192 
 <a name="l03193"></a>03193         <a class="code" href="classSection__prop.html">Section_prop</a> * section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(configuration);
 <a name="l03194"></a>03194 
-<a name="l03195"></a>03195         sb.hw.base=section-&gt;Get_hex(<span class="stringliteral">&quot;sbbase&quot;</span>);
+<a name="l03195"></a>03195         sb.hw.base=(<span class="keywordtype">unsigned</span> int)section-&gt;Get_hex(<span class="stringliteral">&quot;sbbase&quot;</span>);
 <a name="l03196"></a>03196         sb.goldplay=section-&gt;Get_bool(<span class="stringliteral">&quot;goldplay&quot;</span>);
 <a name="l03197"></a>03197         sb.min_dma_user=section-&gt;Get_int(<span class="stringliteral">&quot;mindma&quot;</span>);
 <a name="l03198"></a>03198         sb.goldplay_stereo=section-&gt;Get_bool(<span class="stringliteral">&quot;goldplay stereo&quot;</span>);
@@ -3361,13 +3361,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03265"></a>03265         sb.busy_cycle_io_hack=0;
 <a name="l03266"></a>03266 
 <a name="l03267"></a>03267         si=section-&gt;Get_int(<span class="stringliteral">&quot;irq&quot;</span>);
-<a name="l03268"></a>03268         sb.hw.irq=(si &gt;= 0) ? si : 0xFF;
+<a name="l03268"></a>03268         sb.hw.irq=(si &gt;= 0) ? (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)si : 0xFF;
 <a name="l03269"></a>03269 
 <a name="l03270"></a>03270         si=section-&gt;Get_int(<span class="stringliteral">&quot;dma&quot;</span>);
-<a name="l03271"></a>03271         sb.hw.dma8=(si &gt;= 0) ? si : 0xFF;
+<a name="l03271"></a>03271         sb.hw.dma8=(si &gt;= 0) ? (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)si : 0xFF;
 <a name="l03272"></a>03272 
 <a name="l03273"></a>03273         si=section-&gt;Get_int(<span class="stringliteral">&quot;hdma&quot;</span>);
-<a name="l03274"></a>03274         sb.hw.dma16=(si &gt;= 0) ? si : 0xFF;
+<a name="l03274"></a>03274         sb.hw.dma16=(si &gt;= 0) ? (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)si : 0xFF;
 <a name="l03275"></a>03275 
 <a name="l03276"></a>03276         <span class="comment">/* some DOS games/demos support Sound Blaster, and expect the IRQ to fire, but</span>
 <a name="l03277"></a>03277 <span class="comment">         * make no attempt to unmask the IRQ (perhaps the programmer forgot). This option</span>
@@ -3413,7 +3413,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03317"></a>03317         <span class="keywordflow">case</span> OPL_hardwareCMS:
 <a name="l03318"></a>03318             isCMSpassthrough = <span class="keyword">true</span>;
 <a name="l03319"></a>03319         <span class="keywordflow">case</span> OPL_hardware:
-<a name="l03320"></a>03320             Bitu base = section-&gt;Get_hex(<span class="stringliteral">&quot;hardwarebase&quot;</span>);
+<a name="l03320"></a>03320             Bitu base = (<span class="keywordtype">unsigned</span> int)section-&gt;Get_hex(<span class="stringliteral">&quot;hardwarebase&quot;</span>);
 <a name="l03321"></a>03321             HARDOPL_Init(base, sb.hw.base, isCMSpassthrough);
 <a name="l03322"></a>03322             <span class="keywordflow">break</span>;
 <a name="l03323"></a>03323         }
@@ -3466,7 +3466,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l03370"></a>03370             sb.dsp.require_irq_ack = (sb.type == SBT_16) ? 1 : 0; <span class="comment">/* Yes if SB16, No otherwise */</span>
 <a name="l03371"></a>03371 
 <a name="l03372"></a>03372         si=section-&gt;Get_int(<span class="stringliteral">&quot;dsp write busy delay&quot;</span>); <span class="comment">/* in nanoseconds */</span>
-<a name="l03373"></a>03373         <span class="keywordflow">if</span> (si &gt;= 0) sb.dsp.dsp_write_busy_time = si;
+<a name="l03373"></a>03373         <span class="keywordflow">if</span> (si &gt;= 0) sb.dsp.dsp_write_busy_time = (<span class="keywordtype">unsigned</span> int)si;
 <a name="l03374"></a>03374         <span class="keywordflow">else</span> sb.dsp.dsp_write_busy_time = 1000; <span class="comment">/* FIXME: How long is the DSP busy on real hardware? */</span>
 <a name="l03375"></a>03375 
 <a name="l03376"></a>03376         <span class="comment">/* Sound Blaster (1.x and 2x) and Sound Blaster Pro (3.1) have the I/O port aliasing.</span>
@@ -3716,7 +3716,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -161,7 +161,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00065"></a>00065                                 <span class="keywordflow">case</span> R_OUTSB:
 <a name="l00066"></a>00066                                         <span class="keywordflow">do</span> {
 <a name="l00067"></a>00067                                                 IO_WriteB(reg_dx,LoadMb(si_base+si_index));
-<a name="l00068"></a>00068                                                 si_index=(si_index+add_index) &amp; add_mask;
+<a name="l00068"></a>00068                                                 si_index=(si_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00069"></a>00069                                                 count--;
 <a name="l00070"></a>00070 
 <a name="l00071"></a>00071                                                 <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -170,7 +170,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00074"></a>00074                                         add_index&lt;&lt;=1;
 <a name="l00075"></a>00075                                         <span class="keywordflow">do</span> {
 <a name="l00076"></a>00076                                                 IO_WriteW(reg_dx,LoadMw(si_base+si_index));
-<a name="l00077"></a>00077                                                 si_index=(si_index+add_index) &amp; add_mask;
+<a name="l00077"></a>00077                                                 si_index=(si_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00078"></a>00078                                                 count--;
 <a name="l00079"></a>00079 
 <a name="l00080"></a>00080                                                 <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -179,7 +179,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00083"></a>00083                                         add_index&lt;&lt;=2;
 <a name="l00084"></a>00084                                         <span class="keywordflow">do</span> {
 <a name="l00085"></a>00085                                                 IO_WriteD(reg_dx,LoadMd(si_base+si_index));
-<a name="l00086"></a>00086                                                 si_index=(si_index+add_index) &amp; add_mask;
+<a name="l00086"></a>00086                                                 si_index=(si_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00087"></a>00087                                                 count--;
 <a name="l00088"></a>00088 
 <a name="l00089"></a>00089                                                 <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -188,7 +188,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00092"></a>00092                                 <span class="keywordflow">case</span> R_INSB:
 <a name="l00093"></a>00093                                         <span class="keywordflow">do</span> {
 <a name="l00094"></a>00094                                                 SaveMb(di_base+di_index,IO_ReadB(reg_dx));
-<a name="l00095"></a>00095                                                 di_index=(di_index+add_index) &amp; add_mask;
+<a name="l00095"></a>00095                                                 di_index=(di_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00096"></a>00096                                                 count--;
 <a name="l00097"></a>00097 
 <a name="l00098"></a>00098                                                 <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -197,7 +197,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00101"></a>00101                                         add_index&lt;&lt;=1;
 <a name="l00102"></a>00102                                         <span class="keywordflow">do</span> {
 <a name="l00103"></a>00103                                                 SaveMw(di_base+di_index,IO_ReadW(reg_dx));
-<a name="l00104"></a>00104                                                 di_index=(di_index+add_index) &amp; add_mask;
+<a name="l00104"></a>00104                                                 di_index=(di_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00105"></a>00105                                                 count--;
 <a name="l00106"></a>00106 
 <a name="l00107"></a>00107                                                 <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -206,7 +206,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00110"></a>00110                                         add_index&lt;&lt;=2;
 <a name="l00111"></a>00111                                         <span class="keywordflow">do</span> {
 <a name="l00112"></a>00112                                                 SaveMd(di_base+di_index,IO_ReadD(reg_dx));
-<a name="l00113"></a>00113                                                 di_index=(di_index+add_index) &amp; add_mask;
+<a name="l00113"></a>00113                                                 di_index=(di_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00114"></a>00114                                                 count--;
 <a name="l00115"></a>00115 
 <a name="l00116"></a>00116                                                 <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -215,7 +215,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00119"></a>00119                                 <span class="keywordflow">case</span> R_STOSB:
 <a name="l00120"></a>00120                                         <span class="keywordflow">do</span> {
 <a name="l00121"></a>00121                                                 SaveMb(di_base+di_index,reg_al);
-<a name="l00122"></a>00122                                                 di_index=(di_index+add_index) &amp; add_mask;
+<a name="l00122"></a>00122                                                 di_index=(di_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00123"></a>00123                                                 count--;
 <a name="l00124"></a>00124 
 <a name="l00125"></a>00125                                                 <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -224,7 +224,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00128"></a>00128                                         add_index&lt;&lt;=1;
 <a name="l00129"></a>00129                                         <span class="keywordflow">do</span> {
 <a name="l00130"></a>00130                                                 SaveMw(di_base+di_index,reg_ax);
-<a name="l00131"></a>00131                                                 di_index=(di_index+add_index) &amp; add_mask;
+<a name="l00131"></a>00131                                                 di_index=(di_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00132"></a>00132                                                 count--;
 <a name="l00133"></a>00133 
 <a name="l00134"></a>00134                                                 <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -233,7 +233,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00137"></a>00137                                         add_index&lt;&lt;=2;
 <a name="l00138"></a>00138                                         <span class="keywordflow">do</span> {
 <a name="l00139"></a>00139                                                 SaveMd(di_base+di_index,reg_eax);
-<a name="l00140"></a>00140                                                 di_index=(di_index+add_index) &amp; add_mask;
+<a name="l00140"></a>00140                                                 di_index=(di_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00141"></a>00141                                                 count--;
 <a name="l00142"></a>00142 
 <a name="l00143"></a>00143                                                 <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -242,8 +242,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00146"></a>00146                                 <span class="keywordflow">case</span> R_MOVSB:
 <a name="l00147"></a>00147                                         <span class="keywordflow">do</span> {
 <a name="l00148"></a>00148                                                 SaveMb(di_base+di_index,LoadMb(si_base+si_index));
-<a name="l00149"></a>00149                                                 di_index=(di_index+add_index) &amp; add_mask;
-<a name="l00150"></a>00150                                                 si_index=(si_index+add_index) &amp; add_mask;
+<a name="l00149"></a>00149                                                 di_index=(di_index+(Bitu)add_index) &amp; add_mask;
+<a name="l00150"></a>00150                                                 si_index=(si_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00151"></a>00151                                                 count--;
 <a name="l00152"></a>00152 
 <a name="l00153"></a>00153                                                 <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -252,8 +252,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00156"></a>00156                                         add_index&lt;&lt;=1;
 <a name="l00157"></a>00157                                         <span class="keywordflow">do</span> {
 <a name="l00158"></a>00158                                                 SaveMw(di_base+di_index,LoadMw(si_base+si_index));
-<a name="l00159"></a>00159                                                 di_index=(di_index+add_index) &amp; add_mask;
-<a name="l00160"></a>00160                                                 si_index=(si_index+add_index) &amp; add_mask;
+<a name="l00159"></a>00159                                                 di_index=(di_index+(Bitu)add_index) &amp; add_mask;
+<a name="l00160"></a>00160                                                 si_index=(si_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00161"></a>00161                                                 count--;
 <a name="l00162"></a>00162 
 <a name="l00163"></a>00163                                                 <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -262,8 +262,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00166"></a>00166                                         add_index&lt;&lt;=2;
 <a name="l00167"></a>00167                                         <span class="keywordflow">do</span> {
 <a name="l00168"></a>00168                                                 SaveMd(di_base+di_index,LoadMd(si_base+si_index));
-<a name="l00169"></a>00169                                                 di_index=(di_index+add_index) &amp; add_mask;
-<a name="l00170"></a>00170                                                 si_index=(si_index+add_index) &amp; add_mask;
+<a name="l00169"></a>00169                                                 di_index=(di_index+(Bitu)add_index) &amp; add_mask;
+<a name="l00170"></a>00170                                                 si_index=(si_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00171"></a>00171                                                 count--;
 <a name="l00172"></a>00172 
 <a name="l00173"></a>00173                                                 <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -272,7 +272,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00176"></a>00176                                 <span class="keywordflow">case</span> R_LODSB:
 <a name="l00177"></a>00177                                         <span class="keywordflow">do</span> {
 <a name="l00178"></a>00178                                                 reg_al=LoadMb(si_base+si_index);
-<a name="l00179"></a>00179                                                 si_index=(si_index+add_index) &amp; add_mask;
+<a name="l00179"></a>00179                                                 si_index=(si_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00180"></a>00180                                                 count--;
 <a name="l00181"></a>00181 
 <a name="l00182"></a>00182                                                 <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -281,7 +281,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00185"></a>00185                                         add_index&lt;&lt;=1;
 <a name="l00186"></a>00186                                         <span class="keywordflow">do</span> {
 <a name="l00187"></a>00187                                                 reg_ax=LoadMw(si_base+si_index);
-<a name="l00188"></a>00188                                                 si_index=(si_index+add_index) &amp; add_mask;
+<a name="l00188"></a>00188                                                 si_index=(si_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00189"></a>00189                                                 count--;
 <a name="l00190"></a>00190 
 <a name="l00191"></a>00191                                                 <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -290,7 +290,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00194"></a>00194                                         add_index&lt;&lt;=2;
 <a name="l00195"></a>00195                                         <span class="keywordflow">do</span> {
 <a name="l00196"></a>00196                                                 reg_eax=LoadMd(si_base+si_index);
-<a name="l00197"></a>00197                                                 si_index=(si_index+add_index) &amp; add_mask;
+<a name="l00197"></a>00197                                                 si_index=(si_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00198"></a>00198                                                 count--;
 <a name="l00199"></a>00199 
 <a name="l00200"></a>00200                                                 <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -301,7 +301,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00205"></a>00205                                                 Bit8u val2;
 <a name="l00206"></a>00206                                                 <span class="keywordflow">do</span> {
 <a name="l00207"></a>00207                                                         val2=LoadMb(di_base+di_index);
-<a name="l00208"></a>00208                                                         di_index=(di_index+add_index) &amp; add_mask;
+<a name="l00208"></a>00208                                                         di_index=(di_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00209"></a>00209                                                         count--;
 <a name="l00210"></a>00210 
 <a name="l00211"></a>00211                                                         <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -316,7 +316,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00220"></a>00220                                                 Bit16u val2;
 <a name="l00221"></a>00221                                                 <span class="keywordflow">do</span> {
 <a name="l00222"></a>00222                                                         val2=LoadMw(di_base+di_index);
-<a name="l00223"></a>00223                                                         di_index=(di_index+add_index) &amp; add_mask;
+<a name="l00223"></a>00223                                                         di_index=(di_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00224"></a>00224                                                         count--;
 <a name="l00225"></a>00225 
 <a name="l00226"></a>00226                                                         <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -331,7 +331,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00235"></a>00235                                                 Bit32u val2;
 <a name="l00236"></a>00236                                                 <span class="keywordflow">do</span> {
 <a name="l00237"></a>00237                                                         val2=LoadMd(di_base+di_index);
-<a name="l00238"></a>00238                                                         di_index=(di_index+add_index) &amp; add_mask;
+<a name="l00238"></a>00238                                                         di_index=(di_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00239"></a>00239                                                         count--;
 <a name="l00240"></a>00240 
 <a name="l00241"></a>00241                                                         <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -347,8 +347,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00251"></a>00251                                                 <span class="keywordflow">do</span> {
 <a name="l00252"></a>00252                                                         val1=LoadMb(si_base+si_index);
 <a name="l00253"></a>00253                                                         val2=LoadMb(di_base+di_index);
-<a name="l00254"></a>00254                                                         si_index=(si_index+add_index) &amp; add_mask;
-<a name="l00255"></a>00255                                                         di_index=(di_index+add_index) &amp; add_mask;
+<a name="l00254"></a>00254                                                         si_index=(si_index+(Bitu)add_index) &amp; add_mask;
+<a name="l00255"></a>00255                                                         di_index=(di_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00256"></a>00256                                                         count--;
 <a name="l00257"></a>00257 
 <a name="l00258"></a>00258                                                         <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -364,8 +364,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00268"></a>00268                                                 <span class="keywordflow">do</span> {
 <a name="l00269"></a>00269                                                         val1=LoadMw(si_base+si_index);
 <a name="l00270"></a>00270                                                         val2=LoadMw(di_base+di_index);
-<a name="l00271"></a>00271                                                         si_index=(si_index+add_index) &amp; add_mask;
-<a name="l00272"></a>00272                                                         di_index=(di_index+add_index) &amp; add_mask;
+<a name="l00271"></a>00271                                                         si_index=(si_index+(Bitu)add_index) &amp; add_mask;
+<a name="l00272"></a>00272                                                         di_index=(di_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00273"></a>00273                                                         count--;
 <a name="l00274"></a>00274 
 <a name="l00275"></a>00275                                                         <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -381,8 +381,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00285"></a>00285                                                 <span class="keywordflow">do</span> {
 <a name="l00286"></a>00286                                                         val1=LoadMd(si_base+si_index);
 <a name="l00287"></a>00287                                                         val2=LoadMd(di_base+di_index);
-<a name="l00288"></a>00288                                                         si_index=(si_index+add_index) &amp; add_mask;
-<a name="l00289"></a>00289                                                         di_index=(di_index+add_index) &amp; add_mask;
+<a name="l00288"></a>00288                                                         si_index=(si_index+(Bitu)add_index) &amp; add_mask;
+<a name="l00289"></a>00289                                                         di_index=(di_index+(Bitu)add_index) &amp; add_mask;
 <a name="l00290"></a>00290                                                         count--;
 <a name="l00291"></a>00291 
 <a name="l00292"></a>00292                                                         <span class="keywordflow">if</span> ((--CPU_Cycles) &lt;= 0) <span class="keywordflow">break</span>;
@@ -452,7 +452,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:02 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -299,7 +299,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00203"></a>00203                 if (CPU_ArchitectureType &gt;= CPU_ARCHTYPE_286)
 <a name="l00204"></a>00204                         Push_16(reg_sp);
 <a name="l00205"></a>00205                 else <span class="comment">/* 8086 decrements SP then pushes it */</span>
-<a name="l00206"></a>00206                         Push_16(reg_sp-2);
+<a name="l00206"></a>00206                         Push_16(reg_sp-2u);
 <a name="l00207"></a>00207                 break;
 <a name="l00208"></a>00208         CASE_W(0x55)                                                                                            <span class="comment">/* PUSH BP */</span>
 <a name="l00209"></a>00209                 Push_16(reg_bp);break;
@@ -359,8 +359,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00263"></a>00263                 {
 <a name="l00264"></a>00264                         Bit16s bound_min, bound_max;
 <a name="l00265"></a>00265                         GetRMrw;GetEAa;
-<a name="l00266"></a>00266                         bound_min=LoadMw(eaa);
-<a name="l00267"></a>00267                         bound_max=LoadMw(eaa+2);
+<a name="l00266"></a>00266                         bound_min=(Bit16s)LoadMw(eaa);
+<a name="l00267"></a>00267                         bound_max=(Bit16s)LoadMw(eaa+2u);
 <a name="l00268"></a>00268                         <span class="keywordflow">if</span> ( (((Bit16s)*rmrw) &lt; bound_min) || (((Bit16s)*rmrw) &gt; bound_max) ) {
 <a name="l00269"></a>00269                                 EXCEPTION(5);
 <a name="l00270"></a>00270                         }
@@ -390,7 +390,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00294"></a>00294                 DO_PREFIX_SEG(gs);break;
 <a name="l00295"></a>00295 <span class="preprocessor">#if CPU_CORE &gt;= CPU_ARCHTYPE_386</span>
 <a name="l00296"></a>00296 <span class="preprocessor"></span>        CASE_B(0x66)                                                                                            <span class="comment">/* Operand Size Prefix (386+) */</span>
-<a name="l00297"></a>00297                 core.opcode_index=(cpu.code.big^0x1)*0x200;
+<a name="l00297"></a>00297                 core.opcode_index=(cpu.code.big^0x1u)*0x200u;
 <a name="l00298"></a>00298                 goto restart_opcode;
 <a name="l00299"></a>00299 <span class="preprocessor">#endif</span>
 <a name="l00300"></a>00300 <span class="preprocessor"></span><span class="preprocessor">#if CPU_CORE &gt;= CPU_ARCHTYPE_386</span>
@@ -406,7 +406,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00310"></a>00310                 break;
 <a name="l00311"></a>00311         CASE_W(0x6a)                                                                                            <span class="comment">/* PUSH Ib */</span>
 <a name="l00312"></a>00312                 if (CPU_ArchitectureType&lt;CPU_ARCHTYPE_80186) goto illegal_opcode;
-<a name="l00313"></a>00313                 Push_16(Fetchbs());
+<a name="l00313"></a>00313                 Push_16((Bitu)Fetchbs());
 <a name="l00314"></a>00314                 break;
 <a name="l00315"></a>00315         CASE_W(0x6b)                                                                                            <span class="comment">/* IMUL Gw,Ew,Ib */</span>
 <a name="l00316"></a>00316                 if (CPU_ArchitectureType&lt;CPU_ARCHTYPE_80186) goto illegal_opcode;
@@ -525,7 +525,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00429"></a>00429                 {
 <a name="l00430"></a>00430                         GetRM;Bitu which=(rm&gt;&gt;3)&amp;7;
 <a name="l00431"></a>00431                         <span class="keywordflow">if</span> (rm&gt;= 0xc0) {
-<a name="l00432"></a>00432                                 GetEArw;Bit16u iw=(Bit16s)Fetchbs();
+<a name="l00432"></a>00432                                 GetEArw;Bit16u iw=(Bit16u)Fetchbs();
 <a name="l00433"></a>00433                                 <span class="keywordflow">switch</span> (which) {
 <a name="l00434"></a>00434                                 <span class="keywordflow">case</span> 0x00:ADDW(*earw,iw,LoadRw,SaveRw);<span class="keywordflow">break</span>;
 <a name="l00435"></a>00435                                 <span class="keywordflow">case</span> 0x01: ORW(*earw,iw,LoadRw,SaveRw);<span class="keywordflow">break</span>;
@@ -537,7 +537,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00441"></a>00441                                 <span class="keywordflow">case</span> 0x07:CMPW(*earw,iw,LoadRw,SaveRw);<span class="keywordflow">break</span>;
 <a name="l00442"></a>00442                                 }
 <a name="l00443"></a>00443                         } <span class="keywordflow">else</span> {
-<a name="l00444"></a>00444                                 GetEAa;Bit16u iw=(Bit16s)Fetchbs();
+<a name="l00444"></a>00444                                 GetEAa;Bit16u iw=(Bit16u)Fetchbs();
 <a name="l00445"></a>00445                                 <span class="keywordflow">switch</span> (which) {
 <a name="l00446"></a>00446                                 <span class="keywordflow">case</span> 0x00:ADDW(eaa,iw,LoadMw,SaveMw);<span class="keywordflow">break</span>;
 <a name="l00447"></a>00447                                 <span class="keywordflow">case</span> 0x01: ORW(eaa,iw,LoadMw,SaveMw);<span class="keywordflow">break</span>;
@@ -709,7 +709,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00613"></a>00613                 { Bit16u temp=reg_ax;reg_ax=reg_di;reg_di=temp; }
 <a name="l00614"></a>00614                 <span class="keywordflow">break</span>;
 <a name="l00615"></a>00615         CASE_W(0x98)                                                                                            <span class="comment">/* CBW */</span>
-<a name="l00616"></a>00616                 reg_ax=(Bit8s)reg_al;break;
+<a name="l00616"></a>00616                 reg_ax=(Bit16u)((Bit8s)reg_al);break;
 <a name="l00617"></a>00617         CASE_W(0x99)                                                                                            <span class="comment">/* CWD */</span>
 <a name="l00618"></a>00618                 if (reg_ax &amp; 0x8000) reg_dx=0xffff;else reg_dx=0;
 <a name="l00619"></a>00619                 break;
@@ -932,9 +932,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00836"></a>00836 <span class="preprocessor">#if C_DEBUG     </span>
 <a name="l00837"></a>00837 <span class="preprocessor"></span>                FillFlags();
 <a name="l00838"></a>00838                 <span class="keywordflow">if</span> (DEBUG_Breakpoint())
-<a name="l00839"></a>00839                         <span class="keywordflow">return</span> debugCallback;
+<a name="l00839"></a>00839                         <span class="keywordflow">return</span> (Bits)debugCallback;
 <a name="l00840"></a>00840                 <span class="keywordflow">if</span> (DEBUG_IntBreakpoint(3))
-<a name="l00841"></a>00841                         <span class="keywordflow">return</span> debugCallback;
+<a name="l00841"></a>00841                         <span class="keywordflow">return</span> (Bits)debugCallback;
 <a name="l00842"></a>00842 <span class="preprocessor">#endif                  </span>
 <a name="l00843"></a>00843 <span class="preprocessor"></span>                CPU_SW_Interrupt_NoIOPLCheck(3,GETIP);
 <a name="l00844"></a>00844 <span class="preprocessor">#if CPU_TRAP_CHECK</span>
@@ -947,7 +947,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00851"></a>00851 <span class="preprocessor">#if C_DEBUG</span>
 <a name="l00852"></a>00852 <span class="preprocessor"></span>                        FillFlags();
 <a name="l00853"></a>00853                         <span class="keywordflow">if</span> (DEBUG_IntBreakpoint(num)) {
-<a name="l00854"></a>00854                                 <span class="keywordflow">return</span> debugCallback;
+<a name="l00854"></a>00854                                 <span class="keywordflow">return</span> (Bits)debugCallback;
 <a name="l00855"></a>00855                         }
 <a name="l00856"></a>00856 <span class="preprocessor">#endif</span>
 <a name="l00857"></a>00857 <span class="preprocessor"></span>                        CPU_SW_Interrupt(num,GETIP);
@@ -1146,7 +1146,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01050"></a>01050                 { 
 <a name="l01051"></a>01051                         <span class="comment">/* must not adjust (E)IP until we have completed the instruction.</span>
 <a name="l01052"></a>01052 <span class="comment">                         * if interrupted by a page fault, EIP must be unmodified. */</span>
-<a name="l01053"></a>01053                         Bit16u addip=Fetchws();
+<a name="l01053"></a>01053                         Bit16u addip=(Bit16u)Fetchws();
 <a name="l01054"></a>01054                         Bit16u here=GETIP;
 <a name="l01055"></a>01055                         Push_16(here);
 <a name="l01056"></a>01056                         reg_eip=(Bit16u)(addip+here);
@@ -1154,7 +1154,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01058"></a>01058                 }
 <a name="l01059"></a>01059         CASE_W(0xe9)                                                                                            <span class="comment">/* JMP Jw */</span>
 <a name="l01060"></a>01060                 { 
-<a name="l01061"></a>01061                         Bit16u addip=Fetchws();
+<a name="l01061"></a>01061                         Bit16u addip=(Bit16u)Fetchws();
 <a name="l01062"></a>01062                         SAVEIP;
 <a name="l01063"></a>01063                         reg_eip=(Bit16u)(reg_eip+addip);
 <a name="l01064"></a>01064                         <span class="keywordflow">continue</span>;
@@ -1177,7 +1177,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01081"></a>01081                 { 
 <a name="l01082"></a>01082                         Bit16s addip=Fetchbs();
 <a name="l01083"></a>01083                         SAVEIP;
-<a name="l01084"></a>01084                         reg_eip=(Bit16u)(reg_eip+addip);
+<a name="l01084"></a>01084                         reg_eip=(Bit16u)(reg_eip+(Bit32u)addip);
 <a name="l01085"></a>01085                         <span class="keywordflow">continue</span>;
 <a name="l01086"></a>01086                 }
 <a name="l01087"></a>01087         CASE_B(0xec)                                                                                            <span class="comment">/* IN AL,DX */</span>
@@ -1279,7 +1279,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01183"></a>01183                         <span class="keywordflow">case</span> 0x02:                                                                                      <span class="comment">/* NOT Ew */</span>
 <a name="l01184"></a>01184                                 {
 <a name="l01185"></a>01185                                         <span class="keywordflow">if</span> (rm &gt;= 0xc0 ) {GetEArw;*earw=~*earw;}
-<a name="l01186"></a>01186                                         <span class="keywordflow">else</span> {GetEAa;SaveMw(eaa,~LoadMw(eaa));}
+<a name="l01186"></a>01186                                         <span class="keywordflow">else</span> {GetEAa;SaveMw(eaa,(Bitu)(~LoadMw(eaa)));}
 <a name="l01187"></a>01187                                         <span class="keywordflow">break</span>;
 <a name="l01188"></a>01188                                 }
 <a name="l01189"></a>01189                         <span class="keywordflow">case</span> 0x03:                                                                                      <span class="comment">/* NEG Ew */</span>
@@ -1348,7 +1348,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01252"></a>01252                                 {
 <a name="l01253"></a>01253                                         Bitu cb=Fetchw();
 <a name="l01254"></a>01254                                         FillFlags();SAVEIP;
-<a name="l01255"></a>01255                                         <span class="keywordflow">return</span> cb;
+<a name="l01255"></a>01255                                         <span class="keywordflow">return</span> (Bits)cb;
 <a name="l01256"></a>01256                                 }
 <a name="l01257"></a>01257                         <span class="keywordflow">default</span>:
 <a name="l01258"></a>01258                                 <a class="code" href="classLOG.html">LOG</a>(LOG_CPU,LOG_DEBUG)(<span class="stringliteral">&quot;Illegal GRP4 Call %d&quot;</span>,(rm&gt;&gt;3) &amp; 7);
@@ -1430,7 +1430,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:02 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

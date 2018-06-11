@@ -167,8 +167,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00071"></a>00071 
 <a name="l00072"></a>00072 <span class="keywordtype">void</span> DOS_GetMemory_unmap() {
 <a name="l00073"></a>00073         <span class="keywordflow">if</span> (DOS_PRIVATE_SEGMENT != 0) {
-<a name="l00074"></a>00074                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Unmapping DOS private segment 0x%04x-0x%04x&quot;</span>,DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
-<a name="l00075"></a>00075                 <span class="keywordflow">if</span> (DOS_PRIVATE_SEGMENT &gt;= 0xA000) MEM_unmap_physmem(DOS_PRIVATE_SEGMENT&lt;&lt;4,(DOS_PRIVATE_SEGMENT_END&lt;&lt;4)-1);
+<a name="l00074"></a>00074                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Unmapping DOS private segment 0x%04x-0x%04x&quot;</span>,DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1u);
+<a name="l00075"></a>00075                 <span class="keywordflow">if</span> (DOS_PRIVATE_SEGMENT &gt;= 0xA000u) MEM_unmap_physmem((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)DOS_PRIVATE_SEGMENT&lt;&lt;4u,((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)DOS_PRIVATE_SEGMENT_END&lt;&lt;4u)-1u);
 <a name="l00076"></a>00076                 DOS_GetMemory_unmapped = <span class="keyword">true</span>;
 <a name="l00077"></a>00077                 DOS_PRIVATE_SEGMENT_END = 0;
 <a name="l00078"></a>00078                 DOS_PRIVATE_SEGMENT = 0;
@@ -191,8 +191,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00095"></a>00095                 }
 <a name="l00096"></a>00096 
 <a name="l00097"></a>00097                 <span class="keywordflow">if</span> (DOS_PRIVATE_SEGMENT &gt;= 0xA000) {
-<a name="l00098"></a>00098                         memset(GetMemBase()+(DOS_PRIVATE_SEGMENT&lt;&lt;4),0x00,(DOS_PRIVATE_SEGMENT_END-DOS_PRIVATE_SEGMENT)&lt;&lt;4);
-<a name="l00099"></a>00099                         MEM_map_RAM_physmem(DOS_PRIVATE_SEGMENT&lt;&lt;4,(DOS_PRIVATE_SEGMENT_END&lt;&lt;4)-1);
+<a name="l00098"></a>00098                         memset(GetMemBase()+((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)DOS_PRIVATE_SEGMENT&lt;&lt;4u),0x00,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(DOS_PRIVATE_SEGMENT_END-DOS_PRIVATE_SEGMENT)&lt;&lt;4u);
+<a name="l00099"></a>00099                         MEM_map_RAM_physmem((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)DOS_PRIVATE_SEGMENT&lt;&lt;4u,((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)DOS_PRIVATE_SEGMENT_END&lt;&lt;4u)-1u);
 <a name="l00100"></a>00100                 }
 <a name="l00101"></a>00101 
 <a name="l00102"></a>00102                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;DOS private segment set to 0x%04x-0x%04x&quot;</span>,DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
@@ -377,7 +377,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

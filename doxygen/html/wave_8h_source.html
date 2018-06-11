@@ -268,7 +268,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00172"></a>00172   reg24 accumulator_prev = accumulator;
 <a name="l00173"></a>00173 
 <a name="l00174"></a>00174   <span class="comment">// Calculate new accumulator value;</span>
-<a name="l00175"></a>00175   reg24 delta_accumulator = delta_t*freq;
+<a name="l00175"></a>00175   reg24 delta_accumulator = (<span class="keywordtype">unsigned</span> int)(delta_t * (cycle_count)freq);
 <a name="l00176"></a>00176   accumulator += delta_accumulator;
 <a name="l00177"></a>00177   accumulator &amp;= 0xffffff;
 <a name="l00178"></a>00178 
@@ -605,7 +605,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

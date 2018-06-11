@@ -298,16 +298,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00202"></a>00202   <span class="comment">//</span>
 <a name="l00203"></a>00203 
 <a name="l00204"></a>00204   <span class="comment">// NB! This requires two&#39;s complement integer.</span>
-<a name="l00205"></a>00205   <span class="keywordtype">int</span> rate_step = rate_period - rate_counter;
+<a name="l00205"></a>00205   <span class="keywordtype">int</span> rate_step = (int)(rate_period - rate_counter);
 <a name="l00206"></a>00206   <span class="keywordflow">if</span> (rate_step &lt;= 0) {
 <a name="l00207"></a>00207     rate_step += 0x7fff;
 <a name="l00208"></a>00208   }
 <a name="l00209"></a>00209 
 <a name="l00210"></a>00210   <span class="keywordflow">while</span> (delta_t) {
 <a name="l00211"></a>00211     <span class="keywordflow">if</span> (delta_t &lt; rate_step) {
-<a name="l00212"></a>00212       rate_counter += delta_t;
-<a name="l00213"></a>00213       <span class="keywordflow">if</span> (rate_counter &amp; 0x8000) {
-<a name="l00214"></a>00214         ++rate_counter &amp;= 0x7fff;
+<a name="l00212"></a>00212       rate_counter += (<span class="keywordtype">unsigned</span> int)delta_t;
+<a name="l00213"></a>00213       <span class="keywordflow">if</span> (rate_counter &amp; 0x8000u) {
+<a name="l00214"></a>00214         ++rate_counter &amp;= 0x7fffu;
 <a name="l00215"></a>00215       }
 <a name="l00216"></a>00216       <span class="keywordflow">return</span>;
 <a name="l00217"></a>00217     }
@@ -324,7 +324,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00228"></a>00228 
 <a name="l00229"></a>00229       <span class="comment">// Check whether the envelope counter is frozen at zero.</span>
 <a name="l00230"></a>00230       <span class="keywordflow">if</span> (hold_zero) {
-<a name="l00231"></a>00231         rate_step = rate_period;
+<a name="l00231"></a>00231         rate_step = (int)rate_period;
 <a name="l00232"></a>00232         <span class="keywordflow">continue</span>;
 <a name="l00233"></a>00233       }
 <a name="l00234"></a>00234 
@@ -387,7 +387,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00291"></a>00291       }
 <a name="l00292"></a>00292     }
 <a name="l00293"></a>00293 
-<a name="l00294"></a>00294     rate_step = rate_period;
+<a name="l00294"></a>00294     rate_step = (int)rate_period;
 <a name="l00295"></a>00295   }
 <a name="l00296"></a>00296 }
 <a name="l00297"></a>00297 
@@ -408,7 +408,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

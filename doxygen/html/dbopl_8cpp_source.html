@@ -426,7 +426,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00330"></a>00330         Bit32u tl = reg40 &amp; 0x3f;
 <a name="l00331"></a>00331         Bit8u kslShift = KslShiftTable[ reg40 &gt;&gt; 6 ];
 <a name="l00332"></a>00332         <span class="comment">//Make sure the attenuation goes to the right bits</span>
-<a name="l00333"></a>00333         totalLevel = tl &lt;&lt; ( ENV_BITS - 7 );    <span class="comment">//Total level goes 2 bits below max</span>
+<a name="l00333"></a>00333         totalLevel = (Bit32s)(tl &lt;&lt; ( ENV_BITS - 7 ));  <span class="comment">//Total level goes 2 bits below max</span>
 <a name="l00334"></a>00334         totalLevel += ( kslBase &lt;&lt; ENV_EXTRA ) &gt;&gt; kslShift;
 <a name="l00335"></a>00335 }
 <a name="l00336"></a>00336 
@@ -434,18 +434,18 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00338"></a>00338         Bit32u freq = chanData &amp; (( 1 &lt;&lt; 10 ) - 1);
 <a name="l00339"></a>00339         Bit32u block = (chanData &gt;&gt; 10) &amp; 0xff;
 <a name="l00340"></a>00340 <span class="preprocessor">#ifdef WAVE_PRECISION</span>
-<a name="l00341"></a>00341 <span class="preprocessor"></span>        block = 7 - block;
+<a name="l00341"></a>00341 <span class="preprocessor"></span>        block = 7u - block;
 <a name="l00342"></a>00342         waveAdd = ( freq * freqMul ) &gt;&gt; block;
 <a name="l00343"></a>00343 <span class="preprocessor">#else</span>
 <a name="l00344"></a>00344 <span class="preprocessor"></span>        waveAdd = ( freq &lt;&lt; block ) * freqMul;
 <a name="l00345"></a>00345 <span class="preprocessor">#endif</span>
 <a name="l00346"></a>00346 <span class="preprocessor"></span>        <span class="keywordflow">if</span> ( reg20 &amp; MASK_VIBRATO ) {
-<a name="l00347"></a>00347                 vibStrength = (Bit8u)(freq &gt;&gt; 7);
+<a name="l00347"></a>00347                 vibStrength = (Bit8u)(freq &gt;&gt; 7u);
 <a name="l00348"></a>00348 
 <a name="l00349"></a>00349 <span class="preprocessor">#ifdef WAVE_PRECISION</span>
-<a name="l00350"></a>00350 <span class="preprocessor"></span>                vibrato = ( vibStrength * freqMul ) &gt;&gt; block;
+<a name="l00350"></a>00350 <span class="preprocessor"></span>                vibrato = ( (Bitu)vibStrength * freqMul ) &gt;&gt; block;
 <a name="l00351"></a>00351 <span class="preprocessor">#else</span>
-<a name="l00352"></a>00352 <span class="preprocessor"></span>                vibrato = ( vibStrength &lt;&lt; block ) * freqMul;
+<a name="l00352"></a>00352 <span class="preprocessor"></span>                vibrato = ( (Bitu)vibStrength &lt;&lt; block ) * freqMul;
 <a name="l00353"></a>00353 <span class="preprocessor">#endif</span>
 <a name="l00354"></a>00354 <span class="preprocessor"></span>        } <span class="keywordflow">else</span> {
 <a name="l00355"></a>00355                 vibStrength = 0;
@@ -470,7 +470,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00374"></a>00374 
 <a name="l00375"></a>00375 <span class="comment">/*INLINE*/</span> Bit32s Operator::RateForward( Bit32u add ) {
 <a name="l00376"></a>00376         rateIndex += add;
-<a name="l00377"></a>00377         Bit32s ret = rateIndex &gt;&gt; RATE_SH;
+<a name="l00377"></a>00377         Bit32s ret = (Bit32s)(rateIndex &gt;&gt; RATE_SH);
 <a name="l00378"></a>00378         rateIndex = rateIndex &amp; RATE_MASK;
 <a name="l00379"></a>00379         <span class="keywordflow">return</span> ret;
 <a name="l00380"></a>00380 }
@@ -535,7 +535,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00439"></a>00439 };
 <a name="l00440"></a>00440 
 <a name="l00441"></a>00441 <span class="comment">/*INLINE*/</span> Bitu Operator::ForwardVolume() {
-<a name="l00442"></a>00442         <span class="keywordflow">return</span> currentLevel + (this-&gt;*volHandler)();
+<a name="l00442"></a>00442         <span class="keywordflow">return</span> (Bitu)(currentLevel + (this-&gt;*volHandler)());
 <a name="l00443"></a>00443 }
 <a name="l00444"></a>00444 
 <a name="l00445"></a>00445 
@@ -611,7 +611,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00515"></a>00515 <span class="preprocessor"></span>        waveHandler = WaveHandlerTable[ waveForm ];
 <a name="l00516"></a>00516 <span class="preprocessor">#else</span>
 <a name="l00517"></a>00517 <span class="preprocessor"></span>        waveBase = WaveTable + WaveBaseTable[ waveForm ];
-<a name="l00518"></a>00518         waveStart = WaveStartTable[ waveForm ] &lt;&lt; WAVE_SH;
+<a name="l00518"></a>00518         waveStart = (Bitu)WaveStartTable[ waveForm ] &lt;&lt; WAVE_SH;
 <a name="l00519"></a>00519         waveMask = WaveMaskTable[ waveForm ];
 <a name="l00520"></a>00520 <span class="preprocessor">#endif</span>
 <a name="l00521"></a>00521 <span class="preprocessor"></span>}
@@ -630,15 +630,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00534"></a>00534 }
 <a name="l00535"></a>00535 
 <a name="l00536"></a>00536 <span class="comment">/*INLINE*/</span> <span class="keywordtype">void</span> Operator::Prepare( <span class="keyword">const</span> Chip* chip )  {
-<a name="l00537"></a>00537         currentLevel = totalLevel + (chip-&gt;tremoloValue &amp; tremoloMask);
+<a name="l00537"></a>00537         currentLevel = (Bit32u)(totalLevel + (Bit32s)(chip-&gt;tremoloValue &amp; tremoloMask));
 <a name="l00538"></a>00538         waveCurrent = waveAdd;
 <a name="l00539"></a>00539         <span class="keywordflow">if</span> ( vibStrength &gt;&gt; chip-&gt;vibratoShift ) {
-<a name="l00540"></a>00540                 Bit32s add = vibrato &gt;&gt; chip-&gt;vibratoShift;
+<a name="l00540"></a>00540                 Bit32s add = (Bit32s)(vibrato &gt;&gt; chip-&gt;vibratoShift);
 <a name="l00541"></a>00541                 <span class="comment">//Sign extend over the shift value</span>
 <a name="l00542"></a>00542                 Bit32s neg = chip-&gt;vibratoSign;
 <a name="l00543"></a>00543                 <span class="comment">//Negate the add with -1 or 0</span>
 <a name="l00544"></a>00544                 add = ( add ^ neg ) - neg; 
-<a name="l00545"></a>00545                 waveCurrent += add;
+<a name="l00545"></a>00545                 waveCurrent += (Bitu)add;
 <a name="l00546"></a>00546         }
 <a name="l00547"></a>00547 }
 <a name="l00548"></a>00548 
@@ -690,7 +690,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00594"></a>00594                 <span class="keywordflow">return</span> 0;
 <a name="l00595"></a>00595         } <span class="keywordflow">else</span> {
 <a name="l00596"></a>00596                 Bitu index = ForwardWave();
-<a name="l00597"></a>00597                 index += modulation;
+<a name="l00597"></a>00597                 index += (<span class="keywordtype">unsigned</span> long)modulation;
 <a name="l00598"></a>00598                 <span class="keywordflow">return</span> GetWave( index, vol );
 <a name="l00599"></a>00599         }
 <a name="l00600"></a>00600 }
@@ -741,11 +741,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00645"></a>00645         <span class="comment">//Since a frequency update triggered this, always update frequency</span>
 <a name="l00646"></a>00646         Op( 0 )-&gt;UpdateFrequency();
 <a name="l00647"></a>00647         Op( 1 )-&gt;UpdateFrequency();
-<a name="l00648"></a>00648         <span class="keywordflow">if</span> ( change &amp; ( 0xff &lt;&lt; SHIFT_KSLBASE ) ) {
+<a name="l00648"></a>00648         <span class="keywordflow">if</span> ( change &amp; ( 0xffu &lt;&lt; SHIFT_KSLBASE ) ) {
 <a name="l00649"></a>00649                 Op( 0 )-&gt;UpdateAttenuation();
 <a name="l00650"></a>00650                 Op( 1 )-&gt;UpdateAttenuation();
 <a name="l00651"></a>00651         }
-<a name="l00652"></a>00652         <span class="keywordflow">if</span> ( change &amp; ( 0xff &lt;&lt; SHIFT_KEYCODE ) ) {
+<a name="l00652"></a>00652         <span class="keywordflow">if</span> ( change &amp; ( 0xffu &lt;&lt; SHIFT_KEYCODE ) ) {
 <a name="l00653"></a>00653                 Op( 0 )-&gt;UpdateRates( chip );
 <a name="l00654"></a>00654                 Op( 1 )-&gt;UpdateRates( chip );
 <a name="l00655"></a>00655         }
@@ -786,7 +786,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00690"></a>00690         <span class="comment">//Don&#39;t handle writes to silent fourop channels</span>
 <a name="l00691"></a>00691         <span class="keywordflow">if</span> ( fourOp &gt; 0x80 )
 <a name="l00692"></a>00692                 <span class="keywordflow">return</span>;
-<a name="l00693"></a>00693         Bitu change = (chanData ^ ( val &lt;&lt; 8 ) ) &amp; 0x1f00;
+<a name="l00693"></a>00693         Bitu change = (chanData ^ ( (<span class="keywordtype">unsigned</span> int)val &lt;&lt; 8u ) ) &amp; 0x1f00u;
 <a name="l00694"></a>00694         <span class="keywordflow">if</span> ( change ) {
 <a name="l00695"></a>00695                 chanData ^= change;
 <a name="l00696"></a>00696                 UpdateFrequency( chip, fourOp );
@@ -889,7 +889,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00793"></a>00793         Channel* chan = <span class="keyword">this</span>;
 <a name="l00794"></a>00794 
 <a name="l00795"></a>00795         <span class="comment">//BassDrum</span>
-<a name="l00796"></a>00796         Bit32s mod = (Bit32u)((old[0] + old[1])) &gt;&gt; feedback;
+<a name="l00796"></a>00796         Bit32s mod = (Bit32s)((Bit32u)((old[0] + old[1])) &gt;&gt; feedback);
 <a name="l00797"></a>00797         old[0] = old[1];
 <a name="l00798"></a>00798         old[1] = Op(0)-&gt;GetSample( mod ); 
 <a name="l00799"></a>00799 
@@ -1004,7 +1004,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00908"></a>00908                 }
 <a name="l00909"></a>00909 
 <a name="l00910"></a>00910                 <span class="comment">//Do unsigned shift so we can shift out all bits but still stay in 10 bit range otherwise</span>
-<a name="l00911"></a>00911                 Bit32s mod = (Bit32u)((old[0] + old[1])) &gt;&gt; feedback;
+<a name="l00911"></a>00911                 Bit32s mod = (Bit32s)((Bit32u)((old[0] + old[1])) &gt;&gt; feedback);
 <a name="l00912"></a>00912                 old[0] = old[1];
 <a name="l00913"></a>00913                 old[1] = Op(0)-&gt;GetSample( mod );
 <a name="l00914"></a>00914                 Bit32s sample;
@@ -1265,12 +1265,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01169"></a>01169         <span class="keywordflow">case</span> 0:
 <a name="l01170"></a>01170                 <span class="keywordflow">return</span> val;
 <a name="l01171"></a>01171         <span class="keywordflow">case</span> 2:
-<a name="l01172"></a>01172                 <span class="keywordflow">if</span> ( opl3Active || (val == 0x05) )
-<a name="l01173"></a>01173                         <span class="keywordflow">return</span> 0x100 | val;
+<a name="l01172"></a>01172                 <span class="keywordflow">if</span> ( opl3Active || (val == 0x05u) )
+<a name="l01173"></a>01173                         <span class="keywordflow">return</span> 0x100u | val;
 <a name="l01174"></a>01174                 <span class="keywordflow">else</span> 
 <a name="l01175"></a>01175                         <span class="keywordflow">return</span> val;
 <a name="l01176"></a>01176         }
-<a name="l01177"></a>01177         <span class="keywordflow">return</span> 0;
+<a name="l01177"></a>01177         <span class="keywordflow">return</span> 0u;
 <a name="l01178"></a>01178 }
 <a name="l01179"></a>01179 
 <a name="l01180"></a>01180 <span class="keywordtype">void</span> Chip::GenerateBlock2( Bitu total, Bit32s* output ) {
@@ -1342,9 +1342,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01246"></a>01246                 Bit8u index, shift;
 <a name="l01247"></a>01247                 EnvelopeSelect( i, index, shift );
 <a name="l01248"></a>01248                 <span class="comment">//Original amount of samples the attack would take</span>
-<a name="l01249"></a>01249                 Bit32s original = (Bit32u)( (AttackSamplesTable[ index ] &lt;&lt; shift) / scale);
+<a name="l01249"></a>01249                 Bit32s original = (Bit32s)((Bit32u)( (AttackSamplesTable[ index ] &lt;&lt; shift) / scale));
 <a name="l01250"></a>01250                  
-<a name="l01251"></a>01251                 Bit32s guessAdd = (Bit32u)( scale * (EnvelopeIncreaseTable[ index ] &lt;&lt; ( RATE_SH - shift - 3 )));
+<a name="l01251"></a>01251                 Bit32s guessAdd = (Bit32s)((Bit32u)( scale * (EnvelopeIncreaseTable[ index ] &lt;&lt; ( RATE_SH - shift - 3 ))));
 <a name="l01252"></a>01252                 Bit32s bestAdd = guessAdd;
 <a name="l01253"></a>01253                 Bit32u bestDiff = 1 &lt;&lt; 30;
 <a name="l01254"></a>01254                 <span class="keywordflow">for</span>( Bit32u passes = 0; passes &lt; 16; passes ++ ) {
@@ -1352,8 +1352,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01256"></a>01256                         Bit32s samples = 0;
 <a name="l01257"></a>01257                         Bit32u count = 0;
 <a name="l01258"></a>01258                         <span class="keywordflow">while</span> ( volume &gt; 0 &amp;&amp; samples &lt; original * 2 ) {
-<a name="l01259"></a>01259                                 count += guessAdd;
-<a name="l01260"></a>01260                                 Bit32s change = count &gt;&gt; RATE_SH;
+<a name="l01259"></a>01259                                 count += (Bit32u)guessAdd;
+<a name="l01260"></a>01260                                 Bit32s change = (Bit32s)(count &gt;&gt; RATE_SH);
 <a name="l01261"></a>01261                                 count &amp;= RATE_MASK;
 <a name="l01262"></a>01262                                 <span class="keywordflow">if</span> ( GCC_UNLIKELY(change) ) { <span class="comment">// less than 1 % </span>
 <a name="l01263"></a>01263                                         volume += ( ~volume * change ) &gt;&gt; 3;
@@ -1382,11 +1382,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01286"></a>01286                                 guessAdd--;
 <a name="l01287"></a>01287                         }
 <a name="l01288"></a>01288                 }
-<a name="l01289"></a>01289                 attackRates[i] = bestAdd;
+<a name="l01289"></a>01289                 attackRates[i] = (Bit32u)bestAdd;
 <a name="l01290"></a>01290         }
 <a name="l01291"></a>01291         <span class="keywordflow">for</span> ( Bit8u i = 62; i &lt; 76; i++ ) {
 <a name="l01292"></a>01292                 <span class="comment">//This should provide instant volume maximizing</span>
-<a name="l01293"></a>01293                 attackRates[i] = 8 &lt;&lt; RATE_SH;
+<a name="l01293"></a>01293                 attackRates[i] = 8u &lt;&lt; RATE_SH;
 <a name="l01294"></a>01294         }
 <a name="l01295"></a>01295         <span class="comment">//Setup the channels with the correct four op flags</span>
 <a name="l01296"></a>01296         <span class="comment">//Channels are accessed through a table so they appear linear here</span>
@@ -1411,7 +1411,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01315"></a>01315 
 <a name="l01316"></a>01316         <span class="comment">//Clear Everything in opl3 mode</span>
 <a name="l01317"></a>01317         WriteReg( 0x105, 0x1 );
-<a name="l01318"></a>01318         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 512; i++ ) {
+<a name="l01318"></a>01318         <span class="keywordflow">for</span> ( <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i = 0; i &lt; 512; i++ ) {
 <a name="l01319"></a>01319                 <span class="keywordflow">if</span> ( i == 0x105 )
 <a name="l01320"></a>01320                         <span class="keywordflow">continue</span>;
 <a name="l01321"></a>01321                 WriteReg( i, 0xff );
@@ -1419,7 +1419,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01323"></a>01323         }
 <a name="l01324"></a>01324         WriteReg( 0x105, 0x0 );
 <a name="l01325"></a>01325         <span class="comment">//Clear everything in opl2 mode</span>
-<a name="l01326"></a>01326         <span class="keywordflow">for</span> ( <span class="keywordtype">int</span> i = 0; i &lt; 255; i++ ) {
+<a name="l01326"></a>01326         <span class="keywordflow">for</span> ( <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i = 0; i &lt; 255; i++ ) {
 <a name="l01327"></a>01327                 WriteReg( i, 0xff );
 <a name="l01328"></a>01328                 WriteReg( i, 0x0 );
 <a name="l01329"></a>01329         }
@@ -1612,7 +1612,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:32 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

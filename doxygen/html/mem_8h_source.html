@@ -170,13 +170,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00074"></a>00074     <span class="keywordflow">return</span> *off;
 <a name="l00075"></a>00075 }
 <a name="l00076"></a>00076 <span class="keyword">static</span> INLINE Bit16u host_readw(ConstHostPt <span class="keyword">const</span> off) {
-<a name="l00077"></a>00077     <span class="keywordflow">return</span> (Bit16u)host_readb(off) + ((Bit16u)host_readb(off+(ConstHostPt)1U) &lt;&lt; (Bit16u)8U);
+<a name="l00077"></a>00077     <span class="keywordflow">return</span> (Bit16u)host_readb(off) + ((Bit16u)host_readb(off+(uintptr_t)1U) &lt;&lt; (Bit16u)8U);
 <a name="l00078"></a>00078 }
 <a name="l00079"></a>00079 <span class="keyword">static</span> INLINE Bit32u host_readd(ConstHostPt <span class="keyword">const</span> off) {
-<a name="l00080"></a>00080     <span class="keywordflow">return</span> (Bit32u)host_readw(off) + ((Bit32u)host_readw(off+(ConstHostPt)2U) &lt;&lt; (Bit32u)16U);
+<a name="l00080"></a>00080     <span class="keywordflow">return</span> (Bit32u)host_readw(off) + ((Bit32u)host_readw(off+(uintptr_t)2U) &lt;&lt; (Bit32u)16U);
 <a name="l00081"></a>00081 }
 <a name="l00082"></a>00082 <span class="keyword">static</span> INLINE Bit64u host_readq(ConstHostPt <span class="keyword">const</span> off) {
-<a name="l00083"></a>00083     <span class="keywordflow">return</span> (Bit64u)host_readd(off) + ((Bit64u)host_readd(off+(ConstHostPt)4U) &lt;&lt; (Bit64u)32U);
+<a name="l00083"></a>00083     <span class="keywordflow">return</span> (Bit64u)host_readd(off) + ((Bit64u)host_readd(off+(uintptr_t)4U) &lt;&lt; (Bit64u)32U);
 <a name="l00084"></a>00084 }
 <a name="l00085"></a>00085 
 <a name="l00086"></a>00086 <span class="keyword">static</span> INLINE <span class="keywordtype">void</span> host_writeb(HostPt <span class="keyword">const</span> off,<span class="keyword">const</span> Bit8u val) {
@@ -363,7 +363,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:30 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:01 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

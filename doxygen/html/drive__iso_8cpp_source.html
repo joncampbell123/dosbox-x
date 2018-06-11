@@ -164,11 +164,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00068"></a>00068                 *size = (Bit16u)(fileEnd - filePos);
 <a name="l00069"></a>00069         
 <a name="l00070"></a>00070         Bit16u nowSize = 0;
-<a name="l00071"></a>00071         <span class="keywordtype">int</span> sector = filePos / ISO_FRAMESIZE;
+<a name="l00071"></a>00071         <span class="keywordtype">int</span> sector = (int)(filePos / ISO_FRAMESIZE);
 <a name="l00072"></a>00072         Bit16u sectorPos = (Bit16u)(filePos % ISO_FRAMESIZE);
 <a name="l00073"></a>00073         
 <a name="l00074"></a>00074         <span class="keywordflow">if</span> (sector != cachedSector) {
-<a name="l00075"></a>00075                 <span class="keywordflow">if</span> (drive-&gt;readSector(buffer, sector)) cachedSector = sector;
+<a name="l00075"></a>00075                 <span class="keywordflow">if</span> (drive-&gt;readSector(buffer, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)sector)) cachedSector = sector;
 <a name="l00076"></a>00076                 <span class="keywordflow">else</span> { *size = 0; cachedSector = -1; }
 <a name="l00077"></a>00077         }
 <a name="l00078"></a>00078         <span class="keywordflow">while</span> (nowSize &lt; *size) {
@@ -180,7 +180,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00084"></a>00084                         sectorPos = 0;
 <a name="l00085"></a>00085                         sector++;
 <a name="l00086"></a>00086                         cachedSector++;
-<a name="l00087"></a>00087                         <span class="keywordflow">if</span> (!drive-&gt;readSector(buffer, sector)) {
+<a name="l00087"></a>00087                         <span class="keywordflow">if</span> (!drive-&gt;readSector(buffer, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)sector)) {
 <a name="l00088"></a>00088                                 *size = nowSize;
 <a name="l00089"></a>00089                                 cachedSector = -1;
 <a name="l00090"></a>00090                         }
@@ -534,7 +534,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00438"></a>00438                  <span class="comment">// read sector and advance sector pointer</span>
 <a name="l00439"></a>00439                  <span class="keywordtype">int</span> length = readDirEntry(de, &amp;buffer[dirIterator.pos]);
 <a name="l00440"></a>00440                  result = length &gt;= 0;
-<a name="l00441"></a>00441                  dirIterator.pos += length;
+<a name="l00441"></a>00441          <span class="keywordflow">if</span> (length &gt; 0) dirIterator.pos += (<span class="keywordtype">unsigned</span> int)length;
 <a name="l00442"></a>00442         }
 <a name="l00443"></a>00443         <span class="keywordflow">return</span> result;
 <a name="l00444"></a>00444 }
@@ -554,7 +554,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00458"></a>00458 
 <a name="l00459"></a>00459 <span class="keywordtype">bool</span> isoDrive::ReadCachedSector(Bit8u** buffer, <span class="keyword">const</span> Bit32u sector) {
 <a name="l00460"></a>00460         <span class="comment">// get hash table entry</span>
-<a name="l00461"></a>00461         <span class="keywordtype">int</span> pos = sector % ISO_MAX_HASH_TABLE_SIZE;
+<a name="l00461"></a>00461         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> pos = sector % ISO_MAX_HASH_TABLE_SIZE;
 <a name="l00462"></a>00462         SectorHashEntry&amp; he = sectorHashEntries[pos];
 <a name="l00463"></a>00463         
 <a name="l00464"></a>00464         <span class="comment">// check if the entry is valid and contains the correct sector</span>
@@ -675,7 +675,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

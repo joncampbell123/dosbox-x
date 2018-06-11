@@ -297,7 +297,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00201"></a>00201 
 <a name="l00202"></a>00202         <a class="code" href="classGUSChannels.html">GUSChannels</a>(Bit8u num) { 
 <a name="l00203"></a>00203                 channum = num;
-<a name="l00204"></a>00204                 irqmask = 1 &lt;&lt; num;
+<a name="l00204"></a>00204                 irqmask = 1u &lt;&lt; num;
 <a name="l00205"></a>00205                 WaveStart = 0;
 <a name="l00206"></a>00206                 WaveEnd = 0;
 <a name="l00207"></a>00207                 WaveAddr = 0;
@@ -461,10 +461,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00365"></a>00365                 }
 <a name="l00366"></a>00366         }
 <a name="l00367"></a>00367         INLINE <span class="keywordtype">void</span> UpdateVolumes(<span class="keywordtype">void</span>) {
-<a name="l00368"></a>00368                 Bit32s templeft=RampVol - PanLeft;
-<a name="l00369"></a>00369                 templeft&amp;=~(templeft &gt;&gt; 31);
-<a name="l00370"></a>00370                 Bit32s tempright=RampVol - PanRight;
-<a name="l00371"></a>00371                 tempright&amp;=~(tempright &gt;&gt; 31);
+<a name="l00368"></a>00368                 Bit32s templeft=(Bit32s)RampVol - (Bit32s)PanLeft;
+<a name="l00369"></a>00369                 templeft&amp;=~(templeft &gt;&gt; 31); <span class="comment">/* &lt;- NTS: This is a rather elaborate way to clamp negative values to zero using negate and sign extend */</span>
+<a name="l00370"></a>00370                 Bit32s tempright=(Bit32s)RampVol - (Bit32s)PanRight;
+<a name="l00371"></a>00371                 tempright&amp;=~(tempright &gt;&gt; 31); <span class="comment">/* &lt;- NTS: This is a rather elaborate way to clamp negative values to zero using negate and sign extend */</span>
 <a name="l00372"></a>00372                 VolLeft=vol16bit[templeft &gt;&gt; RAMP_FRACT];
 <a name="l00373"></a>00373                 VolRight=vol16bit[tempright &gt;&gt; RAMP_FRACT];
 <a name="l00374"></a>00374         }
@@ -475,11 +475,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00379"></a>00379                 <span class="keywordflow">if</span> (RampCtrl &amp; 0x40) {
 <a name="l00380"></a>00380                         RampVol-=RampAdd;
 <a name="l00381"></a>00381                         <span class="keywordflow">if</span> ((Bit32s)RampVol &lt; (Bit32s)0) RampVol=0;
-<a name="l00382"></a>00382                         RampLeft=RampStart-RampVol;
+<a name="l00382"></a>00382                         RampLeft=(Bit32s)RampStart-(Bit32s)RampVol;
 <a name="l00383"></a>00383                 } <span class="keywordflow">else</span> {
 <a name="l00384"></a>00384                         RampVol+=RampAdd;
 <a name="l00385"></a>00385                         <span class="keywordflow">if</span> (RampVol &gt; ((4096 &lt;&lt; RAMP_FRACT)-1)) RampVol=((4096 &lt;&lt; RAMP_FRACT)-1);
-<a name="l00386"></a>00386                         RampLeft=RampVol-RampEnd;
+<a name="l00386"></a>00386                         RampLeft=(Bit32s)RampVol-(Bit32s)RampEnd;
 <a name="l00387"></a>00387                 }
 <a name="l00388"></a>00388                 <span class="keywordflow">if</span> (RampLeft&lt;0) {
 <a name="l00389"></a>00389                         UpdateVolumes();
@@ -493,7 +493,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00397"></a>00397                 <span class="keywordflow">if</span> (RampCtrl &amp; 0x08) {
 <a name="l00398"></a>00398                         <span class="comment">/* Bi-directional looping */</span>
 <a name="l00399"></a>00399                         <span class="keywordflow">if</span> (RampCtrl &amp; 0x10) RampCtrl^=0x40;
-<a name="l00400"></a>00400                         RampVol = (RampCtrl &amp; 0x40) ? (RampEnd-RampLeft) : (RampStart+RampLeft);
+<a name="l00400"></a>00400                         RampVol = (RampCtrl &amp; 0x40) ? (Bit32u)((Bit32s)RampEnd-(Bit32s)RampLeft) : (Bit32u)((Bit32s)RampStart+(Bit32s)RampLeft);
 <a name="l00401"></a>00401                 } <span class="keywordflow">else</span> {
 <a name="l00402"></a>00402                         RampCtrl|=1;    <span class="comment">//Stop the channel</span>
 <a name="l00403"></a>00403                         RampVol = (RampCtrl &amp; 0x40) ? RampStart : RampEnd;
@@ -742,7 +742,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00646"></a>00646         <span class="keywordflow">if</span> (myGUS.WaveIRQ) myGUS.IRQStatus|=0x20;
 <a name="l00647"></a>00647         GUS_CheckIRQ();
 <a name="l00648"></a>00648         <span class="keywordflow">for</span> (;;) {
-<a name="l00649"></a>00649                 Bit32u check=(1 &lt;&lt; myGUS.IRQChan);
+<a name="l00649"></a>00649                 Bit32u check=(1u &lt;&lt; myGUS.IRQChan);
 <a name="l00650"></a>00650                 <span class="keywordflow">if</span> (totalmask &amp; check) <span class="keywordflow">return</span>;
 <a name="l00651"></a>00651                 myGUS.IRQChan++;
 <a name="l00652"></a>00652                 <span class="keywordflow">if</span> (myGUS.IRQChan&gt;=myGUS.ActiveChannels) myGUS.IRQChan=0;
@@ -810,7 +810,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00714"></a>00714         <span class="keywordflow">case</span> 0x8f: <span class="comment">// General channel IRQ status register</span>
 <a name="l00715"></a>00715                 tmpreg=myGUS.IRQChan|0x20;
 <a name="l00716"></a>00716                 Bit32u mask;
-<a name="l00717"></a>00717                 mask=1 &lt;&lt; myGUS.IRQChan;
+<a name="l00717"></a>00717                 mask=1u &lt;&lt; myGUS.IRQChan;
 <a name="l00718"></a>00718                 <span class="keywordflow">if</span> (!(myGUS.RampIRQ &amp; mask)) tmpreg|=0x40;
 <a name="l00719"></a>00719                 <span class="keywordflow">if</span> (!(myGUS.WaveIRQ &amp; mask)) tmpreg|=0x80;
 <a name="l00720"></a>00720                 myGUS.RampIRQ&amp;=~mask;
@@ -883,20 +883,20 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00787"></a>00787         <span class="keywordflow">case</span> 0x7:  <span class="comment">// Channel volume ramp start register  EEEEMMMM</span>
 <a name="l00788"></a>00788                 <span class="keywordflow">if</span>(curchan != NULL) {
 <a name="l00789"></a>00789                         Bit8u tmpdata = (Bit16u)myGUS.gRegData &gt;&gt; 8;
-<a name="l00790"></a>00790                         curchan-&gt;RampStart = tmpdata &lt;&lt; (4+RAMP_FRACT);
+<a name="l00790"></a>00790                         curchan-&gt;RampStart = (Bit32u)(tmpdata &lt;&lt; (4+RAMP_FRACT));
 <a name="l00791"></a>00791                 }
 <a name="l00792"></a>00792                 <span class="keywordflow">break</span>;
 <a name="l00793"></a>00793         <span class="keywordflow">case</span> 0x8:  <span class="comment">// Channel volume ramp end register  EEEEMMMM</span>
 <a name="l00794"></a>00794                 <span class="keywordflow">if</span>(curchan != NULL) {
 <a name="l00795"></a>00795                         Bit8u tmpdata = (Bit16u)myGUS.gRegData &gt;&gt; 8;
-<a name="l00796"></a>00796                         curchan-&gt;RampEnd = tmpdata &lt;&lt; (4+RAMP_FRACT);
+<a name="l00796"></a>00796                         curchan-&gt;RampEnd = (Bit32u)(tmpdata &lt;&lt; (4+RAMP_FRACT));
 <a name="l00797"></a>00797                 }
 <a name="l00798"></a>00798                 <span class="keywordflow">break</span>;
 <a name="l00799"></a>00799         <span class="keywordflow">case</span> 0x9:  <span class="comment">// Channel current volume register</span>
 <a name="l00800"></a>00800                 gus_chan-&gt;FillUp();
 <a name="l00801"></a>00801                 <span class="keywordflow">if</span>(curchan != NULL) {
 <a name="l00802"></a>00802                         Bit16u tmpdata = (Bit16u)myGUS.gRegData &gt;&gt; 4;
-<a name="l00803"></a>00803                         curchan-&gt;RampVol = tmpdata &lt;&lt; RAMP_FRACT;
+<a name="l00803"></a>00803                         curchan-&gt;RampVol = (Bit32u)(tmpdata &lt;&lt; RAMP_FRACT);
 <a name="l00804"></a>00804                         curchan-&gt;UpdateVolumes();
 <a name="l00805"></a>00805                 }
 <a name="l00806"></a>00806                 <span class="keywordflow">break</span>;
@@ -1440,7 +1440,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01344"></a>01344         <span class="keywordflow">case</span> 0x20f:
 <a name="l01345"></a>01345                 <span class="keywordflow">if</span> (gus_type &gt;= GUS_MAX || gus_ics_mixer)
 <a name="l01346"></a>01346                         <span class="keywordflow">return</span> 0x02; <span class="comment">/* &lt;- FIXME: What my GUS MAX returns. What does this mean? */</span>
-<a name="l01347"></a>01347                 <span class="keywordflow">return</span> ~0; <span class="comment">// should not happen</span>
+<a name="l01347"></a>01347                 <span class="keywordflow">return</span> ~0ul; <span class="comment">// should not happen</span>
 <a name="l01348"></a>01348         <span class="keywordflow">case</span> 0x302:
 <a name="l01349"></a>01349                 <span class="keywordflow">return</span> myGUS.gRegSelectData;
 <a name="l01350"></a>01350         <span class="keywordflow">case</span> 0x303:
@@ -1719,13 +1719,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01623"></a>01623 <span class="keywordtype">void</span> GUS_Update_DMA_Event_transfer() {
 <a name="l01624"></a>01624         <span class="comment">/* NTS: From the GUS SDK, bits 3-4 of DMA Control divide the ISA DMA transfer rate down from &quot;approx 650KHz&quot;.</span>
 <a name="l01625"></a>01625 <span class="comment">         *      Bits 3-4 are documented as &quot;DMA Rate divisor&quot; */</span>
-<a name="l01626"></a>01626         GUS_DMA_Event_transfer = GUS_Master_Clock / GUS_DMA_Events_per_sec / (((myGUS.DMAControl &gt;&gt; 3) &amp; 3) + 1);
-<a name="l01627"></a>01627         GUS_DMA_Event_transfer &amp;= ~1; <span class="comment">/* make sure it&#39;s word aligned in case of 16-bit PCM */</span>
+<a name="l01626"></a>01626         GUS_DMA_Event_transfer = GUS_Master_Clock / GUS_DMA_Events_per_sec / (Bitu)(((Bitu)(myGUS.DMAControl &gt;&gt; 3u) &amp; 3u) + 1u);
+<a name="l01627"></a>01627         GUS_DMA_Event_transfer &amp;= ~1u; <span class="comment">/* make sure it&#39;s word aligned in case of 16-bit PCM */</span>
 <a name="l01628"></a>01628         <span class="keywordflow">if</span> (GUS_DMA_Event_transfer == 0) GUS_DMA_Event_transfer = 2;
 <a name="l01629"></a>01629 }
 <a name="l01630"></a>01630 
 <a name="l01631"></a>01631 <span class="keywordtype">void</span> GUS_DMA_Event_Transfer(<a class="code" href="classDmaChannel.html">DmaChannel</a> *chan,Bitu dmawords) {
-<a name="l01632"></a>01632         Bitu dmaaddr = (myGUS.dmaAddr &lt;&lt; 4) + myGUS.dmaAddrOffset;
+<a name="l01632"></a>01632         Bitu dmaaddr = (Bitu)(myGUS.dmaAddr &lt;&lt; 4ul) + (Bitu)myGUS.dmaAddrOffset;
 <a name="l01633"></a>01633         Bitu dmalimit = myGUS.memsize;
 <a name="l01634"></a>01634         <span class="keywordtype">int</span> step = 0,docount = 0;
 <a name="l01635"></a>01635         <span class="keywordtype">bool</span> dma16xlate;
@@ -1814,9 +1814,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01718"></a>01718 
 <a name="l01719"></a>01719         <span class="keywordflow">if</span> (docount &gt; 0) {
 <a name="l01720"></a>01720                 <span class="keywordflow">if</span> ((myGUS.DMAControl &amp; 0x2) == 0) {
-<a name="l01721"></a>01721                         Bitu read=chan-&gt;Read(docount,&amp;GUSRam[dmaaddr]);
+<a name="l01721"></a>01721                         Bitu read=(Bitu)chan-&gt;Read((Bitu)docount,&amp;GUSRam[dmaaddr]);
 <a name="l01722"></a>01722                         <span class="comment">//Check for 16 or 8bit channel</span>
-<a name="l01723"></a>01723                         read*=(chan-&gt;DMA16+1);
+<a name="l01723"></a>01723                         read*=(chan-&gt;DMA16+1u);
 <a name="l01724"></a>01724                         <span class="keywordflow">if</span>((myGUS.DMAControl &amp; 0x80) != 0) {
 <a name="l01725"></a>01725                                 <span class="comment">//Invert the MSB to convert twos compliment form</span>
 <a name="l01726"></a>01726                                 Bitu i;
@@ -1832,9 +1832,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01736"></a>01736                         step = read;
 <a name="l01737"></a>01737                 } <span class="keywordflow">else</span> {
 <a name="l01738"></a>01738                         <span class="comment">//Read data out of UltraSound</span>
-<a name="l01739"></a>01739                         <span class="keywordtype">int</span> wd = chan-&gt;Write(docount,&amp;GUSRam[dmaaddr]);
+<a name="l01739"></a>01739                         Bitu wd = (Bitu)chan-&gt;Write((Bitu)docount,&amp;GUSRam[dmaaddr]);
 <a name="l01740"></a>01740                         <span class="comment">//Check for 16 or 8bit channel</span>
-<a name="l01741"></a>01741                         wd*=(chan-&gt;DMA16+1);
+<a name="l01741"></a>01741                         wd*=(chan-&gt;DMA16+1u);
 <a name="l01742"></a>01742 
 <a name="l01743"></a>01743                         step = wd;
 <a name="l01744"></a>01744                 }
@@ -1997,7 +1997,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01901"></a>01901         <span class="keywordtype">int</span> i;
 <a name="l01902"></a>01902         <span class="keywordtype">double</span> out = (double)(1 &lt;&lt; 13);
 <a name="l01903"></a>01903         <span class="keywordflow">for</span> (i=4095;i&gt;=0;i--) {
-<a name="l01904"></a>01904                 vol16bit[i]=(Bit16s)out;
+<a name="l01904"></a>01904                 vol16bit[i]=(Bit16u)((Bit16s)out);
 <a name="l01905"></a>01905                 out/=1.002709201;               <span class="comment">/* 0.0235 dB Steps */</span>
 <a name="l01906"></a>01906         }
 <a name="l01907"></a>01907         <span class="comment">/* FIX: DOSBox 0.74 had code here that produced a pantable which</span>
@@ -2018,7 +2018,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01922"></a>01922 <span class="comment">         *      mono. */</span>
 <a name="l01923"></a>01923         <span class="keywordflow">if</span> (gus_fixed_table) {
 <a name="l01924"></a>01924                 <span class="keywordflow">for</span> (i=0;i &lt; 16;i++)
-<a name="l01925"></a>01925                         pantable[i] = pantablePDF[i] * 2048;
+<a name="l01925"></a>01925                         pantable[i] = pantablePDF[i] * 2048u;
 <a name="l01926"></a>01926 
 <a name="l01927"></a>01927                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;GUS: using accurate (fixed) pantable&quot;</span>);
 <a name="l01928"></a>01928         }
@@ -2131,25 +2131,25 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02035"></a>02035                 <span class="keywordflow">if</span> (myGUS.force_master_irq_enable)
 <a name="l02036"></a>02036                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;GUS: Master IRQ enable will be forced on as instructed&quot;</span>);
 <a name="l02037"></a>02037 
-<a name="l02038"></a>02038                 myGUS.rate=section-&gt;Get_int(<span class="stringliteral">&quot;gusrate&quot;</span>);
+<a name="l02038"></a>02038                 myGUS.rate=(<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;gusrate&quot;</span>);
 <a name="l02039"></a>02039 
 <a name="l02040"></a>02040         ultradir = section-&gt;Get_string(<span class="stringliteral">&quot;ultradir&quot;</span>);
 <a name="l02041"></a>02041 
 <a name="l02042"></a>02042                 x = section-&gt;Get_int(<span class="stringliteral">&quot;gusmemsize&quot;</span>);
-<a name="l02043"></a>02043                 <span class="keywordflow">if</span> (x &gt;= 0) myGUS.memsize = x*1024;
-<a name="l02044"></a>02044                 <span class="keywordflow">else</span> myGUS.memsize = 1024*1024;
+<a name="l02043"></a>02043                 <span class="keywordflow">if</span> (x &gt;= 0) myGUS.memsize = (<span class="keywordtype">unsigned</span> int)x*1024u;
+<a name="l02044"></a>02044                 <span class="keywordflow">else</span> myGUS.memsize = 1024u*1024u;
 <a name="l02045"></a>02045 
-<a name="l02046"></a>02046                 <span class="keywordflow">if</span> (myGUS.memsize &gt; (1024*1024))
-<a name="l02047"></a>02047                         myGUS.memsize = (1024*1024);
+<a name="l02046"></a>02046                 <span class="keywordflow">if</span> (myGUS.memsize &gt; (1024u*1024u))
+<a name="l02047"></a>02047                         myGUS.memsize = (1024u*1024u);
 <a name="l02048"></a>02048 
-<a name="l02049"></a>02049                 <span class="keywordflow">if</span> ((myGUS.memsize&amp;((256 &lt;&lt; 10) - 1)) != 0)
+<a name="l02049"></a>02049                 <span class="keywordflow">if</span> ((myGUS.memsize&amp;((256u &lt;&lt; 10u) - 1u)) != 0)
 <a name="l02050"></a>02050                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;GUS emulation warning: %uKB onboard is an unusual value. Usually GUS cards have some multiple of 256KB RAM onboard&quot;</span>,myGUS.memsize&gt;&gt;10);
 <a name="l02051"></a>02051 
 <a name="l02052"></a>02052                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;GUS emulation: %uKB onboard&quot;</span>,myGUS.memsize&gt;&gt;10);
 <a name="l02053"></a>02053 
 <a name="l02054"></a>02054                 <span class="comment">// FIXME: HUH?? Read the port number and subtract 0x200, then use GUS_BASE</span>
 <a name="l02055"></a>02055                 <span class="comment">// in other parts of the code to compare against 0x200 and 0x300? That&#39;s confusing. Fix!</span>
-<a name="l02056"></a>02056                 myGUS.portbase = section-&gt;Get_hex(<span class="stringliteral">&quot;gusbase&quot;</span>) - 0x200;
+<a name="l02056"></a>02056                 myGUS.portbase = (<span class="keywordtype">unsigned</span> int)section-&gt;Get_hex(<span class="stringliteral">&quot;gusbase&quot;</span>) - 0x200u;
 <a name="l02057"></a>02057 
 <a name="l02058"></a>02058                 <span class="comment">// TODO: so, if the GUS ULTRASND variable actually mentions two DMA and two IRQ channels,</span>
 <a name="l02059"></a>02059                 <span class="comment">//       shouldn&#39;t we offer the ability to specify them independently? especially when</span>
@@ -2357,7 +2357,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

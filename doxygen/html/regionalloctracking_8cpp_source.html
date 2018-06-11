@@ -135,24 +135,24 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00039"></a>00039         <span class="keywordtype">size_t</span> si;
 <a name="l00040"></a>00040         Bitu base;
 <a name="l00041"></a>00041 
-<a name="l00042"></a>00042         <span class="keywordflow">if</span> (bytes == 0) <span class="keywordflow">return</span> alloc_failed;
-<a name="l00043"></a>00043         <span class="keywordflow">if</span> (alignment &gt; 1 &amp;&amp; must_be_at != 0) <span class="keywordflow">return</span> alloc_failed; <span class="comment">/* avoid nonsense! */</span>
+<a name="l00042"></a>00042         <span class="keywordflow">if</span> (bytes == 0u) <span class="keywordflow">return</span> alloc_failed;
+<a name="l00043"></a>00043         <span class="keywordflow">if</span> (alignment &gt; 1u &amp;&amp; must_be_at != 0u) <span class="keywordflow">return</span> alloc_failed; <span class="comment">/* avoid nonsense! */</span>
 <a name="l00044"></a>00044         <span class="keywordflow">if</span> (who == NULL) who = <span class="stringliteral">&quot;&quot;</span>;
 <a name="l00045"></a>00045         <span class="keywordflow">if</span> (alist.empty()) E_Exit(<span class="stringliteral">&quot;getMemory called when &#39;%s&#39; allocation list not initialized&quot;</span>,name.c_str());
 <a name="l00046"></a>00046 
 <a name="l00047"></a>00047         <span class="comment">/* alignment must be power of 2 */</span>
-<a name="l00048"></a>00048         <span class="keywordflow">if</span> (alignment == 0)
-<a name="l00049"></a>00049                 alignment = 1;
-<a name="l00050"></a>00050         <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((alignment &amp; (alignment-1)) != 0)
+<a name="l00048"></a>00048         <span class="keywordflow">if</span> (alignment == 0u)
+<a name="l00049"></a>00049                 alignment = 1u;
+<a name="l00050"></a>00050         <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((alignment &amp; (alignment-1u)) != 0u)
 <a name="l00051"></a>00051                 E_Exit(<span class="stringliteral">&quot;getMemory called with non-power of 2 alignment value %u on &#39;%s&#39;&quot;</span>,(<span class="keywordtype">int</span>)alignment,name.c_str());
 <a name="l00052"></a>00052 
 <a name="l00053"></a>00053         {
 <a name="l00054"></a>00054                 <span class="comment">/* allocate downward from the top */</span>
-<a name="l00055"></a>00055                 si = topDownAlloc ? (alist.size() - 1) : 0;
+<a name="l00055"></a>00055                 si = topDownAlloc ? (alist.size() - 1u) : 0u;
 <a name="l00056"></a>00056                 <span class="keywordflow">while</span> ((ssize_t)si &gt;= 0) {
 <a name="l00057"></a>00057                         Block &amp;blk = alist[si];
 <a name="l00058"></a>00058 
-<a name="l00059"></a>00059                         <span class="keywordflow">if</span> (!blk.free || (blk.end+1-blk.start) &lt; bytes) {
+<a name="l00059"></a>00059                         <span class="keywordflow">if</span> (!blk.free || (blk.end+1u-blk.start) &lt; bytes) {
 <a name="l00060"></a>00060                                 <span class="keywordflow">if</span> (topDownAlloc) si--;
 <a name="l00061"></a>00061                                 <span class="keywordflow">else</span> si++;
 <a name="l00062"></a>00062                                 <span class="keywordflow">continue</span>;
@@ -162,24 +162,24 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00066"></a>00066                         <span class="keywordflow">if</span> (must_be_at != 0) {
 <a name="l00067"></a>00067                                 <span class="comment">/* well, is there room to fit the forced block? if it starts before</span>
 <a name="l00068"></a>00068 <span class="comment">                                 * this block or the forced block would end past the block then, no. */</span>
-<a name="l00069"></a>00069                                 <span class="keywordflow">if</span> (must_be_at &lt; blk.start || (must_be_at+bytes-1) &gt; blk.end) {
+<a name="l00069"></a>00069                                 <span class="keywordflow">if</span> (must_be_at &lt; blk.start || (must_be_at+bytes-1u) &gt; blk.end) {
 <a name="l00070"></a>00070                                         <span class="keywordflow">if</span> (topDownAlloc) si--;
 <a name="l00071"></a>00071                                         <span class="keywordflow">else</span> si++;
 <a name="l00072"></a>00072                                         <span class="keywordflow">continue</span>;
 <a name="l00073"></a>00073                                 }
 <a name="l00074"></a>00074 
 <a name="l00075"></a>00075                                 base = must_be_at;
-<a name="l00076"></a>00076                                 <span class="keywordflow">if</span> (base == blk.start &amp;&amp; (base+bytes-1) == blk.end) { <span class="comment">/* easy case: perfect match */</span>
+<a name="l00076"></a>00076                                 <span class="keywordflow">if</span> (base == blk.start &amp;&amp; (base+bytes-1u) == blk.end) { <span class="comment">/* easy case: perfect match */</span>
 <a name="l00077"></a>00077                                         blk.free = <span class="keyword">false</span>;
 <a name="l00078"></a>00078                                         blk.who = who;
 <a name="l00079"></a>00079                                 }
 <a name="l00080"></a>00080                                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (base == blk.start) { <span class="comment">/* need to split */</span>
 <a name="l00081"></a>00081                                         Block newblk = blk; <span class="comment">/* this becomes the new block we insert */</span>
 <a name="l00082"></a>00082                                         blk.start = base+bytes;
-<a name="l00083"></a>00083                                         newblk.end = base+bytes-1;
+<a name="l00083"></a>00083                                         newblk.end = base+bytes-1u;
 <a name="l00084"></a>00084                                         newblk.free = <span class="keyword">false</span>;
 <a name="l00085"></a>00085                                         newblk.who = who;
-<a name="l00086"></a>00086                                         alist.insert(alist.begin()+si,newblk);
+<a name="l00086"></a>00086                                         alist.insert(alist.begin()+(std::vector&lt;RegionAllocTracking::Block&gt;::difference_type)si,newblk);
 <a name="l00087"></a>00087                                 }
 <a name="l00088"></a>00088                                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((base+bytes-1) == blk.end) { <span class="comment">/* need to split */</span>
 <a name="l00089"></a>00089                                         Block newblk = blk; <span class="comment">/* this becomes the new block we insert */</span>
@@ -187,35 +187,35 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00091"></a>00091                                         newblk.start = base;
 <a name="l00092"></a>00092                                         newblk.free = <span class="keyword">false</span>;
 <a name="l00093"></a>00093                                         newblk.who = who;
-<a name="l00094"></a>00094                                         alist.insert(alist.begin()+si+1,newblk);
+<a name="l00094"></a>00094                                         alist.insert(alist.begin()+(std::vector&lt;RegionAllocTracking::Block&gt;::difference_type)si+1u,newblk);
 <a name="l00095"></a>00095                                 }
 <a name="l00096"></a>00096                                 <span class="keywordflow">else</span> { <span class="comment">/* complex split */</span>
 <a name="l00097"></a>00097                                         Block newblk = blk,newblk2 = blk; <span class="comment">/* this becomes the new block we insert */</span>
 <a name="l00098"></a>00098                                         Bitu orig_end = blk.end;
-<a name="l00099"></a>00099                                         blk.end = base-1;
+<a name="l00099"></a>00099                                         blk.end = base-1u;
 <a name="l00100"></a>00100                                         newblk.start = base+bytes;
 <a name="l00101"></a>00101                                         newblk.end = orig_end;
-<a name="l00102"></a>00102                                         alist.insert(alist.begin()+si+1,newblk);
+<a name="l00102"></a>00102                                         alist.insert(alist.begin()+(std::vector&lt;RegionAllocTracking::Block&gt;::difference_type)si+1u,newblk);
 <a name="l00103"></a>00103                                         newblk2.start = base;
-<a name="l00104"></a>00104                                         newblk2.end = base+bytes-1;
+<a name="l00104"></a>00104                                         newblk2.end = base+bytes-1u;
 <a name="l00105"></a>00105                                         newblk2.free = <span class="keyword">false</span>;
 <a name="l00106"></a>00106                                         newblk2.who = who;
-<a name="l00107"></a>00107                                         alist.insert(alist.begin()+si+1,newblk2);
+<a name="l00107"></a>00107                                         alist.insert(alist.begin()+(std::vector&lt;RegionAllocTracking::Block&gt;::difference_type)si+1u,newblk2);
 <a name="l00108"></a>00108                                 }
 <a name="l00109"></a>00109                         }
 <a name="l00110"></a>00110                         <span class="keywordflow">else</span> {
 <a name="l00111"></a>00111                                 <span class="keywordflow">if</span> (topDownAlloc) {
-<a name="l00112"></a>00112                                         base = blk.end + 1 - bytes; <span class="comment">/* allocate downward from the top */</span>
+<a name="l00112"></a>00112                                         base = blk.end + 1u - bytes; <span class="comment">/* allocate downward from the top */</span>
 <a name="l00113"></a>00113                                         assert(base &gt;= blk.start);
 <a name="l00114"></a>00114                                 }
 <a name="l00115"></a>00115                                 <span class="keywordflow">else</span> {
 <a name="l00116"></a>00116                                         base = blk.start; <span class="comment">/* allocate upward from the bottom */</span>
 <a name="l00117"></a>00117                                         assert(base &lt;= blk.end);
-<a name="l00118"></a>00118                                         base += alignment - 1; <span class="comment">/* alignment round up */</span>
+<a name="l00118"></a>00118                                         base += alignment - 1u; <span class="comment">/* alignment round up */</span>
 <a name="l00119"></a>00119                                 }
 <a name="l00120"></a>00120 
-<a name="l00121"></a>00121                                 base &amp;= ~(alignment - 1); <span class="comment">/* NTS: alignment == 16 means ~0xF or 0xFFFF0 */</span>
-<a name="l00122"></a>00122                                 <span class="keywordflow">if</span> (base &lt; blk.start || (base+bytes-1) &gt; blk.end) { <span class="comment">/* if not possible after alignment, then skip */</span>
+<a name="l00121"></a>00121                                 base &amp;= ~(alignment - 1u); <span class="comment">/* NTS: alignment == 16 means ~0xF or 0xFFFF0 */</span>
+<a name="l00122"></a>00122                                 <span class="keywordflow">if</span> (base &lt; blk.start || (base+bytes-1u) &gt; blk.end) { <span class="comment">/* if not possible after alignment, then skip */</span>
 <a name="l00123"></a>00123                                         <span class="keywordflow">if</span> (topDownAlloc) si--;
 <a name="l00124"></a>00124                                         <span class="keywordflow">else</span> si++;
 <a name="l00125"></a>00125                                         <span class="keywordflow">continue</span>;
@@ -234,17 +234,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00138"></a>00138                                         newblk.start = base;
 <a name="l00139"></a>00139                                         newblk.free = <span class="keyword">false</span>;
 <a name="l00140"></a>00140                                         newblk.who = who;
-<a name="l00141"></a>00141                                         blk.end = base - 1;
+<a name="l00141"></a>00141                                         blk.end = base - 1u;
 <a name="l00142"></a>00142 
 <a name="l00143"></a>00143                                         <span class="keywordflow">if</span> (blk.start &gt; blk.end) {
 <a name="l00144"></a>00144                                                 sanityCheck();
 <a name="l00145"></a>00145                                                 abort();
 <a name="l00146"></a>00146                                         }
 <a name="l00147"></a>00147 
-<a name="l00148"></a>00148                                         alist.insert(alist.begin()+si+1,newblk);
+<a name="l00148"></a>00148                                         alist.insert(alist.begin()+(std::vector&lt;RegionAllocTracking::Block&gt;::difference_type)si+1,newblk);
 <a name="l00149"></a>00149                                 }
 <a name="l00150"></a>00150                                 <span class="keywordflow">else</span> {
-<a name="l00151"></a>00151                                         <span class="keywordflow">if</span> ((base+bytes-1) == blk.end) {
+<a name="l00151"></a>00151                                         <span class="keywordflow">if</span> ((base+bytes-1u) == blk.end) {
 <a name="l00152"></a>00152                                                 blk.free = <span class="keyword">false</span>;
 <a name="l00153"></a>00153                                                 blk.who = who;
 <a name="l00154"></a>00154                                                 <span class="keywordflow">return</span> blk.start;
@@ -255,14 +255,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00159"></a>00159                                         newblk.start = base+bytes;
 <a name="l00160"></a>00160                                         blk.free = <span class="keyword">false</span>;
 <a name="l00161"></a>00161                                         blk.who = who;
-<a name="l00162"></a>00162                                         blk.end = base+bytes-1;
+<a name="l00162"></a>00162                                         blk.end = base+bytes-1u;
 <a name="l00163"></a>00163 
 <a name="l00164"></a>00164                                         <span class="keywordflow">if</span> (blk.start &gt; blk.end) {
 <a name="l00165"></a>00165                                                 sanityCheck();
 <a name="l00166"></a>00166                                                 abort();
 <a name="l00167"></a>00167                                         }
 <a name="l00168"></a>00168 
-<a name="l00169"></a>00169                                         alist.insert(alist.begin()+si+1,newblk);
+<a name="l00169"></a>00169                                         alist.insert(alist.begin()+(std::vector&lt;RegionAllocTracking::Block&gt;::difference_type)si+1u,newblk);
 <a name="l00170"></a>00170                                 }
 <a name="l00171"></a>00171                         }
 <a name="l00172"></a>00172 
@@ -370,14 +370,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00274"></a>00274 <span class="keywordtype">void</span> RegionAllocTracking::compactFree() {
 <a name="l00275"></a>00275         <span class="keywordtype">size_t</span> si=0;
 <a name="l00276"></a>00276 
-<a name="l00277"></a>00277         <span class="keywordflow">while</span> ((si+1) &lt; alist.size()) {
+<a name="l00277"></a>00277         <span class="keywordflow">while</span> ((si+1u) &lt; alist.size()) {
 <a name="l00278"></a>00278                 <a class="code" href="classRegionAllocTracking_1_1Block.html">RegionAllocTracking::Block</a> &amp;blk1 = alist[si];
-<a name="l00279"></a>00279                 <a class="code" href="classRegionAllocTracking_1_1Block.html">RegionAllocTracking::Block</a> &amp;blk2 = alist[si+1];
+<a name="l00279"></a>00279                 <a class="code" href="classRegionAllocTracking_1_1Block.html">RegionAllocTracking::Block</a> &amp;blk2 = alist[si+1u];
 <a name="l00280"></a>00280 
 <a name="l00281"></a>00281                 <span class="keywordflow">if</span> (blk1.free &amp;&amp; blk2.free) {
-<a name="l00282"></a>00282                         <span class="keywordflow">if</span> ((blk1.end+(Bitu)1) == blk2.start) {
+<a name="l00282"></a>00282                         <span class="keywordflow">if</span> ((blk1.end+(Bitu)1u) == blk2.start) {
 <a name="l00283"></a>00283                                 blk1.end = blk2.end;
-<a name="l00284"></a>00284                                 alist.erase(alist.begin()+si+1);
+<a name="l00284"></a>00284                                 alist.erase(alist.begin()+(std::vector&lt;RegionAllocTracking::Block&gt;::difference_type)si+1u);
 <a name="l00285"></a>00285                                 <span class="keywordflow">continue</span>;
 <a name="l00286"></a>00286                         }
 <a name="l00287"></a>00287                 }
@@ -421,7 +421,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:07 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

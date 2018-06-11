@@ -200,9 +200,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00104"></a>00104         <span class="keywordflow">if</span> (!DOS_IS_IN_HMA()) <span class="keywordflow">return</span> 0;
 <a name="l00105"></a>00105 
 <a name="l00106"></a>00106         <span class="keywordflow">if</span> (dos_hma_allocator == 0) {
-<a name="l00107"></a>00107                 dos_hma_allocator = 0x110000 - 16 - dos_initial_hma_free;
+<a name="l00107"></a>00107                 dos_hma_allocator = 0x110000u - 16u - (<span class="keywordtype">unsigned</span> int)dos_initial_hma_free;
 <a name="l00108"></a>00108                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Starting HMA allocation from physical address 0x%06x (FFFF:%04x)&quot;</span>,
-<a name="l00109"></a>00109                         dos_hma_allocator,(dos_hma_allocator+0x10)&amp;0xFFFF);
+<a name="l00109"></a>00109                         dos_hma_allocator,(dos_hma_allocator+0x10u)&amp;0xFFFFu);
 <a name="l00110"></a>00110         }
 <a name="l00111"></a>00111 
 <a name="l00112"></a>00112         <span class="keywordflow">return</span> dos_hma_allocator;
@@ -366,8 +366,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00270"></a>00270         reg_ip += 2;
 <a name="l00271"></a>00271 }
 <a name="l00272"></a>00272 
-<a name="l00273"></a>00273 <span class="preprocessor">#define BCD2BIN(x)      ((((x) &gt;&gt; 4) * 10) + ((x) &amp; 0x0f))</span>
-<a name="l00274"></a>00274 <span class="preprocessor"></span><span class="preprocessor">#define BIN2BCD(x)      ((((x) / 10) &lt;&lt; 4) + (x) % 10)</span>
+<a name="l00273"></a>00273 <span class="preprocessor">#define BCD2BIN(x)      ((((unsigned int)(x) &gt;&gt; 4u) * 10u) + ((x) &amp; 0x0fu))</span>
+<a name="l00274"></a>00274 <span class="preprocessor"></span><span class="preprocessor">#define BIN2BCD(x)      ((((x) / 10u) &lt;&lt; 4u) + (x) % 10u)</span>
 <a name="l00275"></a>00275 <span class="preprocessor"></span><span class="keyword">extern</span> <span class="keywordtype">bool</span> date_host_forced;
 <a name="l00276"></a>00276 
 <a name="l00277"></a>00277 <span class="keyword">static</span> Bitu DOS_21Handler(<span class="keywordtype">void</span>);
@@ -547,7 +547,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00451"></a>00451                 <span class="keywordflow">if</span>(port!=0 &amp;&amp; serialports[0]) {
 <a name="l00452"></a>00452                     Bit8u status;
 <a name="l00453"></a>00453                     <span class="comment">// RTS/DTR on</span>
-<a name="l00454"></a>00454                     IO_WriteB(port+4,0x3);
+<a name="l00454"></a>00454                     IO_WriteB(port+4u,0x3u);
 <a name="l00455"></a>00455                     serialports[0]-&gt;Getchar(&amp;reg_al, &amp;status, <span class="keyword">true</span>, 0xFFFFFFFF);
 <a name="l00456"></a>00456                 }
 <a name="l00457"></a>00457             }
@@ -557,16 +557,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00461"></a>00461                 Bit16u port = real_readw(0x40,0);
 <a name="l00462"></a>00462                 <span class="keywordflow">if</span>(port!=0 &amp;&amp; serialports[0]) {
 <a name="l00463"></a>00463                     <span class="comment">// RTS/DTR on</span>
-<a name="l00464"></a>00464                     IO_WriteB(port+4,0x3);
+<a name="l00464"></a>00464                     IO_WriteB(port+4u,0x3u);
 <a name="l00465"></a>00465                     serialports[0]-&gt;Putchar(reg_dl,<span class="keyword">true</span>,<span class="keyword">true</span>, 0xFFFFFFFF);
 <a name="l00466"></a>00466                     <span class="comment">// RTS off</span>
-<a name="l00467"></a>00467                     IO_WriteB(port+4,0x1);
+<a name="l00467"></a>00467                     IO_WriteB(port+4u,0x1u);
 <a name="l00468"></a>00468                 }
 <a name="l00469"></a>00469             }
 <a name="l00470"></a>00470             <span class="keywordflow">break</span>;
 <a name="l00471"></a>00471         <span class="keywordflow">case</span> 0x05:      <span class="comment">/* Write Character to PRINTER */</span>
 <a name="l00472"></a>00472             {
-<a name="l00473"></a>00473                 <span class="keywordflow">for</span>(<span class="keywordtype">int</span> i = 0; i &lt; 3; i++) {
+<a name="l00473"></a>00473                 <span class="keywordflow">for</span>(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i = 0; i &lt; 3; i++) {
 <a name="l00474"></a>00474                     <span class="comment">// look up a parallel port</span>
 <a name="l00475"></a>00475                     <span class="keywordflow">if</span>(parallelPortObjects[i] != NULL) {
 <a name="l00476"></a>00476                         parallelPortObjects[i]-&gt;Putchar(reg_dl);
@@ -840,18 +840,18 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00744"></a>00744                         SegSet16(es,SegValue(ss));
 <a name="l00745"></a>00745                         CALLBACK_RunRealInt(0x1c);
 <a name="l00746"></a>00746 
-<a name="l00747"></a>00747                         Bitu memaddr = (SegValue(es) &lt;&lt; 4) + reg_bx;
+<a name="l00747"></a>00747                         Bitu memaddr = ((Bitu)SegValue(es) &lt;&lt; 4u) + reg_bx;
 <a name="l00748"></a>00748 
 <a name="l00749"></a>00749                         reg_sp += 6;
 <a name="l00750"></a>00750                         SegSet16(es,CPU_Pop16());
 <a name="l00751"></a>00751                         reg_bx = CPU_Pop16();
 <a name="l00752"></a>00752                         reg_ax = CPU_Pop16();
 <a name="l00753"></a>00753 
-<a name="l00754"></a>00754                         reg_cx = 1900 + BCD2BIN(mem_readb(memaddr+0));                  <span class="comment">// year</span>
-<a name="l00755"></a>00755                         <span class="keywordflow">if</span> (reg_cx &lt; 1980) reg_cx += 100;
-<a name="l00756"></a>00756                         reg_dh = BCD2BIN(mem_readb(memaddr+1) &gt;&gt; 4);
+<a name="l00754"></a>00754                         reg_cx = 1900u + BCD2BIN(mem_readb(memaddr+0u));                  <span class="comment">// year</span>
+<a name="l00755"></a>00755                         <span class="keywordflow">if</span> (reg_cx &lt; 1980u) reg_cx += 100u;
+<a name="l00756"></a>00756                         reg_dh = BCD2BIN((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)mem_readb(memaddr+1) &gt;&gt; 4u);
 <a name="l00757"></a>00757                         reg_dl = BCD2BIN(mem_readb(memaddr+2));
-<a name="l00758"></a>00758                         reg_al = BCD2BIN(mem_readb(memaddr+1) &amp; 0xF);
+<a name="l00758"></a>00758                         reg_al = BCD2BIN(mem_readb(memaddr+1) &amp; 0xFu);
 <a name="l00759"></a>00759                     }
 <a name="l00760"></a>00760                     <span class="keywordflow">else</span> {
 <a name="l00761"></a>00761                         CPU_Push16(reg_ax);
@@ -861,15 +861,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00765"></a>00765 
 <a name="l00766"></a>00766                         reg_ch = BCD2BIN(reg_ch);       <span class="comment">// century</span>
 <a name="l00767"></a>00767                         reg_cl = BCD2BIN(reg_cl);       <span class="comment">// year</span>
-<a name="l00768"></a>00768                         reg_cx = reg_ch * 100 + reg_cl; <span class="comment">// compose century + year</span>
+<a name="l00768"></a>00768                         reg_cx = reg_ch * 100u + reg_cl; <span class="comment">// compose century + year</span>
 <a name="l00769"></a>00769                         reg_dh = BCD2BIN(reg_dh);       <span class="comment">// month</span>
 <a name="l00770"></a>00770                         reg_dl = BCD2BIN(reg_dl);       <span class="comment">// day</span>
 <a name="l00771"></a>00771 
 <a name="l00772"></a>00772                         <span class="comment">// calculate day of week (we could of course read it from CMOS, but never mind)</span>
-<a name="l00773"></a>00773                         <span class="keywordtype">int</span> a = (14 - reg_dh) / 12;
-<a name="l00774"></a>00774                         <span class="keywordtype">int</span> y = reg_cl - a;
-<a name="l00775"></a>00775                         <span class="keywordtype">int</span> m = reg_dh + 12 * a - 2;
-<a name="l00776"></a>00776                         reg_al = (reg_dl + y + (y / 4) - (y / 100) + (y / 400) + (31 * m) / 12) % 7;
+<a name="l00773"></a>00773                         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> a = (14u - reg_dh) / 12u;
+<a name="l00774"></a>00774                         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> y = reg_cl - a;
+<a name="l00775"></a>00775                         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> m = reg_dh + 12u * a - 2u;
+<a name="l00776"></a>00776                         reg_al = (reg_dl + y + (y / 4u) - (y / 100u) + (y / 400u) + (31u * m) / 12u) % 7u;
 <a name="l00777"></a>00777                     }
 <a name="l00778"></a>00778                 } <span class="keywordflow">else</span> {
 <a name="l00779"></a>00779                     reg_ax=0; <span class="comment">// get time</span>
@@ -949,7 +949,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00853"></a>00853                     SegSet16(es,SegValue(ss));
 <a name="l00854"></a>00854                     CALLBACK_RunRealInt(0x1c);
 <a name="l00855"></a>00855 
-<a name="l00856"></a>00856                     Bitu memaddr = (SegValue(es) &lt;&lt; 4) + reg_bx;
+<a name="l00856"></a>00856                     Bitu memaddr = ((PhysPt)SegValue(es) &lt;&lt; 4u) + reg_bx;
 <a name="l00857"></a>00857 
 <a name="l00858"></a>00858                     reg_sp += 6;
 <a name="l00859"></a>00859                     SegSet16(es,CPU_Pop16());
@@ -1013,7 +1013,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00917"></a>00917                 }
 <a name="l00918"></a>00918 
 <a name="l00919"></a>00919                 <span class="comment">// timer ticks every 55ms</span>
-<a name="l00920"></a>00920                 Bit32u ticks = ((((reg_ch * 60 + reg_cl) * 60 + reg_dh) * 100) + reg_dl) * 10 / 55;
+<a name="l00920"></a>00920                 Bit32u ticks = ((((reg_ch * 60u + reg_cl) * 60u + reg_dh) * 100u) + reg_dl) * 10u / 55u;
 <a name="l00921"></a>00921 
 <a name="l00922"></a>00922                 CPU_Push16(reg_ax);
 <a name="l00923"></a>00923                 CPU_Push16(reg_cx);
@@ -1318,9 +1318,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01222"></a>01222         <span class="keywordflow">case</span> 0x42:                  <span class="comment">/* LSEEK Set current file position */</span>
 <a name="l01223"></a>01223             unmask_irq0 |= disk_io_unmask_irq0;
 <a name="l01224"></a>01224             {
-<a name="l01225"></a>01225                 Bit32u pos=(reg_cx&lt;&lt;16) + reg_dx;
+<a name="l01225"></a>01225                 Bit32u pos=((Bit32u)reg_cx &lt;&lt; 16u) + reg_dx;
 <a name="l01226"></a>01226                 <span class="keywordflow">if</span> (DOS_SeekFile(reg_bx,&amp;pos,reg_al)) {
-<a name="l01227"></a>01227                     reg_dx=(Bit16u)(pos &gt;&gt; 16);
+<a name="l01227"></a>01227                     reg_dx=(Bit16u)((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)pos &gt;&gt; 16u);
 <a name="l01228"></a>01228                     reg_ax=(Bit16u)(pos &amp; 0xFFFF);
 <a name="l01229"></a>01229                     CALLBACK_SCF(<span class="keyword">false</span>);
 <a name="l01230"></a>01230                 } <span class="keywordflow">else</span> {
@@ -1599,8 +1599,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01503"></a>01503             }
 <a name="l01504"></a>01504         <span class="keywordflow">case</span> 0x5c:  {       <span class="comment">/* FLOCK File region locking */</span>
 <a name="l01505"></a>01505             <span class="comment">/* ert, 20100711: Locking extensions */</span>
-<a name="l01506"></a>01506             Bit32u pos=(reg_cx&lt;&lt;16) + reg_dx;
-<a name="l01507"></a>01507             Bit32u size=(reg_si&lt;&lt;16) + reg_di;
+<a name="l01506"></a>01506             Bit32u pos=((<span class="keywordtype">unsigned</span> int)reg_cx &lt;&lt; 16u) + reg_dx;
+<a name="l01507"></a>01507             Bit32u size=((<span class="keywordtype">unsigned</span> int)reg_si &lt;&lt; 16u) + reg_di;
 <a name="l01508"></a>01508             <span class="comment">//LOG_MSG(&quot;LockFile: BX=%d, AL=%d, POS=%d, size=%d&quot;, reg_bx, reg_al, pos, size);</span>
 <a name="l01509"></a>01509             <span class="keywordflow">if</span> (DOS_LockFile(reg_bx,reg_al,pos, size)) {
 <a name="l01510"></a>01510                 reg_ax=0;
@@ -1717,7 +1717,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01621"></a>01621                         mem_writew(data + 0x03,1);
 <a name="l01622"></a>01622                         <span class="keywordflow">if</span>(reg_cx &gt; 0x06 ) mem_writew(data+0x05,dos.loaded_codepage);
 <a name="l01623"></a>01623                         <span class="keywordflow">if</span>(reg_cx &gt; 0x08 ) {
-<a name="l01624"></a>01624                             Bitu amount = (reg_cx&gt;=0x29)?0x22:(reg_cx-7);
+<a name="l01624"></a>01624                             Bitu amount = (reg_cx&gt;=0x29u)?0x22u:(reg_cx-7u);
 <a name="l01625"></a>01625                             MEM_BlockWrite(data + 0x07,dos.tables.country,amount);
 <a name="l01626"></a>01626                             reg_cx=(reg_cx&gt;=0x29)?0x29:reg_cx;
 <a name="l01627"></a>01627                         }
@@ -2090,8 +2090,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01994"></a>01994                 dos_con_use_int16_to_detect_input = section-&gt;Get_bool(<span class="stringliteral">&quot;con device use int 16h to detect keyboard input&quot;</span>);
 <a name="l01995"></a>01995                 iret_only_for_debug_interrupts = section-&gt;Get_bool(<span class="stringliteral">&quot;write plain iretf for debug interrupts&quot;</span>);
 <a name="l01996"></a>01996                 dbg_zero_on_dos_allocmem = section-&gt;Get_bool(<span class="stringliteral">&quot;zero memory on int 21h memory allocation&quot;</span>);
-<a name="l01997"></a>01997                 MAXENV = section-&gt;Get_int(<span class="stringliteral">&quot;maximum environment block size on exec&quot;</span>);
-<a name="l01998"></a>01998                 ENV_KEEPFREE = section-&gt;Get_int(<span class="stringliteral">&quot;additional environment block size on exec&quot;</span>);
+<a name="l01997"></a>01997                 MAXENV = (<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;maximum environment block size on exec&quot;</span>);
+<a name="l01998"></a>01998                 ENV_KEEPFREE = (<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;additional environment block size on exec&quot;</span>);
 <a name="l01999"></a>01999                 enable_dummy_environment_block = section-&gt;Get_bool(<span class="stringliteral">&quot;enable dummy environment block&quot;</span>);
 <a name="l02000"></a>02000                 enable_dummy_loadfix_padding = section-&gt;Get_bool(<span class="stringliteral">&quot;enable loadfix padding&quot;</span>);
 <a name="l02001"></a>02001                 enable_dummy_device_mcb = section-&gt;Get_bool(<span class="stringliteral">&quot;enable dummy device mcb&quot;</span>);
@@ -2334,7 +2334,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02238"></a>02238             }
 <a name="l02239"></a>02239         }
 <a name="l02240"></a>02240 
-<a name="l02241"></a>02241                 DOS_FILES = section-&gt;Get_int(<span class="stringliteral">&quot;files&quot;</span>);
+<a name="l02241"></a>02241                 DOS_FILES = (<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;files&quot;</span>);
 <a name="l02242"></a>02242                 DOS_SetupFiles();                                                               <span class="comment">/* Setup system File tables */</span>
 <a name="l02243"></a>02243                 DOS_SetupDevices();                                                     <span class="comment">/* Setup dos devices */</span>
 <a name="l02244"></a>02244                 DOS_SetupTables();
@@ -2563,7 +2563,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

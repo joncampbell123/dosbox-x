@@ -158,8 +158,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00062"></a>00062                 Bit8u numberofarg;
 <a name="l00063"></a>00063                 Bit16u nrows;
 <a name="l00064"></a>00064                 Bit16u ncols;
-<a name="l00065"></a>00065                 Bit8s savecol;
-<a name="l00066"></a>00066                 Bit8s saverow;
+<a name="l00065"></a>00065                 Bit8u savecol;
+<a name="l00066"></a>00066                 Bit8u saverow;
 <a name="l00067"></a>00067                 <span class="keywordtype">bool</span> warned;
 <a name="l00068"></a>00068         } ansi;
 <a name="l00069"></a>00069 
@@ -473,7 +473,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00377"></a>00377         }
 <a name="l00378"></a>00378         <span class="keywordflow">while</span> (*size&gt;count) {
 <a name="l00379"></a>00379         <span class="keywordflow">if</span> (dev_con_pos &lt; dev_con_max) {
-<a name="l00380"></a>00380             data[count++] = dev_con_readbuf[dev_con_pos++];
+<a name="l00380"></a>00380             data[count++] = (Bit8u)dev_con_readbuf[dev_con_pos++];
 <a name="l00381"></a>00381             <span class="keywordflow">continue</span>;
 <a name="l00382"></a>00382         }
 <a name="l00383"></a>00383 
@@ -992,7 +992,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:31 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

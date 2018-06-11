@@ -445,7 +445,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00349"></a>00349     <span class="keywordflow">if</span> (mouse.hidden || mouse.inhibit_draw) <span class="keywordflow">return</span>;
 <a name="l00350"></a>00350 
 <a name="l00351"></a>00351     <span class="keywordflow">if</span> (mouse.background) {
-<a name="l00352"></a>00352         WriteChar(mouse.backposx,mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[0],mouse.backData[1],<span class="keyword">true</span>);
+<a name="l00352"></a>00352         WriteChar((Bit16u)mouse.backposx,(Bit16u)mouse.backposy,real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE),mouse.backData[0],mouse.backData[1],<span class="keyword">true</span>);
 <a name="l00353"></a>00353         mouse.background = <span class="keyword">false</span>;
 <a name="l00354"></a>00354     }
 <a name="l00355"></a>00355 }
@@ -464,13 +464,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00368"></a>00368     Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 <a name="l00369"></a>00369     Bit16u result;
 <a name="l00370"></a>00370 
-<a name="l00371"></a>00371     ReadCharAttr(mouse.backposx,mouse.backposy,page,&amp;result);
+<a name="l00371"></a>00371     ReadCharAttr((Bit16u)mouse.backposx,(Bit16u)mouse.backposy,page,&amp;result);
 <a name="l00372"></a>00372     mouse.backData[0]   = (Bit8u)(result &amp; 0xFF);
 <a name="l00373"></a>00373     mouse.backData[1]   = (Bit8u)(result&gt;&gt;8);
 <a name="l00374"></a>00374     mouse.background    = <span class="keyword">true</span>;
 <a name="l00375"></a>00375     <span class="comment">// Write Cursor</span>
 <a name="l00376"></a>00376     result = (result &amp; mouse.textAndMask) ^ mouse.textXorMask;
-<a name="l00377"></a>00377     WriteChar(mouse.backposx,mouse.backposy,page,(Bit8u)(result&amp;0xFF),(Bit8u)(result&gt;&gt;8),<span class="keyword">true</span>);
+<a name="l00377"></a>00377     WriteChar((Bit16u)mouse.backposx,(Bit16u)mouse.backposy,page,(Bit8u)(result&amp;0xFF),(Bit8u)(result&gt;&gt;8),<span class="keyword">true</span>);
 <a name="l00378"></a>00378 }
 <a name="l00379"></a>00379 
 <a name="l00380"></a>00380 <span class="comment">// ***************************************************************************</span>
@@ -556,7 +556,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00460"></a>00460         <span class="keywordflow">for</span> (y=y1; y&lt;=y2; y++) {
 <a name="l00461"></a>00461             dataPos += addx1;
 <a name="l00462"></a>00462             <span class="keywordflow">for</span> (x=x1; x&lt;=x2; x++) {
-<a name="l00463"></a>00463                 INT10_PutPixel(x,y,mouse.page,mouse.backData[dataPos++]);
+<a name="l00463"></a>00463                 INT10_PutPixel((Bit16u)x,(Bit16u)y,mouse.page,mouse.backData[dataPos++]);
 <a name="l00464"></a>00464             };
 <a name="l00465"></a>00465             dataPos += addx2;
 <a name="l00466"></a>00466         };
@@ -596,8 +596,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00500"></a>00500 
 <a name="l00501"></a>00501     <span class="comment">/* might be vidmode == 0x13?2:1 */</span>
 <a name="l00502"></a>00502     Bit16s xratio = 640;
-<a name="l00503"></a>00503     <span class="keywordflow">if</span> (CurMode-&gt;swidth&gt;0) xratio/=CurMode-&gt;swidth;
-<a name="l00504"></a>00504     <span class="keywordflow">if</span> (xratio==0) xratio = 1;
+<a name="l00503"></a>00503     <span class="keywordflow">if</span> (CurMode-&gt;swidth&gt;0) xratio/=(Bit16u)CurMode-&gt;swidth;
+<a name="l00504"></a>00504     if (xratio==0) xratio = 1;
 <a name="l00505"></a>00505     
 <a name="l00506"></a>00506     RestoreCursorBackground();
 <a name="l00507"></a>00507 
@@ -618,7 +618,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00522"></a>00522     <span class="keywordflow">for</span> (y=y1; y&lt;=y2; y++) {
 <a name="l00523"></a>00523         dataPos += addx1;
 <a name="l00524"></a>00524         <span class="keywordflow">for</span> (x=x1; x&lt;=x2; x++) {
-<a name="l00525"></a>00525             INT10_GetPixel(x,y,mouse.page,&amp;mouse.backData[dataPos++]);
+<a name="l00525"></a>00525             INT10_GetPixel((Bit16u)x,(Bit16u)y,mouse.page,&amp;mouse.backData[dataPos++]);
 <a name="l00526"></a>00526         };
 <a name="l00527"></a>00527         dataPos += addx2;
 <a name="l00528"></a>00528     };
@@ -641,7 +641,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00545"></a>00545             <span class="keywordflow">if</span> (cuMask &amp; HIGHESTBIT) pixel = pixel ^ 0x0F;
 <a name="l00546"></a>00546             cuMask&lt;&lt;=1;
 <a name="l00547"></a>00547             <span class="comment">// Set Pixel</span>
-<a name="l00548"></a>00548             INT10_PutPixel(x,y,mouse.page,pixel);
+<a name="l00548"></a>00548             INT10_PutPixel((Bit16u)x,(Bit16u)y,mouse.page,pixel);
 <a name="l00549"></a>00549             dataPos++;
 <a name="l00550"></a>00550         };
 <a name="l00551"></a>00551         dataPos += addx2;
@@ -769,8 +769,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00673"></a>00673         <span class="keywordflow">return</span>;
 <a name="l00674"></a>00674     }
 <a name="l00675"></a>00675     mouse.times_pressed[button]++;
-<a name="l00676"></a>00676     mouse.last_pressed_x[button]=POS_X;
-<a name="l00677"></a>00677     mouse.last_pressed_y[button]=POS_Y;
+<a name="l00676"></a>00676     mouse.last_pressed_x[button]=(Bit16u)POS_X;
+<a name="l00677"></a>00677     mouse.last_pressed_y[button]=(Bit16u)POS_Y;
 <a name="l00678"></a>00678 
 <a name="l00679"></a>00679     <span class="comment">/* serial mouse, if connected, also wants to know about it */</span>
 <a name="l00680"></a>00680     on_mouse_event_for_serial(0,0,mouse.buttons);
@@ -829,8 +829,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00733"></a>00733         <span class="keywordflow">return</span>;
 <a name="l00734"></a>00734     }
 <a name="l00735"></a>00735     mouse.times_released[button]++; 
-<a name="l00736"></a>00736     mouse.last_released_x[button]=POS_X;
-<a name="l00737"></a>00737     mouse.last_released_y[button]=POS_Y;
+<a name="l00736"></a>00736     mouse.last_released_x[button]=(Bit16u)POS_X;
+<a name="l00737"></a>00737     mouse.last_released_y[button]=(Bit16u)POS_Y;
 <a name="l00738"></a>00738 
 <a name="l00739"></a>00739     <span class="comment">/* serial mouse, if connected, also wants to know about it */</span>
 <a name="l00740"></a>00740     on_mouse_event_for_serial(0,0,mouse.buttons);
@@ -1000,14 +1000,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00904"></a>00904         <span class="keywordflow">break</span>;
 <a name="l00905"></a>00905     <span class="keywordflow">case</span> 0x03:  <span class="comment">/* Return position and Button Status */</span>
 <a name="l00906"></a>00906         reg_bx=mouse.buttons;
-<a name="l00907"></a>00907         reg_cx=POS_X;
-<a name="l00908"></a>00908         reg_dx=POS_Y;
+<a name="l00907"></a>00907         reg_cx=(Bit16u)POS_X;
+<a name="l00908"></a>00908         reg_dx=(Bit16u)POS_Y;
 <a name="l00909"></a>00909         <span class="keywordflow">break</span>;
 <a name="l00910"></a>00910     <span class="keywordflow">case</span> 0x04:  <span class="comment">/* Position Mouse */</span>
 <a name="l00911"></a>00911         <span class="comment">/* If position isn&#39;t different from current position</span>
 <a name="l00912"></a>00912 <span class="comment">         * don&#39;t change it then. (as position is rounded so numbers get</span>
 <a name="l00913"></a>00913 <span class="comment">         * lost when the rounded number is set) (arena/simulation Wolf) */</span>
-<a name="l00914"></a>00914         <span class="keywordflow">if</span> ((Bit16s)reg_cx &gt;= mouse.max_x) mouse.x = <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(mouse.max_x);
+<a name="l00914"></a>00914         <span class="keywordflow">if</span> ((Bit16s)reg_cx &gt;= mouse.max_x) mouse.x = static_cast&lt;float&gt;(mouse.max_x);
 <a name="l00915"></a>00915         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mouse.min_x &gt;= (Bit16s)reg_cx) mouse.x = static_cast&lt;float&gt;(mouse.min_x); 
 <a name="l00916"></a>00916         <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((Bit16s)reg_cx != POS_X) mouse.x = static_cast&lt;float&gt;(reg_cx);
 <a name="l00917"></a>00917 
@@ -1079,8 +1079,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00983"></a>00983             MEM_BlockRead(src+CURSORY*2,userdefCursorMask,CURSORY*2);
 <a name="l00984"></a>00984             mouse.screenMask = userdefScreenMask;
 <a name="l00985"></a>00985             mouse.cursorMask = userdefCursorMask;
-<a name="l00986"></a>00986             mouse.hotx       = reg_bx;
-<a name="l00987"></a>00987             mouse.hoty       = reg_cx;
+<a name="l00986"></a>00986             mouse.hotx       = (Bit16s)reg_bx;
+<a name="l00987"></a>00987             mouse.hoty       = (Bit16s)reg_cx;
 <a name="l00988"></a>00988             mouse.cursorType = 2;
 <a name="l00989"></a>00989             DrawCursor();
 <a name="l00990"></a>00990         }
@@ -1091,8 +1091,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00995"></a>00995         mouse.textXorMask = reg_dx;
 <a name="l00996"></a>00996         <span class="keywordflow">break</span>;
 <a name="l00997"></a>00997     <span class="keywordflow">case</span> 0x0b:  <span class="comment">/* Read Motion Data */</span>
-<a name="l00998"></a>00998         reg_cx=<span class="keyword">static_cast&lt;</span>Bit16s<span class="keyword">&gt;</span>(mouse.mickey_x);
-<a name="l00999"></a>00999         reg_dx=<span class="keyword">static_cast&lt;</span>Bit16s<span class="keyword">&gt;</span>(mouse.mickey_y);
+<a name="l00998"></a>00998         reg_cx=(Bit16u)static_cast&lt;Bit16s&gt;(mouse.mickey_x);
+<a name="l00999"></a>00999         reg_dx=(Bit16u)static_cast&lt;Bit16s&gt;(mouse.mickey_y);
 <a name="l01000"></a>01000         mouse.mickey_x=0;
 <a name="l01001"></a>01001         mouse.mickey_y=0;
 <a name="l01002"></a>01002         <span class="keywordflow">break</span>;
@@ -1103,7 +1103,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01007"></a>01007         Mouse_AutoLock(<span class="keyword">true</span>); <span class="comment">//Some games don&#39;t seem to reset the mouse before using</span>
 <a name="l01008"></a>01008         <span class="keywordflow">break</span>;
 <a name="l01009"></a>01009     <span class="keywordflow">case</span> 0x0f:  <span class="comment">/* Define mickey/pixel rate */</span>
-<a name="l01010"></a>01010         Mouse_SetMickeyPixelRate(reg_cx,reg_dx);
+<a name="l01010"></a>01010         Mouse_SetMickeyPixelRate((Bit16s)reg_cx,(Bit16s)reg_dx);
 <a name="l01011"></a>01011         <span class="keywordflow">break</span>;
 <a name="l01012"></a>01012     <span class="keywordflow">case</span> 0x10:      <span class="comment">/* Define screen region for updating */</span>
 <a name="l01013"></a>01013         mouse.updateRegion_x[0]=reg_cx;
@@ -1128,8 +1128,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01032"></a>01032             mouse.sub_seg = SegValue(es);
 <a name="l01033"></a>01033             mouse.sub_ofs = reg_dx;
 <a name="l01034"></a>01034             <span class="comment">// Return old values</span>
-<a name="l01035"></a>01035             reg_cx = oldMask;
-<a name="l01036"></a>01036             reg_dx = oldOfs;
+<a name="l01035"></a>01035             reg_cx = (Bit16u)oldMask;
+<a name="l01036"></a>01036             reg_dx = (Bit16u)oldOfs;
 <a name="l01037"></a>01037             SegSet16(es,oldSeg);
 <a name="l01038"></a>01038         }
 <a name="l01039"></a>01039         <span class="keywordflow">break</span>;      
@@ -1308,10 +1308,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01212"></a>01212         <span class="keywordflow">if</span> (mouse.sub_mask &amp; mouse.event_queue[mouse.events].type) {
 <a name="l01213"></a>01213             reg_ax=mouse.event_queue[mouse.events].type;
 <a name="l01214"></a>01214             reg_bx=mouse.event_queue[mouse.events].buttons;
-<a name="l01215"></a>01215             reg_cx=POS_X;
-<a name="l01216"></a>01216             reg_dx=POS_Y;
-<a name="l01217"></a>01217             reg_si=<span class="keyword">static_cast&lt;</span>Bit16s<span class="keyword">&gt;</span>(mouse.mickey_x);
-<a name="l01218"></a>01218             reg_di=<span class="keyword">static_cast&lt;</span>Bit16s<span class="keyword">&gt;</span>(mouse.mickey_y);
+<a name="l01215"></a>01215             reg_cx=(Bit16u)POS_X;
+<a name="l01216"></a>01216             reg_dx=(Bit16u)POS_Y;
+<a name="l01217"></a>01217             reg_si=(Bit16u)static_cast&lt;Bit16s&gt;(mouse.mickey_x);
+<a name="l01218"></a>01218             reg_di=(Bit16u)static_cast&lt;Bit16s&gt;(mouse.mickey_y);
 <a name="l01219"></a>01219             CPU_Push16(RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
 <a name="l01220"></a>01220             CPU_Push16(RealOff(CALLBACK_RealPointer(int74_ret_callback)));
 <a name="l01221"></a>01221             SegSet16(cs, mouse.sub_seg);
@@ -1479,7 +1479,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -249,7 +249,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00153"></a>00153         
 <a name="l00154"></a>00154         <span class="comment">// advance waveform time</span>
 <a name="l00155"></a>00155         op_pt-&gt;tcount += op_pt-&gt;tinc;
-<a name="l00156"></a>00156         op_pt-&gt;tcount += (Bit32s)(op_pt-&gt;tinc)*vib/FIXEDPT;
+<a name="l00156"></a>00156         op_pt-&gt;tcount += (Bit32u)((Bit32s)(op_pt-&gt;tinc)*vib)/FIXEDPT;
 <a name="l00157"></a>00157 
 <a name="l00158"></a>00158         op_pt-&gt;generator_pos += generator_add;
 <a name="l00159"></a>00159 }
@@ -264,11 +264,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00168"></a>00168         Bit32u snare_phase_bit = (((Bitu)((op_pt1-&gt;tcount/FIXEDPT) / 0x100))&amp;1);
 <a name="l00169"></a>00169 
 <a name="l00170"></a>00170         <span class="comment">//Hihat</span>
-<a name="l00171"></a>00171         Bit32u inttm = (phasebit&lt;&lt;8) | (0x34&lt;&lt;(phasebit ^ (noisebit&lt;&lt;1)));
+<a name="l00171"></a>00171         Bit32u inttm = (phasebit&lt;&lt;8u) | (0x34u&lt;&lt;(phasebit ^ (noisebit&lt;&lt;1u)));
 <a name="l00172"></a>00172         op_pt1-&gt;wfpos = inttm*FIXEDPT;                          <span class="comment">// waveform position</span>
 <a name="l00173"></a>00173         <span class="comment">// advance waveform time</span>
 <a name="l00174"></a>00174         op_pt1-&gt;tcount += op_pt1-&gt;tinc;
-<a name="l00175"></a>00175         op_pt1-&gt;tcount += (Bit32s)(op_pt1-&gt;tinc)*vib1/FIXEDPT;
+<a name="l00175"></a>00175         op_pt1-&gt;tcount += (Bit32u)((Bit32s)(op_pt1-&gt;tinc)*vib1)/FIXEDPT;
 <a name="l00176"></a>00176         op_pt1-&gt;generator_pos += generator_add;
 <a name="l00177"></a>00177 
 <a name="l00178"></a>00178         <span class="comment">//Snare</span>
@@ -276,7 +276,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00180"></a>00180         op_pt2-&gt;wfpos = inttm*FIXEDPT;                          <span class="comment">// waveform position</span>
 <a name="l00181"></a>00181         <span class="comment">// advance waveform time</span>
 <a name="l00182"></a>00182         op_pt2-&gt;tcount += op_pt2-&gt;tinc;
-<a name="l00183"></a>00183         op_pt2-&gt;tcount += (Bit32s)(op_pt2-&gt;tinc)*vib2/FIXEDPT;
+<a name="l00183"></a>00183         op_pt2-&gt;tcount += (Bit32u)((Bit32s)(op_pt2-&gt;tinc)*vib2)/FIXEDPT;
 <a name="l00184"></a>00184         op_pt2-&gt;generator_pos += generator_add;
 <a name="l00185"></a>00185 
 <a name="l00186"></a>00186         <span class="comment">//Cymbal</span>
@@ -284,7 +284,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00188"></a>00188         op_pt3-&gt;wfpos = inttm*FIXEDPT;                          <span class="comment">// waveform position</span>
 <a name="l00189"></a>00189         <span class="comment">// advance waveform time</span>
 <a name="l00190"></a>00190         op_pt3-&gt;tcount += op_pt3-&gt;tinc;
-<a name="l00191"></a>00191         op_pt3-&gt;tcount += (Bit32s)(op_pt3-&gt;tinc)*vib3/FIXEDPT;
+<a name="l00191"></a>00191         op_pt3-&gt;tcount += (Bit32u)((Bit32s)(op_pt3-&gt;tinc)*vib3)/FIXEDPT;
 <a name="l00192"></a>00192         op_pt3-&gt;generator_pos += generator_add;
 <a name="l00193"></a>00193 }
 <a name="l00194"></a>00194 
@@ -294,7 +294,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00198"></a>00198 <span class="keywordtype">void</span> operator_output(<a class="code" href="structoperator__struct.html">op_type</a>* op_pt, Bit32s modulator, Bit32s trem) {
 <a name="l00199"></a>00199         <span class="keywordflow">if</span> (op_pt-&gt;op_state != OF_TYPE_OFF) {
 <a name="l00200"></a>00200                 op_pt-&gt;lastcval = op_pt-&gt;cval;
-<a name="l00201"></a>00201                 Bit32u i = (Bit32u)((op_pt-&gt;wfpos+modulator)/FIXEDPT);
+<a name="l00201"></a>00201                 Bit32u i = (Bit32u)(((Bit32s)op_pt-&gt;wfpos+modulator)/FIXEDPT);
 <a name="l00202"></a>00202 
 <a name="l00203"></a>00203                 <span class="comment">// wform: -16384 to 16383 (0x4000)</span>
 <a name="l00204"></a>00204                 <span class="comment">// trem :  32768 to 65535 (0x10000)</span>
@@ -551,7 +551,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00455"></a>00455 <span class="keywordtype">void</span> enable_operator(Bitu regbase, <a class="code" href="structoperator__struct.html">op_type</a>* op_pt, Bit32u act_type) {
 <a name="l00456"></a>00456         <span class="comment">// check if this is really an off-on transition</span>
 <a name="l00457"></a>00457         <span class="keywordflow">if</span> (op_pt-&gt;act_state == OP_ACT_OFF) {
-<a name="l00458"></a>00458                 Bits wselbase = regbase;
+<a name="l00458"></a>00458                 Bits wselbase = (Bits)regbase;
 <a name="l00459"></a>00459                 <span class="keywordflow">if</span> (wselbase&gt;=ARC_SECONDSET) wselbase -= (ARC_SECONDSET-22);    <span class="comment">// second set starts at 22</span>
 <a name="l00460"></a>00460 
 <a name="l00461"></a>00461                 op_pt-&gt;tcount = wavestart[wave_sel[wselbase]]*FIXEDPT;
@@ -831,7 +831,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00735"></a>00735                 <span class="comment">// 0xa0-0xa8 low8 frequency</span>
 <a name="l00736"></a>00736                 Bitu base = (idx-ARC_FREQ_NUM)&amp;0xff;
 <a name="l00737"></a>00737                 <span class="keywordflow">if</span> (base&lt;9) {
-<a name="l00738"></a>00738                         Bits opbase = second_set?(base+18):base;
+<a name="l00738"></a>00738                         Bits opbase = (Bits)(second_set?(base+18u):base);
 <a name="l00739"></a>00739 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
 <a name="l00740"></a>00740 <span class="preprocessor"></span>                        <span class="keywordflow">if</span> ((adlibreg[0x105]&amp;1) &amp;&amp; op[opbase].is_4op_attached) <span class="keywordflow">break</span>;
 <a name="l00741"></a>00741 <span class="preprocessor">#endif</span>
@@ -840,13 +840,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00744"></a>00744 
 <a name="l00745"></a>00745                         Bitu chanbase = base+second_set;
 <a name="l00746"></a>00746 
-<a name="l00747"></a>00747                         change_frequency(chanbase,modbase,&amp;op[opbase]);
-<a name="l00748"></a>00748                         change_frequency(chanbase,modbase+3,&amp;op[opbase+9]);
+<a name="l00747"></a>00747                         change_frequency(chanbase,(Bitu)modbase,&amp;op[opbase]);
+<a name="l00748"></a>00748                         change_frequency(chanbase,(Bitu)modbase+3,&amp;op[opbase+9]);
 <a name="l00749"></a>00749 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
 <a name="l00750"></a>00750 <span class="preprocessor"></span>                        <span class="comment">// for 4op channels all four operators are modified to the frequency of the channel</span>
 <a name="l00751"></a>00751                         <span class="keywordflow">if</span> ((adlibreg[0x105]&amp;1) &amp;&amp; op[second_set?(base+18):base].is_4op) {
-<a name="l00752"></a>00752                                 change_frequency(chanbase,modbase+8,&amp;op[opbase+3]);
-<a name="l00753"></a>00753                                 change_frequency(chanbase,modbase+3+8,&amp;op[opbase+3+9]);
+<a name="l00752"></a>00752                                 change_frequency(chanbase,(Bitu)modbase+8,&amp;op[opbase+3]);
+<a name="l00753"></a>00753                                 change_frequency(chanbase,(Bitu)modbase+3+8,&amp;op[opbase+3+9]);
 <a name="l00754"></a>00754                         }
 <a name="l00755"></a>00755 <span class="preprocessor">#endif</span>
 <a name="l00756"></a>00756 <span class="preprocessor"></span>                }
@@ -897,7 +897,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00801"></a>00801                 <span class="comment">// regular 0xb0-0xb8</span>
 <a name="l00802"></a>00802                 Bitu base = (idx-ARC_KON_BNUM)&amp;0xff;
 <a name="l00803"></a>00803                 <span class="keywordflow">if</span> (base&lt;9) {
-<a name="l00804"></a>00804                         Bits opbase = second_set?(base+18):base;
+<a name="l00804"></a>00804                         Bits opbase = (Bits)(second_set?(base+18):base);
 <a name="l00805"></a>00805 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
 <a name="l00806"></a>00806 <span class="preprocessor"></span>                        <span class="keywordflow">if</span> ((adlibreg[0x105]&amp;1) &amp;&amp; op[opbase].is_4op_attached) <span class="keywordflow">break</span>;
 <a name="l00807"></a>00807 <span class="preprocessor">#endif</span>
@@ -906,14 +906,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00810"></a>00810 
 <a name="l00811"></a>00811                         <span class="keywordflow">if</span> (val&amp;32) {
 <a name="l00812"></a>00812                                 <span class="comment">// operator switched on</span>
-<a name="l00813"></a>00813                                 enable_operator(modbase,&amp;op[opbase],OP_ACT_NORMAL);             <span class="comment">// modulator (if 2op)</span>
-<a name="l00814"></a>00814                                 enable_operator(modbase+3,&amp;op[opbase+9],OP_ACT_NORMAL); <span class="comment">// carrier (if 2op)</span>
+<a name="l00813"></a>00813                                 enable_operator((Bitu)modbase,&amp;op[opbase],OP_ACT_NORMAL);               <span class="comment">// modulator (if 2op)</span>
+<a name="l00814"></a>00814                                 enable_operator((Bitu)modbase+3,&amp;op[opbase+9],OP_ACT_NORMAL);   <span class="comment">// carrier (if 2op)</span>
 <a name="l00815"></a>00815 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
 <a name="l00816"></a>00816 <span class="preprocessor"></span>                                <span class="comment">// for 4op channels all four operators are switched on</span>
 <a name="l00817"></a>00817                                 <span class="keywordflow">if</span> ((adlibreg[0x105]&amp;1) &amp;&amp; op[opbase].is_4op) {
 <a name="l00818"></a>00818                                         <span class="comment">// turn on chan+3 operators as well</span>
-<a name="l00819"></a>00819                                         enable_operator(modbase+8,&amp;op[opbase+3],OP_ACT_NORMAL);
-<a name="l00820"></a>00820                                         enable_operator(modbase+3+8,&amp;op[opbase+3+9],OP_ACT_NORMAL);
+<a name="l00819"></a>00819                                         enable_operator((Bitu)modbase+8,&amp;op[opbase+3],OP_ACT_NORMAL);
+<a name="l00820"></a>00820                                         enable_operator((Bitu)modbase+3+8,&amp;op[opbase+3+9],OP_ACT_NORMAL);
 <a name="l00821"></a>00821                                 }
 <a name="l00822"></a>00822 <span class="preprocessor">#endif</span>
 <a name="l00823"></a>00823 <span class="preprocessor"></span>                        } <span class="keywordflow">else</span> {
@@ -934,14 +934,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00838"></a>00838 
 <a name="l00839"></a>00839                         <span class="comment">// change frequency calculations of modulator and carrier (2op) as</span>
 <a name="l00840"></a>00840                         <span class="comment">// the frequency of the channel has changed</span>
-<a name="l00841"></a>00841                         change_frequency(chanbase,modbase,&amp;op[opbase]);
-<a name="l00842"></a>00842                         change_frequency(chanbase,modbase+3,&amp;op[opbase+9]);
+<a name="l00841"></a>00841                         change_frequency(chanbase,(Bitu)modbase,&amp;op[opbase]);
+<a name="l00842"></a>00842                         change_frequency(chanbase,(Bitu)modbase+3,&amp;op[opbase+9]);
 <a name="l00843"></a>00843 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
 <a name="l00844"></a>00844 <span class="preprocessor"></span>                        <span class="comment">// for 4op channels all four operators are modified to the frequency of the channel</span>
 <a name="l00845"></a>00845                         <span class="keywordflow">if</span> ((adlibreg[0x105]&amp;1) &amp;&amp; op[second_set?(base+18):base].is_4op) {
 <a name="l00846"></a>00846                                 <span class="comment">// change frequency calculations of chan+3 operators as well</span>
-<a name="l00847"></a>00847                                 change_frequency(chanbase,modbase+8,&amp;op[opbase+3]);
-<a name="l00848"></a>00848                                 change_frequency(chanbase,modbase+3+8,&amp;op[opbase+3+9]);
+<a name="l00847"></a>00847                                 change_frequency(chanbase,(Bitu)modbase+8,&amp;op[opbase+3]);
+<a name="l00848"></a>00848                                 change_frequency(chanbase,(Bitu)modbase+3+8,&amp;op[opbase+3+9]);
 <a name="l00849"></a>00849                         }
 <a name="l00850"></a>00850 <span class="preprocessor">#endif</span>
 <a name="l00851"></a>00851 <span class="preprocessor"></span>                }
@@ -951,7 +951,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00855"></a>00855                 <span class="comment">// 0xc0-0xc8 feedback/modulation type (AM/FM)</span>
 <a name="l00856"></a>00856                 Bitu base = (idx-ARC_FEEDBACK)&amp;0xff;
 <a name="l00857"></a>00857                 <span class="keywordflow">if</span> (base&lt;9) {
-<a name="l00858"></a>00858                         Bits opbase = second_set?(base+18):base;
+<a name="l00858"></a>00858                         Bits opbase = (Bits)(second_set?(base+18):base);
 <a name="l00859"></a>00859                         Bitu chanbase = base+second_set;
 <a name="l00860"></a>00860                         change_feedback(chanbase,&amp;op[opbase]);
 <a name="l00861"></a>00861 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
@@ -968,12 +968,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00872"></a>00872                 Bitu base = (idx-ARC_WAVE_SEL)&amp;0xff;
 <a name="l00873"></a>00873                 <span class="keywordflow">if</span> ((num&lt;6) &amp;&amp; (base&lt;22)) {
 <a name="l00874"></a>00874 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
-<a name="l00875"></a>00875 <span class="preprocessor"></span>                        Bits wselbase = second_set?(base+22):base;      <span class="comment">// for easier mapping onto wave_sel[]</span>
+<a name="l00875"></a>00875 <span class="preprocessor"></span>                        Bits wselbase = (Bits)(second_set?(base+22):base);      <span class="comment">// for easier mapping onto wave_sel[]</span>
 <a name="l00876"></a>00876                         <span class="comment">// change waveform</span>
 <a name="l00877"></a>00877                         <span class="keywordflow">if</span> (adlibreg[0x105]&amp;1) wave_sel[wselbase] = val&amp;7;      <span class="comment">// opl3 mode enabled, all waveforms accessible</span>
 <a name="l00878"></a>00878                         <span class="keywordflow">else</span> wave_sel[wselbase] = val&amp;3;
 <a name="l00879"></a>00879                         <a class="code" href="structoperator__struct.html">op_type</a>* op_ptr = &amp;op[regbase2modop[wselbase]+((num&lt;3) ? 0 : 9)];
-<a name="l00880"></a>00880                         change_waveform(wselbase,op_ptr);
+<a name="l00880"></a>00880                         change_waveform((Bitu)wselbase,op_ptr);
 <a name="l00881"></a>00881 <span class="preprocessor">#else</span>
 <a name="l00882"></a>00882 <span class="preprocessor"></span>                        <span class="keywordflow">if</span> (adlibreg[0x01]&amp;0x20) {
 <a name="l00883"></a>00883                                 <span class="comment">// wave selection enabled, change waveform</span>
@@ -1069,10 +1069,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00973"></a>00973                 endsamples = samples_to_process-cursmp;
 <a name="l00974"></a>00974                 <span class="keywordflow">if</span> (endsamples&gt;BLOCKBUF_SIZE) endsamples = BLOCKBUF_SIZE;
 <a name="l00975"></a>00975 
-<a name="l00976"></a>00976                 memset((<span class="keywordtype">void</span>*)&amp;outbufl,0,endsamples*<span class="keyword">sizeof</span>(Bit32s));
+<a name="l00976"></a>00976                 memset((<span class="keywordtype">void</span>*)&amp;outbufl,0,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)endsamples*<span class="keyword">sizeof</span>(Bit32s));
 <a name="l00977"></a>00977 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
 <a name="l00978"></a>00978 <span class="preprocessor"></span>                <span class="comment">// clear second output buffer (opl3 stereo)</span>
-<a name="l00979"></a>00979                 <span class="keywordflow">if</span> (adlibreg[0x105]&amp;1) memset((<span class="keywordtype">void</span>*)&amp;outbufr,0,endsamples*<span class="keyword">sizeof</span>(Bit32s));
+<a name="l00979"></a>00979                 <span class="keywordflow">if</span> (adlibreg[0x105]&amp;1) memset((<span class="keywordtype">void</span>*)&amp;outbufr,0,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)endsamples*<span class="keyword">sizeof</span>(Bit32s));
 <a name="l00980"></a>00980 <span class="preprocessor">#endif</span>
 <a name="l00981"></a>00981 <span class="preprocessor"></span>
 <a name="l00982"></a>00982                 <span class="comment">// calculate vibrato/tremolo lookup tables</span>
@@ -1223,11 +1223,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01127"></a>01127 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
 <a name="l01128"></a>01128 <span class="preprocessor"></span>                <span class="keywordflow">if</span> ((adlibreg[0x105]&amp;1)==0) max_channel = NUM_CHANNELS/2;
 <a name="l01129"></a>01129 <span class="preprocessor">#endif</span>
-<a name="l01130"></a>01130 <span class="preprocessor"></span>                <span class="keywordflow">for</span> (Bits cur_ch=max_channel-1; cur_ch&gt;=0; cur_ch--) {
+<a name="l01130"></a>01130 <span class="preprocessor"></span>                <span class="keywordflow">for</span> (Bits cur_ch=(Bits)max_channel-1; cur_ch&gt;=0; cur_ch--) {
 <a name="l01131"></a>01131                         <span class="comment">// skip drum/percussion operators</span>
 <a name="l01132"></a>01132                         <span class="keywordflow">if</span> ((adlibreg[ARC_PERC_MODE]&amp;0x20) &amp;&amp; (cur_ch &gt;= 6) &amp;&amp; (cur_ch &lt; 9)) <span class="keywordflow">continue</span>;
 <a name="l01133"></a>01133 
-<a name="l01134"></a>01134                         Bitu k = cur_ch;
+<a name="l01134"></a>01134                         Bitu k = (Bitu)cur_ch;
 <a name="l01135"></a>01135 <span class="preprocessor">#if defined(OPLTYPE_IS_OPL3)</span>
 <a name="l01136"></a>01136 <span class="preprocessor"></span>                        <span class="keywordflow">if</span> (cur_ch &lt; 9) {
 <a name="l01137"></a>01137                                 cptr = &amp;op[cur_ch];
@@ -1564,7 +1564,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:33 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

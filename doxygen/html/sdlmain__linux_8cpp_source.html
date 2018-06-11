@@ -141,7 +141,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00045"></a>00045             xclient.message_type = wmNetWmState;
 <a name="l00046"></a>00046             xclient.format = 32;
 <a name="l00047"></a>00047             xclient.data.l[0] = f ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE;
-<a name="l00048"></a>00048             xclient.data.l[1] = wmStateAbove;
+<a name="l00048"></a>00048             xclient.data.l[1] = (<span class="keywordtype">long</span> int)wmStateAbove;
 <a name="l00049"></a>00049             xclient.data.l[2] = 0;
 <a name="l00050"></a>00050             xclient.data.l[3] = 0;
 <a name="l00051"></a>00051             xclient.data.l[4] = 0;
@@ -195,14 +195,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00099"></a>00099 
 <a name="l00100"></a>00100             <span class="keywordflow">for</span> (i=0;i &lt; 256;i++) {
 <a name="l00101"></a>00101                 <span class="keywordflow">for</span> (j=0;j &lt; 4;j++)
-<a name="l00102"></a>00102                     sym[j] = XKeycodeToKeysym(wminfo.info.x11.display,(KeyCode)i,j);
+<a name="l00102"></a>00102                     sym[j] = XKeycodeToKeysym(wminfo.info.x11.display,(KeyCode)i,(<span class="keywordtype">int</span>)j);
 <a name="l00103"></a>00103 
 <a name="l00104"></a>00104                 <span class="keywordflow">if</span> (sym[0] == <span class="charliteral">&#39;\\&#39;</span>) {
 <a name="l00105"></a>00105                     <span class="keywordflow">if</span> (sym[1] == <span class="charliteral">&#39;_&#39;</span>) { <span class="comment">/* shift + backslash == _   means we found Ro */</span>
-<a name="l00106"></a>00106                         <span class="keywordflow">if</span> (ro &lt; 0) ro = i;
+<a name="l00106"></a>00106                         <span class="keywordflow">if</span> (ro &lt; 0) ro = (int)i;
 <a name="l00107"></a>00107                     }
 <a name="l00108"></a>00108                     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (sym[1] == <span class="charliteral">&#39;|&#39;</span>) { <span class="comment">/* shift + backslash == |   means we found Yen */</span>
-<a name="l00109"></a>00109                         <span class="keywordflow">if</span> (yen &lt; 0) yen = i;
+<a name="l00109"></a>00109                         <span class="keywordflow">if</span> (yen &lt; 0) yen = (int)i;
 <a name="l00110"></a>00110                     }
 <a name="l00111"></a>00111                 }
 <a name="l00112"></a>00112             }
@@ -321,7 +321,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00225"></a>00225 
 <a name="l00226"></a>00226             LOG_MSG(<span class="stringliteral">&quot;X11 main window is %u x %u maximized=%u&quot;</span>,attr.width, attr.height, maximized);
 <a name="l00227"></a>00227 
-<a name="l00228"></a>00228             UpdateWindowDimensions(attr.width, attr.height);
+<a name="l00228"></a>00228             UpdateWindowDimensions((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)attr.width, (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)attr.height);
 <a name="l00229"></a>00229             UpdateWindowMaximized(maximized);
 <a name="l00230"></a>00230         }
 <a name="l00231"></a>00231     }
@@ -380,7 +380,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:32 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

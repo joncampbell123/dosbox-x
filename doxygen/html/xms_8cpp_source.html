@@ -130,50 +130,50 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00034"></a>00034 
 <a name="l00035"></a>00035 <span class="preprocessor">#include &lt;algorithm&gt;</span>
 <a name="l00036"></a>00036 
-<a name="l00037"></a>00037 <span class="preprocessor">#define XMS_HANDLES                                                     50              </span><span class="comment">/* 50 XMS Memory Blocks */</span> 
-<a name="l00038"></a>00038 <span class="preprocessor">#define XMS_VERSION                                             0x0300  </span><span class="comment">/* version 3.00 */</span>
-<a name="l00039"></a>00039 <span class="preprocessor">#define XMS_DRIVER_VERSION                                      0x0301  </span><span class="comment">/* my driver version 3.01 */</span>
+<a name="l00037"></a>00037 <span class="preprocessor">#define XMS_HANDLES                                                     50u             </span><span class="comment">/* 50 XMS Memory Blocks */</span> 
+<a name="l00038"></a>00038 <span class="preprocessor">#define XMS_VERSION                                             0x0300u </span><span class="comment">/* version 3.00 */</span>
+<a name="l00039"></a>00039 <span class="preprocessor">#define XMS_DRIVER_VERSION                                      0x0301u </span><span class="comment">/* my driver version 3.01 */</span>
 <a name="l00040"></a>00040 
-<a name="l00041"></a>00041 <span class="preprocessor">#define XMS_GET_VERSION                                         0x00</span>
-<a name="l00042"></a>00042 <span class="preprocessor"></span><span class="preprocessor">#define XMS_ALLOCATE_HIGH_MEMORY                        0x01</span>
-<a name="l00043"></a>00043 <span class="preprocessor"></span><span class="preprocessor">#define XMS_FREE_HIGH_MEMORY                            0x02</span>
-<a name="l00044"></a>00044 <span class="preprocessor"></span><span class="preprocessor">#define XMS_GLOBAL_ENABLE_A20                           0x03</span>
-<a name="l00045"></a>00045 <span class="preprocessor"></span><span class="preprocessor">#define XMS_GLOBAL_DISABLE_A20                          0x04</span>
-<a name="l00046"></a>00046 <span class="preprocessor"></span><span class="preprocessor">#define XMS_LOCAL_ENABLE_A20                            0x05</span>
-<a name="l00047"></a>00047 <span class="preprocessor"></span><span class="preprocessor">#define XMS_LOCAL_DISABLE_A20                           0x06</span>
-<a name="l00048"></a>00048 <span class="preprocessor"></span><span class="preprocessor">#define XMS_QUERY_A20                                           0x07</span>
-<a name="l00049"></a>00049 <span class="preprocessor"></span><span class="preprocessor">#define XMS_QUERY_FREE_EXTENDED_MEMORY          0x08</span>
-<a name="l00050"></a>00050 <span class="preprocessor"></span><span class="preprocessor">#define XMS_ALLOCATE_EXTENDED_MEMORY            0x09</span>
-<a name="l00051"></a>00051 <span class="preprocessor"></span><span class="preprocessor">#define XMS_FREE_EXTENDED_MEMORY                        0x0a</span>
-<a name="l00052"></a>00052 <span class="preprocessor"></span><span class="preprocessor">#define XMS_MOVE_EXTENDED_MEMORY_BLOCK          0x0b</span>
-<a name="l00053"></a>00053 <span class="preprocessor"></span><span class="preprocessor">#define XMS_LOCK_EXTENDED_MEMORY_BLOCK          0x0c</span>
-<a name="l00054"></a>00054 <span class="preprocessor"></span><span class="preprocessor">#define XMS_UNLOCK_EXTENDED_MEMORY_BLOCK        0x0d</span>
-<a name="l00055"></a>00055 <span class="preprocessor"></span><span class="preprocessor">#define XMS_GET_EMB_HANDLE_INFORMATION          0x0e</span>
-<a name="l00056"></a>00056 <span class="preprocessor"></span><span class="preprocessor">#define XMS_RESIZE_EXTENDED_MEMORY_BLOCK        0x0f</span>
-<a name="l00057"></a>00057 <span class="preprocessor"></span><span class="preprocessor">#define XMS_ALLOCATE_UMB                                        0x10</span>
-<a name="l00058"></a>00058 <span class="preprocessor"></span><span class="preprocessor">#define XMS_DEALLOCATE_UMB                                      0x11</span>
-<a name="l00059"></a>00059 <span class="preprocessor"></span><span class="preprocessor">#define XMS_QUERY_ANY_FREE_MEMORY                       0x88</span>
-<a name="l00060"></a>00060 <span class="preprocessor"></span><span class="preprocessor">#define XMS_ALLOCATE_ANY_MEMORY                         0x89</span>
-<a name="l00061"></a>00061 <span class="preprocessor"></span><span class="preprocessor">#define XMS_GET_EMB_HANDLE_INFORMATION_EXT      0x8e</span>
-<a name="l00062"></a>00062 <span class="preprocessor"></span><span class="preprocessor">#define XMS_RESIZE_ANY_EXTENDED_MEMORY_BLOCK 0x8f</span>
+<a name="l00041"></a>00041 <span class="preprocessor">#define XMS_GET_VERSION                                         0x00u</span>
+<a name="l00042"></a>00042 <span class="preprocessor"></span><span class="preprocessor">#define XMS_ALLOCATE_HIGH_MEMORY                        0x01u</span>
+<a name="l00043"></a>00043 <span class="preprocessor"></span><span class="preprocessor">#define XMS_FREE_HIGH_MEMORY                            0x02u</span>
+<a name="l00044"></a>00044 <span class="preprocessor"></span><span class="preprocessor">#define XMS_GLOBAL_ENABLE_A20                           0x03u</span>
+<a name="l00045"></a>00045 <span class="preprocessor"></span><span class="preprocessor">#define XMS_GLOBAL_DISABLE_A20                          0x04u</span>
+<a name="l00046"></a>00046 <span class="preprocessor"></span><span class="preprocessor">#define XMS_LOCAL_ENABLE_A20                            0x05u</span>
+<a name="l00047"></a>00047 <span class="preprocessor"></span><span class="preprocessor">#define XMS_LOCAL_DISABLE_A20                           0x06u</span>
+<a name="l00048"></a>00048 <span class="preprocessor"></span><span class="preprocessor">#define XMS_QUERY_A20                                           0x07u</span>
+<a name="l00049"></a>00049 <span class="preprocessor"></span><span class="preprocessor">#define XMS_QUERY_FREE_EXTENDED_MEMORY          0x08u</span>
+<a name="l00050"></a>00050 <span class="preprocessor"></span><span class="preprocessor">#define XMS_ALLOCATE_EXTENDED_MEMORY            0x09u</span>
+<a name="l00051"></a>00051 <span class="preprocessor"></span><span class="preprocessor">#define XMS_FREE_EXTENDED_MEMORY                        0x0au</span>
+<a name="l00052"></a>00052 <span class="preprocessor"></span><span class="preprocessor">#define XMS_MOVE_EXTENDED_MEMORY_BLOCK          0x0bu</span>
+<a name="l00053"></a>00053 <span class="preprocessor"></span><span class="preprocessor">#define XMS_LOCK_EXTENDED_MEMORY_BLOCK          0x0cu</span>
+<a name="l00054"></a>00054 <span class="preprocessor"></span><span class="preprocessor">#define XMS_UNLOCK_EXTENDED_MEMORY_BLOCK        0x0du</span>
+<a name="l00055"></a>00055 <span class="preprocessor"></span><span class="preprocessor">#define XMS_GET_EMB_HANDLE_INFORMATION          0x0eu</span>
+<a name="l00056"></a>00056 <span class="preprocessor"></span><span class="preprocessor">#define XMS_RESIZE_EXTENDED_MEMORY_BLOCK        0x0fu</span>
+<a name="l00057"></a>00057 <span class="preprocessor"></span><span class="preprocessor">#define XMS_ALLOCATE_UMB                                        0x10u</span>
+<a name="l00058"></a>00058 <span class="preprocessor"></span><span class="preprocessor">#define XMS_DEALLOCATE_UMB                                      0x11u</span>
+<a name="l00059"></a>00059 <span class="preprocessor"></span><span class="preprocessor">#define XMS_QUERY_ANY_FREE_MEMORY                       0x88u</span>
+<a name="l00060"></a>00060 <span class="preprocessor"></span><span class="preprocessor">#define XMS_ALLOCATE_ANY_MEMORY                         0x89u</span>
+<a name="l00061"></a>00061 <span class="preprocessor"></span><span class="preprocessor">#define XMS_GET_EMB_HANDLE_INFORMATION_EXT      0x8eu</span>
+<a name="l00062"></a>00062 <span class="preprocessor"></span><span class="preprocessor">#define XMS_RESIZE_ANY_EXTENDED_MEMORY_BLOCK 0x8fu</span>
 <a name="l00063"></a>00063 <span class="preprocessor"></span>
-<a name="l00064"></a>00064 <span class="preprocessor">#define XMS_FUNCTION_NOT_IMPLEMENTED            0x80</span>
-<a name="l00065"></a>00065 <span class="preprocessor"></span><span class="preprocessor">#define HIGH_MEMORY_NOT_EXIST                           0x90</span>
-<a name="l00066"></a>00066 <span class="preprocessor"></span><span class="preprocessor">#define HIGH_MEMORY_IN_USE                                      0x91</span>
-<a name="l00067"></a>00067 <span class="preprocessor"></span><span class="preprocessor">#define HIGH_MEMORY_NOT_BIG_ENOUGH                      0x92</span>
-<a name="l00068"></a>00068 <span class="preprocessor"></span><span class="preprocessor">#define HIGH_MEMORY_NOT_ALLOCATED                       0x93</span>
-<a name="l00069"></a>00069 <span class="preprocessor"></span><span class="preprocessor">#define XMS_OUT_OF_SPACE                                        0xa0</span>
-<a name="l00070"></a>00070 <span class="preprocessor"></span><span class="preprocessor">#define XMS_OUT_OF_HANDLES                                      0xa1</span>
-<a name="l00071"></a>00071 <span class="preprocessor"></span><span class="preprocessor">#define XMS_INVALID_HANDLE                                      0xa2</span>
-<a name="l00072"></a>00072 <span class="preprocessor"></span><span class="preprocessor">#define XMS_INVALID_SOURCE_HANDLE                       0xa3</span>
-<a name="l00073"></a>00073 <span class="preprocessor"></span><span class="preprocessor">#define XMS_INVALID_SOURCE_OFFSET                       0xa4</span>
-<a name="l00074"></a>00074 <span class="preprocessor"></span><span class="preprocessor">#define XMS_INVALID_DEST_HANDLE                         0xa5</span>
-<a name="l00075"></a>00075 <span class="preprocessor"></span><span class="preprocessor">#define XMS_INVALID_DEST_OFFSET                         0xa6</span>
-<a name="l00076"></a>00076 <span class="preprocessor"></span><span class="preprocessor">#define XMS_INVALID_LENGTH                                      0xa7</span>
-<a name="l00077"></a>00077 <span class="preprocessor"></span><span class="preprocessor">#define XMS_BLOCK_NOT_LOCKED                            0xaa</span>
-<a name="l00078"></a>00078 <span class="preprocessor"></span><span class="preprocessor">#define XMS_BLOCK_LOCKED                                        0xab</span>
-<a name="l00079"></a>00079 <span class="preprocessor"></span><span class="preprocessor">#define UMB_ONLY_SMALLER_BLOCK                          0xb0</span>
-<a name="l00080"></a>00080 <span class="preprocessor"></span><span class="preprocessor">#define UMB_NO_BLOCKS_AVAILABLE                         0xb1</span>
+<a name="l00064"></a>00064 <span class="preprocessor">#define XMS_FUNCTION_NOT_IMPLEMENTED            0x80u</span>
+<a name="l00065"></a>00065 <span class="preprocessor"></span><span class="preprocessor">#define HIGH_MEMORY_NOT_EXIST                           0x90u</span>
+<a name="l00066"></a>00066 <span class="preprocessor"></span><span class="preprocessor">#define HIGH_MEMORY_IN_USE                                      0x91u</span>
+<a name="l00067"></a>00067 <span class="preprocessor"></span><span class="preprocessor">#define HIGH_MEMORY_NOT_BIG_ENOUGH                      0x92u</span>
+<a name="l00068"></a>00068 <span class="preprocessor"></span><span class="preprocessor">#define HIGH_MEMORY_NOT_ALLOCATED                       0x93u</span>
+<a name="l00069"></a>00069 <span class="preprocessor"></span><span class="preprocessor">#define XMS_OUT_OF_SPACE                                        0xa0u</span>
+<a name="l00070"></a>00070 <span class="preprocessor"></span><span class="preprocessor">#define XMS_OUT_OF_HANDLES                                      0xa1u</span>
+<a name="l00071"></a>00071 <span class="preprocessor"></span><span class="preprocessor">#define XMS_INVALID_HANDLE                                      0xa2u</span>
+<a name="l00072"></a>00072 <span class="preprocessor"></span><span class="preprocessor">#define XMS_INVALID_SOURCE_HANDLE                       0xa3u</span>
+<a name="l00073"></a>00073 <span class="preprocessor"></span><span class="preprocessor">#define XMS_INVALID_SOURCE_OFFSET                       0xa4u</span>
+<a name="l00074"></a>00074 <span class="preprocessor"></span><span class="preprocessor">#define XMS_INVALID_DEST_HANDLE                         0xa5u</span>
+<a name="l00075"></a>00075 <span class="preprocessor"></span><span class="preprocessor">#define XMS_INVALID_DEST_OFFSET                         0xa6u</span>
+<a name="l00076"></a>00076 <span class="preprocessor"></span><span class="preprocessor">#define XMS_INVALID_LENGTH                                      0xa7u</span>
+<a name="l00077"></a>00077 <span class="preprocessor"></span><span class="preprocessor">#define XMS_BLOCK_NOT_LOCKED                            0xaau</span>
+<a name="l00078"></a>00078 <span class="preprocessor"></span><span class="preprocessor">#define XMS_BLOCK_LOCKED                                        0xabu</span>
+<a name="l00079"></a>00079 <span class="preprocessor"></span><span class="preprocessor">#define UMB_ONLY_SMALLER_BLOCK                          0xb0u</span>
+<a name="l00080"></a>00080 <span class="preprocessor"></span><span class="preprocessor">#define UMB_NO_BLOCKS_AVAILABLE                         0xb1u</span>
 <a name="l00081"></a>00081 <span class="preprocessor"></span>
 <a name="l00082"></a>00082 <span class="keywordtype">bool</span> DOS_IS_IN_HMA();
 <a name="l00083"></a>00083 
@@ -266,7 +266,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00170"></a>00170             free = <span class="keyword">false</span>;
 <a name="l00171"></a>00171             size = x.size;
 <a name="l00172"></a>00172             lockcount = x.locked;
-<a name="l00173"></a>00173             phys_location = x.mem &lt;&lt; 12UL;
+<a name="l00173"></a>00173             phys_location = (<span class="keywordtype">unsigned</span> long)x.mem &lt;&lt; 12UL;
 <a name="l00174"></a>00174         }
 <a name="l00175"></a>00175 
 <a name="l00176"></a>00176         <span class="keywordflow">return</span> <span class="keyword">true</span>;
@@ -291,10 +291,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00195"></a>00195         PhysPt address;
 <a name="l00196"></a>00196 
 <a name="l00197"></a>00197         <span class="keywordflow">if</span> (pages == 0) <span class="keywordflow">return</span>;
-<a name="l00198"></a>00198         address = mem*4096;
-<a name="l00199"></a>00199         pages *= 4096;
+<a name="l00198"></a>00198         address = (PhysPt)mem * (PhysPt)4096UL;
+<a name="l00199"></a>00199         pages *= 4096UL;
 <a name="l00200"></a>00200 
-<a name="l00201"></a>00201         <span class="keywordflow">if</span> ((address+pages) &gt; 0xC0000000) E_Exit(<span class="stringliteral">&quot;XMS_ZeroAllocation out of range&quot;</span>);
+<a name="l00201"></a>00201         <span class="keywordflow">if</span> ((address+pages) &gt; 0xC0000000UL) E_Exit(<span class="stringliteral">&quot;XMS_ZeroAllocation out of range&quot;</span>);
 <a name="l00202"></a>00202         <span class="keywordflow">while</span> (pages != 0) {
 <a name="l00203"></a>00203                 mem_writeb(address++,0);
 <a name="l00204"></a>00204                 pages--;
@@ -360,7 +360,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00264"></a>00264                 <span class="keywordflow">if</span> (length&gt;xms_handles[src_handle].size*1024U-src.offset) {
 <a name="l00265"></a>00265                         <span class="keywordflow">return</span> XMS_INVALID_LENGTH;
 <a name="l00266"></a>00266                 }
-<a name="l00267"></a>00267                 srcpt=(xms_handles[src_handle].mem*4096)+src.offset;
+<a name="l00267"></a>00267                 srcpt=((<span class="keywordtype">unsigned</span> int)xms_handles[src_handle].mem*4096U)+src.offset;
 <a name="l00268"></a>00268         } <span class="keywordflow">else</span> {
 <a name="l00269"></a>00269                 srcpt=Real2Phys(src.realpt);
 <a name="l00270"></a>00270         }
@@ -374,7 +374,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00278"></a>00278                 <span class="keywordflow">if</span> (length&gt;xms_handles[dest_handle].size*1024U-dest.offset) {
 <a name="l00279"></a>00279                         <span class="keywordflow">return</span> XMS_INVALID_LENGTH;
 <a name="l00280"></a>00280                 }
-<a name="l00281"></a>00281                 destpt=(xms_handles[dest_handle].mem*4096)+dest.offset;
+<a name="l00281"></a>00281                 destpt=((<span class="keywordtype">unsigned</span> int)xms_handles[dest_handle].mem*4096U)+dest.offset;
 <a name="l00282"></a>00282         } <span class="keywordflow">else</span> {
 <a name="l00283"></a>00283                 destpt=Real2Phys(dest.realpt);
 <a name="l00284"></a>00284         }
@@ -401,7 +401,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00305"></a>00305 Bitu XMS_LockMemory(Bitu handle, Bit32u&amp; address) {
 <a name="l00306"></a>00306         <span class="keywordflow">if</span> (InvalidHandle(handle)) <span class="keywordflow">return</span> XMS_INVALID_HANDLE;
 <a name="l00307"></a>00307         <span class="keywordflow">if</span> (xms_handles[handle].locked&lt;255) xms_handles[handle].locked++;
-<a name="l00308"></a>00308         address = xms_handles[handle].mem*4096;
+<a name="l00308"></a>00308         address = (<span class="keywordtype">unsigned</span> long)xms_handles[handle].mem * 4096UL;
 <a name="l00309"></a>00309         <span class="keywordflow">return</span> 0;
 <a name="l00310"></a>00310 }
 <a name="l00311"></a>00311 
@@ -710,7 +710,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00614"></a>00614         <span class="comment">/* FIXME: Um... why is umb_available == false even when set to true below? */</span>
 <a name="l00615"></a>00615         <span class="keywordflow">if</span> (umb_init) {
 <a name="l00616"></a>00616                 LOG_MSG(<span class="stringliteral">&quot;Removing UMB block 0x%04x-0x%04x\n&quot;</span>,first_umb_seg,first_umb_seg+first_umb_size-1);
-<a name="l00617"></a>00617                 MEM_unmap_physmem(first_umb_seg&lt;&lt;4,((first_umb_seg+first_umb_size)&lt;&lt;4)-1);
+<a name="l00617"></a>00617                 MEM_unmap_physmem((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)first_umb_seg&lt;&lt;4ul,(((<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)first_umb_seg+(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)first_umb_size)&lt;&lt;4ul)-1ul);
 <a name="l00618"></a>00618                 umb_init = <span class="keyword">false</span>;
 <a name="l00619"></a>00619         }
 <a name="l00620"></a>00620 }
@@ -746,9 +746,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00650"></a>00650                 xms_init = <span class="keyword">true</span>;
 <a name="l00651"></a>00651 
 <a name="l00652"></a>00652                 xms_hma_exists = section-&gt;Get_bool(<span class="stringliteral">&quot;hma&quot;</span>);
-<a name="l00653"></a>00653                 xms_hma_minimum_alloc = section-&gt;Get_int(<span class="stringliteral">&quot;hma minimum allocation&quot;</span>);
+<a name="l00653"></a>00653                 xms_hma_minimum_alloc = (<span class="keywordtype">unsigned</span> int)section-&gt;Get_int(<span class="stringliteral">&quot;hma minimum allocation&quot;</span>);
 <a name="l00654"></a>00654                 xms_hma_alloc_non_dos_kernel_control = section-&gt;Get_bool(<span class="stringliteral">&quot;hma allow reservation&quot;</span>);
-<a name="l00655"></a>00655                 <span class="keywordflow">if</span> (xms_hma_minimum_alloc &gt; 0xFFF0) xms_hma_minimum_alloc = 0xFFF0;
+<a name="l00655"></a>00655                 <span class="keywordflow">if</span> (xms_hma_minimum_alloc &gt; 0xFFF0U) xms_hma_minimum_alloc = 0xFFF0U;
 <a name="l00656"></a>00656 
 <a name="l00657"></a>00657                 Bitu i;
 <a name="l00658"></a>00658                 BIOS_ZeroExtendedSize(<span class="keyword">true</span>);
@@ -813,11 +813,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00717"></a>00717                 <span class="keywordflow">if</span> (first_umb_size &gt;= (rombios_minimum_location&gt;&gt;4)) {
 <a name="l00718"></a>00718                         <span class="comment">/* we can ask the BIOS code to trim back the region, assuming it hasn&#39;t allocated anything there yet */</span>
 <a name="l00719"></a>00719                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, asking BIOS to move aside&quot;</span>,(int)first_umb_size,(<span class="keywordtype">int</span>)(rombios_minimum_location&gt;&gt;4));
-<a name="l00720"></a>00720                         ROMBIOS_FreeUnusedMinToLoc(first_umb_size&lt;&lt;4);
+<a name="l00720"></a>00720                         ROMBIOS_FreeUnusedMinToLoc((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)first_umb_size&lt;&lt;4U);
 <a name="l00721"></a>00721                 }
-<a name="l00722"></a>00722                 <span class="keywordflow">if</span> (first_umb_size &gt;= (rombios_minimum_location&gt;&gt;4)) {
+<a name="l00722"></a>00722                 <span class="keywordflow">if</span> (first_umb_size &gt;= ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)rombios_minimum_location&gt;&gt;4U)) {
 <a name="l00723"></a>00723                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, truncating region&quot;</span>,(int)first_umb_size,(<span class="keywordtype">int</span>)(rombios_minimum_location&gt;&gt;4));
-<a name="l00724"></a>00724                         first_umb_size = (rombios_minimum_location&gt;&gt;4)-1;
+<a name="l00724"></a>00724                         first_umb_size = ((<span class="keywordtype">unsigned</span> int)rombios_minimum_location&gt;&gt;4u)-1u;
 <a name="l00725"></a>00725                 }
 <a name="l00726"></a>00726 
 <a name="l00727"></a>00727         Bitu GetEMSPageFrameSegment(<span class="keywordtype">void</span>);
@@ -846,8 +846,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00750"></a>00750                 first_umb_size = (first_umb_size + 1 - first_umb_seg);
 <a name="l00751"></a>00751                 <span class="keywordflow">if</span> (umb_available) {
 <a name="l00752"></a>00752                         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;UMB assigned region is 0x%04x-0x%04x&quot;</span>,(int)first_umb_seg,(<span class="keywordtype">int</span>)(first_umb_seg+first_umb_size-1));
-<a name="l00753"></a>00753                         <span class="keywordflow">if</span> (MEM_map_RAM_physmem(first_umb_seg&lt;&lt;4,((first_umb_seg+first_umb_size)&lt;&lt;4)-1)) {
-<a name="l00754"></a>00754                                 memset(GetMemBase()+(first_umb_seg&lt;&lt;4),0x00,first_umb_size&lt;&lt;4);
+<a name="l00753"></a>00753                         <span class="keywordflow">if</span> (MEM_map_RAM_physmem((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)first_umb_seg&lt;&lt;4u,(((<span class="keywordtype">unsigned</span> int)first_umb_seg+(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)first_umb_size)&lt;&lt;4u)-1u)) {
+<a name="l00754"></a>00754                                 memset(GetMemBase()+((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)first_umb_seg&lt;&lt;4u),0x00u,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)first_umb_size&lt;&lt;4u);
 <a name="l00755"></a>00755                         }
 <a name="l00756"></a>00756                         <span class="keywordflow">else</span> {
 <a name="l00757"></a>00757                                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_WARN)(<span class="stringliteral">&quot;Unable to claim UMB region (perhaps adapter ROM is in the way). Disabling UMB&quot;</span>);
@@ -924,7 +924,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 1 2018 16:10:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 10 2018 23:57:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>
