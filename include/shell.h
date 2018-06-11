@@ -199,6 +199,8 @@ public:
      */
 	void CMD_CALL(char * args);
 
+    /*! \brief      Print generic Syntax Error message to console
+     */
 	void SyntaxError(void);
 
     /*! \brief      Pause and wait for user to hit Enter (PAUSE)
