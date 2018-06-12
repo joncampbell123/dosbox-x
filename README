@@ -1513,6 +1513,19 @@ enumeration constants defined in include/vga.h.
     M_PC98          NEC PC-98 text/graphics output (combined)
     M_FM_TOWNS      Stub for FM Towns
 
+    NOTICE: A string array is also defined for private use of the
+            VGA_SetupDrawing() function for each M_ constant.
+            If you add a new constant, you must add a string
+            for that constant in src/hardware/vga_draw.cpp,
+            or else DOSBox-X may segfault when announcing the
+            video mode on mode change.
+
+            The order of the enumeration MUST match the strings.
+
+            The string array is defined (at the time of writing
+            this documentation) at line 2755 of
+            src/hardware/vga_draw.cpp.
+
 VGA drawing setup is initialized using the VGA_SetupDrawing()
 function in src/hardware/vga_draw.cpp. The function uses
 machine type, VGA mode, and register state to determine the
