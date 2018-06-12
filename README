@@ -1513,3 +1513,30 @@ enumeration constants defined in include/vga.h.
     M_PC98          NEC PC-98 text/graphics output (combined)
     M_FM_TOWNS      Stub for FM Towns
 
+VGA drawing setup is initialized using the VGA_SetupDrawing()
+function in src/hardware/vga_draw.cpp. The function uses
+machine type, VGA mode, and register state to determine the
+active display area (used to size DOSBox's window) and
+refresh rate.
+
+DOSBox SVN will generally render the VGA display in quarters
+of the screen, except when machine=vgaonly, where it will
+render one line at a time.
+
+DOSBox-X will always render one line at a time, in all video
+modes.
+
+Rendering one line at a time may be required if the DOS
+game in question uses raster or palette effects that require
+scanline precision. "Copper" effects in the demoscene, the
+act of changing color palette entries per scanline to produce
+moving bars of color, require per-line rendering to appear
+correctly.
+
+NOTE: To better understand the term "copper effects", read
+      the following links describing the original
+      Commodore Amiga video hardware:
+
+      http://eab.abime.net/showthread.php?t=21866
+      https://en.wikipedia.org/wiki/Original_Chip_Set#Copper
+
