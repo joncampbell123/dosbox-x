@@ -1678,3 +1678,17 @@ Convert the virtual address to physical using
 the PAGING_GetPhysicalAddress() function before
 using it in video RAM emulation.
 
+The memory handler C++ base class is written
+so that there are methods for getting a host
+pointer or handling memory read/write as
+a byte, word, or dword.
+
+A memory handler object can simplify code by
+implementing only the byte handler, and letting
+the C++ base class break word and dword I/O
+down to byte access. Memory handlers can
+implement their own word/dword handlers if
+the device requires different handling for
+larger than byte sized I/O, or for performance
+reasons.
+
