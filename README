@@ -1528,10 +1528,10 @@ modes.
 
 Rendering one line at a time may be required if the DOS
 game in question uses raster or palette effects that require
-scanline precision. "Copper" effects in the demoscene, the
-act of changing color palette entries per scanline to produce
-moving bars of color, require per-line rendering to appear
-correctly.
+scanline precision. "Copper" effects in the demoscene, such
+as the act of changing color palette entries per scanline to
+produce moving bars of color, require per-line rendering to
+appear correctly.
 
 NOTE: To better understand the term "copper effects", read
       the following links describing the original
@@ -1539,4 +1539,5 @@ NOTE: To better understand the term "copper effects", read
 
       http://eab.abime.net/showthread.php?t=21866
       https://en.wikipedia.org/wiki/Original_Chip_Set#Copper
+
 
