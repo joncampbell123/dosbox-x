@@ -1726,6 +1726,20 @@ including text mode must operate within the
 constraints of bytes through the planar
 layout of VGA video RAM.
 
+One good example of that requirement is the
+Windows 95 "boot logo", which relies on
+IO.SYS setting 320x400 256-color Mode X, then
+resetting BIOS and VGA hardware state so that
+DOS and INT 10h still think the display is in
+text mode, and the VGA hardware continues to
+accept writes to B8000 as if running in text
+mode. In this way, the text console can
+continue to show console output underneath
+the Windows 95 logo unscathed. When Windows
+95 switches the VGA hardware back to text
+mode, whatever was written to the console
+is revealed.
+
 Some exceptions are made for SVGA chipsets
 known to function differently, such as the
 Tseng ET3000/ET4000 chipsets known to operate
