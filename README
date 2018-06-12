@@ -1597,3 +1597,58 @@ behavior prevents the advanced scalers (such as 2xsai)
 from working. To enable these scalers, turn off
 the doublescan mode.
 
+VGA memory size and allocation is handled in
+src/hardware/vga_memory.cpp. VGA memory is mapped
+to the appropriate memory ranges depending on
+register state, machine type, and video mode in
+VGA_SetupHandlers(). Register-level emulation of
+certain registers will call VGA_SetupHandlers()
+if it might or will affect how VGA memory is
+mapped.
+
+VGA_SetupHandlers() also determines the callback
+handler used to respond to video memory access
+from the CPU. Register state and hardware state
+determine how the video hardware handles read
+and write operations, this is where it's handled.
+
+In the simplest case, VGA_SetupHandlers() will
+emulate straightforward memory access for
+MDA/CGA/Hercules text and graphics modes. No
+advanced logic is involved, video RAM behaves
+like normal RAM.
+
+In the more complex cases, especially EGA/VGA,
+a handler is set up to accept reads and writes
+and route it through the read/write modes that
+determine how it's handled across the planar
+memory of the EGA/VGA hardware.
+
+In PC-98 mode, the memory handler accepts
+read/write to text and character RAM,
+non-volatile RAM, and maps read/write operations
+to graphics RAM through the state of the EGC
+hardware.
+
+There is separate code for S3 emulation to map
+a linear framebuffer to an extended memory
+address (currently 0xE0000000) defined in
+src/hardware/memory.cpp. VESA BIOS emulation
+involving linear framebuffer modes rely on
+S3 emulation to provide them. There are registers
+emulated by src/hardware/vga_s3.cpp that
+indirectly control the linear framebuffer.
+
+In DOSBox SVN, the linear framebuffer is
+handled directly by the MEM_GetPageHandler()
+function.
+
+In DOSBox-X, the linear framebuffer is given
+using the memory callout system when reads
+and writes are issued to that range for the
+first time.
+
+Note that the linear framebuffer handler also
+includes the memory-mapped I/O registers also
+provided by S3 chipsets.
+
