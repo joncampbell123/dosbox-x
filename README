@@ -1698,3 +1698,10 @@ memory I/O. The constructor can call down
 to the base constructor with the flag value
 to initialize by.
 
+DOSBox-X includes code to consume CPU cycles
+on memory I/O to simulate the fact that, at
+least on older hardware, video memory is slower
+than system memory. There are older DOS games
+that rely on slow system memory, and they will
+run too fast without it.
+
