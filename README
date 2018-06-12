@@ -1449,3 +1449,67 @@ variable. This environment variable is used by many DOS
 games to find the sound card. Some games require it,
 while others will probe manually for the sound card.
 
+
+VGA emulation
+-------------
+
+The VGA emulation written in DOSBox-X is written in two
+parts.
+
+The first part concerns IBM PC/XT/AT emulation and VGA
+emulation, which adjustments for some SVGA chipsets and
+for MDA/Hercules/Tandy/EGA as well.
+
+The second part concerns NEC PC-98 and emulation of it's
+subsystem.
+
+The two parts work somewhat independently. Which one
+becomes active depends on the machine= setting, whether
+it enables IBM PC or NEC PC-98 emulation.
+
+All VGA emulation is tied to a VGA state structure that
+is globally visible in the code. The state stores in the
+structure exactly or closely mirrors the values written
+to the registers. Extended state is either carried in
+the same registers or stored in other values. Extended
+state is generally stored and represented as if emulating
+the S3 chipset. Some fields are either extended or
+stored separately when concerning Tandy/PCjr state.
+
+All PC-98 emulation is tied to the GDC controller emulation
+state of both GDCs (master and slave). VGA state is not
+used much in PC-98 mode.
+
+Support is not implemented for oddball PC-98 GDC state such
+as programming the master and slave GDCs to run out of
+sync with each other. Custom modes are supported however
+(such as the custom video timing used in Ishtar).
+
+VGA state is determined by the register contents (low level)
+instead of INT 10h mode (high level). The register contents
+are used to select a mode enumeration which affects the
+way video memory is rendered. The modes are the M_*
+enumeration constants defined in include/vga.h.
+
+    M_CGA2          CGA 1bpp 2-color mode (e.g. 640x200)
+    M_CGA4          CGA 2bpp 4-color mode (e.g. 320x200)
+    M_EGA           EGA/VGA 4bpp 16-color planar modes
+    M_VGA           VGA 8bpp 256-color modes, usually chained planar, or highcolor DAC output
+    M_LIN4          SVGA 4bpp 16-color planar modes
+    M_LIN8          SVGA 8bpp 256-color modes (linear)
+    M_LIN15         SVGA 16bpp highcolor modes (15bpp 5:5:5 RGB = XRRRRRGGGGGBBBBB)
+    M_LIN16         SVGA 16bpp highcolor modes (16bpp 5:6:5 RGB = RRRRRGGGGGGBBBBB)
+    M_LIN24         SVGA 24bpp truecolor modes (24bpp 8:8:8 RGB)
+    M_LIN32         SVGA 32bpp truecolor modes (32bpp 8:8:8:8 ARGB)
+    M_TEXT          Alphanumeric text modes (CGA/EGA/VGA/SVGA/Tandy/PCjr)
+    M_HERC_GFX      Hercules 1bpp 2-color mode (usually 720x348)
+    M_HERC_TEXT     MDA/Hercules alphanumeric text mode
+    M_CGA16         CGA composite video emulation
+    M_TANDY2        Tandy/PCjr 1bpp 2-color mode
+    M_TANDY4        Tandy/PCjr 2bpp 4-color mode
+    M_TANDY16       Tandy/PCjr 4bpp 16-color mode
+    M_TANDY_TEXT    Tandy/PCjr text mode
+    M_AMSTRAD       Amstrad 4bpp 16-color mode
+    M_PC98          NEC PC-98 text/graphics output (combined)
+    M_FM_TOWNS      Stub for FM Towns
+
