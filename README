@@ -1457,7 +1457,7 @@ The VGA emulation written in DOSBox-X is written in two
 parts.
 
 The first part concerns IBM PC/XT/AT emulation and VGA
-emulation, which adjustments for some SVGA chipsets and
+emulation, with adjustments for some SVGA chipsets and
 for MDA/Hercules/Tandy/EGA as well.
 
 The second part concerns NEC PC-98 and emulation of it's
