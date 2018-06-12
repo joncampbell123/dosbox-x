@@ -1569,3 +1569,15 @@ scan lines and addresses in memory.
 Vertical retrace is handled by PIC event
 VGA_VerticalTimer().
 
+Emulation of a vertical retrace interrupt is handled by
+PIC event VGA_VertInterrupt. This event has code to
+emulate the IRQ 2/9 interrupt of EGA and the IRQ 2
+vsync interrupt in PC-98 mode.
+
+It is known that some double-buffered VGA registers
+take effect some time between blanking at the end of
+the active display, and active display at the start.
+Whenever that happens the PIC event function
+VGA_DisplayStartLatch() is set up to emulate the
+transfer of those registers.
+

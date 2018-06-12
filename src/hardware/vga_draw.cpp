@@ -1597,8 +1597,10 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
 static void VGA_PanningLatch(Bitu /*val*/) {
     vga.draw.panning = vga.config.pel_panning;
 
-    for (unsigned int i=0;i < 2;i++)
-        pc98_gdc[i].begin_frame();
+    if (IS_PC98_ARCH) {
+        for (unsigned int i=0;i < 2;i++)
+            pc98_gdc[i].begin_frame();
+    }
 }
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
