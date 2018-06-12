@@ -1705,3 +1705,29 @@ than system memory. There are older DOS games
 that rely on slow system memory, and they will
 run too fast without it.
 
+EGA/VGA planar write modes are handled
+in src/hardware/vga_memory.cpp function
+ModeOperation().
+
+EGA/VGA planar memory is emulated by treating
+the allocated RAM as if an array of 32-bit
+unsigned integers (uint32_t). Each bitplane
+occupies 8 bits within that 32-bit unsigned
+int. Keeping the planes together enables
+faster more efficient emulation of VGA
+bit planar operations including copying
+with write mode 2 and raster operations,
+as well as Mode X tricks used by older
+DOS games.
+
+Due to the general way that video modes are
+handled on EGA/VGA/SVGA hardware, all modes
+including text mode must operate within the
+constraints of bytes through the planar
+layout of VGA video RAM.
+
+Some exceptions are made for SVGA chipsets
+known to function differently, such as the
+Tseng ET3000/ET4000 chipsets known to operate
+VGA Mode X differently from standard VGA.
+
