@@ -1482,8 +1482,8 @@ used much in PC-98 mode.
 
 Support is not implemented for oddball PC-98 GDC state such
 as programming the master and slave GDCs to run out of
-sync with each other. Custom modes are supported however
-(such as the custom video timing used in Ishtar).
+sync with each other. Custom modes are supported however,
+such as the custom video timing used in Ishtar.
 
 VGA state is determined by the register contents (low level)
 instead of INT 10h mode (high level). The register contents
