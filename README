@@ -1561,3 +1561,11 @@ for rasterizing, and then returning any number of bytes
 may return 0 to 8 pixels from the start depending on the
 horizontal panning (hpel) register state for example.
 
+Per-scanline rendering is handled by PIC event
+VGA_DrawSingleLine() which calls the render function
+and manages VGA state as it advances through the
+scan lines and addresses in memory.
+
+Vertical retrace is handled by PIC event
+VGA_VerticalTimer().
+
