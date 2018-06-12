@@ -1692,3 +1692,9 @@ the device requires different handling for
 larger than byte sized I/O, or for performance
 reasons.
 
+The base C++ class of a memory handler has a
+flags member that describes how to handle
+memory I/O. The constructor can call down
+to the base constructor with the flag value
+to initialize by.
+
