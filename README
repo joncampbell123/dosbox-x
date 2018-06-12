@@ -1581,3 +1581,19 @@ Whenever that happens the PIC event function
 VGA_DisplayStartLatch() is set up to emulate the
 transfer of those registers.
 
+DOSBox SVN will generally render per scanline in
+video memory, using the scaler to double the scanline
+if appropriate. machine=vgaonly however may override
+that.
+
+DOSBox-X will generally render all scanlines that
+would be sent to a CRT, meaning that 200-line modes
+are doubled, by default for accuracy. This can be
+disabled by setting doublescan=false to get DOSBox
+SVN behavior.
+
+The reason it matters is that the doublescan
+behavior prevents the advanced scalers (such as 2xsai)
+from working. To enable these scalers, turn off
+the doublescan mode.
+
