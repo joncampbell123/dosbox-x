@@ -1540,4 +1540,24 @@ NOTE: To better understand the term "copper effects", read
       http://eab.abime.net/showthread.php?t=21866
       https://en.wikipedia.org/wiki/Original_Chip_Set#Copper
 
+PIC events are used in the VGA code to trigger rendering
+a scanline at the interval determined by the horizontal
+sync rate. Some additional events are used for horizontal
+blank, sync, and return to active display. The VGA system
+is set up so that these events set up continuous rasterization
+of the display.
+
+If for any reason, these events should stop, the display
+in the emulator window will stop updating.
+
+Rendering of VGA memory per scanline is carried out using
+a function pointer to a function assigned by the last
+call to VGA_SetupDrawing(). At call time, the function
+is expected to render to a buffer and return the pixel
+data as the return value. In most cases, that is done
+by rendering to a specific temporary buffer set aside
+for rasterizing, and then returning any number of bytes
+(0 to 31) from the start of the buffer. VGA text rendering
+may return 0 to 8 pixels from the start depending on the
+horizontal panning (hpel) register state for example.
 
