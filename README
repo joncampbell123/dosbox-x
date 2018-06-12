@@ -1652,3 +1652,16 @@ Note that the linear framebuffer handler also
 includes the memory-mapped I/O registers also
 provided by S3 chipsets.
 
+VGA memory handlers, just like any other
+memory handler, must translate the given address
+to the physical address before handling.
+
+For some strange reason, DOSBox SVN page
+mapping calls the memory handler with the CPU's
+virtual memory address. This behavior was
+inherited by DOSBox-X when forked from DOSBox SVN.
+
+Convert the virtual address to physical using
+the PAGING_GetPhysicalAddress() function before
+using it in video RAM emulation.
+
