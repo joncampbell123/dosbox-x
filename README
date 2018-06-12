@@ -1474,7 +1474,7 @@ to the registers. Extended state is either carried in
 the same registers or stored in other values. Extended
 state is generally stored and represented as if emulating
 the S3 chipset. Some fields are either extended or
-stored separately when concerning Tandy/PCjr state.
+stored separately when holding Tandy/PCjr state.
 
 All PC-98 emulation is tied to the GDC controller emulation
 state of both GDCs (master and slave). VGA state is not
