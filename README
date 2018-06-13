@@ -49,10 +49,13 @@ NOTICE: Use the 32-bit toolchain from the main MinGW project, not the MinGW64 pr
 Visual Studio 2017 compile for 32/64-bit Windows Vista or higher
 Use the ./vs2015/dosbox-x.sln "solution" file and compile.
 You will need the DirectX 2010 SDK for Direct3D9 support.
-See the README.Windows for extra information about this platform.
 
 As of 2018/06/06, VS2017 builds (32-bit and 64-bit) explicitly require
 a processor that supports the SSE instruction set.
+
+Visual Studio Code is supported, too.
+
+Check the README.Windows file for more information about this platform.
 
 
 XCode (on Mac OS X, from the Terminal) to target Mac OS X
