@@ -155,6 +155,8 @@ public:
         assert(get_mapper_event_by_name(entry) == this);
     }
 
+    //! \brief Retrieve binding string for display in the menu
+    //!
     //! \description Retrieve text string to show as the assigned mapper binding in a
     //!              menu item's displayable area so that the user knows what keyboard
     //!              input will trigger the shortcut.
