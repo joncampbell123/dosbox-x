@@ -1958,12 +1958,16 @@ protected:
     BC_Types type;
 };
 
+//! \brief Keyboard key trigger event
 class CKeyEvent : public CTriggeredEvent {
 public:
+    //! \brief Constructor to specify mapper event, and KBD_* key enumeration constant
     CKeyEvent(char const * const _entry,KBD_KEYS _key) : CTriggeredEvent(_entry), notify_button(NULL) {
         key=_key;
     }
+
     virtual ~CKeyEvent() {}
+
     virtual void Active(bool yesno) {
         if (MAPPER_DemoOnly()) {
             if (notify_button != NULL)
@@ -1975,10 +1979,16 @@ public:
 
         active=yesno;
     };
+
+    //! \brief Associate this object with a text button in the mapper UI
     void notifybutton(CTextButton *n) {
         notify_button = n;
     }
+
+    //! \brief Text button in the mapper UI to indicate our status by
     CTextButton *notify_button;
+
+    //! \brief KBD_* key enumeration value to transmit to keyboard emulation
     KBD_KEYS key;
 };
 
