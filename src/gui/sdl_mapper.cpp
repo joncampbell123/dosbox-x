@@ -2116,8 +2116,10 @@ std::string CBind::GetModifierText(void) {
     return r;
 }
 
+//! \brief Mapper shortcut event. Keyboard triggerable only.
 class CHandlerEvent : public CTriggeredEvent {
 public:
+    //! \brief Constructor, to specify the entry, handler (callback), key (according to MapKeys enumeration), and text to display for the shortcut in the mapper UO
     CHandlerEvent(char const * const _entry,MAPPER_Handler * _handler,MapKeys _key,Bitu _mod,char const * const _buttonname) : CTriggeredEvent(_entry), notify_button(NULL) {
         handler=_handler;
         defmod=_mod;
@@ -2126,7 +2128,9 @@ public:
         handlergroup.push_back(this);
         type = handler_event_t;
     }
+
     virtual ~CHandlerEvent() {}
+
     virtual void Active(bool yesno) {
         if (MAPPER_DemoOnly()) {
             if (notify_button != NULL)
@@ -2138,9 +2142,13 @@ public:
 
         active=yesno;
     };
+
+    //! \brief Retrieve the button name (for display in the mapper UI)
     const char * ButtonName(void) {
         return buttonname;
     }
+
+    //! \brief Generate a default binding from the MapKeys enumeration
 #if defined(C_SDL2)
     void MakeDefaultBind(char * buf) {
         Bitu key=0;
@@ -2330,15 +2338,24 @@ public:
         );
     }
 #endif
+    //! \brief Associate this object with a text button in the mapper UI
     void notifybutton(CTextButton *n) {
         notify_button = n;
     }
+
+    //! \brief Text button in the mapper UI to indicate status by
     CTextButton *notify_button;
+
+    //! \brief Mapper handler shortcut
     MAPPER_Handler * handler;
 protected:
+    //! \brief MapKeys enumeration for keyboard shortcut
     MapKeys defkey;
+
+    //! \brief Default modifiers
     Bitu defmod;
 public:
+    //! \brief Button name
     const char * buttonname;
 };
 
