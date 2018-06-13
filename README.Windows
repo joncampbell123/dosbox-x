@@ -1,5 +1,8 @@
 Getting started with DOSBox-X development under Windows 10
-----------------------------------------------------------
+==========================================================
+
+Visual Studio
+-------------
 
 - download Visual Studio installer from https://www.visualstudio.com/downloads
 - launch the installer
@@ -11,27 +14,17 @@ Getting started with DOSBox-X development under Windows 10
 - if you encounter error S1023 during installation, follow the instructions at https://support.microsoft.com/en-us/help/2728613/s1023-error-when-you-install-the-directx-sdk-june-2010
 - open the DOSBox-X Visual Studio solution located in 'vs2015' folder of the repository
 
-Notes
-
-The Code edition of Visual Studio is not supported.
-
 Visual Studio must be closed prior installing the DirectX SDK, else it won't pick up environment variables set by the DirectX SDK and this will result in building errors.
 
-
-Building notes for the Visual Studio solution
----------------------------------------------
-
-You can pass additional options to the custom-build of SDL1 in the solution through the SDL1AdditionalOptions environment variable.
-
-Example:
+You can pass additional options to the custom-build of SDL1 in the solution through the SDL1AdditionalOptions environment variable, e.g.
 
 REM adding a preprocessor define
 SET SDL1AdditionalOptions=/DMY_DEFINE
 MSBUILD ...
 
 
-Building notes for CMake
-------------------------
+CMake
+-----
 
 The CMakeLists.txt is provided as an alternative to the solution in 'vs2015' folder but with a few limitiations compared to it:
 
