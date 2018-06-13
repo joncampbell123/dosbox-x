@@ -75,6 +75,8 @@ You can now debug DOSBox-X.
 
 5. Notes and TODO
 
+Even though it leverages existing Visual Studio solution, you do not need Visual Studio to be installed on your system, build tools are sufficient.
+
 These instructions were written in an already set up environment, should some step be not reproducible, open an issue with the exact details so this guide can be improved.
 
 The simplest scenario was addressed with one configuration being set up. SDL1, SDL2, Debug and Release configurations should be addressed.
