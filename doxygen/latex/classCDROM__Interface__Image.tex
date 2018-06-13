@@ -1,6 +1,15 @@
 \hypertarget{classCDROM__Interface__Image}{\section{C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image Class Reference}
 \label{classCDROM__Interface__Image}\index{C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image@{C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image}}
 }
+
+
+Image C\-D-\/\-R\-O\-M interface.  
+
+
+
+
+{\ttfamily \#include $<$cdrom.\-h$>$}
+
 Inheritance diagram for C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image\-:\begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -11,85 +20,110 @@ Inheritance diagram for C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image\-:\begin{fig
 \begin{DoxyCompactItemize}
 \item 
 class {\bfseries Binary\-File}
-\item 
+\begin{DoxyCompactList}\small\item\em Binary file reader for the image. \end{DoxyCompactList}\item 
 struct {\bfseries image\-Player}
-\item 
+\begin{DoxyCompactList}\small\item\em Virtual C\-D audio \char`\"{}player\char`\"{}. \end{DoxyCompactList}\item 
 struct {\bfseries Track}
-\item 
+\begin{DoxyCompactList}\small\item\em C\-D-\/\-R\-O\-M track definition. \end{DoxyCompactList}\item 
 class {\bfseries Track\-File}
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Base C++ class for reading the image. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classCDROM__Interface__Image_acecb6b00f509aba4e203b7bb5c4653fb}{{\bfseries C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image} (Bit8u sub\-Unit)}\label{classCDROM__Interface__Image_acecb6b00f509aba4e203b7bb5c4653fb}
+\hypertarget{classCDROM__Interface__Image_acecb6b00f509aba4e203b7bb5c4653fb}{\hyperlink{classCDROM__Interface__Image_acecb6b00f509aba4e203b7bb5c4653fb}{C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image} (Bit8u sub\-Unit)}\label{classCDROM__Interface__Image_acecb6b00f509aba4e203b7bb5c4653fb}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_a8b1323ddfae9e59fae8fa5d8f862c8c4}{void {\bfseries Init\-New\-Media} (void)}\label{classCDROM__Interface__Image_a8b1323ddfae9e59fae8fa5d8f862c8c4}
+\begin{DoxyCompactList}\small\item\em Constructor, with parameter for subunit. \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_a8b1323ddfae9e59fae8fa5d8f862c8c4}{void \hyperlink{classCDROM__Interface__Image_a8b1323ddfae9e59fae8fa5d8f862c8c4}{Init\-New\-Media} (void)}\label{classCDROM__Interface__Image_a8b1323ddfae9e59fae8fa5d8f862c8c4}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_ae803cb47966de3b637c55c40aaf89e78}{bool {\bfseries Set\-Device} (char $\ast$path, int force\-C\-D)}\label{classCDROM__Interface__Image_ae803cb47966de3b637c55c40aaf89e78}
+\begin{DoxyCompactList}\small\item\em T\-O\-D\-O? \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_ae803cb47966de3b637c55c40aaf89e78}{bool \hyperlink{classCDROM__Interface__Image_ae803cb47966de3b637c55c40aaf89e78}{Set\-Device} (char $\ast$path, int force\-C\-D)}\label{classCDROM__Interface__Image_ae803cb47966de3b637c55c40aaf89e78}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_a0f4704db65cd97e70da4ee7464e535b0}{bool {\bfseries Get\-U\-P\-C} (unsigned char \&attr, char $\ast$upc)}\label{classCDROM__Interface__Image_a0f4704db65cd97e70da4ee7464e535b0}
+\begin{DoxyCompactList}\small\item\em Set the device associated with this interface, if supported by emulation. \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_a0f4704db65cd97e70da4ee7464e535b0}{bool \hyperlink{classCDROM__Interface__Image_a0f4704db65cd97e70da4ee7464e535b0}{Get\-U\-P\-C} (unsigned char \&attr, char $\ast$upc)}\label{classCDROM__Interface__Image_a0f4704db65cd97e70da4ee7464e535b0}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_a4aae5ec2ba0011a4f2281bb312aa49c3}{bool {\bfseries Get\-Audio\-Tracks} (int \&st\-Track, int \&end, \hyperlink{structSMSF}{T\-M\-S\-F} \&lead\-Out)}\label{classCDROM__Interface__Image_a4aae5ec2ba0011a4f2281bb312aa49c3}
+\begin{DoxyCompactList}\small\item\em Get U\-P\-C string from the C\-D-\/\-R\-O\-M. \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_a4aae5ec2ba0011a4f2281bb312aa49c3}{bool \hyperlink{classCDROM__Interface__Image_a4aae5ec2ba0011a4f2281bb312aa49c3}{Get\-Audio\-Tracks} (int \&st\-Track, int \&end, \hyperlink{structSMSF}{T\-M\-S\-F} \&lead\-Out)}\label{classCDROM__Interface__Image_a4aae5ec2ba0011a4f2281bb312aa49c3}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_a1a1c42c11d483e82f41c6012f5f7d602}{bool {\bfseries Get\-Audio\-Track\-Info} (int track, \hyperlink{structSMSF}{T\-M\-S\-F} \&start, unsigned char \&attr)}\label{classCDROM__Interface__Image_a1a1c42c11d483e82f41c6012f5f7d602}
+\begin{DoxyCompactList}\small\item\em Retrieve start and end tracks and lead out position. \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_a1a1c42c11d483e82f41c6012f5f7d602}{bool \hyperlink{classCDROM__Interface__Image_a1a1c42c11d483e82f41c6012f5f7d602}{Get\-Audio\-Track\-Info} (int track, \hyperlink{structSMSF}{T\-M\-S\-F} \&start, unsigned char \&attr)}\label{classCDROM__Interface__Image_a1a1c42c11d483e82f41c6012f5f7d602}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_a11ba4965b5dd42015aff3d9f4b607abc}{bool {\bfseries Get\-Audio\-Sub} (unsigned char \&attr, unsigned char \&track, unsigned char \&index, \hyperlink{structSMSF}{T\-M\-S\-F} \&rel\-Pos, \hyperlink{structSMSF}{T\-M\-S\-F} \&abs\-Pos)}\label{classCDROM__Interface__Image_a11ba4965b5dd42015aff3d9f4b607abc}
+\begin{DoxyCompactList}\small\item\em Retrieve start and attributes for a specific track. \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_a11ba4965b5dd42015aff3d9f4b607abc}{bool \hyperlink{classCDROM__Interface__Image_a11ba4965b5dd42015aff3d9f4b607abc}{Get\-Audio\-Sub} (unsigned char \&attr, unsigned char \&track, unsigned char \&index, \hyperlink{structSMSF}{T\-M\-S\-F} \&rel\-Pos, \hyperlink{structSMSF}{T\-M\-S\-F} \&abs\-Pos)}\label{classCDROM__Interface__Image_a11ba4965b5dd42015aff3d9f4b607abc}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_a5151e50027294571fafb414d751ca332}{bool {\bfseries Get\-Audio\-Status} (bool \&playing, bool \&pause)}\label{classCDROM__Interface__Image_a5151e50027294571fafb414d751ca332}
+\begin{DoxyCompactList}\small\item\em Get subchannel data of the sectors at the current position, and retrieve current position. \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_a5151e50027294571fafb414d751ca332}{bool \hyperlink{classCDROM__Interface__Image_a5151e50027294571fafb414d751ca332}{Get\-Audio\-Status} (bool \&playing, bool \&pause)}\label{classCDROM__Interface__Image_a5151e50027294571fafb414d751ca332}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_a8c5afdabeea94743f487fae4623eacac}{bool {\bfseries Get\-Media\-Tray\-Status} (bool \&media\-Present, bool \&media\-Changed, bool \&tray\-Open)}\label{classCDROM__Interface__Image_a8c5afdabeea94743f487fae4623eacac}
+\begin{DoxyCompactList}\small\item\em Get audio playback status. \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_a8c5afdabeea94743f487fae4623eacac}{bool \hyperlink{classCDROM__Interface__Image_a8c5afdabeea94743f487fae4623eacac}{Get\-Media\-Tray\-Status} (bool \&media\-Present, bool \&media\-Changed, bool \&tray\-Open)}\label{classCDROM__Interface__Image_a8c5afdabeea94743f487fae4623eacac}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_afbb8b5443be56ba92b5a1287ba95f913}{bool {\bfseries Play\-Audio\-Sector} (unsigned long start, unsigned long len)}\label{classCDROM__Interface__Image_afbb8b5443be56ba92b5a1287ba95f913}
+\begin{DoxyCompactList}\small\item\em Get media tray status. \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_afbb8b5443be56ba92b5a1287ba95f913}{bool \hyperlink{classCDROM__Interface__Image_afbb8b5443be56ba92b5a1287ba95f913}{Play\-Audio\-Sector} (unsigned long start, unsigned long len)}\label{classCDROM__Interface__Image_afbb8b5443be56ba92b5a1287ba95f913}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_ac74be8f64002ccf76b65c2fbd03077bd}{bool {\bfseries Pause\-Audio} (bool resume)}\label{classCDROM__Interface__Image_ac74be8f64002ccf76b65c2fbd03077bd}
+\begin{DoxyCompactList}\small\item\em Initiate audio playback starting at sector and for how many. \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_ac74be8f64002ccf76b65c2fbd03077bd}{bool \hyperlink{classCDROM__Interface__Image_ac74be8f64002ccf76b65c2fbd03077bd}{Pause\-Audio} (bool resume)}\label{classCDROM__Interface__Image_ac74be8f64002ccf76b65c2fbd03077bd}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_a4a0af2e1be4fcb87e125b9d3e7aca327}{bool {\bfseries Stop\-Audio} (void)}\label{classCDROM__Interface__Image_a4a0af2e1be4fcb87e125b9d3e7aca327}
+\begin{DoxyCompactList}\small\item\em Pause audio playback. \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_a4a0af2e1be4fcb87e125b9d3e7aca327}{bool \hyperlink{classCDROM__Interface__Image_a4a0af2e1be4fcb87e125b9d3e7aca327}{Stop\-Audio} (void)}\label{classCDROM__Interface__Image_a4a0af2e1be4fcb87e125b9d3e7aca327}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_a6759cd7741be28cb61dd9903712edca1}{void {\bfseries Channel\-Control} (\hyperlink{structSCtrl}{T\-Ctrl} ctrl)}\label{classCDROM__Interface__Image_a6759cd7741be28cb61dd9903712edca1}
+\begin{DoxyCompactList}\small\item\em Stop audio playback. \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_a6759cd7741be28cb61dd9903712edca1}{void \hyperlink{classCDROM__Interface__Image_a6759cd7741be28cb61dd9903712edca1}{Channel\-Control} (\hyperlink{structSCtrl}{T\-Ctrl} ctrl)}\label{classCDROM__Interface__Image_a6759cd7741be28cb61dd9903712edca1}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_a5121d2e82267d529bc462cecdac36791}{bool {\bfseries Read\-Sectors} (Phys\-Pt buffer, bool raw, unsigned long sector, unsigned long num)}\label{classCDROM__Interface__Image_a5121d2e82267d529bc462cecdac36791}
+\begin{DoxyCompactList}\small\item\em Set channel control data (T\-O\-D\-O\-: clarify) \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_a5121d2e82267d529bc462cecdac36791}{bool \hyperlink{classCDROM__Interface__Image_a5121d2e82267d529bc462cecdac36791}{Read\-Sectors} (Phys\-Pt buffer, bool raw, unsigned long sector, unsigned long num)}\label{classCDROM__Interface__Image_a5121d2e82267d529bc462cecdac36791}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_ae686caa17e265089d6cd1a69ecc5b332}{bool {\bfseries Read\-Sectors\-Host} (void $\ast$buffer, bool raw, unsigned long sector, unsigned long num)}\label{classCDROM__Interface__Image_ae686caa17e265089d6cd1a69ecc5b332}
+\begin{DoxyCompactList}\small\item\em Read sector data into guest memory. \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_ae686caa17e265089d6cd1a69ecc5b332}{bool \hyperlink{classCDROM__Interface__Image_ae686caa17e265089d6cd1a69ecc5b332}{Read\-Sectors\-Host} (void $\ast$buffer, bool raw, unsigned long sector, unsigned long num)}\label{classCDROM__Interface__Image_ae686caa17e265089d6cd1a69ecc5b332}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_af5aa7f94de1d7c77ff6b484b380c5351}{bool {\bfseries Load\-Unload\-Media} (bool unload)}\label{classCDROM__Interface__Image_af5aa7f94de1d7c77ff6b484b380c5351}
+\begin{DoxyCompactList}\small\item\em Read sector data into host memory (for I\-D\-E emulation) \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_af5aa7f94de1d7c77ff6b484b380c5351}{bool \hyperlink{classCDROM__Interface__Image_af5aa7f94de1d7c77ff6b484b380c5351}{Load\-Unload\-Media} (bool unload)}\label{classCDROM__Interface__Image_af5aa7f94de1d7c77ff6b484b380c5351}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_acbed60c6b06009b2a027d605190ee842}{bool {\bfseries Read\-Sector} (Bit8u $\ast$buffer, bool raw, unsigned long sector)}\label{classCDROM__Interface__Image_acbed60c6b06009b2a027d605190ee842}
+\begin{DoxyCompactList}\small\item\em Load (close/spin up) or unload (eject/spin down) media. \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_acbed60c6b06009b2a027d605190ee842}{bool \hyperlink{classCDROM__Interface__Image_acbed60c6b06009b2a027d605190ee842}{Read\-Sector} (Bit8u $\ast$buffer, bool raw, unsigned long sector)}\label{classCDROM__Interface__Image_acbed60c6b06009b2a027d605190ee842}
 
-\item 
-\hypertarget{classCDROM__Interface__Image_a7348536d197510d1442419f2aa172ccc}{bool {\bfseries Has\-Data\-Track} (void)}\label{classCDROM__Interface__Image_a7348536d197510d1442419f2aa172ccc}
+\begin{DoxyCompactList}\small\item\em Sector read (one sector), where the image decoding is done. \end{DoxyCompactList}\item 
+\hypertarget{classCDROM__Interface__Image_a7348536d197510d1442419f2aa172ccc}{bool \hyperlink{classCDROM__Interface__Image_a7348536d197510d1442419f2aa172ccc}{Has\-Data\-Track} (void)}\label{classCDROM__Interface__Image_a7348536d197510d1442419f2aa172ccc}
 
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Indicate whether the image has a data track. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Static Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classCDROM__Interface__Image_a901be8d60520cf91bcabeb67a808c644}{static bool {\bfseries images\-\_\-init} = false}\label{classCDROM__Interface__Image_a901be8d60520cf91bcabeb67a808c644}
-
-\item 
-\hypertarget{classCDROM__Interface__Image_a547a33f528bf5f50063af1def199a7a3}{static \hyperlink{classCDROM__Interface__Image}{C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image} $\ast$ {\bfseries images} \mbox{[}26\mbox{]} = \{N\-U\-L\-L\}}\label{classCDROM__Interface__Image_a547a33f528bf5f50063af1def199a7a3}
-
-\end{DoxyCompactItemize}
+static bool \hyperlink{classCDROM__Interface__Image_a901be8d60520cf91bcabeb67a808c644}{images\-\_\-init} = false
+\begin{DoxyCompactList}\small\item\em Flag to track if images have been initialized. \end{DoxyCompactList}\item 
+static \hyperlink{classCDROM__Interface__Image}{C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image} $\ast$ \hyperlink{classCDROM__Interface__Image_a547a33f528bf5f50063af1def199a7a3}{images} \mbox{[}26\mbox{]} = \{N\-U\-L\-L\}
+\begin{DoxyCompactList}\small\item\em Array of C\-D-\/\-R\-O\-M images, one per drive letter. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
+Image C\-D-\/\-R\-O\-M interface. 
+
+This provides C\-D-\/\-R\-O\-M emulation from .I\-S\-O and .B\-I\-N/.C\-U\-E images on the host system 
+
+Definition at line 204 of file cdrom.\-h.
 
 
-Definition at line 157 of file cdrom.\-h.
+
+\subsection{Member Data Documentation}
+\hypertarget{classCDROM__Interface__Image_a547a33f528bf5f50063af1def199a7a3}{\index{C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image@{C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image}!images@{images}}
+\index{images@{images}!CDROM_Interface_Image@{C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image}}
+\subsubsection[{images}]{\setlength{\rightskip}{0pt plus 5cm}{\bf C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image} $\ast$ {\bf C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image\-::images} = \{N\-U\-L\-L\}\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}\label{classCDROM__Interface__Image_a547a33f528bf5f50063af1def199a7a3}
+
+
+Array of C\-D-\/\-R\-O\-M images, one per drive letter. 
+
+images\mbox{[}\mbox{]} is static and not specific to any C++ class instance. 
+
+Definition at line 276 of file cdrom.\-h.
+
+\hypertarget{classCDROM__Interface__Image_a901be8d60520cf91bcabeb67a808c644}{\index{C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image@{C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image}!images\-\_\-init@{images\-\_\-init}}
+\index{images\-\_\-init@{images\-\_\-init}!CDROM_Interface_Image@{C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image}}
+\subsubsection[{images\-\_\-init}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf C\-D\-R\-O\-M\-\_\-\-Interface\-\_\-\-Image\-::images\-\_\-init} = false\hspace{0.3cm}{\ttfamily  \mbox{[}static\mbox{]}}}}\label{classCDROM__Interface__Image_a901be8d60520cf91bcabeb67a808c644}
+
+
+Flag to track if images have been initialized. 
+
+Whether images\mbox{[}\mbox{]} has been initialized. Note that images\-\_\-init and images\mbox{[}\mbox{]} are static and they are not specific to any one C++ class instance. 
+
+Definition at line 272 of file cdrom.\-h.
 
 
 

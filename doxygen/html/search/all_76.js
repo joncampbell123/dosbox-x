@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['value',['Value',['../classValue.html',1,'']]],
+  ['value',['Value',['../classValue.html',1,'Value'],['../classCBind.html#afff7b6160648ad63671611c53b1b6a7e',1,'CBind::value()']]],
   ['vdraw',['vdraw',['../structvdraw.html',1,'']]],
   ['vec2f',['vec2f',['../structvec2f.html',1,'']]],
   ['vec3f',['vec3f',['../structvec3f.html',1,'']]],
@@ -59,6 +59,7 @@ var searchData=
   ['visible',['visible',['../classGUI_1_1Window.html#a49e31f7879bf287c02f29d67414ec37d',1,'GUI::Window']]],
   ['vmdispatchstate',['VMDispatchState',['../classVMDispatchState.html',1,'']]],
   ['voice',['Voice',['../classVoice.html',1,'']]],
+  ['vol',['vol',['../structSCtrl.html#ad029c2b75bd84b09cfe3f893ba6a5004',1,'SCtrl']]],
   ['volpair',['volpair',['../structgus__ICS2101_1_1volpair.html',1,'gus_ICS2101']]],
   ['voodoo',['VOODOO',['../classVOODOO.html',1,'']]],
   ['voodoo_5fpagehandler',['Voodoo_PageHandler',['../classVoodoo__PageHandler.html',1,'']]],

@@ -198,14 +198,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00102"></a>00102         <span class="keywordtype">bool</span>            PlayAudioSector         (Bit8u subUnit, Bit32u start, Bit32u length);
 <a name="l00103"></a>00103         <span class="keywordtype">bool</span>            PlayAudioMSF            (Bit8u subUnit, Bit32u start, Bit32u length);
 <a name="l00104"></a>00104         <span class="keywordtype">bool</span>            StopAudio                       (Bit8u subUnit);
-<a name="l00105"></a>00105         <span class="keywordtype">bool</span>            GetAudioStatus          (Bit8u subUnit, <span class="keywordtype">bool</span>&amp; playing, <span class="keywordtype">bool</span>&amp; pause, <a class="code" href="structSMSF.html">TMSF</a>&amp; start, <a class="code" href="structSMSF.html">TMSF</a>&amp; end);
+<a name="l00105"></a>00105         <span class="keywordtype">bool</span>            GetAudioStatus          (Bit8u subUnit, <span class="keywordtype">bool</span>&amp; playing, <span class="keywordtype">bool</span>&amp; pause, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; start, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; end);
 <a name="l00106"></a>00106 
-<a name="l00107"></a>00107         <span class="keywordtype">bool</span>            GetSubChannelData       (Bit8u subUnit, Bit8u&amp; attr, Bit8u&amp; track, Bit8u &amp;index, <a class="code" href="structSMSF.html">TMSF</a>&amp; rel, <a class="code" href="structSMSF.html">TMSF</a>&amp; abs);
+<a name="l00107"></a>00107         <span class="keywordtype">bool</span>            GetSubChannelData       (Bit8u subUnit, Bit8u&amp; attr, Bit8u&amp; track, Bit8u &amp;index, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; rel, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; abs);
 <a name="l00108"></a>00108 
 <a name="l00109"></a>00109         <span class="keywordtype">int</span>                     RemoveDrive                     (Bit16u _drive);
 <a name="l00110"></a>00110         <span class="keywordtype">int</span>                     AddDrive                        (Bit16u _drive, <span class="keywordtype">char</span>* physicalPath, Bit8u&amp; subUnit);
 <a name="l00111"></a>00111         <span class="keywordtype">bool</span>            HasDrive                        (Bit16u drive);
-<a name="l00112"></a>00112         <span class="keywordtype">void</span>            ReplaceDrive            (<a class="code" href="classCDROM__Interface.html">CDROM_Interface</a>* newCdrom, Bit8u subUnit);
+<a name="l00112"></a>00112         <span class="keywordtype">void</span>            ReplaceDrive            (<a class="code" href="classCDROM__Interface.html" title="Base CD-ROM interface class.">CDROM_Interface</a>* newCdrom, Bit8u subUnit);
 <a name="l00113"></a>00113         <span class="keywordtype">void</span>            GetDrives                       (PhysPt data);
 <a name="l00114"></a>00114         <span class="keywordtype">void</span>            GetDriverInfo           (PhysPt data);
 <a name="l00115"></a>00115         <span class="keywordtype">bool</span>            GetVolumeName           (Bit8u subUnit, <span class="keywordtype">char</span>* name);
@@ -219,11 +219,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00123"></a>00123         <span class="keywordtype">bool</span>            ReadSectorsMSF          (Bit8u subUnit, <span class="keywordtype">bool</span> raw, Bit32u sector, Bit16u num, PhysPt data);
 <a name="l00124"></a>00124         <span class="keywordtype">bool</span>            SendDriverRequest       (Bit16u drive, PhysPt data);
 <a name="l00125"></a>00125         <span class="keywordtype">bool</span>            IsValidDrive            (Bit16u drive);
-<a name="l00126"></a>00126         <span class="keywordtype">bool</span>            GetCDInfo                       (Bit8u subUnit, Bit8u&amp; tr1, Bit8u&amp; tr2, <a class="code" href="structSMSF.html">TMSF</a>&amp; leadOut);
+<a name="l00126"></a>00126         <span class="keywordtype">bool</span>            GetCDInfo                       (Bit8u subUnit, Bit8u&amp; tr1, Bit8u&amp; tr2, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; leadOut);
 <a name="l00127"></a>00127         Bit32u          GetVolumeSize           (Bit8u subUnit);
-<a name="l00128"></a>00128         <span class="keywordtype">bool</span>            GetTrackInfo            (Bit8u subUnit, Bit8u track, Bit8u&amp; attr, <a class="code" href="structSMSF.html">TMSF</a>&amp; start);
+<a name="l00128"></a>00128         <span class="keywordtype">bool</span>            GetTrackInfo            (Bit8u subUnit, Bit8u track, Bit8u&amp; attr, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; start);
 <a name="l00129"></a>00129         Bit16u          GetStatusWord           (Bit8u subUnit,Bit16u status);
-<a name="l00130"></a>00130         <span class="keywordtype">bool</span>            GetCurrentPos           (Bit8u subUnit, <a class="code" href="structSMSF.html">TMSF</a>&amp; pos);
+<a name="l00130"></a>00130         <span class="keywordtype">bool</span>            GetCurrentPos           (Bit8u subUnit, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; pos);
 <a name="l00131"></a>00131         Bit32u          GetDeviceStatus         (Bit8u subUnit);
 <a name="l00132"></a>00132         <span class="keywordtype">bool</span>            GetMediaStatus          (Bit8u subUnit, Bit8u&amp; status);
 <a name="l00133"></a>00133         <span class="keywordtype">bool</span>            LoadUnloadMedia         (Bit8u subUnit, <span class="keywordtype">bool</span> unload);
@@ -248,18 +248,18 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00152"></a>00152                 <span class="keywordtype">bool</span>    locked;                 <span class="comment">// drive locked ?</span>
 <a name="l00153"></a>00153                 <span class="keywordtype">bool</span>    lastResult;             <span class="comment">// last operation success ?</span>
 <a name="l00154"></a>00154                 Bit32u  volumeSize;             <span class="comment">// for media change</span>
-<a name="l00155"></a>00155                 <a class="code" href="structSCtrl.html">TCtrl</a>   audioCtrl;              <span class="comment">// audio channel control</span>
+<a name="l00155"></a>00155                 <a class="code" href="structSCtrl.html" title="Output and channel control state.">TCtrl</a>   audioCtrl;              <span class="comment">// audio channel control</span>
 <a name="l00156"></a>00156         } <a class="code" href="structCMscdex_1_1SDriveInfo.html">TDriveInfo</a>;
 <a name="l00157"></a>00157 
 <a name="l00158"></a>00158         Bit16u                          defaultBufSeg;
 <a name="l00159"></a>00159         <a class="code" href="structCMscdex_1_1SDriveInfo.html">TDriveInfo</a>                      dinfo[MSCDEX_MAX_DRIVES];
-<a name="l00160"></a>00160         <a class="code" href="classCDROM__Interface.html">CDROM_Interface</a>*                cdrom[MSCDEX_MAX_DRIVES];
+<a name="l00160"></a>00160         <a class="code" href="classCDROM__Interface.html" title="Base CD-ROM interface class.">CDROM_Interface</a>*                cdrom[MSCDEX_MAX_DRIVES];
 <a name="l00161"></a>00161         
 <a name="l00162"></a>00162 <span class="keyword">public</span>:
 <a name="l00163"></a>00163         Bit16u          rootDriverHeaderSeg;
 <a name="l00164"></a>00164 
-<a name="l00165"></a>00165         <span class="keywordtype">bool</span>            ChannelControl          (Bit8u subUnit, <a class="code" href="structSCtrl.html">TCtrl</a> ctrl);
-<a name="l00166"></a>00166         <span class="keywordtype">bool</span>            GetChannelControl       (Bit8u subUnit, <a class="code" href="structSCtrl.html">TCtrl</a>&amp; ctrl);
+<a name="l00165"></a>00165         <span class="keywordtype">bool</span>            ChannelControl          (Bit8u subUnit, <a class="code" href="structSCtrl.html" title="Output and channel control state.">TCtrl</a> ctrl);
+<a name="l00166"></a>00166         <span class="keywordtype">bool</span>            GetChannelControl       (Bit8u subUnit, <a class="code" href="structSCtrl.html" title="Output and channel control state.">TCtrl</a>&amp; ctrl);
 <a name="l00167"></a>00167 };
 <a name="l00168"></a>00168 
 <a name="l00169"></a>00169 CMscdex::CMscdex(<span class="keywordtype">void</span>) {
@@ -390,16 +390,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00294"></a>00294                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;MSCDEX: IOCTL Interface.&quot;</span>);
 <a name="l00295"></a>00295 <span class="preprocessor">#else</span>
 <a name="l00296"></a>00296 <span class="preprocessor"></span>                <span class="comment">// Default case windows and other oses</span>
-<a name="l00297"></a>00297                 cdrom[numDrives] = <span class="keyword">new</span> <a class="code" href="classCDROM__Interface__SDL.html">CDROM_Interface_SDL</a>();
+<a name="l00297"></a>00297                 cdrom[numDrives] = <span class="keyword">new</span> <a class="code" href="classCDROM__Interface__SDL.html" title="CD-ROM interface to SDL 1.x CD-ROM support.">CDROM_Interface_SDL</a>();
 <a name="l00298"></a>00298                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;MSCDEX: SDL Interface.&quot;</span>);
 <a name="l00299"></a>00299 <span class="preprocessor">#endif</span>
 <a name="l00300"></a>00300 <span class="preprocessor"></span>                } <span class="keywordflow">break</span>;
 <a name="l00301"></a>00301         <span class="keywordflow">case</span> 0x01:      <span class="comment">// iso cdrom interface  </span>
 <a name="l00302"></a>00302                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;MSCDEX: Mounting iso file as cdrom: %s&quot;</span>, physicalPath);
-<a name="l00303"></a>00303                 cdrom[numDrives] = <span class="keyword">new</span> <a class="code" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a>((Bit8u)numDrives);
+<a name="l00303"></a>00303                 cdrom[numDrives] = <span class="keyword">new</span> <a class="code" href="classCDROM__Interface__Image.html" title="Image CD-ROM interface.">CDROM_Interface_Image</a>((Bit8u)numDrives);
 <a name="l00304"></a>00304                 <span class="keywordflow">break</span>;
 <a name="l00305"></a>00305         <span class="keywordflow">case</span> 0x02:      <span class="comment">// fake cdrom interface (directories)</span>
-<a name="l00306"></a>00306                 cdrom[numDrives] = <span class="keyword">new</span> <a class="code" href="classCDROM__Interface__Fake.html">CDROM_Interface_Fake</a>;
+<a name="l00306"></a>00306                 cdrom[numDrives] = <span class="keyword">new</span> <a class="code" href="classCDROM__Interface__Fake.html" title="Dummy CD-ROM interface.">CDROM_Interface_Fake</a>;
 <a name="l00307"></a>00307                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;MSCDEX: Mounting directory as cdrom: %s&quot;</span>,physicalPath);
 <a name="l00308"></a>00308                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;MSCDEX: You wont have full MSCDEX support !&quot;</span>);
 <a name="l00309"></a>00309                 result = 5;
@@ -473,15 +473,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00377"></a>00377         devHeader.SetNumSubUnits(devHeader.GetNumSubUnits()+1);
 <a name="l00378"></a>00378 
 <a name="l00379"></a>00379         <span class="keywordflow">if</span> (dinfo[0].drive-1==_drive) {
-<a name="l00380"></a>00380                 <a class="code" href="classCDROM__Interface.html">CDROM_Interface</a> *_cdrom = cdrom[numDrives];
-<a name="l00381"></a>00381                 <a class="code" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a> *_cdimg = CDROM_Interface_Image::images[numDrives];
+<a name="l00380"></a>00380                 <a class="code" href="classCDROM__Interface.html" title="Base CD-ROM interface class.">CDROM_Interface</a> *_cdrom = cdrom[numDrives];
+<a name="l00381"></a>00381                 <a class="code" href="classCDROM__Interface__Image.html" title="Image CD-ROM interface.">CDROM_Interface_Image</a> *_cdimg = <a class="code" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3" title="Array of CD-ROM images, one per drive letter.">CDROM_Interface_Image::images</a>[numDrives];
 <a name="l00382"></a>00382                 <span class="keywordflow">for</span> (Bit16u i=GetNumDrives(); i&gt;0; i--) {
 <a name="l00383"></a>00383                         dinfo[i] = dinfo[i-1];
 <a name="l00384"></a>00384                         cdrom[i] = cdrom[i-1];
-<a name="l00385"></a>00385                         CDROM_Interface_Image::images[i] = CDROM_Interface_Image::images[i-1];
+<a name="l00385"></a>00385                         <a class="code" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3" title="Array of CD-ROM images, one per drive letter.">CDROM_Interface_Image::images</a>[i] = <a class="code" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3" title="Array of CD-ROM images, one per drive letter.">CDROM_Interface_Image::images</a>[i-1];
 <a name="l00386"></a>00386                 }
 <a name="l00387"></a>00387                 cdrom[0] = _cdrom;
-<a name="l00388"></a>00388                 CDROM_Interface_Image::images[0] = _cdimg;
+<a name="l00388"></a>00388                 <a class="code" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3" title="Array of CD-ROM images, one per drive letter.">CDROM_Interface_Image::images</a>[0] = _cdimg;
 <a name="l00389"></a>00389                 dinfo[0].drive          = (Bit8u)_drive;
 <a name="l00390"></a>00390                 dinfo[0].physDrive      = (Bit8u)toupper(physicalPath[0]);
 <a name="l00391"></a>00391                 subUnit = 0;
@@ -493,8 +493,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00397"></a>00397         numDrives++;
 <a name="l00398"></a>00398         <span class="comment">// init channel control</span>
 <a name="l00399"></a>00399         <span class="keywordflow">for</span> (Bit8u chan=0;chan&lt;4;chan++) {
-<a name="l00400"></a>00400                 dinfo[subUnit].audioCtrl.out[chan]=chan;
-<a name="l00401"></a>00401                 dinfo[subUnit].audioCtrl.vol[chan]=0xff;
+<a name="l00400"></a>00400                 dinfo[subUnit].audioCtrl.<a class="code" href="structSCtrl.html#a5b5415593005d9a11a35d11e8bbdd8b3" title="output channel">out</a>[chan]=chan;
+<a name="l00401"></a>00401                 dinfo[subUnit].audioCtrl.<a class="code" href="structSCtrl.html#ad029c2b75bd84b09cfe3f893ba6a5004" title="channel volume">vol</a>[chan]=0xff;
 <a name="l00402"></a>00402         }
 <a name="l00403"></a>00403         <span class="comment">// stop audio</span>
 <a name="l00404"></a>00404         StopAudio(subUnit);
@@ -505,7 +505,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00409"></a>00409         <span class="keywordflow">return</span> (GetSubUnit(drive) != 0xff);
 <a name="l00410"></a>00410 }
 <a name="l00411"></a>00411 
-<a name="l00412"></a>00412 <span class="keywordtype">void</span> CMscdex::ReplaceDrive(<a class="code" href="classCDROM__Interface.html">CDROM_Interface</a>* newCdrom, Bit8u subUnit) {
+<a name="l00412"></a>00412 <span class="keywordtype">void</span> CMscdex::ReplaceDrive(<a class="code" href="classCDROM__Interface.html" title="Base CD-ROM interface class.">CDROM_Interface</a>* newCdrom, Bit8u subUnit) {
 <a name="l00413"></a>00413         <span class="keyword">delete</span> cdrom[subUnit];
 <a name="l00414"></a>00414         cdrom[subUnit] = newCdrom;
 <a name="l00415"></a>00415         StopAudio(subUnit);
@@ -535,12 +535,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00439"></a>00439         };
 <a name="l00440"></a>00440 }
 <a name="l00441"></a>00441 
-<a name="l00442"></a>00442 <span class="keywordtype">bool</span> CMscdex::GetCDInfo(Bit8u subUnit, Bit8u&amp; tr1, Bit8u&amp; tr2, <a class="code" href="structSMSF.html">TMSF</a>&amp; leadOut) {
+<a name="l00442"></a>00442 <span class="keywordtype">bool</span> CMscdex::GetCDInfo(Bit8u subUnit, Bit8u&amp; tr1, Bit8u&amp; tr2, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; leadOut) {
 <a name="l00443"></a>00443         <span class="keywordflow">if</span> (subUnit&gt;=numDrives) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00444"></a>00444         <span class="keywordtype">int</span> tr1i,tr2i;
 <a name="l00445"></a>00445         <span class="comment">// Assume Media change</span>
-<a name="l00446"></a>00446         cdrom[subUnit]-&gt;InitNewMedia();
-<a name="l00447"></a>00447         dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;GetAudioTracks(tr1i,tr2i,leadOut);
+<a name="l00446"></a>00446         cdrom[subUnit]-&gt;<a class="code" href="classCDROM__Interface.html#a688bdeb135e3238178883666c34aaa75" title="TODO?">InitNewMedia</a>();
+<a name="l00447"></a>00447         dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;<a class="code" href="classCDROM__Interface.html#a3d9e5cf2a5812edc31badb6e4a79d51c" title="Retrieve start and end tracks and lead out position.">GetAudioTracks</a>(tr1i,tr2i,leadOut);
 <a name="l00448"></a>00448         <span class="keywordflow">if</span> (!dinfo[subUnit].lastResult) {
 <a name="l00449"></a>00449                 tr1 = tr2 = 0;
 <a name="l00450"></a>00450                 memset(&amp;leadOut,0,<span class="keyword">sizeof</span>(leadOut));
@@ -551,9 +551,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00455"></a>00455         <span class="keywordflow">return</span> dinfo[subUnit].lastResult;
 <a name="l00456"></a>00456 }
 <a name="l00457"></a>00457 
-<a name="l00458"></a>00458 <span class="keywordtype">bool</span> CMscdex::GetTrackInfo(Bit8u subUnit, Bit8u track, Bit8u&amp; attr, <a class="code" href="structSMSF.html">TMSF</a>&amp; start) {
+<a name="l00458"></a>00458 <span class="keywordtype">bool</span> CMscdex::GetTrackInfo(Bit8u subUnit, Bit8u track, Bit8u&amp; attr, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; start) {
 <a name="l00459"></a>00459         <span class="keywordflow">if</span> (subUnit&gt;=numDrives) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00460"></a>00460         dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;GetAudioTrackInfo(track,start,attr);        
+<a name="l00460"></a>00460         dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;<a class="code" href="classCDROM__Interface.html#adda0f3d505f7cd4bdf762508fc1962fb" title="Retrieve start and attributes for a specific track.">GetAudioTrackInfo</a>(track,start,attr);        
 <a name="l00461"></a>00461         <span class="keywordflow">if</span> (!dinfo[subUnit].lastResult) {
 <a name="l00462"></a>00462                 attr = 0;
 <a name="l00463"></a>00463                 memset(&amp;start,0,<span class="keyword">sizeof</span>(start));
@@ -566,9 +566,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00470"></a>00470         <span class="comment">// If value from last stop is used, this is meant as a resume</span>
 <a name="l00471"></a>00471         <span class="comment">// better start using resume command</span>
 <a name="l00472"></a>00472         <span class="keywordflow">if</span> (dinfo[subUnit].audioPaused &amp;&amp; (sector==dinfo[subUnit].audioStart) &amp;&amp; (dinfo[subUnit].audioEnd!=0)) {
-<a name="l00473"></a>00473                 dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;PauseAudio(<span class="keyword">true</span>);
+<a name="l00473"></a>00473                 dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;<a class="code" href="classCDROM__Interface.html#a811af8ad77b46c975473abd8aaa48f48" title="Pause audio playback.">PauseAudio</a>(<span class="keyword">true</span>);
 <a name="l00474"></a>00474         } <span class="keywordflow">else</span> 
-<a name="l00475"></a>00475                 dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;PlayAudioSector(sector,length);
+<a name="l00475"></a>00475                 dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;<a class="code" href="classCDROM__Interface.html#a9a90d8036bb0fccc17b147dfab6ad26f" title="Initiate audio playback starting at sector and for how many.">PlayAudioSector</a>(sector,length);
 <a name="l00476"></a>00476 
 <a name="l00477"></a>00477         <span class="keywordflow">if</span> (dinfo[subUnit].lastResult) {
 <a name="l00478"></a>00478                 dinfo[subUnit].audioPlay        = <span class="keyword">true</span>;
@@ -588,9 +588,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00492"></a>00492         <span class="keywordflow">return</span> dinfo[subUnit].lastResult = PlayAudioSector(subUnit,sector,length);
 <a name="l00493"></a>00493 }
 <a name="l00494"></a>00494 
-<a name="l00495"></a>00495 <span class="keywordtype">bool</span> CMscdex::GetSubChannelData(Bit8u subUnit, Bit8u&amp; attr, Bit8u&amp; track, Bit8u &amp;index, <a class="code" href="structSMSF.html">TMSF</a>&amp; rel, <a class="code" href="structSMSF.html">TMSF</a>&amp; abs) {
+<a name="l00495"></a>00495 <span class="keywordtype">bool</span> CMscdex::GetSubChannelData(Bit8u subUnit, Bit8u&amp; attr, Bit8u&amp; track, Bit8u &amp;index, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; rel, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; abs) {
 <a name="l00496"></a>00496         <span class="keywordflow">if</span> (subUnit&gt;=numDrives) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00497"></a>00497         dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;GetAudioSub(attr,track,index,rel,abs);
+<a name="l00497"></a>00497         dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;<a class="code" href="classCDROM__Interface.html#a2028b67399e88e5ce1ea1d18a1db75fb" title="Get subchannel data of the sectors at the current position, and retrieve current position.">GetAudioSub</a>(attr,track,index,rel,abs);
 <a name="l00498"></a>00498         <span class="keywordflow">if</span> (!dinfo[subUnit].lastResult) {
 <a name="l00499"></a>00499                 attr = track = index = 0;
 <a name="l00500"></a>00500                 memset(&amp;rel,0,<span class="keyword">sizeof</span>(rel));
@@ -599,20 +599,20 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00503"></a>00503         <span class="keywordflow">return</span> dinfo[subUnit].lastResult;
 <a name="l00504"></a>00504 }
 <a name="l00505"></a>00505 
-<a name="l00506"></a>00506 <span class="keywordtype">bool</span> CMscdex::GetAudioStatus(Bit8u subUnit, <span class="keywordtype">bool</span>&amp; playing, <span class="keywordtype">bool</span>&amp; pause, <a class="code" href="structSMSF.html">TMSF</a>&amp; start, <a class="code" href="structSMSF.html">TMSF</a>&amp; end) {
+<a name="l00506"></a>00506 <span class="keywordtype">bool</span> CMscdex::GetAudioStatus(Bit8u subUnit, <span class="keywordtype">bool</span>&amp; playing, <span class="keywordtype">bool</span>&amp; pause, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; start, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; end) {
 <a name="l00507"></a>00507         <span class="keywordflow">if</span> (subUnit&gt;=numDrives) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00508"></a>00508         dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;GetAudioStatus(playing,pause);
+<a name="l00508"></a>00508         dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;<a class="code" href="classCDROM__Interface.html#a5f5e3fd21c495a0a4f55e79b18b69729" title="Get audio playback status.">GetAudioStatus</a>(playing,pause);
 <a name="l00509"></a>00509         <span class="keywordflow">if</span> (dinfo[subUnit].lastResult) {
 <a name="l00510"></a>00510                 <span class="comment">// Start</span>
 <a name="l00511"></a>00511                 Bit32u addr     = dinfo[subUnit].audioStart + 150;
-<a name="l00512"></a>00512                 start.fr        = (Bit8u)(addr%75);     addr/=75;
-<a name="l00513"></a>00513                 start.sec       = (Bit8u)(addr%60); 
-<a name="l00514"></a>00514                 start.min       = (Bit8u)(addr/60);
+<a name="l00512"></a>00512                 start.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>        = (Bit8u)(addr%75);     addr/=75;
+<a name="l00513"></a>00513                 start.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>       = (Bit8u)(addr%60); 
+<a name="l00514"></a>00514                 start.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>       = (Bit8u)(addr/60);
 <a name="l00515"></a>00515                 <span class="comment">// End</span>
 <a name="l00516"></a>00516                 addr            = dinfo[subUnit].audioEnd + 150;
-<a name="l00517"></a>00517                 end.fr          = (Bit8u)(addr%75);     addr/=75;
-<a name="l00518"></a>00518                 end.sec         = (Bit8u)(addr%60); 
-<a name="l00519"></a>00519                 end.min         = (Bit8u)(addr/60);
+<a name="l00517"></a>00517                 end.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>          = (Bit8u)(addr%75);     addr/=75;
+<a name="l00518"></a>00518                 end.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>         = (Bit8u)(addr%60); 
+<a name="l00519"></a>00519                 end.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>         = (Bit8u)(addr/60);
 <a name="l00520"></a>00520         } <span class="keywordflow">else</span> {
 <a name="l00521"></a>00521                 playing         = <span class="keyword">false</span>;
 <a name="l00522"></a>00522                 pause           = <span class="keyword">false</span>;
@@ -627,7 +627,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00531"></a>00531         <span class="keywordflow">if</span> (subUnit&gt;=numDrives) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00532"></a>00532         <span class="keywordflow">if</span> (dinfo[subUnit].audioPlay) {
 <a name="l00533"></a>00533                 <span class="comment">// Check if audio is still playing....</span>
-<a name="l00534"></a>00534                 <a class="code" href="structSMSF.html">TMSF</a> start,end;
+<a name="l00534"></a>00534                 <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a> start,end;
 <a name="l00535"></a>00535                 <span class="keywordtype">bool</span> playing,pause;
 <a name="l00536"></a>00536                 <span class="keywordflow">if</span> (GetAudioStatus(subUnit,playing,pause,start,end))
 <a name="l00537"></a>00537                         dinfo[subUnit].audioPlay = playing;
@@ -635,15 +635,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00539"></a>00539                         dinfo[subUnit].audioPlay = <span class="keyword">false</span>;
 <a name="l00540"></a>00540         }
 <a name="l00541"></a>00541         <span class="keywordflow">if</span> (dinfo[subUnit].audioPlay)
-<a name="l00542"></a>00542                 dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;PauseAudio(<span class="keyword">false</span>);
+<a name="l00542"></a>00542                 dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;<a class="code" href="classCDROM__Interface.html#a811af8ad77b46c975473abd8aaa48f48" title="Pause audio playback.">PauseAudio</a>(<span class="keyword">false</span>);
 <a name="l00543"></a>00543         <span class="keywordflow">else</span>
-<a name="l00544"></a>00544                 dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;StopAudio();
+<a name="l00544"></a>00544                 dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;<a class="code" href="classCDROM__Interface.html#ac16f2f2a5f081fbd1ace3ae6af34b7c3" title="Stop audio playback.">StopAudio</a>();
 <a name="l00545"></a>00545         
 <a name="l00546"></a>00546         <span class="keywordflow">if</span> (dinfo[subUnit].lastResult) {
 <a name="l00547"></a>00547                 <span class="keywordflow">if</span> (dinfo[subUnit].audioPlay) {
-<a name="l00548"></a>00548                         <a class="code" href="structSMSF.html">TMSF</a> pos;
+<a name="l00548"></a>00548                         <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a> pos;
 <a name="l00549"></a>00549                         GetCurrentPos(subUnit,pos);
-<a name="l00550"></a>00550                         dinfo[subUnit].audioStart       = pos.min*60u*75u+pos.sec*75u+pos.fr - 150u;
+<a name="l00550"></a>00550                         dinfo[subUnit].audioStart       = pos.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>*60u*75u+pos.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>*75u+pos.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a> - 150u;
 <a name="l00551"></a>00551                         dinfo[subUnit].audioPaused  = <span class="keyword">true</span>;
 <a name="l00552"></a>00552                 } <span class="keywordflow">else</span> {        
 <a name="l00553"></a>00553                         dinfo[subUnit].audioPaused  = <span class="keyword">false</span>;
@@ -663,9 +663,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00567"></a>00567 Bit32u CMscdex::GetVolumeSize(Bit8u subUnit) {
 <a name="l00568"></a>00568         <span class="keywordflow">if</span> (subUnit&gt;=numDrives) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00569"></a>00569         Bit8u tr1,tr2;
-<a name="l00570"></a>00570         <a class="code" href="structSMSF.html">TMSF</a> leadOut;
+<a name="l00570"></a>00570         <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a> leadOut;
 <a name="l00571"></a>00571         dinfo[subUnit].lastResult = GetCDInfo(subUnit,tr1,tr2,leadOut);
-<a name="l00572"></a>00572         <span class="keywordflow">if</span> (dinfo[subUnit].lastResult) <span class="keywordflow">return</span> (leadOut.min*60u*75u)+(leadOut.sec*75u)+leadOut.fr;
+<a name="l00572"></a>00572         <span class="keywordflow">if</span> (dinfo[subUnit].lastResult) <span class="keywordflow">return</span> (leadOut.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>*60u*75u)+(leadOut.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>*75u)+leadOut.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>;
 <a name="l00573"></a>00573         <span class="keywordflow">return</span> 0;
 <a name="l00574"></a>00574 }
 <a name="l00575"></a>00575 
@@ -766,14 +766,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00670"></a>00670 <span class="keywordtype">bool</span> CMscdex::GetUPC(Bit8u subUnit, Bit8u&amp; attr, <span class="keywordtype">char</span>* upc)
 <a name="l00671"></a>00671 {
 <a name="l00672"></a>00672         <span class="keywordflow">if</span> (subUnit&gt;=numDrives) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00673"></a>00673         <span class="keywordflow">return</span> dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;GetUPC(attr,&amp;upc[0]);
+<a name="l00673"></a>00673         <span class="keywordflow">return</span> dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;<a class="code" href="classCDROM__Interface.html#a7f2eaeb90673c95fd018ce1ff4f1fdaa" title="Get UPC string from the CD-ROM.">GetUPC</a>(attr,&amp;upc[0]);
 <a name="l00674"></a>00674 }
 <a name="l00675"></a>00675 
 <a name="l00676"></a>00676 <span class="keywordtype">bool</span> CMscdex::ReadSectors(Bit8u subUnit, <span class="keywordtype">bool</span> raw, Bit32u sector, Bit16u num, PhysPt data) {
 <a name="l00677"></a>00677         <span class="keywordflow">if</span> (subUnit&gt;=numDrives) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00678"></a>00678         <span class="keywordflow">if</span> ((<span class="keywordtype">int</span>)(4u*num*2048u+5u) &lt; CPU_Cycles) CPU_Cycles -= 4u*num*2048u;
 <a name="l00679"></a>00679         <span class="keywordflow">else</span> CPU_Cycles = 5u;
-<a name="l00680"></a>00680         dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;ReadSectors(data,raw,sector,num);
+<a name="l00680"></a>00680         dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;<a class="code" href="classCDROM__Interface.html#afb4989b5b1881a03123442adddcfa6d7" title="Read sector data into guest memory.">ReadSectors</a>(data,raw,sector,num);
 <a name="l00681"></a>00681         <span class="keywordflow">return</span> dinfo[subUnit].lastResult;
 <a name="l00682"></a>00682 }
 <a name="l00683"></a>00683 
@@ -909,9 +909,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00813"></a>00813         <span class="keywordflow">return</span> <span class="keyword">false</span>; <span class="comment">// not found</span>
 <a name="l00814"></a>00814 }
 <a name="l00815"></a>00815 
-<a name="l00816"></a>00816 <span class="keywordtype">bool</span> CMscdex::GetCurrentPos(Bit8u subUnit, <a class="code" href="structSMSF.html">TMSF</a>&amp; pos) {
+<a name="l00816"></a>00816 <span class="keywordtype">bool</span> CMscdex::GetCurrentPos(Bit8u subUnit, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; pos) {
 <a name="l00817"></a>00817         <span class="keywordflow">if</span> (subUnit&gt;=numDrives) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00818"></a>00818         <a class="code" href="structSMSF.html">TMSF</a> rel;
+<a name="l00818"></a>00818         <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a> rel;
 <a name="l00819"></a>00819         Bit8u attr,track,index;
 <a name="l00820"></a>00820         dinfo[subUnit].lastResult = GetSubChannelData(subUnit, attr, track, index, rel, pos);
 <a name="l00821"></a>00821         <span class="keywordflow">if</span> (!dinfo[subUnit].lastResult) memset(&amp;pos,0,<span class="keyword">sizeof</span>(pos));
@@ -920,7 +920,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00824"></a>00824 
 <a name="l00825"></a>00825 <span class="keywordtype">bool</span> CMscdex::GetMediaStatus(Bit8u subUnit, <span class="keywordtype">bool</span>&amp; media, <span class="keywordtype">bool</span>&amp; changed, <span class="keywordtype">bool</span>&amp; trayOpen) {
 <a name="l00826"></a>00826         <span class="keywordflow">if</span> (subUnit&gt;=numDrives) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00827"></a>00827         dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;GetMediaTrayStatus(media,changed,trayOpen);
+<a name="l00827"></a>00827         dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;<a class="code" href="classCDROM__Interface.html#a3891396e99454752aafc695813e495e8" title="Get media tray status.">GetMediaTrayStatus</a>(media,changed,trayOpen);
 <a name="l00828"></a>00828         <span class="keywordflow">return</span> dinfo[subUnit].lastResult;
 <a name="l00829"></a>00829 }
 <a name="l00830"></a>00830 
@@ -931,7 +931,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00835"></a>00835         dinfo[subUnit].lastResult = GetMediaStatus(subUnit,media,changed,trayOpen);
 <a name="l00836"></a>00836         <span class="keywordflow">if</span> (dinfo[subUnit].audioPlay) {
 <a name="l00837"></a>00837                 <span class="comment">// Check if audio is still playing....</span>
-<a name="l00838"></a>00838                 <a class="code" href="structSMSF.html">TMSF</a> start,end;
+<a name="l00838"></a>00838                 <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a> start,end;
 <a name="l00839"></a>00839                 <span class="keywordtype">bool</span> playing,pause;
 <a name="l00840"></a>00840                 <span class="keywordflow">if</span> (GetAudioStatus(subUnit,playing,pause,start,end))
 <a name="l00841"></a>00841                         dinfo[subUnit].audioPlay = playing;
@@ -962,7 +962,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00866"></a>00866 
 <a name="l00867"></a>00867 <span class="keywordtype">bool</span> CMscdex::LoadUnloadMedia(Bit8u subUnit, <span class="keywordtype">bool</span> unload) {
 <a name="l00868"></a>00868         <span class="keywordflow">if</span> (subUnit&gt;=numDrives) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00869"></a>00869         dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;LoadUnloadMedia(unload);
+<a name="l00869"></a>00869         dinfo[subUnit].lastResult = cdrom[subUnit]-&gt;<a class="code" href="classCDROM__Interface.html#a5d52a31065d3b87924c5d059266fd20e" title="Load (close/spin up) or unload (eject/spin down) media.">LoadUnloadMedia</a>(unload);
 <a name="l00870"></a>00870         <span class="keywordflow">return</span> dinfo[subUnit].lastResult;
 <a name="l00871"></a>00871 }
 <a name="l00872"></a>00872 
@@ -985,7 +985,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00889"></a>00889 
 <a name="l00890"></a>00890         <span class="keywordflow">if</span> (dinfo[subUnit].audioPlay) {
 <a name="l00891"></a>00891                 <span class="comment">// Check if audio is still playing....</span>
-<a name="l00892"></a>00892                 <a class="code" href="structSMSF.html">TMSF</a> start,end;
+<a name="l00892"></a>00892                 <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a> start,end;
 <a name="l00893"></a>00893                 <span class="keywordtype">bool</span> playing,pause;
 <a name="l00894"></a>00894                 <span class="keywordflow">if</span> (GetAudioStatus(subUnit,playing,pause,start,end)) {
 <a name="l00895"></a>00895                         dinfo[subUnit].audioPlay = playing;
@@ -1001,21 +1001,21 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00905"></a>00905 <span class="keywordtype">void</span> CMscdex::InitNewMedia(Bit8u subUnit) {
 <a name="l00906"></a>00906         <span class="keywordflow">if</span> (subUnit&lt;numDrives) {
 <a name="l00907"></a>00907                 <span class="comment">// Reopen new media</span>
-<a name="l00908"></a>00908                 cdrom[subUnit]-&gt;InitNewMedia();
+<a name="l00908"></a>00908                 cdrom[subUnit]-&gt;<a class="code" href="classCDROM__Interface.html#a688bdeb135e3238178883666c34aaa75" title="TODO?">InitNewMedia</a>();
 <a name="l00909"></a>00909         }
 <a name="l00910"></a>00910 }
 <a name="l00911"></a>00911 
-<a name="l00912"></a>00912 <span class="keywordtype">bool</span> CMscdex::ChannelControl(Bit8u subUnit, <a class="code" href="structSCtrl.html">TCtrl</a> ctrl) {
+<a name="l00912"></a>00912 <span class="keywordtype">bool</span> CMscdex::ChannelControl(Bit8u subUnit, <a class="code" href="structSCtrl.html" title="Output and channel control state.">TCtrl</a> ctrl) {
 <a name="l00913"></a>00913         <span class="keywordflow">if</span> (subUnit&gt;=numDrives) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00914"></a>00914         <span class="comment">// adjust strange channel mapping</span>
-<a name="l00915"></a>00915         <span class="keywordflow">if</span> (ctrl.out[0]&gt;1) ctrl.out[0]=0;
-<a name="l00916"></a>00916         <span class="keywordflow">if</span> (ctrl.out[1]&gt;1) ctrl.out[1]=1;
+<a name="l00915"></a>00915         <span class="keywordflow">if</span> (ctrl.<a class="code" href="structSCtrl.html#a5b5415593005d9a11a35d11e8bbdd8b3" title="output channel">out</a>[0]&gt;1) ctrl.<a class="code" href="structSCtrl.html#a5b5415593005d9a11a35d11e8bbdd8b3" title="output channel">out</a>[0]=0;
+<a name="l00916"></a>00916         <span class="keywordflow">if</span> (ctrl.<a class="code" href="structSCtrl.html#a5b5415593005d9a11a35d11e8bbdd8b3" title="output channel">out</a>[1]&gt;1) ctrl.<a class="code" href="structSCtrl.html#a5b5415593005d9a11a35d11e8bbdd8b3" title="output channel">out</a>[1]=1;
 <a name="l00917"></a>00917         dinfo[subUnit].audioCtrl=ctrl;
-<a name="l00918"></a>00918         cdrom[subUnit]-&gt;ChannelControl(ctrl);
+<a name="l00918"></a>00918         cdrom[subUnit]-&gt;<a class="code" href="classCDROM__Interface.html#a7ad6149099c04af804e543613e69d9bd" title="Set channel control data (TODO: clarify)">ChannelControl</a>(ctrl);
 <a name="l00919"></a>00919         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00920"></a>00920 }
 <a name="l00921"></a>00921 
-<a name="l00922"></a>00922 <span class="keywordtype">bool</span> CMscdex::GetChannelControl(Bit8u subUnit, <a class="code" href="structSCtrl.html">TCtrl</a>&amp; ctrl) {
+<a name="l00922"></a>00922 <span class="keywordtype">bool</span> CMscdex::GetChannelControl(Bit8u subUnit, <a class="code" href="structSCtrl.html" title="Output and channel control state.">TCtrl</a>&amp; ctrl) {
 <a name="l00923"></a>00923         <span class="keywordflow">if</span> (subUnit&gt;=numDrives) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00924"></a>00924         ctrl=dinfo[subUnit].audioCtrl;
 <a name="l00925"></a>00925         <span class="keywordflow">return</span> <span class="keyword">true</span>;
@@ -1024,7 +1024,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00928"></a>00928 <span class="keyword">static</span> <a class="code" href="classCMscdex.html">CMscdex</a>* mscdex = 0;
 <a name="l00929"></a>00929 <span class="keyword">static</span> PhysPt curReqheaderPtr = 0;
 <a name="l00930"></a>00930 
-<a name="l00931"></a>00931 <span class="keywordtype">bool</span> GetMSCDEXDrive(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> drive_letter,<a class="code" href="classCDROM__Interface.html">CDROM_Interface</a> **_cdrom) {
+<a name="l00931"></a>00931 <span class="keywordtype">bool</span> GetMSCDEXDrive(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> drive_letter,<a class="code" href="classCDROM__Interface.html" title="Base CD-ROM interface class.">CDROM_Interface</a> **_cdrom) {
 <a name="l00932"></a>00932         Bitu i;
 <a name="l00933"></a>00933 
 <a name="l00934"></a>00934         <span class="keywordflow">if</span> (mscdex == NULL) {
@@ -1051,18 +1051,18 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00955"></a>00955                                         mem_writed(buffer+1,RealMake(mscdex-&gt;rootDriverHeaderSeg,0));
 <a name="l00956"></a>00956                                         <span class="keywordflow">break</span>;
 <a name="l00957"></a>00957                 <span class="keywordflow">case</span> 0x01 :{<span class="comment">/* Get current position */</span>
-<a name="l00958"></a>00958                                         <a class="code" href="structSMSF.html">TMSF</a> pos;
+<a name="l00958"></a>00958                                         <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a> pos;
 <a name="l00959"></a>00959                                         mscdex-&gt;GetCurrentPos(drive_unit,pos);
 <a name="l00960"></a>00960                                         Bit8u addr_mode = mem_readb(buffer+1);
 <a name="l00961"></a>00961                                         <span class="keywordflow">if</span> (addr_mode==0) {                     <span class="comment">// HSG</span>
-<a name="l00962"></a>00962                                                 Bit32u frames=MSF_TO_FRAMES(pos.min, pos.sec, pos.fr);
-<a name="l00963"></a>00963                                                 <span class="keywordflow">if</span> (frames&lt;150) MSCDEX_LOG(<span class="stringliteral">&quot;MSCDEX: Get position: invalid position %d:%d:%d&quot;</span>, pos.min, pos.sec, pos.fr);
+<a name="l00962"></a>00962                                                 Bit32u frames=MSF_TO_FRAMES(pos.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>, pos.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>, pos.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
+<a name="l00963"></a>00963                                                 <span class="keywordflow">if</span> (frames&lt;150) MSCDEX_LOG(<span class="stringliteral">&quot;MSCDEX: Get position: invalid position %d:%d:%d&quot;</span>, pos.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>, pos.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>, pos.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l00964"></a>00964                                                 <span class="keywordflow">else</span> frames-=150;
 <a name="l00965"></a>00965                                                 mem_writed(buffer+2,frames);
 <a name="l00966"></a>00966                                         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (addr_mode==1) {      <span class="comment">// Red book</span>
-<a name="l00967"></a>00967                                                 mem_writeb(buffer+2,pos.fr);
-<a name="l00968"></a>00968                                                 mem_writeb(buffer+3,pos.sec);
-<a name="l00969"></a>00969                                                 mem_writeb(buffer+4,pos.min);
+<a name="l00967"></a>00967                                                 mem_writeb(buffer+2,pos.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
+<a name="l00968"></a>00968                                                 mem_writeb(buffer+3,pos.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>);
+<a name="l00969"></a>00969                                                 mem_writeb(buffer+4,pos.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>);
 <a name="l00970"></a>00970                                                 mem_writeb(buffer+5,0x00);
 <a name="l00971"></a>00971                                         } <span class="keywordflow">else</span> {
 <a name="l00972"></a>00972                                                 MSCDEX_LOG(<span class="stringliteral">&quot;MSCDEX: Get position: invalid address mode %x&quot;</span>,addr_mode);
@@ -1070,11 +1070,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00974"></a>00974                                         }
 <a name="l00975"></a>00975                                    }<span class="keywordflow">break</span>;
 <a name="l00976"></a>00976                 <span class="keywordflow">case</span> 0x04 : <span class="comment">/* Audio Channel control */</span>
-<a name="l00977"></a>00977                                         <a class="code" href="structSCtrl.html">TCtrl</a> ctrl;
+<a name="l00977"></a>00977                                         <a class="code" href="structSCtrl.html" title="Output and channel control state.">TCtrl</a> ctrl;
 <a name="l00978"></a>00978                                         <span class="keywordflow">if</span> (!mscdex-&gt;GetChannelControl(drive_unit,ctrl)) <span class="keywordflow">return</span> 0x01;
 <a name="l00979"></a>00979                                         <span class="keywordflow">for</span> (Bit8u chan=0;chan&lt;4;chan++) {
-<a name="l00980"></a>00980                                                 mem_writeb(buffer+chan*2u+1u,ctrl.out[chan]);
-<a name="l00981"></a>00981                                                 mem_writeb(buffer+chan*2u+2u,ctrl.vol[chan]);
+<a name="l00980"></a>00980                                                 mem_writeb(buffer+chan*2u+1u,ctrl.<a class="code" href="structSCtrl.html#a5b5415593005d9a11a35d11e8bbdd8b3" title="output channel">out</a>[chan]);
+<a name="l00981"></a>00981                                                 mem_writeb(buffer+chan*2u+2u,ctrl.<a class="code" href="structSCtrl.html#ad029c2b75bd84b09cfe3f893ba6a5004" title="channel volume">vol</a>[chan]);
 <a name="l00982"></a>00982                                         }
 <a name="l00983"></a>00983                                         <span class="keywordflow">break</span>;
 <a name="l00984"></a>00984                 <span class="keywordflow">case</span> 0x06 : <span class="comment">/* Get Device status */</span>
@@ -1096,39 +1096,39 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01000"></a>01000                                         mem_writeb(buffer+1,status);
 <a name="l01001"></a>01001                                         <span class="keywordflow">break</span>;
 <a name="l01002"></a>01002                 <span class="keywordflow">case</span> 0x0A : <span class="comment">/* Get Audio Disk info */</span>   
-<a name="l01003"></a>01003                                         Bit8u tr1,tr2; <a class="code" href="structSMSF.html">TMSF</a> leadOut;
+<a name="l01003"></a>01003                                         Bit8u tr1,tr2; <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a> leadOut;
 <a name="l01004"></a>01004                                         <span class="keywordflow">if</span> (!mscdex-&gt;GetCDInfo(drive_unit,tr1,tr2,leadOut)) <span class="keywordflow">return</span> 0x05;
 <a name="l01005"></a>01005                                         mem_writeb(buffer+1,tr1);
 <a name="l01006"></a>01006                                         mem_writeb(buffer+2,tr2);
-<a name="l01007"></a>01007                                         mem_writeb(buffer+3,leadOut.fr);
-<a name="l01008"></a>01008                                         mem_writeb(buffer+4,leadOut.sec);
-<a name="l01009"></a>01009                                         mem_writeb(buffer+5,leadOut.min);
+<a name="l01007"></a>01007                                         mem_writeb(buffer+3,leadOut.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
+<a name="l01008"></a>01008                                         mem_writeb(buffer+4,leadOut.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>);
+<a name="l01009"></a>01009                                         mem_writeb(buffer+5,leadOut.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>);
 <a name="l01010"></a>01010                                         mem_writeb(buffer+6,0x00);
 <a name="l01011"></a>01011                                         <span class="keywordflow">break</span>;
 <a name="l01012"></a>01012                 <span class="keywordflow">case</span> 0x0B :{<span class="comment">/* Audio Track Info */</span>
-<a name="l01013"></a>01013                                         Bit8u attr; <a class="code" href="structSMSF.html">TMSF</a> start;
+<a name="l01013"></a>01013                                         Bit8u attr; <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a> start;
 <a name="l01014"></a>01014                                         Bit8u track = mem_readb(buffer+1);
 <a name="l01015"></a>01015                                         mscdex-&gt;GetTrackInfo(drive_unit,track,attr,start);              
-<a name="l01016"></a>01016                                         mem_writeb(buffer+2,start.fr);
-<a name="l01017"></a>01017                                         mem_writeb(buffer+3,start.sec);
-<a name="l01018"></a>01018                                         mem_writeb(buffer+4,start.min);
+<a name="l01016"></a>01016                                         mem_writeb(buffer+2,start.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
+<a name="l01017"></a>01017                                         mem_writeb(buffer+3,start.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>);
+<a name="l01018"></a>01018                                         mem_writeb(buffer+4,start.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>);
 <a name="l01019"></a>01019                                         mem_writeb(buffer+5,0x00);
 <a name="l01020"></a>01020                                         mem_writeb(buffer+6,attr);
 <a name="l01021"></a>01021                                         <span class="keywordflow">break</span>; };
 <a name="l01022"></a>01022                 <span class="keywordflow">case</span> 0x0C :{<span class="comment">/* Get Audio Sub Channel data */</span>
 <a name="l01023"></a>01023                                         Bit8u attr,track,index; 
-<a name="l01024"></a>01024                                         <a class="code" href="structSMSF.html">TMSF</a> abs,rel;
+<a name="l01024"></a>01024                                         <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a> abs,rel;
 <a name="l01025"></a>01025                                         mscdex-&gt;GetSubChannelData(drive_unit,attr,track,index,rel,abs);
 <a name="l01026"></a>01026                                         mem_writeb(buffer+1,attr);
 <a name="l01027"></a>01027                                         mem_writeb(buffer+2,track);
 <a name="l01028"></a>01028                                         mem_writeb(buffer+3,index);
-<a name="l01029"></a>01029                                         mem_writeb(buffer+4,rel.min);
-<a name="l01030"></a>01030                                         mem_writeb(buffer+5,rel.sec);
-<a name="l01031"></a>01031                                         mem_writeb(buffer+6,rel.fr);
+<a name="l01029"></a>01029                                         mem_writeb(buffer+4,rel.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>);
+<a name="l01030"></a>01030                                         mem_writeb(buffer+5,rel.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>);
+<a name="l01031"></a>01031                                         mem_writeb(buffer+6,rel.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l01032"></a>01032                                         mem_writeb(buffer+7,0x00);
-<a name="l01033"></a>01033                                         mem_writeb(buffer+8,abs.min);
-<a name="l01034"></a>01034                                         mem_writeb(buffer+9,abs.sec);
-<a name="l01035"></a>01035                                         mem_writeb(buffer+10,abs.fr);
+<a name="l01033"></a>01033                                         mem_writeb(buffer+8,abs.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>);
+<a name="l01034"></a>01034                                         mem_writeb(buffer+9,abs.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>);
+<a name="l01035"></a>01035                                         mem_writeb(buffer+10,abs.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l01036"></a>01036                                         <span class="keywordflow">break</span>;
 <a name="l01037"></a>01037                                    };
 <a name="l01038"></a>01038                 <span class="keywordflow">case</span> 0x0E :{ <span class="comment">/* Get UPC */</span>      
@@ -1141,16 +1141,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01045"></a>01045                                    };
 <a name="l01046"></a>01046                 <span class="keywordflow">case</span> 0x0F :{ <span class="comment">/* Get Audio Status */</span>     
 <a name="l01047"></a>01047                                         <span class="keywordtype">bool</span> playing,pause;
-<a name="l01048"></a>01048                                         <a class="code" href="structSMSF.html">TMSF</a> resStart,resEnd;
+<a name="l01048"></a>01048                                         <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a> resStart,resEnd;
 <a name="l01049"></a>01049                                         mscdex-&gt;GetAudioStatus(drive_unit,playing,pause,resStart,resEnd);
 <a name="l01050"></a>01050                                         mem_writeb(buffer+1u,pause);
-<a name="l01051"></a>01051                                         mem_writeb(buffer+3u,resStart.min);
-<a name="l01052"></a>01052                                         mem_writeb(buffer+4u,resStart.sec);
-<a name="l01053"></a>01053                                         mem_writeb(buffer+5u,resStart.fr);
+<a name="l01051"></a>01051                                         mem_writeb(buffer+3u,resStart.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>);
+<a name="l01052"></a>01052                                         mem_writeb(buffer+4u,resStart.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>);
+<a name="l01053"></a>01053                                         mem_writeb(buffer+5u,resStart.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l01054"></a>01054                                         mem_writeb(buffer+6u,0x00u);
-<a name="l01055"></a>01055                                         mem_writeb(buffer+7u,resEnd.min);
-<a name="l01056"></a>01056                                         mem_writeb(buffer+8u,resEnd.sec);
-<a name="l01057"></a>01057                                         mem_writeb(buffer+9u,resEnd.fr);
+<a name="l01055"></a>01055                                         mem_writeb(buffer+7u,resEnd.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>);
+<a name="l01056"></a>01056                                         mem_writeb(buffer+8u,resEnd.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>);
+<a name="l01057"></a>01057                                         mem_writeb(buffer+9u,resEnd.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l01058"></a>01058                                         mem_writeb(buffer+10u,0x00u);
 <a name="l01059"></a>01059                                         <span class="keywordflow">break</span>;
 <a name="l01060"></a>01060                                    };
@@ -1168,10 +1168,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01072"></a>01072                                         <span class="keywordflow">if</span> (!mscdex-&gt;LoadUnloadMedia(drive_unit,<span class="keyword">true</span>)) <span class="keywordflow">return</span> 0x02;
 <a name="l01073"></a>01073                                         <span class="keywordflow">break</span>;
 <a name="l01074"></a>01074                 <span class="keywordflow">case</span> 0x03: <span class="comment">//Audio Channel control</span>
-<a name="l01075"></a>01075                                         <a class="code" href="structSCtrl.html">TCtrl</a> ctrl;
+<a name="l01075"></a>01075                                         <a class="code" href="structSCtrl.html" title="Output and channel control state.">TCtrl</a> ctrl;
 <a name="l01076"></a>01076                                         <span class="keywordflow">for</span> (Bit8u chan=0;chan&lt;4;chan++) {
-<a name="l01077"></a>01077                                                 ctrl.out[chan]=mem_readb(buffer+chan*2u+1u);
-<a name="l01078"></a>01078                                                 ctrl.vol[chan]=mem_readb(buffer+chan*2u+2u);
+<a name="l01077"></a>01077                                                 ctrl.<a class="code" href="structSCtrl.html#a5b5415593005d9a11a35d11e8bbdd8b3" title="output channel">out</a>[chan]=mem_readb(buffer+chan*2u+1u);
+<a name="l01078"></a>01078                                                 ctrl.<a class="code" href="structSCtrl.html#ad029c2b75bd84b09cfe3f893ba6a5004" title="channel volume">vol</a>[chan]=mem_readb(buffer+chan*2u+2u);
 <a name="l01079"></a>01079                                         }
 <a name="l01080"></a>01080                                         <span class="keywordflow">if</span> (!mscdex-&gt;ChannelControl(drive_unit,ctrl)) <span class="keywordflow">return</span> 0x01;
 <a name="l01081"></a>01081                                         <span class="keywordflow">break</span>;
@@ -1454,7 +1454,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01358"></a>01358         <span class="keywordflow">return</span> mscdex-&gt;HasDrive(driveLetter-<span class="charliteral">&#39;A&#39;</span>);
 <a name="l01359"></a>01359 }
 <a name="l01360"></a>01360 
-<a name="l01361"></a>01361 <span class="keywordtype">void</span> MSCDEX_ReplaceDrive(<a class="code" href="classCDROM__Interface.html">CDROM_Interface</a>* cdrom, Bit8u subUnit)
+<a name="l01361"></a>01361 <span class="keywordtype">void</span> MSCDEX_ReplaceDrive(<a class="code" href="classCDROM__Interface.html" title="Base CD-ROM interface class.">CDROM_Interface</a>* cdrom, Bit8u subUnit)
 <a name="l01362"></a>01362 {
 <a name="l01363"></a>01363         mscdex-&gt;ReplaceDrive(cdrom, subUnit);
 <a name="l01364"></a>01364 }
@@ -1466,24 +1466,24 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01370"></a>01370 
 <a name="l01371"></a>01371 <span class="keywordtype">bool</span> MSCDEX_HasMediaChanged(Bit8u subUnit)
 <a name="l01372"></a>01372 {
-<a name="l01373"></a>01373         <span class="keyword">static</span> <a class="code" href="structSMSF.html">TMSF</a> leadOut[MSCDEX_MAX_DRIVES];
+<a name="l01373"></a>01373         <span class="keyword">static</span> <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a> leadOut[MSCDEX_MAX_DRIVES];
 <a name="l01374"></a>01374 
-<a name="l01375"></a>01375         <a class="code" href="structSMSF.html">TMSF</a> leadnew;
+<a name="l01375"></a>01375         <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a> leadnew;
 <a name="l01376"></a>01376         Bit8u tr1,tr2;
 <a name="l01377"></a>01377         <span class="keywordflow">if</span> (mscdex-&gt;GetCDInfo(subUnit,tr1,tr2,leadnew)) {
-<a name="l01378"></a>01378                 <span class="keywordtype">bool</span> changed = (leadOut[subUnit].min!=leadnew.min) || (leadOut[subUnit].sec!=leadnew.sec) || (leadOut[subUnit].fr!=leadnew.fr);
+<a name="l01378"></a>01378                 <span class="keywordtype">bool</span> changed = (leadOut[subUnit].<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>!=leadnew.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>) || (leadOut[subUnit].sec!=leadnew.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>) || (leadOut[subUnit].<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>!=leadnew.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l01379"></a>01379                 <span class="keywordflow">if</span> (changed) {
-<a name="l01380"></a>01380                         leadOut[subUnit].min = leadnew.min;
-<a name="l01381"></a>01381                         leadOut[subUnit].sec = leadnew.sec;
-<a name="l01382"></a>01382                         leadOut[subUnit].fr      = leadnew.fr;
+<a name="l01380"></a>01380                         leadOut[subUnit].<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a> = leadnew.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>;
+<a name="l01381"></a>01381                         leadOut[subUnit].<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a> = leadnew.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>;
+<a name="l01382"></a>01382                         leadOut[subUnit].<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>      = leadnew.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>;
 <a name="l01383"></a>01383                         mscdex-&gt;InitNewMedia(subUnit);
 <a name="l01384"></a>01384                 }
 <a name="l01385"></a>01385                 <span class="keywordflow">return</span> changed;
 <a name="l01386"></a>01386         };
 <a name="l01387"></a>01387         <span class="keywordflow">if</span> (subUnit&lt;MSCDEX_MAX_DRIVES) {
-<a name="l01388"></a>01388                 leadOut[subUnit].min = 0;
-<a name="l01389"></a>01389                 leadOut[subUnit].sec = 0;
-<a name="l01390"></a>01390                 leadOut[subUnit].fr      = 0;
+<a name="l01388"></a>01388                 leadOut[subUnit].<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a> = 0;
+<a name="l01389"></a>01389                 leadOut[subUnit].<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a> = 0;
+<a name="l01390"></a>01390                 leadOut[subUnit].<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>      = 0;
 <a name="l01391"></a>01391         }
 <a name="l01392"></a>01392         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l01393"></a>01393 }
@@ -1539,7 +1539,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Jun 13 2018 13:27:44 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -47,5 +47,6 @@ var searchData=
   ['tvfparam',['TVFParam',['../structMT32Emu_1_1TimbreParam_1_1PartialParam_1_1TVFParam.html',1,'MT32Emu::TimbreParam::PartialParam']]],
   ['tvp',['TVP',['../classMT32Emu_1_1TVP.html',1,'MT32Emu']]],
   ['tx',['tx',['../classGUI_1_1Drawable.html#a3790664933274d9e31bbd0afc3f27331',1,'GUI::Drawable']]],
-  ['ty',['ty',['../classGUI_1_1Drawable.html#a3c68b44e92447585bbb97afd356afdc2',1,'GUI::Drawable']]]
+  ['ty',['ty',['../classGUI_1_1Drawable.html#a3c68b44e92447585bbb97afd356afdc2',1,'GUI::Drawable']]],
+  ['type',['type',['../classCEvent.html#a5612c4e4e1d0cfc08e1640fee8bacf85',1,'CEvent::type()'],['../classCBind.html#a9e5121ab697c2c56cb20a20bd151ac45',1,'CBind::type()']]]
 ];

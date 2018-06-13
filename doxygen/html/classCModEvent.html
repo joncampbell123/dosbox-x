@@ -101,14 +101,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">CModEvent Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Modifier trigger event, for modifier keys. This permits the user to change modifier key bindings.  
+ <a href="classCModEvent.html#details">More...</a></p>
 <div class="dynheader">
 Inheritance diagram for CModEvent:</div>
 <div class="dyncontent">
  <div class="center">
   <img src="classCModEvent.png" usemap="#CModEvent_map" alt=""/>
   <map id="CModEvent_map" name="CModEvent_map">
-<area href="classCTriggeredEvent.html" alt="CTriggeredEvent" shape="rect" coords="0,56,108,80"/>
-<area href="classCEvent.html" alt="CEvent" shape="rect" coords="0,0,108,24"/>
+<area href="classCTriggeredEvent.html" title="class for events which can be ON/OFF only: key presses, joystick buttons, joystick hat..." alt="CTriggeredEvent" shape="rect" coords="0,56,108,80"/>
+<area href="classCEvent.html" title="Base CEvent class for mapper events." alt="CEvent" shape="rect" coords="0,0,108,24"/>
 </map>
  </div></div>
 
@@ -117,23 +120,29 @@ Inheritance diagram for CModEvent:</div>
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1bf7b8ec974c1944dbfa3737cac5e426"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1bf7b8ec974c1944dbfa3737cac5e426"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>CModEvent</b> (char const *const _entry, Bitu _wmod)</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCModEvent.html#a1bf7b8ec974c1944dbfa3737cac5e426">CModEvent</a> (char const *const _entry, Bitu _wmod)</td></tr>
+<tr class="memdesc:a1bf7b8ec974c1944dbfa3737cac5e426"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor to provide entry name and the index of the modifier button. <br/></td></tr>
 <tr class="memitem:a682d2590a915ef555a9f2c2d6aa927c8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a682d2590a915ef555a9f2c2d6aa927c8"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Active</b> (bool yesno)</td></tr>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCModEvent.html#a682d2590a915ef555a9f2c2d6aa927c8">Active</a> (bool yesno)</td></tr>
+<tr class="memdesc:a682d2590a915ef555a9f2c2d6aa927c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change whether the event is activated or not. <br/></td></tr>
 <tr class="memitem:a20aea0373f707e3c8f047f6e52bf5f77"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a20aea0373f707e3c8f047f6e52bf5f77"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>notifybutton</b> (<a class="el" href="classCTextButton.html">CTextButton</a> *n)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCModEvent.html#a20aea0373f707e3c8f047f6e52bf5f77">notifybutton</a> (<a class="el" href="classCTextButton.html">CTextButton</a> *n)</td></tr>
+<tr class="memdesc:a20aea0373f707e3c8f047f6e52bf5f77"><td class="mdescLeft">&#160;</td><td class="mdescRight">Associate this object with a text button in the mapper UI. <br/></td></tr>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:aa5dc746da9ec638e1959bfd1dddafc75"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa5dc746da9ec638e1959bfd1dddafc75"></a>
-<a class="el" href="classCTextButton.html">CTextButton</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>notify_button</b></td></tr>
+<a class="el" href="classCTextButton.html">CTextButton</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCModEvent.html#aa5dc746da9ec638e1959bfd1dddafc75">notify_button</a></td></tr>
+<tr class="memdesc:aa5dc746da9ec638e1959bfd1dddafc75"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mapper UI text button to indicate status by. <br/></td></tr>
 <tr><td colspan="2"><h2><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:a54a25228b8da694c33c44e4b161defd9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a54a25228b8da694c33c44e4b161defd9"></a>
-Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>wmod</b></td></tr>
+Bitu&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCModEvent.html#a54a25228b8da694c33c44e4b161defd9">wmod</a></td></tr>
+<tr class="memdesc:a54a25228b8da694c33c44e4b161defd9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Modifier button index. <br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
-<div class="textblock">
-<p>Definition at line <a class="el" href="sdl__mapper_8cpp_source.html#l01957">1957</a> of file <a class="el" href="sdl__mapper_8cpp_source.html">sdl_mapper.cpp</a>.</p>
+<div class="textblock"><p>Modifier trigger event, for modifier keys. This permits the user to change modifier key bindings. </p>
+
+<p>Definition at line <a class="el" href="sdl__mapper_8cpp_source.html#l02116">2116</a> of file <a class="el" href="sdl__mapper_8cpp_source.html">sdl_mapper.cpp</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/gui/<a class="el" href="sdl__mapper_8cpp_source.html">sdl_mapper.cpp</a></li>
 </ul>
@@ -141,7 +150,7 @@ Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>wmod</b></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 10 2018 23:57:07 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Jun 13 2018 13:27:49 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

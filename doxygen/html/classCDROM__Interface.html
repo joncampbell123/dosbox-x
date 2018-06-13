@@ -99,15 +99,20 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">CDROM_Interface Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Base CD-ROM interface class.  
+ <a href="classCDROM__Interface.html#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="cdrom_8h_source.html">cdrom.h</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for CDROM_Interface:</div>
 <div class="dyncontent">
  <div class="center">
   <img src="classCDROM__Interface.png" usemap="#CDROM_Interface_map" alt=""/>
   <map id="CDROM_Interface_map" name="CDROM_Interface_map">
-<area href="classCDROM__Interface__Fake.html" alt="CDROM_Interface_Fake" shape="rect" coords="0,56,156,80"/>
-<area href="classCDROM__Interface__Image.html" alt="CDROM_Interface_Image" shape="rect" coords="166,56,322,80"/>
-<area href="classCDROM__Interface__SDL.html" alt="CDROM_Interface_SDL" shape="rect" coords="332,56,488,80"/>
+<area href="classCDROM__Interface__Fake.html" title="Dummy CD-ROM interface." alt="CDROM_Interface_Fake" shape="rect" coords="0,56,156,80"/>
+<area href="classCDROM__Interface__Image.html" title="Image CD-ROM interface." alt="CDROM_Interface_Image" shape="rect" coords="166,56,322,80"/>
+<area href="classCDROM__Interface__SDL.html" title="CD-ROM interface to SDL 1.x CD-ROM support." alt="CDROM_Interface_SDL" shape="rect" coords="332,56,488,80"/>
 </map>
  </div></div>
 
@@ -116,39 +121,56 @@ Inheritance diagram for CDROM_Interface:</div>
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a60081f8d721b4456172f0a0b0d3b3b5a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a60081f8d721b4456172f0a0b0d3b3b5a"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>SetDevice</b> (char *path, int forceCD)=0</td></tr>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface.html#a60081f8d721b4456172f0a0b0d3b3b5a">SetDevice</a> (char *path, int forceCD)=0</td></tr>
+<tr class="memdesc:a60081f8d721b4456172f0a0b0d3b3b5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the device associated with this interface, if supported by emulation. <br/></td></tr>
 <tr class="memitem:a7f2eaeb90673c95fd018ce1ff4f1fdaa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7f2eaeb90673c95fd018ce1ff4f1fdaa"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetUPC</b> (unsigned char &amp;attr, char *upc)=0</td></tr>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface.html#a7f2eaeb90673c95fd018ce1ff4f1fdaa">GetUPC</a> (unsigned char &amp;attr, char *upc)=0</td></tr>
+<tr class="memdesc:a7f2eaeb90673c95fd018ce1ff4f1fdaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get UPC string from the CD-ROM. <br/></td></tr>
 <tr class="memitem:a3d9e5cf2a5812edc31badb6e4a79d51c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3d9e5cf2a5812edc31badb6e4a79d51c"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetAudioTracks</b> (int &amp;stTrack, int &amp;end, <a class="el" href="structSMSF.html">TMSF</a> &amp;leadOut)=0</td></tr>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface.html#a3d9e5cf2a5812edc31badb6e4a79d51c">GetAudioTracks</a> (int &amp;stTrack, int &amp;end, <a class="el" href="structSMSF.html">TMSF</a> &amp;leadOut)=0</td></tr>
+<tr class="memdesc:a3d9e5cf2a5812edc31badb6e4a79d51c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve start and end tracks and lead out position. <br/></td></tr>
 <tr class="memitem:adda0f3d505f7cd4bdf762508fc1962fb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="adda0f3d505f7cd4bdf762508fc1962fb"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetAudioTrackInfo</b> (int track, <a class="el" href="structSMSF.html">TMSF</a> &amp;start, unsigned char &amp;attr)=0</td></tr>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface.html#adda0f3d505f7cd4bdf762508fc1962fb">GetAudioTrackInfo</a> (int track, <a class="el" href="structSMSF.html">TMSF</a> &amp;start, unsigned char &amp;attr)=0</td></tr>
+<tr class="memdesc:adda0f3d505f7cd4bdf762508fc1962fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve start and attributes for a specific track. <br/></td></tr>
 <tr class="memitem:a2028b67399e88e5ce1ea1d18a1db75fb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2028b67399e88e5ce1ea1d18a1db75fb"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetAudioSub</b> (unsigned char &amp;attr, unsigned char &amp;track, unsigned char &amp;index, <a class="el" href="structSMSF.html">TMSF</a> &amp;relPos, <a class="el" href="structSMSF.html">TMSF</a> &amp;absPos)=0</td></tr>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface.html#a2028b67399e88e5ce1ea1d18a1db75fb">GetAudioSub</a> (unsigned char &amp;attr, unsigned char &amp;track, unsigned char &amp;index, <a class="el" href="structSMSF.html">TMSF</a> &amp;relPos, <a class="el" href="structSMSF.html">TMSF</a> &amp;absPos)=0</td></tr>
+<tr class="memdesc:a2028b67399e88e5ce1ea1d18a1db75fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get subchannel data of the sectors at the current position, and retrieve current position. <br/></td></tr>
 <tr class="memitem:a5f5e3fd21c495a0a4f55e79b18b69729"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5f5e3fd21c495a0a4f55e79b18b69729"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetAudioStatus</b> (bool &amp;playing, bool &amp;pause)=0</td></tr>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface.html#a5f5e3fd21c495a0a4f55e79b18b69729">GetAudioStatus</a> (bool &amp;playing, bool &amp;pause)=0</td></tr>
+<tr class="memdesc:a5f5e3fd21c495a0a4f55e79b18b69729"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get audio playback status. <br/></td></tr>
 <tr class="memitem:a3891396e99454752aafc695813e495e8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3891396e99454752aafc695813e495e8"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>GetMediaTrayStatus</b> (bool &amp;mediaPresent, bool &amp;mediaChanged, bool &amp;trayOpen)=0</td></tr>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface.html#a3891396e99454752aafc695813e495e8">GetMediaTrayStatus</a> (bool &amp;mediaPresent, bool &amp;mediaChanged, bool &amp;trayOpen)=0</td></tr>
+<tr class="memdesc:a3891396e99454752aafc695813e495e8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get media tray status. <br/></td></tr>
 <tr class="memitem:a9a90d8036bb0fccc17b147dfab6ad26f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9a90d8036bb0fccc17b147dfab6ad26f"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>PlayAudioSector</b> (unsigned long start, unsigned long len)=0</td></tr>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface.html#a9a90d8036bb0fccc17b147dfab6ad26f">PlayAudioSector</a> (unsigned long start, unsigned long len)=0</td></tr>
+<tr class="memdesc:a9a90d8036bb0fccc17b147dfab6ad26f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initiate audio playback starting at sector and for how many. <br/></td></tr>
 <tr class="memitem:a811af8ad77b46c975473abd8aaa48f48"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a811af8ad77b46c975473abd8aaa48f48"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>PauseAudio</b> (bool resume)=0</td></tr>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface.html#a811af8ad77b46c975473abd8aaa48f48">PauseAudio</a> (bool resume)=0</td></tr>
+<tr class="memdesc:a811af8ad77b46c975473abd8aaa48f48"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pause audio playback. <br/></td></tr>
 <tr class="memitem:ac16f2f2a5f081fbd1ace3ae6af34b7c3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac16f2f2a5f081fbd1ace3ae6af34b7c3"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>StopAudio</b> (void)=0</td></tr>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface.html#ac16f2f2a5f081fbd1ace3ae6af34b7c3">StopAudio</a> (void)=0</td></tr>
+<tr class="memdesc:ac16f2f2a5f081fbd1ace3ae6af34b7c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stop audio playback. <br/></td></tr>
 <tr class="memitem:a7ad6149099c04af804e543613e69d9bd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7ad6149099c04af804e543613e69d9bd"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>ChannelControl</b> (<a class="el" href="structSCtrl.html">TCtrl</a> ctrl)=0</td></tr>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface.html#a7ad6149099c04af804e543613e69d9bd">ChannelControl</a> (<a class="el" href="structSCtrl.html">TCtrl</a> ctrl)=0</td></tr>
+<tr class="memdesc:a7ad6149099c04af804e543613e69d9bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set channel control data (TODO: clarify) <br/></td></tr>
 <tr class="memitem:afb4989b5b1881a03123442adddcfa6d7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afb4989b5b1881a03123442adddcfa6d7"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>ReadSectors</b> (PhysPt buffer, bool raw, unsigned long sector, unsigned long num)=0</td></tr>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface.html#afb4989b5b1881a03123442adddcfa6d7">ReadSectors</a> (PhysPt buffer, bool raw, unsigned long sector, unsigned long num)=0</td></tr>
+<tr class="memdesc:afb4989b5b1881a03123442adddcfa6d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read sector data into guest memory. <br/></td></tr>
 <tr class="memitem:ae056d63e7b104c7a05afc7c68ee34718"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae056d63e7b104c7a05afc7c68ee34718"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>ReadSectorsHost</b> (void *buffer, bool raw, unsigned long sector, unsigned long num)=0</td></tr>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface.html#ae056d63e7b104c7a05afc7c68ee34718">ReadSectorsHost</a> (void *buffer, bool raw, unsigned long sector, unsigned long num)=0</td></tr>
+<tr class="memdesc:ae056d63e7b104c7a05afc7c68ee34718"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read sector data into host memory (for IDE emulation) <br/></td></tr>
 <tr class="memitem:a5d52a31065d3b87924c5d059266fd20e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5d52a31065d3b87924c5d059266fd20e"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>LoadUnloadMedia</b> (bool unload)=0</td></tr>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface.html#a5d52a31065d3b87924c5d059266fd20e">LoadUnloadMedia</a> (bool unload)=0</td></tr>
+<tr class="memdesc:a5d52a31065d3b87924c5d059266fd20e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load (close/spin up) or unload (eject/spin down) media. <br/></td></tr>
 <tr class="memitem:a688bdeb135e3238178883666c34aaa75"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a688bdeb135e3238178883666c34aaa75"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>InitNewMedia</b> (void)</td></tr>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDROM__Interface.html#a688bdeb135e3238178883666c34aaa75">InitNewMedia</a> (void)</td></tr>
+<tr class="memdesc:a688bdeb135e3238178883666c34aaa75"><td class="mdescLeft">&#160;</td><td class="mdescRight">TODO? <br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
-<div class="textblock">
-<p>Definition at line <a class="el" href="cdrom_8h_source.html#l00072">72</a> of file <a class="el" href="cdrom_8h_source.html">cdrom.h</a>.</p>
+<div class="textblock"><p>Base CD-ROM interface class. </p>
+<p>This provides the base C++ class for a CD-ROM interface in CD-ROM emulation </p>
+
+<p>Definition at line <a class="el" href="cdrom_8h_source.html#l00084">84</a> of file <a class="el" href="cdrom_8h_source.html">cdrom.h</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/dos/<a class="el" href="cdrom_8h_source.html">cdrom.h</a></li>
 </ul>
@@ -156,7 +178,7 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>InitNewMedia<
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 10 2018 23:57:07 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Jun 13 2018 13:27:49 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

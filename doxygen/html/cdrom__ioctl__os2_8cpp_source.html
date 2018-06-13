@@ -128,7 +128,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00032"></a>00032 <span class="preprocessor">#define CD_FRAMESIZE_RAW 2352</span>
 <a name="l00033"></a>00033 <span class="preprocessor"></span><span class="preprocessor">#define CD_FRAMESIZE 2048</span>
 <a name="l00034"></a>00034 <span class="preprocessor"></span>
-<a name="l00035"></a>00035 CDROM_Interface_Ioctl::CDROM_Interface_Ioctl(<span class="keywordtype">void</span>) : <a class="code" href="classCDROM__Interface__SDL.html">CDROM_Interface_SDL</a>(){
+<a name="l00035"></a>00035 CDROM_Interface_Ioctl::CDROM_Interface_Ioctl(<span class="keywordtype">void</span>) : <a class="code" href="classCDROM__Interface__SDL.html" title="CD-ROM interface to SDL 1.x CD-ROM support.">CDROM_Interface_SDL</a>(){
 <a name="l00036"></a>00036     strcpy(device_name, <span class="stringliteral">&quot;&quot;</span>);
 <a name="l00037"></a>00037 }
 <a name="l00038"></a>00038 
@@ -227,7 +227,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00131"></a>00131 }
 <a name="l00132"></a>00132 
 <a name="l00133"></a>00133 <span class="keywordtype">bool</span> CDROM_Interface_Ioctl::SetDevice(<span class="keywordtype">char</span>* path, <span class="keywordtype">int</span> forceCD) {
-<a name="l00134"></a>00134     <span class="keywordtype">bool</span> success = CDROM_Interface_SDL::SetDevice(path, forceCD);
+<a name="l00134"></a>00134     <span class="keywordtype">bool</span> success = <a class="code" href="classCDROM__Interface__SDL.html#ac2830ccd403b203edadd17f2b69525d3" title="Set the device associated with this interface, if supported by emulation.">CDROM_Interface_SDL::SetDevice</a>(path, forceCD);
 <a name="l00135"></a>00135 
 <a name="l00136"></a>00136     <span class="keywordflow">if</span> (success) {
 <a name="l00137"></a>00137                 <span class="keywordtype">char</span> temp[3] = {0, 0,  0};
@@ -255,7 +255,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Jun 13 2018 13:27:43 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

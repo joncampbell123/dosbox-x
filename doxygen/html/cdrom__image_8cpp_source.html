@@ -166,12 +166,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00070"></a>00070 
 <a name="l00071"></a>00071 <span class="comment">// initialize static members</span>
 <a name="l00072"></a>00072 <span class="keywordtype">int</span> CDROM_Interface_Image::refCount = 0;
-<a name="l00073"></a>00073 <a class="code" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a>* CDROM_Interface_Image::images[26] = {NULL};
+<a name="l00073"></a>00073 <a class="code" href="classCDROM__Interface__Image.html" title="Image CD-ROM interface.">CDROM_Interface_Image</a>* <a class="code" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3" title="Array of CD-ROM images, one per drive letter.">CDROM_Interface_Image::images</a>[26] = {NULL};
 <a name="l00074"></a>00074 CDROM_Interface_Image::imagePlayer CDROM_Interface_Image::player = {
 <a name="l00075"></a>00075         NULL, NULL, NULL, {0}, 0, 0, 0, <span class="keyword">false</span>, <span class="keyword">false</span>, <span class="keyword">false</span>, {0} };
 <a name="l00076"></a>00076 
 <a name="l00077"></a>00077         
-<a name="l00078"></a>00078 CDROM_Interface_Image::CDROM_Interface_Image(Bit8u subUnit)
+<a name="l00078"></a><a class="code" href="classCDROM__Interface__Image.html#acecb6b00f509aba4e203b7bb5c4653fb">00078</a> <a class="code" href="classCDROM__Interface__Image.html#acecb6b00f509aba4e203b7bb5c4653fb" title="Constructor, with parameter for subunit.">CDROM_Interface_Image::CDROM_Interface_Image</a>(Bit8u subUnit)
 <a name="l00079"></a>00079 {
 <a name="l00080"></a>00080         images[subUnit] = <span class="keyword">this</span>;
 <a name="l00081"></a>00081         <span class="keywordflow">if</span> (refCount == 0) {
@@ -198,11 +198,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00102"></a>00102         }
 <a name="l00103"></a>00103 }
 <a name="l00104"></a>00104 
-<a name="l00105"></a>00105 <span class="keywordtype">void</span> CDROM_Interface_Image::InitNewMedia()
+<a name="l00105"></a><a class="code" href="classCDROM__Interface__Image.html#a8b1323ddfae9e59fae8fa5d8f862c8c4">00105</a> <span class="keywordtype">void</span> <a class="code" href="classCDROM__Interface__Image.html#a8b1323ddfae9e59fae8fa5d8f862c8c4" title="TODO?">CDROM_Interface_Image::InitNewMedia</a>()
 <a name="l00106"></a>00106 {
 <a name="l00107"></a>00107 }
 <a name="l00108"></a>00108 
-<a name="l00109"></a>00109 <span class="keywordtype">bool</span> CDROM_Interface_Image::SetDevice(<span class="keywordtype">char</span>* path, <span class="keywordtype">int</span> forceCD)
+<a name="l00109"></a><a class="code" href="classCDROM__Interface__Image.html#ae803cb47966de3b637c55c40aaf89e78">00109</a> <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#ae803cb47966de3b637c55c40aaf89e78" title="Set the device associated with this interface, if supported by emulation.">CDROM_Interface_Image::SetDevice</a>(<span class="keywordtype">char</span>* path, <span class="keywordtype">int</span> forceCD)
 <a name="l00110"></a>00110 {
 <a name="l00111"></a>00111     (void)forceCD;<span class="comment">//UNUSED</span>
 <a name="l00112"></a>00112     (void)path;<span class="comment">//UNUSED</span>
@@ -220,49 +220,49 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00124"></a>00124         <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00125"></a>00125 }
 <a name="l00126"></a>00126 
-<a name="l00127"></a>00127 <span class="keywordtype">bool</span> CDROM_Interface_Image::GetUPC(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; attr, <span class="keywordtype">char</span>* upc)
+<a name="l00127"></a><a class="code" href="classCDROM__Interface__Image.html#a0f4704db65cd97e70da4ee7464e535b0">00127</a> <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#a0f4704db65cd97e70da4ee7464e535b0" title="Get UPC string from the CD-ROM.">CDROM_Interface_Image::GetUPC</a>(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; attr, <span class="keywordtype">char</span>* upc)
 <a name="l00128"></a>00128 {
 <a name="l00129"></a>00129         attr = 0;
 <a name="l00130"></a>00130         strcpy(upc, this-&gt;mcn.c_str());
 <a name="l00131"></a>00131         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00132"></a>00132 }
 <a name="l00133"></a>00133 
-<a name="l00134"></a>00134 <span class="keywordtype">bool</span> CDROM_Interface_Image::GetAudioTracks(<span class="keywordtype">int</span>&amp; stTrack, <span class="keywordtype">int</span>&amp; end, <a class="code" href="structSMSF.html">TMSF</a>&amp; leadOut)
+<a name="l00134"></a><a class="code" href="classCDROM__Interface__Image.html#a4aae5ec2ba0011a4f2281bb312aa49c3">00134</a> <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#a4aae5ec2ba0011a4f2281bb312aa49c3" title="Retrieve start and end tracks and lead out position.">CDROM_Interface_Image::GetAudioTracks</a>(<span class="keywordtype">int</span>&amp; stTrack, <span class="keywordtype">int</span>&amp; end, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; leadOut)
 <a name="l00135"></a>00135 {
 <a name="l00136"></a>00136         stTrack = 1;
 <a name="l00137"></a>00137         end = (int)(tracks.size() - 1u);
-<a name="l00138"></a>00138         FRAMES_TO_MSF((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)tracks[tracks.size() - 1u].start + 150u, &amp;leadOut.min, &amp;leadOut.sec, &amp;leadOut.fr);
+<a name="l00138"></a>00138         FRAMES_TO_MSF((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)tracks[tracks.size() - 1u].start + 150u, &amp;leadOut.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>, &amp;leadOut.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>, &amp;leadOut.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l00139"></a>00139         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00140"></a>00140 }
 <a name="l00141"></a>00141 
-<a name="l00142"></a>00142 <span class="keywordtype">bool</span> CDROM_Interface_Image::GetAudioTrackInfo(<span class="keywordtype">int</span> track, <a class="code" href="structSMSF.html">TMSF</a>&amp; start, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; attr)
+<a name="l00142"></a><a class="code" href="classCDROM__Interface__Image.html#a1a1c42c11d483e82f41c6012f5f7d602">00142</a> <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#a1a1c42c11d483e82f41c6012f5f7d602" title="Retrieve start and attributes for a specific track.">CDROM_Interface_Image::GetAudioTrackInfo</a>(<span class="keywordtype">int</span> track, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; start, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; attr)
 <a name="l00143"></a>00143 {
 <a name="l00144"></a>00144         <span class="keywordflow">if</span> (track &lt; 1 || track &gt; (<span class="keywordtype">int</span>)tracks.size()) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00145"></a>00145         FRAMES_TO_MSF((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)tracks[(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)track - 1u].start + 150u, &amp;start.min, &amp;start.sec, &amp;start.fr);
+<a name="l00145"></a>00145         FRAMES_TO_MSF((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)tracks[(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)track - 1u].start + 150u, &amp;start.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>, &amp;start.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>, &amp;start.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l00146"></a>00146         attr = tracks[(<span class="keywordtype">unsigned</span> int)track - 1u].attr;
 <a name="l00147"></a>00147         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00148"></a>00148 }
 <a name="l00149"></a>00149 
-<a name="l00150"></a>00150 <span class="keywordtype">bool</span> CDROM_Interface_Image::GetAudioSub(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; attr, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; track, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; index, <a class="code" href="structSMSF.html">TMSF</a>&amp; relPos, <a class="code" href="structSMSF.html">TMSF</a>&amp; absPos)
+<a name="l00150"></a><a class="code" href="classCDROM__Interface__Image.html#a11ba4965b5dd42015aff3d9f4b607abc">00150</a> <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#a11ba4965b5dd42015aff3d9f4b607abc" title="Get subchannel data of the sectors at the current position, and retrieve current position.">CDROM_Interface_Image::GetAudioSub</a>(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; attr, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; track, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; index, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; relPos, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; absPos)
 <a name="l00151"></a>00151 {
 <a name="l00152"></a>00152         <span class="keywordtype">int</span> cur_track = GetTrack(player.currFrame);
 <a name="l00153"></a>00153         <span class="keywordflow">if</span> (cur_track &lt; 1) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00154"></a>00154         track = (<span class="keywordtype">unsigned</span> char)cur_track;
 <a name="l00155"></a>00155         attr = tracks[track - 1u].attr;
 <a name="l00156"></a>00156         index = 1;
-<a name="l00157"></a>00157         FRAMES_TO_MSF((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)player.currFrame + 150u, &amp;absPos.min, &amp;absPos.sec, &amp;absPos.fr);
-<a name="l00158"></a>00158         FRAMES_TO_MSF((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)player.currFrame - (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)tracks[track - 1u].start + 150u, &amp;relPos.min, &amp;relPos.sec, &amp;relPos.fr);
+<a name="l00157"></a>00157         FRAMES_TO_MSF((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)player.currFrame + 150u, &amp;absPos.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>, &amp;absPos.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>, &amp;absPos.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
+<a name="l00158"></a>00158         FRAMES_TO_MSF((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)player.currFrame - (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)tracks[track - 1u].start + 150u, &amp;relPos.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>, &amp;relPos.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>, &amp;relPos.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l00159"></a>00159         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00160"></a>00160 }
 <a name="l00161"></a>00161 
-<a name="l00162"></a>00162 <span class="keywordtype">bool</span> CDROM_Interface_Image::GetAudioStatus(<span class="keywordtype">bool</span>&amp; playing, <span class="keywordtype">bool</span>&amp; pause)
+<a name="l00162"></a><a class="code" href="classCDROM__Interface__Image.html#a5151e50027294571fafb414d751ca332">00162</a> <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#a5151e50027294571fafb414d751ca332" title="Get audio playback status.">CDROM_Interface_Image::GetAudioStatus</a>(<span class="keywordtype">bool</span>&amp; playing, <span class="keywordtype">bool</span>&amp; pause)
 <a name="l00163"></a>00163 {
 <a name="l00164"></a>00164         playing = player.isPlaying;
 <a name="l00165"></a>00165         pause = player.isPaused;
 <a name="l00166"></a>00166         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00167"></a>00167 }
 <a name="l00168"></a>00168 
-<a name="l00169"></a>00169 <span class="keywordtype">bool</span> CDROM_Interface_Image::GetMediaTrayStatus(<span class="keywordtype">bool</span>&amp; mediaPresent, <span class="keywordtype">bool</span>&amp; mediaChanged, <span class="keywordtype">bool</span>&amp; trayOpen)
+<a name="l00169"></a><a class="code" href="classCDROM__Interface__Image.html#a8c5afdabeea94743f487fae4623eacac">00169</a> <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#a8c5afdabeea94743f487fae4623eacac" title="Get media tray status.">CDROM_Interface_Image::GetMediaTrayStatus</a>(<span class="keywordtype">bool</span>&amp; mediaPresent, <span class="keywordtype">bool</span>&amp; mediaChanged, <span class="keywordtype">bool</span>&amp; trayOpen)
 <a name="l00170"></a>00170 {
 <a name="l00171"></a>00171         mediaPresent = <span class="keyword">true</span>;
 <a name="l00172"></a>00172         mediaChanged = <span class="keyword">false</span>;
@@ -270,7 +270,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00174"></a>00174         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00175"></a>00175 }
 <a name="l00176"></a>00176 
-<a name="l00177"></a>00177 <span class="keywordtype">bool</span> CDROM_Interface_Image::PlayAudioSector(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> start,<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> len)
+<a name="l00177"></a><a class="code" href="classCDROM__Interface__Image.html#afbb8b5443be56ba92b5a1287ba95f913">00177</a> <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#afbb8b5443be56ba92b5a1287ba95f913" title="Initiate audio playback starting at sector and for how many.">CDROM_Interface_Image::PlayAudioSector</a>(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> start,<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> len)
 <a name="l00178"></a>00178 {
 <a name="l00179"></a>00179         <span class="comment">// We might want to do some more checks. E.g valid start and length</span>
 <a name="l00180"></a>00180         SDL_mutexP(player.mutex);
@@ -290,26 +290,26 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00194"></a>00194         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00195"></a>00195 }
 <a name="l00196"></a>00196 
-<a name="l00197"></a>00197 <span class="keywordtype">bool</span> CDROM_Interface_Image::PauseAudio(<span class="keywordtype">bool</span> resume)
+<a name="l00197"></a><a class="code" href="classCDROM__Interface__Image.html#ac74be8f64002ccf76b65c2fbd03077bd">00197</a> <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#ac74be8f64002ccf76b65c2fbd03077bd" title="Pause audio playback.">CDROM_Interface_Image::PauseAudio</a>(<span class="keywordtype">bool</span> resume)
 <a name="l00198"></a>00198 {
 <a name="l00199"></a>00199         player.isPaused = !resume;
 <a name="l00200"></a>00200         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00201"></a>00201 }
 <a name="l00202"></a>00202 
-<a name="l00203"></a>00203 <span class="keywordtype">bool</span> CDROM_Interface_Image::StopAudio(<span class="keywordtype">void</span>)
+<a name="l00203"></a><a class="code" href="classCDROM__Interface__Image.html#a4a0af2e1be4fcb87e125b9d3e7aca327">00203</a> <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#a4a0af2e1be4fcb87e125b9d3e7aca327" title="Stop audio playback.">CDROM_Interface_Image::StopAudio</a>(<span class="keywordtype">void</span>)
 <a name="l00204"></a>00204 {
 <a name="l00205"></a>00205         player.isPlaying = <span class="keyword">false</span>;
 <a name="l00206"></a>00206         player.isPaused = <span class="keyword">false</span>;
 <a name="l00207"></a>00207         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00208"></a>00208 }
 <a name="l00209"></a>00209 
-<a name="l00210"></a>00210 <span class="keywordtype">void</span> CDROM_Interface_Image::ChannelControl(<a class="code" href="structSCtrl.html">TCtrl</a> ctrl)
+<a name="l00210"></a><a class="code" href="classCDROM__Interface__Image.html#a6759cd7741be28cb61dd9903712edca1">00210</a> <span class="keywordtype">void</span> <a class="code" href="classCDROM__Interface__Image.html#a6759cd7741be28cb61dd9903712edca1" title="Set channel control data (TODO: clarify)">CDROM_Interface_Image::ChannelControl</a>(<a class="code" href="structSCtrl.html" title="Output and channel control state.">TCtrl</a> ctrl)
 <a name="l00211"></a>00211 {
-<a name="l00212"></a>00212         player.ctrlUsed = (ctrl.out[0]!=0 || ctrl.out[1]!=1 || ctrl.vol[0]&lt;0xfe || ctrl.vol[1]&lt;0xfe);
+<a name="l00212"></a>00212         player.ctrlUsed = (ctrl.<a class="code" href="structSCtrl.html#a5b5415593005d9a11a35d11e8bbdd8b3" title="output channel">out</a>[0]!=0 || ctrl.<a class="code" href="structSCtrl.html#a5b5415593005d9a11a35d11e8bbdd8b3" title="output channel">out</a>[1]!=1 || ctrl.<a class="code" href="structSCtrl.html#ad029c2b75bd84b09cfe3f893ba6a5004" title="channel volume">vol</a>[0]&lt;0xfe || ctrl.<a class="code" href="structSCtrl.html#ad029c2b75bd84b09cfe3f893ba6a5004" title="channel volume">vol</a>[1]&lt;0xfe);
 <a name="l00213"></a>00213         player.ctrlData = ctrl;
 <a name="l00214"></a>00214 }
 <a name="l00215"></a>00215 
-<a name="l00216"></a>00216 <span class="keywordtype">bool</span> CDROM_Interface_Image::ReadSectors(PhysPt buffer, <span class="keywordtype">bool</span> raw, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> sector, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> num)
+<a name="l00216"></a><a class="code" href="classCDROM__Interface__Image.html#a5121d2e82267d529bc462cecdac36791">00216</a> <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#a5121d2e82267d529bc462cecdac36791" title="Read sector data into guest memory.">CDROM_Interface_Image::ReadSectors</a>(PhysPt buffer, <span class="keywordtype">bool</span> raw, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> sector, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> num)
 <a name="l00217"></a>00217 {
 <a name="l00218"></a>00218         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> sectorSize = raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE;
 <a name="l00219"></a>00219         Bitu buflen = num * sectorSize;
@@ -327,7 +327,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00231"></a>00231         <span class="keywordflow">return</span> success;
 <a name="l00232"></a>00232 }
 <a name="l00233"></a>00233 
-<a name="l00234"></a>00234 <span class="keywordtype">bool</span> CDROM_Interface_Image::ReadSectorsHost(<span class="keywordtype">void</span> *buffer, <span class="keywordtype">bool</span> raw, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> sector, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> num)
+<a name="l00234"></a><a class="code" href="classCDROM__Interface__Image.html#ae686caa17e265089d6cd1a69ecc5b332">00234</a> <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#ae686caa17e265089d6cd1a69ecc5b332" title="Read sector data into host memory (for IDE emulation)">CDROM_Interface_Image::ReadSectorsHost</a>(<span class="keywordtype">void</span> *buffer, <span class="keywordtype">bool</span> raw, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> sector, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> num)
 <a name="l00235"></a>00235 {
 <a name="l00236"></a>00236         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> sectorSize = raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE;
 <a name="l00237"></a>00237         <span class="keywordtype">bool</span> success = <span class="keyword">true</span>; <span class="comment">//Gobliiins reads 0 sectors</span>
@@ -339,7 +339,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00243"></a>00243         <span class="keywordflow">return</span> success;
 <a name="l00244"></a>00244 }
 <a name="l00245"></a>00245 
-<a name="l00246"></a>00246 <span class="keywordtype">bool</span> CDROM_Interface_Image::LoadUnloadMedia(<span class="keywordtype">bool</span> unload)
+<a name="l00246"></a><a class="code" href="classCDROM__Interface__Image.html#af5aa7f94de1d7c77ff6b484b380c5351">00246</a> <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#af5aa7f94de1d7c77ff6b484b380c5351" title="Load (close/spin up) or unload (eject/spin down) media.">CDROM_Interface_Image::LoadUnloadMedia</a>(<span class="keywordtype">bool</span> unload)
 <a name="l00247"></a>00247 {
 <a name="l00248"></a>00248     (void)unload;<span class="comment">//UNUSED</span>
 <a name="l00249"></a>00249         <span class="keywordflow">return</span> <span class="keyword">true</span>;
@@ -359,7 +359,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00263"></a>00263         <span class="keywordflow">return</span> -1;
 <a name="l00264"></a>00264 }
 <a name="l00265"></a>00265 
-<a name="l00266"></a>00266 <span class="keywordtype">bool</span> CDROM_Interface_Image::ReadSector(Bit8u *buffer, <span class="keywordtype">bool</span> raw, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> sector)
+<a name="l00266"></a><a class="code" href="classCDROM__Interface__Image.html#acbed60c6b06009b2a027d605190ee842">00266</a> <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#acbed60c6b06009b2a027d605190ee842" title="Sector read (one sector), where the image decoding is done.">CDROM_Interface_Image::ReadSector</a>(Bit8u *buffer, <span class="keywordtype">bool</span> raw, <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> sector)
 <a name="l00267"></a>00267 {
 <a name="l00268"></a>00268         <span class="keywordtype">int</span> track = GetTrack(sector) - 1;
 <a name="l00269"></a>00269         <span class="keywordflow">if</span> (track &lt; 0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
@@ -685,7 +685,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00589"></a>00589         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00590"></a>00590 }
 <a name="l00591"></a>00591 
-<a name="l00592"></a>00592 <span class="keywordtype">bool</span> CDROM_Interface_Image::HasDataTrack(<span class="keywordtype">void</span>)
+<a name="l00592"></a><a class="code" href="classCDROM__Interface__Image.html#a7348536d197510d1442419f2aa172ccc">00592</a> <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#a7348536d197510d1442419f2aa172ccc" title="Indicate whether the image has a data track.">CDROM_Interface_Image::HasDataTrack</a>(<span class="keywordtype">void</span>)
 <a name="l00593"></a>00593 {
 <a name="l00594"></a>00594         <span class="comment">//Data track has attribute 0x40</span>
 <a name="l00595"></a>00595         <span class="keywordflow">for</span>(track_it it = tracks.begin(); it != tracks.end(); it++) {
@@ -810,7 +810,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Jun 13 2018 13:27:43 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

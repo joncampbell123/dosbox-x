@@ -2428,12 +2428,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02351"></a>02351     *make=<span class="keyword">new</span> <a class="code" href="classINTRO.html">INTRO</a>;
 <a name="l02352"></a>02352 }
 <a name="l02353"></a>02353 
-<a name="l02354"></a>02354 <span class="keywordtype">bool</span> ElTorito_ScanForBootRecord(<a class="code" href="classCDROM__Interface.html">CDROM_Interface</a> *drv,<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> &amp;boot_record,<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> &amp;el_torito_base) {
+<a name="l02354"></a>02354 <span class="keywordtype">bool</span> ElTorito_ScanForBootRecord(<a class="code" href="classCDROM__Interface.html" title="Base CD-ROM interface class.">CDROM_Interface</a> *drv,<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> &amp;boot_record,<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> &amp;el_torito_base) {
 <a name="l02355"></a>02355     <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> buffer[2048];
 <a name="l02356"></a>02356     <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> sec;
 <a name="l02357"></a>02357 
 <a name="l02358"></a>02358     <span class="keywordflow">for</span> (sec=16;sec &lt; 32;sec++) {
-<a name="l02359"></a>02359         <span class="keywordflow">if</span> (!drv-&gt;ReadSectorsHost(buffer,<span class="keyword">false</span>,sec,1))
+<a name="l02359"></a>02359         <span class="keywordflow">if</span> (!drv-&gt;<a class="code" href="classCDROM__Interface.html#ae056d63e7b104c7a05afc7c68ee34718" title="Read sector data into host memory (for IDE emulation)">ReadSectorsHost</a>(buffer,<span class="keyword">false</span>,sec,1))
 <a name="l02360"></a>02360             <span class="keywordflow">break</span>;
 <a name="l02361"></a>02361 
 <a name="l02362"></a>02362         <span class="comment">/* stop at terminating volume record */</span>
@@ -2464,12 +2464,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02387"></a>02387     <span class="keyword">virtual</span> Bit8u Read_AbsoluteSector(Bit32u sectnum, <span class="keywordtype">void</span> * data) {
 <a name="l02388"></a>02388         <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> buffer[2048];
 <a name="l02389"></a>02389 
-<a name="l02390"></a>02390         <span class="keywordtype">bool</span> GetMSCDEXDrive(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> drive_letter,<a class="code" href="classCDROM__Interface.html">CDROM_Interface</a> **_cdrom);
+<a name="l02390"></a>02390         <span class="keywordtype">bool</span> GetMSCDEXDrive(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> drive_letter,<a class="code" href="classCDROM__Interface.html" title="Base CD-ROM interface class.">CDROM_Interface</a> **_cdrom);
 <a name="l02391"></a>02391 
-<a name="l02392"></a>02392         <a class="code" href="classCDROM__Interface.html">CDROM_Interface</a> *src_drive=NULL;
+<a name="l02392"></a>02392         <a class="code" href="classCDROM__Interface.html" title="Base CD-ROM interface class.">CDROM_Interface</a> *src_drive=NULL;
 <a name="l02393"></a>02393         <span class="keywordflow">if</span> (!GetMSCDEXDrive(CDROM_drive-<span class="charliteral">&#39;A&#39;</span>,&amp;src_drive)) <span class="keywordflow">return</span> 0x05;
 <a name="l02394"></a>02394 
-<a name="l02395"></a>02395         <span class="keywordflow">if</span> (!src_drive-&gt;ReadSectorsHost(buffer,<span class="keyword">false</span>,cdrom_sector_offset+(sectnum&gt;&gt;2)<span class="comment">/*512 byte/sector to 2048 byte/sector conversion*/</span>,1))
+<a name="l02395"></a>02395         <span class="keywordflow">if</span> (!src_drive-&gt;<a class="code" href="classCDROM__Interface.html#ae056d63e7b104c7a05afc7c68ee34718" title="Read sector data into host memory (for IDE emulation)">ReadSectorsHost</a>(buffer,<span class="keyword">false</span>,cdrom_sector_offset+(sectnum&gt;&gt;2)<span class="comment">/*512 byte/sector to 2048 byte/sector conversion*/</span>,1))
 <a name="l02396"></a>02396             <span class="keywordflow">return</span> 0x05;
 <a name="l02397"></a>02397 
 <a name="l02398"></a>02398         memcpy(data,buffer+((sectnum&amp;3)*512),512);
@@ -3021,10 +3021,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02944"></a>02944             <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l02945"></a>02945         }
 <a name="l02946"></a>02946 
-<a name="l02947"></a>02947         <span class="keywordtype">bool</span> GetMSCDEXDrive(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> drive_letter, <a class="code" href="classCDROM__Interface.html">CDROM_Interface</a> **_cdrom);
+<a name="l02947"></a>02947         <span class="keywordtype">bool</span> GetMSCDEXDrive(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> drive_letter, <a class="code" href="classCDROM__Interface.html" title="Base CD-ROM interface class.">CDROM_Interface</a> **_cdrom);
 <a name="l02948"></a>02948 
 <a name="l02949"></a>02949         <span class="comment">/* get the CD-ROM drive */</span>
-<a name="l02950"></a>02950         <a class="code" href="classCDROM__Interface.html">CDROM_Interface</a> *src_drive = NULL;
+<a name="l02950"></a>02950         <a class="code" href="classCDROM__Interface.html" title="Base CD-ROM interface class.">CDROM_Interface</a> *src_drive = NULL;
 <a name="l02951"></a>02951         <span class="keywordflow">if</span> (!GetMSCDEXDrive(el_torito_cd_drive - <span class="charliteral">&#39;A&#39;</span>, &amp;src_drive)) {
 <a name="l02952"></a>02952             <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;-el-torito CD-ROM drive specified is not actually a CD-ROM drive\n&quot;</span>);
 <a name="l02953"></a>02953             <span class="keywordflow">return</span> <span class="keyword">false</span>;
@@ -3048,7 +3048,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02971"></a>02971             boot_record_sector, el_torito_base);
 <a name="l02972"></a>02972 
 <a name="l02973"></a>02973         <span class="comment">/* Step #2: Parse the records. Each one is 32 bytes long */</span>
-<a name="l02974"></a>02974         <span class="keywordflow">if</span> (!src_drive-&gt;ReadSectorsHost(entries, <span class="keyword">false</span>, el_torito_base, 1)) {
+<a name="l02974"></a>02974         <span class="keywordflow">if</span> (!src_drive-&gt;<a class="code" href="classCDROM__Interface.html#ae056d63e7b104c7a05afc7c68ee34718" title="Read sector data into host memory (for IDE emulation)">ReadSectorsHost</a>(entries, <span class="keyword">false</span>, el_torito_base, 1)) {
 <a name="l02975"></a>02975             <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;El Torito entries unreadable\n&quot;</span>);
 <a name="l02976"></a>02976             <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l02977"></a>02977         }
@@ -4490,7 +4490,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Jun 13 2018 13:27:44 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

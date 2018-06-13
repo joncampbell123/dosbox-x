@@ -102,14 +102,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">CJAxisEvent Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Joystick axis event handling for the mapper.  
+ <a href="classCJAxisEvent.html#details">More...</a></p>
 <div class="dynheader">
 Inheritance diagram for CJAxisEvent:</div>
 <div class="dyncontent">
  <div class="center">
   <img src="classCJAxisEvent.png" usemap="#CJAxisEvent_map" alt=""/>
   <map id="CJAxisEvent_map" name="CJAxisEvent_map">
-<area href="classCContinuousEvent.html" alt="CContinuousEvent" shape="rect" coords="0,56,116,80"/>
-<area href="classCEvent.html" alt="CEvent" shape="rect" coords="0,0,116,24"/>
+<area href="classCContinuousEvent.html" title="class for events which have a non-boolean state: joystick axis movement" alt="CContinuousEvent" shape="rect" coords="0,56,116,80"/>
+<area href="classCEvent.html" title="Base CEvent class for mapper events." alt="CEvent" shape="rect" coords="0,0,116,24"/>
 </map>
  </div></div>
 
@@ -118,37 +121,49 @@ Inheritance diagram for CJAxisEvent:</div>
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a9cf7657ec986985dd15efcb92b20a380"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9cf7657ec986985dd15efcb92b20a380"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>CJAxisEvent</b> (char const *const _entry, Bitu _stick, Bitu _axis, bool _positive, <a class="el" href="classCJAxisEvent.html">CJAxisEvent</a> *_opposite_axis)</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJAxisEvent.html#a9cf7657ec986985dd15efcb92b20a380">CJAxisEvent</a> (char const *const _entry, Bitu _stick, Bitu _axis, bool _positive, <a class="el" href="classCJAxisEvent.html">CJAxisEvent</a> *_opposite_axis)</td></tr>
+<tr class="memdesc:a9cf7657ec986985dd15efcb92b20a380"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor, to describe entry, joystick, axis, direction, and the opposing axis. <br/></td></tr>
 <tr class="memitem:a1f0618c1d74612e06892430bdf7d8f92"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1f0618c1d74612e06892430bdf7d8f92"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Active</b> (bool)</td></tr>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJAxisEvent.html#a1f0618c1d74612e06892430bdf7d8f92">Active</a> (bool)</td></tr>
+<tr class="memdesc:a1f0618c1d74612e06892430bdf7d8f92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change whether the event is activated or not. <br/></td></tr>
 <tr class="memitem:af6c1eaff5b1c3f1dc2b2715b76156ea4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af6c1eaff5b1c3f1dc2b2715b76156ea4"></a>
-virtual Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>GetActivityCount</b> (void)</td></tr>
+virtual Bitu&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJAxisEvent.html#af6c1eaff5b1c3f1dc2b2715b76156ea4">GetActivityCount</a> (void)</td></tr>
+<tr class="memdesc:af6c1eaff5b1c3f1dc2b2715b76156ea4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve activity counter. <br/></td></tr>
 <tr class="memitem:abc322cf9dcf5488f49cb421f74574968"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abc322cf9dcf5488f49cb421f74574968"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>RepostActivity</b> (void)</td></tr>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJAxisEvent.html#abc322cf9dcf5488f49cb421f74574968">RepostActivity</a> (void)</td></tr>
+<tr class="memdesc:abc322cf9dcf5488f49cb421f74574968"><td class="mdescLeft">&#160;</td><td class="mdescRight">Re-post activity. <br/></td></tr>
 <tr class="memitem:a523cca4f5afb972c28c5aa71ff3f408f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a523cca4f5afb972c28c5aa71ff3f408f"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>notifybutton</b> (<a class="el" href="classCTextButton.html">CTextButton</a> *n)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJAxisEvent.html#a523cca4f5afb972c28c5aa71ff3f408f">notifybutton</a> (<a class="el" href="classCTextButton.html">CTextButton</a> *n)</td></tr>
+<tr class="memdesc:a523cca4f5afb972c28c5aa71ff3f408f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Associate this object with a text button in the mapper <a class="el" href="namespaceGUI.html" title="This namespace contains all GUI toolkit classes, types and functions.">GUI</a> so that joystick position can be displayed at all times. <br/></td></tr>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a44cbf08bc0468daffe05f967810851f0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a44cbf08bc0468daffe05f967810851f0"></a>
-<a class="el" href="classCTextButton.html">CTextButton</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>notify_button</b></td></tr>
+<a class="el" href="classCTextButton.html">CTextButton</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJAxisEvent.html#a44cbf08bc0468daffe05f967810851f0">notify_button</a></td></tr>
+<tr class="memdesc:a44cbf08bc0468daffe05f967810851f0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Text button to use to display joystick position. <br/></td></tr>
 <tr><td colspan="2"><h2><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:afdb866161b2dc0dd1d8a5331f9d39117"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afdb866161b2dc0dd1d8a5331f9d39117"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>SetOppositeAxis</b> (<a class="el" href="classCJAxisEvent.html">CJAxisEvent</a> *_opposite_axis)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJAxisEvent.html#afdb866161b2dc0dd1d8a5331f9d39117">SetOppositeAxis</a> (<a class="el" href="classCJAxisEvent.html">CJAxisEvent</a> *_opposite_axis)</td></tr>
+<tr class="memdesc:afdb866161b2dc0dd1d8a5331f9d39117"><td class="mdescLeft">&#160;</td><td class="mdescRight">Associate this object with the opposing joystick axis. <br/></td></tr>
 <tr><td colspan="2"><h2><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:a4445db17f0538358d815ab53d449beba"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4445db17f0538358d815ab53d449beba"></a>
-Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>stick</b></td></tr>
+Bitu&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJAxisEvent.html#a4445db17f0538358d815ab53d449beba">stick</a></td></tr>
+<tr class="memdesc:a4445db17f0538358d815ab53d449beba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Joystick to follow. <br/></td></tr>
 <tr class="memitem:aef7080ddb8c0a07235865f4f8f33bf90"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aef7080ddb8c0a07235865f4f8f33bf90"></a>
-Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>axis</b></td></tr>
+Bitu&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJAxisEvent.html#aef7080ddb8c0a07235865f4f8f33bf90">axis</a></td></tr>
+<tr class="memdesc:aef7080ddb8c0a07235865f4f8f33bf90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Joystick axis to track. <br/></td></tr>
 <tr class="memitem:a90367a0731415ea7dd7b3d01fa153367"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a90367a0731415ea7dd7b3d01fa153367"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>positive</b></td></tr>
+bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJAxisEvent.html#a90367a0731415ea7dd7b3d01fa153367">positive</a></td></tr>
+<tr class="memdesc:a90367a0731415ea7dd7b3d01fa153367"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether joystick axis is positive or negative. <br/></td></tr>
 <tr class="memitem:aef506ec736efabf7a118af104921a998"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aef506ec736efabf7a118af104921a998"></a>
-<a class="el" href="classCJAxisEvent.html">CJAxisEvent</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>opposite_axis</b></td></tr>
+<a class="el" href="classCJAxisEvent.html">CJAxisEvent</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJAxisEvent.html#aef506ec736efabf7a118af104921a998">opposite_axis</a></td></tr>
+<tr class="memdesc:aef506ec736efabf7a118af104921a998"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opposing joystick axis object. <br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
-<div class="textblock">
-<p>Definition at line <a class="el" href="sdl__mapper_8cpp_source.html#l01880">1880</a> of file <a class="el" href="sdl__mapper_8cpp_source.html">sdl_mapper.cpp</a>.</p>
+<div class="textblock"><p>Joystick axis event handling for the mapper. </p>
+
+<p>Definition at line <a class="el" href="sdl__mapper_8cpp_source.html#l01996">1996</a> of file <a class="el" href="sdl__mapper_8cpp_source.html">sdl_mapper.cpp</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/gui/<a class="el" href="sdl__mapper_8cpp_source.html">sdl_mapper.cpp</a></li>
 </ul>
@@ -156,7 +171,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>positive</b></td></tr
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 10 2018 23:57:07 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Jun 13 2018 13:27:49 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

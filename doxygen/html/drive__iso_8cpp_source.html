@@ -237,19 +237,19 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00141"></a>00141 
 <a name="l00142"></a>00142 <span class="keywordtype">int</span>  MSCDEX_RemoveDrive(<span class="keywordtype">char</span> driveLetter);
 <a name="l00143"></a>00143 <span class="keywordtype">int</span>  MSCDEX_AddDrive(<span class="keywordtype">char</span> driveLetter, <span class="keyword">const</span> <span class="keywordtype">char</span>* physicalPath, Bit8u&amp; subUnit);
-<a name="l00144"></a>00144 <span class="keywordtype">void</span> MSCDEX_ReplaceDrive(<a class="code" href="classCDROM__Interface.html">CDROM_Interface</a>* cdrom, Bit8u subUnit);
+<a name="l00144"></a>00144 <span class="keywordtype">void</span> MSCDEX_ReplaceDrive(<a class="code" href="classCDROM__Interface.html" title="Base CD-ROM interface class.">CDROM_Interface</a>* cdrom, Bit8u subUnit);
 <a name="l00145"></a>00145 <span class="keywordtype">bool</span> MSCDEX_HasDrive(<span class="keywordtype">char</span> driveLetter);
 <a name="l00146"></a>00146 <span class="keywordtype">bool</span> MSCDEX_GetVolumeName(Bit8u subUnit, <span class="keywordtype">char</span>* name);
 <a name="l00147"></a>00147 
-<a name="l00148"></a>00148 <span class="keywordtype">bool</span> CDROM_Interface_Image::images_init = <span class="keyword">false</span>;
+<a name="l00148"></a>00148 <span class="keywordtype">bool</span> <a class="code" href="classCDROM__Interface__Image.html#a901be8d60520cf91bcabeb67a808c644" title="Flag to track if images have been initialized.">CDROM_Interface_Image::images_init</a> = <span class="keyword">false</span>;
 <a name="l00149"></a>00149 
 <a name="l00150"></a>00150 isoDrive::isoDrive(<span class="keywordtype">char</span> driveLetter, <span class="keyword">const</span> <span class="keywordtype">char</span> *fileName, Bit8u mediaid, <span class="keywordtype">int</span> &amp;error) {
 <a name="l00151"></a>00151         <span class="keywordtype">size_t</span> i;
 <a name="l00152"></a>00152 
-<a name="l00153"></a>00153     <span class="keywordflow">if</span> (!CDROM_Interface_Image::images_init) {
-<a name="l00154"></a>00154         CDROM_Interface_Image::images_init = <span class="keyword">true</span>;
+<a name="l00153"></a>00153     <span class="keywordflow">if</span> (!<a class="code" href="classCDROM__Interface__Image.html#a901be8d60520cf91bcabeb67a808c644" title="Flag to track if images have been initialized.">CDROM_Interface_Image::images_init</a>) {
+<a name="l00154"></a>00154         <a class="code" href="classCDROM__Interface__Image.html#a901be8d60520cf91bcabeb67a808c644" title="Flag to track if images have been initialized.">CDROM_Interface_Image::images_init</a> = <span class="keyword">true</span>;
 <a name="l00155"></a>00155         <span class="keywordflow">for</span> (i=0;i &lt; 26;i++)
-<a name="l00156"></a>00156             CDROM_Interface_Image::images[i] = NULL;
+<a name="l00156"></a>00156             <a class="code" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3" title="Array of CD-ROM images, one per drive letter.">CDROM_Interface_Image::images</a>[i] = NULL;
 <a name="l00157"></a>00157     }
 <a name="l00158"></a>00158 
 <a name="l00159"></a>00159         subUnit = 0;
@@ -271,7 +271,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00175"></a>00175                         <span class="keywordflow">if</span> (!MSCDEX_GetVolumeName(subUnit, buffer)) strcpy(buffer, <span class="stringliteral">&quot;&quot;</span>);
 <a name="l00176"></a>00176                         Set_Label(buffer,discLabel,<span class="keyword">true</span>);
 <a name="l00177"></a>00177 
-<a name="l00178"></a>00178                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CDROM_Interface_Image::images[subUnit]-&gt;HasDataTrack() == <span class="keyword">false</span>) { <span class="comment">//Audio only cdrom</span>
+<a name="l00178"></a>00178                 } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (<a class="code" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3" title="Array of CD-ROM images, one per drive letter.">CDROM_Interface_Image::images</a>[subUnit]-&gt;HasDataTrack() == <span class="keyword">false</span>) { <span class="comment">//Audio only cdrom</span>
 <a name="l00179"></a>00179                         strcpy(info, <span class="stringliteral">&quot;isoDrive &quot;</span>);
 <a name="l00180"></a>00180                         strcat(info, fileName);
 <a name="l00181"></a>00181                         this-&gt;driveLetter = driveLetter;
@@ -287,12 +287,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00191"></a>00191 
 <a name="l00192"></a>00192 <span class="keywordtype">int</span> isoDrive::UpdateMscdex(<span class="keywordtype">char</span> driveLetter, <span class="keyword">const</span> <span class="keywordtype">char</span>* path, Bit8u&amp; subUnit) {
 <a name="l00193"></a>00193         <span class="keywordflow">if</span> (MSCDEX_HasDrive(driveLetter)) {
-<a name="l00194"></a>00194                 <a class="code" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a>* oldCdrom = CDROM_Interface_Image::images[subUnit];
-<a name="l00195"></a>00195                 <a class="code" href="classCDROM__Interface.html">CDROM_Interface</a>* cdrom = <span class="keyword">new</span> <a class="code" href="classCDROM__Interface__Image.html">CDROM_Interface_Image</a>(subUnit);
+<a name="l00194"></a>00194                 <a class="code" href="classCDROM__Interface__Image.html" title="Image CD-ROM interface.">CDROM_Interface_Image</a>* oldCdrom = <a class="code" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3" title="Array of CD-ROM images, one per drive letter.">CDROM_Interface_Image::images</a>[subUnit];
+<a name="l00195"></a>00195                 <a class="code" href="classCDROM__Interface.html" title="Base CD-ROM interface class.">CDROM_Interface</a>* cdrom = <span class="keyword">new</span> <a class="code" href="classCDROM__Interface__Image.html" title="Image CD-ROM interface.">CDROM_Interface_Image</a>(subUnit);
 <a name="l00196"></a>00196                 <span class="keywordtype">char</span> pathCopy[CROSS_LEN];
 <a name="l00197"></a>00197                 safe_strncpy(pathCopy, path, CROSS_LEN);
-<a name="l00198"></a>00198                 <span class="keywordflow">if</span> (!cdrom-&gt;SetDevice(pathCopy, 0)) {
-<a name="l00199"></a>00199                         CDROM_Interface_Image::images[subUnit] = oldCdrom;
+<a name="l00198"></a>00198                 <span class="keywordflow">if</span> (!cdrom-&gt;<a class="code" href="classCDROM__Interface.html#a60081f8d721b4456172f0a0b0d3b3b5a" title="Set the device associated with this interface, if supported by emulation.">SetDevice</a>(pathCopy, 0)) {
+<a name="l00199"></a>00199                         <a class="code" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3" title="Array of CD-ROM images, one per drive letter.">CDROM_Interface_Image::images</a>[subUnit] = oldCdrom;
 <a name="l00200"></a>00200                         <span class="keyword">delete</span> cdrom;
 <a name="l00201"></a>00201                         <span class="keywordflow">return</span> 3;
 <a name="l00202"></a>00202                 }
@@ -559,7 +559,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00463"></a>00463         
 <a name="l00464"></a>00464         <span class="comment">// check if the entry is valid and contains the correct sector</span>
 <a name="l00465"></a>00465         <span class="keywordflow">if</span> (!he.valid || he.sector != sector) {
-<a name="l00466"></a>00466                 <span class="keywordflow">if</span> (!CDROM_Interface_Image::images[subUnit]-&gt;ReadSector(he.data, <span class="keyword">false</span>, sector)) {
+<a name="l00466"></a>00466                 <span class="keywordflow">if</span> (!<a class="code" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3" title="Array of CD-ROM images, one per drive letter.">CDROM_Interface_Image::images</a>[subUnit]-&gt;ReadSector(he.data, <span class="keyword">false</span>, sector)) {
 <a name="l00467"></a>00467                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00468"></a>00468                 }
 <a name="l00469"></a>00469                 he.valid = <span class="keyword">true</span>;
@@ -571,7 +571,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00475"></a>00475 }
 <a name="l00476"></a>00476 
 <a name="l00477"></a>00477 <span class="keyword">inline</span> <span class="keywordtype">bool</span> isoDrive :: readSector(Bit8u *buffer, Bit32u sector) {
-<a name="l00478"></a>00478         <span class="keywordflow">return</span> CDROM_Interface_Image::images[subUnit]-&gt;ReadSector(buffer, <span class="keyword">false</span>, sector);
+<a name="l00478"></a>00478         <span class="keywordflow">return</span> <a class="code" href="classCDROM__Interface__Image.html#a547a33f528bf5f50063af1def199a7a3" title="Array of CD-ROM images, one per drive letter.">CDROM_Interface_Image::images</a>[subUnit]-&gt;<a class="code" href="classCDROM__Interface__Image.html#acbed60c6b06009b2a027d605190ee842" title="Sector read (one sector), where the image decoding is done.">ReadSector</a>(buffer, <span class="keyword">false</span>, sector);
 <a name="l00479"></a>00479 }
 <a name="l00480"></a>00480 
 <a name="l00481"></a>00481 <span class="keywordtype">int</span> isoDrive :: readDirEntry(<a class="code" href="structisoDirEntry.html">isoDirEntry</a> *de, Bit8u *data) {    
@@ -675,7 +675,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Jun 13 2018 13:27:44 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

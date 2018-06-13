@@ -12,6 +12,7 @@ var searchData=
   ['col_5fstep',['col_step',['../classGUI_1_1BitmapFont.html#ac2fab3c605018ebaa18ff59c54f29e1b',1,'GUI::BitmapFont']]],
   ['color',['color',['../classGUI_1_1Drawable.html#a4baae1e13505d45245c49244703217d7',1,'GUI::Drawable']]],
   ['ctrl',['ctrl',['../classGUI_1_1Key.html#a1f76abf9d09f4058ab21fde120958ee3',1,'GUI::Key']]],
+  ['current_5fvalue',['current_value',['../classCEvent.html#a7bbacdb8e3c5ee41ce13af19dc21db2d',1,'CEvent']]],
   ['cw',['cw',['../classGUI_1_1Drawable.html#ab985de16e8c5543337da5911bcb554b8',1,'GUI::Drawable']]],
   ['cx',['cx',['../classGUI_1_1Drawable.html#a240ea928c926f5839d09dc7230765542',1,'GUI::Drawable']]],
   ['cy',['cy',['../classGUI_1_1Drawable.html#a2ed945d1c4c5ce0ed7b3b1349070df9d',1,'GUI::Drawable']]],

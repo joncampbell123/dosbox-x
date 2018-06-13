@@ -291,7 +291,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00195"></a>00195         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00196"></a>00196 }
 <a name="l00197"></a>00197 
-<a name="l00198"></a>00198 <span class="keywordtype">bool</span> CDROM_Interface_Ioctl::GetAudioTracks(<span class="keywordtype">int</span>&amp; stTrack, <span class="keywordtype">int</span>&amp; endTrack, <a class="code" href="structSMSF.html">TMSF</a>&amp; leadOut) {
+<a name="l00198"></a>00198 <span class="keywordtype">bool</span> CDROM_Interface_Ioctl::GetAudioTracks(<span class="keywordtype">int</span>&amp; stTrack, <span class="keywordtype">int</span>&amp; endTrack, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; leadOut) {
 <a name="l00199"></a>00199         CDROM_TOC toc;
 <a name="l00200"></a>00200         DWORD   byteCount;
 <a name="l00201"></a>00201         BOOL    bStat = DeviceIoControl(hIOCTL,IOCTL_CDROM_READ_TOC, NULL, 0, 
@@ -300,9 +300,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00204"></a>00204 
 <a name="l00205"></a>00205         stTrack         = toc.FirstTrack;
 <a name="l00206"></a>00206         endTrack        = toc.LastTrack;
-<a name="l00207"></a>00207         leadOut.min = toc.TrackData[endTrack].Address[1];
-<a name="l00208"></a>00208         leadOut.sec     = toc.TrackData[endTrack].Address[2];
-<a name="l00209"></a>00209         leadOut.fr      = toc.TrackData[endTrack].Address[3];
+<a name="l00207"></a>00207         leadOut.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a> = toc.TrackData[endTrack].Address[1];
+<a name="l00208"></a>00208         leadOut.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>     = toc.TrackData[endTrack].Address[2];
+<a name="l00209"></a>00209         leadOut.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>      = toc.TrackData[endTrack].Address[3];
 <a name="l00210"></a>00210 
 <a name="l00211"></a>00211         <span class="keywordflow">if</span> ((use_mciplay || use_dxplay) &amp;&amp; (!track_start_valid)) {
 <a name="l00212"></a>00212                 Bits track_num = 0;
@@ -322,7 +322,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00226"></a>00226         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00227"></a>00227 }
 <a name="l00228"></a>00228 
-<a name="l00229"></a>00229 <span class="keywordtype">bool</span> CDROM_Interface_Ioctl::GetAudioTrackInfo(<span class="keywordtype">int</span> track, <a class="code" href="structSMSF.html">TMSF</a>&amp; start, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; attr) {
+<a name="l00229"></a>00229 <span class="keywordtype">bool</span> CDROM_Interface_Ioctl::GetAudioTrackInfo(<span class="keywordtype">int</span> track, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; start, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; attr) {
 <a name="l00230"></a>00230         CDROM_TOC toc;
 <a name="l00231"></a>00231         DWORD   byteCount;
 <a name="l00232"></a>00232         BOOL    bStat = DeviceIoControl(hIOCTL,IOCTL_CDROM_READ_TOC, NULL, 0, 
@@ -330,9 +330,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00234"></a>00234         <span class="keywordflow">if</span> (!bStat) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l00235"></a>00235         
 <a name="l00236"></a>00236         attr            = (toc.TrackData[track-1].Control &lt;&lt; 4) &amp; 0xEF;
-<a name="l00237"></a>00237         start.min       = toc.TrackData[track-1].Address[1];
-<a name="l00238"></a>00238         start.sec       = toc.TrackData[track-1].Address[2];
-<a name="l00239"></a>00239         start.fr        = toc.TrackData[track-1].Address[3];
+<a name="l00237"></a>00237         start.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>       = toc.TrackData[track-1].Address[1];
+<a name="l00238"></a>00238         start.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>       = toc.TrackData[track-1].Address[2];
+<a name="l00239"></a>00239         start.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>        = toc.TrackData[track-1].Address[3];
 <a name="l00240"></a>00240         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00241"></a>00241 }       
 <a name="l00242"></a>00242 
@@ -360,11 +360,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00264"></a>00264         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00265"></a>00265 }
 <a name="l00266"></a>00266 
-<a name="l00267"></a>00267 <span class="keywordtype">bool</span> CDROM_Interface_Ioctl::GetAudioSub(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; attr, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; track, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; index, <a class="code" href="structSMSF.html">TMSF</a>&amp; relPos, <a class="code" href="structSMSF.html">TMSF</a>&amp; absPos) {
+<a name="l00267"></a>00267 <span class="keywordtype">bool</span> CDROM_Interface_Ioctl::GetAudioSub(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; attr, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; track, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>&amp; index, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; relPos, <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>&amp; absPos) {
 <a name="l00268"></a>00268         <span class="keywordflow">if</span> (use_dxplay) {
 <a name="l00269"></a>00269                 track = 1;
-<a name="l00270"></a>00270                 FRAMES_TO_MSF(player.currFrame + 150, &amp;absPos.min, &amp;absPos.sec, &amp;absPos.fr);
-<a name="l00271"></a>00271                 FRAMES_TO_MSF(player.currFrame + 150, &amp;relPos.min, &amp;relPos.sec, &amp;relPos.fr);
+<a name="l00270"></a>00270                 FRAMES_TO_MSF(player.currFrame + 150, &amp;absPos.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>, &amp;absPos.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>, &amp;absPos.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
+<a name="l00271"></a>00271                 FRAMES_TO_MSF(player.currFrame + 150, &amp;relPos.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>, &amp;relPos.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>, &amp;relPos.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l00272"></a>00272 
 <a name="l00273"></a>00273                 <span class="keywordflow">if</span> (GetAudioTracksAll()) {
 <a name="l00274"></a>00274                         <span class="comment">// get track number from current frame</span>
@@ -372,7 +372,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00276"></a>00276                                 <span class="keywordflow">if</span> ((player.currFrame + 150&lt;track_start[i+1]) &amp;&amp; (player.currFrame + 150&gt;=track_start[i])) {
 <a name="l00277"></a>00277                                         <span class="comment">// track found, calculate relative position</span>
 <a name="l00278"></a>00278                                         track = i;
-<a name="l00279"></a>00279                                         FRAMES_TO_MSF(player.currFrame + 150-track_start[i],&amp;relPos.min,&amp;relPos.sec,&amp;relPos.fr);
+<a name="l00279"></a>00279                                         FRAMES_TO_MSF(player.currFrame + 150-track_start[i],&amp;relPos.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>,&amp;relPos.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>,&amp;relPos.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l00280"></a>00280                                         <span class="keywordflow">break</span>;
 <a name="l00281"></a>00281                                 }
 <a name="l00282"></a>00282                         }
@@ -394,12 +394,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00298"></a>00298         attr            = (sub.CurrentPosition.Control &lt;&lt; 4) &amp; 0xEF;
 <a name="l00299"></a>00299         track           = sub.CurrentPosition.TrackNumber;
 <a name="l00300"></a>00300         index           = sub.CurrentPosition.IndexNumber;
-<a name="l00301"></a>00301         relPos.min      = sub.CurrentPosition.TrackRelativeAddress[1];
-<a name="l00302"></a>00302         relPos.sec      = sub.CurrentPosition.TrackRelativeAddress[2];
-<a name="l00303"></a>00303         relPos.fr       = sub.CurrentPosition.TrackRelativeAddress[3];
-<a name="l00304"></a>00304         absPos.min      = sub.CurrentPosition.AbsoluteAddress[1];
-<a name="l00305"></a>00305         absPos.sec      = sub.CurrentPosition.AbsoluteAddress[2];
-<a name="l00306"></a>00306         absPos.fr       = sub.CurrentPosition.AbsoluteAddress[3];
+<a name="l00301"></a>00301         relPos.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>      = sub.CurrentPosition.TrackRelativeAddress[1];
+<a name="l00302"></a>00302         relPos.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>      = sub.CurrentPosition.TrackRelativeAddress[2];
+<a name="l00303"></a>00303         relPos.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>       = sub.CurrentPosition.TrackRelativeAddress[3];
+<a name="l00304"></a>00304         absPos.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>      = sub.CurrentPosition.AbsoluteAddress[1];
+<a name="l00305"></a>00305         absPos.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>      = sub.CurrentPosition.AbsoluteAddress[2];
+<a name="l00306"></a>00306         absPos.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>       = sub.CurrentPosition.AbsoluteAddress[3];
 <a name="l00307"></a>00307 
 <a name="l00308"></a>00308         <span class="keywordflow">if</span> (use_mciplay) {
 <a name="l00309"></a>00309                 <span class="keywordtype">int</span> cur_pos;
@@ -409,12 +409,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00313"></a>00313                                 <span class="keywordflow">for</span> (<span class="keywordtype">int</span> i=track_start_first; i&lt;=track_start_last; i++) {
 <a name="l00314"></a>00314                                         <span class="keywordflow">if</span> ((cur_pos&lt;track_start[i+1]) &amp;&amp; (cur_pos&gt;=track_start[i])) {
 <a name="l00315"></a>00315                                                 <span class="comment">// track found, calculate relative position</span>
-<a name="l00316"></a>00316                                                 FRAMES_TO_MSF(cur_pos-track_start[i],&amp;relPos.min,&amp;relPos.sec,&amp;relPos.fr);
+<a name="l00316"></a>00316                                                 FRAMES_TO_MSF(cur_pos-track_start[i],&amp;relPos.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>,&amp;relPos.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>,&amp;relPos.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l00317"></a>00317                                                 <span class="keywordflow">break</span>;
 <a name="l00318"></a>00318                                         }
 <a name="l00319"></a>00319                                 }
 <a name="l00320"></a>00320                         }
-<a name="l00321"></a>00321                         FRAMES_TO_MSF(cur_pos,&amp;absPos.min,&amp;absPos.sec,&amp;absPos.fr);
+<a name="l00321"></a>00321                         FRAMES_TO_MSF(cur_pos,&amp;absPos.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>,&amp;absPos.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>,&amp;absPos.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l00322"></a>00322                 }
 <a name="l00323"></a>00323         }
 <a name="l00324"></a>00324 
@@ -454,11 +454,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00358"></a>00358 <span class="keywordtype">bool</span> CDROM_Interface_Ioctl::GetMediaTrayStatus(<span class="keywordtype">bool</span>&amp; mediaPresent, <span class="keywordtype">bool</span>&amp; mediaChanged, <span class="keywordtype">bool</span>&amp; trayOpen) {
 <a name="l00359"></a>00359         <span class="comment">// Seems not possible to get this values using ioctl...</span>
 <a name="l00360"></a>00360         <span class="keywordtype">int</span>             track1,track2;
-<a name="l00361"></a>00361         <a class="code" href="structSMSF.html">TMSF</a>    leadOut;
+<a name="l00361"></a>00361         <a class="code" href="structSMSF.html" title="CD-ROM time stamp.">TMSF</a>    leadOut;
 <a name="l00362"></a>00362         <span class="comment">// If we can read, there&#39;s a media</span>
 <a name="l00363"></a>00363         mediaPresent = GetAudioTracks(track1, track2, leadOut),
 <a name="l00364"></a>00364         trayOpen         = !mediaPresent;
-<a name="l00365"></a>00365         mediaChanged = (oldLeadOut.min!=leadOut.min) || (oldLeadOut.sec!=leadOut.sec) || (oldLeadOut.fr!=leadOut.fr);
+<a name="l00365"></a>00365         mediaChanged = (oldLeadOut.min!=leadOut.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>) || (oldLeadOut.sec!=leadOut.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>) || (oldLeadOut.fr!=leadOut.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>);
 <a name="l00366"></a>00366         <span class="keywordflow">if</span> (mediaChanged) {
 <a name="l00367"></a>00367                 Close();
 <a name="l00368"></a>00368                 <span class="keywordflow">if</span> (use_mciplay) mci_CDClose();
@@ -473,9 +473,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00377"></a>00377                 track_start_valid = <span class="keyword">false</span>;
 <a name="l00378"></a>00378         }
 <a name="l00379"></a>00379         <span class="comment">// Save old values</span>
-<a name="l00380"></a>00380         oldLeadOut.min = leadOut.min;
-<a name="l00381"></a>00381         oldLeadOut.sec = leadOut.sec;
-<a name="l00382"></a>00382         oldLeadOut.fr  = leadOut.fr;
+<a name="l00380"></a>00380         oldLeadOut.min = leadOut.<a class="code" href="structSMSF.html#a255d0543dd1a6ed1ef98d1554a305b1c" title="Time, minutes field.">min</a>;
+<a name="l00381"></a>00381         oldLeadOut.sec = leadOut.<a class="code" href="structSMSF.html#a03726b294328a234ca219fdcdcf59b41" title="Time, seconds field.">sec</a>;
+<a name="l00382"></a>00382         oldLeadOut.fr  = leadOut.<a class="code" href="structSMSF.html#a7e7a172427d5827e25ed35c3f62a2ce5" title="Time, frame field.">fr</a>;
 <a name="l00383"></a>00383         <span class="comment">// always success</span>
 <a name="l00384"></a>00384         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l00385"></a>00385 }
@@ -556,9 +556,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00460"></a>00460         <span class="keywordflow">return</span> bStat&gt;0;
 <a name="l00461"></a>00461 }
 <a name="l00462"></a>00462 
-<a name="l00463"></a>00463 <span class="keywordtype">void</span> CDROM_Interface_Ioctl::ChannelControl(<a class="code" href="structSCtrl.html">TCtrl</a> ctrl)
+<a name="l00463"></a>00463 <span class="keywordtype">void</span> CDROM_Interface_Ioctl::ChannelControl(<a class="code" href="structSCtrl.html" title="Output and channel control state.">TCtrl</a> ctrl)
 <a name="l00464"></a>00464 {
-<a name="l00465"></a>00465         player.ctrlUsed = (ctrl.out[0]!=0 || ctrl.out[1]!=1 || ctrl.vol[0]&lt;0xfe || ctrl.vol[1]&lt;0xfe);
+<a name="l00465"></a>00465         player.ctrlUsed = (ctrl.<a class="code" href="structSCtrl.html#a5b5415593005d9a11a35d11e8bbdd8b3" title="output channel">out</a>[0]!=0 || ctrl.<a class="code" href="structSCtrl.html#a5b5415593005d9a11a35d11e8bbdd8b3" title="output channel">out</a>[1]!=1 || ctrl.<a class="code" href="structSCtrl.html#ad029c2b75bd84b09cfe3f893ba6a5004" title="channel volume">vol</a>[0]&lt;0xfe || ctrl.<a class="code" href="structSCtrl.html#ad029c2b75bd84b09cfe3f893ba6a5004" title="channel volume">vol</a>[1]&lt;0xfe);
 <a name="l00466"></a>00466         player.ctrlData = ctrl;
 <a name="l00467"></a>00467 }
 <a name="l00468"></a>00468 
@@ -726,7 +726,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 10 2018 23:57:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Jun 13 2018 13:27:43 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

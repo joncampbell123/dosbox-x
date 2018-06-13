@@ -18,6 +18,8 @@ var searchData=
   ['next',['next',['../classGUI_1_1Timer.html#a44e2f3e6123c9513b87b81f244ef9311',1,'GUI::Timer']]],
   ['nmitest',['NMITEST',['../classNMITEST.html',1,'']]],
   ['nodetype',['nodeType',['../structnodeType.html',1,'']]],
+  ['notify_5fbutton',['notify_button',['../classCKeyEvent.html#a93407353bb472fc93fa7962f1c2e7933',1,'CKeyEvent::notify_button()'],['../classCJAxisEvent.html#a44cbf08bc0468daffe05f967810851f0',1,'CJAxisEvent::notify_button()'],['../classCJButtonEvent.html#ac8c89511fdc9a86b4c187eec432445d2',1,'CJButtonEvent::notify_button()'],['../classCModEvent.html#aa5dc746da9ec638e1959bfd1dddafc75',1,'CModEvent::notify_button()'],['../classCHandlerEvent.html#ac636235e80032332d688fe888ebd5cf4',1,'CHandlerEvent::notify_button()']]],
+  ['notifybutton',['notifybutton',['../classCKeyEvent.html#ab05ca088ef648a08242be4f03adcbc00',1,'CKeyEvent::notifybutton()'],['../classCJAxisEvent.html#a523cca4f5afb972c28c5aa71ff3f408f',1,'CJAxisEvent::notifybutton()'],['../classCJButtonEvent.html#adc04a0aadec5744e0408c5e780d54d6b',1,'CJButtonEvent::notifybutton()'],['../classCModEvent.html#a20aea0373f707e3c8f047f6e52bf5f77',1,'CModEvent::notifybutton()'],['../classCHandlerEvent.html#a3bd14f3961c29799530602c8e2d5a6fe',1,'CHandlerEvent::notifybutton()']]],
   ['now',['now',['../classGUI_1_1Timer.html#aeaf90bbc6251a55bb4f8c839813592bf',1,'GUI::Timer']]],
   ['np2cfg',['NP2CFG',['../structNP2CFG.html',1,'']]],
   ['nsapplication',['NSApplication',['../classNSApplication.html',1,'']]],

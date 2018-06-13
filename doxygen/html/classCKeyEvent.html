@@ -100,14 +100,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">CKeyEvent Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Keyboard key trigger event.  
+ <a href="classCKeyEvent.html#details">More...</a></p>
 <div class="dynheader">
 Inheritance diagram for CKeyEvent:</div>
 <div class="dyncontent">
  <div class="center">
   <img src="classCKeyEvent.png" usemap="#CKeyEvent_map" alt=""/>
   <map id="CKeyEvent_map" name="CKeyEvent_map">
-<area href="classCTriggeredEvent.html" alt="CTriggeredEvent" shape="rect" coords="0,56,108,80"/>
-<area href="classCEvent.html" alt="CEvent" shape="rect" coords="0,0,108,24"/>
+<area href="classCTriggeredEvent.html" title="class for events which can be ON/OFF only: key presses, joystick buttons, joystick hat..." alt="CTriggeredEvent" shape="rect" coords="0,56,108,80"/>
+<area href="classCEvent.html" title="Base CEvent class for mapper events." alt="CEvent" shape="rect" coords="0,0,108,24"/>
 </map>
  </div></div>
 
@@ -116,21 +119,27 @@ Inheritance diagram for CKeyEvent:</div>
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a26db3746811c8498d0f7f4ca7e52d360"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a26db3746811c8498d0f7f4ca7e52d360"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>CKeyEvent</b> (char const *const _entry, KBD_KEYS _key)</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCKeyEvent.html#a26db3746811c8498d0f7f4ca7e52d360">CKeyEvent</a> (char const *const _entry, KBD_KEYS _key)</td></tr>
+<tr class="memdesc:a26db3746811c8498d0f7f4ca7e52d360"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor to specify mapper event, and KBD_* key enumeration constant. <br/></td></tr>
 <tr class="memitem:a184277d7cd9c41090ae646a3b9887cf3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a184277d7cd9c41090ae646a3b9887cf3"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Active</b> (bool yesno)</td></tr>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCKeyEvent.html#a184277d7cd9c41090ae646a3b9887cf3">Active</a> (bool yesno)</td></tr>
+<tr class="memdesc:a184277d7cd9c41090ae646a3b9887cf3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change whether the event is activated or not. <br/></td></tr>
 <tr class="memitem:ab05ca088ef648a08242be4f03adcbc00"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab05ca088ef648a08242be4f03adcbc00"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>notifybutton</b> (<a class="el" href="classCTextButton.html">CTextButton</a> *n)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCKeyEvent.html#ab05ca088ef648a08242be4f03adcbc00">notifybutton</a> (<a class="el" href="classCTextButton.html">CTextButton</a> *n)</td></tr>
+<tr class="memdesc:ab05ca088ef648a08242be4f03adcbc00"><td class="mdescLeft">&#160;</td><td class="mdescRight">Associate this object with a text button in the mapper UI. <br/></td></tr>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a93407353bb472fc93fa7962f1c2e7933"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a93407353bb472fc93fa7962f1c2e7933"></a>
-<a class="el" href="classCTextButton.html">CTextButton</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>notify_button</b></td></tr>
+<a class="el" href="classCTextButton.html">CTextButton</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCKeyEvent.html#a93407353bb472fc93fa7962f1c2e7933">notify_button</a></td></tr>
+<tr class="memdesc:a93407353bb472fc93fa7962f1c2e7933"><td class="mdescLeft">&#160;</td><td class="mdescRight">Text button in the mapper UI to indicate our status by. <br/></td></tr>
 <tr class="memitem:aa5d774b3b526c036d79dbf87ba437afd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa5d774b3b526c036d79dbf87ba437afd"></a>
-KBD_KEYS&#160;</td><td class="memItemRight" valign="bottom"><b>key</b></td></tr>
+KBD_KEYS&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCKeyEvent.html#aa5d774b3b526c036d79dbf87ba437afd">key</a></td></tr>
+<tr class="memdesc:aa5d774b3b526c036d79dbf87ba437afd"><td class="mdescLeft">&#160;</td><td class="mdescRight">KBD_* key enumeration value to transmit to keyboard emulation. <br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
-<div class="textblock">
-<p>Definition at line <a class="el" href="sdl__mapper_8cpp_source.html#l01856">1856</a> of file <a class="el" href="sdl__mapper_8cpp_source.html">sdl_mapper.cpp</a>.</p>
+<div class="textblock"><p>Keyboard key trigger event. </p>
+
+<p>Definition at line <a class="el" href="sdl__mapper_8cpp_source.html#l01962">1962</a> of file <a class="el" href="sdl__mapper_8cpp_source.html">sdl_mapper.cpp</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/gui/<a class="el" href="sdl__mapper_8cpp_source.html">sdl_mapper.cpp</a></li>
 </ul>
@@ -138,7 +147,7 @@ KBD_KEYS&#160;</td><td class="memItemRight" valign="bottom"><b>key</b></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 10 2018 23:57:07 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Jun 13 2018 13:27:49 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

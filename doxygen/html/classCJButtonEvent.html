@@ -101,14 +101,17 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">CJButtonEvent Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Joystick button trigger.  
+ <a href="classCJButtonEvent.html#details">More...</a></p>
 <div class="dynheader">
 Inheritance diagram for CJButtonEvent:</div>
 <div class="dyncontent">
  <div class="center">
   <img src="classCJButtonEvent.png" usemap="#CJButtonEvent_map" alt=""/>
   <map id="CJButtonEvent_map" name="CJButtonEvent_map">
-<area href="classCTriggeredEvent.html" alt="CTriggeredEvent" shape="rect" coords="0,56,108,80"/>
-<area href="classCEvent.html" alt="CEvent" shape="rect" coords="0,0,108,24"/>
+<area href="classCTriggeredEvent.html" title="class for events which can be ON/OFF only: key presses, joystick buttons, joystick hat..." alt="CTriggeredEvent" shape="rect" coords="0,56,108,80"/>
+<area href="classCEvent.html" title="Base CEvent class for mapper events." alt="CEvent" shape="rect" coords="0,0,108,24"/>
 </map>
  </div></div>
 
@@ -117,25 +120,32 @@ Inheritance diagram for CJButtonEvent:</div>
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1e52758b5a23171097f00bae1acf028a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1e52758b5a23171097f00bae1acf028a"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>CJButtonEvent</b> (char const *const _entry, Bitu _stick, Bitu _button)</td></tr>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJButtonEvent.html#a1e52758b5a23171097f00bae1acf028a">CJButtonEvent</a> (char const *const _entry, Bitu _stick, Bitu _button)</td></tr>
+<tr class="memdesc:a1e52758b5a23171097f00bae1acf028a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor, describing mapper event, joystick, and which button. <br/></td></tr>
 <tr class="memitem:ad3be3de6af81cfbcf569e2d9bcee7e84"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad3be3de6af81cfbcf569e2d9bcee7e84"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Active</b> (bool pressed)</td></tr>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJButtonEvent.html#ad3be3de6af81cfbcf569e2d9bcee7e84">Active</a> (bool pressed)</td></tr>
+<tr class="memdesc:ad3be3de6af81cfbcf569e2d9bcee7e84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Change whether the event is activated or not. <br/></td></tr>
 <tr class="memitem:adc04a0aadec5744e0408c5e780d54d6b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="adc04a0aadec5744e0408c5e780d54d6b"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>notifybutton</b> (<a class="el" href="classCTextButton.html">CTextButton</a> *n)</td></tr>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJButtonEvent.html#adc04a0aadec5744e0408c5e780d54d6b">notifybutton</a> (<a class="el" href="classCTextButton.html">CTextButton</a> *n)</td></tr>
+<tr class="memdesc:adc04a0aadec5744e0408c5e780d54d6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Associate this object with a text button in the mapper UI. <br/></td></tr>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ac8c89511fdc9a86b4c187eec432445d2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac8c89511fdc9a86b4c187eec432445d2"></a>
-<a class="el" href="classCTextButton.html">CTextButton</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>notify_button</b></td></tr>
+<a class="el" href="classCTextButton.html">CTextButton</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJButtonEvent.html#ac8c89511fdc9a86b4c187eec432445d2">notify_button</a></td></tr>
+<tr class="memdesc:ac8c89511fdc9a86b4c187eec432445d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Text button in the mapper UI to indicate our status by. <br/></td></tr>
 <tr><td colspan="2"><h2><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:aa87062af5d8bc5db801066e2eb4a74f8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa87062af5d8bc5db801066e2eb4a74f8"></a>
-Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>stick</b></td></tr>
+Bitu&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJButtonEvent.html#aa87062af5d8bc5db801066e2eb4a74f8">stick</a></td></tr>
+<tr class="memdesc:aa87062af5d8bc5db801066e2eb4a74f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Which joystick. <br/></td></tr>
 <tr class="memitem:abdbfaa23915b89b1392129c9525dd58d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abdbfaa23915b89b1392129c9525dd58d"></a>
-Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>button</b></td></tr>
+Bitu&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCJButtonEvent.html#abdbfaa23915b89b1392129c9525dd58d">button</a></td></tr>
+<tr class="memdesc:abdbfaa23915b89b1392129c9525dd58d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Which button. <br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
-<div class="textblock">
-<p>Definition at line <a class="el" href="sdl__mapper_8cpp_source.html#l01919">1919</a> of file <a class="el" href="sdl__mapper_8cpp_source.html">sdl_mapper.cpp</a>.</p>
+<div class="textblock"><p>Joystick button trigger. </p>
+
+<p>Definition at line <a class="el" href="sdl__mapper_8cpp_source.html#l02055">2055</a> of file <a class="el" href="sdl__mapper_8cpp_source.html">sdl_mapper.cpp</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/gui/<a class="el" href="sdl__mapper_8cpp_source.html">sdl_mapper.cpp</a></li>
 </ul>
@@ -143,7 +153,7 @@ Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>button</b></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 10 2018 23:57:07 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Jun 13 2018 13:27:49 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>
