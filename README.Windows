@@ -51,13 +51,13 @@ Get and install Build Tools for Visual Studio 2017 from https://www.visualstudio
 
  - open DOSBox-X folder in VSCode
  - menu Tasks, Configure Default Build Task
- - Create tasks.json file from template
- - MSBuild Executes the build target
+ - click 'Create tasks.json file from template'
+ - click 'MSBuild Executes the build target'
 
 The tasks.json file is now visible but still needs some polish:
 
  - menu Tasks, Configure Default Build Task
- - build
+ - click 'build'
  - in the 'tasks/args' section, add "vs2015/dosbox-x.sln" argument
  
 You can now build DOSBox-X using menu Tasks, Run Build Task.
@@ -65,10 +65,10 @@ You can now build DOSBox-X using menu Tasks, Run Build Task.
 4. Setting up the debugging
 
  - menu Debug, Start Debugging
- - More...
+ - click 'More...'
  - install C/C++ (extension identifier is ms-vscode.cpptools)
  - menu Debug, Start Debugging
- - C++ (Windows)
+ - click 'C++ (Windows)'
  - in lauch.json 'configurations' section, adjust the first configuration 'program' value, e.g. "${workspaceFolder}/bin/Win32/Debug/dosbox-x.exe"
 
 You can now debug DOSBox-X.
