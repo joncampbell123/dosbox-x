@@ -418,10 +418,10 @@ public:
         }
     }
 
-    //! \brief Get configuration name
+    //! \brief Get configuration name, for use in writing the mapper file
     virtual void ConfigName(char * buf)=0;
 
-    //! \brief Get bind name
+    //! \brief Get binding name, for display in the mapper UI
     virtual void BindName(char * buf)=0;
 
     //! \brief Modifiers (shift, ctrl, alt)
