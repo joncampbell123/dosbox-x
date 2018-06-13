@@ -1982,8 +1982,10 @@ public:
     KBD_KEYS key;
 };
 
+//! \brief Joystick axis event handling for the mapper
 class CJAxisEvent : public CContinuousEvent {
 public:
+    //! \brief Constructor, to describe entry, joystick, axis, direction, and the opposing axis
     CJAxisEvent(char const * const _entry,Bitu _stick,Bitu _axis,bool _positive,CJAxisEvent * _opposite_axis) : CContinuousEvent(_entry) {
         notify_button=NULL;
         stick=_stick;
@@ -1994,30 +1996,48 @@ public:
             _opposite_axis->SetOppositeAxis(this);
         }
     }
+
     virtual ~CJAxisEvent() {}
+
     virtual void Active(bool /*moved*/) {
         if (notify_button != NULL)
             notify_button->SetPartialInvert(GetValue()/32768.0);
 
         virtual_joysticks[stick].axis_pos[axis]=(Bit16s)(GetValue()*(positive?1:-1));
     }
+
     virtual Bitu GetActivityCount(void) {
         return activity|opposite_axis->activity;
     }
+
     virtual void RepostActivity(void) {
         /* caring for joystick movement into the opposite direction */
         opposite_axis->Active(true);
     }
+
+    //! \brief Associate this object with a text button in the mapper GUI so that joystick position can be displayed at all times
     void notifybutton(CTextButton *n) {
         notify_button = n;
     }
+
+    //! \brief Text button to use to display joystick position
     CTextButton *notify_button;
 protected:
+    //! \brief Associate this object with the opposing joystick axis
     void SetOppositeAxis(CJAxisEvent * _opposite_axis) {
         opposite_axis=_opposite_axis;
     }
-    Bitu stick,axis;
+
+    //! \brief Joystick to follow
+    Bitu stick;
+
+    //! \brief Joystick axis to track
+    Bitu axis;
+
+    //! \brief Whether joystick axis is positive or negative
     bool positive;
+
+    //! \brief Opposing joystick axis object
     CJAxisEvent * opposite_axis;
 };
 
