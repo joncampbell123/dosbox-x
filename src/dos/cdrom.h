@@ -56,46 +56,80 @@
 
 enum { CDROM_USE_SDL, CDROM_USE_ASPI, CDROM_USE_IOCTL_DIO, CDROM_USE_IOCTL_DX, CDROM_USE_IOCTL_MCI };
 
+//! \brief CD-ROM time stamp
+//!
+//! \description CD-ROM time is represented as minutes, seconds, and frames (75 per second)
 typedef struct SMSF {
-	unsigned char min;
-	unsigned char sec;
-	unsigned char fr;
+    //! \brief Time, minutes field
+    unsigned char   min;
+    //! \brief Time, seconds field
+    unsigned char   sec;
+    //! \brief Time, frame field
+    unsigned char   fr;
 } TMSF;
 
+//! \brief Output and channel control state
 typedef struct SCtrl {
-	Bit8u	out[4];			// output channel
-	Bit8u	vol[4];			// channel volume
+    //! \brief output channel
+    Bit8u           out[4];
+    //! \brief channel volume
+    Bit8u           vol[4];
 } TCtrl;
 
 extern int CDROM_GetMountType(char* path, int force);
 
+//! \brief Base CD-ROM interface class
+//!
+//! \brief This provides the base C++ class for a CD-ROM interface in CD-ROM emulation
 class CDROM_Interface
 {
 public:
 //	CDROM_Interface						(void);
 	virtual ~CDROM_Interface			(void) {};
 
+    //! \brief Set the device associated with this interface, if supported by emulation
 	virtual bool	SetDevice			(char* path, int forceCD) = 0;
 
+    //! \brief Get UPC string from the CD-ROM
 	virtual bool	GetUPC				(unsigned char& attr, char* upc) = 0;
 
+    //! \brief Retrieve start and end tracks and lead out position
 	virtual bool	GetAudioTracks		(int& stTrack, int& end, TMSF& leadOut) = 0;
+
+    //! \brief Retrieve start and attributes for a specific track
 	virtual bool	GetAudioTrackInfo	(int track, TMSF& start, unsigned char& attr) = 0;
+
+    //! \brief Get subchannel data of the sectors at the current position, and retrieve current position
 	virtual bool	GetAudioSub			(unsigned char& attr, unsigned char& track, unsigned char& index, TMSF& relPos, TMSF& absPos) = 0;
+
+    //! \brief Get audio playback status
 	virtual bool	GetAudioStatus		(bool& playing, bool& pause) = 0;
+
+    //! \brief Get media tray status
 	virtual bool	GetMediaTrayStatus	(bool& mediaPresent, bool& mediaChanged, bool& trayOpen) = 0;
 
+    //! \brief Initiate audio playback starting at sector and for how many
 	virtual bool	PlayAudioSector		(unsigned long start,unsigned long len) = 0;
+
+    //! \brief Pause audio playback
 	virtual bool	PauseAudio			(bool resume) = 0;
+
+    //! \brief Stop audio playback
 	virtual bool	StopAudio			(void) = 0;
+
+    //! \brief Set channel control data (TODO: clarify)
 	virtual void	ChannelControl		(TCtrl ctrl) = 0;
-	
+
+    //! \brief Read sector data into guest memory
 	virtual bool	ReadSectors			(PhysPt buffer, bool raw, unsigned long sector, unsigned long num) = 0;
-	/* This is needed for IDE hack, who's buffer does not exist in DOS physical memory */
+
+    //! \brief Read sector data into host memory (for IDE emulation)
 	virtual bool	ReadSectorsHost			(void* buffer, bool raw, unsigned long sector, unsigned long num) = 0;
 
+    //! \brief Load (close/spin up) or unload (eject/spin down) media
 	virtual bool	LoadUnloadMedia		(bool unload) = 0;
-	
+
+    //! \brief TODO?
 	virtual void	InitNewMedia		(void) {};
 };	
 
