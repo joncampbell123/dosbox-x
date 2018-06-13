@@ -323,8 +323,10 @@ public:
     virtual void RepostActivity(void) {}
 };
 
+//! \brief Base C++ class for a binding assigned in the mapper interface (or by default settings)
 class CBind {
 public:
+    //! \brief Bind class type, for runtime detection
     enum CBindType {
         bind_t=0,
         keybind_t
@@ -333,6 +335,8 @@ public:
     virtual ~CBind () {
         list->remove(this);
     }
+
+    //! \brief Constructor, to define the binding and type. This constructor adds the CBind object itself to the list
     CBind(CBindList * _list,enum CBindType _type = bind_t) {
         list=_list;
         _list->push_back(this);
@@ -341,10 +345,16 @@ public:
         active=holding=false;
         type = _type;
     }
+
+    //! \brief Get modifier text
     virtual std::string GetModifierText(void);
+
+    //! \brief Get binding text, for display in the menu item
     virtual std::string GetBindMenuText(void) {
         return GetModifierText();
     }
+
+    //! \brief Append modifier text to a string, for use in recording bindings to the mapper file
     void AddFlags(char * buf) {
         if (mods & BMOD_Mod1) strcat(buf," mod1");
         if (mods & BMOD_Mod2) strcat(buf," mod2");
@@ -352,6 +362,8 @@ public:
         if (mods & BMOD_Host) strcat(buf," host");
         if (flags & BFLG_Hold) strcat(buf," hold");
     }
+
+    //! \brief Read modifier flags from a string, for use in parsing bindings from the mapper file
     void SetFlags(char * buf) {
         char * word;
         while (*(word=StripWord(buf))) {
@@ -362,6 +374,8 @@ public:
             if (!strcasecmp(word,"hold")) flags|=BFLG_Hold;
         }
     }
+
+    //! \brief Activate bindings
     void ActivateBind(Bits _value,bool ev_trigger,bool skip_action=false) {
         if (event->IsTrigger()) {
             /* use value-boundary for on/off events */
@@ -382,6 +396,8 @@ public:
             event->ActivateEvent(ev_trigger,false);
         }
     }
+
+    //! \brief Deactivate bindings
     void DeActivateBind(bool ev_trigger) {
         if (event->IsTrigger()) {
             if (!active) return;
@@ -401,15 +417,35 @@ public:
             event->DeActivateEvent(ev_trigger);
         }
     }
-    virtual void ConfigName(char * buf)=0;
-    virtual void BindName(char * buf)=0;
-   
-    Bitu mods,flags;
-    Bit16s value;
-    CEvent * event;
-    CBindList * list;
-    bool active,holding;
 
+    //! \brief Get configuration name
+    virtual void ConfigName(char * buf)=0;
+
+    //! \brief Get bind name
+    virtual void BindName(char * buf)=0;
+
+    //! \brief Modifiers (shift, ctrl, alt)
+    Bitu mods;
+
+    //! \brief Flags (hold)
+    Bitu flags;
+
+    //! \brief Binding value (TODO?)
+    Bit16s value;
+
+    //! \brief Event object this binding is bound to (for visual UI purposes)
+    CEvent * event;
+
+    //! \brief List that this object is part of
+    CBindList * list;
+
+    //! \brief Active status
+    bool active;
+
+    //! \brief Holding status
+    bool holding;
+
+    //! \brief Binding type
     enum CBindType type;
 };
 
