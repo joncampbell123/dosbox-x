@@ -117,13 +117,24 @@ class CEvent;
 
 CEvent *get_mapper_event_by_name(const std::string &x);
 
+//! \brief Base CEvent class for mapper events
 class CEvent {
 public:
+    //! \brief Type of CEvent class, if the code needs to use the specific type
+    //!
+    //! \description This is used by other parts of the mapper if it needs to retrieve
+    //!              additional information that is only provided by the handler event class
     enum event_type {
         event_t=0,
         handler_event_t
     };
 public:
+    //! \brief CEvent constructor
+    //!
+    //! \description This constructor takes a mapper entry name and event type.
+    //!              Subclasses will call down to this constructor as well.
+    //!              The handler event class will fill in the _type field to
+    //!              identify itself.
     CEvent(char const * const _entry,const enum event_type _type = event_t) {
         safe_strncpy(entry,_entry,sizeof(entry));
 
@@ -143,7 +154,13 @@ public:
 
         assert(get_mapper_event_by_name(entry) == this);
     }
+
+    //! \description Retrieve text string to show as the assigned mapper binding in a
+    //!              menu item's displayable area so that the user knows what keyboard
+    //!              input will trigger the shortcut.
     virtual std::string GetBindMenuText(void);
+
+    //! \brief Update the menu item for the mapper shortcut with the latest text and keyboard shortcut
     void update_menu_shortcut(void) {
         if (!eventname.empty()) {
             DOSBoxMenu::item& item = mainMenu.get_item(std::string("mapper_") + std::string(eventname));
@@ -153,29 +170,61 @@ public:
 //            LOG_MSG("%s",str.c_str());
         }
     }
+
+    //! \brief Add binding to the bindlist
     void AddBind(CBind * bind);
+
     virtual ~CEvent();
+
+    //! \brief Change whether the event is activated or not
     virtual void Active(bool yesno) {
         active = yesno;
     }
+
+    //! \brief Activate the event, act on it
     virtual void ActivateEvent(bool ev_trigger,bool skip_action)=0;
+
+    //! \brief Deactivate the event
     virtual void DeActivateEvent(bool ev_trigger)=0;
+
+    //! \brief Deactivate all bindings 
     void DeActivateAll(void);
+
+    //! \brief Set the value of the event (such as joystick position)
     void SetValue(Bits value){
         current_value=value;
     }
+
+    //! \brief Get the value of the event
     Bits GetValue(void) {
         return current_value;
     }
+
+    //! \brief Retrieve the name of the event
     char * GetName(void) { return entry; }
+
+    //! \brief Indicate whether the event is a trigger or continuous input
     virtual bool IsTrigger(void)=0;
+
+    //! \brief Event name
     std::string eventname;
+
+    //! \brief event type
     enum event_type type;
+
+    //! \brief Bind list to trigger on activation/deactivation
     CBindList bindlist;
+
+    //! \brief Whether the event is active or not
     bool active;
 protected:
+    //! \brief Activity counter
     Bitu activity;
+
+    //! \brief Mapper entry name
     char entry[16];
+
+    //! \brief Current value of the event (such as joystick position)
     Bits current_value;
 };
 
