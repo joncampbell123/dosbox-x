@@ -241,14 +241,20 @@ CEvent *get_mapper_event_by_name(const std::string &x) {
     return NULL;
 }
 
-/* class for events which can be ON/OFF only: key presses, joystick buttons, joystick hat */
+//! \brief class for events which can be ON/OFF only: key presses, joystick buttons, joystick hat
 class CTriggeredEvent : public CEvent {
 public:
+    //! \brief Constructor, with event name
     CTriggeredEvent(char const * const _entry) : CEvent(_entry) {}
+
+    // methods below this line have sufficient documentation inherited from the base class
+
     virtual ~CTriggeredEvent() {}
+
     virtual bool IsTrigger(void) {
         return true;
     }
+
     void ActivateEvent(bool ev_trigger,bool skip_action) {
         if (current_value>25000) {
             /* value exceeds boundary, trigger event if not active */
@@ -262,20 +268,27 @@ public:
             }
         }
     }
+
     void DeActivateEvent(bool /*ev_trigger*/) {
         activity--;
         if (!activity) Active(false);
     }
 };
 
-/* class for events which have a non-boolean state: joystick axis movement */
+//! \brief class for events which have a non-boolean state: joystick axis movement
 class CContinuousEvent : public CEvent {
 public:
+    //! \brief Constructor, with event name
     CContinuousEvent(char const * const _entry) : CEvent(_entry) {}
+
+    // methods below this line have sufficient documentation inherited from the base class
+
     virtual ~CContinuousEvent() {}
+
     virtual bool IsTrigger(void) {
         return false;
     }
+
     void ActivateEvent(bool ev_trigger,bool skip_action) {
         if (ev_trigger) {
             activity++;
@@ -286,6 +299,7 @@ public:
             if (!GetActivityCount()) Active(true);
         }
     }
+
     void DeActivateEvent(bool ev_trigger) {
         if (ev_trigger) {
             if (activity>0) activity--;
@@ -299,9 +313,13 @@ public:
             if (!GetActivityCount()) Active(false);
         }
     }
+
+    //! \brief Retrieve activity counter
     virtual Bitu GetActivityCount(void) {
         return activity;
     }
+
+    //! \brief Re-post activity
     virtual void RepostActivity(void) {}
 };
 
