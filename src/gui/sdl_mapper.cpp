@@ -2079,12 +2079,16 @@ protected:
     Bitu stick,hat,dir;
 };
 
+//! \brief Modifier trigger event, for modifier keys. This permits the user to change modifier key bindings.
 class CModEvent : public CTriggeredEvent {
 public:
+    //! \brief Constructor to provide entry name and the index of the modifier button
     CModEvent(char const * const _entry,Bitu _wmod) : CTriggeredEvent(_entry), notify_button(NULL) {
         wmod=_wmod;
     }
+
     virtual ~CModEvent() {}
+
     virtual void Active(bool yesno) {
         if (notify_button != NULL)
             notify_button->SetInvert(yesno);
@@ -2092,11 +2096,16 @@ public:
         if (yesno) mapper.mods|=(1u << (wmod-1u));
         else mapper.mods&=~(1u << (wmod-1u));
     };
+
+    //! \brief Associate this object with a text button in the mapper UI
     void notifybutton(CTextButton *n) {
         notify_button = n;
     }
+
+    //! \brief Mapper UI text button to indicate status by
     CTextButton *notify_button;
 protected:
+    //! \brief Modifier button index
     Bitu wmod;
 };
 
