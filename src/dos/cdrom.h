@@ -133,12 +133,16 @@ public:
 	virtual void	InitNewMedia		(void) {};
 };	
 
+//! \brief CD-ROM interface to SDL 1.x CD-ROM support
+//!
+//! \brief This connects CD-ROM emulation to the CD-ROM functions provided by SDL 1.x
 class CDROM_Interface_SDL : public CDROM_Interface
 {
 public:
 	CDROM_Interface_SDL			(void);
 	virtual ~CDROM_Interface_SDL(void);
 
+    /* base C++ class overrides, no documentation needed */
 	virtual bool	SetDevice			(char* path, int forceCD);
 	virtual bool	GetUPC				(unsigned char& attr, char* upc) { attr = 0; strcpy(upc,"UPC"); return true; };
 	virtual bool	GetAudioTracks		(int& stTrack, int& end, TMSF& leadOut);
@@ -153,20 +157,26 @@ public:
 	virtual bool	ReadSectors			(PhysPt /*buffer*/, bool /*raw*/, unsigned long /*sector*/, unsigned long /*num*/) { return false; };
 	/* This is needed for IDE hack, who's buffer does not exist in DOS physical memory */
 	virtual bool	ReadSectorsHost			(void* buffer, bool raw, unsigned long sector, unsigned long num);
-
 	virtual bool	LoadUnloadMedia		(bool unload);
 
 private:
+    //! \brief Open the device
 	bool	Open				(void);
+
+    //! \brief Close the device
 	void	Close				(void);
 
 #if !defined(C_SDL2)
+    //! \brief SDL 1.x CD-ROM device object
 	SDL_CD*	cd;
 #endif
 	int		driveID;
 	Uint32	oldLeadOut;
 };
 
+//! \brief Dummy CD-ROM interface
+//!
+//! \brief CD-ROM emulation when no actual emulation is available
 class CDROM_Interface_Fake : public CDROM_Interface
 {
 public:
@@ -188,16 +198,21 @@ public:
 	bool	LoadUnloadMedia		(bool /*unload*/) { return true; };
 };	
 
+//! \brief Image CD-ROM interface
+//!
+//! \brief This provides CD-ROM emulation from .ISO and .BIN/.CUE images on the host system
 class CDROM_Interface_Image : public CDROM_Interface
 {
 private:
+    //! \brief Base C++ class for reading the image
 	class TrackFile {
 	public:
 		virtual bool read(Bit8u *buffer, int seek, int count) = 0;
 		virtual int getLength() = 0;
 		virtual ~TrackFile() { };
 	};
-	
+
+    //! \brief Binary file reader for the image
 	class BinaryFile : public TrackFile {
 	public:
 		BinaryFile(const char *filename, bool &error);
@@ -209,6 +224,7 @@ private:
 		std::ifstream *file;
 	};
 
+    //! \brief CD-ROM track definition
 	struct Track {
 		int number;
 		int attr;
@@ -221,8 +237,10 @@ private:
 	};
 	
 public:
+    //! \brief Constructor, with parameter for subunit
 	CDROM_Interface_Image		(Bit8u subUnit);
 	virtual ~CDROM_Interface_Image	(void);
+
 	void	InitNewMedia		(void);
 	bool	SetDevice		(char* path, int forceCD);
 	bool	GetUPC			(unsigned char& attr, char* upc);
@@ -239,10 +257,22 @@ public:
 	/* This is needed for IDE hack, who's buffer does not exist in DOS physical memory */
 	bool	ReadSectorsHost			(void* buffer, bool raw, unsigned long sector, unsigned long num);
 	bool	LoadUnloadMedia		(bool unload);
+
+    //! \brief Sector read (one sector), where the image decoding is done.
 	bool	ReadSector		(Bit8u *buffer, bool raw, unsigned long sector);
+
+    //! \brief Indicate whether the image has a data track
 	bool	HasDataTrack		(void);
-	
+
+    //! \brief Flag to track if images have been initialized
+    //!
+    //! \description Whether images[] has been initialized.
+    //!              Note that images_init and images[] are static and
+    //!              they are not specific to any one C++ class instance.
 static bool images_init;
+    //! \brief Array of CD-ROM images, one per drive letter.
+    //!
+    //! \description images[] is static and not specific to any C++ class instance.
 static	CDROM_Interface_Image* images[26];
 
 private:
@@ -250,6 +280,10 @@ private:
 static	void	CDAudioCallBack(Bitu len);
 	int	GetTrack(int sector);
 
+    //! \brief Virtual CD audio "player"
+    //!
+    //! \description This struct is used to maintain state to emulate playing CD audio
+    //!              tracks from the image.
 static  struct imagePlayer {
 		CDROM_Interface_Image *cd;
 		MixerChannel   *channel;
