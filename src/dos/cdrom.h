@@ -56,15 +56,24 @@
 
 enum { CDROM_USE_SDL, CDROM_USE_ASPI, CDROM_USE_IOCTL_DIO, CDROM_USE_IOCTL_DX, CDROM_USE_IOCTL_MCI };
 
+//! \brief CD-ROM time stamp
+//!
+//! \description CD-ROM time is represented as minutes, seconds, and frames (75 per second)
 typedef struct SMSF {
-	unsigned char min;
-	unsigned char sec;
-	unsigned char fr;
+    //! \brief Time, minutes field
+    unsigned char   min;
+    //! \brief Time, seconds field
+    unsigned char   sec;
+    //! \brief Time, frame field
+    unsigned char   fr;
 } TMSF;
 
+//! \brief Output and channel control state
 typedef struct SCtrl {
-	Bit8u	out[4];			// output channel
-	Bit8u	vol[4];			// channel volume
+    //! \brief output channel
+    Bit8u           out[4];
+    //! \brief channel volume
+    Bit8u           vol[4];
 } TCtrl;
 
 extern int CDROM_GetMountType(char* path, int force);
