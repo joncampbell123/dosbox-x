@@ -2051,14 +2051,18 @@ protected:
     CJAxisEvent * opposite_axis;
 };
 
+//! \brief Joystick button trigger
 class CJButtonEvent : public CTriggeredEvent {
 public:
+    //! \brief Constructor, describing mapper event, joystick, and which button
     CJButtonEvent(char const * const _entry,Bitu _stick,Bitu _button) : CTriggeredEvent(_entry) {
         stick=_stick;
         button=_button;
         notify_button=NULL;
     }
+
     virtual ~CJButtonEvent() {}
+    
     virtual void Active(bool pressed) {
         if (notify_button != NULL)
             notify_button->SetInvert(pressed);
@@ -2066,12 +2070,20 @@ public:
         virtual_joysticks[stick].button_pressed[button]=pressed;
         active=pressed;
     }
+    
+    //! \brief Associate this object with a text button in the mapper UI
     void notifybutton(CTextButton *n) {
         notify_button = n;
     }
+
+    //! \brief Text button in the mapper UI to indicate our status by
     CTextButton *notify_button;
 protected:
-    Bitu stick,button;
+    //! \brief Which joystick
+    Bitu stick;
+
+    //! \brief Which button
+    Bitu button;
 };
 
 //! \brief Joystick hat event
