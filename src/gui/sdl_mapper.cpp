@@ -2074,19 +2074,30 @@ protected:
     Bitu stick,button;
 };
 
+//! \brief Joystick hat event
 class CJHatEvent : public CTriggeredEvent {
 public:
+    //! \brief Constructor to describe mapper event, joystick, hat, and direction
     CJHatEvent(char const * const _entry,Bitu _stick,Bitu _hat,Bitu _dir) : CTriggeredEvent(_entry) {
         stick=_stick;
         hat=_hat;
         dir=_dir;
     }
+
     virtual ~CJHatEvent() {}
+
     virtual void Active(bool pressed) {
         virtual_joysticks[stick].hat_pressed[(hat<<2)+dir]=pressed;
     }
 protected:
-    Bitu stick,hat,dir;
+    //! \brief Which joystick
+    Bitu stick;
+
+    //! \brief Which hat
+    Bitu hat;
+
+    //! \brief Direction of hat
+    Bitu dir;
 };
 
 //! \brief Modifier trigger event, for modifier keys. This permits the user to change modifier key bindings.
