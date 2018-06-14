@@ -13,6 +13,8 @@
 //!              closely as possible.
 //!
 //!              <a target="_blank" href="http://hackipedia.org/browse/Hardware/By%20company/Intel/8255,%20Programmable%20Peripheral%20Interface/8255A,%208255A-5%20Programmable%20Peripheral%20Interface%20(1991-08).pdf">Intel 8255A datasheet</a>
+//!
+//!              NOTE: Mode 2 emulation has NOT been tested yet!
 class Intel8255 {
 public:
     //!
