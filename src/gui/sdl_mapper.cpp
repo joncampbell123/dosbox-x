@@ -1020,6 +1020,12 @@ protected:
 
 bool autofire = false;
 
+//! \brief map of joystick 1 axes
+int joy1axes[8];
+
+//! \brief map of joystick 2 axes
+int joy2axes[8];
+
 class CStickBindGroup : public  CBindGroup {
 public:
     CStickBindGroup(Bitu _stick,Bitu _emustick,bool _dummy=false) : CBindGroup (){
