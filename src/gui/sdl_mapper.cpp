@@ -94,6 +94,57 @@ template <typename T> int sgn(T val) {
 	return (T(0) < val) - (val < T(0));
 }
 
+//! \brief Floating-point vector with 2 components.
+struct Vector2
+{
+	float X, Y;
+
+	Vector2(float x, float y) : X(x), Y(y)
+	{
+
+	}
+
+	Vector2() : X(0.0f), Y(0.0f)
+	{
+
+	}
+
+	Vector2 clamp(Vector2 min, Vector2 max) const
+	{
+		float x = this->X;
+		float y = this->Y;
+		float xmin = min.X;
+		float xmax = max.X;
+		float ymin = min.Y;
+		float ymax = max.Y;
+		x = x < xmin ? xmin : x > xmax ? xmax : x;
+		y = y < ymin ? ymin : y > ymax ? ymax : y;
+		Vector2 clamp = Vector2(x, y);
+		return clamp;
+	}
+
+	float magnitude() const
+	{
+		return sqrt(sqrMagnitude());
+	}
+
+	float sqrMagnitude() const
+	{
+		return X * X + Y * Y;
+	}
+
+	Vector2 normalized() const
+	{
+		float m = this->magnitude();
+		return m > 0.0f ? Vector2(this->X / m, this->Y / m) : Vector2();
+	}
+
+	Vector2 operator*(float f) const
+	{
+		return Vector2(this->X * f, this->Y * f);
+	}
+};
+
 class CEvent;
 class CHandlerEvent;
 class CButton;
