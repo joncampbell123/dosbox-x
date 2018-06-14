@@ -2063,6 +2063,34 @@ bool p7fd8_8255_mouse_irq_signal = false;
 
 extern uint8_t MOUSE_IRQ;
 
+//! \brief PC-98 System Bus Mouse PPI emulation (Intel 8255A device)
+//!
+//! \description NEC PC-98 systems use a 8255 to interface a bus mouse
+//!              to the system.
+//!
+//!              This PPI is connected to I/O ports 0x7FD9-0x7FDF odd.
+//!
+//!              Button state is read directly as 3 bits (left, right, middle).
+//!
+//!              Mouse movement is latched on command and read 4 bits
+//!              (one nibble at a time) to obtain two signed 8-bit
+//!              x and y mickey counts (to detect movement).
+//!
+//!              Mouse data is read from port A.
+//!
+//!              Interrupt inhibit, selection of the nibble, and the
+//!              command to latch mouse movement is done by writing
+//!              to port C.
+//!
+//!              According to some documentation found online, port B
+//!              is attached to various unrelated signals and/or status.
+//!
+//!              The interrupt line is connected to IRQ 13 of the
+//!              interrupt controller on PC-98 systems.
+//!
+//!              There is at least one PC-98 game "Metal Force" known
+//!              to abuse this interface as a periodic interrupt source
+//!              instead of using it as an interface for mouse input.
 class PC98_Mouse_8255 : public Intel8255 {
 public:
     PC98_Mouse_8255() : Intel8255() {
