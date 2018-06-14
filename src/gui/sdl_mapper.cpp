@@ -952,10 +952,11 @@ class CJHatBind;
 
 class CJAxisBind : public CBind {
 public:
-    CJAxisBind(CBindList * _list,CBindGroup * _group,Bitu _axis,bool _positive) : CBind(_list){
+    CJAxisBind(CBindList * _list,CBindGroup * _group, Bitu _joystick, Bitu _axis,bool _positive) : CBind(_list){
         group = _group;
         axis = _axis;
         positive = _positive;
+		joystick = _joystick;
     }
     virtual ~CJAxisBind() {}
     void ConfigName(char * buf) {
@@ -968,6 +969,7 @@ protected:
     CBindGroup * group;
     Bitu axis;
     bool positive;
+	Bitu joystick;
 };
 
 class CJButtonBind : public CBind {
