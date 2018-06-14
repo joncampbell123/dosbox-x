@@ -143,15 +143,34 @@ public:
      * bit[1:1] = Port B        1=input  0=output
      * bit[0:0] = Port C lower  1=input  0=output */
 public:
-    bool                IBF_A,IBF_B;
-    bool                OBF_A,OBF_B;
+    //! Input Buffer Full, port A contains information (port A, Mode 1)
+    bool                IBF_A;
+    //! Input Buffer Full, port B contains information (port B, Mode 1)
+    bool                IBF_B;
+    //! Output Buffer Full, port A contains information for the external device (port A, Mode 1)
+    bool                OBF_A;
+    //! Output Buffer Full, port B contains information for the external device (port B, Mode 1)
+    bool                OBF_B;
 public:
-    bool                INTR_A,INTR_B;
-    bool                pINTR_A,pINTR_B;
+    //! Interrupt Request A (to the microprocessor)
+    bool                INTR_A;
+    //! Interrupt Request B (to the microprocessor)
+    bool                INTR_B;
+    //! Previous Interrupt Request A state (for change detection)
+    bool                pINTR_A;
+    //! Previous Interrupt Request B state (for change detection)
+    bool                pINTR_B;
 public:
-    bool                INTE_1,INTE_2; /* mode 2 */
-    bool                INTE_A,INTE_B;
+    //! Interrupt 1 enable (mode 2)
+    bool                INTE_1;
+    //! Interrupt 2 enable (mode 2)
+    bool                INTE_2; /* mode 2 */
+    //! Interrupt A enable
+    bool                INTE_A;
+    //! Interrupt B enable
+    bool                INTE_B;
 protected:
+    //! Return string "str", or "" (empty string) if str == NULL
     static inline const char *nil_if_null(const char *str) {
         return (str != NULL) ? str : "";
     }
