@@ -289,6 +289,38 @@ bool Prop_double::SetValue(std::string const& input){
     return SetVal(val,false,/*warn*/true);
 }
 
+bool Prop_double::CheckValue(Value const& in, bool warn)
+{
+	if(suggested_values.empty() && Property::CheckValue(in, warn)) 
+		return true;
+
+	const auto mi = static_cast<double>(min);
+	const auto ma = static_cast<double>(max);
+	const auto va = static_cast<double>(Value(in));
+	const auto same = [](const double a, const double b, const double epsilon) {
+		return fabs(a - b < epsilon);
+	};
+	const auto tolerance = 0.0000001;
+	
+	if(same(mi, -1.0, tolerance) && same(ma, -1.0, tolerance)) 
+		return true;
+
+	if(va >= mi && va <= ma)
+		return true;
+
+	if(warn)
+		LOG_MSG(
+			"%s lies outside the range %s-%s for variable: %.\nIt might now be reset to the default value: %s",
+			in.ToString().c_str(), 
+			min.ToString().c_str(), 
+			max.ToString().c_str(), 
+			propname.c_str(), 
+			default_value.ToString().c_str()
+		);
+
+	return false;
+}
+
 bool Prop_int::SetValue(std::string const& input){;
     Value val;
     if(!val.SetValue(input,Value::V_INT)) return false;
