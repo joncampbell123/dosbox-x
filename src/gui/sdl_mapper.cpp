@@ -2284,13 +2284,21 @@ public:
         stick=_stick;
         hat=_hat;
         dir=_dir;
+        notify_button = NULL;
     }
 
     virtual ~CJHatEvent() {}
 
     virtual void Active(bool pressed) {
+        if (notify_button != NULL)
+            notify_button->SetInvert(pressed);
         virtual_joysticks[stick].hat_pressed[(hat<<2)+dir]=pressed;
     }
+    void notifybutton(CTextButton *n)
+    {
+        notify_button = n;
+    }
+    CTextButton *notify_button;
 protected:
     //! \brief Which joystick
     Bitu stick;
@@ -2738,7 +2746,8 @@ static void AddJHatButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title
     char buf[64];
     sprintf(buf,"jhat_%d_%d_%d",(int)_stick,(int)_hat,(int)_dir);
     CJHatEvent * event=new CJHatEvent(buf,_stick,_hat,_dir);
-    new CEventButton(x,y,dx,dy,title,event);
+    CEventButton* evbutton = new CEventButton(x,y,dx,dy,title,event);
+    event->notifybutton(evbutton);
 }
 
 static void AddModButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,Bitu _mod) {
