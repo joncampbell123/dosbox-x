@@ -87,6 +87,13 @@ enum BC_Types {
 #define MAXAXIS 8
 #define MAXHAT 2
 
+//! \brief Get value sign, i.e. less than zero: -1, zero: 0, greater than zero: 1.
+template <typename T> int sgn(T val) {
+
+	// http://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
+	return (T(0) < val) - (val < T(0));
+}
+
 class CEvent;
 class CHandlerEvent;
 class CButton;
