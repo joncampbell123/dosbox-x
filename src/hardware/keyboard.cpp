@@ -2069,6 +2069,10 @@ extern uint8_t MOUSE_IRQ;
 //!              to the system.
 //!
 //!              This PPI is connected to I/O ports 0x7FD9-0x7FDF odd.
+//!              - 0x7FD9 is Port A (input)
+//!              - 0x7FDB is Port B (input)
+//!              - 0x7FDD is Port C (bits[7:4] output, bits[3:0] input)
+//!              - 0x7FDF is control/mode
 //!
 //!              Button state is read directly as 3 bits (left, right, middle).
 //!
@@ -2171,7 +2175,7 @@ public:
         /* TODO */
         return 0x00;
     }
-    /* port C is output (both halves) */
+    /* port C is input[3:0] and output[7:4] */
     virtual void outPortC(const uint8_t mask) {
         if (mask & 0x80) { /* bit 7 */
             /* changing from 0 to 1 latches counters and clears them */
