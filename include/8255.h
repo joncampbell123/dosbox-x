@@ -93,9 +93,9 @@ public:
     //! Internal 8255 emulation code to check INTR B change and dispatch signal
     void                checkINTR_B(void);              
 public:
-    //! Called by 8255 emulation when INTR A signal changes
+    //! Called by 8255 emulation when INTR A signal changes to dispatch signal
     virtual void        sigINTR_A(void);                
-    //! Called by 8255 emulation when INTR B signal changes
+    //! Called by 8255 emulation when INTR B signal changes to dispatch signal
     virtual void        sigINTR_B(void);                
 public:
     //! \brief Retrieve the name of this chip (for debug/UI purposes)
