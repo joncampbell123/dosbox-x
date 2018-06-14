@@ -1652,6 +1652,44 @@ extern bool gdc_5mhz_mode;
 
 bool PC98_SHUT0=true,PC98_SHUT1=true;
 
+//! \brief PC-98 System 8255 PPI emulation (Intel 8255A device)
+//!
+//! \description NEC PC-98 systems use a 8255 to enable reading
+//!              the DIP switches on the front (port A),
+//!              some hardware state (Port B), and to control
+//!              some hardware and signal the BIOS for
+//!              shutdown/reset (Port C).
+//!
+//!              This PPI is connected to I/O ports 0x31-0x37 odd.
+//!              - 0x31 Port A
+//!              - 0x33 Port B
+//!              - 0x35 Port C
+//!              - 0x37 control/mode
+//!
+//!              Note that on real hardware, PC-9801 systems
+//!              had physical DIP switches until sometime around
+//!              the early nineties when the DIP switches became
+//!              virtual, and were set by the BIOS according to
+//!              configuration stored elsewhere.
+//!
+//!              This PPI is connected to:
+//!              - Port A (in): DIP switches 2-1 through 2-8
+//!              - Port B (in): Parity error, expansion bus INT 3,
+//!                             and RS-232C (8251) status
+//!              - Port C (out): RS-232C interrupt enable, speaker (buzzer)
+//!                              inhibit, parity check enable, and
+//!                              shutdown flags.
+//!
+//!              The two "shutdown" bit flags serve to instruct
+//!              the BIOS on what to do after a soft CPU reset.
+//!              One particular setting allows 286-class systems
+//!              to reset to real mode through a FAR return stack,
+//!              for the same reasons that IBM PC/AT systems enable
+//!              reset to real mode through a reset byte written
+//!              to RTC CMOS and a far pointer to jump to.
+//!              A well known PC-9821 expanded memory emulator,
+//!              VEMM486.EXE, relies on the shutdown bits in that
+//!              manner when it initializes.
 class PC98_System_8255 : public Intel8255 {
 public:
     PC98_System_8255() : Intel8255() {
