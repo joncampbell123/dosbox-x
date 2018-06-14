@@ -16,6 +16,7 @@ var searchData=
   ['newdiskswap',['newDiskSwap',['../classBOOT.html#ab165a586fbff98d26e21fba090440209',1,'BOOT']]],
   ['newinitpagehandler',['NewInitPageHandler',['../classNewInitPageHandler.html',1,'']]],
   ['next',['next',['../classGUI_1_1Timer.html#a44e2f3e6123c9513b87b81f244ef9311',1,'GUI::Timer']]],
+  ['nil_5fif_5fnull',['nil_if_null',['../classIntel8255.html#a4d14f0770973a9e416acc5ac04857eb1',1,'Intel8255']]],
   ['nmitest',['NMITEST',['../classNMITEST.html',1,'']]],
   ['nodetype',['nodeType',['../structnodeType.html',1,'']]],
   ['notify_5fbutton',['notify_button',['../classCKeyEvent.html#a93407353bb472fc93fa7962f1c2e7933',1,'CKeyEvent::notify_button()'],['../classCJAxisEvent.html#a44cbf08bc0468daffe05f967810851f0',1,'CJAxisEvent::notify_button()'],['../classCJButtonEvent.html#ac8c89511fdc9a86b4c187eec432445d2',1,'CJButtonEvent::notify_button()'],['../classCModEvent.html#aa5dc746da9ec638e1959bfd1dddafc75',1,'CModEvent::notify_button()'],['../classCHandlerEvent.html#ac636235e80032332d688fe888ebd5cf4',1,'CHandlerEvent::notify_button()']]],

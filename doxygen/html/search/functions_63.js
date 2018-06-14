@@ -10,6 +10,8 @@ var searchData=
   ['check',['check',['../classGUI_1_1Timer.html#aca48b51e64a4b4e4fdcc83f0edb06f0a',1,'GUI::Timer']]],
   ['checkbox',['Checkbox',['../classGUI_1_1Checkbox.html#a025ab90d6def02c0df24d46999b16198',1,'GUI::Checkbox::Checkbox(Window *parent, int x, int y, int w, int h)'],['../classGUI_1_1Checkbox.html#accc7c898b46063c9b7e21d7563c17189',1,'GUI::Checkbox::Checkbox(Window *parent, int x, int y, const T text, int w=-1, int h=-1)']]],
   ['checkconfig',['CheckConfig',['../classDOS__Shell.html#a76295a24e50b9f37bff152be05c8ea93',1,'DOS_Shell']]],
+  ['checkintr_5fa',['checkINTR_A',['../classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394',1,'Intel8255']]],
+  ['checkintr_5fb',['checkINTR_B',['../classIntel8255.html#aa1fb90bb0a5ecf6121e8f79eb7b757d8',1,'Intel8255']]],
   ['checkoffset',['checkOffset',['../classGUI_1_1Input.html#ab081f47beee40c4872ac7728623b3e82',1,'GUI::Input']]],
   ['cjaxisevent',['CJAxisEvent',['../classCJAxisEvent.html#a9cf7657ec986985dd15efcb92b20a380',1,'CJAxisEvent']]],
   ['cjbuttonevent',['CJButtonEvent',['../classCJButtonEvent.html#a1e52758b5a23171097f00bae1acf028a',1,'CJButtonEvent']]],

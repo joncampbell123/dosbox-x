@@ -33,7 +33,7 @@ var searchData=
   ['mixerchannel',['MixerChannel',['../classMixerChannel.html',1,'']]],
   ['mixerobject',['MixerObject',['../classMixerObject.html',1,'']]],
   ['mmx_5freg',['MMX_reg',['../unionMMX__reg.html',1,'']]],
-  ['mode',['MODE',['../classMODE.html',1,'']]],
+  ['mode',['MODE',['../classMODE.html',1,'MODE'],['../classIntel8255.html#a9585630ec3ff22e97c26524931dab693',1,'Intel8255::mode()']]],
   ['mode_5finfo',['MODE_INFO',['../structMODE__INFO.html',1,'']]],
   ['mods',['mods',['../classCBind.html#a91f9c2be14e33caf50f7be9157e67cc8',1,'CBind']]],
   ['module',['Module',['../classAdlib_1_1Module.html',1,'Adlib']]],

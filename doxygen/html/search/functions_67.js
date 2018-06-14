@@ -23,7 +23,7 @@ var searchData=
   ['getlinewidth',['getLineWidth',['../classGUI_1_1Drawable.html#a51983595f2264c5a58cde822c5b2e99a',1,'GUI::Drawable']]],
   ['getmediatraystatus',['GetMediaTrayStatus',['../classCDROM__Interface.html#a3891396e99454752aafc695813e495e8',1,'CDROM_Interface::GetMediaTrayStatus()'],['../classCDROM__Interface__SDL.html#aff975ea549d6b3d650678c4d91b6ad22',1,'CDROM_Interface_SDL::GetMediaTrayStatus()'],['../classCDROM__Interface__Fake.html#a97677cbe31ed7fb3f777fcaa7307bcba',1,'CDROM_Interface_Fake::GetMediaTrayStatus()'],['../classCDROM__Interface__Image.html#a8c5afdabeea94743f487fae4623eacac',1,'CDROM_Interface_Image::GetMediaTrayStatus()']]],
   ['getmodifiertext',['GetModifierText',['../classCBind.html#ab383a16224dba3e1963700a8be1f951d',1,'CBind']]],
-  ['getname',['getName',['../classGUI_1_1ActionEventSource.html#af15ccb79f3b89dd16c872184c150c373',1,'GUI::ActionEventSource::getName()'],['../classCEvent.html#a4693b4e54c079cc97f0522eb15154953',1,'CEvent::GetName()']]],
+  ['getname',['getName',['../classIntel8255.html#a74f2c86ed0256d9d51ee468bc156b004',1,'Intel8255::getName()'],['../classGUI_1_1ActionEventSource.html#af15ccb79f3b89dd16c872184c150c373',1,'GUI::ActionEventSource::getName()'],['../classCEvent.html#a4693b4e54c079cc97f0522eb15154953',1,'CEvent::GetName()']]],
   ['getnative',['getNative',['../classGUI_1_1NativeString.html#aebb6e74db39675d8f7348ecd882e0ef3',1,'GUI::NativeString']]],
   ['getparent',['getParent',['../classGUI_1_1Window.html#a6b22ed4bc9325ba95e406f2dd3a152a2',1,'GUI::Window']]],
   ['getpixel',['getPixel',['../classGUI_1_1Drawable.html#a1d74a05317ac725da786c76fe5788cb5',1,'GUI::Drawable::getPixel()'],['../classGUI_1_1Drawable.html#aa47df2365adb19c049cda5701b1baab9',1,'GUI::Drawable::getPixel(int x, int y)']]],

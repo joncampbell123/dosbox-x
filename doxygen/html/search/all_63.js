@@ -43,6 +43,8 @@ var searchData=
   ['checkbox',['Checkbox',['../classGUI_1_1Checkbox.html',1,'GUI']]],
   ['checkconfig',['CheckConfig',['../classDOS__Shell.html#a76295a24e50b9f37bff152be05c8ea93',1,'DOS_Shell']]],
   ['checked',['checked',['../classGUI_1_1Checkbox.html#ab9e40eb561978770aad1095906c4fb65',1,'GUI::Checkbox::checked()'],['../classGUI_1_1Radiobox.html#ace7ecfe96f9746040c020362d13d7046',1,'GUI::Radiobox::checked()']]],
+  ['checkintr_5fa',['checkINTR_A',['../classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394',1,'Intel8255']]],
+  ['checkintr_5fb',['checkINTR_B',['../classIntel8255.html#aa1fb90bb0a5ecf6121e8f79eb7b757d8',1,'Intel8255']]],
   ['checkoffset',['checkOffset',['../classGUI_1_1Input.html#ab081f47beee40c4872ac7728623b3e82',1,'GUI::Input']]],
   ['children',['children',['../classGUI_1_1Window.html#ac10e617306be4367ed164ea97f5d3132',1,'GUI::Window']]],
   ['chip',['Chip',['../structAdlib_1_1Chip.html',1,'Adlib']]],

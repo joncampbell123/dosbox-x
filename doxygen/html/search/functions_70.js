@@ -5,6 +5,8 @@ var searchData=
   ['parseline',['ParseLine',['../classDOS__Shell.html#ad4280cf9e2c07d534b7e32f9c58749d3',1,'DOS_Shell']]],
   ['pasteselection',['pasteSelection',['../classGUI_1_1Input.html#a0730779bd0ce071231ccc394e0d26dfc',1,'GUI::Input']]],
   ['pauseaudio',['PauseAudio',['../classCDROM__Interface.html#a811af8ad77b46c975473abd8aaa48f48',1,'CDROM_Interface::PauseAudio()'],['../classCDROM__Interface__SDL.html#a05e05542290e98ba8dc41fb3fc75f363',1,'CDROM_Interface_SDL::PauseAudio()'],['../classCDROM__Interface__Fake.html#a9fa2dfc2b09b1a91ce607d54636a9ce5',1,'CDROM_Interface_Fake::PauseAudio()'],['../classCDROM__Interface__Image.html#ac74be8f64002ccf76b65c2fbd03077bd',1,'CDROM_Interface_Image::PauseAudio()']]],
+  ['pinname',['pinName',['../classIntel8255.html#ab229c3b40dbb7fdf4304b82cd40696fa',1,'Intel8255']]],
   ['playaudiosector',['PlayAudioSector',['../classCDROM__Interface.html#a9a90d8036bb0fccc17b147dfab6ad26f',1,'CDROM_Interface::PlayAudioSector()'],['../classCDROM__Interface__SDL.html#a1ab19753917b3fd97a28cec1191d84aa',1,'CDROM_Interface_SDL::PlayAudioSector()'],['../classCDROM__Interface__Fake.html#a6b8236c5041698ebcf1c136aeebde117',1,'CDROM_Interface_Fake::PlayAudioSector()'],['../classCDROM__Interface__Image.html#afbb8b5443be56ba92b5a1287ba95f913',1,'CDROM_Interface_Image::PlayAudioSector()']]],
+  ['portname',['portName',['../classIntel8255.html#a3f2f6c30bb6cb840cac73d4a83414481',1,'Intel8255']]],
   ['postoend',['posToEnd',['../classGUI_1_1Input.html#a98bf8ee0e5ccb2e6a387fd1a463b60cd',1,'GUI::Input']]]
 ];

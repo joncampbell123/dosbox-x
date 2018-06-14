@@ -2,6 +2,8 @@ var searchData=
 [
   ['a20gate',['A20GATE',['../classA20GATE.html',1,'']]],
   ['accelerator',['accelerator',['../structDOSBoxMenu_1_1accelerator.html',1,'DOSBoxMenu']]],
+  ['ackporta',['ackPortA',['../classIntel8255.html#a1a94705b45a2560e8a81cc2bd5a4275a',1,'Intel8255']]],
+  ['ackportb',['ackPortB',['../classIntel8255.html#af08c9c489604d0eb1340f41e71a7bdc5',1,'Intel8255']]],
   ['actioneventsource',['ActionEventSource',['../classGUI_1_1ActionEventSource.html#a635659bd7a7964d6d1b450d1d353736e',1,'GUI::ActionEventSource']]],
   ['actioneventsource',['ActionEventSource',['../classGUI_1_1ActionEventSource.html',1,'GUI']]],
   ['actioneventsource_5fcallback',['ActionEventSource_Callback',['../structGUI_1_1ActionEventSource__Callback.html',1,'GUI']]],

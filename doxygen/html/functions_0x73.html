@@ -83,6 +83,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="functions_func.html"><span>Functions</span></a></li>
       <li><a href="functions_vars.html"><span>Variables</span></a></li>
       <li><a href="functions_enum.html"><span>Enumerations</span></a></li>
+      <li><a href="functions_eval.html"><span>Enumerator</span></a></li>
     </ul>
   </div>
   <div id="navrow4" class="tabs3">
@@ -119,7 +120,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -208,6 +209,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>ShowPrompt()
 : <a class="el" href="classDOS__Shell.html#af64acad6a303bf9e0343dc5affb0642b">DOS_Shell</a>
 </li>
+<li>sigINTR_A()
+: <a class="el" href="classIntel8255.html#a2338b0324884d4362c516631dd838466">Intel8255</a>
+</li>
+<li>sigINTR_B()
+: <a class="el" href="classIntel8255.html#a6d81c4a61f0cc7033e1da1a16cc2275e">Intel8255</a>
+</li>
 <li>special
 : <a class="el" href="classGUI_1_1BitmapFont.html#a46f912c496e902dfc614e25261599718">GUI::BitmapFont</a>
 </li>
@@ -226,13 +233,19 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 , <a class="el" href="classCJHatEvent.html#a53d2e407f823a8bd30a2c0d5613cb29b">CJHatEvent</a>
 </li>
 <li>StopAudio()
-: <a class="el" href="classCDROM__Interface__Image.html#a4a0af2e1be4fcb87e125b9d3e7aca327">CDROM_Interface_Image</a>
-, <a class="el" href="classCDROM__Interface__Fake.html#a2ef5025cac6123dc9abb7ac35797c7b1">CDROM_Interface_Fake</a>
+: <a class="el" href="classCDROM__Interface__Fake.html#a2ef5025cac6123dc9abb7ac35797c7b1">CDROM_Interface_Fake</a>
+, <a class="el" href="classCDROM__Interface__Image.html#a4a0af2e1be4fcb87e125b9d3e7aca327">CDROM_Interface_Image</a>
 , <a class="el" href="classCDROM__Interface.html#ac16f2f2a5f081fbd1ace3ae6af34b7c3">CDROM_Interface</a>
 , <a class="el" href="classCDROM__Interface__SDL.html#ad6d548854bf1bac17204f67b8f1dbe40">CDROM_Interface_SDL</a>
 </li>
 <li>String()
-: <a class="el" href="classGUI_1_1String.html#a86c043d474eb2c6f8c3e80eaffe0cd77">GUI::String</a>
+: <a class="el" href="classGUI_1_1String.html#a6249da83463f6309f949a5aab46c4206">GUI::String</a>
+</li>
+<li>strobePortA()
+: <a class="el" href="classIntel8255.html#a7794eec4462ed1d6b3888b9af91445c6">Intel8255</a>
+</li>
+<li>strobePortB()
+: <a class="el" href="classIntel8255.html#aa3fece75effbbf7eeb60a2a44976f1d3">Intel8255</a>
 </li>
 <li>surfaceToRGB()
 : <a class="el" href="classGUI_1_1ScreenRGB32le.html#ad6fbb227845ecca03bf04d344a40dce9">GUI::ScreenRGB32le</a>
@@ -249,7 +262,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 13 2018 13:27:54 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jun 14 2018 12:30:12 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

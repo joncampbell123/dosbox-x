@@ -18,8 +18,12 @@ var searchData=
   ['setvalue',['SetValue',['../classCEvent.html#aaa253031798af461119b830d079e8225',1,'CEvent']]],
   ['setvisible',['setVisible',['../classGUI_1_1Window.html#a7cd474e3c89ff37a4295da00f3624cc7',1,'GUI::Window::setVisible()'],['../classGUI_1_1TransientWindow.html#a5581ee490ae2ce490ca45e234f6712a2',1,'GUI::TransientWindow::setVisible()'],['../classGUI_1_1Menu.html#aa98bb7305b74088dd875ead6747cfa52',1,'GUI::Menu::setVisible()']]],
   ['showprompt',['ShowPrompt',['../classDOS__Shell.html#af64acad6a303bf9e0343dc5affb0642b',1,'DOS_Shell']]],
+  ['sigintr_5fa',['sigINTR_A',['../classIntel8255.html#a2338b0324884d4362c516631dd838466',1,'Intel8255']]],
+  ['sigintr_5fb',['sigINTR_B',['../classIntel8255.html#a6d81c4a61f0cc7033e1da1a16cc2275e',1,'Intel8255']]],
   ['stopaudio',['StopAudio',['../classCDROM__Interface.html#ac16f2f2a5f081fbd1ace3ae6af34b7c3',1,'CDROM_Interface::StopAudio()'],['../classCDROM__Interface__SDL.html#ad6d548854bf1bac17204f67b8f1dbe40',1,'CDROM_Interface_SDL::StopAudio()'],['../classCDROM__Interface__Fake.html#a2ef5025cac6123dc9abb7ac35797c7b1',1,'CDROM_Interface_Fake::StopAudio()'],['../classCDROM__Interface__Image.html#a4a0af2e1be4fcb87e125b9d3e7aca327',1,'CDROM_Interface_Image::StopAudio()']]],
   ['string',['String',['../classGUI_1_1String.html#a285d02b044048af63eb12dc5a5536de2',1,'GUI::String::String(const STR &amp;src)'],['../classGUI_1_1String.html#a39784c812f1b9d98ccb8a70debe5beda',1,'GUI::String::String(InputIterator a, InputIterator b)'],['../classGUI_1_1String.html#a86c043d474eb2c6f8c3e80eaffe0cd77',1,'GUI::String::String(const String &amp;src)'],['../classGUI_1_1String.html#a6249da83463f6309f949a5aab46c4206',1,'GUI::String::String()']]],
+  ['strobeporta',['strobePortA',['../classIntel8255.html#a7794eec4462ed1d6b3888b9af91445c6',1,'Intel8255']]],
+  ['strobeportb',['strobePortB',['../classIntel8255.html#aa3fece75effbbf7eeb60a2a44976f1d3',1,'Intel8255']]],
   ['surfacetorgb',['surfaceToRGB',['../classGUI_1_1Screen.html#a0512d1dfadc6e7800b3c9c97fd6c733e',1,'GUI::Screen::surfaceToRGB()'],['../classGUI_1_1ScreenRGB32le.html#ad6fbb227845ecca03bf04d344a40dce9',1,'GUI::ScreenRGB32le::surfaceToRGB()']]],
   ['syntaxerror',['SyntaxError',['../classDOS__Shell.html#aac7d57d83c368abf38cd7fb16ae36807',1,'DOS_Shell']]]
 ];

@@ -80,7 +80,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -141,13 +141,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00045"></a>00045 }
 <a name="l00046"></a>00046 
 <a name="l00047"></a>00047 
-<a name="l00048"></a>00048 <span class="comment">/* Return data type T with value negated</span>
+<a name="l00048"></a>00048 <span class="comment">/* Return data type T with value inverted</span>
 <a name="l00049"></a>00049 <span class="comment"> *</span>
 <a name="l00050"></a>00050 <span class="comment"> * This is to avoid typecast messes when masking by the inverse of a constant</span>
 <a name="l00051"></a>00051 <span class="comment"> * </span>
-<a name="l00052"></a>00052 <span class="comment"> * @return Type T with value negated</span>
+<a name="l00052"></a>00052 <span class="comment"> * @return Type T with value inverted</span>
 <a name="l00053"></a>00053 <span class="comment"> */</span>
-<a name="l00054"></a>00054 <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T=<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>&gt; <span class="keyword">static</span> <span class="keyword">inline</span> constexpr T negate(<span class="keyword">const</span> T v) {
+<a name="l00054"></a>00054 <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T=<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>&gt; <span class="keyword">static</span> <span class="keyword">inline</span> constexpr T invert(<span class="keyword">const</span> T v) {
 <a name="l00055"></a>00055     <span class="keywordflow">return</span> (T)( ~v );
 <a name="l00056"></a>00056 }
 <a name="l00057"></a>00057 
@@ -493,7 +493,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 13 2018 13:27:42 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jun 14 2018 12:30:01 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

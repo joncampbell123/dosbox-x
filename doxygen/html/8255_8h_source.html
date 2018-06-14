@@ -80,7 +80,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -98,103 +98,113 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00002"></a>00002 <span class="preprocessor">#include &lt;stdio.h&gt;</span>
 <a name="l00003"></a>00003 <span class="preprocessor">#include &lt;stdint.h&gt;</span>
 <a name="l00004"></a>00004 
-<a name="l00005"></a><a class="code" href="classIntel8255.html">00005</a> <span class="keyword">class </span><a class="code" href="classIntel8255.html">Intel8255</a> {
-<a name="l00006"></a>00006 <span class="keyword">public</span>:
-<a name="l00007"></a>00007     <span class="keyword">enum</span> {
-<a name="l00008"></a>00008         PortA=0,
-<a name="l00009"></a>00009         PortB=1,
-<a name="l00010"></a>00010         PortC=2
-<a name="l00011"></a>00011     };
-<a name="l00012"></a>00012 <span class="keyword">public</span>:
-<a name="l00013"></a>00013                         <a class="code" href="classIntel8255.html">Intel8255</a>();
-<a name="l00014"></a>00014     <span class="keyword">virtual</span>            ~<a class="code" href="classIntel8255.html">Intel8255</a>();
-<a name="l00015"></a>00015 <span class="keyword">public</span>:
-<a name="l00016"></a>00016     <span class="keywordtype">void</span>                reset(<span class="keywordtype">void</span>);
-<a name="l00017"></a>00017 
-<a name="l00018"></a>00018     <span class="keywordtype">void</span>                ackPortA(<span class="keywordtype">void</span>);
-<a name="l00019"></a>00019     <span class="keywordtype">void</span>                ackPortB(<span class="keywordtype">void</span>);
-<a name="l00020"></a>00020 
-<a name="l00021"></a>00021     <span class="keyword">virtual</span> <span class="keywordtype">void</span>        strobePortA(<span class="keywordtype">void</span>);
-<a name="l00022"></a>00022     <span class="keyword">virtual</span> <span class="keywordtype">void</span>        strobePortB(<span class="keywordtype">void</span>);
-<a name="l00023"></a>00023 
-<a name="l00024"></a>00024     uint8_t             readPortA(<span class="keywordtype">void</span>);
-<a name="l00025"></a>00025     uint8_t             readPortB(<span class="keywordtype">void</span>);
-<a name="l00026"></a>00026     uint8_t             readPortC(<span class="keywordtype">void</span>);
-<a name="l00027"></a>00027     uint8_t             readControl(<span class="keywordtype">void</span>);
-<a name="l00028"></a>00028 
-<a name="l00029"></a>00029     uint8_t             readByPort(<span class="keyword">const</span> uint8_t p03);
-<a name="l00030"></a>00030 
-<a name="l00031"></a>00031     <span class="keywordtype">void</span>                writePortA(<span class="keyword">const</span> uint8_t data,uint8_t mask=0xFFU);
-<a name="l00032"></a>00032     <span class="keywordtype">void</span>                writePortB(<span class="keyword">const</span> uint8_t data,uint8_t mask=0xFFU);
-<a name="l00033"></a>00033     <span class="keywordtype">void</span>                writePortC(<span class="keyword">const</span> uint8_t data,uint8_t mask=0xFFU);
-<a name="l00034"></a>00034     <span class="keywordtype">void</span>                writeControl(<span class="keyword">const</span> uint8_t data);
-<a name="l00035"></a>00035 
-<a name="l00036"></a>00036     <span class="keywordtype">void</span>                writeByPort(<span class="keyword">const</span> uint8_t p03,<span class="keyword">const</span> uint8_t data);
-<a name="l00037"></a>00037 <span class="keyword">public</span>:
-<a name="l00038"></a>00038     <span class="keyword">virtual</span> uint8_t     inPortA(<span class="keywordtype">void</span>) <span class="keyword">const</span>;
-<a name="l00039"></a>00039     <span class="keyword">virtual</span> uint8_t     inPortB(<span class="keywordtype">void</span>) <span class="keyword">const</span>;
-<a name="l00040"></a>00040     <span class="keyword">virtual</span> uint8_t     inPortC(<span class="keywordtype">void</span>) <span class="keyword">const</span>;
-<a name="l00041"></a>00041 <span class="keyword">public</span>:
-<a name="l00042"></a>00042     <span class="keyword">virtual</span> <span class="keywordtype">void</span>        outPortA(<span class="keyword">const</span> uint8_t mask);
-<a name="l00043"></a>00043     <span class="keyword">virtual</span> <span class="keywordtype">void</span>        outPortB(<span class="keyword">const</span> uint8_t mask);
-<a name="l00044"></a>00044     <span class="keyword">virtual</span> <span class="keywordtype">void</span>        outPortC(<span class="keyword">const</span> uint8_t mask);
-<a name="l00045"></a>00045 <span class="keyword">public</span>:
-<a name="l00046"></a>00046     <span class="keywordtype">void</span>                updateINTR_A(<span class="keywordtype">void</span>);
-<a name="l00047"></a>00047     <span class="keywordtype">void</span>                updateINTR_B(<span class="keywordtype">void</span>);
-<a name="l00048"></a>00048 <span class="keyword">public</span>:
-<a name="l00049"></a>00049     <span class="keywordtype">void</span>                checkINTR_A(<span class="keywordtype">void</span>);
-<a name="l00050"></a>00050     <span class="keywordtype">void</span>                checkINTR_B(<span class="keywordtype">void</span>);
-<a name="l00051"></a>00051 <span class="keyword">public</span>:
-<a name="l00052"></a>00052     <span class="keyword">virtual</span> <span class="keywordtype">void</span>        sigINTR_A(<span class="keywordtype">void</span>);
-<a name="l00053"></a>00053     <span class="keyword">virtual</span> <span class="keywordtype">void</span>        sigINTR_B(<span class="keywordtype">void</span>);
-<a name="l00054"></a>00054 <span class="keyword">public</span>:
-<a name="l00055"></a>00055     <span class="keyword">inline</span> <span class="keyword">const</span> <span class="keywordtype">char</span>*  getName(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{
-<a name="l00056"></a>00056         <span class="keywordflow">return</span> nil_if_null(ppiName);
-<a name="l00057"></a>00057     }
-<a name="l00058"></a>00058 <span class="keyword">public</span>:
-<a name="l00059"></a>00059     <span class="keyword">inline</span> <span class="keyword">const</span> <span class="keywordtype">char</span>*  pinName(<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> port,<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i)<span class="keyword"> const </span>{
-<a name="l00060"></a>00060         <span class="keywordflow">return</span> nil_if_null(pinNames[port][i]);
-<a name="l00061"></a>00061     }
-<a name="l00062"></a>00062     <span class="keyword">inline</span> <span class="keyword">const</span> <span class="keywordtype">char</span>*  portName(<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> port)<span class="keyword"> const </span>{
-<a name="l00063"></a>00063         <span class="keywordflow">return</span> nil_if_null(portNames[port]);
-<a name="l00064"></a>00064     }
-<a name="l00065"></a>00065 <span class="keyword">public</span>:
-<a name="l00066"></a>00066     uint8_t             portAWriteMask,portBWriteMask,portCWriteMask;
-<a name="l00067"></a>00067 <span class="keyword">public</span>:
-<a name="l00068"></a>00068     <span class="keyword">const</span> <span class="keywordtype">char</span>*         ppiName;
-<a name="l00069"></a>00069 <span class="keyword">public</span>:
-<a name="l00070"></a>00070     <span class="keyword">const</span> <span class="keywordtype">char</span>*         pinNames[3<span class="comment">/*port*/</span>][8<span class="comment">/*bit*/</span>];
-<a name="l00071"></a>00071     <span class="keyword">const</span> <span class="keywordtype">char</span>*         portNames[3<span class="comment">/*port*/</span>];
-<a name="l00072"></a>00072 <span class="keyword">public</span>:
-<a name="l00073"></a>00073     uint8_t             latchOutPortA,latchOutPortB,latchOutPortC;
-<a name="l00074"></a>00074     uint8_t             mode;
-<a name="l00075"></a>00075     <span class="comment">/* bit[7:7] = 1             mode set flag</span>
-<a name="l00076"></a>00076 <span class="comment">     * bit[6:5] = mode select   00=mode 0  01=mode 1  1x=mode 2</span>
-<a name="l00077"></a>00077 <span class="comment">     * bit[4:4] = Port A        1=input  0=output</span>
-<a name="l00078"></a>00078 <span class="comment">     * bit[3:3] = Port C upper  1=input  0=output</span>
-<a name="l00079"></a>00079 <span class="comment">     * bit[2:2] = mode select   0=mode 0   1=mode 1</span>
-<a name="l00080"></a>00080 <span class="comment">     * bit[1:1] = Port B        1=input  0=output</span>
-<a name="l00081"></a>00081 <span class="comment">     * bit[0:0] = Port C lower  1=input  0=output */</span>
-<a name="l00082"></a>00082 <span class="keyword">public</span>:
-<a name="l00083"></a>00083     <span class="keywordtype">bool</span>                IBF_A,IBF_B;
-<a name="l00084"></a>00084     <span class="keywordtype">bool</span>                OBF_A,OBF_B;
-<a name="l00085"></a>00085 <span class="keyword">public</span>:
-<a name="l00086"></a>00086     <span class="keywordtype">bool</span>                INTR_A,INTR_B;
-<a name="l00087"></a>00087     <span class="keywordtype">bool</span>                pINTR_A,pINTR_B;
-<a name="l00088"></a>00088 <span class="keyword">public</span>:
-<a name="l00089"></a>00089     <span class="keywordtype">bool</span>                INTE_1,INTE_2; <span class="comment">/* mode 2 */</span>
-<a name="l00090"></a>00090     <span class="keywordtype">bool</span>                INTE_A,INTE_B;
-<a name="l00091"></a>00091 <span class="keyword">protected</span>:
-<a name="l00092"></a>00092     <span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">const</span> <span class="keywordtype">char</span> *nil_if_null(<span class="keyword">const</span> <span class="keywordtype">char</span> *str) {
-<a name="l00093"></a>00093         <span class="keywordflow">return</span> (str != NULL) ? str : <span class="stringliteral">&quot;&quot;</span>;
-<a name="l00094"></a>00094     }
-<a name="l00095"></a>00095 };
-<a name="l00096"></a>00096 
+<a name="l00018"></a><a class="code" href="classIntel8255.html">00018</a> <span class="keyword">class </span><a class="code" href="classIntel8255.html" title="Intel 8255 base emulation class.">Intel8255</a> {
+<a name="l00019"></a>00019 <span class="keyword">public</span>:
+<a name="l00023"></a>00023     <span class="keyword">enum</span> {
+<a name="l00025"></a><a class="code" href="classIntel8255.html#afad1dcdd07864ccadd09c33e1af473eda37629392c4361095a45143d6093e0a71">00025</a>         <a class="code" href="classIntel8255.html#afad1dcdd07864ccadd09c33e1af473eda37629392c4361095a45143d6093e0a71" title="Port A (input or output)">PortA</a>=0,        
+<a name="l00027"></a><a class="code" href="classIntel8255.html#afad1dcdd07864ccadd09c33e1af473eda480265dca14f2d4b03d6d0f6e9ae66f3">00027</a>         <a class="code" href="classIntel8255.html#afad1dcdd07864ccadd09c33e1af473eda480265dca14f2d4b03d6d0f6e9ae66f3" title="Port B (input or output)">PortB</a>=1,        
+<a name="l00029"></a><a class="code" href="classIntel8255.html#afad1dcdd07864ccadd09c33e1af473edac42dfe5b4e1996f66b828cb26b79fb95">00029</a>         <a class="code" href="classIntel8255.html#afad1dcdd07864ccadd09c33e1af473edac42dfe5b4e1996f66b828cb26b79fb95" title="Port C (input, output, or half input half output)">PortC</a>=2         
+<a name="l00030"></a>00030     };
+<a name="l00031"></a>00031 <span class="keyword">public</span>:
+<a name="l00033"></a>00033                         <a class="code" href="classIntel8255.html#acfcfa08e1078860556b34f1d66a88936" title="Constructor.">Intel8255</a>();
+<a name="l00035"></a>00035     <span class="keyword">virtual</span>            <a class="code" href="classIntel8255.html#ac360700d3123005de17184d3429d047d" title="Destructor.">~Intel8255</a>();
+<a name="l00036"></a>00036 <span class="keyword">public</span>:
+<a name="l00038"></a>00038     <span class="keywordtype">void</span>                <a class="code" href="classIntel8255.html#ad140a9c3a8dda8fc954a8f25c4d1bfca" title="Reset state (as if activating reset signal)">reset</a>(<span class="keywordtype">void</span>);                    
+<a name="l00039"></a>00039 
+<a name="l00041"></a>00041     <span class="keywordtype">void</span>                <a class="code" href="classIntel8255.html#a1a94705b45a2560e8a81cc2bd5a4275a" title="External acknowledgement of port A.">ackPortA</a>(<span class="keywordtype">void</span>);                 
+<a name="l00043"></a>00043     <span class="keywordtype">void</span>                <a class="code" href="classIntel8255.html#af08c9c489604d0eb1340f41e71a7bdc5" title="External acknowledgement of port B.">ackPortB</a>(<span class="keywordtype">void</span>);                 
+<a name="l00044"></a>00044 
+<a name="l00046"></a>00046     <span class="keyword">virtual</span> <span class="keywordtype">void</span>        <a class="code" href="classIntel8255.html#a7794eec4462ed1d6b3888b9af91445c6" title="Strobed Input (latch to port A)">strobePortA</a>(<span class="keywordtype">void</span>);              
+<a name="l00048"></a>00048     <span class="keyword">virtual</span> <span class="keywordtype">void</span>        <a class="code" href="classIntel8255.html#aa3fece75effbbf7eeb60a2a44976f1d3" title="Strobed Input (latch to port B)">strobePortB</a>(<span class="keywordtype">void</span>);              
+<a name="l00049"></a>00049 
+<a name="l00051"></a>00051     uint8_t             <a class="code" href="classIntel8255.html#a751260da953e9f51d5537664cc6e0173" title="Called when CPU reads port A.">readPortA</a>(<span class="keywordtype">void</span>);                
+<a name="l00053"></a>00053     uint8_t             <a class="code" href="classIntel8255.html#a0b4e956de16abf229c6599e8eedbe887" title="Called when CPU reads port B.">readPortB</a>(<span class="keywordtype">void</span>);                
+<a name="l00055"></a>00055     uint8_t             <a class="code" href="classIntel8255.html#a8d19749a800aa3250004d744d0fa6da8" title="Called when CPU reads port C.">readPortC</a>(<span class="keywordtype">void</span>);                
+<a name="l00057"></a>00057     uint8_t             <a class="code" href="classIntel8255.html#ab997e7e58d497ed718396817a786892a" title="Called when CPU reads control port.">readControl</a>(<span class="keywordtype">void</span>);              
+<a name="l00058"></a>00058 
+<a name="l00060"></a>00060     uint8_t             <a class="code" href="classIntel8255.html#a2b1c343c6cfa15e20122571ce3a42c6e" title="Called when CPU reads from the chip.">readByPort</a>(<span class="keyword">const</span> uint8_t p03);  
+<a name="l00061"></a>00061 
+<a name="l00063"></a>00063     <span class="keywordtype">void</span>                <a class="code" href="classIntel8255.html#a2b959c90c912c12e8d881cd21b59671e" title="Called when CPU writes port A.">writePortA</a>(<span class="keyword">const</span> uint8_t data,uint8_t mask=0xFFU);  
+<a name="l00065"></a>00065     <span class="keywordtype">void</span>                <a class="code" href="classIntel8255.html#a54bf45490f90f882c7ddba55bb9dcff3" title="Called when CPU writes port B.">writePortB</a>(<span class="keyword">const</span> uint8_t data,uint8_t mask=0xFFU);  
+<a name="l00067"></a>00067     <span class="keywordtype">void</span>                <a class="code" href="classIntel8255.html#ad08321013139ad0a6f168165ae8c68a7" title="Called when CPU writes port C.">writePortC</a>(<span class="keyword">const</span> uint8_t data,uint8_t mask=0xFFU);  
+<a name="l00069"></a>00069     <span class="keywordtype">void</span>                <a class="code" href="classIntel8255.html#a7f5bc4528c2d868b1530c45ee6172982" title="Called when CPU writes control port.">writeControl</a>(<span class="keyword">const</span> uint8_t data);                   
+<a name="l00070"></a>00070 
+<a name="l00072"></a>00072     <span class="keywordtype">void</span>                <a class="code" href="classIntel8255.html#afc2d37b28f019c4ba64495a19d37eb1a" title="Called when CPU writes to the chip.">writeByPort</a>(<span class="keyword">const</span> uint8_t p03,<span class="keyword">const</span> uint8_t data);  
+<a name="l00073"></a>00073 <span class="keyword">public</span>:
+<a name="l00075"></a>00075     <span class="keyword">virtual</span> uint8_t     <a class="code" href="classIntel8255.html#a387e1edf0b09feea29362f1854398237" title="Called by 8255 emulation to latch from port A pins.">inPortA</a>(<span class="keywordtype">void</span>) <span class="keyword">const</span>;            
+<a name="l00077"></a>00077     <span class="keyword">virtual</span> uint8_t     <a class="code" href="classIntel8255.html#a5e4a8c34778bef66b5d2ddcf7b372be1" title="Called by 8255 emulation to latch from port B pins.">inPortB</a>(<span class="keywordtype">void</span>) <span class="keyword">const</span>;            
+<a name="l00079"></a>00079     <span class="keyword">virtual</span> uint8_t     <a class="code" href="classIntel8255.html#ac02d52c1bf5c0fb0478dfb0ffb1b8ec8" title="Called by 8255 emulation to latch from port C pins.">inPortC</a>(<span class="keywordtype">void</span>) <span class="keyword">const</span>;            
+<a name="l00080"></a>00080 <span class="keyword">public</span>:
+<a name="l00082"></a>00082     <span class="keyword">virtual</span> <span class="keywordtype">void</span>        <a class="code" href="classIntel8255.html#a15b8c1a78f8f1ca7ac90b92cc329f7d0" title="Called by 8255 emulation when latching to port A pins.">outPortA</a>(<span class="keyword">const</span> uint8_t mask);   
+<a name="l00084"></a>00084     <span class="keyword">virtual</span> <span class="keywordtype">void</span>        <a class="code" href="classIntel8255.html#a3004cbfc1a1eade447d2e312bc1faa29" title="Called by 8255 emulation when latching to port B pins.">outPortB</a>(<span class="keyword">const</span> uint8_t mask);   
+<a name="l00086"></a>00086     <span class="keyword">virtual</span> <span class="keywordtype">void</span>        <a class="code" href="classIntel8255.html#afaff12790fc1b0cf538c7b1a4f27d804" title="Called by 8255 emulation when latching to port C pins.">outPortC</a>(<span class="keyword">const</span> uint8_t mask);   
+<a name="l00087"></a>00087 <span class="keyword">public</span>:
+<a name="l00089"></a>00089     <span class="keywordtype">void</span>                <a class="code" href="classIntel8255.html#a862582a9f1779bb8af99365361b63c03" title="Internal 8255 emulation code to update INTR A signal.">updateINTR_A</a>(<span class="keywordtype">void</span>);             
+<a name="l00091"></a>00091     <span class="keywordtype">void</span>                <a class="code" href="classIntel8255.html#ad2adbe70f430d36a9f4f27124de3335d" title="Internal 8255 emulation code to update INTR B signal.">updateINTR_B</a>(<span class="keywordtype">void</span>);             
+<a name="l00092"></a>00092 <span class="keyword">public</span>:
+<a name="l00094"></a>00094     <span class="keywordtype">void</span>                <a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394" title="Internal 8255 emulation code to check INTR A change and dispatch signal.">checkINTR_A</a>(<span class="keywordtype">void</span>);              
+<a name="l00096"></a>00096     <span class="keywordtype">void</span>                <a class="code" href="classIntel8255.html#aa1fb90bb0a5ecf6121e8f79eb7b757d8" title="Internal 8255 emulation code to check INTR B change and dispatch signal.">checkINTR_B</a>(<span class="keywordtype">void</span>);              
+<a name="l00097"></a>00097 <span class="keyword">public</span>:
+<a name="l00099"></a>00099     <span class="keyword">virtual</span> <span class="keywordtype">void</span>        <a class="code" href="classIntel8255.html#a2338b0324884d4362c516631dd838466" title="Called by 8255 emulation when INTR A signal changes to dispatch signal.">sigINTR_A</a>(<span class="keywordtype">void</span>);                
+<a name="l00101"></a>00101     <span class="keyword">virtual</span> <span class="keywordtype">void</span>        <a class="code" href="classIntel8255.html#a6d81c4a61f0cc7033e1da1a16cc2275e" title="Called by 8255 emulation when INTR B signal changes to dispatch signal.">sigINTR_B</a>(<span class="keywordtype">void</span>);                
+<a name="l00102"></a>00102 <span class="keyword">public</span>:
+<a name="l00104"></a><a class="code" href="classIntel8255.html#a74f2c86ed0256d9d51ee468bc156b004">00104</a>     <span class="keyword">inline</span> <span class="keyword">const</span> <span class="keywordtype">char</span>*  <a class="code" href="classIntel8255.html#a74f2c86ed0256d9d51ee468bc156b004" title="Retrieve the name of this chip (for debug/UI purposes)">getName</a>(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{
+<a name="l00105"></a>00105         <span class="keywordflow">return</span> <a class="code" href="classIntel8255.html#a4d14f0770973a9e416acc5ac04857eb1" title="Return string &quot;str&quot;, or &quot;&quot; (empty string) if str == NULL.">nil_if_null</a>(<a class="code" href="classIntel8255.html#a4eb95c6f23bf4192324853afe9fe2178" title="PPI chip name (for debug/UI purposes)">ppiName</a>);
+<a name="l00106"></a>00106     }
+<a name="l00107"></a>00107 <span class="keyword">public</span>:
+<a name="l00109"></a><a class="code" href="classIntel8255.html#ab229c3b40dbb7fdf4304b82cd40696fa">00109</a>     <span class="keyword">inline</span> <span class="keyword">const</span> <span class="keywordtype">char</span>*  <a class="code" href="classIntel8255.html#ab229c3b40dbb7fdf4304b82cd40696fa" title="Retrieve the name of a pin on the chip related to port A, B, or C (what it&#39;s connected to) (for debug...">pinName</a>(<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> port,<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i)<span class="keyword"> const </span>{
+<a name="l00110"></a>00110         <span class="keywordflow">return</span> <a class="code" href="classIntel8255.html#a4d14f0770973a9e416acc5ac04857eb1" title="Return string &quot;str&quot;, or &quot;&quot; (empty string) if str == NULL.">nil_if_null</a>(<a class="code" href="classIntel8255.html#a9b4ea7714e1b9df34052e269e7f06dfa" title="Pin names (for debug/UI purposes)">pinNames</a>[port][i]);
+<a name="l00111"></a>00111     }
+<a name="l00113"></a><a class="code" href="classIntel8255.html#a3f2f6c30bb6cb840cac73d4a83414481">00113</a>     <span class="keyword">inline</span> <span class="keyword">const</span> <span class="keywordtype">char</span>*  <a class="code" href="classIntel8255.html#a3f2f6c30bb6cb840cac73d4a83414481" title="Retrieve the name of a port (A, B, or C) (for debug/UI purposes)">portName</a>(<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> port)<span class="keyword"> const </span>{
+<a name="l00114"></a>00114         <span class="keywordflow">return</span> <a class="code" href="classIntel8255.html#a4d14f0770973a9e416acc5ac04857eb1" title="Return string &quot;str&quot;, or &quot;&quot; (empty string) if str == NULL.">nil_if_null</a>(<a class="code" href="classIntel8255.html#a2439197a04df0425206d5d23328de77d" title="Port names (for debug/UI purposes)">portNames</a>[port]);
+<a name="l00115"></a>00115     }
+<a name="l00116"></a>00116 <span class="keyword">public</span>:
+<a name="l00118"></a><a class="code" href="classIntel8255.html#a2b5cdceaa86b03a1d19c5c3f749f6d38">00118</a>     uint8_t             <a class="code" href="classIntel8255.html#a2b5cdceaa86b03a1d19c5c3f749f6d38" title="Port A write mask. Controls which bits are writeable.">portAWriteMask</a>;
+<a name="l00120"></a><a class="code" href="classIntel8255.html#a0cba5817d6d2b0017b8e71d1d5fca1d8">00120</a>     uint8_t             <a class="code" href="classIntel8255.html#a0cba5817d6d2b0017b8e71d1d5fca1d8" title="Port B write mask. Controls which bits are writeable.">portBWriteMask</a>;
+<a name="l00122"></a><a class="code" href="classIntel8255.html#aea9eef42c705822317af5fb69b6f5c35">00122</a>     uint8_t             <a class="code" href="classIntel8255.html#aea9eef42c705822317af5fb69b6f5c35" title="Port C write mask. Controls which bits are writeable.">portCWriteMask</a>;
+<a name="l00123"></a>00123 <span class="keyword">public</span>:
+<a name="l00125"></a><a class="code" href="classIntel8255.html#a4eb95c6f23bf4192324853afe9fe2178">00125</a>     <span class="keyword">const</span> <span class="keywordtype">char</span>*         <a class="code" href="classIntel8255.html#a4eb95c6f23bf4192324853afe9fe2178" title="PPI chip name (for debug/UI purposes)">ppiName</a>;                        
+<a name="l00126"></a>00126 <span class="keyword">public</span>:
+<a name="l00128"></a><a class="code" href="classIntel8255.html#a9b4ea7714e1b9df34052e269e7f06dfa">00128</a>     <span class="keyword">const</span> <span class="keywordtype">char</span>*         <a class="code" href="classIntel8255.html#a9b4ea7714e1b9df34052e269e7f06dfa" title="Pin names (for debug/UI purposes)">pinNames</a>[3<span class="comment">/*port*/</span>][8<span class="comment">/*bit*/</span>];  
+<a name="l00130"></a><a class="code" href="classIntel8255.html#a2439197a04df0425206d5d23328de77d">00130</a>     <span class="keyword">const</span> <span class="keywordtype">char</span>*         <a class="code" href="classIntel8255.html#a2439197a04df0425206d5d23328de77d" title="Port names (for debug/UI purposes)">portNames</a>[3<span class="comment">/*port*/</span>];           
+<a name="l00131"></a>00131 <span class="keyword">public</span>:
+<a name="l00133"></a><a class="code" href="classIntel8255.html#a789e21fa7684972852c58e484fc8fa05">00133</a>     uint8_t             <a class="code" href="classIntel8255.html#a789e21fa7684972852c58e484fc8fa05" title="Port A output latch.">latchOutPortA</a>;
+<a name="l00135"></a><a class="code" href="classIntel8255.html#a6cab7d5af4469ef233e2b86734d0a002">00135</a>     uint8_t             <a class="code" href="classIntel8255.html#a6cab7d5af4469ef233e2b86734d0a002" title="Port B output latch.">latchOutPortB</a>;
+<a name="l00137"></a><a class="code" href="classIntel8255.html#ae7a6fa5ef9a676a043c28fe17fccd5cf">00137</a>     uint8_t             <a class="code" href="classIntel8255.html#ae7a6fa5ef9a676a043c28fe17fccd5cf" title="Port C output latch.">latchOutPortC</a>;  
+<a name="l00139"></a><a class="code" href="classIntel8255.html#a9585630ec3ff22e97c26524931dab693">00139</a>     uint8_t             <a class="code" href="classIntel8255.html#a9585630ec3ff22e97c26524931dab693" title="PPI mode byte.">mode</a>;                                       
+<a name="l00140"></a>00140     <span class="comment">/* bit[7:7] = 1             mode set flag</span>
+<a name="l00141"></a>00141 <span class="comment">     * bit[6:5] = mode select   00=mode 0  01=mode 1  1x=mode 2</span>
+<a name="l00142"></a>00142 <span class="comment">     * bit[4:4] = Port A        1=input  0=output</span>
+<a name="l00143"></a>00143 <span class="comment">     * bit[3:3] = Port C upper  1=input  0=output</span>
+<a name="l00144"></a>00144 <span class="comment">     * bit[2:2] = mode select   0=mode 0   1=mode 1</span>
+<a name="l00145"></a>00145 <span class="comment">     * bit[1:1] = Port B        1=input  0=output</span>
+<a name="l00146"></a>00146 <span class="comment">     * bit[0:0] = Port C lower  1=input  0=output */</span>
+<a name="l00147"></a>00147 <span class="keyword">public</span>:
+<a name="l00149"></a><a class="code" href="classIntel8255.html#aab8c8fd1a89d777816aecbcd3b27eea8">00149</a>     <span class="keywordtype">bool</span>                <a class="code" href="classIntel8255.html#aab8c8fd1a89d777816aecbcd3b27eea8" title="Input Buffer Full, port A contains information (port A, Mode 1)">IBF_A</a>;
+<a name="l00151"></a><a class="code" href="classIntel8255.html#a5576bb32d1d14c809954c95b1e140b00">00151</a>     <span class="keywordtype">bool</span>                <a class="code" href="classIntel8255.html#a5576bb32d1d14c809954c95b1e140b00" title="Input Buffer Full, port B contains information (port B, Mode 1)">IBF_B</a>;
+<a name="l00153"></a><a class="code" href="classIntel8255.html#ad6207273407dcfb3ed9785613838baf7">00153</a>     <span class="keywordtype">bool</span>                <a class="code" href="classIntel8255.html#ad6207273407dcfb3ed9785613838baf7" title="Output Buffer Full, port A contains information for the external device (port A, Mode 1)...">OBF_A</a>;
+<a name="l00155"></a><a class="code" href="classIntel8255.html#a5d84e8f433d4aeaf15d5f79cbadd878e">00155</a>     <span class="keywordtype">bool</span>                <a class="code" href="classIntel8255.html#a5d84e8f433d4aeaf15d5f79cbadd878e" title="Output Buffer Full, port B contains information for the external device (port B, Mode 1)...">OBF_B</a>;
+<a name="l00156"></a>00156 <span class="keyword">public</span>:
+<a name="l00158"></a><a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63">00158</a>     <span class="keywordtype">bool</span>                <a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63" title="Interrupt Request A (to the microprocessor)">INTR_A</a>;
+<a name="l00160"></a><a class="code" href="classIntel8255.html#af60b776612a4b393fb3ceb0fcb273750">00160</a>     <span class="keywordtype">bool</span>                <a class="code" href="classIntel8255.html#af60b776612a4b393fb3ceb0fcb273750" title="Interrupt Request B (to the microprocessor)">INTR_B</a>;
+<a name="l00162"></a><a class="code" href="classIntel8255.html#a3f0b361bdd3b3e17f2e4155a562e97f6">00162</a>     <span class="keywordtype">bool</span>                <a class="code" href="classIntel8255.html#a3f0b361bdd3b3e17f2e4155a562e97f6" title="Previous Interrupt Request A state (for change detection)">pINTR_A</a>;
+<a name="l00164"></a><a class="code" href="classIntel8255.html#a20fdff00b2ce0c6ff6853a812cb4bd9d">00164</a>     <span class="keywordtype">bool</span>                <a class="code" href="classIntel8255.html#a20fdff00b2ce0c6ff6853a812cb4bd9d" title="Previous Interrupt Request B state (for change detection)">pINTR_B</a>;
+<a name="l00165"></a>00165 <span class="keyword">public</span>:
+<a name="l00167"></a><a class="code" href="classIntel8255.html#a86ff75a1d1c588498770aef868af1646">00167</a>     <span class="keywordtype">bool</span>                <a class="code" href="classIntel8255.html#a86ff75a1d1c588498770aef868af1646" title="Interrupt 1 enable (mode 2)">INTE_1</a>;
+<a name="l00169"></a><a class="code" href="classIntel8255.html#a3c4ae09573e23e4d7ebe5fd5974e7237">00169</a>     <span class="keywordtype">bool</span>                <a class="code" href="classIntel8255.html#a3c4ae09573e23e4d7ebe5fd5974e7237" title="Interrupt 2 enable (mode 2)">INTE_2</a>; <span class="comment">/* mode 2 */</span>
+<a name="l00171"></a><a class="code" href="classIntel8255.html#acb70507c44eaf7feb0e9d27a6a4546e8">00171</a>     <span class="keywordtype">bool</span>                <a class="code" href="classIntel8255.html#acb70507c44eaf7feb0e9d27a6a4546e8" title="Interrupt A enable.">INTE_A</a>;
+<a name="l00173"></a><a class="code" href="classIntel8255.html#a8417a1099c39abfa19d027e6d341bb7b">00173</a>     <span class="keywordtype">bool</span>                <a class="code" href="classIntel8255.html#a8417a1099c39abfa19d027e6d341bb7b" title="Interrupt B enable.">INTE_B</a>;
+<a name="l00174"></a>00174 <span class="keyword">protected</span>:
+<a name="l00176"></a><a class="code" href="classIntel8255.html#a4d14f0770973a9e416acc5ac04857eb1">00176</a>     <span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">const</span> <span class="keywordtype">char</span> *<a class="code" href="classIntel8255.html#a4d14f0770973a9e416acc5ac04857eb1" title="Return string &quot;str&quot;, or &quot;&quot; (empty string) if str == NULL.">nil_if_null</a>(<span class="keyword">const</span> <span class="keywordtype">char</span> *str) {
+<a name="l00177"></a>00177         <span class="keywordflow">return</span> (str != NULL) ? str : <span class="stringliteral">&quot;&quot;</span>;
+<a name="l00178"></a>00178     }
+<a name="l00179"></a>00179 };
+<a name="l00180"></a>00180 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 13 2018 13:27:42 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jun 14 2018 12:30:01 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

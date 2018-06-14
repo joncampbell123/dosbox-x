@@ -82,7 +82,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -99,13 +99,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">PC98_System_8255 Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>PC-98 System 8255 PPI emulation (Intel 8255A device)  
+ <a href="classPC98__System__8255.html#details">More...</a></p>
 <div class="dynheader">
 Inheritance diagram for PC98_System_8255:</div>
 <div class="dyncontent">
  <div class="center">
   <img src="classPC98__System__8255.png" usemap="#PC98_System_8255_map" alt=""/>
   <map id="PC98_System_8255_map" name="PC98_System_8255_map">
-<area href="classIntel8255.html" alt="Intel8255" shape="rect" coords="0,0,125,24"/>
+<area href="classIntel8255.html" title="Intel 8255 base emulation class." alt="Intel8255" shape="rect" coords="0,0,125,24"/>
 </map>
  </div></div>
 
@@ -114,15 +117,35 @@ Inheritance diagram for PC98_System_8255:</div>
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a75fbaf4c6f1de6a5a4680f6e9ddfef48"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a75fbaf4c6f1de6a5a4680f6e9ddfef48"></a>
-virtual uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>inPortA</b> (void) const </td></tr>
+virtual uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPC98__System__8255.html#a75fbaf4c6f1de6a5a4680f6e9ddfef48">inPortA</a> (void) const </td></tr>
+<tr class="memdesc:a75fbaf4c6f1de6a5a4680f6e9ddfef48"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called by 8255 emulation to latch from port A pins. <br/></td></tr>
 <tr class="memitem:ac40439f86eb00db1563e9c8fedab3dd3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac40439f86eb00db1563e9c8fedab3dd3"></a>
-virtual uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>inPortB</b> (void) const </td></tr>
+virtual uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPC98__System__8255.html#ac40439f86eb00db1563e9c8fedab3dd3">inPortB</a> (void) const </td></tr>
+<tr class="memdesc:ac40439f86eb00db1563e9c8fedab3dd3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called by 8255 emulation to latch from port B pins. <br/></td></tr>
 <tr class="memitem:a273039abe8a3f459c2fe5937cc145f39"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a273039abe8a3f459c2fe5937cc145f39"></a>
-virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>outPortC</b> (const uint8_t mask)</td></tr>
+virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classPC98__System__8255.html#a273039abe8a3f459c2fe5937cc145f39">outPortC</a> (const uint8_t mask)</td></tr>
+<tr class="memdesc:a273039abe8a3f459c2fe5937cc145f39"><td class="mdescLeft">&#160;</td><td class="mdescRight">Called by 8255 emulation when latching to port C pins. <br/></td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
-<div class="textblock">
-<p>Definition at line <a class="el" href="keyboard_8cpp_source.html#l01655">1655</a> of file <a class="el" href="keyboard_8cpp_source.html">keyboard.cpp</a>.</p>
+<div class="textblock"><p>PC-98 System 8255 PPI emulation (Intel 8255A device) </p>
+<p>NEC PC-98 systems use a 8255 to enable reading the DIP switches on the front (port A), some hardware state (Port B), and to control some hardware and signal the <a class="el" href="classBIOS.html">BIOS</a> for shutdown/reset (Port C).</p>
+<p>This PPI is connected to I/O ports 0x31-0x37 odd.</p>
+<ul>
+<li>0x31 Port A</li>
+<li>0x33 Port B</li>
+<li>0x35 Port C</li>
+<li>0x37 control/mode</li>
+</ul>
+<p>Note that on real hardware, PC-9801 systems had physical DIP switches until sometime around the early nineties when the DIP switches became virtual, and were set by the <a class="el" href="classBIOS.html">BIOS</a> according to configuration stored elsewhere.</p>
+<p>This PPI is connected to:</p>
+<ul>
+<li>Port A (in): DIP switches 2-1 through 2-8</li>
+<li>Port B (in): Parity error, expansion bus INT 3, and RS-232C (8251) status</li>
+<li>Port C (out): RS-232C interrupt enable, speaker (buzzer) inhibit, parity check enable, and shutdown flags.</li>
+</ul>
+<p>The two "shutdown" bit flags serve to instruct the <a class="el" href="classBIOS.html">BIOS</a> on what to do after a soft <a class="el" href="classCPU.html">CPU</a> reset. One particular setting allows 286-class systems to reset to real mode through a FAR return stack, for the same reasons that IBM PC/AT systems enable reset to real mode through a reset byte written to RTC CMOS and a far pointer to jump to. A well known PC-9821 expanded memory emulator, VEMM486.EXE, relies on the shutdown bits in that manner when it initializes. </p>
+
+<p>Definition at line <a class="el" href="keyboard_8cpp_source.html#l01693">1693</a> of file <a class="el" href="keyboard_8cpp_source.html">keyboard.cpp</a>.</p>
 </div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/hardware/<a class="el" href="keyboard_8cpp_source.html">keyboard.cpp</a></li>
 </ul>
@@ -130,7 +153,7 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>outPortC</b> 
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Jun 13 2018 13:27:51 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Thu Jun 14 2018 12:30:10 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>
