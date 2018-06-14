@@ -45,13 +45,13 @@ template <typename T=unsigned int> static inline constexpr T allones(void) {
 }
 
 
-/* Return data type T with value negated
+/* Return data type T with value inverted
  *
  * This is to avoid typecast messes when masking by the inverse of a constant
  * 
- * @return Type T with value negated
+ * @return Type T with value inverted
  */
-template <typename T=unsigned int> static inline constexpr T negate(const T v) {
+template <typename T=unsigned int> static inline constexpr T invert(const T v) {
     return (T)( ~v );
 }
 
