@@ -999,7 +999,7 @@ public:
 	    const auto positive = this->GetPositive();
 	    const auto deadzone = GetJoystickDeadzone(joystick, axis, positive);
 		
-	    if (_value > deadzone) 
+	    if (_value > deadzone && event->IsTrigger()) 
             _value = 25000 + 1;
 
         CBind::ActivateBind(_value, ev_trigger, skip_action);
