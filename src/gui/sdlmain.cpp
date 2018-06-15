@@ -3506,7 +3506,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                     }
                     index++;
                 }
-                else if (changedLines) {
+            } else if (changedLines) {
                     if (changedLines[0] == sdl.draw.height)
                         return;
                     if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
