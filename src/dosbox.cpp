@@ -868,6 +868,8 @@ void DOSBOX_SetupConfigSections(void) {
     const char* guspantables[] = { "old", "accurate", "default", 0 };
     const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
     const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none",0};
+    const char* joydeadzone[] = { "0.26", 0 };
+    const char* joyresponse[] = { "1.0", 0 };
     const char* iosgus[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", "210", "230", "250", 0 };
     const char* ios[] = { "220", "240", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
@@ -2097,6 +2099,80 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("buttonwrap",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("enable button wrapping at the number of emulated buttons.");
+
+	/*improved joystick
+	 * each axis has its own deadzone and response
+	 * each axis index can be remapped, e.g. fix poor driver mappings
+	 */
+
+	/* logical axes settings*/
+	std::vector<int> sticks = { 2, 1 };
+	for (auto i = 0u; i < sticks.size(); i++)
+	{
+		const auto count = sticks[i];
+		for (auto j = 0; j < count; j++)
+		{
+			const auto joy = std::to_string(i + 1);
+			const auto stick = std::to_string(j + 1);
+			const auto name = "joy" + joy + "deadzone" + stick;
+			const auto help = "deadzone for joystick " + joy + " thumbstick " + stick + ".";
+			Pdouble = secprop->Add_double(name, Property::Changeable::WhenIdle, 0.25);
+			Pdouble->SetMinMax(0.0, 1.0);
+			Pdouble->Set_help(help);
+		}
+	}
+	for (auto i = 0u; i < sticks.size(); i++)
+	{
+		const auto count = sticks[i];
+		for (auto j = 0; j < count; j++)
+		{
+			const auto joy = std::to_string(i + 1);
+			const auto stick = std::to_string(j + 1);
+			const auto name = "joy" + joy + "response" + stick;
+			const auto help = "response for joystick " + joy + " thumbstick " + stick + ".";
+			Pdouble = secprop->Add_double(name, Property::Changeable::WhenIdle, 1.0);
+			Pdouble->SetMinMax(-5.0, 5.0);
+			Pdouble->Set_help(help);
+		}
+	}
+
+	const auto joysticks = 2;
+	const auto axes = 8;
+	for (auto i = 0; i < joysticks; i++)
+	{
+		for (auto j = 0; j < axes; j++)
+		{
+			const auto joy = std::to_string(i + 1);
+			const auto axis = std::to_string(j);
+			const auto propname = "joy" + joy + "axis" + axis;
+			Pint = secprop->Add_int(propname, Property::Changeable::WhenIdle, j);
+			Pint->SetMinMax(0, axes - 1);
+			const auto help = "axis for joystick " + joy + " axis " + axis + ".";
+			Pint->Set_help(help);
+		}
+	}
+	/*physical axes settings*/
+	secprop = control->AddSection_prop("mapper", &Null_Init, true);
+
+	const auto directions = 2;
+	for (auto i = 0; i < joysticks; i++)
+	{
+		for (auto j = 0; j < axes; j++)
+		{
+			for (auto k = 0; k < directions; k++)
+			{
+				const auto joy = std::to_string(i + 1);
+				const auto axis = std::to_string(j);
+				const auto dir = k == 0 ? "-" : "+";
+				const auto name = "joy" + joy + "deadzone" + axis + dir;
+				Pdouble = secprop->Add_double(name, Property::Changeable::WhenIdle, 0.6);
+				Pdouble->SetMinMax(0.0, 1.0);
+				const auto help = "deadzone for joystick " + joy + " axis " + axis + dir;
+				Pdouble->Set_help(help);
+			}
+		}
+	}
+
 
     secprop=control->AddSection_prop("serial",&Null_Init,true);
    

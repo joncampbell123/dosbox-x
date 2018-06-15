@@ -50,6 +50,8 @@ static bool swap34 = false;
 bool button_wrapping_enabled = true;
 
 extern bool autofire; //sdl_mapper.cpp
+extern int joy1axes[]; //sdl_mapper.cpp
+extern int joy2axes[]; //sdl_mapper.cpp
 
 static Bitu read_p201(Bitu port,Bitu iolen) {
     (void)iolen;//UNUSED
@@ -259,6 +261,26 @@ void JOYSTICK_Init() {
 		stick[1].enabled = false;
 		stick[0].xtick = stick[0].ytick = stick[1].xtick =
 		                 stick[1].ytick = PIC_FullIndex();
+		
+		// retrieves axes mapping
+		auto joysticks = 2;
+		auto axes = 8;
+		for (auto i = 0; i < joysticks; i++)
+		{
+			for (auto j = 0; j < axes; j++)
+			{
+				auto propname = "joy" + std::to_string(i + 1) + "axis" + std::to_string(j);
+				auto axis = section->Get_int(propname);
+				if (i == 0)
+				{
+					joy1axes[j] = axis;
+				}
+				else
+				{
+					joy2axes[j] = axis;
+				}
+			}
+		}
 	}
 
 	AddExitFunction(AddExitFunctionFuncPair(JOYSTICK_Destroy),true);
