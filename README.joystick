@@ -125,3 +125,11 @@ To ensure the triggering of bi-directional command like move forward but strafe 
 
 Tip 2:
 The mapper deadzones are affected by 'axes mapping', this is not likely to be a problem as you are looking to emulate keyboard presses using a joystick. However, make sure to set 'axes mapping' to their default value, or simply remove them from your configuration.
+
+
+General notes
+-------------
+
+You will want to try and experiment as on what settings works best for software A and software B, and will probably end up with software-specific configurations.
+
+Please note that most DOS software supporting joystick input will not react properly when you adjust CPU cycles while they are being run, i.e. either find the appropriate number of CPU cycles it requires first or restart it for a consistent joystick experience.
