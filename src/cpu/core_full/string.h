@@ -65,7 +65,7 @@
 				case R_OUTSB:
 					do {
 						IO_WriteB(reg_dx,LoadMb(si_base+si_index));
-						si_index=(si_index+add_index) & add_mask;
+						si_index=(si_index+(Bitu)add_index) & add_mask;
 						count--;
 
 						if ((--CPU_Cycles) <= 0) break;
@@ -74,7 +74,7 @@
 					add_index<<=1;
 					do {
 						IO_WriteW(reg_dx,LoadMw(si_base+si_index));
-						si_index=(si_index+add_index) & add_mask;
+						si_index=(si_index+(Bitu)add_index) & add_mask;
 						count--;
 
 						if ((--CPU_Cycles) <= 0) break;
@@ -83,7 +83,7 @@
 					add_index<<=2;
 					do {
 						IO_WriteD(reg_dx,LoadMd(si_base+si_index));
-						si_index=(si_index+add_index) & add_mask;
+						si_index=(si_index+(Bitu)add_index) & add_mask;
 						count--;
 
 						if ((--CPU_Cycles) <= 0) break;
@@ -92,7 +92,7 @@
 				case R_INSB:
 					do {
 						SaveMb(di_base+di_index,IO_ReadB(reg_dx));
-						di_index=(di_index+add_index) & add_mask;
+						di_index=(di_index+(Bitu)add_index) & add_mask;
 						count--;
 
 						if ((--CPU_Cycles) <= 0) break;
@@ -101,7 +101,7 @@
 					add_index<<=1;
 					do {
 						SaveMw(di_base+di_index,IO_ReadW(reg_dx));
-						di_index=(di_index+add_index) & add_mask;
+						di_index=(di_index+(Bitu)add_index) & add_mask;
 						count--;
 
 						if ((--CPU_Cycles) <= 0) break;
@@ -110,7 +110,7 @@
 					add_index<<=2;
 					do {
 						SaveMd(di_base+di_index,IO_ReadD(reg_dx));
-						di_index=(di_index+add_index) & add_mask;
+						di_index=(di_index+(Bitu)add_index) & add_mask;
 						count--;
 
 						if ((--CPU_Cycles) <= 0) break;
@@ -119,7 +119,7 @@
 				case R_STOSB:
 					do {
 						SaveMb(di_base+di_index,reg_al);
-						di_index=(di_index+add_index) & add_mask;
+						di_index=(di_index+(Bitu)add_index) & add_mask;
 						count--;
 
 						if ((--CPU_Cycles) <= 0) break;
@@ -128,7 +128,7 @@
 					add_index<<=1;
 					do {
 						SaveMw(di_base+di_index,reg_ax);
-						di_index=(di_index+add_index) & add_mask;
+						di_index=(di_index+(Bitu)add_index) & add_mask;
 						count--;
 
 						if ((--CPU_Cycles) <= 0) break;
@@ -137,7 +137,7 @@
 					add_index<<=2;
 					do {
 						SaveMd(di_base+di_index,reg_eax);
-						di_index=(di_index+add_index) & add_mask;
+						di_index=(di_index+(Bitu)add_index) & add_mask;
 						count--;
 
 						if ((--CPU_Cycles) <= 0) break;
@@ -146,8 +146,8 @@
 				case R_MOVSB:
 					do {
 						SaveMb(di_base+di_index,LoadMb(si_base+si_index));
-						di_index=(di_index+add_index) & add_mask;
-						si_index=(si_index+add_index) & add_mask;
+						di_index=(di_index+(Bitu)add_index) & add_mask;
+						si_index=(si_index+(Bitu)add_index) & add_mask;
 						count--;
 
 						if ((--CPU_Cycles) <= 0) break;
@@ -156,8 +156,8 @@
 					add_index<<=1;
 					do {
 						SaveMw(di_base+di_index,LoadMw(si_base+si_index));
-						di_index=(di_index+add_index) & add_mask;
-						si_index=(si_index+add_index) & add_mask;
+						di_index=(di_index+(Bitu)add_index) & add_mask;
+						si_index=(si_index+(Bitu)add_index) & add_mask;
 						count--;
 
 						if ((--CPU_Cycles) <= 0) break;
@@ -166,8 +166,8 @@
 					add_index<<=2;
 					do {
 						SaveMd(di_base+di_index,LoadMd(si_base+si_index));
-						di_index=(di_index+add_index) & add_mask;
-						si_index=(si_index+add_index) & add_mask;
+						di_index=(di_index+(Bitu)add_index) & add_mask;
+						si_index=(si_index+(Bitu)add_index) & add_mask;
 						count--;
 
 						if ((--CPU_Cycles) <= 0) break;
@@ -176,7 +176,7 @@
 				case R_LODSB:
 					do {
 						reg_al=LoadMb(si_base+si_index);
-						si_index=(si_index+add_index) & add_mask;
+						si_index=(si_index+(Bitu)add_index) & add_mask;
 						count--;
 
 						if ((--CPU_Cycles) <= 0) break;
@@ -185,7 +185,7 @@
 					add_index<<=1;
 					do {
 						reg_ax=LoadMw(si_base+si_index);
-						si_index=(si_index+add_index) & add_mask;
+						si_index=(si_index+(Bitu)add_index) & add_mask;
 						count--;
 
 						if ((--CPU_Cycles) <= 0) break;
@@ -194,7 +194,7 @@
 					add_index<<=2;
 					do {
 						reg_eax=LoadMd(si_base+si_index);
-						si_index=(si_index+add_index) & add_mask;
+						si_index=(si_index+(Bitu)add_index) & add_mask;
 						count--;
 
 						if ((--CPU_Cycles) <= 0) break;
@@ -205,7 +205,7 @@
 						Bit8u val2;
 						do {
 							val2=LoadMb(di_base+di_index);
-							di_index=(di_index+add_index) & add_mask;
+							di_index=(di_index+(Bitu)add_index) & add_mask;
 							count--;
 
 							if ((--CPU_Cycles) <= 0) break;
@@ -220,7 +220,7 @@
 						Bit16u val2;
 						do {
 							val2=LoadMw(di_base+di_index);
-							di_index=(di_index+add_index) & add_mask;
+							di_index=(di_index+(Bitu)add_index) & add_mask;
 							count--;
 
 							if ((--CPU_Cycles) <= 0) break;
@@ -235,7 +235,7 @@
 						Bit32u val2;
 						do {
 							val2=LoadMd(di_base+di_index);
-							di_index=(di_index+add_index) & add_mask;
+							di_index=(di_index+(Bitu)add_index) & add_mask;
 							count--;
 
 							if ((--CPU_Cycles) <= 0) break;
@@ -251,8 +251,8 @@
 						do {
 							val1=LoadMb(si_base+si_index);
 							val2=LoadMb(di_base+di_index);
-							si_index=(si_index+add_index) & add_mask;
-							di_index=(di_index+add_index) & add_mask;
+							si_index=(si_index+(Bitu)add_index) & add_mask;
+							di_index=(di_index+(Bitu)add_index) & add_mask;
 							count--;
 
 							if ((--CPU_Cycles) <= 0) break;
@@ -268,8 +268,8 @@
 						do {
 							val1=LoadMw(si_base+si_index);
 							val2=LoadMw(di_base+di_index);
-							si_index=(si_index+add_index) & add_mask;
-							di_index=(di_index+add_index) & add_mask;
+							si_index=(si_index+(Bitu)add_index) & add_mask;
+							di_index=(di_index+(Bitu)add_index) & add_mask;
 							count--;
 
 							if ((--CPU_Cycles) <= 0) break;
@@ -285,8 +285,8 @@
 						do {
 							val1=LoadMd(si_base+si_index);
 							val2=LoadMd(di_base+di_index);
-							si_index=(si_index+add_index) & add_mask;
-							di_index=(di_index+add_index) & add_mask;
+							si_index=(si_index+(Bitu)add_index) & add_mask;
+							di_index=(di_index+(Bitu)add_index) & add_mask;
 							count--;
 
 							if ((--CPU_Cycles) <= 0) break;

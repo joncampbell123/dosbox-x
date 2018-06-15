@@ -62,7 +62,7 @@ static void INNOVA_CallBack(Bitu len) {
 	Bitu bufindex = 0;
 
 	while(delta_t && bufindex != len) {
-		bufindex += innova.sid->clock(delta_t, buffer+bufindex, len-bufindex);
+		bufindex += (Bitu)innova.sid->clock(delta_t, buffer+bufindex, len-bufindex);
 	}
 	innova.chan->AddSamples_m16(len, buffer);
 
@@ -81,8 +81,8 @@ public:
 	INNOVA(Section* configuration):Module_base(configuration) {
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 		if(!section->Get_bool("innova")) return;
-		innova.rate = section->Get_int("samplerate");
-		innova.basePort = section->Get_hex("sidbase");
+		innova.rate = (unsigned int)section->Get_int("samplerate");
+		innova.basePort = (unsigned int)section->Get_hex("sidbase");
 		sampling_method method = SAMPLE_FAST;
 		int m = section->Get_int("quality");
 		switch(m) {

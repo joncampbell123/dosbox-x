@@ -174,14 +174,14 @@ void DriveManager::CycleDisk(bool pressed) {
 */
 
 void DriveManager::CycleAllDisks(void) {
-	for (int idrive=0; idrive<2; idrive++) { /* Cycle all DISKS meaning A: and B: */
-		int numDisks = (int)driveInfos[idrive].disks.size();
+	for (unsigned int idrive=0; idrive<2; idrive++) { /* Cycle all DISKS meaning A: and B: */
+		unsigned int numDisks = (unsigned int)driveInfos[idrive].disks.size();
 		if (numDisks > 1) {
 			// cycle disk
-			int currentDisk = driveInfos[idrive].currentDisk;
-			DOS_Drive* oldDisk = driveInfos[idrive].disks[currentDisk];
-			currentDisk = (currentDisk + 1) % numDisks;		
-			DOS_Drive* newDisk = driveInfos[idrive].disks[currentDisk];
+			unsigned int currentDisk = (unsigned int)driveInfos[idrive].currentDisk;
+			DOS_Drive* oldDisk = driveInfos[idrive].disks[(unsigned int)currentDisk];
+			currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;		
+			DOS_Drive* newDisk = driveInfos[idrive].disks[(unsigned int)currentDisk];
 			driveInfos[idrive].currentDisk = currentDisk;
 			
 			// copy working directory, acquire system resources and finally switch to next drive		
@@ -194,13 +194,13 @@ void DriveManager::CycleAllDisks(void) {
 }
 
 void DriveManager::CycleAllCDs(void) {
-	for (int idrive=2; idrive<DOS_DRIVES; idrive++) { /* Cycle all CDs in C: D: ... Z: */
-		int numDisks = (int)driveInfos[idrive].disks.size();
+	for (unsigned int idrive=2; idrive<DOS_DRIVES; idrive++) { /* Cycle all CDs in C: D: ... Z: */
+		unsigned int numDisks = (unsigned int)driveInfos[idrive].disks.size();
 		if (numDisks > 1) {
 			// cycle disk
-			int currentDisk = driveInfos[idrive].currentDisk;
+			unsigned int currentDisk = driveInfos[idrive].currentDisk;
 			DOS_Drive* oldDisk = driveInfos[idrive].disks[currentDisk];
-			currentDisk = (currentDisk + 1) % numDisks;		
+			currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;		
 			DOS_Drive* newDisk = driveInfos[idrive].disks[currentDisk];
 			driveInfos[idrive].currentDisk = currentDisk;
 			
@@ -220,12 +220,12 @@ int DriveManager::UnmountDrive(int drive) {
 		result = Drives[drive]->UnMount();
 	} else {
 		// managed drive
-		int currentDisk = driveInfos[drive].currentDisk;
+		unsigned int currentDisk = driveInfos[drive].currentDisk;
 		result = driveInfos[drive].disks[currentDisk]->UnMount();
 		// only delete on success, current disk set to NULL because of UnMount
 		if (result == 0) {
 			driveInfos[drive].disks[currentDisk] = NULL;
-			for (int i = 0; i < (int)driveInfos[drive].disks.size(); i++) {
+			for (unsigned int i = 0; i < (unsigned int)driveInfos[drive].disks.size(); i++) {
 				delete driveInfos[drive].disks[i];
 			}
 			driveInfos[drive].disks.clear();

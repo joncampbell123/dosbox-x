@@ -617,7 +617,7 @@ static void outhex(char subtype, int extend, int optional, int defsize, int sign
     return;
   }
   if ((n == 4) && !sign) {
-    name = addr_to_hex(delta, 0);
+    name = addr_to_hex((UINT32)delta, 0);
     uprintf("%s", name);
     return;
   }
@@ -829,7 +829,7 @@ static void floating_point(int e1)
 /*------------------------------------------------------------------------*/
 /* Main table driver                                                      */
 
-#define INSTRUCTION_SIZE (int)getbyte_mac - (int)startPtr
+#define INSTRUCTION_SIZE ( (int)getbyte_mac - (int)startPtr )
 
 static void percent(char type, char subtype)
 {
@@ -873,21 +873,21 @@ static void percent(char type, char subtype)
        switch (bytes(subtype)) {              /* sizeof offset value */
        case 1:
             vofs = (INT8)getbyte();
-			name = addr_to_hex(vofs+instruction_offset+INSTRUCTION_SIZE,0);
+			name = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,0);
             break;
        case 2:
-            vofs = getbyte();
-            vofs += getbyte()<<8;
-            vofs = (INT16)vofs;
-			name = addr_to_hex(vofs+instruction_offset+INSTRUCTION_SIZE,0);
+            vofs  = (INT32)((UINT32)getbyte());
+            vofs |= (INT32)((UINT32)getbyte() << 8);
+            vofs  = (INT16)vofs;
+			name  = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,0);
             break;
 			/* i386 */
        case 4:
-            vofs = (UINT32)getbyte();           /* yuk! */
-            vofs |= (UINT32)getbyte() << 8;
-            vofs |= (UINT32)getbyte() << 16;
-            vofs |= (UINT32)getbyte() << 24;
-			name = addr_to_hex(vofs+instruction_offset+INSTRUCTION_SIZE,(addrsize == 32)?0:1);
+            vofs  = (INT32)((UINT32)getbyte());           /* yuk! */
+            vofs |= (INT32)((UINT32)getbyte() << 8);
+            vofs |= (INT32)((UINT32)getbyte() << 16);
+            vofs |= (INT32)((UINT32)getbyte() << 24);
+			name = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,(addrsize == 32)?0:1);
             break;
        }
 	   if (vofs<0)

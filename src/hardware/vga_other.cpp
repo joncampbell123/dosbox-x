@@ -91,11 +91,11 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 		vga.config.display_start=(vga.config.display_start & 0xFF00) | val;
 		break;
 	case 0x0E:	/*Cursor Location High Register */
-		vga.config.cursor_start&=0x00ff;
-		vga.config.cursor_start|=((Bit8u)val) << 8;
+		vga.config.cursor_start&=0x00ffu;
+		vga.config.cursor_start|=(unsigned int)(((Bit8u)val) << 8u);
 		break;
 	case 0x0F:	/* Cursor Location Low Register */
-		vga.config.cursor_start&=0xff00;
+		vga.config.cursor_start&=0xff00u;
 		vga.config.cursor_start|=(Bit8u)val;
 		break;
 	case 0x10:	/* Light Pen High */
@@ -121,7 +121,7 @@ static Bitu read_crtc_data_other(Bitu /*port*/,Bitu /*iolen*/) {
 		return vga.other.hsyncp;
 	case 0x03:		//Horizontal and vertical sync width
 		if (machine==MCH_TANDY)
-			return vga.other.hsyncw | (vga.other.vsyncw << 4);
+			return (unsigned int)vga.other.hsyncw | (unsigned int)(vga.other.vsyncw << 4u);
 		else return vga.other.hsyncw;
 	case 0x04:		//Vertical total
 		return vga.other.vtotal;
@@ -138,17 +138,17 @@ static Bitu read_crtc_data_other(Bitu /*port*/,Bitu /*iolen*/) {
 	case 0x0B:	/* Cursor End Register */
 		return vga.other.cursor_end;
 	case 0x0C:	/* Start Address High Register */
-		return (Bit8u)(vga.config.display_start >> 8);
+		return (Bit8u)(vga.config.display_start >> 8u);
 	case 0x0D:	/* Start Address Low Register */
-		return (Bit8u)(vga.config.display_start & 0xff);
+		return (Bit8u)(vga.config.display_start & 0xffu);
 	case 0x0E:	/*Cursor Location High Register */
-		return (Bit8u)(vga.config.cursor_start >> 8);
+		return (Bit8u)(vga.config.cursor_start >> 8u);
 	case 0x0F:	/* Cursor Location Low Register */
-		return (Bit8u)(vga.config.cursor_start & 0xff);
+		return (Bit8u)(vga.config.cursor_start & 0xffu);
 	case 0x10:	/* Light Pen High */
-		return (Bit8u)(vga.other.lightpen >> 8);
+		return (Bit8u)(vga.other.lightpen >> 8u);
 	case 0x11:	/* Light Pen Low */
-		return (Bit8u)(vga.other.lightpen & 0xff);
+		return (Bit8u)(vga.other.lightpen & 0xffu);
 	default:
 		LOG(LOG_VGAMISC,LOG_NORMAL)("MC6845:Read from illegal index %x",vga.other.index);
 	}
@@ -831,7 +831,7 @@ static void write_hercules(Bitu port,Bitu val,Bitu /*iolen*/) {
 		}
 		vga.draw.blinking = (val&0x20)!=0;
 		vga.herc.mode_control &= 0x82;
-		vga.herc.mode_control |= val & ~0x82;
+		vga.herc.mode_control |= val & ~0x82u;
 		break;
 		}
 	case 0x3bf:

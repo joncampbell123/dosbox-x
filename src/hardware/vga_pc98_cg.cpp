@@ -44,7 +44,7 @@ Bitu pc98_a1_read(Bitu port,Bitu iolen) {
             break;
     };
 
-    return ~0;
+    return ~0ul;
 }
 
 /* Character Generator ports.

@@ -48,7 +48,7 @@ namespace OPL2 {
 			while( samples > 0 ) {
 				Bitu todo = samples > 1024 ? 1024 : samples;
 				samples -= todo;
-				adlib_getsample(buf, todo);
+				adlib_getsample(buf, (Bits)todo);
 				chan->AddSamples_m16( todo, buf );
 			}
 		}
@@ -79,7 +79,7 @@ namespace OPL3 {
 			while( samples > 0 ) {
 				Bitu todo = samples > 1024 ? 1024 : samples;
 				samples -= todo;
-				adlib_getsample(buf, todo);
+				adlib_getsample(buf, (Bits)todo);
 				chan->AddSamples_s16( todo, buf );
 			}
 		}
@@ -506,7 +506,7 @@ void Module::DualWrite( Bit8u index, Bit8u reg, Bit8u val ) {
 		val &= 0x0f;
 		val |= index ? 0xA0 : 0x50;
 	}
-	Bit32u fullReg = reg + (index ? 0x100 : 0);
+	Bit32u fullReg = reg + (index ? 0x100u : 0u);
 	handler->WriteReg( fullReg, val );
 	CacheWrite( fullReg, val );
 }
@@ -645,8 +645,8 @@ void OPL_Write(Bitu port,Bitu val,Bitu iolen) {
 	Save the current state of the operators as instruments in an reality adlib tracker file
 */
 void SaveRad() {
-	char b[16 * 1024];
-	int w = 0;
+	unsigned char b[16 * 1024];
+	unsigned int w = 0;
 
 	FILE* handle = OpenCaptureFile("RAD Capture",".rad");
 	if ( !handle )
@@ -656,7 +656,7 @@ void SaveRad() {
 	b[w++] = 0x10;		//version
 	b[w++] = 0x06;		//default speed and no description
 	//Write 18 instuments for all operators in the cache
-	for ( int i = 0; i < 18; i++ ) {
+	for ( unsigned int i = 0; i < 18; i++ ) {
 		Bit8u* set = module->cache + ( i / 9 ) * 256;
 		Bitu offset = ((i % 9) / 3) * 8 + (i % 3);
 		Bit8u* base = set + offset;
@@ -676,7 +676,7 @@ void SaveRad() {
 	b[w++] = 0;		//instrument 0, no more instruments following
 	b[w++] = 1;		//1 pattern following
 	//Zero out the remaing part of the file a bit to make rad happy
-	for ( int i = 0; i < 64; i++ ) {
+	for ( unsigned int i = 0; i < 64; i++ ) {
 		b[w++] = 0;
 	}
 	fwrite( b, 1, w, handle );
@@ -716,8 +716,8 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	capture = 0;
 
 	Section_prop * section=static_cast<Section_prop *>(configuration);
-	Bitu base = section->Get_hex("sbbase");
-	Bitu rate = section->Get_int("oplrate");
+	Bitu base = (Bitu)section->Get_hex("sbbase");
+	Bitu rate = (Bitu)section->Get_int("oplrate");
 	//Make sure we can't select lower than 8000 to prevent fixed point issues
 	if ( rate < 8000 )
 		rate = 8000;

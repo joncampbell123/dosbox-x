@@ -236,12 +236,12 @@
 	CASE_0F_D(0xa3)												/* BT Ed,Gd */
 		{
 			FillFlags();GetRMrd;
-			Bit32u mask=1 << (*rmrd & 31);
+			Bit32u mask=1u << (*rmrd & 31u);
 			if (rm >= 0xc0 ) {
 				GetEArd;
 				SETFLAGBIT(CF,(*eard & mask));
 			} else {
-				GetEAa;eaa+=(((Bit32s)*rmrd)>>5)*4;
+				GetEAa;eaa+=(PhysPt)((((Bit32s)*rmrd)>>5)*4);
 				Bit32u old=LoadMd(eaa);
 				SETFLAGBIT(CF,(old & mask));
 			}
@@ -261,13 +261,13 @@
 	CASE_0F_D(0xab)												/* BTS Ed,Gd */
 		{
 			FillFlags();GetRMrd;
-			Bit32u mask=1 << (*rmrd & 31);
+			Bit32u mask=1u << (*rmrd & 31u);
 			if (rm >= 0xc0 ) {
 				GetEArd;
 				SETFLAGBIT(CF,(*eard & mask));
 				*eard|=mask;
 			} else {
-				GetEAa;eaa+=(((Bit32s)*rmrd)>>5)*4;
+				GetEAa;eaa+=(PhysPt)((((Bit32s)*rmrd)>>5)*4);
 				Bit32u old=LoadMd(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMd(eaa,old | mask);
@@ -326,13 +326,13 @@
 	CASE_0F_D(0xb3)												/* BTR Ed,Gd */
 		{
 			FillFlags();GetRMrd;
-			Bit32u mask=1 << (*rmrd & 31);
+			Bit32u mask=1u << (*rmrd & 31u);
 			if (rm >= 0xc0 ) {
 				GetEArd;
 				SETFLAGBIT(CF,(*eard & mask));
 				*eard&= ~mask;
 			} else {
-				GetEAa;eaa+=(((Bit32s)*rmrd)>>5)*4;
+				GetEAa;eaa+=(PhysPt)((((Bit32s)*rmrd)>>5)*4);
 				Bit32u old=LoadMd(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMd(eaa,old & ~mask);
@@ -376,7 +376,7 @@
 			FillFlags();GetRM;
 			if (rm >= 0xc0 ) {
 				GetEArd;
-				Bit32u mask=1 << (Fetchb() & 31);
+				Bit32u mask=1u << (Fetchb() & 31u);
 				SETFLAGBIT(CF,(*eard & mask));
 				switch (rm & 0x38) {
 				case 0x20:											/* BT */
@@ -396,7 +396,7 @@
 				}
 			} else {
 				GetEAa;Bit32u old=LoadMd(eaa);
-				Bit32u mask=1 << (Fetchb() & 31);
+				Bit32u mask=1u << (Fetchb() & 31u);
 				SETFLAGBIT(CF,(old & mask));
 				switch (rm & 0x38) {
 				case 0x20:											/* BT */
@@ -421,13 +421,13 @@
 	CASE_0F_D(0xbb)												/* BTC Ed,Gd */
 		{
 			FillFlags();GetRMrd;
-			Bit32u mask=1 << (*rmrd & 31);
+			Bit32u mask=1u << (*rmrd & 31u);
 			if (rm >= 0xc0 ) {
 				GetEArd;
 				SETFLAGBIT(CF,(*eard & mask));
 				*eard^=mask;
 			} else {
-				GetEAa;eaa+=(((Bit32s)*rmrd)>>5)*4;
+				GetEAa;eaa+=(PhysPt)((((Bit32s)*rmrd)>>5)*4);
 				Bit32u old=LoadMd(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMd(eaa,old ^ mask);
@@ -471,15 +471,15 @@
 	CASE_0F_D(0xbe)												/* MOVSX Gd,Eb */
 		{
 			GetRMrd;															
-			if (rm >= 0xc0 ) {GetEArb;*rmrd=*(Bit8s *)earb;}
-			else {GetEAa;*rmrd=LoadMbs(eaa);}
+			if (rm >= 0xc0 ) {GetEArb;*rmrd=(Bit32u)(*(Bit8s *)earb);}
+			else {GetEAa;*rmrd=(Bit32u)LoadMbs(eaa);}
 			break;
 		}
 	CASE_0F_D(0xbf)												/* MOVSX Gd,Ew */
 		{
 			GetRMrd;															
-			if (rm >= 0xc0 ) {GetEArw;*rmrd=*(Bit16s *)earw;}
-			else {GetEAa;*rmrd=LoadMws(eaa);}
+			if (rm >= 0xc0 ) {GetEArw;*rmrd=(Bit32u)(*(Bit16s *)earw);}
+			else {GetEAa;*rmrd=(Bit32u)LoadMws(eaa);}
 			break;
 		}
 	CASE_0F_D(0xc1)												/* XADD Gd,Ed */

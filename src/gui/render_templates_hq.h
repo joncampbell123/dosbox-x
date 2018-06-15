@@ -84,6 +84,6 @@ static inline void conc2d(InitLUTs,SBPP)(void)
 		Y = (r + g + b) >> 2;
 		u = 128 + ((r - b) >> 2);
 		v = 128 + ((-r + 2 * g - b) >> 3);
-		_RGBtoYUV[color] = (Y << 16) | (u << 8) | v;
+		_RGBtoYUV[color] = (Bit32u)((Y << 16) | (u << 8) | v);
 	}
 }

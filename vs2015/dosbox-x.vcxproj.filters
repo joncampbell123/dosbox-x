@@ -828,6 +828,9 @@
     <ClCompile Include="..\src\xBRZ\xbrz.cpp">
       <Filter>Sources\xBRZ</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\gui\ptrop.cpp">
+      <Filter>Sources\gui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -1462,6 +1465,9 @@
     </ClInclude>
     <ClInclude Include="..\src\xBRZ\xbrz_tools.h">
       <Filter>Sources\xBRZ</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\ptrop.h">
+      <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

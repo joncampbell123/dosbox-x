@@ -217,7 +217,7 @@ static Bit16s OPL3_EnvelopeCalcSin0(Bit16u phase, Bit16u envelope)
     phase &= 0x3ff;
     if (phase & 0x200)
     {
-        neg = ~0;
+        neg = ((Bit16u)(~0u));
     }
     if (phase & 0x100)
     {
@@ -227,7 +227,7 @@ static Bit16s OPL3_EnvelopeCalcSin0(Bit16u phase, Bit16u envelope)
     {
         out = logsinrom[phase & 0xff];
     }
-    return OPL3_EnvelopeCalcExp(out + (envelope << 3)) ^ neg;
+    return OPL3_EnvelopeCalcExp((unsigned int)out + ((unsigned int)envelope << 3u)) ^ neg;
 }
 
 static Bit16s OPL3_EnvelopeCalcSin1(Bit16u phase, Bit16u envelope)
@@ -246,7 +246,7 @@ static Bit16s OPL3_EnvelopeCalcSin1(Bit16u phase, Bit16u envelope)
     {
         out = logsinrom[phase & 0xff];
     }
-    return OPL3_EnvelopeCalcExp(out + (envelope << 3));
+    return OPL3_EnvelopeCalcExp((unsigned int)out + ((unsigned int)envelope << 3u));
 }
 
 static Bit16s OPL3_EnvelopeCalcSin2(Bit16u phase, Bit16u envelope)
@@ -261,7 +261,7 @@ static Bit16s OPL3_EnvelopeCalcSin2(Bit16u phase, Bit16u envelope)
     {
         out = logsinrom[phase & 0xff];
     }
-    return OPL3_EnvelopeCalcExp(out + (envelope << 3));
+    return OPL3_EnvelopeCalcExp((unsigned int)out + ((unsigned int)envelope << 3u));
 }
 
 static Bit16s OPL3_EnvelopeCalcSin3(Bit16u phase, Bit16u envelope)
@@ -276,7 +276,7 @@ static Bit16s OPL3_EnvelopeCalcSin3(Bit16u phase, Bit16u envelope)
     {
         out = logsinrom[phase & 0xff];
     }
-    return OPL3_EnvelopeCalcExp(out + (envelope << 3));
+    return OPL3_EnvelopeCalcExp((unsigned int)out + ((unsigned int)envelope << 3u));
 }
 
 static Bit16s OPL3_EnvelopeCalcSin4(Bit16u phase, Bit16u envelope)
@@ -286,7 +286,7 @@ static Bit16s OPL3_EnvelopeCalcSin4(Bit16u phase, Bit16u envelope)
     phase &= 0x3ff;
     if ((phase & 0x300) == 0x100)
     {
-        neg = ~0;
+        neg = ((Bit16u)(~0u));
     }
     if (phase & 0x200)
     {
@@ -300,7 +300,7 @@ static Bit16s OPL3_EnvelopeCalcSin4(Bit16u phase, Bit16u envelope)
     {
         out = logsinrom[(phase << 1) & 0xff];
     }
-    return OPL3_EnvelopeCalcExp(out + (envelope << 3)) ^ neg;
+    return OPL3_EnvelopeCalcExp((unsigned int)out + ((unsigned int)envelope << 3u)) ^ neg;
 }
 
 static Bit16s OPL3_EnvelopeCalcSin5(Bit16u phase, Bit16u envelope)
@@ -319,7 +319,7 @@ static Bit16s OPL3_EnvelopeCalcSin5(Bit16u phase, Bit16u envelope)
     {
         out = logsinrom[(phase << 1) & 0xff];
     }
-    return OPL3_EnvelopeCalcExp(out + (envelope << 3));
+    return OPL3_EnvelopeCalcExp((unsigned int)out + ((unsigned int)envelope << 3u));
 }
 
 static Bit16s OPL3_EnvelopeCalcSin6(Bit16u phase, Bit16u envelope)
@@ -328,9 +328,9 @@ static Bit16s OPL3_EnvelopeCalcSin6(Bit16u phase, Bit16u envelope)
     phase &= 0x3ff;
     if (phase & 0x200)
     {
-        neg = ~0;
+        neg = ((Bit16u)(~0u));
     }
-    return OPL3_EnvelopeCalcExp(envelope << 3) ^ neg;
+    return OPL3_EnvelopeCalcExp((unsigned int)envelope << 3u) ^ neg;
 }
 
 static Bit16s OPL3_EnvelopeCalcSin7(Bit16u phase, Bit16u envelope)
@@ -340,11 +340,11 @@ static Bit16s OPL3_EnvelopeCalcSin7(Bit16u phase, Bit16u envelope)
     phase &= 0x3ff;
     if (phase & 0x200)
     {
-        neg = ~0;
+        neg = ((Bit16u)(~0u));
         phase = (phase & 0x1ff) ^ 0x1ff;
     }
     out = phase << 3;
-    return OPL3_EnvelopeCalcExp(out + (envelope << 3)) ^ neg;
+    return OPL3_EnvelopeCalcExp((unsigned int)out + ((unsigned int)envelope << 3u)) ^ neg;
 }
 
 static const envelope_sinfunc envelope_sin[8] = {
@@ -566,8 +566,8 @@ static void OPL3_PhaseGenerate(opl3_slot *slot)
         }
         f_num += range;
     }
-    basefreq = (f_num << slot->channel->block) >> 1;
-    slot->pg_phase += (basefreq * mt[slot->reg_mult]) >> 1;
+    basefreq = (Bit32u)((f_num << slot->channel->block) >> 1);
+    slot->pg_phase += (Bit32u)((basefreq * mt[slot->reg_mult]) >> 1);
 }
 
 //
@@ -640,7 +640,7 @@ static void OPL3_SlotWriteE0(opl3_slot *slot, Bit8u data)
 
 static void OPL3_SlotGeneratePhase(opl3_slot *slot, Bit16u phase)
 {
-    slot->out = envelope_sin[slot->reg_wf](phase, slot->eg_out);
+    slot->out = envelope_sin[slot->reg_wf](phase, (Bit16u)slot->eg_out);
 }
 
 static void OPL3_SlotGenerate(opl3_slot *slot)
@@ -937,12 +937,12 @@ static void OPL3_ChannelWriteC0(opl3_channel *channel, Bit8u data)
     }
     if (channel->chip->newm)
     {
-        channel->cha = ((data >> 4) & 0x01) ? ~0 : 0;
-        channel->chb = ((data >> 5) & 0x01) ? ~0 : 0;
+        channel->cha = (Bit16u)(((data >> 4) & 0x01) ? ~0 : 0);
+        channel->chb = (Bit16u)(((data >> 5) & 0x01) ? ~0 : 0);
     }
     else
     {
-        channel->cha = channel->chb = ~0;
+        channel->cha = channel->chb = (Bit16u)(~0);
     }
 }
 
@@ -1080,10 +1080,10 @@ static void OPL3_GenerateRhythm2(opl3_chip *chip)
     phasebit = ((phase14 & 0x08) | (((phase14 >> 5) ^ phase14) & 0x04)
              | (((phase17 >> 2) ^ phase17) & 0x08)) ? 0x01 : 0x00;
     //sd
-    phase = (0x100 << ((phase14 >> 8) & 0x01)) ^ ((chip->noise & 0x01) << 8);
+    phase = (Bit32u)(0x100 << ((phase14 >> 8) & 0x01)) ^ (Bit32u)((chip->noise & 0x01) << 8);
     OPL3_SlotGeneratePhase(channel7->slots[1], phase);
     //tc
-    phase = 0x100 | (phasebit << 9);
+    phase = 0x100u | (Bit32u)(phasebit << 9);
     OPL3_SlotGeneratePhase(channel8->slots[1], phase);
 }
 
@@ -1253,12 +1253,12 @@ void OPL3_Reset(opl3_chip *chip, Bit32u samplerate)
         chip->channel[channum].out[2] = &chip->zeromod;
         chip->channel[channum].out[3] = &chip->zeromod;
         chip->channel[channum].chtype = ch_2op;
-        chip->channel[channum].cha = ~0;
-        chip->channel[channum].chb = ~0;
+        chip->channel[channum].cha = (Bit16u)(~0);
+        chip->channel[channum].chb = (Bit16u)(~0);
         OPL3_ChannelSetupAlg(&chip->channel[channum]);
     }
     chip->noise = 0x306600;
-    chip->rateratio = (samplerate << RSM_FRAC) / 49716;
+    chip->rateratio = (Bit32s)((samplerate << RSM_FRAC) / 49716);
     chip->tremoloshift = 4;
     chip->vibshift = 1;
 }

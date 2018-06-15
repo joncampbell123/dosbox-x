@@ -74,13 +74,13 @@ static INLINE Bit8u host_readb(ConstHostPt const off) {
     return *off;
 }
 static INLINE Bit16u host_readw(ConstHostPt const off) {
-    return (Bit16u)host_readb(off) + ((Bit16u)host_readb(off+(ConstHostPt)1U) << (Bit16u)8U);
+    return (Bit16u)host_readb(off) + ((Bit16u)host_readb(off+(uintptr_t)1U) << (Bit16u)8U);
 }
 static INLINE Bit32u host_readd(ConstHostPt const off) {
-    return (Bit32u)host_readw(off) + ((Bit32u)host_readw(off+(ConstHostPt)2U) << (Bit32u)16U);
+    return (Bit32u)host_readw(off) + ((Bit32u)host_readw(off+(uintptr_t)2U) << (Bit32u)16U);
 }
 static INLINE Bit64u host_readq(ConstHostPt const off) {
-    return (Bit64u)host_readd(off) + ((Bit64u)host_readd(off+(ConstHostPt)4U) << (Bit64u)32U);
+    return (Bit64u)host_readd(off) + ((Bit64u)host_readd(off+(uintptr_t)4U) << (Bit64u)32U);
 }
 
 static INLINE void host_writeb(HostPt const off,const Bit8u val) {

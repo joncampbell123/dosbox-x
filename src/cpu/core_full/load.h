@@ -99,7 +99,7 @@ l_M_Ewx:
 			goto l_M_EwGw;
 		case M_EwGwt:
 			inst_op2_d=reg_16(inst.rm_index);
-			inst.rm_eaa+=((Bit16s)inst_op2_d >> 4) * 2;
+			inst.rm_eaa+=(Bitu)(((Bit16s)inst_op2_d >> 4) * 2);
 			goto l_M_Ew;
 l_M_EwGw:			
 		case M_EwGw:
@@ -122,8 +122,8 @@ l_M_Ew:
 		case M_EdxGdx:
 			inst_op2_ds=(Bit32s)reg_32(inst.rm_index);
 		case M_Edx:
-			if (inst.rm<0xc0) inst_op1_d=(Bit32s)LoadMd(inst.rm_eaa);
-			else inst_op1_d=(Bit32s)reg_32(inst.rm_eai);
+			if (inst.rm<0xc0) inst_op1_d=(Bit32u)((Bit32s)LoadMd(inst.rm_eaa));
+			else inst_op1_d=(Bit32u)((Bit32s)reg_32(inst.rm_eai));
 			break;
 		case M_EdIb:
 			inst_op2_d=Fetchb();
@@ -139,7 +139,7 @@ l_M_Ew:
 			goto l_M_EdGd;
 		case M_EdGdt:
 			inst_op2_d=reg_32(inst.rm_index);
-			inst.rm_eaa+=((Bit32s)inst_op2_d >> 5) * 4;
+			inst.rm_eaa+=(Bit32u)(((Bit32s)inst_op2_d >> 5) * 4);
 			goto l_M_Ed;
 		case M_EdGdIb:
 			inst_imm_d=Fetchb();
@@ -292,10 +292,10 @@ l_M_Ed:
 		inst.repz=true;
 		goto restartopcode;
 	case L_PREOP:
-		inst.entry=(cpu.code.big ^1) * 0x200;
+		inst.entry=(cpu.code.big ^ 1u) * 0x200u;
 		goto restartopcode;
 	case L_PREADD:
-		inst.prefix=(inst.prefix & ~1) | (cpu.code.big ^ 1);
+		inst.prefix=(inst.prefix & ~1u) | (cpu.code.big ^ 1u);
 		goto restartopcode;
 	case L_VAL:
 		inst_op1_d=inst.code.extra;
@@ -426,10 +426,10 @@ l_M_Ed:
 		}
 		goto nextopcode;
 	case D_CBW:
-		reg_ax=(Bit8s)reg_al;
+		reg_ax=(Bit16u)((Bit8s)reg_al);
 		goto nextopcode;
 	case D_CWDE:
-		reg_eax=(Bit16s)reg_ax;
+		reg_eax=(Bit32u)((Bit16s)reg_ax);
 		goto nextopcode;
 	case D_CWD:
 		if (reg_ax & 0x8000) reg_dx=0xffff;

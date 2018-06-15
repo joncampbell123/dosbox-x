@@ -253,7 +253,7 @@ static unsigned int MEM_ISA_Callout(Bitu &ret,PageHandler* &f,Bitu page) {
 static PageHandler *MEM_SlowPath(Bitu page) {
     PageHandler *f = &unmapped_page_handler;
     unsigned int match = 0;
-    Bitu ret = ~0;
+    Bitu ret = ~0ul;
 
     if (page >= memory.handler_pages)
         return &illegal_page_handler;
@@ -751,7 +751,7 @@ void MEM_StrCopy(PhysPt pt,char * data,Bitu size) {
     while (size--) {
         Bit8u r=mem_readb_inline(pt++);
         if (!r) break;
-        *data++=r;
+        *data++=(char)r;
     }
     *data=0;
 }
@@ -1034,7 +1034,7 @@ bool MEM_ReAllocatePages(MemHandle & handle,Bitu pages,bool sequence) {
                 /* Not Enough space allocate new block and copy */
                 MemHandle newhandle=MEM_AllocatePages(pages,true);
                 if (!newhandle) return false;
-                MEM_BlockCopy(newhandle*4096,handle*4096,old_pages*4096);
+                MEM_BlockCopy((unsigned int)newhandle*4096u,(unsigned int)handle*4096u,(unsigned int)old_pages*4096u);
                 MEM_ReleasePages(handle);
                 handle=newhandle;
                 return true;
@@ -1077,8 +1077,8 @@ void MEM_A20_Enable(bool enabled) {
     LOG(LOG_MISC,LOG_DEBUG)("MEM_A20_Enable(%u)",enabled?1:0);
 
     if (!a20_fake_changeable) {
-        if (memory.a20.enabled) memory.mem_alias_pagemask_active |= 0x100;
-        else memory.mem_alias_pagemask_active &= ~0x100;
+        if (memory.a20.enabled) memory.mem_alias_pagemask_active |= 0x100ul;
+        else memory.mem_alias_pagemask_active &= ~0x100ul;
         PAGING_ClearTLB();
     }
 }
@@ -1086,30 +1086,30 @@ void MEM_A20_Enable(bool enabled) {
 
 /* Memory access functions */
 Bit16u mem_unalignedreadw(PhysPt address) {
-    Bit16u ret = mem_readb_inline(address);
-    ret       |= mem_readb_inline(address+1) << 8;
+    Bit16u ret = (Bit16u)mem_readb_inline(address);
+    ret       |= (Bit16u)mem_readb_inline(address+1u) << 8u;
     return ret;
 }
 
 Bit32u mem_unalignedreadd(PhysPt address) {
-    Bit32u ret = mem_readb_inline(address);
-    ret       |= mem_readb_inline(address+1) << 8;
-    ret       |= mem_readb_inline(address+2) << 16;
-    ret       |= mem_readb_inline(address+3) << 24;
+    Bit32u ret = (Bit32u)mem_readb_inline(address   );
+    ret       |= (Bit32u)mem_readb_inline(address+1u) << 8u;
+    ret       |= (Bit32u)mem_readb_inline(address+2u) << 16u;
+    ret       |= (Bit32u)mem_readb_inline(address+3u) << 24u;
     return ret;
 }
 
 
 void mem_unalignedwritew(PhysPt address,Bit16u val) {
-    mem_writeb_inline(address,(Bit8u)val);val>>=8;
-    mem_writeb_inline(address+1,(Bit8u)val);
+    mem_writeb_inline(address,   (Bit8u)val);val>>=8u;
+    mem_writeb_inline(address+1u,(Bit8u)val);
 }
 
 void mem_unalignedwrited(PhysPt address,Bit32u val) {
-    mem_writeb_inline(address,(Bit8u)val);val>>=8;
-    mem_writeb_inline(address+1,(Bit8u)val);val>>=8;
-    mem_writeb_inline(address+2,(Bit8u)val);val>>=8;
-    mem_writeb_inline(address+3,(Bit8u)val);
+    mem_writeb_inline(address,   (Bit8u)val);val>>=8u;
+    mem_writeb_inline(address+1u,(Bit8u)val);val>>=8u;
+    mem_writeb_inline(address+2u,(Bit8u)val);val>>=8u;
+    mem_writeb_inline(address+3u,(Bit8u)val);
 }
 
 
@@ -1182,7 +1182,7 @@ void mem_writed(PhysPt address,Bit32u val) {
 }
 
 void phys_writes(PhysPt addr, const char* string, Bitu length) {
-    for(Bitu i = 0; i < length; i++) host_writeb(MemBase+addr+i,string[i]);
+    for(Bitu i = 0; i < length; i++) host_writeb(MemBase+addr+i,(Bit8u)string[i]);
 }
 
 #include "control.h"
@@ -1397,8 +1397,8 @@ bool allow_port_92_reset = true;
 static void write_p92(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
-    memory.a20.controlport = val & ~2;
-    MEM_A20_Enable((val & 2)>0);
+    memory.a20.controlport = val & ~2u;
+    MEM_A20_Enable((val & 2u)>0);
 
     // Bit 0 = system reset (switch back to real mode)
     if (val & 1) {
@@ -1415,7 +1415,7 @@ static void write_p92(Bitu port,Bitu val,Bitu iolen) {
 static Bitu read_p92(Bitu port,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
-    return memory.a20.controlport | (memory.a20.enabled ? 0x02 : 0);
+    return (Bitu)memory.a20.controlport | (memory.a20.enabled ? 0x02u : 0);
 }
 
 static Bitu read_pc98_a20(Bitu port,Bitu iolen) {
@@ -1423,7 +1423,7 @@ static Bitu read_pc98_a20(Bitu port,Bitu iolen) {
     if (port == 0xF2)
         return (memory.a20.enabled ? 0x00 : 0x01); // bit 0 indicates whether A20 is MASKED, not ENABLED
 
-    return ~0;
+    return ~0ul;
 }
 
 static void write_pc98_a20(Bitu port,Bitu val,Bitu iolen) {
@@ -1562,8 +1562,11 @@ HostPt GetMemBase(void) { return MemBase; }
 
 extern bool mainline_compatible_mapping;
 
+/*! \brief          REDOS.COM utility command on drive Z: to trigger restart of the DOS kernel
+ */
 class REDOS : public Program {
 public:
+    /*! \brief      Program entry point, when the command is run */
     void Run(void) {
         throw int(6);
     }
@@ -1573,8 +1576,13 @@ void REDOS_ProgramStart(Program * * make) {
     *make=new REDOS;
 }
 
+/*! \brief          A20GATE.COM built-in command on drive Z:
+ *  
+ *  \description    Utility command for the user to set/view the A20 gate state
+ */
 class A20GATE : public Program {
 public:
+    /*! \brief      Program entry point, when the command is run */
     void Run(void) {
         if (cmd->FindString("SET",temp_line,false)) {
             char *x = (char*)temp_line.c_str();
@@ -1656,7 +1664,7 @@ void Init_AddressLimitAndGateMask() {
     //
     //       Also this code should automatically cap itself at 24 for 286 emulation and
     //       20 for 8086 emulation.
-    memory.address_bits=section->Get_int("memalias");
+    memory.address_bits=(unsigned int)section->Get_int("memalias");
 
     if (memory.address_bits == 0)
         memory.address_bits = 32;
@@ -1679,7 +1687,7 @@ void Init_AddressLimitAndGateMask() {
     /* update alias pagemask according to A20 gate */
     memory.mem_alias_pagemask_active = memory.mem_alias_pagemask;
     if (a20_fake_changeable && !memory.a20.enabled)
-        memory.mem_alias_pagemask_active &= ~0x100;
+        memory.mem_alias_pagemask_active &= ~0x100u;
 
     /* log */
     LOG(LOG_MISC,LOG_DEBUG)("Memory: address_bits=%u alias_pagemask=%lx",(unsigned int)memory.address_bits,(unsigned long)memory.mem_alias_pagemask);
@@ -1720,18 +1728,18 @@ void Init_RAM() {
     assert(memory.mem_alias_pagemask > 0xFF);
 
     /* Setup the Physical Page Links */
-    Bitu memsizekb = section->Get_int("memsizekb");
+    Bitu memsizekb = (Bitu)section->Get_int("memsizekb");
     {
-        Bitu memsize = section->Get_int("memsize");
+        Bitu memsize = (Bitu)section->Get_int("memsize");
 
         if (memsizekb == 0 && memsize < 1) memsize = 1;
         else if (memsizekb != 0 && (Bits)memsize < 0) memsize = 0;
 
         /* round up memsizekb to 4KB multiple */
-        memsizekb = (memsizekb + 3) & (~3);
+        memsizekb = (memsizekb + 3ul) & (~3ul);
 
         /* roll memsize into memsizekb, simplify this code */
-        memsizekb += memsize * 1024;
+        memsizekb += memsize * 1024ul;
     }
 
     /* we can't have more memory than the memory aliasing allows */

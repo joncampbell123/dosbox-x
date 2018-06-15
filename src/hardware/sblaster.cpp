@@ -740,7 +740,7 @@ static void DMA_DAC_Event(Bitu val) {
 
     /* NTS: chan->Read() deals with DMA unit transfers.
      *      for 8-bit DMA, read/expct is in bytes, for 16-bit DMA, read/expct is in 16-bit words */
-    expct = (sb.dma.stereo ? 2 : 1) * (sb.dma.mode == DSP_DMA_16_ALIASED ? 2 : 1);
+    expct = (sb.dma.stereo ? 2u : 1u) * (sb.dma.mode == DSP_DMA_16_ALIASED ? 2u : 1u);
     read = sb.dma.chan->Read(expct,tmp);
     //if (read != expct)
     //      LOG_MSG("DMA read was not sample aligned. Sound may swap channels or become static. On real hardware the same may happen unless audio is prepared specifically.\n");
@@ -939,7 +939,7 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
     }
     if (sb.dma.stereo) sb.dma.mul*=2;
     sb.dma.rate=(sb.dma_dac_srcrate*sb.dma.mul) >> SB_SH;
-    sb.dma.min=(sb.dma.rate*(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000;
+    sb.dma.min=((Bitu)sb.dma.rate*(Bitu)(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000u;
     if (sb.dma_dac_mode && sb.goldplay_stereo && (stereo || sb.mixer.sbpro_stereo) && sb.single_sample_dma) {
 //        LOG(LOG_SB,LOG_DEBUG)("Goldplay stereo hack. freq=%u rawfreq=%u dacrate=%u",(unsigned int)freq,(unsigned int)sb.freq,(unsigned int)sb.dma_dac_srcrate);
         sb.chan->SetFreq(sb.dma_dac_srcrate);
@@ -1033,7 +1033,7 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispe
     if (sb.dma.force_autoinit)
         autoinit = true;
 
-    sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
+    sb.dma.total=1u+(unsigned int)sb.dsp.in.data[0]+(unsigned int)(sb.dsp.in.data[1] << 8u);
     sb.dma.autoinit=autoinit;
     sb.dsp.highspeed=hispeed;
     sb.dma.sign=sign;
@@ -1057,7 +1057,7 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispe
          *         by the demo stays intact despite being limited to 22050Hz during the first
          *         DSP block (command 0x14). */
         final_tc = DSP_RateLimitedFinalTC_Old();
-        sb.freq = (256000000 / (65536 - (final_tc << 8)));
+        sb.freq = (256000000ul / (65536ul - ((unsigned long)final_tc << 8ul)));
     }
     else {
         LOG(LOG_SB,LOG_DEBUG)("Guest is using non-SB16 playback commands after using SB16 commands to set sample rate");
@@ -1327,9 +1327,9 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
         case 0xA1: /* Extended Mode Sample Rate Generator */
             ESSreg(reg) = data;
             if (data & 0x80)
-                sb.freq = 795500UL / (256 - data);
+                sb.freq = 795500UL / (256ul - data);
             else
-                sb.freq = 397700UL / (128 - data);
+                sb.freq = 397700UL / (128ul - data);
 
             sb.freq_derived_from_tc = false;
             if (sb.mode == MODE_DMA) {
@@ -1651,7 +1651,7 @@ static void DSP_DoCommand(void) {
         }
         break;
     case 0x24:  /* Singe Cycle 8-Bit DMA ADC */
-        sb.dma.left=sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
+        sb.dma.left=sb.dma.total=1u+(unsigned int)sb.dsp.in.data[0]+((unsigned int)sb.dsp.in.data[1] << 8u);
         sb.dma.sign=false;
         LOG(LOG_SB,LOG_ERROR)("DSP:Faked ADC for %d bytes",(int)sb.dma.total);
         GetDMAChannel(sb.hw.dma8)->Register_Callback(DSP_ADC_CallBack);
@@ -1674,7 +1674,7 @@ static void DSP_DoCommand(void) {
         break;
     case 0x40:  /* Set Timeconstant */
         sb.chan->FillUp();
-        sb.freq=(256000000 / (65536 - (sb.dsp.in.data[0] << 8)));
+        sb.freq=(256000000ul / (65536ul - ((unsigned int)sb.dsp.in.data[0] << 8u)));
         sb.timeconst=sb.dsp.in.data[0];
         sb.freq_derived_from_tc=true;
 
@@ -1693,13 +1693,13 @@ static void DSP_DoCommand(void) {
             DSP_SB16_ONLY;
         }
 
-        sb.freq=(sb.dsp.in.data[0] << 8)  | sb.dsp.in.data[1];
+        sb.freq=((unsigned int)sb.dsp.in.data[0] << 8u) | (unsigned int)sb.dsp.in.data[1];
         sb.freq_derived_from_tc=false;
         break;
     case 0x48:  /* Set DMA Block Size */
         DSP_SB2_ABOVE;
         //TODO Maybe check limit for new irq?
-        sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
+        sb.dma.total=1u+(unsigned int)sb.dsp.in.data[0]+((unsigned int)sb.dsp.in.data[1] << 8u);
         break;
     case 0x75:  /* 075h : Single Cycle 4-bit ADPCM Reference */
         sb.adpcm.haveref=true;
@@ -1759,7 +1759,7 @@ static void DSP_DoCommand(void) {
 //      DSP_SetSpeaker(true);       //SB16 always has speaker enabled
         sb.dma.sign=(sb.dsp.in.data[0] & 0x10) > 0;
         DSP_PrepareDMA_New((sb.dsp.cmd & 0x10) ? DSP_DMA_16 : DSP_DMA_8,
-            1+sb.dsp.in.data[1]+(sb.dsp.in.data[2] << 8),
+            1u+(unsigned int)sb.dsp.in.data[1]+((unsigned int)sb.dsp.in.data[2] << 8u),
             (sb.dsp.cmd & 0x4)>0,
             (sb.dsp.in.data[0] & 0x20) > 0
         );
@@ -1892,7 +1892,7 @@ static void DSP_DoCommand(void) {
 
                 /* NTS: Yes, this writes the terminating NUL as well. Not a bug. */
                 for (size_t i=0;i<=strlen(gallant);i++) {
-                    DSP_AddData(gallant[i]);
+                    DSP_AddData((Bit8u)gallant[i]);
                 }
             }
             else if (sb.type <= SBT_PRO2) {
@@ -1904,7 +1904,7 @@ static void DSP_DoCommand(void) {
             else {
                 /* NTS: Yes, this writes the terminating NUL as well. Not a bug. */
                 for (size_t i=0;i<=strlen(copyright_string);i++) {
-                    DSP_AddData(copyright_string[i]);
+                    DSP_AddData((Bit8u)copyright_string[i]);
                 }
             }
         }
@@ -1978,21 +1978,21 @@ static void DSP_DoCommand(void) {
         sb.sc400_cfg = sb.dsp.in.data[0];
 
         switch (sb.dsp.in.data[0]&3) {
-            case 0: sb.hw.dma8 = -1; break;
-            case 1: sb.hw.dma8 =  0; break;
-            case 2: sb.hw.dma8 =  1; break;
-            case 3: sb.hw.dma8 =  3; break;
+            case 0: sb.hw.dma8 = (Bit8u)(-1); break;
+            case 1: sb.hw.dma8 =  0u; break;
+            case 2: sb.hw.dma8 =  1u; break;
+            case 3: sb.hw.dma8 =  3u; break;
         };
         sb.hw.dma16 = sb.hw.dma8;
         switch ((sb.dsp.in.data[0]>>3)&7) {
-            case 0: sb.hw.irq = -1; break;
-            case 1: sb.hw.irq =  7; break;
-            case 2: sb.hw.irq =  9; break;
-            case 3: sb.hw.irq = 10; break;
-            case 4: sb.hw.irq = 11; break;
-            case 5: sb.hw.irq =  5; break;
-            case 6: sb.hw.irq = -1; break;
-            case 7: sb.hw.irq = -1; break;
+            case 0: sb.hw.irq =  (Bit8u)(-1); break;
+            case 1: sb.hw.irq =  7u; break;
+            case 2: sb.hw.irq =  9u; break;
+            case 3: sb.hw.irq = 10u; break;
+            case 4: sb.hw.irq = 11u; break;
+            case 5: sb.hw.irq =  5u; break;
+            case 6: sb.hw.irq =  (Bit8u)(-1); break;
+            case 7: sb.hw.irq =  (Bit8u)(-1); break;
         };
         {
             int irq;
@@ -2282,7 +2282,7 @@ void updateSoundBlasterFilter(Bitu rate) {
          *
          * This implementation is matched aginst real hardware by ear, even though the reference hardware is a
          * laptop with a cheap tinny amplifier */
-        Bit64u filter_raw = (Bit64u)7160000UL / (256 - ESSreg(0xA2));
+        Bit64u filter_raw = (Bit64u)7160000ULL / (256u - ESSreg(0xA2));
         Bit64u filter_hz = (filter_raw * (Bit64u)11) / (Bit64u)(82 * 4); /* match lowpass by ear compared to real hardware */
 
         if ((filter_hz * 2) > sb.freq)
@@ -2330,13 +2330,13 @@ static void DSP_ChangeStereo(bool stereo) {
         updateSoundBlasterFilter(sb.freq/2);
         sb.dma.mul*=2;
         sb.dma.rate=(sb.freq*sb.dma.mul) >> SB_SH;
-        sb.dma.min=(sb.dma.rate*(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000;
+        sb.dma.min=((Bitu)sb.dma.rate*(Bitu)(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000u;
     } else if (sb.dma.stereo && !stereo) {
         sb.chan->SetFreq(sb.freq);
         updateSoundBlasterFilter(sb.freq);
         sb.dma.mul/=2;
         sb.dma.rate=(sb.freq*sb.dma.mul) >> SB_SH;
-        sb.dma.min=(sb.dma.rate*(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000;
+        sb.dma.min=((Bitu)sb.dma.rate*(Bitu)(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000;
     }
     sb.dma.stereo=stereo;
 }
@@ -2673,7 +2673,7 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
         if ((port-sb.hw.base) == DSP_ACK_16BIT && sb.ess_type != ESS_NONE)
             { } /* ESS AudioDrive does not alias DSP STATUS (0x22E) as seen on real hardware */
         else if ((port-sb.hw.base) < MIXER_INDEX || (port-sb.hw.base) > MIXER_DATA)
-            port &= ~1;
+            port &= ~1u;
     }
 
     switch (port-sb.hw.base) {
@@ -2755,7 +2755,7 @@ static void write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
         if ((port-sb.hw.base) == DSP_ACK_16BIT && sb.ess_type != ESS_NONE)
             { } /* ESS AudioDrive does not alias DSP STATUS (0x22E) as seen on real hardware */
         else if ((port-sb.hw.base) < MIXER_INDEX || (port-sb.hw.base) > MIXER_DATA)
-            port &= ~1;
+            port &= ~1u;
     }
 
     Bit8u val8=(Bit8u)(val&0xff);
@@ -3192,7 +3192,7 @@ public:
 
         Section_prop * section=static_cast<Section_prop *>(configuration);
 
-        sb.hw.base=section->Get_hex("sbbase");
+        sb.hw.base=(unsigned int)section->Get_hex("sbbase");
         sb.goldplay=section->Get_bool("goldplay");
         sb.min_dma_user=section->Get_int("mindma");
         sb.goldplay_stereo=section->Get_bool("goldplay stereo");
@@ -3265,13 +3265,13 @@ public:
         sb.busy_cycle_io_hack=0;
 
         si=section->Get_int("irq");
-        sb.hw.irq=(si >= 0) ? si : 0xFF;
+        sb.hw.irq=(si >= 0) ? (unsigned int)si : 0xFF;
 
         si=section->Get_int("dma");
-        sb.hw.dma8=(si >= 0) ? si : 0xFF;
+        sb.hw.dma8=(si >= 0) ? (unsigned int)si : 0xFF;
 
         si=section->Get_int("hdma");
-        sb.hw.dma16=(si >= 0) ? si : 0xFF;
+        sb.hw.dma16=(si >= 0) ? (unsigned int)si : 0xFF;
 
         /* some DOS games/demos support Sound Blaster, and expect the IRQ to fire, but
          * make no attempt to unmask the IRQ (perhaps the programmer forgot). This option
@@ -3317,7 +3317,7 @@ public:
         case OPL_hardwareCMS:
             isCMSpassthrough = true;
         case OPL_hardware:
-            Bitu base = section->Get_hex("hardwarebase");
+            Bitu base = (unsigned int)section->Get_hex("hardwarebase");
             HARDOPL_Init(base, sb.hw.base, isCMSpassthrough);
             break;
         }
@@ -3370,7 +3370,7 @@ public:
             sb.dsp.require_irq_ack = (sb.type == SBT_16) ? 1 : 0; /* Yes if SB16, No otherwise */
 
         si=section->Get_int("dsp write busy delay"); /* in nanoseconds */
-        if (si >= 0) sb.dsp.dsp_write_busy_time = si;
+        if (si >= 0) sb.dsp.dsp_write_busy_time = (unsigned int)si;
         else sb.dsp.dsp_write_busy_time = 1000; /* FIXME: How long is the DSP busy on real hardware? */
 
         /* Sound Blaster (1.x and 2x) and Sound Blaster Pro (3.1) have the I/O port aliasing.

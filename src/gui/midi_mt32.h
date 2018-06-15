@@ -138,7 +138,7 @@ public:
 			the new lower limit and leave the rest in memory. */
 		numPartials = section->Get_int("mt32.partials");
 		if(numPartials>MT32EMU_MAX_PARTIALS) numPartials=MT32EMU_MAX_PARTIALS;
-		synth->setPartialLimit(numPartials);
+		synth->setPartialLimit((unsigned int)numPartials);
 
 		if (!synth->open(*controlROMImage, *pcmROMImage)) {
 			LOG(LOG_MISC,LOG_WARN)("MT32: Error initialising emulation");

@@ -45,7 +45,7 @@ static void DOS_Mem_E_Exit(const char *msg) {
 	char c;
 
 	LOG_MSG("DOS MCB dump:\n");
-	while ((c=mcb.GetType()) != 'Z') {
+	while ((c=(char)mcb.GetType()) != 'Z') {
 		if (counter++ > 10000) break;
 		if (c != 'M') break;
 
@@ -59,7 +59,7 @@ static void DOS_Mem_E_Exit(const char *msg) {
 	}
 
 	mcb.GetFileName(name);
-	c = mcb.GetType(); if (c < 32) c = '.';
+	c = (char)mcb.GetType(); if (c < 32) c = '.';
 	LOG_MSG("FINAL: Type=0x%02x(%c) Seg=0x%04x size=0x%04x name='%s'\n",
 		mcb.GetType(),c,mcb_segment+1,mcb.GetSize(),name);
 	LOG_MSG("End dump\n");
@@ -528,7 +528,7 @@ void DOS_SetupMemory(void) {
 	unsigned int max_conv;
 	unsigned int seg_limit;
 
-	max_conv = mem_readw(BIOS_MEMORY_SIZE) << (10-4);
+	max_conv = (unsigned int)mem_readw(BIOS_MEMORY_SIZE) << (10u - 4u);
 	seg_limit = MEM_TotalPages()*256;
 	if (seg_limit > max_conv) seg_limit = max_conv;
 	UMB_START_SEG = max_conv - 1;

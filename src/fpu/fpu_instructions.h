@@ -100,8 +100,8 @@ static Real64 FPU_FLD80(PhysPt addr,FPU_Reg_80 &raw) {
 		FPU_Reg eind;
 	} test;
 	test.eind.l.lower = mem_readd(addr);
-	test.eind.l.upper = mem_readd(addr+4);
-	test.begin = mem_readw(addr+8);
+	test.eind.l.upper = (Bit32s)mem_readd(addr+4);
+	test.begin = (Bit16s)mem_readw(addr+8);
    
 	Bit64s exp64 = (((test.begin&0x7fff) - BIAS80));
 	Bit64s blah = ((exp64 >0)?exp64:-exp64)&0x3ff;
@@ -118,7 +118,7 @@ static Real64 FPU_FLD80(PhysPt addr,FPU_Reg_80 &raw) {
 	}
 
 	/* store the raw value. */
-	raw.raw.l = test.eind.ll;
+	raw.raw.l = (Bit64u)test.eind.ll;
 	raw.raw.h = (Bit16u)test.begin;
 
 	return result.d;
@@ -139,22 +139,22 @@ static void FPU_ST80(PhysPt addr,Bitu reg,FPU_Reg_80 &raw,bool use80) {
 			Bit16s begin;
 			FPU_Reg eind;
 		} test;
-		Bit64s sign80 = (fpu.regs[reg].ll&LONGTYPE(0x8000000000000000))?1:0;
+		Bit64s sign80 = ((Bit64u)fpu.regs[reg].ll&ULONGTYPE(0x8000000000000000))?1:0;
 		Bit64s exp80 =  fpu.regs[reg].ll&LONGTYPE(0x7ff0000000000000);
 		Bit64s exp80final = (exp80>>52);
 		Bit64s mant80 = fpu.regs[reg].ll&LONGTYPE(0x000fffffffffffff);
 		Bit64s mant80final = (mant80 << 11);
 		if(fpu.regs[reg].d != 0){ //Zero is a special case
 			// Elvira wants the 8 and tcalc doesn't
-			mant80final |= LONGTYPE(0x8000000000000000);
+			mant80final |= (Bit64s)ULONGTYPE(0x8000000000000000);
 			//Ca-cyber doesn't like this when result is zero.
 			exp80final += (BIAS80 - BIAS64);
 		}
 		test.begin = (static_cast<Bit16s>(sign80)<<15)| static_cast<Bit16s>(exp80final);
 		test.eind.ll = mant80final;
 		mem_writed(addr,test.eind.l.lower);
-		mem_writed(addr+4,test.eind.l.upper);
-		mem_writew(addr+8,test.begin);
+		mem_writed(addr+4,(uint32_t)test.eind.l.upper);
+		mem_writew(addr+8,(uint16_t)test.begin);
 	}
 }
 
@@ -171,7 +171,7 @@ static void FPU_FLD_F32(PhysPt addr,Bitu store_to) {
 
 static void FPU_FLD_F64(PhysPt addr,Bitu store_to) {
 	fpu.regs[store_to].l.lower = mem_readd(addr);
-	fpu.regs[store_to].l.upper = mem_readd(addr+4);
+	fpu.regs[store_to].l.upper = (Bit32s)mem_readd(addr+4);
 	fpu.use80[store_to] = false;
 }
 
@@ -181,13 +181,13 @@ static void FPU_FLD_F80(PhysPt addr) {
 }
 
 static void FPU_FLD_I16(PhysPt addr,Bitu store_to) {
-	Bit16s blah = mem_readw(addr);
+	Bit16s blah = (Bit16s)mem_readw(addr);
 	fpu.regs[store_to].d = static_cast<Real64>(blah);
 	fpu.use80[store_to] = false;
 }
 
 static void FPU_FLD_I32(PhysPt addr,Bitu store_to) {
-	Bit32s blah = mem_readd(addr);
+	Bit32s blah = (Bit32s)mem_readd(addr);
 	fpu.regs[store_to].d = static_cast<Real64>(blah);
 	fpu.use80[store_to] = false;
 }
@@ -195,13 +195,13 @@ static void FPU_FLD_I32(PhysPt addr,Bitu store_to) {
 static void FPU_FLD_I64(PhysPt addr,Bitu store_to) {
 	FPU_Reg blah;
 	blah.l.lower = mem_readd(addr);
-	blah.l.upper = mem_readd(addr+4);
+	blah.l.upper = (Bit32s)mem_readd(addr+4);
 	fpu.regs[store_to].d = static_cast<Real64>(blah.ll);
 	// store the signed 64-bit integer in the 80-bit format mantissa with faked exponent.
 	// this is needed for DOS and Windows games that use the Pentium fast memcpy trick, using FLD/FST to copy 64 bits at a time.
 	// I wonder if that trick is what helped spur Intel to make the MMX extensions :)
-	fpu.regs_80[store_to].raw.l = blah.ll;
-	fpu.regs_80[store_to].raw.h = ((blah.ll/*sign bit*/ >> (Bit64u)63) ? 0x8000 : 0x0000) + FPU_Reg_80_exponent_bias + 63; // FIXME: Verify this is correct!
+	fpu.regs_80[store_to].raw.l = (Bit64u)blah.ll;
+	fpu.regs_80[store_to].raw.h = ((blah.ll/*sign bit*/ >> (Bit64u)63) ? 0x8000u : 0x0000u) + FPU_Reg_80_exponent_bias + 63u; // FIXME: Verify this is correct!
 	fpu.use80[store_to] = true;
 }
 
@@ -253,8 +253,8 @@ static void FPU_FST_F32(PhysPt addr) {
 }
 
 static void FPU_FST_F64(PhysPt addr) {
-	mem_writed(addr,fpu.regs[TOP].l.lower);
-	mem_writed(addr+4,fpu.regs[TOP].l.upper);
+	mem_writed(addr,(uint32_t)fpu.regs[TOP].l.lower);
+	mem_writed(addr+4,(uint32_t)fpu.regs[TOP].l.upper);
 }
 
 static void FPU_FST_F80(PhysPt addr) {
@@ -262,16 +262,16 @@ static void FPU_FST_F80(PhysPt addr) {
 }
 
 static void FPU_FST_I16(PhysPt addr) {
-	mem_writew(addr,static_cast<Bit16s>(FROUND(fpu.regs[TOP].d)));
+	mem_writew(addr,(uint16_t)static_cast<Bit16s>(FROUND(fpu.regs[TOP].d)));
 }
 
 static void FPU_FST_I32(PhysPt addr) {
-	mem_writed(addr,static_cast<Bit32s>(FROUND(fpu.regs[TOP].d)));
+	mem_writed(addr,(uint32_t)static_cast<Bit32s>(FROUND(fpu.regs[TOP].d)));
 }
 
 static void FPU_FST_I64(PhysPt addr) {
 	FPU_Reg blah;
-	if (fpu.use80[TOP] && (fpu.regs_80[TOP].raw.h & 0x7FFF) == (0x0000 + FPU_Reg_80_exponent_bias + 63)) {
+	if (fpu.use80[TOP] && (fpu.regs_80[TOP].raw.h & 0x7FFFu) == (0x0000u + FPU_Reg_80_exponent_bias + 63u)) {
 		// FIXME: This works so far for DOS demos that use the "Pentium memcpy trick" to copy 64 bits at a time.
 		//        What this code needs to do is take the exponent into account and then clamp the 64-bit int within range.
 		//        This cheap hack is good enough for now.
@@ -280,15 +280,15 @@ static void FPU_FST_I64(PhysPt addr) {
 	}
 	else {
 		blah.ll = static_cast<Bit64s>(FROUND(fpu.regs[TOP].d));
-		mem_writed(addr,blah.l.lower);
-		mem_writed(addr+4,blah.l.upper);
+		mem_writed(addr,(uint32_t)blah.l.lower);
+		mem_writed(addr+4,(uint32_t)blah.l.upper);
 	}
 }
 
 static void FPU_FBST(PhysPt addr) {
 	FPU_Reg val = fpu.regs[TOP];
 	bool sign = false;
-	if(fpu.regs[TOP].ll & LONGTYPE(0x8000000000000000)) { //sign
+	if((Bit64u)fpu.regs[TOP].ll & ULONGTYPE(0x8000000000000000)) { //sign
 		sign=true;
 		val.d=-val.d;
 	}
@@ -546,7 +546,7 @@ static void FPU_FPREM1(void){
 }
 
 static void FPU_FXAM(void){
-	if(fpu.regs[TOP].ll & LONGTYPE(0x8000000000000000))	//sign
+	if((Bit64u)fpu.regs[TOP].ll & ULONGTYPE(0x8000000000000000))	//sign
 	{ 
 		FPU_SET_C1(1);
 	} 

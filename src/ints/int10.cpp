@@ -87,10 +87,10 @@ Bitu INT10_Handler(void) {
 		else INT10_SetActivePage(reg_al);
 		break;	
 	case 0x06:								/* Scroll Up */
-		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,-reg_al,reg_bh,0xFF);
+		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,-(Bit8s)reg_al,reg_bh,0xFF);
 		break;
 	case 0x07:								/* Scroll Down */
-		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,reg_al,reg_bh,0xFF);
+		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,(Bit8s)reg_al,reg_bh,0xFF);
 		break;
 	case 0x08:								/* Read character & attribute at cursor */
 		INT10_ReadCharAttr(&reg_ax,reg_bh);
@@ -618,19 +618,19 @@ CX	640x480	800x600	  1024x768/1280x1024
 				reg_ax=0x004f;
 				break;
 			case 0x01:						/* Get code for "set window" */
-				reg_edi=RealOff(int10.rom.pmode_interface)+int10.rom.pmode_interface_window;
+				reg_edi=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_window;
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
 				reg_cx=0x10;		//0x10 should be enough for the callbacks
 				reg_ax=0x004f;
 				break;
 			case 0x02:						/* Get code for "set display start" */
-				reg_edi=RealOff(int10.rom.pmode_interface)+int10.rom.pmode_interface_start;
+				reg_edi=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_start;
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
 				reg_cx=0x10;		//0x10 should be enough for the callbacks
 				reg_ax=0x004f;
 				break;
 			case 0x03:						/* Get code for "set palette" */
-				reg_edi=RealOff(int10.rom.pmode_interface)+int10.rom.pmode_interface_palette;
+				reg_edi=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_palette;
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
 				reg_cx=0x10;		//0x10 should be enough for the callbacks
 				reg_ax=0x004f;
@@ -762,7 +762,7 @@ void INT10_OnResetComplete() {
     if (BIOS_VIDEO_TABLE_LOCATION != (~0U) && BIOS_VIDEO_TABLE_LOCATION != 0) {
         LOG(LOG_MISC,LOG_DEBUG)("INT 10h freeing BIOS VIDEO TABLE LOCATION");
         ROMBIOS_FreeMemory(RealToPhys(BIOS_VIDEO_TABLE_LOCATION));
-        BIOS_VIDEO_TABLE_LOCATION = ~0;		// RealMake(0xf000,0xf0a4)
+        BIOS_VIDEO_TABLE_LOCATION = ~0u;		// RealMake(0xf000,0xf0a4)
     }
 
     void VESA_OnReset_Clear_Callbacks(void);

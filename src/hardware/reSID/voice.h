@@ -72,7 +72,7 @@ RESID_INLINE
 sound_sample Voice::output()
 {
   // Multiply oscillator output with envelope output.
-  return (wave.output() - wave_zero)*envelope.output() + voice_DC;
+  return ((sound_sample)wave.output() - (sound_sample)wave_zero)*(sound_sample)envelope.output() + (sound_sample)voice_DC;
 }
 
 #endif // RESID_INLINING || defined(__VOICE_CC__)

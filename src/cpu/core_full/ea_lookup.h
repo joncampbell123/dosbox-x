@@ -185,68 +185,68 @@
 		break;
 	
 	case 0x08:
-		off=reg_eax+Fetchbs();
+		off=reg_eax+(Bit32u)Fetchbs();
 		seg_base=SegBase(ds);
 		break;
 	case 0x09:
-		off=reg_ecx+Fetchbs();
+		off=reg_ecx+(Bit32u)Fetchbs();
 		seg_base=SegBase(ds);
 		break;
 	case 0x0a:
-		off=reg_edx+Fetchbs();
+		off=reg_edx+(Bit32u)Fetchbs();
 		seg_base=SegBase(ds);
 		break;
 	case 0x0b:
-		off=reg_ebx+Fetchbs();
+		off=reg_ebx+(Bit32u)Fetchbs();
 		seg_base=SegBase(ds);
 		break;
 	case 0x0c:
 		SIB(1);
-		off+=Fetchbs();
+		off+=(Bit32u)Fetchbs();
 		break;
 	case 0x0d:
-		off=reg_ebp+Fetchbs();
+		off=reg_ebp+(Bit32u)Fetchbs();
 		seg_base=SegBase(ss);
 		break;
 	case 0x0e:
-		off=reg_esi+Fetchbs();
+		off=reg_esi+(Bit32u)Fetchbs();
 		seg_base=SegBase(ds);
 		break;
 	case 0x0f:
-		off=reg_edi+Fetchbs();
+		off=reg_edi+(Bit32u)Fetchbs();
 		seg_base=SegBase(ds);
 		break;
 
 	case 0x10:
-		off=reg_eax+Fetchds();
+		off=reg_eax+(Bit32u)Fetchds();
 		seg_base=SegBase(ds);
 		break;
 	case 0x11:
-		off=reg_ecx+Fetchds();
+		off=reg_ecx+(Bit32u)Fetchds();
 		seg_base=SegBase(ds);
 		break;
 	case 0x12:
-		off=reg_edx+Fetchds();
+		off=reg_edx+(Bit32u)Fetchds();
 		seg_base=SegBase(ds);
 		break;
 	case 0x13:
-		off=reg_ebx+Fetchds();
+		off=reg_ebx+(Bit32u)Fetchds();
 		seg_base=SegBase(ds);
 		break;
 	case 0x14:
 		SIB(1);
-		off+=Fetchds();
+		off+=(Bit32u)Fetchds();
 		break;
 	case 0x15:
-		off=reg_ebp+Fetchds();
+		off=reg_ebp+(Bit32u)Fetchds();
 		seg_base=SegBase(ss);
 		break;
 	case 0x16:
-		off=reg_esi+Fetchds();
+		off=reg_esi+(Bit32u)Fetchds();
 		seg_base=SegBase(ds);
 		break;
 	case 0x17:
-		off=reg_edi+Fetchds();
+		off=reg_edi+(Bit32u)Fetchds();
 		seg_base=SegBase(ds);
 		break;
 	default:

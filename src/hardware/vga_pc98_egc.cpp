@@ -58,7 +58,7 @@ Bitu pc98_egc4a0_read(Bitu port,Bitu iolen) {
      * Is that true? */
     if (!(pc98_gdc_vramop & (1 << VOPBIT_EGC))) {
 //        LOG_MSG("EGC 4A0 read port 0x%x when EGC not enabled",(unsigned int)port);
-        return ~0;
+        return ~0ul;
     }
 
     /* assume: (port & 1) == 0 [even] and iolen == 2 */
@@ -68,7 +68,7 @@ Bitu pc98_egc4a0_read(Bitu port,Bitu iolen) {
             break;
     };
 
-    return ~0;
+    return ~0ul;
 }
 
 void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
@@ -202,13 +202,13 @@ Bitu pc98_egc4a0_read_warning(Bitu port,Bitu iolen) {
      * Is that true? */
     if (!(pc98_gdc_vramop & (1 << VOPBIT_EGC))) {
 //        LOG_MSG("EGC 4A0 read port 0x%x when EGC not enabled",(unsigned int)port);
-        return ~0;
+        return ~0ul;
     }
 
     LOG_MSG("PC-98 EGC warning: I/O read from port 0x%x (len=%u) known to possibly hang the system on real hardware",
         (unsigned int)port,(unsigned int)iolen);
 
-    return ~0;
+    return ~0ul;
 }
 
 // I/O access to 0x4A0-0x4AF must be WORD sized and even port, or the system hangs if you try.

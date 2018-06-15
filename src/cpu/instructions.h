@@ -30,7 +30,7 @@ extern bool enable_fpu;
 #define ADCB(op1,op2,load,save)								\
 	lflags.oldcf=get_CF()!=0;								\
 	lf_var1b=load(op1);lf_var2b=op2;					\
-	lf_resb=lf_var1b+lf_var2b+lflags.oldcf;		\
+	lf_resb=(unsigned int)lf_var1b+(unsigned int)lf_var2b+(unsigned int)lflags.oldcf;		\
 	save(op1,lf_resb);								\
 	lflags.type=t_ADCb;
 
@@ -86,7 +86,7 @@ extern bool enable_fpu;
 #define ADCW(op1,op2,load,save)								\
 	lflags.oldcf=get_CF()!=0;									\
 	lf_var1w=load(op1);lf_var2w=op2;					\
-	lf_resw=lf_var1w+lf_var2w+lflags.oldcf;		\
+	lf_resw=(unsigned int)lf_var1w+(unsigned int)lf_var2w+(unsigned int)lflags.oldcf;		\
 	save(op1,lf_resw);								\
 	lflags.type=t_ADCw;
 
@@ -334,8 +334,8 @@ extern bool enable_fpu;
 			(cf << (lf_var2b-1)) |						\
 			(lf_var1b >> (9-lf_var2b));					\
  	save(op1,lf_resb);									\
-	SETFLAGBIT(CF,((lf_var1b >> (8-lf_var2b)) & 1));	\
-	SETFLAGBIT(OF,(reg_flags & 1) ^ (lf_resb >> 7));	\
+	SETFLAGBIT(CF,(((unsigned int)lf_var1b >> (8u-lf_var2b)) & 1u));	\
+	SETFLAGBIT(OF,(reg_flags & 1u) ^ ((unsigned int)lf_resb >> 7u));	\
 }
 
 #define RCLW(op1,op2,load,save)							\
@@ -347,8 +347,8 @@ extern bool enable_fpu;
 			(cf << (lf_var2b-1)) |						\
 			(lf_var1w >> (17-lf_var2b));				\
 	save(op1,lf_resw);									\
-	SETFLAGBIT(CF,((lf_var1w >> (16-lf_var2b)) & 1));	\
-	SETFLAGBIT(OF,(reg_flags & 1) ^ (lf_resw >> 15));	\
+	SETFLAGBIT(CF,(((unsigned int)lf_var1w >> (16u-lf_var2b)) & 1u));	\
+	SETFLAGBIT(OF,(reg_flags & 1u) ^ ((unsigned int)lf_resw >> 15u));	\
 }
 
 #define RCLD(op1,op2,load,save)							\
@@ -364,8 +364,8 @@ extern bool enable_fpu;
 		(lf_var1d >> (33-lf_var2b));					\
 	}													\
 	save(op1,lf_resd);									\
-	SETFLAGBIT(CF,((lf_var1d >> (32-lf_var2b)) & 1));	\
-	SETFLAGBIT(OF,(reg_flags & 1) ^ (lf_resd >> 31));	\
+	SETFLAGBIT(CF,(((unsigned int)lf_var1d >> (32u-lf_var2b)) & 1u));	\
+	SETFLAGBIT(OF,(reg_flags & 1u) ^ ((unsigned int)lf_resd >> 31u));	\
 }
 
 
@@ -379,8 +379,8 @@ extern bool enable_fpu;
 				(cf << (8-lf_var2b)) |						\
 				(lf_var1b << (9-lf_var2b));					\
 		save(op1,lf_resb);									\
-		SETFLAGBIT(CF,(lf_var1b >> (lf_var2b - 1)) & 1);	\
-		SETFLAGBIT(OF,(lf_resb ^ (lf_resb<<1)) & 0x80);		\
+		SETFLAGBIT(CF,((unsigned int)lf_var1b >> (lf_var2b - 1u)) & 1u);	\
+		SETFLAGBIT(OF,(lf_resb ^ ((unsigned int)lf_resb<<1u)) & 0x80u);		\
 	}
 
 #define RCRW(op1,op2,load,save)								\
@@ -392,8 +392,8 @@ extern bool enable_fpu;
 				(cf << (16-lf_var2b)) |						\
 				(lf_var1w << (17-lf_var2b));				\
 		save(op1,lf_resw);									\
-		SETFLAGBIT(CF,(lf_var1w >> (lf_var2b - 1)) & 1);	\
-		SETFLAGBIT(OF,(lf_resw ^ (lf_resw<<1)) & 0x8000);	\
+		SETFLAGBIT(CF,((unsigned int)lf_var1w >> (lf_var2b - 1u)) & 1u);	\
+		SETFLAGBIT(OF,(lf_resw ^ ((unsigned int)lf_resw<<1u)) & 0x8000u);	\
 	}
 
 #define RCRD(op1,op2,load,save)								\
@@ -409,29 +409,29 @@ extern bool enable_fpu;
 				(lf_var1d << (33-lf_var2b));				\
 		}													\
 		save(op1,lf_resd);									\
-		SETFLAGBIT(CF,(lf_var1d >> (lf_var2b - 1)) & 1);	\
-		SETFLAGBIT(OF,(lf_resd ^ (lf_resd<<1)) & 0x80000000);	\
+		SETFLAGBIT(CF,((unsigned int)lf_var1d >> (lf_var2b - 1u)) & 1u);	\
+		SETFLAGBIT(OF,(lf_resd ^ ((unsigned int)lf_resd<<1u)) & 0x80000000u);	\
 	}
 
 
 #define SHLB(op1,op2,load,save)								\
 	if (!op2) break;										\
 	lf_var1b=load(op1);lf_var2b=op2;				\
-	lf_resb=(lf_var2b < 8) ? (lf_var1b << lf_var2b) : 0;			\
+	lf_resb=(lf_var2b < 8u) ? ((unsigned int)lf_var1b << lf_var2b) : 0;			\
 	save(op1,lf_resb);								\
 	lflags.type=t_SHLb;
 
 #define SHLW(op1,op2,load,save)								\
 	if (!op2) break;										\
 	lf_var1w=load(op1);lf_var2b=op2 ;				\
-	lf_resw=(lf_var2b < 16) ? (lf_var1w << lf_var2b) : 0;			\
+	lf_resw=(lf_var2b < 16u) ? ((unsigned int)lf_var1w << lf_var2b) : 0;			\
 	save(op1,lf_resw);								\
 	lflags.type=t_SHLw;
 
 #define SHLD(op1,op2,load,save)								\
 	if (!op2) break;										\
 	lf_var1d=load(op1);lf_var2b=op2;				\
-	lf_resd=(lf_var2b < 32) ? (lf_var1d << lf_var2b) : 0;			\
+	lf_resd=(lf_var2b < 32u) ? ((unsigned int)lf_var1d << lf_var2b) : 0;			\
 	save(op1,lf_resd);								\
 	lflags.type=t_SHLd;
 
@@ -439,21 +439,21 @@ extern bool enable_fpu;
 #define SHRB(op1,op2,load,save)								\
 	if (!op2) break;										\
 	lf_var1b=load(op1);lf_var2b=op2;				\
-	lf_resb=(lf_var2b < 8) ? (lf_var1b >> lf_var2b) : 0;			\
+	lf_resb=(lf_var2b < 8u) ? ((unsigned int)lf_var1b >> lf_var2b) : 0;			\
 	save(op1,lf_resb);								\
 	lflags.type=t_SHRb;
 
 #define SHRW(op1,op2,load,save)								\
 	if (!op2) break;										\
 	lf_var1w=load(op1);lf_var2b=op2;				\
-	lf_resw=(lf_var2b < 16) ? (lf_var1w >> lf_var2b) : 0;			\
+	lf_resw=(lf_var2b < 16u) ? ((unsigned int)lf_var1w >> lf_var2b) : 0;			\
 	save(op1,lf_resw);								\
 	lflags.type=t_SHRw;
 
 #define SHRD(op1,op2,load,save)								\
 	if (!op2) break;										\
 	lf_var1d=load(op1);lf_var2b=op2;				\
-	lf_resd=(lf_var2b < 32) ? (lf_var1d >> lf_var2b) : 0;			\
+	lf_resd=(lf_var2b < 32u) ? ((unsigned int)lf_var1d >> lf_var2b) : 0;			\
 	save(op1,lf_resd);								\
 	lflags.type=t_SHRd;
 
@@ -633,8 +633,8 @@ extern bool enable_fpu;
 		lflags.type=t_UNKNOWN;								\
 	}
 
-#define PARITY16(x)  (parity_lookup[((x)>>8)&0xff]^parity_lookup[(x)&0xff]^FLAG_PF)
-#define PARITY32(x)  (PARITY16((x)&0xffff)^PARITY16(((x)>>16)&0xffff)^FLAG_PF)
+#define PARITY16(x)  (parity_lookup[((unsigned int)((Bit16u)(x))>>8u)&0xffu]^parity_lookup[((Bit8u)(x))&0xffu]^FLAG_PF)
+#define PARITY32(x)  (PARITY16(((Bit16u)(x))&0xffffu)^PARITY16(((unsigned int)((Bit32u)(x))>>16u)&0xffffu)^FLAG_PF)
 
 #define MULB(op1,load,save)									\
 	reg_ax=reg_al*load(op1);								\
@@ -746,8 +746,8 @@ extern bool enable_fpu;
 	Bit8s rem=(Bit8s)((Bit16s)reg_ax % val);				\
 	Bit8s quo8s=(Bit8s)(quo&0xff);							\
 	if (quo!=(Bit16s)quo8s) EXCEPTION(0);					\
-	reg_ah=rem;												\
-	reg_al=quo8s;											\
+	reg_ah=(Bit8u)rem;												\
+	reg_al=(Bit8u)quo8s;											\
 	FillFlags();											\
 	SETFLAGBIT(AF,0);/*FIXME*/									\
 	SETFLAGBIT(SF,0);/*FIXME*/									\
@@ -762,13 +762,13 @@ extern bool enable_fpu;
 {															\
 	Bits val=(Bit16s)(load(op1));							\
 	if (val==0) EXCEPTION(0);									\
-	Bits num=(Bit32s)((reg_dx<<16)|reg_ax);					\
+	Bits num=(Bit32s)(((unsigned int)reg_dx<<16u)|(unsigned int)reg_ax);					\
 	Bits quo=num/val;										\
 	Bit16s rem=(Bit16s)(num % val);							\
 	Bit16s quo16s=(Bit16s)quo;								\
 	if (quo!=(Bit32s)quo16s) EXCEPTION(0);					\
-	reg_dx=rem;												\
-	reg_ax=quo16s;											\
+	reg_dx=(Bit16u)rem;												\
+	reg_ax=(Bit16u)quo16s;											\
 	FillFlags();											\
 	SETFLAGBIT(AF,0);/*FIXME*/									\
 	SETFLAGBIT(SF,0);/*FIXME*/									\
@@ -782,20 +782,20 @@ extern bool enable_fpu;
 {															\
 	Bits val=(Bit32s)(load(op1));							\
 	if (val==0) EXCEPTION(0);									\
-	Bit64s num=(((Bit64u)reg_edx)<<32)|reg_eax;				\
+	Bit64s num=(Bit64s)((((Bit64u)reg_edx)<<(Bit64u)32)|(Bit64u)reg_eax);				\
 	Bit64s quo=num/val;										\
 	Bit32s rem=(Bit32s)(num % val);							\
 	Bit32s quo32s=(Bit32s)(quo&0xffffffff);					\
 	if (quo!=(Bit64s)quo32s) EXCEPTION(0);					\
-	reg_edx=rem;											\
-	reg_eax=quo32s;											\
+	reg_edx=(Bit32u)rem;											\
+	reg_eax=(Bit32u)quo32s;											\
 	FillFlags();											\
 	SETFLAGBIT(AF,0);/*FIXME*/									\
 	SETFLAGBIT(SF,0);/*FIXME*/									\
 	SETFLAGBIT(OF,0);/*FIXME*/									\
 	SETFLAGBIT(ZF,(rem==0)&&((quo32s&1)!=0));								\
 	SETFLAGBIT(CF,((rem&3) >= 1 && (rem&3) <= 2)); \
-	SETFLAGBIT(PF,PARITY32(rem&0xffffffff)^PARITY32(quo32s&0xffffffff)^FLAG_PF);					\
+	SETFLAGBIT(PF,PARITY32((Bit32u)rem&0xffffffffu)^PARITY32((Bit32u)quo32s&0xffffffffu)^FLAG_PF);					\
 }
 
 #define IMULB(op1,load,save)								\
@@ -814,8 +814,8 @@ extern bool enable_fpu;
 #define IMULW(op1,load,save)								\
 {															\
 	Bits temps=((Bit16s)reg_ax)*((Bit16s)(load(op1)));		\
-	reg_ax=(Bit16s)(temps);									\
-	reg_dx=(Bit16s)(temps >> 16);							\
+	reg_ax=(Bit16u)(temps);									\
+	reg_dx=(Bit16u)(temps >> 16);							\
 	FillFlagsNoCFOF();										\
 	if (((temps & 0xffff8000)==0xffff8000 ||				\
 		(temps & 0xffff8000)==0x0000)) {					\
@@ -987,39 +987,39 @@ extern bool enable_fpu;
 /* let's hope bochs has it correct with the higher than 16 shifts */
 /* double-precision shift left has low bits in second argument */
 #define DSHLW(op1,op2,op3,load,save)									\
-	Bit8u val=op3 & 0x1F;												\
+	Bit8u val=op3 & 0x1Fu;												\
 	if (!val) break;													\
-	lf_var2b=val;lf_var1d=(load(op1)<<16)|op2;					\
+	lf_var2b=val;lf_var1d=((unsigned int)load(op1)<<16u)|op2;					\
 	Bit32u tempd=lf_var1d << lf_var2b;							\
-  	if (lf_var2b>16) tempd |= (op2 << (lf_var2b - 16));			\
-	lf_resw=(Bit16u)(tempd >> 16);								\
+  	if (lf_var2b>16u) tempd |= ((unsigned int)op2 << (lf_var2b - 16u));			\
+	lf_resw=(Bit16u)((unsigned int)tempd >> 16u);								\
 	save(op1,lf_resw);											\
 	lflags.type=t_DSHLw;
 
 #define DSHLD(op1,op2,op3,load,save)									\
-	Bit8u val=op3 & 0x1F;												\
+	Bit8u val=op3 & 0x1Fu;												\
 	if (!val) break;													\
 	lf_var2b=val;lf_var1d=load(op1);							\
-	lf_resd=(lf_var1d << lf_var2b) | (op2 >> (32-lf_var2b));	\
+	lf_resd=((unsigned int)lf_var1d << lf_var2b) | ((unsigned int)op2 >> (32u-lf_var2b));	\
 	save(op1,lf_resd);											\
 	lflags.type=t_DSHLd;
 
 /* double-precision shift right has high bits in second argument */
 #define DSHRW(op1,op2,op3,load,save)									\
-	Bit8u val=op3 & 0x1F;												\
+	Bit8u val=op3 & 0x1Fu;												\
 	if (!val) break;													\
-	lf_var2b=val;lf_var1d=(op2<<16)|load(op1);					\
-	Bit32u tempd=lf_var1d >> lf_var2b;							\
-  	if (lf_var2b>16) tempd |= (op2 << (32-lf_var2b ));			\
+	lf_var2b=val;lf_var1d=((unsigned int)op2<<16u)|load(op1);					\
+	Bit32u tempd=(unsigned int)lf_var1d >> lf_var2b;							\
+  	if (lf_var2b>16u) tempd |= ((unsigned int)op2 << (32u-lf_var2b));			\
 	lf_resw=(Bit16u)(tempd);										\
 	save(op1,lf_resw);											\
 	lflags.type=t_DSHRw;
 
 #define DSHRD(op1,op2,op3,load,save)									\
-	Bit8u val=op3 & 0x1F;												\
+	Bit8u val=op3 & 0x1Fu;												\
 	if (!val) break;													\
 	lf_var2b=val;lf_var1d=load(op1);							\
-	lf_resd=(lf_var1d >> lf_var2b) | (op2 << (32-lf_var2b));	\
+	lf_resd=((unsigned int)lf_var1d >> lf_var2b) | ((unsigned int)op2 << (32u-lf_var2b));	\
 	save(op1,lf_resd);											\
 	lflags.type=t_DSHRd;
 

@@ -109,7 +109,7 @@ static bool DOS_MultiplexFunctions(void) {
 		if (reg_bx<16) {
 			RealPt sftrealpt=mem_readd(Real2Phys(dos_infoblock.GetPointer())+4);
 			PhysPt sftptr=Real2Phys(sftrealpt);
-			Bitu sftofs=0x06+reg_bx*0x3b;
+			Bitu sftofs=0x06u+reg_bx*0x3bu;
 
 			if (Files[reg_bx]) mem_writeb(sftptr+sftofs,Files[reg_bx]->refCtr);
 			else mem_writeb(sftptr+sftofs,0);
@@ -163,23 +163,23 @@ static bool DOS_MultiplexFunctions(void) {
 				size_t i;
 
 				for (i=0; i<nlen; i++)
-					mem_writeb((PhysPt)(sftptr+sftofs+0x20+i),filename[i]);
+					mem_writeb((PhysPt)(sftptr+sftofs+0x20u+i),(unsigned char)filename[i]);
 				for (i=nlen; i<8; i++)
-					mem_writeb((PhysPt)(sftptr+sftofs+0x20+i),' ');
+					mem_writeb((PhysPt)(sftptr+sftofs+0x20u+i),(unsigned char)' ');
 				
 				if (extlen>3) extlen=3;
 				for (i=0; i<extlen; i++)
-					mem_writeb((PhysPt)(sftptr+sftofs+0x28+i),dotpos[i]);
+					mem_writeb((PhysPt)(sftptr+sftofs+0x28u+i),(unsigned char)dotpos[i]);
 				for (i=extlen; i<3; i++)
-					mem_writeb((PhysPt)(sftptr+sftofs+0x28+i),' ');
+					mem_writeb((PhysPt)(sftptr+sftofs+0x28u+i),(unsigned char)' ');
 			} else {
 				size_t i;
 				size_t nlen=strlen(filename);
 				if (nlen>8) nlen=8;
 				for (i=0; i<nlen; i++)
-					mem_writeb((PhysPt)(sftptr+sftofs+0x20+i),filename[i]);
+					mem_writeb((PhysPt)(sftptr+sftofs+0x20u+i),(unsigned char)filename[i]);
 				for (i=nlen; i<11; i++)
-					mem_writeb((PhysPt)(sftptr+sftofs+0x20+i),' ');
+					mem_writeb((PhysPt)(sftptr+sftofs+0x20u+i),(unsigned char)' ');
 			}
 
 			SegSet16(es,RealSeg(sftrealpt));

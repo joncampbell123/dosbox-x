@@ -58,7 +58,7 @@ static INLINE Bits PIC_TickIndexND(void) {
 }
 
 static INLINE Bits PIC_MakeCycles(const pic_tickindex_t amount) {
-	return (Bits)(CPU_CycleMax*amount);
+	return (Bits)((pic_tickindex_t)CPU_CycleMax * amount);
 }
 
 static INLINE pic_tickindex_t PIC_FullIndex(void) {

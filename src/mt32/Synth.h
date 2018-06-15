@@ -142,13 +142,13 @@ public:
 		entries = useEntries;
 	}
 	int lastTouched(Bit32u addr, Bit32u len) const {
-		return (offset(addr) + len - 1) / entrySize;
+		return (int)(((unsigned long)offset(addr) + len - 1u) / entrySize);
 	}
 	int firstTouchedOffset(Bit32u addr) const {
-		return offset(addr) % entrySize;
+		return (int)((unsigned int)offset(addr) % entrySize);
 	}
 	int firstTouched(Bit32u addr) const {
-		return offset(addr) / entrySize;
+		return (int)((unsigned int)offset(addr) / entrySize);
 	}
 	Bit32u regionEnd() const {
 		return startAddr + entrySize * entries;
@@ -157,7 +157,7 @@ public:
 		return addr >= startAddr && addr < regionEnd();
 	}
 	int offset(Bit32u addr) const {
-		return addr - startAddr;
+		return (int)(addr - startAddr);
 	}
 	Bit32u getClampedLen(Bit32u addr, Bit32u len) const {
 		if (addr + len > regionEnd())
@@ -173,7 +173,7 @@ public:
 	Bit8u getMaxValue(int off) const {
 		if (maxTable == NULL)
 			return 0xFF;
-		return maxTable[off % entrySize];
+		return maxTable[(unsigned int)off % entrySize];
 	}
 	Bit8u *getRealMemory() const {
 		return realMemory;

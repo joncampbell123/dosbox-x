@@ -29,16 +29,6 @@
 typedef void (*MIXER_MixHandler)(Bit8u * sampdate,Bit32u len);
 typedef void (*MIXER_Handler)(Bitu len);
 
-enum BlahModes {
-	MIXER_8MONO,MIXER_8STEREO,
-	MIXER_16MONO,MIXER_16STEREO
-};
-
-enum MixerModes {
-	M_8M,M_8S,
-	M_16M,M_16S
-};
-
 #define MIXER_BUFSIZE (16*1024)
 #define MIXER_BUFMASK (MIXER_BUFSIZE-1)
 extern Bit8u MixTemp[MIXER_BUFSIZE];

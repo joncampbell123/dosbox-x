@@ -21,8 +21,8 @@
 #define DOSBOX_SETUP_H
 
 #ifdef _MSC_VER
-#pragma warning ( disable : 4786 )
-#pragma warning ( disable : 4290 )
+//#pragma warning ( disable : 4786 )
+//#pragma warning ( disable : 4290 )
 #endif
 
 
@@ -181,9 +181,23 @@ public:
 	Prop_double(std::string const & _propname, Changeable::Value when, double _value)
 		:Property(_propname,when){
 		default_value = value = _value;
+		min = max = -1.0;
 	}
+	Prop_double(std::string const & propname, Changeable::Value when, double _value, double _min, double _max)
+		:Property(propname, when)
+	{
+		default_value = value = _value;
+		min = _min;
+		max = _max;
+	}
+	double getMin() const { return min; }
+	double getMax() const { return max; }
+	void SetMinMax(Value const& min, Value const& max) { this->min = min; this->max = max; }
 	bool SetValue(std::string const& input);
 	virtual ~Prop_double(){ }
+	virtual bool CheckValue(Value const& in, bool warn);
+private:
+	Value min, max;
 };
 
 class Prop_bool:public Property {

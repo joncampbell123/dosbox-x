@@ -359,9 +359,9 @@ switch (inst.code.op) {
 #if C_DEBUG
 		FillFlags();
 		if (((inst.entry & 0xFF)==0xcc) && DEBUG_Breakpoint()) 
-			return debugCallback;
+			return (Bits)debugCallback;
 		else if (DEBUG_IntBreakpoint(inst_op1_b)) 
-			return debugCallback;
+			return (Bits)debugCallback;
 #endif
 		CPU_SW_Interrupt(inst_op1_b,GetIP());
 		continue;
@@ -566,41 +566,41 @@ switch (inst.code.op) {
 		break;
 	case O_BTw:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 15))));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 15u))));
 		break;
 	case O_BTSw:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 15))));
-		inst_op1_d|=(1 << (inst_op2_d & 15));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 15u))));
+		inst_op1_d|=(1u << (inst_op2_d & 15u));
 		break;
 	case O_BTCw:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 15))));
-		inst_op1_d^=(1 << (inst_op2_d & 15));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 15u))));
+		inst_op1_d^=(1u << (inst_op2_d & 15u));
 		break;
 	case O_BTRw:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 15))));
-		inst_op1_d&=~(1 << (inst_op2_d & 15));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 15u))));
+		inst_op1_d&=~(1u << (inst_op2_d & 15u));
 		break;
 	case O_BTd:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 31))));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 31u))));
 		break;
 	case O_BTSd:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 31))));
-		inst_op1_d|=(1 << (inst_op2_d & 31));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 31u))));
+		inst_op1_d|=(1u << (inst_op2_d & 31u));
 		break;
 	case O_BTCd:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 31))));
-		inst_op1_d^=(1 << (inst_op2_d & 31));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 31))));
+		inst_op1_d^=(1u << (inst_op2_d & 31u));
 		break;
 	case O_BTRd:
 		FillFlags();
-		SETFLAGBIT(CF,(inst_op1_d & (1 << (inst_op2_d & 31))));
-		inst_op1_d&=~(1 << (inst_op2_d & 31));
+		SETFLAGBIT(CF,(inst_op1_d & (1u << (inst_op2_d & 31u))));
+		inst_op1_d&=~(1u << (inst_op2_d & 31u));
 		break;
 	case O_BSWAPw:
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegalopcode;
@@ -652,8 +652,8 @@ switch (inst.code.op) {
 	case O_BOUNDw:
 		{
 			Bit16s bound_min, bound_max;
-			bound_min=LoadMw(inst.rm_eaa);
-			bound_max=LoadMw(inst.rm_eaa+2);
+			bound_min=(Bit16s)LoadMw(inst.rm_eaa);
+			bound_max=(Bit16s)LoadMw(inst.rm_eaa+2);
 			if ( (((Bit16s)inst_op1_w) < bound_min) || (((Bit16s)inst_op1_w) > bound_max) ) {
 				EXCEPTION(5);
 			}

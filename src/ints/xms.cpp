@@ -34,50 +34,50 @@
 
 #include <algorithm>
 
-#define XMS_HANDLES							50		/* 50 XMS Memory Blocks */ 
-#define XMS_VERSION    						0x0300	/* version 3.00 */
-#define XMS_DRIVER_VERSION					0x0301	/* my driver version 3.01 */
+#define XMS_HANDLES							50u		/* 50 XMS Memory Blocks */ 
+#define XMS_VERSION    						0x0300u	/* version 3.00 */
+#define XMS_DRIVER_VERSION					0x0301u	/* my driver version 3.01 */
 
-#define	XMS_GET_VERSION						0x00
-#define	XMS_ALLOCATE_HIGH_MEMORY			0x01
-#define	XMS_FREE_HIGH_MEMORY				0x02
-#define	XMS_GLOBAL_ENABLE_A20				0x03
-#define	XMS_GLOBAL_DISABLE_A20				0x04
-#define	XMS_LOCAL_ENABLE_A20				0x05
-#define	XMS_LOCAL_DISABLE_A20				0x06
-#define	XMS_QUERY_A20						0x07
-#define	XMS_QUERY_FREE_EXTENDED_MEMORY		0x08
-#define	XMS_ALLOCATE_EXTENDED_MEMORY		0x09
-#define	XMS_FREE_EXTENDED_MEMORY			0x0a
-#define	XMS_MOVE_EXTENDED_MEMORY_BLOCK		0x0b
-#define	XMS_LOCK_EXTENDED_MEMORY_BLOCK		0x0c
-#define	XMS_UNLOCK_EXTENDED_MEMORY_BLOCK	0x0d
-#define	XMS_GET_EMB_HANDLE_INFORMATION		0x0e
-#define	XMS_RESIZE_EXTENDED_MEMORY_BLOCK	0x0f
-#define	XMS_ALLOCATE_UMB					0x10
-#define	XMS_DEALLOCATE_UMB					0x11
-#define XMS_QUERY_ANY_FREE_MEMORY			0x88
-#define XMS_ALLOCATE_ANY_MEMORY				0x89
-#define	XMS_GET_EMB_HANDLE_INFORMATION_EXT	0x8e
-#define XMS_RESIZE_ANY_EXTENDED_MEMORY_BLOCK 0x8f
+#define	XMS_GET_VERSION						0x00u
+#define	XMS_ALLOCATE_HIGH_MEMORY			0x01u
+#define	XMS_FREE_HIGH_MEMORY				0x02u
+#define	XMS_GLOBAL_ENABLE_A20				0x03u
+#define	XMS_GLOBAL_DISABLE_A20				0x04u
+#define	XMS_LOCAL_ENABLE_A20				0x05u
+#define	XMS_LOCAL_DISABLE_A20				0x06u
+#define	XMS_QUERY_A20						0x07u
+#define	XMS_QUERY_FREE_EXTENDED_MEMORY		0x08u
+#define	XMS_ALLOCATE_EXTENDED_MEMORY		0x09u
+#define	XMS_FREE_EXTENDED_MEMORY			0x0au
+#define	XMS_MOVE_EXTENDED_MEMORY_BLOCK		0x0bu
+#define	XMS_LOCK_EXTENDED_MEMORY_BLOCK		0x0cu
+#define	XMS_UNLOCK_EXTENDED_MEMORY_BLOCK	0x0du
+#define	XMS_GET_EMB_HANDLE_INFORMATION		0x0eu
+#define	XMS_RESIZE_EXTENDED_MEMORY_BLOCK	0x0fu
+#define	XMS_ALLOCATE_UMB					0x10u
+#define	XMS_DEALLOCATE_UMB					0x11u
+#define XMS_QUERY_ANY_FREE_MEMORY			0x88u
+#define XMS_ALLOCATE_ANY_MEMORY				0x89u
+#define	XMS_GET_EMB_HANDLE_INFORMATION_EXT	0x8eu
+#define XMS_RESIZE_ANY_EXTENDED_MEMORY_BLOCK 0x8fu
 
-#define	XMS_FUNCTION_NOT_IMPLEMENTED		0x80
-#define	HIGH_MEMORY_NOT_EXIST				0x90
-#define	HIGH_MEMORY_IN_USE					0x91
-#define HIGH_MEMORY_NOT_BIG_ENOUGH			0x92
-#define	HIGH_MEMORY_NOT_ALLOCATED			0x93
-#define XMS_OUT_OF_SPACE					0xa0
-#define XMS_OUT_OF_HANDLES					0xa1
-#define XMS_INVALID_HANDLE					0xa2
-#define XMS_INVALID_SOURCE_HANDLE			0xa3
-#define XMS_INVALID_SOURCE_OFFSET			0xa4
-#define XMS_INVALID_DEST_HANDLE				0xa5
-#define XMS_INVALID_DEST_OFFSET				0xa6
-#define XMS_INVALID_LENGTH					0xa7
-#define XMS_BLOCK_NOT_LOCKED				0xaa
-#define XMS_BLOCK_LOCKED					0xab
-#define	UMB_ONLY_SMALLER_BLOCK				0xb0
-#define	UMB_NO_BLOCKS_AVAILABLE				0xb1
+#define	XMS_FUNCTION_NOT_IMPLEMENTED		0x80u
+#define	HIGH_MEMORY_NOT_EXIST				0x90u
+#define	HIGH_MEMORY_IN_USE					0x91u
+#define HIGH_MEMORY_NOT_BIG_ENOUGH			0x92u
+#define	HIGH_MEMORY_NOT_ALLOCATED			0x93u
+#define XMS_OUT_OF_SPACE					0xa0u
+#define XMS_OUT_OF_HANDLES					0xa1u
+#define XMS_INVALID_HANDLE					0xa2u
+#define XMS_INVALID_SOURCE_HANDLE			0xa3u
+#define XMS_INVALID_SOURCE_OFFSET			0xa4u
+#define XMS_INVALID_DEST_HANDLE				0xa5u
+#define XMS_INVALID_DEST_OFFSET				0xa6u
+#define XMS_INVALID_LENGTH					0xa7u
+#define XMS_BLOCK_NOT_LOCKED				0xaau
+#define XMS_BLOCK_LOCKED					0xabu
+#define	UMB_ONLY_SMALLER_BLOCK				0xb0u
+#define	UMB_NO_BLOCKS_AVAILABLE				0xb1u
 
 bool DOS_IS_IN_HMA();
 
@@ -170,7 +170,7 @@ bool XMS_GetHandleInfo(Bitu &phys_location,Bitu &size,Bitu &lockcount,bool &free
             free = false;
             size = x.size;
             lockcount = x.locked;
-            phys_location = x.mem << 12UL;
+            phys_location = (unsigned long)x.mem << 12UL;
         }
 
         return true;
@@ -195,10 +195,10 @@ void XMS_ZeroAllocation(MemHandle mem,unsigned int pages) {
 	PhysPt address;
 
 	if (pages == 0) return;
-	address = mem*4096;
-	pages *= 4096;
+	address = (PhysPt)mem * (PhysPt)4096UL;
+	pages *= 4096UL;
 
-	if ((address+pages) > 0xC0000000) E_Exit("XMS_ZeroAllocation out of range");
+	if ((address+pages) > 0xC0000000UL) E_Exit("XMS_ZeroAllocation out of range");
 	while (pages != 0) {
 		mem_writeb(address++,0);
 		pages--;
@@ -264,7 +264,7 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 		if (length>xms_handles[src_handle].size*1024U-src.offset) {
 			return XMS_INVALID_LENGTH;
 		}
-		srcpt=(xms_handles[src_handle].mem*4096)+src.offset;
+		srcpt=((unsigned int)xms_handles[src_handle].mem*4096U)+src.offset;
 	} else {
 		srcpt=Real2Phys(src.realpt);
 	}
@@ -278,7 +278,7 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 		if (length>xms_handles[dest_handle].size*1024U-dest.offset) {
 			return XMS_INVALID_LENGTH;
 		}
-		destpt=(xms_handles[dest_handle].mem*4096)+dest.offset;
+		destpt=((unsigned int)xms_handles[dest_handle].mem*4096U)+dest.offset;
 	} else {
 		destpt=Real2Phys(dest.realpt);
 	}
@@ -305,7 +305,7 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 Bitu XMS_LockMemory(Bitu handle, Bit32u& address) {
 	if (InvalidHandle(handle)) return XMS_INVALID_HANDLE;
 	if (xms_handles[handle].locked<255) xms_handles[handle].locked++;
-	address = xms_handles[handle].mem*4096;
+	address = (unsigned long)xms_handles[handle].mem * 4096UL;
 	return 0;
 }
 
@@ -614,7 +614,7 @@ void RemoveUMBBlock() {
 	/* FIXME: Um... why is umb_available == false even when set to true below? */
 	if (umb_init) {
 		LOG_MSG("Removing UMB block 0x%04x-0x%04x\n",first_umb_seg,first_umb_seg+first_umb_size-1);
-		MEM_unmap_physmem(first_umb_seg<<4,((first_umb_seg+first_umb_size)<<4)-1);
+		MEM_unmap_physmem((unsigned long)first_umb_seg<<4ul,(((unsigned long)first_umb_seg+(unsigned long)first_umb_size)<<4ul)-1ul);
 		umb_init = false;
 	}
 }
@@ -650,9 +650,9 @@ public:
 		xms_init = true;
 
 		xms_hma_exists = section->Get_bool("hma");
-		xms_hma_minimum_alloc = section->Get_int("hma minimum allocation");
+		xms_hma_minimum_alloc = (unsigned int)section->Get_int("hma minimum allocation");
 		xms_hma_alloc_non_dos_kernel_control = section->Get_bool("hma allow reservation");
-		if (xms_hma_minimum_alloc > 0xFFF0) xms_hma_minimum_alloc = 0xFFF0;
+		if (xms_hma_minimum_alloc > 0xFFF0U) xms_hma_minimum_alloc = 0xFFF0U;
 
 		Bitu i;
 		BIOS_ZeroExtendedSize(true);
@@ -717,11 +717,11 @@ public:
 		if (first_umb_size >= (rombios_minimum_location>>4)) {
 			/* we can ask the BIOS code to trim back the region, assuming it hasn't allocated anything there yet */
 			LOG(LOG_MISC,LOG_DEBUG)("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, asking BIOS to move aside",(int)first_umb_size,(int)(rombios_minimum_location>>4));
-			ROMBIOS_FreeUnusedMinToLoc(first_umb_size<<4);
+			ROMBIOS_FreeUnusedMinToLoc((unsigned int)first_umb_size<<4U);
 		}
-		if (first_umb_size >= (rombios_minimum_location>>4)) {
+		if (first_umb_size >= ((unsigned int)rombios_minimum_location>>4U)) {
 			LOG(LOG_MISC,LOG_DEBUG)("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, truncating region",(int)first_umb_size,(int)(rombios_minimum_location>>4));
-			first_umb_size = (rombios_minimum_location>>4)-1;
+			first_umb_size = ((unsigned int)rombios_minimum_location>>4u)-1u;
 		}
 
         Bitu GetEMSPageFrameSegment(void);
@@ -750,8 +750,8 @@ public:
 		first_umb_size = (first_umb_size + 1 - first_umb_seg);
 		if (umb_available) {
 			LOG(LOG_MISC,LOG_NORMAL)("UMB assigned region is 0x%04x-0x%04x",(int)first_umb_seg,(int)(first_umb_seg+first_umb_size-1));
-			if (MEM_map_RAM_physmem(first_umb_seg<<4,((first_umb_seg+first_umb_size)<<4)-1)) {
-				memset(GetMemBase()+(first_umb_seg<<4),0x00,first_umb_size<<4);
+			if (MEM_map_RAM_physmem((unsigned int)first_umb_seg<<4u,(((unsigned int)first_umb_seg+(unsigned int)first_umb_size)<<4u)-1u)) {
+				memset(GetMemBase()+((unsigned int)first_umb_seg<<4u),0x00u,(unsigned int)first_umb_size<<4u);
 			}
 			else {
 				LOG(LOG_MISC,LOG_WARN)("Unable to claim UMB region (perhaps adapter ROM is in the way). Disabling UMB");

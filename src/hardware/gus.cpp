@@ -201,7 +201,7 @@ public:
 
 	GUSChannels(Bit8u num) { 
 		channum = num;
-		irqmask = 1 << num;
+		irqmask = 1u << num;
 		WaveStart = 0;
 		WaveEnd = 0;
 		WaveAddr = 0;
@@ -365,10 +365,10 @@ public:
 		}
 	}
 	INLINE void UpdateVolumes(void) {
-		Bit32s templeft=RampVol - PanLeft;
-		templeft&=~(templeft >> 31);
-		Bit32s tempright=RampVol - PanRight;
-		tempright&=~(tempright >> 31);
+		Bit32s templeft=(Bit32s)RampVol - (Bit32s)PanLeft;
+		templeft&=~(templeft >> 31); /* <- NTS: This is a rather elaborate way to clamp negative values to zero using negate and sign extend */
+		Bit32s tempright=(Bit32s)RampVol - (Bit32s)PanRight;
+		tempright&=~(tempright >> 31); /* <- NTS: This is a rather elaborate way to clamp negative values to zero using negate and sign extend */
 		VolLeft=vol16bit[templeft >> RAMP_FRACT];
 		VolRight=vol16bit[tempright >> RAMP_FRACT];
 	}
@@ -379,11 +379,11 @@ public:
 		if (RampCtrl & 0x40) {
 			RampVol-=RampAdd;
 			if ((Bit32s)RampVol < (Bit32s)0) RampVol=0;
-			RampLeft=RampStart-RampVol;
+			RampLeft=(Bit32s)RampStart-(Bit32s)RampVol;
 		} else {
 			RampVol+=RampAdd;
 			if (RampVol > ((4096 << RAMP_FRACT)-1)) RampVol=((4096 << RAMP_FRACT)-1);
-			RampLeft=RampVol-RampEnd;
+			RampLeft=(Bit32s)RampVol-(Bit32s)RampEnd;
 		}
 		if (RampLeft<0) {
 			UpdateVolumes();
@@ -397,7 +397,7 @@ public:
 		if (RampCtrl & 0x08) {
 			/* Bi-directional looping */
 			if (RampCtrl & 0x10) RampCtrl^=0x40;
-			RampVol = (RampCtrl & 0x40) ? (RampEnd-RampLeft) : (RampStart+RampLeft);
+			RampVol = (RampCtrl & 0x40) ? (Bit32u)((Bit32s)RampEnd-(Bit32s)RampLeft) : (Bit32u)((Bit32s)RampStart+(Bit32s)RampLeft);
 		} else {
 			RampCtrl|=1;	//Stop the channel
 			RampVol = (RampCtrl & 0x40) ? RampStart : RampEnd;
@@ -646,7 +646,7 @@ static void CheckVoiceIrq(void) {
 	if (myGUS.WaveIRQ) myGUS.IRQStatus|=0x20;
 	GUS_CheckIRQ();
 	for (;;) {
-		Bit32u check=(1 << myGUS.IRQChan);
+		Bit32u check=(1u << myGUS.IRQChan);
 		if (totalmask & check) return;
 		myGUS.IRQChan++;
 		if (myGUS.IRQChan>=myGUS.ActiveChannels) myGUS.IRQChan=0;
@@ -714,7 +714,7 @@ static Bit16u ExecuteReadRegister(void) {
 	case 0x8f: // General channel IRQ status register
 		tmpreg=myGUS.IRQChan|0x20;
 		Bit32u mask;
-		mask=1 << myGUS.IRQChan;
+		mask=1u << myGUS.IRQChan;
 		if (!(myGUS.RampIRQ & mask)) tmpreg|=0x40;
 		if (!(myGUS.WaveIRQ & mask)) tmpreg|=0x80;
 		myGUS.RampIRQ&=~mask;
@@ -787,20 +787,20 @@ static void ExecuteGlobRegister(void) {
 	case 0x7:  // Channel volume ramp start register  EEEEMMMM
 		if(curchan != NULL) {
 			Bit8u tmpdata = (Bit16u)myGUS.gRegData >> 8;
-			curchan->RampStart = tmpdata << (4+RAMP_FRACT);
+			curchan->RampStart = (Bit32u)(tmpdata << (4+RAMP_FRACT));
 		}
 		break;
 	case 0x8:  // Channel volume ramp end register  EEEEMMMM
 		if(curchan != NULL) {
 			Bit8u tmpdata = (Bit16u)myGUS.gRegData >> 8;
-			curchan->RampEnd = tmpdata << (4+RAMP_FRACT);
+			curchan->RampEnd = (Bit32u)(tmpdata << (4+RAMP_FRACT));
 		}
 		break;
 	case 0x9:  // Channel current volume register
 		gus_chan->FillUp();
 		if(curchan != NULL) {
 			Bit16u tmpdata = (Bit16u)myGUS.gRegData >> 4;
-			curchan->RampVol = tmpdata << RAMP_FRACT;
+			curchan->RampVol = (Bit32u)(tmpdata << RAMP_FRACT);
 			curchan->UpdateVolumes();
 		}
 		break;
@@ -1344,7 +1344,7 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 	case 0x20f:
 		if (gus_type >= GUS_MAX || gus_ics_mixer)
 			return 0x02; /* <- FIXME: What my GUS MAX returns. What does this mean? */
-		return ~0; // should not happen
+		return ~0ul; // should not happen
 	case 0x302:
 		return myGUS.gRegSelectData;
 	case 0x303:
@@ -1623,13 +1623,13 @@ static bool GUS_DMA_Active = false;
 void GUS_Update_DMA_Event_transfer() {
 	/* NTS: From the GUS SDK, bits 3-4 of DMA Control divide the ISA DMA transfer rate down from "approx 650KHz".
 	 *      Bits 3-4 are documented as "DMA Rate divisor" */
-	GUS_DMA_Event_transfer = GUS_Master_Clock / GUS_DMA_Events_per_sec / (((myGUS.DMAControl >> 3) & 3) + 1);
-	GUS_DMA_Event_transfer &= ~1; /* make sure it's word aligned in case of 16-bit PCM */
+	GUS_DMA_Event_transfer = GUS_Master_Clock / GUS_DMA_Events_per_sec / (Bitu)(((Bitu)(myGUS.DMAControl >> 3u) & 3u) + 1u);
+	GUS_DMA_Event_transfer &= ~1u; /* make sure it's word aligned in case of 16-bit PCM */
 	if (GUS_DMA_Event_transfer == 0) GUS_DMA_Event_transfer = 2;
 }
 
 void GUS_DMA_Event_Transfer(DmaChannel *chan,Bitu dmawords) {
-	Bitu dmaaddr = (myGUS.dmaAddr << 4) + myGUS.dmaAddrOffset;
+	Bitu dmaaddr = (Bitu)(myGUS.dmaAddr << 4ul) + (Bitu)myGUS.dmaAddrOffset;
 	Bitu dmalimit = myGUS.memsize;
 	int step = 0,docount = 0;
 	bool dma16xlate;
@@ -1718,9 +1718,9 @@ void GUS_DMA_Event_Transfer(DmaChannel *chan,Bitu dmawords) {
 
 	if (docount > 0) {
 		if ((myGUS.DMAControl & 0x2) == 0) {
-			Bitu read=chan->Read(docount,&GUSRam[dmaaddr]);
+			Bitu read=(Bitu)chan->Read((Bitu)docount,&GUSRam[dmaaddr]);
 			//Check for 16 or 8bit channel
-			read*=(chan->DMA16+1);
+			read*=(chan->DMA16+1u);
 			if((myGUS.DMAControl & 0x80) != 0) {
 				//Invert the MSB to convert twos compliment form
 				Bitu i;
@@ -1736,9 +1736,9 @@ void GUS_DMA_Event_Transfer(DmaChannel *chan,Bitu dmawords) {
 			step = read;
 		} else {
 			//Read data out of UltraSound
-			int wd = chan->Write(docount,&GUSRam[dmaaddr]);
+			Bitu wd = (Bitu)chan->Write((Bitu)docount,&GUSRam[dmaaddr]);
 			//Check for 16 or 8bit channel
-			wd*=(chan->DMA16+1);
+			wd*=(chan->DMA16+1u);
 
 			step = wd;
 		}
@@ -1901,7 +1901,7 @@ static void MakeTables(void) {
 	int i;
 	double out = (double)(1 << 13);
 	for (i=4095;i>=0;i--) {
-		vol16bit[i]=(Bit16s)out;
+		vol16bit[i]=(Bit16u)((Bit16s)out);
 		out/=1.002709201;		/* 0.0235 dB Steps */
 	}
 	/* FIX: DOSBox 0.74 had code here that produced a pantable which
@@ -1922,7 +1922,7 @@ static void MakeTables(void) {
 	 *      mono. */
 	if (gus_fixed_table) {
 		for (i=0;i < 16;i++)
-			pantable[i] = pantablePDF[i] * 2048;
+			pantable[i] = pantablePDF[i] * 2048u;
 
 		LOG(LOG_MISC,LOG_DEBUG)("GUS: using accurate (fixed) pantable");
 	}
@@ -2035,25 +2035,25 @@ public:
 		if (myGUS.force_master_irq_enable)
 			LOG(LOG_MISC,LOG_DEBUG)("GUS: Master IRQ enable will be forced on as instructed");
 
-		myGUS.rate=section->Get_int("gusrate");
+		myGUS.rate=(unsigned int)section->Get_int("gusrate");
 
         ultradir = section->Get_string("ultradir");
 
 		x = section->Get_int("gusmemsize");
-		if (x >= 0) myGUS.memsize = x*1024;
-		else myGUS.memsize = 1024*1024;
+		if (x >= 0) myGUS.memsize = (unsigned int)x*1024u;
+		else myGUS.memsize = 1024u*1024u;
 
-		if (myGUS.memsize > (1024*1024))
-			myGUS.memsize = (1024*1024);
+		if (myGUS.memsize > (1024u*1024u))
+			myGUS.memsize = (1024u*1024u);
 
-		if ((myGUS.memsize&((256 << 10) - 1)) != 0)
+		if ((myGUS.memsize&((256u << 10u) - 1u)) != 0)
 			LOG(LOG_MISC,LOG_WARN)("GUS emulation warning: %uKB onboard is an unusual value. Usually GUS cards have some multiple of 256KB RAM onboard",myGUS.memsize>>10);
 
 		LOG(LOG_MISC,LOG_DEBUG)("GUS emulation: %uKB onboard",myGUS.memsize>>10);
 
 		// FIXME: HUH?? Read the port number and subtract 0x200, then use GUS_BASE
 		// in other parts of the code to compare against 0x200 and 0x300? That's confusing. Fix!
-		myGUS.portbase = section->Get_hex("gusbase") - 0x200;
+		myGUS.portbase = (unsigned int)section->Get_hex("gusbase") - 0x200u;
 
 		// TODO: so, if the GUS ULTRASND variable actually mentions two DMA and two IRQ channels,
 		//       shouldn't we offer the ability to specify them independently? especially when

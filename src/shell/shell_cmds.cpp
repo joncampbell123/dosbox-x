@@ -241,12 +241,12 @@ static Bitu INT2FDBG_Handler(void) {
 			{
 				devname[0] = 0;
 				if (name_seg != 0 || name_ofs != 0) {
+					unsigned char c;
 					unsigned int i;
 					PhysPt scan;
-					char c;
 
 					scan = PhysMake(name_seg,name_ofs);
-					for (i=0;i < 63 && (c=mem_readb(scan++)) != 0;) devname[i++] = c;
+					for (i=0;i < 63 && (c=mem_readb(scan++)) != 0;) devname[i++] = (char)c;
 					devname[i] = 0;
 				}
 			}
@@ -867,11 +867,11 @@ void DOS_Shell::CMD_DIR(char * args) {
 		WriteOut(MSG_Get("SHELL_CMD_DIR_BYTES_USED"),file_count,numformat);
 		Bit8u drive=dta.GetSearchDrive();
 		//TODO Free Space
-		Bitu free_space=1024*1024*100;
+		Bitu free_space=1024u*1024u*100u;
 		if (Drives[drive]) {
 			Bit16u bytes_sector;Bit8u sectors_cluster;Bit16u total_clusters;Bit16u free_clusters;
 			Drives[drive]->AllocationInfo(&bytes_sector,&sectors_cluster,&total_clusters,&free_clusters);
-			free_space=bytes_sector*sectors_cluster*free_clusters;
+			free_space=(Bitu)bytes_sector * (Bitu)sectors_cluster * (Bitu)free_clusters;
 		}
 		FormatNumber(free_space,numformat);
 		WriteOut(MSG_Get("SHELL_CMD_DIR_BYTES_FREE"),dir_count,numformat);
@@ -1466,9 +1466,9 @@ void DOS_Shell::CMD_DATE(char * args) {
 			buffer[bufferptr] = formatstring[i];
 			bufferptr++;
 		} else {
-			if(formatstring[i]=='M') bufferptr += sprintf(buffer+bufferptr,"%02u",(Bit8u) reg_dh);
-			if(formatstring[i]=='D') bufferptr += sprintf(buffer+bufferptr,"%02u",(Bit8u) reg_dl);
-			if(formatstring[i]=='Y') bufferptr += sprintf(buffer+bufferptr,"%04u",(Bit16u) reg_cx);
+			if(formatstring[i]=='M') bufferptr += (Bitu)sprintf(buffer+bufferptr,"%02u",(Bit8u) reg_dh);
+			if(formatstring[i]=='D') bufferptr += (Bitu)sprintf(buffer+bufferptr,"%02u",(Bit8u) reg_dl);
+			if(formatstring[i]=='Y') bufferptr += (Bitu)sprintf(buffer+bufferptr,"%04u",(Bit16u) reg_cx);
 		}
 	}
 	if(date_host_forced) {
@@ -1637,7 +1637,7 @@ void DOS_Shell::CMD_CHOICE(char * args){
 	if (!rem || !*rem) rem = defchoice; /* No choices specified use YN */
 	ptr = rem;
 	Bit8u c;
-	if(!optS) while ((c = *ptr)) *ptr++ = (char)toupper(c); /* When in no case-sensitive mode. make everything upcase */
+	if(!optS) while ((c = (Bit8u)(*ptr))) *ptr++ = (char)toupper(c); /* When in no case-sensitive mode. make everything upcase */
 	if(args && *args ) {
 		StripSpaces(args);
 		size_t argslen = strlen(args);

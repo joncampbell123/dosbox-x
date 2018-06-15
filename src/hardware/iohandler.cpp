@@ -49,7 +49,7 @@ IO_ReadHandler * io_readhandlers[3][IO_MAX];
 static IO_callout_vector IO_callouts[IO_callouts_max];
 
 static Bitu IO_ReadBlocked(Bitu /*port*/,Bitu /*iolen*/) {
-	return ~0;
+	return ~0ul;
 }
 
 static void IO_WriteBlocked(Bitu /*port*/,Bitu /*val*/,Bitu /*iolen*/) {
@@ -70,7 +70,7 @@ static Bitu IO_ReadDefault(Bitu port,Bitu iolen) {
 			(io_readhandlers[1][port+0](port+0,2) << 0) |
 			(io_readhandlers[1][port+2](port+2,2) << 16);
 	}
-	return ~0;
+	return ~0ul;
 }
 
 void IO_WriteDefault(Bitu port,Bitu val,Bitu iolen) {
@@ -172,7 +172,7 @@ static Bitu IO_ReadSlowPath(Bitu port,Bitu iolen) {
     IO_ReadHandler *f = iolen > 1 ? IO_ReadDefault : IO_ReadBlocked;
     unsigned int match = 0;
     unsigned int porti;
-    Bitu ret = ~0;
+    Bitu ret = ~0ul;
 
     /* check motherboard devices */
     if ((port & 0xFF00) == 0x0000) /* motherboard-level I/O */
@@ -603,8 +603,8 @@ void IO_CalloutObject::InvalidateCachedHandlers(void) {
      *      Not too bad, really. */
 
     /* for both the base I/O, as well as it's aliases, revert the I/O ports back to "slow path" */
-    for (p=m_port;p < 0x10000;p += alias_mask+1)
-        IO_InvalidateCachedHandler(p,range_mask+1);
+    for (p=m_port;p < 0x10000ul;p += alias_mask+1ul)
+        IO_InvalidateCachedHandler(p,range_mask+1ul);
 }
 
 void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/,IO_ReadCalloutHandler *r_handler,IO_WriteCalloutHandler *w_handler) {

@@ -122,7 +122,7 @@ public:
                 break;
         }
 
-        if (needs_pci_device) PCI_AddSST_Device(card_type);
+        if (needs_pci_device) PCI_AddSST_Device((Bitu)card_type);
     }
 
     ~VOODOO(){

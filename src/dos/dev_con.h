@@ -62,8 +62,8 @@ private:
 		Bit8u numberofarg;
 		Bit16u nrows;
 		Bit16u ncols;
-		Bit8s savecol;
-		Bit8s saverow;
+		Bit8u savecol;
+		Bit8u saverow;
 		bool warned;
 	} ansi;
 
@@ -377,7 +377,7 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 	}
 	while (*size>count) {
         if (dev_con_pos < dev_con_max) {
-            data[count++] = dev_con_readbuf[dev_con_pos++];
+            data[count++] = (Bit8u)dev_con_readbuf[dev_con_pos++];
             continue;
         }
 

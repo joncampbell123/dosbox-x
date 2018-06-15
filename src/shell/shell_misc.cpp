@@ -186,8 +186,8 @@ void DOS_Shell::InputCommand(char * line) {
                 it_history = l_history.begin();
                 if (it_history != l_history.end() && it_history->length() > str_len) {
                     const char *reader = &(it_history->c_str())[str_len];
-                    while ((c = *reader++)) {
-                        line[str_index ++] = c;
+                    while ((c = (Bit8u)(*reader++))) {
+                        line[str_index ++] = (char)c;
                         DOS_WriteFile(STDOUT,&c,&n);
                     }
                     str_len = str_index = (Bitu)it_history->length();
@@ -205,7 +205,7 @@ void DOS_Shell::InputCommand(char * line) {
 
             case 0x4D00:	/* RIGHT */
                 if (str_index < str_len) {
-                    outc(line[str_index++]);
+                    outc((Bit8u)line[str_index++]);
                 }
                 break;
 
@@ -218,7 +218,7 @@ void DOS_Shell::InputCommand(char * line) {
 
             case 0x4F00:	/* END */
                 while (str_index < str_len) {
-                    outc(line[str_index++]);
+                    outc((Bit8u)line[str_index++]);
                 }
                 break;
 
@@ -300,7 +300,7 @@ void DOS_Shell::InputCommand(char * line) {
 
                         strcpy(&line[completion_index], it_completion->c_str());
                         len = (Bit16u)it_completion->length();
-                        str_len = str_index = completion_index + len;
+                        str_len = str_index = (Bitu)(completion_index + len);
                         size = CMD_MAXLINE - str_index - 2;
                         DOS_WriteFile(STDOUT, (Bit8u *)it_completion->c_str(), &len);
                     }
@@ -317,7 +317,7 @@ void DOS_Shell::InputCommand(char * line) {
                         str_index --;
                         /* Go back to redraw */
                         for (Bit16u i=str_index; i < str_len; i++)
-                            outc(line[i]);
+                            outc((Bit8u)line[i]);
                     } else {
                         line[--str_index] = '\0';
                         str_len--;
@@ -430,7 +430,7 @@ void DOS_Shell::InputCommand(char * line) {
 
                         strcpy(&line[completion_index], it_completion->c_str());
                         len = (Bit16u)it_completion->length();
-                        str_len = str_index = completion_index + len;
+                        str_len = str_index = (Bitu)(completion_index + len);
                         size = CMD_MAXLINE - str_index - 2;
                         DOS_WriteFile(STDOUT, (Bit8u *)it_completion->c_str(), &len);
                     }
