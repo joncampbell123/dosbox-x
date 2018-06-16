@@ -7407,6 +7407,7 @@ void ROMBIOS_Init() {
 
 void BIOS_SynchronizeNumLock()
 {
+#if defined(WIN32)
 	auto flag = mem_readb(BIOS_KEYBOARD_FLAGS1);
 	auto leds = mem_readb(BIOS_KEYBOARD_LEDS);
 	auto stat = GetKeyState(VK_NUMLOCK);
@@ -7420,4 +7421,5 @@ void BIOS_SynchronizeNumLock()
 	}
 	mem_writeb(BIOS_KEYBOARD_FLAGS1, flag);
 	mem_writeb(BIOS_KEYBOARD_LEDS, leds);
+#endif
 }
