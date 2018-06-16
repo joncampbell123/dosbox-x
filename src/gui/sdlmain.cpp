@@ -5591,7 +5591,8 @@ void GFX_Events() {
                         GFX_CaptureMouse();
                     SetPriority(sdl.priority.focus);
                     CPU_Disable_SkipAutoAdjust();
-                } else {
+					BIOS_SynchronizeNumLock();
+				} else {
                     if (sdl.mouse.locked) GFX_CaptureMouse();
 
 #if defined(WIN32)
