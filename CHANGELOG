@@ -1,6 +1,6 @@
 TODO add version
-  - Num Lock is not turned off anymore at startup and is
-    synchronized with host when DOSBox-X window gains focus.
+  - Num Lock stays on at startup and is synchronized with host
+    when DOSBox-X window gains focus (Windows).
   - Added visual feedback to Hat/D-pad buttons in mapper.
   - Added documentation for 'dir' command sorting switches.
   - Menu 'Show console' is now checked with '-console' (SDL1).
