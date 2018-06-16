@@ -5591,7 +5591,8 @@ void GFX_Events() {
                         GFX_CaptureMouse();
                     SetPriority(sdl.priority.focus);
                     CPU_Disable_SkipAutoAdjust();
-                } else {
+					BIOS_SynchronizeNumLock();
+				} else {
                     if (sdl.mouse.locked) GFX_CaptureMouse();
 
 #if defined(WIN32)
@@ -6381,8 +6382,10 @@ void CheckNumLockState(void) {
     BYTE keyState[256];
 
     GetKeyboardState((LPBYTE)(&keyState));
-    if (keyState[VK_NUMLOCK] & 1) numlock_stat=true;
-    if (numlock_stat) SetNumLock();
+	if (keyState[VK_NUMLOCK] & 1) {
+		numlock_stat = true;
+		startup_state_numlock = true;
+	}
 #endif
 }
 

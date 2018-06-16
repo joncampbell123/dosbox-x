@@ -1387,7 +1387,7 @@ static void InitBiosSegment(void) {
     Bit8u flag1 = 0;
     Bit8u leds = 16; /* Ack received */
 
-#if SDL_VERSION_ATLEAST(1, 2, 14)
+#if 0 /*SDL_VERSION_ATLEAST(1, 2, 14)*/
 //Nothing, mapper handles all.
 #else
     if (startup_state_capslock) { flag1|=0x40; leds|=0x04;}
