@@ -151,6 +151,9 @@ void INT10_ReloadRomFonts();
 void BIOS_SetComPorts (Bit16u baseaddr[]);
 void BIOS_SetLPTPort (Bitu port, Bit16u baseaddr);
 
+// \brief Synchronizes emulator num lock state with host.
+void BIOS_SynchronizeNumLock();
+
 bool ISAPNP_RegisterSysDev(const unsigned char *raw,Bitu len,bool already=false);
 
 class ISAPnPDevice {
