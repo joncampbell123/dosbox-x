@@ -6382,7 +6382,6 @@ void CheckNumLockState(void) {
 
     GetKeyboardState((LPBYTE)(&keyState));
     if (keyState[VK_NUMLOCK] & 1) numlock_stat=true;
-    if (numlock_stat) SetNumLock();
 #endif
 }
 
