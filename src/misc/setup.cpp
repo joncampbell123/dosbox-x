@@ -1335,7 +1335,7 @@ CommandLine::CommandLine(char const * const name,char const * const cmdline,enum
     opt_style = opt;
     while ((c=*c_cmdline)!=0) {
         if (inquote) {
-            if (c!='"') str+=c;
+            if (c!='"'&&c!='\'') str+=c;
             else {
                 inquote=false;
                 cmds.push_back(str);
@@ -1349,7 +1349,7 @@ CommandLine::CommandLine(char const * const name,char const * const cmdline,enum
                 str.erase();
             }
         } 
-        else if (c=='"') { inquote=true;}
+        else if (c=='"'||c=='\'') { inquote=true;}
         else if (c!=' ') { str+=c;inword=true;}
         c_cmdline++;
     }
