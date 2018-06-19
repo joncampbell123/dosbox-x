@@ -2334,11 +2334,10 @@ const char *pc98_shcut_key[10][2] = {
 void update_pc98_function_row(bool enable) {
     pc98_function_row = enable;
 
-    mem_writeb(0x712,25 - 1 - (pc98_function_row ? 1 : 0));
-    real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,25 - 1 - (pc98_function_row ? 1 : 0));
+    real_writeb(0x60,0x112,25 - 1 - (pc98_function_row ? 1 : 0));
 
-    unsigned char c = real_readb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS);
-    unsigned char r = real_readb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+1);
+    unsigned char c = real_readb(0x60,0x11C);
+    unsigned char r = real_readb(0x60,0x110);
     unsigned int o = 80 * 24;
 
     if (pc98_function_row) {
@@ -2392,8 +2391,8 @@ void update_pc98_function_row(bool enable) {
         }
     }
 
-    real_writeb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS,c);
-    real_writeb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+1,r);
+    real_writeb(0x60,0x11C,c);
+    real_writeb(0x60,0x110,r);
 
     void vga_pc98_direct_cursor_pos(Bit16u address);
     vga_pc98_direct_cursor_pos((r*80)+c);

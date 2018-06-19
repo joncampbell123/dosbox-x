@@ -434,8 +434,14 @@ void INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
 
     if (page>7) LOG(LOG_INT10,LOG_ERROR)("INT10_SetCursorPos page %d",page);
     // Bios cursor pos
-    real_writeb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2u,col);
-    real_writeb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2u+1u,row);
+    if (IS_PC98_ARCH) {
+        real_writeb(0x60,0x11C,col);
+        real_writeb(0x60,0x110,row);
+    }
+    else {
+        real_writeb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2u,col);
+        real_writeb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2u+1u,row);
+    }
     // Set the hardware cursor
     Bit8u current=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
     if(page==current) {
@@ -556,8 +562,7 @@ void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,bool useat
     case M_PC98:
         {
             // Compute the address  
-            Bit16u address=page*real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE);
-            address+=(row*real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)+col)*2;
+            Bit16u address=((row*80)+col)*2;
             // Write the char 
             PhysPt where = CurMode->pstart+address;
             mem_writew(where,chr);
