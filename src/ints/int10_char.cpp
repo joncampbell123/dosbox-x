@@ -450,7 +450,7 @@ void INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
         BIOS_NCOLS;
         // Calculate the address knowing nbcols nbrows and page num
         // NOTE: BIOSMEM_CURRENT_START counts in colour/flag pairs
-        address=(ncols*row)+col+real_readw(BIOSMEM_SEG,BIOSMEM_CURRENT_START)/2;
+        address=(ncols*row)+col+(IS_PC98_ARCH ? 0 : (real_readw(BIOSMEM_SEG,BIOSMEM_CURRENT_START)/2));
         if (IS_PC98_ARCH) {
             vga_pc98_direct_cursor_pos(address);
         }
