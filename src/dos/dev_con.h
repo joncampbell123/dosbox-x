@@ -542,6 +542,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                         case 1: // show/hide function key row
                             void update_pc98_function_row(bool enable);
                             update_pc98_function_row(data[count] == 'l');
+                            ansi.nrows = real_readb(0x60,0x110);
                             break;
                         case 3: // clear screen (doesn't matter if l or h)
                             INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
@@ -876,8 +877,18 @@ device_CON::device_CON() {
 	lastwrite=0;
 	ansi.enabled=false;
 	ansi.attr=0x7;
-	ansi.ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS); //should be updated once set/reset mode is implemented
-	ansi.nrows=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
+    if (IS_PC98_ARCH) {
+        // NTS: On real hardware, the BIOS does NOT manage the console at all.
+        //      TTY handling is entirely handled by MS-DOS.
+        ansi.ncols=80;
+        ansi.nrows=25 - 1;
+        // the DOS kernel will call on this function to disable, and SDLmain
+        // will call on to enable
+    }
+    else {
+        ansi.ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS); //should be updated once set/reset mode is implemented
+        ansi.nrows=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
+    }
 	ansi.saverow=0;
 	ansi.savecol=0;
 	ansi.warned=false;
