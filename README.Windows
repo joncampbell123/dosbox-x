@@ -1,8 +1,11 @@
 Getting started with DOSBox-X development under Windows 10
-==========================================================
+
 
 Visual Studio
 -------------
+
+Setting up the environment from scratch
+---------------------------------------
 
 - download Visual Studio installer from https://www.visualstudio.com/downloads
 - launch the installer
@@ -13,10 +16,15 @@ Visual Studio
 - launch the installer and follow the instructions
 - if you encounter error S1023 during installation, follow the instructions at https://support.microsoft.com/en-us/help/2728613/s1023-error-when-you-install-the-directx-sdk-june-2010
 - open the DOSBox-X Visual Studio solution located in 'vs2015' folder of the repository
+- for debugging, you might want to change 'Working Directory' default value of $(ProjectDir) to $(TargetDir)
 
-Visual Studio must be closed prior installing the DirectX SDK, else it won't pick up environment variables set by the DirectX SDK and this will result in building errors.
+Note that Visual Studio must be closed prior installing the DirectX SDK, else it won't pick up environment variables set by the DirectX SDK and this will result in building errors.
 
-You can pass additional options to the custom-build of SDL1 in the solution through the SDL1AdditionalOptions environment variable, e.g.
+
+Pass additional options to the custom-build of SDL1
+---------------------------------------------------
+
+You can do that through the SDL1AdditionalOptions environment variable:
 
 REM adding a preprocessor define
 SET SDL1AdditionalOptions=/DMY_DEFINE
