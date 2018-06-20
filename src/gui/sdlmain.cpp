@@ -7433,6 +7433,8 @@ void OutputSettingMenuUpdate(void) {
 #endif
 }
 
+bool custom_bios = false;
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);

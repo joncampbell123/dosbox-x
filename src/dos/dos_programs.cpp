@@ -546,6 +546,7 @@ static void SHOWGUI_ProgramStart(Program * * make) {
 }
 #endif
 
+extern bool custom_bios;
 extern Bit32u floppytype;
 extern bool dos_kernel_disabled;
 extern bool boot_debug_break;
@@ -756,6 +757,8 @@ public:
             fseek(romfp, 0, SEEK_SET);
             fread(GetMemBase()+segbase,loadsz,1,romfp);
             fclose(romfp);
+
+            custom_bios = true;
 
             /* boot it */
             throw int(8);

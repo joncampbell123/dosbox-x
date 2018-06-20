@@ -1291,6 +1291,7 @@ void On_Software_286_reset_vector(unsigned char code) {
 
 void CPU_Exception_Level_Reset();
 
+extern bool custom_bios;
 extern bool PC98_SHUT0,PC98_SHUT1;
 
 void On_Software_CPU_Reset() {
@@ -1298,7 +1299,16 @@ void On_Software_CPU_Reset() {
 
     CPU_Exception_Level_Reset();
 
-    if (IS_PC98_ARCH) {
+    if (custom_bios) {
+        /* DO NOTHING */
+        LOG_MSG("CPU RESET: Doing nothing, custom BIOS loaded");
+
+        if (IS_PC98_ARCH)
+            LOG_MSG("CPU RESET: SHUT0=%u SHUT1=%u",PC98_SHUT0,PC98_SHUT1);
+        else
+            LOG_MSG("CPU RESET: CMOS BYTE 0x%02x",CMOS_GetShutdownByte());
+    }
+    else if (IS_PC98_ARCH) {
         /* From Undocumented 9801, 9821 Volume 2:
          *
          * SHUT0 | SHUT1 | Meaning
