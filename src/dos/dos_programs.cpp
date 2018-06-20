@@ -726,6 +726,15 @@ public:
                 return;
             }
 
+            // NOTES:
+            // 
+            // Regarding PC-98 mode, you should use an older BIOS image.
+            // The PC-9821 ROM image(s) I have appear to rely on bank
+            // switching parts of itself to boot up and operate.
+            //
+            // In IBM PC/AT mode, this should hopefully allow using old
+            // 386/486 BIOSes in DOSBox-X.
+
             /* load it */
             FILE *romfp = getFSFile(bios.c_str(), &isz1, &isz2);
             if (romfp == NULL) {
