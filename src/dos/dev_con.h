@@ -581,6 +581,10 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
         else {
             switch(data[count]){
                 case 'm':               /* SGR */
+                    // NEC's ANSI driver always resets at the beginning
+                    if(IS_PC98_ARCH) {
+                        ansi.attr = DefaultANSIAttr();
+                    }
                     for(i=0;i<=ansi.numberofarg;i++){ 
                         const Bit8u COLORFLAGS[][8] = {
                         //  Black   Red Green Yellow Blue  Pink  Cyan  White
