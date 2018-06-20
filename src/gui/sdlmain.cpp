@@ -8429,6 +8429,12 @@ fresh_boot:
             DispatchVMEvent(VM_EVENT_RESET);
             DispatchVMEvent(VM_EVENT_RESET_END);
 
+            /* HACK: EGA/VGA modes will need VGA BIOS mapped in, ready to go */
+            if (IS_EGAVGA_ARCH) {
+                void INT10_Startup(Section *sec);
+                INT10_Startup(NULL);
+            }
+
 #if C_DEBUG
             if (boot_debug_break) {
                 boot_debug_break = false;
