@@ -8276,6 +8276,12 @@ fresh_boot:
                 wait_debugger = true;
                 dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
+            else if (x == 8) { /* Booting to a BIOS, shutting down DOSBox BIOS */
+                LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to boot into BIOS image");
+
+                reboot_machine = true;
+                dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
+            }
             else {
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox kill switch signal");
 
@@ -8420,6 +8426,15 @@ fresh_boot:
             /* new code: fire event */
             DispatchVMEvent(VM_EVENT_RESET);
             DispatchVMEvent(VM_EVENT_RESET_END);
+
+#if C_DEBUG
+            if (boot_debug_break) {
+                boot_debug_break = false;
+
+                void DEBUG_Enable(bool pressed);
+                DEBUG_Enable(true);
+            }
+#endif
 
             /* run again */
             goto fresh_boot;

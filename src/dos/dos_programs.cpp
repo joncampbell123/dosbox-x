@@ -691,6 +691,8 @@ public:
     /*! \brief      Program entry point, when the command is run
      */
     void Run(void) {
+        std::string bios;
+        bool bios_boot = false;
         bool swaponedrive = false;
         bool force = false;
 
@@ -704,6 +706,9 @@ public:
         if (cmd->FindExist("-force",true))
             force = true;
 
+        if (cmd->FindString("-bios",bios,true))
+            bios_boot = true;
+
         //Hack To allow long commandlines
         ChangeToLongCmd();
         /* In secure mode don't allow people to boot stuff. 
@@ -711,6 +716,33 @@ public:
         if(control->SecureMode()) {
             WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
             return;
+        }
+
+        if (bios_boot) {
+            Bit32u isz1,isz2;
+
+            if (bios.empty()) {
+                WriteOut("Must specify BIOS image to boot\n");
+                return;
+            }
+
+            /* load it */
+            FILE *romfp = getFSFile(bios.c_str(), &isz1, &isz2);
+            if (romfp == NULL) {
+                WriteOut("Unable to open BIOS image\n");
+                return;
+            }
+            Bitu loadsz = (isz2 + 0xFU) & (~0xFU);
+            if (loadsz == 0) loadsz = 0x10;
+            if (loadsz > (IS_PC98_ARCH ? 0x18000 : 0x20000)) loadsz = (IS_PC98_ARCH ? 0x18000 : 0x20000);
+            Bitu segbase = 0x100000 - loadsz;
+            LOG_MSG("Loading BIOS image %s to 0x%lx, 0x%lx bytes",bios.c_str(),(unsigned long)segbase,(unsigned long)loadsz);
+            fseek(romfp, 0, SEEK_SET);
+            fread(GetMemBase()+segbase,loadsz,1,romfp);
+            fclose(romfp);
+
+            /* boot it */
+            throw int(8);
         }
 
         bool bootbyDrive=false;
