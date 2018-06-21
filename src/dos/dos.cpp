@@ -2188,17 +2188,12 @@ public:
 		DOS_SetupDevices();							/* Setup dos devices */
 		DOS_SetupTables();
 
-		/* having allowed the setup functions so far to alloc private space, set the pointer as the base
-		 * of memory. the DOS_SetupMemory() function will finalize it into the first MCB. Having done that,
-		 * we then need to move the DOS private segment somewere else so that additional allocations do not
-		 * corrupt the MCB chain */
-		if (!private_always_from_umb)
-			DOS_MEM_START = DOS_GetMemory(0,"DOS_MEM_START");		// was 0x158 (pass 0 to alloc nothing, get the pointer)
-
 		/* move the private segment elsewhere to avoid conflict with the MCB structure.
 		 * either set to 0 to cause the decision making to choose an upper memory address,
 		 * or allocate an additional private area and start the MCB just after that */
 		if (!private_always_from_umb) {
+			DOS_MEM_START = DOS_GetMemory(0,"DOS_MEM_START");		// was 0x158 (pass 0 to alloc nothing, get the pointer)
+
 			DOS_GetMemory_reset();
 			DOS_PRIVATE_SEGMENT = 0;
 			DOS_PRIVATE_SEGMENT_END = 0;
