@@ -934,6 +934,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
     Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host");
 
+    // STUB OPTION, NOT YET FULLY IMPLEMENTED
     Pbool = secprop->Add_bool("weitek",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, emulate the Weitek coprocessor. This option only has effect if cputype=386 or cputype=486.");
 
@@ -1025,7 +1026,7 @@ void DOSBOX_SetupConfigSections(void) {
                     "If disabled, and MS-DOS does not load HIMEM.SYS, programs and features that rely on the 1MB wraparound will fail.");
 
     Pstring = secprop->Add_string("isa bus clock",Property::Changeable::WhenIdle,"std8.3");
-    Pstring->Set_help("ISA BCLK frequency.\n"
+    Pstring->Set_help("ISA BCLK frequency, used to emulate I/O delay.\n"
               "WARNING: In future revisions, PCI/motherboard chipset emulation will allow the guest OS/program to alter this value at runtime.\n"
               "  std8.3                       8.333MHz (typical 386-class or higher)\n"
               "  std8                         8MHz\n"
@@ -1039,7 +1040,7 @@ void DOSBOX_SetupConfigSections(void) {
               "  <integer/integer ratio>      If a ratio is given (num/den), the ratio will be used as the clock frequency");
 
     Pstring = secprop->Add_string("pci bus clock",Property::Changeable::WhenIdle,"std33.3");
-    Pstring->Set_help("PCI bus frequency.\n"
+    Pstring->Set_help("PCI bus frequency, used to emulate I/O delay.\n"
               "WARNING: In future revisions, PCI/motherboard chipset emulation will allow the guest OS/program to alter this value at runtime.\n"
               "  std33.3                      33.333MHz (very common setting on motherboards)\n"
               "  std30                        30MHz (some older mid-1990's Pentium systems)\n"
@@ -1086,6 +1087,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(-1,100000);
     Pint->Set_help( "I/O delay for 32-bit transfers. -1 to use default, 0 to disable.");
 
+    // STUB OPTION, NOT YET FULLY IMPLEMENTED
     Pstring = secprop->Add_string("acpi", Property::Changeable::OnlyAtStart,"off");
     Pstring->Set_values(acpisettings);
     Pstring->Set_help("ACPI emulation, and what version of the specification to follow.\n"
@@ -1093,16 +1095,20 @@ void DOSBOX_SetupConfigSections(void) {
             "         Intended for use with ACPI-aware OSes including Linux and Windows 98/ME. This option will also slightly reduce available\n"
             "         system memory to make room for the ACPI tables, just as real BIOSes do, and reserve an IRQ for ACPI functions.");
 
+    // STUB OPTION, NOT YET FULLY IMPLEMENTED
     Pstring = secprop->Add_string("acpi rsd ptr location", Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(acpi_rsd_ptr_settings);
     Pstring->Set_help("Where to store the Root System Description Pointer structure. You can have it stored in the ROM BIOS area, or the Extended Bios Data Area.");
 
+    // STUB OPTION, NOT YET FULLY IMPLEMENTED
     Pint = secprop->Add_int("acpi sci irq", Property::Changeable::WhenIdle,-1);
     Pint->Set_help("IRQ to assign as ACPI system control interrupt. set to -1 to automatically assign.");
 
+    // STUB OPTION, NOT YET FULLY IMPLEMENTED
     Phex = secprop->Add_hex("acpi iobase",Property::Changeable::WhenIdle,0);
     Phex->Set_help("I/O port base for the ACPI device Power Management registers. Set to 0 for automatic assignment.");
 
+    // STUB OPTION, NOT YET FULLY IMPLEMENTED
     Pint = secprop->Add_int("acpi reserved size", Property::Changeable::WhenIdle,0);
     Pint->Set_help("Amount of memory at top to reserve for ACPI structures and tables. Set to 0 for automatic assignment.");
 
