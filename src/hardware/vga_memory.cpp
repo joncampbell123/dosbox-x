@@ -2189,7 +2189,7 @@ void VGA_ChangedBank(void) {
 void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 void MEM_ResetPageHandler_RAM(Bitu phys_page, Bitu pages);
 
-extern bool adapter_rom_is_ram;
+extern bool DEPRECATED adapter_rom_is_ram;
 
 void VGA_SetupHandlers(void) {
 	vga.svga.bank_read_full = vga.svga.bank_read*vga.svga.bank_size;

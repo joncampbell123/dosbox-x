@@ -56,7 +56,7 @@ extern bool PS1AudioCard;
 
 /* mouse.cpp */
 extern bool en_bios_ps2mouse;
-extern bool mainline_compatible_bios_mapping;
+extern bool DEPRECATED mainline_compatible_bios_mapping;
 extern bool rom_bios_8x8_cga_font;
 extern bool pcibus_enable;
 

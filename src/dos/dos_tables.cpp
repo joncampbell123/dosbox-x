@@ -44,7 +44,7 @@ GCC_ATTRIBUTE (packed);
 RealPt DOS_TableUpCase;
 RealPt DOS_TableLowCase;
 
-extern bool mainline_compatible_mapping;
+extern bool DEPRECATED mainline_compatible_mapping;
 
 static Bitu call_casemap = 0;
 

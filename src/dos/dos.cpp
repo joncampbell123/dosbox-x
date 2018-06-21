@@ -1864,7 +1864,7 @@ static Bitu DOS_26Handler(void) {
     return CBRET_NONE;
 }
 
-extern bool mainline_compatible_mapping;
+extern bool DEPRECATED mainline_compatible_mapping;
 bool iret_only_for_debug_interrupts = true;
 bool enable_collating_uppercase = true;
 bool keep_private_area_on_boot = false;

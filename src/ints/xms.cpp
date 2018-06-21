@@ -593,7 +593,7 @@ extern Bitu VGA_BIOS_SEG;
 extern Bitu VGA_BIOS_SEG_END;
 extern Bitu VGA_BIOS_Size;
 
-extern bool mainline_compatible_mapping;
+extern bool DEPRECATED mainline_compatible_mapping;
 
 bool XMS_IS_ACTIVE() {
 	return (xms_callback != 0);

@@ -71,7 +71,7 @@ extern bool VIDEO_BIOS_always_carry_16_high_font;
  * if clear: associate any adapter ROM region not used by the BIOS, VGA BIOS, or
  * VGA, with the Illegal handler (not mapped). Actual RAM behind the storage does
  * not show up and reads return 0xFF, just like real hardware. */
-bool adapter_rom_is_ram = false;
+bool DEPRECATED adapter_rom_is_ram = false;
 
 static struct MemoryBlock {
     MemoryBlock() : pages(0), handler_pages(0), reported_pages(0), phandlers(NULL), mhandles(NULL), mem_alias_pagemask(0), mem_alias_pagemask_active(0), address_bits(0) { }
