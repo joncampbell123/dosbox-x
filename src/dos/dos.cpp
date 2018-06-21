@@ -2083,9 +2083,7 @@ public:
                 LOG_MSG("DANGER, DANGER! DOS_PRIVATE_SEGMENT has been set too low!");
             if (DOS_PRIVATE_SEGMENT < 0x80 && IS_PC98_ARCH)
                 LOG_MSG("DANGER, DANGER! DOS_PRIVATE_SEGMENT has been set too low for PC-98 emulation!");
-        }
 
-        if (!private_always_from_umb) {
             if (MEM_TotalPages() > 0x9C)
                 DOS_PRIVATE_SEGMENT_END = 0x9C00;
             else
