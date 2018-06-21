@@ -697,10 +697,9 @@ void VGA_Reset(Section*) {
             if (vga.vmemsize < _KB_bytes(128)) vga.vmemsize = _KB_bytes(128); /* FIXME: Right? */
             break;
         case MCH_EGA:
-                 // EGA cards supported either 64KB, 128KB, 192KB or 256KB.
+                 // EGA cards supported either 64KB, 128KB or 256KB.
                  if (vga.vmemsize <= _KB_bytes(64))  vga.vmemsize = _KB_bytes(64);
             else if (vga.vmemsize <= _KB_bytes(128)) vga.vmemsize = _KB_bytes(128);
-            else if (vga.vmemsize <= _KB_bytes(192)) vga.vmemsize = _KB_bytes(192);
             else                                     vga.vmemsize = _KB_bytes(256);
             break;
         case MCH_VGA:
