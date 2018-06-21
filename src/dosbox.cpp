@@ -159,13 +159,6 @@ ClockDomain         clockdom_ISA_BCLK(25000000,3);      /* MASTER 25000000Hz / 3
 /* 14.1818MHz / 12 == (NTSC * 4) / 12 == (NTSC * 4) / (4*3) == NTSC / 3 */
 ClockDomain         clockdom_8254_PIT(NTSC_COLOR_SUBCARRIER_NUM,NTSC_COLOR_SUBCARRIER_DEN*3);
 
-/* 8250 UART.
- * PC/XT: ??? What did IBM use on the motherboard to drive the UART? Is it some divisor of the ISA OSC clock?? Closest I can calculate: 14.31818MHz / 8 = 1.78MHz.
- * Other hardware (guess): Independent clock crystal: 115200 * 16 = 1843200Hz = 1.843200MHz based on datasheet (http://www.ti.com/lit/ds/symlink/pc16550d.pdf)
- *
- * Feel free to correct me if I'm wrong. */
-ClockDomain         clockdom_8250_UART(115200 * 16);
-
 Config*             control;
 MachineType         machine;
 bool                PS1AudioCard;       // Perhaps have PS1 as a machine type...?
@@ -805,7 +798,6 @@ void DOSBOX_RealInit() {
 
     clockdom_ISA_OSC.set_name("ISA OSC");
     clockdom_8254_PIT.set_name("8254 PIT");
-    clockdom_8250_UART.set_name("8250 UART");
     clockdom_ISA_BCLK.set_name("ISA BCLK");
     clockdom_PCI_BCLK.set_name("PCI BCLK");
 

@@ -129,7 +129,6 @@ extern ClockDomain			clockdom_PCI_BCLK;
 extern ClockDomain			clockdom_ISA_OSC;
 extern ClockDomain			clockdom_ISA_BCLK;
 extern ClockDomain			clockdom_8254_PIT;
-extern ClockDomain			clockdom_8250_UART;
 
 signed long long time_to_clockdom(ClockDomain &src,double t);
 unsigned long long update_clockdom_from_now(ClockDomain &dst);
