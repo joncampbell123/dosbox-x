@@ -1865,7 +1865,6 @@ static Bitu DOS_26Handler(void) {
 bool iret_only_for_debug_interrupts = true;
 bool enable_collating_uppercase = true;
 bool keep_private_area_on_boot = false;
-bool dynamic_dos_kernel_alloc = false;
 bool private_always_from_umb = false;
 bool private_segment_in_umb = true;
 Bit16u DOS_IHSEG = 0;
@@ -1985,7 +1984,6 @@ public:
 		minimum_mcb_segment = section->Get_hex("minimum mcb segment");
 		private_segment_in_umb = section->Get_bool("private area in umb");
 		enable_collating_uppercase = section->Get_bool("collating and uppercase");
-		dynamic_dos_kernel_alloc = section->Get_bool("dynamic kernel allocation");
 		private_always_from_umb = section->Get_bool("kernel allocation in umb");
 		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");
 		dos_con_use_int16_to_detect_input = section->Get_bool("con device use int 16h to detect keyboard input");
@@ -2054,98 +2052,59 @@ public:
 			LOG_MSG("Debug option enabled: INT 21h memory allocation will always clear memory block before returning\n");
 		}
 
-		if (!dynamic_dos_kernel_alloc) {
-			LOG_MSG("kernel allocation in umb option incompatible with other settings, disabling.\n");
-			private_always_from_umb = false;
-		}
-
 		if (minimum_mcb_segment > 0x8000) minimum_mcb_segment = 0x8000; /* FIXME: Clip against available memory */
 
-		if (dynamic_dos_kernel_alloc) {
-			/* we make use of the DOS_GetMemory() function for the dynamic allocation */
-			if (private_always_from_umb) {
-				DOS_GetMemory_Choose(); /* the pool starts in UMB */
-				if (minimum_mcb_segment == 0)
-					DOS_MEM_START = IS_PC98_ARCH ? 0x80 : 0x70; /* funny behavior in some games suggests the MS-DOS kernel loads a bit higher on PC-98 */
-				else
-					DOS_MEM_START = minimum_mcb_segment;
+        /* we make use of the DOS_GetMemory() function for the dynamic allocation */
+        if (private_always_from_umb) {
+            DOS_GetMemory_Choose(); /* the pool starts in UMB */
+            if (minimum_mcb_segment == 0)
+                DOS_MEM_START = IS_PC98_ARCH ? 0x80 : 0x70; /* funny behavior in some games suggests the MS-DOS kernel loads a bit higher on PC-98 */
+            else
+                DOS_MEM_START = minimum_mcb_segment;
 
-				if (DOS_MEM_START < 0x40)
-					LOG_MSG("DANGER, DANGER! DOS_MEM_START has been set to within the interrupt vector table! Proceed at your own risk!");
-				else if (DOS_MEM_START < 0x50)
-					LOG_MSG("WARNING: DOS_MEM_START has been assigned to the BIOS data area! Proceed at your own risk!");
-				else if (DOS_MEM_START < 0x51)
-					LOG_MSG("WARNING: DOS_MEM_START has been assigned to segment 0x50, which some programs may use as the Print Screen flag");
-				else if (DOS_MEM_START < 0x80 && IS_PC98_ARCH)
-					LOG_MSG("CAUTION: DOS_MEM_START is less than 0x80 which may cause problems with some DOS games or applications relying on PC-98 BIOS state");
-				else if (DOS_MEM_START < 0x70)
-					LOG_MSG("CAUTION: DOS_MEM_START is less than 0x70 which may cause problems with some DOS games or applications");
-			}
-			else {
-				if (minimum_dos_initial_private_segment == 0)
-					DOS_PRIVATE_SEGMENT = IS_PC98_ARCH ? 0x80 : 0x70; /* funny behavior in some games suggests the MS-DOS kernel loads a bit higher on PC-98 */
-				else
-					DOS_PRIVATE_SEGMENT = minimum_dos_initial_private_segment;
+            if (DOS_MEM_START < 0x40)
+                LOG_MSG("DANGER, DANGER! DOS_MEM_START has been set to within the interrupt vector table! Proceed at your own risk!");
+            else if (DOS_MEM_START < 0x50)
+                LOG_MSG("WARNING: DOS_MEM_START has been assigned to the BIOS data area! Proceed at your own risk!");
+            else if (DOS_MEM_START < 0x51)
+                LOG_MSG("WARNING: DOS_MEM_START has been assigned to segment 0x50, which some programs may use as the Print Screen flag");
+            else if (DOS_MEM_START < 0x80 && IS_PC98_ARCH)
+                LOG_MSG("CAUTION: DOS_MEM_START is less than 0x80 which may cause problems with some DOS games or applications relying on PC-98 BIOS state");
+            else if (DOS_MEM_START < 0x70)
+                LOG_MSG("CAUTION: DOS_MEM_START is less than 0x70 which may cause problems with some DOS games or applications");
+        }
+        else {
+            if (minimum_dos_initial_private_segment == 0)
+                DOS_PRIVATE_SEGMENT = IS_PC98_ARCH ? 0x80 : 0x70; /* funny behavior in some games suggests the MS-DOS kernel loads a bit higher on PC-98 */
+            else
+                DOS_PRIVATE_SEGMENT = minimum_dos_initial_private_segment;
 
-				if (DOS_PRIVATE_SEGMENT < 0x50)
-					LOG_MSG("DANGER, DANGER! DOS_PRIVATE_SEGMENT has been set too low!");
-				if (DOS_PRIVATE_SEGMENT < 0x80 && IS_PC98_ARCH)
-					LOG_MSG("DANGER, DANGER! DOS_PRIVATE_SEGMENT has been set too low for PC-98 emulation!");
-			}
+            if (DOS_PRIVATE_SEGMENT < 0x50)
+                LOG_MSG("DANGER, DANGER! DOS_PRIVATE_SEGMENT has been set too low!");
+            if (DOS_PRIVATE_SEGMENT < 0x80 && IS_PC98_ARCH)
+                LOG_MSG("DANGER, DANGER! DOS_PRIVATE_SEGMENT has been set too low for PC-98 emulation!");
+        }
 
-			if (!private_always_from_umb) {
-				if (MEM_TotalPages() > 0x9C)
-					DOS_PRIVATE_SEGMENT_END = 0x9C00;
-				else
-					DOS_PRIVATE_SEGMENT_END = (MEM_TotalPages() << (12 - 4)) - 1; /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
-			}
+        if (!private_always_from_umb) {
+            if (MEM_TotalPages() > 0x9C)
+                DOS_PRIVATE_SEGMENT_END = 0x9C00;
+            else
+                DOS_PRIVATE_SEGMENT_END = (MEM_TotalPages() << (12 - 4)) - 1; /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
+        }
 
-			LOG(LOG_MISC,LOG_DEBUG)("Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x",
-				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
+        LOG(LOG_MISC,LOG_DEBUG)("Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x",
+                DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 
-			DOS_IHSEG = DOS_GetMemory(1,"DOS_IHSEG");
+        DOS_IHSEG = DOS_GetMemory(1,"DOS_IHSEG");
 
-            /* DOS_INFOBLOCK_SEG contains the entire List of Lists, though the INT 21h call returns seg:offset with offset nonzero */
-			DOS_INFOBLOCK_SEG = DOS_GetMemory(0xC0,"DOS_INFOBLOCK_SEG");	// was 0x80
+        /* DOS_INFOBLOCK_SEG contains the entire List of Lists, though the INT 21h call returns seg:offset with offset nonzero */
+        DOS_INFOBLOCK_SEG = DOS_GetMemory(0xC0,"DOS_INFOBLOCK_SEG");	// was 0x80
 
-			DOS_CONDRV_SEG = DOS_GetMemory(0x08,"DOS_CONDRV_SEG");		// was 0xA0
-			DOS_CONSTRING_SEG = DOS_GetMemory(0x0A,"DOS_CONSTRING_SEG");	// was 0xA8
-			DOS_SDA_SEG = DOS_GetMemory(DOS_SDA_SEG_SIZE>>4,"DOS_SDA_SEG");		// was 0xB2  (0xB2 + 0x56 = 0x108)
-			DOS_SDA_OFS = 0;
-			DOS_CDS_SEG = DOS_GetMemory(0x10,"DOS_CDA_SEG");		// was 0x108
-		}
-		else {
-			if (MEM_TotalPages() < 2) E_Exit("Not enough RAM for mainline compatible fixed kernel mapping");
-
-			DOS_IHSEG = 0x70;
-			DOS_INFOBLOCK_SEG = 0x80;	// sysvars (list of lists)
-			DOS_CONDRV_SEG = 0xa0;
-			DOS_CONSTRING_SEG = 0xa8;
-			DOS_SDA_SEG = 0xb2;		// dos swappable area
-            DOS_SDA_SEG_SIZE = 0x560;
-			DOS_SDA_OFS = 0;
-			DOS_CDS_SEG = 0x108;
-
-			if (!private_segment_in_umb) {
-				/* If private segment is not being placed in UMB, then it must follow the DOS kernel. */
-				unsigned int seg;
-				unsigned int segend;
-
-				seg = DOS_MEM_START;
-				DOS_MEM_START += DOS_PRIVATE_SEGMENT_Size;
-				segend = DOS_MEM_START;
-
-				if (segend >= (MEM_TotalPages() << (12 - 4)))
-					E_Exit("Insufficient room for private area");
-
-				DOS_PRIVATE_SEGMENT = seg;
-				DOS_PRIVATE_SEGMENT_END = segend;
-				DOS_MEM_START = DOS_PRIVATE_SEGMENT_END;
-				DOS_GetMemory_reset();
-				LOG(LOG_MISC,LOG_DEBUG)("Private area, not stored in UMB on request, occupies 0x%04x-0x%04x",
-					DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
-			}
-		}
+        DOS_CONDRV_SEG = DOS_GetMemory(0x08,"DOS_CONDRV_SEG");		// was 0xA0
+        DOS_CONSTRING_SEG = DOS_GetMemory(0x0A,"DOS_CONSTRING_SEG");	// was 0xA8
+        DOS_SDA_SEG = DOS_GetMemory(DOS_SDA_SEG_SIZE>>4,"DOS_SDA_SEG");		// was 0xB2  (0xB2 + 0x56 = 0x108)
+        DOS_SDA_OFS = 0;
+        DOS_CDS_SEG = DOS_GetMemory(0x10,"DOS_CDA_SEG");		// was 0x108
 
 		LOG(LOG_MISC,LOG_DEBUG)("DOS kernel alloc:");
 		LOG(LOG_MISC,LOG_DEBUG)("   IHSEG:        seg 0x%04x",DOS_IHSEG);
@@ -2235,13 +2194,13 @@ public:
 		 * of memory. the DOS_SetupMemory() function will finalize it into the first MCB. Having done that,
 		 * we then need to move the DOS private segment somewere else so that additional allocations do not
 		 * corrupt the MCB chain */
-		if (dynamic_dos_kernel_alloc && !private_always_from_umb)
+		if (!private_always_from_umb)
 			DOS_MEM_START = DOS_GetMemory(0,"DOS_MEM_START");		// was 0x158 (pass 0 to alloc nothing, get the pointer)
 
 		/* move the private segment elsewhere to avoid conflict with the MCB structure.
 		 * either set to 0 to cause the decision making to choose an upper memory address,
 		 * or allocate an additional private area and start the MCB just after that */
-		if (dynamic_dos_kernel_alloc && !private_always_from_umb) {
+		if (!private_always_from_umb) {
 			DOS_GetMemory_reset();
 			DOS_PRIVATE_SEGMENT = 0;
 			DOS_PRIVATE_SEGMENT_END = 0;
