@@ -1737,7 +1737,7 @@ public:
 
 		VGAMEM_USEC_read_delay();
 
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr = PAGING_GetPhysicalAddress(addr) & (vgapages.mask>>2);
 		bplane = vga.gfx.read_map_select;
 
 		if (!(vga.seq.memory_mode&4))
@@ -1753,7 +1753,7 @@ public:
 
 		VGAMEM_USEC_write_delay();
 
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr = PAGING_GetPhysicalAddress(addr) & (vgapages.mask>>2);
 		memaddr = addr;
 
 		/* Chain Odd/Even enable: A0 is replaced by a "higher order bit" (0 apparently) */
@@ -2329,34 +2329,36 @@ void VGA_SetupHandlers(void) {
 	}
 	switch ((vga.gfx.miscellaneous >> 2) & 3) {
 	case 0:
-		vgapages.base = VGA_PAGE_A0;
-		switch (svgaCard) {
-		case SVGA_TsengET3K:
-			break;
-		/* NTS: Looking at the official ET4000 programming guide, it does in fact support the full 128KB */
-		case SVGA_S3Trio:
-		default:
-			vgapages.mask = 0x1ffff;
-			break;
+        vgapages.base = VGA_PAGE_A0;
+        switch (svgaCard) {
+            case SVGA_TsengET3K:
+            case SVGA_TsengET4K:
+                vgapages.mask = 0x1ffff & (vga.vmemwrap - 1);
+                break;
+                /* NTS: Looking at the official ET4000 programming guide, it does in fact support the full 128KB */
+            case SVGA_S3Trio:
+            default:
+                vgapages.mask = 0xffff & (vga.vmemwrap - 1);
+                break;
 		}
 		MEM_SetPageHandler(VGA_PAGE_A0, 32, newHandler );
 		break;
 	case 1:
 		vgapages.base = VGA_PAGE_A0;
-		vgapages.mask = 0xffff;
+		vgapages.mask = 0xffff & (vga.vmemwrap - 1);
 		MEM_SetPageHandler( VGA_PAGE_A0, 16, newHandler );
 		MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 16);
 		break;
 	case 2:
 		vgapages.base = VGA_PAGE_B0;
-		vgapages.mask = 0x7fff;
+		vgapages.mask = 0x7fff & (vga.vmemwrap - 1);
 		MEM_SetPageHandler( VGA_PAGE_B0, 8, newHandler );
         MEM_ResetPageHandler_Unmapped( VGA_PAGE_A0, 16 );
         MEM_ResetPageHandler_Unmapped( VGA_PAGE_B8, 8 );
         break;
 	case 3:
 		vgapages.base = VGA_PAGE_B8;
-		vgapages.mask = 0x7fff;
+		vgapages.mask = 0x7fff & (vga.vmemwrap - 1);
 		MEM_SetPageHandler( VGA_PAGE_B8, 8, newHandler );
         MEM_ResetPageHandler_Unmapped( VGA_PAGE_A0, 16 );
         MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 8 );
