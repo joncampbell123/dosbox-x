@@ -1,7 +1,7 @@
 {
     "configurations": [
         {
-            "name": "SDL1 Debug Win32",
+            "name": "SDL1 Debug Win32/Win64",
             "browse": {
                 "path": [
                     "${workspaceFolder}"
@@ -41,7 +41,7 @@
             "intelliSenseMode": "msvc-x64"
         },
         {
-            "name": "SDL1 Release Win32",
+            "name": "SDL1 Release Win32/Win64",
             "browse": {
                 "path": [
                     "${workspaceFolder}"
@@ -80,7 +80,7 @@
             "intelliSenseMode": "msvc-x64"
         },
         {
-            "name": "SDL2 Debug Win32",
+            "name": "SDL2 Debug Win32/Win64",
             "browse": {
                 "path": [
                     "${workspaceFolder}"
@@ -120,7 +120,7 @@
             "intelliSenseMode": "msvc-x64"
         },
         {
-            "name": "SDL2 Release Win32",
+            "name": "SDL2 Release Win32/Win64",
             "browse": {
                 "path": [
                     "${workspaceFolder}"
