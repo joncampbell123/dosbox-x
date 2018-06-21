@@ -2090,7 +2090,7 @@ public:
                 DOS_PRIVATE_SEGMENT_END = (MEM_TotalPages() << (12 - 4)) - 1; /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
         }
 
-        LOG(LOG_MISC,LOG_DEBUG)("Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x",
+        LOG(LOG_MISC,LOG_DEBUG)("DOS kernel structures will be allocated from pool 0x%04x-0x%04x",
                 DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 
         DOS_IHSEG = DOS_GetMemory(1,"DOS_IHSEG");
