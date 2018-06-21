@@ -720,6 +720,8 @@ void VGA_Reset(Section*) {
     };
 
     vga.vmemwrap = 256*1024;    // default to 256KB VGA mem wrap
+    if (vga.vmemwrap > vga.vmemsize)
+        vga.vmemwrap = vga.vmemsize;
 
     if (!IS_PC98_ARCH)
         SVGA_Setup_Driver();        // svga video memory size is set here, possibly over-riding the user's selection
