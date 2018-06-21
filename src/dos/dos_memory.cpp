@@ -564,11 +564,16 @@ void DOS_SetupMemory(void) {
 
 	if (enable_dummy_device_mcb) {
 		// Create a dummy device MCB with PSPSeg=0x0008
+        LOG_MSG("Dummy device MCB at segment 0x%x",DOS_MEM_START+mcb_sizes);
 		DOS_MCB mcb_devicedummy((Bit16u)DOS_MEM_START+mcb_sizes);
 		mcb_devicedummy.SetPSPSeg(MCB_DOS);	// Devices
-		mcb_devicedummy.SetSize(1);
+		mcb_devicedummy.SetSize(16);
 		mcb_devicedummy.SetType(0x4d);		// More blocks will follow
-		mcb_sizes+=1+1;
+		mcb_sizes+=1+16;
+
+// We DO need to mark this area as 'SD' but leaving it blank so far
+// confuses MEM.EXE (shows ???????) which suggests other software
+// might have a problem with it as well.
 //		mcb_devicedummy.SetFileName("SD      ");
 	}
 
