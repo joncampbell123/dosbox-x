@@ -697,10 +697,16 @@ void VGA_Reset(Section*) {
             if (vga.vmemsize < _KB_bytes(128)) vga.vmemsize = _KB_bytes(128); /* FIXME: Right? */
             break;
         case MCH_EGA:
-            if (vga.vmemsize <= _KB_bytes(128)) vga.vmemsize = _KB_bytes(128); /* Either 128KB or 256KB */
-            else vga.vmemsize = _KB_bytes(256);
+                 // EGA cards supported either 64KB, 128KB, or 256KB.
+                 if (vga.vmemsize <= _KB_bytes(64))  vga.vmemsize = _KB_bytes(64);
+            else if (vga.vmemsize <= _KB_bytes(128)) vga.vmemsize = _KB_bytes(128);
+            else                                     vga.vmemsize = _KB_bytes(256);
             break;
         case MCH_VGA:
+            // TODO: There are reports of VGA cards that have less than 256KB in the early days of VGA.
+            //       How does that work exactly, especially when 640x480 requires about 37KB per plane?
+            //       Did these cards have some means to chain two bitplanes odd/even in the same way
+            //       tha EGA did it?
             if (vga.vmemsize < _KB_bytes(256)) vga.vmemsize = _KB_bytes(256);
             break;
         case MCH_AMSTRAD:
