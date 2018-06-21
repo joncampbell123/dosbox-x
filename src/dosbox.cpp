@@ -2302,7 +2302,6 @@ void DOSBOX_SetupConfigSections(void) {
                    "be loaded too low in memory. This differs from 'minimum mcb segment' in that this affects\n"
                    "the lowest free block instead of the starting point of the mcb chain.");
 
-    // DEPRECATED, REMOVE (code does nothing with it)
     Pbool = secprop->Add_bool("enable dummy device mcb",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If set (default), allocate a fake device MCB at the base of conventional memory.\n"
             "Clearing this option can reclaim a small amount of conventional memory at the expense of\n"
