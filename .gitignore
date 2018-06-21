@@ -382,3 +382,4 @@ vs2015/libpng/linux-build/*
 /vs2015/libpdcurses/wincon/pdcurses.lib
 /vs2015/libpdcurses/wincon/ozdemo.exe
 /vs2015/libpdcurses/wincon/firework.exe
+.vscode/settings.json
