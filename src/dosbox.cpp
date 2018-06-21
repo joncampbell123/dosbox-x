@@ -1281,7 +1281,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set (default), allow the application to reset the CPU through port 92h");
 
     Pbool = secprop->Add_bool("enable port 92",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Emulate port 92h (PS/2 system control port A). If you want to emulate a system that predates the PS/2, set to 0.");
+    Pbool->Set_help("Emulate port 92h (PS/2 system control port A). If you want to emulate a system that pre-dates the PS/2, set to 0.");
 
     Pbool = secprop->Add_bool("enable 1st dma controller",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Emulate 1st (AT) DMA controller (default). Set to 0 if you wish to emulate a system that lacks DMA (PCjr and some Tandy systems)");
