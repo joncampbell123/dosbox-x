@@ -571,6 +571,12 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
             switch(data[count]){
                 case 'm':               /* SGR */
                     for(i=0;i<=ansi.numberofarg;i++){ 
+                        const Bit8u COLORFLAGS[][8] = {
+                        //  Black   Red Green Yellow Blue  Pink  Cyan  White
+                            { 0x0,  0x4,  0x2,  0x6,  0x1,  0x5,  0x3,  0x7 }, /*   IBM */
+                        };
+                        const auto &flagset = COLORFLAGS[0];
+
                         ansi.enabled=true;
                         switch(ansi.data[i]){
                             case 0: /* normal */
@@ -590,68 +596,26 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                                 ansi.attr=0x70;//Just like real ansi. (should do use current colors reversed)
                                 break;
                             case 30: /* fg color black */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x0;
-                                break;
-                            case 31:  /* fg color red */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x4;
-                                break;
-                            case 32:  /* fg color green */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x2;
-                                break;
+                            case 31: /* fg color red */
+                            case 32: /* fg color green */
                             case 33: /* fg color yellow */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x6;
-                                break;
                             case 34: /* fg color blue */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x1;
-                                break;
                             case 35: /* fg color magenta */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x5;
-                                break;
                             case 36: /* fg color cyan */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x3;
-                                break;
                             case 37: /* fg color white */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x7;
+                                ansi.attr &= ~(flagset[7]);
+                                ansi.attr |= (flagset[ansi.data[i] - 30]);
                                 break;
                             case 40:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x0;
-                                break;
                             case 41:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x40;
-                                break;
                             case 42:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x20;
-                                break;
                             case 43:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x60;
-                                break;
                             case 44:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x10;
-                                break;
                             case 45:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x50;
-                                break;
                             case 46:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x30;
-                                break;	
                             case 47:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x70;
+                                ansi.attr &= ~(flagset[7] << 4);
+                                ansi.attr |= (flagset[ansi.data[i] - 40] << 4);
                                 break;
                             default:
                                 break;
