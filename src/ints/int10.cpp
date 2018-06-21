@@ -309,8 +309,20 @@ graphics_chars:
 			break;
 		switch (reg_bl) {
 		case 0x10:							/* Get EGA Information */
-			reg_bh=(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS)==0x3B4);	
-			reg_bl=3;	//256 kb
+			reg_bh=(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS)==0x3B4);
+            if (IS_EGA_ARCH) {
+                     if (vga.vmemsize >= (256*1024))
+                    reg_bl=3;	//256 kb
+                else if (vga.vmemsize >= (192*1024))
+                    reg_bl=2;	//192 kb
+                else if (vga.vmemsize >= (128*1024))
+                    reg_bl=1;	//128 kb
+                else
+                    reg_bl=0;	//64 kb
+            }
+            else {
+                reg_bl=3;	//256 kb
+            }
 			reg_cl=real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES) & 0x0F;
 			reg_ch=real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES) >> 4;
 			break;
