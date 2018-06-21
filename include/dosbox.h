@@ -54,6 +54,12 @@ typedef Bitu cpu_cycles_countu_t;
 class Config;
 class Section;
 
+#if defined(__GNUC__)
+# define DEPRECATED __attribute__((deprecated))
+#else
+# define DEPRECATED
+#endif
+
 enum MachineType {
 	MCH_HERC,
 	MCH_CGA,
@@ -82,8 +88,8 @@ extern SVGACards			svgaCard;
 extern MachineType			machine;
 extern bool				SDLNetInited;
 extern bool				mono_cga;
-extern bool				mainline_compatible_mapping;
-extern bool				mainline_compatible_bios_mapping;
+extern bool				DEPRECATED mainline_compatible_mapping;
+extern bool				DEPRECATED mainline_compatible_bios_mapping;
 
 #ifdef __SSE__
 extern bool				sse1_available;
