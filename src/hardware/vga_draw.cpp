@@ -40,6 +40,31 @@
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
 
+const char* const mode_texts[M_MAX] = {
+    "M_CGA2",           // 0
+    "M_CGA4",
+    "M_EGA",
+    "M_VGA",
+    "M_LIN4",
+    "M_LIN8",           // 5
+    "M_LIN15",
+    "M_LIN16",
+    "M_LIN24",
+    "M_LIN32",
+    "M_TEXT",           // 10
+    "M_HERC_GFX",
+    "M_HERC_TEXT",
+    "M_CGA16",
+    "M_TANDY2",
+    "M_TANDY4",         // 15
+    "M_TANDY16",
+    "M_TANDY_TEXT",
+    "M_AMSTRAD",
+    "M_PC98",
+    "M_FM_TOWNS",       // 20 STUB
+    "M_ERROR"
+};
+
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 # pragma warning(disable:4305) /* truncation from double to float */
@@ -2751,20 +2776,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         vga.draw.delay.vtotal,(1000.0/vga.draw.delay.vtotal),
         vga.draw.delay.vblkstart,vga.draw.delay.vblkend,
         vga.draw.delay.vrstart,vga.draw.delay.vrend);
-
-    const char* const mode_texts[] = {
-        "M_CGA2", "M_CGA4",
-        "M_EGA", "M_VGA",
-        "M_LIN4", "M_LIN8", "M_LIN15", "M_LIN16", "M_LIN24", "M_LIN32",
-        "M_TEXT",
-        "M_HERC_GFX", "M_HERC_TEXT",
-        "M_CGA16", "M_TANDY2", "M_TANDY4", "M_TANDY16", "M_TANDY_TEXT",
-        "M_AMSTRAD", "M_PC98",
-
-        "M_FM_TOWNS",//STUB
-
-        "M_ERROR"
-    };
 
     LOG(LOG_VGA,LOG_NORMAL)("video clock: %3.2fMHz mode %s",
         oscclock/1000000.0, mode_texts[vga.mode]);

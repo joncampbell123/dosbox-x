@@ -30,18 +30,33 @@
 class PageHandler;
 
 enum VGAModes {
-	M_CGA2, M_CGA4,
-	M_EGA, M_VGA,
-	M_LIN4, M_LIN8, M_LIN15, M_LIN16, M_LIN24, M_LIN32,
-	M_TEXT,
-	M_HERC_GFX, M_HERC_TEXT,
-	M_CGA16, M_TANDY2, M_TANDY4, M_TANDY16, M_TANDY_TEXT, M_AMSTRAD,
+	M_CGA2,         // 0
+    M_CGA4,
+	M_EGA,
+    M_VGA,
+	M_LIN4,
+    M_LIN8,         // 5
+    M_LIN15,
+    M_LIN16,
+    M_LIN24,
+    M_LIN32,
+	M_TEXT,         // 10
+	M_HERC_GFX,
+    M_HERC_TEXT,
+	M_CGA16,
+    M_TANDY2,
+    M_TANDY4,       // 15
+    M_TANDY16,
+    M_TANDY_TEXT,
+    M_AMSTRAD,
     M_PC98,
+    M_FM_TOWNS,     // 20 STUB
+	M_ERROR,
 
-    M_FM_TOWNS,//STUB
-
-	M_ERROR
+    M_MAX
 };
+
+extern const char* const mode_texts[M_MAX];
 
 enum VGA_Vsync {
 	VS_Off,
