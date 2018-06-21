@@ -310,7 +310,7 @@ bool Prop_double::CheckValue(Value const& in, bool warn)
 
 	if(warn)
 		LOG_MSG(
-			"%s lies outside the range %s-%s for variable: %.\nIt might now be reset to the default value: %s",
+			"%s lies outside the range %s-%s for variable: %s.\nIt might now be reset to the default value: %s",
 			in.ToString().c_str(), 
 			min.ToString().c_str(), 
 			max.ToString().c_str(), 
