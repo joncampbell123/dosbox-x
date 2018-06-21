@@ -65,14 +65,6 @@ extern Bitu rombios_minimum_location;
 extern bool VIDEO_BIOS_always_carry_14_high_font;
 extern bool VIDEO_BIOS_always_carry_16_high_font;
 
-/* if set: mainline DOSBox behavior where adapter ROM (0xA0000-0xFFFFF) except for
- * areas explicitly mapped to the ROM handler, are mapped the same as system RAM.
- *
- * if clear: associate any adapter ROM region not used by the BIOS, VGA BIOS, or
- * VGA, with the Illegal handler (not mapped). Actual RAM behind the storage does
- * not show up and reads return 0xFF, just like real hardware. */
-bool DEPRECATED adapter_rom_is_ram = false;
-
 static struct MemoryBlock {
     MemoryBlock() : pages(0), handler_pages(0), reported_pages(0), phandlers(NULL), mhandles(NULL), mem_alias_pagemask(0), mem_alias_pagemask_active(0), address_bits(0) { }
 
@@ -1570,8 +1562,6 @@ bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end) {
 
 HostPt GetMemBase(void) { return MemBase; }
 
-extern bool mainline_compatible_mapping;
-
 /*! \brief          REDOS.COM utility command on drive Z: to trigger restart of the DOS kernel
  */
 class REDOS : public Program {
@@ -1816,13 +1806,11 @@ void Init_RAM() {
     for (;i < memory.handler_pages;i++)
         memory.phandlers[i] = NULL;//&illegal_page_handler;
 
-    if (!adapter_rom_is_ram) {
-        /* FIXME: VGA emulation will selectively respond to 0xA0000-0xBFFFF according to the video mode,
-         *        what we want however is for the VGA emulation to assign illegal_page_handler for
-         *        address ranges it is not responding to when mapping changes. */
-        for (i=0xa0;i<0x100;i++) /* we want to make sure adapter ROM is unmapped entirely! */
-            memory.phandlers[i] = NULL;//&unmapped_page_handler;
-    }
+    /* FIXME: VGA emulation will selectively respond to 0xA0000-0xBFFFF according to the video mode,
+     *        what we want however is for the VGA emulation to assign illegal_page_handler for
+     *        address ranges it is not responding to when mapping changes. */
+    for (i=0xa0;i<0x100;i++) /* we want to make sure adapter ROM is unmapped entirely! */
+        memory.phandlers[i] = NULL;//&unmapped_page_handler;
 }
 
 static IO_ReadHandleObject PS2_Port_92h_ReadHandler;

@@ -1864,7 +1864,6 @@ static Bitu DOS_26Handler(void) {
     return CBRET_NONE;
 }
 
-extern bool DEPRECATED mainline_compatible_mapping;
 bool iret_only_for_debug_interrupts = true;
 bool enable_collating_uppercase = true;
 bool keep_private_area_on_boot = false;
@@ -2047,8 +2046,8 @@ public:
             }
         }
 
-		if ((int)MAXENV < 0) MAXENV = mainline_compatible_mapping ? 32768 : 65535;
-		if ((int)ENV_KEEPFREE < 0) ENV_KEEPFREE = mainline_compatible_mapping ? 83 : 1024;
+		if ((int)MAXENV < 0) MAXENV = 65535;
+		if ((int)ENV_KEEPFREE < 0) ENV_KEEPFREE = 1024;
 
 		LOG(LOG_MISC,LOG_DEBUG)("DOS: MAXENV=%u ENV_KEEPFREE=%u",MAXENV,ENV_KEEPFREE);
 
@@ -2059,7 +2058,7 @@ public:
 			LOG_MSG("Debug option enabled: INT 21h memory allocation will always clear memory block before returning\n");
 		}
 
-		if (!dynamic_dos_kernel_alloc || mainline_compatible_mapping) {
+		if (!dynamic_dos_kernel_alloc) {
 			LOG_MSG("kernel allocation in umb option incompatible with other settings, disabling.\n");
 			private_always_from_umb = false;
 		}
@@ -2068,14 +2067,7 @@ public:
 
 		if (dynamic_dos_kernel_alloc) {
 			/* we make use of the DOS_GetMemory() function for the dynamic allocation */
-			if (mainline_compatible_mapping) {
-				DOS_IHSEG = 0x70;
-				DOS_PRIVATE_SEGMENT = 0x80;
-
-                if (IS_PC98_ARCH)
-                    LOG_MSG("WARNING: mainline compatible mapping is not recommended for PC-98 emulation");
-			}
-			else if (private_always_from_umb) {
+			if (private_always_from_umb) {
 				DOS_GetMemory_Choose(); /* the pool starts in UMB */
 				if (minimum_mcb_segment == 0)
 					DOS_MEM_START = IS_PC98_ARCH ? 0x80 : 0x70; /* funny behavior in some games suggests the MS-DOS kernel loads a bit higher on PC-98 */
@@ -2115,7 +2107,7 @@ public:
 			LOG(LOG_MISC,LOG_DEBUG)("Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x",
 				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 
-			if (!mainline_compatible_mapping) DOS_IHSEG = DOS_GetMemory(1,"DOS_IHSEG");
+			DOS_IHSEG = DOS_GetMemory(1,"DOS_IHSEG");
 
             /* DOS_INFOBLOCK_SEG contains the entire List of Lists, though the INT 21h call returns seg:offset with offset nonzero */
 			DOS_INFOBLOCK_SEG = DOS_GetMemory(0xC0,"DOS_INFOBLOCK_SEG");	// was 0x80

@@ -56,7 +56,6 @@ extern bool PS1AudioCard;
 
 /* mouse.cpp */
 extern bool en_bios_ps2mouse;
-extern bool DEPRECATED mainline_compatible_bios_mapping;
 extern bool rom_bios_8x8_cga_font;
 extern bool pcibus_enable;
 
@@ -6040,10 +6039,7 @@ private:
             unsigned int i;
             unsigned char c,tmp[256];
 
-            if (mainline_compatible_bios_mapping)
-                isapnp_biosstruct_base = base = 0xFE100; /* take the unused space just after the fake BIOS signature */
-            else
-                isapnp_biosstruct_base = base = ROMBIOS_GetMemory(0x21,"ISA Plug & Play BIOS struct",/*paragraph alignment*/0x10);
+            isapnp_biosstruct_base = base = ROMBIOS_GetMemory(0x21,"ISA Plug & Play BIOS struct",/*paragraph alignment*/0x10);
 
             if (base == 0) E_Exit("Unable to allocate ISA PnP struct");
             LOG_MSG("ISA Plug & Play BIOS enabled");
@@ -6750,22 +6746,12 @@ public:
         }
 
         /* pick locations */
-        if (!IS_PC98_ARCH && mainline_compatible_bios_mapping) { /* mapping BIOS the way mainline DOSBox does */
-            BIOS_DEFAULT_RESET_LOCATION = RealMake(0xf000,0xe05b);
-            BIOS_DEFAULT_HANDLER_LOCATION = RealMake(0xf000,0xff53);
-            BIOS_DEFAULT_IRQ0_LOCATION = RealMake(0xf000,0xfea5);
-            BIOS_DEFAULT_IRQ1_LOCATION = RealMake(0xf000,0xe987);
-            BIOS_DEFAULT_IRQ07_DEF_LOCATION = RealMake(0xf000,0xff55);
-            BIOS_DEFAULT_IRQ815_DEF_LOCATION = RealMake(0xf000,0xe880);
-        }
-        else {
-            BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/,"BIOS default reset location",/*align*/4));
-            BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/,"BIOS default handler location",/*align*/4));
-            BIOS_DEFAULT_IRQ0_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x13/*see callback.cpp for IRQ0*/,"BIOS default IRQ0 location",/*align*/4));
-            BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x15/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location",/*align*/4));
-            BIOS_DEFAULT_IRQ07_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2-7 location",/*align*/4));
-            BIOS_DEFAULT_IRQ815_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(9/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ8-15 location",/*align*/4));
-        }
+        BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/,"BIOS default reset location",/*align*/4));
+        BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/,"BIOS default handler location",/*align*/4));
+        BIOS_DEFAULT_IRQ0_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x13/*see callback.cpp for IRQ0*/,"BIOS default IRQ0 location",/*align*/4));
+        BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x15/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location",/*align*/4));
+        BIOS_DEFAULT_IRQ07_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2-7 location",/*align*/4));
+        BIOS_DEFAULT_IRQ815_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(9/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ8-15 location",/*align*/4));
 
         write_FFFF_signature();
 
@@ -7225,7 +7211,7 @@ void write_ID_version_string() {
     str_ver_at = 0xFE061;
     str_id_len = strlen(bios_type_string)+1;
     str_ver_len = strlen(bios_version_string)+1;
-    if (!mainline_compatible_bios_mapping && !IS_PC98_ARCH) {
+    if (!IS_PC98_ARCH) {
         /* need to mark these strings off-limits so dynamic allocation does not overwrite them */
         ROMBIOS_GetMemory((Bitu)str_id_len+1,"BIOS ID string",1,str_id_at);
         ROMBIOS_GetMemory((Bitu)str_ver_len+1,"BIOS version string",1,str_ver_at);
@@ -7255,7 +7241,7 @@ void ROMBIOS_Init() {
         if (IS_PC98_ARCH)
             oi = 96u; // BIOS standard range is E8000-FFFFF
         else
-            oi = (mainline_compatible_bios_mapping && machine != MCH_PCJR) ? 128u : 64u;
+            oi = 64u;
     }
     if (oi < 8) oi = 8; /* because of some of DOSBox's fixed ROM structures we can only go down to 8KB */
     rombios_minimum_size = (oi << 10); /* convert to minimum, using size coming downward from 1MB */
@@ -7267,18 +7253,12 @@ void ROMBIOS_Init() {
         if (IS_PC98_ARCH)
             oi = 96u;
         else
-            oi = (mainline_compatible_bios_mapping && machine != MCH_PCJR) ? 128u : 64u;
+            oi = 64u;
     }
     if (oi < 8u) oi = 8u; /* because of some of DOSBox's fixed ROM structures we can only go down to 8KB */
     oi <<= 10u;
     if (oi < rombios_minimum_size) oi = rombios_minimum_size;
     rombios_minimum_location = 0x100000ul - oi; /* convert to minimum, using size coming downward from 1MB */
-
-    /* in mainline compatible, make sure we cover the 0xF0000-0xFFFFF range */
-    if (!IS_PC98_ARCH && mainline_compatible_bios_mapping && rombios_minimum_location > 0xF0000u) {
-        rombios_minimum_location = 0xF0000u;
-        rombios_minimum_size = 0x10000u;
-    }
 
     LOG(LOG_BIOS,LOG_DEBUG)("ROM BIOS range: 0x%05X-0xFFFFF",(int)rombios_minimum_location);
     LOG(LOG_BIOS,LOG_DEBUG)("ROM BIOS range according to minimum size: 0x%05X-0xFFFFF",(int)(0x100000 - rombios_minimum_size));
@@ -7311,7 +7291,7 @@ void ROMBIOS_Init() {
     write_ID_version_string();
 
     /* some structures when enabled are fixed no matter what */
-    if (!mainline_compatible_bios_mapping && rom_bios_8x8_cga_font && !IS_PC98_ARCH) {
+    if (rom_bios_8x8_cga_font && !IS_PC98_ARCH) {
         /* line 139, int10_memory.cpp: the 8x8 font at 0xF000:FA6E, first 128 chars.
          * allocate this NOW before other things get in the way */
         if (ROMBIOS_GetMemory(128*8,"BIOS 8x8 font (first 128 chars)",1,0xFFA6E) == 0) {
@@ -7324,13 +7304,6 @@ void ROMBIOS_Init() {
         for (i=0;i<128*8;i++) {
             phys_writeb(PhysMake(0xf000,0xfa6e)+i,int10_font_08[i]);
         }
-    }
-
-    if (!IS_PC98_ARCH && mainline_compatible_bios_mapping) {
-        /* then mark the region 0xE000-0xFFF0 as off-limits.
-         * believe it or not, there's this whole range between 0xF3000 and 0xFE000 that remains unused! */
-        if (ROMBIOS_GetMemory(0xFFFF0-0xFE000,"BIOS with fixed layout",1,0xFE000) == 0)
-            E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
     }
 
     /* we allow dosbox.conf to specify a binary blob to load into ROM BIOS and execute after reset.

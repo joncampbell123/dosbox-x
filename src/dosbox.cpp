@@ -125,7 +125,6 @@ extern bool         VIDEO_BIOS_always_carry_14_high_font;
 extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb;
-extern bool         DEPRECATED adapter_rom_is_ram;
 
 bool                dos_con_use_int16_to_detect_input = true;
 
@@ -177,8 +176,6 @@ Bit32u              ticksScheduled;
 bool                ticksLocked;
 bool                mono_cga=false;
 bool                ignore_opcode_63 = true;
-bool                DEPRECATED mainline_compatible_mapping = true;
-bool                DEPRECATED mainline_compatible_bios_mapping = true;
 int             dynamic_core_cache_block_size = 32;
 Bitu                VGA_BIOS_Size_override = 0;
 Bitu                VGA_BIOS_SEG = 0xC000;
@@ -654,8 +651,8 @@ void Init_VGABIOS() {
     VIDEO_BIOS_always_carry_16_high_font = section->Get_bool("video bios always offer 16-pixel high rom font");
     VIDEO_BIOS_enable_CGA_8x8_second_half = section->Get_bool("video bios enable cga second half rom font");
     /* NTS: mainline compatible mapping demands the 8x8 CGA font */
-    rom_bios_8x8_cga_font = mainline_compatible_bios_mapping || section->Get_bool("rom bios 8x8 CGA font");
-    rom_bios_vptable_enable = mainline_compatible_bios_mapping || section->Get_bool("rom bios video parameter table");
+    rom_bios_8x8_cga_font = section->Get_bool("rom bios 8x8 CGA font");
+    rom_bios_vptable_enable = section->Get_bool("rom bios video parameter table");
 
     /* sanity check */
     if (VGA_BIOS_dont_duplicate_CGA_first_half && !rom_bios_8x8_cga_font) /* can't point at the BIOS copy if it's not there */
@@ -664,19 +661,15 @@ void Init_VGABIOS() {
     if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
         VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FFU) & (~0xFFFU);
     else if (IS_VGA_ARCH)
-        VGA_BIOS_Size = mainline_compatible_mapping ? 0x8000 : 0x3000; /* <- Experimentation shows the S3 emulation can fit in 12KB, doesn't need all 32KB */
+        VGA_BIOS_Size = 0x3000; /* <- Experimentation shows the S3 emulation can fit in 12KB, doesn't need all 32KB */
     else if (machine == MCH_EGA) {
-        if (mainline_compatible_mapping)
-            VGA_BIOS_Size = 0x8000;
-        else if (VIDEO_BIOS_always_carry_16_high_font)
+        if (VIDEO_BIOS_always_carry_16_high_font)
             VGA_BIOS_Size = 0x3000;
         else
             VGA_BIOS_Size = 0x2000;
     }
     else {
-        if (mainline_compatible_mapping)
-            VGA_BIOS_Size = 0x8000;
-        else if (VIDEO_BIOS_always_carry_16_high_font && VIDEO_BIOS_always_carry_14_high_font)
+        if (VIDEO_BIOS_always_carry_16_high_font && VIDEO_BIOS_always_carry_14_high_font)
             VGA_BIOS_Size = 0x3000;
         else if (VIDEO_BIOS_always_carry_16_high_font || VIDEO_BIOS_always_carry_14_high_font)
             VGA_BIOS_Size = 0x2000;
@@ -718,10 +711,6 @@ void DOSBOX_RealInit() {
     // TODO: these should be parsed by DOS kernel at startup
     dosbox_shell_env_size = (unsigned int)section->Get_int("shell environment size");
 
-    /* these ARE general DOSBox configuration options */
-    mainline_compatible_mapping = false;
-    adapter_rom_is_ram = false;
-
     // TODO: a bit of a challenge: if we put it in the ROM area as mainline DOSBox does then the init
     //       needs to read this from the BIOS where it can map the memory appropriately. if the allocation
     //       is dynamic and the private area is down at the base of memory like real DOS, then the BIOS
@@ -732,7 +721,6 @@ void DOSBOX_RealInit() {
     DOS_PRIVATE_SEGMENT_Size = (Bitu)((section->Get_int("private area size") + 8) / 16);
 
     // TODO: these should be parsed by BIOS startup
-    mainline_compatible_bios_mapping = false;
     allow_more_than_640kb = section->Get_bool("allow more than 640kb base memory");
 
     // TODO: should be parsed by motherboard emulation
