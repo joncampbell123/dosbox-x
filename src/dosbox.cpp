@@ -1562,7 +1562,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
             "Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME");
 
-    Pbool = secprop->Add_bool("apmbios",Property::Changeable::WhenIdle,false);
+    Pbool = secprop->Add_bool("apmbios",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Emulate Advanced Power Management BIOS calls");
 
     Pbool = secprop->Add_bool("apmbios pnp",Property::Changeable::WhenIdle,false);
@@ -1601,7 +1601,7 @@ void DOSBOX_SetupConfigSections(void) {
         "then jump to realmode with B still set (aka Huge Unreal mode). Needed for Project Angel.");
 
     secprop=control->AddSection_prop("keyboard",&Null_Init);
-    Pbool = secprop->Add_bool("aux",Property::Changeable::OnlyAtStart,false);
+    Pbool = secprop->Add_bool("aux",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Enable emulation of the 8042 auxiliary port. PS/2 mouse emulation requires this to be enabled.\n"
             "You should enable this if you will be running Windows ME or any other OS that does not use the BIOS to receive mouse events.");
 
@@ -2302,16 +2302,19 @@ void DOSBOX_SetupConfigSections(void) {
                    "be loaded too low in memory. This differs from 'minimum mcb segment' in that this affects\n"
                    "the lowest free block instead of the starting point of the mcb chain.");
 
+    // DEPRECATED, REMOVE (code does nothing with it)
     Pbool = secprop->Add_bool("enable dummy device mcb",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If set (default), allocate a fake device MCB at the base of conventional memory.\n"
             "Clearing this option can reclaim a small amount of conventional memory at the expense of\n"
             "some minor DOS compatibility.");
 
+    // DEPRECATED, REMOVE
     Pbool = secprop->Add_bool("enable loadfix padding",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If set (default), allocate a small 1KB region at the base of conventional memory.\n"
             "Clearing this option can reclaim a small amount of conventional memory, but can also\n"
             "cause some DOS games to break especially if dynamic kernel allocation is enabled.");
 
+    // DEPRECATED, REMOVE
     Pbool = secprop->Add_bool("enable dummy environment block",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If set (default), allocate a dummy environment block at the base of conventional memory.\n"
             "You can clear this option to reclaim a small amount of conventional memory.");
@@ -2326,6 +2329,7 @@ void DOSBOX_SetupConfigSections(void) {
             "If the subprocesses will never add/modify the environment block, you can free up a few additional bytes by setting this to 0.\n"
             "Set to -1 for default setting.");
 
+    // DEPRECATED, REMOVE
     Pbool = secprop->Add_bool("enable a20 on windows init",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If set, DOSBox will enable the A20 gate when Windows 3.1/9x broadcasts the INIT message\n"
             "at startup. Windows 3.1 appears to make assumptions at some key points on startup about\n"
@@ -2463,6 +2467,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
     Pint->Set_help("Number of file handles available to DOS programs. (equivalent to \"files=\" in config.sys)");
 
+    // DEPRECATED, REMOVE
     Pbool = secprop->Add_bool("con device use int 16h to detect keyboard input",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, use INT 16h to detect keyboard input (MS-DOS 6.22 behavior). If clear, detect keyboard input by\n"
             "peeking into the BIOS keyboard buffer (Mainline DOSBox behavior). You will need to set this\n"
