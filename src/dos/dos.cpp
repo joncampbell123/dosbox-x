@@ -148,8 +148,6 @@ Bit16u DOS_PRIVATE_SEGMENT_END=0;//0xd000;
 
 Bitu DOS_PRIVATE_SEGMENT_Size=0x800;	// 32KB (0x800 pages), mainline DOSBox behavior
 
-bool enable_dummy_environment_block = true;
-bool enable_dummy_loadfix_padding = true;
 bool enable_dummy_device_mcb = true;
 
 extern unsigned int MAXENV;// = 32768u;
@@ -1995,8 +1993,6 @@ public:
 		dbg_zero_on_dos_allocmem = section->Get_bool("zero memory on int 21h memory allocation");
 		MAXENV = (unsigned int)section->Get_int("maximum environment block size on exec");
 		ENV_KEEPFREE = (unsigned int)section->Get_int("additional environment block size on exec");
-		enable_dummy_environment_block = section->Get_bool("enable dummy environment block");
-		enable_dummy_loadfix_padding = section->Get_bool("enable loadfix padding");
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
 		int15_wait_force_unmask_irq = section->Get_bool("int15 wait force unmask irq");
         disk_io_unmask_irq0 = section->Get_bool("unmask timer on disk io");

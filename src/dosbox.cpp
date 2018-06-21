@@ -2307,17 +2307,6 @@ void DOSBOX_SetupConfigSections(void) {
             "Clearing this option can reclaim a small amount of conventional memory at the expense of\n"
             "some minor DOS compatibility.");
 
-    // DEPRECATED, REMOVE
-    Pbool = secprop->Add_bool("enable loadfix padding",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set (default), allocate a small 1KB region at the base of conventional memory.\n"
-            "Clearing this option can reclaim a small amount of conventional memory, but can also\n"
-            "cause some DOS games to break especially if dynamic kernel allocation is enabled.");
-
-    // DEPRECATED, REMOVE
-    Pbool = secprop->Add_bool("enable dummy environment block",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set (default), allocate a dummy environment block at the base of conventional memory.\n"
-            "You can clear this option to reclaim a small amount of conventional memory.");
-
     Pint = secprop->Add_int("maximum environment block size on exec", Property::Changeable::WhenIdle,-1);
     Pint->SetMinMax(-1,65535);
     Pint->Set_help("Maximum environment block size to copy for child processes. Set to -1 for default.");

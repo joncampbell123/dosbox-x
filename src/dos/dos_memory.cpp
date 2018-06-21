@@ -518,8 +518,6 @@ static Bitu DOS_default_handler(void) {
 
 extern Bit16u DOS_IHSEG;
 
-extern bool enable_dummy_environment_block;
-extern bool enable_dummy_loadfix_padding;
 extern bool enable_dummy_device_mcb;
 extern bool iret_only_for_debug_interrupts;
 
@@ -572,24 +570,6 @@ void DOS_SetupMemory(void) {
 		mcb_devicedummy.SetType(0x4d);		// More blocks will follow
 		mcb_sizes+=1+1;
 //		mcb_devicedummy.SetFileName("SD      ");
-	}
-
-	if (enable_dummy_environment_block) {
-		// Create a small empty MCB (result from a growing environment block)
-		DOS_MCB tempmcb((Bit16u)DOS_MEM_START+mcb_sizes);
-		tempmcb.SetPSPSeg(MCB_FREE);
-		tempmcb.SetSize(4);
-		mcb_sizes+=4+1;
-		tempmcb.SetType(0x4d);
-	}
-
-	if (enable_dummy_loadfix_padding) {
-		// Lock the previous empty MCB
-		DOS_MCB tempmcb2((Bit16u)DOS_MEM_START+mcb_sizes);
-		tempmcb2.SetPSPSeg(0x40);	// can be removed by loadfix
-		tempmcb2.SetSize(16);
-		mcb_sizes+=16+1;
-		tempmcb2.SetType(0x4d);
 	}
 
 	DOS_MCB mcb((Bit16u)DOS_MEM_START+mcb_sizes);
