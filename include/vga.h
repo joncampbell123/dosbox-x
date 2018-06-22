@@ -413,7 +413,6 @@ typedef struct {
     uint32_t    memmask = 0;
     uint32_t    memmask_cpu = 0;        // in CPU-visible bytes
     uint32_t    memmask_crtc = 0;       // in CRTC-visible units (depends on byte/word/dword mode)
-    uint32_t    memmask_crtc_step = 1;  // in CRTC-visible units
 } VGA_Memory;
 
 typedef struct {
