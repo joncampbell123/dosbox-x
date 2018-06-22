@@ -406,8 +406,8 @@ typedef union {
 } VGA_Latch;
 
 typedef struct {
-	Bit8u* linear = NULL;
-	Bit8u* linear_orgptr = NULL;
+	Bit8u*      linear = NULL;
+	Bit8u*      linear_orgptr = NULL;
 
     uint32_t    memsize = 0;
     uint32_t    memmask = 0;
