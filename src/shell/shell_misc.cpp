@@ -32,6 +32,14 @@
 #include "../dos/cdrom.h"
 #endif 
 
+#ifdef _MSC_VER
+# define MIN(a,b) ((a) < (b) ? (a) : (b))
+# define MAX(a,b) ((a) > (b) ? (a) : (b))
+#else
+# define MIN(a,b) std::min(a,b)
+# define MAX(a,b) std::max(a,b)
+#endif
+
 void DOS_Shell::ShowPrompt(void) {
 	char dir[DOS_PATHLENGTH];
 	dir[0] = 0; //DOS_GetCurrentDir doesn't always return something. (if drive is messed up)
@@ -217,7 +225,7 @@ void DOS_Shell::InputCommand(char * line) {
 						pos++;
 					}
 					
-					const auto lgt = min(pos, end) - (line + str_index);
+					const auto lgt = MIN(pos, end) - (line + str_index);
 					
 					for (auto i = 0; i < lgt; i++)
 						outc(static_cast<Bit8u>(line[str_index++]));
@@ -240,7 +248,7 @@ void DOS_Shell::InputCommand(char * line) {
 						pos++;
 					}
 					
-					const auto lgt = abs(max(pos, beg) - (line + str_index));
+					const auto lgt = abs(MAX(pos, beg) - (line + str_index));
 					
 					for (auto i = 0; i < lgt; i++) {
 						outc(8);
