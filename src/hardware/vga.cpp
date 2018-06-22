@@ -700,7 +700,7 @@ void VGA_Reset(Section*) {
                  // EGA cards supported either 64KB, 128KB or 256KB.
                  if (vga.mem.memsize <= _KB_bytes(64))  vga.mem.memsize = _KB_bytes(64);
             else if (vga.mem.memsize <= _KB_bytes(128)) vga.mem.memsize = _KB_bytes(128);
-            else                                     vga.mem.memsize = _KB_bytes(256);
+            else                                        vga.mem.memsize = _KB_bytes(256);
             break;
         case MCH_VGA:
             // TODO: There are reports of VGA cards that have less than 256KB in the early days of VGA.
@@ -719,12 +719,11 @@ void VGA_Reset(Section*) {
             E_Exit("Unexpected machine");
     };
 
-    vga.vmemwrap = 256*1024;    // default to 256KB VGA mem wrap
-    if (vga.vmemwrap > vga.mem.memsize)
-        vga.vmemwrap = vga.mem.memsize;
-
     if (!IS_PC98_ARCH)
         SVGA_Setup_Driver();        // svga video memory size is set here, possibly over-riding the user's selection
+
+    vga.mem.memmask = vga.mem.memsize - 1u;
+    vga.vmemwrap = vga.mem.memmask + 1u;//bkwd compat
 
     LOG(LOG_VGA,LOG_NORMAL)("Video RAM: %uKB",vga.mem.memsize>>10);
 
@@ -1148,7 +1147,6 @@ void SVGA_Setup_Driver(void) {
         SVGA_Setup_ParadisePVGA1A();
         break;
     default:
-        vga.vmemwrap = 256*1024;
         break;
     }
 }

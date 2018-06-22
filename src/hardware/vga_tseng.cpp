@@ -159,7 +159,7 @@ void write_p3d5_et4k(Bitu reg,Bitu val,Bitu iolen) {
     case 0x37:
         if (val != et4k.store_3d4_37) {
             et4k.store_3d4_37 = val;
-            vga.vmemwrap = ((64u*1024u)<<((val&8u)>>2u))<<((val&3u)-1u);
+            vga.mem.memmask = (((64u*1024u*((val&8u)?4u:1u))<<((val&3u)-1u)) - 1u) & (vga.mem.memsize-1u);
             VGA_SetupHandlers();
         }
         break;
