@@ -134,6 +134,9 @@
 
 #define BIOS_VIDEO_SAVEPTR              0x4a8
 
+#define CURSOR_SCAN_LINE_NORMAL			(0x6)
+#define CURSOR_SCAN_LINE_INSERT			(0x4)
+#define CURSOR_SCAN_LINE_END			(0x7)
 
 //#define BIOS_DEFAULT_IRQ0_LOCATION		(RealMake(0xf000,0xfea5))
 //#define BIOS_DEFAULT_IRQ1_LOCATION		(RealMake(0xf000,0xe987))
