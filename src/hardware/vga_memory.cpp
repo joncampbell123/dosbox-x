@@ -1871,7 +1871,7 @@ public:
 	VGA_LFB_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
 	HostPt GetHostReadPt( Bitu phys_page ) {
 		phys_page -= vga.lfb.page;
-		phys_page &= (vga.vmemsize >> 12) - 1;
+		phys_page &= (vga.mem.memsize >> 12) - 1;
 		return &vga.mem.linear[CHECKED3(phys_page * 4096)];
 	}
 	HostPt GetHostWritePt( Bitu phys_page ) {
@@ -2405,7 +2405,7 @@ void VGA_StartUpdateLFB(void) {
 		vga.lfb.page = (unsigned int)vga.s3.la_window << 4u;
 		vga.lfb.addr = (unsigned int)vga.s3.la_window << 16u;
 		vga.lfb.handler = &vgaph.lfb;
-		MEM_SetLFB((unsigned int)vga.s3.la_window << 4u,(unsigned int)vga.vmemsize/4096u, vga.lfb.handler, &vgaph.mmio);
+		MEM_SetLFB((unsigned int)vga.s3.la_window << 4u,(unsigned int)vga.mem.memsize/4096u, vga.lfb.handler, &vgaph.mmio);
 	}
 }
 
@@ -2426,13 +2426,12 @@ void VGA_SetupMemory() {
 	vga.svga.bank_read = vga.svga.bank_write = 0;
 	vga.svga.bank_read_full = vga.svga.bank_write_full = 0;
 
-    if (1 || vga.vmemsize_alloced != vga.vmemsize) {
+    if (vga.mem.linear == NULL) {
         VGA_Memory_ShutDown(NULL);
 
-        vga.mem.linear_orgptr = new Bit8u[vga.vmemsize+32u];
-        memset(vga.mem.linear_orgptr,0,vga.vmemsize+32u);
+        vga.mem.linear_orgptr = new Bit8u[vga.mem.memsize+32u];
+        memset(vga.mem.linear_orgptr,0,vga.mem.memsize+32u);
         vga.mem.linear=(Bit8u*)(((uintptr_t)vga.mem.linear_orgptr + 16ull-1ull) & ~(16ull-1ull));
-        vga.vmemsize_alloced = vga.vmemsize;
 
         /* HACK. try to avoid stale pointers */
 	    vga.draw.linear_base = vga.mem.linear;
@@ -2444,7 +2443,7 @@ void VGA_SetupMemory() {
     }
 
 	// In most cases these values stay the same. Assumptions: vmemwrap is power of 2, vmemwrap <= vmemsize
-	vga.vmemwrap = vga.vmemsize;
+	vga.vmemwrap = vga.mem.memsize;
 
 	vga.svga.bank_read = vga.svga.bank_write = 0;
 	vga.svga.bank_read_full = vga.svga.bank_write_full = 0;

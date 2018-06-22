@@ -667,19 +667,19 @@ void VGA_Reset(Section*) {
      *        various motherboard chipsets known to "steal"
      *        off the top of system RAM, like Intel and
      *        Chips & Tech VGA implementations? */
-    vga.vmemsize  = _MB_bytes(section->Get_int("vmemsize"));
-    vga.vmemsize += _KB_bytes(section->Get_int("vmemsizekb"));
-    vga.vmemsize  = (vga.vmemsize + 0xFFFu) & (~0xFFFu);
+    vga.mem.memsize  = _MB_bytes(section->Get_int("vmemsize"));
+    vga.mem.memsize += _KB_bytes(section->Get_int("vmemsizekb"));
+    vga.mem.memsize  = (vga.mem.memsize + 0xFFFu) & (~0xFFFu);
     /* mainline compatible: vmemsize == 0 means 512KB */
-    if (vga.vmemsize == 0) vga.vmemsize = _KB_bytes(512);
+    if (vga.mem.memsize == 0) vga.mem.memsize = _KB_bytes(512);
 
     /* round up to the nearest power of 2 (TODO: Any video hardware that uses non-power-of-2 sizes?).
      * A lot of DOSBox's VGA emulation code assumes power-of-2 VRAM sizes especially when wrapping
      * memory addresses with (a & (vmemsize - 1)) type code. */
-    if (!is_power_of_2(vga.vmemsize)) {
-        Bitu i = int_log2(vga.vmemsize) + 1u;
-        vga.vmemsize = 1u << i;
-        LOG(LOG_VGA,LOG_WARN)("VGA RAM size requested is not a power of 2, rounding up to %uKB",vga.vmemsize>>10);
+    if (!is_power_of_2(vga.mem.memsize)) {
+        Bitu i = int_log2(vga.mem.memsize) + 1u;
+        vga.mem.memsize = 1u << i;
+        LOG(LOG_VGA,LOG_WARN)("VGA RAM size requested is not a power of 2, rounding up to %uKB",vga.mem.memsize>>10);
     }
 
     /* sanity check according to adapter type.
@@ -687,46 +687,46 @@ void VGA_Reset(Section*) {
      * for selecting machine type AND video card. */
     switch (machine) {
         case MCH_HERC: /* FIXME: MCH_MDA (4KB) vs MCH_HERC (64KB?) */
-            if (vga.vmemsize < _KB_bytes(64)) vga.vmemsize = _KB_bytes(64);
+            if (vga.mem.memsize < _KB_bytes(64)) vga.mem.memsize = _KB_bytes(64);
             break;
         case MCH_CGA:
-            if (vga.vmemsize < _KB_bytes(16)) vga.vmemsize = _KB_bytes(16);
+            if (vga.mem.memsize < _KB_bytes(16)) vga.mem.memsize = _KB_bytes(16);
             break;
         case MCH_TANDY:
         case MCH_PCJR:
-            if (vga.vmemsize < _KB_bytes(128)) vga.vmemsize = _KB_bytes(128); /* FIXME: Right? */
+            if (vga.mem.memsize < _KB_bytes(128)) vga.mem.memsize = _KB_bytes(128); /* FIXME: Right? */
             break;
         case MCH_EGA:
                  // EGA cards supported either 64KB, 128KB or 256KB.
-                 if (vga.vmemsize <= _KB_bytes(64))  vga.vmemsize = _KB_bytes(64);
-            else if (vga.vmemsize <= _KB_bytes(128)) vga.vmemsize = _KB_bytes(128);
-            else                                     vga.vmemsize = _KB_bytes(256);
+                 if (vga.mem.memsize <= _KB_bytes(64))  vga.mem.memsize = _KB_bytes(64);
+            else if (vga.mem.memsize <= _KB_bytes(128)) vga.mem.memsize = _KB_bytes(128);
+            else                                     vga.mem.memsize = _KB_bytes(256);
             break;
         case MCH_VGA:
             // TODO: There are reports of VGA cards that have less than 256KB in the early days of VGA.
             //       How does that work exactly, especially when 640x480 requires about 37KB per plane?
             //       Did these cards have some means to chain two bitplanes odd/even in the same way
             //       tha EGA did it?
-            if (vga.vmemsize < _KB_bytes(256)) vga.vmemsize = _KB_bytes(256);
+            if (vga.mem.memsize < _KB_bytes(256)) vga.mem.memsize = _KB_bytes(256);
             break;
         case MCH_AMSTRAD:
-            if (vga.vmemsize < _KB_bytes(64)) vga.vmemsize = _KB_bytes(64); /* FIXME: Right? */
+            if (vga.mem.memsize < _KB_bytes(64)) vga.mem.memsize = _KB_bytes(64); /* FIXME: Right? */
             break;
         case MCH_PC98:
-            if (vga.vmemsize < _KB_bytes(512)) vga.vmemsize = _KB_bytes(512);
+            if (vga.mem.memsize < _KB_bytes(512)) vga.mem.memsize = _KB_bytes(512);
             break;
         default:
             E_Exit("Unexpected machine");
     };
 
     vga.vmemwrap = 256*1024;    // default to 256KB VGA mem wrap
-    if (vga.vmemwrap > vga.vmemsize)
-        vga.vmemwrap = vga.vmemsize;
+    if (vga.vmemwrap > vga.mem.memsize)
+        vga.vmemwrap = vga.mem.memsize;
 
     if (!IS_PC98_ARCH)
         SVGA_Setup_Driver();        // svga video memory size is set here, possibly over-riding the user's selection
 
-    LOG(LOG_VGA,LOG_NORMAL)("Video RAM: %uKB",vga.vmemsize>>10);
+    LOG(LOG_VGA,LOG_NORMAL)("Video RAM: %uKB",vga.mem.memsize>>10);
 
     VGA_SetupMemory();      // memory is allocated here
     if (!IS_PC98_ARCH) {
@@ -920,7 +920,7 @@ void VGA_OnEnterPC98(Section *sec) {
     for (unsigned int i=0;i < 16;i++) vga.dac.combine[i] = i;
 
     vga.mode=M_PC98;
-    assert(vga.vmemsize >= 0x80000);
+    assert(vga.mem.memsize >= 0x80000);
     memset(vga.mem.linear,0,0x80000);
 
     VGA_StartResize();
@@ -1075,7 +1075,6 @@ void VGA_Init() {
 
     vga.tandy.draw_base = NULL;
     vga.tandy.mem_base = NULL;
-    vga.vmemsize_alloced = 0;
     LOG(LOG_MISC,LOG_DEBUG)("Initializing VGA");
 
     VGA_TweakUserVsyncOffset(0.0f);
