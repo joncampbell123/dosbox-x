@@ -203,6 +203,51 @@ void DOS_Shell::InputCommand(char * line) {
                 }
                 break;
 
+			case 0x7400: /*CTRL + RIGHT : cmd.exe-like next word*/
+				{
+					auto pos = line + str_index;
+					auto spc = *pos == ' ';
+					const auto end = line + str_len;
+
+					while (pos < end) {
+						if (spc && *pos != ' ')
+							break;
+						if (*pos == ' ')
+							spc = true;
+						pos++;
+					}
+					
+					const auto lgt = min(pos, end) - (line + str_index);
+					
+					for (auto i = 0; i < lgt; i++)
+						outc(static_cast<Bit8u>(line[str_index++]));
+				}	
+        		break;
+			case 0x7300: /*CTRL + LEFT : cmd.exe-like previous word*/
+				{
+					auto pos = line + str_index - 1;
+					const auto beg = line;
+					const auto spc = *pos == ' ';
+
+					if (spc) {
+						while(*pos == ' ') pos--;
+						while(*pos != ' ') pos--;
+						pos++;
+					}
+					else {
+						while(*pos != ' ') pos--;
+						while(*pos == ' ') pos--;
+						pos++;
+					}
+					
+					const auto lgt = abs(max(pos, beg) - (line + str_index));
+					
+					for (auto i = 0; i < lgt; i++) {
+						outc(8);
+						str_index--;
+					}
+				}	
+        		break;
             case 0x4D00:	/* RIGHT */
                 if (str_index < str_len) {
                     outc((Bit8u)line[str_index++]);
