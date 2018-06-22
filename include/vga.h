@@ -413,6 +413,7 @@ typedef struct {
     uint32_t    memmask = 0;
     uint32_t    memmask_cpu = 0;
     uint32_t    memmask_crtc = 0;
+    uint32_t    memmask_crtc_step = 1;
 } VGA_Memory;
 
 typedef struct {
