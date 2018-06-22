@@ -101,11 +101,8 @@ static void outc(Bit8u c) {
 	DOS_WriteFile(STDOUT,&c,&n);
 }
 
-/*! \brief Sets the caret position for video mode 0.
- *
- * i.e. when column is 0, moves the caret to previous row/last column.
- */
-void SetCaretPos()
+//! \brief Moves the caret to prev row/last column when column is 0 (video mode 0).
+void MoveCaretBackwards()
 {
 	Bit8u col, row;
 	const Bit8u page(0);
@@ -227,7 +224,7 @@ void DOS_Shell::InputCommand(char * line) {
                 if (str_index) {
                     outc(8);
                     str_index --;
-                	SetCaretPos();
+                	MoveCaretBackwards();
                 }
                 break;
 
@@ -273,7 +270,7 @@ void DOS_Shell::InputCommand(char * line) {
 					for (auto i = 0; i < lgt; i++) {
 						outc(8);
 						str_index--;
-						SetCaretPos();
+						MoveCaretBackwards();
 					}
 				}	
         		break;
