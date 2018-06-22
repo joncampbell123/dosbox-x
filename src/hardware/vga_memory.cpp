@@ -1737,7 +1737,7 @@ public:
 
 		VGAMEM_USEC_read_delay();
 
-		addr = PAGING_GetPhysicalAddress(addr) & (vgapages.mask>>2);
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		bplane = vga.gfx.read_map_select;
 
 		if (!(vga.seq.memory_mode&4))
@@ -1753,7 +1753,7 @@ public:
 
 		VGAMEM_USEC_write_delay();
 
-		addr = PAGING_GetPhysicalAddress(addr) & (vgapages.mask>>2);
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		memaddr = addr;
 
 		/* Chain Odd/Even enable: A0 is replaced by a "higher order bit" (0 apparently) */
