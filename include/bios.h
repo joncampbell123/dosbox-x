@@ -40,6 +40,15 @@
 /* #define bios_expansion_memory_size      (*(unsigned int   *) 0x415) */
 #define BIOS_KEYBOARD_STATE             0x417
 #define BIOS_KEYBOARD_FLAGS1            BIOS_KEYBOARD_STATE
+#define BIOS_KEYBOARD_FLAGS1_RSHIFT_PRESSED			(1 << 0)
+#define BIOS_KEYBOARD_FLAGS1_LSHIFT_PRESSED			(1 << 1)
+#define BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED			(1 << 2)
+#define BIOS_KEYBOARD_FLAGS1_ALT_PRESSED			(1 << 3)
+#define BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE		(1 << 4)
+#define BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE			(1 << 5)
+#define BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE		(1 << 6)
+#define BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE			(1 << 7)
+
 #define BIOS_KEYBOARD_FLAGS2            0x418
 #define BIOS_KEYBOARD_TOKEN             0x419
 /* used for keyboard input with Alt-Number */
