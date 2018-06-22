@@ -456,15 +456,13 @@ static Bitu IRQ1_Handler(void) {
         } else {
             flags1 ^=0x10;flags2 &=~0x10;leds ^=0x01;break;     /* Scroll Lock released */
         }
-//  case 0x52:flags2|=128;break;//See numpad                    /* Insert */
-    case 0xd2:  
-        if(flags3&0x02) { /* Maybe honour the insert on keypad as well */
-            flags1^=0x80;
-            flags2&=~0x80;
-            break; 
-        } else {
-            goto irq1_end;/*Normal release*/ 
-        }
+    case 0xd2: /* NUMPAD insert, ironically, regular one is handled by 0x52 */
+		if (flags3 & BIOS_KEYBOARD_FLAGS3_HIDDEN_E0 || !(flags1 & BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE))
+		{
+			flags1 ^= BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE;
+			flags2 &= BIOS_KEYBOARD_FLAGS2_INSERT_PRESSED;
+		}
+	    break; 
     case 0x47:      /* Numpad */
     case 0x48:
     case 0x49:
