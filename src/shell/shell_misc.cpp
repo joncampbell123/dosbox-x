@@ -28,6 +28,7 @@
 #include "regs.h"
 #include "callback.h"
 #include "support.h"
+#include "ints/int10.h"
 #ifdef WIN32
 #include "../dos/cdrom.h"
 #endif 
@@ -98,6 +99,24 @@ void DOS_Shell::ShowPrompt(void) {
 static void outc(Bit8u c) {
 	Bit16u n=1;
 	DOS_WriteFile(STDOUT,&c,&n);
+}
+
+/*! \brief Sets the caret position for video mode 0.
+ *
+ * i.e. when column is 0, moves the caret to previous row/last column.
+ */
+void SetCaretPos()
+{
+	Bit8u col, row;
+	const Bit8u page(0);
+	INT10_GetCursorPos(&row, &col, page);
+
+	if (col != 0) 
+		return;
+
+	Bit16u cols;
+	INT10_GetScreenColumns(&cols);
+	INT10_SetCursorPos(row - 1, static_cast<Bit8u>(cols), page);
 }
 
 /* NTS: buffer pointed to by "line" must be at least CMD_MAXLINE+1 large */
@@ -208,6 +227,7 @@ void DOS_Shell::InputCommand(char * line) {
                 if (str_index) {
                     outc(8);
                     str_index --;
+                	SetCaretPos();
                 }
                 break;
 
@@ -253,6 +273,7 @@ void DOS_Shell::InputCommand(char * line) {
 					for (auto i = 0; i < lgt; i++) {
 						outc(8);
 						str_index--;
+						SetCaretPos();
 					}
 				}	
         		break;
