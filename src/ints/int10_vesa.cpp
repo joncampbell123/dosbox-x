@@ -155,7 +155,7 @@ Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
 	}
 	mem_writed(buffer+0x0a,0x0);					//Capabilities and flags
 	mem_writed(buffer+0x0e,int10.rom.vesa_modes);	//VESA Mode list
-	mem_writew(buffer+0x12,(Bit16u)(vga.vmemsize/(64*1024))); // memory size in 64kb blocks
+	mem_writew(buffer+0x12,(Bit16u)(vga.mem.memsize/(64*1024))); // memory size in 64kb blocks
 	return VESA_SUCCESS;
 }
 
@@ -300,11 +300,11 @@ foundit:
 		pageSize &= ~0xFFFFu;
 	}
 	Bitu pages = 0;
-	if (pageSize > vga.vmemsize) {
+	if (pageSize > vga.mem.memsize) {
 		// mode not supported by current hardware configuration
 		modeAttributes &= ~0x1;
 	} else if (pageSize) {
-		pages = (vga.vmemsize / pageSize)-1;
+		pages = (vga.mem.memsize / pageSize)-1;
 	}
 	var_write(&minfo.NumberOfImagePages, pages);
 	var_write(&minfo.ModeAttributes, modeAttributes);
@@ -351,7 +351,7 @@ Bit8u VESA_GetSVGAMode(Bit16u & mode) {
 
 Bit8u VESA_SetCPUWindow(Bit8u window,Bit8u address) {
 	if (window) return VESA_FAIL;
-	if (((Bit32u)(address)*64*1024<vga.vmemsize)) {
+	if (((Bit32u)(address)*64*1024<vga.mem.memsize)) {
 		IO_Write(0x3d4,0x6a);
 		IO_Write(0x3d5,(Bit8u)address);
 		return VESA_SUCCESS;
@@ -411,7 +411,7 @@ Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixe
 	// offset register: virtual scanline length
 	Bitu pixels_per_offset;
 	Bitu bytes_per_offset = 8;
-	Bitu vmemsize = vga.vmemsize;
+	Bitu vmemsize = vga.mem.memsize;
 	Bitu new_offset = vga.config.scan_len;
 	Bitu screen_height = CurMode->sheight;
 

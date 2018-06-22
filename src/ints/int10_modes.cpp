@@ -607,7 +607,7 @@ static void FinishSetMode(bool clearmem) {
 		case M_LIN24:
 		case M_LIN32:
 			/* Hack we just access the memory directly */
-			memset(vga.mem.linear,0,vga.vmemsize);
+			memset(vga.mem.linear,0,vga.mem.memsize);
 			break;
 		default:
 			break;
@@ -1677,9 +1677,9 @@ dac_text16:
 		IO_Write(crtc_base,0x31);IO_Write(crtc_base+1u,reg_31);	//Enable banked memory and 256k+ access
 
 		IO_Write(crtc_base,0x58);
-		if (vga.vmemsize >= (4*1024*1024))
+		if (vga.mem.memsize >= (4*1024*1024))
 			IO_Write(crtc_base+1u,0x3);		// 4+ MB window
-		else if (vga.vmemsize >= (2*1024*1024))
+		else if (vga.mem.memsize >= (2*1024*1024))
 			IO_Write(crtc_base+1u,0x2);		// 2 MB window
 		else
 			IO_Write(crtc_base+1u,0x1);		// 1 MB window
