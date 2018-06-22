@@ -143,19 +143,19 @@ void XGA_DrawPoint(Bitu x, Bitu y, Bitu c) {
 	   during windows dragging. */
 	switch(XGA_COLOR_MODE) {
 		case M_LIN8:
-			if (GCC_UNLIKELY(memaddr >= vga.vmemsize)) break;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
 			vga.mem.linear[memaddr] = c;
 			break;
 		case M_LIN15:
-			if (GCC_UNLIKELY(memaddr*2 >= vga.vmemsize)) break;
+			if (GCC_UNLIKELY(memaddr*2 >= vga.mem.memsize)) break;
 			((Bit16u*)(vga.mem.linear))[memaddr] = (Bit16u)(c&0x7fff);
 			break;
 		case M_LIN16:
-			if (GCC_UNLIKELY(memaddr*2 >= vga.vmemsize)) break;
+			if (GCC_UNLIKELY(memaddr*2 >= vga.mem.memsize)) break;
 			((Bit16u*)(vga.mem.linear))[memaddr] = (Bit16u)(c&0xffff);
 			break;
 		case M_LIN32:
-			if (GCC_UNLIKELY(memaddr*4 >= vga.vmemsize)) break;
+			if (GCC_UNLIKELY(memaddr*4 >= vga.mem.memsize)) break;
 			((Bit32u*)(vga.mem.linear))[memaddr] = c;
 			break;
 		default:
@@ -169,14 +169,14 @@ Bitu XGA_GetPoint(Bitu x, Bitu y) {
 
 	switch(XGA_COLOR_MODE) {
 	case M_LIN8:
-		if (GCC_UNLIKELY(memaddr >= vga.vmemsize)) break;
+		if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
 		return vga.mem.linear[memaddr];
 	case M_LIN15:
 	case M_LIN16:
-		if (GCC_UNLIKELY(memaddr*2 >= vga.vmemsize)) break;
+		if (GCC_UNLIKELY(memaddr*2 >= vga.mem.memsize)) break;
 		return ((Bit16u*)(vga.mem.linear))[memaddr];
 	case M_LIN32:
-		if (GCC_UNLIKELY(memaddr*4 >= vga.vmemsize)) break;
+		if (GCC_UNLIKELY(memaddr*4 >= vga.mem.memsize)) break;
 		return ((Bit32u*)(vga.mem.linear))[memaddr];
 	default:
 		break;

@@ -406,8 +406,13 @@ typedef union {
 } VGA_Latch;
 
 typedef struct {
-	Bit8u* linear;
-	Bit8u* linear_orgptr;
+	Bit8u* linear = NULL;
+	Bit8u* linear_orgptr = NULL;
+
+    uint32_t    memsize = 0;
+    uint32_t    memmask = 0;
+    uint32_t    memmask_cpu = 0;
+    uint32_t    memmask_crtc = 0;
 } VGA_Memory;
 
 typedef struct {
@@ -449,8 +454,6 @@ typedef struct {
 	VGA_OTHER other;
 	VGA_Memory mem;
 	Bit32u vmemwrap; /* this is assumed to be power of 2 */
-	Bit32u vmemsize;
-    Bit32u vmemsize_alloced;
 	VGA_LFB lfb;
 } VGA_Type;
 
