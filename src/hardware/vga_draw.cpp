@@ -1615,7 +1615,7 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
      * a point of reference how far to displace the scanline when wavy effects are
      * made */
     vga_display_start_hretrace = vga.crtc.start_horizontal_retrace;
-    vga.config.real_start=vga.config.display_start & (vga.vmemwrap-1);
+    vga.config.real_start=vga.config.display_start & vga.mem.memmask;
     vga.draw.bytes_skip = vga.config.bytes_skip;
 }
  
@@ -1821,7 +1821,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
     switch (vga.mode) {
     case M_EGA:
-        if (vga.vmemwrap >= 0x20000u) {
+        if (vga.mem.memmask >= 0x1FFFFu) {
             if (!(vga.crtc.mode_control&0x1u)) vga.draw.linear_mask &= ~0x10000u;
             else vga.draw.linear_mask |= 0x10000u;
         }
@@ -2501,7 +2501,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         break;
     }
     vga.draw.linear_base = vga.mem.linear;
-    vga.draw.linear_mask = vga.vmemwrap - 1;
+    vga.draw.linear_mask = vga.mem.memmask;
     vga.draw.planar_mask = vga.draw.linear_mask >> 2;
     Bitu pix_per_char = 8;
     switch (vga.mode) {

@@ -38,16 +38,16 @@
 
 #if C_VGARAM_CHECKED
 // Checked linear offset
-#define CHECKED(v) ((v)&(vga.vmemwrap-1))
+#define CHECKED(v) ((v)&vga.mem.memmask)
 // Checked planar offset (latched access)
-#define CHECKED2(v) ((v)&((vga.vmemwrap>>2)-1))
+#define CHECKED2(v) ((v)&(vga.mem.memmask>>2))
 #else
 #define CHECKED(v) (v)
 #define CHECKED2(v) (v)
 #endif
 
-#define CHECKED3(v) ((v)&(vga.vmemwrap-1))
-#define CHECKED4(v) ((v)&((vga.vmemwrap>>2)-1))
+#define CHECKED3(v) ((v)&vga.mem.memmask)
+#define CHECKED4(v) ((v)&(vga.mem.memmask>>2))
 
 #define TANDY_VIDBASE(_X_)  &MemBase[ 0x80000 + (_X_)]
 
@@ -2333,32 +2333,32 @@ void VGA_SetupHandlers(void) {
         switch (svgaCard) {
             case SVGA_TsengET3K:
             case SVGA_TsengET4K:
-                vgapages.mask = 0x1ffff & (vga.vmemwrap - 1);
+                vgapages.mask = 0x1ffff & vga.mem.memmask;
                 break;
                 /* NTS: Looking at the official ET4000 programming guide, it does in fact support the full 128KB */
             case SVGA_S3Trio:
             default:
-                vgapages.mask = 0xffff & (vga.vmemwrap - 1);
+                vgapages.mask = 0xffff & vga.mem.memmask;
                 break;
 		}
 		MEM_SetPageHandler(VGA_PAGE_A0, 32, newHandler );
 		break;
 	case 1:
 		vgapages.base = VGA_PAGE_A0;
-		vgapages.mask = 0xffff & (vga.vmemwrap - 1);
+		vgapages.mask = 0xffff & vga.mem.memmask;
 		MEM_SetPageHandler( VGA_PAGE_A0, 16, newHandler );
 		MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 16);
 		break;
 	case 2:
 		vgapages.base = VGA_PAGE_B0;
-		vgapages.mask = 0x7fff & (vga.vmemwrap - 1);
+		vgapages.mask = 0x7fff & vga.mem.memmask;
 		MEM_SetPageHandler( VGA_PAGE_B0, 8, newHandler );
         MEM_ResetPageHandler_Unmapped( VGA_PAGE_A0, 16 );
         MEM_ResetPageHandler_Unmapped( VGA_PAGE_B8, 8 );
         break;
 	case 3:
 		vgapages.base = VGA_PAGE_B8;
-		vgapages.mask = 0x7fff & (vga.vmemwrap - 1);
+		vgapages.mask = 0x7fff & vga.mem.memmask;
 		MEM_SetPageHandler( VGA_PAGE_B8, 8, newHandler );
         MEM_ResetPageHandler_Unmapped( VGA_PAGE_A0, 16 );
         MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 8 );
@@ -2441,9 +2441,6 @@ void VGA_SetupMemory() {
         /* may be related */
         VGA_SetupHandlers();
     }
-
-	// In most cases these values stay the same. Assumptions: vmemwrap is power of 2, vmemwrap <= vmemsize
-	vga.vmemwrap = vga.mem.memsize;
 
 	vga.svga.bank_read = vga.svga.bank_write = 0;
 	vga.svga.bank_read_full = vga.svga.bank_write_full = 0;

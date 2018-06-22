@@ -400,7 +400,7 @@ void FinishSetMode_ET4K(Bitu crtc_base, VGA_ModeExtraData* modeData) {
     // Verified (on real hardware and in a few games): Tseng ET4000 used chain4 implementation
     // different from standard VGA. It was also not limited to 64K in regular mode 13h.
     vga.config.compatible_chain4 = false;
-    vga.vmemwrap = vga.mem.memsize;
+//    vga.vmemwrap = vga.mem.memsize;
 
     VGA_SetupHandlers();
 }
@@ -919,7 +919,7 @@ void FinishSetMode_ET3K(Bitu crtc_base, VGA_ModeExtraData* modeData) {
     // Verified on functioning (at last!) hardware: Tseng ET3000 is the same as ET4000 when
     // it comes to chain4 architecture
     vga.config.compatible_chain4 = false;
-    vga.vmemwrap = vga.mem.memsize;
+//    vga.vmemwrap = vga.mem.memsize;
 
     VGA_SetupHandlers();
 }

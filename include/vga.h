@@ -453,7 +453,6 @@ typedef struct {
 	VGA_AMSTRAD amstrad;
 	VGA_OTHER other;
 	VGA_Memory mem;
-	Bit32u DEPRECATED vmemwrap; /* this is assumed to be power of 2 */
 	VGA_LFB lfb;
 } VGA_Type;
 

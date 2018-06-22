@@ -30,8 +30,8 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
 //TODO Base address
         vga.s3.reg_31 = val;
         vga.config.compatible_chain4 = !(val&0x08);
-        if (vga.config.compatible_chain4) vga.vmemwrap = 256*1024;
-        else vga.vmemwrap = vga.mem.memsize;
+//        if (vga.config.compatible_chain4) vga.vmemwrap = 256*1024;
+//        else vga.vmemwrap = vga.mem.memsize;
         vga.config.display_start = (vga.config.display_start&~0x30000ul)|((val&0x30u)<<12ul);
         VGA_DetermineMode();
         VGA_SetupHandlers();
