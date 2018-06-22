@@ -178,6 +178,8 @@ void INT10_DisplayCombinationCode(Bit16u * dcc,bool set);
 void INT10_GetFuncStateInformation(PhysPt save);
 
 void INT10_SetCursorShape(Bit8u first,Bit8u last);
+void INT10_GetScreenColumns(Bit16u* cols);
+void INT10_GetCursorPos(Bit8u *row, Bit8u *col, Bit8u page);
 void INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page);
 void INT10_TeletypeOutput(Bit8u chr,Bit8u attr);
 void INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr);
