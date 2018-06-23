@@ -2310,7 +2310,9 @@ void VGA_SetupHandlers(void) {
         /* EGA/VGA emulate CGA modes as chained */
         /* fall through */
 	case M_LIN8:
+	case M_LIN4:
 	case M_VGA:
+	case M_EGA:
         if (vga.config.chained) {
             if (vga.config.compatible_chain4) {
                 /* NTS: ET4000AX cards appear to have a different chain4 implementation from everyone else:
@@ -2332,11 +2334,6 @@ void VGA_SetupHandlers(void) {
             newHandler = &vgaph.uvga;
         }
         break;
-	case M_LIN4:
-	case M_EGA:
-        /* "Chained odd/even mode" on EGA is like unchained but with low bit odd/even remapping */
-        newHandler = &vgaph.uvga;
-        break;	
     case M_PC98:
 		newHandler = &vgaph.pc98;
 
