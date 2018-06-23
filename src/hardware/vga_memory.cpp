@@ -2311,41 +2311,27 @@ void VGA_SetupHandlers(void) {
         /* fall through */
 	case M_LIN8:
 	case M_VGA:
-		if (vga.config.chained) {
-#if 0
-			bool slow = false;
-
-			/* NTS: Most demos and games do not use the Graphics Controller ROPs or bitmask in chained
-			 *      VGA modes. But, for the few that do, we have a "slow and accurate" implementation
-			 *      that will handle these demos properly at the expense of some emulation speed.
-			 *
-			 *      This fixes:
-			 *        Impact Studios 'Legend' demo (1993) */
-			if (vga.config.full_bit_mask != 0xFFFFFFFF)
-				slow = true;
-#endif
-#if 0
-			if (/*slow || */vga.config.compatible_chain4) {
-#endif
-				/* NTS: ET4000AX cards appear to have a different chain4 implementation from everyone else:
-				 *      the planar memory byte address is address >> 2 and bits A0-A1 select the plane,
-				 *      where all other clones I've tested seem to write planar memory byte (address & ~3)
-				 *      (one byte per 4 bytes) and bits A0-A1 select the plane. */
-				/* FIXME: Different chain4 implementation on ET4000 noted---is it true also for ET3000? */
-				if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)
-					newHandler = /*slow ? */((PageHandler*)(&vgaph.cvga_et4000_slow))/* : ((PageHandler*)(&vgaph.cvga_et4000))*/;
-				else
-					newHandler = /*slow ? */((PageHandler*)(&vgaph.cvga_slow))/* : ((PageHandler*)(&vgaph.cvga))*/;
-#if 0
-			}
-			else {
-				newHandler = &vgaph.map;
-			}
-#endif
-		} else {
-			newHandler = &vgaph.uvga;
-		}
-		break;
+        if (vga.config.chained) {
+            if (vga.config.compatible_chain4) {
+                /* NTS: ET4000AX cards appear to have a different chain4 implementation from everyone else:
+                 *      the planar memory byte address is address >> 2 and bits A0-A1 select the plane,
+                 *      where all other clones I've tested seem to write planar memory byte (address & ~3)
+                 *      (one byte per 4 bytes) and bits A0-A1 select the plane. */
+                /* FIXME: Different chain4 implementation on ET4000 noted---is it true also for ET3000? */
+                if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)
+                    newHandler = &vgaph.cvga_et4000_slow;
+                else
+                    newHandler = &vgaph.cvga_slow;
+            }
+            else {
+                /* this is needed for SVGA modes (Paradise, Tseng, S3) because SVGA
+                 * modes do NOT use the chain4 configuration */
+                newHandler = &vgaph.map;
+            }
+        } else {
+            newHandler = &vgaph.uvga;
+        }
+        break;
 	case M_LIN4:
 	case M_EGA:
         /* "Chained odd/even mode" on EGA is like unchained but with low bit odd/even remapping */
