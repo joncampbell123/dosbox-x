@@ -1406,6 +1406,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("enable pci bus",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Enable PCI bus emulation");
 
+    Pbool = secprop->Add_bool("vga palette update on full load",Property::Changeable::Always,true);
+    Pbool->Set_help("If set, all three bytes of the palette entry must be loaded before taking the color,\n"
+                    "which is fairly typical SVGA behavior. If not set, partial changes are allowed.");
+
     Pbool = secprop->Add_bool("ignore odd-even mode in non-cga modes",Property::Changeable::Always,false);
     Pbool->Set_help("Some demoscene productions use VGA Mode X but accidentally enable odd/even mode.\n"
                     "Setting this option can correct for that and render the demo properly.\n"
