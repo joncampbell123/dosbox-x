@@ -505,7 +505,7 @@ static Bit8u * EGA_Draw_VGA_Planar_Xlat8_Line(Bitu vidstart, Bitu /*line*/) {
     Bit8u* temps = (Bit8u*) TempLine;
     Bit32u t1,t2,tmp;
 
-    if (vga.gfx.mode&0x10) { /* odd/even mode */
+    if (vga.seq.clocking_mode&4) { /* odd/even mode serialization */
         for (Bitu i = 0; i < ((vga.draw.line_length)+vga.draw.panning);) {
             t1 = t2 = *((Bit32u*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
             t1 = (t1 >> 4) & 0x0f0f0f0f;
