@@ -210,6 +210,7 @@ public:
 	}
 };
 
+#if 0
 class VGA_ChainedEGA_Handler : public PageHandler {
 public:
 	Bitu readHandler(PhysPt addr) {
@@ -276,7 +277,9 @@ public:
 		return ret;
 	}
 };
+#endif
 
+#if 0
 class VGA_UnchainedEGA_Handler : public VGA_UnchainedRead_Handler {
 public:
 	VGA_UnchainedEGA_Handler(Bitu flags) : VGA_UnchainedRead_Handler(flags) {}
@@ -318,6 +321,7 @@ public:
 		writeHandler<true>(addr+3,(Bit8u)(val >> 24));
 	}
 };
+#endif
 
 // Slow accurate emulation.
 // This version takes the Graphics Controller bitmask and ROPs into account.
@@ -399,6 +403,7 @@ public:
 	}
 };
 
+#if 0
 //Slighly unusual version, will directly write 8,16,32 bits values
 class VGA_ChainedVGA_Handler : public PageHandler {
 public:
@@ -479,7 +484,9 @@ public:
 		}
 	}
 };
+#endif
 
+#if 0
 // alternate version for ET4000 emulation.
 // ET4000 cards implement 256-color chain-4 differently than most cards.
 class VGA_ET4000_ChainedVGA_Handler : public PageHandler {
@@ -561,6 +568,7 @@ public:
 		}
 	}
 };
+#endif
 
 class VGA_ET4000_ChainedVGA_Slow_Handler : public PageHandler {
 public:
@@ -645,23 +653,6 @@ public:
 
 		/* Odd/even emulation, emulation fix for Windows 95's boot screen */
 		if (!(vga.seq.memory_mode&4)) {
-			/* You're probably wondering what the hell odd/even mode has to do with Windows 95's boot
-			 * screen, right? Well, hopefully you won't puke when you read the following...
-			 * 
-			 * When Windows 95 starts up and shows it's boot logo, it calls INT 10h to set mode 0x13.
-			 * But it calls INT 10h with AX=0x93 which means set mode 0x13 and don't clear VRAM. Then,
-			 * it uses mode X to write the logo to the BOTTOM half of VGA RAM, at 0x8000 to be exact,
-			 * and of course, reprograms the CRTC offset register to make that visible.
-			 * THEN, it reprograms the registers to map VRAM at 0xB800, disable Chain 4, re-enable
-			 * odd/even mode, and then allows both DOS and the BIOS to write to the top half of VRAM
-			 * as if still running in 80x25 alphanumeric text mode. It even sets the video mode byte
-			 * at 0x40:0x49 to 0x03 to continue the illusion!
-			 *
-			 * When Windows 95 is ready to restore text mode, it just switches back (this time, calling
-			 * the saved INT 10h pointer directly) again without clearing VRAM.
-			 *
-			 * So if you wonder why I would spend time implementing odd/even emulation for VGA unchained
-			 * mode... that's why. You can thank Microsoft for that. */
 			if (addr & 1) {
 				if (vga.seq.map_mask & 0x2) /* bitplane 1: attribute RAM */
 					pixels.b[1] = data >> 8;
@@ -1815,9 +1806,10 @@ public:
 	
 };
 
-class VGA_LIN4_Handler : public VGA_UnchainedEGA_Handler {
+#if 0
+class VGA_LIN4_Handler : public VGA_UnchainedVGA_Handler {
 public:
-	VGA_LIN4_Handler() : VGA_UnchainedEGA_Handler(PFLAG_NOCODE) {}
+	VGA_LIN4_Handler() : VGA_UnchainedVGA_Handler(PFLAG_NOCODE) {}
 	void writeb(PhysPt addr,Bitu val) {
 		VGAMEM_USEC_write_delay();
 		addr = vga.svga.bank_write_full + (PAGING_GetPhysicalAddress(addr) & 0xffff);
@@ -1865,6 +1857,7 @@ public:
 		return ret;
 	}
 };
+#endif
 
 class VGA_LFB_Handler : public PageHandler {
 public:
@@ -2165,16 +2158,16 @@ static struct vg {
 	VGA_TEXT_PageHandler		text;
 	VGA_CGATEXT_PageHandler		cgatext;
 	VGA_TANDY_PageHandler		tandy;
-	VGA_ChainedEGA_Handler		cega;
-	VGA_ChainedVGA_Handler		cvga;
+//	VGA_ChainedEGA_Handler		cega;
+//	VGA_ChainedVGA_Handler		cvga;
 	VGA_ChainedVGA_Slow_Handler	cvga_slow;
-	VGA_ET4000_ChainedVGA_Handler		cvga_et4000;
+//	VGA_ET4000_ChainedVGA_Handler		cvga_et4000;
 	VGA_ET4000_ChainedVGA_Slow_Handler	cvga_et4000_slow;
-	VGA_UnchainedEGA_Handler	uega;
+//	VGA_UnchainedEGA_Handler	uega;
 	VGA_UnchainedVGA_Handler	uvga;
 	VGA_PCJR_Handler			pcjr;
 	VGA_HERC_Handler			herc;
-	VGA_LIN4_Handler			lin4;
+//	VGA_LIN4_Handler			lin4;
 	VGA_LFB_Handler				lfb;
 	VGA_MMIO_Handler			mmio;
 	VGA_AMS_Handler				ams;
@@ -2261,9 +2254,6 @@ void VGA_SetupHandlers(void) {
 	case M_ERROR:
 	default:
 		return;
-	case M_LIN4:
-		newHandler = &vgaph.lin4;
-		break;	
 	case M_LIN15:
 	case M_LIN16:
 	case M_LIN24:
@@ -2273,6 +2263,7 @@ void VGA_SetupHandlers(void) {
 	case M_LIN8:
 	case M_VGA:
 		if (vga.config.chained) {
+#if 0
 			bool slow = false;
 
 			/* NTS: Most demos and games do not use the Graphics Controller ROPs or bitmask in chained
@@ -2283,30 +2274,35 @@ void VGA_SetupHandlers(void) {
 			 *        Impact Studios 'Legend' demo (1993) */
 			if (vga.config.full_bit_mask != 0xFFFFFFFF)
 				slow = true;
-
-			if (slow || vga.config.compatible_chain4) {
+#endif
+#if 0
+			if (/*slow || */vga.config.compatible_chain4) {
+#endif
 				/* NTS: ET4000AX cards appear to have a different chain4 implementation from everyone else:
 				 *      the planar memory byte address is address >> 2 and bits A0-A1 select the plane,
 				 *      where all other clones I've tested seem to write planar memory byte (address & ~3)
 				 *      (one byte per 4 bytes) and bits A0-A1 select the plane. */
 				/* FIXME: Different chain4 implementation on ET4000 noted---is it true also for ET3000? */
 				if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)
-					newHandler = slow ? ((PageHandler*)(&vgaph.cvga_et4000_slow)) : ((PageHandler*)(&vgaph.cvga_et4000));
+					newHandler = /*slow ? */((PageHandler*)(&vgaph.cvga_et4000_slow))/* : ((PageHandler*)(&vgaph.cvga_et4000))*/;
 				else
-					newHandler = slow ? ((PageHandler*)(&vgaph.cvga_slow)) : ((PageHandler*)(&vgaph.cvga));
+					newHandler = /*slow ? */((PageHandler*)(&vgaph.cvga_slow))/* : ((PageHandler*)(&vgaph.cvga))*/;
+#if 0
 			}
 			else {
 				newHandler = &vgaph.map;
 			}
+#endif
 		} else {
 			newHandler = &vgaph.uvga;
 		}
 		break;
+	case M_LIN4:
 	case M_EGA:
 		if (vga.config.chained) 
-			newHandler = &vgaph.cega;
+			newHandler = ((PageHandler*)(&vgaph.cvga_slow));
 		else
-			newHandler = &vgaph.uega;
+			newHandler = &vgaph.uvga;
 		break;	
 	case M_TEXT:
 	case M_CGA2:
