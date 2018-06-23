@@ -505,29 +505,57 @@ static Bit8u * EGA_Draw_VGA_Planar_Xlat8_Line(Bitu vidstart, Bitu /*line*/) {
     Bit8u* temps = (Bit8u*) TempLine;
     Bit32u t1,t2,tmp;
 
-    for (Bitu i = 0; i < ((vga.draw.line_length)+vga.draw.panning); i += 8) {
-        t1 = t2 = *((Bit32u*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
-        t1 = (t1 >> 4) & 0x0f0f0f0f;
-        t2 &= 0x0f0f0f0f;
-        vidstart += 4;
+    if (vga.gfx.mode&0x10) { /* odd/even mode */
+        for (Bitu i = 0; i < ((vga.draw.line_length)+vga.draw.panning);) {
+            t1 = t2 = *((Bit32u*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
+            t1 = (t1 >> 4) & 0x0f0f0f0f;
+            t2 &= 0x0f0f0f0f;
+            vidstart += 4 * 2;
+            if (vidstart > vga.draw.linear_mask)
+                vidstart = (vidstart + 4u) & vga.draw.linear_mask;
 
-        tmp =   Expand16Table[0][(t1>>0)&0xFF] |
-            Expand16Table[1][(t1>>8)&0xFF] |
-            Expand16Table[2][(t1>>16)&0xFF] |
-            Expand16Table[3][(t1>>24)&0xFF];
-        temps[i+0] = vga.attr.palette[(tmp>>0)&0xFF];
-        temps[i+1] = vga.attr.palette[(tmp>>8)&0xFF];
-        temps[i+2] = vga.attr.palette[(tmp>>16)&0xFF];
-        temps[i+3] = vga.attr.palette[(tmp>>24)&0xFF];
+            for (Bitu w = 0;w < 2;w++,t1>>=8,t2>>=8,i+=8) {
+                tmp =   Expand16Table[0][(t1>>0)&0xFF] |
+                    Expand16Table[2][(t1>>16)&0xFF];
+                temps[i+0] = vga.attr.palette[(tmp>>0)&0xFF];
+                temps[i+1] = vga.attr.palette[(tmp>>8)&0xFF];
+                temps[i+2] = vga.attr.palette[(tmp>>16)&0xFF];
+                temps[i+3] = vga.attr.palette[(tmp>>24)&0xFF];
 
-        tmp =   Expand16Table[0][(t2>>0)&0xFF] |
-            Expand16Table[1][(t2>>8)&0xFF] |
-            Expand16Table[2][(t2>>16)&0xFF] |
-            Expand16Table[3][(t2>>24)&0xFF];
-        temps[i+4] = vga.attr.palette[(tmp>>0)&0xFF];
-        temps[i+5] = vga.attr.palette[(tmp>>8)&0xFF];
-        temps[i+6] = vga.attr.palette[(tmp>>16)&0xFF];
-        temps[i+7] = vga.attr.palette[(tmp>>24)&0xFF];
+                tmp =   Expand16Table[0][(t2>>0)&0xFF] |
+                    Expand16Table[2][(t2>>16)&0xFF];
+                temps[i+4] = vga.attr.palette[(tmp>>0)&0xFF];
+                temps[i+5] = vga.attr.palette[(tmp>>8)&0xFF];
+                temps[i+6] = vga.attr.palette[(tmp>>16)&0xFF];
+                temps[i+7] = vga.attr.palette[(tmp>>24)&0xFF];
+            }
+        }
+    }
+    else {
+        for (Bitu i = 0; i < ((vga.draw.line_length)+vga.draw.panning); i += 8) {
+            t1 = t2 = *((Bit32u*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
+            t1 = (t1 >> 4) & 0x0f0f0f0f;
+            t2 &= 0x0f0f0f0f;
+            vidstart += 4;
+
+            tmp =   Expand16Table[0][(t1>>0)&0xFF] |
+                Expand16Table[1][(t1>>8)&0xFF] |
+                Expand16Table[2][(t1>>16)&0xFF] |
+                Expand16Table[3][(t1>>24)&0xFF];
+            temps[i+0] = vga.attr.palette[(tmp>>0)&0xFF];
+            temps[i+1] = vga.attr.palette[(tmp>>8)&0xFF];
+            temps[i+2] = vga.attr.palette[(tmp>>16)&0xFF];
+            temps[i+3] = vga.attr.palette[(tmp>>24)&0xFF];
+
+            tmp =   Expand16Table[0][(t2>>0)&0xFF] |
+                Expand16Table[1][(t2>>8)&0xFF] |
+                Expand16Table[2][(t2>>16)&0xFF] |
+                Expand16Table[3][(t2>>24)&0xFF];
+            temps[i+4] = vga.attr.palette[(tmp>>0)&0xFF];
+            temps[i+5] = vga.attr.palette[(tmp>>8)&0xFF];
+            temps[i+6] = vga.attr.palette[(tmp>>16)&0xFF];
+            temps[i+7] = vga.attr.palette[(tmp>>24)&0xFF];
+        }
     }
 
     return TempLine + (vga.draw.panning);
