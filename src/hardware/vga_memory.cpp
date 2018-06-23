@@ -153,6 +153,9 @@ static struct {
 } vgapages;
 
 static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsigned char plane) {
+    const unsigned char hobit_n = (vga.seq.memory_mode&2/*Extended Memory*/) ? 16u : 14u;
+    const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
+
     /* Sequencer Memory Mode Register (04h)
      * bits[3:3] = Chain 4 enable
      * bits[2:2] = Odd/Even Host Memory Write Addressing Disable
@@ -173,15 +176,16 @@ static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsi
      * Then when addressing VRAM A0 is replaced by a "higher order bit", which is
      * probably A14 or A16 depending on Extended Memory bit 1 in Sequencer register 04h memory mode */
     if (vga.gfx.miscellaneous&2) {/* Odd/Even enable */
-        /* NTS: This is a GUESS based on EGA/VGA hardware */
-        const unsigned char hobit_n = (vga.seq.memory_mode&2/*Extended Memory*/) ? 16u : 14u;
-        const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
         const PhysPt mask = (1u << hobit_n) - 2u;
         /* 1 << 14 =     0x4000
          * 1 << 14 - 1 = 0x3FFF
          * 1 << 14 - 2 = 0x3FFE
          * The point is to mask upper bit AND the LSB */
         planeaddr = (planeaddr & mask) + hobit;
+    }
+    else {
+        const PhysPt mask = (1u << hobit_n) - 1u;
+        planeaddr &= mask;
     }
 
     vga.latch.d=((Bit32u*)vga.mem.linear)[planeaddr];
@@ -198,6 +202,8 @@ static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsi
 }
 
 template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysPt planeaddr,PhysPt rawaddr,Bit8u val) {
+    const unsigned char hobit_n = (vga.seq.memory_mode&2/*Extended Memory*/) ? 16u : 14u;
+    const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
     Bit32u mask = vga.config.full_map_mask;
 
     /* Sequencer Memory Mode Register (04h)
@@ -228,15 +234,16 @@ template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysP
      * Then when addressing VRAM A0 is replaced by a "higher order bit", which is
      * probably A14 or A16 depending on Extended Memory bit 1 in Sequencer register 04h memory mode */
     if (vga.gfx.miscellaneous&2) {/* Odd/Even enable */
-        /* NTS: This is a GUESS based on EGA/VGA hardware */
-        const unsigned char hobit_n = (vga.seq.memory_mode&2/*Extended Memory*/) ? 16u : 14u;
-        const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
-        const PhysPt hmask = (1u << hobit_n) - 2u;
+        const PhysPt mask = (1u << hobit_n) - 2u;
         /* 1 << 14 =     0x4000
          * 1 << 14 - 1 = 0x3FFF
          * 1 << 14 - 2 = 0x3FFE
          * The point is to mask upper bit AND the LSB */
-        planeaddr = (planeaddr & hmask) + hobit;
+        planeaddr = (planeaddr & mask) + hobit;
+    }
+    else {
+        const PhysPt mask = (1u << hobit_n) - 1u;
+        planeaddr &= mask;
     }
 
     Bit32u data=ModeOperation(val);
