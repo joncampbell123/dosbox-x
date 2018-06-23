@@ -181,7 +181,6 @@ static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsi
          * 1 << 14 - 1 = 0x3FFF
          * 1 << 14 - 2 = 0x3FFE
          * The point is to mask upper bit AND the LSB */
-
         planeaddr = (planeaddr & mask) + hobit;
     }
 
@@ -207,12 +206,15 @@ template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysP
      * bits[1:1] = Extended memory (when EGA cards have > 64KB of RAM)
      * 
      * NTS: Real hardware experience says that despite the name, the Odd/Even bit affects reading as well */
-
     if (chained) {
         if (!(vga.seq.memory_mode&4))/* Odd Even Host Memory Write Addressing Disable (is not set) */
             mask &= 0xFF00FFu << ((rawaddr & 1u) * 8u);
         else
             mask &= 0xFFu << ((rawaddr & 3u) * 8u);
+    }
+    else {
+        if (!(vga.seq.memory_mode&4))/* Odd Even Host Memory Write Addressing Disable (is not set) */
+            mask &= 0xFF00FFu << ((rawaddr & 1u) * 8u);
     }
 
     /* Graphics Controller: Miscellaneous Graphics Register register (06h)
@@ -229,13 +231,12 @@ template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysP
         /* NTS: This is a GUESS based on EGA/VGA hardware */
         const unsigned char hobit_n = (vga.seq.memory_mode&2/*Extended Memory*/) ? 16u : 14u;
         const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
-        const PhysPt mask = (1u << hobit_n) - 2u;
+        const PhysPt hmask = (1u << hobit_n) - 2u;
         /* 1 << 14 =     0x4000
          * 1 << 14 - 1 = 0x3FFF
          * 1 << 14 - 2 = 0x3FFE
          * The point is to mask upper bit AND the LSB */
-
-        planeaddr = (planeaddr & mask) + hobit;
+        planeaddr = (planeaddr & hmask) + hobit;
     }
 
     Bit32u data=ModeOperation(val);
