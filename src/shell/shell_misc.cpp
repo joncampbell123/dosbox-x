@@ -28,7 +28,7 @@
 #include "regs.h"
 #include "callback.h"
 #include "support.h"
-#include "ints/int10.h"
+#include "../ints/int10.h"
 #ifdef WIN32
 #include "../dos/cdrom.h"
 #endif 
