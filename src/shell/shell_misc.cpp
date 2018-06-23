@@ -525,7 +525,7 @@ void DOS_Shell::InputCommand(char * line) {
             default:
                 if (cr >= 0x100) break;
                 if (l_completion.size()) l_completion.clear();
-                if(str_index < str_len && true) { //mem_readb(BIOS_KEYBOARD_FLAGS1)&0x80) dev_con.h ?
+                if(str_index < str_len && !INT10_GetInsertState()) { //mem_readb(BIOS_KEYBOARD_FLAGS1)&0x80) dev_con.h ?
                     outc(' ');//move cursor one to the right.
                     Bit16u a = str_len - str_index;
                     Bit8u* text=reinterpret_cast<Bit8u*>(&line[str_index]);
