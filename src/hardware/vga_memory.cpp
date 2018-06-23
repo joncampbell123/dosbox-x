@@ -619,13 +619,12 @@ public:
 	static INLINE Bitu readHandler8(PhysPt addr ) {
         // planar byte offset = addr >> 2       (shift 2 bits to the right)
         // planer index = addr & 3u             (use low 2 bits as plane index)
-        // FIXME: Does chained mode use the lower 2 bits of the CPU address or does it use the read mode select???
         return VGA_Generic_Read_Handler(addr>>2u, addr, addr&3u);
 	}
 	static INLINE void writeHandler8(PhysPt addr, Bitu val) {
-        // planar byte offset = addr & ~3u      (discard low 2 bits)
+        // planar byte offset = addr >> 2       (shift 2 bits to the right)
         // planer index = addr & 3u             (use low 2 bits as plane index)
-        return VGA_Generic_Write_Handler<true/*chained*/>(addr&~3u, addr, val);
+        return VGA_Generic_Write_Handler<true/*chained*/>(addr>>2u, addr, val);
 	}
 	Bitu readb(PhysPt addr ) {
 		VGAMEM_USEC_read_delay();
