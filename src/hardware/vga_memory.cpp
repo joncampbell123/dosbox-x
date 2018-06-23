@@ -32,6 +32,9 @@
 #include "pc98_cg.h"
 #include "pc98_gdc.h"
 
+extern bool non_cga_ignore_oddeven;
+extern bool non_cga_ignore_oddeven_engage;
+
 #ifndef C_VGARAM_CHECKED
 #define C_VGARAM_CHECKED 1
 #endif
@@ -161,7 +164,7 @@ static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsi
      * bits[1:1] = Extended memory (when EGA cards have > 64KB of RAM)
      * 
      * NTS: Real hardware experience says that despite the name, the Odd/Even bit affects reading as well */
-    if (!(vga.seq.memory_mode&4))/* Odd Even Host Memory Write Addressing Disable (is not set) */
+    if (!(vga.seq.memory_mode&4) && !non_cga_ignore_oddeven_engage)/* Odd Even Host Memory Write Addressing Disable (is not set) */
         plane = (plane & ~1u) + (rawaddr & 1u);
 
     /* Graphics Controller: Miscellaneous Graphics Register register (06h)
@@ -174,7 +177,7 @@ static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsi
      * When enabled, address bit A0 (bit 0) becomes bit 0 of the plane index.
      * Then when addressing VRAM A0 is replaced by a "higher order bit", which is
      * probably A14 or A16 depending on Extended Memory bit 1 in Sequencer register 04h memory mode */
-    if (vga.gfx.miscellaneous&2) {/* Odd/Even enable */
+    if ((vga.gfx.miscellaneous&2) && !non_cga_ignore_oddeven_engage) {/* Odd/Even enable */
         const PhysPt mask = (1u << hobit_n) - 2u;
         const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
         /* 1 << 14 =     0x4000
@@ -212,13 +215,13 @@ template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysP
      * 
      * NTS: Real hardware experience says that despite the name, the Odd/Even bit affects reading as well */
     if (chained) {
-        if (!(vga.seq.memory_mode&4))/* Odd Even Host Memory Write Addressing Disable (is not set) */
+        if (!(vga.seq.memory_mode&4) && !non_cga_ignore_oddeven_engage)/* Odd Even Host Memory Write Addressing Disable (is not set) */
             mask &= 0xFF00FFu << ((rawaddr & 1u) * 8u);
         else
             mask &= 0xFFu << ((rawaddr & 3u) * 8u);
     }
     else {
-        if (!(vga.seq.memory_mode&4))/* Odd Even Host Memory Write Addressing Disable (is not set) */
+        if (!(vga.seq.memory_mode&4) && !non_cga_ignore_oddeven_engage)/* Odd Even Host Memory Write Addressing Disable (is not set) */
             mask &= 0xFF00FFu << ((rawaddr & 1u) * 8u);
     }
 
@@ -232,7 +235,7 @@ template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysP
      * When enabled, address bit A0 (bit 0) becomes bit 0 of the plane index.
      * Then when addressing VRAM A0 is replaced by a "higher order bit", which is
      * probably A14 or A16 depending on Extended Memory bit 1 in Sequencer register 04h memory mode */
-    if (vga.gfx.miscellaneous&2) {/* Odd/Even enable */
+    if ((vga.gfx.miscellaneous&2) && !non_cga_ignore_oddeven_engage) {/* Odd/Even enable */
         const PhysPt mask = (1u << hobit_n) - 2u;
         const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
         /* 1 << 14 =     0x4000
@@ -2394,6 +2397,9 @@ void VGA_SetupHandlers(void) {
 	}
 	if(svgaCard == SVGA_S3Trio && (vga.s3.ext_mem_ctrl & 0x10))
 		MEM_SetPageHandler(VGA_PAGE_A0, 16, &vgaph.mmio);
+
+    non_cga_ignore_oddeven_engage = (non_cga_ignore_oddeven && !(vga.mode == M_TEXT || vga.mode == M_CGA2 || vga.mode == M_CGA4));
+
 range_done:
 	PAGING_ClearTLB();
 }

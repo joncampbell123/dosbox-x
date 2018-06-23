@@ -181,6 +181,8 @@ bool vga_sierra_lock_565 = false;
 bool enable_vga_resize_delay = false;
 bool vga_ignore_hdispend_change_if_smaller = false;
 bool ignore_vblank_wraparound = false;
+bool non_cga_ignore_oddeven = false;
+bool non_cga_ignore_oddeven_engage = false;
 bool vga_double_buffered_line_compare = false;
 bool pc98_allow_scanline_effect = true;
 bool pc98_allow_4_display_partitions = false;
@@ -587,6 +589,7 @@ void VGA_Reset(Section*) {
     ignore_vblank_wraparound = section->Get_bool("ignore vblank wraparound");
     vga_enable_hretrace_effects = section->Get_bool("allow hretrace effects");
     enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
+    non_cga_ignore_oddeven = section->Get_bool("ignore odd-even mode in non-cga modes");
     enable_vretrace_poll_debugging_marker = section->Get_bool("vertical retrace poll debug line");
     vga_double_buffered_line_compare = section->Get_bool("double-buffered line compare");
     hack_lfb_yadjust = section->Get_int("vesa lfb base scanline adjust");
