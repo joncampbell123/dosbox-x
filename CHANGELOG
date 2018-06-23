@@ -1,4 +1,7 @@
 TODO add version
+  - Improved shell:
+    - Ctrl+Left and Ctrl+Right permits word-navigation.
+    - Added emulation of 'Ins' key behavior.
   - Num Lock stays on at startup and is synchronized with host
     when DOSBox-X window gains focus (Windows). (Aybe)
   - Added visual feedback to Hat/D-pad buttons in mapper. (Aybe)
