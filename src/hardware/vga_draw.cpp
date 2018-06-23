@@ -507,12 +507,13 @@ static Bit8u * EGA_Draw_VGA_Planar_Xlat8_Line(Bitu vidstart, Bitu /*line*/) {
 
     if (vga.seq.clocking_mode&4) { /* odd/even mode serialization */
         for (Bitu i = 0; i < ((vga.draw.line_length)+vga.draw.panning);) {
+            if (vidstart > vga.draw.linear_mask)
+                vidstart = (vidstart + 4u) & vga.draw.linear_mask;
+
             t1 = t2 = *((Bit32u*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
             t1 = (t1 >> 4) & 0x0f0f0f0f;
             t2 &= 0x0f0f0f0f;
             vidstart += 4 * 2;
-            if (vidstart > vga.draw.linear_mask)
-                vidstart = (vidstart + 4u) & vga.draw.linear_mask;
 
             for (Bitu w = 0;w < 2;w++,t1>>=8,t2>>=8,i+=8) {
                 tmp =   Expand16Table[0][(t1>>0)&0xFF] |
