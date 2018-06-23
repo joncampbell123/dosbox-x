@@ -5113,15 +5113,11 @@ void DrawDOSBoxLogoPC98(unsigned int x,unsigned int y) {
 void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
     unsigned char *s = dosbox_vga16_bmp;
     unsigned char *sf = s + sizeof(dosbox_vga16_bmp);
-    unsigned char gfx5 = 0x00;
     unsigned int bit,dx,dy;
     uint32_t width,height;
     uint32_t vram;
     uint32_t off;
     uint32_t sz;
-
-    if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350)
-        gfx5 |= 0x10;
 
     if (memcmp(s,"BM",2)) return;
     sz = host_readd(s+2); // size of total bitmap
@@ -5141,7 +5137,7 @@ void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
     // EGA/VGA Write Mode 2
     LOG(LOG_MISC,LOG_DEBUG)("Drawing VGA logo (%u x %u)",(int)width,(int)height);
     IO_Write(0x3CE,0x05); // graphics mode
-    IO_Write(0x3CF,0x02|gfx5); // read=0 write=2 odd/even=0 shift=0 shift256=0
+    IO_Write(0x3CF,0x02); // read=0 write=2 odd/even=0 shift=0 shift256=0
     IO_Write(0x3CE,0x03); // data rotate
     IO_Write(0x3CE,0x00); // no rotate, no XOP
     for (bit=0;bit < 8;bit++) {
@@ -5163,7 +5159,7 @@ void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
     }
     // restore write mode 0
     IO_Write(0x3CE,0x05); // graphics mode
-    IO_Write(0x3CF,0x00|gfx5); // read=0 write=0 odd/even=0 shift=0 shift256=0
+    IO_Write(0x3CF,0x00); // read=0 write=0 odd/even=0 shift=0 shift256=0
     IO_Write(0x3CE,0x08); // bit mask
     IO_Write(0x3CF,0xFF);
 }
