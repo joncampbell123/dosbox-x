@@ -261,7 +261,6 @@ void DOS_Shell::InputCommand(char * line) {
 					}
 					else {
 						while(*pos != ' ') pos--;
-						while(*pos == ' ') pos--;
 						pos++;
 					}
 					
