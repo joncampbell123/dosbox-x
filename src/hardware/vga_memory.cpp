@@ -152,18 +152,42 @@ static struct {
 	Bitu base, mask;
 } vgapages;
 
-static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,unsigned char plane) {
-    const PhysPt o_planeaddr = planeaddr;
+static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsigned char plane) {
+    /* Sequencer Memory Mode Register (04h)
+     * bits[3:3] = Chain 4 enable
+     * bits[2:2] = Odd/Even Host Memory Write Addressing Disable
+     * bits[1:1] = Extended memory (when EGA cards have > 64KB of RAM)
+     * 
+     * NTS: Real hardware experience says that despite the name, the Odd/Even bit affects reading as well */
+    if (!(vga.seq.memory_mode&4))/* Odd Even Host Memory Write Addressing Disable (is not set) */
+        plane = (plane & ~1u) + (rawaddr & 1u);
 
-    if (vga.gfx.miscellaneous&2) /* Odd/Even mode */
-        planeaddr &= ~1u;
+    /* Graphics Controller: Miscellaneous Graphics Register register (06h)
+     * bits[3:2] = memory map select
+     * bits[1:1] = Chain Odd/Even Enable
+     * bits[0:0] = Alphanumeric Mode Disable
+     *
+     * http://www.osdever.net/FreeVGA/vga/graphreg.htm
+     *
+     * When enabled, address bit A0 (bit 0) becomes bit 0 of the plane index.
+     * Then when addressing VRAM A0 is replaced by a "higher order bit", which is
+     * probably A14 or A16 depending on Extended Memory bit 1 in Sequencer register 04h memory mode */
+    if (vga.gfx.miscellaneous&2) {/* Odd/Even enable */
+        /* NTS: This is a GUESS based on EGA/VGA hardware */
+        const unsigned char hobit_n = (vga.seq.memory_mode&2/*Extended Memory*/) ? 16u : 14u;
+        const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
+        const PhysPt mask = (1u << hobit_n) - 2u;
+        /* 1 << 14 =     0x4000
+         * 1 << 14 - 1 = 0x3FFF
+         * 1 << 14 - 2 = 0x3FFE
+         * The point is to mask upper bit AND the LSB */
+
+        planeaddr = (planeaddr & mask) + hobit;
+    }
 
     vga.latch.d=((Bit32u*)vga.mem.linear)[planeaddr];
     switch (vga.config.read_mode) {
         case 0:
-            if (!(vga.seq.memory_mode&4) && (vga.gfx.miscellaneous&2)) /* FIXME: How exactly do SVGA cards determine this? */
-                plane = (plane & ~1u) + (o_planeaddr & 1u); /* FIXME: Is this what VGA cards do? It makes sense to me */
-
             return (vga.latch.b[plane]);
         case 1:
             VGA_Latch templatch;
@@ -177,7 +201,7 @@ class VGA_UnchainedRead_Handler : public PageHandler {
 public:
 	VGA_UnchainedRead_Handler(Bitu flags) : PageHandler(flags) {}
 	Bitu readHandler(PhysPt start) {
-        return VGA_Generic_Read_Handler(start, vga.config.read_map_select);
+        return VGA_Generic_Read_Handler(start, start, vga.config.read_map_select);
 	}
 public:
 	Bitu readb(PhysPt addr) {
@@ -340,7 +364,7 @@ public:
         // planar byte offset = addr & ~3u      (discard low 2 bits)
         // planer index = addr & 3u             (use low 2 bits as plane index)
         // FIXME: Does chained mode use the lower 2 bits of the CPU address or does it use the read mode select???
-        return VGA_Generic_Read_Handler(addr&~3u, addr&3u);
+        return VGA_Generic_Read_Handler(addr&~3u, addr, addr&3u);
 	}
 	static INLINE void writeHandler8(PhysPt addr, Bitu val) {
 		VGA_Latch pixels;
@@ -578,7 +602,7 @@ public:
         // planar byte offset = addr >> 2       (shift 2 bits to the right)
         // planer index = addr & 3u             (use low 2 bits as plane index)
         // FIXME: Does chained mode use the lower 2 bits of the CPU address or does it use the read mode select???
-        return VGA_Generic_Read_Handler(addr>>2u, addr&3u);
+        return VGA_Generic_Read_Handler(addr>>2u, addr, addr&3u);
 	}
 	static INLINE void writeHandler8(PhysPt addr, Bitu val) {
 		VGA_Latch pixels;
@@ -2263,6 +2287,11 @@ void VGA_SetupHandlers(void) {
 	case M_LIN32:
 		newHandler = &vgaph.map;
 		break;
+	case M_TEXT:
+	case M_CGA2:
+	case M_CGA4:
+        /* EGA/VGA emulate CGA modes as chained */
+        /* fall through */
 	case M_LIN8:
 	case M_VGA:
 		if (vga.config.chained) {
@@ -2302,16 +2331,9 @@ void VGA_SetupHandlers(void) {
 		break;
 	case M_LIN4:
 	case M_EGA:
-		if (vga.config.chained) 
-			newHandler = ((PageHandler*)(&vgaph.cvga_slow));
-		else
-			newHandler = &vgaph.uvga;
-		break;	
-	case M_TEXT:
-	case M_CGA2:
-	case M_CGA4:
-		newHandler = &vgaph.text;
-		break;
+        /* "Chained odd/even mode" on EGA is like unchained but with low bit odd/even remapping */
+        newHandler = &vgaph.uvga;
+        break;	
     case M_PC98:
 		newHandler = &vgaph.pc98;
 
