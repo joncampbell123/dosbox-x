@@ -151,34 +151,33 @@ INLINE static Bit32u ModeOperation(Bit8u val) {
 static struct {
 	Bitu base, mask;
 } vgapages;
-	
+
+static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,unsigned char plane) {
+    const PhysPt o_planeaddr = planeaddr;
+
+    if (vga.gfx.miscellaneous&2) /* Odd/Even mode */
+        planeaddr &= ~1u;
+
+    vga.latch.d=((Bit32u*)vga.mem.linear)[planeaddr];
+    switch (vga.config.read_mode) {
+        case 0:
+            if (!(vga.seq.memory_mode&4) && (vga.gfx.miscellaneous&2)) /* FIXME: How exactly do SVGA cards determine this? */
+                plane = (plane & ~1u) + (o_planeaddr & 1u); /* FIXME: Is this what VGA cards do? It makes sense to me */
+
+            return (vga.latch.b[plane]);
+        case 1:
+            VGA_Latch templatch;
+            templatch.d=(vga.latch.d & FillTable[vga.config.color_dont_care]) ^ FillTable[vga.config.color_compare & vga.config.color_dont_care];
+            return (Bit8u)~(templatch.b[0] | templatch.b[1] | templatch.b[2] | templatch.b[3]);
+    }
+    return 0;
+}
+
 class VGA_UnchainedRead_Handler : public PageHandler {
 public:
 	VGA_UnchainedRead_Handler(Bitu flags) : PageHandler(flags) {}
 	Bitu readHandler(PhysPt start) {
-		PhysPt memstart = start;
-		unsigned char bplane;
-
-		if (vga.gfx.miscellaneous&2) /* Odd/Even mode */
-			memstart &= ~1u;
-
-		vga.latch.d=((Bit32u*)vga.mem.linear)[memstart];
-		switch (vga.config.read_mode) {
-			case 0:
-				bplane = vga.config.read_map_select;
-				/* NTS: We check the sequencer AND the GC to know whether we mask the bitplane line this,
-				 *      even though in TEXT mode we only check the sequencer. Without this extra check,
-				 *      Windows 95 and Windows 3.1 will exhibit glitches in the standard VGA 640x480x16
-				 *      planar mode */
-				if (!(vga.seq.memory_mode&4) && (vga.gfx.miscellaneous&2)) /* FIXME: How exactly do SVGA cards determine this? */
-					bplane = (bplane & ~1u) + (start & 1u); /* FIXME: Is this what VGA cards do? It makes sense to me */
-				return (vga.latch.b[bplane]);
-			case 1:
-				VGA_Latch templatch;
-				templatch.d=(vga.latch.d & FillTable[vga.config.color_dont_care]) ^ FillTable[vga.config.color_compare & vga.config.color_dont_care];
-				return (Bit8u)~(templatch.b[0] | templatch.b[1] | templatch.b[2] | templatch.b[3]);
-		}
-		return 0;
+        return VGA_Generic_Read_Handler(start, vga.config.read_map_select);
 	}
 public:
 	Bitu readb(PhysPt addr) {
@@ -338,9 +337,10 @@ class VGA_ChainedVGA_Slow_Handler : public PageHandler {
 public:
 	VGA_ChainedVGA_Slow_Handler() : PageHandler(PFLAG_NOCODE) {}
 	static INLINE Bitu readHandler8(PhysPt addr ) {
-        // FIXME: I just noticed this does not implement Read Mode 1
-		vga.latch.d=((Bit32u*)vga.mem.linear)[addr&~3u];
-		return vga.latch.b[addr&3];
+        // planar byte offset = addr & ~3u      (discard low 2 bits)
+        // planer index = addr & 3u             (use low 2 bits as plane index)
+        // FIXME: Does chained mode use the lower 2 bits of the CPU address or does it use the read mode select???
+        return VGA_Generic_Read_Handler(addr&~3u, addr&3u);
 	}
 	static INLINE void writeHandler8(PhysPt addr, Bitu val) {
 		VGA_Latch pixels;
@@ -575,9 +575,10 @@ class VGA_ET4000_ChainedVGA_Slow_Handler : public PageHandler {
 public:
 	VGA_ET4000_ChainedVGA_Slow_Handler() : PageHandler(PFLAG_NOCODE) {}
 	static INLINE Bitu readHandler8(PhysPt addr ) {
-        // FIXME: I just noticed this does not implement Read Mode 1
-		vga.latch.d=((Bit32u*)vga.mem.linear)[addr>>2];
-		return vga.latch.b[addr&3];
+        // planar byte offset = addr >> 2       (shift 2 bits to the right)
+        // planer index = addr & 3u             (use low 2 bits as plane index)
+        // FIXME: Does chained mode use the lower 2 bits of the CPU address or does it use the read mode select???
+        return VGA_Generic_Read_Handler(addr>>2u, addr&3u);
 	}
 	static INLINE void writeHandler8(PhysPt addr, Bitu val) {
 		VGA_Latch pixels;
