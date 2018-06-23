@@ -1850,7 +1850,7 @@ restart_int:
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
             return;
         }
-        if(fseeko64(f,(off_t)(size-1ull),SEEK_SET)) {
+        if(fseeko64(f,static_cast<unsigned long long>(size - 1ull),SEEK_SET)) {
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
             return;
         }
