@@ -37,7 +37,7 @@ void VGA_CheckAddrShift() {
     //Byte,word,dword mode
     if ( IS_VGA_ARCH && crtc(underline_location) & 0x40 )
         vga.config.addr_shift = 2u;
-    else if ( IS_EGA_ARCH && crtc( mode_control) & 0x40 )
+    else if ( IS_EGAVGA_ARCH && crtc( mode_control) & 0x40 )
         vga.config.addr_shift = 0u;
     else
         vga.config.addr_shift = 1u;
