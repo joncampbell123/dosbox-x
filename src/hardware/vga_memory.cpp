@@ -210,7 +210,7 @@ template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysP
 
     if (chained) {
         if (!(vga.seq.memory_mode&4))/* Odd Even Host Memory Write Addressing Disable (is not set) */
-            mask &= 0xFF00FFu << ((rawaddr & 2u) * 4u);
+            mask &= 0xFF00FFu << ((rawaddr & 1u) * 8u);
         else
             mask &= 0xFFu << ((rawaddr & 3u) * 8u);
     }
@@ -244,6 +244,11 @@ template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysP
     pixels.d =((Bit32u*)vga.mem.linear)[planeaddr];
     pixels.d&=~mask;
     pixels.d|=(data & mask);
+
+    /* FIXME: A better method (I think) is to have the VGA text drawing code
+     *        directly reference the font data in bitplane #2 instead of
+     *        this hack */
+    vga.draw.font[planeaddr] = pixels.b[2];
 
     ((Bit32u*)vga.mem.linear)[planeaddr]=pixels.d;
 }
