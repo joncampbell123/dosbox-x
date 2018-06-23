@@ -429,6 +429,17 @@ dowrite:
 
 void vga_pc98_direct_cursor_pos(Bit16u address);
 
+void INT10_GetScreenColumns(Bit16u *cols)
+{
+	*cols = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
+}
+
+void INT10_GetCursorPos(Bit8u *row, Bit8u*col, const Bit8u page)
+{
+	*col = real_readb(BIOSMEM_SEG, BIOSMEM_CURSOR_POS + page * 2u);
+	*row = real_readb(BIOSMEM_SEG, BIOSMEM_CURSOR_POS + page * 2u + 1u);
+}
+
 void INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
     Bit16u address;
 
@@ -774,4 +785,11 @@ void INT10_WriteString(Bit8u row,Bit8u col,Bit8u flag,Bit8u attr,PhysPt string,B
     if (!(flag&1)) {
         INT10_SetCursorPos(cur_row,cur_col,page);
     }
+}
+
+bool INT10_GetInsertState()
+{
+	const auto flags = mem_readb(BIOS_KEYBOARD_FLAGS1);
+	const auto state =static_cast<bool>(flags & BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE);
+	return state;
 }

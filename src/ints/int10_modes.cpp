@@ -630,7 +630,7 @@ static void FinishSetMode(bool clearmem) {
 
 	// Set cursor shape
 	if (CurMode->type==M_TEXT) {
-		INT10_SetCursorShape(0x06,07);
+		INT10_SetCursorShape(CURSOR_SCAN_LINE_NORMAL, CURSOR_SCAN_LINE_END);
 	}
 	// Set cursor pos for page 0..7
 	for (Bit8u ct=0;ct<8;ct++) INT10_SetCursorPos(0,0,ct);
