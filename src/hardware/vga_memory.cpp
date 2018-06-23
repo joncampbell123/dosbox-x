@@ -338,6 +338,7 @@ class VGA_ChainedVGA_Slow_Handler : public PageHandler {
 public:
 	VGA_ChainedVGA_Slow_Handler() : PageHandler(PFLAG_NOCODE) {}
 	static INLINE Bitu readHandler8(PhysPt addr ) {
+        // FIXME: I just noticed this does not implement Read Mode 1
 		vga.latch.d=((Bit32u*)vga.mem.linear)[addr&~3u];
 		return vga.latch.b[addr&3];
 	}
@@ -574,6 +575,7 @@ class VGA_ET4000_ChainedVGA_Slow_Handler : public PageHandler {
 public:
 	VGA_ET4000_ChainedVGA_Slow_Handler() : PageHandler(PFLAG_NOCODE) {}
 	static INLINE Bitu readHandler8(PhysPt addr ) {
+        // FIXME: I just noticed this does not implement Read Mode 1
 		vga.latch.d=((Bit32u*)vga.mem.linear)[addr>>2];
 		return vga.latch.b[addr&3];
 	}
