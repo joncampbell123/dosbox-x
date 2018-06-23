@@ -194,7 +194,58 @@ static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsi
             templatch.d=(vga.latch.d & FillTable[vga.config.color_dont_care]) ^ FillTable[vga.config.color_compare & vga.config.color_dont_care];
             return (Bit8u)~(templatch.b[0] | templatch.b[1] | templatch.b[2] | templatch.b[3]);
     }
+
     return 0;
+}
+
+template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysPt planeaddr,PhysPt rawaddr,Bit8u val) {
+    Bit32u mask = vga.config.full_map_mask;
+
+    /* Sequencer Memory Mode Register (04h)
+     * bits[3:3] = Chain 4 enable
+     * bits[2:2] = Odd/Even Host Memory Write Addressing Disable
+     * bits[1:1] = Extended memory (when EGA cards have > 64KB of RAM)
+     * 
+     * NTS: Real hardware experience says that despite the name, the Odd/Even bit affects reading as well */
+
+    if (chained) {
+        if (!(vga.seq.memory_mode&4))/* Odd Even Host Memory Write Addressing Disable (is not set) */
+            mask &= 0xFF00FFu << ((rawaddr & 2u) * 4u);
+        else
+            mask &= 0xFFu << ((rawaddr & 3u) * 8u);
+    }
+
+    /* Graphics Controller: Miscellaneous Graphics Register register (06h)
+     * bits[3:2] = memory map select
+     * bits[1:1] = Chain Odd/Even Enable
+     * bits[0:0] = Alphanumeric Mode Disable
+     *
+     * http://www.osdever.net/FreeVGA/vga/graphreg.htm
+     *
+     * When enabled, address bit A0 (bit 0) becomes bit 0 of the plane index.
+     * Then when addressing VRAM A0 is replaced by a "higher order bit", which is
+     * probably A14 or A16 depending on Extended Memory bit 1 in Sequencer register 04h memory mode */
+    if (vga.gfx.miscellaneous&2) {/* Odd/Even enable */
+        /* NTS: This is a GUESS based on EGA/VGA hardware */
+        const unsigned char hobit_n = (vga.seq.memory_mode&2/*Extended Memory*/) ? 16u : 14u;
+        const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
+        const PhysPt mask = (1u << hobit_n) - 2u;
+        /* 1 << 14 =     0x4000
+         * 1 << 14 - 1 = 0x3FFF
+         * 1 << 14 - 2 = 0x3FFE
+         * The point is to mask upper bit AND the LSB */
+
+        planeaddr = (planeaddr & mask) + hobit;
+    }
+
+    Bit32u data=ModeOperation(val);
+    VGA_Latch pixels;
+
+    pixels.d =((Bit32u*)vga.mem.linear)[planeaddr];
+    pixels.d&=~mask;
+    pixels.d|=(data & mask);
+
+    ((Bit32u*)vga.mem.linear)[planeaddr]=pixels.d;
 }
 
 #if 0
@@ -331,12 +382,9 @@ public:
         return VGA_Generic_Read_Handler(addr&~3u, addr, addr&3u);
 	}
 	static INLINE void writeHandler8(PhysPt addr, Bitu val) {
-		VGA_Latch pixels;
-
-		/* byte-sized template specialization with masking */
-		pixels.d = ModeOperation(val);
-		/* Update video memory and the pixel buffer */
-		hostWrite<Bit8u>( &vga.mem.linear[((addr&~3u)<<2u)+(addr&3u)], pixels.b[addr&3u] );
+        // planar byte offset = addr & ~3u      (discard low 2 bits)
+        // planer index = addr & 3u             (use low 2 bits as plane index)
+        return VGA_Generic_Write_Handler<true/*chained*/>(addr&~3u, addr, val);
 	}
 	Bitu readb(PhysPt addr ) {
 		VGAMEM_USEC_read_delay();
@@ -569,12 +617,9 @@ public:
         return VGA_Generic_Read_Handler(addr>>2u, addr, addr&3u);
 	}
 	static INLINE void writeHandler8(PhysPt addr, Bitu val) {
-		VGA_Latch pixels;
-
-		/* byte-sized template specialization with masking */
-		pixels.d = ModeOperation(val);
-		/* Update video memory and the pixel buffer */
-		hostWrite<Bit8u>( &vga.mem.linear[addr], pixels.b[addr&3] );
+        // planar byte offset = addr & ~3u      (discard low 2 bits)
+        // planer index = addr & 3u             (use low 2 bits as plane index)
+        return VGA_Generic_Write_Handler<true/*chained*/>(addr&~3u, addr, val);
 	}
 	Bitu readb(PhysPt addr ) {
 		VGAMEM_USEC_read_delay();
@@ -664,39 +709,8 @@ public:
 		return ret;
 	}
 public:
-	void writeHandler( PhysPt addr, Bit8u val ) {
-		PhysPt memaddr = addr;
-		Bit32u data=ModeOperation(val);
-		VGA_Latch pixels;
-
-		if (vga.gfx.miscellaneous&2) /* Odd/Even mode masks off A0 */
-			memaddr &= ~1u;
-
-		pixels.d=((Bit32u*)vga.mem.linear)[memaddr];
-
-		/* Odd/even emulation, emulation fix for Windows 95's boot screen */
-		if (!(vga.seq.memory_mode&4)) {
-			if (addr & 1) {
-				if (vga.seq.map_mask & 0x2) /* bitplane 1: attribute RAM */
-					pixels.b[1] = data >> 8;
-				if (vga.seq.map_mask & 0x8) /* bitplane 3: unused RAM */
-					pixels.b[3] = data >> 24;
-			}
-			else {
-				if (vga.seq.map_mask & 0x1) /* bitplane 0: character RAM */
-					pixels.b[0] = data;
-				if (vga.seq.map_mask & 0x4) { /* bitplane 2: font RAM */
-					pixels.b[2] = data >> 16;
-					vga.draw.font[memaddr] = data >> 16;
-				}
-			}
-		}
-		else {
-			pixels.d&=vga.config.full_not_map_mask;
-			pixels.d|=(data & vga.config.full_map_mask);
-		}
-
-		((Bit32u*)vga.mem.linear)[memaddr]=pixels.d;
+	void writeHandler(PhysPt start, Bit8u val) {
+        VGA_Generic_Write_Handler<false/*chained*/>(start, start, val);
 	}
 public:
 	VGA_UnchainedVGA_Handler() : PageHandler(PFLAG_NOCODE) {}
@@ -1743,6 +1757,7 @@ public:
     }
 };
 
+#if 0
 class VGA_TEXT_PageHandler : public PageHandler {
 public:
 	VGA_TEXT_PageHandler() : PageHandler(PFLAG_NOCODE) {}
@@ -1794,6 +1809,7 @@ public:
 		((Bit32u*)vga.mem.linear)[memaddr]=pixels.d;
 	}
 };
+#endif
 
 class VGA_Map_Handler : public PageHandler {
 public:
@@ -2178,7 +2194,7 @@ public:
 static struct vg {
 	VGA_Map_Handler				map;
 	VGA_Slow_CGA_Handler		slow;
-	VGA_TEXT_PageHandler		text;
+//	VGA_TEXT_PageHandler		text;
 	VGA_CGATEXT_PageHandler		cgatext;
 	VGA_TANDY_PageHandler		tandy;
 //	VGA_ChainedEGA_Handler		cega;
