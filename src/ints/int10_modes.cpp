@@ -986,8 +986,12 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	if (CurMode->special & _EGA_HALF_CLOCK) seq_data[1]|=0x08; //Check for half clock
 	if ((machine==MCH_EGA) && (CurMode->special & _EGA_HALF_CLOCK)) seq_data[1]|=0x02;
 
-	if (IS_VGA_ARCH || (IS_EGA_ARCH && vga.mem.memsize >= 0x20000)) seq_data[4]|=0x02;	//More than 64kb
-    else if (IS_EGA_ARCH && CurMode->vdispend==350) seq_data[4] &= ~0x04; // turn on odd/even
+	if (IS_VGA_ARCH || (IS_EGA_ARCH && vga.mem.memsize >= 0x20000))
+        seq_data[4]|=0x02;	//More than 64kb
+    else if (IS_EGA_ARCH && CurMode->vdispend==350) {
+        seq_data[4] &= ~0x04; // turn on odd/even
+        seq_data[1] |= 0x04; // half clock
+    }
 
 	switch (CurMode->type) {
 	case M_TEXT:
@@ -1242,9 +1246,16 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	case M_LIN32:
 		offset = 4 * CurMode->swidth/8;
 		break;
+    case M_EGA:
+        if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350)
+            offset = CurMode->hdispend/4;
+        else
+            offset = CurMode->hdispend/2;
+		break;
 	default:
-		offset = CurMode->hdispend/2;
-	}
+        offset = CurMode->hdispend/2;
+        break;
+    }
 	IO_Write(crtc_base,0x13);
 	IO_Write(crtc_base + 1u,offset & 0xff);
 

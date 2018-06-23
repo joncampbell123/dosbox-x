@@ -1980,6 +1980,9 @@ void VGA_CheckScanLength(void) {
             vga.draw.address_add=vga.config.scan_len*16;
         else
             vga.draw.address_add=vga.config.scan_len*8;
+
+        if (IS_EGA_ARCH && (vga.seq.clocking_mode&4))
+            vga.draw.address_add*=2;
         break;
     case M_VGA:
     case M_LIN8:
