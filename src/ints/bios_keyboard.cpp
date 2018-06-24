@@ -634,6 +634,7 @@ static Bitu IRQ1_Handler_PC98(void) {
 
         /* According to Neko Project II, the BIOS maintains a "pressed key" bitmap at 0x50:0x2A.
          * Without this bitmap many PC-98 games are unplayable. */
+        /* ALSO note that byte 0xE of this array is the "shift" state byte. */
         {
             unsigned int o = 0x52Au + ((unsigned int)sc_8251 >> 3u);
             unsigned char c = mem_readb(o);
