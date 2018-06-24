@@ -541,18 +541,27 @@ void DOS_Shell::InputCommand(char * line) {
                     //
                     //      DOSBox / DOSBox-X have always acted as if DOSKEY is loaded in a fashion, so
                     //      we'll emulate the PC-98 DOSKEY behavior here.
-                    // TODO
+                    //
+                    //      DOSKEY on PC-98 is able to clear the whole prompt and even bring the cursor
+                    //      back up to the first line if the input crosses multiple lines.
+                    while (str_len > 0) {
+                        outc(8);
+                        outc(' ');
+                        outc(8);
+                        MoveCaretBackwards();
+                        str_len--;
+                    }
                 }
                 else {
                     //write a backslash and return to the next line
                     outc('\\');
                     outc('\n');
-                    *line = 0;      // reset the line.
-                    if (l_completion.size()) l_completion.clear(); //reset the completion list.
-                    this->InputCommand(line);	//Get the NEW line.
-                    size = 0;       // stop the next loop
-                    str_len = 0;    // prevent multiple adds of the same line
                 }
+
+                *line = 0;      // reset the line.
+                if (l_completion.size()) l_completion.clear(); //reset the completion list.
+                str_index = 0;
+                str_len = 0;
                 break;
             default:
                 if (cr >= 0x100) break;
