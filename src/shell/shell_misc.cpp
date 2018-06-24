@@ -533,29 +533,32 @@ void DOS_Shell::InputCommand(char * line) {
                 }
                 break;
             case 0x1b:   /* ESC */
-                if (IS_PC98_ARCH) {
-                    // NTS: According to real PC-98 DOS:
-                    //      If DOSKEY is loaded, ESC clears the prompt
-                    //      If DOSKEY is NOT loaded, ESC does nothing. In fact, after ESC,
-                    //      the next character input is thrown away before resuming normal keyboard input.
-                    //
-                    //      DOSBox / DOSBox-X have always acted as if DOSKEY is loaded in a fashion, so
-                    //      we'll emulate the PC-98 DOSKEY behavior here.
-                    //
-                    //      DOSKEY on PC-98 is able to clear the whole prompt and even bring the cursor
-                    //      back up to the first line if the input crosses multiple lines.
-                    while (str_len > 0) {
-                        outc(8);
-                        outc(' ');
-                        outc(8);
-                        MoveCaretBackwards();
-                        str_len--;
-                    }
-                }
-                else {
-                    //write a backslash and return to the next line
-                    outc('\\');
-                    outc('\n');
+                // NTS: According to real PC-98 DOS:
+                //      If DOSKEY is loaded, ESC clears the prompt
+                //      If DOSKEY is NOT loaded, ESC does nothing. In fact, after ESC,
+                //      the next character input is thrown away before resuming normal keyboard input.
+                //
+                //      DOSBox / DOSBox-X have always acted as if DOSKEY is loaded in a fashion, so
+                //      we'll emulate the PC-98 DOSKEY behavior here.
+                //
+                //      DOSKEY on PC-98 is able to clear the whole prompt and even bring the cursor
+                //      back up to the first line if the input crosses multiple lines.
+
+                // NTS: According to real IBM/Microsoft PC/AT DOS:
+                //      If DOSKEY is loaded, ESC clears the prompt
+                //      If DOSKEY is NOT loaded, ESC prints a backslash and goes to the next line.
+                //      The Windows 95 version of DOSKEY puts the cursor at a horizontal position
+                //      that matches the DOS prompt (not emulated here).
+                //
+                //      DOSBox / DOSBox-X have always acted as if DOSKEY is loaded in a fashion, so
+                //      we'll emulate DOSKEY behavior here.
+
+                while (str_len > 0) {
+                    outc(8);
+                    outc(' ');
+                    outc(8);
+                    MoveCaretBackwards();
+                    str_len--;
                 }
 
                 *line = 0;      // reset the line.
