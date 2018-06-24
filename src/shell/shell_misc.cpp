@@ -165,14 +165,23 @@ void DOS_Shell::InputCommand(char * line) {
                 cr = 0x4800;    /* IBM extended code up arrow */
             else if (c == 0x0A)
                 cr = 0x5000;    /* IBM extended code down arrow */
-            else if (c == 0x0C)
-                cr = 0x4D00;    /* IBM extended code right arrow */
+                 else if (c == 0x0C) {
+                     if (shiftstate & 0x10/*CTRL*/)
+                         cr = 0x7400;    /* IBM extended code CTRL + right arrow */
+                     else
+                         cr = 0x4D00;    /* IBM extended code right arrow */
+                 }
             else if (c == 0x08) {
                 /* IBM extended code left arrow OR backspace. use last scancode to tell which as DOSKEY apparently can. */
-                if (last_int16_code == 0x3B00)
-                    cr = 0x4B00; /* left arrow */
-                else
+                if (last_int16_code == 0x3B00) {
+                    if (shiftstate & 0x10/*CTRL*/)
+                        cr = 0x7300; /* CTRL + left arrow */
+                    else
+                        cr = 0x4B00; /* left arrow */
+                }
+                else {
                     cr = 0x08; /* backspace */
+                }
             }
             else if (c == 0x1B) { /* escape */
 				DOS_ReadFile(input_handle,&c,&n);
