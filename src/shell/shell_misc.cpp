@@ -553,6 +553,10 @@ void DOS_Shell::InputCommand(char * line) {
                 //      DOSBox / DOSBox-X have always acted as if DOSKEY is loaded in a fashion, so
                 //      we'll emulate DOSKEY behavior here.
 
+                while (str_index < str_len) {
+                    outc(' ');
+                    str_index++;
+                }
                 while (str_index > 0) {
                     outc(8);
                     outc(' ');
