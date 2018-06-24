@@ -101,6 +101,9 @@ private:
      * will not return anything and will block. */
     bool CommonPC98ExtScanConversionToReadBuf(unsigned char code) {
         switch (code) {
+            case 0x38: // INS
+                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x50; dev_con_pos=0; dev_con_max=2;
+                break;
             case 0x39: // DEL
                 dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x44; dev_con_pos=0; dev_con_max=2;
                 return true;
@@ -147,7 +150,6 @@ private:
                 dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x5A; dev_con_pos=0; dev_con_max=2;
                 return true;
 #if 0
-                // INS      0x1B 0x50   0x1B 0x50   0x1B 0x50
                 // ROLL UP  --          --          --
                 // POLL DOWN--          --          --
                 // COPY     --          --          --
