@@ -393,107 +393,108 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00297"></a>00297 <span class="comment"> *</span>
 <a name="l00298"></a>00298 <span class="comment"> * The constexpr templated version will trigger a static_assert if v == 0.</span>
 <a name="l00299"></a>00299 <span class="comment"> *</span>
-<a name="l00300"></a>00300 <span class="comment"> * log2(2^31) == 31</span>
-<a name="l00301"></a>00301 <span class="comment"> * log2(2^30) == 30</span>
-<a name="l00302"></a>00302 <span class="comment"> * log2(2^16) == 16                             2^16 == 65536</span>
-<a name="l00303"></a>00303 <span class="comment"> * log2(2^4) == 4                               2^4 == 16</span>
-<a name="l00304"></a>00304 <span class="comment"> * log2(2^1) == 1                               2^1 == 2</span>
-<a name="l00305"></a>00305 <span class="comment"> * log2(2^0) == 0                               2^0 == 1</span>
-<a name="l00306"></a>00306 <span class="comment"> * log2(0) == ~0u (UINT_MAX or allones()) </span>
-<a name="l00307"></a>00307 <span class="comment"> *</span>
-<a name="l00308"></a>00308 <span class="comment"> * @return Bitmask</span>
-<a name="l00309"></a>00309 <span class="comment"> */</span>
-<a name="l00310"></a>00310 
-<a name="l00311"></a>00311 <span class="comment">/* private recursion function */</span>
-<a name="l00312"></a>00312 <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T=<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>&gt; <span class="keyword">static</span> <span class="keyword">inline</span> constexpr <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> _log2_recursion(<span class="keyword">const</span> T v,<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> bits) {
-<a name="l00313"></a>00313     <span class="comment">/* NTS: The additional check against v == allzero() is needed to avoid an infinite recursion loop */</span>
-<a name="l00314"></a>00314     <span class="keywordflow">return</span> (v != allzero&lt;T&gt;()) ?
-<a name="l00315"></a>00315         (((v &amp; type_msb_mask&lt;T&gt;()) == allzero&lt;T&gt;()) ? _log2_recursion(v &lt;&lt; (T)1u,bits - 1u) : bits) :
-<a name="l00316"></a>00316         (~0u);
-<a name="l00317"></a>00317 }
-<a name="l00318"></a>00318 
-<a name="l00319"></a>00319 <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T=<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>,const T v&gt; <span class="keyword">static</span> <span class="keyword">inline</span> constexpr <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> log2(<span class="keywordtype">void</span>) {
-<a name="l00320"></a>00320     <span class="keywordflow">return</span> _log2_recursion&lt;T&gt;(v,type_bits&lt;T&gt;() - 1u);
-<a name="l00321"></a>00321 }
-<a name="l00322"></a>00322 
-<a name="l00323"></a>00323 <span class="keyword">template</span> &lt;const <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> v&gt; <span class="keyword">static</span> <span class="keyword">inline</span> constexpr <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> log2(<span class="keywordtype">void</span>) {
-<a name="l00324"></a>00324     <span class="keywordflow">return</span> log2&lt;unsigned int,v&gt;();
-<a name="l00325"></a>00325 }
-<a name="l00326"></a>00326 
-<a name="l00327"></a>00327 <span class="comment">/* non-constant version for runtime use */</span>
-<a name="l00328"></a>00328 <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T=<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>&gt; <span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> log2(T v) {
-<a name="l00329"></a>00329     <span class="keywordflow">if</span> (v != allzero&lt;T&gt;()) {
-<a name="l00330"></a>00330         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> c = type_bits&lt;T&gt;() - 1u;
-<a name="l00331"></a>00331 
-<a name="l00332"></a>00332         <span class="keywordflow">while</span> (!(v &amp; type_msb_mask&lt;T&gt;())) {
-<a name="l00333"></a>00333             v &lt;&lt;= (T)1UL;
-<a name="l00334"></a>00334             c--;
-<a name="l00335"></a>00335         }
-<a name="l00336"></a>00336 
-<a name="l00337"></a>00337         <span class="keywordflow">return</span> c;
-<a name="l00338"></a>00338     }
-<a name="l00339"></a>00339 
-<a name="l00340"></a>00340     <span class="keywordflow">return</span> ~0u;
-<a name="l00341"></a>00341 }
-<a name="l00342"></a>00342 
+<a name="l00300"></a>00300 <span class="comment"> * log2(2^32 - 1) == 31                         2^32 - 1 = 0xFFFFFFFF</span>
+<a name="l00301"></a>00301 <span class="comment"> * log2(2^31) == 31</span>
+<a name="l00302"></a>00302 <span class="comment"> * log2(2^30) == 30</span>
+<a name="l00303"></a>00303 <span class="comment"> * log2(2^16) == 16                             2^16 == 65536</span>
+<a name="l00304"></a>00304 <span class="comment"> * log2(2^4) == 4                               2^4 == 16</span>
+<a name="l00305"></a>00305 <span class="comment"> * log2(2^1) == 1                               2^1 == 2</span>
+<a name="l00306"></a>00306 <span class="comment"> * log2(2^0) == 0                               2^0 == 1</span>
+<a name="l00307"></a>00307 <span class="comment"> * log2(0) == ~0u (UINT_MAX or allones()) </span>
+<a name="l00308"></a>00308 <span class="comment"> *</span>
+<a name="l00309"></a>00309 <span class="comment"> * @return Bitmask</span>
+<a name="l00310"></a>00310 <span class="comment"> */</span>
+<a name="l00311"></a>00311 
+<a name="l00312"></a>00312 <span class="comment">/* private recursion function */</span>
+<a name="l00313"></a>00313 <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T=<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>&gt; <span class="keyword">static</span> <span class="keyword">inline</span> constexpr <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> _log2_recursion(<span class="keyword">const</span> T v,<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> bits) {
+<a name="l00314"></a>00314     <span class="comment">/* NTS: The additional check against v == allzero() is needed to avoid an infinite recursion loop */</span>
+<a name="l00315"></a>00315     <span class="keywordflow">return</span> (v != allzero&lt;T&gt;()) ?
+<a name="l00316"></a>00316         (((v &amp; type_msb_mask&lt;T&gt;()) == allzero&lt;T&gt;()) ? _log2_recursion(v &lt;&lt; (T)1u,bits - 1u) : bits) :
+<a name="l00317"></a>00317         (~0u);
+<a name="l00318"></a>00318 }
+<a name="l00319"></a>00319 
+<a name="l00320"></a>00320 <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T=<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>,const T v&gt; <span class="keyword">static</span> <span class="keyword">inline</span> constexpr <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> log2(<span class="keywordtype">void</span>) {
+<a name="l00321"></a>00321     <span class="keywordflow">return</span> _log2_recursion&lt;T&gt;(v,type_bits&lt;T&gt;() - 1u);
+<a name="l00322"></a>00322 }
+<a name="l00323"></a>00323 
+<a name="l00324"></a>00324 <span class="keyword">template</span> &lt;const <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> v&gt; <span class="keyword">static</span> <span class="keyword">inline</span> constexpr <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> log2(<span class="keywordtype">void</span>) {
+<a name="l00325"></a>00325     <span class="keywordflow">return</span> log2&lt;unsigned int,v&gt;();
+<a name="l00326"></a>00326 }
+<a name="l00327"></a>00327 
+<a name="l00328"></a>00328 <span class="comment">/* non-constant version for runtime use */</span>
+<a name="l00329"></a>00329 <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T=<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>&gt; <span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> log2(T v) {
+<a name="l00330"></a>00330     <span class="keywordflow">if</span> (v != allzero&lt;T&gt;()) {
+<a name="l00331"></a>00331         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> c = type_bits&lt;T&gt;() - 1u;
+<a name="l00332"></a>00332 
+<a name="l00333"></a>00333         <span class="keywordflow">while</span> (!(v &amp; type_msb_mask&lt;T&gt;())) {
+<a name="l00334"></a>00334             v &lt;&lt;= (T)1UL;
+<a name="l00335"></a>00335             c--;
+<a name="l00336"></a>00336         }
+<a name="l00337"></a>00337 
+<a name="l00338"></a>00338         <span class="keywordflow">return</span> c;
+<a name="l00339"></a>00339     }
+<a name="l00340"></a>00340 
+<a name="l00341"></a>00341     <span class="keywordflow">return</span> ~0u;
+<a name="l00342"></a>00342 }
 <a name="l00343"></a>00343 
-<a name="l00344"></a>00344 <span class="comment">/* return type, pair */</span>
-<a name="l00345"></a><a class="code" href="classbitop_1_1bitseqlengthandpos__ret__t.html">00345</a> <span class="keyword">class </span><a class="code" href="classbitop_1_1bitseqlengthandpos__ret__t.html">bitseqlengthandpos_ret_t</a> {
-<a name="l00346"></a>00346     <span class="keyword">public</span>:
-<a name="l00347"></a>00347         <a class="code" href="classbitop_1_1bitseqlengthandpos__ret__t.html">bitseqlengthandpos_ret_t</a>(<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> _start,<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> _length) : start(_start), length(_length) { }
-<a name="l00348"></a>00348     <span class="keyword">public</span>:
-<a name="l00349"></a>00349         <span class="keywordtype">bool</span> operator==(<span class="keyword">const</span> <a class="code" href="classbitop_1_1bitseqlengthandpos__ret__t.html">bitseqlengthandpos_ret_t</a> &amp;n)<span class="keyword"> const </span>{
-<a name="l00350"></a>00350             <span class="keywordflow">return</span>  (n.start == start) &amp;&amp;
-<a name="l00351"></a>00351                     (n.length == length);
-<a name="l00352"></a>00352         }
-<a name="l00353"></a>00353         <span class="keywordtype">bool</span> empty(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{
-<a name="l00354"></a>00354             <span class="keywordflow">return</span>  (start == 0u &amp;&amp; length == 0u);
-<a name="l00355"></a>00355         }
-<a name="l00356"></a>00356     <span class="keyword">public</span>:
-<a name="l00357"></a>00357         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>    start, length;
-<a name="l00358"></a>00358 };
-<a name="l00359"></a>00359 
-<a name="l00360"></a>00360 <span class="comment">/* return a pair struct representing start and length of a series of 1 bits */</span>
-<a name="l00361"></a>00361 <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T=<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>&gt; <span class="keyword">static</span> <span class="keyword">inline</span> <a class="code" href="classbitop_1_1bitseqlengthandpos__ret__t.html">bitseqlengthandpos_ret_t</a> bitseqlengthandpos(T v) {
-<a name="l00362"></a>00362     <span class="keywordflow">if</span> (v != bitop::allzero&lt;T&gt;()) {
-<a name="l00363"></a>00363         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> start=0,length=0;
-<a name="l00364"></a>00364 
-<a name="l00365"></a>00365         <span class="comment">/* count zeros */</span>
-<a name="l00366"></a>00366         <span class="keywordflow">while</span> ((v &amp; (T)0xFFUL) == (T)0x00UL) {
-<a name="l00367"></a>00367             start += (T)8;
-<a name="l00368"></a>00368             v &gt;&gt;= (T)8UL;
-<a name="l00369"></a>00369         }
-<a name="l00370"></a>00370         <span class="keywordflow">while</span> (!(v &amp; (T)1u)) {
-<a name="l00371"></a>00371             start++;
-<a name="l00372"></a>00372             v &gt;&gt;= (T)1UL;
-<a name="l00373"></a>00373         }
-<a name="l00374"></a>00374 
-<a name="l00375"></a>00375         <span class="comment">/* count ones */</span>
-<a name="l00376"></a>00376         <span class="keywordflow">while</span> ((v &amp; (T)0xFFUL) == (T)0xFFUL) {
-<a name="l00377"></a>00377             length += (T)8;
-<a name="l00378"></a>00378             v &gt;&gt;= (T)8UL;
-<a name="l00379"></a>00379         }
-<a name="l00380"></a>00380         <span class="keywordflow">while</span> (v &amp; (T)1u) {
-<a name="l00381"></a>00381             length++;
-<a name="l00382"></a>00382             v &gt;&gt;= (T)1UL;
-<a name="l00383"></a>00383         }
-<a name="l00384"></a>00384 
-<a name="l00385"></a>00385         <span class="keywordflow">return</span> bitseqlengthandpos_ret_t(start,length);
-<a name="l00386"></a>00386     }
-<a name="l00387"></a>00387 
-<a name="l00388"></a>00388     <span class="keywordflow">return</span> bitseqlengthandpos_ret_t(0u,0u);
-<a name="l00389"></a>00389 }
-<a name="l00390"></a>00390 
+<a name="l00344"></a>00344 
+<a name="l00345"></a>00345 <span class="comment">/* return type, pair */</span>
+<a name="l00346"></a><a class="code" href="classbitop_1_1bitseqlengthandpos__ret__t.html">00346</a> <span class="keyword">class </span><a class="code" href="classbitop_1_1bitseqlengthandpos__ret__t.html">bitseqlengthandpos_ret_t</a> {
+<a name="l00347"></a>00347     <span class="keyword">public</span>:
+<a name="l00348"></a>00348         <a class="code" href="classbitop_1_1bitseqlengthandpos__ret__t.html">bitseqlengthandpos_ret_t</a>(<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> _start,<span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> _length) : start(_start), length(_length) { }
+<a name="l00349"></a>00349     <span class="keyword">public</span>:
+<a name="l00350"></a>00350         <span class="keywordtype">bool</span> operator==(<span class="keyword">const</span> <a class="code" href="classbitop_1_1bitseqlengthandpos__ret__t.html">bitseqlengthandpos_ret_t</a> &amp;n)<span class="keyword"> const </span>{
+<a name="l00351"></a>00351             <span class="keywordflow">return</span>  (n.start == start) &amp;&amp;
+<a name="l00352"></a>00352                     (n.length == length);
+<a name="l00353"></a>00353         }
+<a name="l00354"></a>00354         <span class="keywordtype">bool</span> empty(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{
+<a name="l00355"></a>00355             <span class="keywordflow">return</span>  (start == 0u &amp;&amp; length == 0u);
+<a name="l00356"></a>00356         }
+<a name="l00357"></a>00357     <span class="keyword">public</span>:
+<a name="l00358"></a>00358         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>    start, length;
+<a name="l00359"></a>00359 };
+<a name="l00360"></a>00360 
+<a name="l00361"></a>00361 <span class="comment">/* return a pair struct representing start and length of a series of 1 bits */</span>
+<a name="l00362"></a>00362 <span class="keyword">template</span> &lt;<span class="keyword">typename</span> T=<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>&gt; <span class="keyword">static</span> <span class="keyword">inline</span> <a class="code" href="classbitop_1_1bitseqlengthandpos__ret__t.html">bitseqlengthandpos_ret_t</a> bitseqlengthandpos(T v) {
+<a name="l00363"></a>00363     <span class="keywordflow">if</span> (v != bitop::allzero&lt;T&gt;()) {
+<a name="l00364"></a>00364         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> start=0,length=0;
+<a name="l00365"></a>00365 
+<a name="l00366"></a>00366         <span class="comment">/* count zeros */</span>
+<a name="l00367"></a>00367         <span class="keywordflow">while</span> ((v &amp; (T)0xFFUL) == (T)0x00UL) {
+<a name="l00368"></a>00368             start += (T)8;
+<a name="l00369"></a>00369             v &gt;&gt;= (T)8UL;
+<a name="l00370"></a>00370         }
+<a name="l00371"></a>00371         <span class="keywordflow">while</span> (!(v &amp; (T)1u)) {
+<a name="l00372"></a>00372             start++;
+<a name="l00373"></a>00373             v &gt;&gt;= (T)1UL;
+<a name="l00374"></a>00374         }
+<a name="l00375"></a>00375 
+<a name="l00376"></a>00376         <span class="comment">/* count ones */</span>
+<a name="l00377"></a>00377         <span class="keywordflow">while</span> ((v &amp; (T)0xFFUL) == (T)0xFFUL) {
+<a name="l00378"></a>00378             length += (T)8;
+<a name="l00379"></a>00379             v &gt;&gt;= (T)8UL;
+<a name="l00380"></a>00380         }
+<a name="l00381"></a>00381         <span class="keywordflow">while</span> (v &amp; (T)1u) {
+<a name="l00382"></a>00382             length++;
+<a name="l00383"></a>00383             v &gt;&gt;= (T)1UL;
+<a name="l00384"></a>00384         }
+<a name="l00385"></a>00385 
+<a name="l00386"></a>00386         <span class="keywordflow">return</span> bitseqlengthandpos_ret_t(start,length);
+<a name="l00387"></a>00387     }
+<a name="l00388"></a>00388 
+<a name="l00389"></a>00389     <span class="keywordflow">return</span> bitseqlengthandpos_ret_t(0u,0u);
+<a name="l00390"></a>00390 }
 <a name="l00391"></a>00391 
-<a name="l00392"></a>00392 <span class="keywordtype">void</span> self_test(<span class="keywordtype">void</span>);
-<a name="l00393"></a>00393 
-<a name="l00394"></a>00394 }
-<a name="l00395"></a>00395 
+<a name="l00392"></a>00392 
+<a name="l00393"></a>00393 <span class="keywordtype">void</span> self_test(<span class="keywordtype">void</span>);
+<a name="l00394"></a>00394 
+<a name="l00395"></a>00395 }
+<a name="l00396"></a>00396 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jun 14 2018 12:30:01 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 24 2018 10:24:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -98,7 +98,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!--header-->
 <div class="contents">
 This is the complete list of members for <a class="el" href="classCJAxisBind.html">CJAxisBind</a>, including all inherited members.<table>
-  <tr class="memlist"><td><a class="el" href="classCBind.html#ac1963875b6c478efc92bfa244937d24e">ActivateBind</a>(Bits _value, bool ev_trigger, bool skip_action=false)</td><td><a class="el" href="classCBind.html">CBind</a></td><td><code> [inline]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classCJAxisBind.html#a26d85b8903279b1948bcf9863d2a754b">ActivateBind</a>(Bits _value, bool ev_trigger, bool skip_action=false) override</td><td><a class="el" href="classCJAxisBind.html">CJAxisBind</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCBind.html#ae469e84d9c8d985542ff5a65d6c86810">active</a></td><td><a class="el" href="classCBind.html">CBind</a></td><td></td></tr>
   <tr class="memlist"><td><a class="el" href="classCBind.html#aa0773aea4c2324cb3557bf543f8e26de">AddFlags</a>(char *buf)</td><td><a class="el" href="classCBind.html">CBind</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>axis</b> (defined in <a class="el" href="classCJAxisBind.html">CJAxisBind</a>)</td><td><a class="el" href="classCJAxisBind.html">CJAxisBind</a></td><td><code> [protected]</code></td></tr>
@@ -106,15 +106,20 @@ This is the complete list of members for <a class="el" href="classCJAxisBind.htm
   <tr class="memlist"><td><a class="el" href="classCJAxisBind.html#aec1508a8f00bb7b5f4aa5a42c33fe973">BindName</a>(char *buf)</td><td><a class="el" href="classCJAxisBind.html">CJAxisBind</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCBind.html#a4b69039bdd127345de22a16ef38843e9">CBind</a>(CBindList *_list, enum CBindType _type=bind_t)</td><td><a class="el" href="classCBind.html">CBind</a></td><td><code> [inline]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCBind.html#a6bd04329a3b3b8673f7bd4469f92eb61">CBindType</a> enum name</td><td><a class="el" href="classCBind.html">CBind</a></td><td></td></tr>
-  <tr bgcolor="#f0f0f0"><td><b>CJAxisBind</b>(CBindList *_list, CBindGroup *_group, Bitu _axis, bool _positive) (defined in <a class="el" href="classCJAxisBind.html">CJAxisBind</a>)</td><td><a class="el" href="classCJAxisBind.html">CJAxisBind</a></td><td><code> [inline]</code></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>CJAxisBind</b>(CBindList *_list, CBindGroup *_group, Bitu _joystick, Bitu _axis, bool _positive) (defined in <a class="el" href="classCJAxisBind.html">CJAxisBind</a>)</td><td><a class="el" href="classCJAxisBind.html">CJAxisBind</a></td><td><code> [inline]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCJAxisBind.html#a177d6d9c27c002c88b1a05cd3d31d065">ConfigName</a>(char *buf)</td><td><a class="el" href="classCJAxisBind.html">CJAxisBind</a></td><td><code> [inline, virtual]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCBind.html#a5fcbf42fb58070fd1a81bf892dc73e1c">DeActivateBind</a>(bool ev_trigger)</td><td><a class="el" href="classCBind.html">CBind</a></td><td><code> [inline]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCBind.html#a5a1677133911a7bc26357f56acc9f4dd">event</a></td><td><a class="el" href="classCBind.html">CBind</a></td><td></td></tr>
   <tr class="memlist"><td><a class="el" href="classCBind.html#a3d65630e149aa1df6f84cc78851f4d6c">flags</a></td><td><a class="el" href="classCBind.html">CBind</a></td><td></td></tr>
+  <tr class="memlist"><td><a class="el" href="classCJAxisBind.html#a6d9c9e742943700c75971a13bd827d42">GetAxis</a>() const </td><td><a class="el" href="classCJAxisBind.html">CJAxisBind</a></td><td><code> [inline]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCBind.html#aad93548b92bf6b2bb83eee35b7f15d5d">GetBindMenuText</a>(void)</td><td><a class="el" href="classCBind.html">CBind</a></td><td><code> [inline, virtual]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classCJAxisBind.html#a033065f2f64ac52bfac7bf1d0aff17c3">GetJoystick</a>() const </td><td><a class="el" href="classCJAxisBind.html">CJAxisBind</a></td><td><code> [inline]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classCJAxisBind.html#a43bdd7bf57954c208aea6e1a364d0a1e">GetJoystickDeadzone</a>(int joystick, int axis, bool positive)</td><td><a class="el" href="classCJAxisBind.html">CJAxisBind</a></td><td><code> [inline, static]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCBind.html#ab383a16224dba3e1963700a8be1f951d">GetModifierText</a>(void)</td><td><a class="el" href="classCBind.html">CBind</a></td><td><code> [virtual]</code></td></tr>
+  <tr class="memlist"><td><a class="el" href="classCJAxisBind.html#a8693e360c96fe5f86d2cd46eb1f9cf6e">GetPositive</a>() const </td><td><a class="el" href="classCJAxisBind.html">CJAxisBind</a></td><td><code> [inline]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>group</b> (defined in <a class="el" href="classCJAxisBind.html">CJAxisBind</a>)</td><td><a class="el" href="classCJAxisBind.html">CJAxisBind</a></td><td><code> [protected]</code></td></tr>
   <tr class="memlist"><td><a class="el" href="classCBind.html#a4a0d6d7650d3a24cc0bc68c985d26ade">holding</a></td><td><a class="el" href="classCBind.html">CBind</a></td><td></td></tr>
+  <tr bgcolor="#f0f0f0"><td><b>joystick</b> (defined in <a class="el" href="classCJAxisBind.html">CJAxisBind</a>)</td><td><a class="el" href="classCJAxisBind.html">CJAxisBind</a></td><td><code> [protected]</code></td></tr>
   <tr bgcolor="#f0f0f0"><td><b>keybind_t</b> enum value (defined in <a class="el" href="classCBind.html">CBind</a>)</td><td><a class="el" href="classCBind.html">CBind</a></td><td></td></tr>
   <tr class="memlist"><td><a class="el" href="classCBind.html#a8adfc03bb65f5a8637d2c35c0b604822">list</a></td><td><a class="el" href="classCBind.html">CBind</a></td><td></td></tr>
   <tr class="memlist"><td><a class="el" href="classCBind.html#a91f9c2be14e33caf50f7be9157e67cc8">mods</a></td><td><a class="el" href="classCBind.html">CBind</a></td><td></td></tr>
@@ -128,7 +133,7 @@ This is the complete list of members for <a class="el" href="classCJAxisBind.htm
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jun 14 2018 12:30:08 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 24 2018 10:24:09 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

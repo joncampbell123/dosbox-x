@@ -255,7 +255,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00159"></a>00159     <span class="keywordflow">case</span> 0x37:
 <a name="l00160"></a>00160         <span class="keywordflow">if</span> (val != et4k.store_3d4_37) {
 <a name="l00161"></a>00161             et4k.store_3d4_37 = val;
-<a name="l00162"></a>00162             vga.vmemwrap = ((64u*1024u)&lt;&lt;((val&amp;8u)&gt;&gt;2u))&lt;&lt;((val&amp;3u)-1u);
+<a name="l00162"></a>00162             vga.mem.memmask = (((64u*1024u*((val&amp;8u)?4u:1u))&lt;&lt;((val&amp;3u)-1u)) - 1u) &amp; (vga.mem.memsize-1u);
 <a name="l00163"></a>00163             VGA_SetupHandlers();
 <a name="l00164"></a>00164         }
 <a name="l00165"></a>00165         <span class="keywordflow">break</span>;
@@ -467,7 +467,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00371"></a>00371     IO_Write(crtc_base,0x33);IO_Write(crtc_base+1,0);
 <a name="l00372"></a>00372     IO_Write(crtc_base,0x34);IO_Write(crtc_base+1,0);
 <a name="l00373"></a>00373     IO_Write(crtc_base,0x36);IO_Write(crtc_base+1,0);
-<a name="l00374"></a>00374     IO_Write(crtc_base,0x37);IO_Write(crtc_base+1,0x0c|(vga.vmemsize==1024*1024?3:vga.vmemsize==512*1024?2:1));
+<a name="l00374"></a>00374     IO_Write(crtc_base,0x37);IO_Write(crtc_base+1,0x0c|(vga.mem.memsize==1024*1024?3:vga.mem.memsize==512*1024?2:1));
 <a name="l00375"></a>00375     <span class="comment">// Clear ext SEQ</span>
 <a name="l00376"></a>00376     IO_Write(0x3c4,0x06);IO_Write(0x3c5,0);
 <a name="l00377"></a>00377     IO_Write(0x3c4,0x07);IO_Write(0x3c5,0);
@@ -496,7 +496,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00400"></a>00400     <span class="comment">// Verified (on real hardware and in a few games): Tseng ET4000 used chain4 implementation</span>
 <a name="l00401"></a>00401     <span class="comment">// different from standard VGA. It was also not limited to 64K in regular mode 13h.</span>
 <a name="l00402"></a>00402     vga.config.compatible_chain4 = <span class="keyword">false</span>;
-<a name="l00403"></a>00403     vga.vmemwrap = vga.vmemsize;
+<a name="l00403"></a>00403 <span class="comment">//    vga.vmemwrap = vga.mem.memsize;</span>
 <a name="l00404"></a>00404 
 <a name="l00405"></a>00405     VGA_SetupHandlers();
 <a name="l00406"></a>00406 }
@@ -533,7 +533,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00437"></a>00437 }
 <a name="l00438"></a>00438 
 <a name="l00439"></a>00439 <span class="keywordtype">bool</span> AcceptsMode_ET4K(Bitu mode) {
-<a name="l00440"></a>00440     <span class="keywordflow">return</span> VideoModeMemSize(mode) &lt; vga.vmemsize;
+<a name="l00440"></a>00440     <span class="keywordflow">return</span> VideoModeMemSize(mode) &lt; vga.mem.memsize;
 <a name="l00441"></a>00441 <span class="comment">//  return mode != 0x3d;</span>
 <a name="l00442"></a>00442 }
 <a name="l00443"></a>00443 
@@ -716,15 +716,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00620"></a>00620     IO_RegisterWriteHandler(0x3cd,write_p3cd_et4k,IO_MB);
 <a name="l00621"></a>00621 
 <a name="l00622"></a>00622     <span class="comment">// Default to 1M of VRAM</span>
-<a name="l00623"></a>00623     <span class="keywordflow">if</span> (vga.vmemsize == 0)
-<a name="l00624"></a>00624         vga.vmemsize = 1024*1024;
+<a name="l00623"></a>00623     <span class="keywordflow">if</span> (vga.mem.memsize == 0)
+<a name="l00624"></a>00624         vga.mem.memsize = 1024*1024;
 <a name="l00625"></a>00625 
-<a name="l00626"></a>00626     <span class="keywordflow">if</span> (vga.vmemsize &lt; 512*1024)
-<a name="l00627"></a>00627         vga.vmemsize = 256*1024;
-<a name="l00628"></a>00628     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vga.vmemsize &lt; 1024*1024)
-<a name="l00629"></a>00629         vga.vmemsize = 512*1024;
+<a name="l00626"></a>00626     <span class="keywordflow">if</span> (vga.mem.memsize &lt; 512*1024)
+<a name="l00627"></a>00627         vga.mem.memsize = 256*1024;
+<a name="l00628"></a>00628     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vga.mem.memsize &lt; 1024*1024)
+<a name="l00629"></a>00629         vga.mem.memsize = 512*1024;
 <a name="l00630"></a>00630     <span class="keywordflow">else</span>
-<a name="l00631"></a>00631         vga.vmemsize = 1024*1024;
+<a name="l00631"></a>00631         vga.mem.memsize = 1024*1024;
 <a name="l00632"></a>00632 
 <a name="l00633"></a>00633     <span class="comment">// Tseng ROM signature</span>
 <a name="l00634"></a>00634     phys_writes(PhysMake(0xc000,0)+0x0075, <span class="stringliteral">&quot; Tseng &quot;</span>, 8);
@@ -1015,7 +1015,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00919"></a>00919     <span class="comment">// Verified on functioning (at last!) hardware: Tseng ET3000 is the same as ET4000 when</span>
 <a name="l00920"></a>00920     <span class="comment">// it comes to chain4 architecture</span>
 <a name="l00921"></a>00921     vga.config.compatible_chain4 = <span class="keyword">false</span>;
-<a name="l00922"></a>00922     vga.vmemwrap = vga.vmemsize;
+<a name="l00922"></a>00922 <span class="comment">//    vga.vmemwrap = vga.mem.memsize;</span>
 <a name="l00923"></a>00923 
 <a name="l00924"></a>00924     VGA_SetupHandlers();
 <a name="l00925"></a>00925 }
@@ -1044,7 +1044,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00948"></a>00948 }
 <a name="l00949"></a>00949 
 <a name="l00950"></a>00950 <span class="keywordtype">bool</span> AcceptsMode_ET3K(Bitu mode) {
-<a name="l00951"></a>00951     <span class="keywordflow">return</span> mode &lt;= 0x37 &amp;&amp; mode != 0x2f &amp;&amp; VideoModeMemSize(mode) &lt; vga.vmemsize;
+<a name="l00951"></a>00951     <span class="keywordflow">return</span> mode &lt;= 0x37 &amp;&amp; mode != 0x2f &amp;&amp; VideoModeMemSize(mode) &lt; vga.mem.memsize;
 <a name="l00952"></a>00952 }
 <a name="l00953"></a>00953 
 <a name="l00954"></a>00954 <span class="keywordtype">void</span> SVGA_Setup_TsengET3K(<span class="keywordtype">void</span>) {
@@ -1073,7 +1073,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00977"></a>00977     IO_RegisterReadHandler(0x3cd,read_p3cd_et3k,IO_MB);
 <a name="l00978"></a>00978     IO_RegisterWriteHandler(0x3cd,write_p3cd_et3k,IO_MB);
 <a name="l00979"></a>00979 
-<a name="l00980"></a>00980     vga.vmemsize = 512*1024; <span class="comment">// Cannot figure how this was supposed to work on the real card</span>
+<a name="l00980"></a>00980     vga.mem.memsize = 512*1024; <span class="comment">// Cannot figure how this was supposed to work on the real card</span>
 <a name="l00981"></a>00981 
 <a name="l00982"></a>00982     <span class="comment">// Tseng ROM signature</span>
 <a name="l00983"></a>00983     PhysPt rom_base=PhysMake(0xc000,0);
@@ -1090,7 +1090,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jun 14 2018 12:30:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 24 2018 10:24:07 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

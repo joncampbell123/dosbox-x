@@ -186,9 +186,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00090"></a>00090 <span class="comment"> * This also fixes COMA &quot;Parhaat&quot; 1997 demo, by offering a true 24bpp mode so that it doesn&#39;t try to draw 24bpp on a 32bpp VESA linear framebuffer.</span>
 <a name="l00091"></a>00091 <span class="comment"> * NTS: The 24bpp modes listed here will not be available to the DOS game/demo if the user says that the VBE 1.2 modes are 32bpp,</span>
 <a name="l00092"></a>00092 <span class="comment"> *      instead the redefinitions in the next block will apply to allow M_LIN32. To use the 24bpp modes here, you must set &#39;vesa vbe 1.2 modes are 32bpp=false&#39; */</span>
-<a name="l00093"></a>00093 { 0x10D  ,M_LIN15  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _DOUBLESCAN },
-<a name="l00094"></a>00094 { 0x10E  ,M_LIN16  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _DOUBLESCAN },
-<a name="l00095"></a>00095 { 0x10F  ,M_LIN24  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _DOUBLESCAN },
+<a name="l00093"></a>00093 { 0x10D  ,M_LIN15  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _REPEAT1 },
+<a name="l00094"></a>00094 { 0x10E  ,M_LIN16  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _REPEAT1 },
+<a name="l00095"></a>00095 { 0x10F  ,M_LIN24  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _REPEAT1 },
 <a name="l00096"></a>00096 { 0x110  ,M_LIN15  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,525 ,160,480 ,0   },
 <a name="l00097"></a>00097 { 0x111  ,M_LIN16  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,525 ,160,480 ,0   },
 <a name="l00098"></a>00098 { 0x112  ,M_LIN24  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0   },
@@ -203,18 +203,18 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00107"></a>00107 <span class="comment"> * So we have another definition of those modes that overlaps some of the same mode numbers above.</span>
 <a name="l00108"></a>00108 <span class="comment"> * This allows &quot;Phenomena&quot; demo to use 32bpp 320x200 mode if you set &#39;vesa vbe 1.2 modes are 32bpp=true&#39;.</span>
 <a name="l00109"></a>00109 <span class="comment"> * The code will allow either this block&#39;s mode 0x10F (LIN32), or the previous block&#39;s mode 0x10F (LIN24), but not both. */</span>
-<a name="l00110"></a>00110 { 0x10F  ,M_LIN32  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _DOUBLESCAN },
+<a name="l00110"></a>00110 { 0x10F  ,M_LIN32  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _REPEAT1 },
 <a name="l00111"></a>00111 { 0x112  ,M_LIN32  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0   },
 <a name="l00112"></a>00112 { 0x115  ,M_LIN32  ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0   },
 <a name="l00113"></a>00113 { 0x118  ,M_LIN32  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0   },
 <a name="l00114"></a>00114 
 <a name="l00115"></a>00115 <span class="comment">/* RGBX 8:8:8:8 modes. These were once the M_LIN32 modes DOSBox mapped to 0x10F-0x11B prior to implementing M_LIN24. */</span>
-<a name="l00116"></a>00116 { 0x210  ,M_LIN32  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _DOUBLESCAN },
+<a name="l00116"></a>00116 { 0x210  ,M_LIN32  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _REPEAT1 },
 <a name="l00117"></a>00117 { 0x211  ,M_LIN32  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0   },
 <a name="l00118"></a>00118 { 0x212  ,M_LIN32  ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0   },
 <a name="l00119"></a>00119 { 0x214  ,M_LIN32  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0   },
 <a name="l00120"></a>00120 
-<a name="l00121"></a>00121 { 0x215  ,M_LIN24  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _DOUBLESCAN },
+<a name="l00121"></a>00121 { 0x215  ,M_LIN24  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _REPEAT1 },
 <a name="l00122"></a>00122 { 0x216  ,M_LIN24  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0   },
 <a name="l00123"></a>00123 { 0x217  ,M_LIN24  ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0   },
 <a name="l00124"></a>00124 { 0x218  ,M_LIN24  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0   },
@@ -232,13 +232,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00136"></a>00136 
 <a name="l00137"></a>00137 <span class="comment">// FIXME: Find an old S3 Trio and dump the VESA modelist, then arrange this modelist to match</span>
 <a name="l00138"></a>00138 { 0x150  ,M_LIN8   ,320 ,480 ,40 ,60 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 , _S3_PIXEL_DOUBLE  },
-<a name="l00139"></a>00139 { 0x151  ,M_LIN8   ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 , _S3_PIXEL_DOUBLE | _DOUBLESCAN },
+<a name="l00139"></a>00139 { 0x151  ,M_LIN8   ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 , _S3_PIXEL_DOUBLE | _REPEAT1 },
 <a name="l00140"></a>00140 { 0x152  ,M_LIN8   ,320 ,400 ,40 ,50 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _S3_PIXEL_DOUBLE  },
 <a name="l00141"></a>00141 <span class="comment">// For S3 Trio emulation this mode must exist as mode 0x153 else RealTech &quot;Countdown&quot; will crash</span>
 <a name="l00142"></a>00142 <span class="comment">// if you select VGA 320x200 with S3 acceleration.</span>
-<a name="l00143"></a>00143 { 0x153  ,M_LIN8   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _S3_PIXEL_DOUBLE | _DOUBLESCAN },
+<a name="l00143"></a>00143 { 0x153  ,M_LIN8   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _S3_PIXEL_DOUBLE | _REPEAT1 },
 <a name="l00144"></a>00144 
-<a name="l00145"></a>00145 { 0x160  ,M_LIN15  ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 , 80 ,480 , _DOUBLESCAN },
+<a name="l00145"></a>00145 { 0x160  ,M_LIN15  ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 , 80 ,480 , _REPEAT1 },
 <a name="l00146"></a>00146 { 0x161  ,M_LIN15  ,320 ,400 ,40 ,50 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 , 80 ,400 ,0 },
 <a name="l00147"></a>00147 { 0x162  ,M_LIN15  ,320 ,480 ,40 ,60 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 , 80 ,480 ,0 },
 <a name="l00148"></a>00148 { 0x165  ,M_LIN15  ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,449 ,160 ,400 ,0   },
@@ -248,12 +248,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00152"></a>00152 <span class="comment">//       that mode 0x166 is this particular mode and errors out if it can&#39;t set it.</span>
 <a name="l00153"></a>00153 { 0x166  ,M_LIN8   ,320 ,480 ,40 ,60 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 , _S3_PIXEL_DOUBLE  },
 <a name="l00154"></a>00154 
-<a name="l00155"></a>00155 { 0x170  ,M_LIN16  ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 , 80 ,480 , _DOUBLESCAN },
+<a name="l00155"></a>00155 { 0x170  ,M_LIN16  ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 , 80 ,480 , _REPEAT1 },
 <a name="l00156"></a>00156 { 0x171  ,M_LIN16  ,320 ,400 ,40 ,50 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 , 80 ,400 ,0 },
 <a name="l00157"></a>00157 { 0x172  ,M_LIN16  ,320 ,480 ,40 ,60 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 , 80 ,480 ,0 },
 <a name="l00158"></a>00158 { 0x175  ,M_LIN16  ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,449 ,160 ,400 ,0   },
 <a name="l00159"></a>00159 
-<a name="l00160"></a>00160 { 0x190  ,M_LIN32  ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000, 50 ,525 ,40 ,480 , _DOUBLESCAN },
+<a name="l00160"></a>00160 { 0x190  ,M_LIN32  ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000, 50 ,525 ,40 ,480 , _REPEAT1 },
 <a name="l00161"></a>00161 { 0x191  ,M_LIN32  ,320 ,400 ,40 ,50 ,8 ,8  ,1 ,0xA0000 ,0x10000, 50 ,449 ,40 ,400 ,0 },
 <a name="l00162"></a>00162 { 0x192  ,M_LIN32  ,320 ,480 ,40 ,60 ,8 ,8  ,1 ,0xA0000 ,0x10000, 50 ,525 ,40 ,480 ,0 },
 <a name="l00163"></a>00163 
@@ -410,7 +410,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00314"></a>00314 { 0x06A  ,M_LIN4   ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0xA000, 128 ,663 ,100,600 , 0 },<span class="comment">/* newer ET4000 */</span>
 <a name="l00315"></a>00315 
 <a name="l00316"></a>00316 <span class="comment">// Sierra SC1148x Hi-Color DAC modes</span>
-<a name="l00317"></a>00317 { 0x213  ,M_LIN15  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _VGA_PIXEL_DOUBLE | _DOUBLESCAN },
+<a name="l00317"></a>00317 { 0x213  ,M_LIN15  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _VGA_PIXEL_DOUBLE | _REPEAT1 },
 <a name="l00318"></a>00318 { 0x22D  ,M_LIN15  ,640 ,350 ,80 ,25 ,8 ,14 ,1 ,0xA0000 ,0x10000,200 ,449 ,160,350 , 0 },
 <a name="l00319"></a>00319 { 0x22E  ,M_LIN15  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,525 ,160,480 , 0 },
 <a name="l00320"></a>00320 { 0x22F  ,M_LIN15  ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,449 ,160,400 , 0 },
@@ -703,7 +703,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00607"></a>00607                 <span class="keywordflow">case</span> M_LIN24:
 <a name="l00608"></a>00608                 <span class="keywordflow">case</span> M_LIN32:
 <a name="l00609"></a>00609                         <span class="comment">/* Hack we just access the memory directly */</span>
-<a name="l00610"></a>00610                         memset(vga.mem.linear,0,vga.vmemsize);
+<a name="l00610"></a>00610                         memset(vga.mem.linear,0,vga.mem.memsize);
 <a name="l00611"></a>00611                         <span class="keywordflow">break</span>;
 <a name="l00612"></a>00612                 <span class="keywordflow">default</span>:
 <a name="l00613"></a>00613                         <span class="keywordflow">break</span>;
@@ -726,7 +726,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00630"></a>00630 
 <a name="l00631"></a>00631         <span class="comment">// Set cursor shape</span>
 <a name="l00632"></a>00632         <span class="keywordflow">if</span> (CurMode-&gt;type==M_TEXT) {
-<a name="l00633"></a>00633                 INT10_SetCursorShape(0x06,07);
+<a name="l00633"></a>00633                 INT10_SetCursorShape(CURSOR_SCAN_LINE_NORMAL, CURSOR_SCAN_LINE_END);
 <a name="l00634"></a>00634         }
 <a name="l00635"></a>00635         <span class="comment">// Set cursor pos for page 0..7</span>
 <a name="l00636"></a>00636         <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;8;ct++) INT10_SetCursorPos(0,0,ct);
@@ -1080,811 +1080,833 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00985"></a>00985         
 <a name="l00986"></a>00986         <span class="keywordflow">if</span> (CurMode-&gt;special &amp; _EGA_HALF_CLOCK) seq_data[1]|=0x08; <span class="comment">//Check for half clock</span>
 <a name="l00987"></a>00987         <span class="keywordflow">if</span> ((machine==MCH_EGA) &amp;&amp; (CurMode-&gt;special &amp; _EGA_HALF_CLOCK)) seq_data[1]|=0x02;
-<a name="l00988"></a>00988         seq_data[4]|=0x02;      <span class="comment">//More than 64kb</span>
-<a name="l00989"></a>00989         <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l00990"></a>00990         <span class="keywordflow">case</span> M_TEXT:
-<a name="l00991"></a>00991                 <span class="keywordflow">if</span> (CurMode-&gt;cwidth==9) seq_data[1] &amp;= ~1;
-<a name="l00992"></a>00992                 seq_data[2]|=0x3;                               <span class="comment">//Enable plane 0 and 1</span>
-<a name="l00993"></a>00993                 seq_data[4]|=0x01;                              <span class="comment">//Alpanumeric</span>
-<a name="l00994"></a>00994                 seq_data[4]&amp;=~0x04;                             <span class="comment">//odd/even enable</span>
-<a name="l00995"></a>00995                 <span class="keywordflow">break</span>;
-<a name="l00996"></a>00996         <span class="keywordflow">case</span> M_CGA2:
-<a name="l00997"></a>00997                 <span class="keywordflow">if</span> (IS_EGAVGA_ARCH) {
-<a name="l00998"></a>00998                         seq_data[2]|=0x1;                       <span class="comment">//Enable plane 0. Most VGA cards treat it as a 640x200 variant of the MCGA 2-color mode, with bit 13 remapped for interlace</span>
-<a name="l00999"></a>00999                 }
-<a name="l01000"></a>01000                 <span class="keywordflow">break</span>;
-<a name="l01001"></a>01001         <span class="keywordflow">case</span> M_CGA4:
-<a name="l01002"></a>01002                 <span class="keywordflow">if</span> (IS_EGAVGA_ARCH) {
-<a name="l01003"></a>01003                         seq_data[2]|=0x3;                       <span class="comment">//Enable plane 0 and 1</span>
-<a name="l01004"></a>01004                         seq_data[4]&amp;=~0x04;                     <span class="comment">//odd/even enable</span>
-<a name="l01005"></a>01005                 }
-<a name="l01006"></a>01006                 <span class="keywordflow">break</span>;
-<a name="l01007"></a>01007         <span class="keywordflow">case</span> M_LIN4:
-<a name="l01008"></a>01008         <span class="keywordflow">case</span> M_EGA:
-<a name="l01009"></a>01009                 seq_data[2]|=0xf;                               <span class="comment">//Enable all planes for writing</span>
-<a name="l01010"></a>01010                 <span class="keywordflow">break</span>;
-<a name="l01011"></a>01011         <span class="keywordflow">case</span> M_LIN8:                                            <span class="comment">//Seems to have the same reg layout from testing</span>
-<a name="l01012"></a>01012         <span class="keywordflow">case</span> M_LIN15:
-<a name="l01013"></a>01013         <span class="keywordflow">case</span> M_LIN16:
-<a name="l01014"></a>01014         <span class="keywordflow">case</span> M_LIN24:
-<a name="l01015"></a>01015         <span class="keywordflow">case</span> M_LIN32:
-<a name="l01016"></a>01016         <span class="keywordflow">case</span> M_VGA:
-<a name="l01017"></a>01017                 seq_data[2]|=0xf;                               <span class="comment">//Enable all planes for writing</span>
-<a name="l01018"></a>01018                 seq_data[4]|=0x8;                               <span class="comment">//Graphics - Chained</span>
-<a name="l01019"></a>01019                 <span class="keywordflow">break</span>;
-<a name="l01020"></a>01020         <span class="keywordflow">default</span>:
-<a name="l01021"></a>01021                 <span class="keywordflow">break</span>;
-<a name="l01022"></a>01022         }
-<a name="l01023"></a>01023         <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;SEQ_REGS;ct++) {
-<a name="l01024"></a>01024                 IO_Write(0x3c4,ct);
-<a name="l01025"></a>01025                 IO_Write(0x3c5,seq_data[ct]);
-<a name="l01026"></a>01026         }
-<a name="l01027"></a>01027 
-<a name="l01028"></a>01028         <span class="comment">/* NTS: S3 INT 10 modesetting code below sets this bit anyway when writing CRTC register 0x31.</span>
-<a name="l01029"></a>01029 <span class="comment">         *      It needs to be done as I/O port write so that Windows 95 can virtualize it properly when</span>
-<a name="l01030"></a>01030 <span class="comment">         *      we&#39;re called to set INT10 mode 3 (from within virtual 8086 mode) when opening a DOS box.</span>
-<a name="l01031"></a>01031 <span class="comment">         *</span>
-<a name="l01032"></a>01032 <span class="comment">         *      If we just set it directly, then the generic S3 driver in Windows 95 cannot trap the I/O</span>
-<a name="l01033"></a>01033 <span class="comment">         *      and prevent our own INT 10h handler from setting the VGA memory mapping into &quot;compatible</span>
-<a name="l01034"></a>01034 <span class="comment">         *      chain 4&quot; mode, and then any non accelerated drawing from the Windows driver becomes a</span>
-<a name="l01035"></a>01035 <span class="comment">         *      garbled mess spread out across the screen (due to the weird way that VGA planar memory</span>
-<a name="l01036"></a>01036 <span class="comment">         *      is &quot;chained&quot; on SVGA chipsets).</span>
-<a name="l01037"></a>01037 <span class="comment">         *</span>
-<a name="l01038"></a>01038 <span class="comment">         *      The S3 linear framebuffer isn&#39;t affected by VGA chained mode, which is why only the</span>
-<a name="l01039"></a>01039 <span class="comment">         *      generic S3 driver was affected by this bug, since the generic S3 driver is the one that</span>
-<a name="l01040"></a>01040 <span class="comment">         *      uses only VGA access (0xA0000-0xAFFFF) and SVGA bank switching while the more specific</span>
-<a name="l01041"></a>01041 <span class="comment">         *      &quot;S3 Trio32 PCI&quot; driver uses the linear framebuffer.</span>
-<a name="l01042"></a>01042 <span class="comment">         *</span>
-<a name="l01043"></a>01043 <span class="comment">         *      But to avoid breaking other SVGA emulation in DOSBox-X, we still set this manually for</span>
-<a name="l01044"></a>01044 <span class="comment">         *      other VGA/SVGA emulation cases, just not S3 Trio emulation. */</span>
-<a name="l01045"></a>01045         <span class="keywordflow">if</span> (svgaCard != SVGA_S3Trio)
-<a name="l01046"></a>01046                 vga.config.compatible_chain4 = <span class="keyword">true</span>; <span class="comment">// this may be changed by SVGA chipset emulation</span>
-<a name="l01047"></a>01047 
-<a name="l01048"></a>01048         <span class="keywordflow">if</span>( machine==MCH_AMSTRAD )
-<a name="l01049"></a>01049         {
-<a name="l01050"></a>01050                 vga.amstrad.mask_plane = 0x07070707;
-<a name="l01051"></a>01051                 vga.amstrad.write_plane = 0x0F;
-<a name="l01052"></a>01052                 vga.amstrad.read_plane = 0x00;
-<a name="l01053"></a>01053                 vga.amstrad.border_color = 0x00;
-<a name="l01054"></a>01054         }
-<a name="l01055"></a>01055 
-<a name="l01056"></a>01056         <span class="comment">/* Program CRTC */</span>
-<a name="l01057"></a>01057         <span class="comment">/* First disable write protection */</span>
-<a name="l01058"></a>01058         IO_Write(crtc_base,0x11);
-<a name="l01059"></a>01059         IO_Write(crtc_base+1u,IO_Read(crtc_base+1u)&amp;0x7f);
-<a name="l01060"></a>01060         <span class="comment">/* Clear all the regs */</span>
-<a name="l01061"></a>01061         <span class="keywordflow">for</span> (Bit8u ct=0x0;ct&lt;=0x18;ct++) {
-<a name="l01062"></a>01062                 IO_Write(crtc_base,ct);IO_Write(crtc_base+1u,0);
-<a name="l01063"></a>01063         }
-<a name="l01064"></a>01064         Bit8u overflow=0;Bit8u max_scanline=0;
-<a name="l01065"></a>01065         Bit8u ver_overflow=0;Bit8u hor_overflow=0;
-<a name="l01066"></a>01066         <span class="comment">/* Horizontal Total */</span>
-<a name="l01067"></a>01067         IO_Write(crtc_base,0x00);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;htotal-5));
-<a name="l01068"></a>01068         hor_overflow|=((CurMode-&gt;htotal-5) &amp; 0x100) &gt;&gt; 8;
-<a name="l01069"></a>01069         <span class="comment">/* Horizontal Display End */</span>
-<a name="l01070"></a>01070         IO_Write(crtc_base,0x01);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;hdispend-1));
-<a name="l01071"></a>01071         hor_overflow|=((CurMode-&gt;hdispend-1) &amp; 0x100) &gt;&gt; 7;
-<a name="l01072"></a>01072         <span class="comment">/* Start horizontal Blanking */</span>
-<a name="l01073"></a>01073         IO_Write(crtc_base,0x02);IO_Write(crtc_base+1u,(Bit8u)CurMode-&gt;hdispend);
-<a name="l01074"></a>01074         hor_overflow|=((CurMode-&gt;hdispend) &amp; 0x100) &gt;&gt; 6;
-<a name="l01075"></a>01075         <span class="comment">/* End horizontal Blanking */</span>
-<a name="l01076"></a>01076         Bitu blank_end=(CurMode-&gt;htotal-2) &amp; 0x7f;
-<a name="l01077"></a>01077         IO_Write(crtc_base,0x03);IO_Write(crtc_base+1u,0x80|(blank_end &amp; 0x1f));
-<a name="l01078"></a>01078 
-<a name="l01079"></a>01079         <span class="comment">/* Start Horizontal Retrace */</span>
-<a name="l01080"></a>01080         Bitu ret_start;
-<a name="l01081"></a>01081         <span class="keywordflow">if</span> ((CurMode-&gt;special &amp; _EGA_HALF_CLOCK) &amp;&amp; (CurMode-&gt;type!=M_CGA2)) ret_start = (CurMode-&gt;hdispend+3);
-<a name="l01082"></a>01082         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CurMode-&gt;type==M_TEXT) ret_start = (CurMode-&gt;hdispend+5);
-<a name="l01083"></a>01083         <span class="keywordflow">else</span> ret_start = (CurMode-&gt;hdispend+4);
-<a name="l01084"></a>01084         IO_Write(crtc_base,0x04);IO_Write(crtc_base+1u,(Bit8u)ret_start);
-<a name="l01085"></a>01085         hor_overflow|=(ret_start &amp; 0x100) &gt;&gt; 4;
-<a name="l01086"></a>01086 
-<a name="l01087"></a>01087         <span class="comment">/* End Horizontal Retrace */</span>
-<a name="l01088"></a>01088         Bitu ret_end;
-<a name="l01089"></a>01089         <span class="keywordflow">if</span> (CurMode-&gt;special &amp; _EGA_HALF_CLOCK) {
-<a name="l01090"></a>01090                 <span class="keywordflow">if</span> (CurMode-&gt;type==M_CGA2) ret_end=0;   <span class="comment">// mode 6</span>
-<a name="l01091"></a>01091                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CurMode-&gt;special &amp; _DOUBLESCAN) ret_end = (CurMode-&gt;htotal-18) &amp; 0x1f;
-<a name="l01092"></a>01092                 <span class="keywordflow">else</span> ret_end = ((CurMode-&gt;htotal-18) &amp; 0x1f) | 0x20; <span class="comment">// mode 0&amp;1 have 1 char sync delay</span>
-<a name="l01093"></a>01093         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CurMode-&gt;type==M_TEXT) ret_end = (CurMode-&gt;htotal-3) &amp; 0x1f;
-<a name="l01094"></a>01094         <span class="keywordflow">else</span> ret_end = (CurMode-&gt;htotal-4) &amp; 0x1f;
-<a name="l01095"></a>01095         
-<a name="l01096"></a>01096         IO_Write(crtc_base,0x05);IO_Write(crtc_base+1u,(Bit8u)(ret_end | (blank_end &amp; 0x20) &lt;&lt; 2));
-<a name="l01097"></a>01097 
-<a name="l01098"></a>01098         <span class="comment">/* Vertical Total */</span>
-<a name="l01099"></a>01099         IO_Write(crtc_base,0x06);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;vtotal-2));
-<a name="l01100"></a>01100         overflow|=((CurMode-&gt;vtotal-2) &amp; 0x100) &gt;&gt; 8;
-<a name="l01101"></a>01101         overflow|=((CurMode-&gt;vtotal-2) &amp; 0x200) &gt;&gt; 4;
-<a name="l01102"></a>01102         ver_overflow|=((CurMode-&gt;vtotal-2) &amp; 0x400) &gt;&gt; 10;
-<a name="l01103"></a>01103 
-<a name="l01104"></a>01104         Bitu vretrace;
-<a name="l01105"></a>01105         <span class="keywordflow">if</span> (IS_VGA_ARCH) {
-<a name="l01106"></a>01106                 <span class="keywordflow">switch</span> (CurMode-&gt;vdispend) {
-<a name="l01107"></a>01107                 <span class="keywordflow">case</span> 400: vretrace=CurMode-&gt;vdispend+12;
-<a name="l01108"></a>01108                                 <span class="keywordflow">break</span>;
-<a name="l01109"></a>01109                 <span class="keywordflow">case</span> 480: vretrace=CurMode-&gt;vdispend+10;
-<a name="l01110"></a>01110                                 <span class="keywordflow">break</span>;
-<a name="l01111"></a>01111                 <span class="keywordflow">case</span> 350: vretrace=CurMode-&gt;vdispend+37;
-<a name="l01112"></a>01112                                 <span class="keywordflow">break</span>;
-<a name="l01113"></a>01113                 <span class="keywordflow">default</span>: vretrace=CurMode-&gt;vdispend+12;
-<a name="l01114"></a>01114                 }
-<a name="l01115"></a>01115         } <span class="keywordflow">else</span> {
-<a name="l01116"></a>01116                 <span class="keywordflow">switch</span> (CurMode-&gt;vdispend) {
-<a name="l01117"></a>01117                 <span class="keywordflow">case</span> 350: vretrace=CurMode-&gt;vdispend;
-<a name="l01118"></a>01118                                 <span class="keywordflow">break</span>;
-<a name="l01119"></a>01119                 <span class="keywordflow">default</span>: vretrace=CurMode-&gt;vdispend+24;
-<a name="l01120"></a>01120                 }
-<a name="l01121"></a>01121         }
-<a name="l01122"></a>01122 
-<a name="l01123"></a>01123         <span class="comment">/* Vertical Retrace Start */</span>
-<a name="l01124"></a>01124         IO_Write(crtc_base,0x10);IO_Write(crtc_base+1u,(Bit8u)vretrace);
-<a name="l01125"></a>01125         overflow|=(vretrace &amp; 0x100) &gt;&gt; 6;
-<a name="l01126"></a>01126         overflow|=(vretrace &amp; 0x200) &gt;&gt; 2;
-<a name="l01127"></a>01127         ver_overflow|=(vretrace &amp; 0x400) &gt;&gt; 6;
-<a name="l01128"></a>01128 
-<a name="l01129"></a>01129         <span class="comment">/* Vertical Retrace End */</span>
-<a name="l01130"></a>01130         IO_Write(crtc_base,0x11);IO_Write(crtc_base+1u,(vretrace+2) &amp; 0xF);
-<a name="l01131"></a>01131 
-<a name="l01132"></a>01132         <span class="comment">/* Vertical Display End */</span>
-<a name="l01133"></a>01133         IO_Write(crtc_base,0x12);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;vdispend-1));
-<a name="l01134"></a>01134         overflow|=((CurMode-&gt;vdispend-1) &amp; 0x100) &gt;&gt; 7;
-<a name="l01135"></a>01135         overflow|=((CurMode-&gt;vdispend-1) &amp; 0x200) &gt;&gt; 3;
-<a name="l01136"></a>01136         ver_overflow|=((CurMode-&gt;vdispend-1) &amp; 0x400) &gt;&gt; 9;
-<a name="l01137"></a>01137         
-<a name="l01138"></a>01138         Bitu vblank_trim;
-<a name="l01139"></a>01139         <span class="keywordflow">if</span> (IS_VGA_ARCH) {
-<a name="l01140"></a>01140                 <span class="keywordflow">switch</span> (CurMode-&gt;vdispend) {
-<a name="l01141"></a>01141                 <span class="keywordflow">case</span> 400: vblank_trim=6;
-<a name="l01142"></a>01142                                 <span class="keywordflow">break</span>;
-<a name="l01143"></a>01143                 <span class="keywordflow">case</span> 480: vblank_trim=7;
-<a name="l01144"></a>01144                                 <span class="keywordflow">break</span>;
-<a name="l01145"></a>01145                 <span class="keywordflow">case</span> 350: vblank_trim=5;
-<a name="l01146"></a>01146                                 <span class="keywordflow">break</span>;
-<a name="l01147"></a>01147                 <span class="keywordflow">default</span>: vblank_trim=8;
-<a name="l01148"></a>01148                 }
-<a name="l01149"></a>01149         } <span class="keywordflow">else</span> {
-<a name="l01150"></a>01150                 <span class="keywordflow">switch</span> (CurMode-&gt;vdispend) {
-<a name="l01151"></a>01151                 <span class="keywordflow">case</span> 350: vblank_trim=0;
-<a name="l01152"></a>01152                                 <span class="keywordflow">break</span>;
-<a name="l01153"></a>01153                 <span class="keywordflow">default</span>: vblank_trim=23;
-<a name="l01154"></a>01154                 }
-<a name="l01155"></a>01155         }
-<a name="l01156"></a>01156 
-<a name="l01157"></a>01157         <span class="comment">/* Vertical Blank Start */</span>
-<a name="l01158"></a>01158         IO_Write(crtc_base,0x15);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;vdispend+vblank_trim));
-<a name="l01159"></a>01159         overflow|=((CurMode-&gt;vdispend+vblank_trim) &amp; 0x100) &gt;&gt; 5;
-<a name="l01160"></a>01160         max_scanline|=((CurMode-&gt;vdispend+vblank_trim) &amp; 0x200) &gt;&gt; 4;
-<a name="l01161"></a>01161         ver_overflow|=((CurMode-&gt;vdispend+vblank_trim) &amp; 0x400) &gt;&gt; 8;
-<a name="l01162"></a>01162 
-<a name="l01163"></a>01163         <span class="comment">/* Vertical Blank End */</span>
-<a name="l01164"></a>01164         IO_Write(crtc_base,0x16);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;vtotal-vblank_trim-2));
-<a name="l01165"></a>01165 
-<a name="l01166"></a>01166         <span class="comment">/* Line Compare */</span>
-<a name="l01167"></a>01167         Bitu line_compare=(CurMode-&gt;vtotal &lt; 1024) ? 1023 : 2047;
-<a name="l01168"></a>01168         IO_Write(crtc_base,0x18);IO_Write(crtc_base+1u,line_compare&amp;0xff);
-<a name="l01169"></a>01169         overflow|=(line_compare &amp; 0x100) &gt;&gt; 4;
-<a name="l01170"></a>01170         max_scanline|=(line_compare &amp; 0x200) &gt;&gt; 3;
-<a name="l01171"></a>01171         ver_overflow|=(line_compare &amp; 0x400) &gt;&gt; 4;
-<a name="l01172"></a>01172         Bit8u underline=0;
-<a name="l01173"></a>01173         <span class="comment">/* Maximum scanline / Underline Location */</span>
-<a name="l01174"></a>01174         <span class="keywordflow">if</span> (CurMode-&gt;special &amp; _DOUBLESCAN) max_scanline|=0x80;
-<a name="l01175"></a>01175         <span class="keywordflow">if</span> (CurMode-&gt;special &amp; _REPEAT1) max_scanline|=0x01;
-<a name="l01176"></a>01176 
-<a name="l01177"></a>01177         <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l01178"></a>01178         <span class="keywordflow">case</span> M_TEXT:
-<a name="l01179"></a>01179                 <span class="keywordflow">if</span>(IS_VGA_ARCH) {
-<a name="l01180"></a>01180                         <span class="keywordflow">switch</span>(modeset_ctl &amp; 0x90) {
-<a name="l01181"></a>01181                         <span class="keywordflow">case</span> 0x0: <span class="comment">// 350-lines mode: 8x14 font</span>
-<a name="l01182"></a>01182                                 max_scanline |= (14-1);
-<a name="l01183"></a>01183                                 <span class="keywordflow">break</span>;
-<a name="l01184"></a>01184                         <span class="keywordflow">default</span>: <span class="comment">// reserved</span>
-<a name="l01185"></a>01185                         <span class="keywordflow">case</span> 0x10: <span class="comment">// 400 lines 8x16 font</span>
-<a name="l01186"></a>01186                 max_scanline|=CurMode-&gt;cheight-1;
-<a name="l01187"></a>01187                                 <span class="keywordflow">break</span>;
-<a name="l01188"></a>01188                         <span class="keywordflow">case</span> 0x80: <span class="comment">// 200 lines: 8x8 font and doublescan</span>
-<a name="l01189"></a>01189                                 max_scanline |= (8-1);
-<a name="l01190"></a>01190                                 max_scanline |= 0x80;
-<a name="l01191"></a>01191                                 <span class="keywordflow">break</span>;
-<a name="l01192"></a>01192                         }
-<a name="l01193"></a>01193                 } <span class="keywordflow">else</span> max_scanline |= CurMode-&gt;cheight-1;
-<a name="l01194"></a>01194                 underline=mono_mode ? 0x0f : 0x1f; <span class="comment">// mode 7 uses a diff underline position</span>
-<a name="l01195"></a>01195                 <span class="keywordflow">break</span>;
-<a name="l01196"></a>01196         <span class="keywordflow">case</span> M_VGA:
-<a name="l01197"></a>01197                 underline=0x40;
-<a name="l01198"></a>01198                 <span class="keywordflow">break</span>;
-<a name="l01199"></a>01199         <span class="keywordflow">case</span> M_LIN8:
-<a name="l01200"></a>01200         <span class="keywordflow">case</span> M_LIN15:
-<a name="l01201"></a>01201         <span class="keywordflow">case</span> M_LIN16:
-<a name="l01202"></a>01202         <span class="keywordflow">case</span> M_LIN24:
-<a name="l01203"></a>01203         <span class="keywordflow">case</span> M_LIN32:
-<a name="l01204"></a>01204                 underline=0x60;                 <span class="comment">//Seems to enable the every 4th clock on my s3</span>
+<a name="l00988"></a>00988 
+<a name="l00989"></a>00989         <span class="keywordflow">if</span> (IS_VGA_ARCH || (IS_EGA_ARCH &amp;&amp; vga.mem.memsize &gt;= 0x20000))
+<a name="l00990"></a>00990         seq_data[4]|=0x02;      <span class="comment">//More than 64kb</span>
+<a name="l00991"></a>00991     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (IS_EGA_ARCH &amp;&amp; CurMode-&gt;vdispend==350) {
+<a name="l00992"></a>00992         seq_data[4] &amp;= ~0x04; <span class="comment">// turn on odd/even</span>
+<a name="l00993"></a>00993         seq_data[1] |= 0x04; <span class="comment">// half clock</span>
+<a name="l00994"></a>00994     }
+<a name="l00995"></a>00995 
+<a name="l00996"></a>00996         <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l00997"></a>00997         <span class="keywordflow">case</span> M_TEXT:
+<a name="l00998"></a>00998                 <span class="keywordflow">if</span> (CurMode-&gt;cwidth==9) seq_data[1] &amp;= ~1;
+<a name="l00999"></a>00999                 seq_data[2]|=0x3;                               <span class="comment">//Enable plane 0 and 1</span>
+<a name="l01000"></a>01000                 seq_data[4]|=0x01;                              <span class="comment">//Alpanumeric</span>
+<a name="l01001"></a>01001                 seq_data[4]&amp;=~0x04;                             <span class="comment">//odd/even enable</span>
+<a name="l01002"></a>01002                 <span class="keywordflow">break</span>;
+<a name="l01003"></a>01003         <span class="keywordflow">case</span> M_CGA2:
+<a name="l01004"></a>01004                 <span class="keywordflow">if</span> (IS_EGAVGA_ARCH) {
+<a name="l01005"></a>01005                         seq_data[2]|=0x1;                       <span class="comment">//Enable plane 0. Most VGA cards treat it as a 640x200 variant of the MCGA 2-color mode, with bit 13 remapped for interlace</span>
+<a name="l01006"></a>01006                 }
+<a name="l01007"></a>01007                 <span class="keywordflow">break</span>;
+<a name="l01008"></a>01008         <span class="keywordflow">case</span> M_CGA4:
+<a name="l01009"></a>01009                 <span class="keywordflow">if</span> (IS_EGAVGA_ARCH) {
+<a name="l01010"></a>01010                         seq_data[2]|=0x3;                       <span class="comment">//Enable plane 0 and 1</span>
+<a name="l01011"></a>01011                         seq_data[4]&amp;=~0x04;                     <span class="comment">//odd/even enable</span>
+<a name="l01012"></a>01012                 }
+<a name="l01013"></a>01013                 <span class="keywordflow">break</span>;
+<a name="l01014"></a>01014         <span class="keywordflow">case</span> M_LIN4:
+<a name="l01015"></a>01015         <span class="keywordflow">case</span> M_EGA:
+<a name="l01016"></a>01016                 seq_data[2]|=0xf;                               <span class="comment">//Enable all planes for writing</span>
+<a name="l01017"></a>01017                 <span class="keywordflow">break</span>;
+<a name="l01018"></a>01018         <span class="keywordflow">case</span> M_LIN8:                                            <span class="comment">//Seems to have the same reg layout from testing</span>
+<a name="l01019"></a>01019         <span class="keywordflow">case</span> M_LIN15:
+<a name="l01020"></a>01020         <span class="keywordflow">case</span> M_LIN16:
+<a name="l01021"></a>01021         <span class="keywordflow">case</span> M_LIN24:
+<a name="l01022"></a>01022         <span class="keywordflow">case</span> M_LIN32:
+<a name="l01023"></a>01023         <span class="keywordflow">case</span> M_VGA:
+<a name="l01024"></a>01024                 seq_data[2]|=0xf;                               <span class="comment">//Enable all planes for writing</span>
+<a name="l01025"></a>01025                 seq_data[4]|=0x8;                               <span class="comment">//Graphics - Chained</span>
+<a name="l01026"></a>01026                 <span class="keywordflow">break</span>;
+<a name="l01027"></a>01027         <span class="keywordflow">default</span>:
+<a name="l01028"></a>01028                 <span class="keywordflow">break</span>;
+<a name="l01029"></a>01029         }
+<a name="l01030"></a>01030         <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;SEQ_REGS;ct++) {
+<a name="l01031"></a>01031                 IO_Write(0x3c4,ct);
+<a name="l01032"></a>01032                 IO_Write(0x3c5,seq_data[ct]);
+<a name="l01033"></a>01033         }
+<a name="l01034"></a>01034 
+<a name="l01035"></a>01035         <span class="comment">/* NTS: S3 INT 10 modesetting code below sets this bit anyway when writing CRTC register 0x31.</span>
+<a name="l01036"></a>01036 <span class="comment">         *      It needs to be done as I/O port write so that Windows 95 can virtualize it properly when</span>
+<a name="l01037"></a>01037 <span class="comment">         *      we&#39;re called to set INT10 mode 3 (from within virtual 8086 mode) when opening a DOS box.</span>
+<a name="l01038"></a>01038 <span class="comment">         *</span>
+<a name="l01039"></a>01039 <span class="comment">         *      If we just set it directly, then the generic S3 driver in Windows 95 cannot trap the I/O</span>
+<a name="l01040"></a>01040 <span class="comment">         *      and prevent our own INT 10h handler from setting the VGA memory mapping into &quot;compatible</span>
+<a name="l01041"></a>01041 <span class="comment">         *      chain 4&quot; mode, and then any non accelerated drawing from the Windows driver becomes a</span>
+<a name="l01042"></a>01042 <span class="comment">         *      garbled mess spread out across the screen (due to the weird way that VGA planar memory</span>
+<a name="l01043"></a>01043 <span class="comment">         *      is &quot;chained&quot; on SVGA chipsets).</span>
+<a name="l01044"></a>01044 <span class="comment">         *</span>
+<a name="l01045"></a>01045 <span class="comment">         *      The S3 linear framebuffer isn&#39;t affected by VGA chained mode, which is why only the</span>
+<a name="l01046"></a>01046 <span class="comment">         *      generic S3 driver was affected by this bug, since the generic S3 driver is the one that</span>
+<a name="l01047"></a>01047 <span class="comment">         *      uses only VGA access (0xA0000-0xAFFFF) and SVGA bank switching while the more specific</span>
+<a name="l01048"></a>01048 <span class="comment">         *      &quot;S3 Trio32 PCI&quot; driver uses the linear framebuffer.</span>
+<a name="l01049"></a>01049 <span class="comment">         *</span>
+<a name="l01050"></a>01050 <span class="comment">         *      But to avoid breaking other SVGA emulation in DOSBox-X, we still set this manually for</span>
+<a name="l01051"></a>01051 <span class="comment">         *      other VGA/SVGA emulation cases, just not S3 Trio emulation. */</span>
+<a name="l01052"></a>01052         <span class="keywordflow">if</span> (svgaCard != SVGA_S3Trio)
+<a name="l01053"></a>01053                 vga.config.compatible_chain4 = <span class="keyword">true</span>; <span class="comment">// this may be changed by SVGA chipset emulation</span>
+<a name="l01054"></a>01054 
+<a name="l01055"></a>01055         <span class="keywordflow">if</span>( machine==MCH_AMSTRAD )
+<a name="l01056"></a>01056         {
+<a name="l01057"></a>01057                 vga.amstrad.mask_plane = 0x07070707;
+<a name="l01058"></a>01058                 vga.amstrad.write_plane = 0x0F;
+<a name="l01059"></a>01059                 vga.amstrad.read_plane = 0x00;
+<a name="l01060"></a>01060                 vga.amstrad.border_color = 0x00;
+<a name="l01061"></a>01061         }
+<a name="l01062"></a>01062 
+<a name="l01063"></a>01063         <span class="comment">/* Program CRTC */</span>
+<a name="l01064"></a>01064         <span class="comment">/* First disable write protection */</span>
+<a name="l01065"></a>01065         IO_Write(crtc_base,0x11);
+<a name="l01066"></a>01066         IO_Write(crtc_base+1u,IO_Read(crtc_base+1u)&amp;0x7f);
+<a name="l01067"></a>01067         <span class="comment">/* Clear all the regs */</span>
+<a name="l01068"></a>01068         <span class="keywordflow">for</span> (Bit8u ct=0x0;ct&lt;=0x18;ct++) {
+<a name="l01069"></a>01069                 IO_Write(crtc_base,ct);IO_Write(crtc_base+1u,0);
+<a name="l01070"></a>01070         }
+<a name="l01071"></a>01071         Bit8u overflow=0;Bit8u max_scanline=0;
+<a name="l01072"></a>01072         Bit8u ver_overflow=0;Bit8u hor_overflow=0;
+<a name="l01073"></a>01073         <span class="comment">/* Horizontal Total */</span>
+<a name="l01074"></a>01074         IO_Write(crtc_base,0x00);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;htotal-5));
+<a name="l01075"></a>01075         hor_overflow|=((CurMode-&gt;htotal-5) &amp; 0x100) &gt;&gt; 8;
+<a name="l01076"></a>01076         <span class="comment">/* Horizontal Display End */</span>
+<a name="l01077"></a>01077         IO_Write(crtc_base,0x01);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;hdispend-1));
+<a name="l01078"></a>01078         hor_overflow|=((CurMode-&gt;hdispend-1) &amp; 0x100) &gt;&gt; 7;
+<a name="l01079"></a>01079         <span class="comment">/* Start horizontal Blanking */</span>
+<a name="l01080"></a>01080         IO_Write(crtc_base,0x02);IO_Write(crtc_base+1u,(Bit8u)CurMode-&gt;hdispend);
+<a name="l01081"></a>01081         hor_overflow|=((CurMode-&gt;hdispend) &amp; 0x100) &gt;&gt; 6;
+<a name="l01082"></a>01082         <span class="comment">/* End horizontal Blanking */</span>
+<a name="l01083"></a>01083         Bitu blank_end=(CurMode-&gt;htotal-2) &amp; 0x7f;
+<a name="l01084"></a>01084         IO_Write(crtc_base,0x03);IO_Write(crtc_base+1u,0x80|(blank_end &amp; 0x1f));
+<a name="l01085"></a>01085 
+<a name="l01086"></a>01086         <span class="comment">/* Start Horizontal Retrace */</span>
+<a name="l01087"></a>01087         Bitu ret_start;
+<a name="l01088"></a>01088         <span class="keywordflow">if</span> ((CurMode-&gt;special &amp; _EGA_HALF_CLOCK) &amp;&amp; (CurMode-&gt;type!=M_CGA2)) ret_start = (CurMode-&gt;hdispend+3);
+<a name="l01089"></a>01089         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CurMode-&gt;type==M_TEXT) ret_start = (CurMode-&gt;hdispend+5);
+<a name="l01090"></a>01090         <span class="keywordflow">else</span> ret_start = (CurMode-&gt;hdispend+4);
+<a name="l01091"></a>01091         IO_Write(crtc_base,0x04);IO_Write(crtc_base+1u,(Bit8u)ret_start);
+<a name="l01092"></a>01092         hor_overflow|=(ret_start &amp; 0x100) &gt;&gt; 4;
+<a name="l01093"></a>01093 
+<a name="l01094"></a>01094         <span class="comment">/* End Horizontal Retrace */</span>
+<a name="l01095"></a>01095         Bitu ret_end;
+<a name="l01096"></a>01096         <span class="keywordflow">if</span> (CurMode-&gt;special &amp; _EGA_HALF_CLOCK) {
+<a name="l01097"></a>01097                 <span class="keywordflow">if</span> (CurMode-&gt;type==M_CGA2) ret_end=0;   <span class="comment">// mode 6</span>
+<a name="l01098"></a>01098                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CurMode-&gt;special &amp; _DOUBLESCAN) ret_end = (CurMode-&gt;htotal-18) &amp; 0x1f;
+<a name="l01099"></a>01099                 <span class="keywordflow">else</span> ret_end = ((CurMode-&gt;htotal-18) &amp; 0x1f) | 0x20; <span class="comment">// mode 0&amp;1 have 1 char sync delay</span>
+<a name="l01100"></a>01100         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CurMode-&gt;type==M_TEXT) ret_end = (CurMode-&gt;htotal-3) &amp; 0x1f;
+<a name="l01101"></a>01101         <span class="keywordflow">else</span> ret_end = (CurMode-&gt;htotal-4) &amp; 0x1f;
+<a name="l01102"></a>01102         
+<a name="l01103"></a>01103         IO_Write(crtc_base,0x05);IO_Write(crtc_base+1u,(Bit8u)(ret_end | (blank_end &amp; 0x20) &lt;&lt; 2));
+<a name="l01104"></a>01104 
+<a name="l01105"></a>01105         <span class="comment">/* Vertical Total */</span>
+<a name="l01106"></a>01106         IO_Write(crtc_base,0x06);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;vtotal-2));
+<a name="l01107"></a>01107         overflow|=((CurMode-&gt;vtotal-2) &amp; 0x100) &gt;&gt; 8;
+<a name="l01108"></a>01108         overflow|=((CurMode-&gt;vtotal-2) &amp; 0x200) &gt;&gt; 4;
+<a name="l01109"></a>01109         ver_overflow|=((CurMode-&gt;vtotal-2) &amp; 0x400) &gt;&gt; 10;
+<a name="l01110"></a>01110 
+<a name="l01111"></a>01111         Bitu vretrace;
+<a name="l01112"></a>01112         <span class="keywordflow">if</span> (IS_VGA_ARCH) {
+<a name="l01113"></a>01113                 <span class="keywordflow">switch</span> (CurMode-&gt;vdispend) {
+<a name="l01114"></a>01114                 <span class="keywordflow">case</span> 400: vretrace=CurMode-&gt;vdispend+12;
+<a name="l01115"></a>01115                                 <span class="keywordflow">break</span>;
+<a name="l01116"></a>01116                 <span class="keywordflow">case</span> 480: vretrace=CurMode-&gt;vdispend+10;
+<a name="l01117"></a>01117                                 <span class="keywordflow">break</span>;
+<a name="l01118"></a>01118                 <span class="keywordflow">case</span> 350: vretrace=CurMode-&gt;vdispend+37;
+<a name="l01119"></a>01119                                 <span class="keywordflow">break</span>;
+<a name="l01120"></a>01120                 <span class="keywordflow">default</span>: vretrace=CurMode-&gt;vdispend+12;
+<a name="l01121"></a>01121                 }
+<a name="l01122"></a>01122         } <span class="keywordflow">else</span> {
+<a name="l01123"></a>01123                 <span class="keywordflow">switch</span> (CurMode-&gt;vdispend) {
+<a name="l01124"></a>01124                 <span class="keywordflow">case</span> 350: vretrace=CurMode-&gt;vdispend;
+<a name="l01125"></a>01125                                 <span class="keywordflow">break</span>;
+<a name="l01126"></a>01126                 <span class="keywordflow">default</span>: vretrace=CurMode-&gt;vdispend+24;
+<a name="l01127"></a>01127                 }
+<a name="l01128"></a>01128         }
+<a name="l01129"></a>01129 
+<a name="l01130"></a>01130         <span class="comment">/* Vertical Retrace Start */</span>
+<a name="l01131"></a>01131         IO_Write(crtc_base,0x10);IO_Write(crtc_base+1u,(Bit8u)vretrace);
+<a name="l01132"></a>01132         overflow|=(vretrace &amp; 0x100) &gt;&gt; 6;
+<a name="l01133"></a>01133         overflow|=(vretrace &amp; 0x200) &gt;&gt; 2;
+<a name="l01134"></a>01134         ver_overflow|=(vretrace &amp; 0x400) &gt;&gt; 6;
+<a name="l01135"></a>01135 
+<a name="l01136"></a>01136         <span class="comment">/* Vertical Retrace End */</span>
+<a name="l01137"></a>01137         IO_Write(crtc_base,0x11);IO_Write(crtc_base+1u,(vretrace+2) &amp; 0xF);
+<a name="l01138"></a>01138 
+<a name="l01139"></a>01139         <span class="comment">/* Vertical Display End */</span>
+<a name="l01140"></a>01140         IO_Write(crtc_base,0x12);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;vdispend-1));
+<a name="l01141"></a>01141         overflow|=((CurMode-&gt;vdispend-1) &amp; 0x100) &gt;&gt; 7;
+<a name="l01142"></a>01142         overflow|=((CurMode-&gt;vdispend-1) &amp; 0x200) &gt;&gt; 3;
+<a name="l01143"></a>01143         ver_overflow|=((CurMode-&gt;vdispend-1) &amp; 0x400) &gt;&gt; 9;
+<a name="l01144"></a>01144         
+<a name="l01145"></a>01145         Bitu vblank_trim;
+<a name="l01146"></a>01146         <span class="keywordflow">if</span> (IS_VGA_ARCH) {
+<a name="l01147"></a>01147                 <span class="keywordflow">switch</span> (CurMode-&gt;vdispend) {
+<a name="l01148"></a>01148                 <span class="keywordflow">case</span> 400: vblank_trim=6;
+<a name="l01149"></a>01149                                 <span class="keywordflow">break</span>;
+<a name="l01150"></a>01150                 <span class="keywordflow">case</span> 480: vblank_trim=7;
+<a name="l01151"></a>01151                                 <span class="keywordflow">break</span>;
+<a name="l01152"></a>01152                 <span class="keywordflow">case</span> 350: vblank_trim=5;
+<a name="l01153"></a>01153                                 <span class="keywordflow">break</span>;
+<a name="l01154"></a>01154                 <span class="keywordflow">default</span>: vblank_trim=8;
+<a name="l01155"></a>01155                 }
+<a name="l01156"></a>01156         } <span class="keywordflow">else</span> {
+<a name="l01157"></a>01157                 <span class="keywordflow">switch</span> (CurMode-&gt;vdispend) {
+<a name="l01158"></a>01158                 <span class="keywordflow">case</span> 350: vblank_trim=0;
+<a name="l01159"></a>01159                                 <span class="keywordflow">break</span>;
+<a name="l01160"></a>01160                 <span class="keywordflow">default</span>: vblank_trim=23;
+<a name="l01161"></a>01161                 }
+<a name="l01162"></a>01162         }
+<a name="l01163"></a>01163 
+<a name="l01164"></a>01164         <span class="comment">/* Vertical Blank Start */</span>
+<a name="l01165"></a>01165         IO_Write(crtc_base,0x15);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;vdispend+vblank_trim));
+<a name="l01166"></a>01166         overflow|=((CurMode-&gt;vdispend+vblank_trim) &amp; 0x100) &gt;&gt; 5;
+<a name="l01167"></a>01167         max_scanline|=((CurMode-&gt;vdispend+vblank_trim) &amp; 0x200) &gt;&gt; 4;
+<a name="l01168"></a>01168         ver_overflow|=((CurMode-&gt;vdispend+vblank_trim) &amp; 0x400) &gt;&gt; 8;
+<a name="l01169"></a>01169 
+<a name="l01170"></a>01170         <span class="comment">/* Vertical Blank End */</span>
+<a name="l01171"></a>01171         IO_Write(crtc_base,0x16);IO_Write(crtc_base+1u,(Bit8u)(CurMode-&gt;vtotal-vblank_trim-2));
+<a name="l01172"></a>01172 
+<a name="l01173"></a>01173         <span class="comment">/* Line Compare */</span>
+<a name="l01174"></a>01174         Bitu line_compare=(CurMode-&gt;vtotal &lt; 1024) ? 1023 : 2047;
+<a name="l01175"></a>01175         IO_Write(crtc_base,0x18);IO_Write(crtc_base+1u,line_compare&amp;0xff);
+<a name="l01176"></a>01176         overflow|=(line_compare &amp; 0x100) &gt;&gt; 4;
+<a name="l01177"></a>01177         max_scanline|=(line_compare &amp; 0x200) &gt;&gt; 3;
+<a name="l01178"></a>01178         ver_overflow|=(line_compare &amp; 0x400) &gt;&gt; 4;
+<a name="l01179"></a>01179         Bit8u underline=0;
+<a name="l01180"></a>01180         <span class="comment">/* Maximum scanline / Underline Location */</span>
+<a name="l01181"></a>01181         <span class="keywordflow">if</span> (CurMode-&gt;special &amp; _DOUBLESCAN) max_scanline|=0x80;
+<a name="l01182"></a>01182         <span class="keywordflow">if</span> (CurMode-&gt;special &amp; _REPEAT1) max_scanline|=0x01;
+<a name="l01183"></a>01183 
+<a name="l01184"></a>01184         <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l01185"></a>01185         <span class="keywordflow">case</span> M_TEXT:
+<a name="l01186"></a>01186                 <span class="keywordflow">if</span>(IS_VGA_ARCH) {
+<a name="l01187"></a>01187                         <span class="keywordflow">switch</span>(modeset_ctl &amp; 0x90) {
+<a name="l01188"></a>01188                         <span class="keywordflow">case</span> 0x0: <span class="comment">// 350-lines mode: 8x14 font</span>
+<a name="l01189"></a>01189                                 max_scanline |= (14-1);
+<a name="l01190"></a>01190                                 <span class="keywordflow">break</span>;
+<a name="l01191"></a>01191                         <span class="keywordflow">default</span>: <span class="comment">// reserved</span>
+<a name="l01192"></a>01192                         <span class="keywordflow">case</span> 0x10: <span class="comment">// 400 lines 8x16 font</span>
+<a name="l01193"></a>01193                 max_scanline|=CurMode-&gt;cheight-1;
+<a name="l01194"></a>01194                                 <span class="keywordflow">break</span>;
+<a name="l01195"></a>01195                         <span class="keywordflow">case</span> 0x80: <span class="comment">// 200 lines: 8x8 font and doublescan</span>
+<a name="l01196"></a>01196                                 max_scanline |= (8-1);
+<a name="l01197"></a>01197                                 max_scanline |= 0x80;
+<a name="l01198"></a>01198                                 <span class="keywordflow">break</span>;
+<a name="l01199"></a>01199                         }
+<a name="l01200"></a>01200                 } <span class="keywordflow">else</span> max_scanline |= CurMode-&gt;cheight-1;
+<a name="l01201"></a>01201                 underline=mono_mode ? 0x0f : 0x1f; <span class="comment">// mode 7 uses a diff underline position</span>
+<a name="l01202"></a>01202                 <span class="keywordflow">break</span>;
+<a name="l01203"></a>01203         <span class="keywordflow">case</span> M_VGA:
+<a name="l01204"></a>01204                 underline=0x40;
 <a name="l01205"></a>01205                 <span class="keywordflow">break</span>;
-<a name="l01206"></a>01206         <span class="keywordflow">default</span>:
-<a name="l01207"></a>01207                 <span class="keywordflow">break</span>;
-<a name="l01208"></a>01208         }
-<a name="l01209"></a>01209 
-<a name="l01210"></a>01210     <span class="comment">/* do NOT apply this to VESA BIOS modes */</span>
-<a name="l01211"></a>01211         <span class="keywordflow">if</span> (CurMode-&gt;mode &lt; 0x100 &amp;&amp; CurMode-&gt;vdispend==350) underline=0x0f;
-<a name="l01212"></a>01212 
-<a name="l01213"></a>01213         IO_Write(crtc_base,0x09);IO_Write(crtc_base+1u,max_scanline);
-<a name="l01214"></a>01214         IO_Write(crtc_base,0x14);IO_Write(crtc_base+1u,underline);
-<a name="l01215"></a>01215 
-<a name="l01216"></a>01216         <span class="comment">/* OverFlow */</span>
-<a name="l01217"></a>01217         IO_Write(crtc_base,0x07);IO_Write(crtc_base+1u,overflow);
-<a name="l01218"></a>01218 
-<a name="l01219"></a>01219         <span class="keywordflow">if</span> (svgaCard == SVGA_S3Trio) {
-<a name="l01220"></a>01220                 <span class="comment">/* Extended Horizontal Overflow */</span>
-<a name="l01221"></a>01221                 IO_Write(crtc_base,0x5d);IO_Write(crtc_base+1u,hor_overflow);
-<a name="l01222"></a>01222                 <span class="comment">/* Extended Vertical Overflow */</span>
-<a name="l01223"></a>01223                 IO_Write(crtc_base,0x5e);IO_Write(crtc_base+1u,ver_overflow);
-<a name="l01224"></a>01224         }
+<a name="l01206"></a>01206         <span class="keywordflow">case</span> M_LIN8:
+<a name="l01207"></a>01207         <span class="keywordflow">case</span> M_LIN15:
+<a name="l01208"></a>01208         <span class="keywordflow">case</span> M_LIN16:
+<a name="l01209"></a>01209         <span class="keywordflow">case</span> M_LIN24:
+<a name="l01210"></a>01210         <span class="keywordflow">case</span> M_LIN32:
+<a name="l01211"></a>01211                 underline=0x60;                 <span class="comment">//Seems to enable the every 4th clock on my s3</span>
+<a name="l01212"></a>01212                 <span class="keywordflow">break</span>;
+<a name="l01213"></a>01213         <span class="keywordflow">default</span>:
+<a name="l01214"></a>01214                 <span class="keywordflow">break</span>;
+<a name="l01215"></a>01215         }
+<a name="l01216"></a>01216 
+<a name="l01217"></a>01217     <span class="comment">/* do NOT apply this to VESA BIOS modes */</span>
+<a name="l01218"></a>01218         <span class="keywordflow">if</span> (CurMode-&gt;mode &lt; 0x100 &amp;&amp; CurMode-&gt;vdispend==350) underline=0x0f;
+<a name="l01219"></a>01219 
+<a name="l01220"></a>01220         IO_Write(crtc_base,0x09);IO_Write(crtc_base+1u,max_scanline);
+<a name="l01221"></a>01221         IO_Write(crtc_base,0x14);IO_Write(crtc_base+1u,underline);
+<a name="l01222"></a>01222 
+<a name="l01223"></a>01223         <span class="comment">/* OverFlow */</span>
+<a name="l01224"></a>01224         IO_Write(crtc_base,0x07);IO_Write(crtc_base+1u,overflow);
 <a name="l01225"></a>01225 
-<a name="l01226"></a>01226         <span class="comment">/* Offset Register */</span>
-<a name="l01227"></a>01227         Bitu offset;
-<a name="l01228"></a>01228         <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l01229"></a>01229         <span class="keywordflow">case</span> M_LIN8:
-<a name="l01230"></a>01230                 offset = CurMode-&gt;swidth/8;
-<a name="l01231"></a>01231                 <span class="keywordflow">break</span>;
-<a name="l01232"></a>01232         <span class="keywordflow">case</span> M_LIN15:
-<a name="l01233"></a>01233         <span class="keywordflow">case</span> M_LIN16:
-<a name="l01234"></a>01234                 offset = 2 * CurMode-&gt;swidth/8;
-<a name="l01235"></a>01235                 <span class="keywordflow">break</span>;
-<a name="l01236"></a>01236         <span class="keywordflow">case</span> M_LIN24:
-<a name="l01237"></a>01237                 offset = 3 * CurMode-&gt;swidth/8;
+<a name="l01226"></a>01226         <span class="keywordflow">if</span> (svgaCard == SVGA_S3Trio) {
+<a name="l01227"></a>01227                 <span class="comment">/* Extended Horizontal Overflow */</span>
+<a name="l01228"></a>01228                 IO_Write(crtc_base,0x5d);IO_Write(crtc_base+1u,hor_overflow);
+<a name="l01229"></a>01229                 <span class="comment">/* Extended Vertical Overflow */</span>
+<a name="l01230"></a>01230                 IO_Write(crtc_base,0x5e);IO_Write(crtc_base+1u,ver_overflow);
+<a name="l01231"></a>01231         }
+<a name="l01232"></a>01232 
+<a name="l01233"></a>01233         <span class="comment">/* Offset Register */</span>
+<a name="l01234"></a>01234         Bitu offset;
+<a name="l01235"></a>01235         <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l01236"></a>01236         <span class="keywordflow">case</span> M_LIN8:
+<a name="l01237"></a>01237                 offset = CurMode-&gt;swidth/8;
 <a name="l01238"></a>01238                 <span class="keywordflow">break</span>;
-<a name="l01239"></a>01239         <span class="keywordflow">case</span> M_LIN32:
-<a name="l01240"></a>01240                 offset = 4 * CurMode-&gt;swidth/8;
-<a name="l01241"></a>01241                 <span class="keywordflow">break</span>;
-<a name="l01242"></a>01242         <span class="keywordflow">default</span>:
-<a name="l01243"></a>01243                 offset = CurMode-&gt;hdispend/2;
-<a name="l01244"></a>01244         }
-<a name="l01245"></a>01245         IO_Write(crtc_base,0x13);
-<a name="l01246"></a>01246         IO_Write(crtc_base + 1u,offset &amp; 0xff);
-<a name="l01247"></a>01247 
-<a name="l01248"></a>01248         <span class="keywordflow">if</span> (svgaCard == SVGA_S3Trio) {
-<a name="l01249"></a>01249                 <span class="comment">/* Extended System Control 2 Register  */</span>
-<a name="l01250"></a>01250                 <span class="comment">/* This register actually has more bits but only use the extended offset ones */</span>
-<a name="l01251"></a>01251                 IO_Write(crtc_base,0x51);
-<a name="l01252"></a>01252                 IO_Write(crtc_base + 1u,(Bit8u)((offset &amp; 0x300) &gt;&gt; 4));
-<a name="l01253"></a>01253                 <span class="comment">/* Clear remaining bits of the display start */</span>
-<a name="l01254"></a>01254                 IO_Write(crtc_base,0x69);
-<a name="l01255"></a>01255                 IO_Write(crtc_base + 1u,0);
-<a name="l01256"></a>01256                 <span class="comment">/* Extended Vertical Overflow */</span>
-<a name="l01257"></a>01257                 IO_Write(crtc_base,0x5e);IO_Write(crtc_base+1u,ver_overflow);
-<a name="l01258"></a>01258         }
-<a name="l01259"></a>01259 
-<a name="l01260"></a>01260         <span class="comment">/* Mode Control */</span>
-<a name="l01261"></a>01261         Bit8u mode_control=0;
-<a name="l01262"></a>01262 
-<a name="l01263"></a>01263         <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l01264"></a>01264         <span class="keywordflow">case</span> M_CGA2:
-<a name="l01265"></a>01265                 mode_control=0xc2; <span class="comment">// 0x06 sets address wrap.</span>
-<a name="l01266"></a>01266                 <span class="keywordflow">break</span>;
-<a name="l01267"></a>01267         <span class="keywordflow">case</span> M_CGA4:
-<a name="l01268"></a>01268                 mode_control=0xa2;
-<a name="l01269"></a>01269                 <span class="keywordflow">break</span>;
-<a name="l01270"></a>01270         <span class="keywordflow">case</span> M_LIN4:
-<a name="l01271"></a>01271         <span class="keywordflow">case</span> M_EGA:
-<a name="l01272"></a>01272                 <span class="keywordflow">if</span> (CurMode-&gt;mode==0x11) <span class="comment">// 0x11 also sets address wrap.  thought maybe all 2 color modes did but 0x0f doesn&#39;t.</span>
-<a name="l01273"></a>01273                         mode_control=0xc3; <span class="comment">// so.. 0x11 or 0x0f a one off?</span>
-<a name="l01274"></a>01274                 <span class="keywordflow">else</span> {
-<a name="l01275"></a>01275                                 mode_control=0xe3;
-<a name="l01276"></a>01276                         }
-<a name="l01277"></a>01277                 <span class="keywordflow">break</span>;
-<a name="l01278"></a>01278         <span class="keywordflow">case</span> M_TEXT:
-<a name="l01279"></a>01279         <span class="keywordflow">case</span> M_VGA:
-<a name="l01280"></a>01280         <span class="keywordflow">case</span> M_LIN8:
-<a name="l01281"></a>01281         <span class="keywordflow">case</span> M_LIN15:
-<a name="l01282"></a>01282         <span class="keywordflow">case</span> M_LIN16:
-<a name="l01283"></a>01283         <span class="keywordflow">case</span> M_LIN24:
-<a name="l01284"></a>01284         <span class="keywordflow">case</span> M_LIN32:
-<a name="l01285"></a>01285                 mode_control=0xa3;
-<a name="l01286"></a>01286                 <span class="keywordflow">if</span> (CurMode-&gt;special &amp; _VGA_PIXEL_DOUBLE)
-<a name="l01287"></a>01287                         mode_control |= 0x08;
-<a name="l01288"></a>01288                 <span class="keywordflow">break</span>;
-<a name="l01289"></a>01289         <span class="keywordflow">default</span>:
-<a name="l01290"></a>01290                 <span class="keywordflow">break</span>;
-<a name="l01291"></a>01291         }
-<a name="l01292"></a>01292 
-<a name="l01293"></a>01293         IO_Write(crtc_base,0x17);IO_Write(crtc_base+1u,mode_control);
-<a name="l01294"></a>01294         <span class="comment">/* Renable write protection */</span>
-<a name="l01295"></a>01295         IO_Write(crtc_base,0x11);
-<a name="l01296"></a>01296         IO_Write(crtc_base+1u,IO_Read(crtc_base+1u)|0x80);
-<a name="l01297"></a>01297 
-<a name="l01298"></a>01298         <span class="keywordflow">if</span> (svgaCard == SVGA_S3Trio) {
-<a name="l01299"></a>01299                 <span class="comment">/* Setup the correct clock */</span>
-<a name="l01300"></a>01300                 <span class="keywordflow">if</span> (CurMode-&gt;mode&gt;=0x100) {
-<a name="l01301"></a>01301                         misc_output|=0xef;              <span class="comment">//Select clock 3 </span>
-<a name="l01302"></a>01302                         Bitu clock=CurMode-&gt;vtotal*8*CurMode-&gt;htotal*70;
-<a name="l01303"></a>01303                         <span class="keywordflow">if</span>(CurMode-&gt;type==M_LIN15 || CurMode-&gt;type==M_LIN16) clock/=2;
-<a name="l01304"></a>01304                         VGA_SetClock(3,clock/1000);
-<a name="l01305"></a>01305                 }
-<a name="l01306"></a>01306                 Bit8u misc_control_2;
-<a name="l01307"></a>01307                 <span class="comment">/* Setup Pixel format */</span>
-<a name="l01308"></a>01308                 <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l01309"></a>01309                 <span class="keywordflow">case</span> M_LIN8:
-<a name="l01310"></a>01310                 <span class="keywordflow">default</span>:
-<a name="l01311"></a>01311                         misc_control_2=0x00;
-<a name="l01312"></a>01312                         <span class="keywordflow">break</span>;
-<a name="l01313"></a>01313                 <span class="keywordflow">case</span> M_LIN15:
-<a name="l01314"></a>01314                         misc_control_2=0x30;
-<a name="l01315"></a>01315                         <span class="keywordflow">break</span>;
-<a name="l01316"></a>01316                 <span class="keywordflow">case</span> M_LIN16:
-<a name="l01317"></a>01317                         misc_control_2=0x50;
-<a name="l01318"></a>01318                         <span class="keywordflow">break</span>;
-<a name="l01319"></a>01319                 <span class="keywordflow">case</span> M_LIN24:
-<a name="l01320"></a>01320                         misc_control_2=0x70; <span class="comment">/* FIXME: Is this right? I have no other reference than comments in vga_s3.cpp and s3freak&#39;s patch */</span>
-<a name="l01321"></a>01321                         <span class="keywordflow">break</span>;
-<a name="l01322"></a>01322                 <span class="keywordflow">case</span> M_LIN32:
-<a name="l01323"></a>01323                         misc_control_2=0xd0;
-<a name="l01324"></a>01324                         <span class="keywordflow">break</span>;
-<a name="l01325"></a>01325                 }
-<a name="l01326"></a>01326                 IO_WriteB(crtc_base,0x67);IO_WriteB(crtc_base+1u,misc_control_2);
-<a name="l01327"></a>01327         }
-<a name="l01328"></a>01328 
-<a name="l01329"></a>01329         <span class="comment">/* Write Misc Output */</span>
-<a name="l01330"></a>01330         IO_Write(0x3c2,misc_output);
-<a name="l01331"></a>01331         <span class="comment">/* Program Graphics controller */</span>
-<a name="l01332"></a>01332         Bit8u gfx_data[GFX_REGS];
-<a name="l01333"></a>01333         memset(gfx_data,0,GFX_REGS);
-<a name="l01334"></a>01334         gfx_data[0x7]=0xf;                              <span class="comment">/* Color don&#39;t care */</span>
-<a name="l01335"></a>01335         gfx_data[0x8]=0xff;                             <span class="comment">/* BitMask */</span>
-<a name="l01336"></a>01336         <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l01337"></a>01337         <span class="keywordflow">case</span> M_TEXT:
-<a name="l01338"></a>01338                 gfx_data[0x5]|=0x10;            <span class="comment">//Odd-Even Mode</span>
-<a name="l01339"></a>01339                 gfx_data[0x6]|=mono_mode ? 0x0a : 0x0e;         <span class="comment">//Either b800 or b000, chain odd/even enable</span>
-<a name="l01340"></a>01340                 <span class="keywordflow">break</span>;
-<a name="l01341"></a>01341         <span class="keywordflow">case</span> M_LIN8:
-<a name="l01342"></a>01342         <span class="keywordflow">case</span> M_LIN15:
-<a name="l01343"></a>01343         <span class="keywordflow">case</span> M_LIN16:
-<a name="l01344"></a>01344         <span class="keywordflow">case</span> M_LIN24:
-<a name="l01345"></a>01345         <span class="keywordflow">case</span> M_LIN32:
-<a name="l01346"></a>01346         <span class="keywordflow">case</span> M_VGA:
-<a name="l01347"></a>01347                 gfx_data[0x5]|=0x40;            <span class="comment">//256 color mode</span>
-<a name="l01348"></a>01348                 gfx_data[0x6]|=0x05;            <span class="comment">//graphics mode at 0xa000-affff</span>
-<a name="l01349"></a>01349                 <span class="keywordflow">break</span>;
-<a name="l01350"></a>01350         <span class="keywordflow">case</span> M_LIN4:
-<a name="l01351"></a>01351         <span class="keywordflow">case</span> M_EGA:
-<a name="l01352"></a>01352                 <span class="keywordflow">if</span> (CurMode-&gt;mode == 0x0f)
-<a name="l01353"></a>01353                         gfx_data[0x7]=0x05;             <span class="comment">// only planes 0 and 2 are used</span>
-<a name="l01354"></a>01354                 gfx_data[0x6]|=0x05;            <span class="comment">//graphics mode at 0xa000-affff</span>
-<a name="l01355"></a>01355                 <span class="keywordflow">break</span>;
-<a name="l01356"></a>01356         <span class="keywordflow">case</span> M_CGA4:
-<a name="l01357"></a>01357                 gfx_data[0x5]|=0x20;            <span class="comment">//CGA mode</span>
-<a name="l01358"></a>01358                 gfx_data[0x6]|=0x0f;            <span class="comment">//graphics mode at at 0xb800=0xbfff</span>
-<a name="l01359"></a>01359                 <span class="keywordflow">if</span> (IS_EGAVGA_ARCH) gfx_data[0x5]|=0x10;
-<a name="l01360"></a>01360                 <span class="keywordflow">break</span>;
-<a name="l01361"></a>01361         <span class="keywordflow">case</span> M_CGA2:
-<a name="l01362"></a>01362                 gfx_data[0x6]|=0x0d;            <span class="comment">//graphics mode at at 0xb800=0xbfff, chain odd/even disabled</span>
-<a name="l01363"></a>01363                 <span class="keywordflow">break</span>;
-<a name="l01364"></a>01364         <span class="keywordflow">default</span>:
-<a name="l01365"></a>01365                 <span class="keywordflow">break</span>;
-<a name="l01366"></a>01366         }
-<a name="l01367"></a>01367         <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;GFX_REGS;ct++) {
-<a name="l01368"></a>01368                 IO_Write(0x3ce,ct);
-<a name="l01369"></a>01369                 IO_Write(0x3cf,gfx_data[ct]);
-<a name="l01370"></a>01370         }
-<a name="l01371"></a>01371         Bit8u att_data[ATT_REGS];
-<a name="l01372"></a>01372         memset(att_data,0,ATT_REGS);
-<a name="l01373"></a>01373         att_data[0x12]=0xf;                             <span class="comment">//Always have all color planes enabled</span>
-<a name="l01374"></a>01374         <span class="comment">/* Program Attribute Controller */</span>
-<a name="l01375"></a>01375         <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l01376"></a>01376         <span class="keywordflow">case</span> M_EGA:
-<a name="l01377"></a>01377         <span class="keywordflow">case</span> M_LIN4:
-<a name="l01378"></a>01378                 att_data[0x10]=0x01;            <span class="comment">//Color Graphics</span>
-<a name="l01379"></a>01379                 <span class="keywordflow">switch</span> (CurMode-&gt;mode) {
-<a name="l01380"></a>01380                 <span class="keywordflow">case</span> 0x0f:
-<a name="l01381"></a>01381                         att_data[0x12]=0x05;    <span class="comment">// planes 0 and 2 enabled</span>
-<a name="l01382"></a>01382                         att_data[0x10]|=0x0a;   <span class="comment">// monochrome and blinking</span>
-<a name="l01383"></a>01383         
-<a name="l01384"></a>01384                         att_data[0x01]=0x08; <span class="comment">// low-intensity</span>
-<a name="l01385"></a>01385                         att_data[0x04]=0x18; <span class="comment">// blink-on case</span>
-<a name="l01386"></a>01386                         att_data[0x05]=0x18; <span class="comment">// high-intensity</span>
-<a name="l01387"></a>01387                         att_data[0x09]=0x08; <span class="comment">// low-intensity in blink-off case</span>
-<a name="l01388"></a>01388                         att_data[0x0d]=0x18; <span class="comment">// high-intensity in blink-off</span>
-<a name="l01389"></a>01389                         <span class="keywordflow">break</span>;
-<a name="l01390"></a>01390                 <span class="keywordflow">case</span> 0x11:
-<a name="l01391"></a>01391                         <span class="keywordflow">for</span> (i=1;i&lt;16;i++) att_data[i]=0x3f;
-<a name="l01392"></a>01392                         <span class="keywordflow">break</span>;
-<a name="l01393"></a>01393                 <span class="keywordflow">case</span> 0x10:
-<a name="l01394"></a>01394                 <span class="keywordflow">case</span> 0x12: 
-<a name="l01395"></a>01395                         <span class="keywordflow">goto</span> att_text16;
-<a name="l01396"></a>01396                 <span class="keywordflow">default</span>:
-<a name="l01397"></a>01397                         <span class="keywordflow">if</span> ( CurMode-&gt;type == M_LIN4 )
-<a name="l01398"></a>01398                                 <span class="keywordflow">goto</span> att_text16;
-<a name="l01399"></a>01399                         <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;8;ct++) {
-<a name="l01400"></a>01400                                 att_data[ct]=ct;
-<a name="l01401"></a>01401                                 att_data[ct+8]=ct+0x10;
-<a name="l01402"></a>01402                         }
-<a name="l01403"></a>01403                         <span class="keywordflow">break</span>;
-<a name="l01404"></a>01404                 }
-<a name="l01405"></a>01405                 <span class="keywordflow">break</span>;
-<a name="l01406"></a>01406         <span class="keywordflow">case</span> M_TANDY16:
-<a name="l01407"></a>01407                 att_data[0x10]=0x01;            <span class="comment">//Color Graphics</span>
-<a name="l01408"></a>01408                 <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;16;ct++) att_data[ct]=ct;
-<a name="l01409"></a>01409                 <span class="keywordflow">break</span>;
-<a name="l01410"></a>01410         <span class="keywordflow">case</span> M_TEXT:
-<a name="l01411"></a>01411                 <span class="keywordflow">if</span> (CurMode-&gt;cwidth==9) {
-<a name="l01412"></a>01412                         att_data[0x13]=0x08;    <span class="comment">//Pel panning on 8, although we don&#39;t have 9 dot text mode</span>
-<a name="l01413"></a>01413                         att_data[0x10]=0x0C;    <span class="comment">//Color Text with blinking, 9 Bit characters</span>
-<a name="l01414"></a>01414                 } <span class="keywordflow">else</span> {
-<a name="l01415"></a>01415                         att_data[0x13]=0x00;
-<a name="l01416"></a>01416                         att_data[0x10]=0x08;    <span class="comment">//Color Text with blinking, 8 Bit characters</span>
-<a name="l01417"></a>01417                 }
-<a name="l01418"></a>01418                 real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL,0x30);
-<a name="l01419"></a>01419 att_text16:
-<a name="l01420"></a>01420                 <span class="keywordflow">if</span> (CurMode-&gt;mode==7) {
-<a name="l01421"></a>01421                         att_data[0]=0x00;
-<a name="l01422"></a>01422                         att_data[8]=0x10;
-<a name="l01423"></a>01423                         <span class="keywordflow">for</span> (i=1; i&lt;8; i++) {
-<a name="l01424"></a>01424                                 att_data[i]=0x08;
-<a name="l01425"></a>01425                                 att_data[i+8]=0x18;
-<a name="l01426"></a>01426                         }
-<a name="l01427"></a>01427                 } <span class="keywordflow">else</span> {
-<a name="l01428"></a>01428                         <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;8;ct++) {
-<a name="l01429"></a>01429                                 att_data[ct]=ct;
-<a name="l01430"></a>01430                                 att_data[ct+8]=ct+0x38;
-<a name="l01431"></a>01431                         }
-<a name="l01432"></a>01432                         <span class="keywordflow">if</span> (IS_VGA_ARCH) att_data[0x06]=0x14;           <span class="comment">//Odd Color 6 yellow/brown.</span>
-<a name="l01433"></a>01433                 }
-<a name="l01434"></a>01434                 <span class="keywordflow">break</span>;
-<a name="l01435"></a>01435         <span class="keywordflow">case</span> M_CGA2:
-<a name="l01436"></a>01436                 att_data[0x10]=0x01;            <span class="comment">//Color Graphics</span>
-<a name="l01437"></a>01437                 att_data[0]=0x0;
-<a name="l01438"></a>01438                 <span class="keywordflow">for</span> (i=1;i&lt;0x10;i++) att_data[i]=0x17;
-<a name="l01439"></a>01439                 att_data[0x12]=0x1;                     <span class="comment">//Only enable 1 plane</span>
-<a name="l01440"></a>01440                 real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL,0x3f);
-<a name="l01441"></a>01441                 <span class="keywordflow">break</span>;
-<a name="l01442"></a>01442         <span class="keywordflow">case</span> M_CGA4:
-<a name="l01443"></a>01443                 att_data[0x10]=0x01;            <span class="comment">//Color Graphics</span>
-<a name="l01444"></a>01444                 att_data[0]=0x0;
-<a name="l01445"></a>01445                 att_data[1]=0x13;
-<a name="l01446"></a>01446                 att_data[2]=0x15;
-<a name="l01447"></a>01447                 att_data[3]=0x17;
-<a name="l01448"></a>01448                 att_data[4]=0x02;
-<a name="l01449"></a>01449                 att_data[5]=0x04;
-<a name="l01450"></a>01450                 att_data[6]=0x06;
-<a name="l01451"></a>01451                 att_data[7]=0x07;
-<a name="l01452"></a>01452                 <span class="keywordflow">for</span> (Bit8u ct=0x8;ct&lt;0x10;ct++) 
-<a name="l01453"></a>01453                         att_data[ct] = ct + 0x8;
-<a name="l01454"></a>01454                 real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL,0x30);
-<a name="l01455"></a>01455                 <span class="keywordflow">break</span>;
-<a name="l01456"></a>01456         <span class="keywordflow">case</span> M_VGA:
-<a name="l01457"></a>01457         <span class="keywordflow">case</span> M_LIN8:
-<a name="l01458"></a>01458         <span class="keywordflow">case</span> M_LIN15:
-<a name="l01459"></a>01459         <span class="keywordflow">case</span> M_LIN16:
-<a name="l01460"></a>01460         <span class="keywordflow">case</span> M_LIN24:
-<a name="l01461"></a>01461         <span class="keywordflow">case</span> M_LIN32:
-<a name="l01462"></a>01462                 <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;16;ct++) att_data[ct]=ct;
-<a name="l01463"></a>01463                 att_data[0x10]=0x41;            <span class="comment">//Color Graphics 8-bit</span>
-<a name="l01464"></a>01464                 <span class="keywordflow">break</span>;
-<a name="l01465"></a>01465         <span class="keywordflow">default</span>:
-<a name="l01466"></a>01466                 <span class="keywordflow">break</span>;
-<a name="l01467"></a>01467         }
-<a name="l01468"></a>01468         IO_Read(mono_mode ? 0x3ba : 0x3da);
-<a name="l01469"></a>01469         <span class="keywordflow">if</span> ((modeset_ctl &amp; 8)==0) {
-<a name="l01470"></a>01470                 <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;ATT_REGS;ct++) {
-<a name="l01471"></a>01471                         IO_Write(0x3c0,ct);
-<a name="l01472"></a>01472                         IO_Write(0x3c0,att_data[ct]);
-<a name="l01473"></a>01473                 }
-<a name="l01474"></a>01474                 vga.config.pel_panning = 0;
-<a name="l01475"></a>01475                 IO_Write(0x3c0,0x20); IO_Write(0x3c0,0x00); <span class="comment">//Disable palette access</span>
-<a name="l01476"></a>01476                 IO_Write(0x3c6,0xff); <span class="comment">//Reset Pelmask</span>
-<a name="l01477"></a>01477                 <span class="comment">/* Setup the DAC */</span>
-<a name="l01478"></a>01478                 IO_Write(0x3c8,0);
-<a name="l01479"></a>01479                 <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l01480"></a>01480                 <span class="keywordflow">case</span> M_EGA:
-<a name="l01481"></a>01481                         <span class="keywordflow">if</span> (CurMode-&gt;mode&gt;0xf) {
-<a name="l01482"></a>01482                                 <span class="keywordflow">goto</span> dac_text16;
-<a name="l01483"></a>01483                         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CurMode-&gt;mode==0xf) {
-<a name="l01484"></a>01484                                 <span class="keywordflow">for</span> (i=0;i&lt;64;i++) {
-<a name="l01485"></a>01485                                         IO_Write(0x3c9,mtext_s3_palette[i][0]);
-<a name="l01486"></a>01486                                         IO_Write(0x3c9,mtext_s3_palette[i][1]);
-<a name="l01487"></a>01487                                         IO_Write(0x3c9,mtext_s3_palette[i][2]);
-<a name="l01488"></a>01488                                 }
-<a name="l01489"></a>01489                         } <span class="keywordflow">else</span> {
-<a name="l01490"></a>01490                                 <span class="keywordflow">for</span> (i=0;i&lt;64;i++) {
-<a name="l01491"></a>01491                                         IO_Write(0x3c9,ega_palette[i][0]);
-<a name="l01492"></a>01492                                         IO_Write(0x3c9,ega_palette[i][1]);
-<a name="l01493"></a>01493                                         IO_Write(0x3c9,ega_palette[i][2]);
-<a name="l01494"></a>01494                                 }
-<a name="l01495"></a>01495                         }
-<a name="l01496"></a>01496                         <span class="keywordflow">break</span>;
-<a name="l01497"></a>01497                 <span class="keywordflow">case</span> M_CGA2:
-<a name="l01498"></a>01498                 <span class="keywordflow">case</span> M_CGA4:
-<a name="l01499"></a>01499                 <span class="keywordflow">case</span> M_TANDY16:
-<a name="l01500"></a>01500                         <span class="keywordflow">for</span> (i=0;i&lt;64;i++) {
-<a name="l01501"></a>01501                                 IO_Write(0x3c9,cga_palette_2[i][0]);
-<a name="l01502"></a>01502                                 IO_Write(0x3c9,cga_palette_2[i][1]);
-<a name="l01503"></a>01503                                 IO_Write(0x3c9,cga_palette_2[i][2]);
-<a name="l01504"></a>01504                         }
-<a name="l01505"></a>01505                         <span class="keywordflow">break</span>;
-<a name="l01506"></a>01506                 <span class="keywordflow">case</span> M_TEXT:
-<a name="l01507"></a>01507                         <span class="keywordflow">if</span> (CurMode-&gt;mode==7) {
-<a name="l01508"></a>01508                                 <span class="keywordflow">if</span> ((IS_VGA_ARCH) &amp;&amp; (svgaCard == SVGA_S3Trio)) {
-<a name="l01509"></a>01509                                         <span class="keywordflow">for</span> (i=0;i&lt;64;i++) {
-<a name="l01510"></a>01510                                                 IO_Write(0x3c9,mtext_s3_palette[i][0]);
-<a name="l01511"></a>01511                                                 IO_Write(0x3c9,mtext_s3_palette[i][1]);
-<a name="l01512"></a>01512                                                 IO_Write(0x3c9,mtext_s3_palette[i][2]);
-<a name="l01513"></a>01513                                         }
-<a name="l01514"></a>01514                                 } <span class="keywordflow">else</span> {
-<a name="l01515"></a>01515                                         <span class="keywordflow">for</span> (i=0;i&lt;64;i++) {
-<a name="l01516"></a>01516                                                 IO_Write(0x3c9,mtext_palette[i][0]);
-<a name="l01517"></a>01517                                                 IO_Write(0x3c9,mtext_palette[i][1]);
-<a name="l01518"></a>01518                                                 IO_Write(0x3c9,mtext_palette[i][2]);
-<a name="l01519"></a>01519                                         }
-<a name="l01520"></a>01520                                 }
-<a name="l01521"></a>01521                                 <span class="keywordflow">break</span>;
-<a name="l01522"></a>01522                         } <span class="comment">//FALLTHROUGH!!!!</span>
-<a name="l01523"></a>01523                 <span class="keywordflow">case</span> M_LIN4: <span class="comment">//Added for CAD Software</span>
-<a name="l01524"></a>01524 dac_text16:
-<a name="l01525"></a>01525                         <span class="keywordflow">for</span> (i=0;i&lt;64;i++) {
-<a name="l01526"></a>01526                                 IO_Write(0x3c9,text_palette[i][0]);
-<a name="l01527"></a>01527                                 IO_Write(0x3c9,text_palette[i][1]);
-<a name="l01528"></a>01528                                 IO_Write(0x3c9,text_palette[i][2]);
-<a name="l01529"></a>01529                         }
-<a name="l01530"></a>01530                         <span class="keywordflow">break</span>;
-<a name="l01531"></a>01531                 <span class="keywordflow">case</span> M_VGA:
-<a name="l01532"></a>01532                 <span class="keywordflow">case</span> M_LIN8:
-<a name="l01533"></a>01533                 <span class="keywordflow">case</span> M_LIN15:
-<a name="l01534"></a>01534                 <span class="keywordflow">case</span> M_LIN16:
-<a name="l01535"></a>01535                 <span class="keywordflow">case</span> M_LIN24:
-<a name="l01536"></a>01536                 <span class="keywordflow">case</span> M_LIN32:
-<a name="l01537"></a>01537                         <span class="comment">// IBM and clones use 248 default colors in the palette for 256-color mode.</span>
-<a name="l01538"></a>01538                         <span class="comment">// The last 8 colors of the palette are only initialized to 0 at BIOS init.</span>
-<a name="l01539"></a>01539                         <span class="comment">// Palette index is left at 0xf8 as on most clones, IBM leaves it at 0x10.</span>
-<a name="l01540"></a>01540                         <span class="keywordflow">for</span> (i=0;i&lt;248;i++) {
-<a name="l01541"></a>01541                                 IO_Write(0x3c9,vga_palette[i][0]);
-<a name="l01542"></a>01542                                 IO_Write(0x3c9,vga_palette[i][1]);
-<a name="l01543"></a>01543                                 IO_Write(0x3c9,vga_palette[i][2]);
-<a name="l01544"></a>01544                         }
-<a name="l01545"></a>01545                         <span class="keywordflow">break</span>;
-<a name="l01546"></a>01546                 <span class="keywordflow">default</span>:
-<a name="l01547"></a>01547                         <span class="keywordflow">break</span>;
-<a name="l01548"></a>01548                 }
-<a name="l01549"></a>01549                 <span class="keywordflow">if</span> (IS_VGA_ARCH) {
-<a name="l01550"></a>01550                         <span class="comment">/* check if gray scale summing is enabled */</span>
-<a name="l01551"></a>01551                         <span class="keywordflow">if</span> (modeset_ctl &amp; 2) INT10_PerformGrayScaleSumming(0,256);
-<a name="l01552"></a>01552                 }
-<a name="l01553"></a>01553         <span class="comment">/* make sure the DAC index is reset on modeset */</span>
-<a name="l01554"></a>01554                 IO_Write(0x3c7,0); <span class="comment">/* according to src/hardware/vga_dac.cpp this sets read_index=0 and write_index=1 */</span>
-<a name="l01555"></a>01555                 IO_Write(0x3c8,0); <span class="comment">/* so set write_index=0 */</span>
-<a name="l01556"></a>01556         } <span class="keywordflow">else</span> {
-<a name="l01557"></a>01557                 <span class="keywordflow">for</span> (Bit8u ct=0x10;ct&lt;ATT_REGS;ct++) {
-<a name="l01558"></a>01558                         <span class="keywordflow">if</span> (ct==0x11) <span class="keywordflow">continue</span>; <span class="comment">// skip overscan register</span>
-<a name="l01559"></a>01559                         IO_Write(0x3c0,ct);
-<a name="l01560"></a>01560                         IO_Write(0x3c0,att_data[ct]);
-<a name="l01561"></a>01561                 }
-<a name="l01562"></a>01562                 vga.config.pel_panning = 0;
-<a name="l01563"></a>01563         }
-<a name="l01564"></a>01564         <span class="comment">/* Setup some special stuff for different modes */</span>
-<a name="l01565"></a>01565         Bit8u feature=real_readb(BIOSMEM_SEG,BIOSMEM_INITIAL_MODE);
-<a name="l01566"></a>01566         <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l01567"></a>01567         <span class="keywordflow">case</span> M_CGA2:
-<a name="l01568"></a>01568                 feature=(feature&amp;~0x30)|0x20;
-<a name="l01569"></a>01569                 real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x1e);
-<a name="l01570"></a>01570                 <span class="keywordflow">break</span>;
-<a name="l01571"></a>01571         <span class="keywordflow">case</span> M_CGA4:
-<a name="l01572"></a>01572                 feature=(feature&amp;~0x30)|0x20;
-<a name="l01573"></a>01573                 <span class="keywordflow">if</span> (CurMode-&gt;mode==4) real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x2a);
-<a name="l01574"></a>01574                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CurMode-&gt;mode==5) real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x2e);
-<a name="l01575"></a>01575                 <span class="keywordflow">else</span> real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x2);
-<a name="l01576"></a>01576                 <span class="keywordflow">break</span>;
-<a name="l01577"></a>01577         <span class="keywordflow">case</span> M_TANDY16:
-<a name="l01578"></a>01578                 feature=(feature&amp;~0x30)|0x20;
-<a name="l01579"></a>01579                 <span class="keywordflow">break</span>;
-<a name="l01580"></a>01580         <span class="keywordflow">case</span> M_TEXT:
-<a name="l01581"></a>01581                 feature=(feature&amp;~0x30)|0x20;
-<a name="l01582"></a>01582                 <span class="keywordflow">switch</span> (CurMode-&gt;mode) {
-<a name="l01583"></a>01583                 <span class="keywordflow">case</span> 0:real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x2c);<span class="keywordflow">break</span>;
-<a name="l01584"></a>01584                 <span class="keywordflow">case</span> 1:real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x28);<span class="keywordflow">break</span>;
-<a name="l01585"></a>01585                 <span class="keywordflow">case</span> 2:real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x2d);<span class="keywordflow">break</span>;
-<a name="l01586"></a>01586                 <span class="keywordflow">case</span> 3:
-<a name="l01587"></a>01587                 <span class="keywordflow">case</span> 7:real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x29);<span class="keywordflow">break</span>;
-<a name="l01588"></a>01588                 }
-<a name="l01589"></a>01589                 <span class="keywordflow">break</span>;
-<a name="l01590"></a>01590         <span class="keywordflow">case</span> M_LIN4:
-<a name="l01591"></a>01591         <span class="keywordflow">case</span> M_EGA:     
-<a name="l01592"></a>01592         <span class="keywordflow">case</span> M_VGA:
-<a name="l01593"></a>01593                 feature=(feature&amp;~0x30);
-<a name="l01594"></a>01594                 <span class="keywordflow">break</span>;
-<a name="l01595"></a>01595         <span class="keywordflow">default</span>:
-<a name="l01596"></a>01596                 <span class="keywordflow">break</span>;
-<a name="l01597"></a>01597         }
-<a name="l01598"></a>01598         <span class="comment">// disabled, has to be set in bios.cpp exclusively</span>
-<a name="l01599"></a>01599 <span class="comment">//      real_writeb(BIOSMEM_SEG,BIOSMEM_INITIAL_MODE,feature);</span>
-<a name="l01600"></a>01600 
-<a name="l01601"></a>01601         <span class="keywordflow">if</span> (svgaCard == SVGA_S3Trio) {
-<a name="l01602"></a>01602                 <span class="comment">/* Setup the CPU Window */</span>
-<a name="l01603"></a>01603                 IO_Write(crtc_base,0x6a);
-<a name="l01604"></a>01604                 IO_Write(crtc_base+1u,0);
-<a name="l01605"></a>01605                 <span class="comment">/* Setup the linear frame buffer */</span>
-<a name="l01606"></a>01606                 IO_Write(crtc_base,0x59);
-<a name="l01607"></a>01607                 IO_Write(crtc_base+1u,(Bit8u)((S3_LFB_BASE &gt;&gt; 24)&amp;0xff));
-<a name="l01608"></a>01608                 IO_Write(crtc_base,0x5a);
-<a name="l01609"></a>01609                 IO_Write(crtc_base+1u,(Bit8u)((S3_LFB_BASE &gt;&gt; 16)&amp;0xff));
-<a name="l01610"></a>01610                 IO_Write(crtc_base,0x6b); <span class="comment">// BIOS scratchpad</span>
-<a name="l01611"></a>01611                 IO_Write(crtc_base+1u,(Bit8u)((S3_LFB_BASE &gt;&gt; 24)&amp;0xff));
-<a name="l01612"></a>01612                 
-<a name="l01613"></a>01613                 <span class="comment">/* Setup some remaining S3 registers */</span>
-<a name="l01614"></a>01614                 IO_Write(crtc_base,0x41); <span class="comment">// BIOS scratchpad</span>
-<a name="l01615"></a>01615                 IO_Write(crtc_base+1u,0x88);
-<a name="l01616"></a>01616                 IO_Write(crtc_base,0x52); <span class="comment">// extended BIOS scratchpad</span>
-<a name="l01617"></a>01617                 IO_Write(crtc_base+1u,0x80);
-<a name="l01618"></a>01618 
-<a name="l01619"></a>01619                 IO_Write(0x3c4,0x15);
-<a name="l01620"></a>01620                 IO_Write(0x3c5,0x03);
-<a name="l01621"></a>01621 
-<a name="l01622"></a>01622                 IO_Write(crtc_base,0x45);
-<a name="l01623"></a>01623                 IO_Write(crtc_base+1u,0x00);
-<a name="l01624"></a>01624 
-<a name="l01625"></a>01625                 <span class="comment">// Accellerator setup </span>
-<a name="l01626"></a>01626                 Bitu reg_50=S3_XGA_8BPP;
-<a name="l01627"></a>01627                 <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l01628"></a>01628                         <span class="keywordflow">case</span> M_LIN15:
-<a name="l01629"></a>01629                         <span class="keywordflow">case</span> M_LIN16: reg_50|=S3_XGA_16BPP; <span class="keywordflow">break</span>;
-<a name="l01630"></a>01630                         <span class="keywordflow">case</span> M_LIN32: reg_50|=S3_XGA_32BPP; <span class="keywordflow">break</span>;
-<a name="l01631"></a>01631                         <span class="keywordflow">default</span>: <span class="keywordflow">break</span>;
-<a name="l01632"></a>01632                 }
-<a name="l01633"></a>01633                 <span class="keywordflow">switch</span>(CurMode-&gt;swidth) {
-<a name="l01634"></a>01634                         <span class="keywordflow">case</span> 640:  reg_50|=S3_XGA_640; <span class="keywordflow">break</span>;
-<a name="l01635"></a>01635                         <span class="keywordflow">case</span> 800:  reg_50|=S3_XGA_800; <span class="keywordflow">break</span>;
-<a name="l01636"></a>01636                         <span class="keywordflow">case</span> 1024: reg_50|=S3_XGA_1024; <span class="keywordflow">break</span>;
-<a name="l01637"></a>01637                         <span class="keywordflow">case</span> 1152: reg_50|=S3_XGA_1152; <span class="keywordflow">break</span>;
-<a name="l01638"></a>01638                         <span class="keywordflow">case</span> 1280: reg_50|=S3_XGA_1280; <span class="keywordflow">break</span>;
-<a name="l01639"></a>01639                         <span class="keywordflow">case</span> 1600: reg_50|=S3_XGA_1600; <span class="keywordflow">break</span>;
-<a name="l01640"></a>01640                         <span class="keywordflow">default</span>: <span class="keywordflow">break</span>;
-<a name="l01641"></a>01641                 }
-<a name="l01642"></a>01642                 IO_WriteB(crtc_base,0x50); IO_WriteB(crtc_base+1u,reg_50);
+<a name="l01239"></a>01239         <span class="keywordflow">case</span> M_LIN15:
+<a name="l01240"></a>01240         <span class="keywordflow">case</span> M_LIN16:
+<a name="l01241"></a>01241                 offset = 2 * CurMode-&gt;swidth/8;
+<a name="l01242"></a>01242                 <span class="keywordflow">break</span>;
+<a name="l01243"></a>01243         <span class="keywordflow">case</span> M_LIN24:
+<a name="l01244"></a>01244                 offset = 3 * CurMode-&gt;swidth/8;
+<a name="l01245"></a>01245                 <span class="keywordflow">break</span>;
+<a name="l01246"></a>01246         <span class="keywordflow">case</span> M_LIN32:
+<a name="l01247"></a>01247                 offset = 4 * CurMode-&gt;swidth/8;
+<a name="l01248"></a>01248                 <span class="keywordflow">break</span>;
+<a name="l01249"></a>01249     <span class="keywordflow">case</span> M_EGA:
+<a name="l01250"></a>01250         <span class="keywordflow">if</span> (IS_EGA_ARCH &amp;&amp; vga.mem.memsize &lt; 0x20000 &amp;&amp; CurMode-&gt;vdispend==350)
+<a name="l01251"></a>01251             offset = CurMode-&gt;hdispend/4;
+<a name="l01252"></a>01252         <span class="keywordflow">else</span>
+<a name="l01253"></a>01253             offset = CurMode-&gt;hdispend/2;
+<a name="l01254"></a>01254                 <span class="keywordflow">break</span>;
+<a name="l01255"></a>01255         <span class="keywordflow">default</span>:
+<a name="l01256"></a>01256         offset = CurMode-&gt;hdispend/2;
+<a name="l01257"></a>01257         <span class="keywordflow">break</span>;
+<a name="l01258"></a>01258     }
+<a name="l01259"></a>01259         IO_Write(crtc_base,0x13);
+<a name="l01260"></a>01260         IO_Write(crtc_base + 1u,offset &amp; 0xff);
+<a name="l01261"></a>01261 
+<a name="l01262"></a>01262         <span class="keywordflow">if</span> (svgaCard == SVGA_S3Trio) {
+<a name="l01263"></a>01263                 <span class="comment">/* Extended System Control 2 Register  */</span>
+<a name="l01264"></a>01264                 <span class="comment">/* This register actually has more bits but only use the extended offset ones */</span>
+<a name="l01265"></a>01265                 IO_Write(crtc_base,0x51);
+<a name="l01266"></a>01266                 IO_Write(crtc_base + 1u,(Bit8u)((offset &amp; 0x300) &gt;&gt; 4));
+<a name="l01267"></a>01267                 <span class="comment">/* Clear remaining bits of the display start */</span>
+<a name="l01268"></a>01268                 IO_Write(crtc_base,0x69);
+<a name="l01269"></a>01269                 IO_Write(crtc_base + 1u,0);
+<a name="l01270"></a>01270                 <span class="comment">/* Extended Vertical Overflow */</span>
+<a name="l01271"></a>01271                 IO_Write(crtc_base,0x5e);IO_Write(crtc_base+1u,ver_overflow);
+<a name="l01272"></a>01272         }
+<a name="l01273"></a>01273 
+<a name="l01274"></a>01274         <span class="comment">/* Mode Control */</span>
+<a name="l01275"></a>01275         Bit8u mode_control=0;
+<a name="l01276"></a>01276 
+<a name="l01277"></a>01277         <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l01278"></a>01278         <span class="keywordflow">case</span> M_CGA2:
+<a name="l01279"></a>01279                 mode_control=0xc2; <span class="comment">// 0x06 sets address wrap.</span>
+<a name="l01280"></a>01280                 <span class="keywordflow">break</span>;
+<a name="l01281"></a>01281         <span class="keywordflow">case</span> M_CGA4:
+<a name="l01282"></a>01282                 mode_control=0xa2;
+<a name="l01283"></a>01283                 <span class="keywordflow">break</span>;
+<a name="l01284"></a>01284         <span class="keywordflow">case</span> M_LIN4:
+<a name="l01285"></a>01285         <span class="keywordflow">case</span> M_EGA:
+<a name="l01286"></a>01286         <span class="keywordflow">if</span> (CurMode-&gt;mode==0x11) <span class="comment">// 0x11 also sets address wrap.  thought maybe all 2 color modes did but 0x0f doesn&#39;t.</span>
+<a name="l01287"></a>01287             mode_control=0xc3; <span class="comment">// so.. 0x11 or 0x0f a one off?</span>
+<a name="l01288"></a>01288         <span class="keywordflow">else</span>
+<a name="l01289"></a>01289             mode_control=0xe3;
+<a name="l01290"></a>01290 
+<a name="l01291"></a>01291         <span class="keywordflow">if</span> (IS_EGA_ARCH &amp;&amp; vga.mem.memsize &lt; 0x20000 &amp;&amp; CurMode-&gt;vdispend==350)
+<a name="l01292"></a>01292             mode_control &amp;= ~0x40; <span class="comment">// word mode</span>
+<a name="l01293"></a>01293                 <span class="keywordflow">break</span>;
+<a name="l01294"></a>01294         <span class="keywordflow">case</span> M_TEXT:
+<a name="l01295"></a>01295         <span class="keywordflow">case</span> M_VGA:
+<a name="l01296"></a>01296         <span class="keywordflow">case</span> M_LIN8:
+<a name="l01297"></a>01297         <span class="keywordflow">case</span> M_LIN15:
+<a name="l01298"></a>01298         <span class="keywordflow">case</span> M_LIN16:
+<a name="l01299"></a>01299         <span class="keywordflow">case</span> M_LIN24:
+<a name="l01300"></a>01300         <span class="keywordflow">case</span> M_LIN32:
+<a name="l01301"></a>01301                 mode_control=0xa3;
+<a name="l01302"></a>01302                 <span class="keywordflow">if</span> (CurMode-&gt;special &amp; _VGA_PIXEL_DOUBLE)
+<a name="l01303"></a>01303                         mode_control |= 0x08;
+<a name="l01304"></a>01304                 <span class="keywordflow">break</span>;
+<a name="l01305"></a>01305         <span class="keywordflow">default</span>:
+<a name="l01306"></a>01306                 <span class="keywordflow">break</span>;
+<a name="l01307"></a>01307         }
+<a name="l01308"></a>01308 
+<a name="l01309"></a>01309     <span class="keywordflow">if</span> (IS_EGA_ARCH &amp;&amp; vga.mem.memsize &lt; 0x20000)
+<a name="l01310"></a>01310         mode_control &amp;= ~0x20; <span class="comment">// address wrap bit 13</span>
+<a name="l01311"></a>01311 
+<a name="l01312"></a>01312         IO_Write(crtc_base,0x17);IO_Write(crtc_base+1u,mode_control);
+<a name="l01313"></a>01313         <span class="comment">/* Renable write protection */</span>
+<a name="l01314"></a>01314         IO_Write(crtc_base,0x11);
+<a name="l01315"></a>01315         IO_Write(crtc_base+1u,IO_Read(crtc_base+1u)|0x80);
+<a name="l01316"></a>01316 
+<a name="l01317"></a>01317         <span class="keywordflow">if</span> (svgaCard == SVGA_S3Trio) {
+<a name="l01318"></a>01318                 <span class="comment">/* Setup the correct clock */</span>
+<a name="l01319"></a>01319                 <span class="keywordflow">if</span> (CurMode-&gt;mode&gt;=0x100) {
+<a name="l01320"></a>01320                         misc_output|=0xef;              <span class="comment">//Select clock 3 </span>
+<a name="l01321"></a>01321                         Bitu clock=CurMode-&gt;vtotal*8*CurMode-&gt;htotal*70;
+<a name="l01322"></a>01322                         <span class="keywordflow">if</span>(CurMode-&gt;type==M_LIN15 || CurMode-&gt;type==M_LIN16) clock/=2;
+<a name="l01323"></a>01323                         VGA_SetClock(3,clock/1000);
+<a name="l01324"></a>01324                 }
+<a name="l01325"></a>01325                 Bit8u misc_control_2;
+<a name="l01326"></a>01326                 <span class="comment">/* Setup Pixel format */</span>
+<a name="l01327"></a>01327                 <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l01328"></a>01328                 <span class="keywordflow">case</span> M_LIN8:
+<a name="l01329"></a>01329                 <span class="keywordflow">default</span>:
+<a name="l01330"></a>01330                         misc_control_2=0x00;
+<a name="l01331"></a>01331                         <span class="keywordflow">break</span>;
+<a name="l01332"></a>01332                 <span class="keywordflow">case</span> M_LIN15:
+<a name="l01333"></a>01333                         misc_control_2=0x30;
+<a name="l01334"></a>01334                         <span class="keywordflow">break</span>;
+<a name="l01335"></a>01335                 <span class="keywordflow">case</span> M_LIN16:
+<a name="l01336"></a>01336                         misc_control_2=0x50;
+<a name="l01337"></a>01337                         <span class="keywordflow">break</span>;
+<a name="l01338"></a>01338                 <span class="keywordflow">case</span> M_LIN24:
+<a name="l01339"></a>01339                         misc_control_2=0x70; <span class="comment">/* FIXME: Is this right? I have no other reference than comments in vga_s3.cpp and s3freak&#39;s patch */</span>
+<a name="l01340"></a>01340                         <span class="keywordflow">break</span>;
+<a name="l01341"></a>01341                 <span class="keywordflow">case</span> M_LIN32:
+<a name="l01342"></a>01342                         misc_control_2=0xd0;
+<a name="l01343"></a>01343                         <span class="keywordflow">break</span>;
+<a name="l01344"></a>01344                 }
+<a name="l01345"></a>01345                 IO_WriteB(crtc_base,0x67);IO_WriteB(crtc_base+1u,misc_control_2);
+<a name="l01346"></a>01346         }
+<a name="l01347"></a>01347 
+<a name="l01348"></a>01348         <span class="comment">/* Write Misc Output */</span>
+<a name="l01349"></a>01349         IO_Write(0x3c2,misc_output);
+<a name="l01350"></a>01350         <span class="comment">/* Program Graphics controller */</span>
+<a name="l01351"></a>01351         Bit8u gfx_data[GFX_REGS];
+<a name="l01352"></a>01352         memset(gfx_data,0,GFX_REGS);
+<a name="l01353"></a>01353         gfx_data[0x7]=0xf;                              <span class="comment">/* Color don&#39;t care */</span>
+<a name="l01354"></a>01354         gfx_data[0x8]=0xff;                             <span class="comment">/* BitMask */</span>
+<a name="l01355"></a>01355         <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l01356"></a>01356         <span class="keywordflow">case</span> M_TEXT:
+<a name="l01357"></a>01357                 gfx_data[0x5]|=0x10;            <span class="comment">//Odd-Even Mode</span>
+<a name="l01358"></a>01358                 gfx_data[0x6]|=mono_mode ? 0x0a : 0x0e;         <span class="comment">//Either b800 or b000, chain odd/even enable</span>
+<a name="l01359"></a>01359                 <span class="keywordflow">break</span>;
+<a name="l01360"></a>01360         <span class="keywordflow">case</span> M_LIN8:
+<a name="l01361"></a>01361         <span class="keywordflow">case</span> M_LIN15:
+<a name="l01362"></a>01362         <span class="keywordflow">case</span> M_LIN16:
+<a name="l01363"></a>01363         <span class="keywordflow">case</span> M_LIN24:
+<a name="l01364"></a>01364         <span class="keywordflow">case</span> M_LIN32:
+<a name="l01365"></a>01365         <span class="keywordflow">case</span> M_VGA:
+<a name="l01366"></a>01366                 gfx_data[0x5]|=0x40;            <span class="comment">//256 color mode</span>
+<a name="l01367"></a>01367                 gfx_data[0x6]|=0x05;            <span class="comment">//graphics mode at 0xa000-affff</span>
+<a name="l01368"></a>01368                 <span class="keywordflow">break</span>;
+<a name="l01369"></a>01369         <span class="keywordflow">case</span> M_LIN4:
+<a name="l01370"></a>01370         <span class="keywordflow">case</span> M_EGA:
+<a name="l01371"></a>01371         <span class="keywordflow">if</span> (IS_EGA_ARCH &amp;&amp; vga.mem.memsize &lt; 0x20000 &amp;&amp; CurMode-&gt;vdispend==350) {
+<a name="l01372"></a>01372             gfx_data[0x5]|=0x10;                <span class="comment">//Odd-Even Mode</span>
+<a name="l01373"></a>01373             gfx_data[0x6]|=0x02;                <span class="comment">//Odd-Even Mode</span>
+<a name="l01374"></a>01374                 gfx_data[0x7]=0x5;                      <span class="comment">/* Color don&#39;t care */</span>
+<a name="l01375"></a>01375         }
+<a name="l01376"></a>01376                 gfx_data[0x6]|=0x05;            <span class="comment">//graphics mode at 0xa000-affff</span>
+<a name="l01377"></a>01377                 <span class="keywordflow">break</span>;
+<a name="l01378"></a>01378         <span class="keywordflow">case</span> M_CGA4:
+<a name="l01379"></a>01379                 gfx_data[0x5]|=0x20;            <span class="comment">//CGA mode</span>
+<a name="l01380"></a>01380                 gfx_data[0x6]|=0x0f;            <span class="comment">//graphics mode at at 0xb800=0xbfff</span>
+<a name="l01381"></a>01381                 <span class="keywordflow">if</span> (IS_EGAVGA_ARCH) gfx_data[0x5]|=0x10;
+<a name="l01382"></a>01382                 <span class="keywordflow">break</span>;
+<a name="l01383"></a>01383         <span class="keywordflow">case</span> M_CGA2:
+<a name="l01384"></a>01384                 gfx_data[0x6]|=0x0d;            <span class="comment">//graphics mode at at 0xb800=0xbfff, chain odd/even disabled</span>
+<a name="l01385"></a>01385                 <span class="keywordflow">break</span>;
+<a name="l01386"></a>01386         <span class="keywordflow">default</span>:
+<a name="l01387"></a>01387                 <span class="keywordflow">break</span>;
+<a name="l01388"></a>01388         }
+<a name="l01389"></a>01389         <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;GFX_REGS;ct++) {
+<a name="l01390"></a>01390                 IO_Write(0x3ce,ct);
+<a name="l01391"></a>01391                 IO_Write(0x3cf,gfx_data[ct]);
+<a name="l01392"></a>01392         }
+<a name="l01393"></a>01393         Bit8u att_data[ATT_REGS];
+<a name="l01394"></a>01394         memset(att_data,0,ATT_REGS);
+<a name="l01395"></a>01395         att_data[0x12]=0xf;                             <span class="comment">//Always have all color planes enabled</span>
+<a name="l01396"></a>01396         <span class="comment">/* Program Attribute Controller */</span>
+<a name="l01397"></a>01397         <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l01398"></a>01398         <span class="keywordflow">case</span> M_EGA:
+<a name="l01399"></a>01399         <span class="keywordflow">case</span> M_LIN4:
+<a name="l01400"></a>01400                 att_data[0x10]=0x01;            <span class="comment">//Color Graphics</span>
+<a name="l01401"></a>01401                 <span class="keywordflow">switch</span> (CurMode-&gt;mode) {
+<a name="l01402"></a>01402                 <span class="keywordflow">case</span> 0x0f:
+<a name="l01403"></a>01403                         att_data[0x12]=0x05;    <span class="comment">// planes 0 and 2 enabled</span>
+<a name="l01404"></a>01404                         att_data[0x10]|=0x0a;   <span class="comment">// monochrome and blinking</span>
+<a name="l01405"></a>01405         
+<a name="l01406"></a>01406                         att_data[0x01]=0x08; <span class="comment">// low-intensity</span>
+<a name="l01407"></a>01407                         att_data[0x04]=0x18; <span class="comment">// blink-on case</span>
+<a name="l01408"></a>01408                         att_data[0x05]=0x18; <span class="comment">// high-intensity</span>
+<a name="l01409"></a>01409                         att_data[0x09]=0x08; <span class="comment">// low-intensity in blink-off case</span>
+<a name="l01410"></a>01410                         att_data[0x0d]=0x18; <span class="comment">// high-intensity in blink-off</span>
+<a name="l01411"></a>01411                         <span class="keywordflow">break</span>;
+<a name="l01412"></a>01412                 <span class="keywordflow">case</span> 0x11:
+<a name="l01413"></a>01413                         <span class="keywordflow">for</span> (i=1;i&lt;16;i++) att_data[i]=0x3f;
+<a name="l01414"></a>01414                         <span class="keywordflow">break</span>;
+<a name="l01415"></a>01415                 <span class="keywordflow">case</span> 0x10:
+<a name="l01416"></a>01416                 <span class="keywordflow">case</span> 0x12: 
+<a name="l01417"></a>01417                         <span class="keywordflow">goto</span> att_text16;
+<a name="l01418"></a>01418                 <span class="keywordflow">default</span>:
+<a name="l01419"></a>01419                         <span class="keywordflow">if</span> ( CurMode-&gt;type == M_LIN4 )
+<a name="l01420"></a>01420                                 <span class="keywordflow">goto</span> att_text16;
+<a name="l01421"></a>01421                         <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;8;ct++) {
+<a name="l01422"></a>01422                                 att_data[ct]=ct;
+<a name="l01423"></a>01423                                 att_data[ct+8]=ct+0x10;
+<a name="l01424"></a>01424                         }
+<a name="l01425"></a>01425                         <span class="keywordflow">break</span>;
+<a name="l01426"></a>01426                 }
+<a name="l01427"></a>01427                 <span class="keywordflow">break</span>;
+<a name="l01428"></a>01428         <span class="keywordflow">case</span> M_TANDY16:
+<a name="l01429"></a>01429                 att_data[0x10]=0x01;            <span class="comment">//Color Graphics</span>
+<a name="l01430"></a>01430                 <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;16;ct++) att_data[ct]=ct;
+<a name="l01431"></a>01431                 <span class="keywordflow">break</span>;
+<a name="l01432"></a>01432         <span class="keywordflow">case</span> M_TEXT:
+<a name="l01433"></a>01433                 <span class="keywordflow">if</span> (CurMode-&gt;cwidth==9) {
+<a name="l01434"></a>01434                         att_data[0x13]=0x08;    <span class="comment">//Pel panning on 8, although we don&#39;t have 9 dot text mode</span>
+<a name="l01435"></a>01435                         att_data[0x10]=0x0C;    <span class="comment">//Color Text with blinking, 9 Bit characters</span>
+<a name="l01436"></a>01436                 } <span class="keywordflow">else</span> {
+<a name="l01437"></a>01437                         att_data[0x13]=0x00;
+<a name="l01438"></a>01438                         att_data[0x10]=0x08;    <span class="comment">//Color Text with blinking, 8 Bit characters</span>
+<a name="l01439"></a>01439                 }
+<a name="l01440"></a>01440                 real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL,0x30);
+<a name="l01441"></a>01441 att_text16:
+<a name="l01442"></a>01442                 <span class="keywordflow">if</span> (CurMode-&gt;mode==7) {
+<a name="l01443"></a>01443                         att_data[0]=0x00;
+<a name="l01444"></a>01444                         att_data[8]=0x10;
+<a name="l01445"></a>01445                         <span class="keywordflow">for</span> (i=1; i&lt;8; i++) {
+<a name="l01446"></a>01446                                 att_data[i]=0x08;
+<a name="l01447"></a>01447                                 att_data[i+8]=0x18;
+<a name="l01448"></a>01448                         }
+<a name="l01449"></a>01449                 } <span class="keywordflow">else</span> {
+<a name="l01450"></a>01450                         <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;8;ct++) {
+<a name="l01451"></a>01451                                 att_data[ct]=ct;
+<a name="l01452"></a>01452                                 att_data[ct+8]=ct+0x38;
+<a name="l01453"></a>01453                         }
+<a name="l01454"></a>01454                         <span class="keywordflow">if</span> (IS_VGA_ARCH) att_data[0x06]=0x14;           <span class="comment">//Odd Color 6 yellow/brown.</span>
+<a name="l01455"></a>01455                 }
+<a name="l01456"></a>01456                 <span class="keywordflow">break</span>;
+<a name="l01457"></a>01457         <span class="keywordflow">case</span> M_CGA2:
+<a name="l01458"></a>01458                 att_data[0x10]=0x01;            <span class="comment">//Color Graphics</span>
+<a name="l01459"></a>01459                 att_data[0]=0x0;
+<a name="l01460"></a>01460                 <span class="keywordflow">for</span> (i=1;i&lt;0x10;i++) att_data[i]=0x17;
+<a name="l01461"></a>01461                 att_data[0x12]=0x1;                     <span class="comment">//Only enable 1 plane</span>
+<a name="l01462"></a>01462                 real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL,0x3f);
+<a name="l01463"></a>01463                 <span class="keywordflow">break</span>;
+<a name="l01464"></a>01464         <span class="keywordflow">case</span> M_CGA4:
+<a name="l01465"></a>01465                 att_data[0x10]=0x01;            <span class="comment">//Color Graphics</span>
+<a name="l01466"></a>01466                 att_data[0]=0x0;
+<a name="l01467"></a>01467                 att_data[1]=0x13;
+<a name="l01468"></a>01468                 att_data[2]=0x15;
+<a name="l01469"></a>01469                 att_data[3]=0x17;
+<a name="l01470"></a>01470                 att_data[4]=0x02;
+<a name="l01471"></a>01471                 att_data[5]=0x04;
+<a name="l01472"></a>01472                 att_data[6]=0x06;
+<a name="l01473"></a>01473                 att_data[7]=0x07;
+<a name="l01474"></a>01474                 <span class="keywordflow">for</span> (Bit8u ct=0x8;ct&lt;0x10;ct++) 
+<a name="l01475"></a>01475                         att_data[ct] = ct + 0x8;
+<a name="l01476"></a>01476                 real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL,0x30);
+<a name="l01477"></a>01477                 <span class="keywordflow">break</span>;
+<a name="l01478"></a>01478         <span class="keywordflow">case</span> M_VGA:
+<a name="l01479"></a>01479         <span class="keywordflow">case</span> M_LIN8:
+<a name="l01480"></a>01480         <span class="keywordflow">case</span> M_LIN15:
+<a name="l01481"></a>01481         <span class="keywordflow">case</span> M_LIN16:
+<a name="l01482"></a>01482         <span class="keywordflow">case</span> M_LIN24:
+<a name="l01483"></a>01483         <span class="keywordflow">case</span> M_LIN32:
+<a name="l01484"></a>01484                 <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;16;ct++) att_data[ct]=ct;
+<a name="l01485"></a>01485                 att_data[0x10]=0x41;            <span class="comment">//Color Graphics 8-bit</span>
+<a name="l01486"></a>01486                 <span class="keywordflow">break</span>;
+<a name="l01487"></a>01487         <span class="keywordflow">default</span>:
+<a name="l01488"></a>01488                 <span class="keywordflow">break</span>;
+<a name="l01489"></a>01489         }
+<a name="l01490"></a>01490         IO_Read(mono_mode ? 0x3ba : 0x3da);
+<a name="l01491"></a>01491         <span class="keywordflow">if</span> ((modeset_ctl &amp; 8)==0) {
+<a name="l01492"></a>01492                 <span class="keywordflow">for</span> (Bit8u ct=0;ct&lt;ATT_REGS;ct++) {
+<a name="l01493"></a>01493                         IO_Write(0x3c0,ct);
+<a name="l01494"></a>01494                         IO_Write(0x3c0,att_data[ct]);
+<a name="l01495"></a>01495                 }
+<a name="l01496"></a>01496                 vga.config.pel_panning = 0;
+<a name="l01497"></a>01497                 IO_Write(0x3c0,0x20); IO_Write(0x3c0,0x00); <span class="comment">//Disable palette access</span>
+<a name="l01498"></a>01498                 IO_Write(0x3c6,0xff); <span class="comment">//Reset Pelmask</span>
+<a name="l01499"></a>01499                 <span class="comment">/* Setup the DAC */</span>
+<a name="l01500"></a>01500                 IO_Write(0x3c8,0);
+<a name="l01501"></a>01501                 <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l01502"></a>01502                 <span class="keywordflow">case</span> M_EGA:
+<a name="l01503"></a>01503                         <span class="keywordflow">if</span> (CurMode-&gt;mode&gt;0xf) {
+<a name="l01504"></a>01504                                 <span class="keywordflow">goto</span> dac_text16;
+<a name="l01505"></a>01505                         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CurMode-&gt;mode==0xf) {
+<a name="l01506"></a>01506                                 <span class="keywordflow">for</span> (i=0;i&lt;64;i++) {
+<a name="l01507"></a>01507                                         IO_Write(0x3c9,mtext_s3_palette[i][0]);
+<a name="l01508"></a>01508                                         IO_Write(0x3c9,mtext_s3_palette[i][1]);
+<a name="l01509"></a>01509                                         IO_Write(0x3c9,mtext_s3_palette[i][2]);
+<a name="l01510"></a>01510                                 }
+<a name="l01511"></a>01511                         } <span class="keywordflow">else</span> {
+<a name="l01512"></a>01512                                 <span class="keywordflow">for</span> (i=0;i&lt;64;i++) {
+<a name="l01513"></a>01513                                         IO_Write(0x3c9,ega_palette[i][0]);
+<a name="l01514"></a>01514                                         IO_Write(0x3c9,ega_palette[i][1]);
+<a name="l01515"></a>01515                                         IO_Write(0x3c9,ega_palette[i][2]);
+<a name="l01516"></a>01516                                 }
+<a name="l01517"></a>01517                         }
+<a name="l01518"></a>01518                         <span class="keywordflow">break</span>;
+<a name="l01519"></a>01519                 <span class="keywordflow">case</span> M_CGA2:
+<a name="l01520"></a>01520                 <span class="keywordflow">case</span> M_CGA4:
+<a name="l01521"></a>01521                 <span class="keywordflow">case</span> M_TANDY16:
+<a name="l01522"></a>01522                         <span class="keywordflow">for</span> (i=0;i&lt;64;i++) {
+<a name="l01523"></a>01523                                 IO_Write(0x3c9,cga_palette_2[i][0]);
+<a name="l01524"></a>01524                                 IO_Write(0x3c9,cga_palette_2[i][1]);
+<a name="l01525"></a>01525                                 IO_Write(0x3c9,cga_palette_2[i][2]);
+<a name="l01526"></a>01526                         }
+<a name="l01527"></a>01527                         <span class="keywordflow">break</span>;
+<a name="l01528"></a>01528                 <span class="keywordflow">case</span> M_TEXT:
+<a name="l01529"></a>01529                         <span class="keywordflow">if</span> (CurMode-&gt;mode==7) {
+<a name="l01530"></a>01530                                 <span class="keywordflow">if</span> ((IS_VGA_ARCH) &amp;&amp; (svgaCard == SVGA_S3Trio)) {
+<a name="l01531"></a>01531                                         <span class="keywordflow">for</span> (i=0;i&lt;64;i++) {
+<a name="l01532"></a>01532                                                 IO_Write(0x3c9,mtext_s3_palette[i][0]);
+<a name="l01533"></a>01533                                                 IO_Write(0x3c9,mtext_s3_palette[i][1]);
+<a name="l01534"></a>01534                                                 IO_Write(0x3c9,mtext_s3_palette[i][2]);
+<a name="l01535"></a>01535                                         }
+<a name="l01536"></a>01536                                 } <span class="keywordflow">else</span> {
+<a name="l01537"></a>01537                                         <span class="keywordflow">for</span> (i=0;i&lt;64;i++) {
+<a name="l01538"></a>01538                                                 IO_Write(0x3c9,mtext_palette[i][0]);
+<a name="l01539"></a>01539                                                 IO_Write(0x3c9,mtext_palette[i][1]);
+<a name="l01540"></a>01540                                                 IO_Write(0x3c9,mtext_palette[i][2]);
+<a name="l01541"></a>01541                                         }
+<a name="l01542"></a>01542                                 }
+<a name="l01543"></a>01543                                 <span class="keywordflow">break</span>;
+<a name="l01544"></a>01544                         } <span class="comment">//FALLTHROUGH!!!!</span>
+<a name="l01545"></a>01545                 <span class="keywordflow">case</span> M_LIN4: <span class="comment">//Added for CAD Software</span>
+<a name="l01546"></a>01546 dac_text16:
+<a name="l01547"></a>01547                         <span class="keywordflow">for</span> (i=0;i&lt;64;i++) {
+<a name="l01548"></a>01548                                 IO_Write(0x3c9,text_palette[i][0]);
+<a name="l01549"></a>01549                                 IO_Write(0x3c9,text_palette[i][1]);
+<a name="l01550"></a>01550                                 IO_Write(0x3c9,text_palette[i][2]);
+<a name="l01551"></a>01551                         }
+<a name="l01552"></a>01552                         <span class="keywordflow">break</span>;
+<a name="l01553"></a>01553                 <span class="keywordflow">case</span> M_VGA:
+<a name="l01554"></a>01554                 <span class="keywordflow">case</span> M_LIN8:
+<a name="l01555"></a>01555                 <span class="keywordflow">case</span> M_LIN15:
+<a name="l01556"></a>01556                 <span class="keywordflow">case</span> M_LIN16:
+<a name="l01557"></a>01557                 <span class="keywordflow">case</span> M_LIN24:
+<a name="l01558"></a>01558                 <span class="keywordflow">case</span> M_LIN32:
+<a name="l01559"></a>01559                         <span class="comment">// IBM and clones use 248 default colors in the palette for 256-color mode.</span>
+<a name="l01560"></a>01560                         <span class="comment">// The last 8 colors of the palette are only initialized to 0 at BIOS init.</span>
+<a name="l01561"></a>01561                         <span class="comment">// Palette index is left at 0xf8 as on most clones, IBM leaves it at 0x10.</span>
+<a name="l01562"></a>01562                         <span class="keywordflow">for</span> (i=0;i&lt;248;i++) {
+<a name="l01563"></a>01563                                 IO_Write(0x3c9,vga_palette[i][0]);
+<a name="l01564"></a>01564                                 IO_Write(0x3c9,vga_palette[i][1]);
+<a name="l01565"></a>01565                                 IO_Write(0x3c9,vga_palette[i][2]);
+<a name="l01566"></a>01566                         }
+<a name="l01567"></a>01567                         <span class="keywordflow">break</span>;
+<a name="l01568"></a>01568                 <span class="keywordflow">default</span>:
+<a name="l01569"></a>01569                         <span class="keywordflow">break</span>;
+<a name="l01570"></a>01570                 }
+<a name="l01571"></a>01571                 <span class="keywordflow">if</span> (IS_VGA_ARCH) {
+<a name="l01572"></a>01572                         <span class="comment">/* check if gray scale summing is enabled */</span>
+<a name="l01573"></a>01573                         <span class="keywordflow">if</span> (modeset_ctl &amp; 2) INT10_PerformGrayScaleSumming(0,256);
+<a name="l01574"></a>01574                 }
+<a name="l01575"></a>01575         <span class="comment">/* make sure the DAC index is reset on modeset */</span>
+<a name="l01576"></a>01576                 IO_Write(0x3c7,0); <span class="comment">/* according to src/hardware/vga_dac.cpp this sets read_index=0 and write_index=1 */</span>
+<a name="l01577"></a>01577                 IO_Write(0x3c8,0); <span class="comment">/* so set write_index=0 */</span>
+<a name="l01578"></a>01578         } <span class="keywordflow">else</span> {
+<a name="l01579"></a>01579                 <span class="keywordflow">for</span> (Bit8u ct=0x10;ct&lt;ATT_REGS;ct++) {
+<a name="l01580"></a>01580                         <span class="keywordflow">if</span> (ct==0x11) <span class="keywordflow">continue</span>; <span class="comment">// skip overscan register</span>
+<a name="l01581"></a>01581                         IO_Write(0x3c0,ct);
+<a name="l01582"></a>01582                         IO_Write(0x3c0,att_data[ct]);
+<a name="l01583"></a>01583                 }
+<a name="l01584"></a>01584                 vga.config.pel_panning = 0;
+<a name="l01585"></a>01585         }
+<a name="l01586"></a>01586         <span class="comment">/* Setup some special stuff for different modes */</span>
+<a name="l01587"></a>01587         Bit8u feature=real_readb(BIOSMEM_SEG,BIOSMEM_INITIAL_MODE);
+<a name="l01588"></a>01588         <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l01589"></a>01589         <span class="keywordflow">case</span> M_CGA2:
+<a name="l01590"></a>01590                 feature=(feature&amp;~0x30)|0x20;
+<a name="l01591"></a>01591                 real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x1e);
+<a name="l01592"></a>01592                 <span class="keywordflow">break</span>;
+<a name="l01593"></a>01593         <span class="keywordflow">case</span> M_CGA4:
+<a name="l01594"></a>01594                 feature=(feature&amp;~0x30)|0x20;
+<a name="l01595"></a>01595                 <span class="keywordflow">if</span> (CurMode-&gt;mode==4) real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x2a);
+<a name="l01596"></a>01596                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CurMode-&gt;mode==5) real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x2e);
+<a name="l01597"></a>01597                 <span class="keywordflow">else</span> real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x2);
+<a name="l01598"></a>01598                 <span class="keywordflow">break</span>;
+<a name="l01599"></a>01599         <span class="keywordflow">case</span> M_TANDY16:
+<a name="l01600"></a>01600                 feature=(feature&amp;~0x30)|0x20;
+<a name="l01601"></a>01601                 <span class="keywordflow">break</span>;
+<a name="l01602"></a>01602         <span class="keywordflow">case</span> M_TEXT:
+<a name="l01603"></a>01603                 feature=(feature&amp;~0x30)|0x20;
+<a name="l01604"></a>01604                 <span class="keywordflow">switch</span> (CurMode-&gt;mode) {
+<a name="l01605"></a>01605                 <span class="keywordflow">case</span> 0:real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x2c);<span class="keywordflow">break</span>;
+<a name="l01606"></a>01606                 <span class="keywordflow">case</span> 1:real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x28);<span class="keywordflow">break</span>;
+<a name="l01607"></a>01607                 <span class="keywordflow">case</span> 2:real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x2d);<span class="keywordflow">break</span>;
+<a name="l01608"></a>01608                 <span class="keywordflow">case</span> 3:
+<a name="l01609"></a>01609                 <span class="keywordflow">case</span> 7:real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x29);<span class="keywordflow">break</span>;
+<a name="l01610"></a>01610                 }
+<a name="l01611"></a>01611                 <span class="keywordflow">break</span>;
+<a name="l01612"></a>01612         <span class="keywordflow">case</span> M_LIN4:
+<a name="l01613"></a>01613         <span class="keywordflow">case</span> M_EGA:     
+<a name="l01614"></a>01614         <span class="keywordflow">case</span> M_VGA:
+<a name="l01615"></a>01615                 feature=(feature&amp;~0x30);
+<a name="l01616"></a>01616                 <span class="keywordflow">break</span>;
+<a name="l01617"></a>01617         <span class="keywordflow">default</span>:
+<a name="l01618"></a>01618                 <span class="keywordflow">break</span>;
+<a name="l01619"></a>01619         }
+<a name="l01620"></a>01620         <span class="comment">// disabled, has to be set in bios.cpp exclusively</span>
+<a name="l01621"></a>01621 <span class="comment">//      real_writeb(BIOSMEM_SEG,BIOSMEM_INITIAL_MODE,feature);</span>
+<a name="l01622"></a>01622 
+<a name="l01623"></a>01623         <span class="keywordflow">if</span> (svgaCard == SVGA_S3Trio) {
+<a name="l01624"></a>01624                 <span class="comment">/* Setup the CPU Window */</span>
+<a name="l01625"></a>01625                 IO_Write(crtc_base,0x6a);
+<a name="l01626"></a>01626                 IO_Write(crtc_base+1u,0);
+<a name="l01627"></a>01627                 <span class="comment">/* Setup the linear frame buffer */</span>
+<a name="l01628"></a>01628                 IO_Write(crtc_base,0x59);
+<a name="l01629"></a>01629                 IO_Write(crtc_base+1u,(Bit8u)((S3_LFB_BASE &gt;&gt; 24)&amp;0xff));
+<a name="l01630"></a>01630                 IO_Write(crtc_base,0x5a);
+<a name="l01631"></a>01631                 IO_Write(crtc_base+1u,(Bit8u)((S3_LFB_BASE &gt;&gt; 16)&amp;0xff));
+<a name="l01632"></a>01632                 IO_Write(crtc_base,0x6b); <span class="comment">// BIOS scratchpad</span>
+<a name="l01633"></a>01633                 IO_Write(crtc_base+1u,(Bit8u)((S3_LFB_BASE &gt;&gt; 24)&amp;0xff));
+<a name="l01634"></a>01634                 
+<a name="l01635"></a>01635                 <span class="comment">/* Setup some remaining S3 registers */</span>
+<a name="l01636"></a>01636                 IO_Write(crtc_base,0x41); <span class="comment">// BIOS scratchpad</span>
+<a name="l01637"></a>01637                 IO_Write(crtc_base+1u,0x88);
+<a name="l01638"></a>01638                 IO_Write(crtc_base,0x52); <span class="comment">// extended BIOS scratchpad</span>
+<a name="l01639"></a>01639                 IO_Write(crtc_base+1u,0x80);
+<a name="l01640"></a>01640 
+<a name="l01641"></a>01641                 IO_Write(0x3c4,0x15);
+<a name="l01642"></a>01642                 IO_Write(0x3c5,0x03);
 <a name="l01643"></a>01643 
-<a name="l01644"></a>01644                 Bit8u reg_31, reg_3a;
-<a name="l01645"></a>01645                 <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l01646"></a>01646                         <span class="keywordflow">case</span> M_LIN15:
-<a name="l01647"></a>01647                         <span class="keywordflow">case</span> M_LIN16:
-<a name="l01648"></a>01648                         <span class="keywordflow">case</span> M_LIN24:
-<a name="l01649"></a>01649                         <span class="keywordflow">case</span> M_LIN32:
-<a name="l01650"></a>01650                                 reg_3a=0x15;
-<a name="l01651"></a>01651                                 <span class="keywordflow">break</span>;
-<a name="l01652"></a>01652                         <span class="keywordflow">case</span> M_LIN8:
-<a name="l01653"></a>01653                                 <span class="comment">// S3VBE20 does it this way. The other double pixel bit does not</span>
-<a name="l01654"></a>01654                                 <span class="comment">// seem to have an effect on the Trio64.</span>
-<a name="l01655"></a>01655                                 <span class="keywordflow">if</span>(CurMode-&gt;special&amp;_S3_PIXEL_DOUBLE) reg_3a=0x5;
-<a name="l01656"></a>01656                                 <span class="keywordflow">else</span> reg_3a=0x15;
-<a name="l01657"></a>01657                                 <span class="keywordflow">break</span>;
-<a name="l01658"></a>01658                         <span class="keywordflow">default</span>:
-<a name="l01659"></a>01659                                 reg_3a=5;
-<a name="l01660"></a>01660                                 <span class="keywordflow">break</span>;
-<a name="l01661"></a>01661                 };
-<a name="l01662"></a>01662                 
-<a name="l01663"></a>01663                 <span class="keywordflow">switch</span> (CurMode-&gt;type) {
-<a name="l01664"></a>01664                 <span class="keywordflow">case</span> M_LIN4: <span class="comment">// &lt;- Theres a discrepance with real hardware on this</span>
-<a name="l01665"></a>01665                 <span class="keywordflow">case</span> M_LIN8:
-<a name="l01666"></a>01666                 <span class="keywordflow">case</span> M_LIN15:
-<a name="l01667"></a>01667                 <span class="keywordflow">case</span> M_LIN16:
-<a name="l01668"></a>01668                 <span class="keywordflow">case</span> M_LIN24:
-<a name="l01669"></a>01669                 <span class="keywordflow">case</span> M_LIN32:
-<a name="l01670"></a>01670                         reg_31 = 9;
-<a name="l01671"></a>01671                         <span class="keywordflow">break</span>;
-<a name="l01672"></a>01672                 <span class="keywordflow">default</span>:
-<a name="l01673"></a>01673                         reg_31 = 5;
-<a name="l01674"></a>01674                         <span class="keywordflow">break</span>;
-<a name="l01675"></a>01675                 }
-<a name="l01676"></a>01676                 IO_Write(crtc_base,0x3a);IO_Write(crtc_base+1u,reg_3a);
-<a name="l01677"></a>01677                 IO_Write(crtc_base,0x31);IO_Write(crtc_base+1u,reg_31); <span class="comment">//Enable banked memory and 256k+ access</span>
-<a name="l01678"></a>01678 
-<a name="l01679"></a>01679                 IO_Write(crtc_base,0x58);
-<a name="l01680"></a>01680                 <span class="keywordflow">if</span> (vga.vmemsize &gt;= (4*1024*1024))
-<a name="l01681"></a>01681                         IO_Write(crtc_base+1u,0x3);             <span class="comment">// 4+ MB window</span>
-<a name="l01682"></a>01682                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vga.vmemsize &gt;= (2*1024*1024))
-<a name="l01683"></a>01683                         IO_Write(crtc_base+1u,0x2);             <span class="comment">// 2 MB window</span>
-<a name="l01684"></a>01684                 <span class="keywordflow">else</span>
-<a name="l01685"></a>01685                         IO_Write(crtc_base+1u,0x1);             <span class="comment">// 1 MB window</span>
-<a name="l01686"></a>01686 
-<a name="l01687"></a>01687                 IO_Write(crtc_base,0x38);IO_Write(crtc_base+1u,0x48);   <span class="comment">//Register lock 1</span>
-<a name="l01688"></a>01688                 IO_Write(crtc_base,0x39);IO_Write(crtc_base+1u,0xa5);   <span class="comment">//Register lock 2</span>
-<a name="l01689"></a>01689         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (svga.set_video_mode) {
-<a name="l01690"></a>01690                 <a class="code" href="structVGA__ModeExtraData.html">VGA_ModeExtraData</a> modeData;
-<a name="l01691"></a>01691                 modeData.ver_overflow = ver_overflow;
-<a name="l01692"></a>01692                 modeData.hor_overflow = hor_overflow;
-<a name="l01693"></a>01693                 modeData.offset = offset;
-<a name="l01694"></a>01694                 modeData.modeNo = CurMode-&gt;mode;
-<a name="l01695"></a>01695                 modeData.htotal = CurMode-&gt;htotal;
-<a name="l01696"></a>01696                 modeData.vtotal = CurMode-&gt;vtotal;
-<a name="l01697"></a>01697                 svga.set_video_mode(crtc_base, &amp;modeData);
-<a name="l01698"></a>01698         }
-<a name="l01699"></a>01699 
-<a name="l01700"></a>01700         FinishSetMode(clearmem);
-<a name="l01701"></a>01701 
-<a name="l01702"></a>01702         <span class="comment">/* Set vga attrib register into defined state */</span>
-<a name="l01703"></a>01703         IO_Read(mono_mode ? 0x3ba : 0x3da);
-<a name="l01704"></a>01704         IO_Write(0x3c0,0x20);
-<a name="l01705"></a>01705         IO_Read(mono_mode ? 0x3ba : 0x3da);
-<a name="l01706"></a>01706 
-<a name="l01707"></a>01707         <span class="comment">/* Load text mode font */</span>
-<a name="l01708"></a>01708         <span class="keywordflow">if</span> (CurMode-&gt;type==M_TEXT) {
-<a name="l01709"></a>01709                 INT10_ReloadFont();
-<a name="l01710"></a>01710         }
-<a name="l01711"></a>01711         <span class="comment">// Enable screen memory access</span>
-<a name="l01712"></a>01712         IO_Write(0x3c4,1); IO_Write(0x3c5,seq_data[1] &amp; ~0x20);
-<a name="l01713"></a>01713         <span class="comment">//LOG_MSG(&quot;setmode end&quot;);</span>
-<a name="l01714"></a>01714 
-<a name="l01715"></a>01715         <span class="keywordflow">if</span> (en_int33) INT10_SetCurMode();
-<a name="l01716"></a>01716 
-<a name="l01717"></a>01717         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01718"></a>01718 }
-<a name="l01719"></a>01719 
-<a name="l01720"></a>01720 Bitu VideoModeMemSize(Bitu mode) {
-<a name="l01721"></a>01721         <span class="keywordflow">if</span> (!IS_VGA_ARCH)
-<a name="l01722"></a>01722                 <span class="keywordflow">return</span> 0;
+<a name="l01644"></a>01644                 IO_Write(crtc_base,0x45);
+<a name="l01645"></a>01645                 IO_Write(crtc_base+1u,0x00);
+<a name="l01646"></a>01646 
+<a name="l01647"></a>01647                 <span class="comment">// Accellerator setup </span>
+<a name="l01648"></a>01648                 Bitu reg_50=S3_XGA_8BPP;
+<a name="l01649"></a>01649                 <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l01650"></a>01650                         <span class="keywordflow">case</span> M_LIN15:
+<a name="l01651"></a>01651                         <span class="keywordflow">case</span> M_LIN16: reg_50|=S3_XGA_16BPP; <span class="keywordflow">break</span>;
+<a name="l01652"></a>01652                         <span class="keywordflow">case</span> M_LIN32: reg_50|=S3_XGA_32BPP; <span class="keywordflow">break</span>;
+<a name="l01653"></a>01653                         <span class="keywordflow">default</span>: <span class="keywordflow">break</span>;
+<a name="l01654"></a>01654                 }
+<a name="l01655"></a>01655                 <span class="keywordflow">switch</span>(CurMode-&gt;swidth) {
+<a name="l01656"></a>01656                         <span class="keywordflow">case</span> 640:  reg_50|=S3_XGA_640; <span class="keywordflow">break</span>;
+<a name="l01657"></a>01657                         <span class="keywordflow">case</span> 800:  reg_50|=S3_XGA_800; <span class="keywordflow">break</span>;
+<a name="l01658"></a>01658                         <span class="keywordflow">case</span> 1024: reg_50|=S3_XGA_1024; <span class="keywordflow">break</span>;
+<a name="l01659"></a>01659                         <span class="keywordflow">case</span> 1152: reg_50|=S3_XGA_1152; <span class="keywordflow">break</span>;
+<a name="l01660"></a>01660                         <span class="keywordflow">case</span> 1280: reg_50|=S3_XGA_1280; <span class="keywordflow">break</span>;
+<a name="l01661"></a>01661                         <span class="keywordflow">case</span> 1600: reg_50|=S3_XGA_1600; <span class="keywordflow">break</span>;
+<a name="l01662"></a>01662                         <span class="keywordflow">default</span>: <span class="keywordflow">break</span>;
+<a name="l01663"></a>01663                 }
+<a name="l01664"></a>01664                 IO_WriteB(crtc_base,0x50); IO_WriteB(crtc_base+1u,reg_50);
+<a name="l01665"></a>01665 
+<a name="l01666"></a>01666                 Bit8u reg_31, reg_3a;
+<a name="l01667"></a>01667                 <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l01668"></a>01668                         <span class="keywordflow">case</span> M_LIN15:
+<a name="l01669"></a>01669                         <span class="keywordflow">case</span> M_LIN16:
+<a name="l01670"></a>01670                         <span class="keywordflow">case</span> M_LIN24:
+<a name="l01671"></a>01671                         <span class="keywordflow">case</span> M_LIN32:
+<a name="l01672"></a>01672                                 reg_3a=0x15;
+<a name="l01673"></a>01673                                 <span class="keywordflow">break</span>;
+<a name="l01674"></a>01674                         <span class="keywordflow">case</span> M_LIN8:
+<a name="l01675"></a>01675                                 <span class="comment">// S3VBE20 does it this way. The other double pixel bit does not</span>
+<a name="l01676"></a>01676                                 <span class="comment">// seem to have an effect on the Trio64.</span>
+<a name="l01677"></a>01677                                 <span class="keywordflow">if</span>(CurMode-&gt;special&amp;_S3_PIXEL_DOUBLE) reg_3a=0x5;
+<a name="l01678"></a>01678                                 <span class="keywordflow">else</span> reg_3a=0x15;
+<a name="l01679"></a>01679                                 <span class="keywordflow">break</span>;
+<a name="l01680"></a>01680                         <span class="keywordflow">default</span>:
+<a name="l01681"></a>01681                                 reg_3a=5;
+<a name="l01682"></a>01682                                 <span class="keywordflow">break</span>;
+<a name="l01683"></a>01683                 };
+<a name="l01684"></a>01684                 
+<a name="l01685"></a>01685                 <span class="keywordflow">switch</span> (CurMode-&gt;type) {
+<a name="l01686"></a>01686                 <span class="keywordflow">case</span> M_LIN4: <span class="comment">// &lt;- Theres a discrepance with real hardware on this</span>
+<a name="l01687"></a>01687                 <span class="keywordflow">case</span> M_LIN8:
+<a name="l01688"></a>01688                 <span class="keywordflow">case</span> M_LIN15:
+<a name="l01689"></a>01689                 <span class="keywordflow">case</span> M_LIN16:
+<a name="l01690"></a>01690                 <span class="keywordflow">case</span> M_LIN24:
+<a name="l01691"></a>01691                 <span class="keywordflow">case</span> M_LIN32:
+<a name="l01692"></a>01692                         reg_31 = 9;
+<a name="l01693"></a>01693                         <span class="keywordflow">break</span>;
+<a name="l01694"></a>01694                 <span class="keywordflow">default</span>:
+<a name="l01695"></a>01695                         reg_31 = 5;
+<a name="l01696"></a>01696                         <span class="keywordflow">break</span>;
+<a name="l01697"></a>01697                 }
+<a name="l01698"></a>01698                 IO_Write(crtc_base,0x3a);IO_Write(crtc_base+1u,reg_3a);
+<a name="l01699"></a>01699                 IO_Write(crtc_base,0x31);IO_Write(crtc_base+1u,reg_31); <span class="comment">//Enable banked memory and 256k+ access</span>
+<a name="l01700"></a>01700 
+<a name="l01701"></a>01701                 IO_Write(crtc_base,0x58);
+<a name="l01702"></a>01702                 <span class="keywordflow">if</span> (vga.mem.memsize &gt;= (4*1024*1024))
+<a name="l01703"></a>01703                         IO_Write(crtc_base+1u,0x3);             <span class="comment">// 4+ MB window</span>
+<a name="l01704"></a>01704                 <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vga.mem.memsize &gt;= (2*1024*1024))
+<a name="l01705"></a>01705                         IO_Write(crtc_base+1u,0x2);             <span class="comment">// 2 MB window</span>
+<a name="l01706"></a>01706                 <span class="keywordflow">else</span>
+<a name="l01707"></a>01707                         IO_Write(crtc_base+1u,0x1);             <span class="comment">// 1 MB window</span>
+<a name="l01708"></a>01708 
+<a name="l01709"></a>01709                 IO_Write(crtc_base,0x38);IO_Write(crtc_base+1u,0x48);   <span class="comment">//Register lock 1</span>
+<a name="l01710"></a>01710                 IO_Write(crtc_base,0x39);IO_Write(crtc_base+1u,0xa5);   <span class="comment">//Register lock 2</span>
+<a name="l01711"></a>01711         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (svga.set_video_mode) {
+<a name="l01712"></a>01712                 <a class="code" href="structVGA__ModeExtraData.html">VGA_ModeExtraData</a> modeData;
+<a name="l01713"></a>01713                 modeData.ver_overflow = ver_overflow;
+<a name="l01714"></a>01714                 modeData.hor_overflow = hor_overflow;
+<a name="l01715"></a>01715                 modeData.offset = offset;
+<a name="l01716"></a>01716                 modeData.modeNo = CurMode-&gt;mode;
+<a name="l01717"></a>01717                 modeData.htotal = CurMode-&gt;htotal;
+<a name="l01718"></a>01718                 modeData.vtotal = CurMode-&gt;vtotal;
+<a name="l01719"></a>01719                 svga.set_video_mode(crtc_base, &amp;modeData);
+<a name="l01720"></a>01720         }
+<a name="l01721"></a>01721 
+<a name="l01722"></a>01722         FinishSetMode(clearmem);
 <a name="l01723"></a>01723 
-<a name="l01724"></a>01724         <a class="code" href="structVideoModeBlock.html">VideoModeBlock</a>* modelist = NULL;
-<a name="l01725"></a>01725 
-<a name="l01726"></a>01726         <span class="keywordflow">switch</span> (svgaCard) {
-<a name="l01727"></a>01727         <span class="keywordflow">case</span> SVGA_TsengET4K:
-<a name="l01728"></a>01728         <span class="keywordflow">case</span> SVGA_TsengET3K:
-<a name="l01729"></a>01729                 modelist = ModeList_VGA_Tseng;
-<a name="l01730"></a>01730                 <span class="keywordflow">break</span>;
-<a name="l01731"></a>01731         <span class="keywordflow">case</span> SVGA_ParadisePVGA1A:
-<a name="l01732"></a>01732                 modelist = ModeList_VGA_Paradise;
-<a name="l01733"></a>01733                 <span class="keywordflow">break</span>;
-<a name="l01734"></a>01734         <span class="keywordflow">default</span>:
-<a name="l01735"></a>01735                 modelist = ModeList_VGA;
-<a name="l01736"></a>01736                 <span class="keywordflow">break</span>;
-<a name="l01737"></a>01737         }
+<a name="l01724"></a>01724         <span class="comment">/* Set vga attrib register into defined state */</span>
+<a name="l01725"></a>01725         IO_Read(mono_mode ? 0x3ba : 0x3da);
+<a name="l01726"></a>01726         IO_Write(0x3c0,0x20);
+<a name="l01727"></a>01727         IO_Read(mono_mode ? 0x3ba : 0x3da);
+<a name="l01728"></a>01728 
+<a name="l01729"></a>01729         <span class="comment">/* Load text mode font */</span>
+<a name="l01730"></a>01730         <span class="keywordflow">if</span> (CurMode-&gt;type==M_TEXT) {
+<a name="l01731"></a>01731                 INT10_ReloadFont();
+<a name="l01732"></a>01732         }
+<a name="l01733"></a>01733         <span class="comment">// Enable screen memory access</span>
+<a name="l01734"></a>01734         IO_Write(0x3c4,1); IO_Write(0x3c5,seq_data[1] &amp; ~0x20);
+<a name="l01735"></a>01735         <span class="comment">//LOG_MSG(&quot;setmode end&quot;);</span>
+<a name="l01736"></a>01736 
+<a name="l01737"></a>01737         <span class="keywordflow">if</span> (en_int33) INT10_SetCurMode();
 <a name="l01738"></a>01738 
-<a name="l01739"></a>01739         <a class="code" href="structVideoModeBlock.html">VideoModeBlock</a>* vmodeBlock = NULL;
-<a name="l01740"></a>01740         Bitu i=0;
-<a name="l01741"></a>01741         <span class="keywordflow">while</span> (modelist[i].mode!=0xffff) {
-<a name="l01742"></a>01742                 <span class="keywordflow">if</span> (modelist[i].mode==mode) {
-<a name="l01743"></a>01743                         <span class="comment">/* Hack for VBE 1.2 modes and 24/32bpp ambiguity */</span>
-<a name="l01744"></a>01744                         <span class="keywordflow">if</span> (modelist[i].mode &gt;= 0x100 &amp;&amp; modelist[i].mode &lt;= 0x11F &amp;&amp;
-<a name="l01745"></a>01745                                 ((modelist[i].type == M_LIN32 &amp;&amp; !vesa12_modes_32bpp) ||
-<a name="l01746"></a>01746                                  (modelist[i].type == M_LIN24 &amp;&amp; vesa12_modes_32bpp))) {
-<a name="l01747"></a>01747                                 <span class="comment">/* ignore */</span>
-<a name="l01748"></a>01748                         }
-<a name="l01749"></a>01749                         <span class="keywordflow">else</span> {
-<a name="l01750"></a>01750                                 vmodeBlock = &amp;modelist[i];
-<a name="l01751"></a>01751                                 <span class="keywordflow">break</span>;
-<a name="l01752"></a>01752                         }
-<a name="l01753"></a>01753                 }
-<a name="l01754"></a>01754                 i++;
-<a name="l01755"></a>01755         }
-<a name="l01756"></a>01756 
-<a name="l01757"></a>01757         <span class="keywordflow">if</span> (!vmodeBlock)
-<a name="l01758"></a>01758                 <span class="keywordflow">return</span> ~0ul;
-<a name="l01759"></a>01759 
-<a name="l01760"></a>01760         <span class="keywordflow">switch</span>(vmodeBlock-&gt;type) {
-<a name="l01761"></a>01761         <span class="keywordflow">case</span> M_LIN4:
-<a name="l01762"></a>01762                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_4bpp) <span class="keywordflow">return</span> ~0ul;
-<a name="l01763"></a>01763                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight/2;
-<a name="l01764"></a>01764         <span class="keywordflow">case</span> M_LIN8:
-<a name="l01765"></a>01765                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_8bpp) <span class="keywordflow">return</span> ~0ul;
-<a name="l01766"></a>01766                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight;
-<a name="l01767"></a>01767         <span class="keywordflow">case</span> M_LIN15:
-<a name="l01768"></a>01768                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_15bpp) <span class="keywordflow">return</span> ~0ul;
-<a name="l01769"></a>01769                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight*2;
-<a name="l01770"></a>01770         <span class="keywordflow">case</span> M_LIN16:
-<a name="l01771"></a>01771                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_16bpp) <span class="keywordflow">return</span> ~0ul;
-<a name="l01772"></a>01772                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight*2;
-<a name="l01773"></a>01773         <span class="keywordflow">case</span> M_LIN24:
-<a name="l01774"></a>01774                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_24bpp) <span class="keywordflow">return</span> ~0ul;
-<a name="l01775"></a>01775                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight*3;
-<a name="l01776"></a>01776         <span class="keywordflow">case</span> M_LIN32:
-<a name="l01777"></a>01777                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_32bpp) <span class="keywordflow">return</span> ~0ul;
-<a name="l01778"></a>01778                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight*4;
-<a name="l01779"></a>01779         <span class="keywordflow">case</span> M_TEXT:
-<a name="l01780"></a>01780                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_tty) <span class="keywordflow">return</span> ~0ul;
-<a name="l01781"></a>01781                 <span class="keywordflow">return</span> vmodeBlock-&gt;twidth*vmodeBlock-&gt;theight*2;
-<a name="l01782"></a>01782         <span class="keywordflow">default</span>:
-<a name="l01783"></a>01783                 <span class="keywordflow">break</span>;
-<a name="l01784"></a>01784         }
-<a name="l01785"></a>01785         <span class="comment">// Return 0 for all other types, those always fit in memory</span>
-<a name="l01786"></a>01786         <span class="keywordflow">return</span> 0;
-<a name="l01787"></a>01787 }
+<a name="l01739"></a>01739         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01740"></a>01740 }
+<a name="l01741"></a>01741 
+<a name="l01742"></a>01742 Bitu VideoModeMemSize(Bitu mode) {
+<a name="l01743"></a>01743         <span class="keywordflow">if</span> (!IS_VGA_ARCH)
+<a name="l01744"></a>01744                 <span class="keywordflow">return</span> 0;
+<a name="l01745"></a>01745 
+<a name="l01746"></a>01746         <a class="code" href="structVideoModeBlock.html">VideoModeBlock</a>* modelist = NULL;
+<a name="l01747"></a>01747 
+<a name="l01748"></a>01748         <span class="keywordflow">switch</span> (svgaCard) {
+<a name="l01749"></a>01749         <span class="keywordflow">case</span> SVGA_TsengET4K:
+<a name="l01750"></a>01750         <span class="keywordflow">case</span> SVGA_TsengET3K:
+<a name="l01751"></a>01751                 modelist = ModeList_VGA_Tseng;
+<a name="l01752"></a>01752                 <span class="keywordflow">break</span>;
+<a name="l01753"></a>01753         <span class="keywordflow">case</span> SVGA_ParadisePVGA1A:
+<a name="l01754"></a>01754                 modelist = ModeList_VGA_Paradise;
+<a name="l01755"></a>01755                 <span class="keywordflow">break</span>;
+<a name="l01756"></a>01756         <span class="keywordflow">default</span>:
+<a name="l01757"></a>01757                 modelist = ModeList_VGA;
+<a name="l01758"></a>01758                 <span class="keywordflow">break</span>;
+<a name="l01759"></a>01759         }
+<a name="l01760"></a>01760 
+<a name="l01761"></a>01761         <a class="code" href="structVideoModeBlock.html">VideoModeBlock</a>* vmodeBlock = NULL;
+<a name="l01762"></a>01762         Bitu i=0;
+<a name="l01763"></a>01763         <span class="keywordflow">while</span> (modelist[i].mode!=0xffff) {
+<a name="l01764"></a>01764                 <span class="keywordflow">if</span> (modelist[i].mode==mode) {
+<a name="l01765"></a>01765                         <span class="comment">/* Hack for VBE 1.2 modes and 24/32bpp ambiguity */</span>
+<a name="l01766"></a>01766                         <span class="keywordflow">if</span> (modelist[i].mode &gt;= 0x100 &amp;&amp; modelist[i].mode &lt;= 0x11F &amp;&amp;
+<a name="l01767"></a>01767                                 ((modelist[i].type == M_LIN32 &amp;&amp; !vesa12_modes_32bpp) ||
+<a name="l01768"></a>01768                                  (modelist[i].type == M_LIN24 &amp;&amp; vesa12_modes_32bpp))) {
+<a name="l01769"></a>01769                                 <span class="comment">/* ignore */</span>
+<a name="l01770"></a>01770                         }
+<a name="l01771"></a>01771                         <span class="keywordflow">else</span> {
+<a name="l01772"></a>01772                                 vmodeBlock = &amp;modelist[i];
+<a name="l01773"></a>01773                                 <span class="keywordflow">break</span>;
+<a name="l01774"></a>01774                         }
+<a name="l01775"></a>01775                 }
+<a name="l01776"></a>01776                 i++;
+<a name="l01777"></a>01777         }
+<a name="l01778"></a>01778 
+<a name="l01779"></a>01779         <span class="keywordflow">if</span> (!vmodeBlock)
+<a name="l01780"></a>01780                 <span class="keywordflow">return</span> ~0ul;
+<a name="l01781"></a>01781 
+<a name="l01782"></a>01782         <span class="keywordflow">switch</span>(vmodeBlock-&gt;type) {
+<a name="l01783"></a>01783         <span class="keywordflow">case</span> M_LIN4:
+<a name="l01784"></a>01784                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_4bpp) <span class="keywordflow">return</span> ~0ul;
+<a name="l01785"></a>01785                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight/2;
+<a name="l01786"></a>01786         <span class="keywordflow">case</span> M_LIN8:
+<a name="l01787"></a>01787                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_8bpp) <span class="keywordflow">return</span> ~0ul;
+<a name="l01788"></a>01788                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight;
+<a name="l01789"></a>01789         <span class="keywordflow">case</span> M_LIN15:
+<a name="l01790"></a>01790                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_15bpp) <span class="keywordflow">return</span> ~0ul;
+<a name="l01791"></a>01791                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight*2;
+<a name="l01792"></a>01792         <span class="keywordflow">case</span> M_LIN16:
+<a name="l01793"></a>01793                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_16bpp) <span class="keywordflow">return</span> ~0ul;
+<a name="l01794"></a>01794                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight*2;
+<a name="l01795"></a>01795         <span class="keywordflow">case</span> M_LIN24:
+<a name="l01796"></a>01796                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_24bpp) <span class="keywordflow">return</span> ~0ul;
+<a name="l01797"></a>01797                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight*3;
+<a name="l01798"></a>01798         <span class="keywordflow">case</span> M_LIN32:
+<a name="l01799"></a>01799                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_32bpp) <span class="keywordflow">return</span> ~0ul;
+<a name="l01800"></a>01800                 <span class="keywordflow">return</span> vmodeBlock-&gt;swidth*vmodeBlock-&gt;sheight*4;
+<a name="l01801"></a>01801         <span class="keywordflow">case</span> M_TEXT:
+<a name="l01802"></a>01802                 <span class="keywordflow">if</span> (mode &gt;= 0x100 &amp;&amp; !allow_vesa_tty) <span class="keywordflow">return</span> ~0ul;
+<a name="l01803"></a>01803                 <span class="keywordflow">return</span> vmodeBlock-&gt;twidth*vmodeBlock-&gt;theight*2;
+<a name="l01804"></a>01804         <span class="keywordflow">default</span>:
+<a name="l01805"></a>01805                 <span class="keywordflow">break</span>;
+<a name="l01806"></a>01806         }
+<a name="l01807"></a>01807         <span class="comment">// Return 0 for all other types, those always fit in memory</span>
+<a name="l01808"></a>01808         <span class="keywordflow">return</span> 0;
+<a name="l01809"></a>01809 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jun 14 2018 12:30:07 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 24 2018 10:24:08 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -259,7 +259,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00163"></a>00163 <span class="preprocessor">        (c) = (int)((((unsigned int)(val) &lt;&lt; 2u) &amp; 0xf8u) | (((unsigned int)(val) &gt;&gt;  3u) &amp; 0x07u));    \</span>
 <a name="l00164"></a>00164 <span class="preprocessor"></span>
 <a name="l00165"></a>00165 <span class="preprocessor"></span><span class="preprocessor">#define EXTRACT_1555_TO_8888(val, a, b, c, d)                           \</span>
-<a name="l00166"></a>00166 <span class="preprocessor">        (a) = (int)(((unsigned int)(val) &gt;&gt; 15u) &amp; 0xffu);                                              \</span>
+<a name="l00166"></a>00166 <span class="preprocessor">        (a) = ((INT16)(val) &gt;&gt; 15) &amp; 0xff;                                              \</span>
 <a name="l00167"></a>00167 <span class="preprocessor">        EXTRACT_x555_TO_888(val, b, c, d)                                               \</span>
 <a name="l00168"></a>00168 <span class="preprocessor"></span>
 <a name="l00169"></a>00169 <span class="preprocessor"></span><span class="preprocessor">#define EXTRACT_5551_TO_8888(val, a, b, c, d)                           \</span>
@@ -2370,7 +2370,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jun 14 2018 12:30:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 24 2018 10:24:07 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

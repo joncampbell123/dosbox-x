@@ -115,8 +115,18 @@ Inheritance diagram for Prop_double:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:aa0facf6624ff88ee5d29fd70c5245ae9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa0facf6624ff88ee5d29fd70c5245ae9"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>Prop_double</b> (std::string const &amp;_propname, Changeable::Value when, double _value)</td></tr>
+<tr class="memitem:a97dda899f560863650267fe2591a2b33"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a97dda899f560863650267fe2591a2b33"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Prop_double</b> (std::string const &amp;propname, Changeable::Value when, double _value, double _min, double _max)</td></tr>
+<tr class="memitem:a718452077b18fc6764fb563117f5eae9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a718452077b18fc6764fb563117f5eae9"></a>
+double&#160;</td><td class="memItemRight" valign="bottom"><b>getMin</b> () const </td></tr>
+<tr class="memitem:a2b8bf573e6be927830b78333b2fe5c40"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2b8bf573e6be927830b78333b2fe5c40"></a>
+double&#160;</td><td class="memItemRight" valign="bottom"><b>getMax</b> () const </td></tr>
+<tr class="memitem:ac09c1c4686d723fe9bb19e78f72de790"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac09c1c4686d723fe9bb19e78f72de790"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>SetMinMax</b> (<a class="el" href="classValue.html">Value</a> const &amp;min, <a class="el" href="classValue.html">Value</a> const &amp;max)</td></tr>
 <tr class="memitem:a29d1175964f35a4aa6b5e482e3dfdf00"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a29d1175964f35a4aa6b5e482e3dfdf00"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>SetValue</b> (std::string const &amp;input)</td></tr>
+<tr class="memitem:a8db0d2798e637b0e5ad38b5ed3fd4abf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8db0d2798e637b0e5ad38b5ed3fd4abf"></a>
+virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>CheckValue</b> (<a class="el" href="classValue.html">Value</a> const &amp;in, bool warn)</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
@@ -129,7 +139,7 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>SetValue</b> (std::st
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jun 14 2018 12:30:10 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 24 2018 10:24:11 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

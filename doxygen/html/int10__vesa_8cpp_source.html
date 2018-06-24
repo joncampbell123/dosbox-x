@@ -251,7 +251,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00155"></a>00155         }
 <a name="l00156"></a>00156         mem_writed(buffer+0x0a,0x0);                                    <span class="comment">//Capabilities and flags</span>
 <a name="l00157"></a>00157         mem_writed(buffer+0x0e,int10.rom.vesa_modes);   <span class="comment">//VESA Mode list</span>
-<a name="l00158"></a>00158         mem_writew(buffer+0x12,(Bit16u)(vga.vmemsize/(64*1024))); <span class="comment">// memory size in 64kb blocks</span>
+<a name="l00158"></a>00158         mem_writew(buffer+0x12,(Bit16u)(vga.mem.memsize/(64*1024))); <span class="comment">// memory size in 64kb blocks</span>
 <a name="l00159"></a>00159         <span class="keywordflow">return</span> VESA_SUCCESS;
 <a name="l00160"></a>00160 }
 <a name="l00161"></a>00161 
@@ -396,11 +396,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00300"></a>00300                 pageSize &amp;= ~0xFFFFu;
 <a name="l00301"></a>00301         }
 <a name="l00302"></a>00302         Bitu pages = 0;
-<a name="l00303"></a>00303         <span class="keywordflow">if</span> (pageSize &gt; vga.vmemsize) {
+<a name="l00303"></a>00303         <span class="keywordflow">if</span> (pageSize &gt; vga.mem.memsize) {
 <a name="l00304"></a>00304                 <span class="comment">// mode not supported by current hardware configuration</span>
 <a name="l00305"></a>00305                 modeAttributes &amp;= ~0x1;
 <a name="l00306"></a>00306         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (pageSize) {
-<a name="l00307"></a>00307                 pages = (vga.vmemsize / pageSize)-1;
+<a name="l00307"></a>00307                 pages = (vga.mem.memsize / pageSize)-1;
 <a name="l00308"></a>00308         }
 <a name="l00309"></a>00309         var_write(&amp;minfo.NumberOfImagePages, pages);
 <a name="l00310"></a>00310         var_write(&amp;minfo.ModeAttributes, modeAttributes);
@@ -447,7 +447,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00351"></a>00351 
 <a name="l00352"></a>00352 Bit8u VESA_SetCPUWindow(Bit8u window,Bit8u address) {
 <a name="l00353"></a>00353         <span class="keywordflow">if</span> (window) <span class="keywordflow">return</span> VESA_FAIL;
-<a name="l00354"></a>00354         <span class="keywordflow">if</span> (((Bit32u)(address)*64*1024&lt;vga.vmemsize)) {
+<a name="l00354"></a>00354         <span class="keywordflow">if</span> (((Bit32u)(address)*64*1024&lt;vga.mem.memsize)) {
 <a name="l00355"></a>00355                 IO_Write(0x3d4,0x6a);
 <a name="l00356"></a>00356                 IO_Write(0x3d5,(Bit8u)address);
 <a name="l00357"></a>00357                 <span class="keywordflow">return</span> VESA_SUCCESS;
@@ -507,7 +507,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00411"></a>00411         <span class="comment">// offset register: virtual scanline length</span>
 <a name="l00412"></a>00412         Bitu pixels_per_offset;
 <a name="l00413"></a>00413         Bitu bytes_per_offset = 8;
-<a name="l00414"></a>00414         Bitu vmemsize = vga.vmemsize;
+<a name="l00414"></a>00414         Bitu vmemsize = vga.mem.memsize;
 <a name="l00415"></a>00415         Bitu new_offset = vga.config.scan_len;
 <a name="l00416"></a>00416         Bitu screen_height = CurMode-&gt;sheight;
 <a name="l00417"></a>00417 
@@ -806,7 +806,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jun 14 2018 12:30:07 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 24 2018 10:24:08 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

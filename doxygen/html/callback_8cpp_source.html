@@ -844,111 +844,95 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00748"></a>00748 }
 <a name="l00749"></a>00749 
 <a name="l00750"></a>00750 <span class="keywordtype">void</span> CALLBACK_Init() {
-<a name="l00751"></a>00751         <span class="keywordflow">if</span> (mainline_compatible_bios_mapping) {
-<a name="l00752"></a>00752                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing DOSBox callback instruction system (mainline compatible)&quot;</span>);
-<a name="l00753"></a>00753 
-<a name="l00754"></a>00754                 CB_SOFFSET=0x1000;
-<a name="l00755"></a>00755                 CB_SEG=0xF000;
-<a name="l00756"></a>00756 
-<a name="l00757"></a>00757                 <span class="comment">/* mark the fixed callback location as off-limits */</span>
-<a name="l00758"></a>00758                 <span class="keywordflow">if</span> (ROMBIOS_GetMemory((CB_MAX*CB_SIZE)+(256*6),<span class="stringliteral">&quot;DOSBox callbacks region&quot;</span>,1,PhysMake(CB_SEG,CB_SOFFSET)) == 0)
-<a name="l00759"></a>00759                         E_Exit(<span class="stringliteral">&quot;Mainline compat bios mapping: failed to declare entire BIOS area off-limits&quot;</span>);
-<a name="l00760"></a>00760 
-<a name="l00761"></a>00761                 vm86_fake_io_seg = 0xF000;      <span class="comment">/* unused area in BIOS for IO instruction */</span>
-<a name="l00762"></a>00762                 vm86_fake_io_off = 0x0700;
-<a name="l00763"></a>00763                 <span class="comment">/* mark the vm86 hack as off-limits */</span>
-<a name="l00764"></a>00764                 <span class="keywordflow">if</span> (ROMBIOS_GetMemory(14<span class="comment">/*2+2+3+2+2+3*/</span>,<span class="stringliteral">&quot;DOSBox vm86 hack&quot;</span>,1,(vm86_fake_io_seg&lt;&lt;4)+vm86_fake_io_off) == 0)
-<a name="l00765"></a>00765                         E_Exit(<span class="stringliteral">&quot;Mainline compat bios mapping: failed to declare entire BIOS area off-limits&quot;</span>);
-<a name="l00766"></a>00766         }
-<a name="l00767"></a>00767         <span class="keywordflow">else</span> {
-<a name="l00768"></a>00768                 <span class="comment">/* NTS: Layout of the callback area:</span>
-<a name="l00769"></a>00769 <span class="comment">                 *</span>
-<a name="l00770"></a>00770 <span class="comment">                 * CB_MAX entries CB_SIZE each, where executable x86 code is written per callback,</span>
-<a name="l00771"></a>00771 <span class="comment">                 * followed by 256 entries 6 bytes each corresponding to an interrupt call */</span>
-<a name="l00772"></a>00772                 Bitu o;
-<a name="l00773"></a>00773 
-<a name="l00774"></a>00774                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing DOSBox callback instruction system&quot;</span>);
-<a name="l00775"></a>00775 
-<a name="l00776"></a>00776                 o = ROMBIOS_GetMemory((CB_MAX*CB_SIZE)+(256*6),<span class="stringliteral">&quot;DOSBox callback area&quot;</span>,<span class="comment">/*align*/</span>4);
-<a name="l00777"></a>00777                 <span class="keywordflow">if</span> (o == 0) E_Exit(<span class="stringliteral">&quot;Cannot allocate callback area&quot;</span>);
-<a name="l00778"></a>00778                 CB_SOFFSET = o&amp;0xFFFF;
-<a name="l00779"></a>00779                 CB_SEG = (o&gt;&gt;4)&amp;0xF000;
-<a name="l00780"></a>00780                 <span class="keywordflow">if</span> (((Bitu)CB_SOFFSET + (CB_MAX*CB_SIZE) + (256*6)) &gt; 0x10000) E_Exit(<span class="stringliteral">&quot;Callback area spans 64KB segment&quot;</span>);
-<a name="l00781"></a>00781 
-<a name="l00782"></a>00782                 o = ROMBIOS_GetMemory(14<span class="comment">/*2+2+3+2+2+3*/</span>,<span class="stringliteral">&quot;DOSBox vm86 hack&quot;</span>,<span class="comment">/*align*/</span>4);
-<a name="l00783"></a>00783                 <span class="keywordflow">if</span> (o == 0) E_Exit(<span class="stringliteral">&quot;Cannot allocate vm86 hack&quot;</span>);
-<a name="l00784"></a>00784                 vm86_fake_io_off = o&amp;0xFFFF;
-<a name="l00785"></a>00785                 vm86_fake_io_seg = (o&gt;&gt;4)&amp;0xF000;
-<a name="l00786"></a>00786                 <span class="keywordflow">if</span> ((vm86_fake_io_off+14) &gt; 0x1000000) E_Exit(<span class="stringliteral">&quot;vm86 area spans 64KB segment&quot;</span>);
-<a name="l00787"></a>00787         }
+<a name="l00751"></a>00751         {
+<a name="l00752"></a>00752                 <span class="comment">/* NTS: Layout of the callback area:</span>
+<a name="l00753"></a>00753 <span class="comment">                 *</span>
+<a name="l00754"></a>00754 <span class="comment">                 * CB_MAX entries CB_SIZE each, where executable x86 code is written per callback,</span>
+<a name="l00755"></a>00755 <span class="comment">                 * followed by 256 entries 6 bytes each corresponding to an interrupt call */</span>
+<a name="l00756"></a>00756                 Bitu o;
+<a name="l00757"></a>00757 
+<a name="l00758"></a>00758                 <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing DOSBox callback instruction system&quot;</span>);
+<a name="l00759"></a>00759 
+<a name="l00760"></a>00760                 o = ROMBIOS_GetMemory((CB_MAX*CB_SIZE)+(256*6),<span class="stringliteral">&quot;DOSBox callback area&quot;</span>,<span class="comment">/*align*/</span>4);
+<a name="l00761"></a>00761                 <span class="keywordflow">if</span> (o == 0) E_Exit(<span class="stringliteral">&quot;Cannot allocate callback area&quot;</span>);
+<a name="l00762"></a>00762                 CB_SOFFSET = o&amp;0xFFFF;
+<a name="l00763"></a>00763                 CB_SEG = (o&gt;&gt;4)&amp;0xF000;
+<a name="l00764"></a>00764                 <span class="keywordflow">if</span> (((Bitu)CB_SOFFSET + (CB_MAX*CB_SIZE) + (256*6)) &gt; 0x10000) E_Exit(<span class="stringliteral">&quot;Callback area spans 64KB segment&quot;</span>);
+<a name="l00765"></a>00765 
+<a name="l00766"></a>00766                 o = ROMBIOS_GetMemory(14<span class="comment">/*2+2+3+2+2+3*/</span>,<span class="stringliteral">&quot;DOSBox vm86 hack&quot;</span>,<span class="comment">/*align*/</span>4);
+<a name="l00767"></a>00767                 <span class="keywordflow">if</span> (o == 0) E_Exit(<span class="stringliteral">&quot;Cannot allocate vm86 hack&quot;</span>);
+<a name="l00768"></a>00768                 vm86_fake_io_off = o&amp;0xFFFF;
+<a name="l00769"></a>00769                 vm86_fake_io_seg = (o&gt;&gt;4)&amp;0xF000;
+<a name="l00770"></a>00770                 <span class="keywordflow">if</span> ((vm86_fake_io_off+14) &gt; 0x1000000) E_Exit(<span class="stringliteral">&quot;vm86 area spans 64KB segment&quot;</span>);
+<a name="l00771"></a>00771         }
+<a name="l00772"></a>00772 
+<a name="l00773"></a>00773         <a class="code" href="classLOG.html">LOG</a>(LOG_CPU,LOG_DEBUG)(<span class="stringliteral">&quot;Callback area starts at %04x:%04x&quot;</span>,CB_SEG,CB_SOFFSET);
+<a name="l00774"></a>00774 
+<a name="l00775"></a>00775         Bitu i;
+<a name="l00776"></a>00776         <span class="keywordflow">for</span> (i=0;i&lt;CB_MAX;i++) {
+<a name="l00777"></a>00777                 CallBack_Handlers[i]=&amp;illegal_handler;
+<a name="l00778"></a>00778                 CallBack_Description[i]=NULL;
+<a name="l00779"></a>00779         }
+<a name="l00780"></a>00780 
+<a name="l00781"></a>00781         <span class="comment">/* Setup the Stop Handler */</span>
+<a name="l00782"></a>00782         call_stop=CALLBACK_Allocate();
+<a name="l00783"></a>00783         CallBack_Handlers[call_stop]=stop_handler;
+<a name="l00784"></a>00784         CALLBACK_SetDescription(call_stop,<span class="stringliteral">&quot;stop&quot;</span>);
+<a name="l00785"></a>00785         phys_writeb(CALLBACK_PhysPointer(call_stop)+0,0xFE);
+<a name="l00786"></a>00786         phys_writeb(CALLBACK_PhysPointer(call_stop)+1,0x38);
+<a name="l00787"></a>00787         phys_writew(CALLBACK_PhysPointer(call_stop)+2,(Bit16u)call_stop);
 <a name="l00788"></a>00788 
-<a name="l00789"></a>00789         <a class="code" href="classLOG.html">LOG</a>(LOG_CPU,LOG_DEBUG)(<span class="stringliteral">&quot;Callback area starts at %04x:%04x&quot;</span>,CB_SEG,CB_SOFFSET);
-<a name="l00790"></a>00790 
-<a name="l00791"></a>00791         Bitu i;
-<a name="l00792"></a>00792         <span class="keywordflow">for</span> (i=0;i&lt;CB_MAX;i++) {
-<a name="l00793"></a>00793                 CallBack_Handlers[i]=&amp;illegal_handler;
-<a name="l00794"></a>00794                 CallBack_Description[i]=NULL;
-<a name="l00795"></a>00795         }
-<a name="l00796"></a>00796 
-<a name="l00797"></a>00797         <span class="comment">/* Setup the Stop Handler */</span>
-<a name="l00798"></a>00798         call_stop=CALLBACK_Allocate();
-<a name="l00799"></a>00799         CallBack_Handlers[call_stop]=stop_handler;
-<a name="l00800"></a>00800         CALLBACK_SetDescription(call_stop,<span class="stringliteral">&quot;stop&quot;</span>);
-<a name="l00801"></a>00801         phys_writeb(CALLBACK_PhysPointer(call_stop)+0,0xFE);
-<a name="l00802"></a>00802         phys_writeb(CALLBACK_PhysPointer(call_stop)+1,0x38);
-<a name="l00803"></a>00803         phys_writew(CALLBACK_PhysPointer(call_stop)+2,(Bit16u)call_stop);
-<a name="l00804"></a>00804 
-<a name="l00805"></a>00805         <span class="comment">/* Setup the idle handler */</span>
-<a name="l00806"></a>00806         call_idle=CALLBACK_Allocate();
-<a name="l00807"></a>00807         CallBack_Handlers[call_idle]=stop_handler;
-<a name="l00808"></a>00808         CALLBACK_SetDescription(call_idle,<span class="stringliteral">&quot;idle&quot;</span>);
-<a name="l00809"></a>00809         <span class="keywordflow">for</span> (i=0;i&lt;=11;i++) phys_writeb(CALLBACK_PhysPointer(call_idle)+i,0x90);
-<a name="l00810"></a>00810         phys_writeb(CALLBACK_PhysPointer(call_idle)+12,0xFE);
-<a name="l00811"></a>00811         phys_writeb(CALLBACK_PhysPointer(call_idle)+13,0x38);
-<a name="l00812"></a>00812         phys_writew(CALLBACK_PhysPointer(call_idle)+14,(Bit16u)call_idle);
+<a name="l00789"></a>00789         <span class="comment">/* Setup the idle handler */</span>
+<a name="l00790"></a>00790         call_idle=CALLBACK_Allocate();
+<a name="l00791"></a>00791         CallBack_Handlers[call_idle]=stop_handler;
+<a name="l00792"></a>00792         CALLBACK_SetDescription(call_idle,<span class="stringliteral">&quot;idle&quot;</span>);
+<a name="l00793"></a>00793         <span class="keywordflow">for</span> (i=0;i&lt;=11;i++) phys_writeb(CALLBACK_PhysPointer(call_idle)+i,0x90);
+<a name="l00794"></a>00794         phys_writeb(CALLBACK_PhysPointer(call_idle)+12,0xFE);
+<a name="l00795"></a>00795         phys_writeb(CALLBACK_PhysPointer(call_idle)+13,0x38);
+<a name="l00796"></a>00796         phys_writew(CALLBACK_PhysPointer(call_idle)+14,(Bit16u)call_idle);
+<a name="l00797"></a>00797 
+<a name="l00798"></a>00798         <span class="comment">/* Default handlers for unhandled interrupts that have to be non-null */</span>
+<a name="l00799"></a>00799         call_default=CALLBACK_Allocate();
+<a name="l00800"></a>00800         CALLBACK_Setup(call_default,&amp;default_handler,CB_IRET,<span class="stringliteral">&quot;default&quot;</span>);
+<a name="l00801"></a>00801         call_default2=CALLBACK_Allocate();
+<a name="l00802"></a>00802         CALLBACK_Setup(call_default2,&amp;default_handler,CB_IRET,<span class="stringliteral">&quot;default&quot;</span>);
+<a name="l00803"></a>00803 
+<a name="l00804"></a>00804         <span class="comment">/* Setup block of 0xCD 0xxx instructions */</span>
+<a name="l00805"></a>00805         PhysPt rint_base=CALLBACK_GetBase()+CB_MAX*CB_SIZE;
+<a name="l00806"></a>00806         <span class="keywordflow">for</span> (i=0;i&lt;=0xff;i++) {
+<a name="l00807"></a>00807                 phys_writeb(rint_base,0xCD);
+<a name="l00808"></a>00808                 phys_writeb(rint_base+1,(Bit8u)i);
+<a name="l00809"></a>00809                 phys_writeb(rint_base+2,0xFE);
+<a name="l00810"></a>00810                 phys_writeb(rint_base+3,0x38);
+<a name="l00811"></a>00811                 phys_writew(rint_base+4,(Bit16u)call_stop);
+<a name="l00812"></a>00812                 rint_base+=6;
 <a name="l00813"></a>00813 
-<a name="l00814"></a>00814         <span class="comment">/* Default handlers for unhandled interrupts that have to be non-null */</span>
-<a name="l00815"></a>00815         call_default=CALLBACK_Allocate();
-<a name="l00816"></a>00816         CALLBACK_Setup(call_default,&amp;default_handler,CB_IRET,<span class="stringliteral">&quot;default&quot;</span>);
-<a name="l00817"></a>00817         call_default2=CALLBACK_Allocate();
-<a name="l00818"></a>00818         CALLBACK_Setup(call_default2,&amp;default_handler,CB_IRET,<span class="stringliteral">&quot;default&quot;</span>);
-<a name="l00819"></a>00819 
-<a name="l00820"></a>00820         <span class="comment">/* Setup block of 0xCD 0xxx instructions */</span>
-<a name="l00821"></a>00821         PhysPt rint_base=CALLBACK_GetBase()+CB_MAX*CB_SIZE;
-<a name="l00822"></a>00822         <span class="keywordflow">for</span> (i=0;i&lt;=0xff;i++) {
-<a name="l00823"></a>00823                 phys_writeb(rint_base,0xCD);
-<a name="l00824"></a>00824                 phys_writeb(rint_base+1,(Bit8u)i);
-<a name="l00825"></a>00825                 phys_writeb(rint_base+2,0xFE);
-<a name="l00826"></a>00826                 phys_writeb(rint_base+3,0x38);
-<a name="l00827"></a>00827                 phys_writew(rint_base+4,(Bit16u)call_stop);
-<a name="l00828"></a>00828                 rint_base+=6;
-<a name="l00829"></a>00829 
-<a name="l00830"></a>00830         }
-<a name="l00831"></a>00831 
-<a name="l00832"></a>00832         call_priv_io=CALLBACK_Allocate();
-<a name="l00833"></a>00833 
-<a name="l00834"></a>00834         <span class="comment">// virtualizable in-out opcodes</span>
-<a name="l00835"></a>00835         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x00,(Bit8u)0xec);       <span class="comment">// in al, dx</span>
-<a name="l00836"></a>00836         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x01,(Bit8u)0xcb);       <span class="comment">// retf</span>
-<a name="l00837"></a>00837         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x02,(Bit8u)0xed);       <span class="comment">// in ax, dx</span>
-<a name="l00838"></a>00838         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x03,(Bit8u)0xcb);       <span class="comment">// retf</span>
-<a name="l00839"></a>00839         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x04,(Bit8u)0x66);       <span class="comment">// in eax, dx</span>
-<a name="l00840"></a>00840         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x05,(Bit8u)0xed);
-<a name="l00841"></a>00841         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x06,(Bit8u)0xcb);       <span class="comment">// retf</span>
-<a name="l00842"></a>00842 
-<a name="l00843"></a>00843         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x08,(Bit8u)0xee);       <span class="comment">// out dx, al</span>
-<a name="l00844"></a>00844         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x09,(Bit8u)0xcb);       <span class="comment">// retf</span>
-<a name="l00845"></a>00845         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0a,(Bit8u)0xef);       <span class="comment">// out dx, ax</span>
-<a name="l00846"></a>00846         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0b,(Bit8u)0xcb);       <span class="comment">// retf</span>
-<a name="l00847"></a>00847         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0c,(Bit8u)0x66);       <span class="comment">// out dx, eax</span>
-<a name="l00848"></a>00848         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0d,(Bit8u)0xef);
-<a name="l00849"></a>00849         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0e,(Bit8u)0xcb);       <span class="comment">// retf</span>
-<a name="l00850"></a>00850 }
+<a name="l00814"></a>00814         }
+<a name="l00815"></a>00815 
+<a name="l00816"></a>00816         call_priv_io=CALLBACK_Allocate();
+<a name="l00817"></a>00817 
+<a name="l00818"></a>00818         <span class="comment">// virtualizable in-out opcodes</span>
+<a name="l00819"></a>00819         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x00,(Bit8u)0xec);       <span class="comment">// in al, dx</span>
+<a name="l00820"></a>00820         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x01,(Bit8u)0xcb);       <span class="comment">// retf</span>
+<a name="l00821"></a>00821         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x02,(Bit8u)0xed);       <span class="comment">// in ax, dx</span>
+<a name="l00822"></a>00822         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x03,(Bit8u)0xcb);       <span class="comment">// retf</span>
+<a name="l00823"></a>00823         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x04,(Bit8u)0x66);       <span class="comment">// in eax, dx</span>
+<a name="l00824"></a>00824         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x05,(Bit8u)0xed);
+<a name="l00825"></a>00825         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x06,(Bit8u)0xcb);       <span class="comment">// retf</span>
+<a name="l00826"></a>00826 
+<a name="l00827"></a>00827         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x08,(Bit8u)0xee);       <span class="comment">// out dx, al</span>
+<a name="l00828"></a>00828         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x09,(Bit8u)0xcb);       <span class="comment">// retf</span>
+<a name="l00829"></a>00829         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0a,(Bit8u)0xef);       <span class="comment">// out dx, ax</span>
+<a name="l00830"></a>00830         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0b,(Bit8u)0xcb);       <span class="comment">// retf</span>
+<a name="l00831"></a>00831         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0c,(Bit8u)0x66);       <span class="comment">// out dx, eax</span>
+<a name="l00832"></a>00832         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0d,(Bit8u)0xef);
+<a name="l00833"></a>00833         phys_writeb(CALLBACK_PhysPointer(call_priv_io)+0x0e,(Bit8u)0xcb);       <span class="comment">// retf</span>
+<a name="l00834"></a>00834 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Thu Jun 14 2018 12:30:01 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jun 24 2018 10:24:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

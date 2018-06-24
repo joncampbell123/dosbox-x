@@ -10,7 +10,7 @@ Inheritance diagram for C\-J\-Axis\-Bind\-:\begin{figure}[H]
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classCJAxisBind_aebf1190a6d2e50ab976a61083be5e85b}{{\bfseries C\-J\-Axis\-Bind} (C\-Bind\-List $\ast$\-\_\-list, \hyperlink{classCBindGroup}{C\-Bind\-Group} $\ast$\-\_\-group, Bitu \-\_\-axis, bool \-\_\-positive)}\label{classCJAxisBind_aebf1190a6d2e50ab976a61083be5e85b}
+\hypertarget{classCJAxisBind_a80b5b1ae676d9282c7ca3db9d54a9cd6}{{\bfseries C\-J\-Axis\-Bind} (C\-Bind\-List $\ast$\-\_\-list, \hyperlink{classCBindGroup}{C\-Bind\-Group} $\ast$\-\_\-group, Bitu \-\_\-joystick, Bitu \-\_\-axis, bool \-\_\-positive)}\label{classCJAxisBind_a80b5b1ae676d9282c7ca3db9d54a9cd6}
 
 \item 
 \hypertarget{classCJAxisBind_a177d6d9c27c002c88b1a05cd3d31d065}{void \hyperlink{classCJAxisBind_a177d6d9c27c002c88b1a05cd3d31d065}{Config\-Name} (char $\ast$buf)}\label{classCJAxisBind_a177d6d9c27c002c88b1a05cd3d31d065}
@@ -18,7 +18,25 @@ Inheritance diagram for C\-J\-Axis\-Bind\-:\begin{figure}[H]
 \begin{DoxyCompactList}\small\item\em Get configuration name, for use in writing the mapper file. \end{DoxyCompactList}\item 
 \hypertarget{classCJAxisBind_aec1508a8f00bb7b5f4aa5a42c33fe973}{void \hyperlink{classCJAxisBind_aec1508a8f00bb7b5f4aa5a42c33fe973}{Bind\-Name} (char $\ast$buf)}\label{classCJAxisBind_aec1508a8f00bb7b5f4aa5a42c33fe973}
 
-\begin{DoxyCompactList}\small\item\em Get binding name, for display in the mapper U\-I. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Get binding name, for display in the mapper U\-I. \end{DoxyCompactList}\item 
+\hypertarget{classCJAxisBind_a033065f2f64ac52bfac7bf1d0aff17c3}{Bitu \hyperlink{classCJAxisBind_a033065f2f64ac52bfac7bf1d0aff17c3}{Get\-Joystick} () const }\label{classCJAxisBind_a033065f2f64ac52bfac7bf1d0aff17c3}
+
+\begin{DoxyCompactList}\small\item\em Gets the joystick index for this instance. \end{DoxyCompactList}\item 
+\hypertarget{classCJAxisBind_a6d9c9e742943700c75971a13bd827d42}{Bitu \hyperlink{classCJAxisBind_a6d9c9e742943700c75971a13bd827d42}{Get\-Axis} () const }\label{classCJAxisBind_a6d9c9e742943700c75971a13bd827d42}
+
+\begin{DoxyCompactList}\small\item\em Gets the axis index for this instance. \end{DoxyCompactList}\item 
+\hypertarget{classCJAxisBind_a8693e360c96fe5f86d2cd46eb1f9cf6e}{bool \hyperlink{classCJAxisBind_a8693e360c96fe5f86d2cd46eb1f9cf6e}{Get\-Positive} () const }\label{classCJAxisBind_a8693e360c96fe5f86d2cd46eb1f9cf6e}
+
+\begin{DoxyCompactList}\small\item\em Gets the axis direction for this instance. \end{DoxyCompactList}\item 
+\hypertarget{classCJAxisBind_a26d85b8903279b1948bcf9863d2a754b}{void \hyperlink{classCJAxisBind_a26d85b8903279b1948bcf9863d2a754b}{Activate\-Bind} (Bits \-\_\-value, bool ev\-\_\-trigger, bool skip\-\_\-action=false) override}\label{classCJAxisBind_a26d85b8903279b1948bcf9863d2a754b}
+
+\begin{DoxyCompactList}\small\item\em Activate bindings. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classCJAxisBind_a43bdd7bf57954c208aea6e1a364d0a1e}{static int \hyperlink{classCJAxisBind_a43bdd7bf57954c208aea6e1a364d0a1e}{Get\-Joystick\-Deadzone} (int joystick, int axis, bool positive)}\label{classCJAxisBind_a43bdd7bf57954c208aea6e1a364d0a1e}
+
+\begin{DoxyCompactList}\small\item\em Gets the deadzone for a joystick axis direction. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Protected Attributes}
 \begin{DoxyCompactItemize}
 \item 
@@ -30,13 +48,16 @@ Inheritance diagram for C\-J\-Axis\-Bind\-:\begin{figure}[H]
 \item 
 \hypertarget{classCJAxisBind_a5c25cb696106b0959274368cd8dae0bd}{bool {\bfseries positive}}\label{classCJAxisBind_a5c25cb696106b0959274368cd8dae0bd}
 
+\item 
+\hypertarget{classCJAxisBind_ab47811ba5c358119d4e64855849f1a49}{Bitu {\bfseries joystick}}\label{classCJAxisBind_ab47811ba5c358119d4e64855849f1a49}
+
 \end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
 
 
-Definition at line 895 of file sdl\-\_\-mapper.\-cpp.
+Definition at line 953 of file sdl\-\_\-mapper.\-cpp.
 
 
 
