@@ -148,6 +148,14 @@ void DOS_Shell::InputCommand(char * line) {
         else if (IS_PC98_ARCH) {
             extern Bit16u last_int16_code;
 
+            /* shift state is needed for some key combinations not directly supported by CON driver.
+             * bit 4 = CTRL
+             * bit 3 = GRPH/ALT
+             * bit 2 = kana
+             * bit 1 = caps
+             * bit 0 = SHIFT */
+            uint8_t shiftstate = mem_readb(0x52A + 0x0E);
+
             /* NTS: PC-98 keyboards lack the US layout HOME / END keys, therefore there is no mapping here */
 
             /* NTS: Since left arrow and backspace map to the same byte value, PC-98 treats it the same at the DOS prompt.
