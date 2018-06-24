@@ -431,13 +431,22 @@ void vga_pc98_direct_cursor_pos(Bit16u address);
 
 void INT10_GetScreenColumns(Bit16u *cols)
 {
-	*cols = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
+    if (IS_PC98_ARCH)
+        *cols = 80; //TODO
+    else
+        *cols = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
 }
 
 void INT10_GetCursorPos(Bit8u *row, Bit8u*col, const Bit8u page)
 {
-	*col = real_readb(BIOSMEM_SEG, BIOSMEM_CURSOR_POS + page * 2u);
-	*row = real_readb(BIOSMEM_SEG, BIOSMEM_CURSOR_POS + page * 2u + 1u);
+    if (IS_PC98_ARCH) {
+        *col = real_readb(0x60, 0x11C);
+        *row = real_readb(0x60, 0x110);
+    }
+    else {
+        *col = real_readb(BIOSMEM_SEG, BIOSMEM_CURSOR_POS + page * 2u);
+        *row = real_readb(BIOSMEM_SEG, BIOSMEM_CURSOR_POS + page * 2u + 1u);
+    }
 }
 
 void INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
