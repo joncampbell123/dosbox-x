@@ -148,6 +148,8 @@ void DOS_Shell::InputCommand(char * line) {
         else if (IS_PC98_ARCH) {
             extern Bit16u last_int16_code;
 
+            /* NTS: PC-98 keyboards lack the US layout HOME / END keys, therefore there is no mapping here */
+
             /* NTS: Since left arrow and backspace map to the same byte value, PC-98 treats it the same at the DOS prompt.
              *      However the PC-98 version of DOSKEY seems to be able to differentiate the two anyway and let the left
              *      arrow move the cursor back (perhaps it's calling INT 18h directly then?) */
