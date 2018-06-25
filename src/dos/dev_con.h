@@ -593,6 +593,16 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                         };
                         const auto &flagset = COLORFLAGS[IS_PC98_ARCH];
 
+                        if(IS_PC98_ARCH) {
+                            // Convert alternate color codes to regular ones
+                            if(ansi.data[i] >= 17 && ansi.data[i] <= 23) {
+                                const Bit8u convtbl[] = {
+                                    31, 34, 35, 32, 33, 36, 37
+                                };
+                                ansi.data[i] = convtbl[ansi.data[i] - 17];
+                            }
+                        }
+
                         ansi.enabled=true;
                         switch(ansi.data[i]){
                             case 0: /* normal */
@@ -600,10 +610,20 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                                 ansi.Disable();
                                 break;
                             case 1: /* bold mode on*/
+                                // FIXME: According to http://www.ninton.co.jp/?p=11, this
+                                // should set some sort of "highlight" flag in monochrome
+                                // mode, but I have no idea how to even enter that mode.
                                 ansi.attr |= IS_PC98_ARCH ? 0 : 0x08;
                                 break;
+                            case 2: /* PC-98 "Bit 4" */
+                                ansi.attr |= IS_PC98_ARCH ? 0x10 : 0;
+                                break;
                             case 4: /* underline */
-                                LOG(LOG_IOCTL,LOG_NORMAL)("ANSI:no support for underline yet");
+                                if(IS_PC98_ARCH) {
+                                    ansi.attr |= 0x08;
+                                } else {
+                                    LOG(LOG_IOCTL, LOG_NORMAL)("ANSI:no support for underline yet");
+                                }
                                 break;
                             case 5: /* blinking */
                                 ansi.attr |= IS_PC98_ARCH ? 0x02 : 0x80;
@@ -615,6 +635,10 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                                 } else {
                                     ansi.attr = 0x70;
                                 }
+                                break;
+                            case 8: /* PC-98 secret */
+                            case 16:
+                                ansi.attr &= IS_PC98_ARCH ? 0xFE : 0xFF;
                                 break;
                             case 30: /* fg color black */
                             case 31: /* fg color red */
@@ -634,10 +658,13 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                             case 44:
                             case 45:
                             case 46:
-                            case 47:
-                                ansi.attr &= ~(flagset[7] << 4);
-                                ansi.attr |= (flagset[ansi.data[i] - 40] << 4);
+                            case 47: {
+                                Bit8u shift = IS_PC98_ARCH ? 0 : 4;
+                                ansi.attr &= ~(flagset[7] << shift);
+                                ansi.attr |= (flagset[ansi.data[i] - 40] << shift);
+                                ansi.attr |= IS_PC98_ARCH ? 0x04 : 0;
                                 break;
+                            }
                             default:
                                 break;
                         }
