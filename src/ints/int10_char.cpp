@@ -27,6 +27,8 @@
 #include "shiftjis.h"
 #include "callback.h"
 
+Bit8u DefaultANSIAttr();
+
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
@@ -199,25 +201,12 @@ static void VGA_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u att
     }
 }
 
-static unsigned char VGA_FG_to_PC98(unsigned char vga_attr) {
-    /* VGA:
-     *    lbbb ffff        b=background color (irgb)    f=foreground color (irgb)    l=blink
-     * PC-98:
-     *    grb xxxxx        g=green r=red b=blue xxxxxx dont care */
-    return
-        ((vga_attr & 0x80 /*blink*/) ? 0x02/*PC-98 blink*/ : 0) +
-        ((vga_attr & 2/*VGA green*/) ? 0x80/*PC-98 green*/ : 0) +
-        ((vga_attr & 4/*VGA red  */) ? 0x40/*PC-98 red*/   : 0) +
-        ((vga_attr & 1/*VGA blue */) ? 0x20/*PC-98 blue*/  : 0) +
-        1/* ~secret*/;
-}
-
 static void PC98_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u attr) {
     /* Do some filing */
     PhysPt dest;
     dest=base+(row*CurMode->twidth+cleft)*2;
     Bit16u fill=' ';
-    Bit16u fattr=VGA_FG_to_PC98(attr ? attr : 7);
+    Bit16u fattr=attr ? attr : DefaultANSIAttr();
     for (Bit8u x=0;x<(Bitu)(cright-cleft);x++) {
         mem_writew(dest,fill);
         mem_writew(dest+0x2000,fattr);
@@ -588,7 +577,7 @@ void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,bool useat
             PhysPt where = CurMode->pstart+address;
             mem_writew(where,chr);
             if (useattr) {
-                mem_writeb(where+0x2000,VGA_FG_to_PC98(attr));
+                mem_writeb(where+0x2000,attr);
             }
 #if 0
             // seems to reenable the cursor, too
@@ -754,8 +743,8 @@ static void INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr,Bit8u pag
     }
     // Do we need to scroll ?
     if(cur_row==nrows) {
-        //Fill with black on non-text modes and with 0x7 on textmode
-        Bit8u fill = (CurMode->type == M_TEXT)?0x7:0;
+        //Fill with black on non-text modes and with the default ANSI attribute on textmode
+        Bit8u fill = (CurMode->type == M_TEXT)?DefaultANSIAttr():0;
         INT10_ScrollWindow(0,0,(Bit8u)(nrows-1),(Bit8u)(ncols-1),-1,fill,page);
         cur_row--;
     }
