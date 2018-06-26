@@ -30,8 +30,8 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
 //TODO Base address
         vga.s3.reg_31 = val;
         vga.config.compatible_chain4 = !(val&0x08);
-        if (vga.config.compatible_chain4) vga.vmemwrap = 256*1024;
-        else vga.vmemwrap = vga.vmemsize;
+//        if (vga.config.compatible_chain4) vga.vmemwrap = 256*1024;
+//        else vga.vmemwrap = vga.mem.memsize;
         vga.config.display_start = (vga.config.display_start&~0x30000ul)|((val&0x30u)<<12ul);
         VGA_DetermineMode();
         VGA_SetupHandlers();
@@ -140,7 +140,7 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
     case 0x4c:  /* HGC start address high byte*/
         vga.s3.hgc.startaddr &=0xff;
         vga.s3.hgc.startaddr |= ((val & 0xf) << 8);
-        if ((((Bitu)vga.s3.hgc.startaddr)<<10)+((64*64*2)/8) > vga.vmemsize) {
+        if ((((Bitu)vga.s3.hgc.startaddr)<<10)+((64*64*2)/8) > vga.mem.memsize) {
             vga.s3.hgc.startaddr &= 0xff;   // put it back to some sane area;
                                             // if read back of this address is ever implemented this needs to change
             LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:S3:CRTC: HGC pattern address beyond video memory" );
@@ -541,7 +541,7 @@ bool SVGA_S3_HWCursorActive(void) {
 }
 
 bool SVGA_S3_AcceptsMode(Bitu mode) {
-    return VideoModeMemSize(mode) < vga.vmemsize;
+    return VideoModeMemSize(mode) < vga.mem.memsize;
 }
 
 void SVGA_Setup_S3Trio(void) {
@@ -559,27 +559,27 @@ void SVGA_Setup_S3Trio(void) {
     svga.hardware_cursor_active = &SVGA_S3_HWCursorActive;
     svga.accepts_mode = &SVGA_S3_AcceptsMode;
 
-    //if (vga.vmemsize == 0)
-    //  vga.vmemsize = 2*1024*1024; // the most common S3 configuration
+    //if (vga.mem.memsize == 0)
+    //  vga.mem.memsize = 2*1024*1024; // the most common S3 configuration
 
     // Set CRTC 36 to specify amount of VRAM and PCI
-    if (vga.vmemsize < 1024*1024) {
-        vga.vmemsize = 512*1024;
+    if (vga.mem.memsize < 1024*1024) {
+        vga.mem.memsize = 512*1024;
         vga.s3.reg_36 = 0xfa;       // less than 1mb fast page mode
-    } else if (vga.vmemsize < 2048*1024)    {
-        vga.vmemsize = 1024*1024;
+    } else if (vga.mem.memsize < 2048*1024)    {
+        vga.mem.memsize = 1024*1024;
         vga.s3.reg_36 = 0xda;       // 1mb fast page mode
-    } else if (vga.vmemsize < 3072*1024)    {
-        vga.vmemsize = 2048*1024;
+    } else if (vga.mem.memsize < 3072*1024)    {
+        vga.mem.memsize = 2048*1024;
         vga.s3.reg_36 = 0x9a;       // 2mb fast page mode
-    } else if (vga.vmemsize < 4096*1024)    {
-        vga.vmemsize = 3072*1024;
+    } else if (vga.mem.memsize < 4096*1024)    {
+        vga.mem.memsize = 3072*1024;
         vga.s3.reg_36 = 0x5a;       // 3mb fast page mode
-    } else if (vga.vmemsize < 8192*1024) {  // Trio64 supported only up to 4M
-        vga.vmemsize = 4096*1024;
+    } else if (vga.mem.memsize < 8192*1024) {  // Trio64 supported only up to 4M
+        vga.mem.memsize = 4096*1024;
         vga.s3.reg_36 = 0x1a;       // 4mb fast page mode
     } else {    // 8M
-        vga.vmemsize = 8192*1024;
+        vga.mem.memsize = 8192*1024;
         vga.s3.reg_36 = 0x7a;       // 8mb fast page mode
     }
 

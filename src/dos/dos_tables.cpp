@@ -44,8 +44,6 @@ GCC_ATTRIBUTE (packed);
 RealPt DOS_TableUpCase;
 RealPt DOS_TableLowCase;
 
-extern bool mainline_compatible_mapping;
-
 static Bitu call_casemap = 0;
 
 void DOS_Casemap_Free(void) {
@@ -82,17 +80,10 @@ void DOS_GetMemory_unmap() {
 
 void DOS_GetMemory_Choose() {
 	if (DOS_PRIVATE_SEGMENT == 0) {
-		if (mainline_compatible_mapping) {
-			/* DOSBox mainline compatible: private area 0xC800-0xCFFF */
-			DOS_PRIVATE_SEGMENT=0xc800;
-			DOS_PRIVATE_SEGMENT_END=0xc800 + DOS_PRIVATE_SEGMENT_Size;
-		}
-		else {
-			/* DOSBox-X non-compatible: Position ourself just past the VGA BIOS */
-			/* NTS: Code has been arranged so that DOS kernel init follows BIOS INT10h init */
-			DOS_PRIVATE_SEGMENT=VGA_BIOS_SEG_END;
-			DOS_PRIVATE_SEGMENT_END=DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size;
-		}
+        /* DOSBox-X non-compatible: Position ourself just past the VGA BIOS */
+        /* NTS: Code has been arranged so that DOS kernel init follows BIOS INT10h init */
+        DOS_PRIVATE_SEGMENT=VGA_BIOS_SEG_END;
+        DOS_PRIVATE_SEGMENT_END=DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size;
 
 		if (DOS_PRIVATE_SEGMENT >= 0xA000) {
 			memset(GetMemBase()+((unsigned int)DOS_PRIVATE_SEGMENT<<4u),0x00,(unsigned int)(DOS_PRIVATE_SEGMENT_END-DOS_PRIVATE_SEGMENT)<<4u);

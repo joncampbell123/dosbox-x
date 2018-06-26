@@ -125,7 +125,6 @@ extern bool         VIDEO_BIOS_always_carry_14_high_font;
 extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb;
-extern bool         adapter_rom_is_ram;
 
 bool                dos_con_use_int16_to_detect_input = true;
 
@@ -154,19 +153,6 @@ ClockDomain         clockdom_ISA_OSC(NTSC_COLOR_SUBCARRIER_NUM*4,NTSC_COLOR_SUBC
  * PCI bus systems: PCI bus clock 33MHz / 4 = 8.333MHz (especially Intel chipsets according to PIIX datasheets) */
 ClockDomain         clockdom_ISA_BCLK(25000000,3);      /* MASTER 25000000Hz / 3 = 8.333333MHz */
 
-/* 8254 PIT. slave to a clock determined by motherboard.
- * PC/XT: slave to ISA busclock (4.77MHz / 4) = 1.193181MHz
- * AT/later: ISA oscillator clock (14.31818MHz / 12) */
-/* 14.1818MHz / 12 == (NTSC * 4) / 12 == (NTSC * 4) / (4*3) == NTSC / 3 */
-ClockDomain         clockdom_8254_PIT(NTSC_COLOR_SUBCARRIER_NUM,NTSC_COLOR_SUBCARRIER_DEN*3);
-
-/* 8250 UART.
- * PC/XT: ??? What did IBM use on the motherboard to drive the UART? Is it some divisor of the ISA OSC clock?? Closest I can calculate: 14.31818MHz / 8 = 1.78MHz.
- * Other hardware (guess): Independent clock crystal: 115200 * 16 = 1843200Hz = 1.843200MHz based on datasheet (http://www.ti.com/lit/ds/symlink/pc16550d.pdf)
- *
- * Feel free to correct me if I'm wrong. */
-ClockDomain         clockdom_8250_UART(115200 * 16);
-
 Config*             control;
 MachineType         machine;
 bool                PS1AudioCard;       // Perhaps have PS1 as a machine type...?
@@ -177,8 +163,6 @@ Bit32u              ticksScheduled;
 bool                ticksLocked;
 bool                mono_cga=false;
 bool                ignore_opcode_63 = true;
-bool                mainline_compatible_mapping = true;
-bool                mainline_compatible_bios_mapping = true;
 int             dynamic_core_cache_block_size = 32;
 Bitu                VGA_BIOS_Size_override = 0;
 Bitu                VGA_BIOS_SEG = 0xC000;
@@ -290,12 +274,6 @@ unsigned long long update_clockdom_from_now(ClockDomain &dst) {
 /* for ISA components that rely on dividing down from OSC */
 unsigned long long update_ISA_OSC_clock() {
     return update_clockdom_from_now(clockdom_ISA_OSC);
-}
-
-/* for PIT emulation. The PIT ticks at exactly 1/12 the ISA OSC clock. */
-unsigned long long update_8254_PIT_clock() {
-    clockdom_8254_PIT.counter = update_ISA_OSC_clock() / 12ULL;
-    return clockdom_8254_PIT.counter;
 }
 
 /* for ISA components */
@@ -654,8 +632,8 @@ void Init_VGABIOS() {
     VIDEO_BIOS_always_carry_16_high_font = section->Get_bool("video bios always offer 16-pixel high rom font");
     VIDEO_BIOS_enable_CGA_8x8_second_half = section->Get_bool("video bios enable cga second half rom font");
     /* NTS: mainline compatible mapping demands the 8x8 CGA font */
-    rom_bios_8x8_cga_font = mainline_compatible_bios_mapping || section->Get_bool("rom bios 8x8 CGA font");
-    rom_bios_vptable_enable = mainline_compatible_bios_mapping || section->Get_bool("rom bios video parameter table");
+    rom_bios_8x8_cga_font = section->Get_bool("rom bios 8x8 CGA font");
+    rom_bios_vptable_enable = section->Get_bool("rom bios video parameter table");
 
     /* sanity check */
     if (VGA_BIOS_dont_duplicate_CGA_first_half && !rom_bios_8x8_cga_font) /* can't point at the BIOS copy if it's not there */
@@ -664,19 +642,15 @@ void Init_VGABIOS() {
     if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
         VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FFU) & (~0xFFFU);
     else if (IS_VGA_ARCH)
-        VGA_BIOS_Size = mainline_compatible_mapping ? 0x8000 : 0x3000; /* <- Experimentation shows the S3 emulation can fit in 12KB, doesn't need all 32KB */
+        VGA_BIOS_Size = 0x3000; /* <- Experimentation shows the S3 emulation can fit in 12KB, doesn't need all 32KB */
     else if (machine == MCH_EGA) {
-        if (mainline_compatible_mapping)
-            VGA_BIOS_Size = 0x8000;
-        else if (VIDEO_BIOS_always_carry_16_high_font)
+        if (VIDEO_BIOS_always_carry_16_high_font)
             VGA_BIOS_Size = 0x3000;
         else
             VGA_BIOS_Size = 0x2000;
     }
     else {
-        if (mainline_compatible_mapping)
-            VGA_BIOS_Size = 0x8000;
-        else if (VIDEO_BIOS_always_carry_16_high_font && VIDEO_BIOS_always_carry_14_high_font)
+        if (VIDEO_BIOS_always_carry_16_high_font && VIDEO_BIOS_always_carry_14_high_font)
             VGA_BIOS_Size = 0x3000;
         else if (VIDEO_BIOS_always_carry_16_high_font || VIDEO_BIOS_always_carry_14_high_font)
             VGA_BIOS_Size = 0x2000;
@@ -718,10 +692,6 @@ void DOSBOX_RealInit() {
     // TODO: these should be parsed by DOS kernel at startup
     dosbox_shell_env_size = (unsigned int)section->Get_int("shell environment size");
 
-    /* these ARE general DOSBox configuration options */
-    mainline_compatible_mapping = section->Get_bool("mainline compatible mapping");
-    adapter_rom_is_ram = section->Get_bool("adapter rom is ram");
-
     // TODO: a bit of a challenge: if we put it in the ROM area as mainline DOSBox does then the init
     //       needs to read this from the BIOS where it can map the memory appropriately. if the allocation
     //       is dynamic and the private area is down at the base of memory like real DOS, then the BIOS
@@ -732,7 +702,6 @@ void DOSBOX_RealInit() {
     DOS_PRIVATE_SEGMENT_Size = (Bitu)((section->Get_int("private area size") + 8) / 16);
 
     // TODO: these should be parsed by BIOS startup
-    mainline_compatible_bios_mapping = section->Get_bool("mainline compatible bios mapping");
     allow_more_than_640kb = section->Get_bool("allow more than 640kb base memory");
 
     // TODO: should be parsed by motherboard emulation
@@ -816,8 +785,6 @@ void DOSBOX_RealInit() {
         parse_busclk_setting_str(&clockdom_PCI_BCLK,pcibclk.c_str());
 
     clockdom_ISA_OSC.set_name("ISA OSC");
-    clockdom_8254_PIT.set_name("8254 PIT");
-    clockdom_8250_UART.set_name("8250 UART");
     clockdom_ISA_BCLK.set_name("ISA BCLK");
     clockdom_PCI_BCLK.set_name("PCI BCLK");
 
@@ -947,6 +914,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
     Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host");
 
+    // STUB OPTION, NOT YET FULLY IMPLEMENTED
     Pbool = secprop->Add_bool("weitek",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, emulate the Weitek coprocessor. This option only has effect if cputype=386 or cputype=486.");
 
@@ -1005,19 +973,6 @@ void DOSBOX_SetupConfigSections(void) {
             "mpegts-h264                 Use MPEG transport stream + H.264 + AAC audio. Resolution & refresh rate changes can be contained\n"
             "                            within one file with this choice, however not all software can support mid-stream format changes.");
 
-    Pbool = secprop->Add_bool("mainline compatible mapping",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, arrange private areas, UMBs, and DOS kernel structures by default in the same way the mainline branch would do it.\n"
-            "If cleared, these areas are allocated dynamically which may improve available memory and emulation accuracy.\n"
-            "If your DOS game breaks under DOSBox-X but works with mainline DOSBox setting this option may help.");
-
-    Pbool = secprop->Add_bool("mainline compatible bios mapping",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set, arrange the BIOS area in the same way that the mainline branch would do it.\n"
-            "If cleared, these areas are allocated dynamically which may improve available memory and emulation accuracy.\n"
-            "If your DOS game breaks under DOSBox-X but works with mainline DOSBox setting this option may help.");
-
-    Pbool = secprop->Add_bool("adapter rom is ram",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("Map adapter ROM as RAM (mainline DOSBox 0.74 behavior). When clear, unused adapter ROM is mapped out");
-
     Pint = secprop->Add_int("shell environment size",Property::Changeable::OnlyAtStart,0);
     Pint->SetMinMax(0,65280);
     Pint->Set_help("Size of the initial DOSBox shell environment block, in bytes. This does not affect the environment block of sub-processes spawned from the shell.\n"
@@ -1051,7 +1006,7 @@ void DOSBOX_SetupConfigSections(void) {
                     "If disabled, and MS-DOS does not load HIMEM.SYS, programs and features that rely on the 1MB wraparound will fail.");
 
     Pstring = secprop->Add_string("isa bus clock",Property::Changeable::WhenIdle,"std8.3");
-    Pstring->Set_help("ISA BCLK frequency.\n"
+    Pstring->Set_help("ISA BCLK frequency, used to emulate I/O delay.\n"
               "WARNING: In future revisions, PCI/motherboard chipset emulation will allow the guest OS/program to alter this value at runtime.\n"
               "  std8.3                       8.333MHz (typical 386-class or higher)\n"
               "  std8                         8MHz\n"
@@ -1065,7 +1020,7 @@ void DOSBOX_SetupConfigSections(void) {
               "  <integer/integer ratio>      If a ratio is given (num/den), the ratio will be used as the clock frequency");
 
     Pstring = secprop->Add_string("pci bus clock",Property::Changeable::WhenIdle,"std33.3");
-    Pstring->Set_help("PCI bus frequency.\n"
+    Pstring->Set_help("PCI bus frequency, used to emulate I/O delay.\n"
               "WARNING: In future revisions, PCI/motherboard chipset emulation will allow the guest OS/program to alter this value at runtime.\n"
               "  std33.3                      33.333MHz (very common setting on motherboards)\n"
               "  std30                        30MHz (some older mid-1990's Pentium systems)\n"
@@ -1112,6 +1067,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(-1,100000);
     Pint->Set_help( "I/O delay for 32-bit transfers. -1 to use default, 0 to disable.");
 
+    // STUB OPTION, NOT YET FULLY IMPLEMENTED
     Pstring = secprop->Add_string("acpi", Property::Changeable::OnlyAtStart,"off");
     Pstring->Set_values(acpisettings);
     Pstring->Set_help("ACPI emulation, and what version of the specification to follow.\n"
@@ -1119,16 +1075,20 @@ void DOSBOX_SetupConfigSections(void) {
             "         Intended for use with ACPI-aware OSes including Linux and Windows 98/ME. This option will also slightly reduce available\n"
             "         system memory to make room for the ACPI tables, just as real BIOSes do, and reserve an IRQ for ACPI functions.");
 
+    // STUB OPTION, NOT YET FULLY IMPLEMENTED
     Pstring = secprop->Add_string("acpi rsd ptr location", Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(acpi_rsd_ptr_settings);
     Pstring->Set_help("Where to store the Root System Description Pointer structure. You can have it stored in the ROM BIOS area, or the Extended Bios Data Area.");
 
+    // STUB OPTION, NOT YET FULLY IMPLEMENTED
     Pint = secprop->Add_int("acpi sci irq", Property::Changeable::WhenIdle,-1);
     Pint->Set_help("IRQ to assign as ACPI system control interrupt. set to -1 to automatically assign.");
 
+    // STUB OPTION, NOT YET FULLY IMPLEMENTED
     Phex = secprop->Add_hex("acpi iobase",Property::Changeable::WhenIdle,0);
     Phex->Set_help("I/O port base for the ACPI device Power Management registers. Set to 0 for automatic assignment.");
 
+    // STUB OPTION, NOT YET FULLY IMPLEMENTED
     Pint = secprop->Add_int("acpi reserved size", Property::Changeable::WhenIdle,0);
     Pint->Set_help("Amount of memory at top to reserve for ACPI structures and tables. Set to 0 for automatic assignment.");
 
@@ -1307,7 +1267,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set (default), allow the application to reset the CPU through port 92h");
 
     Pbool = secprop->Add_bool("enable port 92",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Emulate port 92h (PS/2 system control port A). If you want to emulate a system that predates the PS/2, set to 0.");
+    Pbool->Set_help("Emulate port 92h (PS/2 system control port A). If you want to emulate a system that pre-dates the PS/2, set to 0.");
 
     Pbool = secprop->Add_bool("enable 1st dma controller",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Emulate 1st (AT) DMA controller (default). Set to 0 if you wish to emulate a system that lacks DMA (PCjr and some Tandy systems)");
@@ -1446,6 +1406,15 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("enable pci bus",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Enable PCI bus emulation");
+
+    Pbool = secprop->Add_bool("vga palette update on full load",Property::Changeable::Always,true);
+    Pbool->Set_help("If set, all three bytes of the palette entry must be loaded before taking the color,\n"
+                    "which is fairly typical SVGA behavior. If not set, partial changes are allowed.");
+
+    Pbool = secprop->Add_bool("ignore odd-even mode in non-cga modes",Property::Changeable::Always,false);
+    Pbool->Set_help("Some demoscene productions use VGA Mode X but accidentally enable odd/even mode.\n"
+                    "Setting this option can correct for that and render the demo properly.\n"
+                    "This option forces VGA emulation to ignore odd/even mode except in text and CGA modes.");
 
     secprop=control->AddSection_prop("render",&Null_Init,true);
     Pint = secprop->Add_int("frameskip",Property::Changeable::Always,0);
@@ -1600,7 +1569,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
             "Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME");
 
-    Pbool = secprop->Add_bool("apmbios",Property::Changeable::WhenIdle,false);
+    Pbool = secprop->Add_bool("apmbios",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Emulate Advanced Power Management BIOS calls");
 
     Pbool = secprop->Add_bool("apmbios pnp",Property::Changeable::WhenIdle,false);
@@ -1639,7 +1608,7 @@ void DOSBOX_SetupConfigSections(void) {
         "then jump to realmode with B still set (aka Huge Unreal mode). Needed for Project Angel.");
 
     secprop=control->AddSection_prop("keyboard",&Null_Init);
-    Pbool = secprop->Add_bool("aux",Property::Changeable::OnlyAtStart,false);
+    Pbool = secprop->Add_bool("aux",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Enable emulation of the 8042 auxiliary port. PS/2 mouse emulation requires this to be enabled.\n"
             "You should enable this if you will be running Windows ME or any other OS that does not use the BIOS to receive mouse events.");
 
@@ -2340,19 +2309,12 @@ void DOSBOX_SetupConfigSections(void) {
                    "be loaded too low in memory. This differs from 'minimum mcb segment' in that this affects\n"
                    "the lowest free block instead of the starting point of the mcb chain.");
 
+    // TODO: Enable by default WHEN the 'SD' signature becomes valid, and a valid device list within
+    //       is emulated properly.
     Pbool = secprop->Add_bool("enable dummy device mcb",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If set (default), allocate a fake device MCB at the base of conventional memory.\n"
             "Clearing this option can reclaim a small amount of conventional memory at the expense of\n"
             "some minor DOS compatibility.");
-
-    Pbool = secprop->Add_bool("enable loadfix padding",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set (default), allocate a small 1KB region at the base of conventional memory.\n"
-            "Clearing this option can reclaim a small amount of conventional memory, but can also\n"
-            "cause some DOS games to break especially if dynamic kernel allocation is enabled.");
-
-    Pbool = secprop->Add_bool("enable dummy environment block",Property::Changeable::OnlyAtStart,false);
-    Pbool->Set_help("If set (default), allocate a dummy environment block at the base of conventional memory.\n"
-            "You can clear this option to reclaim a small amount of conventional memory.");
 
     Pint = secprop->Add_int("maximum environment block size on exec", Property::Changeable::WhenIdle,-1);
     Pint->SetMinMax(-1,65535);
@@ -2364,6 +2326,7 @@ void DOSBOX_SetupConfigSections(void) {
             "If the subprocesses will never add/modify the environment block, you can free up a few additional bytes by setting this to 0.\n"
             "Set to -1 for default setting.");
 
+    // DEPRECATED, REMOVE
     Pbool = secprop->Add_bool("enable a20 on windows init",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If set, DOSBox will enable the A20 gate when Windows 3.1/9x broadcasts the INIT message\n"
             "at startup. Windows 3.1 appears to make assumptions at some key points on startup about\n"
@@ -2439,9 +2402,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, dynamic kernel allocation=1, and private area in umb=1, all kernel structures will be allocated from the private area in UMB.\n"
             "If you intend to run Windows 3.1 in DOSBox, you must set this option to false else Windows 3.1 will not start.");
 
-    Pbool = secprop->Add_bool("dynamic kernel allocation",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("If set, DOS kernel structures are allocated dynamically. If clear, DOS kernel structures are fixed at specific segments (mainline DOSBox behavior)");
-
     Pbool = secprop->Add_bool("keep umb on boot",Property::Changeable::OnlyAtStart,false);
     Pbool->Set_help("If emulating UMBs, keep the UMB around after boot (Mainline DOSBox behavior). If clear, UMB is unmapped when you boot an operating system.");
 
@@ -2501,6 +2461,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
     Pint->Set_help("Number of file handles available to DOS programs. (equivalent to \"files=\" in config.sys)");
 
+    // DEPRECATED, REMOVE
     Pbool = secprop->Add_bool("con device use int 16h to detect keyboard input",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, use INT 16h to detect keyboard input (MS-DOS 6.22 behavior). If clear, detect keyboard input by\n"
             "peeking into the BIOS keyboard buffer (Mainline DOSBox behavior). You will need to set this\n"

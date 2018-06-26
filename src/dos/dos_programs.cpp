@@ -546,6 +546,7 @@ static void SHOWGUI_ProgramStart(Program * * make) {
 }
 #endif
 
+extern bool custom_bios;
 extern Bit32u floppytype;
 extern bool dos_kernel_disabled;
 extern bool boot_debug_break;
@@ -691,6 +692,8 @@ public:
     /*! \brief      Program entry point, when the command is run
      */
     void Run(void) {
+        std::string bios;
+        bool bios_boot = false;
         bool swaponedrive = false;
         bool force = false;
 
@@ -704,6 +707,9 @@ public:
         if (cmd->FindExist("-force",true))
             force = true;
 
+        if (cmd->FindString("-bios",bios,true))
+            bios_boot = true;
+
         //Hack To allow long commandlines
         ChangeToLongCmd();
         /* In secure mode don't allow people to boot stuff. 
@@ -711,6 +717,51 @@ public:
         if(control->SecureMode()) {
             WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
             return;
+        }
+
+        if (bios_boot) {
+            Bit32u isz1,isz2;
+
+            if (bios.empty()) {
+                WriteOut("Must specify BIOS image to boot\n");
+                return;
+            }
+
+            // NOTES:
+            // 
+            // Regarding PC-98 mode, you should use an older BIOS image.
+            // The PC-9821 ROM image(s) I have appear to rely on bank
+            // switching parts of itself to boot up and operate.
+            //
+            // Update: I found some PC-9801 ROM BIOS images online, which
+            //         ALSO seem to have a BIOS.ROM, ITF.ROM, etc...
+            //
+            //         So, this command will not be able to run those
+            //         images until port 43Dh (the I/O port used for
+            //         bank switching) is implemented in DOSBox-X.
+            //
+            // In IBM PC/AT mode, this should hopefully allow using old
+            // 386/486 BIOSes in DOSBox-X.
+
+            /* load it */
+            FILE *romfp = getFSFile(bios.c_str(), &isz1, &isz2);
+            if (romfp == NULL) {
+                WriteOut("Unable to open BIOS image\n");
+                return;
+            }
+            Bitu loadsz = (isz2 + 0xFU) & (~0xFU);
+            if (loadsz == 0) loadsz = 0x10;
+            if (loadsz > (IS_PC98_ARCH ? 0x18000 : 0x20000)) loadsz = (IS_PC98_ARCH ? 0x18000 : 0x20000);
+            Bitu segbase = 0x100000 - loadsz;
+            LOG_MSG("Loading BIOS image %s to 0x%lx, 0x%lx bytes",bios.c_str(),(unsigned long)segbase,(unsigned long)loadsz);
+            fseek(romfp, 0, SEEK_SET);
+            fread(GetMemBase()+segbase,loadsz,1,romfp);
+            fclose(romfp);
+
+            custom_bios = true;
+
+            /* boot it */
+            throw int(8);
         }
 
         bool bootbyDrive=false;
@@ -1799,7 +1850,7 @@ restart_int:
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
             return;
         }
-        if(fseeko64(f,(off_t)(size-1ull),SEEK_SET)) {
+        if(fseeko64(f,static_cast<unsigned long long>(size - 1ull),SEEK_SET)) {
             WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
             return;
         }

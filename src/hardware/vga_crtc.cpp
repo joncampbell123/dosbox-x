@@ -33,6 +33,16 @@ void VGA_MapMMIO(void);
 void VGA_UnmapMMIO(void);
 void page_flip_debug_notify();
 
+void VGA_CheckAddrShift() {
+    //Byte,word,dword mode
+    if ( IS_VGA_ARCH && crtc(underline_location) & 0x40 )
+        vga.config.addr_shift = 2u;
+    else if ( IS_EGAVGA_ARCH && crtc( mode_control) & 0x40 )
+        vga.config.addr_shift = 0u;
+    else
+        vga.config.addr_shift = 1u;
+}
+
 void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen);
 Bitu DEBUG_EnableDebugger(void);
 
@@ -295,18 +305,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x14:	/* Underline Location Register */
 		crtc(underline_location)=val;
-		if (IS_VGA_ARCH) {
-			//Byte,word,dword mode
-			if ( crtc(underline_location) & 0x40 )
-				vga.config.addr_shift = 2;
-			else if ( crtc( mode_control) & 0x40 )
-				vga.config.addr_shift = 0;
-			else
-				vga.config.addr_shift = 1;
-		} else {
-			vga.config.addr_shift = 1;
-		}
-
+        VGA_CheckAddrShift();
 		VGA_CheckScanLength();
 		/*
 			0-4	Position of underline within Character cell.
@@ -339,13 +338,6 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 	case 0x17:	/* Mode Control Register */
 		crtc(mode_control)=val;
 		vga.tandy.line_mask = (~val) & 3u;
-		//Byte,word,dword mode
-		if ( crtc(underline_location) & 0x40 )
-			vga.config.addr_shift = 2u;
-		else if ( crtc( mode_control) & 0x40 )
-			vga.config.addr_shift = 0u;
-		else
-			vga.config.addr_shift = 1u;
 
 		if ( vga.tandy.line_mask ) {
 			vga.tandy.line_shift = 13u;
@@ -354,6 +346,8 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 			vga.tandy.addr_mask = ~0u;
 			vga.tandy.line_shift = 0;
 		}
+
+        VGA_CheckAddrShift();
 		VGA_CheckScanLength();
 
 		//Should we really need to do a determinemode here?

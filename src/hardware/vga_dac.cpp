@@ -178,50 +178,76 @@ Bitu read_p3c8(Bitu port, Bitu iolen){
     return vga.dac.write_index;
 }
 
+extern bool vga_palette_update_on_full_load;
+
+static unsigned char tmp_dac[3] = {0,0,0};
+
 void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
+    bool update = false;
+
     (void)iolen;//UNUSED
     (void)port;//UNUSED
     vga.dac.hidac_counter=0;
     val&=0x3f;
-    switch (vga.dac.pel_index) {
-    case 0:
-        vga.dac.rgb[vga.dac.write_index].red=val;
-        vga.dac.pel_index=1;
-        break;
-    case 1:
-        vga.dac.rgb[vga.dac.write_index].green=val;
-        vga.dac.pel_index=2;
-        break;
-    case 2:
-        vga.dac.rgb[vga.dac.write_index].blue=val;
-        switch (vga.mode) {
-        case M_VGA:
-        case M_LIN8:
-            VGA_DAC_UpdateColor( vga.dac.write_index );
-            if ( GCC_UNLIKELY( vga.dac.pel_mask != 0xff)) {
-                Bitu index = vga.dac.write_index;
-                if ( (index & vga.dac.pel_mask) == index ) {
-                    for ( Bitu i = index+1;i<256;i++) 
-                        if ( (i & vga.dac.pel_mask) == index )
-                            VGA_DAC_UpdateColor( i );
-                }
-            } 
-            break;
-        default:
-            /* Check for attributes and DAC entry link */
-            for (Bitu i=0;i<16;i++) {
-                if (vga.dac.combine[i]==vga.dac.write_index) {
-                    VGA_DAC_SendColor( i, vga.dac.write_index );
-                }
+
+    if (vga.dac.pel_index < 3) {
+        tmp_dac[vga.dac.pel_index]=val;
+
+        if (!vga_palette_update_on_full_load) {
+            /* update palette right away, partial change */
+            switch (vga.dac.pel_index) {
+                case 0:
+                    vga.dac.rgb[vga.dac.write_index].red=tmp_dac[0];
+                    break;
+                case 1:
+                    vga.dac.rgb[vga.dac.write_index].green=tmp_dac[1];
+                    break;
+                case 2:
+                    vga.dac.rgb[vga.dac.write_index].blue=tmp_dac[2];
+                    break;
             }
+            update = true;
         }
-        vga.dac.read_index=vga.dac.write_index++;                           // NTS: Paradise SVGA behavior
-        vga.dac.pel_index=0;
-        break;
-    default:
-        LOG(LOG_VGAGFX,LOG_NORMAL)("VGA:DAC:Illegal Pel Index");            //If this can actually happen that will be the day
-        break;
-    };
+        else if (vga.dac.pel_index == 2) {
+            /* update palette ONLY when all three are given */
+            vga.dac.rgb[vga.dac.write_index].red=tmp_dac[0];
+            vga.dac.rgb[vga.dac.write_index].green=tmp_dac[1];
+            vga.dac.rgb[vga.dac.write_index].blue=tmp_dac[2];
+            update = true;
+        }
+
+        if ((++vga.dac.pel_index) >= 3)
+            vga.dac.pel_index = 0;
+    }
+
+    if (update) {
+        switch (vga.mode) {
+            case M_VGA:
+            case M_LIN8:
+                VGA_DAC_UpdateColor( vga.dac.write_index );
+                if ( GCC_UNLIKELY( vga.dac.pel_mask != 0xff)) {
+                    Bitu index = vga.dac.write_index;
+                    if ( (index & vga.dac.pel_mask) == index ) {
+                        for ( Bitu i = index+1;i<256;i++) 
+                            if ( (i & vga.dac.pel_mask) == index )
+                                VGA_DAC_UpdateColor( i );
+                    }
+                } 
+                break;
+            default:
+                /* Check for attributes and DAC entry link */
+                for (Bitu i=0;i<16;i++) {
+                    if (vga.dac.combine[i]==vga.dac.write_index) {
+                        VGA_DAC_SendColor( i, vga.dac.write_index );
+                    }
+                }
+                break;
+        }
+
+        /* only if we just completed a color should we advance */
+        if (vga.dac.pel_index == 0)
+            vga.dac.read_index = vga.dac.write_index++;                           // NTS: Paradise SVGA behavior
+    }
 }
 
 Bitu read_p3c9(Bitu port,Bitu iolen) {

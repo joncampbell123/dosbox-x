@@ -26,6 +26,7 @@
 #include "inout.h"
 #include "dos_inc.h"
 #include "SDL.h"
+#include "int10.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -455,15 +456,13 @@ static Bitu IRQ1_Handler(void) {
         } else {
             flags1 ^=0x10;flags2 &=~0x10;leds ^=0x01;break;     /* Scroll Lock released */
         }
-//  case 0x52:flags2|=128;break;//See numpad                    /* Insert */
-    case 0xd2:  
-        if(flags3&0x02) { /* Maybe honour the insert on keypad as well */
-            flags1^=0x80;
-            flags2&=~0x80;
-            break; 
-        } else {
-            goto irq1_end;/*Normal release*/ 
-        }
+    case 0xd2: /* NUMPAD insert, ironically, regular one is handled by 0x52 */
+		if (flags3 & BIOS_KEYBOARD_FLAGS3_HIDDEN_E0 || !(flags1 & BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE))
+		{
+			flags1 ^= BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE;
+			flags2 &= BIOS_KEYBOARD_FLAGS2_INSERT_PRESSED;
+		}
+	    break; 
     case 0x47:      /* Numpad */
     case 0x48:
     case 0x49:
@@ -553,6 +552,13 @@ irq1_end:
     /* update LEDs on keyboard */
     if (leds_orig != leds) KEYBOARD_SetLEDs(leds);
 
+	/* update insert cursor */
+	const auto flg = mem_readb(BIOS_KEYBOARD_FLAGS1);
+	const auto ins = static_cast<bool>(flg & BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE);
+	const auto ssl = static_cast<Bit8u>(ins ? CURSOR_SCAN_LINE_INSERT : CURSOR_SCAN_LINE_NORMAL);
+	if (CurMode->type == M_TEXT)
+		INT10_SetCursorShape(ssl, CURSOR_SCAN_LINE_END);
+					
 /*  IO_Write(0x20,0x20); moved out of handler to be virtualizable */
 #if 0
 /* Signal the keyboard for next code */
@@ -628,6 +634,7 @@ static Bitu IRQ1_Handler_PC98(void) {
 
         /* According to Neko Project II, the BIOS maintains a "pressed key" bitmap at 0x50:0x2A.
          * Without this bitmap many PC-98 games are unplayable. */
+        /* ALSO note that byte 0xE of this array is the "shift" state byte. */
         {
             unsigned int o = 0x52Au + ((unsigned int)sc_8251 >> 3u);
             unsigned char c = mem_readb(o);
@@ -1387,7 +1394,7 @@ static void InitBiosSegment(void) {
     Bit8u flag1 = 0;
     Bit8u leds = 16; /* Ack received */
 
-#if SDL_VERSION_ATLEAST(1, 2, 14)
+#if 0 /*SDL_VERSION_ATLEAST(1, 2, 14)*/
 //Nothing, mapper handles all.
 #else
     if (startup_state_capslock) { flag1|=0x40; leds|=0x04;}

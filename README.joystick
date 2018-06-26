@@ -133,3 +133,5 @@ General notes
 You will want to try and experiment as on what settings works best for software A and software B, and will probably end up with software-specific configurations.
 
 Please note that most DOS software supporting joystick input will not react properly when you adjust CPU cycles while they are being run, i.e. either find the appropriate number of CPU cycles it requires first or restart it for a consistent joystick experience.
+
+DOSBox-X supports 6 buttons joysticks, to enable support, set joystick type to 4axis. You will find that 5th and 6th buttons are in fact the negative sides of the 2nd port joystick axes. To remedy this problem and use buttons instead, in the mapper add bindings to 'Axis 3 X-' and 'Axis 4 Y-' to buttons you which to act as 5th and 6th buttons on your device. Note that you can only have a single 6 buttons joystick at any time, this is due to how they are implemented (such device in fact use both joystick ports).

@@ -163,7 +163,7 @@ static const UINT8 dither_matrix_2x2[16] =
 	(c) = (int)((((unsigned int)(val) << 2u) & 0xf8u) | (((unsigned int)(val) >>  3u) & 0x07u));	\
 
 #define EXTRACT_1555_TO_8888(val, a, b, c, d)				\
-	(a) = (int)(((unsigned int)(val) >> 15u) & 0xffu);						\
+	(a) = ((INT16)(val) >> 15) & 0xff;						\
 	EXTRACT_x555_TO_888(val, b, c, d)						\
 
 #define EXTRACT_5551_TO_8888(val, a, b, c, d)				\

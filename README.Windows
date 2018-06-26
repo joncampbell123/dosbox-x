@@ -1,8 +1,11 @@
 Getting started with DOSBox-X development under Windows 10
-==========================================================
+
 
 Visual Studio
 -------------
+
+Setting up the environment from scratch
+---------------------------------------
 
 - download Visual Studio installer from https://www.visualstudio.com/downloads
 - launch the installer
@@ -13,10 +16,15 @@ Visual Studio
 - launch the installer and follow the instructions
 - if you encounter error S1023 during installation, follow the instructions at https://support.microsoft.com/en-us/help/2728613/s1023-error-when-you-install-the-directx-sdk-june-2010
 - open the DOSBox-X Visual Studio solution located in 'vs2015' folder of the repository
+- for debugging, you might want to change 'Working Directory' default value of $(ProjectDir) to $(TargetDir)
 
-Visual Studio must be closed prior installing the DirectX SDK, else it won't pick up environment variables set by the DirectX SDK and this will result in building errors.
+Note that Visual Studio must be closed prior installing the DirectX SDK, else it won't pick up environment variables set by the DirectX SDK and this will result in building errors.
 
-You can pass additional options to the custom-build of SDL1 in the solution through the SDL1AdditionalOptions environment variable, e.g.
+
+Pass additional options to the custom-build of SDL1
+---------------------------------------------------
+
+You can do that through the SDL1AdditionalOptions environment variable:
 
 REM adding a preprocessor define
 SET SDL1AdditionalOptions=/DMY_DEFINE
@@ -49,29 +57,19 @@ Get and install Build Tools for Visual Studio 2017 from https://www.visualstudio
 
 3. Setup VSCode build task
 
- - open DOSBox-X folder in VSCode
- - menu Tasks, Configure Default Build Task
- - click 'Create tasks.json file from template'
- - click 'MSBuild Executes the build target'
+The default build task is 'build Windows SDL1 Debug Win32', you can switch to another in Tasks menu, Configure Default Build Task.
 
-The tasks.json file is now visible but still needs some polish:
+3. Setup C/C++ extension from Microsoft
 
- - menu Tasks, Configure Default Build Task
- - click 'build'
- - in the 'tasks/args' section, add "vs2015/dosbox-x.sln" argument
- 
-You can now build DOSBox-X using menu Tasks, Run Build Task.
+Switch to the extensions pane and install it, its identifier is ms-vscode.cpptools. When done, open the Command Palette and search for 'C/Cpp: Select a Configuration' to select the appropriate configuration for your build task.
 
-4. Setting up the debugging
+4. Setup the debugging
 
- - menu Debug, Start Debugging
- - click 'More...'
- - install C/C++ (extension identifier is ms-vscode.cpptools)
- - menu Debug, Start Debugging
- - click 'C++ (Windows)'
- - in lauch.json 'configurations' section, adjust the first configuration 'program' value, e.g. "${workspaceFolder}/bin/Win32/Debug/dosbox-x.exe"
+To change configuration, switch to the Debug pane and choose desired one in the combo box.
 
-You can now debug DOSBox-X.
+You can also do that from the bottom blue bar, but for some reason, VSCode does not always show it on startup; to remedy this problem execute the former procedure.
+
+You can now build and debug DOSBox-X.
 
 5. Notes and TODO
 

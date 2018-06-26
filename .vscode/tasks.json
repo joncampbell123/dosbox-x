@@ -8,19 +8,19 @@
             "type": "shell",
             "command": "msbuild",
             "args": [
-                // Ask msbuild to generate full paths for file names.
                 "/property:GenerateFullPaths=true",
                 "/p:Configuration=Debug",
                 "/p:Platform=Win32",
                 "/t:build",
                 "vs2015/dosbox-x.sln"
             ],
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "presentation": {
-                // Reveal the output only if unrecognized errors occur.
                 "reveal": "silent"
             },
-            // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile"
         },
         {
@@ -28,7 +28,6 @@
             "type": "shell",
             "command": "msbuild",
             "args": [
-                // Ask msbuild to generate full paths for file names.
                 "/property:GenerateFullPaths=true",
                 "/p:Configuration=Debug",
                 "/p:Platform=x64",
@@ -37,10 +36,8 @@
             ],
             "group": "build",
             "presentation": {
-                // Reveal the output only if unrecognized errors occur.
                 "reveal": "silent"
             },
-            // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile"
         },
         {
@@ -48,7 +45,6 @@
             "type": "shell",
             "command": "msbuild",
             "args": [
-                // Ask msbuild to generate full paths for file names.
                 "/property:GenerateFullPaths=true",
                 "/p:Configuration=Release",
                 "/p:Platform=Win32",
@@ -57,10 +53,8 @@
             ],
             "group": "build",
             "presentation": {
-                // Reveal the output only if unrecognized errors occur.
                 "reveal": "silent"
             },
-            // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile"
         },
         {
@@ -68,7 +62,6 @@
             "type": "shell",
             "command": "msbuild",
             "args": [
-                // Ask msbuild to generate full paths for file names.
                 "/property:GenerateFullPaths=true",
                 "/p:Configuration=Release",
                 "/p:Platform=x64",
@@ -77,21 +70,15 @@
             ],
             "group": "build",
             "presentation": {
-                // Reveal the output only if unrecognized errors occur.
                 "reveal": "silent"
             },
-            // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile"
         },
-
-
-
         {
             "label": "build Windows SDL2 Debug Win32",
             "type": "shell",
             "command": "msbuild",
             "args": [
-                // Ask msbuild to generate full paths for file names.
                 "/property:GenerateFullPaths=true",
                 "/p:Configuration='Debug SDL2'",
                 "/p:Platform=Win32",
@@ -100,10 +87,8 @@
             ],
             "group": "build",
             "presentation": {
-                // Reveal the output only if unrecognized errors occur.
                 "reveal": "silent"
             },
-            // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile"
         },
         {
@@ -111,7 +96,6 @@
             "type": "shell",
             "command": "msbuild",
             "args": [
-                // Ask msbuild to generate full paths for file names.
                 "/property:GenerateFullPaths=true",
                 "/p:Configuration='Debug SDL2'",
                 "/p:Platform=x64",
@@ -120,10 +104,8 @@
             ],
             "group": "build",
             "presentation": {
-                // Reveal the output only if unrecognized errors occur.
                 "reveal": "silent"
             },
-            // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile"
         },
         {
@@ -131,7 +113,6 @@
             "type": "shell",
             "command": "msbuild",
             "args": [
-                // Ask msbuild to generate full paths for file names.
                 "/property:GenerateFullPaths=true",
                 "/p:Configuration='Release SDL2'",
                 "/p:Platform=Win32",
@@ -140,10 +121,8 @@
             ],
             "group": "build",
             "presentation": {
-                // Reveal the output only if unrecognized errors occur.
                 "reveal": "silent"
             },
-            // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile"
         },
         {
@@ -151,7 +130,6 @@
             "type": "shell",
             "command": "msbuild",
             "args": [
-                // Ask msbuild to generate full paths for file names.
                 "/property:GenerateFullPaths=true",
                 "/p:Configuration='Release SDL2'",
                 "/p:Platform=x64",
@@ -160,11 +138,9 @@
             ],
             "group": "build",
             "presentation": {
-                // Reveal the output only if unrecognized errors occur.
                 "reveal": "silent"
             },
-            // Use the standard MS compiler pattern to detect errors, warnings and infos
             "problemMatcher": "$msCompile"
-        },
+        }
     ]
 }

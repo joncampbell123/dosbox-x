@@ -593,8 +593,6 @@ extern Bitu VGA_BIOS_SEG;
 extern Bitu VGA_BIOS_SEG_END;
 extern Bitu VGA_BIOS_Size;
 
-extern bool mainline_compatible_mapping;
-
 bool XMS_IS_ACTIVE() {
 	return (xms_callback != 0);
 }
@@ -697,9 +695,7 @@ public:
 
 		if (first_umb_seg == 0) {
 			first_umb_seg = DOS_PRIVATE_SEGMENT_END;
-			if (mainline_compatible_mapping && first_umb_seg < 0xD000)
-				first_umb_seg = 0xD000; /* Mainline DOSBox assumes a 128KB UMB region starting at 0xD000 */
-			else if (first_umb_seg < VGA_BIOS_SEG_END)
+			if (first_umb_seg < VGA_BIOS_SEG_END)
 				first_umb_seg = VGA_BIOS_SEG_END;
 		}
 		if (first_umb_size == 0) first_umb_size = ROMBIOS_MinAllocatedLoc()>>4;

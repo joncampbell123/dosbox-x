@@ -165,10 +165,10 @@ void FinishSetMode_PVGA1A(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 
 	if(vga.mode != M_VGA) {
 		vga.config.compatible_chain4 = false;
-		vga.vmemwrap = vga.vmemsize;
+//		vga.vmemwrap = vga.mem.memsize;
 	} else {
 		vga.config.compatible_chain4 = true;
-		vga.vmemwrap = 256*1024;
+//		vga.vmemwrap = 256*1024;
 	}
 
 	vga.config.compatible_chain4 = false;
@@ -202,7 +202,7 @@ Bitu GetClock_PVGA1A() {
 }
 
 bool AcceptsMode_PVGA1A(Bitu mode) {
-	return VideoModeMemSize(mode) < vga.vmemsize;
+	return VideoModeMemSize(mode) < vga.mem.memsize;
 }
 
 void SVGA_Setup_ParadisePVGA1A(void) {
@@ -221,14 +221,14 @@ void SVGA_Setup_ParadisePVGA1A(void) {
 	VGA_SetClock(3,35900);
 
 	// Adjust memory, default to 512K
-	if (vga.vmemsize == 0)
-		vga.vmemsize = 512*1024;
+	if (vga.mem.memsize == 0)
+		vga.mem.memsize = 512*1024;
 
-	if (vga.vmemsize < 512*1024)	{
-		vga.vmemsize = 256*1024;
+	if (vga.mem.memsize < 512*1024)	{
+		vga.mem.memsize = 256*1024;
 		pvga1a.PR1 = 1<<6;
-	} else if (vga.vmemsize > 512*1024) {
-		vga.vmemsize = 1024*1024;
+	} else if (vga.mem.memsize > 512*1024) {
+		vga.mem.memsize = 1024*1024;
 		pvga1a.PR1 = 3<<6;
 	} else {
 		pvga1a.PR1 = 2<<6;
