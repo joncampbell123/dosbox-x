@@ -545,7 +545,6 @@ struct SDL_Block {
     struct {
         bool autolock;
         bool autoenable;
-        bool synced;
         bool requestlock;
         bool locked;
         Bitu sensitivity;
@@ -3683,7 +3682,6 @@ static void GUI_StartUp() {
         sdl.desktop.full.height=width;
     }
     sdl.mouse.autoenable=section->Get_bool("autolock");
-    sdl.mouse.synced=section->Get_bool("synced");
     if (!sdl.mouse.autoenable) SDL_ShowCursor(SDL_DISABLE);
     sdl.mouse.autolock=false;
     sdl.mouse.sensitivity=(unsigned int)section->Get_int("sensitivity");
@@ -4169,7 +4167,6 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     user_cursor_x = motion->x - sdl.clip.x;
     user_cursor_y = motion->y - sdl.clip.y;
     user_cursor_locked = sdl.mouse.locked;
-    user_cursor_synced = sdl.mouse.synced;
     user_cursor_sw = sdl.clip.w;
     user_cursor_sh = sdl.clip.h;
 
@@ -6050,9 +6047,6 @@ void SDL_SetupConfigSection() {
 
     Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::Always,true);
     Pbool->Set_help("Mouse will automatically lock, if you click on the screen. (Press CTRL-F10 to unlock)");
-
-    Pbool = sdl_sec->Add_bool("synced",Property::Changeable::Always,false);
-    Pbool->Set_help("Mouse position reported will be exactly where user hand has moved to.");
 
     Pint = sdl_sec->Add_int("sensitivity",Property::Changeable::Always,100);
     Pint->SetMinMax(1,1000);
