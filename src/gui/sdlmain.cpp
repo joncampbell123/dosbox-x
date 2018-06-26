@@ -4164,34 +4164,38 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         }
     }
 #endif
-    user_cursor_x = motion->x - sdl.clip.x;
-    user_cursor_y = motion->y - sdl.clip.y;
+    user_cursor_x      = motion->x - sdl.clip.x;
+    user_cursor_y      = motion->y - sdl.clip.y;
     user_cursor_locked = sdl.mouse.locked;
-    user_cursor_sw = sdl.clip.w;
-    user_cursor_sh = sdl.clip.h;
+    user_cursor_synced = !user_cursor_locked;
+    user_cursor_sw     = sdl.clip.w;
+    user_cursor_sh     = sdl.clip.h;
 
-    if (sdl.mouse.locked || !sdl.mouse.autoenable)
-        Mouse_CursorMoved((float)motion->xrel*sdl.mouse.sensitivity/100.0f,
-                          (float)motion->yrel*sdl.mouse.sensitivity/100.0f,
-                          (float)(motion->x-sdl.clip.x)/(sdl.clip.w-1)*sdl.mouse.sensitivity/100.0f,
-                          (float)(motion->y-sdl.clip.y)/(sdl.clip.h-1)*sdl.mouse.sensitivity/100.0f,
-                          sdl.mouse.locked);
-    else if (mouse_notify_mode != 0) { /* for mouse integration driver */
-        Mouse_CursorMoved(0,0,0,0,sdl.mouse.locked);
-        if (motion->x >= sdl.clip.x && motion->y >= sdl.clip.y &&
-            motion->x < (sdl.clip.x+sdl.clip.w) && motion->y < (sdl.clip.y+sdl.clip.h))
-            SDL_ShowCursor(SDL_DISABLE); /* TODO: If guest has not read mouse cursor position within 250ms show cursor again */
-        else if (Mouse_GetButtonState() != 0)
-            SDL_ShowCursor(SDL_DISABLE); /* TODO: If guest has not read mouse cursor position within 250ms show cursor again */
-        else
-            SDL_ShowCursor(SDL_ENABLE);
+    auto xrel = static_cast<float>(motion->xrel) * sdl.mouse.sensitivity / 100.0f;
+    auto yrel = static_cast<float>(motion->yrel) * sdl.mouse.sensitivity / 100.0f;
+    auto x    = static_cast<float>(motion->x - sdl.clip.x) / (sdl.clip.w - 1) * sdl.mouse.sensitivity / 100.0f;
+    auto y    = static_cast<float>(motion->y - sdl.clip.y) / (sdl.clip.h - 1) * sdl.mouse.sensitivity / 100.0f;
+    auto emu  = sdl.mouse.locked;
+
+    if (mouse_notify_mode != 0)
+    {
+        /* for mouse integration driver */
+        xrel              = yrel = x = y = 0.0f;
+        emu               = sdl.mouse.locked;
+        const auto isdown = Mouse_GetButtonState() != 0;
+        const auto inside =
+            motion->x >= sdl.clip.x && motion->x < sdl.clip.x + sdl.clip.w &&
+            motion->y >= sdl.clip.y && motion->y < sdl.clip.y + sdl.clip.h;
+        SDL_ShowCursor(isdown || inside ? SDL_DISABLE : SDL_ENABLE);
+        /* TODO: If guest has not read mouse cursor position within 250ms show cursor again */
     }
-    else {
+    bool MOUSE_IsHidden();
+    if (!user_cursor_locked && MOUSE_IsHidden())
+    {
+        /* Show only when DOS app is not using mouse */
         SDL_ShowCursor(SDL_ENABLE);
     }
-
-    if (sdl.mouse.synced)
-        SDL_ShowCursor(SDL_ENABLE); // TODO remove
+    Mouse_CursorMoved(xrel, yrel, x, y, emu);
 }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
