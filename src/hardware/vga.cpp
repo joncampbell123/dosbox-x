@@ -409,8 +409,8 @@ void VGA_SetCGA4Table(Bit8u val0,Bit8u val1,Bit8u val2,Bit8u val3) {
 class VFRCRATE : public Program {
 public:
     void Run(void) {
-		if (cmd->FindExist("/?", false)) {
-			WriteOut("Video refresh rate.\n\n");
+        WriteOut("Video refresh rate.\n\n");
+        if (cmd->FindExist("/?", false)) {
 			WriteOut("VFRCRATE [SET [OFF|PAL|NTSC|rate]\n");
 			WriteOut("  SET OFF   unlock\n");
 			WriteOut("  SET PAL   lock to PAL frame rate\n");
