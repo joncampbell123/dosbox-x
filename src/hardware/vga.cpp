@@ -415,7 +415,9 @@ public:
 			WriteOut("  SET OFF   unlock\n");
 			WriteOut("  SET PAL   lock to PAL frame rate\n");
 			WriteOut("  SET NTSC  lock to NTSC frame rate\n");
-			WriteOut("  SET rate  lock to integer or decimal frame rate, e.g. 15, 29.97\n");
+			WriteOut("  SET rate  lock to integer frame rate, e.g. 15\n");
+			WriteOut("  SET rate  lock to decimal frame rate, e.g. 29.97\n");
+			WriteOut("  SET rate  lock to fractional frame rate, e.g. 60000/1001\n");
 			return;
 		}
         if (cmd->FindString("SET",temp_line,false)) {
