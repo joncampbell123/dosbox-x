@@ -4192,7 +4192,9 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     else {
         SDL_ShowCursor(SDL_ENABLE);
     }
-    SDL_ShowCursor(SDL_ENABLE); // TODO remove
+
+    if (sdl.mouse.synced)
+        SDL_ShowCursor(SDL_ENABLE); // TODO remove
 }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
