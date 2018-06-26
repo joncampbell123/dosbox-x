@@ -6049,7 +6049,7 @@ void SDL_SetupConfigSection() {
     Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::Always,true);
     Pbool->Set_help("Mouse will automatically lock, if you click on the screen. (Press CTRL-F10 to unlock)");
 
-    Pbool = sdl_sec->Add_bool("synced",Property::Changeable::Always,true);
+    Pbool = sdl_sec->Add_bool("synced",Property::Changeable::Always,false);
     Pbool->Set_help("Mouse position reported will be exactly where user hand has moved to.");
 
     Pint = sdl_sec->Add_int("sensitivity",Property::Changeable::Always,100);
