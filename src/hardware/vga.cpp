@@ -409,6 +409,17 @@ void VGA_SetCGA4Table(Bit8u val0,Bit8u val1,Bit8u val2,Bit8u val3) {
 class VFRCRATE : public Program {
 public:
     void Run(void) {
+        WriteOut("Video refresh rate.\n\n");
+        if (cmd->FindExist("/?", false)) {
+			WriteOut("VFRCRATE [SET [OFF|PAL|NTSC|rate]\n");
+			WriteOut("  SET OFF   unlock\n");
+			WriteOut("  SET PAL   lock to PAL frame rate\n");
+			WriteOut("  SET NTSC  lock to NTSC frame rate\n");
+			WriteOut("  SET rate  lock to integer frame rate, e.g. 15\n");
+			WriteOut("  SET rate  lock to decimal frame rate, e.g. 29.97\n");
+			WriteOut("  SET rate  lock to fractional frame rate, e.g. 60000/1001\n");
+			return;
+		}
         if (cmd->FindString("SET",temp_line,false)) {
             char *x = (char*)temp_line.c_str();
 
@@ -437,11 +448,11 @@ public:
             VGA_SetupHandlers();
             VGA_StartResize();
         }
-        
+
         if (vga_force_refresh_rate > 0)
-            WriteOut("Video refresh rate locked to %.3ffps\n",vga_force_refresh_rate);
+            WriteOut("Locked to %.3f fps\n",vga_force_refresh_rate);
         else
-            WriteOut("Video refresh rate unlocked\n");
+            WriteOut("Unlocked\n");
     }
 };
 
