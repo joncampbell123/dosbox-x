@@ -5450,6 +5450,9 @@ void GFX_EventsMouseWin32()
  */
 void GFX_EventsMouse()
 {
+    if (sdl.desktop.fullscreen || sdl.mouse.locked)
+        return;
+
 #if WIN32
     GFX_EventsMouseWin32();
 #else
