@@ -4190,10 +4190,10 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         /* TODO: If guest has not read mouse cursor position within 250ms show cursor again */
     }
     bool MOUSE_IsHidden();
-    if (!user_cursor_locked && MOUSE_IsHidden())
+    if (!user_cursor_locked)
     {
         /* Show only when DOS app is not using mouse */
-        SDL_ShowCursor(SDL_ENABLE);
+        SDL_ShowCursor(MOUSE_IsHidden() ? SDL_ENABLE : SDL_DISABLE);
     }
     Mouse_CursorMoved(xrel, yrel, x, y, emu);
 }
