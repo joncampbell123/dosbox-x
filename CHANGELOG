@@ -1,8 +1,10 @@
 TODO add version
-  - Improved shell:
+  - Fixed keyboard handler bug in PCjr mode that caused some CPU
+    register corruption and general crashiness in games.
+  - Improved shell: (Aybe, Joncampbell123)
     - Ctrl+Left and Ctrl+Right permits word-navigation.
     - Added emulation of 'Ins' key behavior.
-  - Num Lock stays on at startup and is synchronized with host
+  - Num Lock stays on at startup and is synchronized with host (Aybe)
     when DOSBox-X window gains focus (Windows). (Aybe)
   - Added visual feedback to Hat/D-pad buttons in mapper. (Aybe)
   - Added documentation for 'dir' command sorting switches. (Aybe)
