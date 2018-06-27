@@ -106,9 +106,11 @@ void GFX_OpenGLRedrawScreen(void);
 #include "keymap.h"
 #include "control.h"
 
+#if C_XBRZ
 #include <xBRZ/xbrz.h>
 #include <xBRZ/xbrz_tools.h>
 #include <ppl.h>
+#endif
 
 #if !defined(C_SDL2)
 # include "SDL_version.h"
@@ -160,9 +162,10 @@ const char *scaler_menu_opts[][2] = {
     { "2xsai",                  "2xSai" },
     { "super2xsai",             "Super2xSai" },
     { "supereagle",             "SuperEagle" },
+#if C_XBRZ
     { "xbrz",                   "xBRZ" },
     { "xbrz_bilinear",          "xBRZ Bilinear" },
-
+#endif
     { NULL, NULL }
 };
 
@@ -569,6 +572,7 @@ struct SDL_Block {
     bool deferred_resize;
     bool init_ignore;
     unsigned int gfx_force_redraw_count = 0;
+#if C_XBRZ
     struct {
         bool enable;
         bool postscale_bilinear;
@@ -580,6 +584,7 @@ struct SDL_Block {
         bool tex_scale_on;
         int tex_scale_factor;
     } xBRZ;
+#endif
 };
 
 static SDL_Block sdl;
@@ -2095,6 +2100,7 @@ dosurface:
         // we do the same as with Direct3D: precreate pixel buffer adjusted for xBRZ
         Bitu adjTexWidth = width;
         Bitu adjTexHeight = height;
+#if C_XBRZ
         if (sdl.xBRZ.enable) 
         {
             sdl.xBRZ.tex_scale_factor = (sdl.xBRZ.fixed_scale_factor == 0) ?
@@ -2114,7 +2120,7 @@ dosurface:
                 sdl.xBRZ.tex_scale_on = false;
             }
         }
-
+#endif
         int texsize=2 << int_log2(adjTexWidth > adjTexHeight ? adjTexWidth : adjTexHeight);
         if (texsize>sdl.opengl.max_texsize) {
             LOG_MSG("SDL:OPENGL:No support for texturesize of %d (max size is %d), falling back to surface",texsize,sdl.opengl.max_texsize);
@@ -2357,6 +2363,7 @@ dosurface:
             }
 
             // when xBRZ scaler is used, we can adjust render target size to exactly what xBRZ scaler will output, leaving final scaling to default D3D scaler / shaders
+#if C_XBRZ
             if (sdl.xBRZ.enable) {
                 sdl.xBRZ.tex_scale_factor = (sdl.xBRZ.fixed_scale_factor == 0) ?
                     static_cast<int>(std::sqrt(1.0 * sdl.clip.w * sdl.clip.h / (width * height)) + 0.5) :
@@ -2375,7 +2382,7 @@ dosurface:
                     sdl.xBRZ.tex_scale_on = false;
                 }
             }
-
+#endif
             // Calculate texture size
             if ((!d3d->square) && (!d3d->pow2)) {
                 d3d->dwTexWidth = adjTexWidth;
@@ -3210,12 +3217,14 @@ bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
         return false;
     switch (sdl.desktop.type) {
     case SCREEN_SURFACE:
+#if C_XBRZ
         if (sdl.xBRZ.enable) {
             sdl.xBRZ.renderbuf.resize(sdl.draw.width * sdl.draw.height);
             pixels = sdl.xBRZ.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl.xBRZ.renderbuf[0]);
             pitch = sdl.draw.width * sizeof(uint32_t);
         }
         else
+#endif
         {
             if (sdl.blit.surface) {
                 if (SDL_MUSTLOCK(sdl.blit.surface) && SDL_LockSurface(sdl.blit.surface))
@@ -3237,12 +3246,14 @@ bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
         return true;
 #if C_OPENGL
     case SCREEN_OPENGL:
+#if C_XBRZ    
         if (sdl.xBRZ.enable && sdl.xBRZ.tex_scale_on) {
             sdl.xBRZ.renderbuf.resize(sdl.draw.width * sdl.draw.height);
             pixels = sdl.xBRZ.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl.xBRZ.renderbuf[0]);
             pitch = sdl.draw.width * sizeof(uint32_t);
         }
         else 
+#endif
         {
             if (sdl.opengl.pixel_buffer_object) {
                 glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, sdl.opengl.buffer);
@@ -3258,6 +3269,7 @@ bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
 #endif
 #if (HAVE_D3D9_H) && defined(WIN32)
     case SCREEN_DIRECT3D:
+#if C_XBRZ
         if (sdl.xBRZ.enable && sdl.xBRZ.tex_scale_on) {
             sdl.xBRZ.renderbuf.resize(sdl.draw.width * sdl.draw.height);
             pixels = sdl.xBRZ.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl.xBRZ.renderbuf[0]);
@@ -3265,6 +3277,7 @@ bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
             sdl.updating = true;
         }
         else
+#endif
             sdl.updating = d3d->LockTexture(pixels, pitch);
         return sdl.updating;
 #endif
@@ -3296,6 +3309,7 @@ void GFX_OpenGLRedrawScreen(void) {
 #endif
 }
 
+#if C_XBRZ
 void xBRZ_Render(const uint32_t* renderBuf, uint32_t* xbrzBuf, const Bit16u *changedLines, const int srcWidth, const int srcHeight, int scalingFactor)
 {
     if (changedLines) // perf: in worst case similar to full input scaling
@@ -3338,6 +3352,7 @@ void xBRZ_Render(const uint32_t* renderBuf, uint32_t* xbrzBuf, const Bit16u *cha
         tg.wait();
     }
 }
+#endif
 
 void GFX_EndUpdate( const Bit16u *changedLines ) {
     /* don't present our output if 3Dfx is in OpenGL mode */
@@ -3357,6 +3372,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 #endif
+#if C_XBRZ
             if (sdl.xBRZ.enable) {
                 const int srcWidth = sdl.draw.width;
                 const int srcHeight = sdl.draw.height;
@@ -3467,6 +3483,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                 }
             }
             else 
+#endif /*C_XBRZ*/
             {
                 if (SDL_MUSTLOCK(sdl.surface)) {
                     if (sdl.blit.surface) {
@@ -3556,6 +3573,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 #endif
                 }
 
+#if C_XBRZ
                 if (sdl.xBRZ.enable && sdl.xBRZ.tex_scale_on) {
                     // OpenGL pixel buffer is precreated for direct xBRZ output, while xBRZ render buffer is used for rendering
                     const int srcWidth = sdl.draw.width;
@@ -3603,7 +3621,9 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                     }
                     glCallList(sdl.opengl.displaylist);
                     SDL_GL_SwapBuffers();
-                } else if (sdl.opengl.pixel_buffer_object) {
+                } else
+#endif /*C_XBRZ*/
+                 if (sdl.opengl.pixel_buffer_object) {
                     if(changedLines && (changedLines[0] == sdl.draw.height)) 
                         return; 
                     glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
@@ -3689,6 +3709,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 #endif
 #if (HAVE_D3D9_H) && defined(WIN32)
     case SCREEN_DIRECT3D:
+#if C_XBRZ
         if (sdl.xBRZ.enable && sdl.xBRZ.tex_scale_on) {
             // we have xBRZ pseudo render buffer to be output to the pre-sized texture, do the xBRZ part
             const int srcWidth = sdl.draw.width;
@@ -3725,6 +3746,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                 }
             }
         }
+#endif
 
         if(!menu.hidecycles) frames++; //implemented
         if(GCC_UNLIKELY(!d3d->UnlockTexture(changedLines))) {
@@ -4042,6 +4064,7 @@ static void GUI_StartUp() {
     /* Setup Mouse correctly if fullscreen */
     if(sdl.desktop.fullscreen) GFX_CaptureMouse();
 
+#if C_XBRZ
     // yes, we read render section settings here, because xBRZ is integrated here but has settings in "render"
     {
         Section_prop * r_section = static_cast<Section_prop *>(control->GetSection("render"));
@@ -4063,6 +4086,7 @@ static void GUI_StartUp() {
         if ((output != "surface") && (output != "direct3d") && (output != "opengl") && (output != "openglhq") && (output != "openglnb"))
             output = "surface";
     }
+#endif
 
     if (output == "surface") {
         sdl.desktop.want_type=SCREEN_SURFACE;
