@@ -1,4 +1,5 @@
 TODO add version
+  - INT 10h AH=10h now ignores AL=2/AL=3 in PCjr mode.
   - Fixed keyboard handler bug in PCjr mode that caused some CPU
     register corruption and general crashiness in games.
   - Improved shell: (Aybe, Joncampbell123)
