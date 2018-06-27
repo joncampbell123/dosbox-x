@@ -401,6 +401,9 @@ void DOS_BreakAction() {
  * --J.C. */
 bool disk_io_unmask_irq0 = true;
 
+//! \brief Is a DOS program running ? (set by INT21 4B/4C)
+bool dos_program_running = false;
+
 #define DOSNAMEBUF 256
 static Bitu DOS_21Handler(void) {
     bool unmask_irq0 = false;
@@ -1343,12 +1346,14 @@ static Bitu DOS_21Handler(void) {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);
                 }
+                dos_program_running = true;
             }
             break;
             //TODO Check for use of execution state AL=5
         case 0x4c:                  /* EXIT Terminate with return code */
             DOS_Terminate(dos.psp(),false,reg_al);
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
+            dos_program_running = false;
             break;
         case 0x4d:                  /* Get Return code */
             reg_al=dos.return_code;/* Officially read from SDA and clear when read */
