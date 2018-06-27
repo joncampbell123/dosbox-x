@@ -5379,6 +5379,84 @@ void RENDER_Reset(void);
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message);
 #endif
 
+struct mouse_pos
+{
+    long x = 0;
+    long y = 0;
+} mouse_pos;
+
+bool mouse_inside = false;
+
+void GFX_EventsMouseProcess(const long x, const long y, const long rx, const long ry)
+{
+    const auto x1 = sdl.clip.x;
+    const auto x2 = x1 + sdl.clip.w - 1;
+    const auto y1 = sdl.clip.y;
+    const auto y2 = y1 + sdl.clip.h - 1;
+    const auto in = x >= x1 && x <= x2 && y >= y1 && y <= y2;
+
+    if (mouse_inside && !in)
+    {
+        const auto x3 = max(x1, min(x2, x));
+        const auto y3 = max(y1, min(y2 , y));
+        SDL_Event  evt;
+        evt.type         = SDL_MOUSEMOTION;
+        evt.motion.state = 0;
+        evt.motion.which = 0;
+        evt.motion.x     = x3;
+        evt.motion.y     = y3;
+        evt.motion.xrel  = rx;
+        evt.motion.yrel  = ry;
+        SDL_PushEvent(&evt);
+    }
+
+    mouse_inside = in;
+}
+
+void GFX_EventsMouseWin32()
+{
+    /* Compute relative mouse movement */
+
+    POINT         point;
+    SDL_SysWMinfo wmi;
+
+    SDL_VERSION(&wmi.version);
+    if (!SDL_GetWMInfo(&wmi))
+        return;
+
+    if (!GetCursorPos(&point))
+        return;
+
+    if (!ScreenToClient(wmi.child_window, &point))
+        return;
+
+    const auto x  = point.x;
+    const auto y  = point.y;
+    const auto rx = x - mouse_pos.x;
+    const auto ry = y - mouse_pos.y;
+
+    mouse_pos.x = x;
+    mouse_pos.y = y;
+
+    /* Let the method do the heavy uplifting */
+    GFX_EventsMouseProcess(x, y, rx, ry);
+}
+
+/**
+ * \brief Processes mouse movements when outside the window.
+ * 
+ * This method will send an extra mouse event to the SDL pump
+ * when some relative movement has occurred.
+ */
+void GFX_EventsMouse()
+{
+#if WIN32
+    GFX_EventsMouseWin32();
+#else
+    // TODO
+#endif
+}
+
 void GFX_Events() {
     CheckMapperKeyboardLayout();
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
@@ -5541,6 +5619,9 @@ void GFX_Events() {
         }
     }
 #endif
+
+    GFX_EventsMouse();
+
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
 #ifdef __WIN32__
