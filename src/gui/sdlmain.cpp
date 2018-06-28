@@ -1941,24 +1941,28 @@ dosurface:
         }
 #endif
 
-        // there is a small problem we need to solve here: aspect corrected windows can be smaller than needed due to source with non-4:3 pixel ratio
-        // if we detect non-4:3 pixel ratio here with aspect correction on, we correct it so original fits into resized window properly
-        if (render.aspect) {
-            if (width*sdl.srcAspect.y != height * sdl.srcAspect.x)
-            {
-                // abnormal aspect ratio detected, apply correction
-                if (width*sdl.srcAspect.y > height*sdl.srcAspect.x)
+#if C_XBRZ
+        if (sdl.xBRZ.enable) {
+            // there is a small problem we need to solve here: aspect corrected windows can be smaller than needed due to source with non-4:3 pixel ratio
+            // if we detect non-4:3 pixel ratio here with aspect correction on, we correct it so original fits into resized window properly
+            if (render.aspect) {
+                if (width*sdl.srcAspect.y != height * sdl.srcAspect.x)
                 {
-                    // wide pixel ratio, height should be extended to fit
-                    height = (Bitu)floor((double)width * sdl.srcAspect.y / sdl.srcAspect.x + 0.5);
-                }
-                else
-                {
-                    // long pixel ratio, width should be extended
-                    width = (Bitu)floor((double)height * sdl.srcAspect.x / sdl.srcAspect.y + 0.5);
+                    // abnormal aspect ratio detected, apply correction
+                    if (width*sdl.srcAspect.y > height*sdl.srcAspect.x)
+                    {
+                        // wide pixel ratio, height should be extended to fit
+                        height = (Bitu)floor((double)width * sdl.srcAspect.y / sdl.srcAspect.x + 0.5);
+                    }
+                    else
+                    {
+                        // long pixel ratio, width should be extended
+                        width = (Bitu)floor((double)height * sdl.srcAspect.x / sdl.srcAspect.y + 0.5);
+                    }
                 }
             }
         }
+#endif
 
         sdl.desktop.type=SCREEN_SURFACE;
         sdl.clip.w=width;
