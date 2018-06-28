@@ -6207,7 +6207,7 @@ void SDL_SetupConfigSection() {
     Pbool->Set_help("Mouse will automatically lock, if you click on the screen. (Press CTRL-F10 to unlock)");
 
     const char* feeds[] = { "none", "beep", "flash", nullptr};
-    Pstring = sdl_sec->Add_string("autolock_feedback", Property::Changeable::Always, feeds[0]);
+    Pstring = sdl_sec->Add_string("autolock_feedback", Property::Changeable::Always, feeds[1]);
     Pstring->Set_help("Autolock status feedback type, i.e. visual, auditive, none.");
     Pstring->Set_values(feeds);
 
