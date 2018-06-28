@@ -106,6 +106,14 @@ void GFX_OpenGLRedrawScreen(void);
 #include "keymap.h"
 #include "control.h"
 
+#ifdef _MSC_VER
+# define MIN(a,b) ((a) < (b) ? (a) : (b))
+# define MAX(a,b) ((a) > (b) ? (a) : (b))
+#else
+# define MIN(a,b) std::min(a,b)
+# define MAX(a,b) std::max(a,b)
+#endif
+
 #if !defined(C_SDL2)
 # include "SDL_version.h"
 # ifndef SDL_DOSBOX_X_SPECIAL
@@ -5468,8 +5476,8 @@ void GFX_EventsMouseProcess(const long x, const long y, const long rx, const lon
 
     if (mouse_inside && !in)
     {
-        const auto x3 = max(x1, min(x2, x));
-        const auto y3 = max(y1, min(y2 , y));
+        const auto x3 = max((int)x1, min((int)x2, (int)x));
+        const auto y3 = max((int)y1, min((int)y2, (int)y));
         SDL_Event  evt;
         evt.type         = SDL_MOUSEMOTION;
         evt.motion.state = 0;
@@ -5484,6 +5492,7 @@ void GFX_EventsMouseProcess(const long x, const long y, const long rx, const lon
     mouse_inside = in;
 }
 
+#if defined(WIN32)
 void GFX_EventsMouseWin32()
 {
     /* Compute relative mouse movement */
@@ -5512,6 +5521,7 @@ void GFX_EventsMouseWin32()
     /* Let the method do the heavy uplifting */
     GFX_EventsMouseProcess(x, y, rx, ry);
 }
+#endif
 
 /**
  * \brief Processes mouse movements when outside the window.
