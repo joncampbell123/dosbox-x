@@ -613,8 +613,8 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
     if (mouse.y < mouse.min_y) mouse.y = mouse.min_y;
     extern int  user_cursor_x,  user_cursor_y;
     extern int  user_cursor_sw, user_cursor_sh;
-    extern bool user_cursor_synced;
-    if (user_cursor_synced)
+    extern bool user_cursor_synced, user_cursor_emulation_always;
+    if (user_cursor_synced && !user_cursor_emulation_always)
     {
         const auto x1 = 1.0 / static_cast<double>(user_cursor_sw) * user_cursor_x;
         const auto y1 = 1.0 / static_cast<double>(user_cursor_sh) * user_cursor_y;

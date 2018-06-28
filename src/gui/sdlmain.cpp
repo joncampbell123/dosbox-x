@@ -481,6 +481,12 @@ enum AUTOLOCK_FEEDBACK
     AUTOLOCK_FEEDBACK_FLASH
 };
 
+enum MOUSE_EMULATION
+{
+    MOUSE_EMULATION_ALWAYS,
+    MOUSE_EMULATION_LOCKED
+};
+
 struct SDL_Block {
     bool inited;
     bool active;                            //If this isn't set don't draw
@@ -564,6 +570,7 @@ struct SDL_Block {
         bool requestlock;
         bool locked;
         Bitu sensitivity;
+        MOUSE_EMULATION emulation;
     } mouse;
     SDL_Rect updateRects[1024];
     Bitu overscan_color;
@@ -3765,6 +3772,12 @@ static void GUI_StartUp() {
     sdl.mouse.sensitivity=(unsigned int)section->Get_int("sensitivity");
     std::string output=section->Get_string("output");
 
+    const std::string emulation = section->Get_string("emulation");
+    if (emulation == "always")
+        sdl.mouse.emulation = MOUSE_EMULATION_ALWAYS;
+    else if (emulation == "locked")
+        sdl.mouse.emulation = MOUSE_EMULATION_LOCKED;
+
     /* Setup Mouse correctly if fullscreen */
     if(sdl.desktop.fullscreen) GFX_CaptureMouse();
 
@@ -4086,6 +4099,7 @@ extern unsigned int mouse_notify_mode;
 
 bool user_cursor_locked = false;
 bool user_cursor_synced = false;
+bool user_cursor_emulation_always = false;
 int user_cursor_x = 0,user_cursor_y = 0;
 int user_cursor_sw = 640,user_cursor_sh = 480;
 
@@ -4246,6 +4260,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     user_cursor_y      = motion->y - sdl.clip.y;
     user_cursor_locked = sdl.mouse.locked;
     user_cursor_synced = !user_cursor_locked;
+    user_cursor_emulation_always = sdl.mouse.emulation == MOUSE_EMULATION_ALWAYS;
     user_cursor_sw     = sdl.clip.w;
     user_cursor_sh     = sdl.clip.h;
 
@@ -6229,6 +6244,14 @@ void SDL_SetupConfigSection() {
     Pint = sdl_sec->Add_int("sensitivity",Property::Changeable::Always,100);
     Pint->SetMinMax(1,1000);
     Pint->Set_help("Mouse sensitivity.");
+
+    const char * emulation[] = {"locked", "always", nullptr};
+    Pstring  = sdl_sec->Add_string("emulation", Property::Changeable::Always, emulation[0]);
+    Pstring->Set_help(
+        "Always emulate mouse movement or only while it is locked ?\n"
+        "The 'locked' mode makes DOSBox put the mouse exactly where\n"
+        "host OS reports it is, useful when you use non-locked windowed mode.");
+    Pstring->Set_values(emulation);
 
     Pbool = sdl_sec->Add_bool("waitonerror",Property::Changeable::Always, true);
     Pbool->Set_help("Wait before closing the console if dosbox has an error.");
