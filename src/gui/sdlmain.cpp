@@ -3772,7 +3772,7 @@ static void GUI_StartUp() {
     sdl.mouse.sensitivity=(unsigned int)section->Get_int("sensitivity");
     std::string output=section->Get_string("output");
 
-    const std::string emulation = section->Get_string("emulation");
+    const std::string emulation = section->Get_string("mouse_emulation");
     if (emulation == "always")
         sdl.mouse.emulation = MOUSE_EMULATION_ALWAYS;
     else if (emulation == "locked")
@@ -6246,7 +6246,7 @@ void SDL_SetupConfigSection() {
     Pint->Set_help("Mouse sensitivity.");
 
     const char * emulation[] = {"locked", "always", nullptr};
-    Pstring  = sdl_sec->Add_string("emulation", Property::Changeable::Always, emulation[0]);
+    Pstring  = sdl_sec->Add_string("mouse_emulation", Property::Changeable::Always, emulation[0]);
     Pstring->Set_help(
         "Always emulate mouse movement or only while it is locked ?\n"
         "The 'locked' mode makes DOSBox put the mouse exactly where\n"
