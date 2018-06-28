@@ -2786,15 +2786,18 @@ void CaptureMouseNotifyWin32()
 }
 #endif
 
-static void CaptureMouse(bool pressed) {
-    if (!pressed)
-        return;
-
+void CaptureMouseNotify()
+{
 #if WIN32
     CaptureMouseNotifyWin32();
 #else
     // TODO
 #endif
+}
+
+static void CaptureMouse(bool pressed) {
+    if (!pressed)
+        return;
 
     GFX_CaptureMouse();
 }
