@@ -2799,6 +2799,7 @@ static void CaptureMouse(bool pressed) {
     if (!pressed)
         return;
 
+    CaptureMouseNotify();
     GFX_CaptureMouse();
 }
 
