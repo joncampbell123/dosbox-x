@@ -106,6 +106,14 @@ void GFX_OpenGLRedrawScreen(void);
 #include "keymap.h"
 #include "control.h"
 
+#ifdef _MSC_VER
+# define MIN(a,b) ((a) < (b) ? (a) : (b))
+# define MAX(a,b) ((a) > (b) ? (a) : (b))
+#else
+# define MIN(a,b) std::min(a,b)
+# define MAX(a,b) std::max(a,b)
+#endif
+
 #if C_XBRZ
 #include <xBRZ/xbrz.h>
 #include <xBRZ/xbrz_tools.h>
@@ -474,6 +482,13 @@ CDirect3D*                  d3d = NULL;
 # include <os2.h>
 #endif
 
+enum AUTOLOCK_FEEDBACK
+{
+    AUTOLOCK_FEEDBACK_NONE,
+    AUTOLOCK_FEEDBACK_BEEP,
+    AUTOLOCK_FEEDBACK_FLASH
+};
+
 // do not specify any defaults inside, it is zeroed at start of main()
 struct SDL_Block {
     bool inited;
@@ -553,8 +568,8 @@ struct SDL_Block {
     SDL_cond *cond;
     struct {
         bool autolock;
+        AUTOLOCK_FEEDBACK autolock_feedback;
         bool autoenable;
-        bool synced;
         bool requestlock;
         bool locked;
         Bitu sensitivity;
@@ -2898,9 +2913,62 @@ void GFX_UpdateSDLCaptureState(void) {
     GFX_SetTitle(-1,-1,-1,false);
 }
 
+#if WIN32
+void CaptureMouseNotifyWin32()
+{
+    const auto lck = sdl.mouse.locked;
+    switch (sdl.mouse.autolock_feedback)
+    {
+    case AUTOLOCK_FEEDBACK_NONE: break;
+    case AUTOLOCK_FEEDBACK_BEEP:
+    {
+        const auto lo = 1000;
+        const auto hi = 2000;
+        const auto t1 = 50;
+        const auto t2 = 25;
+        const auto f1 = lck ? hi : lo;
+        const auto f2 = lck ? lo : hi;
+        const auto tt = lck ? t1 : t2;
+        Beep(f1, tt);
+        Beep(f2, tt);
+    }
+    break;
+    case AUTOLOCK_FEEDBACK_FLASH:
+    {
+        const auto cnt = lck ? 4 : 2;
+        const auto tim = lck ? 80 : 40;
+        const auto wnd = GetHWND();
+        if (wnd != nullptr)
+        {
+            FLASHWINFO fi;
+            fi.cbSize    = sizeof(FLASHWINFO);
+            fi.hwnd      = wnd;
+            fi.dwFlags   = FLASHW_CAPTION;
+            fi.uCount    = cnt;
+            fi.dwTimeout = tim;
+            FlashWindowEx(&fi);
+        }
+        break;
+    }
+    default: ;
+    }
+}
+#endif
+
+void CaptureMouseNotify()
+{
+#if WIN32
+    CaptureMouseNotifyWin32();
+#else
+    // TODO
+#endif
+}
+
 static void CaptureMouse(bool pressed) {
     if (!pressed)
         return;
+
+    CaptureMouseNotify();
     GFX_CaptureMouse();
 }
 
@@ -4100,9 +4168,17 @@ static void GUI_StartUp() {
         sdl.desktop.full.height=width;
     }
     sdl.mouse.autoenable=section->Get_bool("autolock");
-    sdl.mouse.synced=section->Get_bool("synced");
     if (!sdl.mouse.autoenable) SDL_ShowCursor(SDL_DISABLE);
     sdl.mouse.autolock=false;
+
+    const std::string feedback = section->Get_string("autolock_feedback");
+    if (feedback == "none")
+        sdl.mouse.autolock_feedback = AUTOLOCK_FEEDBACK_NONE;
+    else if (feedback == "beep")
+        sdl.mouse.autolock_feedback = AUTOLOCK_FEEDBACK_BEEP;
+    else if (feedback == "flash")
+        sdl.mouse.autolock_feedback = AUTOLOCK_FEEDBACK_FLASH;
+
     sdl.mouse.sensitivity=(unsigned int)section->Get_int("sensitivity");
     std::string output=section->Get_string("output");
 
@@ -4624,35 +4700,38 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         }
     }
 #endif
-    user_cursor_x = motion->x - sdl.clip.x;
-    user_cursor_y = motion->y - sdl.clip.y;
+    user_cursor_x      = motion->x - sdl.clip.x;
+    user_cursor_y      = motion->y - sdl.clip.y;
     user_cursor_locked = sdl.mouse.locked;
-    user_cursor_synced = sdl.mouse.synced;
-    user_cursor_sw = sdl.clip.w;
-    user_cursor_sh = sdl.clip.h;
+    user_cursor_synced = !user_cursor_locked;
+    user_cursor_sw     = sdl.clip.w;
+    user_cursor_sh     = sdl.clip.h;
 
-    if (sdl.mouse.locked || !sdl.mouse.autoenable)
-        Mouse_CursorMoved((float)motion->xrel*sdl.mouse.sensitivity/100.0f,
-                          (float)motion->yrel*sdl.mouse.sensitivity/100.0f,
-                          (float)(motion->x-sdl.clip.x)/(sdl.clip.w-1)*sdl.mouse.sensitivity/100.0f,
-                          (float)(motion->y-sdl.clip.y)/(sdl.clip.h-1)*sdl.mouse.sensitivity/100.0f,
-                          sdl.mouse.locked);
-    else if (mouse_notify_mode != 0) { /* for mouse integration driver */
-        Mouse_CursorMoved(0,0,0,0,sdl.mouse.locked);
-        if (motion->x >= sdl.clip.x && motion->y >= sdl.clip.y &&
-            motion->x < (sdl.clip.x+sdl.clip.w) && motion->y < (sdl.clip.y+sdl.clip.h))
-            SDL_ShowCursor(SDL_DISABLE); /* TODO: If guest has not read mouse cursor position within 250ms show cursor again */
-        else if (Mouse_GetButtonState() != 0)
-            SDL_ShowCursor(SDL_DISABLE); /* TODO: If guest has not read mouse cursor position within 250ms show cursor again */
-        else
-            SDL_ShowCursor(SDL_ENABLE);
-    }
-    else {
-        SDL_ShowCursor(SDL_ENABLE);
-    }
+    auto xrel = static_cast<float>(motion->xrel) * sdl.mouse.sensitivity / 100.0f;
+    auto yrel = static_cast<float>(motion->yrel) * sdl.mouse.sensitivity / 100.0f;
+    auto x    = static_cast<float>(motion->x - sdl.clip.x) / (sdl.clip.w - 1) * sdl.mouse.sensitivity / 100.0f;
+    auto y    = static_cast<float>(motion->y - sdl.clip.y) / (sdl.clip.h - 1) * sdl.mouse.sensitivity / 100.0f;
+    auto emu  = sdl.mouse.locked;
 
-    if (sdl.mouse.synced)
-        SDL_ShowCursor(SDL_ENABLE); // TODO remove
+    if (mouse_notify_mode != 0)
+    {
+        /* for mouse integration driver */
+        xrel              = yrel = x = y = 0.0f;
+        emu               = sdl.mouse.locked;
+        const auto isdown = Mouse_GetButtonState() != 0;
+        const auto inside =
+            motion->x >= sdl.clip.x && motion->x < sdl.clip.x + sdl.clip.w &&
+            motion->y >= sdl.clip.y && motion->y < sdl.clip.y + sdl.clip.h;
+        SDL_ShowCursor(isdown || inside ? SDL_DISABLE : SDL_ENABLE);
+        /* TODO: If guest has not read mouse cursor position within 250ms show cursor again */
+    }
+    bool MOUSE_IsHidden();
+    if (!user_cursor_locked)
+    {
+        /* Show only when DOS app is not using mouse */
+        SDL_ShowCursor(MOUSE_IsHidden() ? SDL_ENABLE : SDL_DISABLE);
+    }
+    Mouse_CursorMoved(xrel, yrel, x, y, emu);
 }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
@@ -5185,6 +5264,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
     case SDL_PRESSED:
         if (inMenu) return;
         if (sdl.mouse.requestlock && !sdl.mouse.locked && mouse_notify_mode == 0) {
+            CaptureMouseNotify();
             GFX_CaptureMouse();
             // Dont pass klick to mouse handler
             break;
@@ -5834,6 +5914,89 @@ static void HandleTouchscreenFinger(SDL_TouchFingerEvent * finger) {
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message);
 #endif
 
+struct mouse_pos
+{
+    long x = 0;
+    long y = 0;
+} mouse_pos;
+
+bool mouse_inside = false;
+
+void GFX_EventsMouseProcess(const long x, const long y, const long rx, const long ry)
+{
+    const auto x1 = sdl.clip.x;
+    const auto x2 = x1 + sdl.clip.w - 1;
+    const auto y1 = sdl.clip.y;
+    const auto y2 = y1 + sdl.clip.h - 1;
+    const auto in = x >= x1 && x <= x2 && y >= y1 && y <= y2;
+
+    if (mouse_inside && !in)
+    {
+        const auto x3 = max((int)x1, min((int)x2, (int)x));
+        const auto y3 = max((int)y1, min((int)y2, (int)y));
+        SDL_Event  evt;
+        evt.type         = SDL_MOUSEMOTION;
+        evt.motion.state = 0;
+        evt.motion.which = 0;
+        evt.motion.x     = x3;
+        evt.motion.y     = y3;
+        evt.motion.xrel  = rx;
+        evt.motion.yrel  = ry;
+        SDL_PushEvent(&evt);
+    }
+
+    mouse_inside = in;
+}
+
+#if defined(WIN32)
+void GFX_EventsMouseWin32()
+{
+    /* Compute relative mouse movement */
+
+    POINT         point;
+    SDL_SysWMinfo wmi;
+
+    SDL_VERSION(&wmi.version);
+    if (!SDL_GetWMInfo(&wmi))
+        return;
+
+    if (!GetCursorPos(&point))
+        return;
+
+    if (!ScreenToClient(wmi.child_window, &point))
+        return;
+
+    const auto x  = point.x;
+    const auto y  = point.y;
+    const auto rx = x - mouse_pos.x;
+    const auto ry = y - mouse_pos.y;
+
+    mouse_pos.x = x;
+    mouse_pos.y = y;
+
+    /* Let the method do the heavy uplifting */
+    GFX_EventsMouseProcess(x, y, rx, ry);
+}
+#endif
+
+/**
+ * \brief Processes mouse movements when outside the window.
+ * 
+ * This method will send an extra mouse event to the SDL pump
+ * when some relative movement has occurred.
+ */
+void GFX_EventsMouse()
+{
+    if (sdl.desktop.fullscreen || sdl.mouse.locked)
+        return;
+
+#if WIN32
+    GFX_EventsMouseWin32();
+#else
+    // TODO
+#endif
+}
+
 void GFX_Events() {
     CheckMapperKeyboardLayout();
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
@@ -5996,6 +6159,9 @@ void GFX_Events() {
         }
     }
 #endif
+
+    GFX_EventsMouse();
+
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
 #ifdef __WIN32__
@@ -6056,7 +6222,11 @@ void GFX_Events() {
                     CPU_Disable_SkipAutoAdjust();
 					BIOS_SynchronizeNumLock();
 				} else {
-                    if (sdl.mouse.locked) GFX_CaptureMouse();
+                    if (sdl.mouse.locked)
+                    {
+                        CaptureMouseNotify();
+                        GFX_CaptureMouse();
+                    }
 
 #if defined(WIN32)
                     if (sdl.desktop.fullscreen)
@@ -6504,11 +6674,13 @@ void SDL_SetupConfigSection() {
     Pstring->Set_help("What video system to use for output.");
     Pstring->Set_values(outputs);
 
-    Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::Always,true);
+    Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::Always, false);
     Pbool->Set_help("Mouse will automatically lock, if you click on the screen. (Press CTRL-F10 to unlock)");
 
-    Pbool = sdl_sec->Add_bool("synced",Property::Changeable::Always,false);
-    Pbool->Set_help("Mouse position reported will be exactly where user hand has moved to.");
+    const char* feeds[] = { "none", "beep", "flash", nullptr};
+    Pstring = sdl_sec->Add_string("autolock_feedback", Property::Changeable::Always, feeds[1]);
+    Pstring->Set_help("Autolock status feedback type, i.e. visual, auditive, none.");
+    Pstring->Set_values(feeds);
 
     Pint = sdl_sec->Add_int("sensitivity",Property::Changeable::Always,100);
     Pint->SetMinMax(1,1000);
