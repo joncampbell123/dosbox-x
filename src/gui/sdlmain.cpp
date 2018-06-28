@@ -6133,7 +6133,7 @@ void SDL_SetupConfigSection() {
     Pstring->Set_help("What video system to use for output.");
     Pstring->Set_values(outputs);
 
-    Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::Always,true);
+    Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::Always, false);
     Pbool->Set_help("Mouse will automatically lock, if you click on the screen. (Press CTRL-F10 to unlock)");
 
     Pint = sdl_sec->Add_int("sensitivity",Property::Changeable::Always,100);
