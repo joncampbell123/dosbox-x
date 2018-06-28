@@ -466,6 +466,13 @@ CDirect3D*                  d3d = NULL;
 # include <os2.h>
 #endif
 
+enum AUTOLOCK_FEEDBACK
+{
+    AUTOLOCK_FEEDBACK_NONE,
+    AUTOLOCK_FEEDBACK_BEEP,
+    AUTOLOCK_FEEDBACK_FLASH
+};
+
 struct SDL_Block {
     bool inited;
     bool active;                            //If this isn't set don't draw
@@ -544,6 +551,7 @@ struct SDL_Block {
     SDL_cond *cond;
     struct {
         bool autolock;
+        AUTOLOCK_FEEDBACK autolock_feedback;
         bool autoenable;
         bool requestlock;
         bool locked;
@@ -2736,9 +2744,58 @@ void GFX_UpdateSDLCaptureState(void) {
     GFX_SetTitle(-1,-1,-1,false);
 }
 
+#if WIN32
+void CaptureMouseNotifyWin32()
+{
+    const auto lck = sdl.mouse.locked;
+    switch (sdl.mouse.autolock_feedback)
+    {
+    case AUTOLOCK_FEEDBACK_NONE: break;
+    case AUTOLOCK_FEEDBACK_BEEP:
+    {
+        const auto lo = 1000;
+        const auto hi = 2000;
+        const auto t1 = 50;
+        const auto t2 = 25;
+        const auto f1 = lck ? hi : lo;
+        const auto f2 = lck ? lo : hi;
+        const auto tt = lck ? t1 : t2;
+        Beep(f1, tt);
+        Beep(f2, tt);
+    }
+    break;
+    case AUTOLOCK_FEEDBACK_FLASH:
+    {
+        const auto cnt = lck ? 4 : 2;
+        const auto tim = lck ? 80 : 40;
+        const auto wnd = GetHWND();
+        if (wnd != nullptr)
+        {
+            FLASHWINFO fi;
+            fi.cbSize    = sizeof(FLASHWINFO);
+            fi.hwnd      = wnd;
+            fi.dwFlags   = FLASHW_CAPTION;
+            fi.uCount    = cnt;
+            fi.dwTimeout = tim;
+            FlashWindowEx(&fi);
+        }
+        break;
+    }
+    default: ;
+    }
+}
+#endif
+
 static void CaptureMouse(bool pressed) {
     if (!pressed)
         return;
+
+#if WIN32
+    CaptureMouseNotifyWin32();
+#else
+    // TODO
+#endif
+
     GFX_CaptureMouse();
 }
 
@@ -3684,6 +3741,15 @@ static void GUI_StartUp() {
     sdl.mouse.autoenable=section->Get_bool("autolock");
     if (!sdl.mouse.autoenable) SDL_ShowCursor(SDL_DISABLE);
     sdl.mouse.autolock=false;
+
+    const std::string feedback = section->Get_string("autolock_feedback");
+    if (feedback == "none")
+        sdl.mouse.autolock_feedback = AUTOLOCK_FEEDBACK_NONE;
+    else if (feedback == "beep")
+        sdl.mouse.autolock_feedback = AUTOLOCK_FEEDBACK_BEEP;
+    else if (feedback == "flash")
+        sdl.mouse.autolock_feedback = AUTOLOCK_FEEDBACK_FLASH;
+
     sdl.mouse.sensitivity=(unsigned int)section->Get_int("sensitivity");
     std::string output=section->Get_string("output");
 
@@ -6135,6 +6201,11 @@ void SDL_SetupConfigSection() {
 
     Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::Always, false);
     Pbool->Set_help("Mouse will automatically lock, if you click on the screen. (Press CTRL-F10 to unlock)");
+
+    const char* feeds[] = { "none", "beep", "flash", nullptr};
+    Pstring = sdl_sec->Add_string("autolock_feedback", Property::Changeable::Always, feeds[0]);
+    Pstring->Set_help("Autolock status feedback type, i.e. visual, auditive, none.");
+    Pstring->Set_values(feeds);
 
     Pint = sdl_sec->Add_int("sensitivity",Property::Changeable::Always,100);
     Pint->SetMinMax(1,1000);
