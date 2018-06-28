@@ -93,6 +93,7 @@ typedef struct {
 	bool updating;
 	bool active;
 	bool aspect;
+    bool aspectOffload;
 	bool fullFrame;
 	bool forceUpdate;
 	bool autofit;

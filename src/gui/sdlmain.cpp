@@ -474,6 +474,7 @@ CDirect3D*                  d3d = NULL;
 # include <os2.h>
 #endif
 
+// do not specify any defaults inside, it is zeroed at start of main()
 struct SDL_Block {
     bool inited;
     bool active;                            //If this isn't set don't draw
@@ -571,18 +572,24 @@ struct SDL_Block {
     bool must_redraw_all;
     bool deferred_resize;
     bool init_ignore;
-    unsigned int gfx_force_redraw_count = 0;
+    unsigned int gfx_force_redraw_count;
+    struct {
+        int x;
+        int y;
+        double xToY;
+        double yToX;
+    } srcAspect;
 #if C_XBRZ
     struct {
         bool enable;
         bool postscale_bilinear;
-        int task_granularity = 16;
-        int fixed_scale_factor = 0;
-        int max_scale_factor = xbrz::SCALE_FACTOR_MAX;
+        int task_granularity;
+        int fixed_scale_factor;
+        int max_scale_factor;
         std::vector<uint32_t> renderbuf;
         std::vector<uint32_t> pixbuf;
-        bool tex_scale_on;
-        int tex_scale_factor;
+        bool scale_on;
+        int scale_factor;
     } xBRZ;
 #endif
 };
@@ -1226,32 +1233,48 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
         sdl.clip.h=windowHeight=(Bit16u)Voodoo_OGL_GetHeight();
     }
     else if (fixedWidth && fixedHeight) {
-        if (render.aspect) {
-            double ratio_w=(double)fixedWidth/(sdl.draw.width*sdl.draw.scalex);
-            double ratio_h=(double)fixedHeight/(sdl.draw.height*sdl.draw.scaley);
+        sdl.clip.w = windowWidth = fixedWidth;
+        sdl.clip.h = windowHeight = fixedHeight;
 
-            if (ratio_w < ratio_h) {
-                sdl.clip.w=(Bit16u)fixedWidth;
-                sdl.clip.h=(Bit16u)floor((sdl.draw.height*sdl.draw.scaley*ratio_w)+0.5);
-            } else {
-                sdl.clip.w=(Bit16u)floor((sdl.draw.width*sdl.draw.scalex*ratio_h)+0.5);
-                sdl.clip.h=(Bit16u)fixedHeight;
+        // adjust resulting image aspect ratio
+        if (render.aspect) {
+            if (fixedWidth > sdl.srcAspect.xToY * fixedHeight) // output broader than input => black bars left and right
+            {
+                sdl.clip.w = static_cast<int>(fixedHeight * sdl.srcAspect.xToY);
             }
-        }
-        else {
-            sdl.clip.w=fixedWidth;
-            sdl.clip.h=fixedHeight;
+            else // black bars top and bottom
+            {
+                sdl.clip.h = static_cast<int>(fixedWidth * sdl.srcAspect.yToX);
+            }
         }
 
         sdl.clip.x = (fixedWidth - sdl.clip.w) / 2;
         sdl.clip.y = (fixedHeight - sdl.clip.h) / 2;
-        windowWidth = fixedWidth;
-        windowHeight = fixedHeight;
     }
     else {
-        sdl.clip.x=0;sdl.clip.y=0;
-        sdl.clip.w=windowWidth=(Bit16u)(sdl.draw.width*sdl.draw.scalex);
-        sdl.clip.h=windowHeight=(Bit16u)(sdl.draw.height*sdl.draw.scaley);
+        sdl.clip.w = windowWidth = (Bit16u)(sdl.draw.width*sdl.draw.scalex);
+        sdl.clip.h = windowHeight = (Bit16u)(sdl.draw.height*sdl.draw.scaley);
+
+        if (render.aspect) {
+            // we solve problem of aspect ratio based window extension here when window size is not set explicitly
+            if (windowWidth*sdl.srcAspect.y != windowHeight*sdl.srcAspect.x)
+            {
+                // abnormal aspect ratio detected, apply correction
+                if (windowWidth*sdl.srcAspect.y > windowHeight*sdl.srcAspect.x)
+                {
+                    // wide pixel ratio, height should be extended to fit
+                    sdl.clip.h = windowHeight = (Bitu)floor((double)windowWidth * sdl.srcAspect.y / sdl.srcAspect.x + 0.5);
+                }
+                else
+                {
+                    // long pixel ratio, width should be extended
+                    sdl.clip.w = windowWidth = (Bitu)floor((double)windowHeight * sdl.srcAspect.x / sdl.srcAspect.y + 0.5);
+                }
+            }
+        }
+
+        sdl.clip.x = (windowWidth - sdl.clip.w) / 2;
+        sdl.clip.y = (windowHeight - sdl.clip.h) / 2;
     }
 
     LOG(LOG_MISC,LOG_DEBUG)("GFX_SetSize OpenGL window=%ux%u clip=x,y,w,h=%d,%d,%d,%d",
@@ -1760,6 +1783,36 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl) {
 bool initedOpenGL = false;
 #endif
 
+#if C_XBRZ
+// returns true if scaling possible/enabled, false otherwise
+bool xBRZ_SetScaleParameters(int srcWidth, int srcHeight, int dstWidth, int dstHeight) {
+    sdl.xBRZ.scale_factor = (sdl.xBRZ.fixed_scale_factor == 0) ?
+        static_cast<int>(std::sqrt((double)dstWidth * dstHeight / (srcWidth * srcHeight)) + 0.5) :
+        sdl.xBRZ.fixed_scale_factor;
+
+    // enable minimal scaling if upscale is still possible but requires post-downscale
+    // having aspect ratio correction on always implies enabled scaler because it gives better quality than DOSBox own method
+    if (sdl.xBRZ.scale_factor == 1 && (render.aspect || dstWidth > srcWidth || dstHeight > srcHeight))
+        sdl.xBRZ.scale_factor = 2; 
+
+    if (sdl.xBRZ.scale_factor >= 2)
+    {
+        // ok to scale, now clamp scale factor if corresponding max option is set
+        sdl.xBRZ.scale_factor = min(sdl.xBRZ.scale_factor, sdl.xBRZ.max_scale_factor);
+        sdl.xBRZ.scale_on = true;
+    }
+    else 
+    {
+        // scaling impossible
+        sdl.xBRZ.scale_on = false;
+    }
+
+    return sdl.xBRZ.scale_on;
+}
+#endif
+
+void RENDER_Reset(void);
+
 Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,GFX_CallBack_t callback) {
     if (width == 0 || height == 0) {
         E_Exit("GFX_SetSize with width=%d height=%d zero dimensions not allowed",(int)width,(int)height);
@@ -1887,6 +1940,25 @@ dosurface:
             }
         }
 #endif
+
+        // there is a small problem we need to solve here: aspect corrected windows can be smaller than needed due to source with non-4:3 pixel ratio
+        // if we detect non-4:3 pixel ratio here with aspect correction on, we correct it so original fits into resized window properly
+        if (render.aspect) {
+            if (width*sdl.srcAspect.y != height * sdl.srcAspect.x)
+            {
+                // abnormal aspect ratio detected, apply correction
+                if (width*sdl.srcAspect.y > height*sdl.srcAspect.x)
+                {
+                    // wide pixel ratio, height should be extended to fit
+                    height = (Bitu)floor((double)width * sdl.srcAspect.y / sdl.srcAspect.x + 0.5);
+                }
+                else
+                {
+                    // long pixel ratio, width should be extended
+                    width = (Bitu)floor((double)height * sdl.srcAspect.x / sdl.srcAspect.y + 0.5);
+                }
+            }
+        }
 
         sdl.desktop.type=SCREEN_SURFACE;
         sdl.clip.w=width;
@@ -2048,6 +2120,34 @@ dosurface:
                     (Uint32)0u);
                 /* If this one fails be ready for some flickering... */
             }
+
+#if C_XBRZ
+            if (sdl.xBRZ.enable) 
+            {
+                // pre-calculate scaling factor and adjust aspect rate correction offload state
+                int clipWidth = sdl.surface->w;
+                int clipHeight = sdl.surface->h;
+
+                if (render.aspect) {
+                    if (clipWidth > sdl.srcAspect.xToY * clipHeight)
+                    {
+                        clipWidth = static_cast<int>(clipHeight * sdl.srcAspect.xToY);
+                    }
+                    else // black bars top and bottom
+                    {
+                        clipHeight = static_cast<int>(clipWidth * sdl.srcAspect.yToX);
+                    }
+                }
+
+                xBRZ_SetScaleParameters(sdl.draw.width, sdl.draw.height, clipWidth, clipHeight);
+                if (sdl.xBRZ.scale_on != render.aspectOffload) {
+                    // when we are scaling, we ask render code not to do any aspect correction
+                    // when we are not scaling, render code is allowed to do aspect correction at will
+                    render.aspectOffload = sdl.xBRZ.scale_on;
+                    PIC_AddEvent(VGA_SetupDrawing, 50); // schedule another resize here, render has already been initialized at this point and we have just changed its option
+                }
+            }
+#endif
         }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
@@ -2097,28 +2197,14 @@ dosurface:
 
         //if (!(flags&GFX_CAN_32) || (flags & GFX_RGBONLY)) goto dosurface;
 
-        // we do the same as with Direct3D: precreate pixel buffer adjusted for xBRZ
-        Bitu adjTexWidth = width;
-        Bitu adjTexHeight = height;
+        Bitu adjTexWidth = sdl.draw.width;
+        Bitu adjTexHeight = sdl.draw.height;
 #if C_XBRZ
-        if (sdl.xBRZ.enable) 
+        // we do the same as with Direct3D: precreate pixel buffer adjusted for xBRZ
+        if (sdl.xBRZ.enable && xBRZ_SetScaleParameters(adjTexWidth, adjTexHeight, sdl.clip.w, sdl.clip.h))
         {
-            sdl.xBRZ.tex_scale_factor = (sdl.xBRZ.fixed_scale_factor == 0) ?
-                static_cast<int>(std::sqrt(1.0 * sdl.clip.w * sdl.clip.h / (width * height)) + 0.5) :
-                sdl.xBRZ.fixed_scale_factor;
-
-            if (sdl.xBRZ.tex_scale_factor >= 2)
-            {
-                sdl.xBRZ.tex_scale_factor = min(sdl.xBRZ.tex_scale_factor, sdl.xBRZ.max_scale_factor);
-                adjTexWidth = width * sdl.xBRZ.tex_scale_factor;
-                adjTexHeight = height * sdl.xBRZ.tex_scale_factor;
-                sdl.xBRZ.tex_scale_on = true;
-            }
-            else
-            {
-                // we cannot scale, so do not even attempt to
-                sdl.xBRZ.tex_scale_on = false;
-            }
+            adjTexWidth = adjTexWidth * sdl.xBRZ.scale_factor;
+            adjTexHeight = adjTexHeight * sdl.xBRZ.scale_factor;
         }
 #endif
         int texsize=2 << int_log2(adjTexWidth > adjTexHeight ? adjTexWidth : adjTexHeight);
@@ -2334,21 +2420,18 @@ dosurface:
 #endif
 
             if (fixedWidth && fixedHeight) {
-                if (render.aspect) {
-                    double ratio_w=(double)fixedWidth/(sdl.draw.width*sdl.draw.scalex);
-                    double ratio_h=(double)fixedHeight/(sdl.draw.height*sdl.draw.scaley);
+                sdl.clip.w = fixedWidth;
+                sdl.clip.h = fixedHeight;
 
-                    if (ratio_w < ratio_h) {
-                        sdl.clip.w=(Bit16u)fixedWidth;
-                        sdl.clip.h=(Bit16u)floor((sdl.draw.height*sdl.draw.scaley*ratio_w)+0.5);
-                    } else {
-                        sdl.clip.w=(Bit16u)floor((sdl.draw.width*sdl.draw.scalex*ratio_h)+0.5);
-                        sdl.clip.h=(Bit16u)fixedHeight;
+                if (render.aspect) {
+                    if (fixedWidth > sdl.srcAspect.xToY * fixedHeight) // output broader than input => black bars left and right
+                    {
+                        sdl.clip.w = static_cast<int>(fixedHeight * sdl.srcAspect.xToY);
                     }
-                }
-                else {
-                    sdl.clip.w=fixedWidth;
-                    sdl.clip.h=fixedHeight;
+                    else // black bars top and bottom
+                    {
+                        sdl.clip.h = static_cast<int>(fixedWidth * sdl.srcAspect.yToX);
+                    }
                 }
 
                 sdl.clip.x = (fixedWidth - sdl.clip.w) / 2;
@@ -2357,30 +2440,34 @@ dosurface:
                 windowHeight = fixedHeight;
             }
             else {
-                sdl.clip.x=0;sdl.clip.y=0;
                 sdl.clip.w=windowWidth=(Bit16u)(sdl.draw.width*sdl.draw.scalex);
                 sdl.clip.h=windowHeight=(Bit16u)(sdl.draw.height*sdl.draw.scaley);
+
+                // we solve problem of aspect ratio based window extension here when window size is not set explicitly
+                if (windowWidth*sdl.srcAspect.y != windowHeight * sdl.srcAspect.x)
+                {
+                    // abnormal aspect ratio detected, apply correction
+                    if (windowWidth*sdl.srcAspect.y > windowHeight*sdl.srcAspect.x)
+                    {
+                        // wide pixel ratio, height should be extended to fit
+                        sdl.clip.h = windowHeight = (Bitu)floor((double)windowWidth * sdl.srcAspect.y / sdl.srcAspect.x + 0.5);
+                    }
+                    else
+                    {
+                        // long pixel ratio, width should be extended
+                        sdl.clip.w = windowWidth = (Bitu)floor((double)windowHeight * sdl.srcAspect.x / sdl.srcAspect.y + 0.5);
+                    }
+                }
+
+                sdl.clip.x = (windowWidth - sdl.clip.w) / 2;
+                sdl.clip.y = (windowHeight - sdl.clip.h) / 2;
             }
 
             // when xBRZ scaler is used, we can adjust render target size to exactly what xBRZ scaler will output, leaving final scaling to default D3D scaler / shaders
 #if C_XBRZ
-            if (sdl.xBRZ.enable) {
-                sdl.xBRZ.tex_scale_factor = (sdl.xBRZ.fixed_scale_factor == 0) ?
-                    static_cast<int>(std::sqrt(1.0 * sdl.clip.w * sdl.clip.h / (width * height)) + 0.5) :
-                    sdl.xBRZ.fixed_scale_factor;
-
-                if (sdl.xBRZ.tex_scale_factor >= 2)
-                {
-                    sdl.xBRZ.tex_scale_factor = min(sdl.xBRZ.tex_scale_factor, sdl.xBRZ.max_scale_factor);
-                    adjTexWidth = width * sdl.xBRZ.tex_scale_factor;
-                    adjTexHeight = height * sdl.xBRZ.tex_scale_factor;
-                    sdl.xBRZ.tex_scale_on = true;
-                }
-                else 
-                {
-                    // we cannot scale, so do not even attempt to
-                    sdl.xBRZ.tex_scale_on = false;
-                }
+            if (sdl.xBRZ.enable && xBRZ_SetScaleParameters(width, height, sdl.clip.w, sdl.clip.h)) {
+                adjTexWidth = width * sdl.xBRZ.scale_factor;
+                adjTexHeight = height * sdl.xBRZ.scale_factor;
             }
 #endif
             // Calculate texture size
@@ -3218,7 +3305,7 @@ bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
     switch (sdl.desktop.type) {
     case SCREEN_SURFACE:
 #if C_XBRZ
-        if (sdl.xBRZ.enable) {
+        if (sdl.xBRZ.enable && sdl.xBRZ.scale_on) {
             sdl.xBRZ.renderbuf.resize(sdl.draw.width * sdl.draw.height);
             pixels = sdl.xBRZ.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl.xBRZ.renderbuf[0]);
             pitch = sdl.draw.width * sizeof(uint32_t);
@@ -3247,7 +3334,7 @@ bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
 #if C_OPENGL
     case SCREEN_OPENGL:
 #if C_XBRZ    
-        if (sdl.xBRZ.enable && sdl.xBRZ.tex_scale_on) {
+        if (sdl.xBRZ.enable && sdl.xBRZ.scale_on) {
             sdl.xBRZ.renderbuf.resize(sdl.draw.width * sdl.draw.height);
             pixels = sdl.xBRZ.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl.xBRZ.renderbuf[0]);
             pitch = sdl.draw.width * sizeof(uint32_t);
@@ -3270,7 +3357,7 @@ bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
 #if (HAVE_D3D9_H) && defined(WIN32)
     case SCREEN_DIRECT3D:
 #if C_XBRZ
-        if (sdl.xBRZ.enable && sdl.xBRZ.tex_scale_on) {
+        if (sdl.xBRZ.enable && sdl.xBRZ.scale_on) {
             sdl.xBRZ.renderbuf.resize(sdl.draw.width * sdl.draw.height);
             pixels = sdl.xBRZ.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl.xBRZ.renderbuf[0]);
             pitch = sdl.draw.width * sizeof(uint32_t);
@@ -3373,67 +3460,43 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 #endif
 #if C_XBRZ
-            if (sdl.xBRZ.enable) {
+            if (sdl.xBRZ.enable && sdl.xBRZ.scale_on) {
                 const int srcWidth = sdl.draw.width;
                 const int srcHeight = sdl.draw.height;
                 if (sdl.xBRZ.renderbuf.size() == srcWidth * srcHeight && srcWidth > 0 && srcHeight > 0)
                 {
                     // we assume render buffer is *not* scaled!
-                    const int outputHeight = sdl.surface->h; // in full screen mode surface == screen
-                    const int outputWidth = sdl.surface->w; 
-                                                            // scale to full screen (preserving input aspect)
-                                                            // aspectOutput = outputWidth / outputHeight;
-                    int clipX = 0;
-                    int clipY = 0;
+                    const int outputHeight = sdl.surface->h;
+                    const int outputWidth = sdl.surface->w;
                     int clipWidth = outputWidth;
                     int clipHeight = outputHeight;
-                    // const double srcAspect = 1.0 * srcWidth / srcHeight;
-                    const double srcAspect = 4.0 / 3;
+                    int clipX = 0;
+                    int clipY = 0;
 
-                    if (outputWidth > srcAspect * outputHeight) // output broader than input => black bars left and right
-                    {
-                        clipWidth = static_cast<int>(outputHeight * srcAspect);
-                        clipX = (outputWidth - clipWidth) / 2;
-                    }
-                    else // black bars top and bottom
-                    {
-                        clipHeight = static_cast<int>(outputWidth / srcAspect);
-                        clipY = (outputHeight - clipHeight) / 2;
+                    if (render.aspect) {
+                        if (outputWidth > sdl.srcAspect.xToY * outputHeight) // output broader than input => black bars left and right
+                        {
+                            clipWidth = static_cast<int>(outputHeight * sdl.srcAspect.xToY);
+                            clipX = (outputWidth - clipWidth) / 2;
+                        }
+                        else // black bars top and bottom
+                        {
+                            clipHeight = static_cast<int>(outputWidth * sdl.srcAspect.yToX);
+                            clipY = (outputHeight - clipHeight) / 2;
+                        }
                     }
 
                     // 1. xBRZ-scale render buffer into xbrz pixel buffer
-                    int scalingFactor = (sdl.xBRZ.fixed_scale_factor == 0) ?
-                        static_cast<int>(std::sqrt(1.0 * clipWidth * clipHeight / (srcWidth * srcHeight)) + 0.5) : 
-                        sdl.xBRZ.fixed_scale_factor;
-                    // the ideal scaling factor scales source image to have roughly similar pixel count like target
-
                     int xbrzWidth = 0;
                     int xbrzHeight = 0;
                     uint32_t* xbrzBuf;
-                    if (scalingFactor >= 2)
-                    {
-                        scalingFactor = min(scalingFactor, sdl.xBRZ.max_scale_factor);
+                    xbrzWidth = srcWidth * sdl.xBRZ.scale_factor;
+                    xbrzHeight = srcHeight * sdl.xBRZ.scale_factor;
+                    sdl.xBRZ.pixbuf.resize(xbrzWidth * xbrzHeight);
 
-                        xbrzWidth = srcWidth * scalingFactor;
-                        xbrzHeight = srcHeight * scalingFactor;
-                        sdl.xBRZ.pixbuf.resize(xbrzWidth * xbrzHeight);
-
-                        const uint32_t* renderBuf = &sdl.xBRZ.renderbuf[0]; // help VS compiler a little + support capture by value
-                        xbrzBuf = &sdl.xBRZ.pixbuf[0];
-                        xBRZ_Render(renderBuf, xbrzBuf, changedLines, srcWidth, srcHeight, scalingFactor);
-                    }
-                    else // no scaling
-                    {
-                        xbrzWidth = srcWidth;
-                        xbrzHeight = srcHeight;
-                        xbrzBuf = &sdl.xBRZ.renderbuf[0];
-
-                        // don't change aspect when showing unscaled image:
-                        clipWidth = min(srcWidth, outputWidth);
-                        clipHeight = min(srcHeight, outputHeight);
-                        clipX = (outputWidth - clipWidth) / 2;
-                        clipY = (outputHeight - clipHeight) / 2;
-                    }
+                    const uint32_t* renderBuf = &sdl.xBRZ.renderbuf[0]; // help VS compiler a little + support capture by value
+                    xbrzBuf = &sdl.xBRZ.pixbuf[0];
+                    xBRZ_Render(renderBuf, xbrzBuf, changedLines, srcWidth, srcHeight, sdl.xBRZ.scale_factor);
 
                     // 2. nearest neighbor/bilinear scale xbrz buffer into output surface clipping area
                     const bool mustLock = SDL_MUSTLOCK(sdl.surface);
@@ -3506,25 +3569,6 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                     if (changedLines != NULL) SDL_Flip(sdl.surface);
 #endif
             } else if (changedLines) {
-                if(changedLines[0] == sdl.draw.height) 
-                    return; 
-                if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
-                Bitu y = 0, index = 0, rectCount = 0;
-                while (y < sdl.draw.height) {
-                    if (!(index & 1)) {
-                        y += changedLines[index];
-                    } else {
-                        SDL_Rect *rect = &sdl.updateRects[rectCount++];
-                        rect->x = sdl.clip.x;
-                        rect->y = (unsigned int)sdl.clip.y + (unsigned int)y;
-                        rect->w = (Bit16u)sdl.draw.width;
-                        rect->h = changedLines[index];
-                        y += changedLines[index];
-                        SDL_rect_cliptoscreen(*rect);
-                    }
-                    index++;
-                }
-            } else if (changedLines) {
                     if (changedLines[0] == sdl.draw.height)
                         return;
                     if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
@@ -3574,7 +3618,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                 }
 
 #if C_XBRZ
-                if (sdl.xBRZ.enable && sdl.xBRZ.tex_scale_on) {
+                if (sdl.xBRZ.enable && sdl.xBRZ.scale_on) {
                     // OpenGL pixel buffer is precreated for direct xBRZ output, while xBRZ render buffer is used for rendering
                     const int srcWidth = sdl.draw.width;
                     const int srcHeight = sdl.draw.height;
@@ -3592,7 +3636,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                             trgTex = reinterpret_cast<uint32_t*>(static_cast<void*>(sdl.opengl.framebuf));
 
                         if (trgTex)
-                            xBRZ_Render(renderBuf, trgTex, changedLines, srcWidth, srcHeight, sdl.xBRZ.tex_scale_factor);
+                            xBRZ_Render(renderBuf, trgTex, changedLines, srcWidth, srcHeight, sdl.xBRZ.scale_factor);
                     }
 
                     // and here we go repeating some stuff with xBRZ related modifications
@@ -3601,7 +3645,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                         glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
                         glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
                         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                            sdl.draw.width * sdl.xBRZ.tex_scale_factor, sdl.draw.height * sdl.xBRZ.tex_scale_factor, GL_BGRA_EXT,
+                            sdl.draw.width * sdl.xBRZ.scale_factor, sdl.draw.height * sdl.xBRZ.scale_factor, GL_BGRA_EXT,
                             GL_UNSIGNED_INT_8_8_8_8_REV, 0);
                         glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
                     }
@@ -3609,7 +3653,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                     {
                         glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
                         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                            sdl.draw.width * sdl.xBRZ.tex_scale_factor, sdl.draw.height * sdl.xBRZ.tex_scale_factor, GL_BGRA_EXT,
+                            sdl.draw.width * sdl.xBRZ.scale_factor, sdl.draw.height * sdl.xBRZ.scale_factor, GL_BGRA_EXT,
 #if defined (MACOSX)
                             // needed for proper looking graphics on macOS 10.12, 10.13
                             GL_UNSIGNED_INT_8_8_8_8,
@@ -3710,23 +3754,20 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 #if (HAVE_D3D9_H) && defined(WIN32)
     case SCREEN_DIRECT3D:
 #if C_XBRZ
-        if (sdl.xBRZ.enable && sdl.xBRZ.tex_scale_on) {
+        if (sdl.xBRZ.enable && sdl.xBRZ.scale_on) {
             // we have xBRZ pseudo render buffer to be output to the pre-sized texture, do the xBRZ part
             const int srcWidth = sdl.draw.width;
             const int srcHeight = sdl.draw.height;
             if (sdl.xBRZ.renderbuf.size() == srcWidth * srcHeight && srcWidth > 0 && srcHeight > 0)
             {
                 // we assume render buffer is *not* scaled!
-                const int outputHeight = sdl.surface->h; // in full screen mode surface == screen
-                const int outputWidth = sdl.surface->w;
-
-                int xbrzWidth = srcWidth * sdl.xBRZ.tex_scale_factor;
-                int xbrzHeight = srcHeight * sdl.xBRZ.tex_scale_factor;
+                int xbrzWidth = srcWidth * sdl.xBRZ.scale_factor;
+                int xbrzHeight = srcHeight * sdl.xBRZ.scale_factor;
                 sdl.xBRZ.pixbuf.resize(xbrzWidth * xbrzHeight);
 
                 const uint32_t* renderBuf = &sdl.xBRZ.renderbuf[0]; // help VS compiler a little + support capture by value
                 uint32_t*       xbrzBuf = &sdl.xBRZ.pixbuf[0];
-                xBRZ_Render(renderBuf, xbrzBuf, changedLines, srcWidth, srcHeight, sdl.xBRZ.tex_scale_factor);
+                xBRZ_Render(renderBuf, xbrzBuf, changedLines, srcWidth, srcHeight, sdl.xBRZ.scale_factor);
 
                 // now copy xBRZ buffer to the texture, adjusting for texture pitch
                 Bit8u *tgtPix;
@@ -4064,6 +4105,9 @@ static void GUI_StartUp() {
     /* Setup Mouse correctly if fullscreen */
     if(sdl.desktop.fullscreen) GFX_CaptureMouse();
 
+    // pre-set render aspect offload to false, altered by using xBRZ scaler or Direct3D/OpenGL modes that do aspect correction themselves and don't need render code to mess with it
+    render.aspectOffload = false;
+
 #if C_XBRZ
     // yes, we read render section settings here, because xBRZ is integrated here but has settings in "render"
     {
@@ -4085,33 +4129,47 @@ static void GUI_StartUp() {
         // xBRZ requirements
         if ((output != "surface") && (output != "direct3d") && (output != "opengl") && (output != "openglhq") && (output != "openglnb"))
             output = "surface";
+        render.aspectOffload = true; // render aspect ratio correction voids xBRZ algorithm, so scaler does aspect correction itself (and resorts to render code when no scaling is applied)
     }
 #endif
+
+    // output type selection
+    // "overlay" was removed, pre-map to Direct3D or OpenGL or surface
+    if (output == "overlay") {
+#if (HAVE_D3D9_H) && defined(WIN32)
+        output = "direct3d";
+#elif C_OPENGL
+        output = "opengl";
+#else
+        output = "surface";
+#endif
+    }
 
     if (output == "surface") {
         sdl.desktop.want_type=SCREEN_SURFACE;
     } else if (output == "ddraw") {
         sdl.desktop.want_type=SCREEN_SURFACE;
-    } else if (output == "overlay") {
-        sdl.desktop.want_type=SCREEN_OPENGL; /* "overlay" was removed, map to OpenGL */
 #if C_OPENGL
     } else if (output == "opengl" || output == "openglhq") {
         sdl.desktop.want_type=SCREEN_OPENGL;
-        sdl.opengl.bilinear=true;
+        sdl.opengl.bilinear = true;
+        render.aspectOffload = true; // OpenGL code does aspect correction itself, we don't need render thread to do it
     } else if (output == "openglnb") {
         sdl.desktop.want_type=SCREEN_OPENGL;
-        sdl.opengl.bilinear=false;
+        sdl.opengl.bilinear = false;
+        render.aspectOffload = true; // OpenGL code does aspect correction itself, we don't need render thread to do it
 #endif
 #if (HAVE_D3D9_H) && defined(WIN32)
     } else if (output == "direct3d") {
         sdl.desktop.want_type=SCREEN_DIRECT3D;
+        render.aspectOffload = true; // Direct3D code does aspect correction itself, we don't need render thread to do it
 #if LOG_D3D
         LOG_MSG("SDL:Direct3D activated");
 #endif
 #endif
     } else {
         LOG_MSG("SDL:Unsupported output device %s, switching back to surface",output.c_str());
-        sdl.desktop.want_type=SCREEN_SURFACE;//SHOULDN'T BE POSSIBLE anymore
+        sdl.desktop.want_type=SCREEN_SURFACE; // SHOULDN'T BE POSSIBLE anymore
     }
     sdl.overscan_width=(unsigned int)section->Get_int("overscan");
 //  sdl.overscan_color=section->Get_int("overscancolor");
@@ -5767,8 +5825,6 @@ static void HandleTouchscreenFinger(SDL_TouchFingerEvent * finger) {
     }
 }
 #endif
-
-void RENDER_Reset(void);
 
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message);
@@ -7850,6 +7906,16 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     ptrop::self_test();
 
     memset(&sdl,0,sizeof(sdl)); // struct sdl isn't initialized anywhere that I can tell
+
+    // initialize some defaults in SDL structure here
+    sdl.srcAspect.x = 4; sdl.srcAspect.y = 3; 
+    sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
+    sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
+#if C_XBRZ
+    sdl.xBRZ.task_granularity = 16;
+    sdl.xBRZ.max_scale_factor = xbrz::SCALE_FACTOR_MAX;
+#endif
+     
 
     control=&myconf;
 #if defined(WIN32) && !defined(HX_DOS)

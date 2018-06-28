@@ -339,7 +339,9 @@ void RENDER_Reset( void ) {
     Bitu gfx_flags, xscale, yscale;
     ScalerSimpleBlock_t     *simpleBlock = &ScaleNormal1x;
     ScalerComplexBlock_t    *complexBlock = 0;
-    if (render.aspect) {
+    gfx_scalew = 1;
+    gfx_scaleh = 1;
+    if (render.aspect && !render.aspectOffload) {
         if (render.src.ratio>1.0) {
             gfx_scalew = 1;
             gfx_scaleh = render.src.ratio;
@@ -347,9 +349,6 @@ void RENDER_Reset( void ) {
             gfx_scalew = (1.0/render.src.ratio);
             gfx_scaleh = 1;
         }
-    } else {
-        gfx_scalew = 1;
-        gfx_scaleh = 1;
     }
     if ((dblh && dblw) || (render.scale.forced && !dblh && !dblw)) {
         /* Initialize always working defaults */
@@ -883,13 +882,11 @@ void RENDER_Init() {
 #if C_XBRZ
     if (render.scale.xBRZ) {
         // xBRZ requirements
-        render.aspect = false;
 		vga.draw.doublescan_set = false;
     }
 #endif
 
     render.autofit=section->Get_bool("autofit");
-
 
     //If something changed that needs a ReInit
     // Only ReInit when there is a src.bpp (fixes crashes on startup and directly changing the scaler without a screen specified yet)
