@@ -18,12 +18,12 @@ TODO add version
   - Improve mouse support:
     - Added pointer integration behavior for DOS applications.
     - Auto-lock is now disabled by default, this results in
-	  pointer integration becoming the default behavior.
+      pointer integration becoming the default behavior.
     - Added feedback for auto-lock state, can be visual or auditive.
     - When the mouse is not locked, its position is exactly where
-	  the mouse is reported by the system. This results in a more
-	  consistent experience between DOSBox-X and host OS,
-	  e.g. High DPI mouse don't become suddenly slow in DOSBox-X.
+      the mouse is reported by the system. This results in a more
+      consistent experience between DOSBox-X and host OS,
+      e.g. High DPI mouse don't become suddenly slow in DOSBox-X.
     
 0.82.7
   - Mac OS X builds now honor showmenu=false by leaving the
