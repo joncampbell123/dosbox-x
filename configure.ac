@@ -494,6 +494,14 @@ if test x$host = xi386-pc-os2-emx ; then
   LIBS=$LIBS_BACKUP
 fi
 
+dnl FEATURE: xBRZ
+AH_TEMPLATE(C_XBRZ,[Define to 1 to enable XBRZ scaler])
+AC_ARG_ENABLE(xbrz,AC_HELP_STRING([--enable-xbrz],[compile with xBRZ scaler (default yes)]),enable_xbrz=$enableval,enable_xbrz=yes)
+AM_CONDITIONAL(C_XBRZ, test "x$enable_xbrz" == "xyes")
+if test x$enable_xbrz = xyes; then
+AC_DEFINE(C_XBRZ,1)
+fi
+
 dnl FEATURE: MIDI through ALSA
 AC_ARG_ENABLE(alsa-midi,
 AC_HELP_STRING([--enable-alsa-midi],[compile with alsa midi support (default yes)]),
@@ -798,6 +806,7 @@ src/builtin/Makefile
 src/misc/Makefile
 src/shell/Makefile
 src/platform/Makefile
+src/xBRZ/Makefile
 include/Makefile
 dosbox-x.spec
 make-rpm.sh

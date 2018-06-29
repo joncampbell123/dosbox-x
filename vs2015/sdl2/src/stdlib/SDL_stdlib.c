@@ -30,6 +30,10 @@
 #include "SDL_stdinc.h"
 #include "../libm/math_libm.h"
 
+// HACK
+#ifndef HAVE_LIBC
+#define HAVE_LIBC 1
+#endif
 
 double
 SDL_atan(double x)

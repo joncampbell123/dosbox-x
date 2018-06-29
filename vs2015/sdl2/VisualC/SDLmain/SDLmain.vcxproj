@@ -99,7 +99,7 @@
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <OmitDefaultLibName>true</OmitDefaultLibName>
+      <OmitDefaultLibName>false</OmitDefaultLibName>
       <AdditionalOptions>/QIfist</AdditionalOptions>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
@@ -132,7 +132,7 @@
       </EnableEnhancedInstructionSet>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <OmitDefaultLibName>true</OmitDefaultLibName>
+      <OmitDefaultLibName>false</OmitDefaultLibName>
       <AdditionalOptions>/QIfist</AdditionalOptions>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />

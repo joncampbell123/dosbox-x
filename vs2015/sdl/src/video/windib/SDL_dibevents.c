@@ -756,6 +756,7 @@ volatile int	ParentWindowShutdown = 0;
 volatile int	ParentWindowReady = 0;
 volatile BOOL	ParentWindowIsBeingResized = FALSE;
 volatile RECT	ParentWindowDeferredResizeRect = { -1,-1,-1,-1 };
+CRITICAL_SECTION ParentWindowCritSec;
 
 LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_CREATE) {
@@ -804,14 +805,20 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 
 			   To avoid this, set a flag and run DefWindowProc() here so that SDL_SetVideoMode() will know
 			   NOT to use SetWindowPos() */
+			EnterCriticalSection(&ParentWindowCritSec);
 			ParentWindowIsBeingResized = TRUE;
+			LeaveCriticalSection(&ParentWindowCritSec);
+
 			r = DefWindowProc(hwnd, msg, wParam, lParam);
 			nr = ParentWindowDeferredResizeRect;
 			ParentWindowDeferredResizeRect.top = -1;
 			ParentWindowDeferredResizeRect.left = -1;
 			ParentWindowDeferredResizeRect.right = -1;
 			ParentWindowDeferredResizeRect.bottom = -1;
+
+			EnterCriticalSection(&ParentWindowCritSec);
 			ParentWindowIsBeingResized = FALSE;
+			LeaveCriticalSection(&ParentWindowCritSec);
 
 			/* SetWindowPos() gave us a deferred window position/size to apply after resize */
 			if (nr.right > 0 && nr.bottom > 0)
@@ -931,12 +938,16 @@ void StopParentWindow(void) {
 			Sleep(100);
 			ParentWindowThreadCheck();
 		}
+
+		DeleteCriticalSection(&ParentWindowCritSec);
 	}
 }
 
 int InitParentWindow(void) {
 	if (ParentWindowThread == INVALID_HANDLE_VALUE) {
 		unsigned int patience;
+
+		InitializeCriticalSection(&ParentWindowCritSec);
 
 		ParentWindowShutdown = 0;
 		ParentWindowReady = 0;

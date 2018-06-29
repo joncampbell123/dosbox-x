@@ -37,6 +37,10 @@
 #include <emmintrin.h>
 #endif
 
+#if C_XBRZ
+#include <xBRZ/xbrz.h>
+#endif
+
 Render_t render;
 Bitu last_gfx_flags = 0;
 ScalerLineHandler_t RENDER_DrawLine;
@@ -340,7 +344,13 @@ void RENDER_Reset( void ) {
     ScalerComplexBlock_t    *complexBlock = 0;
     gfx_scalew = 1;
     gfx_scaleh = 1;
-    if (render.aspect == ASPECT_TRUE && !render.aspectOffload) {
+
+#if !C_XBRZ
+    if (render.aspect == ASPECT_TRUE && !render.aspectOffload)
+#else
+    if (render.aspect == ASPECT_TRUE && !render.aspectOffload && !(render.xBRZ.enable && render.xBRZ.scale_on))
+#endif
+    {
         if (render.src.ratio>1.0) {
             gfx_scalew = 1;
             gfx_scaleh = render.src.ratio;
@@ -349,6 +359,7 @@ void RENDER_Reset( void ) {
             gfx_scaleh = 1;
         }
     }
+
     if ((dblh && dblw) || (render.scale.forced && !dblh && !dblw)) {
         /* Initialize always working defaults */
         if (render.scale.size == 2)
@@ -770,6 +781,16 @@ void RENDER_OnSectionPropChange(Section *x) {
     mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
     mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
 
+#if C_XBRZ
+    render.xBRZ.task_granularity = section->Get_int("xbrz slice");
+    render.xBRZ.fixed_scale_factor = section->Get_int("xbrz fixed scale factor");
+    render.xBRZ.max_scale_factor = section->Get_int("xbrz max scale factor");
+    if ((render.xBRZ.max_scale_factor < 2) || (render.xBRZ.max_scale_factor > xbrz::SCALE_FACTOR_MAX))
+        render.xBRZ.max_scale_factor = xbrz::SCALE_FACTOR_MAX;
+    if ((render.xBRZ.fixed_scale_factor < 2) || (render.xBRZ.fixed_scale_factor > xbrz::SCALE_FACTOR_MAX))
+        render.xBRZ.fixed_scale_factor = 0;
+#endif
+
     RENDER_UpdateFrameskipMenu();
 }
 
@@ -797,7 +818,8 @@ void RENDER_UpdateFromScalerSetting(void) {
     std::string scaler = prop->GetSection()->Get_string("type");
 
 #if C_XBRZ
-    render.scale.xBRZ = false;
+    bool old_xBRZ_enable = render.xBRZ.enable;
+    render.xBRZ.enable = false;
 #endif
 
     render.scale.forced = false;
@@ -833,10 +855,45 @@ void RENDER_UpdateFromScalerSetting(void) {
     else if (scaler == "hardware4x") { render.scale.op = scalerOpNormal; render.scale.size = 8; render.scale.hardware=true; }
     else if (scaler == "hardware5x") { render.scale.op = scalerOpNormal; render.scale.size = 10; render.scale.hardware=true; }
 #if C_XBRZ
-    else if (scaler == "xbrz") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware = false; render.scale.xBRZ = true; }
-    else if (scaler == "xbrz_bilinear") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware = false; render.scale.xBRZ = true; }
+    else if (scaler == "xbrz" || scaler == "xbrz_bilinear") { 
+        render.scale.op = scalerOpNormal; 
+        render.scale.size = 1; 
+        render.scale.hardware = false; 
+        vga.draw.doublescan_set = false; 
+        render.xBRZ.enable = true; 
+        render.xBRZ.postscale_bilinear = (scaler == "xbrz_bilinear");
+    }
+#endif
+
+#if C_XBRZ
+    if (old_xBRZ_enable != render.xBRZ.enable) RENDER_CallBack(GFX_CallBackReset);
 #endif
 }
+
+#if C_XBRZ
+void RENDER_xBRZ_Early_Init() {
+    Section_prop * section = static_cast<Section_prop *>(control->GetSection("render"));
+
+    LOG(LOG_MISC, LOG_DEBUG)("Early init (renderer): xBRZ options");
+
+    // set some defaults
+    render.xBRZ.task_granularity = 16;
+    render.xBRZ.max_scale_factor = xbrz::SCALE_FACTOR_MAX;
+
+    // read options related to xBRZ here
+    Prop_multival* prop = section->Get_multival("scaler");
+    std::string scaler = prop->GetSection()->Get_string("type");
+    render.xBRZ.enable = ((scaler == "xbrz") || (scaler == "xbrz_bilinear"));
+    render.xBRZ.postscale_bilinear = (scaler == "xbrz_bilinear");
+    render.xBRZ.task_granularity = section->Get_int("xbrz slice");
+    render.xBRZ.fixed_scale_factor = section->Get_int("xbrz fixed scale factor");
+    render.xBRZ.max_scale_factor = section->Get_int("xbrz max scale factor");
+    if ((render.xBRZ.max_scale_factor < 2) || (render.xBRZ.max_scale_factor > xbrz::SCALE_FACTOR_MAX))
+        render.xBRZ.max_scale_factor = xbrz::SCALE_FACTOR_MAX;
+    if ((render.xBRZ.fixed_scale_factor < 2) || (render.xBRZ.fixed_scale_factor > xbrz::SCALE_FACTOR_MAX))
+        render.xBRZ.fixed_scale_factor = 0;
+}
+#endif
 
 void RENDER_Init() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
@@ -892,13 +949,6 @@ void RENDER_Init() {
     }
 
     RENDER_UpdateFromScalerSetting();
-
-#if C_XBRZ
-    if (render.scale.xBRZ) {
-        // xBRZ requirements
-		vga.draw.doublescan_set = false;
-    }
-#endif
 
     render.autofit=section->Get_bool("autofit");
 
