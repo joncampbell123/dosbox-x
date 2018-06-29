@@ -323,7 +323,6 @@ static Bitu MakeAspectTable(Bitu skip,Bitu height,double scaley,Bitu miny) {
     return linesadded;
 }
 
-
 void RENDER_Reset( void ) {
     Bitu width=render.src.width;
     Bitu height=render.src.height;
@@ -341,7 +340,7 @@ void RENDER_Reset( void ) {
     ScalerComplexBlock_t    *complexBlock = 0;
     gfx_scalew = 1;
     gfx_scaleh = 1;
-    if (render.aspect && !render.aspectOffload) {
+    if (render.aspect == ASPECT_TRUE && !render.aspectOffload) {
         if (render.src.ratio>1.0) {
             gfx_scalew = 1;
             gfx_scaleh = render.src.ratio;
@@ -722,7 +721,7 @@ bool RENDER_GetAutofit(void) {
     return render.autofit;
 }
 
-bool RENDER_GetAspect(void) {
+int RENDER_GetAspect(void) {
     return render.aspect;
 }
 
@@ -748,9 +747,16 @@ void RENDER_OnSectionPropChange(Section *x) {
 
     bool p_doublescan = vga.draw.doublescan_set;
     bool p_char9 = vga.draw.char9_set;
-    bool p_aspect = render.aspect;
+    int p_aspect = render.aspect;
 
-    render.aspect = section->Get_bool("aspect");
+    std::string s_aspect = section->Get_string("aspect");
+    render.aspect = ASPECT_FALSE;
+    if (s_aspect == "true" || s_aspect == "1" || s_aspect == "yes") render.aspect = ASPECT_TRUE;
+#if C_SURFACE_POSTRENDER_ASPECT
+    if (s_aspect == "nearest") render.aspect = ASPECT_NEAREST;
+    if (s_aspect == "bilinear") render.aspect = ASPECT_BILINEAR;
+#endif
+
     render.frameskip.max = (Bitu)section->Get_int("frameskip");
 
     vga.draw.doublescan_set=section->Get_bool("doublescan");
@@ -847,7 +853,7 @@ void RENDER_Init() {
 
     //For restarting the renderer.
     static bool running = false;
-    bool aspect = render.aspect;
+    int aspect = render.aspect;
     Bitu scalersize = render.scale.size;
     bool scalerforced = render.scale.forced;
     scalerOperation_t scaleOp = render.scale.op;
@@ -857,7 +863,15 @@ void RENDER_Init() {
 
     render.pal.first=0;
     render.pal.last=255;
-    render.aspect=section->Get_bool("aspect");
+
+    std::string s_aspect = section->Get_string("aspect");
+    render.aspect = ASPECT_FALSE;
+    if (s_aspect == "true" || s_aspect == "1") render.aspect = ASPECT_TRUE;
+#if C_SURFACE_POSTRENDER_ASPECT
+    if (s_aspect == "nearest") render.aspect = ASPECT_NEAREST;
+    if (s_aspect == "bilinear") render.aspect = ASPECT_BILINEAR;
+#endif
+
     render.frameskip.max=(Bitu)section->Get_int("frameskip");
 
     RENDER_UpdateFrameskipMenu();
