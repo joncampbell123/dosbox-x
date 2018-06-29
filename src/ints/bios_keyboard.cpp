@@ -552,12 +552,16 @@ irq1_end:
     /* update LEDs on keyboard */
     if (leds_orig != leds) KEYBOARD_SetLEDs(leds);
 
-	/* update insert cursor */
-	const auto flg = mem_readb(BIOS_KEYBOARD_FLAGS1);
-	const auto ins = static_cast<bool>(flg & BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE);
-	const auto ssl = static_cast<Bit8u>(ins ? CURSOR_SCAN_LINE_INSERT : CURSOR_SCAN_LINE_NORMAL);
-	if (CurMode->type == M_TEXT)
-		INT10_SetCursorShape(ssl, CURSOR_SCAN_LINE_END);
+    /* update insert cursor */
+    extern bool dos_program_running;
+    if (!dos_program_running)
+    {
+        const auto flg = mem_readb(BIOS_KEYBOARD_FLAGS1);
+        const auto ins = static_cast<bool>(flg & BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE);
+        const auto ssl = static_cast<Bit8u>(ins ? CURSOR_SCAN_LINE_INSERT : CURSOR_SCAN_LINE_NORMAL);
+        if (CurMode->type == M_TEXT)
+            INT10_SetCursorShape(ssl, CURSOR_SCAN_LINE_END);
+    }
 					
 /*  IO_Write(0x20,0x20); moved out of handler to be virtualizable */
 #if 0
