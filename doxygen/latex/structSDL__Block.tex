@@ -82,10 +82,12 @@ struct \{\\
 xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
 struct \{\\
 \>bool {\bfseries autolock}\\
+\>AUTOLOCK\_FEEDBACK {\bfseries autolock\_feedback}\\
 \>bool {\bfseries autoenable}\\
 \>bool {\bfseries requestlock}\\
 \>bool {\bfseries locked}\\
 \>Bitu {\bfseries sensitivity}\\
+\>MOUSE\_EMULATION {\bfseries emulation}\\
 \} {\bfseries mouse}}\label{structSDL__Block_a567166f345e695e621bbcfb18a23d023}
 \\
 
@@ -117,15 +119,26 @@ struct \{\\
 \hypertarget{structSDL__Block_af2f09abf4659afabea0f94eb03dfc63a}{bool {\bfseries init\-\_\-ignore}}\label{structSDL__Block_af2f09abf4659afabea0f94eb03dfc63a}
 
 \item 
-\hypertarget{structSDL__Block_aed666077a9de44d16a80bf423744c591}{unsigned int {\bfseries gfx\-\_\-force\-\_\-redraw\-\_\-count} = 0}\label{structSDL__Block_aed666077a9de44d16a80bf423744c591}
+\hypertarget{structSDL__Block_aed666077a9de44d16a80bf423744c591}{unsigned int {\bfseries gfx\-\_\-force\-\_\-redraw\-\_\-count}}\label{structSDL__Block_aed666077a9de44d16a80bf423744c591}
 
-\end{DoxyCompactItemize}
+\item 
+\hypertarget{structSDL__Block_a5ffc326c2b87ab8d51a90a5a489894f9}{\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>int {\bfseries x}\\
+\>int {\bfseries y}\\
+\>double {\bfseries xToY}\\
+\>double {\bfseries yToX}\\
+\} {\bfseries srcAspect}}\label{structSDL__Block_a5ffc326c2b87ab8d51a90a5a489894f9}
+\\
+
+\end{tabbing}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
 
 
-Definition at line 469 of file sdlmain.\-cpp.
+Definition at line 493 of file sdlmain.\-cpp.
 
 
 

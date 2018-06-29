@@ -31,6 +31,7 @@ var searchData=
   ['module_5fbase',['Module_base',['../classModule__base.html',1,'']]],
   ['mount',['MOUNT',['../classMOUNT.html',1,'']]],
   ['mouse',['MOUSE',['../classMOUSE.html',1,'']]],
+  ['mouse_5fpos',['mouse_pos',['../structmouse__pos.html',1,'']]],
   ['moveregion',['MoveRegion',['../structMoveRegion.html',1,'']]],
   ['mpu401',['MPU401',['../classMPU401.html',1,'']]],
   ['musicgen',['MUSICGEN',['../structMUSICGEN.html',1,'']]],

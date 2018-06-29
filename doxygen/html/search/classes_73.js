@@ -8,6 +8,7 @@ var searchData=
   ['savelangdialog',['SaveLangDialog',['../classSaveLangDialog.html',1,'']]],
   ['sb_5finfo',['SB_INFO',['../structSB__INFO.html',1,'']]],
   ['sblaster',['SBLASTER',['../classSBLASTER.html',1,'']]],
+  ['scalercfg',['ScalerCfg',['../structxbrz_1_1ScalerCfg.html',1,'xbrz']]],
   ['scalercomplexblock_5ft',['ScalerComplexBlock_t',['../structScalerComplexBlock__t.html',1,'']]],
   ['scalersimpleblock_5ft',['ScalerSimpleBlock_t',['../structScalerSimpleBlock__t.html',1,'']]],
   ['scalersourcecache_5ft',['scalerSourceCache_t',['../unionscalerSourceCache__t.html',1,'']]],

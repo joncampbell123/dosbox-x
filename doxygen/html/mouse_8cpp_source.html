@@ -707,779 +707,812 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00611"></a>00611     <span class="keywordflow">if</span> (mouse.x &lt; mouse.min_x) mouse.x = mouse.min_x;
 <a name="l00612"></a>00612     <span class="keywordflow">if</span> (mouse.y &gt; mouse.max_y) mouse.y = mouse.max_y;
 <a name="l00613"></a>00613     <span class="keywordflow">if</span> (mouse.y &lt; mouse.min_y) mouse.y = mouse.min_y;
-<a name="l00614"></a>00614 
-<a name="l00615"></a>00615     mouse.ps2x += xrel;
-<a name="l00616"></a>00616     mouse.ps2y += yrel;
-<a name="l00617"></a>00617     <span class="keywordflow">if</span> (mouse.ps2x &gt;= 32768.0)       mouse.ps2x -= 65536.0;
-<a name="l00618"></a>00618     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mouse.ps2x &lt;= -32769.0) mouse.ps2x += 65536.0;
-<a name="l00619"></a>00619     <span class="keywordflow">if</span> (mouse.ps2y &gt;= 32768.0)       mouse.ps2y -= 65536.0;
-<a name="l00620"></a>00620     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mouse.ps2y &lt;= -32769.0) mouse.ps2y += 65536.0;
-<a name="l00621"></a>00621 
-<a name="l00622"></a>00622     Mouse_AddEvent(MOUSE_HAS_MOVED);
-<a name="l00623"></a>00623 }
-<a name="l00624"></a>00624 
-<a name="l00625"></a>00625 uint8_t Mouse_GetButtonState(<span class="keywordtype">void</span>) {
-<a name="l00626"></a>00626     <span class="keywordflow">return</span> mouse.buttons;
-<a name="l00627"></a>00627 }
-<a name="l00628"></a>00628 
-<a name="l00629"></a>00629 <span class="keywordtype">void</span> Mouse_ButtonPressed(Bit8u button) {
-<a name="l00630"></a>00630     <span class="keywordflow">if</span> (!IS_PC98_ARCH &amp;&amp; KEYBOARD_AUX_Active()) {
-<a name="l00631"></a>00631         <span class="keywordflow">switch</span> (button) {
-<a name="l00632"></a>00632             <span class="keywordflow">case</span> 0:
-<a name="l00633"></a>00633                 mouse.buttons|=1;
-<a name="l00634"></a>00634                 <span class="keywordflow">break</span>;
-<a name="l00635"></a>00635             <span class="keywordflow">case</span> 1:
-<a name="l00636"></a>00636                 mouse.buttons|=2;
-<a name="l00637"></a>00637                 <span class="keywordflow">break</span>;
-<a name="l00638"></a>00638             <span class="keywordflow">case</span> 2:
-<a name="l00639"></a>00639                 mouse.buttons|=4;
-<a name="l00640"></a>00640                 <span class="keywordflow">break</span>;
-<a name="l00641"></a>00641             <span class="keywordflow">default</span>:
-<a name="l00642"></a>00642                 <span class="keywordflow">return</span>;
-<a name="l00643"></a>00643         }
-<a name="l00644"></a>00644 
-<a name="l00645"></a>00645         KEYBOARD_AUX_Event(0,0,mouse.buttons,mouse.scrollwheel);
-<a name="l00646"></a>00646         mouse.scrollwheel = 0;
-<a name="l00647"></a>00647         <span class="keywordflow">return</span>;
-<a name="l00648"></a>00648     }
-<a name="l00649"></a>00649 
-<a name="l00650"></a>00650     <span class="keywordflow">if</span> (button &gt; 2)
-<a name="l00651"></a>00651         <span class="keywordflow">return</span>;
-<a name="l00652"></a>00652 
-<a name="l00653"></a>00653     <span class="keywordflow">switch</span> (button) {
-<a name="l00654"></a>00654 <span class="preprocessor">#if (MOUSE_BUTTONS &gt;= 1)</span>
-<a name="l00655"></a>00655 <span class="preprocessor"></span>    <span class="keywordflow">case</span> 0:
-<a name="l00656"></a>00656         mouse.buttons|=1;
-<a name="l00657"></a>00657         Mouse_AddEvent(MOUSE_LEFT_PRESSED);
-<a name="l00658"></a>00658         <span class="keywordflow">break</span>;
-<a name="l00659"></a>00659 <span class="preprocessor">#endif</span>
-<a name="l00660"></a>00660 <span class="preprocessor"></span><span class="preprocessor">#if (MOUSE_BUTTONS &gt;= 2)</span>
-<a name="l00661"></a>00661 <span class="preprocessor"></span>    <span class="keywordflow">case</span> 1:
-<a name="l00662"></a>00662         mouse.buttons|=2;
-<a name="l00663"></a>00663         Mouse_AddEvent(MOUSE_RIGHT_PRESSED);
-<a name="l00664"></a>00664         <span class="keywordflow">break</span>;
-<a name="l00665"></a>00665 <span class="preprocessor">#endif</span>
-<a name="l00666"></a>00666 <span class="preprocessor"></span><span class="preprocessor">#if (MOUSE_BUTTONS &gt;= 3)</span>
-<a name="l00667"></a>00667 <span class="preprocessor"></span>    <span class="keywordflow">case</span> 2:
-<a name="l00668"></a>00668         mouse.buttons|=4;
-<a name="l00669"></a>00669         Mouse_AddEvent(MOUSE_MIDDLE_PRESSED);
-<a name="l00670"></a>00670         <span class="keywordflow">break</span>;
-<a name="l00671"></a>00671 <span class="preprocessor">#endif</span>
-<a name="l00672"></a>00672 <span class="preprocessor"></span>    <span class="keywordflow">default</span>:
-<a name="l00673"></a>00673         <span class="keywordflow">return</span>;
-<a name="l00674"></a>00674     }
-<a name="l00675"></a>00675     mouse.times_pressed[button]++;
-<a name="l00676"></a>00676     mouse.last_pressed_x[button]=(Bit16u)POS_X;
-<a name="l00677"></a>00677     mouse.last_pressed_y[button]=(Bit16u)POS_Y;
+<a name="l00614"></a>00614     <span class="keyword">extern</span> <span class="keywordtype">int</span>  user_cursor_x,  user_cursor_y;
+<a name="l00615"></a>00615     <span class="keyword">extern</span> <span class="keywordtype">int</span>  user_cursor_sw, user_cursor_sh;
+<a name="l00616"></a>00616     <span class="keyword">extern</span> <span class="keywordtype">bool</span> user_cursor_locked;
+<a name="l00617"></a>00617 
+<a name="l00618"></a>00618     <span class="comment">/*make mouse emulated, eventually*/</span>
+<a name="l00619"></a>00619     <span class="keyword">extern</span> MOUSE_EMULATION user_cursor_emulation;
+<a name="l00620"></a>00620     <span class="keywordtype">bool</span> emu;
+<a name="l00621"></a>00621     <span class="keywordflow">switch</span> (user_cursor_emulation)
+<a name="l00622"></a>00622     {
+<a name="l00623"></a>00623     <span class="keywordflow">case</span> MOUSE_EMULATION_ALWAYS:
+<a name="l00624"></a>00624         emu = <span class="keyword">true</span>;
+<a name="l00625"></a>00625         <span class="keywordflow">break</span>;
+<a name="l00626"></a>00626     <span class="keywordflow">case</span> MOUSE_EMULATION_INTEGRATION:
+<a name="l00627"></a>00627         emu = !user_cursor_locked;
+<a name="l00628"></a>00628         <span class="keywordflow">break</span>;
+<a name="l00629"></a>00629     <span class="keywordflow">case</span> MOUSE_EMULATION_LOCKED:
+<a name="l00630"></a>00630         emu = user_cursor_locked;
+<a name="l00631"></a>00631         <span class="keywordflow">break</span>;
+<a name="l00632"></a>00632     <span class="keywordflow">case</span> MOUSE_EMULATION_NEVER:
+<a name="l00633"></a>00633     <span class="keywordflow">default</span>:
+<a name="l00634"></a>00634         emu = <span class="keyword">false</span>;
+<a name="l00635"></a>00635     }
+<a name="l00636"></a>00636     <span class="keywordflow">if</span> (!emu)
+<a name="l00637"></a>00637     {
+<a name="l00638"></a>00638         <span class="keyword">const</span> <span class="keyword">auto</span> x1 = 1.0 / <span class="keyword">static_cast&lt;</span><span class="keywordtype">double</span><span class="keyword">&gt;</span>(user_cursor_sw) * user_cursor_x;
+<a name="l00639"></a>00639         <span class="keyword">const</span> <span class="keyword">auto</span> y1 = 1.0 / <span class="keyword">static_cast&lt;</span><span class="keywordtype">double</span><span class="keyword">&gt;</span>(user_cursor_sh) * user_cursor_y;
+<a name="l00640"></a>00640         mouse.x       = x1 * mouse.max_x;
+<a name="l00641"></a>00641         mouse.y       = y1 * mouse.max_y;
+<a name="l00642"></a>00642     }
+<a name="l00643"></a>00643 
+<a name="l00644"></a>00644     mouse.ps2x += xrel;
+<a name="l00645"></a>00645     mouse.ps2y += yrel;
+<a name="l00646"></a>00646     <span class="keywordflow">if</span> (mouse.ps2x &gt;= 32768.0)       mouse.ps2x -= 65536.0;
+<a name="l00647"></a>00647     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mouse.ps2x &lt;= -32769.0) mouse.ps2x += 65536.0;
+<a name="l00648"></a>00648     <span class="keywordflow">if</span> (mouse.ps2y &gt;= 32768.0)       mouse.ps2y -= 65536.0;
+<a name="l00649"></a>00649     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mouse.ps2y &lt;= -32769.0) mouse.ps2y += 65536.0;
+<a name="l00650"></a>00650 
+<a name="l00651"></a>00651     Mouse_AddEvent(MOUSE_HAS_MOVED);
+<a name="l00652"></a>00652 }
+<a name="l00653"></a>00653 
+<a name="l00654"></a>00654 uint8_t Mouse_GetButtonState(<span class="keywordtype">void</span>) {
+<a name="l00655"></a>00655     <span class="keywordflow">return</span> mouse.buttons;
+<a name="l00656"></a>00656 }
+<a name="l00657"></a>00657 
+<a name="l00658"></a>00658 <span class="keywordtype">void</span> Mouse_ButtonPressed(Bit8u button) {
+<a name="l00659"></a>00659     <span class="keywordflow">if</span> (!IS_PC98_ARCH &amp;&amp; KEYBOARD_AUX_Active()) {
+<a name="l00660"></a>00660         <span class="keywordflow">switch</span> (button) {
+<a name="l00661"></a>00661             <span class="keywordflow">case</span> 0:
+<a name="l00662"></a>00662                 mouse.buttons|=1;
+<a name="l00663"></a>00663                 <span class="keywordflow">break</span>;
+<a name="l00664"></a>00664             <span class="keywordflow">case</span> 1:
+<a name="l00665"></a>00665                 mouse.buttons|=2;
+<a name="l00666"></a>00666                 <span class="keywordflow">break</span>;
+<a name="l00667"></a>00667             <span class="keywordflow">case</span> 2:
+<a name="l00668"></a>00668                 mouse.buttons|=4;
+<a name="l00669"></a>00669                 <span class="keywordflow">break</span>;
+<a name="l00670"></a>00670             <span class="keywordflow">default</span>:
+<a name="l00671"></a>00671                 <span class="keywordflow">return</span>;
+<a name="l00672"></a>00672         }
+<a name="l00673"></a>00673 
+<a name="l00674"></a>00674         KEYBOARD_AUX_Event(0,0,mouse.buttons,mouse.scrollwheel);
+<a name="l00675"></a>00675         mouse.scrollwheel = 0;
+<a name="l00676"></a>00676         <span class="keywordflow">return</span>;
+<a name="l00677"></a>00677     }
 <a name="l00678"></a>00678 
-<a name="l00679"></a>00679     <span class="comment">/* serial mouse, if connected, also wants to know about it */</span>
-<a name="l00680"></a>00680     on_mouse_event_for_serial(0,0,mouse.buttons);
-<a name="l00681"></a>00681 }
-<a name="l00682"></a>00682 
-<a name="l00683"></a>00683 <span class="keywordtype">void</span> Mouse_ButtonReleased(Bit8u button) {
-<a name="l00684"></a>00684     <span class="keywordflow">if</span> (!IS_PC98_ARCH &amp;&amp; KEYBOARD_AUX_Active()) {
-<a name="l00685"></a>00685         <span class="keywordflow">switch</span> (button) {
-<a name="l00686"></a>00686             <span class="keywordflow">case</span> 0:
-<a name="l00687"></a>00687                 mouse.buttons&amp;=~1;
-<a name="l00688"></a>00688                 <span class="keywordflow">break</span>;
-<a name="l00689"></a>00689             <span class="keywordflow">case</span> 1:
-<a name="l00690"></a>00690                 mouse.buttons&amp;=~2;
-<a name="l00691"></a>00691                 <span class="keywordflow">break</span>;
-<a name="l00692"></a>00692             <span class="keywordflow">case</span> 2:
-<a name="l00693"></a>00693                 mouse.buttons&amp;=~4;
-<a name="l00694"></a>00694                 <span class="keywordflow">break</span>;
-<a name="l00695"></a>00695             <span class="keywordflow">case</span> (100-1):   <span class="comment">/* scrollwheel up */</span>
-<a name="l00696"></a>00696                 mouse.scrollwheel -= 8;
-<a name="l00697"></a>00697                 <span class="keywordflow">break</span>;
-<a name="l00698"></a>00698             <span class="keywordflow">case</span> (100+1):   <span class="comment">/* scrollwheel down */</span>
-<a name="l00699"></a>00699                 mouse.scrollwheel += 8;
-<a name="l00700"></a>00700                 <span class="keywordflow">break</span>;
-<a name="l00701"></a>00701             <span class="keywordflow">default</span>:
-<a name="l00702"></a>00702                 <span class="keywordflow">return</span>;
-<a name="l00703"></a>00703         }
-<a name="l00704"></a>00704 
-<a name="l00705"></a>00705         KEYBOARD_AUX_Event(0,0,mouse.buttons,mouse.scrollwheel);
-<a name="l00706"></a>00706         mouse.scrollwheel = 0;
-<a name="l00707"></a>00707         <span class="keywordflow">return</span>;
-<a name="l00708"></a>00708     }
-<a name="l00709"></a>00709 
-<a name="l00710"></a>00710     <span class="keywordflow">if</span> (button &gt; 2)
-<a name="l00711"></a>00711         <span class="keywordflow">return</span>;
-<a name="l00712"></a>00712 
-<a name="l00713"></a>00713     <span class="keywordflow">switch</span> (button) {
-<a name="l00714"></a>00714 <span class="preprocessor">#if (MOUSE_BUTTONS &gt;= 1)</span>
-<a name="l00715"></a>00715 <span class="preprocessor"></span>    <span class="keywordflow">case</span> 0:
-<a name="l00716"></a>00716         mouse.buttons&amp;=~1;
-<a name="l00717"></a>00717         Mouse_AddEvent(MOUSE_LEFT_RELEASED);
-<a name="l00718"></a>00718         <span class="keywordflow">break</span>;
-<a name="l00719"></a>00719 <span class="preprocessor">#endif</span>
-<a name="l00720"></a>00720 <span class="preprocessor"></span><span class="preprocessor">#if (MOUSE_BUTTONS &gt;= 2)</span>
-<a name="l00721"></a>00721 <span class="preprocessor"></span>    <span class="keywordflow">case</span> 1:
-<a name="l00722"></a>00722         mouse.buttons&amp;=~2;
-<a name="l00723"></a>00723         Mouse_AddEvent(MOUSE_RIGHT_RELEASED);
-<a name="l00724"></a>00724         <span class="keywordflow">break</span>;
-<a name="l00725"></a>00725 <span class="preprocessor">#endif</span>
-<a name="l00726"></a>00726 <span class="preprocessor"></span><span class="preprocessor">#if (MOUSE_BUTTONS &gt;= 3)</span>
-<a name="l00727"></a>00727 <span class="preprocessor"></span>    <span class="keywordflow">case</span> 2:
-<a name="l00728"></a>00728         mouse.buttons&amp;=~4;
-<a name="l00729"></a>00729         Mouse_AddEvent(MOUSE_MIDDLE_RELEASED);
-<a name="l00730"></a>00730         <span class="keywordflow">break</span>;
-<a name="l00731"></a>00731 <span class="preprocessor">#endif</span>
-<a name="l00732"></a>00732 <span class="preprocessor"></span>    <span class="keywordflow">default</span>:
-<a name="l00733"></a>00733         <span class="keywordflow">return</span>;
-<a name="l00734"></a>00734     }
-<a name="l00735"></a>00735     mouse.times_released[button]++; 
-<a name="l00736"></a>00736     mouse.last_released_x[button]=(Bit16u)POS_X;
-<a name="l00737"></a>00737     mouse.last_released_y[button]=(Bit16u)POS_Y;
+<a name="l00679"></a>00679     <span class="keywordflow">if</span> (button &gt; 2)
+<a name="l00680"></a>00680         <span class="keywordflow">return</span>;
+<a name="l00681"></a>00681 
+<a name="l00682"></a>00682     <span class="keywordflow">switch</span> (button) {
+<a name="l00683"></a>00683 <span class="preprocessor">#if (MOUSE_BUTTONS &gt;= 1)</span>
+<a name="l00684"></a>00684 <span class="preprocessor"></span>    <span class="keywordflow">case</span> 0:
+<a name="l00685"></a>00685         mouse.buttons|=1;
+<a name="l00686"></a>00686         Mouse_AddEvent(MOUSE_LEFT_PRESSED);
+<a name="l00687"></a>00687         <span class="keywordflow">break</span>;
+<a name="l00688"></a>00688 <span class="preprocessor">#endif</span>
+<a name="l00689"></a>00689 <span class="preprocessor"></span><span class="preprocessor">#if (MOUSE_BUTTONS &gt;= 2)</span>
+<a name="l00690"></a>00690 <span class="preprocessor"></span>    <span class="keywordflow">case</span> 1:
+<a name="l00691"></a>00691         mouse.buttons|=2;
+<a name="l00692"></a>00692         Mouse_AddEvent(MOUSE_RIGHT_PRESSED);
+<a name="l00693"></a>00693         <span class="keywordflow">break</span>;
+<a name="l00694"></a>00694 <span class="preprocessor">#endif</span>
+<a name="l00695"></a>00695 <span class="preprocessor"></span><span class="preprocessor">#if (MOUSE_BUTTONS &gt;= 3)</span>
+<a name="l00696"></a>00696 <span class="preprocessor"></span>    <span class="keywordflow">case</span> 2:
+<a name="l00697"></a>00697         mouse.buttons|=4;
+<a name="l00698"></a>00698         Mouse_AddEvent(MOUSE_MIDDLE_PRESSED);
+<a name="l00699"></a>00699         <span class="keywordflow">break</span>;
+<a name="l00700"></a>00700 <span class="preprocessor">#endif</span>
+<a name="l00701"></a>00701 <span class="preprocessor"></span>    <span class="keywordflow">default</span>:
+<a name="l00702"></a>00702         <span class="keywordflow">return</span>;
+<a name="l00703"></a>00703     }
+<a name="l00704"></a>00704     mouse.times_pressed[button]++;
+<a name="l00705"></a>00705     mouse.last_pressed_x[button]=(Bit16u)POS_X;
+<a name="l00706"></a>00706     mouse.last_pressed_y[button]=(Bit16u)POS_Y;
+<a name="l00707"></a>00707 
+<a name="l00708"></a>00708     <span class="comment">/* serial mouse, if connected, also wants to know about it */</span>
+<a name="l00709"></a>00709     on_mouse_event_for_serial(0,0,mouse.buttons);
+<a name="l00710"></a>00710 }
+<a name="l00711"></a>00711 
+<a name="l00712"></a>00712 <span class="keywordtype">void</span> Mouse_ButtonReleased(Bit8u button) {
+<a name="l00713"></a>00713     <span class="keywordflow">if</span> (!IS_PC98_ARCH &amp;&amp; KEYBOARD_AUX_Active()) {
+<a name="l00714"></a>00714         <span class="keywordflow">switch</span> (button) {
+<a name="l00715"></a>00715             <span class="keywordflow">case</span> 0:
+<a name="l00716"></a>00716                 mouse.buttons&amp;=~1;
+<a name="l00717"></a>00717                 <span class="keywordflow">break</span>;
+<a name="l00718"></a>00718             <span class="keywordflow">case</span> 1:
+<a name="l00719"></a>00719                 mouse.buttons&amp;=~2;
+<a name="l00720"></a>00720                 <span class="keywordflow">break</span>;
+<a name="l00721"></a>00721             <span class="keywordflow">case</span> 2:
+<a name="l00722"></a>00722                 mouse.buttons&amp;=~4;
+<a name="l00723"></a>00723                 <span class="keywordflow">break</span>;
+<a name="l00724"></a>00724             <span class="keywordflow">case</span> (100-1):   <span class="comment">/* scrollwheel up */</span>
+<a name="l00725"></a>00725                 mouse.scrollwheel -= 8;
+<a name="l00726"></a>00726                 <span class="keywordflow">break</span>;
+<a name="l00727"></a>00727             <span class="keywordflow">case</span> (100+1):   <span class="comment">/* scrollwheel down */</span>
+<a name="l00728"></a>00728                 mouse.scrollwheel += 8;
+<a name="l00729"></a>00729                 <span class="keywordflow">break</span>;
+<a name="l00730"></a>00730             <span class="keywordflow">default</span>:
+<a name="l00731"></a>00731                 <span class="keywordflow">return</span>;
+<a name="l00732"></a>00732         }
+<a name="l00733"></a>00733 
+<a name="l00734"></a>00734         KEYBOARD_AUX_Event(0,0,mouse.buttons,mouse.scrollwheel);
+<a name="l00735"></a>00735         mouse.scrollwheel = 0;
+<a name="l00736"></a>00736         <span class="keywordflow">return</span>;
+<a name="l00737"></a>00737     }
 <a name="l00738"></a>00738 
-<a name="l00739"></a>00739     <span class="comment">/* serial mouse, if connected, also wants to know about it */</span>
-<a name="l00740"></a>00740     on_mouse_event_for_serial(0,0,mouse.buttons);
-<a name="l00741"></a>00741 }
-<a name="l00742"></a>00742 
-<a name="l00743"></a>00743 <span class="keyword">static</span> <span class="keywordtype">void</span> Mouse_SetMickeyPixelRate(Bit16s px, Bit16s py){
-<a name="l00744"></a>00744     <span class="keywordflow">if</span> ((px!=0) &amp;&amp; (py!=0)) {
-<a name="l00745"></a>00745         mouse.mickeysPerPixel_x  = (float)px/X_MICKEY;
-<a name="l00746"></a>00746         mouse.mickeysPerPixel_y  = (float)py/Y_MICKEY;
-<a name="l00747"></a>00747         mouse.pixelPerMickey_x   = X_MICKEY/(float)px;
-<a name="l00748"></a>00748         mouse.pixelPerMickey_y   = Y_MICKEY/(float)py;  
-<a name="l00749"></a>00749     }
-<a name="l00750"></a>00750 }
-<a name="l00751"></a>00751 
-<a name="l00752"></a>00752 <span class="keyword">static</span> <span class="keywordtype">void</span> Mouse_SetSensitivity(Bit16u px, Bit16u py, Bit16u dspeed){
-<a name="l00753"></a>00753     <span class="keywordflow">if</span>(px&gt;100) px=100;
-<a name="l00754"></a>00754     <span class="keywordflow">if</span>(py&gt;100) py=100;
-<a name="l00755"></a>00755     <span class="keywordflow">if</span>(dspeed&gt;100) dspeed=100;
-<a name="l00756"></a>00756     <span class="comment">// save values</span>
-<a name="l00757"></a>00757     mouse.senv_x_val=px;
-<a name="l00758"></a>00758     mouse.senv_y_val=py;
-<a name="l00759"></a>00759     mouse.dspeed_val=dspeed;
-<a name="l00760"></a>00760     <span class="keywordflow">if</span> ((px!=0) &amp;&amp; (py!=0)) {
-<a name="l00761"></a>00761         px--;  <span class="comment">//Inspired by cutemouse </span>
-<a name="l00762"></a>00762         py--;  <span class="comment">//Although their cursor update routine is far more complex then ours</span>
-<a name="l00763"></a>00763         mouse.senv_x=(<span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(px)*px)/3600.0f +1.0f/3.0f;
-<a name="l00764"></a>00764         mouse.senv_y=(<span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(py)*py)/3600.0f +1.0f/3.0f;
-<a name="l00765"></a>00765      }
-<a name="l00766"></a>00766 }
+<a name="l00739"></a>00739     <span class="keywordflow">if</span> (button &gt; 2)
+<a name="l00740"></a>00740         <span class="keywordflow">return</span>;
+<a name="l00741"></a>00741 
+<a name="l00742"></a>00742     <span class="keywordflow">switch</span> (button) {
+<a name="l00743"></a>00743 <span class="preprocessor">#if (MOUSE_BUTTONS &gt;= 1)</span>
+<a name="l00744"></a>00744 <span class="preprocessor"></span>    <span class="keywordflow">case</span> 0:
+<a name="l00745"></a>00745         mouse.buttons&amp;=~1;
+<a name="l00746"></a>00746         Mouse_AddEvent(MOUSE_LEFT_RELEASED);
+<a name="l00747"></a>00747         <span class="keywordflow">break</span>;
+<a name="l00748"></a>00748 <span class="preprocessor">#endif</span>
+<a name="l00749"></a>00749 <span class="preprocessor"></span><span class="preprocessor">#if (MOUSE_BUTTONS &gt;= 2)</span>
+<a name="l00750"></a>00750 <span class="preprocessor"></span>    <span class="keywordflow">case</span> 1:
+<a name="l00751"></a>00751         mouse.buttons&amp;=~2;
+<a name="l00752"></a>00752         Mouse_AddEvent(MOUSE_RIGHT_RELEASED);
+<a name="l00753"></a>00753         <span class="keywordflow">break</span>;
+<a name="l00754"></a>00754 <span class="preprocessor">#endif</span>
+<a name="l00755"></a>00755 <span class="preprocessor"></span><span class="preprocessor">#if (MOUSE_BUTTONS &gt;= 3)</span>
+<a name="l00756"></a>00756 <span class="preprocessor"></span>    <span class="keywordflow">case</span> 2:
+<a name="l00757"></a>00757         mouse.buttons&amp;=~4;
+<a name="l00758"></a>00758         Mouse_AddEvent(MOUSE_MIDDLE_RELEASED);
+<a name="l00759"></a>00759         <span class="keywordflow">break</span>;
+<a name="l00760"></a>00760 <span class="preprocessor">#endif</span>
+<a name="l00761"></a>00761 <span class="preprocessor"></span>    <span class="keywordflow">default</span>:
+<a name="l00762"></a>00762         <span class="keywordflow">return</span>;
+<a name="l00763"></a>00763     }
+<a name="l00764"></a>00764     mouse.times_released[button]++; 
+<a name="l00765"></a>00765     mouse.last_released_x[button]=(Bit16u)POS_X;
+<a name="l00766"></a>00766     mouse.last_released_y[button]=(Bit16u)POS_Y;
 <a name="l00767"></a>00767 
-<a name="l00768"></a>00768 
-<a name="l00769"></a>00769 <span class="keyword">static</span> <span class="keywordtype">void</span> Mouse_ResetHardware(<span class="keywordtype">void</span>){
-<a name="l00770"></a>00770     PIC_SetIRQMask(MOUSE_IRQ,<span class="keyword">false</span>);
+<a name="l00768"></a>00768     <span class="comment">/* serial mouse, if connected, also wants to know about it */</span>
+<a name="l00769"></a>00769     on_mouse_event_for_serial(0,0,mouse.buttons);
+<a name="l00770"></a>00770 }
 <a name="l00771"></a>00771 
-<a name="l00772"></a>00772     <span class="keywordflow">if</span> (IS_PC98_ARCH)
-<a name="l00773"></a>00773         p7fd8_8255_mouse_int_enable = 1;
-<a name="l00774"></a>00774 }
-<a name="l00775"></a>00775 
-<a name="l00776"></a>00776 <span class="comment">//Does way to much. Many things should be moved to mouse reset one day</span>
-<a name="l00777"></a>00777 <span class="keywordtype">void</span> Mouse_NewVideoMode(<span class="keywordtype">void</span>) {
-<a name="l00778"></a>00778     mouse.inhibit_draw = <span class="keyword">false</span>;
-<a name="l00779"></a>00779     <span class="comment">/* Get the correct resolution from the current video mode */</span>
-<a name="l00780"></a>00780     Bit8u mode = mem_readb(BIOS_VIDEO_MODE);
-<a name="l00781"></a>00781     <span class="keywordflow">if</span>(mode == mouse.mode) {<a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_NORMAL)(<span class="stringliteral">&quot;New video is the same as the old&quot;</span>); <span class="comment">/*return;*/</span>}
-<a name="l00782"></a>00782     mouse.gran_x = (Bit16s)0xffff;
-<a name="l00783"></a>00783     mouse.gran_y = (Bit16s)0xffff;
-<a name="l00784"></a>00784     <span class="keywordflow">switch</span> (mode) {
-<a name="l00785"></a>00785     <span class="keywordflow">case</span> 0x00:
-<a name="l00786"></a>00786     <span class="keywordflow">case</span> 0x01:
-<a name="l00787"></a>00787     <span class="keywordflow">case</span> 0x02:
-<a name="l00788"></a>00788     <span class="keywordflow">case</span> 0x03:
-<a name="l00789"></a>00789     <span class="keywordflow">case</span> 0x07: {
-<a name="l00790"></a>00790         mouse.gran_x = (mode&lt;2)?0xfff0:0xfff8;
-<a name="l00791"></a>00791         mouse.gran_y = (Bit16s)0xfff8;
-<a name="l00792"></a>00792         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l00793"></a>00793             mouse.max_y = 400 - 1;
-<a name="l00794"></a>00794         }
-<a name="l00795"></a>00795         <span class="keywordflow">else</span> {
-<a name="l00796"></a>00796             Bitu rows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS);
-<a name="l00797"></a>00797             <span class="keywordflow">if</span> ((rows == 0) || (rows &gt; 250)) rows = 25 - 1;
-<a name="l00798"></a>00798             mouse.max_y = 8*(rows+1) - 1;
-<a name="l00799"></a>00799         }
-<a name="l00800"></a>00800         <span class="keywordflow">break</span>;
-<a name="l00801"></a>00801     }
-<a name="l00802"></a>00802     <span class="keywordflow">case</span> 0x04:
-<a name="l00803"></a>00803     <span class="keywordflow">case</span> 0x05:
-<a name="l00804"></a>00804     <span class="keywordflow">case</span> 0x06:
-<a name="l00805"></a>00805     <span class="keywordflow">case</span> 0x08:
-<a name="l00806"></a>00806     <span class="keywordflow">case</span> 0x09:
-<a name="l00807"></a>00807     <span class="keywordflow">case</span> 0x0a:
-<a name="l00808"></a>00808     <span class="keywordflow">case</span> 0x0d:
-<a name="l00809"></a>00809     <span class="keywordflow">case</span> 0x0e:
-<a name="l00810"></a>00810     <span class="keywordflow">case</span> 0x13:
-<a name="l00811"></a>00811         <span class="keywordflow">if</span> (mode == 0x0d || mode == 0x13) mouse.gran_x = (Bit16s)0xfffe;
-<a name="l00812"></a>00812         mouse.max_y = 199;
-<a name="l00813"></a>00813         <span class="keywordflow">break</span>;
-<a name="l00814"></a>00814     <span class="keywordflow">case</span> 0x0f:
-<a name="l00815"></a>00815     <span class="keywordflow">case</span> 0x10:
-<a name="l00816"></a>00816         mouse.max_y = 349;
-<a name="l00817"></a>00817         <span class="keywordflow">break</span>;
-<a name="l00818"></a>00818     <span class="keywordflow">case</span> 0x11:
-<a name="l00819"></a>00819     <span class="keywordflow">case</span> 0x12:
-<a name="l00820"></a>00820         mouse.max_y = 479;
-<a name="l00821"></a>00821         <span class="keywordflow">break</span>;
-<a name="l00822"></a>00822     <span class="keywordflow">default</span>:
-<a name="l00823"></a>00823         <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_ERROR)(<span class="stringliteral">&quot;Unhandled videomode %X on reset&quot;</span>,mode);
-<a name="l00824"></a>00824         mouse.inhibit_draw = <span class="keyword">true</span>;
-<a name="l00825"></a>00825         <span class="keywordflow">return</span>;
-<a name="l00826"></a>00826     }
-<a name="l00827"></a>00827     mouse.mode = mode;
-<a name="l00828"></a>00828     mouse.hidden = 1;
-<a name="l00829"></a>00829     mouse.max_x = 639;
-<a name="l00830"></a>00830     mouse.min_x = 0;
-<a name="l00831"></a>00831     mouse.min_y = 0;
-<a name="l00832"></a>00832 
-<a name="l00833"></a>00833     mouse.events = 0;
-<a name="l00834"></a>00834     mouse.timer_in_progress = <span class="keyword">false</span>;
-<a name="l00835"></a>00835     PIC_RemoveEvents(MOUSE_Limit_Events);
-<a name="l00836"></a>00836 
-<a name="l00837"></a>00837     mouse.hotx       = 0;
-<a name="l00838"></a>00838     mouse.hoty       = 0;
-<a name="l00839"></a>00839     mouse.background = <span class="keyword">false</span>;
-<a name="l00840"></a>00840     mouse.screenMask = defaultScreenMask;
-<a name="l00841"></a>00841     mouse.cursorMask = defaultCursorMask;
-<a name="l00842"></a>00842     mouse.textAndMask= defaultTextAndMask;
-<a name="l00843"></a>00843     mouse.textXorMask= defaultTextXorMask;
-<a name="l00844"></a>00844     mouse.language   = 0;
-<a name="l00845"></a>00845     mouse.page               = 0;
-<a name="l00846"></a>00846     mouse.doubleSpeedThreshold = 64;
-<a name="l00847"></a>00847     mouse.updateRegion_x[0] = 1;
-<a name="l00848"></a>00848     mouse.updateRegion_y[0] = 1;
-<a name="l00849"></a>00849     mouse.updateRegion_x[1] = 1;
-<a name="l00850"></a>00850     mouse.updateRegion_y[1] = 1;
-<a name="l00851"></a>00851     mouse.cursorType = 0;
-<a name="l00852"></a>00852     mouse.enabled=<span class="keyword">true</span>;
-<a name="l00853"></a>00853     mouse.oldhidden=1;
-<a name="l00854"></a>00854 }
-<a name="l00855"></a>00855 
-<a name="l00856"></a>00856 <span class="comment">//Much too empty, Mouse_NewVideoMode contains stuff that should be in here</span>
-<a name="l00857"></a>00857 <span class="keyword">static</span> <span class="keywordtype">void</span> Mouse_Reset(<span class="keywordtype">void</span>) {
-<a name="l00858"></a>00858     <span class="comment">/* Remove drawn mouse Legends of Valor */</span>
-<a name="l00859"></a>00859     <span class="keywordflow">if</span> (CurMode-&gt;type!=M_TEXT) RestoreCursorBackground();
-<a name="l00860"></a>00860     <span class="keywordflow">else</span> RestoreCursorBackgroundText();
-<a name="l00861"></a>00861     mouse.hidden = 1;
-<a name="l00862"></a>00862 
-<a name="l00863"></a>00863     Mouse_NewVideoMode();
-<a name="l00864"></a>00864     Mouse_SetMickeyPixelRate(8,16);
+<a name="l00772"></a>00772 <span class="keyword">static</span> <span class="keywordtype">void</span> Mouse_SetMickeyPixelRate(Bit16s px, Bit16s py){
+<a name="l00773"></a>00773     <span class="keywordflow">if</span> ((px!=0) &amp;&amp; (py!=0)) {
+<a name="l00774"></a>00774         mouse.mickeysPerPixel_x  = (float)px/X_MICKEY;
+<a name="l00775"></a>00775         mouse.mickeysPerPixel_y  = (float)py/Y_MICKEY;
+<a name="l00776"></a>00776         mouse.pixelPerMickey_x   = X_MICKEY/(float)px;
+<a name="l00777"></a>00777         mouse.pixelPerMickey_y   = Y_MICKEY/(float)py;  
+<a name="l00778"></a>00778     }
+<a name="l00779"></a>00779 }
+<a name="l00780"></a>00780 
+<a name="l00781"></a>00781 <span class="keyword">static</span> <span class="keywordtype">void</span> Mouse_SetSensitivity(Bit16u px, Bit16u py, Bit16u dspeed){
+<a name="l00782"></a>00782     <span class="keywordflow">if</span>(px&gt;100) px=100;
+<a name="l00783"></a>00783     <span class="keywordflow">if</span>(py&gt;100) py=100;
+<a name="l00784"></a>00784     <span class="keywordflow">if</span>(dspeed&gt;100) dspeed=100;
+<a name="l00785"></a>00785     <span class="comment">// save values</span>
+<a name="l00786"></a>00786     mouse.senv_x_val=px;
+<a name="l00787"></a>00787     mouse.senv_y_val=py;
+<a name="l00788"></a>00788     mouse.dspeed_val=dspeed;
+<a name="l00789"></a>00789     <span class="keywordflow">if</span> ((px!=0) &amp;&amp; (py!=0)) {
+<a name="l00790"></a>00790         px--;  <span class="comment">//Inspired by cutemouse </span>
+<a name="l00791"></a>00791         py--;  <span class="comment">//Although their cursor update routine is far more complex then ours</span>
+<a name="l00792"></a>00792         mouse.senv_x=(<span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(px)*px)/3600.0f +1.0f/3.0f;
+<a name="l00793"></a>00793         mouse.senv_y=(<span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>(py)*py)/3600.0f +1.0f/3.0f;
+<a name="l00794"></a>00794      }
+<a name="l00795"></a>00795 }
+<a name="l00796"></a>00796 
+<a name="l00797"></a>00797 
+<a name="l00798"></a>00798 <span class="keyword">static</span> <span class="keywordtype">void</span> Mouse_ResetHardware(<span class="keywordtype">void</span>){
+<a name="l00799"></a>00799     PIC_SetIRQMask(MOUSE_IRQ,<span class="keyword">false</span>);
+<a name="l00800"></a>00800 
+<a name="l00801"></a>00801     <span class="keywordflow">if</span> (IS_PC98_ARCH)
+<a name="l00802"></a>00802         p7fd8_8255_mouse_int_enable = 1;
+<a name="l00803"></a>00803 }
+<a name="l00804"></a>00804 
+<a name="l00805"></a>00805 <span class="comment">//Does way to much. Many things should be moved to mouse reset one day</span>
+<a name="l00806"></a>00806 <span class="keywordtype">void</span> Mouse_NewVideoMode(<span class="keywordtype">void</span>) {
+<a name="l00807"></a>00807     mouse.inhibit_draw = <span class="keyword">false</span>;
+<a name="l00808"></a>00808     <span class="comment">/* Get the correct resolution from the current video mode */</span>
+<a name="l00809"></a>00809     Bit8u mode = mem_readb(BIOS_VIDEO_MODE);
+<a name="l00810"></a>00810     <span class="keywordflow">if</span>(mode == mouse.mode) {<a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_NORMAL)(<span class="stringliteral">&quot;New video is the same as the old&quot;</span>); <span class="comment">/*return;*/</span>}
+<a name="l00811"></a>00811     mouse.gran_x = (Bit16s)0xffff;
+<a name="l00812"></a>00812     mouse.gran_y = (Bit16s)0xffff;
+<a name="l00813"></a>00813     <span class="keywordflow">switch</span> (mode) {
+<a name="l00814"></a>00814     <span class="keywordflow">case</span> 0x00:
+<a name="l00815"></a>00815     <span class="keywordflow">case</span> 0x01:
+<a name="l00816"></a>00816     <span class="keywordflow">case</span> 0x02:
+<a name="l00817"></a>00817     <span class="keywordflow">case</span> 0x03:
+<a name="l00818"></a>00818     <span class="keywordflow">case</span> 0x07: {
+<a name="l00819"></a>00819         mouse.gran_x = (mode&lt;2)?0xfff0:0xfff8;
+<a name="l00820"></a>00820         mouse.gran_y = (Bit16s)0xfff8;
+<a name="l00821"></a>00821         <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l00822"></a>00822             mouse.max_y = 400 - 1;
+<a name="l00823"></a>00823         }
+<a name="l00824"></a>00824         <span class="keywordflow">else</span> {
+<a name="l00825"></a>00825             Bitu rows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS);
+<a name="l00826"></a>00826             <span class="keywordflow">if</span> ((rows == 0) || (rows &gt; 250)) rows = 25 - 1;
+<a name="l00827"></a>00827             mouse.max_y = 8*(rows+1) - 1;
+<a name="l00828"></a>00828         }
+<a name="l00829"></a>00829         <span class="keywordflow">break</span>;
+<a name="l00830"></a>00830     }
+<a name="l00831"></a>00831     <span class="keywordflow">case</span> 0x04:
+<a name="l00832"></a>00832     <span class="keywordflow">case</span> 0x05:
+<a name="l00833"></a>00833     <span class="keywordflow">case</span> 0x06:
+<a name="l00834"></a>00834     <span class="keywordflow">case</span> 0x08:
+<a name="l00835"></a>00835     <span class="keywordflow">case</span> 0x09:
+<a name="l00836"></a>00836     <span class="keywordflow">case</span> 0x0a:
+<a name="l00837"></a>00837     <span class="keywordflow">case</span> 0x0d:
+<a name="l00838"></a>00838     <span class="keywordflow">case</span> 0x0e:
+<a name="l00839"></a>00839     <span class="keywordflow">case</span> 0x13:
+<a name="l00840"></a>00840         <span class="keywordflow">if</span> (mode == 0x0d || mode == 0x13) mouse.gran_x = (Bit16s)0xfffe;
+<a name="l00841"></a>00841         mouse.max_y = 199;
+<a name="l00842"></a>00842         <span class="keywordflow">break</span>;
+<a name="l00843"></a>00843     <span class="keywordflow">case</span> 0x0f:
+<a name="l00844"></a>00844     <span class="keywordflow">case</span> 0x10:
+<a name="l00845"></a>00845         mouse.max_y = 349;
+<a name="l00846"></a>00846         <span class="keywordflow">break</span>;
+<a name="l00847"></a>00847     <span class="keywordflow">case</span> 0x11:
+<a name="l00848"></a>00848     <span class="keywordflow">case</span> 0x12:
+<a name="l00849"></a>00849         mouse.max_y = 479;
+<a name="l00850"></a>00850         <span class="keywordflow">break</span>;
+<a name="l00851"></a>00851     <span class="keywordflow">default</span>:
+<a name="l00852"></a>00852         <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_ERROR)(<span class="stringliteral">&quot;Unhandled videomode %X on reset&quot;</span>,mode);
+<a name="l00853"></a>00853         mouse.inhibit_draw = <span class="keyword">true</span>;
+<a name="l00854"></a>00854         <span class="keywordflow">return</span>;
+<a name="l00855"></a>00855     }
+<a name="l00856"></a>00856     mouse.mode = mode;
+<a name="l00857"></a>00857     mouse.hidden = 1;
+<a name="l00858"></a>00858     mouse.max_x = 639;
+<a name="l00859"></a>00859     mouse.min_x = 0;
+<a name="l00860"></a>00860     mouse.min_y = 0;
+<a name="l00861"></a>00861 
+<a name="l00862"></a>00862     mouse.events = 0;
+<a name="l00863"></a>00863     mouse.timer_in_progress = <span class="keyword">false</span>;
+<a name="l00864"></a>00864     PIC_RemoveEvents(MOUSE_Limit_Events);
 <a name="l00865"></a>00865 
-<a name="l00866"></a>00866     mouse.mickey_x = 0;
-<a name="l00867"></a>00867     mouse.mickey_y = 0;
-<a name="l00868"></a>00868 
-<a name="l00869"></a>00869     <span class="comment">// Dont set max coordinates here. it is done by SetResolution!</span>
-<a name="l00870"></a>00870     mouse.x = <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>((mouse.max_x + 1)/ 2);
-<a name="l00871"></a>00871     mouse.y = <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>((mouse.max_y + 1)/ 2);
-<a name="l00872"></a>00872     mouse.sub_mask = 0;
-<a name="l00873"></a>00873     mouse.in_UIR = <span class="keyword">false</span>;
-<a name="l00874"></a>00874 }
-<a name="l00875"></a>00875 
-<a name="l00876"></a>00876 <span class="keyword">static</span> Bitu INT33_Handler(<span class="keywordtype">void</span>) {
-<a name="l00877"></a>00877 <span class="comment">//  LOG(LOG_MOUSE,LOG_NORMAL)(&quot;MOUSE: %04X %X %X %d %d&quot;,reg_ax,reg_bx,reg_cx,POS_X,POS_Y);</span>
-<a name="l00878"></a>00878     INT10_SetCurMode();
-<a name="l00879"></a>00879     <span class="keywordflow">switch</span> (reg_ax) {
-<a name="l00880"></a>00880     <span class="keywordflow">case</span> 0x00:  <span class="comment">/* Reset Driver and Read Status */</span>
-<a name="l00881"></a>00881         Mouse_ResetHardware(); <span class="comment">/* fallthrough */</span>
-<a name="l00882"></a>00882     <span class="keywordflow">case</span> 0x21:  <span class="comment">/* Software Reset */</span>
-<a name="l00883"></a>00883         <span class="keyword">extern</span> <span class="keywordtype">bool</span> Mouse_Drv;
-<a name="l00884"></a>00884         <span class="keywordflow">if</span> (Mouse_Drv) {
-<a name="l00885"></a>00885             reg_ax=0xffff;
-<a name="l00886"></a>00886             reg_bx=MOUSE_BUTTONS;
-<a name="l00887"></a>00887             Mouse_Reset();
-<a name="l00888"></a>00888             Mouse_AutoLock(<span class="keyword">true</span>);
-<a name="l00889"></a>00889             AUX_INT33_Takeover();
-<a name="l00890"></a>00890             <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_NORMAL)(<span class="stringliteral">&quot;INT 33h reset&quot;</span>);
-<a name="l00891"></a>00891         }
-<a name="l00892"></a>00892         <span class="keywordflow">break</span>;
-<a name="l00893"></a>00893     <span class="keywordflow">case</span> 0x01:  <span class="comment">/* Show Mouse */</span>
-<a name="l00894"></a>00894         <span class="keywordflow">if</span>(mouse.hidden) mouse.hidden--;
-<a name="l00895"></a>00895         Mouse_AutoLock(<span class="keyword">true</span>);
-<a name="l00896"></a>00896         DrawCursor();
-<a name="l00897"></a>00897         <span class="keywordflow">break</span>;
-<a name="l00898"></a>00898     <span class="keywordflow">case</span> 0x02:  <span class="comment">/* Hide Mouse */</span>
-<a name="l00899"></a>00899         {
-<a name="l00900"></a>00900             <span class="keywordflow">if</span> (CurMode-&gt;type!=M_TEXT) RestoreCursorBackground();
-<a name="l00901"></a>00901             <span class="keywordflow">else</span> RestoreCursorBackgroundText();
-<a name="l00902"></a>00902             mouse.hidden++;
-<a name="l00903"></a>00903         }
-<a name="l00904"></a>00904         <span class="keywordflow">break</span>;
-<a name="l00905"></a>00905     <span class="keywordflow">case</span> 0x03:  <span class="comment">/* Return position and Button Status */</span>
-<a name="l00906"></a>00906         reg_bx=mouse.buttons;
-<a name="l00907"></a>00907         reg_cx=(Bit16u)POS_X;
-<a name="l00908"></a>00908         reg_dx=(Bit16u)POS_Y;
-<a name="l00909"></a>00909         <span class="keywordflow">break</span>;
-<a name="l00910"></a>00910     <span class="keywordflow">case</span> 0x04:  <span class="comment">/* Position Mouse */</span>
-<a name="l00911"></a>00911         <span class="comment">/* If position isn&#39;t different from current position</span>
-<a name="l00912"></a>00912 <span class="comment">         * don&#39;t change it then. (as position is rounded so numbers get</span>
-<a name="l00913"></a>00913 <span class="comment">         * lost when the rounded number is set) (arena/simulation Wolf) */</span>
-<a name="l00914"></a>00914         <span class="keywordflow">if</span> ((Bit16s)reg_cx &gt;= mouse.max_x) mouse.x = static_cast&lt;float&gt;(mouse.max_x);
-<a name="l00915"></a>00915         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mouse.min_x &gt;= (Bit16s)reg_cx) mouse.x = static_cast&lt;float&gt;(mouse.min_x); 
-<a name="l00916"></a>00916         <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((Bit16s)reg_cx != POS_X) mouse.x = static_cast&lt;float&gt;(reg_cx);
-<a name="l00917"></a>00917 
-<a name="l00918"></a>00918         <span class="keywordflow">if</span> ((Bit16s)reg_dx &gt;= mouse.max_y) mouse.y = static_cast&lt;float&gt;(mouse.max_y);
-<a name="l00919"></a>00919         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mouse.min_y &gt;= (Bit16s)reg_dx) mouse.y = static_cast&lt;float&gt;(mouse.min_y); 
-<a name="l00920"></a>00920         <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((Bit16s)reg_dx != POS_Y) mouse.y = static_cast&lt;float&gt;(reg_dx);
-<a name="l00921"></a>00921         DrawCursor();
-<a name="l00922"></a>00922         <span class="keywordflow">break</span>;
-<a name="l00923"></a>00923     <span class="keywordflow">case</span> 0x05:  <span class="comment">/* Return Button Press Data */</span>
-<a name="l00924"></a>00924         {
-<a name="l00925"></a>00925             Bit16u but=reg_bx;
-<a name="l00926"></a>00926             reg_ax=mouse.buttons;
-<a name="l00927"></a>00927             <span class="keywordflow">if</span> (but&gt;=MOUSE_BUTTONS) but = MOUSE_BUTTONS - 1;
-<a name="l00928"></a>00928             reg_cx=mouse.last_pressed_x[but];
-<a name="l00929"></a>00929             reg_dx=mouse.last_pressed_y[but];
-<a name="l00930"></a>00930             reg_bx=mouse.times_pressed[but];
-<a name="l00931"></a>00931             mouse.times_pressed[but]=0;
-<a name="l00932"></a>00932             <span class="keywordflow">break</span>;
-<a name="l00933"></a>00933         }
-<a name="l00934"></a>00934     <span class="keywordflow">case</span> 0x06:  <span class="comment">/* Return Button Release Data */</span>
-<a name="l00935"></a>00935         {
-<a name="l00936"></a>00936             Bit16u but=reg_bx;
-<a name="l00937"></a>00937             reg_ax=mouse.buttons;
-<a name="l00938"></a>00938             <span class="keywordflow">if</span> (but&gt;=MOUSE_BUTTONS) but = MOUSE_BUTTONS - 1;
-<a name="l00939"></a>00939             reg_cx=mouse.last_released_x[but];
-<a name="l00940"></a>00940             reg_dx=mouse.last_released_y[but];
-<a name="l00941"></a>00941             reg_bx=mouse.times_released[but];
-<a name="l00942"></a>00942             mouse.times_released[but]=0;
-<a name="l00943"></a>00943             <span class="keywordflow">break</span>;
-<a name="l00944"></a>00944         }
-<a name="l00945"></a>00945     <span class="keywordflow">case</span> 0x07:  <span class="comment">/* Define horizontal cursor range */</span>
-<a name="l00946"></a>00946         {   <span class="comment">//lemmings set 1-640 and wants that. iron seeds set 0-640 but doesn&#39;t like 640</span>
-<a name="l00947"></a>00947             <span class="comment">//Iron seed works if newvideo mode with mode 13 sets 0-639</span>
-<a name="l00948"></a>00948             <span class="comment">//Larry 6 actually wants newvideo mode with mode 13 to set it to 0-319</span>
-<a name="l00949"></a>00949             Bit16s max,min;
-<a name="l00950"></a>00950             <span class="keywordflow">if</span> ((Bit16s)reg_cx&lt;(Bit16s)reg_dx) { min=(Bit16s)reg_cx;max=(Bit16s)reg_dx;}
-<a name="l00951"></a>00951             <span class="keywordflow">else</span> { min=(Bit16s)reg_dx;max=(Bit16s)reg_cx;}
-<a name="l00952"></a>00952             mouse.min_x=min;
-<a name="l00953"></a>00953             mouse.max_x=max;
-<a name="l00954"></a>00954             <span class="comment">/* Battlechess wants this */</span>
-<a name="l00955"></a>00955             <span class="keywordflow">if</span>(mouse.x &gt; mouse.max_x) mouse.x = mouse.max_x;
-<a name="l00956"></a>00956             <span class="keywordflow">if</span>(mouse.x &lt; mouse.min_x) mouse.x = mouse.min_x;
-<a name="l00957"></a>00957             <span class="comment">/* Or alternatively this: </span>
-<a name="l00958"></a>00958 <span class="comment">            mouse.x = (mouse.max_x - mouse.min_x + 1)/2;*/</span>
-<a name="l00959"></a>00959             <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_NORMAL)(<span class="stringliteral">&quot;Define Hortizontal range min:%d max:%d&quot;</span>,min,max);
-<a name="l00960"></a>00960         }
-<a name="l00961"></a>00961         <span class="keywordflow">break</span>;
-<a name="l00962"></a>00962     <span class="keywordflow">case</span> 0x08:  <span class="comment">/* Define vertical cursor range */</span>
-<a name="l00963"></a>00963         {   <span class="comment">// not sure what to take instead of the CurMode (see case 0x07 as well)</span>
-<a name="l00964"></a>00964             <span class="comment">// especially the cases where sheight= 400 and we set it with the mouse_reset to 200</span>
-<a name="l00965"></a>00965             <span class="comment">//disabled it at the moment. Seems to break syndicate who want 400 in mode 13</span>
-<a name="l00966"></a>00966             Bit16s max,min;
-<a name="l00967"></a>00967             <span class="keywordflow">if</span> ((Bit16s)reg_cx&lt;(Bit16s)reg_dx) { min=(Bit16s)reg_cx;max=(Bit16s)reg_dx;}
-<a name="l00968"></a>00968             <span class="keywordflow">else</span> { min=(Bit16s)reg_dx;max=(Bit16s)reg_cx;}
-<a name="l00969"></a>00969             mouse.min_y=min;
-<a name="l00970"></a>00970             mouse.max_y=max;
-<a name="l00971"></a>00971             <span class="comment">/* Battlechess wants this */</span>
-<a name="l00972"></a>00972             <span class="keywordflow">if</span>(mouse.y &gt; mouse.max_y) mouse.y = mouse.max_y;
-<a name="l00973"></a>00973             <span class="keywordflow">if</span>(mouse.y &lt; mouse.min_y) mouse.y = mouse.min_y;
-<a name="l00974"></a>00974             <span class="comment">/* Or alternatively this: </span>
-<a name="l00975"></a>00975 <span class="comment">            mouse.y = (mouse.max_y - mouse.min_y + 1)/2;*/</span>
-<a name="l00976"></a>00976             <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_NORMAL)(<span class="stringliteral">&quot;Define Vertical range min:%d max:%d&quot;</span>,min,max);
-<a name="l00977"></a>00977         }
-<a name="l00978"></a>00978         <span class="keywordflow">break</span>;
-<a name="l00979"></a>00979     <span class="keywordflow">case</span> 0x09:  <span class="comment">/* Define GFX Cursor */</span>
-<a name="l00980"></a>00980         {
-<a name="l00981"></a>00981             PhysPt src = SegPhys(es)+reg_dx;
-<a name="l00982"></a>00982             MEM_BlockRead(src          ,userdefScreenMask,CURSORY*2);
-<a name="l00983"></a>00983             MEM_BlockRead(src+CURSORY*2,userdefCursorMask,CURSORY*2);
-<a name="l00984"></a>00984             mouse.screenMask = userdefScreenMask;
-<a name="l00985"></a>00985             mouse.cursorMask = userdefCursorMask;
-<a name="l00986"></a>00986             mouse.hotx       = (Bit16s)reg_bx;
-<a name="l00987"></a>00987             mouse.hoty       = (Bit16s)reg_cx;
-<a name="l00988"></a>00988             mouse.cursorType = 2;
-<a name="l00989"></a>00989             DrawCursor();
-<a name="l00990"></a>00990         }
-<a name="l00991"></a>00991         <span class="keywordflow">break</span>;
-<a name="l00992"></a>00992     <span class="keywordflow">case</span> 0x0a:  <span class="comment">/* Define Text Cursor */</span>
-<a name="l00993"></a>00993         mouse.cursorType = reg_bx;
-<a name="l00994"></a>00994         mouse.textAndMask = reg_cx;
-<a name="l00995"></a>00995         mouse.textXorMask = reg_dx;
-<a name="l00996"></a>00996         <span class="keywordflow">break</span>;
-<a name="l00997"></a>00997     <span class="keywordflow">case</span> 0x0b:  <span class="comment">/* Read Motion Data */</span>
-<a name="l00998"></a>00998         reg_cx=(Bit16u)static_cast&lt;Bit16s&gt;(mouse.mickey_x);
-<a name="l00999"></a>00999         reg_dx=(Bit16u)static_cast&lt;Bit16s&gt;(mouse.mickey_y);
-<a name="l01000"></a>01000         mouse.mickey_x=0;
-<a name="l01001"></a>01001         mouse.mickey_y=0;
-<a name="l01002"></a>01002         <span class="keywordflow">break</span>;
-<a name="l01003"></a>01003     <span class="keywordflow">case</span> 0x0c:  <span class="comment">/* Define interrupt subroutine parameters */</span>
-<a name="l01004"></a>01004         mouse.sub_mask=reg_cx;
-<a name="l01005"></a>01005         mouse.sub_seg=SegValue(es);
-<a name="l01006"></a>01006         mouse.sub_ofs=reg_dx;
-<a name="l01007"></a>01007         Mouse_AutoLock(<span class="keyword">true</span>); <span class="comment">//Some games don&#39;t seem to reset the mouse before using</span>
-<a name="l01008"></a>01008         <span class="keywordflow">break</span>;
-<a name="l01009"></a>01009     <span class="keywordflow">case</span> 0x0f:  <span class="comment">/* Define mickey/pixel rate */</span>
-<a name="l01010"></a>01010         Mouse_SetMickeyPixelRate((Bit16s)reg_cx,(Bit16s)reg_dx);
-<a name="l01011"></a>01011         <span class="keywordflow">break</span>;
-<a name="l01012"></a>01012     <span class="keywordflow">case</span> 0x10:      <span class="comment">/* Define screen region for updating */</span>
-<a name="l01013"></a>01013         mouse.updateRegion_x[0]=reg_cx;
-<a name="l01014"></a>01014         mouse.updateRegion_y[0]=reg_dx;
-<a name="l01015"></a>01015         mouse.updateRegion_x[1]=reg_si;
-<a name="l01016"></a>01016         mouse.updateRegion_y[1]=reg_di;
-<a name="l01017"></a>01017         <span class="keywordflow">break</span>;
-<a name="l01018"></a>01018     <span class="keywordflow">case</span> 0x11:      <span class="comment">/* Get number of buttons */</span>
-<a name="l01019"></a>01019         reg_ax=0xffff;
-<a name="l01020"></a>01020         reg_bx=MOUSE_BUTTONS;
-<a name="l01021"></a>01021         <span class="keywordflow">break</span>;
-<a name="l01022"></a>01022     <span class="keywordflow">case</span> 0x13:      <span class="comment">/* Set double-speed threshold */</span>
-<a name="l01023"></a>01023         mouse.doubleSpeedThreshold=(reg_bx ? reg_bx : 64);
-<a name="l01024"></a>01024         <span class="keywordflow">break</span>;
-<a name="l01025"></a>01025     <span class="keywordflow">case</span> 0x14: <span class="comment">/* Exchange event-handler */</span> 
-<a name="l01026"></a>01026         {   
-<a name="l01027"></a>01027             Bit16u oldSeg = mouse.sub_seg;
-<a name="l01028"></a>01028             Bit16u oldOfs = mouse.sub_ofs;
-<a name="l01029"></a>01029             Bit16u oldMask= mouse.sub_mask;
-<a name="l01030"></a>01030             <span class="comment">// Set new values</span>
-<a name="l01031"></a>01031             mouse.sub_mask= reg_cx;
-<a name="l01032"></a>01032             mouse.sub_seg = SegValue(es);
-<a name="l01033"></a>01033             mouse.sub_ofs = reg_dx;
-<a name="l01034"></a>01034             <span class="comment">// Return old values</span>
-<a name="l01035"></a>01035             reg_cx = (Bit16u)oldMask;
-<a name="l01036"></a>01036             reg_dx = (Bit16u)oldOfs;
-<a name="l01037"></a>01037             SegSet16(es,oldSeg);
-<a name="l01038"></a>01038         }
-<a name="l01039"></a>01039         <span class="keywordflow">break</span>;      
-<a name="l01040"></a>01040     <span class="keywordflow">case</span> 0x15: <span class="comment">/* Get Driver storage space requirements */</span>
-<a name="l01041"></a>01041         reg_bx = <span class="keyword">sizeof</span>(mouse);
-<a name="l01042"></a>01042         <span class="keywordflow">break</span>;
-<a name="l01043"></a>01043     <span class="keywordflow">case</span> 0x16: <span class="comment">/* Save driver state */</span>
-<a name="l01044"></a>01044         {
-<a name="l01045"></a>01045             <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_WARN)(<span class="stringliteral">&quot;Saving driver state...&quot;</span>);
-<a name="l01046"></a>01046             PhysPt dest = SegPhys(es)+reg_dx;
-<a name="l01047"></a>01047             MEM_BlockWrite(dest, &amp;mouse, <span class="keyword">sizeof</span>(mouse));
-<a name="l01048"></a>01048         }
-<a name="l01049"></a>01049         <span class="keywordflow">break</span>;
-<a name="l01050"></a>01050     <span class="keywordflow">case</span> 0x17: <span class="comment">/* load driver state */</span>
-<a name="l01051"></a>01051         {
-<a name="l01052"></a>01052             <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_WARN)(<span class="stringliteral">&quot;Loading driver state...&quot;</span>);
-<a name="l01053"></a>01053             PhysPt src = SegPhys(es)+reg_dx;
-<a name="l01054"></a>01054             MEM_BlockRead(src, &amp;mouse, <span class="keyword">sizeof</span>(mouse));
-<a name="l01055"></a>01055         }
-<a name="l01056"></a>01056         <span class="keywordflow">break</span>;
-<a name="l01057"></a>01057     <span class="keywordflow">case</span> 0x1a:  <span class="comment">/* Set mouse sensitivity */</span>
-<a name="l01058"></a>01058         <span class="comment">// ToDo : double mouse speed value</span>
-<a name="l01059"></a>01059         Mouse_SetSensitivity(reg_bx,reg_cx,reg_dx);
-<a name="l01060"></a>01060 
-<a name="l01061"></a>01061         <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_WARN)(<span class="stringliteral">&quot;Set sensitivity used with %d %d (%d)&quot;</span>,reg_bx,reg_cx,reg_dx);
-<a name="l01062"></a>01062         <span class="keywordflow">break</span>;
-<a name="l01063"></a>01063     <span class="keywordflow">case</span> 0x1b:  <span class="comment">/* Get mouse sensitivity */</span>
-<a name="l01064"></a>01064         reg_bx = mouse.senv_x_val;
-<a name="l01065"></a>01065         reg_cx = mouse.senv_y_val;
-<a name="l01066"></a>01066         reg_dx = mouse.dspeed_val;
-<a name="l01067"></a>01067 
-<a name="l01068"></a>01068         <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_WARN)(<span class="stringliteral">&quot;Get sensitivity %d %d&quot;</span>,reg_bx,reg_cx);
-<a name="l01069"></a>01069         <span class="keywordflow">break</span>;
-<a name="l01070"></a>01070     <span class="keywordflow">case</span> 0x1c:  <span class="comment">/* Set interrupt rate */</span>
-<a name="l01071"></a>01071         <span class="comment">/* Can&#39;t really set a rate this is host determined */</span>
-<a name="l01072"></a>01072         <span class="keywordflow">break</span>;
-<a name="l01073"></a>01073     <span class="keywordflow">case</span> 0x1d:      <span class="comment">/* Set display page number */</span>
-<a name="l01074"></a>01074         mouse.page=reg_bl;
-<a name="l01075"></a>01075         <span class="keywordflow">break</span>;
-<a name="l01076"></a>01076     <span class="keywordflow">case</span> 0x1e:      <span class="comment">/* Get display page number */</span>
-<a name="l01077"></a>01077         reg_bx=mouse.page;
+<a name="l00866"></a>00866     mouse.hotx       = 0;
+<a name="l00867"></a>00867     mouse.hoty       = 0;
+<a name="l00868"></a>00868     mouse.background = <span class="keyword">false</span>;
+<a name="l00869"></a>00869     mouse.screenMask = defaultScreenMask;
+<a name="l00870"></a>00870     mouse.cursorMask = defaultCursorMask;
+<a name="l00871"></a>00871     mouse.textAndMask= defaultTextAndMask;
+<a name="l00872"></a>00872     mouse.textXorMask= defaultTextXorMask;
+<a name="l00873"></a>00873     mouse.language   = 0;
+<a name="l00874"></a>00874     mouse.page               = 0;
+<a name="l00875"></a>00875     mouse.doubleSpeedThreshold = 64;
+<a name="l00876"></a>00876     mouse.updateRegion_x[0] = 1;
+<a name="l00877"></a>00877     mouse.updateRegion_y[0] = 1;
+<a name="l00878"></a>00878     mouse.updateRegion_x[1] = 1;
+<a name="l00879"></a>00879     mouse.updateRegion_y[1] = 1;
+<a name="l00880"></a>00880     mouse.cursorType = 0;
+<a name="l00881"></a>00881     mouse.enabled=<span class="keyword">true</span>;
+<a name="l00882"></a>00882     mouse.oldhidden=1;
+<a name="l00883"></a>00883 }
+<a name="l00884"></a>00884 
+<a name="l00885"></a>00885 <span class="comment">//Much too empty, Mouse_NewVideoMode contains stuff that should be in here</span>
+<a name="l00886"></a>00886 <span class="keyword">static</span> <span class="keywordtype">void</span> Mouse_Reset(<span class="keywordtype">void</span>) {
+<a name="l00887"></a>00887     <span class="comment">/* Remove drawn mouse Legends of Valor */</span>
+<a name="l00888"></a>00888     <span class="keywordflow">if</span> (CurMode-&gt;type!=M_TEXT) RestoreCursorBackground();
+<a name="l00889"></a>00889     <span class="keywordflow">else</span> RestoreCursorBackgroundText();
+<a name="l00890"></a>00890     mouse.hidden = 1;
+<a name="l00891"></a>00891 
+<a name="l00892"></a>00892     Mouse_NewVideoMode();
+<a name="l00893"></a>00893     Mouse_SetMickeyPixelRate(8,16);
+<a name="l00894"></a>00894 
+<a name="l00895"></a>00895     mouse.mickey_x = 0;
+<a name="l00896"></a>00896     mouse.mickey_y = 0;
+<a name="l00897"></a>00897 
+<a name="l00898"></a>00898     <span class="comment">// Dont set max coordinates here. it is done by SetResolution!</span>
+<a name="l00899"></a>00899     mouse.x = <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>((mouse.max_x + 1)/ 2);
+<a name="l00900"></a>00900     mouse.y = <span class="keyword">static_cast&lt;</span><span class="keywordtype">float</span><span class="keyword">&gt;</span>((mouse.max_y + 1)/ 2);
+<a name="l00901"></a>00901     mouse.sub_mask = 0;
+<a name="l00902"></a>00902     mouse.in_UIR = <span class="keyword">false</span>;
+<a name="l00903"></a>00903 }
+<a name="l00904"></a>00904 
+<a name="l00905"></a>00905 <span class="keyword">static</span> Bitu INT33_Handler(<span class="keywordtype">void</span>) {
+<a name="l00906"></a>00906 <span class="comment">//  LOG(LOG_MOUSE,LOG_NORMAL)(&quot;MOUSE: %04X %X %X %d %d&quot;,reg_ax,reg_bx,reg_cx,POS_X,POS_Y);</span>
+<a name="l00907"></a>00907     INT10_SetCurMode();
+<a name="l00908"></a>00908     <span class="keywordflow">switch</span> (reg_ax) {
+<a name="l00909"></a>00909     <span class="keywordflow">case</span> 0x00:  <span class="comment">/* Reset Driver and Read Status */</span>
+<a name="l00910"></a>00910         Mouse_ResetHardware(); <span class="comment">/* fallthrough */</span>
+<a name="l00911"></a>00911     <span class="keywordflow">case</span> 0x21:  <span class="comment">/* Software Reset */</span>
+<a name="l00912"></a>00912         <span class="keyword">extern</span> <span class="keywordtype">bool</span> Mouse_Drv;
+<a name="l00913"></a>00913         <span class="keywordflow">if</span> (Mouse_Drv) {
+<a name="l00914"></a>00914             reg_ax=0xffff;
+<a name="l00915"></a>00915             reg_bx=MOUSE_BUTTONS;
+<a name="l00916"></a>00916             Mouse_Reset();
+<a name="l00917"></a>00917             Mouse_AutoLock(<span class="keyword">true</span>);
+<a name="l00918"></a>00918             AUX_INT33_Takeover();
+<a name="l00919"></a>00919             <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_NORMAL)(<span class="stringliteral">&quot;INT 33h reset&quot;</span>);
+<a name="l00920"></a>00920         }
+<a name="l00921"></a>00921         <span class="keywordflow">break</span>;
+<a name="l00922"></a>00922     <span class="keywordflow">case</span> 0x01:  <span class="comment">/* Show Mouse */</span>
+<a name="l00923"></a>00923         <span class="keywordflow">if</span>(mouse.hidden) mouse.hidden--;
+<a name="l00924"></a>00924         Mouse_AutoLock(<span class="keyword">true</span>);
+<a name="l00925"></a>00925         DrawCursor();
+<a name="l00926"></a>00926         <span class="keywordflow">break</span>;
+<a name="l00927"></a>00927     <span class="keywordflow">case</span> 0x02:  <span class="comment">/* Hide Mouse */</span>
+<a name="l00928"></a>00928         {
+<a name="l00929"></a>00929             <span class="keywordflow">if</span> (CurMode-&gt;type!=M_TEXT) RestoreCursorBackground();
+<a name="l00930"></a>00930             <span class="keywordflow">else</span> RestoreCursorBackgroundText();
+<a name="l00931"></a>00931             mouse.hidden++;
+<a name="l00932"></a>00932         }
+<a name="l00933"></a>00933         <span class="keywordflow">break</span>;
+<a name="l00934"></a>00934     <span class="keywordflow">case</span> 0x03:  <span class="comment">/* Return position and Button Status */</span>
+<a name="l00935"></a>00935         reg_bx=mouse.buttons;
+<a name="l00936"></a>00936         reg_cx=(Bit16u)POS_X;
+<a name="l00937"></a>00937         reg_dx=(Bit16u)POS_Y;
+<a name="l00938"></a>00938         <span class="keywordflow">break</span>;
+<a name="l00939"></a>00939     <span class="keywordflow">case</span> 0x04:  <span class="comment">/* Position Mouse */</span>
+<a name="l00940"></a>00940         <span class="comment">/* If position isn&#39;t different from current position</span>
+<a name="l00941"></a>00941 <span class="comment">         * don&#39;t change it then. (as position is rounded so numbers get</span>
+<a name="l00942"></a>00942 <span class="comment">         * lost when the rounded number is set) (arena/simulation Wolf) */</span>
+<a name="l00943"></a>00943         <span class="keywordflow">if</span> ((Bit16s)reg_cx &gt;= mouse.max_x) mouse.x = static_cast&lt;float&gt;(mouse.max_x);
+<a name="l00944"></a>00944         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mouse.min_x &gt;= (Bit16s)reg_cx) mouse.x = static_cast&lt;float&gt;(mouse.min_x); 
+<a name="l00945"></a>00945         <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((Bit16s)reg_cx != POS_X) mouse.x = static_cast&lt;float&gt;(reg_cx);
+<a name="l00946"></a>00946 
+<a name="l00947"></a>00947         <span class="keywordflow">if</span> ((Bit16s)reg_dx &gt;= mouse.max_y) mouse.y = static_cast&lt;float&gt;(mouse.max_y);
+<a name="l00948"></a>00948         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mouse.min_y &gt;= (Bit16s)reg_dx) mouse.y = static_cast&lt;float&gt;(mouse.min_y); 
+<a name="l00949"></a>00949         <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((Bit16s)reg_dx != POS_Y) mouse.y = static_cast&lt;float&gt;(reg_dx);
+<a name="l00950"></a>00950         DrawCursor();
+<a name="l00951"></a>00951         <span class="keywordflow">break</span>;
+<a name="l00952"></a>00952     <span class="keywordflow">case</span> 0x05:  <span class="comment">/* Return Button Press Data */</span>
+<a name="l00953"></a>00953         {
+<a name="l00954"></a>00954             Bit16u but=reg_bx;
+<a name="l00955"></a>00955             reg_ax=mouse.buttons;
+<a name="l00956"></a>00956             <span class="keywordflow">if</span> (but&gt;=MOUSE_BUTTONS) but = MOUSE_BUTTONS - 1;
+<a name="l00957"></a>00957             reg_cx=mouse.last_pressed_x[but];
+<a name="l00958"></a>00958             reg_dx=mouse.last_pressed_y[but];
+<a name="l00959"></a>00959             reg_bx=mouse.times_pressed[but];
+<a name="l00960"></a>00960             mouse.times_pressed[but]=0;
+<a name="l00961"></a>00961             <span class="keywordflow">break</span>;
+<a name="l00962"></a>00962         }
+<a name="l00963"></a>00963     <span class="keywordflow">case</span> 0x06:  <span class="comment">/* Return Button Release Data */</span>
+<a name="l00964"></a>00964         {
+<a name="l00965"></a>00965             Bit16u but=reg_bx;
+<a name="l00966"></a>00966             reg_ax=mouse.buttons;
+<a name="l00967"></a>00967             <span class="keywordflow">if</span> (but&gt;=MOUSE_BUTTONS) but = MOUSE_BUTTONS - 1;
+<a name="l00968"></a>00968             reg_cx=mouse.last_released_x[but];
+<a name="l00969"></a>00969             reg_dx=mouse.last_released_y[but];
+<a name="l00970"></a>00970             reg_bx=mouse.times_released[but];
+<a name="l00971"></a>00971             mouse.times_released[but]=0;
+<a name="l00972"></a>00972             <span class="keywordflow">break</span>;
+<a name="l00973"></a>00973         }
+<a name="l00974"></a>00974     <span class="keywordflow">case</span> 0x07:  <span class="comment">/* Define horizontal cursor range */</span>
+<a name="l00975"></a>00975         {   <span class="comment">//lemmings set 1-640 and wants that. iron seeds set 0-640 but doesn&#39;t like 640</span>
+<a name="l00976"></a>00976             <span class="comment">//Iron seed works if newvideo mode with mode 13 sets 0-639</span>
+<a name="l00977"></a>00977             <span class="comment">//Larry 6 actually wants newvideo mode with mode 13 to set it to 0-319</span>
+<a name="l00978"></a>00978             Bit16s max,min;
+<a name="l00979"></a>00979             <span class="keywordflow">if</span> ((Bit16s)reg_cx&lt;(Bit16s)reg_dx) { min=(Bit16s)reg_cx;max=(Bit16s)reg_dx;}
+<a name="l00980"></a>00980             <span class="keywordflow">else</span> { min=(Bit16s)reg_dx;max=(Bit16s)reg_cx;}
+<a name="l00981"></a>00981             mouse.min_x=min;
+<a name="l00982"></a>00982             mouse.max_x=max;
+<a name="l00983"></a>00983             <span class="comment">/* Battlechess wants this */</span>
+<a name="l00984"></a>00984             <span class="keywordflow">if</span>(mouse.x &gt; mouse.max_x) mouse.x = mouse.max_x;
+<a name="l00985"></a>00985             <span class="keywordflow">if</span>(mouse.x &lt; mouse.min_x) mouse.x = mouse.min_x;
+<a name="l00986"></a>00986             <span class="comment">/* Or alternatively this: </span>
+<a name="l00987"></a>00987 <span class="comment">            mouse.x = (mouse.max_x - mouse.min_x + 1)/2;*/</span>
+<a name="l00988"></a>00988             <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_NORMAL)(<span class="stringliteral">&quot;Define Hortizontal range min:%d max:%d&quot;</span>,min,max);
+<a name="l00989"></a>00989         }
+<a name="l00990"></a>00990         <span class="keywordflow">break</span>;
+<a name="l00991"></a>00991     <span class="keywordflow">case</span> 0x08:  <span class="comment">/* Define vertical cursor range */</span>
+<a name="l00992"></a>00992         {   <span class="comment">// not sure what to take instead of the CurMode (see case 0x07 as well)</span>
+<a name="l00993"></a>00993             <span class="comment">// especially the cases where sheight= 400 and we set it with the mouse_reset to 200</span>
+<a name="l00994"></a>00994             <span class="comment">//disabled it at the moment. Seems to break syndicate who want 400 in mode 13</span>
+<a name="l00995"></a>00995             Bit16s max,min;
+<a name="l00996"></a>00996             <span class="keywordflow">if</span> ((Bit16s)reg_cx&lt;(Bit16s)reg_dx) { min=(Bit16s)reg_cx;max=(Bit16s)reg_dx;}
+<a name="l00997"></a>00997             <span class="keywordflow">else</span> { min=(Bit16s)reg_dx;max=(Bit16s)reg_cx;}
+<a name="l00998"></a>00998             mouse.min_y=min;
+<a name="l00999"></a>00999             mouse.max_y=max;
+<a name="l01000"></a>01000             <span class="comment">/* Battlechess wants this */</span>
+<a name="l01001"></a>01001             <span class="keywordflow">if</span>(mouse.y &gt; mouse.max_y) mouse.y = mouse.max_y;
+<a name="l01002"></a>01002             <span class="keywordflow">if</span>(mouse.y &lt; mouse.min_y) mouse.y = mouse.min_y;
+<a name="l01003"></a>01003             <span class="comment">/* Or alternatively this: </span>
+<a name="l01004"></a>01004 <span class="comment">            mouse.y = (mouse.max_y - mouse.min_y + 1)/2;*/</span>
+<a name="l01005"></a>01005             <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_NORMAL)(<span class="stringliteral">&quot;Define Vertical range min:%d max:%d&quot;</span>,min,max);
+<a name="l01006"></a>01006         }
+<a name="l01007"></a>01007         <span class="keywordflow">break</span>;
+<a name="l01008"></a>01008     <span class="keywordflow">case</span> 0x09:  <span class="comment">/* Define GFX Cursor */</span>
+<a name="l01009"></a>01009         {
+<a name="l01010"></a>01010             PhysPt src = SegPhys(es)+reg_dx;
+<a name="l01011"></a>01011             MEM_BlockRead(src          ,userdefScreenMask,CURSORY*2);
+<a name="l01012"></a>01012             MEM_BlockRead(src+CURSORY*2,userdefCursorMask,CURSORY*2);
+<a name="l01013"></a>01013             mouse.screenMask = userdefScreenMask;
+<a name="l01014"></a>01014             mouse.cursorMask = userdefCursorMask;
+<a name="l01015"></a>01015             mouse.hotx       = (Bit16s)reg_bx;
+<a name="l01016"></a>01016             mouse.hoty       = (Bit16s)reg_cx;
+<a name="l01017"></a>01017             mouse.cursorType = 2;
+<a name="l01018"></a>01018             DrawCursor();
+<a name="l01019"></a>01019         }
+<a name="l01020"></a>01020         <span class="keywordflow">break</span>;
+<a name="l01021"></a>01021     <span class="keywordflow">case</span> 0x0a:  <span class="comment">/* Define Text Cursor */</span>
+<a name="l01022"></a>01022         mouse.cursorType = reg_bx;
+<a name="l01023"></a>01023         mouse.textAndMask = reg_cx;
+<a name="l01024"></a>01024         mouse.textXorMask = reg_dx;
+<a name="l01025"></a>01025         <span class="keywordflow">break</span>;
+<a name="l01026"></a>01026     <span class="keywordflow">case</span> 0x0b:  <span class="comment">/* Read Motion Data */</span>
+<a name="l01027"></a>01027         reg_cx=(Bit16u)static_cast&lt;Bit16s&gt;(mouse.mickey_x);
+<a name="l01028"></a>01028         reg_dx=(Bit16u)static_cast&lt;Bit16s&gt;(mouse.mickey_y);
+<a name="l01029"></a>01029         mouse.mickey_x=0;
+<a name="l01030"></a>01030         mouse.mickey_y=0;
+<a name="l01031"></a>01031         <span class="keywordflow">break</span>;
+<a name="l01032"></a>01032     <span class="keywordflow">case</span> 0x0c:  <span class="comment">/* Define interrupt subroutine parameters */</span>
+<a name="l01033"></a>01033         mouse.sub_mask=reg_cx;
+<a name="l01034"></a>01034         mouse.sub_seg=SegValue(es);
+<a name="l01035"></a>01035         mouse.sub_ofs=reg_dx;
+<a name="l01036"></a>01036         Mouse_AutoLock(<span class="keyword">true</span>); <span class="comment">//Some games don&#39;t seem to reset the mouse before using</span>
+<a name="l01037"></a>01037         <span class="keywordflow">break</span>;
+<a name="l01038"></a>01038     <span class="keywordflow">case</span> 0x0f:  <span class="comment">/* Define mickey/pixel rate */</span>
+<a name="l01039"></a>01039         Mouse_SetMickeyPixelRate((Bit16s)reg_cx,(Bit16s)reg_dx);
+<a name="l01040"></a>01040         <span class="keywordflow">break</span>;
+<a name="l01041"></a>01041     <span class="keywordflow">case</span> 0x10:      <span class="comment">/* Define screen region for updating */</span>
+<a name="l01042"></a>01042         mouse.updateRegion_x[0]=reg_cx;
+<a name="l01043"></a>01043         mouse.updateRegion_y[0]=reg_dx;
+<a name="l01044"></a>01044         mouse.updateRegion_x[1]=reg_si;
+<a name="l01045"></a>01045         mouse.updateRegion_y[1]=reg_di;
+<a name="l01046"></a>01046         <span class="keywordflow">break</span>;
+<a name="l01047"></a>01047     <span class="keywordflow">case</span> 0x11:      <span class="comment">/* Get number of buttons */</span>
+<a name="l01048"></a>01048         reg_ax=0xffff;
+<a name="l01049"></a>01049         reg_bx=MOUSE_BUTTONS;
+<a name="l01050"></a>01050         <span class="keywordflow">break</span>;
+<a name="l01051"></a>01051     <span class="keywordflow">case</span> 0x13:      <span class="comment">/* Set double-speed threshold */</span>
+<a name="l01052"></a>01052         mouse.doubleSpeedThreshold=(reg_bx ? reg_bx : 64);
+<a name="l01053"></a>01053         <span class="keywordflow">break</span>;
+<a name="l01054"></a>01054     <span class="keywordflow">case</span> 0x14: <span class="comment">/* Exchange event-handler */</span> 
+<a name="l01055"></a>01055         {   
+<a name="l01056"></a>01056             Bit16u oldSeg = mouse.sub_seg;
+<a name="l01057"></a>01057             Bit16u oldOfs = mouse.sub_ofs;
+<a name="l01058"></a>01058             Bit16u oldMask= mouse.sub_mask;
+<a name="l01059"></a>01059             <span class="comment">// Set new values</span>
+<a name="l01060"></a>01060             mouse.sub_mask= reg_cx;
+<a name="l01061"></a>01061             mouse.sub_seg = SegValue(es);
+<a name="l01062"></a>01062             mouse.sub_ofs = reg_dx;
+<a name="l01063"></a>01063             <span class="comment">// Return old values</span>
+<a name="l01064"></a>01064             reg_cx = (Bit16u)oldMask;
+<a name="l01065"></a>01065             reg_dx = (Bit16u)oldOfs;
+<a name="l01066"></a>01066             SegSet16(es,oldSeg);
+<a name="l01067"></a>01067         }
+<a name="l01068"></a>01068         <span class="keywordflow">break</span>;      
+<a name="l01069"></a>01069     <span class="keywordflow">case</span> 0x15: <span class="comment">/* Get Driver storage space requirements */</span>
+<a name="l01070"></a>01070         reg_bx = <span class="keyword">sizeof</span>(mouse);
+<a name="l01071"></a>01071         <span class="keywordflow">break</span>;
+<a name="l01072"></a>01072     <span class="keywordflow">case</span> 0x16: <span class="comment">/* Save driver state */</span>
+<a name="l01073"></a>01073         {
+<a name="l01074"></a>01074             <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_WARN)(<span class="stringliteral">&quot;Saving driver state...&quot;</span>);
+<a name="l01075"></a>01075             PhysPt dest = SegPhys(es)+reg_dx;
+<a name="l01076"></a>01076             MEM_BlockWrite(dest, &amp;mouse, <span class="keyword">sizeof</span>(mouse));
+<a name="l01077"></a>01077         }
 <a name="l01078"></a>01078         <span class="keywordflow">break</span>;
-<a name="l01079"></a>01079     <span class="keywordflow">case</span> 0x1f:  <span class="comment">/* Disable Mousedriver */</span>
-<a name="l01080"></a>01080         <span class="comment">/* ES:BX old mouse driver Zero at the moment TODO */</span> 
-<a name="l01081"></a>01081         reg_bx=0;
-<a name="l01082"></a>01082         SegSet16(es,0);    
-<a name="l01083"></a>01083         mouse.enabled=<span class="keyword">false</span>; <span class="comment">/* Just for reporting not doing a thing with it */</span>
-<a name="l01084"></a>01084         mouse.oldhidden=mouse.hidden;
-<a name="l01085"></a>01085         mouse.hidden=1;
-<a name="l01086"></a>01086         <span class="keywordflow">break</span>;
-<a name="l01087"></a>01087     <span class="keywordflow">case</span> 0x20:  <span class="comment">/* Enable Mousedriver */</span>
-<a name="l01088"></a>01088         mouse.enabled=<span class="keyword">true</span>;
-<a name="l01089"></a>01089         mouse.hidden=mouse.oldhidden;
-<a name="l01090"></a>01090         <span class="keywordflow">break</span>;
-<a name="l01091"></a>01091     <span class="keywordflow">case</span> 0x22:      <span class="comment">/* Set language for messages */</span>
-<a name="l01092"></a>01092             <span class="comment">/*</span>
-<a name="l01093"></a>01093 <span class="comment">             *                        Values for mouse driver language:</span>
-<a name="l01094"></a>01094 <span class="comment">             * </span>
-<a name="l01095"></a>01095 <span class="comment">             *                        00h     English</span>
-<a name="l01096"></a>01096 <span class="comment">             *                        01h     French</span>
-<a name="l01097"></a>01097 <span class="comment">             *                        02h     Dutch</span>
-<a name="l01098"></a>01098 <span class="comment">             *                        03h     German</span>
-<a name="l01099"></a>01099 <span class="comment">             *                        04h     Swedish</span>
-<a name="l01100"></a>01100 <span class="comment">             *                        05h     Finnish</span>
-<a name="l01101"></a>01101 <span class="comment">             *                        06h     Spanish</span>
-<a name="l01102"></a>01102 <span class="comment">             *                        07h     Portugese</span>
-<a name="l01103"></a>01103 <span class="comment">             *                        08h     Italian</span>
-<a name="l01104"></a>01104 <span class="comment">             *                </span>
-<a name="l01105"></a>01105 <span class="comment">             */</span>
-<a name="l01106"></a>01106         mouse.language=reg_bx;
+<a name="l01079"></a>01079     <span class="keywordflow">case</span> 0x17: <span class="comment">/* load driver state */</span>
+<a name="l01080"></a>01080         {
+<a name="l01081"></a>01081             <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_WARN)(<span class="stringliteral">&quot;Loading driver state...&quot;</span>);
+<a name="l01082"></a>01082             PhysPt src = SegPhys(es)+reg_dx;
+<a name="l01083"></a>01083             MEM_BlockRead(src, &amp;mouse, <span class="keyword">sizeof</span>(mouse));
+<a name="l01084"></a>01084         }
+<a name="l01085"></a>01085         <span class="keywordflow">break</span>;
+<a name="l01086"></a>01086     <span class="keywordflow">case</span> 0x1a:  <span class="comment">/* Set mouse sensitivity */</span>
+<a name="l01087"></a>01087         <span class="comment">// ToDo : double mouse speed value</span>
+<a name="l01088"></a>01088         Mouse_SetSensitivity(reg_bx,reg_cx,reg_dx);
+<a name="l01089"></a>01089 
+<a name="l01090"></a>01090         <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_WARN)(<span class="stringliteral">&quot;Set sensitivity used with %d %d (%d)&quot;</span>,reg_bx,reg_cx,reg_dx);
+<a name="l01091"></a>01091         <span class="keywordflow">break</span>;
+<a name="l01092"></a>01092     <span class="keywordflow">case</span> 0x1b:  <span class="comment">/* Get mouse sensitivity */</span>
+<a name="l01093"></a>01093         reg_bx = mouse.senv_x_val;
+<a name="l01094"></a>01094         reg_cx = mouse.senv_y_val;
+<a name="l01095"></a>01095         reg_dx = mouse.dspeed_val;
+<a name="l01096"></a>01096 
+<a name="l01097"></a>01097         <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_WARN)(<span class="stringliteral">&quot;Get sensitivity %d %d&quot;</span>,reg_bx,reg_cx);
+<a name="l01098"></a>01098         <span class="keywordflow">break</span>;
+<a name="l01099"></a>01099     <span class="keywordflow">case</span> 0x1c:  <span class="comment">/* Set interrupt rate */</span>
+<a name="l01100"></a>01100         <span class="comment">/* Can&#39;t really set a rate this is host determined */</span>
+<a name="l01101"></a>01101         <span class="keywordflow">break</span>;
+<a name="l01102"></a>01102     <span class="keywordflow">case</span> 0x1d:      <span class="comment">/* Set display page number */</span>
+<a name="l01103"></a>01103         mouse.page=reg_bl;
+<a name="l01104"></a>01104         <span class="keywordflow">break</span>;
+<a name="l01105"></a>01105     <span class="keywordflow">case</span> 0x1e:      <span class="comment">/* Get display page number */</span>
+<a name="l01106"></a>01106         reg_bx=mouse.page;
 <a name="l01107"></a>01107         <span class="keywordflow">break</span>;
-<a name="l01108"></a>01108     <span class="keywordflow">case</span> 0x23:      <span class="comment">/* Get language for messages */</span>
-<a name="l01109"></a>01109         reg_bx=mouse.language;
-<a name="l01110"></a>01110         <span class="keywordflow">break</span>;
-<a name="l01111"></a>01111     <span class="keywordflow">case</span> 0x24:  <span class="comment">/* Get Software version and mouse type */</span>
-<a name="l01112"></a>01112         reg_bx=0x805;   <span class="comment">//Version 8.05 woohoo </span>
-<a name="l01113"></a>01113         reg_ch=0x04;    <span class="comment">/* PS/2 type */</span>
-<a name="l01114"></a>01114         reg_cl=0;       <span class="comment">/* PS/2 (unused) */</span>
+<a name="l01108"></a>01108     <span class="keywordflow">case</span> 0x1f:  <span class="comment">/* Disable Mousedriver */</span>
+<a name="l01109"></a>01109         <span class="comment">/* ES:BX old mouse driver Zero at the moment TODO */</span> 
+<a name="l01110"></a>01110         reg_bx=0;
+<a name="l01111"></a>01111         SegSet16(es,0);    
+<a name="l01112"></a>01112         mouse.enabled=<span class="keyword">false</span>; <span class="comment">/* Just for reporting not doing a thing with it */</span>
+<a name="l01113"></a>01113         mouse.oldhidden=mouse.hidden;
+<a name="l01114"></a>01114         mouse.hidden=1;
 <a name="l01115"></a>01115         <span class="keywordflow">break</span>;
-<a name="l01116"></a>01116     <span class="keywordflow">case</span> 0x26: <span class="comment">/* Get Maximum virtual coordinates */</span>
-<a name="l01117"></a>01117         reg_bx=(mouse.enabled ? 0x0000 : 0xffff);
-<a name="l01118"></a>01118         reg_cx=(Bit16u)mouse.max_x;
-<a name="l01119"></a>01119         reg_dx=(Bit16u)mouse.max_y;
-<a name="l01120"></a>01120         <span class="keywordflow">break</span>;
-<a name="l01121"></a>01121     <span class="keywordflow">case</span> 0x2a:  <span class="comment">/* Get cursor hot spot */</span>
-<a name="l01122"></a>01122         reg_al=(Bit8u)-mouse.hidden;    <span class="comment">// Microsoft uses a negative byte counter for cursor visibility</span>
-<a name="l01123"></a>01123         reg_bx=(Bit16u)mouse.hotx;
-<a name="l01124"></a>01124         reg_cx=(Bit16u)mouse.hoty;
-<a name="l01125"></a>01125         reg_dx=0x04;    <span class="comment">// PS/2 mouse type</span>
-<a name="l01126"></a>01126         <span class="keywordflow">break</span>;
-<a name="l01127"></a>01127     <span class="keywordflow">case</span> 0x31: <span class="comment">/* Get Current Minimum/Maximum virtual coordinates */</span>
-<a name="l01128"></a>01128         reg_ax=(Bit16u)mouse.min_x;
-<a name="l01129"></a>01129         reg_bx=(Bit16u)mouse.min_y;
-<a name="l01130"></a>01130         reg_cx=(Bit16u)mouse.max_x;
-<a name="l01131"></a>01131         reg_dx=(Bit16u)mouse.max_y;
-<a name="l01132"></a>01132         <span class="keywordflow">break</span>;
-<a name="l01133"></a>01133     <span class="keywordflow">default</span>:
-<a name="l01134"></a>01134         <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_ERROR)(<span class="stringliteral">&quot;Mouse Function %04X not implemented!&quot;</span>,reg_ax);
-<a name="l01135"></a>01135         <span class="keywordflow">break</span>;
-<a name="l01136"></a>01136     }
-<a name="l01137"></a>01137     <span class="keywordflow">return</span> CBRET_NONE;
-<a name="l01138"></a>01138 }
-<a name="l01139"></a>01139 
-<a name="l01140"></a>01140 <span class="keyword">static</span> Bitu MOUSE_BD_Handler(<span class="keywordtype">void</span>) {
-<a name="l01141"></a>01141     <span class="comment">// the stack contains offsets to register values</span>
-<a name="l01142"></a>01142     Bit16u raxpt=real_readw(SegValue(ss),reg_sp+0x0a);
-<a name="l01143"></a>01143     Bit16u rbxpt=real_readw(SegValue(ss),reg_sp+0x08);
-<a name="l01144"></a>01144     Bit16u rcxpt=real_readw(SegValue(ss),reg_sp+0x06);
-<a name="l01145"></a>01145     Bit16u rdxpt=real_readw(SegValue(ss),reg_sp+0x04);
-<a name="l01146"></a>01146 
-<a name="l01147"></a>01147     <span class="comment">// read out the actual values, registers ARE overwritten</span>
-<a name="l01148"></a>01148     Bit16u rax=real_readw(SegValue(ds),raxpt);
-<a name="l01149"></a>01149     reg_ax=rax;
-<a name="l01150"></a>01150     reg_bx=real_readw(SegValue(ds),rbxpt);
-<a name="l01151"></a>01151     reg_cx=real_readw(SegValue(ds),rcxpt);
-<a name="l01152"></a>01152     reg_dx=real_readw(SegValue(ds),rdxpt);
-<a name="l01153"></a>01153 <span class="comment">//  LOG_MSG(&quot;MOUSE BD: %04X %X %X %X %d %d&quot;,reg_ax,reg_bx,reg_cx,reg_dx,POS_X,POS_Y);</span>
-<a name="l01154"></a>01154     
-<a name="l01155"></a>01155     <span class="comment">// some functions are treated in a special way (additional registers)</span>
-<a name="l01156"></a>01156     <span class="keywordflow">switch</span> (rax) {
-<a name="l01157"></a>01157         <span class="keywordflow">case</span> 0x09:  <span class="comment">/* Define GFX Cursor */</span>
-<a name="l01158"></a>01158         <span class="keywordflow">case</span> 0x16:  <span class="comment">/* Save driver state */</span>
-<a name="l01159"></a>01159         <span class="keywordflow">case</span> 0x17:  <span class="comment">/* load driver state */</span>
-<a name="l01160"></a>01160             SegSet16(es,SegValue(ds));
-<a name="l01161"></a>01161             <span class="keywordflow">break</span>;
-<a name="l01162"></a>01162         <span class="keywordflow">case</span> 0x0c:  <span class="comment">/* Define interrupt subroutine parameters */</span>
-<a name="l01163"></a>01163         <span class="keywordflow">case</span> 0x14:  <span class="comment">/* Exchange event-handler */</span> 
-<a name="l01164"></a>01164             <span class="keywordflow">if</span> (reg_bx!=0) SegSet16(es,reg_bx);
-<a name="l01165"></a>01165             <span class="keywordflow">else</span> SegSet16(es,SegValue(ds));
-<a name="l01166"></a>01166             <span class="keywordflow">break</span>;
-<a name="l01167"></a>01167         <span class="keywordflow">case</span> 0x10:  <span class="comment">/* Define screen region for updating */</span>
-<a name="l01168"></a>01168             reg_cx=real_readw(SegValue(ds),rdxpt);
-<a name="l01169"></a>01169             reg_dx=real_readw(SegValue(ds),rdxpt+2);
-<a name="l01170"></a>01170             reg_si=real_readw(SegValue(ds),rdxpt+4);
-<a name="l01171"></a>01171             reg_di=real_readw(SegValue(ds),rdxpt+6);
-<a name="l01172"></a>01172             <span class="keywordflow">break</span>;
-<a name="l01173"></a>01173         <span class="keywordflow">default</span>:
-<a name="l01174"></a>01174             <span class="keywordflow">break</span>;
-<a name="l01175"></a>01175     }
-<a name="l01176"></a>01176 
-<a name="l01177"></a>01177     INT33_Handler();
-<a name="l01178"></a>01178 
-<a name="l01179"></a>01179     <span class="comment">// save back the registers, too</span>
-<a name="l01180"></a>01180     real_writew(SegValue(ds),raxpt,reg_ax);
-<a name="l01181"></a>01181     real_writew(SegValue(ds),rbxpt,reg_bx);
-<a name="l01182"></a>01182     real_writew(SegValue(ds),rcxpt,reg_cx);
-<a name="l01183"></a>01183     real_writew(SegValue(ds),rdxpt,reg_dx);
-<a name="l01184"></a>01184     <span class="keywordflow">switch</span> (rax) {
-<a name="l01185"></a>01185         <span class="keywordflow">case</span> 0x1f:  <span class="comment">/* Disable Mousedriver */</span>
-<a name="l01186"></a>01186             real_writew(SegValue(ds),rbxpt,SegValue(es));
-<a name="l01187"></a>01187             <span class="keywordflow">break</span>;
-<a name="l01188"></a>01188         <span class="keywordflow">case</span> 0x14: <span class="comment">/* Exchange event-handler */</span> 
-<a name="l01189"></a>01189             real_writew(SegValue(ds),rcxpt,SegValue(es));
+<a name="l01116"></a>01116     <span class="keywordflow">case</span> 0x20:  <span class="comment">/* Enable Mousedriver */</span>
+<a name="l01117"></a>01117         mouse.enabled=<span class="keyword">true</span>;
+<a name="l01118"></a>01118         mouse.hidden=mouse.oldhidden;
+<a name="l01119"></a>01119         <span class="keywordflow">break</span>;
+<a name="l01120"></a>01120     <span class="keywordflow">case</span> 0x22:      <span class="comment">/* Set language for messages */</span>
+<a name="l01121"></a>01121             <span class="comment">/*</span>
+<a name="l01122"></a>01122 <span class="comment">             *                        Values for mouse driver language:</span>
+<a name="l01123"></a>01123 <span class="comment">             * </span>
+<a name="l01124"></a>01124 <span class="comment">             *                        00h     English</span>
+<a name="l01125"></a>01125 <span class="comment">             *                        01h     French</span>
+<a name="l01126"></a>01126 <span class="comment">             *                        02h     Dutch</span>
+<a name="l01127"></a>01127 <span class="comment">             *                        03h     German</span>
+<a name="l01128"></a>01128 <span class="comment">             *                        04h     Swedish</span>
+<a name="l01129"></a>01129 <span class="comment">             *                        05h     Finnish</span>
+<a name="l01130"></a>01130 <span class="comment">             *                        06h     Spanish</span>
+<a name="l01131"></a>01131 <span class="comment">             *                        07h     Portugese</span>
+<a name="l01132"></a>01132 <span class="comment">             *                        08h     Italian</span>
+<a name="l01133"></a>01133 <span class="comment">             *                </span>
+<a name="l01134"></a>01134 <span class="comment">             */</span>
+<a name="l01135"></a>01135         mouse.language=reg_bx;
+<a name="l01136"></a>01136         <span class="keywordflow">break</span>;
+<a name="l01137"></a>01137     <span class="keywordflow">case</span> 0x23:      <span class="comment">/* Get language for messages */</span>
+<a name="l01138"></a>01138         reg_bx=mouse.language;
+<a name="l01139"></a>01139         <span class="keywordflow">break</span>;
+<a name="l01140"></a>01140     <span class="keywordflow">case</span> 0x24:  <span class="comment">/* Get Software version and mouse type */</span>
+<a name="l01141"></a>01141         reg_bx=0x805;   <span class="comment">//Version 8.05 woohoo </span>
+<a name="l01142"></a>01142         reg_ch=0x04;    <span class="comment">/* PS/2 type */</span>
+<a name="l01143"></a>01143         reg_cl=0;       <span class="comment">/* PS/2 (unused) */</span>
+<a name="l01144"></a>01144         <span class="keywordflow">break</span>;
+<a name="l01145"></a>01145     <span class="keywordflow">case</span> 0x26: <span class="comment">/* Get Maximum virtual coordinates */</span>
+<a name="l01146"></a>01146         reg_bx=(mouse.enabled ? 0x0000 : 0xffff);
+<a name="l01147"></a>01147         reg_cx=(Bit16u)mouse.max_x;
+<a name="l01148"></a>01148         reg_dx=(Bit16u)mouse.max_y;
+<a name="l01149"></a>01149         <span class="keywordflow">break</span>;
+<a name="l01150"></a>01150     <span class="keywordflow">case</span> 0x2a:  <span class="comment">/* Get cursor hot spot */</span>
+<a name="l01151"></a>01151         reg_al=(Bit8u)-mouse.hidden;    <span class="comment">// Microsoft uses a negative byte counter for cursor visibility</span>
+<a name="l01152"></a>01152         reg_bx=(Bit16u)mouse.hotx;
+<a name="l01153"></a>01153         reg_cx=(Bit16u)mouse.hoty;
+<a name="l01154"></a>01154         reg_dx=0x04;    <span class="comment">// PS/2 mouse type</span>
+<a name="l01155"></a>01155         <span class="keywordflow">break</span>;
+<a name="l01156"></a>01156     <span class="keywordflow">case</span> 0x31: <span class="comment">/* Get Current Minimum/Maximum virtual coordinates */</span>
+<a name="l01157"></a>01157         reg_ax=(Bit16u)mouse.min_x;
+<a name="l01158"></a>01158         reg_bx=(Bit16u)mouse.min_y;
+<a name="l01159"></a>01159         reg_cx=(Bit16u)mouse.max_x;
+<a name="l01160"></a>01160         reg_dx=(Bit16u)mouse.max_y;
+<a name="l01161"></a>01161         <span class="keywordflow">break</span>;
+<a name="l01162"></a>01162     <span class="keywordflow">default</span>:
+<a name="l01163"></a>01163         <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_ERROR)(<span class="stringliteral">&quot;Mouse Function %04X not implemented!&quot;</span>,reg_ax);
+<a name="l01164"></a>01164         <span class="keywordflow">break</span>;
+<a name="l01165"></a>01165     }
+<a name="l01166"></a>01166     <span class="keywordflow">return</span> CBRET_NONE;
+<a name="l01167"></a>01167 }
+<a name="l01168"></a>01168 
+<a name="l01169"></a>01169 <span class="keyword">static</span> Bitu MOUSE_BD_Handler(<span class="keywordtype">void</span>) {
+<a name="l01170"></a>01170     <span class="comment">// the stack contains offsets to register values</span>
+<a name="l01171"></a>01171     Bit16u raxpt=real_readw(SegValue(ss),reg_sp+0x0a);
+<a name="l01172"></a>01172     Bit16u rbxpt=real_readw(SegValue(ss),reg_sp+0x08);
+<a name="l01173"></a>01173     Bit16u rcxpt=real_readw(SegValue(ss),reg_sp+0x06);
+<a name="l01174"></a>01174     Bit16u rdxpt=real_readw(SegValue(ss),reg_sp+0x04);
+<a name="l01175"></a>01175 
+<a name="l01176"></a>01176     <span class="comment">// read out the actual values, registers ARE overwritten</span>
+<a name="l01177"></a>01177     Bit16u rax=real_readw(SegValue(ds),raxpt);
+<a name="l01178"></a>01178     reg_ax=rax;
+<a name="l01179"></a>01179     reg_bx=real_readw(SegValue(ds),rbxpt);
+<a name="l01180"></a>01180     reg_cx=real_readw(SegValue(ds),rcxpt);
+<a name="l01181"></a>01181     reg_dx=real_readw(SegValue(ds),rdxpt);
+<a name="l01182"></a>01182 <span class="comment">//  LOG_MSG(&quot;MOUSE BD: %04X %X %X %X %d %d&quot;,reg_ax,reg_bx,reg_cx,reg_dx,POS_X,POS_Y);</span>
+<a name="l01183"></a>01183     
+<a name="l01184"></a>01184     <span class="comment">// some functions are treated in a special way (additional registers)</span>
+<a name="l01185"></a>01185     <span class="keywordflow">switch</span> (rax) {
+<a name="l01186"></a>01186         <span class="keywordflow">case</span> 0x09:  <span class="comment">/* Define GFX Cursor */</span>
+<a name="l01187"></a>01187         <span class="keywordflow">case</span> 0x16:  <span class="comment">/* Save driver state */</span>
+<a name="l01188"></a>01188         <span class="keywordflow">case</span> 0x17:  <span class="comment">/* load driver state */</span>
+<a name="l01189"></a>01189             SegSet16(es,SegValue(ds));
 <a name="l01190"></a>01190             <span class="keywordflow">break</span>;
-<a name="l01191"></a>01191         <span class="keywordflow">default</span>:
-<a name="l01192"></a>01192             <span class="keywordflow">break</span>;
-<a name="l01193"></a>01193     }
-<a name="l01194"></a>01194 
-<a name="l01195"></a>01195     reg_ax=rax;
-<a name="l01196"></a>01196     <span class="keywordflow">return</span> CBRET_NONE;
-<a name="l01197"></a>01197 }
-<a name="l01198"></a>01198 
-<a name="l01199"></a>01199 <span class="keyword">static</span> Bitu INT74_Handler(<span class="keywordtype">void</span>) {
-<a name="l01200"></a>01200     <span class="keywordflow">if</span> (mouse.events&gt;0) {
-<a name="l01201"></a>01201         mouse.events--;
-<a name="l01202"></a>01202 
-<a name="l01203"></a>01203         <span class="comment">/* INT 33h emulation: HERE within the IRQ 12 handler is the appropriate place to</span>
-<a name="l01204"></a>01204 <span class="comment">         * redraw the cursor. OSes like Windows 3.1 expect real-mode code to do it in</span>
-<a name="l01205"></a>01205 <span class="comment">         * response to IRQ 12, not &quot;out of the blue&quot; from the SDL event handler like</span>
-<a name="l01206"></a>01206 <span class="comment">         * the original DOSBox code did it. Doing this allows the INT 33h emulation</span>
-<a name="l01207"></a>01207 <span class="comment">         * to draw the cursor while not causing Windows 3.1 to crash or behave</span>
-<a name="l01208"></a>01208 <span class="comment">         * erratically. */</span>
-<a name="l01209"></a>01209         <span class="keywordflow">if</span> (en_int33) DrawCursor();
-<a name="l01210"></a>01210 
-<a name="l01211"></a>01211         <span class="comment">/* Check for an active Interrupt Handler that will get called */</span>
-<a name="l01212"></a>01212         <span class="keywordflow">if</span> (mouse.sub_mask &amp; mouse.event_queue[mouse.events].type) {
-<a name="l01213"></a>01213             reg_ax=mouse.event_queue[mouse.events].type;
-<a name="l01214"></a>01214             reg_bx=mouse.event_queue[mouse.events].buttons;
-<a name="l01215"></a>01215             reg_cx=(Bit16u)POS_X;
-<a name="l01216"></a>01216             reg_dx=(Bit16u)POS_Y;
-<a name="l01217"></a>01217             reg_si=(Bit16u)static_cast&lt;Bit16s&gt;(mouse.mickey_x);
-<a name="l01218"></a>01218             reg_di=(Bit16u)static_cast&lt;Bit16s&gt;(mouse.mickey_y);
-<a name="l01219"></a>01219             CPU_Push16(RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
-<a name="l01220"></a>01220             CPU_Push16(RealOff(CALLBACK_RealPointer(int74_ret_callback)));
-<a name="l01221"></a>01221             SegSet16(cs, mouse.sub_seg);
-<a name="l01222"></a>01222             reg_ip = mouse.sub_ofs;
-<a name="l01223"></a>01223             <span class="keywordflow">if</span>(mouse.in_UIR) <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_ERROR)(<span class="stringliteral">&quot;Already in UIR!&quot;</span>);
-<a name="l01224"></a>01224             mouse.in_UIR = <span class="keyword">true</span>;
-<a name="l01225"></a>01225         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (useps2callback) {
-<a name="l01226"></a>01226             CPU_Push16(RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
-<a name="l01227"></a>01227             CPU_Push16(RealOff(CALLBACK_RealPointer(int74_ret_callback)));
-<a name="l01228"></a>01228             DoPS2Callback(mouse.event_queue[mouse.events].buttons, static_cast&lt;Bit16s&gt;(mouse.ps2x), static_cast&lt;Bit16s&gt;(mouse.ps2y));
-<a name="l01229"></a>01229         } <span class="keywordflow">else</span> {
-<a name="l01230"></a>01230             SegSet16(cs, RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
-<a name="l01231"></a>01231             reg_ip = RealOff(CALLBACK_RealPointer(int74_ret_callback));
-<a name="l01232"></a>01232         }
-<a name="l01233"></a>01233     } <span class="keywordflow">else</span> {
-<a name="l01234"></a>01234         SegSet16(cs, RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
-<a name="l01235"></a>01235         reg_ip = RealOff(CALLBACK_RealPointer(int74_ret_callback));
-<a name="l01236"></a>01236     }
-<a name="l01237"></a>01237     <span class="keywordflow">return</span> CBRET_NONE;
-<a name="l01238"></a>01238 }
+<a name="l01191"></a>01191         <span class="keywordflow">case</span> 0x0c:  <span class="comment">/* Define interrupt subroutine parameters */</span>
+<a name="l01192"></a>01192         <span class="keywordflow">case</span> 0x14:  <span class="comment">/* Exchange event-handler */</span> 
+<a name="l01193"></a>01193             <span class="keywordflow">if</span> (reg_bx!=0) SegSet16(es,reg_bx);
+<a name="l01194"></a>01194             <span class="keywordflow">else</span> SegSet16(es,SegValue(ds));
+<a name="l01195"></a>01195             <span class="keywordflow">break</span>;
+<a name="l01196"></a>01196         <span class="keywordflow">case</span> 0x10:  <span class="comment">/* Define screen region for updating */</span>
+<a name="l01197"></a>01197             reg_cx=real_readw(SegValue(ds),rdxpt);
+<a name="l01198"></a>01198             reg_dx=real_readw(SegValue(ds),rdxpt+2);
+<a name="l01199"></a>01199             reg_si=real_readw(SegValue(ds),rdxpt+4);
+<a name="l01200"></a>01200             reg_di=real_readw(SegValue(ds),rdxpt+6);
+<a name="l01201"></a>01201             <span class="keywordflow">break</span>;
+<a name="l01202"></a>01202         <span class="keywordflow">default</span>:
+<a name="l01203"></a>01203             <span class="keywordflow">break</span>;
+<a name="l01204"></a>01204     }
+<a name="l01205"></a>01205 
+<a name="l01206"></a>01206     INT33_Handler();
+<a name="l01207"></a>01207 
+<a name="l01208"></a>01208     <span class="comment">// save back the registers, too</span>
+<a name="l01209"></a>01209     real_writew(SegValue(ds),raxpt,reg_ax);
+<a name="l01210"></a>01210     real_writew(SegValue(ds),rbxpt,reg_bx);
+<a name="l01211"></a>01211     real_writew(SegValue(ds),rcxpt,reg_cx);
+<a name="l01212"></a>01212     real_writew(SegValue(ds),rdxpt,reg_dx);
+<a name="l01213"></a>01213     <span class="keywordflow">switch</span> (rax) {
+<a name="l01214"></a>01214         <span class="keywordflow">case</span> 0x1f:  <span class="comment">/* Disable Mousedriver */</span>
+<a name="l01215"></a>01215             real_writew(SegValue(ds),rbxpt,SegValue(es));
+<a name="l01216"></a>01216             <span class="keywordflow">break</span>;
+<a name="l01217"></a>01217         <span class="keywordflow">case</span> 0x14: <span class="comment">/* Exchange event-handler */</span> 
+<a name="l01218"></a>01218             real_writew(SegValue(ds),rcxpt,SegValue(es));
+<a name="l01219"></a>01219             <span class="keywordflow">break</span>;
+<a name="l01220"></a>01220         <span class="keywordflow">default</span>:
+<a name="l01221"></a>01221             <span class="keywordflow">break</span>;
+<a name="l01222"></a>01222     }
+<a name="l01223"></a>01223 
+<a name="l01224"></a>01224     reg_ax=rax;
+<a name="l01225"></a>01225     <span class="keywordflow">return</span> CBRET_NONE;
+<a name="l01226"></a>01226 }
+<a name="l01227"></a>01227 
+<a name="l01228"></a>01228 <span class="keyword">static</span> Bitu INT74_Handler(<span class="keywordtype">void</span>) {
+<a name="l01229"></a>01229     <span class="keywordflow">if</span> (mouse.events&gt;0) {
+<a name="l01230"></a>01230         mouse.events--;
+<a name="l01231"></a>01231 
+<a name="l01232"></a>01232         <span class="comment">/* INT 33h emulation: HERE within the IRQ 12 handler is the appropriate place to</span>
+<a name="l01233"></a>01233 <span class="comment">         * redraw the cursor. OSes like Windows 3.1 expect real-mode code to do it in</span>
+<a name="l01234"></a>01234 <span class="comment">         * response to IRQ 12, not &quot;out of the blue&quot; from the SDL event handler like</span>
+<a name="l01235"></a>01235 <span class="comment">         * the original DOSBox code did it. Doing this allows the INT 33h emulation</span>
+<a name="l01236"></a>01236 <span class="comment">         * to draw the cursor while not causing Windows 3.1 to crash or behave</span>
+<a name="l01237"></a>01237 <span class="comment">         * erratically. */</span>
+<a name="l01238"></a>01238         <span class="keywordflow">if</span> (en_int33) DrawCursor();
 <a name="l01239"></a>01239 
-<a name="l01240"></a>01240 Bitu MOUSE_UserInt_CB_Handler(<span class="keywordtype">void</span>) {
-<a name="l01241"></a>01241     mouse.in_UIR = <span class="keyword">false</span>;
-<a name="l01242"></a>01242     <span class="keywordflow">if</span> (mouse.events) {
-<a name="l01243"></a>01243         <span class="keywordflow">if</span> (!mouse.timer_in_progress) {
-<a name="l01244"></a>01244             mouse.timer_in_progress = <span class="keyword">true</span>;
-<a name="l01245"></a>01245             PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
-<a name="l01246"></a>01246         }
-<a name="l01247"></a>01247     }
-<a name="l01248"></a>01248     <span class="keywordflow">return</span> CBRET_NONE;
-<a name="l01249"></a>01249 }
-<a name="l01250"></a>01250 
-<a name="l01251"></a>01251 <span class="keywordtype">bool</span> MouseTypeNone();
-<a name="l01252"></a>01252 
-<a name="l01253"></a>01253 <span class="keywordtype">void</span> MOUSE_OnReset(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l01254"></a>01254     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01255"></a>01255     <span class="keywordflow">if</span> (IS_PC98_ARCH)
-<a name="l01256"></a>01256         MOUSE_IRQ = 13; <span class="comment">// PC-98 standard</span>
-<a name="l01257"></a>01257     <span class="keywordflow">else</span>
-<a name="l01258"></a>01258         MOUSE_IRQ = 12; <span class="comment">// IBM PC/AT standard</span>
-<a name="l01259"></a>01259 
-<a name="l01260"></a>01260     PIC_SetIRQMask(MOUSE_IRQ,<span class="keyword">true</span>);
-<a name="l01261"></a>01261 }
-<a name="l01262"></a>01262 
-<a name="l01263"></a>01263 <span class="keywordtype">void</span> MOUSE_ShutDown(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l01264"></a>01264     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01265"></a>01265 }
-<a name="l01266"></a>01266 
-<a name="l01267"></a>01267 <span class="keywordtype">void</span> BIOS_PS2MOUSE_ShutDown(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l01268"></a>01268     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01269"></a>01269 }
-<a name="l01270"></a>01270 
-<a name="l01271"></a>01271 <span class="keywordtype">void</span> BIOS_PS2Mouse_Startup(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l01272"></a>01272     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01273"></a>01273     <a class="code" href="classSection__prop.html">Section_prop</a> *section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dos&quot;</span>));
-<a name="l01274"></a>01274 
-<a name="l01275"></a>01275     <span class="comment">/* NTS: This assumes MOUSE_Init() is called after KEYBOARD_Init() */</span>
-<a name="l01276"></a>01276     en_bios_ps2mouse = section-&gt;Get_bool(<span class="stringliteral">&quot;biosps2&quot;</span>);
-<a name="l01277"></a>01277     <span class="keywordflow">if</span> (!en_bios_ps2mouse) <span class="keywordflow">return</span>;
-<a name="l01278"></a>01278 
-<a name="l01279"></a>01279     <span class="keywordflow">if</span> (MouseTypeNone()) {
-<a name="l01280"></a>01280         <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_WARN)(<span class="stringliteral">&quot;INT 15H PS/2 emulation NOT enabled. biosps2=1 but mouse type=none&quot;</span>);
-<a name="l01281"></a>01281     }
-<a name="l01282"></a>01282     <span class="keywordflow">else</span> {
-<a name="l01283"></a>01283         <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_NORMAL)(<span class="stringliteral">&quot;INT 15H PS/2 emulation enabled&quot;</span>);
-<a name="l01284"></a>01284         bios_enable_ps2();
-<a name="l01285"></a>01285     }
-<a name="l01286"></a>01286 
-<a name="l01287"></a>01287     ps2_callback_save_regs = section-&gt;Get_bool(<span class="stringliteral">&quot;int15 mouse callback does not preserve registers&quot;</span>);
+<a name="l01240"></a>01240         <span class="comment">/* Check for an active Interrupt Handler that will get called */</span>
+<a name="l01241"></a>01241         <span class="keywordflow">if</span> (mouse.sub_mask &amp; mouse.event_queue[mouse.events].type) {
+<a name="l01242"></a>01242             reg_ax=mouse.event_queue[mouse.events].type;
+<a name="l01243"></a>01243             reg_bx=mouse.event_queue[mouse.events].buttons;
+<a name="l01244"></a>01244             reg_cx=(Bit16u)POS_X;
+<a name="l01245"></a>01245             reg_dx=(Bit16u)POS_Y;
+<a name="l01246"></a>01246             reg_si=(Bit16u)static_cast&lt;Bit16s&gt;(mouse.mickey_x);
+<a name="l01247"></a>01247             reg_di=(Bit16u)static_cast&lt;Bit16s&gt;(mouse.mickey_y);
+<a name="l01248"></a>01248             CPU_Push16(RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
+<a name="l01249"></a>01249             CPU_Push16(RealOff(CALLBACK_RealPointer(int74_ret_callback)));
+<a name="l01250"></a>01250             SegSet16(cs, mouse.sub_seg);
+<a name="l01251"></a>01251             reg_ip = mouse.sub_ofs;
+<a name="l01252"></a>01252             <span class="keywordflow">if</span>(mouse.in_UIR) <a class="code" href="classLOG.html">LOG</a>(LOG_MOUSE,LOG_ERROR)(<span class="stringliteral">&quot;Already in UIR!&quot;</span>);
+<a name="l01253"></a>01253             mouse.in_UIR = <span class="keyword">true</span>;
+<a name="l01254"></a>01254         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (useps2callback) {
+<a name="l01255"></a>01255             CPU_Push16(RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
+<a name="l01256"></a>01256             CPU_Push16(RealOff(CALLBACK_RealPointer(int74_ret_callback)));
+<a name="l01257"></a>01257             DoPS2Callback(mouse.event_queue[mouse.events].buttons, static_cast&lt;Bit16s&gt;(mouse.ps2x), static_cast&lt;Bit16s&gt;(mouse.ps2y));
+<a name="l01258"></a>01258         } <span class="keywordflow">else</span> {
+<a name="l01259"></a>01259             SegSet16(cs, RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
+<a name="l01260"></a>01260             reg_ip = RealOff(CALLBACK_RealPointer(int74_ret_callback));
+<a name="l01261"></a>01261         }
+<a name="l01262"></a>01262     } <span class="keywordflow">else</span> {
+<a name="l01263"></a>01263         SegSet16(cs, RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
+<a name="l01264"></a>01264         reg_ip = RealOff(CALLBACK_RealPointer(int74_ret_callback));
+<a name="l01265"></a>01265     }
+<a name="l01266"></a>01266     <span class="keywordflow">return</span> CBRET_NONE;
+<a name="l01267"></a>01267 }
+<a name="l01268"></a>01268 
+<a name="l01269"></a>01269 Bitu MOUSE_UserInt_CB_Handler(<span class="keywordtype">void</span>) {
+<a name="l01270"></a>01270     mouse.in_UIR = <span class="keyword">false</span>;
+<a name="l01271"></a>01271     <span class="keywordflow">if</span> (mouse.events) {
+<a name="l01272"></a>01272         <span class="keywordflow">if</span> (!mouse.timer_in_progress) {
+<a name="l01273"></a>01273             mouse.timer_in_progress = <span class="keyword">true</span>;
+<a name="l01274"></a>01274             PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
+<a name="l01275"></a>01275         }
+<a name="l01276"></a>01276     }
+<a name="l01277"></a>01277     <span class="keywordflow">return</span> CBRET_NONE;
+<a name="l01278"></a>01278 }
+<a name="l01279"></a>01279 
+<a name="l01280"></a>01280 <span class="keywordtype">bool</span> MouseTypeNone();
+<a name="l01281"></a>01281 
+<a name="l01282"></a>01282 <span class="keywordtype">void</span> MOUSE_OnReset(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l01283"></a>01283     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01284"></a>01284     <span class="keywordflow">if</span> (IS_PC98_ARCH)
+<a name="l01285"></a>01285         MOUSE_IRQ = 13; <span class="comment">// PC-98 standard</span>
+<a name="l01286"></a>01286     <span class="keywordflow">else</span>
+<a name="l01287"></a>01287         MOUSE_IRQ = 12; <span class="comment">// IBM PC/AT standard</span>
 <a name="l01288"></a>01288 
-<a name="l01289"></a>01289     <span class="comment">// Callback for ps2 irq</span>
-<a name="l01290"></a>01290     call_int74=CALLBACK_Allocate();
-<a name="l01291"></a>01291     CALLBACK_Setup(call_int74,&amp;INT74_Handler,CB_IRQ12,<span class="stringliteral">&quot;int 74&quot;</span>);
-<a name="l01292"></a>01292     <span class="comment">// pseudocode for CB_IRQ12:</span>
-<a name="l01293"></a>01293     <span class="comment">//  push ds</span>
-<a name="l01294"></a>01294     <span class="comment">//  push es</span>
-<a name="l01295"></a>01295     <span class="comment">//  pushad</span>
-<a name="l01296"></a>01296     <span class="comment">//  sti</span>
-<a name="l01297"></a>01297     <span class="comment">//  callback INT74_Handler</span>
-<a name="l01298"></a>01298     <span class="comment">//      doesn&#39;t return here, but rather to CB_IRQ12_RET</span>
-<a name="l01299"></a>01299     <span class="comment">//      (ps2 callback/user callback inbetween if requested)</span>
-<a name="l01300"></a>01300 
-<a name="l01301"></a>01301     int74_ret_callback=CALLBACK_Allocate();
-<a name="l01302"></a>01302     CALLBACK_Setup(int74_ret_callback,&amp;MOUSE_UserInt_CB_Handler,CB_IRQ12_RET,<span class="stringliteral">&quot;int 74 ret&quot;</span>);
-<a name="l01303"></a>01303     <span class="comment">// pseudocode for CB_IRQ12_RET:</span>
-<a name="l01304"></a>01304     <span class="comment">//  callback MOUSE_UserInt_CB_Handler</span>
-<a name="l01305"></a>01305     <span class="comment">//  cli</span>
-<a name="l01306"></a>01306     <span class="comment">//  mov al, 0x20</span>
-<a name="l01307"></a>01307     <span class="comment">//  out 0xa0, al</span>
-<a name="l01308"></a>01308     <span class="comment">//  out 0x20, al</span>
-<a name="l01309"></a>01309     <span class="comment">//  popad</span>
-<a name="l01310"></a>01310     <span class="comment">//  pop es</span>
-<a name="l01311"></a>01311     <span class="comment">//  pop ds</span>
-<a name="l01312"></a>01312     <span class="comment">//  iret</span>
-<a name="l01313"></a>01313 
-<a name="l01314"></a>01314     Bit8u hwvec=(MOUSE_IRQ&gt;7)?(0x70+MOUSE_IRQ-8):(0x8+MOUSE_IRQ);
-<a name="l01315"></a>01315     RealSetVec(hwvec,CALLBACK_RealPointer(call_int74));
-<a name="l01316"></a>01316 
-<a name="l01317"></a>01317     <span class="comment">// Callback for ps2 user callback handling</span>
-<a name="l01318"></a>01318     useps2callback = <span class="keyword">false</span>; ps2callbackinit = <span class="keyword">false</span>;
-<a name="l01319"></a>01319     call_ps2=CALLBACK_Allocate();
-<a name="l01320"></a>01320     CALLBACK_Setup(call_ps2,&amp;PS2_Handler,CB_RETF,<span class="stringliteral">&quot;ps2 bios callback&quot;</span>);
-<a name="l01321"></a>01321     ps2_callback=CALLBACK_RealPointer(call_ps2);
-<a name="l01322"></a>01322 }
-<a name="l01323"></a>01323 
-<a name="l01324"></a>01324 <span class="keywordtype">void</span> MOUSE_Startup(<a class="code" href="classSection.html">Section</a> *sec) {
-<a name="l01325"></a>01325     (void)sec;<span class="comment">//UNUSED</span>
-<a name="l01326"></a>01326     <a class="code" href="classSection__prop.html">Section_prop</a> *section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dos&quot;</span>));
-<a name="l01327"></a>01327     RealPt i33loc=0;
-<a name="l01328"></a>01328 
-<a name="l01329"></a>01329     <span class="comment">/* TODO: Needs to check for mouse, and fail to do anything if neither PS/2 nor serial mouse emulation enabled */</span>
-<a name="l01330"></a>01330 
-<a name="l01331"></a>01331     en_int33=section-&gt;Get_bool(<span class="stringliteral">&quot;int33&quot;</span>);
-<a name="l01332"></a>01332     <span class="keywordflow">if</span> (!en_int33) <span class="keywordflow">return</span>;
-<a name="l01333"></a>01333 
-<a name="l01334"></a>01334     <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_NORMAL)(<span class="stringliteral">&quot;INT 33H emulation enabled&quot;</span>);
-<a name="l01335"></a>01335 
-<a name="l01336"></a>01336     <span class="comment">// Callback for mouse interrupt 0x33</span>
-<a name="l01337"></a>01337     call_int33=CALLBACK_Allocate();
-<a name="l01338"></a>01338 
-<a name="l01339"></a>01339     <span class="comment">// i33loc=RealMake(CB_SEG+1,(call_int33*CB_SIZE)-0x10);</span>
-<a name="l01340"></a>01340     i33loc=RealMake(DOS_GetMemory(0x1,<span class="stringliteral">&quot;i33loc&quot;</span>)-1,0x10);
-<a name="l01341"></a>01341     CALLBACK_Setup(call_int33,&amp;INT33_Handler,CB_MOUSE,Real2Phys(i33loc),<span class="stringliteral">&quot;Mouse&quot;</span>);
+<a name="l01289"></a>01289     PIC_SetIRQMask(MOUSE_IRQ,<span class="keyword">true</span>);
+<a name="l01290"></a>01290 }
+<a name="l01291"></a>01291 
+<a name="l01292"></a>01292 <span class="keywordtype">void</span> MOUSE_ShutDown(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l01293"></a>01293     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01294"></a>01294 }
+<a name="l01295"></a>01295 
+<a name="l01296"></a>01296 <span class="keywordtype">void</span> BIOS_PS2MOUSE_ShutDown(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l01297"></a>01297     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01298"></a>01298 }
+<a name="l01299"></a>01299 
+<a name="l01300"></a>01300 <span class="keywordtype">void</span> BIOS_PS2Mouse_Startup(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l01301"></a>01301     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01302"></a>01302     <a class="code" href="classSection__prop.html">Section_prop</a> *section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dos&quot;</span>));
+<a name="l01303"></a>01303 
+<a name="l01304"></a>01304     <span class="comment">/* NTS: This assumes MOUSE_Init() is called after KEYBOARD_Init() */</span>
+<a name="l01305"></a>01305     en_bios_ps2mouse = section-&gt;Get_bool(<span class="stringliteral">&quot;biosps2&quot;</span>);
+<a name="l01306"></a>01306     <span class="keywordflow">if</span> (!en_bios_ps2mouse) <span class="keywordflow">return</span>;
+<a name="l01307"></a>01307 
+<a name="l01308"></a>01308     <span class="keywordflow">if</span> (MouseTypeNone()) {
+<a name="l01309"></a>01309         <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_WARN)(<span class="stringliteral">&quot;INT 15H PS/2 emulation NOT enabled. biosps2=1 but mouse type=none&quot;</span>);
+<a name="l01310"></a>01310     }
+<a name="l01311"></a>01311     <span class="keywordflow">else</span> {
+<a name="l01312"></a>01312         <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_NORMAL)(<span class="stringliteral">&quot;INT 15H PS/2 emulation enabled&quot;</span>);
+<a name="l01313"></a>01313         bios_enable_ps2();
+<a name="l01314"></a>01314     }
+<a name="l01315"></a>01315 
+<a name="l01316"></a>01316     ps2_callback_save_regs = section-&gt;Get_bool(<span class="stringliteral">&quot;int15 mouse callback does not preserve registers&quot;</span>);
+<a name="l01317"></a>01317 
+<a name="l01318"></a>01318     <span class="comment">// Callback for ps2 irq</span>
+<a name="l01319"></a>01319     call_int74=CALLBACK_Allocate();
+<a name="l01320"></a>01320     CALLBACK_Setup(call_int74,&amp;INT74_Handler,CB_IRQ12,<span class="stringliteral">&quot;int 74&quot;</span>);
+<a name="l01321"></a>01321     <span class="comment">// pseudocode for CB_IRQ12:</span>
+<a name="l01322"></a>01322     <span class="comment">//  push ds</span>
+<a name="l01323"></a>01323     <span class="comment">//  push es</span>
+<a name="l01324"></a>01324     <span class="comment">//  pushad</span>
+<a name="l01325"></a>01325     <span class="comment">//  sti</span>
+<a name="l01326"></a>01326     <span class="comment">//  callback INT74_Handler</span>
+<a name="l01327"></a>01327     <span class="comment">//      doesn&#39;t return here, but rather to CB_IRQ12_RET</span>
+<a name="l01328"></a>01328     <span class="comment">//      (ps2 callback/user callback inbetween if requested)</span>
+<a name="l01329"></a>01329 
+<a name="l01330"></a>01330     int74_ret_callback=CALLBACK_Allocate();
+<a name="l01331"></a>01331     CALLBACK_Setup(int74_ret_callback,&amp;MOUSE_UserInt_CB_Handler,CB_IRQ12_RET,<span class="stringliteral">&quot;int 74 ret&quot;</span>);
+<a name="l01332"></a>01332     <span class="comment">// pseudocode for CB_IRQ12_RET:</span>
+<a name="l01333"></a>01333     <span class="comment">//  callback MOUSE_UserInt_CB_Handler</span>
+<a name="l01334"></a>01334     <span class="comment">//  cli</span>
+<a name="l01335"></a>01335     <span class="comment">//  mov al, 0x20</span>
+<a name="l01336"></a>01336     <span class="comment">//  out 0xa0, al</span>
+<a name="l01337"></a>01337     <span class="comment">//  out 0x20, al</span>
+<a name="l01338"></a>01338     <span class="comment">//  popad</span>
+<a name="l01339"></a>01339     <span class="comment">//  pop es</span>
+<a name="l01340"></a>01340     <span class="comment">//  pop ds</span>
+<a name="l01341"></a>01341     <span class="comment">//  iret</span>
 <a name="l01342"></a>01342 
-<a name="l01343"></a>01343     <span class="comment">// Wasteland needs low(seg(int33))!=0 and low(ofs(int33))!=0</span>
-<a name="l01344"></a>01344     real_writed(0,0x33&lt;&lt;2,i33loc);
+<a name="l01343"></a>01343     Bit8u hwvec=(MOUSE_IRQ&gt;7)?(0x70+MOUSE_IRQ-8):(0x8+MOUSE_IRQ);
+<a name="l01344"></a>01344     RealSetVec(hwvec,CALLBACK_RealPointer(call_int74));
 <a name="l01345"></a>01345 
-<a name="l01346"></a>01346     call_mouse_bd=CALLBACK_Allocate();
-<a name="l01347"></a>01347     CALLBACK_Setup(call_mouse_bd,&amp;MOUSE_BD_Handler,CB_RETF8,
-<a name="l01348"></a>01348         PhysMake(RealSeg(i33loc),RealOff(i33loc)+2),<span class="stringliteral">&quot;MouseBD&quot;</span>);
-<a name="l01349"></a>01349     <span class="comment">// pseudocode for CB_MOUSE (including the special backdoor entry point):</span>
-<a name="l01350"></a>01350     <span class="comment">//  jump near i33hd</span>
-<a name="l01351"></a>01351     <span class="comment">//  callback MOUSE_BD_Handler</span>
-<a name="l01352"></a>01352     <span class="comment">//  retf 8</span>
-<a name="l01353"></a>01353     <span class="comment">//  label i33hd:</span>
-<a name="l01354"></a>01354     <span class="comment">//  callback INT33_Handler</span>
-<a name="l01355"></a>01355     <span class="comment">//  iret</span>
-<a name="l01356"></a>01356 
-<a name="l01357"></a>01357     memset(&amp;mouse,0,<span class="keyword">sizeof</span>(mouse));
-<a name="l01358"></a>01358     mouse.hidden = 1; <span class="comment">//Hide mouse on startup</span>
-<a name="l01359"></a>01359     mouse.timer_in_progress = <span class="keyword">false</span>;
-<a name="l01360"></a>01360     mouse.mode = 0xFF; <span class="comment">//Non existing mode</span>
-<a name="l01361"></a>01361     mouse.scrollwheel = 0;
+<a name="l01346"></a>01346     <span class="comment">// Callback for ps2 user callback handling</span>
+<a name="l01347"></a>01347     useps2callback = <span class="keyword">false</span>; ps2callbackinit = <span class="keyword">false</span>;
+<a name="l01348"></a>01348     call_ps2=CALLBACK_Allocate();
+<a name="l01349"></a>01349     CALLBACK_Setup(call_ps2,&amp;PS2_Handler,CB_RETF,<span class="stringliteral">&quot;ps2 bios callback&quot;</span>);
+<a name="l01350"></a>01350     ps2_callback=CALLBACK_RealPointer(call_ps2);
+<a name="l01351"></a>01351 }
+<a name="l01352"></a>01352 
+<a name="l01353"></a>01353 <span class="keywordtype">void</span> MOUSE_Startup(<a class="code" href="classSection.html">Section</a> *sec) {
+<a name="l01354"></a>01354     (void)sec;<span class="comment">//UNUSED</span>
+<a name="l01355"></a>01355     <a class="code" href="classSection__prop.html">Section_prop</a> *section=<span class="keyword">static_cast&lt;</span><a class="code" href="classSection__prop.html">Section_prop</a> *<span class="keyword">&gt;</span>(control-&gt;GetSection(<span class="stringliteral">&quot;dos&quot;</span>));
+<a name="l01356"></a>01356     RealPt i33loc=0;
+<a name="l01357"></a>01357 
+<a name="l01358"></a>01358     <span class="comment">/* TODO: Needs to check for mouse, and fail to do anything if neither PS/2 nor serial mouse emulation enabled */</span>
+<a name="l01359"></a>01359 
+<a name="l01360"></a>01360     en_int33=section-&gt;Get_bool(<span class="stringliteral">&quot;int33&quot;</span>);
+<a name="l01361"></a>01361     <span class="keywordflow">if</span> (!en_int33) <span class="keywordflow">return</span>;
 <a name="l01362"></a>01362 
-<a name="l01363"></a>01363     mouse.sub_mask=0;
-<a name="l01364"></a>01364     mouse.sub_seg=0x6362;   <span class="comment">// magic value</span>
-<a name="l01365"></a>01365     mouse.sub_ofs=0;
-<a name="l01366"></a>01366 
-<a name="l01367"></a>01367     oldmouseX = oldmouseY = 0;
-<a name="l01368"></a>01368     mouse.ps2x = mouse.ps2y = 0;
-<a name="l01369"></a>01369 
-<a name="l01370"></a>01370     Mouse_ResetHardware();
-<a name="l01371"></a>01371     Mouse_Reset();
-<a name="l01372"></a>01372     Mouse_SetSensitivity(50,50,50);
-<a name="l01373"></a>01373 }
+<a name="l01363"></a>01363     <a class="code" href="classLOG.html">LOG</a>(LOG_KEYBOARD,LOG_NORMAL)(<span class="stringliteral">&quot;INT 33H emulation enabled&quot;</span>);
+<a name="l01364"></a>01364 
+<a name="l01365"></a>01365     <span class="comment">// Callback for mouse interrupt 0x33</span>
+<a name="l01366"></a>01366     call_int33=CALLBACK_Allocate();
+<a name="l01367"></a>01367 
+<a name="l01368"></a>01368     <span class="comment">// i33loc=RealMake(CB_SEG+1,(call_int33*CB_SIZE)-0x10);</span>
+<a name="l01369"></a>01369     i33loc=RealMake(DOS_GetMemory(0x1,<span class="stringliteral">&quot;i33loc&quot;</span>)-1,0x10);
+<a name="l01370"></a>01370     CALLBACK_Setup(call_int33,&amp;INT33_Handler,CB_MOUSE,Real2Phys(i33loc),<span class="stringliteral">&quot;Mouse&quot;</span>);
+<a name="l01371"></a>01371 
+<a name="l01372"></a>01372     <span class="comment">// Wasteland needs low(seg(int33))!=0 and low(ofs(int33))!=0</span>
+<a name="l01373"></a>01373     real_writed(0,0x33&lt;&lt;2,i33loc);
 <a name="l01374"></a>01374 
-<a name="l01375"></a>01375 <span class="keywordtype">void</span> MOUSE_Init() {
-<a name="l01376"></a>01376     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing mouse interface emulation&quot;</span>);
-<a name="l01377"></a>01377 
-<a name="l01378"></a>01378     <span class="comment">// TODO: We need a DOSBox shutdown callback, and we need a shutdown callback for when the DOS kernel begins to unload and on system reset</span>
-<a name="l01379"></a>01379     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MOUSE_OnReset));
-<a name="l01380"></a>01380 }
-<a name="l01381"></a>01381 
+<a name="l01375"></a>01375     call_mouse_bd=CALLBACK_Allocate();
+<a name="l01376"></a>01376     CALLBACK_Setup(call_mouse_bd,&amp;MOUSE_BD_Handler,CB_RETF8,
+<a name="l01377"></a>01377         PhysMake(RealSeg(i33loc),RealOff(i33loc)+2),<span class="stringliteral">&quot;MouseBD&quot;</span>);
+<a name="l01378"></a>01378     <span class="comment">// pseudocode for CB_MOUSE (including the special backdoor entry point):</span>
+<a name="l01379"></a>01379     <span class="comment">//  jump near i33hd</span>
+<a name="l01380"></a>01380     <span class="comment">//  callback MOUSE_BD_Handler</span>
+<a name="l01381"></a>01381     <span class="comment">//  retf 8</span>
+<a name="l01382"></a>01382     <span class="comment">//  label i33hd:</span>
+<a name="l01383"></a>01383     <span class="comment">//  callback INT33_Handler</span>
+<a name="l01384"></a>01384     <span class="comment">//  iret</span>
+<a name="l01385"></a>01385 
+<a name="l01386"></a>01386     memset(&amp;mouse,0,<span class="keyword">sizeof</span>(mouse));
+<a name="l01387"></a>01387     mouse.hidden = 1; <span class="comment">//Hide mouse on startup</span>
+<a name="l01388"></a>01388     mouse.timer_in_progress = <span class="keyword">false</span>;
+<a name="l01389"></a>01389     mouse.mode = 0xFF; <span class="comment">//Non existing mode</span>
+<a name="l01390"></a>01390     mouse.scrollwheel = 0;
+<a name="l01391"></a>01391 
+<a name="l01392"></a>01392     mouse.sub_mask=0;
+<a name="l01393"></a>01393     mouse.sub_seg=0x6362;   <span class="comment">// magic value</span>
+<a name="l01394"></a>01394     mouse.sub_ofs=0;
+<a name="l01395"></a>01395 
+<a name="l01396"></a>01396     oldmouseX = oldmouseY = 0;
+<a name="l01397"></a>01397     mouse.ps2x = mouse.ps2y = 0;
+<a name="l01398"></a>01398 
+<a name="l01399"></a>01399     Mouse_ResetHardware();
+<a name="l01400"></a>01400     Mouse_Reset();
+<a name="l01401"></a>01401     Mouse_SetSensitivity(50,50,50);
+<a name="l01402"></a>01402 }
+<a name="l01403"></a>01403 
+<a name="l01404"></a>01404 <span class="keywordtype">void</span> MOUSE_Init() {
+<a name="l01405"></a>01405     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Initializing mouse interface emulation&quot;</span>);
+<a name="l01406"></a>01406 
+<a name="l01407"></a>01407     <span class="comment">// TODO: We need a DOSBox shutdown callback, and we need a shutdown callback for when the DOS kernel begins to unload and on system reset</span>
+<a name="l01408"></a>01408     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MOUSE_OnReset));
+<a name="l01409"></a>01409 }
+<a name="l01410"></a>01410 
+<a name="l01411"></a>01411 <span class="keywordtype">bool</span> MOUSE_IsHidden()
+<a name="l01412"></a>01412 {
+<a name="l01413"></a>01413     <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span><span class="keywordtype">bool</span><span class="keyword">&gt;</span>(mouse.hidden);
+<a name="l01414"></a>01414 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 24 2018 10:24:08 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Jun 29 2018 08:09:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>
