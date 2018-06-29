@@ -96,9 +96,18 @@ typedef struct {
 		Bitu cachePitch;
 		Bit8u *cacheRead;
 		Bitu inHeight, inLine, outLine;
-		bool xBRZ;
 	} scale;
-	RenderPal_t pal;
+#if C_XBRZ
+    struct {
+        bool enable;
+        bool postscale_bilinear;
+        int task_granularity;
+        int fixed_scale_factor;
+        int max_scale_factor;
+        bool scale_on;
+    } xBRZ;
+#endif
+    RenderPal_t pal;
 	bool updating;
 	bool active;
 	int aspect;
