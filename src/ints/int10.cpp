@@ -131,6 +131,7 @@ Bitu INT10_Handler(void) {
 	case 0x10:								/* Palette functions */
 		if (!IS_EGAVGA_ARCH && (reg_al>0x02)) break;
 		else if (!IS_VGA_ARCH && (reg_al>0x03)) break;
+        else if (machine==MCH_PCJR && (reg_al>0x02)) break; /* "Looking at the PCjr tech ref page A-61, ... the BIOS listing stops at subfunction 2." */
 		switch (reg_al) {
 		case 0x00:							/* SET SINGLE PALETTE REGISTER */
 			INT10_SetSinglePaletteRegister(reg_bl,reg_bh);

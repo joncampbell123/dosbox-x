@@ -1389,3 +1389,7 @@ void MOUSE_Init() {
     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MOUSE_OnReset));
 }
 
+bool MOUSE_IsHidden()
+{
+    return static_cast<bool>(mouse.hidden);
+}

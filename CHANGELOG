@@ -1,8 +1,11 @@
 TODO add version
-  - Improved shell:
+  - INT 10h AH=10h now ignores AL=3 in PCjr mode.
+  - Fixed keyboard handler bug in PCjr mode that caused some CPU
+    register corruption and general crashiness in games.
+  - Improved shell: (Aybe, Joncampbell123)
     - Ctrl+Left and Ctrl+Right permits word-navigation.
     - Added emulation of 'Ins' key behavior.
-  - Num Lock stays on at startup and is synchronized with host
+  - Num Lock stays on at startup and is synchronized with host (Aybe)
     when DOSBox-X window gains focus (Windows). (Aybe)
   - Added visual feedback to Hat/D-pad buttons in mapper. (Aybe)
   - Added documentation for 'dir' command sorting switches. (Aybe)
@@ -12,6 +15,15 @@ TODO add version
     - Axes can be remapped for devices with questionable layout.
     - User-settable deadzones for joystick bindings in mapper,
       mappings like WSAD keys to axes is less frustrating.
+  - Improve mouse support:
+    - Added pointer integration behavior for DOS applications.
+    - Auto-lock is now disabled by default, this results in
+      pointer integration becoming the default behavior.
+    - Added feedback for auto-lock state, can be visual or auditive.
+    - When the mouse is not locked, its position is exactly where
+      the mouse is reported by the system. This results in a more
+      consistent experience between DOSBox-X and host OS,
+      e.g. High DPI mouse don't become suddenly slow in DOSBox-X.
     
 0.82.7
   - Mac OS X builds now honor showmenu=false by leaving the
