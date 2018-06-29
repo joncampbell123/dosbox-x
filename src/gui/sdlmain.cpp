@@ -120,7 +120,10 @@ void RENDER_xBRZ_Early_Init(); // early initialization function defined in rende
 #endif
 #if C_XBRZ || C_SURFACE_POSTRENDER_ASPECT
 #include <xBRZ/xbrz_tools.h>
-#include <ppl.h>
+# if defined(WIN32)
+#  define XBRZ_PPL 1
+#  include <ppl.h>
+# endif
 #endif
 
 #if !defined(C_SDL2)
@@ -3511,6 +3514,7 @@ void GFX_OpenGLRedrawScreen(void) {
 #if C_XBRZ
 void xBRZ_Render(const uint32_t* renderBuf, uint32_t* xbrzBuf, const Bit16u *changedLines, const int srcWidth, const int srcHeight, int scalingFactor)
 {
+# if defined(XBRZ_PPL)
     if (changedLines) // perf: in worst case similar to full input scaling
     {
         concurrency::task_group tg; // perf: task_group is slightly faster than pure prallel_for
@@ -3550,6 +3554,43 @@ void xBRZ_Render(const uint32_t* renderBuf, uint32_t* xbrzBuf, const Bit16u *cha
         });
         tg.wait();
     }
+# else
+    /* non-PPL for non-Windows.
+     * combine the code above, cleanly, if possible. */
+    if (changedLines)
+    {
+        int yLast = 0;
+        Bitu y = 0, index = 0;
+        while (y < sdl.draw.height)
+        {
+            if (!(index & 1))
+                y += changedLines[index];
+            else
+            {
+                const int sliceFirst = y;
+                const int sliceLast = y + changedLines[index];
+                y += changedLines[index];
+
+                int yFirst = max(yLast, sliceFirst - 2); // we need to update two adjacent lines as well since they are analyzed by xBRZ!
+                yLast = min(srcHeight, sliceLast + 2);   // (and make sure to not overlap with last slice!)
+
+                for (int i = yFirst; i < yLast; i += render.xBRZ.task_granularity)
+                {
+                    const int iLast = min(i + render.xBRZ.task_granularity, yLast);
+                    xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, xbrz::ColorFormat::RGB, xbrz::ScalerCfg(), i, iLast);
+                }
+            }
+            index++;
+        }
+    }
+    else // process complete input image
+    {
+        for (int i = 0; i < srcHeight; i += render.xBRZ.task_granularity) {
+            const int iLast = min(i + render.xBRZ.task_granularity, srcHeight);
+            xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, xbrz::ColorFormat::RGB, xbrz::ScalerCfg(), i, iLast);
+        }
+    }
+# endif
 }
 #endif
 
@@ -3617,6 +3658,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                     {
                         uint32_t* clipTrg = reinterpret_cast<uint32_t*>(static_cast<char*>(sdl.surface->pixels) + clipY * sdl.surface->pitch + clipX * sizeof(uint32_t));
 
+# if defined(XBRZ_PPL)
                         if (render.xBRZ.postscale_bilinear) {
                             concurrency::task_group tg;
                             for (int i = 0; i < clipHeight; i += render.xBRZ.task_granularity)
@@ -3647,6 +3689,32 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                             });
                             tg.wait();
                         }
+#else
+                        if (render.xBRZ.postscale_bilinear) {
+                            for (int i = 0; i < clipHeight; i += render.xBRZ.task_granularity)
+                            {
+                                const int iLast = min(i + render.xBRZ.task_granularity, clipHeight);
+
+                                xbrz::bilinearScale(&xbrzBuf[0], // const uint32_t* src,
+                                    xbrzWidth, xbrzHeight, xbrzWidth * sizeof(uint32_t), // int srcWidth, int srcHeight, int srcPitch,
+                                    clipTrg,        //PixTrg* trg,
+                                    clipWidth, clipHeight, sdl.surface->pitch, // int trgWidth, int trgHeight, int trgPitch,
+                                    i, iLast,       // int yFirst, int yLast,
+                                    [](uint32_t pix) { return pix; });  // PixConverter pixCvrt
+                            }
+                        }
+                        else
+                        {
+                            for (int i = 0; i < clipHeight; i += render.xBRZ.task_granularity)
+                            {
+                                const int iLast = min(i + render.xBRZ.task_granularity, clipHeight);
+
+                                xbrz::nearestNeighborScale(&xbrzBuf[0], xbrzWidth, xbrzHeight, xbrzWidth * sizeof(uint32_t),
+                                    clipTrg, clipWidth, clipHeight, sdl.surface->pitch,
+                                    i, iLast, [](uint32_t pix) { return pix; }); // perf: going over target is by factor 4 faster than going over source for similar image sizes
+                            }
+                        }
+#endif
                     }
                     if (mustLock) SDL_UnlockSurface(sdl.surface);
                     if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
@@ -3673,6 +3741,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                 {
                     uint32_t* clipTrg = reinterpret_cast<uint32_t*>(static_cast<char*>(sdl.surface->pixels) + clipY * sdl.surface->pitch + clipX * sizeof(uint32_t));
 
+# if defined(XBRZ_PPL)
                     if (render.aspect == ASPECT_BILINEAR) {
                         concurrency::task_group tg;
                         for (int i = 0; i < clipHeight; i += C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE)
@@ -3703,6 +3772,32 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                         });
                         tg.wait();
                     }
+#else
+                    if (render.aspect == ASPECT_BILINEAR) {
+                        for (int i = 0; i < clipHeight; i += C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE)
+                        {
+                            const int iLast = min(i + C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE, clipHeight);
+
+                            xbrz::bilinearScale(&sdl.aspectbuf[0], // const uint32_t* src,
+                                sdl.draw.width, sdl.draw.height, sdl.draw.width * sizeof(uint32_t), // int srcWidth, int srcHeight, int srcPitch,
+                                clipTrg,        //PixTrg* trg,
+                                clipWidth, clipHeight, sdl.surface->pitch, // int trgWidth, int trgHeight, int trgPitch,
+                                i, iLast,       // int yFirst, int yLast,
+                                [](uint32_t pix) { return pix; });  // PixConverter pixCvrt
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < clipHeight; i += C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE)
+                        {
+                            const int iLast = min(i + C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE, clipHeight);
+
+                            xbrz::nearestNeighborScale(&sdl.aspectbuf[0], sdl.draw.width, sdl.draw.height, sdl.draw.width * sizeof(uint32_t),
+                                clipTrg, clipWidth, clipHeight, sdl.surface->pitch,
+                                i, iLast, [](uint32_t pix) { return pix; }); // perf: going over target is by factor 4 faster than going over source for similar image sizes
+                        }
+                    }
+#endif
                 }
                 if (mustLock) SDL_UnlockSurface(sdl.surface);
                 if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
