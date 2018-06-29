@@ -2480,19 +2480,21 @@ dosurface:
                 sdl.clip.w=windowWidth=(Bit16u)(sdl.draw.width*sdl.draw.scalex);
                 sdl.clip.h=windowHeight=(Bit16u)(sdl.draw.height*sdl.draw.scaley);
 
-                // we solve problem of aspect ratio based window extension here when window size is not set explicitly
-                if (windowWidth*sdl.srcAspect.y != windowHeight * sdl.srcAspect.x)
-                {
-                    // abnormal aspect ratio detected, apply correction
-                    if (windowWidth*sdl.srcAspect.y > windowHeight*sdl.srcAspect.x)
+                if (render.aspect) {
+                    // we solve problem of aspect ratio based window extension here when window size is not set explicitly
+                    if (windowWidth*sdl.srcAspect.y != windowHeight * sdl.srcAspect.x)
                     {
-                        // wide pixel ratio, height should be extended to fit
-                        sdl.clip.h = windowHeight = (Bitu)floor((double)windowWidth * sdl.srcAspect.y / sdl.srcAspect.x + 0.5);
-                    }
-                    else
-                    {
-                        // long pixel ratio, width should be extended
-                        sdl.clip.w = windowWidth = (Bitu)floor((double)windowHeight * sdl.srcAspect.x / sdl.srcAspect.y + 0.5);
+                        // abnormal aspect ratio detected, apply correction
+                        if (windowWidth*sdl.srcAspect.y > windowHeight*sdl.srcAspect.x)
+                        {
+                            // wide pixel ratio, height should be extended to fit
+                            sdl.clip.h = windowHeight = (Bitu)floor((double)windowWidth * sdl.srcAspect.y / sdl.srcAspect.x + 0.5);
+                        }
+                        else
+                        {
+                            // long pixel ratio, width should be extended
+                            sdl.clip.w = windowWidth = (Bitu)floor((double)windowHeight * sdl.srcAspect.x / sdl.srcAspect.y + 0.5);
+                        }
                     }
                 }
 
