@@ -590,6 +590,23 @@ struct SDL_Block {
 
 static SDL_Block sdl;
 
+#if defined(C_SDL2)
+
+HWND GetHWND()
+{
+    SDL_SysWMinfo wmi;
+    SDL_VERSION(&wmi.version);
+    if (!SDL_GetWindowWMInfo(sdl.window, &wmi))
+        return nullptr;
+    return wmi.info.win.window;
+}
+
+HWND GetSurfaceHWND()
+{
+    return GetHWND();
+}
+
+#endif
 void SDL_rect_cliptoscreen(SDL_Rect &r) {
     if (r.x < 0) {
         r.w += r.x;
