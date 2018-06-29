@@ -1,4 +1,7 @@
 TODO add version
+  - Added critical section around Windows SDL 1.x resize code to solve
+    the remaining 0.5% probability that resizing the window causes move
+    and resize to stop working in Windows 10.
   - INT 10h AH=10h now ignores AL=3 in PCjr mode.
   - Fixed keyboard handler bug in PCjr mode that caused some CPU
     register corruption and general crashiness in games.
