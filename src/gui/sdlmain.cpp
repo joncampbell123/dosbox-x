@@ -613,7 +613,7 @@ struct SDL_Block {
 static SDL_Block sdl;
 
 #if defined(C_SDL2)
-
+# if defined(WIN32)
 HWND GetHWND()
 {
     SDL_SysWMinfo wmi;
@@ -627,7 +627,7 @@ HWND GetSurfaceHWND()
 {
     return GetHWND();
 }
-
+# endif
 #endif
 void SDL_rect_cliptoscreen(SDL_Rect &r) {
     if (r.x < 0) {
