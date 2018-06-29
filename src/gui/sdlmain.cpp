@@ -4037,6 +4037,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                 if (d3d->LockTexture(tgtPix, tgtPitch) && tgtPix) // if locking fails, target texture can be nullptr
                 {
                     uint32_t* tgtTex = reinterpret_cast<uint32_t*>(static_cast<Bit8u*>(tgtPix));
+# if defined(XBRZ_PPL)
                     concurrency::task_group tg;
                     for (int i = 0; i < xbrzHeight; i += render.xBRZ.task_granularity)
                         tg.run([=]
@@ -4046,6 +4047,14 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                             [](uint32_t pix) { return pix; });
                     });
                     tg.wait();
+# else
+                    for (int i = 0; i < xbrzHeight; i += render.xBRZ.task_granularity)
+                    {
+                        const int iLast = min(i + render.xBRZ.task_granularity, xbrzHeight);
+                        xbrz::pitchChange(&xbrzBuf[0], &tgtTex[0], xbrzWidth, xbrzHeight, xbrzWidth * sizeof(uint32_t), tgtPitch, i, iLast,
+                            [](uint32_t pix) { return pix; });
+                    };
+# endif
                 }
             }
         }
