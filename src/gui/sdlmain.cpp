@@ -5586,6 +5586,9 @@ void GFX_Events() {
         }
     }
 #endif
+
+    GFX_EventsMouse();
+
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
         case SDL_WINDOWEVENT:
