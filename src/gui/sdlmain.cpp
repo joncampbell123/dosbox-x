@@ -6260,7 +6260,7 @@ void SDL_SetupConfigSection() {
     Pint->Set_help("Mouse sensitivity.");
 
     const char * emulation[] = {"integration", "locked", "always", "never", nullptr};
-    Pstring  = sdl_sec->Add_string("mouse_emulation", Property::Changeable::Always, emulation[3]);
+    Pstring  = sdl_sec->Add_string("mouse_emulation", Property::Changeable::Always, emulation[1]);
     Pstring->Set_help(
         "When is mouse emulated ?\n"
         "integration: when not locked\n"
