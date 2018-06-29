@@ -21,6 +21,13 @@
 #ifndef DOSBOX_MOUSE_H
 #define DOSBOX_MOUSE_H
 
+enum MOUSE_EMULATION
+{
+    MOUSE_EMULATION_NEVER,
+    MOUSE_EMULATION_ALWAYS,
+    MOUSE_EMULATION_INTEGRATION,
+    MOUSE_EMULATION_LOCKED,
+};
 
 void Mouse_ShowCursor(void);
 void Mouse_HideCursor(void);

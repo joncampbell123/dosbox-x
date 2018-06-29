@@ -1224,8 +1224,9 @@ void DOSBox_RefreshMenu(void) {
 void DOSBox_CheckOS(int &id, int &major, int &minor) {
     id=major=minor=0;
 }
+#endif
 
-# if defined(HX_DOS)
+# if defined(HX_DOS) || !defined(C_SDL2)
 HWND GetHWND(void) {
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);
@@ -1246,32 +1247,11 @@ HWND GetSurfaceHWND(void) {
 	return wmi.child_window;
 }
 # endif
-#endif
 
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 #include <shlobj.h>
 
 extern void RENDER_CallBack( GFX_CallBackFunctions_t function );
-
-HWND GetHWND(void) {
-	SDL_SysWMinfo wmi;
-	SDL_VERSION(&wmi.version);
-
-	if(!SDL_GetWMInfo(&wmi)) {
-		return NULL;
-	}
-	return wmi.window;
-}
-
-HWND GetSurfaceHWND(void) {
-	SDL_SysWMinfo wmi;
-	SDL_VERSION(&wmi.version);
-
-	if (!SDL_GetWMInfo(&wmi)) {
-		return NULL;
-	}
-	return wmi.child_window;
-}
 
 void GetDefaultSize(void) {
 	char sizetemp[20]="512,32,32765,";

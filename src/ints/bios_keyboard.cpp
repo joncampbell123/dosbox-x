@@ -1215,12 +1215,23 @@ static Bitu IRQ1_Handler_PC98(void) {
 }
 
 static Bitu PCjr_NMI_Keyboard_Handler(void) {
+    Bitu save_eax = reg_eax;
+
     while (IO_ReadB(0x64) & 1) { /* while data is available */
+        Bitu save_ip = reg_eip;
+
+        /* HACK: IRQ1 handler modifies AX and IP. So do we!
+         *       The NMI handler is registered as CB_IRET which does not save any registers.
+         *       To avoid causing crashes and glitches, save and restore the CPU registers affected NOW.
+         *
+         *       I don't think the PCjr has the INT 15h hook that AT systems do. */
         reg_al=IO_ReadB(0x60);
-        /* FIXME: Need to execute INT 15h hook */
         IRQ1_Handler();
+
+        reg_eip = save_ip;
     }
 
+    reg_ax = save_eax;
     return CBRET_NONE;
 }
 
