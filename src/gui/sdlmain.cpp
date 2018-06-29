@@ -116,6 +116,8 @@ void GFX_OpenGLRedrawScreen(void);
 
 #if C_XBRZ
 #include <xBRZ/xbrz.h>
+#endif
+#if C_XBRZ || C_SURFACE_POSTRENDER_ASPECT
 #include <xBRZ/xbrz_tools.h>
 #include <ppl.h>
 #endif
@@ -595,6 +597,9 @@ struct SDL_Block {
         double xToY;
         double yToX;
     } srcAspect;
+#if C_SURFACE_POSTRENDER_ASPECT
+    std::vector<uint32_t> aspectbuf;
+#endif
 #if C_XBRZ
     struct {
         bool enable;
@@ -1974,24 +1979,22 @@ dosurface:
         }
 #endif
 
-#if C_XBRZ
-        if (sdl.xBRZ.enable) {
-            // there is a small problem we need to solve here: aspect corrected windows can be smaller than needed due to source with non-4:3 pixel ratio
-            // if we detect non-4:3 pixel ratio here with aspect correction on, we correct it so original fits into resized window properly
-            if (render.aspect) {
-                if (width*sdl.srcAspect.y != height * sdl.srcAspect.x)
+#if C_XBRZ || C_SURFACE_POSTRENDER_ASPECT
+        // there is a small problem we need to solve here: aspect corrected windows can be smaller than needed due to source with non-4:3 pixel ratio
+        // if we detect non-4:3 pixel ratio here with aspect correction on, we correct it so original fits into resized window properly
+        if (render.aspect) {
+            if (width*sdl.srcAspect.y != height*sdl.srcAspect.x)
+            {
+                // abnormal aspect ratio detected, apply correction
+                if (width*sdl.srcAspect.y > height*sdl.srcAspect.x)
                 {
-                    // abnormal aspect ratio detected, apply correction
-                    if (width*sdl.srcAspect.y > height*sdl.srcAspect.x)
-                    {
-                        // wide pixel ratio, height should be extended to fit
-                        height = (Bitu)floor((double)width * sdl.srcAspect.y / sdl.srcAspect.x + 0.5);
-                    }
-                    else
-                    {
-                        // long pixel ratio, width should be extended
-                        width = (Bitu)floor((double)height * sdl.srcAspect.x / sdl.srcAspect.y + 0.5);
-                    }
+                    // wide pixel ratio, height should be extended to fit
+                    height = (Bitu)floor((double)width * sdl.srcAspect.y / sdl.srcAspect.x + 0.5);
+                }
+                else
+                {
+                    // long pixel ratio, width should be extended
+                    width = (Bitu)floor((double)height * sdl.srcAspect.x / sdl.srcAspect.y + 0.5);
                 }
             }
         }
@@ -2177,6 +2180,7 @@ dosurface:
                 }
 
                 xBRZ_SetScaleParameters(sdl.draw.width, sdl.draw.height, clipWidth, clipHeight);
+
                 if (sdl.xBRZ.scale_on != render.aspectOffload) {
                     // when we are scaling, we ask render code not to do any aspect correction
                     // when we are not scaling, render code is allowed to do aspect correction at will
@@ -3404,6 +3408,14 @@ bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
         }
         else
 #endif
+#if C_SURFACE_POSTRENDER_ASPECT
+        if (render.aspect == ASPECT_NEAREST || render.aspect == ASPECT_BILINEAR) {
+            sdl.aspectbuf.resize(sdl.draw.width * sdl.draw.height);
+            pixels = sdl.aspectbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl.aspectbuf[0]);
+            pitch = sdl.draw.width * sizeof(uint32_t);
+        }
+        else
+#endif
         {
             if (sdl.blit.surface) {
                 if (SDL_MUSTLOCK(sdl.blit.surface) && SDL_LockSurface(sdl.blit.surface))
@@ -3639,6 +3651,61 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
             }
             else 
 #endif /*C_XBRZ*/
+#if C_SURFACE_POSTRENDER_ASPECT
+            if (render.aspect == ASPECT_NEAREST || render.aspect == ASPECT_BILINEAR) {
+                // here we go, adjusting source aspect ratio
+                int clipWidth = sdl.clip.w;
+                int clipHeight = sdl.clip.h;
+                int clipX = sdl.clip.x;
+                int clipY = sdl.clip.y;
+
+                const bool mustLock = SDL_MUSTLOCK(sdl.surface);
+                if (mustLock) SDL_LockSurface(sdl.surface);
+                if (sdl.surface->pixels) // if locking fails, this can be nullptr, also check if we really need to draw
+                {
+                    uint32_t* clipTrg = reinterpret_cast<uint32_t*>(static_cast<char*>(sdl.surface->pixels) + clipY * sdl.surface->pitch + clipX * sizeof(uint32_t));
+
+                    if (render.aspect == ASPECT_BILINEAR) {
+                        concurrency::task_group tg;
+                        for (int i = 0; i < clipHeight; i += C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE)
+                            tg.run([=]
+                        {
+                            const int iLast = min(i + C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE, clipHeight);
+
+                            xbrz::bilinearScale(&sdl.aspectbuf[0], // const uint32_t* src,
+                                sdl.draw.width, sdl.draw.height, sdl.draw.width * sizeof(uint32_t), // int srcWidth, int srcHeight, int srcPitch,
+                                clipTrg,        //PixTrg* trg,
+                                clipWidth, clipHeight, sdl.surface->pitch, // int trgWidth, int trgHeight, int trgPitch,
+                                i, iLast,       // int yFirst, int yLast,
+                                [](uint32_t pix) { return pix; });  // PixConverter pixCvrt
+                        });
+                        tg.wait();
+                    }
+                    else
+                    {
+                        concurrency::task_group tg;
+                        for (int i = 0; i < clipHeight; i += C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE)
+                            tg.run([=]
+                        {
+                            const int iLast = min(i + C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE, clipHeight);
+
+                            xbrz::nearestNeighborScale(&sdl.aspectbuf[0], sdl.draw.width, sdl.draw.height, sdl.draw.width * sizeof(uint32_t),
+                                clipTrg, clipWidth, clipHeight, sdl.surface->pitch,
+                                i, iLast, [](uint32_t pix) { return pix; }); // perf: going over target is by factor 4 faster than going over source for similar image sizes
+                        });
+                        tg.wait();
+                    }
+                }
+                if (mustLock) SDL_UnlockSurface(sdl.surface);
+                if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
+#if defined(C_SDL2)
+                SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 1);
+#else
+                SDL_Flip(sdl.surface);
+#endif
+            }
+            else
+#endif /*C_SURFACE_POSTRENDER_ASPECT*/
             {
                 if (SDL_MUSTLOCK(sdl.surface)) {
                     if (sdl.blit.surface) {

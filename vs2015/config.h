@@ -117,6 +117,11 @@
 /* Set to 1 to enable XBRZ support */
 #define C_XBRZ 1
 
+/* Set to 1 to enable scaler friendly but CPU intensive aspect ratio correction options (post-scalers) for 'surface' output */
+/* Please note that this option includes small part of xBRZ code and uses task group parallelism like xBRZ (batch size is hardcoded here) */
+#define C_SURFACE_POSTRENDER_ASPECT 1
+#define C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE 16
+
 /* Define to 1 if you have setpriority support */
 #undef C_SET_PRIORITY
 

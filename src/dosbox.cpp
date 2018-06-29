@@ -851,6 +851,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     const char* pc98fmboards[] = { "auto", "off", "false", "board26k", "board86", "board86c", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
+    const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
 
     const char* irqssbhack[] = {
         "none", "cs_equ_ds", 0
@@ -1423,8 +1424,44 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(0,10);
     Pint->Set_help("How many frames DOSBox skips before drawing one.");
 
-    Pbool = secprop->Add_bool("aspect",Property::Changeable::Always,false);
-    Pbool->Set_help("Do aspect correction, if your output method doesn't support scaling this can slow things down!.");
+    Pstring = secprop->Add_string("aspect", Property::Changeable::Always, "false");
+    Pstring->Set_values(aspectmodes);
+    Pstring->Set_help(
+        "Aspect ratio correction mode. Can be set to the following values:\n"
+        "  'false' (default):\n"
+        "      'direct3d'/opengl outputs: image is simply scaled to full window/fullscreen size, possibly resulting in disproportional image\n"
+        "      'surface' output: it does no aspect ratio correction (default), resulting in disproportional images if VGA mode pixel ratio is not 4:3\n"
+        "  'true':\n"
+        "      'direct3d'/opengl outputs: uses output driver functions to scale / pad image with black bars, correcting output to proportional 4:3 image\n"
+        "          In most cases image degradation should not be noticeable (it all depends on the video adapter and how much the image is upscaled).\n"
+        "          Should have none to negligible impact on performance, mostly being done in hardware\n"
+        "      'surface' output: inherits old DOSBox aspect ratio correction method (adjusting rendered image line count to correct output to 4:3 ratio)\n"
+        "          Due to source image manipulation this mode does not mix well with scalers, i.e. multiline scalers like hq2x/hq3x will work poorly\n"
+        "          Slightly degrades visual image quality. Has a tiny impact on performance"
+#if C_XBRZ
+        "\n"
+        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so none of the above apply"
+#endif
+#if C_SURFACE_POSTRENDER_ASPECT
+        "\n"
+        "  'nearest':\n"
+        "      'direct3d'/opengl outputs: not available, fallbacks to 'true' mode automatically\n"
+        "      'surface' output: scaler friendly aspect ratio correction, works by rescaling rendered image using nearest neighbor scaler\n"
+        "          Complex scalers work. Image quality is on par with 'true' mode (and better with scalers). More CPU intensive than 'true' mode\n"
+#if C_XBRZ
+        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so it fallbacks to 'true' mode\n"
+#endif
+        "  'bilinear':\n"
+        "      'direct3d'/opengl outputs: not available, fallbacks to 'true' mode automatically\n"
+        "      'surface' output: scaler friendly aspect ratio correction, works by rescaling rendered image using bilinear scaler\n"
+        "          Complex scalers work. Image quality is much better, should be on par with using 'direct3d' output + 'true' mode\n"
+        "          Very CPU intensive, high end CPU may be required"
+#if C_XBRZ
+        "\n"
+        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so it fallbacks to 'true' mode"
+#endif
+#endif
+    );
 
     Pbool = secprop->Add_bool("char9",Property::Changeable::Always,true);
     Pbool->Set_help("Allow 9-pixel wide text mode fonts.");

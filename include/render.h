@@ -37,6 +37,15 @@ enum SCREEN_TYPES {
 	SCREEN_DIRECT3D
 };
 
+enum ASPECT_MODES {
+    ASPECT_FALSE = 0
+    ,ASPECT_TRUE
+#if C_SURFACE_POSTRENDER_ASPECT
+    ,ASPECT_NEAREST
+    ,ASPECT_BILINEAR
+#endif
+};
+
 typedef struct {
 	struct { 
 		Bit8u red;
@@ -92,7 +101,7 @@ typedef struct {
 	RenderPal_t pal;
 	bool updating;
 	bool active;
-	bool aspect;
+	int aspect;
     bool aspectOffload;
 	bool fullFrame;
 	bool forceUpdate;
