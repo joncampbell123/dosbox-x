@@ -15,15 +15,12 @@ TODO add version
     - Axes can be remapped for devices with questionable layout.
     - User-settable deadzones for joystick bindings in mapper,
       mappings like WSAD keys to axes is less frustrating.
-  - Improve mouse support:
-    - Added pointer integration behavior for DOS applications.
-    - Auto-lock is now disabled by default, this results in
-      pointer integration becoming the default behavior.
-    - Added feedback for auto-lock state, can be visual or auditive.
-    - When the mouse is not locked, its position is exactly where
-      the mouse is reported by the system. This results in a more
-      consistent experience between DOSBox-X and host OS,
-      e.g. High DPI mouse don't become suddenly slow in DOSBox-X.
+  - Improved mouse integration:
+    - Now by default DOSBox-X does not emulate mouse movement when the mouse
+      is not locked. This gives a consistent experience when compared to host OS.
+      For the old behavior, use [sdl] mouse_emulation=always.
+    - Added visual or auditive feedback that notifies about auto-lock state.
+      This feature can be switched off, use [sdl] autolock_feedback=none.
     
 0.82.7
   - Mac OS X builds now honor showmenu=false by leaving the
