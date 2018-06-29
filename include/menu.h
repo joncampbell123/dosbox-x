@@ -59,6 +59,7 @@ extern bool DOSBox_Kor(void);
 extern unsigned int hdd_defsize;
 extern char hdd_size[20];
 extern HWND GetHWND(void);
+extern HWND GetSurfaceHWND(void);
 extern void GetDefaultSize(void);
 #define SCALER(opscaler,opsize) \
 	if ((render.scale.op==opscaler) && (render.scale.size==opsize))

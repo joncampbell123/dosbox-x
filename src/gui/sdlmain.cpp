@@ -5512,17 +5512,14 @@ void GFX_EventsMouseWin32()
 {
     /* Compute relative mouse movement */
 
-    POINT         point;
-    SDL_SysWMinfo wmi;
-
-    SDL_VERSION(&wmi.version);
-    if (!SDL_GetWMInfo(&wmi))
-        return;
+    POINT point;
 
     if (!GetCursorPos(&point))
         return;
 
-    if (!ScreenToClient(wmi.child_window, &point))
+    const auto hwnd = GetSurfaceHWND();
+
+    if (hwnd == nullptr || !ScreenToClient(hwnd, &point))
         return;
 
     const auto x  = point.x;
@@ -5593,6 +5590,7 @@ void GFX_Events() {
                 break;
             case SDL_WINDOWEVENT_FOCUS_LOST:
                 if (sdl.mouse.locked) {
+                    CaptureMouseNotify();
                     GFX_CaptureMouse();
                 }
                 SetPriority(sdl.priority.nofocus);
