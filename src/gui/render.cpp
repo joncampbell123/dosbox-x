@@ -781,6 +781,7 @@ void RENDER_OnSectionPropChange(Section *x) {
     mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
     mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
 
+#if C_XBRZ
     render.xBRZ.task_granularity = section->Get_int("xbrz slice");
     render.xBRZ.fixed_scale_factor = section->Get_int("xbrz fixed scale factor");
     render.xBRZ.max_scale_factor = section->Get_int("xbrz max scale factor");
@@ -788,6 +789,7 @@ void RENDER_OnSectionPropChange(Section *x) {
         render.xBRZ.max_scale_factor = xbrz::SCALE_FACTOR_MAX;
     if ((render.xBRZ.fixed_scale_factor < 2) || (render.xBRZ.fixed_scale_factor > xbrz::SCALE_FACTOR_MAX))
         render.xBRZ.fixed_scale_factor = 0;
+#endif
 
     RENDER_UpdateFrameskipMenu();
 }
