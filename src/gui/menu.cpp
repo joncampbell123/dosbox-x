@@ -1226,6 +1226,7 @@ void DOSBox_CheckOS(int &id, int &major, int &minor) {
 }
 #endif
 
+#if defined(WIN32)
 # if defined(HX_DOS) || !defined(C_SDL2)
 HWND GetHWND(void) {
 	SDL_SysWMinfo wmi;
@@ -1247,6 +1248,7 @@ HWND GetSurfaceHWND(void) {
 	return wmi.child_window;
 }
 # endif
+#endif
 
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 #include <shlobj.h>
