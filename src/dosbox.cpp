@@ -875,6 +875,9 @@ void DOSBOX_SetupConfigSections(void) {
         "tv2x", "tv3x", "rgb2x", "rgb3x", "scan2x", "scan3x",
 #endif
         "hardware_none", "hardware2x", "hardware3x", "hardware4x", "hardware5x",
+#if C_XBRZ
+        "xbrz", "xbrz_bilinear",
+#endif
         0 };
 
     const char* cores[] = { "auto",
@@ -1443,6 +1446,20 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
     Pstring->Set_values(force);
+
+#if C_XBRZ
+    Pint = secprop->Add_int("xbrz slice",Property::Changeable::OnlyAtStart,16);
+    Pint->SetMinMax(1,1024);
+    Pint->Set_help("Number of screen lines to process in single xBRZ scaler taskset task, affects xBRZ performance, 16 is the default");
+
+    Pint = secprop->Add_int("xbrz fixed scale factor",Property::Changeable::OnlyAtStart, 0);
+    Pint->SetMinMax(0,6);
+    Pint->Set_help("To use fixed xBRZ scale factor (i.e. to attune performance), set it to 2-6, 0 - use automatic calculation (default)");
+
+    Pint = secprop->Add_int("xbrz max scale factor",Property::Changeable::OnlyAtStart, 0);
+    Pint->SetMinMax(0,6);
+    Pint->Set_help("To cap maximum xBRZ scale factor used (i.e. to attune performance), set it to 2-6, 0 - use scaler allowed maximum (default)");
+#endif
 
     Pbool = secprop->Add_bool("autofit",Property::Changeable::Always,true);
     Pbool->Set_help(

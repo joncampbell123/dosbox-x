@@ -114,6 +114,9 @@
 /* Set to 1 to enable SDL 2.x support */
 /* #undef C_SDL2 */
 
+/* Set to 1 to enable XBRZ support */
+#define C_XBRZ 1
+
 /* Define to 1 if you have setpriority support */
 #undef C_SET_PRIORITY
 

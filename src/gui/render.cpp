@@ -339,7 +339,9 @@ void RENDER_Reset( void ) {
     Bitu gfx_flags, xscale, yscale;
     ScalerSimpleBlock_t     *simpleBlock = &ScaleNormal1x;
     ScalerComplexBlock_t    *complexBlock = 0;
-    if (render.aspect) {
+    gfx_scalew = 1;
+    gfx_scaleh = 1;
+    if (render.aspect && !render.aspectOffload) {
         if (render.src.ratio>1.0) {
             gfx_scalew = 1;
             gfx_scaleh = render.src.ratio;
@@ -347,9 +349,6 @@ void RENDER_Reset( void ) {
             gfx_scalew = (1.0/render.src.ratio);
             gfx_scaleh = 1;
         }
-    } else {
-        gfx_scalew = 1;
-        gfx_scaleh = 1;
     }
     if ((dblh && dblw) || (render.scale.forced && !dblh && !dblw)) {
         /* Initialize always working defaults */
@@ -791,6 +790,10 @@ void RENDER_UpdateFromScalerSetting(void) {
     std::string f = prop->GetSection()->Get_string("force");
     std::string scaler = prop->GetSection()->Get_string("type");
 
+#if C_XBRZ
+    render.scale.xBRZ = false;
+#endif
+
     render.scale.forced = false;
     if(f == "forced") render.scale.forced = true;
    
@@ -823,6 +826,10 @@ void RENDER_UpdateFromScalerSetting(void) {
     else if (scaler == "hardware3x") { render.scale.op = scalerOpNormal; render.scale.size = 6; render.scale.hardware=true; }
     else if (scaler == "hardware4x") { render.scale.op = scalerOpNormal; render.scale.size = 8; render.scale.hardware=true; }
     else if (scaler == "hardware5x") { render.scale.op = scalerOpNormal; render.scale.size = 10; render.scale.hardware=true; }
+#if C_XBRZ
+    else if (scaler == "xbrz") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware = false; render.scale.xBRZ = true; }
+    else if (scaler == "xbrz_bilinear") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware = false; render.scale.xBRZ = true; }
+#endif
 }
 
 void RENDER_Init() {
@@ -872,8 +879,14 @@ void RENDER_Init() {
 
     RENDER_UpdateFromScalerSetting();
 
-    render.autofit=section->Get_bool("autofit");
+#if C_XBRZ
+    if (render.scale.xBRZ) {
+        // xBRZ requirements
+		vga.draw.doublescan_set = false;
+    }
+#endif
 
+    render.autofit=section->Get_bool("autofit");
 
     //If something changed that needs a ReInit
     // Only ReInit when there is a src.bpp (fixes crashes on startup and directly changing the scaler without a screen specified yet)
