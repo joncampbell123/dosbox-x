@@ -424,6 +424,7 @@ static Bitu DOS_21Handler(void) {
         case 0x00:      /* Terminate Program */
             DOS_Terminate(mem_readw(SegPhys(ss)+reg_sp+2),false,0);
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
+            dos_program_running = false;
             break;
         case 0x01:      /* Read character from STDIN, with echo */
             {   
@@ -979,6 +980,7 @@ static Bitu DOS_21Handler(void) {
             DOS_ResizeMemory(dos.psp(),&reg_dx);
             DOS_Terminate(dos.psp(),true,reg_al);
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
+            dos_program_running = false;
             break;
         case 0x1f: /* Get drive parameter block for default drive */
         case 0x32: /* Get drive parameter block for specific drive */
