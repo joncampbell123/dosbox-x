@@ -2954,6 +2954,7 @@ void CaptureMouseNotifyWin32()
     break;
     case AUTOLOCK_FEEDBACK_FLASH:
     {
+# if !defined(HX_DOS)
         const auto cnt = lck ? 4 : 2;
         const auto tim = lck ? 80 : 40;
         const auto wnd = GetHWND();
@@ -2967,6 +2968,7 @@ void CaptureMouseNotifyWin32()
             fi.dwTimeout = tim;
             FlashWindowEx(&fi);
         }
+# endif
         break;
     }
     default: ;
