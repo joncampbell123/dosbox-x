@@ -6,6 +6,10 @@
 #include "sdlmain.h"
 #include "vga.h"
 
+#include <algorithm> // std::transform
+
+using namespace std;
+
 #if !defined(C_SDL2)
 Bitu OUTPUT_SURFACE_GetBestMode(Bitu flags)
 {
@@ -141,6 +145,8 @@ retry:
     }
     else
     {
+        int menuheight = 0;
+
         sdl.clip.x = 0; sdl.clip.y = 0;
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
@@ -158,40 +164,81 @@ retry:
             LOG_MSG("menuScale=%lu", (unsigned long)scale);
             mainMenu.setScale(scale);
         }
+
+        if (mainMenu.isVisible()) menuheight = mainMenu.menuBox.h;
 #endif
 
+        /* menu size and consideration of width and height */
+        Bitu consider_height = menu.maxwindow ? currentWindowHeight : (height + (unsigned int)menuheight + (sdl.overscan_width * 2));
+        Bitu consider_width = menu.maxwindow ? currentWindowWidth : (width + (sdl.overscan_width * 2));
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+        if (mainMenu.isVisible())
+        {
+            /* enforce a minimum 640x400 surface size.
+             * the menus are useless below 640x400 */
+            if (consider_width < (640 + (sdl.overscan_width * 2)))
+                consider_width = (640 + (sdl.overscan_width * 2));
+            if (consider_height < (400 + (sdl.overscan_width * 2) + (unsigned int)menuheight))
+                consider_height = (400 + (sdl.overscan_width * 2) + (unsigned int)menuheight);
+        }
+#endif
+
+        /* decide where the rectangle on the screen goes */
+        int final_width,final_height,ax,ay;
+
+#if C_XBRZ
+        /* scale to fit the window.
+         * fit by aspect ratio if asked to do so. */
+        if (render.xBRZ.enable)
+        {
+            final_height = (int)max(consider_height, userResizeWindowHeight) - (int)menuheight - ((int)sdl.overscan_width * 2);
+            final_width = (int)max(consider_width, userResizeWindowWidth) - ((int)sdl.overscan_width * 2);
+
+            sdl.clip.x = sdl.clip.y = 0;
+            sdl.clip.w = final_width;
+            sdl.clip.h = final_height;
+
+            if (render.aspect) {
+                int sh = final_height;
+                int sw = (int)floor(final_height * sdl.srcAspect.xToY);
+
+                if (sw > final_width) {
+                    sh = (sh * final_width) / sw;
+                    sw = final_width;
+                }
+
+                ax = (final_width - sw) / 2;
+                ay = (final_height - sh) / 2;
+                if (ax < 0) ax = 0;
+                if (ay < 0) ay = 0;
+                sdl.clip.x = ax;
+                sdl.clip.y = ay;
+                sdl.clip.w = sw;
+                sdl.clip.h = sh;
+
+                assert((sdl.clip.x+sdl.clip.w) <= final_width);
+                assert((sdl.clip.y+sdl.clip.h) <= final_height);
+            }
+        }
+        else
+#endif 
         /* center the screen in the window */
         {
-            int menuheight = 0;
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-            if (mainMenu.isVisible()) menuheight = mainMenu.menuBox.h;
-#endif
-            Bitu consider_height = menu.maxwindow ? currentWindowHeight : (height + (unsigned int)menuheight + (sdl.overscan_width * 2));
-            Bitu consider_width = menu.maxwindow ? currentWindowWidth : (width + (sdl.overscan_width * 2));
 
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-            if (mainMenu.isVisible())
-            {
-                /* enforce a minimum 640x400 surface size.
-                * the menus are useless below 640x400 */
-                if (consider_width < (640 + (sdl.overscan_width * 2)))
-                    consider_width = (640 + (sdl.overscan_width * 2));
-                if (consider_height < (400 + (sdl.overscan_width * 2) + (unsigned int)menuheight))
-                    consider_height = (400 + (sdl.overscan_width * 2) + (unsigned int)menuheight);
-            }
-#endif
-
-            int final_height = (int)max(max(consider_height, userResizeWindowHeight), (Bitu)(sdl.clip.y + sdl.clip.h)) - (int)menuheight - ((int)sdl.overscan_width * 2);
-            int final_width = (int)max(max(consider_width, userResizeWindowWidth), (Bitu)(sdl.clip.x + sdl.clip.w)) - ((int)sdl.overscan_width * 2);
-            int ax = (final_width - (sdl.clip.x + sdl.clip.w)) / 2;
-            int ay = (final_height - (sdl.clip.y + sdl.clip.h)) / 2;
+            final_height = (int)max(max(consider_height, userResizeWindowHeight), (Bitu)(sdl.clip.y + sdl.clip.h)) - (int)menuheight - ((int)sdl.overscan_width * 2);
+            final_width = (int)max(max(consider_width, userResizeWindowWidth), (Bitu)(sdl.clip.x + sdl.clip.w)) - ((int)sdl.overscan_width * 2);
+            ax = (final_width - (sdl.clip.x + sdl.clip.w)) / 2;
+            ay = (final_height - (sdl.clip.y + sdl.clip.h)) / 2;
             if (ax < 0) ax = 0;
             if (ay < 0) ay = 0;
             sdl.clip.x += ax + (int)sdl.overscan_width;
             sdl.clip.y += ay + (int)sdl.overscan_width;
             // sdl.clip.w = currentWindowWidth - sdl.clip.x;
             // sdl.clip.h = currentWindowHeight - sdl.clip.y;
+        }
 
+        {
             final_width += (int)sdl.overscan_width * 2;
             final_height += (int)menuheight + (int)sdl.overscan_width * 2;
             sdl.clip.y += (int)menuheight;
@@ -290,20 +337,8 @@ retry:
 #if C_XBRZ
         if (render.xBRZ.enable)
         {
-            // pre-calculate scaling factor adjusting for aspect rate if needed
-            int clipWidth = sdl.surface->w;
-            int clipHeight = sdl.surface->h;
-
-            if (render.aspect)
-            {
-                if (clipWidth > sdl.srcAspect.xToY * clipHeight)
-                    clipWidth = static_cast<int>(clipHeight * sdl.srcAspect.xToY); // black bars left and right
-                else
-                    clipHeight = static_cast<int>(clipWidth * sdl.srcAspect.yToX); // black bars top and bottom
-            }
-
             bool old_scale_on = render.xBRZ.scale_on;
-            xBRZ_SetScaleParameters(sdl.draw.width, sdl.draw.height, clipWidth, clipHeight);
+            xBRZ_SetScaleParameters(sdl.draw.width, sdl.draw.height, sdl.clip.w, sdl.clip.h);
             if (render.xBRZ.scale_on != old_scale_on) {
                 // when we are scaling, we ask render code not to do any aspect correction
                 // when we are not scaling, render code is allowed to do aspect correction at will
