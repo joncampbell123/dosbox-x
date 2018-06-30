@@ -169,22 +169,24 @@ retry:
         }
 #endif
 
-        /* center the screen in the window */
-        {
-            Bitu consider_height = menu.maxwindow ? currentWindowHeight : (height + (unsigned int)menuheight + (sdl.overscan_width * 2));
-            Bitu consider_width = menu.maxwindow ? currentWindowWidth : (width + (sdl.overscan_width * 2));
+        /* menu size and consideration of width and height */
+        Bitu consider_height = menu.maxwindow ? currentWindowHeight : (height + (unsigned int)menuheight + (sdl.overscan_width * 2));
+        Bitu consider_width = menu.maxwindow ? currentWindowWidth : (width + (sdl.overscan_width * 2));
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-            if (mainMenu.isVisible())
-            {
-                /* enforce a minimum 640x400 surface size.
-                * the menus are useless below 640x400 */
-                if (consider_width < (640 + (sdl.overscan_width * 2)))
-                    consider_width = (640 + (sdl.overscan_width * 2));
-                if (consider_height < (400 + (sdl.overscan_width * 2) + (unsigned int)menuheight))
-                    consider_height = (400 + (sdl.overscan_width * 2) + (unsigned int)menuheight);
-            }
+        if (mainMenu.isVisible())
+        {
+            /* enforce a minimum 640x400 surface size.
+             * the menus are useless below 640x400 */
+            if (consider_width < (640 + (sdl.overscan_width * 2)))
+                consider_width = (640 + (sdl.overscan_width * 2));
+            if (consider_height < (400 + (sdl.overscan_width * 2) + (unsigned int)menuheight))
+                consider_height = (400 + (sdl.overscan_width * 2) + (unsigned int)menuheight);
+        }
 #endif
+
+        /* center the screen in the window */
+        {
 
             int final_height = (int)max(max(consider_height, userResizeWindowHeight), (Bitu)(sdl.clip.y + sdl.clip.h)) - (int)menuheight - ((int)sdl.overscan_width * 2);
             int final_width = (int)max(max(consider_width, userResizeWindowWidth), (Bitu)(sdl.clip.x + sdl.clip.w)) - ((int)sdl.overscan_width * 2);
