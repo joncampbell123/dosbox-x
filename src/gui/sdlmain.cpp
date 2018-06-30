@@ -3653,11 +3653,12 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                     // we assume render buffer is *not* scaled!
                     const int outputHeight = sdl.surface->h;
                     const int outputWidth = sdl.surface->w;
-                    int clipWidth = outputWidth;
-                    int clipHeight = outputHeight;
-                    int clipX = 0;
-                    int clipY = 0;
+                    int clipWidth = sdl.clip.w;
+                    int clipHeight = sdl.clip.h;
+                    int clipX = sdl.clip.x;
+                    int clipY = sdl.clip.y;
 
+#if 0
                     if (render.aspect) {
                         if (outputWidth > sdl.srcAspect.xToY * outputHeight) // output broader than input => black bars left and right
                         {
@@ -3670,6 +3671,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
                             clipY = (outputHeight - clipHeight) / 2;
                         }
                     }
+#endif
 
                     // 1. xBRZ-scale render buffer into xbrz pixel buffer
                     int xbrzWidth = 0;
