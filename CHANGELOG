@@ -8,8 +8,8 @@ TODO add version
   - Improved shell: (Aybe, Joncampbell123)
     - Ctrl+Left and Ctrl+Right permits word-navigation.
     - Added emulation of 'Ins' key behavior.
-  - Num Lock stays on at startup and is synchronized with host (Aybe)
-    when DOSBox-X window gains focus (Windows). (Aybe)
+  - Num Lock, Caps Lock, Scroll Lock are now synchronized at startup
+    and when DOSBox-X window gains focus again (Windows). (Aybe)
   - Added visual feedback to Hat/D-pad buttons in mapper. (Aybe)
   - Added documentation for 'dir' command sorting switches. (Aybe)
   - Menu 'Show console' is now checked with '-console' (SDL1). (Aybe)
