@@ -30,6 +30,7 @@
 #include "cross.h"
 #include "hardware.h"
 #include "support.h"
+#include "sdlmain.h"
 
 #include "render_scalers.h"
 #if defined(__SSE__)
@@ -556,6 +557,12 @@ forcenormal:
             height = MakeAspectTable( skip, render.src.height, yscale, yscale);
         }
     }
+/* update the aspect ratio */
+    sdl.srcAspect.x = render.src.width * (render.src.dblw ? 2 : 1);
+    sdl.srcAspect.y = (int)floor((render.src.height * (render.src.dblh ? 2 : 1) * render.src.ratio) + 0.5);
+    sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
+    sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
+    LOG_MSG("Aspect ratio: %u x %u  xToY=%.3f yToX=%.3f",sdl.srcAspect.x,sdl.srcAspect.y,sdl.srcAspect.xToY,sdl.srcAspect.yToX);
 /* Setup the scaler variables */
     gfx_flags=GFX_SetSize(width,height,gfx_flags,gfx_scalew,gfx_scaleh,&RENDER_CallBack);
     if (gfx_flags & GFX_CAN_8)
