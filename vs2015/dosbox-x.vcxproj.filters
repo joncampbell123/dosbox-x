@@ -849,6 +849,12 @@
     <ClCompile Include="..\src\output\output_tools_xbrz.cpp">
       <Filter>Sources\output</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\output\output_surface_sdl.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\output_surface_sdl2.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">

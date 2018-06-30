@@ -1,4 +1,5 @@
 #include "dosbox.h"
+#include "menu.h"
 #include "mouse.h"
 #include "render.h"
 #include "video.h"
@@ -166,6 +167,11 @@ extern Bitu currentWindowHeight;
 
 void GFX_SetIcon(void);
 void GFX_SDL_Overscan(void);
+void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl);
 void SDL_rect_cliptoscreen(SDL_Rect &r);
+
+#if defined(C_SDL2)
+SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType);
+#endif
 
 #endif /*DOSBOX_SDLMAIN_H*/

@@ -747,7 +747,8 @@ void PauseDOSBox(bool pressed) {
 }
 
 #if defined(C_SDL2)
-static SDL_Window * GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType) {
+SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType) 
+{
     static SCREEN_TYPES lastType = SCREEN_SURFACE;
     if (sdl.renderer) {
         SDL_DestroyRenderer(sdl.renderer);
@@ -1553,7 +1554,8 @@ void DOSBoxMenu::displaylist::DrawDisplayList(DOSBoxMenu &menu,bool updateScreen
 
 bool DOSBox_isMenuVisible(void);
 
-void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl) {
+void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl) 
+{
     if (menu.needsRedraw() && DOSBox_isMenuVisible() && (!sdl.updating || OpenGL_using()) && !sdl.desktop.fullscreen) {
         if (!OpenGL_using()) {
             if (SDL_MUSTLOCK(sdl.surface))
