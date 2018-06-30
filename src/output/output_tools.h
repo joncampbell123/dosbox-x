@@ -1,0 +1,4 @@
+#ifndef DOSBOX_OUTPUT_TOOLS_H
+#define DOSBOX_OUTPUT_TOOLS_H
+
+#endif
