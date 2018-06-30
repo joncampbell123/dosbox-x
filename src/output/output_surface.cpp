@@ -72,6 +72,13 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
             // recalculation to full output width/height is deliberate here, with xBRZ we nicely fill entire output size!
             const int outputHeight = sdl.surface->h;
             const int outputWidth = sdl.surface->w;
+#if 1
+            // please use sdl.clip to keep screen positioning consistent with the rest of the emulator
+            int clipWidth = sdl.clip.w;
+            int clipHeight = sdl.clip.h;
+            int clipX = sdl.clip.x;
+            int clipY = sdl.clip.y;
+#else
             int clipWidth = outputWidth;
             int clipHeight = outputHeight;
             int clipX = 0;
@@ -89,6 +96,7 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
                     clipY = (outputHeight - clipHeight) / 2;
                 }
             }
+#endif
 
             // 1. xBRZ-scale render buffer into xbrz pixel buffer
             int xbrzWidth = 0;
