@@ -6,6 +6,10 @@
 #include "sdlmain.h"
 #include "vga.h"
 
+#include <algorithm> // std::transform
+
+using namespace std;
+
 #if !defined(C_SDL2)
 Bitu OUTPUT_SURFACE_GetBestMode(Bitu flags)
 {
