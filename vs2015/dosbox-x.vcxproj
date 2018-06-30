@@ -900,6 +900,11 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\misc\regionalloctracking.cpp" />
     <ClCompile Include="..\src\misc\setup.cpp" />
     <ClCompile Include="..\src\misc\support.cpp" />
+    <ClCompile Include="..\src\output\output_direct3d.cpp" />
+    <ClCompile Include="..\src\output\output_opengl.cpp" />
+    <ClCompile Include="..\src\output\output_surface.cpp" />
+    <ClCompile Include="..\src\output\output_tools.cpp" />
+    <ClCompile Include="..\src\output\output_tools_xbrz.cpp" />
     <ClCompile Include="..\src\shell\shell.cpp" />
     <ClCompile Include="..\src\shell\shell_batch.cpp" />
     <ClCompile Include="..\src\shell\shell_cmds.cpp" />
@@ -968,6 +973,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClInclude Include="..\include\regs.h" />
     <ClInclude Include="..\include\render.h" />
     <ClInclude Include="..\include\resource.h" />
+    <ClInclude Include="..\include\sdlmain.h" />
     <ClInclude Include="..\include\selftest.h" />
     <ClInclude Include="..\include\serialport.h" />
     <ClInclude Include="..\include\setup.h" />
@@ -1118,6 +1124,11 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClInclude Include="..\src\mt32\TVA.h" />
     <ClInclude Include="..\src\mt32\TVF.h" />
     <ClInclude Include="..\src\mt32\TVP.h" />
+    <ClInclude Include="..\src\output\output_direct3d.h" />
+    <ClInclude Include="..\src\output\output_opengl.h" />
+    <ClInclude Include="..\src\output\output_surface.h" />
+    <ClInclude Include="..\src\output\output_tools.h" />
+    <ClInclude Include="..\src\output\output_tools_xbrz.h" />
     <ClInclude Include="..\src\xBRZ\xbrz.h" />
     <ClInclude Include="..\src\xBRZ\xbrz_config.h" />
     <ClInclude Include="..\src\xBRZ\xbrz_tools.h" />

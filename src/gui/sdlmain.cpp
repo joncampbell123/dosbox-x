@@ -114,19 +114,6 @@ void GFX_OpenGLRedrawScreen(void);
 # define MAX(a,b) std::max(a,b)
 #endif
 
-#if C_XBRZ
-#include <xBRZ/xbrz.h>
-void RENDER_xBRZ_Early_Init(); // early initialization function defined in render.cpp
-#endif
-#if C_XBRZ || C_SURFACE_POSTRENDER_ASPECT
-#include <xBRZ/xbrz_tools.h>
-#include <cmath>
-# if defined(WIN32) && !defined(__MINGW32__) && !defined(HX_DOS)
-#  define XBRZ_PPL 1
-#  include <ppl.h>
-# endif
-#endif
-
 #if !defined(C_SDL2)
 # include "SDL_version.h"
 # ifndef SDL_DOSBOX_X_SPECIAL
@@ -134,22 +121,10 @@ void RENDER_xBRZ_Early_Init(); // early initialization function defined in rende
 # endif
 #endif
 
-#if defined(WIN32) && !defined(C_SDL2)
-bool isVirtualBox = false; /* OpenGL never works with Windows XP inside VirtualBox */
-HMENU MainMenu = NULL;
-#endif
+#include "sdlmain.h"
 
-bool OpenGL_using(void);
-
-#if defined(WIN32) && !defined(S_ISREG)
-# define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
-#endif
-
-#ifndef SDL_MAIN_NOEXCEPT
-#define SDL_MAIN_NOEXCEPT
-#endif
-
-using namespace std;
+SDL_Block sdl;
+Bitu frames = 0;
 
 const char *scaler_menu_opts[][2] = {
     { "none",                   "None" },
@@ -183,6 +158,23 @@ const char *scaler_menu_opts[][2] = {
 #endif
     { NULL, NULL }
 };
+
+#if defined(WIN32) && !defined(C_SDL2)
+bool isVirtualBox = false; /* OpenGL never works with Windows XP inside VirtualBox */
+HMENU MainMenu = NULL;
+#endif
+
+bool OpenGL_using(void);
+
+#if defined(WIN32) && !defined(S_ISREG)
+# define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
+#endif
+
+#ifndef SDL_MAIN_NOEXCEPT
+#define SDL_MAIN_NOEXCEPT
+#endif
+
+using namespace std;
 
 void UpdateOverscanMenu(void);
 
@@ -362,58 +354,12 @@ void UpdateWindowDimensions(void) {
 #endif
 }
 
-#if C_OPENGL
-#include "SDL_opengl.h"
-
-#ifndef APIENTRY
-#define APIENTRY
-#endif
-#ifndef APIENTRYP
-#define APIENTRYP APIENTRY *
-#endif
-
-#ifndef GL_ARB_pixel_buffer_object
-#define GL_ARB_pixel_buffer_object 1
-#define GL_PIXEL_PACK_BUFFER_ARB           0x88EB
-#define GL_PIXEL_UNPACK_BUFFER_ARB         0x88EC
-#define GL_PIXEL_PACK_BUFFER_BINDING_ARB   0x88ED
-#define GL_PIXEL_UNPACK_BUFFER_BINDING_ARB 0x88EF
-#endif
-
-#ifndef GL_ARB_vertex_buffer_object
-#define GL_ARB_vertex_buffer_object 1
-typedef void (APIENTRYP PFNGLGENBUFFERSARBPROC) (GLsizei n, GLuint *buffers);
-typedef void (APIENTRYP PFNGLBINDBUFFERARBPROC) (GLenum target, GLuint buffer);
-typedef void (APIENTRYP PFNGLDELETEBUFFERSARBPROC) (GLsizei n, const GLuint *buffers);
-typedef void (APIENTRYP PFNGLBUFFERDATAARBPROC) (GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage);
-typedef GLvoid* (APIENTRYP PFNGLMAPBUFFERARBPROC) (GLenum target, GLenum access);
-typedef GLboolean (APIENTRYP PFNGLUNMAPBUFFERARBPROC) (GLenum target);
-#endif
-
-PFNGLGENBUFFERSARBPROC glGenBuffersARB = NULL;
-PFNGLBINDBUFFERARBPROC glBindBufferARB = NULL;
-PFNGLDELETEBUFFERSARBPROC glDeleteBuffersARB = NULL;
-PFNGLBUFFERDATAARBPROC glBufferDataARB = NULL;
-PFNGLMAPBUFFERARBPROC glMapBufferARB = NULL;
-PFNGLUNMAPBUFFERARBPROC glUnmapBufferARB = NULL;
-
-#endif //C_OPENGL
-
 /* TODO: move to general header */
 static inline int int_log2(int val) {
     int log = 0;
     while ((val >>= 1) != 0) log++;
     return log;
 }
-
-enum PRIORITY_LEVELS {
-    PRIORITY_LEVEL_PAUSE,
-    PRIORITY_LEVEL_LOWEST,
-    PRIORITY_LEVEL_LOWER,
-    PRIORITY_LEVEL_NORMAL,
-    PRIORITY_LEVEL_HIGHER,
-    PRIORITY_LEVEL_HIGHEST
-};
 
 #if defined(C_SDL2)
 # define MAPPERFILE             "mapper-" VERSION ".sdl2.map"
@@ -427,8 +373,6 @@ void                        GUI_LoadFonts();
 void                        GUI_Run(bool);
 #endif
 void                        Restart(bool pressed);
-bool                        RENDER_GetAspect(void);
-bool                        RENDER_GetAutofit(void);
 
 const char*                 titlebar = NULL;
 extern const char*              RunningProgram;
@@ -437,7 +381,6 @@ extern bool                 CPU_CycleAutoAdjust;
 extern char**                   environ;
 #endif
 
-Bitu                        frames = 0;
 double                      rtdelta = 0;
 bool                        emu_paused = false;
 bool                        mouselocked = false; //Global variable for mapper
@@ -488,133 +431,6 @@ CDirect3D*                  d3d = NULL;
 #ifdef OS2
 # include <os2.h>
 #endif
-
-enum AUTOLOCK_FEEDBACK
-{
-    AUTOLOCK_FEEDBACK_NONE,
-    AUTOLOCK_FEEDBACK_BEEP,
-    AUTOLOCK_FEEDBACK_FLASH
-};
-
-// do not specify any defaults inside, it is zeroed at start of main()
-struct SDL_Block {
-    bool inited;
-    bool active;                            //If this isn't set don't draw
-    bool updating;
-#if defined(C_SDL2)
-    bool update_window;
-    bool update_display_contents;
-    int window_desired_width, window_desired_height;
-#endif
-    struct {
-        Bit32u width;
-        Bit32u height;
-        Bit32u bpp;
-        Bitu flags;
-        double scalex,scaley;
-        GFX_CallBack_t callback;
-    } draw;
-    bool wait_on_error;
-    struct {
-        struct {
-            Bit16u width, height;
-            bool fixed;
-            bool display_res;
-        } full;
-        struct {
-            Bit16u width, height;
-        } window;
-        Bit8u bpp;
-#if defined(C_SDL2)
-        Bit32u pixelFormat;
-#endif
-        bool fullscreen;
-        bool lazy_fullscreen;
-        bool prevent_fullscreen;
-        bool lazy_fullscreen_req;
-        bool doublebuf;
-        SCREEN_TYPES type;
-        SCREEN_TYPES want_type;
-    } desktop;
-#if C_OPENGL
-    struct {
-        Bitu pitch;
-        void * framebuf;
-        GLuint buffer;
-        GLuint texture;
-        GLuint displaylist;
-        GLint max_texsize;
-        bool bilinear;
-        bool packed_pixel;
-        bool paletted_texture;
-        bool pixel_buffer_object;
-    } opengl;
-#endif
-    struct {
-        SDL_Surface * surface;
-#if (HAVE_DDRAW_H) && defined(WIN32)
-        RECT rect;
-#endif
-    } blit;
-    struct {
-        PRIORITY_LEVELS focus;
-        PRIORITY_LEVELS nofocus;
-    } priority;
-    SDL_Rect clip;
-    SDL_Surface * surface;
-#if defined(C_SDL2)
-    SDL_Window * window;
-    SDL_Renderer * renderer;
-    const char * rendererDriver;
-    int displayNumber;
-    struct {
-        SDL_Texture * texture;
-        SDL_PixelFormat * pixelFormat;
-    } texture;
-#endif
-    SDL_cond *cond;
-    struct {
-        bool autolock;
-        AUTOLOCK_FEEDBACK autolock_feedback;
-        bool autoenable;
-        bool requestlock;
-        bool locked;
-        Bitu sensitivity;
-        MOUSE_EMULATION emulation;
-    } mouse;
-    SDL_Rect updateRects[1024];
-    Bitu overscan_color;
-    Bitu overscan_width;
-    Bitu num_joysticks;
-#if defined (WIN32)
-    bool using_windib;
-#endif
-    // state of alt-keys for certain special handlings
-    Bit16u laltstate;
-    Bit16u raltstate;
-    bool must_redraw_all;
-    bool deferred_resize;
-    bool init_ignore;
-    unsigned int gfx_force_redraw_count;
-    struct {
-        int x;
-        int y;
-        double xToY;
-        double yToX;
-    } srcAspect;
-#if C_SURFACE_POSTRENDER_ASPECT
-    std::vector<uint32_t> aspectbuf;
-#endif
-#if C_XBRZ
-    struct {
-        std::vector<uint32_t> renderbuf;
-        std::vector<uint32_t> pixbuf;
-        int scale_factor;
-    } xBRZ;
-#endif
-};
-
-static SDL_Block sdl;
 
 #if defined(C_SDL2)
 # if defined(WIN32)
@@ -687,7 +503,8 @@ bool GFX_SDLUsingWinDIB(void) {
 }
 #endif
 
-void GFX_SetIcon(void) {
+void GFX_SetIcon(void) 
+{
 #if !defined(MACOSX)
     /* Set Icon (must be done before any sdl_setvideomode call) */
     /* But don't set it on OS X, as we use a nicer external icon there. */
@@ -777,7 +594,7 @@ static void KillSwitch(bool pressed) {
     throw 1;
 }
 
-static void SDL_Overscan(void) {
+void GFX_SDL_Overscan(void) {
     sdl.overscan_color=0;
     if (sdl.overscan_width) {
         Bitu border_color =  GFX_GetRGB(vga.dac.rgb[vga.attr.overscan_color].red<<2,
@@ -1052,71 +869,30 @@ GLuint SDLDrawGenFontTexture = (GLuint)(~0UL);
 #if !defined(C_SDL2)
 /* Reset the screen with current values in the sdl structure */
 Bitu GFX_GetBestMode(Bitu flags) {
-    Bitu testbpp,gotbpp;
-    switch (sdl.desktop.want_type) {
-    case SCREEN_SURFACE:
-check_surface:
-        flags &= ~GFX_LOVE_8;       //Disable love for 8bpp modes
-        /* Check if we can satisfy the depth it loves */
-        if (flags & GFX_LOVE_8) testbpp=8;
-        else if (flags & GFX_LOVE_15) testbpp=15;
-        else if (flags & GFX_LOVE_16) testbpp=16;
-        else if (flags & GFX_LOVE_32) testbpp=32;
-        else testbpp=0;
+    switch (sdl.desktop.want_type) 
+    {
+        case SCREEN_SURFACE:
+do_surface:
+            return OUTPUT_SURFACE_GetBestMode(flags);
 
-		if (sdl.desktop.fullscreen)
-            gotbpp=(unsigned int)SDL_VideoModeOK(640,480,testbpp,
-                (unsigned int)SDL_FULLSCREEN | (unsigned int)SDL_HWSURFACE | (unsigned int)SDL_HWPALETTE);
-        else
-            gotbpp=sdl.desktop.bpp;
-
-        /* SDL 1.x and sometimes SDL 2.x mistake 15-bit 5:5:5 RGB for 16-bit 5:6:5 RGB
-         * which causes colors to mis-display. This seems to be common with Windows and Linux.
-         * If SDL said 16-bit but the bit masks suggest 15-bit, then make the correction now. */
-        if (gotbpp == 16) {
-            if (sdl.surface->format->Gshift == 5 && sdl.surface->format->Gmask == (31U << 5U)) {
-                LOG_MSG("NOTE: SDL returned 16-bit/pixel mode (5:6:5) but failed to recognize your screen is 15-bit/pixel mode (5:5:5)");
-                gotbpp = 15;
-            }
-        }
-
-        /* If we can't get our favorite mode check for another working one */
-        switch (gotbpp) {
-        case 8:
-            if (flags & GFX_CAN_8) flags&=~(GFX_CAN_15|GFX_CAN_16|GFX_CAN_32);
-            break;
-        case 15:
-            if (flags & GFX_CAN_15) flags&=~(GFX_CAN_8|GFX_CAN_16|GFX_CAN_32);
-            break;
-        case 16:
-            if (flags & GFX_CAN_16) flags&=~(GFX_CAN_8|GFX_CAN_15|GFX_CAN_32);
-            break;
-        case 24:
-        case 32:
-            if (flags & GFX_CAN_32) flags&=~(GFX_CAN_8|GFX_CAN_15|GFX_CAN_16);
-            break;
-        }
-        flags |= GFX_CAN_RANDOM;
-        break;
 #if C_OPENGL
     case SCREEN_OPENGL:
-        if (!(flags&GFX_CAN_32)) goto check_surface;
-        flags|=GFX_SCALING;
-        flags&=~(GFX_CAN_8|GFX_CAN_15|GFX_CAN_16);
+        if (!(flags & GFX_CAN_32)) goto do_surface;
+        flags |= GFX_SCALING;
+        flags &= ~(GFX_CAN_8|GFX_CAN_15|GFX_CAN_16);
         break;
 #endif
 #if (HAVE_D3D9_H) && defined(WIN32)
     case SCREEN_DIRECT3D:
-        flags|=GFX_SCALING;
+        flags |= GFX_SCALING;
         if(GCC_UNLIKELY(d3d->bpp16))
-            flags&=~(GFX_CAN_8|GFX_CAN_15|GFX_CAN_32);
+            flags &= ~(GFX_CAN_8|GFX_CAN_15|GFX_CAN_32);
         else
-            flags&=~(GFX_CAN_8|GFX_CAN_15|GFX_CAN_16);
+            flags &= ~(GFX_CAN_8|GFX_CAN_15|GFX_CAN_16);
         break;
 #endif
     default:
-        goto check_surface;
-        break;
+        goto do_surface;
     }
     return flags;
 }
@@ -1363,10 +1139,6 @@ void GFX_TearDown(void) {
         SDL_FreeSurface(sdl.blit.surface);
         sdl.blit.surface=0;
     }
-}
-
-static void GFX_ResetSDL() {
-    /* deprecated */
 }
 
 #if defined(WIN32) && !defined(C_SDL2)
@@ -1820,37 +1592,10 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl) {
 bool initedOpenGL = false;
 #endif
 
-#if C_XBRZ
-// returns true if scaling possible/enabled, false otherwise
-bool xBRZ_SetScaleParameters(int srcWidth, int srcHeight, int dstWidth, int dstHeight) {
-    sdl.xBRZ.scale_factor = (render.xBRZ.fixed_scale_factor == 0) ?
-        static_cast<int>(std::sqrt((double)dstWidth * dstHeight / (srcWidth * srcHeight)) + 0.5) :
-        render.xBRZ.fixed_scale_factor;
-
-    // enable minimal scaling if upscale is still possible but requires post-downscale
-    // having aspect ratio correction on always implies enabled scaler because it gives better quality than DOSBox own method
-    if (sdl.xBRZ.scale_factor == 1 && (render.aspect || dstWidth > srcWidth || dstHeight > srcHeight))
-        sdl.xBRZ.scale_factor = 2; 
-
-    if (sdl.xBRZ.scale_factor >= 2)
-    {
-        // ok to scale, now clamp scale factor if corresponding max option is set
-        sdl.xBRZ.scale_factor = min(sdl.xBRZ.scale_factor, render.xBRZ.max_scale_factor);
-        render.xBRZ.scale_on = true;
-    }
-    else 
-    {
-        // scaling impossible
-        render.xBRZ.scale_on = false;
-    }
-
-    return render.xBRZ.scale_on;
-}
-#endif
-
 void RENDER_Reset(void);
 
-Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,GFX_CallBack_t callback) {
+Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scaley, GFX_CallBack_t callback) 
+{
     if (width == 0 || height == 0) {
         E_Exit("GFX_SetSize with width=%d height=%d zero dimensions not allowed",(int)width,(int)height);
         return 0;
@@ -1861,21 +1606,21 @@ Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,G
 
     sdl.must_redraw_all = true;
 
-    sdl.draw.width=width;
-    sdl.draw.height=height;
-    sdl.draw.flags=flags;
-    sdl.draw.callback=callback;
-    sdl.draw.scalex=scalex;
-    sdl.draw.scaley=scaley;
+    sdl.draw.width = width;
+    sdl.draw.height = height;
+    sdl.draw.flags = flags;
+    sdl.draw.callback = callback;
+    sdl.draw.scalex = scalex;
+    sdl.draw.scaley = scaley;
 
     LOG(LOG_MISC,LOG_DEBUG)("GFX_SetSize %ux%u flags=0x%x scale=%.3fx%.3f",
         (unsigned int)width,(unsigned int)height,
         (unsigned int)flags,
         scalex,scaley);
 
-    Bitu bpp=0;
+    Bitu bpp = 0;
     Bitu retFlags = 0;
-//  Uint32 sdl_flags;
+    //  Uint32 sdl_flags;
 
     if (sdl.blit.surface) {
         SDL_FreeSurface(sdl.blit.surface);
@@ -1887,349 +1632,11 @@ Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,G
 #endif
 
     switch (sdl.desktop.want_type) {
-#if defined(C_SDL2)
-    (void)bpp;
-    case SCREEN_SURFACE:
-    {
-        GFX_ResetSDL();
-dosurface:
-        sdl.desktop.type=SCREEN_SURFACE;
-        sdl.clip.w=width;
-        sdl.clip.h=height;
-        if (GFX_IsFullscreen()) {
-            if (sdl.desktop.full.fixed) {
-                sdl.clip.x=(Sint16)((sdl.desktop.full.width-width)/2);
-                sdl.clip.y=(Sint16)((sdl.desktop.full.height-height)/2);
-                sdl.window = GFX_SetSDLWindowMode(sdl.desktop.full.width,
-                                                  sdl.desktop.full.height,
-                                                  sdl.desktop.type);
-                if (sdl.window == NULL)
-                    E_Exit("Could not set fullscreen video mode %ix%i-%i: %s",sdl.desktop.full.width,sdl.desktop.full.height,sdl.desktop.bpp,SDL_GetError());
-            } else {
-                sdl.clip.x=0;
-                sdl.clip.y=0;
-                sdl.window = GFX_SetSDLWindowMode(width, height,
-                                                  sdl.desktop.type);
-                if (sdl.window == NULL)
-                    LOG_MSG("Fullscreen not supported: %s", SDL_GetError());
-                SDL_SetWindowFullscreen(sdl.window, 0);
-                GFX_CaptureMouse();
-                goto dosurface;
-            }
-        } else {
-            int menuheight = 0;
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-            if (mainMenu.isVisible()) menuheight = mainMenu.menuBox.h;
-#endif
-
-            sdl.clip.x=sdl.overscan_width;
-            sdl.clip.y=sdl.overscan_width + menuheight;
-            sdl.window=GFX_SetSDLWindowMode(width+2*sdl.overscan_width, height+menuheight+2*sdl.overscan_width,
-                                            sdl.desktop.type);
-            if (sdl.window == NULL)
-                E_Exit("Could not set windowed video mode %ix%i: %s",(int)width,(int)height,SDL_GetError());
-        }
-        sdl.surface = SDL_GetWindowSurface(sdl.window);
-        if (sdl.surface == NULL)
-            E_Exit("Could not retrieve window surface: %s",SDL_GetError());
-        switch (sdl.surface->format->BitsPerPixel) {
-        case 8:
-            retFlags = GFX_CAN_8;
+        case SCREEN_SURFACE:
+do_surface:
+            retFlags = OUTPUT_SURFACE_SetSize();
             break;
-        case 15:
-            retFlags = GFX_CAN_15;
-            break;
-        case 16:
-            retFlags = GFX_CAN_16;
-            break;
-        case 32:
-            retFlags = GFX_CAN_32;
-            break;
-        }
-        /* Fix a glitch with aspect=true occuring when
-        changing between modes with different dimensions */
-        SDL_FillRect(sdl.surface, NULL, SDL_MapRGB(sdl.surface->format, 0, 0, 0));
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-        mainMenu.screenWidth = sdl.surface->w;
-        mainMenu.updateRect();
-        mainMenu.setRedraw();
-        GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
-#endif
-        SDL_UpdateWindowSurface(sdl.window);
-        break;
-    }
-#else
-    case SCREEN_SURFACE:
-        GFX_ResetSDL();
-dosurface:
-        if (flags & GFX_CAN_8) bpp=8;
-        if (flags & GFX_CAN_15) bpp=15;
-        if (flags & GFX_CAN_16) bpp=16;
-        if (flags & GFX_CAN_32) bpp=32;
 
-#if defined(WIN32) && !defined(C_SDL2)
-        /* SDL 1.x might mis-inform us on 16bpp for 15-bit color, which is bad enough.
-           But on Windows, we're still required to ask for 16bpp to get the 15bpp mode we want. */
-        if (bpp == 15) {
-            if (sdl.surface->format->Gshift == 5 && sdl.surface->format->Gmask == (31U << 5U)) {
-                LOG_MSG("SDL hack: Asking for 16-bit color (5:6:5) to get SDL to give us 15-bit color (5:5:5) to match your screen.");
-                bpp = 16;
-            }
-        }
-#endif
-
-#if C_XBRZ || C_SURFACE_POSTRENDER_ASPECT
-        // there is a small problem we need to solve here: aspect corrected windows can be smaller than needed due to source with non-4:3 pixel ratio
-        // if we detect non-4:3 pixel ratio here with aspect correction on, we correct it so original fits into resized window properly
-        if (render.aspect) {
-            if (width*sdl.srcAspect.y != height*sdl.srcAspect.x)
-            {
-                // abnormal aspect ratio detected, apply correction
-                if (width*sdl.srcAspect.y > height*sdl.srcAspect.x)
-                {
-                    // wide pixel ratio, height should be extended to fit
-                    height = (Bitu)floor((double)width * sdl.srcAspect.y / sdl.srcAspect.x + 0.5);
-                }
-                else
-                {
-                    // long pixel ratio, width should be extended
-                    width = (Bitu)floor((double)height * sdl.srcAspect.x / sdl.srcAspect.y + 0.5);
-                }
-            }
-        }
-#endif
-
-        sdl.desktop.type=SCREEN_SURFACE;
-        sdl.clip.w=width;
-        sdl.clip.h=height;
-        if (sdl.desktop.fullscreen) {
-            Uint32 wflags = SDL_FULLSCREEN | SDL_HWPALETTE |
-                ((flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
-                (sdl.desktop.doublebuf ? SDL_DOUBLEBUF|SDL_ASYNCBLIT : 0);
-            if (sdl.desktop.full.fixed) 
-            {
-                sdl.clip.x=(Sint16)((sdl.desktop.full.width-width)/2);
-                sdl.clip.y=(Sint16)((sdl.desktop.full.height-height)/2);
-                sdl.surface=SDL_SetVideoMode(sdl.desktop.full.width,
-                    sdl.desktop.full.height, bpp, wflags);
-                sdl.deferred_resize = false;
-                sdl.must_redraw_all = true;
-            } else {
-                sdl.clip.x=0;sdl.clip.y=0;
-                sdl.surface=SDL_SetVideoMode(width, height, bpp, wflags);
-                sdl.deferred_resize = false;
-                sdl.must_redraw_all = true;
-            }
-            if (sdl.surface == NULL) {
-                LOG_MSG("Fullscreen not supported: %s", SDL_GetError());
-                sdl.desktop.fullscreen=false;
-                GFX_CaptureMouse();
-                goto dosurface;
-            }
-        } else {
-            sdl.clip.x=0;
-            sdl.clip.y=0;
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-            /* scale the menu bar if the window is large enough */
-            {
-                Bitu consider_height = menu.maxwindow ? currentWindowHeight : height;
-                Bitu consider_width = menu.maxwindow ? currentWindowWidth : width;
-                Bitu final_height = max(max(consider_height,userResizeWindowHeight),(Bitu)(sdl.clip.y+sdl.clip.h));
-                Bitu final_width = max(max(consider_width,userResizeWindowWidth),(Bitu)(sdl.clip.x+sdl.clip.w));
-                Bitu scale = 1;
-
-                while ((final_width/scale) >= (640*2) && (final_height/scale) >= (400*2))
-                    scale++;
-
-                LOG_MSG("menuScale=%lu",(unsigned long)scale);
-                mainMenu.setScale(scale);
-            }
-#endif
-
-            /* center the screen in the window */
-            {
-                int menuheight = 0;
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-                if (mainMenu.isVisible()) menuheight = mainMenu.menuBox.h;
-#endif
-                Bitu consider_height = menu.maxwindow ? currentWindowHeight : (height + (unsigned int)menuheight + (sdl.overscan_width * 2));
-                Bitu consider_width = menu.maxwindow ? currentWindowWidth : (width + (sdl.overscan_width * 2));
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-                if (mainMenu.isVisible()) {
-                    /* enforce a minimum 640x400 surface size.
-                     * the menus are useless below 640x400 */
-                    if (consider_width < (640+(sdl.overscan_width * 2)))
-                        consider_width = (640+(sdl.overscan_width * 2));
-                    if (consider_height < (400+(sdl.overscan_width * 2)+(unsigned int)menuheight))
-                        consider_height = (400+(sdl.overscan_width * 2)+(unsigned int)menuheight);
-                }
-#endif
-
-                int final_height = (int)max(max(consider_height,userResizeWindowHeight),(Bitu)(sdl.clip.y+sdl.clip.h)) - (int)menuheight - ((int)sdl.overscan_width * 2);
-                int final_width = (int)max(max(consider_width,userResizeWindowWidth),(Bitu)(sdl.clip.x+sdl.clip.w)) - ((int)sdl.overscan_width * 2);
-                int ax = (final_width - (sdl.clip.x + sdl.clip.w)) / 2;
-                int ay = (final_height - (sdl.clip.y + sdl.clip.h)) / 2;
-                if (ax < 0) ax = 0;
-                if (ay < 0) ay = 0;
-                sdl.clip.x += ax + (int)sdl.overscan_width;
-                sdl.clip.y += ay + (int)sdl.overscan_width;
-//              sdl.clip.w = currentWindowWidth - sdl.clip.x;
-//              sdl.clip.h = currentWindowHeight - sdl.clip.y;
-
-#if C_XBRZ
-                if (render.xBRZ.enable) {
-                    if (render.aspect) {
-                        double fw,fh;
-
-                        fh = final_height;
-                        fw = fh * sdl.srcAspect.x / sdl.srcAspect.y;
-                        if (fw > final_width) {
-                            fh = (fh * final_width) / fw;
-                            fw = final_width;
-                        }
-
-                        assert(fw <= final_width);
-                        assert(fh <= final_height);
-
-                        /* fill the screen, with aspect ratio correction */
-                        sdl.clip.x = (final_width - (int)floor(fw)) / 2;
-                        sdl.clip.y = (final_height - (int)floor(fh)) / 2;
-                        sdl.clip.w = (int)fw;
-                        sdl.clip.h = (int)fh;
-                    }
-                    else {
-                        /* fill the screen */
-                        sdl.clip.x = 0;
-                        sdl.clip.y = 0;
-                        sdl.clip.w = final_width;
-                        sdl.clip.h = final_height;
-                    }
-                }
-#endif
-
-
-                final_width += (int)sdl.overscan_width*2;
-                final_height += (int)menuheight + (int)sdl.overscan_width*2;
-                sdl.clip.y += (int)menuheight;
-
-                LOG_MSG("surface consider=%ux%u final=%ux%u",
-                    (unsigned int)consider_width,
-                    (unsigned int)consider_height,
-                    (unsigned int)final_width,
-                    (unsigned int)final_height);
-
-                sdl.surface = SDL_SetVideoMode(final_width, final_height, bpp,
-                    (unsigned int)((flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
-                    (unsigned int)SDL_HAX_NOREFRESH |
-                    (unsigned int)SDL_RESIZABLE);
-                sdl.deferred_resize = false;
-                sdl.must_redraw_all = true;
-
-                if (SDL_MUSTLOCK(sdl.surface))
-                    SDL_LockSurface(sdl.surface);
-
-                memset(sdl.surface->pixels, 0, (unsigned int)sdl.surface->pitch * (unsigned int)sdl.surface->h);
-
-                if (SDL_MUSTLOCK(sdl.surface))
-                    SDL_UnlockSurface(sdl.surface);
-            }
-
-#ifdef WIN32
-            if (sdl.surface == NULL) {
-                SDL_QuitSubSystem(SDL_INIT_VIDEO);
-                if (!sdl.using_windib) {
-                    LOG_MSG("Failed to create hardware surface.\nRestarting video subsystem with windib enabled.");
-                    putenv("SDL_VIDEODRIVER=windib");
-                    sdl.using_windib=true;
-                } else {
-                    LOG_MSG("Failed to create hardware surface.\nRestarting video subsystem with directx enabled.");
-                    putenv("SDL_VIDEODRIVER=directx");
-                    sdl.using_windib=false;
-                }
-                SDL_InitSubSystem(SDL_INIT_VIDEO);
-                GFX_SetIcon(); //Set Icon again
-                sdl.surface = SDL_SetVideoMode(width,height,bpp,SDL_HWSURFACE);
-                sdl.deferred_resize = false;
-                sdl.must_redraw_all = true;
-                if(sdl.surface) GFX_SetTitle(-1,-1,-1,false); //refresh title.
-            }
-#endif
-            if (sdl.surface == NULL)
-                E_Exit("Could not set windowed video mode %ix%i-%i: %s",(int)width,(int)height,(int)bpp,SDL_GetError());
-        }
-        if (sdl.surface) {
-            switch (sdl.surface->format->BitsPerPixel) {
-            case 8:
-                retFlags = GFX_CAN_8;
-                break;
-            case 15:
-                retFlags = GFX_CAN_15;
-                break;
-            case 16:
-                if (sdl.surface->format->Gshift == 5 && sdl.surface->format->Gmask == (31U << 5U)) {
-                    retFlags = GFX_CAN_15;
-                }
-                else {
-                    retFlags = GFX_CAN_16;
-                }
-                break;
-            case 32:
-                retFlags = GFX_CAN_32;
-                break;
-            }
-            if (retFlags && (sdl.surface->flags & SDL_HWSURFACE))
-                retFlags |= GFX_HARDWARE;
-            if (retFlags && (sdl.surface->flags & SDL_DOUBLEBUF)) {
-                sdl.blit.surface=SDL_CreateRGBSurface((Uint32)SDL_HWSURFACE,
-                    (int)sdl.draw.width, (int)sdl.draw.height,
-                    (int)sdl.surface->format->BitsPerPixel,
-                    (Uint32)sdl.surface->format->Rmask,
-                    (Uint32)sdl.surface->format->Gmask,
-                    (Uint32)sdl.surface->format->Bmask,
-                    (Uint32)0u);
-                /* If this one fails be ready for some flickering... */
-            }
-
-#if C_XBRZ
-            if (render.xBRZ.enable)
-            {
-                // pre-calculate scaling factor and adjust aspect rate correction offload state
-                int clipWidth = sdl.surface->w;
-                int clipHeight = sdl.surface->h;
-
-                if (render.aspect) {
-                    if (clipWidth > sdl.srcAspect.xToY * clipHeight)
-                    {
-                        clipWidth = static_cast<int>(clipHeight * sdl.srcAspect.xToY);
-                    }
-                    else // black bars top and bottom
-                    {
-                        clipHeight = static_cast<int>(clipWidth * sdl.srcAspect.yToX);
-                    }
-                }
-
-                bool old_scale_on = render.xBRZ.scale_on;
-                xBRZ_SetScaleParameters(sdl.draw.width, sdl.draw.height, clipWidth, clipHeight);
-                if (render.xBRZ.scale_on != old_scale_on) {
-                    // when we are scaling, we ask render code not to do any aspect correction
-                    // when we are not scaling, render code is allowed to do aspect correction at will
-                    // due to this, at each scale mode change we need to schedule resize again because window size could change
-                    PIC_AddEvent(VGA_SetupDrawing, 50); // schedule another resize here, render has already been initialized at this point and we have just changed its option
-                }
-            }
-#endif
-        }
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-        mainMenu.screenWidth = (size_t)sdl.surface->w;
-        mainMenu.updateRect();
-        mainMenu.setRedraw();
-        GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
-#endif
-        break;
-#endif
 #if C_OPENGL
     case SCREEN_OPENGL:
     {
@@ -2259,7 +1666,7 @@ dosurface:
         GFX_SetupSurfaceScaledOpenGL(SDL_RESIZABLE, 0);
         if (!sdl.surface || sdl.surface->format->BitsPerPixel<15) {
             LOG_MSG("SDL:OPENGL:Can't open drawing surface, are you running in 16bpp(or higher) mode?");
-            goto dosurface;
+            goto do_surface;
         }
 
         glFinish();
@@ -2282,7 +1689,7 @@ dosurface:
         int texsize=2 << int_log2(adjTexWidth > adjTexHeight ? adjTexWidth : adjTexHeight);
         if (texsize>sdl.opengl.max_texsize) {
             LOG_MSG("SDL:OPENGL:No support for texturesize of %d (max size is %d), falling back to surface",texsize,sdl.opengl.max_texsize);
-            goto dosurface;
+            goto do_surface;
         }
         /* Create the texture and display list */
         if (sdl.opengl.pixel_buffer_object) {
@@ -2443,8 +1850,8 @@ dosurface:
         if (sdl.opengl.pixel_buffer_object)
             retFlags |= GFX_HARDWARE;
     break;
-        }//OPENGL
-#endif  //C_OPENGL
+        } //OPENGL
+#endif //C_OPENGL
 #if (HAVE_D3D9_H) && defined(WIN32)
         case SCREEN_DIRECT3D: {
             Bit16u fixedWidth;
@@ -2586,8 +1993,8 @@ dosurface:
         }
 #endif
 
-        d3d->aspect=false;//RENDER_GetAspect();
-        d3d->autofit=false;//TODO RENDER_GetAutofit() && sdl.desktop.fullscreen; //scale to 5:4 monitors in fullscreen only
+        d3d->aspect=false;
+        d3d->autofit=false;
 
         // Create a dummy sdl surface
         // D3D will hang or crash when using fullscreen with ddraw surface, therefore we hack SDL to provide
@@ -2632,13 +2039,17 @@ dosurface:
         }
 #endif
     default:
-        goto dosurface;
+        goto do_surface;
         break;
     }//CASE
+
     GFX_LogSDLState();
-    if (retFlags)
+
+    if (retFlags) 
         GFX_Start();
-    if (!sdl.mouse.autoenable) SDL_ShowCursor(sdl.mouse.autolock?SDL_DISABLE:SDL_ENABLE);
+
+    if (!sdl.mouse.autoenable)
+        SDL_ShowCursor(sdl.mouse.autolock?SDL_DISABLE:SDL_ENABLE);
 
     UpdateWindowDimensions();
 
@@ -3074,7 +2485,7 @@ static void d3d_init(void) {
     if(!SDL_GetWMInfo(&wmi)) {
         LOG_MSG("SDL:Error retrieving window information");
         LOG_MSG("Failed to get window info");
-        sdl.desktop.want_type=SCREEN_SURFACE;
+        OUTPUT_SURFACE_Select();
     } else {
         if(sdl.desktop.fullscreen) {
             GFX_CaptureMouse();
@@ -3084,10 +2495,10 @@ static void d3d_init(void) {
 
         if(!d3d) {
             LOG_MSG("Failed to create d3d object");
-            sdl.desktop.want_type=SCREEN_SURFACE;
+            OUTPUT_SURFACE_Select();
         } else if(d3d->InitializeDX(wmi.child_window,sdl.desktop.doublebuf) != S_OK) {
             LOG_MSG("Unable to initialize DirectX");
-            sdl.desktop.want_type=SCREEN_SURFACE;
+            OUTPUT_SURFACE_Select();
         }
     }
 #endif
@@ -3201,15 +2612,12 @@ void change_output(int output) {
     sdl.overscan_width=(unsigned int)section->Get_int("overscan");
     UpdateOverscanMenu();
 
-    // pre-set render aspect offload to false, altered by using xBRZ scaler or Direct3D/OpenGL modes that do aspect correction themselves and don't need render code to mess with it
-    render.aspectOffload = false;
-
     switch (output) {
     case 0:
-        sdl.desktop.want_type=SCREEN_SURFACE;
+        OUTPUT_SURFACE_Select();
         break;
     case 1:
-        sdl.desktop.want_type=SCREEN_SURFACE;
+        OUTPUT_SURFACE_Select();
         break;
     case 2: /* do nothing */
         break;
@@ -3257,7 +2665,7 @@ void change_output(int output) {
         break;
     default:
         LOG_MSG("SDL:Unsupported output device %d, switching back to surface",output);
-        sdl.desktop.want_type=SCREEN_SURFACE;
+        OUTPUT_SURFACE_Select();
         break;
     }
     const char* windowresolution=section->Get_string("windowresolution");
@@ -3439,46 +2847,14 @@ void GFX_ReleaseSurfacePtr(void) {
 }
 #endif
 
-bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
+bool GFX_StartUpdate(Bit8u* &pixels,Bitu &pitch) {
     if (!sdl.active || sdl.updating)
         return false;
-    switch (sdl.desktop.type) {
-    case SCREEN_SURFACE:
-#if C_XBRZ
-        if (render.xBRZ.enable && render.xBRZ.scale_on) {
-            sdl.xBRZ.renderbuf.resize(sdl.draw.width * sdl.draw.height);
-            pixels = sdl.xBRZ.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl.xBRZ.renderbuf[0]);
-            pitch = sdl.draw.width * sizeof(uint32_t);
-        }
-        else
-#endif
-#if C_SURFACE_POSTRENDER_ASPECT
-        if (render.aspect == ASPECT_NEAREST || render.aspect == ASPECT_BILINEAR) {
-            sdl.aspectbuf.resize(sdl.draw.width * sdl.draw.height);
-            pixels = sdl.aspectbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl.aspectbuf[0]);
-            pitch = sdl.draw.width * sizeof(uint32_t);
-        }
-        else
-#endif
-        {
-            if (sdl.blit.surface) {
-                if (SDL_MUSTLOCK(sdl.blit.surface) && SDL_LockSurface(sdl.blit.surface))
-                    return false;
-                pixels = (Bit8u *)sdl.blit.surface->pixels;
-                pitch = sdl.blit.surface->pitch;
-            }
-            else {
-                if (SDL_MUSTLOCK(sdl.surface) && SDL_LockSurface(sdl.surface))
-                    return false;
-                pixels = (Bit8u *)sdl.surface->pixels;
-                pixels += sdl.clip.y*sdl.surface->pitch;
-                pixels += sdl.clip.x*sdl.surface->format->BytesPerPixel;
-                pitch = sdl.surface->pitch;
-            }
-        }
-        SDL_Overscan();
-        sdl.updating=true;
-        return true;
+    switch (sdl.desktop.type) 
+    {
+        case SCREEN_SURFACE:
+            return OUTPUT_SURFACE_StartUpdate(pixels, pitch);
+
 #if C_OPENGL
     case SCREEN_OPENGL:
 #if C_XBRZ    
@@ -3544,90 +2920,7 @@ void GFX_OpenGLRedrawScreen(void) {
 #endif
 }
 
-#if C_XBRZ
-void xBRZ_Render(const uint32_t* renderBuf, uint32_t* xbrzBuf, const Bit16u *changedLines, const int srcWidth, const int srcHeight, int scalingFactor)
-{
-# if defined(XBRZ_PPL)
-    if (changedLines) // perf: in worst case similar to full input scaling
-    {
-        concurrency::task_group tg; // perf: task_group is slightly faster than pure prallel_for
-        int yLast = 0;
-        Bitu y = 0, index = 0;
-        while (y < sdl.draw.height)
-        {
-            if (!(index & 1))
-                y += changedLines[index];
-            else
-            {
-                const int sliceFirst = y;
-                const int sliceLast = y + changedLines[index];
-                y += changedLines[index];
-
-                int yFirst = max(yLast, sliceFirst - 2); // we need to update two adjacent lines as well since they are analyzed by xBRZ!
-                yLast = min(srcHeight, sliceLast + 2);   // (and make sure to not overlap with last slice!)
-
-                for (int i = yFirst; i < yLast; i += render.xBRZ.task_granularity)
-                {
-                    const int iLast = min(i + render.xBRZ.task_granularity, yLast);
-                    tg.run([=] { xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, xbrz::ColorFormat::RGB, xbrz::ScalerCfg(), i, iLast); });
-                }
-            }
-            index++;
-        }
-        tg.wait();
-    }
-    else // process complete input image
-    {
-        concurrency::task_group tg;
-        for (int i = 0; i < srcHeight; i += render.xBRZ.task_granularity)
-            tg.run([=]
-        {
-            const int iLast = min(i + render.xBRZ.task_granularity, srcHeight);
-            xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, xbrz::ColorFormat::RGB, xbrz::ScalerCfg(), i, iLast);
-        });
-        tg.wait();
-    }
-# else
-    /* non-PPL for non-Windows.
-     * combine the code above, cleanly, if possible. */
-    if (changedLines)
-    {
-        int yLast = 0;
-        Bitu y = 0, index = 0;
-        while (y < sdl.draw.height)
-        {
-            if (!(index & 1))
-                y += changedLines[index];
-            else
-            {
-                const int sliceFirst = y;
-                const int sliceLast = y + changedLines[index];
-                y += changedLines[index];
-
-                int yFirst = max(yLast, sliceFirst - 2); // we need to update two adjacent lines as well since they are analyzed by xBRZ!
-                yLast = min(srcHeight, sliceLast + 2);   // (and make sure to not overlap with last slice!)
-
-                for (int i = yFirst; i < yLast; i += render.xBRZ.task_granularity)
-                {
-                    const int iLast = min(i + render.xBRZ.task_granularity, yLast);
-                    xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, xbrz::ColorFormat::RGB, xbrz::ScalerCfg(), i, iLast);
-                }
-            }
-            index++;
-        }
-    }
-    else // process complete input image
-    {
-        for (int i = 0; i < srcHeight; i += render.xBRZ.task_granularity) {
-            const int iLast = min(i + render.xBRZ.task_granularity, srcHeight);
-            xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, xbrz::ColorFormat::RGB, xbrz::ScalerCfg(), i, iLast);
-        }
-    }
-# endif
-}
-#endif
-
-void GFX_EndUpdate( const Bit16u *changedLines ) {
+void GFX_EndUpdate(const Bit16u *changedLines) {
     /* don't present our output if 3Dfx is in OpenGL mode */
     if (sdl.desktop.prevent_fullscreen)
         return;
@@ -3640,261 +2933,12 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
         return;
 
     sdl.updating=false;
-    switch (sdl.desktop.type) {
+    switch (sdl.desktop.type) 
+    {
         case SCREEN_SURFACE:
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-            GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
-#endif
-#if C_XBRZ
-            if (render.xBRZ.enable && render.xBRZ.scale_on) {
-                const int srcWidth = sdl.draw.width;
-                const int srcHeight = sdl.draw.height;
-                if (sdl.xBRZ.renderbuf.size() == srcWidth * srcHeight && srcWidth > 0 && srcHeight > 0)
-                {
-                    // we assume render buffer is *not* scaled!
-                    const int outputHeight = sdl.surface->h;
-                    const int outputWidth = sdl.surface->w;
-                    int clipWidth = sdl.clip.w;
-                    int clipHeight = sdl.clip.h;
-                    int clipX = sdl.clip.x;
-                    int clipY = sdl.clip.y;
-
-#if 0
-                    if (render.aspect) {
-                        if (outputWidth > sdl.srcAspect.xToY * outputHeight) // output broader than input => black bars left and right
-                        {
-                            clipWidth = static_cast<int>(outputHeight * sdl.srcAspect.xToY);
-                            clipX = (outputWidth - clipWidth) / 2;
-                        }
-                        else // black bars top and bottom
-                        {
-                            clipHeight = static_cast<int>(outputWidth * sdl.srcAspect.yToX);
-                            clipY = (outputHeight - clipHeight) / 2;
-                        }
-                    }
-#endif
-
-                    // 1. xBRZ-scale render buffer into xbrz pixel buffer
-                    int xbrzWidth = 0;
-                    int xbrzHeight = 0;
-                    uint32_t* xbrzBuf;
-                    xbrzWidth = srcWidth * sdl.xBRZ.scale_factor;
-                    xbrzHeight = srcHeight * sdl.xBRZ.scale_factor;
-                    sdl.xBRZ.pixbuf.resize(xbrzWidth * xbrzHeight);
-
-                    const uint32_t* renderBuf = &sdl.xBRZ.renderbuf[0]; // help VS compiler a little + support capture by value
-                    xbrzBuf = &sdl.xBRZ.pixbuf[0];
-                    xBRZ_Render(renderBuf, xbrzBuf, changedLines, srcWidth, srcHeight, sdl.xBRZ.scale_factor);
-
-                    // 2. nearest neighbor/bilinear scale xbrz buffer into output surface clipping area
-                    const bool mustLock = SDL_MUSTLOCK(sdl.surface);
-                    if (mustLock) SDL_LockSurface(sdl.surface);
-                    if (sdl.surface->pixels) // if locking fails, this can be nullptr, also check if we really need to draw
-                    {
-                        uint32_t* clipTrg = reinterpret_cast<uint32_t*>(static_cast<char*>(sdl.surface->pixels) + clipY * sdl.surface->pitch + clipX * sizeof(uint32_t));
-
-# if defined(XBRZ_PPL)
-                        if (render.xBRZ.postscale_bilinear) {
-                            concurrency::task_group tg;
-                            for (int i = 0; i < clipHeight; i += render.xBRZ.task_granularity)
-                                tg.run([=]
-                            {
-                                const int iLast = min(i + render.xBRZ.task_granularity, clipHeight);
-
-                                xbrz::bilinearScale(&xbrzBuf[0], // const uint32_t* src,
-                                    xbrzWidth, xbrzHeight, xbrzWidth * sizeof(uint32_t), // int srcWidth, int srcHeight, int srcPitch,
-                                    clipTrg,        //PixTrg* trg,
-                                    clipWidth, clipHeight, sdl.surface->pitch, // int trgWidth, int trgHeight, int trgPitch,
-                                    i, iLast,       // int yFirst, int yLast,
-                                    [](uint32_t pix) { return pix; });  // PixConverter pixCvrt
-                            });
-                            tg.wait();
-                        }
-                        else
-                        {
-                            concurrency::task_group tg;
-                            for (int i = 0; i < clipHeight; i += render.xBRZ.task_granularity)
-                                tg.run([=]
-                            {
-                                const int iLast = min(i + render.xBRZ.task_granularity, clipHeight);
-
-                                xbrz::nearestNeighborScale(&xbrzBuf[0], xbrzWidth, xbrzHeight, xbrzWidth * sizeof(uint32_t),
-                                    clipTrg, clipWidth, clipHeight, sdl.surface->pitch,
-                                    i, iLast, [](uint32_t pix) { return pix; }); // perf: going over target is by factor 4 faster than going over source for similar image sizes
-                            });
-                            tg.wait();
-                        }
-#else
-                        if (render.xBRZ.postscale_bilinear) {
-                            for (int i = 0; i < clipHeight; i += render.xBRZ.task_granularity)
-                            {
-                                const int iLast = min(i + render.xBRZ.task_granularity, clipHeight);
-
-                                xbrz::bilinearScale(&xbrzBuf[0], // const uint32_t* src,
-                                    xbrzWidth, xbrzHeight, xbrzWidth * sizeof(uint32_t), // int srcWidth, int srcHeight, int srcPitch,
-                                    clipTrg,        //PixTrg* trg,
-                                    clipWidth, clipHeight, sdl.surface->pitch, // int trgWidth, int trgHeight, int trgPitch,
-                                    i, iLast,       // int yFirst, int yLast,
-                                    [](uint32_t pix) { return pix; });  // PixConverter pixCvrt
-                            }
-                        }
-                        else
-                        {
-                            for (int i = 0; i < clipHeight; i += render.xBRZ.task_granularity)
-                            {
-                                const int iLast = min(i + render.xBRZ.task_granularity, clipHeight);
-
-                                xbrz::nearestNeighborScale(&xbrzBuf[0], xbrzWidth, xbrzHeight, xbrzWidth * sizeof(uint32_t),
-                                    clipTrg, clipWidth, clipHeight, sdl.surface->pitch,
-                                    i, iLast, [](uint32_t pix) { return pix; }); // perf: going over target is by factor 4 faster than going over source for similar image sizes
-                            }
-                        }
-#endif
-                    }
-                    if (mustLock) SDL_UnlockSurface(sdl.surface);
-                    if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
-#if defined(C_SDL2)
-                    SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 1);
-#else
-                    SDL_Flip(sdl.surface);
-#endif
-                }
-            }
-            else 
-#endif /*C_XBRZ*/
-#if C_SURFACE_POSTRENDER_ASPECT
-            if (render.aspect == ASPECT_NEAREST || render.aspect == ASPECT_BILINEAR) {
-                // here we go, adjusting source aspect ratio
-                int clipWidth = sdl.clip.w;
-                int clipHeight = sdl.clip.h;
-                int clipX = sdl.clip.x;
-                int clipY = sdl.clip.y;
-
-                const bool mustLock = SDL_MUSTLOCK(sdl.surface);
-                if (mustLock) SDL_LockSurface(sdl.surface);
-                if (sdl.surface->pixels) // if locking fails, this can be nullptr, also check if we really need to draw
-                {
-                    uint32_t* clipTrg = reinterpret_cast<uint32_t*>(static_cast<char*>(sdl.surface->pixels) + clipY * sdl.surface->pitch + clipX * sizeof(uint32_t));
-
-# if defined(XBRZ_PPL)
-                    if (render.aspect == ASPECT_BILINEAR) {
-                        concurrency::task_group tg;
-                        for (int i = 0; i < clipHeight; i += C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE)
-                            tg.run([=]
-                        {
-                            const int iLast = min(i + C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE, clipHeight);
-
-                            xbrz::bilinearScale(&sdl.aspectbuf[0], // const uint32_t* src,
-                                sdl.draw.width, sdl.draw.height, sdl.draw.width * sizeof(uint32_t), // int srcWidth, int srcHeight, int srcPitch,
-                                clipTrg,        //PixTrg* trg,
-                                clipWidth, clipHeight, sdl.surface->pitch, // int trgWidth, int trgHeight, int trgPitch,
-                                i, iLast,       // int yFirst, int yLast,
-                                [](uint32_t pix) { return pix; });  // PixConverter pixCvrt
-                        });
-                        tg.wait();
-                    }
-                    else
-                    {
-                        concurrency::task_group tg;
-                        for (int i = 0; i < clipHeight; i += C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE)
-                            tg.run([=]
-                        {
-                            const int iLast = min(i + C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE, clipHeight);
-
-                            xbrz::nearestNeighborScale(&sdl.aspectbuf[0], sdl.draw.width, sdl.draw.height, sdl.draw.width * sizeof(uint32_t),
-                                clipTrg, clipWidth, clipHeight, sdl.surface->pitch,
-                                i, iLast, [](uint32_t pix) { return pix; }); // perf: going over target is by factor 4 faster than going over source for similar image sizes
-                        });
-                        tg.wait();
-                    }
-#else
-                    if (render.aspect == ASPECT_BILINEAR) {
-                        for (int i = 0; i < clipHeight; i += C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE)
-                        {
-                            const int iLast = min(i + C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE, clipHeight);
-
-                            xbrz::bilinearScale(&sdl.aspectbuf[0], // const uint32_t* src,
-                                sdl.draw.width, sdl.draw.height, sdl.draw.width * sizeof(uint32_t), // int srcWidth, int srcHeight, int srcPitch,
-                                clipTrg,        //PixTrg* trg,
-                                clipWidth, clipHeight, sdl.surface->pitch, // int trgWidth, int trgHeight, int trgPitch,
-                                i, iLast,       // int yFirst, int yLast,
-                                [](uint32_t pix) { return pix; });  // PixConverter pixCvrt
-                        }
-                    }
-                    else
-                    {
-                        for (int i = 0; i < clipHeight; i += C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE)
-                        {
-                            const int iLast = min(i + C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE, clipHeight);
-
-                            xbrz::nearestNeighborScale(&sdl.aspectbuf[0], sdl.draw.width, sdl.draw.height, sdl.draw.width * sizeof(uint32_t),
-                                clipTrg, clipWidth, clipHeight, sdl.surface->pitch,
-                                i, iLast, [](uint32_t pix) { return pix; }); // perf: going over target is by factor 4 faster than going over source for similar image sizes
-                        }
-                    }
-#endif
-                }
-                if (mustLock) SDL_UnlockSurface(sdl.surface);
-                if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
-#if defined(C_SDL2)
-                SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 1);
-#else
-                SDL_Flip(sdl.surface);
-#endif
-            }
-            else
-#endif /*C_SURFACE_POSTRENDER_ASPECT*/
-            {
-                if (SDL_MUSTLOCK(sdl.surface)) {
-                    if (sdl.blit.surface) {
-                        SDL_UnlockSurface(sdl.blit.surface);
-                        int Blit = SDL_BlitSurface(sdl.blit.surface, 0, sdl.surface, &sdl.clip);
-                        LOG(LOG_MISC, LOG_WARN)("BlitSurface returned %d", Blit);
-                    }
-                    else {
-                        SDL_UnlockSurface(sdl.surface);
-                    }
-                    if (changedLines && (changedLines[0] == sdl.draw.height))
-                        return;
-                    if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
-#if !defined(C_SDL2)
-                    SDL_Flip(sdl.surface);
-#endif
-                }
-                else if (sdl.must_redraw_all) {
-#if !defined(C_SDL2)
-                    if (changedLines != NULL) SDL_Flip(sdl.surface);
-#endif
-            } else if (changedLines) {
-                    if (changedLines[0] == sdl.draw.height)
-                        return;
-                    if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
-                    Bitu y = 0, index = 0, rectCount = 0;
-                    while (y < sdl.draw.height) {
-                        if (!(index & 1)) {
-                            y += changedLines[index];
-                        }
-                        else {
-                            SDL_Rect *rect = &sdl.updateRects[rectCount++];
-                            rect->x = sdl.clip.x;
-                            rect->y = sdl.clip.y + y;
-                            rect->w = (Bit16u)sdl.draw.width;
-                            rect->h = changedLines[index];
-                            y += changedLines[index];
-                            SDL_rect_cliptoscreen(*rect);
-                        }
-                        index++;
-                    }
-                    if (rectCount) {
-#if defined(C_SDL2)
-                        SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, rectCount);
-#else
-                        SDL_UpdateRects(sdl.surface, rectCount, sdl.updateRects);
-#endif
-                    }
-                }
-            }
+            OUTPUT_SURFACE_EndUpdate(changedLines);
             break;
+
 #if C_OPENGL
     case SCREEN_OPENGL:
             if (sdl.must_redraw_all && changedLines == NULL) {
@@ -4429,9 +3473,6 @@ static void GUI_StartUp() {
     /* Setup Mouse correctly if fullscreen */
     if(sdl.desktop.fullscreen) GFX_CaptureMouse();
 
-    // pre-set render aspect offload to false, altered by using xBRZ scaler or Direct3D/OpenGL modes that do aspect correction themselves and don't need render code to mess with it
-    render.aspectOffload = false;
-
 #if C_XBRZ
     // initialize xBRZ parameters from render section early
     RENDER_xBRZ_Early_Init();
@@ -4455,9 +3496,9 @@ static void GUI_StartUp() {
     }
 
     if (output == "surface") {
-        sdl.desktop.want_type=SCREEN_SURFACE;
+        OUTPUT_SURFACE_Select();
     } else if (output == "ddraw") {
-        sdl.desktop.want_type=SCREEN_SURFACE;
+        OUTPUT_SURFACE_Select();
 #if C_OPENGL
     } else if (output == "opengl" || output == "openglhq") {
         sdl.desktop.want_type=SCREEN_OPENGL;
@@ -4478,7 +3519,7 @@ static void GUI_StartUp() {
 #endif
     } else {
         LOG_MSG("SDL:Unsupported output device %s, switching back to surface",output.c_str());
-        sdl.desktop.want_type=SCREEN_SURFACE; // SHOULDN'T BE POSSIBLE anymore
+        OUTPUT_SURFACE_Select(); // should not reach there anymore
     }
     sdl.overscan_width=(unsigned int)section->Get_int("overscan");
 //  sdl.overscan_color=section->Get_int("overscancolor");
@@ -4514,17 +3555,17 @@ static void GUI_StartUp() {
         if(!SDL_GetWMInfo(&wmi)) {
             LOG_MSG("SDL:Error retrieving window information");
             LOG_MSG("Failed to get window info");
-            sdl.desktop.want_type=SCREEN_SURFACE;
+            OUTPUT_SURFACE_Select();
         } else {
             if(d3d) delete d3d;
             d3d = new CDirect3D(640,400);
 
             if(!d3d) {
                 LOG_MSG("Failed to create d3d object");
-                sdl.desktop.want_type=SCREEN_SURFACE;
+                OUTPUT_SURFACE_Select();
             } else if(d3d->InitializeDX(wmi.child_window,sdl.desktop.doublebuf) != S_OK) {
                 LOG_MSG("Unable to initialize DirectX");
-                sdl.desktop.want_type=SCREEN_SURFACE;
+                OUTPUT_SURFACE_Select();
             }
         }
     }

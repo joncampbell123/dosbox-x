@@ -728,14 +728,6 @@ static void ChangeScaler(bool pressed) {
 
 #include "vga.h"
 
-bool RENDER_GetAutofit(void) {
-    return render.autofit;
-}
-
-int RENDER_GetAspect(void) {
-    return render.aspect;
-}
-
 void RENDER_SetForceUpdate(bool f) {
     render.forceUpdate = f;
 }

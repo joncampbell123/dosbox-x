@@ -85,6 +85,9 @@
     <Filter Include="Sources\xBRZ">
       <UniqueIdentifier>{6212d2c1-4c3f-4ec6-ad0e-88413d9f1b6c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\output">
+      <UniqueIdentifier>{b81e382e-b6fe-4ac3-91d1-a4c1e031214b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -831,6 +834,21 @@
     <ClCompile Include="..\src\gui\ptrop.cpp">
       <Filter>Sources\gui</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\output\output_surface.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\output_direct3d.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\output_opengl.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\output_tools.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\output_tools_xbrz.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -1468,6 +1486,24 @@
     </ClInclude>
     <ClInclude Include="..\include\ptrop.h">
       <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sdlmain.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\output\output_surface.h">
+      <Filter>Sources\output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\output\output_direct3d.h">
+      <Filter>Sources\output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\output\output_opengl.h">
+      <Filter>Sources\output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\output\output_tools.h">
+      <Filter>Sources\output</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\output\output_tools_xbrz.h">
+      <Filter>Sources\output</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
