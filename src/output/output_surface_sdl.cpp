@@ -302,21 +302,21 @@ retry:
     {
         switch (sdl.surface->format->BitsPerPixel)
         {
-        case 8:
-            retFlags = GFX_CAN_8;
-            break;
-        case 15:
-            retFlags = GFX_CAN_15;
-            break;
-        case 16:
-            if (sdl.surface->format->Gshift == 5 && sdl.surface->format->Gmask == (31U << 5U))
+            case 8:
+                retFlags = GFX_CAN_8;
+                break;
+            case 15:
                 retFlags = GFX_CAN_15;
-            else
-                retFlags = GFX_CAN_16;
-            break;
-        case 32:
-            retFlags = GFX_CAN_32;
-            break;
+                break;
+            case 16:
+                if (sdl.surface->format->Gshift == 5 && sdl.surface->format->Gmask == (31U << 5U))
+                    retFlags = GFX_CAN_15;
+                else
+                    retFlags = GFX_CAN_16;
+                break;
+            case 32:
+                retFlags = GFX_CAN_32;
+                break;
         }
 
         if (retFlags && (sdl.surface->flags & SDL_HWSURFACE))

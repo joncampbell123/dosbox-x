@@ -58,21 +58,13 @@ void GFX_OpenGLRedrawScreen(void);
 # include <process.h>
 #endif
 
-#include "cross.h"
-#include "SDL.h"
-
 #include "dosbox.h"
-#include "video.h"
-#include "mouse.h"
 #include "pic.h"
 #include "timer.h"
 #include "setup.h"
 #include "bios.h"
 #include "support.h"
 #include "debug.h"
-#include "render.h"
-#include "menu.h"
-#include "SDL_video.h"
 #include "ide.h"
 #include "bitop.h"
 #include "ptrop.h"
@@ -104,7 +96,6 @@ void GFX_OpenGLRedrawScreen(void);
 #include "fpu.h"
 #include "cross.h"
 #include "keymap.h"
-#include "control.h"
 
 #ifdef _MSC_VER
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -290,9 +281,6 @@ Bitu currentWindowWidth = 640, currentWindowHeight = 480;
 
 int NonUserResizeCounter = 0;
 
-int gl_menudraw_countdown = 0;
-int gl_clear_countdown = 0;
-
 Bitu time_limit_ms = 0;
 
 extern bool keep_umb_on_boot;
@@ -332,12 +320,14 @@ void UpdateWindowMaximized(bool flag) {
     menu.maxwindow = flag;
 }
 
-void UpdateWindowDimensions(Bitu width, Bitu height) {
+void UpdateWindowDimensions(Bitu width, Bitu height)
+{
     currentWindowWidth = width;
     currentWindowHeight = height;
 }
 
-void UpdateWindowDimensions(void) {
+void UpdateWindowDimensions(void) 
+{
 #if defined(WIN32) && !defined(C_SDL2)
     // When maximized, SDL won't actually tell us our new dimensions, so get it ourselves.
     // FIXME: Instead of GetHWND() we need to track our own handle or add something to SDL 1.x
@@ -403,14 +393,6 @@ struct private_hwdata {
     LPDIRECTDRAWSURFACE3            dd_surface;
     LPDIRECTDRAWSURFACE3            dd_writebuf;
 };
-#endif
-
-#if (HAVE_D3D9_H)
-# include "direct3d.h"
-#endif
-
-#if (HAVE_D3D9_H)
-CDirect3D*                  d3d = NULL;
 #endif
 
 #ifdef WIN32
@@ -763,9 +745,9 @@ SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES scree
         sdl.texture.texture=0;
     }
 #if C_OPENGL
-    if (sdl.opengl.context) {
-        SDL_GL_DeleteContext(sdl.opengl.context);
-        sdl.opengl.context=0;
+    if (sdl_opengl.context) {
+        SDL_GL_DeleteContext(sdl_opengl.context);
+        sdl_opengl.context=0;
     }
 #endif
     sdl.window_desired_width = width;
@@ -869,33 +851,47 @@ GLuint SDLDrawGenFontTexture = (GLuint)(~0UL);
 
 #if !defined(C_SDL2)
 /* Reset the screen with current values in the sdl structure */
-Bitu GFX_GetBestMode(Bitu flags) {
+Bitu GFX_GetBestMode(Bitu flags) 
+{
+    Bitu retFlags = 0;
+
     switch (sdl.desktop.want_type) 
     {
         case SCREEN_SURFACE:
-do_surface:
-            return OUTPUT_SURFACE_GetBestMode(flags);
+            retFlags = OUTPUT_SURFACE_GetBestMode(flags);
+            break;
 
 #if C_OPENGL
-    case SCREEN_OPENGL:
-        if (!(flags & GFX_CAN_32)) goto do_surface;
-        flags |= GFX_SCALING;
-        flags &= ~(GFX_CAN_8|GFX_CAN_15|GFX_CAN_16);
-        break;
+        case SCREEN_OPENGL:
+            retFlags = OUTPUT_OPENGL_GetBestMode(flags);
+            break;
 #endif
+
 #if (HAVE_D3D9_H) && defined(WIN32)
-    case SCREEN_DIRECT3D:
-        flags |= GFX_SCALING;
-        if(GCC_UNLIKELY(d3d->bpp16))
-            flags &= ~(GFX_CAN_8|GFX_CAN_15|GFX_CAN_32);
-        else
-            flags &= ~(GFX_CAN_8|GFX_CAN_15|GFX_CAN_16);
-        break;
+        case SCREEN_DIRECT3D:
+            retFlags = OUTPUT_DIRECT3D_GetBestMode(flags);
+            break;
 #endif
-    default:
-        goto do_surface;
+
+        default:
+            // we should never reach here
+            retFlags = 0;
+            break;
     }
-    return flags;
+
+    if (!retFlags)
+    {
+        if (sdl.desktop.want_type != SCREEN_SURFACE)
+        {
+            // try falling back down to surface
+            OUTPUT_SURFACE_Select();
+            retFlags = OUTPUT_SURFACE_GetBestMode(flags);
+        }
+        if (retFlags == 0)
+            LOG_MSG("SDL:Failed everything including falling back to surface GFX_GetBestMode"); // completely failed it seems
+    }
+
+    return retFlags;
 }
 #endif
 
@@ -955,7 +951,8 @@ unsigned int GFX_GetBShift() {
     return sdl.surface->format->Bshift;
 }
 
-void GFX_LogSDLState(void) {
+void GFX_LogSDLState(void) 
+{
     LOG(LOG_MISC,LOG_DEBUG)("SDL video mode: %ux%u (clip %ux%u with upper-left at %ux%u) %ubpp",
         (unsigned)sdl.surface->w,(unsigned)sdl.surface->h,
         (unsigned)sdl.clip.w,(unsigned)sdl.clip.h,
@@ -984,153 +981,6 @@ void GFX_LogSDLState(void) {
     GFX_Amask = sdl.surface->format->Amask;
     GFX_Ashift = sdl.surface->format->Ashift;
 }
-
-#if !defined(C_SDL2) && C_OPENGL
-int Voodoo_OGL_GetWidth();
-int Voodoo_OGL_GetHeight();
-bool Voodoo_OGL_Active();
-
-static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) {
-    Bit16u fixedWidth;
-    Bit16u fixedHeight;
-    Bit16u windowWidth;
-    Bit16u windowHeight;
-
-    if (sdl.desktop.prevent_fullscreen) /* 3Dfx openGL do not allow resize */
-        sdl_flags &= ~((unsigned int)SDL_RESIZABLE);
-
-    if (sdl.desktop.want_type == SCREEN_OPENGL)
-        sdl_flags |= (unsigned int)SDL_OPENGL;
-
-    if (sdl.desktop.fullscreen) {
-        fixedWidth = sdl.desktop.full.fixed ? sdl.desktop.full.width : 0;
-        fixedHeight = sdl.desktop.full.fixed ? sdl.desktop.full.height : 0;
-        sdl_flags |= (unsigned int)(SDL_FULLSCREEN|SDL_HWSURFACE);
-    } else {
-        fixedWidth = sdl.desktop.window.width;
-        fixedHeight = sdl.desktop.window.height;
-        sdl_flags |= (unsigned int)SDL_HWSURFACE;
-    }
-    if (fixedWidth == 0 || fixedHeight == 0) {
-        Bitu consider_height = menu.maxwindow ? currentWindowHeight : 0;
-        Bitu consider_width = menu.maxwindow ? currentWindowWidth : 0;
-        int final_height = max(consider_height,userResizeWindowHeight);
-        int final_width = max(consider_width,userResizeWindowWidth);
-
-        fixedWidth = final_width;
-        fixedHeight = final_height;
-    }
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    /* scale the menu bar if the window is large enough */
-    {
-        int cw = fixedWidth,ch = fixedHeight;
-        int scale = 1;
-
-        if (cw == 0) cw = (Bit16u)(sdl.draw.width*sdl.draw.scalex);
-        if (ch == 0) ch = (Bit16u)(sdl.draw.height*sdl.draw.scaley);
-
-        while ((cw/scale) >= (640*2) && (ch/scale) >= (400*2))
-            scale++;
-
-        LOG_MSG("menuScale=%d",scale);
-        mainMenu.setScale((unsigned int)scale);
-
-        if (mainMenu.isVisible()) fixedHeight -= mainMenu.menuBox.h;
-    }
-#endif
-
-    if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 &&
-        Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen) { /* 3Dfx openGL do not allow resize */
-        sdl.clip.x=0;sdl.clip.y=0;
-        sdl.clip.w=windowWidth=(Bit16u)Voodoo_OGL_GetWidth();
-        sdl.clip.h=windowHeight=(Bit16u)Voodoo_OGL_GetHeight();
-    }
-    else if (fixedWidth && fixedHeight) {
-        sdl.clip.w = windowWidth = fixedWidth;
-        sdl.clip.h = windowHeight = fixedHeight;
-
-        // adjust resulting image aspect ratio
-        if (render.aspect) {
-            if (fixedWidth > sdl.srcAspect.xToY * fixedHeight) // output broader than input => black bars left and right
-            {
-                sdl.clip.w = static_cast<int>(fixedHeight * sdl.srcAspect.xToY);
-            }
-            else // black bars top and bottom
-            {
-                sdl.clip.h = static_cast<int>(fixedWidth * sdl.srcAspect.yToX);
-            }
-        }
-
-        sdl.clip.x = (fixedWidth - sdl.clip.w) / 2;
-        sdl.clip.y = (fixedHeight - sdl.clip.h) / 2;
-    }
-    else {
-        sdl.clip.w = windowWidth = (Bit16u)(sdl.draw.width*sdl.draw.scalex);
-        sdl.clip.h = windowHeight = (Bit16u)(sdl.draw.height*sdl.draw.scaley);
-
-        if (render.aspect) {
-            // we solve problem of aspect ratio based window extension here when window size is not set explicitly
-            if (windowWidth*sdl.srcAspect.y != windowHeight*sdl.srcAspect.x)
-            {
-                // abnormal aspect ratio detected, apply correction
-                if (windowWidth*sdl.srcAspect.y > windowHeight*sdl.srcAspect.x)
-                {
-                    // wide pixel ratio, height should be extended to fit
-                    sdl.clip.h = windowHeight = (Bitu)floor((double)windowWidth * sdl.srcAspect.y / sdl.srcAspect.x + 0.5);
-                }
-                else
-                {
-                    // long pixel ratio, width should be extended
-                    sdl.clip.w = windowWidth = (Bitu)floor((double)windowHeight * sdl.srcAspect.x / sdl.srcAspect.y + 0.5);
-                }
-            }
-        }
-
-        sdl.clip.x = (windowWidth - sdl.clip.w) / 2;
-        sdl.clip.y = (windowHeight - sdl.clip.h) / 2;
-    }
-
-    LOG(LOG_MISC,LOG_DEBUG)("GFX_SetSize OpenGL window=%ux%u clip=x,y,w,h=%d,%d,%d,%d",
-        (unsigned int)windowWidth,
-        (unsigned int)windowHeight,
-        (unsigned int)sdl.clip.x,
-        (unsigned int)sdl.clip.y,
-        (unsigned int)sdl.clip.w,
-        (unsigned int)sdl.clip.h);
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    if (mainMenu.isVisible()) {
-        windowHeight += mainMenu.menuBox.h;
-        sdl.clip.y += mainMenu.menuBox.h;
-    }
-#endif
-
-    sdl.surface=SDL_SetVideoMode(windowWidth,windowHeight,(int)bpp,(unsigned int)sdl_flags);
-    sdl.deferred_resize = false;
-    sdl.must_redraw_all = true;
-
-    /* There seems to be a problem with MesaGL in Linux/X11 where
-     * the first swap buffer we do is misplaced according to the
-     * previous window size.
-     *
-     * NTS: This seems to have been fixed, which is why this is
-     *      commented out. I guess not calling GFX_SetSize()
-     *      with a 0x0 widthxheight helps! */
-//    sdl.gfx_force_redraw_count = 2;
-
-    UpdateWindowDimensions();
-    GFX_LogSDLState();
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    mainMenu.screenWidth = (size_t)(sdl.surface->w);
-    mainMenu.updateRect();
-    mainMenu.setRedraw();
-#endif
-
-    return sdl.surface;
-}
-#endif
 
 void GFX_TearDown(void) {
     if (sdl.updating)
@@ -1485,7 +1335,7 @@ void MenuDrawText(int x,int y,const char *text,Bitu color) {
 
         glPopMatrix();
 
-        glBindTexture(GL_TEXTURE_2D,sdl.opengl.texture);
+        glBindTexture(GL_TEXTURE_2D,sdl_opengl.texture);
     }
 #endif
 }
@@ -1590,10 +1440,6 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl)
 }
 #endif
 
-#if C_OPENGL
-bool initedOpenGL = false;
-#endif
-
 void RENDER_Reset(void);
 
 Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scaley, GFX_CallBack_t callback) 
@@ -1622,7 +1468,6 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 
     Bitu bpp = 0;
     Bitu retFlags = 0;
-    //  Uint32 sdl_flags;
 
     if (sdl.blit.surface) {
         SDL_FreeSurface(sdl.blit.surface);
@@ -1635,225 +1480,15 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 
     switch (sdl.desktop.want_type) {
         case SCREEN_SURFACE:
-do_surface:
             retFlags = OUTPUT_SURFACE_SetSize();
             break;
 
 #if C_OPENGL
-    case SCREEN_OPENGL:
-    {
-        /* NTS: Apparently calling glFinish/glFlush before setup causes a segfault within
-         *      the OpenGL library on Mac OS X. */
-        if (initedOpenGL) {
-            glFinish();
-            glFlush();
-        }
-
-        if (sdl.opengl.pixel_buffer_object) {
-            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-            if (sdl.opengl.buffer) glDeleteBuffersARB(1, &sdl.opengl.buffer);
-        } else if (sdl.opengl.framebuf) {
-            free(sdl.opengl.framebuf);
-        }
-
-        sdl.opengl.framebuf=0;
-
-        SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-#if SDL_VERSION_ATLEAST(1, 2, 11)
-        Section_prop * sec=static_cast<Section_prop *>(control->GetSection("vsync"));
-        if(sec) {
-            SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, (!strcmp(sec->Get_string("vsyncmode"),"host"))?1:0 );
-        }
-#endif
-        GFX_SetupSurfaceScaledOpenGL(SDL_RESIZABLE, 0);
-        if (!sdl.surface || sdl.surface->format->BitsPerPixel<15) {
-            LOG_MSG("SDL:OPENGL:Can't open drawing surface, are you running in 16bpp(or higher) mode?");
-            goto do_surface;
-        }
-
-        glFinish();
-        glFlush();
-
-        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &sdl.opengl.max_texsize);
-
-        //if (!(flags&GFX_CAN_32) || (flags & GFX_RGBONLY)) goto dosurface;
-
-        Bitu adjTexWidth = sdl.draw.width;
-        Bitu adjTexHeight = sdl.draw.height;
-#if C_XBRZ
-        // we do the same as with Direct3D: precreate pixel buffer adjusted for xBRZ
-        if (render.xBRZ.enable && xBRZ_SetScaleParameters(adjTexWidth, adjTexHeight, sdl.clip.w, sdl.clip.h))
-        {
-            adjTexWidth = adjTexWidth * sdl.xBRZ.scale_factor;
-            adjTexHeight = adjTexHeight * sdl.xBRZ.scale_factor;
-        }
-#endif
-        int texsize=2 << int_log2(adjTexWidth > adjTexHeight ? adjTexWidth : adjTexHeight);
-        if (texsize>sdl.opengl.max_texsize) {
-            LOG_MSG("SDL:OPENGL:No support for texturesize of %d (max size is %d), falling back to surface",texsize,sdl.opengl.max_texsize);
-            goto do_surface;
-        }
-        /* Create the texture and display list */
-        if (sdl.opengl.pixel_buffer_object) {
-            glGenBuffersARB(1, &sdl.opengl.buffer);
-            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, sdl.opengl.buffer);
-            glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_EXT, adjTexWidth*adjTexHeight*4, NULL, GL_STREAM_DRAW_ARB);
-            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-        } else
-            sdl.opengl.framebuf=calloc(adjTexWidth*adjTexHeight, 4); //32 bit color
-        sdl.opengl.pitch=adjTexWidth*4;
-
-        glBindTexture(GL_TEXTURE_2D,0);
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-        if (SDLDrawGenFontTextureInit) {
-            glDeleteTextures(1,&SDLDrawGenFontTexture);
-            SDLDrawGenFontTexture = (GLuint)(~0UL);
-            SDLDrawGenFontTextureInit = 0;
-        }
+        case SCREEN_OPENGL:
+            retFlags = OUTPUT_OPENGL_SetSize();
+            break;
 #endif
 
-        glViewport(0,0,sdl.surface->w,sdl.surface->h);
-        glDeleteTextures(1,&sdl.opengl.texture);
-        glGenTextures(1,&sdl.opengl.texture);
-        glBindTexture(GL_TEXTURE_2D,sdl.opengl.texture);
-        glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-        glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, 0);
-        // No borders
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-        if (sdl.opengl.bilinear) {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        } else {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        }
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texsize, texsize, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
-
-        gl_menudraw_countdown = 2; // two GL buffers
-        gl_clear_countdown = 2; // two GL buffers
-        glClearColor (0.0, 0.0, 0.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT);
-//      SDL_GL_SwapBuffers();
-//      glClear(GL_COLOR_BUFFER_BIT);
-        glShadeModel (GL_FLAT);
-        glBlendFunc(GL_ONE, GL_ZERO);
-        glDisable (GL_DEPTH_TEST);
-        glDisable (GL_LIGHTING);
-        glDisable(GL_BLEND);
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_ALPHA_TEST);
-        glDisable(GL_FOG);
-        glDisable(GL_SCISSOR_TEST);
-        glDisable(GL_STENCIL_TEST);
-        glEnable(GL_TEXTURE_2D);
-
-        glMatrixMode (GL_MODELVIEW);
-        glLoadIdentity ();
-
-        glMatrixMode (GL_PROJECTION);
-        glLoadIdentity ();
-        glOrtho(0, sdl.surface->w, sdl.surface->h, 0, -1, 1);
-
-        glMatrixMode (GL_TEXTURE);
-        glLoadIdentity ();
-        glScaled(1.0 / texsize, 1.0 / texsize, 1.0);
-
-        //if (glIsList(sdl.opengl.displaylist)) glDeleteLists(sdl.opengl.displaylist, 1);
-        //sdl.opengl.displaylist = glGenLists(1);
-        sdl.opengl.displaylist = 1;
-        glNewList(sdl.opengl.displaylist, GL_COMPILE);
-        glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
-        glBegin(GL_QUADS);
-        // lower left
-        glTexCoord2i(0,          0     );       glVertex2i(sdl.clip.x,           sdl.clip.y           );
-        // lower right
-        glTexCoord2i(adjTexWidth,0     );       glVertex2i(sdl.clip.x+sdl.clip.w,sdl.clip.y           );
-        // upper right
-        glTexCoord2i(adjTexWidth,adjTexHeight); glVertex2i(sdl.clip.x+sdl.clip.w,sdl.clip.y+sdl.clip.h);
-        // upper left
-        glTexCoord2i(0,          adjTexHeight); glVertex2i(sdl.clip.x,           sdl.clip.y+sdl.clip.h);
-        glEnd();
-        glEndList();
-
-        glBindTexture(GL_TEXTURE_2D,0);
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-        void GFX_DrawSDLMenu(DOSBoxMenu &menu,DOSBoxMenu::displaylist &dl);
-        mainMenu.setRedraw();
-        GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
-
-//      FIXME: Why do we have to reinitialize the font texture?
-        /*if (!SDLDrawGenFontTextureInit) */{
-            GLuint err = 0;
-
-            glGetError(); /* read and discard last error */
-
-            SDLDrawGenFontTexture = (GLuint)(~0UL);
-            glGenTextures(1,&SDLDrawGenFontTexture);
-            if (SDLDrawGenFontTexture == (GLuint)(~0UL) || (err=glGetError()) != 0) {
-                LOG_MSG("WARNING: Unable to make font texture. id=%llu err=%lu",
-                    (unsigned long long)SDLDrawGenFontTexture,(unsigned long)err);
-            }
-            else {
-                LOG_MSG("font texture id=%lu will make %u x %u",
-                    (unsigned long)SDLDrawGenFontTexture,
-                    (unsigned int)SDLDrawGenFontTextureWidth,
-                    (unsigned int)SDLDrawGenFontTextureHeight);
-
-                SDLDrawGenFontTextureInit = 1;
-
-                glBindTexture(GL_TEXTURE_2D,SDLDrawGenFontTexture);
-
-                glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-                glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, 0);
-                // No borders
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, SDLDrawGenFontTextureWidth, SDLDrawGenFontTextureHeight, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
-
-                /* load the font */
-                {
-                    extern Bit8u int10_font_16[256 * 16];
-
-                    unsigned char *bmp;
-                    uint32_t tmp[8*16];
-                    unsigned int x,y,c;
-
-                    for (c=0;c < 256;c++) {
-                        bmp = int10_font_16 + (c * 16);
-                        for (y=0;y < 16;y++) {
-                            for (x=0;x < 8;x++) {
-                                tmp[(y*8)+x] = (bmp[y] & (0x80 >> x)) ? 0xFFFFFFFFUL : 0x00000000UL;
-                            }
-                        }
-
-                        glTexSubImage2D(GL_TEXTURE_2D, /*level*/0, /*x*/(int)((c % 16) * 8), /*y*/(int)((c / 16) * 16),
-                            8, 16, GL_BGRA_EXT, GL_UNSIGNED_INT_8_8_8_8_REV, (void*)tmp);
-                    }
-                }
-
-                glBindTexture(GL_TEXTURE_2D,0);
-            }
-        }
-#endif
-
-        glFinish();
-        glFlush();
-
-        initedOpenGL = true;
-        sdl.desktop.type=SCREEN_OPENGL;
-        retFlags = GFX_CAN_32 | GFX_SCALING;
-        if (sdl.opengl.pixel_buffer_object)
-            retFlags |= GFX_HARDWARE;
-    break;
-        } //OPENGL
-#endif //C_OPENGL
 #if (HAVE_D3D9_H) && defined(WIN32)
         case SCREEN_DIRECT3D: {
             Bit16u fixedWidth;
@@ -2040,10 +1675,26 @@ do_surface:
         break;
         }
 #endif
-    default:
-        goto do_surface;
-        break;
-    }//CASE
+        default:
+            // we should never reach here
+            retFlags = 0;
+            break;
+    }
+
+    if (!retFlags)
+    {
+        if (sdl.desktop.want_type != SCREEN_SURFACE)
+        {
+            // try falling back down to surface
+            OUTPUT_SURFACE_Select();
+            retFlags = OUTPUT_SURFACE_SetSize();
+        }
+        if (retFlags == 0)
+            LOG_MSG("SDL:Failed everything including falling back to surface in GFX_GetSize"); // completely failed it seems
+    }
+
+    // we have selected an actual desktop type
+    sdl.desktop.type = sdl.desktop.want_type;
 
     GFX_LogSDLState();
 
@@ -2626,21 +2277,19 @@ void change_output(int output) {
     case 3:
 #if C_OPENGL
         change_output(2);
-        sdl.desktop.want_type=SCREEN_OPENGL;
+        OUTPUT_OPENGL_Select();
 #if !defined(C_SDL2)
-        sdl.opengl.bilinear = true;
+        sdl_opengl.bilinear = true;
 #endif
-        render.aspectOffload = true; // OpenGL code does aspect correction itself, we don't need render thread to do it
 #endif
         break;
     case 4:
 #if C_OPENGL
         change_output(2);
-        sdl.desktop.want_type=SCREEN_OPENGL;
+        OUTPUT_OPENGL_Select();
 #if !defined(C_SDL2)
-        sdl.opengl.bilinear = false; //NB
+        sdl_opengl.bilinear = false; //NB
 #endif
-        render.aspectOffload = true; // OpenGL code does aspect correction itself, we don't need render thread to do it
 #endif
         break;
 #if defined(__WIN32__) && !defined(C_SDL2)
@@ -2656,12 +2305,14 @@ void change_output(int output) {
         // do not set want_type
         break;
     case 8:
-        if(sdl.desktop.want_type==SCREEN_OPENGL) { }
+        if(sdl.desktop.want_type == SCREEN_OPENGL) 
+        { 
+        }
 #ifdef WIN32
-        else if(sdl.desktop.want_type==SCREEN_DIRECT3D) { 
+        else if(sdl.desktop.want_type == SCREEN_DIRECT3D) 
+        { 
             if(sdl.desktop.fullscreen) GFX_CaptureMouse(); 
             d3d_init(); 
-            render.aspectOffload = true; // OpenGL code does aspect correction itself, we don't need render thread to do it
         }
 #endif
         break;
@@ -2849,37 +2500,21 @@ void GFX_ReleaseSurfacePtr(void) {
 }
 #endif
 
-bool GFX_StartUpdate(Bit8u* &pixels,Bitu &pitch) {
+bool GFX_StartUpdate(Bit8u* &pixels,Bitu &pitch) 
+{
     if (!sdl.active || sdl.updating)
         return false;
+
     switch (sdl.desktop.type) 
     {
         case SCREEN_SURFACE:
             return OUTPUT_SURFACE_StartUpdate(pixels, pitch);
 
 #if C_OPENGL
-    case SCREEN_OPENGL:
-#if C_XBRZ    
-        if (render.xBRZ.enable && render.xBRZ.scale_on) {
-            sdl.xBRZ.renderbuf.resize(sdl.draw.width * sdl.draw.height);
-            pixels = sdl.xBRZ.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl.xBRZ.renderbuf[0]);
-            pitch = sdl.draw.width * sizeof(uint32_t);
-        }
-        else 
+        case SCREEN_OPENGL:
+            return OUTPUT_OPENGL_StartUpdate(pixels, pitch);
 #endif
-        {
-            if (sdl.opengl.pixel_buffer_object) {
-                glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, sdl.opengl.buffer);
-                pixels = (Bit8u *)glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, GL_WRITE_ONLY);
-            }
-            else
-                pixels = (Bit8u *)sdl.opengl.framebuf;
-            pitch = sdl.opengl.pitch;
-        }
 
-        sdl.updating=true;
-        return true;
-#endif
 #if (HAVE_D3D9_H) && defined(WIN32)
     case SCREEN_DIRECT3D:
 #if C_XBRZ
@@ -2903,20 +2538,20 @@ bool GFX_StartUpdate(Bit8u* &pixels,Bitu &pitch) {
 void GFX_OpenGLRedrawScreen(void) {
 #if C_OPENGL
     if (OpenGL_using()) {
-        if (gl_clear_countdown > 0) {
-            gl_clear_countdown--;
+        if (sdl_opengl.clear_countdown > 0) {
+            sdl_opengl.clear_countdown--;
             glClearColor (0.0, 0.0, 0.0, 1.0);
             glClear(GL_COLOR_BUFFER_BIT);
         }
 
-        if (sdl.opengl.pixel_buffer_object) {
+        if (sdl_opengl.pixel_buffer_object) {
             glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
-            glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
+            glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
             glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-            glCallList(sdl.opengl.displaylist);
+            glCallList(sdl_opengl.displaylist);
         } else {
-            glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
-            glCallList(sdl.opengl.displaylist);
+            glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
+            glCallList(sdl_opengl.displaylist);
         }
     }
 #endif
@@ -2942,158 +2577,11 @@ void GFX_EndUpdate(const Bit16u *changedLines) {
             break;
 
 #if C_OPENGL
-    case SCREEN_OPENGL:
-            if (sdl.must_redraw_all && changedLines == NULL) {
-            }
-            else {
-                if (gl_clear_countdown > 0) {
-                    gl_clear_countdown--;
-                    glClearColor (0.0, 0.0, 0.0, 1.0);
-                    glClear(GL_COLOR_BUFFER_BIT);
-                }
-
-                if (gl_menudraw_countdown > 0) {
-                    gl_menudraw_countdown--;
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-                    mainMenu.setRedraw();
-                    GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
-#endif
-                }
-
-#if C_XBRZ
-                if (render.xBRZ.enable && render.xBRZ.scale_on) {
-                    // OpenGL pixel buffer is precreated for direct xBRZ output, while xBRZ render buffer is used for rendering
-                    const int srcWidth = sdl.draw.width;
-                    const int srcHeight = sdl.draw.height;
-
-                    if (sdl.xBRZ.renderbuf.size() == srcWidth * srcHeight && srcWidth > 0 && srcHeight > 0)
-                    {
-                        // we assume render buffer is *not* scaled!
-                        const uint32_t* renderBuf = &sdl.xBRZ.renderbuf[0]; // help VS compiler a little + support capture by value
-                        uint32_t* trgTex;
-                        if (sdl.opengl.pixel_buffer_object) {
-                            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, sdl.opengl.buffer);
-                            trgTex = (uint32_t *)glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, GL_WRITE_ONLY);
-                        }
-                        else 
-                            trgTex = reinterpret_cast<uint32_t*>(static_cast<void*>(sdl.opengl.framebuf));
-
-                        if (trgTex)
-                            xBRZ_Render(renderBuf, trgTex, changedLines, srcWidth, srcHeight, sdl.xBRZ.scale_factor);
-                    }
-
-                    // and here we go repeating some stuff with xBRZ related modifications
-                    if (sdl.opengl.pixel_buffer_object) 
-                    {
-                        glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
-                        glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
-                        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                            sdl.draw.width * sdl.xBRZ.scale_factor, sdl.draw.height * sdl.xBRZ.scale_factor, GL_BGRA_EXT,
-                            GL_UNSIGNED_INT_8_8_8_8_REV, 0);
-                        glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-                    }
-                    else
-                    {
-                        glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
-                        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                            sdl.draw.width * sdl.xBRZ.scale_factor, sdl.draw.height * sdl.xBRZ.scale_factor, GL_BGRA_EXT,
-#if defined (MACOSX)
-                            // needed for proper looking graphics on macOS 10.12, 10.13
-                            GL_UNSIGNED_INT_8_8_8_8,
-#else
-                            // works on Linux
-                            GL_UNSIGNED_INT_8_8_8_8_REV,
-#endif
-                            (Bit8u *)sdl.opengl.framebuf);
-                    }
-                    glCallList(sdl.opengl.displaylist);
-                    SDL_GL_SwapBuffers();
-                } else
-#endif /*C_XBRZ*/
-                 if (sdl.opengl.pixel_buffer_object) {
-                    if(changedLines && (changedLines[0] == sdl.draw.height)) 
-                        return; 
-                    glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
-                    glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
-                    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                            (int)sdl.draw.width, (int)sdl.draw.height, GL_BGRA_EXT,
-                            GL_UNSIGNED_INT_8_8_8_8_REV, (void*)0);
-                    glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-                    glCallList(sdl.opengl.displaylist);
-                    SDL_GL_SwapBuffers();
-                } else if (changedLines) {
-                    if(changedLines[0] == sdl.draw.height) 
-                        return;
-                    Bitu y = 0, index = 0;
-                    glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
-                    while (y < sdl.draw.height) {
-                        if (!(index & 1)) {
-                            y += changedLines[index];
-                        } else {
-                            Bit8u *pixels = (Bit8u *)sdl.opengl.framebuf + y * sdl.opengl.pitch;
-                            Bitu height = changedLines[index];
-                            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, (int)y,
-                                    (int)sdl.draw.width, (int)height, GL_BGRA_EXT,
-#if defined (MACOSX)
-                                    // needed for proper looking graphics on macOS 10.12, 10.13
-                                    GL_UNSIGNED_INT_8_8_8_8,
-#else
-                                    // works on Linux
-                                    GL_UNSIGNED_INT_8_8_8_8_REV,
-#endif
-                                    (void*)pixels );
-                            y += height;
-                        }
-                        index++;
-                    }
-                    glCallList(sdl.opengl.displaylist);
-
-#if 0 /* DEBUG Prove to me that you're drawing the damn texture */
-                    glBindTexture(GL_TEXTURE_2D,SDLDrawGenFontTexture);
-
-                    glPushMatrix();
-
-                    glMatrixMode (GL_TEXTURE);
-                    glLoadIdentity ();
-                    glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
-
-                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                    glEnable(GL_ALPHA_TEST);
-                    glEnable(GL_BLEND);
-
-                    glBegin(GL_QUADS);
-
-                    // lower left
-                    glTexCoord2i(0,                         0                          );
-                    glVertex2i(  0,                         0                          );
-                    // lower right
-                    glTexCoord2i(SDLDrawGenFontTextureWidth,0                          );
-                    glVertex2i(  SDLDrawGenFontTextureWidth,0                          );
-                    // upper right
-                    glTexCoord2i(SDLDrawGenFontTextureWidth,SDLDrawGenFontTextureHeight); 
-                    glVertex2i(  SDLDrawGenFontTextureWidth,SDLDrawGenFontTextureHeight);
-                    // upper left
-                    glTexCoord2i(0,                         SDLDrawGenFontTextureHeight); 
-                    glVertex2i(  0,                         SDLDrawGenFontTextureHeight);
-
-                    glEnd();
-
-                    glBlendFunc(GL_ONE, GL_ZERO);
-                    glDisable(GL_ALPHA_TEST);
-                    glEnable(GL_TEXTURE_2D);
-
-                    glPopMatrix();
-
-                    glBindTexture(GL_TEXTURE_2D,sdl.opengl.texture);
-#endif
-
-                    SDL_GL_SwapBuffers();
-                }
-
-                if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++; 
-            }
+        case SCREEN_OPENGL:
+            OUTPUT_OPENGL_EndUpdate(changedLines);
             break;
 #endif
+
 #if (HAVE_D3D9_H) && defined(WIN32)
     case SCREEN_DIRECT3D:
 #if C_XBRZ
@@ -3503,13 +2991,11 @@ static void GUI_StartUp() {
         OUTPUT_SURFACE_Select();
 #if C_OPENGL
     } else if (output == "opengl" || output == "openglhq") {
-        sdl.desktop.want_type=SCREEN_OPENGL;
-        sdl.opengl.bilinear = true;
-        render.aspectOffload = true; // OpenGL code does aspect correction itself, we don't need render thread to do it
+        OUTPUT_OPENGL_Select();
+        sdl_opengl.bilinear = true;
     } else if (output == "openglnb") {
-        sdl.desktop.want_type=SCREEN_OPENGL;
-        sdl.opengl.bilinear = false;
-        render.aspectOffload = true; // OpenGL code does aspect correction itself, we don't need render thread to do it
+        OUTPUT_OPENGL_Select();
+        sdl_opengl.bilinear = false;
 #endif
 #if (HAVE_D3D9_H) && defined(WIN32)
     } else if (output == "direct3d") {
@@ -3953,7 +3439,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 
         if (OpenGL_using() && mainMenu.needsRedraw()) {
 #if C_OPENGL
-            gl_menudraw_countdown = 2; // two GL buffers
+            sdl_opengl.menudraw_countdown = 2; // two GL buffers
             GFX_OpenGLRedrawScreen();
             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
             SDL_GL_SwapBuffers();
@@ -3967,7 +3453,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 
         if (OpenGL_using() && mainMenu.needsRedraw()) {
 #if C_OPENGL
-            gl_menudraw_countdown = 2; // two GL buffers
+            sdl_opengl.menudraw_countdown = 2; // two GL buffers
             GFX_OpenGLRedrawScreen();
             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
             SDL_GL_SwapBuffers();
@@ -4514,8 +4000,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
                     SDL_GL_SwapBuffers();
 
-                    gl_clear_countdown = 2;
-                    gl_menudraw_countdown = 2; // two GL buffers
+                    sdl_opengl.clear_countdown = 2;
+                    sdl_opengl.menudraw_countdown = 2; // two GL buffers
 #endif
                 }
 
@@ -5053,8 +4539,8 @@ void* GetSetSDLValue(int isget, std::string target, void* setval) {
     }
     else if (target == "opengl.bilinear") {
 #if C_OPENGL
-        if (isget) return (void*) sdl.opengl.bilinear;
-        else sdl.opengl.bilinear = setval;
+        if (isget) return (void*) sdl_opengl.bilinear;
+        else sdl_opengl.bilinear = setval;
 #else
         if (isget) return (void*) 0;
 #endif
@@ -7122,13 +6608,13 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
     }
     else if (!strcmp(what,"opengl")) {
 #if C_OPENGL
-        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl.opengl.bilinear) return true;
+        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.bilinear) return true;
         change_output(3);
 #endif
     }
     else if (!strcmp(what,"openglnb")) {
 #if C_OPENGL
-        if (sdl.desktop.want_type == SCREEN_OPENGL && !sdl.opengl.bilinear) return true;
+        if (sdl.desktop.want_type == SCREEN_OPENGL && !sdl_opengl.bilinear) return true;
         change_output(4);
 #endif
     }
@@ -7356,8 +6842,8 @@ void OutputSettingMenuUpdate(void) {
     mainMenu.get_item("output_surface").check(sdl.desktop.want_type==SCREEN_SURFACE).refresh_item(mainMenu);
     mainMenu.get_item("output_direct3d").check(sdl.desktop.want_type==SCREEN_DIRECT3D).refresh_item(mainMenu);
 #if C_OPENGL
-    mainMenu.get_item("output_opengl").check(sdl.desktop.want_type==SCREEN_OPENGL && sdl.opengl.bilinear).refresh_item(mainMenu);
-    mainMenu.get_item("output_openglnb").check(sdl.desktop.want_type==SCREEN_OPENGL && !sdl.opengl.bilinear).refresh_item(mainMenu);
+    mainMenu.get_item("output_opengl").check(sdl.desktop.want_type==SCREEN_OPENGL && sdl_opengl.bilinear).refresh_item(mainMenu);
+    mainMenu.get_item("output_openglnb").check(sdl.desktop.want_type==SCREEN_OPENGL && !sdl_opengl.bilinear).refresh_item(mainMenu);
 #endif
 }
 
@@ -7371,7 +6857,16 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     bitop::self_test();
     ptrop::self_test();
 
-    memset(&sdl,0,sizeof(sdl)); // struct sdl isn't initialized anywhere that I can tell
+    memset(&sdl, 0, sizeof(sdl));
+
+    // initialize output libraries
+    OUTPUT_SURFACE_Initialize();
+#if C_OPENGL
+    OUTPUT_OPENGL_Initialize();
+#endif
+#if (HAVE_D3D9_H) && defined(WIN32)
+    OUTPUT_DIRECT3D_Initialize();
+#endif
 
     // initialize some defaults in SDL structure here
     sdl.srcAspect.x = 4; sdl.srcAspect.y = 3; 

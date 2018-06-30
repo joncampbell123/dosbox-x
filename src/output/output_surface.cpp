@@ -6,6 +6,15 @@
 #include "sdlmain.h"
 #include "vga.h"
 
+using namespace std;
+
+// output API below
+
+void OUTPUT_SURFACE_Initialize()
+{
+    // nothing to initialize (yet?)
+}
+
 void OUTPUT_SURFACE_Select()
 {
     sdl.desktop.want_type = SCREEN_SURFACE;
