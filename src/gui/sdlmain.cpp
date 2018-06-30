@@ -2236,9 +2236,9 @@ void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as
     (void)led_state;//POSSIBLY UNUSED
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) /* Microsoft Windows */
     if (exthook_enabled) { // ONLY if ext hook is enabled, else we risk infinite loops with keyboard events
-        WinSetKeyToggleState(VK_NUMLOCK, !!(led_state & 2));
-        WinSetKeyToggleState(VK_SCROLL, !!(led_state & 1));
-        WinSetKeyToggleState(VK_CAPITAL, !!(led_state & 4));
+        //WinSetKeyToggleState(VK_NUMLOCK, !!(led_state & 2));
+        //WinSetKeyToggleState(VK_SCROLL, !!(led_state & 1));
+        //WinSetKeyToggleState(VK_CAPITAL, !!(led_state & 4));
     }
 #endif
 }
@@ -2287,9 +2287,9 @@ void DoExtendedKeyboardHook(bool enable) {
         if (exthook_winhook) {
             if (enable_hook_lock_toggle_keys) {
                 // restore state
-                WinSetKeyToggleState(VK_NUMLOCK, on_capture_num_lock_was_on);
-                WinSetKeyToggleState(VK_SCROLL, on_capture_scroll_lock_was_on);
-                WinSetKeyToggleState(VK_CAPITAL, on_capture_caps_lock_was_on);
+                //WinSetKeyToggleState(VK_NUMLOCK, on_capture_num_lock_was_on);
+                //WinSetKeyToggleState(VK_SCROLL, on_capture_scroll_lock_was_on);
+                //WinSetKeyToggleState(VK_CAPITAL, on_capture_caps_lock_was_on);
             }
 
             {
