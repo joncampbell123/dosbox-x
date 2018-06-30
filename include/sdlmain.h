@@ -1,4 +1,6 @@
 #include "dosbox.h"
+
+#include "control.h"
 #include "menu.h"
 #include "mouse.h"
 #include "render.h"
@@ -79,20 +81,6 @@ struct SDL_Block {
         SCREEN_TYPES type;
         SCREEN_TYPES want_type;
     } desktop;
-#if C_OPENGL
-    struct {
-        Bitu pitch;
-        void * framebuf;
-        GLuint buffer;
-        GLuint texture;
-        GLuint displaylist;
-        GLint max_texsize;
-        bool bilinear;
-        bool packed_pixel;
-        bool paletted_texture;
-        bool pixel_buffer_object;
-    } opengl;
-#endif
     struct {
         SDL_Surface * surface;
 #if (HAVE_DDRAW_H) && defined(WIN32)
@@ -165,10 +153,13 @@ extern Bitu userResizeWindowHeight;
 extern Bitu currentWindowWidth;
 extern Bitu currentWindowHeight;
 
-void GFX_SetIcon(void);
-void GFX_SDL_Overscan(void);
 void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl);
+void GFX_LogSDLState(void);
+void GFX_SDL_Overscan(void);
+void GFX_SetIcon(void);
 void SDL_rect_cliptoscreen(SDL_Rect &r);
+void UpdateWindowDimensions(void);
+void UpdateWindowDimensions(Bitu width, Bitu height);
 
 #if defined(C_SDL2)
 SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType);
