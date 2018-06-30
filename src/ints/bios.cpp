@@ -7377,59 +7377,48 @@ void ROMBIOS_Init() {
     }
 }
 
+void SetKeyState(int nVirtKey, int flagAct, int flagLed);
+
 void BIOS_SynchronizeNumLock()
 {
-#if defined(WIN32)
-	auto flag = mem_readb(BIOS_KEYBOARD_FLAGS1);
-	auto leds = mem_readb(BIOS_KEYBOARD_LEDS);
-	auto stat = GetKeyState(VK_NUMLOCK);
-	if (stat & 1) {
-		flag |= BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE;
-		leds |= BIOS_KEYBOARD_LEDS_NUM_LOCK;
-	}
-	else {
-		flag &= ~BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE;
-		leds &= ~BIOS_KEYBOARD_LEDS_NUM_LOCK;
-	}
-	mem_writeb(BIOS_KEYBOARD_FLAGS1, flag);
-	mem_writeb(BIOS_KEYBOARD_LEDS, leds);
-#endif
+	SetKeyState(VK_NUMLOCK, BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE, BIOS_KEYBOARD_LEDS_NUM_LOCK);
 }
 
 void BIOS_SynchronizeCapsLock()
 {
-#if defined(WIN32)
-	auto flag = mem_readb(BIOS_KEYBOARD_FLAGS1);
-	auto leds = mem_readb(BIOS_KEYBOARD_LEDS);
-	auto stat = GetKeyState(VK_CAPITAL);
-	if (stat & 1) {
-		flag |= BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;
-		leds |= BIOS_KEYBOARD_LEDS_CAPS_LOCK;
-	}
-	else {
-		flag &= ~BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;
-		leds &= ~BIOS_KEYBOARD_LEDS_CAPS_LOCK;
-	}
-	mem_writeb(BIOS_KEYBOARD_FLAGS1, flag);
-	mem_writeb(BIOS_KEYBOARD_LEDS, leds);
-#endif
+	SetKeyState(VK_CAPITAL, BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_CAPS_LOCK);
 }
 
 void BIOS_SynchronizeScrollLock()
 {
+	SetKeyState(VK_SCROLL, BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_SCROLL_LOCK);
+}
+
+void SetKeyState(int nVirtKey, int flagAct, int flagLed)
+{
 #if defined(WIN32)
-	auto flag = mem_readb(BIOS_KEYBOARD_FLAGS1);
-	auto leds = mem_readb(BIOS_KEYBOARD_LEDS);
-	auto stat = GetKeyState(VK_CAPITAL);
-	if (stat & 1) {
-		flag |= BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE;
-		leds |= BIOS_KEYBOARD_LEDS_SCROLL_LOCK;
+
+	const auto state = GetKeyState(nVirtKey);
+
+	const auto flags1 = BIOS_KEYBOARD_FLAGS1;
+	const auto flags2 = BIOS_KEYBOARD_LEDS;
+
+	auto flag1 = mem_readb(flags1);
+	auto flag2 = mem_readb(flags2);
+
+	if (state & 1)
+	{
+		flag1 |= flagAct;
+		flag2 |= flagLed;
 	}
-	else {
-		flag &= ~BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE;
-		leds &= ~BIOS_KEYBOARD_LEDS_SCROLL_LOCK;
+	else
+	{
+		flag1 &= ~flagAct;
+		flag2 &= ~flagLed;
 	}
-	mem_writeb(BIOS_KEYBOARD_FLAGS1, flag);
-	mem_writeb(BIOS_KEYBOARD_LEDS, leds);
+
+	mem_writeb(flags1, flag1);
+	mem_writeb(flags2, flag2);
+
 #endif
 }
