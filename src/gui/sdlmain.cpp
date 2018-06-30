@@ -120,6 +120,7 @@ void RENDER_xBRZ_Early_Init(); // early initialization function defined in rende
 #endif
 #if C_XBRZ || C_SURFACE_POSTRENDER_ASPECT
 #include <xBRZ/xbrz_tools.h>
+#include <cmath>
 # if defined(WIN32) && !defined(__MINGW32__) && !defined(HX_DOS)
 #  define XBRZ_PPL 1
 #  include <ppl.h>
