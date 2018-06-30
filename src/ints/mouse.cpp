@@ -636,8 +636,8 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
     }
     if (!emu)
     {
-        auto x1 = 1.0 / static_cast<double>(user_cursor_sw) * user_cursor_x;
-        auto y1 = 1.0 / static_cast<double>(user_cursor_sh) * user_cursor_y;
+        auto x1 = (double)user_cursor_x / static_cast<double>(user_cursor_sw);
+        auto y1 = (double)user_cursor_y / static_cast<double>(user_cursor_sh);
         mouse.x       = x1 * mouse.max_screen_x;
         mouse.y       = y1 * mouse.max_screen_y;
 
