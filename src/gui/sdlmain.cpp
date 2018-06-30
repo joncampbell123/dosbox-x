@@ -4589,6 +4589,9 @@ static void GUI_StartUp() {
 }
 
 void Mouse_AutoLock(bool enable) {
+    if (sdl.mouse.autolock == enable)
+        return;
+
     sdl.mouse.autolock=enable;
     if (sdl.mouse.autoenable) sdl.mouse.requestlock=enable;
     else {
@@ -4942,23 +4945,24 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     auto y    = static_cast<float>(motion->y - sdl.clip.y) / (sdl.clip.h - 1) * sdl.mouse.sensitivity / 100.0f;
     auto emu  = sdl.mouse.locked;
 
+    const auto inside =
+        motion->x >= sdl.clip.x && motion->x < sdl.clip.x + sdl.clip.w &&
+        motion->y >= sdl.clip.y && motion->y < sdl.clip.y + sdl.clip.h;
+
     if (mouse_notify_mode != 0)
     {
         /* for mouse integration driver */
         xrel              = yrel = x = y = 0.0f;
         emu               = sdl.mouse.locked;
         const auto isdown = Mouse_GetButtonState() != 0;
-        const auto inside =
-            motion->x >= sdl.clip.x && motion->x < sdl.clip.x + sdl.clip.w &&
-            motion->y >= sdl.clip.y && motion->y < sdl.clip.y + sdl.clip.h;
-        SDL_ShowCursor(isdown || inside ? SDL_DISABLE : SDL_ENABLE);
+        SDL_ShowCursor((isdown || inside) ? SDL_DISABLE : SDL_ENABLE);
         /* TODO: If guest has not read mouse cursor position within 250ms show cursor again */
     }
-    bool MOUSE_IsHidden();
-    if (!user_cursor_locked)
+    else if (!user_cursor_locked)
     {
+        bool MOUSE_IsHidden();
         /* Show only when DOS app is not using mouse */
-        SDL_ShowCursor(MOUSE_IsHidden() && !mouse_notify_mode ? SDL_ENABLE : SDL_DISABLE);
+        SDL_ShowCursor((!inside || (MOUSE_IsHidden() && !mouse_notify_mode)) ? SDL_ENABLE : SDL_DISABLE);
     }
     Mouse_CursorMoved(xrel, yrel, x, y, emu);
 }
