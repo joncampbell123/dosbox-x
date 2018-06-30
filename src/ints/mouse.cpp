@@ -1024,11 +1024,15 @@ static Bitu INT33_Handler(void) {
         mouse.textXorMask = reg_dx;
         break;
     case 0x0b:  /* Read Motion Data */
-        reg_cx=(Bit16u)static_cast<Bit16s>(mouse.mickey_x);
-        reg_dx=(Bit16u)static_cast<Bit16s>(mouse.mickey_y);
-        mouse.mickey_x=0;
-        mouse.mickey_y=0;
-        break;
+    {
+	    bool MOUSE_IsLocked();
+	    const auto locked = MOUSE_IsLocked();
+	    reg_cx = (Bit16u)static_cast<Bit16s>(locked ? mouse.mickey_x : 0);
+	    reg_dx = (Bit16u)static_cast<Bit16s>(locked ? mouse.mickey_y : 0);
+	    mouse.mickey_x = 0;
+	    mouse.mickey_y = 0;
+	    break;
+    }
     case 0x0c:  /* Define interrupt subroutine parameters */
         mouse.sub_mask=reg_cx;
         mouse.sub_seg=SegValue(es);

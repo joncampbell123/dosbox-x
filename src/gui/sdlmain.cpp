@@ -9449,3 +9449,7 @@ void GUI_ResetResize(bool pressed) {
 }
 #endif
 
+bool MOUSE_IsLocked()
+{
+	return sdl.mouse.locked;
+}
