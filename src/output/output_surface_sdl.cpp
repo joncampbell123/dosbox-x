@@ -188,6 +188,20 @@ retry:
         /* decide where the rectangle on the screen goes */
         int final_width,final_height,ax,ay;
 
+#if C_XBRZ
+        /* scale to fit the window.
+         * fit by aspect ratio if asked to do so. */
+        if (render.xBRZ.enable)
+        {
+            final_height = (int)max(consider_height, userResizeWindowHeight) - (int)menuheight - ((int)sdl.overscan_width * 2);
+            final_width = (int)max(consider_width, userResizeWindowWidth) - ((int)sdl.overscan_width * 2);
+
+            sdl.clip.x = sdl.clip.y = 0;
+            sdl.clip.w = final_width;
+            sdl.clip.h = final_height;
+        }
+        else
+#endif 
         /* center the screen in the window */
         {
 
