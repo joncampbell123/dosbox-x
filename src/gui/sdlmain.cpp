@@ -4957,7 +4957,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     if (!user_cursor_locked)
     {
         /* Show only when DOS app is not using mouse */
-        SDL_ShowCursor(MOUSE_IsHidden() ? SDL_ENABLE : SDL_DISABLE);
+        SDL_ShowCursor(MOUSE_IsHidden() && !mouse_notify_mode ? SDL_ENABLE : SDL_DISABLE);
     }
     Mouse_CursorMoved(xrel, yrel, x, y, emu);
 }
