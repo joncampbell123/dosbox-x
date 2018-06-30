@@ -2077,6 +2077,38 @@ dosurface:
 //              sdl.clip.w = currentWindowWidth - sdl.clip.x;
 //              sdl.clip.h = currentWindowHeight - sdl.clip.y;
 
+#if C_XBRZ
+                if (render.xBRZ.enable) {
+                    if (render.aspect) {
+                        double fw,fh;
+
+                        fh = final_height;
+                        fw = fh * sdl.srcAspect.x / sdl.srcAspect.y;
+                        if (fw > final_width) {
+                            fh = (fh * final_width) / fw;
+                            fw = final_width;
+                        }
+
+                        assert(fw <= final_width);
+                        assert(fh <= final_height);
+
+                        /* fill the screen, with aspect ratio correction */
+                        sdl.clip.x = (final_width - (int)floor(fw)) / 2;
+                        sdl.clip.y = (final_height - (int)floor(fh)) / 2;
+                        sdl.clip.w = (int)fw;
+                        sdl.clip.h = (int)fh;
+                    }
+                    else {
+                        /* fill the screen */
+                        sdl.clip.x = 0;
+                        sdl.clip.y = 0;
+                        sdl.clip.w = final_width;
+                        sdl.clip.h = final_height;
+                    }
+                }
+#endif
+
+
                 final_width += (int)sdl.overscan_width*2;
                 final_height += (int)menuheight + (int)sdl.overscan_width*2;
                 sdl.clip.y += (int)menuheight;
