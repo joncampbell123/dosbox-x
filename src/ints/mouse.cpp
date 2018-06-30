@@ -635,8 +635,12 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
     }
     if (!emu)
     {
-        const auto x1 = 1.0 / static_cast<double>(user_cursor_sw) * user_cursor_x;
-        const auto y1 = 1.0 / static_cast<double>(user_cursor_sh) * user_cursor_y;
+        auto x1 = 1.0 / static_cast<double>(user_cursor_sw) * user_cursor_x;
+        auto y1 = 1.0 / static_cast<double>(user_cursor_sh) * user_cursor_y;
+        if (x1 < 0) x1 = 0;
+        if (x1 > 1) x1 = 1;
+        if (y1 < 0) y1 = 0;
+        if (y1 > 1) y1 = 1;
         mouse.x       = x1 * mouse.max_x;
         mouse.y       = y1 * mouse.max_y;
     }
