@@ -198,6 +198,28 @@ retry:
             sdl.clip.x = sdl.clip.y = 0;
             sdl.clip.w = final_width;
             sdl.clip.h = final_height;
+
+            if (render.aspect) {
+                int sh = final_height;
+                int sw = (int)floor(final_height * sdl.srcAspect.xToY);
+
+                if (sw > final_width) {
+                    sh = (sh * final_width) / sw;
+                    sw = final_width;
+                }
+
+                ax = (final_width - sw) / 2;
+                ay = (final_height - sh) / 2;
+                if (ax < 0) ax = 0;
+                if (ay < 0) ay = 0;
+                sdl.clip.x = ax;
+                sdl.clip.y = ay;
+                sdl.clip.w = sw;
+                sdl.clip.h = sh;
+
+                assert((sdl.clip.x+sdl.clip.w) <= final_width);
+                assert((sdl.clip.y+sdl.clip.h) <= final_height);
+            }
         }
         else
 #endif 
