@@ -903,6 +903,8 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\output\output_direct3d.cpp" />
     <ClCompile Include="..\src\output\output_opengl.cpp" />
     <ClCompile Include="..\src\output\output_surface.cpp" />
+    <ClCompile Include="..\src\output\output_surface_sdl.cpp" />
+    <ClCompile Include="..\src\output\output_surface_sdl2.cpp" />
     <ClCompile Include="..\src\output\output_tools.cpp" />
     <ClCompile Include="..\src\output\output_tools_xbrz.cpp" />
     <ClCompile Include="..\src\shell\shell.cpp" />
