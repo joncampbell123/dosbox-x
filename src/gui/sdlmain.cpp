@@ -5503,6 +5503,7 @@ void GFX_Events() {
                     SetPriority(sdl.priority.focus);
                     CPU_Disable_SkipAutoAdjust();
 					BIOS_SynchronizeNumLock();
+					BIOS_SynchronizeCapsLock();
 				} else {
                     if (sdl.mouse.locked)
                     {
@@ -6308,6 +6309,7 @@ void SetNumLock(void) {
 
 #ifdef WIN32
 bool numlock_stat=false;
+bool capslock_stat=false;
 #endif
 
 void CheckNumLockState(void) {
@@ -6318,6 +6320,18 @@ void CheckNumLockState(void) {
 	if (keyState[VK_NUMLOCK] & 1) {
 		numlock_stat = true;
 		startup_state_numlock = true;
+	}
+#endif
+}
+
+void CheckCapsLockState(void) {
+#ifdef WIN32
+    BYTE keyState[256];
+
+    GetKeyboardState((LPBYTE)(&keyState));
+	if (keyState[VK_CAPITAL] & 1) {
+		capslock_stat = true;
+		startup_state_capslock = true;
 	}
 #endif
 }
@@ -7479,6 +7493,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* -- Init the configuration system and add default values */
         CheckNumLockState();
+        CheckCapsLockState();
 
         /* -- setup the config sections for config parsing */
         LOG::SetupConfigSection();

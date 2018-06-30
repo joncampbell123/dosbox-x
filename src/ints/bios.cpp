@@ -7395,3 +7395,22 @@ void BIOS_SynchronizeNumLock()
 	mem_writeb(BIOS_KEYBOARD_LEDS, leds);
 #endif
 }
+
+void BIOS_SynchronizeCapsLock()
+{
+#if defined(WIN32)
+	auto flag = mem_readb(BIOS_KEYBOARD_FLAGS1);
+	auto leds = mem_readb(BIOS_KEYBOARD_LEDS);
+	auto stat = GetKeyState(VK_CAPITAL);
+	if (stat & 1) {
+		flag |= BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;
+		leds |= 0x04;
+	}
+	else {
+		flag &= ~BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;
+		leds &= ~0x04;
+	}
+	mem_writeb(BIOS_KEYBOARD_FLAGS1, flag);
+	mem_writeb(BIOS_KEYBOARD_LEDS, leds);
+#endif
+}
