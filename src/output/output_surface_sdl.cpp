@@ -145,6 +145,11 @@ retry:
     }
     else
     {
+        int menuheight = 0;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+        if (mainMenu.isVisible()) menuheight = mainMenu.menuBox.h;
+#endif
+
         sdl.clip.x = 0; sdl.clip.y = 0;
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
@@ -166,10 +171,6 @@ retry:
 
         /* center the screen in the window */
         {
-            int menuheight = 0;
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-            if (mainMenu.isVisible()) menuheight = mainMenu.menuBox.h;
-#endif
             Bitu consider_height = menu.maxwindow ? currentWindowHeight : (height + (unsigned int)menuheight + (sdl.overscan_width * 2));
             Bitu consider_width = menu.maxwindow ? currentWindowWidth : (width + (sdl.overscan_width * 2));
 
