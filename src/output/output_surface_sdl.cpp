@@ -146,9 +146,6 @@ retry:
     else
     {
         int menuheight = 0;
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-        if (mainMenu.isVisible()) menuheight = mainMenu.menuBox.h;
-#endif
 
         sdl.clip.x = 0; sdl.clip.y = 0;
 
@@ -167,6 +164,8 @@ retry:
             LOG_MSG("menuScale=%lu", (unsigned long)scale);
             mainMenu.setScale(scale);
         }
+
+        if (mainMenu.isVisible()) menuheight = mainMenu.menuBox.h;
 #endif
 
         /* menu size and consideration of width and height */
