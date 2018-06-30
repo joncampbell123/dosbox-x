@@ -18,11 +18,11 @@ TODO add version
     - Axes can be remapped for devices with questionable layout.
     - User-settable deadzones for joystick bindings in mapper,
       mappings like WSAD keys to axes is less frustrating.
-  - Improved mouse integration:
+  - Improved mouse integration (Aybe):
     - Now by default DOSBox-X does not emulate mouse movement when the mouse
       is not locked. This gives a consistent experience when compared to host OS.
       For the old behavior, use [sdl] mouse_emulation=always.
-    - Added visual or auditive feedback that notifies about auto-lock state.
+    - Added visual or auditive feedback about auto-lock state (Windows).
       This feature can be switched off, use [sdl] autolock_feedback=none.
     
 0.82.7
