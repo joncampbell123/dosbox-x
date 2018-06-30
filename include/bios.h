@@ -187,6 +187,9 @@ void BIOS_SynchronizeNumLock();
 // \brief Synchronizes emulator caps lock state with host.
 void BIOS_SynchronizeCapsLock();
 
+// \brief Synchronizes emulator scroll lock state with host.
+void BIOS_SynchronizeScrollLock();
+
 bool ISAPNP_RegisterSysDev(const unsigned char *raw,Bitu len,bool already=false);
 
 class ISAPnPDevice {

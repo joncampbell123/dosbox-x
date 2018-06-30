@@ -1399,6 +1399,7 @@ Bitu INT16_Handler_Wrap(void) {
 //Keyboard initialisation. src/gui/sdlmain.cpp
 extern bool startup_state_numlock;
 extern bool startup_state_capslock;
+extern bool startup_state_scrlock;
 
 static void InitBiosSegment(void) {
     /* Setup the variables for keyboard in the bios data segment */
@@ -1414,6 +1415,7 @@ static void InitBiosSegment(void) {
 #else
     if (startup_state_capslock) { flag1|=0x40; leds|=0x04;}
     if (startup_state_numlock)  { flag1|=0x20; leds|=0x02;}
+    if (startup_state_scrlock)  { flag1|=0x10; leds|=0x01;}
 #endif
 
     mem_writeb(BIOS_KEYBOARD_FLAGS1,flag1);
