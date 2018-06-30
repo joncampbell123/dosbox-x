@@ -24,6 +24,7 @@ TODO add version
       For the old behavior, use [sdl] mouse_emulation=always.
     - Added visual or auditive feedback about auto-lock state (Windows).
       This feature can be switched off, use [sdl] autolock_feedback=none.
+  - Added CAPMOUSE program for capturing/releasing mouse from command line. (Aybe)
     
 0.82.7
   - Mac OS X builds now honor showmenu=false by leaving the
