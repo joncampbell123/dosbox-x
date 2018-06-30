@@ -315,20 +315,8 @@ retry:
 #if C_XBRZ
         if (render.xBRZ.enable)
         {
-            // pre-calculate scaling factor adjusting for aspect rate if needed
-            int clipWidth = sdl.surface->w;
-            int clipHeight = sdl.surface->h;
-
-            if (render.aspect)
-            {
-                if (clipWidth > sdl.srcAspect.xToY * clipHeight)
-                    clipWidth = static_cast<int>(clipHeight * sdl.srcAspect.xToY); // black bars left and right
-                else
-                    clipHeight = static_cast<int>(clipWidth * sdl.srcAspect.yToX); // black bars top and bottom
-            }
-
             bool old_scale_on = render.xBRZ.scale_on;
-            xBRZ_SetScaleParameters(sdl.draw.width, sdl.draw.height, clipWidth, clipHeight);
+            xBRZ_SetScaleParameters(sdl.draw.width, sdl.draw.height, sdl.clip.w, sdl.clip.h);
             if (render.xBRZ.scale_on != old_scale_on) {
                 // when we are scaling, we ask render code not to do any aspect correction
                 // when we are not scaling, render code is allowed to do aspect correction at will
