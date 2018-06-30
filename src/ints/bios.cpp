@@ -7384,12 +7384,12 @@ void BIOS_SynchronizeNumLock()
 	auto leds = mem_readb(BIOS_KEYBOARD_LEDS);
 	auto stat = GetKeyState(VK_NUMLOCK);
 	if (stat & 1) {
-		flag |= 0x20;
-		leds |= 0x02;
+		flag |= BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE;
+		leds |= BIOS_KEYBOARD_LEDS_NUM_LOCK;
 	}
 	else {
-		flag &= ~0x20;
-		leds &= ~0x02;
+		flag &= ~BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE;
+		leds &= ~BIOS_KEYBOARD_LEDS_NUM_LOCK;
 	}
 	mem_writeb(BIOS_KEYBOARD_FLAGS1, flag);
 	mem_writeb(BIOS_KEYBOARD_LEDS, leds);
@@ -7404,11 +7404,11 @@ void BIOS_SynchronizeCapsLock()
 	auto stat = GetKeyState(VK_CAPITAL);
 	if (stat & 1) {
 		flag |= BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;
-		leds |= 0x04;
+		leds |= BIOS_KEYBOARD_LEDS_CAPS_LOCK;
 	}
 	else {
 		flag &= ~BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;
-		leds &= ~0x04;
+		leds &= ~BIOS_KEYBOARD_LEDS_CAPS_LOCK;
 	}
 	mem_writeb(BIOS_KEYBOARD_FLAGS1, flag);
 	mem_writeb(BIOS_KEYBOARD_LEDS, leds);
@@ -7423,11 +7423,11 @@ void BIOS_SynchronizeScrollLock()
 	auto stat = GetKeyState(VK_CAPITAL);
 	if (stat & 1) {
 		flag |= BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE;
-		leds |= 0x01;
+		leds |= BIOS_KEYBOARD_LEDS_SCROLL_LOCK;
 	}
 	else {
 		flag &= ~BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE;
-		leds &= ~0x01;
+		leds &= ~BIOS_KEYBOARD_LEDS_SCROLL_LOCK;
 	}
 	mem_writeb(BIOS_KEYBOARD_FLAGS1, flag);
 	mem_writeb(BIOS_KEYBOARD_LEDS, leds);

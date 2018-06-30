@@ -1413,9 +1413,9 @@ static void InitBiosSegment(void) {
 #if 0 /*SDL_VERSION_ATLEAST(1, 2, 14)*/
 //Nothing, mapper handles all.
 #else
-    if (startup_state_capslock) { flag1|=0x40; leds|=0x04;}
-    if (startup_state_numlock)  { flag1|=0x20; leds|=0x02;}
-    if (startup_state_scrlock)  { flag1|=0x10; leds|=0x01;}
+    if (startup_state_capslock) { flag1|=BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_CAPS_LOCK;}
+    if (startup_state_numlock)  { flag1|=BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_NUM_LOCK;}
+    if (startup_state_scrlock)  { flag1|=BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_SCROLL_LOCK;}
 #endif
 
     mem_writeb(BIOS_KEYBOARD_FLAGS1,flag1);
