@@ -3993,7 +3993,9 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     if (mouse_notify_mode != 0)
     {
         /* for mouse integration driver */
-        xrel              = yrel = x = y = 0.0f;
+        if (!sdl.mouse.locked)
+            xrel = yrel = x = y = 0.0f;
+
         emu               = sdl.mouse.locked;
         const auto isdown = Mouse_GetButtonState() != 0;
         SDL_ShowCursor((isdown || inside) ? SDL_DISABLE : SDL_ENABLE);
