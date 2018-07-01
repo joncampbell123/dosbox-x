@@ -63,6 +63,7 @@ Bitu OUTPUT_OPENGL_GetBestMode(Bitu flags);
 Bitu OUTPUT_OPENGL_SetSize();
 bool OUTPUT_OPENGL_StartUpdate(Bit8u* &pixels, Bitu &pitch);
 void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines);
+void OUTPUT_OPENGL_Shutdown();
 
 #endif //C_OPENGL
 

@@ -23,14 +23,6 @@ int Voodoo_OGL_GetWidth();
 int Voodoo_OGL_GetHeight();
 bool Voodoo_OGL_Active();
 
-/* [TODO] This needs to be moved to some general library and converted to template because it has unsigned version in vga.cpp */
-static inline int int_log2(int val) 
-{
-    int log = 0;
-    while ((val >>= 1) != 0) log++;
-    return log;
-}
-
 static SDL_Surface* SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
 {
     Bit16u fixedWidth;
@@ -197,6 +189,10 @@ void OUTPUT_OPENGL_Select()
 {
     sdl.desktop.want_type = SCREEN_OPENGL;
     render.aspectOffload = true;
+
+#if defined(WIN32) && !defined(C_SDL2)
+    SDL1_hax_inhibit_WM_PAINT = 0;
+#endif
 }
 
 Bitu OUTPUT_OPENGL_GetBestMode(Bitu flags)
@@ -625,6 +621,11 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
 
         if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
     }
+}
+
+void OUTPUT_OPENGL_Shutdown()
+{
+    // nothing to shutdown (yet?)
 }
 
 #endif

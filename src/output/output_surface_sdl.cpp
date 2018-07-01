@@ -112,7 +112,6 @@ retry:
     }
 #endif
 
-    sdl.desktop.type = SCREEN_SURFACE;
     sdl.clip.w = width; sdl.clip.h = height;
     if (sdl.desktop.fullscreen)
     {

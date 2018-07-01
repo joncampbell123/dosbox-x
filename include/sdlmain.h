@@ -10,6 +10,10 @@
 #include "SDL.h"
 #include "SDL_video.h"
 
+#ifdef __WIN32__
+#include "SDL_syswm.h"
+#endif
+
 #ifndef DOSBOX_SDLMAIN_H
 #define DOSBOX_SDLMAIN_H
 
@@ -20,9 +24,11 @@
 #include <output/output_tools_xbrz.h>
 
 enum SCREEN_TYPES {
-    SCREEN_SURFACE,
-    SCREEN_OPENGL,
-    SCREEN_DIRECT3D
+    SCREEN_SURFACE
+    ,SCREEN_OPENGL // [FIXME] cannot make this conditional because somehow SDL2 code uses it while C_OPENGL is definitely disabled by C_SDL2 so SCREEN_OPENGL is unavailable
+#if C_DIRECT3D
+    ,SCREEN_DIRECT3D
+#endif
 };
 
 enum AUTOLOCK_FEEDBACK
@@ -144,6 +150,10 @@ struct SDL_Block {
     } xBRZ;
 #endif
 };
+
+#if defined(WIN32) && !defined(C_SDL2)
+extern "C" unsigned int SDL1_hax_inhibit_WM_PAINT;
+#endif
 
 extern Bitu frames;
 extern SDL_Block sdl;
