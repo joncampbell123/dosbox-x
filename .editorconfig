@@ -3,15 +3,10 @@
 # top-most EditorConfig file
 root = true
 
-[*]
-end_of_line = lf
-insert_final_newline = true
-
 [*.{c,cpp,h}]
+end_of_line = lf
 indent_style = space
 indent_size = 4
-#tab_width = 4 #not necessary
-#set to latin1, utf-8, utf-8-bom, utf-16be or utf-16le to control the character set.
 charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
