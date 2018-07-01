@@ -87,8 +87,14 @@ void MAPPER_UpdateJoysticks(void);
 #endif
 
 /* Mouse related */
+//! \brief Toggles mouse capture.
 void GFX_CaptureMouse(void);
+//! \brief Sets mouse capture state manually.
+void GFX_CaptureMouse(bool capture);
+//! \brief Notifies mouse capture according current state.
 void CaptureMouseNotify();
+//! \brief Notifies mouse capture according specific state.
+void CaptureMouseNotify(bool capture);
 extern bool mouselocked; //true if mouse is confined to window
 
 #endif

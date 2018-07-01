@@ -2325,7 +2325,11 @@ void GFX_ReleaseMouse(void) {
 }
 
 void GFX_CaptureMouse(void) {
-    sdl.mouse.locked=!sdl.mouse.locked;
+    GFX_CaptureMouse(!sdl.mouse.locked);
+}
+
+void GFX_CaptureMouse(bool capture) {
+    sdl.mouse.locked=capture;
     if (sdl.mouse.locked) {
 #if defined(C_SDL2)
         SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -2383,9 +2387,8 @@ void GFX_UpdateSDLCaptureState(void) {
 }
 
 #if WIN32
-void CaptureMouseNotifyWin32()
+void CaptureMouseNotifyWin32(bool lck)
 {
-    const auto lck = sdl.mouse.locked;
     switch (sdl.mouse.autolock_feedback)
     {
     case AUTOLOCK_FEEDBACK_NONE: break;
@@ -2428,8 +2431,13 @@ void CaptureMouseNotifyWin32()
 
 void CaptureMouseNotify()
 {
+    CaptureMouseNotify(sdl.mouse.locked);
+}
+
+void CaptureMouseNotify(bool capture)
+{
 #if WIN32
-    CaptureMouseNotifyWin32();
+    CaptureMouseNotifyWin32(capture);
 #else
     // TODO
 #endif
