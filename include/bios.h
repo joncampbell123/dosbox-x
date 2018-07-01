@@ -189,14 +189,23 @@ void INT10_ReloadRomFonts();
 void BIOS_SetComPorts (Bit16u baseaddr[]);
 void BIOS_SetLPTPort (Bitu port, Bit16u baseaddr);
 
-// \brief Synchronizes emulator num lock state with host.
-void BIOS_SynchronizeNumLock();
+//! \brief Get the state of the num lock key.
+void BIOS_GetNumLock(bool &act, bool &led);
 
-// \brief Synchronizes emulator caps lock state with host.
-void BIOS_SynchronizeCapsLock();
+//! \brief Get the state of the caps lock key.
+void BIOS_GetCapsLock(bool &act, bool &led);
 
-// \brief Synchronizes emulator scroll lock state with host.
-void BIOS_SynchronizeScrollLock();
+//! \brief Get the state of the scroll lock key.
+void BIOS_GetScrollLock(bool &act, bool &led);
+
+//! \brief Set the state of the num lock key.
+void BIOS_SetNumLock(bool enabled);
+
+//! \brief Set the state of the caps lock key.
+void BIOS_SetCapsLock(bool enabled);
+
+//! \brief Set the state of the scroll lock key.
+void BIOS_SetScrollLock(bool enabled);
 
 bool ISAPNP_RegisterSysDev(const unsigned char *raw,Bitu len,bool already=false);
 

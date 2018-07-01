@@ -7377,61 +7377,108 @@ void ROMBIOS_Init() {
     }
 }
 
-//! \brief Updates the state of a lockable key.
-void UpdateKeyWithLed(int nVirtKey, int flagAct, int flagLed);
-
-void BIOS_SynchronizeNumLock()
+void BIOS_GetLockableKey(const int fAct, const int fLed, bool& bAct, bool& bLed)
 {
-#if defined(WIN32)
-	UpdateKeyWithLed(VK_NUMLOCK, BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE, BIOS_KEYBOARD_LEDS_NUM_LOCK);
+    const auto flags1 = BIOS_KEYBOARD_FLAGS1;
+    const auto flags2 = BIOS_KEYBOARD_LEDS;
+    const auto flag1  = mem_readb(flags1);
+    const auto flag2  = mem_readb(flags2);
+    bAct              = flag1 & fAct;
+    bLed              = flag2 & fLed;
+}
+
+void BIOS_SetLockableKey(const bool enabled, const int flagAct, const int flagLed)
+{
+    const auto flags1 = BIOS_KEYBOARD_FLAGS1;
+    const auto flags2 = BIOS_KEYBOARD_LEDS;
+
+    auto flag1 = mem_readb(flags1);
+    auto flag2 = mem_readb(flags2);
+
+    if(enabled)
+    {
+        flag1 |= flagAct;
+        flag2 |= flagLed;
+    }
+    else
+    {
+        flag1 &= ~flagAct;
+        flag2 &= ~flagLed;
+    }
+
+    mem_writeb(flags1, flag1);
+    mem_writeb(flags2, flag2);
+}
+
+void BIOS_GetNumLock(bool& act, bool& led)
+{
+    BIOS_GetLockableKey(BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE, BIOS_KEYBOARD_LEDS_NUM_LOCK, act, led);
+}
+
+void BIOS_GetCapsLock(bool& act, bool& led)
+{
+    BIOS_GetLockableKey(BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_CAPS_LOCK, act, led);
+}
+
+void BIOS_GetScrollLock(bool& act, bool& led)
+{
+    BIOS_GetLockableKey(BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_SCROLL_LOCK, act, led);
+}
+
+#if WIN32
+
+void SendInput(INPUT input)
+{
+    if(SendInput(1, &input, sizeof(INPUT)))
+        return;
+
+    LOG(LOG_KEYBOARD, LOG_ERROR)("Error during SendInput: %d", GetLastError());
+}
+
+void SyncKeyWin32(const bool enabled, const int vk)
+{
+    const auto ks = GetKeyState(vk);
+    const auto on = ks & 0x0001;
+
+    if(on == enabled)
+        return;
+
+    INPUT input;
+    input.type   = INPUT_KEYBOARD;
+    input.ki.wVk = vk;
+
+    input.ki.dwFlags = 0;
+    SendInput(input);
+
+    input.ki.dwFlags = KEYEVENTF_KEYUP;
+    SendInput(input);
+}
+
+#endif
+
+void BIOS_SetNumLock(const bool enabled)
+{
+    BIOS_SetLockableKey(enabled, BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE, BIOS_KEYBOARD_LEDS_NUM_LOCK);
+
+#if WIN32
+    SyncKeyWin32(enabled, VK_NUMLOCK);
 #endif
 }
 
-void BIOS_SynchronizeCapsLock()
+void BIOS_SetCapsLock(const bool enabled)
 {
-#if defined(WIN32)
-	UpdateKeyWithLed(VK_CAPITAL, BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_CAPS_LOCK);
+    BIOS_SetLockableKey(enabled, BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_CAPS_LOCK);
+
+#if WIN32
+    SyncKeyWin32(enabled, VK_CAPITAL);
 #endif
 }
 
-void BIOS_SynchronizeScrollLock()
+void BIOS_SetScrollLock(const bool enabled)
 {
-#if defined(WIN32)
-	UpdateKeyWithLed(VK_SCROLL, BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_SCROLL_LOCK);
-#endif
-}
+    BIOS_SetLockableKey(enabled, BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_SCROLL_LOCK);
 
-void UpdateKeyWithLed(int nVirtKey, int flagAct, int flagLed)
-{
-#if defined(WIN32)
-
-	const auto state = GetKeyState(nVirtKey);
-
-	const auto flags1 = BIOS_KEYBOARD_FLAGS1;
-	const auto flags2 = BIOS_KEYBOARD_LEDS;
-
-	auto flag1 = mem_readb(flags1);
-	auto flag2 = mem_readb(flags2);
-
-	if (state & 1)
-	{
-		flag1 |= flagAct;
-		flag2 |= flagLed;
-	}
-	else
-	{
-		flag1 &= ~flagAct;
-		flag2 &= ~flagLed;
-	}
-
-	mem_writeb(flags1, flag1);
-	mem_writeb(flags2, flag2);
-
-#else
-
-    (void)nVirtKey;
-    (void)flagAct;
-    (void)flagLed;
-
+#if WIN32
+    SyncKeyWin32(enabled, VK_SCROLL);
 #endif
 }
