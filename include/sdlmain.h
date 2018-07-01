@@ -142,13 +142,6 @@ struct SDL_Block {
 #if C_SURFACE_POSTRENDER_ASPECT
     std::vector<uint32_t> aspectbuf;
 #endif
-#if C_XBRZ
-    struct {
-        std::vector<uint32_t> renderbuf;
-        std::vector<uint32_t> pixbuf;
-        int scale_factor;
-    } xBRZ;
-#endif
 };
 
 #if defined(WIN32) && !defined(C_SDL2)

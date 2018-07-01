@@ -189,7 +189,7 @@ retry:
 #if C_XBRZ
         /* scale to fit the window.
          * fit by aspect ratio if asked to do so. */
-        if (render.xBRZ.enable)
+        if (sdl_xbrz.enable)
         {
             final_height = (int)max(consider_height, userResizeWindowHeight) - (int)menuheight - ((int)sdl.overscan_width * 2);
             final_width = (int)max(consider_width, userResizeWindowWidth) - ((int)sdl.overscan_width * 2);
@@ -334,11 +334,11 @@ retry:
         }
 
 #if C_XBRZ
-        if (render.xBRZ.enable)
+        if (sdl_xbrz.enable)
         {
-            bool old_scale_on = render.xBRZ.scale_on;
+            bool old_scale_on = sdl_xbrz.scale_on;
             xBRZ_SetScaleParameters(sdl.draw.width, sdl.draw.height, sdl.clip.w, sdl.clip.h);
-            if (render.xBRZ.scale_on != old_scale_on) {
+            if (sdl_xbrz.scale_on != old_scale_on) {
                 // when we are scaling, we ask render code not to do any aspect correction
                 // when we are not scaling, render code is allowed to do aspect correction at will
                 // due to this, at each scale mode change we need to schedule resize again because window size could change

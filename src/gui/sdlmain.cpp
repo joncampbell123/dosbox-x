@@ -2677,9 +2677,10 @@ static void GUI_StartUp() {
     if(sdl.desktop.fullscreen) GFX_CaptureMouse();
 
 #if C_XBRZ
-    // initialize xBRZ parameters from render section early
-    RENDER_xBRZ_Early_Init();
-    if (render.xBRZ.enable) {
+    // initialize xBRZ parameters and check output type for compatibility
+    xBRZ_Initialize();
+
+    if (sdl_xbrz.enable) {
         // xBRZ requirements
         if ((output != "surface") && (output != "direct3d") && (output != "opengl") && (output != "openglhq") && (output != "openglnb"))
             output = "surface";
