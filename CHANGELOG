@@ -1,4 +1,9 @@
 TODO add version
+  - New xBRZ scaler (with bilinear mode) (Alexat)
+  - Fixed aspect ratio correction to use the ratio given by VGA emulation
+    instead of assuming 4:3
+  - output=surface and xBRZ now permit filling the window just like
+    output=opengl and output=direct3d
   - Added critical section around Windows SDL 1.x resize code to solve
     the remaining 0.5% probability that resizing the window causes move
     and resize to stop working in Windows 10.
