@@ -3,7 +3,7 @@
 #ifndef DOSBOX_OUTPUT_DIRECT3D_H
 #define DOSBOX_OUTPUT_DIRECT3D_H
 
-#if (HAVE_D3D9_H) && defined(WIN32)
+#if C_DIRECT3D
 
 #include "direct3d/direct3d.h"
 extern CDirect3D* d3d;
@@ -12,7 +12,11 @@ extern CDirect3D* d3d;
 void OUTPUT_DIRECT3D_Initialize();
 void OUTPUT_DIRECT3D_Select();
 Bitu OUTPUT_DIRECT3D_GetBestMode(Bitu flags);
+Bitu OUTPUT_DIRECT3D_SetSize();
+bool OUTPUT_DIRECT3D_StartUpdate(Bit8u* &pixels, Bitu &pitch);
+void OUTPUT_DIRECT3D_EndUpdate(const Bit16u *changedLines);
+void OUTPUT_DIRECT3D_Shutdown();
 
-#endif /*(HAVE_D3D9_H) && defined(WIN32)*/
+#endif /*C_DIRECT3D*/
 
 #endif /*DOSBOX_OUTPUT_DIRECT3D_H*/

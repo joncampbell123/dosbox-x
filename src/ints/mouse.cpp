@@ -556,6 +556,14 @@ void DrawCursor() {
 
 void pc98_mouse_movement_apply(int x,int y);
 
+#if !defined(C_SDL2)
+bool GFX_IsFullscreen(void);
+#else
+static inline bool GFX_IsFullscreen(void) {
+    return false;
+}
+#endif
+
 /* FIXME: Re-test this code */
 void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
     extern bool Mouse_Vertical;
@@ -625,10 +633,10 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
         emu = true;
         break;
     case MOUSE_EMULATION_INTEGRATION:
-        emu = !user_cursor_locked;
+        emu = !user_cursor_locked && !GFX_IsFullscreen();
         break;
     case MOUSE_EMULATION_LOCKED:
-        emu = user_cursor_locked;
+        emu = user_cursor_locked && !GFX_IsFullscreen();
         break;
     case MOUSE_EMULATION_NEVER:
     default:

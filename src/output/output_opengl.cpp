@@ -23,14 +23,6 @@ int Voodoo_OGL_GetWidth();
 int Voodoo_OGL_GetHeight();
 bool Voodoo_OGL_Active();
 
-/* [TODO] This needs to be moved to some general library and converted to template because it has unsigned version in vga.cpp */
-static inline int int_log2(int val) 
-{
-    int log = 0;
-    while ((val >>= 1) != 0) log++;
-    return log;
-}
-
 static SDL_Surface* SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
 {
     Bit16u fixedWidth;
@@ -197,6 +189,10 @@ void OUTPUT_OPENGL_Select()
 {
     sdl.desktop.want_type = SCREEN_OPENGL;
     render.aspectOffload = true;
+
+#if defined(WIN32) && !defined(C_SDL2)
+    SDL1_hax_inhibit_WM_PAINT = 0;
+#endif
 }
 
 Bitu OUTPUT_OPENGL_GetBestMode(Bitu flags)
@@ -253,10 +249,10 @@ Bitu OUTPUT_OPENGL_SetSize()
     Bitu adjTexHeight = sdl.draw.height;
 #if C_XBRZ
     // we do the same as with Direct3D: precreate pixel buffer adjusted for xBRZ
-    if (render.xBRZ.enable && xBRZ_SetScaleParameters(adjTexWidth, adjTexHeight, sdl.clip.w, sdl.clip.h))
+    if (sdl_xbrz.enable && xBRZ_SetScaleParameters(adjTexWidth, adjTexHeight, sdl.clip.w, sdl.clip.h))
     {
-        adjTexWidth = adjTexWidth * sdl.xBRZ.scale_factor;
-        adjTexHeight = adjTexHeight * sdl.xBRZ.scale_factor;
+        adjTexWidth = adjTexWidth * sdl_xbrz.scale_factor;
+        adjTexHeight = adjTexHeight * sdl_xbrz.scale_factor;
     }
 #endif
 
@@ -442,10 +438,10 @@ Bitu OUTPUT_OPENGL_SetSize()
 bool OUTPUT_OPENGL_StartUpdate(Bit8u* &pixels, Bitu &pitch)
 {
 #if C_XBRZ    
-    if (render.xBRZ.enable && render.xBRZ.scale_on) 
+    if (sdl_xbrz.enable && sdl_xbrz.scale_on) 
     {
-        sdl.xBRZ.renderbuf.resize(sdl.draw.width * sdl.draw.height);
-        pixels = sdl.xBRZ.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl.xBRZ.renderbuf[0]);
+        sdl_xbrz.renderbuf.resize(sdl.draw.width * sdl.draw.height);
+        pixels = sdl_xbrz.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl_xbrz.renderbuf[0]);
         pitch = sdl.draw.width * sizeof(uint32_t);
     }
     else
@@ -488,16 +484,16 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
         }
 
 #if C_XBRZ
-        if (render.xBRZ.enable && render.xBRZ.scale_on)
+        if (sdl_xbrz.enable && sdl_xbrz.scale_on)
         {
             // OpenGL pixel buffer is precreated for direct xBRZ output, while xBRZ render buffer is used for rendering
             const int srcWidth = sdl.draw.width;
             const int srcHeight = sdl.draw.height;
 
-            if (sdl.xBRZ.renderbuf.size() == srcWidth * srcHeight && srcWidth > 0 && srcHeight > 0)
+            if (sdl_xbrz.renderbuf.size() == srcWidth * srcHeight && srcWidth > 0 && srcHeight > 0)
             {
                 // we assume render buffer is *not* scaled!
-                const uint32_t* renderBuf = &sdl.xBRZ.renderbuf[0]; // help VS compiler a little + support capture by value
+                const uint32_t* renderBuf = &sdl_xbrz.renderbuf[0]; // help VS compiler a little + support capture by value
                 uint32_t* trgTex;
                 if (sdl_opengl.pixel_buffer_object) 
                 {
@@ -510,7 +506,7 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
                 }
 
                 if (trgTex)
-                    xBRZ_Render(renderBuf, trgTex, changedLines, srcWidth, srcHeight, sdl.xBRZ.scale_factor);
+                    xBRZ_Render(renderBuf, trgTex, changedLines, srcWidth, srcHeight, sdl_xbrz.scale_factor);
             }
 
             // and here we go repeating some stuff with xBRZ related modifications
@@ -519,7 +515,7 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
                 glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
                 glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                    sdl.draw.width * sdl.xBRZ.scale_factor, sdl.draw.height * sdl.xBRZ.scale_factor, GL_BGRA_EXT,
+                    sdl.draw.width * sdl_xbrz.scale_factor, sdl.draw.height * sdl_xbrz.scale_factor, GL_BGRA_EXT,
                     GL_UNSIGNED_INT_8_8_8_8_REV, 0);
                 glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
             }
@@ -527,7 +523,7 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
             {
                 glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
                 glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                    sdl.draw.width * sdl.xBRZ.scale_factor, sdl.draw.height * sdl.xBRZ.scale_factor, GL_BGRA_EXT,
+                    sdl.draw.width * sdl_xbrz.scale_factor, sdl.draw.height * sdl_xbrz.scale_factor, GL_BGRA_EXT,
 #if defined (MACOSX)
                     // needed for proper looking graphics on macOS 10.12, 10.13
                     GL_UNSIGNED_INT_8_8_8_8,
@@ -625,6 +621,11 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
 
         if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
     }
+}
+
+void OUTPUT_OPENGL_Shutdown()
+{
+    // nothing to shutdown (yet?)
 }
 
 #endif

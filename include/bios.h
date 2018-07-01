@@ -123,6 +123,14 @@
 #define BIOS_KEYBOARD_FLAGS3_ID_READ_IN_PROCESS	(1 << 7)
 
 #define BIOS_KEYBOARD_LEDS              0x497
+#define BIOS_KEYBOARD_LEDS_SCROLL_LOCK    (1 << 0)
+#define BIOS_KEYBOARD_LEDS_NUM_LOCK       (1 << 1)
+#define BIOS_KEYBOARD_LEDS_CAPS_LOCK      (1 << 2)
+#define BIOS_KEYBOARD_LEDS_CIRCUS         (1 << 3)
+#define BIOS_KEYBOARD_LEDS_ACK            (1 << 4)
+#define BIOS_KEYBOARD_LEDS_RESEND         (1 << 5)
+#define BIOS_KEYBOARD_LEDS_MODE           (1 << 6)
+#define BIOS_KEYBOARD_LEDS_TRANSMIT_ERROR (1 << 7)
 
 #define BIOS_WAIT_FLAG_POINTER          0x498
 #define BIOS_WAIT_FLAG_COUNT	        0x49c		
@@ -183,6 +191,12 @@ void BIOS_SetLPTPort (Bitu port, Bit16u baseaddr);
 
 // \brief Synchronizes emulator num lock state with host.
 void BIOS_SynchronizeNumLock();
+
+// \brief Synchronizes emulator caps lock state with host.
+void BIOS_SynchronizeCapsLock();
+
+// \brief Synchronizes emulator scroll lock state with host.
+void BIOS_SynchronizeScrollLock();
 
 bool ISAPNP_RegisterSysDev(const unsigned char *raw,Bitu len,bool already=false);
 
