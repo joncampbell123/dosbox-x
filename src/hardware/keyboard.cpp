@@ -142,6 +142,9 @@ static struct {
 bool keyboard_startup_num_lock;
 bool keyboard_startup_caps_lock;
 bool keyboard_startup_scroll_lock;
+bool keyboard_host_num_lock;
+bool keyboard_host_caps_lock;
+bool keyboard_host_scroll_lock;
 
 uint8_t Mouse_GetButtonState(void);
 
@@ -2385,9 +2388,9 @@ void KEYBOARD_OnReset(Section *sec) {
     KEYBOARD_Reset();
     AUX_Reset();
 
-    BIOS_SetNumLock(keyboard_startup_num_lock);
-    BIOS_SetCapsLock(keyboard_startup_caps_lock);
-    BIOS_SetScrollLock(keyboard_startup_scroll_lock);
+    keyboard_host_num_lock    = BIOS_SetNumLock(keyboard_startup_num_lock);
+    keyboard_host_caps_lock   = BIOS_SetCapsLock(keyboard_startup_caps_lock);
+    keyboard_host_scroll_lock = BIOS_SetScrollLock(keyboard_startup_scroll_lock);
 }
 
 void KEYBOARD_Init() {

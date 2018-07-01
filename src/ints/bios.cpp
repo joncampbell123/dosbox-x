@@ -7435,13 +7435,13 @@ void SendInput(INPUT input)
     LOG(LOG_KEYBOARD, LOG_ERROR)("Error during SendInput: %d", GetLastError());
 }
 
-void SyncKeyWin32(const bool enabled, const int vk)
+bool SyncKeyWin32(const bool enabled, const int vk)
 {
     const auto ks = GetKeyState(vk);
     const auto on = ks & 0x0001;
 
     if(on == enabled)
-        return;
+        return on;
 
     INPUT input;
     input.type   = INPUT_KEYBOARD;
@@ -7452,33 +7452,41 @@ void SyncKeyWin32(const bool enabled, const int vk)
 
     input.ki.dwFlags = KEYEVENTF_KEYUP;
     SendInput(input);
+
+    return ks;
 }
 
 #endif
 
-void BIOS_SetNumLock(const bool enabled)
+bool BIOS_SetNumLock(const bool enabled)
 {
     BIOS_SetLockableKey(enabled, BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE, BIOS_KEYBOARD_LEDS_NUM_LOCK);
 
 #if WIN32
-    SyncKeyWin32(enabled, VK_NUMLOCK);
+    return SyncKeyWin32(enabled, VK_NUMLOCK);
+#else
+    return false;
 #endif
 }
 
-void BIOS_SetCapsLock(const bool enabled)
+bool BIOS_SetCapsLock(const bool enabled)
 {
     BIOS_SetLockableKey(enabled, BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_CAPS_LOCK);
 
 #if WIN32
-    SyncKeyWin32(enabled, VK_CAPITAL);
+    return SyncKeyWin32(enabled, VK_CAPITAL);
+#else
+    return false;
 #endif
 }
 
-void BIOS_SetScrollLock(const bool enabled)
+bool BIOS_SetScrollLock(const bool enabled)
 {
     BIOS_SetLockableKey(enabled, BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_SCROLL_LOCK);
 
 #if WIN32
-    SyncKeyWin32(enabled, VK_SCROLL);
+    return SyncKeyWin32(enabled, VK_SCROLL);
+#else
+    return false;
 #endif
 }
