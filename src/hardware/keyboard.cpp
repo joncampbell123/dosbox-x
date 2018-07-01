@@ -138,6 +138,10 @@ static struct {
     bool rightctrl_pressed;
 } keyb;
 
+bool keyboard_startup_num_lock;
+bool keyboard_startup_caps_lock;
+bool keyboard_startup_scroll_lock;
+
 uint8_t Mouse_GetButtonState(void);
 
 uint32_t Keyb_ig_status() {
@@ -2357,6 +2361,10 @@ void KEYBOARD_OnReset(Section *sec) {
             LOG(LOG_KEYBOARD,LOG_ERROR)("Assuming PS/2 intellimouse, I don't know what '%s' is",sbtype);
         }
     }
+
+    keyboard_startup_num_lock = section->Get_bool("startup_num_lock");
+    keyboard_startup_caps_lock = section->Get_bool("startup_caps_lock");
+    keyboard_startup_scroll_lock = section->Get_bool("startup_scroll_lock");
 
     if (IS_PC98_ARCH) {
         KEYBOARD_OnEnterPC98(NULL);
