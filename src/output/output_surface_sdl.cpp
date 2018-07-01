@@ -130,7 +130,7 @@ retry:
 #if C_XBRZ
             /* scale to fit the window.
              * fit by aspect ratio if asked to do so. */
-            if (render.xBRZ.enable)
+            if (sdl_xbrz.enable)
             {
                 sdl.clip.x = sdl.clip.y = 0;
                 sdl.clip.w = sdl.desktop.full.width;
