@@ -143,9 +143,9 @@ static void RENDER_StartLineHandler(const void * s) {
 #if defined(__SSE__)
         if (sse2_available) {
 #if defined (_MSC_VER)
-#define SIZEOF_INT_P sizeof(*src)
+#define MY_SIZEOF_INT_P sizeof(*src)
 #endif
-            static const Bitu simd_inc = 16/SIZEOF_INT_P;
+            static const Bitu simd_inc = 16/MY_SIZEOF_INT_P;
             while (count >= (Bits)simd_inc) {
                 __m128i v = _mm_loadu_si128((const __m128i*)src);
                 __m128i c = _mm_loadu_si128((const __m128i*)cache);
