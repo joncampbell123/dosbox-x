@@ -7378,24 +7378,24 @@ void ROMBIOS_Init() {
 }
 
 //! \brief Updates the state of a lockable key.
-void UpdateLockedKey(int nVirtKey, int flagAct, int flagLed);
+void UpdateKeyWithLed(int nVirtKey, int flagAct, int flagLed);
 
 void BIOS_SynchronizeNumLock()
 {
-	UpdateLockedKey(VK_NUMLOCK, BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE, BIOS_KEYBOARD_LEDS_NUM_LOCK);
+	UpdateKeyWithLed(VK_NUMLOCK, BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE, BIOS_KEYBOARD_LEDS_NUM_LOCK);
 }
 
 void BIOS_SynchronizeCapsLock()
 {
-	UpdateLockedKey(VK_CAPITAL, BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_CAPS_LOCK);
+	UpdateKeyWithLed(VK_CAPITAL, BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_CAPS_LOCK);
 }
 
 void BIOS_SynchronizeScrollLock()
 {
-	UpdateLockedKey(VK_SCROLL, BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_SCROLL_LOCK);
+	UpdateKeyWithLed(VK_SCROLL, BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_SCROLL_LOCK);
 }
 
-void UpdateLockedKey(int nVirtKey, int flagAct, int flagLed)
+void UpdateKeyWithLed(int nVirtKey, int flagAct, int flagLed)
 {
 #if defined(WIN32)
 
