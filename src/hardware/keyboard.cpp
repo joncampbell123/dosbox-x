@@ -30,6 +30,7 @@
 #include "timer.h"
 #include <math.h>
 #include "8255.h"
+#include "bios.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -2383,6 +2384,10 @@ void KEYBOARD_OnReset(Section *sec) {
     write_p61(0,0,0);
     KEYBOARD_Reset();
     AUX_Reset();
+
+    BIOS_SetNumLock(keyboard_startup_num_lock);
+    BIOS_SetCapsLock(keyboard_startup_caps_lock);
+    BIOS_SetScrollLock(keyboard_startup_scroll_lock);
 }
 
 void KEYBOARD_Init() {
