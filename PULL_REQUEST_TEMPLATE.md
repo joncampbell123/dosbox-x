@@ -3,12 +3,12 @@
 _Summary of changes brought by this PR._
 
 
-**Does this PR addresses some issue(s) ?**
+**Does this PR address some issue(s) ?**
 
 _Add the issue(s) fixed, e.g. ```#1234```_
 
 
-**Does this PR introduces new feature(s) ?**
+**Does this PR introduce new feature(s) ?**
 
 _Describe the feature(s) introduced._
 
