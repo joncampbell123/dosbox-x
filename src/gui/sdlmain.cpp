@@ -3620,14 +3620,6 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "ResetSize", &item);
     item->set_text("Reset window size");
 #endif
-    /* Get Keyboard state of numlock and capslock */
-#if defined(C_SDL2)
-    SDL_Keymod keystate = SDL_GetModState();
-#else
-    SDLMod keystate = SDL_GetModState();
-#endif
-    if(keystate&KMOD_NUM) startup_state_numlock = true;
-    if(keystate&KMOD_CAPS) startup_state_capslock = true;
 
     UpdateWindowDimensions();
 }
@@ -6309,19 +6301,12 @@ void SetNumLock(void) {
 #endif
 }
 
-#ifdef WIN32
-bool numlock_stat=false;
-bool capslock_stat=false;
-bool scrlock_stat=false;
-#endif
-
 void CheckNumLockState(void) {
 #ifdef WIN32
     BYTE keyState[256];
 
     GetKeyboardState((LPBYTE)(&keyState));
 	if (keyState[VK_NUMLOCK] & 1) {
-		numlock_stat = true;
 		startup_state_numlock = true;
 	}
 #endif
@@ -6333,7 +6318,6 @@ void CheckCapsLockState(void) {
 
     GetKeyboardState((LPBYTE)(&keyState));
 	if (keyState[VK_CAPITAL] & 1) {
-		capslock_stat = true;
 		startup_state_capslock = true;
 	}
 #endif
@@ -6345,7 +6329,6 @@ void CheckScrollLockState(void) {
 
     GetKeyboardState((LPBYTE)(&keyState));
 	if (keyState[VK_SCROLL] & 1) {
-		scrlock_stat = true;
 		startup_state_scrlock = true;
 	}
 #endif
