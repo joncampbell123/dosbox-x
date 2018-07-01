@@ -7382,17 +7382,23 @@ void UpdateLockedKey(int nVirtKey, int flagAct, int flagLed);
 
 void BIOS_SynchronizeNumLock()
 {
+#if defined(WIN32)
 	UpdateLockedKey(VK_NUMLOCK, BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE, BIOS_KEYBOARD_LEDS_NUM_LOCK);
+#endif
 }
 
 void BIOS_SynchronizeCapsLock()
 {
+#if defined(WIN32)
 	UpdateLockedKey(VK_CAPITAL, BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_CAPS_LOCK);
+#endif
 }
 
 void BIOS_SynchronizeScrollLock()
 {
+#if defined(WIN32)
 	UpdateLockedKey(VK_SCROLL, BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_SCROLL_LOCK);
+#endif
 }
 
 void UpdateLockedKey(int nVirtKey, int flagAct, int flagLed)
