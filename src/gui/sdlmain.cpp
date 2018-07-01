@@ -370,6 +370,7 @@ bool                        fullscreen_switch = true;
 bool                        dos_kernel_disabled = true;
 bool                        startup_state_numlock = false; // Global for keyboard initialisation
 bool                        startup_state_capslock = false; // Global for keyboard initialisation
+bool                        startup_state_scrlock = false; // Global for keyboard initialisation
 
 #if defined(WIN32) && !defined(C_SDL2)
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
@@ -1690,9 +1691,9 @@ void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as
     (void)led_state;//POSSIBLY UNUSED
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) /* Microsoft Windows */
     if (exthook_enabled) { // ONLY if ext hook is enabled, else we risk infinite loops with keyboard events
-        WinSetKeyToggleState(VK_NUMLOCK, !!(led_state & 2));
-        WinSetKeyToggleState(VK_SCROLL, !!(led_state & 1));
-        WinSetKeyToggleState(VK_CAPITAL, !!(led_state & 4));
+        //WinSetKeyToggleState(VK_NUMLOCK, !!(led_state & 2));
+        //WinSetKeyToggleState(VK_SCROLL, !!(led_state & 1));
+        //WinSetKeyToggleState(VK_CAPITAL, !!(led_state & 4));
     }
 #endif
 }
@@ -1741,9 +1742,9 @@ void DoExtendedKeyboardHook(bool enable) {
         if (exthook_winhook) {
             if (enable_hook_lock_toggle_keys) {
                 // restore state
-                WinSetKeyToggleState(VK_NUMLOCK, on_capture_num_lock_was_on);
-                WinSetKeyToggleState(VK_SCROLL, on_capture_scroll_lock_was_on);
-                WinSetKeyToggleState(VK_CAPITAL, on_capture_caps_lock_was_on);
+                //WinSetKeyToggleState(VK_NUMLOCK, on_capture_num_lock_was_on);
+                //WinSetKeyToggleState(VK_SCROLL, on_capture_scroll_lock_was_on);
+                //WinSetKeyToggleState(VK_CAPITAL, on_capture_caps_lock_was_on);
             }
 
             {
@@ -2806,14 +2807,6 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "ResetSize", &item);
     item->set_text("Reset window size");
 #endif
-    /* Get Keyboard state of numlock and capslock */
-#if defined(C_SDL2)
-    SDL_Keymod keystate = SDL_GetModState();
-#else
-    SDLMod keystate = SDL_GetModState();
-#endif
-    if(keystate&KMOD_NUM) startup_state_numlock = true;
-    if(keystate&KMOD_CAPS) startup_state_capslock = true;
 
     UpdateWindowDimensions();
 }
@@ -2828,6 +2821,11 @@ void Mouse_AutoLock(bool enable) {
         SDL_ShowCursor(enable?SDL_DISABLE:SDL_ENABLE);
         sdl.mouse.requestlock=false;
     }
+}
+
+bool Mouse_IsLocked()
+{
+	return sdl.mouse.locked;
 }
 
 static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
@@ -3174,17 +3172,23 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     if (mouse_notify_mode != 0)
     {
         /* for mouse integration driver */
-        xrel              = yrel = x = y = 0.0f;
+        if (!sdl.mouse.locked)
+            xrel = yrel = x = y = 0.0f;
+
         emu               = sdl.mouse.locked;
         const auto isdown = Mouse_GetButtonState() != 0;
-        SDL_ShowCursor((isdown || inside) ? SDL_DISABLE : SDL_ENABLE);
+
+        if (!sdl.mouse.locked && !sdl.desktop.fullscreen)
+            SDL_ShowCursor((isdown || inside) ? SDL_DISABLE : SDL_ENABLE);
         /* TODO: If guest has not read mouse cursor position within 250ms show cursor again */
     }
     else if (!user_cursor_locked)
     {
         bool MOUSE_IsHidden();
         /* Show only when DOS app is not using mouse */
-        SDL_ShowCursor((!inside || (MOUSE_IsHidden() && !mouse_notify_mode)) ? SDL_ENABLE : SDL_DISABLE);
+
+        if (!sdl.mouse.locked && !sdl.desktop.fullscreen)
+            SDL_ShowCursor((!inside || MOUSE_IsHidden()) ? SDL_ENABLE : SDL_DISABLE);
     }
     Mouse_CursorMoved(xrel, yrel, x, y, emu);
 }
@@ -4612,6 +4616,8 @@ void GFX_Events() {
                     SetPriority(sdl.priority.focus);
                     CPU_Disable_SkipAutoAdjust();
 					BIOS_SynchronizeNumLock();
+					BIOS_SynchronizeCapsLock();
+					BIOS_SynchronizeScrollLock();
 				} else {
                     if (sdl.mouse.locked)
                     {
@@ -5415,18 +5421,35 @@ void SetNumLock(void) {
 #endif
 }
 
-#ifdef WIN32
-bool numlock_stat=false;
-#endif
-
 void CheckNumLockState(void) {
 #ifdef WIN32
     BYTE keyState[256];
 
     GetKeyboardState((LPBYTE)(&keyState));
 	if (keyState[VK_NUMLOCK] & 1) {
-		numlock_stat = true;
 		startup_state_numlock = true;
+	}
+#endif
+}
+
+void CheckCapsLockState(void) {
+#ifdef WIN32
+    BYTE keyState[256];
+
+    GetKeyboardState((LPBYTE)(&keyState));
+	if (keyState[VK_CAPITAL] & 1) {
+		startup_state_capslock = true;
+	}
+#endif
+}
+
+void CheckScrollLockState(void) {
+#ifdef WIN32
+    BYTE keyState[256];
+
+    GetKeyboardState((LPBYTE)(&keyState));
+	if (keyState[VK_SCROLL] & 1) {
+		startup_state_scrlock = true;
 	}
 #endif
 }
@@ -6601,6 +6624,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* -- Init the configuration system and add default values */
         CheckNumLockState();
+        CheckCapsLockState();
+        CheckScrollLockState();
 
         /* -- setup the config sections for config parsing */
         LOG::SetupConfigSection();

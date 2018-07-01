@@ -126,6 +126,40 @@ retry:
             sdl.surface = SDL_SetVideoMode(sdl.desktop.full.width, sdl.desktop.full.height, bpp, wflags);
             sdl.deferred_resize = false;
             sdl.must_redraw_all = true;
+
+#if C_XBRZ
+            /* scale to fit the window.
+             * fit by aspect ratio if asked to do so. */
+            if (render.xBRZ.enable)
+            {
+                sdl.clip.x = sdl.clip.y = 0;
+                sdl.clip.w = sdl.desktop.full.width;
+                sdl.clip.h = sdl.desktop.full.height;
+
+                if (render.aspect) {
+                    int ax,ay;
+                    int sh = sdl.desktop.full.height;
+                    int sw = (int)floor(sdl.desktop.full.height * sdl.srcAspect.xToY);
+
+                    if (sw > sdl.desktop.full.width) {
+                        sh = (sh * sdl.desktop.full.width) / sw;
+                        sw = sdl.desktop.full.width;
+                    }
+
+                    ax = (sdl.desktop.full.width - sw) / 2;
+                    ay = (sdl.desktop.full.height - sh) / 2;
+                    if (ax < 0) ax = 0;
+                    if (ay < 0) ay = 0;
+                    sdl.clip.x = ax;
+                    sdl.clip.y = ay;
+                    sdl.clip.w = sw;
+                    sdl.clip.h = sh;
+
+                    assert((sdl.clip.x+sdl.clip.w) <= sdl.desktop.full.width);
+                    assert((sdl.clip.y+sdl.clip.h) <= sdl.desktop.full.height);
+                }
+            }
+#endif 
         }
         else
         {

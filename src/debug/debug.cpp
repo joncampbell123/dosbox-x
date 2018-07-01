@@ -2612,8 +2612,10 @@ static void LogMCBS(void)
 	LOG(LOG_MISC,LOG_ERROR)("Conventional memory:");
 	LogMCBChain(dos.firstMCB);
 
-	LOG(LOG_MISC,LOG_ERROR)("Upper memory:");
-	LogMCBChain(dos_infoblock.GetStartOfUMBChain());
+    if (dos_infoblock.GetStartOfUMBChain() != 0xFFFF) {
+        LOG(LOG_MISC,LOG_ERROR)("Upper memory:");
+        LogMCBChain(dos_infoblock.GetStartOfUMBChain());
+    }
 }
 
 static void LogGDT(void)
