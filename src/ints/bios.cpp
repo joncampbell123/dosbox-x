@@ -7427,5 +7427,11 @@ void UpdateLockedKey(int nVirtKey, int flagAct, int flagLed)
 	mem_writeb(flags1, flag1);
 	mem_writeb(flags2, flag2);
 
+#else
+
+    (void)nVirtKey;
+    (void)flagAct;
+    (void)flagLed;
+
 #endif
 }
