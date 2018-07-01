@@ -142,9 +142,7 @@ static void RENDER_StartLineHandler(const void * s) {
         Bits count = (Bits)render.src.start;
 #if defined(__SSE__)
         if (sse2_available) {
-#if defined (_MSC_VER)
 #define MY_SIZEOF_INT_P sizeof(*src)
-#endif
             static const Bitu simd_inc = 16/MY_SIZEOF_INT_P;
             while (count >= (Bits)simd_inc) {
                 __m128i v = _mm_loadu_si128((const __m128i*)src);
@@ -154,6 +152,7 @@ static void RENDER_StartLineHandler(const void * s) {
                     goto cacheMiss;
                 count-=(Bits)simd_inc; src+=simd_inc; cache+=simd_inc;
             }
+#undef MY_SIZEOF_INT_P
         }
         else
 #endif
