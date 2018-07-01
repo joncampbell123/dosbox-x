@@ -127,6 +127,11 @@ static void RENDER_EmptyLineHandler(const void * src) {
 /*HACK*/
 #if defined(__SSE__) && defined(_M_AMD64)
 # define sse2_available (1) /* SSE2 is always available on x86_64 */
+#else
+# ifdef __SSE__
+extern bool				sse1_available;
+extern bool				sse2_available;
+# endif
 #endif
 /*END HACK*/
 
