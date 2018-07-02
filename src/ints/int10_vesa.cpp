@@ -180,6 +180,11 @@ Bit8u VESA_GetSVGAModeInformation(Bit16u mode,Bit16u seg,Bit16u off) {
 			/* ignore */
 			i++;
 		}
+        /* ignore deleted modes */
+        else if (ModeList_VGA[i].type == M_ERROR) {
+            /* ignore */
+            i++;
+        }
 		else if (mode==ModeList_VGA[i].mode)
 			goto foundit;
 		else
