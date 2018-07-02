@@ -1824,6 +1824,8 @@ Bitu VideoModeMemSize(Bitu mode) {
 	return 0;
 }
 
+Bitu INT10_WriteVESAModeList(Bitu max_modes);
+
 /* ====================== VESAMOED.COM ====================== */
 class VESAMOED : public Program {
 public:
@@ -1971,6 +1973,7 @@ public:
                 WriteOut("Mode 0x%x already deleted\n",ModeList_VGA[array_i].mode);
 
             ModeList_VGA[array_i].type = M_ERROR;
+            INT10_WriteVESAModeList(int10.rom.vesa_alloc_modes);
             return;
         }
 
@@ -2026,11 +2029,13 @@ public:
 
             ModeList_VGA[array_i].twidth = ModeList_VGA[array_i].swidth / ModeList_VGA[array_i].cwidth;
             ModeList_VGA[array_i].theight = ModeList_VGA[array_i].sheight / ModeList_VGA[array_i].cheight;
+            INT10_WriteVESAModeList(int10.rom.vesa_alloc_modes);
         }
 
         if (newmode >= 0x40) {
             WriteOut("Mode 0x%x moved to mode 0x%x\n",(unsigned int)ModeList_VGA[array_i].mode,(unsigned int)newmode);
             ModeList_VGA[array_i].mode = (Bitu)newmode;
+            INT10_WriteVESAModeList(int10.rom.vesa_alloc_modes);
         }
     }
     void doHelp(void) {

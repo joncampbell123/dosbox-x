@@ -138,6 +138,7 @@ typedef struct {
 		Bit16u pmode_interface_start;
 		Bit16u pmode_interface_window;
 		Bit16u pmode_interface_palette;
+        Bit16u vesa_alloc_modes;
 		Bit16u used;
 	} rom;
 	Bit16u vesa_setmode;
