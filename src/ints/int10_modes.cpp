@@ -2002,7 +2002,7 @@ public:
             if (ch == 8 || ch == 14 || ch == 16)
                 ModeList_VGA[array_i].cheight = (Bitu)ch;
 
-            ModeList_VGA[array_i].twidth = ModeList_VGA[array_i].swidth / 8u;
+            ModeList_VGA[array_i].twidth = ModeList_VGA[array_i].swidth / ModeList_VGA[array_i].cwidth;
             ModeList_VGA[array_i].theight = ModeList_VGA[array_i].sheight / ModeList_VGA[array_i].cheight;
         }
 
