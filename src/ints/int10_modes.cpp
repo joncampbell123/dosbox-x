@@ -26,6 +26,7 @@
 #include "mouse.h"
 #include "vga.h"
 #include "bios.h"
+#include "programs.h"
 
 #define SEQ_REGS 0x05
 #define GFX_REGS 0x09
@@ -520,6 +521,11 @@ static bool SetCurMode(VideoModeBlock modeblock[],Bit16u mode) {
 			/* ignore */
 			i++;
 		}
+        /* ignore deleted modes */
+        else if (modeblock[i].type == M_ERROR) {
+            /* ignore */
+            i++;
+        }
 		else {
 			if ((!int10.vesa_oldvbe) || (ModeList_VGA[i].mode<0x120)) {
 				CurMode=&modeblock[i];
@@ -1810,3 +1816,175 @@ Bitu VideoModeMemSize(Bitu mode) {
 	// Return 0 for all other types, those always fit in memory
 	return 0;
 }
+
+/* ====================== VESAMOED.COM ====================== */
+class VESAMOED : public Program {
+public:
+	void Run(void) {
+        size_t array_i = 0;
+        std::string arg,tmp;
+		bool got_opt=false;
+        int mode = -1;
+        int fmt = -1;
+        int w = -1,h = -1;
+        int ch = -1;
+        int newmode = -1;
+        bool doDelete = false;
+        bool modefind = false;
+		
+        cmd->BeginOpt();
+        while (cmd->GetOpt(/*&*/arg)) {
+			got_opt=true;
+            if (arg == "?" || arg == "help") {
+                doHelp();
+                break;
+            }
+            else if (arg == "mode") {
+                cmd->NextOptArgv(/*&*/tmp);
+
+                if (tmp == "find") {
+                    modefind = true;
+                }
+                else if (isdigit(tmp[0])) {
+                    mode = strtoul(tmp.c_str(),NULL,0);
+                }
+                else {
+                    WriteOut("Unknown mode '%s'\n",tmp.c_str());
+                    return;
+                }
+            }
+            else if (arg == "fmt") {
+                cmd->NextOptArgv(/*&*/tmp);
+
+                     if (tmp == "LIN4")
+                    fmt = M_LIN4;
+                else if (tmp == "LIN8")
+                    fmt = M_LIN8;
+                else if (tmp == "LIN15")
+                    fmt = M_LIN15;
+                else if (tmp == "LIN16")
+                    fmt = M_LIN16;
+                else if (tmp == "LIN24")
+                    fmt = M_LIN24;
+                else if (tmp == "LIN32")
+                    fmt = M_LIN32;
+                else if (tmp == "TEXT")
+                    fmt = M_TEXT;
+                else {
+                    WriteOut("Unknown format '%s'\n",tmp.c_str());
+                    return;
+                }
+            }
+            else if (arg == "w") {
+                cmd->NextOptArgv(/*&*/tmp);
+                w = strtoul(tmp.c_str(),NULL,0);
+            }
+            else if (arg == "h") {
+                cmd->NextOptArgv(/*&*/tmp);
+                h = strtoul(tmp.c_str(),NULL,0);
+            }
+            else if (arg == "ch") {
+                cmd->NextOptArgv(/*&*/tmp);
+                ch = strtoul(tmp.c_str(),NULL,0);
+            }
+            else if (arg == "newmode") {
+                cmd->NextOptArgv(/*&*/tmp);
+
+                if (isdigit(tmp[0])) {
+                    newmode = strtoul(tmp.c_str(),NULL,0);
+                }
+                else {
+                    WriteOut("Unknown newmode '%s'\n",tmp.c_str());
+                    return;
+                }
+            }
+            else if (arg == "delete") {
+                doDelete = true;
+            }
+            else {
+                WriteOut("Unknown switch %s",arg.c_str());
+                break;
+            }
+        }
+        cmd->EndOpt();
+		if(!got_opt) {
+            doHelp();
+            return;
+        }
+
+        if (modefind) {
+            if (w < 0 && h < 0 && fmt < 0)
+                return;
+
+            while (ModeList_VGA[array_i].mode != 0xFFFF) {
+                bool match = true;
+
+                     if (w > 0 && (Bitu)w != ModeList_VGA[array_i].swidth)
+                    match = false;
+                else if (h > 0 && (Bitu)h != ModeList_VGA[array_i].sheight)
+                    match = false;
+                else if (fmt >= 0 && (Bitu)fmt != ModeList_VGA[array_i].type)
+                    match = false;
+
+                if (!match)
+                    array_i++;
+                else
+                    break;
+            }
+        }
+        else {
+            while (ModeList_VGA[array_i].mode != 0xFFFF) {
+                if (ModeList_VGA[array_i].mode == (Bitu)mode)
+                    break;
+
+                array_i++;
+            }
+        }
+
+        if (ModeList_VGA[array_i].mode == 0xFFFF) {
+            WriteOut("Mode not found\n");
+            return;
+        }
+
+        if (doDelete) {
+            ModeList_VGA[array_i].type = M_ERROR;
+            return;
+        }
+
+        if (newmode >= 0x40)
+            ModeList_VGA[array_i].mode = (Bitu)newmode;
+
+        if (!modefind) {
+            if (w > 0) ModeList_VGA[array_i].swidth = (Bitu)w;
+            if (h > 0) ModeList_VGA[array_i].sheight = (Bitu)h;
+            if (fmt >= 0) ModeList_VGA[array_i].type = (VGAModes)fmt;
+            if (ch == 8 || ch == 14 || ch == 16) ModeList_VGA[array_i].cheight = (Bitu)ch;
+
+            ModeList_VGA[array_i].twidth = ModeList_VGA[array_i].swidth / 8u;
+            ModeList_VGA[array_i].theight = ModeList_VGA[array_i].sheight / ModeList_VGA[array_i].cheight;
+        }
+    }
+    void doHelp(void) {
+        WriteOut("VESAMOED VESA BIOS mode editor utility\n");
+        WriteOut("\n");
+        WriteOut("NOTE: Due to architectual limitations of VBE emulation,\n");
+        WriteOut("      Adding new modes is not allowed.\n");
+        WriteOut("\n");
+        WriteOut("  -mode <x>               VBE video mode to edit.\n");
+        WriteOut("                            Specify video mode in decimal or hexadecimal,\n");
+        WriteOut("                            or specify 'find' to match by fmt, width, height.\n");
+        WriteOut("  -fmt <x>                Change pixel format, or mode to find.\n");
+        WriteOut("                            LIN4, LIN8, LIN15, LIN16,\n");
+        WriteOut("                            LIN24, LIN32, TEXT\n");
+        WriteOut("  -w <x>                  Change width (in pixels), or mode to find.\n");
+        WriteOut("  -h <x>                  Change height (in pixels), or mode to find.\n");
+        WriteOut("  -ch <x>                 Change char height (in pixels), or mode to find.\n");
+        WriteOut("  -newmode <x>            Change video mode number\n");
+        WriteOut("  -delete                 Delete video mode\n");
+    }
+};
+
+void VESAMOED_ProgramStart(Program * * make) {
+	*make=new VESAMOED;
+}
+

@@ -3987,6 +3987,7 @@ static void MORE_ProgramStart(Program * * make) {
 void REDOS_ProgramStart(Program * * make);
 void A20GATE_ProgramStart(Program * * make);
 void PC98UTIL_ProgramStart(Program * * make);
+void VESAMOED_ProgramStart(Program * * make);
 
 class NMITEST : public Program {
 public:
@@ -4506,6 +4507,9 @@ void DOS_SetupPrograms(void) {
 #endif
     PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
     PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart);
+
+    if (IS_VGA_ARCH && svgaCard != SVGA_None)
+        PROGRAMS_MakeFile("VESAMOED.COM",VESAMOED_ProgramStart);
 
     if (IS_PC98_ARCH)
         PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart);

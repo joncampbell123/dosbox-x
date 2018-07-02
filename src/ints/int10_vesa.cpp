@@ -190,6 +190,9 @@ foundit:
 	if ((int10.vesa_oldvbe) && (ModeList_VGA[i].mode>=0x120)) return 0x01;
 	VideoModeBlock * mblock=&ModeList_VGA[i];
 
+    /* do not return information on deleted modes */
+    if (mblock->type == M_ERROR) return 0x01;
+
 	bool allow_res = allow_vesa_lowres_modes ||
 		(ModeList_VGA[i].swidth >= 640 && ModeList_VGA[i].sheight >= 400);
 
