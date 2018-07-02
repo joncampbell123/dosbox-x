@@ -514,8 +514,9 @@ static bool SetCurMode(VideoModeBlock modeblock[],Bit16u mode) {
 	while (modeblock[i].mode!=0xffff) {
 		if (modeblock[i].mode!=mode)
 			i++;
-		/* Hack for VBE 1.2 modes and 24/32bpp ambiguity */
+		/* Hack for VBE 1.2 modes and 24/32bpp ambiguity UNLESS the user changed the mode */
 		else if (modeblock[i].mode >= 0x100 && modeblock[i].mode <= 0x11F &&
+            !(modeblock[i].special & _USER_MODIFIED) &&
 			((modeblock[i].type == M_LIN32 && !vesa12_modes_32bpp) ||
 			(modeblock[i].type == M_LIN24 && vesa12_modes_32bpp))) {
 			/* ignore */
@@ -1773,6 +1774,7 @@ Bitu VideoModeMemSize(Bitu mode) {
 		if (modelist[i].mode==mode) {
 			/* Hack for VBE 1.2 modes and 24/32bpp ambiguity */
 			if (modelist[i].mode >= 0x100 && modelist[i].mode <= 0x11F &&
+                !(modelist[i].special & _USER_MODIFIED) &&
 				((modelist[i].type == M_LIN32 && !vesa12_modes_32bpp) ||
 				 (modelist[i].type == M_LIN24 && vesa12_modes_32bpp))) {
 				/* ignore */
@@ -1963,6 +1965,9 @@ public:
 
         if (!modefind && (w > 0 || h > 0 || fmt >= 0 || ch > 0)) {
             WriteOut("Changing mode 0x%x parameters\n",(unsigned int)ModeList_VGA[array_i].mode);
+
+            ModeList_VGA[array_i].special |= _USER_MODIFIED;
+
             if (fmt >= 0) {
                 ModeList_VGA[array_i].type = (VGAModes)fmt;
                 /* will require reprogramming width in some cases! */
