@@ -388,10 +388,10 @@ static Bitu IRQ1_Handler(void) {
 
 #ifdef CAN_USE_LOCK
     case 0x3a:flags2 |=BIOS_KEYBOARD_FLAGS2_CAPS_LOCK_PRESSED;break;//CAPSLOCK
-    case 0xba:flags1 ^=BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;flags2 &=~BIOS_KEYBOARD_FLAGS2_CAPS_LOCK_PRESSED;leds ^=0x04;break;
+    case 0xba:flags1 ^=BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;flags2 &=~BIOS_KEYBOARD_FLAGS2_CAPS_LOCK_PRESSED;leds ^=BIOS_KEYBOARD_LEDS_CAPS_LOCK;break;
 #else
-    case 0x3a:flags2 |=BIOS_KEYBOARD_FLAGS2_CAPS_LOCK_PRESSED;flags1 |=BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;leds |=0x04;break; //SDL gives only the state instead of the toggle                   /* Caps Lock */
-    case 0xba:flags1 &=~BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;leds &=~0x04;break;
+    case 0x3a:flags2 |=BIOS_KEYBOARD_FLAGS2_CAPS_LOCK_PRESSED;flags1 |=BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;leds |=BIOS_KEYBOARD_LEDS_CAPS_LOCK;break; //SDL gives only the state instead of the toggle                   /* Caps Lock */
+    case 0xba:flags1 &=~BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;leds &=~BIOS_KEYBOARD_LEDS_CAPS_LOCK;break;
 #endif
     case 0x45:
         /* if it has E1 prefix or is Ctrl-NumLock on non-enhanced keyboard => Pause */
@@ -425,12 +425,12 @@ static Bitu IRQ1_Handler(void) {
         } else {
 #ifdef CAN_USE_LOCK
             flags1^=BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE;
-            leds^=0x02;
+            leds^=BIOS_KEYBOARD_LEDS_NUM_LOCK;
             flags2&=~BIOS_KEYBOARD_FLAGS2_NUM_LOCK_PRESSED;
 #else
             /* Num Lock released */
             flags1 &=~BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE;
-            leds &=~0x02;
+            leds &=~BIOS_KEYBOARD_LEDS_NUM_LOCK;
 #endif
         }
         break;
@@ -454,7 +454,7 @@ static Bitu IRQ1_Handler(void) {
         if((flags3&BIOS_KEYBOARD_FLAGS3_HIDDEN_E0) || (!(flags3&BIOS_KEYBOARD_FLAGS3_ENHANCED_KEYBOARD) && (flags1&BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED))) {                /* Ctrl-Break released? */
             /* nothing to do */
         } else {
-            flags1 ^=BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE;flags2 &=~BIOS_KEYBOARD_FLAGS2_SCROLL_LOCK_PRESSED;leds ^=0x01;break;     /* Scroll Lock released */
+            flags1 ^=BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE;flags2 &=~BIOS_KEYBOARD_FLAGS2_SCROLL_LOCK_PRESSED;leds ^=BIOS_KEYBOARD_LEDS_SCROLL_LOCK;break;     /* Scroll Lock released */
         }
     case 0xd2: /* NUMPAD insert, ironically, regular one is handled by 0x52 */
 		if (flags3 & BIOS_KEYBOARD_FLAGS3_HIDDEN_E0 || !(flags1 & BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE))
