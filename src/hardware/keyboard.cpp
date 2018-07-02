@@ -2393,10 +2393,10 @@ void KEYBOARD_OnReset(Section *sec) {
     KEYBOARD_Reset();
     AUX_Reset();
 
-    // set internal keys, save host
-    keyboard_ext_num_lock    = SetIntKeyState(LOCKABLE_KEY::NumLock, keyboard_startup_num_lock);
-    keyboard_ext_caps_lock   = SetIntKeyState(LOCKABLE_KEY::CapsLock, keyboard_startup_caps_lock);
-    keyboard_ext_scroll_lock = SetIntKeyState(LOCKABLE_KEY::ScrollLock, keyboard_startup_scroll_lock);
+    // set and save host keys
+    keyboard_ext_num_lock    = SetExtKeyState(LOCKABLE_KEY::NumLock, keyboard_startup_num_lock);
+    keyboard_ext_caps_lock   = SetExtKeyState(LOCKABLE_KEY::CapsLock, keyboard_startup_caps_lock);
+    keyboard_ext_scroll_lock = SetExtKeyState(LOCKABLE_KEY::ScrollLock, keyboard_startup_scroll_lock);
 }
 
 void KEYBOARD_Init() {

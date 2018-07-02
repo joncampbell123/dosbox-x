@@ -1405,17 +1405,29 @@ static void InitBiosSegment(void) {
     Bit8u flag1 = 0;
     Bit8u leds = 16; /* Ack received */
 
-#if 0 /*SDL_VERSION_ATLEAST(1, 2, 14)*/
-//Nothing, mapper handles all.
-#else
-    //if (startup_state_capslock) { flag1|=BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_CAPS_LOCK;}
-    //if (startup_state_numlock)  { flag1|=BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_NUM_LOCK;}
-    //if (startup_state_scrlock)  { flag1|=BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_SCROLL_LOCK;}
-#endif
+    extern bool keyboard_startup_num_lock;
+    extern bool keyboard_startup_caps_lock;
+    extern bool keyboard_startup_scroll_lock;
+
+    if(keyboard_startup_num_lock)
+    {
+        flag1 |= BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE;
+        leds |= BIOS_KEYBOARD_LEDS_NUM_LOCK;
+    }
+    if(keyboard_startup_caps_lock)
+    {
+        flag1 |= BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;
+        leds |= BIOS_KEYBOARD_LEDS_CAPS_LOCK;
+    }
+    if(keyboard_startup_scroll_lock)
+    {
+        flag1 |= BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE;
+        leds |= BIOS_KEYBOARD_LEDS_SCROLL_LOCK;
+    }
 
     mem_writeb(BIOS_KEYBOARD_FLAGS1,flag1);
     mem_writeb(BIOS_KEYBOARD_FLAGS2,0);
-    mem_writeb(BIOS_KEYBOARD_FLAGS3,16); /* Enhanced keyboard installed */  
+    mem_writeb(BIOS_KEYBOARD_FLAGS3,BIOS_KEYBOARD_FLAGS3_ENHANCED_KEYBOARD);
     mem_writeb(BIOS_KEYBOARD_TOKEN,0);
     mem_writeb(BIOS_KEYBOARD_LEDS,leds);
 }
