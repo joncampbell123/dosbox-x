@@ -5282,6 +5282,14 @@ void GFX_EventsMouse()
 #endif
 }
 
+bool keyboard_int_num_lock;
+bool keyboard_int_caps_lock;
+bool keyboard_int_scroll_lock;
+bool keyboard_ext_num_lock;
+bool keyboard_ext_caps_lock;
+bool keyboard_ext_scroll_lock;
+bool keyboard_guard;
+
 void GFX_Events() {
     CheckMapperKeyboardLayout();
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */

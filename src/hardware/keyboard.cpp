@@ -1635,7 +1635,14 @@ void KEYBOARD_AddKey(KBD_KEYS keytype,bool pressed) {
         }
     };
 }
-    
+
+bool keyboard_startup_num_lock;
+bool keyboard_startup_caps_lock;
+bool keyboard_startup_scroll_lock;
+extern bool keyboard_ext_num_lock;
+extern bool keyboard_ext_caps_lock;
+extern bool keyboard_ext_scroll_lock;
+ 
 static void KEYBOARD_ShutDown(Section * sec) {
     (void)sec;//UNUSED
     TIMER_DelTickHandler(&KEYBOARD_TickHandler);

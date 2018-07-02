@@ -19,16 +19,6 @@
 #ifndef DOSBOX_KEYBOARD_H
 #define DOSBOX_KEYBOARD_H
 
-static bool keyboard_startup_num_lock;
-static bool keyboard_startup_caps_lock;
-static bool keyboard_startup_scroll_lock;
-static bool keyboard_int_num_lock;
-static bool keyboard_int_caps_lock;
-static bool keyboard_int_scroll_lock;
-static bool keyboard_ext_num_lock;
-static bool keyboard_ext_caps_lock;
-static bool keyboard_ext_scroll_lock;
-static bool keyboard_guard;
 
 enum KBD_KEYS {
 	KBD_NONE,
