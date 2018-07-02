@@ -2024,6 +2024,7 @@ public:
 
                     w += aln / 2;
                     w -= w % aln;
+                    if (w == 0) w = aln;
                 }
 
                 ModeList_VGA[array_i].swidth = (Bitu)w;
@@ -2063,6 +2064,38 @@ public:
             WriteOut("Mode 0x%x moved to mode 0x%x\n",(unsigned int)ModeList_VGA[array_i].mode,(unsigned int)newmode);
             ModeList_VGA[array_i].mode = (Bitu)newmode;
             INT10_WriteVESAModeList(int10.rom.vesa_alloc_modes);
+        }
+
+        /* if the new mode cannot fit in available memory, then mark as disabled */
+        {
+            unsigned int pitch = 0;
+
+            switch (ModeList_VGA[array_i].type) {
+                case M_LIN4:
+                    pitch = (ModeList_VGA[array_i].swidth / 8) * 4; /* not totally accurate but close enough */
+                    break;
+                case M_LIN8:
+                    pitch = (ModeList_VGA[array_i].swidth / 8);
+                    break;
+                case M_LIN15:
+                case M_LIN16:
+                    pitch = (ModeList_VGA[array_i].swidth / 8) * 2;
+                    break;
+                case M_LIN24:
+                    pitch = (ModeList_VGA[array_i].swidth / 8) * 3;
+                    break;
+                case M_LIN32:
+                    pitch = (ModeList_VGA[array_i].swidth / 8) * 4;
+                    break;
+                default:
+                    break;
+            }
+
+            if ((pitch * ModeList_VGA[array_i].sheight) > vga.mem.memsize) {
+                WriteOut("WARNING: Mode %u x %u as specified exceeds video memory, disabling\n",
+                        ModeList_VGA[array_i].swidth,
+                        ModeList_VGA[array_i].sheight);
+            }
         }
     }
     void doHelp(void) {
