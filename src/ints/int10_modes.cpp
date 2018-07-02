@@ -1916,6 +1916,11 @@ public:
             else if (arg == "delete") {
                 doDelete = true;
             }
+            // NTS: If you're wondering why we support disabled modes (modes listed but cannot be set),
+            //      there are plenty of scenarios on actual hardware where this occurs. Laptops, for
+            //      example, have SVGA chipsets that can go up to 1600x1200, but the BIOS will disable
+            //      anything above the native resolution of the laptop's LCD display unless an
+            //      external monitor is attached at boot-up.
             else if (arg == "disable") {
                 enable = 0;
             }
