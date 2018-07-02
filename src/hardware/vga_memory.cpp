@@ -178,7 +178,7 @@ static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsi
      * Then when addressing VRAM A0 is replaced by a "higher order bit", which is
      * probably A14 or A16 depending on Extended Memory bit 1 in Sequencer register 04h memory mode */
     if ((vga.gfx.miscellaneous&2) && !non_cga_ignore_oddeven_engage) {/* Odd/Even enable */
-        const PhysPt mask = (1u << hobit_n) - 2u;
+        const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 2u;
         const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
         /* 1 << 14 =     0x4000
          * 1 << 14 - 1 = 0x3FFF
@@ -187,7 +187,7 @@ static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsi
         planeaddr = (planeaddr & mask & (vga.mem.memmask >> 2u)) + hobit;
     }
     else {
-        const PhysPt mask = (1u << hobit_n) - 1u;
+        const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 1u;
         planeaddr &= mask & (vga.mem.memmask >> 2u);
     }
 
@@ -236,7 +236,7 @@ template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysP
      * Then when addressing VRAM A0 is replaced by a "higher order bit", which is
      * probably A14 or A16 depending on Extended Memory bit 1 in Sequencer register 04h memory mode */
     if ((vga.gfx.miscellaneous&2) && !non_cga_ignore_oddeven_engage) {/* Odd/Even enable */
-        const PhysPt mask = (1u << hobit_n) - 2u;
+        const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 2u;
         const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
         /* 1 << 14 =     0x4000
          * 1 << 14 - 1 = 0x3FFF
@@ -245,7 +245,7 @@ template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysP
         planeaddr = (planeaddr & mask & (vga.mem.memmask >> 2u)) + hobit;
     }
     else {
-        const PhysPt mask = (1u << hobit_n) - 1u;
+        const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 1u;
         planeaddr &= mask & (vga.mem.memmask >> 2u);
     }
 

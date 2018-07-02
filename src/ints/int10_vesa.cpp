@@ -169,17 +169,20 @@ Bit8u VESA_GetSVGAModeInformation(Bit16u mode,Bit16u seg,Bit16u off) {
 
 	mode&=0x3fff;	// vbe2 compatible, ignore lfb and keep screen content bits
 	if (mode<0x100) return 0x01;
-	if (svga.accepts_mode) {
-		if (!svga.accepts_mode(mode)) return 0x01;
-	}
 	while (ModeList_VGA[i].mode!=0xffff) {
 		/* Hack for VBE 1.2 modes and 24/32bpp ambiguity */
 		if (ModeList_VGA[i].mode >= 0x100 && ModeList_VGA[i].mode <= 0x11F &&
+            !(ModeList_VGA[i].special & _USER_MODIFIED) &&
 			((ModeList_VGA[i].type == M_LIN32 && !vesa12_modes_32bpp) ||
 			 (ModeList_VGA[i].type == M_LIN24 && vesa12_modes_32bpp))) {
 			/* ignore */
 			i++;
 		}
+        /* ignore deleted modes */
+        else if (ModeList_VGA[i].type == M_ERROR) {
+            /* ignore */
+            i++;
+        }
 		else if (mode==ModeList_VGA[i].mode)
 			goto foundit;
 		else
@@ -189,6 +192,15 @@ Bit8u VESA_GetSVGAModeInformation(Bit16u mode,Bit16u seg,Bit16u off) {
 foundit:
 	if ((int10.vesa_oldvbe) && (ModeList_VGA[i].mode>=0x120)) return 0x01;
 	VideoModeBlock * mblock=&ModeList_VGA[i];
+
+    /* Don't allow querying modes the SVGA card does not accept,
+     * unless the user modified the mode. */
+    if (svga.accepts_mode && !(mblock->special & _USER_MODIFIED)) {
+		if (!svga.accepts_mode(mode)) return 0x01;
+	}
+
+    /* do not return information on deleted modes */
+    if (mblock->type == M_ERROR) return 0x01;
 
 	bool allow_res = allow_vesa_lowres_modes ||
 		(ModeList_VGA[i].swidth >= 640 && ModeList_VGA[i].sheight >= 400);
@@ -300,7 +312,7 @@ foundit:
 		pageSize &= ~0xFFFFu;
 	}
 	Bitu pages = 0;
-	if (pageSize > vga.mem.memsize) {
+	if (pageSize > vga.mem.memsize || (mblock->special & _USER_DISABLED)) {
 		// mode not supported by current hardware configuration
 		modeAttributes &= ~0x1;
 	} else if (pageSize) {
@@ -608,72 +620,104 @@ static Bitu VESA_PMSetStart(void) {
 
 extern int vesa_modelist_cap;
 
+Bitu INT10_WriteVESAModeList(Bitu max_modes) {
+    Bitu mode_wptr = int10.rom.vesa_modes;
+	Bitu i=0,modecount=0;
+
+    //TODO Maybe add normal vga modes too, but only seems to complicate things
+    while (ModeList_VGA[i].mode!=0xffff) {
+        bool canuse_mode=false;
+
+        /* Hack for VBE 1.2 modes and 24/32bpp ambiguity */
+        if (ModeList_VGA[i].mode >= 0x100 && ModeList_VGA[i].mode <= 0x11F &&
+                ((ModeList_VGA[i].type == M_LIN32 && !vesa12_modes_32bpp) ||
+                 (ModeList_VGA[i].type == M_LIN24 && vesa12_modes_32bpp))) {
+            /* ignore */
+        }
+        /* ignore deleted modes */
+        else if (ModeList_VGA[i].type == M_ERROR) {
+            /* ignore */
+        }
+        else {
+            /* If there is no "accepts mode" then accept.
+             *
+             * If the user modified the mode, then accept.
+             * If the mode exceeds video memory, then the mode will be reported as not supported by VESA BIOS functions.
+             *
+             * If the SVGA card would accept the mode (generally it's a memsize check), then accept. */
+            if (!svga.accepts_mode)
+                canuse_mode=true;
+            else if (ModeList_VGA[i].special & _USER_MODIFIED)
+                canuse_mode=true;
+            else if (svga.accepts_mode(ModeList_VGA[i].mode))
+                canuse_mode=true;
+
+            if (canuse_mode) {
+                if (ModeList_VGA[i].mode >= 0x100) {
+                    bool allow_res = allow_vesa_lowres_modes ||
+                        (ModeList_VGA[i].swidth >= 640 && ModeList_VGA[i].sheight >= 400);
+
+                    switch (ModeList_VGA[i].type) {
+                        case M_LIN32:	canuse_mode=allow_vesa_32bpp && allow_res; break;
+                        case M_LIN24:	canuse_mode=allow_vesa_24bpp && allow_res; break;
+                        case M_LIN16:	canuse_mode=allow_vesa_16bpp && allow_res; break;
+                        case M_LIN15:	canuse_mode=allow_vesa_15bpp && allow_res; break;
+                        case M_LIN8:	canuse_mode=allow_vesa_8bpp && allow_res; break;
+                        case M_LIN4:	canuse_mode=allow_vesa_4bpp; break;
+                        case M_TEXT:	canuse_mode=allow_vesa_tty; break;
+                        default:	break;
+                    }
+                }
+            }
+        }
+
+        if (canuse_mode && vesa_modelist_cap > 0 && (unsigned int)modecount >= (unsigned int)vesa_modelist_cap)
+            canuse_mode = false;
+        if (canuse_mode && (unsigned int)modecount >= (unsigned int)max_modes)
+            canuse_mode = false;
+
+        if (ModeList_VGA[i].type != M_TEXT) {
+            if (canuse_mode && vesa_mode_width_cap > 0 && (unsigned int)ModeList_VGA[i].swidth > (unsigned int)vesa_mode_width_cap)
+                canuse_mode = false;
+
+            if (canuse_mode && vesa_mode_height_cap > 0 && (unsigned int)ModeList_VGA[i].sheight > (unsigned int)vesa_mode_height_cap)
+                canuse_mode = false;
+        }
+
+        if (ModeList_VGA[i].mode>=0x100 && canuse_mode) {
+            if ((!int10.vesa_oldvbe) || (ModeList_VGA[i].mode<0x120)) {
+                phys_writew(PhysMake(0xc000,mode_wptr),ModeList_VGA[i].mode);
+                mode_wptr+=2;
+                modecount++;
+            }
+        }
+
+        i++;
+    }
+
+    assert(modecount <= int10.rom.vesa_alloc_modes); /* do not overrun the buffer */
+
+    /* after the buffer, is 0xFFFF */
+    phys_writew(PhysMake(0xc000,mode_wptr),0xFFFF);
+    mode_wptr+=2;
+
+    return modecount;
+}
+
 void INT10_SetupVESA(void) {
+	Bitu i,modecount=0;
+
 	/* BUGFIX: Generating VESA BIOS data when machine=ega or machine=vgaonly is dumb.
 	 * Stop wasting ROM space! --J.C. */
 	if (machine != MCH_VGA) return;
 	if (svgaCard == SVGA_None) return;
 
 	/* Put the mode list somewhere in memory */
-	Bitu i,modecount=0;
-	i=0;
-	int10.rom.vesa_modes=RealMake(0xc000,int10.rom.used);
-//TODO Maybe add normal vga modes too, but only seems to complicate things
-	while (ModeList_VGA[i].mode!=0xffff) {
-		bool canuse_mode=false;
-
-		/* Hack for VBE 1.2 modes and 24/32bpp ambiguity */
-		if (ModeList_VGA[i].mode >= 0x100 && ModeList_VGA[i].mode <= 0x11F &&
-			((ModeList_VGA[i].type == M_LIN32 && !vesa12_modes_32bpp) ||
-			 (ModeList_VGA[i].type == M_LIN24 && vesa12_modes_32bpp))) {
-			/* ignore */
-		}
-		else {
-			if (!svga.accepts_mode)
-				canuse_mode=true;
-			else if (svga.accepts_mode(ModeList_VGA[i].mode))
-				canuse_mode=true;
-
-			if (canuse_mode) {
-				if (ModeList_VGA[i].mode >= 0x100) {
-					bool allow_res = allow_vesa_lowres_modes ||
-						(ModeList_VGA[i].swidth >= 640 && ModeList_VGA[i].sheight >= 400);
-
-					switch (ModeList_VGA[i].type) {
-						case M_LIN32:	canuse_mode=allow_vesa_32bpp && allow_res; break;
-						case M_LIN24:	canuse_mode=allow_vesa_24bpp && allow_res; break;
-						case M_LIN16:	canuse_mode=allow_vesa_16bpp && allow_res; break;
-						case M_LIN15:	canuse_mode=allow_vesa_15bpp && allow_res; break;
-						case M_LIN8:	canuse_mode=allow_vesa_8bpp && allow_res; break;
-						case M_LIN4:	canuse_mode=allow_vesa_4bpp; break;
-						case M_TEXT:	canuse_mode=allow_vesa_tty; break;
-						default:	break;
-					}
-				}
-			}
-		}
-
-		if (canuse_mode && vesa_modelist_cap > 0 && (unsigned int)modecount >= (unsigned int)vesa_modelist_cap)
-			canuse_mode = false;
-
-		if (ModeList_VGA[i].type != M_TEXT) {
-			if (canuse_mode && vesa_mode_width_cap > 0 && (unsigned int)ModeList_VGA[i].swidth > (unsigned int)vesa_mode_width_cap)
-				canuse_mode = false;
-
-			if (canuse_mode && vesa_mode_height_cap > 0 && (unsigned int)ModeList_VGA[i].sheight > (unsigned int)vesa_mode_height_cap)
-				canuse_mode = false;
-		}
-
-		if (ModeList_VGA[i].mode>=0x100 && canuse_mode) {
-			if ((!int10.vesa_oldvbe) || (ModeList_VGA[i].mode<0x120)) {
-				phys_writew(PhysMake(0xc000,int10.rom.used),ModeList_VGA[i].mode);
-				int10.rom.used+=2;
-				modecount++;
-			}
-		}
-
-		i++;
-	}
+    int10.rom.vesa_alloc_modes = ~0;
+    int10.rom.vesa_modes = RealMake(0xc000,int10.rom.used);
+    modecount = INT10_WriteVESAModeList(0xFFFF/*max mode count*/);
+    int10.rom.vesa_alloc_modes = (Bit16u)modecount;
+    int10.rom.used += modecount * 2u;
 	phys_writew(PhysMake(0xc000,int10.rom.used),0xffff);
 	int10.rom.used+=2;
 	int10.rom.oemstring=RealMake(0xc000,int10.rom.used);
