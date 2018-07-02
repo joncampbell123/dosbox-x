@@ -139,16 +139,6 @@ static struct {
     bool rightctrl_pressed;
 } keyb;
 
-bool keyboard_startup_num_lock;
-bool keyboard_startup_caps_lock;
-bool keyboard_startup_scroll_lock;
-bool keyboard_int_num_lock;
-bool keyboard_int_caps_lock;
-bool keyboard_int_scroll_lock;
-bool keyboard_ext_num_lock;
-bool keyboard_ext_caps_lock;
-bool keyboard_ext_scroll_lock;
-
 uint8_t Mouse_GetButtonState(void);
 
 uint32_t Keyb_ig_status() {
