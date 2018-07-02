@@ -1977,6 +1977,11 @@ public:
             return;
         }
 
+        if (fmt < 0 && ModeList_VGA[array_i].type == M_ERROR) {
+            WriteOut("Mode 0x%x is still deleted. Set a format with -fmt to un-delete\n",ModeList_VGA[array_i].mode);
+            return;
+        }
+
         if (!modefind && (w > 0 || h > 0 || fmt >= 0 || ch > 0)) {
             WriteOut("Changing mode 0x%x parameters\n",(unsigned int)ModeList_VGA[array_i].mode);
 
