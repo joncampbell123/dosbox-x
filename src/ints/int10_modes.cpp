@@ -1947,16 +1947,22 @@ public:
             WriteOut("Mode not found\n");
             return;
         }
+        else if (modefind) {
+            WriteOut("Found mode 0x%x\n",(unsigned int)ModeList_VGA[array_i].mode);
+        }
 
         if (doDelete) {
+            if (ModeList_VGA[array_i].type != M_ERROR)
+                WriteOut("Mode 0x%x deleted\n",ModeList_VGA[array_i].mode);
+            else
+                WriteOut("Mode 0x%x already deleted\n",ModeList_VGA[array_i].mode);
+
             ModeList_VGA[array_i].type = M_ERROR;
             return;
         }
 
-        if (newmode >= 0x40)
-            ModeList_VGA[array_i].mode = (Bitu)newmode;
-
-        if (!modefind) {
+        if (!modefind && (w > 0 || h > 0 || fmt >= 0 || ch > 0)) {
+            WriteOut("Changing mode 0x%x parameters\n",(unsigned int)ModeList_VGA[array_i].mode);
             if (w > 0) ModeList_VGA[array_i].swidth = (Bitu)w;
             if (h > 0) ModeList_VGA[array_i].sheight = (Bitu)h;
             if (fmt >= 0) ModeList_VGA[array_i].type = (VGAModes)fmt;
@@ -1964,6 +1970,11 @@ public:
 
             ModeList_VGA[array_i].twidth = ModeList_VGA[array_i].swidth / 8u;
             ModeList_VGA[array_i].theight = ModeList_VGA[array_i].sheight / ModeList_VGA[array_i].cheight;
+        }
+
+        if (newmode >= 0x40) {
+            WriteOut("Mode 0x%x moved to mode 0x%x\n",(unsigned int)ModeList_VGA[array_i].mode,(unsigned int)newmode);
+            ModeList_VGA[array_i].mode = (Bitu)newmode;
         }
     }
     void doHelp(void) {
