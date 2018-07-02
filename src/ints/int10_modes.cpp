@@ -1974,6 +1974,17 @@ public:
                 if (w < 0) w = ModeList_VGA[array_i].swidth;
             }
             if (w > 0) {
+                /* enforce alignment to avoid problems with modesetting code */
+                {
+                    unsigned int aln = 8;
+
+                    if (ModeList_VGA[array_i].type == M_LIN4)
+                        aln = 16;
+
+                    w += aln / 2;
+                    w -= w % aln;
+                }
+
                 ModeList_VGA[array_i].swidth = (Bitu)w;
                 if (ModeList_VGA[array_i].type == M_LIN15 || ModeList_VGA[array_i].type == M_LIN16) {
                     ModeList_VGA[array_i].hdispend = (Bitu)w / 4;
