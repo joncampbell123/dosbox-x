@@ -2092,7 +2092,10 @@ public:
             }
 
             if ((pitch * ModeList_VGA[array_i].sheight) > vga.mem.memsize) {
-                WriteOut("WARNING: Mode %u x %u as specified exceeds video memory, disabling\n",
+                /* NTS: Actually we don't mark as disabled, the VESA mode query function will
+                 *      report as disabled automatically for the same check we do. This just
+                 *      lets the user know. */
+                WriteOut("WARNING: Mode %u x %u as specified exceeds video memory, will be disabled\n",
                         ModeList_VGA[array_i].swidth,
                         ModeList_VGA[array_i].sheight);
             }
