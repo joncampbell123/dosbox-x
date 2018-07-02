@@ -189,23 +189,20 @@ void INT10_ReloadRomFonts();
 void BIOS_SetComPorts (Bit16u baseaddr[]);
 void BIOS_SetLPTPort (Bitu port, Bit16u baseaddr);
 
-//! \brief Get the state of the num lock key.
-void BIOS_GetNumLock(bool &act, bool &led);
+enum class LOCKABLE_KEY
+{
+    NumLock,
+    CapsLock,
+    ScrollLock
+};
 
-//! \brief Get the state of the caps lock key.
-void BIOS_GetCapsLock(bool &act, bool &led);
+bool GetExtKeyState(LOCKABLE_KEY key);
 
-//! \brief Get the state of the scroll lock key.
-void BIOS_GetScrollLock(bool &act, bool &led);
+bool SetExtKeyState(LOCKABLE_KEY key, bool enabled);
 
-//! \brief Set the state of the num lock key.
-bool BIOS_SetNumLock(bool enabled);
+void GetIntKeyState(LOCKABLE_KEY key, bool& act, bool& led);
 
-//! \brief Set the state of the caps lock key.
-bool BIOS_SetCapsLock(bool enabled);
-
-//! \brief Set the state of the scroll lock key.
-bool BIOS_SetScrollLock(bool enabled);
+bool SetIntKeyState(LOCKABLE_KEY key, bool enabled);
 
 bool ISAPNP_RegisterSysDev(const unsigned char *raw,Bitu len,bool already=false);
 
@@ -395,4 +392,5 @@ public:
 	ISAPNP_SMALL_TAG(0xF,1), 0x00
 
 void ISA_PNP_devreg(ISAPnPDevice *x);
+Bitu IRQ1_Handler(void);
 #endif
