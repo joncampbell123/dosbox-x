@@ -5503,6 +5503,28 @@ void GFX_Events() {
         }
 #endif
         case SDL_ACTIVEEVENT:
+
+            if (event.active.gain)
+            {
+                if (event.active.state & SDL_APPINPUTFOCUS)
+                {
+                    keyboard_guard = true;
+                    keyboard_ext_num_lock    = SetIntKeyState(LOCKABLE_KEY::NumLock, keyboard_int_num_lock);
+                    keyboard_ext_caps_lock   = SetIntKeyState(LOCKABLE_KEY::CapsLock, keyboard_int_caps_lock);
+                    keyboard_ext_scroll_lock = SetIntKeyState(LOCKABLE_KEY::ScrollLock, keyboard_int_scroll_lock);
+                    keyboard_guard = false;
+                }
+            }
+            else
+            {
+                if (event.active.state & SDL_APPINPUTFOCUS)
+                {
+                    keyboard_int_num_lock    = SetExtKeyState(LOCKABLE_KEY::NumLock, keyboard_ext_num_lock);
+                    keyboard_int_caps_lock   = SetExtKeyState(LOCKABLE_KEY::CapsLock, keyboard_ext_caps_lock);
+                    keyboard_int_scroll_lock = SetExtKeyState(LOCKABLE_KEY::ScrollLock, keyboard_ext_scroll_lock);
+                }
+            }
+
             if (event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
                 if (event.active.gain) {
                     if (sdl.desktop.fullscreen && !sdl.mouse.locked)
