@@ -142,9 +142,12 @@ static struct {
 bool keyboard_startup_num_lock;
 bool keyboard_startup_caps_lock;
 bool keyboard_startup_scroll_lock;
-bool keyboard_host_num_lock;
-bool keyboard_host_caps_lock;
-bool keyboard_host_scroll_lock;
+bool keyboard_int_num_lock;
+bool keyboard_int_caps_lock;
+bool keyboard_int_scroll_lock;
+bool keyboard_ext_num_lock;
+bool keyboard_ext_caps_lock;
+bool keyboard_ext_scroll_lock;
 
 uint8_t Mouse_GetButtonState(void);
 
@@ -1646,6 +1649,11 @@ void KEYBOARD_AddKey(KBD_KEYS keytype,bool pressed) {
 static void KEYBOARD_ShutDown(Section * sec) {
     (void)sec;//UNUSED
     TIMER_DelTickHandler(&KEYBOARD_TickHandler);
+
+    // restore host keys
+    SetExtKeyState(LOCKABLE_KEY::NumLock, keyboard_ext_num_lock);
+    SetExtKeyState(LOCKABLE_KEY::CapsLock, keyboard_ext_caps_lock);
+    SetExtKeyState(LOCKABLE_KEY::ScrollLock, keyboard_ext_scroll_lock);
 }
 
 bool KEYBOARD_Report_BIOS_PS2Mouse() {
@@ -2388,9 +2396,10 @@ void KEYBOARD_OnReset(Section *sec) {
     KEYBOARD_Reset();
     AUX_Reset();
 
-    keyboard_host_num_lock    = BIOS_SetNumLock(keyboard_startup_num_lock);
-    keyboard_host_caps_lock   = BIOS_SetCapsLock(keyboard_startup_caps_lock);
-    keyboard_host_scroll_lock = BIOS_SetScrollLock(keyboard_startup_scroll_lock);
+    // set internal keys, save host
+    keyboard_ext_num_lock    = SetIntKeyState(LOCKABLE_KEY::NumLock, keyboard_startup_num_lock);
+    keyboard_ext_caps_lock   = SetIntKeyState(LOCKABLE_KEY::CapsLock, keyboard_startup_caps_lock);
+    keyboard_ext_scroll_lock = SetIntKeyState(LOCKABLE_KEY::ScrollLock, keyboard_startup_scroll_lock);
 }
 
 void KEYBOARD_Init() {
