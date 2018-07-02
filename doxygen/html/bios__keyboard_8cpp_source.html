@@ -1495,134 +1495,136 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01399"></a>01399 <span class="comment">//Keyboard initialisation. src/gui/sdlmain.cpp</span>
 <a name="l01400"></a>01400 <span class="keyword">extern</span> <span class="keywordtype">bool</span> startup_state_numlock;
 <a name="l01401"></a>01401 <span class="keyword">extern</span> <span class="keywordtype">bool</span> startup_state_capslock;
-<a name="l01402"></a>01402 
-<a name="l01403"></a>01403 <span class="keyword">static</span> <span class="keywordtype">void</span> InitBiosSegment(<span class="keywordtype">void</span>) {
-<a name="l01404"></a>01404     <span class="comment">/* Setup the variables for keyboard in the bios data segment */</span>
-<a name="l01405"></a>01405     mem_writew(BIOS_KEYBOARD_BUFFER_START,0x1e);
-<a name="l01406"></a>01406     mem_writew(BIOS_KEYBOARD_BUFFER_END,0x3e);
-<a name="l01407"></a>01407     mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,0x1e);
-<a name="l01408"></a>01408     mem_writew(BIOS_KEYBOARD_BUFFER_TAIL,0x1e);
-<a name="l01409"></a>01409     Bit8u flag1 = 0;
-<a name="l01410"></a>01410     Bit8u leds = 16; <span class="comment">/* Ack received */</span>
-<a name="l01411"></a>01411 
-<a name="l01412"></a>01412 <span class="preprocessor">#if 0 </span><span class="comment">/*SDL_VERSION_ATLEAST(1, 2, 14)*/</span>
-<a name="l01413"></a>01413 <span class="comment">//Nothing, mapper handles all.</span>
-<a name="l01414"></a>01414 <span class="preprocessor">#else</span>
-<a name="l01415"></a>01415 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (startup_state_capslock) { flag1|=0x40; leds|=0x04;}
-<a name="l01416"></a>01416     <span class="keywordflow">if</span> (startup_state_numlock)  { flag1|=0x20; leds|=0x02;}
-<a name="l01417"></a>01417 <span class="preprocessor">#endif</span>
-<a name="l01418"></a>01418 <span class="preprocessor"></span>
-<a name="l01419"></a>01419     mem_writeb(BIOS_KEYBOARD_FLAGS1,flag1);
-<a name="l01420"></a>01420     mem_writeb(BIOS_KEYBOARD_FLAGS2,0);
-<a name="l01421"></a>01421     mem_writeb(BIOS_KEYBOARD_FLAGS3,16); <span class="comment">/* Enhanced keyboard installed */</span>  
-<a name="l01422"></a>01422     mem_writeb(BIOS_KEYBOARD_TOKEN,0);
-<a name="l01423"></a>01423     mem_writeb(BIOS_KEYBOARD_LEDS,leds);
-<a name="l01424"></a>01424 }
-<a name="l01425"></a>01425 
-<a name="l01426"></a>01426 <span class="keywordtype">void</span> CALLBACK_DeAllocate(Bitu in);
+<a name="l01402"></a>01402 <span class="keyword">extern</span> <span class="keywordtype">bool</span> startup_state_scrlock;
+<a name="l01403"></a>01403 
+<a name="l01404"></a>01404 <span class="keyword">static</span> <span class="keywordtype">void</span> InitBiosSegment(<span class="keywordtype">void</span>) {
+<a name="l01405"></a>01405     <span class="comment">/* Setup the variables for keyboard in the bios data segment */</span>
+<a name="l01406"></a>01406     mem_writew(BIOS_KEYBOARD_BUFFER_START,0x1e);
+<a name="l01407"></a>01407     mem_writew(BIOS_KEYBOARD_BUFFER_END,0x3e);
+<a name="l01408"></a>01408     mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,0x1e);
+<a name="l01409"></a>01409     mem_writew(BIOS_KEYBOARD_BUFFER_TAIL,0x1e);
+<a name="l01410"></a>01410     Bit8u flag1 = 0;
+<a name="l01411"></a>01411     Bit8u leds = 16; <span class="comment">/* Ack received */</span>
+<a name="l01412"></a>01412 
+<a name="l01413"></a>01413 <span class="preprocessor">#if 0 </span><span class="comment">/*SDL_VERSION_ATLEAST(1, 2, 14)*/</span>
+<a name="l01414"></a>01414 <span class="comment">//Nothing, mapper handles all.</span>
+<a name="l01415"></a>01415 <span class="preprocessor">#else</span>
+<a name="l01416"></a>01416 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (startup_state_capslock) { flag1|=BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_CAPS_LOCK;}
+<a name="l01417"></a>01417     <span class="keywordflow">if</span> (startup_state_numlock)  { flag1|=BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_NUM_LOCK;}
+<a name="l01418"></a>01418     <span class="keywordflow">if</span> (startup_state_scrlock)  { flag1|=BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_SCROLL_LOCK;}
+<a name="l01419"></a>01419 <span class="preprocessor">#endif</span>
+<a name="l01420"></a>01420 <span class="preprocessor"></span>
+<a name="l01421"></a>01421     mem_writeb(BIOS_KEYBOARD_FLAGS1,flag1);
+<a name="l01422"></a>01422     mem_writeb(BIOS_KEYBOARD_FLAGS2,0);
+<a name="l01423"></a>01423     mem_writeb(BIOS_KEYBOARD_FLAGS3,16); <span class="comment">/* Enhanced keyboard installed */</span>  
+<a name="l01424"></a>01424     mem_writeb(BIOS_KEYBOARD_TOKEN,0);
+<a name="l01425"></a>01425     mem_writeb(BIOS_KEYBOARD_LEDS,leds);
+<a name="l01426"></a>01426 }
 <a name="l01427"></a>01427 
-<a name="l01428"></a>01428 <span class="keywordtype">void</span> BIOS_UnsetupKeyboard(<span class="keywordtype">void</span>) {
-<a name="l01429"></a>01429     <span class="keywordflow">if</span> (call_int16 != 0) {
-<a name="l01430"></a>01430         CALLBACK_DeAllocate(call_int16);
-<a name="l01431"></a>01431         RealSetVec(0x16,0);
-<a name="l01432"></a>01432         call_int16 = 0;
-<a name="l01433"></a>01433     }
-<a name="l01434"></a>01434     <span class="keywordflow">if</span> (call_irq1 != 0) {
-<a name="l01435"></a>01435         CALLBACK_DeAllocate(call_irq1);
-<a name="l01436"></a>01436         call_irq1 = 0;
-<a name="l01437"></a>01437     }
-<a name="l01438"></a>01438     <span class="keywordflow">if</span> (call_irq6 != 0) {
-<a name="l01439"></a>01439         CALLBACK_DeAllocate(call_irq6);
-<a name="l01440"></a>01440         call_irq6 = 0;
-<a name="l01441"></a>01441     }
-<a name="l01442"></a>01442     <span class="keywordflow">if</span> (irq1_ret_ctrlbreak_callback != 0) {
-<a name="l01443"></a>01443         CALLBACK_DeAllocate(irq1_ret_ctrlbreak_callback);
-<a name="l01444"></a>01444         irq1_ret_ctrlbreak_callback = 0;
-<a name="l01445"></a>01445     }
-<a name="l01446"></a>01446 }
-<a name="l01447"></a>01447 
-<a name="l01448"></a>01448 <span class="keywordtype">void</span> BIOS_SetupKeyboard(<span class="keywordtype">void</span>) {
-<a name="l01449"></a>01449     <span class="comment">/* Init the variables */</span>
-<a name="l01450"></a>01450     InitBiosSegment();
-<a name="l01451"></a>01451 
-<a name="l01452"></a>01452     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l01453"></a>01453         <span class="comment">/* HACK */</span>
-<a name="l01454"></a>01454         <span class="comment">/* Allocate/setup a callback for int 0x16 and for standard IRQ 1 handler */</span>
-<a name="l01455"></a>01455         call_int16=CALLBACK_Allocate(); 
-<a name="l01456"></a>01456         CALLBACK_Setup(call_int16,&amp;INT16_Handler,CB_INT16,<span class="stringliteral">&quot;Keyboard&quot;</span>);
-<a name="l01457"></a>01457         <span class="comment">/* DO NOT set up an INT 16h vector. This exists only for the DOS CONIO emulation. */</span>
-<a name="l01458"></a>01458     }
-<a name="l01459"></a>01459     <span class="keywordflow">else</span> {
-<a name="l01460"></a>01460         <span class="comment">/* Allocate/setup a callback for int 0x16 and for standard IRQ 1 handler */</span>
-<a name="l01461"></a>01461         call_int16=CALLBACK_Allocate(); 
-<a name="l01462"></a>01462         CALLBACK_Setup(call_int16,&amp;INT16_Handler,CB_INT16,<span class="stringliteral">&quot;Keyboard&quot;</span>);
-<a name="l01463"></a>01463         RealSetVec(0x16,CALLBACK_RealPointer(call_int16));
-<a name="l01464"></a>01464     }
-<a name="l01465"></a>01465 
-<a name="l01466"></a>01466     call_irq1=CALLBACK_Allocate();
-<a name="l01467"></a>01467     <span class="keywordflow">if</span> (machine == MCH_PCJR) { <span class="comment">/* PCjr keyboard interrupt connected to NMI */</span>
-<a name="l01468"></a>01468         <span class="comment">/* FIXME: This doesn&#39;t take INT 15h hook into consideration */</span>
-<a name="l01469"></a>01469         CALLBACK_Setup(call_irq1,&amp;PCjr_NMI_Keyboard_Handler,CB_IRET,<span class="stringliteral">&quot;PCjr NMI Keyboard&quot;</span>);
-<a name="l01470"></a>01470         RealSetVec(0x02<span class="comment">/*NMI*/</span>,CALLBACK_RealPointer(call_irq1));
-<a name="l01471"></a>01471     }
-<a name="l01472"></a>01472     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (IS_PC98_ARCH) {
-<a name="l01473"></a>01473         CALLBACK_Setup(call_irq1,&amp;IRQ1_Handler_PC98,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ1_LOCATION),<span class="stringliteral">&quot;IRQ 1 Keyboard PC-98&quot;</span>);
-<a name="l01474"></a>01474         RealSetVec(0x09<span class="comment">/*IRQ 1*/</span>,BIOS_DEFAULT_IRQ1_LOCATION);
-<a name="l01475"></a>01475     }
-<a name="l01476"></a>01476     <span class="keywordflow">else</span> {
-<a name="l01477"></a>01477         CALLBACK_Setup(call_irq1,&amp;IRQ1_Handler,CB_IRQ1,Real2Phys(BIOS_DEFAULT_IRQ1_LOCATION),<span class="stringliteral">&quot;IRQ 1 Keyboard&quot;</span>);
-<a name="l01478"></a>01478         RealSetVec(0x09<span class="comment">/*IRQ 1*/</span>,BIOS_DEFAULT_IRQ1_LOCATION);
-<a name="l01479"></a>01479         <span class="comment">// pseudocode for CB_IRQ1:</span>
-<a name="l01480"></a>01480         <span class="comment">//  push ax</span>
-<a name="l01481"></a>01481         <span class="comment">//  in al, 0x60</span>
-<a name="l01482"></a>01482         <span class="comment">//  mov ah, 0x4f</span>
-<a name="l01483"></a>01483         <span class="comment">//  stc</span>
-<a name="l01484"></a>01484         <span class="comment">//  int 15</span>
-<a name="l01485"></a>01485         <span class="comment">//  jc skip</span>
-<a name="l01486"></a>01486         <span class="comment">//  callback IRQ1_Handler</span>
-<a name="l01487"></a>01487         <span class="comment">//  label skip:</span>
-<a name="l01488"></a>01488         <span class="comment">//  cli</span>
-<a name="l01489"></a>01489         <span class="comment">//  mov al, 0x20</span>
-<a name="l01490"></a>01490         <span class="comment">//  out 0x20, al</span>
-<a name="l01491"></a>01491         <span class="comment">//  pop ax</span>
-<a name="l01492"></a>01492         <span class="comment">//  iret</span>
-<a name="l01493"></a>01493     }
-<a name="l01494"></a>01494 
-<a name="l01495"></a>01495     irq1_ret_ctrlbreak_callback=CALLBACK_Allocate();
-<a name="l01496"></a>01496     CALLBACK_Setup(irq1_ret_ctrlbreak_callback,&amp;IRQ1_CtrlBreakAfterInt1B,CB_IRQ1_BREAK,<span class="stringliteral">&quot;IRQ 1 Ctrl-Break callback&quot;</span>);
-<a name="l01497"></a>01497     <span class="comment">// pseudocode for CB_IRQ1_BREAK:</span>
-<a name="l01498"></a>01498     <span class="comment">//  int 1b</span>
-<a name="l01499"></a>01499     <span class="comment">//  cli</span>
-<a name="l01500"></a>01500     <span class="comment">//  callback IRQ1_CtrlBreakAfterInt1B</span>
-<a name="l01501"></a>01501     <span class="comment">//  mov al, 0x20</span>
-<a name="l01502"></a>01502     <span class="comment">//  out 0x20, al</span>
-<a name="l01503"></a>01503     <span class="comment">//  pop ax</span>
-<a name="l01504"></a>01504     <span class="comment">//  iret</span>
-<a name="l01505"></a>01505 
-<a name="l01506"></a>01506     <span class="keywordflow">if</span> (machine==MCH_PCJR) {
-<a name="l01507"></a>01507         call_irq6=CALLBACK_Allocate();
-<a name="l01508"></a>01508         CALLBACK_Setup(call_irq6,NULL,CB_IRQ6_PCJR,<span class="stringliteral">&quot;PCJr kb irq&quot;</span>);
-<a name="l01509"></a>01509         RealSetVec(0x0e,CALLBACK_RealPointer(call_irq6));
-<a name="l01510"></a>01510         <span class="comment">// pseudocode for CB_IRQ6_PCJR:</span>
-<a name="l01511"></a>01511         <span class="comment">//  push ax</span>
-<a name="l01512"></a>01512         <span class="comment">//  in al, 0x60</span>
-<a name="l01513"></a>01513         <span class="comment">//  cmp al, 0xe0</span>
-<a name="l01514"></a>01514         <span class="comment">//  je skip</span>
-<a name="l01515"></a>01515         <span class="comment">//  int 0x09</span>
-<a name="l01516"></a>01516         <span class="comment">//  label skip:</span>
-<a name="l01517"></a>01517         <span class="comment">//  cli</span>
-<a name="l01518"></a>01518         <span class="comment">//  mov al, 0x20</span>
-<a name="l01519"></a>01519         <span class="comment">//  out 0x20, al</span>
-<a name="l01520"></a>01520         <span class="comment">//  pop ax</span>
-<a name="l01521"></a>01521         <span class="comment">//  iret</span>
-<a name="l01522"></a>01522     }
-<a name="l01523"></a>01523 }
-<a name="l01524"></a>01524 
+<a name="l01428"></a>01428 <span class="keywordtype">void</span> CALLBACK_DeAllocate(Bitu in);
+<a name="l01429"></a>01429 
+<a name="l01430"></a>01430 <span class="keywordtype">void</span> BIOS_UnsetupKeyboard(<span class="keywordtype">void</span>) {
+<a name="l01431"></a>01431     <span class="keywordflow">if</span> (call_int16 != 0) {
+<a name="l01432"></a>01432         CALLBACK_DeAllocate(call_int16);
+<a name="l01433"></a>01433         RealSetVec(0x16,0);
+<a name="l01434"></a>01434         call_int16 = 0;
+<a name="l01435"></a>01435     }
+<a name="l01436"></a>01436     <span class="keywordflow">if</span> (call_irq1 != 0) {
+<a name="l01437"></a>01437         CALLBACK_DeAllocate(call_irq1);
+<a name="l01438"></a>01438         call_irq1 = 0;
+<a name="l01439"></a>01439     }
+<a name="l01440"></a>01440     <span class="keywordflow">if</span> (call_irq6 != 0) {
+<a name="l01441"></a>01441         CALLBACK_DeAllocate(call_irq6);
+<a name="l01442"></a>01442         call_irq6 = 0;
+<a name="l01443"></a>01443     }
+<a name="l01444"></a>01444     <span class="keywordflow">if</span> (irq1_ret_ctrlbreak_callback != 0) {
+<a name="l01445"></a>01445         CALLBACK_DeAllocate(irq1_ret_ctrlbreak_callback);
+<a name="l01446"></a>01446         irq1_ret_ctrlbreak_callback = 0;
+<a name="l01447"></a>01447     }
+<a name="l01448"></a>01448 }
+<a name="l01449"></a>01449 
+<a name="l01450"></a>01450 <span class="keywordtype">void</span> BIOS_SetupKeyboard(<span class="keywordtype">void</span>) {
+<a name="l01451"></a>01451     <span class="comment">/* Init the variables */</span>
+<a name="l01452"></a>01452     InitBiosSegment();
+<a name="l01453"></a>01453 
+<a name="l01454"></a>01454     <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l01455"></a>01455         <span class="comment">/* HACK */</span>
+<a name="l01456"></a>01456         <span class="comment">/* Allocate/setup a callback for int 0x16 and for standard IRQ 1 handler */</span>
+<a name="l01457"></a>01457         call_int16=CALLBACK_Allocate(); 
+<a name="l01458"></a>01458         CALLBACK_Setup(call_int16,&amp;INT16_Handler,CB_INT16,<span class="stringliteral">&quot;Keyboard&quot;</span>);
+<a name="l01459"></a>01459         <span class="comment">/* DO NOT set up an INT 16h vector. This exists only for the DOS CONIO emulation. */</span>
+<a name="l01460"></a>01460     }
+<a name="l01461"></a>01461     <span class="keywordflow">else</span> {
+<a name="l01462"></a>01462         <span class="comment">/* Allocate/setup a callback for int 0x16 and for standard IRQ 1 handler */</span>
+<a name="l01463"></a>01463         call_int16=CALLBACK_Allocate(); 
+<a name="l01464"></a>01464         CALLBACK_Setup(call_int16,&amp;INT16_Handler,CB_INT16,<span class="stringliteral">&quot;Keyboard&quot;</span>);
+<a name="l01465"></a>01465         RealSetVec(0x16,CALLBACK_RealPointer(call_int16));
+<a name="l01466"></a>01466     }
+<a name="l01467"></a>01467 
+<a name="l01468"></a>01468     call_irq1=CALLBACK_Allocate();
+<a name="l01469"></a>01469     <span class="keywordflow">if</span> (machine == MCH_PCJR) { <span class="comment">/* PCjr keyboard interrupt connected to NMI */</span>
+<a name="l01470"></a>01470         <span class="comment">/* FIXME: This doesn&#39;t take INT 15h hook into consideration */</span>
+<a name="l01471"></a>01471         CALLBACK_Setup(call_irq1,&amp;PCjr_NMI_Keyboard_Handler,CB_IRET,<span class="stringliteral">&quot;PCjr NMI Keyboard&quot;</span>);
+<a name="l01472"></a>01472         RealSetVec(0x02<span class="comment">/*NMI*/</span>,CALLBACK_RealPointer(call_irq1));
+<a name="l01473"></a>01473     }
+<a name="l01474"></a>01474     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (IS_PC98_ARCH) {
+<a name="l01475"></a>01475         CALLBACK_Setup(call_irq1,&amp;IRQ1_Handler_PC98,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ1_LOCATION),<span class="stringliteral">&quot;IRQ 1 Keyboard PC-98&quot;</span>);
+<a name="l01476"></a>01476         RealSetVec(0x09<span class="comment">/*IRQ 1*/</span>,BIOS_DEFAULT_IRQ1_LOCATION);
+<a name="l01477"></a>01477     }
+<a name="l01478"></a>01478     <span class="keywordflow">else</span> {
+<a name="l01479"></a>01479         CALLBACK_Setup(call_irq1,&amp;IRQ1_Handler,CB_IRQ1,Real2Phys(BIOS_DEFAULT_IRQ1_LOCATION),<span class="stringliteral">&quot;IRQ 1 Keyboard&quot;</span>);
+<a name="l01480"></a>01480         RealSetVec(0x09<span class="comment">/*IRQ 1*/</span>,BIOS_DEFAULT_IRQ1_LOCATION);
+<a name="l01481"></a>01481         <span class="comment">// pseudocode for CB_IRQ1:</span>
+<a name="l01482"></a>01482         <span class="comment">//  push ax</span>
+<a name="l01483"></a>01483         <span class="comment">//  in al, 0x60</span>
+<a name="l01484"></a>01484         <span class="comment">//  mov ah, 0x4f</span>
+<a name="l01485"></a>01485         <span class="comment">//  stc</span>
+<a name="l01486"></a>01486         <span class="comment">//  int 15</span>
+<a name="l01487"></a>01487         <span class="comment">//  jc skip</span>
+<a name="l01488"></a>01488         <span class="comment">//  callback IRQ1_Handler</span>
+<a name="l01489"></a>01489         <span class="comment">//  label skip:</span>
+<a name="l01490"></a>01490         <span class="comment">//  cli</span>
+<a name="l01491"></a>01491         <span class="comment">//  mov al, 0x20</span>
+<a name="l01492"></a>01492         <span class="comment">//  out 0x20, al</span>
+<a name="l01493"></a>01493         <span class="comment">//  pop ax</span>
+<a name="l01494"></a>01494         <span class="comment">//  iret</span>
+<a name="l01495"></a>01495     }
+<a name="l01496"></a>01496 
+<a name="l01497"></a>01497     irq1_ret_ctrlbreak_callback=CALLBACK_Allocate();
+<a name="l01498"></a>01498     CALLBACK_Setup(irq1_ret_ctrlbreak_callback,&amp;IRQ1_CtrlBreakAfterInt1B,CB_IRQ1_BREAK,<span class="stringliteral">&quot;IRQ 1 Ctrl-Break callback&quot;</span>);
+<a name="l01499"></a>01499     <span class="comment">// pseudocode for CB_IRQ1_BREAK:</span>
+<a name="l01500"></a>01500     <span class="comment">//  int 1b</span>
+<a name="l01501"></a>01501     <span class="comment">//  cli</span>
+<a name="l01502"></a>01502     <span class="comment">//  callback IRQ1_CtrlBreakAfterInt1B</span>
+<a name="l01503"></a>01503     <span class="comment">//  mov al, 0x20</span>
+<a name="l01504"></a>01504     <span class="comment">//  out 0x20, al</span>
+<a name="l01505"></a>01505     <span class="comment">//  pop ax</span>
+<a name="l01506"></a>01506     <span class="comment">//  iret</span>
+<a name="l01507"></a>01507 
+<a name="l01508"></a>01508     <span class="keywordflow">if</span> (machine==MCH_PCJR) {
+<a name="l01509"></a>01509         call_irq6=CALLBACK_Allocate();
+<a name="l01510"></a>01510         CALLBACK_Setup(call_irq6,NULL,CB_IRQ6_PCJR,<span class="stringliteral">&quot;PCJr kb irq&quot;</span>);
+<a name="l01511"></a>01511         RealSetVec(0x0e,CALLBACK_RealPointer(call_irq6));
+<a name="l01512"></a>01512         <span class="comment">// pseudocode for CB_IRQ6_PCJR:</span>
+<a name="l01513"></a>01513         <span class="comment">//  push ax</span>
+<a name="l01514"></a>01514         <span class="comment">//  in al, 0x60</span>
+<a name="l01515"></a>01515         <span class="comment">//  cmp al, 0xe0</span>
+<a name="l01516"></a>01516         <span class="comment">//  je skip</span>
+<a name="l01517"></a>01517         <span class="comment">//  int 0x09</span>
+<a name="l01518"></a>01518         <span class="comment">//  label skip:</span>
+<a name="l01519"></a>01519         <span class="comment">//  cli</span>
+<a name="l01520"></a>01520         <span class="comment">//  mov al, 0x20</span>
+<a name="l01521"></a>01521         <span class="comment">//  out 0x20, al</span>
+<a name="l01522"></a>01522         <span class="comment">//  pop ax</span>
+<a name="l01523"></a>01523         <span class="comment">//  iret</span>
+<a name="l01524"></a>01524     }
+<a name="l01525"></a>01525 }
+<a name="l01526"></a>01526 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 29 2018 08:09:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 2 2018 08:29:13 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

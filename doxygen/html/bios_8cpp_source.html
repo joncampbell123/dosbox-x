@@ -7473,29 +7473,68 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l07377"></a>07377     }
 <a name="l07378"></a>07378 }
 <a name="l07379"></a>07379 
-<a name="l07380"></a>07380 <span class="keywordtype">void</span> BIOS_SynchronizeNumLock()
-<a name="l07381"></a>07381 {
-<a name="l07382"></a>07382 <span class="preprocessor">#if defined(WIN32)</span>
-<a name="l07383"></a>07383 <span class="preprocessor"></span>        <span class="keyword">auto</span> flag = mem_readb(BIOS_KEYBOARD_FLAGS1);
-<a name="l07384"></a>07384         <span class="keyword">auto</span> leds = mem_readb(BIOS_KEYBOARD_LEDS);
-<a name="l07385"></a>07385         <span class="keyword">auto</span> stat = GetKeyState(VK_NUMLOCK);
-<a name="l07386"></a>07386         <span class="keywordflow">if</span> (stat &amp; 1) {
-<a name="l07387"></a>07387                 flag |= 0x20;
-<a name="l07388"></a>07388                 leds |= 0x02;
-<a name="l07389"></a>07389         }
-<a name="l07390"></a>07390         <span class="keywordflow">else</span> {
-<a name="l07391"></a>07391                 flag &amp;= ~0x20;
-<a name="l07392"></a>07392                 leds &amp;= ~0x02;
-<a name="l07393"></a>07393         }
-<a name="l07394"></a>07394         mem_writeb(BIOS_KEYBOARD_FLAGS1, flag);
-<a name="l07395"></a>07395         mem_writeb(BIOS_KEYBOARD_LEDS, leds);
-<a name="l07396"></a>07396 <span class="preprocessor">#endif</span>
-<a name="l07397"></a>07397 <span class="preprocessor"></span>}
+<a name="l07381"></a>07381 <span class="keywordtype">void</span> UpdateKeyWithLed(<span class="keywordtype">int</span> nVirtKey, <span class="keywordtype">int</span> flagAct, <span class="keywordtype">int</span> flagLed);
+<a name="l07382"></a>07382 
+<a name="l07383"></a>07383 <span class="keywordtype">void</span> BIOS_SynchronizeNumLock()
+<a name="l07384"></a>07384 {
+<a name="l07385"></a>07385 <span class="preprocessor">#if defined(WIN32)</span>
+<a name="l07386"></a>07386 <span class="preprocessor"></span>        UpdateKeyWithLed(VK_NUMLOCK, BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE, BIOS_KEYBOARD_LEDS_NUM_LOCK);
+<a name="l07387"></a>07387 <span class="preprocessor">#endif</span>
+<a name="l07388"></a>07388 <span class="preprocessor"></span>}
+<a name="l07389"></a>07389 
+<a name="l07390"></a>07390 <span class="keywordtype">void</span> BIOS_SynchronizeCapsLock()
+<a name="l07391"></a>07391 {
+<a name="l07392"></a>07392 <span class="preprocessor">#if defined(WIN32)</span>
+<a name="l07393"></a>07393 <span class="preprocessor"></span>        UpdateKeyWithLed(VK_CAPITAL, BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_CAPS_LOCK);
+<a name="l07394"></a>07394 <span class="preprocessor">#endif</span>
+<a name="l07395"></a>07395 <span class="preprocessor"></span>}
+<a name="l07396"></a>07396 
+<a name="l07397"></a>07397 <span class="keywordtype">void</span> BIOS_SynchronizeScrollLock()
+<a name="l07398"></a>07398 {
+<a name="l07399"></a>07399 <span class="preprocessor">#if defined(WIN32)</span>
+<a name="l07400"></a>07400 <span class="preprocessor"></span>        UpdateKeyWithLed(VK_SCROLL, BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_SCROLL_LOCK);
+<a name="l07401"></a>07401 <span class="preprocessor">#endif</span>
+<a name="l07402"></a>07402 <span class="preprocessor"></span>}
+<a name="l07403"></a>07403 
+<a name="l07404"></a>07404 <span class="keywordtype">void</span> UpdateKeyWithLed(<span class="keywordtype">int</span> nVirtKey, <span class="keywordtype">int</span> flagAct, <span class="keywordtype">int</span> flagLed)
+<a name="l07405"></a>07405 {
+<a name="l07406"></a>07406 <span class="preprocessor">#if defined(WIN32)</span>
+<a name="l07407"></a>07407 <span class="preprocessor"></span>
+<a name="l07408"></a>07408         <span class="keyword">const</span> <span class="keyword">auto</span> state = GetKeyState(nVirtKey);
+<a name="l07409"></a>07409 
+<a name="l07410"></a>07410         <span class="keyword">const</span> <span class="keyword">auto</span> flags1 = BIOS_KEYBOARD_FLAGS1;
+<a name="l07411"></a>07411         <span class="keyword">const</span> <span class="keyword">auto</span> flags2 = BIOS_KEYBOARD_LEDS;
+<a name="l07412"></a>07412 
+<a name="l07413"></a>07413         <span class="keyword">auto</span> flag1 = mem_readb(flags1);
+<a name="l07414"></a>07414         <span class="keyword">auto</span> flag2 = mem_readb(flags2);
+<a name="l07415"></a>07415 
+<a name="l07416"></a>07416         <span class="keywordflow">if</span> (state &amp; 1)
+<a name="l07417"></a>07417         {
+<a name="l07418"></a>07418                 flag1 |= flagAct;
+<a name="l07419"></a>07419                 flag2 |= flagLed;
+<a name="l07420"></a>07420         }
+<a name="l07421"></a>07421         <span class="keywordflow">else</span>
+<a name="l07422"></a>07422         {
+<a name="l07423"></a>07423                 flag1 &amp;= ~flagAct;
+<a name="l07424"></a>07424                 flag2 &amp;= ~flagLed;
+<a name="l07425"></a>07425         }
+<a name="l07426"></a>07426 
+<a name="l07427"></a>07427         mem_writeb(flags1, flag1);
+<a name="l07428"></a>07428         mem_writeb(flags2, flag2);
+<a name="l07429"></a>07429 
+<a name="l07430"></a>07430 <span class="preprocessor">#else</span>
+<a name="l07431"></a>07431 <span class="preprocessor"></span>
+<a name="l07432"></a>07432     (void)nVirtKey;
+<a name="l07433"></a>07433     (void)flagAct;
+<a name="l07434"></a>07434     (void)flagLed;
+<a name="l07435"></a>07435 
+<a name="l07436"></a>07436 <span class="preprocessor">#endif</span>
+<a name="l07437"></a>07437 <span class="preprocessor"></span>}
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 29 2018 08:09:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 2 2018 08:29:13 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

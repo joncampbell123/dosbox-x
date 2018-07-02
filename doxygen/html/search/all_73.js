@@ -71,7 +71,7 @@ var searchData=
   ['soundcfg',['SOUNDCFG',['../structSOUNDCFG.html',1,'']]],
   ['soundrom',['SOUNDROM',['../structSOUNDROM.html',1,'']]],
   ['soverlay',['sOverlay',['../structDOS__ParamBlock_1_1sOverlay.html',1,'DOS_ParamBlock']]],
-  ['special',['Special',['../classGUI_1_1Key.html#a9d3f8dbfc08f0189dbb8aa5a20b9ea99',1,'GUI::Key::Special()'],['../classGUI_1_1BitmapFont.html#a46f912c496e902dfc614e25261599718',1,'GUI::BitmapFont::special()']]],
+  ['special',['special',['../classGUI_1_1BitmapFont.html#a46f912c496e902dfc614e25261599718',1,'GUI::BitmapFont::special()'],['../classGUI_1_1Key.html#a9d3f8dbfc08f0189dbb8aa5a20b9ea99',1,'GUI::Key::Special()']]],
   ['specialchar',['SpecialChar',['../classGUI_1_1Font.html#af3c234cd3febe27dbe9c76e6cc5cad3a',1,'GUI::Font']]],
   ['srb',['SRB',['../structSRB.html',1,'']]],
   ['srb_5fabort',['SRB_Abort',['../structSRB__Abort.html',1,'']]],

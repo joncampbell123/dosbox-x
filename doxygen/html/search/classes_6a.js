@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['joystick',['JoyStick',['../structJoyStick.html',1,'JoyStick'],['../classJOYSTICK.html',1,'JOYSTICK']]]
+  ['joystick',['JOYSTICK',['../classJOYSTICK.html',1,'JOYSTICK'],['../structJoyStick.html',1,'JoyStick']]]
 ];

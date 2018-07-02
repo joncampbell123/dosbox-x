@@ -327,75 +327,78 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00231"></a>00231         <span class="keyword">const</span> <span class="keywordtype">double</span> xx1 = x / scaleX - x1;
 <a name="l00232"></a>00232         <span class="keyword">const</span> <span class="keywordtype">double</span> x2x = 1 - xx1;
 <a name="l00233"></a>00233 
-<a name="l00234"></a>00234         buf[x] = { x1, x2, xx1, x2x };
-<a name="l00235"></a>00235     }
-<a name="l00236"></a>00236 
-<a name="l00237"></a>00237     <span class="keywordflow">for</span> (<span class="keywordtype">int</span> y = yFirst; y &lt; yLast; ++y)
-<a name="l00238"></a>00238     {
-<a name="l00239"></a>00239         <span class="keyword">const</span> <span class="keywordtype">int</span> y1 = srcHeight * y / trgHeight;
-<a name="l00240"></a>00240         <span class="keywordtype">int</span> y2 = y1 + 1;
-<a name="l00241"></a>00241         <span class="keywordflow">if</span> (y2 == srcHeight) --y2;
-<a name="l00242"></a>00242 
-<a name="l00243"></a>00243         <span class="keyword">const</span> <span class="keywordtype">double</span> yy1 = y / scaleY - y1;
-<a name="l00244"></a>00244         <span class="keyword">const</span> <span class="keywordtype">double</span> y2y = 1 - yy1;
+<a name="l00234"></a>00234         buf[x].x1 = x1;
+<a name="l00235"></a>00235         buf[x].x2 = x2;
+<a name="l00236"></a>00236         buf[x].xx1 = xx1;
+<a name="l00237"></a>00237         buf[x].x2x = x2x;
+<a name="l00238"></a>00238     }
+<a name="l00239"></a>00239 
+<a name="l00240"></a>00240     <span class="keywordflow">for</span> (<span class="keywordtype">int</span> y = yFirst; y &lt; yLast; ++y)
+<a name="l00241"></a>00241     {
+<a name="l00242"></a>00242         <span class="keyword">const</span> <span class="keywordtype">int</span> y1 = srcHeight * y / trgHeight;
+<a name="l00243"></a>00243         <span class="keywordtype">int</span> y2 = y1 + 1;
+<a name="l00244"></a>00244         <span class="keywordflow">if</span> (y2 == srcHeight) --y2;
 <a name="l00245"></a>00245 
-<a name="l00246"></a>00246         <span class="keyword">const</span> uint32_t* <span class="keyword">const</span> srcLine     = byteAdvance(src, y1 * srcPitch);
-<a name="l00247"></a>00247         <span class="keyword">const</span> uint32_t* <span class="keyword">const</span> srcLineNext = byteAdvance(src, y2 * srcPitch);
-<a name="l00248"></a>00248         PixTrg*         <span class="keyword">const</span> trgLine     = byteAdvance(trg, y  * trgPitch);
-<a name="l00249"></a>00249 
-<a name="l00250"></a>00250         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> x = 0; x &lt; trgWidth; ++x)
-<a name="l00251"></a>00251         {
-<a name="l00252"></a>00252             <span class="comment">//perf: do NOT &quot;simplify&quot; the variable layout without measurement!</span>
-<a name="l00253"></a>00253             <span class="keyword">const</span> <span class="keywordtype">int</span>     x1 = buf[x].x1;
-<a name="l00254"></a>00254             <span class="keyword">const</span> <span class="keywordtype">int</span>     x2 = buf[x].x2;
-<a name="l00255"></a>00255             <span class="keyword">const</span> <span class="keywordtype">double</span> xx1 = buf[x].xx1;
-<a name="l00256"></a>00256             <span class="keyword">const</span> <span class="keywordtype">double</span> x2x = buf[x].x2x;
-<a name="l00257"></a>00257 
-<a name="l00258"></a>00258             <span class="keyword">const</span> <span class="keywordtype">double</span> x2xy2y = x2x * y2y;
-<a name="l00259"></a>00259             <span class="keyword">const</span> <span class="keywordtype">double</span> xx1y2y = xx1 * y2y;
-<a name="l00260"></a>00260             <span class="keyword">const</span> <span class="keywordtype">double</span> x2xyy1 = x2x * yy1;
-<a name="l00261"></a>00261             <span class="keyword">const</span> <span class="keywordtype">double</span> xx1yy1 = xx1 * yy1;
-<a name="l00262"></a>00262 
-<a name="l00263"></a>00263             <span class="keyword">auto</span> interpolate = [=](<span class="keywordtype">int</span> offset)
-<a name="l00264"></a>00264             {
-<a name="l00265"></a>00265                 <span class="comment">/*</span>
-<a name="l00266"></a>00266 <span class="comment">                    https://en.wikipedia.org/wiki/Bilinear_interpolation</span>
-<a name="l00267"></a>00267 <span class="comment">                    (c11(x2 - x) + c21(x - x1)) * (y2 - y ) +</span>
-<a name="l00268"></a>00268 <span class="comment">                    (c12(x2 - x) + c22(x - x1)) * (y  - y1)</span>
-<a name="l00269"></a>00269 <span class="comment">                */</span>
-<a name="l00270"></a>00270                 <span class="keyword">const</span> <span class="keyword">auto</span> c11 = (srcLine    [x1] &gt;&gt; (8 * offset)) &amp; 0xff;
-<a name="l00271"></a>00271                 <span class="keyword">const</span> <span class="keyword">auto</span> c21 = (srcLine    [x2] &gt;&gt; (8 * offset)) &amp; 0xff;
-<a name="l00272"></a>00272                 <span class="keyword">const</span> <span class="keyword">auto</span> c12 = (srcLineNext[x1] &gt;&gt; (8 * offset)) &amp; 0xff;
-<a name="l00273"></a>00273                 <span class="keyword">const</span> <span class="keyword">auto</span> c22 = (srcLineNext[x2] &gt;&gt; (8 * offset)) &amp; 0xff;
-<a name="l00274"></a>00274 
-<a name="l00275"></a>00275                 <span class="keywordflow">return</span> c11 * x2xy2y + c21 * xx1y2y +
-<a name="l00276"></a>00276                        c12 * x2xyy1 + c22 * xx1yy1;
-<a name="l00277"></a>00277             };
-<a name="l00278"></a>00278 
-<a name="l00279"></a>00279             <span class="keyword">const</span> <span class="keywordtype">double</span> bi = interpolate(0);
-<a name="l00280"></a>00280             <span class="keyword">const</span> <span class="keywordtype">double</span> gi = interpolate(1);
-<a name="l00281"></a>00281             <span class="keyword">const</span> <span class="keywordtype">double</span> ri = interpolate(2);
-<a name="l00282"></a>00282             <span class="keyword">const</span> <span class="keywordtype">double</span> ai = interpolate(3);
-<a name="l00283"></a>00283 
-<a name="l00284"></a>00284             <span class="keyword">const</span> <span class="keyword">auto</span> b = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(bi + 0.5);
-<a name="l00285"></a>00285             <span class="keyword">const</span> <span class="keyword">auto</span> g = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(gi + 0.5);
-<a name="l00286"></a>00286             <span class="keyword">const</span> <span class="keyword">auto</span> r = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(ri + 0.5);
-<a name="l00287"></a>00287             <span class="keyword">const</span> <span class="keyword">auto</span> a = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(ai + 0.5);
-<a name="l00288"></a>00288 
-<a name="l00289"></a>00289             <span class="keyword">const</span> uint32_t trgPix = (a &lt;&lt; 24) | (r &lt;&lt; 16) | (g &lt;&lt; 8) | b;
-<a name="l00290"></a>00290 
-<a name="l00291"></a>00291             trgLine[x] = pixCvrt(trgPix);
-<a name="l00292"></a>00292         }
-<a name="l00293"></a>00293     }
-<a name="l00294"></a>00294 }
-<a name="l00295"></a>00295 }
-<a name="l00296"></a>00296 
-<a name="l00297"></a>00297 <span class="preprocessor">#endif //XBRZ_TOOLS_H_825480175091875</span>
+<a name="l00246"></a>00246         <span class="keyword">const</span> <span class="keywordtype">double</span> yy1 = y / scaleY - y1;
+<a name="l00247"></a>00247         <span class="keyword">const</span> <span class="keywordtype">double</span> y2y = 1 - yy1;
+<a name="l00248"></a>00248 
+<a name="l00249"></a>00249         <span class="keyword">const</span> uint32_t* <span class="keyword">const</span> srcLine     = byteAdvance(src, y1 * srcPitch);
+<a name="l00250"></a>00250         <span class="keyword">const</span> uint32_t* <span class="keyword">const</span> srcLineNext = byteAdvance(src, y2 * srcPitch);
+<a name="l00251"></a>00251         PixTrg*         <span class="keyword">const</span> trgLine     = byteAdvance(trg, y  * trgPitch);
+<a name="l00252"></a>00252 
+<a name="l00253"></a>00253         <span class="keywordflow">for</span> (<span class="keywordtype">int</span> x = 0; x &lt; trgWidth; ++x)
+<a name="l00254"></a>00254         {
+<a name="l00255"></a>00255             <span class="comment">//perf: do NOT &quot;simplify&quot; the variable layout without measurement!</span>
+<a name="l00256"></a>00256             <span class="keyword">const</span> <span class="keywordtype">int</span>     x1 = buf[x].x1;
+<a name="l00257"></a>00257             <span class="keyword">const</span> <span class="keywordtype">int</span>     x2 = buf[x].x2;
+<a name="l00258"></a>00258             <span class="keyword">const</span> <span class="keywordtype">double</span> xx1 = buf[x].xx1;
+<a name="l00259"></a>00259             <span class="keyword">const</span> <span class="keywordtype">double</span> x2x = buf[x].x2x;
+<a name="l00260"></a>00260 
+<a name="l00261"></a>00261             <span class="keyword">const</span> <span class="keywordtype">double</span> x2xy2y = x2x * y2y;
+<a name="l00262"></a>00262             <span class="keyword">const</span> <span class="keywordtype">double</span> xx1y2y = xx1 * y2y;
+<a name="l00263"></a>00263             <span class="keyword">const</span> <span class="keywordtype">double</span> x2xyy1 = x2x * yy1;
+<a name="l00264"></a>00264             <span class="keyword">const</span> <span class="keywordtype">double</span> xx1yy1 = xx1 * yy1;
+<a name="l00265"></a>00265 
+<a name="l00266"></a>00266             <span class="keyword">auto</span> interpolate = [=](<span class="keywordtype">int</span> offset)
+<a name="l00267"></a>00267             {
+<a name="l00268"></a>00268                 <span class="comment">/*</span>
+<a name="l00269"></a>00269 <span class="comment">                    https://en.wikipedia.org/wiki/Bilinear_interpolation</span>
+<a name="l00270"></a>00270 <span class="comment">                    (c11(x2 - x) + c21(x - x1)) * (y2 - y ) +</span>
+<a name="l00271"></a>00271 <span class="comment">                    (c12(x2 - x) + c22(x - x1)) * (y  - y1)</span>
+<a name="l00272"></a>00272 <span class="comment">                */</span>
+<a name="l00273"></a>00273                 <span class="keyword">const</span> <span class="keyword">auto</span> c11 = (srcLine    [x1] &gt;&gt; (8 * offset)) &amp; 0xff;
+<a name="l00274"></a>00274                 <span class="keyword">const</span> <span class="keyword">auto</span> c21 = (srcLine    [x2] &gt;&gt; (8 * offset)) &amp; 0xff;
+<a name="l00275"></a>00275                 <span class="keyword">const</span> <span class="keyword">auto</span> c12 = (srcLineNext[x1] &gt;&gt; (8 * offset)) &amp; 0xff;
+<a name="l00276"></a>00276                 <span class="keyword">const</span> <span class="keyword">auto</span> c22 = (srcLineNext[x2] &gt;&gt; (8 * offset)) &amp; 0xff;
+<a name="l00277"></a>00277 
+<a name="l00278"></a>00278                 <span class="keywordflow">return</span> c11 * x2xy2y + c21 * xx1y2y +
+<a name="l00279"></a>00279                        c12 * x2xyy1 + c22 * xx1yy1;
+<a name="l00280"></a>00280             };
+<a name="l00281"></a>00281 
+<a name="l00282"></a>00282             <span class="keyword">const</span> <span class="keywordtype">double</span> bi = interpolate(0);
+<a name="l00283"></a>00283             <span class="keyword">const</span> <span class="keywordtype">double</span> gi = interpolate(1);
+<a name="l00284"></a>00284             <span class="keyword">const</span> <span class="keywordtype">double</span> ri = interpolate(2);
+<a name="l00285"></a>00285             <span class="keyword">const</span> <span class="keywordtype">double</span> ai = interpolate(3);
+<a name="l00286"></a>00286 
+<a name="l00287"></a>00287             <span class="keyword">const</span> <span class="keyword">auto</span> b = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(bi + 0.5);
+<a name="l00288"></a>00288             <span class="keyword">const</span> <span class="keyword">auto</span> g = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(gi + 0.5);
+<a name="l00289"></a>00289             <span class="keyword">const</span> <span class="keyword">auto</span> r = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(ri + 0.5);
+<a name="l00290"></a>00290             <span class="keyword">const</span> <span class="keyword">auto</span> a = <span class="keyword">static_cast&lt;</span>uint32_t<span class="keyword">&gt;</span>(ai + 0.5);
+<a name="l00291"></a>00291 
+<a name="l00292"></a>00292             <span class="keyword">const</span> uint32_t trgPix = (a &lt;&lt; 24) | (r &lt;&lt; 16) | (g &lt;&lt; 8) | b;
+<a name="l00293"></a>00293 
+<a name="l00294"></a>00294             trgLine[x] = pixCvrt(trgPix);
+<a name="l00295"></a>00295         }
+<a name="l00296"></a>00296     }
+<a name="l00297"></a>00297 }
+<a name="l00298"></a>00298 }
+<a name="l00299"></a>00299 
+<a name="l00300"></a>00300 <span class="preprocessor">#endif //XBRZ_TOOLS_H_825480175091875</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Jun 29 2018 08:09:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jul 2 2018 08:29:14 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>
