@@ -1929,6 +1929,8 @@ public:
                     match = false;
                 else if (ModeList_VGA[array_i].type == M_ERROR)
                     match = false;
+                else if (ModeList_VGA[array_i].mode <= 0x13)
+                    match = false;
 
                 if (!match)
                     array_i++;
