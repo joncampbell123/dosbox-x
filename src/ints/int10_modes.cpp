@@ -1971,7 +1971,7 @@ public:
             if (fmt >= 0) {
                 ModeList_VGA[array_i].type = (VGAModes)fmt;
                 /* will require reprogramming width in some cases! */
-                w = ModeList_VGA[array_i].swidth;
+                if (w < 0) w = ModeList_VGA[array_i].swidth;
             }
             if (w > 0) {
                 ModeList_VGA[array_i].swidth = (Bitu)w;
