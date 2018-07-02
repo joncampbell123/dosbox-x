@@ -1403,7 +1403,7 @@ static void InitBiosSegment(void) {
     mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,0x1e);
     mem_writew(BIOS_KEYBOARD_BUFFER_TAIL,0x1e);
     Bit8u flag1 = 0;
-    Bit8u leds = 16; /* Ack received */
+    Bit8u leds = BIOS_KEYBOARD_LEDS_ACK;
 
     extern bool keyboard_startup_num_lock;
     extern bool keyboard_startup_caps_lock;
