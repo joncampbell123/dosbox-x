@@ -147,6 +147,9 @@ VideoModeBlock ModeList_VGA[]={
 { 0x162  ,M_LIN15  ,320 ,480 ,40 ,60 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 , 80 ,480 ,0 },
 { 0x165  ,M_LIN15  ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,449 ,160 ,400 ,0   },
 
+// hack: 320x200x16bpp for "Process" demo (1997) with apparently hard-coded VBE mode
+{ 0x136  ,M_LIN16  ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 , 80 ,480 , _REPEAT1 },
+
 // hack: 320x480x256-color alias for Habitual demo. doing this removes the need to run S3VBE20.EXE before running the demo.
 //       the reason it has to be this particular video mode is because HABITUAL.EXE does not query modes, it simply assumes
 //       that mode 0x166 is this particular mode and errors out if it can't set it.
