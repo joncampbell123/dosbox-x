@@ -412,8 +412,8 @@ static Bitu IRQ1_Handler(void) {
 #ifdef CAN_USE_LOCK
             flags2 |=BIOS_KEYBOARD_FLAGS2_NUM_LOCK_PRESSED;
 #else
-            flags1 |=0x20;
             flags2 |=BIOS_KEYBOARD_FLAGS2_NUM_LOCK_PRESSED;
+            flags1 |=BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE;
             leds |=0x02;
 #endif
         }
@@ -429,7 +429,7 @@ static Bitu IRQ1_Handler(void) {
             flags2&=~BIOS_KEYBOARD_FLAGS2_NUM_LOCK_PRESSED;
 #else
             /* Num Lock released */
-            flags1 &=~0x20;
+            flags1 &=~BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE;
             leds &=~0x02;
 #endif
         }
