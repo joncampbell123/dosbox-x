@@ -1949,6 +1949,10 @@ public:
             WriteOut("Mode not found\n");
             return;
         }
+        else if (ModeList_VGA[array_i].mode <= 0x13) {
+            WriteOut("Editing base VGA modes is not allowed\n");
+            return;
+        }
         else if (modefind) {
             WriteOut("Found mode 0x%x\n",(unsigned int)ModeList_VGA[array_i].mode);
         }
