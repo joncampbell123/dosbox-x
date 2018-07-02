@@ -5509,9 +5509,9 @@ void GFX_Events() {
                         GFX_CaptureMouse();
                     SetPriority(sdl.priority.focus);
                     CPU_Disable_SkipAutoAdjust();
-					BIOS_SynchronizeNumLock();
-					BIOS_SynchronizeCapsLock();
-					BIOS_SynchronizeScrollLock();
+					//BIOS_SynchronizeNumLock();
+					//BIOS_SynchronizeCapsLock();
+					//BIOS_SynchronizeScrollLock();
 				} else {
                     if (sdl.mouse.locked)
                     {
