@@ -346,14 +346,14 @@ static Bitu IRQ1_Handler(void) {
         if (!(flags3 &0x01)) {
             flags1 |=BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED;
             if (flags3 &0x02) flags3 |=0x04;
-            else flags2 |=0x01;
+            else flags2 |=BIOS_KEYBOARD_FLAGS2_LCTRL_PRESSED;
         }   /* else it's part of the pause scancodes */
         break;
     case 0x9d:                      /* Ctrl Released */
         if (!(flags3 &0x01)) {
             if (flags3 &0x02) flags3 &=~0x04;
-            else flags2 &=~0x01;
-            if( !( (flags3 &0x04) || (flags2 &0x01) ) ) flags1 &=~BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED;
+            else flags2 &=~BIOS_KEYBOARD_FLAGS2_LCTRL_PRESSED;
+            if( !( (flags3 &0x04) || (flags2 &BIOS_KEYBOARD_FLAGS2_LCTRL_PRESSED) ) ) flags1 &=~BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED;
         }
         break;
     case 0x2a:                      /* Left Shift Pressed */
@@ -371,12 +371,12 @@ static Bitu IRQ1_Handler(void) {
     case 0x38:                      /* Alt Pressed */
         flags1 |=BIOS_KEYBOARD_FLAGS1_ALT_PRESSED;
         if (flags3 &0x02) flags3 |=0x08;
-        else flags2 |=0x02;
+        else flags2 |=BIOS_KEYBOARD_FLAGS2_LALT_PRESSED;
         break;
     case 0xb8:                      /* Alt Released */
         if (flags3 &0x02) flags3 &= ~0x08;
-        else flags2 &= ~0x02;
-        if( !( (flags3 &0x08) || (flags2 &0x02) ) ) { /* Both alt released */
+        else flags2 &= ~BIOS_KEYBOARD_FLAGS2_LALT_PRESSED;
+        if( !( (flags3 &0x08) || (flags2 &BIOS_KEYBOARD_FLAGS2_LALT_PRESSED) ) ) { /* Both alt released */
             flags1 &= ~BIOS_KEYBOARD_FLAGS1_ALT_PRESSED;
             Bit16u token =mem_readb(BIOS_KEYBOARD_TOKEN);
             if(token != 0){
@@ -387,10 +387,10 @@ static Bitu IRQ1_Handler(void) {
         break;
 
 #ifdef CAN_USE_LOCK
-    case 0x3a:flags2 |=0x40;break;//CAPSLOCK
-    case 0xba:flags1 ^=BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;flags2 &=~0x40;leds ^=0x04;break;
+    case 0x3a:flags2 |=BIOS_KEYBOARD_FLAGS2_CAPS_LOCK_PRESSED;break;//CAPSLOCK
+    case 0xba:flags1 ^=BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;flags2 &=~BIOS_KEYBOARD_FLAGS2_CAPS_LOCK_PRESSED;leds ^=0x04;break;
 #else
-    case 0x3a:flags2 |=0x40;flags1 |=BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;leds |=0x04;break; //SDL gives only the state instead of the toggle                   /* Caps Lock */
+    case 0x3a:flags2 |=BIOS_KEYBOARD_FLAGS2_CAPS_LOCK_PRESSED;flags1 |=BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;leds |=0x04;break; //SDL gives only the state instead of the toggle                   /* Caps Lock */
     case 0xba:flags1 &=~BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;leds &=~0x04;break;
 #endif
     case 0x45:
@@ -399,9 +399,9 @@ static Bitu IRQ1_Handler(void) {
             /* last scancode of pause received; first remove 0xe1-prefix */
             flags3 &=~0x01;
             mem_writeb(BIOS_KEYBOARD_FLAGS3,flags3);
-            if ((flags2&8)==0) {
+            if ((flags2&BIOS_KEYBOARD_FLAGS2_SUSPENDKEY_TOGGLED)==0) {
                 /* normal pause key, enter loop */
-                mem_writeb(BIOS_KEYBOARD_FLAGS2,flags2|8);
+                mem_writeb(BIOS_KEYBOARD_FLAGS2,flags2|BIOS_KEYBOARD_FLAGS2_SUSPENDKEY_TOGGLED);
                 IO_Write(0x20,0x20);
                 while (mem_readb(BIOS_KEYBOARD_FLAGS2)&8) CALLBACK_Idle();  // pause loop
                 reg_ip+=5;  // skip out 20,20
@@ -410,10 +410,10 @@ static Bitu IRQ1_Handler(void) {
         } else {
             /* Num Lock */
 #ifdef CAN_USE_LOCK
-            flags2 |=0x20;
+            flags2 |=BIOS_KEYBOARD_FLAGS2_NUM_LOCK_PRESSED;
 #else
-            flags2 |=0x20;
             flags1 |=0x20;
+            flags2 |=BIOS_KEYBOARD_FLAGS2_NUM_LOCK_PRESSED;
             leds |=0x02;
 #endif
         }
@@ -426,7 +426,7 @@ static Bitu IRQ1_Handler(void) {
 #ifdef CAN_USE_LOCK
             flags1^=BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE;
             leds^=0x02;
-            flags2&=~0x20;
+            flags2&=~BIOS_KEYBOARD_FLAGS2_NUM_LOCK_PRESSED;
 #else
             /* Num Lock released */
             flags1 &=~0x20;
@@ -447,14 +447,14 @@ static Bitu IRQ1_Handler(void) {
             reg_ip = RealOff(CALLBACK_RealPointer(irq1_ret_ctrlbreak_callback));
             return CBRET_NONE;
         } else {                                        /* Scroll Lock. */
-            flags2 |=0x10;              /* Scroll Lock SDL Seems to do this one fine (so break and make codes) */
+            flags2 |=BIOS_KEYBOARD_FLAGS2_SCROLL_LOCK_PRESSED;              /* Scroll Lock SDL Seems to do this one fine (so break and make codes) */
         }
         break;
     case 0xc6:
         if((flags3&0x02) || (!(flags3&0x10) && (flags1&BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED))) {                /* Ctrl-Break released? */
             /* nothing to do */
         } else {
-            flags1 ^=BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE;flags2 &=~0x10;leds ^=0x01;break;     /* Scroll Lock released */
+            flags1 ^=BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE;flags2 &=~BIOS_KEYBOARD_FLAGS2_SCROLL_LOCK_PRESSED;leds ^=0x01;break;     /* Scroll Lock released */
         }
     case 0xd2: /* NUMPAD insert, ironically, regular one is handled by 0x52 */
 		if (flags3 & BIOS_KEYBOARD_FLAGS3_HIDDEN_E0 || !(flags1 & BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE))
@@ -475,7 +475,7 @@ static Bitu IRQ1_Handler(void) {
     case 0x52:
     case 0x53: /* del . Not entirely correct, but works fine */
         if(flags3 &0x02) {  /*extend key. e.g key above arrows or arrows*/
-            if(scancode == 0x52) flags2 |=0x80; /* press insert */         
+            if(scancode == 0x52) flags2 |=BIOS_KEYBOARD_FLAGS2_INSERT_PRESSED; /* press insert */         
             if(flags1 &BIOS_KEYBOARD_FLAGS1_ALT_PRESSED) {
                 add_key(scan_to_scanascii[scancode].normal+0x5000);
             } else if (flags1 &BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED) {
