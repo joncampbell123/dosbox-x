@@ -1963,10 +1963,39 @@ public:
 
         if (!modefind && (w > 0 || h > 0 || fmt >= 0 || ch > 0)) {
             WriteOut("Changing mode 0x%x parameters\n",(unsigned int)ModeList_VGA[array_i].mode);
-            if (w > 0) ModeList_VGA[array_i].swidth = (Bitu)w;
-            if (h > 0) ModeList_VGA[array_i].sheight = (Bitu)h;
-            if (fmt >= 0) ModeList_VGA[array_i].type = (VGAModes)fmt;
-            if (ch == 8 || ch == 14 || ch == 16) ModeList_VGA[array_i].cheight = (Bitu)ch;
+            if (fmt >= 0) {
+                ModeList_VGA[array_i].type = (VGAModes)fmt;
+                /* will require reprogramming width in some cases! */
+                w = ModeList_VGA[array_i].swidth;
+            }
+            if (w > 0) {
+                ModeList_VGA[array_i].swidth = (Bitu)w;
+                if (ModeList_VGA[array_i].type == M_LIN15 || ModeList_VGA[array_i].type == M_LIN16) {
+                    ModeList_VGA[array_i].hdispend = (Bitu)w / 4;
+                    ModeList_VGA[array_i].htotal = ModeList_VGA[array_i].hdispend + 40;
+                }
+                else {
+                    ModeList_VGA[array_i].hdispend = (Bitu)w / 8;
+                    ModeList_VGA[array_i].htotal = ModeList_VGA[array_i].hdispend + 20;
+                }
+            }
+            if (h > 0) {
+                ModeList_VGA[array_i].sheight = (Bitu)h;
+
+                if (h >= 340)
+                    ModeList_VGA[array_i].special &= ~_REPEAT1;
+                else
+                    ModeList_VGA[array_i].special |= _REPEAT1;
+
+                if (ModeList_VGA[array_i].special & _REPEAT1)
+                    ModeList_VGA[array_i].vdispend = (Bitu)h * 2;
+                else
+                    ModeList_VGA[array_i].vdispend = (Bitu)h;
+
+                ModeList_VGA[array_i].vtotal = ModeList_VGA[array_i].vdispend + 49;
+            }
+            if (ch == 8 || ch == 14 || ch == 16)
+                ModeList_VGA[array_i].cheight = (Bitu)ch;
 
             ModeList_VGA[array_i].twidth = ModeList_VGA[array_i].swidth / 8u;
             ModeList_VGA[array_i].theight = ModeList_VGA[array_i].sheight / ModeList_VGA[array_i].cheight;
