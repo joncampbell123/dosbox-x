@@ -2075,17 +2075,17 @@ public:
                     pitch = (ModeList_VGA[array_i].swidth / 8) * 4; /* not totally accurate but close enough */
                     break;
                 case M_LIN8:
-                    pitch = (ModeList_VGA[array_i].swidth / 8);
+                    pitch = ModeList_VGA[array_i].swidth;
                     break;
                 case M_LIN15:
                 case M_LIN16:
-                    pitch = (ModeList_VGA[array_i].swidth / 8) * 2;
+                    pitch = ModeList_VGA[array_i].swidth * 2;
                     break;
                 case M_LIN24:
-                    pitch = (ModeList_VGA[array_i].swidth / 8) * 3;
+                    pitch = ModeList_VGA[array_i].swidth * 3;
                     break;
                 case M_LIN32:
-                    pitch = (ModeList_VGA[array_i].swidth / 8) * 4;
+                    pitch = ModeList_VGA[array_i].swidth * 4;
                     break;
                 default:
                     break;
