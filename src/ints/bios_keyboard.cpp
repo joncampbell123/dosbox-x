@@ -337,23 +337,23 @@ static Bitu IRQ1_Handler(void) {
     case 0xfa:  /* ack. Do nothing for now */
         break;
     case 0xe1:  /* Extended key special. Only pause uses this */
-        flags3 |=0x01;
+        flags3 |=BIOS_KEYBOARD_FLAGS3_HIDDEN_E1;
         break;
     case 0xe0:                      /* Extended key */
-        flags3 |=0x02;
+        flags3 |=BIOS_KEYBOARD_FLAGS3_HIDDEN_E0;
         break;
     case 0x1d:                      /* Ctrl Pressed */
-        if (!(flags3 &0x01)) {
+        if (!(flags3 &BIOS_KEYBOARD_FLAGS3_HIDDEN_E1)) {
             flags1 |=BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED;
-            if (flags3 &0x02) flags3 |=0x04;
+            if (flags3 &BIOS_KEYBOARD_FLAGS3_HIDDEN_E0) flags3 |=BIOS_KEYBOARD_FLAGS3_RCTRL_PRESSED;
             else flags2 |=BIOS_KEYBOARD_FLAGS2_LCTRL_PRESSED;
         }   /* else it's part of the pause scancodes */
         break;
     case 0x9d:                      /* Ctrl Released */
-        if (!(flags3 &0x01)) {
-            if (flags3 &0x02) flags3 &=~0x04;
+        if (!(flags3 &BIOS_KEYBOARD_FLAGS3_HIDDEN_E1)) {
+            if (flags3 &BIOS_KEYBOARD_FLAGS3_HIDDEN_E0) flags3 &=~BIOS_KEYBOARD_FLAGS3_RCTRL_PRESSED;
             else flags2 &=~BIOS_KEYBOARD_FLAGS2_LCTRL_PRESSED;
-            if( !( (flags3 &0x04) || (flags2 &BIOS_KEYBOARD_FLAGS2_LCTRL_PRESSED) ) ) flags1 &=~BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED;
+            if( !( (flags3 &BIOS_KEYBOARD_FLAGS3_RCTRL_PRESSED) || (flags2 &BIOS_KEYBOARD_FLAGS2_LCTRL_PRESSED) ) ) flags1 &=~BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED;
         }
         break;
     case 0x2a:                      /* Left Shift Pressed */
@@ -370,13 +370,13 @@ static Bitu IRQ1_Handler(void) {
         break;
     case 0x38:                      /* Alt Pressed */
         flags1 |=BIOS_KEYBOARD_FLAGS1_ALT_PRESSED;
-        if (flags3 &0x02) flags3 |=0x08;
+        if (flags3 &BIOS_KEYBOARD_FLAGS3_HIDDEN_E0) flags3 |=BIOS_KEYBOARD_FLAGS3_RALT_PRESSED;
         else flags2 |=BIOS_KEYBOARD_FLAGS2_LALT_PRESSED;
         break;
     case 0xb8:                      /* Alt Released */
-        if (flags3 &0x02) flags3 &= ~0x08;
+        if (flags3 &BIOS_KEYBOARD_FLAGS3_HIDDEN_E0) flags3 &= ~BIOS_KEYBOARD_FLAGS3_RALT_PRESSED;
         else flags2 &= ~BIOS_KEYBOARD_FLAGS2_LALT_PRESSED;
-        if( !( (flags3 &0x08) || (flags2 &BIOS_KEYBOARD_FLAGS2_LALT_PRESSED) ) ) { /* Both alt released */
+        if( !( (flags3 &BIOS_KEYBOARD_FLAGS3_RALT_PRESSED) || (flags2 &BIOS_KEYBOARD_FLAGS2_LALT_PRESSED) ) ) { /* Both alt released */
             flags1 &= ~BIOS_KEYBOARD_FLAGS1_ALT_PRESSED;
             Bit16u token =mem_readb(BIOS_KEYBOARD_TOKEN);
             if(token != 0){
@@ -395,9 +395,9 @@ static Bitu IRQ1_Handler(void) {
 #endif
     case 0x45:
         /* if it has E1 prefix or is Ctrl-NumLock on non-enhanced keyboard => Pause */
-        if ((flags3 &0x01) || (!(flags3&0x10) && (flags1&BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED))) {
+        if ((flags3 &BIOS_KEYBOARD_FLAGS3_HIDDEN_E1) || (!(flags3&BIOS_KEYBOARD_FLAGS3_ENHANCED_KEYBOARD) && (flags1&BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED))) {
             /* last scancode of pause received; first remove 0xe1-prefix */
-            flags3 &=~0x01;
+            flags3 &=~BIOS_KEYBOARD_FLAGS3_HIDDEN_E1;
             mem_writeb(BIOS_KEYBOARD_FLAGS3,flags3);
             if ((flags2&BIOS_KEYBOARD_FLAGS2_SUSPENDKEY_TOGGLED)==0) {
                 /* normal pause key, enter loop */
@@ -419,9 +419,9 @@ static Bitu IRQ1_Handler(void) {
         }
         break;
     case 0xc5:
-        if ((flags3 &0x01) || (!(flags3&0x10) && (flags1&BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED))) {
+        if ((flags3 &BIOS_KEYBOARD_FLAGS3_HIDDEN_E1) || (!(flags3&BIOS_KEYBOARD_FLAGS3_ENHANCED_KEYBOARD) && (flags1&BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED))) {
             /* pause released */
-            flags3 &=~0x01;
+            flags3 &=~BIOS_KEYBOARD_FLAGS3_HIDDEN_E1;
         } else {
 #ifdef CAN_USE_LOCK
             flags1^=BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE;
@@ -436,9 +436,9 @@ static Bitu IRQ1_Handler(void) {
         break;
     case 0x46:                      /* Scroll Lock or Ctrl-Break */
         /* if it has E0 prefix, or is Ctrl-NumLock on non-enhanced keyboard => Break */
-        if((flags3&0x02) || (!(flags3&0x10) && (flags1&BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED))) {                /* Ctrl-Break? */
+        if((flags3&BIOS_KEYBOARD_FLAGS3_HIDDEN_E0) || (!(flags3&BIOS_KEYBOARD_FLAGS3_ENHANCED_KEYBOARD) && (flags1&BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED))) {                /* Ctrl-Break? */
             /* remove 0xe0-prefix */
-            flags3 &=~0x02;
+            flags3 &=~BIOS_KEYBOARD_FLAGS3_HIDDEN_E0;
             mem_writeb(BIOS_KEYBOARD_FLAGS3,flags3);
             mem_writeb(BIOS_CTRL_BREAK_FLAG,0x80);
             empty_keyboard_buffer();
@@ -451,7 +451,7 @@ static Bitu IRQ1_Handler(void) {
         }
         break;
     case 0xc6:
-        if((flags3&0x02) || (!(flags3&0x10) && (flags1&BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED))) {                /* Ctrl-Break released? */
+        if((flags3&BIOS_KEYBOARD_FLAGS3_HIDDEN_E0) || (!(flags3&BIOS_KEYBOARD_FLAGS3_ENHANCED_KEYBOARD) && (flags1&BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED))) {                /* Ctrl-Break released? */
             /* nothing to do */
         } else {
             flags1 ^=BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE;flags2 &=~BIOS_KEYBOARD_FLAGS2_SCROLL_LOCK_PRESSED;leds ^=0x01;break;     /* Scroll Lock released */
@@ -474,7 +474,7 @@ static Bitu IRQ1_Handler(void) {
     case 0x51:
     case 0x52:
     case 0x53: /* del . Not entirely correct, but works fine */
-        if(flags3 &0x02) {  /*extend key. e.g key above arrows or arrows*/
+        if(flags3 &BIOS_KEYBOARD_FLAGS3_HIDDEN_E0) {  /*extend key. e.g key above arrows or arrows*/
             if(scancode == 0x52) flags2 |=BIOS_KEYBOARD_FLAGS2_INSERT_PRESSED; /* press insert */         
             if(flags1 &BIOS_KEYBOARD_FLAGS1_ALT_PRESSED) {
                 add_key(scan_to_scanascii[scancode].normal+0x5000);
@@ -527,7 +527,7 @@ static Bitu IRQ1_Handler(void) {
                     asciiscan=scan_to_scanascii[scancode].shift; 
             }
         }
-        if (flags3 &0x02) {
+        if (flags3 &BIOS_KEYBOARD_FLAGS3_HIDDEN_E0) {
             /* extended key (numblock), return and slash need special handling */
             if (scancode==0x1c) {   /* return */
                 if (flags1 &BIOS_KEYBOARD_FLAGS1_ALT_PRESSED) asciiscan=0xa600;
@@ -542,7 +542,7 @@ static Bitu IRQ1_Handler(void) {
         break;
     };
 irq1_end:
-    if(scancode !=0xe0) flags3 &=~0x02;                                 //Reset 0xE0 Flag
+    if(scancode !=0xe0) flags3 &=~BIOS_KEYBOARD_FLAGS3_HIDDEN_E0;                                 //Reset 0xE0 Flag
     mem_writeb(BIOS_KEYBOARD_FLAGS1,flags1);
     if ((scancode&0x80)==0) flags2&=0xf7;
     mem_writeb(BIOS_KEYBOARD_FLAGS2,flags2);
