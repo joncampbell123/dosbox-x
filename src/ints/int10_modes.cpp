@@ -1929,7 +1929,7 @@ public:
             }
             else {
                 WriteOut("Unknown switch %s",arg.c_str());
-                break;
+                return;
             }
         }
         cmd->EndOpt();
