@@ -532,6 +532,11 @@ static bool SetCurMode(VideoModeBlock modeblock[],Bit16u mode) {
             /* ignore */
             i++;
         }
+	    /* ignore disabled modes */
+        else if (modeblock[i].special & _USER_DISABLED) {
+            /* ignore */
+            i++;
+        }
 		else {
 			if ((!int10.vesa_oldvbe) || (ModeList_VGA[i].mode<0x120)) {
 				CurMode=&modeblock[i];
@@ -1838,6 +1843,7 @@ public:
         int w = -1,h = -1;
         int ch = -1;
         int newmode = -1;
+        signed char enable = -1;
         bool doDelete = false;
         bool modefind = false;
 		
@@ -1910,6 +1916,12 @@ public:
             else if (arg == "delete") {
                 doDelete = true;
             }
+            else if (arg == "disable") {
+                enable = 0;
+            }
+            else if (arg == "enable") {
+                enable = 1;
+            }
             else {
                 WriteOut("Unknown switch %s",arg.c_str());
                 break;
@@ -1965,6 +1977,11 @@ public:
         else if (modefind) {
             WriteOut("Found mode 0x%x\n",(unsigned int)ModeList_VGA[array_i].mode);
         }
+
+        if (enable == 0)
+            ModeList_VGA[array_i].special |= _USER_DISABLED;
+        else if (enable == 1)
+            ModeList_VGA[array_i].special &= ~_USER_DISABLED;
 
         if (doDelete) {
             if (ModeList_VGA[array_i].type != M_ERROR)
@@ -2060,6 +2077,8 @@ public:
         WriteOut("  -ch <x>                 Change char height (in pixels), or mode to find.\n");
         WriteOut("  -newmode <x>            Change video mode number\n");
         WriteOut("  -delete                 Delete video mode\n");
+        WriteOut("  -disable                Disable video mode (list but do not allow setting)\n");
+        WriteOut("  -enable                 Enable video mode\n");
     }
 };
 
