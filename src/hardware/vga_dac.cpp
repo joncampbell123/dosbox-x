@@ -105,6 +105,8 @@ void VGA_DAC_UpdateColor( Bitu index ) {
                 /* Remember the lookup table is there to handle the color palette AND the DAC mask AND the attribute controller palette */
                 /* FIXME: Is it: index -> attribute controller -> dac mask, or
                  *               index -> dac mask -> attribute controller? */
+                /* According to FreeVGA:
+                 *               index -> attribute controller -> dac mask */
                 maskIndex = vga.dac.combine[index&0xF] & vga.dac.pel_mask;
                 VGA_DAC_SendColor( index, maskIndex );
                 break;
