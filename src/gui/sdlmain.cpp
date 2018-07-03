@@ -386,9 +386,6 @@ bool                        emu_paused = false;
 bool                        mouselocked = false; //Global variable for mapper
 bool                        fullscreen_switch = true;
 bool                        dos_kernel_disabled = true;
-bool                        startup_state_numlock = false; // Global for keyboard initialisation
-bool                        startup_state_capslock = false; // Global for keyboard initialisation
-bool                        startup_state_scrlock = false; // Global for keyboard initialisation
 
 #if defined(WIN32) && !defined(C_SDL2)
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
@@ -5624,6 +5621,20 @@ void GFX_Events() {
 #ifdef WIN32
         case SDL_KEYDOWN:
         case SDL_KEYUP:
+
+        {
+            const auto format = event.type == SDL_KEYDOWN ? "SDL_KEYDOWN" : "SDL_KEYUP";
+            const auto keysym = event.key.keysym.sym;
+            auto       key    = "???";
+            if(keysym == SDLK_NUMLOCK)
+                key = "SDLK_NUMLOCK";
+            if(keysym == SDLK_CAPSLOCK)
+                key = "SDLK_CAPSLOCK";
+            if(keysym == SDLK_SCROLLOCK)
+                key = "SDLK_SCROLLOCK";
+            LOG_MSG("-------------------------");
+            LOG_MSG("Type: %s, Sym: %s", format, key);
+        }
             // ignore event alt+tab
             if (event.key.keysym.sym==SDLK_LALT) sdl.laltstate = event.key.type;
             if (event.key.keysym.sym==SDLK_RALT) sdl.raltstate = event.key.type;
