@@ -1396,6 +1396,9 @@ Bitu INT16_Handler_Wrap(void) {
     return 0;
 }
 
+extern bool keyboard_startup_num_lock;
+extern bool keyboard_startup_caps_lock;
+extern bool keyboard_startup_scroll_lock;
 
 static void InitBiosSegment(void) {
     /* Setup the variables for keyboard in the bios data segment */
@@ -1406,6 +1409,23 @@ static void InitBiosSegment(void) {
     Bit8u flag1 = 0;
     Bit8u leds = BIOS_KEYBOARD_LEDS_ACK;
 
+    if(keyboard_startup_num_lock)
+    {
+        flag1 |= BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE;
+        leds |= BIOS_KEYBOARD_LEDS_NUM_LOCK;
+    }
+    
+    if(keyboard_startup_caps_lock)
+    {
+        flag1 |= BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;
+        leds |= BIOS_KEYBOARD_LEDS_CAPS_LOCK;
+    }
+    
+    if(keyboard_startup_scroll_lock)
+    {
+        flag1 |= BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE;
+        leds |= BIOS_KEYBOARD_LEDS_SCROLL_LOCK;
+    }
 
     mem_writeb(BIOS_KEYBOARD_FLAGS1,flag1);
     mem_writeb(BIOS_KEYBOARD_FLAGS2,0);
