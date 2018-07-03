@@ -189,6 +189,41 @@ void INT10_ReloadRomFonts();
 void BIOS_SetComPorts (Bit16u baseaddr[]);
 void BIOS_SetLPTPort (Bitu port, Bit16u baseaddr);
 
+#if WIN32
+
+enum class LOCKABLE_KEY
+{
+    NumLock,
+    CapsLock,
+    ScrollLock
+};
+
+/*
+ * \brief Gets the internal state of a lockable key.
+ * @param[out] act Is the key toggled ?
+ * @param[out] led Is the led active ?
+ */
+void BIOS_GetInternalKeyState(LOCKABLE_KEY key, bool& act, bool& led);
+
+/*
+ * \brief Gets the external state of a lockable key.
+ * \return Is the key toggled ?
+ */
+bool BIOS_GetExternalKeyState(LOCKABLE_KEY key);
+
+/*
+ * \brief Sets the internal state of a lockable key.
+ * \return Previous state value.
+ */
+bool BIOS_SetInternalKeyState(LOCKABLE_KEY key, bool enabled);
+
+/*
+ * \brief Sets the external state of a lockable key.
+ * \return Previous state value.
+ */
+bool BIOS_SetExternalKeyState(LOCKABLE_KEY key, bool enabled);
+
+#endif
 
 bool ISAPNP_RegisterSysDev(const unsigned char *raw,Bitu len,bool already=false);
 
