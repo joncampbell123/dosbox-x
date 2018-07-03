@@ -1636,16 +1636,9 @@ void KEYBOARD_AddKey(KBD_KEYS keytype,bool pressed) {
     };
 }
     
-
-bool keyboard_startup_num_lock;
-bool keyboard_startup_caps_lock;
-bool keyboard_startup_scroll_lock;
-bool keyboard_ext_num_lock;
-bool keyboard_ext_caps_lock;
-bool keyboard_ext_scroll_lock;
-bool keyboard_int_num_lock;
-bool keyboard_int_caps_lock;
-bool keyboard_int_scroll_lock;
+extern bool keyboard_ext_num_lock;
+extern bool keyboard_ext_caps_lock;
+extern bool keyboard_ext_scroll_lock;
  
 static void KEYBOARD_ShutDown(Section * sec) {
     (void)sec;//UNUSED
@@ -2394,20 +2387,6 @@ void KEYBOARD_OnReset(Section *sec) {
     write_p61(0,0,0);
     KEYBOARD_Reset();
     AUX_Reset();
-
-    // set external keys, save initial value, set internal keys
-#if WIN32
-    keyboard_startup_num_lock = section->Get_bool("startup_num_lock");
-    keyboard_startup_caps_lock = section->Get_bool("startup_caps_lock");
-    keyboard_startup_scroll_lock = section->Get_bool("startup_scroll_lock");
-    keyboard_ext_num_lock    = BIOS_SetExternalKeyState(LOCKABLE_KEY::NumLock, keyboard_startup_num_lock);
-    keyboard_ext_caps_lock   = BIOS_SetExternalKeyState(LOCKABLE_KEY::CapsLock, keyboard_startup_caps_lock);
-    keyboard_ext_scroll_lock = BIOS_SetExternalKeyState(LOCKABLE_KEY::ScrollLock, keyboard_startup_scroll_lock);
-    keyboard_int_num_lock    = keyboard_startup_num_lock;
-    keyboard_int_caps_lock   = keyboard_startup_caps_lock;
-    keyboard_int_scroll_lock = keyboard_startup_scroll_lock;
-#endif
-
 }
 
 void KEYBOARD_Init() {

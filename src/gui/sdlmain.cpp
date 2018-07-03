@@ -7355,6 +7355,16 @@ void OutputSettingMenuUpdate(void) {
 
 bool custom_bios = false;
 
+bool keyboard_startup_num_lock;
+bool keyboard_startup_caps_lock;
+bool keyboard_startup_scroll_lock;
+bool keyboard_ext_num_lock;
+bool keyboard_ext_caps_lock;
+bool keyboard_ext_scroll_lock;
+bool keyboard_int_num_lock;
+bool keyboard_int_caps_lock;
+bool keyboard_int_scroll_lock;
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);
@@ -7942,6 +7952,20 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             Section_prop *sec = static_cast<Section_prop *>(control->GetSection("dosbox"));
             enable_hook_special_keys = sec->Get_bool("keyboard hook");
         }
+#endif
+
+        // set external keys, save initial value, set internal keys
+#if WIN32
+        const auto kbd               = dynamic_cast<Section_prop *>(control->GetSection("keyboard"));
+        keyboard_startup_num_lock    = kbd->Get_bool("startup_num_lock");
+        keyboard_startup_caps_lock   = kbd->Get_bool("startup_caps_lock");
+        keyboard_startup_scroll_lock = kbd->Get_bool("startup_scroll_lock");
+        keyboard_ext_num_lock        = BIOS_SetExternalKeyState(LOCKABLE_KEY::NumLock, keyboard_startup_num_lock);
+        keyboard_ext_caps_lock       = BIOS_SetExternalKeyState(LOCKABLE_KEY::CapsLock, keyboard_startup_caps_lock);
+        keyboard_ext_scroll_lock     = BIOS_SetExternalKeyState(LOCKABLE_KEY::ScrollLock, keyboard_startup_scroll_lock);
+        keyboard_int_num_lock        = keyboard_startup_num_lock;
+        keyboard_int_caps_lock       = keyboard_startup_caps_lock;
+        keyboard_int_scroll_lock     = keyboard_startup_scroll_lock;
 #endif
 
         MSG_Init();
