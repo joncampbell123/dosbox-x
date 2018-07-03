@@ -206,6 +206,12 @@ enum class LOCKABLE_KEY
 void BIOS_GetInternalKeyState(LOCKABLE_KEY key, bool& act, bool& led);
 
 /*
+ * \brief Gets the internal state of a lockable key.
+ * \return Is the key toggled ?
+ */
+bool BIOS_GetInternalKeyState(LOCKABLE_KEY key);
+
+/*
  * \brief Gets the external state of a lockable key.
  * \return Is the key toggled ?
  */

@@ -5279,6 +5279,16 @@ void GFX_EventsMouse()
 #endif
 }
 
+bool keyboard_startup_num_lock;
+bool keyboard_startup_caps_lock;
+bool keyboard_startup_scroll_lock;
+bool keyboard_ext_num_lock;
+bool keyboard_ext_caps_lock;
+bool keyboard_ext_scroll_lock;
+bool keyboard_int_num_lock;
+bool keyboard_int_caps_lock;
+bool keyboard_int_scroll_lock;
+
 void GFX_Events() {
     CheckMapperKeyboardLayout();
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
@@ -5500,6 +5510,39 @@ void GFX_Events() {
         }
 #endif
         case SDL_ACTIVEEVENT:
+
+            if (event.active.state & SDL_APPINPUTFOCUS)
+            {
+                if(event.active.gain)
+                {
+                    keyboard_ext_num_lock    = BIOS_GetExternalKeyState(LOCKABLE_KEY::NumLock);
+                    keyboard_ext_caps_lock   = BIOS_GetExternalKeyState(LOCKABLE_KEY::CapsLock);
+                    keyboard_ext_scroll_lock = BIOS_GetExternalKeyState(LOCKABLE_KEY::ScrollLock);
+                    BIOS_SetExternalKeyState(LOCKABLE_KEY::NumLock, keyboard_int_num_lock);
+                    BIOS_SetExternalKeyState(LOCKABLE_KEY::CapsLock, keyboard_int_caps_lock);
+                    BIOS_SetExternalKeyState(LOCKABLE_KEY::ScrollLock, keyboard_int_scroll_lock);
+                    BIOS_SetInternalKeyState(LOCKABLE_KEY::NumLock, keyboard_ext_num_lock);
+                    BIOS_SetInternalKeyState(LOCKABLE_KEY::CapsLock, keyboard_ext_caps_lock);
+                    BIOS_SetInternalKeyState(LOCKABLE_KEY::ScrollLock, keyboard_ext_scroll_lock);
+                }
+                else
+                {
+                    keyboard_int_num_lock    = BIOS_GetInternalKeyState(LOCKABLE_KEY::NumLock);
+                    keyboard_int_caps_lock   = BIOS_GetInternalKeyState(LOCKABLE_KEY::CapsLock);
+                    keyboard_int_scroll_lock = BIOS_GetInternalKeyState(LOCKABLE_KEY::ScrollLock);
+                    BIOS_SetExternalKeyState(LOCKABLE_KEY::NumLock, keyboard_ext_num_lock);
+                    BIOS_SetExternalKeyState(LOCKABLE_KEY::CapsLock, keyboard_ext_caps_lock);
+                    BIOS_SetExternalKeyState(LOCKABLE_KEY::ScrollLock, keyboard_ext_scroll_lock);
+                }
+                const auto lbl = event.active.gain ? "GAIN" : "LOST";
+                const auto sta = event.active.state;
+                LOG(LOG_KEYBOARD, LOG_DEBUG)("%s", lbl);
+                LOG(LOG_KEYBOARD, LOG_DEBUG)("%s st %d, int %d, %d, %d",
+                    lbl, sta, keyboard_int_num_lock, keyboard_int_caps_lock, keyboard_int_scroll_lock);
+                LOG(LOG_KEYBOARD, LOG_DEBUG)("%s st %d, ext %d, %d, %d",
+                    lbl, sta, keyboard_ext_num_lock, keyboard_ext_caps_lock, keyboard_ext_scroll_lock);
+            }
+
             if (event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
                 if (event.active.gain) {
                     if (sdl.desktop.fullscreen && !sdl.mouse.locked)
@@ -7354,16 +7397,6 @@ void OutputSettingMenuUpdate(void) {
 }
 
 bool custom_bios = false;
-
-bool keyboard_startup_num_lock;
-bool keyboard_startup_caps_lock;
-bool keyboard_startup_scroll_lock;
-bool keyboard_ext_num_lock;
-bool keyboard_ext_caps_lock;
-bool keyboard_ext_scroll_lock;
-bool keyboard_int_num_lock;
-bool keyboard_int_caps_lock;
-bool keyboard_int_scroll_lock;
 
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {

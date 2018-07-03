@@ -7427,6 +7427,13 @@ void BIOS_GetInternalKeyState(const LOCKABLE_KEY key, bool& act, bool& led)
     led              = flag2 & fLed;
 }
 
+bool BIOS_GetInternalKeyState(const LOCKABLE_KEY key)
+{
+    bool act, led;
+    BIOS_GetInternalKeyState(key, act, led);
+    return act;
+}
+
 bool BIOS_GetExternalKeyState(const LOCKABLE_KEY key)
 {
     const auto flags = BIOS_GetExternalKeyFlags(key);
