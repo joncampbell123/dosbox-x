@@ -5500,7 +5500,7 @@ void GFX_Events() {
         }
 #endif
         case SDL_ACTIVEEVENT:
-                if (event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
+            if (event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
                 if (event.active.gain) {
                     if (sdl.desktop.fullscreen && !sdl.mouse.locked)
                         GFX_CaptureMouse();
