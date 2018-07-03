@@ -7468,15 +7468,16 @@ bool BIOS_SetInternalKeyState(const LOCKABLE_KEY key, bool enabled)
 bool BIOS_SetExternalKeyState(const LOCKABLE_KEY key, bool enabled)
 {
     const auto prev = BIOS_GetExternalKeyState(key);
+
+    if(enabled == prev)
+        return enabled;
+
     const auto vKey = BIOS_GetExternalKeyFlags(key);
     const auto send = [](INPUT input)
     {
         if(!SendInput(1, &input, sizeof(INPUT)))
             LOG(LOG_KEYBOARD, LOG_ERROR)("Error during SendInput: %d", GetLastError());
     };
-
-    if(enabled == prev)
-        return enabled;
 
     INPUT input;
     input.type   = INPUT_KEYBOARD;
