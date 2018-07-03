@@ -386,9 +386,6 @@ bool                        emu_paused = false;
 bool                        mouselocked = false; //Global variable for mapper
 bool                        fullscreen_switch = true;
 bool                        dos_kernel_disabled = true;
-bool                        startup_state_numlock = false; // Global for keyboard initialisation
-bool                        startup_state_capslock = false; // Global for keyboard initialisation
-bool                        startup_state_scrlock = false; // Global for keyboard initialisation
 
 #if defined(WIN32) && !defined(C_SDL2)
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
@@ -6312,39 +6309,6 @@ void SetNumLock(void) {
 #endif
 }
 
-void CheckNumLockState(void) {
-#ifdef WIN32
-    BYTE keyState[256];
-
-    GetKeyboardState((LPBYTE)(&keyState));
-	if (keyState[VK_NUMLOCK] & 1) {
-		startup_state_numlock = true;
-	}
-#endif
-}
-
-void CheckCapsLockState(void) {
-#ifdef WIN32
-    BYTE keyState[256];
-
-    GetKeyboardState((LPBYTE)(&keyState));
-	if (keyState[VK_CAPITAL] & 1) {
-		startup_state_capslock = true;
-	}
-#endif
-}
-
-void CheckScrollLockState(void) {
-#ifdef WIN32
-    BYTE keyState[256];
-
-    GetKeyboardState((LPBYTE)(&keyState));
-	if (keyState[VK_SCROLL] & 1) {
-		startup_state_scrlock = true;
-	}
-#endif
-}
-
 extern bool log_keyboard_scan_codes;
 
 bool showconsole_init = false;
@@ -7499,11 +7463,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             } while (1);
         }
 #endif
-
-        /* -- Init the configuration system and add default values */
-        CheckNumLockState();
-        CheckCapsLockState();
-        CheckScrollLockState();
 
         /* -- setup the config sections for config parsing */
         LOG::SetupConfigSection();

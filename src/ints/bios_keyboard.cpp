@@ -1396,10 +1396,6 @@ Bitu INT16_Handler_Wrap(void) {
     return 0;
 }
 
-//Keyboard initialisation. src/gui/sdlmain.cpp
-extern bool startup_state_numlock;
-extern bool startup_state_capslock;
-extern bool startup_state_scrlock;
 
 static void InitBiosSegment(void) {
     /* Setup the variables for keyboard in the bios data segment */
@@ -1410,13 +1406,6 @@ static void InitBiosSegment(void) {
     Bit8u flag1 = 0;
     Bit8u leds = BIOS_KEYBOARD_LEDS_ACK;
 
-#if 0 /*SDL_VERSION_ATLEAST(1, 2, 14)*/
-//Nothing, mapper handles all.
-#else
-    if (startup_state_capslock) { flag1|=BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_CAPS_LOCK;}
-    if (startup_state_numlock)  { flag1|=BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_NUM_LOCK;}
-    if (startup_state_scrlock)  { flag1|=BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_SCROLL_LOCK;}
-#endif
 
     mem_writeb(BIOS_KEYBOARD_FLAGS1,flag1);
     mem_writeb(BIOS_KEYBOARD_FLAGS2,0);
