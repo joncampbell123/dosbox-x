@@ -1662,6 +1662,15 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(auxdevices);
     Pstring->Set_help("Type of PS/2 mouse attached to the AUX port");
 
+    Pbool = secprop->Add_bool("startup_num_lock", Property::Changeable::OnlyAtStart, true);
+    Pbool->Set_help("Enable Num Lock at startup ?");
+
+    Pbool = secprop->Add_bool("startup_caps_lock", Property::Changeable::OnlyAtStart, false);
+    Pbool->Set_help("Enable Caps Lock at startup ?");
+
+    Pbool = secprop->Add_bool("startup_scroll_lock", Property::Changeable::OnlyAtStart, false);
+    Pbool->Set_help("Enable Scroll Lock at startup ?");
+
     secprop=control->AddSection_prop("pci",&Null_Init,false); //PCI bus
 
     Pstring = secprop->Add_string("voodoo",Property::Changeable::WhenIdle,"auto");

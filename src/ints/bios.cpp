@@ -7377,61 +7377,115 @@ void ROMBIOS_Init() {
     }
 }
 
-//! \brief Updates the state of a lockable key.
-void UpdateKeyWithLed(int nVirtKey, int flagAct, int flagLed);
+#pragma region OK
 
-void BIOS_SynchronizeNumLock()
+int GetExtKeyFlags(const LOCKABLE_KEY key)
 {
-#if defined(WIN32)
-	UpdateKeyWithLed(VK_NUMLOCK, BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE, BIOS_KEYBOARD_LEDS_NUM_LOCK);
-#endif
+    switch(key)
+    {
+    case LOCKABLE_KEY::NumLock:
+        return VK_NUMLOCK;
+    case LOCKABLE_KEY::CapsLock:
+        return VK_CAPITAL;
+    case LOCKABLE_KEY::ScrollLock:
+        return VK_SCROLL;
+    default:
+        throw std::runtime_error("Lockable key not defined.");
+    }
 }
 
-void BIOS_SynchronizeCapsLock()
+bool GetExtKeyState(const LOCKABLE_KEY key)
 {
-#if defined(WIN32)
-	UpdateKeyWithLed(VK_CAPITAL, BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_CAPS_LOCK);
-#endif
+    const auto flags = GetExtKeyFlags(key);
+    const auto state = GetKeyState(flags);
+    const auto enabl = state & 0x0001;
+    return enabl;
 }
 
-void BIOS_SynchronizeScrollLock()
+bool SetExtKeyState(const LOCKABLE_KEY key, bool enabled)
 {
-#if defined(WIN32)
-	UpdateKeyWithLed(VK_SCROLL, BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_SCROLL_LOCK);
-#endif
+    const auto toggled = GetExtKeyState(key);
+    const auto vk      = GetExtKeyFlags(key);
+    const auto send    = [](INPUT input)
+    {
+        if(!SendInput(1, &input, sizeof(INPUT)))
+            LOG(LOG_KEYBOARD, LOG_ERROR)("Error during SendInput: %d", GetLastError());
+    };
+
+    if(enabled == toggled)
+        return enabled;
+    
+    INPUT input;
+    input.type   = INPUT_KEYBOARD;
+    input.ki.wVk = vk;
+
+    input.ki.dwFlags = 0;
+    send(input);
+
+    input.ki.dwFlags = KEYEVENTF_KEYUP;
+    send(input);
+
+    return toggled;
 }
 
-void UpdateKeyWithLed(int nVirtKey, int flagAct, int flagLed)
+void GetIntKeyFlags(const LOCKABLE_KEY key, int& act, int& led)
 {
-#if defined(WIN32)
-
-	const auto state = GetKeyState(nVirtKey);
-
-	const auto flags1 = BIOS_KEYBOARD_FLAGS1;
-	const auto flags2 = BIOS_KEYBOARD_LEDS;
-
-	auto flag1 = mem_readb(flags1);
-	auto flag2 = mem_readb(flags2);
-
-	if (state & 1)
-	{
-		flag1 |= flagAct;
-		flag2 |= flagLed;
-	}
-	else
-	{
-		flag1 &= ~flagAct;
-		flag2 &= ~flagLed;
-	}
-
-	mem_writeb(flags1, flag1);
-	mem_writeb(flags2, flag2);
-
-#else
-
-    (void)nVirtKey;
-    (void)flagAct;
-    (void)flagLed;
-
-#endif
+    switch(key)
+    {
+    case LOCKABLE_KEY::NumLock:
+        act = BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE;
+        led = BIOS_KEYBOARD_LEDS_NUM_LOCK;
+        break;
+    case LOCKABLE_KEY::CapsLock:
+        act = BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;
+        led = BIOS_KEYBOARD_LEDS_CAPS_LOCK;
+        break;
+    case LOCKABLE_KEY::ScrollLock:
+        act = BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE;
+        led = BIOS_KEYBOARD_LEDS_SCROLL_LOCK;
+        break;
+    default:
+        throw std::runtime_error("Lockable key not defined.");
+    }
 }
+
+void GetIntKeyState(const LOCKABLE_KEY key, bool& act, bool& led)
+{
+    int fAct, fLed;
+
+    GetIntKeyFlags(key, fAct, fLed);
+
+    const auto flag1 = mem_readb(BIOS_KEYBOARD_FLAGS1);
+    const auto flag2 = mem_readb(BIOS_KEYBOARD_LEDS);
+    act              = flag1 & fAct;
+    led              = flag2 & fLed;
+}
+
+bool SetIntKeyState(const LOCKABLE_KEY key, bool enabled)
+{
+    int fAct, fLed;
+    GetIntKeyFlags(key, fAct, fLed);
+
+    const auto flags1 = BIOS_KEYBOARD_FLAGS1;
+    const auto flags2 = BIOS_KEYBOARD_LEDS;
+    auto       flag1  = mem_readb(flags1);
+    auto       flag2  = mem_readb(flags2);
+
+    if(enabled)
+    {
+        flag1 |= fAct;
+        flag2 |= fLed;
+    }
+    else
+    {
+        flag1 &= ~fAct;
+        flag2 &= ~fLed;
+    }
+
+    mem_writeb(flags1, flag1);
+    mem_writeb(flags2, flag2);
+
+    return SetExtKeyState(key, enabled);
+}
+
+#pragma endregion

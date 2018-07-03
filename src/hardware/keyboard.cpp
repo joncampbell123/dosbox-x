@@ -30,6 +30,7 @@
 #include "timer.h"
 #include <math.h>
 #include "8255.h"
+#include "bios.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -1634,10 +1635,25 @@ void KEYBOARD_AddKey(KBD_KEYS keytype,bool pressed) {
         }
     };
 }
-    
+
+bool keyboard_startup_num_lock;
+bool keyboard_startup_caps_lock;
+bool keyboard_startup_scroll_lock;
+extern bool keyboard_ext_num_lock;
+extern bool keyboard_ext_caps_lock;
+extern bool keyboard_ext_scroll_lock;
+extern bool keyboard_int_num_lock;
+extern bool keyboard_int_caps_lock;
+extern bool keyboard_int_scroll_lock;
+ 
 static void KEYBOARD_ShutDown(Section * sec) {
     (void)sec;//UNUSED
     TIMER_DelTickHandler(&KEYBOARD_TickHandler);
+
+    // restore host keys
+    SetExtKeyState(LOCKABLE_KEY::NumLock, keyboard_ext_num_lock);
+    SetExtKeyState(LOCKABLE_KEY::CapsLock, keyboard_ext_caps_lock);
+    SetExtKeyState(LOCKABLE_KEY::ScrollLock, keyboard_ext_scroll_lock);
 }
 
 bool KEYBOARD_Report_BIOS_PS2Mouse() {
@@ -2358,6 +2374,10 @@ void KEYBOARD_OnReset(Section *sec) {
         }
     }
 
+    keyboard_startup_num_lock = section->Get_bool("startup_num_lock");
+    keyboard_startup_caps_lock = section->Get_bool("startup_caps_lock");
+    keyboard_startup_scroll_lock = section->Get_bool("startup_scroll_lock");
+
     if (IS_PC98_ARCH) {
         KEYBOARD_OnEnterPC98(NULL);
         KEYBOARD_OnEnterPC98_phase2(NULL);
@@ -2375,6 +2395,15 @@ void KEYBOARD_OnReset(Section *sec) {
     write_p61(0,0,0);
     KEYBOARD_Reset();
     AUX_Reset();
+
+    // set external keys, save initial value
+    keyboard_ext_num_lock    = SetExtKeyState(LOCKABLE_KEY::NumLock, keyboard_startup_num_lock);
+    keyboard_ext_caps_lock   = SetExtKeyState(LOCKABLE_KEY::CapsLock, keyboard_startup_caps_lock);
+    keyboard_ext_scroll_lock = SetExtKeyState(LOCKABLE_KEY::ScrollLock, keyboard_startup_scroll_lock);
+    // set internal keys
+    keyboard_int_num_lock    = keyboard_startup_num_lock;
+    keyboard_int_caps_lock   = keyboard_startup_caps_lock;
+    keyboard_int_scroll_lock = keyboard_startup_scroll_lock;
 }
 
 void KEYBOARD_Init() {

@@ -386,9 +386,6 @@ bool                        emu_paused = false;
 bool                        mouselocked = false; //Global variable for mapper
 bool                        fullscreen_switch = true;
 bool                        dos_kernel_disabled = true;
-bool                        startup_state_numlock = false; // Global for keyboard initialisation
-bool                        startup_state_capslock = false; // Global for keyboard initialisation
-bool                        startup_state_scrlock = false; // Global for keyboard initialisation
 
 #if defined(WIN32) && !defined(C_SDL2)
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
@@ -5282,6 +5279,14 @@ void GFX_EventsMouse()
 #endif
 }
 
+bool keyboard_int_num_lock;
+bool keyboard_int_caps_lock;
+bool keyboard_int_scroll_lock;
+bool keyboard_ext_num_lock;
+bool keyboard_ext_caps_lock;
+bool keyboard_ext_scroll_lock;
+bool keyboard_guard;
+
 void GFX_Events() {
     CheckMapperKeyboardLayout();
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
@@ -5503,15 +5508,34 @@ void GFX_Events() {
         }
 #endif
         case SDL_ACTIVEEVENT:
-                if (event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
+
+            if (event.active.gain)
+            {
+                if (0&&event.active.state & SDL_APPINPUTFOCUS)
+                {
+                    keyboard_guard = true;
+                    keyboard_ext_num_lock    = SetIntKeyState(LOCKABLE_KEY::NumLock, keyboard_int_num_lock);
+                    keyboard_ext_caps_lock   = SetIntKeyState(LOCKABLE_KEY::CapsLock, keyboard_int_caps_lock);
+                    keyboard_ext_scroll_lock = SetIntKeyState(LOCKABLE_KEY::ScrollLock, keyboard_int_scroll_lock);
+                    keyboard_guard = false;
+                }
+            }
+            else
+            {
+                if (0&&event.active.state & SDL_APPINPUTFOCUS)
+                {
+                    keyboard_int_num_lock    = SetExtKeyState(LOCKABLE_KEY::NumLock, keyboard_ext_num_lock);
+                    keyboard_int_caps_lock   = SetExtKeyState(LOCKABLE_KEY::CapsLock, keyboard_ext_caps_lock);
+                    keyboard_int_scroll_lock = SetExtKeyState(LOCKABLE_KEY::ScrollLock, keyboard_ext_scroll_lock);
+                }
+            }
+
+            if (event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
                 if (event.active.gain) {
                     if (sdl.desktop.fullscreen && !sdl.mouse.locked)
                         GFX_CaptureMouse();
                     SetPriority(sdl.priority.focus);
                     CPU_Disable_SkipAutoAdjust();
-					BIOS_SynchronizeNumLock();
-					BIOS_SynchronizeCapsLock();
-					BIOS_SynchronizeScrollLock();
 				} else {
                     if (sdl.mouse.locked)
                     {
@@ -5597,6 +5621,20 @@ void GFX_Events() {
 #ifdef WIN32
         case SDL_KEYDOWN:
         case SDL_KEYUP:
+
+        {
+            const auto format = event.type == SDL_KEYDOWN ? "SDL_KEYDOWN" : "SDL_KEYUP";
+            const auto keysym = event.key.keysym.sym;
+            auto       key    = "???";
+            if(keysym == SDLK_NUMLOCK)
+                key = "SDLK_NUMLOCK";
+            if(keysym == SDLK_CAPSLOCK)
+                key = "SDLK_CAPSLOCK";
+            if(keysym == SDLK_SCROLLOCK)
+                key = "SDLK_SCROLLOCK";
+            LOG_MSG("-------------------------");
+            LOG_MSG("Type: %s, Sym: %s", format, key);
+        }
             // ignore event alt+tab
             if (event.key.keysym.sym==SDLK_LALT) sdl.laltstate = event.key.type;
             if (event.key.keysym.sym==SDLK_RALT) sdl.raltstate = event.key.type;
@@ -6312,39 +6350,6 @@ void SetNumLock(void) {
 
     // Simulate a key release
     keybd_event(VK_NUMLOCK,0x45,KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP,0);
-#endif
-}
-
-void CheckNumLockState(void) {
-#ifdef WIN32
-    BYTE keyState[256];
-
-    GetKeyboardState((LPBYTE)(&keyState));
-	if (keyState[VK_NUMLOCK] & 1) {
-		startup_state_numlock = true;
-	}
-#endif
-}
-
-void CheckCapsLockState(void) {
-#ifdef WIN32
-    BYTE keyState[256];
-
-    GetKeyboardState((LPBYTE)(&keyState));
-	if (keyState[VK_CAPITAL] & 1) {
-		startup_state_capslock = true;
-	}
-#endif
-}
-
-void CheckScrollLockState(void) {
-#ifdef WIN32
-    BYTE keyState[256];
-
-    GetKeyboardState((LPBYTE)(&keyState));
-	if (keyState[VK_SCROLL] & 1) {
-		startup_state_scrlock = true;
-	}
 #endif
 }
 
@@ -7502,11 +7507,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             } while (1);
         }
 #endif
-
-        /* -- Init the configuration system and add default values */
-        CheckNumLockState();
-        CheckCapsLockState();
-        CheckScrollLockState();
 
         /* -- setup the config sections for config parsing */
         LOG::SetupConfigSection();
