@@ -5535,9 +5535,8 @@ void GFX_Events() {
                     BIOS_SetExternalKeyState(LOCKABLE_KEY::CapsLock, keyboard_ext_caps_lock);
                     BIOS_SetExternalKeyState(LOCKABLE_KEY::ScrollLock, keyboard_ext_scroll_lock);
                 }
-                const auto lbl = event.active.gain ? "GAIN" : "LOST";
+                const auto lbl = event.active.gain ? "Focus GAIN" : "Focus LOST";
                 const auto sta = event.active.state;
-                LOG(LOG_KEYBOARD, LOG_DEBUG)("%s", lbl);
                 LOG(LOG_KEYBOARD, LOG_DEBUG)("%s st %d, int %d, %d, %d",
                     lbl, sta, keyboard_int_num_lock, keyboard_int_caps_lock, keyboard_int_scroll_lock);
                 LOG(LOG_KEYBOARD, LOG_DEBUG)("%s st %d, ext %d, %d, %d",
