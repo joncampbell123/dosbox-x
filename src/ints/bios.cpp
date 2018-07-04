@@ -7486,14 +7486,18 @@ bool BIOS_SetExternalKeyState(const LOCKABLE_KEY key, bool enabled)
             LOG(LOG_KEYBOARD, LOG_ERROR)("Error during SendInput: %d", GetLastError());
     };
 
+    const auto vScan = MapVirtualKey(vKey, MAPVK_VK_TO_VSC);
+    if (vScan == 0)
+        throw std::runtime_error(std::string("Couldn't map virtual key ").append(std::to_string(vKey)));
+
     INPUT input;
     input.type   = INPUT_KEYBOARD;
-    input.ki.wVk = vKey;
+    input.ki.wScan = vScan;
 
-    input.ki.dwFlags = 0;
+    input.ki.dwFlags = KEYEVENTF_SCANCODE;
     send(input);
 
-    input.ki.dwFlags = KEYEVENTF_KEYUP;
+    input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
     send(input);
 
     return prev;
