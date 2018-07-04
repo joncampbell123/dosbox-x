@@ -5511,6 +5511,7 @@ void GFX_Events() {
 #endif
         case SDL_ACTIVEEVENT:
 
+#if WIN32
             if (event.active.state & SDL_APPINPUTFOCUS)
             {
                 if(event.active.gain)
@@ -5542,6 +5543,7 @@ void GFX_Events() {
                 LOG(LOG_KEYBOARD, LOG_DEBUG)("%s st %d, ext %d, %d, %d",
                     lbl, sta, keyboard_ext_num_lock, keyboard_ext_caps_lock, keyboard_ext_scroll_lock);
             }
+#endif
 
             if (event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
                 if (event.active.gain) {
