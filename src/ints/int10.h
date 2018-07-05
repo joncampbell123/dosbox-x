@@ -138,6 +138,7 @@ typedef struct {
 		Bit16u pmode_interface_start;
 		Bit16u pmode_interface_window;
 		Bit16u pmode_interface_palette;
+        Bit16u vesa_alloc_modes;
 		Bit16u used;
 	} rom;
 	Bit16u vesa_setmode;
@@ -151,6 +152,8 @@ typedef struct {
 #define _S3_PIXEL_DOUBLE		0x0008
 #define _REPEAT1			    0x0010  /* VGA doublescan (bit 0 of max scanline) */
 #define _CGA_SYNCDOUBLE			0x0020
+#define _USER_DISABLED          0x4000  /* disabled (cannot set mode) but still listed in modelist */
+#define _USER_MODIFIED          0x8000  /* user modified (through VESAMOED) */
 
 extern Int10Data int10;
 
