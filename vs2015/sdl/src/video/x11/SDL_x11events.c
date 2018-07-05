@@ -1128,13 +1128,13 @@ static int keybhack_jp = 0;
 static int keybhack_jp_ro = -1;
 static int keybhack_jp_yen = -1;
 
-void SDL1_hax_X11_clearfix(void) {
+void DECLSPEC SDL1_hax_X11_clearfix(void) {
     keybhack_jp = 0;
     keybhack_jp_ro = -1;
     keybhack_jp_yen = -1;
 }
 
-void SDL1_hax_X11_jpfix(int ro_scan,int yen_scan) {
+void DECLSPEC SDL1_hax_X11_jpfix(int ro_scan,int yen_scan) {
     SDL1_hax_X11_clearfix();
 
     keybhack_jp = 1;
