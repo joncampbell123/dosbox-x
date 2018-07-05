@@ -1780,7 +1780,11 @@ void GFX_ReleaseMouse(void) {
 }
 
 void GFX_CaptureMouse(void) {
-    sdl.mouse.locked=!sdl.mouse.locked;
+    GFX_CaptureMouse(!sdl.mouse.locked);
+}
+
+void GFX_CaptureMouse(bool capture) {
+    sdl.mouse.locked=capture;
     if (sdl.mouse.locked) {
 #if defined(C_SDL2)
         SDL_SetRelativeMouseMode(SDL_TRUE);
@@ -1838,9 +1842,8 @@ void GFX_UpdateSDLCaptureState(void) {
 }
 
 #if WIN32
-void CaptureMouseNotifyWin32()
+void CaptureMouseNotifyWin32(bool lck)
 {
-    const auto lck = sdl.mouse.locked;
     switch (sdl.mouse.autolock_feedback)
     {
     case AUTOLOCK_FEEDBACK_NONE: break;
@@ -1883,8 +1886,13 @@ void CaptureMouseNotifyWin32()
 
 void CaptureMouseNotify()
 {
+    CaptureMouseNotify(sdl.mouse.locked);
+}
+
+void CaptureMouseNotify(bool capture)
+{
 #if WIN32
-    CaptureMouseNotifyWin32();
+    CaptureMouseNotifyWin32(capture);
 #else
     // TODO
 #endif
@@ -4334,8 +4342,8 @@ void GFX_EventsMouseProcess(const long x, const long y, const long rx, const lon
         evt.motion.which = 0;
         evt.motion.x     = x3;
         evt.motion.y     = y3;
-        evt.motion.xrel  = rx;
-        evt.motion.yrel  = ry;
+        evt.motion.xrel  = (Sint16)((rx >= 0) ? min(rx, 32767) : max(rx, -32768));
+        evt.motion.yrel  = (Sint16)((ry >= 0) ? min(ry, 32767) : max(ry, -32768));
         SDL_PushEvent(&evt);
     }
 

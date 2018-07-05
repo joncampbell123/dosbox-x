@@ -151,53 +151,19 @@ Bitu OUTPUT_DIRECT3D_SetSize()
     }
 #endif
 
-    if (fixedWidth && fixedHeight) 
+    sdl.clip.x = sdl.clip.y = 0;
+    if (fixedWidth && fixedHeight)
     {
-        sdl.clip.w = fixedWidth;
-        sdl.clip.h = fixedHeight;
-
-        if (render.aspect) 
-        {
-            if (fixedWidth > sdl.srcAspect.xToY * fixedHeight) // output broader than input => black bars left and right
-            {
-                sdl.clip.w = static_cast<int>(fixedHeight * sdl.srcAspect.xToY);
-            }
-            else // black bars top and bottom
-            {
-                sdl.clip.h = static_cast<int>(fixedWidth * sdl.srcAspect.yToX);
-            }
-        }
-
-        sdl.clip.x = (fixedWidth - sdl.clip.w) / 2;
-        sdl.clip.y = (fixedHeight - sdl.clip.h) / 2;
-        windowWidth = fixedWidth;
-        windowHeight = fixedHeight;
+        sdl.clip.w = windowWidth = fixedWidth;
+        sdl.clip.h = windowHeight = fixedHeight;
+        if (render.aspect) aspectCorrectFitClip(sdl.clip.w, sdl.clip.h, sdl.clip.x, sdl.clip.y, fixedWidth, fixedHeight);
     }
     else 
     {
-        sdl.clip.w = windowWidth = (Bit16u)(sdl.draw.width * sdl.draw.scalex);
-        sdl.clip.h = windowHeight = (Bit16u)(sdl.draw.height * sdl.draw.scaley);
-
-        if (render.aspect) {
-            // we solve problem of aspect ratio based window extension here when window size is not set explicitly
-            if (windowWidth * sdl.srcAspect.y != windowHeight * sdl.srcAspect.x)
-            {
-                // abnormal aspect ratio detected, apply correction
-                if (windowWidth * sdl.srcAspect.y > windowHeight * sdl.srcAspect.x)
-                {
-                    // wide pixel ratio, height should be extended to fit
-                    sdl.clip.h = windowHeight = (Bitu)floor((double)windowWidth * sdl.srcAspect.y / sdl.srcAspect.x + 0.5);
-                }
-                else
-                {
-                    // long pixel ratio, width should be extended
-                    sdl.clip.w = windowWidth = (Bitu)floor((double)windowHeight * sdl.srcAspect.x / sdl.srcAspect.y + 0.5);
-                }
-            }
-        }
-
-        sdl.clip.x = (windowWidth - sdl.clip.w) / 2;
-        sdl.clip.y = (windowHeight - sdl.clip.h) / 2;
+        windowWidth = (Bit16u)(sdl.draw.width * sdl.draw.scalex);
+        windowHeight = (Bit16u)(sdl.draw.height * sdl.draw.scaley);
+        if (render.aspect) aspectCorrectExtend(windowWidth, windowHeight);
+        sdl.clip.w = windowWidth; sdl.clip.h = windowHeight;
     }
 
     // when xBRZ scaler is used, we can adjust render target size to exactly what xBRZ scaler will output, leaving final scaling to default D3D scaler / shaders

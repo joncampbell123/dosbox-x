@@ -82,10 +82,10 @@ static SDL_Surface* SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp)
     }
 #endif
 
-    if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen) 
+    sdl.clip.x = 0; sdl.clip.y = 0;
+    if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen)
     { 
         /* 3Dfx openGL do not allow resize */
-        sdl.clip.x = 0; sdl.clip.y = 0;
         sdl.clip.w = windowWidth = (Bit16u)Voodoo_OGL_GetWidth();
         sdl.clip.h = windowHeight = (Bit16u)Voodoo_OGL_GetHeight();
     }
@@ -93,48 +93,14 @@ static SDL_Surface* SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp)
     {
         sdl.clip.w = windowWidth = fixedWidth;
         sdl.clip.h = windowHeight = fixedHeight;
-
-        // adjust resulting image aspect ratio
-        if (render.aspect) 
-        {
-            if (fixedWidth > sdl.srcAspect.xToY * fixedHeight) // output broader than input => black bars left and right
-            {
-                sdl.clip.w = static_cast<int>(fixedHeight * sdl.srcAspect.xToY);
-            }
-            else // black bars top and bottom
-            {
-                sdl.clip.h = static_cast<int>(fixedWidth * sdl.srcAspect.yToX);
-            }
-        }
-
-        sdl.clip.x = (fixedWidth - sdl.clip.w) / 2;
-        sdl.clip.y = (fixedHeight - sdl.clip.h) / 2;
+        if (render.aspect) aspectCorrectFitClip(sdl.clip.w, sdl.clip.h, sdl.clip.x, sdl.clip.y, fixedWidth, fixedHeight);
     }
     else 
     {
-        sdl.clip.w = windowWidth = (Bit16u)(sdl.draw.width * sdl.draw.scalex);
-        sdl.clip.h = windowHeight = (Bit16u)(sdl.draw.height * sdl.draw.scaley);
-
-        if (render.aspect) {
-            // we solve problem of aspect ratio based window extension here when window size is not set explicitly
-            if (windowWidth * sdl.srcAspect.y != windowHeight * sdl.srcAspect.x)
-            {
-                // abnormal aspect ratio detected, apply correction
-                if (windowWidth * sdl.srcAspect.y > windowHeight * sdl.srcAspect.x)
-                {
-                    // wide pixel ratio, height should be extended to fit
-                    sdl.clip.h = windowHeight = (Bitu)floor((double)windowWidth * sdl.srcAspect.y / sdl.srcAspect.x + 0.5);
-                }
-                else
-                {
-                    // long pixel ratio, width should be extended
-                    sdl.clip.w = windowWidth = (Bitu)floor((double)windowHeight * sdl.srcAspect.x / sdl.srcAspect.y + 0.5);
-                }
-            }
-        }
-
-        sdl.clip.x = (windowWidth - sdl.clip.w) / 2;
-        sdl.clip.y = (windowHeight - sdl.clip.h) / 2;
+        windowWidth = (Bit16u)(sdl.draw.width * sdl.draw.scalex);
+        windowHeight = (Bit16u)(sdl.draw.height * sdl.draw.scaley);
+        if (render.aspect) aspectCorrectExtend(windowWidth, windowHeight);
+        sdl.clip.w = windowWidth; sdl.clip.h = windowHeight;
     }
 
     LOG(LOG_MISC, LOG_DEBUG)("GFX_SetSize OpenGL window=%ux%u clip=x,y,w,h=%d,%d,%d,%d",

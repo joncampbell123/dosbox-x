@@ -123,6 +123,11 @@ static void RENDER_EmptyLineHandler(const void * src) {
 /*HACK*/
 #if defined(__SSE__) && defined(_M_AMD64)
 # define sse2_available (1) /* SSE2 is always available on x86_64 */
+#else
+# ifdef __SSE__
+extern bool				sse1_available;
+extern bool				sse2_available;
+# endif
 #endif
 /*END HACK*/
 
@@ -133,10 +138,8 @@ static void RENDER_StartLineHandler(const void * s) {
         Bits count = (Bits)render.src.start;
 #if defined(__SSE__)
         if (sse2_available) {
-#if defined (_MSC_VER)
-#define SIZEOF_INT_P sizeof(*src)
-#endif
-            static const Bitu simd_inc = 16/SIZEOF_INT_P;
+#define MY_SIZEOF_INT_P sizeof(*src)
+            static const Bitu simd_inc = 16/MY_SIZEOF_INT_P;
             while (count >= (Bits)simd_inc) {
                 __m128i v = _mm_loadu_si128((const __m128i*)src);
                 __m128i c = _mm_loadu_si128((const __m128i*)cache);
@@ -145,6 +148,7 @@ static void RENDER_StartLineHandler(const void * s) {
                     goto cacheMiss;
                 count-=(Bits)simd_inc; src+=simd_inc; cache+=simd_inc;
             }
+#undef MY_SIZEOF_INT_P
         }
         else
 #endif
