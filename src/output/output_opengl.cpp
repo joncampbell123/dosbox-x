@@ -99,7 +99,7 @@ static SDL_Surface* SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp)
     {
         windowWidth = (Bit16u)(sdl.draw.width * sdl.draw.scalex);
         windowHeight = (Bit16u)(sdl.draw.height * sdl.draw.scaley);
-        if (render.aspect) aspectCorrectWindow(windowWidth, windowHeight);
+        if (render.aspect) aspectCorrectExtend(windowWidth, windowHeight);
         sdl.clip.w = windowWidth; sdl.clip.h = windowHeight;
     }
 

@@ -93,7 +93,7 @@ retry:
 #if C_XBRZ || C_SURFACE_POSTRENDER_ASPECT
     // there is a small problem we need to solve here: aspect corrected windows can be smaller than needed due to source with non-4:3 pixel ratio
     // if we detect non-4:3 pixel ratio here with aspect correction on, we correct it so original fits into resized window properly
-    if (render.aspect) aspectCorrectWindow(width, height);
+    if (render.aspect) aspectCorrectExtend(width, height);
 #endif
 
     sdl.clip.w = width; sdl.clip.h = height;

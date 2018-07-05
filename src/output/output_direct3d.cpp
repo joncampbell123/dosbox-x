@@ -162,7 +162,7 @@ Bitu OUTPUT_DIRECT3D_SetSize()
     {
         windowWidth = (Bit16u)(sdl.draw.width * sdl.draw.scalex);
         windowHeight = (Bit16u)(sdl.draw.height * sdl.draw.scaley);
-        if (render.aspect) aspectCorrectWindow(windowWidth, windowHeight);
+        if (render.aspect) aspectCorrectExtend(windowWidth, windowHeight);
         sdl.clip.w = windowWidth; sdl.clip.h = windowHeight;
     }
 

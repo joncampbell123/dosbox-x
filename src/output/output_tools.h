@@ -18,7 +18,7 @@ static inline int int_log2(int val)
 }
 
 template <class WH>
-inline void aspectCorrectWindow(volatile WH &width, volatile WH &height)
+inline void aspectCorrectExtend(volatile WH &width, volatile WH &height)
 {
     if (width * sdl.srcAspect.y != height * sdl.srcAspect.x)
     {
