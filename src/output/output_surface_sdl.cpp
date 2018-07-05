@@ -93,23 +93,7 @@ retry:
 #if C_XBRZ || C_SURFACE_POSTRENDER_ASPECT
     // there is a small problem we need to solve here: aspect corrected windows can be smaller than needed due to source with non-4:3 pixel ratio
     // if we detect non-4:3 pixel ratio here with aspect correction on, we correct it so original fits into resized window properly
-    if (render.aspect)
-    {
-        if (width * sdl.srcAspect.y != height * sdl.srcAspect.x)
-        {
-            // abnormal aspect ratio detected, apply correction
-            if (width * sdl.srcAspect.y > height * sdl.srcAspect.x)
-            {
-                // wide pixel ratio, height should be extended to fit
-                height = (Bitu)floor((double)width * sdl.srcAspect.y / sdl.srcAspect.x + 0.5);
-            }
-            else
-            {
-                // long pixel ratio, width should be extended
-                width = (Bitu)floor((double)height * sdl.srcAspect.x / sdl.srcAspect.y + 0.5);
-            }
-        }
-    }
+    if (render.aspect) aspectCorrectWindow(width, height);
 #endif
 
     sdl.clip.w = width; sdl.clip.h = height;
@@ -135,29 +119,7 @@ retry:
                 sdl.clip.x = sdl.clip.y = 0;
                 sdl.clip.w = sdl.desktop.full.width;
                 sdl.clip.h = sdl.desktop.full.height;
-
-                if (render.aspect) {
-                    int ax,ay;
-                    int sh = sdl.desktop.full.height;
-                    int sw = (int)floor(sdl.desktop.full.height * sdl.srcAspect.xToY);
-
-                    if (sw > sdl.desktop.full.width) {
-                        sh = (sh * sdl.desktop.full.width) / sw;
-                        sw = sdl.desktop.full.width;
-                    }
-
-                    ax = (sdl.desktop.full.width - sw) / 2;
-                    ay = (sdl.desktop.full.height - sh) / 2;
-                    if (ax < 0) ax = 0;
-                    if (ay < 0) ay = 0;
-                    sdl.clip.x = ax;
-                    sdl.clip.y = ay;
-                    sdl.clip.w = sw;
-                    sdl.clip.h = sh;
-
-                    assert((sdl.clip.x+sdl.clip.w) <= sdl.desktop.full.width);
-                    assert((sdl.clip.y+sdl.clip.h) <= sdl.desktop.full.height);
-                }
+                if (render.aspect) aspectCorrectFitClip(sdl.clip.w, sdl.clip.h, sdl.clip.x, sdl.clip.y, sdl.desktop.full.width, sdl.desktop.full.height);
             }
 #endif 
         }
@@ -231,28 +193,7 @@ retry:
             sdl.clip.x = sdl.clip.y = 0;
             sdl.clip.w = final_width;
             sdl.clip.h = final_height;
-
-            if (render.aspect) {
-                int sh = final_height;
-                int sw = (int)floor(final_height * sdl.srcAspect.xToY);
-
-                if (sw > final_width) {
-                    sh = (sh * final_width) / sw;
-                    sw = final_width;
-                }
-
-                ax = (final_width - sw) / 2;
-                ay = (final_height - sh) / 2;
-                if (ax < 0) ax = 0;
-                if (ay < 0) ay = 0;
-                sdl.clip.x = ax;
-                sdl.clip.y = ay;
-                sdl.clip.w = sw;
-                sdl.clip.h = sh;
-
-                assert((sdl.clip.x+sdl.clip.w) <= final_width);
-                assert((sdl.clip.y+sdl.clip.h) <= final_height);
-            }
+            if (render.aspect) aspectCorrectFitClip(sdl.clip.w, sdl.clip.h, sdl.clip.x, sdl.clip.y, final_width, final_height);
         }
         else
 #endif 
