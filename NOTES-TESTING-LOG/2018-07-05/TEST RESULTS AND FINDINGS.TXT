@@ -41,7 +41,7 @@ Findings:
       affects bit 3 and bit 7 (possibly related to the 4-bit 256-color shift behavior listed
       above).
 
-    - If MONO=0, and graphics mode, the blink attribute in graphics mode seems to remap like this:
+    - If MONO=0, and graphics mode, the blink attribute seems to remap like this:
 
       if (color >= 8) {
         color = (color & 7) + (blink << 3);
@@ -50,7 +50,7 @@ Findings:
         color |= 8;
       }
 
-    - If MONO=1, or alphanumeric (text) mode, the blink attribute in graphics mode seems to remap like this:
+    - If MONO=1, or alphanumeric (text) mode, the blink attribute seems to remap like this:
 
       color = (color & 7) + (blink << 3);
 
