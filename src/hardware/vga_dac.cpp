@@ -238,28 +238,7 @@ void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
     }
 
     if (update) {
-        switch (vga.mode) {
-            case M_VGA:
-            case M_LIN8:
-                VGA_DAC_UpdateColor( vga.dac.write_index );
-                if ( GCC_UNLIKELY( vga.dac.pel_mask != 0xff)) {
-                    Bitu index = vga.dac.write_index;
-                    if ( (index & vga.dac.pel_mask) == index ) {
-                        for ( Bitu i = index+1;i<256;i++) 
-                            if ( (i & vga.dac.pel_mask) == index )
-                                VGA_DAC_UpdateColor( i );
-                    }
-                } 
-                break;
-            default:
-                /* Check for attributes and DAC entry link */
-                for (Bitu i=0;i<16;i++) {
-                    if (vga.dac.combine[i]==vga.dac.write_index) {
-                        VGA_DAC_SendColor( i, vga.dac.write_index );
-                    }
-                }
-                break;
-        }
+        VGA_DAC_UpdateColorPalette(); // FIXME: Yes, this is very inefficient. Will improve later.
 
         /* only if we just completed a color should we advance */
         if (vga.dac.pel_index == 0)
