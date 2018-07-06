@@ -109,7 +109,9 @@ Questions to answer in further development:
       ET4000 or different?
 
     - What does Color Select do on the ET3000/ET4000 cards? If you switch on the P54S bit in
-      256-color mode, what happens to the palette?
+      256-color mode, what happens to the palette? Theoretically, according to COPPER.EXE, it
+      means the low 4 bits get translated by the attribute controller and the upper 4 bits
+      are replaced with the Color Select Register. Verify this on real hardware.
 
 Ideas for further development:
 
