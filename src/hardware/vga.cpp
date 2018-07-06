@@ -192,6 +192,8 @@ bool pc98_attr4_graphic = false;
 bool gdc_analog = true;
 bool pc98_31khz_mode = false;
 
+unsigned char VGA_AC_remap = AC_4x4;
+
 unsigned int vga_display_start_hretrace = 0;
 float hretrace_fx_avg_weight = 3;
 
@@ -550,6 +552,25 @@ void VGA_Reset(Section*) {
 
     // EGC implies 16-color
     if (enable_pc98_16color) enable_pc98_16color = true;
+
+    str = section->Get_string("vga attribute controller mapping");
+    if (str == "4x4")
+        VGA_AC_remap = AC_4x4;
+    else if (str == "4low")
+        VGA_AC_remap = AC_low4;
+    else if (str == "first16")
+        VGA_AC_remap = AC_first16;
+    else {
+        /* auto:
+         *
+         * 4x4 by default.
+         * except for ET4000 which is 4low */
+        VGA_AC_remap = AC_4x4;
+        if (IS_VGA_ARCH) {
+            if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)
+                VGA_AC_remap = AC_low4;
+        }
+    }
 
     str = section->Get_string("pc-98 video mode");
     if (str == "31khz")

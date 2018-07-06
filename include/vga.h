@@ -478,6 +478,10 @@ void VGA_ATTR_SetPalette(Bit8u index,Bit8u val);
 
 typedef enum {CGA, EGA, MONO} EGAMonitorMode;
 
+typedef enum {AC_4x4, AC_low4/*4low*/, AC_first16} ACPalRemapMode;
+
+extern unsigned char VGA_AC_remap;
+
 void VGA_ATTR_SetEGAMonitorPalette(EGAMonitorMode m);
 
 /* The VGA Subfunction startups */
