@@ -558,6 +558,8 @@ void VGA_Reset(Section*) {
         VGA_AC_remap = AC_4x4;
     else if (str == "4low")
         VGA_AC_remap = AC_low4;
+    // TODO: It may be possible to remove AC_first16 and have only the low4 and 4x4 modes.
+    //       If removal happens, map "first16" to "4low"
     else if (str == "first16")
         VGA_AC_remap = AC_first16;
     else {
