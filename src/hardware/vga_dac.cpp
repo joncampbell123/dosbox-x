@@ -122,7 +122,7 @@ void VGA_DAC_UpdateColorPalette() {
 void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
-    if((IS_VGA_ARCH) && (svgaCard==SVGA_None) && (vga.dac.hidac_counter>3)) {
+    if((IS_VGA_ARCH) && (vga.dac.hidac_counter>3)) {
         vga.dac.reg02=val;
         vga.dac.hidac_counter=0;
         VGA_StartResize();
