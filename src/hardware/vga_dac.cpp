@@ -106,23 +106,14 @@ void VGA_DAC_UpdateColor( Bitu index ) {
                     /* Tseng ET4000 behavior, according to the SVGA card I have where only the low 4 bits are translated. --J.C. */
                     maskIndex  =  vga.dac.combine[index&0xF] & 0x0F;
 
-                    /* FIXME: TEST THIS ON THE ACTUAL ET4000. This seems to make COPPER.EXE work correctly without using AC_first16 */
+                    /* FIXME: TEST THIS ON THE ACTUAL ET4000. This seems to make COPPER.EXE work correctly.
+                     *        Is this what actual ET4000 hardware does in 256-color mode with Color Select? */
                     if (vga.attr.mode_control & 0x80)
                         maskIndex += vga.attr.color_select << 4;
                     else
                         maskIndex += index & 0xF0;
 
                     maskIndex &=  vga.dac.pel_mask;
-                    break;
-                case AC_first16:
-                    // TODO: It may be possible to remove AC_first16 and have only the low4 and 4x4 modes.
-                    //       The AC_low4 case above now correctly renders COPPER.EXE line-fading effects without error.
-                    /* Tseng ET4000 behavior, according to the democoders that wrote COPPER.EXE (line-fading effects require this).
-                     * only the first 16 colors are translated. */
-                    if (index >= 0x10)
-                        maskIndex = index & vga.dac.pel_mask;
-                    else
-                        maskIndex = vga.dac.combine[index&0xF] & vga.dac.pel_mask;
                     break;
             }
         }
@@ -299,11 +290,6 @@ void VGA_DAC_CombineColor(Bit8u attr,Bit8u pal) {
                     /* Tseng ET4000 behavior, according to the SVGA card I have where only the low 4 bits are translated. --J.C. */
                     for (unsigned int i=(unsigned int)attr;i < 0x100;i += 0x10)
                         VGA_DAC_UpdateColor( i );
-                    break;
-                case AC_first16:
-                    /* Tseng ET4000 behavior, according to the democoders that wrote COPPER.EXE (line-fading effects require this).
-                     * only the first 16 colors are translated. */
-                    VGA_DAC_UpdateColor( attr );
                     break;
             }
         }

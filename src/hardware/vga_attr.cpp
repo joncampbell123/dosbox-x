@@ -87,9 +87,7 @@ void VGA_ATTR_SetPalette(Bit8u index, Bit8u val) {
         // - (guess) apply bits 3-2 of the color select register to bits 7-6 as
         //   normally expected of VGA hardware in any video mode other than 256-color
         //   mode.
-        //
-        // TODO: It may be possible to remove AC_first16 and have only the low4 and 4x4 modes.
-        if (VGA_AC_remap == AC_first16 || VGA_AC_remap == AC_low4) {
+        if (VGA_AC_remap == AC_low4) {
             if (vga.attr.mode_control & 0x80)
                 val = (val&0xf) | (vga.attr.color_select << 4);
             else if (!(vga.mode == M_VGA || vga.mode == M_LIN8))

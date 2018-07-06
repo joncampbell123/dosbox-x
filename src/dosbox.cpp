@@ -998,11 +998,12 @@ void DOSBOX_SetupConfigSections(void) {
             "  auto                         Automatically pick the mapping based on the SVGA chipset.\n"
             "  4x4                          Split into two 4-bit nibbles, map through AC, recombine. This is standard VGA behavior including clone SVGA cards.\n"
             "  4low                         Split into two 4-bit nibbles, remap only the low 4 bits, recombine. This is standard ET4000 behavior.\n"
-            "  first16                      Remap only the first 16 colors, pass all else. This is (apparently) ET4000AX behavior.\n"
             "\n"
             "NOTES:\n"
-            "  Demoscene executable 'COPPER.EXE' requires the 'first16' behavior in order to display line-fading effects\n"
-            "  (including scrolling credits) correctly, else those parts of the demo show up as a blank screen.");
+            "  Demoscene executable 'COPPER.EXE' requires the '4low' behavior in order to display line-fading effects\n"
+            "  (including scrolling credits) correctly, else those parts of the demo show up as a blank screen.\n"
+            "  \n"
+            "  4low behavior is default for ET4000 emulation.");
 
     // TODO: At some point, I would like to make "mask" the default instead of "fast"
     Pstring = secprop->Add_string("a20",Property::Changeable::WhenIdle,"fast");
