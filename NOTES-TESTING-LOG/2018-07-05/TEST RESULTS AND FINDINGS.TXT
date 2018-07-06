@@ -57,6 +57,13 @@ Findings:
     - Noted, according to VGA register snapshots, is that the BIOS sets MONO=0 for all modes except
       mode 7 (80x25 mono text) and mode 15 (640x350 2-color graphics) where MONO=1.
 
+    - The DAC mask appears to apply after the Color Select register is applied to bits 7-6.
+      It also applies after application of Color Select applied to bits 5-4.
+
+    - Color Select bits 7-6 / 5-4 do not apply in 256-color mode (ignored). The bit to apply
+      bits 5-4 from Color Select (P54S) is ignored in 256-color mode. 256-color mode will
+      not apply any bits from Color Select.
+
 
 Other ideas to follow:
 
