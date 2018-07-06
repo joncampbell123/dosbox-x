@@ -91,10 +91,7 @@ static void VGA_DAC_SendColor( Bitu index, Bitu src ) {
 void VGA_DAC_UpdateColor( Bitu index ) {
     Bitu maskIndex;
 
-    if (IS_EGA_ARCH) {
-        VGA_DAC_SendColor( index, index );
-    }
-    else {
+    if (IS_VGA_ARCH) {
         switch (vga.mode) {
             case M_VGA:
             case M_LIN8:
@@ -111,6 +108,9 @@ void VGA_DAC_UpdateColor( Bitu index ) {
                 VGA_DAC_SendColor( index, maskIndex );
                 break;
         }
+    }
+    else {
+        VGA_DAC_SendColor( index, index );
     }
 }
 

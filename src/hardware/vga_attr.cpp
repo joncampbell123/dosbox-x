@@ -76,7 +76,7 @@ void VGA_ATTR_SetPalette(Bit8u index, Bit8u val) {
 	val &= 63; 
 	vga.attr.palette[index] = val;
 
-    if (!IS_EGA_ARCH) {
+    if (IS_VGA_ARCH) {
         // apply the plane mask
         val = vga.attr.palette[index & vga.attr.color_plane_enable];
 
