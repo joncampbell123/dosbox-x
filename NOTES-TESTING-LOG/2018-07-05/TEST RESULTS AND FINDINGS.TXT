@@ -101,6 +101,13 @@ Questions to answer in further development:
     - Do these SVGA cards work as documented, or do they ignore certain behaviors, act different,
       etc?
 
+    - What revision of the Tseng ET4000 was the test run on? The card I tested appears to always
+      remap the low 4 bits. The behavior of COPPER.EXE suggests that a revision of ET4000 existed
+      that remapped only the first 16 colors (leaving color >= 16 alone).
+
+    - What does the Tseng ET3000 do with the attribute controller palette? Is it the same as the
+      ET4000 or different?
+
 Ideas for further development:
 
     - DOSLIB VGA test program to demonstrate vertical retrace interrupt, whether it's occurring,
