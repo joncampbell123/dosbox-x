@@ -80,12 +80,11 @@ void VGA_ATTR_SetPalette(Bit8u index, Bit8u val) {
         // apply the plane mask
         val = vga.attr.palette[index & vga.attr.color_plane_enable];
 
-        // replace bits 4-5 if configured
+        // replace bits 4-5 if configured, 6-7 if not 256-color mode
         if (vga.attr.mode_control & 0x80)
             val = (val&0xf) | (vga.attr.color_select << 4);
-
-        // set bits 6 and 7 (not relevant for EGA)
-        val |= (vga.attr.color_select & 0xc) << 4;
+        else if (!(vga.mode == M_VGA || vga.mode == M_LIN8))
+            val |= (vga.attr.color_select & 0xc) << 4;
 
         // apply
         VGA_DAC_CombineColor(index,val);
