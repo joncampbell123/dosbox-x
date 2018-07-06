@@ -1,0 +1,98 @@
+2018/07/02 test results and findings.
+
+Test units:
+
+COMP-IBMPS2-30                                      An old IBM PS/2 Model 30 (286) with VGA
+DOSLIB-d7d079bfd75a71b4c4d5b2afc9efc5e69cefa152     DOSLIB, by indicated commit
+
+Equipment:
+
+    - HDMI video capture (PEXHDCAP 1080p30)
+
+    - VGA to HDMI adapter (one that matches the mode and converts as-is)
+
+Software:
+
+    - DOSLIB build:
+        git commit 848166fcacb6292773253273ef192ddae7942064
+
+Findings:
+
+    - VGA DAC test program shows straightforward attribute controller translation, as if
+      the 8-bit value is split into two 4-bit nibbles and translated on it's way through
+      the AC palette.
+
+    - Switching off 8BIT in the attribute controller shows a strange sort of 640x200
+      256-color mode, except that each pixel displayed looks as if half the value sent
+      to the DAC is loaded per pixel clock before becoming the full 8-bit value.
+
+      It's not certain yet whether the nibble value is loaded in or shifted in.
+
+      It's not certain yet which nibble is loaded first.
+
+    - Switching on the 8BIT in the attribute controller for any other video mode seems
+      to halve the video resolution without any other effects.
+
+    - The "MONO" bit, listed on FreeVGA as apparently doing nothing, appears to influence
+      how the blink attribute is applied on it's way to the DAC.
+
+    - On an IBM PS/2 model 30 (VGA), the blink attribute can be switched on in any VGA
+      graphics mode, which then acts on bit 3 in all modes except 256-color mode where it
+      affects bit 3 and bit 7 (possibly related to the 4-bit 256-color shift behavior listed
+      above).
+
+    - If MONO=0, and graphics mode, the blink attribute in graphics mode seems to remap like this:
+
+      if (color >= 8) {
+        color = (color & 7) + (blink << 3);
+      }
+      else {
+        color |= 8;
+      }
+
+    - If MONO=1, or alphanumeric (text) mode, the blink attribute in graphics mode seems to remap like this:
+
+      color = (color & 7) + (blink << 3);
+
+    - Noted, according to VGA register snapshots, is that the BIOS sets MONO=0 for all modes except
+      mode 7 (80x25 mono text) and mode 15 (640x350 2-color graphics) where MONO=1.
+
+
+Other ideas to follow:
+
+    - Jim Leonard on Twitter wants to know if the vertical retrace interrupt works.
+
+      Ref: https://twitter.com/MobyGamer/status/1015097180883955712
+
+      Ref: https://www.vogons.org/viewtopic.php?t=58445
+
+
+Questions to answer in further development:
+
+    - Is the blink attribute applied before or after the attribute palette remapping?
+
+    - What nibble is loaded first when 8BIT=0 in 256-color mode?
+
+    - What other VGA cards does this 256-color 8BIT=0 behavior occur, or more specifically,
+      what do clone cards do in this case?
+
+    - Is the value simply replaced a nibble at a time or is it shifted 4 bits and loaded?
+
+    - The Tseng ET4000, known to replace only the low 4 bits, should be re-tested with the
+      new code and to see what odd behaviors it has.
+
+    - Do other SVGA cards remap through the attribute controller in a way that the blink
+      attribute can affect the output in any mode?
+
+    - Regarding the vertical retrace interrupt, does it work on the PS/2?
+
+    - What other SVGA cards does the vertical retrace interrupt work on?
+
+    - Do these SVGA cards work as documented, or do they ignore certain behaviors, act different,
+      etc?
+
+Ideas for further development:
+
+    - DOSLIB VGA test program to demonstrate vertical retrace interrupt, whether it's occurring,
+      whether it works as documented.
+
