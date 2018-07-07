@@ -80,22 +80,26 @@ void VGA_ATTR_SetPalette(Bit8u index, Bit8u val) {
         // apply the plane mask
         val = vga.attr.palette[index & vga.attr.color_plane_enable];
 
-        // Tseng ET4000AX behavior (according to how COPPER.EXE treats the hardware):
-        // - if P54S (palette select bits 5-4) are enabled, replace bits 7-4 of the
+        // Tseng ET4000AX behavior (according to how COPPER.EXE treats the hardware)
+        // and according to real hardware:
+        //
+        // - If P54S (palette select bits 5-4) are enabled, replace bits 7-4 of the
         //   color index with the entire color select register. COPPER.EXE line fading
         //   tricks will not work correctly otherwise.
-        // - (guess) apply bits 3-2 of the color select register to bits 7-6 as
-        //   normally expected of VGA hardware in any video mode other than 256-color
-        //   mode.
+        //
+        // - If P54S is not enabled, then do not apply any Color Select register bits.
+        //   This is contrary to standard VGA behavior that would always apply Color
+        //   Select bits 3-2 to index bits 7-6 in any mode other than 256-color mode.
         if (VGA_AC_remap == AC_low4) {
             if (vga.attr.mode_control & 0x80)
                 val = (val&0xf) | (vga.attr.color_select << 4);
-            else if (!(vga.mode == M_VGA || vga.mode == M_LIN8))
-                val |= (vga.attr.color_select & 0xc) << 4;
         }
         // normal VGA/SVGA behavior:
+        //
         // - ignore color select in 256-color mode entirely
+        //
         // - otherwise, if P54S is enabled, replace bits 5-4 with bits 1-0 of color select.
+        //
         // - always replace bits 7-6 with bits 3-2 of color select.
         else {
             if (!(vga.mode == M_VGA || vga.mode == M_LIN8)) {
