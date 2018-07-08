@@ -191,6 +191,7 @@ bool pc98_graphics_hide_odd_raster_200line = false;
 bool pc98_attr4_graphic = false;
 bool gdc_analog = true;
 bool pc98_31khz_mode = false;
+bool int10_vesa_map_as_128kb = false;
 
 unsigned char VGA_AC_remap = AC_4x4;
 
@@ -618,6 +619,7 @@ void VGA_Reset(Section*) {
     vga_sierra_lock_565 = section->Get_bool("sierra ramdac lock 565");
     hretrace_fx_avg_weight = section->Get_double("hretrace effect weight");
     ignore_vblank_wraparound = section->Get_bool("ignore vblank wraparound");
+    int10_vesa_map_as_128kb = section->Get_bool("vesa map non-lfb modes to 128kb region");
     vga_enable_hretrace_effects = section->Get_bool("allow hretrace effects");
     enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
     vga_palette_update_on_full_load = section->Get_bool("vga palette update on full load");

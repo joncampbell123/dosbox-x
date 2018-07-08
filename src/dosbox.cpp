@@ -1342,6 +1342,17 @@ void DOSBOX_SetupConfigSections(void) {
             "location reported by the VESA BIOS. Set to nonzero for DOS games with sloppy VESA graphics pointer management.\n"
             "    MFX \"Melvindale\" (1996): Set this option to 2 to center the picture properly.");
 
+    /* If set, all VESA BIOS modes map 128KB of video RAM at A0000-BFFFF even though VESA BIOS emulation
+     * reports a 64KB window. Some demos like the 1996 Wired report
+     * (ftp.scene.org/pub/parties/1995/wired95/misc/e-w95rep.zip) assume they can write past the window
+     * by spilling into B0000 without bank switching. */
+    Pbool = secprop->Add_bool("vesa map non-lfb modes to 128kb region",Property::Changeable::Always,false);
+    Pbool->Set_help("If set, VESA BIOS SVGA modes will be set to map 128KB of video memory to A0000-BFFFF instead of\n"
+                    "64KB at A0000-AFFFF. This does not affect the SVGA window size or granularity.\n"
+                    "Some games or demoscene productions assume that they can render into the next SVGA window/bank\n"
+                    "by writing to video memory beyond the current SVGA window address and will not appear correctly\n"
+                    "without this option.");
+
     Pbool = secprop->Add_bool("allow hpel effects",Property::Changeable::Always,false);
     Pbool->Set_help("If set, allow the DOS demo or program to change the horizontal pel (panning) register per scanline.\n"
             "Some early DOS demos use this to create waving or sinus effects on the picture. Not very many VGA\n"
