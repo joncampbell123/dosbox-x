@@ -68,6 +68,7 @@ static Bit8u const dmatable[8] = { 0/*NO DMA*/, 1, 3, 5, 6, 7, 0/*invalid*/, 0/*
 static Bit8u GUSRam[1024*1024 + 16/*safety margin*/]; // 1024K of GUS Ram
 static Bit32s AutoAmp = 512;
 static bool enable_autoamp = false;
+static bool startup_ultrinit = false;
 static Bit16u vol16bit[4096];
 static Bit32u pantable[16];
 static enum GUSType gus_type = GUS_CLASSIC;
@@ -1982,6 +1983,8 @@ public:
 
         enable_autoamp = section->Get_bool("autoamp");
 
+        startup_ultrinit = section->Get_bool("startup initialized");
+
 		string s_pantable = section->Get_string("gus panning table");
 		if (s_pantable == "default" || s_pantable == "" || s_pantable == "accurate")
 			gus_fixed_table = true;
@@ -2163,7 +2166,16 @@ public:
 			// master volume update, updates ALL pairs
 			GUS_ICS2101.updateVolPair(gus_ICS2101::MASTER_OUTPUT_PORT);
 		}
-	}
+
+        // if instructed, configure the card as if ULTRINIT had been run
+        if (startup_ultrinit) {
+            myGUS.gRegData=0x700;
+            GUSReset();
+
+            myGUS.gRegData=0x700;
+            GUSReset();
+        }
+    }
 
     void DOS_Startup() {
 		int portat = 0x200+GUS_BASE;

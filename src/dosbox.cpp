@@ -2019,6 +2019,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Start the DOS virtual machine with the DMA channel already unmasked at the controller.\n"
             "Use this for DOS applications that expect to operate the GUS but forget to unmask the DMA channel.");
 
+    Pbool = secprop->Add_bool("startup initialized",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, start the GF1 in a fully initialized state (as if ULTRINIT had been run).\n"
+                    "If clear, leave the card in an uninitialized state (as if cold boot).\n"
+                    "Some DOS games or demoscene productions will hang or fail to use the Ultrasound hardware\n"
+                    "because they assume the card is initialized and their hardware detect does not fully initialize the card.");
+
     Pbool = secprop->Add_bool("clear dma tc irq if excess polling",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If the DOS application is seen polling the IRQ status register rapidly, automatically clear the DMA TC IRQ status.\n"
             "This is a hack that should only be used with DOS applications that need it to avoid bugs in their GUS support code.\n"
