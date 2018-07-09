@@ -88,6 +88,7 @@ struct GFGus {
 	Bit8u gRegSelect;
 	Bit16u gRegData;
 	Bit32u gDramAddr;
+	Bit32u gDramAddrMask;
 	Bit16u gCurChannel;
 
 	Bit8u gUltraMAXControl;
@@ -1376,8 +1377,8 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 
 		return reg16;
 	case 0x307:
-		if(myGUS.gDramAddr < myGUS.memsize) {
-			return GUSRam[myGUS.gDramAddr];
+		if((myGUS.gDramAddr & myGUS.gDramAddrMask) < myGUS.memsize) {
+			return GUSRam[myGUS.gDramAddr & myGUS.gDramAddrMask];
 		} else {
 			return 0;
 		}
@@ -1587,7 +1588,8 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 		ExecuteGlobRegister();
 		break;
 	case 0x307:
-		if(myGUS.gDramAddr < myGUS.memsize) GUSRam[myGUS.gDramAddr] = (Bit8u)val;
+		if ((myGUS.gDramAddr & myGUS.gDramAddrMask) < myGUS.memsize)
+            GUSRam[myGUS.gDramAddr & myGUS.gDramAddrMask] = (Bit8u)val;
 		break;
 	case 0x306:
 	case 0x706:
@@ -2181,6 +2183,9 @@ public:
 			// master volume update, updates ALL pairs
 			GUS_ICS2101.updateVolPair(gus_ICS2101::MASTER_OUTPUT_PORT);
 		}
+
+        // Default to GUS MAX 1MB maximum
+        myGUS.gDramAddrMask = 0xFFFFF;
 
         // if instructed, configure the card as if ULTRINIT had been run
         if (startup_ultrinit) {
