@@ -67,6 +67,7 @@ static Bit8u const irqtable[8] = { 0/*invalid*/, 2, 5, 3, 7, 11, 12, 15 };
 static Bit8u const dmatable[8] = { 0/*NO DMA*/, 1, 3, 5, 6, 7, 0/*invalid*/, 0/*invalid*/ };
 static Bit8u GUSRam[1024*1024 + 16/*safety margin*/]; // 1024K of GUS Ram
 static Bit32s AutoAmp = 512;
+static bool unmask_irq = false;
 static bool enable_autoamp = false;
 static bool startup_ultrinit = false;
 static Bit16u vol16bit[4096];
@@ -1981,6 +1982,7 @@ public:
         memset(&myGUS,0,sizeof(myGUS));
         memset(GUSRam,0,1024*1024);
 
+        unmask_irq = section->Get_bool("pic unmask irq");
         enable_autoamp = section->Get_bool("autoamp");
 
         startup_ultrinit = section->Get_bool("startup initialized");
@@ -2145,6 +2147,8 @@ public:
 
 		if (myGUS.initUnmaskDMA)
 			GetDMAChannel(myGUS.dma1)->SetMask(false);
+        if (unmask_irq)
+            PIC_SetIRQMask(myGUS.irq1,false);
 
 		gus_chan->Enable(true);
 

@@ -2019,6 +2019,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Start the DOS virtual machine with the DMA channel already unmasked at the controller.\n"
             "Use this for DOS applications that expect to operate the GUS but forget to unmask the DMA channel.");
 
+    Pbool = secprop->Add_bool("pic unmask irq",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Start the DOS virtual machine with the GUS IRQ already unmasked at the PIC.");
+
     Pbool = secprop->Add_bool("startup initialized",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, start the GF1 in a fully initialized state (as if ULTRINIT had been run).\n"
                     "If clear, leave the card in an uninitialized state (as if cold boot).\n"
