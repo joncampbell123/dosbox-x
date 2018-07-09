@@ -2028,6 +2028,11 @@ void DOSBOX_SetupConfigSections(void) {
                     "Some DOS games or demoscene productions will hang or fail to use the Ultrasound hardware\n"
                     "because they assume the card is initialized and their hardware detect does not fully initialize the card.");
 
+    Pbool = secprop->Add_bool("dma enable on dma control polling",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, automatically enable GUS DMA transfer bit in specific cases when the DMA control register is being polled.\n"
+                    "THIS IS A HACK. Some games and demoscene productions need this hack to avoid hanging while uploading sample data\n"
+                    "to the Gravis Ultrasound due to bugs in their implementation.");
+
     Pbool = secprop->Add_bool("clear dma tc irq if excess polling",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If the DOS application is seen polling the IRQ status register rapidly, automatically clear the DMA TC IRQ status.\n"
             "This is a hack that should only be used with DOS applications that need it to avoid bugs in their GUS support code.\n"

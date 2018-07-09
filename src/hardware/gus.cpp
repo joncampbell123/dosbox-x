@@ -70,6 +70,7 @@ static Bit32s AutoAmp = 512;
 static bool unmask_irq = false;
 static bool enable_autoamp = false;
 static bool startup_ultrinit = false;
+static bool dma_enable_on_dma_control_polling = false;
 static Bit16u vol16bit[4096];
 static Bit32u pantable[16];
 static enum GUSType gus_type = GUS_CLASSIC;
@@ -663,6 +664,14 @@ static Bit16u ExecuteReadRegister(void) {
 		// NTS: The GUS SDK documents the active channel count as bits 5-0, which is wrong. it's bits 4-0. bits 7-5 are always 1 on real hardware.
 		return ((Bit16u)(0xE0 | (myGUS.ActiveChannelsUser - 1))) << 8;
 	case 0x41: // Dma control register - read acknowledges DMA IRQ
+        if (dma_enable_on_dma_control_polling) {
+            if (!GetDMAChannel(myGUS.dma1)->masked && !(myGUS.DMAControl & 0x01) && !(myGUS.IRQStatus & 0x80)) {
+                LOG(LOG_MISC,LOG_DEBUG)("GUS: As instructed, switching on DMA ENABLE upon polling DMA control register (HACK) as workaround");
+                myGUS.DMAControl |= 0x01;
+                GUS_StartDMA();
+            }
+        }
+
 		tmpreg = myGUS.DMAControl & 0xbf;
 		tmpreg |= (myGUS.IRQStatus & 0x80) >> 1;
 		myGUS.IRQStatus&=0x7f;
@@ -1986,6 +1995,8 @@ public:
         enable_autoamp = section->Get_bool("autoamp");
 
         startup_ultrinit = section->Get_bool("startup initialized");
+
+        dma_enable_on_dma_control_polling = section->Get_bool("dma enable on dma control polling");
 
 		string s_pantable = section->Get_string("gus panning table");
 		if (s_pantable == "default" || s_pantable == "" || s_pantable == "accurate")
