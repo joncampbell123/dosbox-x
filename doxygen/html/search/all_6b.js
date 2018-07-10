@@ -1,7 +1,7 @@
 var searchData=
 [
   ['key',['Key',['../classGUI_1_1Key.html',1,'GUI']]],
-  ['key',['Key',['../classGUI_1_1Key.html#a31595e9fe0e454d7377a6f3fe5556f2d',1,'GUI::Key::Key()'],['../classCKeyEvent.html#aa5d774b3b526c036d79dbf87ba437afd',1,'CKeyEvent::key()']]],
+  ['key',['key',['../classCKeyEvent.html#aa5d774b3b526c036d79dbf87ba437afd',1,'CKeyEvent::key()'],['../classGUI_1_1Key.html#a31595e9fe0e454d7377a6f3fe5556f2d',1,'GUI::Key::Key()']]],
   ['keyb',['KEYB',['../classKEYB.html',1,'']]],
   ['keyblock',['KeyBlock',['../structKeyBlock.html',1,'']]],
   ['keyboard_5flayout',['keyboard_layout',['../classkeyboard__layout.html',1,'']]],
