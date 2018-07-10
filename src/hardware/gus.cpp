@@ -1835,6 +1835,9 @@ void GUS_StartDMA() {
 		LOG(LOG_MISC,LOG_DEBUG)("GUS: Starting DMA transfer interval");
 		PIC_AddEvent(GUS_DMA_Event,GUS_DMA_Event_interval_init);
 
+        if (GetDMAChannel(myGUS.dma1)->masked)
+            LOG(LOG_MISC,LOG_WARN)("GUS: DMA transfer interval started when channel is masked");
+
         if (gus_warn_dma_conflict)
             LOG(LOG_MISC,LOG_WARN)(
                 "GUS warning: Both DMA channels set to the same channel WITHOUT combining! "
