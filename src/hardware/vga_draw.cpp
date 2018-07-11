@@ -2240,7 +2240,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             
             vtotal |= (vga.crtc.overflow & 0x20u) << 4u;
             vtotal |= (vga.s3.ex_ver_overflow & 0x1u) << 10u;
-            vtotal += 2u;
             vdend |= (vga.crtc.overflow & 0x40u) << 3u; 
             vdend |= (vga.s3.ex_ver_overflow & 0x2u) << 9u;
             vbstart |= (vga.crtc.maximum_scan_line & 0x20u) << 4u;
