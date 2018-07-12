@@ -844,7 +844,9 @@ const char *VM_EVENT_string[VM_EVENT_MAX] = {
     "DOS exit, reboot begin",
 
     "DOS exit, kernel reboot exit",     // 15
-    "DOS surprise reboot"
+    "DOS surprise reboot",
+    "Save state",
+    "Load state"
 };
 
 VMDispatchState vm_dispatch_state;
