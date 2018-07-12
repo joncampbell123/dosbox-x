@@ -2534,6 +2534,20 @@ void ResetSystem(bool pressed) {
     throw int(3);
 }
 
+void GUI_EXP_LoadState(bool pressed) {
+    if (!pressed) return;
+
+    LOG_MSG("Loading state... (experimental)");
+    DispatchVMEvent(VM_EVENT_LOAD_STATE);
+}
+
+void GUI_EXP_SaveState(bool pressed) {
+    if (!pressed) return;
+
+    LOG_MSG("Saving state... (experimental)");
+    DispatchVMEvent(VM_EVENT_SAVE_STATE);
+}
+
 bool has_GUI_StartUp = false;
 
 static void GUI_StartUp() {
@@ -2815,6 +2829,14 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "ResetSize", &item);
     item->set_text("Reset window size");
 #endif
+
+    /* EXPERIMENTAL!!!! */
+    MAPPER_AddHandler(&GUI_EXP_SaveState, MK_f1, MMODHOST, "exp_savestate", "EX:SvState", &item);
+    item->set_text("Save State (EXPERIMENTAL)");
+
+    /* EXPERIMENTAL!!!! */
+    MAPPER_AddHandler(&GUI_EXP_LoadState, MK_f2, MMODHOST, "exp_loadstate", "EX:LdState", &item);
+    item->set_text("Load State (EXPERIMENTAL)");
 
     UpdateWindowDimensions();
 }
