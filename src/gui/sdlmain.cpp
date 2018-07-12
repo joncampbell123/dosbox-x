@@ -834,10 +834,10 @@ static SDL_Window * GFX_SetSDLOpenGLWindow(Bit16u width, Bit16u height) {
 #endif
 
 #if C_OPENGL && !defined(C_SDL2) && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-const unsigned int SDLDrawGenFontTextureUnitPerRow = 16;
-const unsigned int SDLDrawGenFontTextureRows = 16;
-const unsigned int SDLDrawGenFontTextureWidth = SDLDrawGenFontTextureUnitPerRow * 8;
-const unsigned int SDLDrawGenFontTextureHeight = SDLDrawGenFontTextureRows * 16;
+unsigned int SDLDrawGenFontTextureUnitPerRow = 16;
+unsigned int SDLDrawGenFontTextureRows = 16;
+unsigned int SDLDrawGenFontTextureWidth = SDLDrawGenFontTextureUnitPerRow * 8;
+unsigned int SDLDrawGenFontTextureHeight = SDLDrawGenFontTextureRows * 16;
 bool SDLDrawGenFontTextureInit = false;
 GLuint SDLDrawGenFontTexture = (GLuint)(~0UL);
 #endif
