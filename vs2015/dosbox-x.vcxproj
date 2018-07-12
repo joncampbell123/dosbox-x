@@ -722,6 +722,8 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\fpu\fpu.cpp" />
     <ClCompile Include="..\src\gui\bitop.cpp" />
     <ClCompile Include="..\src\gui\ptrop.cpp" />
+    <ClCompile Include="..\src\gui\zipcrc.c" />
+    <ClCompile Include="..\src\gui\zipfile.cpp" />
     <ClCompile Include="..\src\hardware\8255.cpp" />
     <ClCompile Include="..\src\hardware\pc98.cpp" />
     <ClCompile Include="..\src\hardware\pc98_fm.cpp" />

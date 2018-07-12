@@ -81,8 +81,8 @@ public:
     zipcrc_t    write_crc = 0;
 public:
     bool rewind(void);
-    ssize_t read(void *buffer,size_t count);
-    ssize_t write(const void *buffer,size_t count);
+    int read(void *buffer,size_t count);
+    int write(const void *buffer,size_t count);
 private: /* encourage code that uses this C++ class to stream-read so that
             this code can add deflate compression support later without pain and hacks */
     off_t seek_file(off_t pos);
@@ -108,8 +108,8 @@ public:
     void close_current(void);
     int open(const char *path,int mode);
     off_t seek_file(off_t pos);
-    ssize_t read(void *buffer,size_t count);
-    ssize_t write(const void *buffer,size_t count);
+    int read(void *buffer,size_t count);
+    int write(const void *buffer,size_t count);
     void writeZIPFooter(void);
 };
 

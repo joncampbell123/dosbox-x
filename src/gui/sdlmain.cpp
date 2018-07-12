@@ -52,12 +52,11 @@ void GFX_OpenGLRedrawScreen(void);
 #include <stdarg.h>
 #include <sys/types.h>
 #include <algorithm> // std::transform
+#include <fcntl.h>
 #ifdef WIN32
 # include <signal.h>
 # include <sys/stat.h>
 # include <process.h>
-#else
-# include <fcntl.h>
 #endif
 
 #include "dosbox.h"
@@ -2554,7 +2553,7 @@ void GUI_EXP_LoadState(bool pressed) {
 
         /* read test */
         char tmp[512];
-        ssize_t l;
+        int l;
 
         {
             ZIPFileEntry *ent = testfile.get_entry("Hello.txt");

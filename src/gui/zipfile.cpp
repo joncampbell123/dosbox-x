@@ -10,14 +10,13 @@
 #include <unistd.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <algorithm> // std::transform
 #ifdef WIN32
 # include <signal.h>
 # include <sys/stat.h>
 # include <process.h>
-#else
-# include <fcntl.h>
 #endif
 
 #include "dosbox.h"
@@ -59,7 +58,7 @@ off_t ZIPFileEntry::seek_file(off_t pos) {
     return pos;
 }
 
-ssize_t ZIPFileEntry::read(void *buffer,size_t count) {
+int ZIPFileEntry::read(void *buffer,size_t count) {
     if (file == NULL || file_offset == (off_t)0) return -1;
     if (position >= file_length) return 0;
 
@@ -75,7 +74,7 @@ ssize_t ZIPFileEntry::read(void *buffer,size_t count) {
     return mread;
 }
 
-ssize_t ZIPFileEntry::write(const void *buffer,size_t count) {
+int ZIPFileEntry::write(const void *buffer,size_t count) {
     if (file == NULL || file_offset == (off_t)0 || !can_write) return -1;
     if (position > file_length) return 0;
     if (position == file_length && !can_extend) return 0;
@@ -222,6 +221,10 @@ int ZIPFile::open(const char *path,int mode) {
         return -1;
     }
 
+#if defined(O_BINARY)
+    mode |= O_BINARY;
+#endif
+
     file_fd = ::open(path,mode,0644);
     if (file_fd < 0) return -1;
     if (lseek(file_fd,0,SEEK_SET) != 0) {
@@ -308,12 +311,12 @@ off_t ZIPFile::seek_file(off_t pos) {
     return ::lseek(file_fd,pos,SEEK_SET);
 }
 
-ssize_t ZIPFile::read(void *buffer,size_t count) {
+int ZIPFile::read(void *buffer,size_t count) {
     if (file_fd < 0) return -1;
     return ::read(file_fd,buffer,count);
 }
 
-ssize_t ZIPFile::write(const void *buffer,size_t count) {
+int ZIPFile::write(const void *buffer,size_t count) {
     if (file_fd < 0) return -1;
     return ::write(file_fd,buffer,count);
 }
