@@ -51,9 +51,9 @@ off_t ZIPFileEntry::seek_file(off_t pos) {
     if (pos != position && can_extend) return (off_t)(-1LL);
 
     if (pos < (off_t)0) pos = (off_t)0;
-    if (pos > (off_t)file_length) pos = (off_t)file_length;
+    if (pos > file_length) pos = file_length;
     pos = file->seek_file(pos + file_offset) - file_offset;
-    if (pos < 0 || pos > (off_t)file_length) return (off_t)(-1LL);
+    if (pos < 0 || pos > file_length) return (off_t)(-1LL);
     position = pos;
     return pos;
 }
@@ -162,7 +162,7 @@ ZIPFileEntry *ZIPFile::new_entry(const char *name) {
     hdr.version_needed_to_extract = htole16(20);            /* PKZIP 2.0 */
     hdr.general_purpose_bit_flag = htole16(0 << 1);
     hdr.compression_method = 0;                             /* store (no compression) */
-    hdr.file_name_length = htole16(ent->name.length());
+    hdr.file_name_length = htole16((uint16_t)ent->name.length());
     if (write(&hdr,sizeof(hdr)) != sizeof(hdr)) {
         close_current();
         return NULL;
@@ -196,7 +196,7 @@ void ZIPFile::close_current(void) {
             ent->can_extend = false;
 
             if (seek_file(ent->file_header_offset) == ent->file_header_offset && read(&hdr,sizeof(hdr)) == sizeof(hdr)) {
-                hdr.compressed_size = hdr.uncompressed_size = htole32(ent->file_length);
+                hdr.compressed_size = hdr.uncompressed_size = htole32(((uint32_t)ent->file_length));
                 hdr.crc_32 = htole32(zipcrc_finalize(ent->write_crc));
 
                 if (seek_file(ent->file_header_offset) == ent->file_header_offset && write(&hdr,sizeof(hdr)) == sizeof(hdr)) {
@@ -260,7 +260,7 @@ int ZIPFile::open(const char *path,int mode) {
 
         /* then look for the central directory at the end.
          * this code DOES NOT SUPPORT the ZIP comment field, nor will this code generate one. */
-        if (seek_file(fsz - (off_t)sizeof(ehdr)) != (fsz - (off_t)sizeof(ehdr)) || (size_t)read(&ehdr,sizeof(ehdr)) != sizeof(ehdr) || ehdr.sig != PKZIP_CENTRAL_DIRECTORY_END_SIG || ehdr.size_of_central_directory > 0x100000/*absurd size*/ || ehdr.offset_of_central_directory_from_start_disk == 0 || ehdr.offset_of_central_directory_from_start_disk >= fsz) {
+        if (seek_file(fsz - (off_t)sizeof(ehdr)) != (fsz - (off_t)sizeof(ehdr)) || (size_t)read(&ehdr,sizeof(ehdr)) != sizeof(ehdr) || ehdr.sig != PKZIP_CENTRAL_DIRECTORY_END_SIG || ehdr.size_of_central_directory > 0x100000u/*absurd size*/ || ehdr.offset_of_central_directory_from_start_disk == 0 || (off_t)ehdr.offset_of_central_directory_from_start_disk >= fsz) {
             LOG_MSG("Cannot locate Central Directory");
             close();
             return -1;
@@ -344,10 +344,10 @@ void ZIPFile::writeZIPFooter(void) {
         chdr.compression_method = 0;                        /* stored (no compression) */
         chdr.last_mod_file_time = 0;
         chdr.last_mod_file_date = 0;
-        chdr.compressed_size = htole32(ent.file_length);
-        chdr.uncompressed_size = htole32(ent.file_length);
-        chdr.filename_length = htole16(ent.name.length());
-        chdr.disk_number_start = htole16(1);
+        chdr.compressed_size = htole32(((uint32_t)ent.file_length));
+        chdr.uncompressed_size = htole32(((uint32_t)ent.file_length));
+        chdr.filename_length = htole16((uint16_t)ent.name.length());
+        chdr.disk_number_start = htole16(1u);
         chdr.internal_file_attributes = 0;
         chdr.external_file_attributes = 0;
         chdr.relative_offset_of_local_header = htole32(ent.file_header_offset);
