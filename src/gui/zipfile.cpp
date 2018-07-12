@@ -41,6 +41,10 @@
 #include "cross.h"
 #include "keymap.h"
 
+bool ZIPFileEntry::rewind(void) {
+    return (seek_file(0) == 0);
+}
+
 off_t ZIPFileEntry::seek_file(off_t pos) {
     if (file == NULL || file_offset == (off_t)0) return (off_t)(-1LL);
 

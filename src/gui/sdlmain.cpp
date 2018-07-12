@@ -2559,14 +2559,14 @@ void GUI_EXP_LoadState(bool pressed) {
         {
             ZIPFileEntry *ent = testfile.get_entry("Hello.txt");
             if (ent != NULL) {
-                if (ent->seek_file(0) != 0) LOG_MSG("lseek fail");
+                if (!ent->rewind()) LOG_MSG("lseek fail");
                 l = ent->read(tmp,sizeof(tmp));
                 if (l < 0) l = 0;
                 tmp[l] = 0;
 
                 LOG_MSG("Hello.txt: '%s'",tmp);
 
-                if (ent->seek_file(0) != 0) LOG_MSG("lseek fail");
+                if (!ent->rewind()) LOG_MSG("lseek fail");
                 l = ent->read(tmp,sizeof(tmp));
                 if (l < 0) l = 0;
                 tmp[l] = 0;

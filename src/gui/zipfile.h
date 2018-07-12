@@ -80,9 +80,12 @@ public:
     ZIPFile*    file = NULL;
     zipcrc_t    write_crc = 0;
 public:
-    off_t seek_file(off_t pos);
+    bool rewind(void);
     ssize_t read(void *buffer,size_t count);
     ssize_t write(const void *buffer,size_t count);
+private: /* encourage code that uses this C++ class to stream-read so that
+            this code can add deflate compression support later without pain and hacks */
+    off_t seek_file(off_t pos);
 };
 
 class ZIPFile {
