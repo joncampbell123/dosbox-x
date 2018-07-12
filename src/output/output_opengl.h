@@ -37,6 +37,34 @@ extern PFNGLDELETEBUFFERSARBPROC glDeleteBuffersARB;
 extern PFNGLBUFFERDATAARBPROC glBufferDataARB;
 extern PFNGLMAPBUFFERARBPROC glMapBufferARB;
 extern PFNGLUNMAPBUFFERARBPROC glUnmapBufferARB;
+
+struct SDL_OpenGL {
+    bool inited;
+    Bitu pitch;
+    void * framebuf;
+    GLuint buffer;
+    GLuint texture;
+    GLuint displaylist;
+    GLint max_texsize;
+    bool bilinear;
+    bool packed_pixel;
+    bool paletted_texture;
+    bool pixel_buffer_object;
+    int menudraw_countdown;
+    int clear_countdown;
+};
+
+extern SDL_OpenGL sdl_opengl;
+
+// output API
+void OUTPUT_OPENGL_Initialize();
+void OUTPUT_OPENGL_Select();
+Bitu OUTPUT_OPENGL_GetBestMode(Bitu flags);
+Bitu OUTPUT_OPENGL_SetSize();
+bool OUTPUT_OPENGL_StartUpdate(Bit8u* &pixels, Bitu &pitch);
+void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines);
+void OUTPUT_OPENGL_Shutdown();
+
 #endif //C_OPENGL
 
 #endif /*DOSBOX_OUTPUT_OPENGL_H*/

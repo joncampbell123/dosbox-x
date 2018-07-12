@@ -93,26 +93,9 @@ retry:
 #if C_XBRZ || C_SURFACE_POSTRENDER_ASPECT
     // there is a small problem we need to solve here: aspect corrected windows can be smaller than needed due to source with non-4:3 pixel ratio
     // if we detect non-4:3 pixel ratio here with aspect correction on, we correct it so original fits into resized window properly
-    if (render.aspect)
-    {
-        if (width * sdl.srcAspect.y != height * sdl.srcAspect.x)
-        {
-            // abnormal aspect ratio detected, apply correction
-            if (width * sdl.srcAspect.y > height * sdl.srcAspect.x)
-            {
-                // wide pixel ratio, height should be extended to fit
-                height = (Bitu)floor((double)width * sdl.srcAspect.y / sdl.srcAspect.x + 0.5);
-            }
-            else
-            {
-                // long pixel ratio, width should be extended
-                width = (Bitu)floor((double)height * sdl.srcAspect.x / sdl.srcAspect.y + 0.5);
-            }
-        }
-    }
+    if (render.aspect) aspectCorrectExtend(width, height);
 #endif
 
-    sdl.desktop.type = SCREEN_SURFACE;
     sdl.clip.w = width; sdl.clip.h = height;
     if (sdl.desktop.fullscreen)
     {
@@ -131,34 +114,12 @@ retry:
 #if C_XBRZ
             /* scale to fit the window.
              * fit by aspect ratio if asked to do so. */
-            if (render.xBRZ.enable)
+            if (sdl_xbrz.enable)
             {
                 sdl.clip.x = sdl.clip.y = 0;
                 sdl.clip.w = sdl.desktop.full.width;
                 sdl.clip.h = sdl.desktop.full.height;
-
-                if (render.aspect) {
-                    int ax,ay;
-                    int sh = sdl.desktop.full.height;
-                    int sw = (int)floor(sdl.desktop.full.height * sdl.srcAspect.xToY);
-
-                    if (sw > sdl.desktop.full.width) {
-                        sh = (sh * sdl.desktop.full.width) / sw;
-                        sw = sdl.desktop.full.width;
-                    }
-
-                    ax = (sdl.desktop.full.width - sw) / 2;
-                    ay = (sdl.desktop.full.height - sh) / 2;
-                    if (ax < 0) ax = 0;
-                    if (ay < 0) ay = 0;
-                    sdl.clip.x = ax;
-                    sdl.clip.y = ay;
-                    sdl.clip.w = sw;
-                    sdl.clip.h = sh;
-
-                    assert((sdl.clip.x+sdl.clip.w) <= sdl.desktop.full.width);
-                    assert((sdl.clip.y+sdl.clip.h) <= sdl.desktop.full.height);
-                }
+                if (render.aspect) aspectCorrectFitClip(sdl.clip.w, sdl.clip.h, sdl.clip.x, sdl.clip.y, sdl.desktop.full.width, sdl.desktop.full.height);
             }
 #endif 
         }
@@ -224,7 +185,7 @@ retry:
 #if C_XBRZ
         /* scale to fit the window.
          * fit by aspect ratio if asked to do so. */
-        if (render.xBRZ.enable)
+        if (sdl_xbrz.enable)
         {
             final_height = (int)max(consider_height, userResizeWindowHeight) - (int)menuheight - ((int)sdl.overscan_width * 2);
             final_width = (int)max(consider_width, userResizeWindowWidth) - ((int)sdl.overscan_width * 2);
@@ -232,28 +193,7 @@ retry:
             sdl.clip.x = sdl.clip.y = 0;
             sdl.clip.w = final_width;
             sdl.clip.h = final_height;
-
-            if (render.aspect) {
-                int sh = final_height;
-                int sw = (int)floor(final_height * sdl.srcAspect.xToY);
-
-                if (sw > final_width) {
-                    sh = (sh * final_width) / sw;
-                    sw = final_width;
-                }
-
-                ax = (final_width - sw) / 2;
-                ay = (final_height - sh) / 2;
-                if (ax < 0) ax = 0;
-                if (ay < 0) ay = 0;
-                sdl.clip.x = ax;
-                sdl.clip.y = ay;
-                sdl.clip.w = sw;
-                sdl.clip.h = sh;
-
-                assert((sdl.clip.x+sdl.clip.w) <= final_width);
-                assert((sdl.clip.y+sdl.clip.h) <= final_height);
-            }
+            if (render.aspect) aspectCorrectFitClip(sdl.clip.w, sdl.clip.h, sdl.clip.x, sdl.clip.y, final_width, final_height);
         }
         else
 #endif 
@@ -336,21 +276,21 @@ retry:
     {
         switch (sdl.surface->format->BitsPerPixel)
         {
-        case 8:
-            retFlags = GFX_CAN_8;
-            break;
-        case 15:
-            retFlags = GFX_CAN_15;
-            break;
-        case 16:
-            if (sdl.surface->format->Gshift == 5 && sdl.surface->format->Gmask == (31U << 5U))
+            case 8:
+                retFlags = GFX_CAN_8;
+                break;
+            case 15:
                 retFlags = GFX_CAN_15;
-            else
-                retFlags = GFX_CAN_16;
-            break;
-        case 32:
-            retFlags = GFX_CAN_32;
-            break;
+                break;
+            case 16:
+                if (sdl.surface->format->Gshift == 5 && sdl.surface->format->Gmask == (31U << 5U))
+                    retFlags = GFX_CAN_15;
+                else
+                    retFlags = GFX_CAN_16;
+                break;
+            case 32:
+                retFlags = GFX_CAN_32;
+                break;
         }
 
         if (retFlags && (sdl.surface->flags & SDL_HWSURFACE))
@@ -369,11 +309,11 @@ retry:
         }
 
 #if C_XBRZ
-        if (render.xBRZ.enable)
+        if (sdl_xbrz.enable)
         {
-            bool old_scale_on = render.xBRZ.scale_on;
+            bool old_scale_on = sdl_xbrz.scale_on;
             xBRZ_SetScaleParameters(sdl.draw.width, sdl.draw.height, sdl.clip.w, sdl.clip.h);
-            if (render.xBRZ.scale_on != old_scale_on) {
+            if (sdl_xbrz.scale_on != old_scale_on) {
                 // when we are scaling, we ask render code not to do any aspect correction
                 // when we are not scaling, render code is allowed to do aspect correction at will
                 // due to this, at each scale mode change we need to schedule resize again because window size could change

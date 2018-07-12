@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <assert.h>
+#include <math.h>
 
 #include "dosbox.h"
 #include "sdlmain.h"
@@ -7,31 +9,64 @@ using namespace std;
 
 #if C_XBRZ
 
+struct SDL_xBRZ sdl_xbrz;
+
+void xBRZ_Initialize()
+{
+    memset(&sdl_xbrz, 0, sizeof(sdl_xbrz));
+
+    Section_prop* section = static_cast<Section_prop *>(control->GetSection("render"));
+
+    LOG(LOG_MISC, LOG_DEBUG)("Early init (renderer): xBRZ options");
+
+    // set some defaults
+    sdl_xbrz.task_granularity = 16;
+    sdl_xbrz.max_scale_factor = xbrz::SCALE_FACTOR_MAX;
+
+    // read options related to xBRZ here
+    Prop_multival* prop = section->Get_multival("scaler");
+    std::string scaler = prop->GetSection()->Get_string("type");
+    sdl_xbrz.enable = ((scaler == "xbrz") || (scaler == "xbrz_bilinear"));
+    sdl_xbrz.postscale_bilinear = (scaler == "xbrz_bilinear");
+    xBRZ_Change_Options(section);
+}
+
+void xBRZ_Change_Options(Section_prop* section)
+{
+    sdl_xbrz.task_granularity = section->Get_int("xbrz slice");
+    sdl_xbrz.fixed_scale_factor = section->Get_int("xbrz fixed scale factor");
+    sdl_xbrz.max_scale_factor = section->Get_int("xbrz max scale factor");
+    if ((sdl_xbrz.max_scale_factor < 2) || (sdl_xbrz.max_scale_factor > xbrz::SCALE_FACTOR_MAX))
+        sdl_xbrz.max_scale_factor = xbrz::SCALE_FACTOR_MAX;
+    if ((sdl_xbrz.fixed_scale_factor < 2) || (sdl_xbrz.fixed_scale_factor > xbrz::SCALE_FACTOR_MAX))
+        sdl_xbrz.fixed_scale_factor = 0;
+}
+
 // returns true if scaling possible/enabled, false otherwise
 bool xBRZ_SetScaleParameters(int srcWidth, int srcHeight, int dstWidth, int dstHeight)
 {
-    sdl.xBRZ.scale_factor = (render.xBRZ.fixed_scale_factor == 0) ?
+    sdl_xbrz.scale_factor = (sdl_xbrz.fixed_scale_factor == 0) ?
         static_cast<int>(std::sqrt((double)dstWidth * dstHeight / (srcWidth * srcHeight)) + 0.5) :
-        render.xBRZ.fixed_scale_factor;
+        sdl_xbrz.fixed_scale_factor;
 
     // enable minimal scaling if upscale is still possible but requires post-downscale
     // having aspect ratio correction on always implies enabled scaler because it gives better quality than DOSBox own method
-    if (sdl.xBRZ.scale_factor == 1 && (render.aspect || dstWidth > srcWidth || dstHeight > srcHeight))
-        sdl.xBRZ.scale_factor = 2;
+    if (sdl_xbrz.scale_factor == 1 && (render.aspect || dstWidth > srcWidth || dstHeight > srcHeight))
+        sdl_xbrz.scale_factor = 2;
 
-    if (sdl.xBRZ.scale_factor >= 2)
+    if (sdl_xbrz.scale_factor >= 2)
     {
         // ok to scale, now clamp scale factor if corresponding max option is set
-        sdl.xBRZ.scale_factor = min(sdl.xBRZ.scale_factor, render.xBRZ.max_scale_factor);
-        render.xBRZ.scale_on = true;
+        sdl_xbrz.scale_factor = min(sdl_xbrz.scale_factor, sdl_xbrz.max_scale_factor);
+        sdl_xbrz.scale_on = true;
     }
     else
     {
         // scaling impossible
-        render.xBRZ.scale_on = false;
+        sdl_xbrz.scale_on = false;
     }
 
-    return render.xBRZ.scale_on;
+    return sdl_xbrz.scale_on;
 }
 
 void xBRZ_Render(const uint32_t* renderBuf, uint32_t* xbrzBuf, const Bit16u *changedLines, const int srcWidth, const int srcHeight, int scalingFactor)
@@ -55,10 +90,10 @@ void xBRZ_Render(const uint32_t* renderBuf, uint32_t* xbrzBuf, const Bit16u *cha
 
                 int yFirst = max(yLast, sliceFirst - 2); // we need to update two adjacent lines as well since they are analyzed by xBRZ!
                 yLast = min(srcHeight, sliceLast + 2);   // (and make sure to not overlap with last slice!)
-                for (int i = yFirst; i < yLast; i += render.xBRZ.task_granularity)
+                for (int i = yFirst; i < yLast; i += sdl_xbrz.task_granularity)
                 {
                     tg.run([=] { 
-                        const int iLast = min(i + render.xBRZ.task_granularity, yLast);
+                        const int iLast = min(i + sdl_xbrz.task_granularity, yLast);
                         xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, xbrz::ColorFormat::RGB, xbrz::ScalerCfg(), i, iLast);
                     });
                 }
@@ -70,10 +105,10 @@ void xBRZ_Render(const uint32_t* renderBuf, uint32_t* xbrzBuf, const Bit16u *cha
     else // process complete input image
     {
         concurrency::task_group tg;
-        for (int i = 0; i < srcHeight; i += render.xBRZ.task_granularity)
+        for (int i = 0; i < srcHeight; i += sdl_xbrz.task_granularity)
         {
             tg.run([=] { 
-                const int iLast = min(i + render.xBRZ.task_granularity, srcHeight);
+                const int iLast = min(i + sdl_xbrz.task_granularity, srcHeight);
                 xbrz::scale(scalingFactor, renderBuf, xbrzBuf, srcWidth, srcHeight, xbrz::ColorFormat::RGB, xbrz::ScalerCfg(), i, iLast);
             });
         }

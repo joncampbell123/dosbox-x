@@ -6,19 +6,32 @@
 #include "sdlmain.h"
 #include "vga.h"
 
+using namespace std;
+
+// output API below
+
+void OUTPUT_SURFACE_Initialize()
+{
+    // nothing to initialize (yet?)
+}
+
 void OUTPUT_SURFACE_Select()
 {
     sdl.desktop.want_type = SCREEN_SURFACE;
     render.aspectOffload = false;
+
+#if defined(WIN32) && !defined(C_SDL2)
+    SDL1_hax_inhibit_WM_PAINT = 0;
+#endif
 }
 
 bool OUTPUT_SURFACE_StartUpdate(Bit8u* &pixels, Bitu &pitch)
 {
 #if C_XBRZ
-    if (render.xBRZ.enable && render.xBRZ.scale_on)
+    if (sdl_xbrz.enable && sdl_xbrz.scale_on)
     {
-        sdl.xBRZ.renderbuf.resize(sdl.draw.width * sdl.draw.height);
-        pixels = sdl.xBRZ.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl.xBRZ.renderbuf[0]);
+        sdl_xbrz.renderbuf.resize(sdl.draw.width * sdl.draw.height);
+        pixels = sdl_xbrz.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl_xbrz.renderbuf[0]);
         pitch = sdl.draw.width * sizeof(uint32_t);
     }
     else
@@ -62,54 +75,29 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
     GFX_DrawSDLMenu(mainMenu, mainMenu.display_list);
 #endif
 #if C_XBRZ
-    if (render.xBRZ.enable && render.xBRZ.scale_on)
+    if (sdl_xbrz.enable && sdl_xbrz.scale_on)
     {
         const int srcWidth = sdl.draw.width;
         const int srcHeight = sdl.draw.height;
-        if (sdl.xBRZ.renderbuf.size() == srcWidth * srcHeight && srcWidth > 0 && srcHeight > 0)
+        if (sdl_xbrz.renderbuf.size() == srcWidth * srcHeight && srcWidth > 0 && srcHeight > 0)
         {
-#if 1
             // please use sdl.clip to keep screen positioning consistent with the rest of the emulator
             int clipWidth = sdl.clip.w;
             int clipHeight = sdl.clip.h;
             int clipX = sdl.clip.x;
             int clipY = sdl.clip.y;
-#else
-            // we assume render buffer is *not* scaled!
-            // recalculation to full output width/height is deliberate here, with xBRZ we nicely fill entire output size!
-            const int outputHeight = sdl.surface->h;
-            const int outputWidth = sdl.surface->w;
-
-            int clipWidth = outputWidth;
-            int clipHeight = outputHeight;
-            int clipX = 0;
-            int clipY = 0;
-
-            if (render.aspect) {
-                if (outputWidth > sdl.srcAspect.xToY * outputHeight) // output broader than input => black bars left and right
-                {
-                    clipWidth = static_cast<int>(outputHeight * sdl.srcAspect.xToY);
-                    clipX = (outputWidth - clipWidth) / 2;
-                }
-                else // black bars top and bottom
-                {
-                    clipHeight = static_cast<int>(outputWidth * sdl.srcAspect.yToX);
-                    clipY = (outputHeight - clipHeight) / 2;
-                }
-            }
-#endif
 
             // 1. xBRZ-scale render buffer into xbrz pixel buffer
             int xbrzWidth = 0;
             int xbrzHeight = 0;
             uint32_t* xbrzBuf;
-            xbrzWidth = srcWidth * sdl.xBRZ.scale_factor;
-            xbrzHeight = srcHeight * sdl.xBRZ.scale_factor;
-            sdl.xBRZ.pixbuf.resize(xbrzWidth * xbrzHeight);
+            xbrzWidth = srcWidth * sdl_xbrz.scale_factor;
+            xbrzHeight = srcHeight * sdl_xbrz.scale_factor;
+            sdl_xbrz.pixbuf.resize(xbrzWidth * xbrzHeight);
 
-            const uint32_t* renderBuf = &sdl.xBRZ.renderbuf[0]; // help VS compiler a little + support capture by value
-            xbrzBuf = &sdl.xBRZ.pixbuf[0];
-            xBRZ_Render(renderBuf, xbrzBuf, changedLines, srcWidth, srcHeight, sdl.xBRZ.scale_factor);
+            const uint32_t* renderBuf = &sdl_xbrz.renderbuf[0]; // help VS compiler a little + support capture by value
+            xbrzBuf = &sdl_xbrz.pixbuf[0];
+            xBRZ_Render(renderBuf, xbrzBuf, changedLines, srcWidth, srcHeight, sdl_xbrz.scale_factor);
 
             // 2. nearest neighbor/bilinear scale xbrz buffer into output surface clipping area
             const bool mustLock = SDL_MUSTLOCK(sdl.surface);
@@ -119,7 +107,7 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
                 uint32_t* clipTrg = reinterpret_cast<uint32_t*>(static_cast<char*>(sdl.surface->pixels) + clipY * sdl.surface->pitch + clipX * sizeof(uint32_t));
                 xBRZ_PostScale(&xbrzBuf[0], xbrzWidth, xbrzHeight, xbrzWidth * sizeof(uint32_t), 
                     &clipTrg[0], clipWidth, clipHeight, sdl.surface->pitch, 
-                    render.xBRZ.postscale_bilinear, render.xBRZ.task_granularity);
+                    sdl_xbrz.postscale_bilinear, sdl_xbrz.task_granularity);
             }
 
             if (mustLock) SDL_UnlockSurface(sdl.surface);
@@ -216,4 +204,9 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
             }
         }
     }
+}
+
+void OUTPUT_SURFACE_Shutdown()
+{
+    // nothing to shutdown (yet?)
 }

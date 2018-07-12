@@ -18,23 +18,20 @@ Bitu OUTPUT_SURFACE_SetSize()
     (void)bpp;
 
 retry:
-    sdl.desktop.type = SCREEN_SURFACE;
     sdl.clip.w = sdl.draw.width;
     sdl.clip.h = sdl.draw.height;
     if (GFX_IsFullscreen()) {
         if (sdl.desktop.full.fixed) {
             sdl.clip.x = (Sint16)((sdl.desktop.full.width - sdl.draw.width) / 2);
             sdl.clip.y = (Sint16)((sdl.desktop.full.height - sdl.draw.height) / 2);
-            sdl.window = GFX_SetSDLWindowMode(sdl.desktop.full.width,
-                sdl.desktop.full.height,
-                sdl.desktop.type);
+            sdl.window = GFX_SetSDLWindowMode(sdl.desktop.full.width, sdl.desktop.full.height, SCREEN_SURFACE);
             if (sdl.window == NULL)
                 E_Exit("Could not set fullscreen video mode %ix%i-%i: %s", sdl.desktop.full.width, sdl.desktop.full.height, sdl.desktop.bpp, SDL_GetError());
         }
         else {
             sdl.clip.x = 0;
             sdl.clip.y = 0;
-            sdl.window = GFX_SetSDLWindowMode(sdl.draw.width, sdl.draw.height, sdl.desktop.type);
+            sdl.window = GFX_SetSDLWindowMode(sdl.draw.width, sdl.draw.height, SCREEN_SURFACE);
             if (sdl.window == NULL)
                 LOG_MSG("Fullscreen not supported: %s", SDL_GetError());
             SDL_SetWindowFullscreen(sdl.window, 0);
@@ -50,8 +47,7 @@ retry:
 
         sdl.clip.x = sdl.overscan_width;
         sdl.clip.y = sdl.overscan_width + menuheight;
-        sdl.window = GFX_SetSDLWindowMode(sdl.draw.width + 2 * sdl.overscan_width, sdl.draw.height + menuheight + 2 * sdl.overscan_width,
-            sdl.desktop.type);
+        sdl.window = GFX_SetSDLWindowMode(sdl.draw.width + 2 * sdl.overscan_width, sdl.draw.height + menuheight + 2 * sdl.overscan_width, SCREEN_SURFACE);
         if (sdl.window == NULL)
             E_Exit("Could not set windowed video mode %ix%i: %s", (int)sdl.draw.width, (int)sdl.draw.height, SDL_GetError());
     }

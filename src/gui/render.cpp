@@ -38,10 +38,6 @@
 #include <emmintrin.h>
 #endif
 
-#if C_XBRZ
-#include <xBRZ/xbrz.h>
-#endif
-
 Render_t render;
 Bitu last_gfx_flags = 0;
 ScalerLineHandler_t RENDER_DrawLine;
@@ -353,7 +349,7 @@ void RENDER_Reset( void ) {
 #if !C_XBRZ
     if (render.aspect == ASPECT_TRUE && !render.aspectOffload)
 #else
-    if (render.aspect == ASPECT_TRUE && !render.aspectOffload && !(render.xBRZ.enable && render.xBRZ.scale_on))
+    if (render.aspect == ASPECT_TRUE && !render.aspectOffload && !(sdl_xbrz.enable && sdl_xbrz.scale_on))
 #endif
     {
         if (render.src.ratio>1.0) {
@@ -785,13 +781,7 @@ void RENDER_OnSectionPropChange(Section *x) {
     mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
 
 #if C_XBRZ
-    render.xBRZ.task_granularity = section->Get_int("xbrz slice");
-    render.xBRZ.fixed_scale_factor = section->Get_int("xbrz fixed scale factor");
-    render.xBRZ.max_scale_factor = section->Get_int("xbrz max scale factor");
-    if ((render.xBRZ.max_scale_factor < 2) || (render.xBRZ.max_scale_factor > xbrz::SCALE_FACTOR_MAX))
-        render.xBRZ.max_scale_factor = xbrz::SCALE_FACTOR_MAX;
-    if ((render.xBRZ.fixed_scale_factor < 2) || (render.xBRZ.fixed_scale_factor > xbrz::SCALE_FACTOR_MAX))
-        render.xBRZ.fixed_scale_factor = 0;
+    xBRZ_Change_Options(section);
 #endif
 
     RENDER_UpdateFrameskipMenu();
@@ -821,8 +811,8 @@ void RENDER_UpdateFromScalerSetting(void) {
     std::string scaler = prop->GetSection()->Get_string("type");
 
 #if C_XBRZ
-    bool old_xBRZ_enable = render.xBRZ.enable;
-    render.xBRZ.enable = false;
+    bool old_xBRZ_enable = sdl_xbrz.enable;
+    sdl_xbrz.enable = false;
 #endif
 
     render.scale.forced = false;
@@ -863,40 +853,15 @@ void RENDER_UpdateFromScalerSetting(void) {
         render.scale.size = 1; 
         render.scale.hardware = false; 
         vga.draw.doublescan_set = false; 
-        render.xBRZ.enable = true; 
-        render.xBRZ.postscale_bilinear = (scaler == "xbrz_bilinear");
+        sdl_xbrz.enable = true; 
+        sdl_xbrz.postscale_bilinear = (scaler == "xbrz_bilinear");
     }
 #endif
 
 #if C_XBRZ
-    if (old_xBRZ_enable != render.xBRZ.enable) RENDER_CallBack(GFX_CallBackReset);
+    if (old_xBRZ_enable != sdl_xbrz.enable) RENDER_CallBack(GFX_CallBackReset);
 #endif
 }
-
-#if C_XBRZ
-void RENDER_xBRZ_Early_Init() {
-    Section_prop * section = static_cast<Section_prop *>(control->GetSection("render"));
-
-    LOG(LOG_MISC, LOG_DEBUG)("Early init (renderer): xBRZ options");
-
-    // set some defaults
-    render.xBRZ.task_granularity = 16;
-    render.xBRZ.max_scale_factor = xbrz::SCALE_FACTOR_MAX;
-
-    // read options related to xBRZ here
-    Prop_multival* prop = section->Get_multival("scaler");
-    std::string scaler = prop->GetSection()->Get_string("type");
-    render.xBRZ.enable = ((scaler == "xbrz") || (scaler == "xbrz_bilinear"));
-    render.xBRZ.postscale_bilinear = (scaler == "xbrz_bilinear");
-    render.xBRZ.task_granularity = section->Get_int("xbrz slice");
-    render.xBRZ.fixed_scale_factor = section->Get_int("xbrz fixed scale factor");
-    render.xBRZ.max_scale_factor = section->Get_int("xbrz max scale factor");
-    if ((render.xBRZ.max_scale_factor < 2) || (render.xBRZ.max_scale_factor > xbrz::SCALE_FACTOR_MAX))
-        render.xBRZ.max_scale_factor = xbrz::SCALE_FACTOR_MAX;
-    if ((render.xBRZ.fixed_scale_factor < 2) || (render.xBRZ.fixed_scale_factor > xbrz::SCALE_FACTOR_MAX))
-        render.xBRZ.fixed_scale_factor = 0;
-}
-#endif
 
 void RENDER_Init() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
