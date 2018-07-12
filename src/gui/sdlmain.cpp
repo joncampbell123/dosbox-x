@@ -2895,6 +2895,10 @@ public:
 
 off_t ZIPFileEntry::seek_file(off_t pos) {
     if (file == NULL || file_offset == (off_t)0) return (off_t)(-1LL);
+
+    /* no seeking while writing, the CRC generation depends on a streaming write */
+    if (pos != position && can_extend) return (off_t)(-1LL);
+
     if (pos < (off_t)0) pos = (off_t)0;
     if (pos > (off_t)file_length) pos = (off_t)file_length;
     pos = file->seek_file(pos + file_offset) - file_offset;
