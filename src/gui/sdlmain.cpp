@@ -4342,8 +4342,8 @@ void GFX_EventsMouseProcess(const long x, const long y, const long rx, const lon
         evt.motion.which = 0;
         evt.motion.x     = x3;
         evt.motion.y     = y3;
-        evt.motion.xrel  = (Sint16)((rx >= 0) ? min(rx, 32767) : max(rx, -32768));
-        evt.motion.yrel  = (Sint16)((ry >= 0) ? min(ry, 32767) : max(ry, -32768));
+        evt.motion.xrel  = (Sint16)((rx >= 0) ? min(rx, 32767l) : max(rx, -32768l));
+        evt.motion.yrel  = (Sint16)((ry >= 0) ? min(ry, 32767l) : max(ry, -32768l));
         SDL_PushEvent(&evt);
     }
 
