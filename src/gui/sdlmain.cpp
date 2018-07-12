@@ -2963,6 +2963,30 @@ void GUI_EXP_LoadState(bool pressed) {
             LOG_MSG("ZIP file contains: '%s' %ld bytes at offset %ld",
                 ent.name.c_str(),(long)ent.file_length,(long)ent.file_offset);
         }
+
+        /* read test */
+        char tmp[512];
+        ssize_t l;
+
+        {
+            ZIPFileEntry *ent = testfile.get_entry("Hello.txt");
+            if (ent != NULL) {
+                if (ent->seek_file(0) != 0) LOG_MSG("lseek fail");
+                l = ent->read(tmp,sizeof(tmp));
+                if (l < 0) l = 0;
+                tmp[l] = 0;
+
+                LOG_MSG("Hello.txt: '%s'",tmp);
+
+                if (ent->seek_file(0) != 0) LOG_MSG("lseek fail");
+                l = ent->read(tmp,sizeof(tmp));
+                if (l < 0) l = 0;
+                tmp[l] = 0;
+
+                LOG_MSG("Hello.txt (again): '%s'",tmp);
+            }
+        }
+
         testfile.close();
     }
 }
