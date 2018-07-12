@@ -174,12 +174,16 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
             if (changedLines && (changedLines[0] == sdl.draw.height))
                 return;
             if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
-#if !defined(C_SDL2)
+#if defined(C_SDL2)
+            SDL_UpdateWindowSurface(sdl.window);
+#else
             SDL_Flip(sdl.surface);
 #endif
         }
         else if (sdl.must_redraw_all) {
-#if !defined(C_SDL2)
+#if defined(C_SDL2)
+            if (changedLines != NULL) SDL_UpdateWindowSurface(sdl.window);
+#else
             if (changedLines != NULL) SDL_Flip(sdl.surface);
 #endif
         }

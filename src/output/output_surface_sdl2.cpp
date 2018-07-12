@@ -72,6 +72,10 @@ retry:
         retFlags = GFX_CAN_32;
         break;
     }
+
+    sdl.deferred_resize = false;
+    sdl.must_redraw_all = true;
+
     /* Fix a glitch with aspect=true occuring when
     changing between modes with different dimensions */
     SDL_FillRect(sdl.surface, NULL, SDL_MapRGB(sdl.surface->format, 0, 0, 0));
@@ -81,7 +85,6 @@ retry:
     mainMenu.setRedraw();
     GFX_DrawSDLMenu(mainMenu, mainMenu.display_list);
 #endif
-    SDL_UpdateWindowSurface(sdl.window);
 
     return retFlags;
 }
