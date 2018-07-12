@@ -2643,6 +2643,8 @@ public:
             ::close(file_fd);
             file_fd = -1;
         }
+
+        entries.clear();
     }
     ZIPFileEntry *get_entry(const char *name) {
         if (file_fd < 0) return NULL;
@@ -2732,6 +2734,8 @@ public:
         current_entry.clear();
     }
     int open(const char *path,int mode) {
+        unsigned char tmp[512];
+
         close();
 
         if (path == NULL) return -1;
@@ -2748,6 +2752,7 @@ public:
             return -1;
         }
 
+        entries.clear();
         current_entry.clear();
         wrote_trailer = false;
         write_pos = 0;
@@ -2757,6 +2762,66 @@ public:
             can_write = true;
         else
             can_write = false;
+
+        /* if we're supposed to READ the ZIP file, then start scanning now */
+        if ((mode & 3) == O_RDONLY) {
+            struct pkzip_central_directory_header_main chdr;
+            struct pkzip_central_directory_header_end ehdr;
+
+            off_t fsz = end_of_file();
+
+            /* check for 'PK' at the start of the file.
+             * This code only expects to handle the ZIP files it generated, not ZIP files in general. */
+            if (fsz < 64 || seek_file(0) != 0 || read(tmp,4) != 4 || memcmp(tmp,"PK\x03\x04",4) != 0) {
+                LOG_MSG("Not a PKZIP file");
+                close();
+                return -1;
+            }
+
+            /* then look for the central directory at the end.
+             * this code DOES NOT SUPPORT the ZIP comment field, nor will this code generate one. */
+            if (seek_file(fsz - (off_t)sizeof(ehdr)) != (fsz - (off_t)sizeof(ehdr)) || (size_t)read(&ehdr,sizeof(ehdr)) != sizeof(ehdr) || ehdr.sig != PKZIP_CENTRAL_DIRECTORY_END_SIG || ehdr.size_of_central_directory > 0x100000/*absurd size*/ || ehdr.offset_of_central_directory_from_start_disk == 0 || ehdr.offset_of_central_directory_from_start_disk >= fsz) {
+                LOG_MSG("Cannot locate Central Directory");
+                close();
+                return -1;
+            }
+            if (seek_file(ehdr.offset_of_central_directory_from_start_disk) != ehdr.offset_of_central_directory_from_start_disk) {
+                LOG_MSG("Cannot locate Central Directory #2");
+                close();
+                return -1;
+            }
+
+            /* read the central directory */
+            {
+                long remain = (long)ehdr.size_of_central_directory;
+
+                while (remain >= (long)sizeof(struct pkzip_central_directory_header_main)) {
+                    if (read(&chdr,sizeof(chdr)) != sizeof(chdr)) break;
+                    remain -= sizeof(chdr);
+
+                    if (chdr.sig != PKZIP_CENTRAL_DIRECTORY_HEADER_SIG) break;
+                    if (chdr.filename_length >= sizeof(tmp)) break;
+
+                    tmp[chdr.filename_length] = 0;
+                    if (chdr.filename_length != 0) {
+                        if (read(tmp,chdr.filename_length) != chdr.filename_length) break;
+                        remain -= chdr.filename_length;
+                    }
+
+                    if (tmp[0] == 0) continue;
+
+                    ZIPFileEntry *ent = &entries[(char*)tmp];
+                    ent->can_write = false;
+                    ent->can_extend = false;
+                    ent->file_length = htole32(chdr.uncompressed_size);
+                    ent->file_header_offset = htole32(chdr.relative_offset_of_local_header);
+                    ent->file_offset = ent->file_header_offset + sizeof(struct ZIPLocalFileHeader) + htole16(chdr.filename_length) + htole16(chdr.extra_field_length);
+                    ent->position = 0;
+                    ent->name = (char*)tmp;
+                    ent->file = this;
+                }
+            }
+        }
 
         return 0;
     }
@@ -2889,6 +2954,17 @@ void GUI_EXP_LoadState(bool pressed) {
 
     LOG_MSG("Loading state... (experimental)");
     DispatchVMEvent(VM_EVENT_LOAD_STATE);
+
+    ZIPFile testfile;
+    if (testfile.open("TESTING.ZIP",O_RDONLY) >= 0) {
+        for (auto i=testfile.entries.begin();i!=testfile.entries.end();i++) {
+            const ZIPFileEntry &ent = i->second;
+
+            LOG_MSG("ZIP file contains: '%s' %ld bytes at offset %ld",
+                ent.name.c_str(),(long)ent.file_length,(long)ent.file_offset);
+        }
+        testfile.close();
+    }
 }
 
 void GUI_EXP_SaveState(bool pressed) {
