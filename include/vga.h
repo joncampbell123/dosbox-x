@@ -27,6 +27,8 @@
 
 #define VGA_LFB_MAPPED
 
+#define S3_LFB_BASE_DEFAULT	  0xE0000000u
+
 class PageHandler;
 
 enum VGAModes {

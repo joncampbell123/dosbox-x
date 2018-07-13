@@ -929,6 +929,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(machines);
     Pstring->Set_help("The type of machine DOSBox tries to emulate.");
 
+    Phex = secprop->Add_hex("svga lfb base", Property::Changeable::OnlyAtStart, 0);
+    Phex->Set_help("If nonzero, define the physical memory address of the linear framebuffer.");
+
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(-1,100000);
     Pint->Set_help( "VGA Memory I/O delay in nanoseconds. Set to -1 to use default, 0 to disable.\n"

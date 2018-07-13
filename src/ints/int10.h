@@ -19,8 +19,7 @@
 
 #include "vga.h"
 
-/* TODO: Make this user-configurable */
-#define S3_LFB_BASE		0xE0000000u
+extern uint32_t S3_LFB_BASE;
 
 #define BIOSMEM_SEG		0x40u
 
