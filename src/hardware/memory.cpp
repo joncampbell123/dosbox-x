@@ -1711,6 +1711,81 @@ void MEM_InitCallouts(void) {
     MEM_callouts[MEM_callouts_index(MEM_TYPE_MB)].resize(64);
 }
 
+// MOVE
+static std::string zip_nv_pair_empty;
+
+class zip_nv_pair_map : public std::map<std::string, std::string> {
+public:
+    zip_nv_pair_map() {
+    }
+    zip_nv_pair_map(ZIPFileEntry &ent) {
+        read_nv_pairs(ent);
+    }
+public:
+    std::string &get(const char *name) {
+        auto i = find(name);
+        if (i != end()) return i->second;
+        return zip_nv_pair_empty;
+    }
+    bool get_bool(const char *name) {
+        std::string &val = get(name);
+        return (strtol(val.c_str(),NULL,0) > 0);
+    }
+    long get_long(const char *name) {
+        std::string &val = get(name);
+        return strtol(val.c_str(),NULL,0);
+    }
+    void process_line(char *line/*will modify, assume caller has put NUL at the end*/) {
+        char *equ = strchr(line,'=');
+        if (equ == NULL) return;
+        *equ++ = 0; /* overwite '=' with NUL, split name vs value */
+
+        /* no null names */
+        if (*line == 0) return;
+
+        (*this)[line] = equ;
+    }
+    void read_nv_pairs(ZIPFileEntry &ent) {
+        char tmp[1024],*r,*f;
+        char line[1024],*w,*wf=line+sizeof(line)-1;
+        char c;
+        int l;
+
+        clear();
+        ent.rewind();
+
+        w = line;
+        while ((l=ent.read(tmp,sizeof(tmp))) > 0) {
+            r = tmp;
+            f = tmp + l;
+
+            while (r < f) {
+                c = *r++;
+
+                if (c == '\n') {
+                    assert(w <= wf);
+                    *w = 0;
+                    process_line(line);
+                    w = line;
+                }
+                else if (c == '\r') {
+                    /* ignore */
+                }
+                else if (w < wf) {
+                    *w++ = c;
+                }
+            }
+        }
+
+        if (w != line) {
+            assert(w <= wf);
+            *w = 0;
+            process_line(line);
+            w = line;
+        }
+    }
+};
+
 void MEM_LoadState(Section *sec) {
     (void)sec;//UNUSED
 
@@ -1724,10 +1799,30 @@ void MEM_LoadState(Section *sec) {
                 LOG_MSG("Memory load state failure: Memory size mismatch");
         }
     }
+
+    {
+        ZIPFileEntry *ent = savestate_zip.get_entry("memory.txt");
+        if (ent != NULL) {
+            zip_nv_pair_map nv(*ent);
+            memory.a20.enabled =     nv.get_bool("a20.enabled");
+            memory.a20.controlport = (Bit8u)nv.get_long("a20.controlport");
+            a20_guest_changeable =   nv.get_bool("a20_guest_changeable");
+            a20_fake_changeable =    nv.get_bool("a20_fake_changeable");
+        }
+    }
 }
 
 //moveout
 char zip_nv_tmp[1024];
+
+void zip_nv_write(ZIPFileEntry &ent,const char *name,bool val) {
+    size_t l;
+
+    if ((l = ((size_t)snprintf(zip_nv_tmp,sizeof(zip_nv_tmp),"%s=%d\n",name,val?1:0))) >= (sizeof(zip_nv_tmp)-1u))
+        E_Exit("zip_nv_write buffer overrun (result too long)");
+
+    ent.write(zip_nv_tmp,l);
+}
 
 void zip_nv_write(ZIPFileEntry &ent,const char *name,long val) {
     size_t l;
@@ -1761,10 +1856,10 @@ void MEM_SaveState(Section *sec) {
     {
         ZIPFileEntry *ent = savestate_zip.new_entry("memory.txt");
         if (ent != NULL) {
-            zip_nv_write(*ent,"a20.enabled",memory.a20.enabled?1l:0l);
-            zip_nv_write_hex(*ent,"a20.controlport",memory.a20.controlport);
-            zip_nv_write(*ent,"a20_guest_changeable",a20_guest_changeable);
-            zip_nv_write(*ent,"a20_fake_changeable",a20_fake_changeable);
+            zip_nv_write(*ent,    "a20.enabled",            memory.a20.enabled);
+            zip_nv_write_hex(*ent,"a20.controlport",        memory.a20.controlport);
+            zip_nv_write(*ent,    "a20_guest_changeable",   a20_guest_changeable);
+            zip_nv_write(*ent,    "a20_fake_changeable",    a20_fake_changeable);
         }
     }
 }
