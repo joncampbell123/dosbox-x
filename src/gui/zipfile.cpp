@@ -108,8 +108,8 @@ void ZIPFile::close(void) {
 ZIPFileEntry *ZIPFile::get_entry(const char *name) {
     if (file_fd < 0) return NULL;
 
-    /* no reading while writing */
-    if (!current_entry.empty()) return NULL;
+    /* no reading while writing except what is being written */
+    if (!current_entry.empty() && current_entry != name) return NULL;
 
     /* no empty names */
     if (*name == 0) return NULL;
