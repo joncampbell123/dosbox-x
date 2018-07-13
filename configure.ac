@@ -148,13 +148,25 @@ fi
 CFLAGS="$CFLAGS -std=gnu11";
 CXXFLAGS="$CXXFLAGS -std=gnu++0x";
 
-dnl Yksoft1 wants a MinGW build for Windows that doesn't use the Windows menu system.
+dnl yksoft1 wants a MinGW build for Windows that doesn't use the Windows menu system.
 AH_TEMPLATE(C_FORCE_MENU_SDLDRAW,[Define to 1 to force SDL-drawn menus])
 AC_ARG_ENABLE(force-menu-sdldraw,AC_HELP_STRING([--enable-force-menu-sdldraw],[Force SDL drawn menus]),enable_force_menu_sdldraw=yes)
 
 dnl This is how the build script can specify a HX DOS extender target
 AH_TEMPLATE(C_HX_DOS,[Define to 1 to target HX DOS])
 AC_ARG_ENABLE(hx-dos,AC_HELP_STRING([--enable-hx-dos],[Enable HX target]),enable_hx=yes)
+
+dnl Optimize for speed by default
+AC_ARG_ENABLE(optimize,AC_HELP_STRING([--disable-optimize],[Don't enable compiler optimizations]))
+
+dnl FIXME: Remove default "-O2" set by some autotools versions. TODO: check availability of sed.
+CFLAGS=["`echo $CFLAGS' ' | sed -e 's/-O[^ ]* //g'`"]
+CXXFLAGS=["`echo $CXXFLAGS' ' | sed -e 's/-O[^ ]* //g'`"]
+
+if test x$enable_optimize != xno; then
+	CFLAGS="$CFLAGS -O2"
+	CXXFLAGS="$CXXFLAGS -O2"
+fi
 
 dnl Some stuff for the icon.
 case "$host" in
