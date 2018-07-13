@@ -2536,6 +2536,8 @@ void ResetSystem(bool pressed) {
     throw int(3);
 }
 
+ZIPFile savestate_zip;
+
 void GUI_EXP_LoadState(bool pressed) {
     if (!pressed) return;
 
