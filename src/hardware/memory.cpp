@@ -1726,6 +1726,28 @@ void MEM_LoadState(Section *sec) {
     }
 }
 
+//moveout
+char zip_nv_tmp[1024];
+
+void zip_nv_write(ZIPFileEntry &ent,const char *name,long val) {
+    size_t l;
+
+    if ((l = ((size_t)snprintf(zip_nv_tmp,sizeof(zip_nv_tmp),"%s=%ld\n",name,val))) >= (sizeof(zip_nv_tmp)-1u))
+        E_Exit("zip_nv_write buffer overrun (result too long)");
+
+    ent.write(zip_nv_tmp,l);
+}
+
+void zip_nv_write_hex(ZIPFileEntry &ent,const char *name,unsigned long val) {
+    size_t l;
+
+    if ((l = ((size_t)snprintf(zip_nv_tmp,sizeof(zip_nv_tmp),"%s=0x%lx\n",name,val))) >= (sizeof(zip_nv_tmp)-1u))
+        E_Exit("zip_nv_write buffer overrun (result too long)");
+
+    ent.write(zip_nv_tmp,l);
+}
+/////////
+
 void MEM_SaveState(Section *sec) {
     (void)sec;//UNUSED
 
@@ -1733,6 +1755,16 @@ void MEM_SaveState(Section *sec) {
         ZIPFileEntry *ent = savestate_zip.new_entry("memory.bin");
         if (ent != NULL) {
             ent->write(MemBase, memory.pages*4096);
+        }
+    }
+
+    {
+        ZIPFileEntry *ent = savestate_zip.new_entry("memory.txt");
+        if (ent != NULL) {
+            zip_nv_write(*ent,"a20.enabled",memory.a20.enabled?1l:0l);
+            zip_nv_write_hex(*ent,"a20.controlport",memory.a20.controlport);
+            zip_nv_write(*ent,"a20_guest_changeable",a20_guest_changeable);
+            zip_nv_write(*ent,"a20_fake_changeable",a20_fake_changeable);
         }
     }
 }
