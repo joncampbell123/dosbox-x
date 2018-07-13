@@ -125,6 +125,7 @@ public:
     std::string &get(const char *name);
     bool get_bool(const char *name);
     long get_long(const char *name);
+    unsigned long get_ulong(const char *name);
     void process_line(char *line/*will modify, assume caller has put NUL at the end*/);
     void read_nv_pairs(ZIPFileEntry &ent);
 };

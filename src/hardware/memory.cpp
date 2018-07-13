@@ -1730,7 +1730,7 @@ void MEM_LoadState(Section *sec) {
         if (ent != NULL) {
             zip_nv_pair_map nv(*ent);
             memory.a20.enabled =     nv.get_bool("a20.enabled");
-            memory.a20.controlport = (Bit8u)nv.get_long("a20.controlport");
+            memory.a20.controlport = (Bit8u)nv.get_ulong("a20.controlport");
             a20_guest_changeable =   nv.get_bool("a20_guest_changeable");
             a20_fake_changeable =    nv.get_bool("a20_fake_changeable");
         }

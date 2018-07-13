@@ -395,6 +395,11 @@ long zip_nv_pair_map::get_long(const char *name) {
     return strtol(val.c_str(),NULL,0);
 }
 
+unsigned long zip_nv_pair_map::get_ulong(const char *name) {
+    std::string &val = get(name);
+    return strtoul(val.c_str(),NULL,0);
+}
+
 void zip_nv_pair_map::process_line(char *line/*will modify, assume caller has put NUL at the end*/) {
     char *equ = strchr(line,'=');
     if (equ == NULL) return;
