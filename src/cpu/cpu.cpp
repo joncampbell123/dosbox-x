@@ -3443,6 +3443,9 @@ void CPU_LoadState(Section *sec) {
             Segs.phys[gs] =         nv.get_ulong("gs.phys");
             Segs.limit[gs] =        nv.get_ulong("gs.limit");
             Segs.expanddown[gs] =   nv.get_bool("gs.expanddown");
+
+            /* CPU state includes other variables based on flags, update them */
+            CPU_SetFlags(reg_flags, FMASK_ALL);
         }
     }
 }
