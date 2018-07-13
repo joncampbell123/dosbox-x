@@ -117,5 +117,20 @@ public:
     void writeZIPFooter(void);
 };
 
+class zip_nv_pair_map : public std::map<std::string, std::string> {
+public:
+    zip_nv_pair_map();
+    zip_nv_pair_map(ZIPFileEntry &ent);
+public:
+    std::string &get(const char *name);
+    bool get_bool(const char *name);
+    long get_long(const char *name);
+    void process_line(char *line/*will modify, assume caller has put NUL at the end*/);
+    void read_nv_pairs(ZIPFileEntry &ent);
+};
+
+void zip_nv_write(ZIPFileEntry &ent,const char *name,bool val);
+void zip_nv_write(ZIPFileEntry &ent,const char *name,long val);
+void zip_nv_write_hex(ZIPFileEntry &ent,const char *name,unsigned long val);
 #endif //ZIPFILE_H
 
