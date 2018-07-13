@@ -122,6 +122,10 @@ void ZIPFile::close(void) {
 ZIPFileEntry *ZIPFile::get_entry(const char *name) {
     if (file_fd < 0) return NULL;
 
+    /* no reading while writing */
+    if (!current_entry.empty()) return NULL;
+
+    /* no empty names */
     if (*name == 0) return NULL;
 
     auto i = entries.find(name);
@@ -133,9 +137,11 @@ ZIPFileEntry *ZIPFile::get_entry(const char *name) {
 ZIPFileEntry *ZIPFile::new_entry(const char *name) {
     if (file_fd < 0 || !can_write) return NULL;
 
+    /* cannot make new entries that exist already */
     auto i = entries.find(name);
     if (i != entries.end()) return NULL;
 
+    /* no empty names */
     if (*name == 0) return NULL;
 
     close_current();
