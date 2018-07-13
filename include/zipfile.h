@@ -8,6 +8,8 @@ extern "C" {
 #include "zipcrc.h"
 }
 
+#include <map>
+
 #pragma pack(push,1)
 struct ZIPLocalFileHeader { /* ZIP File Format Specification v6.3.4 sec 4.3.7 Local file header */
     uint32_t        local_file_header_signature;                /* +0x00 0x04034b50 */

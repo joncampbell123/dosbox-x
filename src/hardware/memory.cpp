@@ -26,6 +26,7 @@
 #include "setup.h"
 #include "paging.h"
 #include "programs.h"
+#include "zipfile.h"
 #include "regs.h"
 #ifndef WIN32
 # include <stdlib.h>
@@ -36,6 +37,8 @@
 #include "voodoo.h"
 
 #include <string.h>
+
+extern ZIPFile savestate_zip;
 
 static MEM_Callout_t lfb_mem_cb = MEM_Callout_t_none;
 static MEM_Callout_t lfb_mmio_cb = MEM_Callout_t_none;
@@ -1708,12 +1711,41 @@ void MEM_InitCallouts(void) {
     MEM_callouts[MEM_callouts_index(MEM_TYPE_MB)].resize(64);
 }
 
+void MEM_LoadState(Section *sec) {
+    (void)sec;//UNUSED
+
+    if (MemBase != NULL) {
+        ZIPFileEntry *ent = savestate_zip.get_entry("memory.bin");
+        if (ent != NULL) {
+            ent->rewind();
+            if ((memory.pages*4096) == ent->file_length)
+                ent->read(MemBase, memory.pages*4096);
+            else
+                LOG_MSG("Memory load state failure: Memory size mismatch");
+        }
+    }
+}
+
+void MEM_SaveState(Section *sec) {
+    (void)sec;//UNUSED
+
+    if (MemBase != NULL) {
+        ZIPFileEntry *ent = savestate_zip.new_entry("memory.bin");
+        if (ent != NULL) {
+            ent->write(MemBase, memory.pages*4096);
+        }
+    }
+}
+
 void Init_RAM() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
     Bitu i;
 
     /* please let me know about shutdown! */
     if (!has_Init_RAM) {
+        AddVMEventFunction(VM_EVENT_LOAD_STATE,AddVMEventFunctionFuncPair(MEM_LoadState));
+        AddVMEventFunction(VM_EVENT_SAVE_STATE,AddVMEventFunctionFuncPair(MEM_SaveState));
+
         AddExitFunction(AddExitFunctionFuncPair(ShutDownRAM));
         has_Init_RAM = true;
     }
