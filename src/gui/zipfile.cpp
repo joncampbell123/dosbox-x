@@ -41,16 +41,12 @@
 #include "keymap.h"
 
 bool ZIPFileEntry::rewind(void) {
-    if (can_write && can_extend && file_offset != (off_t)0) return false;
+    if (can_write) return false;
     return (seek_file(0) == 0);
 }
 
 off_t ZIPFileEntry::seek_file(off_t pos) {
-    if (file == NULL || file_offset == (off_t)0) return (off_t)(-1LL);
-
-    /* no seeking while writing, the CRC generation depends on a streaming write */
-    if (pos != position && can_extend) return (off_t)(-1LL);
-
+    if (file == NULL || file_offset == (off_t)0 || can_write) return (off_t)(-1LL);
     if (pos < (off_t)0) pos = (off_t)0;
     if (pos > file_length) pos = file_length;
     pos = file->seek_file(pos + file_offset) - file_offset;
@@ -77,30 +73,20 @@ int ZIPFileEntry::read(void *buffer,size_t count) {
 
 int ZIPFileEntry::write(const void *buffer,size_t count) {
     if (file == NULL || file_offset == (off_t)0 || !can_write) return -1;
-    if (position > file_length) return 0;
-    if (position == file_length && !can_extend) return 0;
 
-    size_t mwrite;
-
-    if (can_extend) {
-        mwrite = count;
-    }
-    else {
-        mwrite = file_length - position;
-        if (mwrite > count) mwrite = count;
-    }
-
-    if (mwrite > 0) {
-        if (seek_file(position) != position) return -1;
-        mwrite = file->write(buffer,mwrite);
-        if (mwrite > 0) {
-            position += mwrite;
+    /* write stream only, no seeking.
+     * this code assumes the file pointer will not change anywhere else,
+     * and always to the end */
+    if (count > 0) {
+        count = file->write(buffer,count);
+        if (count > 0) {
+            position += count;
             write_crc = zipcrc_update(write_crc, buffer, count);
-            if (file_length < position && can_extend) file_length = position;
+            file_length = position;
         }
     }
 
-    return mwrite;
+    return count;
 }
 
 ZIPFile::ZIPFile() {
@@ -135,7 +121,7 @@ ZIPFileEntry *ZIPFile::get_entry(const char *name) {
 }
 
 ZIPFileEntry *ZIPFile::new_entry(const char *name) {
-    if (file_fd < 0 || !can_write) return NULL;
+    if (file_fd < 0 || !can_write || wrote_trailer) return NULL;
 
     /* cannot make new entries that exist already */
     auto i = entries.find(name);
@@ -144,14 +130,16 @@ ZIPFileEntry *ZIPFile::new_entry(const char *name) {
     /* no empty names */
     if (*name == 0) return NULL;
 
+    /* close current entry, if open */
     close_current();
+
+    /* begin new entry at end */
     current_entry = name;
     write_pos = end_of_file();
 
     ZIPFileEntry *ent = &entries[name];
     ent->name = name;
     ent->can_write = true;
-    ent->can_extend = true;
     ent->file_header_offset = write_pos;
     write_pos += sizeof(ZIPLocalFileHeader) + ent->name.length();
     ent->write_crc = zipcrc_init();
@@ -200,7 +188,6 @@ void ZIPFile::close_current(void) {
 
         if (ent != NULL && ent->can_write) {
             ent->can_write = false;
-            ent->can_extend = false;
 
             if (seek_file(ent->file_header_offset) == ent->file_header_offset && read(&hdr,sizeof(hdr)) == sizeof(hdr)) {
                 hdr.compressed_size = hdr.uncompressed_size = htole32(((uint32_t)ent->file_length));
@@ -299,7 +286,6 @@ int ZIPFile::open(const char *path,int mode) {
 
                 ZIPFileEntry *ent = &entries[(char*)tmp];
                 ent->can_write = false;
-                ent->can_extend = false;
                 ent->file_length = htole32(chdr.uncompressed_size);
                 ent->file_header_offset = htole32(chdr.relative_offset_of_local_header);
                 ent->file_offset = ent->file_header_offset + sizeof(struct ZIPLocalFileHeader) + htole16(chdr.filename_length) + htole16(chdr.extra_field_length);

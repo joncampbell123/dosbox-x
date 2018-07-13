@@ -71,7 +71,6 @@ class ZIPFile;
 class ZIPFileEntry {
 public:
     bool        can_write = false;
-    bool        can_extend = false;
     off_t       file_length = 0;
     off_t       file_offset = 0;
     off_t       file_header_offset = 0;
