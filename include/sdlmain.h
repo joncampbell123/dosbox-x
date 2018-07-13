@@ -151,6 +151,8 @@ extern SDL_Block sdl;
 #include <output/output_tools.h>
 #include <output/output_tools_xbrz.h>
 
+#include "zipfile.h"
+
 extern Bitu userResizeWindowWidth;
 extern Bitu userResizeWindowHeight;
 extern Bitu currentWindowWidth;

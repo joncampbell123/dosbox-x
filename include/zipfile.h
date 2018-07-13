@@ -1,4 +1,7 @@
 
+#ifndef ZIPFILE_H
+#define ZIPFILE_H
+
 #include <stdint.h>
 
 extern "C" {
@@ -111,4 +114,6 @@ public:
     int write(const void *buffer,size_t count);
     void writeZIPFooter(void);
 };
+
+#endif //ZIPFILE_H
 
