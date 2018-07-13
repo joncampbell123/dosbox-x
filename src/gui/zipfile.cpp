@@ -41,6 +41,7 @@
 #include "keymap.h"
 
 bool ZIPFileEntry::rewind(void) {
+    if (can_write && can_extend && file_offset != (off_t)0) return false;
     return (seek_file(0) == 0);
 }
 
