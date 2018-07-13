@@ -528,6 +528,8 @@ VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr) {
     return VS_Off;
 }
 
+bool has_pcibus_enable(void);
+
 void VGA_Reset(Section*) {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
     string str;
@@ -540,9 +542,20 @@ void VGA_Reset(Section*) {
     S3_LFB_BASE = section->Get_hex("svga lfb base");
     if (S3_LFB_BASE == 0) S3_LFB_BASE = S3_LFB_BASE_DEFAULT;
 
-    /* must be 64KB aligned */
-    S3_LFB_BASE +=  0x7FFFUL;
-    S3_LFB_BASE &= ~0xFFFFUL;
+    /* no farther than 32MB below the top */
+    if (S3_LFB_BASE > 0xFE000000UL)
+        S3_LFB_BASE = 0xFE000000UL;
+
+    if (has_pcibus_enable()) {
+        /* must be 32MB aligned (PCI) */
+        S3_LFB_BASE +=  0x0FFFFFFUL;
+        S3_LFB_BASE &= ~0x1FFFFFFUL;
+    }
+    else {
+        /* must be 64KB aligned (ISA) */
+        S3_LFB_BASE +=  0x7FFFUL;
+        S3_LFB_BASE &= ~0xFFFFUL;
+    }
 
     /* must not overlap system RAM */
     if (S3_LFB_BASE < (MEM_TotalPages()*4096))
