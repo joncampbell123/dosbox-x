@@ -2542,74 +2542,31 @@ void GUI_EXP_LoadState(bool pressed) {
     if (!pressed) return;
 
     LOG_MSG("Loading state... (experimental)");
+
+    if (savestate_zip.open("exsavest.zip",O_RDONLY) < 0) {
+        LOG_MSG("Unable to open save state");
+        return;
+    }
+
     DispatchVMEvent(VM_EVENT_LOAD_STATE);
 
-    ZIPFile testfile;
-    if (testfile.open("TESTING.ZIP",O_RDONLY) >= 0) {
-        for (auto i=testfile.entries.begin();i!=testfile.entries.end();i++) {
-            const ZIPFileEntry &ent = i->second;
-
-            LOG_MSG("ZIP file contains: '%s' %ld bytes at offset %ld",
-                ent.name.c_str(),(long)ent.file_length,(long)ent.file_offset);
-        }
-
-        /* read test */
-        char tmp[512];
-        int l;
-
-        {
-            ZIPFileEntry *ent = testfile.get_entry("Hello.txt");
-            if (ent != NULL) {
-                if (!ent->rewind()) LOG_MSG("lseek fail");
-                l = ent->read(tmp,sizeof(tmp));
-                if (l < 0) l = 0;
-                tmp[l] = 0;
-
-                LOG_MSG("Hello.txt: '%s'",tmp);
-
-                if (!ent->rewind()) LOG_MSG("lseek fail");
-                l = ent->read(tmp,sizeof(tmp));
-                if (l < 0) l = 0;
-                tmp[l] = 0;
-
-                LOG_MSG("Hello.txt (again): '%s'",tmp);
-            }
-        }
-
-        testfile.close();
-    }
+    savestate_zip.close();
 }
 
 void GUI_EXP_SaveState(bool pressed) {
     if (!pressed) return;
 
     LOG_MSG("Saving state... (experimental)");
+
+    if (savestate_zip.open("exsavest.zip",O_RDWR|O_CREAT|O_TRUNC) < 0) {
+        LOG_MSG("Unable to open save state for writing");
+        return;
+    }
+
     DispatchVMEvent(VM_EVENT_SAVE_STATE);
 
-    ZIPFile testfile;
-    if (testfile.open("TESTING.ZIP",O_RDWR|O_CREAT|O_TRUNC) >= 0) {
-        {
-            const char msg[] = "Hello world!";
-            ZIPFileEntry *ent = testfile.new_entry("Hello.txt");
-            assert(ent != NULL);
-
-            ent->write(msg,strlen(msg));
-        }
-
-        {
-            const char msg[] = "And another test file message blahiweuruiwryoiuywqoriuy qiwryiwqr\nYah";
-            ZIPFileEntry *ent = testfile.new_entry("Blather.txt");
-            assert(ent != NULL);
-
-            ent->write(msg,strlen(msg));
-        }
-
-        testfile.writeZIPFooter();
-        testfile.close();
-    }
-    else {
-        LOG_MSG("FAILED");
-    }
+    savestate_zip.writeZIPFooter();
+    savestate_zip.close();
 }
 
 bool has_GUI_StartUp = false;
