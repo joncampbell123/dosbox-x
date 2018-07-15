@@ -1141,15 +1141,38 @@ void VGA_Destroy(Section*) {
     PC98_FM_Destroy(NULL);
 }
 
+extern uint8_t                     pc98_pal_analog[256*3]; /* G R B    0x0..0xF */
+extern uint8_t                     pc98_pal_digital[8];    /* G R B    0x0..0x7 */
+
+void pc98_update_palette(void);
+
 void VGA_LoadState(Section *sec) {
     (void)sec;//UNUSED
 
     if (IS_PC98_ARCH) {
+        {
+            ZIPFileEntry *ent = savestate_zip.get_entry("vga.pc98.analog.palette.bin");
+            if (ent != NULL) {
+                ent->rewind();
+                ent->read(pc98_pal_analog, 256*3);
+            }
+        }
+
+        {
+            ZIPFileEntry *ent = savestate_zip.get_entry("vga.pc98.digital.palette.bin");
+            if (ent != NULL) {
+                ent->rewind();
+                ent->read(pc98_pal_digital, 8);
+            }
+        }
+
+        pc98_update_palette();
     }
     else {
         {
             ZIPFileEntry *ent = savestate_zip.get_entry("vga.ac.palette.bin");
             if (ent != NULL) {
+                ent->rewind();
                 ent->read(vga.attr.palette, 0x10);
             }
         }
@@ -1180,6 +1203,19 @@ void VGA_SaveState(Section *sec) {
     (void)sec;//UNUSED
 
     if (IS_PC98_ARCH) {
+        {
+            ZIPFileEntry *ent = savestate_zip.new_entry("vga.pc98.analog.palette.bin");
+            if (ent != NULL) {
+                ent->write(pc98_pal_analog, 256*3);
+            }
+        }
+
+        {
+            ZIPFileEntry *ent = savestate_zip.new_entry("vga.pc98.digital.palette.bin");
+            if (ent != NULL) {
+                ent->write(pc98_pal_digital, 8);
+            }
+        }
     }
     else {
         {
