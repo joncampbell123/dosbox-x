@@ -72,6 +72,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
       <li><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
 </div>
@@ -80,7 +81,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>Defines</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -99,18 +100,21 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00003"></a>00003 <span class="preprocessor">#ifndef DOSBOX_OUTPUT_SURFACE_H</span>
 <a name="l00004"></a>00004 <span class="preprocessor"></span><span class="preprocessor">#define DOSBOX_OUTPUT_SURFACE_H</span>
 <a name="l00005"></a>00005 <span class="preprocessor"></span>
-<a name="l00006"></a>00006 <span class="keywordtype">void</span> OUTPUT_SURFACE_Select();
-<a name="l00007"></a>00007 Bitu OUTPUT_SURFACE_GetBestMode(Bitu flags);
-<a name="l00008"></a>00008 Bitu OUTPUT_SURFACE_SetSize();
-<a name="l00009"></a>00009 <span class="keywordtype">bool</span> OUTPUT_SURFACE_StartUpdate(Bit8u* &amp;pixels, Bitu &amp;pitch);
-<a name="l00010"></a>00010 <span class="keywordtype">void</span> OUTPUT_SURFACE_EndUpdate(<span class="keyword">const</span> Bit16u *changedLines);
-<a name="l00011"></a>00011 
-<a name="l00012"></a>00012 <span class="preprocessor">#endif </span><span class="comment">/*DOSBOX_OUTPUT_SURFACE_H*/</span>
+<a name="l00006"></a>00006 <span class="comment">// output API</span>
+<a name="l00007"></a>00007 <span class="keywordtype">void</span> OUTPUT_SURFACE_Initialize();
+<a name="l00008"></a>00008 <span class="keywordtype">void</span> OUTPUT_SURFACE_Select();
+<a name="l00009"></a>00009 Bitu OUTPUT_SURFACE_GetBestMode(Bitu flags);
+<a name="l00010"></a>00010 Bitu OUTPUT_SURFACE_SetSize();
+<a name="l00011"></a>00011 <span class="keywordtype">bool</span> OUTPUT_SURFACE_StartUpdate(Bit8u* &amp;pixels, Bitu &amp;pitch);
+<a name="l00012"></a>00012 <span class="keywordtype">void</span> OUTPUT_SURFACE_EndUpdate(<span class="keyword">const</span> Bit16u *changedLines);
+<a name="l00013"></a>00013 <span class="keywordtype">void</span> OUTPUT_SURFACE_Shutdown();
+<a name="l00014"></a>00014 
+<a name="l00015"></a>00015 <span class="preprocessor">#endif </span><span class="comment">/*DOSBOX_OUTPUT_SURFACE_H*/</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 9 2018 18:44:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 15 2018 11:44:20 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -72,6 +72,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
       <li><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
 </div>
@@ -80,7 +81,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>Defines</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -97,12 +98,70 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 <span class="preprocessor">#ifndef DOSBOX_OUTPUT_TOOLS_H</span>
 <a name="l00002"></a>00002 <span class="preprocessor"></span><span class="preprocessor">#define DOSBOX_OUTPUT_TOOLS_H</span>
 <a name="l00003"></a>00003 <span class="preprocessor"></span>
-<a name="l00004"></a>00004 <span class="preprocessor">#endif</span>
+<a name="l00004"></a>00004 <span class="preprocessor">#include &lt;sys/types.h&gt;</span>
+<a name="l00005"></a>00005 <span class="preprocessor">#include &lt;assert.h&gt;</span>
+<a name="l00006"></a>00006 <span class="preprocessor">#include &lt;math.h&gt;</span>
+<a name="l00007"></a>00007 
+<a name="l00008"></a>00008 <span class="preprocessor">#include &quot;dosbox.h&quot;</span>
+<a name="l00009"></a>00009 <span class="preprocessor">#include &quot;sdlmain.h&quot;</span>
+<a name="l00010"></a>00010 
+<a name="l00011"></a>00011 <span class="comment">// common headers and static routines reused in different outputs go there</span>
+<a name="l00012"></a>00012 
+<a name="l00013"></a>00013 <span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">int</span> int_log2(<span class="keywordtype">int</span> val)
+<a name="l00014"></a>00014 {
+<a name="l00015"></a>00015     <span class="keywordtype">int</span> log = 0;
+<a name="l00016"></a>00016     <span class="keywordflow">while</span> ((val &gt;&gt;= 1) != 0) log++;
+<a name="l00017"></a>00017     <span class="keywordflow">return</span> log;
+<a name="l00018"></a>00018 }
+<a name="l00019"></a>00019 
+<a name="l00020"></a>00020 <span class="keyword">template</span> &lt;<span class="keyword">class</span> WH&gt;
+<a name="l00021"></a>00021 <span class="keyword">inline</span> <span class="keywordtype">void</span> aspectCorrectExtend(<span class="keyword">volatile</span> WH &amp;width, <span class="keyword">volatile</span> WH &amp;height)
+<a name="l00022"></a>00022 {
+<a name="l00023"></a>00023     <span class="keywordflow">if</span> (width * sdl.srcAspect.y != height * sdl.srcAspect.x)
+<a name="l00024"></a>00024     {
+<a name="l00025"></a>00025         <span class="comment">// abnormal aspect ratio detected, apply correction</span>
+<a name="l00026"></a>00026         <span class="keywordflow">if</span> (width * sdl.srcAspect.y &gt; height * sdl.srcAspect.x)
+<a name="l00027"></a>00027         {
+<a name="l00028"></a>00028             <span class="comment">// wide pixel ratio, height should be extended to fit</span>
+<a name="l00029"></a>00029             height = (WH)floor((<span class="keywordtype">double</span>)width * sdl.srcAspect.yToX + 0.5);
+<a name="l00030"></a>00030         }
+<a name="l00031"></a>00031         <span class="keywordflow">else</span>
+<a name="l00032"></a>00032         {
+<a name="l00033"></a>00033             <span class="comment">// long pixel ratio, width should be extended</span>
+<a name="l00034"></a>00034             width = (WH)floor((<span class="keywordtype">double</span>)height * sdl.srcAspect.xToY + 0.5);
+<a name="l00035"></a>00035         }
+<a name="l00036"></a>00036     }
+<a name="l00037"></a>00037 }
+<a name="l00038"></a>00038 
+<a name="l00039"></a>00039 <span class="keyword">template</span> &lt;<span class="keyword">class</span> WH, <span class="keyword">class</span> XY, <span class="keyword">class</span> TWH&gt;
+<a name="l00040"></a>00040 <span class="keyword">inline</span> <span class="keywordtype">void</span> aspectCorrectFitClip(<span class="keyword">volatile</span> WH &amp;clipW, <span class="keyword">volatile</span> WH &amp;clipH, <span class="keyword">volatile</span> XY &amp;clipX, <span class="keyword">volatile</span> XY &amp;clipY, <span class="keyword">const</span> TWH fullW, <span class="keyword">const</span> TWH fullH)
+<a name="l00041"></a>00041 {
+<a name="l00042"></a>00042     XY ax, ay;
+<a name="l00043"></a>00043     WH sh = fullH;
+<a name="l00044"></a>00044     WH sw = (WH)floor((<span class="keywordtype">double</span>)fullH * sdl.srcAspect.xToY);
+<a name="l00045"></a>00045 
+<a name="l00046"></a>00046     <span class="keywordflow">if</span> (sw &gt; fullW) {
+<a name="l00047"></a>00047         sh = (WH)floor(((<span class="keywordtype">double</span>)sh * fullW) / sw);
+<a name="l00048"></a>00048         sw = fullW;
+<a name="l00049"></a>00049     }
+<a name="l00050"></a>00050 
+<a name="l00051"></a>00051     ax = (WH)floor((fullW - sw) / 2);
+<a name="l00052"></a>00052     ay = (WH)floor((fullH - sh) / 2);
+<a name="l00053"></a>00053     <span class="keywordflow">if</span> (ax &lt; 0) ax = 0;
+<a name="l00054"></a>00054     <span class="keywordflow">if</span> (ay &lt; 0) ay = 0;
+<a name="l00055"></a>00055 
+<a name="l00056"></a>00056     clipX = ax; clipY = ay; clipW = sw; clipH = sh;
+<a name="l00057"></a>00057 
+<a name="l00058"></a>00058     assert((sdl.clip.x + sdl.clip.w) &lt;= sdl.desktop.full.width);
+<a name="l00059"></a>00059     assert((sdl.clip.y + sdl.clip.h) &lt;= sdl.desktop.full.height);
+<a name="l00060"></a>00060 }
+<a name="l00061"></a>00061 
+<a name="l00062"></a>00062 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 9 2018 18:44:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 15 2018 11:44:20 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

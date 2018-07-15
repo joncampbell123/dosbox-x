@@ -72,6 +72,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
       <li><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
 </div>
@@ -80,7 +81,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>Defines</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -408,124 +409,126 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00312"></a>00312 
 <a name="l00313"></a>00313         VM_EVENT_DOS_EXIT_REBOOT_KERNEL=15,     <span class="comment">// DOS kernel has just finished exiting (hard reset)</span>
 <a name="l00314"></a>00314     VM_EVENT_DOS_SURPRISE_REBOOT,       <span class="comment">// DOS kernel asked to boot, when apparently having never been shut down (jmp to FFFF:0000)</span>
-<a name="l00315"></a>00315 
-<a name="l00316"></a>00316         VM_EVENT_MAX
-<a name="l00317"></a>00317 };
-<a name="l00318"></a>00318 
-<a name="l00319"></a><a class="code" href="classVMDispatchState.html">00319</a> <span class="keyword">class </span><a class="code" href="classVMDispatchState.html">VMDispatchState</a> {
-<a name="l00320"></a>00320 <span class="keyword">public</span>:
-<a name="l00321"></a>00321         <a class="code" href="classVMDispatchState.html">VMDispatchState</a>() : current_event(VM_EVENT_MAX), event_in_progress(<span class="keyword">false</span>) { }
-<a name="l00322"></a>00322         <span class="keywordtype">void</span> begin_event(<span class="keyword">enum</span> vm_event event) {
-<a name="l00323"></a>00323                 event_in_progress = <span class="keyword">true</span>;
-<a name="l00324"></a>00324                 current_event = event;
-<a name="l00325"></a>00325         }
-<a name="l00326"></a>00326         <span class="keywordtype">void</span> end_event() {
-<a name="l00327"></a>00327                 event_in_progress = <span class="keyword">false</span>;
-<a name="l00328"></a>00328         }
-<a name="l00329"></a>00329 <span class="keyword">public</span>:
-<a name="l00330"></a>00330         <span class="keyword">enum</span> vm_event                   current_event;
-<a name="l00331"></a>00331         <span class="keywordtype">bool</span>                            event_in_progress;
-<a name="l00332"></a>00332 };
-<a name="l00333"></a>00333 
-<a name="l00334"></a>00334 <span class="keyword">extern</span> <a class="code" href="classVMDispatchState.html">VMDispatchState</a> vm_dispatch_state;
+<a name="l00315"></a>00315     VM_EVENT_SAVE_STATE,            <span class="comment">// Save state in progress. Callback handler should refer to global object to write it&#39;s state to.</span>
+<a name="l00316"></a>00316     VM_EVENT_LOAD_STATE,            <span class="comment">// Loading a save state in progress. Callback handler should refer to global object to read state from.</span>
+<a name="l00317"></a>00317 
+<a name="l00318"></a>00318         VM_EVENT_MAX
+<a name="l00319"></a>00319 };
+<a name="l00320"></a>00320 
+<a name="l00321"></a><a class="code" href="classVMDispatchState.html">00321</a> <span class="keyword">class </span><a class="code" href="classVMDispatchState.html">VMDispatchState</a> {
+<a name="l00322"></a>00322 <span class="keyword">public</span>:
+<a name="l00323"></a>00323         <a class="code" href="classVMDispatchState.html">VMDispatchState</a>() : current_event(VM_EVENT_MAX), event_in_progress(<span class="keyword">false</span>) { }
+<a name="l00324"></a>00324         <span class="keywordtype">void</span> begin_event(<span class="keyword">enum</span> vm_event event) {
+<a name="l00325"></a>00325                 event_in_progress = <span class="keyword">true</span>;
+<a name="l00326"></a>00326                 current_event = event;
+<a name="l00327"></a>00327         }
+<a name="l00328"></a>00328         <span class="keywordtype">void</span> end_event() {
+<a name="l00329"></a>00329                 event_in_progress = <span class="keyword">false</span>;
+<a name="l00330"></a>00330         }
+<a name="l00331"></a>00331 <span class="keyword">public</span>:
+<a name="l00332"></a>00332         <span class="keyword">enum</span> vm_event                   current_event;
+<a name="l00333"></a>00333         <span class="keywordtype">bool</span>                            event_in_progress;
+<a name="l00334"></a>00334 };
 <a name="l00335"></a>00335 
-<a name="l00336"></a>00336 <span class="keyword">const</span> <span class="keywordtype">char</span> *GetVMEventName(<span class="keyword">enum</span> vm_event event);
+<a name="l00336"></a>00336 <span class="keyword">extern</span> <a class="code" href="classVMDispatchState.html">VMDispatchState</a> vm_dispatch_state;
 <a name="l00337"></a>00337 
-<a name="l00338"></a>00338 <span class="keyword">extern</span> std::list&lt;Function_wrapper&gt; vm_event_functions[VM_EVENT_MAX];
-<a name="l00339"></a>00339 <span class="keywordtype">void</span> AddVMEventFunction(<span class="keyword">enum</span> vm_event event,SectionFunction func,<span class="keyword">const</span> <span class="keywordtype">char</span> *name,<span class="keywordtype">bool</span> canchange=<span class="keyword">false</span>);
-<a name="l00340"></a>00340 <span class="keywordtype">void</span> DispatchVMEvent(<span class="keyword">enum</span> vm_event event);
-<a name="l00341"></a>00341 
-<a name="l00342"></a>00342 <span class="comment">/* for use with AddExitFunction and a name of a function.</span>
-<a name="l00343"></a>00343 <span class="comment"> * this turns it into function pointer and function name. it turns one param into two. */</span>
-<a name="l00344"></a>00344 <span class="preprocessor">#define AddVMEventFunctionFuncPair(x) &amp;x, #x</span>
-<a name="l00345"></a>00345 <span class="preprocessor"></span>
-<a name="l00346"></a>00346 <span class="keyword">class </span><a class="code" href="classProp__multival.html">Prop_multival</a>;
-<a name="l00347"></a>00347 <span class="keyword">class </span><a class="code" href="classProp__multival__remain.html">Prop_multival_remain</a>;
-<a name="l00348"></a><a class="code" href="classSection__prop.html">00348</a> <span class="keyword">class </span><a class="code" href="classSection__prop.html">Section_prop</a>:<span class="keyword">public</span> <a class="code" href="classSection.html">Section</a> {
-<a name="l00349"></a>00349 <span class="keyword">private</span>:
-<a name="l00350"></a>00350         std::list&lt;Property*&gt; properties;
-<a name="l00351"></a>00351         <span class="keyword">typedef</span> std::list&lt;Property*&gt;::iterator it;
-<a name="l00352"></a>00352         <span class="keyword">typedef</span> std::list&lt;Property*&gt;::const_iterator const_it;
-<a name="l00353"></a>00353 
-<a name="l00354"></a>00354 <span class="keyword">public</span>:
-<a name="l00355"></a>00355         <a class="code" href="classSection__prop.html">Section_prop</a>(std::string <span class="keyword">const</span>&amp;  _sectionname):<a class="code" href="classSection.html">Section</a>(_sectionname){}
-<a name="l00356"></a>00356         <a class="code" href="classProp__int.html">Prop_int</a>* Add_int(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when, <span class="keywordtype">int</span> _value=0);
-<a name="l00357"></a>00357         <a class="code" href="classProp__string.html">Prop_string</a>* Add_string(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when, <span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> _value=NULL);
-<a name="l00358"></a>00358         <a class="code" href="classProp__path.html">Prop_path</a>* Add_path(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when, <span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> _value=NULL);
-<a name="l00359"></a>00359         <a class="code" href="classProp__bool.html">Prop_bool</a>*  Add_bool(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when, <span class="keywordtype">bool</span> _value=<span class="keyword">false</span>);
-<a name="l00360"></a>00360         <a class="code" href="classProp__hex.html">Prop_hex</a>* Add_hex(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when, <a class="code" href="classHex.html">Hex</a> _value=0);
-<a name="l00361"></a>00361         <a class="code" href="classProp__double.html">Prop_double</a>* Add_double(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when, <span class="keywordtype">double</span> _value=0.0);   
-<a name="l00362"></a>00362         <a class="code" href="classProp__multival.html">Prop_multival</a> *Add_multi(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when,std::string <span class="keyword">const</span>&amp; sep);
-<a name="l00363"></a>00363         <a class="code" href="classProp__multival__remain.html">Prop_multival_remain</a> *Add_multiremain(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when,std::string <span class="keyword">const</span>&amp; sep);
-<a name="l00364"></a>00364 
-<a name="l00365"></a>00365         <a class="code" href="classProperty.html">Property</a>* Get_prop(<span class="keywordtype">int</span> index);
-<a name="l00366"></a>00366         <span class="keywordtype">int</span> Get_int(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
-<a name="l00367"></a>00367         <span class="keyword">const</span> <span class="keywordtype">char</span>* Get_string(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
-<a name="l00368"></a>00368         <span class="keywordtype">bool</span> Get_bool(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
-<a name="l00369"></a>00369         <a class="code" href="classHex.html">Hex</a> Get_hex(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
-<a name="l00370"></a>00370         <span class="keywordtype">double</span> Get_double(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
-<a name="l00371"></a>00371         <a class="code" href="classProp__path.html">Prop_path</a>* Get_path(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
-<a name="l00372"></a>00372         <a class="code" href="classProp__multival.html">Prop_multival</a>* Get_multival(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
-<a name="l00373"></a>00373         <a class="code" href="classProp__multival__remain.html">Prop_multival_remain</a>* Get_multivalremain(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
-<a name="l00374"></a>00374         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> HandleInputline(std::string <span class="keyword">const</span>&amp; gegevens);
-<a name="l00375"></a>00375         <span class="keyword">virtual</span> <span class="keywordtype">void</span> PrintData(FILE* outfile,<span class="keywordtype">bool</span> everything=<span class="keyword">false</span>);
-<a name="l00376"></a>00376         <span class="keyword">virtual</span> std::string GetPropValue(std::string <span class="keyword">const</span>&amp; _property) <span class="keyword">const</span>;
-<a name="l00377"></a>00377         <span class="keyword">virtual</span> ~<a class="code" href="classSection__prop.html">Section_prop</a>();
-<a name="l00378"></a>00378 };
-<a name="l00379"></a>00379 
-<a name="l00380"></a><a class="code" href="classProp__multival.html">00380</a> <span class="keyword">class </span><a class="code" href="classProp__multival.html">Prop_multival</a>:<span class="keyword">public</span> <a class="code" href="classProperty.html">Property</a>{
-<a name="l00381"></a>00381 <span class="keyword">protected</span>:
-<a name="l00382"></a>00382         <a class="code" href="classSection__prop.html">Section_prop</a>* section;
-<a name="l00383"></a>00383         std::string seperator;
-<a name="l00384"></a>00384         <span class="keywordtype">void</span> make_default_value();
-<a name="l00385"></a>00385 <span class="keyword">public</span>:
-<a name="l00386"></a>00386         <a class="code" href="classProp__multival.html">Prop_multival</a>(std::string <span class="keyword">const</span>&amp; _propname, Changeable::Value when,std::string <span class="keyword">const</span>&amp; sep):<a class="code" href="classProperty.html">Property</a>(_propname,when), section(<span class="keyword">new</span> <a class="code" href="classSection__prop.html">Section_prop</a>(<span class="stringliteral">&quot;&quot;</span>)),seperator(sep) {
-<a name="l00387"></a>00387                 default_value = value = <span class="stringliteral">&quot;&quot;</span>;
-<a name="l00388"></a>00388         }
-<a name="l00389"></a>00389         <a class="code" href="classSection__prop.html">Section_prop</a> *GetSection() { <span class="keywordflow">return</span> section; }
-<a name="l00390"></a>00390         <span class="keyword">const</span> <a class="code" href="classSection__prop.html">Section_prop</a> *GetSection()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> section; }
-<a name="l00391"></a>00391         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> SetValue(std::string <span class="keyword">const</span>&amp; input,<span class="keywordtype">bool</span> init);
-<a name="l00392"></a>00392         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> SetValue(std::string <span class="keyword">const</span>&amp; input) { <span class="keywordflow">return</span> SetValue(input,<span class="comment">/*init*/</span><span class="keyword">false</span>); };
-<a name="l00393"></a>00393         <span class="keyword">virtual</span> <span class="keyword">const</span> std::vector&lt;Value&gt;&amp; GetValues() <span class="keyword">const</span>;
-<a name="l00394"></a>00394         <span class="keyword">virtual</span> ~<a class="code" href="classProp__multival.html">Prop_multival</a>() { <span class="keywordflow">if</span> (section != NULL) { <span class="keyword">delete</span> section; } }
-<a name="l00395"></a>00395 }; <span class="comment">//value bevat totale string. setvalue zet elk van de sub properties en checked die.</span>
-<a name="l00396"></a>00396 
-<a name="l00397"></a><a class="code" href="classProp__multival__remain.html">00397</a> <span class="keyword">class </span><a class="code" href="classProp__multival__remain.html">Prop_multival_remain</a>:<span class="keyword">public</span> <a class="code" href="classProp__multival.html">Prop_multival</a>{
-<a name="l00398"></a>00398 <span class="keyword">public</span>:
-<a name="l00399"></a>00399         <a class="code" href="classProp__multival__remain.html">Prop_multival_remain</a>(std::string <span class="keyword">const</span>&amp; _propname, Changeable::Value when,std::string <span class="keyword">const</span>&amp; sep):<a class="code" href="classProp__multival.html">Prop_multival</a>(_propname,when,sep){ }
-<a name="l00400"></a>00400 
-<a name="l00401"></a>00401         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> SetValue(std::string <span class="keyword">const</span>&amp; input,<span class="keywordtype">bool</span> init);
-<a name="l00402"></a>00402         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> SetValue(std::string <span class="keyword">const</span>&amp; input) { <span class="keywordflow">return</span> SetValue(input,<span class="comment">/*init*/</span><span class="keyword">false</span>); };
-<a name="l00403"></a>00403 };
-<a name="l00404"></a>00404 
-<a name="l00405"></a>00405    
-<a name="l00406"></a><a class="code" href="classSection__line.html">00406</a> <span class="keyword">class </span><a class="code" href="classSection__line.html">Section_line</a>: <span class="keyword">public</span> <a class="code" href="classSection.html">Section</a>{
-<a name="l00407"></a>00407 <span class="keyword">public</span>:
-<a name="l00408"></a>00408         <a class="code" href="classSection__line.html">Section_line</a>(std::string <span class="keyword">const</span>&amp; _sectionname):<a class="code" href="classSection.html">Section</a>(_sectionname){}
-<a name="l00409"></a>00409         <span class="keyword">virtual</span> ~<a class="code" href="classSection__line.html">Section_line</a>() { };
-<a name="l00410"></a>00410         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> HandleInputline(std::string <span class="keyword">const</span>&amp; gegevens);
-<a name="l00411"></a>00411         <span class="keyword">virtual</span> <span class="keywordtype">void</span> PrintData(FILE* outfile,<span class="keywordtype">bool</span> everything=<span class="keyword">false</span>);
-<a name="l00412"></a>00412         <span class="keyword">virtual</span> std::string GetPropValue(std::string <span class="keyword">const</span>&amp; _property) <span class="keyword">const</span>;
-<a name="l00413"></a>00413         std::string data;
-<a name="l00414"></a>00414 };
-<a name="l00415"></a>00415 
-<a name="l00416"></a><a class="code" href="classModule__base.html">00416</a> <span class="keyword">class </span><a class="code" href="classModule__base.html">Module_base</a> {
-<a name="l00417"></a>00417         <span class="comment">/* Base for all hardware and software &quot;devices&quot; */</span>
-<a name="l00418"></a>00418 <span class="keyword">protected</span>:
-<a name="l00419"></a>00419         <a class="code" href="classSection.html">Section</a>* m_configuration;
-<a name="l00420"></a>00420 <span class="keyword">public</span>:
-<a name="l00421"></a>00421         <a class="code" href="classModule__base.html">Module_base</a>(<a class="code" href="classSection.html">Section</a>* configuration){m_configuration=configuration;};
-<a name="l00422"></a>00422 <span class="comment">//      Module_base(Section* configuration, SaveState* state) {};</span>
-<a name="l00423"></a>00423         <span class="keyword">virtual</span> ~<a class="code" href="classModule__base.html">Module_base</a>(){<span class="comment">/*LOG_MSG(&quot;executed&quot;)*/</span>;};<span class="comment">//Destructors are required</span>
-<a name="l00424"></a>00424         <span class="comment">/* Returns true if succesful.*/</span>
-<a name="l00425"></a>00425         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Change_Config(<a class="code" href="classSection.html">Section</a>* <span class="comment">/*newconfig*/</span>) {<span class="keywordflow">return</span> <span class="keyword">false</span>;} ;
-<a name="l00426"></a>00426 };
-<a name="l00427"></a>00427 <span class="preprocessor">#endif</span>
+<a name="l00338"></a>00338 <span class="keyword">const</span> <span class="keywordtype">char</span> *GetVMEventName(<span class="keyword">enum</span> vm_event event);
+<a name="l00339"></a>00339 
+<a name="l00340"></a>00340 <span class="keyword">extern</span> std::list&lt;Function_wrapper&gt; vm_event_functions[VM_EVENT_MAX];
+<a name="l00341"></a>00341 <span class="keywordtype">void</span> AddVMEventFunction(<span class="keyword">enum</span> vm_event event,SectionFunction func,<span class="keyword">const</span> <span class="keywordtype">char</span> *name,<span class="keywordtype">bool</span> canchange=<span class="keyword">false</span>);
+<a name="l00342"></a>00342 <span class="keywordtype">void</span> DispatchVMEvent(<span class="keyword">enum</span> vm_event event);
+<a name="l00343"></a>00343 
+<a name="l00344"></a>00344 <span class="comment">/* for use with AddExitFunction and a name of a function.</span>
+<a name="l00345"></a>00345 <span class="comment"> * this turns it into function pointer and function name. it turns one param into two. */</span>
+<a name="l00346"></a>00346 <span class="preprocessor">#define AddVMEventFunctionFuncPair(x) &amp;x, #x</span>
+<a name="l00347"></a>00347 <span class="preprocessor"></span>
+<a name="l00348"></a>00348 <span class="keyword">class </span><a class="code" href="classProp__multival.html">Prop_multival</a>;
+<a name="l00349"></a>00349 <span class="keyword">class </span><a class="code" href="classProp__multival__remain.html">Prop_multival_remain</a>;
+<a name="l00350"></a><a class="code" href="classSection__prop.html">00350</a> <span class="keyword">class </span><a class="code" href="classSection__prop.html">Section_prop</a>:<span class="keyword">public</span> <a class="code" href="classSection.html">Section</a> {
+<a name="l00351"></a>00351 <span class="keyword">private</span>:
+<a name="l00352"></a>00352         std::list&lt;Property*&gt; properties;
+<a name="l00353"></a>00353         <span class="keyword">typedef</span> std::list&lt;Property*&gt;::iterator it;
+<a name="l00354"></a>00354         <span class="keyword">typedef</span> std::list&lt;Property*&gt;::const_iterator const_it;
+<a name="l00355"></a>00355 
+<a name="l00356"></a>00356 <span class="keyword">public</span>:
+<a name="l00357"></a>00357         <a class="code" href="classSection__prop.html">Section_prop</a>(std::string <span class="keyword">const</span>&amp;  _sectionname):<a class="code" href="classSection.html">Section</a>(_sectionname){}
+<a name="l00358"></a>00358         <a class="code" href="classProp__int.html">Prop_int</a>* Add_int(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when, <span class="keywordtype">int</span> _value=0);
+<a name="l00359"></a>00359         <a class="code" href="classProp__string.html">Prop_string</a>* Add_string(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when, <span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> _value=NULL);
+<a name="l00360"></a>00360         <a class="code" href="classProp__path.html">Prop_path</a>* Add_path(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when, <span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> _value=NULL);
+<a name="l00361"></a>00361         <a class="code" href="classProp__bool.html">Prop_bool</a>*  Add_bool(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when, <span class="keywordtype">bool</span> _value=<span class="keyword">false</span>);
+<a name="l00362"></a>00362         <a class="code" href="classProp__hex.html">Prop_hex</a>* Add_hex(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when, <a class="code" href="classHex.html">Hex</a> _value=0);
+<a name="l00363"></a>00363         <a class="code" href="classProp__double.html">Prop_double</a>* Add_double(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when, <span class="keywordtype">double</span> _value=0.0);   
+<a name="l00364"></a>00364         <a class="code" href="classProp__multival.html">Prop_multival</a> *Add_multi(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when,std::string <span class="keyword">const</span>&amp; sep);
+<a name="l00365"></a>00365         <a class="code" href="classProp__multival__remain.html">Prop_multival_remain</a> *Add_multiremain(std::string <span class="keyword">const</span>&amp; _propname, Property::Changeable::Value when,std::string <span class="keyword">const</span>&amp; sep);
+<a name="l00366"></a>00366 
+<a name="l00367"></a>00367         <a class="code" href="classProperty.html">Property</a>* Get_prop(<span class="keywordtype">int</span> index);
+<a name="l00368"></a>00368         <span class="keywordtype">int</span> Get_int(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
+<a name="l00369"></a>00369         <span class="keyword">const</span> <span class="keywordtype">char</span>* Get_string(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
+<a name="l00370"></a>00370         <span class="keywordtype">bool</span> Get_bool(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
+<a name="l00371"></a>00371         <a class="code" href="classHex.html">Hex</a> Get_hex(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
+<a name="l00372"></a>00372         <span class="keywordtype">double</span> Get_double(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
+<a name="l00373"></a>00373         <a class="code" href="classProp__path.html">Prop_path</a>* Get_path(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
+<a name="l00374"></a>00374         <a class="code" href="classProp__multival.html">Prop_multival</a>* Get_multival(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
+<a name="l00375"></a>00375         <a class="code" href="classProp__multival__remain.html">Prop_multival_remain</a>* Get_multivalremain(std::string <span class="keyword">const</span>&amp; _propname) <span class="keyword">const</span>;
+<a name="l00376"></a>00376         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> HandleInputline(std::string <span class="keyword">const</span>&amp; gegevens);
+<a name="l00377"></a>00377         <span class="keyword">virtual</span> <span class="keywordtype">void</span> PrintData(FILE* outfile,<span class="keywordtype">bool</span> everything=<span class="keyword">false</span>);
+<a name="l00378"></a>00378         <span class="keyword">virtual</span> std::string GetPropValue(std::string <span class="keyword">const</span>&amp; _property) <span class="keyword">const</span>;
+<a name="l00379"></a>00379         <span class="keyword">virtual</span> ~<a class="code" href="classSection__prop.html">Section_prop</a>();
+<a name="l00380"></a>00380 };
+<a name="l00381"></a>00381 
+<a name="l00382"></a><a class="code" href="classProp__multival.html">00382</a> <span class="keyword">class </span><a class="code" href="classProp__multival.html">Prop_multival</a>:<span class="keyword">public</span> <a class="code" href="classProperty.html">Property</a>{
+<a name="l00383"></a>00383 <span class="keyword">protected</span>:
+<a name="l00384"></a>00384         <a class="code" href="classSection__prop.html">Section_prop</a>* section;
+<a name="l00385"></a>00385         std::string seperator;
+<a name="l00386"></a>00386         <span class="keywordtype">void</span> make_default_value();
+<a name="l00387"></a>00387 <span class="keyword">public</span>:
+<a name="l00388"></a>00388         <a class="code" href="classProp__multival.html">Prop_multival</a>(std::string <span class="keyword">const</span>&amp; _propname, Changeable::Value when,std::string <span class="keyword">const</span>&amp; sep):<a class="code" href="classProperty.html">Property</a>(_propname,when), section(<span class="keyword">new</span> <a class="code" href="classSection__prop.html">Section_prop</a>(<span class="stringliteral">&quot;&quot;</span>)),seperator(sep) {
+<a name="l00389"></a>00389                 default_value = value = <span class="stringliteral">&quot;&quot;</span>;
+<a name="l00390"></a>00390         }
+<a name="l00391"></a>00391         <a class="code" href="classSection__prop.html">Section_prop</a> *GetSection() { <span class="keywordflow">return</span> section; }
+<a name="l00392"></a>00392         <span class="keyword">const</span> <a class="code" href="classSection__prop.html">Section_prop</a> *GetSection()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> section; }
+<a name="l00393"></a>00393         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> SetValue(std::string <span class="keyword">const</span>&amp; input,<span class="keywordtype">bool</span> init);
+<a name="l00394"></a>00394         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> SetValue(std::string <span class="keyword">const</span>&amp; input) { <span class="keywordflow">return</span> SetValue(input,<span class="comment">/*init*/</span><span class="keyword">false</span>); };
+<a name="l00395"></a>00395         <span class="keyword">virtual</span> <span class="keyword">const</span> std::vector&lt;Value&gt;&amp; GetValues() <span class="keyword">const</span>;
+<a name="l00396"></a>00396         <span class="keyword">virtual</span> ~<a class="code" href="classProp__multival.html">Prop_multival</a>() { <span class="keywordflow">if</span> (section != NULL) { <span class="keyword">delete</span> section; } }
+<a name="l00397"></a>00397 }; <span class="comment">//value bevat totale string. setvalue zet elk van de sub properties en checked die.</span>
+<a name="l00398"></a>00398 
+<a name="l00399"></a><a class="code" href="classProp__multival__remain.html">00399</a> <span class="keyword">class </span><a class="code" href="classProp__multival__remain.html">Prop_multival_remain</a>:<span class="keyword">public</span> <a class="code" href="classProp__multival.html">Prop_multival</a>{
+<a name="l00400"></a>00400 <span class="keyword">public</span>:
+<a name="l00401"></a>00401         <a class="code" href="classProp__multival__remain.html">Prop_multival_remain</a>(std::string <span class="keyword">const</span>&amp; _propname, Changeable::Value when,std::string <span class="keyword">const</span>&amp; sep):<a class="code" href="classProp__multival.html">Prop_multival</a>(_propname,when,sep){ }
+<a name="l00402"></a>00402 
+<a name="l00403"></a>00403         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> SetValue(std::string <span class="keyword">const</span>&amp; input,<span class="keywordtype">bool</span> init);
+<a name="l00404"></a>00404         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> SetValue(std::string <span class="keyword">const</span>&amp; input) { <span class="keywordflow">return</span> SetValue(input,<span class="comment">/*init*/</span><span class="keyword">false</span>); };
+<a name="l00405"></a>00405 };
+<a name="l00406"></a>00406 
+<a name="l00407"></a>00407    
+<a name="l00408"></a><a class="code" href="classSection__line.html">00408</a> <span class="keyword">class </span><a class="code" href="classSection__line.html">Section_line</a>: <span class="keyword">public</span> <a class="code" href="classSection.html">Section</a>{
+<a name="l00409"></a>00409 <span class="keyword">public</span>:
+<a name="l00410"></a>00410         <a class="code" href="classSection__line.html">Section_line</a>(std::string <span class="keyword">const</span>&amp; _sectionname):<a class="code" href="classSection.html">Section</a>(_sectionname){}
+<a name="l00411"></a>00411         <span class="keyword">virtual</span> ~<a class="code" href="classSection__line.html">Section_line</a>() { };
+<a name="l00412"></a>00412         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> HandleInputline(std::string <span class="keyword">const</span>&amp; gegevens);
+<a name="l00413"></a>00413         <span class="keyword">virtual</span> <span class="keywordtype">void</span> PrintData(FILE* outfile,<span class="keywordtype">bool</span> everything=<span class="keyword">false</span>);
+<a name="l00414"></a>00414         <span class="keyword">virtual</span> std::string GetPropValue(std::string <span class="keyword">const</span>&amp; _property) <span class="keyword">const</span>;
+<a name="l00415"></a>00415         std::string data;
+<a name="l00416"></a>00416 };
+<a name="l00417"></a>00417 
+<a name="l00418"></a><a class="code" href="classModule__base.html">00418</a> <span class="keyword">class </span><a class="code" href="classModule__base.html">Module_base</a> {
+<a name="l00419"></a>00419         <span class="comment">/* Base for all hardware and software &quot;devices&quot; */</span>
+<a name="l00420"></a>00420 <span class="keyword">protected</span>:
+<a name="l00421"></a>00421         <a class="code" href="classSection.html">Section</a>* m_configuration;
+<a name="l00422"></a>00422 <span class="keyword">public</span>:
+<a name="l00423"></a>00423         <a class="code" href="classModule__base.html">Module_base</a>(<a class="code" href="classSection.html">Section</a>* configuration){m_configuration=configuration;};
+<a name="l00424"></a>00424 <span class="comment">//      Module_base(Section* configuration, SaveState* state) {};</span>
+<a name="l00425"></a>00425         <span class="keyword">virtual</span> ~<a class="code" href="classModule__base.html">Module_base</a>(){<span class="comment">/*LOG_MSG(&quot;executed&quot;)*/</span>;};<span class="comment">//Destructors are required</span>
+<a name="l00426"></a>00426         <span class="comment">/* Returns true if succesful.*/</span>
+<a name="l00427"></a>00427         <span class="keyword">virtual</span> <span class="keywordtype">bool</span> Change_Config(<a class="code" href="classSection.html">Section</a>* <span class="comment">/*newconfig*/</span>) {<span class="keywordflow">return</span> <span class="keyword">false</span>;} ;
+<a name="l00428"></a>00428 };
+<a name="l00429"></a>00429 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 9 2018 18:43:59 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 15 2018 11:44:15 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -72,6 +72,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
       <li class="current"><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
 </div>
@@ -80,7 +81,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>Defines</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -174,6 +175,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <tr><td class="indexkey">include/<b>wave_mmreg.h</b> <a href="wave__mmreg_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">include/<b>waveformatex.h</b> <a href="waveformatex_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">include/<b>zip.h</b> <a href="zip_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
+  <tr><td class="indexkey">include/<a class="el" href="zipcrc_8h.html">zipcrc.h</a> <a href="zipcrc_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
+  <tr><td class="indexkey">include/<b>zipfile.h</b> <a href="zipfile_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/<b>dosbox.cpp</b> <a href="dosbox_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/<b>resource.h</b> <a href="src_2resource_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/<b>winres.h</b> <a href="winres_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
@@ -296,14 +299,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <tr><td class="indexkey">src/fpu/<b>fpu.cpp</b> <a href="fpu_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/fpu/<b>fpu_instructions.h</b> <a href="fpu__instructions_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/gui/<b>bitop.cpp</b> <a href="bitop_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
-  <tr><td class="indexkey">src/gui/<b>d3d_components.h</b> <a href="d3d__components_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
-  <tr><td class="indexkey">src/gui/<b>direct3d.cpp</b> <a href="direct3d_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
-  <tr><td class="indexkey">src/gui/<b>direct3d.h</b> <a href="direct3d_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/gui/<b>dosbox.cga640.bmp.h</b> <a href="dosbox_8cga640_8bmp_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/gui/<b>dosbox.vga16.bmp.h</b> <a href="dosbox_8vga16_8bmp_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/gui/<b>dosbox_logo.h</b> <a href="dosbox__logo_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
-  <tr><td class="indexkey">src/gui/<b>hq2x_d3d.cpp</b> <a href="hq2x__d3d_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
-  <tr><td class="indexkey">src/gui/<b>hq2x_d3d.h</b> <a href="hq2x__d3d_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/gui/<b>menu.cpp</b> <a href="menu_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/gui/<b>menu_osx.mm</b> <a href="menu__osx_8mm_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/gui/<b>midi.cpp</b> <a href="midi_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
@@ -326,12 +324,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <tr><td class="indexkey">src/gui/<b>render_templates_hq2x.h</b> <a href="render__templates__hq2x_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/gui/<b>render_templates_hq3x.h</b> <a href="render__templates__hq3x_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/gui/<b>render_templates_sai.h</b> <a href="render__templates__sai_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
-  <tr><td class="indexkey">src/gui/<b>ScalingEffect.cpp</b> <a href="ScalingEffect_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
-  <tr><td class="indexkey">src/gui/<b>ScalingEffect.h</b> <a href="ScalingEffect_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/gui/<b>sdl_gui.cpp</b> <a href="sdl__gui_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/gui/<b>sdl_mapper.cpp</b> <a href="sdl__mapper_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/gui/<b>sdlmain.cpp</b> <a href="sdlmain_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/gui/<b>sdlmain_linux.cpp</b> <a href="sdlmain__linux_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
+  <tr><td class="indexkey">src/gui/<a class="el" href="zipcrc_8c.html">zipcrc.c</a> <a href="zipcrc_8c_source.html">[code]</a></td><td class="indexvalue"></td></tr>
+  <tr><td class="indexkey">src/gui/<b>zipfile.cpp</b> <a href="zipfile_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/hardware/<b>8255.cpp</b> <a href="8255_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/hardware/<b>adlib.cpp</b> <a href="adlib_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/hardware/<b>adlib.h</b> <a href="adlib_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
@@ -625,6 +623,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <tr><td class="indexkey">src/output/<b>output_tools.h</b> <a href="output__tools_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/output/<b>output_tools_xbrz.cpp</b> <a href="output__tools__xbrz_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/output/<b>output_tools_xbrz.h</b> <a href="output__tools__xbrz_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
+  <tr><td class="indexkey">src/output/direct3d/<b>d3d_components.h</b> <a href="d3d__components_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
+  <tr><td class="indexkey">src/output/direct3d/<b>direct3d.cpp</b> <a href="direct3d_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
+  <tr><td class="indexkey">src/output/direct3d/<b>direct3d.h</b> <a href="direct3d_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
+  <tr><td class="indexkey">src/output/direct3d/<b>hq2x_d3d.cpp</b> <a href="hq2x__d3d_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
+  <tr><td class="indexkey">src/output/direct3d/<b>hq2x_d3d.h</b> <a href="hq2x__d3d_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
+  <tr><td class="indexkey">src/output/direct3d/<b>ScalingEffect.cpp</b> <a href="ScalingEffect_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
+  <tr><td class="indexkey">src/output/direct3d/<b>ScalingEffect.h</b> <a href="ScalingEffect_8h_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/shell/<b>shell.cpp</b> <a href="shell_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/shell/<b>shell_batch.cpp</b> <a href="shell__batch_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
   <tr><td class="indexkey">src/shell/<b>shell_cmds.cpp</b> <a href="shell__cmds_8cpp_source.html">[code]</a></td><td class="indexvalue"></td></tr>
@@ -638,7 +643,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 9 2018 18:44:10 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 15 2018 11:44:24 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

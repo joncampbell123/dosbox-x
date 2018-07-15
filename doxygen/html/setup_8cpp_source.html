@@ -72,6 +72,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
       <li><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
 </div>
@@ -80,7 +81,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>Defines</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -940,529 +941,531 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00844"></a>00844     <span class="stringliteral">&quot;DOS exit, reboot begin&quot;</span>,
 <a name="l00845"></a>00845 
 <a name="l00846"></a>00846     <span class="stringliteral">&quot;DOS exit, kernel reboot exit&quot;</span>,     <span class="comment">// 15</span>
-<a name="l00847"></a>00847     <span class="stringliteral">&quot;DOS surprise reboot&quot;</span>
-<a name="l00848"></a>00848 };
-<a name="l00849"></a>00849 
-<a name="l00850"></a>00850 <a class="code" href="classVMDispatchState.html">VMDispatchState</a> vm_dispatch_state;
+<a name="l00847"></a>00847     <span class="stringliteral">&quot;DOS surprise reboot&quot;</span>,
+<a name="l00848"></a>00848     <span class="stringliteral">&quot;Save state&quot;</span>,
+<a name="l00849"></a>00849     <span class="stringliteral">&quot;Load state&quot;</span>
+<a name="l00850"></a>00850 };
 <a name="l00851"></a>00851 
-<a name="l00852"></a>00852 <span class="keyword">const</span> <span class="keywordtype">char</span> *GetVMEventName(<span class="keyword">enum</span> vm_event event) {
-<a name="l00853"></a>00853     <span class="keywordflow">if</span> (event &gt;= VM_EVENT_MAX) <span class="keywordflow">return</span> <span class="stringliteral">&quot;&quot;</span>;
-<a name="l00854"></a>00854     <span class="keywordflow">return</span> VM_EVENT_string[event];
-<a name="l00855"></a>00855 }
-<a name="l00856"></a>00856 
-<a name="l00857"></a>00857 <span class="keywordtype">void</span> DispatchVMEvent(<span class="keyword">enum</span> vm_event event) {
-<a name="l00858"></a>00858     assert(event &lt; VM_EVENT_MAX);
-<a name="l00859"></a>00859 
-<a name="l00860"></a>00860     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Dispatching VM event %s&quot;</span>,GetVMEventName(event));
+<a name="l00852"></a>00852 <a class="code" href="classVMDispatchState.html">VMDispatchState</a> vm_dispatch_state;
+<a name="l00853"></a>00853 
+<a name="l00854"></a>00854 <span class="keyword">const</span> <span class="keywordtype">char</span> *GetVMEventName(<span class="keyword">enum</span> vm_event event) {
+<a name="l00855"></a>00855     <span class="keywordflow">if</span> (event &gt;= VM_EVENT_MAX) <span class="keywordflow">return</span> <span class="stringliteral">&quot;&quot;</span>;
+<a name="l00856"></a>00856     <span class="keywordflow">return</span> VM_EVENT_string[event];
+<a name="l00857"></a>00857 }
+<a name="l00858"></a>00858 
+<a name="l00859"></a>00859 <span class="keywordtype">void</span> DispatchVMEvent(<span class="keyword">enum</span> vm_event event) {
+<a name="l00860"></a>00860     assert(event &lt; VM_EVENT_MAX);
 <a name="l00861"></a>00861 
-<a name="l00862"></a>00862     vm_dispatch_state.begin_event(event);
-<a name="l00863"></a>00863     <span class="keywordflow">for</span> (std::list&lt;Function_wrapper&gt;::iterator i=vm_event_functions[event].begin();i!=vm_event_functions[event].end();i++) {
-<a name="l00864"></a>00864         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Calling event %s handler (%p) &#39;%s&#39;&quot;</span>,GetVMEventName(event),(<span class="keywordtype">void</span>*)((uintptr_t)((*i).function)),(*i).name.c_str());
-<a name="l00865"></a>00865         (*i).function(NULL);
-<a name="l00866"></a>00866     }
-<a name="l00867"></a>00867 
-<a name="l00868"></a>00868     vm_dispatch_state.end_event();
-<a name="l00869"></a>00869 }
-<a name="l00870"></a>00870 
-<a name="l00871"></a>00871 Config::~Config() {
-<a name="l00872"></a>00872     std::list&lt;Section*&gt;::iterator it; <span class="comment">// FIXME: You guys do realize C++ STL provides reverse_iterator?</span>
-<a name="l00873"></a>00873 
-<a name="l00874"></a>00874     <span class="keywordflow">while</span> ((it=sectionlist.end()) != sectionlist.begin()) {
-<a name="l00875"></a>00875         it--;
-<a name="l00876"></a>00876         <span class="keyword">delete</span> (*it);
-<a name="l00877"></a>00877         sectionlist.erase(it);
-<a name="l00878"></a>00878     }
-<a name="l00879"></a>00879 }
-<a name="l00880"></a>00880 
-<a name="l00881"></a>00881 <a class="code" href="classSection.html">Section</a>* Config::GetSection(<span class="keywordtype">int</span> index){
-<a name="l00882"></a>00882     <span class="keywordflow">for</span> (it tel=sectionlist.begin(); tel!=sectionlist.end(); tel++){
-<a name="l00883"></a>00883         <span class="keywordflow">if</span> (!index--) <span class="keywordflow">return</span> (*tel);
-<a name="l00884"></a>00884     }
-<a name="l00885"></a>00885     <span class="keywordflow">return</span> NULL;
-<a name="l00886"></a>00886 }
-<a name="l00887"></a>00887 <span class="comment">//c_str() 2x</span>
-<a name="l00888"></a>00888 <a class="code" href="classSection.html">Section</a>* Config::GetSection(<span class="keywordtype">string</span> <span class="keyword">const</span>&amp; _sectionname)<span class="keyword"> const</span>{
-<a name="l00889"></a>00889     <span class="keywordflow">for</span> (const_it tel=sectionlist.begin(); tel!=sectionlist.end(); tel++){
-<a name="l00890"></a>00890         <span class="keywordflow">if</span> (!strcasecmp((*tel)-&gt;GetName(),_sectionname.c_str())) <span class="keywordflow">return</span> (*tel);
-<a name="l00891"></a>00891     }
-<a name="l00892"></a>00892     <span class="keywordflow">return</span> NULL;
-<a name="l00893"></a>00893 }
-<a name="l00894"></a>00894 
-<a name="l00895"></a>00895 <a class="code" href="classSection.html">Section</a>* Config::GetSectionFromProperty(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> prop)<span class="keyword"> const</span>{
-<a name="l00896"></a>00896     <span class="keywordflow">for</span> (const_it tel=sectionlist.begin(); tel!=sectionlist.end(); tel++){
-<a name="l00897"></a>00897         <span class="keywordflow">if</span> ((*tel)-&gt;GetPropValue(prop) != NO_SUCH_PROPERTY) <span class="keywordflow">return</span> (*tel);
-<a name="l00898"></a>00898     }
-<a name="l00899"></a>00899     <span class="keywordflow">return</span> NULL;
-<a name="l00900"></a>00900 }
-<a name="l00901"></a>00901 
-<a name="l00902"></a>00902 
-<a name="l00903"></a>00903 <span class="keywordtype">bool</span> Config::ParseConfigFile(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> configfilename){
-<a name="l00904"></a>00904     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Attempting to load config file #%zu from %s&quot;</span>,configfiles.size(),configfilename);
-<a name="l00905"></a>00905 
-<a name="l00906"></a>00906     <span class="comment">//static bool first_configfile = true;</span>
-<a name="l00907"></a>00907     ifstream in(configfilename);
-<a name="l00908"></a>00908     <span class="keywordflow">if</span> (!in) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00909"></a>00909     <span class="keyword">const</span> <span class="keywordtype">char</span> * settings_type;
-<a name="l00910"></a>00910     settings_type = (configfiles.size() == 0)? <span class="stringliteral">&quot;primary&quot;</span>:<span class="stringliteral">&quot;additional&quot;</span>;
-<a name="l00911"></a>00911     configfiles.push_back(configfilename);
-<a name="l00912"></a>00912     
-<a name="l00913"></a>00913     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;Loading %s settings from config file %s&quot;</span>, settings_type,configfilename);
-<a name="l00914"></a>00914 
-<a name="l00915"></a>00915     <span class="comment">//Get directory from configfilename, used with relative paths.</span>
-<a name="l00916"></a>00916     current_config_dir=configfilename;
-<a name="l00917"></a>00917     std::string::size_type pos = current_config_dir.rfind(CROSS_FILESPLIT);
-<a name="l00918"></a>00918     <span class="keywordflow">if</span>(pos == std::string::npos) pos = 0; <span class="comment">//No directory then erase string</span>
-<a name="l00919"></a>00919     current_config_dir.erase(pos);
-<a name="l00920"></a>00920 
-<a name="l00921"></a>00921     <span class="keywordtype">string</span> gegevens;
-<a name="l00922"></a>00922     <a class="code" href="classSection.html">Section</a>* currentsection = NULL;
-<a name="l00923"></a>00923     <a class="code" href="classSection.html">Section</a>* testsec = NULL;
-<a name="l00924"></a>00924     <span class="keywordflow">while</span> (getline(in,gegevens)) {
-<a name="l00925"></a>00925         
-<a name="l00926"></a>00926         <span class="comment">/* strip leading/trailing whitespace */</span>
-<a name="l00927"></a>00927         trim(gegevens);
-<a name="l00928"></a>00928         <span class="keywordflow">if</span>(!gegevens.size()) <span class="keywordflow">continue</span>;
-<a name="l00929"></a>00929 
-<a name="l00930"></a>00930         <span class="keywordflow">switch</span>(gegevens[0]){
-<a name="l00931"></a>00931         <span class="keywordflow">case</span> <span class="charliteral">&#39;%&#39;</span>:
-<a name="l00932"></a>00932         <span class="keywordflow">case</span> <span class="charliteral">&#39;\0&#39;</span>:
-<a name="l00933"></a>00933         <span class="keywordflow">case</span> <span class="charliteral">&#39;#&#39;</span>:
-<a name="l00934"></a>00934         <span class="keywordflow">case</span> <span class="charliteral">&#39; &#39;</span>:
-<a name="l00935"></a>00935         <span class="keywordflow">case</span> <span class="charliteral">&#39;\n&#39;</span>:
-<a name="l00936"></a>00936             <span class="keywordflow">continue</span>;
-<a name="l00937"></a>00937             <span class="keywordflow">break</span>;
-<a name="l00938"></a>00938         <span class="keywordflow">case</span> <span class="charliteral">&#39;[&#39;</span>:
-<a name="l00939"></a>00939         {
-<a name="l00940"></a>00940             string::size_type loc = gegevens.find(<span class="charliteral">&#39;]&#39;</span>);
-<a name="l00941"></a>00941             <span class="keywordflow">if</span>(loc == string::npos) <span class="keywordflow">continue</span>;
-<a name="l00942"></a>00942             gegevens.erase(loc);
-<a name="l00943"></a>00943             testsec = GetSection(gegevens.substr(1));
-<a name="l00944"></a>00944             currentsection = testsec; <span class="comment">/* NTS: If we don&#39;t recognize the section we WANT currentsection == NULL so it has no effect */</span>
-<a name="l00945"></a>00945             testsec = NULL;
-<a name="l00946"></a>00946         }
-<a name="l00947"></a>00947             <span class="keywordflow">break</span>;
-<a name="l00948"></a>00948         <span class="keywordflow">default</span>:
-<a name="l00949"></a>00949             <span class="keywordflow">try</span> {
-<a name="l00950"></a>00950                 <span class="keywordflow">if</span>(currentsection) currentsection-&gt;HandleInputline(gegevens);
-<a name="l00951"></a>00951             } <span class="keywordflow">catch</span>(<span class="keyword">const</span> <span class="keywordtype">char</span>* message) {
-<a name="l00952"></a>00952                 message=0;
-<a name="l00953"></a>00953                 <span class="comment">//EXIT with message</span>
-<a name="l00954"></a>00954             }
-<a name="l00955"></a>00955             <span class="keywordflow">break</span>;
-<a name="l00956"></a>00956         }
-<a name="l00957"></a>00957     }
-<a name="l00958"></a>00958     current_config_dir.clear();<span class="comment">//So internal changes don&#39;t use the path information</span>
-<a name="l00959"></a>00959     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00960"></a>00960 }
-<a name="l00961"></a>00961 
-<a name="l00962"></a>00962 <span class="keywordtype">void</span> Config::ParseEnv(<span class="keywordtype">char</span> ** envp) {
-<a name="l00963"></a>00963     <span class="keywordflow">for</span>(<span class="keywordtype">char</span>** env=envp; *env;env++) {
-<a name="l00964"></a>00964         <span class="keywordtype">char</span> copy[1024];
-<a name="l00965"></a>00965         safe_strncpy(copy,*env,1024);
-<a name="l00966"></a>00966         <span class="keywordflow">if</span>(strncasecmp(copy,<span class="stringliteral">&quot;DOSBOX_&quot;</span>,7))
-<a name="l00967"></a>00967             <span class="keywordflow">continue</span>;
-<a name="l00968"></a>00968         <span class="keywordtype">char</span>* sec_name = &amp;copy[7];
-<a name="l00969"></a>00969         <span class="keywordflow">if</span>(!(*sec_name))
-<a name="l00970"></a>00970             <span class="keywordflow">continue</span>;
-<a name="l00971"></a>00971         <span class="keywordtype">char</span>* prop_name = strrchr(sec_name,<span class="charliteral">&#39;_&#39;</span>);
-<a name="l00972"></a>00972         <span class="keywordflow">if</span>(!prop_name || !(*prop_name))
-<a name="l00973"></a>00973             <span class="keywordflow">continue</span>;
-<a name="l00974"></a>00974         *prop_name++=0;
-<a name="l00975"></a>00975         <a class="code" href="classSection.html">Section</a>* sect = GetSection(sec_name);
-<a name="l00976"></a>00976         <span class="keywordflow">if</span>(!sect)
-<a name="l00977"></a>00977             <span class="keywordflow">continue</span>;
-<a name="l00978"></a>00978         sect-&gt;HandleInputline(prop_name);
-<a name="l00979"></a>00979     }
-<a name="l00980"></a>00980 }
-<a name="l00981"></a>00981 
-<a name="l00982"></a>00982 <span class="keywordtype">bool</span> CommandLine::FindExist(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">bool</span> <span class="keyword">remove</span>) {
-<a name="l00983"></a>00983     cmd_it it;
-<a name="l00984"></a>00984     <span class="keywordflow">if</span> (!(FindEntry(name,it,<span class="keyword">false</span>))) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00985"></a>00985     <span class="keywordflow">if</span> (<span class="keyword">remove</span>) cmds.erase(it);
-<a name="l00986"></a>00986     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00987"></a>00987 }
-<a name="l00988"></a>00988 
-<a name="l00989"></a>00989 <span class="keywordtype">bool</span> CommandLine::FindHex(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">int</span> &amp; value,<span class="keywordtype">bool</span> <span class="keyword">remove</span>) {
-<a name="l00990"></a>00990     cmd_it it,it_next;
-<a name="l00991"></a>00991     <span class="keywordflow">if</span> (!(FindEntry(name,it,<span class="keyword">true</span>))) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l00992"></a>00992     it_next=it;it_next++;
-<a name="l00993"></a>00993     sscanf((*it_next).c_str(),<span class="stringliteral">&quot;%X&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>*)(&amp;value));
-<a name="l00994"></a>00994     <span class="keywordflow">if</span> (<span class="keyword">remove</span>) cmds.erase(it,++it_next);
-<a name="l00995"></a>00995     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l00996"></a>00996 }
-<a name="l00997"></a>00997 
-<a name="l00998"></a>00998 <span class="keywordtype">bool</span> CommandLine::FindInt(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">int</span> &amp; value,<span class="keywordtype">bool</span> <span class="keyword">remove</span>) {
-<a name="l00999"></a>00999     cmd_it it,it_next;
-<a name="l01000"></a>01000     <span class="keywordflow">if</span> (!(FindEntry(name,it,<span class="keyword">true</span>))) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01001"></a>01001     it_next=it;it_next++;
-<a name="l01002"></a>01002     value=atoi((*it_next).c_str());
-<a name="l01003"></a>01003     <span class="keywordflow">if</span> (<span class="keyword">remove</span>) cmds.erase(it,++it_next);
-<a name="l01004"></a>01004     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01005"></a>01005 }
-<a name="l01006"></a>01006 
-<a name="l01007"></a>01007 <span class="keywordtype">bool</span> CommandLine::FindString(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,std::string &amp; value,<span class="keywordtype">bool</span> <span class="keyword">remove</span>) {
-<a name="l01008"></a>01008     cmd_it it,it_next;
-<a name="l01009"></a>01009     <span class="keywordflow">if</span> (!(FindEntry(name,it,<span class="keyword">true</span>))) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01010"></a>01010     it_next=it;it_next++;
-<a name="l01011"></a>01011     value=*it_next;
-<a name="l01012"></a>01012     <span class="keywordflow">if</span> (<span class="keyword">remove</span>) cmds.erase(it,++it_next);
-<a name="l01013"></a>01013     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01014"></a>01014 }
-<a name="l01015"></a>01015 
-<a name="l01016"></a>01016 <span class="keywordtype">bool</span> CommandLine::FindCommand(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> which,std::string &amp; value) {
-<a name="l01017"></a>01017     <span class="keywordflow">if</span> (which&lt;1) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01018"></a>01018     <span class="keywordflow">if</span> (which&gt;cmds.size()) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01019"></a>01019     cmd_it it=cmds.begin();
-<a name="l01020"></a>01020     <span class="keywordflow">for</span> (;which&gt;1;which--) it++;
-<a name="l01021"></a>01021     value=(*it);
-<a name="l01022"></a>01022     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01023"></a>01023 }
-<a name="l01024"></a>01024 
-<a name="l01025"></a>01025 <span class="keywordtype">bool</span> CommandLine::FindEntry(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,cmd_it &amp; it,<span class="keywordtype">bool</span> neednext) {
-<a name="l01026"></a>01026     <span class="keywordflow">for</span> (it=cmds.begin();it!=cmds.end();it++) {
-<a name="l01027"></a>01027         <span class="keyword">const</span> <span class="keywordtype">char</span> *d = (*it).c_str();
-<a name="l01028"></a>01028 
-<a name="l01029"></a>01029         <span class="comment">/* HACK: If the search string starts with -, it&#39;s a switch,</span>
-<a name="l01030"></a>01030 <span class="comment">         *       so adjust pointers so that it matches --switch or -switch */</span>
-<a name="l01031"></a>01031         <span class="keywordflow">if</span> (*name == <span class="charliteral">&#39;-&#39;</span> &amp;&amp; d[0] == <span class="charliteral">&#39;-&#39;</span> &amp;&amp; d[1] == <span class="charliteral">&#39;-&#39;</span>) d++;
-<a name="l01032"></a>01032 
-<a name="l01033"></a>01033         <span class="keywordflow">if</span> (!strcasecmp(d,name)) {
-<a name="l01034"></a>01034             cmd_it itnext=it;itnext++;
-<a name="l01035"></a>01035             <span class="keywordflow">if</span> (neednext &amp;&amp; (itnext==cmds.end())) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01036"></a>01036             <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01037"></a>01037         }
-<a name="l01038"></a>01038     }
-<a name="l01039"></a>01039     <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01040"></a>01040 }
-<a name="l01041"></a>01041 
-<a name="l01042"></a>01042 <span class="keywordtype">bool</span> CommandLine::FindStringBegin(<span class="keywordtype">char</span> <span class="keyword">const</span>* <span class="keyword">const</span> begin,std::string &amp; value, <span class="keywordtype">bool</span> <span class="keyword">remove</span>) {
-<a name="l01043"></a>01043     <span class="keywordtype">size_t</span> len = strlen(begin);
-<a name="l01044"></a>01044     <span class="keywordflow">for</span> (cmd_it it=cmds.begin();it!=cmds.end();it++) {
-<a name="l01045"></a>01045         <span class="keywordflow">if</span> (strncmp(begin,(*it).c_str(),len)==0) {
-<a name="l01046"></a>01046             value=((*it).c_str() + len);
-<a name="l01047"></a>01047             <span class="keywordflow">if</span> (<span class="keyword">remove</span>) cmds.erase(it);
-<a name="l01048"></a>01048             <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01049"></a>01049         }
-<a name="l01050"></a>01050     }
-<a name="l01051"></a>01051     <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01052"></a>01052 }
-<a name="l01053"></a>01053 
-<a name="l01054"></a>01054 <span class="keywordtype">bool</span> CommandLine::FindStringRemain(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,std::string &amp; value) {
-<a name="l01055"></a>01055     cmd_it it;value=<span class="stringliteral">&quot;&quot;</span>;
-<a name="l01056"></a>01056     <span class="keywordflow">if</span> (!FindEntry(name,it)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01057"></a>01057     it++;
-<a name="l01058"></a>01058     <span class="keywordflow">for</span> (;it!=cmds.end();it++) {
-<a name="l01059"></a>01059         value+=<span class="stringliteral">&quot; &quot;</span>;
-<a name="l01060"></a>01060         value+=(*it);
-<a name="l01061"></a>01061     }
-<a name="l01062"></a>01062     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01063"></a>01063 }
-<a name="l01064"></a>01064 
-<a name="l01065"></a>01065 <span class="comment">/* Only used for parsing command.com /C </span>
-<a name="l01066"></a>01066 <span class="comment"> * Allowing /C dir and /Cdir</span>
-<a name="l01067"></a>01067 <span class="comment"> * Restoring quotes back into the commands so command /C mount d &quot;/tmp/a b&quot; works as intended</span>
-<a name="l01068"></a>01068 <span class="comment"> */</span>
-<a name="l01069"></a>01069 <span class="keywordtype">bool</span> CommandLine::FindStringRemainBegin(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,std::string &amp; value) {
-<a name="l01070"></a>01070     cmd_it it;value=<span class="stringliteral">&quot;&quot;</span>;
-<a name="l01071"></a>01071     <span class="keywordflow">if</span> (!FindEntry(name,it)) {
-<a name="l01072"></a>01072         <span class="keywordtype">size_t</span> len = strlen(name);
-<a name="l01073"></a>01073             <span class="keywordflow">for</span> (it=cmds.begin();it!=cmds.end();it++) {
-<a name="l01074"></a>01074                 <span class="keywordflow">if</span> (strncasecmp(name,(*it).c_str(),len)==0) {
-<a name="l01075"></a>01075                     std::string temp = ((*it).c_str() + len);
-<a name="l01076"></a>01076                     <span class="comment">//Restore quotes for correct parsing in later stages</span>
-<a name="l01077"></a>01077                     <span class="keywordflow">if</span>(temp.find(<span class="stringliteral">&quot; &quot;</span>) != std::string::npos)
-<a name="l01078"></a>01078                         value = std::string(<span class="stringliteral">&quot;\&quot;&quot;</span>) + temp + std::string(<span class="stringliteral">&quot;\&quot;&quot;</span>);
-<a name="l01079"></a>01079                     <span class="keywordflow">else</span>
-<a name="l01080"></a>01080                         value = temp;
-<a name="l01081"></a>01081                     <span class="keywordflow">break</span>;
-<a name="l01082"></a>01082                 }
-<a name="l01083"></a>01083             }
-<a name="l01084"></a>01084         <span class="keywordflow">if</span>( it == cmds.end()) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01085"></a>01085     }
-<a name="l01086"></a>01086     it++;
-<a name="l01087"></a>01087     <span class="keywordflow">for</span> (;it!=cmds.end();it++) {
-<a name="l01088"></a>01088         value += <span class="stringliteral">&quot; &quot;</span>;
-<a name="l01089"></a>01089         std::string temp = (*it);
-<a name="l01090"></a>01090         <span class="keywordflow">if</span>(temp.find(<span class="stringliteral">&quot; &quot;</span>) != std::string::npos)
-<a name="l01091"></a>01091             value += std::string(<span class="stringliteral">&quot;\&quot;&quot;</span>) + temp + std::string(<span class="stringliteral">&quot;\&quot;&quot;</span>);
-<a name="l01092"></a>01092         <span class="keywordflow">else</span>
-<a name="l01093"></a>01093             value += temp;
-<a name="l01094"></a>01094     }
-<a name="l01095"></a>01095     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01096"></a>01096 }
-<a name="l01097"></a>01097 
-<a name="l01098"></a>01098 <span class="keywordtype">bool</span> CommandLine::GetStringRemain(std::string &amp; value) {
-<a name="l01099"></a>01099     <span class="keywordflow">if</span>(!cmds.size()) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01100"></a>01100         
-<a name="l01101"></a>01101     cmd_it it=cmds.begin();value=(*it++);
-<a name="l01102"></a>01102     <span class="keywordflow">for</span>(;it != cmds.end();it++) {
-<a name="l01103"></a>01103         value+=<span class="stringliteral">&quot; &quot;</span>;
-<a name="l01104"></a>01104         value+=(*it);
-<a name="l01105"></a>01105     }
-<a name="l01106"></a>01106     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01107"></a>01107 }
-<a name="l01108"></a>01108         
-<a name="l01109"></a>01109 
-<a name="l01110"></a>01110 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> CommandLine::GetCount(<span class="keywordtype">void</span>) {
-<a name="l01111"></a>01111     <span class="keywordflow">return</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)cmds.size();
-<a name="l01112"></a>01112 }
-<a name="l01113"></a>01113 
-<a name="l01114"></a>01114 <span class="keywordtype">bool</span> CommandLine::GetCurrentArgv(std::string &amp;argv) {
-<a name="l01115"></a>01115     <span class="keywordflow">if</span> (opt_scan != cmds.end())
-<a name="l01116"></a>01116         argv = *opt_scan;
-<a name="l01117"></a>01117 
-<a name="l01118"></a>01118     <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01119"></a>01119 }
-<a name="l01120"></a>01120 
-<a name="l01121"></a>01121 <span class="keywordtype">bool</span> CommandLine::CurrentArgvEnd(<span class="keywordtype">void</span>) {
-<a name="l01122"></a>01122     <span class="keywordflow">return</span> (opt_scan == cmds.end());
-<a name="l01123"></a>01123 }
-<a name="l01124"></a>01124 
-<a name="l01125"></a>01125 <span class="keywordtype">void</span> CommandLine::EatCurrentArgv(<span class="keywordtype">void</span>) {
-<a name="l01126"></a>01126     <span class="keywordflow">if</span> (opt_scan != cmds.end()) opt_scan = cmds.erase(opt_scan);
-<a name="l01127"></a>01127 }
-<a name="l01128"></a>01128 
-<a name="l01129"></a>01129 <span class="keywordtype">void</span> CommandLine::NextArgv(<span class="keywordtype">void</span>) {
-<a name="l01130"></a>01130     <span class="keywordflow">if</span> (opt_scan != cmds.end()) opt_scan++;
-<a name="l01131"></a>01131 }
-<a name="l01132"></a>01132 
-<a name="l01133"></a>01133 <span class="keywordtype">bool</span> CommandLine::NextOptArgv(std::string &amp;argv) {
-<a name="l01134"></a>01134     argv.clear();
-<a name="l01135"></a>01135 
-<a name="l01136"></a>01136     <span class="comment">/* no argv to return if we&#39;re doing single-char GNU switches */</span>
-<a name="l01137"></a>01137     <span class="keywordflow">if</span> (!opt_gnu_getopt_singlechar.empty()) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01138"></a>01138 
-<a name="l01139"></a>01139     <span class="keywordflow">if</span> (opt_scan == cmds.end()) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01140"></a>01140     argv = *opt_scan;
-<a name="l01141"></a>01141     <span class="keywordflow">if</span> (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
-<a name="l01142"></a>01142     <span class="keywordflow">else</span> opt_scan++;
-<a name="l01143"></a>01143     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01144"></a>01144 }
-<a name="l01145"></a>01145 
-<a name="l01146"></a>01146 <span class="keywordtype">void</span> CommandLine::ChangeOptStyle(<span class="keyword">enum</span> opt_style opt_style) {
-<a name="l01147"></a>01147     this-&gt;opt_style = opt_style;
-<a name="l01148"></a>01148 }
-<a name="l01149"></a>01149 
-<a name="l01150"></a>01150 <span class="keywordtype">bool</span> CommandLine::BeginOpt(<span class="keywordtype">bool</span> eat_argv) {
-<a name="l01151"></a>01151     opt_gnu_getopt_singlechar.clear();
-<a name="l01152"></a>01152     opt_scan = cmds.begin();
-<a name="l01153"></a>01153     <span class="keywordflow">if</span> (opt_scan == cmds.end()) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01154"></a>01154     opt_eat_argv = eat_argv;
-<a name="l01155"></a>01155     <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01156"></a>01156 }
-<a name="l01157"></a>01157 
-<a name="l01158"></a>01158 <span class="keywordtype">bool</span> CommandLine::GetOptGNUSingleCharCheck(std::string &amp;name) {
-<a name="l01159"></a>01159     <span class="keywordtype">char</span> c;
-<a name="l01160"></a>01160 
-<a name="l01161"></a>01161     <span class="comment">/* return another char, skipping spaces or invalid chars */</span>
-<a name="l01162"></a>01162     name.clear();
-<a name="l01163"></a>01163     <span class="keywordflow">while</span> (!opt_gnu_getopt_singlechar.empty()) {
-<a name="l01164"></a>01164         c = opt_gnu_getopt_singlechar.at(0);
-<a name="l01165"></a>01165         opt_gnu_getopt_singlechar = opt_gnu_getopt_singlechar.substr(1);
-<a name="l01166"></a>01166         <span class="keywordflow">if</span> (c &lt;= &#39; &#39; || c &gt; 126) <span class="keywordflow">continue</span>;
-<a name="l01167"></a>01167 
-<a name="l01168"></a>01168         name = c;
-<a name="l01169"></a>01169         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01170"></a>01170     }
-<a name="l01171"></a>01171 
-<a name="l01172"></a>01172     <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01173"></a>01173 }
-<a name="l01174"></a>01174 
-<a name="l01175"></a>01175 <span class="keywordtype">bool</span> CommandLine::GetOpt(std::string &amp;name) {
-<a name="l01176"></a>01176     name.clear();
-<a name="l01177"></a>01177 
-<a name="l01178"></a>01178     <span class="comment">/* if we&#39;re still doing GNU getopt single-char switches, then parse another and return */</span>
-<a name="l01179"></a>01179     <span class="keywordflow">if</span> (GetOptGNUSingleCharCheck(name))
-<a name="l01180"></a>01180         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01181"></a>01181 
-<a name="l01182"></a>01182     <span class="keywordflow">while</span> (opt_scan != cmds.end()) {
-<a name="l01183"></a>01183         std::string &amp;argv = *opt_scan;
-<a name="l01184"></a>01184         <span class="keyword">const</span> <span class="keywordtype">char</span> *str = argv.c_str();
-<a name="l01185"></a>01185 
-<a name="l01186"></a>01186         <span class="keywordflow">if</span> ((opt_style == CommandLine::either || opt_style == CommandLine::dos) &amp;&amp; *str == <span class="charliteral">&#39;/&#39;</span>) {
-<a name="l01187"></a>01187             <span class="comment">/* MS-DOS style /option. Example: /A /OPT /HAX /BLAH */</span>
-<a name="l01188"></a>01188             name = str+1; <span class="comment">/* copy to caller minus leaking slash, then erase/skip */</span>
-<a name="l01189"></a>01189             <span class="keywordflow">if</span> (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
-<a name="l01190"></a>01190             <span class="keywordflow">else</span> opt_scan++;
-<a name="l01191"></a>01191             <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01192"></a>01192         }
-<a name="l01193"></a>01193         <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((opt_style == CommandLine::either || opt_style == CommandLine::gnu || opt_style == CommandLine::gnu_getopt) &amp;&amp; *str == <span class="charliteral">&#39;-&#39;</span>) {
-<a name="l01194"></a>01194             str++; <span class="comment">/* step past &#39;-&#39; */</span>
-<a name="l01195"></a>01195             <span class="keywordflow">if</span> (str[0] == <span class="charliteral">&#39;-&#39;</span> &amp;&amp; str[1] == 0) { <span class="comment">/* &#39;--&#39; means to stop parsing */</span>
-<a name="l01196"></a>01196                 opt_scan = cmds.end();
-<a name="l01197"></a>01197                 <span class="keywordflow">if</span> (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
-<a name="l01198"></a>01198                 <span class="keywordflow">break</span>;
-<a name="l01199"></a>01199             }
-<a name="l01200"></a>01200 
-<a name="l01201"></a>01201             <span class="keywordflow">if</span> (opt_style == CommandLine::gnu_getopt) {
-<a name="l01202"></a>01202                 <span class="comment">/* --switch =&gt; &quot;switch&quot;</span>
-<a name="l01203"></a>01203 <span class="comment">                 * -switch =&gt; -s -w -i -t -c -h */</span>
-<a name="l01204"></a>01204                 <span class="keywordflow">if</span> (*str == <span class="charliteral">&#39;-&#39;</span>) {
-<a name="l01205"></a>01205                     str++;
-<a name="l01206"></a>01206                 }
-<a name="l01207"></a>01207                 <span class="keywordflow">else</span> {
-<a name="l01208"></a>01208                     <span class="comment">/* assign to single-char parse then eat the argv */</span>
-<a name="l01209"></a>01209                     opt_gnu_getopt_singlechar = str;
-<a name="l01210"></a>01210                     <span class="keywordflow">if</span> (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
-<a name="l01211"></a>01211                     <span class="keywordflow">else</span> opt_scan++;
-<a name="l01212"></a>01212 
-<a name="l01213"></a>01213                     <span class="comment">/* if we parse a single-char switch, great */</span>
-<a name="l01214"></a>01214                     <span class="keywordflow">if</span> (GetOptGNUSingleCharCheck(name))
-<a name="l01215"></a>01215                         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01216"></a>01216 
-<a name="l01217"></a>01217                     <span class="keywordflow">continue</span>; <span class="comment">/* if we&#39;re here then there was nothing to parse, continue */</span>
-<a name="l01218"></a>01218                 }
-<a name="l01219"></a>01219             }
-<a name="l01220"></a>01220             <span class="keywordflow">else</span> {
-<a name="l01221"></a>01221                 <span class="comment">/* -switch and --switch mean the same thing */</span>
-<a name="l01222"></a>01222                 <span class="keywordflow">if</span> (*str == <span class="charliteral">&#39;-&#39;</span>) str++;
-<a name="l01223"></a>01223             }
-<a name="l01224"></a>01224 
-<a name="l01225"></a>01225             name = str; <span class="comment">/* copy to caller, then erase/skip */</span>
-<a name="l01226"></a>01226             <span class="keywordflow">if</span> (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
-<a name="l01227"></a>01227             <span class="keywordflow">else</span> opt_scan++;
-<a name="l01228"></a>01228             <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01229"></a>01229         }
-<a name="l01230"></a>01230         <span class="keywordflow">else</span> {
-<a name="l01231"></a>01231             opt_scan++;
-<a name="l01232"></a>01232         }
-<a name="l01233"></a>01233     }
-<a name="l01234"></a>01234 
-<a name="l01235"></a>01235     <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01236"></a>01236 }
-<a name="l01237"></a>01237 
-<a name="l01238"></a>01238 <span class="keywordtype">void</span> CommandLine::EndOpt() {
-<a name="l01239"></a>01239     opt_scan = cmds.end();
-<a name="l01240"></a>01240 }
-<a name="l01241"></a>01241 
-<a name="l01242"></a>01242 <span class="keywordtype">void</span> CommandLine::FillVector(std::vector&lt;std::string&gt; &amp; vector) {
-<a name="l01243"></a>01243     <span class="keywordflow">for</span>(cmd_it it=cmds.begin(); it != cmds.end(); it++) {
-<a name="l01244"></a>01244         vector.push_back((*it));
-<a name="l01245"></a>01245     }
-<a name="l01246"></a>01246     <span class="comment">// add back the \&quot; if the parameter contained a space</span>
-<a name="l01247"></a>01247     <span class="keywordflow">for</span>(Bitu i = 0; i &lt; vector.size(); i++) {
-<a name="l01248"></a>01248         <span class="keywordflow">if</span>(vector[i].find(<span class="charliteral">&#39; &#39;</span>) != std::string::npos) {
-<a name="l01249"></a>01249             vector[i] = <span class="stringliteral">&quot;\&quot;&quot;</span>+vector[i]+<span class="stringliteral">&quot;\&quot;&quot;</span>;
-<a name="l01250"></a>01250         }
-<a name="l01251"></a>01251     }
-<a name="l01252"></a>01252 }
-<a name="l01253"></a>01253 
-<a name="l01254"></a>01254 <span class="keywordtype">int</span> CommandLine::GetParameterFromList(<span class="keyword">const</span> <span class="keywordtype">char</span>* <span class="keyword">const</span> params[], std::vector&lt;std::string&gt; &amp; output) {
-<a name="l01255"></a>01255     <span class="comment">// return values: 0 = P_NOMATCH, 1 = P_NOPARAMS</span>
-<a name="l01256"></a>01256     <span class="comment">// TODO return nomoreparams</span>
-<a name="l01257"></a>01257     <span class="keywordtype">int</span> retval = 1;
-<a name="l01258"></a>01258     output.clear();
-<a name="l01259"></a>01259     <span class="keyword">enum</span> {
-<a name="l01260"></a>01260         P_START, P_FIRSTNOMATCH, P_FIRSTMATCH
-<a name="l01261"></a>01261     } parsestate = P_START;
-<a name="l01262"></a>01262     cmd_it it = cmds.begin();
-<a name="l01263"></a>01263     <span class="keywordflow">while</span>(it!=cmds.end()) {
-<a name="l01264"></a>01264         <span class="keywordtype">bool</span> found = <span class="keyword">false</span>;
-<a name="l01265"></a>01265         <span class="keywordflow">for</span>(Bitu i = 0; params[i] != NULL; i++) {
-<a name="l01266"></a>01266             <span class="keywordflow">if</span> (*params[i] == 0) {
-<a name="l01267"></a>01267                 LOG_MSG(<span class="stringliteral">&quot;FIXME: GetParameterFromList: terminating params[] with \&quot;\&quot; is deprecated. Please terminate the param list with NULL&quot;</span>);
-<a name="l01268"></a>01268                 <span class="keywordflow">break</span>;
-<a name="l01269"></a>01269             }
-<a name="l01270"></a>01270 
-<a name="l01271"></a>01271             <span class="keywordflow">if</span> (!strcasecmp((*it).c_str(),params[i])) {
-<a name="l01272"></a>01272                 <span class="comment">// found a parameter</span>
-<a name="l01273"></a>01273                 found = <span class="keyword">true</span>;
-<a name="l01274"></a>01274                 <span class="keywordflow">switch</span>(parsestate) {
-<a name="l01275"></a>01275                 <span class="keywordflow">case</span> P_START:
-<a name="l01276"></a>01276                     retval = i+2;
-<a name="l01277"></a>01277                     parsestate = P_FIRSTMATCH;
-<a name="l01278"></a>01278                     <span class="keywordflow">break</span>;
-<a name="l01279"></a>01279                 <span class="keywordflow">case</span> P_FIRSTMATCH:
-<a name="l01280"></a>01280                 <span class="keywordflow">case</span> P_FIRSTNOMATCH:
-<a name="l01281"></a>01281                     <span class="keywordflow">return</span> retval;
-<a name="l01282"></a>01282                 }
-<a name="l01283"></a>01283             }
-<a name="l01284"></a>01284         }
-<a name="l01285"></a>01285         <span class="keywordflow">if</span>(!found) 
-<a name="l01286"></a>01286             <span class="keywordflow">switch</span>(parsestate) {
-<a name="l01287"></a>01287             <span class="keywordflow">case</span> P_START:
-<a name="l01288"></a>01288                 retval = 0; <span class="comment">// no match</span>
-<a name="l01289"></a>01289                 parsestate = P_FIRSTNOMATCH;
-<a name="l01290"></a>01290                 output.push_back(*it);
-<a name="l01291"></a>01291                 <span class="keywordflow">break</span>;
-<a name="l01292"></a>01292             <span class="keywordflow">case</span> P_FIRSTMATCH:
-<a name="l01293"></a>01293             <span class="keywordflow">case</span> P_FIRSTNOMATCH:
-<a name="l01294"></a>01294                 output.push_back(*it);
-<a name="l01295"></a>01295                 <span class="keywordflow">break</span>;
-<a name="l01296"></a>01296             }
-<a name="l01297"></a>01297         cmd_it itold = it;
-<a name="l01298"></a>01298         it++;
-<a name="l01299"></a>01299         cmds.erase(itold);
-<a name="l01300"></a>01300 
-<a name="l01301"></a>01301     }
-<a name="l01302"></a>01302     
-<a name="l01303"></a>01303     <span class="keywordflow">return</span> retval;
-<a name="l01304"></a>01304 }
-<a name="l01305"></a>01305 
-<a name="l01306"></a>01306 
-<a name="l01307"></a>01307 CommandLine::CommandLine(<span class="keywordtype">int</span> argc,<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> argv[],<span class="keyword">enum</span> opt_style opt) {
-<a name="l01308"></a>01308     <span class="keywordflow">if</span> (argc&gt;0) {
-<a name="l01309"></a>01309         file_name=argv[0];
-<a name="l01310"></a>01310     }
-<a name="l01311"></a>01311     <span class="keywordtype">int</span> i=1;
-<a name="l01312"></a>01312     opt_style = opt;
-<a name="l01313"></a>01313     <span class="keywordflow">while</span> (i&lt;argc) {
-<a name="l01314"></a>01314         cmds.push_back(argv[i]);
-<a name="l01315"></a>01315         i++;
-<a name="l01316"></a>01316     }
-<a name="l01317"></a>01317 }
-<a name="l01318"></a>01318 
-<a name="l01319"></a>01319 Bit16u CommandLine::Get_arglength() {
-<a name="l01320"></a>01320     <span class="keywordflow">if</span>(cmds.empty()) <span class="keywordflow">return</span> 0;
-<a name="l01321"></a>01321     Bit16u i=1;
-<a name="l01322"></a>01322     <span class="keywordflow">for</span>(cmd_it it=cmds.begin();it != cmds.end();it++) 
-<a name="l01323"></a>01323         i+=(*it).size() + 1;
-<a name="l01324"></a>01324     <span class="keywordflow">return</span> --i;
-<a name="l01325"></a>01325 }
-<a name="l01326"></a>01326 
-<a name="l01327"></a>01327 
-<a name="l01328"></a>01328 CommandLine::CommandLine(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> cmdline,<span class="keyword">enum</span> opt_style opt) {
-<a name="l01329"></a>01329     <span class="keywordflow">if</span> (name) file_name=name;
-<a name="l01330"></a>01330     <span class="comment">/* Parse the cmds and put them in the list */</span>
-<a name="l01331"></a>01331     <span class="keywordtype">bool</span> inword,inquote;<span class="keywordtype">char</span> c;
-<a name="l01332"></a>01332     inword=<span class="keyword">false</span>;inquote=<span class="keyword">false</span>;
-<a name="l01333"></a>01333     std::string str;
-<a name="l01334"></a>01334     <span class="keyword">const</span> <span class="keywordtype">char</span> * c_cmdline=cmdline;
-<a name="l01335"></a>01335     opt_style = opt;
-<a name="l01336"></a>01336     <span class="keywordflow">while</span> ((c=*c_cmdline)!=0) {
-<a name="l01337"></a>01337         <span class="keywordflow">if</span> (inquote) {
-<a name="l01338"></a>01338             <span class="keywordflow">if</span> (c!=<span class="charliteral">&#39;&quot;&#39;</span>) str+=c;
-<a name="l01339"></a>01339             <span class="keywordflow">else</span> {
-<a name="l01340"></a>01340                 inquote=<span class="keyword">false</span>;
-<a name="l01341"></a>01341                 cmds.push_back(str);
-<a name="l01342"></a>01342                 str.erase();
-<a name="l01343"></a>01343             }
-<a name="l01344"></a>01344         }<span class="keywordflow">else</span> <span class="keywordflow">if</span> (inword) {
-<a name="l01345"></a>01345             <span class="keywordflow">if</span> (c!=<span class="charliteral">&#39; &#39;</span>) str+=c;
-<a name="l01346"></a>01346             <span class="keywordflow">else</span> {
-<a name="l01347"></a>01347                 inword=<span class="keyword">false</span>;
-<a name="l01348"></a>01348                 cmds.push_back(str);
-<a name="l01349"></a>01349                 str.erase();
-<a name="l01350"></a>01350             }
-<a name="l01351"></a>01351         } 
-<a name="l01352"></a>01352         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (c==<span class="charliteral">&#39;&quot;&#39;</span>) { inquote=<span class="keyword">true</span>;}
-<a name="l01353"></a>01353         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (c!=<span class="charliteral">&#39; &#39;</span>) { str+=c;inword=<span class="keyword">true</span>;}
-<a name="l01354"></a>01354         c_cmdline++;
-<a name="l01355"></a>01355     }
-<a name="l01356"></a>01356     <span class="keywordflow">if</span> (inword || inquote) cmds.push_back(str);
-<a name="l01357"></a>01357 }
-<a name="l01358"></a>01358 
-<a name="l01359"></a>01359 <span class="keywordtype">void</span> CommandLine::Shift(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> amount) {
-<a name="l01360"></a>01360     <span class="keywordflow">while</span>(amount--) {
-<a name="l01361"></a>01361         file_name = cmds.size()?(*(cmds.begin())):<span class="stringliteral">&quot;&quot;</span>;
-<a name="l01362"></a>01362         <span class="keywordflow">if</span>(cmds.size()) cmds.erase(cmds.begin());
-<a name="l01363"></a>01363     }
-<a name="l01364"></a>01364 }
+<a name="l00862"></a>00862     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Dispatching VM event %s&quot;</span>,GetVMEventName(event));
+<a name="l00863"></a>00863 
+<a name="l00864"></a>00864     vm_dispatch_state.begin_event(event);
+<a name="l00865"></a>00865     <span class="keywordflow">for</span> (std::list&lt;Function_wrapper&gt;::iterator i=vm_event_functions[event].begin();i!=vm_event_functions[event].end();i++) {
+<a name="l00866"></a>00866         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Calling event %s handler (%p) &#39;%s&#39;&quot;</span>,GetVMEventName(event),(<span class="keywordtype">void</span>*)((uintptr_t)((*i).function)),(*i).name.c_str());
+<a name="l00867"></a>00867         (*i).function(NULL);
+<a name="l00868"></a>00868     }
+<a name="l00869"></a>00869 
+<a name="l00870"></a>00870     vm_dispatch_state.end_event();
+<a name="l00871"></a>00871 }
+<a name="l00872"></a>00872 
+<a name="l00873"></a>00873 Config::~Config() {
+<a name="l00874"></a>00874     std::list&lt;Section*&gt;::iterator it; <span class="comment">// FIXME: You guys do realize C++ STL provides reverse_iterator?</span>
+<a name="l00875"></a>00875 
+<a name="l00876"></a>00876     <span class="keywordflow">while</span> ((it=sectionlist.end()) != sectionlist.begin()) {
+<a name="l00877"></a>00877         it--;
+<a name="l00878"></a>00878         <span class="keyword">delete</span> (*it);
+<a name="l00879"></a>00879         sectionlist.erase(it);
+<a name="l00880"></a>00880     }
+<a name="l00881"></a>00881 }
+<a name="l00882"></a>00882 
+<a name="l00883"></a>00883 <a class="code" href="classSection.html">Section</a>* Config::GetSection(<span class="keywordtype">int</span> index){
+<a name="l00884"></a>00884     <span class="keywordflow">for</span> (it tel=sectionlist.begin(); tel!=sectionlist.end(); tel++){
+<a name="l00885"></a>00885         <span class="keywordflow">if</span> (!index--) <span class="keywordflow">return</span> (*tel);
+<a name="l00886"></a>00886     }
+<a name="l00887"></a>00887     <span class="keywordflow">return</span> NULL;
+<a name="l00888"></a>00888 }
+<a name="l00889"></a>00889 <span class="comment">//c_str() 2x</span>
+<a name="l00890"></a>00890 <a class="code" href="classSection.html">Section</a>* Config::GetSection(<span class="keywordtype">string</span> <span class="keyword">const</span>&amp; _sectionname)<span class="keyword"> const</span>{
+<a name="l00891"></a>00891     <span class="keywordflow">for</span> (const_it tel=sectionlist.begin(); tel!=sectionlist.end(); tel++){
+<a name="l00892"></a>00892         <span class="keywordflow">if</span> (!strcasecmp((*tel)-&gt;GetName(),_sectionname.c_str())) <span class="keywordflow">return</span> (*tel);
+<a name="l00893"></a>00893     }
+<a name="l00894"></a>00894     <span class="keywordflow">return</span> NULL;
+<a name="l00895"></a>00895 }
+<a name="l00896"></a>00896 
+<a name="l00897"></a>00897 <a class="code" href="classSection.html">Section</a>* Config::GetSectionFromProperty(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> prop)<span class="keyword"> const</span>{
+<a name="l00898"></a>00898     <span class="keywordflow">for</span> (const_it tel=sectionlist.begin(); tel!=sectionlist.end(); tel++){
+<a name="l00899"></a>00899         <span class="keywordflow">if</span> ((*tel)-&gt;GetPropValue(prop) != NO_SUCH_PROPERTY) <span class="keywordflow">return</span> (*tel);
+<a name="l00900"></a>00900     }
+<a name="l00901"></a>00901     <span class="keywordflow">return</span> NULL;
+<a name="l00902"></a>00902 }
+<a name="l00903"></a>00903 
+<a name="l00904"></a>00904 
+<a name="l00905"></a>00905 <span class="keywordtype">bool</span> Config::ParseConfigFile(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> configfilename){
+<a name="l00906"></a>00906     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;Attempting to load config file #%zu from %s&quot;</span>,configfiles.size(),configfilename);
+<a name="l00907"></a>00907 
+<a name="l00908"></a>00908     <span class="comment">//static bool first_configfile = true;</span>
+<a name="l00909"></a>00909     ifstream in(configfilename);
+<a name="l00910"></a>00910     <span class="keywordflow">if</span> (!in) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00911"></a>00911     <span class="keyword">const</span> <span class="keywordtype">char</span> * settings_type;
+<a name="l00912"></a>00912     settings_type = (configfiles.size() == 0)? <span class="stringliteral">&quot;primary&quot;</span>:<span class="stringliteral">&quot;additional&quot;</span>;
+<a name="l00913"></a>00913     configfiles.push_back(configfilename);
+<a name="l00914"></a>00914     
+<a name="l00915"></a>00915     <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_NORMAL)(<span class="stringliteral">&quot;Loading %s settings from config file %s&quot;</span>, settings_type,configfilename);
+<a name="l00916"></a>00916 
+<a name="l00917"></a>00917     <span class="comment">//Get directory from configfilename, used with relative paths.</span>
+<a name="l00918"></a>00918     current_config_dir=configfilename;
+<a name="l00919"></a>00919     std::string::size_type pos = current_config_dir.rfind(CROSS_FILESPLIT);
+<a name="l00920"></a>00920     <span class="keywordflow">if</span>(pos == std::string::npos) pos = 0; <span class="comment">//No directory then erase string</span>
+<a name="l00921"></a>00921     current_config_dir.erase(pos);
+<a name="l00922"></a>00922 
+<a name="l00923"></a>00923     <span class="keywordtype">string</span> gegevens;
+<a name="l00924"></a>00924     <a class="code" href="classSection.html">Section</a>* currentsection = NULL;
+<a name="l00925"></a>00925     <a class="code" href="classSection.html">Section</a>* testsec = NULL;
+<a name="l00926"></a>00926     <span class="keywordflow">while</span> (getline(in,gegevens)) {
+<a name="l00927"></a>00927         
+<a name="l00928"></a>00928         <span class="comment">/* strip leading/trailing whitespace */</span>
+<a name="l00929"></a>00929         trim(gegevens);
+<a name="l00930"></a>00930         <span class="keywordflow">if</span>(!gegevens.size()) <span class="keywordflow">continue</span>;
+<a name="l00931"></a>00931 
+<a name="l00932"></a>00932         <span class="keywordflow">switch</span>(gegevens[0]){
+<a name="l00933"></a>00933         <span class="keywordflow">case</span> <span class="charliteral">&#39;%&#39;</span>:
+<a name="l00934"></a>00934         <span class="keywordflow">case</span> <span class="charliteral">&#39;\0&#39;</span>:
+<a name="l00935"></a>00935         <span class="keywordflow">case</span> <span class="charliteral">&#39;#&#39;</span>:
+<a name="l00936"></a>00936         <span class="keywordflow">case</span> <span class="charliteral">&#39; &#39;</span>:
+<a name="l00937"></a>00937         <span class="keywordflow">case</span> <span class="charliteral">&#39;\n&#39;</span>:
+<a name="l00938"></a>00938             <span class="keywordflow">continue</span>;
+<a name="l00939"></a>00939             <span class="keywordflow">break</span>;
+<a name="l00940"></a>00940         <span class="keywordflow">case</span> <span class="charliteral">&#39;[&#39;</span>:
+<a name="l00941"></a>00941         {
+<a name="l00942"></a>00942             string::size_type loc = gegevens.find(<span class="charliteral">&#39;]&#39;</span>);
+<a name="l00943"></a>00943             <span class="keywordflow">if</span>(loc == string::npos) <span class="keywordflow">continue</span>;
+<a name="l00944"></a>00944             gegevens.erase(loc);
+<a name="l00945"></a>00945             testsec = GetSection(gegevens.substr(1));
+<a name="l00946"></a>00946             currentsection = testsec; <span class="comment">/* NTS: If we don&#39;t recognize the section we WANT currentsection == NULL so it has no effect */</span>
+<a name="l00947"></a>00947             testsec = NULL;
+<a name="l00948"></a>00948         }
+<a name="l00949"></a>00949             <span class="keywordflow">break</span>;
+<a name="l00950"></a>00950         <span class="keywordflow">default</span>:
+<a name="l00951"></a>00951             <span class="keywordflow">try</span> {
+<a name="l00952"></a>00952                 <span class="keywordflow">if</span>(currentsection) currentsection-&gt;HandleInputline(gegevens);
+<a name="l00953"></a>00953             } <span class="keywordflow">catch</span>(<span class="keyword">const</span> <span class="keywordtype">char</span>* message) {
+<a name="l00954"></a>00954                 message=0;
+<a name="l00955"></a>00955                 <span class="comment">//EXIT with message</span>
+<a name="l00956"></a>00956             }
+<a name="l00957"></a>00957             <span class="keywordflow">break</span>;
+<a name="l00958"></a>00958         }
+<a name="l00959"></a>00959     }
+<a name="l00960"></a>00960     current_config_dir.clear();<span class="comment">//So internal changes don&#39;t use the path information</span>
+<a name="l00961"></a>00961     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00962"></a>00962 }
+<a name="l00963"></a>00963 
+<a name="l00964"></a>00964 <span class="keywordtype">void</span> Config::ParseEnv(<span class="keywordtype">char</span> ** envp) {
+<a name="l00965"></a>00965     <span class="keywordflow">for</span>(<span class="keywordtype">char</span>** env=envp; *env;env++) {
+<a name="l00966"></a>00966         <span class="keywordtype">char</span> copy[1024];
+<a name="l00967"></a>00967         safe_strncpy(copy,*env,1024);
+<a name="l00968"></a>00968         <span class="keywordflow">if</span>(strncasecmp(copy,<span class="stringliteral">&quot;DOSBOX_&quot;</span>,7))
+<a name="l00969"></a>00969             <span class="keywordflow">continue</span>;
+<a name="l00970"></a>00970         <span class="keywordtype">char</span>* sec_name = &amp;copy[7];
+<a name="l00971"></a>00971         <span class="keywordflow">if</span>(!(*sec_name))
+<a name="l00972"></a>00972             <span class="keywordflow">continue</span>;
+<a name="l00973"></a>00973         <span class="keywordtype">char</span>* prop_name = strrchr(sec_name,<span class="charliteral">&#39;_&#39;</span>);
+<a name="l00974"></a>00974         <span class="keywordflow">if</span>(!prop_name || !(*prop_name))
+<a name="l00975"></a>00975             <span class="keywordflow">continue</span>;
+<a name="l00976"></a>00976         *prop_name++=0;
+<a name="l00977"></a>00977         <a class="code" href="classSection.html">Section</a>* sect = GetSection(sec_name);
+<a name="l00978"></a>00978         <span class="keywordflow">if</span>(!sect)
+<a name="l00979"></a>00979             <span class="keywordflow">continue</span>;
+<a name="l00980"></a>00980         sect-&gt;HandleInputline(prop_name);
+<a name="l00981"></a>00981     }
+<a name="l00982"></a>00982 }
+<a name="l00983"></a>00983 
+<a name="l00984"></a>00984 <span class="keywordtype">bool</span> CommandLine::FindExist(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">bool</span> <span class="keyword">remove</span>) {
+<a name="l00985"></a>00985     cmd_it it;
+<a name="l00986"></a>00986     <span class="keywordflow">if</span> (!(FindEntry(name,it,<span class="keyword">false</span>))) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00987"></a>00987     <span class="keywordflow">if</span> (<span class="keyword">remove</span>) cmds.erase(it);
+<a name="l00988"></a>00988     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00989"></a>00989 }
+<a name="l00990"></a>00990 
+<a name="l00991"></a>00991 <span class="keywordtype">bool</span> CommandLine::FindHex(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">int</span> &amp; value,<span class="keywordtype">bool</span> <span class="keyword">remove</span>) {
+<a name="l00992"></a>00992     cmd_it it,it_next;
+<a name="l00993"></a>00993     <span class="keywordflow">if</span> (!(FindEntry(name,it,<span class="keyword">true</span>))) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l00994"></a>00994     it_next=it;it_next++;
+<a name="l00995"></a>00995     sscanf((*it_next).c_str(),<span class="stringliteral">&quot;%X&quot;</span>,(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>*)(&amp;value));
+<a name="l00996"></a>00996     <span class="keywordflow">if</span> (<span class="keyword">remove</span>) cmds.erase(it,++it_next);
+<a name="l00997"></a>00997     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l00998"></a>00998 }
+<a name="l00999"></a>00999 
+<a name="l01000"></a>01000 <span class="keywordtype">bool</span> CommandLine::FindInt(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">int</span> &amp; value,<span class="keywordtype">bool</span> <span class="keyword">remove</span>) {
+<a name="l01001"></a>01001     cmd_it it,it_next;
+<a name="l01002"></a>01002     <span class="keywordflow">if</span> (!(FindEntry(name,it,<span class="keyword">true</span>))) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01003"></a>01003     it_next=it;it_next++;
+<a name="l01004"></a>01004     value=atoi((*it_next).c_str());
+<a name="l01005"></a>01005     <span class="keywordflow">if</span> (<span class="keyword">remove</span>) cmds.erase(it,++it_next);
+<a name="l01006"></a>01006     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01007"></a>01007 }
+<a name="l01008"></a>01008 
+<a name="l01009"></a>01009 <span class="keywordtype">bool</span> CommandLine::FindString(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,std::string &amp; value,<span class="keywordtype">bool</span> <span class="keyword">remove</span>) {
+<a name="l01010"></a>01010     cmd_it it,it_next;
+<a name="l01011"></a>01011     <span class="keywordflow">if</span> (!(FindEntry(name,it,<span class="keyword">true</span>))) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01012"></a>01012     it_next=it;it_next++;
+<a name="l01013"></a>01013     value=*it_next;
+<a name="l01014"></a>01014     <span class="keywordflow">if</span> (<span class="keyword">remove</span>) cmds.erase(it,++it_next);
+<a name="l01015"></a>01015     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01016"></a>01016 }
+<a name="l01017"></a>01017 
+<a name="l01018"></a>01018 <span class="keywordtype">bool</span> CommandLine::FindCommand(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> which,std::string &amp; value) {
+<a name="l01019"></a>01019     <span class="keywordflow">if</span> (which&lt;1) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01020"></a>01020     <span class="keywordflow">if</span> (which&gt;cmds.size()) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01021"></a>01021     cmd_it it=cmds.begin();
+<a name="l01022"></a>01022     <span class="keywordflow">for</span> (;which&gt;1;which--) it++;
+<a name="l01023"></a>01023     value=(*it);
+<a name="l01024"></a>01024     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01025"></a>01025 }
+<a name="l01026"></a>01026 
+<a name="l01027"></a>01027 <span class="keywordtype">bool</span> CommandLine::FindEntry(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,cmd_it &amp; it,<span class="keywordtype">bool</span> neednext) {
+<a name="l01028"></a>01028     <span class="keywordflow">for</span> (it=cmds.begin();it!=cmds.end();it++) {
+<a name="l01029"></a>01029         <span class="keyword">const</span> <span class="keywordtype">char</span> *d = (*it).c_str();
+<a name="l01030"></a>01030 
+<a name="l01031"></a>01031         <span class="comment">/* HACK: If the search string starts with -, it&#39;s a switch,</span>
+<a name="l01032"></a>01032 <span class="comment">         *       so adjust pointers so that it matches --switch or -switch */</span>
+<a name="l01033"></a>01033         <span class="keywordflow">if</span> (*name == <span class="charliteral">&#39;-&#39;</span> &amp;&amp; d[0] == <span class="charliteral">&#39;-&#39;</span> &amp;&amp; d[1] == <span class="charliteral">&#39;-&#39;</span>) d++;
+<a name="l01034"></a>01034 
+<a name="l01035"></a>01035         <span class="keywordflow">if</span> (!strcasecmp(d,name)) {
+<a name="l01036"></a>01036             cmd_it itnext=it;itnext++;
+<a name="l01037"></a>01037             <span class="keywordflow">if</span> (neednext &amp;&amp; (itnext==cmds.end())) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01038"></a>01038             <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01039"></a>01039         }
+<a name="l01040"></a>01040     }
+<a name="l01041"></a>01041     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01042"></a>01042 }
+<a name="l01043"></a>01043 
+<a name="l01044"></a>01044 <span class="keywordtype">bool</span> CommandLine::FindStringBegin(<span class="keywordtype">char</span> <span class="keyword">const</span>* <span class="keyword">const</span> begin,std::string &amp; value, <span class="keywordtype">bool</span> <span class="keyword">remove</span>) {
+<a name="l01045"></a>01045     <span class="keywordtype">size_t</span> len = strlen(begin);
+<a name="l01046"></a>01046     <span class="keywordflow">for</span> (cmd_it it=cmds.begin();it!=cmds.end();it++) {
+<a name="l01047"></a>01047         <span class="keywordflow">if</span> (strncmp(begin,(*it).c_str(),len)==0) {
+<a name="l01048"></a>01048             value=((*it).c_str() + len);
+<a name="l01049"></a>01049             <span class="keywordflow">if</span> (<span class="keyword">remove</span>) cmds.erase(it);
+<a name="l01050"></a>01050             <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01051"></a>01051         }
+<a name="l01052"></a>01052     }
+<a name="l01053"></a>01053     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01054"></a>01054 }
+<a name="l01055"></a>01055 
+<a name="l01056"></a>01056 <span class="keywordtype">bool</span> CommandLine::FindStringRemain(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,std::string &amp; value) {
+<a name="l01057"></a>01057     cmd_it it;value=<span class="stringliteral">&quot;&quot;</span>;
+<a name="l01058"></a>01058     <span class="keywordflow">if</span> (!FindEntry(name,it)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01059"></a>01059     it++;
+<a name="l01060"></a>01060     <span class="keywordflow">for</span> (;it!=cmds.end();it++) {
+<a name="l01061"></a>01061         value+=<span class="stringliteral">&quot; &quot;</span>;
+<a name="l01062"></a>01062         value+=(*it);
+<a name="l01063"></a>01063     }
+<a name="l01064"></a>01064     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01065"></a>01065 }
+<a name="l01066"></a>01066 
+<a name="l01067"></a>01067 <span class="comment">/* Only used for parsing command.com /C </span>
+<a name="l01068"></a>01068 <span class="comment"> * Allowing /C dir and /Cdir</span>
+<a name="l01069"></a>01069 <span class="comment"> * Restoring quotes back into the commands so command /C mount d &quot;/tmp/a b&quot; works as intended</span>
+<a name="l01070"></a>01070 <span class="comment"> */</span>
+<a name="l01071"></a>01071 <span class="keywordtype">bool</span> CommandLine::FindStringRemainBegin(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,std::string &amp; value) {
+<a name="l01072"></a>01072     cmd_it it;value=<span class="stringliteral">&quot;&quot;</span>;
+<a name="l01073"></a>01073     <span class="keywordflow">if</span> (!FindEntry(name,it)) {
+<a name="l01074"></a>01074         <span class="keywordtype">size_t</span> len = strlen(name);
+<a name="l01075"></a>01075             <span class="keywordflow">for</span> (it=cmds.begin();it!=cmds.end();it++) {
+<a name="l01076"></a>01076                 <span class="keywordflow">if</span> (strncasecmp(name,(*it).c_str(),len)==0) {
+<a name="l01077"></a>01077                     std::string temp = ((*it).c_str() + len);
+<a name="l01078"></a>01078                     <span class="comment">//Restore quotes for correct parsing in later stages</span>
+<a name="l01079"></a>01079                     <span class="keywordflow">if</span>(temp.find(<span class="stringliteral">&quot; &quot;</span>) != std::string::npos)
+<a name="l01080"></a>01080                         value = std::string(<span class="stringliteral">&quot;\&quot;&quot;</span>) + temp + std::string(<span class="stringliteral">&quot;\&quot;&quot;</span>);
+<a name="l01081"></a>01081                     <span class="keywordflow">else</span>
+<a name="l01082"></a>01082                         value = temp;
+<a name="l01083"></a>01083                     <span class="keywordflow">break</span>;
+<a name="l01084"></a>01084                 }
+<a name="l01085"></a>01085             }
+<a name="l01086"></a>01086         <span class="keywordflow">if</span>( it == cmds.end()) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01087"></a>01087     }
+<a name="l01088"></a>01088     it++;
+<a name="l01089"></a>01089     <span class="keywordflow">for</span> (;it!=cmds.end();it++) {
+<a name="l01090"></a>01090         value += <span class="stringliteral">&quot; &quot;</span>;
+<a name="l01091"></a>01091         std::string temp = (*it);
+<a name="l01092"></a>01092         <span class="keywordflow">if</span>(temp.find(<span class="stringliteral">&quot; &quot;</span>) != std::string::npos)
+<a name="l01093"></a>01093             value += std::string(<span class="stringliteral">&quot;\&quot;&quot;</span>) + temp + std::string(<span class="stringliteral">&quot;\&quot;&quot;</span>);
+<a name="l01094"></a>01094         <span class="keywordflow">else</span>
+<a name="l01095"></a>01095             value += temp;
+<a name="l01096"></a>01096     }
+<a name="l01097"></a>01097     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01098"></a>01098 }
+<a name="l01099"></a>01099 
+<a name="l01100"></a>01100 <span class="keywordtype">bool</span> CommandLine::GetStringRemain(std::string &amp; value) {
+<a name="l01101"></a>01101     <span class="keywordflow">if</span>(!cmds.size()) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01102"></a>01102         
+<a name="l01103"></a>01103     cmd_it it=cmds.begin();value=(*it++);
+<a name="l01104"></a>01104     <span class="keywordflow">for</span>(;it != cmds.end();it++) {
+<a name="l01105"></a>01105         value+=<span class="stringliteral">&quot; &quot;</span>;
+<a name="l01106"></a>01106         value+=(*it);
+<a name="l01107"></a>01107     }
+<a name="l01108"></a>01108     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01109"></a>01109 }
+<a name="l01110"></a>01110         
+<a name="l01111"></a>01111 
+<a name="l01112"></a>01112 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> CommandLine::GetCount(<span class="keywordtype">void</span>) {
+<a name="l01113"></a>01113     <span class="keywordflow">return</span> (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)cmds.size();
+<a name="l01114"></a>01114 }
+<a name="l01115"></a>01115 
+<a name="l01116"></a>01116 <span class="keywordtype">bool</span> CommandLine::GetCurrentArgv(std::string &amp;argv) {
+<a name="l01117"></a>01117     <span class="keywordflow">if</span> (opt_scan != cmds.end())
+<a name="l01118"></a>01118         argv = *opt_scan;
+<a name="l01119"></a>01119 
+<a name="l01120"></a>01120     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01121"></a>01121 }
+<a name="l01122"></a>01122 
+<a name="l01123"></a>01123 <span class="keywordtype">bool</span> CommandLine::CurrentArgvEnd(<span class="keywordtype">void</span>) {
+<a name="l01124"></a>01124     <span class="keywordflow">return</span> (opt_scan == cmds.end());
+<a name="l01125"></a>01125 }
+<a name="l01126"></a>01126 
+<a name="l01127"></a>01127 <span class="keywordtype">void</span> CommandLine::EatCurrentArgv(<span class="keywordtype">void</span>) {
+<a name="l01128"></a>01128     <span class="keywordflow">if</span> (opt_scan != cmds.end()) opt_scan = cmds.erase(opt_scan);
+<a name="l01129"></a>01129 }
+<a name="l01130"></a>01130 
+<a name="l01131"></a>01131 <span class="keywordtype">void</span> CommandLine::NextArgv(<span class="keywordtype">void</span>) {
+<a name="l01132"></a>01132     <span class="keywordflow">if</span> (opt_scan != cmds.end()) opt_scan++;
+<a name="l01133"></a>01133 }
+<a name="l01134"></a>01134 
+<a name="l01135"></a>01135 <span class="keywordtype">bool</span> CommandLine::NextOptArgv(std::string &amp;argv) {
+<a name="l01136"></a>01136     argv.clear();
+<a name="l01137"></a>01137 
+<a name="l01138"></a>01138     <span class="comment">/* no argv to return if we&#39;re doing single-char GNU switches */</span>
+<a name="l01139"></a>01139     <span class="keywordflow">if</span> (!opt_gnu_getopt_singlechar.empty()) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01140"></a>01140 
+<a name="l01141"></a>01141     <span class="keywordflow">if</span> (opt_scan == cmds.end()) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01142"></a>01142     argv = *opt_scan;
+<a name="l01143"></a>01143     <span class="keywordflow">if</span> (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
+<a name="l01144"></a>01144     <span class="keywordflow">else</span> opt_scan++;
+<a name="l01145"></a>01145     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01146"></a>01146 }
+<a name="l01147"></a>01147 
+<a name="l01148"></a>01148 <span class="keywordtype">void</span> CommandLine::ChangeOptStyle(<span class="keyword">enum</span> opt_style opt_style) {
+<a name="l01149"></a>01149     this-&gt;opt_style = opt_style;
+<a name="l01150"></a>01150 }
+<a name="l01151"></a>01151 
+<a name="l01152"></a>01152 <span class="keywordtype">bool</span> CommandLine::BeginOpt(<span class="keywordtype">bool</span> eat_argv) {
+<a name="l01153"></a>01153     opt_gnu_getopt_singlechar.clear();
+<a name="l01154"></a>01154     opt_scan = cmds.begin();
+<a name="l01155"></a>01155     <span class="keywordflow">if</span> (opt_scan == cmds.end()) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01156"></a>01156     opt_eat_argv = eat_argv;
+<a name="l01157"></a>01157     <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01158"></a>01158 }
+<a name="l01159"></a>01159 
+<a name="l01160"></a>01160 <span class="keywordtype">bool</span> CommandLine::GetOptGNUSingleCharCheck(std::string &amp;name) {
+<a name="l01161"></a>01161     <span class="keywordtype">char</span> c;
+<a name="l01162"></a>01162 
+<a name="l01163"></a>01163     <span class="comment">/* return another char, skipping spaces or invalid chars */</span>
+<a name="l01164"></a>01164     name.clear();
+<a name="l01165"></a>01165     <span class="keywordflow">while</span> (!opt_gnu_getopt_singlechar.empty()) {
+<a name="l01166"></a>01166         c = opt_gnu_getopt_singlechar.at(0);
+<a name="l01167"></a>01167         opt_gnu_getopt_singlechar = opt_gnu_getopt_singlechar.substr(1);
+<a name="l01168"></a>01168         <span class="keywordflow">if</span> (c &lt;= &#39; &#39; || c &gt; 126) <span class="keywordflow">continue</span>;
+<a name="l01169"></a>01169 
+<a name="l01170"></a>01170         name = c;
+<a name="l01171"></a>01171         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01172"></a>01172     }
+<a name="l01173"></a>01173 
+<a name="l01174"></a>01174     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01175"></a>01175 }
+<a name="l01176"></a>01176 
+<a name="l01177"></a>01177 <span class="keywordtype">bool</span> CommandLine::GetOpt(std::string &amp;name) {
+<a name="l01178"></a>01178     name.clear();
+<a name="l01179"></a>01179 
+<a name="l01180"></a>01180     <span class="comment">/* if we&#39;re still doing GNU getopt single-char switches, then parse another and return */</span>
+<a name="l01181"></a>01181     <span class="keywordflow">if</span> (GetOptGNUSingleCharCheck(name))
+<a name="l01182"></a>01182         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01183"></a>01183 
+<a name="l01184"></a>01184     <span class="keywordflow">while</span> (opt_scan != cmds.end()) {
+<a name="l01185"></a>01185         std::string &amp;argv = *opt_scan;
+<a name="l01186"></a>01186         <span class="keyword">const</span> <span class="keywordtype">char</span> *str = argv.c_str();
+<a name="l01187"></a>01187 
+<a name="l01188"></a>01188         <span class="keywordflow">if</span> ((opt_style == CommandLine::either || opt_style == CommandLine::dos) &amp;&amp; *str == <span class="charliteral">&#39;/&#39;</span>) {
+<a name="l01189"></a>01189             <span class="comment">/* MS-DOS style /option. Example: /A /OPT /HAX /BLAH */</span>
+<a name="l01190"></a>01190             name = str+1; <span class="comment">/* copy to caller minus leaking slash, then erase/skip */</span>
+<a name="l01191"></a>01191             <span class="keywordflow">if</span> (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
+<a name="l01192"></a>01192             <span class="keywordflow">else</span> opt_scan++;
+<a name="l01193"></a>01193             <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01194"></a>01194         }
+<a name="l01195"></a>01195         <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((opt_style == CommandLine::either || opt_style == CommandLine::gnu || opt_style == CommandLine::gnu_getopt) &amp;&amp; *str == <span class="charliteral">&#39;-&#39;</span>) {
+<a name="l01196"></a>01196             str++; <span class="comment">/* step past &#39;-&#39; */</span>
+<a name="l01197"></a>01197             <span class="keywordflow">if</span> (str[0] == <span class="charliteral">&#39;-&#39;</span> &amp;&amp; str[1] == 0) { <span class="comment">/* &#39;--&#39; means to stop parsing */</span>
+<a name="l01198"></a>01198                 opt_scan = cmds.end();
+<a name="l01199"></a>01199                 <span class="keywordflow">if</span> (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
+<a name="l01200"></a>01200                 <span class="keywordflow">break</span>;
+<a name="l01201"></a>01201             }
+<a name="l01202"></a>01202 
+<a name="l01203"></a>01203             <span class="keywordflow">if</span> (opt_style == CommandLine::gnu_getopt) {
+<a name="l01204"></a>01204                 <span class="comment">/* --switch =&gt; &quot;switch&quot;</span>
+<a name="l01205"></a>01205 <span class="comment">                 * -switch =&gt; -s -w -i -t -c -h */</span>
+<a name="l01206"></a>01206                 <span class="keywordflow">if</span> (*str == <span class="charliteral">&#39;-&#39;</span>) {
+<a name="l01207"></a>01207                     str++;
+<a name="l01208"></a>01208                 }
+<a name="l01209"></a>01209                 <span class="keywordflow">else</span> {
+<a name="l01210"></a>01210                     <span class="comment">/* assign to single-char parse then eat the argv */</span>
+<a name="l01211"></a>01211                     opt_gnu_getopt_singlechar = str;
+<a name="l01212"></a>01212                     <span class="keywordflow">if</span> (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
+<a name="l01213"></a>01213                     <span class="keywordflow">else</span> opt_scan++;
+<a name="l01214"></a>01214 
+<a name="l01215"></a>01215                     <span class="comment">/* if we parse a single-char switch, great */</span>
+<a name="l01216"></a>01216                     <span class="keywordflow">if</span> (GetOptGNUSingleCharCheck(name))
+<a name="l01217"></a>01217                         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01218"></a>01218 
+<a name="l01219"></a>01219                     <span class="keywordflow">continue</span>; <span class="comment">/* if we&#39;re here then there was nothing to parse, continue */</span>
+<a name="l01220"></a>01220                 }
+<a name="l01221"></a>01221             }
+<a name="l01222"></a>01222             <span class="keywordflow">else</span> {
+<a name="l01223"></a>01223                 <span class="comment">/* -switch and --switch mean the same thing */</span>
+<a name="l01224"></a>01224                 <span class="keywordflow">if</span> (*str == <span class="charliteral">&#39;-&#39;</span>) str++;
+<a name="l01225"></a>01225             }
+<a name="l01226"></a>01226 
+<a name="l01227"></a>01227             name = str; <span class="comment">/* copy to caller, then erase/skip */</span>
+<a name="l01228"></a>01228             <span class="keywordflow">if</span> (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
+<a name="l01229"></a>01229             <span class="keywordflow">else</span> opt_scan++;
+<a name="l01230"></a>01230             <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01231"></a>01231         }
+<a name="l01232"></a>01232         <span class="keywordflow">else</span> {
+<a name="l01233"></a>01233             opt_scan++;
+<a name="l01234"></a>01234         }
+<a name="l01235"></a>01235     }
+<a name="l01236"></a>01236 
+<a name="l01237"></a>01237     <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01238"></a>01238 }
+<a name="l01239"></a>01239 
+<a name="l01240"></a>01240 <span class="keywordtype">void</span> CommandLine::EndOpt() {
+<a name="l01241"></a>01241     opt_scan = cmds.end();
+<a name="l01242"></a>01242 }
+<a name="l01243"></a>01243 
+<a name="l01244"></a>01244 <span class="keywordtype">void</span> CommandLine::FillVector(std::vector&lt;std::string&gt; &amp; vector) {
+<a name="l01245"></a>01245     <span class="keywordflow">for</span>(cmd_it it=cmds.begin(); it != cmds.end(); it++) {
+<a name="l01246"></a>01246         vector.push_back((*it));
+<a name="l01247"></a>01247     }
+<a name="l01248"></a>01248     <span class="comment">// add back the \&quot; if the parameter contained a space</span>
+<a name="l01249"></a>01249     <span class="keywordflow">for</span>(Bitu i = 0; i &lt; vector.size(); i++) {
+<a name="l01250"></a>01250         <span class="keywordflow">if</span>(vector[i].find(<span class="charliteral">&#39; &#39;</span>) != std::string::npos) {
+<a name="l01251"></a>01251             vector[i] = <span class="stringliteral">&quot;\&quot;&quot;</span>+vector[i]+<span class="stringliteral">&quot;\&quot;&quot;</span>;
+<a name="l01252"></a>01252         }
+<a name="l01253"></a>01253     }
+<a name="l01254"></a>01254 }
+<a name="l01255"></a>01255 
+<a name="l01256"></a>01256 <span class="keywordtype">int</span> CommandLine::GetParameterFromList(<span class="keyword">const</span> <span class="keywordtype">char</span>* <span class="keyword">const</span> params[], std::vector&lt;std::string&gt; &amp; output) {
+<a name="l01257"></a>01257     <span class="comment">// return values: 0 = P_NOMATCH, 1 = P_NOPARAMS</span>
+<a name="l01258"></a>01258     <span class="comment">// TODO return nomoreparams</span>
+<a name="l01259"></a>01259     <span class="keywordtype">int</span> retval = 1;
+<a name="l01260"></a>01260     output.clear();
+<a name="l01261"></a>01261     <span class="keyword">enum</span> {
+<a name="l01262"></a>01262         P_START, P_FIRSTNOMATCH, P_FIRSTMATCH
+<a name="l01263"></a>01263     } parsestate = P_START;
+<a name="l01264"></a>01264     cmd_it it = cmds.begin();
+<a name="l01265"></a>01265     <span class="keywordflow">while</span>(it!=cmds.end()) {
+<a name="l01266"></a>01266         <span class="keywordtype">bool</span> found = <span class="keyword">false</span>;
+<a name="l01267"></a>01267         <span class="keywordflow">for</span>(Bitu i = 0; params[i] != NULL; i++) {
+<a name="l01268"></a>01268             <span class="keywordflow">if</span> (*params[i] == 0) {
+<a name="l01269"></a>01269                 LOG_MSG(<span class="stringliteral">&quot;FIXME: GetParameterFromList: terminating params[] with \&quot;\&quot; is deprecated. Please terminate the param list with NULL&quot;</span>);
+<a name="l01270"></a>01270                 <span class="keywordflow">break</span>;
+<a name="l01271"></a>01271             }
+<a name="l01272"></a>01272 
+<a name="l01273"></a>01273             <span class="keywordflow">if</span> (!strcasecmp((*it).c_str(),params[i])) {
+<a name="l01274"></a>01274                 <span class="comment">// found a parameter</span>
+<a name="l01275"></a>01275                 found = <span class="keyword">true</span>;
+<a name="l01276"></a>01276                 <span class="keywordflow">switch</span>(parsestate) {
+<a name="l01277"></a>01277                 <span class="keywordflow">case</span> P_START:
+<a name="l01278"></a>01278                     retval = i+2;
+<a name="l01279"></a>01279                     parsestate = P_FIRSTMATCH;
+<a name="l01280"></a>01280                     <span class="keywordflow">break</span>;
+<a name="l01281"></a>01281                 <span class="keywordflow">case</span> P_FIRSTMATCH:
+<a name="l01282"></a>01282                 <span class="keywordflow">case</span> P_FIRSTNOMATCH:
+<a name="l01283"></a>01283                     <span class="keywordflow">return</span> retval;
+<a name="l01284"></a>01284                 }
+<a name="l01285"></a>01285             }
+<a name="l01286"></a>01286         }
+<a name="l01287"></a>01287         <span class="keywordflow">if</span>(!found) 
+<a name="l01288"></a>01288             <span class="keywordflow">switch</span>(parsestate) {
+<a name="l01289"></a>01289             <span class="keywordflow">case</span> P_START:
+<a name="l01290"></a>01290                 retval = 0; <span class="comment">// no match</span>
+<a name="l01291"></a>01291                 parsestate = P_FIRSTNOMATCH;
+<a name="l01292"></a>01292                 output.push_back(*it);
+<a name="l01293"></a>01293                 <span class="keywordflow">break</span>;
+<a name="l01294"></a>01294             <span class="keywordflow">case</span> P_FIRSTMATCH:
+<a name="l01295"></a>01295             <span class="keywordflow">case</span> P_FIRSTNOMATCH:
+<a name="l01296"></a>01296                 output.push_back(*it);
+<a name="l01297"></a>01297                 <span class="keywordflow">break</span>;
+<a name="l01298"></a>01298             }
+<a name="l01299"></a>01299         cmd_it itold = it;
+<a name="l01300"></a>01300         it++;
+<a name="l01301"></a>01301         cmds.erase(itold);
+<a name="l01302"></a>01302 
+<a name="l01303"></a>01303     }
+<a name="l01304"></a>01304     
+<a name="l01305"></a>01305     <span class="keywordflow">return</span> retval;
+<a name="l01306"></a>01306 }
+<a name="l01307"></a>01307 
+<a name="l01308"></a>01308 
+<a name="l01309"></a>01309 CommandLine::CommandLine(<span class="keywordtype">int</span> argc,<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> argv[],<span class="keyword">enum</span> opt_style opt) {
+<a name="l01310"></a>01310     <span class="keywordflow">if</span> (argc&gt;0) {
+<a name="l01311"></a>01311         file_name=argv[0];
+<a name="l01312"></a>01312     }
+<a name="l01313"></a>01313     <span class="keywordtype">int</span> i=1;
+<a name="l01314"></a>01314     opt_style = opt;
+<a name="l01315"></a>01315     <span class="keywordflow">while</span> (i&lt;argc) {
+<a name="l01316"></a>01316         cmds.push_back(argv[i]);
+<a name="l01317"></a>01317         i++;
+<a name="l01318"></a>01318     }
+<a name="l01319"></a>01319 }
+<a name="l01320"></a>01320 
+<a name="l01321"></a>01321 Bit16u CommandLine::Get_arglength() {
+<a name="l01322"></a>01322     <span class="keywordflow">if</span>(cmds.empty()) <span class="keywordflow">return</span> 0;
+<a name="l01323"></a>01323     Bit16u i=1;
+<a name="l01324"></a>01324     <span class="keywordflow">for</span>(cmd_it it=cmds.begin();it != cmds.end();it++) 
+<a name="l01325"></a>01325         i+=(*it).size() + 1;
+<a name="l01326"></a>01326     <span class="keywordflow">return</span> --i;
+<a name="l01327"></a>01327 }
+<a name="l01328"></a>01328 
+<a name="l01329"></a>01329 
+<a name="l01330"></a>01330 CommandLine::CommandLine(<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> name,<span class="keywordtype">char</span> <span class="keyword">const</span> * <span class="keyword">const</span> cmdline,<span class="keyword">enum</span> opt_style opt) {
+<a name="l01331"></a>01331     <span class="keywordflow">if</span> (name) file_name=name;
+<a name="l01332"></a>01332     <span class="comment">/* Parse the cmds and put them in the list */</span>
+<a name="l01333"></a>01333     <span class="keywordtype">bool</span> inword,inquote;<span class="keywordtype">char</span> c;
+<a name="l01334"></a>01334     inword=<span class="keyword">false</span>;inquote=<span class="keyword">false</span>;
+<a name="l01335"></a>01335     std::string str;
+<a name="l01336"></a>01336     <span class="keyword">const</span> <span class="keywordtype">char</span> * c_cmdline=cmdline;
+<a name="l01337"></a>01337     opt_style = opt;
+<a name="l01338"></a>01338     <span class="keywordflow">while</span> ((c=*c_cmdline)!=0) {
+<a name="l01339"></a>01339         <span class="keywordflow">if</span> (inquote) {
+<a name="l01340"></a>01340             <span class="keywordflow">if</span> (c!=<span class="charliteral">&#39;&quot;&#39;</span>) str+=c;
+<a name="l01341"></a>01341             <span class="keywordflow">else</span> {
+<a name="l01342"></a>01342                 inquote=<span class="keyword">false</span>;
+<a name="l01343"></a>01343                 cmds.push_back(str);
+<a name="l01344"></a>01344                 str.erase();
+<a name="l01345"></a>01345             }
+<a name="l01346"></a>01346         }<span class="keywordflow">else</span> <span class="keywordflow">if</span> (inword) {
+<a name="l01347"></a>01347             <span class="keywordflow">if</span> (c!=<span class="charliteral">&#39; &#39;</span>) str+=c;
+<a name="l01348"></a>01348             <span class="keywordflow">else</span> {
+<a name="l01349"></a>01349                 inword=<span class="keyword">false</span>;
+<a name="l01350"></a>01350                 cmds.push_back(str);
+<a name="l01351"></a>01351                 str.erase();
+<a name="l01352"></a>01352             }
+<a name="l01353"></a>01353         } 
+<a name="l01354"></a>01354         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (c==<span class="charliteral">&#39;&quot;&#39;</span>) { inquote=<span class="keyword">true</span>;}
+<a name="l01355"></a>01355         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (c!=<span class="charliteral">&#39; &#39;</span>) { str+=c;inword=<span class="keyword">true</span>;}
+<a name="l01356"></a>01356         c_cmdline++;
+<a name="l01357"></a>01357     }
+<a name="l01358"></a>01358     <span class="keywordflow">if</span> (inword || inquote) cmds.push_back(str);
+<a name="l01359"></a>01359 }
+<a name="l01360"></a>01360 
+<a name="l01361"></a>01361 <span class="keywordtype">void</span> CommandLine::Shift(<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> amount) {
+<a name="l01362"></a>01362     <span class="keywordflow">while</span>(amount--) {
+<a name="l01363"></a>01363         file_name = cmds.size()?(*(cmds.begin())):<span class="stringliteral">&quot;&quot;</span>;
+<a name="l01364"></a>01364         <span class="keywordflow">if</span>(cmds.size()) cmds.erase(cmds.begin());
+<a name="l01365"></a>01365     }
+<a name="l01366"></a>01366 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 9 2018 18:44:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 15 2018 11:44:19 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

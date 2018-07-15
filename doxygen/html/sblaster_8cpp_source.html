@@ -72,6 +72,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
       <li><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
 </div>
@@ -80,7 +81,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>Defines</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -2354,10 +2355,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02258"></a>02258 <span class="preprocessor">    _WHICH_[0]=   ((((_VAL_) &amp; 0xf0) &gt;&gt; 3)|(sb.type==SBT_16 ? 1:3));    \</span>
 <a name="l02259"></a>02259 <span class="preprocessor">    _WHICH_[1]=   ((((_VAL_) &amp; 0x0f) &lt;&lt; 1)|(sb.type==SBT_16 ? 1:3));    \</span>
 <a name="l02260"></a>02260 <span class="preprocessor"></span>
-<a name="l02261"></a>02261 <span class="preprocessor"></span><span class="preprocessor">#define MAKEPROVOL(_WHICH_)         \</span>
-<a name="l02262"></a>02262 <span class="preprocessor">    ((((_WHICH_[0] &amp; 0x1e) &lt;&lt; 3) | ((_WHICH_[1] &amp; 0x1e) &gt;&gt; 1)) &amp; (sb.type==SBT_16 ? 0xff:0xee))</span>
-<a name="l02263"></a>02263 <span class="preprocessor"></span>
-<a name="l02264"></a>02264 
+<a name="l02261"></a>02261 <span class="preprocessor"></span><span class="preprocessor">#define MAKEPROVOL(_WHICH_)                                                                                     \</span>
+<a name="l02262"></a>02262 <span class="preprocessor">        ((((_WHICH_[0] &amp; 0x1e) &lt;&lt; 3) | ((_WHICH_[1] &amp; 0x1e) &gt;&gt; 1)) |    \</span>
+<a name="l02263"></a>02263 <span class="preprocessor">                ((sb.type==SBT_PRO1 || sb.type==SBT_PRO2) ? 0x11:0))</span>
+<a name="l02264"></a>02264 <span class="preprocessor"></span>
 <a name="l02265"></a>02265 <span class="comment">// TODO: Put out the various hardware listed here, do some listening tests to confirm the emulation is accurate.</span>
 <a name="l02266"></a>02266 <span class="keywordtype">void</span> updateSoundBlasterFilter(Bitu rate) {
 <a name="l02267"></a>02267     <span class="comment">/* &quot;No filtering&quot; option for those who don&#39;t want it, or are used to the way things sound in plain vanilla DOSBox */</span>
@@ -3716,7 +3717,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 9 2018 18:44:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 15 2018 11:44:18 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

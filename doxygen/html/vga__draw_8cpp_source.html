@@ -72,6 +72,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow2" class="tabs2">
     <ul class="tablist">
       <li><a href="files.html"><span>File&#160;List</span></a></li>
+      <li><a href="globals.html"><span>File&#160;Members</span></a></li>
     </ul>
   </div>
 </div>
@@ -80,7 +81,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(8)"><span class="SelectionMark">&#160;</span>Enumerator</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(9)"><span class="SelectionMark">&#160;</span>Defines</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -2336,674 +2337,673 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l02240"></a>02240             
 <a name="l02241"></a>02241             vtotal |= (vga.crtc.overflow &amp; 0x20u) &lt;&lt; 4u;
 <a name="l02242"></a>02242             vtotal |= (vga.s3.ex_ver_overflow &amp; 0x1u) &lt;&lt; 10u;
-<a name="l02243"></a>02243             vtotal += 2u;
-<a name="l02244"></a>02244             vdend |= (vga.crtc.overflow &amp; 0x40u) &lt;&lt; 3u; 
-<a name="l02245"></a>02245             vdend |= (vga.s3.ex_ver_overflow &amp; 0x2u) &lt;&lt; 9u;
-<a name="l02246"></a>02246             vbstart |= (vga.crtc.maximum_scan_line &amp; 0x20u) &lt;&lt; 4u;
-<a name="l02247"></a>02247             vbstart |= (vga.s3.ex_ver_overflow &amp; 0x4u) &lt;&lt; 8u;
-<a name="l02248"></a>02248             vrstart |= ((vga.crtc.overflow &amp; 0x80u) &lt;&lt; 2u);
-<a name="l02249"></a>02249             vrstart |= (vga.s3.ex_ver_overflow &amp; 0x10u) &lt;&lt; 6u;
-<a name="l02250"></a>02250             vbend_mask = 0xffu;
-<a name="l02251"></a>02251         } <span class="keywordflow">else</span> { <span class="comment">// EGA</span>
-<a name="l02252"></a>02252             hbend_mask = 0x1fu;
-<a name="l02253"></a>02253             vbend_mask = 0x1fu;
-<a name="l02254"></a>02254         }
-<a name="l02255"></a>02255         htotal += 2;
-<a name="l02256"></a>02256         vtotal += 2;
-<a name="l02257"></a>02257         hdend += 1;
-<a name="l02258"></a>02258         vdend += 1;
-<a name="l02259"></a>02259 
-<a name="l02260"></a>02260         <span class="comment">// horitzontal blanking</span>
-<a name="l02261"></a>02261         <span class="keywordflow">if</span> (hbend &lt;= (hbstart &amp; hbend_mask)) hbend += hbend_mask + 1;
-<a name="l02262"></a>02262         hbend += hbstart - (hbstart &amp; hbend_mask);
-<a name="l02263"></a>02263         
-<a name="l02264"></a>02264         <span class="comment">// horizontal retrace</span>
-<a name="l02265"></a>02265         hrend = vga.crtc.end_horizontal_retrace &amp; 0x1f;
-<a name="l02266"></a>02266         <span class="keywordflow">if</span> (hrend &lt;= (hrstart&amp;0x1f)) hrend += 32;
-<a name="l02267"></a>02267         hrend += hrstart - (hrstart&amp;0x1f);
-<a name="l02268"></a>02268         <span class="keywordflow">if</span> (hrend &gt; hbend) hrend = hbend; <span class="comment">// S3 BIOS (???)</span>
-<a name="l02269"></a>02269         
-<a name="l02270"></a>02270         <span class="comment">// vertical retrace</span>
-<a name="l02271"></a>02271         vrend = vga.crtc.vertical_retrace_end &amp; 0xf;
-<a name="l02272"></a>02272         <span class="keywordflow">if</span> (vrend &lt;= (vrstart&amp;0xf)) vrend += 16;
-<a name="l02273"></a>02273         vrend += vrstart - (vrstart&amp;0xf);
-<a name="l02274"></a>02274 
-<a name="l02275"></a>02275         <span class="comment">// vertical blanking</span>
-<a name="l02276"></a>02276         vbend = vga.crtc.end_vertical_blanking &amp; vbend_mask;
-<a name="l02277"></a>02277         <span class="keywordflow">if</span> (vbstart != 0) {
-<a name="l02278"></a>02278         <span class="comment">// Special case vbstart==0:</span>
-<a name="l02279"></a>02279         <span class="comment">// Most graphics cards agree that lines zero to vbend are</span>
-<a name="l02280"></a>02280         <span class="comment">// blanked. ET4000 doesn&#39;t blank at all if vbstart==vbend.</span>
-<a name="l02281"></a>02281         <span class="comment">// ET3000 blanks lines 1 to vbend (255/6 lines).</span>
-<a name="l02282"></a>02282             vbstart += 1;
-<a name="l02283"></a>02283             <span class="keywordflow">if</span> (vbend &lt;= (vbstart &amp; vbend_mask)) vbend += vbend_mask + 1;
-<a name="l02284"></a>02284             vbend += vbstart - (vbstart &amp; vbend_mask);
-<a name="l02285"></a>02285         }
-<a name="l02286"></a>02286         vbend++;
-<a name="l02287"></a>02287 
-<a name="l02288"></a>02288         <span class="comment">// TODO: Found a monitor document that lists two different scan rates for PC-98:</span>
-<a name="l02289"></a>02289         <span class="comment">//</span>
-<a name="l02290"></a>02290         <span class="comment">//       640x400  25.175MHz dot clock  70.15Hz refresh  31.5KHz horizontal refresh (basically, VGA)</span>
-<a name="l02291"></a>02291         <span class="comment">//       640x400  21.05MHz dot clock   56.42Hz refresh  24.83Hz horizontal refresh (original spec?)</span>
-<a name="l02292"></a>02292 
-<a name="l02293"></a>02293         <span class="keywordflow">if</span> (svga.get_clock) {
-<a name="l02294"></a>02294             oscclock = svga.get_clock();
-<a name="l02295"></a>02295         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vga.mode == M_PC98) {
-<a name="l02296"></a>02296             <span class="keywordflow">if</span> (<span class="keyword">false</span><span class="comment">/*future 15KHz hsync*/</span>) {
-<a name="l02297"></a>02297                 oscclock = 14318180;
-<a name="l02298"></a>02298             }
-<a name="l02299"></a>02299             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!pc98_31khz_mode<span class="comment">/*24KHz hsync*/</span>) {
-<a name="l02300"></a>02300                 oscclock = 21052600;
-<a name="l02301"></a>02301             }
-<a name="l02302"></a>02302             <span class="keywordflow">else</span> {<span class="comment">/*31KHz VGA-like hsync*/</span>
-<a name="l02303"></a>02303                 oscclock = 25175000;
-<a name="l02304"></a>02304             }
-<a name="l02305"></a>02305         } <span class="keywordflow">else</span> {
-<a name="l02306"></a>02306             <span class="keywordflow">switch</span> ((vga.misc_output &gt;&gt; 2) &amp; 3) {
-<a name="l02307"></a>02307             <span class="keywordflow">case</span> 0: 
-<a name="l02308"></a>02308                 oscclock = (machine==MCH_EGA) ? (PIT_TICK_RATE*12) : 25175000;
-<a name="l02309"></a>02309                 <span class="keywordflow">break</span>;
-<a name="l02310"></a>02310             <span class="keywordflow">case</span> 1:
-<a name="l02311"></a>02311             <span class="keywordflow">default</span>:
-<a name="l02312"></a>02312                 oscclock = (machine==MCH_EGA) ? 16257000 : 28322000;
-<a name="l02313"></a>02313                 <span class="keywordflow">break</span>;
-<a name="l02314"></a>02314             }
-<a name="l02315"></a>02315         }
-<a name="l02316"></a>02316 
-<a name="l02317"></a>02317         <span class="comment">/* Check for 8 or 9 character clock mode */</span>
-<a name="l02318"></a>02318         <span class="keywordflow">if</span> (vga.seq.clocking_mode &amp; 1 ) clock = oscclock/8; <span class="keywordflow">else</span> clock = oscclock/9;
-<a name="l02319"></a>02319         <span class="keywordflow">if</span> (vga.mode==M_LIN15 || vga.mode==M_LIN16) clock *= 2;
-<a name="l02320"></a>02320         <span class="comment">/* Check for pixel doubling, master clock/2 */</span>
-<a name="l02321"></a>02321         <span class="keywordflow">if</span> (vga.seq.clocking_mode &amp; 0x8) clock /=2;
-<a name="l02322"></a>02322 
-<a name="l02323"></a>02323         <span class="keywordflow">if</span> (svgaCard==SVGA_S3Trio) {
-<a name="l02324"></a>02324             <span class="comment">// support for interlacing used by the S3 BIOS and possibly other drivers</span>
-<a name="l02325"></a>02325             <span class="keywordflow">if</span> (vga.s3.reg_42 &amp; 0x20) {
-<a name="l02326"></a>02326                 vtotal *= 2;    vdend *= 2;
-<a name="l02327"></a>02327                 vbstart *= 2;   vbend *= 2;
-<a name="l02328"></a>02328                 vrstart *= 2;   vrend *= 2;
-<a name="l02329"></a>02329                 <span class="comment">//clock /= 2;</span>
+<a name="l02243"></a>02243             vdend |= (vga.crtc.overflow &amp; 0x40u) &lt;&lt; 3u; 
+<a name="l02244"></a>02244             vdend |= (vga.s3.ex_ver_overflow &amp; 0x2u) &lt;&lt; 9u;
+<a name="l02245"></a>02245             vbstart |= (vga.crtc.maximum_scan_line &amp; 0x20u) &lt;&lt; 4u;
+<a name="l02246"></a>02246             vbstart |= (vga.s3.ex_ver_overflow &amp; 0x4u) &lt;&lt; 8u;
+<a name="l02247"></a>02247             vrstart |= ((vga.crtc.overflow &amp; 0x80u) &lt;&lt; 2u);
+<a name="l02248"></a>02248             vrstart |= (vga.s3.ex_ver_overflow &amp; 0x10u) &lt;&lt; 6u;
+<a name="l02249"></a>02249             vbend_mask = 0xffu;
+<a name="l02250"></a>02250         } <span class="keywordflow">else</span> { <span class="comment">// EGA</span>
+<a name="l02251"></a>02251             hbend_mask = 0x1fu;
+<a name="l02252"></a>02252             vbend_mask = 0x1fu;
+<a name="l02253"></a>02253         }
+<a name="l02254"></a>02254         htotal += 2;
+<a name="l02255"></a>02255         vtotal += 2;
+<a name="l02256"></a>02256         hdend += 1;
+<a name="l02257"></a>02257         vdend += 1;
+<a name="l02258"></a>02258 
+<a name="l02259"></a>02259         <span class="comment">// horitzontal blanking</span>
+<a name="l02260"></a>02260         <span class="keywordflow">if</span> (hbend &lt;= (hbstart &amp; hbend_mask)) hbend += hbend_mask + 1;
+<a name="l02261"></a>02261         hbend += hbstart - (hbstart &amp; hbend_mask);
+<a name="l02262"></a>02262         
+<a name="l02263"></a>02263         <span class="comment">// horizontal retrace</span>
+<a name="l02264"></a>02264         hrend = vga.crtc.end_horizontal_retrace &amp; 0x1f;
+<a name="l02265"></a>02265         <span class="keywordflow">if</span> (hrend &lt;= (hrstart&amp;0x1f)) hrend += 32;
+<a name="l02266"></a>02266         hrend += hrstart - (hrstart&amp;0x1f);
+<a name="l02267"></a>02267         <span class="keywordflow">if</span> (hrend &gt; hbend) hrend = hbend; <span class="comment">// S3 BIOS (???)</span>
+<a name="l02268"></a>02268         
+<a name="l02269"></a>02269         <span class="comment">// vertical retrace</span>
+<a name="l02270"></a>02270         vrend = vga.crtc.vertical_retrace_end &amp; 0xf;
+<a name="l02271"></a>02271         <span class="keywordflow">if</span> (vrend &lt;= (vrstart&amp;0xf)) vrend += 16;
+<a name="l02272"></a>02272         vrend += vrstart - (vrstart&amp;0xf);
+<a name="l02273"></a>02273 
+<a name="l02274"></a>02274         <span class="comment">// vertical blanking</span>
+<a name="l02275"></a>02275         vbend = vga.crtc.end_vertical_blanking &amp; vbend_mask;
+<a name="l02276"></a>02276         <span class="keywordflow">if</span> (vbstart != 0) {
+<a name="l02277"></a>02277         <span class="comment">// Special case vbstart==0:</span>
+<a name="l02278"></a>02278         <span class="comment">// Most graphics cards agree that lines zero to vbend are</span>
+<a name="l02279"></a>02279         <span class="comment">// blanked. ET4000 doesn&#39;t blank at all if vbstart==vbend.</span>
+<a name="l02280"></a>02280         <span class="comment">// ET3000 blanks lines 1 to vbend (255/6 lines).</span>
+<a name="l02281"></a>02281             vbstart += 1;
+<a name="l02282"></a>02282             <span class="keywordflow">if</span> (vbend &lt;= (vbstart &amp; vbend_mask)) vbend += vbend_mask + 1;
+<a name="l02283"></a>02283             vbend += vbstart - (vbstart &amp; vbend_mask);
+<a name="l02284"></a>02284         }
+<a name="l02285"></a>02285         vbend++;
+<a name="l02286"></a>02286 
+<a name="l02287"></a>02287         <span class="comment">// TODO: Found a monitor document that lists two different scan rates for PC-98:</span>
+<a name="l02288"></a>02288         <span class="comment">//</span>
+<a name="l02289"></a>02289         <span class="comment">//       640x400  25.175MHz dot clock  70.15Hz refresh  31.5KHz horizontal refresh (basically, VGA)</span>
+<a name="l02290"></a>02290         <span class="comment">//       640x400  21.05MHz dot clock   56.42Hz refresh  24.83Hz horizontal refresh (original spec?)</span>
+<a name="l02291"></a>02291 
+<a name="l02292"></a>02292         <span class="keywordflow">if</span> (svga.get_clock) {
+<a name="l02293"></a>02293             oscclock = svga.get_clock();
+<a name="l02294"></a>02294         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vga.mode == M_PC98) {
+<a name="l02295"></a>02295             <span class="keywordflow">if</span> (<span class="keyword">false</span><span class="comment">/*future 15KHz hsync*/</span>) {
+<a name="l02296"></a>02296                 oscclock = 14318180;
+<a name="l02297"></a>02297             }
+<a name="l02298"></a>02298             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!pc98_31khz_mode<span class="comment">/*24KHz hsync*/</span>) {
+<a name="l02299"></a>02299                 oscclock = 21052600;
+<a name="l02300"></a>02300             }
+<a name="l02301"></a>02301             <span class="keywordflow">else</span> {<span class="comment">/*31KHz VGA-like hsync*/</span>
+<a name="l02302"></a>02302                 oscclock = 25175000;
+<a name="l02303"></a>02303             }
+<a name="l02304"></a>02304         } <span class="keywordflow">else</span> {
+<a name="l02305"></a>02305             <span class="keywordflow">switch</span> ((vga.misc_output &gt;&gt; 2) &amp; 3) {
+<a name="l02306"></a>02306             <span class="keywordflow">case</span> 0: 
+<a name="l02307"></a>02307                 oscclock = (machine==MCH_EGA) ? (PIT_TICK_RATE*12) : 25175000;
+<a name="l02308"></a>02308                 <span class="keywordflow">break</span>;
+<a name="l02309"></a>02309             <span class="keywordflow">case</span> 1:
+<a name="l02310"></a>02310             <span class="keywordflow">default</span>:
+<a name="l02311"></a>02311                 oscclock = (machine==MCH_EGA) ? 16257000 : 28322000;
+<a name="l02312"></a>02312                 <span class="keywordflow">break</span>;
+<a name="l02313"></a>02313             }
+<a name="l02314"></a>02314         }
+<a name="l02315"></a>02315 
+<a name="l02316"></a>02316         <span class="comment">/* Check for 8 or 9 character clock mode */</span>
+<a name="l02317"></a>02317         <span class="keywordflow">if</span> (vga.seq.clocking_mode &amp; 1 ) clock = oscclock/8; <span class="keywordflow">else</span> clock = oscclock/9;
+<a name="l02318"></a>02318         <span class="keywordflow">if</span> (vga.mode==M_LIN15 || vga.mode==M_LIN16) clock *= 2;
+<a name="l02319"></a>02319         <span class="comment">/* Check for pixel doubling, master clock/2 */</span>
+<a name="l02320"></a>02320         <span class="keywordflow">if</span> (vga.seq.clocking_mode &amp; 0x8) clock /=2;
+<a name="l02321"></a>02321 
+<a name="l02322"></a>02322         <span class="keywordflow">if</span> (svgaCard==SVGA_S3Trio) {
+<a name="l02323"></a>02323             <span class="comment">// support for interlacing used by the S3 BIOS and possibly other drivers</span>
+<a name="l02324"></a>02324             <span class="keywordflow">if</span> (vga.s3.reg_42 &amp; 0x20) {
+<a name="l02325"></a>02325                 vtotal *= 2;    vdend *= 2;
+<a name="l02326"></a>02326                 vbstart *= 2;   vbend *= 2;
+<a name="l02327"></a>02327                 vrstart *= 2;   vrend *= 2;
+<a name="l02328"></a>02328                 <span class="comment">//clock /= 2;</span>
+<a name="l02329"></a>02329         }
 <a name="l02330"></a>02330         }
-<a name="l02331"></a>02331         }
-<a name="l02332"></a>02332 
-<a name="l02333"></a>02333         <span class="comment">/* FIXME: This is based on correcting the hicolor mode for MFX/Transgression 2.</span>
-<a name="l02334"></a>02334 <span class="comment">         *        I am not able to test against the Windows drivers at this time. */</span>
-<a name="l02335"></a>02335         <span class="keywordflow">if</span> ((svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) &amp;&amp; et4k_highcolor_half_pixel_rate())
-<a name="l02336"></a>02336             clock /= 2;
-<a name="l02337"></a>02337     } <span class="keywordflow">else</span> {
-<a name="l02338"></a>02338         <span class="comment">// not EGAVGA_ARCH</span>
-<a name="l02339"></a>02339         vga.draw.split_line = 0x10000;  <span class="comment">// don&#39;t care</span>
-<a name="l02340"></a>02340 
-<a name="l02341"></a>02341         htotal = vga.other.htotal + 1u;
-<a name="l02342"></a>02342         hdend = vga.other.hdend;
-<a name="l02343"></a>02343         hbstart = hdend;
-<a name="l02344"></a>02344         hbend = htotal;
-<a name="l02345"></a>02345         hrstart = vga.other.hsyncp;
-<a name="l02346"></a>02346         hrend = hrstart + (vga.other.hsyncw) ;
-<a name="l02347"></a>02347 
-<a name="l02348"></a>02348         vga.draw.address_line_total = vga.other.max_scanline + 1u;
-<a name="l02349"></a>02349         vtotal = vga.draw.address_line_total * (vga.other.vtotal+1u)+vga.other.vadjust;
-<a name="l02350"></a>02350         vdend = vga.draw.address_line_total * vga.other.vdend;
-<a name="l02351"></a>02351         vrstart = vga.draw.address_line_total * vga.other.vsyncp;
-<a name="l02352"></a>02352         vrend = vrstart + 16; <span class="comment">// vsync width is fixed to 16 lines on the MC6845 TODO Tandy</span>
-<a name="l02353"></a>02353         vbstart = vdend;
-<a name="l02354"></a>02354         vbend = vtotal;
-<a name="l02355"></a>02355 
-<a name="l02356"></a>02356         switch (machine) {
-<a name="l02357"></a>02357         <span class="keywordflow">case</span> MCH_AMSTRAD:
-<a name="l02358"></a>02358             clock=(16000000/2)/8;
-<a name="l02359"></a>02359             <span class="keywordflow">break</span>;
-<a name="l02360"></a>02360         <span class="keywordflow">case</span> MCH_CGA:
-<a name="l02361"></a>02361         <span class="keywordflow">case</span> TANDY_ARCH_CASE:
-<a name="l02362"></a>02362             clock = (PIT_TICK_RATE*12)/8;
-<a name="l02363"></a>02363             <span class="keywordflow">if</span> (!(vga.tandy.mode_control &amp; 1)) clock /= 2;
-<a name="l02364"></a>02364             <span class="keywordflow">break</span>;
-<a name="l02365"></a>02365         <span class="keywordflow">case</span> MCH_HERC:
-<a name="l02366"></a>02366             clock=16000000/8;
-<a name="l02367"></a>02367             <span class="keywordflow">if</span> (vga.herc.mode_control &amp; 0x2) clock/=2;
-<a name="l02368"></a>02368 
-<a name="l02369"></a>02369             <span class="keywordflow">break</span>;
-<a name="l02370"></a>02370         <span class="keywordflow">default</span>:
-<a name="l02371"></a>02371             clock = (PIT_TICK_RATE*12);
-<a name="l02372"></a>02372             <span class="keywordflow">break</span>;
-<a name="l02373"></a>02373         }
-<a name="l02374"></a>02374         vga.draw.delay.hdend = hdend*1000.0/clock; <span class="comment">//in milliseconds</span>
-<a name="l02375"></a>02375     }
-<a name="l02376"></a>02376 <span class="preprocessor">#if C_DEBUG</span>
-<a name="l02377"></a>02377 <span class="preprocessor"></span>    <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;h total %3d end %3d blank (%3d/%3d) retrace (%3d/%3d)&quot;</span>,
-<a name="l02378"></a>02378         (int)htotal, (<span class="keywordtype">int</span>)hdend, (int)hbstart, (<span class="keywordtype">int</span>)hbend, (<span class="keywordtype">int</span>)hrstart, (<span class="keywordtype">int</span>)hrend );
-<a name="l02379"></a>02379     <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(&quot;v total %3d end %3d blank (%3d/%3d) retrace (%3d/%3d)&quot;,
-<a name="l02380"></a>02380         (<span class="keywordtype">int</span>)vtotal, (<span class="keywordtype">int</span>)vdend, (<span class="keywordtype">int</span>)vbstart, (<span class="keywordtype">int</span>)vbend, (<span class="keywordtype">int</span>)vrstart, (<span class="keywordtype">int</span>)vrend );
-<a name="l02381"></a>02381 <span class="preprocessor">#endif</span>
-<a name="l02382"></a>02382 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (!htotal) <span class="keywordflow">return</span>;
-<a name="l02383"></a>02383     <span class="keywordflow">if</span> (!vtotal) <span class="keywordflow">return</span>;
-<a name="l02384"></a>02384     
-<a name="l02385"></a>02385     <span class="comment">// The screen refresh frequency</span>
-<a name="l02386"></a>02386     <span class="keywordtype">double</span> fps;
-<a name="l02387"></a>02387     <span class="keyword">extern</span> <span class="keywordtype">double</span> vga_force_refresh_rate;
-<a name="l02388"></a>02388     <span class="keywordflow">if</span> (vga_force_refresh_rate &gt; 0) {
-<a name="l02389"></a>02389         <span class="comment">/* force the VGA refresh rate by setting fps and bending the clock to our will */</span>
-<a name="l02390"></a>02390         <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;VGA forced refresh rate in effect, %.3f&quot;</span>,vga_force_refresh_rate);
-<a name="l02391"></a>02391         fps=vga_force_refresh_rate;
-<a name="l02392"></a>02392         clock=((double)(vtotal*htotal))*fps;
-<a name="l02393"></a>02393     }
-<a name="l02394"></a>02394     <span class="keywordflow">else</span> {
-<a name="l02395"></a>02395         <span class="comment">// The screen refresh frequency</span>
-<a name="l02396"></a>02396         fps=(double)clock/(vtotal*htotal);
-<a name="l02397"></a>02397         <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;VGA refresh rate is now, %.3f&quot;</span>,fps);
-<a name="l02398"></a>02398     }
-<a name="l02399"></a>02399 
-<a name="l02400"></a>02400     <span class="comment">/* clip display end to stay within vtotal (&quot;Monolith&quot; demo part 4 320x570 mode fix) */</span>
-<a name="l02401"></a>02401     <span class="keywordflow">if</span> (vdend &gt; vtotal) {
-<a name="l02402"></a>02402         <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_WARN)(<span class="stringliteral">&quot;VGA display end greater than vtotal!&quot;</span>);
-<a name="l02403"></a>02403         vdend = vtotal;
-<a name="l02404"></a>02404     }
-<a name="l02405"></a>02405 
-<a name="l02406"></a>02406     <span class="comment">// Horizontal total (that&#39;s how long a line takes with whistles and bells)</span>
-<a name="l02407"></a>02407     vga.draw.delay.htotal = htotal*1000.0/clock; <span class="comment">//in milliseconds</span>
-<a name="l02408"></a>02408     <span class="comment">// Start and End of horizontal blanking</span>
-<a name="l02409"></a>02409     vga.draw.delay.hblkstart = hbstart*1000.0/clock; <span class="comment">//in milliseconds</span>
-<a name="l02410"></a>02410     vga.draw.delay.hblkend = hbend*1000.0/clock; 
-<a name="l02411"></a>02411     <span class="comment">// Start and End of horizontal retrace</span>
-<a name="l02412"></a>02412     vga.draw.delay.hrstart = hrstart*1000.0/clock;
-<a name="l02413"></a>02413     vga.draw.delay.hrend = hrend*1000.0/clock;
-<a name="l02414"></a>02414     <span class="comment">// Start and End of vertical blanking</span>
-<a name="l02415"></a>02415     vga.draw.delay.vblkstart = vbstart * vga.draw.delay.htotal;
-<a name="l02416"></a>02416     vga.draw.delay.vblkend = vbend * vga.draw.delay.htotal;
-<a name="l02417"></a>02417     <span class="comment">// Start and End of vertical retrace pulse</span>
-<a name="l02418"></a>02418     vga.draw.delay.vrstart = vrstart * vga.draw.delay.htotal;
-<a name="l02419"></a>02419     vga.draw.delay.vrend = vrend * vga.draw.delay.htotal;
-<a name="l02420"></a>02420 
-<a name="l02421"></a>02421     <span class="comment">// Vertical blanking tricks</span>
-<a name="l02422"></a>02422     vblank_skip = 0;
-<a name="l02423"></a>02423     <span class="keywordflow">if</span> ((IS_VGA_ARCH || IS_PC98_ARCH) &amp;&amp; !ignore_vblank_wraparound) { <span class="comment">// others need more investigation</span>
-<a name="l02424"></a>02424         <span class="keywordflow">if</span> (vbstart &lt; vtotal) { <span class="comment">// There will be no blanking at all otherwise</span>
-<a name="l02425"></a>02425             <span class="keywordflow">if</span> (vbend &gt; vtotal) {
-<a name="l02426"></a>02426                 <span class="comment">// blanking wraps to the start of the screen</span>
-<a name="l02427"></a>02427                 vblank_skip = vbend&amp;0x7f;
-<a name="l02428"></a>02428                 
-<a name="l02429"></a>02429                 <span class="comment">// on blanking wrap to 0, the first line is not blanked</span>
-<a name="l02430"></a>02430                 <span class="comment">// this is used by the S3 BIOS and other S3 drivers in some SVGA modes</span>
-<a name="l02431"></a>02431                 <span class="keywordflow">if</span> ((vbend&amp;0x7f)==1) vblank_skip = 0;
-<a name="l02432"></a>02432                 
-<a name="l02433"></a>02433                 <span class="comment">// it might also cut some lines off the bottom</span>
-<a name="l02434"></a>02434                 <span class="keywordflow">if</span> (vbstart &lt; vdend) {
-<a name="l02435"></a>02435                     vdend = vbstart;
-<a name="l02436"></a>02436                 }
-<a name="l02437"></a>02437                 <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_WARN)(<span class="stringliteral">&quot;Blanking wrap to line %d&quot;</span>, (int)vblank_skip);
-<a name="l02438"></a>02438             } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vbstart&lt;=1) {
-<a name="l02439"></a>02439                 <span class="comment">// blanking is used to cut lines at the start of the screen</span>
-<a name="l02440"></a>02440                 vblank_skip = vbend;
-<a name="l02441"></a>02441                 <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_WARN)(<span class="stringliteral">&quot;Upper %d lines of the screen blanked&quot;</span>, (int)vblank_skip);
-<a name="l02442"></a>02442             } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vbstart &lt; vdend) {
-<a name="l02443"></a>02443                 <span class="keywordflow">if</span> (vbend &lt; vdend) {
-<a name="l02444"></a>02444                     <span class="comment">// the game wants a black bar somewhere on the screen</span>
-<a name="l02445"></a>02445                     <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_WARN)(<span class="stringliteral">&quot;Unsupported blanking: line %d-%d&quot;</span>,(int)vbstart,(<span class="keywordtype">int</span>)vbend);
-<a name="l02446"></a>02446                 } <span class="keywordflow">else</span> {
-<a name="l02447"></a>02447                     <span class="comment">// blanking is used to cut off some lines from the bottom</span>
-<a name="l02448"></a>02448                     vdend = vbstart;
-<a name="l02449"></a>02449                 }
-<a name="l02450"></a>02450             }
-<a name="l02451"></a>02451             vdend -= vblank_skip;
-<a name="l02452"></a>02452         }
-<a name="l02453"></a>02453     }
-<a name="l02454"></a>02454     vga.draw.vblank_skip = vblank_skip;
-<a name="l02455"></a>02455 
-<a name="l02456"></a>02456     <span class="comment">// Display end</span>
-<a name="l02457"></a>02457     vga.draw.delay.vdend = vdend * vga.draw.delay.htotal;
-<a name="l02458"></a>02458 
-<a name="l02459"></a>02459     <span class="comment">// EGA frequency dependent monitor palette</span>
-<a name="l02460"></a>02460     <span class="keywordflow">if</span> (machine == MCH_EGA) {
-<a name="l02461"></a>02461         <span class="keywordflow">if</span> (vga.misc_output &amp; 1) {
-<a name="l02462"></a>02462             <span class="comment">// EGA card is in color mode</span>
-<a name="l02463"></a>02463             <span class="keywordflow">if</span> ((1.0f/vga.draw.delay.htotal) &gt; 19.0f) {
-<a name="l02464"></a>02464                 <span class="comment">// 64 color EGA mode</span>
-<a name="l02465"></a>02465                 VGA_ATTR_SetEGAMonitorPalette(EGA);
-<a name="l02466"></a>02466             } <span class="keywordflow">else</span> {
-<a name="l02467"></a>02467                 <span class="comment">// 16 color CGA mode compatibility</span>
-<a name="l02468"></a>02468                 VGA_ATTR_SetEGAMonitorPalette(CGA);
-<a name="l02469"></a>02469             }
-<a name="l02470"></a>02470         } <span class="keywordflow">else</span> {
-<a name="l02471"></a>02471             <span class="comment">// EGA card in monochrome mode</span>
-<a name="l02472"></a>02472             <span class="comment">// It is not meant to be autodetected that way, you either</span>
-<a name="l02473"></a>02473             <span class="comment">// have a monochrome or color monitor connected and</span>
-<a name="l02474"></a>02474             <span class="comment">// the EGA switches configured appropriately.</span>
-<a name="l02475"></a>02475             <span class="comment">// But this would only be a problem if a program sets </span>
-<a name="l02476"></a>02476             <span class="comment">// the adapter to monochrome mode and still expects color output.</span>
-<a name="l02477"></a>02477             <span class="comment">// Such a program should be shot to the moon...</span>
-<a name="l02478"></a>02478             VGA_ATTR_SetEGAMonitorPalette(MONO);
-<a name="l02479"></a>02479         }
-<a name="l02480"></a>02480     }
-<a name="l02481"></a>02481 
-<a name="l02482"></a>02482     <span class="comment">/*</span>
-<a name="l02483"></a>02483 <span class="comment">      6  Horizontal Sync Polarity. Negative if set</span>
-<a name="l02484"></a>02484 <span class="comment">      7  Vertical Sync Polarity. Negative if set</span>
-<a name="l02485"></a>02485 <span class="comment">         Bit 6-7 indicates the number of lines on the display:</span>
-<a name="l02486"></a>02486 <span class="comment">            1:  400, 2: 350, 3: 480</span>
-<a name="l02487"></a>02487 <span class="comment">    */</span>
-<a name="l02488"></a>02488     <span class="comment">//Try to determine the pixel size, aspect correct is based around square pixels</span>
-<a name="l02489"></a>02489 
-<a name="l02490"></a>02490     <span class="comment">//Base pixel width around 100 clocks horizontal</span>
-<a name="l02491"></a>02491     <span class="comment">//For 9 pixel text modes this should be changed, but we don&#39;t support that anyway :)</span>
-<a name="l02492"></a>02492     <span class="comment">//Seems regular vga only listens to the 9 char pixel mode with character mode enabled</span>
-<a name="l02493"></a>02493     <span class="comment">//Base pixel height around vertical totals of modes that have 100 clocks horizontal</span>
-<a name="l02494"></a>02494     <span class="comment">//Different sync values gives different scaling of the whole vertical range</span>
-<a name="l02495"></a>02495     <span class="comment">//VGA monitor just seems to thighten or widen the whole vertical range</span>
-<a name="l02496"></a>02496 
-<a name="l02497"></a>02497     vga.draw.resizing=<span class="keyword">false</span>;
-<a name="l02498"></a>02498     vga.draw.has_split=<span class="keyword">false</span>;
-<a name="l02499"></a>02499     vga.draw.vret_triggered=<span class="keyword">false</span>;
-<a name="l02500"></a>02500 
-<a name="l02501"></a>02501     <span class="comment">//Check to prevent useless black areas</span>
-<a name="l02502"></a>02502     <span class="keywordflow">if</span> (hbstart&lt;hdend) hdend=hbstart;
-<a name="l02503"></a>02503     <span class="keywordflow">if</span> ((!(IS_VGA_ARCH || IS_PC98_ARCH)) &amp;&amp; (vbstart&lt;vdend)) vdend=vbstart;
-<a name="l02504"></a>02504 
-<a name="l02505"></a>02505     Bitu width=hdend;
-<a name="l02506"></a>02506     Bitu height=vdend;
-<a name="l02507"></a>02507 
-<a name="l02508"></a>02508     <span class="keywordflow">if</span> (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
-<a name="l02509"></a>02509         vga.draw.address_line_total=(vga.crtc.maximum_scan_line&amp;0x1fu)+1u;
-<a name="l02510"></a>02510         <span class="keywordflow">switch</span>(vga.mode) {
-<a name="l02511"></a>02511         <span class="keywordflow">case</span> M_CGA16:
-<a name="l02512"></a>02512         <span class="keywordflow">case</span> M_CGA2:
-<a name="l02513"></a>02513         <span class="keywordflow">case</span> M_CGA4:
-<a name="l02514"></a>02514         <span class="keywordflow">case</span> M_PC98:
-<a name="l02515"></a>02515         <span class="keywordflow">case</span> M_TEXT:
-<a name="l02516"></a>02516             <span class="comment">// these use line_total internal</span>
-<a name="l02517"></a>02517             <span class="comment">// doublescanning needs to be emulated by renderer doubleheight</span>
-<a name="l02518"></a>02518             <span class="comment">// EGA has no doublescanning bit at 0x80</span>
-<a name="l02519"></a>02519             <span class="keywordflow">if</span> (vga.crtc.maximum_scan_line&amp;0x80) {
-<a name="l02520"></a>02520                 <span class="comment">// vga_draw only needs to draw every second line</span>
-<a name="l02521"></a>02521                 height /= 2;
-<a name="l02522"></a>02522             }
-<a name="l02523"></a>02523             <span class="keywordflow">break</span>;
-<a name="l02524"></a>02524         <span class="keywordflow">default</span>:
-<a name="l02525"></a>02525             vga.draw.doublescan_effect = vga.draw.doublescan_set;
-<a name="l02526"></a>02526 
-<a name="l02527"></a>02527             <span class="keywordflow">if</span> (vga.crtc.maximum_scan_line &amp; 0x80)
-<a name="l02528"></a>02528                 vga.draw.address_line_total *= 2;
-<a name="l02529"></a>02529 
-<a name="l02530"></a>02530             <span class="comment">/* if doublescan=false and line_total is even, then halve the height.</span>
-<a name="l02531"></a>02531 <span class="comment">             * the VGA raster scan will skip every other line to accomodate that. */</span>
-<a name="l02532"></a>02532             <span class="keywordflow">if</span> ((!vga.draw.doublescan_effect) &amp;&amp; (vga.draw.address_line_total &amp; 1) == 0)
-<a name="l02533"></a>02533                 height /= 2;
-<a name="l02534"></a>02534             <span class="keywordflow">else</span>
-<a name="l02535"></a>02535                 vga.draw.doublescan_effect = <span class="keyword">true</span>;
-<a name="l02536"></a>02536 
-<a name="l02537"></a>02537             <span class="keywordflow">break</span>;
-<a name="l02538"></a>02538         }
-<a name="l02539"></a>02539     }
-<a name="l02540"></a>02540 
-<a name="l02541"></a>02541     <span class="keywordflow">if</span> (!vga.draw.doublescan_effect)
-<a name="l02542"></a>02542         vga.draw.render_max = 2; <span class="comment">/* count all lines but render only every other line */</span>
-<a name="l02543"></a>02543 
-<a name="l02544"></a>02544     <span class="comment">//Set the bpp</span>
-<a name="l02545"></a>02545     Bitu bpp;
-<a name="l02546"></a>02546     <span class="keywordflow">switch</span> (vga.mode) {
-<a name="l02547"></a>02547     <span class="keywordflow">case</span> M_LIN15:
-<a name="l02548"></a>02548         bpp = 15;
-<a name="l02549"></a>02549         <span class="keywordflow">break</span>;
-<a name="l02550"></a>02550     <span class="keywordflow">case</span> M_LIN16:
-<a name="l02551"></a>02551         bpp = 16;
-<a name="l02552"></a>02552         <span class="keywordflow">break</span>;
-<a name="l02553"></a>02553     <span class="keywordflow">case</span> M_LIN24:
-<a name="l02554"></a>02554     <span class="keywordflow">case</span> M_LIN32:
-<a name="l02555"></a>02555         bpp = 32;
-<a name="l02556"></a>02556         <span class="keywordflow">break</span>;
-<a name="l02557"></a>02557     <span class="keywordflow">default</span>:
-<a name="l02558"></a>02558         bpp = 8;
-<a name="l02559"></a>02559         <span class="keywordflow">break</span>;
-<a name="l02560"></a>02560     }
-<a name="l02561"></a>02561     vga.draw.linear_base = vga.mem.linear;
-<a name="l02562"></a>02562     vga.draw.linear_mask = vga.mem.memmask;
-<a name="l02563"></a>02563     vga.draw.planar_mask = vga.draw.linear_mask &gt;&gt; 2;
-<a name="l02564"></a>02564     Bitu pix_per_char = 8;
-<a name="l02565"></a>02565     <span class="keywordflow">switch</span> (vga.mode) {
-<a name="l02566"></a>02566     <span class="keywordflow">case</span> M_VGA:
-<a name="l02567"></a>02567         <span class="comment">// hack for tgr2 -hc high color mode demo</span>
-<a name="l02568"></a>02568         <span class="keywordflow">if</span> (vga.dac.reg02==0x80) {
-<a name="l02569"></a>02569             bpp=16;
-<a name="l02570"></a>02570             vga.mode=M_LIN16;
-<a name="l02571"></a>02571             VGA_SetupHandlers();
-<a name="l02572"></a>02572             VGA_DrawLine=VGA_Draw_LIN16_Line_2x;
-<a name="l02573"></a>02573             pix_per_char = 4;
-<a name="l02574"></a>02574             <span class="keywordflow">break</span>;
-<a name="l02575"></a>02575         }
-<a name="l02576"></a>02576         bpp = 32;
-<a name="l02577"></a>02577         pix_per_char = 4;
-<a name="l02578"></a>02578         <span class="keywordflow">if</span> (vga.mode == M_VGA &amp;&amp; (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)) {
-<a name="l02579"></a>02579             <span class="comment">/* ET4000 chipsets handle the chained mode (in my opinion) with sanity and we can scan linearly for it.</span>
-<a name="l02580"></a>02580 <span class="comment">             * Chained VGA mode maps planar byte addr = (addr &gt;&gt; 2) and plane = (addr &amp; 3) */</span>
-<a name="l02581"></a>02581             VGA_DrawLine = VGA_Draw_Xlat32_Linear_Line;
-<a name="l02582"></a>02582         }
-<a name="l02583"></a>02583         <span class="keywordflow">else</span> {
-<a name="l02584"></a>02584             <span class="comment">/* other SVGA chipsets appear to handle chained mode by writing 4 pixels to 4 planes, and showing</span>
-<a name="l02585"></a>02585 <span class="comment">             * only every 4th byte, which is why when you switch the CRTC to byte or word mode on these chipsets,</span>
-<a name="l02586"></a>02586 <span class="comment">             * you see 16-pixel groups with 4 pixels from the chained display you expect followed by 12 pixels</span>
-<a name="l02587"></a>02587 <span class="comment">             * of whatever contents of memory remain. but when you unchain the bitplanes the card will allow</span>
-<a name="l02588"></a>02588 <span class="comment">             * &quot;planar&quot; writing to all 16 pixels properly. Chained VGA maps like planar byte = (addr &amp; ~3) and</span>
-<a name="l02589"></a>02589 <span class="comment">             * plane = (addr &amp; 3) */</span>
-<a name="l02590"></a>02590             VGA_DrawLine = VGA_Draw_Xlat32_VGA_CRTC_bmode_Line;
-<a name="l02591"></a>02591         }
-<a name="l02592"></a>02592         <span class="keywordflow">break</span>;
-<a name="l02593"></a>02593     <span class="keywordflow">case</span> M_LIN8:
-<a name="l02594"></a>02594         bpp = 32;
-<a name="l02595"></a>02595         VGA_DrawLine = VGA_Draw_Xlat32_Linear_Line;
-<a name="l02596"></a>02596 
-<a name="l02597"></a>02597         <span class="keywordflow">if</span> ((vga.s3.reg_3a &amp; 0x10)||(svgaCard!=SVGA_S3Trio))
-<a name="l02598"></a>02598             pix_per_char = 8; <span class="comment">// TODO fiddle out the bits for other svga cards</span>
-<a name="l02599"></a>02599         <span class="keywordflow">else</span>
-<a name="l02600"></a>02600             pix_per_char = 4;
-<a name="l02601"></a>02601 
-<a name="l02602"></a>02602         VGA_ActivateHardwareCursor();
-<a name="l02603"></a>02603         <span class="keywordflow">break</span>;
-<a name="l02604"></a>02604     <span class="keywordflow">case</span> M_LIN24:
-<a name="l02605"></a>02605     <span class="keywordflow">case</span> M_LIN32:
-<a name="l02606"></a>02606         VGA_ActivateHardwareCursor();
-<a name="l02607"></a>02607         <span class="keywordflow">break</span>;
-<a name="l02608"></a>02608     <span class="keywordflow">case</span> M_LIN15:
-<a name="l02609"></a>02609     <span class="keywordflow">case</span> M_LIN16:
-<a name="l02610"></a>02610         pix_per_char = 4; <span class="comment">// 15/16 bpp modes double the horizontal values</span>
-<a name="l02611"></a>02611         VGA_ActivateHardwareCursor();
-<a name="l02612"></a>02612         <span class="keywordflow">break</span>;
-<a name="l02613"></a>02613     <span class="keywordflow">case</span> M_LIN4:
-<a name="l02614"></a>02614     <span class="keywordflow">case</span> M_EGA:
-<a name="l02615"></a>02615         vga.draw.blocks = width;
-<a name="l02616"></a>02616 
-<a name="l02617"></a>02617         <span class="keywordflow">if</span> (IS_EGA_ARCH) {
-<a name="l02618"></a>02618             VGA_DrawLine = EGA_Draw_VGA_Planar_Xlat8_Line;
-<a name="l02619"></a>02619             bpp = 8;
-<a name="l02620"></a>02620         }
-<a name="l02621"></a>02621         <span class="keywordflow">else</span> {
-<a name="l02622"></a>02622             VGA_DrawLine = VGA_Draw_VGA_Planar_Xlat32_Line;
-<a name="l02623"></a>02623             bpp = 32;
-<a name="l02624"></a>02624         }
-<a name="l02625"></a>02625         <span class="keywordflow">break</span>;
-<a name="l02626"></a>02626     <span class="keywordflow">case</span> M_CGA16:
-<a name="l02627"></a>02627         vga.draw.blocks=width*2;
-<a name="l02628"></a>02628         pix_per_char = 16;
-<a name="l02629"></a>02629         VGA_DrawLine=VGA_Draw_CGA16_Line;
-<a name="l02630"></a>02630         <span class="keywordflow">break</span>;
-<a name="l02631"></a>02631     <span class="keywordflow">case</span> M_CGA4:
-<a name="l02632"></a>02632         <span class="keywordflow">if</span> (IS_EGA_ARCH) {
-<a name="l02633"></a>02633             vga.draw.blocks=width;
-<a name="l02634"></a>02634             VGA_DrawLine=EGA_Draw_2BPP_Line_as_EGA;
-<a name="l02635"></a>02635             bpp = 8;
-<a name="l02636"></a>02636         }
-<a name="l02637"></a>02637         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
-<a name="l02638"></a>02638             vga.draw.blocks=width;
-<a name="l02639"></a>02639             VGA_DrawLine=VGA_Draw_2BPP_Line_as_VGA;
-<a name="l02640"></a>02640             bpp = 32;
-<a name="l02641"></a>02641         }
-<a name="l02642"></a>02642         <span class="keywordflow">else</span> {
-<a name="l02643"></a>02643             vga.draw.blocks=width*2;
-<a name="l02644"></a>02644             VGA_DrawLine=VGA_Draw_2BPP_Line;
-<a name="l02645"></a>02645         }
-<a name="l02646"></a>02646         <span class="keywordflow">break</span>;
-<a name="l02647"></a>02647     <span class="keywordflow">case</span> M_CGA2:
-<a name="l02648"></a>02648         <span class="keywordflow">if</span> (IS_EGA_ARCH) {
-<a name="l02649"></a>02649             vga.draw.blocks=width;
-<a name="l02650"></a>02650             VGA_DrawLine=EGA_Draw_1BPP_Line_as_EGA;
-<a name="l02651"></a>02651             bpp = 8;
-<a name="l02652"></a>02652         }
-<a name="l02653"></a>02653         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
-<a name="l02654"></a>02654             vga.draw.blocks=width;
-<a name="l02655"></a>02655             VGA_DrawLine=VGA_Draw_1BPP_Line_as_VGA;
-<a name="l02656"></a>02656             bpp = 32;
-<a name="l02657"></a>02657         }
-<a name="l02658"></a>02658         <span class="keywordflow">else</span> {
-<a name="l02659"></a>02659             vga.draw.blocks=width*2;
-<a name="l02660"></a>02660             VGA_DrawLine=VGA_Draw_1BPP_Line;
-<a name="l02661"></a>02661         }
-<a name="l02662"></a>02662         <span class="keywordflow">break</span>;
-<a name="l02663"></a>02663     <span class="keywordflow">case</span> M_PC98:
-<a name="l02664"></a>02664         vga.draw.blocks=width;
-<a name="l02665"></a>02665         vga.draw.char9dot = <span class="keyword">false</span>;
-<a name="l02666"></a>02666         VGA_DrawLine=VGA_PC98_Xlat32_Draw_Line;
-<a name="l02667"></a>02667         bpp = 32;
-<a name="l02668"></a>02668         <span class="keywordflow">break</span>;
-<a name="l02669"></a>02669     <span class="keywordflow">case</span> M_TEXT:
-<a name="l02670"></a>02670         vga.draw.blocks=width;
-<a name="l02671"></a>02671         <span class="comment">// if char9_set is true, allow 9-pixel wide fonts</span>
-<a name="l02672"></a>02672         <span class="keywordflow">if</span> ((vga.seq.clocking_mode&amp;0x01) || !vga.draw.char9_set) {
-<a name="l02673"></a>02673             <span class="comment">// 8-pixel wide</span>
-<a name="l02674"></a>02674             pix_per_char = 8;
-<a name="l02675"></a>02675             vga.draw.char9dot = <span class="keyword">false</span>;
-<a name="l02676"></a>02676         } <span class="keywordflow">else</span> {
-<a name="l02677"></a>02677             <span class="comment">// 9-pixel wide</span>
-<a name="l02678"></a>02678             pix_per_char = 9;
-<a name="l02679"></a>02679             vga.draw.char9dot = <span class="keyword">true</span>;
-<a name="l02680"></a>02680         }
-<a name="l02681"></a>02681 
-<a name="l02682"></a>02682         <span class="keywordflow">if</span> (IS_EGA_ARCH) {
-<a name="l02683"></a>02683             VGA_DrawLine = EGA_TEXT_Xlat8_Draw_Line;
-<a name="l02684"></a>02684             bpp = 8;
-<a name="l02685"></a>02685         }
-<a name="l02686"></a>02686         <span class="keywordflow">else</span> {
-<a name="l02687"></a>02687             VGA_DrawLine = VGA_TEXT_Xlat32_Draw_Line;
-<a name="l02688"></a>02688             bpp = 32;
-<a name="l02689"></a>02689         }
-<a name="l02690"></a>02690         <span class="keywordflow">break</span>;
-<a name="l02691"></a>02691     <span class="keywordflow">case</span> M_HERC_GFX:
-<a name="l02692"></a>02692         vga.draw.blocks=width*2;
-<a name="l02693"></a>02693         pix_per_char = 16;
-<a name="l02694"></a>02694         <span class="keywordflow">if</span> (vga.herc.blend) VGA_DrawLine=VGA_Draw_1BPP_Blend_Line;
-<a name="l02695"></a>02695         <span class="keywordflow">else</span> VGA_DrawLine=VGA_Draw_1BPP_Line;
-<a name="l02696"></a>02696         <span class="keywordflow">break</span>;
-<a name="l02697"></a>02697     <span class="keywordflow">case</span> M_TANDY2:
-<a name="l02698"></a>02698         <span class="keywordflow">if</span> (((machine==MCH_PCJR)&amp;&amp;(vga.tandy.gfx_control &amp; 0x8)) ||
-<a name="l02699"></a>02699             (vga.tandy.mode_control &amp; 0x10)) {
-<a name="l02700"></a>02700             vga.draw.blocks=width * 8;
-<a name="l02701"></a>02701             pix_per_char = 16;
-<a name="l02702"></a>02702         } <span class="keywordflow">else</span> {
-<a name="l02703"></a>02703             vga.draw.blocks=width * 4;
-<a name="l02704"></a>02704             pix_per_char = 8;
-<a name="l02705"></a>02705         }
-<a name="l02706"></a>02706         VGA_DrawLine=VGA_Draw_1BPP_Line;
-<a name="l02707"></a>02707         <span class="keywordflow">break</span>;
-<a name="l02708"></a>02708     <span class="keywordflow">case</span> M_TANDY4:
-<a name="l02709"></a>02709         vga.draw.blocks=width * 2;
-<a name="l02710"></a>02710         pix_per_char = 8;
-<a name="l02711"></a>02711         <span class="keywordflow">if</span> ((machine==MCH_TANDY &amp;&amp; (vga.tandy.gfx_control &amp; 0x8)) ||
-<a name="l02712"></a>02712             (machine==MCH_PCJR &amp;&amp; (vga.tandy.mode_control==0x0b)))
-<a name="l02713"></a>02713             VGA_DrawLine=VGA_Draw_2BPPHiRes_Line;
-<a name="l02714"></a>02714         <span class="keywordflow">else</span> VGA_DrawLine=VGA_Draw_2BPP_Line;
-<a name="l02715"></a>02715         <span class="keywordflow">break</span>;
-<a name="l02716"></a>02716     <span class="keywordflow">case</span> M_TANDY16:
-<a name="l02717"></a>02717         <span class="keywordflow">if</span> (vga.tandy.mode_control &amp; 0x1) {
-<a name="l02718"></a>02718             <span class="keywordflow">if</span> (( machine==MCH_TANDY ) &amp;&amp; ( vga.tandy.mode_control &amp; 0x10 )) {
-<a name="l02719"></a>02719                 vga.draw.blocks=width*4;
-<a name="l02720"></a>02720                 pix_per_char = 8;
-<a name="l02721"></a>02721             } <span class="keywordflow">else</span> {
-<a name="l02722"></a>02722                 vga.draw.blocks=width*2;
-<a name="l02723"></a>02723                 pix_per_char = 4;
-<a name="l02724"></a>02724             }
-<a name="l02725"></a>02725             VGA_DrawLine=VGA_Draw_4BPP_Line;
-<a name="l02726"></a>02726         } <span class="keywordflow">else</span> {
-<a name="l02727"></a>02727             vga.draw.blocks=width*2;
-<a name="l02728"></a>02728             pix_per_char = 8;
-<a name="l02729"></a>02729             VGA_DrawLine=VGA_Draw_4BPP_Line_Double;
-<a name="l02730"></a>02730         }
-<a name="l02731"></a>02731         <span class="keywordflow">break</span>;
-<a name="l02732"></a>02732     <span class="keywordflow">case</span> M_TANDY_TEXT: <span class="comment">/* Also CGA */</span>
-<a name="l02733"></a>02733         vga.draw.blocks=width;
-<a name="l02734"></a>02734         <span class="keywordflow">if</span> (machine==MCH_CGA <span class="comment">/*&amp;&amp; !doublewidth*/</span> &amp;&amp; enableCGASnow &amp;&amp; (vga.tandy.mode_control &amp; 1)<span class="comment">/*80-column mode*/</span>)
-<a name="l02735"></a>02735             VGA_DrawLine=VGA_CGASNOW_TEXT_Draw_Line; <span class="comment">/* Alternate version that emulates CGA snow */</span>
-<a name="l02736"></a>02736         <span class="keywordflow">else</span>
-<a name="l02737"></a>02737             VGA_DrawLine=VGA_TEXT_Draw_Line;
-<a name="l02738"></a>02738         <span class="keywordflow">break</span>;
-<a name="l02739"></a>02739     <span class="keywordflow">case</span> M_HERC_TEXT:
-<a name="l02740"></a>02740         vga.draw.blocks=width;
-<a name="l02741"></a>02741         VGA_DrawLine=VGA_TEXT_Herc_Draw_Line;
-<a name="l02742"></a>02742         <span class="keywordflow">break</span>;
-<a name="l02743"></a>02743     <span class="keywordflow">case</span> M_AMSTRAD: <span class="comment">// Probably OK?</span>
-<a name="l02744"></a>02744         pix_per_char = 16;
-<a name="l02745"></a>02745         vga.draw.blocks=width*2;
-<a name="l02746"></a>02746         VGA_DrawLine=VGA_Draw_AMS_4BPP_Line;
-<a name="l02747"></a>02747 <span class="comment">//      VGA_DrawLine=VGA_Draw_4BPP_Line;</span>
-<a name="l02748"></a>02748 <span class="comment">/*      doubleheight=true;</span>
-<a name="l02749"></a>02749 <span class="comment">        vga.draw.blocks = 2*width; width&lt;&lt;=4;</span>
-<a name="l02750"></a>02750 <span class="comment">        vga.draw.linear_base = vga.mem.linear + VGA_CACHE_OFFSET;</span>
-<a name="l02751"></a>02751 <span class="comment">        vga.draw.linear_mask = 512 * 1024 - 1; */</span>
-<a name="l02752"></a>02752         <span class="keywordflow">break</span>;
-<a name="l02753"></a>02753     <span class="keywordflow">default</span>:
-<a name="l02754"></a>02754         <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_ERROR)(<span class="stringliteral">&quot;Unhandled VGA mode %d while checking for resolution&quot;</span>,vga.mode);
-<a name="l02755"></a>02755         <span class="keywordflow">break</span>;
-<a name="l02756"></a>02756     }
-<a name="l02757"></a>02757     width *= pix_per_char;
-<a name="l02758"></a>02758     VGA_CheckScanLength();
-<a name="l02759"></a>02759 
-<a name="l02760"></a>02760     vga.draw.lines_total=height;
-<a name="l02761"></a>02761     vga.draw.line_length = width * ((bpp + 1) / 8);
-<a name="l02762"></a>02762     vga.draw.clock = clock;
-<a name="l02763"></a>02763 
-<a name="l02764"></a>02764     <span class="keywordtype">double</span> vratio = ((double)width)/(double)height; <span class="comment">// ratio if pixels were square</span>
-<a name="l02765"></a>02765 
-<a name="l02766"></a>02766     <span class="comment">// the picture ratio factor</span>
-<a name="l02767"></a>02767     <span class="keywordtype">double</span> scanratio =  ((double)hdend/(<span class="keywordtype">double</span>)(htotal-(hrend-hrstart)))/
-<a name="l02768"></a>02768                         ((<span class="keywordtype">double</span>)vdend/(double)(vtotal-(vrend-vrstart)));
-<a name="l02769"></a>02769     <span class="keywordtype">double</span> scanfield_ratio = 4.0/3.0;
-<a name="l02770"></a>02770     <span class="keywordflow">switch</span>(machine) {
-<a name="l02771"></a>02771         <span class="keywordflow">case</span> MCH_CGA:
-<a name="l02772"></a>02772         <span class="keywordflow">case</span> MCH_PCJR:
-<a name="l02773"></a>02773         <span class="keywordflow">case</span> MCH_TANDY:
-<a name="l02774"></a>02774             scanfield_ratio = 1.382;
-<a name="l02775"></a>02775             <span class="keywordflow">break</span>;
-<a name="l02776"></a>02776         <span class="keywordflow">case</span> MCH_HERC:
-<a name="l02777"></a>02777             scanfield_ratio = 1.535;
-<a name="l02778"></a>02778             <span class="keywordflow">break</span>;
-<a name="l02779"></a>02779         <span class="keywordflow">case</span> MCH_EGA:
-<a name="l02780"></a>02780             <span class="keywordflow">switch</span> (vga.misc_output &gt;&gt; 6) {
-<a name="l02781"></a>02781             <span class="keywordflow">case</span> 0: <span class="comment">// 200 lines:</span>
-<a name="l02782"></a>02782                 scanfield_ratio = 1.085; <span class="comment">// DOSBugs</span>
-<a name="l02783"></a>02783                 <span class="comment">//scanfield_ratio = 1.375; // IBM EGA BIOS</span>
-<a name="l02784"></a>02784                 <span class="keywordflow">break</span>;
-<a name="l02785"></a>02785             <span class="keywordflow">case</span> 2: <span class="comment">// 350 lines</span>
-<a name="l02786"></a>02786                 <span class="comment">// TODO monitors seem to display this with a bit of black borders on top and bottom</span>
-<a name="l02787"></a>02787                 scanfield_ratio = 1.45;
-<a name="l02788"></a>02788                 <span class="keywordflow">break</span>;
-<a name="l02789"></a>02789             <span class="keywordflow">default</span>:
-<a name="l02790"></a>02790                 <span class="comment">// other cases are undefined for EGA - scale them to 4:3</span>
-<a name="l02791"></a>02791                 scanfield_ratio = (4.0/3.0) / scanratio;
-<a name="l02792"></a>02792                 <span class="keywordflow">break</span>;
-<a name="l02793"></a>02793             }
-<a name="l02794"></a>02794             <span class="keywordflow">break</span>;
-<a name="l02795"></a>02795 
-<a name="l02796"></a>02796         <span class="keywordflow">default</span>: <span class="comment">// VGA</span>
-<a name="l02797"></a>02797             <span class="keywordflow">switch</span> (vga.misc_output &gt;&gt; 6) {
-<a name="l02798"></a>02798             <span class="keywordflow">case</span> 0: <span class="comment">// VESA: &quot;OTHER&quot; scanline amount</span>
-<a name="l02799"></a>02799                 scanfield_ratio = (4.0/3.0) / scanratio;
-<a name="l02800"></a>02800                 <span class="keywordflow">break</span>;
-<a name="l02801"></a>02801             <span class="keywordflow">case</span> 1: <span class="comment">// 400 lines</span>
-<a name="l02802"></a>02802                 scanfield_ratio = 1.312;
-<a name="l02803"></a>02803                 <span class="keywordflow">break</span>;
-<a name="l02804"></a>02804             <span class="keywordflow">case</span> 2: <span class="comment">// 350 lines</span>
-<a name="l02805"></a>02805                 scanfield_ratio = 1.249;
-<a name="l02806"></a>02806                 <span class="keywordflow">break</span>;
-<a name="l02807"></a>02807             <span class="keywordflow">case</span> 3: <span class="comment">// 480 lines</span>
-<a name="l02808"></a>02808                 scanfield_ratio = 1.345;
-<a name="l02809"></a>02809                 <span class="keywordflow">break</span>;
-<a name="l02810"></a>02810             }
-<a name="l02811"></a>02811             <span class="keywordflow">break</span>;
-<a name="l02812"></a>02812     }
-<a name="l02813"></a>02813     <span class="comment">// calculate screen ratio</span>
-<a name="l02814"></a>02814     <span class="keywordtype">double</span> screenratio = scanratio * scanfield_ratio;
-<a name="l02815"></a>02815 
-<a name="l02816"></a>02816     <span class="comment">// override screenratio for certain cases:</span>
-<a name="l02817"></a>02817     <span class="keywordflow">if</span> (vratio == 1.6) screenratio = 4.0 / 3.0;
-<a name="l02818"></a>02818     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vratio == 0.8) screenratio = 4.0 / 3.0;
-<a name="l02819"></a>02819     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vratio == 3.2) screenratio = 4.0 / 3.0;
-<a name="l02820"></a>02820     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vratio == (4.0/3.0)) screenratio = 4.0 / 3.0;
-<a name="l02821"></a>02821     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vratio == (2.0/3.0)) screenratio = 4.0 / 3.0;
-<a name="l02822"></a>02822     <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((width &gt;= 800)&amp;&amp;(height&gt;=600)) screenratio = 4.0 / 3.0;
-<a name="l02823"></a>02823 
-<a name="l02824"></a>02824 <span class="preprocessor">#if C_DEBUG</span>
-<a name="l02825"></a>02825 <span class="preprocessor"></span>            <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;screen: %1.3f, scanfield: %1.3f, scan: %1.3f, vratio: %1.3f&quot;</span>,
-<a name="l02826"></a>02826                 screenratio, scanfield_ratio, scanratio, vratio);
-<a name="l02827"></a>02827 <span class="preprocessor">#endif</span>
-<a name="l02828"></a>02828 <span class="preprocessor"></span>
-<a name="l02829"></a>02829     <span class="keywordtype">bool</span> fps_changed = <span class="keyword">false</span>;
-<a name="l02830"></a>02830 
-<a name="l02831"></a>02831 <span class="preprocessor">#if C_DEBUG</span>
-<a name="l02832"></a>02832 <span class="preprocessor"></span>    <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;h total %2.5f (%3.2fkHz) blank(%02.5f/%02.5f) retrace(%02.5f/%02.5f)&quot;</span>,
-<a name="l02833"></a>02833         vga.draw.delay.htotal,(1.0/vga.draw.delay.htotal),
-<a name="l02834"></a>02834         vga.draw.delay.hblkstart,vga.draw.delay.hblkend,
-<a name="l02835"></a>02835         vga.draw.delay.hrstart,vga.draw.delay.hrend);
-<a name="l02836"></a>02836     <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;v total %2.5f (%3.2fHz) blank(%02.5f/%02.5f) retrace(%02.5f/%02.5f)&quot;</span>,
-<a name="l02837"></a>02837         vga.draw.delay.vtotal,(1000.0/vga.draw.delay.vtotal),
-<a name="l02838"></a>02838         vga.draw.delay.vblkstart,vga.draw.delay.vblkend,
-<a name="l02839"></a>02839         vga.draw.delay.vrstart,vga.draw.delay.vrend);
-<a name="l02840"></a>02840 
-<a name="l02841"></a>02841     <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;video clock: %3.2fMHz mode %s&quot;</span>,
-<a name="l02842"></a>02842         oscclock/1000000.0, mode_texts[vga.mode]);
-<a name="l02843"></a>02843 <span class="preprocessor">#endif</span>
-<a name="l02844"></a>02844 <span class="preprocessor"></span>
-<a name="l02845"></a>02845     <span class="comment">// need to change the vertical timing?</span>
-<a name="l02846"></a>02846     <span class="keywordflow">if</span> (vga_mode_time_base &lt; 0 || fabs(vga.draw.delay.vtotal - 1000.0 / fps) &gt; 0.0001)
-<a name="l02847"></a>02847         fps_changed = <span class="keyword">true</span>;
-<a name="l02848"></a>02848 
-<a name="l02849"></a>02849     <span class="comment">// need to resize the output window?</span>
-<a name="l02850"></a>02850     <span class="keywordflow">if</span> ((width != vga.draw.width) ||
-<a name="l02851"></a>02851         (height != vga.draw.height) ||
-<a name="l02852"></a>02852         (fabs(screenratio - vga.draw.screen_ratio) &gt; 0.0001) ||
-<a name="l02853"></a>02853         (vga.draw.bpp != bpp) || fps_changed) {
-<a name="l02854"></a>02854 
-<a name="l02855"></a>02855         VGA_KillDrawing();
-<a name="l02856"></a>02856 
-<a name="l02857"></a>02857         vga.draw.width = width;
-<a name="l02858"></a>02858         vga.draw.height = height;
-<a name="l02859"></a>02859         vga.draw.screen_ratio = screenratio;
-<a name="l02860"></a>02860         vga.draw.bpp = bpp;
-<a name="l02861"></a>02861 <span class="preprocessor">#if C_DEBUG</span>
-<a name="l02862"></a>02862 <span class="preprocessor"></span>        <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;%dx%d, %3.2fHz, %dbpp, screen %1.3f&quot;</span>,(int)width,(<span class="keywordtype">int</span>)height,fps,(int)bpp,screenratio);
-<a name="l02863"></a>02863 <span class="preprocessor">#endif</span>
-<a name="l02864"></a>02864 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (!vga.draw.vga_override)
-<a name="l02865"></a>02865             RENDER_SetSize(width,height,bpp,(<span class="keywordtype">float</span>)fps,screenratio);
-<a name="l02866"></a>02866 
-<a name="l02867"></a>02867         <span class="keywordflow">if</span> (fps_changed) {
-<a name="l02868"></a>02868             vga_mode_time_base = PIC_FullIndex();
-<a name="l02869"></a>02869             vga_mode_frames_since_time_base = 0;
-<a name="l02870"></a>02870             PIC_RemoveEvents(VGA_Other_VertInterrupt);
-<a name="l02871"></a>02871             PIC_RemoveEvents(VGA_VerticalTimer);
-<a name="l02872"></a>02872             PIC_RemoveEvents(VGA_PanningLatch);
-<a name="l02873"></a>02873             PIC_RemoveEvents(VGA_DisplayStartLatch);
-<a name="l02874"></a>02874             vga.draw.delay.vtotal = 1000.0 / fps;
-<a name="l02875"></a>02875             vga.draw.lines_done = vga.draw.lines_total;
-<a name="l02876"></a>02876             vga_fps = fps;
-<a name="l02877"></a>02877             VGA_VerticalTimer(0);
-<a name="l02878"></a>02878         }
-<a name="l02879"></a>02879     }
-<a name="l02880"></a>02880     vga.draw.delay.singleline_delay = (float)vga.draw.delay.htotal;
-<a name="l02881"></a>02881 
-<a name="l02882"></a>02882     <span class="comment">/* FIXME: Why is this required to prevent VGA palette errors with Crystal Dream II?</span>
-<a name="l02883"></a>02883 <span class="comment">     *        What is this code doing to change the palette prior to this point? */</span>
-<a name="l02884"></a>02884     VGA_DAC_UpdateColorPalette();
-<a name="l02885"></a>02885 }
-<a name="l02886"></a>02886 
-<a name="l02887"></a>02887 <span class="keywordtype">void</span> VGA_KillDrawing(<span class="keywordtype">void</span>) {
-<a name="l02888"></a>02888     PIC_RemoveEvents(VGA_DrawSingleLine);
-<a name="l02889"></a>02889     PIC_RemoveEvents(VGA_DrawEGASingleLine);
-<a name="l02890"></a>02890 }
-<a name="l02891"></a>02891 
-<a name="l02892"></a>02892 <span class="keywordtype">void</span> VGA_SetOverride(<span class="keywordtype">bool</span> vga_override) {
-<a name="l02893"></a>02893     <span class="keywordflow">if</span> (vga.draw.vga_override!=vga_override) {
-<a name="l02894"></a>02894         
-<a name="l02895"></a>02895         <span class="keywordflow">if</span> (vga_override) {
-<a name="l02896"></a>02896             VGA_KillDrawing();
-<a name="l02897"></a>02897             vga.draw.vga_override=<span class="keyword">true</span>;
-<a name="l02898"></a>02898         } <span class="keywordflow">else</span> {
-<a name="l02899"></a>02899             vga.draw.vga_override=<span class="keyword">false</span>;
-<a name="l02900"></a>02900             vga.draw.width=0; <span class="comment">// change it so the output window gets updated</span>
-<a name="l02901"></a>02901             VGA_SetupDrawing(0);
-<a name="l02902"></a>02902         }
-<a name="l02903"></a>02903     }
-<a name="l02904"></a>02904 }
-<a name="l02905"></a>02905 
+<a name="l02331"></a>02331 
+<a name="l02332"></a>02332         <span class="comment">/* FIXME: This is based on correcting the hicolor mode for MFX/Transgression 2.</span>
+<a name="l02333"></a>02333 <span class="comment">         *        I am not able to test against the Windows drivers at this time. */</span>
+<a name="l02334"></a>02334         <span class="keywordflow">if</span> ((svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) &amp;&amp; et4k_highcolor_half_pixel_rate())
+<a name="l02335"></a>02335             clock /= 2;
+<a name="l02336"></a>02336     } <span class="keywordflow">else</span> {
+<a name="l02337"></a>02337         <span class="comment">// not EGAVGA_ARCH</span>
+<a name="l02338"></a>02338         vga.draw.split_line = 0x10000;  <span class="comment">// don&#39;t care</span>
+<a name="l02339"></a>02339 
+<a name="l02340"></a>02340         htotal = vga.other.htotal + 1u;
+<a name="l02341"></a>02341         hdend = vga.other.hdend;
+<a name="l02342"></a>02342         hbstart = hdend;
+<a name="l02343"></a>02343         hbend = htotal;
+<a name="l02344"></a>02344         hrstart = vga.other.hsyncp;
+<a name="l02345"></a>02345         hrend = hrstart + (vga.other.hsyncw) ;
+<a name="l02346"></a>02346 
+<a name="l02347"></a>02347         vga.draw.address_line_total = vga.other.max_scanline + 1u;
+<a name="l02348"></a>02348         vtotal = vga.draw.address_line_total * (vga.other.vtotal+1u)+vga.other.vadjust;
+<a name="l02349"></a>02349         vdend = vga.draw.address_line_total * vga.other.vdend;
+<a name="l02350"></a>02350         vrstart = vga.draw.address_line_total * vga.other.vsyncp;
+<a name="l02351"></a>02351         vrend = vrstart + 16; <span class="comment">// vsync width is fixed to 16 lines on the MC6845 TODO Tandy</span>
+<a name="l02352"></a>02352         vbstart = vdend;
+<a name="l02353"></a>02353         vbend = vtotal;
+<a name="l02354"></a>02354 
+<a name="l02355"></a>02355         switch (machine) {
+<a name="l02356"></a>02356         <span class="keywordflow">case</span> MCH_AMSTRAD:
+<a name="l02357"></a>02357             clock=(16000000/2)/8;
+<a name="l02358"></a>02358             <span class="keywordflow">break</span>;
+<a name="l02359"></a>02359         <span class="keywordflow">case</span> MCH_CGA:
+<a name="l02360"></a>02360         <span class="keywordflow">case</span> TANDY_ARCH_CASE:
+<a name="l02361"></a>02361             clock = (PIT_TICK_RATE*12)/8;
+<a name="l02362"></a>02362             <span class="keywordflow">if</span> (!(vga.tandy.mode_control &amp; 1)) clock /= 2;
+<a name="l02363"></a>02363             <span class="keywordflow">break</span>;
+<a name="l02364"></a>02364         <span class="keywordflow">case</span> MCH_HERC:
+<a name="l02365"></a>02365             clock=16000000/8;
+<a name="l02366"></a>02366             <span class="keywordflow">if</span> (vga.herc.mode_control &amp; 0x2) clock/=2;
+<a name="l02367"></a>02367 
+<a name="l02368"></a>02368             <span class="keywordflow">break</span>;
+<a name="l02369"></a>02369         <span class="keywordflow">default</span>:
+<a name="l02370"></a>02370             clock = (PIT_TICK_RATE*12);
+<a name="l02371"></a>02371             <span class="keywordflow">break</span>;
+<a name="l02372"></a>02372         }
+<a name="l02373"></a>02373         vga.draw.delay.hdend = hdend*1000.0/clock; <span class="comment">//in milliseconds</span>
+<a name="l02374"></a>02374     }
+<a name="l02375"></a>02375 <span class="preprocessor">#if C_DEBUG</span>
+<a name="l02376"></a>02376 <span class="preprocessor"></span>    <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;h total %3d end %3d blank (%3d/%3d) retrace (%3d/%3d)&quot;</span>,
+<a name="l02377"></a>02377         (int)htotal, (<span class="keywordtype">int</span>)hdend, (int)hbstart, (<span class="keywordtype">int</span>)hbend, (<span class="keywordtype">int</span>)hrstart, (<span class="keywordtype">int</span>)hrend );
+<a name="l02378"></a>02378     <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(&quot;v total %3d end %3d blank (%3d/%3d) retrace (%3d/%3d)&quot;,
+<a name="l02379"></a>02379         (<span class="keywordtype">int</span>)vtotal, (<span class="keywordtype">int</span>)vdend, (<span class="keywordtype">int</span>)vbstart, (<span class="keywordtype">int</span>)vbend, (<span class="keywordtype">int</span>)vrstart, (<span class="keywordtype">int</span>)vrend );
+<a name="l02380"></a>02380 <span class="preprocessor">#endif</span>
+<a name="l02381"></a>02381 <span class="preprocessor"></span>    <span class="keywordflow">if</span> (!htotal) <span class="keywordflow">return</span>;
+<a name="l02382"></a>02382     <span class="keywordflow">if</span> (!vtotal) <span class="keywordflow">return</span>;
+<a name="l02383"></a>02383     
+<a name="l02384"></a>02384     <span class="comment">// The screen refresh frequency</span>
+<a name="l02385"></a>02385     <span class="keywordtype">double</span> fps;
+<a name="l02386"></a>02386     <span class="keyword">extern</span> <span class="keywordtype">double</span> vga_force_refresh_rate;
+<a name="l02387"></a>02387     <span class="keywordflow">if</span> (vga_force_refresh_rate &gt; 0) {
+<a name="l02388"></a>02388         <span class="comment">/* force the VGA refresh rate by setting fps and bending the clock to our will */</span>
+<a name="l02389"></a>02389         <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;VGA forced refresh rate in effect, %.3f&quot;</span>,vga_force_refresh_rate);
+<a name="l02390"></a>02390         fps=vga_force_refresh_rate;
+<a name="l02391"></a>02391         clock=((double)(vtotal*htotal))*fps;
+<a name="l02392"></a>02392     }
+<a name="l02393"></a>02393     <span class="keywordflow">else</span> {
+<a name="l02394"></a>02394         <span class="comment">// The screen refresh frequency</span>
+<a name="l02395"></a>02395         fps=(double)clock/(vtotal*htotal);
+<a name="l02396"></a>02396         <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;VGA refresh rate is now, %.3f&quot;</span>,fps);
+<a name="l02397"></a>02397     }
+<a name="l02398"></a>02398 
+<a name="l02399"></a>02399     <span class="comment">/* clip display end to stay within vtotal (&quot;Monolith&quot; demo part 4 320x570 mode fix) */</span>
+<a name="l02400"></a>02400     <span class="keywordflow">if</span> (vdend &gt; vtotal) {
+<a name="l02401"></a>02401         <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_WARN)(<span class="stringliteral">&quot;VGA display end greater than vtotal!&quot;</span>);
+<a name="l02402"></a>02402         vdend = vtotal;
+<a name="l02403"></a>02403     }
+<a name="l02404"></a>02404 
+<a name="l02405"></a>02405     <span class="comment">// Horizontal total (that&#39;s how long a line takes with whistles and bells)</span>
+<a name="l02406"></a>02406     vga.draw.delay.htotal = htotal*1000.0/clock; <span class="comment">//in milliseconds</span>
+<a name="l02407"></a>02407     <span class="comment">// Start and End of horizontal blanking</span>
+<a name="l02408"></a>02408     vga.draw.delay.hblkstart = hbstart*1000.0/clock; <span class="comment">//in milliseconds</span>
+<a name="l02409"></a>02409     vga.draw.delay.hblkend = hbend*1000.0/clock; 
+<a name="l02410"></a>02410     <span class="comment">// Start and End of horizontal retrace</span>
+<a name="l02411"></a>02411     vga.draw.delay.hrstart = hrstart*1000.0/clock;
+<a name="l02412"></a>02412     vga.draw.delay.hrend = hrend*1000.0/clock;
+<a name="l02413"></a>02413     <span class="comment">// Start and End of vertical blanking</span>
+<a name="l02414"></a>02414     vga.draw.delay.vblkstart = vbstart * vga.draw.delay.htotal;
+<a name="l02415"></a>02415     vga.draw.delay.vblkend = vbend * vga.draw.delay.htotal;
+<a name="l02416"></a>02416     <span class="comment">// Start and End of vertical retrace pulse</span>
+<a name="l02417"></a>02417     vga.draw.delay.vrstart = vrstart * vga.draw.delay.htotal;
+<a name="l02418"></a>02418     vga.draw.delay.vrend = vrend * vga.draw.delay.htotal;
+<a name="l02419"></a>02419 
+<a name="l02420"></a>02420     <span class="comment">// Vertical blanking tricks</span>
+<a name="l02421"></a>02421     vblank_skip = 0;
+<a name="l02422"></a>02422     <span class="keywordflow">if</span> ((IS_VGA_ARCH || IS_PC98_ARCH) &amp;&amp; !ignore_vblank_wraparound) { <span class="comment">// others need more investigation</span>
+<a name="l02423"></a>02423         <span class="keywordflow">if</span> (vbstart &lt; vtotal) { <span class="comment">// There will be no blanking at all otherwise</span>
+<a name="l02424"></a>02424             <span class="keywordflow">if</span> (vbend &gt; vtotal) {
+<a name="l02425"></a>02425                 <span class="comment">// blanking wraps to the start of the screen</span>
+<a name="l02426"></a>02426                 vblank_skip = vbend&amp;0x7f;
+<a name="l02427"></a>02427                 
+<a name="l02428"></a>02428                 <span class="comment">// on blanking wrap to 0, the first line is not blanked</span>
+<a name="l02429"></a>02429                 <span class="comment">// this is used by the S3 BIOS and other S3 drivers in some SVGA modes</span>
+<a name="l02430"></a>02430                 <span class="keywordflow">if</span> ((vbend&amp;0x7f)==1) vblank_skip = 0;
+<a name="l02431"></a>02431                 
+<a name="l02432"></a>02432                 <span class="comment">// it might also cut some lines off the bottom</span>
+<a name="l02433"></a>02433                 <span class="keywordflow">if</span> (vbstart &lt; vdend) {
+<a name="l02434"></a>02434                     vdend = vbstart;
+<a name="l02435"></a>02435                 }
+<a name="l02436"></a>02436                 <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_WARN)(<span class="stringliteral">&quot;Blanking wrap to line %d&quot;</span>, (int)vblank_skip);
+<a name="l02437"></a>02437             } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vbstart&lt;=1) {
+<a name="l02438"></a>02438                 <span class="comment">// blanking is used to cut lines at the start of the screen</span>
+<a name="l02439"></a>02439                 vblank_skip = vbend;
+<a name="l02440"></a>02440                 <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_WARN)(<span class="stringliteral">&quot;Upper %d lines of the screen blanked&quot;</span>, (int)vblank_skip);
+<a name="l02441"></a>02441             } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vbstart &lt; vdend) {
+<a name="l02442"></a>02442                 <span class="keywordflow">if</span> (vbend &lt; vdend) {
+<a name="l02443"></a>02443                     <span class="comment">// the game wants a black bar somewhere on the screen</span>
+<a name="l02444"></a>02444                     <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_WARN)(<span class="stringliteral">&quot;Unsupported blanking: line %d-%d&quot;</span>,(int)vbstart,(<span class="keywordtype">int</span>)vbend);
+<a name="l02445"></a>02445                 } <span class="keywordflow">else</span> {
+<a name="l02446"></a>02446                     <span class="comment">// blanking is used to cut off some lines from the bottom</span>
+<a name="l02447"></a>02447                     vdend = vbstart;
+<a name="l02448"></a>02448                 }
+<a name="l02449"></a>02449             }
+<a name="l02450"></a>02450             vdend -= vblank_skip;
+<a name="l02451"></a>02451         }
+<a name="l02452"></a>02452     }
+<a name="l02453"></a>02453     vga.draw.vblank_skip = vblank_skip;
+<a name="l02454"></a>02454 
+<a name="l02455"></a>02455     <span class="comment">// Display end</span>
+<a name="l02456"></a>02456     vga.draw.delay.vdend = vdend * vga.draw.delay.htotal;
+<a name="l02457"></a>02457 
+<a name="l02458"></a>02458     <span class="comment">// EGA frequency dependent monitor palette</span>
+<a name="l02459"></a>02459     <span class="keywordflow">if</span> (machine == MCH_EGA) {
+<a name="l02460"></a>02460         <span class="keywordflow">if</span> (vga.misc_output &amp; 1) {
+<a name="l02461"></a>02461             <span class="comment">// EGA card is in color mode</span>
+<a name="l02462"></a>02462             <span class="keywordflow">if</span> ((1.0f/vga.draw.delay.htotal) &gt; 19.0f) {
+<a name="l02463"></a>02463                 <span class="comment">// 64 color EGA mode</span>
+<a name="l02464"></a>02464                 VGA_ATTR_SetEGAMonitorPalette(EGA);
+<a name="l02465"></a>02465             } <span class="keywordflow">else</span> {
+<a name="l02466"></a>02466                 <span class="comment">// 16 color CGA mode compatibility</span>
+<a name="l02467"></a>02467                 VGA_ATTR_SetEGAMonitorPalette(CGA);
+<a name="l02468"></a>02468             }
+<a name="l02469"></a>02469         } <span class="keywordflow">else</span> {
+<a name="l02470"></a>02470             <span class="comment">// EGA card in monochrome mode</span>
+<a name="l02471"></a>02471             <span class="comment">// It is not meant to be autodetected that way, you either</span>
+<a name="l02472"></a>02472             <span class="comment">// have a monochrome or color monitor connected and</span>
+<a name="l02473"></a>02473             <span class="comment">// the EGA switches configured appropriately.</span>
+<a name="l02474"></a>02474             <span class="comment">// But this would only be a problem if a program sets </span>
+<a name="l02475"></a>02475             <span class="comment">// the adapter to monochrome mode and still expects color output.</span>
+<a name="l02476"></a>02476             <span class="comment">// Such a program should be shot to the moon...</span>
+<a name="l02477"></a>02477             VGA_ATTR_SetEGAMonitorPalette(MONO);
+<a name="l02478"></a>02478         }
+<a name="l02479"></a>02479     }
+<a name="l02480"></a>02480 
+<a name="l02481"></a>02481     <span class="comment">/*</span>
+<a name="l02482"></a>02482 <span class="comment">      6  Horizontal Sync Polarity. Negative if set</span>
+<a name="l02483"></a>02483 <span class="comment">      7  Vertical Sync Polarity. Negative if set</span>
+<a name="l02484"></a>02484 <span class="comment">         Bit 6-7 indicates the number of lines on the display:</span>
+<a name="l02485"></a>02485 <span class="comment">            1:  400, 2: 350, 3: 480</span>
+<a name="l02486"></a>02486 <span class="comment">    */</span>
+<a name="l02487"></a>02487     <span class="comment">//Try to determine the pixel size, aspect correct is based around square pixels</span>
+<a name="l02488"></a>02488 
+<a name="l02489"></a>02489     <span class="comment">//Base pixel width around 100 clocks horizontal</span>
+<a name="l02490"></a>02490     <span class="comment">//For 9 pixel text modes this should be changed, but we don&#39;t support that anyway :)</span>
+<a name="l02491"></a>02491     <span class="comment">//Seems regular vga only listens to the 9 char pixel mode with character mode enabled</span>
+<a name="l02492"></a>02492     <span class="comment">//Base pixel height around vertical totals of modes that have 100 clocks horizontal</span>
+<a name="l02493"></a>02493     <span class="comment">//Different sync values gives different scaling of the whole vertical range</span>
+<a name="l02494"></a>02494     <span class="comment">//VGA monitor just seems to thighten or widen the whole vertical range</span>
+<a name="l02495"></a>02495 
+<a name="l02496"></a>02496     vga.draw.resizing=<span class="keyword">false</span>;
+<a name="l02497"></a>02497     vga.draw.has_split=<span class="keyword">false</span>;
+<a name="l02498"></a>02498     vga.draw.vret_triggered=<span class="keyword">false</span>;
+<a name="l02499"></a>02499 
+<a name="l02500"></a>02500     <span class="comment">//Check to prevent useless black areas</span>
+<a name="l02501"></a>02501     <span class="keywordflow">if</span> (hbstart&lt;hdend) hdend=hbstart;
+<a name="l02502"></a>02502     <span class="keywordflow">if</span> ((!(IS_VGA_ARCH || IS_PC98_ARCH)) &amp;&amp; (vbstart&lt;vdend)) vdend=vbstart;
+<a name="l02503"></a>02503 
+<a name="l02504"></a>02504     Bitu width=hdend;
+<a name="l02505"></a>02505     Bitu height=vdend;
+<a name="l02506"></a>02506 
+<a name="l02507"></a>02507     <span class="keywordflow">if</span> (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
+<a name="l02508"></a>02508         vga.draw.address_line_total=(vga.crtc.maximum_scan_line&amp;0x1fu)+1u;
+<a name="l02509"></a>02509         <span class="keywordflow">switch</span>(vga.mode) {
+<a name="l02510"></a>02510         <span class="keywordflow">case</span> M_CGA16:
+<a name="l02511"></a>02511         <span class="keywordflow">case</span> M_CGA2:
+<a name="l02512"></a>02512         <span class="keywordflow">case</span> M_CGA4:
+<a name="l02513"></a>02513         <span class="keywordflow">case</span> M_PC98:
+<a name="l02514"></a>02514         <span class="keywordflow">case</span> M_TEXT:
+<a name="l02515"></a>02515             <span class="comment">// these use line_total internal</span>
+<a name="l02516"></a>02516             <span class="comment">// doublescanning needs to be emulated by renderer doubleheight</span>
+<a name="l02517"></a>02517             <span class="comment">// EGA has no doublescanning bit at 0x80</span>
+<a name="l02518"></a>02518             <span class="keywordflow">if</span> (vga.crtc.maximum_scan_line&amp;0x80) {
+<a name="l02519"></a>02519                 <span class="comment">// vga_draw only needs to draw every second line</span>
+<a name="l02520"></a>02520                 height /= 2;
+<a name="l02521"></a>02521             }
+<a name="l02522"></a>02522             <span class="keywordflow">break</span>;
+<a name="l02523"></a>02523         <span class="keywordflow">default</span>:
+<a name="l02524"></a>02524             vga.draw.doublescan_effect = vga.draw.doublescan_set;
+<a name="l02525"></a>02525 
+<a name="l02526"></a>02526             <span class="keywordflow">if</span> (vga.crtc.maximum_scan_line &amp; 0x80)
+<a name="l02527"></a>02527                 vga.draw.address_line_total *= 2;
+<a name="l02528"></a>02528 
+<a name="l02529"></a>02529             <span class="comment">/* if doublescan=false and line_total is even, then halve the height.</span>
+<a name="l02530"></a>02530 <span class="comment">             * the VGA raster scan will skip every other line to accomodate that. */</span>
+<a name="l02531"></a>02531             <span class="keywordflow">if</span> ((!vga.draw.doublescan_effect) &amp;&amp; (vga.draw.address_line_total &amp; 1) == 0)
+<a name="l02532"></a>02532                 height /= 2;
+<a name="l02533"></a>02533             <span class="keywordflow">else</span>
+<a name="l02534"></a>02534                 vga.draw.doublescan_effect = <span class="keyword">true</span>;
+<a name="l02535"></a>02535 
+<a name="l02536"></a>02536             <span class="keywordflow">break</span>;
+<a name="l02537"></a>02537         }
+<a name="l02538"></a>02538     }
+<a name="l02539"></a>02539 
+<a name="l02540"></a>02540     <span class="keywordflow">if</span> (!vga.draw.doublescan_effect)
+<a name="l02541"></a>02541         vga.draw.render_max = 2; <span class="comment">/* count all lines but render only every other line */</span>
+<a name="l02542"></a>02542 
+<a name="l02543"></a>02543     <span class="comment">//Set the bpp</span>
+<a name="l02544"></a>02544     Bitu bpp;
+<a name="l02545"></a>02545     <span class="keywordflow">switch</span> (vga.mode) {
+<a name="l02546"></a>02546     <span class="keywordflow">case</span> M_LIN15:
+<a name="l02547"></a>02547         bpp = 15;
+<a name="l02548"></a>02548         <span class="keywordflow">break</span>;
+<a name="l02549"></a>02549     <span class="keywordflow">case</span> M_LIN16:
+<a name="l02550"></a>02550         bpp = 16;
+<a name="l02551"></a>02551         <span class="keywordflow">break</span>;
+<a name="l02552"></a>02552     <span class="keywordflow">case</span> M_LIN24:
+<a name="l02553"></a>02553     <span class="keywordflow">case</span> M_LIN32:
+<a name="l02554"></a>02554         bpp = 32;
+<a name="l02555"></a>02555         <span class="keywordflow">break</span>;
+<a name="l02556"></a>02556     <span class="keywordflow">default</span>:
+<a name="l02557"></a>02557         bpp = 8;
+<a name="l02558"></a>02558         <span class="keywordflow">break</span>;
+<a name="l02559"></a>02559     }
+<a name="l02560"></a>02560     vga.draw.linear_base = vga.mem.linear;
+<a name="l02561"></a>02561     vga.draw.linear_mask = vga.mem.memmask;
+<a name="l02562"></a>02562     vga.draw.planar_mask = vga.draw.linear_mask &gt;&gt; 2;
+<a name="l02563"></a>02563     Bitu pix_per_char = 8;
+<a name="l02564"></a>02564     <span class="keywordflow">switch</span> (vga.mode) {
+<a name="l02565"></a>02565     <span class="keywordflow">case</span> M_VGA:
+<a name="l02566"></a>02566         <span class="comment">// hack for tgr2 -hc high color mode demo</span>
+<a name="l02567"></a>02567         <span class="keywordflow">if</span> (vga.dac.reg02==0x80) {
+<a name="l02568"></a>02568             bpp=16;
+<a name="l02569"></a>02569             vga.mode=M_LIN16;
+<a name="l02570"></a>02570             VGA_SetupHandlers();
+<a name="l02571"></a>02571             VGA_DrawLine=VGA_Draw_LIN16_Line_2x;
+<a name="l02572"></a>02572             pix_per_char = 4;
+<a name="l02573"></a>02573             <span class="keywordflow">break</span>;
+<a name="l02574"></a>02574         }
+<a name="l02575"></a>02575         bpp = 32;
+<a name="l02576"></a>02576         pix_per_char = 4;
+<a name="l02577"></a>02577         <span class="keywordflow">if</span> (vga.mode == M_VGA &amp;&amp; (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)) {
+<a name="l02578"></a>02578             <span class="comment">/* ET4000 chipsets handle the chained mode (in my opinion) with sanity and we can scan linearly for it.</span>
+<a name="l02579"></a>02579 <span class="comment">             * Chained VGA mode maps planar byte addr = (addr &gt;&gt; 2) and plane = (addr &amp; 3) */</span>
+<a name="l02580"></a>02580             VGA_DrawLine = VGA_Draw_Xlat32_Linear_Line;
+<a name="l02581"></a>02581         }
+<a name="l02582"></a>02582         <span class="keywordflow">else</span> {
+<a name="l02583"></a>02583             <span class="comment">/* other SVGA chipsets appear to handle chained mode by writing 4 pixels to 4 planes, and showing</span>
+<a name="l02584"></a>02584 <span class="comment">             * only every 4th byte, which is why when you switch the CRTC to byte or word mode on these chipsets,</span>
+<a name="l02585"></a>02585 <span class="comment">             * you see 16-pixel groups with 4 pixels from the chained display you expect followed by 12 pixels</span>
+<a name="l02586"></a>02586 <span class="comment">             * of whatever contents of memory remain. but when you unchain the bitplanes the card will allow</span>
+<a name="l02587"></a>02587 <span class="comment">             * &quot;planar&quot; writing to all 16 pixels properly. Chained VGA maps like planar byte = (addr &amp; ~3) and</span>
+<a name="l02588"></a>02588 <span class="comment">             * plane = (addr &amp; 3) */</span>
+<a name="l02589"></a>02589             VGA_DrawLine = VGA_Draw_Xlat32_VGA_CRTC_bmode_Line;
+<a name="l02590"></a>02590         }
+<a name="l02591"></a>02591         <span class="keywordflow">break</span>;
+<a name="l02592"></a>02592     <span class="keywordflow">case</span> M_LIN8:
+<a name="l02593"></a>02593         bpp = 32;
+<a name="l02594"></a>02594         VGA_DrawLine = VGA_Draw_Xlat32_Linear_Line;
+<a name="l02595"></a>02595 
+<a name="l02596"></a>02596         <span class="keywordflow">if</span> ((vga.s3.reg_3a &amp; 0x10)||(svgaCard!=SVGA_S3Trio))
+<a name="l02597"></a>02597             pix_per_char = 8; <span class="comment">// TODO fiddle out the bits for other svga cards</span>
+<a name="l02598"></a>02598         <span class="keywordflow">else</span>
+<a name="l02599"></a>02599             pix_per_char = 4;
+<a name="l02600"></a>02600 
+<a name="l02601"></a>02601         VGA_ActivateHardwareCursor();
+<a name="l02602"></a>02602         <span class="keywordflow">break</span>;
+<a name="l02603"></a>02603     <span class="keywordflow">case</span> M_LIN24:
+<a name="l02604"></a>02604     <span class="keywordflow">case</span> M_LIN32:
+<a name="l02605"></a>02605         VGA_ActivateHardwareCursor();
+<a name="l02606"></a>02606         <span class="keywordflow">break</span>;
+<a name="l02607"></a>02607     <span class="keywordflow">case</span> M_LIN15:
+<a name="l02608"></a>02608     <span class="keywordflow">case</span> M_LIN16:
+<a name="l02609"></a>02609         pix_per_char = 4; <span class="comment">// 15/16 bpp modes double the horizontal values</span>
+<a name="l02610"></a>02610         VGA_ActivateHardwareCursor();
+<a name="l02611"></a>02611         <span class="keywordflow">break</span>;
+<a name="l02612"></a>02612     <span class="keywordflow">case</span> M_LIN4:
+<a name="l02613"></a>02613     <span class="keywordflow">case</span> M_EGA:
+<a name="l02614"></a>02614         vga.draw.blocks = width;
+<a name="l02615"></a>02615 
+<a name="l02616"></a>02616         <span class="keywordflow">if</span> (IS_EGA_ARCH) {
+<a name="l02617"></a>02617             VGA_DrawLine = EGA_Draw_VGA_Planar_Xlat8_Line;
+<a name="l02618"></a>02618             bpp = 8;
+<a name="l02619"></a>02619         }
+<a name="l02620"></a>02620         <span class="keywordflow">else</span> {
+<a name="l02621"></a>02621             VGA_DrawLine = VGA_Draw_VGA_Planar_Xlat32_Line;
+<a name="l02622"></a>02622             bpp = 32;
+<a name="l02623"></a>02623         }
+<a name="l02624"></a>02624         <span class="keywordflow">break</span>;
+<a name="l02625"></a>02625     <span class="keywordflow">case</span> M_CGA16:
+<a name="l02626"></a>02626         vga.draw.blocks=width*2;
+<a name="l02627"></a>02627         pix_per_char = 16;
+<a name="l02628"></a>02628         VGA_DrawLine=VGA_Draw_CGA16_Line;
+<a name="l02629"></a>02629         <span class="keywordflow">break</span>;
+<a name="l02630"></a>02630     <span class="keywordflow">case</span> M_CGA4:
+<a name="l02631"></a>02631         <span class="keywordflow">if</span> (IS_EGA_ARCH) {
+<a name="l02632"></a>02632             vga.draw.blocks=width;
+<a name="l02633"></a>02633             VGA_DrawLine=EGA_Draw_2BPP_Line_as_EGA;
+<a name="l02634"></a>02634             bpp = 8;
+<a name="l02635"></a>02635         }
+<a name="l02636"></a>02636         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
+<a name="l02637"></a>02637             vga.draw.blocks=width;
+<a name="l02638"></a>02638             VGA_DrawLine=VGA_Draw_2BPP_Line_as_VGA;
+<a name="l02639"></a>02639             bpp = 32;
+<a name="l02640"></a>02640         }
+<a name="l02641"></a>02641         <span class="keywordflow">else</span> {
+<a name="l02642"></a>02642             vga.draw.blocks=width*2;
+<a name="l02643"></a>02643             VGA_DrawLine=VGA_Draw_2BPP_Line;
+<a name="l02644"></a>02644         }
+<a name="l02645"></a>02645         <span class="keywordflow">break</span>;
+<a name="l02646"></a>02646     <span class="keywordflow">case</span> M_CGA2:
+<a name="l02647"></a>02647         <span class="keywordflow">if</span> (IS_EGA_ARCH) {
+<a name="l02648"></a>02648             vga.draw.blocks=width;
+<a name="l02649"></a>02649             VGA_DrawLine=EGA_Draw_1BPP_Line_as_EGA;
+<a name="l02650"></a>02650             bpp = 8;
+<a name="l02651"></a>02651         }
+<a name="l02652"></a>02652         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
+<a name="l02653"></a>02653             vga.draw.blocks=width;
+<a name="l02654"></a>02654             VGA_DrawLine=VGA_Draw_1BPP_Line_as_VGA;
+<a name="l02655"></a>02655             bpp = 32;
+<a name="l02656"></a>02656         }
+<a name="l02657"></a>02657         <span class="keywordflow">else</span> {
+<a name="l02658"></a>02658             vga.draw.blocks=width*2;
+<a name="l02659"></a>02659             VGA_DrawLine=VGA_Draw_1BPP_Line;
+<a name="l02660"></a>02660         }
+<a name="l02661"></a>02661         <span class="keywordflow">break</span>;
+<a name="l02662"></a>02662     <span class="keywordflow">case</span> M_PC98:
+<a name="l02663"></a>02663         vga.draw.blocks=width;
+<a name="l02664"></a>02664         vga.draw.char9dot = <span class="keyword">false</span>;
+<a name="l02665"></a>02665         VGA_DrawLine=VGA_PC98_Xlat32_Draw_Line;
+<a name="l02666"></a>02666         bpp = 32;
+<a name="l02667"></a>02667         <span class="keywordflow">break</span>;
+<a name="l02668"></a>02668     <span class="keywordflow">case</span> M_TEXT:
+<a name="l02669"></a>02669         vga.draw.blocks=width;
+<a name="l02670"></a>02670         <span class="comment">// if char9_set is true, allow 9-pixel wide fonts</span>
+<a name="l02671"></a>02671         <span class="keywordflow">if</span> ((vga.seq.clocking_mode&amp;0x01) || !vga.draw.char9_set) {
+<a name="l02672"></a>02672             <span class="comment">// 8-pixel wide</span>
+<a name="l02673"></a>02673             pix_per_char = 8;
+<a name="l02674"></a>02674             vga.draw.char9dot = <span class="keyword">false</span>;
+<a name="l02675"></a>02675         } <span class="keywordflow">else</span> {
+<a name="l02676"></a>02676             <span class="comment">// 9-pixel wide</span>
+<a name="l02677"></a>02677             pix_per_char = 9;
+<a name="l02678"></a>02678             vga.draw.char9dot = <span class="keyword">true</span>;
+<a name="l02679"></a>02679         }
+<a name="l02680"></a>02680 
+<a name="l02681"></a>02681         <span class="keywordflow">if</span> (IS_EGA_ARCH) {
+<a name="l02682"></a>02682             VGA_DrawLine = EGA_TEXT_Xlat8_Draw_Line;
+<a name="l02683"></a>02683             bpp = 8;
+<a name="l02684"></a>02684         }
+<a name="l02685"></a>02685         <span class="keywordflow">else</span> {
+<a name="l02686"></a>02686             VGA_DrawLine = VGA_TEXT_Xlat32_Draw_Line;
+<a name="l02687"></a>02687             bpp = 32;
+<a name="l02688"></a>02688         }
+<a name="l02689"></a>02689         <span class="keywordflow">break</span>;
+<a name="l02690"></a>02690     <span class="keywordflow">case</span> M_HERC_GFX:
+<a name="l02691"></a>02691         vga.draw.blocks=width*2;
+<a name="l02692"></a>02692         pix_per_char = 16;
+<a name="l02693"></a>02693         <span class="keywordflow">if</span> (vga.herc.blend) VGA_DrawLine=VGA_Draw_1BPP_Blend_Line;
+<a name="l02694"></a>02694         <span class="keywordflow">else</span> VGA_DrawLine=VGA_Draw_1BPP_Line;
+<a name="l02695"></a>02695         <span class="keywordflow">break</span>;
+<a name="l02696"></a>02696     <span class="keywordflow">case</span> M_TANDY2:
+<a name="l02697"></a>02697         <span class="keywordflow">if</span> (((machine==MCH_PCJR)&amp;&amp;(vga.tandy.gfx_control &amp; 0x8)) ||
+<a name="l02698"></a>02698             (vga.tandy.mode_control &amp; 0x10)) {
+<a name="l02699"></a>02699             vga.draw.blocks=width * 8;
+<a name="l02700"></a>02700             pix_per_char = 16;
+<a name="l02701"></a>02701         } <span class="keywordflow">else</span> {
+<a name="l02702"></a>02702             vga.draw.blocks=width * 4;
+<a name="l02703"></a>02703             pix_per_char = 8;
+<a name="l02704"></a>02704         }
+<a name="l02705"></a>02705         VGA_DrawLine=VGA_Draw_1BPP_Line;
+<a name="l02706"></a>02706         <span class="keywordflow">break</span>;
+<a name="l02707"></a>02707     <span class="keywordflow">case</span> M_TANDY4:
+<a name="l02708"></a>02708         vga.draw.blocks=width * 2;
+<a name="l02709"></a>02709         pix_per_char = 8;
+<a name="l02710"></a>02710         <span class="keywordflow">if</span> ((machine==MCH_TANDY &amp;&amp; (vga.tandy.gfx_control &amp; 0x8)) ||
+<a name="l02711"></a>02711             (machine==MCH_PCJR &amp;&amp; (vga.tandy.mode_control==0x0b)))
+<a name="l02712"></a>02712             VGA_DrawLine=VGA_Draw_2BPPHiRes_Line;
+<a name="l02713"></a>02713         <span class="keywordflow">else</span> VGA_DrawLine=VGA_Draw_2BPP_Line;
+<a name="l02714"></a>02714         <span class="keywordflow">break</span>;
+<a name="l02715"></a>02715     <span class="keywordflow">case</span> M_TANDY16:
+<a name="l02716"></a>02716         <span class="keywordflow">if</span> (vga.tandy.mode_control &amp; 0x1) {
+<a name="l02717"></a>02717             <span class="keywordflow">if</span> (( machine==MCH_TANDY ) &amp;&amp; ( vga.tandy.mode_control &amp; 0x10 )) {
+<a name="l02718"></a>02718                 vga.draw.blocks=width*4;
+<a name="l02719"></a>02719                 pix_per_char = 8;
+<a name="l02720"></a>02720             } <span class="keywordflow">else</span> {
+<a name="l02721"></a>02721                 vga.draw.blocks=width*2;
+<a name="l02722"></a>02722                 pix_per_char = 4;
+<a name="l02723"></a>02723             }
+<a name="l02724"></a>02724             VGA_DrawLine=VGA_Draw_4BPP_Line;
+<a name="l02725"></a>02725         } <span class="keywordflow">else</span> {
+<a name="l02726"></a>02726             vga.draw.blocks=width*2;
+<a name="l02727"></a>02727             pix_per_char = 8;
+<a name="l02728"></a>02728             VGA_DrawLine=VGA_Draw_4BPP_Line_Double;
+<a name="l02729"></a>02729         }
+<a name="l02730"></a>02730         <span class="keywordflow">break</span>;
+<a name="l02731"></a>02731     <span class="keywordflow">case</span> M_TANDY_TEXT: <span class="comment">/* Also CGA */</span>
+<a name="l02732"></a>02732         vga.draw.blocks=width;
+<a name="l02733"></a>02733         <span class="keywordflow">if</span> (machine==MCH_CGA <span class="comment">/*&amp;&amp; !doublewidth*/</span> &amp;&amp; enableCGASnow &amp;&amp; (vga.tandy.mode_control &amp; 1)<span class="comment">/*80-column mode*/</span>)
+<a name="l02734"></a>02734             VGA_DrawLine=VGA_CGASNOW_TEXT_Draw_Line; <span class="comment">/* Alternate version that emulates CGA snow */</span>
+<a name="l02735"></a>02735         <span class="keywordflow">else</span>
+<a name="l02736"></a>02736             VGA_DrawLine=VGA_TEXT_Draw_Line;
+<a name="l02737"></a>02737         <span class="keywordflow">break</span>;
+<a name="l02738"></a>02738     <span class="keywordflow">case</span> M_HERC_TEXT:
+<a name="l02739"></a>02739         vga.draw.blocks=width;
+<a name="l02740"></a>02740         VGA_DrawLine=VGA_TEXT_Herc_Draw_Line;
+<a name="l02741"></a>02741         <span class="keywordflow">break</span>;
+<a name="l02742"></a>02742     <span class="keywordflow">case</span> M_AMSTRAD: <span class="comment">// Probably OK?</span>
+<a name="l02743"></a>02743         pix_per_char = 16;
+<a name="l02744"></a>02744         vga.draw.blocks=width*2;
+<a name="l02745"></a>02745         VGA_DrawLine=VGA_Draw_AMS_4BPP_Line;
+<a name="l02746"></a>02746 <span class="comment">//      VGA_DrawLine=VGA_Draw_4BPP_Line;</span>
+<a name="l02747"></a>02747 <span class="comment">/*      doubleheight=true;</span>
+<a name="l02748"></a>02748 <span class="comment">        vga.draw.blocks = 2*width; width&lt;&lt;=4;</span>
+<a name="l02749"></a>02749 <span class="comment">        vga.draw.linear_base = vga.mem.linear + VGA_CACHE_OFFSET;</span>
+<a name="l02750"></a>02750 <span class="comment">        vga.draw.linear_mask = 512 * 1024 - 1; */</span>
+<a name="l02751"></a>02751         <span class="keywordflow">break</span>;
+<a name="l02752"></a>02752     <span class="keywordflow">default</span>:
+<a name="l02753"></a>02753         <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_ERROR)(<span class="stringliteral">&quot;Unhandled VGA mode %d while checking for resolution&quot;</span>,vga.mode);
+<a name="l02754"></a>02754         <span class="keywordflow">break</span>;
+<a name="l02755"></a>02755     }
+<a name="l02756"></a>02756     width *= pix_per_char;
+<a name="l02757"></a>02757     VGA_CheckScanLength();
+<a name="l02758"></a>02758 
+<a name="l02759"></a>02759     vga.draw.lines_total=height;
+<a name="l02760"></a>02760     vga.draw.line_length = width * ((bpp + 1) / 8);
+<a name="l02761"></a>02761     vga.draw.clock = clock;
+<a name="l02762"></a>02762 
+<a name="l02763"></a>02763     <span class="keywordtype">double</span> vratio = ((double)width)/(double)height; <span class="comment">// ratio if pixels were square</span>
+<a name="l02764"></a>02764 
+<a name="l02765"></a>02765     <span class="comment">// the picture ratio factor</span>
+<a name="l02766"></a>02766     <span class="keywordtype">double</span> scanratio =  ((double)hdend/(<span class="keywordtype">double</span>)(htotal-(hrend-hrstart)))/
+<a name="l02767"></a>02767                         ((<span class="keywordtype">double</span>)vdend/(double)(vtotal-(vrend-vrstart)));
+<a name="l02768"></a>02768     <span class="keywordtype">double</span> scanfield_ratio = 4.0/3.0;
+<a name="l02769"></a>02769     <span class="keywordflow">switch</span>(machine) {
+<a name="l02770"></a>02770         <span class="keywordflow">case</span> MCH_CGA:
+<a name="l02771"></a>02771         <span class="keywordflow">case</span> MCH_PCJR:
+<a name="l02772"></a>02772         <span class="keywordflow">case</span> MCH_TANDY:
+<a name="l02773"></a>02773             scanfield_ratio = 1.382;
+<a name="l02774"></a>02774             <span class="keywordflow">break</span>;
+<a name="l02775"></a>02775         <span class="keywordflow">case</span> MCH_HERC:
+<a name="l02776"></a>02776             scanfield_ratio = 1.535;
+<a name="l02777"></a>02777             <span class="keywordflow">break</span>;
+<a name="l02778"></a>02778         <span class="keywordflow">case</span> MCH_EGA:
+<a name="l02779"></a>02779             <span class="keywordflow">switch</span> (vga.misc_output &gt;&gt; 6) {
+<a name="l02780"></a>02780             <span class="keywordflow">case</span> 0: <span class="comment">// 200 lines:</span>
+<a name="l02781"></a>02781                 scanfield_ratio = 1.085; <span class="comment">// DOSBugs</span>
+<a name="l02782"></a>02782                 <span class="comment">//scanfield_ratio = 1.375; // IBM EGA BIOS</span>
+<a name="l02783"></a>02783                 <span class="keywordflow">break</span>;
+<a name="l02784"></a>02784             <span class="keywordflow">case</span> 2: <span class="comment">// 350 lines</span>
+<a name="l02785"></a>02785                 <span class="comment">// TODO monitors seem to display this with a bit of black borders on top and bottom</span>
+<a name="l02786"></a>02786                 scanfield_ratio = 1.45;
+<a name="l02787"></a>02787                 <span class="keywordflow">break</span>;
+<a name="l02788"></a>02788             <span class="keywordflow">default</span>:
+<a name="l02789"></a>02789                 <span class="comment">// other cases are undefined for EGA - scale them to 4:3</span>
+<a name="l02790"></a>02790                 scanfield_ratio = (4.0/3.0) / scanratio;
+<a name="l02791"></a>02791                 <span class="keywordflow">break</span>;
+<a name="l02792"></a>02792             }
+<a name="l02793"></a>02793             <span class="keywordflow">break</span>;
+<a name="l02794"></a>02794 
+<a name="l02795"></a>02795         <span class="keywordflow">default</span>: <span class="comment">// VGA</span>
+<a name="l02796"></a>02796             <span class="keywordflow">switch</span> (vga.misc_output &gt;&gt; 6) {
+<a name="l02797"></a>02797             <span class="keywordflow">case</span> 0: <span class="comment">// VESA: &quot;OTHER&quot; scanline amount</span>
+<a name="l02798"></a>02798                 scanfield_ratio = (4.0/3.0) / scanratio;
+<a name="l02799"></a>02799                 <span class="keywordflow">break</span>;
+<a name="l02800"></a>02800             <span class="keywordflow">case</span> 1: <span class="comment">// 400 lines</span>
+<a name="l02801"></a>02801                 scanfield_ratio = 1.312;
+<a name="l02802"></a>02802                 <span class="keywordflow">break</span>;
+<a name="l02803"></a>02803             <span class="keywordflow">case</span> 2: <span class="comment">// 350 lines</span>
+<a name="l02804"></a>02804                 scanfield_ratio = 1.249;
+<a name="l02805"></a>02805                 <span class="keywordflow">break</span>;
+<a name="l02806"></a>02806             <span class="keywordflow">case</span> 3: <span class="comment">// 480 lines</span>
+<a name="l02807"></a>02807                 scanfield_ratio = 1.345;
+<a name="l02808"></a>02808                 <span class="keywordflow">break</span>;
+<a name="l02809"></a>02809             }
+<a name="l02810"></a>02810             <span class="keywordflow">break</span>;
+<a name="l02811"></a>02811     }
+<a name="l02812"></a>02812     <span class="comment">// calculate screen ratio</span>
+<a name="l02813"></a>02813     <span class="keywordtype">double</span> screenratio = scanratio * scanfield_ratio;
+<a name="l02814"></a>02814 
+<a name="l02815"></a>02815     <span class="comment">// override screenratio for certain cases:</span>
+<a name="l02816"></a>02816     <span class="keywordflow">if</span> (vratio == 1.6) screenratio = 4.0 / 3.0;
+<a name="l02817"></a>02817     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vratio == 0.8) screenratio = 4.0 / 3.0;
+<a name="l02818"></a>02818     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vratio == 3.2) screenratio = 4.0 / 3.0;
+<a name="l02819"></a>02819     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vratio == (4.0/3.0)) screenratio = 4.0 / 3.0;
+<a name="l02820"></a>02820     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (vratio == (2.0/3.0)) screenratio = 4.0 / 3.0;
+<a name="l02821"></a>02821     <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((width &gt;= 800)&amp;&amp;(height&gt;=600)) screenratio = 4.0 / 3.0;
+<a name="l02822"></a>02822 
+<a name="l02823"></a>02823 <span class="preprocessor">#if C_DEBUG</span>
+<a name="l02824"></a>02824 <span class="preprocessor"></span>            <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;screen: %1.3f, scanfield: %1.3f, scan: %1.3f, vratio: %1.3f&quot;</span>,
+<a name="l02825"></a>02825                 screenratio, scanfield_ratio, scanratio, vratio);
+<a name="l02826"></a>02826 <span class="preprocessor">#endif</span>
+<a name="l02827"></a>02827 <span class="preprocessor"></span>
+<a name="l02828"></a>02828     <span class="keywordtype">bool</span> fps_changed = <span class="keyword">false</span>;
+<a name="l02829"></a>02829 
+<a name="l02830"></a>02830 <span class="preprocessor">#if C_DEBUG</span>
+<a name="l02831"></a>02831 <span class="preprocessor"></span>    <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;h total %2.5f (%3.2fkHz) blank(%02.5f/%02.5f) retrace(%02.5f/%02.5f)&quot;</span>,
+<a name="l02832"></a>02832         vga.draw.delay.htotal,(1.0/vga.draw.delay.htotal),
+<a name="l02833"></a>02833         vga.draw.delay.hblkstart,vga.draw.delay.hblkend,
+<a name="l02834"></a>02834         vga.draw.delay.hrstart,vga.draw.delay.hrend);
+<a name="l02835"></a>02835     <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;v total %2.5f (%3.2fHz) blank(%02.5f/%02.5f) retrace(%02.5f/%02.5f)&quot;</span>,
+<a name="l02836"></a>02836         vga.draw.delay.vtotal,(1000.0/vga.draw.delay.vtotal),
+<a name="l02837"></a>02837         vga.draw.delay.vblkstart,vga.draw.delay.vblkend,
+<a name="l02838"></a>02838         vga.draw.delay.vrstart,vga.draw.delay.vrend);
+<a name="l02839"></a>02839 
+<a name="l02840"></a>02840     <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;video clock: %3.2fMHz mode %s&quot;</span>,
+<a name="l02841"></a>02841         oscclock/1000000.0, mode_texts[vga.mode]);
+<a name="l02842"></a>02842 <span class="preprocessor">#endif</span>
+<a name="l02843"></a>02843 <span class="preprocessor"></span>
+<a name="l02844"></a>02844     <span class="comment">// need to change the vertical timing?</span>
+<a name="l02845"></a>02845     <span class="keywordflow">if</span> (vga_mode_time_base &lt; 0 || fabs(vga.draw.delay.vtotal - 1000.0 / fps) &gt; 0.0001)
+<a name="l02846"></a>02846         fps_changed = <span class="keyword">true</span>;
+<a name="l02847"></a>02847 
+<a name="l02848"></a>02848     <span class="comment">// need to resize the output window?</span>
+<a name="l02849"></a>02849     <span class="keywordflow">if</span> ((width != vga.draw.width) ||
+<a name="l02850"></a>02850         (height != vga.draw.height) ||
+<a name="l02851"></a>02851         (fabs(screenratio - vga.draw.screen_ratio) &gt; 0.0001) ||
+<a name="l02852"></a>02852         (vga.draw.bpp != bpp) || fps_changed) {
+<a name="l02853"></a>02853 
+<a name="l02854"></a>02854         VGA_KillDrawing();
+<a name="l02855"></a>02855 
+<a name="l02856"></a>02856         vga.draw.width = width;
+<a name="l02857"></a>02857         vga.draw.height = height;
+<a name="l02858"></a>02858         vga.draw.screen_ratio = screenratio;
+<a name="l02859"></a>02859         vga.draw.bpp = bpp;
+<a name="l02860"></a>02860 <span class="preprocessor">#if C_DEBUG</span>
+<a name="l02861"></a>02861 <span class="preprocessor"></span>        <a class="code" href="classLOG.html">LOG</a>(LOG_VGA,LOG_NORMAL)(<span class="stringliteral">&quot;%dx%d, %3.2fHz, %dbpp, screen %1.3f&quot;</span>,(int)width,(<span class="keywordtype">int</span>)height,fps,(int)bpp,screenratio);
+<a name="l02862"></a>02862 <span class="preprocessor">#endif</span>
+<a name="l02863"></a>02863 <span class="preprocessor"></span>        <span class="keywordflow">if</span> (!vga.draw.vga_override)
+<a name="l02864"></a>02864             RENDER_SetSize(width,height,bpp,(<span class="keywordtype">float</span>)fps,screenratio);
+<a name="l02865"></a>02865 
+<a name="l02866"></a>02866         <span class="keywordflow">if</span> (fps_changed) {
+<a name="l02867"></a>02867             vga_mode_time_base = PIC_FullIndex();
+<a name="l02868"></a>02868             vga_mode_frames_since_time_base = 0;
+<a name="l02869"></a>02869             PIC_RemoveEvents(VGA_Other_VertInterrupt);
+<a name="l02870"></a>02870             PIC_RemoveEvents(VGA_VerticalTimer);
+<a name="l02871"></a>02871             PIC_RemoveEvents(VGA_PanningLatch);
+<a name="l02872"></a>02872             PIC_RemoveEvents(VGA_DisplayStartLatch);
+<a name="l02873"></a>02873             vga.draw.delay.vtotal = 1000.0 / fps;
+<a name="l02874"></a>02874             vga.draw.lines_done = vga.draw.lines_total;
+<a name="l02875"></a>02875             vga_fps = fps;
+<a name="l02876"></a>02876             VGA_VerticalTimer(0);
+<a name="l02877"></a>02877         }
+<a name="l02878"></a>02878     }
+<a name="l02879"></a>02879     vga.draw.delay.singleline_delay = (float)vga.draw.delay.htotal;
+<a name="l02880"></a>02880 
+<a name="l02881"></a>02881     <span class="comment">/* FIXME: Why is this required to prevent VGA palette errors with Crystal Dream II?</span>
+<a name="l02882"></a>02882 <span class="comment">     *        What is this code doing to change the palette prior to this point? */</span>
+<a name="l02883"></a>02883     VGA_DAC_UpdateColorPalette();
+<a name="l02884"></a>02884 }
+<a name="l02885"></a>02885 
+<a name="l02886"></a>02886 <span class="keywordtype">void</span> VGA_KillDrawing(<span class="keywordtype">void</span>) {
+<a name="l02887"></a>02887     PIC_RemoveEvents(VGA_DrawSingleLine);
+<a name="l02888"></a>02888     PIC_RemoveEvents(VGA_DrawEGASingleLine);
+<a name="l02889"></a>02889 }
+<a name="l02890"></a>02890 
+<a name="l02891"></a>02891 <span class="keywordtype">void</span> VGA_SetOverride(<span class="keywordtype">bool</span> vga_override) {
+<a name="l02892"></a>02892     <span class="keywordflow">if</span> (vga.draw.vga_override!=vga_override) {
+<a name="l02893"></a>02893         
+<a name="l02894"></a>02894         <span class="keywordflow">if</span> (vga_override) {
+<a name="l02895"></a>02895             VGA_KillDrawing();
+<a name="l02896"></a>02896             vga.draw.vga_override=<span class="keyword">true</span>;
+<a name="l02897"></a>02897         } <span class="keywordflow">else</span> {
+<a name="l02898"></a>02898             vga.draw.vga_override=<span class="keyword">false</span>;
+<a name="l02899"></a>02899             vga.draw.width=0; <span class="comment">// change it so the output window gets updated</span>
+<a name="l02900"></a>02900             VGA_SetupDrawing(0);
+<a name="l02901"></a>02901         }
+<a name="l02902"></a>02902     }
+<a name="l02903"></a>02903 }
+<a name="l02904"></a>02904 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Jul 9 2018 18:44:03 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 15 2018 11:44:18 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>
