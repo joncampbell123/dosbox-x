@@ -146,6 +146,10 @@
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
 
+#include "zipfile.h"
+
+extern ZIPFile savestate_zip;
+
 using namespace std;
 
 extern int                          vga_memio_delay_ns;
@@ -1137,6 +1141,70 @@ void VGA_Destroy(Section*) {
     PC98_FM_Destroy(NULL);
 }
 
+void VGA_LoadState(Section *sec) {
+    (void)sec;//UNUSED
+
+    if (IS_PC98_ARCH) {
+    }
+    else {
+        {
+            ZIPFileEntry *ent = savestate_zip.get_entry("vga.ac.palette.bin");
+            if (ent != NULL) {
+                ent->read(vga.attr.palette, 0x10);
+            }
+        }
+
+        {
+            unsigned char tmp[256 * 3];
+
+            ZIPFileEntry *ent = savestate_zip.get_entry("vga.dac.palette.bin");
+            if (ent != NULL) {
+                ent->rewind();
+                ent->read(tmp, 256 * 3);
+                for (unsigned int c=0;c < 256;c++) {
+                    vga.dac.rgb[c].red =   tmp[c*3 + 0];
+                    vga.dac.rgb[c].green = tmp[c*3 + 1];
+                    vga.dac.rgb[c].blue =  tmp[c*3 + 2];
+                }
+            }
+        }
+
+        for (unsigned int i=0;i < 0x10;i++)
+            VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
+
+        VGA_DAC_UpdateColorPalette();
+    }
+}
+
+void VGA_SaveState(Section *sec) {
+    (void)sec;//UNUSED
+
+    if (IS_PC98_ARCH) {
+    }
+    else {
+        {
+            ZIPFileEntry *ent = savestate_zip.new_entry("vga.ac.palette.bin");
+            if (ent != NULL) {
+                ent->write(vga.attr.palette, 0x10);
+            }
+        }
+
+        {
+            unsigned char tmp[256 * 3];
+
+            ZIPFileEntry *ent = savestate_zip.new_entry("vga.dac.palette.bin");
+            if (ent != NULL) {
+                for (unsigned int c=0;c < 256;c++) {
+                    tmp[c*3 + 0] = vga.dac.rgb[c].red;
+                    tmp[c*3 + 1] = vga.dac.rgb[c].green;
+                    tmp[c*3 + 2] = vga.dac.rgb[c].blue;
+                }
+                ent->write(tmp, 256 * 3);
+            }
+        }
+    }
+}
+
 void VGA_Init() {
     string str;
     Bitu i,j;
@@ -1200,6 +1268,9 @@ void VGA_Init() {
 
     AddExitFunction(AddExitFunctionFuncPair(VGA_Destroy));
     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(VGA_Reset));
+
+    AddVMEventFunction(VM_EVENT_LOAD_STATE,AddVMEventFunctionFuncPair(VGA_LoadState));
+    AddVMEventFunction(VM_EVENT_SAVE_STATE,AddVMEventFunctionFuncPair(VGA_SaveState));
 }
 
 void SVGA_Setup_Driver(void) {
