@@ -4,7 +4,7 @@ Be fair, and work cooperatively. This is a open source project where anyone with
 
 Leave your politics at the door. The focus of this project is DOSBox-X and topics related to it including emulation, games, software, hardware, accuracy, code, development, and documentation. Anything else is off-topic and will be treated as such.
 
-I (Jonathan Campbell) will block users that are hostile to this project, it's developers, and/or users with an explicit explanation as to why. That includes threats, slander, damaging gossip, doxxing, and spreading misinformation about myself or other users of this project, whether here or anywhere else, on the internet or in real life.
+I (Jonathan Campbell) will block users that are hostile to this project, it's developers, and/or users with an explicit explanation as to why. That includes threats, slander, damaging gossip, doxxing, and spreading misinformation about myself and/or other users of this project, whether here or anywhere else, on the internet or in real life.
 
 Humor and jokes are welcome as long as they are on-topic. This is a fun hobby project where enthusiasts can get together to hack, modify, explore and share a common interest in this project and the aforementioned topics listed above.
 
