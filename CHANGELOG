@@ -1,3 +1,9 @@
+??????
+  - DOSBox-X now has its internal state for NumLock, CapsLock, and ScrollLock keys.
+    Initial values are settable in the configuration. When focused, the internal
+    state is switched to, when unfocused, the host state is switched to.
+    (Windows) (Aybe)
+    
 0.82.8
   - New xBRZ scaler (with bilinear mode) (Alexat)
   - Fixed aspect ratio correction to use the ratio given by VGA emulation

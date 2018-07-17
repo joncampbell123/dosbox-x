@@ -7377,61 +7377,130 @@ void ROMBIOS_Init() {
     }
 }
 
-//! \brief Updates the state of a lockable key.
-void UpdateKeyWithLed(int nVirtKey, int flagAct, int flagLed);
+#if WIN32
 
-void BIOS_SynchronizeNumLock()
+void BIOS_GetInternalKeyFlags(const LOCKABLE_KEY key, int& act, int& led)
 {
-#if defined(WIN32)
-	UpdateKeyWithLed(VK_NUMLOCK, BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE, BIOS_KEYBOARD_LEDS_NUM_LOCK);
-#endif
+    switch(key)
+    {
+    case LOCKABLE_KEY::NumLock:
+        act = BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE;
+        led = BIOS_KEYBOARD_LEDS_NUM_LOCK;
+        break;
+    case LOCKABLE_KEY::CapsLock:
+        act = BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE;
+        led = BIOS_KEYBOARD_LEDS_CAPS_LOCK;
+        break;
+    case LOCKABLE_KEY::ScrollLock:
+        act = BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE;
+        led = BIOS_KEYBOARD_LEDS_SCROLL_LOCK;
+        break;
+    default:
+        throw std::runtime_error("Lockable key not defined.");
+    }
 }
 
-void BIOS_SynchronizeCapsLock()
+int BIOS_GetExternalKeyFlags(const LOCKABLE_KEY key)
 {
-#if defined(WIN32)
-	UpdateKeyWithLed(VK_CAPITAL, BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_CAPS_LOCK);
-#endif
+    switch(key)
+    {
+    case LOCKABLE_KEY::NumLock:
+        return VK_NUMLOCK;
+    case LOCKABLE_KEY::CapsLock:
+        return VK_CAPITAL;
+    case LOCKABLE_KEY::ScrollLock:
+        return VK_SCROLL;
+    default:
+        throw std::runtime_error("Lockable key not defined.");
+    }
 }
 
-void BIOS_SynchronizeScrollLock()
+void BIOS_GetInternalKeyState(const LOCKABLE_KEY key, bool& act, bool& led)
 {
-#if defined(WIN32)
-	UpdateKeyWithLed(VK_SCROLL, BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE, BIOS_KEYBOARD_LEDS_SCROLL_LOCK);
-#endif
+    int fAct, fLed;
+
+    BIOS_GetInternalKeyFlags(key, fAct, fLed);
+
+    const auto flag1 = mem_readb(BIOS_KEYBOARD_FLAGS1);
+    const auto flag2 = mem_readb(BIOS_KEYBOARD_LEDS);
+    act              = flag1 & fAct;
+    led              = flag2 & fLed;
 }
 
-void UpdateKeyWithLed(int nVirtKey, int flagAct, int flagLed)
+bool BIOS_GetInternalKeyState(const LOCKABLE_KEY key)
 {
-#if defined(WIN32)
+    bool act, led;
+    BIOS_GetInternalKeyState(key, act, led);
+    return act;
+}
 
-	const auto state = GetKeyState(nVirtKey);
+bool BIOS_GetExternalKeyState(const LOCKABLE_KEY key)
+{
+    const auto flags = BIOS_GetExternalKeyFlags(key);
+    const auto state = GetKeyState(flags);
+    const auto enabl = state & 0x0001;
+    return enabl;
+}
 
-	const auto flags1 = BIOS_KEYBOARD_FLAGS1;
-	const auto flags2 = BIOS_KEYBOARD_LEDS;
+bool BIOS_SetInternalKeyState(const LOCKABLE_KEY key, bool enabled)
+{
+    bool bAct, bLed;
+    BIOS_GetInternalKeyState(key, bAct, bLed);
 
-	auto flag1 = mem_readb(flags1);
-	auto flag2 = mem_readb(flags2);
+    int fAct, fLed;
+    BIOS_GetInternalKeyFlags(key, fAct, fLed);
 
-	if (state & 1)
-	{
-		flag1 |= flagAct;
-		flag2 |= flagLed;
-	}
-	else
-	{
-		flag1 &= ~flagAct;
-		flag2 &= ~flagLed;
-	}
+    const auto flags1 = BIOS_KEYBOARD_FLAGS1;
+    const auto flags2 = BIOS_KEYBOARD_LEDS;
+    auto       flag1  = mem_readb(flags1);
+    auto       flag2  = mem_readb(flags2);
 
-	mem_writeb(flags1, flag1);
-	mem_writeb(flags2, flag2);
+    if(enabled)
+    {
+        flag1 |= fAct;
+        flag2 |= fLed;
+    }
+    else
+    {
+        flag1 &= ~fAct;
+        flag2 &= ~fLed;
+    }
 
-#else
+    mem_writeb(flags1, flag1);
+    mem_writeb(flags2, flag2);
 
-    (void)nVirtKey;
-    (void)flagAct;
-    (void)flagLed;
+    return bAct;
+}
+
+bool BIOS_SetExternalKeyState(const LOCKABLE_KEY key, bool enabled)
+{
+    const auto prev = BIOS_GetExternalKeyState(key);
+
+    if(enabled == prev)
+        return enabled;
+
+    const auto vKey = BIOS_GetExternalKeyFlags(key);
+    const auto send = [](INPUT input)
+    {
+        if(!SendInput(1, &input, sizeof(INPUT)))
+            LOG(LOG_KEYBOARD, LOG_ERROR)("Error during SendInput: %d", GetLastError());
+    };
+
+    const auto vScan = MapVirtualKey(vKey, MAPVK_VK_TO_VSC);
+    if (vScan == 0)
+        throw std::runtime_error(std::string("Couldn't map virtual key ").append(std::to_string(vKey)));
+
+    INPUT input;
+    input.type   = INPUT_KEYBOARD;
+    input.ki.wScan = vScan;
+
+    input.ki.dwFlags = KEYEVENTF_SCANCODE;
+    send(input);
+
+    input.ki.dwFlags = KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP;
+    send(input);
+
+    return prev;
+}
 
 #endif
-}

@@ -40,24 +40,24 @@
 /* #define bios_expansion_memory_size      (*(unsigned int   *) 0x415) */
 #define BIOS_KEYBOARD_STATE             0x417
 #define BIOS_KEYBOARD_FLAGS1            BIOS_KEYBOARD_STATE
-#define BIOS_KEYBOARD_FLAGS1_RSHIFT_PRESSED			(1 << 0)
-#define BIOS_KEYBOARD_FLAGS1_LSHIFT_PRESSED			(1 << 1)
-#define BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED			(1 << 2)
-#define BIOS_KEYBOARD_FLAGS1_ALT_PRESSED			(1 << 3)
-#define BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE		(1 << 4)
-#define BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE			(1 << 5)
-#define BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE		(1 << 6)
-#define BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE			(1 << 7)
+#define BIOS_KEYBOARD_FLAGS1_RSHIFT_PRESSED         0x01
+#define BIOS_KEYBOARD_FLAGS1_LSHIFT_PRESSED         0x02
+#define BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED           0x04
+#define BIOS_KEYBOARD_FLAGS1_ALT_PRESSED            0x08
+#define BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE     0x10
+#define BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE         0x20
+#define BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE       0x40
+#define BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE          0x80
 
 #define BIOS_KEYBOARD_FLAGS2            0x418
-#define BIOS_KEYBOARD_FLAGS2_LCTRL_PRESSED			(1 << 0)
-#define BIOS_KEYBOARD_FLAGS2_LALT_PRESSED			(1 << 1)
-#define BIOS_KEYBOARD_FLAGS2_SYSTEMKEY_HELD			(1 << 2)
-#define BIOS_KEYBOARD_FLAGS2_SUSPENDKEY_TOGGLED		(1 << 3)
-#define BIOS_KEYBOARD_FLAGS2_SCROLL_LOCK_PRESSED	(1 << 4)
-#define BIOS_KEYBOARD_FLAGS2_NUM_LOCK_PRESSED		(1 << 5)
-#define BIOS_KEYBOARD_FLAGS2_CAPS_LOCK_PRESSED		(1 << 6)
-#define BIOS_KEYBOARD_FLAGS2_INSERT_PRESSED			(1 << 7)
+#define BIOS_KEYBOARD_FLAGS2_LCTRL_PRESSED          0x01
+#define BIOS_KEYBOARD_FLAGS2_LALT_PRESSED           0x02
+#define BIOS_KEYBOARD_FLAGS2_SYSTEMKEY_HELD         0x04
+#define BIOS_KEYBOARD_FLAGS2_SUSPENDKEY_TOGGLED     0x08
+#define BIOS_KEYBOARD_FLAGS2_SCROLL_LOCK_PRESSED    0x10
+#define BIOS_KEYBOARD_FLAGS2_NUM_LOCK_PRESSED       0x20
+#define BIOS_KEYBOARD_FLAGS2_CAPS_LOCK_PRESSED      0x40
+#define BIOS_KEYBOARD_FLAGS2_INSERT_PRESSED         0x80
 
 #define BIOS_KEYBOARD_TOKEN             0x419
 /* used for keyboard input with Alt-Number */
@@ -113,24 +113,24 @@
 #define BIOS_VIDEO_COMBO                0x48a
 
 #define BIOS_KEYBOARD_FLAGS3            0x496
-#define BIOS_KEYBOARD_FLAGS3_HIDDEN_E1			(1 << 0)
-#define BIOS_KEYBOARD_FLAGS3_HIDDEN_E0			(1 << 1)
-#define BIOS_KEYBOARD_FLAGS3_RCTRL_PRESSED		(1 << 2)
-#define BIOS_KEYBOARD_FLAGS3_RALT_PRESSED		(1 << 3)
-#define BIOS_KEYBOARD_FLAGS3_ENHANCED_KEYBOARD	(1 << 4)
-#define BIOS_KEYBOARD_FLAGS3_NUM_LOCK_FORCED	(1 << 5)
-#define BIOS_KEYBOARD_FLAGS3_ID_CHAR_WAS_LAST	(1 << 6)
-#define BIOS_KEYBOARD_FLAGS3_ID_READ_IN_PROCESS	(1 << 7)
+#define BIOS_KEYBOARD_FLAGS3_HIDDEN_E1              0x01
+#define BIOS_KEYBOARD_FLAGS3_HIDDEN_E0              0x02
+#define BIOS_KEYBOARD_FLAGS3_RCTRL_PRESSED          0x04
+#define BIOS_KEYBOARD_FLAGS3_RALT_PRESSED           0x08
+#define BIOS_KEYBOARD_FLAGS3_ENHANCED_KEYBOARD      0x10
+#define BIOS_KEYBOARD_FLAGS3_NUM_LOCK_FORCED        0x20
+#define BIOS_KEYBOARD_FLAGS3_ID_CHAR_WAS_LAST       0x40
+#define BIOS_KEYBOARD_FLAGS3_ID_READ_IN_PROCESS     0x80
 
 #define BIOS_KEYBOARD_LEDS              0x497
-#define BIOS_KEYBOARD_LEDS_SCROLL_LOCK    (1 << 0)
-#define BIOS_KEYBOARD_LEDS_NUM_LOCK       (1 << 1)
-#define BIOS_KEYBOARD_LEDS_CAPS_LOCK      (1 << 2)
-#define BIOS_KEYBOARD_LEDS_CIRCUS         (1 << 3)
-#define BIOS_KEYBOARD_LEDS_ACK            (1 << 4)
-#define BIOS_KEYBOARD_LEDS_RESEND         (1 << 5)
-#define BIOS_KEYBOARD_LEDS_MODE           (1 << 6)
-#define BIOS_KEYBOARD_LEDS_TRANSMIT_ERROR (1 << 7)
+#define BIOS_KEYBOARD_LEDS_SCROLL_LOCK              0x01
+#define BIOS_KEYBOARD_LEDS_NUM_LOCK                 0x02
+#define BIOS_KEYBOARD_LEDS_CAPS_LOCK                0x04
+#define BIOS_KEYBOARD_LEDS_CIRCUS                   0x08
+#define BIOS_KEYBOARD_LEDS_ACK                      0x10
+#define BIOS_KEYBOARD_LEDS_RESEND                   0x20
+#define BIOS_KEYBOARD_LEDS_MODE                     0x40
+#define BIOS_KEYBOARD_LEDS_TRANSMIT_ERROR           0x80
 
 #define BIOS_WAIT_FLAG_POINTER          0x498
 #define BIOS_WAIT_FLAG_COUNT	        0x49c		
@@ -189,14 +189,47 @@ void INT10_ReloadRomFonts();
 void BIOS_SetComPorts (Bit16u baseaddr[]);
 void BIOS_SetLPTPort (Bitu port, Bit16u baseaddr);
 
-// \brief Synchronizes emulator num lock state with host.
-void BIOS_SynchronizeNumLock();
+#if WIN32
 
-// \brief Synchronizes emulator caps lock state with host.
-void BIOS_SynchronizeCapsLock();
+enum class LOCKABLE_KEY
+{
+    NumLock,
+    CapsLock,
+    ScrollLock
+};
 
-// \brief Synchronizes emulator scroll lock state with host.
-void BIOS_SynchronizeScrollLock();
+/*
+ * \brief Gets the internal state of a lockable key.
+ * @param[out] act Is the key toggled ?
+ * @param[out] led Is the led active ?
+ */
+void BIOS_GetInternalKeyState(LOCKABLE_KEY key, bool& act, bool& led);
+
+/*
+ * \brief Gets the internal state of a lockable key.
+ * \return Is the key toggled ?
+ */
+bool BIOS_GetInternalKeyState(LOCKABLE_KEY key);
+
+/*
+ * \brief Gets the external state of a lockable key.
+ * \return Is the key toggled ?
+ */
+bool BIOS_GetExternalKeyState(LOCKABLE_KEY key);
+
+/*
+ * \brief Sets the internal state of a lockable key.
+ * \return Previous state value.
+ */
+bool BIOS_SetInternalKeyState(LOCKABLE_KEY key, bool enabled);
+
+/*
+ * \brief Sets the external state of a lockable key.
+ * \return Previous state value.
+ */
+bool BIOS_SetExternalKeyState(LOCKABLE_KEY key, bool enabled);
+
+#endif
 
 bool ISAPNP_RegisterSysDev(const unsigned char *raw,Bitu len,bool already=false);
 

@@ -370,9 +370,6 @@ bool                        emu_paused = false;
 bool                        mouselocked = false; //Global variable for mapper
 bool                        fullscreen_switch = true;
 bool                        dos_kernel_disabled = true;
-bool                        startup_state_numlock = false; // Global for keyboard initialisation
-bool                        startup_state_capslock = false; // Global for keyboard initialisation
-bool                        startup_state_scrlock = false; // Global for keyboard initialisation
 
 #if defined(WIN32) && !defined(C_SDL2)
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
@@ -4439,6 +4436,16 @@ void GFX_EventsMouse()
 #endif
 }
 
+bool keyboard_startup_num_lock;
+bool keyboard_startup_caps_lock;
+bool keyboard_startup_scroll_lock;
+bool keyboard_ext_num_lock;
+bool keyboard_ext_caps_lock;
+bool keyboard_ext_scroll_lock;
+bool keyboard_int_num_lock;
+bool keyboard_int_caps_lock;
+bool keyboard_int_scroll_lock;
+
 void GFX_Events() {
     CheckMapperKeyboardLayout();
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
@@ -4660,15 +4667,46 @@ void GFX_Events() {
         }
 #endif
         case SDL_ACTIVEEVENT:
-                if (event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
+
+#if WIN32
+            if (event.active.state & SDL_APPINPUTFOCUS)
+            {
+                if(event.active.gain)
+                {
+                    keyboard_ext_num_lock    = BIOS_GetExternalKeyState(LOCKABLE_KEY::NumLock);
+                    keyboard_ext_caps_lock   = BIOS_GetExternalKeyState(LOCKABLE_KEY::CapsLock);
+                    keyboard_ext_scroll_lock = BIOS_GetExternalKeyState(LOCKABLE_KEY::ScrollLock);
+                    BIOS_SetExternalKeyState(LOCKABLE_KEY::NumLock, keyboard_int_num_lock);
+                    BIOS_SetExternalKeyState(LOCKABLE_KEY::CapsLock, keyboard_int_caps_lock);
+                    BIOS_SetExternalKeyState(LOCKABLE_KEY::ScrollLock, keyboard_int_scroll_lock);
+                    BIOS_SetInternalKeyState(LOCKABLE_KEY::NumLock, keyboard_ext_num_lock);
+                    BIOS_SetInternalKeyState(LOCKABLE_KEY::CapsLock, keyboard_ext_caps_lock);
+                    BIOS_SetInternalKeyState(LOCKABLE_KEY::ScrollLock, keyboard_ext_scroll_lock);
+                }
+                else
+                {
+                    keyboard_int_num_lock    = BIOS_GetInternalKeyState(LOCKABLE_KEY::NumLock);
+                    keyboard_int_caps_lock   = BIOS_GetInternalKeyState(LOCKABLE_KEY::CapsLock);
+                    keyboard_int_scroll_lock = BIOS_GetInternalKeyState(LOCKABLE_KEY::ScrollLock);
+                    BIOS_SetExternalKeyState(LOCKABLE_KEY::NumLock, keyboard_ext_num_lock);
+                    BIOS_SetExternalKeyState(LOCKABLE_KEY::CapsLock, keyboard_ext_caps_lock);
+                    BIOS_SetExternalKeyState(LOCKABLE_KEY::ScrollLock, keyboard_ext_scroll_lock);
+                }
+                const auto lbl = event.active.gain ? "Focus GAIN" : "Focus LOST";
+                const auto sta = event.active.state;
+                LOG(LOG_KEYBOARD, LOG_DEBUG)("%s st %d, int %d, %d, %d",
+                    lbl, sta, keyboard_int_num_lock, keyboard_int_caps_lock, keyboard_int_scroll_lock);
+                LOG(LOG_KEYBOARD, LOG_DEBUG)("%s st %d, ext %d, %d, %d",
+                    lbl, sta, keyboard_ext_num_lock, keyboard_ext_caps_lock, keyboard_ext_scroll_lock);
+            }
+#endif
+
+            if (event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
                 if (event.active.gain) {
                     if (sdl.desktop.fullscreen && !sdl.mouse.locked)
                         GFX_CaptureMouse();
                     SetPriority(sdl.priority.focus);
                     CPU_Disable_SkipAutoAdjust();
-					BIOS_SynchronizeNumLock();
-					BIOS_SynchronizeCapsLock();
-					BIOS_SynchronizeScrollLock();
 				} else {
                     if (sdl.mouse.locked)
                     {
@@ -5469,39 +5507,6 @@ void SetNumLock(void) {
 
     // Simulate a key release
     keybd_event(VK_NUMLOCK,0x45,KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP,0);
-#endif
-}
-
-void CheckNumLockState(void) {
-#ifdef WIN32
-    BYTE keyState[256];
-
-    GetKeyboardState((LPBYTE)(&keyState));
-	if (keyState[VK_NUMLOCK] & 1) {
-		startup_state_numlock = true;
-	}
-#endif
-}
-
-void CheckCapsLockState(void) {
-#ifdef WIN32
-    BYTE keyState[256];
-
-    GetKeyboardState((LPBYTE)(&keyState));
-	if (keyState[VK_CAPITAL] & 1) {
-		startup_state_capslock = true;
-	}
-#endif
-}
-
-void CheckScrollLockState(void) {
-#ifdef WIN32
-    BYTE keyState[256];
-
-    GetKeyboardState((LPBYTE)(&keyState));
-	if (keyState[VK_SCROLL] & 1) {
-		startup_state_scrlock = true;
-	}
 #endif
 }
 
@@ -6673,11 +6678,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 #endif
 
-        /* -- Init the configuration system and add default values */
-        CheckNumLockState();
-        CheckCapsLockState();
-        CheckScrollLockState();
-
         /* -- setup the config sections for config parsing */
         LOG::SetupConfigSection();
         SDL_SetupConfigSection();
@@ -7152,6 +7152,20 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             Section_prop *sec = static_cast<Section_prop *>(control->GetSection("dosbox"));
             enable_hook_special_keys = sec->Get_bool("keyboard hook");
         }
+#endif
+
+        // set external keys, save initial value, set internal keys
+#if WIN32
+        const auto kbd               = dynamic_cast<Section_prop *>(control->GetSection("keyboard"));
+        keyboard_startup_num_lock    = kbd->Get_bool("startup_num_lock");
+        keyboard_startup_caps_lock   = kbd->Get_bool("startup_caps_lock");
+        keyboard_startup_scroll_lock = kbd->Get_bool("startup_scroll_lock");
+        keyboard_ext_num_lock        = BIOS_SetExternalKeyState(LOCKABLE_KEY::NumLock, keyboard_startup_num_lock);
+        keyboard_ext_caps_lock       = BIOS_SetExternalKeyState(LOCKABLE_KEY::CapsLock, keyboard_startup_caps_lock);
+        keyboard_ext_scroll_lock     = BIOS_SetExternalKeyState(LOCKABLE_KEY::ScrollLock, keyboard_startup_scroll_lock);
+        keyboard_int_num_lock        = keyboard_startup_num_lock;
+        keyboard_int_caps_lock       = keyboard_startup_caps_lock;
+        keyboard_int_scroll_lock     = keyboard_startup_scroll_lock;
 #endif
 
         MSG_Init();

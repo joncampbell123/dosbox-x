@@ -30,6 +30,7 @@
 #include "timer.h"
 #include <math.h>
 #include "8255.h"
+#include "bios.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -1635,9 +1636,20 @@ void KEYBOARD_AddKey(KBD_KEYS keytype,bool pressed) {
     };
 }
     
+extern bool keyboard_ext_num_lock;
+extern bool keyboard_ext_caps_lock;
+extern bool keyboard_ext_scroll_lock;
+ 
 static void KEYBOARD_ShutDown(Section * sec) {
     (void)sec;//UNUSED
     TIMER_DelTickHandler(&KEYBOARD_TickHandler);
+
+    // restore external keys
+#if WIN32
+    BIOS_SetExternalKeyState(LOCKABLE_KEY::NumLock, keyboard_ext_num_lock);
+    BIOS_SetExternalKeyState(LOCKABLE_KEY::CapsLock, keyboard_ext_caps_lock);
+    BIOS_SetExternalKeyState(LOCKABLE_KEY::ScrollLock, keyboard_ext_scroll_lock);
+#endif
 }
 
 bool KEYBOARD_Report_BIOS_PS2Mouse() {
