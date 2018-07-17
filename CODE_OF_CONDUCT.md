@@ -14,3 +14,6 @@ I (Jonathan Campbell), as the owner of this project, reserve the right to block 
 * [Interest, a quality in a thing arousing interest](https://www.merriam-webster.com/dictionary/interest)
 * [Focus, directed attention](https://www.merriam-webster.com/dictionary/focus)
 * [Hostile, marked by malevolence, of an enemy, openly opposed, not hospitable](https://www.merriam-webster.com/dictionary/hostile)
+* [Threats, an expression of intention to inflict evil, injury, or damage](https://www.merriam-webster.com/dictionary/threats)
+* [Slander, to utter slander against, defame](https://www.merriam-webster.com/dictionary/slander)
+* [Defame, to harm the reputation of by communicating false statements about : to harm the reputation of by libel](https://www.merriam-webster.com/dictionary/defame)
