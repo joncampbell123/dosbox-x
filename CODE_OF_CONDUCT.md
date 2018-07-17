@@ -23,4 +23,5 @@ Definition of terms:
 * [Dox, to publicly identify or publish private information about (someone) especially as a form of punishment or revenge](https://www.merriam-webster.com/dictionary/dox)
 * [Enthusiast, one who tends to become ardently absorbed in an interest](https://www.merriam-webster.com/dictionary/enthusiast)
 * [Joke, something said or done to provoke laughter; especially : a brief oral narrative with a climactic humorous twist, something not to be taken seriously : a trifling matter](https://www.merriam-webster.com/dictionary/joke)
+* [Humor, something that is or is designed to be comical or amusing](https://www.merriam-webster.com/dictionary/humor)
 * [Hobby, an activity or interest pursued for pleasure or relaxation and not as a main occupation](http://www.dictionary.com/browse/hobby)
