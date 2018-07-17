@@ -11,3 +11,6 @@ Humor and jokes are welcome as long as they are on-topic. This is a fun hobby pr
 I (Jonathan Campbell), as the owner of this project, reserve the right to block users that violate this Code of Conduct or otherwise disrupt this project according to my judgement. Other users whom I have given access to do so, may block users from this project that explicitly violate this Code of Conduct.
 
 * [Anyone, any person at all](https://www.merriam-webster.com/dictionary/anyone)
+* [Interest, a quality in a thing arousing interest](https://www.merriam-webster.com/dictionary/interest)
+* [focus, directed attention](https://www.merriam-webster.com/dictionary/focus)
+
