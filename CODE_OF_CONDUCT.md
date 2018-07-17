@@ -10,6 +10,7 @@ Humor and jokes are welcome as long as they are on-topic. This is a fun hobby pr
 
 I (Jonathan Campbell), as the owner of this project, reserve the right to block users that violate this Code of Conduct or otherwise disrupt this project according to my judgement. Other users whom I have given access to do so, may block users from this project that explicitly violate this Code of Conduct.
 
+Definition of terms:
 * [Anyone, any person at all](https://www.merriam-webster.com/dictionary/anyone)
 * [Interest, a quality in a thing arousing interest](https://www.merriam-webster.com/dictionary/interest)
 * [Focus, directed attention](https://www.merriam-webster.com/dictionary/focus)
@@ -19,3 +20,4 @@ I (Jonathan Campbell), as the owner of this project, reserve the right to block 
 * [Defame, to harm the reputation of by communicating false statements about : to harm the reputation of by libel](https://www.merriam-webster.com/dictionary/defame)
 * [Gossip, rumor or report of an intimate nature](https://www.merriam-webster.com/dictionary/gossip)
 * [Dox, to publicly identify or publish private information about (someone) especially as a form of punishment or revenge](https://www.merriam-webster.com/dictionary/dox)
+* [Enthusiast, one who tends to become ardently absorbed in an interest](https://www.merriam-webster.com/dictionary/enthusiast)
