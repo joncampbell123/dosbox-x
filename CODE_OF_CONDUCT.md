@@ -12,5 +12,5 @@ I (Jonathan Campbell), as the owner of this project, reserve the right to block 
 
 * [Anyone, any person at all](https://www.merriam-webster.com/dictionary/anyone)
 * [Interest, a quality in a thing arousing interest](https://www.merriam-webster.com/dictionary/interest)
-* [focus, directed attention](https://www.merriam-webster.com/dictionary/focus)
-
+* [Focus, directed attention](https://www.merriam-webster.com/dictionary/focus)
+* [Hostile, marked by malevolence, of an enemy, openly opposed, not hospitable](https://www.merriam-webster.com/dictionary/hostile)
