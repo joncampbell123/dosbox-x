@@ -21,3 +21,4 @@ Definition of terms:
 * [Gossip, rumor or report of an intimate nature](https://www.merriam-webster.com/dictionary/gossip)
 * [Dox, to publicly identify or publish private information about (someone) especially as a form of punishment or revenge](https://www.merriam-webster.com/dictionary/dox)
 * [Enthusiast, one who tends to become ardently absorbed in an interest](https://www.merriam-webster.com/dictionary/enthusiast)
+* [Joke, something said or done to provoke laughter; especially : a brief oral narrative with a climactic humorous twist, something not to be taken seriously : a trifling matter](https://www.merriam-webster.com/dictionary/joke)
