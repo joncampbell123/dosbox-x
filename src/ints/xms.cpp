@@ -688,6 +688,12 @@ public:
 		first_umb_seg=section->Get_hex("umb start");
 		first_umb_size=section->Get_hex("umb end");
 
+        /* This code will mess up the MCB chain in PCjr mode if umb=true */
+        if (umb_available && machine == MCH_PCJR) {
+            LOG(LOG_MISC,LOG_DEBUG)("UMB emulation is incompatible with PCjr emulation, disabling UMBs");
+            umb_available = false;
+        }
+
 		DOS_GetMemory_Choose();
 
 		// Sanity check
