@@ -41,7 +41,7 @@
  * The proper way is in the mapper, but the repeating key is an unwanted side effect for lower versions of SDL */
 #endif
 
-static Bitu call_int16 = 0,call_irq1 = 0,irq1_ret_ctrlbreak_callback = 0,call_irq6 = 0;
+static Bitu call_int16 = 0,call_irq1 = 0,irq1_ret_ctrlbreak_callback = 0,call_irq6 = 0,call_irq_pcjr_nmi = 0;
 
 /* Nice table from BOCHS i should feel bad for ripping this */
 #define none 0
@@ -1215,23 +1215,13 @@ static Bitu IRQ1_Handler_PC98(void) {
 }
 
 static Bitu PCjr_NMI_Keyboard_Handler(void) {
-    Bitu save_eax = reg_eax;
+#if 0
+    Bitu DEBUG_EnableDebugger(void);
+    DEBUG_EnableDebugger();
+#endif
+    if (IO_ReadB(0x64) & 1) /* while data is available */
+        reg_eip++; /* skip over EIP to IRQ1 call through */
 
-    while (IO_ReadB(0x64) & 1) { /* while data is available */
-        Bitu save_ip = reg_eip;
-
-        /* HACK: IRQ1 handler modifies AX and IP. So do we!
-         *       The NMI handler is registered as CB_IRET which does not save any registers.
-         *       To avoid causing crashes and glitches, save and restore the CPU registers affected NOW.
-         *
-         *       I don't think the PCjr has the INT 15h hook that AT systems do. */
-        reg_al=IO_ReadB(0x60);
-        IRQ1_Handler();
-
-        reg_eip = save_ip;
-    }
-
-    reg_ax = save_eax;
     return CBRET_NONE;
 }
 
@@ -1437,6 +1427,10 @@ void BIOS_UnsetupKeyboard(void) {
         CALLBACK_DeAllocate(call_irq1);
         call_irq1 = 0;
     }
+    if (call_irq_pcjr_nmi != 0) {
+        CALLBACK_DeAllocate(call_irq_pcjr_nmi);
+        call_irq_pcjr_nmi = 0;
+    }
     if (call_irq6 != 0) {
         CALLBACK_DeAllocate(call_irq6);
         call_irq6 = 0;
@@ -1467,11 +1461,27 @@ void BIOS_SetupKeyboard(void) {
 
     call_irq1=CALLBACK_Allocate();
     if (machine == MCH_PCJR) { /* PCjr keyboard interrupt connected to NMI */
-        /* FIXME: This doesn't take INT 15h hook into consideration */
-        CALLBACK_Setup(call_irq1,&PCjr_NMI_Keyboard_Handler,CB_IRET,"PCjr NMI Keyboard");
-        RealSetVec(0x02/*NMI*/,CALLBACK_RealPointer(call_irq1));
+        call_irq_pcjr_nmi=CALLBACK_Allocate();
+
+        CALLBACK_Setup(call_irq_pcjr_nmi,&PCjr_NMI_Keyboard_Handler,CB_IRET,"PCjr NMI Keyboard");
+
+        Bit32u a = CALLBACK_RealPointer(call_irq_pcjr_nmi);
+
+        RealSetVec(0x02/*NMI*/,a);
+
+        /* TODO: PCjr calls INT 48h to convert PCjr scan codes to IBM PC/XT compatible */
+
+        a = ((a >> 16) << 4) + (a & 0xFFFF);
+        /* a+0 = callback instruction (4 bytes)
+         * a+4 = iret (1 bytes) */
+        phys_writeb(a+5,0x50);          /* push ax */
+        phys_writew(a+6,0x60E4);        /* in al,60h */
+        phys_writew(a+8,0x09CD);        /* int 9h */
+        phys_writeb(a+10,0x58);         /* pop ax */
+        phys_writew(a+11,0x00EB + ((256-13)<<8));    /* jmp a+0 */
     }
-    else if (IS_PC98_ARCH) {
+
+    if (IS_PC98_ARCH) {
         CALLBACK_Setup(call_irq1,&IRQ1_Handler_PC98,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ1_LOCATION),"IRQ 1 Keyboard PC-98");
         RealSetVec(0x09/*IRQ 1*/,BIOS_DEFAULT_IRQ1_LOCATION);
     }
