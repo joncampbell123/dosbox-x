@@ -332,7 +332,7 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 	case CB_IRQ1:	// keyboard int9
 		phys_writeb(physAddress+0x00,(Bit8u)0x50);			// push ax
 		phys_writew(physAddress+0x01,(Bit16u)0x60e4);		// in al, 0x60
-        if (IS_PC98_ARCH) {
+        if (IS_PC98_ARCH || IS_TANDY_ARCH) {
             phys_writew(physAddress+0x03,(Bit16u)0x9090);		// nop, nop
             phys_writeb(physAddress+0x05,(Bit8u)0x90);			// nop
             phys_writew(physAddress+0x06,(Bit16u)0x9090);		// nop, nop (PC-98 does not have INT 15h keyboard hook)
