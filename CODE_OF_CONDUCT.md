@@ -10,7 +10,7 @@ Humor and jokes are welcome as long as they are on-topic. This is a fun hobby pr
 
 I (Jonathan Campbell), as the owner of this project, reserve the right to block users that violate this Code of Conduct or otherwise disrupt this project according to my judgement. Other users whom I have given access to do so, may block users from this project that explicitly violate this Code of Conduct.
 
-This Code of Conduct is applicable to the DOSBox-X project at https://github.com/joncampbell123/dosbox-x. Forks and projects derived from https://github.com/joncampbell123/dosbox-x may have their own Code of Conduct independent of the main DOSBox-X project, to be upheld and maintained by the the owner of that repository only within the domain of that repository.
+This Code of Conduct is applicable to the DOSBox-X project at https://github.com/joncampbell123/dosbox-x. Forks and projects derived from https://github.com/joncampbell123/dosbox-x may have their own Code of Conduct independent of the main DOSBox-X project, to be upheld and maintained by the owner of that repository only within the domain of that repository.
 
 Participation in this project is always voluntary. There is no requirement or obligation to work on this project continuously or in a consistent manner, or at all.
 
