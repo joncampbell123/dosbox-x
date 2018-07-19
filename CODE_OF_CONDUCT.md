@@ -12,7 +12,7 @@ I (Jonathan Campbell), as the owner of this project, reserve the right to block 
 
 This Code of Conduct is applicable to the DOSBox-X project at https://github.com/joncampbell123/dosbox-x. Forks and projects derived from https://github.com/joncampbell123/dosbox-x may have their own Code of Conduct independent of the main DOSBox-X project, to be upheld and maintained by the the owner of that repository within the domain of that repository.
 
-Participation in this project is always voluntary. There is no requirement to work on this project continuously or in a consistent manner.
+Participation in this project is always voluntary. There is no requirement to work on this project continuously or in a consistent manner, or at all.
 
 Definition of terms:
 * [Anyone, any person at all](https://www.merriam-webster.com/dictionary/anyone)
