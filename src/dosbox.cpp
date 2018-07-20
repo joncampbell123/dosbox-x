@@ -811,6 +811,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* captureformats[] = { "default", "avi-zmbv", "mpegts-h264", 0 };
     const char* blocksizes[] = {"1024", "2048", "4096", "8192", "512", "256", 0};
     const char* capturechromaformats[] = { "auto", "4:4:4", "4:2:2", "4:2:0", 0};
+    const char* controllertypes[] = { "auto", "at", "xt", "pcjr", "pc98", 0}; // Future work: Tandy(?) and USB
     const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
     const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486", "486_prefetch", "pentium", "pentium_mmx", "ppro_slow", 0};
     const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
@@ -1688,6 +1689,15 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set (default), allow the application to reset the CPU through the keyboard controller.\n"
             "This option is required to allow Windows ME to reboot properly, whereas Windows 9x and earlier\n"
             "will reboot without this option using INT 19h");
+
+    Pstring = secprop->Add_string("controllertype",Property::Changeable::OnlyAtStart,"auto");
+    Pstring->Set_values(controllertypes);
+    Pstring->Set_help("Type of keyboard controller (and keyboard) attached.\n"
+                      "auto     Automatically pick according to machine type\n"
+                      "at       PS/2 (AT) type keyboard\n"
+                      "xt       IBM PC/XT type keyboard\n"
+                      "pcjr     IBM PCjr type keyboard\n"
+                      "pc98     PC-98 keyboard emulation (only if machine=pc98");
 
     Pstring = secprop->Add_string("auxdevice",Property::Changeable::OnlyAtStart,"intellimouse");
     Pstring->Set_values(auxdevices);
