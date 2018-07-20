@@ -1694,7 +1694,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(controllertypes);
     Pstring->Set_help("Type of keyboard controller (and keyboard) attached.\n"
                       "auto     Automatically pick according to machine type\n"
-                      "at       PS/2 (AT) type keyboard\n"
+                      "at       AT (PS/2) type keyboard\n"
                       "xt       IBM PC/XT type keyboard\n"
                       "pcjr     IBM PCjr type keyboard (only if machine=pcjr)\n"
                       "pc98     PC-98 keyboard emulation (only if machine=pc98)");
