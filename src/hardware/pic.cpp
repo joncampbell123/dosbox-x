@@ -320,7 +320,11 @@ static Bitu read_data(Bitu port,Bitu iolen) {
 /* PC/XT NMI mask register 0xA0. Documentation on the other bits
  * is sparse and spread across the internet, but many seem to
  * agree that bit 7 is used to enable/disable the NMI (1=enable,
- * 0=disable) */
+ * 0=disable)
+ *
+ * Confirmed: IBM PCjr technical reference, BIOS source code.
+ *            Some part of the code writes 0x80 to this port,
+ *            then does some work, then writes 0x00. */
 static void pc_xt_nmi_write(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
