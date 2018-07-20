@@ -324,7 +324,13 @@ static Bitu read_data(Bitu port,Bitu iolen) {
  *
  * Confirmed: IBM PCjr technical reference, BIOS source code.
  *            Some part of the code writes 0x80 to this port,
- *            then does some work, then writes 0x00. */
+ *            then does some work, then writes 0x00.
+ *
+ * IBM PCjr definitions:
+ *   bit[7]: Enable NMI
+ *   bit[6]: IR test enable
+ *   bit[5]: Select clock 1 input
+ *   bit[4]: Disable HRQ */
 static void pc_xt_nmi_write(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
