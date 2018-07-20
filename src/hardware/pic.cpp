@@ -772,8 +772,11 @@ void PIC_Reset(Section *sec) {
     enable_slave_pic = section->Get_bool("enable slave pic");
     enable_pc_xt_nmi_mask = section->Get_bool("enable pc nmi mask");
 
-    if (enable_slave_pic && (machine == MCH_PCJR))/*TODO: machine=tandy as well??*/
-        LOG(LOG_MISC,LOG_DEBUG)("PIC_Reset(): PCjr emulation with slave PIC (IRQ 8-15) is unusual");
+    if (enable_slave_pic && machine == MCH_PCJR && enable_pc_xt_nmi_mask) {
+        LOG(LOG_MISC,LOG_DEBUG)("PIC_Reset(): PCjr emulation with NMI mask register requires disabling slave PIC (IRQ 8-15)");
+        enable_slave_pic = false;
+    }
+
     if (!enable_slave_pic && IS_PC98_ARCH)
         LOG(LOG_MISC,LOG_DEBUG)("PIC_Reset(): PC-98 emulation without slave PIC (IRQ 8-15) is unusual");
 
