@@ -50,16 +50,16 @@ static bool confmultipageOutput;
 
 void CPrinter::FillPalette(Bit8u redmax, Bit8u greenmax, Bit8u bluemax, Bit8u colorID, SDL_Palette* pal)
 {
-	double red = (float) redmax / 30.9;
-    double green = (float) greenmax / 30.9;
-    double blue = (float) bluemax / 30.9;
+	float red = (float)redmax / (float)30.9;
+    float green = (float)greenmax / (float)30.9;
+    float blue = (float)bluemax / (float)30.9;
 
 	Bit8u colormask = colorID<<=5;
 
 	for(int i = 0; i < 32;i++) {
-		pal->colors[i+colormask].r = (Bit8u)floor(255 - (red * (float)i));
-		pal->colors[i+colormask].g = (Bit8u)floor(255 - (green * (float)i));
-		pal->colors[i+colormask].b = (Bit8u)floor(255 - (blue * (float)i));
+		pal->colors[i+colormask].r = (Bit8u)floor(255.0 - (red * (float)i));
+		pal->colors[i+colormask].g = (Bit8u)floor(255.0 - (green * (float)i));
+		pal->colors[i+colormask].b = (Bit8u)floor(255.0 - (blue * (float)i));
 	}
 }
 
