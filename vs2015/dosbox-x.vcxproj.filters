@@ -882,6 +882,9 @@
     <ClCompile Include="..\src\gui\zipcrc.c">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\parport\printer_redir.cpp">
+      <Filter>Sources\hardware\parport</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">

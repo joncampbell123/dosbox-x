@@ -246,6 +246,9 @@ void                INT10_Init(Section*);
 #if C_NE2000
 void                NE2K_Init(Section* sec);
 #endif
+#if C_PRINTER
+void                PRINTER_Init(Section*);
+#endif
 
 signed long long time_to_clockdom(ClockDomain &src,double t) {
     signed long long lt = (signed long long)t;
@@ -2292,6 +2295,46 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(serials);
     Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
+
+#if C_PRINTER
+    // printer redirection parameters
+    secprop = control->AddSection_prop("printer", &Null_Init);
+    Pbool = secprop->Add_bool("printer", Property::Changeable::WhenIdle, true);
+    Pbool->Set_help("Enable printer emulation.");
+    //secprop->Add_string("fontpath","%%windir%%\\fonts");
+    Pint = secprop->Add_int("dpi", Property::Changeable::WhenIdle, 360);
+    Pint->Set_help("Resolution of printer (default 360).");
+    Pint = secprop->Add_int("width", Property::Changeable::WhenIdle, 85);
+    Pint->Set_help("Width of paper in 1/10 inch (default 85 = 8.5'').");
+    Pint = secprop->Add_int("height", Property::Changeable::WhenIdle, 110);
+    Pint->Set_help("Height of paper in 1/10 inch (default 110 = 11.0'').");
+#ifdef C_LIBPNG
+    Pstring = secprop->Add_string("printoutput", Property::Changeable::WhenIdle, "png");
+#else
+    Pstring = secprop->Add_string("printoutput", Property::Changeable::WhenIdle, "ps");
+#endif
+    Pstring->Set_help("Output method for finished pages: \n"
+#ifdef C_LIBPNG
+        "  png     : Creates PNG images (default)\n"
+#endif
+        "  ps      : Creates Postscript\n"
+        "  bmp     : Creates BMP images (very huge files, not recommend)\n"
+#if defined (WIN32)
+        "  printer : Send to an actual printer (Print dialog will appear)"
+#endif
+    );
+
+    Pbool = secprop->Add_bool("multipage", Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("Adds all pages to one Postscript file or printer job until CTRL-F2 is pressed.");
+
+    Pstring = secprop->Add_string("docpath", Property::Changeable::WhenIdle, ".");
+    Pstring->Set_help("The path where the output files are stored.");
+
+    Pint = secprop->Add_int("timeout", Property::Changeable::WhenIdle, 0);
+    Pint->Set_help("(in milliseconds) if nonzero: the time the page will\n"
+        "be ejected automatically after when no more data\n"
+        "arrives at the printer.");
+#endif
 
     // parallel ports
     secprop=control->AddSection_prop("parallel",&Null_Init,true);

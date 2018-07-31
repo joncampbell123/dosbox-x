@@ -327,6 +327,11 @@ public:
         // TODO: PC-98 does have one parallel port, if at all
         if (IS_PC98_ARCH) return;
 
+#if C_PRINTER
+        // we can only have one printer redirection, hence the variable
+        bool printer_used = false;
+#endif
+
 		// default ports & interrupts
 		Bit8u defaultirq[] = { 7, 5, 12};
 		Section_prop *section = static_cast <Section_prop*>(configuration);
@@ -361,7 +366,26 @@ public:
 				}
 			}
 			else 
-			if(str=="disabled") {
+#if C_PRINTER
+            // allow printer redirection on a single port
+            if (str == "printer" && !printer_used)
+            {
+                CPrinterRedir* cprd = new CPrinterRedir(i, defaultirq[i], &cmd);
+                if (cprd->InstallationSuccessful)
+                {
+                    parallelPortObjects[i] = cprd;
+                    printer_used = true;
+                }
+                else
+                {
+                    LOG_MSG("Error: printer is not enabled.");
+                    delete cprd;
+                    parallelPortObjects[i] = 0;
+                }
+            }
+            else
+#endif				
+            if(str=="disabled") {
 				parallelPortObjects[i] = 0;
 			} else if (str == "disney") {
 				if (!DISNEY_HasInit()) {
