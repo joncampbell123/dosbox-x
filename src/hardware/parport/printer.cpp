@@ -56,10 +56,10 @@ void CPrinter::FillPalette(Bit8u redmax, Bit8u greenmax, Bit8u bluemax, Bit8u co
 
 	Bit8u colormask = colorID<<=5;
 
-	for(int i = 0; i < 32;i++) {
-		pal->colors[i+colormask].r = (Bit8u)floor(255.0 - (red * (float)i));
-		pal->colors[i+colormask].g = (Bit8u)floor(255.0 - (green * (float)i));
-		pal->colors[i+colormask].b = (Bit8u)floor(255.0 - (blue * (float)i));
+	for(int i = 0; i < 32; i++) {
+		pal->colors[i+colormask].r = 255 - (Bit8u)floor(red * (float)i);
+		pal->colors[i+colormask].g = 255 - (Bit8u)floor(green * (float)i);
+		pal->colors[i+colormask].b = 255 - (Bit8u)floor(blue * (float)i);
 	}
 }
 
