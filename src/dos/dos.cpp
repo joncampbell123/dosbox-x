@@ -21,11 +21,13 @@
 #include <string.h>
 #include <ctype.h>
 #include "dosbox.h"
+#include "dos_inc.h"
 #include "bios.h"
 #include "mem.h"
 #include "paging.h"
 #include "callback.h"
 #include "regs.h"
+#include "drives.h"
 #include "dos_inc.h"
 #include "setup.h"
 #include "support.h"
@@ -1684,6 +1686,19 @@ static Bitu DOS_27Handler(void) {
 	return CBRET_NONE;
 }
 
+extern DOS_Device *DOS_CON;
+
+static Bitu INT29_HANDLER(void) {
+    if (DOS_CON != NULL) {
+        unsigned char b = reg_al;
+        Bit16u sz = 1;
+
+        DOS_CON->Write(&b,&sz);
+    }
+
+    return CBRET_NONE;
+}
+
 static Bitu DOS_25Handler(void) {
 	if (Drives[reg_al] == 0){
 		reg_ax = 0x8002;
@@ -1719,6 +1734,58 @@ bool dynamic_dos_kernel_alloc = false;
 bool private_always_from_umb = false;
 bool private_segment_in_umb = true;
 Bit16u DOS_IHSEG = 0;
+
+// NOTE about 0x70 and PC-98 emulation mode:
+//
+// I don't know exactly how things differ in NEC's PC-98 MS-DOS, but,
+// according to some strange code in Touhou Project that's responsible
+// for blanking the text layer, there's a "row count" variable at 0x70:0x12
+// that holds (number of rows - 1). Leaving that byte value at zero prevents
+// the game from clearing the screen (which also exposes the tile data and
+// overdraw of the graphics layer). A value of zero instead just causes the
+// first text character row to be filled in, not the whole visible text layer.
+//
+// Pseudocode of the routine:
+//
+// XOR AX,AX
+// MOV ES,AX
+// MOV AL,ES:[0712h]            ; AX = BYTE [0x70:0x12] zero extend (ex. 0x18 == 24)
+// INC AX                       ; AX++                              (ex. becomes 0x19 == 25)
+// MOV DX,AX
+// SHL DX,1
+// SHL DX,1                     ; DX *= 4
+// ADD DX,AX                    ; DX += AX     equiv. DX = AX * 5
+// MOV CL,4h
+// SHL DX,CL                    ; DX <<= 4     equiv. DX = AX * 0x50  or  DX = AX * 80
+// ...
+// MOV AX,0A200h
+// MOV ES,AX
+// MOV AX,(solid black overlay block attribute)
+// MOV CX,DX
+// REP STOSW
+//
+// When the routine is done, the graphics layer is obscured by text character cells that
+// represent all black (filled in) so that the game can later "punch out" the regions
+// of the graphics layer it wants you to see. TH02 relies on this as well to flash the
+// screen and open from the center to show the title screen. During gameplay, the text
+// layer is used to obscure sprite overdraw when a sprite is partially off-screen as well
+// as hidden tile data on the right hand half of the screen that the game read/write
+// copies through the GDC pattern/tile registers to make the background. When the text
+// layer is not present it's immediately apparent that the sprite renderer makes no attempt
+// to clip sprites within the screen, but instead relies on the text overlay to hide the
+// overdraw.
+//
+// this means that on PC-98 one of two things are true. either:
+//  - NEC's variation of MS-DOS loads the base kernel higher up (perhaps at 0x80:0x00?)
+//    and the BIOS data area lies from 0x40:00 to 0x7F:00
+//
+//    or
+//
+//  - NEC's variation loads at 0x70:0x00 (same as IBM PC MS-DOS) and Touhou Project
+//    is dead guilty of reaching directly into MS-DOS kernel memory to read
+//    internal variables it shouldn't be reading directly!
+//
+// Ick...
 
 void DOS_GetMemory_reset();
 void DOS_GetMemory_Choose();
@@ -1847,11 +1914,14 @@ public:
 			if (mainline_compatible_mapping) {
 				DOS_IHSEG = 0x70;
 				DOS_PRIVATE_SEGMENT = 0x80;
+
+                if (IS_PC98_ARCH)
+                    LOG_MSG("WARNING: mainline compatible mapping is not recommended for PC-98 emulation");
 			}
 			else if (private_always_from_umb) {
 				DOS_GetMemory_Choose(); /* the pool starts in UMB */
 				if (minimum_mcb_segment == 0)
-					DOS_MEM_START = 0x70;
+					DOS_MEM_START = IS_PC98_ARCH ? 0x80 : 0x70; /* funny behavior in some games suggests the MS-DOS kernel loads a bit higher on PC-98 */
 				else
 					DOS_MEM_START = minimum_mcb_segment;
 
@@ -1861,17 +1931,21 @@ public:
 					LOG_MSG("WARNING: DOS_MEM_START has been assigned to the BIOS data area! Proceed at your own risk!");
 				else if (DOS_MEM_START < 0x51)
 					LOG_MSG("WARNING: DOS_MEM_START has been assigned to segment 0x50, which some programs may use as the Print Screen flag");
+				else if (DOS_MEM_START < 0x80 && IS_PC98_ARCH)
+					LOG_MSG("CAUTION: DOS_MEM_START is less than 0x80 which may cause problems with some DOS games or applications relying on PC-98 BIOS state");
 				else if (DOS_MEM_START < 0x70)
 					LOG_MSG("CAUTION: DOS_MEM_START is less than 0x70 which may cause problems with some DOS games or applications");
 			}
 			else {
 				if (minimum_dos_initial_private_segment == 0)
-					DOS_PRIVATE_SEGMENT = 0x70;
+					DOS_PRIVATE_SEGMENT = IS_PC98_ARCH ? 0x80 : 0x70; /* funny behavior in some games suggests the MS-DOS kernel loads a bit higher on PC-98 */
 				else
 					DOS_PRIVATE_SEGMENT = minimum_dos_initial_private_segment;
 
 				if (DOS_PRIVATE_SEGMENT < 0x50)
 					LOG_MSG("DANGER, DANGER! DOS_PRIVATE_SEGMENT has been set too low!");
+				if (DOS_PRIVATE_SEGMENT < 0x80 && IS_PC98_ARCH)
+					LOG_MSG("DANGER, DANGER! DOS_PRIVATE_SEGMENT has been set too low for PC-98 emulation!");
 			}
 
 			if (!private_always_from_umb) {
@@ -1976,18 +2050,32 @@ public:
 		callback[5].Install(NULL,CB_IRET/*CB_INT28*/,"DOS idle");
 		callback[5].Set_RealVec(0x28);
 
-		callback[6].Install(NULL,CB_INT29,"CON Output Int 29");
-		callback[6].Set_RealVec(0x29);
-		// pseudocode for CB_INT29:
-		//	push ax
-		//	mov ah, 0x0e
-		//	int 0x10
-		//	pop ax
-		//	iret
+        if (IS_PC98_ARCH) {
+            // PC-98 also has INT 29h but the behavior of some games suggest that it is handled
+            // the same as CON device output. Apparently the reason Touhou Project has been unable
+            // to clear the screen is that it uses INT 29h to directly send ANSI codes rather than
+            // standard I/O calls to write to the CON device.
+            callback[6].Install(INT29_HANDLER,CB_IRET,"CON Output Int 29");
+            callback[6].Set_RealVec(0x29);
+        }
+        else {
+            // FIXME: Really? Considering the main CON device emulation has ANSI.SYS emulation
+            //        you'd think that this would route it through the same.
+            callback[6].Install(NULL,CB_INT29,"CON Output Int 29");
+            callback[6].Set_RealVec(0x29);
+            // pseudocode for CB_INT29:
+            //	push ax
+            //	mov ah, 0x0e
+            //	int 0x10
+            //	pop ax
+            //	iret
+        }
 
-		/* DOS installs a handler for INT 1Bh */
-		callback[7].Install(BIOS_1BHandler,CB_IRET,"BIOS 1Bh");
-		callback[7].Set_RealVec(0x1B);
+        if (!IS_PC98_ARCH) {
+            /* DOS installs a handler for INT 1Bh */
+            callback[7].Install(BIOS_1BHandler,CB_IRET,"BIOS 1Bh");
+            callback[7].Set_RealVec(0x1B);
+        }
 
 		callback[8].Install(DOS_CPMHandler,CB_CPM,"DOS/CPM Int 30-31");
 		int30=RealGetVec(0x30);
@@ -2176,6 +2264,14 @@ void DOS_Startup(Section* sec) {
 
 void DOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS kernel (DOS_Init)");
+    LOG(LOG_MISC,LOG_DEBUG)("sizeof(union bootSector) = %u",(unsigned int)sizeof(union bootSector));
+    LOG(LOG_MISC,LOG_DEBUG)("sizeof(struct bootstrap) = %u",(unsigned int)sizeof(struct bootstrap));
+    LOG(LOG_MISC,LOG_DEBUG)("sizeof(direntry) = %u",(unsigned int)sizeof(direntry));
+
+    /* this code makes assumptions! */
+    assert(sizeof(direntry) == 32);
+    assert((SECTOR_SIZE_MAX % sizeof(direntry)) == 0);
+    assert((MAX_DIRENTS_PER_SECTOR * sizeof(direntry)) == SECTOR_SIZE_MAX);
 
 	AddExitFunction(AddExitFunctionFuncPair(DOS_ShutDown),false);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DOS_OnReset));

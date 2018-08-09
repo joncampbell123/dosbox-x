@@ -743,6 +743,263 @@ public:
 	}
 };
 
+extern uint8_t pc98_egc_compare_lead;
+extern uint8_t pc98_egc_lightsource;
+extern uint8_t pc98_egc_shiftinput;
+extern uint8_t pc98_egc_regload;
+extern uint8_t pc98_egc_rop;
+
+/* The NEC display is documented to have:
+ *
+ * A0000-A3FFF      T-RAM (text) (8KB WORDs)
+ *   A0000-A1FFF      Characters (4KB WORDs)
+ *   A2000-A3FFF      Attributes (4KB WORDs). For each 16-bit WORD only the lower 8 bits are read/writeable.
+ *   A4000-A5FFF      Unknown ?? (4KB WORDs)
+ *   A6000-A7FFF      Not present (4KB WORDs)
+ * A8000-BFFFF      G-RAM (graphics) (96KB)
+ *
+ * T-RAM character display RAM is 16-bits per character.
+ * ASCII text has upper 8 bits zero.
+ * SHIFT-JIS doublewide characters use the upper byte for non-ASCII. */
+
+class VGA_PC98_PageHandler : public PageHandler {
+public:
+	VGA_PC98_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+    template <class AWT> static inline void check_align(const PhysPt addr) {
+        /* DEBUG: address must be aligned to datatype.
+         *        Code that calls us must enforce that or subdivide
+         *        to a small datatype that can follow this rule. */
+        PhysPt chk = (1UL << (sizeof(AWT) - 1)) - 1;
+        /* uint8_t:  chk = 0
+         * uint16_t: chk = 1
+         * TODO: Do you suppose later generation PC-9821's supported DWORD size bitplane transfers?
+         *       Or did NEC just give up on anything past 16-bit and focus on the SVGA side of things? */
+        assert((addr&chk) == 0);
+    }
+
+    template <class AWT> static inline AWT mode8_r(const unsigned int plane,const PhysPt vramoff) {
+        AWT r,b;
+
+        b = *((AWT*)(vga.mem.linear + vramoff));
+        r = b ^ *((AWT*)pc98_gdc_tiles[plane].b);
+
+        if (pc98_egc_regload == 1) {
+            for (size_t i=0;i < sizeof(pc98_gdc_tiles[plane].b);i += sizeof(AWT))
+                *((AWT*)(pc98_gdc_tiles[plane].b+i)) = b;
+        }
+
+        return r;
+    }
+
+    template <class AWT> static inline void mode8_w(const unsigned int plane,const PhysPt vramoff) {
+        *((AWT*)(vga.mem.linear + vramoff)) = *((AWT*)pc98_gdc_tiles[plane].b);
+    }
+
+    template <class AWT> static inline void modeC_w(const unsigned int plane,const PhysPt vramoff,const AWT mask,const AWT val) {
+        AWT t;
+
+        t  = *((AWT*)(vga.mem.linear + vramoff)) & mask;
+        t |= val & *((AWT*)pc98_gdc_tiles[plane].b);
+        *((AWT*)(vga.mem.linear + vramoff)) = t;
+    }
+
+    template <class AWT> AWT readc(PhysPt addr) {
+        unsigned int vop_offset = 0;
+
+		addr = PAGING_GetPhysicalAddress(addr);
+
+        check_align<AWT>(addr);
+
+        if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
+            addr = (addr & 0x7FFF) + 0x20000;
+        else
+            addr &= 0x1FFFF;
+
+        switch (addr>>13) {
+            case 0:     /* A0000-A1FFF Character RAM */
+                return *((AWT*)(vga.mem.linear+addr));
+            case 1:     /* A2000-A3FFF Attribute RAM */
+                if (addr & 1) return ~0; /* ignore odd bytes */
+                return *((AWT*)(vga.mem.linear+addr)) | 0xFF00; /* odd bytes 0xFF */
+            case 2:     /* A4000-A5FFF Unknown ?? */
+                return *((AWT*)(vga.mem.linear+addr));
+            case 3:     /* A6000-A7FFF Not present */
+                return ~0;
+            default:    /* A8000-BFFFF G-RAM */
+                vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x20000 : 0;
+                break;
+        };
+
+        switch (pc98_gdc_vramop & 0xF) {
+            case 0x00:
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+            case 0x07:
+                return *((AWT*)(vga.mem.linear+addr+vop_offset));
+            case 0x08: /* ???? */
+            case 0x09: /* This is a guess. It seems to work. The "OR VRAM xor TILE NEGate return" stuff
+                          is what Neko Project II does in it's handler. Since this mode's write puts the
+                          tile data directly into VRAM without considering the CPU data byte, my guess
+                          here is that this is the PC-98 variation of VGA write mode 2 in which reading
+                          loads the tile RAM from VRAM and writing loads tile RAM into VRAM.
+                         
+                          One clue that suggests this READ loads the tile registers is the way Touhou
+                          Project appears to stick tiles on the right hand side of the screen. Without
+                          this code, Touhou Project is unable to render the background at all. */
+                {
+                    AWT r = 0;
+
+                    /* this reads multiple bitplanes at once */
+                    addr &= 0x7FFF;
+
+                    if (!(pc98_gdc_modereg & 1)) // blue channel
+                        r |= mode8_r<AWT>(/*plane*/0,addr + 0x8000 + vop_offset);
+
+                    if (!(pc98_gdc_modereg & 2)) // red channel
+                        r |= mode8_r<AWT>(/*plane*/1,addr + 0x10000 + vop_offset);
+
+                    if (!(pc98_gdc_modereg & 4)) // green channel
+                        r |= mode8_r<AWT>(/*plane*/2,addr + 0x18000 + vop_offset);
+
+                    if (!(pc98_gdc_modereg & 8)) // extended channel
+                        r |= mode8_r<AWT>(/*plane*/3,addr + 0x20000 + vop_offset);
+
+                    /* NTS: Apparently returning this value correctly really matters to the
+                     *      sprite engine in "Edge", else visual errors occur. */
+                    return ~r;
+                }
+            case 0x0C:
+            case 0x0D:
+                return *((AWT*)(vga.mem.linear+addr+vop_offset));
+            default:
+                LOG_MSG("PC-98 VRAM read warning: Unsupported opmode 0x%X",pc98_gdc_vramop);
+                return *((AWT*)(vga.mem.linear+addr+vop_offset));
+        };
+
+		return ~0;
+	}
+
+	template <class AWT> void writec(PhysPt addr,AWT val){
+        unsigned int vop_offset = 0;
+
+		addr = PAGING_GetPhysicalAddress(addr);
+
+        check_align<AWT>(addr);
+
+        if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
+            addr = (addr & 0x7FFF) + 0x20000;
+        else
+            addr &= 0x1FFFF;
+
+        switch (addr>>13) {
+            case 0:     /* A0000-A1FFF Character RAM */
+                *((AWT*)(vga.mem.linear+addr)) = val;
+                return;
+            case 1:     /* A2000-A3FFF Attribute RAM */
+                if (addr & 1) return; /* ignore odd bytes */
+                *((AWT*)(vga.mem.linear+addr)) = val | 0xFF00;
+                return;
+            case 2:     /* A4000-A5FFF Unknown ?? */
+                *((AWT*)(vga.mem.linear+addr)) = val;
+                return;
+            case 3:     /* A6000-A7FFF Not present */
+                return;
+            default:    /* A8000-BFFFF G-RAM */
+                vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x20000 : 0;
+                break;
+        };
+
+        switch (pc98_gdc_vramop & 0xF) {
+            case 0x00:
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+            case 0x07:
+                *((AWT*)(vga.mem.linear+addr+vop_offset)) = val;
+                break;
+            case 0x08:  /* write tile data, no masking */
+            case 0x09:
+                {
+                    /* this writes to multiple bitplanes at once.
+                     * notice that the value written has no meaning, only the tile data and memory address. */
+                    addr &= 0x7FFF;
+
+                    if (!(pc98_gdc_modereg & 1)) // blue channel
+                        mode8_w<AWT>(0/*plane*/,addr + 0x8000 + vop_offset);
+
+                    if (!(pc98_gdc_modereg & 2)) // red channel
+                        mode8_w<AWT>(1/*plane*/,addr + 0x10000 + vop_offset);
+
+                    if (!(pc98_gdc_modereg & 4)) // green channel
+                        mode8_w<AWT>(2/*plane*/,addr + 0x18000 + vop_offset);
+
+                    if (!(pc98_gdc_modereg & 8)) // extended channel
+                        mode8_w<AWT>(3/*plane*/,addr + 0x20000 + vop_offset);
+                }
+                break;
+            case 0x0C:  /* read/modify/write from tile with masking */
+            case 0x0D:  /* a lot of PC-98 games seem to rely on this for sprite rendering */
+                {
+                    const AWT mask = ~val;
+
+                    /* this writes to multiple bitplanes at once */
+                    addr &= 0x7FFF;
+
+                    if (!(pc98_gdc_modereg & 1)) // blue channel
+                        modeC_w<AWT>(0/*plane*/,addr + 0x8000 + vop_offset,mask,val);
+
+                    if (!(pc98_gdc_modereg & 2)) // red channel
+                        modeC_w<AWT>(1/*plane*/,addr + 0x10000 + vop_offset,mask,val);
+
+                    if (!(pc98_gdc_modereg & 4)) // green channel
+                        modeC_w<AWT>(2/*plane*/,addr + 0x18000 + vop_offset,mask,val);
+
+                    if (!(pc98_gdc_modereg & 8)) // extended channel
+                        modeC_w<AWT>(3/*plane*/,addr + 0x20000 + vop_offset,mask,val);
+                }
+                break;
+            default:
+                LOG_MSG("PC-98 VRAM write warning: Unsupported opmode 0x%X",pc98_gdc_vramop);
+                *((AWT*)(vga.mem.linear+addr+vop_offset)) = val;
+                break;
+        };
+	}
+
+    /* byte-wise */
+	Bitu readb(PhysPt addr) {
+        return readc<uint8_t>(addr);
+    }
+	void writeb(PhysPt addr,Bitu val) {
+        writec<uint8_t>(addr,(uint8_t)val);
+    }
+
+    /* word-wise.
+     * in the style of the 8086, non-word-aligned I/O is split into byte I/O */
+	Bitu readw(PhysPt addr) {
+        if (!(addr & 1)) /* if WORD aligned */
+            return readc<uint16_t>(addr);
+        else {
+            return   readc<uint8_t>(addr+0U) +
+                    (readc<uint8_t>(addr+1U) << 8);
+        }
+    }
+	void writew(PhysPt addr,Bitu val) {
+        if (!(addr & 1)) /* if WORD aligned */
+            writec<uint16_t>(addr,(uint16_t)val);
+        else {
+            writec<uint8_t>(addr+0,(uint8_t)val);
+            writec<uint8_t>(addr+1,(uint8_t)(val >> 8U));
+        }
+    }
+};
+
 class VGA_TEXT_PageHandler : public PageHandler {
 public:
 	VGA_TEXT_PageHandler() : PageHandler(PFLAG_NOCODE) {}
@@ -1191,6 +1448,7 @@ static struct vg {
 	VGA_LFB_Handler				lfb;
 	VGA_MMIO_Handler			mmio;
 	VGA_AMS_Handler				ams;
+    VGA_PC98_PageHandler        pc98;
 	VGA_Empty_Handler			empty;
 } vgaph;
 
@@ -1263,6 +1521,7 @@ void VGA_SetupHandlers(void) {
 		MEM_SetPageHandler( 0xb8, 8, &vgaph.ams );
 		goto range_done;
 	case EGAVGA_ARCH_CASE:
+    case PC98_ARCH_CASE:
 		break;
 	default:
 		LOG_MSG("Illegal machine type %d", machine );
@@ -1326,6 +1585,16 @@ void VGA_SetupHandlers(void) {
 	case M_CGA4:
 		newHandler = &vgaph.text;
 		break;
+    case M_PC98:
+		newHandler = &vgaph.pc98;
+
+        /* We need something to catch access to E0000-E7FFF IF 16/256-color mode */
+        if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG))
+            MEM_SetPageHandler(0xE0, 8, newHandler );
+        else
+            MEM_ResetPageHandler_Unmapped(0xE0, 8);
+
+        break;
 	case M_AMSTRAD:
 		newHandler = &vgaph.map;
 		break;

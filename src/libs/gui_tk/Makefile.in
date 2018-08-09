@@ -291,9 +291,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/libs/gui_tk/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/libs/gui_tk/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu src/libs/gui_tk/Makefile
+	  $(AUTOMAKE) --foreign src/libs/gui_tk/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

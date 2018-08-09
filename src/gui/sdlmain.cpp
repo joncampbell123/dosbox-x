@@ -1087,7 +1087,7 @@ dosurface:
 			glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_EXT, width*height*4, NULL, GL_STREAM_DRAW_ARB);
 			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
 		} else {
-			sdl.opengl.framebuf=malloc(width*height*4);		//32 bit color
+			sdl.opengl.framebuf=calloc(width*height, 4);		//32 bit color
 		}
 		sdl.opengl.pitch=width*4;
 
@@ -1143,6 +1143,7 @@ dosurface:
 		glTexCoord2f(0,0); glVertex2f(-1.0f, 1.0f);
 		glEnd();
 		glEndList();
+
 		sdl.desktop.type=SCREEN_OPENGL;
 		retFlags = GFX_CAN_32 | GFX_SCALING;
 		if (sdl.opengl.pixel_buffer_object)
@@ -1578,7 +1579,7 @@ void sticky_keys(bool restore){
 
 #ifdef __WIN32__
 static void d3d_init(void) {
-#if 1
+#if !(HAVE_D3D9_H)
 	E_Exit("D3D not supported");
 #else
 	void change_output(int output);
@@ -2102,7 +2103,14 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 					Bitu height = changedLines[index];
 					glTexSubImage2D(GL_TEXTURE_2D, 0, 0, y,
 						sdl.draw.width, height, GL_BGRA_EXT,
-						GL_UNSIGNED_INT_8_8_8_8_REV, pixels );
+						#if defined (MACOSX)
+							// needed for proper looking graphics on macOS 10.12, 10.13
+							GL_UNSIGNED_INT_8_8_8_8,
+						#else
+							// works on Linux
+							GL_UNSIGNED_INT_8_8_8_8_REV,
+						#endif
+						pixels );
 					y += height;
 				}
 				index++;
@@ -4841,11 +4849,15 @@ int main(int argc, char* argv[]) {
 		/* The machine just "powered on", and then reset finished */
 		if (!VM_PowerOn()) E_Exit("VM failed to power on");
 
+        bool reboot_dos;
 		bool run_machine;
 		bool reboot_machine;
 		bool dos_kernel_shutdown;
+        bool enter_pc98;
 
 fresh_boot:
+        enter_pc98 = false;
+        reboot_dos = false;
 		run_machine = false;
 		reboot_machine = false;
 		dos_kernel_shutdown = false;
@@ -4869,6 +4881,19 @@ fresh_boot:
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot the system");
 
                 reboot_machine = true;
+                dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
+            }
+            else if (x == 5) { /* go to PC-98 mode */
+                LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to enter PC-98 mode");
+
+                reboot_dos = true;
+                enter_pc98 = true;
+                dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
+            }
+            else if (x == 6) { /* reboot DOS kernel */
+                LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot DOS kernel");
+
+                reboot_dos = true;
                 dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
             else {
@@ -4975,6 +5000,37 @@ fresh_boot:
 			/* new code: fire event */
 			DispatchVMEvent(VM_EVENT_RESET);
 			DispatchVMEvent(VM_EVENT_RESET_END);
+
+            /* run again */
+            goto fresh_boot;
+		}
+        else if (reboot_dos) { /* typically (at this time) to enter/exit PC-98 mode */
+			LOG_MSG("Rebooting DOS\n");
+
+            void CPU_Snap_Back_Forget();
+            /* Shutdown everything. For shutdown to work properly we must force CPU to real mode */
+            CPU_Snap_Back_To_Real_Mode();
+            CPU_Snap_Back_Forget();
+
+            /* all hardware devices need to know to reregister themselves PC-98 style */
+            if (enter_pc98) {
+                void CALLBACK_RunRealInt(Bit8u intnum);
+
+                /* reset VGA mode to 80x25 text before switching */
+                reg_ax = 3;
+                reg_sp = 0x7FFE;
+                CPU_SetSegGeneral(ss,0);
+                CALLBACK_RunRealInt(0x10);
+
+                machine = MCH_PC98;
+                enable_pc98_jump = false;
+    			DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
+    			DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
+            }
+
+            /* begin booting DOS again. */
+            void BIOS_Enter_Boot_Phase(void);
+            BIOS_Enter_Boot_Phase();
 
             /* run again */
             goto fresh_boot;

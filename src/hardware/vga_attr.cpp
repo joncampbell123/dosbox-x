@@ -295,3 +295,10 @@ void VGA_SetupAttr(void) {
 	}
 }
 
+void VGA_UnsetupAttr(void) {
+    IO_FreeWriteHandler(0x3c0,IO_MB);
+    IO_FreeReadHandler(0x3c0,IO_MB);
+    IO_FreeWriteHandler(0x3c1,IO_MB);
+    IO_FreeReadHandler(0x3c1,IO_MB);
+}
+

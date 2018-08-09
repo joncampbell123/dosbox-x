@@ -27,6 +27,7 @@
 #include "mapper.h"
 #include "mem.h"
 #include "dbopl.h"
+#include "nukedopl.h"
 
 bool adlib_force_timer_overflow_on_polling = false;
 
@@ -90,6 +91,38 @@ namespace OPL3 {
 		}
 	};
 }
+
+namespace NukedOPL {
+	struct Handler : public Adlib::Handler {
+		opl3_chip chip;
+		virtual void WriteReg( Bit32u reg, Bit8u val ) {
+			OPL3_WriteReg(&chip, reg, val);
+		}
+		virtual Bit32u WriteAddr( Bit32u port, Bit8u val ) {
+			Bit16u addr;
+			addr = val;
+			if ((port & 2) && (addr == 0x05 || chip.newm)) {
+				addr |= 0x100;
+			}
+			return addr;
+		}
+		virtual void Generate( MixerChannel* chan, Bitu samples ) {
+			Bit16s buf[1024*2];
+			while( samples > 0 ) {
+				Bitu todo = samples > 1024 ? 1024 : samples;
+				samples -= todo;
+				OPL3_GenerateStream(&chip, buf, todo);
+				chan->AddSamples_s16( todo, buf );
+			}
+		}
+		virtual void Init( Bitu rate ) {
+			OPL3_Reset(&chip, rate);
+		}
+		~Handler() {
+		}
+	};
+}
+
 
 #define RAW_SIZE 1024
 
@@ -685,12 +718,16 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	mixerChan->SetScale( 2.0 );
 	if (oplemu == "fast") {
 		handler = new DBOPL::Handler();
-	} else if (oplemu == "compat") {
-		if ( oplmode == OPL_opl2 ) {
+	}
+	else if (oplemu == "compat") {
+		if (oplmode == OPL_opl2) {
 			handler = new OPL2::Handler();
-		} else {
+		}
+		else {
 			handler = new OPL3::Handler();
 		}
+	} else if (oplemu == "nuked") {
+		handler = new NukedOPL::Handler();
 	} else {
 		handler = new DBOPL::Handler();
 	}

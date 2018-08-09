@@ -22,7 +22,13 @@
 /* underlying clock rate in HZ */
 #include <SDL.h>
 
-#define PIT_TICK_RATE 1193182
+#define PIT_TICK_RATE_IBM 1193182
+
+#define PIT_TICK_RATE_PC98_8MHZ 1996800
+
+#define PIT_TICK_RATE_PC98_10MHZ 2457600
+
+extern unsigned long PIT_TICK_RATE;
 
 #define GetTicks() SDL_GetTicks()
 

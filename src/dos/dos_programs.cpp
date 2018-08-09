@@ -715,6 +715,12 @@ public:
 		}
 
 		bootSector bootarea;
+
+        if (imageDiskList[drive-65]->getSectSize() > sizeof(bootarea)) {
+            WriteOut("Bytes/sector too large");
+            return;
+        }
+
 		imageDiskList[drive-65]->Read_Sector(0,0,1,(Bit8u *)&bootarea);
 
 		Bitu pcjr_hdr_length = 0;
@@ -2923,7 +2929,7 @@ static void MORE_ProgramStart(Program * * make) {
 }
 */
 
-void GOTOPC98_ProgramStart(Program * * make);
+void REDOS_ProgramStart(Program * * make);
 void A20GATE_ProgramStart(Program * * make);
 
 class NMITEST : public Program {
@@ -3277,7 +3283,5 @@ void DOS_SetupPrograms(void) {
 	PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
 	PROGRAMS_MakeFile("SHOWGUI.COM",SHOWGUI_ProgramStart);
 	PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
-
-    if (enable_pc98_jump)
-	    PROGRAMS_MakeFile("GOTOPC98.COM",GOTOPC98_ProgramStart);
+    PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart);
 }

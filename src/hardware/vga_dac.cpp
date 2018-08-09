@@ -66,7 +66,7 @@ static void VGA_DAC_SendColor( Bitu index, Bitu src ) {
 	RENDER_SetPal( index, (red << 2) | ( red >> 4 ), (green << 2) | ( green >> 4 ), (blue << 2) | ( blue >> 4 ) );
 }
 
-static void VGA_DAC_UpdateColor( Bitu index ) {
+void VGA_DAC_UpdateColor( Bitu index ) {
 	Bitu maskIndex;
 
 	switch (vga.mode) {
@@ -259,5 +259,16 @@ void VGA_SetupDAC(void) {
 			IO_RegisterReadHandler(0x3c9,read_p3c9,IO_MB);
 		}
 	}
+}
+
+void VGA_UnsetupDAC(void) {
+    IO_FreeWriteHandler(0x3c6,IO_MB);
+    IO_FreeReadHandler(0x3c6,IO_MB);
+    IO_FreeWriteHandler(0x3c7,IO_MB);
+    IO_FreeReadHandler(0x3c7,IO_MB);
+    IO_FreeWriteHandler(0x3c8,IO_MB);
+    IO_FreeReadHandler(0x3c8,IO_MB);
+    IO_FreeWriteHandler(0x3c9,IO_MB);
+    IO_FreeReadHandler(0x3c9,IO_MB);
 }
 

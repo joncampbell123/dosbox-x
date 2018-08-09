@@ -481,10 +481,19 @@ void DMA_Destroy(Section* /*sec*/) {
 	DMA_FreeControllers();
 }
 
+void DMA_OnEnterPC98(Section* /*sec*/) {
+	DMA_FreeControllers();
+}
+
 void DMA_Reset(Section* /*sec*/) {
 	Bitu i;
 
 	DMA_FreeControllers();
+
+    // FIXME: For now, disable DMA emulation entirely for PC-98.
+    //        The 8237 is there, but on entirely different I/O ports, and only one DMA controller (0-3).
+    //        DMA emulation is less important to port than other things like interrupt handling.
+    if (IS_PC98_ARCH) return;
 
 	// LOG
 	LOG(LOG_MISC,LOG_DEBUG)("DMA_Reset(): reinitializing DMA controller(s)");
@@ -560,5 +569,6 @@ void Init_DMA() {
 
 	AddExitFunction(AddExitFunctionFuncPair(DMA_Destroy));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DMA_Reset));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(DMA_OnEnterPC98));
 }
 

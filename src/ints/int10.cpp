@@ -30,7 +30,7 @@ Int10Data int10;
 static Bitu call_10 = 0;
 static bool warned_ff=false;
 
-static Bitu INT10_Handler(void) {
+Bitu INT10_Handler(void) {
 	// NTS: We do have to check the "current video mode" from the BIOS data area every call.
 	//      Some OSes like Windows 95 rely on overwriting the "current video mode" byte in
 	//      the BIOS data area to play tricks with the BIOS. If we don't call this, tricks
@@ -780,6 +780,141 @@ void INT10_OnResetComplete() {
 extern bool unmask_irq0_on_int10_setmode;
 extern bool int16_unmask_irq1_on_read;
 extern bool int16_ah_01_cf_undoc;
+
+#if 0 /* reference */
+typedef struct tagBITMAPFILEHEADER {
+    WORD  bfType;
+    DWORD bfSize;
+    WORD  bfReserved1;
+    WORD  bfReserved2;
+    DWORD bfOffBits;
+} BITMAPFILEHEADER, *PBITMAPFILEHEADER;
+
+typedef struct tagBITMAPINFO {
+    BITMAPINFOHEADER bmiHeader;
+    RGBQUAD          bmiColors[1];
+} BITMAPINFO, *PBITMAPINFO;
+
+typedef struct tagBITMAPINFOHEADER {
+    DWORD biSize;
+    LONG  biWidth;
+    LONG  biHeight;
+    WORD  biPlanes;
+    WORD  biBitCount;
+    DWORD biCompression;
+    DWORD biSizeImage;
+    LONG  biXPelsPerMeter;
+    LONG  biYPelsPerMeter;
+    DWORD biClrUsed;
+    DWORD biClrImportant;
+} BITMAPINFOHEADER, *PBITMAPINFOHEADER;
+#endif
+
+/* ANEX86.BMP from the Anex86 emulator.
+ * Holds the font as a giant 2048x2048 1-bit monochromatic bitmap. */
+/* We load it separately because I am uncertain whether it is legal or not to
+ * incorporate this directly into DOSBox-X. */
+bool Load_Anex86_Font(void) {
+    unsigned char tmp[(2048/8)*16]; /* enough for one 2048x16 row and bitmap header */
+    unsigned int hibyte,lowbyte,r;
+    unsigned int bmp_ofs;
+    FILE *fp;
+
+    fp = fopen("anex86.bmp","rb");
+    if (!fp) fp = fopen("ANEX86.bmp","rb");
+    if (!fp) {
+        LOG_MSG("PC-98 font loading: ANEX86.BMP not found");
+        return false;
+    }
+
+    if (fread(tmp,14,1,fp) != 1) goto fail; // BITMAPFILEHEADER
+    if (memcmp(tmp,"BM",2) != 0) goto fail; // must be "BM"
+    bmp_ofs = host_readd((HostPt)(tmp+10)); // bOffBits
+
+    if (fread(tmp,40,1,fp) != 1) goto fail; // BITMAPINFOHEADER
+    if (host_readd((HostPt)(tmp+0)) != 40) goto fail; // biSize == 40 or else
+    if (host_readd((HostPt)(tmp+4)) != 2048) goto fail; // biWidth == 2048 or else
+    if (host_readd((HostPt)(tmp+8)) != 2048) goto fail; // biHeight == 2048 or else
+    if (host_readw((HostPt)(tmp+12)) != 1) goto fail; // biPlanes == 1 or else
+    if (host_readw((HostPt)(tmp+14)) != 1) goto fail; // biBitCount == 1 or else
+    if (host_readd((HostPt)(tmp+16)) != 0) goto fail; // biCompression == 0 or else
+
+    /* first row is 8x16 single width */
+    fseek(fp,bmp_ofs+((2048-16)*(2048/8)),SEEK_SET); /* arrrgh bitmaps are upside-down */
+    if (fread(tmp,(2048/8)*16,1,fp) != 1) goto fail;
+    for (lowbyte=0;lowbyte < 256;lowbyte++) {
+        for (r=0;r < 16;r++) {
+            vga.draw.font[(lowbyte*16)+r] = tmp[lowbyte+((15-r/*upside-down!*/)*(2048/8))] ^ 0xFF/*ANEX86 has inverse color scheme*/;
+        }
+    }
+    /* everything after is 16x16 fullwidth.
+     * note: 2048 / 16 = 128 */
+    for (hibyte=1;hibyte < 128;hibyte++) {
+        fseek(fp,bmp_ofs+((2048-(16*hibyte)-16)*(2048/8)),SEEK_SET); /* arrrgh bitmaps are upside-down */
+        if (fread(tmp,(2048/8)*16,1,fp) != 1) goto fail;
+
+        for (lowbyte=0;lowbyte < 128;lowbyte++) {
+            for (r=0;r < 16;r++) {
+                unsigned int i;
+                unsigned int o;
+
+                /* NTS: fullwidth is 16x16 128 chars across.
+                 * each row of the char bitmap is TWO bytes. */
+                i = (lowbyte*2)+((15-r/*upside-down!*/)*(2048/8));
+                o = ((((hibyte*128)+lowbyte)*16)+r)*2;
+
+                assert((i+2) <= sizeof(tmp));
+                assert((o+2) <= sizeof(vga.draw.font));
+
+                vga.draw.font[o+0] = tmp[i+0] ^ 0xFF;
+                vga.draw.font[o+1] = tmp[i+1] ^ 0xFF;
+            }
+        }
+    }
+
+    LOG_MSG("ANEX86.BMP font loaded");
+    fclose(fp);
+    return true;
+fail:
+    LOG_MSG("ANEX86.BMP invalid, ignoring");
+    fclose(fp);
+    return false;
+}
+
+extern Bit8u int10_font_16[256 * 16];
+
+bool Load_VGAFont_As_PC98(void) {
+    unsigned int i;
+
+    for (i=0;i < (256 * 16);i++)
+        vga.draw.font[i] = int10_font_16[i];
+
+    return true;
+}
+
+void INT10_EnterPC98(Section *sec) {
+    /* shut down INT 10h for PC-98 mode */
+    if (call_10 != 0) {
+        CALLBACK_DeAllocate(call_10);
+        RealSetVec(0x10,0);
+        call_10 = 0;
+    }
+
+    /* remove VGA BIOS */
+    void INT10_RemoveVGABIOS(void);
+    INT10_RemoveVGABIOS();
+
+    /* load PC-98 character ROM data, if possible */
+    {
+        bool ok = false;
+
+        /* We can use ANEX86.BMP from the Anex86 emulator */
+        if (!ok) ok = Load_Anex86_Font();
+        /* Failing all else we can just re-use the IBM VGA 8x16 font to show SOMETHING on the screen.
+         * Japanese text will not display properly though. */
+        if (!ok) ok = Load_VGAFont_As_PC98();
+    }
+}
 
 void INT10_Startup(Section *sec) {
 	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");

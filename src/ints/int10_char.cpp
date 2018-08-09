@@ -106,6 +106,18 @@ static void TEXT_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt b
 	MEM_BlockCopy(dest,src,(cright-cleft)*2);
 }
 
+static void PC98_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt base) {
+	PhysPt src,dest;
+
+    /* character data */
+	src=base+(rold*CurMode->twidth+cleft)*2;
+	dest=base+(rnew*CurMode->twidth+cleft)*2;
+	MEM_BlockCopy(dest,src,(cright-cleft)*2);
+
+    /* attribute data */
+	MEM_BlockCopy(dest+0x2000,src+0x2000,(cright-cleft)*2);
+}
+
 static void CGA2_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u attr) {
 	Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
 	PhysPt dest=base+((CurMode->twidth*row)*(cheight/2)+cleft);
@@ -182,6 +194,31 @@ static void VGA_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u att
 	}
 }
 
+static unsigned char VGA_FG_to_PC98(unsigned char vga_attr) {
+    /* VGA:
+     *    bbbb ffff        b=background color (irgb)    f=foreground color (irgb)
+     * PC-98:
+     *    grb xxxxx        g=green r=red b=blue xxxxxx dont care */
+    return
+        ((vga_attr & 2/*VGA green*/) ? 0x80/*PC-98 green*/ : 0) +
+        ((vga_attr & 4/*VGA red  */) ? 0x40/*PC-98 red*/   : 0) +
+        ((vga_attr & 1/*VGA blue */) ? 0x20/*PC-98 blue*/  : 0) +
+        1/* ~secret*/;
+}
+
+static void PC98_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u attr) {
+	/* Do some filing */
+	PhysPt dest;
+	dest=base+(row*CurMode->twidth+cleft)*2;
+	Bit16u fill=' ';
+    Bit16u fattr=VGA_FG_to_PC98(attr ? attr : 7);
+	for (Bit8u x=0;x<(cright-cleft);x++) {
+		mem_writew(dest,fill);
+		mem_writew(dest+0x2000,fattr);
+		dest+=2;
+	}
+}
+
 static void TEXT_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u attr) {
 	/* Do some filing */
 	PhysPt dest;
@@ -240,6 +277,8 @@ void INT10_ScrollWindow(Bit8u rul,Bit8u cul,Bit8u rlr,Bit8u clr,Bit8s nlines,Bit
 	while (start!=end) {
 		start+=next;
 		switch (CurMode->type) {
+		case M_PC98:
+			PC98_CopyRow(cul,clr,start,start+nlines,base);break;
 		case M_TEXT:
 			TEXT_CopyRow(cul,clr,start,start+nlines,base);break;
 		case M_CGA2:
@@ -273,6 +312,8 @@ filling:
 	}
 	for (;nlines>0;nlines--) {
 		switch (CurMode->type) {
+		case M_PC98:
+			PC98_FillRow(cul,clr,start,base,attr);break;
 		case M_TEXT:
 			TEXT_FillRow(cul,clr,start,base,attr);break;
 		case M_CGA2:
@@ -380,6 +421,8 @@ dowrite:
 	IO_Write(base,0xb);IO_Write(base+1,last);
 }
 
+void vga_pc98_direct_cursor_pos(Bit16u address);
+
 void INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
 	Bit16u address;
 
@@ -395,12 +438,17 @@ void INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
 		// Calculate the address knowing nbcols nbrows and page num
 		// NOTE: BIOSMEM_CURRENT_START counts in colour/flag pairs
 		address=(ncols*row)+col+real_readw(BIOSMEM_SEG,BIOSMEM_CURRENT_START)/2;
-		// CRTC regs 0x0e and 0x0f
-		Bit16u base=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
-		IO_Write(base,0x0e);
-		IO_Write(base+1,(Bit8u)(address>>8));
-		IO_Write(base,0x0f);
-		IO_Write(base+1,(Bit8u)address);
+        if (IS_PC98_ARCH) {
+            vga_pc98_direct_cursor_pos(address);
+        }
+        else {
+            // CRTC regs 0x0e and 0x0f
+            Bit16u base=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
+            IO_Write(base,0x0e);
+            IO_Write(base+1,(Bit8u)(address>>8));
+            IO_Write(base,0x0f);
+            IO_Write(base+1,(Bit8u)address);
+        }
 	}
 }
 
@@ -471,11 +519,99 @@ void INT10_ReadCharAttr(Bit16u * result,Bit8u page) {
 	Bit8u cur_col=CURSOR_POS_COL(page);
 	ReadCharAttr(cur_col,cur_row,page,result);
 }
-void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit8u chr,Bit8u attr,bool useattr) {
+
+void INT10_PC98_CurMode_Relocate(void) {
+    assert(CurMode != NULL);
+    CurMode->pstart = 0xA0000;
+    CurMode->type = M_PC98;
+}
+
+struct ShiftJISDecoder {
+    ShiftJISDecoder() {
+        reset();
+    }
+    void reset(void) {
+        fullwidth = false;
+        b1 = b2 = 0;
+    }
+    bool take(unsigned char c) {
+        /* JIS sequence j1, j2
+         * ShiftJIS bytes s1, s2
+         *
+         * if (33 <= j1 && j1 <= 94)
+         *   s1 = ((j1 + 1) / 2) + 112
+         * else if (95 <= j1 && j1 <= 126)
+         *   s1 = ((j1 + 1) / 2) + 176
+         * 
+         * if (j1 & 1)    <- is odd
+         *   s2 = j2 + 31 + (j2 / 96)
+         * else           <- is even
+         *   s2 = j2 + 126
+         */ 
+        if (!fullwidth) {
+            if (c >= 0x81 && c <= 0x9F) {
+                /* Reverse:
+                 *
+                 *    s1 = ((j1 + 1) / 2) + 112
+                 *    s1 - 112 = (j1 + 1) / 2
+                 *    (s1 - 112) * 2 = j1 + 1
+                 *    ((s1 - 112) * 2) - 1 = j1 */
+                fullwidth = true;
+                b1 = (c - 112) * 2;
+                return false;
+            }
+            else if (c >= 0xE0 && c <= 0xEF) {
+                /* Reverse:
+                 *
+                 *    s1 = ((j1 + 1) / 2) + 176
+                 *    s1 - 176 = (j1 + 1) / 2
+                 *    (s1 - 176) * 2 = j1 + 1
+                 *    ((s1 - 176) * 2) - 1 = j1 */
+                fullwidth = true;
+                b1 = (c - 176) * 2;
+                return false;
+            }
+            else {
+                b2 = 0;
+                b1 = c;
+            }
+        }
+        else { // fullwidth, 2nd byte
+            if (c >= 0x9F) { /* j1 is even */
+                b2 = c - 126;
+            }
+            else if (c >= 0x40 && c != 0x7F) { /* j1 is odd */
+                b1--; /* (j1 + 1) / 2 */
+                b2 = c - 31;
+                if (c >= 0x80) b2--; /* gap at 0x7F */
+            }
+            else {
+                // ???
+                b1 = 0x7F;
+                b2 = 0x7F;
+            }
+
+            fullwidth = false;
+        }
+
+        return true;
+    }
+public:
+    unsigned char       b1,b2;
+    bool                fullwidth;
+};
+
+static ShiftJISDecoder int10_sjis;
+
+void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,bool useattr) {
 	/* Externally used by the mouse routine */
 	RealPt fontdata;
 	Bitu x,y;
 	Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
+
+    if (CurMode->type != M_PC98)
+        chr &= 0xFF;
+
 	switch (CurMode->type) {
 	case M_TEXT:
 		{	
@@ -490,6 +626,23 @@ void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit8u chr,Bit8u attr,bool useatt
 			}
 		}
 		return;
+    case M_PC98:
+        {
+			// Compute the address  
+			Bit16u address=page*real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE);
+			address+=(row*real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)+col)*2;
+			// Write the char 
+			PhysPt where = CurMode->pstart+address;
+			mem_writew(where,chr);
+			if (useattr) {
+				mem_writeb(where+0x2000,VGA_FG_to_PC98(attr));
+			}
+#if 0
+            // seems to reenable the cursor, too
+            pc98_gdc[GDC_MASTER].cursor_enable = true;
+#endif
+        }
+        return;
 	case M_CGA4:
 	case M_CGA2:
 	case M_TANDY16:
@@ -565,6 +718,7 @@ void INT10_WriteChar(Bit8u chr,Bit8u attr,Bit8u page,Bit16u count,bool showattr)
 				break;
 			case MCH_CGA:
 			case MCH_PCJR:
+            case MCH_PC98:
 			case MCH_AMSTRAD:
 				page=0;
 				break;
@@ -573,18 +727,37 @@ void INT10_WriteChar(Bit8u chr,Bit8u attr,Bit8u page,Bit16u count,bool showattr)
 		}
 	}
 
-	Bit8u cur_row=CURSOR_POS_ROW(page);
-	Bit8u cur_col=CURSOR_POS_COL(page);
-	BIOS_NCOLS;
-	while (count>0) {
-		WriteChar(cur_col,cur_row,page,chr,attr,showattr);
-		count--;
-		cur_col++;
-		if(cur_col==ncols) {
-			cur_col=0;
-			cur_row++;
-		}
-	}
+    Bit8u cur_row=CURSOR_POS_ROW(page);
+    Bit8u cur_col=CURSOR_POS_COL(page);
+    BIOS_NCOLS;
+
+    if (IS_PC98_ARCH && count == 1) {
+        /* NTS: This is called by src/dos/dev_con.h for ANSI output which will move the cursor for us.
+         *      It's up to us to follow along with the way it moves the cursor. It will call with count == 1.
+         *      We need to take the incoming Shift-JIS and turn it into the correct codes for T-RAM. */
+        if (int10_sjis.take(chr)) {
+            if (int10_sjis.b2 != 0) {
+                // fullwidth, the cursor at this point is on the right hand half.
+                // the font RAM in fullwidth case for each "high byte" defines chars starting
+                // at 0x20 not 0x00 so b1 will need to be adjusted.
+                int10_sjis.b1 -= 0x20;
+                cur_col--;
+            }
+
+            WriteChar(cur_col,cur_row,page,(int10_sjis.b2 << 8) | int10_sjis.b1,attr,showattr);
+        }
+    }
+    else {
+        while (count>0) {
+            WriteChar(cur_col,cur_row,page,chr,attr,showattr);
+            count--;
+            cur_col++;
+            if(cur_col==ncols) {
+                cur_col=0;
+                cur_row++;
+            }
+        }
+    }
 }
 
 static void INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr,Bit8u page) {

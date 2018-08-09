@@ -2223,6 +2223,16 @@ void GUS_DOS_Boot(Section *sec) {
     if (test != NULL) test->DOS_Startup();
 }
 
+void GUS_OnEnterPC98(Section *sec) {
+    /* PC-98 does not have Gravis Ultrasound.
+     * Upon entry, remove all I/O ports and shutdown emulation */
+    GUS_DOS_Shutdown();
+	if (test != NULL) {
+		delete test;	
+		test = NULL;
+	}
+}
+
 void GUS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Gravis Ultrasound emulation");
 
@@ -2232,5 +2242,7 @@ void GUS_Init() {
 	AddVMEventFunction(VM_EVENT_DOS_SURPRISE_REBOOT,AddVMEventFunctionFuncPair(GUS_DOS_Exit));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_REBOOT_BEGIN,AddVMEventFunctionFuncPair(GUS_DOS_Exit));
     AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(GUS_DOS_Boot));
+
+    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(GUS_OnEnterPC98));
 }
 

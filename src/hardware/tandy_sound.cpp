@@ -511,10 +511,20 @@ public:
 
 
 
-static TANDYSOUND* test;
+static TANDYSOUND* test = NULL;
 
 void TANDYSOUND_ShutDown(Section* /*sec*/) {
-	delete test;	
+    if (test) {
+        delete test;
+        test = NULL;
+    }
+}
+
+void TANDYSOUND_OnEnterPC98(Section* /*sec*/) {
+    if (test) {
+        delete test;
+        test = NULL;
+    }
 }
 
 void TANDYSOUND_OnReset(Section* sec) {
@@ -529,5 +539,7 @@ void TANDYSOUND_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(TANDYSOUND_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(TANDYSOUND_OnReset));
+
+    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(TANDYSOUND_OnEnterPC98));
 }
 

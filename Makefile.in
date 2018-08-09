@@ -80,11 +80,11 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 subdir = .
-DIST_COMMON = INSTALL NEWS README AUTHORS ChangeLog \
-	$(srcdir)/Makefile.in $(srcdir)/Makefile.am \
+DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
-	$(srcdir)/config.h.in COPYING THANKS compile config.guess \
-	config.sub depcomp install-sh missing
+	$(srcdir)/config.h.in AUTHORS COPYING INSTALL NEWS README \
+	THANKS compile config.guess config.sub depcomp install-sh \
+	missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
@@ -313,15 +313,15 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
-	      echo ' cd $(srcdir) && $(AUTOMAKE) --gnu'; \
-	      $(am__cd) $(srcdir) && $(AUTOMAKE) --gnu \
+	      echo ' cd $(srcdir) && $(AUTOMAKE) --foreign'; \
+	      $(am__cd) $(srcdir) && $(AUTOMAKE) --foreign \
 		&& exit 0; \
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu Makefile
+	  $(AUTOMAKE) --foreign Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

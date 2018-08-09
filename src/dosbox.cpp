@@ -772,6 +772,8 @@ void DOSBOX_RealInit() {
 	else if (mtype == "vgaonly")       { svgaCard = SVGA_None; }
 	else if (mtype == "amstrad")       { machine = MCH_AMSTRAD; }
 	else if (mtype == "pc98")          { machine = MCH_PC98; }
+	else if (mtype == "pc9801")        { machine = MCH_PC98; } /* Future differentiation */
+	else if (mtype == "pc9821")        { machine = MCH_PC98; } /* Future differentiation */
 	else E_Exit("DOSBOX:Unknown machine type %s",mtype.c_str());
 
 	// TODO: should be parsed by motherboard emulation
@@ -814,8 +816,7 @@ void DOSBOX_RealInit() {
     /* the changes are so large to begin supporting PC-98 that it's probably better
      * to boot up in IBM PC/XT/AT mode and then switch into PC-98 */
 	if (IS_PC98_ARCH) {
-        LOG_MSG("PC-9801 WARNING: Implementation is very early, and not the initial state.");
-        LOG_MSG("You will need to run a command to jump into PC-98 mode.");
+        LOG_MSG("PC-98 WARNING: Implementation is very early, and not the initial state.");
 
         enable_pc98_jump = true;
         int10.vesa_nolfb = false;
@@ -875,7 +876,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
 	const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
 	const char* dmassb[] = { "1", "5", "0", "3", "6", "7", 0 };
-	const char* oplemus[]={ "default", "compat", "fast", 0};
+	const char* oplemus[] = { "default", "compat", "fast", "nuked", 0 };
 	const char *qualityno[] = { "0", "1", "2", "3", 0 };
 	const char* tandys[] = { "auto", "on", "off", 0};
 	const char* ps1opt[] = { "on", "off", 0};
@@ -889,7 +890,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* machines[] = {
 		"hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega",
 		"vgaonly", "svga_s3", "svga_et3000", "svga_et4000",
-		"svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", 0 };
+		"svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", "pc9801", "pc9821", 0 };
 
 	const char* scalers[] = { 
 		"none", "normal2x", "normal3x", "normal4x", "normal5x",
@@ -1151,6 +1152,29 @@ void DOSBOX_SetupConfigSections(void) {
 		"    24: 16MB aliasing. Common on 386SX systems (CPU had 24 external address bits)\n"
 		"        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
 		"    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31");
+
+	Pbool = secprop->Add_bool("pc-98 allow scanline effect",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("If set, PC-98 emulation will allow the DOS application to enable the 'scanline effect'\n"
+                    "in 200-line graphics modes upconverted to 400-line raster display. When enabled, odd\n"
+                    "numbered scanlines are blanked instead of doubled");
+
+	Pint = secprop->Add_int("pc-98 timer master frequency", Property::Changeable::WhenIdle,0);
+	Pint->SetMinMax(0,2457600);
+	Pint->Set_help("8254 timer clock frequency (NEC PC-98). Depending on the CPU frequency the clock frequency is one of two common values.\n"
+                   "If your setting is neither of the below the closest appropriate value will be chosen.\n"
+                   "This setting affects the master clock rate that DOS applications must divide down from to program the timer\n"
+                   "at the correct rate, which affects timer interrupt, PC speaker, and the COM1 RS-232C serial port baud rate.\n"
+                   "    0: Use default (auto)\n"
+                   "    8: 1.996MHz (as if 8MHz or multiple thereof CPU clock)\n"
+                   "   10: 2.457MHz (as if 5MHz/10MHz or multiple thereof CPU clock)");
+
+	Pint = secprop->Add_int("pc-98 allow 4 display partition graphics", Property::Changeable::WhenIdle,-1);
+	Pint->SetMinMax(-1,1);
+	Pint->Set_help("According to NEC graphics controller documentation, graphics mode is supposed to support only\n"
+                   "2 display partitions. Some games rely on hardware flaws that allowed 4 partitions.\n"
+                   "   -1: Default (choose automatically)\n"
+                   "    0: Disable\n"
+                   "    1: Enable");
 
 	Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
 	Pint->SetMinMax(512,65536);
@@ -2527,5 +2551,184 @@ void DOSBOX_SetupConfigSections(void) {
 	        "# They are used to (briefly) document the effect of each option.\n"
 		"# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
 	MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
+}
+
+int utf8_encode(char **ptr,char *fence,uint32_t code) {
+	int uchar_size=1;
+	char *p = *ptr;
+
+	if (!p) return UTF8ERR_NO_ROOM;
+	if (code >= (uint32_t)0x80000000UL) return UTF8ERR_INVALID;
+	if (p >= fence) return UTF8ERR_NO_ROOM;
+
+	if (code >= 0x4000000) uchar_size = 6;
+	else if (code >= 0x200000) uchar_size = 5;
+	else if (code >= 0x10000) uchar_size = 4;
+	else if (code >= 0x800) uchar_size = 3;
+	else if (code >= 0x80) uchar_size = 2;
+
+	if ((p+uchar_size) > fence) return UTF8ERR_NO_ROOM;
+
+	switch (uchar_size) {
+		case 1:	*p++ = (char)code;
+			break;
+		case 2:	*p++ = (char)(0xC0 | (code >> 6));
+			*p++ = (char)(0x80 | (code & 0x3F));
+			break;
+		case 3:	*p++ = (char)(0xE0 | (code >> 12));
+			*p++ = (char)(0x80 | ((code >> 6) & 0x3F));
+			*p++ = (char)(0x80 | (code & 0x3F));
+			break;
+		case 4:	*p++ = (char)(0xF0 | (code >> 18));
+			*p++ = (char)(0x80 | ((code >> 12) & 0x3F));
+			*p++ = (char)(0x80 | ((code >> 6) & 0x3F));
+			*p++ = (char)(0x80 | (code & 0x3F));
+			break;
+		case 5:	*p++ = (char)(0xF8 | (code >> 24));
+			*p++ = (char)(0x80 | ((code >> 18) & 0x3F));
+			*p++ = (char)(0x80 | ((code >> 12) & 0x3F));
+			*p++ = (char)(0x80 | ((code >> 6) & 0x3F));
+			*p++ = (char)(0x80 | (code & 0x3F));
+			break;
+		case 6:	*p++ = (char)(0xFC | (code >> 30));
+			*p++ = (char)(0x80 | ((code >> 24) & 0x3F));
+			*p++ = (char)(0x80 | ((code >> 18) & 0x3F));
+			*p++ = (char)(0x80 | ((code >> 12) & 0x3F));
+			*p++ = (char)(0x80 | ((code >> 6) & 0x3F));
+			*p++ = (char)(0x80 | (code & 0x3F));
+			break;
+	};
+
+	*ptr = p;
+	return 0;
+}
+
+int utf8_decode(const char **ptr,const char *fence) {
+	const char *p = *ptr;
+	int uchar_size=1;
+	int ret = 0,c;
+
+	if (!p) return UTF8ERR_NO_ROOM;
+	if (p >= fence) return UTF8ERR_NO_ROOM;
+
+	ret = (unsigned char)(*p);
+	if (ret >= 0xFE) { p++; return UTF8ERR_INVALID; }
+	else if (ret >= 0xFC) uchar_size=6;
+	else if (ret >= 0xF8) uchar_size=5;
+	else if (ret >= 0xF0) uchar_size=4;
+	else if (ret >= 0xE0) uchar_size=3;
+	else if (ret >= 0xC0) uchar_size=2;
+	else if (ret >= 0x80) { p++; return UTF8ERR_INVALID; }
+
+	if ((p+uchar_size) > fence)
+		return UTF8ERR_NO_ROOM;
+
+	switch (uchar_size) {
+		case 1:	p++;
+			break;
+		case 2:	ret = (ret&0x1F)<<6; p++;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= c&0x3F;
+			break;
+		case 3:	ret = (ret&0xF)<<12; p++;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<6;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= c&0x3F;
+			break;
+		case 4:	ret = (ret&0x7)<<18; p++;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<12;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<6;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= c&0x3F;
+			break;
+		case 5:	ret = (ret&0x3)<<24; p++;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<18;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<12;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<6;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= c&0x3F;
+			break;
+		case 6:	ret = (ret&0x1)<<30; p++;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<24;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<18;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<12;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<6;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= c&0x3F;
+			break;
+	};
+
+	*ptr = p;
+	return ret;
+}
+
+int utf16le_encode(char **ptr,char *fence,uint32_t code) {
+	char *p = *ptr;
+
+	if (!p) return UTF8ERR_NO_ROOM;
+	if (code > 0x10FFFF) return UTF8ERR_INVALID;
+	if (code > 0xFFFF) { /* UTF-16 surrogate pair */
+		uint32_t lo = (code - 0x10000) & 0x3FF;
+		uint32_t hi = ((code - 0x10000) >> 10) & 0x3FF;
+		if ((p+2+2) > fence) return UTF8ERR_NO_ROOM;
+		*p++ = (char)( (hi+0xD800)       & 0xFF);
+		*p++ = (char)(((hi+0xD800) >> 8) & 0xFF);
+		*p++ = (char)( (lo+0xDC00)       & 0xFF);
+		*p++ = (char)(((lo+0xDC00) >> 8) & 0xFF);
+	}
+	else if ((code&0xF800) == 0xD800) { /* do not allow accidental surrogate pairs (0xD800-0xDFFF) */
+		return UTF8ERR_INVALID;
+	}
+	else {
+		if ((p+2) > fence) return UTF8ERR_NO_ROOM;
+		*p++ = (char)( code       & 0xFF);
+		*p++ = (char)((code >> 8) & 0xFF);
+	}
+
+	*ptr = p;
+	return 0;
+}
+
+int utf16le_decode(const char **ptr,const char *fence) {
+	const char *p = *ptr;
+	int ret,b=2;
+
+	if (!p) return UTF8ERR_NO_ROOM;
+	if ((p+1) >= fence) return UTF8ERR_NO_ROOM;
+
+	ret = (unsigned char)p[0];
+	ret |= ((unsigned int)((unsigned char)p[1])) << 8;
+	if (ret >= 0xD800 && ret <= 0xDBFF)
+		b=4;
+	else if (ret >= 0xDC00 && ret <= 0xDFFF)
+		{ p++; return UTF8ERR_INVALID; }
+
+	if ((p+b) > fence)
+		return UTF8ERR_NO_ROOM;
+
+	p += 2;
+	if (ret >= 0xD800 && ret <= 0xDBFF) {
+		/* decode surrogate pair */
+		int hi = ret & 0x3FF;
+		int lo = (unsigned char)p[0];
+		lo |= ((unsigned int)((unsigned char)p[1])) << 8;
+		p += 2;
+		if (lo < 0xDC00 || lo > 0xDFFF) return UTF8ERR_INVALID;
+		lo &= 0x3FF;
+		ret = ((hi << 10) | lo) + 0x10000;
+	}
+
+	*ptr = p;
+	return ret;
 }
 
