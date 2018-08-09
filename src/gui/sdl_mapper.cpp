@@ -323,7 +323,7 @@ static Bit8u scancode_map[MAX_SDLKEYS];
 #if defined (MACOSX)
 static SDLKey sdlkey_map[]={
 	/* Main block printables */
-	/*00-05*/ SDLK_a, SDLK_s, SDLK_d, SDLK_f, SDLK_h, SDLK_g,
+	/*00-05*/ Z, SDLK_s, SDLK_d, SDLK_f, SDLK_h, SDLK_g,
 	/*06-0B*/ SDLK_z, SDLK_x, SDLK_c, SDLK_v, SDLK_WORLD_0, SDLK_b,
 	/*0C-11*/ SDLK_q, SDLK_w, SDLK_e, SDLK_r, SDLK_y, SDLK_t, 
 	/*12-17*/ SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_6, SDLK_5, 
@@ -351,7 +351,7 @@ static SDLKey sdlkey_map[]={
 	/*52-57*/ SDLK_KP0, SDLK_KP1, SDLK_KP2, SDLK_KP3, SDLK_KP4, SDLK_KP5, 
 	/*58-5C*/ SDLK_KP6, SDLK_KP7, Z, SDLK_KP8, SDLK_KP9, 
 
-	/*5D-5F*/ Z, Z, Z,
+	/*5D-5F*/ Z, Z, SDLK_a,
 	
 	/* Function keys and cursor blocks (F13 not supported, F14 =>
 	 * PRINT[SCREEN], F15 => SCROLLOCK, F16 => PAUSE, HELP => INSERT) */
@@ -368,7 +368,7 @@ static SDLKey sdlkey_map[]={
 	/* 4 extra keys that don't really exist, but are needed for
 	 * round-trip mapping (dosbox uses RMETA only for hotkeys, it's
 	 * not really mapped to an emulated key) */
-	SDLK_RMETA, SDLK_RSHIFT, SDLK_RALT, SDLK_RCTRL,
+	SDLK_RMETA, SDLK_RSHIFT, SDLK_RALT, SDLK_RCTRL
 };
 #define MAX_SCANCODES (0x80+4)
 /* Make sure that the table above has the expected size.  This
@@ -436,6 +436,11 @@ Bitu GetKeyCode(SDL_keysym keysym) {
 //	LOG_MSG("GetKeyCode %X %X %X",keysym.scancode,keysym.sym,keysym.mod);
 	if (usescancodes) {
 		Bitu key=(Bitu)keysym.scancode;
+
+#if defined (MACOSX)
+		if ((keysym.scancode == 0) && (keysym.sym == 'a')) key = 0x5f;  // zero value makes the keyboar crazy
+#endif
+
 		if (key==0
 #if defined (MACOSX)
 		    /* On Mac on US keyboards, scancode 0 is actually the 'a'
@@ -564,7 +569,6 @@ public:
 			return 0; // ignore up event
 		}
 #endif
-
 		if (event->type==SDL_KEYDOWN) ActivateBindList(&lists[key],0x7fff,true);
 		else DeactivateBindList(&lists[key],true);
 		return 0;
