@@ -1250,8 +1250,8 @@
 					return cb;
 				}
 			default:
-				E_Exit("Illegal GRP4 Call %d",(rm>>3) & 7);
-				break;
+				LOG(LOG_CPU,LOG_DEBUG)("Illegal GRP4 Call %d",(rm>>3) & 7);
+				goto illegal_opcode;
 			}
 			break;
 		}

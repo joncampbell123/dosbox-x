@@ -322,3 +322,7 @@ windows-installer/DOSBox-X-setup-*.zip
 *.deps
 dosbox-x
 Makefile
+
+vs2015/sdl/linux-host
+vs2015/sdl/linux-host/*
+

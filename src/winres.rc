@@ -47,7 +47,6 @@ BEGIN
     		MENUITEM "Auto",		ID_AUTO
        		MENUITEM "Normal\tCtrl-1",		ID_NORMAL
     		MENUITEM "Full\tCtrl-2",		ID_FULL
-    		MENUITEM "Dynamic\tCtrl-3",		ID_DYNAMIC
     		MENUITEM "Simple\tCtrl-4",		ID_SIMPLE
 		    END
 		POPUP "Type"
@@ -119,7 +118,6 @@ BEGIN
 	POPUP "Output"
 	BEGIN
 		MENUITEM "Surface",				       ID_SURFACE
-		MENUITEM "Overlay",				       ID_OVERLAY
 		MENUITEM "DirectDraw",				       ID_DDRAW
 		MENUITEM "Direct3D",				       ID_DIRECT3D
 		MENUITEM "OpenGL",				       ID_OPENGL

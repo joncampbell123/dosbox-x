@@ -552,6 +552,25 @@ irq1_end:
 
 unsigned char AT_read_60(void);
 
+/* BIOS INT 18h output vs keys:
+ *
+ *              Unshifted   Shifted     CTRL    Caps    Kana    Kana+Shift
+ *              -----------------------------------------------------------
+ * ESC          0x001B      0x001B      0x001B  0x001B  0x001B  0x001B
+ * STOP         --          --          --      --      --      --
+ * F1..F10      <--------------- scan code in upper, zero in lower ------->
+ * INS/DEL      <--------------- scan code in upper, zero in lower ------->
+ * ROLL UP/DOWN <--------------- scan code in upper, zero in lower ------->
+ * COPY         --          --          --      --      --      --
+ * HOME CLR     0x3E00      0xAE00      --      --      --      --
+ * HELP         <--------------- scan code in upper, zero in lower ------->
+ * ARROW KEYS   <--------------- scan code in upper, zero in lower ------->
+ * XFER         0x3500      0xA500      0xB500  0x3500  0x3500  0xA500
+ * NFER         0x5100      0xA100      0xB100  0x5100  0x5100  0xA100
+ * GRPH         --          --          --      --      --      --
+ * TAB          0x0F09      0x0F09      0x0F09  0x0F09  0x0F09  0x0F09
+ * - / 口       --          --          --      --      0x33DB  0x33DB      Kana+CTRL = 0x331F
+ */
 static Bitu IRQ1_Handler_PC98(void) {
     unsigned char sc_8251,status;
     unsigned int patience = 32;
@@ -575,6 +594,23 @@ static Bitu IRQ1_Handler_PC98(void) {
          * Just like INT 16h on IBM PC hardware */
         scan_add = sc_8251 << 8U;
 
+        /* NOTES:
+         *  - The bitmap also tracks CAPS, and KANA state. It does NOT track NUM state.
+         *    The bit corresponding to the key code will show a bit set if in that state.
+         *  - The STS byte returned by INT 18h AH=02h seems to match the 14th byte of the bitmap... so far.
+         *
+         *  STS layout (based on real hardware):
+         *
+         *    bit[7] = ?
+         *    bit[6] = ?
+         *    bit[5] = ?
+         *    bit[4] = CTRL is down
+         *    bit[3] = GRPH is down
+         *    bit[2] = KANA engaged
+         *    bit[1] = CAPS engaged
+         *    bit[0] = SHIFT is down
+         */
+
         /* According to Neko Project II, the BIOS maintains a "pressed key" bitmap at 0x50:0x2A.
          * Without this bitmap many PC-98 games are unplayable. */
         {
@@ -591,28 +627,30 @@ static Bitu IRQ1_Handler_PC98(void) {
         }
 
         /* NOTES:
-         *  - SHIFT scan code changes
+         *  - SHIFT/CTRL scan code changes (no scan code emitted if GRPH is held down for these keys)
          *
-         *      Key       Unshifted      Shifted
-         *      --------------------------------
-         *      F1        0x62           0x82
-         *      F2        0x63           0x83
-         *      F3        0x64           0x84
-         *      F4        0x65           0x85
-         *      F5        0x66           0x86
-         *      F6        0x67           0x87
-         *      F7        0x68           0x88
-         *      F8        0x69           0x89
-         *      F9        0x6A           0x8A
-         *      F10       0x6B           0x8B
-         *      HOME/CLR  0x3E           0xAE
-         *      XFER      0x35           0xA5
-         *      NFER      0x51           0xA1
-         *      VF1       0x52           0xC2
-         *      VF2       0x53           0xC3
-         *      VF3       0x54           0xC4
-         *      VF4       0x55           0xC5
-         *      VF5       0x56           0xC6
+         *    CTRL apparently takes precedence over SHIFT.
+         *
+         *      Key       Unshifted      Shifted        CTRL
+         *      --------------------------------------------
+         *      F1        0x62           0x82           0x92
+         *      F2        0x63           0x83           0x93
+         *      F3        0x64           0x84           0x94
+         *      F4        0x65           0x85           0x95
+         *      F5        0x66           0x86           0x96
+         *      F6        0x67           0x87           0x97
+         *      F7        0x68           0x88           0x98
+         *      F8        0x69           0x89           0x99
+         *      F9        0x6A           0x8A           0x9A
+         *      F10       0x6B           0x8B           0x9B
+         *      HOME/CLR  0x3E           0xAE           <none>
+         *      XFER      0x35           0xA5           0xB5
+         *      NFER      0x51           0xA1           0xB1
+         *      VF1       0x52           0xC2           0xD2
+         *      VF2       0x53           0xC3           0xD3
+         *      VF3       0x54           0xC4           0xD4
+         *      VF4       0x55           0xC5           0xD5
+         *      VF5       0x56           0xC6           0xD6
          */
 
         /* FIXME: I'm fully aware of obvious problems with this code so far:
@@ -998,9 +1036,44 @@ static Bitu IRQ1_Handler_PC98(void) {
                 }
                 break;
 
+            case 0x60: // STOP
+                // does not pass it on
+                break;
+
+            case 0x62: // F1
+            case 0x63: // F2
+            case 0x64: // F3
+            case 0x65: // F4
+            case 0x66: // F5
+            case 0x67: // F6
+            case 0x68: // F7
+            case 0x69: // F8
+            case 0x6A: // F9
+            case 0x6B: // F10
+                if (pressed) {
+                    if (flags1 & 4) /* CTRL */
+                        add_key(scan_add + 0x3000); /* 0x92-0x9B */
+                    else if (flags1 & 3) /* SHIFT */
+                        add_key(scan_add + 0x2000); /* 0x82-0x8B */
+                    else
+                        add_key(scan_add + 0x0000); /* 0x62-0x6B */
+                }
+                break;
+
             case 0x70: // left/right shift
                 flags1 &= ~3; // emulate AT BIOS l+r shift with PC-98 shift
                 flags1 |= pressed ? 3 : 0;
+                break;
+
+            case 0x74: // left/right ctrl
+                flags1 &= ~4; // emulate AT BIOS l+r ctrl with PC-98 ctrl
+                flags1 |= pressed ? 4 : 0;
+                break;
+
+            default:
+                if (pressed) {
+                    add_key(scan_add + 0x00); /* zero low byte */
+                }
                 break;
         }
 

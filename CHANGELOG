@@ -1,3 +1,153 @@
+<next>
+  - Mapper layout fixes:
+    - Shortcut buttons (on the right hand side of the UI) fixed to
+      become two columns wide if the button text won't fit in one
+      column.
+    - Some shortcut button titles shortened.
+  - Mapper UI updated to show which bindings are being activated by
+    hilighting buttons in the UI.
+  - Mapper UI modifier buttons indicate status through hilighting.
+  - Mapper UI joystick buttons and axes now use hilighting to indicate
+    that there is input from the device.
+  - Mapper fix for 4-axis joysticks that may count zero buttons, and
+    then crash (divide by zero) when the user pushes a button on the
+    joystick device.
+  - BIOS emulation now allows you to specify binary blobs to execute
+    in the guest system as part of startup. One can be specified to
+    execute just after CPU reset/power-on, and the other just before
+    booting to the DOS shell. THE BINARY BLOBS EXECUTE IN THE GUEST
+    ENVIRONMENT AND NOT AS ARBITRARY CODE ON YOUR HOST. This option
+    is provided for both automated testing and for the curious who
+    may want to venture into low level ASM hacking.
+  - INTRO.COM fixed to accept keyboard input correctly in both
+    PC-98 and IBM PC mode. You can now browse the help text properly
+    in either mode.
+  - DOS shell fixed to accept DOSKEY-like input in both IBM PC and
+    PC-98 mode (including arrow keys, F3, tab completion, etc.)
+  - DOS CON emulation now provides function keys (F1-F10) in PC-98 mode.
+  - DOS CON emulation fixed to process PC-98 BIOS codes and generate
+    PC-98 ANSI escapes as real hardware normally does.
+  - Mapper no longer shows two sets of the shortcuts (one overlaid
+    over the keyboard), registration bug fixed.
+  - PC-98 keyboard interrupt handler now handles CTRL key and
+    passes most keys as-is down through INT 18h now.
+  - Removed non-recursive page fault option. It is now always on,
+    except for internal cases where it needs to be off for callback
+    instructions to do their work properly.
+  - Removed dynamic x86 core. It is old and unmaintained code that
+    is incompatible with the non-recursive page fault system.
+  - IRQ cascade interrupt fixes and cleanup.
+  - BAT files given on the command line fixed to occur AFTER the
+    registration of ULTRASND and BLASTER environment variables.
+  - PC-98: DOS CON emulation fixed to decode Shift-JIS itself,
+    with consideration that some proprietary double-byte encodings
+    yield single-wide characters. DOS program using NEC's proprietary
+    box/line drawing characters this way should display properly now.
+  - DOSBox shell "greeting" now displays a proper box in PC-98 mode
+    instead of framing the text in rows and columns of Katakana. (basic2004)
+
+0.82.1 (12/25/2017)
+  - Windows builds no longer redirect stdout and stderr to
+    stdout.txt and stderr.txt. This also fixes problems
+    with crashing or hanging when run from Program Files.
+  - Windows releases compiled by TheGreatCodeholio again.
+  - SDL 1.x and SDL 2.x support in the same branch, selectable
+    by configuration option or VS2017 build target.
+  - SC400 emulation fixes
+  - Mac OS X pixel format fix to avoid corrupt graphics (Martin Lindhe)
+  - MT32 emulation now explains what ROM images it's looking for,
+    instead of just stating that it can't find the ROM images.
+  - Direct3D shaders from Daum (alex)
+  - NukeOPL OPL emulation
+  - Basic (experimental) NEC PC-98 emulation (machine=pc98)
+    - CG (character generator) emulation will need ANEX86.BMP
+      or FREECG98.BMP
+  - Some uninitialized state fixes
+  - FDI, FDD floppy disk support (especially PC-98 games)
+  - HDI hard disk support (especially PC-98 games)
+  - DOS FAT filesystem driver: added many sanity, size,
+    sector size and overrun checks.
+  - Floppy and hard disk image support now supports sector
+    sizes other than 512 bytes per sector (up to 1024).
+  - DOS FAT filesystem driver can now handle FAT filesystems
+    formatted with 256, 512, or 1024 bytes per sector.
+  - INT 29h route output to CON driver in PC-98 mode so
+    games can clear the screen with ANSI codes (Touhou Project).
+  - NEC PC-98 support for proprietary ANSI codes to clear
+    screen and show/hide function key row.
+  - NEC PC-98 FM emulation (borrowed/ported from Project Neko II).
+  - MPU-401 now emulates relative tempo change commands.
+  - When mounting folders as a drive letter, filenames are
+    now translated between guest and host according to the
+    MS-DOS code page. This allows DOS games to use extended
+    characters in a way that does not cause invalid filenames
+    on the host. The host is always assumed to support unicode.
+    Windows builds will use wide char (UTF-16) host names and
+    Linux/Mac OS X builds will use UTF-8.
+  - Code page translation for 437 (US MS-DOS) and 932 (PC-98 Shift-JIS).
+  - Emulate DOS console function key row in PC-98 mode.
+  - PC-98 EGC graphics emulation (minimal)
+  - PC-98 CG support for custom fonts (RAM portion)
+  - PC-98 EGC minimal ROP emulation
+  - PC-98 select between 2.5MHZ and 5MHz GDC (for games that demand one or the other)
+  - Aspect ratio menu item in Windows works correctly now
+  - Capture menu works correctly now
+  - Removed "overlay" output
+  - Fix Direct3D and OpenGL output to enable linear interpolation (smoothing)
+  - Fixed "double aspect ratio" issue with OpenGL output
+  - Linux builds compiled against SDL 1.x and running against PulseAudio
+    no longer hang/crash after some random amount of time (threading conflict)
+  - PC-98 minimal mouse emulation
+  - VGA doublescan=false fixed to display correctly, especially with scalers
+  - SDL 1.x Windows builds fixed to process mouse motion FIRST before
+    mouse buttons so that guest pointer integration with Windows 3.1
+    works properly.
+  - SDL 1.x Windows builds now enforce a 60Hz cap on mouse motion
+    detection because recent versions of Windows have some latency
+    when SDL repositions the mouse cursor. This fixes random
+    erratic jumps in mouse motion when playing games that respond
+    to mouse movement.
+  - SDL 2.x fix touchscreen interaction on Windows
+  - SDL 2.x mapper now responds to touchscreen as well as mouse.
+  - DOSBox Integration device no longer enables it's ISA PnP device
+    by default.
+  - SDL 2.x fix Windows 3.1 "double-click" accidents by ignoring
+    "mouse" events faked by Windows from the touchscreen.
+  - "Paper white" HGC/CGA monochrome palette (basic2004)
+  - CMS (GameBlaster) frequency correction (basic2004)
+  - SID frequency correction (basic2004)
+  - Maximize button in Windows now consistently triggers fullscreen mode
+  - SDL 2.x builds now use a different mapper file name to
+    avoid conflicts with SDL 1.x builds. SDL scan codes are
+    completely different between the two.
+  - Windows builds now include WinPCAP support and NE2000 emulation.
+  - MOUNT / IMGMOUNT convert backslash to forward slash in path on Linux to
+    allow dosbox.conf files from Windows to work on Linux.
+  - DOSBox-X officially no longer targets Windows XP.
+    Unofficially third party builds may support Windows XP.
+  - MPU-401 emulation now allows you to choose the IRQ, if desired.
+  - Windows builds now include reference dosbox.conf so that you
+    have a list of all options.
+  - IMGMOUNT and FAT filesystem support now check partition type
+    field to ensure that the partition chosen is a FAT filesystem.
+  - IMGMOUNT no longer requires -size parameter if mounting
+    a HDI disk image.
+  - IMGMOUNT and FAT filesystem driver updated to support both
+    IBM PC MBR (master boot record) and PC-98 IPL1 partition
+    tables.
+  - Fixed UMB memory selection not to overlap the EMS page frame.
+  - EMS updated to sit at E000h in IBM PC mode and D000h in PC-98 mode.
+  - Mapper interface now shows additional buttons for handlers
+    registered after initial emulator setup phase.
+  - Mapper fixed to load/save or apply default keybindings for
+    handlers registered after initial emulator setup phase.
+  - Mapper fixes now reveal "capture OPL", "hercules palette"
+    options as well. The fixes also allow the default key
+    bindings for those functions to work.
+  - "CTTY NUL" no longer causes DOSBox-X to hang.
+  - MOUNT now supports use of -q to suppress message when
+    successfully unmounting a drive.
+
 9/21/2017
 
 Pentium Pro instruction set implementation

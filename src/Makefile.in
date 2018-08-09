@@ -79,6 +79,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = dosbox-x$(EXEEXT)
+@C_MT32_TRUE@am__append_1 = mt32/libmt32.a
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
@@ -102,7 +103,8 @@ dosbox_x_DEPENDENCIES = debug/libdebug.a dos/libdos.a shell/libshell.a \
 	hardware/serialport/libserial.a hardware/parport/libparallel.a \
 	libs/porttalk/libporttalk.a gui/libgui.a \
 	libs/gui_tk/libgui_tk.a hardware/libhardware.a cpu/libcpu.a \
-	hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a
+	hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a \
+	aviwriter/libaviwriter.a $(am__append_1)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -248,6 +250,9 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
+SDL2_CFLAGS = @SDL2_CFLAGS@
+SDL2_CONFIG = @SDL2_CONFIG@
+SDL2_LIBS = @SDL2_LIBS@
 SDL_CFLAGS = @SDL_CFLAGS@
 SDL_CONFIG = @SDL_CONFIG@
 SDL_LIBS = @SDL_LIBS@
@@ -308,14 +313,16 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/include
-SUBDIRS = cpu debug dos fpu gui hardware libs ints misc shell builtin platform 
+SUBDIRS = cpu debug dos fpu gui hardware libs ints misc shell builtin platform mt32 aviwriter
 @HAVE_WINDRES_TRUE@ico_stuff = winres.rc
 dosbox_x_SOURCES = dosbox.cpp $(ico_stuff)
-dosbox_x_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuiltin.a \
-               ints/libints.a misc/libmisc.a hardware/serialport/libserial.a hardware/parport/libparallel.a \
-               libs/porttalk/libporttalk.a gui/libgui.a libs/gui_tk/libgui_tk.a hardware/libhardware.a \
-	       cpu/libcpu.a hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a
-
+dosbox_x_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a \
+	builtin/libbuiltin.a ints/libints.a misc/libmisc.a \
+	hardware/serialport/libserial.a hardware/parport/libparallel.a \
+	libs/porttalk/libporttalk.a gui/libgui.a \
+	libs/gui_tk/libgui_tk.a hardware/libhardware.a cpu/libcpu.a \
+	hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a \
+	aviwriter/libaviwriter.a $(am__append_1)
 EXTRA_DIST = winres.rc dosbox.ico
 all: all-recursive
 
@@ -407,15 +414,17 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dosbox.Po@am__quote@
 
 .cpp.o:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCXX_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ $<
 
 .cpp.obj:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCXX_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`

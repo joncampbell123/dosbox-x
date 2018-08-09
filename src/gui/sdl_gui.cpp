@@ -64,6 +64,7 @@ static bool			shortcut=false;
 static SDL_Surface*		screenshot;
 static SDL_Surface*		background;
 
+#if !defined(C_SDL2)
 /* Prepare screen for UI */
 void GUI_LoadFonts(void) {
 	GUI::Font::addFont("default",new GUI::BitmapFont(int10_font_14,14,10));
@@ -936,3 +937,4 @@ void GUI_Run(bool pressed) {
 	UI_Shutdown(screen);
 	delete screen;
 }
+#endif /* !defined(C_SDL2) */

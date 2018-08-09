@@ -21,6 +21,7 @@
 #include "../ints/int10.h"
 #include <string.h>
 #include "inout.h"
+#include "shiftjis.h"
 #include "callback.h"
 
 #define NUMBER_ANSI_DATA 10
@@ -29,6 +30,10 @@ extern bool DOS_BreakFlag;
 
 Bitu INT10_Handler(void);
 Bitu INT16_Handler_Wrap(void);
+
+ShiftJISDecoder con_sjis;
+
+Bit16u last_int16_code = 0;
 
 class device_CON : public DOS_Device {
 public:
@@ -89,24 +94,43 @@ private:
 	static void Real_INT10_TeletypeOutput(Bit8u xChar,Bit8u xAttr) {
 		Bit16u		oldax,oldbx;
 
-		oldax=reg_ax;
-		oldbx=reg_bx;
+        if (IS_PC98_ARCH) {
+            if (con_sjis.take(xChar)) {
+                BIOS_NCOLS;BIOS_NROWS;
+                Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+                Bit8u cur_row=CURSOR_POS_ROW(page);
+                Bit8u cur_col=CURSOR_POS_COL(page);
+                unsigned char cw = con_sjis.doublewide ? 2 : 1;
 
-		reg_ah=0xE;
-		reg_al=xChar;
-		reg_bl=xAttr;
+                /* FIXME: I'm not sure what NEC's ANSI driver does if a doublewide character is printed at column 79 */
+                if ((cur_col+cw) > ncols) {
+                    cur_col = ncols;
+                    AdjustCursorPosition(cur_col,cur_row);
+                }
 
-        /* FIXME: PC-98 emulation should eventually use CONIO emulation that
-         *        better emulates the actual platform. The purpose of this
-         *        hack is to allow our code to call into INT 10h without
-         *        setting up an INT 10h vector */
-        if (IS_PC98_ARCH)
-            INT10_Handler();
-        else
+                /* JIS conversion to WORD value appropriate for text RAM */
+                if (con_sjis.b2 != 0) con_sjis.b1 -= 0x20;
+
+                INT10_WriteChar((con_sjis.b2 << 8) + con_sjis.b1,xAttr,0,1,true);
+
+                cur_col += cw;
+                AdjustCursorPosition(cur_col,cur_row);
+                Real_INT10_SetCursorPos(cur_row,cur_col,page);	
+            }
+        }
+        else {
+            oldax=reg_ax;
+            oldbx=reg_bx;
+
+            reg_ah=0xE;
+            reg_al=xChar;
+            reg_bl=xAttr;
+
             CALLBACK_RunRealInt(0x10);
 
-		reg_ax=oldax;
-		reg_bx=oldbx;
+            reg_ax=oldax;
+            reg_bx=oldbx;
+        }
 	}
 
 
@@ -151,14 +175,20 @@ private:
 		{
 			cur_col=0;
 			cur_row++;
-			Real_INT10_TeletypeOutput('\r',0x7);
-		}
+
+            if (!IS_PC98_ARCH)
+                Real_INT10_TeletypeOutput('\r',0x7);
+        }
 		
 		//Reached the bottom?
 		if(cur_row==nrows) 
 		{
-			Real_INT10_TeletypeOutput('\n',0x7);	//Scroll up
-			cur_row--;
+            if (IS_PC98_ARCH)
+		        INT10_ScrollWindow(0,0,(Bit8u)(nrows-1),(Bit8u)(ncols-1),-1,0x07,0);
+            else
+                Real_INT10_TeletypeOutput('\n',0x7);	//Scroll up
+
+            cur_row--;
 		}
 	}
 
@@ -202,9 +232,30 @@ private:
 			} while(cur_col%8);
 			break;
 		default:
-			//* Draw the actual Character 
-			Real_WriteChar(cur_col,cur_row,page,chr,attr,useattr);
-			cur_col++;
+			//* Draw the actual Character
+            if (IS_PC98_ARCH) {
+                if (con_sjis.take(chr)) {
+                    BIOS_NCOLS;BIOS_NROWS;
+                    unsigned char cw = con_sjis.doublewide ? 2 : 1;
+
+                    /* FIXME: I'm not sure what NEC's ANSI driver does if a doublewide character is printed at column 79 */
+                    if ((cur_col+cw) > ncols) {
+                        cur_col = ncols;
+                        AdjustCursorPosition(cur_col,cur_row);
+                    }
+
+                    /* JIS conversion to WORD value appropriate for text RAM */
+                    if (con_sjis.b2 != 0) con_sjis.b1 -= 0x20;
+
+                    INT10_WriteChar((con_sjis.b2 << 8) + con_sjis.b1,attr,0,1,true);
+
+                    cur_col += cw;
+                }
+            }
+            else {
+                Real_WriteChar(cur_col,cur_row,page,chr,attr,useattr);
+                cur_col++;
+            }
 		}
 		
 		AdjustCursorPosition(cur_col,cur_row);
@@ -212,7 +263,43 @@ private:
 	}//void Real_INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr) 
 };
 
+// NEC-PC98 keyboard input notes
+//
+// on a system with KKCFUNC.SYS, NECAIK1.SYS, NECAIK2.SYS, NECAI.SYS loaded
+//
+// Key      Normal      Shift       CTRL
+// -------------------------------------
+// ESC      0x1B        0x1B        0x1B
+// TAB      0x09        0x09        0x09
+// F1       0x1B 0x53   <shortcut>  --
+// F2       0x1B 0x54   <shortcut>  --
+// F3       0x1B 0x55   <shortcut>  --
+// F4       0x1B 0x56   <shortcut>  Toggles 'g'
+// F5       0x1B 0x57   <shortcut>  --
+// F6       0x1B 0x45   <shortcut>  Toggle 20/25-line text mode
+// F7       0x1B 0x4A   <shortcut>  Toggle function row (C1/CU/etc, shortcuts, or off)
+// F8       0x1B 0x50   <shortcut>  Clear screen, home cursor
+// F9       0x1B 0x51   <shortcut>  --
+// F10      0x1B 0x5A   <shortcut>  --
+// INS      0x1B 0x50   0x1B 0x50   0x1B 0x50
+// DEL      0x1B 0x44   0x1B 0x44   0x1B 0x44
+// ROLL UP  --          --          --
+// POLL DOWN--          --          --
+// COPY     --          --          --
+// HOME/CLR 0x1A        0x1E        --
+// HELP     --          --          --
+// UP ARROW 0x0B        0x0B        0x0B
+// LF ARROW 0x08        0x08        0x08
+// RT ARROW 0x0C        0x0C        0x0C
+// DN ARROW 0x0A        0x0A        0x0A
+// VF1      --          --          --
+// VF2      --          --          --
+// VF3      --          --          --
+// VF4      --          --          --
+// VF5      --          --          --
 
+static size_t dev_con_pos=0,dev_con_max=0;
+static char dev_con_readbuf[64];
 
 bool device_CON::Read(Bit8u * data,Bit16u * size) {
 	Bit16u oldax=reg_ax;
@@ -224,6 +311,11 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 		readcache=0;
 	}
 	while (*size>count) {
+        if (dev_con_pos < dev_con_max) {
+            data[count++] = dev_con_readbuf[dev_con_pos++];
+            continue;
+        }
+
 		reg_ah=(IS_EGAVGA_ARCH)?0x10:0x0;
 
         /* FIXME: PC-98 emulation should eventually use CONIO emulation that
@@ -234,6 +326,9 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
             INT16_Handler_Wrap();
         else
             CALLBACK_RunRealInt(0x16);
+
+        /* hack for DOSKEY emulation */
+        last_int16_code = reg_ax;
 
 		switch(reg_al) {
 		case 13:
@@ -267,9 +362,72 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 			}
 			break;
 		case 0: /* Extended keys in the int 16 0x0 case */
-			data[count++]=reg_al;
-			if (*size>count) data[count++]=reg_ah;
-			else readcache=reg_ah;
+            if (IS_PC98_ARCH) {
+                /* PC-98 does NOT return scan code, but instead returns nothing or
+                 * control/escape code */
+                switch (reg_ah) {
+                    case 0x39: // DEL
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x44; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x3A: // up arrow
+                        data[count++] = 0x0B;
+                        break;
+                    case 0x3B: // left arrow
+                        data[count++] = 0x08;
+                        break;
+                    case 0x3C: // right arrow
+                        data[count++] = 0x0C;
+                        break;
+                    case 0x3D: // down arrow
+                        data[count++] = 0x0A;
+                        break;
+                    case 0x62: // F1
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x53; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x63: // F2
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x54; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x64: // F3
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x55; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x65: // F4
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x56; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x66: // F5
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x57; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x67: // F6
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x45; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x68: // F7
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x4A; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x69: // F8
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x50; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x6A: // F9
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x51; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x6B: // F10
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x5A; dev_con_pos=0; dev_con_max=2;
+                        break;
+#if 0
+// INS      0x1B 0x50   0x1B 0x50   0x1B 0x50
+// ROLL UP  --          --          --
+// POLL DOWN--          --          --
+// COPY     --          --          --
+// HOME/CLR 0x1A        0x1E        --
+// HELP     --          --          --
+#endif
+                };
+            }
+            else {
+                /* IBM PC/XT/AT signals extended code by entering AL, AH.
+                 * Arrow keys for example become 0x00 0x48, 0x00 0x50, etc. */
+    			data[count++]=reg_al;
+	    		if (*size>count) data[count++]=reg_ah;
+		    	else readcache=reg_ah;
+            }
 			break;
 		default:
 			data[count++]=reg_al;

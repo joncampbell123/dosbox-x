@@ -161,13 +161,6 @@ Bitu CPU_PrefetchQueueSize=0;
 void CPU_Core_Full_Init(void);
 void CPU_Core_Normal_Init(void);
 void CPU_Core_Simple_Init(void);
-#if (C_DYNAMIC_X86)
-void CPU_Core_Dyn_X86_Init(void);
-void CPU_Core_Dyn_X86_Cache_Init(bool enable_cache);
-void CPU_Core_Dyn_X86_Cache_Close(void);
-void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
-void CPU_Core_Dyn_X86_Cache_Reset(void);
-#endif
 
 /* called to signal an NMI. */
 
@@ -2044,18 +2037,6 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 				} else {
 					GFX_SetTitle(-1,-1,-1,false);
 				}
-#if (C_DYNAMIC_X86)
-				if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
-					if (dosbox_enable_nonrecursive_page_fault) {
-						dosbox_enable_nonrecursive_page_fault = false;
-						_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-					}
-
-					CPU_Core_Dyn_X86_Cache_Init(true);
-					cpudecoder=&CPU_Core_Dyn_X86_Run;
-					strcpy(core_mode, "dynamic");
-				}
-#endif
 				CPU_AutoDetermineMode<<=CPU_AUTODETERMINE_SHIFT;
 			} else {
 				cpu.pmode=false;
@@ -2702,18 +2683,6 @@ static void CPU_ToggleNormalCore(bool pressed) {
     }
 }
 
-#if (C_DYNAMIC_X86)
-static void CPU_ToggleDynamicCore(bool pressed) {
-    if (!pressed)
-	return;
-    Section* sec=control->GetSection("cpu");
-    if(sec) {
-	std::string tmp="core=dynamic";
-	sec->HandleInputline(tmp);
-    }
-}
-#endif
-
 static void CPU_ToggleSimpleCore(bool pressed) {
     if (!pressed)
 	return;
@@ -2854,18 +2823,12 @@ public:
 		CPU_Core_Normal_Init();
 		CPU_Core_Simple_Init();
 		CPU_Core_Full_Init();
-#if (C_DYNAMIC_X86)
-		CPU_Core_Dyn_X86_Init();
-#endif
 		MAPPER_AddHandler(CPU_CycleDecrease,MK_f11,MMOD1,"cycledown","Dec Cycles");
 		MAPPER_AddHandler(CPU_CycleIncrease,MK_f12,MMOD1,"cycleup"  ,"Inc Cycles");
-		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_equals,MMOD1,"cycauto","Tog. Cycles Auto");
-		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_1,MMOD1,"normal"  ,"Tog. Normal Core");
-		MAPPER_AddHandler(CPU_ToggleFullCore,MK_2,MMOD1,"full","Tog. Full Core");
-#if (C_DYNAMIC_X86)
-		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_3,MMOD1,"dynamic","Tog. Dyn. Core");
-#endif
-		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_4,MMOD1,"simple","Tog. Simple Core");
+		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_equals,MMOD1,"cycauto","AutoCycles");
+		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_1,MMOD1,"normal"  ,"NormalCore");
+		MAPPER_AddHandler(CPU_ToggleFullCore,MK_2,MMOD1,"full","Full Core");
+		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_4,MMOD1,"simple","SimpleCore");
 		Change_Config(configuration);	
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core
 	}
@@ -2876,7 +2839,7 @@ public:
 		CPU_Cycles=0;
 		CPU_SkipCycleAutoAdjust=false;
 
-		dosbox_enable_nonrecursive_page_fault = section->Get_bool("non-recursive page fault");
+		dosbox_enable_nonrecursive_page_fault = true;
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
@@ -2989,36 +2952,10 @@ public:
 #endif
 		} else if (core == "auto") {
 			cpudecoder=&CPU_Core_Normal_Run;
-#if (C_DYNAMIC_X86)
-			CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CORE;
-		}
-		else if (core == "dynamic") {
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-
-			cpudecoder=&CPU_Core_Dyn_X86_Run;
-			CPU_Core_Dyn_X86_SetFPUMode(true);
-		} else if (core == "dynamic_nodhfpu") {
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-
-			cpudecoder=&CPU_Core_Dyn_X86_Run;
-			CPU_Core_Dyn_X86_SetFPUMode(false);
-#else
-#endif
 		} else {
 			strcpy(core_mode,"normal");
 			LOG_MSG("CPU:Unknown core type %s, switching back to normal.",core.c_str());
 		}
-  
-
-#if (C_DYNAMIC_X86)
-		CPU_Core_Dyn_X86_Cache_Init((core == "dynamic") || (core == "dynamic_nodhfpu"));
-#endif
 
 		CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
 		std::string cputype(section->Get_string("cputype"));
@@ -3117,13 +3054,6 @@ public:
 		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) CPU_extflags_toggle=(FLAG_AC);
 		else CPU_extflags_toggle=0;
 
-		if (cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run) {
-			if (!dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = true;
-				_LOG(LOG_CPU,LOG_NORMAL)("normal/prefetch core requires nonrecursive page fault handling, turning it on");
-			}
-		}
-
     // weitek coprocessor emulation?
         if (CPU_ArchitectureType == CPU_ARCHTYPE_386 || CPU_ArchitectureType == CPU_ARCHTYPE_486OLD || CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) {
 	        Section_prop *dsection = static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -3176,9 +3106,6 @@ public:
 static CPU * test;
 
 void CPU_ShutDown(Section* sec) {
-#if (C_DYNAMIC_X86)
-	CPU_Core_Dyn_X86_Cache_Close();
-#endif
 	delete test;
 }
 
@@ -3257,13 +3184,7 @@ Bit16u CPU_FindDecoderType( CPU_Decoder *decoder )
 	else if( cpudecoder == &CPU_Core_Prefetch_Run ) decoder_idx = 1;
 	else if( cpudecoder == &CPU_Core_Simple_Run ) decoder_idx = 2;
 	else if( cpudecoder == &CPU_Core_Full_Run ) decoder_idx = 3;
-#if C_DYNAMIC_X86
-	else if( cpudecoder == &CPU_Core_Dyn_X86_Run ) decoder_idx = 4;
-#endif
 	else if( cpudecoder == &CPU_Core_Normal_Trap_Run ) decoder_idx = 100;
-#if C_DYNAMIC_X86
-	else if( cpudecoder == &CPU_Core_Dyn_X86_Trap_Run ) decoder_idx = 101;
-#endif
 	else if( cpudecoder == &HLT_Decode ) decoder_idx = 200;
 
 
@@ -3278,38 +3199,11 @@ CPU_Decoder *CPU_IndexDecoderType( Bit16u decoder_idx )
 
 	cpudecoder = 0;
 	switch( decoder_idx ) {
-		case 0: cpudecoder = &CPU_Core_Normal_Run;
-			if (!dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = true;
-				_LOG(LOG_CPU,LOG_NORMAL)("normal/prefetch core requires nonrecursive page fault handling, turning it on");
-			}
-			break;
-		case 1: cpudecoder = &CPU_Core_Prefetch_Run;
-			if (!dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = true;
-				_LOG(LOG_CPU,LOG_NORMAL)("normal/prefetch core requires nonrecursive page fault handling, turning it on");
-			}
-			break;
+		case 0: cpudecoder = &CPU_Core_Normal_Run; break;
+		case 1: cpudecoder = &CPU_Core_Prefetch_Run; break;
 		case 2: cpudecoder = &CPU_Core_Simple_Run; break;
 		case 3: cpudecoder = &CPU_Core_Full_Run; break;
-#if C_DYNAMIC_X86
-		case 4: cpudecoder = &CPU_Core_Dyn_X86_Run;
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-			break;
-#endif
 		case 100: cpudecoder = &CPU_Core_Normal_Trap_Run; break;
-#if C_DYNAMIC_X86
-		case 101: cpudecoder = &CPU_Core_Dyn_X86_Trap_Run;
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-			break;
-#endif
-
 		case 200: cpudecoder = &HLT_Decode; break;
 	}
 

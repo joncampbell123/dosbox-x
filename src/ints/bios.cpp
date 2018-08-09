@@ -35,11 +35,18 @@
 #include "serialport.h"
 #include "mapper.h"
 #include "vga.h"
+#include "pc98_gdc.h"
+#include "pc98_gdc_const.h"
 #include "regionalloctracking.h"
 extern bool PS1AudioCard;
 #include "parport.h"
 #include <time.h>
 #include <sys/timeb.h>
+
+#if defined(WIN32) && !defined(S_ISREG)
+# define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
+#endif
+
 /* mouse.cpp */
 extern bool en_bios_ps2mouse;
 extern bool mainline_compatible_bios_mapping;
@@ -355,17 +362,24 @@ void dosbox_integration_trigger_write() {
 		case 0x804200: /* keyboard input injection */
 			void Mouse_ButtonPressed(Bit8u button);
 			void Mouse_ButtonReleased(Bit8u button);
-			void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate);
+            void pc98_keyboard_send(const unsigned char b);
+            void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate);
 			void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
 			void KEYBOARD_AddBuffer(Bit16u data);
 
 			switch ((dosbox_int_register>>8)&0xFF) {
 				case 0x00: // keyboard
-					KEYBOARD_AddBuffer(dosbox_int_register&0xFF);
+                    if (IS_PC98_ARCH)
+                        pc98_keyboard_send(dosbox_int_register&0xFF);
+                    else
+    					KEYBOARD_AddBuffer(dosbox_int_register&0xFF);
 					break;
 				case 0x01: // AUX
-					KEYBOARD_AddBuffer((dosbox_int_register&0xFF)|0x100/*AUX*/);
-					break;
+                    if (!IS_PC98_ARCH)
+    					KEYBOARD_AddBuffer((dosbox_int_register&0xFF)|0x100/*AUX*/);
+                    else   // no such interface in PC-98 mode
+                        dosbox_int_error = true;
+                    break;
 				case 0x08: // mouse button injection
 					if (dosbox_int_register&0x80) Mouse_ButtonPressed(dosbox_int_register&0x7F);
 					else Mouse_ButtonReleased(dosbox_int_register&0x7F);
@@ -613,6 +627,7 @@ static unsigned char ISA_PNP_KEYMATCH=0;
 static Bits other_memsystems=0;
 static bool apm_realmode_connected = false;
 void CMOS_SetRegister(Bitu regNr, Bit8u val); //For setting equipment word
+bool enable_integration_device_pnp=false;
 bool enable_integration_device=false;
 bool ISAPNPBIOS=false;
 bool APMBIOS=false;
@@ -1124,6 +1139,7 @@ void ISAPNP_Cfg_Reset(Section *sec) {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing ISA PnP emulation");
 
 	enable_integration_device = section->Get_bool("integration device");
+    enable_integration_device_pnp = section->Get_bool("integration device pnp");
 	ISAPNPBIOS = section->Get_bool("isapnpbios");
 	APMBIOS = section->Get_bool("apmbios");
 	APMBIOS_pnp = section->Get_bool("apmbios pnp");
@@ -2253,6 +2269,22 @@ const char *pc98_func_key[10] = {
     "  ^Z  "
 };
 
+// shortcuts offered by SHIFT F1-F10. You can bring this onscreen using CTRL+F7. This row shows '*' in col 2.
+// [0] is onscreen display, [1] is what is entered to STDIN.
+const char *pc98_shcut_key[10][2] = {
+    "dir a:",   "dir a:\x0D",
+    "dir b:",   "dir b:\x0D",
+    "copy  ",   "copy ",
+    "del   ",   "del ",
+    "ren   ",   "ren ",
+
+    "chkdsk",   "chkdsk a:\x0D",
+    "chkdsk",   "chkdsk b:\x0D",
+    "type  ",   "type ",
+    "date\x0D ","date\x0D",         // display includes CR
+    "time\x0D ","time\x0D"
+};
+
 #include "int10.h"
 
 void update_pc98_function_row(bool enable) {
@@ -2372,7 +2404,7 @@ static Bitu INT18_PC98_Handler(void) {
             }
             break;
         case 0x02: /* Sense of shift key state (シフト・キー状態のセンス) */
-            reg_al = 0x00; /* TODO */
+            reg_al = mem_readb(0x52A + 0x0E); /* FIXME: Seems to match 14th bitmap byte. Does real hardware do this?? */
             break;
         case 0x03: /* Initialization of keyboard interface (キーボード・インタフェイスの初期化) */
             /* TODO */
@@ -4086,12 +4118,37 @@ Bitu isapnp_biosstruct_base = 0;
 
 Bitu BIOS_boot_code_offset = 0;
 
+bool bios_user_reset_vector_blob_run = false;
+Bitu bios_user_reset_vector_blob = 0;
+
+Bitu bios_user_boot_hook = 0;
+
 void BIOS_OnResetComplete(Section *x);
 
 class BIOS:public Module_base{
 private:
 	static Bitu cb_bios_post__func(void) {
 		void TIMER_BIOS_INIT_Configure();
+#if C_DEBUG
+        void DEBUG_CheckCSIP();
+#endif
+
+        if (bios_user_reset_vector_blob != 0 && !bios_user_reset_vector_blob_run) {
+            LOG_MSG("BIOS POST: Running user reset vector blob at 0x%lx",(unsigned long)bios_user_reset_vector_blob);
+            bios_user_reset_vector_blob_run = true;
+
+            assert((bios_user_reset_vector_blob&0xF) == 0); /* must be page aligned */
+
+            SegSet16(cs,bios_user_reset_vector_blob>>4);
+            reg_eip = 0;
+
+#if C_DEBUG
+            /* help the debugger reflect the new instruction pointer */
+            DEBUG_CheckCSIP();
+#endif
+
+            return CBRET_NONE;
+        }
 
 		if (cpu.pmode) E_Exit("BIOS error: POST function called while in protected/vm86 mode");
 
@@ -4427,7 +4484,7 @@ private:
             }
 
             /* DOSBox integration device */
-            if (isapnpigdevice == NULL) {
+            if (isapnpigdevice == NULL && enable_integration_device_pnp) {
                 isapnpigdevice = new ISAPnPIntegrationDevice;
                 ISA_PNP_devreg(isapnpigdevice);
             }
@@ -5202,6 +5259,15 @@ public:
 			phys_writew(wo+0x02,(Bit16u)cb_bios_startup_screen.Get_callback());		//The immediate word
 			wo += 4;
 
+            // user boot hook
+            if (bios_user_boot_hook != 0) {
+                phys_writeb(wo+0x00,0x9C);                          //PUSHF
+                phys_writeb(wo+0x01,0x9A);                          //CALL FAR
+                phys_writew(wo+0x02,0x0000);                        //seg:0
+                phys_writew(wo+0x04,bios_user_boot_hook>>4);
+                wo += 6;
+            }
+
 			// boot
             BIOS_boot_code_offset = wo;
 			phys_writeb(wo+0x00,(Bit8u)0xFE);						//GRP 4
@@ -5738,5 +5804,75 @@ void ROMBIOS_Init() {
 		if (ROMBIOS_GetMemory(0xFFFF0-0xFE000,"BIOS with fixed layout",1,0xFE000) == 0)
 			E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
 	}
+
+    /* we allow dosbox.conf to specify a binary blob to load into ROM BIOS and execute after reset.
+     * we allow this for both hacker curiosity and automated CPU testing. */
+    {
+        std::string path = section->Get_string("call binary on reset");
+        struct stat st;
+
+        if (!path.empty() && stat(path.c_str(),&st) == 0 && S_ISREG(st.st_mode) && st.st_size <= (128*1024)) {
+            Bitu base = ROMBIOS_GetMemory(st.st_size,"User reset vector binary",16/*page align*/,0);
+
+            if (base != 0) {
+                FILE *fp = fopen(path.c_str(),"rb");
+
+                if (fp != NULL) {
+                    /* NTS: Make sure memory base != NULL, and that it fits within 1MB.
+                     *      memory code allocates a minimum 1MB of memory even if
+                     *      guest memory is less than 1MB because ROM BIOS emulation
+                     *      depends on it. */
+                    assert(GetMemBase() != NULL);
+                    assert((base+st.st_size) <= 0x100000);
+                    fread(GetMemBase()+base,st.st_size,1,fp);
+                    fclose(fp);
+
+                    LOG_MSG("User reset vector binary '%s' loaded at 0x%lx",path.c_str(),(unsigned long)base);
+                    bios_user_reset_vector_blob = base;
+                }
+                else {
+                    LOG_MSG("WARNING: Unable to open file to load user reset vector binary '%s' into ROM BIOS memory",path.c_str());
+                }
+            }
+            else {
+                LOG_MSG("WARNING: Unable to load user reset vector binary '%s' into ROM BIOS memory",path.c_str());
+            }
+        }
+    }
+
+    /* we allow dosbox.conf to specify a binary blob to load into ROM BIOS and execute just before boot.
+     * we allow this for both hacker curiosity and automated CPU testing. */
+    {
+        std::string path = section->Get_string("call binary on boot");
+        struct stat st;
+
+        if (!path.empty() && stat(path.c_str(),&st) == 0 && S_ISREG(st.st_mode) && st.st_size <= (128*1024)) {
+            Bitu base = ROMBIOS_GetMemory(st.st_size,"User boot hook binary",16/*page align*/,0);
+
+            if (base != 0) {
+                FILE *fp = fopen(path.c_str(),"rb");
+
+                if (fp != NULL) {
+                    /* NTS: Make sure memory base != NULL, and that it fits within 1MB.
+                     *      memory code allocates a minimum 1MB of memory even if
+                     *      guest memory is less than 1MB because ROM BIOS emulation
+                     *      depends on it. */
+                    assert(GetMemBase() != NULL);
+                    assert((base+st.st_size) <= 0x100000);
+                    fread(GetMemBase()+base,st.st_size,1,fp);
+                    fclose(fp);
+
+                    LOG_MSG("User boot hook binary '%s' loaded at 0x%lx",path.c_str(),(unsigned long)base);
+                    bios_user_boot_hook = base;
+                }
+                else {
+                    LOG_MSG("WARNING: Unable to open file to load user boot hook binary '%s' into ROM BIOS memory",path.c_str());
+                }
+            }
+            else {
+                LOG_MSG("WARNING: Unable to load user boot hook binary '%s' into ROM BIOS memory",path.c_str());
+            }
+        }
+    }
 }
 

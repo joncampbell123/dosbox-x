@@ -83,7 +83,7 @@
 #include <list>
 
 /*===================================TODO: Move to it's own file==============================*/
-#ifdef __SSE__
+#if defined(__SSE__) && !defined(_M_AMD64)
 bool sse2_available = false;
 
 # ifdef __GNUC__
@@ -264,7 +264,7 @@ void				INT10_Init(Section*);
 #if C_NE2000
 void				NE2K_Init(Section* sec);
 #endif
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(C_SDL2)
 void				MSG_Loop(void);
 #endif
 
@@ -378,7 +378,7 @@ static Bitu Normal_Loop(void) {
                     return 0;
 #endif
             } else {
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(C_SDL2)
                 MSG_Loop();
 #endif
                 GFX_Events();
@@ -904,12 +904,6 @@ void DOSBOX_SetupConfigSections(void) {
 		0 };
 
 	const char* cores[] = { "auto",
-#if (C_DYNAMIC_X86)
-		"dynamic",
-#endif
-#if defined(LINUX)
-        "ptrace",
-#endif
 		"normal", "full", "simple", 0 };
 
 	const char* voodoo_settings[] = {
@@ -922,7 +916,7 @@ void DOSBOX_SetupConfigSections(void) {
 		0
 	};
 
-#ifdef __SSE__
+#if defined(__SSE__) && !defined(_M_AMD64)
 	CheckSSESupport();
 #endif
 	SDLNetInited = false;
@@ -938,6 +932,9 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool->Set_help("Set this option (on by default) to indicate to your OS that DOSBox is DPI aware.\n"
 			"If it is not set, Windows Vista/7/8/10 and higher may upscale the DOSBox window\n"
 			"on higher resolution monitors which is probably not what you want.");
+
+	Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
+	Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host");
 
 	Pbool = secprop->Add_bool("weitek",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, emulate the Weitek coprocessor. This option only has effect if cputype=386 or cputype=486.");
@@ -1065,6 +1062,16 @@ void DOSBOX_SetupConfigSections(void) {
 			  "  <integer or float>           Any integer or floating point value will be used as the clock frequency in Hz\n"
 			  "  <integer/integer ratio>      If a ratio is given (num/den), the ratio will be used as the clock frequency");
 
+	Pstring = secprop->Add_string("call binary on reset",Property::Changeable::WhenIdle,"");
+	Pstring->Set_help("If set, this is the path of a binary blob to load into the ROM BIOS area and execute immediately after CPU reset.\n"
+                      "It will be executed before the BIOS POST routine, only ONCE. The binary blob is expected either to IRET or to\n"
+                      "jump directly to F000:FFF0 to return control to the BIOS.\n"
+                      "This can be used for x86 assembly language experiments and automated testing against the CPU emulation.");
+
+	Pstring = secprop->Add_string("call binary on boot",Property::Changeable::WhenIdle,"");
+	Pstring->Set_help("If set, this is the path of a binary blob to load into the ROM BIOS area and execute immediately before booting the DOS system.\n"
+                      "This can be used for x86 assembly language experiments and automated testing against the CPU emulation.");
+
 	Pint = secprop->Add_int("rom bios allocation max",Property::Changeable::OnlyAtStart,0);
 	Pint->SetMinMax(0,128);
 	Pint->Set_help("Maximum size (top down from 1MB) allowed for ROM BIOS dynamic allocation in KB");
@@ -1152,6 +1159,9 @@ void DOSBOX_SetupConfigSections(void) {
 		"    24: 16MB aliasing. Common on 386SX systems (CPU had 24 external address bits)\n"
 		"        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
 		"    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31");
+
+	Pbool = secprop->Add_bool("pc-98 start gdc at 5mhz",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Start GDC at 5MHz if set, 2.5MHz if clear. May be required for some games.");
 
 	Pbool = secprop->Add_bool("pc-98 allow scanline effect",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("If set, PC-98 emulation will allow the DOS application to enable the 'scanline effect'\n"
@@ -1517,12 +1527,6 @@ void DOSBOX_SetupConfigSections(void) {
 	Pint->SetMinMax(1,1000000);
 	Pint->Set_help("Setting it lower than 100 will be a percentage.");
 
-	Pbool = secprop->Add_bool("non-recursive page fault",Property::Changeable::Always,true);
-	Pbool->Set_help("Determines whether CPU emulation attempts to use a non-recursive method to emulate guest OS page fault exceptions.\n"
-			"If false (mainline DOSBox compatible), page faults are emulated using a recursive method, which is recommended for\n"
-			"MS-DOS and Windows 3.1 exception handlers. For preemptive multitasking OSes like Windows 95, set this option to true.\n"
-			"This option is not compatible with the dynamic core.");
-
 	Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
 	Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
 			"Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME");
@@ -1553,6 +1557,9 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pbool = secprop->Add_bool("integration device",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Enable DOSBox integration I/O device. This can be used by the guest OS to match mouse pointer position, for example. EXPERIMENTAL!");
+
+	Pbool = secprop->Add_bool("integration device pnp",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("List DOSBox integration I/O device as part of ISA PnP enumeration. This has no purpose yet.");
 
 	Pbool = secprop->Add_bool("isapnpbios",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Emulate ISA Plug & Play BIOS. Enable if using DOSBox to run a PnP aware DOS program or if booting Windows 9x.\n"
@@ -1622,6 +1629,10 @@ void DOSBOX_SetupConfigSections(void) {
 	                  "  When using a Roland MT-32 rev. 0 as midi output device, some games may require a delay in order to prevent 'buffer overflow' issues.\n"
 	                  "  In that case, add 'delaysysex', for example: midiconfig=2 delaysysex\n"
 	                  "  See the README/Manual for more details.");
+	
+	Pint = secprop->Add_int("mpuirq",Property::Changeable::WhenIdle,-1);
+	Pint->SetMinMax(-1,15);
+	Pint->Set_help("MPU-401 IRQ. -1 to automatically choose.");
 
 	Pstring = secprop->Add_string("mt32.reverse.stereo",Property::Changeable::WhenIdle,"off");
 	Pstring->Set_values(mt32ReverseStereo);

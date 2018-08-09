@@ -407,16 +407,17 @@ bool DOS_FreeMemory(Bit16u segment) {
 	return true;
 }
 
+Bitu GetEMSPageFrameSegment(void);
 
 void DOS_BuildUMBChain(bool umb_active,bool ems_active) {
 	unsigned int seg_limit = MEM_TotalPages()*256;
 
 	/* UMBs are only possible if the machine has 1MB+64KB of RAM */
-	if (umb_active && (machine!=MCH_TANDY) && seg_limit >= (0x10000+0x1000-1)) {
+	if (umb_active && (machine!=MCH_TANDY) && seg_limit >= (0x10000+0x1000-1) && first_umb_seg < GetEMSPageFrameSegment()) {
 		if (ems_active) {
 			/* we can use UMBs up to the EMS page frame */
 			/* FIXME: when we make the EMS page frame configurable this will need to be updated */
-			first_umb_size = 0xE000 - first_umb_seg;
+			first_umb_size = GetEMSPageFrameSegment() - first_umb_seg;
 		}
 		else if (machine == MCH_PCJR) {
 			/* we can use UMBs up to where PCjr wants cartridge ROM */

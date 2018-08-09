@@ -162,6 +162,11 @@ bool MouseTypeNone() {
 
 /* NTS: INT33H emulation is coded to call this ONLY if it hasn't taken over the role of mouse input */
 void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel) {
+    if (IS_PC98_ARCH) {
+        LOG_MSG("WARNING: KEYBOARD_AUX_Event called in PC-98 emulation mode. This is a bug.");
+        return;
+    }
+
 	keyb.ps2mouse.acx += x;
 	keyb.ps2mouse.acy += y;
 	keyb.ps2mouse.l = (buttons & 1)>0;
@@ -1666,11 +1671,14 @@ static void pc98_8255_write(Bitu port,Bitu val,Bitu /*iolen*/) {
     };
 }
 
+extern bool gdc_5mhz_mode;
+
 static Bitu pc98_8255_read(Bitu port,Bitu /*iolen*/) {
     switch (port) {
         case 0x31:
             LOG_MSG("PC-98 8255 FIXME: DIP switch port A not supported yet");
-            return 0x63; // taken from a PC-9821 Lt2
+            // bit 7 apparently reflects whether the GDC is running at 5MHz or not
+            return 0x63 | (gdc_5mhz_mode ? 0x80 : 0x00); // taken from a PC-9821 Lt2
         case 0x33:
             LOG_MSG("PC-98 8255 FIXME: Port B not supported yet");
             return 0xF9; // taken from a PC-9821 Lt2
@@ -1942,6 +1950,156 @@ static void keyboard_pc98_8251_uart_43_write(Bitu port,Bitu val,Bitu /*iolen*/) 
     pc98_8251_keyboard_uart_state.writecmd((unsigned char)val);
 }
 
+int8_t p7fd9_8255_mouse_x = 0;
+int8_t p7fd9_8255_mouse_y = 0;
+int8_t p7fd9_8255_mouse_x_latch = 0;
+int8_t p7fd9_8255_mouse_y_latch = 0;
+uint8_t p7fd9_8255_mouse_sel = 0;
+uint8_t p7fd9_8255_mouse_latch = 0;
+uint8_t p7fd8_8255_mouse_int_enable = 0;
+
+void pc98_mouse_movement_apply(int x,int y) {
+    x += p7fd9_8255_mouse_x; if (x < -128) x = -128; if (x > 127) x = 127;
+    y += p7fd9_8255_mouse_y; if (y < -128) y = -128; if (y > 127) y = 127;
+    p7fd9_8255_mouse_x = (int8_t)x;
+    p7fd9_8255_mouse_y = (int8_t)y;
+}
+
+void MOUSE_DummyEvent(void);
+
+//// STUB: PC-98 MOUSE
+static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
+    switch (port&6) {
+        case 4:// 0x7FDD Port C
+            // bits [7:7]: 1=latch  0=don't latch
+            //             change from 0 to 1 latches counters, clears original counters
+            //             if left at 0, you can read the counters in real time
+            // bits [6:5]: X/Y upper/lower nibble select
+            //             11b = upper 4 bits, Y
+            //             10b = lower 4 bits, Y
+            //             01b = upper 4 bits, X
+            //             00b = lower 4 bits, X
+            // bits [4:4]: 1=disable interrupt 0=enable interrupt
+            // bits [3:0]: ignored (read bits)
+            if ((val & 0x80) && !p7fd9_8255_mouse_latch) { // change from 0 to 1 latches counters and clears them
+                p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
+                p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
+                p7fd9_8255_mouse_x = 0;
+                p7fd9_8255_mouse_y = 0;
+            }
+            p7fd8_8255_mouse_int_enable = ((val >> 4) & 1) ^ 1; // bit 4 is interrupt MASK
+            // TODO: Does clearing this bit trigger an interrupt?
+            //       Does setting, then clearing this bit trigger an interrupt?
+            p7fd9_8255_mouse_latch = (val >> 7) & 1;
+            p7fd9_8255_mouse_sel = (val >> 5) & 3;
+            break;
+        case 6:// 0x7FDF Control
+            if (!(val & 0x80)) {
+                /* bit set/reset */
+                /* bits [7:7] = 0
+                 * bits [6:4] = unused
+                 * bits [3:1] = bit selection
+                 * bits [0:0] = 1=set 0=reset */
+                uint8_t bitnum = (val >> 1) & 7;
+                uint8_t bitval = val & 1;
+
+                /* Sim City PC-98 version writes 0x0F to this port
+                 * to flip bit 7. If you're supposed to reset the
+                 * bit then set it to latch, then I don't really know
+                 * how Sim City expects to re-latch without toggling first. */
+                switch (bitnum) {
+                    case 4: // interrupt mask
+                        p7fd8_8255_mouse_int_enable = bitval ^ 1;
+                        // TODO: Does clearing this bit trigger an interrupt?
+                        //       Does setting, then clearing this bit trigger an interrupt?
+                        break;
+                    case 7: // latch mouse counter
+                        if (bitval) {
+                            p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
+                            p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
+                            p7fd9_8255_mouse_x = 0;
+                            p7fd9_8255_mouse_y = 0;
+                        }
+                        p7fd9_8255_mouse_latch = bitval;
+                        break;
+                    default:
+                        LOG_MSG("PC-98 8255 MOUSE: Port C set/reset bit=%u val=%u",bitnum,bitval);
+                        break;
+                }
+
+                break;
+            }
+            else if (val == 0x90) { /* commonly sent by games, which sets port A=input port B=output C=output */
+                /* HACK for Metal Force.
+                 * The game's intro animation hooks the mouse IRQ, then writes 0x90 to this port.
+                 * The intro animation apparently requires mouse IRQs to advance through the animation,
+                 * or else it will just stop. The interrupt service routine, if fired, writes 0x0F to
+                 * latch the counters (bit 7) and then 0x90 again.
+                 *
+                 * The theory is that Metal Force is doing this to trigger the mouse interrupt periodically.
+                 * The question is whether this is how real hardware actually behaves, or not. If so, then
+                 * Metal Force is right in relying on this strange way of counting time. If not, then
+                 * Metal Force deserves to hang and/or fail from lack of interrupts for such a strange method
+                 * of counting time.
+                 *
+                 * Until I verify this on real hardware, I'll just put this hack here to make the intro sequence
+                 * work. --J.C. */
+                if (p7fd8_8255_mouse_int_enable)
+                    MOUSE_DummyEvent();
+
+                break;
+            }
+            /* fall through */
+        default:
+            LOG_MSG("PC-98 8255 MOUSE: IO write port=0x%x val=0x%x",(unsigned int)port,(unsigned int)val);
+            break;
+    };
+}
+
+static Bitu read_p7fd9_mouse(Bitu port,Bitu /*iolen*/) {
+    uint8_t bs;
+    Bitu r;
+
+    switch (port&6) {
+        case 0:// 0x7FD9 Port A
+            // bits [7:7] = !(LEFT BUTTON)
+            // bits [6:6] = !(MIDDLE BUTTON)
+            // bits [5:5] = !(RIGHT BUTTON)
+            // bits [4:4] = 0 unused
+            // bits [3:0] = 4 bit nibble latched via Port C
+            bs = Mouse_GetButtonState();
+            r = 0x00;
+
+            if (!(bs & 1)) r |= 0x80;       // left button (inverted bit)
+            if (!(bs & 2)) r |= 0x20;       // right button (inverted bit)
+            if (!(bs & 4)) r |= 0x40;       // middle button (inverted bit)
+
+            if (!p7fd9_8255_mouse_latch) {
+                p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
+                p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
+            }
+
+            switch (p7fd9_8255_mouse_sel) {
+                case 0: // X delta
+                case 1:
+                    r |= (uint8_t)(p7fd9_8255_mouse_x_latch >> ((p7fd9_8255_mouse_sel & 1U) * 4U)) & 0xF; // sign extend is intentional
+                    break;
+                case 2: // Y delta
+                case 3:
+                    r |= (uint8_t)(p7fd9_8255_mouse_y_latch >> ((p7fd9_8255_mouse_sel & 1U) * 4U)) & 0xF; // sign extend is intentional
+                    break;
+            };
+
+            return r;
+        default:
+            LOG_MSG("PC-98 8255 MOUSE: IO read port=0x%x",(unsigned int)port);
+            break;
+    };
+
+    return 0;
+}
+//////////
+
 void KEYBOARD_OnEnterPC98(Section *sec) {
     unsigned int i;
 
@@ -1984,6 +2142,12 @@ void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
 
         WriteHandler_8255_PC98[i].Uninstall();
         WriteHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_write,IO_MB);
+    }
+
+    /* Mouse */
+    for (i=0;i < 4;i++) {
+        IO_RegisterWriteHandler(0x7FD9+(i*2),write_p7fd9_mouse,IO_MB);
+        IO_RegisterReadHandler(0x7FD9+(i*2),read_p7fd9_mouse,IO_MB);
     }
 }
 

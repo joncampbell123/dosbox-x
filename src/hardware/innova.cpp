@@ -26,8 +26,7 @@
 
 #include "reSID/sid.h"
 
-#define SID_FREQ 1022727
-//#define SID_FREQ 985248
+#define SID_FREQ 894886
 
 static struct {
 	SID2* sid;

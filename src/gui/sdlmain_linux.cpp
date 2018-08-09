@@ -8,6 +8,10 @@
 #include "SDL_syswm.h"
 
 void Linux_GetDesktopResolution(int *width,int *height) {
+#if defined(C_SDL2)
+    *width = 1024; // guess
+    *height = 768;
+#else
 	/* We're most likely running on an X-windows desktop (through SDL). */
 	SDL_SysWMinfo wminfo;
 	memset(&wminfo,0,sizeof(wminfo));
@@ -47,6 +51,7 @@ void Linux_GetDesktopResolution(int *width,int *height) {
 		*width = 1024; // guess
 		*height = 768;
 	}
+#endif
 }
 #endif
 

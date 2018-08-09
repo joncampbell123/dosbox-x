@@ -1,0 +1,10 @@
+#!/bin/bash
+chmod +x configure
+
+export CFLAGS="$CFLAGS -g3 -O0 -fno-inline -fno-omit-frame-pointer"
+export CXXFLAGS="$CXXFLAGS -g3 -O0 -fno-inline -fno-omit-frame-pointer"
+
+# NTS: --disable-dynamic-core is needed. the dynamic core doesn't work properly with the CFLAGS given above
+./configure --enable-core-inline --enable-debug=heavy --prefix=/usr --disable-dynamic-core --enable-sdl2 || exit 1
+make -j3 || exit 1
+

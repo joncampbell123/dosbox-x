@@ -34,6 +34,23 @@
 #include "SDL.h"
 #include "SDL_thread.h"
 
+#if defined(C_SDL2) /* SDL 1.x defines this, SDL 2.x does not */
+/** @name Frames / MSF Conversion Functions
+ *  Conversion functions from frames to Minute/Second/Frames and vice versa
+ */
+/*@{*/
+#define CD_FPS	75
+#define FRAMES_TO_MSF(f, M,S,F)	{					\
+	int value = f;							\
+	*(F) = value%CD_FPS;						\
+	value /= CD_FPS;						\
+	*(S) = value%60;						\
+	value /= 60;							\
+	*(M) = value;							\
+}
+#define MSF_TO_FRAMES(M, S, F)	((M)*60*CD_FPS+(S)*CD_FPS+(F))
+#endif /* C_SDL2 */
+
 #define RAW_SECTOR_SIZE		2352
 #define COOKED_SECTOR_SIZE	2048
 
@@ -109,7 +126,9 @@ private:
 	bool	Open				(void);
 	void	Close				(void);
 
+#if !defined(C_SDL2)
 	SDL_CD*	cd;
+#endif
 	int		driveID;
 	Uint32	oldLeadOut;
 };

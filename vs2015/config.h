@@ -78,7 +78,9 @@
 #undef C_HEAVY_DEBUG
 
 /* Define to 1 to enable IPX over Internet networking, requires SDL_net */
+#if !defined(C_SDL2)
 #define C_IPX 1
+#endif
 
 /* Define to 1 if you have libpng */
 #define C_LIBPNG 1
@@ -87,10 +89,18 @@
 #undef C_MODEM
 
 /* Define to 1 to enable NE2000 ethernet passthrough, requires libpcap */
-#undef C_NE2000
+#define C_NE2000 1
 
 /* Define to 1 to use opengl display output support */
+#if !defined(C_SDL2)
 #define C_OPENGL 1
+#endif
+
+/* Set to 1 to enable SDL 1.x support */
+#define C_SDL1 1
+
+/* Set to 1 to enable SDL 2.x support */
+/* #undef C_SDL2 */
 
 /* Define to 1 if you have setpriority support */
 #undef C_SET_PRIORITY
@@ -120,10 +130,14 @@
 #undef HAVE_ALSA
 
 /* Define to 1 if you have the <d3d9.h> header file. */
+#if !defined(C_SDL2)
 #define HAVE_D3D9_H 1
+#endif
 
 /* Define to 1 if you have the <ddraw.h> header file. */
+#if !defined(C_SDL2)
 #define HAVE_DDRAW_H 1
+#endif
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -213,7 +227,7 @@
 #undef TM_IN_SYS_TIME
 
 /* Version number of package */
-#define VERSION					"DOSBox-X"
+#define VERSION					"0.82.1"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */

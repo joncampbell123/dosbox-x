@@ -35,6 +35,9 @@
 #include "timer.h"
 #include "config.h"
 #include "control.h"
+#include "pc98_cg.h"
+#include "pc98_gdc.h"
+#include "pc98_gdc_const.h"
 
 //#undef C_DEBUG
 //#define C_DEBUG 1
@@ -946,6 +949,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         vidmem = pc98_gdc[GDC_MASTER].scan_address;
         while (blocks--) { // for each character in the line
             if (!doublewide) {
+interrupted_char_begin:
                 chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
                 attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
 
@@ -978,10 +982,25 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 
                 // It seems that for any fullwidth char, you need the same code in both cells for bit[6:0] values
                 // from 0x08 to 0x0F inclusive. 0x08 to 0x0B inclusive are not fullwidth, apparently.
-                // Same applies 0x58 to 0x5F.
-                if ((chr&0x78U) == 0x08 || (chr&0x7FU) >= 0x58) {
-                    chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
+                // Same applies 0x56 to 0x5F.
+                //
+                // Real hardware seems to show that this code will show the other half of the character IF the
+                // character code matches. If it does not match, then it will show the first half of the new code.
+                //
+                // This fix is needed for Touhou Project to show some level titles correctly. The reason this fix
+                // affects it, is that the text RAM covering the playfield is not space or any traditionally empty
+                // cell but a custom character code that is generally empty, but the character cell bitmap is animated
+                // (changed per frame) when doing fade/wipe transitions between levels. Some of the level titles
+                // are displayed starting at an odd column cell number, which means that the Kanji intended for
+                // display "interrupts" the blank custom character cell code. TH02 ~idnight bug fix.
+                if ((chr&0x78U) == 0x08 || (chr&0x7FU) >= 0x56) {
+                    uint16_t n_chr;
+
+                    n_chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
                     attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
+
+                    if ((chr&0x7F7F) != (n_chr&0x7F7F))
+                        goto interrupted_char_begin;
                 }
 
                 font = pc98_font_char_read(chr,pc98_gdc[GDC_MASTER].row_line,1);
@@ -1085,7 +1104,7 @@ static Bit8u VGA_GetBlankedIndex() {
 /* this is now called PER LINE because most VGA cards do not double-buffer the value.
  * a few demos rely on line compare schenanigans to play with the raster, as does my own VGA test program --J.C. */
 void VGA_Update_SplitLineCompare() {
-	vga.draw.split_line = vga.config.line_compare+1;
+	vga.draw.split_line = (vga.config.line_compare + 1) / vga.draw.render_max;
 	if (svgaCard==SVGA_S3Trio) {
 		/* FIXME: Is this really necessary? Is this what S3 chipsets do?
 		 *        What is supposed to happen is that line_compare == 0 on normal VGA will cause the first
@@ -1120,95 +1139,111 @@ void VGA_Update_SplitLineCompare() {
 }
 
 static void VGA_DrawSingleLine(Bitu /*blah*/) {
-	if (GCC_UNLIKELY(vga.attr.disabled)) {
-		switch(machine) {
-		case MCH_PCJR:
-			// Displays the border color when screen is disabled
-			bg_color_index = vga.tandy.border_color;
-			break;
-		case MCH_TANDY:
-			// Either the PCJr way or the CGA way
-			if (vga.tandy.gfx_control& 0x4) { 
-				bg_color_index = vga.tandy.border_color;
-			} else if (vga.mode==M_TANDY4) 
-				bg_color_index = vga.attr.palette[0];
-			else bg_color_index = 0;
-			break;
-		case MCH_CGA:
-			// the background color
-			bg_color_index = vga.attr.overscan_color;
-			break;
-		case MCH_EGA:
-		case MCH_VGA:
-        case MCH_PC98:
-			// DoWhackaDo, Alien Carnage, TV sports Football
-			// when disabled by attribute index bit 5:
-			//  ET3000, ET4000, Paradise display the border color
-			//  S3 displays the content of the currently selected attribute register
-			// when disabled by sequencer the screen is black "257th color"
-			
-			// the DAC table may not match the bits of the overscan register
-			// so use black for this case too...
-			//if (vga.attr.disabled& 2) {
-			VGA_GetBlankedIndex();
-			//} else 
-            //    bg_color_index = vga.attr.overscan_color;
-			break;
-		default:
-			bg_color_index = 0;
-			break;
-		}
-		if (vga.draw.bpp==8) {
-			memset(TempLine, bg_color_index, sizeof(TempLine));
-		} else if (vga.draw.bpp==16) {
-			Bit16u* wptr = (Bit16u*) TempLine;
-			Bit16u value = vga.dac.xlat16[bg_color_index];
-			for (Bitu i = 0; i < sizeof(TempLine)/2; i++) {
-				wptr[i] = value;
-			}
-		} else if (vga.draw.bpp==32) {
-			Bit32u* wptr = (Bit32u*) TempLine;
-			Bit32u value = vga.dac.xlat32[bg_color_index];
-			for (Bitu i = 0; i < sizeof(TempLine)/4; i++) {
-				wptr[i] = value;
-			}
-		}
+    bool skiprender;
 
-		if (vga_page_flip_occurred) {
-			memxor(TempLine,0xFF,vga.draw.width*(vga.draw.bpp>>3));
-			vga_page_flip_occurred = false;
-		}
-		if (vga_3da_polled) {
-			memxor_greendotted_16bpp((uint16_t*)TempLine,(vga.draw.width>>1)*(vga.draw.bpp>>3),vga.draw.lines_done);
-			vga_3da_polled = false;
-		}
-		RENDER_DrawLine(TempLine);
-	} else {
-		Bit8u * data=VGA_DrawLine( vga.draw.address, vga.draw.address_line );
-		if (vga_page_flip_occurred) {
-			memxor(data,0xFF,vga.draw.width*(vga.draw.bpp>>3));
-			vga_page_flip_occurred = false;
-		}
-		if (vga_3da_polled) {
-			memxor_greendotted_16bpp((uint16_t*)TempLine,(vga.draw.width>>1)*(vga.draw.bpp>>3),vga.draw.lines_done);
-			vga_3da_polled = false;
-		}
-		RENDER_DrawLine(data);
-	}
+    if (vga.draw.render_step == 0)
+        skiprender = false;
+    else
+        skiprender = true;
+
+    if ((++vga.draw.render_step) >= vga.draw.render_max)
+        vga.draw.render_step = 0;
+
+    if (!skiprender) {
+        if (GCC_UNLIKELY(vga.attr.disabled)) {
+            switch(machine) {
+                case MCH_PCJR:
+                    // Displays the border color when screen is disabled
+                    bg_color_index = vga.tandy.border_color;
+                    break;
+                case MCH_TANDY:
+                    // Either the PCJr way or the CGA way
+                    if (vga.tandy.gfx_control& 0x4) { 
+                        bg_color_index = vga.tandy.border_color;
+                    } else if (vga.mode==M_TANDY4) 
+                        bg_color_index = vga.attr.palette[0];
+                    else bg_color_index = 0;
+                    break;
+                case MCH_CGA:
+                    // the background color
+                    bg_color_index = vga.attr.overscan_color;
+                    break;
+                case MCH_EGA:
+                case MCH_VGA:
+                case MCH_PC98:
+                    // DoWhackaDo, Alien Carnage, TV sports Football
+                    // when disabled by attribute index bit 5:
+                    //  ET3000, ET4000, Paradise display the border color
+                    //  S3 displays the content of the currently selected attribute register
+                    // when disabled by sequencer the screen is black "257th color"
+
+                    // the DAC table may not match the bits of the overscan register
+                    // so use black for this case too...
+                    //if (vga.attr.disabled& 2) {
+                    VGA_GetBlankedIndex();
+                    //} else 
+                    //    bg_color_index = vga.attr.overscan_color;
+                    break;
+                default:
+                    bg_color_index = 0;
+                    break;
+            }
+            if (vga.draw.bpp==8) {
+                memset(TempLine, bg_color_index, sizeof(TempLine));
+            } else if (vga.draw.bpp==16) {
+                Bit16u* wptr = (Bit16u*) TempLine;
+                Bit16u value = vga.dac.xlat16[bg_color_index];
+                for (Bitu i = 0; i < sizeof(TempLine)/2; i++) {
+                    wptr[i] = value;
+                }
+            } else if (vga.draw.bpp==32) {
+                Bit32u* wptr = (Bit32u*) TempLine;
+                Bit32u value = vga.dac.xlat32[bg_color_index];
+                for (Bitu i = 0; i < sizeof(TempLine)/4; i++) {
+                    wptr[i] = value;
+                }
+            }
+
+            if (vga_page_flip_occurred) {
+                memxor(TempLine,0xFF,vga.draw.width*(vga.draw.bpp>>3));
+                vga_page_flip_occurred = false;
+            }
+            if (vga_3da_polled) {
+                memxor_greendotted_16bpp((uint16_t*)TempLine,(vga.draw.width>>1)*(vga.draw.bpp>>3),vga.draw.lines_done);
+                vga_3da_polled = false;
+            }
+            RENDER_DrawLine(TempLine);
+        } else {
+            Bit8u * data=VGA_DrawLine( vga.draw.address, vga.draw.address_line );
+            if (vga_page_flip_occurred) {
+                memxor(data,0xFF,vga.draw.width*(vga.draw.bpp>>3));
+                vga_page_flip_occurred = false;
+            }
+            if (vga_3da_polled) {
+                memxor_greendotted_16bpp((uint16_t*)TempLine,(vga.draw.width>>1)*(vga.draw.bpp>>3),vga.draw.lines_done);
+                vga_3da_polled = false;
+            }
+            RENDER_DrawLine(data);
+        }
+    }
 
 	vga.draw.address_line++;
 	if (vga.draw.address_line>=vga.draw.address_line_total) {
 		vga.draw.address_line=0;
 		vga.draw.address+=vga.draw.address_add;
 	}
-	vga.draw.lines_done++;
-	if (vga.draw.split_line==vga.draw.lines_done) VGA_ProcessSplit();
-	if (vga.draw.lines_done < vga.draw.lines_total) {
-		PIC_AddEvent(VGA_DrawSingleLine,(float)vga.draw.delay.singleline_delay);
-	} else {
-		vga_mode_frames_since_time_base++;
-		RENDER_EndUpdate(false);
-	}
+
+    if (!skiprender) {
+        vga.draw.lines_done++;
+        if (vga.draw.split_line==vga.draw.lines_done) VGA_ProcessSplit();
+    }
+
+    if (vga.draw.lines_done < vga.draw.lines_total) {
+        PIC_AddEvent(VGA_DrawSingleLine,(float)vga.draw.delay.singleline_delay);
+    } else {
+        vga_mode_frames_since_time_base++;
+        RENDER_EndUpdate(false);
+    }
 
     if (IS_PC98_ARCH) {
         for (unsigned int i=0;i < 2;i++)
@@ -1233,41 +1268,57 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
 }
 
 static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
-	if (GCC_UNLIKELY(vga.attr.disabled)) {
-		memset(TempLine, 0, sizeof(TempLine));
-		RENDER_DrawLine(TempLine);
-	} else {
-		Bitu address = vga.draw.address;
-		if (machine != MCH_EGA) {
-			switch (vga.mode) {
-                case M_PC98:
-				case M_TEXT:
-				case M_EGA:
-				case M_LIN4:
-					/* ignore */
-					break;
-				default:
-					vga.draw.address += vga.draw.panning;
-					break;
-			}
-		}
-		Bit8u * data=VGA_DrawLine(address, vga.draw.address_line );	
-		RENDER_DrawLine(data);
-	}
+    bool skiprender;
+
+    if (vga.draw.render_step == 0)
+        skiprender = false;
+    else
+        skiprender = true;
+
+    if ((++vga.draw.render_step) >= vga.draw.render_max)
+        vga.draw.render_step = 0;
+
+    if (!skiprender) {
+        if (GCC_UNLIKELY(vga.attr.disabled)) {
+            memset(TempLine, 0, sizeof(TempLine));
+            RENDER_DrawLine(TempLine);
+        } else {
+            Bitu address = vga.draw.address;
+            if (machine != MCH_EGA) {
+                switch (vga.mode) {
+                    case M_PC98:
+                    case M_TEXT:
+                    case M_EGA:
+                    case M_LIN4:
+                        /* ignore */
+                        break;
+                    default:
+                        vga.draw.address += vga.draw.panning;
+                        break;
+                }
+            }
+            Bit8u * data=VGA_DrawLine(address, vga.draw.address_line );	
+            RENDER_DrawLine(data);
+        }
+    }
 
 	vga.draw.address_line++;
 	if (vga.draw.address_line>=vga.draw.address_line_total) {
 		vga.draw.address_line=0;
 		vga.draw.address+=vga.draw.address_add;
 	}
-	vga.draw.lines_done++;
-	if (vga.draw.split_line==vga.draw.lines_done) VGA_ProcessSplit();
-	if (vga.draw.lines_done < vga.draw.lines_total) {
-		PIC_AddEvent(VGA_DrawEGASingleLine,(float)vga.draw.delay.singleline_delay);
-	} else {
-		vga_mode_frames_since_time_base++;
-		RENDER_EndUpdate(false);
-	}
+
+    if (!skiprender) {
+        vga.draw.lines_done++;
+        if (vga.draw.split_line==vga.draw.lines_done) VGA_ProcessSplit();
+    }
+
+    if (vga.draw.lines_done < vga.draw.lines_total) {
+        PIC_AddEvent(VGA_DrawEGASingleLine,(float)vga.draw.delay.singleline_delay);
+    } else {
+        vga_mode_frames_since_time_base++;
+        RENDER_EndUpdate(false);
+    }
 }
 
 void VGA_SetBlinking(Bitu enabled) {
@@ -1761,7 +1812,9 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	// multiscan -- zooming effects - only makes sense if linewise is enabled
 	// linewise -- scan display line by line instead of 4 blocks
 	// keep compatibility with other builds of DOSBox for vgaonly.
-	vga.draw.doublescan_effect = vga.draw.doublescan_set;
+	vga.draw.doublescan_effect = true;
+    vga.draw.render_step = 0;
+    vga.draw.render_max = 1;
 
 	// set the drawing mode
 	switch (machine) {
@@ -2142,29 +2195,28 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			// EGA has no doublescanning bit at 0x80
 			if (vga.crtc.maximum_scan_line&0x80) {
 				// vga_draw only needs to draw every second line
-				height/=2;
+				height /= 2;
 			}
 			break;
 		default:
-			if (vga.draw.doublescan_effect) {
-				// don't merge doublescanned lines
-				if (vga.crtc.maximum_scan_line&0x80) {
-					// double scan method 1
-					vga.draw.address_line_total*=2;
-				}
-			} else {
-				if (vga.crtc.maximum_scan_line & 0x80) {
-					// double scan method 1
-					height/=2;
-				} else if (vga.draw.address_line_total == 2) { // 4,8,16?
-					// double scan method 2
-					height/=2;
-					vga.draw.address_line_total=1; // don't repeat in this case
-				}
-			}
-			break;
+            vga.draw.doublescan_effect = vga.draw.doublescan_set;
+
+            if (vga.crtc.maximum_scan_line & 0x80)
+                vga.draw.address_line_total *= 2;
+
+            /* if doublescan=false and line_total is even, then halve the height.
+             * the VGA raster scan will skip every other line to accomodate that. */
+            if ((!vga.draw.doublescan_effect) && (vga.draw.address_line_total & 1) == 0)
+                height /= 2;
+            else
+                vga.draw.doublescan_effect = true;
+
+            break;
 		}
 	}
+
+    if (!vga.draw.doublescan_effect)
+        vga.draw.render_max = 2; /* count all lines but render only every other line */
 
 	//Set the bpp
 	Bitu bpp;

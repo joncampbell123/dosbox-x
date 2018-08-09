@@ -38,6 +38,7 @@ struct SDL_PrivateAudioData {
 	pa_stream *stream;
 
 	char *caption;
+	char *caption_pending;
 
 	/* Raw mixing buffer */
 	Uint8 *mixbuf;

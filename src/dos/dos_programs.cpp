@@ -180,7 +180,8 @@ public:
 						Drives[i_drive] = 0;
 						if(i_drive == DOS_GetDefaultDrive()) 
 							DOS_SetDrive(ZDRIVE_NUM);
-						WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS"),umount[0]);
+						if (!quiet)
+                            WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS"),umount[0]);
 						break;
 					case 1:
 						WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL"));
@@ -235,11 +236,13 @@ public:
 		}
 		/* Show list of cdroms */
 		if (cmd->FindExist("-cd",false)) {
+#if !defined(C_SDL2)
 			int num = SDL_CDNumDrives();
    			WriteOut(MSG_Get("PROGRAM_MOUNT_CDROMS_FOUND"),num);
 			for (int i=0; i<num; i++) {
 				WriteOut("%2d. %s\n",i,SDL_CDName(i));
 			};
+#endif
 			return;
 		}
 
@@ -256,7 +259,7 @@ public:
 			} else if (type=="dir") {
 				// 512*32*32765==~500MB total size
 				// 512*32*16000==~250MB total free size
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(C_SDL2)
 				GetDefaultSize();
 				str_size=hdd_size;
 #else
@@ -316,6 +319,19 @@ public:
 			//os2: some special drive check
 			//rest: substiture ~ for home
 			bool failed = false;
+
+#if defined (WIN32) || defined(OS2)
+			/* nothing */
+#else
+			// Linux: Convert backslash to forward slash
+			if (!is_physfs && temp_line.size() > 0) {
+				for (size_t i=0;i < temp_line.size();i++) {
+					if (temp_line[i] == '\\')
+						temp_line[i] = '/';
+				}
+			}
+#endif
+
 #if defined (WIN32) || defined(OS2)
 			/* Removing trailing backslash if not root dir so stat will succeed */
 			if(temp_line.size() > 3 && temp_line[temp_line.size()-1]=='\\') temp_line.erase(temp_line.size()-1,1);
@@ -496,6 +512,7 @@ static void MOUNT_ProgramStart(Program * * make) {
 	*make=new MOUNT;
 }
 
+#if !defined(C_SDL2)
 void GUI_Run(bool pressed);
 
 class SHOWGUI : public Program {
@@ -508,6 +525,7 @@ public:
 static void SHOWGUI_ProgramStart(Program * * make) {
 	*make=new SHOWGUI;
 }
+#endif
 
 extern Bit32u floppytype;
 extern bool dos_kernel_disabled;
@@ -616,6 +634,11 @@ private:
 public:
    
 	void Run(void) {
+        if (IS_PC98_ARCH) {
+            WriteOut("Booting from PC-98 mode is not supported yet\n");
+            return;
+        }
+
 		//Hack To allow long commandlines
 		ChangeToLongCmd();
 		/* In secure mode don't allow people to boot stuff. 
@@ -1736,6 +1759,7 @@ static void RESCAN_ProgramStart(Program * * make) {
 	*make=new RESCAN;
 }
 
+/* TODO: This menu code sucks. Write a better one. */
 class INTRO : public Program {
 public:
 	void DisplayMount(void) {
@@ -1766,9 +1790,45 @@ public:
 		WriteOut(MSG_Get("PROGRAM_INTRO_MENU_UP"));
 	}
 	void DisplayMenuBefore(void) { WriteOut("\033[44m\033[K\033[33m\033[1m   \033[0m "); }
-	void DisplayMenuCursorStart(void) { WriteOut("\033[44m\033[K\033[1m\033[33;44m  \x10\033[0m\033[5;37;44m "); }
+	void DisplayMenuCursorStart(void) {
+		if (machine == MCH_PC98) {
+			WriteOut("\033[44m\033[K\033[1m\033[33;44m  \x1C\033[0m\033[5;37;44m ");
+		} else {
+			WriteOut("\033[44m\033[K\033[1m\033[33;44m  \x10\033[0m\033[5;37;44m ");
+		}
+	}
 	void DisplayMenuCursorEnd(void) { WriteOut("\033[0m\n"); }
 	void DisplayMenuNone(void) { WriteOut("\033[44m\033[K\033[0m\n"); }
+
+    bool CON_IN(Bit8u * data) {
+        Bit8u c;
+        Bit16u n=1;
+
+        /* handle arrow keys vs normal input,
+         * with special conditions for PC-98 and IBM PC */
+        if (!DOS_ReadFile(STDIN,&c,&n) || n == 0) return false;
+
+        if (IS_PC98_ARCH) {
+            /* translate PC-98 arrow keys to IBM PC escape for the caller */
+                 if (c == 0x0B)
+                *data = 0x48 | 0x80;    /* IBM extended code up arrow */
+            else if (c == 0x0A)
+                *data = 0x50 | 0x80;    /* IBM extended code down arrow */
+            else
+                *data = c;
+        }
+        else {
+            if (c == 0) {
+                if (!DOS_ReadFile(STDIN,&c,&n) || n == 0) return false;
+                *data = c | 0x80; /* extended code */
+            }
+            else {
+                *data = c;
+            }
+        }
+
+        return true;
+    }
 
 	void Run(void) {
 		std::string menuname = "BASIC"; // default
@@ -1826,10 +1886,10 @@ goto_exit:
 basic:
 		menuname="BASIC";
 		WriteOut(MSG_Get("PROGRAM_INTRO_MENU_BASIC_HELP")); 
-		DOS_ReadFile (STDIN,&c,&n);
+        CON_IN(&c);
 		do switch (c) {
-			case 0x48: menuname="QUIT"; goto menufirst; // Up
-			case 0x50: menuname="CDROM"; goto menufirst; // Down
+			case 0x48|0x80: menuname="QUIT"; goto menufirst; // Up
+			case 0x50|0x80: menuname="CDROM"; goto menufirst; // Down
 			case 0xD:	// Run
 				WriteOut("\033[2J");
 				WriteOut(MSG_Get("PROGRAM_INTRO"));
@@ -1837,53 +1897,53 @@ basic:
 				DisplayMount();
 				DOS_ReadFile (STDIN,&c,&n);
 				goto menufirst;
-		} while (DOS_ReadFile (STDIN,&c,&n));
+		} while (CON_IN(&c));
 
 cdrom:
 		menuname="CDROM";
 		WriteOut(MSG_Get("PROGRAM_INTRO_MENU_CDROM_HELP")); 
-		DOS_ReadFile (STDIN,&c,&n);
+        CON_IN(&c);
 		do switch (c) {
-			case 0x48: menuname="BASIC"; goto menufirst; // Up
-			case 0x50: menuname="SPECIAL"; goto menufirst; // Down
+			case 0x48|0x80: menuname="BASIC"; goto menufirst; // Up
+			case 0x50|0x80: menuname="SPECIAL"; goto menufirst; // Down
 			case 0xD:	// Run
 				WriteOut(MSG_Get("PROGRAM_INTRO_CDROM"));
 				DOS_ReadFile (STDIN,&c,&n);
 				goto menufirst;
-		} while (DOS_ReadFile (STDIN,&c,&n));
+		} while (CON_IN(&c));
 
 special:
 		menuname="SPECIAL";
 		WriteOut(MSG_Get("PROGRAM_INTRO_MENU_SPECIAL_HELP")); 
-		DOS_ReadFile (STDIN,&c,&n);
+        CON_IN(&c);
 		do switch (c) {
-			case 0x48: menuname="CDROM"; goto menufirst; // Up
-			case 0x50: menuname="USAGE"; goto menufirst; // Down
+			case 0x48|0x80: menuname="CDROM"; goto menufirst; // Up
+			case 0x50|0x80: menuname="USAGE"; goto menufirst; // Down
 			case 0xD:	// Run
 				WriteOut(MSG_Get("PROGRAM_INTRO_SPECIAL"));
 				DOS_ReadFile (STDIN,&c,&n);
 				goto menufirst;
-		} while (DOS_ReadFile (STDIN,&c,&n));
+		} while (CON_IN(&c));
 
 usage:
 		menuname="USAGE";
 		WriteOut(MSG_Get("PROGRAM_INTRO_MENU_USAGE_HELP")); 
-		DOS_ReadFile (STDIN,&c,&n);
+        CON_IN(&c);
 		do switch (c) {
-			case 0x48: menuname="SPECIAL"; goto menufirst; // Up
-			case 0x50: menuname="INFO"; goto menufirst; // Down
+			case 0x48|0x80: menuname="SPECIAL"; goto menufirst; // Up
+			case 0x50|0x80: menuname="INFO"; goto menufirst; // Down
 			case 0xD:	// Run
 				DisplayUsage();
 				goto menufirst;
-		} while (DOS_ReadFile (STDIN,&c,&n));
+		} while (CON_IN(&c));
 
 info:
 		menuname="INFO";
 		WriteOut(MSG_Get("PROGRAM_INTRO_MENU_INFO_HELP"));
-		DOS_ReadFile (STDIN,&c,&n);
+        CON_IN(&c);
 		do switch (c) {
-			case 0x48: menuname="USAGE"; goto menufirst; // Up
-			case 0x50: menuname="QUIT"; goto menufirst; // Down
+			case 0x48|0x80: menuname="USAGE"; goto menufirst; // Up
+			case 0x50|0x80: menuname="QUIT"; goto menufirst; // Down
 			case 0xD:	// Run
 				WriteOut("\033[2J");
 				WriteOut(MSG_Get("PROGRAM_INTRO"));
@@ -1891,19 +1951,19 @@ info:
 				WriteOut(MSG_Get("PROGRAM_INTRO_INFO"));
 				DOS_ReadFile (STDIN,&c,&n);
 				goto menufirst;
-		} while (DOS_ReadFile (STDIN,&c,&n));
+		} while (CON_IN(&c));
 
 quit:
 		menuname="QUIT";
 		WriteOut(MSG_Get("PROGRAM_INTRO_MENU_QUIT_HELP")); 
-		DOS_ReadFile (STDIN,&c,&n);
+        CON_IN(&c);
 		do switch (c) {
-			case 0x48: menuname="INFO"; goto menufirst; // Up
-			case 0x50: menuname="BASIC"; goto menufirst; // Down
+			case 0x48|0x80: menuname="INFO"; goto menufirst; // Up
+			case 0x50|0x80: menuname="BASIC"; goto menufirst; // Down
 			case 0xD:	// Run
 				menuname="GOTO_EXIT";
 				return;
-		} while (DOS_ReadFile (STDIN,&c,&n));
+		} while (CON_IN(&c));
 	}	
 };
 
@@ -2352,7 +2412,18 @@ public:
 			
 			// find all file parameters, assuming that all option parameters have been removed
 			while(cmd->FindCommand((unsigned int)(paths.size() + 2), temp_line) && temp_line.size()) {
-				
+#if defined (WIN32) || defined(OS2)
+                /* nothing */
+#else
+                // Linux: Convert backslash to forward slash
+                if (temp_line.size() > 0) {
+                    for (size_t i=0;i < temp_line.size();i++) {
+                        if (temp_line[i] == '\\')
+                            temp_line[i] = '/';
+                    }
+                }
+#endif
+
 				pref_struct_stat test;
 				if (pref_stat(temp_line.c_str(),&test)) {
 					//See if it works if the ~ are written out
@@ -2413,6 +2484,16 @@ public:
 					WriteOut("El Torito bootable CD: -fs fat mounting not supported\n"); /* <- NTS: Someday!! */
 					return;
 				}
+
+                /* .HDI images contain the geometry explicitly in the header. */
+                if (str_size.size() == 0) {
+                    const char *ext = strrchr(temp_line.c_str(),'.');
+                    if (ext != NULL) {
+                        if (!strcasecmp(ext,".hdi")) {
+                            imgsizedetect = false;
+                        }
+                    }
+                }
 
 				if (imgsizedetect) {
 					bool yet_detected = false;
@@ -2931,6 +3012,7 @@ static void MORE_ProgramStart(Program * * make) {
 
 void REDOS_ProgramStart(Program * * make);
 void A20GATE_ProgramStart(Program * * make);
+void PC98UTIL_ProgramStart(Program * * make);
 
 class NMITEST : public Program {
 public:
@@ -2996,12 +3078,21 @@ void DOS_SetupPrograms(void) {
 		"\033[31;1mDOSBox will stop/exit without a warning if an error occurred!\033[0m\n"
 		"\n"
 		"\n" );
-	MSG_Add("PROGRAM_INTRO_MENU_UP",
-		"\033[44m\033[K\033[0m\n"
-		"\033[44m\033[K\033[1m\033[1m\t\t\t\t\t\t\t  DOSBox Introduction \033[0m\n"
-		"\033[44m\033[K\033[1m\033[1m \xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\033[0m\n"
-		"\033[44m\033[K\033[0m\n"
-		);
+	if (machine == MCH_PC98) {
+		MSG_Add("PROGRAM_INTRO_MENU_UP",
+			"\033[44m\033[K\033[0m\n"
+			"\033[44m\033[K\033[1m\033[1m\t\t\t\t\t\t\t  DOSBox Introduction \033[0m\n"
+			"\033[44m\033[K\033[1m\033[1m \x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\x86\x43\033[0m\n"
+			"\033[44m\033[K\033[0m\n"
+			);
+	} else {
+		MSG_Add("PROGRAM_INTRO_MENU_UP",
+			"\033[44m\033[K\033[0m\n"
+			"\033[44m\033[K\033[1m\033[1m\t\t\t\t\t\t\t  DOSBox Introduction \033[0m\n"
+			"\033[44m\033[K\033[1m\033[1m \xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\xC4\033[0m\n"
+			"\033[44m\033[K\033[0m\n"
+			);
+	}
 	MSG_Add("PROGRAM_INTRO_MENU_BASIC","Basic mount");
 	MSG_Add("PROGRAM_INTRO_MENU_CDROM","CD-ROM support");
 	MSG_Add("PROGRAM_INTRO_MENU_SPECIAL","Special keys");
@@ -3079,35 +3170,79 @@ void DOS_SetupPrograms(void) {
 		"you have to mount the directory containing the files.\n"
 		"\n"
 		);
-	MSG_Add("PROGRAM_INTRO_MOUNT_WINDOWS",
-		"\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-		"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-		"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n"
-		"\xBA \033[32mmount c c:\\dosgames\\\033[37m will create a C drive with c:\\dosgames as contents.\xBA\n"
-		"\xBA                                                                         \xBA\n"
-		"\xBA \033[32mc:\\dosgames\\\033[37m is an example. Replace it with your own games directory.  \033[37m \xBA\n"
-		"\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-		"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-		"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m\n"
-		);
-	MSG_Add("PROGRAM_INTRO_MOUNT_OTHER",
-		"\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-		"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-		"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n"
-		"\xBA \033[32mmount c ~/dosgames\033[37m will create a C drive with ~/dosgames as contents.\xBA\n"
-		"\xBA                                                                      \xBA\n"
-		"\xBA \033[32m~/dosgames\033[37m is an example. Replace it with your own games directory.\033[37m  \xBA\n"
-		"\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-		"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-		"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m\n"
-		);
-	MSG_Add("PROGRAM_INTRO_MOUNT_END",
-		"When the mount has successfully completed you can type \033[34;1mc:\033[0m to go to your freshly\n"
-		"mounted C-drive. Typing \033[34;1mdir\033[0m there will show its contents."
-		" \033[34;1mcd\033[0m will allow you to\n"
-		"enter a directory (recognised by the \033[33;1m[]\033[0m in a directory listing).\n"
-		"You can run programs/files which end with \033[31m.exe .bat\033[0m and \033[31m.com\033[0m.\n"
-		);
+	if (machine == MCH_PC98) {
+		MSG_Add("PROGRAM_INTRO_MOUNT_WINDOWS",
+			"\033[44;1m\x86\x52\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"
+			"\x86\x46 \033[32mmount a c:\\dosgames\\\033[37m will create an A drive with c:\\dosgames as contents.\x86\x46\n"
+			"\x86\x46                                                                          \x86\x46\n"
+			"\x86\x46 \033[32mc:\\dosgames\\\033[37m is an example. Replace it with your own games directory.  \033[37m  \x86\x46\n"
+			"\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x5E\033[0m\n"
+			);
+		MSG_Add("PROGRAM_INTRO_MOUNT_OTHER",
+			"\033[44;1m\x86\x52\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"
+			"\x86\x46 \033[32mmount a ~/dosgames\033[37m will create an A drive with ~/dosgames as contents.\x86\x46\n"
+			"\x86\x46                                                                       \x86\x46\n"
+			"\x86\x46 \033[32m~/dosgames\033[37m is an example. Replace it with your own games directory. \033[37m  \x86\x46\n"
+			"\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+			"\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x5E\033[0m\n"
+			);
+		MSG_Add("PROGRAM_INTRO_MOUNT_END",
+			"When the mount has successfully completed you can type \033[34;1ma:\033[0m to go to your freshly\n"
+			"mounted A-drive. Typing \033[34;1mdir\033[0m there will show its contents."
+			" \033[34;1mcd\033[0m will allow you to\n"
+			"enter a directory (recognised by the \033[33;1m[]\033[0m in a directory listing).\n"
+			"You can run programs/files which end with \033[31m.exe .bat\033[0m and \033[31m.com\033[0m.\n"
+			);
+	} else {
+		MSG_Add("PROGRAM_INTRO_MOUNT_WINDOWS",
+			"\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+			"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+			"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n"
+			"\xBA \033[32mmount c c:\\dosgames\\\033[37m will create a C drive with c:\\dosgames as contents.\xBA\n"
+			"\xBA                                                                         \xBA\n"
+			"\xBA \033[32mc:\\dosgames\\\033[37m is an example. Replace it with your own games directory.  \033[37m \xBA\n"
+			"\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+			"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+			"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m\n"
+			);
+		MSG_Add("PROGRAM_INTRO_MOUNT_OTHER",
+			"\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+			"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+			"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n"
+			"\xBA \033[32mmount c ~/dosgames\033[37m will create a C drive with ~/dosgames as contents.\xBA\n"
+			"\xBA                                                                      \xBA\n"
+			"\xBA \033[32m~/dosgames\033[37m is an example. Replace it with your own games directory.\033[37m  \xBA\n"
+			"\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+			"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+			"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m\n"
+			);
+		MSG_Add("PROGRAM_INTRO_MOUNT_END",
+			"When the mount has successfully completed you can type \033[34;1mc:\033[0m to go to your freshly\n"
+			"mounted C-drive. Typing \033[34;1mdir\033[0m there will show its contents."
+			" \033[34;1mcd\033[0m will allow you to\n"
+			"enter a directory (recognised by the \033[33;1m[]\033[0m in a directory listing).\n"
+			"You can run programs/files which end with \033[31m.exe .bat\033[0m and \033[31m.com\033[0m.\n"
+			);
+	}
 	MSG_Add("PROGRAM_INTRO_CDROM",
 		"\033[2J\033[32;1mHow to mount a Real/Virtual CD-ROM Drive in DOSBox:\033[0m\n"
 		"DOSBox provides CD-ROM emulation on several levels.\n"
@@ -3281,7 +3416,13 @@ void DOS_SetupPrograms(void) {
 	PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart);
 	PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart);
 	PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
+#if !defined(C_SDL2)
 	PROGRAMS_MakeFile("SHOWGUI.COM",SHOWGUI_ProgramStart);
+#endif
 	PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
     PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart);
+
+    if (IS_PC98_ARCH) {
+        PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart);
+    }
 }
