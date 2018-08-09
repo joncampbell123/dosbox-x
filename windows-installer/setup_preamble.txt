@@ -1,5 +1,5 @@
 Welcome to DOSBox-X, a fork of the DOSBox project !
 
-Caveat:
+Note:
 
 Due to the way of how Windows works, access to the 'Program Files' folder requires administrative permissions. Unless you have specific reasons, we recommend that you install DOSBox-X in a different folder that does not require administrative permissions.

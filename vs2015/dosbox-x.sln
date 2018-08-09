@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dosbox-x", "dosbox-x.vcxproj", "{8A52284E-5115-453E-AD4B-87B8FCDB1244}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlibstat", "zlib\contrib\vstudio\vc9\zlibstat.vcxproj", "{745DEC58-EBB3-47A9-A9B8-4C6627C01BF8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SDL_net", "sdlnet\VisualC\SDL_net_VS2008.vcxproj", "{8AB3504F-5E58-4910-AFE8-7A1E595AC3F4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{2606D77A-5E5B-4113-A3C9-278C55E8921B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -74,5 +76,15 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{81CE8DAF-EBB2-4761-8E45-B71ABCCA8C68} = {2606D77A-5E5B-4113-A3C9-278C55E8921B}
+		{DA956FD3-E142-46F2-9DD5-C78BEBB56B7A} = {2606D77A-5E5B-4113-A3C9-278C55E8921B}
+		{0008960E-E0DD-41A6-8265-00B31DDB4C21} = {2606D77A-5E5B-4113-A3C9-278C55E8921B}
+		{745DEC58-EBB3-47A9-A9B8-4C6627C01BF8} = {2606D77A-5E5B-4113-A3C9-278C55E8921B}
+		{8AB3504F-5E58-4910-AFE8-7A1E595AC3F4} = {2606D77A-5E5B-4113-A3C9-278C55E8921B}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EEAF41F1-C358-4B63-A476-64F9473F4D5A}
 	EndGlobalSection
 EndGlobal

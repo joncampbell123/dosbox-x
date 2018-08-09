@@ -648,7 +648,7 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
 	} else if(!dblw && !dblh && (width < 370) && (height < 280)) {
 		dblw=true; dblh=true;
 	}
-	//LOG_MSG("pixratio %1.3f, dw %s, dh %s",ratio,dblw?"true":"false",dblh?"true":"false");
+	LOG_MSG("pixratio %1.3f, dw %s, dh %s",ratio,dblw?"true":"false",dblh?"true":"false");
 
 	if ( ratio > 1.0 ) {
 		double target = height * ratio + 0.1;
