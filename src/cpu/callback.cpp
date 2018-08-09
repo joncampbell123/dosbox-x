@@ -55,7 +55,7 @@ void CALLBACK_Dump(void) {
 
         LOG(LOG_CPU,LOG_DEBUG)("  [%u] func=%p desc='%s'",
             (unsigned int)i,
-            (void*)CallBack_Handlers[i],
+            (void*)((uintptr_t)CallBack_Handlers[i]), /* shut the compiler up by func -> uintptr_t -> void* conversion */
             CallBack_Description[i] != NULL ? CallBack_Description[i] : "");
     }
 	LOG(LOG_CPU,LOG_DEBUG)("--------------");
@@ -148,7 +148,7 @@ void CALLBACK_RunRealFar(Bit16u seg,Bit16u off) {
 void CALLBACK_RunRealInt_retcsip(Bit8u intnum,Bitu &rcs,Bitu &rip) {
 	Bit32u oldeip=reg_eip;
 	Bit16u oldcs=SegValue(cs);
-	reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*6);
+	reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*6U);
 	SegSet16(cs,CB_SEG);
 	DOSBOX_RunMachine();
 	rcs = SegValue(cs);
@@ -160,7 +160,7 @@ void CALLBACK_RunRealInt_retcsip(Bit8u intnum,Bitu &rcs,Bitu &rip) {
 void CALLBACK_RunRealInt(Bit8u intnum) {
 	Bit32u oldeip=reg_eip;
 	Bit16u oldcs=SegValue(cs);
-	reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*6);
+	reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*6U);
 	SegSet16(cs,CB_SEG);
 	DOSBOX_RunMachine();
 	reg_eip=oldeip;

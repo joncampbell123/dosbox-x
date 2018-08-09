@@ -19,11 +19,12 @@
 #ifndef DOSBOX_PIC_H
 #define DOSBOX_PIC_H
 
+#include "dosbox.h"
 
 /* CPU Cycle Timing */
-extern Bit32s CPU_Cycles;
-extern Bit32s CPU_CycleLeft;
-extern Bit32s CPU_CycleMax;
+extern cpu_cycles_count_t CPU_Cycles;
+extern cpu_cycles_count_t CPU_CycleLeft;
+extern cpu_cycles_count_t CPU_CycleMax;
 
 typedef void (PIC_EOIHandler) (void);
 typedef void (* PIC_EventHandler)(Bitu val);
@@ -46,20 +47,22 @@ enum PIC_irq_hacks PIC_parse_IRQ_hack_string(const char *str);
 extern Bitu PIC_IRQCheck;
 extern Bitu PIC_Ticks;
 
-static INLINE float PIC_TickIndex(void) {
-	return (CPU_CycleMax-CPU_CycleLeft-CPU_Cycles)/(float)CPU_CycleMax;
+typedef double pic_tickindex_t;
+
+static INLINE pic_tickindex_t PIC_TickIndex(void) {
+	return ((pic_tickindex_t)(CPU_CycleMax-CPU_CycleLeft-CPU_Cycles)) / ((pic_tickindex_t)CPU_CycleMax);
 }
 
 static INLINE Bits PIC_TickIndexND(void) {
 	return CPU_CycleMax-CPU_CycleLeft-CPU_Cycles;
 }
 
-static INLINE Bits PIC_MakeCycles(double amount) {
+static INLINE Bits PIC_MakeCycles(const pic_tickindex_t amount) {
 	return (Bits)(CPU_CycleMax*amount);
 }
 
-static INLINE double PIC_FullIndex(void) {
-	return PIC_Ticks+(double)PIC_TickIndex();
+static INLINE pic_tickindex_t PIC_FullIndex(void) {
+	return (pic_tickindex_t)PIC_Ticks + PIC_TickIndex();
 }
 
 void PIC_ActivateIRQ(Bitu irq);
@@ -69,7 +72,7 @@ void PIC_runIRQs(void);
 bool PIC_RunQueue(void);
 
 //Delay in milliseconds
-void PIC_AddEvent(PIC_EventHandler handler,float delay,Bitu val=0);
+void PIC_AddEvent(PIC_EventHandler handler,pic_tickindex_t delay,Bitu val=0);
 void PIC_RemoveEvents(PIC_EventHandler handler);
 void PIC_RemoveSpecificEvents(PIC_EventHandler handler, Bitu val);
 

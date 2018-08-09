@@ -60,6 +60,7 @@ UINT8 fmtimer_irq2index(const UINT8 irq) {
 /* end */
 
 static void set_fmtimeraevent(BOOL absolute) {
+    (void)absolute;//UNUSED
 
 	SINT32	l;
 
@@ -86,6 +87,7 @@ static void set_fmtimeraevent(BOOL absolute) {
 }
 
 static void set_fmtimerbevent(BOOL absolute) {
+    (void)absolute;//UNUSED
 
 	SINT32	l;
 
@@ -109,6 +111,7 @@ static void set_fmtimerbevent(BOOL absolute) {
 
 
 void fmport_a(NEVENTITEM item) {
+    (void)item;//UNUSED
 
 	BOOL	intreq = FALSE;
 
@@ -128,7 +131,7 @@ void fmport_a(NEVENTITEM item) {
 }
 
 void fmport_b(NEVENTITEM item) {
-
+    (void)item;//UNUSED
 	BOOL	intreq = FALSE;
 
 //	if (item->flag & NEVENT_SETEVENT) {

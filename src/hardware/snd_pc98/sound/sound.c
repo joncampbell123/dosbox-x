@@ -323,7 +323,9 @@ void sound_sync(void) {
 }
 #endif
 
+#if 0
 static volatile int locks = 0;
+#endif
 
 #if 0
 const SINT32 *sound_pcmlock(void) {

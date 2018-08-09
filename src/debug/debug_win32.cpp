@@ -67,6 +67,7 @@ static void ResizeConsole( HANDLE hConsole, SHORT xSize, SHORT ySize ) {
 	}
 	
 	// If the Current Buffer *is* the Size we want, Don't do anything! 
+    (void)bSuccess;//UNUSED
 	return;
    }
 

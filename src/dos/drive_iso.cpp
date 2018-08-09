@@ -34,7 +34,7 @@ class isoFile : public DOS_File {
 public:
 	isoFile(isoDrive *drive, const char *name, FileStat_Block *stat, Bit32u offset);
 	bool Read(Bit8u *data, Bit16u *size);
-	bool Write(Bit8u *data, Bit16u *size);
+	bool Write(const Bit8u *data, Bit16u *size);
 	bool Seek(Bit32u *pos, Bit32u type);
 	bool Close();
 	Bit16u GetInformation(void);
@@ -46,7 +46,7 @@ private:
 	Bit32u fileBegin;
 	Bit32u filePos;
 	Bit32u fileEnd;
-	Bit16u info;
+//	Bit16u info;
 };
 
 isoFile::isoFile(isoDrive *drive, const char *name, FileStat_Block *stat, Bit32u offset) {
@@ -100,7 +100,7 @@ bool isoFile::Read(Bit8u *data, Bit16u *size) {
 	return true;
 }
 
-bool isoFile::Write(Bit8u* /*data*/, Bit16u* /*size*/) {
+bool isoFile::Write(const Bit8u* /*data*/, Bit16u* /*size*/) {
 	return false;
 }
 

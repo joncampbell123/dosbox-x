@@ -24,9 +24,11 @@
 #include "regs.h"
 #include "control.h"
 #include "shell.h"
+#include "menu.h"
 #include "callback.h"
 #include "support.h"
 #include "builtin.h"
+#include "build_timestamp.h"
 
 extern bool dos_shell_running_program;
 
@@ -528,6 +530,7 @@ nomount:
 static AUTOEXEC* test = NULL;
 	
 static void AUTOEXEC_ShutDown(Section * sec) {
+    (void)sec;//UNUSED
 	if (test != NULL) {
 		delete test;
 		test = NULL;
@@ -543,6 +546,7 @@ static void AUTOEXEC_ShutDown(Section * sec) {
 }
 
 void AUTOEXEC_Startup(Section *sec) {
+    (void)sec;//UNUSED
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating AUTOEXEC.BAT emulation");
 		test = new AUTOEXEC(control->GetSection("autoexec"));
@@ -652,7 +656,7 @@ void SHELL_Init() {
                 "\x86\x46 For supported shell commands type: \033[33mHELP\033[37m                            \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
                 "\x86\x46 To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \x86\x46\n"
-                "\x86\x46 To activate the keymapper \033[31mhost+m\033[37m. Host key is F12.                 \x86\x46\n"
+                "\x86\x46 To activate the keymapper \033[31mhost+m\033[37m. Host key is F11.                 \x86\x46\n"
                 "\x86\x46 For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
                );
@@ -689,7 +693,7 @@ void SHELL_Init() {
                 "\xBA For supported shell commands type: \033[33mHELP\033[37m                            \xBA\n"
                 "\xBA                                                                    \xBA\n"
                 "\xBA To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \xBA\n"
-                "\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is F12.                 \xBA\n"
+                "\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is F11.                 \xBA\n"
                 "\xBA For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \xBA\n"
                 "\xBA                                                                    \xBA\n"
                );
@@ -738,13 +742,18 @@ void SHELL_Init() {
 	        "Type CD without parameters to display the current drive and directory.\n");
 	MSG_Add("SHELL_CMD_CLS_HELP","Clear screen.\n");
 	MSG_Add("SHELL_CMD_DIR_HELP","Directory View.\n");
-	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/W] [/S] [/P] [/AD]\n\n"
+	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/AD] [/O[N|E|S|D]\n\n"
 		   "   [drive:][path][filename]\n"
 		   "       Specifies drive, directory, and/or files to list.\n\n"
 		   "   /W\tUses wide list format.\n"
+		   "   /B\tUses bare format (no heading information or summary).\n"
 		   "   /S\tDisplays files in specified directory and all subdirectories.\n\t(not supported)\n"
 		   "   /P\tPauses after each screenful of information.\n"
-		   "   /AD\tDisplays directories.\n");
+		   "   /AD\tDisplays directories.\n"
+		   "   /ON\tList files sorted by name (alphabetic).\n"
+		   "   /OE\tList files sorted by extension (alphabetic).\n"
+		   "   /OS\tList files sorted by size (smallest first).\n"
+		   "   /OD\tList files sorted by date (oldest first).\n");
 	MSG_Add("SHELL_CMD_ECHO_HELP","Display messages and enable/disable command echoing.\n");
 	MSG_Add("SHELL_CMD_EXIT_HELP","Exit from the shell.\n");
 	MSG_Add("SHELL_CMD_HELP_HELP","Show help.\n");
@@ -948,6 +957,7 @@ void SHELL_Init() {
 	env_write+=2;
 	MEM_BlockWrite(env_write,full_name,(Bitu)(strlen(full_name)+1));
 
+//    extern bool Mouse_Vertical;
 	extern bool Mouse_Drv;
 	Mouse_Drv = true;
 

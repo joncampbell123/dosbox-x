@@ -56,13 +56,14 @@ public:
 		ID_EL_TORITO_FLOPPY,
         ID_VFD,
 		ID_MEMORY,
-		ID_VHD
+		ID_VHD,
+        ID_D88
 	};
 
-	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
-	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
+	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size=0);
+	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size=0);
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, const void * data);
 
 	virtual void Set_Reserved_Cylinders(Bitu resCyl);
 	virtual Bit32u Get_Reserved_Cylinders();
@@ -109,12 +110,51 @@ public:
 	}
 };
 
+class imageDiskD88 : public imageDisk {
+public:
+	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size=0);
+	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size=0);
+	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, const void * data);
+
+	imageDiskD88(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk);
+	virtual ~imageDiskD88();
+
+    unsigned char fd_type_major;
+    unsigned char fd_type_minor;
+
+    enum { /* major */
+        DISKTYPE_2D			= 0,
+        DISKTYPE_2DD,
+        DISKTYPE_2HD
+    };
+
+    struct vfdentry {
+        uint8_t         track,head,sector;
+        uint16_t        sector_size;
+
+        uint32_t        data_offset;
+        uint32_t        entry_offset; // offset of the 12-byte entry this came from (if nonzero)
+
+        vfdentry() : track(0), head(0), sector(0), sector_size(0), data_offset(0), entry_offset(0) {
+        }
+
+        uint16_t getSectorSize(void) const {
+            return sector_size;
+        }
+    };
+
+    vfdentry *findSector(Bit8u head,Bit8u track,Bit8u sector/*TODO: physical head?*/,unsigned int req_sector_size=0);
+
+    std::vector<vfdentry> dents;
+};
+
 class imageDiskVFD : public imageDisk {
 public:
-	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
-	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
+	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data,unsigned int req_sector_size=0);
+	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size=0);
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, const void * data);
 
 	imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk);
 	virtual ~imageDiskVFD();
@@ -142,7 +182,7 @@ public:
         }
     };
 
-    vfdentry *findSector(Bit8u head,Bit8u track,Bit8u sector/*TODO: physical head?*/);
+    vfdentry *findSector(Bit8u head,Bit8u track,Bit8u sector/*TODO: physical head?*/,unsigned int req_sector_size=0);
 
     std::vector<vfdentry> dents;
 };
@@ -150,7 +190,7 @@ public:
 class imageDiskMemory : public imageDisk {
 public:
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, const void * data);
 	virtual Bit8u GetBiosType(void);
 	virtual void Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize);
 	// Parition and format the ramdrive
@@ -206,7 +246,7 @@ public:
 	};
 	VHDTypes vhdType;
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
-	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, const void * data);
 	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** imageDisk);
 	static VHDTypes GetVHDType(const char* fileName);
 	virtual ~imageDiskVHD();

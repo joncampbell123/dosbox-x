@@ -140,7 +140,9 @@ typedef unsigned int uintptr_t;
 #ifdef _WIN32_WCE
 #define SDL_JOYSTICK_DISABLED   1
 #else
+#ifndef SDL_JOYSTICK_XINPUT
 #define SDL_JOYSTICK_WINMM	1
+#endif
 #endif
 
 /* Enable various shared object loading systems */

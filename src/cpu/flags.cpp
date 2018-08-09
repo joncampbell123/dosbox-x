@@ -504,15 +504,15 @@ Bitu FillFlags(void) {
 
 #define DOFLAG_PF	reg_flags=(reg_flags & ~FLAG_PF) | parity_lookup[lf_resb];
 
-#define DOFLAG_AF	reg_flags=(reg_flags & ~FLAG_AF) | (((lf_var1b ^ lf_var2b) ^ lf_resb) & 0x10);
+#define DOFLAG_AF	reg_flags=(reg_flags & ~FLAG_AF) | (((lf_var1b ^ lf_var2b) ^ lf_resb) & 0x10U);
 
 #define DOFLAG_ZFb	SETFLAGBIT(ZF,lf_resb==0);
 #define DOFLAG_ZFw	SETFLAGBIT(ZF,lf_resw==0);
 #define DOFLAG_ZFd	SETFLAGBIT(ZF,lf_resd==0);
 
-#define DOFLAG_SFb	reg_flags=(reg_flags & ~FLAG_SF) | ((lf_resb & 0x80) >> 0);
-#define DOFLAG_SFw	reg_flags=(reg_flags & ~FLAG_SF) | ((lf_resw & 0x8000) >> 8);
-#define DOFLAG_SFd	reg_flags=(reg_flags & ~FLAG_SF) | ((lf_resd & 0x80000000) >> 24);
+#define DOFLAG_SFb	reg_flags=(reg_flags & ~FLAG_SF) | ((lf_resb & 0x80U) >> 0U);
+#define DOFLAG_SFw	reg_flags=(reg_flags & ~FLAG_SF) | ((lf_resw & 0x8000U) >> 8U);
+#define DOFLAG_SFd	reg_flags=(reg_flags & ~FLAG_SF) | ((lf_resd & 0x80000000U) >> 24U);
 
 #define SETCF(NEWBIT) reg_flags=(reg_flags & ~FLAG_CF)|(NEWBIT);
 
@@ -713,7 +713,7 @@ Bitu FillFlags(void) {
 		else SET_FLAG(CF,(lf_var1b >> (8-lf_var2b)) & 1);
 		DOFLAG_ZFb;
 		DOFLAG_SFb;
-		SET_FLAG(OF,(lf_resb >> 7) ^ GETFLAG(CF)); /* MSB of result XOR CF. WARNING: This only works because FLAGS_CF == 1 */
+		SET_FLAG(OF,((unsigned int)lf_resb >> 7U) ^ GETFLAG(CF)); /* MSB of result XOR CF. WARNING: This only works because FLAGS_CF == 1 */
 		DOFLAG_PF;
 		SET_FLAG(AF,(lf_var2b&0x1f));
 		break;
@@ -722,7 +722,7 @@ Bitu FillFlags(void) {
 		else SET_FLAG(CF,(lf_var1w >> (16-lf_var2b)) & 1);
 		DOFLAG_ZFw;
 		DOFLAG_SFw;
-		SET_FLAG(OF,(lf_resw >> 15) ^ GETFLAG(CF)); /* MSB of result XOR CF. WARNING: This only works because FLAGS_CF == 1 */
+		SET_FLAG(OF,((unsigned int)lf_resw >> 15U) ^ GETFLAG(CF)); /* MSB of result XOR CF. WARNING: This only works because FLAGS_CF == 1 */
 		DOFLAG_PF;
 		SET_FLAG(AF,(lf_var2w&0x1f));
 		break;
@@ -730,7 +730,7 @@ Bitu FillFlags(void) {
 		SET_FLAG(CF,(lf_var1d >> (32 - lf_var2b)) & 1);
 		DOFLAG_ZFd;
 		DOFLAG_SFd;
-		SET_FLAG(OF,(lf_resd >> 31) ^ GETFLAG(CF)); /* MSB of result XOR CF. WARNING: This only works because FLAGS_CF == 1 */
+		SET_FLAG(OF,((unsigned int)lf_resd >> 31U) ^ GETFLAG(CF)); /* MSB of result XOR CF. WARNING: This only works because FLAGS_CF == 1 */
 		DOFLAG_PF;
 		SET_FLAG(AF,(lf_var2d&0x1f));
 		break;

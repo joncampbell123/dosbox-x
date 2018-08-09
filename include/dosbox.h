@@ -22,7 +22,6 @@
 
 #include "config.h"
 #include "logging.h"
-#include "build_timestamp.h"
 
 #if defined(_MSC_VER)
 # include <sys/types.h>
@@ -47,6 +46,9 @@
 
 GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
 
+typedef Bits cpu_cycles_count_t;
+typedef Bitu cpu_cycles_countu_t;
+
 #include "clockdomain.h"
 
 class Config;
@@ -60,7 +62,9 @@ enum MachineType {
 	MCH_EGA,
 	MCH_VGA,
 	MCH_AMSTRAD,
-	MCH_PC98
+	MCH_PC98,
+
+    MCH_FM_TOWNS                    // STUB!!
 };
 
 enum SVGACards {
@@ -101,11 +105,15 @@ void					DOSBOX_Init(void);
 #define IS_VGA_ARCH             (machine==MCH_VGA)
 #define IS_PC98_ARCH            (machine==MCH_PC98)
 
+#define IS_FM_TOWNS             (machine==MCH_FM_TOWNS)
+
 /* machine tests for use with switch() statements */
 #define TANDY_ARCH_CASE			MCH_TANDY: case MCH_PCJR
 #define EGAVGA_ARCH_CASE		MCH_EGA: case MCH_VGA
 #define VGA_ARCH_CASE			MCH_VGA
 #define PC98_ARCH_CASE			MCH_PC98
+
+#define FM_TOWNS_ARCH_CASE      MCH_FM_TOWNS
 
 #ifndef DOSBOX_LOGGING_H
 #include "logging.h"

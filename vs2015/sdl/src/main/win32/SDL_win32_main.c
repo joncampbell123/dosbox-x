@@ -204,7 +204,6 @@ static void redirect_output(void)
 #else
 	char path[MAX_PATH];
 #endif
-	FILE *newfp;
 
 	pathlen = GetModuleFileName(NULL, path, SDL_arraysize(path));
 	while ( pathlen > 0 && path[pathlen] != '\\' ) {

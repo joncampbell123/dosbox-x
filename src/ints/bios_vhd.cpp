@@ -67,8 +67,8 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	if (ftello64(file) < 512) { fclose(file); return INVALID_DATA; }
 	//read footer
 	if (fseeko64(file, -512L, SEEK_CUR)) { fclose(file); return INVALID_DATA; }
-	Bit64u footerPosition = ftello64(file);
-	if (footerPosition == -1) { fclose(file); return INVALID_DATA; }
+	Bit64u footerPosition = (Bit64u)((Bit64s)ftello64(file)); /* make sure to sign extend! */
+	if ((Bit64s)footerPosition < 0LL) { fclose(file); return INVALID_DATA; }
 	VHDFooter originalfooter;
 	VHDFooter footer;
 	if (fread(&originalfooter, 512, 1, file) != 1) { fclose(file); return INVALID_DATA; }
@@ -323,7 +323,7 @@ Bit8u imageDiskVHD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	}
 }
 
-Bit8u imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, void * data) {
+Bit8u imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 	Bit32u blockNumber = sectnum / sectorsPerBlock;
 	Bit32u sectorOffset = sectnum % sectorsPerBlock;
 	if (!loadBlock(blockNumber)) return 0x05; //can't load block
@@ -448,7 +448,7 @@ Bit32u imageDiskVHD::VHDFooter::CalculateChecksum() {
 	Bit8u* dat = (Bit8u*)this->cookie;
 	Bit32u oldChecksum = checksum;
 	checksum = 0;
-	for (int i = 0; i < sizeof(VHDFooter); i++) {
+	for (size_t i = 0; i < sizeof(VHDFooter); i++) {
 		ret += dat[i];
 	}
 	checksum = oldChecksum;
@@ -495,7 +495,7 @@ Bit32u imageDiskVHD::DynamicHeader::CalculateChecksum() {
 	Bit8u* dat = (Bit8u*)this->cookie;
 	Bit32u oldChecksum = checksum;
 	checksum = 0;
-	for (int i = 0; i < sizeof(DynamicHeader); i++) {
+	for (size_t i = 0; i < sizeof(DynamicHeader); i++) {
 		ret += dat[i];
 	}
 	checksum = oldChecksum;

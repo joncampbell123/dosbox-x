@@ -47,6 +47,7 @@ CDROM_Interface_SDL::~CDROM_Interface_SDL(void) {
 }
 
 bool CDROM_Interface_SDL::SetDevice(char* path, int forceCD) { 
+    (void)forceCD;//UNUSED
 	char buffer[512];
 	strcpy(buffer,path);
 	upcase(buffer);
@@ -77,10 +78,17 @@ bool CDROM_Interface_SDL::SetDevice(char* path, int forceCD) {
 
 bool CDROM_Interface_SDL::ReadSectorsHost(void *buffer, bool raw, unsigned long sector, unsigned long num)
 {
+    (void)sector;//UNUSED
+    (void)buffer;//UNUSED
+    (void)raw;//UNUSED
+    (void)num;//UNUSED
 	return false;/*TODO*/
-};
+}
 
 bool CDROM_Interface_SDL::GetAudioTracks(int& stTrack, int& end, TMSF& leadOut) {
+    (void)leadOut;//POSSIBLY UNUSED
+    (void)stTrack;//POSSIBLY UNUSED
+    (void)end;//POSSIBLY UNUSED
 #if !defined(C_SDL2)
 	if (CD_INDRIVE(SDL_CDStatus(cd))) {
 		stTrack		= 1;
@@ -94,6 +102,9 @@ bool CDROM_Interface_SDL::GetAudioTracks(int& stTrack, int& end, TMSF& leadOut) 
 }
 
 bool CDROM_Interface_SDL::GetAudioTrackInfo(int track, TMSF& start, unsigned char& attr) {
+    (void)track;//POSSIBLY UNUSED
+    (void)start;//POSSIBLY UNUSED
+    (void)attr;//POSSIBLY UNUSED
 #if !defined(C_SDL2)
 	if (CD_INDRIVE(SDL_CDStatus(cd))) {
 		FRAMES_TO_MSF(cd->track[track-1].offset,&start.min,&start.sec,&start.fr);
@@ -106,6 +117,11 @@ bool CDROM_Interface_SDL::GetAudioTrackInfo(int track, TMSF& start, unsigned cha
 }
 
 bool CDROM_Interface_SDL::GetAudioSub(unsigned char& attr, unsigned char& track, unsigned char& index, TMSF& relPos, TMSF& absPos) {
+    (void)absPos;//POSSIBLY UNUSED
+    (void)relPos;//POSSIBLY UNUSED
+    (void)index;//POSSIBLY UNUSED
+    (void)track;//POSSIBLY UNUSED
+    (void)attr;//POSSIBLY UNUSED
 #if !defined(C_SDL2)
 	if (CD_INDRIVE(SDL_CDStatus(cd))) {
 		track	= cd->cur_track;
@@ -121,6 +137,8 @@ bool CDROM_Interface_SDL::GetAudioSub(unsigned char& attr, unsigned char& track,
 }
 
 bool CDROM_Interface_SDL::GetAudioStatus(bool& playing, bool& pause){
+    (void)playing;//POSSIBLY UNUSED
+    (void)pause;//POSSIBLY UNUSED
 #if !defined(C_SDL2)
 	if (CD_INDRIVE(SDL_CDStatus(cd))) {
 		playing = (cd->status==CD_PLAYING);
@@ -133,6 +151,9 @@ bool CDROM_Interface_SDL::GetAudioStatus(bool& playing, bool& pause){
 }
 	
 bool CDROM_Interface_SDL::GetMediaTrayStatus(bool& mediaPresent, bool& mediaChanged, bool& trayOpen) {
+    (void)mediaPresent;//POSSIBLY UNUSED
+    (void)mediaChanged;//POSSIBLY UNUSED
+    (void)trayOpen;//POSSIBLY UNUSED
 #if !defined(C_SDL2)
 	SDL_CDStatus(cd);
 	mediaPresent = (cd->status!=CD_TRAYEMPTY) && (cd->status!=CD_ERROR);
@@ -147,6 +168,8 @@ bool CDROM_Interface_SDL::GetMediaTrayStatus(bool& mediaPresent, bool& mediaChan
 }
 
 bool CDROM_Interface_SDL::PlayAudioSector(unsigned long start,unsigned long len) { 
+    (void)start;//POSSIBLY UNUSED
+    (void)len;//POSSIBLY UNUSED
 #if !defined(C_SDL2)
 	// Has to be there, otherwise wrong cd status report (dunno why, sdl bug ?)
 	SDL_CDClose(cd);
@@ -159,6 +182,7 @@ bool CDROM_Interface_SDL::PlayAudioSector(unsigned long start,unsigned long len)
 }
 
 bool CDROM_Interface_SDL::PauseAudio(bool resume) { 
+    (void)resume;//POSSIBLY UNUSED
 #if !defined(C_SDL2)
 	bool success;
 	if (resume) success = (SDL_CDResume(cd)==0);
@@ -182,6 +206,7 @@ bool CDROM_Interface_SDL::StopAudio(void) {
 }
 
 bool CDROM_Interface_SDL::LoadUnloadMedia(bool unload) {
+    (void)unload;//UNUSED
 #if !defined(C_SDL2)
 	bool success = (SDL_CDEject(cd)==0);
 	return success;
@@ -191,13 +216,13 @@ bool CDROM_Interface_SDL::LoadUnloadMedia(bool unload) {
 }
 
 int CDROM_GetMountType(char* path, int forceCD) {
+    (void)forceCD;
 // 0 - physical CDROM
 // 1 - Iso file
 // 2 - subdirectory
 	// 1. Smells like a real cdrom 
 	// if ((strlen(path)<=3) && (path[2]=='\\') && (strchr(path,'\\')==strrchr(path,'\\')) && 	(GetDriveType(path)==DRIVE_CDROM)) return 0;
 
-	const char* cdName;
 	char buffer[512];
 	strcpy(buffer,path);
 #if defined (WIN32) || defined(OS2)
@@ -205,6 +230,7 @@ int CDROM_GetMountType(char* path, int forceCD) {
 #endif
 
 #if !defined(C_SDL2)
+	const char* cdName;
 	int num = SDL_CDNumDrives();
 	// If cd drive is forced then check if its in range and return 0
 	if ((forceCD>=0) && (forceCD<num)) {
@@ -266,7 +292,11 @@ bool CDROM_Interface_Fake :: GetMediaTrayStatus(bool& mediaPresent, bool& mediaC
 
 bool CDROM_Interface_Fake::ReadSectorsHost(void *buffer, bool raw, unsigned long sector, unsigned long num)
 {
+    (void)buffer;//UNUSED
+    (void)sector;//UNUSED
+    (void)raw;//UNUSED
+    (void)num;//UNUSED
 	return false;/*TODO*/
-};
+}
 
 

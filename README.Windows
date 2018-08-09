@@ -1,0 +1,51 @@
+Getting started with DOSBox-X development under Windows 10
+----------------------------------------------------------
+
+- download Visual Studio installer from https://www.visualstudio.com/downloads
+- launch the installer
+- in 'Workloads' tab, tick 'Desktop development with C++'
+- in 'Individual components' tab, 'SDKs, libraries, and frameworks' section, tick 'Windows 8.1 SDK'
+- download the DirectX SDK (June 2010) from https://www.microsoft.com/en-us/download/details.aspx?id=6812
+- launch the installer and follow the instructions
+- if you encounter error S1023 during installation, follow the instructions at https://support.microsoft.com/en-us/help/2728613/s1023-error-when-you-install-the-directx-sdk-june-2010
+- open the DOSBox-X Visual Studio solution located in 'vs2015' folder of the repository
+
+Notes
+
+The Code edition of Visual Studio is not supported.
+
+Visual Studio must be closed prior installing the DirectX SDK, else it won't pick up environment variables set by the DirectX SDK and this will result in building errors.
+
+Compilation
+-----------
+
+(using the solution in 'vs2015' folder)
+
+Additional options can be passed while building SDL1 project, e.g. :
+
+SET SDL1AdditionalOptions=/DMY_DEFINE
+MSBUILD ...
+
+
+CMake
+-----
+
+(as an alternative to solution in 'vs2015' folder, still a work in progress)
+
+Requirements/limitations:
+
+- vcpkg is the package manager used to fetch dependencies
+- as a consequence of using vcpkg, only SDL2 builds are possible
+
+(for SDL1, use the solution in 'vs2015' folder instead)
+
+
+Joystick
+--------
+
+XInput is now supported through SDL_JOYSTICK_XINPUT define, you can finally enjoy both thumbsticks on your Xbox 360/One controller; triggers will act as the 5th and 6th axes when using 'ch' joystick type.
+
+Support is enabled only through command-line compilation:
+
+	set SDL1AdditionalOptions=/DSDL_JOYSTICK_XINPUT
+	msbuild dosbox-x.sln /p:Configuration=Debug /p:Platform=Win32

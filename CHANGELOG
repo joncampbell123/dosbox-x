@@ -1,4 +1,228 @@
-0.82.6 (next)
+0.82.7 (next)
+  - Default minimum MCB free/base is now 0x100, to sidestep
+    unknown unstable DOS application behavior when DOS
+    applications are loaded at around segment 0x800.
+    This also puts DOSBox-X at parity with the base memory
+    behavior of DOSBox SVN.
+  - Add dosbox.conf option to set Sound BIOS enable
+    bit in non-volatile RAM (PC-98) that tells older
+    PC-98 games the FM card is present (Yksoft)
+  - BOOT updated to boot D88 except for 2D format which
+    is generally used by PC-88 disk images.
+  - Added D88 disk image support
+  - CMake files added (Aybe)
+  - PIC timing updated to use "double" float type for
+    more precision, but as a typedef for future support
+    as a compile time option.
+  - Removed geometry checks from INT 1Bh FDC functions,
+    to allow non-uniform disks to work.
+  - MinGW builds now allowed to use Direct3D.
+  - Direct3D output fixed to use the same texture
+    coordinate, window fitting, and positioning
+    logic as OpenGL.
+  - Update zlib and libpng libraries in-tree.
+  - Fixed VFD disk image support to correctly signal
+    failure to detect geometry, to avoid divide by
+    zero crash with FAT driver.
+  - showmenu= now taken into consideration whether to
+    show the menu bar at startup
+  - Fixed get_item() E_Exit crash if menus asked to
+    show from dosbox.conf
+  - SDL drawn menus fixed to integrate with Direct3D
+    output on Windows.
+  - PC-98 mode can now boot floppy disk images where the
+    boot sector is 128 or 256 bytes/sector despite
+    track 1 and higher having 1024 bytes/sector.
+  - General codebase cleanup, compiler warning cleanup.
+  - Enable XInput support on Windows (Aybe)
+  - Fixed SDL drawn menus to use std::vector properly,
+    not to hold onto iterators while resizing the vector
+    and popping things off the top.
+  - PC-98 INT 1Bh "read id" floppy disk call fixed to
+    cycle through sector numbers. Some bootable PC-98
+    games use "MEGDOS" which polls this BIOS call before
+    attempting to read the disk. If the sector numbers
+    never cycle, "MEGDOS" will not attempt to read the
+    disk.
+  - Fixed bug that prevented some menu options (such as
+    "aspect ratio") from working if still in the BIOS or
+    booted into a guest OS.
+  - PC-98 mode fixed to ignore "mainline compatible mapping".
+    That mapping mode refers to DOSBox SVN which never
+    supported PC-98 mode anyway.
+  - Fix PC-98 INT 1Bh "test read" call, which then allows
+    "cherry bomb" to run.
+  - Remove geometry checks in PC-98 INT 1Bh BIOS call, so
+    that FDD images with odd sector sizes can work.
+  - ROM BIOS now automatically occupies E8000-FFFFF instead
+    of F0000-FFFFF when in PC-98 mode.
+  - Most 128 byte/sector FDD images appear to jump to
+    E800:0002. I'm guessing that's ROM BASIC, so add a
+    callback at that location to catch these boot disks
+    and show a message instead of allowing the boot
+    sector to jump to nothing and crash.
+  - PC-98 BOOT fixed to check for and support booting from
+    FDD images where track 0 contains 128 byte/sector
+    boot sectors.
+  - PC-98 INT 1Bh support fixed to support reading/writing
+    sector sizes other than the one sector size reported
+    by the image. It is now possible to read the other
+    sector sizes from an FDD/VFD image.
+  - Fixed somewhat serious bug that, when compiled against
+    Microsoft C++, causes the AVI writer to use the 32-bit
+    lseek() function instead of the 64-bit lseek64() function.
+    Prior to this fix, AVI captures would begin to corrupt
+    themselves after growing past 2GB in size.
+  - Cleanup code, fix compiler warnings, typecast problems,
+    C/C++ conformance problems as reported by GCC 4.8,
+    GCC 7.3.0 (MinGW), Visual Studio 2017, and Clang/LLVM
+    on Mac OS X.
+  - FM Towns machine type stub, for anyone interested in
+    forking DOSBox-X to implement FM Towns emulation.
+  - Code cleanup, refactor, according to compiler warnings.
+  - SDL drawn menus fixed to copy Direct3D backbuffer to
+    the SDL surface when popup occurs. This allows the
+    menus to overlap the Direct3D display correctly.
+  - Fixed Direct3D output so that when composing the next
+    frame in the backbuffer, it also copies the SDL drawn
+    menu from the SDL surface in order to keep it on
+    screen.
+  - Direct3D output updated to follow SDL clip rectangle
+    struct, in the same exact manner as the OpenGL output.
+    This also permits the Direct3D output to correctly size
+    itself and leave space at the top for the SDL drawn
+    menus.
+  - Fixed dynamic core entry point to push/pop EBP because
+    debug builds need the compiler to track the stack frame.
+  - Updated in-tree zlib and libpng libraries to the latest
+    provided by both projects.
+  - Fixed VFD (FDD) disk image support to signal to FAT driver
+    properly an error if it could not determine a geometry.
+  - Fixed code breakage with SDL2 that prevented compilation
+    with Munt (MT32) emulation enabled. SDL2 builds now allow
+    MT32 emulation.
+  - Mac OS X builds now compile against the in-tree zlib and
+    libpng libraries for consistency.
+  - MinGW builds now compile against the MinGW provided zlib
+    and the in-tree libpng library for consistency.
+  - Enabled MinGW builds to use Direct3D and Direct3D shaders.
+  - Added code to auto-detect the VirtualBox display driver
+    in Windows build, because OpenGL output doesn't work
+    in Windows XP under VirtualBox. The change will switch
+    the default output to "surface" if VirtualBox is detected,
+    else will retain the "opengl" default. This change applies
+    only to MinGW builds and not HX DOS or main VS2017 builds.
+  - Added PC-98 INT DCh emulation for function call that
+    writes a char to the screen, allowing Eve Burst Error
+    to clear the function row
+  - Added command line option to allow skipping the 1-second
+    wait in the BIOS startup screen.
+  - SDL2 builds now support use of the SDL drawn menu with
+    a touchscreen device.
+  - Fixed up SDL2 support code to compile correctly on
+    Mac OS X.
+  - Fixed up SDL2 compilation to automatically use the
+    SDL2 library on the system, or if that is not available,
+    use the SDL2 library in-tree. There are no plans to make
+    modifications to the in-tree SDL2 code.
+  - Added code to read and discard OpenGL error code before
+    creating font texture, to avoid false failure handling.
+    This fixes font rendering on Windows MinGW builds when
+    output=opengl.
+  - OpenGL SDL drawn menus fixed to ensure the menu contents
+    have been redrawn at least twice. One for each OpenGL
+    buffer because DOSBox-X uses the double-buffered mode.
+  - SDL drawn menus implemented for output=opengl. The menu
+    bar in Linux builds is now available in OpenGL mode.
+  - SDL drawn menus fixed to redraw only when state changes,
+    and to clean up menu drawing code.
+  - US keyboards can now enter the "Ro" key in PC-98 mode.
+    Default binding is set up to map the Windows Menu key
+    as Ro in PC-98 mode.
+  - VGA option change code fixed to trigger scaler redraw
+    correctly. Changing video modes or changing between
+    8/9-pixel VGA text no longer leaves artifacts on the
+    screen.
+  - Added code to force redrawing additional frames when
+    output=opengl, in order to correct a bug with Linux/X11
+    and MesaGL where the first OpenGL buffer swap after
+    SDL_SetVideoMode() is misplaced when the window size
+    changes.
+  - Renderer SSE line comparison fixed to use correct sizeof()
+    of the integer type during compare.
+  - Renderer fixed not to use SSE and non-SSE line comparision
+    at the same time, if SSE was enabled at compile time.
+  - Fixed in-tree SDL 1.x library to allow DOSBox-X to disable
+    auto-refresh of the window in Linux/X11 after SDL_SetVideoMode
+    to prevent visible flickering when resizing the window.
+  - Conditional support for Direct3D (9) output enabled for
+    MinGW builds, if the MinGW headers are available (yksoft1).
+    Option is disabled by default.
+  - Configuration GUI dialog box widened to accomodate buttons
+    that were previously cut off on the right.
+  - Replace E_Exit() with LOG_MSG() for key codes from the mapper
+    that a keyboard scan code generator does not recognize. This
+    fixes E_Exit() crashes if typing certain keys on a Japanese
+    keyboard with no equivalent in IBM PC/AT mode.
+  - Added code to double the size of the menu and menu items if
+    the window is 1280x800 or larger, for users with high
+    definition laptop displays and screens.
+  - Enforce minimum window size of 640x400 if the menu bar is
+    visible and DOSBox-X is drawing them, to make sure the menus
+    are accessible on screen.
+  - Removed auto-scalar-size code when output=surface that was
+    causing problems when resizing the window.
+  - Do not show "screenshot" menu item if screenshot support not
+    available at compile time.
+  - Remove "always on top" for anything but Windows at this time.
+  - Disable "Show debugger" option on Linux and Mac OS X if no
+    console attached to STDIN/STDOUT/STDERR.
+  - Disable "Show console" option on Linux and Mac OS X since
+    the console is not under our control.
+  - Windows "Always on top" fixed to remember selection and
+    enforce it between SDL_SetVideoMode and fullscreen entry/exit.
+  - Windows builds fixed NOT to change window Z-order on the
+    screen when updating the window on SDL_SetVideoMode.
+  - HX DOS builds fixed to keep window maximized at all times
+    to fill the otherwise unused space on the screen since
+    HXGUI only supports one window.
+  - Menu framework support for any other platform (including
+    Linux) added. The menus are drawn by DOSBox-X itself
+    using the 8x16 VGA font. This also gives SDL 2.x builds
+    a working menu. These menus are used if no other platform
+    specific menus are available. These menus are NOT AVAILABLE
+    at this time if output=opengl.
+  - Cycle count edit dialog box fixed to immediately place
+    keyboard focus in the text field, and to process
+    ENTER and ESCAPE keyboard input as OK and CANCEL
+    button input. You can type a new cycles count without
+    having to click on the text field first.
+  - Menu framework and mapper fixed so that menus always
+    reflect the mapper binding in the menu.
+  - Windows SDL 1.x fixed async hack to properly destroy
+    and shut down the parent window again.
+  - Fixed output=opengl crash on Mac OS X.
+  - Menu framework support for Mac OS X NSMenu objects added.
+    This gives DOSBox-X the same useful menu on Mac OS X
+    instead of the useless default menu SDL 1.x offers.
+  - Menu framework support for Windows win32 menu resources
+    added. The Windows menu is now generated at runtime,
+    the static IDR_MENU resource is no longer used.
+  - New platform independent menu framework added. Menus
+    that were once Windows-only are now available on
+    any other platform including Linux and Mac OS X.
+  - In-tree SDL 1.x library fixed to #define a special
+    variable that the code now requires to compile
+    SDL 1.x builds. The option to use your host SDL 2.x
+    library is left open.
+  - C++11 is now mandatory to compile DOSBox-X
+0.82.6
+  - Resizing the window in SDL 1.x Windows builds
+    fixed to work correctly in the latest build
+    (1803) of Windows 10. Prior to this fix, resizing
+    the window on that build would quickly hit a deadlock
+    that prevented the user from moving or resizing the
+    window again after that point.
   - PC-98 dosbox.conf option added to select between
     accurate key/shift mapping, vs an alternate mapping
     appropriate for US keyboards (Yksoft1)

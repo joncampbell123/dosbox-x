@@ -29,6 +29,8 @@ static fluid_synth_t *synth_soft = NULL;
 static int synthsamplerate = 0;
 
 static void synth_log(int level, char *message, void *data) {
+    (void)data;//UNUSED
+
 	switch (level) {
 	case FLUID_PANIC:
 	case FLUID_ERR:
@@ -53,9 +55,9 @@ static void synth_CallBack(Bitu len) {
 }
 
 #if defined (WIN32) || defined (OS2)
-#	define PATH_SEP "\\";
+#	define PATH_SEP "\\"
 #else
-#	define PATH_SEP "/";
+#	define PATH_SEP "/"
 #endif
 
 class MidiHandler_synth: public MidiHandler {
@@ -161,7 +163,7 @@ public:
 		sfont_id = fluid_synth_sfload(synth_soft, conf, 0);
 		if (sfont_id == -1) {
 			extern std::string capturedir;
-			std::string str = capturedir + PATH_SEP + conf;
+			std::string str = capturedir + std::string(PATH_SEP) + std::string(conf);
 			sfont_id = fluid_synth_sfload(synth_soft, str.c_str(), 0);
 		}
 

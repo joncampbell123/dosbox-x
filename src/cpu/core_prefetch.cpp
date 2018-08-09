@@ -132,8 +132,10 @@ static Bitu pq_start;
 static Bitu pq_fill;
 static Bitu pq_limit;
 static Bitu pq_reload;
+#ifdef PREFETCH_DEBUG
 static double pq_next_dbg=0;
 static unsigned int pq_hit=0,pq_miss=0;
+#endif
 
 //#define PREFETCH_DEBUG
 
@@ -146,6 +148,7 @@ template <class T> static inline bool prefetch_hit(const Bitu w) {
 template <class T> static inline T prefetch_read(const Bitu w);
 
 template <class T> static inline void prefetch_read_check(const Bitu w) {
+    (void)w;//POSSIBLY UNUSED
 #ifdef PREFETCH_DEBUG
     if (!pq_valid) E_Exit("CPU: Prefetch read when not valid!");
     if (w < pq_start) E_Exit("CPU: Prefetch read below prefetch base");
@@ -254,6 +257,9 @@ static Bit32u Fetchd() {
 	return Fetch<uint32_t>();
 }
 
+bool CPU_RDMSR();
+bool CPU_WRMSR();
+
 #define Push_16 CPU_Push16
 #define Push_32 CPU_Push32
 #define Pop_16 CPU_Pop16
@@ -265,6 +271,11 @@ static Bit32u Fetchd() {
 
 
 #define EALookupTable (core.ea_table)
+
+void CPU_Core_Prefetch_reset(void) {
+    pq_valid=false;
+    prefetch_init(0);
+}
 
 Bits CPU_Core_Prefetch_Run(void) {
 	bool invalidate_pq=false;

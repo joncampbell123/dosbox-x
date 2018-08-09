@@ -23,6 +23,10 @@
 #include <string>
 #include <stdio.h>
 
+#if defined(_MSC_VER)
+#pragma warning(disable:4065) /* switch statements without case labels */
+#endif
+
 void pc98_egc_shift_reinit();
 
 extern egc_quad             pc98_egc_bgcm;
@@ -49,6 +53,7 @@ uint8_t                     pc98_egc_shift_srcbit = 0;
 uint16_t                    pc98_egc_shift_length = 0xF;
 
 Bitu pc98_egc4a0_read(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
     /* Neko Project II suggests the I/O ports disappear when not in EGC mode.
      * Is that true? */
     if (!(pc98_gdc_vramop & (1 << VOPBIT_EGC))) {
@@ -67,6 +72,7 @@ Bitu pc98_egc4a0_read(Bitu port,Bitu iolen) {
 }
 
 void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
     /* Neko Project II suggests the I/O ports disappear when not in EGC mode.
      * Is that true? */
     if (!(pc98_gdc_vramop & (1 << VOPBIT_EGC))) {

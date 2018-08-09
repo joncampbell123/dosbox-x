@@ -10,10 +10,12 @@
 #include <limits.h>
 
 #if defined(WIN32)
-#include <windows.h>
-#include <io.h>
+# include <windows.h>
+# include <io.h>
 
-#pragma warning(disable:4996)
+# if defined(_MSC_VER)
+#  pragma warning(disable:4996)
+# endif
 #endif
 
 #if defined(WIN32) && !defined(strcasecmp)
@@ -97,22 +99,22 @@ typedef uint8_t BYTE;
 #endif
 typedef char OEMCHAR;
 typedef void* NEVENTITEM;
-#define OEMTEXT(x) (x)
+#define OEMTEXT(x) x
 #define SOUNDCALL
 
-static uint16_t LOADINTELWORD(void *x) {
+static inline uint16_t LOADINTELWORD(void *x) {
     return *((uint16_t*)(x));
 }
 
-static void STOREINTELWORD(void *x,uint16_t y) {
+static inline void STOREINTELWORD(void *x,uint16_t y) {
     *((uint16_t*)(x)) = y;
 }
 
-static uint32_t LOADINTELDWORD(void *x) {
+static inline uint32_t LOADINTELDWORD(void *x) {
     return *((uint32_t*)(x));
 }
 
-static void STOREINTELDWORD(void *x,uint32_t y) {
+static inline void STOREINTELDWORD(void *x,uint32_t y) {
     *((uint32_t*)(x)) = y;
 }
 

@@ -25,155 +25,160 @@
 
 #include "byteorder.h"
 
-typedef Bit8u *HostPt;		/* host (virtual) memory address aka ptr */
+#define MEM_PAGESIZE        (4096U)
 
-typedef Bit32u PhysPt;		/* guest physical memory pointer */
-typedef Bit32u LinearPt;	/* guest linear memory address */
-typedef Bit32u RealPt;		/* guest real-mode memory address (16:16 -> seg:offset) */
-typedef Bit16u SegmentVal;	/* guest segment value */
+typedef Bit8u const *       ConstHostPt;        /* host (virtual) memory address aka ptr */
 
-typedef Bit32s MemHandle;
+typedef Bit8u *             HostPt;             /* host (virtual) memory address aka ptr */
 
-#define MEM_PAGESIZE 4096
+typedef Bit32u              PhysPt;      /* guest physical memory pointer */
+typedef Bit32u              LinearPt;    /* guest linear memory address */
+typedef Bit32u              RealPt;      /* guest real-mode memory address (16:16 -> seg:offset) */
+typedef Bit16u              SegmentVal;  /* guest segment value */
 
-extern HostPt MemBase;
-HostPt GetMemBase(void);
+typedef Bit32s              MemHandle;
 
-bool MEM_A20_Enabled(void);
-void MEM_A20_Enable(bool enable);
+extern HostPt               MemBase;
+
+HostPt                      GetMemBase(void);
+bool                        MEM_A20_Enabled(void);
+void                        MEM_A20_Enable(bool enable);
 
 /* Memory management / EMS mapping */
-HostPt MEM_GetBlockPage(void);
-Bitu MEM_FreeTotal(void);			//Free 4 kb pages
-Bitu MEM_FreeLargest(void);			//Largest free 4 kb pages block
-Bitu MEM_TotalPages(void);			//Total amount of 4 kb pages
-Bitu MEM_AllocatedPages(MemHandle handle); // amount of allocated pages of handle
-MemHandle MEM_AllocatePages(Bitu pages,bool sequence);
-MemHandle MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence);
-MemHandle MEM_GetNextFreePage(void);
-PhysPt MEM_AllocatePage(void);
-void MEM_ReleasePages(MemHandle handle);
-bool MEM_ReAllocatePages(MemHandle & handle,Bitu pages,bool sequence);
+HostPt                      MEM_GetBlockPage(void);
+Bitu                        MEM_FreeTotal(void);           //Free 4 kb pages
+Bitu                        MEM_FreeLargest(void);         //Largest free 4 kb pages block
+Bitu                        MEM_TotalPages(void);          //Total amount of 4 kb pages
+Bitu                        MEM_AllocatedPages(MemHandle handle); // amount of allocated pages of handle
+MemHandle                   MEM_AllocatePages(Bitu pages,bool sequence);
+MemHandle                   MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence);
+MemHandle                   MEM_GetNextFreePage(void);
+PhysPt                      MEM_AllocatePage(void);
+void                        MEM_ReleasePages(MemHandle handle);
+bool                        MEM_ReAllocatePages(MemHandle & handle,Bitu pages,bool sequence);
 
-MemHandle MEM_NextHandle(MemHandle handle);
-MemHandle MEM_NextHandleAt(MemHandle handle,Bitu where);
+MemHandle                   MEM_NextHandle(MemHandle handle);
+MemHandle                   MEM_NextHandleAt(MemHandle handle,Bitu where);
 
 /* 
-	The folowing six functions are used everywhere in the end so these should be changed for
-	Working on big or little endian machines 
+    The folowing six functions are used everywhere in the end so these should be changed for
+    Working on big or little endian machines 
 */
 
 #if !defined(C_UNALIGNED_MEMORY)
 /* meaning: we're probably being compiled for a processor that doesn't like unaligned WORD access,
             on such processors typecasting memory as uint16_t and higher can cause a fault if the
-	    address is not aligned to that datatype when we read/write through it. */
+        address is not aligned to that datatype when we read/write through it. */
 
-static INLINE Bit8u host_readb(HostPt off) {
-	return *off;
+static INLINE Bit8u host_readb(ConstHostPt const off) {
+    return *off;
 }
-static INLINE Bit16u host_readw(HostPt off) {
-	return (Bit16u)host_readb(off) + ((Bit16u)host_readb(off+1) << (Bit16u)8);
+static INLINE Bit16u host_readw(ConstHostPt const off) {
+    return (Bit16u)host_readb(off) + ((Bit16u)host_readb(off+(ConstHostPt)1U) << (Bit16u)8U);
 }
-static INLINE Bit32u host_readd(HostPt off) {
-	return (Bit32u)host_readw(off) + ((Bit32u)host_readw(off+2) << (Bit32u)16);
+static INLINE Bit32u host_readd(ConstHostPt const off) {
+    return (Bit32u)host_readw(off) + ((Bit32u)host_readw(off+(ConstHostPt)2U) << (Bit32u)16U);
 }
-static INLINE Bit64u host_readq(HostPt off) {
-	return (Bit64u)host_readd(off) + ((Bit64u)host_readd(off+4) << (Bit64u)32);
+static INLINE Bit64u host_readq(ConstHostPt const off) {
+    return (Bit64u)host_readd(off) + ((Bit64u)host_readd(off+(ConstHostPt)4U) << (Bit64u)32U);
 }
 
-static INLINE void host_writeb(HostPt off,Bit8u val) {
-	*off = val;
+static INLINE void host_writeb(HostPt const off,const Bit8u val) {
+    *off = val;
 }
-static INLINE void host_writew(HostPt off,Bit16u val) {
-	host_writeb(off,(Bit8u)(val));
-	host_writeb(off+1,(Bit8u)(val >> (Bit16u)8));
+static INLINE void host_writew(HostPt const off,const Bit16u val) {
+    host_writeb(off,   (Bit8u)(val));
+    host_writeb(off+1U,(Bit8u)(val >> (Bit16u)8U));
 }
-static INLINE void host_writed(HostPt off,Bit32u val) {
-	host_writew(off,(Bit16u)(val));
-	host_writew(off+2,(Bit16u)(val >> (Bit32u)16));
+static INLINE void host_writed(HostPt const off,const Bit32u val) {
+    host_writew(off,   (Bit16u)(val));
+    host_writew(off+2U,(Bit16u)(val >> (Bit32u)16U));
 }
-static INLINE void host_writeq(HostPt off,Bit64u val) {
-	host_writed(off,(Bit32u)(val));
-	host_writed(off+4,(Bit32u)(val >> (Bit64u)32));
+static INLINE void host_writeq(HostPt const off,const Bit64u val) {
+    host_writed(off,   (Bit32u)(val));
+    host_writed(off+4U,(Bit32u)(val >> (Bit64u)32U));
 }
 
 #else
 
-static INLINE Bit8u host_readb(HostPt off) {
-	return *(Bit8u *)off;
+static INLINE Bit8u host_readb(ConstHostPt const off) {
+    return *(const Bit8u *)off;
 }
-static INLINE Bit16u host_readw(HostPt off) {
-	return le16toh((*(Bit16u *)off)); // BSD endian.h
+static INLINE Bit16u host_readw(ConstHostPt const off) {
+    return le16toh((*(const Bit16u *)off)); // BSD endian.h
 }
-static INLINE Bit32u host_readd(HostPt off) {
-	return le32toh((*(Bit32u *)off)); // BSD endian.h
+static INLINE Bit32u host_readd(ConstHostPt const off) {
+    return le32toh((*(const Bit32u *)off)); // BSD endian.h
 }
-static INLINE Bit64u host_readq(HostPt off) {
-	return le64toh((*(Bit64u *)off)); // BSD endian.h
+static INLINE Bit64u host_readq(ConstHostPt const off) {
+    return le64toh((*(const Bit64u *)off)); // BSD endian.h
 }
 
-static INLINE void host_writeb(HostPt off,Bit8u val) {
-	*(Bit8u *)(off) = val;
+static INLINE void host_writeb(HostPt const off,const Bit8u val) {
+    *(Bit8u *)(off) = val;
 }
-static INLINE void host_writew(HostPt off,Bit16u val) {
-	*(Bit16u *)(off) = htole16(val);
+static INLINE void host_writew(HostPt const off,const Bit16u val) {
+    *(Bit16u *)(off) = htole16(val);
 }
-static INLINE void host_writed(HostPt off,Bit32u val) {
-	*(Bit32u *)(off) = htole32(val);
+static INLINE void host_writed(HostPt const off,const Bit32u val) {
+    *(Bit32u *)(off) = htole32(val);
 }
-static INLINE void host_writeq(HostPt off,Bit64u val) {
-	*(Bit64u *)(off) = htole64(val);
+static INLINE void host_writeq(HostPt const off,const Bit64u val) {
+    *(Bit64u *)(off) = htole64(val);
 }
 
 #endif
 
 
-static INLINE void var_write(Bit8u * var, Bit8u val) {
-	host_writeb((HostPt)var, val);
+static INLINE void var_write(Bit8u * const var, const Bit8u val) {
+    host_writeb((HostPt)var, val);
 }
 
-static INLINE void var_write(Bit16u * var, Bit16u val) {
-	host_writew((HostPt)var, val);
+static INLINE void var_write(Bit16u * const var, const Bit16u val) {
+    host_writew((HostPt)var, val);
 }
 
-static INLINE void var_write(Bit32u * var, Bit32u val) {
-	host_writed((HostPt)var, val);
+static INLINE void var_write(Bit32u * const var, const Bit32u val) {
+    host_writed((HostPt)var, val);
 }
 
-static INLINE void var_write(Bit64u * var, Bit64u val) {
-	host_writeq((HostPt)var, val);
+static INLINE void var_write(Bit64u * const var, const Bit64u val) {
+    host_writeq((HostPt)var, val);
 }
 
 /* The Folowing six functions are slower but they recognize the paged memory system */
 
-Bit8u  mem_readb(PhysPt pt);
-Bit16u mem_readw(PhysPt pt);
-Bit32u mem_readd(PhysPt pt);
+Bit8u  mem_readb(const PhysPt pt);
+Bit16u mem_readw(const PhysPt pt);
+Bit32u mem_readd(const PhysPt pt);
 
-void mem_writeb(PhysPt pt,Bit8u val);
-void mem_writew(PhysPt pt,Bit16u val);
-void mem_writed(PhysPt pt,Bit32u val);
+void mem_writeb(const PhysPt pt,const Bit8u val);
+void mem_writew(const PhysPt pt,const Bit16u val);
+void mem_writed(const PhysPt pt,const Bit32u val);
 
 void phys_writes(PhysPt addr, const char* string, Bitu length);
 
-static INLINE void phys_writeb(PhysPt addr,Bit8u val) {
-	host_writeb(MemBase+addr,val);
+/* WARNING: These will cause a segfault or out of bounds access IF
+ *          addr is beyond the end of memory */
+
+static INLINE void phys_writeb(const PhysPt addr,const Bit8u val) {
+    host_writeb(MemBase+addr,val);
 }
-static INLINE void phys_writew(PhysPt addr,Bit16u val){
-	host_writew(MemBase+addr,val);
+static INLINE void phys_writew(const PhysPt addr,const Bit16u val) {
+    host_writew(MemBase+addr,val);
 }
-static INLINE void phys_writed(PhysPt addr,Bit32u val){
-	host_writed(MemBase+addr,val);
+static INLINE void phys_writed(const PhysPt addr,const Bit32u val) {
+    host_writed(MemBase+addr,val);
 }
 
-static INLINE Bit8u phys_readb(PhysPt addr) {
-	return host_readb(MemBase+addr);
+static INLINE Bit8u phys_readb(const PhysPt addr) {
+    return host_readb(MemBase+addr);
 }
-static INLINE Bit16u phys_readw(PhysPt addr){
-	return host_readw(MemBase+addr);
+static INLINE Bit16u phys_readw(const PhysPt addr) {
+    return host_readw(MemBase+addr);
 }
-static INLINE Bit32u phys_readd(PhysPt addr){
-	return host_readd(MemBase+addr);
+static INLINE Bit32u phys_readd(const PhysPt addr) {
+    return host_readd(MemBase+addr);
 }
 
 /* These don't check for alignment, better be sure it's correct */
@@ -191,64 +196,70 @@ void mem_strcpy(PhysPt dest,PhysPt src);
 
 /* The folowing functions are all shortcuts to the above functions using physical addressing */
 
-static INLINE Bit8u real_readb(Bit16u seg,Bit16u off) {
-	return mem_readb((seg<<4)+off);
-}
-static INLINE Bit16u real_readw(Bit16u seg,Bit16u off) {
-	return mem_readw((seg<<4)+off);
-}
-static INLINE Bit32u real_readd(Bit16u seg,Bit16u off) {
-	return mem_readd((seg<<4)+off);
+static inline constexpr PhysPt PhysMake(const Bit16u seg,const Bit16u off) {
+    return ((PhysPt)seg << (PhysPt)4U) + (PhysPt)off;
 }
 
-static INLINE void real_writeb(Bit16u seg,Bit16u off,Bit8u val) {
-	mem_writeb(((seg<<4)+off),val);
-}
-static INLINE void real_writew(Bit16u seg,Bit16u off,Bit16u val) {
-	mem_writew(((seg<<4)+off),val);
-}
-static INLINE void real_writed(Bit16u seg,Bit16u off,Bit32u val) {
-	mem_writed(((seg<<4)+off),val);
+static inline constexpr Bit16u RealSeg(const RealPt pt) {
+    return (Bit16u)((RealPt)pt >> (RealPt)16U);
 }
 
-
-static INLINE Bit16u RealSeg(RealPt pt) {
-	return (Bit16u)(pt>>16);
+static inline constexpr Bit16u RealOff(const RealPt pt) {
+    return (Bit16u)((RealPt)pt & (RealPt)0xffffu);
 }
 
-static INLINE Bit16u RealOff(RealPt pt) {
-	return (Bit16u)(pt&0xffff);
+static inline constexpr PhysPt Real2Phys(const RealPt pt) {
+    return (PhysPt)(((PhysPt)RealSeg(pt) << (PhysPt)4U) + (PhysPt)RealOff(pt));
 }
 
-static INLINE PhysPt Real2Phys(RealPt pt) {
-	return (RealSeg(pt)<<4) +RealOff(pt);
-}
-
-static INLINE PhysPt PhysMake(Bit16u seg,Bit16u off) {
-	return (seg<<4)+off;
-}
-
-static INLINE RealPt RealMake(Bit16u seg,Bit16u off) {
-	return (seg<<16)+off;
-}
-
-static INLINE void RealSetVec(Bit8u vec,RealPt pt) {
-	mem_writed(vec<<2,pt);
-}
-
-static INLINE void RealSetVec(Bit8u vec,RealPt pt,RealPt &old) {
-	old = mem_readd(vec<<2);
-	mem_writed(vec<<2,pt);
+static inline constexpr RealPt RealMake(const Bit16u seg,const Bit16u off) {
+    return (RealPt)(((RealPt)seg << (RealPt)16U) + (RealPt)off);
 }
 
 /* convert physical address to 4:16 real pointer (example: 0xABCDE -> 0xA000:0xBCDE) */
-static INLINE RealPt PhysToReal416(PhysPt phys) {
-	return RealMake((phys>>4)&0xF000,phys&0xFFFF);
+static inline constexpr RealPt PhysToReal416(const PhysPt phys) {
+    return RealMake((Bit16u)(((PhysPt)phys >> (PhysPt)4U) & (PhysPt)0xF000U),(Bit16u)((PhysPt)phys & (PhysPt)0xFFFFU));
 }
 
-static INLINE RealPt RealGetVec(Bit8u vec) {
-	return mem_readd(vec<<2);
-}	
+static inline constexpr PhysPt RealVecAddress(const Bit8u vec) {
+    return (PhysPt)((unsigned int)vec << 2U);
+}
+
+
+static INLINE Bit8u real_readb(const Bit16u seg,const Bit16u off) {
+    return mem_readb(PhysMake(seg,off));
+}
+static INLINE Bit16u real_readw(const Bit16u seg,const Bit16u off) {
+    return mem_readw(PhysMake(seg,off));
+}
+static INLINE Bit32u real_readd(const Bit16u seg,const Bit16u off) {
+    return mem_readd(PhysMake(seg,off));
+}
+
+static INLINE void real_writeb(const Bit16u seg,const Bit16u off,const Bit8u val) {
+    mem_writeb(PhysMake(seg,off),val);
+}
+static INLINE void real_writew(const Bit16u seg,const Bit16u off,const Bit16u val) {
+    mem_writew(PhysMake(seg,off),val);
+}
+static INLINE void real_writed(const Bit16u seg,const Bit16u off,const Bit32u val) {
+    mem_writed(PhysMake(seg,off),val);
+}
+
+
+static INLINE RealPt RealGetVec(const Bit8u vec) {
+    return mem_readd(RealVecAddress(vec));
+}
+
+static INLINE void RealSetVec(const Bit8u vec,const RealPt pt) {
+    mem_writed(RealVecAddress(vec),(Bit32u)pt);
+}
+
+static INLINE void RealSetVec(const Bit8u vec,const RealPt pt,RealPt &old) {
+    const PhysPt addr = RealVecAddress(vec);
+    old = mem_readd(addr);
+    mem_writed(addr,pt);
+}
 
 #endif
 

@@ -718,7 +718,7 @@ continue_1:
 //			if(GetDriveType(name)==5) strcat(mountstring," -ioctl");
 			
 			this->ParseLine(mountstring);
-failed:
+//failed:
 			if (!DOS_SetDrive(toupper(name[0])-'A'))
 #endif
 			WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0]));

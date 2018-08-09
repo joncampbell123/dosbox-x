@@ -120,6 +120,8 @@ static void ClrQueue(void) {
 }
 
 static Bitu MPU401_ReadStatus(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	Bit8u ret=0x3f;	/* Bits 6 and 7 clear */
 	if (mpu.state.cmd_pending) ret|=0x40;
 	if (!mpu.queue_used) ret|=0x80;
@@ -127,6 +129,8 @@ static Bitu MPU401_ReadStatus(Bitu port,Bitu iolen) {
 }
 
 static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	if (mpu.state.reset) {mpu.state.cmd_pending=val+1;return;}
 	if (val<=0x2f) {
 		switch (val&3) { /* MIDI stop, start, continue */
@@ -266,6 +270,8 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static Bitu MPU401_ReadData(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	Bit8u ret=MSG_MPU_ACK;
 	if (mpu.queue_used) {
 		if (mpu.queue_pos>=MPU401_QUEUE) mpu.queue_pos-=MPU401_QUEUE;
@@ -299,6 +305,8 @@ static Bitu MPU401_ReadData(Bitu port,Bitu iolen) {
 }
 
 static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	if (mpu.mode==M_UART) {MIDI_RawOutByte(val);return;}
 	switch (mpu.state.command_byte) {	/* 0xe# command data */
 		case 0x00:
@@ -311,7 +319,7 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 			mpu.state.command_byte=0;
             mpu.clock.old_tempo_rel=mpu.clock.tempo_rel;
             mpu.clock.tempo_rel=val;
-            if (val != 0x40) LOG(LOG_MISC,LOG_ERROR)("MPU-401:Relative tempo change value 0x%x (%.3f)",val,(double)val / 0x40);
+            if (val != 0x40) LOG(LOG_MISC,LOG_ERROR)("MPU-401:Relative tempo change value 0x%x (%.3f)",(unsigned int)val,(double)val / 0x40);
 			return;
 		case 0xe7:	/* Set internal clock to host interval */
 			mpu.state.command_byte=0;
@@ -526,6 +534,7 @@ static void UpdateConductor(void) {
 }
 
 static void MPU401_Event(Bitu val) {
+    (void)val;//UNUSED
 	if (mpu.mode==M_UART) return;
 	if (mpu.state.irq_pending) goto next_event;
 	for (Bitu i=0;i<8;i++) { /* Decrease counters */
@@ -564,6 +573,7 @@ static void MPU401_EOIHandlerDispatch(void) {
 
 //Updates counters and requests new data on "End of Input"
 static void MPU401_EOIHandler(Bitu val) {
+    (void)val;//UNUSED
 	mpu.state.eoi_scheduled=false;
 	if (mpu.state.send_now) {
 		mpu.state.send_now=false;
@@ -623,6 +633,7 @@ static void MPU401_Reset(void) {
 }
 
 static void IMF_Write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	LOG(LOG_MISC,LOG_NORMAL)("IMF:Wr %4X,%X",(int)port,(int)val);
 }
 
@@ -724,6 +735,7 @@ public:
 static MPU401* test = NULL;
 
 void MPU401_Destroy(Section* sec){
+    (void)sec;//UNUSED
 	if (test != NULL) {
 		delete test;
 		test = NULL;
@@ -731,6 +743,7 @@ void MPU401_Destroy(Section* sec){
 }
 
 void MPU401_Reset(Section* sec) {
+    (void)sec;//UNUSED
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating MPU401 emulation");
 		test = new MPU401(control->GetSection("midi"));

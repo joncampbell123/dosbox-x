@@ -42,6 +42,8 @@ Bitu vga_read_p3d5(Bitu port,Bitu iolen);
 unsigned char vga_p3da_undefined_bits = 0;
 
 Bitu vga_read_p3da(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	Bit8u retval = vga_p3da_undefined_bits;
 	double timeInFrame = PIC_FullIndex()-vga.draw.delay.framestart;
 
@@ -72,6 +74,8 @@ Bitu vga_read_p3da(Bitu port,Bitu iolen) {
 }
 
 static void write_p3c2(Bitu port,Bitu val,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	if((machine==MCH_EGA) && ((vga.misc_output^val)&0xc)) VGA_StartResize();
 	vga.misc_output=val;
 	if (val & 0x1) {
@@ -116,19 +120,27 @@ static void write_p3c2(Bitu port,Bitu val,Bitu iolen) {
 
 
 static Bitu read_p3cc(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	return vga.misc_output;
 }
 
 // VGA feature control register
 static Bitu read_p3ca(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	return 0;
 }
 
 static Bitu read_p3c8(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	return 0x10;
 }
 
 static Bitu read_p3c2(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	Bit8u retval=0;
 
 	if (machine==MCH_EGA) retval = 0x0F;

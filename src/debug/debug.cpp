@@ -197,7 +197,7 @@ Bit64u LinMakeProt(Bit16u selector, Bit32u offset)
     }
 
 	return mem_no_address;
-};
+}
 
 Bit64u GetAddress(Bit16u seg, Bit32u offset)
 {
@@ -260,7 +260,7 @@ bool GetDescriptorInfo(char* selname, char* out1, char* out2)
 		strcpy(out2,"                                  ");
 	}
 	return false;
-};
+}
 
 /********************/
 /* DebugVar   stuff */
@@ -306,7 +306,7 @@ class CBreakpoint
 public:
 
 	CBreakpoint(void);
-	void					SetAddress		(Bit16u seg, Bit32u off)	{ location = GetAddress(seg,off);	type = BKPNT_PHYSICAL; segment = seg; offset = off; };
+	void					SetAddress		(Bit16u seg, Bit32u off)	{ location = (PhysPt)GetAddress(seg,off); type = BKPNT_PHYSICAL; segment = seg; offset = off; };
 	void					SetAddress		(PhysPt adr)				{ location = adr;				type = BKPNT_PHYSICAL; };
 	void					SetInt			(Bit8u _intNr, Bit16u ah)	{ intNr = _intNr, ahValue = ah; type = BKPNT_INTERRUPT; };
 	void					SetOnce			(bool _once)				{ once = _once; };
@@ -359,7 +359,7 @@ public:
 	static CBreakpoint*				ignoreOnce;
 };
 
-CBreakpoint::CBreakpoint(void):type(BKPNT_UNKNOWN),location(0),segment(0),offset(0),intNr(0),ahValue(0),active(false),once(false) { };
+CBreakpoint::CBreakpoint(void):type(BKPNT_UNKNOWN),location(0),segment(0),offset(0),intNr(0),ahValue(0),active(false),once(false) { }
 
 void CBreakpoint::Activate(bool _active)
 {
@@ -381,7 +381,7 @@ void CBreakpoint::Activate(bool _active)
 	}
 #endif
 	active = _active;
-};
+}
 
 // Statics
 std::list<CBreakpoint*> CBreakpoint::BPoints;
@@ -395,7 +395,7 @@ CBreakpoint* CBreakpoint::AddBreakpoint(Bit16u seg, Bit32u off, bool once)
 	bp->SetOnce			(once);
 	BPoints.push_front	(bp);
 	return bp;
-};
+}
 
 CBreakpoint* CBreakpoint::AddIntBreakpoint(Bit8u intNum, Bit16u ah, bool once)
 {
@@ -404,7 +404,7 @@ CBreakpoint* CBreakpoint::AddIntBreakpoint(Bit8u intNum, Bit16u ah, bool once)
 	bp->SetOnce			(once);
 	BPoints.push_front	(bp);
 	return bp;
-};
+}
 
 CBreakpoint* CBreakpoint::AddMemBreakpoint(Bit16u seg, Bit32u off)
 {
@@ -414,7 +414,7 @@ CBreakpoint* CBreakpoint::AddMemBreakpoint(Bit16u seg, Bit32u off)
 	bp->SetType			(BKPNT_MEMORY);
 	BPoints.push_front	(bp);
 	return bp;
-};
+}
 
 void CBreakpoint::ActivateBreakpoints(PhysPt adr, bool activate)
 {
@@ -429,8 +429,8 @@ void CBreakpoint::ActivateBreakpoints(PhysPt adr, bool activate)
 			continue;
 		}
 		bp->Activate(activate);	
-	};
-};
+	}
+}
 
 bool CBreakpoint::CheckBreakpoint(Bitu seg, Bitu off)
 // Checks if breakpoint is valid and should stop execution
@@ -488,13 +488,13 @@ bool CBreakpoint::CheckBreakpoint(Bitu seg, Bitu off)
 					DEBUG_ShowMsg("DEBUG: Memory breakpoint %s: %04X:%04X - %02X -> %02X\n",(bp->GetType()==BKPNT_MEMORY_PROT)?"(Prot)":"",bp->GetSegment(),bp->GetOffset(),bp->GetValue(),value);
 					bp->SetValue(value);
 					return true;
-				};		
-			} 		
-		};
+				}		
+			}
+		}
 #endif
-	};
+	}
 	return false;
-};
+}
 
 bool CBreakpoint::CheckIntBreakpoint(PhysPt adr, Bit8u intNr, Bit16u ahValue)
 // Checks if interrupt breakpoint is valid and should stop execution
@@ -529,10 +529,10 @@ bool CBreakpoint::CheckIntBreakpoint(PhysPt adr, Bit8u intNr, Bit16u ahValue)
 				}
 				return true;
 			}
-		};
-	};
+		}
+	}
 	return false;
-};
+}
 
 void CBreakpoint::DeleteAll() 
 {
@@ -542,9 +542,9 @@ void CBreakpoint::DeleteAll()
 		bp = (*i);
 		bp->Activate(false);
 		delete bp;
-	};
+	}
 	(BPoints.clear)();
-};
+}
 
 
 bool CBreakpoint::DeleteByIndex(Bit16u index) 
@@ -562,9 +562,9 @@ bool CBreakpoint::DeleteByIndex(Bit16u index)
 			return true;
 		}
 		nr++;
-	};
+	}
 	return false;
-};
+}
 
 bool CBreakpoint::DeleteBreakpoint(PhysPt where) 
 {
@@ -579,9 +579,9 @@ bool CBreakpoint::DeleteBreakpoint(PhysPt where)
 			delete bp;
 			return true;
 		}
-	};
+	}
 	return false;
-};
+}
 
 bool CBreakpoint::IsBreakpoint(PhysPt adr) 
 // is there a breakpoint at address ?
@@ -593,13 +593,13 @@ bool CBreakpoint::IsBreakpoint(PhysPt adr)
 		bp = (*i);
 		if ((bp->GetType()==BKPNT_PHYSICAL) && (bp->GetSegment()==adr)) {
 			return true;
-		};
+		}
 		if ((bp->GetType()==BKPNT_PHYSICAL) && (bp->GetLocation()==adr)) {
 			return true;
-		};
-	};
+		}
+	}
 	return false;
-};
+}
 
 bool CBreakpoint::IsBreakpointDrawn(PhysPt adr) 
 // valid breakpoint, that should be drawn ?
@@ -612,10 +612,10 @@ bool CBreakpoint::IsBreakpointDrawn(PhysPt adr)
 		if ((bp->GetType()==BKPNT_PHYSICAL) && (bp->GetLocation()==adr)) {
 			// Only draw, if breakpoint is not only once, 
 			return !bp->GetOnce();
-		};
-	};
+		}
+	}
 	return false;
-};
+}
 
 void CBreakpoint::ShowList(void)
 {
@@ -638,7 +638,7 @@ void CBreakpoint::ShowList(void)
 		};
 		nr++;
 	}
-};
+}
 
 bool DEBUG_Breakpoint(void)
 {
@@ -648,7 +648,7 @@ bool DEBUG_Breakpoint(void)
 	PhysPt where=(Bitu)GetAddress(SegValue(cs),reg_eip);
 	CBreakpoint::ActivateBreakpoints(where,false);	// Deactivate all breakpoints
 	return true;
-};
+}
 
 bool DEBUG_IntBreakpoint(Bit8u intNum)
 {
@@ -658,7 +658,7 @@ bool DEBUG_IntBreakpoint(Bit8u intNum)
 	// Found. Breakpoint is valid
 	CBreakpoint::ActivateBreakpoints(where,false);	// Deactivate all breakpoints
 	return true;
-};
+}
 
 static bool StepOver()
 {
@@ -679,11 +679,12 @@ static bool StepOver()
         }
 
 		DrawCode();
+		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
 		DOSBOX_SetNormalLoop();
 		return true;
 	} 
 	return false;
-};
+}
 
 bool DEBUG_ExitLoop(void)
 {
@@ -696,7 +697,7 @@ bool DEBUG_ExitLoop(void)
 		return true;
 	}
 	return false;
-};
+}
 
 /********************/
 /*   Draw windows   */
@@ -732,14 +733,14 @@ static void DrawData(void) {
                  * we must hack the phys page tlb to make the hardware handler map 1:1 the page for this call. */
                 PhysPt opg = paging.tlb.phys_page[address>>12];
 
-                paging.tlb.phys_page[address>>12] = address>>12;
+                paging.tlb.phys_page[address>>12] = (Bit32u)(address>>12);
 
-                PageHandler *ph = MEM_GetPageHandler(address>>12);
+                PageHandler *ph = MEM_GetPageHandler((Bitu)(address>>12));
 
                 if (ph->flags & PFLAG_READABLE)
-	                ch = ph->GetHostReadPt(address>>12)[address&0xFFF];
+	                ch = ph->GetHostReadPt((Bitu)(address>>12))[address&0xFFF];
                 else
-                    ch = ph->readb(address);
+                    ch = ph->readb((PhysPt)address);
 
                 paging.tlb.phys_page[address>>12] = opg;
 
@@ -759,7 +760,7 @@ static void DrawData(void) {
                     address = add;
 
                 if (address != mem_no_address) {
-                    if (!mem_readb_checked(address,&ch)) {
+                    if (!mem_readb_checked((PhysPt)address,&ch)) {
                         wattrset (dbg.win_data,0);
                         mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
                         if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
@@ -782,7 +783,7 @@ static void DrawData(void) {
         }
 	}	
 	wrefresh(dbg.win_data);
-};
+}
 
 void DrawRegistersUpdateOld(void) {
 	/* Main Registers */
@@ -885,7 +886,7 @@ static void DrawRegisters(void) {
 	wattrset(dbg.win_reg,0);
 	mvwprintw(dbg.win_reg,3,60,"%u       ",cycle_count);
 	wrefresh(dbg.win_reg);
-};
+}
 
 static void DrawInput(void) {
     if (!debugging) {
@@ -905,7 +906,7 @@ static void DrawInput(void) {
                 (codeViewData.ovrMode?'O':'I'),dispPtr,(*curPtr?' ':'_'));
         wclrtoeol(dbg.win_inp); // not correct in pdcurses if full line
         if (*curPtr) {
-            mvwchgat(dbg.win_inp,0,(curPtr-dispPtr+4),1,0,(PAIR_BLACK_GREY),NULL);
+            mvwchgat(dbg.win_inp,0,(int)(curPtr-dispPtr+4),1,0,(PAIR_BLACK_GREY),NULL);
         } 
     }
 
@@ -952,7 +953,7 @@ static void DrawCode(void) {
 				codeViewData.cursorSeg = codeViewData.useCS;
 				codeViewData.cursorOfs = disEIP;
 				saveSel = true;
-			} else if (CBreakpoint::IsBreakpointDrawn(start)) {
+			} else if (CBreakpoint::IsBreakpointDrawn((PhysPt)start)) {
                 wbkgdset(dbg.win_code,COLOR_PAIR(PAIR_GREY_RED));
 				wattrset(dbg.win_code,COLOR_PAIR(PAIR_GREY_RED));			
 			} else {
@@ -967,7 +968,7 @@ static void DrawCode(void) {
 		Bitu drawsize;
 
         if (start != mem_no_address) {
-            drawsize=size=DasmI386(dline, start, disEIP, cpu.code.big);
+            drawsize=size=DasmI386(dline, (PhysPt)start, disEIP, cpu.code.big);
         }
         else {
             drawsize=size=1;
@@ -980,7 +981,7 @@ static void DrawCode(void) {
         if (start != mem_no_address) {
             for (c=0;c<drawsize;c++) {
                 Bit8u value;
-                if (!mem_readb_checked(start+c,&value)) {
+                if (!mem_readb_checked((PhysPt)(start+c),&value)) {
                     wattrset (dbg.win_code,0);
                     wprintw(dbg.win_code,"%02X",value);
                 }
@@ -1012,7 +1013,7 @@ static void DrawCode(void) {
 		// Spacepad it up to 28 characters
         if (no_bytes) dline[0] = 0;
 		size_t dline_len = strlen(dline);
-		if(dline_len < 28) for (c = dline_len; c < 28;c++) dline[c] = ' '; dline[28] = 0;
+		if(dline_len < 28) for (c = (Bitu)dline_len; c < 28;c++) dline[c] = ' '; dline[28] = 0;
 		waddstr(dbg.win_code,dline);
 		// Spacepad it up to 20 characters
 		size_t res_len = strlen(res);
@@ -1048,7 +1049,7 @@ static void SetCodeWinStart()
 		codeViewData.useEIP	= reg_eip;
 	}
 	codeViewData.cursorPos = -1;	// Recalc Cursor position
-};
+}
 
 void DEBUG_CheckCSIP() {
     SetCodeWinStart();
@@ -1098,9 +1099,10 @@ Bit32u GetHexValue(char* str, char*& hex)
 			break; // No valid char
 		}
 		hex++;
-	};
+	}
+
 	return regval + value;
-};
+}
 
 bool ChangeRegister(char* str)
 {
@@ -1140,7 +1142,7 @@ bool ChangeRegister(char* str)
 	if (strstr(hex,"SF")==hex) { hex+=2; SETFLAGBIT(SF,GetHexValue(hex,hex)); } else
 	{ return false; };
 	return true;
-};
+}
 
 void DEBUG_GUI_Rebuild(void);
 void DBGUI_NextWindowIfActiveHidden(void);
@@ -1211,7 +1213,7 @@ bool ParseCommand(char* str) {
             return true;
         }
         else {
-            LOG_MSG("No such window '%s'. Windows are: ",found,dbg.windowlist_by_name().c_str());
+            LOG_MSG("No such window '%s'. Windows are: %s",found,dbg.windowlist_by_name().c_str());
             return false;
         }
     }
@@ -1244,7 +1246,7 @@ bool ParseCommand(char* str) {
 
 		if(!name[0]) return false;
 		DEBUG_ShowMsg("DEBUG: Created debug var %s at %04X:%04X\n",name,seg,ofs);
-		CDebugVar::InsertVariable(name,GetAddress(seg,ofs));
+		CDebugVar::InsertVariable(name,(PhysPt)GetAddress(seg,ofs));
 		return true;
 	};
 
@@ -1286,7 +1288,7 @@ bool ParseCommand(char* str) {
 			if (*found) {
 				Bit8u value = (Bit8u)GetHexValue(found,found);
 				if(*found) found++;
-				mem_writeb_checked(GetAddress(seg,ofs+count),value);
+				mem_writeb_checked((PhysPt)GetAddress(seg,ofs+count),value);
 				count++;
 			}
 		};
@@ -1378,6 +1380,7 @@ bool ParseCommand(char* str) {
 
         CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);						
         ignoreAddressOnce = SegPhys(cs)+reg_eip;
+		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
         DOSBOX_SetNormalLoop();	
         return true;
     }
@@ -1536,6 +1539,7 @@ bool ParseCommand(char* str) {
 		CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip-1,true);
 		debugging = false;
 		DrawCode();
+		mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
 		DOSBOX_SetNormalLoop();
 		CPU_HW_Interrupt(intNr);
 		return true;
@@ -1677,9 +1681,10 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("HELP                      - Help\n");
 		
 		return true;
-	};
+	}
+
 	return false;
-};
+}
 
 char* AnalyzeInstruction(char* inst, bool saveSelector) {
 	static char result[256];
@@ -1723,7 +1728,7 @@ char* AnalyzeInstruction(char* inst, bool saveSelector) {
 			} else 
 				pos++;
 		};
-		Bit32u address = GetAddress(seg,adr);
+		Bit32u address = (Bit32u)GetAddress(seg,adr);
 		if (!(get_tlb_readhandler(address)->flags & PFLAG_INIT)) {
 			static char outmask[] = "%s:[%04X]=%02X";
 			
@@ -1853,7 +1858,7 @@ char* AnalyzeInstruction(char* inst, bool saveSelector) {
 		}
 	}
 	return result;
-};
+}
 
 // data window
 void win_data_ui_down(int count) {
@@ -1886,6 +1891,8 @@ void win_code_ui_up(int count) {
 
         getmaxyx(dbg.win_code,y,x);
 
+        (void)y; // SET, BUT UNUSED
+
         while (count-- > 0) {
             if (codeViewData.cursorPos>0)
                 codeViewData.cursorPos--;
@@ -1896,7 +1903,7 @@ void win_code_ui_up(int count) {
                 Bit32u newEIP = codeViewData.useEIP - 1;
                 if(codeViewData.useEIP) {
                     for (; bytes < 10; bytes++) {
-                        PhysPt start = GetAddress(codeViewData.useCS,newEIP);
+                        PhysPt start = (PhysPt)GetAddress(codeViewData.useCS,newEIP);
                         size = DasmI386(dline, start, newEIP, cpu.code.big);
                         if(codeViewData.useEIP == newEIP+size) break;
                         newEIP--;
@@ -2117,7 +2124,7 @@ Bit32u DEBUG_CheckKeys(void) {
 					safe_strncpy(codeViewData.suspInputStr, codeViewData.inputStr, sizeof(codeViewData.suspInputStr));
 				}
 				safe_strncpy(codeViewData.inputStr,(*--histBuffPos).c_str(),sizeof(codeViewData.inputStr));
-				codeViewData.inputPos = strlen(codeViewData.inputStr);
+				codeViewData.inputPos = (int)strlen(codeViewData.inputStr);
 				break;
 		case KEY_F(7):	// next command (f1-f4 generate rubbish at my place)
 		case KEY_F(4):	// next command
@@ -2128,7 +2135,7 @@ Bit32u DEBUG_CheckKeys(void) {
 					// copy suspInputStr back into inputStr
 					safe_strncpy(codeViewData.inputStr, codeViewData.suspInputStr, sizeof(codeViewData.inputStr));
 				}
-				codeViewData.inputPos = strlen(codeViewData.inputStr);
+				codeViewData.inputPos = (int)strlen(codeViewData.inputStr);
 				break; 
 		case KEY_F(5):	// Run Program
                 DrawRegistersUpdateOld();
@@ -2147,10 +2154,11 @@ Bit32u DEBUG_CheckKeys(void) {
 
 				CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);						
 				ignoreAddressOnce = SegPhys(cs)+reg_eip;
+				mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
 				DOSBOX_SetNormalLoop();	
 				break;
 		case KEY_F(9):	// Set/Remove Breakpoint
-				{	PhysPt ptr = GetAddress(codeViewData.cursorSeg,codeViewData.cursorOfs);
+				{	PhysPt ptr = (PhysPt)GetAddress(codeViewData.cursorSeg,codeViewData.cursorOfs);
 					if (CBreakpoint::IsBreakpoint(ptr)) {
 						CBreakpoint::DeleteBreakpoint(ptr);
 						DEBUG_ShowMsg("DEBUG: Breakpoint deletion success.\n");
@@ -2196,7 +2204,7 @@ Bit32u DEBUG_CheckKeys(void) {
 					histBuffPos = histBuff.end();
 					ClearInputLine();
 				} else { 
-					codeViewData.inputPos = strlen(codeViewData.inputStr);
+					codeViewData.inputPos = (int)strlen(codeViewData.inputStr);
 				} 
 				break;
 		case KEY_BACKSPACE: //backspace (linux)
@@ -2250,7 +2258,7 @@ Bit32u DEBUG_CheckKeys(void) {
 		DEBUG_DrawScreen();
 	}
 	return ret;
-};
+}
 
 Bitu DEBUG_LastRunningUpdate = 0;
 
@@ -2307,6 +2315,7 @@ Bitu DEBUG_Loop(void) {
                 DEBUG_RefreshPage(0);
             }
 
+			mainMenu.get_item("mapper_debugger").check(false).refresh_item(mainMenu);
             DOSBOX_SetNormalLoop();
             DrawRegistersUpdateOld();
             return 0;
@@ -2345,6 +2354,25 @@ void DEBUG_Enable(bool pressed) {
 		return;
 	static bool showhelp=false;
 
+#if defined(MACOSX) || defined(LINUX)
+	/* Mac OS X does not have a console for us to just allocate on a whim like Windows does.
+	   So the debugger interface is useless UNLESS the user has started us from a terminal
+	   (whether over SSH or from the Terminal app). */
+    bool allow = true;
+
+    if (!isatty(0) || !isatty(1) || !isatty(2))
+	    allow = false;
+
+    if (!allow) {
+# if defined(MACOSX)
+	    LOG_MSG("Debugger in Mac OS X is not available unless you start DOSBox-X from a terminal or from the Terminal application");
+# else
+	    LOG_MSG("Debugger is not available unless you start DOSBox-X from a terminal");
+# endif
+	    return;
+    }
+#endif
+
     CPU_CycleLeft+=CPU_Cycles;
     CPU_Cycles=0;
 
@@ -2361,6 +2389,7 @@ void DEBUG_Enable(bool pressed) {
 	SetCodeWinStart();
 	DEBUG_DrawScreen();
 	DOSBOX_SetLoop(&DEBUG_Loop);
+	mainMenu.get_item("mapper_debugger").check(true).refresh_item(mainMenu);
 	if(!showhelp) { 
 		showhelp=true;
 		DEBUG_ShowMsg("***| TYPE HELP (+ENTER) TO GET AN OVERVIEW OF ALL COMMANDS |***\n");
@@ -2603,8 +2632,8 @@ static void LogGDT(void)
 		sprintf(out1,"      l:%08lX dpl : %01X  %1X%1X%1X%1X%1X",(unsigned long)desc.GetLimit(),desc.saved.seg.dpl,desc.saved.seg.p,desc.saved.seg.avl,desc.saved.seg.r,desc.saved.seg.big,desc.saved.seg.g);
 		LOG(LOG_MISC,LOG_ERROR)("%s",out1);
 		address+=8; i++;
-	};
-};
+	}
+}
 
 static void LogLDT(void) {
 	char out1[512];
@@ -2623,8 +2652,8 @@ static void LogLDT(void) {
 		sprintf(out1,"      l:%08lX dpl : %01X  %1X%1X%1X%1X%1X",(unsigned long)desc.GetLimit(),desc.saved.seg.dpl,desc.saved.seg.p,desc.saved.seg.avl,desc.saved.seg.r,desc.saved.seg.big,desc.saved.seg.g);
 		LOG(LOG_MISC,LOG_ERROR)("%s",out1);
 		address+=8; i++;
-	};
-};
+	}
+}
 
 static void LogIDT(void) {
 	char out1[512];
@@ -2636,8 +2665,8 @@ static void LogIDT(void) {
 			LOG(LOG_MISC,LOG_ERROR)("%s",out1);
 		}
 		address+=8;
-	};
-};
+	}
+}
 
 void LogPages(char* selname) {
 	char out1[512];
@@ -2683,7 +2712,7 @@ void LogPages(char* selname) {
 			}
 		}
 	}
-};
+}
 
 static void LogCPUInfo(void) {
 	char out1[512];
@@ -2719,7 +2748,7 @@ static void LogCPUInfo(void) {
 		sprintf(out1,"LDT selector=%04X, base=%08lX limit=%08lX*%X",(int)sel,(unsigned long)desc.GetBase(),(unsigned long)desc.GetLimit(),desc.saved.seg.g?0x4000:1);
 		LOG(LOG_MISC,LOG_ERROR)("%s",out1);
 	}
-};
+}
 
 #if C_HEAVY_DEBUG
 static void LogInstruction(Bit16u segValue, Bit32u eipValue,  ofstream& out) {
@@ -2778,7 +2807,7 @@ static void LogInstruction(Bit16u segValue, Bit32u eipValue,  ofstream& out) {
 		    << " CR0:" << setw(8) << cpu.cr0;	
 	}
 	out << endl;
-};
+}
 #endif
 
 #if 0
@@ -2861,7 +2890,7 @@ void DEBUG_CheckExecuteBreakpoint(Bit16u seg, Bit32u off)
 		pDebugcom = 0;
 	};
 #endif
-};
+}
 
 Bitu DEBUG_EnableDebugger(void)
 {
@@ -2869,10 +2898,6 @@ Bitu DEBUG_EnableDebugger(void)
 	DEBUG_Enable(true);
 	CPU_Cycles=CPU_CycleLeft=0;
 	return 0;
-};
-
-static void DEBUG_ProgramStart(Program * * make) {
-//	*make=new DEBUG;
 }
 
 // INIT 
@@ -2939,29 +2964,40 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 
 Bitu debugCallback;
 
-void DEBUG_DOSStartUp(Section *x) {
-//	/* setup debug.com */
-//	PROGRAMS_MakeFile("DEBUGBOX.COM",DEBUG_ProgramStart);
-}
-
 void DEBUG_Init() {
+	DOSBoxMenu::item *item;
+
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing debug system");
 
 	/* Add some keyhandlers */
 	#if defined(MACOSX)
 		// OSX NOTE: ALT-F12 to launch debugger. pause maps to F16 on macOS,
 		// which is not easy to input on a modern mac laptop
-		MAPPER_AddHandler(DEBUG_Enable,MK_f12,MMOD2,"debugger","Debugger");
+		MAPPER_AddHandler(DEBUG_Enable,MK_f12,MMOD2,"debugger","Debugger", &item);
 	#else
-		MAPPER_AddHandler(DEBUG_Enable,MK_pause,MMOD2,"debugger","Debugger");
+		MAPPER_AddHandler(DEBUG_Enable,MK_pause,MMOD2,"debugger","Debugger",&item);
 	#endif
+	item->set_text("Debugger");
 	/* Reset code overview and input line */
 	memset((void*)&codeViewData,0,sizeof(codeViewData));
 	/* Setup callback */
 	debugCallback=CALLBACK_Allocate();
 	CALLBACK_Setup(debugCallback,DEBUG_EnableDebugger,CB_RETF,"debugger");
 
-    AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(DEBUG_DOSStartUp));
+#if defined(MACOSX) || defined(LINUX)
+	/* Mac OS X does not have a console for us to just allocate on a whim like Windows does.
+	   So the debugger interface is useless UNLESS the user has started us from a terminal
+	   (whether over SSH or from the Terminal app).
+       
+       Linux/X11 also does not have a console we can allocate on a whim. You either run
+       this program from XTerm for the debugger, or not. */
+    bool allow = true;
+
+    if (!isatty(0) || !isatty(1) || !isatty(2))
+	    allow = false;
+
+    mainMenu.get_item("mapper_debugger").enable(allow).refresh_item(mainMenu);
+#endif
 
 	/* shutdown function */
 	AddExitFunction(AddExitFunctionFuncPair(DEBUG_ShutDown));
@@ -2972,7 +3008,7 @@ void DEBUG_Init() {
 void CDebugVar::InsertVariable(char* name, PhysPt adr)
 {
 	varList.push_back(new CDebugVar(name,adr));
-};
+}
 
 void CDebugVar::DeleteAll(void) 
 {
@@ -2981,9 +3017,9 @@ void CDebugVar::DeleteAll(void)
 	for(i=varList.begin(); i != varList.end(); i++) {
 		bp = static_cast<CDebugVar*>(*i);
 		delete bp;
-	};
+	}
 	(varList.clear)();
-};
+}
 
 CDebugVar* CDebugVar::FindVar(PhysPt pt)
 {
@@ -2992,9 +3028,9 @@ CDebugVar* CDebugVar::FindVar(PhysPt pt)
 	for(i=varList.begin(); i != varList.end(); i++) {
 		bp = static_cast<CDebugVar*>(*i);
 		if (bp->GetAdr()==pt) return bp;
-	};
+	}
 	return 0;
-};
+}
 
 bool CDebugVar::SaveVars(char* name) {
 	if (varList.size()>65535) return false;
@@ -3018,7 +3054,7 @@ bool CDebugVar::SaveVars(char* name) {
 	};
 	fclose(f);
 	return true;
-};
+}
 
 bool CDebugVar::LoadVars(char* name)
 {
@@ -3041,7 +3077,7 @@ bool CDebugVar::LoadVars(char* name)
 	};
 	fclose(f);
 	return true;
-};
+}
 
 static void SaveMemory(Bit16u seg, Bit32u ofs1, Bit32u num) {
 	FILE* f = fopen("MEMDUMP.TXT","wt");
@@ -3057,7 +3093,7 @@ static void SaveMemory(Bit16u seg, Bit32u ofs1, Bit32u num) {
 		sprintf(buffer,"%04X:%04X   ",seg,ofs1);
 		for (Bit16u x=0; x<16; x++) {
 			Bit8u value;
-			if (mem_readb_checked(GetAddress(seg,ofs1+x),&value)) sprintf(temp,"%s","?? ");
+			if (mem_readb_checked((PhysPt)GetAddress(seg,ofs1+x),&value)) sprintf(temp,"%s","?? ");
 			else sprintf(temp,"%02X ",value);
 			strcat(buffer,temp);
 		}
@@ -3070,7 +3106,7 @@ static void SaveMemory(Bit16u seg, Bit32u ofs1, Bit32u num) {
 		sprintf(buffer,"%04X:%04X   ",seg,ofs1);
 		for (Bit16u x=0; x<num; x++) {
 			Bit8u value;
-			if (mem_readb_checked(GetAddress(seg,ofs1+x),&value)) sprintf(temp,"%s","?? ");
+			if (mem_readb_checked((PhysPt)GetAddress(seg,ofs1+x),&value)) sprintf(temp,"%s","?? ");
 			else sprintf(temp,"%02X ",value);
 			strcat(buffer,temp);
 		}
@@ -3089,7 +3125,7 @@ static void SaveMemoryBin(Bit16u seg, Bit32u ofs1, Bit32u num) {
 
 	for (Bitu x = 0; x < num;x++) {
 		Bit8u val;
-		if (mem_readb_checked(GetAddress(seg,ofs1+x),&val)) val=0;
+		if (mem_readb_checked((PhysPt)GetAddress(seg,ofs1+x),&val)) val=0;
 		fwrite(&val,1,1,f);
 	}
 
@@ -3143,7 +3179,7 @@ static void DrawVariables(void) {
 	}
 
 	wrefresh(dbg.win_var);
-};
+}
 #undef DEBUG_VAR_BUF_LEN
 // HEAVY DEBUGGING STUFF
 
@@ -3228,7 +3264,7 @@ void DEBUG_HeavyLogInstruction(void) {
 	inst.i    = GETFLAGBOOL(IF);
 
 	if (++logCount >= LOGCPUMAX) logCount = 0;
-};
+}
 
 void DEBUG_HeavyWriteLogInstruction(void) {
 	if (!logHeavy) return;
@@ -3267,7 +3303,7 @@ void DEBUG_HeavyWriteLogInstruction(void) {
 	
 	out.close();
 	DEBUG_ShowMsg("DEBUG: Done.\n");	
-};
+}
 
 bool DEBUG_HeavyIsBreakpoint(void) {
 	static Bitu zero_count = 0;

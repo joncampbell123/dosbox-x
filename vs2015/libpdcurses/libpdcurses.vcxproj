@@ -182,8 +182,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
-      <TargetMachine>
-      </TargetMachine>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
     <ClCompile>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
@@ -196,8 +195,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|Win32'">
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
-      <TargetMachine>
-      </TargetMachine>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
     <ClCompile>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
@@ -210,8 +208,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
-      <TargetMachine>
-      </TargetMachine>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
     <ClCompile>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>
@@ -226,8 +223,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'">
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
-      <TargetMachine>
-      </TargetMachine>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
     <ClCompile>
       <PreprocessorDefinitions>_MBCS;%(PreprocessorDefinitions);PDC_FORCE_UTF8=1</PreprocessorDefinitions>

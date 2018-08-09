@@ -98,6 +98,8 @@ public:
     }
 
 	bool Open(const char *conf) {
+        (void)conf;//UNUSED
+
 		MT32Emu::FileStream controlROMFile;
 		MT32Emu::FileStream pcmROMFile;
 
@@ -173,7 +175,11 @@ public:
 			synthMutex = SDL_CreateMutex();
 			procIdleSem = SDL_CreateSemaphore(0);
 			mixerReqSem = SDL_CreateSemaphore(0);
+#if defined(C_SDL2)
+			thread = SDL_CreateThread(processingThread, "MT32", NULL);
+#else
 			thread = SDL_CreateThread(processingThread, NULL);
+#endif
 			//if (thread == NULL || synthMutex == NULL || sleepMutex == NULL) renderInThread = false;
 		}
 		chan->Enable(true);

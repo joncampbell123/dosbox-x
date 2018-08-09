@@ -49,7 +49,7 @@ void VFILE_Shutdown(void) {
 }
 
 void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b) {
-	VFILE_Register(b.recommended_file_name, (Bit8u*)b.data, b.length);
+	VFILE_Register(b.recommended_file_name, (Bit8u*)b.data, (Bit32u)b.length);
 }
 
 void VFILE_Register(const char * name,Bit8u * data,Bit32u size) {
@@ -82,7 +82,7 @@ class Virtual_File : public DOS_File {
 public:
 	Virtual_File(Bit8u * in_data,Bit32u in_size);
 	bool Read(Bit8u * data,Bit16u * size);
-	bool Write(Bit8u * data,Bit16u * size);
+	bool Write(const Bit8u * data,Bit16u * size);
 	bool Seek(Bit32u * pos,Bit32u type);
 	bool Close();
 	Bit16u GetInformation(void);
@@ -114,7 +114,9 @@ bool Virtual_File::Read(Bit8u * data,Bit16u * size) {
 	return true;
 }
 
-bool Virtual_File::Write(Bit8u * data,Bit16u * size){
+bool Virtual_File::Write(const Bit8u * data,Bit16u * size){
+    (void)data;//UNUSED
+    (void)size;//UNUSED
 	/* Not really writable */
 	return false;
 }
@@ -170,18 +172,24 @@ bool Virtual_Drive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 }
 
 bool Virtual_Drive::FileCreate(DOS_File * * file,const char * name,Bit16u attributes) {
+    (void)file;//UNUSED
+    (void)name;//UNUSED
+    (void)attributes;//UNUSED
 	return false;
 }
 
 bool Virtual_Drive::FileUnlink(const char * name) {
+    (void)name;//UNUSED
 	return false;
 }
 
 bool Virtual_Drive::RemoveDir(const char * dir) {
+    (void)dir;//UNUSED
 	return false;
 }
 
 bool Virtual_Drive::MakeDir(const char * dir) {
+    (void)dir;//UNUSED
 	return false;
 }
 
@@ -215,6 +223,7 @@ bool Virtual_Drive::FileExists(const char* name){
 }
 
 bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
+    (void)_dir;//UNUSED
 	search_file=first_file;
 	Bit8u attr;char pattern[DOS_NAMELENGTH_ASCII];
 	dta.GetSearchParams(attr,pattern);
@@ -258,6 +267,8 @@ bool Virtual_Drive::GetFileAttr(const char * name,Bit16u * attr) {
 }
 
 bool Virtual_Drive::Rename(const char * oldname,const char * newname) {
+    (void)oldname;//UNUSED
+    (void)newname;//UNUSED
 	return false;
 }
 

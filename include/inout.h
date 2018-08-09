@@ -73,8 +73,8 @@ static const Bitu IOMASK_FULL = 0xFFFFU; /* full 16-bit decode */
  *       ~(0x10 - 1) = ~0xF = 0xFFFFFFF0
  *
  */
-static inline const Bitu IOMASK_Range(const Bitu x) {
-    return ~(x - 1);
+static inline constexpr Bitu IOMASK_Range(const Bitu x) {
+    return ~((Bitu)x - (Bitu)1U);
 }
 
 /* combine range mask with IOMASK value.
@@ -84,7 +84,7 @@ static inline const Bitu IOMASK_Range(const Bitu x) {
  *     IOMASK_Combine(IOMASK_ISA_10BIT,IOMASK_Range(16));
  *
  */
-static inline const Bitu IOMASK_Combine(const Bitu a,const Bitu b) {
+static inline constexpr Bitu IOMASK_Combine(const Bitu a,const Bitu b) {
     return a & b;
 }
 
@@ -168,15 +168,15 @@ void IO_InitCallouts(void);
 
 typedef uint32_t IO_Callout_t;
 
-static inline uint32_t IO_Callout_t_comb(const enum IO_Type_t t,const uint32_t idx) {
+static inline constexpr uint32_t IO_Callout_t_comb(const enum IO_Type_t t,const uint32_t idx) {
     return ((uint32_t)t << (uint32_t)28) + idx;
 }
 
-static inline enum IO_Type_t IO_Callout_t_type(const IO_Callout_t t) {
+static inline constexpr enum IO_Type_t IO_Callout_t_type(const IO_Callout_t t) {
     return (enum IO_Type_t)(t >> 28);
 }
 
-static inline uint32_t IO_Callout_t_index(const IO_Callout_t t) {
+static inline constexpr uint32_t IO_Callout_t_index(const IO_Callout_t t) {
     return t & (((uint32_t)1 << (uint32_t)28) - (uint32_t)1);
 }
 

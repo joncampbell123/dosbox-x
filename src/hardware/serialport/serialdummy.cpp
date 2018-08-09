@@ -58,13 +58,15 @@ void CSerialDummy::handleUpperEvent(Bit16u type) {
 /* parameters baudrate, stopbits, number of databits, parity.               **/
 /*****************************************************************************/
 void CSerialDummy::updatePortConfig(Bit16u divider, Bit8u lcr) {
+    (void)divider;//UNUSED
+    (void)lcr;//UNUSED
 	//LOG_MSG("Serial port at 0x%x: Port params changed: %d Baud", base,dcb.BaudRate);
 }
 
 void CSerialDummy::updateMSR() {
 }
 void CSerialDummy::transmitByte(Bit8u val, bool first) {
-
+    (void)val;//POSSIBLY UNUSED
 	if(first) setEvent(SERIAL_THR_EVENT, bytetime/10); 
 	else setEvent(SERIAL_TX_EVENT, bytetime);
 
@@ -78,6 +80,7 @@ void CSerialDummy::transmitByte(Bit8u val, bool first) {
 /*****************************************************************************/
 
 void CSerialDummy::setBreak(bool value) {
+    (void)value;//UNUSED
 	//LOG_MSG("UART 0x%x: Break toggeled: %d", base, value);
 }
 
@@ -89,11 +92,13 @@ void CSerialDummy::setRTSDTR(bool rts, bool dtr) {
 	setDTR(dtr);
 }
 void CSerialDummy::setRTS(bool val) {
+    (void)val;//UNUSED
 #ifdef CHECKIT_TESTPLUG
 	setCTS(val);
 #endif
 }
 void CSerialDummy::setDTR(bool val) {
+    (void)val;//UNUSED
 #ifdef CHECKIT_TESTPLUG
 	setDSR(val);
 	setRI(val);

@@ -38,22 +38,27 @@ class device_NUL : public DOS_Device {
 public:
 	device_NUL() { SetName("NUL"); };
 	virtual bool Read(Bit8u * data,Bit16u * size) {
+        (void)data; // UNUSED
 		*size = 0; //Return success and no data read. 
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:READ",GetName());
 		return true;
 	}
-	virtual bool Write(Bit8u * data,Bit16u * size) {
+	virtual bool Write(const Bit8u * data,Bit16u * size) {
+        (void)data; // UNUSED
+        (void)size; // UNUSED
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:WRITE",GetName());
 		return true;
 	}
 	virtual bool Seek(Bit32u * pos,Bit32u type) {
+        (void)type;
+        (void)pos;
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:SEEK",GetName());
 		return true;
 	}
 	virtual bool Close() { return true; }
 	virtual Bit16u GetInformation(void) { return 0x8084; }
-	virtual bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode){return false;}
-	virtual bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode){return false;}
+	virtual bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+	virtual bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 };
 
 class device_PRN : public DOS_Device {
@@ -62,10 +67,12 @@ public:
 		SetName("PRN");
 	}
 	bool Read(Bit8u * data,Bit16u * size) {
+        (void)data; // UNUSED
+        (void)size; // UNUSED
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
-	bool Write(Bit8u * data,Bit16u * size) {
+	bool Write(const Bit8u * data,Bit16u * size) {
 		for(int i = 0; i < 3; i++) {
 			// look up a parallel port
 			if(parallelPortObjects[i] != NULL) {
@@ -79,6 +86,7 @@ public:
 		return false;
 	}
 	bool Seek(Bit32u * pos,Bit32u type) {
+        (void)type; // UNUSED
 		*pos = 0;
 		return true;
 	}
@@ -94,7 +102,7 @@ bool DOS_Device::Read(Bit8u * data,Bit16u * size) {
 	return Devices[devnum]->Read(data,size);
 }
 
-bool DOS_Device::Write(Bit8u * data,Bit16u * size) {
+bool DOS_Device::Write(const Bit8u * data,Bit16u * size) {
 	return Devices[devnum]->Write(data,size);
 }
 

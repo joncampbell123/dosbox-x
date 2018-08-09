@@ -990,10 +990,12 @@ bool Load_VGAFont_As_PC98(void) {
 }
 
 void INT10_EnterPC98(Section *sec) {
+    (void)sec;//UNUSED
     /* deprecated */
 }
 
 void INT10_Startup(Section *sec) {
+    (void)sec;//UNUSED
 	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");
 
     unmask_irq0_on_int10_setmode = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask timer on int 10 setmode");

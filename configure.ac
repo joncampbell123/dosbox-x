@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.82.5,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
+AC_INIT(dosbox-x,0.82.7,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README)
 
@@ -61,6 +61,7 @@ AC_PROG_MAKE_SET
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_CXX
+AC_PROG_OBJCXX
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 AC_PREFIX_DEFAULT([/usr/local])
@@ -124,17 +125,32 @@ dnl This warning will stay here for a long enough period of time before making C
 
 dnl AC_CHECK_CXXFLAGS will prepend gnu++11 to CXXFLAGS if supported, for us.
 dnl our code adds -std=gnu++0x if not supported where the function would not do anything.
+dnl This code checks the CXX flags but does not keep the changes because AC_CHECK_CXXFLAGS
+dnl also adds it to CPPFLAGS which then also affects the C compilation (with warnings like
+dnl "-std=gnu++11 is not valid for C")
+OLDCFLAGS="$CFLAGS"
+OLDCPPFLAGS="$CPPFLAGS"
+OLDCXXFLAGS="$CXXFLAGS"
+
 AC_MSG_CHECKING([checking for C++11 support])
 AC_CHECK_CXXFLAGS([ -std=gnu++11 ], [  ], [
-    CXXFLAGS="$CXXFLAGS -std=gnu++0x";
     warn_cpp0x=1
 ])
 
+CXXFLAGS="$OLDCXXFLAGS"
+CPPFLAGS="$OLDCPPFLAGS"
+CFLAGS="$OLDCFLAGS"
+
 if test x$warn_cpp0x = x1; then
-    AC_MSG_ERROR([ C++0x is considered deprecated. Please use a C++11 compiler.
-C++0x support will be removed at a future date entirely.
-To disable this error, remove or comment out line 133-137 of configure.ac, run autogen.sh and try again. ])
+    AC_MSG_ERROR([ Your compiler must support C++11 or better ])
 fi
+
+CFLAGS="$CFLAGS -std=gnu11";
+CXXFLAGS="$CXXFLAGS -std=gnu++0x";
+
+dnl Yksoft1 wants a MinGW build for Windows that doesn't use the Windows menu system.
+AH_TEMPLATE(C_FORCE_MENU_SDLDRAW,[Define to 1 to force SDL-drawn menus])
+AC_ARG_ENABLE(force-menu-sdldraw,AC_HELP_STRING([--enable-force-menu-sdldraw],[Force SDL drawn menus]),enable_force_menu_sdldraw=yes)
 
 dnl This is how the build script can specify a HX DOS extender target
 AH_TEMPLATE(C_HX_DOS,[Define to 1 to target HX DOS])
@@ -149,6 +165,11 @@ case "$host" in
     fi
     ;;
 esac
+
+if test x$enable_force_menu_sdldraw == xyes; then
+    CXXFLAGS="$CXXFLAGS -DFORCE_SDLDRAW"
+    AC_DEFINE(C_FORCE_MENU_SDLDRAW,1,[Force SDL drawn menus])
+fi
 
 dnl TEST: Environ can be included
 AC_MSG_CHECKING(if environ can be included)
@@ -257,8 +278,32 @@ if test x$host = xi386-pc-os2-emx ; then
     LIBS="$LIBS -los2me"
 fi
 
+dnl I would like to know of any concerns given by the C++ compiler.
+dnl Clang/LLVM already does this to some degree, let's get GCC to do it too.
+AC_CHECK_CXXFLAGS([ -Wall ])
+AC_CHECK_CXXFLAGS([ -Wextra ])
+AC_CHECK_CXXFLAGS([ -pedantic ])
+#AC_CHECK_CXXFLAGS([ -Wconversion ])
+#AC_CHECK_CXXFLAGS([ -Wsign-conversion ])
+AC_CHECK_CXXFLAGS([ -Wconversion-null ])
+
+dnl Let GCC 7.3.x know that the "fall through" switch cases in this codebase
+dnl are often intentional.
+AC_CHECK_CXXFLAGS([ -Wno-implicit-fallthrough ])
+
 dnl Stop reporting "type punning" warnings, I'm sick of hearing about it.
 AC_CHECK_CXXFLAGS([ -Wno-strict-aliasing ])
+
+dnl other
+AC_CHECK_CXXFLAGS([ -Wno-missing-field-initializers ])
+AC_CHECK_CXXFLAGS([ -Wno-format-zero-length ])
+
+dnl Clang/LLVM warning: don't care the address of a member may be unaligned, unless targeting ARM!
+AC_CHECK_CXXFLAGS([ -Wno-address-of-packed-member ])
+dnl Clang/LLVM warning: don't care about int to void*, since void* is either same size or larger
+AC_CHECK_CXXFLAGS([ -Wno-int-to-void-pointer-cast ])
+dnl Clang/LLVM warning: extended field designator
+AC_CHECK_CXXFLAGS([ -Wno-extended-offsetof ])
 
 dnl Some stuff for the icon.
 case "$host" in
@@ -290,6 +335,8 @@ case "$host" in
        dnl the same signature "powerpc-apple-darwin*" - so we have
        dnl to do more to distinguish them.
        dnl For now I am lazy and do not add proper detection code.
+       macosx=1
+       OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++0x";
        AC_DEFINE(MACOSX, 1, [Compiling on Mac OS X])
        LIBS="$LIBS -framework CoreMIDI -framework AudioUnit -framework AudioToolbox"
        ;;
@@ -311,6 +358,8 @@ case "$host" in
        AC_DEFINE(OS2, 1, [Compiling on OS/2 EMX])
        ;;
 esac
+
+AM_CONDITIONAL(MACOSX, test x"$macosx" == x"1")
 
 dnl The target cpu checks for dynamic cores
 AH_TEMPLATE(C_TARGETCPU,[The type of cpu this target has])
@@ -398,6 +447,10 @@ AC_CHECK_LIB(tinfo, nodelay,
 	       LIBS="$LIBS -ltinfo";
 	     fi)
 
+dnl LIBRARY TEST: libzlib
+AC_CHECK_HEADER(zlib.h,have_zlib_h=yes,)
+AC_CHECK_LIB(z, inflateEnd, have_zlib_lib=yes, ,)
+
 dnl LIBRARY TEST: libpng
 AC_CHECK_HEADER(png.h,have_png_h=yes,)
 AC_CHECK_LIB(png, png_get_io_ptr, have_png_lib=yes, ,-lz)
@@ -427,6 +480,10 @@ AC_CHECK_LIB(GL, main, have_gl_lib=yes, have_gl_lib=no , )
 AC_CHECK_LIB(opengl32, main, have_opengl32_lib=yes,have_opengl32_lib=no , )
 AC_CHECK_HEADER(GL/gl.h, have_gl_h=yes , have_gl_h=no , )
 
+dnl LIBRARY TEST: Direct3D 9 header support
+AC_CHECK_HEADER(d3d9.h, have_d3d9_h=yes , have_d3d9_h=no , )
+AC_CHECK_HEADER(d3dx9math.h, have_d3dx9math_h=yes , have_d3dx9math_h=no , )
+
 dnl ================== SDL net special test for OS/2
 if test x$host = xi386-pc-os2-emx ; then
   LIBS_BACKUP=$LIBS;
@@ -453,11 +510,6 @@ dnl FEATURE: MT32 (MUNT) emulation
 AH_TEMPLATE(C_MT32,[Define to 1 to enable MT32 emulation (x86/x86_64 only)])
 AC_ARG_ENABLE(mt32,AC_HELP_STRING([--disable-mt32],[Disable MT32 emulation]),,enable_mt32=yes)
 AC_MSG_CHECKING(whether MT32 emulation will be enabled) 
-
-# HACK: Don't enable MT32 on SDL2
-if test -n "$SDL2_LIBS"; then
-    enable_mt32=no
-fi
 
 # test
 # Note that MT32 (MUNT) requires the SSE extensions
@@ -587,6 +639,13 @@ if test -z "$SDL2_LIBS"; then
   fi
 fi
 
+dnl FEATURE: Whether to support libz, and enable snapshots
+AH_TEMPLATE(C_LIBZ,[Define to 1 if you have libz])
+if test x$have_zlib_lib = xyes -a x$have_zlib_h = xyes ; then
+  LIBS="$LIBS -lz"
+  AC_DEFINE(C_LIBZ,1)
+fi
+
 dnl FEATURE: Whether to support libpng, and enable snapshots
 AH_TEMPLATE(C_LIBPNG,[Define to 1 if you have libpng])
 AH_TEMPLATE(C_SSHOT,[Define to 1 to enable screenshots, requires libpng])
@@ -676,6 +735,42 @@ case "$host" in
        fi
        ;;
 esac
+fi
+
+dnl FEATURE: Whether to use Direct3D 9 output
+AH_TEMPLATE(HAVE_D3D9_H,[Define to 1 to use Direct3D 9 display output support])
+AC_ARG_ENABLE(d3d9,AC_HELP_STRING([--enable-d3d9],[Enable Direct3D 9 support]),enable_d3d9=$enableval,enable_d3d9=no)
+AC_MSG_CHECKING(whether Direct3D 9 display output will be enabled)
+
+dnl FEATURE: Direct3D9 shaders
+AH_TEMPLATE(C_D3DSHADERS,[Define to 1 to use Direct3D shaders])
+AC_ARG_ENABLE(d3d-shaders,AC_HELP_STRING([--enable-d3d-shaders],[Enable Direct3D shaders]),enable_d3d_shaders=$enableval,enable_d3d_shaders=no)
+
+# HACK: Don't enable Direct 3D 9 on SDL2
+if test -n "$SDL2_LIBS"; then
+    enable_d3d9=no
+    enable_d3d_shaders=no
+fi
+
+if test x$enable_d3d9 = xyes; then
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+      if test x$have_d3d9_h = xyes -a x$have_d3dx9math_h = xyes ; then
+        AC_MSG_RESULT(yes)
+        AC_DEFINE(HAVE_D3D9_H,1)
+	if test x$enable_d3d_shaders = xyes; then
+		AC_DEFINE(C_D3DSHADERS,1)
+	fi
+	  else
+        AC_MSG_RESULT(no)
+      fi
+    ;;
+    *)
+     AC_MSG_RESULT(no)
+    ;;
+esac
+else
+  AC_MSG_RESULT(no)
 fi
 
 AC_CONFIG_FILES([ 

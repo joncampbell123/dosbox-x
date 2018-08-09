@@ -237,6 +237,7 @@ static bool LocateEnvironmentBlock(PhysPt &env_base,PhysPt &env_fence,Bitu env_s
 }
 
 int EnvPhys_StrCmp(PhysPt es,PhysPt ef,const char *ls) {
+    (void)ef;//UNUSED
 	unsigned char a,b;
 
 	while (1) {
@@ -506,6 +507,7 @@ private:
 	void restart(const char* useconfig);
 	
 	void writeconf(std::string name, bool configdir,bool everything) {
+        (void)configdir;//UNUSED
 #if 0 /* I'd rather have an option stating the user wants to write to user homedir */
 		if (configdir) {
 			// write file to the default config directory
@@ -583,7 +585,7 @@ void CONFIG::Run(void) {
 			return;
 		
 		case P_LISTCONF: {
-			Bitu size = control->configfiles.size();
+			Bitu size = (Bitu)control->configfiles.size();
 			std::string config_path;
 			Cross::GetPlatformConfigDir(config_path);
 			WriteOut(MSG_Get("PROGRAM_CONFIG_CONFDIR"), VERSION,config_path.c_str());
@@ -713,7 +715,7 @@ void CONFIG::Run(void) {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_HLP_SECTHLP"),pvars[0].c_str());
 				while(true) {
 					// list the properties
-					Property* p = psec->Get_prop(i++);
+					Property* p = psec->Get_prop((int)(i++));
 					if (p==NULL) break;
 					WriteOut("%s\n", p->propname.c_str());
 				}
@@ -721,7 +723,7 @@ void CONFIG::Run(void) {
 				// find the property by it's name
 				size_t i = 0;
 				while (true) {
-					Property *p = psec->Get_prop(i++);
+					Property *p = psec->Get_prop((int)(i++));
 					if (p==NULL) break;
 					if (!strcasecmp(p->propname.c_str(),pvars[1].c_str())) {
 						// found it; make the list of possible values

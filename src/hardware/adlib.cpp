@@ -39,6 +39,7 @@ namespace OPL2 {
 			adlib_write(reg,val);
 		}
 		virtual Bit32u WriteAddr( Bit32u port, Bit8u val ) {
+            (void)port;//UNUSED
 			return val;
 		}
 
@@ -184,10 +185,11 @@ class Capture {
 	Bit32u	lastTicks;			//Last ticks when last last cmd was added
 	Bit8u	buf[1024];	//16 added for delay commands and what not
 	Bit32u	bufUsed;
-	Bit8u	cmd[2];				//Last cmd's sent to either ports
+#if 0//unused
+    Bit8u	cmd[2];				//Last cmd's sent to either ports
 	bool	doneOpl3;
 	bool	doneDualOpl2;
-
+#endif
 	RegisterCache* cache;
 
 	void MakeEntry( Bit8u reg, Bit8u& raw ) {
@@ -511,6 +513,7 @@ void Module::DualWrite( Bit8u index, Bit8u reg, Bit8u val ) {
 
 
 void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
+    (void)iolen;//UNUSED
 	//Keep track of last write time
 	lastUsed = PIC_Ticks;
 	//Maybe only enable with a keyon?
@@ -564,6 +567,7 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 
 
 Bitu Module::PortRead( Bitu port, Bitu iolen ) {
+    (void)iolen;//UNUSED
 	switch ( mode ) {
 	case MODE_OPL2:
 		//We allocated 4 ports, so just return -1 for the higher ones
@@ -607,7 +611,7 @@ void Module::Init( Mode m ) {
 	}
 }
 
-}; //namespace
+} //namespace
 
 
 
@@ -677,7 +681,7 @@ void SaveRad() {
 	}
 	fwrite( b, 1, w, handle );
 	fclose( handle );
-};
+}
 
 
 void OPL_SaveRawEvent(bool pressed) {
@@ -696,11 +700,15 @@ void OPL_SaveRawEvent(bool pressed) {
 		LOG_MSG("Preparing to capture Raw OPL, will start with first note played.");
 		module->capture = new Adlib::Capture( &module->cache );
 	}
+
+	mainMenu.get_item("mapper_caprawopl").check(module->capture != NULL).refresh_item(mainMenu);
 }
 
 namespace Adlib {
 
 Module::Module( Section* configuration ) : Module_base(configuration) {
+	DOSBoxMenu::item *item;
+
 	reg.dual[0] = 0;
 	reg.dual[1] = 0;
 	reg.normal = 0;
@@ -762,7 +770,8 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	WriteHandler[2].Install(base+8,OPL_Write,IO_MB, 2);
 	ReadHandler[2].Install(base+8,OPL_Read,IO_MB, 1);
 
-	MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,"caprawopl","Cap OPL");
+	MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,"caprawopl","Cap OPL",&item);
+	item->set_text("Record FM (OPL) output");
 }
 
 Module::~Module() {
@@ -777,7 +786,7 @@ Module::~Module() {
 //Initialize static members
 OPL_Mode Module::oplmode=OPL_none;
 
-};	//Adlib Namespace
+}	//Adlib Namespace
 
 
 void OPL_Init(Section* sec,OPL_Mode oplmode) {
@@ -786,6 +795,7 @@ void OPL_Init(Section* sec,OPL_Mode oplmode) {
 }
 
 void OPL_ShutDown(Section* sec){
+    (void)sec;//UNUSED
 	delete module;
 	module = 0;
 }

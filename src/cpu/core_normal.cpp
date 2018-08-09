@@ -49,6 +49,9 @@
 #include "paging.h"
 #include "mmx.h"
 
+bool CPU_RDMSR();
+bool CPU_WRMSR();
+
 #define CPU_CORE CPU_ARCHTYPE_386
 
 #define DoString DoString_Normal
@@ -130,9 +133,10 @@ static struct {
 	GetEAHandler * ea_table;
 } core;
 
-#define GETIP		(core.cseip-SegBase(cs))
+/* FIXME: Someone at Microsoft tell how subtracting PhysPt - PhysPt = __int64, or PhysPt + PhysPt = __int64 */
+#define GETIP		((PhysPt)(core.cseip-SegBase(cs)))
 #define SAVEIP		reg_eip=GETIP;
-#define LOADIP		core.cseip=(SegBase(cs)+reg_eip);
+#define LOADIP		core.cseip=((PhysPt)(SegBase(cs)+reg_eip));
 
 #define SegBase(c)	SegPhys(c)
 #define BaseDS		core.base_ds

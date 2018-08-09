@@ -59,7 +59,7 @@ private:
 	typedef std::list<Section*>::reverse_iterator reverse_it;
 	typedef std::list<Section*>::const_iterator const_it;
 	typedef std::list<Section*>::const_reverse_iterator const_reverse_it;
-	void (* _start_function)(void);
+//	void (* _start_function)(void);
 	bool secure_mode; //Sandbox mode
 public:
 	bool initialised;
@@ -91,6 +91,7 @@ public:
 		opt_erasemapper = false;
 		opt_resetmapper = false;
 		opt_startmapper = false;
+        opt_fastbioslogo = false;
 		opt_date_host_forced = false;
 		opt_disable_numlock_check = false;
 		opt_disable_dpi_awareness = false;
@@ -120,6 +121,7 @@ public:
 	bool opt_disable_dpi_awareness;
 	bool opt_disable_numlock_check;
 	bool opt_date_host_forced;
+    bool opt_fastbioslogo;
 	bool opt_break_start;
 	bool opt_erasemapper;
 	bool opt_resetmapper;

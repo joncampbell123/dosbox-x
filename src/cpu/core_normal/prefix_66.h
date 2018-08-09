@@ -155,6 +155,7 @@
 				Push_32(tmpesp);Push_32(reg_ebp);Push_32(reg_esi);Push_32(reg_edi);
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				LOG_MSG("PUSHAD interrupted by page fault");
 				reg_esp = old_esp;
 				throw;
@@ -168,6 +169,7 @@
 				reg_ebx=Pop_32();reg_edx=Pop_32();reg_ecx=Pop_32();reg_eax=Pop_32();
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				LOG_MSG("POPAD interrupted by page fault");
 				reg_esp = old_esp;
 				throw;
@@ -377,6 +379,7 @@
 				else {GetEAa;SaveMd(eaa,val);}
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				reg_esp = old_esp;
 				throw;
 			}
@@ -489,6 +492,7 @@
 				reg_eip = new_eip;
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				reg_esp = old_esp; /* restore stack pointer */
 				throw;
 			}
@@ -538,6 +542,7 @@
 				reg_ebp = Pop_32();
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				reg_esp = old_esp;
 				throw;
 			}

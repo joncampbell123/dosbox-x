@@ -14,13 +14,14 @@ const UINT pcm86rate8[] = {352800, 264600, 176400, 132300,
 // 32,24,16,12, 8, 6, 4, 3 - ç≈è≠åˆî{êî: 96
 //  3, 4, 6, 8,12,16,24,32
 
+#if 0
 static const UINT clk25_128[] = {
 					0x00001bde, 0x00002527, 0x000037bb, 0x00004a4e,
 					0x00006f75, 0x0000949c, 0x0000df5f, 0x00012938};
 static const UINT clk20_128[] = {
 					0x000016a4, 0x00001e30, 0x00002d48, 0x00003c60,
 					0x00005a8f, 0x000078bf, 0x0000b57d, 0x0000f17d};
-
+#endif
 
 	PCM86CFG	pcm86cfg;
 
@@ -70,6 +71,7 @@ void pcm86_setpcmrate(REG8 val) {
 }
 
 void pcm86_cb(NEVENTITEM item) {
+    (void)item;//UNUSED
 #if 0
 	if (pcm86.reqirq) {
 		sound_sync();

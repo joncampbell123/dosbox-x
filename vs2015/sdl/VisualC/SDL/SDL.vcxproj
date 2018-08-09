@@ -194,6 +194,7 @@
       <StringPooling>false</StringPooling>
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
+      <AdditionalOptions>$(SDL1AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -212,6 +213,7 @@
     </Link>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|Win32'">
@@ -259,6 +261,7 @@
     </Link>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -288,6 +291,7 @@
       <StringPooling>false</StringPooling>
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
+      <AdditionalOptions>$(SDL1AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -381,6 +385,7 @@
       <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
+      <AdditionalOptions>$(SDL1AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -397,6 +402,7 @@
     </Link>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'">
@@ -441,6 +447,7 @@
     </Link>
     <Lib>
       <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+      <TargetMachine>MachineX86</TargetMachine>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -469,6 +476,7 @@
       <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
+      <AdditionalOptions>$(SDL1AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -554,6 +562,7 @@
     <ClCompile Include="..\..\src\file\SDL_rwops.c" />
     <ClCompile Include="..\..\src\joystick\SDL_joystick.c" />
     <ClCompile Include="..\..\src\joystick\win32\SDL_mmjoystick.c" />
+    <ClCompile Include="..\..\src\joystick\win32\SDL_xinputjoystick.c" />
     <ClCompile Include="..\..\src\loadso\win32\SDL_sysloadso.c" />
     <ClCompile Include="..\..\src\SDL.c" />
     <ClCompile Include="..\..\src\SDL_error.c" />

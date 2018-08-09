@@ -76,14 +76,15 @@ class CDirect3D {
 private:
 
     // globals
-    HMODULE			mhmodDX9;
-    IDirect3D9*			pD3D9;
-    IDirect3DDevice9*		pD3DDevice9;
+    HMODULE			mhmodDX9 = NULL;
+    IDirect3D9*			pD3D9 = NULL;
+    IDirect3DDevice9*		pD3DDevice9 = NULL;
 
     D3DPRESENT_PARAMETERS 	d3dpp;			// Present parameters
     D3DLOCKED_RECT		d3dlr;			// Texture lock rectangle
 
     HWND hwnd;						// DOSBow window
+    DWORD dwX,dwY;					// X,Y position
     DWORD dwWidth, dwHeight;                            // DOSBox framebuffer size
     DWORD dwScaledWidth, dwScaledHeight;                // D3D backbuffer size
     const Bit16u* changedLines;
@@ -185,7 +186,7 @@ public:
     // function declarations
     HRESULT InitializeDX(HWND, bool);
     HRESULT LoadPixelShader(const char*, double, double, bool forced=false);
-    HRESULT Resize3DEnvironment(Bitu, Bitu, Bitu, Bitu, Bitu, Bitu, bool fullscreen=false);
+    HRESULT Resize3DEnvironment(Bitu, Bitu, Bitu, Bitu, Bitu, Bitu, Bitu, Bitu, bool fullscreen=false);
     bool LockTexture(Bit8u * & pixels,Bitu & pitch);
     bool UnlockTexture(const Bit16u *changed);
 
@@ -229,6 +230,9 @@ public:
 #endif
 
     }
+
+    void UpdateRectFromSDLSurface(int x,int y,int w,int h);
+    void UpdateRectToSDLSurface(int x,int y,int w,int h);
 
     bool getForceUpdate(void) {
 #if C_D3DSHADERS

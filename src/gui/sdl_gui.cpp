@@ -56,6 +56,7 @@ extern bool			MSG_Write(const char *);
 extern void			LoadMessageFile(const char * fname);
 extern void			GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
 
+#if !defined(C_SDL2)
 static int			cursor;
 static bool			running;
 static int			saved_bpp;
@@ -65,6 +66,7 @@ static bool			mousetoggle;
 static bool			shortcut=false;
 static SDL_Surface*		screenshot;
 static SDL_Surface*		background;
+#endif
 
 #if !defined(C_SDL2)
 /* Prepare screen for UI */
@@ -134,10 +136,10 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	}
 
     if (!fs) {
-        if (w < currentWindowWidth)
-            w = currentWindowWidth;
-        if (h < currentWindowHeight)
-            h = currentWindowHeight;
+        if (w < (int)currentWindowWidth)
+            w = (int)currentWindowWidth;
+        if (h < (int)currentWindowHeight)
+            h = (int)currentWindowHeight;
     }
 
 	old_unicode = SDL_EnableUNICODE(1);
@@ -318,6 +320,8 @@ public:
 	virtual bool prepare(std::string &buffer) = 0;
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        (void)arg;//UNUSED
 		std::string line;
 		if (prepare(line)) {
 			prop->SetValue(GUI::String(line));
@@ -572,6 +576,8 @@ public:
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        (void)arg;//UNUSED
 		if (arg == "OK") control->PrintConfig(name->getText());
 		close();
 		if(shortcut) running=false;
@@ -592,39 +598,76 @@ public:
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
 		if (arg == "OK") MSG_Write(name->getText());
 		close();
 		if(shortcut) running=false;
 	}
 };
 
+// override Input field with one that responds to the Enter key as a keyboard-based cue to click "OK"
+class InputWithEnterKey : public GUI::Input {
+public:
+										InputWithEnterKey(Window *parent, int x, int y, int w, int h = 0) : GUI::Input(parent,x,y,w,h) { };
+public:
+	void								set_trigger_target(GUI::ToplevelWindow *_who) { trigger_who = _who; };
+protected:
+	GUI::ToplevelWindow*				trigger_who = NULL;
+public:
+	std::string							trigger_enter = "OK";
+	std::string							trigger_esc = "Cancel";
+public:
+	virtual bool						keyDown(const GUI::Key &key) {
+		if (key.special == GUI::Key::Special::Enter) {
+			if (trigger_who != NULL && !trigger_enter.empty())
+				trigger_who->actionExecuted(this, trigger_enter);
+
+			return true;
+		}
+		else if (key.special == GUI::Key::Special::Escape) {
+			if (trigger_who != NULL && !trigger_esc.empty())
+				trigger_who->actionExecuted(this, trigger_esc);
+
+			return true;
+		}
+		else {
+			return GUI::Input::keyDown(key);
+		}
+	}
+};
+
 class SetCycles : public GUI::ToplevelWindow {
 protected:
-	GUI::Input *name;
+	InputWithEnterKey *name;
 public:
 	SetCycles(GUI::Screen *parent, int x, int y, const char *title) :
 		ToplevelWindow(parent, x, y, 400, 150, title) {
 		new GUI::Label(this, 5, 10, "Enter CPU cycles:");
-		name = new GUI::Input(this, 5, 30, 350);
-	    std::ostringstream str;
+//		name = new GUI::Input(this, 5, 30, 350);
+		name = new InputWithEnterKey(this, 5, 30, 350);
+		name->set_trigger_target(this);
+		std::ostringstream str;
 		str << "fixed " << CPU_CycleMax;
 
 		std::string cycles=str.str();
 		name->setText(cycles.c_str());
 		(new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
 		(new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
+
+		name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
+		this->raise(); /* make sure THIS WINDOW has the keyboard focus */
+
+		name->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
 		if (arg == "OK") {
 			Section* sec = control->GetSection("cpu");
 			if (sec) {
 				std::string tmp("cycles=");
-				const char* well = name->getText();
-				std::string s(well, 20);
-				tmp.append(s);
+				tmp.append((const char*)(name->getText()));
 				sec->HandleInputline(tmp);
-				delete well;
 			}
 		}
 		close();
@@ -650,6 +693,7 @@ public:
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
 		Section_prop * sec = static_cast<Section_prop *>(control->GetSection("vsync"));
 		if (arg == "OK") {
 			if (sec) {
@@ -685,6 +729,7 @@ public:
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
 		if (arg == "OK") {
 			extern unsigned int hdd_defsize;
 			int human_readable = atoi(name->getText());
@@ -704,9 +749,9 @@ public:
 class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
 	ConfigurationWindow(GUI::Screen *parent, GUI::Size x, GUI::Size y, GUI::String title) :
-		GUI::ToplevelWindow(parent, x, y, 470, 380, title) {
+		GUI::ToplevelWindow(parent, x, y, 580, 380, title) {
 
-		(new GUI::Button(this, 185, 305, "Close", 80))->addActionHandler(this);
+		(new GUI::Button(this, 240, 305, "Close", 80))->addActionHandler(this);
 
 		GUI::Menubar *bar = new GUI::Menubar(this, 0, 0, getWidth());
 		bar->addMenu("Configuration");
@@ -819,7 +864,6 @@ static void UI_Execute(GUI::ScreenSDL *screen) {
 	}
 }
 
-#ifdef WIN32
 static void UI_Select(GUI::ScreenSDL *screen, int select) {
 	SDL_Surface *sdlscreen = NULL;
 	Section_line *section2 = NULL;
@@ -940,7 +984,10 @@ void GUI_Shortcut(int select) {
         return;
     }
 
+#ifdef WIN32
 	if(menu.maxwindow) ShowWindow(GetHWND(), SW_RESTORE);
+#endif
+
 	shortcut=true;
 	GUI::ScreenSDL *screen = UI_Startup(NULL);
 	UI_Select(screen,select);
@@ -948,7 +995,6 @@ void GUI_Shortcut(int select) {
 	shortcut=false;
 	delete screen;
 }
-#endif
 
 void GUI_Run(bool pressed) {
 	if (pressed || running) return;

@@ -20,6 +20,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #if (HAVE_D3D9_H) && (C_D3DSHADERS) && defined(WIN32)
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
+
 #include "ScalingEffect.h"
 
 ScalingEffect::ScalingEffect(LPDIRECT3DDEVICE9 pd3dDevice) :
@@ -320,11 +324,11 @@ HRESULT ScalingEffect::ParseParameters(LPD3DXEFFECTCOMPILER lpEffectCompiler)
 				0, &pTextureShader, &lpErrors, NULL))) {
 		SAFE_RELEASE(lpErrors);
 
-		if(Width == D3DX_DEFAULT)
+		if((UINT)Width == D3DX_DEFAULT)
                     Width = 64;
-		if(Height == D3DX_DEFAULT)
+		if((UINT)Height == D3DX_DEFAULT)
                     Height = 64;
-		if(Depth == D3DX_DEFAULT)
+		if((UINT)Depth == D3DX_DEFAULT)
                     Depth = 64;
 
 #if D3DX_SDK_VERSION >= 22
@@ -449,8 +453,8 @@ HRESULT ScalingEffect::SetTextures(LPDIRECT3DTEXTURE9 lpSource, LPDIRECT3DTEXTUR
 	fDims[1] = (FLOAT) Desc.Height;
     }
 
-    fTexelSize[0] = 1.0/fDims[0];
-    fTexelSize[1] = 1.0/fDims[1];
+    fTexelSize[0] = (FLOAT)(1.0/fDims[0]);
+    fTexelSize[1] = (FLOAT)(1.0/fDims[1]);
 
     if(m_SourceDimsEffectHandle) {
 	hr = m_pEffect->SetVector(m_SourceDimsEffectHandle, &fDims);

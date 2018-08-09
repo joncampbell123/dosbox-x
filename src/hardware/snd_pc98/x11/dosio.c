@@ -8,8 +8,8 @@
 #include "dosio.h"
 
 
-static OEMCHAR curpath[MAX_PATH];
-static OEMCHAR *curfilep = curpath;
+//static OEMCHAR curpath[MAX_PATH];
+//static OEMCHAR *curfilep = curpath;
 
 #define ISKANJI(c)	((((c) - 0xa1) & 0xff) < 0x5c)
 
@@ -436,7 +436,7 @@ file_cutseparator(OEMCHAR *path)
 {
 	int pos;
 
-	pos = strlen(path) - 1;
+	pos = (int)strlen(path) - 1;
 	if ((pos > 0) && (path[pos] == _G_DIR_SEPARATOR)) {
 		path[pos] = '\0';
 	}
@@ -447,7 +447,7 @@ file_setseparator(OEMCHAR *path, int maxlen)
 {
 	int pos;
 
-	pos = strlen(path);
+	pos = (int)strlen(path);
 	if ((pos) && (path[pos-1] != _G_DIR_SEPARATOR) && ((pos + 2) < maxlen)) {
 		path[pos++] = _G_DIR_SEPARATOR;
 		path[pos] = '\0';

@@ -1,4 +1,3 @@
-#define	IDR_MENU	101
 #define	dosbox_ico	102
 #define	ID_OPENFILE	103
 #define	ID_KEYMAP	104

@@ -26,6 +26,10 @@
 
 using namespace std;
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
+
 #include <map>
 
 #include "np2glue.h"
@@ -33,6 +37,9 @@ using namespace std;
 MixerChannel *pc98_mixer = NULL;
 
 NP2CFG pccore;
+
+extern unsigned char pc98_mem_msw_m[8];
+bool pc98_soundbios_enabled = false;
 
 extern "C" unsigned char *CGetMemBase() {
     return MemBase;
@@ -111,12 +118,14 @@ struct CBUS4PORT {
 static std::map<UINT,CBUS4PORT> cbuscore_map;
 
 void pc98_fm86_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
     auto &cbusm = cbuscore_map[port];
     auto &func = cbusm.out;
     if (func) func(port,val);
 }
 
 Bitu pc98_fm86_read(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
     auto &cbusm = cbuscore_map[port];
     auto &func = cbusm.inp;
     if (func) return func(port);
@@ -154,10 +163,12 @@ void fmport_a(NEVENTITEM item);
 void fmport_b(NEVENTITEM item);
 
 static void fmport_a_pic_event(Bitu val) {
+    (void)val;//UNUSED
     fmport_a(NULL);
 }
 
 static void fmport_b_pic_event(Bitu val) {
+    (void)val;//UNUSED
     fmport_b(NULL);
 }
 
@@ -212,6 +223,7 @@ extern "C" {
 UINT8 fmtimer_irq2index(const UINT8 irq);
 UINT8 fmtimer_index2irq(const UINT8 index);
 void fmboard_on_reset();
+void rhythm_deinitialize(void);
 }
 
 UINT8 board86_encodeirqidx(const unsigned char idx) {
@@ -225,7 +237,29 @@ UINT8 board26k_encodeirqidx(const unsigned char idx) {
     return  (idx << 6);
 }
 
+void PC98_FM_Destroy(Section *sec) {
+    (void)sec;//UNUSED
+    if (pc98fm_init) {
+        rhythm_deinitialize();
+    }
+
+    if (pc98_mixer) {
+        MIXER_DelChannel(pc98_mixer);
+        pc98_mixer = NULL;
+    }
+}
+
+void pc98_set_msw4_soundbios(void)
+{
+    /* Set MSW4 bit 3 for sound BIOS. */
+    if(pc98_soundbios_enabled)
+        pc98_mem_msw_m[3/*MSW4*/] |= 0x8;
+    else
+        pc98_mem_msw_m[3/*MSW4*/] &= ~((unsigned char)0x8);
+}
+
 void PC98_FM_OnEnterPC98(Section *sec) {
+    (void)sec;//UNUSED
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
     bool was_pc98fm_init = pc98fm_init;
 
@@ -236,10 +270,20 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         int irq;
 
         board = section->Get_string("pc-98 fm board");
-        if (board == "off" || board == "false") return;
+        if (board == "off" || board == "false") {
+            /* Don't enable Sound BIOS if sound board itself is disabled. */
+            pc98_soundbios_enabled = false;
+            pc98_set_msw4_soundbios();
+            return;		
+        }
 
         irq = section->Get_int("pc-98 fm board irq");
         baseio = section->Get_hex("pc-98 fm board io port");
+
+        pc98_soundbios_enabled = section->Get_bool("pc-98 sound bios");
+        pc98_set_msw4_soundbios();
+        /* TODO: Load SOUND.ROM to CC000h - CFFFFh when Sound BIOS is enabled? 
+		 * Or simulate Sound BIOS calls ourselves? */
 
         /* Manual testing shows PC-98 games like it when the board is on IRQ 12 */
         if (irq == 0) irq = 12;

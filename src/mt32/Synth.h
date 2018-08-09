@@ -229,8 +229,8 @@ public:
 	virtual void process(const float *inLeft, const float *inRight, float *outLeft, float *outRight, unsigned long numSamples) = 0;
 	virtual bool isActive() const = 0;
 	
-	virtual void saveState( std::ostream &stream ) {}
-	virtual void loadState( std::istream &stream ) {}
+	virtual void saveState( std::ostream &stream ) { (void)stream; }
+	virtual void loadState( std::istream &stream ) { (void)stream; }
 };
 
 class ReportHandler {
@@ -437,7 +437,7 @@ public:
 	const Partial *getPartial(unsigned int partialNum) const;
 
 	void setPartialLimit( unsigned int partialLimit );
-	const unsigned int getPartialLimit() const;
+	unsigned int getPartialLimit() const;
 	
 	void readMemory(Bit32u addr, Bit32u len, Bit8u *data);
 

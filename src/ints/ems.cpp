@@ -59,9 +59,9 @@ Bitu GetEMSPageFrameSegment(void) {
     return EMM_PAGEFRAME;
 }
 
-#define	EMM_MAX_HANDLES	200				/* 255 Max */
-#define EMM_PAGE_SIZE	(16*1024U)
-#define EMM_MAX_PHYS	4				/* 4 16kb pages in pageframe */
+#define	EMM_MAX_HANDLES	200U			/* 255 Max */
+#define EMM_PAGE_SIZE	(16U*1024U)
+#define EMM_MAX_PHYS	4U				/* 4 16kb pages in pageframe */
 
 Bitu GetEMSPageFrameSize(void) {
     return EMM_MAX_PHYS * EMM_PAGE_SIZE;
@@ -192,7 +192,7 @@ public:
 		GEMMIS_seg=0;
 	}
 	bool Read(Bit8u * /*data*/,Bit16u * /*size*/) { return false;}
-	bool Write(Bit8u * /*data*/,Bit16u * /*size*/){ 
+	bool Write(const Bit8u * /*data*/,Bit16u * /*size*/){ 
 		LOG(LOG_IOCTL,LOG_NORMAL)("EMS:Write to device");	
 		return false;
 	}
@@ -202,7 +202,7 @@ public:
 	bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode);
 	bool WriteToControlChannel(PhysPt /*bufptr*/,Bit16u /*size*/,Bit16u * /*retcode*/){return true;}
 private:
-	Bit8u cache;
+//	Bit8u cache;
 	bool is_emm386;
 };
 
@@ -227,7 +227,7 @@ bool device_EMM::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retco
 			mem_writed(GEMMIS_addr+0x06,0);					// reserved
 
 			/* build non-EMS frames (0-0xe000) */
-			for (Bitu frct=0; frct<EMM_PAGEFRAME4K/4; frct++) {
+			for (Bitu frct=0; frct<(unsigned int)EMM_PAGEFRAME4K/4U; frct++) {
 				mem_writeb(GEMMIS_addr+0x0a+frct*6,0x00);	// frame type: NONE
 				mem_writeb(GEMMIS_addr+0x0b+frct*6,0xff);	// owner: NONE
 				mem_writew(GEMMIS_addr+0x0c+frct*6,0xffff);	// non-EMS frame
@@ -235,7 +235,7 @@ bool device_EMM::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retco
 				mem_writeb(GEMMIS_addr+0x0f+frct*6,0xaa);	// flags: direct mapping
 			}
 			/* build EMS page frame (0xe000-0xf000) */
-			for (Bitu frct=0; frct<0x10/4; frct++) {
+			for (Bitu frct=0; frct<0x10U/4U; frct++) {
 				Bitu frnr=(frct+EMM_PAGEFRAME4K/4)*6;
 				mem_writeb(GEMMIS_addr+0x0a+frnr,0x03);		// frame type: EMS frame in 64k page
 				mem_writeb(GEMMIS_addr+0x0b+frnr,0xff);		// owner: NONE
@@ -475,12 +475,12 @@ static Bit8u EMM_MapSegment(Bitu segment,Bit16u handle,Bit16u log_page) {
 	bool valid_segment=false;
 
 	if ((ems_type == EMS_MIXED) || (ems_type == EMS_EMM386)) {
-		if (segment<0xf000+0x1000) valid_segment=true;
+		if (segment<0xf000U+0x1000U) valid_segment=true;
 	} else {
-		if ((segment>=0xa000) && (segment<0xb000)) {
+		if ((segment>=0xa000U) && (segment<0xb000U)) {
 			valid_segment=true;		// allow mapping of graphics memory
 		}
-		if ((segment>=EMM_PAGEFRAME) && (segment<EMM_PAGEFRAME+0x1000)) {
+		if ((segment>=EMM_PAGEFRAME) && (segment<EMM_PAGEFRAME+0x1000U)) {
 			valid_segment=true;		// allow mapping of EMS page frame
 		}
 /*		if ((segment>=EMM_PAGEFRAME-0x1000) && (segment<EMM_PAGEFRAME)) {
@@ -494,7 +494,7 @@ static Bit8u EMM_MapSegment(Bitu segment,Bit16u handle,Bit16u log_page) {
 		/* unmapping doesn't need valid handle (as handle isn't used) */
 		if (log_page==NULL_PAGE) {
 			/* Unmapping */
-			if ((tphysPage>=0) && (tphysPage<EMM_MAX_PHYS)) {
+			if ((tphysPage>=0) && ((Bit32u)tphysPage<EMM_MAX_PHYS)) {
 				emm_mappings[tphysPage].handle=NULL_HANDLE;
 				emm_mappings[tphysPage].page=NULL_PAGE;
 			} else {
@@ -511,7 +511,7 @@ static Bit8u EMM_MapSegment(Bitu segment,Bit16u handle,Bit16u log_page) {
 		
 		if (log_page<emm_handles[handle].pages) {
 			/* Mapping it is */
-			if ((tphysPage>=0) && (tphysPage<EMM_MAX_PHYS)) {
+			if ((tphysPage>=0) && ((Bit32u)tphysPage<EMM_MAX_PHYS)) {
 				emm_mappings[tphysPage].handle=handle;
 				emm_mappings[tphysPage].page=log_page;
 			} else {
@@ -578,7 +578,7 @@ static Bit8u EMM_RestoreMappingTable(void) {
 	/* Move through the mappings table and setup mapping accordingly */
 	for (Bitu i=0;i<0x40;i++) {
 		/* Skip the pageframe */
-		if ((i>=EMM_PAGEFRAME/0x400) && (i<(EMM_PAGEFRAME/0x400)+EMM_MAX_PHYS)) continue;
+		if ((i>=(unsigned int)EMM_PAGEFRAME/0x400U) && (i<((unsigned int)EMM_PAGEFRAME/0x400U)+(unsigned int)EMM_MAX_PHYS)) continue;
 		EMM_MapSegment(i<<10,emm_segmentmappings[i].handle,emm_segmentmappings[i].page);
 	}
 	for (Bitu i=0;i<EMM_MAX_PHYS;i++) {
@@ -1219,6 +1219,7 @@ bool vcpi_virtual_a20 = true;
 
 /* if we handle the read, we're expected to write over AL/AX */
 bool VCPI_trapio_r(uint16_t port,unsigned int sz) {
+    (void)sz;//UNUSED
 	switch (port) {
 		case 0x92:
 			reg_al = vcpi_virtual_a20?0x02:0x00;
@@ -1229,6 +1230,7 @@ bool VCPI_trapio_r(uint16_t port,unsigned int sz) {
 }
 
 bool VCPI_trapio_w(uint16_t port,uint32_t data,unsigned int sz) {
+    (void)sz;//UNUSED
 	switch (port) {
 		case 0x92:
 			vcpi_virtual_a20 = (data & 2) ? true : false;
@@ -1519,7 +1521,7 @@ private:
 	Bit16u ems_baseseg;
 	DOS_Device * emm_device;
 	unsigned int oshandle_memsize_16kb;
-	RealPt old4b_pointer,old67_pointer;
+	RealPt /*old4b_pointer,*/old67_pointer;
 	CALLBACK_HandlerObject call_vdma,call_vcpi,call_v86mon;
 
 public:
@@ -1823,6 +1825,7 @@ void EMS_ShutDown(Section* /*sec*/) {
 }
 
 void EMS_Startup(Section* sec) {
+    (void)sec;//UNUSED
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating EMS emulation");
 		test = new EMS(control->GetSection("dos"));

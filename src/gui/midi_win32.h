@@ -200,7 +200,7 @@ public:
 
 	void Reset()
 	{
-		Bit8u buf[64], used;
+		Bit8u buf[64];
 
 		// flush buffers
 		midiOutReset(m_out);

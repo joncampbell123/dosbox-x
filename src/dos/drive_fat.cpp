@@ -44,7 +44,7 @@ class fatFile : public DOS_File {
 public:
 	fatFile(const char* name, Bit32u startCluster, Bit32u fileLen, fatDrive *useDrive);
 	bool Read(Bit8u * data,Bit16u * size);
-	bool Write(Bit8u * data,Bit16u * size);
+	bool Write(const Bit8u * data,Bit16u * size);
 	bool Seek(Bit32u * pos,Bit32u type);
 	bool Close();
 	Bit16u GetInformation(void);
@@ -64,8 +64,10 @@ public:
 	bool loadedSector;
 	fatDrive *myDrive;
 private:
-	enum { NONE,READ,WRITE } last_action;
+#if 0/*unused*/
+    enum { NONE,READ,WRITE } last_action;
 	Bit16u info;
+#endif
 };
 
 
@@ -158,7 +160,7 @@ bool fatFile::Read(Bit8u * data, Bit16u *size) {
 	return true;
 }
 
-bool fatFile::Write(Bit8u * data, Bit16u *size) {
+bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 	/* TODO: Check for read-only bit */
 
 	if ((this->flags & 0xf) == OPEN_READ) {	// check if file opened in read-only mode
@@ -397,7 +399,7 @@ void fatDrive::setClusterValue(Bit32u clustNum, Bit32u clustValue) {
 	for(int fc=0;fc<bootbuffer.fatcopies;fc++) {
 		Write_AbsoluteSector(fatsectnum + (fc * bootbuffer.sectorsperfat), &fatSectBuffer[0]);
 		if (fattype==FAT12) {
-			if (fatentoff >= (bootbuffer.bytespersector-1))
+			if (fatentoff >= (bootbuffer.bytespersector-1U))
 				Write_AbsoluteSector(fatsectnum+1+(fc * bootbuffer.sectorsperfat), &fatSectBuffer[bootbuffer.bytespersector]);
 		}
 	}
@@ -705,7 +707,14 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         assert(sizeof(bootbuffer.bootcode) >= 256);
         fread(bootbuffer.bootcode,256,1,diskfile); // look for magic signatures
 
-        if (!memcmp(bootbuffer.bootcode,"VFD1.",5)) { /* FDD files */
+        const char *ext = strrchr(sysFilename,'.');
+
+        if (ext != NULL && !strcasecmp(ext, ".d88")) {
+            fseeko64(diskfile, 0L, SEEK_END);
+            filesize = (Bit32u)(ftello64(diskfile) / 1024L);
+            loadedDisk = new imageDiskD88(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
+        }
+        else if (!memcmp(bootbuffer.bootcode,"VFD1.",5)) { /* FDD files */
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (Bit32u)(ftello64(diskfile) / 1024L);
             loadedDisk = new imageDiskVFD(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
@@ -907,6 +916,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 		partSectOff = 0;
 
         if (loadedDisk->heads == 0 || loadedDisk->sectors == 0 || loadedDisk->cylinders == 0) {
+            created_successfully = false;
             LOG_MSG("No geometry");
             return;
         }
@@ -1007,6 +1017,8 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
         if ((bootbuffer.magic1 != 0x55) || (bootbuffer.magic2 != 0xaa)) {
             /* Not a FAT filesystem */
             LOG_MSG("Loaded image has no valid magicnumbers at the end!");
+            created_successfully = false;
+            return;
         }
     }
 
@@ -1282,8 +1294,8 @@ bool fatDrive::FindNextInternal(Bit32u dirClustNumber, DOS_DTA &dta, direntry *f
 	dirPos = dta.GetDirID();
 
 nextfile:
-	logentsector = dirPos / dirent_per_sector;
-	entryoffset = dirPos % dirent_per_sector;
+	logentsector = (Bit32u)((size_t)dirPos / dirent_per_sector);
+	entryoffset = (Bit32u)((size_t)dirPos % dirent_per_sector);
 
 	if(dirClustNumber==0) {
 		if(dirPos >= bootbuffer.rootdirentries) {
@@ -1391,14 +1403,15 @@ bool fatDrive::directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s
 	Bit32u tmpsector;
 	Bit16u dirPos = 0;
 
+    (void)start;//UNUSED
+
     size_t dirent_per_sector = getSectSize() / sizeof(direntry);
     assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
     assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
 	while(entNum>=0) {
-
-		logentsector = dirPos / dirent_per_sector;
-		entryoffset = dirPos % dirent_per_sector;
+		logentsector = ((Bit32u)((size_t)dirPos / dirent_per_sector));
+		entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector));
 
 		if(dirClustNumber==0) {
 			if(dirPos >= bootbuffer.rootdirentries) return false;
@@ -1433,10 +1446,9 @@ bool fatDrive::directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s
     assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
     assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
-	while(entNum>=0) {
-		
-		logentsector = dirPos / dirent_per_sector;
-		entryoffset = dirPos % dirent_per_sector;
+	while(entNum>=0) {		
+		logentsector = ((Bit32u)((size_t)dirPos / dirent_per_sector));
+		entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector));
 
 		if(dirClustNumber==0) {
 			if(dirPos >= bootbuffer.rootdirentries) return false;
@@ -1475,10 +1487,9 @@ bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, direntry useEntry) {
     assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
     assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
-	for(;;) {
-		
-		logentsector = dirPos / dirent_per_sector;
-		entryoffset = dirPos % dirent_per_sector;
+	for(;;) {		
+		logentsector = ((Bit32u)((size_t)dirPos / dirent_per_sector));
+		entryoffset = ((Bit32u)((size_t)dirPos % dirent_per_sector));
 
 		if(dirClustNumber==0) {
 			if(dirPos >= bootbuffer.rootdirentries) return false;

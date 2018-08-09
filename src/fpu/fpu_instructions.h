@@ -442,7 +442,7 @@ static void FPU_FST(Bitu st, Bitu other){
 	fpu.regs[other] = fpu.regs[st];
 }
 
-static void FPU_FCMOV(Bitu st, Bitu other){
+static inline void FPU_FCMOV(Bitu st, Bitu other){
 	fpu.regs_80[st] = fpu.regs_80[other];
 	fpu.use80[st] = fpu.use80[other];
 	fpu.tags[st] = fpu.tags[other];
@@ -497,7 +497,7 @@ static void FPU_FUCOMI(Bitu st, Bitu other){
 	SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
 }
 
-static void FPU_FCOMI(Bitu st, Bitu other){
+static inline void FPU_FCOMI(Bitu st, Bitu other){
 	FPU_FUCOMI(st,other);
 
 	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 

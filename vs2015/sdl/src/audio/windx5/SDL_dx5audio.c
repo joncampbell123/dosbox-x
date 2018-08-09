@@ -21,6 +21,10 @@
 */
 #include "SDL_config.h"
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4996) /* Nobody cares that GetVersionExA() is deprecated */
+#endif
+
 /* Allow access to a raw mixing buffer */
 
 #include "SDL_timer.h"

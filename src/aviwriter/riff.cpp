@@ -19,7 +19,7 @@ int riff_std_read(void *a,void *b,size_t c) {
 	rs = (riff_stack*)a;
 	if (rs->fd < 0) return -1;
 	if (rs->trk_file_pointer < (int64_t)0) return -1;
-	rd = (int)read(rs->fd,b,c);
+	rd = (int)read(rs->fd,b,(unsigned int)c);
 
 	if (rd < 0) rs->trk_file_pointer = -1LL;
 	else rs->trk_file_pointer += rd;
@@ -34,7 +34,7 @@ int riff_std_write(void *a,const void *b,size_t c) {
 	rs = (riff_stack*)a;
 	if (rs->fd < 0) return -1;
 	if (rs->trk_file_pointer < (int64_t)0) return -1;
-	rd = (int)write(rs->fd,b,c);
+	rd = (int)write(rs->fd,b,(unsigned int)c);
 
 	if (rd < 0) rs->trk_file_pointer = -1LL;
 	else rs->trk_file_pointer += rd;
@@ -46,7 +46,11 @@ int64_t riff_std_seek(void *a,int64_t offset) {
 	riff_stack *rs = (riff_stack*)a;
 	if (rs->fd < 0) return -1;
 	if (!rs->always_lseek && offset == rs->trk_file_pointer) return offset;
-	rs->trk_file_pointer = lseek(rs->fd,offset,SEEK_SET);
+#if defined(_MSC_VER)
+	rs->trk_file_pointer = _lseeki64(rs->fd, offset, SEEK_SET);
+#else
+	rs->trk_file_pointer = lseek(rs->fd, offset, SEEK_SET);
+#endif
 	return rs->trk_file_pointer;
 }
 
@@ -54,7 +58,7 @@ int riff_buf_read(void *a,void *b,size_t c) {
 	riff_stack *rs = (riff_stack*)a;
 	if (rs->buffer == NULL) return -1;
 	if (rs->bufofs >= rs->buflen) return 0;
-	if ((rs->bufofs+c) > rs->buflen) c = (int)(rs->buflen - rs->bufofs);
+	if ((rs->bufofs+c) > rs->buflen) c = (size_t)(rs->buflen - rs->bufofs);
 	memcpy(b,(char*)rs->buffer+rs->bufofs,c);
 	rs->bufofs += (size_t)c;
 	return (int)c;
@@ -64,7 +68,7 @@ int riff_buf_write(void *a,const void *b,size_t c) {
 	riff_stack *rs = (riff_stack*)a;
 	if (rs->buffer == NULL) return -1;
 	if (rs->bufofs >= rs->buflen) return 0;
-	if ((rs->bufofs+c) > rs->buflen) c = (int)(rs->buflen - rs->bufofs);
+	if ((rs->bufofs+c) > rs->buflen) c = (size_t)(rs->buflen - rs->bufofs);
 	memcpy((char*)rs->buffer+rs->bufofs,b,c);
 	rs->bufofs += (size_t)c;
 	return (int)c;
@@ -76,7 +80,7 @@ int64_t riff_buf_seek(void *a,int64_t offset) {
 	if (offset < 0LL) offset = 0LL;
 	else if (offset > (int64_t)(rs->buflen)) offset = (int64_t)(rs->buflen);
 	rs->bufofs = (size_t)offset;
-	return rs->bufofs;
+	return (int64_t)rs->bufofs;
 }
 
 /* NTS: By design, this code focuses only on closing the file descriptor.
@@ -136,12 +140,12 @@ riff_stack *riff_stack_create(int depth) {
 	s->fd = -1;
 	s->current = -1;
 	s->depth = depth;
-	s->stack = (riff_chunk*)malloc(sizeof(riff_chunk)*depth);
+	s->stack = (riff_chunk*)malloc(sizeof(riff_chunk)*(unsigned int)depth);
 	if (!s->stack) {
 		free(s);
 		return NULL;
 	}
-	memset(s->stack,0,sizeof(riff_chunk)*depth);
+	memset(s->stack,0,sizeof(riff_chunk)*(unsigned int)depth);
 	return s;
 }
 
@@ -283,11 +287,11 @@ int riff_stack_streamwrite(riff_stack *s,riff_chunk *c,const void *buf,size_t le
 			return -1;
 
 		/* AVI chunks are limited to 2GB or less */
-		if ((c->write_offset+len) >= 0x80000000LL)
+		if (((unsigned long long)c->write_offset+len) >= 0x80000000ULL)
 			return -1;
 
 		/* assume the write will complete and setup pointers now */
-		c->read_offset = c->write_offset = len;
+		c->read_offset = c->write_offset = (int64_t)len;
 		c->data_length = (uint32_t)c->write_offset;
 		c->absolute_data_length = (c->data_length + 1UL) & (~1UL);
 
@@ -330,7 +334,7 @@ int riff_stack_streamwrite(riff_stack *s,riff_chunk *c,const void *buf,size_t le
 		abort(); /* TODO */
 	}
 
-	return len;
+	return (int)len;
 }
 
 int riff_stack_write(riff_stack *s,riff_chunk *c,const void *buf,size_t len) {
@@ -346,7 +350,7 @@ int riff_stack_write(riff_stack *s,riff_chunk *c,const void *buf,size_t len) {
 			return -1;
 
 		/* AVI chunks are limited to 2GB or less */
-		if ((c->write_offset+len) >= 0x80000000LL)
+		if (((unsigned long long)c->write_offset+len) >= 0x80000000ULL)
 			return -1;
 
 		if (s->seek(s,c->absolute_data_offset+c->write_offset) !=
@@ -372,7 +376,7 @@ int riff_stack_read(riff_stack *s,riff_chunk *c,void *buf,size_t len) {
 	if (c) {
 		int64_t rem = c->data_length - c->read_offset;
 		if (rem > (int64_t)len) rem = (int64_t)len;
-		len = (int)rem;
+		len = (size_t)rem;
 		if (len <= 0) return 0;
 		if (c->absolute_data_offset == ((int64_t)(-1))) return 0;
 		if (s->seek(s,c->absolute_data_offset+c->read_offset) != (c->absolute_data_offset+c->read_offset)) return 0;
@@ -475,7 +479,7 @@ int riff_stack_readchunk(riff_stack *s,riff_chunk *pc,riff_chunk *c) {
 	c->list_fourcc = (riff_fourcc_t)(0UL);
 	c->fourcc = __le_u32(buf+0);
 	c->data_length = __le_u32(buf+4); /* <-- NOTE this is why AVI files have a 2GB limit */
-	c->absolute_data_length = (c->data_length + 1) & (~1); /* <-- RIFF chunks are WORD aligned */
+	c->absolute_data_length = (c->data_length + 1ULL) & (~1ULL); /* <-- RIFF chunks are WORD aligned */
 	c->absolute_offset_next_chunk = c->absolute_data_offset + c->absolute_data_length;
 
 	/* consider it the end of the chunks if we read in a NULL fourcc, and mark EOF */
@@ -593,9 +597,9 @@ int riff_stack_eof(riff_stack *r) {
 }
 
 void riff_chunk_improvise(riff_chunk *c,uint64_t ofs,uint32_t size) {
-	c->absolute_header_offset = ofs;
-	c->absolute_data_offset = ofs;
-	c->absolute_offset_next_chunk = ofs + size;
+	c->absolute_header_offset = (int64_t)ofs;
+	c->absolute_data_offset = (int64_t)ofs;
+	c->absolute_offset_next_chunk = (int64_t)(ofs + size);
 	c->fourcc = 0U;
 	c->data_length = size;
 	c->absolute_data_length = size;
@@ -768,10 +772,10 @@ int riff_stack_chunk_limit(riff_stack *s,int len) {
 	highest = riff_stack_top(s);
 	assert(highest != NULL);
 	assert(highest->absolute_data_offset >= (int64_t)0);
-	base = lowest->absolute_data_offset;
+	base = (unsigned long long)lowest->absolute_data_offset;
 
 	for (;highest >= lowest;highest--) {
-		signed long long rel = (signed long long)(highest->absolute_data_offset - base);
+		signed long long rel = (signed long long)((unsigned long long)highest->absolute_data_offset - base);
 		/* subchunks should not be all over the place---sanity check! */
 		assert(rel >= 0);
 

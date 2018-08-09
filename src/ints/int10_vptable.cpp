@@ -76,6 +76,7 @@ const Bit8u vparams_tandy[] = {
 	0x2c, 0x28, 0x2d, 0x29, 0x2a, 0x2e, 0x1e, 0x29
 };
 
+#if 0//unused
 const Bit8u vparams_tandy_td[] = {
 	// 40x25 mode 0 and 1 crtc registers
 	0x38, 0x28, 0x2d, 0x0a, 0x1f, 0x06, 0x19, 0x1c, 0x02, 0x07, 0x06, 0x07, 0,0,0,0,
@@ -94,6 +95,7 @@ const Bit8u vparams_tandy_td[] = {
 	// CGA mode register
 	0x2c, 0x28, 0x2d, 0x29, 0x2a, 0x2e, 0x1e, 0x29
 };
+#endif
 
 
 static Bit8u video_parameter_table_vga[0x40*0x1d]={
@@ -561,11 +563,11 @@ void INT10_SetupBasicVideoParameterTable(void) {
 		if (rom_bios_vptable_enable) {
 			/* TODO: Free previous block */
 
-			BIOS_VIDEO_TABLE_SIZE = copy_sz;
+			BIOS_VIDEO_TABLE_SIZE = (Bitu)copy_sz;
 			if (mainline_compatible_bios_mapping)
 				BIOS_VIDEO_TABLE_LOCATION = RealMake(0xf000,0xf0a4);
 			else
-				BIOS_VIDEO_TABLE_LOCATION = PhysToReal416(ROMBIOS_GetMemory(copy_sz,"BIOS video table (INT 1Dh)")); /* TODO: make option */
+				BIOS_VIDEO_TABLE_LOCATION = (Bitu)PhysToReal416(ROMBIOS_GetMemory((Bitu)copy_sz,"BIOS video table (INT 1Dh)")); /* TODO: make option */
 
 			/* NTS: Failure to allocate means BIOS_VIDEO_TABLE_LOCATION == 0 */
 		}
@@ -579,7 +581,7 @@ void INT10_SetupBasicVideoParameterTable(void) {
 	if (ofs != 0) {
 		if (copy && copy_sz <= BIOS_VIDEO_TABLE_SIZE) {
 			for (size_t i=0;i < copy_sz;i++)
-				phys_writeb(ofs+i,copy[i]);
+				phys_writeb(ofs+(PhysPt)i,copy[i]);
 		}
 		else {
 			E_Exit("Somehow, INT 10 video param table too large");

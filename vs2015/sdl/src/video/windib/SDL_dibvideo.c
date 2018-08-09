@@ -510,6 +510,24 @@ static int DIB_SussScreenDepth()
 #endif /* NO_GETDIBITS */
 }
 
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
+extern volatile BOOL ParentWindowIsBeingResized;
+extern volatile RECT ParentWindowDeferredResizeRect;
+#endif
+
+unsigned char wants_topmost = 0;
+
+void sdl1_hax_set_topmost(unsigned char topmost) {
+	wants_topmost = topmost;
+
+	HWND top = wants_topmost ? HWND_TOPMOST : HWND_NOTOPMOST;
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
+	SetWindowPos(ParentWindowHWND, top, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
+#else
+	SetWindowPos(SDL_Window, top, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
+#endif
+}
+
 /* Various screen update functions available */
 static void DIB_NormalUpdate(_THIS, int numrects, SDL_Rect *rects);
 
@@ -569,16 +587,41 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 			x = y = -1;
 			swp_flags |= SWP_NOMOVE;
 		}
-		if ( flags & SDL_FULLSCREEN ) {
+		if ((flags & SDL_FULLSCREEN) || wants_topmost) {
 			top = HWND_TOPMOST;
 		} else {
 			top = HWND_NOTOPMOST;
 		}
 
+#if defined(SDL_WIN32_HX_DOS)
+		swp_flags |= SWP_NOSIZE;
+#endif
+
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
 		if (SDL_VideoSurface != NULL)
 			SetWindowPos(SDL_Window, HWND_TOP, 0, 0, SDL_VideoSurface->w, SDL_VideoSurface->h, SWP_NOACTIVATE | SWP_SHOWWINDOW);
 
+		/* Windows 10 has developed a strange deadlock that can happen if the user is resizing the parent window
+		   and we call SetWindowPos() to confirm the size here. Use SWP_NOMOVE just in case that's problematic too. */
+		if (ParentWindowIsBeingResized) {
+			/* record the window position/size to be applied when the user is finished resizing */
+			ParentWindowDeferredResizeRect.top = y;
+			ParentWindowDeferredResizeRect.left = x;
+			ParentWindowDeferredResizeRect.right = x + width;
+			ParentWindowDeferredResizeRect.bottom = y + height;
+			/* tell SetWindowPos() not to move or resize */
+			swp_flags |= SWP_NOSIZE | SWP_NOMOVE;
+		}
+
 		SetWindowPos(ParentWindowHWND, top, x, y, width, height, swp_flags);
+#else
+		SetWindowPos(SDL_Window, top, x, y, width, height, swp_flags);
+#endif
+
+#if defined(SDL_WIN32_HX_DOS)
+		ShowWindow(SDL_Window, SW_MAXIMIZE);
+#endif
+
 		if ( !(flags & SDL_FULLSCREEN) ) {
 			SDL_windowX = SDL_bounds.left;
 			SDL_windowY = SDL_bounds.top;

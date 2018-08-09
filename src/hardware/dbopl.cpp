@@ -635,7 +635,7 @@ Channel::Channel() {
 	feedback = 31;
 	fourMask = 0;
 	synthHandler = &Channel::BlockTemplate< sm2FM >;
-};
+}
 
 void Channel::SetChanData( const Chip* chip, Bit32u data ) {
 	Bit32u change = chanData ^ data;
@@ -786,7 +786,7 @@ void Channel::ResetC0( const Chip* chip ) {
 	Bit8u val = regC0;
 	regC0 ^= 0xff;
 	WriteC0( chip, val );
-};
+}
 
 template< bool opl3Mode>
 /*INLINE*/ void Channel::GeneratePercussion( Chip* chip, Bit32s* output ) {

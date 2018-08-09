@@ -19,6 +19,9 @@
 
 #include "qcow2_disk.h"
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
 
 using namespace std;
 
@@ -330,6 +333,7 @@ using namespace std;
 
 //Read a table entry at the given offset.
 	inline Bit8u QCow2Image::read_table(Bit64u entry_offset, Bit64u entry_mask, Bit64u& entry_value){
+        (void)entry_mask;//UNUSED
 		Bit64u buffer;
 		if (0 != read_allocated_data(entry_offset, (Bit8u*)&buffer, sizeof buffer)){
 			return 0x05;
@@ -450,6 +454,6 @@ using namespace std;
 
 
 //Public function to a write a sector.
-	Bit8u QCow2Disk::Write_AbsoluteSector(Bit32u sectnum, void* data){
+	Bit8u QCow2Disk::Write_AbsoluteSector(Bit32u sectnum,const void* data){
 		return qcowImage.write_sector(sectnum, (Bit8u*)data);
 	}

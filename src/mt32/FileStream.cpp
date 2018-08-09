@@ -47,7 +47,7 @@ size_t FileStream::getSize() {
 		return 0;
 	}
 	ifsp->seekg(0, ios_base::end);
-	fileSize = ifsp->tellg();
+	fileSize = (size_t)ifsp->tellg();
 	return fileSize;
 }
 

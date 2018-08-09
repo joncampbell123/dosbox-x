@@ -190,6 +190,7 @@ static void DISNEY_analyze(Bitu channel){
 }
 
 static void disney_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	//LOG_MSG("write disney time %f addr%x val %x",PIC_FullIndex(),port,val);
 	disney.last_used=PIC_Ticks;
 	switch (port-DISNEY_BASE) {
@@ -268,6 +269,7 @@ static void disney_write(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static Bitu disney_read(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
 	Bitu retval;
 	switch (port-DISNEY_BASE) {
 	case 0:		/* Data Port */
@@ -419,6 +421,7 @@ public:
 static DISNEY* test = NULL;
 
 static void DISNEY_ShutDown(Section* sec){
+    (void)sec;//UNUSED
     if (test) {
         delete test;
         test = NULL;

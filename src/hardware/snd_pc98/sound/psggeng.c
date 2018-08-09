@@ -10,7 +10,7 @@ extern	PSGGENCFG	psggencfg;
 
 void SOUNDCALL psggen_getpcm(PSGGEN psg, SINT32 *pcm, UINT count) {
 
-	SINT32	noisevol;
+//	SINT32	noisevol;
 	UINT8	mixer;
 	UINT	noisetbl = 0;
 	PSGTONE	*tone;
@@ -29,7 +29,7 @@ void SOUNDCALL psggen_getpcm(PSGGEN psg, SINT32 *pcm, UINT count) {
 		return;
 	}
 	do {
-		noisevol = 0;
+//		noisevol = 0;
 		if (psg->envcnt) {
 			psg->envcnt--;
 			if (psg->envcnt == 0) {

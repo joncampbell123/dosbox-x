@@ -37,6 +37,7 @@ static struct {
 } innova;
 
 static void innova_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if (!innova.last_used) {
 		innova.chan->Enable(true);
 	}
@@ -47,6 +48,7 @@ static void innova_write(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static Bitu innova_read(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
 	Bitu sidPort = port-innova.basePort;
 	return innova.sid->read(sidPort);
 }
@@ -114,6 +116,7 @@ public:
 static INNOVA* test = NULL;
 
 static void INNOVA_ShutDown(Section* sec){
+    (void)sec;//UNUSED
     if (test != NULL) {
         delete test;
         test = NULL;
@@ -121,6 +124,7 @@ static void INNOVA_ShutDown(Section* sec){
 }
 
 void INNOVA_OnReset(Section *sec) {
+    (void)sec;//UNUSED
 	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating Innova emulation");
 		test = new INNOVA(control->GetSection("innova"));
