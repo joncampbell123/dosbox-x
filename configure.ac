@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.82.7,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
+AC_INIT(dosbox-x,0.82.8,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README)
 
@@ -148,13 +148,25 @@ fi
 CFLAGS="$CFLAGS -std=gnu11";
 CXXFLAGS="$CXXFLAGS -std=gnu++0x";
 
-dnl Yksoft1 wants a MinGW build for Windows that doesn't use the Windows menu system.
+dnl yksoft1 wants a MinGW build for Windows that doesn't use the Windows menu system.
 AH_TEMPLATE(C_FORCE_MENU_SDLDRAW,[Define to 1 to force SDL-drawn menus])
 AC_ARG_ENABLE(force-menu-sdldraw,AC_HELP_STRING([--enable-force-menu-sdldraw],[Force SDL drawn menus]),enable_force_menu_sdldraw=yes)
 
 dnl This is how the build script can specify a HX DOS extender target
 AH_TEMPLATE(C_HX_DOS,[Define to 1 to target HX DOS])
 AC_ARG_ENABLE(hx-dos,AC_HELP_STRING([--enable-hx-dos],[Enable HX target]),enable_hx=yes)
+
+dnl Optimize for speed by default
+AC_ARG_ENABLE(optimize,AC_HELP_STRING([--disable-optimize],[Don't enable compiler optimizations]))
+
+dnl FIXME: Remove default "-O2" set by some autotools versions. TODO: check availability of sed.
+CFLAGS=["`echo $CFLAGS' ' | sed -e 's/-O[^ ]* //g'`"]
+CXXFLAGS=["`echo $CXXFLAGS' ' | sed -e 's/-O[^ ]* //g'`"]
+
+if test x$enable_optimize != xno; then
+	CFLAGS="$CFLAGS -O2"
+	CXXFLAGS="$CXXFLAGS -O2"
+fi
 
 dnl Some stuff for the icon.
 case "$host" in
@@ -494,6 +506,14 @@ if test x$host = xi386-pc-os2-emx ; then
   LIBS=$LIBS_BACKUP
 fi
 
+dnl FEATURE: xBRZ
+AH_TEMPLATE(C_XBRZ,[Define to 1 to enable XBRZ scaler])
+AC_ARG_ENABLE(xbrz,AC_HELP_STRING([--enable-xbrz],[compile with xBRZ scaler (default yes)]),enable_xbrz=$enableval,enable_xbrz=yes)
+AM_CONDITIONAL(C_XBRZ, test "x$enable_xbrz" == "xyes")
+if test x$enable_xbrz = xyes; then
+AC_DEFINE(C_XBRZ,1)
+fi
+
 dnl FEATURE: MIDI through ALSA
 AC_ARG_ENABLE(alsa-midi,
 AC_HELP_STRING([--enable-alsa-midi],[compile with alsa midi support (default yes)]),
@@ -794,10 +814,12 @@ src/libs/Makefile
 src/libs/zmbv/Makefile
 src/libs/gui_tk/Makefile
 src/libs/porttalk/Makefile
+src/output/Makefile
 src/builtin/Makefile
 src/misc/Makefile
 src/shell/Makefile
 src/platform/Makefile
+src/xBRZ/Makefile
 include/Makefile
 dosbox-x.spec
 make-rpm.sh

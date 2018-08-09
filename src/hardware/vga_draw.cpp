@@ -468,7 +468,7 @@ static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/)
         float a = 1.0 / (hretrace_fx_avg_weight + 1);
 
         hretrace_fx_avg *= 1.0 - a;
-        hretrace_fx_avg += a * skip * ((int)vga_display_start_hretrace - (int)vga.crtc.start_horizontal_retrace);
+        hretrace_fx_avg += a * 4 * ((int)vga_display_start_hretrace - (int)vga.crtc.start_horizontal_retrace);
         int x = (int)floor(hretrace_fx_avg + 0.5);
 
         vidstart += (Bitu)((int)skip * (x >> 2));
@@ -492,6 +492,32 @@ static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/)
 
 static Bit8u * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
     Bit32u* temps = (Bit32u*) TempLine;
+
+    /* hack for Surprise! productions "copper" demo.
+     * when the demo talks about making the picture waver, what it's doing is diddling
+     * with the Start Horizontal Retrace register of the CRTC once per scanline.
+     * ...yeah, really. It's a wonder in retrospect the programmer didn't burn out his
+     * VGA monitor, and I bet this makes the demo effect unwatchable on LCD flat panels or
+     * scan converters that rely on the pulses to detect VGA mode changes! */
+    if (vga_enable_hretrace_effects) {
+        /* NTS: This is NOT BACKWARDS. It makes sense if you think about it: the monitor
+         *      begins swinging the electron beam back on horizontal retract, so if the
+         *      retrace starts sooner, then the blanking on the left side appears to last
+         *      longer because there are more clocks until active display.
+         *
+         *      Also don't forget horizontal total/blank/retrace etc. registers are in
+         *      character clocks not pixels. In 320x200x256 mode, one character clock is
+         *      4 pixels.
+         *
+         *      Finally, we average it with "weight" because CRTs have "inertia" */
+        float a = 1.0 / (hretrace_fx_avg_weight + 1);
+
+        hretrace_fx_avg *= 1.0 - a;
+        hretrace_fx_avg += a * 4 * ((int)vga_display_start_hretrace - (int)vga.crtc.start_horizontal_retrace);
+        int x = (int)floor(hretrace_fx_avg + 0.5);
+
+        vidstart += (Bitu)((int)x);
+    }
 
     for(Bitu i = 0; i < (vga.draw.line_length>>2); i++)
         temps[i]=vga.dac.xlat32[vga.draw.linear_base[(vidstart+i)&vga.draw.linear_mask]];
@@ -2214,7 +2240,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             
             vtotal |= (vga.crtc.overflow & 0x20u) << 4u;
             vtotal |= (vga.s3.ex_ver_overflow & 0x1u) << 10u;
-            vtotal += 2u;
             vdend |= (vga.crtc.overflow & 0x40u) << 3u; 
             vdend |= (vga.s3.ex_ver_overflow & 0x2u) << 9u;
             vbstart |= (vga.crtc.maximum_scan_line & 0x20u) << 4u;

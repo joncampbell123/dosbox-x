@@ -43,6 +43,7 @@ void Mouse_ButtonPressed(Bit8u button);
 void Mouse_ButtonReleased(Bit8u button);
 
 void Mouse_AutoLock(bool enable);
+bool Mouse_IsLocked();
 void Mouse_NewVideoMode(void);
 
 #endif

@@ -320,7 +320,17 @@ static Bitu read_data(Bitu port,Bitu iolen) {
 /* PC/XT NMI mask register 0xA0. Documentation on the other bits
  * is sparse and spread across the internet, but many seem to
  * agree that bit 7 is used to enable/disable the NMI (1=enable,
- * 0=disable) */
+ * 0=disable)
+ *
+ * Confirmed: IBM PCjr technical reference, BIOS source code.
+ *            Some part of the code writes 0x80 to this port,
+ *            then does some work, then writes 0x00.
+ *
+ * IBM PCjr definitions:
+ *   bit[7]: Enable NMI
+ *   bit[6]: IR test enable
+ *   bit[5]: Select clock 1 input
+ *   bit[4]: Disable HRQ */
 static void pc_xt_nmi_write(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
@@ -771,6 +781,14 @@ void PIC_Reset(Section *sec) {
 
     enable_slave_pic = section->Get_bool("enable slave pic");
     enable_pc_xt_nmi_mask = section->Get_bool("enable pc nmi mask");
+
+    if (enable_slave_pic && machine == MCH_PCJR && enable_pc_xt_nmi_mask) {
+        LOG(LOG_MISC,LOG_DEBUG)("PIC_Reset(): PCjr emulation with NMI mask register requires disabling slave PIC (IRQ 8-15)");
+        enable_slave_pic = false;
+    }
+
+    if (!enable_slave_pic && IS_PC98_ARCH)
+        LOG(LOG_MISC,LOG_DEBUG)("PIC_Reset(): PC-98 emulation without slave PIC (IRQ 8-15) is unusual");
 
     /* NTS: This is a good guess. But the 8259 is static circuitry and not driven by a clock.
      *      But the ability to respond to interrupts is limited by the CPU, too. */

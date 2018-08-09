@@ -1,12 +1,20 @@
-TODO add version
+0.82.8
+  - New xBRZ scaler (with bilinear mode) (Alexat)
+  - Fixed aspect ratio correction to use the ratio given by VGA emulation
+    instead of assuming 4:3
+  - output=surface and xBRZ now permit filling the window just like
+    output=opengl and output=direct3d
+  - Added critical section around Windows SDL 1.x resize code to solve
+    the remaining 0.5% probability that resizing the window causes move
+    and resize to stop working in Windows 10.
   - INT 10h AH=10h now ignores AL=3 in PCjr mode.
   - Fixed keyboard handler bug in PCjr mode that caused some CPU
     register corruption and general crashiness in games.
   - Improved shell: (Aybe, Joncampbell123)
     - Ctrl+Left and Ctrl+Right permits word-navigation.
     - Added emulation of 'Ins' key behavior.
-  - Num Lock stays on at startup and is synchronized with host (Aybe)
-    when DOSBox-X window gains focus (Windows). (Aybe)
+  - Num Lock, Caps Lock, Scroll Lock are now synchronized at startup
+    and when DOSBox-X window gains focus again (Windows). (Aybe)
   - Added visual feedback to Hat/D-pad buttons in mapper. (Aybe)
   - Added documentation for 'dir' command sorting switches. (Aybe)
   - Menu 'Show console' is now checked with '-console' (SDL1). (Aybe)
@@ -15,12 +23,13 @@ TODO add version
     - Axes can be remapped for devices with questionable layout.
     - User-settable deadzones for joystick bindings in mapper,
       mappings like WSAD keys to axes is less frustrating.
-  - Improved mouse integration:
+  - Improved mouse integration (Aybe):
     - Now by default DOSBox-X does not emulate mouse movement when the mouse
       is not locked. This gives a consistent experience when compared to host OS.
       For the old behavior, use [sdl] mouse_emulation=always.
-    - Added visual or auditive feedback that notifies about auto-lock state.
+    - Added visual or auditive feedback about auto-lock state (Windows).
       This feature can be switched off, use [sdl] autolock_feedback=none.
+  - Added CAPMOUSE program for capturing/releasing mouse from command line. (Aybe)
     
 0.82.7
   - Mac OS X builds now honor showmenu=false by leaving the

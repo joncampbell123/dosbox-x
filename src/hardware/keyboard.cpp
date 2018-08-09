@@ -138,6 +138,10 @@ static struct {
     bool rightctrl_pressed;
 } keyb;
 
+void PCjr_stuff_scancode(const unsigned char c) {
+    keyb.p60data = c;
+}
+
 uint8_t Mouse_GetButtonState(void);
 
 uint32_t Keyb_ig_status() {

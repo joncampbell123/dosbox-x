@@ -2258,9 +2258,9 @@ static void CTMIXER_Reset(void) {
     _WHICH_[0]=   ((((_VAL_) & 0xf0) >> 3)|(sb.type==SBT_16 ? 1:3));    \
     _WHICH_[1]=   ((((_VAL_) & 0x0f) << 1)|(sb.type==SBT_16 ? 1:3));    \
 
-#define MAKEPROVOL(_WHICH_)         \
-    ((((_WHICH_[0] & 0x1e) << 3) | ((_WHICH_[1] & 0x1e) >> 1)) & (sb.type==SBT_16 ? 0xff:0xee))
-
+#define MAKEPROVOL(_WHICH_)											\
+	((((_WHICH_[0] & 0x1e) << 3) | ((_WHICH_[1] & 0x1e) >> 1)) |	\
+		((sb.type==SBT_PRO1 || sb.type==SBT_PRO2) ? 0x11:0))
 
 // TODO: Put out the various hardware listed here, do some listening tests to confirm the emulation is accurate.
 void updateSoundBlasterFilter(Bitu rate) {

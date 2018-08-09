@@ -155,7 +155,7 @@ public:
 	
 		caps = SND_SEQ_PORT_CAP_READ;
 		if (seq_client == SND_SEQ_ADDRESS_SUBSCRIBERS)
-			caps = ~((unsigned int)SND_SEQ_PORT_CAP_SUBS_READ);
+			caps |= SND_SEQ_PORT_CAP_SUBS_READ;
 		my_port =
 		          snd_seq_create_simple_port(seq_handle, "DOSBOX", caps,
 		          SND_SEQ_PORT_TYPE_MIDI_GENERIC | SND_SEQ_PORT_TYPE_APPLICATION);

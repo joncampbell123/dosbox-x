@@ -246,6 +246,9 @@ void                INT10_Init(Section*);
 #if C_NE2000
 void                NE2K_Init(Section* sec);
 #endif
+#if C_PRINTER
+void                PRINTER_Init(Section*);
+#endif
 
 signed long long time_to_clockdom(ClockDomain &src,double t) {
     signed long long lt = (signed long long)t;
@@ -811,6 +814,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* captureformats[] = { "default", "avi-zmbv", "mpegts-h264", 0 };
     const char* blocksizes[] = {"1024", "2048", "4096", "8192", "512", "256", 0};
     const char* capturechromaformats[] = { "auto", "4:4:4", "4:2:2", "4:2:0", 0};
+    const char* controllertypes[] = { "auto", "at", "xt", "pcjr", "pc98", 0}; // Future work: Tandy(?) and USB
     const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
     const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486", "486_prefetch", "pentium", "pentium_mmx", "ppro_slow", 0};
     const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
@@ -851,6 +855,8 @@ void DOSBOX_SetupConfigSections(void) {
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     const char* pc98fmboards[] = { "auto", "off", "false", "board26k", "board86", "board86c", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
+    const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
+    const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", 0 };
 
     const char* irqssbhack[] = {
         "none", "cs_equ_ds", 0
@@ -927,6 +933,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(machines);
     Pstring->Set_help("The type of machine DOSBox tries to emulate.");
 
+    Phex = secprop->Add_hex("svga lfb base", Property::Changeable::OnlyAtStart, 0);
+    Phex->Set_help("If nonzero, define the physical memory address of the linear framebuffer.");
+
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(-1,100000);
     Pint->Set_help( "VGA Memory I/O delay in nanoseconds. Set to -1 to use default, 0 to disable.\n"
@@ -986,6 +995,22 @@ void DOSBOX_SetupConfigSections(void) {
             "It is discarded when you boot into another OS. Mainline DOSBox uses 32KB. Testing shows that it is possible\n"
             "to run DOSBox with as little as 4KB. If DOSBox-X aborts with error \"not enough memory for internal tables\"\n"
             "then you need to increase this value.");
+
+    // NOTE: This will be revised as I test the DOSLIB code against more VGA/SVGA hardware!
+    Pstring = secprop->Add_string("vga attribute controller mapping",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_values(vga_ac_mapping_settings);
+    Pstring->Set_help(
+            "This affects how the attribute controller maps colors, especially in 256-color mode.\n"
+            "Some SVGA cards handle the attribute controller palette differently than most SVGA cards.\n"
+            "  auto                         Automatically pick the mapping based on the SVGA chipset.\n"
+            "  4x4                          Split into two 4-bit nibbles, map through AC, recombine. This is standard VGA behavior including clone SVGA cards.\n"
+            "  4low                         Split into two 4-bit nibbles, remap only the low 4 bits, recombine. This is standard ET4000 behavior.\n"
+            "\n"
+            "NOTES:\n"
+            "  Demoscene executable 'COPPER.EXE' requires the '4low' behavior in order to display line-fading effects\n"
+            "  (including scrolling credits) correctly, else those parts of the demo show up as a blank screen.\n"
+            "  \n"
+            "  4low behavior is default for ET4000 emulation.");
 
     // TODO: At some point, I would like to make "mask" the default instead of "fast"
     Pstring = secprop->Add_string("a20",Property::Changeable::WhenIdle,"fast");
@@ -1324,6 +1349,17 @@ void DOSBOX_SetupConfigSections(void) {
             "location reported by the VESA BIOS. Set to nonzero for DOS games with sloppy VESA graphics pointer management.\n"
             "    MFX \"Melvindale\" (1996): Set this option to 2 to center the picture properly.");
 
+    /* If set, all VESA BIOS modes map 128KB of video RAM at A0000-BFFFF even though VESA BIOS emulation
+     * reports a 64KB window. Some demos like the 1996 Wired report
+     * (ftp.scene.org/pub/parties/1995/wired95/misc/e-w95rep.zip) assume they can write past the window
+     * by spilling into B0000 without bank switching. */
+    Pbool = secprop->Add_bool("vesa map non-lfb modes to 128kb region",Property::Changeable::Always,false);
+    Pbool->Set_help("If set, VESA BIOS SVGA modes will be set to map 128KB of video memory to A0000-BFFFF instead of\n"
+                    "64KB at A0000-AFFFF. This does not affect the SVGA window size or granularity.\n"
+                    "Some games or demoscene productions assume that they can render into the next SVGA window/bank\n"
+                    "by writing to video memory beyond the current SVGA window address and will not appear correctly\n"
+                    "without this option.");
+
     Pbool = secprop->Add_bool("allow hpel effects",Property::Changeable::Always,false);
     Pbool->Set_help("If set, allow the DOS demo or program to change the horizontal pel (panning) register per scanline.\n"
             "Some early DOS demos use this to create waving or sinus effects on the picture. Not very many VGA\n"
@@ -1423,8 +1459,44 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(0,10);
     Pint->Set_help("How many frames DOSBox skips before drawing one.");
 
-    Pbool = secprop->Add_bool("aspect",Property::Changeable::Always,false);
-    Pbool->Set_help("Do aspect correction, if your output method doesn't support scaling this can slow things down!.");
+    Pstring = secprop->Add_string("aspect", Property::Changeable::Always, "false");
+    Pstring->Set_values(aspectmodes);
+    Pstring->Set_help(
+        "Aspect ratio correction mode. Can be set to the following values:\n"
+        "  'false' (default):\n"
+        "      'direct3d'/opengl outputs: image is simply scaled to full window/fullscreen size, possibly resulting in disproportional image\n"
+        "      'surface' output: it does no aspect ratio correction (default), resulting in disproportional images if VGA mode pixel ratio is not 4:3\n"
+        "  'true':\n"
+        "      'direct3d'/opengl outputs: uses output driver functions to scale / pad image with black bars, correcting output to proportional 4:3 image\n"
+        "          In most cases image degradation should not be noticeable (it all depends on the video adapter and how much the image is upscaled).\n"
+        "          Should have none to negligible impact on performance, mostly being done in hardware\n"
+        "      'surface' output: inherits old DOSBox aspect ratio correction method (adjusting rendered image line count to correct output to 4:3 ratio)\n"
+        "          Due to source image manipulation this mode does not mix well with scalers, i.e. multiline scalers like hq2x/hq3x will work poorly\n"
+        "          Slightly degrades visual image quality. Has a tiny impact on performance"
+#if C_XBRZ
+        "\n"
+        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so none of the above apply"
+#endif
+#if C_SURFACE_POSTRENDER_ASPECT
+        "\n"
+        "  'nearest':\n"
+        "      'direct3d'/opengl outputs: not available, fallbacks to 'true' mode automatically\n"
+        "      'surface' output: scaler friendly aspect ratio correction, works by rescaling rendered image using nearest neighbor scaler\n"
+        "          Complex scalers work. Image quality is on par with 'true' mode (and better with scalers). More CPU intensive than 'true' mode\n"
+#if C_XBRZ
+        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so it fallbacks to 'true' mode\n"
+#endif
+        "  'bilinear':\n"
+        "      'direct3d'/opengl outputs: not available, fallbacks to 'true' mode automatically\n"
+        "      'surface' output: scaler friendly aspect ratio correction, works by rescaling rendered image using bilinear scaler\n"
+        "          Complex scalers work. Image quality is much better, should be on par with using 'direct3d' output + 'true' mode\n"
+        "          Very CPU intensive, high end CPU may be required"
+#if C_XBRZ
+        "\n"
+        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so it fallbacks to 'true' mode"
+#endif
+#endif
+    );
 
     Pbool = secprop->Add_bool("char9",Property::Changeable::Always,true);
     Pbool->Set_help("Allow 9-pixel wide text mode fonts.");
@@ -1620,6 +1692,15 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set (default), allow the application to reset the CPU through the keyboard controller.\n"
             "This option is required to allow Windows ME to reboot properly, whereas Windows 9x and earlier\n"
             "will reboot without this option using INT 19h");
+
+    Pstring = secprop->Add_string("controllertype",Property::Changeable::OnlyAtStart,"auto");
+    Pstring->Set_values(controllertypes);
+    Pstring->Set_help("Type of keyboard controller (and keyboard) attached.\n"
+                      "auto     Automatically pick according to machine type\n"
+                      "at       AT (PS/2) type keyboard\n"
+                      "xt       IBM PC/XT type keyboard\n"
+                      "pcjr     IBM PCjr type keyboard (only if machine=pcjr)\n"
+                      "pc98     PC-98 keyboard emulation (only if machine=pc98)");
 
     Pstring = secprop->Add_string("auxdevice",Property::Changeable::OnlyAtStart,"intellimouse");
     Pstring->Set_values(auxdevices);
@@ -1954,6 +2035,20 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Start the DOS virtual machine with the DMA channel already unmasked at the controller.\n"
             "Use this for DOS applications that expect to operate the GUS but forget to unmask the DMA channel.");
 
+    Pbool = secprop->Add_bool("pic unmask irq",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Start the DOS virtual machine with the GUS IRQ already unmasked at the PIC.");
+
+    Pbool = secprop->Add_bool("startup initialized",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, start the GF1 in a fully initialized state (as if ULTRINIT had been run).\n"
+                    "If clear, leave the card in an uninitialized state (as if cold boot).\n"
+                    "Some DOS games or demoscene productions will hang or fail to use the Ultrasound hardware\n"
+                    "because they assume the card is initialized and their hardware detect does not fully initialize the card.");
+
+    Pbool = secprop->Add_bool("dma enable on dma control polling",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, automatically enable GUS DMA transfer bit in specific cases when the DMA control register is being polled.\n"
+                    "THIS IS A HACK. Some games and demoscene productions need this hack to avoid hanging while uploading sample data\n"
+                    "to the Gravis Ultrasound due to bugs in their implementation.");
+
     Pbool = secprop->Add_bool("clear dma tc irq if excess polling",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If the DOS application is seen polling the IRQ status register rapidly, automatically clear the DMA TC IRQ status.\n"
             "This is a hack that should only be used with DOS applications that need it to avoid bugs in their GUS support code.\n"
@@ -2200,6 +2295,46 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(serials);
     Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
     Pmulti_remain->Set_help("see serial1");
+
+#if C_PRINTER
+    // printer redirection parameters
+    secprop = control->AddSection_prop("printer", &Null_Init);
+    Pbool = secprop->Add_bool("printer", Property::Changeable::WhenIdle, true);
+    Pbool->Set_help("Enable printer emulation.");
+    //secprop->Add_string("fontpath","%%windir%%\\fonts");
+    Pint = secprop->Add_int("dpi", Property::Changeable::WhenIdle, 360);
+    Pint->Set_help("Resolution of printer (default 360).");
+    Pint = secprop->Add_int("width", Property::Changeable::WhenIdle, 85);
+    Pint->Set_help("Width of paper in 1/10 inch (default 85 = 8.5'').");
+    Pint = secprop->Add_int("height", Property::Changeable::WhenIdle, 110);
+    Pint->Set_help("Height of paper in 1/10 inch (default 110 = 11.0'').");
+#ifdef C_LIBPNG
+    Pstring = secprop->Add_string("printoutput", Property::Changeable::WhenIdle, "png");
+#else
+    Pstring = secprop->Add_string("printoutput", Property::Changeable::WhenIdle, "ps");
+#endif
+    Pstring->Set_help("Output method for finished pages: \n"
+#ifdef C_LIBPNG
+        "  png     : Creates PNG images (default)\n"
+#endif
+        "  ps      : Creates Postscript\n"
+        "  bmp     : Creates BMP images (very huge files, not recommend)\n"
+#if defined (WIN32)
+        "  printer : Send to an actual printer (Print dialog will appear)"
+#endif
+    );
+
+    Pbool = secprop->Add_bool("multipage", Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("Adds all pages to one Postscript file or printer job until CTRL-F2 is pressed.");
+
+    Pstring = secprop->Add_string("docpath", Property::Changeable::WhenIdle, ".");
+    Pstring->Set_help("The path where the output files are stored.");
+
+    Pint = secprop->Add_int("timeout", Property::Changeable::WhenIdle, 0);
+    Pint->Set_help("(in milliseconds) if nonzero: the time the page will\n"
+        "be ejected automatically after when no more data\n"
+        "arrives at the printer.");
+#endif
 
     // parallel ports
     secprop=control->AddSection_prop("parallel",&Null_Init,true);

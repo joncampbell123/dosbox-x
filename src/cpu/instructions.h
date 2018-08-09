@@ -639,7 +639,7 @@ extern bool enable_fpu;
 #define MULB(op1,load,save)									\
 	reg_ax=reg_al*load(op1);								\
 	FillFlagsNoCFOF();										\
-	SETFLAGBIT(ZF,reg_al == 0);								\
+	SETFLAGBIT(ZF,reg_al == 0 && CPU_CORE >= CPU_ARCHTYPE_286);								\
 	SETFLAGBIT(PF,PARITY16(reg_ax));								\
 	if (reg_ax & 0xff00) {									\
 		SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);			\
@@ -653,7 +653,7 @@ extern bool enable_fpu;
 	reg_ax=(Bit16u)(tempu);									\
 	reg_dx=(Bit16u)(tempu >> 16);							\
 	FillFlagsNoCFOF();										\
-	SETFLAGBIT(ZF,reg_ax == 0);								\
+	SETFLAGBIT(ZF,reg_ax == 0 && CPU_CORE >= CPU_ARCHTYPE_286);								\
 	SETFLAGBIT(PF,PARITY16(reg_ax)^PARITY16(reg_dx)^FLAG_PF);						\
 	if (reg_dx) {											\
 		SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);			\
@@ -668,7 +668,7 @@ extern bool enable_fpu;
 	reg_eax=(Bit32u)(tempu);								\
 	reg_edx=(Bit32u)(tempu >> 32);							\
 	FillFlagsNoCFOF();										\
-	SETFLAGBIT(ZF,reg_eax == 0);							\
+	SETFLAGBIT(ZF,reg_eax == 0 && CPU_CORE >= CPU_ARCHTYPE_286);							\
 	SETFLAGBIT(PF,PARITY32(reg_eax)^PARITY32(reg_edx)^FLAG_PF);						\
 	if (reg_edx) {											\
 		SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);			\

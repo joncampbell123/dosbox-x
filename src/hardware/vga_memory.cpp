@@ -31,6 +31,9 @@
 #include "cpu.h"
 #include "pc98_cg.h"
 #include "pc98_gdc.h"
+#include "zipfile.h"
+
+extern ZIPFile savestate_zip;
 
 extern bool non_cga_ignore_oddeven;
 extern bool non_cga_ignore_oddeven_engage;
@@ -178,7 +181,7 @@ static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsi
      * Then when addressing VRAM A0 is replaced by a "higher order bit", which is
      * probably A14 or A16 depending on Extended Memory bit 1 in Sequencer register 04h memory mode */
     if ((vga.gfx.miscellaneous&2) && !non_cga_ignore_oddeven_engage) {/* Odd/Even enable */
-        const PhysPt mask = (1u << hobit_n) - 2u;
+        const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 2u;
         const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
         /* 1 << 14 =     0x4000
          * 1 << 14 - 1 = 0x3FFF
@@ -187,7 +190,7 @@ static inline Bitu VGA_Generic_Read_Handler(PhysPt planeaddr,PhysPt rawaddr,unsi
         planeaddr = (planeaddr & mask & (vga.mem.memmask >> 2u)) + hobit;
     }
     else {
-        const PhysPt mask = (1u << hobit_n) - 1u;
+        const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 1u;
         planeaddr &= mask & (vga.mem.memmask >> 2u);
     }
 
@@ -236,7 +239,7 @@ template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysP
      * Then when addressing VRAM A0 is replaced by a "higher order bit", which is
      * probably A14 or A16 depending on Extended Memory bit 1 in Sequencer register 04h memory mode */
     if ((vga.gfx.miscellaneous&2) && !non_cga_ignore_oddeven_engage) {/* Odd/Even enable */
-        const PhysPt mask = (1u << hobit_n) - 2u;
+        const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 2u;
         const PhysPt hobit = (planeaddr >> hobit_n) & 1u;
         /* 1 << 14 =     0x4000
          * 1 << 14 - 1 = 0x3FFF
@@ -245,7 +248,7 @@ template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysP
         planeaddr = (planeaddr & mask & (vga.mem.memmask >> 2u)) + hobit;
     }
     else {
-        const PhysPt mask = (1u << hobit_n) - 1u;
+        const PhysPt mask = (vga.config.compatible_chain4 ? 0u : ~0xFFFFu) + (1u << hobit_n) - 1u;
         planeaddr &= mask & (vga.mem.memmask >> 2u);
     }
 
@@ -2069,6 +2072,32 @@ static void VGA_Memory_ShutDown(Section * /*sec*/) {
 	}
 }
 
+void VGAMEM_LoadState(Section *sec) {
+    (void)sec;//UNUSED
+
+    if (MemBase != NULL) {
+        ZIPFileEntry *ent = savestate_zip.get_entry("vga.memory.bin");
+        if (ent != NULL) {
+            ent->rewind();
+            if (vga.mem.memsize == ent->file_length)
+                ent->read(vga.mem.linear, vga.mem.memsize);
+            else
+                LOG_MSG("VGA Memory load state failure: VGA Memory size mismatch");
+        }
+    }
+}
+
+void VGAMEM_SaveState(Section *sec) {
+    (void)sec;//UNUSED
+
+    if (vga.mem.linear != NULL) {
+        ZIPFileEntry *ent = savestate_zip.new_entry("vga.memory.bin");
+        if (ent != NULL) {
+            ent->write(vga.mem.linear, vga.mem.memsize);
+        }
+    }
+}
+
 void VGA_SetupMemory() {
 	vga.svga.bank_read = vga.svga.bank_write = 0;
 	vga.svga.bank_read_full = vga.svga.bank_write_full = 0;
@@ -2094,6 +2123,9 @@ void VGA_SetupMemory() {
 	vga.svga.bank_size = 0x10000; /* most common bank size is 64K */
 
 	if (!VGA_Memory_ShutDown_init) {
+        AddVMEventFunction(VM_EVENT_LOAD_STATE,AddVMEventFunctionFuncPair(VGAMEM_LoadState));
+        AddVMEventFunction(VM_EVENT_SAVE_STATE,AddVMEventFunctionFuncPair(VGAMEM_SaveState));
+
 		AddExitFunction(AddExitFunctionFuncPair(VGA_Memory_ShutDown));
 		VGA_Memory_ShutDown_init = true;
 	}

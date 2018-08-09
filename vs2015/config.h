@@ -45,8 +45,17 @@
 /* Define to 1 to use inlined memory functions in cpu core */
 #define C_CORE_INLINE	1
 
+/* Define to 1 if you have the <d3d9.h> header file. */
+#if !defined(C_SDL2)
+#define HAVE_D3D9_H 1
+#endif
+
+#if HAVE_D3D9_H
+/* Define to 1 if you want to add Direct3D output to the list of available outputs */
+#define C_DIRECT3D 1
 /* Define to 1 to use Direct3D shaders, requires d3d9.h and libd3dx9 */
 #define C_D3DSHADERS 1
+#endif
 
 /* Define to 1 to enable internal debugger, requires libcurses */
 #define C_DEBUG 1
@@ -100,6 +109,9 @@
 #define C_MODEM 1
 #endif
 
+/* Define to 1 to enable internal printer redirection support*/
+#define C_PRINTER 1
+
 /* Define to 1 to enable NE2000 ethernet passthrough, requires libpcap */
 #define C_NE2000 1
 
@@ -114,8 +126,15 @@
 /* Set to 1 to enable SDL 2.x support */
 /* #undef C_SDL2 */
 
+#if !defined(C_SDL2)
 /* Set to 1 to enable XBRZ support */
 #define C_XBRZ 1
+
+/* Set to 1 to enable scaler friendly but CPU intensive aspect ratio correction options (post-scalers) for 'surface' output */
+/* Please note that this option includes small part of xBRZ code and uses task group parallelism like xBRZ (batch size is hardcoded here) */
+#define C_SURFACE_POSTRENDER_ASPECT 1
+#define C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE 16
+#endif /*!defined(C_SDL2)*/
 
 /* Define to 1 if you have setpriority support */
 #undef C_SET_PRIORITY
@@ -143,11 +162,6 @@
 
 /* Define to 1 to use ALSA for MIDI */
 #undef HAVE_ALSA
-
-/* Define to 1 if you have the <d3d9.h> header file. */
-#if !defined(C_SDL2)
-#define HAVE_D3D9_H 1
-#endif
 
 /* Define to 1 if you have the <ddraw.h> header file. */
 #if !defined(C_SDL2)

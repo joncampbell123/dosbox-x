@@ -331,8 +331,19 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		return (use_cb?0x13:0x0f);
 	case CB_IRQ1:	// keyboard int9
 		phys_writeb(physAddress+0x00,(Bit8u)0x50);			// push ax
-		phys_writew(physAddress+0x01,(Bit16u)0x60e4);		// in al, 0x60
-        if (IS_PC98_ARCH) {
+        if (machine == MCH_PCJR || IS_PC98_ARCH) {
+            /* NTS: NEC PC-98 does not have keyboard input on port 60h, it's a 8251 UART elsewhere.
+             *
+             *      IBM PCjr reads the infared input on NMI interrupt, which then calls INT 48h to
+             *      translate to IBM PC/XT scan codes before passing AL directly to IRQ1 (INT 9).
+             *      PCjr keyboard handlers, including games made for the PCjr, assume the scan code
+             *      is in AL and do not read the I/O port */
+            phys_writew(physAddress+0x01,(Bit16u)0x9090);		// nop, nop
+        }
+        else {
+            phys_writew(physAddress+0x01,(Bit16u)0x60e4);		// in al, 0x60
+        }
+        if (IS_PC98_ARCH || IS_TANDY_ARCH) {
             phys_writew(physAddress+0x03,(Bit16u)0x9090);		// nop, nop
             phys_writeb(physAddress+0x05,(Bit8u)0x90);			// nop
             phys_writew(physAddress+0x06,(Bit16u)0x9090);		// nop, nop (PC-98 does not have INT 15h keyboard hook)
@@ -344,7 +355,7 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
         }
 
 		if (use_cb) {
-            if (IS_PC98_ARCH)
+            if (IS_PC98_ARCH || IS_TANDY_ARCH)
                 phys_writew(physAddress+0x08,(Bit16u)0x9090);	// nop nop
             else
                 phys_writew(physAddress+0x08,(Bit16u)0x0473);	// jc skip

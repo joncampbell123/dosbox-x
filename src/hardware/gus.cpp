@@ -67,7 +67,10 @@ static Bit8u const irqtable[8] = { 0/*invalid*/, 2, 5, 3, 7, 11, 12, 15 };
 static Bit8u const dmatable[8] = { 0/*NO DMA*/, 1, 3, 5, 6, 7, 0/*invalid*/, 0/*invalid*/ };
 static Bit8u GUSRam[1024*1024 + 16/*safety margin*/]; // 1024K of GUS Ram
 static Bit32s AutoAmp = 512;
+static bool unmask_irq = false;
 static bool enable_autoamp = false;
+static bool startup_ultrinit = false;
+static bool dma_enable_on_dma_control_polling = false;
 static Bit16u vol16bit[4096];
 static Bit32u pantable[16];
 static enum GUSType gus_type = GUS_CLASSIC;
@@ -85,6 +88,7 @@ struct GFGus {
 	Bit8u gRegSelect;
 	Bit16u gRegData;
 	Bit32u gDramAddr;
+	Bit32u gDramAddrMask;
 	Bit16u gCurChannel;
 
 	Bit8u gUltraMAXControl;
@@ -661,6 +665,14 @@ static Bit16u ExecuteReadRegister(void) {
 		// NTS: The GUS SDK documents the active channel count as bits 5-0, which is wrong. it's bits 4-0. bits 7-5 are always 1 on real hardware.
 		return ((Bit16u)(0xE0 | (myGUS.ActiveChannelsUser - 1))) << 8;
 	case 0x41: // Dma control register - read acknowledges DMA IRQ
+        if (dma_enable_on_dma_control_polling) {
+            if (!GetDMAChannel(myGUS.dma1)->masked && !(myGUS.DMAControl & 0x01) && !(myGUS.IRQStatus & 0x80)) {
+                LOG(LOG_MISC,LOG_DEBUG)("GUS: As instructed, switching on DMA ENABLE upon polling DMA control register (HACK) as workaround");
+                myGUS.DMAControl |= 0x01;
+                GUS_StartDMA();
+            }
+        }
+
 		tmpreg = myGUS.DMAControl & 0xbf;
 		tmpreg |= (myGUS.IRQStatus & 0x80) >> 1;
 		myGUS.IRQStatus&=0x7f;
@@ -1365,8 +1377,8 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 
 		return reg16;
 	case 0x307:
-		if(myGUS.gDramAddr < myGUS.memsize) {
-			return GUSRam[myGUS.gDramAddr];
+		if((myGUS.gDramAddr & myGUS.gDramAddrMask) < myGUS.memsize) {
+			return GUSRam[myGUS.gDramAddr & myGUS.gDramAddrMask];
 		} else {
 			return 0;
 		}
@@ -1576,7 +1588,8 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 		ExecuteGlobRegister();
 		break;
 	case 0x307:
-		if(myGUS.gDramAddr < myGUS.memsize) GUSRam[myGUS.gDramAddr] = (Bit8u)val;
+		if ((myGUS.gDramAddr & myGUS.gDramAddrMask) < myGUS.memsize)
+            GUSRam[myGUS.gDramAddr & myGUS.gDramAddrMask] = (Bit8u)val;
 		break;
 	case 0x306:
 	case 0x706:
@@ -1822,6 +1835,9 @@ void GUS_StartDMA() {
 		LOG(LOG_MISC,LOG_DEBUG)("GUS: Starting DMA transfer interval");
 		PIC_AddEvent(GUS_DMA_Event,GUS_DMA_Event_interval_init);
 
+        if (GetDMAChannel(myGUS.dma1)->masked)
+            LOG(LOG_MISC,LOG_WARN)("GUS: DMA transfer interval started when channel is masked");
+
         if (gus_warn_dma_conflict)
             LOG(LOG_MISC,LOG_WARN)(
                 "GUS warning: Both DMA channels set to the same channel WITHOUT combining! "
@@ -1980,7 +1996,12 @@ public:
         memset(&myGUS,0,sizeof(myGUS));
         memset(GUSRam,0,1024*1024);
 
+        unmask_irq = section->Get_bool("pic unmask irq");
         enable_autoamp = section->Get_bool("autoamp");
+
+        startup_ultrinit = section->Get_bool("startup initialized");
+
+        dma_enable_on_dma_control_polling = section->Get_bool("dma enable on dma control polling");
 
 		string s_pantable = section->Get_string("gus panning table");
 		if (s_pantable == "default" || s_pantable == "" || s_pantable == "accurate")
@@ -2142,6 +2163,8 @@ public:
 
 		if (myGUS.initUnmaskDMA)
 			GetDMAChannel(myGUS.dma1)->SetMask(false);
+        if (unmask_irq)
+            PIC_SetIRQMask(myGUS.irq1,false);
 
 		gus_chan->Enable(true);
 
@@ -2163,7 +2186,19 @@ public:
 			// master volume update, updates ALL pairs
 			GUS_ICS2101.updateVolPair(gus_ICS2101::MASTER_OUTPUT_PORT);
 		}
-	}
+
+        // Default to GUS MAX 1MB maximum
+        myGUS.gDramAddrMask = 0xFFFFF;
+
+        // if instructed, configure the card as if ULTRINIT had been run
+        if (startup_ultrinit) {
+            myGUS.gRegData=0x700;
+            GUSReset();
+
+            myGUS.gRegData=0x700;
+            GUSReset();
+        }
+    }
 
     void DOS_Startup() {
 		int portat = 0x200+GUS_BASE;

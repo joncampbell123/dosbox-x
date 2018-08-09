@@ -44,6 +44,8 @@
 #include "control.h"
 #include <time.h>
 #include "menu.h"
+#include "render.h"
+#include "mouse.h"
 bool Mouse_Drv=true;
 bool Mouse_Vertical = false;
 
@@ -751,7 +753,7 @@ public:
             }
             Bitu loadsz = (isz2 + 0xFU) & (~0xFU);
             if (loadsz == 0) loadsz = 0x10;
-            if (loadsz > (IS_PC98_ARCH ? 0x18000 : 0x20000)) loadsz = (IS_PC98_ARCH ? 0x18000 : 0x20000);
+            if (loadsz > (IS_PC98_ARCH ? 0x18000u : 0x20000u)) loadsz = (IS_PC98_ARCH ? 0x18000u : 0x20000u);
             Bitu segbase = 0x100000 - loadsz;
             LOG_MSG("Loading BIOS image %s to 0x%lx, 0x%lx bytes",bios.c_str(),(unsigned long)segbase,(unsigned long)loadsz);
             fseek(romfp, 0, SEEK_SET);
@@ -3985,6 +3987,7 @@ static void MORE_ProgramStart(Program * * make) {
 void REDOS_ProgramStart(Program * * make);
 void A20GATE_ProgramStart(Program * * make);
 void PC98UTIL_ProgramStart(Program * * make);
+void VESAMOED_ProgramStart(Program * * make);
 
 class NMITEST : public Program {
 public:
@@ -3995,6 +3998,54 @@ public:
 
 static void NMITEST_ProgramStart(Program * * make) {
     *make=new NMITEST;
+}
+
+class CAPMOUSE : public Program
+{
+public:
+	void Run() override
+    {
+        auto val = 0;
+        auto tmp = std::string("");
+
+        if(cmd->GetCount() == 0 || cmd->FindExist("/?", true))
+            val = 0;
+        else if(cmd->FindExist("/C", false))
+            val = 1;
+        else if(cmd->FindExist("/R", false))
+            val = 2;
+
+        auto cap = false;
+        switch(val)
+        {
+        case 2:
+            break;
+        case 1:
+            cap = true;
+            break;
+        case 0:
+        default:
+            WriteOut("Mouse capture/release.\n\n");
+            WriteOut("CAPMOUSE /[?|C|R]\n");
+            WriteOut("  /? help\n");
+            WriteOut("  /C capture mouse\n");
+            WriteOut("  /R release mouse\n");
+            return;
+        }
+
+        CaptureMouseNotify(!cap);
+        GFX_CaptureMouse(cap);
+        std::string msg;
+        msg.append("Mouse ");
+        msg.append(Mouse_IsLocked() ? "captured" : "released");
+        msg.append("\n");
+        WriteOut(msg.c_str());
+    }
+};
+
+void CAPMOUSE_ProgramStart(Program** make)
+{
+	*make = new CAPMOUSE;
 }
 
 void DOS_SetupPrograms(void) {
@@ -4457,6 +4508,11 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
     PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart);
 
+    if (IS_VGA_ARCH && svgaCard != SVGA_None)
+        PROGRAMS_MakeFile("VESAMOED.COM",VESAMOED_ProgramStart);
+
     if (IS_PC98_ARCH)
         PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart);
+
+	PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart);
 }
