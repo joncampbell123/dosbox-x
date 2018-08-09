@@ -120,57 +120,57 @@
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;</LibraryPath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|Win32'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;</LibraryPath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|x64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;</LibraryPath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;</LibraryPath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|x64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
+    <IncludePath>$(IncludePath);$(DXSDK_DIR)Include;</IncludePath>
+    <LibraryPath>$(LibraryPath);$(DXSDK_DIR)Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -904,6 +904,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\shell\shell_batch.cpp" />
     <ClCompile Include="..\src\shell\shell_cmds.cpp" />
     <ClCompile Include="..\src\shell\shell_misc.cpp" />
+    <ClCompile Include="..\src\xBRZ\xbrz.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc" />
@@ -1117,6 +1118,9 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClInclude Include="..\src\mt32\TVA.h" />
     <ClInclude Include="..\src\mt32\TVF.h" />
     <ClInclude Include="..\src\mt32\TVP.h" />
+    <ClInclude Include="..\src\xBRZ\xbrz.h" />
+    <ClInclude Include="..\src\xBRZ\xbrz_config.h" />
+    <ClInclude Include="..\src\xBRZ\xbrz_tools.h" />
     <ClInclude Include="config.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

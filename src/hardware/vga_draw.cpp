@@ -40,6 +40,31 @@
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
 
+const char* const mode_texts[M_MAX] = {
+    "M_CGA2",           // 0
+    "M_CGA4",
+    "M_EGA",
+    "M_VGA",
+    "M_LIN4",
+    "M_LIN8",           // 5
+    "M_LIN15",
+    "M_LIN16",
+    "M_LIN24",
+    "M_LIN32",
+    "M_TEXT",           // 10
+    "M_HERC_GFX",
+    "M_HERC_TEXT",
+    "M_CGA16",
+    "M_TANDY2",
+    "M_TANDY4",         // 15
+    "M_TANDY16",
+    "M_TANDY_TEXT",
+    "M_AMSTRAD",
+    "M_PC98",
+    "M_FM_TOWNS",       // 20 STUB
+    "M_ERROR"
+};
+
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 # pragma warning(disable:4305) /* truncation from double to float */
@@ -480,29 +505,58 @@ static Bit8u * EGA_Draw_VGA_Planar_Xlat8_Line(Bitu vidstart, Bitu /*line*/) {
     Bit8u* temps = (Bit8u*) TempLine;
     Bit32u t1,t2,tmp;
 
-    for (Bitu i = 0; i < ((vga.draw.line_length)+vga.draw.panning); i += 8) {
-        t1 = t2 = *((Bit32u*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
-        t1 = (t1 >> 4) & 0x0f0f0f0f;
-        t2 &= 0x0f0f0f0f;
-        vidstart += 4;
+    if (vga.seq.clocking_mode&4) { /* odd/even mode serialization */
+        for (Bitu i = 0; i < ((vga.draw.line_length)+vga.draw.panning);) {
+            if (vidstart > vga.draw.linear_mask)
+                vidstart = (vidstart + 4u) & vga.draw.linear_mask;
 
-        tmp =   Expand16Table[0][(t1>>0)&0xFF] |
-            Expand16Table[1][(t1>>8)&0xFF] |
-            Expand16Table[2][(t1>>16)&0xFF] |
-            Expand16Table[3][(t1>>24)&0xFF];
-        temps[i+0] = vga.attr.palette[(tmp>>0)&0xFF];
-        temps[i+1] = vga.attr.palette[(tmp>>8)&0xFF];
-        temps[i+2] = vga.attr.palette[(tmp>>16)&0xFF];
-        temps[i+3] = vga.attr.palette[(tmp>>24)&0xFF];
+            t1 = t2 = *((Bit32u*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
+            t1 = (t1 >> 4) & 0x0f0f0f0f;
+            t2 &= 0x0f0f0f0f;
+            vidstart += 4 * 2;
 
-        tmp =   Expand16Table[0][(t2>>0)&0xFF] |
-            Expand16Table[1][(t2>>8)&0xFF] |
-            Expand16Table[2][(t2>>16)&0xFF] |
-            Expand16Table[3][(t2>>24)&0xFF];
-        temps[i+4] = vga.attr.palette[(tmp>>0)&0xFF];
-        temps[i+5] = vga.attr.palette[(tmp>>8)&0xFF];
-        temps[i+6] = vga.attr.palette[(tmp>>16)&0xFF];
-        temps[i+7] = vga.attr.palette[(tmp>>24)&0xFF];
+            for (Bitu w = 0;w < 2;w++,t1>>=8,t2>>=8,i+=8) {
+                tmp =   Expand16Table[0][(t1>>0)&0xFF] |
+                    Expand16Table[2][(t1>>16)&0xFF];
+                temps[i+0] = vga.attr.palette[(tmp>>0)&0xFF];
+                temps[i+1] = vga.attr.palette[(tmp>>8)&0xFF];
+                temps[i+2] = vga.attr.palette[(tmp>>16)&0xFF];
+                temps[i+3] = vga.attr.palette[(tmp>>24)&0xFF];
+
+                tmp =   Expand16Table[0][(t2>>0)&0xFF] |
+                    Expand16Table[2][(t2>>16)&0xFF];
+                temps[i+4] = vga.attr.palette[(tmp>>0)&0xFF];
+                temps[i+5] = vga.attr.palette[(tmp>>8)&0xFF];
+                temps[i+6] = vga.attr.palette[(tmp>>16)&0xFF];
+                temps[i+7] = vga.attr.palette[(tmp>>24)&0xFF];
+            }
+        }
+    }
+    else {
+        for (Bitu i = 0; i < ((vga.draw.line_length)+vga.draw.panning); i += 8) {
+            t1 = t2 = *((Bit32u*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
+            t1 = (t1 >> 4) & 0x0f0f0f0f;
+            t2 &= 0x0f0f0f0f;
+            vidstart += 4;
+
+            tmp =   Expand16Table[0][(t1>>0)&0xFF] |
+                Expand16Table[1][(t1>>8)&0xFF] |
+                Expand16Table[2][(t1>>16)&0xFF] |
+                Expand16Table[3][(t1>>24)&0xFF];
+            temps[i+0] = vga.attr.palette[(tmp>>0)&0xFF];
+            temps[i+1] = vga.attr.palette[(tmp>>8)&0xFF];
+            temps[i+2] = vga.attr.palette[(tmp>>16)&0xFF];
+            temps[i+3] = vga.attr.palette[(tmp>>24)&0xFF];
+
+            tmp =   Expand16Table[0][(t2>>0)&0xFF] |
+                Expand16Table[1][(t2>>8)&0xFF] |
+                Expand16Table[2][(t2>>16)&0xFF] |
+                Expand16Table[3][(t2>>24)&0xFF];
+            temps[i+4] = vga.attr.palette[(tmp>>0)&0xFF];
+            temps[i+5] = vga.attr.palette[(tmp>>8)&0xFF];
+            temps[i+6] = vga.attr.palette[(tmp>>16)&0xFF];
+            temps[i+7] = vga.attr.palette[(tmp>>24)&0xFF];
+        }
     }
 
     return TempLine + (vga.draw.panning);
@@ -1590,7 +1644,7 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
      * a point of reference how far to displace the scanline when wavy effects are
      * made */
     vga_display_start_hretrace = vga.crtc.start_horizontal_retrace;
-    vga.config.real_start=vga.config.display_start & (vga.vmemwrap-1);
+    vga.config.real_start=vga.config.display_start & vga.mem.memmask;
     vga.draw.bytes_skip = vga.config.bytes_skip;
 }
  
@@ -1796,8 +1850,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
     switch (vga.mode) {
     case M_EGA:
-        if (!(vga.crtc.mode_control&0x1u)) vga.draw.linear_mask &= ~0x10000u;
-        else vga.draw.linear_mask |= 0x10000u;
+        if (vga.mem.memmask >= 0x1FFFFu) {
+            if (!(vga.crtc.mode_control&0x1u)) vga.draw.linear_mask &= ~0x10000u;
+            else vga.draw.linear_mask |= 0x10000u;
+        }
+        /* fall through */
     case M_LIN4:
         vga.draw.byte_panning_shift = 4u;
         vga.draw.address += vga.draw.bytes_skip;
@@ -1924,6 +1981,9 @@ void VGA_CheckScanLength(void) {
             vga.draw.address_add=vga.config.scan_len*16;
         else
             vga.draw.address_add=vga.config.scan_len*8;
+
+        if (IS_EGA_ARCH && (vga.seq.clocking_mode&4))
+            vga.draw.address_add*=2;
         break;
     case M_VGA:
     case M_LIN8:
@@ -2473,7 +2533,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         break;
     }
     vga.draw.linear_base = vga.mem.linear;
-    vga.draw.linear_mask = vga.vmemwrap - 1;
+    vga.draw.linear_mask = vga.mem.memmask;
     vga.draw.planar_mask = vga.draw.linear_mask >> 2;
     Bitu pix_per_char = 8;
     switch (vga.mode) {
@@ -2751,20 +2811,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         vga.draw.delay.vtotal,(1000.0/vga.draw.delay.vtotal),
         vga.draw.delay.vblkstart,vga.draw.delay.vblkend,
         vga.draw.delay.vrstart,vga.draw.delay.vrend);
-
-    const char* const mode_texts[] = {
-        "M_CGA2", "M_CGA4",
-        "M_EGA", "M_VGA",
-        "M_LIN4", "M_LIN8", "M_LIN15", "M_LIN16", "M_LIN24", "M_LIN32",
-        "M_TEXT",
-        "M_HERC_GFX", "M_HERC_TEXT",
-        "M_CGA16", "M_TANDY2", "M_TANDY4", "M_TANDY16", "M_TANDY_TEXT",
-        "M_AMSTRAD", "M_PC98",
-
-        "M_FM_TOWNS",//STUB
-
-        "M_ERROR"
-    };
 
     LOG(LOG_VGA,LOG_NORMAL)("video clock: %3.2fMHz mode %s",
         oscclock/1000000.0, mode_texts[vga.mode]);

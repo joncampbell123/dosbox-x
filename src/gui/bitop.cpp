@@ -232,19 +232,19 @@ void self_test(void) {
     assert(log2<unsigned long long>(1ull) == 0);
     assert(log2<unsigned long long>(0ull) == ~0u);
 
-    static_assert(negate<unsigned int>(0) == ~0u, "whoops");
-    static_assert(negate<unsigned int>(1) == ~1u, "whoops");
-    static_assert(negate<unsigned long>(0) == ~0ul, "whoops");
-    static_assert(negate<unsigned long>(1) == ~1ul, "whoops");
-    static_assert(negate<unsigned long long>(0) == ~0ull, "whoops");
-    static_assert(negate<unsigned long long>(1) == ~1ull, "whoops");
+    static_assert(invert<unsigned int>(0) == ~0u, "whoops");
+    static_assert(invert<unsigned int>(1) == ~1u, "whoops");
+    static_assert(invert<unsigned long>(0) == ~0ul, "whoops");
+    static_assert(invert<unsigned long>(1) == ~1ul, "whoops");
+    static_assert(invert<unsigned long long>(0) == ~0ull, "whoops");
+    static_assert(invert<unsigned long long>(1) == ~1ull, "whoops");
 
-    assert(negate<unsigned int>(0) == ~0u);
-    assert(negate<unsigned int>(1) == ~1u);
-    assert(negate<unsigned long>(0) == ~0ul);
-    assert(negate<unsigned long>(1) == ~1ul);
-    assert(negate<unsigned long long>(0) == ~0ull);
-    assert(negate<unsigned long long>(1) == ~1ull);
+    assert(invert<unsigned int>(0) == ~0u);
+    assert(invert<unsigned int>(1) == ~1u);
+    assert(invert<unsigned long>(0) == ~0ul);
+    assert(invert<unsigned long>(1) == ~1ul);
+    assert(invert<unsigned long long>(0) == ~0ull);
+    assert(invert<unsigned long long>(1) == ~1ull);
 
     assert(bitseqlengthandpos(0)   == bitseqlengthandpos_ret_t(0,0));
     assert(bitseqlengthandpos(1)   == bitseqlengthandpos_ret_t(0,1));

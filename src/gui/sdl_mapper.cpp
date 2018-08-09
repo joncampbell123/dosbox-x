@@ -87,6 +87,64 @@ enum BC_Types {
 #define MAXAXIS 8
 #define MAXHAT 2
 
+//! \brief Get value sign, i.e. less than zero: -1, zero: 0, greater than zero: 1.
+template <typename T> int sgn(T val) {
+
+	// http://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
+	return (T(0) < val) - (val < T(0));
+}
+
+//! \brief Floating-point vector with 2 components.
+struct Vector2
+{
+	float X, Y;
+
+	Vector2(float x, float y) : X(x), Y(y)
+	{
+
+	}
+
+	Vector2() : X(0.0f), Y(0.0f)
+	{
+
+	}
+
+	Vector2 clamp(Vector2 min, Vector2 max) const
+	{
+		float x = this->X;
+		float y = this->Y;
+		float xmin = min.X;
+		float xmax = max.X;
+		float ymin = min.Y;
+		float ymax = max.Y;
+		x = x < xmin ? xmin : x > xmax ? xmax : x;
+		y = y < ymin ? ymin : y > ymax ? ymax : y;
+		Vector2 clamp = Vector2(x, y);
+		return clamp;
+	}
+
+	float magnitude() const
+	{
+		return sqrt(sqrMagnitude());
+	}
+
+	float sqrMagnitude() const
+	{
+		return X * X + Y * Y;
+	}
+
+	Vector2 normalized() const
+	{
+		float m = this->magnitude();
+		return m > 0.0f ? Vector2(this->X / m, this->Y / m) : Vector2();
+	}
+
+	Vector2 operator*(float f) const
+	{
+		return Vector2(this->X * f, this->Y * f);
+	}
+};
+
 class CEvent;
 class CHandlerEvent;
 class CButton;
@@ -117,13 +175,24 @@ class CEvent;
 
 CEvent *get_mapper_event_by_name(const std::string &x);
 
+//! \brief Base CEvent class for mapper events
 class CEvent {
 public:
+    //! \brief Type of CEvent class, if the code needs to use the specific type
+    //!
+    //! \description This is used by other parts of the mapper if it needs to retrieve
+    //!              additional information that is only provided by the handler event class
     enum event_type {
         event_t=0,
         handler_event_t
     };
 public:
+    //! \brief CEvent constructor
+    //!
+    //! \description This constructor takes a mapper entry name and event type.
+    //!              Subclasses will call down to this constructor as well.
+    //!              The handler event class will fill in the _type field to
+    //!              identify itself.
     CEvent(char const * const _entry,const enum event_type _type = event_t) {
         safe_strncpy(entry,_entry,sizeof(entry));
 
@@ -143,7 +212,15 @@ public:
 
         assert(get_mapper_event_by_name(entry) == this);
     }
+
+    //! \brief Retrieve binding string for display in the menu
+    //!
+    //! \description Retrieve text string to show as the assigned mapper binding in a
+    //!              menu item's displayable area so that the user knows what keyboard
+    //!              input will trigger the shortcut.
     virtual std::string GetBindMenuText(void);
+
+    //! \brief Update the menu item for the mapper shortcut with the latest text and keyboard shortcut
     void update_menu_shortcut(void) {
         if (!eventname.empty()) {
             DOSBoxMenu::item& item = mainMenu.get_item(std::string("mapper_") + std::string(eventname));
@@ -153,29 +230,61 @@ public:
 //            LOG_MSG("%s",str.c_str());
         }
     }
+
+    //! \brief Add binding to the bindlist
     void AddBind(CBind * bind);
+
     virtual ~CEvent();
+
+    //! \brief Change whether the event is activated or not
     virtual void Active(bool yesno) {
         active = yesno;
     }
+
+    //! \brief Activate the event, act on it
     virtual void ActivateEvent(bool ev_trigger,bool skip_action)=0;
+
+    //! \brief Deactivate the event
     virtual void DeActivateEvent(bool ev_trigger)=0;
+
+    //! \brief Deactivate all bindings 
     void DeActivateAll(void);
+
+    //! \brief Set the value of the event (such as joystick position)
     void SetValue(Bits value){
         current_value=value;
     }
+
+    //! \brief Get the value of the event
     Bits GetValue(void) {
         return current_value;
     }
+
+    //! \brief Retrieve the name of the event
     char * GetName(void) { return entry; }
+
+    //! \brief Indicate whether the event is a trigger or continuous input
     virtual bool IsTrigger(void)=0;
+
+    //! \brief Event name
     std::string eventname;
+
+    //! \brief event type
     enum event_type type;
+
+    //! \brief Bind list to trigger on activation/deactivation
     CBindList bindlist;
+
+    //! \brief Whether the event is active or not
     bool active;
 protected:
+    //! \brief Activity counter
     Bitu activity;
+
+    //! \brief Mapper entry name
     char entry[16];
+
+    //! \brief Current value of the event (such as joystick position)
     Bits current_value;
 };
 
@@ -192,14 +301,20 @@ CEvent *get_mapper_event_by_name(const std::string &x) {
     return NULL;
 }
 
-/* class for events which can be ON/OFF only: key presses, joystick buttons, joystick hat */
+//! \brief class for events which can be ON/OFF only: key presses, joystick buttons, joystick hat
 class CTriggeredEvent : public CEvent {
 public:
+    //! \brief Constructor, with event name
     CTriggeredEvent(char const * const _entry) : CEvent(_entry) {}
+
+    // methods below this line have sufficient documentation inherited from the base class
+
     virtual ~CTriggeredEvent() {}
+
     virtual bool IsTrigger(void) {
         return true;
     }
+
     void ActivateEvent(bool ev_trigger,bool skip_action) {
         if (current_value>25000) {
             /* value exceeds boundary, trigger event if not active */
@@ -213,20 +328,27 @@ public:
             }
         }
     }
+
     void DeActivateEvent(bool /*ev_trigger*/) {
         activity--;
         if (!activity) Active(false);
     }
 };
 
-/* class for events which have a non-boolean state: joystick axis movement */
+//! \brief class for events which have a non-boolean state: joystick axis movement
 class CContinuousEvent : public CEvent {
 public:
+    //! \brief Constructor, with event name
     CContinuousEvent(char const * const _entry) : CEvent(_entry) {}
+
+    // methods below this line have sufficient documentation inherited from the base class
+
     virtual ~CContinuousEvent() {}
+
     virtual bool IsTrigger(void) {
         return false;
     }
+
     void ActivateEvent(bool ev_trigger,bool skip_action) {
         if (ev_trigger) {
             activity++;
@@ -237,6 +359,7 @@ public:
             if (!GetActivityCount()) Active(true);
         }
     }
+
     void DeActivateEvent(bool ev_trigger) {
         if (ev_trigger) {
             if (activity>0) activity--;
@@ -250,14 +373,20 @@ public:
             if (!GetActivityCount()) Active(false);
         }
     }
+
+    //! \brief Retrieve activity counter
     virtual Bitu GetActivityCount(void) {
         return activity;
     }
+
+    //! \brief Re-post activity
     virtual void RepostActivity(void) {}
 };
 
+//! \brief Base C++ class for a binding assigned in the mapper interface (or by default settings)
 class CBind {
 public:
+    //! \brief Bind class type, for runtime detection
     enum CBindType {
         bind_t=0,
         keybind_t
@@ -266,6 +395,8 @@ public:
     virtual ~CBind () {
         list->remove(this);
     }
+
+    //! \brief Constructor, to define the binding and type. This constructor adds the CBind object itself to the list
     CBind(CBindList * _list,enum CBindType _type = bind_t) {
         list=_list;
         _list->push_back(this);
@@ -274,10 +405,16 @@ public:
         active=holding=false;
         type = _type;
     }
+
+    //! \brief Get modifier text
     virtual std::string GetModifierText(void);
+
+    //! \brief Get binding text, for display in the menu item
     virtual std::string GetBindMenuText(void) {
         return GetModifierText();
     }
+
+    //! \brief Append modifier text to a string, for use in recording bindings to the mapper file
     void AddFlags(char * buf) {
         if (mods & BMOD_Mod1) strcat(buf," mod1");
         if (mods & BMOD_Mod2) strcat(buf," mod2");
@@ -285,6 +422,8 @@ public:
         if (mods & BMOD_Host) strcat(buf," host");
         if (flags & BFLG_Hold) strcat(buf," hold");
     }
+
+    //! \brief Read modifier flags from a string, for use in parsing bindings from the mapper file
     void SetFlags(char * buf) {
         char * word;
         while (*(word=StripWord(buf))) {
@@ -295,7 +434,9 @@ public:
             if (!strcasecmp(word,"hold")) flags|=BFLG_Hold;
         }
     }
-    void ActivateBind(Bits _value,bool ev_trigger,bool skip_action=false) {
+
+    //! \brief Activate bindings
+    virtual void ActivateBind(Bits _value,bool ev_trigger,bool skip_action=false) {
         if (event->IsTrigger()) {
             /* use value-boundary for on/off events */
             if (_value>25000) {
@@ -315,6 +456,8 @@ public:
             event->ActivateEvent(ev_trigger,false);
         }
     }
+
+    //! \brief Deactivate bindings
     void DeActivateBind(bool ev_trigger) {
         if (event->IsTrigger()) {
             if (!active) return;
@@ -334,15 +477,35 @@ public:
             event->DeActivateEvent(ev_trigger);
         }
     }
-    virtual void ConfigName(char * buf)=0;
-    virtual void BindName(char * buf)=0;
-   
-    Bitu mods,flags;
-    Bit16s value;
-    CEvent * event;
-    CBindList * list;
-    bool active,holding;
 
+    //! \brief Get configuration name, for use in writing the mapper file
+    virtual void ConfigName(char * buf)=0;
+
+    //! \brief Get binding name, for display in the mapper UI
+    virtual void BindName(char * buf)=0;
+
+    //! \brief Modifiers (shift, ctrl, alt)
+    Bitu mods;
+
+    //! \brief Flags (hold)
+    Bitu flags;
+
+    //! \brief Binding value (TODO?)
+    Bit16s value;
+
+    //! \brief Event object this binding is bound to (for visual UI purposes)
+    CEvent * event;
+
+    //! \brief List that this object is part of
+    CBindList * list;
+
+    //! \brief Active status
+    bool active;
+
+    //! \brief Holding status
+    bool holding;
+
+    //! \brief Binding type
     enum CBindType type;
 };
 
@@ -789,10 +952,11 @@ class CJHatBind;
 
 class CJAxisBind : public CBind {
 public:
-    CJAxisBind(CBindList * _list,CBindGroup * _group,Bitu _axis,bool _positive) : CBind(_list){
+    CJAxisBind(CBindList * _list,CBindGroup * _group, Bitu _joystick, Bitu _axis,bool _positive) : CBind(_list){
         group = _group;
         axis = _axis;
         positive = _positive;
+		joystick = _joystick;
     }
     virtual ~CJAxisBind() {}
     void ConfigName(char * buf) {
@@ -801,10 +965,51 @@ public:
     void BindName(char * buf) {
         sprintf(buf,"%s Axis %d%s",group->BindStart(),(int)axis,positive ? "+" : "-");
     }
+
+	//! \brief Gets the joystick index for this instance.
+	Bitu GetJoystick() const { return joystick; };
+
+	//! \brief Gets the axis index for this instance.
+	Bitu GetAxis() const { return axis; }
+
+	//! \brief Gets the axis direction for this instance.
+	bool GetPositive() const { return positive; }
+
+	//! \brief Gets the deadzone for a joystick axis direction.
+	static int GetJoystickDeadzone(int joystick, int axis, bool positive)
+	{
+		auto section = control->GetSection("mapper");
+		auto prop = static_cast<Section_prop*>(section);
+		auto name = "joy" + std::to_string(joystick + 1) + "deadzone" + std::to_string(axis) + (positive ? "+" : "-");
+		auto value = prop->Get_double(name);
+		auto deadzone = static_cast<int>(value * 32767.0);
+		return deadzone;
+	}
+
+	void ActivateBind(Bits _value, bool ev_trigger, bool skip_action = false) override
+	{
+		/* Since codebase is flawed, we do a simple hack:
+		 * If user-set deadzone exceeds hard-coded value of 25000 we just set it to 25001.
+		 * Other code works as usual, CTriggeredEvent does not have to check if it handles a joy axis.
+		 */
+
+		// activate if we exceed user-defined deadzone
+	    const auto joystick = this->GetJoystick();
+	    const auto axis = this->GetAxis();
+	    const auto positive = this->GetPositive();
+	    const auto deadzone = GetJoystickDeadzone(joystick, axis, positive);
+		
+	    if (_value > deadzone && event->IsTrigger()) 
+            _value = 25000 + 1;
+
+        CBind::ActivateBind(_value, ev_trigger, skip_action);
+	}
+
 protected:
     CBindGroup * group;
     Bitu axis;
     bool positive;
+	Bitu joystick;
 };
 
 class CJButtonBind : public CBind {
@@ -854,6 +1059,12 @@ protected:
 };
 
 bool autofire = false;
+
+//! \brief map of joystick 1 axes
+int joy1axes[8];
+
+//! \brief map of joystick 2 axes
+int joy2axes[8];
 
 class CStickBindGroup : public  CBindGroup {
 public:
@@ -925,6 +1136,15 @@ public:
 #else
         LOG_MSG("Using joystick %s with %d axes, %d buttons and %d hat(s)",SDL_JoystickName(stick),(int)axes,(int)buttons,(int)hats);
 #endif
+
+		// fetching these at every call simply freezes DOSBox at times so we do it once
+		// (game tested : Terminal Velocity @ joystick calibration page)
+		joy1dz1 = static_cast<float>(GetAxisDeadzone(0, 0));
+		joy1rs1 = static_cast<float>(GetAxisResponse(0, 0));
+		joy1dz2 = static_cast<float>(GetAxisDeadzone(0, 1));
+		joy1rs2 = static_cast<float>(GetAxisResponse(0, 1));
+		joy2dz1 = static_cast<float>(GetAxisDeadzone(1, 0));
+		joy2rs1 = static_cast<float>(GetAxisResponse(1, 0));
     }
     virtual ~CStickBindGroup() {
         SDL_JoystickClose(sdl_joystick);
@@ -1025,8 +1245,9 @@ public:
                 JOYSTICK_Button(emustick,i,button_pressed[i]);
         }
 
-        JOYSTICK_Move_X(emustick,((float)virtual_joysticks[emustick].axis_pos[0])/32768.0f);
-        JOYSTICK_Move_Y(emustick,((float)virtual_joysticks[emustick].axis_pos[1])/32768.0f);
+		auto v = GetJoystickVector(emustick, 0, 0, 1);
+		JOYSTICK_Move_X(emustick, v.X);
+		JOYSTICK_Move_Y(emustick, v.Y);
     }
 
     void ActivateJoystickBoundEvents() {
@@ -1049,9 +1270,11 @@ public:
                 old_button_state[i]=button_pressed[i];
             }
         }
-
+        
+        int* axis_map = stick == 0 ? &joy1axes[0] : &joy2axes[0];
         for (i=0; i<axes; i++) {
-            Sint16 caxis_pos=SDL_JoystickGetAxis(sdl_joystick,i);
+			Bitu i1 = axis_map[i];
+			Sint16 caxis_pos=SDL_JoystickGetAxis(sdl_joystick,i1);
             /* activate bindings for joystick position */
             if (caxis_pos>1) {
                 if (old_neg_axis_state[i]) {
@@ -1107,10 +1330,11 @@ public:
     }
 
 private:
+	float joy1dz1, joy1rs1, joy1dz2, joy1rs2, joy2dz1, joy2rs1;
     CBind * CreateAxisBind(Bitu axis,bool positive) {
         if (axis<axes) {
-            if (positive) return new CJAxisBind(&pos_axis_lists[axis],this,axis,positive);
-            else return new CJAxisBind(&neg_axis_lists[axis],this,axis,positive);
+            if (positive) return new CJAxisBind(&pos_axis_lists[axis],this,stick,axis,positive);
+            else return new CJAxisBind(&neg_axis_lists[axis],this,stick,axis,positive);
         }
         return NULL;
     }
@@ -1140,6 +1364,39 @@ private:
         else return "[missing joystick]";
     }
 
+    static float GetAxisDeadzone(int joystick, int thumbStick)
+	{
+		auto section = control->GetSection("joystick");
+		auto prop = static_cast<Section_prop*>(section);
+		auto name = "joy" + std::to_string(joystick + 1) + "deadzone" + std::to_string(thumbStick + 1);
+		auto deadzone = static_cast<float>(prop->Get_double(name));
+		return deadzone;
+	}
+	
+	static float GetAxisResponse(int joystick, int thumbStick)
+	{
+		auto section = control->GetSection("joystick");
+		auto prop = static_cast<Section_prop*>(section);
+		auto name = "joy" + std::to_string(joystick + 1) + "response" + std::to_string(thumbStick + 1);
+		auto response = static_cast<float>(prop->Get_double(name));
+		return response;
+	}
+
+	static void ProcessInput(Bit16s x, Bit16s y, float deadzone, Vector2& joy)
+	{
+		// http://www.third-helix.com/2013/04/12/doing-thumbstick-dead-zones-right.html
+
+		joy = Vector2((x + 0.5f) / 32767.5f, (y + 0.5f) / 32767.5f);
+
+		float m = joy.magnitude();
+		Vector2 n = joy.normalized();
+		joy = m < deadzone ? Vector2() : n * ((m - deadzone) / (1.0f - deadzone));
+
+		Vector2 min = Vector2(-1.0f, -1.0f);
+		Vector2 max = Vector2(+1.0f, +1.0f);
+		joy = joy.clamp(min, max);
+	}
+
 protected:
     CBindList * pos_axis_lists;
     CBindList * neg_axis_lists;
@@ -1155,6 +1412,38 @@ protected:
     bool old_neg_axis_state[MAXAXIS];
     Uint8 old_hat_state[16];
     bool is_dummy;
+
+	Vector2 GetJoystickVector(int joystick, int thumbStick, int xAxis, int yAxis) const
+	{
+		Bit16s x = virtual_joysticks[joystick].axis_pos[xAxis];
+		Bit16s y = virtual_joysticks[joystick].axis_pos[yAxis];
+		float deadzone;
+		float response;
+		if (joystick == 0)
+		{
+			if (thumbStick == 0)
+			{
+				deadzone = joy1dz1;
+				response = joy1rs1;
+			}
+			else
+			{
+				deadzone = joy1dz2;
+				response = joy1rs2;
+			}
+		}
+		else
+		{
+			deadzone = joy2dz1;
+			response = joy2rs1;
+		}
+		Vector2 v;
+		ProcessInput(x, y, deadzone, v);
+		float x1 = sgn(v.X) * abs(pow(v.X, response));
+		float y1 = sgn(v.Y) * abs(pow(v.Y, response));
+		Vector2 v1(x1, y1);
+		return v1;
+	}
 };
 
 class C4AxisBindGroup : public  CStickBindGroup {
@@ -1221,10 +1510,12 @@ public:
                 JOYSTICK_Button(i>>1,i&1,button_pressed[i]);
         }
 
-        JOYSTICK_Move_X(0,((float)virtual_joysticks[0].axis_pos[0])/32768.0f);
-        JOYSTICK_Move_Y(0,((float)virtual_joysticks[0].axis_pos[1])/32768.0f);
-        JOYSTICK_Move_X(1,((float)virtual_joysticks[0].axis_pos[2])/32768.0f);
-        JOYSTICK_Move_Y(1,((float)virtual_joysticks[0].axis_pos[3])/32768.0f);
+		auto v1 = GetJoystickVector(0, 0, 0, 1);
+		auto v2 = GetJoystickVector(0, 1, 2, 3);
+		JOYSTICK_Move_X(0, v1.X);
+		JOYSTICK_Move_Y(0, v1.Y);
+		JOYSTICK_Move_X(1, v2.X);
+		JOYSTICK_Move_Y(1, v2.Y);
     }
 };
 
@@ -1302,9 +1593,11 @@ public:
                 JOYSTICK_Button(i>>1,i&1,button_pressed[i]);
         }
 
-        JOYSTICK_Move_X(0,((float)virtual_joysticks[0].axis_pos[0])/32768.0f);
-        JOYSTICK_Move_Y(0,((float)virtual_joysticks[0].axis_pos[1])/32768.0f);
-        JOYSTICK_Move_X(1,((float)virtual_joysticks[0].axis_pos[2])/32768.0f);
+		auto v1 = GetJoystickVector(0, 0, 0, 1);
+		auto v2 = GetJoystickVector(0, 1, 2, 3);
+		JOYSTICK_Move_X(0, v1.X);
+		JOYSTICK_Move_Y(0, v1.Y);
+		JOYSTICK_Move_X(1, v2.X);
 
         Uint8 hat_pos=0;
         if (virtual_joysticks[0].hat_pressed[0]) hat_pos|=SDL_HAT_UP;
@@ -1449,10 +1742,12 @@ public:
         /* query SDL joystick and activate bindings */
         ActivateJoystickBoundEvents();
 
-        JOYSTICK_Move_X(0,((float)virtual_joysticks[0].axis_pos[0])/32768.0f);
-        JOYSTICK_Move_Y(0,((float)virtual_joysticks[0].axis_pos[1])/32768.0f);
-        JOYSTICK_Move_X(1,((float)virtual_joysticks[0].axis_pos[2])/32768.0f);
-        JOYSTICK_Move_Y(1,((float)virtual_joysticks[0].axis_pos[3])/32768.0f);
+		auto v1 = GetJoystickVector(0, 0, 0, 1);
+		auto v2 = GetJoystickVector(0, 1, 2, 3);
+		JOYSTICK_Move_X(0, v1.X);
+		JOYSTICK_Move_X(0, v1.Y);
+		JOYSTICK_Move_X(1, v2.X);
+		JOYSTICK_Move_X(1, v2.Y);
 
         Bitu bt_state=15;
 
@@ -1853,12 +2148,16 @@ protected:
     BC_Types type;
 };
 
+//! \brief Keyboard key trigger event
 class CKeyEvent : public CTriggeredEvent {
 public:
+    //! \brief Constructor to specify mapper event, and KBD_* key enumeration constant
     CKeyEvent(char const * const _entry,KBD_KEYS _key) : CTriggeredEvent(_entry), notify_button(NULL) {
         key=_key;
     }
+
     virtual ~CKeyEvent() {}
+
     virtual void Active(bool yesno) {
         if (MAPPER_DemoOnly()) {
             if (notify_button != NULL)
@@ -1870,15 +2169,23 @@ public:
 
         active=yesno;
     };
+
+    //! \brief Associate this object with a text button in the mapper UI
     void notifybutton(CTextButton *n) {
         notify_button = n;
     }
+
+    //! \brief Text button in the mapper UI to indicate our status by
     CTextButton *notify_button;
+
+    //! \brief KBD_* key enumeration value to transmit to keyboard emulation
     KBD_KEYS key;
 };
 
+//! \brief Joystick axis event handling for the mapper
 class CJAxisEvent : public CContinuousEvent {
 public:
+    //! \brief Constructor, to describe entry, joystick, axis, direction, and the opposing axis
     CJAxisEvent(char const * const _entry,Bitu _stick,Bitu _axis,bool _positive,CJAxisEvent * _opposite_axis) : CContinuousEvent(_entry) {
         notify_button=NULL;
         stick=_stick;
@@ -1889,41 +2196,63 @@ public:
             _opposite_axis->SetOppositeAxis(this);
         }
     }
+
     virtual ~CJAxisEvent() {}
+
     virtual void Active(bool /*moved*/) {
         if (notify_button != NULL)
             notify_button->SetPartialInvert(GetValue()/32768.0);
 
         virtual_joysticks[stick].axis_pos[axis]=(Bit16s)(GetValue()*(positive?1:-1));
     }
+
     virtual Bitu GetActivityCount(void) {
         return activity|opposite_axis->activity;
     }
+
     virtual void RepostActivity(void) {
         /* caring for joystick movement into the opposite direction */
         opposite_axis->Active(true);
     }
+
+    //! \brief Associate this object with a text button in the mapper GUI so that joystick position can be displayed at all times
     void notifybutton(CTextButton *n) {
         notify_button = n;
     }
+
+    //! \brief Text button to use to display joystick position
     CTextButton *notify_button;
 protected:
+    //! \brief Associate this object with the opposing joystick axis
     void SetOppositeAxis(CJAxisEvent * _opposite_axis) {
         opposite_axis=_opposite_axis;
     }
-    Bitu stick,axis;
+
+    //! \brief Joystick to follow
+    Bitu stick;
+
+    //! \brief Joystick axis to track
+    Bitu axis;
+
+    //! \brief Whether joystick axis is positive or negative
     bool positive;
+
+    //! \brief Opposing joystick axis object
     CJAxisEvent * opposite_axis;
 };
 
+//! \brief Joystick button trigger
 class CJButtonEvent : public CTriggeredEvent {
 public:
+    //! \brief Constructor, describing mapper event, joystick, and which button
     CJButtonEvent(char const * const _entry,Bitu _stick,Bitu _button) : CTriggeredEvent(_entry) {
         stick=_stick;
         button=_button;
         notify_button=NULL;
     }
+
     virtual ~CJButtonEvent() {}
+    
     virtual void Active(bool pressed) {
         if (notify_button != NULL)
             notify_button->SetInvert(pressed);
@@ -1931,35 +2260,66 @@ public:
         virtual_joysticks[stick].button_pressed[button]=pressed;
         active=pressed;
     }
+    
+    //! \brief Associate this object with a text button in the mapper UI
     void notifybutton(CTextButton *n) {
         notify_button = n;
     }
+
+    //! \brief Text button in the mapper UI to indicate our status by
     CTextButton *notify_button;
 protected:
-    Bitu stick,button;
+    //! \brief Which joystick
+    Bitu stick;
+
+    //! \brief Which button
+    Bitu button;
 };
 
+//! \brief Joystick hat event
 class CJHatEvent : public CTriggeredEvent {
 public:
+    //! \brief Constructor to describe mapper event, joystick, hat, and direction
     CJHatEvent(char const * const _entry,Bitu _stick,Bitu _hat,Bitu _dir) : CTriggeredEvent(_entry) {
         stick=_stick;
         hat=_hat;
         dir=_dir;
+        notify_button = NULL;
     }
+
     virtual ~CJHatEvent() {}
+
     virtual void Active(bool pressed) {
+        if (notify_button != NULL)
+            notify_button->SetInvert(pressed);
         virtual_joysticks[stick].hat_pressed[(hat<<2)+dir]=pressed;
     }
+    void notifybutton(CTextButton *n)
+    {
+        notify_button = n;
+    }
+    CTextButton *notify_button;
 protected:
-    Bitu stick,hat,dir;
+    //! \brief Which joystick
+    Bitu stick;
+
+    //! \brief Which hat
+    Bitu hat;
+
+    //! \brief Direction of hat
+    Bitu dir;
 };
 
+//! \brief Modifier trigger event, for modifier keys. This permits the user to change modifier key bindings.
 class CModEvent : public CTriggeredEvent {
 public:
+    //! \brief Constructor to provide entry name and the index of the modifier button
     CModEvent(char const * const _entry,Bitu _wmod) : CTriggeredEvent(_entry), notify_button(NULL) {
         wmod=_wmod;
     }
+
     virtual ~CModEvent() {}
+
     virtual void Active(bool yesno) {
         if (notify_button != NULL)
             notify_button->SetInvert(yesno);
@@ -1967,11 +2327,16 @@ public:
         if (yesno) mapper.mods|=(1u << (wmod-1u));
         else mapper.mods&=~(1u << (wmod-1u));
     };
+
+    //! \brief Associate this object with a text button in the mapper UI
     void notifybutton(CTextButton *n) {
         notify_button = n;
     }
+
+    //! \brief Mapper UI text button to indicate status by
     CTextButton *notify_button;
 protected:
+    //! \brief Modifier button index
     Bitu wmod;
 };
 
@@ -1991,8 +2356,10 @@ std::string CBind::GetModifierText(void) {
     return r;
 }
 
+//! \brief Mapper shortcut event. Keyboard triggerable only.
 class CHandlerEvent : public CTriggeredEvent {
 public:
+    //! \brief Constructor, to specify the entry, handler (callback), key (according to MapKeys enumeration), and text to display for the shortcut in the mapper UO
     CHandlerEvent(char const * const _entry,MAPPER_Handler * _handler,MapKeys _key,Bitu _mod,char const * const _buttonname) : CTriggeredEvent(_entry), notify_button(NULL) {
         handler=_handler;
         defmod=_mod;
@@ -2001,7 +2368,9 @@ public:
         handlergroup.push_back(this);
         type = handler_event_t;
     }
+
     virtual ~CHandlerEvent() {}
+
     virtual void Active(bool yesno) {
         if (MAPPER_DemoOnly()) {
             if (notify_button != NULL)
@@ -2013,9 +2382,13 @@ public:
 
         active=yesno;
     };
+
+    //! \brief Retrieve the button name (for display in the mapper UI)
     const char * ButtonName(void) {
         return buttonname;
     }
+
+    //! \brief Generate a default binding from the MapKeys enumeration
 #if defined(C_SDL2)
     void MakeDefaultBind(char * buf) {
         Bitu key=0;
@@ -2205,15 +2578,24 @@ public:
         );
     }
 #endif
+    //! \brief Associate this object with a text button in the mapper UI
     void notifybutton(CTextButton *n) {
         notify_button = n;
     }
+
+    //! \brief Text button in the mapper UI to indicate status by
     CTextButton *notify_button;
+
+    //! \brief Mapper handler shortcut
     MAPPER_Handler * handler;
 protected:
+    //! \brief MapKeys enumeration for keyboard shortcut
     MapKeys defkey;
+
+    //! \brief Default modifiers
     Bitu defmod;
 public:
+    //! \brief Button name
     const char * buttonname;
 };
 
@@ -2364,7 +2746,8 @@ static void AddJHatButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title
     char buf[64];
     sprintf(buf,"jhat_%d_%d_%d",(int)_stick,(int)_hat,(int)_dir);
     CJHatEvent * event=new CJHatEvent(buf,_stick,_hat,_dir);
-    new CEventButton(x,y,dx,dy,title,event);
+    CEventButton* evbutton = new CEventButton(x,y,dx,dy,title,event);
+    event->notifybutton(evbutton);
 }
 
 static void AddModButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,Bitu _mod) {

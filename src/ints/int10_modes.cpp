@@ -90,9 +90,9 @@ VideoModeBlock ModeList_VGA[]={
  * This also fixes COMA "Parhaat" 1997 demo, by offering a true 24bpp mode so that it doesn't try to draw 24bpp on a 32bpp VESA linear framebuffer.
  * NTS: The 24bpp modes listed here will not be available to the DOS game/demo if the user says that the VBE 1.2 modes are 32bpp,
  *      instead the redefinitions in the next block will apply to allow M_LIN32. To use the 24bpp modes here, you must set 'vesa vbe 1.2 modes are 32bpp=false' */
-{ 0x10D  ,M_LIN15  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _DOUBLESCAN },
-{ 0x10E  ,M_LIN16  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _DOUBLESCAN },
-{ 0x10F  ,M_LIN24  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _DOUBLESCAN },
+{ 0x10D  ,M_LIN15  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _REPEAT1 },
+{ 0x10E  ,M_LIN16  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _REPEAT1 },
+{ 0x10F  ,M_LIN24  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _REPEAT1 },
 { 0x110  ,M_LIN15  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,525 ,160,480 ,0   },
 { 0x111  ,M_LIN16  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,525 ,160,480 ,0   },
 { 0x112  ,M_LIN24  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0   },
@@ -107,18 +107,18 @@ VideoModeBlock ModeList_VGA[]={
  * So we have another definition of those modes that overlaps some of the same mode numbers above.
  * This allows "Phenomena" demo to use 32bpp 320x200 mode if you set 'vesa vbe 1.2 modes are 32bpp=true'.
  * The code will allow either this block's mode 0x10F (LIN32), or the previous block's mode 0x10F (LIN24), but not both. */
-{ 0x10F  ,M_LIN32  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _DOUBLESCAN },
+{ 0x10F  ,M_LIN32  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _REPEAT1 },
 { 0x112  ,M_LIN32  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0   },
 { 0x115  ,M_LIN32  ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0   },
 { 0x118  ,M_LIN32  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
 
 /* RGBX 8:8:8:8 modes. These were once the M_LIN32 modes DOSBox mapped to 0x10F-0x11B prior to implementing M_LIN24. */
-{ 0x210  ,M_LIN32  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _DOUBLESCAN },
+{ 0x210  ,M_LIN32  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _REPEAT1 },
 { 0x211  ,M_LIN32  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0   },
 { 0x212  ,M_LIN32  ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0   },
 { 0x214  ,M_LIN32  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
 
-{ 0x215  ,M_LIN24  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _DOUBLESCAN },
+{ 0x215  ,M_LIN24  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _REPEAT1 },
 { 0x216  ,M_LIN24  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0   },
 { 0x217  ,M_LIN24  ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0   },
 { 0x218  ,M_LIN24  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
@@ -136,13 +136,13 @@ VideoModeBlock ModeList_VGA[]={
 
 // FIXME: Find an old S3 Trio and dump the VESA modelist, then arrange this modelist to match
 { 0x150  ,M_LIN8   ,320 ,480 ,40 ,60 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 , _S3_PIXEL_DOUBLE  },
-{ 0x151  ,M_LIN8   ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 , _S3_PIXEL_DOUBLE | _DOUBLESCAN },
+{ 0x151  ,M_LIN8   ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 , _S3_PIXEL_DOUBLE | _REPEAT1 },
 { 0x152  ,M_LIN8   ,320 ,400 ,40 ,50 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _S3_PIXEL_DOUBLE  },
 // For S3 Trio emulation this mode must exist as mode 0x153 else RealTech "Countdown" will crash
 // if you select VGA 320x200 with S3 acceleration.
-{ 0x153  ,M_LIN8   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _S3_PIXEL_DOUBLE | _DOUBLESCAN },
+{ 0x153  ,M_LIN8   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _S3_PIXEL_DOUBLE | _REPEAT1 },
 
-{ 0x160  ,M_LIN15  ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 , 80 ,480 , _DOUBLESCAN },
+{ 0x160  ,M_LIN15  ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 , 80 ,480 , _REPEAT1 },
 { 0x161  ,M_LIN15  ,320 ,400 ,40 ,50 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 , 80 ,400 ,0 },
 { 0x162  ,M_LIN15  ,320 ,480 ,40 ,60 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 , 80 ,480 ,0 },
 { 0x165  ,M_LIN15  ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,449 ,160 ,400 ,0   },
@@ -152,12 +152,12 @@ VideoModeBlock ModeList_VGA[]={
 //       that mode 0x166 is this particular mode and errors out if it can't set it.
 { 0x166  ,M_LIN8   ,320 ,480 ,40 ,60 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 , _S3_PIXEL_DOUBLE  },
 
-{ 0x170  ,M_LIN16  ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 , 80 ,480 , _DOUBLESCAN },
+{ 0x170  ,M_LIN16  ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 , 80 ,480 , _REPEAT1 },
 { 0x171  ,M_LIN16  ,320 ,400 ,40 ,50 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 , 80 ,400 ,0 },
 { 0x172  ,M_LIN16  ,320 ,480 ,40 ,60 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,525 , 80 ,480 ,0 },
 { 0x175  ,M_LIN16  ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,449 ,160 ,400 ,0   },
 
-{ 0x190  ,M_LIN32  ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000, 50 ,525 ,40 ,480 , _DOUBLESCAN },
+{ 0x190  ,M_LIN32  ,320 ,240 ,40 ,30 ,8 ,8  ,1 ,0xA0000 ,0x10000, 50 ,525 ,40 ,480 , _REPEAT1 },
 { 0x191  ,M_LIN32  ,320 ,400 ,40 ,50 ,8 ,8  ,1 ,0xA0000 ,0x10000, 50 ,449 ,40 ,400 ,0 },
 { 0x192  ,M_LIN32  ,320 ,480 ,40 ,60 ,8 ,8  ,1 ,0xA0000 ,0x10000, 50 ,525 ,40 ,480 ,0 },
 
@@ -314,7 +314,7 @@ VideoModeBlock ModeList_VGA_Tseng[]={
 { 0x06A  ,M_LIN4   ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0xA000, 128 ,663 ,100,600 , 0 },/* newer ET4000 */
 
 // Sierra SC1148x Hi-Color DAC modes
-{ 0x213  ,M_LIN15  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _VGA_PIXEL_DOUBLE | _DOUBLESCAN },
+{ 0x213  ,M_LIN15  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _VGA_PIXEL_DOUBLE | _REPEAT1 },
 { 0x22D  ,M_LIN15  ,640 ,350 ,80 ,25 ,8 ,14 ,1 ,0xA0000 ,0x10000,200 ,449 ,160,350 , 0 },
 { 0x22E  ,M_LIN15  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,525 ,160,480 , 0 },
 { 0x22F  ,M_LIN15  ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,449 ,160,400 , 0 },
@@ -607,7 +607,7 @@ static void FinishSetMode(bool clearmem) {
 		case M_LIN24:
 		case M_LIN32:
 			/* Hack we just access the memory directly */
-			memset(vga.mem.linear,0,vga.vmemsize);
+			memset(vga.mem.linear,0,vga.mem.memsize);
 			break;
 		default:
 			break;
@@ -630,7 +630,7 @@ static void FinishSetMode(bool clearmem) {
 
 	// Set cursor shape
 	if (CurMode->type==M_TEXT) {
-		INT10_SetCursorShape(0x06,07);
+		INT10_SetCursorShape(CURSOR_SCAN_LINE_NORMAL, CURSOR_SCAN_LINE_END);
 	}
 	// Set cursor pos for page 0..7
 	for (Bit8u ct=0;ct<8;ct++) INT10_SetCursorPos(0,0,ct);
@@ -985,7 +985,14 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	
 	if (CurMode->special & _EGA_HALF_CLOCK) seq_data[1]|=0x08; //Check for half clock
 	if ((machine==MCH_EGA) && (CurMode->special & _EGA_HALF_CLOCK)) seq_data[1]|=0x02;
-	seq_data[4]|=0x02;	//More than 64kb
+
+	if (IS_VGA_ARCH || (IS_EGA_ARCH && vga.mem.memsize >= 0x20000))
+        seq_data[4]|=0x02;	//More than 64kb
+    else if (IS_EGA_ARCH && CurMode->vdispend==350) {
+        seq_data[4] &= ~0x04; // turn on odd/even
+        seq_data[1] |= 0x04; // half clock
+    }
+
 	switch (CurMode->type) {
 	case M_TEXT:
 		if (CurMode->cwidth==9) seq_data[1] &= ~1;
@@ -1239,9 +1246,16 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	case M_LIN32:
 		offset = 4 * CurMode->swidth/8;
 		break;
+    case M_EGA:
+        if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350)
+            offset = CurMode->hdispend/4;
+        else
+            offset = CurMode->hdispend/2;
+		break;
 	default:
-		offset = CurMode->hdispend/2;
-	}
+        offset = CurMode->hdispend/2;
+        break;
+    }
 	IO_Write(crtc_base,0x13);
 	IO_Write(crtc_base + 1u,offset & 0xff);
 
@@ -1269,11 +1283,13 @@ bool INT10_SetVideoMode(Bit16u mode) {
 		break;
 	case M_LIN4:
 	case M_EGA:
-		if (CurMode->mode==0x11) // 0x11 also sets address wrap.  thought maybe all 2 color modes did but 0x0f doesn't.
-			mode_control=0xc3; // so.. 0x11 or 0x0f a one off?
-		else {
-				mode_control=0xe3;
-			}
+        if (CurMode->mode==0x11) // 0x11 also sets address wrap.  thought maybe all 2 color modes did but 0x0f doesn't.
+            mode_control=0xc3; // so.. 0x11 or 0x0f a one off?
+        else
+            mode_control=0xe3;
+
+        if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350)
+            mode_control &= ~0x40; // word mode
 		break;
 	case M_TEXT:
 	case M_VGA:
@@ -1289,6 +1305,9 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	default:
 		break;
 	}
+
+    if (IS_EGA_ARCH && vga.mem.memsize < 0x20000)
+        mode_control &= ~0x20; // address wrap bit 13
 
 	IO_Write(crtc_base,0x17);IO_Write(crtc_base+1u,mode_control);
 	/* Renable write protection */
@@ -1349,8 +1368,11 @@ bool INT10_SetVideoMode(Bit16u mode) {
 		break;
 	case M_LIN4:
 	case M_EGA:
-		if (CurMode->mode == 0x0f)
-			gfx_data[0x7]=0x05;		// only planes 0 and 2 are used
+        if (IS_EGA_ARCH && vga.mem.memsize < 0x20000 && CurMode->vdispend==350) {
+            gfx_data[0x5]|=0x10;		//Odd-Even Mode
+            gfx_data[0x6]|=0x02;		//Odd-Even Mode
+	        gfx_data[0x7]=0x5;			/* Color don't care */
+        }
 		gfx_data[0x6]|=0x05;		//graphics mode at 0xa000-affff
 		break;
 	case M_CGA4:
@@ -1677,9 +1699,9 @@ dac_text16:
 		IO_Write(crtc_base,0x31);IO_Write(crtc_base+1u,reg_31);	//Enable banked memory and 256k+ access
 
 		IO_Write(crtc_base,0x58);
-		if (vga.vmemsize >= (4*1024*1024))
+		if (vga.mem.memsize >= (4*1024*1024))
 			IO_Write(crtc_base+1u,0x3);		// 4+ MB window
-		else if (vga.vmemsize >= (2*1024*1024))
+		else if (vga.mem.memsize >= (2*1024*1024))
 			IO_Write(crtc_base+1u,0x2);		// 2 MB window
 		else
 			IO_Write(crtc_base+1u,0x1);		// 1 MB window

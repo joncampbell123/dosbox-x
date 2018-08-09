@@ -748,23 +748,7 @@ void CALLBACK_HandlerObject::Set_RealVec(Bit8u vec,bool reinstall){
 }
 
 void CALLBACK_Init() {
-	if (mainline_compatible_bios_mapping) {
-		LOG(LOG_MISC,LOG_DEBUG)("Initializing DOSBox callback instruction system (mainline compatible)");
-
-		CB_SOFFSET=0x1000;
-		CB_SEG=0xF000;
-
-		/* mark the fixed callback location as off-limits */
-		if (ROMBIOS_GetMemory((CB_MAX*CB_SIZE)+(256*6),"DOSBox callbacks region",1,PhysMake(CB_SEG,CB_SOFFSET)) == 0)
-			E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
-
-		vm86_fake_io_seg = 0xF000;	/* unused area in BIOS for IO instruction */
-		vm86_fake_io_off = 0x0700;
-		/* mark the vm86 hack as off-limits */
-		if (ROMBIOS_GetMemory(14/*2+2+3+2+2+3*/,"DOSBox vm86 hack",1,(vm86_fake_io_seg<<4)+vm86_fake_io_off) == 0)
-			E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
-	}
-	else {
+	{
 		/* NTS: Layout of the callback area:
 		 *
 		 * CB_MAX entries CB_SIZE each, where executable x86 code is written per callback,

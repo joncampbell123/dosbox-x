@@ -1,3 +1,27 @@
+TODO add version
+  - INT 10h AH=10h now ignores AL=3 in PCjr mode.
+  - Fixed keyboard handler bug in PCjr mode that caused some CPU
+    register corruption and general crashiness in games.
+  - Improved shell: (Aybe, Joncampbell123)
+    - Ctrl+Left and Ctrl+Right permits word-navigation.
+    - Added emulation of 'Ins' key behavior.
+  - Num Lock stays on at startup and is synchronized with host (Aybe)
+    when DOSBox-X window gains focus (Windows). (Aybe)
+  - Added visual feedback to Hat/D-pad buttons in mapper. (Aybe)
+  - Added documentation for 'dir' command sorting switches. (Aybe)
+  - Menu 'Show console' is now checked with '-console' (SDL1). (Aybe)
+  - Improved joystick support (see README.joystick): (Aybe)
+    - Added deadzone and response for joystick axes.
+    - Axes can be remapped for devices with questionable layout.
+    - User-settable deadzones for joystick bindings in mapper,
+      mappings like WSAD keys to axes is less frustrating.
+  - Improved mouse integration:
+    - Now by default DOSBox-X does not emulate mouse movement when the mouse
+      is not locked. This gives a consistent experience when compared to host OS.
+      For the old behavior, use [sdl] mouse_emulation=always.
+    - Added visual or auditive feedback that notifies about auto-lock state.
+      This feature can be switched off, use [sdl] autolock_feedback=none.
+    
 0.82.7
   - Mac OS X builds now honor showmenu=false by leaving the
     stock SDL menu in place at startup.

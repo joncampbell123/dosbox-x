@@ -611,6 +611,35 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
     if (mouse.x < mouse.min_x) mouse.x = mouse.min_x;
     if (mouse.y > mouse.max_y) mouse.y = mouse.max_y;
     if (mouse.y < mouse.min_y) mouse.y = mouse.min_y;
+    extern int  user_cursor_x,  user_cursor_y;
+    extern int  user_cursor_sw, user_cursor_sh;
+    extern bool user_cursor_locked;
+
+    /*make mouse emulated, eventually*/
+    extern MOUSE_EMULATION user_cursor_emulation;
+    bool emu;
+    switch (user_cursor_emulation)
+    {
+    case MOUSE_EMULATION_ALWAYS:
+        emu = true;
+        break;
+    case MOUSE_EMULATION_INTEGRATION:
+        emu = !user_cursor_locked;
+        break;
+    case MOUSE_EMULATION_LOCKED:
+        emu = user_cursor_locked;
+        break;
+    case MOUSE_EMULATION_NEVER:
+    default:
+        emu = false;
+    }
+    if (!emu)
+    {
+        const auto x1 = 1.0 / static_cast<double>(user_cursor_sw) * user_cursor_x;
+        const auto y1 = 1.0 / static_cast<double>(user_cursor_sh) * user_cursor_y;
+        mouse.x       = x1 * mouse.max_x;
+        mouse.y       = y1 * mouse.max_y;
+    }
 
     mouse.ps2x += xrel;
     mouse.ps2y += yrel;
@@ -1379,3 +1408,7 @@ void MOUSE_Init() {
     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MOUSE_OnReset));
 }
 
+bool MOUSE_IsHidden()
+{
+    return static_cast<bool>(mouse.hidden);
+}

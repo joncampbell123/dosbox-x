@@ -45,13 +45,13 @@ template <typename T=unsigned int> static inline constexpr T allones(void) {
 }
 
 
-/* Return data type T with value negated
+/* Return data type T with value inverted
  *
  * This is to avoid typecast messes when masking by the inverse of a constant
  * 
- * @return Type T with value negated
+ * @return Type T with value inverted
  */
-template <typename T=unsigned int> static inline constexpr T negate(const T v) {
+template <typename T=unsigned int> static inline constexpr T invert(const T v) {
     return (T)( ~v );
 }
 
@@ -297,6 +297,7 @@ template <typename T=unsigned int> static inline constexpr bool ispowerof2(const
  *
  * The constexpr templated version will trigger a static_assert if v == 0.
  *
+ * log2(2^32 - 1) == 31                         2^32 - 1 = 0xFFFFFFFF
  * log2(2^31) == 31
  * log2(2^30) == 30
  * log2(2^16) == 16                             2^16 == 65536

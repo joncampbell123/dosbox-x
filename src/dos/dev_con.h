@@ -38,6 +38,10 @@ Bit16u last_int16_code = 0;
 static size_t dev_con_pos=0,dev_con_max=0;
 static char dev_con_readbuf[64];
 
+Bit8u DefaultANSIAttr() {
+	return IS_PC98_ARCH ? 0xE1 : 0x07;
+}
+
 class device_CON : public DOS_Device {
 public:
 	device_CON();
@@ -57,7 +61,7 @@ private:
 		bool sci;
         bool pc98rab;       // PC-98 ESC [ > ...    (right angle bracket) I will rename this variable if MS-DOS ANSI.SYS also supports this sequence
 		bool enabled;
-		Bit8u attr;
+		Bit8u attr;         // machine-specific
 		Bit8u data[NUMBER_ANSI_DATA];
 		Bit8u numberofarg;
 		Bit16u nrows;
@@ -65,6 +69,11 @@ private:
 		Bit8u savecol;
 		Bit8u saverow;
 		bool warned;
+
+		void Disable() {
+			enabled = false;
+			attr = DefaultANSIAttr();
+		}
 	} ansi;
 
 	static void Real_INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
@@ -101,6 +110,9 @@ private:
      * will not return anything and will block. */
     bool CommonPC98ExtScanConversionToReadBuf(unsigned char code) {
         switch (code) {
+            case 0x38: // INS
+                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x50; dev_con_pos=0; dev_con_max=2;
+                break;
             case 0x39: // DEL
                 dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x44; dev_con_pos=0; dev_con_max=2;
                 return true;
@@ -147,7 +159,6 @@ private:
                 dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x5A; dev_con_pos=0; dev_con_max=2;
                 return true;
 #if 0
-                // INS      0x1B 0x50   0x1B 0x50   0x1B 0x50
                 // ROLL UP  --          --          --
                 // POLL DOWN--          --          --
                 // COPY     --          --          --
@@ -238,6 +249,7 @@ private:
 	
 	static void AdjustCursorPosition(Bit8u& cur_col,Bit8u& cur_row) {
 		BIOS_NCOLS;BIOS_NROWS;
+		auto defattr = DefaultANSIAttr();
 		//Need a new line?
 		if(cur_col==ncols) 
 		{
@@ -245,16 +257,16 @@ private:
 			cur_row++;
 
             if (!IS_PC98_ARCH)
-                Real_INT10_TeletypeOutput('\r',0x7);
+                Real_INT10_TeletypeOutput('\r',defattr);
         }
 		
 		//Reached the bottom?
 		if(cur_row==nrows) 
 		{
             if (IS_PC98_ARCH)
-		        INT10_ScrollWindow(0,0,(Bit8u)(nrows-1),(Bit8u)(ncols-1),-1,0x07,0);
+		        INT10_ScrollWindow(0,0,(Bit8u)(nrows-1),(Bit8u)(ncols-1),-1,defattr,0);
             else
-                Real_INT10_TeletypeOutput('\n',0x7);	//Scroll up
+                Real_INT10_TeletypeOutput('\n',defattr);	//Scroll up
 
             cur_row--;
 		}
@@ -369,10 +381,11 @@ private:
 bool device_CON::Read(Bit8u * data,Bit16u * size) {
 	Bit16u oldax=reg_ax;
 	Bit16u count=0;
+	auto defattr=DefaultANSIAttr();
 	INT10_SetCurMode();
 	if ((readcache) && (*size)) {
 		data[count++]=readcache;
-		if(dos.echo) Real_INT10_TeletypeOutput(readcache,7);
+		if(dos.echo) Real_INT10_TeletypeOutput(readcache,defattr);
 		readcache=0;
 	}
 	while (*size>count) {
@@ -402,8 +415,8 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 			*size=count;
 			reg_ax=oldax;
 			if(dos.echo) { 
-				Real_INT10_TeletypeOutput(13,7); //maybe don't do this ( no need for it actually ) (but it's compatible)
-				Real_INT10_TeletypeOutput(10,7);
+				Real_INT10_TeletypeOutput(13,defattr); //maybe don't do this ( no need for it actually ) (but it's compatible)
+				Real_INT10_TeletypeOutput(10,defattr);
 			}
 			return true;
 			break;
@@ -411,8 +424,8 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 			if(*size==1) data[count++]=reg_al;  //one char at the time so give back that BS
 			else if(count) {                    //Remove data if it exists (extended keys don't go right)
 				data[count--]=0;
-				Real_INT10_TeletypeOutput(8,7);
-				Real_INT10_TeletypeOutput(' ',7);
+				Real_INT10_TeletypeOutput(8,defattr);
+				Real_INT10_TeletypeOutput(' ',defattr);
 			} else {
 				continue;                       //no data read yet so restart whileloop.
 			}
@@ -446,7 +459,7 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 		}
 		if(dos.echo) { //what to do if *size==1 and character is BS ?????
 			// TODO: If CTRL+C checking is applicable do not echo (reg_al == 3)
-			Real_INT10_TeletypeOutput(reg_al,7);
+			Real_INT10_TeletypeOutput(reg_al,defattr);
 		}
 	}
 	*size=count;
@@ -485,8 +498,8 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
             } else { 
                 /* Some sort of "hack" now that '\n' doesn't set col to 0 (int10_char.cpp old chessgame) */
                 if((data[count] == '\n') && (lastwrite != '\r')) Real_INT10_TeletypeOutputAttr('\r',ansi.attr,ansi.enabled);
-                /* use ansi attribute if ansi is enabled, otherwise use DOS default attribute*/
-                Real_INT10_TeletypeOutputAttr(data[count],ansi.enabled?ansi.attr:7,true);
+                /* ansi attribute will be set to the default if ansi is disabled */
+                Real_INT10_TeletypeOutputAttr(data[count],ansi.attr,true);
                 lastwrite = data[count++];
                 continue;
             }
@@ -542,6 +555,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                         case 1: // show/hide function key row
                             void update_pc98_function_row(bool enable);
                             update_pc98_function_row(data[count] == 'l');
+                            ansi.nrows = real_readb(0x60,0x110)+1;
                             break;
                         case 3: // clear screen (doesn't matter if l or h)
                             INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
@@ -567,89 +581,90 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
         else {
             switch(data[count]){
                 case 'm':               /* SGR */
+                    // NEC's ANSI driver always resets at the beginning
+                    if(IS_PC98_ARCH) {
+                        ansi.attr = DefaultANSIAttr();
+                    }
                     for(i=0;i<=ansi.numberofarg;i++){ 
+                        const Bit8u COLORFLAGS[][8] = {
+                        //  Black   Red Green Yellow Blue  Pink  Cyan  White
+                            { 0x0,  0x4,  0x2,  0x6,  0x1,  0x5,  0x3,  0x7 }, /*   IBM */
+                            { 0x0, 0x40, 0x80, 0xC0, 0x20, 0x60, 0xA0, 0xE0 }, /* PC-98 */
+                        };
+                        const auto &flagset = COLORFLAGS[IS_PC98_ARCH];
+
+                        if(IS_PC98_ARCH) {
+                            // Convert alternate color codes to regular ones
+                            if(ansi.data[i] >= 17 && ansi.data[i] <= 23) {
+                                const Bit8u convtbl[] = {
+                                    31, 34, 35, 32, 33, 36, 37
+                                };
+                                ansi.data[i] = convtbl[ansi.data[i] - 17];
+                            }
+                        }
+
                         ansi.enabled=true;
                         switch(ansi.data[i]){
                             case 0: /* normal */
-                                ansi.attr=0x07;//Real ansi does this as well. (should do current defaults)
-                                ansi.enabled=false;
+                                //Real ansi does this as well. (should do current defaults)
+                                ansi.Disable();
                                 break;
                             case 1: /* bold mode on*/
-                                ansi.attr|=0x08;
+                                // FIXME: According to http://www.ninton.co.jp/?p=11, this
+                                // should set some sort of "highlight" flag in monochrome
+                                // mode, but I have no idea how to even enter that mode.
+                                ansi.attr |= IS_PC98_ARCH ? 0 : 0x08;
+                                break;
+                            case 2: /* PC-98 "Bit 4" */
+                                ansi.attr |= IS_PC98_ARCH ? 0x10 : 0;
                                 break;
                             case 4: /* underline */
-                                LOG(LOG_IOCTL,LOG_NORMAL)("ANSI:no support for underline yet");
+                                if(IS_PC98_ARCH) {
+                                    ansi.attr |= 0x08;
+                                } else {
+                                    LOG(LOG_IOCTL, LOG_NORMAL)("ANSI:no support for underline yet");
+                                }
                                 break;
                             case 5: /* blinking */
-                                ansi.attr|=0x80;
+                                ansi.attr |= IS_PC98_ARCH ? 0x02 : 0x80;
                                 break;
                             case 7: /* reverse */
-                                ansi.attr=0x70;//Just like real ansi. (should do use current colors reversed)
+                                //Just like real ansi. (should do use current colors reversed)
+                                if(IS_PC98_ARCH) {
+                                    ansi.attr |= 0x04;
+                                } else {
+                                    ansi.attr = 0x70;
+                                }
+                                break;
+                            case 8: /* PC-98 secret */
+                            case 16:
+                                ansi.attr &= IS_PC98_ARCH ? 0xFE : 0xFF;
                                 break;
                             case 30: /* fg color black */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x0;
-                                break;
-                            case 31:  /* fg color red */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x4;
-                                break;
-                            case 32:  /* fg color green */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x2;
-                                break;
+                            case 31: /* fg color red */
+                            case 32: /* fg color green */
                             case 33: /* fg color yellow */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x6;
-                                break;
                             case 34: /* fg color blue */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x1;
-                                break;
                             case 35: /* fg color magenta */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x5;
-                                break;
                             case 36: /* fg color cyan */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x3;
-                                break;
                             case 37: /* fg color white */
-                                ansi.attr&=0xf8;
-                                ansi.attr|=0x7;
+                                ansi.attr &= ~(flagset[7]);
+                                ansi.attr |= (flagset[ansi.data[i] - 30]);
                                 break;
                             case 40:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x0;
-                                break;
                             case 41:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x40;
-                                break;
                             case 42:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x20;
-                                break;
                             case 43:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x60;
-                                break;
                             case 44:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x10;
-                                break;
                             case 45:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x50;
-                                break;
                             case 46:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x30;
-                                break;	
-                            case 47:
-                                ansi.attr&=0x8f;
-                                ansi.attr|=0x70;
+                            case 47: {
+                                Bit8u shift = IS_PC98_ARCH ? 0 : 4;
+                                ansi.attr &= ~(flagset[7] << shift);
+                                ansi.attr |= (flagset[ansi.data[i] - 40] << shift);
+                                ansi.attr |= IS_PC98_ARCH ? 0x04 : 0;
                                 break;
+                            }
                             default:
                                 break;
                         }
@@ -874,10 +889,19 @@ device_CON::device_CON() {
 	SetName("CON");
 	readcache=0;
 	lastwrite=0;
-	ansi.enabled=false;
-	ansi.attr=0x7;
-	ansi.ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS); //should be updated once set/reset mode is implemented
-	ansi.nrows=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
+	ansi.Disable();
+    if (IS_PC98_ARCH) {
+        // NTS: On real hardware, the BIOS does NOT manage the console at all.
+        //      TTY handling is entirely handled by MS-DOS.
+        ansi.ncols=80;
+        ansi.nrows=25 - 1;
+        // the DOS kernel will call on this function to disable, and SDLmain
+        // will call on to enable
+    }
+    else {
+        ansi.ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS); //should be updated once set/reset mode is implemented
+        ansi.nrows=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) + 1;
+    }
 	ansi.saverow=0;
 	ansi.savecol=0;
 	ansi.warned=false;

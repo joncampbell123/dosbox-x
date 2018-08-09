@@ -1,0 +1,137 @@
+Overview of latest joystick parameters in dosbox.conf
+=====================================================
+
+Sample configuration:
+
+[joystick]
+
+# Following settings define deadzone and response curve for DOS joystick axes.
+# They are to be used when your software input method IS a joystick,
+# contrarily to the settings in the [mapper] section below.
+
+# First joystick has twice as much settings as the second one,
+# this because when your joystick type is 4axis, fcs or ch,
+# they in fact do combine both joystick ports to make an uber DOS joystick.
+# see https://www.dosbox.com/DOSBoxManual.html#Joystick for more information
+
+# Settings of interest per joystick type:
+
+# 2axis 
+# player 1: joy1deadzone1, joy1response1
+# player 2: joy2deadzone1, joy2response1
+
+# 4axis, 4axis_2, fcs, ch
+# player 1: joy1deadzone1, joy1deadzone2, joy1response1, joy1response2
+# player 2: N/A
+
+joy1deadzone1=0.26
+joy1deadzone2=0.26
+joy2deadzone1=0.26
+
+joy1response1=3.00
+joy1response2=3.00
+joy2response1=3.00
+
+# Following settings allows you to remap physical axes, this is useful
+# when either your device or software has a fixed layout.
+
+joy1axis0=0
+joy1axis1=1
+joy1axis2=2
+joy1axis3=3
+joy1axis4=4
+joy1axis5=5
+joy1axis6=6
+joy1axis7=7
+
+joy2axis0=0
+joy2axis1=1
+joy2axis2=2
+joy2axis3=3
+joy2axis4=4
+joy2axis5=5
+joy2axis6=6
+joy2axis7=7
+
+# Fix Xbox One Controller triggers acting as 3rd axis (4axis):
+# joy1axis2=4
+# Both directions of your right thumbstick are now working.
+
+
+[mapper]
+
+# Following settings specify deadzone for a mapper binding to be triggerred.
+# This is useful when you wish to map some physical joystick axes to act as keys,
+# i.e. use left thumbstick to emit WSAD keys.
+
+joy1deadzone0-=0.60
+joy1deadzone0+=0.60
+joy1deadzone1-=0.60
+joy1deadzone1+=0.60
+joy1deadzone2-=0.20
+joy1deadzone2+=0.20
+joy1deadzone3-=0.20
+joy1deadzone3+=0.20
+joy1deadzone4-=0.20
+joy1deadzone4+=0.20
+joy1deadzone5-=0.20
+joy1deadzone5+=0.20
+joy1deadzone6-=0.20
+joy1deadzone6+=0.20
+joy1deadzone7-=0.20
+joy1deadzone7+=0.20
+
+joy2deadzone0-=0.60
+joy2deadzone0+=0.60
+joy2deadzone1-=0.60
+joy2deadzone1+=0.60
+joy2deadzone2-=0.20
+joy2deadzone2+=0.20
+joy2deadzone3-=0.20
+joy2deadzone3+=0.20
+joy2deadzone4-=0.20
+joy2deadzone4+=0.20
+joy2deadzone5-=0.20
+joy2deadzone5+=0.20
+joy2deadzone6-=0.20
+joy2deadzone6+=0.20
+joy2deadzone7-=0.20
+joy2deadzone7+=0.20
+
+
+Deadzone
+--------
+
+Allows an axis to be at rest below a certain threshold. As a result, axis value at rest will stay fairly stable whereas previously lot of jittering could be seen. A default value of 0.26 will do fine on contemporary gamepads (e.g. Xbox One Controller). A higher value might be needed for not so new devices as they tend to loosen over time.
+
+
+Response
+--------
+
+Smoothing of joystick movement. Player input is smoothed using a power function, 'response' being the exponent parameter. A value of 1.0 produces a linear (unfiltered) input. A value of 3.0 produces a cubic interpolation (good for aiming). Beware though that as you increase the exponent, the produced input is less uniform overall. As exponent increases, you gain precision at center but lose precision at edges; also the overall circle shape that a linear input produces 'morphs' to a rhombus shape. Recommended range is between 1.0 and 5.0.
+
+Tip 1:
+Setting a negative value will generate the opposite behavior.
+
+Tip 2:
+Do not set to 0.0 as this will invariably generate a movement.
+
+
+Mapper deadzones
+----------------
+
+Tip 1:
+To ensure the triggering of bi-directional command like move forward but strafe at the same time, deadzone values shall be less than ~0.7071 (the maximum possible extent when diagonally moving with a joystick with a circular restriction).
+
+Tip 2:
+The mapper deadzones are affected by 'axes mapping', this is not likely to be a problem as you are looking to emulate keyboard presses using a joystick. However, make sure to set 'axes mapping' to their default value, or simply remove them from your configuration.
+
+
+General notes
+-------------
+
+You will want to try and experiment as on what settings works best for software A and software B, and will probably end up with software-specific configurations.
+
+Please note that most DOS software supporting joystick input will not react properly when you adjust CPU cycles while they are being run, i.e. either find the appropriate number of CPU cycles it requires first or restart it for a consistent joystick experience.
+
+DOSBox-X supports 6 buttons joysticks, to enable support, set joystick type to 4axis. You will find that 5th and 6th buttons are in fact the negative sides of the 2nd port joystick axes. To remedy this problem and use buttons instead, in the mapper add bindings to 'Axis 3 X-' and 'Axis 4 Y-' to buttons you which to act as 5th and 6th buttons on your device. Note that you can only have a single 6 buttons joystick at any time, this is due to how they are implemented (such device in fact use both joystick ports).

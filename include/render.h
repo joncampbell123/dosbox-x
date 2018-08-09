@@ -87,11 +87,13 @@ typedef struct {
 		Bitu cachePitch;
 		Bit8u *cacheRead;
 		Bitu inHeight, inLine, outLine;
+		bool xBRZ;
 	} scale;
 	RenderPal_t pal;
 	bool updating;
 	bool active;
 	bool aspect;
+    bool aspectOffload;
 	bool fullFrame;
 	bool forceUpdate;
 	bool autofit;
