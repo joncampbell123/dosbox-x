@@ -1887,7 +1887,11 @@ public:
 			DOS_FIRST_SHELL_SIZE = 19 + (dosbox_shell_env_size >> 4);
 
 			if (!mainline_compatible_mapping) DOS_IHSEG = DOS_GetMemory(1,"DOS_IHSEG");
-			DOS_INFOBLOCK_SEG = DOS_GetMemory(0x20,"DOS_INFOBLOCK_SEG");	// was 0x80
+
+            /* DOS_INFOBLOCK_SEG reaches backwards 0x26 bytes as well (see include/dos_inc.h) */
+                                DOS_GetMemory(0x30,"DOS_INFOBLOCK_SEG lower half");
+			DOS_INFOBLOCK_SEG = DOS_GetMemory(0x80,"DOS_INFOBLOCK_SEG");	// was 0x80
+
 			DOS_CONDRV_SEG = DOS_GetMemory(0x08,"DOS_CONDRV_SEG");		// was 0xA0
 			DOS_CONSTRING_SEG = DOS_GetMemory(0x0A,"DOS_CONSTRING_SEG");	// was 0xA8
 			DOS_SDA_SEG = DOS_GetMemory(0x56,"DOS_SDA_SEG");		// was 0xB2  (0xB2 + 0x56 = 0x108)

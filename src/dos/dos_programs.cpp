@@ -2923,6 +2923,7 @@ static void MORE_ProgramStart(Program * * make) {
 }
 */
 
+void GOTOPC98_ProgramStart(Program * * make);
 void A20GATE_ProgramStart(Program * * make);
 
 class NMITEST : public Program {
@@ -3276,4 +3277,7 @@ void DOS_SetupPrograms(void) {
 	PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
 	PROGRAMS_MakeFile("SHOWGUI.COM",SHOWGUI_ProgramStart);
 	PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
+
+    if (enable_pc98_jump)
+	    PROGRAMS_MakeFile("GOTOPC98.COM",GOTOPC98_ProgramStart);
 }

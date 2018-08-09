@@ -97,7 +97,8 @@ void DOS_InfoBlock::SetLocation(Bit16u segment) {
 
 	sSave(sDIB,nulNextDriver,(Bit32u)0xffffffff);
 	sSave(sDIB,nulAttributes,(Bit16u)0x8004);
-	sSave(sDIB,nulStrategy,(Bit32u)0x00000000);
+	sSave(sDIB,nulStrategy,(Bit16u)0x0000);
+	sSave(sDIB,nulInterrupt,(Bit16u)0x0000);
 	sSave(sDIB,nulString[0],(Bit8u)0x4e);
 	sSave(sDIB,nulString[1],(Bit8u)0x55);
 	sSave(sDIB,nulString[2],(Bit8u)0x4c);

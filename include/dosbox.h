@@ -124,4 +124,6 @@ unsigned long long update_8254_PIT_clock();
 unsigned long long update_ISA_BCLK_clock();
 unsigned long long update_PCI_BCLK_clock();
 
+extern bool enable_pc98_jump;
+
 #endif /* DOSBOX_DOSBOX_H */
