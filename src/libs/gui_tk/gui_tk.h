@@ -1,4 +1,4 @@
-/** \mainpage gui::tk - framework-agnostic C++ GUI toolkit
+/** \page gui::tk - framework-agnostic C++ GUI toolkit
  *
  * \section i Introduction
  *

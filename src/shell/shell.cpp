@@ -28,6 +28,8 @@
 #include "support.h"
 #include "builtin.h"
 
+extern bool dos_shell_running_program;
+
 void CALLBACK_DeAllocate(Bitu in);
 
 Bitu call_shellstop = 0;
@@ -258,7 +260,21 @@ void DOS_Shell::ParseLine(char * line) {
 		if(!normalstdin && !in) DOS_CloseFile(0);
 	}
 	/* Run the actual command */
+
+	if (this == first_shell) dos_shell_running_program = true;
+#if defined(WIN32) && !defined(C_SDL2)
+	int Reflect_Menu(void);
+	Reflect_Menu();
+#endif
+
 	DoCommand(line);
+
+	if (this == first_shell) dos_shell_running_program = false;
+#if defined(WIN32) && !defined(C_SDL2)
+	int Reflect_Menu(void);
+	Reflect_Menu();
+#endif
+
 	/* Restore handles */
 	if(in) {
 		DOS_CloseFile(0);
@@ -306,15 +322,21 @@ void DOS_Shell::Run(void) {
 		temp.RunInternal();				// exits when no bf is found.
 		return;
 	}
-	/* Start a normal shell and check for a first command init */
-	WriteOut(MSG_Get("SHELL_STARTUP_BEGIN"),VERSION,UPDATED_STR);
+
+    if (this == first_shell) {
+        /* Start a normal shell and check for a first command init */
+        WriteOut(MSG_Get("SHELL_STARTUP_BEGIN"),VERSION,UPDATED_STR);
 #if C_DEBUG
-	WriteOut(MSG_Get("SHELL_STARTUP_DEBUG"));
+        WriteOut(MSG_Get("SHELL_STARTUP_DEBUG"));
 #endif
-	if (machine == MCH_CGA || machine == MCH_AMSTRAD) WriteOut(MSG_Get("SHELL_STARTUP_CGA"));
-    if (machine == MCH_PC98) WriteOut(MSG_Get("SHELL_STARTUP_PC98"));
-	if (machine == MCH_HERC) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
-	WriteOut(MSG_Get("SHELL_STARTUP_END"));
+        if (machine == MCH_CGA || machine == MCH_AMSTRAD) WriteOut(MSG_Get("SHELL_STARTUP_CGA"));
+        if (machine == MCH_PC98) WriteOut(MSG_Get("SHELL_STARTUP_PC98"));
+        if (machine == MCH_HERC) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
+        WriteOut(MSG_Get("SHELL_STARTUP_END"));
+    }
+    else {
+        WriteOut("DOSBox command shell %s %s\n\n",VERSION,UPDATED_STR);
+    }
 
 	if (cmd->FindString("/INIT",line,true)) {
 		strcpy(input_line,line.c_str());
@@ -952,6 +974,12 @@ void SHELL_Init() {
 /* Pfff... starting and running the shell from a configuration section INIT
  * What the hell were you guys thinking? --J.C. */
 void SHELL_Run() {
+	dos_shell_running_program = false;
+#if defined(WIN32) && !defined(C_SDL2)
+	int Reflect_Menu(void);
+	Reflect_Menu();
+#endif
+
 	LOG(LOG_MISC,LOG_DEBUG)("Running DOS shell now");
 
 	if (first_shell != NULL) E_Exit("Attempt to start shell when shell already running");
@@ -961,10 +989,20 @@ void SHELL_Run() {
 		first_shell->Run();
 		delete first_shell;
 		first_shell = 0;//Make clear that it shouldn't be used anymore
+		dos_shell_running_program = false;
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
 	}
 	catch (...) {
 		delete first_shell;
 		first_shell = 0;//Make clear that it shouldn't be used anymore
+		dos_shell_running_program = false;
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
 		throw;
 	}
 }

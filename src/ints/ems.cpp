@@ -365,10 +365,21 @@ static Bit8u EMM_ReallocatePages(Bit16u handle,Bit16u & pages) {
 	return EMM_NO_ERROR;
 }
 
+Bitu XMS_EnableA20(bool enable);
+Bitu XMS_GetEnabledA20(void);
+
 static Bit8u EMM_MapPage(Bitu phys_page,Bit16u handle,Bit16u log_page) {
 //	LOG_MSG("EMS MapPage handle %d phys %d log %d",handle,phys_page,log_page);
 	/* Check for too high physical page */
 	if (phys_page>=EMM_MAX_PHYS) return EMM_ILL_PHYS;
+
+    /* Make sure the A20 gate is on, to avoid crashes.
+     * This code maps pages into the page frame like EMM386.EXE
+     * does, from extended memory. */
+    /* TODO: We should NOT do this when emulating an EMM board
+     *       because those cards have their own memory and do not
+     *       use the motherboard's extended memory. */
+    if (!XMS_GetEnabledA20()) XMS_EnableA20(true);
 
 	/* unmapping doesn't need valid handle (as handle isn't used) */
 	if (log_page==NULL_PAGE) {

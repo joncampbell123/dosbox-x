@@ -3039,7 +3039,16 @@ void MAPPER_Run(bool pressed) {
 }
 
 void MAPPER_RunInternal() {
+    bool GFX_GetPreventFullscreen(void);
+
     MAPPER_ReleaseAllKeys();
+
+    /* Sorry, the MAPPER screws up 3Dfx OpenGL emulation.
+     * Remove this block when fixed. */
+    if (GFX_GetPreventFullscreen()) {
+        LOG_MSG("MAPPER ui is not available while 3Dfx OpenGL emulation is running");
+        return;
+    }
 
 #if defined(__WIN32__) && !defined(C_SDL2)
 	if(menu.maxwindow) ShowWindow(GetHWND(), SW_RESTORE);
@@ -3117,10 +3126,7 @@ void MAPPER_RunInternal() {
 #if !defined(C_SDL2)
 	DOSBox_RefreshMenu();
 #endif
-	if(!menu_gui) {
-		SDL_FreeSurface(mapper.surface);
-		GFX_RestoreMode();
-	}
+	if(!menu_gui) GFX_RestoreMode();
 #ifdef __WIN32__
 	if(GetAsyncKeyState(0x11)) {
 		INPUT ip;

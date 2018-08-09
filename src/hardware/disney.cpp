@@ -425,13 +425,6 @@ static void DISNEY_ShutDown(Section* sec){
     }
 }
 
-static void DISNEY_OnEnterPC98(Section* sec){
-    if (test) {
-        delete test;
-        test = NULL;
-    }
-}
-
 Bitu DISNEY_BasePort() {
 	return DISNEY_BASE;
 }
@@ -458,11 +451,5 @@ void DISNEY_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Disney Sound Source emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(DISNEY_ShutDown),true);
-
-    /* FIXME: We *could* emulate a Disney Sound Source / LPT DAC / etc. attached to the parallel port
-     *        of a PC-98 system, but, since this code attaches to the I/O ports to emulate the hardware
-     *        we have to disable it in PC-98 mode until such time that this code can remap to emulate
-     *        the PC-98's printer port. */
-    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(DISNEY_OnEnterPC98));
 }
 

@@ -1290,7 +1290,6 @@ HRESULT CDirect3D::CreateVertex(void)
 
 void CDirect3D::SetupSceneScaled(void)
 {
-    unsigned char x=1, y=1;
     double sizex,sizey,ratio;
 
 	// TODO: It would probably be nicer to offer an option here whether the user wants
@@ -1322,89 +1321,33 @@ void CDirect3D::SetupSceneScaled(void)
     sizex = dwScaledWidth;
     sizey = dwScaledHeight;
 
-    // aspect = -1 when in window mode
-    if(render.aspect && (aspect > -1) && (dwWidth > 0) && (dwHeight > 0)) { // render.aspect IMPLEMENTED
-	if(aspect == 0) {
+    // aspect = 2 in certain conditions to disable aspect code, but typically aspect = render.aspect
+    if((aspect == 1) && (dwWidth > 0) && (dwHeight > 0)) {
+		// render.aspect IMPLEMENTED
 
-	    // Do only integer scaling to avoid blurring
-	    x = (Bitu)dwScaledWidth/dwWidth;
-	    y = (Bitu)dwScaledHeight/dwHeight;
+		// We'll try to make the image as close as possible to 4:3
+		// (square pixels assumed (as in lcd not crt))
 
-	    ratio = (double)(dwWidth*x)/(dwHeight*y);
+		//when autofit=true, scale instead to 5:4 if the monitor is a 5:4 monitor (1280x1024)
+		if (autofit && ((sizex / sizey) == (5.0 / 4.0))) {
+			ratio = 5.0 / 4.0;
 #if LOG_D3D
-	    LOG_MSG("D3D:Image aspect ratio is: %f (%dx%d)", ratio, x, y);
+			LOG_MSG("D3D:Scaling image to 5:4");
 #endif
-
-	    // Ajdust width
-	    sizey = 4.0/3.0;
-	    while(x > 1) {
-		sizex = (double)(dwWidth*(x-1))/(dwHeight*y);
-		if(fabs(sizex - sizey) > fabs(ratio - sizey)) {
-		    break;
-		} else {
-		    x--;
-		    ratio = sizex;
 		}
+		else
+		{
+			ratio = 4.0 / 3.0;
 #if LOG_D3D
-		LOG_MSG("D3D:X adjust, new aspect ratio is: %f (%dx%d)", ratio, x, y);
+			LOG_MSG("D3D:Scaling image to 4:3");
 #endif
-	    }
-
-	    // Adjust height
-	    while(y > 1) {
-		sizex = (double)(dwWidth*x)/(dwHeight*(y-1));
-		if(fabs(sizex - sizey) > fabs(ratio - sizey)) {
-		    break;
-		} else {
-		    y--;
-		    ratio = sizex;
 		}
-#if LOG_D3D
-		LOG_MSG("D3D:Y adjust, new aspect ratio is: %f (%dx%d)", ratio, x, y);
-#endif
-	    }
 
-	    sizex = dwWidth*x;
-	    sizey = dwHeight*y;
+		if (sizex > sizey * ratio)
+			sizex = sizey * ratio;
+		else if (sizex < sizey * ratio)
+			sizey = sizex / ratio;
 
-	} else if(aspect == 1) {
-
-	    // We'll try to make the image as close as possible to 4:3
-	    // (square pixels assumed (as in lcd not crt))
-#if LOG_D3D
-	    LOG_MSG("D3D:Scaling image to 4:3");
-#endif
-	    ratio = 4.0/3.0;
-
-	    /*if(sizex*3 > sizey*4)
-		sizex = sizey*ratio;
-	    else if(sizex*3 < sizey*4)
-		sizey = sizex/ratio;*/
-				// shrink image down
-				if( autofit == 0 ) {
-					if(sizex*3 > sizey*4)
-						sizex = sizey*ratio;
-					else if(sizex*3 < sizey*4)
-						sizey = sizex/ratio;
-				}
-
-				// stretch image to window + aspect ratio
-				else if( autofit == 1 ) {
-					double ratio_x, ratio_y;
-
-					ratio_x = d3dpp.BackBufferWidth / sizex;
-					ratio_y = d3dpp.BackBufferHeight / sizey;
-
-					if( ratio_x < ratio_y ) {
-						sizex = d3dpp.BackBufferWidth;
-						sizey = d3dpp.BackBufferWidth / ratio;
-					} else {
-						sizey = d3dpp.BackBufferHeight;
-						sizex = d3dpp.BackBufferHeight * ratio;
-					}
-				}
-
-	}
     }
 
 #if LOG_D3D

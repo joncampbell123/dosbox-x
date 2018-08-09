@@ -1,3 +1,13 @@
+/** \mainpage DOSBox-X emulation
+ *
+ * \section i Introduction
+ *
+ * \section f Features
+ *
+ * \li Accurate x86 emulation
+ *
+*/
+
 /*
  *  Copyright (C) 2002-2013  The DOSBox Team
  *
@@ -95,8 +105,16 @@ bool OpenGL_using(void);
 
 using namespace std;
 
+bool window_was_maximized = false;
+
+/* this flag is needed in order to know if we're AT the shell,
+   or if we're in a program running under the shell. */
+bool dos_shell_running_program = false;
+
 Bitu userResizeWindowWidth = 0, userResizeWindowHeight = 0;
 Bitu currentWindowWidth = 640, currentWindowHeight = 480;
+
+int NonUserResizeCounter = 0;
 
 int gl_clear_countdown = 0;
 
@@ -131,6 +149,9 @@ void FreeBIOSDiskList();
 void GFX_ShutDown(void);
 void MAPPER_Shutdown();
 void SHELL_Init(void);
+#if C_DYNAMIC_X86
+void CPU_Core_Dyn_X86_Shutdown(void);
+#endif
 
 void UpdateWindowMaximized(bool flag) {
     menu.maxwindow = flag;
@@ -202,13 +223,6 @@ static inline int int_log2(int val) {
 	return log;
 }
 
-enum SCREEN_TYPES {
-	SCREEN_OPENGLHQ,
-	SCREEN_SURFACE,
-	SCREEN_OPENGL,
-	SCREEN_DIRECT3D
-};
-
 enum PRIORITY_LEVELS {
 	PRIORITY_LEVEL_PAUSE,
 	PRIORITY_LEVEL_LOWEST,
@@ -233,6 +247,7 @@ void						Restart(bool pressed);
 bool						RENDER_GetAspect(void);
 bool						RENDER_GetAutofit(void);
 
+const char*					titlebar = NULL;
 extern const char*				RunningProgram;
 extern bool					CPU_CycleAutoAdjust;
 #if !(ENVIRON_INCLUDED)
@@ -243,7 +258,6 @@ Bitu						frames = 0;
 double                      rtdelta = 0;
 bool						emu_paused = false;
 bool						mouselocked = false; //Global variable for mapper
-bool						load_videodrv = true;
 bool						fullscreen_switch = true;
 bool						dos_kernel_disabled = true;
 bool						startup_state_numlock = false; // Global for keyboard initialisation
@@ -448,57 +462,39 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 	static Bits internal_timing=0;
 	char title[200] = {0};
 
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("SDL"));
+    assert(section != NULL);
+    titlebar = section->Get_string("titlebar");
+
 	if (cycles != -1) internal_cycles = cycles;
 	if (timing != -1) internal_timing = timing;
 	if (frameskip != -1) internal_frameskip = frameskip;
 
-	if (!menu_startup) {
-		sprintf(title,"%s%sDOSBox-X %s, %d cyc/ms, %s",
-			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-			VERSION,(int)internal_cycles,RunningProgram);
+    sprintf(title,"%s%sDOSBox-X %s, %d cyc/ms",
+        dosbox_title.c_str(),dosbox_title.empty()?"":": ",
+        VERSION,(int)internal_cycles);
 
-	    if (!menu.hidecycles) {
+    {
+        const char *what = (titlebar != NULL && *titlebar != 0) ? titlebar : RunningProgram;
+
+        if (what != NULL && *what != 0) {
             char *p = title + strlen(title); // append to end of string
 
-            sprintf(p,", FPS %2d",(int)frames);
+            sprintf(p,", %s",what);
         }
+    }
 
-	    if (menu.showrt) {
-            char *p = title + strlen(title); // append to end of string
+    if (!menu.hidecycles) {
+        char *p = title + strlen(title); // append to end of string
 
-            sprintf(p,", %2d%%/RT",(int)floor((rtdelta / 10) + 0.5));
-        }
+        sprintf(p,", FPS %2d",(int)frames);
+    }
 
-#if defined(C_SDL2)
-        SDL_SetWindowTitle(sdl.window,title);
-#else
-		SDL_WM_SetCaption(title,VERSION);
-#endif
-		return;
-	}
+    if (menu.showrt) {
+        char *p = title + strlen(title); // append to end of string
 
-	if (menu.hidecycles) {
-		if (CPU_CycleAutoAdjust) {
-			sprintf(title,"%s%sDOSBox-X %s, max %3d%% cyc/ms, %s",
-				dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-				VERSION,(int)CPU_CyclePercUsed,RunningProgram);
-		}
-		else {
-			sprintf(title,"%s%sDOSBox-X %s, %d cyc/ms, %s",
-				dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-				VERSION,(int)internal_cycles,RunningProgram);
-		}
-	} else if (CPU_CycleAutoAdjust) {
-		sprintf(title,"%s%sDOSBox-X %s, CPU : %s %d%% = max %3d, %d FPS - %2d %8s %i.%i%%",
-			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-			VERSION,core_mode,(int)CPU_CyclePercUsed,(int)internal_cycles,(int)frames,
-			(int)internal_frameskip,RunningProgram,(int)(internal_timing/100),(int)(internal_timing%100/10));
-	} else {
-		sprintf(title,"%s%sDOSBox-X %s, CPU : %s %d = %8d, %d FPS - %2d %8s %i.%i%%",
-			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-			VERSION,core_mode,(int)0,(int)internal_cycles,(int)frames,(int)internal_frameskip,
-			RunningProgram,(int)(internal_timing/100),(int)((internal_timing%100)/10));
-	}
+        sprintf(p,", %2d%%/RT",(int)floor((rtdelta / 10) + 0.5));
+    }
 
 	if (paused) strcat(title," PAUSED");
 #if defined(C_SDL2)
@@ -667,23 +663,6 @@ void PauseDOSBox(bool pressed) {
 	if (sdl.draw.callback) (sdl.draw.callback)( GFX_CallBackReset );
 }
 
-static void SDLScreen_Reset(void) {
-	char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
-	if ((sdl_videodrv && !strcmp(sdl_videodrv,"windib")) || sdl.desktop.fullscreen || fullscreen_switch || sdl.desktop.want_type==SCREEN_OPENGLHQ || menu_compatible) return;
-
-#if !defined(C_SDL2)
-	int id, major, minor;
-	DOSBox_CheckOS(id, major, minor);
-	if(((id==VER_PLATFORM_WIN32_NT) && (major<6)) || sdl.desktop.want_type==SCREEN_DIRECT3D) return;
-
-	minor = minor;//shut up unused var warnings
-#endif
-	SDL_QuitSubSystem(SDL_INIT_VIDEO);	SDL_Delay(500);
-	SDL_InitSubSystem(SDL_INIT_VIDEO);
-	GFX_SetIcon();
-	GFX_SetTitle(-1,-1,-1,false);
-}
-
 #if defined(C_SDL2)
 static SDL_Window * GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType) {
     static SCREEN_TYPES lastType = SCREEN_SURFACE;
@@ -798,8 +777,6 @@ static SDL_Window * GFX_SetSDLOpenGLWindow(Bit16u width, Bit16u height) {
 Bitu GFX_GetBestMode(Bitu flags) {
 	Bitu testbpp,gotbpp;
 	switch (sdl.desktop.want_type) {
-	case SCREEN_OPENGLHQ:
-		flags|=GFX_SCALING;
 	case SCREEN_SURFACE:
 check_surface:
 		flags &= ~GFX_LOVE_8;		//Disable love for 8bpp modes
@@ -896,8 +873,7 @@ void GFX_ResetScreen(void) {
 	CPU_Reset_AutoAdjust();
 	fullscreen_switch=true;
 #if !defined(C_SDL2)
-	if (!sdl.desktop.want_type==SCREEN_OPENGLHQ && !sdl.desktop.fullscreen && GetMenu(GetHWND()) == NULL)
-		DOSBox_RefreshMenu(); // for menu
+	if (!sdl.desktop.fullscreen) DOSBox_RefreshMenu(); // for menu
 #endif
 }
 
@@ -958,6 +934,14 @@ void GFX_LogSDLState(void) {
 static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) {
 	Bit16u fixedWidth;
 	Bit16u fixedHeight;
+
+    int Voodoo_OGL_GetWidth();
+    int Voodoo_OGL_GetHeight();
+    bool Voodoo_OGL_Active();
+
+    if (sdl.desktop.prevent_fullscreen) /* 3Dfx openGL do not allow resize */
+        sdl_flags &= ~SDL_RESIZABLE;
+
 	if (sdl.desktop.want_type == SCREEN_OPENGL) {
 		sdl_flags |= SDL_OPENGL;
 	}
@@ -979,7 +963,16 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
         fixedWidth = final_width;
         fixedHeight = final_height;
     }
-	if (fixedWidth && fixedHeight) {
+    if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 &&
+        Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen) { /* 3Dfx openGL do not allow resize */
+        sdl.clip.x=0;sdl.clip.y=0;
+        sdl.clip.w=(Bit16u)Voodoo_OGL_GetWidth();
+        sdl.clip.h=(Bit16u)Voodoo_OGL_GetHeight();
+        sdl.surface=SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,bpp,sdl_flags);
+        sdl.deferred_resize = false;
+        sdl.must_redraw_all = true;
+    }
+    else if (fixedWidth && fixedHeight) {
         if (render.aspect) {
             double ratio_w=(double)fixedWidth/(sdl.draw.width*sdl.draw.scalex);
             double ratio_h=(double)fixedHeight/(sdl.draw.height*sdl.draw.scaley);
@@ -1029,17 +1022,7 @@ void GFX_TearDown(void) {
 }
 
 static void GFX_ResetSDL() {
-#if defined(WIN32) && !defined(C_SDL2)
-	if(!load_videodrv && !sdl.using_windib) {
-		LOG_MSG("Resetting to WINDIB mode");
-		SDL_QuitSubSystem(SDL_INIT_VIDEO);
-		putenv("SDL_VIDEODRIVER=windib");
-		sdl.using_windib=true;
-		if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) E_Exit("Can't init SDL Video %s",SDL_GetError());
-		GFX_SetIcon(); GFX_SetTitle(-1,-1,-1,false);
-		if(!sdl.desktop.fullscreen && GetMenu(GetHWND()) == NULL) DOSBox_RefreshMenu();
-	}
-#endif
+	/* deprecated */
 }
 
 #if defined(WIN32) && !defined(C_SDL2)
@@ -1078,72 +1061,6 @@ Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,G
 #endif
 
 	switch (sdl.desktop.want_type) {
-#if !defined(C_SDL2)
-	case SCREEN_OPENGLHQ:
-		static char scale[64];
-		if (flags & GFX_CAN_8) bpp=8;
-		if (flags & GFX_CAN_15) bpp=15;
-		if (flags & GFX_CAN_16) bpp=16;
-		if (flags & GFX_CAN_32) bpp=32;
-		sdl.desktop.type=SCREEN_SURFACE;
-		sdl.clip.x=0;
-		sdl.clip.y=0;
-		if(!sdl.desktop.fullscreen) {
-		    if(sdl.desktop.window.width && sdl.desktop.window.height) {
-			scalex=(double)sdl.desktop.window.width/(sdl.draw.width*sdl.draw.scalex);
-			scaley=(double)sdl.desktop.window.height/(sdl.draw.height*sdl.draw.scaley);
-			if(scalex < scaley) {
-			    sdl.clip.w=sdl.desktop.window.width;
-			    sdl.clip.h=(Bit16u)(sdl.draw.height*sdl.draw.scaley*scalex);
-			} else {
-			    sdl.clip.w=(Bit16u)(sdl.draw.width*sdl.draw.scalex*scaley);
-			    sdl.clip.h=(Bit16u)sdl.desktop.window.height;
-			}
-		    } else {
-			sdl.clip.w=(Bit16u)(sdl.draw.width*sdl.draw.scalex);
-			sdl.clip.h=(Bit16u)(sdl.draw.height*sdl.draw.scaley);
-		    }
-		    snprintf(scale,64,"SDL_OPENGLHQ_WINRES=%dx%d",sdl.clip.w,sdl.clip.h);
-		    sdl.clip.w=width; sdl.clip.h=height;
-
-    		} else if(!sdl.desktop.full.fixed) {
-		    snprintf(scale,64,"SDL_OPENGLHQ_FULLRES=%dx%d",sdl.draw.width*(Uint16)sdl.draw.scalex,
-								sdl.draw.height*(Uint16)sdl.draw.scaley);
-		    sdl.clip.w=width; sdl.clip.h=height;
-		} else {
-		    snprintf(scale,64,"SDL_OPENGLHQ_FULLRES=%dx%d",sdl.desktop.full.width,sdl.desktop.full.height);
-		    scalex=(double)sdl.desktop.full.width/(sdl.draw.width*sdl.draw.scalex);
-		    scaley=(double)sdl.desktop.full.height/(sdl.draw.height*sdl.draw.scaley);
-		    sdl.clip.w=width; sdl.clip.h=height;
-
-		    if (scalex < scaley)
-			height *= scaley/scalex;
-		    else
-			width *= scalex/scaley;
-		    sdl.clip.x=(Sint16)((width-sdl.clip.w)/2);
-		    sdl.clip.y=(Sint16)((height-sdl.clip.h)/2);
-		}
-		putenv(scale);
-		sdl_flags = (sdl.desktop.fullscreen?SDL_FULLSCREEN:0)|SDL_HWSURFACE|SDL_ANYFORMAT;
-		sdl.surface=SDL_SetVideoMode(width,height,bpp,sdl_flags);
-        sdl.deferred_resize = false;
-        sdl.must_redraw_all = true;
-        if (sdl.surface) {
-		    switch (sdl.surface->format->BitsPerPixel) {
-			case 8:retFlags = GFX_CAN_8;break;
-			case 15:retFlags = GFX_CAN_15;break;
-			case 16:retFlags = GFX_CAN_16;break;
-			case 32:retFlags = GFX_CAN_32;break;
-			default:break;
-		    }
-		    if (retFlags) {
-			if (sdl.surface->flags & SDL_HWSURFACE)
-			    retFlags |= GFX_HARDWARE;
-			retFlags |= GFX_SCALING;
-		    }
-		}
-		break;
-#endif
 #if defined(C_SDL2)
     case SCREEN_SURFACE:
     {
@@ -1226,7 +1143,6 @@ dosurface:
 		sdl.desktop.type=SCREEN_SURFACE;
 		sdl.clip.w=width;
 		sdl.clip.h=height;
-		SDLScreen_Reset();
 		if (sdl.desktop.fullscreen) {
 			Uint32 wflags = SDL_FULLSCREEN | SDL_HWPALETTE |
 				((flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
@@ -1348,14 +1264,15 @@ dosurface:
 #if C_OPENGL
 	case SCREEN_OPENGL:
 	{
-		GFX_ResetSDL();
 		if (sdl.opengl.pixel_buffer_object) {
 			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
 			if (sdl.opengl.buffer) glDeleteBuffersARB(1, &sdl.opengl.buffer);
 		} else if (sdl.opengl.framebuf) {
 			free(sdl.opengl.framebuf);
 		}
-		SDLScreen_Reset();
+
+        glFinish();
+        glFlush();
 
 		sdl.opengl.framebuf=0;
 
@@ -1371,6 +1288,9 @@ dosurface:
 			LOG_MSG("SDL:OPENGL:Can't open drawing surface, are you running in 16bpp(or higher) mode?");
 			goto dosurface;
 		}
+
+        glFinish();
+        glFlush();
 
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &sdl.opengl.max_texsize);
 
@@ -1393,9 +1313,12 @@ dosurface:
 
 		glViewport(sdl.clip.x,sdl.clip.y,sdl.clip.w,sdl.clip.h);
 		glMatrixMode (GL_PROJECTION);
+		glLoadIdentity ();
 		glDeleteTextures(1,&sdl.opengl.texture);
  		glGenTextures(1,&sdl.opengl.texture);
 		glBindTexture(GL_TEXTURE_2D,sdl.opengl.texture);
+		glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, GL_REPLACE);
 		// No borders
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
@@ -1410,14 +1333,20 @@ dosurface:
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texsize, texsize, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
 
         gl_clear_countdown = 2; // two GL buffers
-//		glClearColor (0.0, 0.0, 0.0, 1.0);
-//		glClear(GL_COLOR_BUFFER_BIT);
-//		SDL_GL_SwapBuffers();
+		glClearColor (0.0, 0.0, 0.0, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT);
+//		SDL_GL_SwapBuffers();
+//		glClear(GL_COLOR_BUFFER_BIT);
 		glShadeModel (GL_FLAT);
+        glBlendFunc(GL_ONE, GL_ZERO);
 		glDisable (GL_DEPTH_TEST);
 		glDisable (GL_LIGHTING);
+        glDisable(GL_BLEND);
 		glDisable(GL_CULL_FACE);
+        glDisable(GL_ALPHA_TEST);
+        glDisable(GL_FOG);
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_STENCIL_TEST);
 		glEnable(GL_TEXTURE_2D);
 		glMatrixMode (GL_MODELVIEW);
 		glLoadIdentity ();
@@ -1441,6 +1370,9 @@ dosurface:
 		glTexCoord2f(0,0); glVertex2f(-1.0f, 1.0f);
 		glEnd();
 		glEndList();
+
+        glFinish();
+        glFlush();
 
 		sdl.desktop.type=SCREEN_OPENGL;
 		retFlags = GFX_CAN_32 | GFX_SCALING;
@@ -1516,11 +1448,10 @@ dosurface:
 		}
 
 		d3d->aspect=RENDER_GetAspect();
-		d3d->autofit=RENDER_GetAutofit();
+		d3d->autofit=RENDER_GetAutofit() && sdl.desktop.fullscreen; //scale to 5:4 monitors in fullscreen only
 		if((sdl.desktop.fullscreen) && (!sdl.desktop.full.fixed)) {
-		    // Don't do aspect ratio correction when fullfixed=false + aspect=false
-			if(d3d->aspect == 0)
-				d3d->aspect=2;
+		    // Don't do aspect ratio correction when fullscreen and fullresolution=original
+			d3d->aspect=0;
 
 		    sdl.clip.w=(Uint16)scalex;
 			sdl.clip.h=(Uint16)scaley;
@@ -1734,9 +1665,13 @@ static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARA
 								wParam = WM_USER + 0x101;
 						}
 
+						DWORD lParam =
+							(st_hook->scanCode << 8U) +
+							((st_hook->flags & LLKHF_EXTENDED) ? 0x01000000 : 0) +
+							((wParam == WM_KEYUP || wParam == WM_SYSKEYUP) ? 0xC0000000 : 0);
+
 						// catch the keystroke, post it to ourself, do not pass it on
-						PostMessage(myHwnd, wParam, st_hook->vkCode,
-							(st_hook->flags & 0x80/*transition state*/) ? 0x0000 : 0xA000/*bits 13&15 are set*/);
+						PostMessage(myHwnd, wParam, st_hook->vkCode, lParam);
 						return TRUE;
 					}
 				}
@@ -1945,14 +1880,14 @@ static void d3d_init(void) {
 	E_Exit("D3D not supported");
 #else
 	sdl.desktop.want_type=SCREEN_DIRECT3D;
-	if(!load_videodrv && !sdl.using_windib) {
+	if(!sdl.using_windib) {
 		LOG_MSG("Resetting to WINDIB mode");
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
 		putenv("SDL_VIDEODRIVER=windib");
 		sdl.using_windib=true;
 		if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) E_Exit("Can't init SDL Video %s",SDL_GetError());
 		GFX_SetIcon(); GFX_SetTitle(-1,-1,-1,false);
-		if(!sdl.desktop.fullscreen && GetMenu(GetHWND()) == NULL) DOSBox_RefreshMenu();
+		if(!sdl.desktop.fullscreen) DOSBox_RefreshMenu();
 	}
 	SDL_SysWMinfo wmi;
 	SDL_VERSION(&wmi.version);
@@ -1980,32 +1915,6 @@ static void d3d_init(void) {
 }
 #endif
 
-static void openglhq_init(void) {
-#if defined(WIN32) && !defined(C_SDL2)
-	DOSBox_NoMenu(); menu.gui=false;
-	HMENU m_handle=GetMenu(GetHWND());
-	if(m_handle) RemoveMenu(m_handle,0,0);
-	DestroyWindow(GetHWND());
-#endif
-	char *oldvideo = getenv("SDL_VIDEODRIVER");
-
-	if (oldvideo && strcmp(oldvideo,"openglhq")) {
-	    char *driver = (char *)malloc(strlen(oldvideo)+strlen("SDL_OPENGLHQ_VIDEODRIVER=")+1);
-	    strcpy(driver,"SDL_OPENGLHQ_VIDEODRIVER=");
-	    strcat(driver,oldvideo);
-	    putenv(driver);
-	    free(driver);
-	}
-	if (sdl.desktop.doublebuf) putenv((char*)("SDL_OPENGLHQ_DOUBLEBUF=1"));
-	SDL_QuitSubSystem(SDL_INIT_VIDEO);
-	putenv((char*)("SDL_VIDEODRIVER=openglhq"));
-	SDL_InitSubSystem(SDL_INIT_VIDEO);
-	DOSBox_SetOriginalIcon();
-	if(!menu_compatible) { SDL_PumpEvents(); SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE); }
-	GFX_SetTitle(-1,-1,-1,false);
-	sdl.desktop.want_type=SCREEN_OPENGLHQ;
-}
-
 void GetDesktopResolution(int* width, int* height)
 {
 #ifdef WIN32
@@ -2024,7 +1933,6 @@ void GetDesktopResolution(int* width, int* height)
 }
 
 void res_init(void) {
-	if(sdl.desktop.want_type==SCREEN_OPENGLHQ) return;
 	Section * sec = control->GetSection("sdl");
 	Section_prop * section=static_cast<Section_prop *>(sec);
 	sdl.desktop.full.fixed=false;
@@ -2141,14 +2049,7 @@ void change_output(int output) {
 		d3d_init();
 		break;
 #endif
-	case 6: {
-#if defined(__WIN32__) && !defined(C_SDL2)
-		if (MessageBox(GetHWND(),"GUI will be disabled if output is set to OpenglHQ. Do you want to continue?","Warning",MB_YESNO)==IDNO) {
-			GFX_Stop(); GFX_Start(); return;
-		}
-#endif
-		openglhq_init();
-		}
+	case 6:
 		break;
 	case 7:
 		// do not set want_type
@@ -2180,31 +2081,6 @@ void change_output(int output) {
 
 	if (sdl.draw.callback)
 		(sdl.draw.callback)( GFX_CallBackReset );
-
-#if !defined(C_SDL2)
-	if(sdl.desktop.want_type==SCREEN_OPENGLHQ) {
-		if(!render.scale.hardware) SetVal("render","scaler",!render.scale.forced?"hardware2x":"hardware2x forced");
-		if(!menu.compatible) {
-			SDL_PumpEvents();
-			SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
-		}
-		static SDL_Surface* screen_surf;
-		Bit32u rmask = 0x000000ff;
-		Bit32u gmask = 0x0000ff00;
-		Bit32u bmask = 0x00ff0000;
-		screen_surf = SDL_CreateRGBSurface(SDL_SWSURFACE, 640, 400, 32, rmask, gmask, bmask, 0);
-		Bit32u lasttick=GetTicks();
-		for(Bitu i = 0; i <=5; i++) {
-			if((GetTicks()-lasttick)>20) i++;
-			while((GetTicks()-lasttick)<15) SDL_Delay(5);
-			lasttick = GetTicks();
-			SDL_SetAlpha(screen_surf, SDL_SRCALPHA,(Bit8u)(51*i));
-			SDL_BlitSurface(screen_surf, NULL, sdl.surface, NULL);
-			SDL_Flip(sdl.surface);
-		}
-		SDL_FreeSurface(screen_surf);
-	}
-#endif
 
 	GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 	GFX_LogSDLState();
@@ -2244,7 +2120,13 @@ void GFX_SwitchFullScreen(void)
 
 #if !defined(C_SDL2)
 	// (re-)assign menu to window
-	if (full && sdl.desktop.want_type != SCREEN_OPENGLHQ && menu.gui) SetMenu(GetHWND(), nullptr);
+    void DOSBox_SetSysMenu(void);
+    DOSBox_SetSysMenu();
+
+	if (full && menu.gui) {
+        NonUserResizeCounter=1;
+        SetMenu(GetHWND(), nullptr);
+    }
 #endif
 
 	// ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
@@ -2300,8 +2182,27 @@ bool GFX_LazyFullscreenRequested(void) {
 	return false;
 }
 
+bool GFX_GetPreventFullscreen(void) {
+    return sdl.desktop.prevent_fullscreen;
+}
+
+#if defined(WIN32) && !defined(C_SDL2)
+extern "C" unsigned char SDL1_hax_RemoveMinimize;
+#endif
+
 void GFX_PreventFullscreen(bool lockout) {
-    sdl.desktop.prevent_fullscreen = lockout;
+	if (sdl.desktop.prevent_fullscreen != lockout) {
+		sdl.desktop.prevent_fullscreen = lockout;
+#if defined(WIN32) && !defined(C_SDL2)
+		void DOSBox_SetSysMenu(void);
+		int Reflect_Menu(void);
+
+		SDL1_hax_RemoveMinimize = lockout ? 1 : 0;
+
+		DOSBox_SetSysMenu();
+		Reflect_Menu();
+#endif
+	}
 }
 
 void GFX_RestoreMode(void) {
@@ -2359,12 +2260,17 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 	int ret;
 #endif
 
+    /* don't present our output if 3Dfx is in OpenGL mode */
+    if (sdl.desktop.prevent_fullscreen)
+        return;
+
 #if (HAVE_D3D9_H) && defined(WIN32)
 	if (d3d && d3d->getForceUpdate()); // continue
 	else
 #endif
 	if (!sdl.updating)
 		return;
+
 	sdl.updating=false;
     switch (sdl.desktop.type) {
         case SCREEN_SURFACE:
@@ -2638,6 +2544,12 @@ static void D3D_reconfigure() {
 }
 #endif
 
+void ResetSystem(bool pressed) {
+    if (!pressed) return;
+
+    throw int(3);
+}
+
 bool has_GUI_StartUp = false;
 
 static void GUI_StartUp() {
@@ -2775,7 +2687,7 @@ static void GUI_StartUp() {
 	} else if (output == "overlay") {
 		sdl.desktop.want_type=SCREEN_OPENGL; /* "overlay" was removed, map to OpenGL */
 #if C_OPENGL
-	} else if (output == "opengl") {
+	} else if (output == "opengl" || output == "openglhq") {
 		sdl.desktop.want_type=SCREEN_OPENGL;
 		sdl.opengl.bilinear=true;
 	} else if (output == "openglnb") {
@@ -2789,22 +2701,6 @@ static void GUI_StartUp() {
 		LOG_MSG("SDL:Direct3D activated");
 #endif
 #endif
-	} else if (output == "openglhq") {
-		char *oldvideo = getenv("SDL_VIDEODRIVER");
-
-		if (oldvideo && strcmp(oldvideo,"openglhq")) {
-		    char *driver = (char *)malloc(strlen(oldvideo)+strlen("SDL_OPENGLHQ_VIDEODRIVER=")+1);
-		    strcpy(driver,"SDL_OPENGLHQ_VIDEODRIVER=");
-		    strcat(driver,oldvideo);
-		    putenv(driver);
-		    free(driver);
-		}
-		if (sdl.desktop.doublebuf) putenv((char*)("SDL_OPENGLHQ_DOUBLEBUF=1"));
-		SDL_QuitSubSystem(SDL_INIT_VIDEO);
-		putenv((char*)("SDL_VIDEODRIVER=openglhq"));
-		SDL_InitSubSystem(SDL_INIT_VIDEO);
-		sdl.desktop.want_type=SCREEN_OPENGLHQ;
-
 	} else {
 		LOG_MSG("SDL:Unsupported output device %s, switching back to surface",output.c_str());
 		sdl.desktop.want_type=SCREEN_SURFACE;//SHOULDN'T BE POSSIBLE anymore
@@ -2875,6 +2771,7 @@ static void GUI_StartUp() {
 #if defined(__WIN32__) && !defined(C_SDL2)
 	MAPPER_AddHandler(ToggleMenu,MK_return,MMOD1|MMOD2,"togglemenu","ToggleMenu");
 #endif // WIN32
+    MAPPER_AddHandler(ResetSystem, MK_pause, MMOD1|MMOD2, "reset", "Reset");
 	MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","ShutDown");
 	MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Cap Mouse");
 	MAPPER_AddHandler(SwitchFullScreen,MK_return,MMOD2,"fullscr","Fullscreen");
@@ -3024,11 +2921,18 @@ bool GFX_MustActOnResize() {
 static void HandleVideoResize(void * event) {
 	if(sdl.desktop.fullscreen) return;
 
+    /* don't act on resize events if we made the window non-resizeable.
+     * especially if 3Dfx voodoo emulation is active. */
+    if (!(sdl.surface->flags & SDL_RESIZABLE)) return;
+
+	/* don't act if 3Dfx OpenGL emulation is active */
+	if (GFX_GetPreventFullscreen()) return;
+
 	SDL_ResizeEvent* ResizeEvent = (SDL_ResizeEvent*)event;
 
     /* assume the resize comes from user preference UNLESS the window
      * is fullscreen or maximized */
-    if (!menu.maxwindow && !sdl.desktop.fullscreen && !sdl.init_ignore) {
+    if (!menu.maxwindow && !sdl.desktop.fullscreen && !sdl.init_ignore && NonUserResizeCounter == 0 && !window_was_maximized) {
 		UpdateWindowDimensions();
 		UpdateWindowDimensions(ResizeEvent->w, ResizeEvent->h);
 
@@ -3044,6 +2948,10 @@ static void HandleVideoResize(void * event) {
     else {
 		UpdateWindowDimensions();
     }
+
+	window_was_maximized = menu.maxwindow;
+    if (NonUserResizeCounter > 0)
+        NonUserResizeCounter--;
 
     if (sdl.updating && !GFX_MustActOnResize()) {
         /* act on resize when updating is complete */
@@ -3409,6 +3317,7 @@ void Go_Boot2(const char boot_drive[_MAX_DRIVE]) {
 	shell.ShowPrompt(); // if failed
 }
 
+/* FIXME: Unused */
 void Drag_Drop( char * path_arg ) {
 	if(control->SecureMode()) {
 		LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
@@ -3730,6 +3639,10 @@ static void HandleTouchscreenFinger(SDL_TouchFingerEvent * finger) {
 
 void RENDER_Reset(void);
 
+#if defined(WIN32) && !defined(C_SDL2)
+void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message);
+#endif
+
 void GFX_Events() {
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
     SDL_Event event;
@@ -3890,6 +3803,9 @@ void GFX_Events() {
 #ifdef __WIN32__
 		case SDL_SYSWMEVENT : {
 			switch( event.syswm.msg->msg ) {
+				case WM_COMMAND:
+					MSG_WM_COMMAND_handle(/*&*/(*event.syswm.msg));
+					break;
 				case WM_SYSCOMMAND:
 					switch (event.syswm.msg->wParam) {
 						case 0xF032: // FIXME: What is this?
@@ -3911,17 +3827,18 @@ void GFX_Events() {
 							}
 							break;
 						case ID_WIN_SYSMENU_RESTOREMENU:
-							DOSBox_SetMenu();
+                            /* prevent removing the menu in 3Dfx mode */
+                            if (!GFX_GetPreventFullscreen())
+                                DOSBox_SetMenu();
+							break;
+						case ID_WIN_SYSMENU_TOGGLEMENU:
+							/* prevent removing the menu in 3Dfx mode */
+							if (!GFX_GetPreventFullscreen())
+							{
+								if (menu.toggle) DOSBox_NoMenu(); else DOSBox_SetMenu();
+							}
 							break;
 					}
-				case WM_MOVE:
-					break;
-				case WM_DROPFILES: {
-					char buff[50];
-					DragQueryFile((HDROP)event.syswm.msg->wParam,0,buff,200);
-					Drag_Drop(buff);
-					break;
-				}
 				default:
 					break;
 			}
@@ -4416,6 +4333,12 @@ void SDL_SetupConfigSection() {
 	Pint->SetMinMax(0,10);
 	Pint->Set_help("Width of overscan border (0 to 10). (works only if output=surface)");
 
+	Pstring = sdl_sec->Add_string("titlebar", Property::Changeable::Always, "");
+	Pstring->Set_help("Change the string displayed in the DOSBox title bar.");
+
+	Pbool = sdl_sec->Add_bool("showmenu", Property::Changeable::Always, true);
+	Pbool->Set_help("Whether to show the menu bar (if supported). Default true.");
+
 //	Pint = sdl_sec->Add_int("overscancolor",Property::Changeable::Always, 0);
 //	Pint->SetMinMax(0,1000);
 //	Pint->Set_help("Value of overscan color.");
@@ -4505,7 +4428,7 @@ void restart_program(std::vector<std::string> & parameters) {
 	for(Bitu i = 0; i < parameters.size(); i++) newargs[i]=(char*)parameters[i].c_str();
 	newargs[parameters.size()] = NULL;
 	if(sdl.desktop.fullscreen) SwitchFullScreen(1);
-	if(!load_videodrv) putenv((char*)("SDL_VIDEODRIVER="));
+	putenv((char*)("SDL_VIDEODRIVER="));
 #ifndef WIN32
 	SDL_CloseAudio();
 	SDL_Delay(50);
@@ -5083,6 +5006,11 @@ bool VM_Boot_DOSBox_Kernel() {
         DispatchVMEvent(VM_EVENT_DOS_SURPRISE_REBOOT); // <- apparently we rebooted without any notification (such as jmp'ing to FFFF:0000)
 
         dos_kernel_disabled = true;
+
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
     }
 
 	if (dos_kernel_disabled) {
@@ -5093,8 +5021,18 @@ bool VM_Boot_DOSBox_Kernel() {
 		void DOS_Startup(Section* sec);
 		DOS_Startup(NULL);
 
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
+
+        void update_pc98_function_row(bool enable);
+
 		void DRIVES_Startup(Section *s);
 		DRIVES_Startup(NULL);
+
+        /* NEC's function key row seems to be deeply embedded in the CON driver. Am I wrong? */
+        if (IS_PC98_ARCH) update_pc98_function_row(true);
 
 		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY); // <- kernel is ready
 
@@ -5154,6 +5092,8 @@ bool VM_PowerOn() {
 int main(int argc, char* argv[]) {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
+
+    memset(&sdl,0,sizeof(sdl)); // struct sdl isn't initialized anywhere that I can tell
 
     control=&myconf;
 #if defined(WIN32)
@@ -5300,7 +5240,6 @@ int main(int argc, char* argv[]) {
 			putenv("SDL_VIDEODRIVER=windib");
 #endif
 			sdl.using_windib=true;
-			load_videodrv=false;
 		}
 #endif
 
@@ -5336,11 +5275,18 @@ int main(int argc, char* argv[]) {
 			menu.gui=false;
 
 #if !defined(C_SDL2)
-		/* -- -- decide whether to set menu */
-		void DOSBox_SetSysMenu(void);
-		DOSBox_SetSysMenu();
-		if (menu_gui && !control->opt_nomenu)
-			DOSBox_SetMenu();
+		{
+			Section_prop *section = static_cast<Section_prop *>(control->GetSection("SDL"));
+			assert(section != NULL);
+
+			bool cfg_want_menu = section->Get_bool("showmenu");
+
+			/* -- -- decide whether to set menu */
+			if (menu_gui && !control->opt_nomenu && cfg_want_menu)
+				DOSBox_SetMenu();
+			else
+				DOSBox_NoMenu();
+		}
 #endif
 
 		/* -- -- helpful advice */
@@ -5376,24 +5322,9 @@ int main(int argc, char* argv[]) {
 # endif
 
 		if (getenv("SDL_VIDEODRIVER")==NULL) {
-			char sdl_drv_name[128];
-
-			LOG(LOG_MISC,LOG_DEBUG)("Win32: SDL_VIDEODRIVER is not defined, attempting to detect and use directx SDL driver");
-			if (SDL_VideoDriverName(sdl_drv_name,128)!=NULL) {
-				sdl.using_windib=false;
-				LOG(LOG_MISC,LOG_DEBUG)("Win32: SDL driver name is '%s'",sdl_drv_name);
-				if (strcmp(sdl_drv_name,"directx")!=0) {
-					LOG(LOG_MISC,LOG_DEBUG)("Win32: Reinitializing SDL to use directx");
-					SDL_QuitSubSystem(SDL_INIT_VIDEO);
-					putenv("SDL_VIDEODRIVER=directx");
-					if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) {
-						LOG(LOG_MISC,LOG_DEBUG)("Win32: Failed to reinitialize to use directx. Falling back to windib");
-						putenv("SDL_VIDEODRIVER=windib");
-						if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) E_Exit("Can't init SDL Video %s",SDL_GetError());
-						sdl.using_windib=true;
-					}
-				}
-			}
+			putenv("SDL_VIDEODRIVER=windib");
+			if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) E_Exit("Can't init SDL Video %s",SDL_GetError());
+			sdl.using_windib=true;
 		} else {
 			char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
 
@@ -5452,7 +5383,11 @@ int main(int argc, char* argv[]) {
 				LOG(LOG_MISC,LOG_DEBUG)("Going fullscreen immediately, during startup");
 
 #if !defined(C_SDL2)
-				if (sdl.desktop.want_type != SCREEN_OPENGLHQ) SetMenu(GetHWND(),NULL);
+                void DOSBox_SetSysMenu(void);
+                DOSBox_SetSysMenu();
+
+                NonUserResizeCounter=1;
+                SetMenu(GetHWND(),NULL);
 #endif
 				//only switch if not already in fullscreen
 				if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
@@ -5469,36 +5404,6 @@ int main(int argc, char* argv[]) {
 		menu.startup = true;
         menu.showrt = control->opt_showrt;
 		menu.hidecycles = (control->opt_showcycles ? false : true);
-		if (sdl.desktop.want_type == SCREEN_OPENGLHQ) {
-			menu.gui=false; DOSBox_SetOriginalIcon();
-			if (!render.scale.hardware) {
-				LOG(LOG_MISC,LOG_DEBUG)("Desktop wants SCREEN_OPENGLHQ, without hardware scaling. Forcing scalar.");
-				SetVal("render","scaler",!render.scale.forced?"hardware2x":"hardware2x forced");
-			}
-		}
-
-#if defined(WIN32) && !defined(C_SDL2)
-		if (sdl.desktop.want_type == SCREEN_OPENGL && sdl.using_windib) {
-			LOG(LOG_MISC,LOG_DEBUG)("Desktop wants SCREEN_OPENGL and we're using windib now. Reinitializing SDL video output.");
-			SDL_QuitSubSystem(SDL_INIT_VIDEO);
-			sdl.surface = NULL; // surface becomes invalid!
-			if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
-				E_Exit("Can't init SDL Video %s",SDL_GetError());
-
-			sdl.surface = SDL_SetVideoMode(640, 400, 0, SDL_RESIZABLE);
-			if (sdl.surface == NULL) E_Exit("Could not initialize video: %s", SDL_GetError());
-            sdl.deferred_resize = false;
-            sdl.must_redraw_all = true;
-
-			change_output(sdl.opengl.bilinear ? 3/*OpenGL*/ : 4/*OpenGLNB*/);
-			GFX_SetIcon();
-			SDL_Prepare();
-			if (menu.gui && !control->opt_nomenu) {
-				SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-				DrawMenuBar(GetHWND());
-			}
-		}
-#endif
 
 #if defined(WIN32) && !defined(C_SDL2)
 		{
@@ -5564,6 +5469,10 @@ int main(int argc, char* argv[]) {
 		NE2K_Init();
 #endif
 
+#if defined(WIN32) && !defined(C_SDL2)
+		Reflect_Menu();
+#endif
+
 		/* If PCjr emulation, map cartridge ROM */
 		if (machine == MCH_PCJR)
 			Init_PCJR_CartridgeROM();
@@ -5618,14 +5527,17 @@ int main(int argc, char* argv[]) {
 		bool run_machine;
 		bool reboot_machine;
 		bool dos_kernel_shutdown;
-        bool enter_pc98;
 
 fresh_boot:
-        enter_pc98 = false;
         reboot_dos = false;
 		run_machine = false;
 		reboot_machine = false;
 		dos_kernel_shutdown = false;
+
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
 
 		/* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
 		 *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
@@ -5649,10 +5561,7 @@ fresh_boot:
                 dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
             else if (x == 5) { /* go to PC-98 mode */
-                LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to enter PC-98 mode");
-
-                enter_pc98 = true;
-                dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
+                E_Exit("Obsolete int signal");
             }
             else if (x == 6) { /* reboot DOS kernel */
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot DOS kernel");
@@ -5671,6 +5580,11 @@ fresh_boot:
         catch (...) {
             throw;
         }
+
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
 
         if (dos_kernel_shutdown) {
             /* NTS: we take different paths depending on whether we're just shutting down DOS
@@ -5732,7 +5646,17 @@ fresh_boot:
                 DispatchVMEvent(VM_EVENT_DOS_EXIT_REBOOT_KERNEL);
             else
                 DispatchVMEvent(VM_EVENT_DOS_EXIT_KERNEL);
+
+#if defined(WIN32) && !defined(C_SDL2)
+			int Reflect_Menu(void);
+			Reflect_Menu();
+#endif
         }
+
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
 
 		if (run_machine) {
             bool disable_a20 = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("turn off a20 gate on boot");
@@ -5753,6 +5677,11 @@ fresh_boot:
             goto fresh_boot;
 		}
 
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
+
 		if (reboot_machine) {
 			LOG_MSG("Rebooting the system\n");
 
@@ -5768,28 +5697,6 @@ fresh_boot:
             /* run again */
             goto fresh_boot;
 		}
-        else if (enter_pc98) {
-            void CALLBACK_RunRealInt(Bit8u intnum);
-
-            LOG_MSG("Switching into PC-98 mode");
-
-            void CPU_Snap_Back_Forget();
-            /* Shutdown everything. For shutdown to work properly we must force CPU to real mode */
-            CPU_Snap_Back_To_Real_Mode();
-            CPU_Snap_Back_Forget();
-
-            machine = MCH_PC98;
-            enable_pc98_jump = false;
-            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
-            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
-
-            /* begin booting DOS again. */
-            void BIOS_Enter_Boot_Phase(void);
-            BIOS_Enter_Boot_Phase();
-
-            /* run again */
-            goto fresh_boot;
-        }
         else if (reboot_dos) { /* typically (at this time) to enter/exit PC-98 mode */
 			LOG_MSG("Rebooting DOS\n");
 
@@ -5807,6 +5714,11 @@ fresh_boot:
             /* run again */
             goto fresh_boot;
 		}
+
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
 
 		/* and then shutdown */
 		GFX_ShutDown();
@@ -5835,6 +5747,9 @@ fresh_boot:
 	DOS_ShutdownFiles();
 	DOS_ShutdownDevices();
 	CALLBACK_Shutdown();
+#if C_DYNAMIC_X86
+	CPU_Core_Dyn_X86_Shutdown();
+#endif
 	FreeBIOSDiskList();
 	MAPPER_Shutdown();
 	VFILE_Shutdown();
@@ -5900,6 +5815,9 @@ void GUI_ResetResize(bool pressed) {
 	if (!pressed) return;
     userResizeWindowWidth = 0;
     userResizeWindowHeight = 0;
+
+    if (GFX_GetPreventFullscreen())
+        return;
 
     if (sdl.updating && !GFX_MustActOnResize()) {
         /* act on resize when updating is complete */

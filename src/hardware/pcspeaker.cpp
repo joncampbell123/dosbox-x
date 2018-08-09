@@ -268,6 +268,9 @@ void PCSPEAKER_SetPITControl(Bitu mode) {
 #endif
 	// TODO: implement all modes
 	switch(mode) {
+    case 0:
+		spkr.pit_mode = 0;
+        break;
 	case 1:
 		spkr.pit_mode = 1;
 		spkr.pit_mode1_waiting_for_counter = 1;

@@ -1238,6 +1238,15 @@ Bitu MOUSE_UserInt_CB_Handler(void) {
 
 bool MouseTypeNone();
 
+void MOUSE_OnReset(Section *sec) {
+    if (IS_PC98_ARCH)
+        MOUSE_IRQ = 13; // PC-98 standard
+    else
+        MOUSE_IRQ = 12; // IBM PC/AT standard
+
+    PIC_SetIRQMask(MOUSE_IRQ,true);
+}
+
 void MOUSE_ShutDown(Section *sec) {
 }
 
@@ -1346,24 +1355,10 @@ void MOUSE_Startup(Section *sec) {
 	Mouse_SetSensitivity(50,50,50);
 }
 
-void MOUSE_OnEnterPC98(Section *sec) {
-}
-
-void MOUSE_OnEnterPC98_phase2(Section *sec) {
-    // PC-98 change mouse to IRQ 13 (same as Neko Project II)
-    MOUSE_IRQ = 13; // NTS: Based on NKII pic_setirq(0x0D)
-    PIC_SetIRQMask(MOUSE_IRQ,true);
-
-    // FIXME: This doesn't explain why Puyo Puyo sets up an interrupt handler
-    //        that blows up and hangs if IRQ 5 is fired... what's that about? --J.C.
-}
-
 void MOUSE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing mouse interface emulation");
 
 	// TODO: We need a DOSBox shutdown callback, and we need a shutdown callback for when the DOS kernel begins to unload and on system reset
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MOUSE_ShutDown));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(MOUSE_OnEnterPC98));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(MOUSE_OnEnterPC98_phase2));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MOUSE_OnReset));
 }
 

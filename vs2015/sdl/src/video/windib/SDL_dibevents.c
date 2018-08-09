@@ -50,6 +50,8 @@
 #define NO_GETKEYBOARDSTATE
 #endif
 
+HKL hLayout = NULL;
+
 /* The translation table from a Microsoft VK keysym to a SDL keysym */
 static SDLKey VK_keymap[SDLK_LAST];
 static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, int pressed);
@@ -140,6 +142,20 @@ void __declspec(dllexport) SDL_DOSBox_X_Hack_Set_Toggle_Key_WM_USER_Hack(unsigne
 	_dosbox_x_hack_wm_user100_to_keyevent = x;
 }
 #endif
+
+/* SDL has only so much queue, we don't want to pass EVERY message
+   that comes to us into it. As this SDL code is specialized for
+   DOSBox-X, only messages that DOSBox-X would care about are
+   queued. */
+int Win32_ShouldPassMessageToSysWMEvent(UINT msg) {
+	switch (msg) {
+		case WM_COMMAND:
+		case WM_SYSCOMMAND:
+			return 1;
+	}
+
+	return 0;
+}
 
 /* The main Win32 event handler */
 LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -330,15 +346,20 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 
 		default: {
 			/* Only post the event if we're watching for it */
-			if ( SDL_ProcessEvents[SDL_SYSWMEVENT] == SDL_ENABLE ) {
-			        SDL_SysWMmsg wmmsg;
+			if (SDL_ProcessEvents[SDL_SYSWMEVENT] == SDL_ENABLE) {
+				SDL_SysWMmsg wmmsg;
 
-				SDL_VERSION(&wmmsg.version);
-				wmmsg.hwnd = hwnd;
-				wmmsg.msg = msg;
-				wmmsg.wParam = wParam;
-				wmmsg.lParam = lParam;
-				posted = SDL_PrivateSysWMEvent(&wmmsg);
+				/* Stop queuing all the various blather the Win32 world
+				   throws at us, we only have so much queue to hold it.
+				   Queue only what is important. */
+				if (Win32_ShouldPassMessageToSysWMEvent(msg)) {
+					SDL_VERSION(&wmmsg.version);
+					wmmsg.hwnd = hwnd;
+					wmmsg.msg = msg;
+					wmmsg.wParam = wParam;
+					wmmsg.lParam = lParam;
+					posted = SDL_PrivateSysWMEvent(&wmmsg);
+				}
 
 			/* DJM: If the user isn't watching for private
 				messages in her SDL event loop, then pass it
@@ -441,40 +462,12 @@ void DIB_CheckMouse(void) {
 	last_dib_mouse_motion = SDL_GetTicks();
 }
 
-static HKL hLayoutUS = NULL;
-
 void DIB_InitOSKeymap(_THIS)
 {
 	int	i;
-#ifndef _WIN32_WCE
-	char	current_layout[KL_NAMELENGTH];
 
-	GetKeyboardLayoutName(current_layout);
-	//printf("Initial Keyboard Layout Name: '%s'\n", current_layout);
+	hLayout = GetKeyboardLayout(0);
 
-	hLayoutUS = LoadKeyboardLayout("00000409", KLF_NOTELLSHELL);
-
-	if (!hLayoutUS) {
-		//printf("Failed to load US keyboard layout. Using current.\n");
-		hLayoutUS = GetKeyboardLayout(0);
-	}
-	LoadKeyboardLayout(current_layout, KLF_ACTIVATE);
-#else
-#if _WIN32_WCE >=420
-	TCHAR	current_layout[KL_NAMELENGTH];
-
-	GetKeyboardLayoutName(current_layout);
-	//printf("Initial Keyboard Layout Name: '%s'\n", current_layout);
-
-	hLayoutUS = LoadKeyboardLayout(L"00000409", 0);
-
-	if (!hLayoutUS) {
-		//printf("Failed to load US keyboard layout. Using current.\n");
-		hLayoutUS = GetKeyboardLayout(0);
-	}
-	LoadKeyboardLayout(current_layout, 0);
-#endif // _WIN32_WCE >=420
-#endif
 	/* Map the VK keysyms */
 	for ( i=0; i<SDL_arraysize(VK_keymap); ++i )
 		VK_keymap[i] = SDLK_UNKNOWN;
@@ -610,7 +603,7 @@ void DIB_InitOSKeymap(_THIS)
 static int SDL_MapVirtualKey(int scancode, int vkey)
 {
 #ifndef _WIN32_WCE
-	int	mvke  = MapVirtualKeyEx(scancode & 0xFF, 1, hLayoutUS);
+	int	mvke  = MapVirtualKeyEx(scancode & 0xFF, 1, hLayout);
 #else
 	int	mvke  = MapVirtualKey(scancode & 0xFF, 1);
 #endif
@@ -690,21 +683,6 @@ static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, 
 #endif /* NO_GETKEYBOARDSTATE */
 	}
 
-#if 0
-	{
-		HKL     hLayoutCurrent = GetKeyboardLayout(0);
-		int     sc = scancode & 0xFF;
-
-		printf("SYM:%d, VK:0x%02X, SC:0x%04X, US:(1:0x%02X, 3:0x%02X), "
-			"Current:(1:0x%02X, 3:0x%02X)\n",
-			keysym->sym, vkey, scancode,
-			MapVirtualKeyEx(sc, 1, hLayoutUS),
-			MapVirtualKeyEx(sc, 3, hLayoutUS),
-			MapVirtualKeyEx(sc, 1, hLayoutCurrent),
-			MapVirtualKeyEx(sc, 3, hLayoutCurrent)
-		);
-	}
-#endif
 	return(keysym);
 }
 

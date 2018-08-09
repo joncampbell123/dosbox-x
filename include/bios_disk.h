@@ -44,6 +44,8 @@ struct diskGeo {
 };
 extern diskGeo DiskGeometryList[];
 
+extern const Bit8u freedos_mbr[];
+
 class imageDisk {
 public:
 	enum {
@@ -135,6 +137,30 @@ public:
     vfdentry *findSector(Bit8u head,Bit8u track,Bit8u sector/*TODO: physical head?*/);
 
     std::vector<vfdentry> dents;
+};
+
+class imageDiskMemory : public imageDisk {
+public:
+	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u GetBiosType(void);
+	virtual Bit8u Format();
+
+	imageDiskMemory(Bit32u imgSizeK);
+	imageDiskMemory(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize);
+	imageDiskMemory(diskGeo floppyGeometry);
+	virtual ~imageDiskMemory();
+
+private:
+	void init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize);
+
+	Bit8u * * ChunkMap;
+	Bit32u sectors_per_chunk;
+	Bit32u chunk_size;
+	Bit32u total_chunks;
+	Bit32u total_sectors;
+
+	Bit8u bios_type;
 };
 
 void updateDPT(void);

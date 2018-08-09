@@ -480,10 +480,6 @@ void DMA_Destroy(Section* /*sec*/) {
 	DMA_FreeControllers();
 }
 
-void DMA_OnEnterPC98(Section* /*sec*/) {
-	DMA_FreeControllers();
-}
-
 void DMA_Reset(Section* /*sec*/) {
 	Bitu i;
 
@@ -568,6 +564,5 @@ void Init_DMA() {
 
 	AddExitFunction(AddExitFunctionFuncPair(DMA_Destroy));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DMA_Reset));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(DMA_OnEnterPC98));
 }
 

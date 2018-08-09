@@ -68,6 +68,24 @@ std::map <const UINT32, ogl_texmap> textures[2];
 
 void GFX_PreventFullscreen(bool lockout);
 
+int Voodoo_OGL_GetWidth() {
+	if (v != NULL)
+		return v->fbi.width;
+	else
+		return 0;
+}
+
+int Voodoo_OGL_GetHeight() {
+	if (v != NULL)
+		return v->fbi.height;
+	else
+		return 0;
+}
+
+bool Voodoo_OGL_Active() {
+	return (v != NULL && v->clock_enabled && v->output_on);
+}
+
 static void ogl_get_depth(voodoo_state* VV, INT32 ITERZ, INT64 ITERW, INT32 *depthval, INT32 *out_wfloat)
 {
 	INT32 wfloat;
@@ -1591,6 +1609,14 @@ void voodoo_ogl_set_window(voodoo_state *v) {
 }
 
 void voodoo_ogl_reset_videomode(void) {
+#if defined(WIN32) && !defined(C_SDL2)
+    /* always show the menu */
+    void DOSBox_SetMenu(void);
+    DOSBox_SetMenu();
+#endif
+
+    GFX_PreventFullscreen(true);
+
 	last_clear_color=0;
 
 	last_width=0;
@@ -1617,10 +1643,6 @@ void voodoo_ogl_reset_videomode(void) {
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	glViewport( 0, 0, v->fbi.width, v->fbi.height );
-	last_width = v->fbi.width;
-	last_height = v->fbi.height;
-
 	/*glMatrixMode( GL_PROJECTION );
 	glLoadIdentity();
 	glOrtho( 0, v->fbi.width, v->fbi.height, 0, -1, 1 );
@@ -1644,8 +1666,6 @@ void voodoo_ogl_reset_videomode(void) {
 
     GFX_ReleaseMouse();
     GFX_ForceFullscreenExit();
-
-    GFX_PreventFullscreen(true);
 
 	Uint32 sdl_flags = SDL_OPENGL;
 
@@ -1681,6 +1701,16 @@ void voodoo_ogl_reset_videomode(void) {
 	}
 
     v->ogl_dimchange = true;
+
+	glViewport( 0, 0, v->fbi.width, v->fbi.height );
+	last_width = v->fbi.width;
+	last_height = v->fbi.height;
+
+    /* NTS: Some demoscene 3Dfx stuff looks terrible without this.
+     *      This is said to be the initial state of an OpenGL context.
+     *      This is in direct contradiction to the OpenGL output setup
+     *      in src/gui/sdlmain.cpp that sets up GL_FLAT shading */
+    glShadeModel (GL_SMOOTH);
 
 	GFX_UpdateSDLCaptureState();
 
@@ -1719,6 +1749,16 @@ void voodoo_ogl_reset_videomode(void) {
 	} else if (depth_csize < 16) {
 		LOG_MSG("VOODOO: OpenGL: invalid depth size %d",depth_csize);
 	}
+
+#if defined(WIN32) && !defined(C_SDL2)
+	// Windows SDL 1.x builds may destroy and re-create the window, and lose our menu bar.
+	// make sure to put it back.
+	void DOSBox_SetMenu(void);
+	DOSBox_SetMenu();
+#endif
+
+	/* Something in Windows keeps changing the shade model on us from the last glShadeModel() call. Change it back. */
+	glShadeModel(GL_SMOOTH);
 
 	LOG_MSG("VOODOO: OpenGL: mode set, resolution %d:%d %s", v->fbi.width, v->fbi.height, (sdl_flags & SDL_FULLSCREEN) ? "(fullscreen)" : "");
 }
@@ -1831,8 +1871,8 @@ void voodoo_ogl_leave(bool leavemode) {
 		LOG_MSG("VOODOO: OpenGL: quit");
 
         ogl_surface = NULL;
-        GFX_RestoreMode();
         GFX_PreventFullscreen(false);
+        GFX_RestoreMode();
     }
 }
 

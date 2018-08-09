@@ -522,9 +522,7 @@ void INT10_ReadCharAttr(Bit16u * result,Bit8u page) {
 }
 
 void INT10_PC98_CurMode_Relocate(void) {
-    assert(CurMode != NULL);
-    CurMode->pstart = 0xA0000;
-    CurMode->type = M_PC98;
+    /* deprecated */
 }
 
 void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,bool useattr) {

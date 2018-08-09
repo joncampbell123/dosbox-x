@@ -123,12 +123,12 @@ int delete_fluid_midi_parser(fluid_midi_parser_t* parser) {
 #include "mixer.h"
 #endif
 
-static MixerChannel *synthchan;
+static MixerChannel *synthchan = NULL;
 
-static fluid_synth_t *synth_soft;
-static fluid_midi_parser_t *synth_parser;
+static fluid_synth_t *synth_soft = NULL;
+static fluid_midi_parser_t *synth_parser = NULL;
 
-static int synthsamplerate;
+static int synthsamplerate = 0;
 
 
 static void synth_log(int level, char *message, void *data) {
@@ -149,8 +149,10 @@ static void synth_log(int level, char *message, void *data) {
 }
 
 static void synth_CallBack(Bitu len) {
-	fluid_synth_write_s16(synth_soft, len, MixTemp, 0, 2, MixTemp, 1, 2);
-	synthchan->AddSamples_s16(len,(Bit16s *)MixTemp);
+    if (synth_soft != NULL) {
+        fluid_synth_write_s16(synth_soft, len, MixTemp, 0, 2, MixTemp, 1, 2);
+        synthchan->AddSamples_s16(len,(Bit16s *)MixTemp);
+    }
 }
 
 class MidiHandler_synth: public MidiHandler {
@@ -255,11 +257,20 @@ public:
 	};
 	void Close(void) {
 		if (!isOpen) return;
+
+        synthchan->Enable(false);
+        MIXER_DelChannel(synthchan);
+        synthchan=NULL;
+
 		delete_fluid_midi_router(router);
 		delete_fluid_midi_parser(synth_parser);
 		delete_fluid_synth(synth_soft);
 		delete_fluid_settings(settings);
+        synth_parser=NULL;
+        synth_soft=NULL;
+        settings=NULL;
 		isOpen=false;
+        router=NULL;
 	};
 	void PlayMsg(Bit8u *msg) {
 		fluid_midi_event_t *evt;

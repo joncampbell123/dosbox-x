@@ -891,6 +891,8 @@ fail:
 
 extern Bit8u int10_font_16[256 * 16];
 
+extern VideoModeBlock PC98_Mode;
+
 bool Load_VGAFont_As_PC98(void) {
     unsigned int i;
 
@@ -901,27 +903,7 @@ bool Load_VGAFont_As_PC98(void) {
 }
 
 void INT10_EnterPC98(Section *sec) {
-    /* shut down INT 10h for PC-98 mode */
-    if (call_10 != 0) {
-        CALLBACK_DeAllocate(call_10);
-        RealSetVec(0x10,0);
-        call_10 = 0;
-    }
-
-    /* remove VGA BIOS */
-    void INT10_RemoveVGABIOS(void);
-    INT10_RemoveVGABIOS();
-
-    /* load PC-98 character ROM data, if possible */
-    {
-        bool ok = false;
-
-        /* We can use ANEX86.BMP from the Anex86 emulator */
-        if (!ok) ok = Load_Anex86_Font();
-        /* Failing all else we can just re-use the IBM VGA 8x16 font to show SOMETHING on the screen.
-         * Japanese text will not display properly though. */
-        if (!ok) ok = Load_VGAFont_As_PC98();
-    }
+    /* deprecated */
 }
 
 void INT10_Startup(Section *sec) {
@@ -931,34 +913,93 @@ void INT10_Startup(Section *sec) {
 	int16_unmask_irq1_on_read = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask keyboard on int 16 read");
     int16_ah_01_cf_undoc = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("int16 keyboard polling undocumented cf behavior");
 
-	INT10_InitVGA();
-	if (IS_TANDY_ARCH) SetupTandyBios();
-	/* Setup the INT 10 vector */
-	call_10=CALLBACK_Allocate();	
-	CALLBACK_Setup(call_10,&INT10_Handler,CB_IRET,"Int 10 video");
-	RealSetVec(0x10,CALLBACK_RealPointer(call_10));
-	//Init the 0x40 segment and init the datastructures in the the video rom area
-	INT10_SetupRomMemory();
-	INT10_Seg40Init();
-	INT10_SetupVESA();
-	INT10_SetupRomMemoryChecksum();//SetupVesa modifies the rom as well.
-	INT10_SetupBasicVideoParameterTable();
+    if (!IS_PC98_ARCH) {
+        INT10_InitVGA();
+        if (IS_TANDY_ARCH) SetupTandyBios();
+        /* Setup the INT 10 vector */
+        call_10=CALLBACK_Allocate();	
+        CALLBACK_Setup(call_10,&INT10_Handler,CB_IRET,"Int 10 video");
+        RealSetVec(0x10,CALLBACK_RealPointer(call_10));
+        //Init the 0x40 segment and init the datastructures in the the video rom area
+        INT10_SetupRomMemory();
+        INT10_Seg40Init();
+        INT10_SetupVESA();
+        INT10_SetupRomMemoryChecksum();//SetupVesa modifies the rom as well.
+        INT10_SetupBasicVideoParameterTable();
 
-	LOG(LOG_MISC,LOG_DEBUG)("INT 10: VGA bios used %d / %d memory",(int)int10.rom.used,(int)VGA_BIOS_Size);
-	if (int10.rom.used > VGA_BIOS_Size) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
-		E_Exit("VGA BIOS size too small");
+        LOG(LOG_MISC,LOG_DEBUG)("INT 10: VGA bios used %d / %d memory",(int)int10.rom.used,(int)VGA_BIOS_Size);
+        if (int10.rom.used > VGA_BIOS_Size) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
+            E_Exit("VGA BIOS size too small");
 
-    /* NTS: Uh, this does seem bass-ackwards... INT 10h making the VGA BIOS appear. Can we refactor this a bit? */
-	if (VGA_BIOS_Size > 0) {
-		LOG(LOG_MISC,LOG_DEBUG)("VGA BIOS occupies segment 0x%04x-0x%04x",(int)VGA_BIOS_SEG,(int)VGA_BIOS_SEG_END-1);
-		if (!MEM_map_ROM_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1))
-			LOG(LOG_MISC,LOG_WARN)("INT 10 video: unable to map BIOS");
-	}
-	else {
-		LOG(LOG_MISC,LOG_DEBUG)("Not mapping VGA BIOS");
-	}
+        /* NTS: Uh, this does seem bass-ackwards... INT 10h making the VGA BIOS appear. Can we refactor this a bit? */
+        if (VGA_BIOS_Size > 0) {
+            LOG(LOG_MISC,LOG_DEBUG)("VGA BIOS occupies segment 0x%04x-0x%04x",(int)VGA_BIOS_SEG,(int)VGA_BIOS_SEG_END-1);
+            if (!MEM_map_ROM_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1))
+                LOG(LOG_MISC,LOG_WARN)("INT 10 video: unable to map BIOS");
+        }
+        else {
+            LOG(LOG_MISC,LOG_DEBUG)("Not mapping VGA BIOS");
+        }
 
-	INT10_SetVideoMode(0x3);
+        INT10_SetVideoMode(0x3);
+    }
+    else {
+        /* load PC-98 character ROM data, if possible */
+        {
+            bool ok = false;
+
+            /* We can use ANEX86.BMP from the Anex86 emulator */
+            if (!ok) ok = Load_Anex86_Font();
+            /* Failing all else we can just re-use the IBM VGA 8x16 font to show SOMETHING on the screen.
+             * Japanese text will not display properly though. */
+            if (!ok) ok = Load_VGAFont_As_PC98();
+        }
+
+        CurMode = &PC98_Mode;
+
+        /* FIXME: This belongs in MS-DOS kernel init, because these reside in the CON driver */
+        /* Some PC-98 game behavior seems to suggest the BIOS data area stretches all the way from segment 0x40:0x00 to segment 0x7F:0x0F inclusive.
+         * Compare that to IBM PC platform, where segment fills only 0x40:0x00 to 0x50:0x00 inclusive and extra state is held in the "Extended BIOS Data Area".
+         */
+
+        /* number of text rows on the screen.
+         * Touhou Project will not clear/format the text layer properly without this variable. */
+        mem_writeb(0x710,25 - 1); /* cursor position Y coordinate */
+        mem_writeb(0x711,1); /* function definition display status flag */
+        mem_writeb(0x712,25 - 1); /* number of rows - 1 */
+        mem_writeb(0x713,1); /* normal 25 lines */
+        mem_writeb(0x714,0xE1); /* content erase attribute */
+
+        mem_writeb(0x719,0x20); /* content erase character */
+
+        mem_writeb(0x71B,0x01); /* cursor displayed */
+
+        mem_writeb(0x71D,0xE1); /* content display attribute */
+
+        mem_writeb(0x71F,0x01); /* scrolling speed is normal */
+
+        /* however, our console functions still use IBM PC values! */
+        mem_writeb(0x400+BIOSMEM_CURRENT_MODE,0);
+        mem_writew(0x400+BIOSMEM_NB_COLS,80);
+        mem_writew(0x400+BIOSMEM_PAGE_SIZE,0);
+        mem_writew(0x400+BIOSMEM_CURRENT_START,0);
+        mem_writew(0x400+BIOSMEM_CURSOR_POS,0);
+        mem_writew(0x400+BIOSMEM_CURRENT_PAGE,0);
+        mem_writeb(0x400+BIOSMEM_NB_ROWS,25);
+        mem_writeb(0x400+BIOSMEM_CHAR_HEIGHT,16);
+
+        /* init text RAM */
+        for (unsigned int i=0;i < 0x2000;i += 2) {
+            mem_writew(0xA0000+i,0);
+            mem_writeb(0xA2000+i,0xE1);
+        }
+        /* clear graphics RAM */
+        for (unsigned int i=0;i < 0x8000;i += 2) {
+            mem_writew(0xA8000+i,0);
+            mem_writew(0xB0000+i,0);
+            mem_writew(0xB8000+i,0);
+        }
+    }
 }
 
 void INT10_Init() {

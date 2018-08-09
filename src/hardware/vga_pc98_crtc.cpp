@@ -22,6 +22,8 @@ extern bool                 pc98_graphics_hide_odd_raster_200line;
 
 bool                        gdc_5mhz_mode = false;
 bool                        GDC_vsync_interrupt = false;
+uint8_t                     GDC_display_plane_wait_for_vsync = false;
+uint8_t                     GDC_display_plane_pending = false;
 uint8_t                     GDC_display_plane = false;
 
 uint8_t                     pc98_gdc_tile_counter=0;

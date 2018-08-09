@@ -3928,31 +3928,15 @@ void (*ide_inits[MAX_IDE_CONTROLLERS])(Section *) = {
 };
 
 void IDE_OnReset(Section *sec) {
+    if (IS_PC98_ARCH) return;
+
 	for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) ide_inits[i](control->GetSection(ide_names[i]));
-}
-
-void IDE_OnEnterPC98(Section *sec) {
-    /* TODO: Late PC-9801 and PC-9821 have IDE controllers.
-     *       What I'm not familiar with is what I/O ports the IDE controller is mapped at
-     *       and what IRQ is used by IDE.
-     *
-     *       When I better understand the IDE controller I will reenable this code to match it */
-	for (unsigned int i=0;i < MAX_IDE_CONTROLLERS;i++) {
-		if (idecontroller[i] != NULL) {
-			delete idecontroller[i];
-			idecontroller[i] = NULL;
-		}
-	}
-
-	init_ide = 0;
 }
 
 void IDE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing IDE controllers");
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(IDE_OnReset));
-
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(IDE_OnEnterPC98));
 }
 
 void BIOS_Post_register_IDE() {

@@ -127,8 +127,6 @@ extern bool			VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool			allow_more_than_640kb;
 extern bool			adapter_rom_is_ram;
 
-bool                enable_pc98_jump = false;
-
 bool				dos_con_use_int16_to_detect_input = true;
 
 bool				dbg_zero_on_dos_allocmem = true;
@@ -264,9 +262,6 @@ void				INT10_Init(Section*);
 #if C_NE2000
 void				NE2K_Init(Section* sec);
 #endif
-#if defined(__WIN32__) && !defined(C_SDL2)
-void				MSG_Loop(void);
-#endif
 
 signed long long time_to_clockdom(ClockDomain &src,double t) {
 	signed long long lt = (signed long long)t;
@@ -315,8 +310,6 @@ unsigned long long update_PCI_BCLK_clock() {
 
 #include "paging.h"
 
-extern Bitu dosbox_check_nonrecursive_pf_cs;
-extern Bitu dosbox_check_nonrecursive_pf_eip;
 extern bool rom_bios_vptable_enable;
 extern bool rom_bios_8x8_cga_font;
 extern bool allow_port_92_reset;
@@ -378,9 +371,6 @@ static Bitu Normal_Loop(void) {
                     return 0;
 #endif
             } else {
-#if defined(__WIN32__) && !defined(C_SDL2)
-                MSG_Loop();
-#endif
                 GFX_Events();
                 if (DOSBox_Paused() == false && ticksRemain > 0) {
                     TIMER_AddTick();
@@ -488,9 +478,6 @@ increaseticks:
         ret = 0;
         FillFlags();
         dosbox_allow_nonrecursive_page_fault = false;
-#if 0 //TODO make option
-        LOG_MSG("Guest page fault exception! Alternate method will be used. Wish me luck.\n");
-#endif
         CPU_Exception(EXCEPTION_PF,pf.faultcode);
         dosbox_allow_nonrecursive_page_fault = saved_allow;
     }
@@ -639,6 +626,11 @@ void DOSBOX_InitTickLoop() {
 void Init_VGABIOS() {
 	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
+
+    if (IS_PC98_ARCH) {
+        VGA_BIOS_Size = 0;
+        return;
+    }
 
 	// log
 	LOG(LOG_MISC,LOG_DEBUG)("Init_VGABIOS: Initializing VGA BIOS and parsing it's settings");
@@ -812,18 +804,6 @@ void DOSBOX_RealInit() {
 	clockdom_8250_UART.set_name("8250 UART");
 	clockdom_ISA_BCLK.set_name("ISA BCLK");
 	clockdom_PCI_BCLK.set_name("PCI BCLK");
-
-    /* the changes are so large to begin supporting PC-98 that it's probably better
-     * to boot up in IBM PC/XT/AT mode and then switch into PC-98 */
-	if (IS_PC98_ARCH) {
-        LOG_MSG("PC-98 WARNING: Implementation is very early, and not the initial state.");
-
-        enable_pc98_jump = true;
-        int10.vesa_nolfb = false;
-        int10.vesa_oldvbe = false;
-        svgaCard = SVGA_None;
-        machine = MCH_VGA;
-    }
 }
 
 void DOSBOX_SetupConfigSections(void) {
@@ -846,7 +826,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* blocksizes[] = {"1024", "2048", "4096", "8192", "512", "256", 0};
     const char* capturechromaformats[] = { "auto", "4:4:4", "4:2:2", "4:2:0", 0};
 	const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
-	const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486", "pentium", "pentium_mmx", "ppro_slow", 0};
+	const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486", "486_prefetch", "pentium", "pentium_mmx", "ppro_slow", 0};
 	const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
 	const char* oplrates[] = {   "44100", "49716", "48000", "32000","22050", "16000", "11025", "8000", 0 };
 	const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "synth", "timidity", "none", 0}; // FIXME: add some way to offer the actually available choices.
@@ -881,6 +861,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* tandys[] = { "auto", "on", "off", 0};
 	const char* ps1opt[] = { "on", "off", 0};
 	const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
+    const char* pc98fmboards[] = { "auto", "off", "false", "board26k", "board86", "board86c", 0};
 
 	const char* irqssbhack[] = {
 		"none", "cs_equ_ds", 0
@@ -904,6 +885,9 @@ void DOSBOX_SetupConfigSections(void) {
 		0 };
 
 	const char* cores[] = { "auto",
+#if (C_DYNAMIC_X86)
+		"dynamic",
+#endif
 		"normal", "full", "simple", 0 };
 
 	const char* voodoo_settings[] = {
@@ -1080,6 +1064,12 @@ void DOSBOX_SetupConfigSections(void) {
 	Pint->SetMinMax(0,128);
 	Pint->Set_help("Once ROM BIOS layout is finalized, trim total region down to a minimum amount in KB");
 
+	Pint = secprop->Add_int("irq delay ns", Property::Changeable::WhenIdle,-1);
+	Pint->SetMinMax(-1,100000);
+	Pint->Set_help(	"IRQ delay in nanoseconds. Set to -1 to use default, 0 to disable.\n"
+                    "This is a more precise version of the irqdelay= setting.\n"
+                    "There are some old DOS games and demos that have race conditions with IRQs that need a nonzero value here to work properly.");
+
 	Pint = secprop->Add_int("iodelay", Property::Changeable::WhenIdle,-1);
 	Pint->SetMinMax(-1,100000);
 	Pint->Set_help(	"I/O delay in nanoseconds for I/O port access. Set to -1 to use default, 0 to disable.\n"
@@ -1160,6 +1150,20 @@ void DOSBOX_SetupConfigSections(void) {
 		"        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
 		"    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31");
 
+	Pstring = secprop->Add_string("pc-98 fm board",Property::Changeable::Always,"auto");
+    Pstring->Set_values(pc98fmboards);
+	Pstring->Set_help("In PC-98 mode, selects the FM music board to emulate.");
+
+	Pint = secprop->Add_int("pc-98 fm board irq", Property::Changeable::WhenIdle,0);
+	Pint->Set_help("If set, helps to determine the IRQ of the FM board. A setting of zero means to auto-determine the IRQ.");
+
+	Phex = secprop->Add_hex("pc-98 fm board io port", Property::Changeable::WhenIdle,0);
+	Phex->Set_help("If set, helps to determine the base I/O port of the FM board. A setting of zero means to auto-determine the port number.");
+
+	Pbool = secprop->Add_bool("pc-98 buffer page flip",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, the game's request to page flip will be delayed to vertical retrace, which can eliminate tearline artifacts.\n"
+                    "Note that this is NOT the behavior of actual hardware. This option is provided for the user's preference.");
+
 	Pbool = secprop->Add_bool("pc-98 start gdc at 5mhz",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Start GDC at 5MHz if set, 2.5MHz if clear. May be required for some games.");
 
@@ -1174,9 +1178,10 @@ void DOSBOX_SetupConfigSections(void) {
                    "If your setting is neither of the below the closest appropriate value will be chosen.\n"
                    "This setting affects the master clock rate that DOS applications must divide down from to program the timer\n"
                    "at the correct rate, which affects timer interrupt, PC speaker, and the COM1 RS-232C serial port baud rate.\n"
+				   "8MHz is treated as an alias for 4MHz and 10MHz is treated as an alias for 5MHz.\n"
                    "    0: Use default (auto)\n"
-                   "    8: 1.996MHz (as if 8MHz or multiple thereof CPU clock)\n"
-                   "   10: 2.457MHz (as if 5MHz/10MHz or multiple thereof CPU clock)");
+                   "    4: 1.996MHz (as if 4MHz or multiple thereof CPU clock)\n"
+                   "    5: 2.457MHz (as if 5MHz or multiple thereof CPU clock)");
 
 	Pint = secprop->Add_int("pc-98 allow 4 display partition graphics", Property::Changeable::WhenIdle,-1);
 	Pint->SetMinMax(-1,1);
@@ -1245,10 +1250,6 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool->Set_help("If set, INT 16h function AH=01h will also set/clear the carry flag depending on whether input was available.\n"
                     "There are some old DOS games and demos that rely on this behavior to sense keyboard input, and this behavior\n"
                     "has been verified to occur on some old (early 90s) BIOSes.");
-
-	Pint = secprop->Add_int("irq delay",Property::Changeable::OnlyAtStart,-1);
-	Pint->Set_help("If 0 or greater, apply a delay (in cycles) to IRQ handling in the CPU. A value of -1 means to use a default value.\n"
-                   "There are some old DOS games and demos that have race conditions with IRQs that need a nonzero value here to work properly.");
 
 	Pbool = secprop->Add_bool("allow port 92 reset",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set (default), allow the application to reset the CPU through port 92h");
@@ -1988,7 +1989,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("pcspeaker",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable PC-Speaker emulation.");
 
-	Pint = secprop->Add_int("initial frequency",Property::Changeable::WhenIdle,903/*from original source code: ~903Hz*/);
+	Pint = secprop->Add_int("initial frequency",Property::Changeable::WhenIdle,-1);
 	Pint->Set_help("PC speaker PIT timer is programmed to this frequency on startup. If the DOS game\n"
 			"or demo causes a long audible beep at startup (leaving the gate open) try setting\n"
 			"this option to 0 to silence the PC speaker until reprogrammed by the demo.\n"
@@ -2130,6 +2131,10 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool->Set_help("Allow TSR and application (anything other than the DOS kernel) to request control of the HMA.\n"
 			"They will not be able to request control however if the DOS kernel is configured to occupy the HMA (DOS=HIGH)");
 
+    Pint = secprop->Add_int("hard drive data rate limit",Property::Changeable::WhenIdle,-1);
+	Pint->Set_help("Slow down (limit) hard disk throughput. This setting controls the limit in bytes/second.\n"
+                   "Set to 0 to disable the limit, or -1 to use a reasonable default.");
+
 	Pint = secprop->Add_int("hma minimum allocation",Property::Changeable::WhenIdle,0);
 	Pint->Set_help("Minimum allocation size for HMA in bytes (equivalent to /HMAMIN= parameter).");
 
@@ -2204,7 +2209,7 @@ void DOSBOX_SetupConfigSections(void) {
 			"If the subprocesses will never add/modify the environment block, you can free up a few additional bytes by setting this to 0.\n"
 			"Set to -1 for default setting.");
 
-	Pbool = secprop->Add_bool("enable a20 on windows init",Property::Changeable::OnlyAtStart,true);
+	Pbool = secprop->Add_bool("enable a20 on windows init",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set, DOSBox will enable the A20 gate when Windows 3.1/9x broadcasts the INIT message\n"
 			"at startup. Windows 3.1 appears to make assumptions at some key points on startup about\n"
 			"A20 that don't quite hold up and cause Windows 3.1 to crash when you set A20 emulation\n"

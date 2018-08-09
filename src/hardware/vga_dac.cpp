@@ -58,6 +58,10 @@ static void VGA_DAC_SendColor( Bitu index, Bitu src ) {
 	const Bit8u green = vga.dac.rgb[src].green;
 	const Bit8u blue = vga.dac.rgb[src].blue;
 
+    /* FIXME: CGA composite mode calls RENDER_SetPal itself, which conflicts with this code */
+    if (vga.mode == M_CGA16)
+        return;
+
 	if (GFX_bpp >= 24) /* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */
 		vga.dac.xlat32[index] = (blue<<(2+GFX_Bshift)) | (green<<(2+GFX_Gshift)) | (red<<(2+GFX_Rshift)) | GFX_Amask;
 	else {
@@ -79,23 +83,23 @@ void VGA_DAC_UpdateColor( Bitu index ) {
 
     if (IS_EGA_ARCH) {
         VGA_DAC_SendColor( index, index );
-        return;
     }
-
-	switch (vga.mode) {
-		case M_VGA:
-		case M_LIN8:
-			maskIndex = index & vga.dac.pel_mask;
-			VGA_DAC_SendColor( index, maskIndex );
-			break;
-		default:
-			/* Remember the lookup table is there to handle the color palette AND the DAC mask AND the attribute controller palette */
-			/* FIXME: Is it: index -> attribute controller -> dac mask, or
-			 *               index -> dac mask -> attribute controller? */
-			maskIndex = vga.dac.combine[index&0xF] & vga.dac.pel_mask;
-			VGA_DAC_SendColor( index, maskIndex );
-			break;
-	}
+    else {
+        switch (vga.mode) {
+            case M_VGA:
+            case M_LIN8:
+                maskIndex = index & vga.dac.pel_mask;
+                VGA_DAC_SendColor( index, maskIndex );
+                break;
+            default:
+                /* Remember the lookup table is there to handle the color palette AND the DAC mask AND the attribute controller palette */
+                /* FIXME: Is it: index -> attribute controller -> dac mask, or
+                 *               index -> dac mask -> attribute controller? */
+                maskIndex = vga.dac.combine[index&0xF] & vga.dac.pel_mask;
+                VGA_DAC_SendColor( index, maskIndex );
+                break;
+        }
+    }
 }
 
 void VGA_DAC_UpdateColorPalette() {
@@ -128,10 +132,10 @@ Bitu read_p3c6(Bitu port,Bitu iolen) {
 
 void write_p3c7(Bitu port,Bitu val,Bitu iolen) {
 	vga.dac.hidac_counter=0;
-	vga.dac.read_index=val;
 	vga.dac.pel_index=0;
 	vga.dac.state=DAC_READ;
-	vga.dac.write_index= val + 1;
+	vga.dac.read_index=val;         /* NTS: Paradise SVGA behavior, read index = x, write index = x + 1 */
+	vga.dac.write_index=val + 1;
 }
 
 Bitu read_p3c7(Bitu port,Bitu iolen) {
@@ -142,9 +146,9 @@ Bitu read_p3c7(Bitu port,Bitu iolen) {
 
 void write_p3c8(Bitu port,Bitu val,Bitu iolen) {
 	vga.dac.hidac_counter=0;
-	vga.dac.write_index=val;
 	vga.dac.pel_index=0;
 	vga.dac.state=DAC_WRITE;
+	vga.dac.write_index=val;        /* NTS: Paradise SVGA behavior, this affects write index, but not read index */
 }
 
 Bitu read_p3c8(Bitu port, Bitu iolen){
@@ -187,8 +191,7 @@ void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
 				}
 			}
 		}
-		vga.dac.write_index++;
-//		vga.dac.read_index = vga.dac.write_index - 1;//disabled as it breaks Wari
+		vga.dac.read_index=vga.dac.write_index++;                           // NTS: Paradise SVGA behavior
 		vga.dac.pel_index=0;
 		break;
 	default:
@@ -211,9 +214,8 @@ Bitu read_p3c9(Bitu port,Bitu iolen) {
 		break;
 	case 2:
 		ret=vga.dac.rgb[vga.dac.read_index].blue;
-		vga.dac.read_index++;
 		vga.dac.pel_index=0;
-//		vga.dac.write_index=vga.dac.read_index+1;//disabled as it breaks wari
+        vga.dac.read_index=vga.dac.write_index++;                           // NTS: Paradise SVGA behavior
 		break;
 	default:
 		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:DAC:Illegal Pel Index");			//If this can actually happen that will be the day

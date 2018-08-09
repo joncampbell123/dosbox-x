@@ -111,6 +111,8 @@ void Set_Label(char const * const input, char * const output, bool cdrom) {
 
 
 DOS_Drive::DOS_Drive() {
+    nocachedir=false;
+    readonly=false;
 	curdir[0]=0;
 	info[0]=0;
 }

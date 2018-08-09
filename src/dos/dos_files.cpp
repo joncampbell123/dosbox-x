@@ -44,6 +44,8 @@ Bitu DOS_FILES = 127;
 DOS_File ** Files = NULL;
 DOS_Drive * Drives[DOS_DRIVES] = {NULL};
 
+bool shiftjis_lead_byte(int c);
+
 Bit8u DOS_GetDefaultDrive(void) {
 //	return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDrive();
 	Bit8u d = DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDrive();
@@ -91,12 +93,17 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 			break;
 		default:
 			upname[w++]=c;
+            if (IS_PC98_ARCH && shiftjis_lead_byte(c) && r<DOS_PATHLENGTH) {
+                /* The trailing byte is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
+                upname[w++]=name_int[r++];
+            }
 			break;
 		}
 	}
 	while (r>0 && name_int[r-1]==' ') r--;
 	if (r>=DOS_PATHLENGTH) { DOS_SetError(DOSERR_PATH_NOT_FOUND);return false; }
 	upname[w]=0;
+
 	/* Now parse the new file name to make the final filename */
 	if (upname[0]!='\\') strcpy(fullname,Drives[*drive]->curdir);
 	else fullname[0]=0;
@@ -861,8 +868,8 @@ Bit8u FCB_Parsename(Bit16u seg,Bit16u offset,Bit8u parser ,char *string, Bit8u *
 	if (string[1]==':') {
 		fcb_name.part.drive[0]=0;
 		hasdrive=true;
-		if (isalpha(string[0]) && Drives[toupper(string[0])-'A']) {
-			fcb_name.part.drive[0]=(char)(toupper(string[0])-'A'+1);
+		if (isalpha(string[0]) && Drives[ascii_toupper(string[0])-'A']) {
+			fcb_name.part.drive[0]=(char)(ascii_toupper(string[0])-'A'+1);
 		} else ret=0xff;
 		string+=2;
 	}
@@ -890,7 +897,19 @@ Bit8u FCB_Parsename(Bit16u seg,Bit16u offset,Bit8u parser ,char *string, Bit8u *
 		if (!finished) {
 			if (string[0]=='*') {fill='?';fcb_name.part.name[index]='?';if (!ret) ret=1;finished=true;}
 			else if (string[0]=='?') {fcb_name.part.name[index]='?';if (!ret) ret=1;}
-			else if (isvalid(string[0])) {fcb_name.part.name[index]=(char)(toupper(string[0]));}
+            else if (IS_PC98_ARCH && shiftjis_lead_byte(string[0])) {
+                /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
+                fcb_name.part.name[index]=string[0];
+                string++;
+                index++;
+                if (index >= 8) break;
+
+                /* should be trailing byte of Shift-JIS */
+                if ((unsigned char)string[0] < 32 || (unsigned char)string[0] >= 127) continue;
+
+                fcb_name.part.name[index]=string[0];
+            }
+			else if (isvalid(string[0])) {fcb_name.part.name[index]=(char)(ascii_toupper(string[0]));}
 			else { finished=true;continue; }
 			string++;
 		} else {
@@ -907,7 +926,19 @@ checkext:
 		if (!finished) {
 			if (string[0]=='*') {fill='?';fcb_name.part.ext[index]='?';finished=true;}
 			else if (string[0]=='?') {fcb_name.part.ext[index]='?';if (!ret) ret=1;}
-			else if (isvalid(string[0])) {fcb_name.part.ext[index]=(char)(toupper(string[0]));}
+			else if (isvalid(string[0])) {fcb_name.part.ext[index]=(char)(ascii_toupper(string[0]));}
+            else if (IS_PC98_ARCH && shiftjis_lead_byte(string[0])) {
+                /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
+                fcb_name.part.ext[index]=string[0];
+                string++;
+                index++;
+                if (index >= 3) break;
+
+                /* should be trailing byte of Shift-JIS */
+                if ((unsigned char)string[0] < 32 || (unsigned char)string[0] >= 127) continue;
+
+                fcb_name.part.ext[index]=string[0];
+            }
 			else { finished=true;continue; }
 			string++;
 		} else {
@@ -1190,6 +1221,7 @@ bool DOS_FCBGetFileSize(Bit16u seg,Bit16u offset) {
 	Bit32u size = 0;
 	Files[handle]->Seek(&size,DOS_SEEK_END);
 	DOS_CloseFile(entry);fcb.GetSeqData(handle,rec_size);
+	if (rec_size == 0) rec_size = 128; //Use default if missing.
 	Bit32u random=(size/rec_size);
 	if (size % rec_size) random++;
 	fcb.SetRandom(random);

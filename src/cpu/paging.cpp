@@ -269,7 +269,6 @@ void PrintPageInfo(const char* string, PhysPt lin_addr, bool writing, bool prepa
 
 bool dosbox_enable_nonrecursive_page_fault = true;	/* user option */
 bool dosbox_allow_nonrecursive_page_fault = false;	/* when set, do nonrecursive mode (when executing instruction) */
-Bitu dosbox_check_nonrecursive_pf_cs,dosbox_check_nonrecursive_pf_eip;
 
 // PAGING_NewPageFault
 // lin_addr, page_addr: the linear and page address the fault happened at
@@ -283,49 +282,6 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 		cpu.exception.which = EXCEPTION_PF;
 		cpu.exception.error = faultcode;
 	} else if (dosbox_enable_nonrecursive_page_fault && dosbox_allow_nonrecursive_page_fault) {
-		/* FIXME: Apparently, if Window 98/ME executes a floating point instruction that triggers a page
-		 *        fault and DOSBox is running the dynamic core, this code will throw the exception and
-		 *        the Normal_Loop() function farther up the call chain will not receive the exception,
-		 *        but the main function in sdlmain.cpp will, and DOSBox will crash and exit.
-		 *        If I disable the nonrecursive mode (let it go to the code below that uses RunMachine),
-		 *        then it causes a segfault in DOSBox.
-		 *
-		 *        There seem to be two known methods to reliably trigger this bug:
-		 *        - Microsoft Windows 98: Click on the "satellite dish" in the quicklaunch area next to
-		 *          the start button to bring up "channels". Note that DOSBox fails to catch the exception,
-		 *          and the stack trace points the blame at FST_FPU_32 who triggered the page fault.
-		 *
-		 *        - Microsoft Windows ME: During the "system configuration" stage of the setup process,
-		 *          Windows ME apparently executes the 64-bit wide version of FST which triggers
-		 *          FPU_FST_64 and the same problem.
-		 *
-		 *        Fixing this bug would allow the channel guide in Win98, the setup process in WinME,
-		 *        and anything else reliant on floating point that can trigger page faults, to run
-		 *        properly in DOSBox.
-		 */
-		/* NTS: The reason we check against CS:EIP for changes is that blindly doing this method causes
-		 *      far more crashes and instability within DOSBox than taking careful steps. Interestingly,
-		 *      the crashes are more severe with core=normal or core=full than with the more subtle crashes
-		 *      with core=dynamic. Checking this way avoids the crashes.
-		 *
-		 *      Other ways that blindly doing the method causes crashes:
-		 *
-		 *      Windows 3.1: With core=dynamic, everything seems OK until eventually the dynamic core
-		 *                   reports an anomaly in it's cache, and then segfaults. core=normal may work,
-		 *                   but is guaranteed to crash if you're in Windows 3.1 and you enter the DOS
-		 *                   box. */
-#if 0//TODO make option
-		LOG_MSG("DEBUG: Using non-recursive page fault for lin=0x%08lx page=0x%08lx faultcode=%u. Wish me luck.\n",
-			(unsigned long)lin_addr,(unsigned long)page_addr,(unsigned int)faultcode);
-#endif
-
-		if (!(dosbox_check_nonrecursive_pf_cs == SegValue(cs) && dosbox_check_nonrecursive_pf_eip == reg_eip))
-			LOG_MSG("....CS:IP mistmatch expect %x:%x got %x:%x",
-				(unsigned int)dosbox_check_nonrecursive_pf_cs,
-				(unsigned int)dosbox_check_nonrecursive_pf_eip,
-				(unsigned int)SegValue(cs),
-				(unsigned int)reg_eip);
-
 		throw GuestPageFaultException(lin_addr,page_addr,faultcode);
 	} else {
 		// Save the state of the cpu cores
