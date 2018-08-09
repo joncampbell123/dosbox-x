@@ -299,6 +299,7 @@ bool cpu_state_ptrace_compatible(void) {
      * - All segment registers contain either NULL or a ring-3 LDT descriptor */
     if (!MEM_A20_Enabled()) return false; // A20 must be enabled
     if (!cpu.pmode) return false;   // Protected mode or bust
+    if (paging.enabled) return false;// No paging, yet
     if (GETFLAG(VM)) return false;  // Virtual 8086 is not supported
 
     if (!ptrace_compatible_segment(Segs.val[cs])) return false;
