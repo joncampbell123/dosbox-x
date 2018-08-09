@@ -45,7 +45,7 @@ void LinuxX11_OnTop(bool f) {
             xclient.message_type = wmNetWmState;
             xclient.format = 32;
             xclient.data.l[0] = f ? _NET_WM_STATE_ADD : _NET_WM_STATE_REMOVE;
-            xclient.data.l[1] = wmStateAbove;
+            xclient.data.l[1] = (long int)wmStateAbove;
             xclient.data.l[2] = 0;
             xclient.data.l[3] = 0;
             xclient.data.l[4] = 0;
@@ -99,14 +99,14 @@ void Linux_JPXKBFix(void) {
 
             for (i=0;i < 256;i++) {
                 for (j=0;j < 4;j++)
-                    sym[j] = XKeycodeToKeysym(wminfo.info.x11.display,(KeyCode)i,j);
+                    sym[j] = XKeycodeToKeysym(wminfo.info.x11.display,(KeyCode)i,(int)j);
 
                 if (sym[0] == '\\') {
                     if (sym[1] == '_') { /* shift + backslash == _   means we found Ro */
-                        if (ro < 0) ro = i;
+                        if (ro < 0) ro = (int)i;
                     }
                     else if (sym[1] == '|') { /* shift + backslash == |   means we found Yen */
-                        if (yen < 0) yen = i;
+                        if (yen < 0) yen = (int)i;
                     }
                 }
             }
@@ -225,7 +225,7 @@ void UpdateWindowDimensions_Linux(void) {
 
             LOG_MSG("X11 main window is %u x %u maximized=%u",attr.width, attr.height, maximized);
 
-            UpdateWindowDimensions(attr.width, attr.height);
+            UpdateWindowDimensions((unsigned int)attr.width, (unsigned int)attr.height);
             UpdateWindowMaximized(maximized);
         }
     }

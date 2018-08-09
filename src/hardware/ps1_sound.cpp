@@ -184,7 +184,7 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 				ps1.Divisor = data;
 				ps1.Rate = ( DAC_CLOCK / ( data + 1 ) );
 				// 22050 << FRAC_SHIFT / 22050 = 1 << FRAC_SHIFT
-				ps1.Adder = ( ps1.Rate << FRAC_SHIFT ) / ps1.SampleRate;
+				ps1.Adder = ( ps1.Rate << FRAC_SHIFT ) / (unsigned int)ps1.SampleRate;
 				if( ps1.Rate > 22050 )
 				{
 //					if( ( ps1.Command & 3 ) == 3 ) {
@@ -273,7 +273,7 @@ static void PS1SOUNDUpdate(Bitu length)
 	if( ps1.Playing )
 	{
 		ps1.Status = PS1SOUND_CalcStatus();
-		pending = ps1.Pending;
+		pending = (Bits)ps1.Pending;
 		add = ps1.Adder;
 		if( ( ps1.Status & FIFO_NEARLY_EMPTY ) && ( ps1.CanTriggerIRQ ) )
 		{
@@ -301,7 +301,7 @@ static void PS1SOUNDUpdate(Bitu length)
 			out = ps1.FIFO[ pos >> FRAC_SHIFT ];
 			pos += add;
 			pos &= ( ( FIFOSIZE << FRAC_SHIFT ) - 1 );
-			pending -= add;
+			pending -= (Bits)add;
 		}
 
 		*(buffer++) = out;
@@ -312,7 +312,7 @@ static void PS1SOUNDUpdate(Bitu length)
 //	if( ps1.FIFO_RDIndex != ( pos >> FRAC_SHIFT ) ) ps1.Status &= ~FIFO_FULL;
 	ps1.FIFO_RDIndex = pos >> FRAC_SHIFT;
 	if( pending < 0 ) pending = 0;
-	ps1.Pending = pending;
+	ps1.Pending = (Bitu)pending;
 
 	ps1.chanDAC->AddSamples_m8(length,MixTemp);
 }
@@ -359,11 +359,11 @@ public:
 		WriteHandler[0].Install(0x200,PS1SOUNDWrite,IO_MB);
 		WriteHandler[1].Install(0x202,PS1SOUNDWrite,IO_MB,4);
 
-		Bit32u sample_rate = section->Get_int("ps1audiorate");
+		Bit32u sample_rate = (Bit32u)section->Get_int("ps1audiorate");
 		ps1.chanDAC=MixerChanDAC.Install(&PS1SOUNDUpdate,sample_rate,"PS1 DAC");
 		ps1.chanSN=MixerChanSN.Install(&PS1SN76496Update,sample_rate,"PS1 SN76496");
 
-		ps1.SampleRate=sample_rate;
+		ps1.SampleRate=(int)sample_rate;
 		ps1.enabledDAC=false;
 		ps1.enabledSN=false;
 		ps1.last_writeDAC = 0;

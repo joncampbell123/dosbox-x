@@ -172,7 +172,7 @@ void WaveformGenerator::clock(cycle_count delta_t)
   reg24 accumulator_prev = accumulator;
 
   // Calculate new accumulator value;
-  reg24 delta_accumulator = delta_t*freq;
+  reg24 delta_accumulator = (unsigned int)(delta_t * (cycle_count)freq);
   accumulator += delta_accumulator;
   accumulator &= 0xffffff;
 

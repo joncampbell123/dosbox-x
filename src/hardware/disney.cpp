@@ -124,7 +124,7 @@ static void DISNEY_analyze(Bitu channel){
 		case DS_FINISH: 
 		{
 			// detect stereo: if we have about the same data amount in both channels
-			Bits st_diff = disney.da[0].used - disney.da[1].used;
+			Bits st_diff = (Bits)disney.da[0].used - (Bits)disney.da[1].used;
 			
 			// find leader channel (the one with higher rate) [this good for the stereo case?]
 			if(disney.da[0].used > disney.da[1].used) {
@@ -281,8 +281,8 @@ static Bitu disney_read(Bitu port,Bitu iolen) {
 		retval = 0x07;//0x40; // Stereo-on-1 and (or) New-Stereo DACs present
 		if(disney.interface_det_ext > 5) {
 			if (disney.leader && disney.leader->used >= 16){
-				retval |= 0x40; // ack
-				retval &= ~0x4; // interrupt
+				retval |= 0x40u; // ack
+				retval &= ~0x4u; // interrupt
 			}
 		}
 		if(!(disney.data&0x80)) retval |= 0x80; // pin 9 is wired to pin 11

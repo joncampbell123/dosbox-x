@@ -115,6 +115,174 @@ void self_test(void) {
     assert(bitcount2maskmsb<uint8_t>(2u,0u) == (3u << 6u));
     assert(bitcount2maskmsb<uint8_t>(2u,1u) == (3u << 5u));
     assert(bitcount2maskmsb(type_bits()) == allones());
+
+    static_assert(ispowerof2(1u) == true, "whoops");
+    static_assert(ispowerof2(2u) == true, "whoops");
+    static_assert(ispowerof2(3u) == false, "whoops");
+    static_assert(ispowerof2(4u) == true, "whoops");
+    static_assert(ispowerof2(5u) == false, "whoops");
+    static_assert(ispowerof2(6u) == false, "whoops");
+    static_assert(ispowerof2(7u) == false, "whoops");
+    static_assert(ispowerof2(8u) == true, "whoops");
+    static_assert(ispowerof2(9u) == false, "whoops");
+    static_assert(ispowerof2(10u) == false, "whoops");
+    static_assert(ispowerof2(11u) == false, "whoops");
+    static_assert(ispowerof2(255u) == false, "whoops");
+    static_assert(ispowerof2(256u) == true, "whoops");
+    static_assert(ispowerof2(257u) == false, "whoops");
+    static_assert(ispowerof2(32767u) == false, "whoops");
+    static_assert(ispowerof2(32768u) == true, "whoops");
+    static_assert(ispowerof2(32769u) == false, "whoops");
+
+    assert(ispowerof2(1u) == true);
+    assert(ispowerof2(2u) == true);
+    assert(ispowerof2(3u) == false);
+    assert(ispowerof2(4u) == true);
+    assert(ispowerof2(5u) == false);
+    assert(ispowerof2(6u) == false);
+    assert(ispowerof2(7u) == false);
+    assert(ispowerof2(8u) == true);
+    assert(ispowerof2(9u) == false);
+    assert(ispowerof2(10u) == false);
+    assert(ispowerof2(11u) == false);
+    assert(ispowerof2(255u) == false);
+    assert(ispowerof2(256u) == true);
+    assert(ispowerof2(257u) == false);
+    assert(ispowerof2(32767u) == false);
+    assert(ispowerof2(32768u) == true);
+    assert(ispowerof2(32769u) == false);
+
+    static_assert(log2<1u << 31>() == 31, "whoops");
+    static_assert(log2<1u << 16>() == 16, "whoops");
+    static_assert(log2<1u << 8>() == 8, "whoops");
+    static_assert(log2<1u << 4>() == 4, "whoops");
+    static_assert(log2<1u << 3>() == 3, "whoops");
+    static_assert(log2<1u << 2>() == 2, "whoops");
+    static_assert(log2<1u << 1>() == 1, "whoops");
+    static_assert(log2<1u << 0>() == 0, "whoops");
+    static_assert(log2<256u>() == 8, "whoops");
+    static_assert(log2<128u>() == 7, "whoops");
+    static_assert(log2<16u>() == 4, "whoops");
+    static_assert(log2<1u>() == 0, "whoops");
+    static_assert(log2<0u>() == ~0u, "whoops");
+
+                                                    /* 3210 bit position */
+                                                    /* ---- */
+    static_assert(log2<9u>() == 3, "whoops");       /* 1001 */
+    static_assert(log2<7u>() == 2, "whoops");       /*  111 */
+    static_assert(log2<5u>() == 2, "whoops");       /*  101 */
+    static_assert(log2<3u>() == 1, "whoops");       /*   11 */
+    static_assert(log2<2u>() == 1, "whoops");       /*   10 */
+
+    if (sizeof(unsigned long long) >= 8) { /* we're assuming unsigned long long is at least 64 bits here */
+    static_assert(log2<unsigned long long,1ull << 63ull>() == 63, "whoops");
+    static_assert(log2<unsigned long long,1ull << 48ull>() == 48, "whoops");
+    }
+    static_assert(log2<unsigned long long,1ull << 31ull>() == 31, "whoops");
+    static_assert(log2<unsigned long long,1ull << 16ull>() == 16, "whoops");
+    static_assert(log2<unsigned long long,1ull << 8ull>() == 8, "whoops");
+    static_assert(log2<unsigned long long,1ull << 4ull>() == 4, "whoops");
+    static_assert(log2<unsigned long long,1ull << 3ull>() == 3, "whoops");
+    static_assert(log2<unsigned long long,1ull << 2ull>() == 2, "whoops");
+    static_assert(log2<unsigned long long,1ull << 1ull>() == 1, "whoops");
+    static_assert(log2<unsigned long long,1ull << 0ull>() == 0, "whoops");
+    static_assert(log2<unsigned long long,256ull>() == 8, "whoops");
+    static_assert(log2<unsigned long long,128ull>() == 7, "whoops");
+    static_assert(log2<unsigned long long,16ull>() == 4, "whoops");
+    static_assert(log2<unsigned long long,1ull>() == 0, "whoops");
+    static_assert(log2<unsigned long long,0ull>() == ~0u, "whoops");
+
+    assert(log2(1u << 31) == 31);
+    assert(log2(1u << 16) == 16);
+    assert(log2(1u << 8) == 8);
+    assert(log2(1u << 4) == 4);
+    assert(log2(1u << 3) == 3);
+    assert(log2(1u << 2) == 2);
+    assert(log2(1u << 1) == 1);
+    assert(log2(1u << 0) == 0);
+    assert(log2(256u) == 8);
+    assert(log2(128u) == 7);
+    assert(log2(16u) == 4);
+    assert(log2(1u) == 0);
+    assert(log2(0u) == ~0u);
+
+                                    /* 3210 bit position */
+                                    /* ---- */
+    assert(log2(9u) == 3);          /* 1001 */
+    assert(log2(7u) == 2);          /*  111 */
+    assert(log2(5u) == 2);          /*  101 */
+    assert(log2(3u) == 1);          /*   11 */
+    assert(log2(2u) == 1);          /*   10 */
+
+    if (sizeof(unsigned long long) >= 8) { /* we're assuming unsigned long long is at least 64 bits here */
+    assert(log2<unsigned long long>(1ull << 63ull) == 63);
+    assert(log2<unsigned long long>(1ull << 48ull) == 48);
+    }
+    assert(log2<unsigned long long>(1ull << 31ull) == 31);
+    assert(log2<unsigned long long>(1ull << 16ull) == 16);
+    assert(log2<unsigned long long>(1ull << 8ull) == 8);
+    assert(log2<unsigned long long>(1ull << 4ull) == 4);
+    assert(log2<unsigned long long>(1ull << 3ull) == 3);
+    assert(log2<unsigned long long>(1ull << 2ull) == 2);
+    assert(log2<unsigned long long>(1ull << 1ull) == 1);
+    assert(log2<unsigned long long>(1ull << 0ull) == 0);
+    assert(log2<unsigned long long>(256ull) == 8);
+    assert(log2<unsigned long long>(128ull) == 7);
+    assert(log2<unsigned long long>(16ull) == 4);
+    assert(log2<unsigned long long>(1ull) == 0);
+    assert(log2<unsigned long long>(0ull) == ~0u);
+
+    static_assert(negate<unsigned int>(0) == ~0u, "whoops");
+    static_assert(negate<unsigned int>(1) == ~1u, "whoops");
+    static_assert(negate<unsigned long>(0) == ~0ul, "whoops");
+    static_assert(negate<unsigned long>(1) == ~1ul, "whoops");
+    static_assert(negate<unsigned long long>(0) == ~0ull, "whoops");
+    static_assert(negate<unsigned long long>(1) == ~1ull, "whoops");
+
+    assert(negate<unsigned int>(0) == ~0u);
+    assert(negate<unsigned int>(1) == ~1u);
+    assert(negate<unsigned long>(0) == ~0ul);
+    assert(negate<unsigned long>(1) == ~1ul);
+    assert(negate<unsigned long long>(0) == ~0ull);
+    assert(negate<unsigned long long>(1) == ~1ull);
+
+    assert(bitseqlengthandpos(0)   == bitseqlengthandpos_ret_t(0,0));
+    assert(bitseqlengthandpos(1)   == bitseqlengthandpos_ret_t(0,1));
+    assert(bitseqlengthandpos(3)   == bitseqlengthandpos_ret_t(0,2));
+    assert(bitseqlengthandpos(7)   == bitseqlengthandpos_ret_t(0,3));
+    assert(bitseqlengthandpos(15)  == bitseqlengthandpos_ret_t(0,4));
+    assert(bitseqlengthandpos(31)  == bitseqlengthandpos_ret_t(0,5));
+    assert(bitseqlengthandpos(63)  == bitseqlengthandpos_ret_t(0,6));
+    assert(bitseqlengthandpos(127) == bitseqlengthandpos_ret_t(0,7));
+    assert(bitseqlengthandpos(255) == bitseqlengthandpos_ret_t(0,8));
+
+    assert(bitseqlengthandpos(1)   == bitseqlengthandpos_ret_t(0,1));
+    assert(bitseqlengthandpos(2)   == bitseqlengthandpos_ret_t(1,1));
+    assert(bitseqlengthandpos(4)   == bitseqlengthandpos_ret_t(2,1));
+    assert(bitseqlengthandpos(8)   == bitseqlengthandpos_ret_t(3,1));
+    assert(bitseqlengthandpos(16)  == bitseqlengthandpos_ret_t(4,1));
+    assert(bitseqlengthandpos(32)  == bitseqlengthandpos_ret_t(5,1));
+    assert(bitseqlengthandpos(64)  == bitseqlengthandpos_ret_t(6,1));
+    assert(bitseqlengthandpos(128) == bitseqlengthandpos_ret_t(7,1));
+    assert(bitseqlengthandpos(256) == bitseqlengthandpos_ret_t(8,1));
+
+    assert(bitseqlengthandpos(2)   == bitseqlengthandpos_ret_t(1,1));
+    assert(bitseqlengthandpos(6)   == bitseqlengthandpos_ret_t(1,2));
+    assert(bitseqlengthandpos(14)  == bitseqlengthandpos_ret_t(1,3));
+    assert(bitseqlengthandpos(30)  == bitseqlengthandpos_ret_t(1,4));
+    assert(bitseqlengthandpos(62)  == bitseqlengthandpos_ret_t(1,5));
+    assert(bitseqlengthandpos(126) == bitseqlengthandpos_ret_t(1,6));
+    assert(bitseqlengthandpos(254) == bitseqlengthandpos_ret_t(1,7));
+    assert(bitseqlengthandpos(510) == bitseqlengthandpos_ret_t(1,8));
+
+    assert(bitseqlengthandpos(4)   == bitseqlengthandpos_ret_t(2,1));
+    assert(bitseqlengthandpos(12)  == bitseqlengthandpos_ret_t(2,2));
+    assert(bitseqlengthandpos(28)  == bitseqlengthandpos_ret_t(2,3));
+    assert(bitseqlengthandpos(60)  == bitseqlengthandpos_ret_t(2,4));
+    assert(bitseqlengthandpos(124) == bitseqlengthandpos_ret_t(2,5));
+    assert(bitseqlengthandpos(252) == bitseqlengthandpos_ret_t(2,6));
+    assert(bitseqlengthandpos(508) == bitseqlengthandpos_ret_t(2,7));
+    assert(bitseqlengthandpos(1020)== bitseqlengthandpos_ret_t(2,8));
 }
 
 }

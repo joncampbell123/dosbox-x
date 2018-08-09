@@ -394,12 +394,12 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
-			Bit16u mask=1 << (*rmrw & 15);
+			Bit16u mask=1u << (*rmrw & 15u);
 			if (rm >= 0xc0 ) {
 				GetEArw;
 				SETFLAGBIT(CF,(*earw & mask));
 			} else {
-				GetEAa;eaa+=(((Bit16s)*rmrw)>>4)*2;
+				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
 				Bit16u old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 			}
@@ -424,13 +424,13 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
-			Bit16u mask=1 << (*rmrw & 15);
+			Bit16u mask=1u << (*rmrw & 15u);
 			if (rm >= 0xc0 ) {
 				GetEArw;
 				SETFLAGBIT(CF,(*earw & mask));
 				*earw|=mask;
 			} else {
-				GetEAa;eaa+=(((Bit16s)*rmrw)>>4)*2;
+				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
 				Bit16u old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMw(eaa,old | mask);
@@ -519,13 +519,13 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
-			Bit16u mask=1 << (*rmrw & 15);
+			Bit16u mask=1u << (*rmrw & 15u);
 			if (rm >= 0xc0 ) {
 				GetEArw;
 				SETFLAGBIT(CF,(*earw & mask));
 				*earw&= ~mask;
 			} else {
-				GetEAa;eaa+=(((Bit16s)*rmrw)>>4)*2;
+				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
 				Bit16u old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMw(eaa,old & ~mask);
@@ -618,13 +618,13 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
-			Bit16u mask=1 << (*rmrw & 15);
+			Bit16u mask=1u << (*rmrw & 15u);
 			if (rm >= 0xc0 ) {
 				GetEArw;
 				SETFLAGBIT(CF,(*earw & mask));
 				*earw^=mask;
 			} else {
-				GetEAa;eaa+=(((Bit16s)*rmrw)>>4)*2;
+				GetEAa;eaa+=(PhysPt)((((Bit16s)*rmrw)>>4)*2);
 				Bit16u old=LoadMw(eaa);
 				SETFLAGBIT(CF,(old & mask));
 				SaveMw(eaa,old ^ mask);
@@ -671,8 +671,8 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRMrw;															
-			if (rm >= 0xc0 ) {GetEArb;*rmrw=*(Bit8s *)earb;}
-			else {GetEAa;*rmrw=LoadMbs(eaa);}
+			if (rm >= 0xc0 ) {GetEArb;*rmrw=(Bit16u)(*(Bit8s *)earb);}
+			else {GetEAa;*rmrw=(Bit16u)LoadMbs(eaa);}
 			break;
 		}
 	CASE_0F_B(0xc0)												/* XADD Gb,Eb */

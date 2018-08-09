@@ -146,23 +146,23 @@ Bits ConvDecWord(char * word) {
 		word++;
 	}
 	while (char c=*word) {
-		ret*=10;
-		ret+=c-'0';
+		ret*=10u;
+		ret+=(Bitu)c-'0';
 		word++;
 	}
-	if (negative) return 0-ret;
-	else return ret;
+	if (negative) return 0-(Bits)ret;
+	else return (Bits)ret;
 }
 
 Bits ConvHexWord(char * word) {
 	Bitu ret=0;
 	while (char c=toupper(*reinterpret_cast<unsigned char*>(word))) {
 		ret*=16;
-		if (c>='0' && c<='9') ret+=c-'0';
-		else if (c>='A' && c<='F') ret+=10+(c-'A');
+		if (c>='0' && c<='9') ret+=(Bitu)c-'0';
+		else if (c>='A' && c<='F') ret+=10u+((Bitu)c-'A');
 		word++;
 	}
-	return ret;
+	return (Bits)ret;
 }
 
 double ConvDblWord(char * word) {

@@ -69,18 +69,18 @@ extern bool ignore_opcode_63;
 extern Bitu cycle_count;
 
 #if C_FPU
-#define CPU_FPU	1						//Enable FPU escape instructions
+#define CPU_FPU	1u						//Enable FPU escape instructions
 #endif
 
-#define CPU_PIC_CHECK 1
-#define CPU_TRAP_CHECK 1
+#define CPU_PIC_CHECK 1u
+#define CPU_TRAP_CHECK 1u
 
-#define OPCODE_NONE			0x000
-#define OPCODE_0F			0x100
-#define OPCODE_SIZE			0x200
+#define OPCODE_NONE			0x000u
+#define OPCODE_0F			0x100u
+#define OPCODE_SIZE			0x200u
 
-#define PREFIX_ADDR			0x1
-#define PREFIX_REP			0x2
+#define PREFIX_ADDR			0x1u
+#define PREFIX_REP			0x2u
 
 #define TEST_PREFIX_ADDR	(core.prefixes & PREFIX_ADDR)
 #define TEST_PREFIX_REP		(core.prefixes & PREFIX_REP)
@@ -94,7 +94,7 @@ extern Bitu cycle_count;
 #define DO_PREFIX_ADDR()								\
 	core.prefixes=(core.prefixes & ~PREFIX_ADDR) |		\
 	(cpu.code.big ^ PREFIX_ADDR);						\
-	core.ea_table=&EATable[(core.prefixes&1) * 256];	\
+	core.ea_table=&EATable[(core.prefixes&1u) * 256u];	\
 	goto restart_opcode;
 
 #define DO_PREFIX_REP(_ZERO)				\
@@ -104,7 +104,7 @@ extern Bitu cycle_count;
 
 typedef PhysPt (*GetEAHandler)(void);
 
-static const Bit32u AddrMaskTable[2]={0x0000ffff,0xffffffff};
+static const Bit32u AddrMaskTable[2]={0x0000ffffu,0xffffffffu};
 
 static struct {
 	Bitu opcode_index;
@@ -280,8 +280,8 @@ void CPU_Core_Prefetch_reset(void) {
 Bits CPU_Core_Prefetch_Run(void) {
 	bool invalidate_pq=false;
 
-    pq_limit = CPU_PrefetchQueueSize & (~0x3);
-    pq_reload = min(pq_limit,(Bitu)8);
+    pq_limit = CPU_PrefetchQueueSize & (~0x3u);
+    pq_reload = min(pq_limit,(Bitu)8u);
 
 	while (CPU_Cycles-->0) {
 		if (invalidate_pq) {
@@ -289,9 +289,9 @@ Bits CPU_Core_Prefetch_Run(void) {
 			invalidate_pq=false;
 		}
 		LOADIP;
-		core.opcode_index=cpu.code.big*0x200;
+		core.opcode_index=cpu.code.big*0x200u;
 		core.prefixes=cpu.code.big;
-		core.ea_table=&EATable[cpu.code.big*256];
+		core.ea_table=&EATable[cpu.code.big*256u];
 		BaseDS=SegBase(ds);
 		BaseSS=SegBase(ss);
 		core.base_val_ds=ds;
@@ -299,7 +299,7 @@ Bits CPU_Core_Prefetch_Run(void) {
 #if C_HEAVY_DEBUG
 		if (DEBUG_HeavyIsBreakpoint()) {
 			FillFlags();
-			return debugCallback;
+			return (Bits)debugCallback;
 		};
 #endif
 		cycle_count++;

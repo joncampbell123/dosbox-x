@@ -198,8 +198,8 @@ static void saa1099_update(int chip, INT16 **buffer, int length)
 	if (!saa->all_ch_enable)
 	{
 		/* init output data */
-		memset(buffer[LEFT],0,length*sizeof(INT16));
-		memset(buffer[RIGHT],0,length*sizeof(INT16));
+		memset(buffer[LEFT],0,(unsigned int)length*sizeof(INT16));
+		memset(buffer[RIGHT],0,(unsigned int)length*sizeof(INT16));
         return;
 	}
 
@@ -462,9 +462,9 @@ private:
 public:
 	CMS(Section* configuration):Module_base(configuration) {
 		Section_prop * section = static_cast<Section_prop *>(configuration);
-		Bitu sample_rate_temp = section->Get_int("oplrate");
+		Bitu sample_rate_temp = (Bitu)section->Get_int("oplrate");
 		sample_rate = static_cast<double>(sample_rate_temp);
-		base_port = section->Get_hex("sbbase");
+		base_port = (unsigned int)section->Get_hex("sbbase");
 		WriteHandler.Install(base_port, write_cms, IO_MB,4);
 
 		// A standalone Gameblaster has a magic chip on it which is

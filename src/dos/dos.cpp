@@ -104,9 +104,9 @@ Bit32u DOS_HMA_FREE_START() {
 	if (!DOS_IS_IN_HMA()) return 0;
 
 	if (dos_hma_allocator == 0) {
-		dos_hma_allocator = 0x110000 - 16 - dos_initial_hma_free;
+		dos_hma_allocator = 0x110000u - 16u - (unsigned int)dos_initial_hma_free;
 		LOG(LOG_MISC,LOG_DEBUG)("Starting HMA allocation from physical address 0x%06x (FFFF:%04x)",
-			dos_hma_allocator,(dos_hma_allocator+0x10)&0xFFFF);
+			dos_hma_allocator,(dos_hma_allocator+0x10u)&0xFFFFu);
 	}
 
 	return dos_hma_allocator;
@@ -270,8 +270,8 @@ static inline void overhead() {
 	reg_ip += 2;
 }
 
-#define BCD2BIN(x)	((((x) >> 4) * 10) + ((x) & 0x0f))
-#define BIN2BCD(x)	((((x) / 10) << 4) + (x) % 10)
+#define BCD2BIN(x)	((((unsigned int)(x) >> 4u) * 10u) + ((x) & 0x0fu))
+#define BIN2BCD(x)	((((x) / 10u) << 4u) + (x) % 10u)
 extern bool date_host_forced;
 
 static Bitu DOS_21Handler(void);
@@ -451,7 +451,7 @@ static Bitu DOS_21Handler(void) {
                 if(port!=0 && serialports[0]) {
                     Bit8u status;
                     // RTS/DTR on
-                    IO_WriteB(port+4,0x3);
+                    IO_WriteB(port+4u,0x3u);
                     serialports[0]->Getchar(&reg_al, &status, true, 0xFFFFFFFF);
                 }
             }
@@ -461,16 +461,16 @@ static Bitu DOS_21Handler(void) {
                 Bit16u port = real_readw(0x40,0);
                 if(port!=0 && serialports[0]) {
                     // RTS/DTR on
-                    IO_WriteB(port+4,0x3);
+                    IO_WriteB(port+4u,0x3u);
                     serialports[0]->Putchar(reg_dl,true,true, 0xFFFFFFFF);
                     // RTS off
-                    IO_WriteB(port+4,0x1);
+                    IO_WriteB(port+4u,0x1u);
                 }
             }
             break;
         case 0x05:      /* Write Character to PRINTER */
             {
-                for(int i = 0; i < 3; i++) {
+                for(unsigned int i = 0; i < 3; i++) {
                     // look up a parallel port
                     if(parallelPortObjects[i] != NULL) {
                         parallelPortObjects[i]->Putchar(reg_dl);
@@ -744,18 +744,18 @@ static Bitu DOS_21Handler(void) {
                         SegSet16(es,SegValue(ss));
                         CALLBACK_RunRealInt(0x1c);
 
-                        Bitu memaddr = (SegValue(es) << 4) + reg_bx;
+                        Bitu memaddr = ((Bitu)SegValue(es) << 4u) + reg_bx;
 
                         reg_sp += 6;
                         SegSet16(es,CPU_Pop16());
                         reg_bx = CPU_Pop16();
                         reg_ax = CPU_Pop16();
 
-                        reg_cx = 1900 + BCD2BIN(mem_readb(memaddr+0));                  // year
-                        if (reg_cx < 1980) reg_cx += 100;
-                        reg_dh = BCD2BIN(mem_readb(memaddr+1) >> 4);
+                        reg_cx = 1900u + BCD2BIN(mem_readb(memaddr+0u));                  // year
+                        if (reg_cx < 1980u) reg_cx += 100u;
+                        reg_dh = BCD2BIN((unsigned int)mem_readb(memaddr+1) >> 4u);
                         reg_dl = BCD2BIN(mem_readb(memaddr+2));
-                        reg_al = BCD2BIN(mem_readb(memaddr+1) & 0xF);
+                        reg_al = BCD2BIN(mem_readb(memaddr+1) & 0xFu);
                     }
                     else {
                         CPU_Push16(reg_ax);
@@ -765,15 +765,15 @@ static Bitu DOS_21Handler(void) {
 
                         reg_ch = BCD2BIN(reg_ch);       // century
                         reg_cl = BCD2BIN(reg_cl);       // year
-                        reg_cx = reg_ch * 100 + reg_cl; // compose century + year
+                        reg_cx = reg_ch * 100u + reg_cl; // compose century + year
                         reg_dh = BCD2BIN(reg_dh);       // month
                         reg_dl = BCD2BIN(reg_dl);       // day
 
                         // calculate day of week (we could of course read it from CMOS, but never mind)
-                        int a = (14 - reg_dh) / 12;
-                        int y = reg_cl - a;
-                        int m = reg_dh + 12 * a - 2;
-                        reg_al = (reg_dl + y + (y / 4) - (y / 100) + (y / 400) + (31 * m) / 12) % 7;
+                        unsigned int a = (14u - reg_dh) / 12u;
+                        unsigned int y = reg_cl - a;
+                        unsigned int m = reg_dh + 12u * a - 2u;
+                        reg_al = (reg_dl + y + (y / 4u) - (y / 100u) + (y / 400u) + (31u * m) / 12u) % 7u;
                     }
                 } else {
                     reg_ax=0; // get time
@@ -853,7 +853,7 @@ static Bitu DOS_21Handler(void) {
                     SegSet16(es,SegValue(ss));
                     CALLBACK_RunRealInt(0x1c);
 
-                    Bitu memaddr = (SegValue(es) << 4) + reg_bx;
+                    Bitu memaddr = ((PhysPt)SegValue(es) << 4u) + reg_bx;
 
                     reg_sp += 6;
                     SegSet16(es,CPU_Pop16());
@@ -917,7 +917,7 @@ static Bitu DOS_21Handler(void) {
                 }
 
                 // timer ticks every 55ms
-                Bit32u ticks = ((((reg_ch * 60 + reg_cl) * 60 + reg_dh) * 100) + reg_dl) * 10 / 55;
+                Bit32u ticks = ((((reg_ch * 60u + reg_cl) * 60u + reg_dh) * 100u) + reg_dl) * 10u / 55u;
 
                 CPU_Push16(reg_ax);
                 CPU_Push16(reg_cx);
@@ -1222,9 +1222,9 @@ static Bitu DOS_21Handler(void) {
         case 0x42:                  /* LSEEK Set current file position */
             unmask_irq0 |= disk_io_unmask_irq0;
             {
-                Bit32u pos=(reg_cx<<16) + reg_dx;
+                Bit32u pos=((Bit32u)reg_cx << 16u) + reg_dx;
                 if (DOS_SeekFile(reg_bx,&pos,reg_al)) {
-                    reg_dx=(Bit16u)(pos >> 16);
+                    reg_dx=(Bit16u)((unsigned int)pos >> 16u);
                     reg_ax=(Bit16u)(pos & 0xFFFF);
                     CALLBACK_SCF(false);
                 } else {
@@ -1503,8 +1503,8 @@ static Bitu DOS_21Handler(void) {
             }
         case 0x5c:  {       /* FLOCK File region locking */
             /* ert, 20100711: Locking extensions */
-            Bit32u pos=(reg_cx<<16) + reg_dx;
-            Bit32u size=(reg_si<<16) + reg_di;
+            Bit32u pos=((unsigned int)reg_cx << 16u) + reg_dx;
+            Bit32u size=((unsigned int)reg_si << 16u) + reg_di;
             //LOG_MSG("LockFile: BX=%d, AL=%d, POS=%d, size=%d", reg_bx, reg_al, pos, size);
             if (DOS_LockFile(reg_bx,reg_al,pos, size)) {
                 reg_ax=0;
@@ -1621,7 +1621,7 @@ static Bitu DOS_21Handler(void) {
                         mem_writew(data + 0x03,1);
                         if(reg_cx > 0x06 ) mem_writew(data+0x05,dos.loaded_codepage);
                         if(reg_cx > 0x08 ) {
-                            Bitu amount = (reg_cx>=0x29)?0x22:(reg_cx-7);
+                            Bitu amount = (reg_cx>=0x29u)?0x22u:(reg_cx-7u);
                             MEM_BlockWrite(data + 0x07,dos.tables.country,amount);
                             reg_cx=(reg_cx>=0x29)?0x29:reg_cx;
                         }
@@ -1994,8 +1994,8 @@ public:
 		dos_con_use_int16_to_detect_input = section->Get_bool("con device use int 16h to detect keyboard input");
 		iret_only_for_debug_interrupts = section->Get_bool("write plain iretf for debug interrupts");
 		dbg_zero_on_dos_allocmem = section->Get_bool("zero memory on int 21h memory allocation");
-		MAXENV = section->Get_int("maximum environment block size on exec");
-		ENV_KEEPFREE = section->Get_int("additional environment block size on exec");
+		MAXENV = (unsigned int)section->Get_int("maximum environment block size on exec");
+		ENV_KEEPFREE = (unsigned int)section->Get_int("additional environment block size on exec");
 		enable_dummy_environment_block = section->Get_bool("enable dummy environment block");
 		enable_dummy_loadfix_padding = section->Get_bool("enable loadfix padding");
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
@@ -2238,7 +2238,7 @@ public:
             }
         }
 
-		DOS_FILES = section->Get_int("files");
+		DOS_FILES = (unsigned int)section->Get_int("files");
 		DOS_SetupFiles();								/* Setup system File tables */
 		DOS_SetupDevices();							/* Setup dos devices */
 		DOS_SetupTables();

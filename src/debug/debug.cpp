@@ -205,7 +205,7 @@ Bit64u GetAddress(Bit16u seg, Bit32u offset)
         return LinMakeProt(seg,offset);
 
 	if (seg==SegValue(cs)) return SegPhys(cs)+offset;
-	return (seg<<4)+offset;
+	return ((Bit64u)seg<<4u)+offset;
 }
 
 static char empty_sel[] = { ' ',' ',0 };
@@ -1091,8 +1091,8 @@ Bit32u GetHexValue(char* str, char*& hex)
 	if (strstr(hex,"SS")==hex) { hex+=2; regval = SegValue(ss); };
 
 	while (*hex) {
-		if ((*hex>='0') && (*hex<='9')) value = (value<<4)+*hex-'0';
-		else if ((*hex>='A') && (*hex<='F')) value = (value<<4)+*hex-'A'+10; 
+		if ((*hex>='0') && (*hex<='9')) value = (value<<4u) + ((Bit32u)(*hex)) - '0';
+		else if ((*hex>='A') && (*hex<='F')) value = (value<<4u) + ((Bit32u)(*hex)) - 'A' + 10u;
 		else { 
 			if(*hex == '+') {hex++;return regval + value + GetHexValue(hex,hex); };
 			if(*hex == '-') {hex++;return regval + value - GetHexValue(hex,hex); };
@@ -1163,7 +1163,7 @@ bool ParseCommand(char* str) {
 	found = const_cast<char*>(s_found.c_str());
 
     if (command == "MOVEWINDN") { // MOVE WINDOW DOWN (by swapping)
-        int order1 = dbg.win_find_order(dbg.active_win);
+        int order1 = dbg.win_find_order((int)dbg.active_win);
         int order2 = dbg.win_next_by_order(order1);
 
         if (order1 >= 0 && order2 >= 0 && order1 < order2) {
@@ -1176,7 +1176,7 @@ bool ParseCommand(char* str) {
     }
 
     if (command == "MOVEWINUP") { // MOVE WINDOW UP (by swapping)
-        int order1 = dbg.win_find_order(dbg.active_win);
+        int order1 = dbg.win_find_order((int)dbg.active_win);
         int order2 = dbg.win_prev_by_order(order1);
 
         if (order1 >= 0 && order2 >= 0 && order1 > order2) {
@@ -1513,7 +1513,7 @@ bool ParseCommand(char* str) {
 		//Initialize log object
 		cpuLogFile << hex << noshowbase << setfill('0') << uppercase;
 		cpuLog = true;
-		cpuLogCounter = GetHexValue(found,found);
+		cpuLogCounter = (int)GetHexValue(found,found);
 
 		debugging = false;
 		CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);						
@@ -1591,8 +1591,8 @@ bool ParseCommand(char* str) {
 		if (found[0] != 0) {
 			Bit8u intNr = (Bit8u)GetHexValue(found,found);
 			DEBUG_ShowMsg("DEBUG: Set code overview to interrupt handler %X\n",intNr);
-			codeViewData.useCS	= mem_readw(intNr*4+2);
-			codeViewData.useEIP = mem_readw(intNr*4);
+			codeViewData.useCS	= mem_readw(intNr*4u+2u);
+			codeViewData.useEIP = mem_readw(intNr*4u);
 			codeViewData.cursorPos = 0;
 			return true;
 		}
@@ -2247,7 +2247,7 @@ Bit32u DEBUG_CheckKeys(void) {
 			if (GCC_UNLIKELY(ret >= CB_MAX)) 
 				ret = 0;
 			else
-				ret = (*CallBack_Handlers[ret])();
+				ret = (Bits)(*CallBack_Handlers[ret])();
 			if (ret) {
 				exitLoop=true;
 				CPU_Cycles=CPU_CycleLeft=0;
@@ -2328,7 +2328,7 @@ Bitu DEBUG_Loop(void) {
             check_rescroll = false;
             ocs = codeViewData.useCS;
             oip = codeViewData.useEIP;
-            ocr = codeViewData.cursorPos;
+            ocr = (Bitu)codeViewData.cursorPos;
             SetCodeWinStart();
             if (ocs != codeViewData.useCS ||
                     oip != codeViewData.useEIP) {
@@ -2673,13 +2673,13 @@ void LogPages(char* selname) {
 	if (paging.enabled) {
 		Bitu sel = GetHexValue(selname,selname);
 		if ((sel==0x00) && ((*selname==0) || (*selname=='*'))) {
-			for (int i=0; i<0xfffff; i++) {
-				Bitu table_addr=(paging.base.page<<12)+(i >> 10)*4;
+			for (unsigned int i=0; i<0xfffff; i++) {
+				Bitu table_addr=((Bitu)paging.base.page<<12u)+(i >> 10u)*4u;
 				X86PageEntry table;
 				table.load=phys_readd(table_addr);
 				if (table.block.p) {
 					X86PageEntry entry;
-					Bitu entry_addr=(table.block.base<<12)+(i & 0x3ff)*4;
+					Bitu entry_addr=((Bitu)table.block.base<<12u)+(i & 0x3ffu)*4u;
 					entry.load=phys_readd(entry_addr);
 					if (entry.block.p) {
 						sprintf(out1,"page %05Xxxx -> %04Xxxx  flags [uw] %x:%x::%x:%x [d=%x|a=%x]",
@@ -2690,12 +2690,12 @@ void LogPages(char* selname) {
 				}
 			}
 		} else {
-			Bitu table_addr=(paging.base.page<<12)+(sel >> 10)*4;
+			Bitu table_addr=(paging.base.page<<12u)+(sel >> 10u)*4u;
 			X86PageEntry table;
 			table.load=phys_readd(table_addr);
 			if (table.block.p) {
 				X86PageEntry entry;
-				Bitu entry_addr=(table.block.base<<12)+(sel & 0x3ff)*4;
+				Bitu entry_addr=((Bitu)table.block.base<<12u)+(sel & 0x3ffu)*4u;
 				entry.load=phys_readd(entry_addr);
 				sprintf(out1,"page %05lXxxx -> %04lXxxx  flags [puw] %x:%x::%x:%x::%x:%x",
 					(unsigned long)sel,
@@ -3141,8 +3141,8 @@ static void OutputVecTable(char* filename) {
 		return;
 	}
 
-	for (int i=0; i<256; i++)
-		fprintf(f,"INT %02X:  %04X:%04X\n", i, mem_readw(i*4+2), mem_readw(i*4));
+	for (unsigned int i=0; i<256; i++)
+		fprintf(f,"INT %02X:  %04X:%04X\n", i, mem_readw(i * 4u + 2u), mem_readw(i * 4u));
 
 	fclose(f);
 	DEBUG_ShowMsg("DEBUG: Interrupt vector table written to %s.\n", filename);

@@ -328,15 +328,15 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 		}
 		if ((head.signature!=MAGIC1) && (head.signature!=MAGIC2)) iscom=true;
 		else {
-			if(head.pages & ~0x07ff) /* 1 MB dos maximum address limit. Fixes TC3 IDE (kippesoep) */
+			if(head.pages & ~0x07ffu) /* 1 MB dos maximum address limit. Fixes TC3 IDE (kippesoep) */
 				LOG(LOG_EXEC,LOG_NORMAL)("Weird header: head.pages > 1 MB");
-			head.pages&=0x07ff;
-			headersize = head.headersize*16;
-			imagesize = head.pages*512-headersize; 
-			if (imagesize+headersize<512) imagesize = 512-headersize;
+			head.pages&=0x07ffu;
+			headersize = head.headersize*16u;
+			imagesize = head.pages*512u-headersize; 
+			if (imagesize+headersize<512u) imagesize = 512u-headersize;
 		}
 	}
-	Bit8u * loadbuf=(Bit8u *)new Bit8u[0x10000];
+	Bit8u * loadbuf=(Bit8u *)new Bit8u[0x10000u];
 	if (flags!=OVERLAY) {
 		/* Create an environment block */
 		envseg=block.exec.envseg;
@@ -357,9 +357,9 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 				if (minsize>maxsize) minsize=maxsize;
 			}
 		} else {	/* Exe size calculated from header */
-			minsize=long2para(imagesize+(head.minmemory<<4)+256);
-			if (head.maxmemory!=0) maxsize=long2para(imagesize+(head.maxmemory<<4)+256);
-			else maxsize=0xffff;
+			minsize=long2para(imagesize+((unsigned int)head.minmemory<<4u)+256u);
+			if (head.maxmemory!=0) maxsize=long2para(imagesize+((unsigned int)head.maxmemory<<4u)+256u);
+			else maxsize=0xffffu;
 
             /* Bugfix: scene.org mirrors/hornet/demos/1991/putrefac.zip Putrefaction !PF.{3}
              *         has an EXE header that specifies a maxsize less than minsize, and a

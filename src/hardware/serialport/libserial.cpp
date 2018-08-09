@@ -290,7 +290,7 @@ bool SERIAL_open(const char* portname, COMPORT* port) {
 		return false;
 	}
 	char extended_portname[256] = "/dev/";
-	memcpy(extended_portname+5,portname,len);
+	memcpy(extended_portname+5,portname,(size_t)len);
 
 	cp->porthandle = open (extended_portname, O_RDWR | O_NOCTTY | O_NONBLOCK);
 	if (cp->porthandle < 0) goto cleanup_error;
@@ -334,7 +334,7 @@ void SERIAL_close(COMPORT port) {
 void SERIAL_getErrorString(char* buffer, int length) {
 	int error = errno;
 	if(length < 50) return;
-	memset(buffer,0,length);
+	memset(buffer,0,(size_t)length);
 	// get the error message text from the operating system
 	// TODO (or not)
 	
@@ -345,11 +345,11 @@ void SERIAL_getErrorString(char* buffer, int length) {
 
 	if(error == EBUSY) {
 		sysmsg_offset = strlen(err5text);
-		memcpy(buffer,err5text,sysmsg_offset);
+		memcpy(buffer,err5text,(size_t)sysmsg_offset);
 
 	} else if(error == 2) {
 		sysmsg_offset = strlen(err2text);
-		memcpy(buffer,err2text,sysmsg_offset);
+		memcpy(buffer,err2text,(size_t)sysmsg_offset);
 	}
 	
 	sprintf(buffer + sysmsg_offset, "System error %d.",error);
@@ -451,8 +451,8 @@ bool SERIAL_setCommParameters(COMPORT port,
 		case    110: posix_baudrate = B110; break;
 		default: return false;
 	}
-	cfsetospeed (&termInfo, posix_baudrate);
-	cfsetispeed (&termInfo, posix_baudrate);
+	cfsetospeed (&termInfo, (unsigned int)posix_baudrate);
+	cfsetispeed (&termInfo, (unsigned int)posix_baudrate);
 
 	int retval = tcsetattr(port->porthandle, TCSANOW, &termInfo);
 	if(retval==-1) return false;

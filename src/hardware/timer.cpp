@@ -497,7 +497,7 @@ void TIMER_BIOS_INIT_Configure() {
 	{
 		Section_prop *pcsec = static_cast<Section_prop *>(control->GetSection("speaker"));
 		int freq = pcsec->Get_int("initial frequency"); /* original code: 1320 */
-		int div;
+		unsigned int div;
 
         /* IBM PC defaults to 903Hz.
          * NEC PC-98 defaults to 2KHz */
@@ -508,7 +508,7 @@ void TIMER_BIOS_INIT_Configure() {
 			div = 1;
 		}
 		else {
-			div = PIT_TICK_RATE / freq;
+			div = (unsigned int)PIT_TICK_RATE / (unsigned int)freq;
 			if (div > 65535) div = 65535;
 		}
 

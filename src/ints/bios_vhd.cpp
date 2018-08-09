@@ -126,7 +126,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	}
 	//read dynamic disk header (applicable for dynamic and differencing types)
 	DynamicHeader dynHeader;
-	if (fseeko64(file, footer.dataOffset, SEEK_SET)) { delete vhd; return INVALID_DATA; }
+	if (fseeko64(file, (off_t)footer.dataOffset, SEEK_SET)) { delete vhd; return INVALID_DATA; }
 	if (fread(&dynHeader, sizeof(Bit8u), 1024, file) != 1024) { delete vhd; return INVALID_DATA; }
 	//swap byte order and validate checksum
 	dynHeader.SwapByteOrder();
@@ -146,7 +146,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 				Bit32u dataLength = dynHeader.parentLocatorEntry[i].platformDataLength;
 				Bit8u* buffer = 0;
 				if (dataOffset && dataLength && ((Bit64u)dataOffset + dataLength) <= footerPosition) {
-					if (fseeko64(file, dataOffset, SEEK_SET)) { delete vhd; return INVALID_DATA; }
+					if (fseeko64(file, (off_t)dataOffset, SEEK_SET)) { delete vhd; return INVALID_DATA; }
 					buffer = (Bit8u*)malloc(dataLength + 2);
 					if (buffer == 0) { delete vhd; return INVALID_DATA; }
 					if (fread(buffer, sizeof(Bit8u), dataLength, file) != dataLength) { free(buffer); delete vhd; return INVALID_DATA; }
@@ -238,7 +238,7 @@ bool imageDiskVHD::convert_UTF16_for_fopen(std::string &string, const void* data
 		//Linux ext3 filenames are byte strings, typically in UTF-8
 		//encode the character to a temporary buffer
 		tempout = temp;
-		if (utf8_encode(&tempout, tempoutmax, utf32code) < 0) return false;
+		if (utf8_encode(&tempout, tempoutmax, (unsigned int)utf32code) < 0) return false;
 		//and append the byte(s) to the string
 		tempout2 = temp;
 		while (tempout2 < tempout) string += *tempout2++;
@@ -309,7 +309,7 @@ Bit8u imageDiskVHD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 		Bit32u bitNum = sectorOffset % 8;
 		bool hasData = currentBlockDirtyMap[byteNum] & (1 << (7 - bitNum));
 		if (hasData) {
-			if (fseeko64(diskimg, ((Bit64u)currentBlockSectorOffset + blockMapSectors + sectorOffset) * 512, SEEK_SET)) return 0x05; //can't seek
+			if (fseeko64(diskimg, (off_t)(((Bit64u)currentBlockSectorOffset + blockMapSectors + sectorOffset) * 512ull), SEEK_SET)) return 0x05; //can't seek
 			if (fread(data, sizeof(Bit8u), 512, diskimg) != 512) return 0x05; //can't read
 			return 0;
 		}
@@ -330,31 +330,31 @@ Bit8u imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 	if (!currentBlockAllocated) {
 		if (!copiedFooter) {
 			//write backup of footer at start of file (should already exist, but we never checked to be sure it is readable or matches the footer we used)
-			if (fseeko64(diskimg, 0, SEEK_SET)) return 0x05;
+			if (fseeko64(diskimg, (off_t)0, SEEK_SET)) return 0x05;
 			if (fwrite(originalFooter.cookie, sizeof(Bit8u), 512, diskimg) != 512) return 0x05;
 			copiedFooter = true;
 			//flush the data to disk after writing the backup footer
 			if (fflush(diskimg)) return 0x05;
 		}
 		//calculate new location of footer, and round up to nearest 512 byte increment "just in case"
-		Bit64u newFooterPosition = (((footerPosition - 512 + blockMapSize + dynamicHeader.blockSize) + 511) / 512) * 512;
+		Bit64u newFooterPosition = (((footerPosition - 512ull + blockMapSize + dynamicHeader.blockSize) + 511ull) / 512ull) * 512ull;
 		//attempt to extend the length appropriately first (on some operating systems this will extend the file)
-		if (fseeko64(diskimg, newFooterPosition + 512, SEEK_SET)) return 0x05;
+		if (fseeko64(diskimg, (off_t)newFooterPosition + 512, SEEK_SET)) return 0x05;
 		//now write the footer
-		if (fseeko64(diskimg, newFooterPosition, SEEK_SET)) return 0x05;
+		if (fseeko64(diskimg, (off_t)newFooterPosition, SEEK_SET)) return 0x05;
 		if (fwrite(originalFooter.cookie, sizeof(Bit8u), 512, diskimg) != 512) return 0x05;
 		//save the new block location and new footer position
-		Bit32u newBlockSectorNumber = (Bit32u)((footerPosition + 511) / 512);
+		Bit32u newBlockSectorNumber = (Bit32u)((footerPosition + 511ul) / 512ul);
 		footerPosition = newFooterPosition;
 		//clear the dirty flags for the new footer position
 		for (Bit32u i = 0; i < blockMapSize; i++) currentBlockDirtyMap[i] = 0;
 		//write the dirty map
-		if (fseeko64(diskimg, newBlockSectorNumber * 512, SEEK_SET)) return 0x05;
+		if (fseeko64(diskimg, (off_t)(newBlockSectorNumber * 512ull), SEEK_SET)) return 0x05;
 		if (fwrite(currentBlockDirtyMap, sizeof(Bit8u), blockMapSize, diskimg) != blockMapSize) return 0x05;
 		//flush the data to disk after expanding the file, before allocating the block in the BAT
 		if (fflush(diskimg)) return 0x05;
 		//update the BAT
-		if (fseeko64(diskimg, dynamicHeader.tableOffset + (blockNumber * 4), SEEK_SET)) return 0x05;
+		if (fseeko64(diskimg, (off_t)(dynamicHeader.tableOffset + (blockNumber * 4ull)), SEEK_SET)) return 0x05;
 		Bit32u newBlockSectorNumberBE = SDL_SwapBE32(newBlockSectorNumber);
 		if (fwrite(&newBlockSectorNumberBE, sizeof(Bit8u), 4, diskimg) != 4) return false;
 		currentBlockAllocated = true;
@@ -369,12 +369,12 @@ Bit8u imageDiskVHD::Write_AbsoluteSector(Bit32u sectnum, const void * data) {
 	//if the sector hasn't been marked as dirty, mark it as dirty
 	if (!hasData) {
 		currentBlockDirtyMap[byteNum] |= 1 << (7 - bitNum);
-		if (fseeko64(diskimg, currentBlockSectorOffset * 512, SEEK_SET)) return 0x05; //can't seek
+		if (fseeko64(diskimg, (off_t)(currentBlockSectorOffset * 512ull), SEEK_SET)) return 0x05; //can't seek
 		if (fwrite(currentBlockDirtyMap, sizeof(Bit8u), blockMapSize, diskimg) != blockMapSize) return 0x05;
 	}
 	//current sector has now been marked as dirty
 	//write the sector
-	if (fseeko64(diskimg, ((Bit64u)currentBlockSectorOffset + blockMapSectors + sectorOffset) * 512, SEEK_SET)) return 0x05; //can't seek
+	if (fseeko64(diskimg, (off_t)(((Bit64u)currentBlockSectorOffset + (Bit64u)blockMapSectors + (Bit64u)sectorOffset) * 512ull), SEEK_SET)) return 0x05; //can't seek
 	if (fwrite(data, sizeof(Bit8u), 512, diskimg) != 512) return 0x05; //can't write
 	return 0;
 }
@@ -392,17 +392,17 @@ imageDiskVHD::VHDTypes imageDiskVHD::GetVHDType(const char* fileName) {
 bool imageDiskVHD::loadBlock(const Bit32u blockNumber) {
 	if (currentBlock == blockNumber) return true;
 	if (blockNumber >= dynamicHeader.maxTableEntries) return false;
-	if (fseeko64(diskimg, dynamicHeader.tableOffset + (blockNumber * 4), SEEK_SET)) return false;
+	if (fseeko64(diskimg, (off_t)(dynamicHeader.tableOffset + (blockNumber * 4ull)), SEEK_SET)) return false;
 	Bit32u blockSectorOffset;
 	if (fread(&blockSectorOffset, sizeof(Bit8u), 4, diskimg) != 4) return false;
 	blockSectorOffset = SDL_SwapBE32(blockSectorOffset);
-	if (blockSectorOffset == 0xFFFFFFFF) {
+	if (blockSectorOffset == 0xFFFFFFFFul) {
 		currentBlock = blockNumber;
 		currentBlockAllocated = false;
 	}
 	else {
-		if (fseeko64(diskimg, blockSectorOffset * (Bit64u)512, SEEK_SET)) return false;
-		currentBlock = 0xFFFFFFFF;
+		if (fseeko64(diskimg, (off_t)(blockSectorOffset * (Bit64u)512), SEEK_SET)) return false;
+		currentBlock = 0xFFFFFFFFul;
 		currentBlockAllocated = true;
 		currentBlockSectorOffset = blockSectorOffset;
 		if (fread(currentBlockDirtyMap, sizeof(Bit8u), blockMapSize, diskimg) != blockMapSize) return false;

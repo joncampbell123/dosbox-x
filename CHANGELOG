@@ -1,4 +1,6 @@
-0.82.7 (next)
+0.82.7
+  - Mac OS X builds now honor showmenu=false by leaving the
+    stock SDL menu in place at startup.
   - Default minimum MCB free/base is now 0x100, to sidestep
     unknown unstable DOS application behavior when DOS
     applications are loaded at around segment 0x800.

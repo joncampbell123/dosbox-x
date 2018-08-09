@@ -134,16 +134,16 @@ bool CDROM_Interface_Image::GetUPC(unsigned char& attr, char* upc)
 bool CDROM_Interface_Image::GetAudioTracks(int& stTrack, int& end, TMSF& leadOut)
 {
 	stTrack = 1;
-	end = (int)(tracks.size() - 1);
-	FRAMES_TO_MSF(tracks[tracks.size() - 1].start + 150, &leadOut.min, &leadOut.sec, &leadOut.fr);
+	end = (int)(tracks.size() - 1u);
+	FRAMES_TO_MSF((unsigned int)tracks[tracks.size() - 1u].start + 150u, &leadOut.min, &leadOut.sec, &leadOut.fr);
 	return true;
 }
 
 bool CDROM_Interface_Image::GetAudioTrackInfo(int track, TMSF& start, unsigned char& attr)
 {
 	if (track < 1 || track > (int)tracks.size()) return false;
-	FRAMES_TO_MSF(tracks[track - 1].start + 150, &start.min, &start.sec, &start.fr);
-	attr = tracks[track - 1].attr;
+	FRAMES_TO_MSF((unsigned int)tracks[(unsigned int)track - 1u].start + 150u, &start.min, &start.sec, &start.fr);
+	attr = tracks[(unsigned int)track - 1u].attr;
 	return true;
 }
 
@@ -152,10 +152,10 @@ bool CDROM_Interface_Image::GetAudioSub(unsigned char& attr, unsigned char& trac
 	int cur_track = GetTrack(player.currFrame);
 	if (cur_track < 1) return false;
 	track = (unsigned char)cur_track;
-	attr = tracks[track - 1].attr;
+	attr = tracks[track - 1u].attr;
 	index = 1;
-	FRAMES_TO_MSF(player.currFrame + 150, &absPos.min, &absPos.sec, &absPos.fr);
-	FRAMES_TO_MSF(player.currFrame - tracks[track - 1].start + 150, &relPos.min, &relPos.sec, &relPos.fr);
+	FRAMES_TO_MSF((unsigned int)player.currFrame + 150u, &absPos.min, &absPos.sec, &absPos.fr);
+	FRAMES_TO_MSF((unsigned int)player.currFrame - (unsigned int)tracks[track - 1u].start + 150u, &relPos.min, &relPos.sec, &relPos.fr);
 	return true;
 }
 
@@ -182,7 +182,7 @@ bool CDROM_Interface_Image::PlayAudioSector(unsigned long start,unsigned long le
 	player.currFrame = start;
 	player.targetFrame = start + len;
 	int track = GetTrack(start) - 1;
-	if(track >= 0 && tracks[track].attr == 0x40) {
+	if(track >= 0 && tracks[(unsigned int)track].attr == 0x40) {
 		LOG(LOG_MISC,LOG_WARN)("Game tries to play the data track. Not doing this");
 		player.isPlaying = false;
 		//Unclear wether return false should be here. 
@@ -215,7 +215,7 @@ void CDROM_Interface_Image::ChannelControl(TCtrl ctrl)
 
 bool CDROM_Interface_Image::ReadSectors(PhysPt buffer, bool raw, unsigned long sector, unsigned long num)
 {
-	int sectorSize = raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE;
+	unsigned int sectorSize = raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE;
 	Bitu buflen = num * sectorSize;
 	Bit8u* buf = new Bit8u[buflen];
 	
@@ -233,7 +233,7 @@ bool CDROM_Interface_Image::ReadSectors(PhysPt buffer, bool raw, unsigned long s
 
 bool CDROM_Interface_Image::ReadSectorsHost(void *buffer, bool raw, unsigned long sector, unsigned long num)
 {
-	int sectorSize = raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE;
+	unsigned int sectorSize = raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE;
 	bool success = true; //Gobliiins reads 0 sectors
 	for(unsigned long i = 0; i < num; i++) {
 		success = ReadSector((Bit8u*)buffer + (i * sectorSize), raw, sector + i);
@@ -268,36 +268,37 @@ bool CDROM_Interface_Image::ReadSector(Bit8u *buffer, bool raw, unsigned long se
 	int track = GetTrack(sector) - 1;
 	if (track < 0) return false;
 
-	if (tracks[track].sectorSize != RAW_SECTOR_SIZE && raw) return false;
+	if (tracks[(unsigned int)track].sectorSize != RAW_SECTOR_SIZE && raw) return false;
 
 	/* we must reject non-raw reads against CD audio sectors.
 	 * not just for correctness, but also to avoid a weird bug in MSCDEX.EXE
 	 * that reads the non-data sectors one-by-one looking for a volume label
 	 * that doesn't exist on pure CD audio emulated images */
-	if (tracks[track].sectorSize == RAW_SECTOR_SIZE && !raw) {
-		if ((tracks[track].attr&0x40) == 0x00) {
+	if (tracks[(unsigned int)track].sectorSize == RAW_SECTOR_SIZE && !raw) {
+		if (((unsigned char)tracks[(unsigned int)track].attr&0x40u) == 0x00u) {
 			LOG_MSG("Rejecting cooked read from raw audio CD sector\n");
 			return false;
 		}
 	}
 
-	int length = (raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE);
+	unsigned int length = (raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE);
 
-	if (sector >= (unsigned long)(tracks[track].start + tracks[track].length)) {
+	if (sector >= (unsigned long)(tracks[(unsigned int)track].start + tracks[(unsigned int)track].length)) {
 		memset(buffer, 0, length);
 		return true;
 	}
 
-	int seek = tracks[track].skip + (sector - tracks[track].start) * tracks[track].sectorSize;
-	if (tracks[track].sectorSize == RAW_SECTOR_SIZE && !tracks[track].mode2 && !raw) seek += 16;
-	if (tracks[track].mode2 && !raw) seek += 24;
+	unsigned long seek = (unsigned long)tracks[(unsigned int)track].skip +
+        (sector - (unsigned long)tracks[(unsigned int)track].start) * (unsigned long)tracks[(unsigned int)track].sectorSize;
+	if (tracks[(unsigned int)track].sectorSize == RAW_SECTOR_SIZE && !tracks[(unsigned int)track].mode2 && !raw) seek += 16ul;
+	if (tracks[(unsigned int)track].mode2 && !raw) seek += 24ul;
 
-	return tracks[track].file->read(buffer, seek, length);
+	return tracks[(unsigned int)track].file->read(buffer, seek, (int)length);
 }
 
 void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 {
-	len *= 4;       // 16 bit, stereo
+	len *= 4u;       // 16 bit, stereo
 	if (!len) return;
 	if (!player.isPlaying || player.isPaused) {
 		player.channel->AddSilence();
@@ -308,14 +309,14 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 	while (player.bufLen < (Bits)len) {
 		bool success;
 		if (player.targetFrame > player.currFrame)
-			success = player.cd->ReadSector(&player.buffer[player.bufLen], true, player.currFrame);
+			success = player.cd->ReadSector(&player.buffer[player.bufLen], true, (unsigned long)player.currFrame);
 		else success = false;
 		
 		if (success) {
 			player.currFrame++;
 			player.bufLen += RAW_SECTOR_SIZE;
 		} else {
-			memset(&player.buffer[player.bufLen], 0, len - player.bufLen);
+			memset(&player.buffer[player.bufLen], 0, (size_t)(len - (Bitu)player.bufLen));
 			player.bufLen = len;
 			player.isPlaying = false;
 		}
@@ -342,8 +343,8 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 	}
 	player.channel->AddSamples_s16(len/4,(Bit16s *)player.buffer);
 #endif
-	memmove(player.buffer, &player.buffer[len], player.bufLen - len);
-	player.bufLen -= len;
+	memmove(player.buffer, &player.buffer[len], (size_t)((Bitu)player.bufLen - len));
+	player.bufLen -= (int)len;
 }
 
 bool CDROM_Interface_Image::LoadIsoFile(char* filename)
@@ -664,9 +665,9 @@ bool CDROM_Interface_Image::GetCueFrame(int &frames, istream &in)
 {
 	string msf;
 	in >> msf;
-	int min, sec, fr;
-	bool success = sscanf(msf.c_str(), "%d:%d:%d", &min, &sec, &fr) == 3;
-	frames = MSF_TO_FRAMES(min, sec, fr);
+	unsigned int min, sec, fr;
+	bool success = sscanf(msf.c_str(), "%u:%u:%u", &min, &sec, &fr) == 3;
+	frames = (int)MSF_TO_FRAMES(min, sec, fr);
 	
 	return success;
 }

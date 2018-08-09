@@ -300,11 +300,11 @@ bool DOS_Drive_Cache::GetShortName(const char* fullname, char* shortname) {
 
     while (low<=high) {
         mid = (low+high)/2;
-        res = strcmp(fullname,curDir->longNameList[mid]->orgname);
+        res = strcmp(fullname,curDir->longNameList[(size_t)mid]->orgname);
         if (res>0)  low  = mid+1; else
         if (res<0)  high = mid-1; 
         else {
-            strcpy(shortname,curDir->longNameList[mid]->shortname);
+            strcpy(shortname,curDir->longNameList[(size_t)mid]->shortname);
             return true;
         };
     }
@@ -353,16 +353,16 @@ Bitu DOS_Drive_Cache::CreateShortNameID(CFileInfo* curDir, const char* name) {
 
     while (low<=high) {
         mid = (low+high)/2;
-        res = CompareShortname(name,curDir->longNameList[mid]->shortname);
+        res = CompareShortname(name,curDir->longNameList[(size_t)mid]->shortname);
         
         if (res>0)  low  = mid+1; else
         if (res<0)  high = mid-1; 
         else {
             // any more same x chars in next entries ?  
             do {
-                foundNr = curDir->longNameList[mid]->shortNr;
+                foundNr = curDir->longNameList[(size_t)mid]->shortNr;
                 mid++;
-            } while((Bitu)mid<curDir->longNameList.size() && (CompareShortname(name,curDir->longNameList[mid]->shortname)==0));
+            } while((Bitu)mid<curDir->longNameList.size() && (CompareShortname(name,curDir->longNameList[(size_t)mid]->shortname)==0));
             break;
         };
     }
@@ -447,11 +447,11 @@ Bits DOS_Drive_Cache::GetLongName(CFileInfo* curDir, char* shortName) {
     Bits mid,res;
     while (low<=high) {
         mid = (low+high)/2;
-        res = strcmp(shortName,curDir->fileList[mid]->shortname);
+        res = strcmp(shortName,curDir->fileList[(size_t)mid]->shortname);
         if (res>0)  low  = mid+1; else
         if (res<0)  high = mid-1; else
         {   // Found
-            strcpy(shortName,curDir->fileList[mid]->orgname);
+            strcpy(shortName,curDir->fileList[(size_t)mid]->orgname);
             return mid;
         };
     }
@@ -535,8 +535,8 @@ void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
         // Copy first letters
         Bits tocopy = 0;
         size_t buflen = strlen(buffer);
-        if (len+buflen+1>8) tocopy = (Bits)(8 - buflen - 1);
-        else                tocopy = len;
+        if ((size_t)len+buflen+1u>8u) tocopy = (Bits)(8u - buflen - 1u);
+        else                          tocopy = len;
         safe_strncpy(info->shortname,tmpName,tocopy+1);
         // Copy number
         strcat(info->shortname,"~");
@@ -635,8 +635,8 @@ DOS_Drive_Cache::CFileInfo* DOS_Drive_Cache::FindDirInfo(const char* path, char*
         };
 */
         // Follow Directory
-        if ((nextDir>=0) && curDir->fileList[nextDir]->isDir) {
-            curDir = curDir->fileList[nextDir];
+        if ((nextDir>=0) && curDir->fileList[(size_t)nextDir]->isDir) {
+            curDir = curDir->fileList[(size_t)nextDir];
             strcpy (curDir->orgname,dir);
             if (!IsCachedIn(curDir)) {
                 if (OpenDir(curDir,expandedPath,id)) {

@@ -129,7 +129,7 @@ static void RENDER_StartLineHandler(const void * s) {
     if (s) {
         const Bitu *src = (Bitu*)s;
         Bitu *cache = (Bitu*)(render.scale.cacheRead);
-        Bits count = render.src.start;
+        Bits count = (Bits)render.src.start;
 #if defined(__SSE__)
         if (sse2_available) {
 #if defined (_MSC_VER)
@@ -142,7 +142,7 @@ static void RENDER_StartLineHandler(const void * s) {
                 __m128i cmp = _mm_cmpeq_epi32(v, c);
                 if (GCC_UNLIKELY(_mm_movemask_epi8(cmp) != 0xFFFF))
                     goto cacheMiss;
-                count-=simd_inc; src+=simd_inc; cache+=simd_inc;
+                count-=(Bits)simd_inc; src+=simd_inc; cache+=simd_inc;
             }
         }
         else
@@ -175,7 +175,7 @@ static void RENDER_FinishLineHandler(const void * s) {
     if (s) {
         const Bitu *src = (Bitu*)s;
         Bitu *cache = (Bitu*)(render.scale.cacheRead);
-        for (Bits x=render.src.start;x>0;) {
+        for (Bitu x=render.src.start;x>0;) {
             cache[0] = src[0];
             x--; src++; cache++;
         }
@@ -694,7 +694,7 @@ static void IncreaseFrameSkip(bool pressed) {
         return;
     if (render.frameskip.max<10) render.frameskip.max++;
     LOG_MSG("Frame Skip at %d",(int)render.frameskip.max);
-    GFX_SetTitle(-1,render.frameskip.max,-1,false);
+    GFX_SetTitle(-1,(Bits)render.frameskip.max,-1,false);
 }
 
 static void DecreaseFrameSkip(bool pressed) {
@@ -702,7 +702,7 @@ static void DecreaseFrameSkip(bool pressed) {
         return;
     if (render.frameskip.max>0) render.frameskip.max--;
     LOG_MSG("Frame Skip at %d",(int)render.frameskip.max);
-    GFX_SetTitle(-1,render.frameskip.max,-1,false);
+    GFX_SetTitle(-1,(Bits)render.frameskip.max,-1,false);
 }
 /* Disabled as I don't want to waste a keybind for that. Might be used in the future (Qbix)
 static void ChangeScaler(bool pressed) {
@@ -752,7 +752,7 @@ void RENDER_OnSectionPropChange(Section *x) {
     bool p_aspect = render.aspect;
 
     render.aspect = section->Get_bool("aspect");
-    render.frameskip.max = section->Get_int("frameskip");
+    render.frameskip.max = (Bitu)section->Get_int("frameskip");
 
     vga.draw.doublescan_set=section->Get_bool("doublescan");
     vga.draw.char9_set=section->Get_bool("char9");
@@ -851,7 +851,7 @@ void RENDER_Init() {
     render.pal.first=0;
     render.pal.last=255;
     render.aspect=section->Get_bool("aspect");
-    render.frameskip.max=section->Get_int("frameskip");
+    render.frameskip.max=(Bitu)section->Get_int("frameskip");
 
     RENDER_UpdateFrameskipMenu();
 
@@ -888,7 +888,7 @@ void RENDER_Init() {
     MAPPER_AddHandler(DecreaseFrameSkip,MK_nothing,0,"decfskip","Dec Fskip");
     MAPPER_AddHandler(IncreaseFrameSkip,MK_nothing,0,"incfskip","Inc Fskip");
 
-    GFX_SetTitle(-1,render.frameskip.max,-1,false);
+    GFX_SetTitle(-1,(Bits)render.frameskip.max,-1,false);
 
     RENDER_UpdateScalerMenu();
 }

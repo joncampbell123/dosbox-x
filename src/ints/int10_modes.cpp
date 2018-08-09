@@ -726,7 +726,7 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 	default:
 		break;
 	}
-	IO_WriteW(crtc_base,0x09 | (scanline-1) << 8);
+	IO_WriteW(crtc_base,0x09 | (scanline-1u) << 8u);
 	//Setup the CGA palette using VGA DAC palette
 	for (Bit8u ct=0;ct<16;ct++) VGA_DAC_SetEntry(ct,cga_palette[ct][0],cga_palette[ct][1],cga_palette[ct][2]);
 	//Setup the tandy palette
@@ -846,8 +846,8 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 
 		// init CRTC registers
 		for (Bit16u i = 0; i < 16; i++)
-			IO_WriteW(crtc_base, i | (real_readb(RealSeg(vparams), 
-				RealOff(vparams) + i + crtc_block_index*16) << 8));
+			IO_WriteW(crtc_base, (uint16_t)(i | (real_readb(RealSeg(vparams), 
+				RealOff(vparams) + i + crtc_block_index*16) << 8)));
 	}
 	FinishSetMode(clearmem);
 
@@ -968,11 +968,11 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	
 	if (IS_VGA_ARCH && (svgaCard == SVGA_S3Trio)) {
 	// unlock the S3 registers
-		IO_Write(crtc_base,0x38);IO_Write(crtc_base+1,0x48);	//Register lock 1
-		IO_Write(crtc_base,0x39);IO_Write(crtc_base+1,0xa5);	//Register lock 2
+		IO_Write(crtc_base,0x38);IO_Write(crtc_base+1u,0x48);	//Register lock 1
+		IO_Write(crtc_base,0x39);IO_Write(crtc_base+1u,0xa5);	//Register lock 2
 		IO_Write(0x3c4,0x8);IO_Write(0x3c5,0x06);
 		// Disable MMIO here so we can read / write memory
-		IO_Write(crtc_base,0x53);IO_Write(crtc_base+1,0x0);
+		IO_Write(crtc_base,0x53);IO_Write(crtc_base+1u,0x0);
 	}
 	
 	/* Program Sequencer */
@@ -1056,32 +1056,32 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	/* Program CRTC */
 	/* First disable write protection */
 	IO_Write(crtc_base,0x11);
-	IO_Write(crtc_base+1,IO_Read(crtc_base+1)&0x7f);
+	IO_Write(crtc_base+1u,IO_Read(crtc_base+1u)&0x7f);
 	/* Clear all the regs */
 	for (Bit8u ct=0x0;ct<=0x18;ct++) {
-		IO_Write(crtc_base,ct);IO_Write(crtc_base+1,0);
+		IO_Write(crtc_base,ct);IO_Write(crtc_base+1u,0);
 	}
 	Bit8u overflow=0;Bit8u max_scanline=0;
 	Bit8u ver_overflow=0;Bit8u hor_overflow=0;
 	/* Horizontal Total */
-	IO_Write(crtc_base,0x00);IO_Write(crtc_base+1,(Bit8u)(CurMode->htotal-5));
+	IO_Write(crtc_base,0x00);IO_Write(crtc_base+1u,(Bit8u)(CurMode->htotal-5));
 	hor_overflow|=((CurMode->htotal-5) & 0x100) >> 8;
 	/* Horizontal Display End */
-	IO_Write(crtc_base,0x01);IO_Write(crtc_base+1,(Bit8u)(CurMode->hdispend-1));
+	IO_Write(crtc_base,0x01);IO_Write(crtc_base+1u,(Bit8u)(CurMode->hdispend-1));
 	hor_overflow|=((CurMode->hdispend-1) & 0x100) >> 7;
 	/* Start horizontal Blanking */
-	IO_Write(crtc_base,0x02);IO_Write(crtc_base+1,(Bit8u)CurMode->hdispend);
+	IO_Write(crtc_base,0x02);IO_Write(crtc_base+1u,(Bit8u)CurMode->hdispend);
 	hor_overflow|=((CurMode->hdispend) & 0x100) >> 6;
 	/* End horizontal Blanking */
 	Bitu blank_end=(CurMode->htotal-2) & 0x7f;
-	IO_Write(crtc_base,0x03);IO_Write(crtc_base+1,0x80|(blank_end & 0x1f));
+	IO_Write(crtc_base,0x03);IO_Write(crtc_base+1u,0x80|(blank_end & 0x1f));
 
 	/* Start Horizontal Retrace */
 	Bitu ret_start;
 	if ((CurMode->special & _EGA_HALF_CLOCK) && (CurMode->type!=M_CGA2)) ret_start = (CurMode->hdispend+3);
 	else if (CurMode->type==M_TEXT) ret_start = (CurMode->hdispend+5);
 	else ret_start = (CurMode->hdispend+4);
-	IO_Write(crtc_base,0x04);IO_Write(crtc_base+1,(Bit8u)ret_start);
+	IO_Write(crtc_base,0x04);IO_Write(crtc_base+1u,(Bit8u)ret_start);
 	hor_overflow|=(ret_start & 0x100) >> 4;
 
 	/* End Horizontal Retrace */
@@ -1093,10 +1093,10 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	} else if (CurMode->type==M_TEXT) ret_end = (CurMode->htotal-3) & 0x1f;
 	else ret_end = (CurMode->htotal-4) & 0x1f;
 	
-	IO_Write(crtc_base,0x05);IO_Write(crtc_base+1,(Bit8u)(ret_end | (blank_end & 0x20) << 2));
+	IO_Write(crtc_base,0x05);IO_Write(crtc_base+1u,(Bit8u)(ret_end | (blank_end & 0x20) << 2));
 
 	/* Vertical Total */
-	IO_Write(crtc_base,0x06);IO_Write(crtc_base+1,(Bit8u)(CurMode->vtotal-2));
+	IO_Write(crtc_base,0x06);IO_Write(crtc_base+1u,(Bit8u)(CurMode->vtotal-2));
 	overflow|=((CurMode->vtotal-2) & 0x100) >> 8;
 	overflow|=((CurMode->vtotal-2) & 0x200) >> 4;
 	ver_overflow|=((CurMode->vtotal-2) & 0x400) >> 10;
@@ -1121,16 +1121,16 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	}
 
 	/* Vertical Retrace Start */
-	IO_Write(crtc_base,0x10);IO_Write(crtc_base+1,(Bit8u)vretrace);
+	IO_Write(crtc_base,0x10);IO_Write(crtc_base+1u,(Bit8u)vretrace);
 	overflow|=(vretrace & 0x100) >> 6;
 	overflow|=(vretrace & 0x200) >> 2;
 	ver_overflow|=(vretrace & 0x400) >> 6;
 
 	/* Vertical Retrace End */
-	IO_Write(crtc_base,0x11);IO_Write(crtc_base+1,(vretrace+2) & 0xF);
+	IO_Write(crtc_base,0x11);IO_Write(crtc_base+1u,(vretrace+2) & 0xF);
 
 	/* Vertical Display End */
-	IO_Write(crtc_base,0x12);IO_Write(crtc_base+1,(Bit8u)(CurMode->vdispend-1));
+	IO_Write(crtc_base,0x12);IO_Write(crtc_base+1u,(Bit8u)(CurMode->vdispend-1));
 	overflow|=((CurMode->vdispend-1) & 0x100) >> 7;
 	overflow|=((CurMode->vdispend-1) & 0x200) >> 3;
 	ver_overflow|=((CurMode->vdispend-1) & 0x400) >> 9;
@@ -1155,17 +1155,17 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	}
 
 	/* Vertical Blank Start */
-	IO_Write(crtc_base,0x15);IO_Write(crtc_base+1,(Bit8u)(CurMode->vdispend+vblank_trim));
+	IO_Write(crtc_base,0x15);IO_Write(crtc_base+1u,(Bit8u)(CurMode->vdispend+vblank_trim));
 	overflow|=((CurMode->vdispend+vblank_trim) & 0x100) >> 5;
 	max_scanline|=((CurMode->vdispend+vblank_trim) & 0x200) >> 4;
 	ver_overflow|=((CurMode->vdispend+vblank_trim) & 0x400) >> 8;
 
 	/* Vertical Blank End */
-	IO_Write(crtc_base,0x16);IO_Write(crtc_base+1,(Bit8u)(CurMode->vtotal-vblank_trim-2));
+	IO_Write(crtc_base,0x16);IO_Write(crtc_base+1u,(Bit8u)(CurMode->vtotal-vblank_trim-2));
 
 	/* Line Compare */
 	Bitu line_compare=(CurMode->vtotal < 1024) ? 1023 : 2047;
-	IO_Write(crtc_base,0x18);IO_Write(crtc_base+1,line_compare&0xff);
+	IO_Write(crtc_base,0x18);IO_Write(crtc_base+1u,line_compare&0xff);
 	overflow|=(line_compare & 0x100) >> 4;
 	max_scanline|=(line_compare & 0x200) >> 3;
 	ver_overflow|=(line_compare & 0x400) >> 4;
@@ -1210,17 +1210,17 @@ bool INT10_SetVideoMode(Bit16u mode) {
     /* do NOT apply this to VESA BIOS modes */
 	if (CurMode->mode < 0x100 && CurMode->vdispend==350) underline=0x0f;
 
-	IO_Write(crtc_base,0x09);IO_Write(crtc_base+1,max_scanline);
-	IO_Write(crtc_base,0x14);IO_Write(crtc_base+1,underline);
+	IO_Write(crtc_base,0x09);IO_Write(crtc_base+1u,max_scanline);
+	IO_Write(crtc_base,0x14);IO_Write(crtc_base+1u,underline);
 
 	/* OverFlow */
-	IO_Write(crtc_base,0x07);IO_Write(crtc_base+1,overflow);
+	IO_Write(crtc_base,0x07);IO_Write(crtc_base+1u,overflow);
 
 	if (svgaCard == SVGA_S3Trio) {
 		/* Extended Horizontal Overflow */
-		IO_Write(crtc_base,0x5d);IO_Write(crtc_base+1,hor_overflow);
+		IO_Write(crtc_base,0x5d);IO_Write(crtc_base+1u,hor_overflow);
 		/* Extended Vertical Overflow */
-		IO_Write(crtc_base,0x5e);IO_Write(crtc_base+1,ver_overflow);
+		IO_Write(crtc_base,0x5e);IO_Write(crtc_base+1u,ver_overflow);
 	}
 
 	/* Offset Register */
@@ -1243,18 +1243,18 @@ bool INT10_SetVideoMode(Bit16u mode) {
 		offset = CurMode->hdispend/2;
 	}
 	IO_Write(crtc_base,0x13);
-	IO_Write(crtc_base + 1,offset & 0xff);
+	IO_Write(crtc_base + 1u,offset & 0xff);
 
 	if (svgaCard == SVGA_S3Trio) {
 		/* Extended System Control 2 Register  */
 		/* This register actually has more bits but only use the extended offset ones */
 		IO_Write(crtc_base,0x51);
-		IO_Write(crtc_base + 1,(Bit8u)((offset & 0x300) >> 4));
+		IO_Write(crtc_base + 1u,(Bit8u)((offset & 0x300) >> 4));
 		/* Clear remaining bits of the display start */
 		IO_Write(crtc_base,0x69);
-		IO_Write(crtc_base + 1,0);
+		IO_Write(crtc_base + 1u,0);
 		/* Extended Vertical Overflow */
-		IO_Write(crtc_base,0x5e);IO_Write(crtc_base+1,ver_overflow);
+		IO_Write(crtc_base,0x5e);IO_Write(crtc_base+1u,ver_overflow);
 	}
 
 	/* Mode Control */
@@ -1290,10 +1290,10 @@ bool INT10_SetVideoMode(Bit16u mode) {
 		break;
 	}
 
-	IO_Write(crtc_base,0x17);IO_Write(crtc_base+1,mode_control);
+	IO_Write(crtc_base,0x17);IO_Write(crtc_base+1u,mode_control);
 	/* Renable write protection */
 	IO_Write(crtc_base,0x11);
-	IO_Write(crtc_base+1,IO_Read(crtc_base+1)|0x80);
+	IO_Write(crtc_base+1u,IO_Read(crtc_base+1u)|0x80);
 
 	if (svgaCard == SVGA_S3Trio) {
 		/* Setup the correct clock */
@@ -1323,7 +1323,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 			misc_control_2=0xd0;
 			break;
 		}
-		IO_WriteB(crtc_base,0x67);IO_WriteB(crtc_base+1,misc_control_2);
+		IO_WriteB(crtc_base,0x67);IO_WriteB(crtc_base+1u,misc_control_2);
 	}
 
 	/* Write Misc Output */
@@ -1601,26 +1601,26 @@ dac_text16:
 	if (svgaCard == SVGA_S3Trio) {
 		/* Setup the CPU Window */
 		IO_Write(crtc_base,0x6a);
-		IO_Write(crtc_base+1,0);
+		IO_Write(crtc_base+1u,0);
 		/* Setup the linear frame buffer */
 		IO_Write(crtc_base,0x59);
-		IO_Write(crtc_base+1,(Bit8u)((S3_LFB_BASE >> 24)&0xff));
+		IO_Write(crtc_base+1u,(Bit8u)((S3_LFB_BASE >> 24)&0xff));
 		IO_Write(crtc_base,0x5a);
-		IO_Write(crtc_base+1,(Bit8u)((S3_LFB_BASE >> 16)&0xff));
+		IO_Write(crtc_base+1u,(Bit8u)((S3_LFB_BASE >> 16)&0xff));
 		IO_Write(crtc_base,0x6b); // BIOS scratchpad
-		IO_Write(crtc_base+1,(Bit8u)((S3_LFB_BASE >> 24)&0xff));
+		IO_Write(crtc_base+1u,(Bit8u)((S3_LFB_BASE >> 24)&0xff));
 		
 		/* Setup some remaining S3 registers */
 		IO_Write(crtc_base,0x41); // BIOS scratchpad
-		IO_Write(crtc_base+1,0x88);
+		IO_Write(crtc_base+1u,0x88);
 		IO_Write(crtc_base,0x52); // extended BIOS scratchpad
-		IO_Write(crtc_base+1,0x80);
+		IO_Write(crtc_base+1u,0x80);
 
 		IO_Write(0x3c4,0x15);
 		IO_Write(0x3c5,0x03);
 
 		IO_Write(crtc_base,0x45);
-		IO_Write(crtc_base+1,0x00);
+		IO_Write(crtc_base+1u,0x00);
 
 		// Accellerator setup 
 		Bitu reg_50=S3_XGA_8BPP;
@@ -1639,7 +1639,7 @@ dac_text16:
 			case 1600: reg_50|=S3_XGA_1600; break;
 			default: break;
 		}
-		IO_WriteB(crtc_base,0x50); IO_WriteB(crtc_base+1,reg_50);
+		IO_WriteB(crtc_base,0x50); IO_WriteB(crtc_base+1u,reg_50);
 
 		Bit8u reg_31, reg_3a;
 		switch (CurMode->type) {
@@ -1673,19 +1673,19 @@ dac_text16:
 			reg_31 = 5;
 			break;
 		}
-		IO_Write(crtc_base,0x3a);IO_Write(crtc_base+1,reg_3a);
-		IO_Write(crtc_base,0x31);IO_Write(crtc_base+1,reg_31);	//Enable banked memory and 256k+ access
+		IO_Write(crtc_base,0x3a);IO_Write(crtc_base+1u,reg_3a);
+		IO_Write(crtc_base,0x31);IO_Write(crtc_base+1u,reg_31);	//Enable banked memory and 256k+ access
 
 		IO_Write(crtc_base,0x58);
 		if (vga.vmemsize >= (4*1024*1024))
-			IO_Write(crtc_base+1,0x3);		// 4+ MB window
+			IO_Write(crtc_base+1u,0x3);		// 4+ MB window
 		else if (vga.vmemsize >= (2*1024*1024))
-			IO_Write(crtc_base+1,0x2);		// 2 MB window
+			IO_Write(crtc_base+1u,0x2);		// 2 MB window
 		else
-			IO_Write(crtc_base+1,0x1);		// 1 MB window
+			IO_Write(crtc_base+1u,0x1);		// 1 MB window
 
-		IO_Write(crtc_base,0x38);IO_Write(crtc_base+1,0x48);	//Register lock 1
-		IO_Write(crtc_base,0x39);IO_Write(crtc_base+1,0xa5);	//Register lock 2
+		IO_Write(crtc_base,0x38);IO_Write(crtc_base+1u,0x48);	//Register lock 1
+		IO_Write(crtc_base,0x39);IO_Write(crtc_base+1u,0xa5);	//Register lock 2
 	} else if (svga.set_video_mode) {
 		VGA_ModeExtraData modeData;
 		modeData.ver_overflow = ver_overflow;
@@ -1755,29 +1755,29 @@ Bitu VideoModeMemSize(Bitu mode) {
 	}
 
 	if (!vmodeBlock)
-	        return ~0;
+	        return ~0ul;
 
 	switch(vmodeBlock->type) {
 	case M_LIN4:
-		if (mode >= 0x100 && !allow_vesa_4bpp) return ~0;
+		if (mode >= 0x100 && !allow_vesa_4bpp) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight/2;
 	case M_LIN8:
-		if (mode >= 0x100 && !allow_vesa_8bpp) return ~0;
+		if (mode >= 0x100 && !allow_vesa_8bpp) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight;
 	case M_LIN15:
-		if (mode >= 0x100 && !allow_vesa_15bpp) return ~0;
+		if (mode >= 0x100 && !allow_vesa_15bpp) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight*2;
 	case M_LIN16:
-		if (mode >= 0x100 && !allow_vesa_16bpp) return ~0;
+		if (mode >= 0x100 && !allow_vesa_16bpp) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight*2;
 	case M_LIN24:
-		if (mode >= 0x100 && !allow_vesa_24bpp) return ~0;
+		if (mode >= 0x100 && !allow_vesa_24bpp) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight*3;
 	case M_LIN32:
-		if (mode >= 0x100 && !allow_vesa_32bpp) return ~0;
+		if (mode >= 0x100 && !allow_vesa_32bpp) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight*4;
 	case M_TEXT:
-		if (mode >= 0x100 && !allow_vesa_tty) return ~0;
+		if (mode >= 0x100 && !allow_vesa_tty) return ~0ul;
 		return vmodeBlock->twidth*vmodeBlock->theight*2;
 	default:
 		break;

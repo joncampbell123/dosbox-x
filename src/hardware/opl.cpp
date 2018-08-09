@@ -153,7 +153,7 @@ void operator_advance(op_type* op_pt, Bit32s vib) {
 	
 	// advance waveform time
 	op_pt->tcount += op_pt->tinc;
-	op_pt->tcount += (Bit32s)(op_pt->tinc)*vib/FIXEDPT;
+	op_pt->tcount += (Bit32u)((Bit32s)(op_pt->tinc)*vib)/FIXEDPT;
 
 	op_pt->generator_pos += generator_add;
 }
@@ -168,11 +168,11 @@ void operator_advance_drums(op_type* op_pt1, Bit32s vib1, op_type* op_pt2, Bit32
 	Bit32u snare_phase_bit = (((Bitu)((op_pt1->tcount/FIXEDPT) / 0x100))&1);
 
 	//Hihat
-	Bit32u inttm = (phasebit<<8) | (0x34<<(phasebit ^ (noisebit<<1)));
+	Bit32u inttm = (phasebit<<8u) | (0x34u<<(phasebit ^ (noisebit<<1u)));
 	op_pt1->wfpos = inttm*FIXEDPT;				// waveform position
 	// advance waveform time
 	op_pt1->tcount += op_pt1->tinc;
-	op_pt1->tcount += (Bit32s)(op_pt1->tinc)*vib1/FIXEDPT;
+	op_pt1->tcount += (Bit32u)((Bit32s)(op_pt1->tinc)*vib1)/FIXEDPT;
 	op_pt1->generator_pos += generator_add;
 
 	//Snare
@@ -180,7 +180,7 @@ void operator_advance_drums(op_type* op_pt1, Bit32s vib1, op_type* op_pt2, Bit32
 	op_pt2->wfpos = inttm*FIXEDPT;				// waveform position
 	// advance waveform time
 	op_pt2->tcount += op_pt2->tinc;
-	op_pt2->tcount += (Bit32s)(op_pt2->tinc)*vib2/FIXEDPT;
+	op_pt2->tcount += (Bit32u)((Bit32s)(op_pt2->tinc)*vib2)/FIXEDPT;
 	op_pt2->generator_pos += generator_add;
 
 	//Cymbal
@@ -188,7 +188,7 @@ void operator_advance_drums(op_type* op_pt1, Bit32s vib1, op_type* op_pt2, Bit32
 	op_pt3->wfpos = inttm*FIXEDPT;				// waveform position
 	// advance waveform time
 	op_pt3->tcount += op_pt3->tinc;
-	op_pt3->tcount += (Bit32s)(op_pt3->tinc)*vib3/FIXEDPT;
+	op_pt3->tcount += (Bit32u)((Bit32s)(op_pt3->tinc)*vib3)/FIXEDPT;
 	op_pt3->generator_pos += generator_add;
 }
 
@@ -198,7 +198,7 @@ void operator_advance_drums(op_type* op_pt1, Bit32s vib1, op_type* op_pt2, Bit32
 void operator_output(op_type* op_pt, Bit32s modulator, Bit32s trem) {
 	if (op_pt->op_state != OF_TYPE_OFF) {
 		op_pt->lastcval = op_pt->cval;
-		Bit32u i = (Bit32u)((op_pt->wfpos+modulator)/FIXEDPT);
+		Bit32u i = (Bit32u)(((Bit32s)op_pt->wfpos+modulator)/FIXEDPT);
 
 		// wform: -16384 to 16383 (0x4000)
 		// trem :  32768 to 65535 (0x10000)
@@ -455,7 +455,7 @@ void change_frequency(Bitu chanbase, Bitu regbase, op_type* op_pt) {
 void enable_operator(Bitu regbase, op_type* op_pt, Bit32u act_type) {
 	// check if this is really an off-on transition
 	if (op_pt->act_state == OP_ACT_OFF) {
-		Bits wselbase = regbase;
+		Bits wselbase = (Bits)regbase;
 		if (wselbase>=ARC_SECONDSET) wselbase -= (ARC_SECONDSET-22);	// second set starts at 22
 
 		op_pt->tcount = wavestart[wave_sel[wselbase]]*FIXEDPT;
@@ -735,7 +735,7 @@ void adlib_write(Bitu idx, Bit8u val) {
 		// 0xa0-0xa8 low8 frequency
 		Bitu base = (idx-ARC_FREQ_NUM)&0xff;
 		if (base<9) {
-			Bits opbase = second_set?(base+18):base;
+			Bits opbase = (Bits)(second_set?(base+18u):base);
 #if defined(OPLTYPE_IS_OPL3)
 			if ((adlibreg[0x105]&1) && op[opbase].is_4op_attached) break;
 #endif
@@ -744,13 +744,13 @@ void adlib_write(Bitu idx, Bit8u val) {
 
 			Bitu chanbase = base+second_set;
 
-			change_frequency(chanbase,modbase,&op[opbase]);
-			change_frequency(chanbase,modbase+3,&op[opbase+9]);
+			change_frequency(chanbase,(Bitu)modbase,&op[opbase]);
+			change_frequency(chanbase,(Bitu)modbase+3,&op[opbase+9]);
 #if defined(OPLTYPE_IS_OPL3)
 			// for 4op channels all four operators are modified to the frequency of the channel
 			if ((adlibreg[0x105]&1) && op[second_set?(base+18):base].is_4op) {
-				change_frequency(chanbase,modbase+8,&op[opbase+3]);
-				change_frequency(chanbase,modbase+3+8,&op[opbase+3+9]);
+				change_frequency(chanbase,(Bitu)modbase+8,&op[opbase+3]);
+				change_frequency(chanbase,(Bitu)modbase+3+8,&op[opbase+3+9]);
 			}
 #endif
 		}
@@ -801,7 +801,7 @@ void adlib_write(Bitu idx, Bit8u val) {
 		// regular 0xb0-0xb8
 		Bitu base = (idx-ARC_KON_BNUM)&0xff;
 		if (base<9) {
-			Bits opbase = second_set?(base+18):base;
+			Bits opbase = (Bits)(second_set?(base+18):base);
 #if defined(OPLTYPE_IS_OPL3)
 			if ((adlibreg[0x105]&1) && op[opbase].is_4op_attached) break;
 #endif
@@ -810,14 +810,14 @@ void adlib_write(Bitu idx, Bit8u val) {
 
 			if (val&32) {
 				// operator switched on
-				enable_operator(modbase,&op[opbase],OP_ACT_NORMAL);		// modulator (if 2op)
-				enable_operator(modbase+3,&op[opbase+9],OP_ACT_NORMAL);	// carrier (if 2op)
+				enable_operator((Bitu)modbase,&op[opbase],OP_ACT_NORMAL);		// modulator (if 2op)
+				enable_operator((Bitu)modbase+3,&op[opbase+9],OP_ACT_NORMAL);	// carrier (if 2op)
 #if defined(OPLTYPE_IS_OPL3)
 				// for 4op channels all four operators are switched on
 				if ((adlibreg[0x105]&1) && op[opbase].is_4op) {
 					// turn on chan+3 operators as well
-					enable_operator(modbase+8,&op[opbase+3],OP_ACT_NORMAL);
-					enable_operator(modbase+3+8,&op[opbase+3+9],OP_ACT_NORMAL);
+					enable_operator((Bitu)modbase+8,&op[opbase+3],OP_ACT_NORMAL);
+					enable_operator((Bitu)modbase+3+8,&op[opbase+3+9],OP_ACT_NORMAL);
 				}
 #endif
 			} else {
@@ -838,14 +838,14 @@ void adlib_write(Bitu idx, Bit8u val) {
 
 			// change frequency calculations of modulator and carrier (2op) as
 			// the frequency of the channel has changed
-			change_frequency(chanbase,modbase,&op[opbase]);
-			change_frequency(chanbase,modbase+3,&op[opbase+9]);
+			change_frequency(chanbase,(Bitu)modbase,&op[opbase]);
+			change_frequency(chanbase,(Bitu)modbase+3,&op[opbase+9]);
 #if defined(OPLTYPE_IS_OPL3)
 			// for 4op channels all four operators are modified to the frequency of the channel
 			if ((adlibreg[0x105]&1) && op[second_set?(base+18):base].is_4op) {
 				// change frequency calculations of chan+3 operators as well
-				change_frequency(chanbase,modbase+8,&op[opbase+3]);
-				change_frequency(chanbase,modbase+3+8,&op[opbase+3+9]);
+				change_frequency(chanbase,(Bitu)modbase+8,&op[opbase+3]);
+				change_frequency(chanbase,(Bitu)modbase+3+8,&op[opbase+3+9]);
 			}
 #endif
 		}
@@ -855,7 +855,7 @@ void adlib_write(Bitu idx, Bit8u val) {
 		// 0xc0-0xc8 feedback/modulation type (AM/FM)
 		Bitu base = (idx-ARC_FEEDBACK)&0xff;
 		if (base<9) {
-			Bits opbase = second_set?(base+18):base;
+			Bits opbase = (Bits)(second_set?(base+18):base);
 			Bitu chanbase = base+second_set;
 			change_feedback(chanbase,&op[opbase]);
 #if defined(OPLTYPE_IS_OPL3)
@@ -872,12 +872,12 @@ void adlib_write(Bitu idx, Bit8u val) {
 		Bitu base = (idx-ARC_WAVE_SEL)&0xff;
 		if ((num<6) && (base<22)) {
 #if defined(OPLTYPE_IS_OPL3)
-			Bits wselbase = second_set?(base+22):base;	// for easier mapping onto wave_sel[]
+			Bits wselbase = (Bits)(second_set?(base+22):base);	// for easier mapping onto wave_sel[]
 			// change waveform
 			if (adlibreg[0x105]&1) wave_sel[wselbase] = val&7;	// opl3 mode enabled, all waveforms accessible
 			else wave_sel[wselbase] = val&3;
 			op_type* op_ptr = &op[regbase2modop[wselbase]+((num<3) ? 0 : 9)];
-			change_waveform(wselbase,op_ptr);
+			change_waveform((Bitu)wselbase,op_ptr);
 #else
 			if (adlibreg[0x01]&0x20) {
 				// wave selection enabled, change waveform
@@ -973,10 +973,10 @@ void adlib_getsample(Bit16s* sndptr, Bits numsamples) {
 		endsamples = samples_to_process-cursmp;
 		if (endsamples>BLOCKBUF_SIZE) endsamples = BLOCKBUF_SIZE;
 
-		memset((void*)&outbufl,0,endsamples*sizeof(Bit32s));
+		memset((void*)&outbufl,0,(unsigned int)endsamples*sizeof(Bit32s));
 #if defined(OPLTYPE_IS_OPL3)
 		// clear second output buffer (opl3 stereo)
-		if (adlibreg[0x105]&1) memset((void*)&outbufr,0,endsamples*sizeof(Bit32s));
+		if (adlibreg[0x105]&1) memset((void*)&outbufr,0,(unsigned int)endsamples*sizeof(Bit32s));
 #endif
 
 		// calculate vibrato/tremolo lookup tables
@@ -1127,11 +1127,11 @@ void adlib_getsample(Bit16s* sndptr, Bits numsamples) {
 #if defined(OPLTYPE_IS_OPL3)
 		if ((adlibreg[0x105]&1)==0) max_channel = NUM_CHANNELS/2;
 #endif
-		for (Bits cur_ch=max_channel-1; cur_ch>=0; cur_ch--) {
+		for (Bits cur_ch=(Bits)max_channel-1; cur_ch>=0; cur_ch--) {
 			// skip drum/percussion operators
 			if ((adlibreg[ARC_PERC_MODE]&0x20) && (cur_ch >= 6) && (cur_ch < 9)) continue;
 
-			Bitu k = cur_ch;
+			Bitu k = (Bitu)cur_ch;
 #if defined(OPLTYPE_IS_OPL3)
 			if (cur_ch < 9) {
 				cptr = &op[cur_ch];

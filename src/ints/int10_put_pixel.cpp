@@ -100,20 +100,20 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 				segment = 0xb800;
 			// bits 1 and 0 of y select the bank
 			// two pixels per byte (thus x>>1)
-			offset = (y >> 2) * (CurMode->swidth >> 1) + (x>>1);
+			offset = ((unsigned int)y >> 2u) * ((unsigned int)CurMode->swidth >> 1u) + ((unsigned int)x>>1u);
 			// select the scanline bank
-			offset += (8*1024) * (y & 3);
+			offset += (8u*1024u) * ((unsigned int)y & 3u);
 		} else {
 			segment = 0xb800;
 			// bit 0 of y selects the bank
-			offset = (y >> 1) * (CurMode->swidth >> 1) + (x>>1);
-			offset += (8*1024) * (y & 1);
+			offset = ((unsigned int)y >> 1u) * ((unsigned int)CurMode->swidth >> 1u) + ((unsigned int)x>>1u);
+			offset += (8u*1024u) * ((unsigned int)y & 1u);
 		}
 
 		// update the pixel
 		Bit8u old=real_readb(segment, offset);
 		Bit8u p[2];
-		p[1] = (old >> 4) & 0xf;
+		p[1] = (old >> 4u) & 0xf;
 		p[0] = old & 0xf;
 		Bitu ind = 1-(x & 0x1);
 
@@ -123,7 +123,7 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 		} else {
 			p[ind]=color;
 		}
-		old = (p[1] << 4) | p[0];
+		old = (p[1] << 4u) | p[0];
 		real_writeb(segment,offset, old);
 	}
 	break;
@@ -137,7 +137,7 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 	case M_EGA:
 		{
 			/* Set the correct bitmask for the pixel position */
-			IO_Write(0x3ce,0x8);Bit8u mask=128>>(x&7);IO_Write(0x3cf,mask);
+			IO_Write(0x3ce,0x8);Bit8u mask=128u>>(x&7u);IO_Write(0x3cf,mask);
 			/* Set the color to set/reset register */
 			IO_Write(0x3ce,0x0);IO_Write(0x3cf,color);
 			/* Enable all the set/resets */
@@ -150,8 +150,8 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 				LOG(LOG_INT10,LOG_ERROR)("PutPixel_EGA_p: %x!=%x",(int)CurMode->plength,(int)real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE));
 			if (CurMode->swidth!=(Bitu)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8)
 				LOG(LOG_INT10,LOG_ERROR)("PutPixel_EGA_w: %x!=%x",(int)CurMode->swidth,(int)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8);
-			PhysPt off=0xa0000+real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE)*page+
-				((y*real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8+x)>>3);
+			PhysPt off=0xa0000u+(unsigned int)real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE)*page+
+				(((unsigned int)y*real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8u+(unsigned int)x)>>3u);
 			/* Bitmask and set/reset should do the rest */
 			mem_readb(off);
 			mem_writeb(off,0xff);
@@ -164,12 +164,12 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 		}
 
 	case M_VGA:
-		mem_writeb(PhysMake(0xa000,y*320+x),color);
+		mem_writeb(PhysMake(0xa000,y*320u+x),color);
 		break;
 	case M_LIN8: {
-			if (CurMode->swidth!=(Bitu)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8)
-				LOG(LOG_INT10,LOG_ERROR)("PutPixel_VGA_w: %x!=%x",(int)CurMode->swidth,(int)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8);
-			PhysPt off=S3_LFB_BASE+y*real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8+x;
+			if (CurMode->swidth!=(Bitu)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8u)
+				LOG(LOG_INT10,LOG_ERROR)("PutPixel_VGA_w: %x!=%x",(int)CurMode->swidth,(int)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8u);
+			PhysPt off=S3_LFB_BASE+y*(unsigned int)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8u+x;
 			mem_writeb(off,color);
 			break;
 		}
@@ -209,12 +209,12 @@ void INT10_GetPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u * color) {
 					Bitu cpupage = (real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE) >> 3) & 0x7;
 					segment = cpupage << 10;
 				} else segment = 0xb800;
-				offset = (y >> 2) * (CurMode->swidth >> 1) + (x>>1);
-				offset += (8*1024) * (y & 3);
+				offset = ((unsigned int)y >> 2u) * ((unsigned int)CurMode->swidth >> 1u) + ((unsigned int)x>>1u);
+				offset += (8u*1024u) * (y & 3u);
 			} else {
 				segment = 0xb800;
-				offset = (y >> 1) * (CurMode->swidth >> 1) + (x>>1);
-				offset += (8*1024) * (y & 1);
+				offset = ((unsigned int)y >> 1u) * ((unsigned int)CurMode->swidth >> 1u) + ((unsigned int)x>>1u);
+				offset += (8u*1024u) * (y & 1u);
 			}
 			Bit8u val=real_readb(segment,offset);
 			*color=(val>>((x&1)?0:4)) & 0xf;
@@ -227,9 +227,9 @@ void INT10_GetPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u * color) {
 				LOG(LOG_INT10,LOG_ERROR)("GetPixel_EGA_p: %x!=%x",(int)CurMode->plength,(int)real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE));
 			if (CurMode->swidth!=(Bitu)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8)
 				LOG(LOG_INT10,LOG_ERROR)("GetPixel_EGA_w: %x!=%x",(int)CurMode->swidth,(int)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8);
-			PhysPt off=0xa0000+real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE)*page+
-				((y*real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8+x)>>3);
-			Bitu shift=7-(x & 7);
+			PhysPt off=0xa0000u+(unsigned int)real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE)*page+
+				(((unsigned int)y*(unsigned int)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8u+(unsigned int)x)>>3u);
+			Bitu shift=7u-(x & 7u);
 			/* Set the read map */
 			*color=0;
 			IO_Write(0x3ce,0x4);IO_Write(0x3cf,0);
@@ -248,7 +248,7 @@ void INT10_GetPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u * color) {
 	case M_LIN8: {
 			if (CurMode->swidth!=(Bitu)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8)
 				LOG(LOG_INT10,LOG_ERROR)("GetPixel_VGA_w: %x!=%x",(int)CurMode->swidth,(int)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8);
-			PhysPt off=S3_LFB_BASE+y*real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8+x;
+			PhysPt off=S3_LFB_BASE+(unsigned int)y*(unsigned int)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8u+(unsigned int)x;
 			*color = mem_readb(off);
 			break;
 		}

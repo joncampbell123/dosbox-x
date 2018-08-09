@@ -338,20 +338,20 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x17:	/* Mode Control Register */
 		crtc(mode_control)=val;
-		vga.tandy.line_mask = (~val) & 3;
+		vga.tandy.line_mask = (~val) & 3u;
 		//Byte,word,dword mode
 		if ( crtc(underline_location) & 0x40 )
-			vga.config.addr_shift = 2;
+			vga.config.addr_shift = 2u;
 		else if ( crtc( mode_control) & 0x40 )
-			vga.config.addr_shift = 0;
+			vga.config.addr_shift = 0u;
 		else
-			vga.config.addr_shift = 1;
+			vga.config.addr_shift = 1u;
 
 		if ( vga.tandy.line_mask ) {
-			vga.tandy.line_shift = 13;
-			vga.tandy.addr_mask = (1 << 13) - 1;
+			vga.tandy.line_shift = 13u;
+			vga.tandy.addr_mask = (1u << 13u) - 1u;
 		} else {
-			vga.tandy.addr_mask = ~0;
+			vga.tandy.addr_mask = ~0u;
 			vga.tandy.line_shift = 0;
 		}
 		VGA_CheckScanLength();

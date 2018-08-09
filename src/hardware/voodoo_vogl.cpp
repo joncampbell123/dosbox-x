@@ -332,12 +332,12 @@ void VOGL_BeginMode(INT32 new_mode) {
 	if (current_begin_mode > -1) {
 		if (new_mode != current_begin_mode) {
 			glEnd();
-			if (new_mode > -1) glBegin(new_mode);
+			if (new_mode > -1) glBegin((GLenum)new_mode);
 			current_begin_mode = new_mode;
 		}
 	} else {
 		if (new_mode > -1) {
-			glBegin(new_mode);
+			glBegin((GLenum)new_mode);
 			current_begin_mode = new_mode;
 		}
 	}
@@ -358,7 +358,7 @@ void VOGL_SetDepthMode(Bit32s mode, Bit32s func) {
 			glEnable(GL_DEPTH_TEST);
 			current_depth_mode=1;
 			if (current_depth_func!=func) {
-				glDepthFunc(GL_NEVER+func);
+				glDepthFunc((GLenum)(GL_NEVER+func));
 				current_depth_func=func;
 			}
 		} else {
@@ -369,7 +369,7 @@ void VOGL_SetDepthMode(Bit32s mode, Bit32s func) {
 	} else {
 		if ((mode!=0) && (current_depth_func!=func)) {
 			VOGL_ClearBeginMode();
-			glDepthFunc(GL_NEVER+func);
+			glDepthFunc((GLenum)(GL_NEVER+func));
 			current_depth_func=func;
 		}
 	}

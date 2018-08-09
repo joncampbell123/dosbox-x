@@ -32,7 +32,8 @@
 #if defined (_MSC_VER)						/* MS Visual C++ */
 #include <direct.h>
 #include <io.h>
-#define LONGTYPE(a) a##i64
+#define ULONGTYPE(a) a##ULL
+#define LONGTYPE(a) a##LL
 #define snprintf _snprintf
 #define vsnprintf _vsnprintf
 #define alloca _alloca
@@ -40,6 +41,7 @@
 #else										/* LINUX / GCC */
 #include <dirent.h>
 #include <unistd.h>
+#define ULONGTYPE(a) a##ULL
 #define LONGTYPE(a) a##LL
 #endif
 

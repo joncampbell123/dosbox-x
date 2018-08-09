@@ -142,14 +142,14 @@ Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
 	else mem_writew(buffer+0x04,0x102);						//Vesa version 1.2
 	if (vbe2) {
 		mem_writed(buffer+0x06,RealMake(seg,vbe2_pos));
-		for (i=0;i<sizeof(string_oem);i++) real_writeb(seg,vbe2_pos++,string_oem[i]);
+		for (i=0;i<sizeof(string_oem);i++) real_writeb(seg,vbe2_pos++,(Bit8u)string_oem[i]);
 		mem_writew(buffer+0x14,0x200);					//VBE 2 software revision
 		mem_writed(buffer+0x16,RealMake(seg,vbe2_pos));
-		for (i=0;i<sizeof(string_vendorname);i++) real_writeb(seg,vbe2_pos++,string_vendorname[i]);
+		for (i=0;i<sizeof(string_vendorname);i++) real_writeb(seg,vbe2_pos++,(Bit8u)string_vendorname[i]);
 		mem_writed(buffer+0x1a,RealMake(seg,vbe2_pos));
-		for (i=0;i<sizeof(string_productname);i++) real_writeb(seg,vbe2_pos++,string_productname[i]);
+		for (i=0;i<sizeof(string_productname);i++) real_writeb(seg,vbe2_pos++,(Bit8u)string_productname[i]);
 		mem_writed(buffer+0x1e,RealMake(seg,vbe2_pos));
-		for (i=0;i<sizeof(string_productrev);i++) real_writeb(seg,vbe2_pos++,string_productrev[i]);
+		for (i=0;i<sizeof(string_productrev);i++) real_writeb(seg,vbe2_pos++,(Bit8u)string_productrev[i]);
 	} else {
 		mem_writed(buffer+0x06,int10.rom.oemstring);	//Oemstring
 	}
@@ -293,11 +293,11 @@ foundit:
 	default:
 		return VESA_FAIL;
 	}
-	if (pageSize & 0xFFFF) {
+	if (pageSize & 0xFFFFu) {
 		// It is documented that many applications assume 64k-aligned page sizes
 		// VBETEST is one of them
-		pageSize +=  0xFFFF;
-		pageSize &= ~0xFFFF;
+		pageSize +=  0xFFFFu;
+		pageSize &= ~0xFFFFu;
 	}
 	Bitu pages = 0;
 	if (pageSize > vga.vmemsize) {
@@ -328,7 +328,7 @@ foundit:
 	var_write(&minfo.Reserved_page,0x1);
 	var_write(&minfo.XCharSize,mblock->cwidth);
 	var_write(&minfo.YCharSize,mblock->cheight);
-	if (!int10.vesa_nolfb) var_write(&minfo.PhysBasePtr,S3_LFB_BASE + (hack_lfb_yadjust*host_readw((HostPt)(&minfo.BytesPerScanLine))));
+	if (!int10.vesa_nolfb) var_write(&minfo.PhysBasePtr,S3_LFB_BASE + (hack_lfb_yadjust*(long)host_readw((HostPt)(&minfo.BytesPerScanLine))));
 
 	MEM_BlockWrite(buf,&minfo,sizeof(MODE_INFO));
 	return VESA_SUCCESS;
@@ -599,7 +599,7 @@ static Bitu VESA_PMSetStart(void) {
 	// display start address.
 
 	// TODO wait for retrace in case bl==0x80
-	Bit32u start = (reg_dx << 16) | reg_cx;
+	Bit32u start = (Bit32u)(((unsigned int)reg_dx << 16u) | (unsigned int)reg_cx);
 	vga.config.display_start = start;
 	return 0;
 }
@@ -679,7 +679,7 @@ void INT10_SetupVESA(void) {
 	int10.rom.oemstring=RealMake(0xc000,int10.rom.used);
 	Bitu len=(Bitu)(strlen(string_oem)+1);
 	for (i=0;i<len;i++) {
-		phys_writeb(0xc0000+int10.rom.used++,string_oem[i]);
+		phys_writeb(0xc0000u+(int10.rom.used++),(Bit8u)string_oem[i]);
 	}
 	callback.setwindow=CALLBACK_Allocate();
 	CALLBACK_Setup(callback.setwindow,VESA_SetWindow,CB_RETF, "VESA Real Set Window");

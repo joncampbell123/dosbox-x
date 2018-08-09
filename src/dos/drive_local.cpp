@@ -228,12 +228,12 @@ template <class MT> bool String_HOST_TO_DBCS_SHIFTJIS(char *d/*CROSS_LEN*/,const
 
         if (oc >= 0x100) {
             if ((d+1) >= df) return false;
-            *d++ = (unsigned char)(oc >> 8U);
-            *d++ = (unsigned char)oc;
+            *d++ = (char)(oc >> 8U);
+            *d++ = (char)oc;
         }
         else {
             if (d >= df) return false;
-            *d++ = (unsigned char)oc;
+            *d++ = (char)oc;
         }
     }
 
@@ -262,7 +262,7 @@ template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const host_cnv
             return false; // non-representable
 
         if (d >= df) return false;
-        *d++ = (unsigned char)oc;
+        *d++ = (char)oc;
     }
 
     assert(d <= df);
@@ -288,7 +288,7 @@ bool String_HOST_TO_ASCII(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_L
             return false; // non-representable
 
         if (d >= df) return false;
-        *d++ = (unsigned char)ic;
+        *d++ = (char)ic;
     }
 
     assert(d <= df);
@@ -1275,7 +1275,7 @@ cdromDrive::cdromDrive(const char driveLetter, const char * startdir,Bit16u _byt
 
 bool cdromDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 	if ((flags&0xf)==OPEN_READWRITE) {
-		flags &= ~OPEN_READWRITE;
+		flags &= ~((unsigned int)OPEN_READWRITE);
 	} else if ((flags&0xf)==OPEN_WRITE) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;

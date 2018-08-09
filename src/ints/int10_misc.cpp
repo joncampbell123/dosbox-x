@@ -203,7 +203,7 @@ static void EGA_RIL(Bit16u dx, Bitu& port, Bitu& regs) {
 		port = 0x3C2;
 		break;
 	case 0x28: /* Feature Control register (3BAh mono modes, 3DAh color modes) */
-		port = real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6;
+		port = real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u;
 		break;
 	case 0x30: /* Graphics 1 Position register 3CCh */
 		port = 0x3CC;
@@ -224,10 +224,10 @@ void INT10_EGA_RIL_ReadRegister(Bit8u & bl, Bit16u dx) {
 	if(regs == 0) {
 		if(port) bl = IO_Read(port);
 	} else {
-		if(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+		if(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 		IO_Write(port,bl);
-		bl = IO_Read(port+1);
-		if(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+		bl = IO_Read(port+1u);
+		if(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 		LOG(LOG_INT10,LOG_NORMAL)("EGA RIL read used with multi-reg");
 	}
 }
@@ -240,12 +240,12 @@ void INT10_EGA_RIL_WriteRegister(Bit8u & bl, Bit8u bh, Bit16u dx) {
 		if(port) IO_Write(port,bl);
 	} else {
 		if(port == 0x3c0) {
-			IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+			IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 			IO_Write(port,bl);
 			IO_Write(port,bh);
 		} else {
 			IO_Write(port,bl);
-			IO_Write(port+1,bh);
+			IO_Write(port+1u,bh);
 		}
 		bl = bh;//Not sure
 		LOG(LOG_INT10,LOG_NORMAL)("EGA RIL write used with multi-reg");
@@ -262,11 +262,11 @@ void INT10_EGA_RIL_ReadRegisterRange(Bit8u ch, Bit8u cl, Bit16u dx, PhysPt dst) 
 		if(ch<regs) {
 			if ((Bitu)ch+cl>regs) cl=(Bit8u)(regs-ch);
 			for (Bitu i=0; i<cl; i++) {
-				if(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+				if(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 				IO_Write(port,ch+i);
-				mem_writeb(dst++,IO_Read(port+1));
+				mem_writeb(dst++,IO_Read(port+1u));
 			}
-			if(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+			if(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 		} else LOG(LOG_INT10,LOG_ERROR)("EGA RIL range read from %x for invalid register %x",(int)port,(int)ch);
 	}
 }
@@ -281,7 +281,7 @@ void INT10_EGA_RIL_WriteRegisterRange(Bit8u ch, Bit8u cl, Bit16u dx, PhysPt src)
 		if(ch<regs) {
 			if ((Bitu)ch+cl>regs) cl=(Bit8u)(regs-ch);
 			if(port == 0x3c0) {
-				IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+				IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 				for (Bitu i=0; i<cl; i++) {
 					IO_Write(port,ch+i);
 					IO_Write(port,mem_readb(src++));
@@ -289,7 +289,7 @@ void INT10_EGA_RIL_WriteRegisterRange(Bit8u ch, Bit8u cl, Bit16u dx, PhysPt src)
 			} else {
 				for (Bitu i=0; i<cl; i++) {
 					IO_Write(port,ch+i);
-					IO_Write(port+1,mem_readb(src++));
+					IO_Write(port+1u,mem_readb(src++));
 				}
 			}
 		} else LOG(LOG_INT10,LOG_ERROR)("EGA RIL range write to %x with invalid register %x",(int)port,(int)ch);
@@ -323,12 +323,12 @@ void INT10_EGA_RIL_WriteRegisterSet(Bit16u cx, PhysPt tbl) {
 		} else {
 			Bit8u idx=mem_readb(tbl+2);
 			if(port == 0x3c0) {
-				IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+				IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 				IO_Write(port,idx);
 				IO_Write(port,vl);
 			} else {
 				IO_Write(port,idx);
-				IO_Write(port+1,vl);
+				IO_Write(port+1u,vl);
 			}
 		}
 		tbl+=4;

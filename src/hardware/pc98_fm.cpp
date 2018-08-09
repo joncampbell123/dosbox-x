@@ -63,18 +63,18 @@ extern "C" void _TRACEOUT(const char *fmt,...) {
 
 void getbiospath(OEMCHAR *path, const OEMCHAR *fname, int maxlen) {
     LOG_MSG("PC98FM getbiospath fname='%s'",fname);
-    snprintf(path,maxlen,"%s",fname);
+    snprintf(path,(size_t)maxlen,"%s",fname);
 }
 
 enum {
-	JOY_UP_BIT		    = (1 << 0),
-	JOY_DOWN_BIT		= (1 << 1),
-	JOY_LEFT_BIT		= (1 << 2),
-	JOY_RIGHT_BIT		= (1 << 3),
-	JOY_RAPIDBTN1_BIT	= (1 << 4),
-	JOY_RAPIDBTN2_BIT	= (1 << 5),
-	JOY_BTN1_BIT		= (1 << 6),
-	JOY_BTN2_BIT		= (1 << 7)
+	JOY_UP_BIT		    = (1u << 0u),
+	JOY_DOWN_BIT		= (1u << 1u),
+	JOY_LEFT_BIT		= (1u << 2u),
+	JOY_RIGHT_BIT		= (1u << 3u),
+	JOY_RAPIDBTN1_BIT	= (1u << 4u),
+	JOY_RAPIDBTN2_BIT	= (1u << 5u),
+	JOY_BTN1_BIT		= (1u << 6u),
+	JOY_BTN2_BIT		= (1u << 7u)
 };
 
 
@@ -129,7 +129,7 @@ Bitu pc98_fm86_read(Bitu port,Bitu iolen) {
     auto &cbusm = cbuscore_map[port];
     auto &func = cbusm.inp;
     if (func) return func(port);
-    return ~0;
+    return ~0ul;
 }
 
 // four I/O ports, 2 ports apart
@@ -278,7 +278,7 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         }
 
         irq = section->Get_int("pc-98 fm board irq");
-        baseio = section->Get_hex("pc-98 fm board io port");
+        baseio = (unsigned int)section->Get_hex("pc-98 fm board io port");
 
         pc98_soundbios_enabled = section->Get_bool("pc-98 sound bios");
         pc98_set_msw4_soundbios();

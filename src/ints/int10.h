@@ -20,29 +20,29 @@
 #include "vga.h"
 
 /* TODO: Make this user-configurable */
-#define S3_LFB_BASE		0xE0000000
+#define S3_LFB_BASE		0xE0000000u
 
-#define BIOSMEM_SEG		0x40
+#define BIOSMEM_SEG		0x40u
 
-#define BIOSMEM_INITIAL_MODE  0x10
-#define BIOSMEM_CURRENT_MODE  0x49
-#define BIOSMEM_NB_COLS       0x4A
-#define BIOSMEM_PAGE_SIZE     0x4C
-#define BIOSMEM_CURRENT_START 0x4E
-#define BIOSMEM_CURSOR_POS    0x50
-#define BIOSMEM_CURSOR_TYPE   0x60
-#define BIOSMEM_CURRENT_PAGE  0x62
-#define BIOSMEM_CRTC_ADDRESS  0x63
-#define BIOSMEM_CURRENT_MSR   0x65
-#define BIOSMEM_CURRENT_PAL   0x66
-#define BIOSMEM_NB_ROWS       0x84
-#define BIOSMEM_CHAR_HEIGHT   0x85
-#define BIOSMEM_VIDEO_CTL     0x87
-#define BIOSMEM_SWITCHES      0x88
-#define BIOSMEM_MODESET_CTL   0x89
-#define BIOSMEM_DCC_INDEX     0x8A
-#define BIOSMEM_CRTCPU_PAGE   0x8A
-#define BIOSMEM_VS_POINTER    0xA8
+#define BIOSMEM_INITIAL_MODE  0x10u
+#define BIOSMEM_CURRENT_MODE  0x49u
+#define BIOSMEM_NB_COLS       0x4Au
+#define BIOSMEM_PAGE_SIZE     0x4Cu
+#define BIOSMEM_CURRENT_START 0x4Eu
+#define BIOSMEM_CURSOR_POS    0x50u
+#define BIOSMEM_CURSOR_TYPE   0x60u
+#define BIOSMEM_CURRENT_PAGE  0x62u
+#define BIOSMEM_CRTC_ADDRESS  0x63u
+#define BIOSMEM_CURRENT_MSR   0x65u
+#define BIOSMEM_CURRENT_PAL   0x66u
+#define BIOSMEM_NB_ROWS       0x84u
+#define BIOSMEM_CHAR_HEIGHT   0x85u
+#define BIOSMEM_VIDEO_CTL     0x87u
+#define BIOSMEM_SWITCHES      0x88u
+#define BIOSMEM_MODESET_CTL   0x89u
+#define BIOSMEM_DCC_INDEX     0x8Au
+#define BIOSMEM_CRTCPU_PAGE   0x8Au
+#define BIOSMEM_VS_POINTER    0xA8u
 
 
 /*
@@ -50,53 +50,53 @@
  * VGA registers
  *
  */
-#define VGAREG_ACTL_ADDRESS            0x3c0
-#define VGAREG_ACTL_WRITE_DATA         0x3c0
-#define VGAREG_ACTL_READ_DATA          0x3c1
+#define VGAREG_ACTL_ADDRESS            0x3c0u
+#define VGAREG_ACTL_WRITE_DATA         0x3c0u
+#define VGAREG_ACTL_READ_DATA          0x3c1u
 
-#define VGAREG_INPUT_STATUS            0x3c2
-#define VGAREG_WRITE_MISC_OUTPUT       0x3c2
-#define VGAREG_VIDEO_ENABLE            0x3c3
-#define VGAREG_SEQU_ADDRESS            0x3c4
-#define VGAREG_SEQU_DATA               0x3c5
+#define VGAREG_INPUT_STATUS            0x3c2u
+#define VGAREG_WRITE_MISC_OUTPUT       0x3c2u
+#define VGAREG_VIDEO_ENABLE            0x3c3u
+#define VGAREG_SEQU_ADDRESS            0x3c4u
+#define VGAREG_SEQU_DATA               0x3c5u
 
-#define VGAREG_PEL_MASK                0x3c6
-#define VGAREG_DAC_STATE               0x3c7
-#define VGAREG_DAC_READ_ADDRESS        0x3c7
-#define VGAREG_DAC_WRITE_ADDRESS       0x3c8
-#define VGAREG_DAC_DATA                0x3c9
+#define VGAREG_PEL_MASK                0x3c6u
+#define VGAREG_DAC_STATE               0x3c7u
+#define VGAREG_DAC_READ_ADDRESS        0x3c7u
+#define VGAREG_DAC_WRITE_ADDRESS       0x3c8u
+#define VGAREG_DAC_DATA                0x3c9u
 
-#define VGAREG_READ_FEATURE_CTL        0x3ca
-#define VGAREG_READ_MISC_OUTPUT        0x3cc
+#define VGAREG_READ_FEATURE_CTL        0x3cau
+#define VGAREG_READ_MISC_OUTPUT        0x3ccu
 
-#define VGAREG_GRDC_ADDRESS            0x3ce
-#define VGAREG_GRDC_DATA               0x3cf
+#define VGAREG_GRDC_ADDRESS            0x3ceu
+#define VGAREG_GRDC_DATA               0x3cfu
 
-#define VGAREG_MDA_CRTC_ADDRESS        0x3b4
-#define VGAREG_MDA_CRTC_DATA           0x3b5
-#define VGAREG_VGA_CRTC_ADDRESS        0x3d4
-#define VGAREG_VGA_CRTC_DATA           0x3d5
+#define VGAREG_MDA_CRTC_ADDRESS        0x3b4u
+#define VGAREG_MDA_CRTC_DATA           0x3b5u
+#define VGAREG_VGA_CRTC_ADDRESS        0x3d4u
+#define VGAREG_VGA_CRTC_DATA           0x3d5u
 
-#define VGAREG_MDA_WRITE_FEATURE_CTL   0x3ba
-#define VGAREG_VGA_WRITE_FEATURE_CTL   0x3da
-#define VGAREG_ACTL_RESET              0x3da
-#define VGAREG_TDY_RESET               0x3da
-#define VGAREG_TDY_ADDRESS             0x3da
-#define VGAREG_TDY_DATA                0x3de
-#define VGAREG_PCJR_DATA               0x3da
+#define VGAREG_MDA_WRITE_FEATURE_CTL   0x3bau
+#define VGAREG_VGA_WRITE_FEATURE_CTL   0x3dau
+#define VGAREG_ACTL_RESET              0x3dau
+#define VGAREG_TDY_RESET               0x3dau
+#define VGAREG_TDY_ADDRESS             0x3dau
+#define VGAREG_TDY_DATA                0x3deu
+#define VGAREG_PCJR_DATA               0x3dau
 
-#define VGAREG_MDA_MODECTL             0x3b8
-#define VGAREG_CGA_MODECTL             0x3d8
-#define VGAREG_CGA_PALETTE             0x3d9
+#define VGAREG_MDA_MODECTL             0x3b8u
+#define VGAREG_CGA_MODECTL             0x3d8u
+#define VGAREG_CGA_PALETTE             0x3d9u
 
 /* Video memory */
-#define VGAMEM_GRAPH 0xA000
-#define VGAMEM_CTEXT 0xB800
-#define VGAMEM_MTEXT 0xB000
+#define VGAMEM_GRAPH 0xA000u
+#define VGAMEM_CTEXT 0xB800u
+#define VGAMEM_MTEXT 0xB000u
 
 /* FIXME: Wait, what?? What the hell kind of preprocessor macro is this??? Kill these macros! --J.C. */
 #define BIOS_NCOLS Bit16u ncols=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-#define BIOS_NROWS Bit16u nrows=(Bit16u)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+#define BIOS_NROWS Bit16u nrows=(Bit16u)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1u;
 
 extern Bit8u int10_font_08[256 * 8];
 extern Bit8u int10_font_14[256 * 14];
@@ -155,11 +155,11 @@ typedef struct {
 extern Int10Data int10;
 
 static inline Bit8u CURSOR_POS_COL(Bit8u page) {
-	return real_readb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2);
+	return real_readb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2u);
 }
 
 static inline Bit8u CURSOR_POS_ROW(Bit8u page) {
-	return real_readb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2+1);
+	return real_readb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+page*2u+1u);
 }
 
 bool INT10_SetVideoMode(Bit16u mode);
