@@ -210,7 +210,7 @@ static ROMPageHandler rom_page_handler;
 static ROMAliasPageHandler rom_page_alias_handler;
 
 bool HandlerIsMem(PageHandler *ph) {
-    return (ph == &ram_page_handler || ph == &ram_alias_page_handler);
+    return (ph == &ram_page_handler || ph == &ram_page_handler);
 }
 
 extern bool pcibus_enable;
