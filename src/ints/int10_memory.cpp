@@ -19,8 +19,10 @@
 
 #include "dosbox.h"
 #include "mem.h"
+#include "cpu.h"
 #include "inout.h"
 #include "int10.h"
+#include "callback.h"
 
 bool rom_bios_8x8_cga_font = true;
 bool VGA_BIOS_dont_duplicate_CGA_first_half = false;
@@ -110,6 +112,17 @@ void INT10_ReloadFont(void) {
 
 extern Bitu VGA_BIOS_Size;
 
+static Bitu VGA_ROM_BIOS_ENTRY_cb = 0;
+
+Bitu VGA_ROM_BIOS_ENTRY_callback_func(void) {
+    LOG_MSG("VGA ROM BIOS init callback");
+
+    reg_eax = 3;		// 80x25 text
+    CALLBACK_RunRealInt(0x10);
+
+    return CBRET_NONE;
+}
+
 void INT10_SetupRomMemory(void) {
 	/* if no space allocated for video BIOS (such as machine=cga) then return immediately */
 	if (VGA_BIOS_Size == 0) {
@@ -129,14 +142,27 @@ void INT10_SetupRomMemory(void) {
 	int10.rom.used=3;
 	if (IS_EGAVGA_ARCH) {
 		// set up the start of the ROM
-		// FIXME: This needs to emit some sort of valid code at rom_base+3 that,
-		//        when a BIOS or OS does a FAR CALL to it, does something then returns
-		//        via RETF. Right now, if a BIOS were to CALL the entry point the CPU
-		//        would run off into the weeds executing a lot of 0x00 bytes and junk.
+
+        // we must make valid boot code at seg:3. return value is callback index
+        if (VGA_ROM_BIOS_ENTRY_cb == 0) {
+            VGA_ROM_BIOS_ENTRY_cb = CALLBACK_Allocate();
+            CALLBACK_Setup(VGA_ROM_BIOS_ENTRY_cb,VGA_ROM_BIOS_ENTRY_callback_func,CB_RETF,"VGA ROM BIOS boot up entry point");
+        }
+
+        // ROM signature
 		phys_writew(rom_base+0,0xaa55);
 		phys_writeb(rom_base+2,VGA_BIOS_Size >> 9);
+        // entry point
+        phys_writeb(rom_base+3,0xFE); // Callback instruction
+        phys_writeb(rom_base+4,0x38);
+        phys_writew(rom_base+5,VGA_ROM_BIOS_ENTRY_cb);
+        phys_writeb(rom_base+7,0xCB); // RETF
+
+        // VGA BIOS copyright
 		if (IS_VGA_ARCH) phys_writes(rom_base+0x1e, "IBM compatible VGA BIOS", 24);
 		else phys_writes(rom_base+0x1e, "IBM compatible EGA BIOS", 24);
+
+        // and then other data follows
 		int10.rom.used=0x100;
 	}
 	if (VGA_BIOS_dont_duplicate_CGA_first_half) {

@@ -17,7 +17,7 @@
  */
 
 #include <math.h> /* for isinf, etc */
-
+#include "cpu/lazyflags.h"
 static void FPU_FINIT(void) {
 	unsigned int i;
 
@@ -477,11 +477,15 @@ static void FPU_FCOM(Bitu st, Bitu other){
 	FPU_SET_C3(0);FPU_SET_C2(0);FPU_SET_C0(0);return;
 }
 
-static void FPU_FCOMI(Bitu st, Bitu other){
-	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
-		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
-		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,true);SETFLAGBIT(CF,true);return;
-	}
+static void FPU_FUCOM(Bitu st, Bitu other){
+	//does atm the same as fcom 
+	FPU_FCOM(st,other);
+}
+
+static void FPU_FUCOMI(Bitu st, Bitu other){
+	
+	FillFlags();
+	SETFLAGBIT(OF,false);
 
 	if(fpu.regs[st].d == fpu.regs[other].d){
 		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
@@ -493,14 +497,14 @@ static void FPU_FCOMI(Bitu st, Bitu other){
 	SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
 }
 
-static void FPU_FUCOM(Bitu st, Bitu other){
-	//does atm the same as fcom 
-	FPU_FCOM(st,other);
-}
+static void FPU_FCOMI(Bitu st, Bitu other){
+	FPU_FUCOMI(st,other);
 
-static void FPU_FUCOMI(Bitu st, Bitu other){
-	//does atm the same as fcomi
-	FPU_FCOMI(st,other);
+	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
+		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
+		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,true);SETFLAGBIT(CF,true);return;
+	}
+
 }
 
 static void FPU_FRNDINT(void){

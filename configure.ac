@@ -8,7 +8,7 @@ AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
 
 dnl Setup for automake
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.

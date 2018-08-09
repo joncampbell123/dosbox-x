@@ -938,6 +938,9 @@ void DOSBOX_SetupConfigSections(void) {
 			"If it is not set, Windows Vista/7/8/10 and higher may upscale the DOSBox window\n"
 			"on higher resolution monitors which is probably not what you want.");
 
+	Pbool = secprop->Add_bool("weitek",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, emulate the Weitek coprocessor. This option only has effect if cputype=386 or cputype=486.");
+
 	Pbool = secprop->Add_bool("bochs debug port e9",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, emulate Bochs debug port E9h. ASCII text written to this I/O port is assumed to be debug output, and logged.");
 
@@ -1860,6 +1863,11 @@ void DOSBOX_SetupConfigSections(void) {
 	secprop=control->AddSection_prop("gus",&Null_Init,true); //done
 	Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false); 	
 	Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
+
+	Pbool = secprop->Add_bool("autoamp",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, GF1 output will reduce in volume automatically if the sum of all channels exceeds full volume.\n"
+                    "If not set, then loud music will clip to full volume just as it would on real hardware.\n"
+                    "Enable this option for loud music if you want a more pleasing rendition without saturation and distortion.");
 
 	Pbool = secprop->Add_bool("unmask dma",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Start the DOS virtual machine with the DMA channel already unmasked at the controller.\n"

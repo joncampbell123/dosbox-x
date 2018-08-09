@@ -1,3 +1,11 @@
+9/21/2017
+
+Pentium Pro instruction set implementation
+https://github.com/joncampbell123/dosbox-x/pull/305
+
+MMX instruction set recompiler for core=dynamic
+https://github.com/joncampbell123/dosbox-x/pull/290
+
 0.74
   - Several small game specific fixes/hacks/support. (Offensive,
     Roadhog, GTA installer, Kingdom O' Magic soundcard detection, 
