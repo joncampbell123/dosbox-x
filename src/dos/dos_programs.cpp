@@ -543,6 +543,7 @@ static void SHOWGUI_ProgramStart(Program * * make) {
 extern Bit32u floppytype;
 extern bool dos_kernel_disabled;
 extern bool boot_debug_break;
+extern Bitu BIOS_bootfail_code_offset;
 
 void DisableINT33();
 void EMS_DoShutDown();
@@ -551,7 +552,24 @@ void DOS_DoShutDown();
 void GUS_DOS_Shutdown();
 void SBLASTER_DOS_Shutdown();
 
+extern int swapInDisksSpecificDrive;
+
 class BOOT : public Program {
+public:
+    BOOT() {
+        for (size_t i=0;i < MAX_SWAPPABLE_DISKS;i++) newDiskSwap[i] = NULL;
+    }
+    virtual ~BOOT() {
+        for (size_t i=0;i < MAX_SWAPPABLE_DISKS;i++) {
+            if (newDiskSwap[i] != NULL) {
+                newDiskSwap[i]->Release();
+                newDiskSwap[i] = NULL;
+            }
+        }
+    }
+public:
+    imageDisk *newDiskSwap[MAX_SWAPPABLE_DISKS];
+
 private:
    
 	FILE *getFSFile_mounted(char const* filename, Bit32u *ksize, Bit32u *bsize, Bit8u *error) {
@@ -648,19 +666,17 @@ private:
 public:
    
 	void Run(void) {
-        bool force = false;
+        bool swaponedrive = false;
 
         boot_debug_break = false;
         if (cmd->FindExist("-debug",true))
             boot_debug_break = true;
 
-        if (cmd->FindExist("-force",true))
-            force = true;
+        if (cmd->FindExist("-swap-one-drive",true))
+            swaponedrive = true;
 
-        if (IS_PC98_ARCH && !force) {
-            WriteOut("Booting from PC-98 mode is not supported yet\n");
-            return;
-        }
+        if (cmd->FindExist("-force",true))
+            { /* no-op */ }
 
 		//Hack To allow long commandlines
 		ChangeToLongCmd();
@@ -744,19 +760,22 @@ public:
 				if(usefile != NULL) {
                     char tmp[256];
 
-					if(diskSwap[i] != NULL) diskSwap[i]->Release();
+					if (newDiskSwap[i] != NULL) {
+                        newDiskSwap[i]->Release();
+                        newDiskSwap[i] = NULL;
+                    }
 
                     fseeko64(usefile, 0L, SEEK_SET);
                     fread(tmp,256,1,usefile); // look for magic signatures
 
                     if (!memcmp(tmp,"VFD1.",5)) { /* FDD files */
-                        diskSwap[i] = new imageDiskVFD(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
+                        newDiskSwap[i] = new imageDiskVFD(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
                     }
                     else {
-                        diskSwap[i] = new imageDisk(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
+                        newDiskSwap[i] = new imageDisk(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
                     }
-					diskSwap[i]->Addref();
-					if (diskSwap[i]->active && !diskSwap[i]->hardDrive) incrementFDD(); //moved from imageDisk constructor
+					newDiskSwap[i]->Addref();
+					if (newDiskSwap[i]->active && !newDiskSwap[i]->hardDrive) incrementFDD(); //moved from imageDisk constructor
 
 					if (usefile_1==NULL) {
 						usefile_1=usefile;
@@ -774,9 +793,57 @@ public:
 			i++;
 		}
 
-		swapPosition = 0;
+        if (i == 0) {
+            WriteOut("No images specified");
+            return;
+        }
 
-		swapInDisks();
+        if (i > 1) {
+            /* if more than one image is given, then this drive becomes the focus of the swaplist */
+            if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive != (drive - 65)) {
+                WriteOut("Multiple disk images specified and another drive is already connected to the swap list");
+                return;
+            }
+            else if (swapInDisksSpecificDrive < 0 && swaponedrive) {
+                swapInDisksSpecificDrive = drive - 65;
+            }
+
+            /* transfer to the diskSwap array */
+            for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
+                if (diskSwap[si] != NULL) {
+                    diskSwap[si]->Release();
+                    diskSwap[si] = NULL;
+                }
+
+                diskSwap[si] = newDiskSwap[si];
+                newDiskSwap[si] = NULL;
+            }
+
+            swapPosition = 0;
+            swapInDisks();
+        }
+        else {
+            if (swapInDisksSpecificDrive == (drive - 65)) {
+                /* if we're replacing the diskSwap drive clear it now */
+                for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
+                    if (diskSwap[si] != NULL) {
+                        diskSwap[si]->Release();
+                        diskSwap[si] = NULL;
+                    }
+                }
+
+                swapInDisksSpecificDrive = -1;
+            }
+
+            /* attach directly without using the swap list */
+            if (imageDiskList[drive-65] != NULL) {
+                imageDiskList[drive-65]->Release();
+                imageDiskList[drive-65] = NULL;
+            }
+
+            imageDiskList[drive-65] = newDiskSwap[0];
+            newDiskSwap[0] = NULL;
+        }
 
 		if(imageDiskList[drive-65]==NULL) {
 			WriteOut(MSG_Get("PROGRAM_BOOT_UNABLE"), drive);
@@ -795,7 +862,10 @@ public:
         /* NTS: Load address is 128KB - sector size */
         load_seg=IS_PC98_ARCH ? (0x2000 - (bootsize/16U)) : 0x07C0;
 
-		imageDiskList[drive-65]->Read_Sector(0,0,1,(Bit8u *)&bootarea);
+		if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (Bit8u *)&bootarea) != 0) {
+			WriteOut("Error reading drive");
+			return;
+		};
 
 		Bitu pcjr_hdr_length = 0;
 		Bit8u pcjr_hdr_type = 0; // not a PCjr cartridge
@@ -1049,6 +1119,11 @@ public:
                 reg_eax = 0x30;
                 reg_edx = 0x1;
 
+                /* PC-98 MS-DOS boot sector behavior suggests that the BIOS does a CALL FAR
+                 * to the boot sector, and the boot sector can RETF back to the BIOS on failure. */
+                CPU_Push16(BIOS_bootfail_code_offset >> 4); /* segment */
+                CPU_Push16(BIOS_bootfail_code_offset & 0xF); /* offset */
+
                 /* clear the text layer */
                 for (unsigned int i=0;i < (80*25*2);i += 2) {
                     mem_writew(0xA0000+i,0x0000);
@@ -1065,7 +1140,7 @@ public:
 
                 imageDiskList[drive-65]->Get_Geometry(&heads,&cyls,&sects,&ssize);
 
-                Bitu disk_equip = 0,disk_equip_144 = 0;
+                Bitu disk_equip = 0,disk_equip_144 = 0,scsi_equip = 0;
 
                 /* FIXME: MS-DOS appears to be able to see disk image B: but only
                  *        if the disk format is the same, for some reason.
@@ -1080,20 +1155,43 @@ public:
                     }
                 }
 
+                for (unsigned int i=0;i < 2;i++) {
+                    if (imageDiskList[i+2] != NULL) {
+                        scsi_equip |= (1 << i);
+
+                        Bitu m = 0x460 + (i * 4);
+
+                        mem_writeb(m+0,sects);
+                        mem_writeb(m+1,heads);
+                        mem_writew(m+2,(cyls & 0xFFF) + (ssize == 512 ? 0x1000 : 0) + (ssize == 1024 ? 0x2000 : 0) + 0x8000/*NP2:hwsec*/);
+                    }
+                }
+
                 if (ssize == 1024 && heads == 2 && cyls == 77 && sects == 8) {
                     mem_writeb(0x584,0x90/*type*/ + (drive - 65)/*drive*/); /* 1.2MB 3-mode */
                     mem_writew(0x55C,disk_equip);   /* disk equipment (drive 0 is present) */
                     mem_writew(0x5AE,disk_equip_144);   /* disk equipment (drive 0 is present, 1.44MB) */
+                    mem_writeb(0x482,scsi_equip);
                 }
                 else if (ssize == 512 && heads == 2 && cyls == 80 && sects == 18) {
                     mem_writeb(0x584,0x30/*type*/ + (drive - 65)/*drive*/); /* 1.44MB */
                     mem_writew(0x55C,disk_equip);   /* disk equipment (drive 0 is present) */
                     mem_writew(0x5AE,disk_equip_144);   /* disk equipment (drive 0 is present, 1.44MB) */
+                    mem_writeb(0x482,scsi_equip);
                 }
-                /* TODO: 640KB? */
+                else if (drive >= 'C') {
+                    /* hard drive */
+                    mem_writeb(0x584,0xA0/*type*/ + (drive - 'C')/*drive*/);
+                    mem_writew(0x55C,disk_equip);   /* disk equipment (drive 0 is present) */
+                    mem_writew(0x5AE,disk_equip_144);   /* disk equipment (drive 0 is present, 1.44MB) */
+                    mem_writeb(0x482,scsi_equip);
+                }
                 else {
-                    /* TODO: hard drive */
-                    mem_writeb(0x584,0x00/*type*/ + 0x00/*drive*/);
+                    // FIXME
+                    mem_writeb(0x584,0x00);
+                    mem_writew(0x55C,disk_equip);   /* disk equipment (drive 0 is present) */
+                    mem_writew(0x5AE,disk_equip_144);   /* disk equipment (drive 0 is present, 1.44MB) */
+                    mem_writeb(0x482,scsi_equip);
                 }
             }
             else {
@@ -2240,7 +2338,7 @@ public:
 			LOG_MSG("BUG! unsupported floppy_emu_type in El Torito floppy object\n");
 		}
 
-        diskSizeK = (((heads * cylinders * sectors * sector_size) + 1023) / 1024);
+        diskSizeK = ((Bit64u)heads * cylinders * sectors * sector_size) / 1024;
 		active = true;
 	}
 	virtual ~imageDiskElToritoFloppy() {
@@ -2412,8 +2510,9 @@ public:
 		}
 			
 		// find all file parameters, assuming that all option parameters have been removed
-		ParseFiles(paths);
+		ParseFiles(temp_line, paths);
 
+		// some generic checks
 		if (el_torito != "") {
 			if (paths.size() != 0) {
 				WriteOut("Do not specify files when mounting virtual floppy disk images from El Torito bootable CDs\n");
@@ -2425,15 +2524,12 @@ public:
 				WriteOut("Do not specify files when mounting ramdrives\n");
 				return;
 			}
-			temp_line = "";
 		}
 		else {
             if (paths.size() == 0) {
                 WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_FILE"));
                 return;	
             }
-            if (paths.size() == 1)
-                temp_line = paths[0];
         }
 
 		//====== call the proper subroutine ======
@@ -2446,6 +2542,7 @@ public:
 				if (!MountRam(sizes, drive, ide_index, ide_slave)) return;
 			}
 			else {
+				//supports multiple files
 				if (!MountFat(sizes, drive, type == "hdd", str_size, paths, ide_index, ide_slave)) return;
             }
 		} else if (fstype=="iso") {
@@ -2453,9 +2550,25 @@ public:
 				WriteOut("El Torito bootable CD: -fs iso mounting not supported\n"); /* <- NTS: Will never implement, either */
 				return;
 			}
+			//supports multiple files
 			if (!MountIso(drive, paths, ide_index, ide_slave)) return;
 		} else if (fstype=="none") {
 			unsigned char driveIndex = drive - '0';
+
+            if (paths.size() > 1) {
+                if (driveIndex >= 0 && driveIndex <= 1) {
+                    if (swapInDisksSpecificDrive >= 0 && swapInDisksSpecificDrive <= 1 &&
+                        swapInDisksSpecificDrive != driveIndex) {
+                        WriteOut("Multiple images given and another drive already uses multiple images");
+                        return;
+                    }
+                }
+                else {
+                    WriteOut("Multiple disk images not supported for that drive");
+                    return;
+                }
+            }
+
 			if (el_torito != "") {
 				newImage = new imageDiskElToritoFloppy(el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
 			}
@@ -2463,7 +2576,7 @@ public:
 				newImage = MountImageNoneRam(sizes, reserved_cylinders, driveIndex < 2);
 			}
 			else {
-				newImage = MountImageNone(sizes, reserved_cylinders);
+				newImage = MountImageNone(paths[0].c_str(), sizes, reserved_cylinders);
 			}
 			if (newImage == NULL) return;
 			newImage->Addref();
@@ -2475,7 +2588,31 @@ public:
 			}
 			else {
 				if (AttachToBiosAndIdeByIndex(newImage, driveIndex, ide_index, ide_slave)) {
-					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', temp_line.c_str());
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', paths[0].c_str());
+
+                    if (paths.size() > 1) {
+                        for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
+                            if (diskSwap[si] != NULL) {
+                                diskSwap[si]->Release();
+                                diskSwap[si] = NULL;
+                            }
+                        }
+
+                        /* slot 0 is the image we already assigned */
+                        diskSwap[0] = newImage;
+                        diskSwap[0]->Addref();
+                        swapPosition = 0;
+                        swapInDisksSpecificDrive = driveIndex;
+
+                        for (size_t si=1;si < MAX_SWAPPABLE_DISKS && si < paths.size();si++) {
+				            imageDisk *img = MountImageNone(paths[si].c_str(), sizes, reserved_cylinders);
+
+                            if (img != NULL) {
+                                diskSwap[si] = img;
+                                diskSwap[si]->Addref();
+                            }
+                        }
+                    }
 				}
 				else {
 					WriteOut("Invalid mount number");
@@ -2576,33 +2713,33 @@ private:
 		}
 		return true;
 	}
-	void ParseFiles(std::vector<std::string> &paths) {
-		while (cmd->FindCommand((unsigned int)(paths.size() + 2), temp_line) && temp_line.size()) {
+	void ParseFiles(std::string &commandLine, std::vector<std::string> &paths) {
+		while (cmd->FindCommand((unsigned int)(paths.size() + 2), commandLine) && commandLine.size()) {
 #if defined (WIN32) || defined(OS2)
 			/* nothing */
 #else
 			// Linux: Convert backslash to forward slash
-			if (temp_line.size() > 0) {
-				for (size_t i = 0; i < temp_line.size(); i++) {
-					if (temp_line[i] == '\\')
-						temp_line[i] = '/';
+			if (commandLine.size() > 0) {
+				for (size_t i = 0; i < commandLine.size(); i++) {
+					if (commandLine[i] == '\\')
+						commandLine[i] = '/';
 				}
 			}
 #endif
 
 			pref_struct_stat test;
-			if (pref_stat(temp_line.c_str(), &test)) {
+			if (pref_stat(commandLine.c_str(), &test)) {
 				//See if it works if the ~ are written out
-				std::string homedir(temp_line);
+				std::string homedir(commandLine);
 				Cross::ResolveHomedir(homedir);
 				if (!pref_stat(homedir.c_str(), &test)) {
-					temp_line = homedir;
+					commandLine = homedir;
 				}
 				else {
 					// convert dosbox filename to system filename
 					char fullname[CROSS_LEN];
 					char tmp[CROSS_LEN];
-					safe_strncpy(tmp, temp_line.c_str(), CROSS_LEN);
+					safe_strncpy(tmp, commandLine.c_str(), CROSS_LEN);
 
 					Bit8u dummy;
 					if (!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) {
@@ -2616,9 +2753,9 @@ private:
 						return;
 					}
 					ldp->GetSystemFilename(tmp, fullname);
-					temp_line = tmp;
+					commandLine = tmp;
 
-					if (pref_stat(temp_line.c_str(), &test)) {
+					if (pref_stat(commandLine.c_str(), &test)) {
 						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
 						return;
 					}
@@ -2628,7 +2765,7 @@ private:
 				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT"));
 				return;
 			}
-			paths.push_back(temp_line);
+			paths.push_back(commandLine);
 		}
 	}
 
@@ -2888,34 +3025,93 @@ private:
 	}
 
 	bool MountFat(Bitu sizes[], const char drive, const bool isHardDrive, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
-		bool imgsizedetect = isHardDrive && sizes[0] == 0;
-		if (imgsizedetect) {
-			/* .HDI images contain the geometry explicitly in the header. */
-			if (str_size.size() == 0) {
-				const char *ext = strrchr(temp_line.c_str(), '.');
-				if (ext != NULL) {
-					if (!strcasecmp(ext, ".hdi")) {
-						imgsizedetect = false;
-					}
-				}
-			}
-			if (imgsizedetect && !DetectGeometry(sizes)) return false;
-		}
-
 		if (Drives[drive - 'A']) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
 			return false;
 		}
 
+		bool imgsizedetect = isHardDrive && sizes[0] == 0;
+		
 		std::vector<DOS_Drive*> imgDisks;
 		std::vector<std::string>::size_type i;
 		std::vector<DOS_Drive*>::size_type ct;
 
 		for (i = 0; i < paths.size(); i++) {
-			DOS_Drive* newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3]);
-			imgDisks.push_back(newDrive);
-			if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+			char* errorMessage = NULL;
+			imageDisk* vhdImage = NULL;
+
+			//detect hard drive geometry
+			if (imgsizedetect) {
+				bool skipDetectGeometry = false;
+				sizes[0] = 0;
+				sizes[1] = 0;
+				sizes[2] = 0;
+				sizes[3] = 0;
+
+				/* .HDI images contain the geometry explicitly in the header. */
+				if (str_size.size() == 0) {
+					const char *ext = strrchr(paths[i].c_str(), '.');
+					if (ext != NULL) {
+						if (!strcasecmp(ext, ".hdi")) {
+							skipDetectGeometry = true;
+						}
+						//for all vhd files where the system will autodetect the chs values,
+						if (!strcasecmp(ext, ".vhd")) {
+							//load the file with imageDiskVHD, which supports fixed/dynamic/differential disks
+							imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(paths[i].c_str(), false, &vhdImage);
+							switch (ret) {
+							case imageDiskVHD::OPEN_SUCCESS: {
+								//upon successful, go back to old code if using a fixed disk, which patches chs values for incorrectly identified disks
+								skipDetectGeometry = true;
+								imageDiskVHD* vhdDisk = dynamic_cast<imageDiskVHD*>(vhdImage);
+								if (vhdDisk == NULL || vhdDisk->vhdType == imageDiskVHD::VHD_TYPE_FIXED) { //fixed disks would be null here
+									delete vhdDisk;
+									vhdDisk = 0;
+									skipDetectGeometry = false;
+								}
+								break;
+							}
+							case imageDiskVHD::ERROR_OPENING: 
+								errorMessage = (char*)MSG_Get("VHD_ERROR_OPENING"); break;
+							case imageDiskVHD::INVALID_DATA: 
+								errorMessage = (char*)MSG_Get("VHD_INVALID_DATA"); break;
+							case imageDiskVHD::UNSUPPORTED_TYPE: 
+								errorMessage = (char*)MSG_Get("VHD_UNSUPPORTED_TYPE"); break;
+							case imageDiskVHD::ERROR_OPENING_PARENT: 
+								errorMessage = (char*)MSG_Get("VHD_ERROR_OPENING_PARENT"); break;
+							case imageDiskVHD::PARENT_INVALID_DATA: 
+								errorMessage = (char*)MSG_Get("VHD_PARENT_INVALID_DATA"); break;
+							case imageDiskVHD::PARENT_UNSUPPORTED_TYPE: 
+								errorMessage = (char*)MSG_Get("VHD_PARENT_UNSUPPORTED_TYPE"); break;
+							case imageDiskVHD::PARENT_INVALID_MATCH: 
+								errorMessage = (char*)MSG_Get("VHD_PARENT_INVALID_MATCH"); break;
+							case imageDiskVHD::PARENT_INVALID_DATE: 
+								errorMessage = (char*)MSG_Get("VHD_PARENT_INVALID_DATE"); break;
+							}
+						}
+					}
+				}
+				if (!skipDetectGeometry && !DetectGeometry(paths[i].c_str(), sizes)) {
+					errorMessage = (char*)("Unable to detect geometry\n");
+				}
+			}
+
+			DOS_Drive* newDrive = NULL;
+			if (!errorMessage) {
+				if (vhdImage) {
+					newDrive = new fatDrive(vhdImage);
+					vhdImage = NULL;
+				}
+				else {
+					newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3]);
+				}
+				imgDisks.push_back(newDrive);
+				if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
+					errorMessage = (char*)MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE");
+				}
+			}
+			if (errorMessage) {
+				WriteOut(errorMessage);
 				for (ct = 0; ct < imgDisks.size(); ct++) {
 					delete imgDisks[ct];
 				}
@@ -3165,9 +3361,9 @@ private:
 
 	}
 
-	bool DetectGeometry(Bitu sizes[]) {
+	bool DetectGeometry(const char* fileName, Bitu sizes[]) {
 		bool yet_detected = false;
-		FILE * diskfile = fopen64(temp_line.c_str(), "rb+");
+		FILE * diskfile = fopen64(fileName, "rb+");
 		if (!diskfile) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
 			return false;
@@ -3216,8 +3412,7 @@ private:
 		fclose(diskfile);
 		// check it is not dynamic VHD image
 		if (!strcmp((const char*)buf, "conectix")) {
-			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
-			LOG_MSG("Dynamic VHD images are not supported");
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED"));
 			return false;
 		}
 		// check MBR signature for unknown images
@@ -3339,15 +3534,42 @@ private:
 		return true;
 	}
 
-	imageDisk* MountImageNone(Bitu sizes[], const int reserved_cylinders) {
-		Bit32u imagesize;
+	imageDisk* MountImageNone(const char* fileName, const Bitu sizesOriginal[], const int reserved_cylinders) {
 		imageDisk* newImage = 0;
+		Bitu sizes[4];
+		sizes[0] = sizesOriginal[0];
+		sizes[1] = sizesOriginal[1];
+		sizes[2] = sizesOriginal[2];
+		sizes[3] = sizesOriginal[3];
+
+		//check for VHD files
+		if (sizes[0] == 0 /* auto detect size */) {
+			const char *ext = strrchr(fileName, '.');
+			if (ext != NULL) {
+				if (!strcasecmp(ext, ".vhd")) {
+					imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(fileName, false, &newImage);
+					switch (ret) {
+					case imageDiskVHD::ERROR_OPENING: WriteOut(MSG_Get("VHD_ERROR_OPENING")); break;
+					case imageDiskVHD::INVALID_DATA: WriteOut(MSG_Get("VHD_INVALID_DATA")); break;
+					case imageDiskVHD::UNSUPPORTED_TYPE: WriteOut(MSG_Get("VHD_UNSUPPORTED_TYPE")); break;
+					case imageDiskVHD::ERROR_OPENING_PARENT: WriteOut(MSG_Get("VHD_ERROR_OPENING_PARENT")); break;
+					case imageDiskVHD::PARENT_INVALID_DATA: WriteOut(MSG_Get("VHD_PARENT_INVALID_DATA")); break;
+					case imageDiskVHD::PARENT_UNSUPPORTED_TYPE: WriteOut(MSG_Get("VHD_PARENT_UNSUPPORTED_TYPE")); break;
+					case imageDiskVHD::PARENT_INVALID_MATCH: WriteOut(MSG_Get("VHD_PARENT_INVALID_MATCH")); break;
+					case imageDiskVHD::PARENT_INVALID_DATE: WriteOut(MSG_Get("VHD_PARENT_INVALID_DATE")); break;
+					}
+					return newImage;
+				}
+			}
+		}
+
+		Bit32u imagesize;
 		/* auto-fill: sector size */
 		if (sizes[0] == 0) sizes[0] = 512;
 
-		FILE *newDisk = fopen64(temp_line.c_str(), "rb+");
+		FILE *newDisk = fopen64(fileName, "rb+");
 		if (!newDisk) {
-			WriteOut("Unable to open '%s'\n", temp_line.c_str());
+			WriteOut("Unable to open '%s'\n", fileName);
 			return NULL;
 		}
 
@@ -3363,7 +3585,7 @@ private:
 			sectors = (Bit64u)qcow2_header.size / (Bit64u)sizes[0];
 			imagesize = (Bit32u)(qcow2_header.size / 1024L);
 			setbuf(newDisk, NULL);
-			newImage = new QCow2Disk(qcow2_header, newDisk, (Bit8u *)temp_line.c_str(), imagesize, sizes[0], (imagesize > 2880));
+			newImage = new QCow2Disk(qcow2_header, newDisk, (Bit8u *)fileName, imagesize, sizes[0], (imagesize > 2880));
 		}
 		else {
 			char tmp[256];
@@ -3376,16 +3598,27 @@ private:
 				sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
 				imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
 				setbuf(newDisk, NULL);
-				newImage = new imageDiskVFD(newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
+				newImage = new imageDiskVFD(newDisk, (Bit8u *)fileName, imagesize, (imagesize > 2880));
 			}
 			else {
 				fseeko64(newDisk, 0L, SEEK_END);
 				sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
 				imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
 				setbuf(newDisk, NULL);
-				newImage = new imageDisk(newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
+				newImage = new imageDisk(newDisk, (Bit8u *)fileName, imagesize, (imagesize > 2880));
 			}
 		}
+
+        /* sometimes imageDisk is able to determine geometry automatically (HDI images) */
+        if (newImage) {
+            if (newImage->sectors != 0 && newImage->heads != 0 && newImage->cylinders != 0 && newImage->sector_size != 0) {
+                /* prevent the code below from changing the geometry */
+                sizes[0] = newImage->sector_size;
+                sizes[1] = newImage->sectors;
+                sizes[2] = newImage->heads;
+                sizes[3] = newImage->cylinders;
+            }
+        }
 
 		/* auto-fill: sector/track count */
 		if (sizes[1] == 0) sizes[1] = 63;
@@ -3394,17 +3627,22 @@ private:
 			sizes[2] = 16; /* typical hard drive, unless a very old drive */
 			sizes[3]/*cylinders*/ = (Bitu)((Bit64u)sectors / (Bit64u)sizes[2]/*heads*/ / (Bit64u)sizes[1]/*sectors/track*/);
 
-			/* INT 13h mapping, deal with 1024-cyl limit */
-			while (sizes[3] > 1024) {
-				if (sizes[2] >= 255) break; /* nothing more we can do */
+            if (IS_PC98_ARCH) {
+                /* TODO: PC-98 has it's own issues with a 4096-cylinder limit */
+            }
+            else {
+                /* INT 13h mapping, deal with 1024-cyl limit */
+                while (sizes[3] > 1024) {
+                    if (sizes[2] >= 255) break; /* nothing more we can do */
 
-											/* try to generate head count 16, 32, 64, 128, 255 */
-				sizes[2]/*heads*/ *= 2;
-				if (sizes[2] >= 256) sizes[2] = 255;
+                    /* try to generate head count 16, 32, 64, 128, 255 */
+                    sizes[2]/*heads*/ *= 2;
+                    if (sizes[2] >= 256) sizes[2] = 255;
 
-				/* and recompute cylinders */
-				sizes[3]/*cylinders*/ = (Bitu)((Bit64u)sectors / (Bit64u)sizes[2]/*heads*/ / (Bit64u)sizes[1]/*sectors/track*/);
-			}
+                    /* and recompute cylinders */
+                    sizes[3]/*cylinders*/ = (Bitu)((Bit64u)sectors / (Bit64u)sizes[2]/*heads*/ / (Bit64u)sizes[1]/*sectors/track*/);
+                }
+            }
 		}
 
 		LOG(LOG_MISC, LOG_NORMAL)("Mounting image as C/H/S %u/%u/%u with %u bytes/sector",
@@ -3909,6 +4147,15 @@ void DOS_SetupPrograms(void) {
 	MSG_Add("PROGRAM_BOOT_CART_LIST_CMDS","Available PCjr cartridge commandos:%s");
 	MSG_Add("PROGRAM_BOOT_CART_NO_CMDS","No PCjr cartridge commandos found");
 
+	MSG_Add("VHD_ERROR_OPENING", "Could not open the specified VHD file.\n");
+	MSG_Add("VHD_INVALID_DATA", "The specified VHD file is corrupt and cannot be opened.\n");
+	MSG_Add("VHD_UNSUPPORTED_TYPE", "The specified VHD file is of an unsupported type.\n");
+	MSG_Add("VHD_ERROR_OPENING_PARENT", "The parent of the specified VHD file could not be found.\n");
+	MSG_Add("VHD_PARENT_INVALID_DATA", "The parent of the specified VHD file is corrupt and cannot be opened.\n");
+	MSG_Add("VHD_PARENT_UNSUPPORTED_TYPE", "The parent of the specified VHD file is of an unsupported type.\n");
+	MSG_Add("VHD_PARENT_INVALID_MATCH", "The parent of the specified VHD file does not contain the expected identifier.\n");
+	MSG_Add("VHD_PARENT_INVALID_DATE", "The parent of the specified VHD file has been changed and cannot be loaded.\n");
+
 	MSG_Add("PROGRAM_IMGMOUNT_SPECIFY_DRIVE","Must specify drive letter to mount image at.\n");
 	MSG_Add("PROGRAM_IMGMOUNT_SPECIFY2","Must specify drive number (0 or 3) to mount image at (0,1=fda,fdb;2,3=hda,hdb).\n");
 	MSG_Add("PROGRAM_IMGMOUNT_SPECIFY_GEOMETRY",
@@ -3919,6 +4166,7 @@ void DOS_SetupPrograms(void) {
 		"\033[34;1mIMGMOUNT drive-letter location-of-image -size bps,spc,hpc,cyl\033[0m\n");
 	MSG_Add("PROGRAM_IMGMOUNT_INVALID_IMAGE","Could not load image file.\n"
 		"Check that the path is correct and the image is accessible.\n");
+	MSG_Add("PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED", "Dynamic VHD files are not supported.\n");
 	MSG_Add("PROGRAM_IMGMOUNT_INVALID_GEOMETRY","Could not extract drive geometry from image.\n"
 		"Use parameter -size bps,spc,hpc,cyl to specify the geometry.\n");
 	MSG_Add("PROGRAM_IMGMOUNT_AUTODET_VALUES","Image geometry auto detection: -size %u,%u,%u,%u\n");

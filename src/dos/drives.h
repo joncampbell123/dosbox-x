@@ -189,6 +189,12 @@ struct partTable {
 	} pentry[4];
 	Bit8u  magic1; /* 0x55 */
 	Bit8u  magic2; /* 0xaa */
+#ifndef SECTOR_SIZE_MAX
+# pragma warning SECTOR_SIZE_MAX not defined
+#endif
+#if SECTOR_SIZE_MAX > 512
+    Bit8u  extra[SECTOR_SIZE_MAX - 512];
+#endif
 } GCC_ATTRIBUTE(packed);
 
 #ifdef _MSC_VER
@@ -200,7 +206,7 @@ class fatDrive : public DOS_Drive {
 public:
 	fatDrive(const char * sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders);
 	fatDrive(imageDisk *sourceLoadedDisk);
-    void fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u filesize);
+    void fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize);
     virtual ~fatDrive();
 	virtual bool FileOpen(DOS_File * * file,const char * name,Bit32u flags);
 	virtual bool FileCreate(DOS_File * * file,const char * name,Bit16u attributes);
@@ -266,6 +272,16 @@ private:
 
 	Bit8u fatSectBuffer[SECTOR_SIZE_MAX * 2];
 	Bit32u curFatSect;
+public:
+    /* the driver code must use THESE functions to read the disk, not directly from the disk drive,
+     * in order to support a drive with a smaller sector size than the FAT filesystem's "sector".
+     *
+     * It is very common for instance to have PC-98 HDI images formatted with 256 bytes/sector at
+     * the disk level and a FAT filesystem marked as having 1024 bytes/sector. */
+	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit32u getSectSize(void);
+	Bit32u sector_size;
 };
 
 

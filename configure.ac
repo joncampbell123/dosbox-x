@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.82.4,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
+AC_INIT(dosbox-x,0.82.5,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README)
 
@@ -131,7 +131,9 @@ AC_CHECK_CXXFLAGS([ -std=gnu++11 ], [  ], [
 ])
 
 if test x$warn_cpp0x = x1; then
-    AC_MSG_WARN([ C++0x is considered deprecated. Please use a C++11 compiler. C++0x support will be removed at a future date. ])
+    AC_MSG_ERROR([ C++0x is considered deprecated. Please use a C++11 compiler.
+C++0x support will be removed at a future date entirely.
+To disable this error, remove or comment out line 133-137 of configure.ac, run autogen.sh and try again. ])
 fi
 
 dnl This is how the build script can specify a HX DOS extender target
@@ -414,7 +416,7 @@ AC_CHECK_HEADER(X11/XKBlib.h, have_x11_h=yes, have_x11_h=no, )
 
 dnl LIBRARY TEST: Fluidsynth support
 AC_CHECK_HEADER(fluidsynth.h,have_fluidsynth_h=yes,)
-AC_CHECK_LIB(fluidsynth, new_fluid_synth, have_fluidsynth_lib=yes,,)
+AC_CHECK_LIB(fluidsynth, fluid_synth_sysex, have_fluidsynth_lib=yes,,)
 
 dnl LIBRARY TEST: FFMPEG support
 AC_CHECK_LIB(avcodec,avcodec_open2,have_ffmpeg=yes,have_ffmpeg=no,)

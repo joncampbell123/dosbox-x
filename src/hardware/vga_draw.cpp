@@ -58,6 +58,8 @@ extern float hretrace_fx_avg_weight;
 extern bool ignore_vblank_wraparound;
 extern bool vga_double_buffered_line_compare;
 
+extern bool pc98_31khz_mode;
+
 void memxor(void *_d,unsigned int byte,size_t count) {
 	unsigned char *d = (unsigned char*)_d;
 	while (count-- > 0) *d++ ^= byte;
@@ -328,6 +330,16 @@ static Bit8u * VGA_Draw_4BPP_Line_Double(Bitu vidstart, Bitu line) {
 	return TempLine;
 }
 
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+static inline Bit32u guest_bgr_to_macosx_rgba(const Bit32u x) {
+    /* guest: XRGB      X   R   G   B
+     * host:  RGBX      B   G   R   X */
+    return      ((x & 0x000000FFU) << 24U) +      /* BBxxxxxx */
+                ((x & 0x0000FF00U) <<  8U) +      /* xxGGxxxx */
+                ((x & 0x00FF0000U) >>  8U);       /* xxxxRRxx */
+}
+#endif
+
 static Bit8u * VGA_Draw_Linear_Line_24_to_32(Bitu vidstart, Bitu /*line*/) {
 	Bitu offset = vidstart & vga.draw.linear_mask;
 	Bitu i;
@@ -341,8 +353,13 @@ static Bit8u * VGA_Draw_Linear_Line_24_to_32(Bitu vidstart, Bitu /*line*/) {
 	 *          extra byte), then overwrites the extra byte with 0xFF to
 	 *          produce a valid RGBA 8:8:8:8 value with the original pixel's
 	 *          RGB plus alpha channel value of 0xFF. */
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+	for (i=0;i < vga.draw.width;i++)
+		((uint32_t*)TempLine)[i] = guest_bgr_to_macosx_rgba(*((uint32_t*)(vga.draw.linear_base+offset+(i*3)))) | 0x000000FF;
+#else
 	for (i=0;i < vga.draw.width;i++)
 		((uint32_t*)TempLine)[i] = *((uint32_t*)(vga.draw.linear_base+offset+(i*3))) | 0xFF000000;
+#endif
 
 	return TempLine;
 }
@@ -678,6 +695,15 @@ static Bit8u * VGA_Draw_LIN16_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
 }
 
 static Bit8u * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+	Bitu offset = vidstart & vga.draw.linear_mask;
+	Bitu i;
+
+	for (i=0;i < vga.draw.width;i++)
+		((uint32_t*)TempLine)[i] = guest_bgr_to_macosx_rgba((((uint32_t*)(vga.draw.linear_base+offset))[i]));
+
+	return TempLine;
+#else
 	if (!svga.hardware_cursor_active || !svga.hardware_cursor_active())
 		return &vga.mem.linear[vidstart];
 
@@ -713,6 +739,7 @@ static Bit8u * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
 		}
 		return TempLine;
 	}
+#endif
 }
 
 static const Bit32u* VGA_Planar_Memwrap(Bitu vidstart) {
@@ -1012,6 +1039,7 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	return TempLine+(16*4);
 }
 
+extern bool pc98_attr4_graphic;
 extern uint8_t GDC_display_plane;
 extern uint8_t GDC_display_plane_pending;
 extern bool pc98_graphics_hide_odd_raster_200line;
@@ -1027,6 +1055,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     Bit16u lineoverlay = 0; // vertical + underline overlay over the character cell, but apparently with a 4-pixel delay
     bool doublewide = false;
     unsigned char font,foreground;
+    unsigned char fline;
     bool ok_raster = true;
 
     // 200-line modes: The BIOS or DOS game can elect to hide odd raster lines
@@ -1084,29 +1113,72 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         blocks = vga.draw.blocks;
         vidmem = pc98_gdc[GDC_MASTER].scan_address;
         while (blocks--) { // for each character in the line
+            /* NTS: On real hardware, in 20-line mode, either the hardware or the BIOS sets
+             *      up the text mode in such a way that the text is centered vertically
+             *      against the cursor, and the cursor fills all 20 lines */
+            fline = pc98_gdc[GDC_MASTER].row_line;
+            if (pc98_gdc[GDC_MASTER].row_height > 16) /* 20-line */
+                fline -= 2; /* vertically center */
+
+            /* Amusing question: How does it handle the "simple graphics" in 20-line mode? */
+
             if (!doublewide) {
 interrupted_char_begin:
                 chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
                 attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
 
-                // NTS: The display handles single-wide vs double-wide by whether or not the 8 bits are nonzero.
-                //      If zero, the char is one cell wide.
-                //      If nonzero, the char is two cells wide (doublewide) and the current character is rendered
-                //      into both cells (the character code in the next cell is ignored). The attribute (as far
-                //      as I know) repeats for both.
-                //
-                //      NTS: It seems different character ROM is used between single and double wide chars.
-                //           Contrary to what this suggests, (chr & 0xFF00) == 0x8000 is doublewide but not the
-                //           same as single-wide (chr & 0xFF00) == 0x0000.
-                //
-                //      Specific ranges that would be fullwidth where bits[6:0] are 0x08 to 0x0B inclusive are
-                //      apparently not fullwidth (the halfwidth char repeats) if both cells filled in.
-                if ((chr & 0xFF00) != 0 && (chr & 0x7CU) != 0x08) {
-                    // left half of doublewide char. it appears only bits[14:8] and bits[6:0] have any real effect on which char is displayed.
-                    doublewide = true;
-                }
+                if (pc98_attr4_graphic && (attr & 0x10)) {
+                    /* the "vertical line" attribute (bit 4) can be redefined as a signal
+                     * to interpret the character as a low res bitmap instead compatible with
+                     * "simple graphics" of the PC-8001 (ref. Carat) */
+                    /* Contrary to what you normally expect of a "bitmap", the pixels are
+                     * in column order.
+                     *     0 1
+                     *     col
+                     *     0 4  r 0
+                     *     1 5  o 1
+                     *     2 6  w 2
+                     *     3 7    3
+                     */
+                    /* The only way a direct bitmap can be encoded in 8 bits is if one character
+                     * cell were 2 pixels wide 4 pixels high, and each pixel was repeated 4 times.
+                     * In case you're wondering, the high byte doesn't appear to be used in this mode.
+                     *
+                     * Setting the high byte seems to blank the cell entirely */
+                    if ((chr & 0xFF00) == 0x00) {
+                        unsigned char bits2 = (chr >> (pc98_gdc[GDC_MASTER].row_line >> 2)) & 0x11;
 
-                font = pc98_font_char_read(chr,pc98_gdc[GDC_MASTER].row_line,0);
+                        font =  ((bits2 & 0x01) ? 0xF0 : 0x00) +
+                                ((bits2 & 0x10) ? 0x0F : 0x00);
+                    }
+                    else {
+                        font = 0;
+                    }
+                }
+                else {
+                    // NTS: The display handles single-wide vs double-wide by whether or not the 8 bits are nonzero.
+                    //      If zero, the char is one cell wide.
+                    //      If nonzero, the char is two cells wide (doublewide) and the current character is rendered
+                    //      into both cells (the character code in the next cell is ignored). The attribute (as far
+                    //      as I know) repeats for both.
+                    //
+                    //      NTS: It seems different character ROM is used between single and double wide chars.
+                    //           Contrary to what this suggests, (chr & 0xFF00) == 0x8000 is doublewide but not the
+                    //           same as single-wide (chr & 0xFF00) == 0x0000.
+                    //
+                    //      Specific ranges that would be fullwidth where bits[6:0] are 0x08 to 0x0B inclusive are
+                    //      apparently not fullwidth (the halfwidth char repeats) if both cells filled in.
+                    if ((chr & 0xFF00) != 0 && (chr & 0x7CU) != 0x08) {
+                        // left half of doublewide char. it appears only bits[14:8] and bits[6:0] have any real effect on which char is displayed.
+                        doublewide = true;
+                    }
+
+                    /* the hardware appears to blank the lines beyond the 16-line cell */
+                    if (fline < 0x10)
+                        font = pc98_font_char_read(chr,fline,0);
+                    else
+                        font = 0;
+                }
             }
             else {
                 // right half of doublewide char.
@@ -1139,7 +1211,11 @@ interrupted_char_begin:
                         goto interrupted_char_begin;
                 }
 
-                font = pc98_font_char_read(chr,pc98_gdc[GDC_MASTER].row_line,1);
+                /* the hardware appears to blank the lines beyond the 16-line cell */
+                if (fline < 0x10)
+                    font = pc98_font_char_read(chr,fline,1);
+                else
+                    font = 0;
             }
 
             lineoverlay <<= 8;
@@ -1165,7 +1241,7 @@ interrupted_char_begin:
             }
 
             /* "vertical line" bit puts a vertical line on the 4th pixel of the cell */
-            if (attr & 0x10) lineoverlay |= 1U << 7U;
+            if (!pc98_attr4_graphic && (attr & 0x10)) lineoverlay |= 1U << 7U;
 
             /* underline fills the row to underline the text */
             if ((attr & 0x08) && line == (vga.crtc.maximum_scan_line & 0x1FU)) lineoverlay |= 0xFFU;
@@ -1932,6 +2008,11 @@ void VGA_ActivateHardwareCursor(void) {
 		case M_LIN24:
 			VGA_DrawLine=VGA_Draw_Linear_Line_24_to_32;
 			break;
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+        case M_LIN32:
+			VGA_DrawLine=VGA_Draw_LIN32_Line_HWMouse;
+            break;
+#endif
 		default:
 			VGA_DrawLine=VGA_Draw_Linear_Line;
 			break;
@@ -2023,7 +2104,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         if (false/*future 15KHz hsync*/) {
             oscclock = 14318180;
         }
-        else if (true/*24KHz hsync*/) {
+        else if (!pc98_31khz_mode/*24KHz hsync*/) {
             oscclock = 21052600;
         }
         else {/*31KHz VGA-like hsync*/
@@ -2112,7 +2193,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             if (false/*future 15KHz hsync*/) {
                 oscclock = 14318180;
             }
-            else if (true/*24KHz hsync*/) {
+            else if (!pc98_31khz_mode/*24KHz hsync*/) {
                 oscclock = 21052600;
             }
             else {/*31KHz VGA-like hsync*/

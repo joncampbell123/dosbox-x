@@ -16,6 +16,9 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "config.h"
+#include "SDL_endian.h"
+
 #if DBPP == 8
 #define PSIZE 1
 #define PTYPE Bit8u
@@ -99,7 +102,11 @@
 #elif DBPP == 16
 #define PMAKE(_VAL) (((_VAL) & 31) | ((_VAL) & ~31) << 1)
 #elif DBPP == 32
-#define PMAKE(_VAL)  (((_VAL&(31<<10))<<9)|((_VAL&(31<<5))<<6)|((_VAL&31)<<3))
+# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+#  define PMAKE(_VAL)  (((_VAL&(31<<10))<<1)|((_VAL&(31<<5))<<14)|((_VAL&31)<<27))
+# else
+#  define PMAKE(_VAL)  (((_VAL&(31<<10))<<9)|((_VAL&(31<<5))<<6)|((_VAL&31)<<3))
+# endif
 #endif
 #define SRCTYPE Bit16u
 #endif
@@ -111,7 +118,11 @@
 #elif DBPP == 16
 #define PMAKE(_VAL) (_VAL)
 #elif DBPP == 32
-#define PMAKE(_VAL)  (((_VAL&(31<<11))<<8)|((_VAL&(63<<5))<<5)|((_VAL&31)<<3))
+# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+#  define PMAKE(_VAL)  (((_VAL&(31<<11))<<0)|((_VAL&(63<<5))<<13)|((_VAL&31)<<27))
+# else
+#  define PMAKE(_VAL)  (((_VAL&(31<<11))<<8)|((_VAL&(63<<5))<<5)|((_VAL&31)<<3))
+# endif
 #endif
 #define SRCTYPE Bit16u
 #endif

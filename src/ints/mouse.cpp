@@ -110,7 +110,7 @@ struct button_event {
 
 extern uint8_t p7fd8_8255_mouse_int_enable;
 
-static uint8_t MOUSE_IRQ = 12; // IBM PC/AT default
+uint8_t MOUSE_IRQ = 12; // IBM PC/AT default
 
 #define QUEUE_SIZE 32
 #define MOUSE_BUTTONS 3
@@ -280,6 +280,8 @@ Bitu PS2_Handler(void) {
 #define MOUSE_DUMMY 128
 #define MOUSE_DELAY 5.0
 
+extern bool p7fd8_8255_mouse_irq_signal;
+
 void MOUSE_Limit_Events(Bitu /*val*/) {
 	mouse.timer_in_progress = false;
 
@@ -292,6 +294,9 @@ void MOUSE_Limit_Events(Bitu /*val*/) {
 	if (mouse.events) {
 		mouse.timer_in_progress = true;
 		PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
+
+        if (IS_PC98_ARCH)
+            p7fd8_8255_mouse_irq_signal = true;
 
         if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
 		    PIC_ActivateIRQ(MOUSE_IRQ);
@@ -316,6 +321,9 @@ INLINE void Mouse_AddEvent(Bit8u type) {
 	if (!mouse.timer_in_progress) {
 		mouse.timer_in_progress = true;
 		PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
+
+        if (IS_PC98_ARCH)
+            p7fd8_8255_mouse_irq_signal = true;
 
         if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
             PIC_ActivateIRQ(MOUSE_IRQ);

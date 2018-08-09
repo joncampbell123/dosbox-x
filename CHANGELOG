@@ -1,4 +1,205 @@
-(next)
+0.82.6 (next)
+  - PC-98 dosbox.conf option added to select between
+    accurate key/shift mapping, vs an alternate mapping
+    appropriate for US keyboards (Yksoft1)
+  - SDL 1.x for Linux/X11 modified to differentiate
+    Ro and Yen keys despite X11 xkbmap apparently
+    mapping both to the backslash. The keymap is
+    queried to detect the scancodes at startup
+    in order to return the correct SDLK constant.
+  - SDL 1.x and DOSBox-X mapper code updated to
+    correctly map Ro, Yen, @ ^ ; : keys on a JP
+    keyboard in Windows and Linux.
+  - PC-98 keyboard BIOS handling updated to generate
+    ASCII codes according to PC-98 layout, instead
+    of by US keyboard layout.
+  - Mapper updated to support @ (at sign) key,
+    ^ (caret) key, and a few other keys that
+    exist on JP keyboards.
+  - "Hold" modifier for mapper bindings fixed.
+    It is now possible to tap the key again to
+    release the hold.
+  - VHD differencing disk support added (Shane32)
+  - INT 18h AH=0Ah updated to support 20-line
+    text mode. Some games use the 20-line text
+    mode to space the text out vertically.
+    Such games will display correctly now.
+  - INT 18h now maintains text layer state
+    in BIOS data area byte 0x53C, just as
+    the actual BIOS does.
+  - Added PC-98 INT 18h function AH=0Ah and
+    AH=0Bh to support BIOS calls that enable
+    "Simple Graphics" mode. This fixes
+    problems with other games having vertical
+    lines over the graphics, even though
+    these games do not appear to use the
+    simple graphics at all. (yksoft1)
+  - Added support for PC-98 "Simple Graphics"
+    mode of text layer attribute bit 4. When
+    enabled, the attribute bit 4 changes
+    meaning from vertical line to a bit
+    indicating that the 8-bit character is
+    a low resolution 2x4 bitmap to be
+    displayed in the text layer. This fixes
+    score and status display in Carat.
+  - PC-98 INT 18h now implements AH=31h to
+    report CRTC, text and graphics state and
+    24khz/31khz video mode selection. This
+    fix allows some games including Touhou
+    Project to pace it's gameplay correctly
+    in either video mode.
+  - MinGW HX DOS builds default to host key
+    F12 again
+  - PC-98 mode now offers selection between
+    24khz and 31khz video modes (yksoft1)
+  - KEYB.COM fixed to load only the fonts the
+    ROM BIOS has allocated. This fixes a guest
+    system crash if using KEYB.COM with
+    machine=ega
+  - Moved host key to F11 for Windows. F12 is
+    already taken by some internal debugging
+    voodoo within Windows itself.
+  - DOSBox-X codebase now strongly encourages
+    compilation with C++11, will become
+    required soon.
+  - BOOT command fixed to make it possible to
+    IMGMOUNT multiple floppies to drive 1, and
+    boot from another disk in drive 0. This
+    should enable the use of DOSBox-X with
+    PC-98 games that expect to boot from drive
+    A and the user to rotate through floppies
+    in drive B.
+  - IMGMOUNT fixed to support mounting with no
+    filesystems and multiple disk images, and
+    using the "swap floppy" command to rotate
+    through them.
+  - Added options to BOOT command that allows
+    specifying multiple disk images and an option
+    that says to swap disk images only through
+    one drive.
+  - VHD dynamic support added (shane32)
+  - INT 10 AH=9 background color fixed in 256-color
+    VGA modes.
+  - Intro text updated to reflect new default
+    key bindings.
+  - Mapper shortcuts not in common use now exist
+    without any default binding, and most existing
+    default bindings are now associated with the
+    "host" key.
+  - Added 4th modifier "host" key to the mapper.
+    This "host" key is F12 by default. The intent
+    is to eventually move most mapper shortcuts
+    to some combination of F12 and another key,
+    rather than many shortcuts scattered over the
+    keyboard. Existing dosbox mapper files should
+    continue to work.
+  - Renderer and 32bpp VGA display code fixed to
+    reorder RGBA order for correct display on Intel
+    Mac OS X systems. Mac OS X, on Intel systems,
+    uses a strange BGRA 32bpp format that requires
+    some adjustment on our part to display correctly.
+  - Added more 24bpp INT 10h VESA BIOS modes.
+  - Removed per-sector debug messages from VFD/FDD
+    image support code.
+0.82.5 (04/18/2018)
+  - Expanded memory manager memory copy fixed to
+    enable A20 gate temporarily so that the copy
+    works correctly.
+  - PC-98 FM board emulation now defaults to IRQ 12
+    instead of IRQ 3. A lot of PC-98 games seem to
+    have a strong preference for that IRQ with regard
+    to FM music.
+  - PC-98 reset I/O port (F0h) fixed to emulate CPU
+    reset according to the SHUT0 and SHUT1 state set
+    by the guest. Normally writing port F0h is a
+    signal to reset but SHUT0 and SHUT1 can be set to
+    indicate alternate behavior. This fixes VEMM486.EXE
+    (an expanded memory manager) and allows it to run,
+    since this manager appears to reset by port F0h
+    then resume execution normally. Prior to this fix,
+    booting a MS-DOS disk image that loads VEMM486.EXE
+    at startup yielded nothing but an infinite reboot
+    loop.
+  - XMS and EMS emulation fixed not to leave A20 gate
+    enabled unless EMS emulation is set to EMM386 and
+    dosbox.conf is set to run the system in virtual
+    8086 mode. There are plenty of DOS games that
+    malfunction if loaded too low in memory with the
+    A20 gate enabled.
+  - PC-98 mouse emulation, at the 8255 level, now uses
+    new C++ abstraction that seems to work fairly well
+    even with the common PC-98 MOUSE.COM driver.
+  - "BOOT" command in PC-98 mode updated to no longer
+    require the --force switch. Booting MS-DOS from a
+    hard disk or floppy disk image in PC-98 mode is
+    generally functional now.
+  - Added PC-98 SCSI/SASI hard disk emulation, and fixed
+    BOOT to enable booting PC-98 MS-DOS from a hard drive
+    (HDI image)
+  - FAT driver fixed to read/write logical sectors vs
+    actual drive sectors and removed geometry remapping
+    hack.
+  - FAT driver fixed to avoid memory corruption that
+    may occur if reading a partition table from a drive
+    that has more than 512 bytes/sector.
+  - .BAT file parsing fixed to handle BAT files not
+    in the current directory (yksoft1)
+  - Fixed floppy controller emulation bug that failed
+    to advance sectors during multi-sector read/write.
+  - Fixed floppy emulation bug that prevented seeking.
+    The "head" would get stuck at track 0 and never move.
+  - Dynamic core allows running with paging enabled again,
+    IF dosbox.conf says to allow it (yksoft1)
+  - DOS file I/O functions AH=3Fh and AH=40h updated to
+    reflect undocumented MS-DOS behavior that silently
+    truncates read/written byte count if the offset
+    and byte count reach beyond the end of a 64KB segment.
+    This fixes some demoscene productions that read 64KB-1
+    bytes but apparently rely on this behavior to avoid
+    display errors.
+  - FluidSynth fixes and API updates. DOSBox-X no longer
+    uses a private API within FluidSynth. (heftig)
+  - Added dosbox.conf option to control the size of the
+    DOS "Swappable Data Area" which is said to help with
+    shelling and task swapping in WordPerfect 5.x and 6.x
+  - Added "minimum mcb free", and set minimum mcb segment to
+    value same or similar to DOSBox SVN. The "free" option
+    directs DOSBox-X to allocate memory before that segment
+    value to fill memory.
+  - Fixed COMMAND.COM PSP segment to correctly identify it's
+    resident size in memory.
+  - COMMAND.COM in the DOSBox shell now allocates itself
+    normally instead of from a special segment so that it
+    appears normally in the MCB allocation chain.
+  - BIOS now clears it's stack before booting the DOS shell.
+  - Fix Pause (CTRL+Pause or ALT+Pause) to release all keys
+    in the mapper so that CTRL, ALT, or Shift are not left
+    "stuck" when emulation resumes.
+  - Initial host keyboard recognition, and base framework
+    for general keyboard language/layout handling. Keyboard
+    layout recognition added for Windows and Linux/X11.
+  - Fixed 350-line INT 10h VESA modes not to apply EGA mode
+    adjustments, which fixes display distortion.
+  - INT 10h VESA modes 720x480 and 848x480 fixed.
+  - Fixed INT 10h VESA emulation to round up bytes/scanline
+    so that 4bpp planar modes display properly.
+  - Fixed INT 10h VESA mode 1400x1050 16-color (4bpp planar)
+    mode to resolve overlapping mode number.
+  - Pulled in VGA vtotal + 2 fix from DOSBox SVN
+  - Pulled in EGA display mode fixes from DOSBox SVN to fix
+    EGA graphics emulation.
+  - Fixed INT 10h AH=1Ch (save/restore VGA state) to handle
+    VGA attribute controller properly so that the display is
+    not left blank.
+  - PC-98 GDC emulation fixed to handle START DISPLAY properly
+    by un-blanking the display (fixes "Ellena")
+  - Fixed possible format string vulnerabilities (gnustomp)
+  - Added menu options to enable/disable EGC and GRCG
+    emulation (yksoft1)
+  - Added options to enable/disable EGC and GRCG emulation
+    (to emulate older hardware).
+  - Added PC-98 BIOS function to read 8x16 character bitmaps,
+    which fixes "Power Dolls 2"
   - BIOS now reports 16-color and EGC graphics. Some games
     that check the BIOS for capabilities may now begin to
     use 16-color graphics and EGC functions.

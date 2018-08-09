@@ -67,6 +67,8 @@ bool ignore_undefined_msr = true;
 
 extern bool ignore_opcode_63;
 
+extern bool use_dynamic_core_with_paging;
+
 bool cpu_double_fault_enable;
 bool cpu_triple_fault_reset;
 
@@ -2865,14 +2867,14 @@ public:
 #if (C_DYNAMIC_X86)
 		CPU_Core_Dyn_X86_Init();
 #endif
-		MAPPER_AddHandler(CPU_CycleDecrease,MK_f11,MMOD1,"cycledown","Dec Cycles");
-		MAPPER_AddHandler(CPU_CycleIncrease,MK_f12,MMOD1,"cycleup"  ,"Inc Cycles");
-		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_equals,MMOD1,"cycauto","AutoCycles");
-		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_1,MMOD1,"normal"  ,"NormalCore");
-		MAPPER_AddHandler(CPU_ToggleFullCore,MK_2,MMOD1,"full","Full Core");
-		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_4,MMOD1,"simple","SimpleCore");
+		MAPPER_AddHandler(CPU_CycleDecrease,MK_minus,MMODHOST,"cycledown","Dec Cycles");
+		MAPPER_AddHandler(CPU_CycleIncrease,MK_equals,MMODHOST,"cycleup"  ,"Inc Cycles");
+		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_nothing,0,"cycauto","AutoCycles");
+		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_nothing,0,"normal"  ,"NormalCore");
+		MAPPER_AddHandler(CPU_ToggleFullCore,MK_nothing,0,"full","Full Core");
+		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_nothing,0,"simple","SimpleCore");
 #if (C_DYNAMIC_X86)
-		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_3,MMOD1,"dynamic","DynCore");
+		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_nothing,0,"dynamic","DynCore");
 #endif
 		Change_Config(configuration);	
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core
@@ -2885,6 +2887,7 @@ public:
 		CPU_SkipCycleAutoAdjust=false;
 
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
+		use_dynamic_core_with_paging = section->Get_bool("use dynamic core with paging on");
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
 		cpu_allow_big16 = section->Get_bool("realbig16");

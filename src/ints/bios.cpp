@@ -2367,6 +2367,33 @@ void update_pc98_function_row(bool enable) {
 void pc98_set_digpal_entry(unsigned char ent,unsigned char grb);
 void PC98_show_cursor(bool show);
 
+extern bool                         gdc_5mhz_mode;
+extern bool                         enable_pc98_egc;
+extern bool                         enable_pc98_grcg;
+extern bool                         enable_pc98_16color;
+extern bool                         pc98_31khz_mode;
+extern bool                         pc98_attr4_graphic;
+
+void pc98_update_text_layer_lineheight_from_bda(void) {
+    unsigned char c = mem_readb(0x53C);
+    unsigned char lineheight = mem_readb(0x53B) + 1;
+
+    pc98_gdc[GDC_MASTER].force_fifo_complete();
+    pc98_gdc[GDC_MASTER].row_height = lineheight;
+}
+
+void pc98_update_text_lineheight_from_bda(void) {
+    unsigned char c = mem_readb(0x53C);
+    unsigned char lineheight;
+
+    if (c & 0x01)/*20-line mode*/
+        lineheight = 20;
+    else         /*25-line mode*/
+        lineheight = 16;
+
+    mem_writeb(0x53B,lineheight - 1);
+}
+
 static Bitu INT18_PC98_Handler(void) {
     Bit16u temp16;
 
@@ -2435,6 +2462,42 @@ static Bitu INT18_PC98_Handler(void) {
                 reg_bh = 0;
             }
             break;
+		case 0x0A: /* set CRT mode */
+			/* bit		off			on
+				0		25lines		20lines
+				1		80cols		40cols
+				2		v.lines		simp.graphics
+				3		K-CG access mode(not used in PC-98) */
+			
+			//TODO: set 25/20 lines mode and 80/40 columns mode.
+			//Attribute bit (bit 2)
+			pc98_attr4_graphic = !!(reg_al & 0x04);
+
+            mem_writeb(0x53C,reg_al);
+
+            if (reg_al & 2)
+                LOG_MSG("INT 18H AH=0Ah warning: 40-column PC-98 text mode not supported");
+            if (reg_al & 8)
+                LOG_MSG("INT 18H AH=0Ah warning: K-CG dot access mode not supported");
+
+            pc98_update_text_lineheight_from_bda();
+            pc98_update_text_layer_lineheight_from_bda();
+
+            /* Apparently, this BIOS call also hides the cursor */
+            PC98_show_cursor(0);
+            break;
+		case 0x0B: /* get CRT mode */
+			/* bit		off			on
+				0		25lines		20lines
+				1		80cols		40cols
+				2		v.lines		simp.graphics
+				3		K-CG access mode(not used in PC-98) 
+				7		std CRT		hi-res CRT */
+            /* NTS: I assume that real hardware doesn't offer a way to read back the state of these bits,
+             *      so the BIOS's only option is to read the mode byte back from the data area.
+             *      Neko Project II agrees. */
+            reg_al = mem_readb(0x53C);
+			break;
         // TODO: "Edge" is using INT 18h AH=06h, what is that?
         //       Neko Project is also unaware of such a call.
         case 0x0C: /* text layer enable */
@@ -2548,6 +2611,50 @@ static Bitu INT18_PC98_Handler(void) {
                 }
             }
             break;
+        case 0x31: /* Return display mode and status */
+            if (enable_pc98_egc) { /* FIXME: INT 18h AH=31/30h availability is tied to EGC enable */
+                unsigned char b597 = mem_readb(0x597);
+                unsigned char tstat = mem_readb(0x53C);
+                /* Return values:
+                 *
+                 * AL =
+                 *      bit [7:7] = ?
+                 *      bit [6:6] = ?
+                 *      bit [5:5] = ?
+                 *      bit [4:4] = ?
+                 *      bit [3:2] = horizontal sync
+                 *                   00 = 15.98KHz
+                 *                   01 = ?
+                 *                   10 = 24.83KHz
+                 *                   11 = 31.47KHz
+                 *      bit [1:1] = ?
+                 *      bit [0:0] = interlaced (1=yes 0=no)
+                 * BH =
+                 *      bit [7:7] = ?
+                 *      bit [6:6] = ?
+                 *      bit [5:4] = graphics video mode
+                 *                   00 = 640x200 (upper half)
+                 *                   01 = 640x200 (lower half)
+                 *                   10 = 640x400
+                 *                   11 = 640x480
+                 *      bit [3:3] = ?
+                 *      bit [2:2] = ?
+                 *      bit [1:0] = number of text rows
+                 *                   00 = 20 rows
+                 *                   01 = 25 rows
+                 *                   10 = 30 rows
+                 *                   11 = ?
+                 */
+                reg_al =
+                    ((pc98_31khz_mode ? 3 : 2) << 2)/*hsync*/;
+                reg_bh =
+                    ((b597 & 3) << 4)/*graphics video mode*/;
+                if (tstat & 0x10)
+                    reg_bh |= 2;/*30 rows*/
+                else if ((tstat & 0x01) == 0)
+                    reg_bh |= 1;/*25 rows*/
+            }
+            break;
         /* From this point on the INT 18h call list appears to wander off from the keyboard into CRT/GDC/display management. */
         case 0x40: /* Start displaying the graphics screen (グラフィック画面の表示開始) */
             pc98_gdc[GDC_SLAVE].force_fifo_complete();
@@ -2596,19 +2703,20 @@ static Bitu INT18_PC98_Handler(void) {
             if ((reg_ch & 0xC0) != 0) {
                 pc98_gdc[GDC_SLAVE].doublescan = ((reg_ch & 0xC0) == 0x40) || ((reg_ch & 0xC0) == 0x80);
                 pc98_gdc[GDC_SLAVE].row_height = pc98_gdc[GDC_SLAVE].doublescan ? 2 : 1;
+
+                /* update graphics mode bits */
+                {
+                    unsigned char b = mem_readb(0x597);
+
+                    b &= ~3;
+                    b |= ((reg_ch >> 6) - 1) & 3;
+
+                    mem_writeb(0x597,b);
+                }
             }
             else {
                 pc98_gdc[GDC_SLAVE].doublescan = false;
                 pc98_gdc[GDC_SLAVE].row_height = 1;
-            }
-
-            {
-                unsigned char b = mem_readb(0x597);
-
-                b &= ~3;
-                b |= (reg_ch - 1) & 3;
-
-                mem_writeb(0x597,b);
             }
 
             {
@@ -2669,6 +2777,200 @@ static unsigned int PC98_FDC_SZ_TO_BYTES(unsigned int sz) {
     return 128U << sz;
 }
 
+int PC98_BIOS_SCSI_POS(imageDisk *floppy,Bit32u &sector) {
+    if (reg_al & 0x80) {
+        Bit32u img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
+
+        floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+
+        /* DL = sector
+         * DH = head
+         * CX = track */
+        if (reg_dl >= img_sect ||
+            reg_dh >= img_heads ||
+            reg_cx >= img_cyl) {
+            return (reg_ah=0x60);
+        }
+
+        sector  = reg_cx;
+        sector *= img_heads;
+        sector += reg_dh;
+        sector *= img_sect;
+        sector += reg_dl;
+
+//        LOG_MSG("Sector CHS %u/%u/%u -> %u (geo %u/%u/%u)",reg_cx,reg_dh,reg_dl,sector,img_cyl,img_heads,img_sect);
+    }
+    else {
+        /* Linear LBA addressing */
+        sector = (reg_dl << 16UL) + reg_cx;
+        /* TODO: SASI caps at 0x1FFFFF according to NP2 */
+    }
+
+    return 0;
+}
+
+void PC98_BIOS_SCSI_CALL(void) {
+    Bit32u img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
+    Bit32u memaddr,size,ssize;
+    imageDisk *floppy;
+    unsigned int i;
+    Bit32u sector;
+    int idx;
+
+#if 0
+            LOG_MSG("PC-98 INT 1Bh SCSI BIOS call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                    reg_ax,
+                    reg_bx,
+                    reg_cx,
+                    reg_dx,
+                    reg_si,
+                    reg_di,
+                    SegValue(ds),
+                    SegValue(es));
+#endif
+
+    idx = (reg_al & 0xF) + 2;
+    if (idx < 0 || idx >= MAX_DISK_IMAGES) {
+        CALLBACK_SCF(true);
+        reg_ah = 0x00;
+        /* TODO? Error code? */
+        return;
+    }
+
+    floppy = imageDiskList[idx];
+    if (floppy == NULL) {
+        CALLBACK_SCF(true);
+        reg_ah = 0x60;
+        return;
+    }
+
+    /* what to do is in the lower 4 bits of AH */
+    switch (reg_ah & 0x0F) {
+        case 0x05: /* write */
+            if (PC98_BIOS_SCSI_POS(floppy,/*&*/sector) == 0) {
+                floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+                assert(img_ssz != 0);
+
+                size = reg_bx;
+                if (size == 0) size = 0x10000U;
+                memaddr = (SegValue(es) << 4) + reg_bp;
+
+                reg_ah = 0;
+                CALLBACK_SCF(false);
+
+//                LOG_MSG("WRITE memaddr=0x%lx size=0x%x sector=0x%lx ES:BP=%04x:%04X",
+//                    (unsigned long)memaddr,(unsigned int)size,(unsigned long)sector,SegValue(es),reg_bp);
+
+                while (size != 0) {
+                    ssize = size;
+                    if (ssize > img_ssz) ssize = img_ssz;
+
+//                    LOG_MSG(" ... memaddr=0x%lx ssize=0x%x sector=0x%lx",
+//                        (unsigned long)memaddr,(unsigned int)ssize,(unsigned long)sector);
+
+                    for (i=0;i < ssize;i++) PC98_BIOS_FLOPPY_BUFFER[i] = mem_readb(memaddr+i);
+
+                    if (floppy->Write_AbsoluteSector(sector,PC98_BIOS_FLOPPY_BUFFER) == 0) {
+                    }
+                    else {
+                        reg_ah = 0xD0;
+                        CALLBACK_SCF(true);
+                        break;
+                    }
+
+                    sector++;
+                    size -= ssize;
+                    memaddr += ssize;
+                }
+            }
+            else {
+                CALLBACK_SCF(true);
+            }
+            break;
+        case 0x06: /* read */
+            if (PC98_BIOS_SCSI_POS(floppy,/*&*/sector) == 0) {
+                floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+                assert(img_ssz != 0);
+
+                size = reg_bx;
+                if (size == 0) size = 0x10000U;
+                memaddr = (SegValue(es) << 4) + reg_bp;
+
+                reg_ah = 0;
+                CALLBACK_SCF(false);
+
+//                LOG_MSG("READ memaddr=0x%lx size=0x%x sector=0x%lx ES:BP=%04x:%04X",
+//                    (unsigned long)memaddr,(unsigned int)size,(unsigned long)sector,SegValue(es),reg_bp);
+
+                while (size != 0) {
+                    ssize = size;
+                    if (ssize > img_ssz) ssize = img_ssz;
+
+//                    LOG_MSG(" ... memaddr=0x%lx ssize=0x%x sector=0x%lx",
+//                        (unsigned long)memaddr,(unsigned int)ssize,(unsigned long)sector);
+
+                    if (floppy->Read_AbsoluteSector(sector,PC98_BIOS_FLOPPY_BUFFER) == 0) {
+                        for (i=0;i < ssize;i++) mem_writeb(memaddr+i,PC98_BIOS_FLOPPY_BUFFER[i]);
+                    }
+                    else {
+                        reg_ah = 0xD0;
+                        CALLBACK_SCF(true);
+                        break;
+                    }
+
+                    sector++;
+                    size -= ssize;
+                    memaddr += ssize;
+                }
+            }
+            else {
+                CALLBACK_SCF(true);
+            }
+            break;
+        case 0x07: /* unknown, always succeeds */
+            reg_ah = 0x00;
+            CALLBACK_SCF(false);
+            break;
+        case 0x0E: /* unknown, always fails */
+            reg_ah = 0x40;
+            CALLBACK_SCF(true);
+            break;
+        case 0x04: /* drive status */
+            if (reg_ah == 0x84) {
+                floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+
+                reg_dl = img_sect;
+                reg_dh = img_heads; /* Max 16 */
+                reg_cx = img_cyl;   /* Max 4096 */
+                reg_bx = img_ssz;
+
+                reg_ah = 0x00;
+                CALLBACK_SCF(false);
+                break;
+            }
+            else if (reg_ah == 0x04 || reg_ah == 0x14) {
+                reg_ah = 0x00;
+                CALLBACK_SCF(false);
+            }
+            else {
+                goto default_goto;
+            }
+        default:
+        default_goto:
+            LOG_MSG("PC-98 INT 1Bh unknown SCSI BIOS call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                    reg_ax,
+                    reg_bx,
+                    reg_cx,
+                    reg_dx,
+                    reg_si,
+                    reg_di,
+                    SegValue(ds),
+                    SegValue(es));
+            CALLBACK_SCF(true);
+            break;
+    };
+}
+
 void PC98_BIOS_FDC_CALL_GEO_UNPACK(unsigned int &fdc_cyl,unsigned int &fdc_head,unsigned int &fdc_sect,unsigned int &fdc_sz) {
     fdc_cyl = reg_cl;
     fdc_head = reg_dh;
@@ -2678,8 +2980,9 @@ void PC98_BIOS_FDC_CALL_GEO_UNPACK(unsigned int &fdc_cyl,unsigned int &fdc_head,
 }
 
 void PC98_BIOS_FDC_CALL(unsigned int flags) {
-    static unsigned int fdc_cyl=0,fdc_head=0,fdc_sect=0,fdc_sz=0; // FIXME: Rename and move out. Making "static" is a hack here.
+    static unsigned int fdc_cyl[2]={0,0},fdc_head[2]={0,0},fdc_sect[2]={0,0},fdc_sz[2]={0,0}; // FIXME: Rename and move out. Making "static" is a hack here.
     Bit32u img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
+    unsigned int drive;
     unsigned int status;
     unsigned int size,accsize,unitsize;
     unsigned long memaddr;
@@ -2694,7 +2997,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
         return;
     }
 
-    floppy = GetINT13FloppyDrive(reg_al & 3);
+    floppy = GetINT13FloppyDrive(drive=(reg_al & 3));
 
     /* what to do is in the lower 4 bits of AH */
     switch (reg_ah & 0x0F) {
@@ -2724,8 +3027,29 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             }
 	        floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
 
-            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl,/*&*/fdc_head,/*&*/fdc_sect,/*&*/fdc_sz);
-            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz);
+            /* Prevent reading 1.44MB floppyies using 1.2MB read commands and vice versa.
+             * FIXME: It seems MS-DOS 5.0 booted from a HDI image has trouble understanding
+             *        when Drive A: (the first floppy) is a 1.44MB drive or not and fails
+             *        because it only attempts it using 1.2MB format read commands. */
+            if (flags & PC98_FLOPPY_RPM_IBMPC) {
+                if (img_ssz == 1024) { /* reject 1.2MB 3-mode format */
+                    CALLBACK_SCF(true);
+                    reg_ah = 0x00;
+                    /* TODO? Error code? */
+                    return;
+                }
+            }
+            else {
+                if (img_ssz == 512) { /* reject IBM PC 1.44MB format */
+                    CALLBACK_SCF(true);
+                    reg_ah = 0x00;
+                    /* TODO? Error code? */
+                    return;
+                }
+            }
+
+            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
+            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
             if (unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0) {
                 CALLBACK_SCF(true);
                 reg_ah = 0x00;
@@ -2738,7 +3062,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             while (size > 0) {
                 accsize = size > unitsize ? unitsize : size;
 
-                if (floppy->Read_Sector(fdc_head,fdc_cyl,fdc_sect,PC98_BIOS_FLOPPY_BUFFER) != 0) {
+                if (floppy->Read_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER) != 0) {
                     CALLBACK_SCF(true);
                     reg_ah = 0x00;
                     /* TODO? Error code? */
@@ -2751,11 +3075,11 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 memaddr += accsize;
                 size -= accsize;
 
-                if ((++fdc_sect) > img_sect) {
-                    fdc_sect = 1;
-                    if ((++fdc_head) >= img_heads) {
-                        fdc_head = 0;
-                        fdc_cyl++;
+                if ((++fdc_sect[drive]) > img_sect) {
+                    fdc_sect[drive] = 1;
+                    if ((++fdc_head[drive]) >= img_heads) {
+                        fdc_head[drive] = 0;
+                        fdc_cyl[drive]++;
                     }
                 }
             }
@@ -2815,8 +3139,8 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
 
             /* TODO: Error if write protected */
 
-            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl,/*&*/fdc_head,/*&*/fdc_sect,/*&*/fdc_sz);
-            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz);
+            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
+            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
             if (unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0) {
                 CALLBACK_SCF(true);
                 reg_ah = 0x00;
@@ -2832,7 +3156,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 for (unsigned int i=0;i < accsize;i++)
                     PC98_BIOS_FLOPPY_BUFFER[i] = mem_readb(memaddr+i);
 
-                if (floppy->Write_Sector(fdc_head,fdc_cyl,fdc_sect,PC98_BIOS_FLOPPY_BUFFER) != 0) {
+                if (floppy->Write_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER) != 0) {
                     CALLBACK_SCF(true);
                     reg_ah = 0x00;
                     /* TODO? Error code? */
@@ -2842,11 +3166,11 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 memaddr += accsize;
                 size -= accsize;
 
-                if ((++fdc_sect) > img_sect) {
-                    fdc_sect = 1;
-                    if ((++fdc_head) >= img_heads) {
-                        fdc_head = 0;
-                        fdc_cyl++;
+                if ((++fdc_sect[drive]) > img_sect) {
+                    fdc_sect[drive] = 1;
+                    if ((++fdc_head[drive]) >= img_heads) {
+                        fdc_head[drive] = 0;
+                        fdc_cyl[drive]++;
                     }
                 }
             }
@@ -2874,7 +3198,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             }
 
 	        floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
- 
+
             if (reg_ah & 0x10) { // seek to track number in CL
                 if (reg_cl >= img_cyl) {
                     CALLBACK_SCF(true);
@@ -2883,16 +3207,28 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                     return;
                 }
 
-                fdc_cyl = img_cyl;
+                fdc_cyl[drive] = img_cyl;
             }
 
-            reg_cl = fdc_cyl;
-            reg_dh = fdc_head;
-            reg_dl = fdc_sect;
+            if (fdc_sect[drive] == 0)
+                fdc_sect[drive] = 1;
+
+            if (img_ssz >= 1024)
+                fdc_sz[drive] = 3;
+            else if (img_ssz >= 512)
+                fdc_sz[drive] = 2;
+            else if (img_ssz >= 256)
+                fdc_sz[drive] = 1;
+            else
+                fdc_sz[drive] = 0;
+
+            reg_cl = fdc_cyl[drive];
+            reg_dh = fdc_head[drive];
+            reg_dl = fdc_sect[drive];
             /* ^ FIXME: A more realistic emulation would return a random number from 1 to N
              *          where N=sectors/track because the floppy motor is running and tracks
              *          are moving past the head. */
-            reg_ch = fdc_sz;
+            reg_ch = fdc_sz[drive];
 
             reg_ah = 0x00;
             CALLBACK_SCF(false);
@@ -2960,6 +3296,12 @@ static Bitu INT1B_PC98_Handler(void) {
         case 0x30: /* 1.44MB HD (NTS: not supported until the early 1990s) */
         case 0xB0:
             PC98_BIOS_FDC_CALL(PC98_FLOPPY_HIGHDENSITY|PC98_FLOPPY_2HEAD|PC98_FLOPPY_RPM_IBMPC);
+            break;
+        case 0x20: /* SCSI hard disk BIOS */
+        case 0xA0: /* SCSI hard disk BIOS */
+        case 0x00: /* SASI hard disk BIOS */
+        case 0x80: /* SASI hard disk BIOS */
+            PC98_BIOS_SCSI_CALL();
             break;
         /* TODO: Other disk formats */
         /* TODO: Future SASI/SCSI BIOS emulation for hard disk images */
@@ -4700,6 +5042,8 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
 
                 mem_writew(0xA0000+bo,*s++);
                 mem_writeb(0xA2000+bo,0xE1);
+
+                bo += 2; /* and keep the cursor following the text */
             }
 
             reg_eax = 0x1300;   // set cursor pos (PC-98)
@@ -4729,6 +5073,7 @@ Bitu call_pnp_pp = 0;
 Bitu isapnp_biosstruct_base = 0;
 
 Bitu BIOS_boot_code_offset = 0;
+Bitu BIOS_bootfail_code_offset = 0;
 
 bool bios_user_reset_vector_blob_run = false;
 Bitu bios_user_reset_vector_blob = 0;
@@ -4759,11 +5104,6 @@ void write_FFFF_PC98_signature() {
     // fake BIOS checksum
     phys_writew(0xffffe,0xABCD);
 }
-
-extern bool                         gdc_5mhz_mode;
-extern bool                         enable_pc98_egc;
-extern bool                         enable_pc98_grcg;
-extern bool                         enable_pc98_16color;
 
 void gdc_egc_enable_update_vars(void) {
     unsigned char b;
@@ -4860,6 +5200,17 @@ private:
             else                                /* 128KB */
                 memsize_real_code = 0;
 
+            /* CPU/Display */
+            /* bit[7:7] = 486SX equivalent (?)                                                                      1=yes
+             * bit[6:6] = PC-9821 Extended Graph Architecture supported (FIXME: Is this the same as having EGC?)    1=yes
+             * bit[5:5] = LCD display is color                                                                      1=yes 0=no
+             * bit[4:4] = ?
+             * bit[3:3] = ROM drive allow writing
+             * bit[2:2] = 98 NOTE PC-9801N-08 expansion I/O box connected
+             * bit[1:1] = 98 NOTE prohibit transition to power saving mode
+             * bit[0:0] = 98 NOTE coprocessor function available */
+            mem_writeb(0x45C,(enable_pc98_egc ? 0x40/*Extended Graphics*/ : 0x00));
+
             /* BIOS flags */
             /* bit[7:7] = Startup            1=hot start    0=cold start
              * bit[6:6] = BASIC type         ??
@@ -4892,18 +5243,71 @@ private:
              * Ref: http://hackipedia.org/browse/Computer/Platform/PC,%20NEC%20PC-98/Collections/Undocumented%209801,%209821%20Volume%202%20(webtech.co.jp)/memsys.txt */
             mem_writeb(0x501,0x20 | memsize_real_code);
 
-            /* set up some default state */
-            mem_writeb(0x54C/*MEMB_PRXCRT*/,0x4F); /* default graphics layer off, 24KHz hsync */
-
             /* keyboard buffer */
             mem_writew(0x524/*tail*/,0x502);
             mem_writew(0x526/*tail*/,0x502);
 
-            /* various BIOS flags */
+            /* number of scanlines per text row - 1 */
             mem_writeb(0x53B,0x0F); // CRT_RASTER, 640x400 24.83KHz-hsync 56.42Hz-vsync
-            mem_writeb(0x54C,(enable_pc98_grcg ? 0x02 : 0x00) | (enable_pc98_16color ? 0x04 : 0x00)); // PRXCRT, 16-color G-VRAM, GRCG
+
+            /* Text screen status.
+             * Note that most of the bits are used verbatim in INT 18h AH=0Ah/AH=0Bh */
+            /* bit[7:7] = High resolution display                   1=yes           0=no (standard)
+             * bit[6:6] = vsync                                     1=VSYNC wait    0=end of vsync handling
+             * bit[5:5] = unused
+             * bit[4:4] = Number of lines                           1=30 lines      0=20/25 lines
+             * bit[3:3] = K-CG access mode                          1=dot access    0=code access
+             * bit[2:2] = Attribute mode (how to handle bit 4)      1=Simp. graphic 0=Vertical line
+             * bit[1:1] = Number of columns                         1=40 cols       0=80 cols
+             * bit[0:0] = Number of lines                           1=20/30 lines   0=25 lines */
+            mem_writeb(0x53C,0x00);
+
+            /* BIOS flags */
+            /* bit[7:7] = Graphics display state                    1=Visible       0=Blanked (hidden)
+             * bit[6:6] = CRT type                                  1=high res      0=standard
+             * bit[5:5] = Horizontal sync rate                      1=31.47KHz      0=24.83KHz
+             * bit[4:4] = CRT line mode                             1=480-line      0=400-line
+             * bit[3:3] = Number of user-defined characters         1=188+          0=63
+             * bit[2:2] = Extended graphics RAM (for 16-color)      1=present       0=absent
+             * bit[1:1] = Graphics Charger is present               1=present       0=absent
+             * bit[0:0] = DIP switch 1-8 at startup                 1=ON            0=OFF (?) */
+            mem_writeb(0x54C,(enable_pc98_grcg ? 0x02 : 0x00) | (enable_pc98_16color ? 0x04 : 0x00) | (pc98_31khz_mode ? 0x20/*31khz*/ : 0x00/*24khz*/)); // PRXCRT, 16-color G-VRAM, GRCG
+
+            /* BIOS flags */
+            /* bit[7:7] = 256-color board present (PC-H98)
+             * bit[6:6] = Enhanced Graphics Charger (EGC) is present
+             * bit[5:5] = GDC at 5.0MHz at boot up (copy of DIP switch 2-8 at startup)      1=yes 0=no
+             * bit[4:4] = Always "flickerless" drawing mode
+             * bit[3:3] = Drawing mode with flicker
+             * bit[2:2] = GDC clock                                                         1=5MHz 0=2.5MHz
+             * bit[1:0] = Drawing mode of the GDC
+             *              00 = REPLACE
+             *              01 = COMPLEMENT
+             *              10 = CLEAR
+             *              11 = SET */
             mem_writeb(0x54D,(enable_pc98_egc ? 0x40 : 0x00) | (gdc_5mhz_mode ? 0x20 : 0x00) | (gdc_5mhz_mode ? 0x04 : 0x00)); // EGC
-            mem_writeb(0x597,(enable_pc98_egc ? 0x04 : 0x00/*FIXME*/)); // EGC
+
+            /* BIOS flags */
+            /* bit[7:7] = INT 18h AH=30h/31h support enabled
+             * bit[6:3] = 0 (unused)
+             * bit[2:2] = Enhanced Graphics Mode (EGC) supported
+             * bit[1:0] = Graphic resolution
+             *             00 = 640x200 upper half  (2/8/16-color mode)
+             *             01 = 640x200 lower half  (2/8/16-color mode)
+             *             10 = 640x400             (2/8/16/256-color mode)
+             *             11 = 640x480             256-color mode */
+            mem_writeb(0x597,(enable_pc98_egc ? 0x04 : 0x00)/*EGC*/ |
+                             (enable_pc98_egc ? 0x80 : 0x00)/*supports INT 18h AH=30h and AH=31h*/ |
+                             2/*640x400*/);
+            /* TODO: I would like to eventually add a dosbox.conf option that controls whether INT 18h AH=30h and 31h
+             *       are enabled, so that retro-development can test code to see how it acts on a newer PC-9821
+             *       that supports it vs an older PC-9821 that doesn't.
+             *
+             *       If the user doesn't set the option, then it is "auto" and determined by machine= PC-98 model and
+             *       by another option in dosbox.conf that determines whether 31khz support is enabled.
+             *
+             *       NOTED: Neko Project II determines INT 18h AH=30h availability by whether or not it was compiled
+             *              with 31khz hsync support (SUPPORT_CRT31KHZ) */
         }
 
         if (bios_user_reset_vector_blob != 0 && !bios_user_reset_vector_blob_run) {
@@ -4991,10 +5395,14 @@ private:
 		extern Bitu call_default,call_default2;
 
         if (IS_PC98_ARCH) {
-            /* INT 40h-FFh generic stub routine */
+            /* INT 00h-FFh generic stub routine */
+            /* NTS: MS-DOS on PC-98 will fill all yet-unused interrupt vectors with a stub.
+             *      No vector is left at 0000:0000. On a related note, PC-98 games apparently
+             *      like to call INT 33h (mouse functions) without first checking that the
+             *      vector is non-null. */
             callback[18].Uninstall();
             callback[18].Install(&INTGEN_PC98_Handler,CB_IRET,"Int stub ???");
-            for (unsigned int i=0x40;i < 0x100;i++) RealSetVec(i,callback[18].Get_RealPointer());
+            for (unsigned int i=0x00;i < 0x100;i++) RealSetVec(i,callback[18].Get_RealPointer());
 
             /* need handler at INT 07h */
             real_writed(0,0x07*4,BIOS_DEFAULT_HANDLER_LOCATION);
@@ -6054,6 +6462,18 @@ private:
 		return CBRET_NONE;
 	}
 	CALLBACK_HandlerObject cb_bios_boot;
+	CALLBACK_HandlerObject cb_bios_bootfail;
+	static Bitu cb_bios_bootfail__func(void) {
+        int x,y;
+
+        x = y = 0;
+
+        /* PC-98 MS-DOS boot sector may RETF back to the BIOS, and this is where execution ends up */
+		BIOS_Int10RightJustifiedPrint(x,y,"Guest OS failed to boot, returned failure");
+
+        /* and then after this call, there is a JMP $ to loop endlessly */
+        return CBRET_NONE;
+    }
 	static Bitu cb_bios_boot__func(void) {
 		/* Reset/power-on overrides the user's A20 gate preferences.
 		 * It's time to revert back to what the user wants. */
@@ -6278,6 +6698,7 @@ public:
 		cb_bios_adapter_rom_scan.Install(&cb_bios_adapter_rom_scan__func,CB_RETF,"BIOS Adapter ROM scan");
 		cb_bios_startup_screen.Install(&cb_bios_startup_screen__func,CB_RETF,"BIOS Startup screen");
 		cb_bios_boot.Install(&cb_bios_boot__func,CB_RETF,"BIOS BOOT");
+		cb_bios_bootfail.Install(&cb_bios_bootfail__func,CB_RETF,"BIOS BOOT FAIL");
 
 		// Compatible POST routine location: jump to the callback
 		{
@@ -6324,6 +6745,13 @@ public:
 			phys_writeb(wo+0x00,(Bit8u)0xFE);						//GRP 4
 			phys_writeb(wo+0x01,(Bit8u)0x38);						//Extra Callback instruction
 			phys_writew(wo+0x02,(Bit16u)cb_bios_boot.Get_callback());			//The immediate word
+			wo += 4;
+
+			// boot fail
+            BIOS_bootfail_code_offset = wo;
+			phys_writeb(wo+0x00,(Bit8u)0xFE);						//GRP 4
+			phys_writeb(wo+0x01,(Bit8u)0x38);						//Extra Callback instruction
+			phys_writew(wo+0x02,(Bit16u)cb_bios_bootfail.Get_callback());			//The immediate word
 			wo += 4;
 
 			/* fence */
@@ -6561,8 +6989,8 @@ void BIOS_Init() {
 	for (int i=0;i < MAX_ISA_PNP_SYSDEVNODES;i++) ISAPNP_SysDevNodes[i] = NULL;
 
 	/* make sure CD swap and floppy swap mapper events are available */
-	MAPPER_AddHandler(swapInNextDisk,MK_f4,MMOD1,"swapimg","SwapFloppy"); /* Originally "Swap Image" but this version does not swap CDs */
-	MAPPER_AddHandler(swapInNextCD,MK_f3,MMOD1,"swapcd","SwapCD"); /* Variant of "Swap Image" for CDs */
+	MAPPER_AddHandler(swapInNextDisk,MK_d,MMODHOST|MMOD1,"swapimg","SwapFloppy"); /* Originally "Swap Image" but this version does not swap CDs */
+	MAPPER_AddHandler(swapInNextCD,MK_c,MMODHOST|MMOD1,"swapcd","SwapCD"); /* Variant of "Swap Image" for CDs */
 
 	/* NTS: VM_EVENT_BIOS_INIT this callback must be first. */
 	AddExitFunction(AddExitFunctionFuncPair(BIOS_Destroy),false);

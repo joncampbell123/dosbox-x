@@ -903,8 +903,8 @@ void VGA_SetupOther(void) {
 		extern Bit8u int10_font_14[256 * 14];
 		for (i=0;i<256;i++)	memcpy(&vga.draw.font[i*32],&int10_font_14[i*14],14);
 		vga.draw.font_tables[0]=vga.draw.font_tables[1]=vga.draw.font;
-		MAPPER_AddHandler(HercBlend,MK_f11,MMOD2,"hercblend","Herc Blend");
-		MAPPER_AddHandler(CycleHercPal,MK_f11,0,"hercpal","Herc Pal");
+		MAPPER_AddHandler(HercBlend,MK_nothing,0,"hercblend","Herc Blend");
+		MAPPER_AddHandler(CycleHercPal,MK_nothing,0,"hercpal","Herc Pal");
 	}
 	if (machine==MCH_CGA || machine==MCH_AMSTRAD) {
 		vga.amstrad.mask_plane = 0x07070707;
@@ -923,14 +923,14 @@ void VGA_SetupOther(void) {
 		}
 
 		if(!mono_cga) {
-			MAPPER_AddHandler(IncreaseHue,MK_f11,MMOD2,"inchue","Inc Hue");
-			MAPPER_AddHandler(DecreaseHue,MK_f11,0,"dechue","Dec Hue");
-		MAPPER_AddHandler(CGAModel,MK_f11,MMOD1|MMOD2,"cgamodel","CGA Model");
-		MAPPER_AddHandler(Composite,MK_f12,0,"cgacomp","CGA Comp");
-		} else {
-			MAPPER_AddHandler(CycleMonoCGAPal,MK_f11,0,"monocgapal","Mono CGA Pal"); 
-			MAPPER_AddHandler(CycleMonoCGABright,MK_f11,MMOD2,"monocgabright","Mono CGA Bright"); 
-		}
+            MAPPER_AddHandler(IncreaseHue,MK_nothing,0,"inchue","Inc Hue");
+            MAPPER_AddHandler(DecreaseHue,MK_nothing,0,"dechue","Dec Hue");
+            MAPPER_AddHandler(CGAModel,MK_nothing,0,"cgamodel","CGA Model");
+            MAPPER_AddHandler(Composite,MK_nothing,0,"cgacomp","CGA Comp");
+        } else {
+            MAPPER_AddHandler(CycleMonoCGAPal,MK_nothing,0,"monocgapal","Mono CGA Pal"); 
+            MAPPER_AddHandler(CycleMonoCGABright,MK_nothing,0,"monocgabright","Mono CGA Bright"); 
+        }
 	}
 	if (machine==MCH_TANDY) {
 		write_tandy( 0x3df, 0x0, 0 );

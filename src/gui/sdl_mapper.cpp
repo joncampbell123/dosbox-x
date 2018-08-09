@@ -66,13 +66,14 @@ enum BB_Types {
 };
 
 enum BC_Types {
-	BC_Mod1,BC_Mod2,BC_Mod3,
+	BC_Mod1,BC_Mod2,BC_Mod3,BC_Host,
 	BC_Hold
 };
 
 #define BMOD_Mod1 0x0001
 #define BMOD_Mod2 0x0002
 #define BMOD_Mod3 0x0004
+#define BMOD_Host 0x0008
 
 #define BFLG_Hold 0x0001
 #define BFLG_Repeat 0x0004
@@ -106,8 +107,6 @@ typedef std::vector<CButton *>::iterator CButton_it;
 typedef std::vector<CEvent *>::iterator CEventVector_it;
 typedef std::vector<CHandlerEvent *>::iterator CHandlerEventVector_it;
 typedef std::vector<CBindGroup *>::iterator CBindGroup_it;
-
-static CBindList holdlist;
 
 class CEvent {
 public:
@@ -223,6 +222,7 @@ public:
 		if (mods & BMOD_Mod1) strcat(buf," mod1");
 		if (mods & BMOD_Mod2) strcat(buf," mod2");
 		if (mods & BMOD_Mod3) strcat(buf," mod3");
+		if (mods & BMOD_Host) strcat(buf," host");
 		if (flags & BFLG_Hold) strcat(buf," hold");
 	}
 	void SetFlags(char * buf) {
@@ -231,6 +231,7 @@ public:
 			if (!strcasecmp(word,"mod1")) mods|=BMOD_Mod1;
 			if (!strcasecmp(word,"mod2")) mods|=BMOD_Mod2;
 			if (!strcasecmp(word,"mod3")) mods|=BMOD_Mod3;
+			if (!strcasecmp(word,"host")) mods|=BMOD_Host;
 			if (!strcasecmp(word,"hold")) flags|=BFLG_Hold;
 		}
 	}
@@ -240,7 +241,7 @@ public:
 			if (_value>25000) {
 				event->SetValue(_value);
 				if (active) return;
-				event->ActivateEvent(ev_trigger,skip_action);
+				if (!holding) event->ActivateEvent(ev_trigger,skip_action);
 				active=true;
 			} else {
 				if (active) {
@@ -260,11 +261,9 @@ public:
 			active=false;
 			if (flags & BFLG_Hold) {
 				if (!holding) {
-					holdlist.push_back(this);
 					holding=true;
 					return;
 				} else {
-					holdlist.remove(this);
 					holding=false;
 				}
 			}
@@ -1668,8 +1667,11 @@ public:
 		case BC_Mod3:
 			checked=(mapper.abind->mods&BMOD_Mod3)>0;
 			break;
-		case BC_Hold:
-			checked=(mapper.abind->flags&BFLG_Hold)>0;
+        case BC_Host:
+            checked=(mapper.abind->mods&BMOD_Host)>0;
+            break;
+        case BC_Hold:
+            checked=(mapper.abind->flags&BFLG_Hold)>0;
 			break;
 		}
 		CTextButton::Draw();
@@ -1699,6 +1701,9 @@ public:
 			break;
 		case BC_Mod3:
 			mapper.abind->mods^=BMOD_Mod3;
+			break;
+		case BC_Host:
+			mapper.abind->mods^=BMOD_Host;
 			break;
 		case BC_Hold:
 			mapper.abind->flags^=BFLG_Hold;
@@ -1861,19 +1866,26 @@ public:
 	void MakeDefaultBind(char * buf) {
 		Bitu key=0;
 		switch (defkey) {
+        case MK_nothing: *buf = 0; return;
 		case MK_f1:case MK_f2:case MK_f3:case MK_f4:
 		case MK_f5:case MK_f6:case MK_f7:case MK_f8:
 		case MK_f9:case MK_f10:case MK_f11:case MK_f12:	
 			key=SDL_SCANCODE_F1+(defkey-MK_f1);
 			break;
+        case MK_rightarrow:
+            key=SDL_SCANCODE_RIGHT;
+            break;
 		case MK_return:
 			key=SDL_SCANCODE_RETURN;
 			break;
 		case MK_kpminus:
 			key=SDL_SCANCODE_KP_MINUS;
 			break;
-		case MK_equals:
-			key=SDL_SCANCODE_EQUALS;
+        case MK_minus:
+            key=SDL_SCANCODE_MINUS;
+            break;
+        case MK_equals:
+            key=SDL_SCANCODE_EQUALS;
 			break;
 		case MK_scrolllock:
 			key=SDL_SCANCODE_SCROLLLOCK;
@@ -1899,26 +1911,55 @@ public:
 		case MK_4:
 			key=SDL_SCANCODE_4;
 			break;
+        case MK_c:
+            key=SDL_SCANCODE_C;
+            break;
+        case MK_d:
+            key=SDL_SCANCODE_D;
+            break;
+        case MK_f:
+            key=SDL_SCANCODE_F;
+            break;
+        case MK_m:
+            key=SDL_SCANCODE_M;
+            break;
+        case MK_r:
+            key=SDL_SCANCODE_R;
+            break;
+        case MK_s:
+            key=SDL_SCANCODE_S;
+            break;
+        case MK_v:
+            key=SDL_SCANCODE_V;
+            break;
+        case MK_w:
+            key=SDL_SCANCODE_W;
+            break;
         default:
             break;
 		}
-		sprintf(buf,"%s \"key %d%s%s%s\"",
+		sprintf(buf,"%s \"key %d%s%s%s%s\"",
 			entry,
 			(int)key,
 			defmod & 1 ? " mod1" : "",
 			defmod & 2 ? " mod2" : "",
-			defmod & 4 ? " mod3" : ""
+			defmod & 4 ? " mod3" : "",
+			defmod & 8 ? " host" : ""
 		);
 	}
 #else
 	void MakeDefaultBind(char * buf) {
 		Bitu key=0;
 		switch (defkey) {
+        case MK_nothing: *buf = 0; return;
 		case MK_f1:case MK_f2:case MK_f3:case MK_f4:
 		case MK_f5:case MK_f6:case MK_f7:case MK_f8:
 		case MK_f9:case MK_f10:case MK_f11:case MK_f12:	
 			key=SDLK_F1+(defkey-MK_f1);
 			break;
+        case MK_rightarrow:
+            key=SDLK_RIGHT;
+            break;
 		case MK_return:
 			key=SDLK_RETURN;
 			break;
@@ -1928,6 +1969,9 @@ public:
         case MK_kpplus:
 			key=SDLK_KP_PLUS;
 			break;
+        case MK_minus:
+            key=SDLK_MINUS;
+            break;
 		case MK_equals:
 			key=SDLK_EQUALS;
 			break;
@@ -1962,14 +2006,39 @@ public:
 			break;
 		case MK_4:
 			key=SDLK_4;
-			break;
+            break;
+        case MK_c:
+            key=SDLK_c;
+            break;
+        case MK_d:
+            key=SDLK_d;
+            break;
+        case MK_f:
+            key=SDLK_f;
+            break;
+        case MK_m:
+            key=SDLK_m;
+            break;
+        case MK_r:
+            key=SDLK_r;
+            break;
+        case MK_s:
+            key=SDLK_s;
+            break;
+        case MK_v:
+            key=SDLK_v;
+            break;
+        case MK_w:
+            key=SDLK_w;
+            break;
 		}
-		sprintf(buf,"%s \"key %d%s%s%s\"",
+		sprintf(buf,"%s \"key %d%s%s%s%s\"",
 			entry,
 			(int)key,
 			defmod & 1 ? " mod1" : "",
 			defmod & 2 ? " mod2" : "",
-			defmod & 4 ? " mod3" : ""
+			defmod & 4 ? " mod3" : "",
+			defmod & 8 ? " host" : ""
 		);
 	}
 #endif
@@ -1991,6 +2060,7 @@ static struct {
 	CCaptionButton *  bind_title;
 	CCaptionButton *  selected;
 	CCaptionButton *  action;
+	CCaptionButton *  dbg2;
 	CCaptionButton *  dbg;
 	CBindButton * save;
 	CBindButton * exit;   
@@ -1998,7 +2068,7 @@ static struct {
 	CBindButton * add;
 	CBindButton * del;
 	CBindButton * next;
-	CCheckButton * mod1,* mod2,* mod3,* hold;
+	CCheckButton * mod1,* mod2,* mod3,* host,* hold;
 } bind_but;
 
 
@@ -2019,6 +2089,7 @@ static void SetActiveBind(CBind * _bind) {
 		bind_but.mod1->Enable(true);
 		bind_but.mod2->Enable(true);
 		bind_but.mod3->Enable(true);
+		bind_but.host->Enable(true);
 		bind_but.hold->Enable(true);
 	} else {
 		bind_but.bind_title->Enable(false);
@@ -2027,6 +2098,7 @@ static void SetActiveBind(CBind * _bind) {
 		bind_but.mod1->Enable(false);
 		bind_but.mod2->Enable(false);
 		bind_but.mod3->Enable(false);
+		bind_but.host->Enable(false);
 		bind_but.hold->Enable(false);
 	}
 }
@@ -2122,7 +2194,12 @@ static void AddJHatButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title
 
 static void AddModButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,Bitu _mod) {
 	char buf[64];
-	sprintf(buf,"mod_%d",(int)_mod);
+
+    if (_mod == 4)
+        sprintf(buf,"host");
+    else
+        sprintf(buf,"mod_%d",(int)_mod);
+
 	CModEvent * event=new CModEvent(buf,_mod);
 	CEventButton *button=new CEventButton(x,y,dx,dy,title,event);
     event->notifybutton(button);
@@ -2148,6 +2225,14 @@ static KeyBlock combo_1[14]={
 	{"=+","equals",KBD_equals},	{"\x1B","bspace",KBD_backspace},
 };
 
+static KeyBlock combo_1_pc98[14]={
+	{"`~","grave",KBD_grave},	{"1!","1",KBD_1},	{"2\"","2",KBD_2},
+	{"3#","3",KBD_3},			{"4$","4",KBD_4},	{"5%","5",KBD_5},
+	{"6&","6",KBD_6},			{"7'","7",KBD_7},	{"8(","8",KBD_8},
+	{"9)","9",KBD_9},			{"0","0",KBD_0},	{"-=","minus",KBD_minus},	
+	{"=+","equals",KBD_equals},	{"\x1B","bspace",KBD_backspace},
+};
+
 static KeyBlock combo_2[12]={
 	{"q","q",KBD_q},			{"w","w",KBD_w},	{"e","e",KBD_e},
 	{"r","r",KBD_r},			{"t","t",KBD_t},	{"y","y",KBD_y},
@@ -2161,6 +2246,14 @@ static KeyBlock combo_3[12]={
 	{"f","f",KBD_f},			{"g","g",KBD_g},	{"h","h",KBD_h},
 	{"j","j",KBD_j},			{"k","k",KBD_k},	{"l","l",KBD_l},
 	{";","semicolon",KBD_semicolon},				{"'","quote",KBD_quote},
+	{"\\","backslash",KBD_backslash},	
+};
+
+static KeyBlock combo_3_pc98[12]={
+	{"a","a",KBD_a},			{"s","s",KBD_s},	{"d","d",KBD_d},
+	{"f","f",KBD_f},			{"g","g",KBD_g},	{"h","h",KBD_h},
+	{"j","j",KBD_j},			{"k","k",KBD_k},	{"l","l",KBD_l},
+	{";+","semicolon",KBD_semicolon},				{"'","quote",KBD_quote},
 	{"\\","backslash",KBD_backslash},	
 };
 
@@ -2185,7 +2278,13 @@ static void CreateLayout(void) {
 #define PY(_Y_) (10+(_Y_)*BH)
 	AddKeyButtonEvent(PX(0),PY(0),BW,BH,"ESC","esc",KBD_esc);
 	for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(0),BW,BH,combo_f[i].title,combo_f[i].entry,combo_f[i].key);
-	for (i=0;i<14;i++) AddKeyButtonEvent(PX(  i),PY(1),BW,BH,combo_1[i].title,combo_1[i].entry,combo_1[i].key);
+
+    if (IS_PC98_ARCH) {
+        for (i=0;i<14;i++) AddKeyButtonEvent(PX(  i),PY(1),BW,BH,combo_1_pc98[i].title,combo_1_pc98[i].entry,combo_1_pc98[i].key);
+    }
+    else {
+        for (i=0;i<14;i++) AddKeyButtonEvent(PX(  i),PY(1),BW,BH,combo_1[i].title,combo_1[i].entry,combo_1[i].key);
+    }
 
 	AddKeyButtonEvent(PX(0),PY(2),BW*2,BH,"TAB","tab",KBD_tab);
 	for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(2),BW,BH,combo_2[i].title,combo_2[i].entry,combo_2[i].key);
@@ -2193,7 +2292,13 @@ static void CreateLayout(void) {
 	AddKeyButtonEvent(PX(14),PY(2),BW*2,BH*2,"ENTER","enter",KBD_enter);
 	
 	caps_lock_event=AddKeyButtonEvent(PX(0),PY(3),BW*2,BH,"CLCK","capslock",KBD_capslock);
-	for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(3),BW,BH,combo_3[i].title,combo_3[i].entry,combo_3[i].key);
+
+    if (IS_PC98_ARCH) {
+        for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(3),BW,BH,combo_3_pc98[i].title,combo_3_pc98[i].entry,combo_3_pc98[i].key);
+    }
+    else {
+        for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(3),BW,BH,combo_3[i].title,combo_3[i].entry,combo_3[i].key);
+    }
 
 	AddKeyButtonEvent(PX(0),PY(4),BW*2,BH,"SHIFT","lshift",KBD_leftshift);
 	for (i=0;i<11;i++) AddKeyButtonEvent(PX(2+i),PY(4),BW,BH,combo_4[i].title,combo_4[i].entry,combo_4[i].key);
@@ -2247,25 +2352,51 @@ static void CreateLayout(void) {
 	AddKeyButtonEvent(PX(XO+1),PY(YO+3),BW,BH,"2","kp_2",KBD_kp2);
 	AddKeyButtonEvent(PX(XO+2),PY(YO+3),BW,BH,"3","kp_3",KBD_kp3);
 	AddKeyButtonEvent(PX(XO+3),PY(YO+3),BW,BH*2,"ENT","kp_enter",KBD_kpenter);
-	AddKeyButtonEvent(PX(XO),PY(YO+4),BW*2,BH,"0","kp_0",KBD_kp0);
+    if (IS_PC98_ARCH) {
+        AddKeyButtonEvent(PX(XO+0),PY(YO+4),BW*1,BH,"0","kp_0",KBD_kp0);
+        AddKeyButtonEvent(PX(XO+1),PY(YO+4),BW*1,BH,",","kp_comma",KBD_kpcomma);
+    }
+    else {
+        AddKeyButtonEvent(PX(XO+0),PY(YO+4),BW*2,BH,"0","kp_0",KBD_kp0);
+    }
 	AddKeyButtonEvent(PX(XO+2),PY(YO+4),BW,BH,".","kp_period",KBD_kpperiod);
 #undef XO
 #undef YO
 #define XO 5
 #define YO 7
-	/* F13-F24 block */
-	AddKeyButtonEvent(PX(XO+0),PY(YO+0),BW,BH,"F13","f13",KBD_f13);
-	AddKeyButtonEvent(PX(XO+1),PY(YO+0),BW,BH,"F14","f14",KBD_f14);
-	AddKeyButtonEvent(PX(XO+2),PY(YO+0),BW,BH,"F15","f15",KBD_f15);
-	AddKeyButtonEvent(PX(XO+3),PY(YO+0),BW,BH,"F16","f16",KBD_f16);
-	AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW,BH,"F17","f17",KBD_f17);
-	AddKeyButtonEvent(PX(XO+1),PY(YO+1),BW,BH,"F18","f18",KBD_f18);
-	AddKeyButtonEvent(PX(XO+2),PY(YO+1),BW,BH,"F19","f19",KBD_f19);
-	AddKeyButtonEvent(PX(XO+3),PY(YO+1),BW,BH,"F20","f20",KBD_f20);
-	AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW,BH,"F21","f21",KBD_f21);
-	AddKeyButtonEvent(PX(XO+1),PY(YO+2),BW,BH,"F22","f22",KBD_f22);
-	AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW,BH,"F23","f23",KBD_f23);
-	AddKeyButtonEvent(PX(XO+3),PY(YO+2),BW,BH,"F24","f24",KBD_f24);
+    if (IS_PC98_ARCH) {
+        /* PC-98 extra keys */
+        AddKeyButtonEvent(PX(XO+0),PY(YO+0),BW*2,BH,"STOP","stop",KBD_stop);
+        AddKeyButtonEvent(PX(XO+2),PY(YO+0),BW*2,BH,"HELP","help",KBD_help);
+
+        AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW*2,BH,"COPY","copy",KBD_copy);
+        AddKeyButtonEvent(PX(XO+2),PY(YO+1),BW*2,BH,"KANA","kana",KBD_kana);
+
+        AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW*2,BH,"NFER","nfer",KBD_nfer);
+        AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW*2,BH,"XFER","xfer",KBD_xfer);
+
+        AddKeyButtonEvent(PX(XO+0),PY(YO+3),BW*1,BH,"VF1","vf1",KBD_vf1);
+        AddKeyButtonEvent(PX(XO+1),PY(YO+3),BW*1,BH,"VF2","vf2",KBD_vf2);
+        AddKeyButtonEvent(PX(XO+2),PY(YO+3),BW*1,BH,"VF3","vf3",KBD_vf3);
+        AddKeyButtonEvent(PX(XO+0),PY(YO+4),BW*1,BH,"VF4","vf4",KBD_vf4);
+        AddKeyButtonEvent(PX(XO+1),PY(YO+4),BW*1,BH,"VF5","vf5",KBD_vf5);
+        AddKeyButtonEvent(PX(XO+2),PY(YO+4),BW*1,BH,"Ro","jp_ro",KBD_jp_ro);
+    }
+    else {
+        /* F13-F24 block */
+        AddKeyButtonEvent(PX(XO+0),PY(YO+0),BW,BH,"F13","f13",KBD_f13);
+        AddKeyButtonEvent(PX(XO+1),PY(YO+0),BW,BH,"F14","f14",KBD_f14);
+        AddKeyButtonEvent(PX(XO+2),PY(YO+0),BW,BH,"F15","f15",KBD_f15);
+        AddKeyButtonEvent(PX(XO+3),PY(YO+0),BW,BH,"F16","f16",KBD_f16);
+        AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW,BH,"F17","f17",KBD_f17);
+        AddKeyButtonEvent(PX(XO+1),PY(YO+1),BW,BH,"F18","f18",KBD_f18);
+        AddKeyButtonEvent(PX(XO+2),PY(YO+1),BW,BH,"F19","f19",KBD_f19);
+        AddKeyButtonEvent(PX(XO+3),PY(YO+1),BW,BH,"F20","f20",KBD_f20);
+        AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW,BH,"F21","f21",KBD_f21);
+        AddKeyButtonEvent(PX(XO+1),PY(YO+2),BW,BH,"F22","f22",KBD_f22);
+        AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW,BH,"F23","f23",KBD_f23);
+        AddKeyButtonEvent(PX(XO+3),PY(YO+2),BW,BH,"F24","f24",KBD_f24);
+    }
 #undef XO
 #undef YO
 #define XO 0
@@ -2277,6 +2408,9 @@ static void CreateLayout(void) {
 	AddKeyButtonEvent(PX(XO+3),PY(YO+0),BW*3,BH,"HIRAGANA","jp_hiragana",KBD_jp_hiragana);
 	AddKeyButtonEvent(PX(XO+6),PY(YO+0),BW*1,BH,"YEN",     "jp_yen",     KBD_jp_yen);
 	AddKeyButtonEvent(PX(XO+6),PY(YO+1),BW*1,BH,"\\",      "jp_bckslash",KBD_jp_backslash);
+	AddKeyButtonEvent(PX(XO+6),PY(YO+2),BW*1,BH,":*",      "colon",      KBD_colon);
+	AddKeyButtonEvent(PX(XO+7),PY(YO+0),BW*1,BH,"^`",      "caret",      KBD_caret);
+    AddKeyButtonEvent(PX(XO+7),PY(YO+1),BW*1,BH,"@~",      "atsign",     KBD_atsign);
 	/* Korean */
 	AddKeyButtonEvent(PX(XO+3),PY(YO+1),BW*3,BH,"HANCHA",  "kor_hancha", KBD_kor_hancha);
 	AddKeyButtonEvent(PX(XO+3),PY(YO+2),BW*3,BH,"HANYONG", "kor_hanyong",KBD_kor_hanyong);
@@ -2377,6 +2511,7 @@ static void CreateLayout(void) {
 	AddModButton(PX(0),PY(17),50,20,"Mod1",1);
 	AddModButton(PX(2),PY(17),50,20,"Mod2",2);
 	AddModButton(PX(4),PY(17),50,20,"Mod3",3);
+	AddModButton(PX(6),PY(17),50,20,"Host",4);
 	/* Create Handler buttons */
 	Bitu xpos=3;Bitu ypos=11;
 	for (CHandlerEventVector_it hit=handlergroup.begin();hit!=handlergroup.end();hit++) {
@@ -2407,19 +2542,22 @@ static void CreateLayout(void) {
 	bind_but.mod1=new CCheckButton(20,410,60,20, "mod1",BC_Mod1);
 	bind_but.mod2=new CCheckButton(20,432,60,20, "mod2",BC_Mod2);
 	bind_but.mod3=new CCheckButton(20,454,60,20, "mod3",BC_Mod3);
-	bind_but.hold=new CCheckButton(100,410,60,20,"hold",BC_Hold);
+	bind_but.host=new CCheckButton(100,410,60,20,"host",BC_Host);
+	bind_but.hold=new CCheckButton(100,432,60,20,"hold",BC_Hold);
 
-	bind_but.next=new CBindButton(250,400,50,20,"Next",BB_Next);
+	bind_but.add=new CBindButton(20,384,50,20,"Add",BB_Add);
+	bind_but.del=new CBindButton(70,384,50,20,"Del",BB_Del);
+	bind_but.next=new CBindButton(120,384,50,20,"Next",BB_Next);
 
-	bind_but.add=new CBindButton(250,380,50,20,"Add",BB_Add);
-	bind_but.del=new CBindButton(300,380,50,20,"Del",BB_Del);
+	bind_but.save=new CBindButton(180,440,50,20,"Save",BB_Save);
+	bind_but.exit=new CBindButton(230,440,50,20,"Exit",BB_Exit);
+	bind_but.cap=new CBindButton(280,440,50,20,"Capt",BB_Capture);
 
-	bind_but.save=new CBindButton(400,440,50,20,"Save",BB_Save);
-	bind_but.exit=new CBindButton(450,440,50,20,"Exit",BB_Exit);
-	bind_but.cap=new CBindButton(500,440,50,20,"Capt",BB_Capture);
-
-	bind_but.dbg=new CCaptionButton(180,460,460,20); // right below the Save button
+	bind_but.dbg = new CCaptionButton(180, 462, 460, 20); // right below the Save button
 	bind_but.dbg->Change("(event debug)");
+
+	bind_but.dbg2 = new CCaptionButton(330, 440, 310, 20); // right next to the Save button
+	bind_but.dbg2->Change("");
 
 	bind_but.bind_title->Change("Bind Title");
 
@@ -2436,6 +2574,7 @@ static SDL_Color map_pal[5]={
 
 static void CreateStringBind(char * line,bool loading=false) {
 	line=trim(line);
+    if (*line == 0) return;
 	char * eventname=StripWord(line);
 	CEvent * event;
 	for (CEventVector_it ev_it=events.begin();ev_it!=events.end();ev_it++) {
@@ -2601,14 +2740,18 @@ static struct {
     // TODO??
 #else
 	/* hack for Japanese keyboards with \ and _ */
-	{"jp_bckslash",SDLK_WORLD_10},	// FIXME: Apparently there's a name length limit in the mapper?
+	{"jp_bckslash",SDLK_JP_RO},	// Same difference
+	{"jp_ro",SDLK_JP_RO}, // DOSBox proprietary
 	/* hack for Japanese keyboards with Yen and | */
-	{"jp_yen",SDLK_WORLD_11 },
+	{"jp_yen",SDLK_JP_YEN },
 	/* more */
 	{"jp_hankaku", SDLK_WORLD_12 },
 	{"jp_muhenkan", SDLK_WORLD_13 },
 	{"jp_henkan", SDLK_WORLD_14 },
 	{"jp_hiragana", SDLK_WORLD_15 },
+    {"colon", SDLK_COLON },
+    {"caret", SDLK_CARET },
+    {"atsign", SDLK_AT },
 #endif
 
 	{0,0}
@@ -2630,11 +2773,25 @@ static void CreateDefaultBinds(void) {
 	sprintf(buffer,"mod_1 \"key %d\"",SDL_SCANCODE_LCTRL);CreateStringBind(buffer);
 	sprintf(buffer,"mod_2 \"key %d\"",SDL_SCANCODE_RALT);CreateStringBind(buffer);
 	sprintf(buffer,"mod_2 \"key %d\"",SDL_SCANCODE_LALT);CreateStringBind(buffer);
+	sprintf(buffer,"mod_3 \"key %d\"",SDL_SCANCODE_RSHIFT);CreateStringBind(buffer);
+	sprintf(buffer,"mod_3 \"key %d\"",SDL_SCANCODE_LSHIFT);CreateStringBind(buffer);
+# if defined(WIN32) && !defined(C_HX_DOS) /* F12 is not a good modifier key in Windows: https://stackoverflow.com/questions/18997754/how-to-disable-f12-to-debug-application-in-visual-studio-2012 */
+	sprintf(buffer,"host \"key %d\"",SDL_SCANCODE_F11);CreateStringBind(buffer);
+# else
+	sprintf(buffer,"host \"key %d\"",SDL_SCANCODE_F12);CreateStringBind(buffer);
+# endif
 #else
 	sprintf(buffer,"mod_1 \"key %d\"",SDLK_RCTRL);CreateStringBind(buffer);
 	sprintf(buffer,"mod_1 \"key %d\"",SDLK_LCTRL);CreateStringBind(buffer);
 	sprintf(buffer,"mod_2 \"key %d\"",SDLK_RALT);CreateStringBind(buffer);
 	sprintf(buffer,"mod_2 \"key %d\"",SDLK_LALT);CreateStringBind(buffer);
+	sprintf(buffer,"mod_3 \"key %d\"",SDLK_RSHIFT);CreateStringBind(buffer);
+	sprintf(buffer,"mod_3 \"key %d\"",SDLK_LSHIFT);CreateStringBind(buffer);
+# if defined(WIN32) && !defined(C_HX_DOS) /* F12 is not a good modifier key in Windows: https://stackoverflow.com/questions/18997754/how-to-disable-f12-to-debug-application-in-visual-studio-2012 */
+	sprintf(buffer,"host \"key %d\"",SDLK_F11);CreateStringBind(buffer);
+# else
+	sprintf(buffer,"host \"key %d\"",SDLK_F12);CreateStringBind(buffer);
+# endif
 #endif
 
 	for (CHandlerEventVector_it hit=handlergroup.begin();hit!=handlergroup.end();hit++) {
@@ -2871,6 +3028,41 @@ void BIND_MappingEvents(void) {
 
 				LOG(LOG_GUI,LOG_DEBUG)("Mapper keyboard event: %s",tmp);
 				bind_but.dbg->Change("%s",tmp);
+
+				tmpl = 0;
+#if defined(WIN32)
+# if defined(C_SDL2)
+# else
+				{
+					char nm[256];
+
+					nm[0] = 0;
+#if !defined(HX_DOS) /* I assume HX DOS doesn't bother with keyboard scancode names */
+					GetKeyNameText(s.scancode << 16,nm,sizeof(nm)-1);
+#endif
+
+					tmpl = sprintf(tmp, "Win32: VK=0x%x kn=%s",(unsigned int)s.win32_vk,nm);
+				}
+# endif
+#endif
+#if defined(SDL_VIDEO_DRIVER_X11)
+# if defined(C_SDL2)
+# else
+                {
+                    char *LinuxX11_KeySymName(Uint32 x);
+
+                    char *name;
+
+                    name = LinuxX11_KeySymName(s.x11_sym);
+                    tmpl = sprintf(tmp,"X11: Sym=0x%x sn=%s",(unsigned int)s.x11_sym,name ? name : "");
+                }
+# endif
+#endif
+				while (tmpl < (310 / 8)) tmp[tmpl++] = ' ';
+				assert(tmpl < sizeof(tmp));
+				tmp[tmpl] = 0;
+				bind_but.dbg2->Change("%s", tmp);
+
 				event_count++;
 			}
 			/* fall through to mapper UI processing */
@@ -3345,7 +3537,7 @@ void MAPPER_StartUp() {
 
 	Prop_path* pp = section->Get_path("mapperfile");
 	mapper.filename = pp->realpath;
-	MAPPER_AddHandler(&MAPPER_Run,MK_f1,MMOD1,"mapper","Mapper");
+	MAPPER_AddHandler(&MAPPER_Run,MK_m,MMODHOST,"mapper","Mapper");
 }
 
 void MAPPER_Shutdown() {

@@ -146,10 +146,6 @@ void pic_resetirq(REG8 irq) {
     PIC_DeActivateIRQ(irq);
 }
 
-int pc98_fm_irq = 3; /* TODO: Make configurable */
-unsigned int pc98_fm26_base = 0x088; /* TODO: Make configurable */
-unsigned int pc98_fm86_base = 0x188; /* TODO: Make configurable */
-
 #include "sound.h"
 #include "fmboard.h"
 
@@ -244,6 +240,9 @@ void PC98_FM_OnEnterPC98(Section *sec) {
 
         irq = section->Get_int("pc-98 fm board irq");
         baseio = section->Get_hex("pc-98 fm board io port");
+
+        /* Manual testing shows PC-98 games like it when the board is on IRQ 12 */
+        if (irq == 0) irq = 12;
 
         fmirqidx = fmtimer_irq2index(irq);
 

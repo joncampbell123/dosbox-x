@@ -396,19 +396,27 @@ public:
         if (!control->auto_bat_additional.empty()) {
             std::string cmd;
 
-            cmd += "@mount c: . -q\n";
-            cmd += "@c:\n";
-            cmd += "@cd \\\n";
-
             for (unsigned int i=0;i<control->auto_bat_additional.size();i++) {
+				std::string batname;
+				/* NTS: this code might have problems with DBCS filenames - yksoft1 */
+				size_t pos = control->auto_bat_additional[i].find_last_of(CROSS_FILESPLIT);
+				if(pos == std::string::npos) {  //Only a filename, mount current directory
+					batname = control->auto_bat_additional[i];
+					cmd += "@mount c: . -q\n";
+				} else { //Parse the path of .BAT file
+					std::string batpath = control->auto_bat_additional[i].substr(0,pos+1);
+					batname = control->auto_bat_additional[i].substr(pos+1);
+					cmd += "@mount c: " + batpath + " -q\n";
+				}
+				cmd += "@c:\n";
+				cmd += "@cd \\\n";
                 /* NTS: "CALL" does not support quoting the filename.
                  *      This will break if the batch file name has spaces in it. */
                 cmd += "@CALL ";
-                cmd += control->auto_bat_additional[i];
+                cmd += batname;
                 cmd += "\n";
+				cmd += "@mount -u c: -q\n";
             }
-
-            cmd += "@mount -u c: -q\n";
 
             autoexec_auto_bat.Install(cmd);
         }
@@ -643,8 +651,8 @@ void SHELL_Init() {
                 "\x86\x46 For a short introduction for new users type: \033[33mINTRO\033[37m                 \x86\x46\n"
                 "\x86\x46 For supported shell commands type: \033[33mHELP\033[37m                            \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
-                "\x86\x46 To adjust the emulated CPU speed, use \033[31mctrl-F11\033[37m and \033[31mctrl-F12\033[37m.       \x86\x46\n"
-                "\x86\x46 To activate the keymapper \033[31mctrl-F1\033[37m.                                 \x86\x46\n"
+                "\x86\x46 To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \x86\x46\n"
+                "\x86\x46 To activate the keymapper \033[31mhost+m\033[37m. Host key is F12.                 \x86\x46\n"
                 "\x86\x46 For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
                );
@@ -680,8 +688,8 @@ void SHELL_Init() {
                 "\xBA For a short introduction for new users type: \033[33mINTRO\033[37m                 \xBA\n"
                 "\xBA For supported shell commands type: \033[33mHELP\033[37m                            \xBA\n"
                 "\xBA                                                                    \xBA\n"
-                "\xBA To adjust the emulated CPU speed, use \033[31mctrl-F11\033[37m and \033[31mctrl-F12\033[37m.       \xBA\n"
-                "\xBA To activate the keymapper \033[31mctrl-F1\033[37m.                                 \xBA\n"
+                "\xBA To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \xBA\n"
+                "\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is F12.                 \xBA\n"
                 "\xBA For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \xBA\n"
                 "\xBA                                                                    \xBA\n"
                );

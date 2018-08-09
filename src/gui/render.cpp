@@ -818,8 +818,8 @@ void RENDER_Init() {
 	if(!running) render.updating=true;
 	running = true;
 
-	MAPPER_AddHandler(DecreaseFrameSkip,MK_f7,MMOD1,"decfskip","Dec Fskip");
-	MAPPER_AddHandler(IncreaseFrameSkip,MK_f8,MMOD1,"incfskip","Inc Fskip");
+	MAPPER_AddHandler(DecreaseFrameSkip,MK_nothing,0,"decfskip","Dec Fskip");
+	MAPPER_AddHandler(IncreaseFrameSkip,MK_nothing,0,"incfskip","Inc Fskip");
 
 	GFX_SetTitle(-1,render.frameskip.max,-1,false);
 }
