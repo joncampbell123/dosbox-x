@@ -72,8 +72,13 @@ private:
 typedef wchar_t host_cnv_char_t;
 # define host_cnv_use_wchar
 # define _HT(x) L##x
-# define ht_stat_t struct _stat64i32 /* WTF Microsoft?? Why aren't _stat and _wstat() consistent on stat struct type? */
-# define ht_stat(x,y) _wstat64i32(x,y)
+# if defined(__MINGW32__) /* TODO: Get MinGW to support 64-bit file offsets, at least targeting Windows XP! */
+#  define ht_stat_t struct _stat
+#  define ht_stat(x,y) _wstat(x,y)
+# else
+#  define ht_stat_t struct _stat64i32 /* WTF Microsoft?? Why aren't _stat and _wstat() consistent on stat struct type? */
+#  define ht_stat(x,y) _wstat64i32(x,y)
+# endif
 # define ht_access(x,y) _waccess(x,y)
 # define ht_strdup(x) _wcsdup(x)
 # define ht_unlink(x) _wunlink(x)

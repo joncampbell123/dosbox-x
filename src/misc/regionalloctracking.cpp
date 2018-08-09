@@ -23,6 +23,12 @@
 #include <time.h>
 #include <sys/timeb.h>
 
+/* Really, Microsoft, Really?? You're the only compiler I know that doesn't understand ssize_t! */
+#if defined(_MSC_VER)
+#include <basetsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 RegionAllocTracking::Block::Block() : start(0), end(0), free(true) {
 }
 
@@ -47,7 +53,7 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 	{
 		/* allocate downward from the top */
 		si = topDownAlloc ? (alist.size() - 1) : 0;
-		while (si >= 0) {
+		while ((ssize_t)si >= 0) {
 			Block &blk = alist[si];
 
 			if (!blk.free || (blk.end+1-blk.start) < bytes) {

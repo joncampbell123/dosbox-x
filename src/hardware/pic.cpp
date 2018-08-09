@@ -478,6 +478,30 @@ void PIC_SetIRQMask(Bitu irq, bool masked) {
 	pic->set_imr(newmask);
 }
 
+void DEBUG_PICSignal(int irq,bool raise) {
+    if (irq >= 0 && irq <= 15) {
+        if (raise)
+            PIC_ActivateIRQ(irq);
+        else
+            PIC_DeActivateIRQ(irq);
+    }
+}
+
+void DEBUG_PICAck(int irq) {
+    if (irq >= 0 && irq <= 15) {
+        PIC_Controller * pic=&pics[irq>7 ? 1 : 0];
+
+        pic->isr &= ~(1 << (irq & 7U));
+        pic->isrr = ~pic->isr;
+        pic->check_after_EOI();
+    }
+}
+
+void DEBUG_PICMask(int irq,bool mask) {
+    if (irq >= 0 && irq <= 15)
+        PIC_SetIRQMask(irq,mask);
+}
+
 static void AddEntry(PICEntry * entry) {
 	PICEntry * find_entry=pic_queue.next_entry;
 	if (GCC_UNLIKELY(find_entry ==0)) {
@@ -738,7 +762,7 @@ void PIC_Reset(Section *sec) {
 
     /* NTS: This is a good guess. But the 8259 is static circuitry and not driven by a clock.
      *      But the ability to respond to interrupts is limited by the CPU, too. */
-    PIC_irq_delay_ns = (1000000000UL * 2UL) / (unsigned long)PIT_TICK_RATE;
+    PIC_irq_delay_ns = 1000000000UL / (unsigned long)PIT_TICK_RATE;
     {
         int x = section->Get_int("irq delay ns");
         if (x >= 0) PIC_irq_delay_ns = x;
@@ -778,8 +802,10 @@ void PIC_Reset(Section *sec) {
 
 	PIC_SetIRQMask(0,false);					/* Enable system timer */
 	PIC_SetIRQMask(1,false);					/* Enable system timer */
-	PIC_SetIRQMask(2,false);					/* Enable second pic */
 	PIC_SetIRQMask(8,false);					/* Enable RTC IRQ */
+
+    if (master_cascade_irq >= 0)
+        PIC_SetIRQMask(master_cascade_irq,false);/* Enable second pic */
 
     /* I/O port map
      *
@@ -830,4 +856,40 @@ void Init_PIC() {
 	AddExitFunction(AddExitFunctionFuncPair(PIC_Destroy));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PIC_Reset));
 }
+
+#if C_DEBUG
+void DEBUG_LogPIC_C(PIC_Controller &pic) {
+    LOG_MSG("%s interrupt controller state",&pic == &master ? "Master" : "Slave");
+    LOG_MSG("ICW %u/%u special=%u auto-eoi=%u rotate-eoi=%u single=%u request_issr=%u vectorbase=0x%02x active_irq=%u",
+        pic.icw_index,
+        pic.icw_words,
+        pic.special?1:0,
+        pic.auto_eoi?1:0,
+        pic.rotate_on_auto_eoi?1:0,
+        pic.single?1:0,
+        pic.request_issr?1:0,
+        pic.vector_base,
+        pic.active_irq);
+
+    LOG_MSG("IRQ INT#  Req /Mask/Serv");
+    for (unsigned int si=0;si < 8;si++) {
+        unsigned int IRQ = si + (&pic == &slave ? 8 : 0);
+        unsigned int CPUINT = pic.vector_base + si;
+
+        LOG_MSG("%3u 0x%02X   %c    %c    %c   %s",
+            IRQ,
+            CPUINT,
+            (pic.irr & (1U << si))?'R':' ',
+            (pic.imr & (1U << si))?'M':' ',
+            (pic.isr & (1U << si))?'S':' ',
+            (IRQ == master_cascade_irq) ? "CASCADE" : "");
+    }
+}
+
+void DEBUG_LogPIC(void) {
+    DEBUG_LogPIC_C(master);
+    if (enable_slave_pic) DEBUG_LogPIC_C(slave);
+}
+#endif
+
 

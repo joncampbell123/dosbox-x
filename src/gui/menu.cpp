@@ -36,6 +36,7 @@ extern bool dos_kernel_disabled;
 extern bool dos_shell_running_program;
 
 bool GFX_GetPreventFullscreen(void);
+void DOSBox_ShowConsole();
 
 #if !defined(C_SDL2)
 void GUI_ResetResize(bool pressed);
@@ -127,6 +128,7 @@ void SearchFolder( char path[MAX_PATH], char drive, std::string drive_type ) {
 }
 
 void BrowseFolder( char drive , std::string drive_type ) {
+#if !defined(HX_DOS)
 	if (Drives[drive-'A']) {
 		LOG_MSG("Unmount drive %c first, and then try again.",drive);
 		return;
@@ -154,6 +156,7 @@ void BrowseFolder( char drive , std::string drive_type ) {
 			imalloc->Release ( );
 		}
 	}
+#endif
 }
 
 void mem_conf(std::string memtype, int option) {
@@ -421,7 +424,7 @@ void Mount_Img_Floppy(char drive, std::string realpath) {
 				std::vector<DOS_Drive*>::size_type ct;
 				
 				for (i = 0; i < paths.size(); i++) {
-					DOS_Drive* newDrive = new fatDrive(paths[i].c_str(),sizes[0],sizes[1],sizes[2],sizes[3],0);
+					DOS_Drive* newDrive = new fatDrive(paths[i].c_str(),sizes[0],sizes[1],sizes[2],sizes[3]);
 					imgDisks.push_back(newDrive);
 					if(!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
 						LOG_MSG("Can't create drive from file.");
@@ -602,7 +605,7 @@ void Mount_Img_HDD(char drive, std::string realpath) {
 	std::vector<DOS_Drive*>::size_type ct;
 				
 	for (i = 0; i < paths.size(); i++) {
-		DOS_Drive* newDrive = new fatDrive(paths[i].c_str(),sizes[0],sizes[1],sizes[2],sizes[3],0);
+		DOS_Drive* newDrive = new fatDrive(paths[i].c_str(),sizes[0],sizes[1],sizes[2],sizes[3]);
 		imgDisks.push_back(newDrive);
 		if(!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
 			LOG_MSG("Can't create drive from file.");
@@ -759,6 +762,7 @@ void Mount_Img(char drive, std::string realpath) {
 }
 
 void DOSBox_SetSysMenu(void) {
+#if !defined(HX_DOS)
 	MENUITEMINFO mii;
 	HMENU sysmenu;
 	BOOL s;
@@ -782,19 +786,20 @@ void DOSBox_SetSysMenu(void) {
 
 		s = InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
 	}
+#endif
 }
 
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
 
 void DOSBox_SetMenu(void) {
+#if !defined(HX_DOS)
 	if(!menu.gui) return;
 
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
 
 	menu.toggle=true;
     NonUserResizeCounter=1;
-    SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-	DrawMenuBar (GetHWND());
+	SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MENU)));
 
 	Reflect_Menu();
 
@@ -804,14 +809,14 @@ void DOSBox_SetMenu(void) {
 
     void DOSBox_SetSysMenu(void);
     DOSBox_SetSysMenu();
+#endif
 }
 
 void DOSBox_NoMenu(void) {
 	if(!menu.gui) return;
 	menu.toggle=false;
     NonUserResizeCounter=1;
-    SetMenu(GetHWND(), NULL);
-	DrawMenuBar(GetHWND());
+	SDL1_hax_SetMenu(NULL);
 	RENDER_CallBack( GFX_CallBackReset );
 
     void DOSBox_SetSysMenu(void);
@@ -837,6 +842,7 @@ bool DOSBox_Kor(void) {
 }
 
 void DOSBox_RefreshMenu(void) {
+#if !defined(HX_DOS)
     int width, height; bool fullscreen;
     void GFX_GetSize(int &width, int &height, bool &fullscreen);
     GFX_GetSize(width,height,fullscreen);
@@ -861,37 +867,36 @@ void DOSBox_RefreshMenu(void) {
 		DOSBox_SetMenu();
 	else
 		DOSBox_NoMenu();
+#endif
 }
 
 void DOSBox_RefreshMenu2(void) {
+#if !defined(HX_DOS)
 	if(!menu.gui) return;
    int width, height; bool fullscreen;
    void GFX_GetSize(int &width, int &height, bool &fullscreen);
    GFX_GetSize(width,height,fullscreen);
-   void SDL_Prepare(void);
-   SDL_Prepare();
-   if(!menu.gui) return;
+    void SDL_Prepare(void);
+    SDL_Prepare();
+    if(!menu.gui) return;
 
-   if(fullscreen) {
-       NonUserResizeCounter=1;
-       SetMenu(GetHWND(), NULL);
-       DrawMenuBar(GetHWND());
-       return;
-   }
-   if(menu.toggle) {
-       menu.toggle=true;
-       NonUserResizeCounter=1;
-       SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-       DrawMenuBar (GetHWND());
-   } else {
-       menu.toggle=false;
-       NonUserResizeCounter=1;
-       SetMenu(GetHWND(), NULL);
-		DrawMenuBar(GetHWND());
+    if(fullscreen) {
+        NonUserResizeCounter=1;
+        return;
+    }
+	if(menu.toggle) {
+		menu.toggle=true;
+        NonUserResizeCounter=1;
+        SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
+	} else {
+		menu.toggle=false;
+        NonUserResizeCounter=1;
+		SDL1_hax_SetMenu(NULL);
 	}
 
     void DOSBox_SetSysMenu(void);
     DOSBox_SetSysMenu();
+#endif
 }
 
 void ToggleMenu(bool pressed) {
@@ -917,6 +922,7 @@ void ToggleMenu(bool pressed) {
 }
 
 void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image, int automount, int umount, char drive) {
+#if !defined(HX_DOS)
 	std::string full_drive(1, drive);
 	Section_prop * sec = static_cast<Section_prop *>(control->GetSection("dos"));
 	full_drive += ":\\";
@@ -926,6 +932,7 @@ void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image,
 	EnableMenuItem(handle, image, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
 	if(sec) EnableMenuItem(handle, automount, AUTOMOUNT(full_drive.c_str(), drive) && !menu.boot && sec->Get_bool("automount") ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(handle, umount, (!Drives[drive - 'A']) || menu.boot ? MF_GRAYED : MF_ENABLED);
+#endif
 }
 
 bool MENU_SetBool(std::string secname, std::string value) {
@@ -939,12 +946,13 @@ void MENU_KeyDelayRate(int delay, int rate) {
 	LOG_MSG("GUI: Keyboard rate %d, delay %d", rate, delay);
 }
 
-bool GFX_GetPreventFullscreen(void);
-
 extern "C" void (*SDL1_hax_INITMENU_cb)();
 void reflectmenu_INITMENU_cb();
 
+bool GFX_GetPreventFullscreen(void);
+
 int Reflect_Menu(void) {
+#if !defined(HX_DOS)
 	extern bool Mouse_Drv;
 	static char name[9];
 
@@ -967,6 +975,9 @@ int Reflect_Menu(void) {
 	EnableMenuItem(m_handle, ID_PC98_FOURPARTITIONSGRAPHICS, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_PC98_200SCANLINEEFFECT, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_PC98_GDC5MHZ, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_PC98_ENABLEEGC, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_PC98_ENABLEGRCG, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_PC98_ENABLE16COLORS, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_RESTART_DOS, (dos_kernel_disabled || dos_shell_running_program) ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_CPU_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_DOS_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
@@ -1295,7 +1306,10 @@ int Reflect_Menu(void) {
 	extern bool gdc_5mhz_mode;
 	extern bool pc98_allow_scanline_effect;
 	extern bool pc98_allow_4_display_partitions;
-
+	extern bool enable_pc98_egc;
+	extern bool enable_pc98_grcg;
+	extern bool enable_pc98_16color;
+	
 	Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 
 	int pc98rate = dosbox_section->Get_int("pc-98 timer master frequency");
@@ -1309,6 +1323,9 @@ int Reflect_Menu(void) {
 	CheckMenuItem(m_handle, ID_PC98_FOURPARTITIONSGRAPHICS, (IS_PC98_ARCH && pc98_allow_4_display_partitions) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_PC98_200SCANLINEEFFECT, (IS_PC98_ARCH && pc98_allow_scanline_effect) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_PC98_GDC5MHZ, (IS_PC98_ARCH && gdc_5mhz_mode) ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_PC98_ENABLEEGC, (IS_PC98_ARCH && enable_pc98_egc) ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_PC98_ENABLEGRCG, (IS_PC98_ARCH && enable_pc98_grcg) ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_PC98_ENABLE16COLORS, (IS_PC98_ARCH && enable_pc98_16color) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_MOUSE, Mouse_Drv ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_AUTOCYCLE, (CPU_CycleAutoAdjust) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_AUTODETER, (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) ? MF_CHECKED : MF_STRING);
@@ -1879,7 +1896,18 @@ int Reflect_Menu(void) {
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Y, ID_MOUNT_FLOPPY_Y, ID_MOUNT_LOCAL_Y, ID_MOUNT_IMAGE_Y, ID_AUTOMOUNT_Y, ID_UMOUNT_Y, 'Y');
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Z, ID_MOUNT_FLOPPY_Z, ID_MOUNT_LOCAL_Z, ID_MOUNT_IMAGE_Z, ID_AUTOMOUNT_Z, ID_UMOUNT_Z, 'Z');
 
-	return 1;
+	SDL1_hax_INITMENU_cb = reflectmenu_INITMENU_cb;
+#endif
+    return 1;
+}
+
+void reflectmenu_INITMENU_cb() {
+	/* WARNING: SDL calls this from Parent Window Thread!
+	            This executes in the context of the Parent Window Thread, NOT the main thread!
+				As stupid as that seems, this is the only way the Parent Window Thread can make
+				sure to keep Windows waiting while we take our time to reset the checkmarks in
+				the menus before the menu is displayed. */
+	Reflect_Menu();
 }
 
 // Sets the scaler to use.
@@ -1900,6 +1928,7 @@ void SetScaleForced(bool forced)
 }
 
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
+#if !defined(HX_DOS)
 	bool GFX_GetPreventFullscreen(void);
 
 	if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
@@ -2178,8 +2207,10 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 	case ID_MOUNT_IMAGE_Y: OpenFileDialog_Img('Y'); break;
 	case ID_MOUNT_IMAGE_Z: OpenFileDialog_Img('Z'); break;
 	case ID_MTWAVE: void CAPTURE_MTWaveEvent(bool pressed); CAPTURE_MTWaveEvent(true); break;
+#if C_SSHOT
 	case ID_SSHOT: void CAPTURE_ScreenShotEvent(bool pressed); CAPTURE_ScreenShotEvent(true); break;
 	case ID_MOVIE: void CAPTURE_VideoEvent(bool pressed); CAPTURE_VideoEvent(true); break;
+#endif
 	case ID_WAVE: void CAPTURE_WaveEvent(bool pressed); CAPTURE_WaveEvent(true); break;
 	case ID_OPL: void OPL_SaveRawEvent(bool pressed); OPL_SaveRawEvent(true); break;
 	case ID_MIDI: void CAPTURE_MidiEvent(bool pressed); CAPTURE_MidiEvent(true); break;
@@ -2712,6 +2743,7 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 	case ID_GLIDE_LFB_READ_NOAUX: SetVal("glide", "lfb", "read_noaux"); break;
 	case ID_GLIDE_LFB_WRITE: SetVal("glide", "lfb", "write"); break;
 	case ID_GLIDE_LFB_WRITE_NOAUX: SetVal("glide", "lfb", "write_noaux"); break;
+	case ID_SHOWCONSOLE: DOSBox_ShowConsole(); break;
 	case ID_GLIDE_LFB_NONE: SetVal("glide", "lfb", "none"); break;
 	case ID_GLIDE_SPLASH:
 	{
@@ -2760,9 +2792,74 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 		if (IS_PC98_ARCH) pc98_clear_graphics();
 		break;
 	}
+	case ID_PC98_ENABLEEGC: {
+		void gdc_egc_enable_update_vars(void);
+		extern bool enable_pc98_egc;
+		extern bool enable_pc98_grcg;
+		extern bool enable_pc98_16color;
+		if(IS_PC98_ARCH) {
+			enable_pc98_egc = !enable_pc98_egc;
+			gdc_egc_enable_update_vars();
+			
+			Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+			if (enable_pc98_egc) {
+				dosbox_section->HandleInputline("pc-98 enable egc=1");
+				
+				if(!enable_pc98_grcg) { //Also enable GRCG if GRCG is disabled when enabling EGC
+					enable_pc98_grcg = !enable_pc98_grcg;
+					mem_writeb(0x54C,(enable_pc98_grcg ? 0x02 : 0x00) | (enable_pc98_16color ? 0x04 : 0x00));	
+					dosbox_section->HandleInputline("pc-98 enable grcg=1");
+				}
+			}
+			else
+				dosbox_section->HandleInputline("pc-98 enable egc=0");
+			
+		}
+		break;
+	}
+	case ID_PC98_ENABLEGRCG: { 
+		extern bool enable_pc98_grcg;
+		extern bool enable_pc98_egc;
+		void gdc_grcg_enable_update_vars(void);
+		if(IS_PC98_ARCH) {
+			enable_pc98_grcg = !enable_pc98_grcg;
+			gdc_grcg_enable_update_vars();
+			
+			Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+			if (enable_pc98_grcg)
+				dosbox_section->HandleInputline("pc-98 enable grcg=1");
+			else
+				dosbox_section->HandleInputline("pc-98 enable grcg=0");
+				
+			if ((!enable_pc98_grcg) && enable_pc98_egc) { // Also disable EGC if switching off GRCG
+				void gdc_egc_enable_update_vars(void);
+				enable_pc98_egc = !enable_pc98_egc;
+				gdc_egc_enable_update_vars();	
+				dosbox_section->HandleInputline("pc-98 enable egc=0");
+			}				
+		}
+		break;
+	}
+	case ID_PC98_ENABLE16COLORS: {
+	//NOTE: I thought that even later PC-9801s and some PC-9821s could use EGC features in digital 8-colors mode? 
+		extern bool enable_pc98_16color;
+		void gdc_16color_enable_update_vars(void);
+		if(IS_PC98_ARCH) {
+			enable_pc98_16color = !enable_pc98_16color;
+			gdc_16color_enable_update_vars();
+			
+			Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+			if (enable_pc98_16color)
+				dosbox_section->HandleInputline("pc-98 enable 16-color=1");
+			else
+				dosbox_section->HandleInputline("pc-98 enable 16-color=0");
+		}
+		break;
+	}
 	}
 
 	Reflect_Menu();
+#endif
 }
 #else
 void DOSBox_SetSysMenu(void) {

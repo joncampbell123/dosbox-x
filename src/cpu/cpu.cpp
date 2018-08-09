@@ -840,6 +840,16 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 	lastint=num;
 	FillFlags();
 #if C_DEBUG
+# if C_HEAVY_DEBUG
+    bool DEBUG_IntBreakpoint(Bit8u intNum);
+    Bitu DEBUG_EnableDebugger(void);
+
+    if (type != CPU_INT_SOFTWARE) { /* CPU core already takes care of SW interrupts */
+        if (DEBUG_IntBreakpoint(num))
+            DEBUG_EnableDebugger();
+    }
+# endif
+
 	switch (num) {
 	case 0xcd:
 #if C_HEAVY_DEBUG
@@ -2874,7 +2884,6 @@ public:
 		CPU_Cycles=0;
 		CPU_SkipCycleAutoAdjust=false;
 
-		dosbox_enable_nonrecursive_page_fault = true;
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");

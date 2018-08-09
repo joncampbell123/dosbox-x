@@ -14,6 +14,7 @@ dosbox-x.app: src/dosbox-x src/dosbox.icns
 	cp -v src/dosbox.plist dosbox-x.app/Contents/Info.plist
 	cp -v src/dosbox.pkginfo dosbox-x.app/Contents/PkgInfo
 	cp -v src/dosbox.icns dosbox-x.app/Contents/Resources/DosBox.icns
+	cp -v font/FREECG98.BMP dosbox-x.app/Contents/Resources/freecg98.bmp
 	cp -v src/dosbox-x dosbox-x.app/Contents/MacOS/DosBox
 # this is where it gets ugly
 	otool -L dosbox-x.app/Contents/MacOS/DosBox | grep '/usr/local/lib' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
@@ -46,4 +47,24 @@ src/dosbox.icns: src/dosbox.ico
 dox:
 	rm -Rfv doxygen
 	doxygen
+
+dox-site-update:
+	if [[ !( -d ../dosbox-x-gh-pages ) ]]; then git clone -b gh-pages https://github.com/joncampbell123/dosbox-x.git ../dosbox-x-gh-pages; fi
+	(cd ../dosbox-x-gh-pages && rm -Rfv doxygen)
+	cp -Rf doxygen ../dosbox-x-gh-pages/
+	(cd ../dosbox-x-gh-pages && git add doxygen/)
+	(cd ../dosbox-x-gh-pages && git commit doxygen/)
+
+compat-site-update:
+	if [[ !( -d ../dosbox-x-gh-pages ) ]]; then git clone -b gh-pages https://github.com/joncampbell123/dosbox-x.git ../dosbox-x-gh-pages; fi
+	true # ----------
+	(cd /mnt/main/emu/demotest && ./make-compat-chart.pl)
+	cp /mnt/main/emu/demotest/compat-chart.html ../dosbox-x-gh-pages/demoscene-compat.html
+	true # ----------
+	(cd /mnt/main/emu/msdostest && ./make-compat-chart.pl)
+	cp /mnt/main/emu/msdostest/compat-chart.html ../dosbox-x-gh-pages/msdos-compat.html
+	true # ----------
+	(cd ../dosbox-x-gh-pages && git add demoscene-compat.html)
+	(cd ../dosbox-x-gh-pages && git add msdos-compat.html)
+	(cd ../dosbox-x-gh-pages && git commit -m 'more' {msdos,demoscene}-compat.html)
 

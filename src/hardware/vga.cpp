@@ -144,6 +144,9 @@ using namespace std;
 
 extern int                          vga_memio_delay_ns;
 extern bool                         gdc_5mhz_mode;
+extern bool                         enable_pc98_egc;
+extern bool                         enable_pc98_grcg;
+extern bool                         enable_pc98_16color;
 extern bool                         GDC_vsync_interrupt;
 extern uint8_t                      GDC_display_plane;
 
@@ -492,6 +495,16 @@ void VGA_Reset(Section*) {
     // To enable these games we default to 5.0MHz.
     // NTS: There are also games that refuse to run if 5MHz switched on (TH03)
     gdc_5mhz_mode = section->Get_bool("pc-98 start gdc at 5mhz");
+
+    enable_pc98_egc = section->Get_bool("pc-98 enable egc");
+    enable_pc98_grcg = section->Get_bool("pc-98 enable grcg");
+    enable_pc98_16color = section->Get_bool("pc-98 enable 16-color");
+
+    // EGC implies GRCG
+    if (enable_pc98_egc) enable_pc98_grcg = true;
+
+    // EGC implies 16-color
+    if (enable_pc98_16color) enable_pc98_16color = true;
 
     i = section->Get_int("pc-98 allow 4 display partition graphics");
     pc98_allow_4_display_partitions = (i < 0/*auto*/ || i == 1/*on*/);
@@ -921,6 +934,7 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     pc98_gdc[GDC_MASTER].master_sync = true;
     pc98_gdc[GDC_MASTER].display_enable = true;
     pc98_gdc[GDC_MASTER].row_height = 16;
+    pc98_gdc[GDC_MASTER].display_pitch = 80;
     pc98_gdc[GDC_MASTER].active_display_words_per_line = 80;
     pc98_gdc[GDC_MASTER].display_partition_mask = 3;
 
@@ -940,6 +954,7 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     pc98_gdc[GDC_SLAVE].master_sync = false;
     pc98_gdc[GDC_SLAVE].display_enable = false;//FIXME
     pc98_gdc[GDC_SLAVE].row_height = 1;
+    pc98_gdc[GDC_SLAVE].display_pitch = 40;
     pc98_gdc[GDC_SLAVE].active_display_words_per_line = 40; /* 40 16-bit WORDs per line */
     pc98_gdc[GDC_SLAVE].display_partition_mask = pc98_allow_4_display_partitions ? 3 : 1;
 

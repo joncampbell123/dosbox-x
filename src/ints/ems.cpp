@@ -63,6 +63,10 @@ Bitu GetEMSPageFrameSegment(void) {
 #define EMM_PAGE_SIZE	(16*1024U)
 #define EMM_MAX_PHYS	4				/* 4 16kb pages in pageframe */
 
+Bitu GetEMSPageFrameSize(void) {
+    return EMM_MAX_PHYS * EMM_PAGE_SIZE;
+}
+
 #define EMM_VERSION			0x40
 #define EMM_MINOR_VERSION		0x00
 //#define EMM_MINOR_VERSION		0x30	// emm386 4.48
@@ -120,10 +124,63 @@ struct EMM_Handle {
 
 static Bitu ems_type = EMS_NONE;
 
+const char *EMS_Type_String(void) {
+    switch (ems_type) {
+        case EMS_NONE:  return "None";
+        case EMS_MIXED: return "Mixed";
+        case EMS_BOARD: return "Board";
+        case EMS_EMM386:return "EMM386";
+        default:        break;
+    };
+
+    return NULL;
+}
+
 static EMM_Handle emm_handles[EMM_MAX_HANDLES];
 static EMM_Mapping emm_mappings[EMM_MAX_PHYS];
 static EMM_Mapping emm_segmentmappings[0x40];
 
+bool EMS_GetMapping(Bitu &handle,Bitu &log_page,Bitu ems_page) {
+    if (ems_page < EMM_MAX_PHYS) {
+        auto &x = emm_mappings[ems_page];
+
+        if (x.handle != NULL_HANDLE && x.page != NULL_PAGE) {
+            handle = x.handle;
+            log_page = x.page;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool EMS_GetHandle(Bitu &size,PhysPt &addr,std::string &name,Bitu handle) {
+    if (handle < EMM_MAX_HANDLES) {
+        auto &x = emm_handles[handle];
+
+        if (x.pages != NULL_HANDLE) {
+            {
+                unsigned int i=0;
+
+                while (i < sizeof(x.name) && x.name[i] != 0) i++;
+                name = std::string(x.name,i);
+            }
+            size = x.pages << 14UL; // 16KB pages
+            addr = x.mem << 12UL;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+Bitu EMS_Max_Handles(void) {
+    return EMM_MAX_HANDLES;
+}
+
+bool EMS_Active(void) {
+    return ems_type != EMS_NONE;
+}
 
 static Bit16u GEMMIS_seg; 
 
@@ -1519,8 +1576,8 @@ public:
             ENABLE_VCPI = false;
         }
 
-        /* FIXME: Why zero the BIOS memory size if emulating EMS board mode? */
-		BIOS_ZeroExtendedSize(true);
+        if (ems_type != EMS_BOARD)
+            BIOS_ZeroExtendedSize(true);
 
 		dbg_zero_on_ems_allocmem = section->Get_bool("zero memory on ems memory allocation");
 		if (dbg_zero_on_ems_allocmem) {

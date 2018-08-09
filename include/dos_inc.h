@@ -124,7 +124,6 @@ extern Bitu DOS_FILES;
 #define DOS_SDA_SEG 0xb2		// dos swappable area
 #define DOS_SDA_OFS 0
 #define DOS_CDS_SEG 0x108
-#define DOS_FIRST_SHELL 0x118
 #define DOS_MEM_START 0x158	 // regression to r3437 fixes nascar 2 colors
 //#define DOS_MEM_START 0x16f		//First Segment that DOS can use 
 
@@ -138,10 +137,9 @@ extern Bit16u DOS_INFOBLOCK_SEG;// 0x80	// sysvars (list of lists)
 extern Bit16u DOS_CONDRV_SEG;// 0xa0
 extern Bit16u DOS_CONSTRING_SEG;// 0xa8
 extern Bit16u DOS_SDA_SEG;// 0xb2		// dos swappable area
+extern Bit16u DOS_SDA_SEG_SIZE;
 extern Bit16u DOS_SDA_OFS;// 0
 extern Bit16u DOS_CDS_SEG;// 0x108
-extern Bit16u DOS_FIRST_SHELL;// 0x118
-extern Bit16u DOS_FIRST_SHELL_END;
 extern Bit16u DOS_MEM_START;// 0x158	 // regression to r3437 fixes nascar 2 colors
 
 extern Bit16u DOS_PRIVATE_SEGMENT;// 0xc800
@@ -720,5 +718,13 @@ static INLINE Bit8u RealHandle(Bit16u handle) {
 	DOS_PSP psp(dos.psp());	
 	return psp.GetFileHandle(handle);
 }
+
+struct DOS_GetMemLog_Entry {
+    Bit16u      segbase;
+    Bit16u      pages;
+    std::string who;
+};
+
+extern std::list<DOS_GetMemLog_Entry> DOS_GetMemLog;
 
 #endif

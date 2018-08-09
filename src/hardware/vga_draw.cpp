@@ -2069,6 +2069,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			vbend_mask = 0x1f;
 		}
 		htotal += 2;
+        vtotal += 2;
 		hdend += 1;
 		vdend += 1;
 

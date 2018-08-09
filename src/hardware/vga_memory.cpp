@@ -1031,6 +1031,49 @@ static egc_quad &ope_xx(uint8_t ope, const PhysPt ad) {
     return pc98_egc_last_vram;
 }
 
+static egc_quad &ope_np(uint8_t ope, const PhysPt vramoff) {
+	egc_quad dst;
+
+	dst[0].w = *((uint16_t*)(vga.mem.linear+vramoff+0x08000));
+	dst[1].w = *((uint16_t*)(vga.mem.linear+vramoff+0x10000));
+	dst[2].w = *((uint16_t*)(vga.mem.linear+vramoff+0x18000));
+	dst[3].w = *((uint16_t*)(vga.mem.linear+vramoff+0x20000));
+
+	pc98_egc_data[0].w = 0;
+	pc98_egc_data[1].w = 0;
+	pc98_egc_data[2].w = 0;
+	pc98_egc_data[3].w = 0;
+
+	if (ope & 0x80) {
+        pc98_egc_data[0].w |= (pc98_egc_src[0].w & dst[0].w);
+        pc98_egc_data[1].w |= (pc98_egc_src[1].w & dst[1].w);
+        pc98_egc_data[2].w |= (pc98_egc_src[2].w & dst[2].w);
+        pc98_egc_data[3].w |= (pc98_egc_src[3].w & dst[3].w);
+    }
+	if (ope & 0x20) {
+        pc98_egc_data[0].w |= (pc98_egc_src[0].w & (~dst[0].w));
+        pc98_egc_data[1].w |= (pc98_egc_src[1].w & (~dst[1].w));
+        pc98_egc_data[2].w |= (pc98_egc_src[2].w & (~dst[2].w));
+        pc98_egc_data[3].w |= (pc98_egc_src[3].w & (~dst[3].w));
+	}
+	if (ope & 0x08) {
+        pc98_egc_data[0].w |= ((~pc98_egc_src[0].w) & dst[0].w);
+        pc98_egc_data[1].w |= ((~pc98_egc_src[1].w) & dst[1].w);
+        pc98_egc_data[2].w |= ((~pc98_egc_src[2].w) & dst[2].w);
+        pc98_egc_data[3].w |= ((~pc98_egc_src[3].w) & dst[3].w);
+	}
+	if (ope & 0x02) {
+        pc98_egc_data[0].w |= ((~pc98_egc_src[0].w) & (~dst[0].w));
+        pc98_egc_data[1].w |= ((~pc98_egc_src[1].w) & (~dst[1].w));
+        pc98_egc_data[2].w |= ((~pc98_egc_src[2].w) & (~dst[2].w));
+        pc98_egc_data[3].w |= ((~pc98_egc_src[3].w) & (~dst[3].w));
+	}
+
+	(void)ope;
+	(void)vramoff;
+	return pc98_egc_data;
+}
+
 static egc_quad &ope_c0(uint8_t ope, const PhysPt vramoff) {
 	egc_quad dst;
 
@@ -1179,7 +1222,7 @@ static egc_quad &ope_gg(uint8_t ope, const PhysPt vramoff) {
 
 static const PC98_OPEFN pc98_egc_opfn[256] = {
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
-			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_np, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
@@ -1288,6 +1331,12 @@ template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT va
     };
 
     return pc98_egc_data;
+}
+
+unsigned char pc98_mem_msw_m[8] = {0};
+
+unsigned char pc98_mem_msw(unsigned char which) {
+    return pc98_mem_msw_m[which&7];
 }
 
 /* The NEC display is documented to have:
@@ -1461,6 +1510,20 @@ public:
 
         check_align<AWT>(addr);
 
+        if ((addr & (~0x1F)) == 0xA3FE0) {
+            /* 
+             * 0xA3FE2      MSW1
+             * 0xA3FE6      MSW2
+             * 0xA3FEA      MSW3
+             * 0xA3FEE      MSW4
+             * 0xA3FF2      MSW5
+             * 0xA3FF6      MSW6
+             * 0xA3FFA      MSW7
+             * 0xA3FFE      MSW8
+             */
+            return pc98_mem_msw((addr >> 2) & 7);
+        }
+
         if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
             addr = (addr & 0x7FFF) + 0x20000;
         else
@@ -1538,6 +1601,9 @@ public:
 		addr = PAGING_GetPhysicalAddress(addr);
 
         check_align<AWT>(addr);
+
+        if ((addr & (~0x1F)) == 0xA3FE0)
+            return;
 
         if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
             addr = (addr & 0x7FFF) + 0x20000;

@@ -24,6 +24,12 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+# define ParentWindowHWND SDL_Window
+#else
+extern HWND	ParentWindowHWND;
+#endif
+
 /* Not yet in the mingw32 cross-compile headers */
 #ifndef CDS_FULLSCREEN
 #define CDS_FULLSCREEN	4
@@ -81,11 +87,6 @@
 #endif
 #ifndef PC_NOCOLLAPSE
 #define PC_NOCOLLAPSE	0
-#endif
-
-/* no modesetting please */
-#ifndef NO_CHANGEDISPLAYSETTINGS
-#define NO_CHANGEDISPLAYSETTINGS
 #endif
 
 #ifdef _WIN32_WCE
@@ -509,8 +510,6 @@ static int DIB_SussScreenDepth()
 #endif /* NO_GETDIBITS */
 }
 
-extern HWND	ParentWindowHWND;
-
 /* Various screen update functions available */
 static void DIB_NormalUpdate(_THIS, int numrects, SDL_Rect *rects);
 
@@ -588,6 +587,23 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 			SetForegroundWindow(ParentWindowHWND);
 		}
 	}
+}
+
+HMENU DIB_SurfaceMenu = NULL;
+
+void SDL1_hax_SetMenu(HMENU menu) {
+#ifndef SDL_WIN32_HX_DOS
+	if (menu == DIB_SurfaceMenu)
+		return;
+
+	DIB_SurfaceMenu = menu;
+	if (SDL_VideoSurface && (SDL_VideoSurface->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN)
+		SetMenu(ParentWindowHWND, NULL);
+	else
+		SetMenu(ParentWindowHWND, DIB_SurfaceMenu);
+
+    DrawMenuBar(ParentWindowHWND);
+#endif
 }
 
 unsigned char SDL1_hax_RemoveMinimize = 0;
@@ -768,7 +784,7 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 		}
 #endif
 
-#ifndef _WIN32_WCE
+#ifdef _WIN32_WCE_DONT_USE_THIS
 		settings.dmBitsPerPel = video->format->BitsPerPixel;
 		settings.dmPelsWidth = width;
 		settings.dmPelsHeight = height;
@@ -817,17 +833,20 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 		DIB_CreatePalette(this, bpp);
 	}
 
+#ifdef SDL_WIN32_HX_DOS
+	/* do not change window style */
+#else
 	style = GetWindowLong(ParentWindowHWND/*SDL_Window*/, GWL_STYLE);
 	style &= ~(resizestyle|WS_MAXIMIZE);
 	if ( (video->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN ) {
 		style &= ~windowstyle;
 		style |= directstyle;
 	} else {
-#ifndef NO_CHANGEDISPLAYSETTINGS
+# ifndef NO_CHANGEDISPLAYSETTINGS
 		if ( (prev_flags & SDL_FULLSCREEN) == SDL_FULLSCREEN ) {
 			ChangeDisplaySettings(NULL, 0);
 		}
-#endif
+# endif
 		if ( flags & SDL_NOFRAME ) {
 			style &= ~windowstyle;
 			style |= directstyle;
@@ -840,20 +859,23 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 				video->flags |= SDL_RESIZABLE;
 			}
 		}
-#if WS_MAXIMIZE && !defined(_WIN32_WCE)
+# if WS_MAXIMIZE && !defined(_WIN32_WCE)
 		if (IsZoomed(ParentWindowHWND)) style |= WS_MAXIMIZE;
-#endif
+# endif
 	}
+#endif
 
 	/* DJM: Don't piss of anyone who has setup his own window */
 	if ( !SDL_windowid )
 		SetWindowLong(ParentWindowHWND, GWL_STYLE, style);
 
+#ifndef SDL_WIN32_HX_DOS
 	/* show/hide menu according to fullscreen */
 	if ((current->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN)
 		SetMenu(ParentWindowHWND, NULL);
 	else
 		SetMenu(ParentWindowHWND, DIB_SurfaceMenu);
+#endif
 
 	/* Delete the old bitmap if necessary */
 	if ( screen_bmp != NULL ) {

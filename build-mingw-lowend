@@ -15,6 +15,7 @@ echo Compiling our internal SDL 1.x
 # now compile ourself
 echo Compiling DOSBox-X
 chmod +x configure
-./configure --enable-core-inline --enable-debug=heavy --prefix=/usr || exit 1
+# FIXME: I would like MinGW builds to enable the debugger, eventually
+./configure --enable-core-inline --disable-mt32 --prefix=/usr || exit 1
 make -j3 || exit 1
 

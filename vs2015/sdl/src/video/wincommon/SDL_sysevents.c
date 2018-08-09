@@ -64,16 +64,17 @@
 #endif
 #endif
 
-/* no modesetting please */
-#ifndef NO_CHANGEDISPLAYSETTINGS
-#define NO_CHANGEDISPLAYSETTINGS
+#ifdef SDL_WIN32_HX_DOS
+#define NO_GETKEYBOARDSTATE
 #endif
 
 /* The window we use for everything... */
 #ifdef _WIN32_WCE
 LPWSTR SDL_Appname = NULL;
 #else
+# ifndef SDL_WIN32_NO_PARENT_WINDOW
 LPSTR SDL_AppnameParent = "SDLParent";
+# endif
 LPSTR SDL_Appname = NULL;
 #endif
 Uint32 SDL_Appstyle = 0;
@@ -141,7 +142,11 @@ static void LoadAygshell(void)
 
 #endif
 
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+# define ParentWindowHWND SDL_Window
+#else
 extern HWND	ParentWindowHWND;
+#endif
 
 /* JC 14 Mar 2006
    This is used all over the place, in the windib driver and in the dx5 driver
@@ -179,7 +184,7 @@ static void SDL_RestoreGameMode(void)
 
 #ifndef NO_CHANGEDISPLAYSETTINGS
 #ifndef _WIN32_WCE
-	ChangeDisplaySettings(&SDL_fullscreen_mode, CDS_FULLSCREEN);
+//	ChangeDisplaySettings(&SDL_fullscreen_mode, CDS_FULLSCREEN);
 #endif
 #endif /* NO_CHANGEDISPLAYSETTINGS */
 }
@@ -201,12 +206,13 @@ static void SDL_RestoreDesktopMode(void)
 	
 #else
 	/* WinCE does not have a taskbar, so minimizing is not convenient */
-	ShowWindow(SDL_Window, SW_RESTORE);
+	ShowWindow(ParentWindowHWND, SW_RESTORE);
+    ShowWindow(SDL_Window, SW_RESTORE);
 #endif
 
 #ifndef NO_CHANGEDISPLAYSETTINGS
 #ifndef _WIN32_WCE
-	ChangeDisplaySettings(NULL, 0);
+//	ChangeDisplaySettings(NULL, 0);
 #endif
 #endif /* NO_CHANGEDISPLAYSETTINGS */
 }
@@ -252,6 +258,7 @@ static BOOL WINAPI WIN_TrackMouseEvent(TRACKMOUSEEVENT *ptme)
 #endif /* WM_MOUSELEAVE */
 
 extern HKL hLayout;
+extern unsigned char hLayoutChanged;
 int sysevents_mouse_pressed = 0;
 unsigned int SDL1_hax_inhibit_WM_PAINT = 0;
 
@@ -277,11 +284,8 @@ LRESULT CALLBACK WinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_ACTIVATE: {
 			SDL_VideoDevice *this = current_video;
 			BOOL active, minimized;
+			HKL hLayoutNew = NULL;
 			Uint8 appstate;
-
-			/* Windows 10 appears not to send WM_INPUTLANGCHANGE unless we're the active application.
-			   So if gaining focus we have to update what is the current layout. */
-			hLayout = GetKeyboardLayout(0);
 
 			minimized = HIWORD(wParam);
 			active = (LOWORD(wParam) != WA_INACTIVE) && !minimized;
@@ -697,13 +701,23 @@ this->hidden->hiresFix, &x, &y);
 		return(0);
 
 #ifndef NO_GETKEYBOARDSTATE
-		case WM_INPUTLANGCHANGE:
-			hLayout = (HKL)lParam;
-			ActivateKeyboardLayout(hLayout, 0);
+		/* FIXME: Windows will not notify us of input lang change if the user takes focus from our window,
+		          and then changes input language. How do we get this notification even if inactive?? */
+		case WM_INPUTLANGCHANGE: {
+			HKL hLayoutNew = NULL;
+
+			hLayoutNew = (HKL)lParam;
+			ActivateKeyboardLayout(hLayoutNew, 0);
+
+			if (hLayout != hLayoutNew) {
+				hLayoutChanged = 1;
+				hLayout = hLayoutNew;
+			}
 #ifndef _WIN64
 			codepage = GetCodePage();
 #endif
-		return(TRUE);
+			return(TRUE);
+		}
 #endif
 
 		default: {
@@ -797,7 +811,7 @@ int SDL_RegisterApp(char *name, Uint32 style, void *hInst)
 		return(-1);
 	}
 
-
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
 	/* another for the DIB parent window*/
 	class.hCursor = NULL;
 	class.hIcon = LoadImage(SDL_Instance, SDL_Appname,
@@ -818,7 +832,7 @@ int SDL_RegisterApp(char *name, Uint32 style, void *hInst)
 		SDL_SetError("Couldn't register application class");
 		return(-1);
 	}
-
+#endif
 
 #ifdef WM_MOUSELEAVE
 	/* Get the version of TrackMouseEvent() we use */

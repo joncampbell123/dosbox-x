@@ -134,6 +134,20 @@ if test x$warn_cpp0x = x1; then
     AC_MSG_WARN([ C++0x is considered deprecated. Please use a C++11 compiler. C++0x support will be removed at a future date. ])
 fi
 
+dnl This is how the build script can specify a HX DOS extender target
+AH_TEMPLATE(C_HX_DOS,[Define to 1 to target HX DOS])
+AC_ARG_ENABLE(hx-dos,AC_HELP_STRING([--enable-hx-dos],[Enable HX target]),enable_hx=yes)
+
+dnl Some stuff for the icon.
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+    if test x$enable_hx == xyes; then
+        CXXFLAGS="$CXXFLAGS -DHX_DOS"
+        AC_DEFINE(C_HX_DOS,1,[Targeting HX DOS extender])
+    fi
+    ;;
+esac
+
 dnl TEST: Environ can be included
 AC_MSG_CHECKING(if environ can be included)
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
@@ -225,13 +239,11 @@ case "$host" in
        ;;
 esac
 
-dnl Scalars in the code use MMX/SSE intrinsics on x86 and x86_64
+dnl Some default CPU flags
 case "$host_cpu" in
   x86_64 | amd64)
-    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
-    ;;
-  i?86)
-    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
+    # SSE is part of the x86_64 ABI
+    CXXFLAGS="$CXXFLAGS -msse"
     ;;
 esac
 
@@ -251,6 +263,7 @@ case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        dnl Some stuff for the ico
        AC_CHECK_TOOL(WINDRES, windres, :)
+       LDFLAGS="-static -static-libgcc -static-libstdc++ $LDFLAGS"
     ;;
     *)
        WINDRES=":"
@@ -358,6 +371,20 @@ else
   fi
 fi
 
+dnl Some stuff for the icon.
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       dnl MinGW puts ncurses headers in a subdir
+       ncursescfg=`ncursesw6-config --cflags`
+       CXXFLAGS="$CXXFLAGS $ncursescfg"
+       CPPFLAGS="$CPPFLAGS $ncursescfg"
+       CFLAGS="$CFLAGS $ncursescfg"
+    ;;
+    *)
+       WINDRES=":"
+    ;;
+esac
+
 dnl LIBRARY TEST: ncurses
 AC_CHECK_HEADER(curses.h,have_curses_h=yes,)
 AC_CHECK_LIB(curses, initscr, have_curses_lib=yes, , )
@@ -431,15 +458,18 @@ if test -n "$SDL2_LIBS"; then
 fi
 
 # test
+# Note that MT32 (MUNT) requires the SSE extensions
 if test x$enable_mt32 = xyes ; then 
   case "$host_cpu" in
     x86_64 | amd64)
       AC_MSG_RESULT(yes)
       AC_DEFINE(C_MT32,1)
+      CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
       ;;
     i?86)
       AC_MSG_RESULT(yes)
       AC_DEFINE(C_MT32,1)
+      CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
       ;;
     *)
       enable_mt32=no
@@ -579,7 +609,7 @@ dnl FEATURE: Whether to use X11 XKBlib
 AH_TEMPLATE(C_X11_XKB,[define to 1 if you have XKBlib.h and X11 lib])
 AC_MSG_CHECKING(for XKBlib support)
 if test x$have_x11_lib = xyes -a x$have_x11_h = xyes ; then
-   LIBS="$LIBS -lX11"
+   LIBS="$LIBS -lX11 -lxkbfile"
    AC_DEFINE(C_X11_XKB,1)
    AC_MSG_RESULT(yes)
 else

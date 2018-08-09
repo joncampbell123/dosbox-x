@@ -123,6 +123,9 @@ public:
 	void CMD_MORE(char * args);
 	void CMD_CTTY(char * args);
 	void CMD_FOR(char * args);
+#if C_DEBUG
+	void CMD_DEBUGBOX(char * args);
+#endif
 	/* The shell's variables */
 	Bit16u input_handle;
 	BatchFile * bf;

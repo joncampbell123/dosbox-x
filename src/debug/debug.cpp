@@ -58,8 +58,12 @@ static struct termios consolesettings;
 #endif
 int old_cursor_state;
 
+extern bool logBuffSuppressConsole;
+extern bool logBuffSuppressConsoleNeedUpdate;
+
 // Forwards
 static void DrawCode(void);
+static void DrawInput(void);
 static void DEBUG_RaiseTimerIrq(void);
 static void SaveMemory(Bit16u seg, Bit32u ofs1, Bit32u num);
 static void SaveMemoryBin(Bit16u seg, Bit32u ofs1, Bit32u num);
@@ -67,10 +71,21 @@ static void LogMCBS(void);
 static void LogGDT(void);
 static void LogLDT(void);
 static void LogIDT(void);
+static void LogXMS(void);
+static void LogEMS(void);
 static void LogPages(char* selname);
 static void LogCPUInfo(void);
 static void OutputVecTable(char* filename);
 static void DrawVariables(void);
+static void LogDOSKernMem(void);
+static void LogBIOSMem(void);
+
+bool XMS_Active(void);
+
+Bitu XMS_GetTotalHandles(void);
+bool XMS_GetHandleInfo(Bitu &phys_location,Bitu &size,Bitu &lockcount,bool &free,Bitu handle);
+
+LoopHandler *old_loop = NULL;
 
 char* AnalyzeInstruction(char* inst, bool saveSelector);
 Bit32u GetHexValue(char* str, char*& hex);
@@ -96,7 +111,7 @@ public:
 
 class DEBUG;
 
-DEBUG*	pDebugcom	= 0;
+//DEBUG*	pDebugcom	= 0;
 bool	exitLoop	= false;
 
 
@@ -123,6 +138,7 @@ static Bitu oldflags,oldcpucpl;
 DBGBlock dbg;
 extern Bitu cycle_count;
 static bool debugging = false;
+static bool debug_running = false;
 static bool check_rescroll = false;
 
 
@@ -167,19 +183,27 @@ static list<string>::iterator histBuffPos = histBuff.end();
 /* Helpers */
 /***********/
 
-Bit32u PhysMakeProt(Bit16u selector, Bit32u offset)
+static const Bit64u mem_no_address = (Bit64u)(~0ULL);
+
+Bit64u LinMakeProt(Bit16u selector, Bit32u offset)
 {
 	Descriptor desc;
-	if (cpu.gdt.GetDescriptor(selector,desc)) return desc.GetBase()+offset;
-	return 0;
+
+    if (cpu.gdt.GetDescriptor(selector,desc)) {
+        if (selector >= 8 && desc.Type() != 0) {
+            if (offset <= desc.GetLimit())
+                return desc.GetBase()+offset;
+        }
+    }
+
+	return mem_no_address;
 };
 
-Bit32u GetAddress(Bit16u seg, Bit32u offset)
+Bit64u GetAddress(Bit16u seg, Bit32u offset)
 {
-	if (cpu.pmode && !(reg_flags & FLAG_VM)) {
-		Descriptor desc;
-		if (cpu.gdt.GetDescriptor(seg,desc)) return PhysMakeProt(seg,offset);
-	}
+	if (cpu.pmode && !(reg_flags & FLAG_VM))
+        return LinMakeProt(seg,offset);
+
 	if (seg==SegValue(cs)) return SegPhys(cs)+offset;
 	return (seg<<4)+offset;
 }
@@ -232,8 +256,8 @@ bool GetDescriptorInfo(char* selname, char* out1, char* out2)
 		sprintf(out2,"    l:%08lX dpl : %01X %1X%1X%1X%1X%1X",(unsigned long)desc.GetLimit(),desc.saved.seg.dpl,desc.saved.seg.p,desc.saved.seg.avl,desc.saved.seg.r,desc.saved.seg.big,desc.saved.seg.g);
 		return true;
 	} else {
-		strcpy(out1,"                                     ");
-		strcpy(out2,"                                     ");
+		strcpy(out1,"                                  ");
+		strcpy(out2,"                                  ");
 	}
 	return false;
 };
@@ -456,7 +480,7 @@ bool CBreakpoint::CheckBreakpoint(Bitu seg, Bitu off)
 
 				Bitu address; 
 				if (bp->GetType()==BKPNT_MEMORY_LINEAR) address = bp->GetOffset();
-				else address = GetAddress(bp->GetSegment(),bp->GetOffset());
+				else address = (Bitu)GetAddress(bp->GetSegment(),bp->GetOffset());
 				Bit8u value=0;
 				if (mem_readb_checked(address,&value)) return false;
 				if (bp->GetValue() != value) {
@@ -621,7 +645,7 @@ bool DEBUG_Breakpoint(void)
 	/* First get the phyiscal address and check for a set Breakpoint */
 	if (!CBreakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) return false;
 	// Found. Breakpoint is valid
-	PhysPt where=GetAddress(SegValue(cs),reg_eip);
+	PhysPt where=(Bitu)GetAddress(SegValue(cs),reg_eip);
 	CBreakpoint::ActivateBreakpoints(where,false);	// Deactivate all breakpoints
 	return true;
 };
@@ -629,7 +653,7 @@ bool DEBUG_Breakpoint(void)
 bool DEBUG_IntBreakpoint(Bit8u intNum)
 {
 	/* First get the phyiscal address and check for a set Breakpoint */
-	PhysPt where=GetAddress(SegValue(cs),reg_eip);
+	PhysPt where=(Bitu)GetAddress(SegValue(cs),reg_eip);
 	if (!CBreakpoint::CheckIntBreakpoint(where,intNum,reg_ah)) return false;
 	// Found. Breakpoint is valid
 	CBreakpoint::ActivateBreakpoints(where,false);	// Deactivate all breakpoints
@@ -639,7 +663,7 @@ bool DEBUG_IntBreakpoint(Bit8u intNum)
 static bool StepOver()
 {
 	exitLoop = false;
-	PhysPt start=GetAddress(SegValue(cs),reg_eip);
+	PhysPt start=(Bitu)GetAddress(SegValue(cs),reg_eip);
 	char dline[200];Bitu size;
 	size=DasmI386(dline, start, reg_eip, cpu.code.big);
 
@@ -647,6 +671,13 @@ static bool StepOver()
 		CBreakpoint::AddBreakpoint		(SegValue(cs),reg_eip+size, true);
 		CBreakpoint::ActivateBreakpoints(start, true);
 		debugging=false;
+
+        logBuffSuppressConsole = false;
+        if (logBuffSuppressConsoleNeedUpdate) {
+            logBuffSuppressConsoleNeedUpdate = false;
+            DEBUG_RefreshPage(0);
+        }
+
 		DrawCode();
 		DOSBOX_SetNormalLoop();
 		return true;
@@ -677,20 +708,78 @@ static void DrawData(void) {
 
 	Bit8u ch;
 	Bit32u add = dataOfs;
-	Bit32u address;
+	Bit64u address;
+    int w,h;
+
 	/* Data win */	
-	for (int y=0; y<8; y++) {
+    getmaxyx(dbg.win_data,h,w);
+	for (int y=0;y<h;y++) {
 		// Address
-		if (add<0x10000) mvwprintw (dbg.win_data,1+y,0,"%04X:%04X     ",dataSeg,add);
-		else mvwprintw (dbg.win_data,1+y,0,"%04X:%08X ",dataSeg,add);
-		for (int x=0; x<16; x++) {
-			address = GetAddress(dataSeg,add);
-			if (mem_readb_checked(address,&ch)) ch=0;
-			mvwprintw (dbg.win_data,1+y,14+3*x,"%02X",ch);
-			if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
-			mvwprintw (dbg.win_data,1+y,63+x,"%c",ch);
-			add++;
-		};
+        if (dbg.data_view == DBGBlock::DATV_SEGMENTED) {
+            wattrset (dbg.win_data,0);
+            mvwprintw (dbg.win_data,y,0,"%04X:%08X ",dataSeg,add);
+        }
+        else {
+            wattrset (dbg.win_data,0);
+            mvwprintw (dbg.win_data,y,0,"     %08X ",add);
+        }
+
+        if (dbg.data_view == DBGBlock::DATV_PHYSICAL) {
+            for (int x=0; x<16; x++) {
+                address = add;
+
+                /* save the original page addr.
+                 * we must hack the phys page tlb to make the hardware handler map 1:1 the page for this call. */
+                PhysPt opg = paging.tlb.phys_page[address>>12];
+
+                paging.tlb.phys_page[address>>12] = address>>12;
+
+                PageHandler *ph = MEM_GetPageHandler(address>>12);
+
+                if (ph->flags & PFLAG_READABLE)
+	                ch = ph->GetHostReadPt(address>>12)[address&0xFFF];
+                else
+                    ch = ph->readb(address);
+
+                paging.tlb.phys_page[address>>12] = opg;
+
+                wattrset (dbg.win_data,0);
+                mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
+                if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
+                mvwprintw (dbg.win_data,y,63+x,"%c",ch);
+
+                add++;
+            }
+        }
+        else {
+            for (int x=0; x<16; x++) {
+                if (dbg.data_view == DBGBlock::DATV_SEGMENTED)
+                    address = GetAddress(dataSeg,add);
+                else
+                    address = add;
+
+                if (address != mem_no_address) {
+                    if (!mem_readb_checked(address,&ch)) {
+                        wattrset (dbg.win_data,0);
+                        mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
+                        if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
+                        mvwprintw (dbg.win_data,y,63+x,"%c",ch);
+                    }
+                    else {
+                        wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
+                        mvwprintw (dbg.win_data,y,14+3*x,"pf");
+                        mvwprintw (dbg.win_data,y,63+x,".");
+                    }
+                }
+                else {
+                    wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
+                    mvwprintw (dbg.win_data,y,14+3*x,"na");
+                    mvwprintw (dbg.win_data,y,63+x,".");
+                }
+
+                add++;
+            }
+        }
 	}	
 	wrefresh(dbg.win_data);
 };
@@ -779,8 +868,11 @@ static void DrawRegisters(void) {
 		if (reg_flags & FLAG_VM) mvwprintw(dbg.win_reg,0,76,"VM86");
 		else if (cpu.code.big) mvwprintw(dbg.win_reg,0,76,"Pr32");
 		else mvwprintw(dbg.win_reg,0,76,"Pr16");
-	} else	
+		mvwprintw(dbg.win_reg,2,62,paging.enabled ? "PAGE" : "NOPG");
+	} else {
 		mvwprintw(dbg.win_reg,0,76,"Real");
+		mvwprintw(dbg.win_reg,2,62,"NOPG");
+    }
 
 	// Selector info, if available
 	if ((cpu.pmode) && curSelectorName[0]) {
@@ -795,17 +887,45 @@ static void DrawRegisters(void) {
 	wrefresh(dbg.win_reg);
 };
 
+static void DrawInput(void) {
+    if (!debugging) {
+        wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
+        wattrset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
+
+        mvwprintw(dbg.win_inp,0,0,"%s","(Running)");
+        wclrtoeol(dbg.win_inp);
+    } else {
+        //TODO long lines
+        char* dispPtr = codeViewData.inputStr; 
+        char* curPtr = &codeViewData.inputStr[codeViewData.inputPos];
+
+        wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
+        wattrset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
+        mvwprintw(dbg.win_inp,0,0,"%c-> %s%c",
+                (codeViewData.ovrMode?'O':'I'),dispPtr,(*curPtr?' ':'_'));
+        wclrtoeol(dbg.win_inp); // not correct in pdcurses if full line
+        if (*curPtr) {
+            mvwchgat(dbg.win_inp,0,(curPtr-dispPtr+4),1,0,(PAIR_BLACK_GREY),NULL);
+        } 
+    }
+
+    wrefresh(dbg.win_inp);
+}
+
 static void DrawCode(void) {
 	if (dbg.win_main == NULL || dbg.win_code == NULL)
 		return;
 
 	bool saveSel; 
 	Bit32u disEIP = codeViewData.useEIP;
-	PhysPt start  = GetAddress(codeViewData.useCS,codeViewData.useEIP);
 	char dline[200];Bitu size;Bitu c;
 	static char line20[21] = "                    ";
+    int w,h;
 
-	for (int i=0;i<10;i++) {
+    getmaxyx(dbg.win_code,h,w);
+	for (int i=0;i<h;i++) {
+        Bit64u start = GetAddress(codeViewData.useCS,disEIP);
+
 		saveSel = false;
 		if (has_colors()) {
 			if ((codeViewData.useCS==SegValue(cs)) && (disEIP == reg_eip)) {
@@ -818,34 +938,66 @@ static void DrawCode(void) {
 				}
 				saveSel = (i == codeViewData.cursorPos);
 
-                if (i == codeViewData.cursorPos)
+                if (i == codeViewData.cursorPos) {
+                    wbkgdset(dbg.win_code,COLOR_PAIR(PAIR_BLACK_GREEN));
                     wattrset(dbg.win_code,COLOR_PAIR(PAIR_BLACK_GREEN));
-                else
+                }
+                else {
+                    wbkgdset(dbg.win_code,COLOR_PAIR(PAIR_GREEN_BLACK));
                     wattrset(dbg.win_code,COLOR_PAIR(PAIR_GREEN_BLACK));
+                }
             } else if (i == codeViewData.cursorPos) {
+                wbkgdset(dbg.win_code,COLOR_PAIR(PAIR_BLACK_GREY));
 				wattrset(dbg.win_code,COLOR_PAIR(PAIR_BLACK_GREY));			
 				codeViewData.cursorSeg = codeViewData.useCS;
 				codeViewData.cursorOfs = disEIP;
 				saveSel = true;
 			} else if (CBreakpoint::IsBreakpointDrawn(start)) {
+                wbkgdset(dbg.win_code,COLOR_PAIR(PAIR_GREY_RED));
 				wattrset(dbg.win_code,COLOR_PAIR(PAIR_GREY_RED));			
 			} else {
+                wbkgdset(dbg.win_code,0);
 				wattrset(dbg.win_code,0);			
 			}
 		}
 
 
-		Bitu drawsize=size=DasmI386(dline, start, disEIP, cpu.code.big);
 		bool toolarge = false;
-		mvwprintw(dbg.win_code,i,0,"%04X:%04X  ",codeViewData.useCS,disEIP);
-		
+        bool no_bytes = false;
+		Bitu drawsize;
+
+        if (start != mem_no_address) {
+            drawsize=size=DasmI386(dline, start, disEIP, cpu.code.big);
+        }
+        else {
+            drawsize=size=1;
+            dline[0]=0;
+        }
+		mvwprintw(dbg.win_code,i,0,"%04X:%08X ",codeViewData.useCS,disEIP);
+
 		if (drawsize>10) { toolarge = true; drawsize = 9; };
-		for (c=0;c<drawsize;c++) {
-			Bit8u value;
-			if (mem_readb_checked(start+c,&value)) value=0;
-			wprintw(dbg.win_code,"%02X",value);
-		}
-		if (toolarge) { waddstr(dbg.win_code,".."); drawsize++; };
+ 
+        if (start != mem_no_address) {
+            for (c=0;c<drawsize;c++) {
+                Bit8u value;
+                if (!mem_readb_checked(start+c,&value)) {
+                    wattrset (dbg.win_code,0);
+                    wprintw(dbg.win_code,"%02X",value);
+                }
+                else {
+                    no_bytes = true;
+                    wattrset (dbg.win_code, COLOR_PAIR(PAIR_BYELLOW_BLACK));
+                    wprintw(dbg.win_code,"pf");
+                }
+            }
+        }
+        else {
+            wattrset (dbg.win_code, COLOR_PAIR(PAIR_BYELLOW_BLACK));
+            wprintw(dbg.win_code,"na");
+        }
+
+        wattrset (dbg.win_code,0);
+        if (toolarge) { waddstr(dbg.win_code,".."); drawsize++; };
 		// Spacepad up to 20 characters
 		if(drawsize && (drawsize < 11)) {
 			line20[20 - drawsize*2] = 0;
@@ -855,8 +1007,10 @@ static void DrawCode(void) {
 
 		char empty_res[] = { 0 };
 		char* res = empty_res;
-		if (showExtend) res = AnalyzeInstruction(dline, saveSel);
+        wattrset (dbg.win_code,0);
+        if (showExtend) res = AnalyzeInstruction(dline, saveSel);
 		// Spacepad it up to 28 characters
+        if (no_bytes) dline[0] = 0;
 		size_t dline_len = strlen(dline);
 		if(dline_len < 28) for (c = dline_len; c < 28;c++) dline[c] = ' '; dline[28] = 0;
 		waddstr(dbg.win_code,dline);
@@ -868,31 +1022,16 @@ static void DrawCode(void) {
 			waddstr(dbg.win_code,line20);
 			line20[20-res_len] = ' ';
 		} else 	waddstr(dbg.win_code,line20);
-		
-		start+=size;
-		disEIP+=size;
+
+        wclrtoeol(dbg.win_code);
+
+        disEIP+=size;
 
 		if (i==0) codeViewData.firstInstSize = size;
 		if (i==4) codeViewData.useEIPmid	 = disEIP;
 	}
 
 	codeViewData.useEIPlast = disEIP;
-	
-	wattrset(dbg.win_code,0);			
-	if (!debugging) {
-		mvwprintw(dbg.win_code,10,0,"%s","(Running)");
-		wclrtoeol(dbg.win_code);
-	} else {
-		//TODO long lines
-		char* dispPtr = codeViewData.inputStr; 
-		char* curPtr = &codeViewData.inputStr[codeViewData.inputPos];
-		mvwprintw(dbg.win_code,10,0,"%c-> %s%c",
-			(codeViewData.ovrMode?'O':'I'),dispPtr,(*curPtr?' ':'_'));
-		wclrtoeol(dbg.win_code); // not correct in pdcurses if full line
-		if (*curPtr) {
-			mvwchgat(dbg.win_code,10,(curPtr-dispPtr+4),1,0,(PAIR_BLACK_GREY),NULL);
- 		} 
-	}
 
 	wrefresh(dbg.win_code);
 }
@@ -1003,6 +1142,9 @@ bool ChangeRegister(char* str)
 	return true;
 };
 
+void DEBUG_GUI_Rebuild(void);
+void DBGUI_NextWindowIfActiveHidden(void);
+
 bool ParseCommand(char* str) {
 	char* found = str;
 	for(char* idx = found;*idx != 0; idx++)
@@ -1017,6 +1159,62 @@ bool ParseCommand(char* str) {
 	if(next == string::npos) next = command.size();
 	(s_found.erase)(0,next);
 	found = const_cast<char*>(s_found.c_str());
+
+    if (command == "MOVEWINDN") { // MOVE WINDOW DOWN (by swapping)
+        int order1 = dbg.win_find_order(dbg.active_win);
+        int order2 = dbg.win_next_by_order(order1);
+
+        if (order1 >= 0 && order2 >= 0 && order1 < order2) {
+            dbg.swap_order(order1,order2);
+            DEBUG_GUI_Rebuild();
+            DBGUI_NextWindowIfActiveHidden();
+        }
+
+        return true;
+    }
+
+    if (command == "MOVEWINUP") { // MOVE WINDOW UP (by swapping)
+        int order1 = dbg.win_find_order(dbg.active_win);
+        int order2 = dbg.win_prev_by_order(order1);
+
+        if (order1 >= 0 && order2 >= 0 && order1 > order2) {
+            dbg.swap_order(order1,order2);
+            DEBUG_GUI_Rebuild();
+            DBGUI_NextWindowIfActiveHidden();
+        }
+
+        return true;
+    }
+
+    if (command == "SHOWWIN") { // SHOW WINDOW <name>
+        int win = dbg.name_to_win(found);
+        if (win >= 0) {
+            dbg.win_vis[win] = true;
+
+            DEBUG_GUI_Rebuild();
+            DBGUI_NextWindowIfActiveHidden();
+            return true;
+        }
+        else {
+            LOG_MSG("No such window '%s'. Windows are: %s",found,dbg.windowlist_by_name().c_str());
+            return false;
+        }
+    }
+
+    if (command == "HIDEWIN") { // HIDE WINDOW <name>
+        int win = dbg.name_to_win(found);
+        if (win >= 0) {
+            dbg.win_vis[win] = false;
+
+            DEBUG_GUI_Rebuild();
+            DBGUI_NextWindowIfActiveHidden();
+            return true;
+        }
+        else {
+            LOG_MSG("No such window '%s'. Windows are: ",found,dbg.windowlist_by_name().c_str());
+            return false;
+        }
+    }
 
 	if (command == "MEMDUMP") { // Dump memory to file
 		Bit16u seg = (Bit16u)GetHexValue(found,found); found++;
@@ -1168,6 +1366,89 @@ bool ParseCommand(char* str) {
 		return true;
 	};
 
+    if (command == "RUN") {
+        DrawRegistersUpdateOld();
+        debugging=false;
+
+        logBuffSuppressConsole = false;
+        if (logBuffSuppressConsoleNeedUpdate) {
+            logBuffSuppressConsoleNeedUpdate = false;
+            DEBUG_RefreshPage(0);
+        }
+
+        CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);						
+        ignoreAddressOnce = SegPhys(cs)+reg_eip;
+        DOSBOX_SetNormalLoop();	
+        return true;
+    }
+
+    if (command == "RUNWATCH") {
+        debug_running = true;
+        DEBUG_DrawScreen();
+        return true;
+    }
+
+    if (command == "A20") {
+        void MEM_A20_Enable(bool enabled);
+        bool MEM_A20_Enabled(void);
+
+		stream >> command;
+
+        if (command == "ON" || command == "1")
+            MEM_A20_Enable(true);
+        else if (command == "OFF" || command == "0")
+            MEM_A20_Enable(false);
+        else
+            DEBUG_ShowMsg("A20 gate is %s",MEM_A20_Enabled() ? "ON" : "OFF");
+
+        return true;
+    }
+
+    if (command == "PIC") { // interrupt controller state/controls
+        void DEBUG_PICSignal(int irq,bool raise);
+        void DEBUG_PICMask(int irq,bool mask);
+        void DEBUG_PICAck(int irq);
+        void DEBUG_LogPIC(void);
+
+		stream >> command;
+
+        if (command == "MASKIRQ") {
+            std::string what;
+            stream >> what;
+            int irq = atoi(what.c_str());
+            DEBUG_PICMask(irq,true);
+        }
+        else if (command == "UNMASKIRQ") {
+            std::string what;
+            stream >> what;
+            int irq = atoi(what.c_str());
+            DEBUG_PICMask(irq,false);
+        }
+        else if (command == "ACKIRQ") { /* debugging: manually acknowledge an IRQ where the DOS program failed to do so */
+            std::string what;
+            stream >> what;
+            int irq = atoi(what.c_str());
+            DEBUG_PICAck(irq);
+        }
+        else if (command == "LOWERIRQ") { /* manually lower an IRQ signal */
+            std::string what;
+            stream >> what;
+            int irq = atoi(what.c_str());
+            DEBUG_PICSignal(irq,false);
+        }
+        else if (command == "RAISEIRQ") { /* manually raise an IRQ signal */
+            std::string what;
+            stream >> what;
+            int irq = atoi(what.c_str());
+            DEBUG_PICSignal(irq,true);
+        }
+        else {
+            DEBUG_LogPIC();
+        }
+
+        return true;
+    }
+
 	if (command == "C") { // Set code overview
 		Bit16u codeSeg = (Bit16u)GetHexValue(found,found); found++;
 		Bit32u codeOfs = GetHexValue(found,found);
@@ -1181,6 +1462,23 @@ bool ParseCommand(char* str) {
 	if (command == "D") { // Set data overview
 		dataSeg = (Bit16u)GetHexValue(found,found); found++;
 		dataOfs = GetHexValue(found,found);
+        dbg.set_data_view(DBGBlock::DATV_SEGMENTED);
+		DEBUG_ShowMsg("DEBUG: Set data overview to %04X:%04X\n",dataSeg,dataOfs);
+		return true;
+	};
+
+	if (command == "DV") { // Set data overview
+        dataSeg = 0;
+		dataOfs = GetHexValue(found,found);
+        dbg.set_data_view(DBGBlock::DATV_VIRTUAL);
+		DEBUG_ShowMsg("DEBUG: Set data overview to %04X:%04X\n",dataSeg,dataOfs);
+		return true;
+	};
+
+	if (command == "DP") { // Set data overview
+        dataSeg = 0;
+		dataOfs = GetHexValue(found,found);
+        dbg.set_data_view(DBGBlock::DATV_PHYSICAL);
 		DEBUG_ShowMsg("DEBUG: Set data overview to %04X:%04X\n",dataSeg,dataOfs);
 		return true;
 	};
@@ -1254,8 +1552,19 @@ bool ParseCommand(char* str) {
 	if (command == "DOS") {
 		stream >> command;
 		if (command == "MCBS") LogMCBS();
+        else if (command == "KERN") LogDOSKernMem();
+        else if (command == "XMS") LogXMS();
+        else if (command == "EMS") LogEMS();
 		return true;
 	}
+
+    if (command == "BIOS") {
+        stream >> command;
+
+        if (command == "MEM") LogBIOSMem();
+
+        return true;
+    }
 
 	if (command == "GDT") {LogGDT(); return true;}
 	
@@ -1546,10 +1855,73 @@ char* AnalyzeInstruction(char* inst, bool saveSelector) {
 	return result;
 };
 
+// data window
+void win_data_ui_down(int count) {
+    if (count > 0)
+        dataOfs += (unsigned)count * 16;
+}
+
+void win_data_ui_up(int count) {
+    if (count > 0)
+        dataOfs -= (unsigned)count * 16;
+}
+
+// code window
+void win_code_ui_down(int count) {
+    if (dbg.win_code != NULL) {
+        int y,x;
+
+        getmaxyx(dbg.win_code,y,x);
+
+        while (count-- > 0) {
+            if (codeViewData.cursorPos < (y-1)) codeViewData.cursorPos++;
+            else codeViewData.useEIP += codeViewData.firstInstSize;
+        }
+    }
+}
+
+void win_code_ui_up(int count) {
+    if (dbg.win_code != NULL) {
+        int y,x;
+
+        getmaxyx(dbg.win_code,y,x);
+
+        while (count-- > 0) {
+            if (codeViewData.cursorPos>0)
+                codeViewData.cursorPos--;
+            else {
+                Bitu bytes = 0;
+                char dline[200];
+                Bitu size = 0;
+                Bit32u newEIP = codeViewData.useEIP - 1;
+                if(codeViewData.useEIP) {
+                    for (; bytes < 10; bytes++) {
+                        PhysPt start = GetAddress(codeViewData.useCS,newEIP);
+                        size = DasmI386(dline, start, newEIP, cpu.code.big);
+                        if(codeViewData.useEIP == newEIP+size) break;
+                        newEIP--;
+                    }
+                    if (bytes>=10) newEIP = codeViewData.useEIP - 1;
+                }
+                codeViewData.useEIP = newEIP;
+            }
+        }
+    }
+}
 
 Bit32u DEBUG_CheckKeys(void) {
 	Bits ret=0;
 	int key=getch();
+
+	/* FIXME: This is supported by PDcurses, except I cannot figure out how to trigger it.
+	          The Windows console resizes around the console set by pdcurses and does not notify us as far as I can tell. */
+    if (key == KEY_RESIZE) {
+        void DEBUG_GUI_OnResize(void);
+        DEBUG_GUI_OnResize();
+        DEBUG_DrawScreen();
+        return 0;
+    }
+
 	if (key>0) {
 #if defined(WIN32) && defined(__PDCURSES__)
 		switch (key) {
@@ -1613,39 +1985,122 @@ Bit32u DEBUG_CheckKeys(void) {
 				break;
 			}
 			break;
-		case KEY_PPAGE :	dataOfs -= 16;	break;
-		case KEY_NPAGE :	dataOfs += 16;	break;
+        case KEY_PPAGE: // page up
+            switch (dbg.active_win) {
+                case DBGBlock::WINI_CODE:
+                    if (dbg.win_code != NULL) {
+                        int w,h;
 
-		case KEY_DOWN:	// down 
-				if (codeViewData.cursorPos<9) codeViewData.cursorPos++;
-				else codeViewData.useEIP += codeViewData.firstInstSize;	
+                        getmaxyx(dbg.win_code,h,w);
+                        win_code_ui_up(h-1);
+                    }
+                    break;
+                case DBGBlock::WINI_DATA:
+                     if (dbg.win_data != NULL) {
+                        int w,h;
+
+                        getmaxyx(dbg.win_data,h,w);
+                        win_data_ui_up(h);
+                    }
+                    break;
+                case DBGBlock::WINI_OUT:
+                    if (dbg.win_out != NULL) {
+                        int w,h;
+
+                        getmaxyx(dbg.win_out,h,w);
+                        DEBUG_RefreshPage(-h);
+                    }
+                    break;
+            }
+            break;
+
+        case KEY_NPAGE:	// page down
+            switch (dbg.active_win) {
+                case DBGBlock::WINI_CODE:
+                    if (dbg.win_code != NULL) {
+                        int w,h;
+
+                        getmaxyx(dbg.win_code,h,w);
+                        win_code_ui_down(h-1);
+                    }
+                    break;
+                case DBGBlock::WINI_DATA:
+                     if (dbg.win_data != NULL) {
+                        int w,h;
+
+                        getmaxyx(dbg.win_data,h,w);
+                        win_data_ui_down(h);
+                    }
+                    break;
+                case DBGBlock::WINI_OUT:
+                    if (dbg.win_out != NULL) {
+                        int w,h;
+
+                        getmaxyx(dbg.win_out,h,w);
+                        DEBUG_RefreshPage(h);
+                    }
+                    break;
+            }
+            break;
+
+		case KEY_DOWN:	// down
+                switch (dbg.active_win) {
+                    case DBGBlock::WINI_CODE:
+                        win_code_ui_down(1);
+                        break;
+                    case DBGBlock::WINI_DATA:
+                        win_data_ui_down(1);
+                        break;
+                    case DBGBlock::WINI_OUT:
+                        DEBUG_RefreshPage(1);
+                        break;
+                }
+                break;
+        case KEY_UP:	// up 
+                switch (dbg.active_win) {
+                    case DBGBlock::WINI_CODE:
+                        win_code_ui_up(1);
+                        break;
+                    case DBGBlock::WINI_DATA:
+                        win_data_ui_up(1);
+                        break;
+                    case DBGBlock::WINI_OUT:
+                        DEBUG_RefreshPage(-1);
+                        break;
+                }
 				break;
-		case KEY_UP:	// up 
-				if (codeViewData.cursorPos>0) codeViewData.cursorPos--;
-				else {
-					Bitu bytes = 0;
-					char dline[200];
-					Bitu size = 0;
-					Bit32u newEIP = codeViewData.useEIP - 1;
-					if(codeViewData.useEIP) {
-						for (; bytes < 10; bytes++) {
-							PhysPt start = GetAddress(codeViewData.useCS,newEIP);
-							size = DasmI386(dline, start, newEIP, cpu.code.big);
-							if(codeViewData.useEIP == newEIP+size) break;
-							newEIP--;
-						}
-						if (bytes>=10) newEIP = codeViewData.useEIP - 1;
-					}
-					codeViewData.useEIP = newEIP;
-				}
+
+		case KEY_HOME:	// Home
+                switch (dbg.active_win) {
+                    case DBGBlock::WINI_CODE:
+                        // and do what?
+                        break;
+                    case DBGBlock::WINI_DATA:
+                        // and do what?
+                        break;
+                    case DBGBlock::WINI_OUT:
+                        void DEBUG_ScrollHomeOutput(void);
+                        DEBUG_ScrollHomeOutput();
+                        break;
+                }
 				break;
-		case KEY_HOME:	// Home: scroll log page up
-				DEBUG_RefreshPage(-1);
+
+		case KEY_END:	// End
+                switch (dbg.active_win) {
+                    case DBGBlock::WINI_CODE:
+                        // and do what?
+                        break;
+                    case DBGBlock::WINI_DATA:
+                        // and do what?
+                        break;
+                    case DBGBlock::WINI_OUT:
+                        void DEBUG_ScrollToEndOutput(void);
+                        DEBUG_ScrollToEndOutput();
+                        break;
+                }
 				break;
-		case KEY_END:	// End: scroll log page down
-				DEBUG_RefreshPage(1);
-				break;
-		case KEY_IC:	// Insert: toggle insert/overwrite
+
+        case KEY_IC:	// Insert: toggle insert/overwrite
 				codeViewData.ovrMode = !codeViewData.ovrMode;
 				break;
 		case KEY_LEFT:	// move to the left in command line
@@ -1678,6 +2133,18 @@ Bit32u DEBUG_CheckKeys(void) {
 		case KEY_F(5):	// Run Program
                 DrawRegistersUpdateOld();
 				debugging=false;
+
+                logBuffSuppressConsole = false;
+                if (logBuffSuppressConsoleNeedUpdate) {
+                    logBuffSuppressConsoleNeedUpdate = false;
+                    DEBUG_RefreshPage(0);
+                }
+
+                Bits DEBUG_NullCPUCore(void);
+
+                if (cpudecoder == DEBUG_NullCPUCore)
+                    ret = -1; /* DEBUG_Loop() must exit */
+
 				CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);						
 				ignoreAddressOnce = SegPhys(cs)+reg_eip;
 				DOSBOX_SetNormalLoop();	
@@ -1715,6 +2182,10 @@ Bit32u DEBUG_CheckKeys(void) {
 				SetCodeWinStart();
 				CBreakpoint::ignoreOnce = 0;
 				break;
+        case 0x09: //TAB
+                void DBGUI_NextWindow(void);
+                DBGUI_NextWindow();
+                break;
 		case 0x0A: //Parse typed Command
 				codeViewData.inputStr[MAXCMDLEN] = '\0';
 				if(ParseCommand(codeViewData.inputStr)) {
@@ -1781,43 +2252,92 @@ Bit32u DEBUG_CheckKeys(void) {
 	return ret;
 };
 
+Bitu DEBUG_LastRunningUpdate = 0;
+
+LoopHandler *DOSBOX_GetLoop(void);
+Bitu DEBUG_Loop(void);
+
+void DEBUG_Wait(void) {
+    while (DOSBOX_GetLoop() == DEBUG_Loop)
+        DOSBOX_RunMachine();
+}
+
+Bits DEBUG_NullCPUCore(void) {
+    return CBRET_NONE;
+}
+
+void DEBUG_WaitNoExecute(void) {
+    /* the caller uses this version to indicate a fatal error
+     * in a condition where single-stepping or executing any
+     * more x86 instructions is very unwise */
+    auto oldcore = cpudecoder;
+    cpudecoder = DEBUG_NullCPUCore;
+    DEBUG_Wait();
+    cpudecoder = oldcore;
+}
+
 Bitu DEBUG_Loop(void) {
-//TODO Disable sound
-	GFX_Events();
-	// Interrupt started ? - then skip it
-	Bit16u oldCS	= SegValue(cs);
-	Bit32u oldEIP	= reg_eip;
-	PIC_runIRQs();
-	SDL_Delay(1);
-	if ((oldCS!=SegValue(cs)) || (oldEIP!=reg_eip)) {
-		CBreakpoint::AddBreakpoint(oldCS,oldEIP,true);
-		CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);
-		debugging=false;
-		DOSBOX_SetNormalLoop();
-        DrawRegistersUpdateOld();
-        return 0;
-	}
+    if (debug_running) {
+        Bitu now = SDL_GetTicks();
 
-    /* between DEBUG_Enable and DEBUG_Loop CS:EIP can change */
-    if (check_rescroll) {
-        Bitu ocs,oip,ocr;
-
-        check_rescroll = false;
-		ocs = codeViewData.useCS;
-		oip = codeViewData.useEIP;
-        ocr = codeViewData.cursorPos;
-        SetCodeWinStart();
-        if (ocs != codeViewData.useCS ||
-            oip != codeViewData.useEIP) {
+        if ((DEBUG_LastRunningUpdate + 33) < now) {
+            DEBUG_LastRunningUpdate = now;
+            SetCodeWinStart();
             DEBUG_DrawScreen();
         }
-        else {
-            /* SetCodeWinStart() resets cursor position */
-            codeViewData.cursorPos = ocr;
-        }
-    }
 
-	return DEBUG_CheckKeys();
+        return old_loop();
+    }
+    else {
+        //TODO Disable sound
+        GFX_Events();
+        // Interrupt started ? - then skip it
+        Bit16u oldCS	= SegValue(cs);
+        Bit32u oldEIP	= reg_eip;
+        PIC_runIRQs();
+        SDL_Delay(1);
+        if ((oldCS!=SegValue(cs)) || (oldEIP!=reg_eip)) {
+            CBreakpoint::AddBreakpoint(oldCS,oldEIP,true);
+            CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);
+            debugging=false;
+
+            logBuffSuppressConsole = false;
+            if (logBuffSuppressConsoleNeedUpdate) {
+                logBuffSuppressConsoleNeedUpdate = false;
+                DEBUG_RefreshPage(0);
+            }
+
+            DOSBOX_SetNormalLoop();
+            DrawRegistersUpdateOld();
+            return 0;
+        }
+
+        /* between DEBUG_Enable and DEBUG_Loop CS:EIP can change */
+        if (check_rescroll) {
+            Bitu ocs,oip,ocr;
+
+            check_rescroll = false;
+            ocs = codeViewData.useCS;
+            oip = codeViewData.useEIP;
+            ocr = codeViewData.cursorPos;
+            SetCodeWinStart();
+            if (ocs != codeViewData.useCS ||
+                    oip != codeViewData.useEIP) {
+                DEBUG_DrawScreen();
+            }
+            else {
+                /* SetCodeWinStart() resets cursor position */
+                codeViewData.cursorPos = ocr;
+            }
+        }
+
+        if (logBuffSuppressConsoleNeedUpdate) {
+            logBuffSuppressConsoleNeedUpdate = false;
+            DEBUG_RefreshPage(0);
+        }
+
+    	return DEBUG_CheckKeys();
+    }
 }
 
 void DEBUG_Enable(bool pressed) {
@@ -1828,7 +2348,13 @@ void DEBUG_Enable(bool pressed) {
     CPU_CycleLeft+=CPU_Cycles;
     CPU_Cycles=0;
 
+    logBuffSuppressConsole = true;
+
+    LoopHandler *ol = DOSBOX_GetLoop();
+    if (ol != DEBUG_Loop) old_loop = ol;
+
 	debugging=true;
+    debug_running=false;
     check_rescroll=true;
     DrawRegistersUpdateOld();
     DEBUG_SetupConsole();
@@ -1845,6 +2371,7 @@ void DEBUG_Enable(bool pressed) {
 void DEBUG_DrawScreen(void) {
 	DrawData();
 	DrawCode();
+    DrawInput();
 	DrawRegisters();
 	DrawVariables();
 }
@@ -1901,9 +2428,157 @@ static void LogMCBChain(Bit16u mcb_segment) {
 	}
 }
 
+#include "regionalloctracking.h"
+
+extern bool dos_kernel_disabled;
+extern RegionAllocTracking rombios_alloc;
+
+static void LogBIOSMem(void) {
+    char tmp[192];
+
+    LOG(LOG_MISC,LOG_ERROR)("BIOS memory blocks:");
+    LOG(LOG_MISC,LOG_ERROR)("Region            Status What");
+    for (auto i=rombios_alloc.alist.begin();i!=rombios_alloc.alist.end();i++) {
+        sprintf(tmp,"%08lx-%08lx %s",
+            (unsigned long)(i->start),
+            (unsigned long)(i->end),
+            i->free ? "FREE  " : "ALLOC ");
+        LOG(LOG_MISC,LOG_ERROR)("%s %s",tmp,i->who.c_str());
+    }
+}
+
+Bitu XMS_GetTotalHandles(void);
+bool XMS_GetHandleInfo(Bitu &phys_location,Bitu &size,Bitu &lockcount,bool &free,Bitu handle);
+
+bool EMS_GetHandle(Bitu &size,PhysPt &addr,std::string &name,Bitu handle);
+const char *EMS_Type_String(void);
+Bitu EMS_Max_Handles(void);
+bool EMS_Active(void);
+
+static void LogEMS(void) {
+    Bitu h_size;
+    PhysPt h_addr;
+    std::string h_name;
+
+    if (dos_kernel_disabled) {
+        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate EMS memory while DOS kernel is inactive.");
+        return;
+    }
+
+    if (!EMS_Active()) {
+        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate EMS memory while EMS is inactive.");
+        return;
+    }
+
+    LOG(LOG_MISC,LOG_ERROR)("EMS memory (type %s) handles:",EMS_Type_String());
+    LOG(LOG_MISC,LOG_ERROR)("Handle Address  Size (bytes)    Name");
+    for (Bitu h=0;h < EMS_Max_Handles();h++) {
+        if (EMS_GetHandle(/*&*/h_size,/*&*/h_addr,/*&*/h_name,h)) {
+            LOG(LOG_MISC,LOG_ERROR)("%6lu %08lx %08lx %s",
+                (unsigned long)h,
+                (unsigned long)h_addr,
+                (unsigned long)h_size,
+                h_name.c_str());
+        }
+    }
+
+    bool EMS_GetMapping(Bitu &handle,Bitu &log_page,Bitu ems_page);
+    Bitu GetEMSPageFrameSegment(void);
+    Bitu GetEMSPageFrameSize(void);
+
+    LOG(LOG_MISC,LOG_ERROR)("EMS page frame 0x%08lx-0x%08lx",
+        GetEMSPageFrameSegment()*16UL,
+        (GetEMSPageFrameSegment()*16UL)+GetEMSPageFrameSize()-1UL);
+    LOG(LOG_MISC,LOG_ERROR)("Handle Page(p/l) Address");
+
+    for (Bitu p=0;p < (GetEMSPageFrameSize() >> 14UL);p++) {
+        Bitu log_page,handle;
+
+        if (EMS_GetMapping(handle,log_page,p)) {
+            char tmp[192] = {0};
+
+            h_addr = 0;
+            h_size = 0;
+            h_name.clear();
+            EMS_GetHandle(/*&*/h_size,/*&*/h_addr,/*&*/h_name,handle);
+
+            if (h_addr != 0)
+                sprintf(tmp," virt -> %08lx-%08lx phys",
+                    (unsigned long)h_addr + (log_page << 14UL),
+                    (unsigned long)h_addr + (log_page << 14UL) + (1 << 14UL) - 1);
+
+            LOG(LOG_MISC,LOG_ERROR)("%6lu %4lu/%4lu %08lx-%08lx%s",(unsigned long)handle,
+                (unsigned long)p,(unsigned long)log_page,
+                (GetEMSPageFrameSegment()*16UL)+(p << 14UL),
+                (GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1,
+                tmp);
+        }
+        else {
+            LOG(LOG_MISC,LOG_ERROR)("--     %4lu/     %08lx-%08lx",(unsigned long)p,
+                (GetEMSPageFrameSegment()*16UL)+(p << 14UL),
+                (GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1);
+        }
+    }
+}
+
+static void LogXMS(void) {
+    Bitu phys_location;
+    Bitu lockcount;
+    bool free;
+    Bitu size;
+
+    if (dos_kernel_disabled) {
+        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate XMS memory while DOS kernel is inactive.");
+        return;
+    }
+
+    if (!XMS_Active()) {
+        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate XMS memory while XMS is inactive.");
+        return;
+    }
+
+    LOG(LOG_MISC,LOG_ERROR)("XMS memory handles:");
+    LOG(LOG_MISC,LOG_ERROR)("Handle Status Location Size (bytes)");
+    for (Bitu h=1;h < XMS_GetTotalHandles();h++) {
+        if (XMS_GetHandleInfo(/*&*/phys_location,/*&*/size,/*&*/lockcount,/*&*/free,h)) {
+            if (!free) {
+                LOG(LOG_MISC,LOG_ERROR)("%6lu %s 0x%08lx %lu",
+                    (unsigned long)h,
+                    free ? "FREE  " : "ALLOC ",
+                    (unsigned long)phys_location,
+                    (unsigned long)size << 10UL); /* KB -> bytes */
+            }
+        }
+    }
+}
+
+static void LogDOSKernMem(void) {
+    char tmp[192];
+
+    if (dos_kernel_disabled) {
+        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate DOS kernel memory while DOS kernel is inactive.");
+        return;
+    }
+
+    LOG(LOG_MISC,LOG_ERROR)("DOS kernel memory blocks:");
+    LOG(LOG_MISC,LOG_ERROR)("Seg      Size (bytes)     What");
+    for (auto i=DOS_GetMemLog.begin();i!=DOS_GetMemLog.end();i++) {
+        sprintf(tmp,"%04x     %8lu     ",
+            (unsigned int)(i->segbase),
+            (unsigned long)(i->pages << 4UL));
+
+        LOG(LOG_MISC,LOG_ERROR)("%s    %s",tmp,i->who.c_str());
+    }
+}
+
 // Display the content of all Memory Control Blocks.
 static void LogMCBS(void)
 {
+    if (dos_kernel_disabled) {
+        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate MCB list while DOS kernel is inactive.");
+        return;
+    }
+
 	LOG(LOG_MISC,LOG_ERROR)("MCB Seg  Size (bytes)  PSP Seg (notes)  Filename");
 	LOG(LOG_MISC,LOG_ERROR)("Conventional memory:");
 	LogMCBChain(dos.firstMCB);
@@ -2106,6 +2781,7 @@ static void LogInstruction(Bit16u segValue, Bit32u eipValue,  ofstream& out) {
 };
 #endif
 
+#if 0
 // DEBUG.COM stuff
 
 class DEBUG : public Program {
@@ -2163,14 +2839,28 @@ public:
 private:
 	bool	active;
 };
+#endif
+
+#if C_DEBUG
+extern bool debugger_break_on_exec;
+#endif
 
 void DEBUG_CheckExecuteBreakpoint(Bit16u seg, Bit32u off)
 {
+#if C_DEBUG
+    if (debugger_break_on_exec) {
+		CBreakpoint::AddBreakpoint(seg,off,true);		
+		CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);	
+        debugger_break_on_exec = false;
+    }
+#endif
+#if 0
 	if (pDebugcom && pDebugcom->IsActive()) {
 		CBreakpoint::AddBreakpoint(seg,off,true);		
 		CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);	
 		pDebugcom = 0;
 	};
+#endif
 };
 
 Bitu DEBUG_EnableDebugger(void)
@@ -2182,14 +2872,39 @@ Bitu DEBUG_EnableDebugger(void)
 };
 
 static void DEBUG_ProgramStart(Program * * make) {
-	*make=new DEBUG;
+//	*make=new DEBUG;
 }
 
 // INIT 
 
+void DBGBlock::set_data_view(unsigned int view) {
+    void DrawBars(void);
+
+    if (data_view != view) {
+        data_view  = view;
+
+        switch (view) {
+            case DATV_SEGMENTED:
+                win_title[DBGBlock::WINI_DATA] = "Data view (segmented)";
+                break;
+            case DATV_VIRTUAL:
+                win_title[DBGBlock::WINI_DATA] = "Data view (virtual)";
+                break;
+            case DATV_PHYSICAL:
+                win_title[DBGBlock::WINI_DATA] = "Data view (physical)";
+                break;
+        }
+
+        DrawBars();
+    }
+}
+
 void DEBUG_SetupConsole(void) {
 	if (dbg.win_main == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("DEBUG_SetupConsole initializing GUI");
+
+        dbg.set_data_view(DBGBlock::DATV_SEGMENTED);
+
 #ifdef WIN32
 		WIN32_Console();
 #else
@@ -2207,13 +2922,14 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 	if (dbg.win_main != NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("DEBUG_Shutdown freeing ncurses state");
 		curs_set(old_cursor_state);
-		endwin();
+
+        void DEBUG_GUI_DestroySubWindows(void);
+        DEBUG_GUI_DestroySubWindows();
+
+//      if (dbg.win_main) delwin(dbg.win_main);
 		dbg.win_main = NULL;
-		dbg.win_reg = NULL;//FIXME: How to free return value of subwin()?
-		dbg.win_data = NULL;//FIXME: How to free return value of subwin()?
-		dbg.win_code = NULL;//FIXME: How to free return value of subwin()?
-		dbg.win_var = NULL;//FIXME: How to free return value of subwin()?
-		dbg.win_out = NULL;//FIXME: How to free return value of subwin()?
+
+        endwin();
 
 #ifndef WIN32
 		tcsetattr(0,TCSANOW,&consolesettings);
@@ -2224,8 +2940,8 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 Bitu debugCallback;
 
 void DEBUG_DOSStartUp(Section *x) {
-	/* setup debug.com */
-	PROGRAMS_MakeFile("DEBUGBOX.COM",DEBUG_ProgramStart);
+//	/* setup debug.com */
+//	PROGRAMS_MakeFile("DEBUGBOX.COM",DEBUG_ProgramStart);
 }
 
 void DEBUG_Init() {
@@ -2587,6 +3303,16 @@ bool DEBUG_HeavyIsBreakpoint(void) {
 		return true;	
 	}
 	return false;
+}
+
+/* this is for the BIOS, to stop the log upon BIOS POST. */
+void DEBUG_StopLog(void) {
+	if (cpuLog) {
+        cpuLogCounter = 0;
+        cpuLogFile.close();
+        DEBUG_ShowMsg("DEBUG: cpu log LOGCPU.TXT stopped\n");
+        cpuLog = false;
+    }
 }
 
 #endif // HEAVY DEBUG

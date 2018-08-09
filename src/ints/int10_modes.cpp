@@ -166,18 +166,18 @@ VideoModeBlock ModeList_VGA[]={
 // Some custom modes
 
 // 720x480 3:2 modes
-{ 0x21B  ,M_LIN4   ,720 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,525 ,106 ,480 ,0	},
-{ 0x21C  ,M_LIN8   ,720 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,525 ,106 ,480 ,0	},
-{ 0x21D  ,M_LIN15  ,720 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,525 ,212 ,480 ,0  },
-{ 0x21E  ,M_LIN16  ,720 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,525 ,212 ,480 ,0  },
-{ 0x21F  ,M_LIN32  ,720 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,525 ,106 ,480 ,0  },
+{ 0x21B  ,M_LIN4   ,720 ,480 ,90 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,525 ,90  ,480 ,0	},
+{ 0x21C  ,M_LIN8   ,720 ,480 ,90 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,525 ,90  ,480 ,0	},
+{ 0x21D  ,M_LIN15  ,720 ,480 ,90 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,525 ,180 ,480 ,0  },
+{ 0x21E  ,M_LIN16  ,720 ,480 ,90 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,525 ,180 ,480 ,0  },
+{ 0x21F  ,M_LIN32  ,720 ,480 ,90 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,525 ,90  ,480 ,0  },
 
 // 848x480 16:9 modes
-{ 0x220  ,M_LIN4   ,848 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,525 ,106 ,480 ,0	},
-{ 0x221  ,M_LIN8   ,848 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,525 ,106 ,480 ,0	},
-{ 0x222  ,M_LIN15  ,848 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,525 ,212 ,480 ,0  },
-{ 0x223  ,M_LIN16  ,848 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,525 ,212 ,480 ,0  },
-{ 0x224  ,M_LIN32  ,848 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,525 ,106 ,480 ,0  },
+{ 0x220  ,M_LIN4   ,848 ,480 ,106,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,525 ,106 ,480 ,0	},
+{ 0x221  ,M_LIN8   ,848 ,480 ,106,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,525 ,106 ,480 ,0	},
+{ 0x222  ,M_LIN15  ,848 ,480 ,106,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,525 ,212 ,480 ,0  },
+{ 0x223  ,M_LIN16  ,848 ,480 ,106,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,525 ,212 ,480 ,0  },
+{ 0x224  ,M_LIN32  ,848 ,480 ,106,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,525 ,106 ,480 ,0  },
 
 // 1280x800 8:5 modes
 { 0x225  ,M_LIN4   ,1280,800 ,160,50 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,880 ,160 ,800 ,0	},
@@ -196,8 +196,8 @@ VideoModeBlock ModeList_VGA[]={
 // 1280x1024 5:4 rest
 { 0x22f  ,M_LIN32  ,1280,1024,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,212 ,1066,160,1024,0	},
 
-// 1400x1050 4:3 - 4bpp is no good xD
-{ 0x22b  ,M_LIN4   ,1400,1050,175,66 ,8 ,16 ,1 ,0xA0000 ,0x10000,220 ,1100,175 ,1050,0	},
+// 1400x1050 4:3 - 4bpp requires a hdisplayend value that is even, so round up
+{ 0x250  ,M_LIN4   ,1400,1050,175,66 ,8 ,16 ,1 ,0xA0000 ,0x10000,220 ,1100,176 ,1050,0	},
 { 0x230  ,M_LIN8   ,1400,1050,175,66 ,8 ,16 ,1 ,0xA0000 ,0x10000,220 ,1100,175 ,1050,0	},
 { 0x231  ,M_LIN15  ,1400,1050,175,66 ,8 ,16 ,1 ,0xA0000 ,0x10000,440 ,1100,350 ,1050,0  },
 { 0x232  ,M_LIN16  ,1400,1050,175,66 ,8 ,16 ,1 ,0xA0000 ,0x10000,440 ,1100,350 ,1050,0  },
@@ -260,7 +260,8 @@ VideoModeBlock ModeList_VGA_Text_350lines[]={
 { 0x000  ,M_TEXT   ,320 ,350 ,40 ,25 ,8 ,14 ,8 ,0xB8000 ,0x0800 ,50  ,449 ,40 ,350 ,_EGA_HALF_CLOCK	},
 { 0x001  ,M_TEXT   ,320 ,350 ,40 ,25 ,8 ,14 ,8 ,0xB8000 ,0x0800 ,50  ,449 ,40 ,350 ,_EGA_HALF_CLOCK	},
 { 0x002  ,M_TEXT   ,640 ,350 ,80 ,25 ,8 ,14 ,8 ,0xB8000 ,0x1000 ,100 ,449 ,80 ,350 ,0	},
-{ 0x003  ,M_TEXT   ,640 ,350 ,80 ,25 ,8 ,14 ,8 ,0xB8000 ,0x1000 ,100 ,449 ,80 ,350 ,0	}
+{ 0x003  ,M_TEXT   ,640 ,350 ,80 ,25 ,8 ,14 ,8 ,0xB8000 ,0x1000 ,100 ,449 ,80 ,350 ,0	},
+{ 0x007  ,M_TEXT   ,720 ,350 ,80 ,25 ,9 ,14 ,8 ,0xB0000 ,0x1000 ,100 ,449 ,80 ,350 ,0   }
 };
 
 VideoModeBlock ModeList_VGA_Tseng[]={
@@ -343,7 +344,10 @@ VideoModeBlock ModeList_VGA_Paradise[]={
 {0xFFFF  ,M_ERROR  ,0   ,0   ,0  ,0  ,0 ,0  ,0 ,0x00000 ,0x0000 ,0   ,0   ,0  ,0   ,0 	},
 };
 
-
+/* NTS: I will *NOT* set the double scanline flag for 200 line modes.
+ *      The modes listed here are intended to reflect the actual raster sent to the EGA monitor,
+ *      not what you think looks better. EGA as far as I know, is either sent a 200-line mode,
+ *      or a 350-line mode. There is no VGA-line 200 to 400 line doubling. */
 VideoModeBlock ModeList_EGA[]={
 /* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
 { 0x000  ,M_TEXT   ,320 ,350 ,40 ,25 ,8 ,14 ,8 ,0xB8000 ,0x0800 ,50  ,366 ,40 ,350 ,_EGA_HALF_CLOCK	},
@@ -352,12 +356,12 @@ VideoModeBlock ModeList_EGA[]={
 { 0x003  ,M_TEXT   ,640 ,350 ,80 ,25 ,8 ,14 ,8 ,0xB8000 ,0x1000 ,96  ,366 ,80 ,350 ,0	},
 { 0x004  ,M_CGA4   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,60  ,262 ,40 ,200 ,_EGA_HALF_CLOCK	| _REPEAT1},
 { 0x005  ,M_CGA4   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,60  ,262 ,40 ,200 ,_EGA_HALF_CLOCK	| _REPEAT1},
-{ 0x006  ,M_CGA2   ,640 ,200 ,80 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,120 ,262 ,80 ,200 ,_REPEAT1},
-{ 0x007  ,M_TEXT   ,720 ,350 ,80 ,25 ,9 ,14 ,8 ,0xB0000 ,0x1000 ,120 ,440 ,80 ,350 ,0	},
+{ 0x006  ,M_CGA2   ,640 ,200 ,80 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,117 ,262 ,80 ,200 ,_REPEAT1},
+{ 0x007  ,M_TEXT   ,720 ,350 ,80 ,25 ,9 ,14 ,8 ,0xB0000 ,0x1000 ,101 ,370 ,80 ,350 ,0	},
 
 { 0x00D  ,M_EGA    ,320 ,200 ,40 ,25 ,8 ,8  ,8 ,0xA0000 ,0x2000 ,60  ,262 ,40 ,200 ,_EGA_HALF_CLOCK	},
-{ 0x00E  ,M_EGA    ,640 ,200 ,80 ,25 ,8 ,8  ,4 ,0xA0000 ,0x4000 ,120 ,262 ,80 ,200 ,0 },
-{ 0x00F  ,M_EGA    ,640 ,350 ,80 ,25 ,8 ,14 ,2 ,0xA0000 ,0x8000 ,96  ,366 ,80 ,350 ,0	},
+{ 0x00E  ,M_EGA    ,640 ,200 ,80 ,25 ,8 ,8  ,4 ,0xA0000 ,0x4000 ,117 ,262 ,80 ,200 ,0 },
+{ 0x00F  ,M_EGA    ,640 ,350 ,80 ,25 ,8 ,14 ,2 ,0xA0000 ,0x8000 ,101 ,370 ,80 ,350 ,0	},
 { 0x010  ,M_EGA    ,640 ,350 ,80 ,25 ,8 ,14 ,2 ,0xA0000 ,0x8000 ,96  ,366 ,80 ,350 ,0	},
 
 {0xFFFF  ,M_ERROR  ,0   ,0   ,0  ,0  ,0 ,0  ,0 ,0x00000 ,0x0000 ,0   ,0   ,0  ,0   ,0 	},
@@ -927,13 +931,12 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	/* Setup MISC Output Register */
 	Bit8u misc_output=0x2 | (mono_mode ? 0x0 : 0x1);
 
-	if ((CurMode->type==M_TEXT) && (CurMode->cwidth==9)) {
-		// 28MHz (16MHz EGA) clock for 9-pixel wide chars
-		misc_output|=0x4;
-	}
-	else if (machine == MCH_EGA && CurMode->vdispend >= 350) {
-		// EGA 350-line modes need the 16MHz dot clock to run at 60Hz
-		misc_output|=0x4;
+	if (machine==MCH_EGA) {
+		// 16MHz clock for 350-line EGA modes except mode F
+		if ((CurMode->vdispend==350) && (mode!=0xf)) misc_output|=0x4;
+	} else {
+		// 28MHz clock for 9-pixel wide chars
+		if ((CurMode->type==M_TEXT) && (CurMode->cwidth==9)) misc_output|=0x4;
 	}
 
 	switch (CurMode->vdispend) {
@@ -1192,7 +1195,9 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	default:
 		break;
 	}
-	if (CurMode->vdispend==350) underline=0x0f;
+
+    /* do NOT apply this to VESA BIOS modes */
+	if (CurMode->mode < 0x100 && CurMode->vdispend==350) underline=0x0f;
 
 	IO_Write(crtc_base,0x09);IO_Write(crtc_base+1,max_scanline);
 	IO_Write(crtc_base,0x14);IO_Write(crtc_base+1,underline);

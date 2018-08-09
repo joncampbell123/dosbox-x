@@ -24,4 +24,5 @@ Source0: @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.xz
 
 %files
 %{_bindir}/*
+%{_datadir}/dosbox-x/*
 

@@ -222,9 +222,11 @@ void SDL_Quit(void)
 	SDL_QuitSubSystem(SDL_INIT_EVERYTHING);
 
 #if defined(WIN32)
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
 	// windib
 	void StopParentWindow(void);
 	StopParentWindow();
+#endif
 #endif
 
 #ifdef CHECK_LEAKS

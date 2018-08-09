@@ -82,6 +82,9 @@ static SHELL_Cmd cmd_list[]={
 {	"FOR",	1,			&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
 {	"INT2FDBG",	1,			&DOS_Shell::CMD_INT2FDBG,	"Hook INT 2Fh for debugging purposes"},
 {	"CTTY",		1,			&DOS_Shell::CMD_CTTY,		"Change TTY device"},
+#if C_DEBUG
+{	"DEBUGBOX",	0,			&DOS_Shell::CMD_DEBUGBOX,	"Run program, break into debugger at entry point"},
+#endif
 {0,0,0,0}
 }; 
 
@@ -1958,6 +1961,18 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 		}
 	}
  }
+
+#if C_DEBUG
+bool debugger_break_on_exec = false;
+
+void DOS_Shell::CMD_DEBUGBOX(char * args) {
+    /* TODO: The command as originally taken from DOSBox SVN supported a /NOMOUSE option to remove the INT 33h vector */
+    debugger_break_on_exec = true;
+    while (*args == ' ') args++;
+    DoCommand(args);
+    debugger_break_on_exec = false;
+}
+#endif
 
 void DOS_Shell::CMD_FOR(char *args){
 }

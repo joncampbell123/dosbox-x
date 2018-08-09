@@ -198,9 +198,9 @@ struct partTable {
 class imageDisk;
 class fatDrive : public DOS_Drive {
 public:
-	fatDrive(const char * sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u startSector);
-	fatDrive(imageDisk *sourceLoadedDisk, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u startSector);
-    void fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u startSector, Bit32u filesize);
+	fatDrive(const char * sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders);
+	fatDrive(imageDisk *sourceLoadedDisk);
+    void fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u filesize);
     virtual ~fatDrive();
 	virtual bool FileOpen(DOS_File * * file,const char * name,Bit32u flags);
 	virtual bool FileCreate(DOS_File * * file,const char * name,Bit16u attributes);

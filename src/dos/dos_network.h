@@ -12,7 +12,7 @@ August 8 2005		cyberwalker
 
 */
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(HX_DOS)
 
 #include <windows.h>
 

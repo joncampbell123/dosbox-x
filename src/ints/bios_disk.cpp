@@ -25,27 +25,26 @@
 #include "dos_inc.h" /* for Drives[] */
 #include "../dos/drives.h"
 #include "mapper.h"
-
-#define MAX_DISK_IMAGES 4
+#include "ide.h"
 
 extern bool int13_extensions_enable;
 
 diskGeo DiskGeometryList[] = {
-    { 160,  8, 1, 40, 0, 512},      // IBM PC double density 5.25" single-sided 160KB
-    { 180,  9, 1, 40, 0, 512},      // IBM PC double density 5.25" single-sided 180KB
-    { 200, 10, 1, 40, 0, 512},      // DEC Rainbow double density 5.25" single-sided 200KB (I think...)
-    { 320,  8, 2, 40, 1, 512},      // IBM PC double density 5.25" double-sided 320KB
-    { 360,  9, 2, 40, 1, 512},      // IBM PC double density 5.25" double-sided 360KB
-    { 400, 10, 2, 40, 1, 512},      // DEC Rainbow double density 5.25" double-sided 400KB (I think...)
-    { 640,  8, 2, 80, 3, 512},      // IBM PC double density 3.5" double-sided 640KB
-    { 720,  9, 2, 80, 3, 512},      // IBM PC double density 3.5" double-sided 720KB
-    {1200, 15, 2, 80, 2, 512},      // IBM PC double density 5.25" double-sided 1.2MB
-    {1440, 18, 2, 80, 4, 512},      // IBM PC high density 3.5" double-sided 1.44MB
-    {2880, 36, 2, 80, 6, 512},      // IBM PC high density 3.5" double-sided 2.88MB
+    { 160,  8, 1, 40, 0, 512,  64, 1, 0xFE},      // IBM PC double density 5.25" single-sided 160KB
+    { 180,  9, 1, 40, 0, 512,  64, 2, 0xFC},      // IBM PC double density 5.25" single-sided 180KB
+    { 200, 10, 1, 40, 0, 512,   0, 0,    0},      // DEC Rainbow double density 5.25" single-sided 200KB (I think...)
+    { 320,  8, 2, 40, 1, 512, 112, 2, 0xFF},      // IBM PC double density 5.25" double-sided 320KB
+    { 360,  9, 2, 40, 1, 512, 112, 2, 0xFD},      // IBM PC double density 5.25" double-sided 360KB
+    { 400, 10, 2, 40, 1, 512,   0, 0,    0},      // DEC Rainbow double density 5.25" double-sided 400KB (I think...)
+    { 640,  8, 2, 80, 3, 512, 112, 2, 0xFB},      // IBM PC double density 3.5" double-sided 640KB
+    { 720,  9, 2, 80, 3, 512, 112, 2, 0xF9},      // IBM PC double density 3.5" double-sided 720KB
+    {1200, 15, 2, 80, 2, 512, 224, 1, 0xF9},      // IBM PC double density 5.25" double-sided 1.2MB
+    {1440, 18, 2, 80, 4, 512, 224, 1, 0xF0},      // IBM PC high density 3.5" double-sided 1.44MB
+    {2880, 36, 2, 80, 6, 512, 240, 2, 0xF0},      // IBM PC high density 3.5" double-sided 2.88MB
 
-    {1232,  8, 2, 77, 7, 1024},     // NEC PC-98 high density 3.5" double-sided 1.2MB "3-mode"
+    {1232,  8, 2, 77, 7, 1024,192, 1, 0xFE},      // NEC PC-98 high density 3.5" double-sided 1.2MB "3-mode"
 
-    {0, 0, 0, 0, 0, 0}
+    {   0,  0, 0,  0, 0,    0,  0, 0,    0}
 };
 
 Bitu call_int13 = 0;
@@ -81,6 +80,7 @@ imageDisk *GetINT13HardDrive(unsigned char drv) {
 void FreeBIOSDiskList() {
 	for (int i=0;i < MAX_DISK_IMAGES;i++) {
 		if (imageDiskList[i] != NULL) {
+			if (i >= 2) IDE_Hard_Disk_Detach(i);
 			imageDiskList[i]->Release();
 			imageDiskList[i] = NULL;
 		}
@@ -94,29 +94,26 @@ void FreeBIOSDiskList() {
 	}
 }
 
+//update BIOS disk parameter tables for first two hard drives
 void updateDPT(void) {
 	Bit32u tmpheads, tmpcyl, tmpsect, tmpsize;
-	if(imageDiskList[2] != NULL) {
-		PhysPt dp0physaddr=CALLBACK_PhysPointer(diskparm0);
-		imageDiskList[2]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
-		phys_writew(dp0physaddr,(Bit16u)tmpcyl);
-		phys_writeb(dp0physaddr+0x2,(Bit8u)tmpheads);
-		phys_writew(dp0physaddr+0x3,0);
-		phys_writew(dp0physaddr+0x5,(Bit16u)-1);
-		phys_writeb(dp0physaddr+0x7,0);
-		phys_writeb(dp0physaddr+0x8,(0xc0 | (((imageDiskList[2]->heads) > 8) << 3)));
-		phys_writeb(dp0physaddr+0x9,0);
-		phys_writeb(dp0physaddr+0xa,0);
-		phys_writeb(dp0physaddr+0xb,0);
-		phys_writew(dp0physaddr+0xc,(Bit16u)tmpcyl);
-		phys_writeb(dp0physaddr+0xe,(Bit8u)tmpsect);
-	}
-	if(imageDiskList[3] != NULL) {
-		PhysPt dp1physaddr=CALLBACK_PhysPointer(diskparm1);
-		imageDiskList[3]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
-		phys_writew(dp1physaddr,(Bit16u)tmpcyl);
-		phys_writeb(dp1physaddr+0x2,(Bit8u)tmpheads);
-		phys_writeb(dp1physaddr+0xe,(Bit8u)tmpsect);
+	PhysPt dpphysaddr[2] = { CALLBACK_PhysPointer(diskparm0), CALLBACK_PhysPointer(diskparm1) };
+	for (int i = 0; i < 2; i++) {
+		tmpheads = 0; tmpcyl = 0; tmpsect = 0; tmpsize = 0;
+		if (imageDiskList[i + 2] != NULL) {
+			imageDiskList[i + 2]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
+		}
+		phys_writew(dpphysaddr[i], (Bit16u)tmpcyl);
+		phys_writeb(dpphysaddr[i] + 0x2, (Bit8u)tmpheads);
+		phys_writew(dpphysaddr[i] + 0x3, 0);
+		phys_writew(dpphysaddr[i] + 0x5, tmpcyl == 0 ? 0 : (Bit16u)-1);
+		phys_writeb(dpphysaddr[i] + 0x7, 0);
+		phys_writeb(dpphysaddr[i] + 0x8, tmpcyl == 0 ? 0 : (0xc0 | (((tmpheads) > 8) << 3)));
+		phys_writeb(dpphysaddr[i] + 0x9, 0);
+		phys_writeb(dpphysaddr[i] + 0xa, 0);
+		phys_writeb(dpphysaddr[i] + 0xb, 0);
+		phys_writew(dpphysaddr[i] + 0xc, (Bit16u)tmpcyl);
+		phys_writeb(dpphysaddr[i] + 0xe, (Bit8u)tmpsect);
 	}
 }
 
@@ -363,8 +360,6 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 		}
 		if(!founddisk) {
 			active = false;
-		} else {
-			incrementFDD();
 		}
 	}
     else { /* hard disk */
@@ -733,8 +728,9 @@ static Bitu INT13_DiskHandler(void) {
 		last_status = 0x00;
 		if (reg_dl&0x80) {	// harddisks
 			reg_dl = 0;
-			if(imageDiskList[2] != NULL) reg_dl++;
-			if(imageDiskList[3] != NULL) reg_dl++;
+			for (int index = 2; index < MAX_DISK_IMAGES; index++) {
+				if (imageDiskList[index] != NULL) reg_dl++;
+			}
 		} else {		// floppy disks
 			reg_dl = 0;
 			if(imageDiskList[0] != NULL) reg_dl++;
@@ -910,11 +906,8 @@ void BIOS_SetupDisks(void) {
 	CALLBACK_Setup(call_int13,&INT13_DiskHandler,CB_INT13,"Int 13 Bios disk");
 	RealSetVec(0x13,CALLBACK_RealPointer(call_int13));
 
-    /* FIXME: I see a potential problem here: We're just zeroing out the array. Didn't I rewrite disk images with refcounting? --J.C. */
-	for(i=0;i<MAX_DISK_IMAGES;i++)
-		imageDiskList[i] = NULL;
-	for(i=0;i<MAX_SWAPPABLE_DISKS;i++)
-		diskSwap[i] = NULL;
+	//release the drives after a soft reset
+	FreeBIOSDiskList();
 
     /* FIXME: Um... these aren't callbacks. Why are they allocated as callbacks? We have ROM general allocation now. */
 	diskparm0 = CALLBACK_Allocate();

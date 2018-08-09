@@ -97,7 +97,7 @@ void PC98_GDC_state::take_reset_sync_parameters(void) {
         ((cmd_parm_tmp[0] & 0x01) ? 1 : 0);
 
     /* P2 = param[1] = AW = active display words per line - 2. must be even number. */
-    display_pitch = active_display_words_per_line = (uint16_t)cmd_parm_tmp[1] + 2u;
+    active_display_words_per_line = (uint16_t)cmd_parm_tmp[1] + 2u;
 
     /* P3 = param[2] =
      *   VS(L)[2:0] = [7:5] = low bits of VS
@@ -133,7 +133,8 @@ void PC98_GDC_state::take_reset_sync_parameters(void) {
     active_display_lines += (cmd_parm_tmp[7] & 3) << 8;
     vertical_back_porch_width = cmd_parm_tmp[7] >> 2;
 
-    LOG_MSG("GDC: RESET/SYNC DOOR=%u DRAM=%u DISP=%u VFRAME=%u AW=%u HS=%u VS=%u HFP=%u HBP=%u VFP=%u AL=%u VBP=%u",
+    LOG_MSG("GDC: RESET/SYNC MASTER=%u DOOR=%u DRAM=%u DISP=%u VFRAME=%u AW=%u HS=%u VS=%u HFP=%u HBP=%u VFP=%u AL=%u VBP=%u",
+        master_sync,
         draw_only_during_retrace?1:0,
         dynamic_ram_refresh?1:0,
         display_mode,
@@ -198,6 +199,8 @@ void PC98_GDC_state::take_cursor_char_setup(unsigned char bi) {
 
 		vga.crtc.maximum_scan_line = cmd_parm_tmp[0] & 0x1F;
 		vga.draw.address_line_total = vga.crtc.maximum_scan_line + 1;
+        row_height = vga.draw.address_line_total;
+        if (!master_sync) doublescan = (row_height > 1);
     }
 
     /* P2 = param[1] =
@@ -267,6 +270,7 @@ void PC98_GDC_state::idle_proc(void) {
                 LOG_MSG("GDC: cursor setup");
                 break;
             case GDC_CMD_START_DISPLAY:       // 0x6B        0 1 1 0 1 0 1 1
+                display_enable = true;
                 idle = false;
                 break;
             case GDC_CMD_VERTICAL_SYNC_MODE:  // 0x6E        0 1 1 0 1 1 1 M
@@ -534,7 +538,16 @@ void gdc_proc_schedule_done(void) {
 }
 
 void PC98_show_cursor(bool show) {
+    pc98_gdc[GDC_MASTER].force_fifo_complete();
+
     pc98_gdc[GDC_MASTER].cursor_enable = show;
+
+    /* NTS: Showing/hiding the cursor involves sending a GDC command that
+     *      sets both the cursor visibility bit and the "lines per character
+     *      row" field.
+     *
+     *      The PC-98 BIOS will re-read this from the BIOS data area */
+    pc98_gdc[GDC_MASTER].row_height = (mem_readb(0x53B) & 0x1F) + 1;
 }
 
 void GDC_ProcDelay(Bitu /*val*/) {
@@ -545,7 +558,8 @@ void GDC_ProcDelay(Bitu /*val*/) {
 }
 
 void gdc_5mhz_mode_update_vars(void) {
-    mem_writeb(0x54D,(mem_readb(0x54D) & (~0x04)) | (gdc_5mhz_mode ? 0x04 : 0x00));
+// FIXME: Is this right?
+    mem_writeb(0x54D,(mem_readb(0x54D) & (~0x20)) | (gdc_5mhz_mode ? 0x20 : 0x00));
 }
 
 /*==================================================*/

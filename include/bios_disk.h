@@ -41,6 +41,9 @@ struct diskGeo {
 	Bit16u cylcount;  /* Cylinders per side */
 	Bit16u biosval;   /* Type to return from BIOS */
     Bit16u bytespersect; /* Bytes per sector */
+	Bit16u rootentries;  /* Root directory entries */
+	Bit8u sectcluster;   /* Sectors per cluster */
+	Bit8u mediaid;       /* Media ID */
 };
 extern diskGeo DiskGeometryList[];
 
@@ -144,31 +147,44 @@ public:
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
 	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
 	virtual Bit8u GetBiosType(void);
+	virtual void Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize);
+	// Parition and format the ramdrive
 	virtual Bit8u Format();
 
+	// Create a hard drive image of a specified size; automatically select c/h/s
 	imageDiskMemory(Bit32u imgSizeK);
+	// Create a hard drive image of a specified geometry
 	imageDiskMemory(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize);
+	// Create a floppy image of a specified geometry
 	imageDiskMemory(diskGeo floppyGeometry);
+	// Create a copy-on-write memory image of an existing image
+	imageDiskMemory(imageDisk* underlyingImage);
 	virtual ~imageDiskMemory();
 
 private:
-	void init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize);
+	void init(diskGeo diskParams, bool isHardDrive, imageDisk* underlyingImage);
+	bool CalculateFAT(Bit32u partitionStartingSector, Bit32u partitionLength, bool isHardDrive, Bit32u rootEntries, Bit32u* rootSectors, Bit32u* sectorsPerCluster, bool* isFat16, Bit32u* fatSectors, Bit32u* reservedSectors);
 
 	Bit8u * * ChunkMap;
 	Bit32u sectors_per_chunk;
 	Bit32u chunk_size;
 	Bit32u total_chunks;
 	Bit32u total_sectors;
+	imageDisk* underlyingImage;
 
-	Bit8u bios_type;
+	diskGeo floppyInfo;
 };
 
 void updateDPT(void);
 void incrementFDD(void);
 
-#define MAX_HDD_IMAGES 2
+//in order to attach to the virtual IDE controllers, the disk must be mounted
+//  in the BIOS first (the imageDiskList array), so the IDE controller can obtain
+//  a reference to the drive in the imageDiskList array
+#define MAX_HDD_IMAGES 4
+#define MAX_DISK_IMAGES 6 //MAX_HDD_IMAGES + 2
 
-extern imageDisk *imageDiskList[2 + MAX_HDD_IMAGES];
+extern imageDisk *imageDiskList[MAX_DISK_IMAGES];
 extern imageDisk *diskSwap[20];
 extern Bits swapPosition;
 extern Bit16u imgDTASeg; /* Real memory location of temporary DTA pointer for fat image disk access */

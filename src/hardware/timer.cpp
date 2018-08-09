@@ -534,6 +534,7 @@ void TIMER_BIOS_INIT_Configure() {
     if (IS_PC98_ARCH) {
     /* BIOS data area at 0x501 tells the DOS application which clock rate to use */
         phys_writeb(0x501,
+            (phys_readb(0x501) & 0x7F) |
             ((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      /* bit 7: 1=8MHz  0=5MHz/10MHz */
             );
     }
@@ -587,6 +588,7 @@ void TIMER_OnEnterPC98_Phase2_UpdateBDA(void) {
 	if (!cpu.pmode) {
 		/* BIOS data area at 0x501 tells the DOS application which clock rate to use */
 		phys_writeb(0x501,
+            (phys_readb(0x501) & 0x7F) |
 			((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      /* bit 7: 1=8MHz  0=5MHz/10MHz */
 		);
 	}

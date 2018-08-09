@@ -488,7 +488,6 @@ static INLINE bool mem_writed_checked(PhysPt address,Bit32u val) {
 	} else return mem_unalignedwrited_checked(address,val);
 }
 
-extern bool dosbox_enable_nonrecursive_page_fault;	/* user option */
 extern bool dosbox_allow_nonrecursive_page_fault;	/* when set, do nonrecursive mode (when executing instruction) */
 
 #include <exception>

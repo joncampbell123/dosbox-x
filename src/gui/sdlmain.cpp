@@ -89,6 +89,9 @@ bool OpenGL_using(void);
 # include <cstring>
 # include <fstream>
 # include <sstream>
+# if defined(__MINGW32__) && !defined(HX_DOS)
+#  include <imm.h> // input method editor
+# endif
 #endif // WIN32
 
 #include "mapper.h"
@@ -97,6 +100,7 @@ bool OpenGL_using(void);
 #include "cpu.h"
 #include "fpu.h"
 #include "cross.h"
+#include "keymap.h"
 #include "control.h"
 
 #if defined(WIN32) && !defined(S_ISREG)
@@ -104,6 +108,95 @@ bool OpenGL_using(void);
 #endif
 
 using namespace std;
+
+const char *DKM_to_string(const unsigned int dkm) {
+    switch (dkm) {
+        case DKM_US:        return "us";
+        case DKM_DEU:       return "ger";
+        case DKM_JPN_PC98:  return "jpn_pc98";
+        case DKM_JPN:       return "jpn";
+        default:            break;
+    };
+
+    return "";
+}
+
+const char *DKM_to_descriptive_string(const unsigned int dkm) {
+    switch (dkm) {
+        case DKM_US:        return "US English";
+        case DKM_DEU:       return "German";
+        case DKM_JPN_PC98:  return "Japanese (PC-98)";
+        case DKM_JPN:       return "Japanese";
+        default:            break;
+    };
+
+    return "";
+}
+
+unsigned int mapper_keyboard_layout = DKM_US;
+unsigned int host_keyboard_layout = DKM_US;
+
+void KeyboardLayoutDetect(void) {
+    unsigned int nlayout = DKM_US;
+
+#if defined(LINUX)
+    unsigned int Linux_GetKeyboardLayout(void);
+    nlayout = Linux_GetKeyboardLayout();
+#elif defined(WIN32)
+	WORD lid = LOWORD(GetKeyboardLayout(0));
+
+	LOG_MSG("Windows keyboard layout ID is 0x%04x", lid);
+
+	switch (lid) {
+		case 0x0407:	nlayout = DKM_DEU; break;
+		case 0x0409:	nlayout = DKM_US; break;
+		case 0x0411:	nlayout = DKM_JPN; break;
+		default:		break;
+	};
+#endif
+
+    host_keyboard_layout = nlayout;
+
+    LOG_MSG("Host keyboard layout is now %s (%s)",
+        DKM_to_string(host_keyboard_layout),
+        DKM_to_descriptive_string(host_keyboard_layout));
+}
+
+void SetMapperKeyboardLayout(const unsigned int dkm) {
+    /* TODO: Make mapper re-initialize layout. If the mapper interface is visible, redraw it. */
+    mapper_keyboard_layout = dkm;
+
+    LOG_MSG("Mapper keyboard layout is now %s (%s)",
+        DKM_to_string(mapper_keyboard_layout),
+        DKM_to_descriptive_string(mapper_keyboard_layout));
+}
+
+#if defined(WIN32) && defined(C_SDL1)
+extern "C" unsigned char SDL1_hax_hasLayoutChanged(void);
+extern "C" void SDL1_hax_ackLayoutChanged(void);
+#endif
+
+void CheckMapperKeyboardLayout(void) {
+#if defined(WIN32) && defined(C_SDL1)
+	if (SDL1_hax_hasLayoutChanged()) {
+		SDL1_hax_ackLayoutChanged();
+		LOG_MSG("Keyboard layout changed");
+		KeyboardLayoutDetect();
+
+		if (host_keyboard_layout == DKM_JPN && IS_PC98_ARCH)
+			SetMapperKeyboardLayout(DKM_JPN_PC98);
+		else
+			SetMapperKeyboardLayout(host_keyboard_layout);
+	}
+#endif
+}
+
+/* yksoft1 says that older MinGW headers lack this value --Jonathan C. */
+#ifndef MAPVK_VK_TO_VSC
+#define MAPVK_VK_TO_VSC 0
+#endif
+
+bool boot_debug_break = false;
 
 bool window_was_maximized = false;
 
@@ -262,6 +355,10 @@ bool						fullscreen_switch = true;
 bool						dos_kernel_disabled = true;
 bool						startup_state_numlock = false; // Global for keyboard initialisation
 bool						startup_state_capslock = false; // Global for keyboard initialisation
+
+#if defined(WIN32) && !defined(C_SDL2)
+extern "C" void SDL1_hax_SetMenu(HMENU menu);
+#endif
 
 #ifdef WIN32
 # include <windows.h>
@@ -598,8 +695,12 @@ void PauseDOSBox(bool pressed) {
 	SDL_Event event;
 
 	if (!pressed) return;
+
+    void MAPPER_ReleaseAllKeys(void);
+    MAPPER_ReleaseAllKeys();
+
 	GFX_SetTitle(-1,-1,-1,true);
-	KEYBOARD_ClrBuffer();
+//	KEYBOARD_ClrBuffer();
 	GFX_LosingFocus();
 	while (SDL_PollEvent(&event)); // flush event queue.
 
@@ -656,7 +757,10 @@ void PauseDOSBox(bool pressed) {
 	void GFX_UpdateSDLCaptureState();
 	GFX_UpdateSDLCaptureState();
 
-	KEYBOARD_ClrBuffer();
+    void MAPPER_ReleaseAllKeys(void);
+    MAPPER_ReleaseAllKeys();
+
+//	KEYBOARD_ClrBuffer();
 	GFX_LosingFocus();
 
 	// redraw screen (ex. fullscreen - pause - alt+tab x2 - unpause)
@@ -849,7 +953,7 @@ check_gotbpp:
 void SDL_Prepare(void) {
 	if (menu_compatible) return;
 
-#if defined(WIN32) && !defined(C_SDL2) // Microsoft Windows specific
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) // Microsoft Windows specific
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: Preparing main window to accept files dragged in from the Windows shell");
 
 	SDL_PumpEvents(); SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
@@ -1536,7 +1640,7 @@ dosurface:
     return retFlags;
 }
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
 // WARNING: Not recommended, there is danger you cannot exit emulator because mouse+keyboard are taken
 static bool enable_hook_everything = false;
 #endif
@@ -1547,7 +1651,7 @@ static bool enable_hook_everything = false;
 // danger you become trapped in the DOSBox emulator!
 static bool enable_hook_special_keys = true;
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
 // Whether or not to hook Num/Scroll/Caps lock in order to give the guest OS full control of the
 // LEDs on the keyboard (i.e. the LEDs do not change until the guest OS changes their state).
 // This flag also enables code to set the LEDs to guest state when setting mouse+keyboard capture,
@@ -1555,7 +1659,7 @@ static bool enable_hook_special_keys = true;
 static bool enable_hook_lock_toggle_keys = true;
 #endif
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 // and this is where we store host LED state when capture is set.
 static bool on_capture_num_lock_was_on = true; // reasonable guess
 static bool on_capture_scroll_lock_was_on = false;
@@ -1563,7 +1667,7 @@ static bool on_capture_caps_lock_was_on = false;
 #endif
 
 static bool exthook_enabled = false;
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 static HHOOK exthook_winhook = NULL;
 
 #if !defined(__MINGW32__)
@@ -1710,7 +1814,7 @@ Bitu Keyboard_Guest_LED_State();
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */);
 
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */) {
-#if defined(WIN32) && !defined(C_SDL2) /* Microsoft Windows */
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) /* Microsoft Windows */
 	if (exthook_enabled) { // ONLY if ext hook is enabled, else we risk infinite loops with keyboard events
 		WinSetKeyToggleState(VK_NUMLOCK, !!(led_state & 2));
 		WinSetKeyToggleState(VK_SCROLL, !!(led_state & 1));
@@ -1723,7 +1827,7 @@ void DoExtendedKeyboardHook(bool enable) {
 	if (exthook_enabled == enable)
 		return;
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 	if (enable) {
 		if (!exthook_winhook) {
 			exthook_winhook = SetWindowsHookEx(WH_KEYBOARD_LL, WinExtHookKeyboardHookProc, GetModuleHandle(NULL), NULL);
@@ -2030,17 +2134,21 @@ void change_output(int output) {
 	case 2: /* do nothing */
 		break;
 	case 3:
+#if C_OPENGL
 		change_output(2);
 		sdl.desktop.want_type=SCREEN_OPENGL;
 #if !defined(C_SDL2)
 		sdl.opengl.bilinear = true;
 #endif
+#endif
 		break;
 	case 4:
+#if C_OPENGL
 		change_output(2);
 		sdl.desktop.want_type=SCREEN_OPENGL;
 #if !defined(C_SDL2)
 		sdl.opengl.bilinear = false; //NB
+#endif
 #endif
 		break;
 #if defined(__WIN32__) && !defined(C_SDL2)
@@ -2122,11 +2230,6 @@ void GFX_SwitchFullScreen(void)
 	// (re-)assign menu to window
     void DOSBox_SetSysMenu(void);
     DOSBox_SetSysMenu();
-
-	if (full && menu.gui) {
-        NonUserResizeCounter=1;
-        SetMenu(GetHWND(), nullptr);
-    }
 #endif
 
 	// ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
@@ -3076,6 +3179,7 @@ bool GFX_IsFullscreen(void) {
 
 #if defined(__WIN32__) && !defined(C_SDL2)
 void OpenFileDialog( char * path_arg ) {
+#if !defined(HX_DOS)
 	if(control->SecureMode()) {
 		LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
 		return;
@@ -3202,9 +3306,11 @@ search:
 godefault:
 	SetCurrentDirectory( Temp_CurrentDir );
 	return;
+#endif
 }
 
 void Go_Boot(const char boot_drive[_MAX_DRIVE]) {
+#if !defined(HX_DOS)
 		if(control->SecureMode()) {
 			LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
 			return;
@@ -3295,9 +3401,11 @@ search:
 godefault:
 	SetCurrentDirectory( Temp_CurrentDir );
 	return;
+#endif
 }
 
 void Go_Boot2(const char boot_drive[_MAX_DRIVE]) {
+#if !defined(HX_DOS)
 	Bit16u n=1; Bit8u c='\n';
 	DOS_WriteFile(STDOUT,&c,&n);
 	char temp[7];
@@ -3315,10 +3423,12 @@ void Go_Boot2(const char boot_drive[_MAX_DRIVE]) {
 	shell.RunInternal();
 	DOS_WriteFile(STDOUT,&c,&n);
 	shell.ShowPrompt(); // if failed
+#endif
 }
 
 /* FIXME: Unused */
 void Drag_Drop( char * path_arg ) {
+#if !defined(HX_DOS)
 	if(control->SecureMode()) {
 		LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
 		return;
@@ -3350,10 +3460,12 @@ void Drag_Drop( char * path_arg ) {
 		OpenFileDialog(path_arg);
 	else
 		LOG_MSG("GUI: Unsupported filename extension.");
+#endif
 }
 
 HHOOK hhk;
 LRESULT CALLBACK CBTProc(INT nCode, WPARAM wParam, LPARAM lParam) {
+#if !defined(HX_DOS)
 	lParam;
 	if( HCBT_ACTIVATE == nCode ) {
 		HWND hChildWnd;
@@ -3364,16 +3476,22 @@ LRESULT CALLBACK CBTProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 		UnhookWindowsHookEx(hhk);
 	}
 	CallNextHookEx(hhk, nCode, wParam, lParam);
+#endif
 	return 0;
 }
 
 int MountMessageBox( HWND hWnd, LPCTSTR lpText, LPCTSTR lpCaption, UINT uType ) {
+#if !defined(HX_DOS)
 	hhk = SetWindowsHookEx( WH_CBT, &CBTProc, 0, GetCurrentThreadId() );
 	const int iRes = MessageBox( hWnd, lpText, lpCaption, uType | MB_SETFOREGROUND );
 		return iRes;
+#else
+	return 0;
+#endif
 }
 
 void OpenFileDialog_Img( char drive ) {
+#if !defined(HX_DOS)
 		if(control->SecureMode()) {
 			LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
 			return;
@@ -3442,9 +3560,11 @@ search:
 			LOG_MSG("GUI: Unsupported filename extension.");
 	}
 	SetCurrentDirectory( Temp_CurrentDir );
+#endif
 }
 
 void D3D_PS(void) {
+#if !defined(HX_DOS)
 	OPENFILENAME OpenFileName;
 	char szFile[MAX_PATH];
 	char CurrentDir[MAX_PATH];
@@ -3507,6 +3627,7 @@ search:
 godefault:
 	SetCurrentDirectory( Temp_CurrentDir );
 	return;
+#endif
 }
 
 void* GetSetSDLValue(int isget, std::string target, void* setval) {
@@ -3515,8 +3636,12 @@ void* GetSetSDLValue(int isget, std::string target, void* setval) {
 		else sdl.wait_on_error = setval;
 	}
 	else if (target == "opengl.bilinear") {
+#if C_OPENGL
 		if (isget) return (void*) sdl.opengl.bilinear;
 		else sdl.opengl.bilinear = setval;
+#else
+		if (isget) return (void*) 0;
+#endif
 /*
 	} else if (target == "draw.callback") {
 		if (isget) return (void*) sdl.draw.callback;
@@ -3644,6 +3769,7 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message);
 #endif
 
 void GFX_Events() {
+	CheckMapperKeyboardLayout();
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
     SDL_Event event;
 #if defined (REDUCE_JOYSTICK_POLLING)
@@ -3964,7 +4090,7 @@ void GFX_Events() {
 }
 
 // added emendelson from dbDos
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(__MINGW32__)
 #include <cassert>
 
 // Ripped from SDL's SDL_dx5events.c, since there's no API to access it...
@@ -4283,9 +4409,13 @@ void SDL_SetupConfigSection() {
 #endif
 		0 };
 #ifdef __WIN32__
-		Pstring = sdl_sec->Add_string("output",Property::Changeable::Always,"direct3d");	/* <- Direct3D doesn't like being a child window */
+# ifdef __MINGW32__
+		Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "opengl"); /* MinGW builds do not yet have Direct3D */
+# else
+		Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "direct3d");
+#endif
 #else
-		Pstring = sdl_sec->Add_string("output",Property::Changeable::Always,"surface");
+		Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "surface");
 #endif
 	Pstring->Set_help("What video system to use for output.");
 	Pstring->Set_values(outputs);
@@ -4638,7 +4768,7 @@ void CheckNumLockState(void) {
 extern bool log_keyboard_scan_codes;
 
 void DOSBox_ShowConsole() {
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	COORD crd;
 	HWND hwnd;
@@ -5096,9 +5226,55 @@ int main(int argc, char* argv[]) {
     memset(&sdl,0,sizeof(sdl)); // struct sdl isn't initialized anywhere that I can tell
 
     control=&myconf;
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
     /* Microsoft's IME does not play nice with DOSBox */
     ImmDisableIME((DWORD)(-1));
+#endif
+
+#if defined(MACOSX)
+    /* The resource system of DOSBox-X relies on being able to locate the Resources subdirectory
+       within the DOSBox-X .app bundle. To do this, we have to first know where our own executable
+       is, which Mac OS X helpfully puts int argv[0] for us */
+    /* NTS: Experimental testing shows that when we are run from the desktop (double-clicking on
+            the .app bundle from the Finder) the current working directory is / (fs root). */
+    extern std::string MacOSXEXEPath;
+    extern std::string MacOSXResPath;
+    MacOSXEXEPath = argv[0];
+
+    /* The path should be something like /blah/blah/dosbox-x.app/Contents/MacOS/DosBox */
+    /* If that's true, then we can move one level up the tree and look for */
+    /* /blah/blah/dosbox-x.app/Contents/Resources */
+    {
+	const char *ref = argv[0];
+	const char *s = strrchr(ref,'/');
+	if (s != NULL) {
+		if (s > ref) s--;
+		while (s > ref && *s != '/') s--;
+		if (!strncasecmp(s,"/MacOS/",7)) {
+			MacOSXResPath = std::string(ref,(size_t)(s-ref)) + "/Resources";
+		}
+	}
+    }
+
+    /* If we were launched by the Finder, the current working directory will usually be
+       the root of the filesystem (/) which is useless. If we see that, change instead
+       to the user's home directory */
+    {
+        char *home = getenv("HOME");
+        char cwd[512];
+
+        cwd[0]=0;
+        getcwd(cwd,sizeof(cwd)-1);
+
+        if (!strcmp(cwd,"/")) {
+            /* Only the Finder would do that.
+               Even if the user somehow did this from the Terminal app, it's still
+               worth changing to the home directory because certain directories
+               including / are locked readonly even for sudo in Mac OS X */
+            /* NTS: HOME is usually an absolute path */
+            if (home != NULL) chdir(home);
+        }
+    }
 #endif
 
     {
@@ -5192,9 +5368,14 @@ int main(int argc, char* argv[]) {
 		LOG_MSG("DOSBox-X version %s",VERSION);
 		LOG(LOG_MISC,LOG_NORMAL)("Copyright 2002-2015 enhanced branch by The Great Codeholio, forked from the main project by the DOSBox Team, published under GNU GPL.");
 
+#if defined(MACOSX)
+		LOG_MSG("Mac OS X EXE path: %s",MacOSXEXEPath.c_str());
+		LOG_MSG("Mac OS X Resource path: %s",MacOSXResPath.c_str());
+#endif
+
 		/* -- [debug] setup console */
 #if C_DEBUG
-# if defined(WIN32)
+# if defined(WIN32) && !defined(HX_DOS)
 		/* Can't disable the console with debugger enabled */
 		if (control->opt_noconsole) {
 			LOG(LOG_MISC,LOG_DEBUG)("-noconsole: hiding Win32 console window");
@@ -5295,6 +5476,10 @@ int main(int argc, char* argv[]) {
 		/* -- -- other steps to prepare SDL window/output */
 		SDL_Prepare();
 
+        /* -- -- Keyboard layout detection and setup */
+        KeyboardLayoutDetect();
+        SetMapperKeyboardLayout(host_keyboard_layout);
+
 		/* -- -- Initialise Joystick seperately. This way we can warn when it fails instead of exiting the application */
 		LOG(LOG_MISC,LOG_DEBUG)("Initializing SDL joystick subsystem...");
 		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) >= 0) {
@@ -5385,9 +5570,6 @@ int main(int argc, char* argv[]) {
 #if !defined(C_SDL2)
                 void DOSBox_SetSysMenu(void);
                 DOSBox_SetSysMenu();
-
-                NonUserResizeCounter=1;
-                SetMenu(GetHWND(),NULL);
 #endif
 				//only switch if not already in fullscreen
 				if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
@@ -5417,6 +5599,12 @@ int main(int argc, char* argv[]) {
 		MAPPER_StartUp();
 		DOSBOX_InitTickLoop();
 		DOSBOX_RealInit();
+
+        /* at this point: If the machine type is PC-98, and the mapper keyboard layout was "Japanese",
+         * then change the mapper layout to "Japanese PC-98" */
+        if (host_keyboard_layout == DKM_JPN && IS_PC98_ARCH)
+            SetMapperKeyboardLayout(DKM_JPN_PC98);
+
 		RENDER_Init();
 		CAPTURE_Init();
 		IO_Init();
@@ -5525,12 +5713,14 @@ int main(int argc, char* argv[]) {
 
         bool reboot_dos;
 		bool run_machine;
+        bool wait_debugger;
 		bool reboot_machine;
 		bool dos_kernel_shutdown;
 
 fresh_boot:
         reboot_dos = false;
 		run_machine = false;
+        wait_debugger = false;
 		reboot_machine = false;
 		dos_kernel_shutdown = false;
 
@@ -5569,6 +5759,13 @@ fresh_boot:
                 reboot_dos = true;
                 dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
+            else if (x == 7) { /* DOS kernel corruption error (need to restart the DOS kernel) */
+                LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot DOS kernel");
+
+                reboot_dos = true;
+                wait_debugger = true;
+                dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
+            }
             else {
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox kill switch signal");
 
@@ -5589,6 +5786,17 @@ fresh_boot:
         if (dos_kernel_shutdown) {
             /* NTS: we take different paths depending on whether we're just shutting down DOS
              *      or doing a hard reboot. */
+
+            if (wait_debugger) {
+#if C_DEBUG
+                Bitu DEBUG_EnableDebugger(void);
+                void DEBUG_WaitNoExecute(void);
+
+                LOG_MSG("Starting debugger.");
+                DEBUG_EnableDebugger();
+                DEBUG_WaitNoExecute();
+#endif
+            }
 
             /* new code: fire event */
             if (reboot_machine)
@@ -5672,6 +5880,15 @@ fresh_boot:
 				SegValue(cs),reg_ip,
 				SegValue(ss),reg_sp,
 				reg_ax,reg_bx,reg_cx,reg_dx);
+
+#if C_DEBUG
+            if (boot_debug_break) {
+                boot_debug_break = false;
+
+                void DEBUG_Enable(bool pressed);
+                DEBUG_Enable(true);
+            }
+#endif
 
             /* run again */
             goto fresh_boot;

@@ -25,6 +25,12 @@
 #include <windows.h>
 #include <process.h>
 
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+# define ParentWindowHWND SDL_Window
+#else
+extern HWND ParentWindowHWND;
+#endif
+
 #include "SDL_main.h"
 #include "SDL_events.h"
 #include "SDL_syswm.h"
@@ -33,6 +39,8 @@
 #include "../wincommon/SDL_lowvideo.h"
 #include "SDL_gapidibvideo.h"
 #include "SDL_vkeys.h"
+
+void (*SDL1_hax_INITMENU_cb)() = NULL;
 
 #ifdef SDL_VIDEO_DRIVER_GAPI
 #include "../gapi/SDL_gapivideo.h"
@@ -50,7 +58,20 @@
 #define NO_GETKEYBOARDSTATE
 #endif
 
+#ifdef SDL_WIN32_HX_DOS
+#define NO_GETKEYBOARDSTATE
+#endif
+
 HKL hLayout = NULL;
+unsigned char hLayoutChanged = 0;
+
+unsigned char SDL1_hax_hasLayoutChanged(void) {
+	return hLayoutChanged;
+}
+
+void SDL1_hax_ackLayoutChanged(void) {
+	hLayoutChanged = 0;
+}
 
 /* The translation table from a Microsoft VK keysym to a SDL keysym */
 static SDLKey VK_keymap[SDLK_LAST];
@@ -130,8 +151,6 @@ static void GapiTransform(GapiInfo *gapiInfo, LONG *x, LONG *y)
 }
 #endif 
 
-extern HWND ParentWindowHWND;
-
 /* DOSBox-X deviation: hack to ignore Num/Scroll/Caps if set */
 #if defined(WIN32)
 unsigned char _dosbox_x_hack_ignore_toggle_keys = 0;
@@ -191,10 +210,9 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 				 SDL_PublicSurface &&
 				(SDL_PublicSurface->flags & SDL_FULLSCREEN)) {
 				/* In fullscreen mode, this window must have focus... or else we must exit fullscreen mode! */
-				ShowWindow(ParentWindowHWND, SW_MINIMIZE);
+				ShowWindow(ParentWindowHWND, SW_RESTORE);
 			}
 			break;
-
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN: {
 			SDL_keysym keysym;
@@ -269,6 +287,13 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 				TranslateKey(wParam,HIWORD(lParam),&keysym,1));
 		}
 		return(0);
+
+		case WM_INITMENU:
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+			if (SDL1_hax_INITMENU_cb != NULL)
+				SDL1_hax_INITMENU_cb();
+#endif
+			break;
 
 		case WM_SYSKEYUP:
 		case WM_KEYUP: {
@@ -686,6 +711,7 @@ static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, 
 	return(keysym);
 }
 
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
 /*-----------------------------------------------------------*/
 HANDLE			ParentWindowThread = INVALID_HANDLE_VALUE;
 DWORD			ParentWindowThreadID = 0;
@@ -693,8 +719,6 @@ HWND			ParentWindowHWND = NULL;
 volatile int	ParentWindowInit = 0;
 volatile int	ParentWindowShutdown = 0;
 volatile int	ParentWindowReady = 0;
-
-void			(*SDL1_hax_INITMENU_cb)() = NULL;
 
 LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_CREATE) {
@@ -744,15 +768,18 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 	else if (msg == WM_WINDOWPOSCHANGING) {
 		WINDOWPOS *windowpos = (WINDOWPOS*)lParam;
 
+		/* FIXME: Why do MinGW builds crash here on thread shutdown, as if SDL_PublicSurface never existed? */
+		if (ParentWindowShutdown) return(0);
+
 		/* When menu is at the side or top, Windows likes
 		to try to reposition the fullscreen window when
 		changing video modes.
 		*/
-		if (!SDL_resizing &&
-			SDL_PublicSurface &&
-			(SDL_PublicSurface->flags & SDL_FULLSCREEN)) {
-			windowpos->x = 0;
-			windowpos->y = 0;
+		if (!SDL_resizing && SDL_PublicSurface) {
+			if (SDL_PublicSurface->flags & SDL_FULLSCREEN) {
+				windowpos->x = 0;
+				windowpos->y = 0;
+			}
 		}
 
 		return(0);
@@ -899,6 +926,7 @@ int InitParentWindow(void) {
 	return 1;
 }
 /*-----------------------------------------------------------*/
+#endif
 
 int DIB_CreateWindow(_THIS)
 {
@@ -929,14 +957,28 @@ int DIB_CreateWindow(_THIS)
 		userWindowProc = (WNDPROCTYPE)GetWindowLongPtr(SDL_Window, GWLP_WNDPROC);
 		SetWindowLongPtr(SDL_Window, GWLP_WNDPROC, (LONG_PTR)WinMessage);
 	} else {
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
 		if (!InitParentWindow()) {
 			SDL_SetError("Couldn't init parent window");
 			return(-1);
 		}
+#endif
 
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+# ifdef SDL_WIN32_HX_DOS
+		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
+			WS_OVERLAPPED,
+			0, 0, 640, 480, NULL, NULL, SDL_Instance, NULL);
+# else
+		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
+			(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN | WS_CLIPSIBLINGS),
+			0, 0, 640, 480, NULL, NULL, SDL_Instance, NULL);
+# endif
+#else
 		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
                         WS_CHILD,
                         0, 0, 640, 480, ParentWindowHWND, NULL, SDL_Instance, NULL);
+#endif
 		if ( SDL_Window == NULL ) {
 			SDL_SetError("Couldn't create window");
 			return(-1);

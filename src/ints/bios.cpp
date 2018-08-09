@@ -32,6 +32,7 @@
 #include "mouse.h"
 #include "callback.h"
 #include "setup.h"
+#include "bios_disk.h"
 #include "serialport.h"
 #include "mapper.h"
 #include "vga.h"
@@ -2364,6 +2365,7 @@ void update_pc98_function_row(bool enable) {
 }
 
 void pc98_set_digpal_entry(unsigned char ent,unsigned char grb);
+void PC98_show_cursor(bool show);
 
 static Bitu INT18_PC98_Handler(void) {
     Bit16u temp16;
@@ -2451,12 +2453,10 @@ static Bitu INT18_PC98_Handler(void) {
             pc98_gdc[GDC_MASTER].param_ram[3] = (400 << 4) >> 8;
             break;
         case 0x11: /* show cursor */
-            pc98_gdc[GDC_MASTER].force_fifo_complete();
-            pc98_gdc[GDC_MASTER].cursor_enable = true;
+            PC98_show_cursor(true);
             break;
         case 0x12: /* hide cursor */
-            pc98_gdc[GDC_MASTER].force_fifo_complete();
-            pc98_gdc[GDC_MASTER].cursor_enable = false;
+            PC98_show_cursor(false);
             break;
         case 0x13: /* set cursor position (DX=byte position) */
             void vga_pc98_direct_cursor_pos(Bit16u address);
@@ -2464,6 +2464,51 @@ static Bitu INT18_PC98_Handler(void) {
             pc98_gdc[GDC_MASTER].force_fifo_complete();
             vga_pc98_direct_cursor_pos(reg_dx >> 1);
             pc98_gdc[GDC_MASTER].cursor_enable = true; // FIXME: Right?
+            break;
+        case 0x14: /* read FONT RAM */
+            {
+                unsigned int i,o,r;
+
+                /* DX = code (must be 0x76xx or 0x7700)
+                 * BX:CX = 34-byte region to write to */
+                if (reg_dh == 0x80) { /* 8x16 ascii */
+                    i = (reg_bx << 4) + reg_cx + 2;
+                    mem_writew(i-2,0x0102);
+                    for (r=0;r < 16;r++) {
+                        o = (reg_dl*16)+r;
+
+                        assert((o+2) <= sizeof(vga.draw.font));
+
+                        mem_writeb(i+r,vga.draw.font[o]);
+                    }
+                }
+                else if ((reg_dh & 0xFC) == 0x28) { /* 8x16 kanji */
+                    i = (reg_bx << 4) + reg_cx + 2;
+                    mem_writew(i-2,0x0202);
+                    for (r=0;r < 16;r++) {
+                        o = (((((reg_dl & 0x7F)*128)+((reg_dh - 0x20) & 0x7F))*16)+r)*2;
+
+                        assert((o+2) <= sizeof(vga.draw.font));
+
+                        mem_writeb(i+r+0,vga.draw.font[o+0]);
+                    }
+                }
+                else if (reg_dh != 0) { /* 16x16 kanji */
+                    i = (reg_bx << 4) + reg_cx + 2;
+                    mem_writew(i-2,0x0202);
+                    for (r=0;r < 16;r++) {
+                        o = (((((reg_dl & 0x7F)*128)+((reg_dh - 0x20) & 0x7F))*16)+r)*2;
+
+                        assert((o+2) <= sizeof(vga.draw.font));
+
+                        mem_writeb(i+(r*2)+0,vga.draw.font[o+0]);
+                        mem_writeb(i+(r*2)+1,vga.draw.font[o+1]);
+                    }
+                }
+                else {
+                    LOG_MSG("PC-98 INT 18h AH=14h font RAM read ignored, code 0x%04x not supported",reg_dx);
+                }
+            }
             break;
         case 0x16: /* fill screen with chr + attr */
             {
@@ -2558,6 +2603,15 @@ static Bitu INT18_PC98_Handler(void) {
             }
 
             {
+                unsigned char b = mem_readb(0x597);
+
+                b &= ~3;
+                b |= (reg_ch - 1) & 3;
+
+                mem_writeb(0x597,b);
+            }
+
+            {
                 unsigned char b = mem_readb(0x54C/*MEMB_PRXCRT*/);
 
                 // Real hardware behavior: graphics selection updated by BIOS to reflect MEMB_PRXCRT state
@@ -2604,6 +2658,260 @@ static Bitu INT18_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+#define PC98_FLOPPY_HIGHDENSITY     0x01
+#define PC98_FLOPPY_2HEAD           0x02
+#define PC98_FLOPPY_RPM_3MODE       0x04
+#define PC98_FLOPPY_RPM_IBMPC       0x08
+
+unsigned char PC98_BIOS_FLOPPY_BUFFER[32768]; /* 128 << 8 */
+
+static unsigned int PC98_FDC_SZ_TO_BYTES(unsigned int sz) {
+    return 128U << sz;
+}
+
+void PC98_BIOS_FDC_CALL_GEO_UNPACK(unsigned int &fdc_cyl,unsigned int &fdc_head,unsigned int &fdc_sect,unsigned int &fdc_sz) {
+    fdc_cyl = reg_cl;
+    fdc_head = reg_dh;
+    fdc_sect = reg_dl;
+    fdc_sz = reg_ch;
+    if (fdc_sz > 8) fdc_sz = 8;
+}
+
+void PC98_BIOS_FDC_CALL(unsigned int flags) {
+    static unsigned int fdc_cyl=0,fdc_head=0,fdc_sect=0,fdc_sz=0; // FIXME: Rename and move out. Making "static" is a hack here.
+    Bit32u img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
+    unsigned int status;
+    unsigned int size,accsize,unitsize;
+    unsigned long memaddr;
+    imageDisk *floppy;
+
+    /* AL bits[1:0] = which floppy drive */
+    if ((reg_al & 3) >= 2) {
+        /* This emulation only supports up to 2 floppy drives */
+        CALLBACK_SCF(true);
+        reg_ah = 0x00;
+        /* TODO? Error code? */
+        return;
+    }
+
+    floppy = GetINT13FloppyDrive(reg_al & 3);
+
+    /* what to do is in the lower 4 bits of AH */
+    switch (reg_ah & 0x0F) {
+        /* TODO: 0x00 = seek to track (in CL) */
+        /* TODO: 0x01 = test read? */
+        /* TODO: 0x03 = equipment flags? */
+        /* TODO: 0x04 = format detect? */
+        /* TODO: 0x05 = write disk */
+        /* TODO: 0x07 = recalibrate (seek to track 0) */
+        /* TODO: 0x0A = Read ID */
+        /* TODO: 0x0D = Format track */
+        /* TODO: 0x0E = ?? */
+        case 0x02: /* read sectors */
+        case 0x06: /* read sectors (what's the difference from 0x02?) */
+            /* AH bits[4:4] = If set, seek to track specified */
+            /* CL           = cylinder (track) */
+            /* CH           = sector size (0=128 1=256 2=512 3=1024 etc) */
+            /* DL           = sector number (1-based) */
+            /* DH           = head */
+            /* BX           = size (in bytes) of data to read */
+            /* ES:BP        = buffer to read data into */
+            if (floppy == NULL) {
+                CALLBACK_SCF(true);
+                reg_ah = 0x00;
+                /* TODO? Error code? */
+                return;
+            }
+	        floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+
+            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl,/*&*/fdc_head,/*&*/fdc_sect,/*&*/fdc_sz);
+            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz);
+            if (unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0) {
+                CALLBACK_SCF(true);
+                reg_ah = 0x00;
+                /* TODO? Error code? */
+                return;
+            }
+
+            size = reg_bx;
+            memaddr = (SegValue(es) << 4U) + reg_bp;
+            while (size > 0) {
+                accsize = size > unitsize ? unitsize : size;
+
+                if (floppy->Read_Sector(fdc_head,fdc_cyl,fdc_sect,PC98_BIOS_FLOPPY_BUFFER) != 0) {
+                    CALLBACK_SCF(true);
+                    reg_ah = 0x00;
+                    /* TODO? Error code? */
+                    return;
+                }
+
+                for (unsigned int i=0;i < accsize;i++)
+                    mem_writeb(memaddr+i,PC98_BIOS_FLOPPY_BUFFER[i]);
+
+                memaddr += accsize;
+                size -= accsize;
+
+                if ((++fdc_sect) > img_sect) {
+                    fdc_sect = 1;
+                    if ((++fdc_head) >= img_heads) {
+                        fdc_head = 0;
+                        fdc_cyl++;
+                    }
+                }
+            }
+
+            reg_ah = 0x00;
+            CALLBACK_SCF(false);
+            break;
+        case 0x04: /* drive status */
+            status = 0;
+
+            /* TODO: bit 4 is set if write protected */
+
+            if (reg_al & 0x80) { /* high density */
+                status |= 0x01;
+            }
+            else { /* double density */
+                /* TODO: */
+                status |= 0x01;
+            }
+
+            if ((reg_ax & 0x8F40) == 0x8400) {
+                status |= 8;        /* 1MB/640KB format, spindle speed for 3-mode */
+                if (reg_ah & 0x40) /* DOSBox-X always supports 1.44MB */
+                    status |= 4;    /* 1.44MB format, spindle speed for IBM PC format */
+            }
+
+            if (floppy == NULL)
+                status |= 0xC0;
+
+            reg_ah = status;
+            CALLBACK_SCF(false);
+            break;
+        /* TODO: 0x00 = seek to track (in CL) */
+        /* TODO: 0x01 = test read? */
+        /* TODO: 0x03 = equipment flags? */
+        /* TODO: 0x04 = format detect? */
+        /* TODO: 0x05 = write disk */
+        /* TODO: 0x07 = recalibrate (seek to track 0) */
+        /* TODO: 0x0A = Read ID */
+        /* TODO: 0x0D = Format track */
+        /* TODO: 0x0E = ?? */
+        case 0x05: /* write sectors */
+            /* AH bits[4:4] = If set, seek to track specified */
+            /* CL           = cylinder (track) */
+            /* CH           = sector size (0=128 1=256 2=512 3=1024 etc) */
+            /* DL           = sector number (1-based) */
+            /* DH           = head */
+            /* BX           = size (in bytes) of data to read */
+            /* ES:BP        = buffer to write data from */
+            if (floppy == NULL) {
+                CALLBACK_SCF(true);
+                reg_ah = 0x00;
+                /* TODO? Error code? */
+                return;
+            }
+	        floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+
+            /* TODO: Error if write protected */
+
+            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl,/*&*/fdc_head,/*&*/fdc_sect,/*&*/fdc_sz);
+            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz);
+            if (unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0) {
+                CALLBACK_SCF(true);
+                reg_ah = 0x00;
+                /* TODO? Error code? */
+                return;
+            }
+
+            size = reg_bx;
+            memaddr = (SegValue(es) << 4U) + reg_bp;
+            while (size > 0) {
+                accsize = size > unitsize ? unitsize : size;
+
+                for (unsigned int i=0;i < accsize;i++)
+                    PC98_BIOS_FLOPPY_BUFFER[i] = mem_readb(memaddr+i);
+
+                if (floppy->Write_Sector(fdc_head,fdc_cyl,fdc_sect,PC98_BIOS_FLOPPY_BUFFER) != 0) {
+                    CALLBACK_SCF(true);
+                    reg_ah = 0x00;
+                    /* TODO? Error code? */
+                    return;
+                }
+
+                memaddr += accsize;
+                size -= accsize;
+
+                if ((++fdc_sect) > img_sect) {
+                    fdc_sect = 1;
+                    if ((++fdc_head) >= img_heads) {
+                        fdc_head = 0;
+                        fdc_cyl++;
+                    }
+                }
+            }
+
+            reg_ah = 0x00;
+            CALLBACK_SCF(false);
+            break;
+        case 0x07: /* recalibrate (seek to track 0) */
+            if (floppy == NULL) {
+                CALLBACK_SCF(true);
+                reg_ah = 0x00;
+                /* TODO? Error code? */
+                return;
+            }
+
+            reg_ah = 0x00;
+            CALLBACK_SCF(false);
+            break;
+        case 0x0A: /* read ID */
+            if (floppy == NULL) {
+                CALLBACK_SCF(true);
+                reg_ah = 0x00;
+                /* TODO? Error code? */
+                return;
+            }
+
+	        floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+ 
+            if (reg_ah & 0x10) { // seek to track number in CL
+                if (reg_cl >= img_cyl) {
+                    CALLBACK_SCF(true);
+                    reg_ah = 0x00;
+                    /* TODO? Error code? */
+                    return;
+                }
+
+                fdc_cyl = img_cyl;
+            }
+
+            reg_cl = fdc_cyl;
+            reg_dh = fdc_head;
+            reg_dl = fdc_sect;
+            /* ^ FIXME: A more realistic emulation would return a random number from 1 to N
+             *          where N=sectors/track because the floppy motor is running and tracks
+             *          are moving past the head. */
+            reg_ch = fdc_sz;
+
+            reg_ah = 0x00;
+            CALLBACK_SCF(false);
+            break;
+        default:
+            LOG_MSG("PC-98 INT 1Bh unknown FDC BIOS call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                    reg_ax,
+                    reg_bx,
+                    reg_cx,
+                    reg_dx,
+                    reg_si,
+                    reg_di,
+                    SegValue(ds),
+                    SegValue(es));
+            CALLBACK_SCF(true);
+            break;
+    };
+}
+
 static Bitu INT19_PC98_Handler(void) {
     LOG_MSG("PC-98 INT 19h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
         reg_ax,
@@ -2640,15 +2948,34 @@ static Bitu INT1A_PC98_Handler(void) {
 }
 
 static Bitu INT1B_PC98_Handler(void) {
-    LOG_MSG("PC-98 INT 1Bh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
-        reg_ax,
-        reg_bx,
-        reg_cx,
-        reg_dx,
-        reg_si,
-        reg_di,
-        SegValue(ds),
-        SegValue(es));
+    /* As BIOS interfaces for disk I/O go, this is fairly unusual */
+    switch (reg_al & 0xF0) {
+        /* floppy disk access */
+        /* AL bits[1:0] = floppy drive number */
+        /* Uses INT42 if high density, INT41 if double density */
+        /* AH bits[3:0] = command */
+        case 0x90: /* 1.2MB HD */
+            PC98_BIOS_FDC_CALL(PC98_FLOPPY_HIGHDENSITY|PC98_FLOPPY_2HEAD|PC98_FLOPPY_RPM_3MODE);
+            break;
+        case 0x30: /* 1.44MB HD (NTS: not supported until the early 1990s) */
+        case 0xB0:
+            PC98_BIOS_FDC_CALL(PC98_FLOPPY_HIGHDENSITY|PC98_FLOPPY_2HEAD|PC98_FLOPPY_RPM_IBMPC);
+            break;
+        /* TODO: Other disk formats */
+        /* TODO: Future SASI/SCSI BIOS emulation for hard disk images */
+        default:
+            LOG_MSG("PC-98 INT 1Bh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                    reg_ax,
+                    reg_bx,
+                    reg_cx,
+                    reg_dx,
+                    reg_si,
+                    reg_di,
+                    SegValue(ds),
+                    SegValue(es));
+            CALLBACK_SCF(true);
+            break;
+    };
 
     return CBRET_NONE;
 }
@@ -2665,8 +2992,32 @@ void PC98_Interval_Timer_Continue(void) {
     PIC_SetIRQMask(0,false);
 }
 
+unsigned char pc98_dec2bcd(unsigned char c) {
+    return ((c / 10) << 4) + (c % 10);
+}
+
 static Bitu INT1C_PC98_Handler(void) {
-    if (reg_ah == 0x02) { /* set interval timer (single event) */
+    if (reg_ah == 0x00) { /* get time and date */
+        time_t curtime;
+        struct tm *loctime;
+        curtime = time (NULL);
+        loctime = localtime (&curtime);
+
+        unsigned char tmp[6];
+
+        tmp[0] = pc98_dec2bcd(loctime->tm_year % 100);
+        tmp[1] = ((loctime->tm_mon + 1) << 4) + loctime->tm_wday;
+        tmp[2] = pc98_dec2bcd(loctime->tm_mday);
+        tmp[3] = pc98_dec2bcd(loctime->tm_hour);
+        tmp[4] = pc98_dec2bcd(loctime->tm_min);
+        tmp[5] = pc98_dec2bcd(loctime->tm_sec);
+
+        unsigned long mem = (SegValue(es) << 4) + reg_bx;
+
+        for (unsigned int i=0;i < 6;i++)
+            mem_writeb(mem+i,tmp[i]);
+    }
+    else if (reg_ah == 0x02) { /* set interval timer (single event) */
         /* es:bx = interrupt handler to execute
          * cx = timer interval in ticks (FIXME: what units of time?) */
         mem_writew(0x1C,reg_bx);
@@ -2723,16 +3074,47 @@ static Bitu INT1E_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+void PC98_EXTMEMCPY(void) {
+    bool enabled = MEM_A20_Enabled();
+    MEM_A20_Enable(true);
+
+    Bitu   bytes	= ((reg_cx - 1) & 0xFFFF) + 1; // bytes, except that 0 == 64KB
+    PhysPt data		= SegPhys(es)+reg_bx;
+    PhysPt source	= (mem_readd(data+0x12) & 0x00FFFFFF) + (mem_readb(data+0x17)<<24);
+    PhysPt dest		= (mem_readd(data+0x1A) & 0x00FFFFFF) + (mem_readb(data+0x1F)<<24);
+
+    LOG_MSG("PC-98 memcpy: src=0x%x dst=0x%x data=0x%x count=0x%x",
+        (unsigned int)source,(unsigned int)dest,(unsigned int)data,(unsigned int)bytes);
+
+    MEM_BlockCopy(dest,source,bytes);
+    MEM_A20_Enable(enabled);
+    Segs.limit[cs] = 0xFFFF;
+    Segs.limit[ds] = 0xFFFF;
+    Segs.limit[es] = 0xFFFF;
+    Segs.limit[ss] = 0xFFFF;
+
+    CALLBACK_SCF(false);
+}
+
 static Bitu INT1F_PC98_Handler(void) {
-    LOG_MSG("PC-98 INT 1Fh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
-        reg_ax,
-        reg_bx,
-        reg_cx,
-        reg_dx,
-        reg_si,
-        reg_di,
-        SegValue(ds),
-        SegValue(es));
+    switch (reg_ah) {
+        case 0x90:
+            /* Copy extended memory */
+            PC98_EXTMEMCPY();
+            break;
+        default:
+            LOG_MSG("PC-98 INT 1Fh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                    reg_ax,
+                    reg_bx,
+                    reg_cx,
+                    reg_dx,
+                    reg_si,
+                    reg_di,
+                    SegValue(ds),
+                    SegValue(es));
+            CALLBACK_SCF(true);
+            break;
+    };
 
     return CBRET_NONE;
 }
@@ -4029,6 +4411,57 @@ void BIOS_ZeroExtendedSize(bool in) {
 	if(in) other_memsystems++; 
 	else other_memsystems--;
 	if(other_memsystems < 0) other_memsystems=0;
+
+    if (IS_PC98_ARCH) {
+        Bitu mempages = MEM_TotalPages(); /* in 4KB pages */
+
+        /* What applies to IBM PC/AT (zeroing out the extended memory size)
+         * also applies to PC-98, when HIMEM.SYS is loaded */
+        if (in) mempages = 0;
+
+        /* extended memory size (286 systems, below 16MB) */
+        if (mempages > (1024UL/4UL)) {
+            unsigned int ext = ((mempages - (1024UL/4UL)) * 4096UL) / (128UL * 1024UL); /* convert to 128KB units */
+
+            /* extended memory, up to 16MB capacity (for 286 systems?)
+             *
+             * MS-DOS drivers will "allocate" for themselves by taking from the top of
+             * extended memory then subtracting from this value.
+             *
+             * capacity does not include conventional memory below 1MB, nor any memory
+             * above 16MB.
+             *
+             * PC-98 systems may reserve the top 1MB, limiting the top to 15MB instead.
+             *
+             * 0x70 = 128KB * 0x70 = 14MB
+             * 0x78 = 128KB * 0x70 = 15MB */
+            if (ext > 0x78) ext = 0x78;
+
+            mem_writeb(0x401,ext);
+        }
+        else {
+            mem_writeb(0x401,0x00);
+        }
+
+        /* extended memory size (386 systems, at or above 16MB) */
+        if (mempages > ((1024UL*16UL)/4UL)) {
+            unsigned int ext = ((mempages - ((1024UL*16UL)/4UL)) * 4096UL) / (1024UL * 1024UL); /* convert to MB */
+
+            /* extended memory, at or above 16MB capacity (for 386+ systems?)
+             *
+             * MS-DOS drivers will "allocate" for themselves by taking from the top of
+             * extended memory then subtracting from this value.
+             *
+             * capacity does not include conventional memory below 1MB, nor any memory
+             * below 16MB. */
+            if (ext > 0xFFFE) ext = 0xFFFE;
+
+            mem_writew(0x594,ext);
+        }
+        else {
+            mem_writew(0x594,0x00);
+        }
+    }
 }
 
 unsigned char do_isapnp_chksum(unsigned char *d,int i) {
@@ -4327,12 +4760,67 @@ void write_FFFF_PC98_signature() {
     phys_writew(0xffffe,0xABCD);
 }
 
+extern bool                         gdc_5mhz_mode;
+extern bool                         enable_pc98_egc;
+extern bool                         enable_pc98_grcg;
+extern bool                         enable_pc98_16color;
+
+void gdc_egc_enable_update_vars(void) {
+    unsigned char b;
+
+    b = mem_readb(0x54D);
+    b &= ~0x40;
+    if (enable_pc98_egc) b |= 0x40;
+    mem_writeb(0x54D,b);
+
+    b = mem_readb(0x597);
+    b &= ~0x04;
+    if (enable_pc98_egc) b |= 0x04;
+    mem_writeb(0x597,b);
+
+    if (!enable_pc98_egc)
+        pc98_gdc_vramop &= ~(1 << VOPBIT_EGC);
+}
+
+void gdc_grcg_enable_update_vars(void) {
+    unsigned char b;
+
+    b = mem_readb(0x54C);
+    b &= ~0x02;
+    if (enable_pc98_grcg) b |= 0x02;
+    mem_writeb(0x54C,b);
+	
+	//TODO: How to reset GRCG?
+}
+
+
+void gdc_16color_enable_update_vars(void) {
+    unsigned char b;
+
+    b = mem_readb(0x54C);
+    b &= ~0x04;
+    if (enable_pc98_16color) b |= 0x04;
+    mem_writeb(0x54C,b);
+	
+	if(!enable_pc98_16color) {//force switch to 8-colors mode
+		void pc98_port6A_command_write(unsigned char b);
+		pc98_port6A_command_write(0x00);
+	}
+}
+
 class BIOS:public Module_base{
 private:
 	static Bitu cb_bios_post__func(void) {
 		void TIMER_BIOS_INIT_Configure();
 #if C_DEBUG
         void DEBUG_CheckCSIP();
+#endif
+
+#if C_HEAVY_DEBUG
+        /* the game/app obviously crashed, which is way more important
+         * to log than what we do here in the BIOS at POST */
+        void DEBUG_StopLog(void);
+        DEBUG_StopLog();
 #endif
 
 		if (bios_first_init) {
@@ -4343,10 +4831,66 @@ private:
         if (IS_PC98_ARCH) {
             for (unsigned int i=0;i < 20;i++) callback[i].Uninstall();
 
-            write_FFFF_PC98_signature();
-
-            /* clear out 0x50 segment */
+            /* clear out 0x50 segment (TODO: 0x40 too?) */
             for (unsigned int i=0;i < 0x100;i++) phys_writeb(0x500+i,0);
+
+            write_FFFF_PC98_signature();
+            BIOS_ZeroExtendedSize(false);
+
+            unsigned char memsize_real_code = 0;
+            Bitu mempages = MEM_TotalPages(); /* in 4KB pages */
+
+            /* NTS: Fill in the 3-bit code in FLAGS1 that represents
+             *      how much lower conventional memory is in the system.
+             *
+             *      Note that MEM.EXE requires this value, or else it
+             *      will complain about broken UMB linkage and fail
+             *      to show anything else. */
+            /* TODO: In the event we eventually support "high resolution mode"
+             *       we can indicate 768KB here, code == 5, meaning that
+             *       the RAM extends up to 0xBFFFF instead of 0x9FFFF */
+            if (mempages >= (640UL/4UL))        /* 640KB */
+                memsize_real_code = 4;
+            else if (mempages >= (512UL/4UL))   /* 512KB */
+                memsize_real_code = 3;
+            else if (mempages >= (384UL/4UL))   /* 384KB */
+                memsize_real_code = 2;
+            else if (mempages >= (256UL/4UL))   /* 256KB */
+                memsize_real_code = 1;
+            else                                /* 128KB */
+                memsize_real_code = 0;
+
+            /* BIOS flags */
+            /* bit[7:7] = Startup            1=hot start    0=cold start
+             * bit[6:6] = BASIC type         ??
+             * bit[5:5] = Keyboard beep      1=don't beep   0=beep          ... when buffer full
+             * bit[4:4] = Expansion conv RAM 1=present      0=absent
+             * bit[3:3] = ??
+             * bit[2:2] = ??
+             * bit[1:1] = HD mode            1=1MB mode     0=640KB mode    ... of the floppy drive
+             * bit[0:0] = Model              1=other        0=PC-9801 original */
+            /* NTS: MS-DOS 5.0 appears to reduce it's BIOS calls and render the whole
+             *      console as green IF bit 0 is clear.
+             *
+             *      If bit 0 is set, INT 1Ah will be hooked by MS-DOS and, for some odd reason,
+             *      MS-DOS's hook proc will call to our INT 1Ah + 0x19 bytes. */
+            mem_writeb(0x500,0x01 | 0x02/*high density drive*/);
+
+            /* BIOS flags */
+            /* timer setup will set/clear bit 7 */
+            /* bit[7:7] = system clock freq  1=8MHz         0=5/10Mhz
+             *          = timer clock freq   1=1.9968MHz    0=2.4576MHz
+             * bit[6:6] = CPU                1=V30          0=Intel (8086 through Pentium)
+             * bit[5:5] = Model info         1=Other model  0=PC-9801 Muji, PC-98XA
+             * bit[4:4] = Model info         ...
+             * bit[3:3] = Model info         1=High res     0=normal
+             * bit[2:0] = Realmode memsize
+             *                             000=128KB      001=256KB
+             *                             010=384KB      011=512KB
+             *                             100=640KB      101=768KB
+             *
+             * Ref: http://hackipedia.org/browse/Computer/Platform/PC,%20NEC%20PC-98/Collections/Undocumented%209801,%209821%20Volume%202%20(webtech.co.jp)/memsys.txt */
+            mem_writeb(0x501,0x20 | memsize_real_code);
 
             /* set up some default state */
             mem_writeb(0x54C/*MEMB_PRXCRT*/,0x4F); /* default graphics layer off, 24KHz hsync */
@@ -4354,6 +4898,12 @@ private:
             /* keyboard buffer */
             mem_writew(0x524/*tail*/,0x502);
             mem_writew(0x526/*tail*/,0x502);
+
+            /* various BIOS flags */
+            mem_writeb(0x53B,0x0F); // CRT_RASTER, 640x400 24.83KHz-hsync 56.42Hz-vsync
+            mem_writeb(0x54C,(enable_pc98_grcg ? 0x02 : 0x00) | (enable_pc98_16color ? 0x04 : 0x00)); // PRXCRT, 16-color G-VRAM, GRCG
+            mem_writeb(0x54D,(enable_pc98_egc ? 0x40 : 0x00) | (gdc_5mhz_mode ? 0x20 : 0x00) | (gdc_5mhz_mode ? 0x04 : 0x00)); // EGC
+            mem_writeb(0x597,(enable_pc98_egc ? 0x04 : 0x00/*FIXME*/)); // EGC
         }
 
         if (bios_user_reset_vector_blob != 0 && !bios_user_reset_vector_blob_run) {
@@ -4540,6 +5090,42 @@ private:
             /* INT 1Ah *STUB* */
             callback[3].Install(&INT1A_PC98_Handler,CB_IRET,"Int 1A ???");
             callback[3].Set_RealVec(0x1A,/*reinstall*/true);
+
+            /* MS-DOS 5.0 FIXUP:
+             * - For whatever reason, if we set bits in the BIOS data area that
+             *   indicate we're NOT the original model of the PC-98, MS-DOS will
+             *   hook our INT 1Ah and then call down to 0x19 bytes into our
+             *   INT 1Ah procedure. If anyone can explain this, I'd like to hear it. --J.C.
+             *
+             * NTS: On real hardware, the BIOS appears to have an INT 1Ah, a bunch of NOPs,
+             *      then at 0x19 bytes into the procedure, the actual handler. This is what
+             *      MS-DOS is pointing at.
+             *
+             *      But wait, there's more.
+             *
+             *      MS-DOS calldown pushes DS and DX onto the stack (after the IRET frame)
+             *      before JMPing into the BIOS.
+             *
+             *      Apparently the function at INT 1Ah + 0x19 is expected to do this:
+             *
+             *      <function code>
+             *      POP     DX
+             *      POP     DS
+             *      IRET
+             *
+             *      I can only imaging what a headache this might have caused NEC when
+             *      maintaining the platform and compatibility! */
+            {
+                Bitu addr = callback[3].Get_RealPointer();
+                addr = ((addr >> 16) << 4) + (addr & 0xFFFF);
+
+                /* to make this work, we need to pop the two regs, then JMP to our
+                 * callback and proceed as normal. */
+                phys_writeb(addr + 0x19,0x5A);       // POP DX
+                phys_writeb(addr + 0x1A,0x1F);       // POP DS
+                phys_writeb(addr + 0x1B,0xEB);       // jmp short ...
+                phys_writeb(addr + 0x1C,0x100 - 0x1D);
+            }
 
             /* INT 1Bh *STUB* */
             callback[4].Install(&INT1B_PC98_Handler,CB_IRET,"Int 1B ???");
@@ -5482,6 +6068,14 @@ private:
 		// TODO: If instructed to, follow the INT 19h boot pattern, perhaps follow the BIOS Boot Specification, etc.
 
 		// TODO: If instructed to boot a guest OS...
+
+        /* wipe out the stack so it's not there to interfere with the system */
+        reg_esp = 0;
+        reg_eip = 0;
+        CPU_SetSegGeneral(cs, 0x60);
+        CPU_SetSegGeneral(ss, 0x60);
+
+        for (Bitu i=0;i < 0x400;i++) mem_writeb(0x7C00+i,0);
 
 		// Begin booting the DOSBox shell. NOTE: VM_Boot_DOSBox_Kernel will change CS:IP instruction pointer!
 		if (!VM_Boot_DOSBox_Kernel()) E_Exit("BIOS error: BOOT function failed to boot DOSBox kernel");
