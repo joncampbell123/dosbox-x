@@ -673,8 +673,6 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 	created_successfully = true;
 	FILE *diskfile;
 	Bit32u filesize;
-	struct partTable mbrData;
-    bool pc98_512_to_1024_allow = false;
 	
 	if(imgDTASeg == 0) {
 		imgDTASeg = DOS_GetMemory(2,"imgDTASeg");
@@ -719,6 +717,30 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         }
 	}
 
+    fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, startSector, filesize);
+}
+
+fatDrive::fatDrive(imageDisk *sourceLoadedDisk, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u startSector) {
+	created_successfully = true;
+	Bit32u filesize = 0;
+	
+	if(imgDTASeg == 0) {
+		imgDTASeg = DOS_GetMemory(2,"imgDTASeg");
+		imgDTAPtr = RealMake(imgDTASeg, 0);
+		imgDTA    = new DOS_DTA(imgDTAPtr);
+	}
+
+    loadedDisk = sourceLoadedDisk;
+    if (loadedDisk != NULL)
+        filesize = loadedDisk->diskSizeK;
+
+    fatDriveInit("", bytesector, cylsector, headscyl, cylinders, startSector, filesize);
+}
+
+void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u startSector, Bit32u filesize) {
+    bool pc98_512_to_1024_allow = false;
+	struct partTable mbrData;
+
 	if(!loadedDisk) {
 		created_successfully = false;
 		return;
@@ -729,6 +751,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
     /* too much code here assumes 512 bytes per sector or less */
     if (loadedDisk->getSectSize() > sizeof(bootbuffer)) {
         LOG_MSG("Disk sector/bytes (%u) is too large, not attempting FAT filesystem access",loadedDisk->getSectSize());
+		created_successfully = false;
         return;
     }
 
@@ -738,8 +761,8 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
     		loadedDisk->Set_Geometry(headscyl, cylinders,cylsector, bytesector);
 
         if (loadedDisk->heads == 0 || loadedDisk->sectors == 0 || loadedDisk->cylinders == 0) {
+            created_successfully = false;
             LOG_MSG("No geometry");
-            loadedDisk->Release();
             return;
         }
 
@@ -834,7 +857,6 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 
         if (loadedDisk->heads == 0 || loadedDisk->sectors == 0 || loadedDisk->cylinders == 0) {
             LOG_MSG("No geometry");
-            loadedDisk->Release();
             return;
         }
 	}
@@ -883,12 +905,17 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 		}
 	}
 
-    LOG_MSG("FAT: BPB says %u sectors/track %u heads",bootbuffer.sectorspertrack,bootbuffer.headcount);
+    LOG_MSG("FAT: BPB says %u sectors/track %u heads %u bytes/sector",
+        bootbuffer.sectorspertrack,
+        bootbuffer.headcount,
+        bootbuffer.bytespersector);
 
+    /* NTS: Some HDI images of PC-98 games do in fact have headcount == 0 */
     /* a clue that we're not really looking at FAT is invalid or weird values in the boot sector */
     if (bootbuffer.sectorspertrack == 0 || (bootbuffer.sectorspertrack > ((filesize <= 3000) ? 40 : 255)) ||
-        bootbuffer.headcount == 0 || (bootbuffer.headcount > ((filesize <= 3000) ? 64 : 255))) {
+        (bootbuffer.headcount > ((filesize <= 3000) ? 64 : 255))) {
         LOG_MSG("Rejecting image, boot sector has weird values not consistent with FAT filesystem");
+		created_successfully = false;
         return;
     }
 
@@ -940,6 +967,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 		/* FAT32 not implemented yet */
 		LOG_MSG("FAT32 not implemented yet, mounting image only");
 		fattype = FAT32;	// Avoid parsing dir entries, see fatDrive::FindFirst()...should work for unformatted images as well
+		created_successfully = false;
 		return;
 	}
 
@@ -960,6 +988,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
     if (bootbuffer.bytespersector < 128 || bootbuffer.bytespersector > sizeof(bootbuffer) ||
         (bootbuffer.bytespersector & (bootbuffer.bytespersector - 1)) != 0/*not a power of 2*/) {
         LOG_MSG("FAT bytes/sector value %u not supported",bootbuffer.bytespersector);
+		created_successfully = false;
         return;
     }
 
@@ -970,6 +999,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         LOG_MSG("FAT bytes/sector %u does not match disk image bytes/sector %u",
             (unsigned int)bootbuffer.bytespersector,
             (unsigned int)loadedDisk->getSectSize());
+		created_successfully = false;
         return;
     }
 
@@ -1166,9 +1196,14 @@ bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool /*fcb_findfirst*/) 
 }
 
 char* removeTrailingSpaces(char* str) {
-	char* end = str + strlen(str);
-	while((*--end == ' ') && (end > str)) {};
-	*++end = '\0';
+	char* end = str + strlen(str) - 1;
+	while (end >= str && *end == ' ') end--;
+    /* NTS: The loop will exit with 'end' one char behind the last ' ' space character.
+     *      So to ASCIIZ snip off the space, step forward one and overwrite with NUL.
+     *      The loop may end with 'end' one char behind 'ptr' if the string was empty ""
+     *      or nothing but spaces. This is OK because after the step forward, end >= str
+     *      in all cases. */
+	*(++end) = '\0';
 	return str;
 }
 

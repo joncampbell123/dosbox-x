@@ -21,6 +21,8 @@
 
 #if (HAVE_D3D9_H) && defined(WIN32)
 
+extern Bitu currentWindowWidth, currentWindowHeight;
+
 #include "direct3d.h"
 #include "render.h" // IMPLEMENTED
 #include <sstream>
@@ -50,6 +52,8 @@ HRESULT CDirect3D::InitializeDX(HWND wnd, bool triplebuf)
 #if LOG_D3D
     LOG_MSG("D3D:Starting Direct3D");
 #endif
+
+	backbuffer_clear_countdown = 0;
 
     // Check for display window
     if(!wnd) {
@@ -533,6 +537,11 @@ bool CDirect3D::D3DSwapBuffers(void)
     HRESULT hr;
     UINT uPasses;
 
+	if (backbuffer_clear_countdown > 0) {
+		backbuffer_clear_countdown--;
+		pD3DDevice9->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+	}
+
     // begin rendering
     pD3DDevice9->BeginScene();
 
@@ -910,7 +919,7 @@ HRESULT CDirect3D::LoadPixelShader(void)
     return S_OK;
 }
 
-HRESULT CDirect3D::Resize3DEnvironment(Bitu width, Bitu height, Bitu rwidth, Bitu rheight, bool fullscreen)
+HRESULT CDirect3D::Resize3DEnvironment(Bitu window_width, Bitu window_height, Bitu width, Bitu height, Bitu rwidth, Bitu rheight, bool fullscreen)
 {
 #if LOG_D3D
     LOG_MSG("D3D:Resizing D3D screen...");
@@ -921,39 +930,8 @@ HRESULT CDirect3D::Resize3DEnvironment(Bitu width, Bitu height, Bitu rwidth, Bit
 #endif
 
     // set the presentation parameters
-    d3dpp.BackBufferWidth = width;
-    d3dpp.BackBufferHeight = height;
-
-    if(fullscreen) {
-	// Find correct display mode
-	bool fullscreen_ok = false;
-
-	for(iMode=0;iMode<dwNumModes;iMode++) {
-	    if((modes[iMode].Width >= width) && (modes[iMode].Height >= height)) {
-		d3dpp.BackBufferWidth = modes[iMode].Width;
-		d3dpp.BackBufferHeight = modes[iMode].Height;
-		fullscreen_ok = true;
-
-		// Some cards no longer support 320xXXX resolutions,
-		// even if they list them as supported. In this case
-		// the card will silently switch to 640xXXX, leaving black
-		// borders around displayed picture. Using hardware scaling
-		// to 640xXXX doesn't cost anything in this case and should
-		// look exactly the same as 320xXXX.
-		if(d3dpp.BackBufferWidth < 512) {
-			d3dpp.BackBufferWidth *= 2;
-			d3dpp.BackBufferHeight *= 2;
-			width *= 2; height *= 2;
-		}
-		break;
-	    }
-	}
-
-	if(!fullscreen_ok) {
-	    LOG_MSG("D3D:No suitable fullscreen mode found!");
-	    //d3dpp.Windowed = !d3dpp.Windowed;
-	}
-    }
+	d3dpp.BackBufferWidth = window_width;
+	d3dpp.BackBufferHeight = window_height;
 
     dwScaledWidth = width;
     dwScaledHeight = height;
@@ -1024,6 +1002,10 @@ reset_device:
 	}
     }
 
+	backbuffer_clear_countdown = 2;
+	if (d3dpp.BackBufferCount == 2) backbuffer_clear_countdown++;
+
+#if 0
     // Clear all backbuffers
     pD3DDevice9->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 
@@ -1034,6 +1016,7 @@ reset_device:
 	pD3DDevice9->Present(NULL, NULL, NULL, NULL);
 	pD3DDevice9->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
     }
+#endif
 
 #if LOG_D3D
     LOG_MSG("D3D:Mode: %dx%d (x %.2fx%.2f) --> scaled size: %dx%d", dwWidth, dwHeight,

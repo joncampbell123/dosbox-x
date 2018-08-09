@@ -107,6 +107,7 @@ Bits CPU_Core_Full_Run(void) {
 restartopcode:
 		inst.entry=(inst.entry & 0xffffff00) | Fetchb();
 		inst.code=OpCodeTable[inst.entry];
+        Bitu old_flags = reg_flags;
 		Bitu old_esp = reg_esp; // always restore stack pointer on page fault
 		try {
 			#include "core_full/load.h"
@@ -114,6 +115,7 @@ restartopcode:
 			#include "core_full/save.h"
 		}
 		catch (GuestPageFaultException &pf) {
+            reg_flags = old_flags; /* core_full/op.h may have modified flags */
 			reg_esp = old_esp;
 			throw;
 		}

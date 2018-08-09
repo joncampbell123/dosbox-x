@@ -88,6 +88,8 @@ private:
     DWORD dwScaledWidth, dwScaledHeight;                // D3D backbuffer size
     const Bit16u* changedLines;
 
+	int					backbuffer_clear_countdown;
+
     // display modes
     D3DDISPLAYMODE*		modes;
     unsigned int		iMode;
@@ -183,7 +185,7 @@ public:
     // function declarations
     HRESULT InitializeDX(HWND, bool);
     HRESULT LoadPixelShader(const char*, double, double, bool forced=false);
-    HRESULT Resize3DEnvironment(Bitu, Bitu, Bitu, Bitu, bool fullscreen=false);
+    HRESULT Resize3DEnvironment(Bitu, Bitu, Bitu, Bitu, Bitu, Bitu, bool fullscreen=false);
     bool LockTexture(Bit8u * & pixels,Bitu & pitch);
     bool UnlockTexture(const Bit16u *changed);
 

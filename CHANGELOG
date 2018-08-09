@@ -1,4 +1,72 @@
-<next>
+0.82.2 (01/29/2018)
+  - Linux builds no longer enable window resizing. The ability to
+    resize will be added back when the emulator can better handle
+    the user resizing the window.
+  - Windows and Linux now have synchronized build date and version
+    strings.
+  - Codebase begin transition to C++11
+  - The Windows maximize button no longer triggers fullscreen mode.
+  - Direct3D, OpenGL, and Surface outputs updated to fill the window
+    in Windows builds when the window is maximized. If aspect
+    correction is enabled, the Direct3D and OpenGL outputs will
+    scale the DOS screen (with pillarbox/letterbox padding) to the
+    correct aspect ratio and center within the maximized window.
+  - Fixed minor memory leak in MT32 (MUNT) synthesizer usage.
+  - Fixed uninitialized state issues with DMA channel 4 (cascade).
+  - IMGMOUNT now allows mounting the El Torito bootable floppy image
+    of a CD-ROM drive as a drive letter and accessible (read only)
+    filesystem. The FAT filesystem driver was fixed to support working
+    from sources other than a direct file.
+  - PC-98 mode fixed not to register certain built-in commands and
+    binaries to drive Z:\ that are not compatible with PC-98 mode.
+    MEM.EXE in particular uses IBM PC-specific techniques to gather
+    it's information, and is therefore incompatible with PC-98 mode.
+    This can be verified from the source code as MEM.EXE was evidently
+    borrowed from the FreeDOS project.
+  - EGA emulation (machine=ega) fixed to render 8bpp (256-color mode)
+    instead of full 32bpp VGA output. EGA video output is limited to
+    64-color (6-bit) by the design of the video connector (2-bit R/G/B)
+    therefore the full precision of 32bpp is not needed. This will also
+    benefit video capture as the reduced color bit depth will result
+    in smaller AVI files when recording gameplay.
+  - Added code to correctly detect 15-bit highcolor vs 16-bit highcolor
+    display format support, despite SDL falsely indicating 16-bit
+    color in both cases, which fixes incorrect colors on 15-bit display
+    modes.
+  - Fix up VGA DAC/palette mapping to display the emulator screen
+    properly on 16-bit true color displays. Fixed off-by-one shift
+    mistake in the DOSBox-X render scaler code that caused
+    green and purple tints to colors on 16-bit true color displays.
+  - Add "Show menu bar" command to the Windows "system menu" so that
+    the menu bar can be brought back after selecting "hide menu bar".
+  - Losing window focus while fullscreen no longer leaves the emulator
+    window blank.
+  - Maximize/restore fullscreen cleanup.
+  - Removed DDRAW output.
+  - Fix FAT filesystem driver to clear "success" flag at all failure
+    return points. This fixes problems where unrecognizeable FAT
+    filesystems are nonetheless presented as a drive letter with
+    garbled filenames, when IMGMOUNT should have displayed an error
+    instead.
+  - Fix FAT filesystem driver to allow PC-98 HDI images to load that
+    have headcount == 0 in the BPB.
+  - Fix Adlib emulation not to register a mapper handler if emulation
+    will jump to PC-98 mode, and fix mapper handler to check if Adlib
+    emulation is loaded to avoid segfault.
+  - Add "recording" volume to control the loudness of the audio going
+    out to capture (WAV, AVI, etc.)
+  - Separate mixer rendering from master volume. Apply master volume
+    at the sound card only, leave audio at full volume for recording
+    (WAV, AVI, etc. capture).
+  - dosbox.conf and command line option to log CON driver output to
+    a file. Anything written to STDOUT/CON by a DOS application is
+    logged this way.
+  - --time-limit <n> command line option to put a time limit on the
+    emulator, in seconds.
+  - Keyboard shortcut for the mapper UI no longer leaves keys "stuck"
+    in the guest to cause problems when you exit the mapper UI.
+  - Fixed code mistake that caused OpenGL NB output when dosbox.conf
+    specified output=opengl
   - Mapper layout fixes:
     - Shortcut buttons (on the right hand side of the UI) fixed to
       become two columns wide if the button text won't fit in one

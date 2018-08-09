@@ -1570,37 +1570,32 @@ static void DSP_DoCommand(void) {
 		break;
 	case 0x0f:	/* SB16 ASP get register */
 		if (sb.type == SBT_16) {
-            if (sb.enable_asp) {
-                if (sb.dsp.in.data[0] == 0x83) {
-                    if ((ASP_mode&0x88) == 0x88) { // bit 3 and bit 7 must be set
-                        // memory access mode
-                        if (ASP_mode & 4) // NTS: As far as I can tell...
-                            sb16asp_ram_contents_index = 0;
+            // FIXME: We have to emulate this whether or not ASP emulation is enabled. Windows 98 SB16 driver requires this.
+            //        The question is: What does actual hardware do here exactly?
+            if (sb.enable_asp && sb.dsp.in.data[0] == 0x83) {
+                if ((ASP_mode&0x88) == 0x88) { // bit 3 and bit 7 must be set
+                    // memory access mode
+                    if (ASP_mode & 4) // NTS: As far as I can tell...
+                        sb16asp_ram_contents_index = 0;
 
-                        // log it, read it
-                        ASP_regs[0x83] = sb16asp_read_current_RAM_byte();
-                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read internal RAM byte index=0x%03x => val=0x%02x",sb16asp_ram_contents_index,ASP_regs[0x83]);
+                    // log it, read it
+                    ASP_regs[0x83] = sb16asp_read_current_RAM_byte();
+                    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read internal RAM byte index=0x%03x => val=0x%02x",sb16asp_ram_contents_index,ASP_regs[0x83]);
 
-                        if (ASP_mode & 1) // if bit 0 of the mode is set, memory index increment on read
-                            sb16asp_next_RAM_byte();
-                    }
-                    else {
-                        // chip version ID
-                        ASP_regs[0x83] = 0x10;
-                    }
+                    if (ASP_mode & 1) // if bit 0 of the mode is set, memory index increment on read
+                        sb16asp_next_RAM_byte();
                 }
                 else {
-                    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP get register reg=0x%02x, returning 0x%02x",sb.dsp.in.data[0],ASP_regs[sb.dsp.in.data[0]]);
+                    // chip version ID
+                    ASP_regs[0x83] = 0x10;
                 }
-
-                DSP_AddData(ASP_regs[sb.dsp.in.data[0]]);
             }
             else {
-                DSP_AddData(0xFF);  // NTS: This is what a SB16 ViBRA PnP card with no ASP returns when queried in this way
-                LOG(LOG_SB,LOG_DEBUG)("SB16 ASP get register reg=0x%02x, returning 0xFF (ASP not present)",sb.dsp.in.data[0]);
+                LOG(LOG_SB,LOG_DEBUG)("SB16 ASP get register reg=0x%02x, returning 0x%02x",sb.dsp.in.data[0],ASP_regs[sb.dsp.in.data[0]]);
             }
 
-		} else {
+            DSP_AddData(ASP_regs[sb.dsp.in.data[0]]);
+        } else {
 			LOG(LOG_SB,LOG_NORMAL)("DSP Unhandled SB16ASP command %X (get register)",sb.dsp.cmd);
 		}
 		break;

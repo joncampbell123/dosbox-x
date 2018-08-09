@@ -45,7 +45,6 @@ public:
 	Bit8u DMA16;
 	bool increment;
 	bool autoinit;
-	Bit8u trantype;
 	bool masked;
 	bool tcount;
 	bool request;

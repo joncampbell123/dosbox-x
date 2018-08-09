@@ -825,6 +825,7 @@ printf("MapNotify!\n");
 #ifdef DEBUG_XEVENTS
 printf("ConfigureNotify! (resize: %dx%d)\n", xevent.xconfigure.width, xevent.xconfigure.height);
 #endif
+#if 0 /* combined with DOSBox's insistence to SDL_SetVideoMode per resize this is killing the ability to resize the window after one event --J.C */
 		if ((X11_PendingConfigureNotifyWidth != -1) &&
 		    (X11_PendingConfigureNotifyHeight != -1)) {
 		    if ((xevent.xconfigure.width != X11_PendingConfigureNotifyWidth) &&
@@ -835,6 +836,7 @@ printf("ConfigureNotify! (resize: %dx%d)\n", xevent.xconfigure.width, xevent.xco
 		    X11_PendingConfigureNotifyWidth = -1;
 		    X11_PendingConfigureNotifyHeight = -1;
 		}
+#endif
 		if ( SDL_VideoSurface ) {
 		    if ((xevent.xconfigure.width != SDL_VideoSurface->w) ||
 		        (xevent.xconfigure.height != SDL_VideoSurface->h)) {

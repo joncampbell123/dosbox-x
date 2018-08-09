@@ -145,6 +145,7 @@ struct SDL_SysWMmsg {
 typedef struct SDL_SysWMinfo {
 	SDL_version version;
 	HWND window;			/**< The Win32 display window */
+	HWND child_window;		/**< The Win32 surface window (generally, child of window) */
 	HGLRC hglrc;			/**< The OpenGL context, if any */
 } SDL_SysWMinfo;
 

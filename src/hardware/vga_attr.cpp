@@ -76,18 +76,20 @@ void VGA_ATTR_SetPalette(Bit8u index, Bit8u val) {
 	val &= 63; 
 	vga.attr.palette[index] = val;
 
-	// apply the plane mask
-	val = vga.attr.palette[index & vga.attr.color_plane_enable];
+    if (!IS_EGA_ARCH) {
+        // apply the plane mask
+        val = vga.attr.palette[index & vga.attr.color_plane_enable];
 
-	// replace bits 4-5 if configured
-	if (vga.attr.mode_control & 0x80)
-		val = (val&0xf) | (vga.attr.color_select << 4);
+        // replace bits 4-5 if configured
+        if (vga.attr.mode_control & 0x80)
+            val = (val&0xf) | (vga.attr.color_select << 4);
 
-	// set bits 6 and 7 (not relevant for EGA)
-	val |= (vga.attr.color_select & 0xc) << 4;
+        // set bits 6 and 7 (not relevant for EGA)
+        val |= (vga.attr.color_select & 0xc) << 4;
 
-	// apply
-	VGA_DAC_CombineColor(index,val);
+        // apply
+        VGA_DAC_CombineColor(index,val);
+    }
 }
 
 Bitu read_p3c0(Bitu /*port*/,Bitu /*iolen*/) {

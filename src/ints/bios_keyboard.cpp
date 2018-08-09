@@ -1108,6 +1108,9 @@ static Bitu IRQ1_CtrlBreakAfterInt1B(void) {
 /* check whether key combination is enhanced or not,
    translate key if necessary */
 static bool IsEnhancedKey(Bit16u &key) {
+    if (IS_PC98_ARCH)
+        return false;
+
 	/* test for special keys (return and slash on numblock) */
 	if ((key>>8)==0xe0) {
 		if (((key&0xff)==0x0a) || ((key&0xff)==0x0d)) {
@@ -1154,7 +1157,7 @@ Bitu INT16_Handler(void) {
             PIC_SetIRQMask(1,false); /* unmask keyboard */
 
 		if (get_key(temp)) {
-			if (((temp&0xff)==0xf0) && (temp>>8)) {
+			if (!IS_PC98_ARCH && ((temp&0xff)==0xf0) && (temp>>8)) {
 				/* special enhanced key, clear low part before returning key */
 				temp&=0xff00;
 			}
@@ -1201,7 +1204,7 @@ Bitu INT16_Handler(void) {
 			CALLBACK_SZF(true);
 		} else {
 			CALLBACK_SZF(false);
-			if (((temp&0xff)==0xf0) && (temp>>8)) {
+			if (!IS_PC98_ARCH && ((temp&0xff)==0xf0) && (temp>>8)) {
 				/* special enhanced key, clear low part before returning key */
 				temp&=0xff00;
 			}

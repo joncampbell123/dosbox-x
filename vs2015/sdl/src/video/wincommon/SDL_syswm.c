@@ -209,19 +209,21 @@ void WIN_SetWMIcon(_THIS, SDL_Surface *icon, Uint8 *mask)
 
 typedef BOOL (WINAPI *PtrSetWindowTextW)(HWND hWnd, LPCWSTR lpString);
 
+extern HWND	ParentWindowHWND;
+
 void WIN_SetWMCaption(_THIS, const char *title, const char *icon)
 {
 #ifdef _WIN32_WCE
 	/* WinCE uses the UNICODE version */
 	LPWSTR lpszW = SDL_iconv_utf8_ucs2((char *)title);
-	SetWindowText(SDL_Window, lpszW);
+	SetWindowText(ParentWindowHWND, lpszW);
 	SDL_free(lpszW);
 #else
 	Uint16 *lpsz = SDL_iconv_utf8_ucs2(title);
 	size_t len = WideCharToMultiByte(CP_ACP, 0, lpsz, -1, NULL, 0, NULL, NULL);
 	char *cvt = SDL_stack_alloc(char, len + 1);
 	WideCharToMultiByte(CP_ACP, 0, lpsz, -1, cvt, len, NULL, NULL);
-	SetWindowText(SDL_Window, cvt);
+	SetWindowText(ParentWindowHWND, cvt);
 	SDL_stack_free(cvt);
 	SDL_free(lpsz);
 #endif
@@ -229,7 +231,7 @@ void WIN_SetWMCaption(_THIS, const char *title, const char *icon)
 
 int WIN_IconifyWindow(_THIS)
 {
-	ShowWindow(SDL_Window, SW_MINIMIZE);
+	ShowWindow(ParentWindowHWND, SW_MINIMIZE);
 	return(1);
 }
 
@@ -277,7 +279,8 @@ SDL_GrabMode WIN_GrabInput(_THIS, SDL_GrabMode mode)
 int WIN_GetWMInfo(_THIS, SDL_SysWMinfo *info)
 {
 	if ( info->version.major <= SDL_MAJOR_VERSION ) {
-		info->window = SDL_Window;
+		info->window = ParentWindowHWND;
+		info->child_window = SDL_Window;
 		if ( SDL_VERSIONNUM(info->version.major,
 		                    info->version.minor,
 		                    info->version.patch) >=

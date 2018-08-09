@@ -38,6 +38,7 @@
 #endif
 
 Render_t render;
+Bitu last_gfx_flags = 0;
 ScalerLineHandler_t RENDER_DrawLine;
 
 void RENDER_CallBack( GFX_CallBackFunctions_t function );
@@ -310,7 +311,7 @@ static Bitu MakeAspectTable(Bitu skip,Bitu height,double scaley,Bitu miny) {
 }
 
 
-static void RENDER_Reset( void ) {
+void RENDER_Reset( void ) {
 	Bitu width=render.src.width;
 	Bitu height=render.src.height;
 	bool dblw=render.src.dblw;
@@ -532,7 +533,7 @@ forcenormal:
 	}
 /* Setup the scaler variables */
 	gfx_flags=GFX_SetSize(width,height,gfx_flags,gfx_scalew,gfx_scaleh,&RENDER_CallBack);
-	if (gfx_flags & GFX_CAN_8)
+    if (gfx_flags & GFX_CAN_8)
 		render.scale.outMode = scalerMode8;
 	else if (gfx_flags & GFX_CAN_15)
 		render.scale.outMode = scalerMode15;
@@ -614,6 +615,8 @@ forcenormal:
 	/* Signal the next frame to first reinit the cache */
 	render.scale.clearCache = true;
 	render.active=true;
+
+    last_gfx_flags = gfx_flags;
 }
 
 void RENDER_CallBack( GFX_CallBackFunctions_t function ) {

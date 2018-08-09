@@ -596,8 +596,6 @@
     <ClCompile Include="..\..\src\video\windib\SDL_dibevents.c" />
     <ClCompile Include="..\..\src\video\windib\SDL_dibvideo.c" />
     <ClCompile Include="..\..\src\video\Windx5\SDL_dx5events.c" />
-    <ClCompile Include="..\..\src\video\Windx5\SDL_dx5video.c" />
-    <ClCompile Include="..\..\src\video\windx5\SDL_dx5yuv.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\audio\disk\SDL_diskaudio.h" />
@@ -641,8 +639,6 @@
     <ClInclude Include="..\..\src\video\windib\SDL_dibvideo.h" />
     <ClInclude Include="..\..\src\video\windib\SDL_vkeys.h" />
     <ClInclude Include="..\..\src\video\Windx5\SDL_dx5events_c.h" />
-    <ClInclude Include="..\..\src\video\Windx5\SDL_dx5video.h" />
-    <ClInclude Include="..\..\src\video\windx5\SDL_dx5yuv_c.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -38,6 +38,8 @@
 #include <cctype>
 #include <assert.h>
 
+#include "SDL_syswm.h"
+
 /* helper class for command execution */
 class VirtualBatch : public BatchFile {
 public:
@@ -108,6 +110,7 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
 }
 
 extern bool dos_kernel_disabled;
+extern Bitu currentWindowWidth, currentWindowHeight;
 
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	GFX_EndUpdate(0);
@@ -129,6 +132,13 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	if (w <= 400) {
 		w *=2; h *=2;
 	}
+
+    if (!fs) {
+        if (w < currentWindowWidth)
+            w = currentWindowWidth;
+        if (h < currentWindowHeight)
+            h = currentWindowHeight;
+    }
 
 	old_unicode = SDL_EnableUNICODE(1);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);
@@ -177,7 +187,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	mousetoggle = mouselocked;
 	if (mouselocked) GFX_CaptureMouse();
 
-	SDL_Surface* sdlscreen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE|(fs?SDL_FULLSCREEN:SDL_RESIZABLE));
+	SDL_Surface* sdlscreen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE|(fs?SDL_FULLSCREEN:0));
 	if (sdlscreen == NULL) E_Exit("Could not initialize video mode %ix%ix32 for UI: %s", w, h, SDL_GetError());
 
 	// fade out

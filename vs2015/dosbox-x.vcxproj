@@ -195,7 +195,7 @@
       <BrowseInformationFile />
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -218,7 +218,8 @@
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -273,7 +274,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -306,7 +308,7 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       <BrowseInformationFile />
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -321,7 +323,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -377,7 +380,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -412,7 +416,7 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       <BrowseInformationFile />
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -437,7 +441,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -493,7 +498,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -525,7 +531,7 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       <BrowseInformationFile />
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;$(SolutionDir)..\obj\SDL\$(Platform)\$(Configuration)\SDL.lib;$(SolutionDir)..\obj\SDLmain\$(Platform)\$(Configuration)\SDLmain.lib;$(SolutionDir)..\obj\SDL_net\$(Platform)\$(Configuration)\SDL_net.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -542,7 +548,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -599,7 +606,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -840,18 +848,6 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       <Project>{0008960e-e0dd-41a6-8265-00b31ddb4c21}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="sdlnet\VisualC\SDL_net_VS2008.vcxproj">
-      <Project>{8ab3504f-5e58-4910-afe8-7a1e595ac3f4}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="sdl\VisualC\SDLmain\SDLmain.vcxproj">
-      <Project>{da956fd3-e142-46f2-9dd5-c78bebb56b7a}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="sdl\VisualC\SDL\SDL.vcxproj">
-      <Project>{81ce8daf-ebb2-4761-8e45-b71abcca8c68}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="zlib\contrib\vstudio\vc9\zlibstat.vcxproj">
       <Project>{745dec58-ebb3-47a9-a9b8-4c6627c01bf8}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -1045,6 +1041,7 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     <ClInclude Include="..\src\mt32\TVA.h" />
     <ClInclude Include="..\src\mt32\TVF.h" />
     <ClInclude Include="..\src\mt32\TVP.h" />
+    <ClInclude Include="config.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

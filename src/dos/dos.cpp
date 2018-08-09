@@ -1796,6 +1796,7 @@ Bitu MEM_PageMask(void);
 extern unsigned int dosbox_shell_env_size;
 extern bool dos_con_use_int16_to_detect_input;
 extern bool dbg_zero_on_dos_allocmem;
+extern bool log_dev_con;
 
 class DOS:public Module_base{
 private:
@@ -1829,7 +1830,8 @@ public:
 	DOS(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 
-		dos_in_hma = section->Get_bool("dos in hma");
+        dos_in_hma = section->Get_bool("dos in hma");
+        log_dev_con = control->opt_log_con || section->Get_bool("log console");
 		enable_dbcs_tables = section->Get_bool("dbcs");
 		enable_share_exe_fake = section->Get_bool("share");
 		enable_filenamechar = section->Get_bool("filenamechar");

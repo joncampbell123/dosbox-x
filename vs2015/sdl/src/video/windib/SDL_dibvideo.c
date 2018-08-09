@@ -83,6 +83,11 @@
 #define PC_NOCOLLAPSE	0
 #endif
 
+/* no modesetting please */
+#ifndef NO_CHANGEDISPLAYSETTINGS
+#define NO_CHANGEDISPLAYSETTINGS
+#endif
+
 #ifdef _WIN32_WCE
 // defined and used in SDL_sysevents.c
 extern HINSTANCE aygshell;
@@ -504,6 +509,7 @@ static int DIB_SussScreenDepth()
 #endif /* NO_GETDIBITS */
 }
 
+extern HWND	ParentWindowHWND;
 
 /* Various screen update functions available */
 static void DIB_NormalUpdate(_THIS, int numrects, SDL_Rect *rects);
@@ -515,7 +521,7 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 
 #ifndef _WIN32_WCE
 	/* Resize the window */
-	if ( !SDL_windowid && !IsZoomed(SDL_Window) ) {
+	if ( !SDL_windowid && !IsZoomed(ParentWindowHWND) ) {
 #else
 	if ( !SDL_windowid ) {
 #endif
@@ -537,17 +543,17 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 				}
 			}
 		}
-		swp_flags = (SWP_NOCOPYBITS | SWP_SHOWWINDOW);
+		swp_flags = (SWP_SHOWWINDOW);
 
 		bounds.left = SDL_windowX;
 		bounds.top = SDL_windowY;
 		bounds.right = SDL_windowX+width;
 		bounds.bottom = SDL_windowY+height;
 #ifndef _WIN32_WCE
-		AdjustWindowRectEx(&bounds, GetWindowLong(SDL_Window, GWL_STYLE), (GetMenu(SDL_Window) != NULL), 0);
+		AdjustWindowRectEx(&bounds, GetWindowLong(ParentWindowHWND, GWL_STYLE), (GetMenu(ParentWindowHWND) != NULL), 0);
 #else
 		// The bMenu parameter must be FALSE; menu bars are not supported
-		AdjustWindowRectEx(&bounds, GetWindowLong(SDL_Window, GWL_STYLE), 0, 0);
+		AdjustWindowRectEx(&bounds, GetWindowLong(ParentWindowHWND, GWL_STYLE), 0, 0);
 #endif
 		width = bounds.right-bounds.left;
 		height = bounds.bottom-bounds.top;
@@ -569,15 +575,32 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 		} else {
 			top = HWND_NOTOPMOST;
 		}
-		SetWindowPos(SDL_Window, top, x, y, width, height, swp_flags);
+
+		if (SDL_VideoSurface != NULL)
+			SetWindowPos(SDL_Window, HWND_TOP, 0, 0, SDL_VideoSurface->w, SDL_VideoSurface->h, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+
+		SetWindowPos(ParentWindowHWND, top, x, y, width, height, swp_flags);
 		if ( !(flags & SDL_FULLSCREEN) ) {
 			SDL_windowX = SDL_bounds.left;
 			SDL_windowY = SDL_bounds.top;
 		}
 		if ( GetParent(SDL_Window) == NULL ) {
-			SetForegroundWindow(SDL_Window);
+			SetForegroundWindow(ParentWindowHWND);
 		}
 	}
+}
+
+HMENU DIB_SurfaceMenu = NULL;
+
+void SDL1_hax_SetMenu(HMENU menu) {
+	if (menu == DIB_SurfaceMenu)
+		return;
+
+	DIB_SurfaceMenu = menu;
+	if (SDL_VideoSurface && (SDL_VideoSurface->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN)
+		SetMenu(ParentWindowHWND, NULL);
+	else
+		SetMenu(ParentWindowHWND, DIB_SurfaceMenu);
 }
 
 SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
@@ -799,7 +822,7 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 		DIB_CreatePalette(this, bpp);
 	}
 
-	style = GetWindowLong(SDL_Window, GWL_STYLE);
+	style = GetWindowLong(ParentWindowHWND/*SDL_Window*/, GWL_STYLE);
 	style &= ~(resizestyle|WS_MAXIMIZE);
 	if ( (video->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN ) {
 		style &= ~windowstyle;
@@ -823,13 +846,19 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 			}
 		}
 #if WS_MAXIMIZE && !defined(_WIN32_WCE)
-		if (IsZoomed(SDL_Window)) style |= WS_MAXIMIZE;
+		if (IsZoomed(ParentWindowHWND)) style |= WS_MAXIMIZE;
 #endif
 	}
 
 	/* DJM: Don't piss of anyone who has setup his own window */
 	if ( !SDL_windowid )
-		SetWindowLong(SDL_Window, GWL_STYLE, style);
+		SetWindowLong(ParentWindowHWND, GWL_STYLE, style);
+
+	/* show/hide menu according to fullscreen */
+	if ((current->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN)
+		SetMenu(ParentWindowHWND, NULL);
+	else
+		SetMenu(ParentWindowHWND, DIB_SurfaceMenu);
 
 	/* Delete the old bitmap if necessary */
 	if ( screen_bmp != NULL ) {
@@ -905,6 +934,16 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 			video->flags |= SDL_HWPALETTE;
 		}
 	}
+
+	if ((video->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN) {
+		/* HACK */
+		SDL_windowX = 0;
+		SDL_windowY = 0;
+
+		/* pay attention! */
+		SetFocus(SDL_Window);
+	}
+
 	DIB_ResizeWindow(this, width, height, prev_w, prev_h, flags);
 	SDL_resizing = 0;
 

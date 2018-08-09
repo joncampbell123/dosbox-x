@@ -713,7 +713,7 @@ Bitu FillFlags(void) {
 		else SET_FLAG(CF,(lf_var1b >> (8-lf_var2b)) & 1);
 		DOFLAG_ZFb;
 		DOFLAG_SFb;
-		SET_FLAG(OF,(lf_resb ^ lf_var1b) & 0x80);
+		SET_FLAG(OF,(lf_resb >> 7) ^ GETFLAG(CF)); /* MSB of result XOR CF. WARNING: This only works because FLAGS_CF == 1 */
 		DOFLAG_PF;
 		SET_FLAG(AF,(lf_var2b&0x1f));
 		break;
@@ -722,7 +722,7 @@ Bitu FillFlags(void) {
 		else SET_FLAG(CF,(lf_var1w >> (16-lf_var2b)) & 1);
 		DOFLAG_ZFw;
 		DOFLAG_SFw;
-		SET_FLAG(OF,(lf_resw ^ lf_var1w) & 0x8000);
+		SET_FLAG(OF,(lf_resw >> 15) ^ GETFLAG(CF)); /* MSB of result XOR CF. WARNING: This only works because FLAGS_CF == 1 */
 		DOFLAG_PF;
 		SET_FLAG(AF,(lf_var2w&0x1f));
 		break;
@@ -730,7 +730,7 @@ Bitu FillFlags(void) {
 		SET_FLAG(CF,(lf_var1d >> (32 - lf_var2b)) & 1);
 		DOFLAG_ZFd;
 		DOFLAG_SFd;
-		SET_FLAG(OF,(lf_resd ^ lf_var1d) & 0x80000000);
+		SET_FLAG(OF,(lf_resd >> 31) ^ GETFLAG(CF)); /* MSB of result XOR CF. WARNING: This only works because FLAGS_CF == 1 */
 		DOFLAG_PF;
 		SET_FLAG(AF,(lf_var2d&0x1f));
 		break;

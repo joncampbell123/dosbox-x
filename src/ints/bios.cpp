@@ -661,6 +661,8 @@ ISAPnPDevice::ISAPnPDevice() {
 	ident_2nd = 0;
 	resource_data_len = 0;
 	resource_data_pos = 0;
+    resource_data = NULL;
+    resource_ident = 0;
 	alloc_res = NULL;
 	alloc_write = 0;
 	alloc_sz = 0;
@@ -4776,7 +4778,7 @@ private:
 	}
 	CALLBACK_HandlerObject cb_bios_startup_screen;
 	static Bitu cb_bios_startup_screen__func(void) {
-		const char *msg = PACKAGE_STRING " (C) 2002-2017 The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
+		const char *msg = PACKAGE_STRING " (C) 2002-" COPYRIGHT_END_YEAR " The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
 		int logo_x,logo_y,x,y,rowheight=8;
 
 		y = 2;

@@ -317,6 +317,7 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 	auto_delete_on_refcount_zero = true;
 	diskimg = imgFile;
 	class_id = ID_BASE;
+    diskSizeK = imgSizeK;
 
 	if (imgName != NULL)
 		diskname = (const char*)imgName;
@@ -327,7 +328,7 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 		Bit8u i=0;
 		bool founddisk = false;
 
-        {
+        if (imgName != NULL) {
             char *ext = strrchr((char*)imgName,'.');
             if (ext != NULL) {
                 if (!strcasecmp(ext,".fdi")) {
@@ -367,7 +368,7 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 		}
 	}
     else { /* hard disk */
-        {
+        if (imgName != NULL) {
             char *ext = strrchr((char*)imgName,'.');
             if (ext != NULL) {
                 if (!strcasecmp(ext,".hdi")) {
@@ -1108,6 +1109,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
 	sector_size = 0;
 	reserved_cylinders = 0;
 	auto_delete_on_refcount_zero = true;
+    diskSizeK = imgSizeK;
 	diskimg = imgFile;
 	class_id = ID_VFD;
 

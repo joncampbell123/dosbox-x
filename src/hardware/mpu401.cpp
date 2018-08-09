@@ -510,13 +510,16 @@ static void UpdateTrack(Bit8u chan) {
 }
 
 static void UpdateConductor(void) {
-	if (mpu.condbuf.value[0]==0xfc) {
-		mpu.condbuf.value[0]=0;
-		mpu.state.conductor=false;
-		mpu.state.req_mask&=~(1<<9);
-		if (mpu.state.amask==0) mpu.state.req_mask|=(1<<12);
-		return;
-	}
+    for (unsigned int i=0;i < mpu.condbuf.vlength;i++) {
+        if (mpu.condbuf.value[i] == 0xfc) {
+            mpu.condbuf.value[i] = 0;
+            mpu.state.conductor=false;
+            mpu.state.req_mask&=~(1<<9);
+            if (mpu.state.amask==0) mpu.state.req_mask|=(1<<12);
+            return;
+        }
+    }
+
 	mpu.condbuf.vlength=0;
 	mpu.condbuf.counter=0xf0;
 	mpu.state.req_mask|=(1<<9);

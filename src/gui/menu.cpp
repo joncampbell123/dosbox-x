@@ -31,6 +31,10 @@
 
 extern bool dos_kernel_disabled;
 
+#if !defined(C_SDL2)
+void GUI_ResetResize(bool pressed);
+#endif
+
 std::string MSCDEX_Output(int num) {
 	std::string MSCDEX_MSG = "GUI: MSCDEX ";
 	std::string MSCDEX_MSG_Failure = "Failure: ";
@@ -86,6 +90,16 @@ HWND GetHWND(void) {
 		return NULL;
 	}
 	return wmi.window;
+}
+
+HWND GetSurfaceHWND(void) {
+	SDL_SysWMinfo wmi;
+	SDL_VERSION(&wmi.version);
+
+	if (!SDL_GetWMInfo(&wmi)) {
+		return NULL;
+	}
+	return wmi.child_window;
 }
 
 void GetDefaultSize(void) {
@@ -738,13 +752,42 @@ void Mount_Img(char drive, std::string realpath) {
 	}
 }
 
+void DOSBox_SetSysMenu(void) {
+	MENUITEMINFO mii;
+	HMENU sysmenu;
+	BOOL s;
+
+	sysmenu = GetSystemMenu(GetHWND(), TRUE); // revert, so we can reapply menu items
+	sysmenu = GetSystemMenu(GetHWND(), FALSE);
+	if (sysmenu == NULL) return;
+
+	s = AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
+
+	{
+		const char *msg = "Show menu &bar";
+
+		memset(&mii, 0, sizeof(mii));
+		mii.cbSize = sizeof(mii);
+		mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+		mii.fState = MFS_ENABLED;
+		mii.wID = ID_WIN_SYSMENU_RESTOREMENU;
+		mii.dwTypeData = (LPTSTR)(msg);
+		mii.cch = strlen(msg)+1;
+
+		s = InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+	}
+}
+
+extern "C" void SDL1_hax_SetMenu(HMENU menu);
+
 void DOSBox_SetMenu(void) {
 	if(!menu.gui) return;
 
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
 
 	menu.toggle=true;
-	SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
+	SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MENU)));
+//	SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
 	DrawMenuBar (GetHWND());
 
 	if(menu.startup) {
@@ -755,7 +798,8 @@ void DOSBox_SetMenu(void) {
 void DOSBox_NoMenu(void) {
 	if(!menu.gui) return;
 	menu.toggle=false;
-	SetMenu(GetHWND(), NULL);
+	SDL1_hax_SetMenu(NULL);
+//	SetMenu(GetHWND(), NULL);
 	DrawMenuBar(GetHWND());
 	RENDER_CallBack( GFX_CallBackReset );
 }
@@ -787,10 +831,11 @@ void DOSBox_RefreshMenu(void) {
     if(!menu.gui) return;
 
     if(fullscreen) {
-    	SetMenu(GetHWND(), NULL);
-    	DrawMenuBar(GetHWND());
+//    	SetMenu(GetHWND(), NULL);
+//  	DrawMenuBar(GetHWND());
         return;
     }
+	DOSBox_SetSysMenu();
 	if(menu.toggle)
 		DOSBox_SetMenu();
 	else
@@ -835,6 +880,7 @@ void ToggleMenu(bool pressed) {
 		menu.toggle=false;
 		DOSBox_NoMenu();
 	}
+	DOSBox_SetSysMenu();
 }
 
 void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image, int automount, int umount, char drive) {
@@ -863,11 +909,13 @@ void MENU_KeyDelayRate(int delay, int rate) {
 enum SCREEN_TYPES	{
 	SCREEN_OPENGLHQ,
 	SCREEN_SURFACE,
-	SCREEN_SURFACE_DDRAW,
 	SCREEN_OPENGL,
 	SCREEN_DIRECT3D
 };
 extern bool load_videodrv;
+
+extern "C" void (*SDL1_hax_INITMENU_cb)();
+void reflectmenu_INITMENU_cb();
 
 int Reflect_Menu(void) {
 	extern bool Mouse_Drv;
@@ -973,7 +1021,6 @@ int Reflect_Menu(void) {
 
 	CheckMenuItem(m_handle, ID_ASPECT, (render.aspect) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_SURFACE, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_SURFACE) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_DDRAW, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_SURFACE_DDRAW) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_DIRECT3D, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_DIRECT3D) ? MF_CHECKED : MF_STRING);
 	if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_OPENGL) {
 		if (GetSetSDLValue(1, "opengl.bilinear", 0)) {
@@ -1499,6 +1546,17 @@ int Reflect_Menu(void) {
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_X, ID_MOUNT_FLOPPY_X, ID_MOUNT_LOCAL_X, ID_MOUNT_IMAGE_X, ID_AUTOMOUNT_X, ID_UMOUNT_X, 'X');
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Y, ID_MOUNT_FLOPPY_Y, ID_MOUNT_LOCAL_Y, ID_MOUNT_IMAGE_Y, ID_AUTOMOUNT_Y, ID_UMOUNT_Y, 'Y');
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Z, ID_MOUNT_FLOPPY_Z, ID_MOUNT_LOCAL_Z, ID_MOUNT_IMAGE_Z, ID_AUTOMOUNT_Z, ID_UMOUNT_Z, 'Z');
+
+	SDL1_hax_INITMENU_cb = reflectmenu_INITMENU_cb;
+}
+
+void reflectmenu_INITMENU_cb() {
+	/* WARNING: SDL calls this from Parent Window Thread!
+	            This executes in the context of the Parent Window Thread, NOT the main thread!
+				As stupid as that seems, this is the only way the Parent Window Thread can make
+				sure to keep Windows waiting while we take our time to reset the checkmarks in
+				the menus before the menu is displayed. */
+	Reflect_Menu();
 }
 
 // Sets the scaler to use.
@@ -1522,7 +1580,7 @@ void MSG_Loop(void) {
 	if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
 	if (!GetMenu(GetHWND())) return;
 	MSG Message;
-	while (PeekMessage(&Message, GetHWND(), 0, 0, PM_REMOVE)) {
+	while (PeekMessage(&Message, GetSurfaceHWND(), 0, 0, PM_REMOVE)) {
 		switch (Message.message) {
 		case WM_SYSCHAR:
 			break;
@@ -1590,6 +1648,7 @@ void MSG_Loop(void) {
 				GFX_SetTitle(CPU_CycleMax, -1, -1, false);
 				break;
 			case ID_TOGGLE: ToggleMenu(true); break;
+            case ID_RESET_RESCALE:  GUI_ResetResize(true);                                      break;
 			case ID_NONE:			SetScaler(scalerOpNormal,			1, "none");				break;
 			case ID_NORMAL2X:		SetScaler(scalerOpNormal,			2, "normal2x");			break;
 			case ID_NORMAL3X:		SetScaler(scalerOpNormal,			3, "normal3x");			break;
@@ -1854,7 +1913,6 @@ void MSG_Loop(void) {
 			case ID_VSYNC_FORCE: SetVal("vsync", "vsyncmode", "force"); break;
 			case ID_VSYNC_OFF: SetVal("vsync", "vsyncmode", "off"); break;
 			case ID_SURFACE: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_SURFACE) { change_output(0); SetVal("sdl", "output", "surface"); } break;
-			case ID_DDRAW: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_SURFACE_DDRAW) { change_output(1); SetVal("sdl", "output", "ddraw"); } break;
 			case ID_OPENGL: change_output(3); SetVal("sdl", "output", "opengl"); break;
 			case ID_OPENGLNB: change_output(4); SetVal("sdl", "output", "openglnb"); break;
 			case ID_DIRECT3D: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_DIRECT3D) { change_output(5); SetVal("sdl", "output", "direct3d"); } break;
@@ -2321,14 +2379,15 @@ void MSG_Loop(void) {
 				break;
 			}
 		default: {
-			if (Message.message == 0x00A1) Reflect_Menu();
-
-			if (!TranslateAccelerator(GetHWND(), 0, &Message)) {
+			if (!TranslateAccelerator(GetSurfaceHWND(), 0, &Message)) {
 				TranslateMessage(&Message);
 				DispatchMessage(&Message);
 			}
 			}
 		}
 	}
+}
+#else
+void DOSBox_SetSysMenu(void) {
 }
 #endif

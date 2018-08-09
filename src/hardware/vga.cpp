@@ -793,7 +793,17 @@ void VGA_OnEnterPC98(Section *sec) {
             g = (i & 4) ? 255 : 0;
             b = (i & 1) ? 255 : 0;
 
-            pc98_text_palette[i] = (b << GFX_Bshift) | (g << GFX_Gshift) | (r << GFX_Rshift) | GFX_Amask;
+	        if (GFX_bpp >= 24) /* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */
+                pc98_text_palette[i] = (b << GFX_Bshift) | (g << GFX_Gshift) | (r << GFX_Rshift) | GFX_Amask;
+            else {
+                /* FIXME: PC-98 mode renders as 32bpp regardless (at this time), so we have to fake 32bpp order */
+                /*        Since PC-98 itself has 4-bit RGB precision, it might be best to offer a 16bpp rendering mode,
+                 *        or even just have PC-98 mode stay in 16bpp entirely. */
+                if (GFX_Bshift == 0)
+                    pc98_text_palette[i] = (b << 0U) | (g << 8U) | (r << 16U);
+                else
+                    pc98_text_palette[i] = (b << 16U) | (g << 8U) | (r << 0U);
+            }
         }
     }
 

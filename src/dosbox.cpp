@@ -2133,6 +2133,9 @@ void DOSBOX_SetupConfigSections(void) {
 	Pint = secprop->Add_int("hma minimum allocation",Property::Changeable::WhenIdle,0);
 	Pint->Set_help("Minimum allocation size for HMA in bytes (equivalent to /HMAMIN= parameter).");
 
+    Pbool = secprop->Add_bool("log console",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, log DOS CON output to the log file.");
+
 	Pbool = secprop->Add_bool("dos in hma",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Report that DOS occupies HMA (equiv. DOS=HIGH)");
 
