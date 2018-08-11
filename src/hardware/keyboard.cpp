@@ -2379,6 +2379,7 @@ void KEYBOARD_OnReset(Section *sec) {
     write_p61(0,0,0);
     KEYBOARD_Reset();
     AUX_Reset();
+    keyb.p60data = 0xAA;
 }
 
 void KEYBOARD_Init() {
