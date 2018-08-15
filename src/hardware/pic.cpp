@@ -420,13 +420,17 @@ static bool IRQ_hack_check_cs_equ_ds(const int IRQ) {
 
 static void slave_startIRQ(){
     Bit8u pic1_irq = 8;
+    bool skipped_irq = false;
     const Bit8u p = (slave.irr & slave.imrr)&slave.isrr;
     const Bit8u max = slave.special?8:slave.active_irq;
     for(Bit8u i = 0,s = 1;i < max;i++, s<<=1) {
         if (p&s) {
-            if (PIC_IRQ_hax[i+8] == PIC_irq_hack_cs_equ_ds)
-                if (!IRQ_hack_check_cs_equ_ds(i+8))
+            if (PIC_IRQ_hax[i+8] == PIC_irq_hack_cs_equ_ds) {
+                if (!IRQ_hack_check_cs_equ_ds(i+8)) {
+                    skipped_irq = true;
                     continue; // skip IRQ
+                }
+            }
 
             pic1_irq = i;
             break;
@@ -434,11 +438,14 @@ static void slave_startIRQ(){
     }
 
     if (GCC_UNLIKELY(pic1_irq == 8)) {
-        /* we have an IRQ routing problem. this code is supposed to emulate the fact that
-         * what was once IRQ 2 on PC/XT is routed to IRQ 9 on AT systems, because IRQ 8-15
-         * cascade to IRQ 2 on such systems. but it's nothing to E_Exit() over. */
-        LOG(LOG_PIC,LOG_ERROR)("ISA PIC problem: IRQ %d (cascade) is active on master PIC without active IRQ 8-15 on slave PIC.",master_cascade_irq);
-        slave.lower_irq(master_cascade_irq); /* clear it */
+        if (!skipped_irq) {
+            /* we have an IRQ routing problem. this code is supposed to emulate the fact that
+             * what was once IRQ 2 on PC/XT is routed to IRQ 9 on AT systems, because IRQ 8-15
+             * cascade to IRQ 2 on such systems. but it's nothing to E_Exit() over. */
+            LOG(LOG_PIC,LOG_ERROR)("ISA PIC problem: IRQ %d (cascade) is active on master PIC without active IRQ 8-15 on slave PIC.",master_cascade_irq);
+            slave.lower_irq(master_cascade_irq); /* clear it */
+        }
+
         return;
     }
 
