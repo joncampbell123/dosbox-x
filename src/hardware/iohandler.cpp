@@ -48,11 +48,18 @@ IO_ReadHandler * io_readhandlers[3][IO_MAX];
 
 static IO_callout_vector IO_callouts[IO_callouts_max];
 
+#if C_DEBUG
+void DEBUG_EnableDebugger(void);
+#endif
+
 static Bitu IO_ReadBlocked(Bitu /*port*/,Bitu /*iolen*/) {
 	return ~0ul;
 }
 
 static void IO_WriteBlocked(Bitu /*port*/,Bitu /*val*/,Bitu /*iolen*/) {
+#if C_DEBUG && 0
+    DEBUG_EnableDebugger();
+#endif
 }
 
 static Bitu IO_ReadDefault(Bitu port,Bitu iolen) {
@@ -287,6 +294,10 @@ void IO_WriteSlowPath(Bitu port,Bitu val,Bitu iolen) {
     LOG(LOG_MISC,LOG_DEBUG)("IO write slow path port=%x data=%x iolen=%u: device matches=%u",(unsigned int)port,(unsigned int)val,(unsigned int)iolen,(unsigned int)match);
     if (match == 0) f(port,val,iolen); /* if nobody responded, then call the default */
     if (match <= 1) io_writehandlers[porti][port] = f;
+
+#if C_DEBUG && 0
+    if (match == 0) DEBUG_EnableDebugger();
+#endif
 }
 
 void IO_RegisterReadHandler(Bitu port,IO_ReadHandler * handler,Bitu mask,Bitu range) {
