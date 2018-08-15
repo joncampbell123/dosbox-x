@@ -53,6 +53,7 @@ void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
 
 bool en_int33=false;
 bool en_bios_ps2mouse=false;
+bool cell_granularity_disable=false;
 
 void DisableINT33() {
     if (en_int33) {
@@ -877,6 +878,11 @@ void Mouse_NewVideoMode(void) {
     mouse.min_x = 0;
     mouse.min_y = 0;
 
+    if (cell_granularity_disable) {
+        mouse.gran_x = (Bit16s)0xffff;
+        mouse.gran_y = (Bit16s)0xffff;
+    }
+
     mouse.events = 0;
     mouse.timer_in_progress = false;
     PIC_RemoveEvents(MOUSE_Limit_Events);
@@ -1384,6 +1390,8 @@ void MOUSE_Startup(Section *sec) {
 
     en_int33=section->Get_bool("int33");
     if (!en_int33) return;
+
+    cell_granularity_disable=section->Get_bool("int33 disable cell granularity");
 
     LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 33H emulation enabled");
 
