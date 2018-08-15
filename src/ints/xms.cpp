@@ -34,7 +34,12 @@
 
 #include <algorithm>
 
-#define XMS_HANDLES							50u		/* 50 XMS Memory Blocks */ 
+#define XMS_HANDLES_MIN                     4u
+#define XMS_HANDLES_MAX						256u	/* 256 XMS Memory Blocks */ 
+#define XMS_HANDLES_DEFAULT                 50u     /* DOSBox SVN default */
+
+unsigned int XMS_HANDLES =                  XMS_HANDLES_DEFAULT;
+
 #define XMS_VERSION    						0x0300u	/* version 3.00 */
 #define XMS_DRIVER_VERSION					0x0301u	/* my driver version 3.01 */
 
@@ -151,7 +156,7 @@ static RealPt xms_callback;
 static bool umb_available = false;
 static bool umb_init = false;
 
-static XMS_Block xms_handles[XMS_HANDLES];
+static XMS_Block xms_handles[XMS_HANDLES_MAX];
 
 Bitu XMS_GetTotalHandles(void) {
     return XMS_HANDLES;
