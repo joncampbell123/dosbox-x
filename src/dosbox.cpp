@@ -858,10 +858,6 @@ void DOSBOX_SetupConfigSections(void) {
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
     const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", 0 };
 
-    const char* irqssbhack[] = {
-        "none", "cs_equ_ds", 0
-    };
-
     /* Setup all the different modules making up DOSBox */
     const char* machines[] = {
         "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega",
@@ -1851,7 +1847,6 @@ void DOSBOX_SetupConfigSections(void) {
      *     port to clear bit 7! Setting 'cs_equ_ds' works around that bug by instructing PIC emulation not to
      *     fire the interrupt unless segment registers CS and DS match. */
     Pstring = secprop->Add_string("irq hack",Property::Changeable::WhenIdle,"none");
-    Pstring->Set_values(irqssbhack);
     Pstring->Set_help("Specify a hack related to the Sound Blaster IRQ to avoid crashes in a handful of games and demos.\n"
             "    none                   Emulate IRQs normally\n"
             "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read Dosbox-X Wiki or source code for details.");
@@ -2098,7 +2093,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("The DMA channel of the Gravis Ultrasound.");
  
     Pstring = secprop->Add_string("irq hack",Property::Changeable::WhenIdle,"none");
-    Pstring->Set_values(irqssbhack);
     Pstring->Set_help("Specify a hack related to the Gravis Ultrasound IRQ to avoid crashes in a handful of games and demos.\n"
             "    none                   Emulate IRQs normally\n"
             "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read Dosbox-X Wiki or source code for details.");
