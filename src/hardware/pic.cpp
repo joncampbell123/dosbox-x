@@ -409,7 +409,9 @@ static bool IRQ_hack_check_cs_equ_ds(const int IRQ) {
         return true; // don't complain about the BIOS ISR
 
     if (s_cs != s_ds) {
+#if 0
         LOG(LOG_PIC,LOG_DEBUG)("Not dispatching IRQ %d according to IRQ hack. CS != DS",IRQ);
+#endif
         return false;
     }
 
