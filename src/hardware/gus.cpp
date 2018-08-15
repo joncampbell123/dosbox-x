@@ -2085,6 +2085,14 @@ public:
 		int irq_val = section->Get_int("gusirq");
 		if ((irq_val<0) || (irq_val>255)) irq_val = 5;	// sensible default
 
+        if (irq_val > 0) {
+            string s = section->Get_string("irq hack");
+            if (!s.empty() && s != "none") {
+                LOG(LOG_MISC,LOG_NORMAL)("GUS emulation: Assigning IRQ hack '%s' as instruced",s.c_str());
+                PIC_Set_IRQ_hack(irq_val,PIC_parse_IRQ_hack_string(s.c_str()));
+            }
+        }
+
 		myGUS.dma1 = (Bit8u)dma_val;
 		myGUS.dma2 = (Bit8u)dma_val;
 		myGUS.irq1 = (Bit8u)irq_val;

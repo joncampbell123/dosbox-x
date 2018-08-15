@@ -2096,7 +2096,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("gusdma",Property::Changeable::WhenIdle,3);
     Pint->Set_values(dmasgus);
     Pint->Set_help("The DMA channel of the Gravis Ultrasound.");
-    
+ 
+    Pstring = secprop->Add_string("irq hack",Property::Changeable::WhenIdle,"none");
+    Pstring->Set_values(irqssbhack);
+    Pstring->Set_help("Specify a hack related to the Gravis Ultrasound IRQ to avoid crashes in a handful of games and demos.\n"
+            "    none                   Emulate IRQs normally\n"
+            "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read Dosbox-X Wiki or source code for details.");
+
     Pstring = secprop->Add_string("gustype",Property::Changeable::WhenIdle,"classic");
     Pstring->Set_values(gustypes);
     Pstring->Set_help(  "Type of Gravis Ultrasound to emulate.\n"
