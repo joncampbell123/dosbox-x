@@ -632,6 +632,16 @@ public:
 
 		if (!section->Get_bool("xms")) return;
 
+        XMS_HANDLES = section->Get_int("xms handles");
+        if (XMS_HANDLES == 0)
+            XMS_HANDLES = XMS_HANDLES_DEFAULT;
+        else if (XMS_HANDLES < XMS_HANDLES_MIN)
+            XMS_HANDLES = XMS_HANDLES_MIN;
+        else if (XMS_HANDLES > XMS_HANDLES_MAX)
+            XMS_HANDLES = XMS_HANDLES_MAX;
+
+        LOG_MSG("XMS: %u handles allocated for use by the DOS environment",XMS_HANDLES);
+
 		/* NTS: Disable XMS emulation if CPU type is less than a 286, because extended memory did not
 		 *      exist until the CPU had enough address lines to read past the 1MB mark.
 		 *

@@ -2378,6 +2378,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("xms",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable XMS support.");
 
+    Pint = secprop->Add_int("xms handles",Property::Changeable::WhenIdle,0);
+    Pint->Set_help("Number of XMS handles available for the DOS environment, or 0 to use a reasonable default");
+
     Pbool = secprop->Add_bool("hma",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Report through XMS that HMA exists (not necessarily available)");
 
