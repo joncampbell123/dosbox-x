@@ -422,7 +422,36 @@ static Bitu DOS_21Handler(void) {
 
     switch (reg_ah) {
         case 0x00:      /* Terminate Program */
-            DOS_Terminate(mem_readw(SegPhys(ss)+reg_sp+2),false,0);
+            /* HACK for demoscene prod parties/1995/wired95/surprisecode/w95spcod.zip/WINNERS/SURP-KLF
+             *
+             * This demo starts off by popping 3 words off the stack (the third into ES to get the top
+             * of DOS memory which it then uses to draw into VGA memory). Since SP starts out at 0xFFFE,
+             * that means SP wraps around to start popping values out of the PSP segment.
+             *
+             * Real MS-DOS will also start the demo with SP at 0xFFFE.
+             *
+             * The demo terminates with INT 20h.
+             *
+             * This code will fail since the stack pointer must wrap back around to read the segment,
+             * unless we read by popping. */
+            if (reg_sp > 0xFFFA) {
+                LOG(LOG_DOSMISC,LOG_WARN)("DOS:INT 20h/INT 21h AH=00h WARNING, process terminated where stack pointer wrapped around 64K");
+
+                uint16_t f_ip = CPU_Pop16();
+                uint16_t f_cs = CPU_Pop16();
+                uint16_t f_flags = CPU_Pop16();
+
+                (void)f_flags;
+                (void)f_ip;
+
+                LOG(LOG_DOSMISC,LOG_DEBUG)("DOS:INT 20h/INT 21h AH=00h recovered CS segment %04x",f_cs);
+
+                DOS_Terminate(f_cs,false,0);
+            }
+            else {
+                DOS_Terminate(mem_readw(SegPhys(ss)+reg_sp+2),false,0);
+            }
+
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
             dos_program_running = false;
             break;
