@@ -910,9 +910,16 @@ void CPU_Exception(Bitu which,Bitu error ) {
 	}
 
 	if (cpu_double_fault_enable) {
-		/* CPU_Interrupt() could cause another fault during memory access. This needs to happen here */
-		CPU_Exception_Level[which]++;
-		CPU_Exception_In_Progress.push(which);
+        /* NTS: Putting some thought into it, I don't think divide by zero counts as something to throw a double fault
+         *      over. I may be wrong. The behavior of Intel processors will ultimately decide.
+         *
+         *      Until then, don't count Divide Overflow exceptions, so that the "EFP loader" can do it's disgusting
+         *      anti-debugger hackery when loading parts of a demo. --J.C. */
+        if (!(which == 0/*divide by zero/overflow*/)) {
+            /* CPU_Interrupt() could cause another fault during memory access. This needs to happen here */
+            CPU_Exception_Level[which]++;
+            CPU_Exception_In_Progress.push(which);
+        }
 	}
 
 	cpu.exception.error=error;
