@@ -1389,7 +1389,11 @@ void MOUSE_Startup(Section *sec) {
     /* TODO: Needs to check for mouse, and fail to do anything if neither PS/2 nor serial mouse emulation enabled */
 
     en_int33=section->Get_bool("int33");
-    if (!en_int33) return;
+    if (!en_int33) {
+        Mouse_Reset();
+        Mouse_SetSensitivity(50,50,50);
+        return;
+    }
 
     cell_granularity_disable=section->Get_bool("int33 disable cell granularity");
 
