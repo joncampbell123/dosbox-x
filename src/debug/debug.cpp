@@ -1634,9 +1634,10 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("F10/F11                   - Step over / trace into instruction.\n");
 		DEBUG_ShowMsg("ALT + D/E/S/X/B           - Set data view to DS:SI/ES:DI/SS:SP/DS:DX/ES:BX.\n");
 		DEBUG_ShowMsg("Escape                    - Clear input line.");
-		DEBUG_ShowMsg("Up/Down                   - Move code view cursor.\n");
-		DEBUG_ShowMsg("Page Up/Down              - Scroll data view.\n");
-		DEBUG_ShowMsg("Home/End                  - Scroll log messages.\n");
+		DEBUG_ShowMsg("Up/Down                   - Scroll up/down in the current window.\n");
+		DEBUG_ShowMsg("Page Up/Down              - Page up/down in the current window.\n");
+		DEBUG_ShowMsg("Home/End                  - Move to begin/end of the current window.\n");
+        DEBUG_ShowMsg("TAB                       - Select next window\n");
 		DEBUG_ShowMsg("BP     [segment]:[offset] - Set breakpoint.\n");
 		DEBUG_ShowMsg("BPINT  [intNr] *          - Set interrupt breakpoint.\n");
 		DEBUG_ShowMsg("BPINT  [intNr] [ah]       - Set interrupt breakpoint with ah.\n");
