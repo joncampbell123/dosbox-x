@@ -193,7 +193,6 @@ public:
 	Bit32u RampEnd;
 	Bit32u RampVol;
 	Bit32u RampAdd;
-	Bit32u RampAddReal;
 
 	Bit8u RampRate;
 	Bit8u RampCtrl;
@@ -220,7 +219,6 @@ public:
 		RampEnd = 0;
 		RampCtrl = 3;
 		RampAdd = 0;
-		RampAddReal = 0;
 		RampVol = 0;
 		VolLeft = 0;
 		VolRight = 0;
