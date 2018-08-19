@@ -1368,9 +1368,11 @@ bool ParseCommand(char* str) {
 	};
 
 	if (command == "BPLIST") {
+        DEBUG_BeginPagedContent();
 		DEBUG_ShowMsg("Breakpoint list:\n");
 		DEBUG_ShowMsg("-------------------------------------------------------------------------\n");
 		CBreakpoint::ShowList();
+        DEBUG_EndPagedContent();
 		return true;
 	};
 
@@ -1431,6 +1433,8 @@ bool ParseCommand(char* str) {
         void DEBUG_PICAck(int irq);
         void DEBUG_LogPIC(void);
 
+        DEBUG_BeginPagedContent();
+
 		stream >> command;
 
         if (command == "MASKIRQ") {
@@ -1466,6 +1470,8 @@ bool ParseCommand(char* str) {
         else {
             DEBUG_LogPIC();
         }
+
+        DEBUG_EndPagedContent();
 
         return true;
     }
