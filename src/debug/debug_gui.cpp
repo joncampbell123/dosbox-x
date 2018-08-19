@@ -565,7 +565,7 @@ void DEBUG_BeginPagedContent(void) {
 	int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
 
     debugPageCounter = 0;
-    debugPageStopAt = maxy - 1;
+    debugPageStopAt = maxy;
 #endif
 }
 
