@@ -658,7 +658,8 @@ void DEBUG_ShowMsg(char const* format,...) {
                         /* continue */
                         break;
                     }
-                    else if (key == 0x27/*ESC*/ || key == 0x7F/*DEL*/ || key == 0x08/*BKSP*/) {
+                    else if (key == 0x27/*ESC*/ || key == 0x7F/*DEL*/ || key == 0x08/*BKSP*/ ||
+                             key == 'q' || key == 'Q') {
                         /* user wants to stop paging */
                         debugPageStopAt = 0;
                         break;

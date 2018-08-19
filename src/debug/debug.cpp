@@ -908,7 +908,7 @@ static void DrawInput(void) {
         wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
         wattrset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
 
-        mvwprintw(dbg.win_inp,0,0,"%s","^ Paged content: Hit ENTER to continue, DEL/TAB/ESC to end");
+        mvwprintw(dbg.win_inp,0,0,"%s","^ Paged content: Hit ENTER to continue, Q to exit paging");
         wclrtoeol(dbg.win_inp);
     } else {
         //TODO long lines
