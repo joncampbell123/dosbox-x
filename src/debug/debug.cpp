@@ -2526,6 +2526,8 @@ static void LogEMS(void) {
         return;
     }
 
+    DEBUG_BeginPagedContent();
+
     LOG(LOG_MISC,LOG_ERROR)("EMS memory (type %s) handles:",EMS_Type_String());
     LOG(LOG_MISC,LOG_ERROR)("Handle Address  Size (bytes)    Name");
     for (Bitu h=0;h < EMS_Max_Handles();h++) {
@@ -2575,6 +2577,8 @@ static void LogEMS(void) {
                 (GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1);
         }
     }
+
+    DEBUG_EndPagedContent();
 }
 
 static void LogXMS(void) {
@@ -2593,19 +2597,23 @@ static void LogXMS(void) {
         return;
     }
 
+    DEBUG_BeginPagedContent();
+
     LOG(LOG_MISC,LOG_ERROR)("XMS memory handles:");
     LOG(LOG_MISC,LOG_ERROR)("Handle Status Location Size (bytes)");
     for (Bitu h=1;h < XMS_GetTotalHandles();h++) {
         if (XMS_GetHandleInfo(/*&*/phys_location,/*&*/size,/*&*/lockcount,/*&*/free,h)) {
             if (!free) {
                 LOG(LOG_MISC,LOG_ERROR)("%6lu %s 0x%08lx %lu",
-                    (unsigned long)h,
-                    free ? "FREE  " : "ALLOC ",
-                    (unsigned long)phys_location,
-                    (unsigned long)size << 10UL); /* KB -> bytes */
+                        (unsigned long)h,
+                        free ? "FREE  " : "ALLOC ",
+                        (unsigned long)phys_location,
+                        (unsigned long)size << 10UL); /* KB -> bytes */
             }
         }
     }
+
+    DEBUG_EndPagedContent();
 }
 
 static void LogDOSKernMem(void) {
@@ -2616,15 +2624,19 @@ static void LogDOSKernMem(void) {
         return;
     }
 
+    DEBUG_BeginPagedContent();
+
     LOG(LOG_MISC,LOG_ERROR)("DOS kernel memory blocks:");
     LOG(LOG_MISC,LOG_ERROR)("Seg      Size (bytes)     What");
     for (auto i=DOS_GetMemLog.begin();i!=DOS_GetMemLog.end();i++) {
         sprintf(tmp,"%04x     %8lu     ",
-            (unsigned int)(i->segbase),
-            (unsigned long)(i->pages << 4UL));
+                (unsigned int)(i->segbase),
+                (unsigned long)(i->pages << 4UL));
 
         LOG(LOG_MISC,LOG_ERROR)("%s    %s",tmp,i->who.c_str());
     }
+
+    DEBUG_EndPagedContent();
 }
 
 // Display the content of all Memory Control Blocks.
@@ -2635,14 +2647,18 @@ static void LogMCBS(void)
         return;
     }
 
-	LOG(LOG_MISC,LOG_ERROR)("MCB Seg  Size (bytes)  PSP Seg (notes)  Filename");
-	LOG(LOG_MISC,LOG_ERROR)("Conventional memory:");
-	LogMCBChain(dos.firstMCB);
+    DEBUG_BeginPagedContent();
+
+    LOG(LOG_MISC,LOG_ERROR)("MCB Seg  Size (bytes)  PSP Seg (notes)  Filename");
+    LOG(LOG_MISC,LOG_ERROR)("Conventional memory:");
+    LogMCBChain(dos.firstMCB);
 
     if (dos_infoblock.GetStartOfUMBChain() != 0xFFFF) {
         LOG(LOG_MISC,LOG_ERROR)("Upper memory:");
         LogMCBChain(dos_infoblock.GetStartOfUMBChain());
     }
+
+    DEBUG_EndPagedContent();
 }
 
 static void LogGDT(void)
