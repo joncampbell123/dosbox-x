@@ -1310,8 +1310,10 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
     (void)iolen;//UNUSED
 //	LOG_MSG("read from gus port %x",port);
 
-    /* 10-bit ISA decode */
-    port &= 0x3FF;
+    /* 12-bit ISA decode (FIXME: Check GUS MAX ISA card to confirm)
+     *
+     * More than 10 bits must be decoded in order for GUS MAX extended registers at 7xx to work */
+    port &= 0xFFF;
 
 	switch(port - GUS_BASE) {
 	case 0x206:
@@ -1412,8 +1414,10 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 //	LOG_MSG("Write gus port %x val %x",port,val);
 
-    /* 10-bit ISA decode */
-    port &= 0x3FF;
+    /* 12-bit ISA decode (FIXME: Check GUS MAX ISA card to confirm)
+     *
+     * More than 10 bits must be decoded in order for GUS MAX extended registers at 7xx to work */
+    port &= 0xFFF;
 
     switch(port - GUS_BASE) {
 	case 0x200:
@@ -1989,7 +1993,8 @@ static IO_ReadHandler* gus_cb_port_r(IO_CalloutObject &co,Bitu port,Bitu iolen) 
     (void)co;
     (void)iolen;
 
-    /* 10-bit ISA decode */
+    /* 10-bit ISA decode.
+     * NOTE that the I/O handlers still need more than 10 bits to handle GUS MAX/Interwave registers at 0x7xx. */
     port &= 0x3FF;
 
     if (gus_type >= GUS_MAX) {
@@ -2004,7 +2009,8 @@ static IO_WriteHandler* gus_cb_port_w(IO_CalloutObject &co,Bitu port,Bitu iolen)
     (void)co;
     (void)iolen;
 
-    /* 10-bit ISA decode */
+    /* 10-bit ISA decode.
+     * NOTE that the I/O handlers still need more than 10 bits to handle GUS MAX/Interwave registers at 0x7xx. */
     port &= 0x3FF;
 
     if (gus_type >= GUS_MAX) {
