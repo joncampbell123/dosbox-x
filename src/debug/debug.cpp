@@ -2492,6 +2492,8 @@ extern RegionAllocTracking rombios_alloc;
 static void LogBIOSMem(void) {
     char tmp[192];
 
+    DEBUG_BeginPagedContent();
+
     LOG(LOG_MISC,LOG_ERROR)("BIOS memory blocks:");
     LOG(LOG_MISC,LOG_ERROR)("Region            Status What");
     for (auto i=rombios_alloc.alist.begin();i!=rombios_alloc.alist.end();i++) {
@@ -2501,6 +2503,8 @@ static void LogBIOSMem(void) {
             i->free ? "FREE  " : "ALLOC ");
         LOG(LOG_MISC,LOG_ERROR)("%s %s",tmp,i->who.c_str());
     }
+
+    DEBUG_EndPagedContent();
 }
 
 Bitu XMS_GetTotalHandles(void);
@@ -2669,6 +2673,9 @@ static void LogGDT(void)
 	PhysPt address = cpu.gdt.GetBase();
 	PhysPt max	   = address + length;
 	Bitu i = 0;
+
+    DEBUG_BeginPagedContent();
+
 	LOG(LOG_MISC,LOG_ERROR)("GDT Base:%08lX Limit:%08lX",(unsigned long)address,(unsigned long)length);
 	while (address<max) {
 		desc.Load(address);
@@ -2678,6 +2685,8 @@ static void LogGDT(void)
 		LOG(LOG_MISC,LOG_ERROR)("%s",out1);
 		address+=8; i++;
 	}
+
+    DEBUG_EndPagedContent();
 }
 
 static void LogLDT(void) {
@@ -2689,6 +2698,9 @@ static void LogLDT(void) {
 	PhysPt address = desc.GetBase();
 	PhysPt max	   = address + length;
 	Bitu i = 0;
+
+    DEBUG_BeginPagedContent();
+
 	LOG(LOG_MISC,LOG_ERROR)("LDT Base:%08lX Limit:%08lX",(unsigned long)address,(unsigned long)length);
 	while (address<max) {
 		desc.Load(address);
@@ -2698,12 +2710,17 @@ static void LogLDT(void) {
 		LOG(LOG_MISC,LOG_ERROR)("%s",out1);
 		address+=8; i++;
 	}
+
+    DEBUG_EndPagedContent();
 }
 
 static void LogIDT(void) {
 	char out1[512];
 	Descriptor desc;
 	Bitu address = 0;
+
+    DEBUG_BeginPagedContent();
+
 	while (address<256*8) {
 		if (cpu.idt.GetDescriptor(address,desc)) {
 			sprintf(out1,"%04X: sel:%04X off:%02X",(unsigned int)(address/8),(int)desc.GetSelector(),(int)desc.GetOffset());
@@ -2711,10 +2728,15 @@ static void LogIDT(void) {
 		}
 		address+=8;
 	}
+
+    DEBUG_EndPagedContent();
 }
 
 void LogPages(char* selname) {
 	char out1[512];
+
+    DEBUG_BeginPagedContent();
+
 	if (paging.enabled) {
 		Bitu sel = GetHexValue(selname,selname);
 		if ((sel==0x00) && ((*selname==0) || (*selname=='*'))) {
@@ -2757,10 +2779,15 @@ void LogPages(char* selname) {
 			}
 		}
 	}
+
+    DEBUG_EndPagedContent();
 }
 
 static void LogCPUInfo(void) {
 	char out1[512];
+
+    DEBUG_BeginPagedContent();
+
 	sprintf(out1,"cr0:%08lX cr2:%08lX cr3:%08lX  cpl=%lx",
 		(unsigned long)cpu.cr0,
 		(unsigned long)paging.cr2,
@@ -2793,6 +2820,8 @@ static void LogCPUInfo(void) {
 		sprintf(out1,"LDT selector=%04X, base=%08lX limit=%08lX*%X",(int)sel,(unsigned long)desc.GetBase(),(unsigned long)desc.GetLimit(),desc.saved.seg.g?0x4000:1);
 		LOG(LOG_MISC,LOG_ERROR)("%s",out1);
 	}
+
+    DEBUG_EndPagedContent();
 }
 
 #if C_HEAVY_DEBUG
