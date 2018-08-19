@@ -2559,7 +2559,24 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     }
     vga.draw.linear_base = vga.mem.linear;
     vga.draw.linear_mask = vga.mem.memmask;
+
+    /* Some games and plenty of demoscene productions like to rely on
+     * the fact that the standard VGA modes wrap around at 256KB even
+     * on SVGA hardware. Without this check, those demos will show
+     * credits that scroll upward to blackness before "popping" back
+     * onto the screen. */
+    if (IS_VGA_ARCH) {
+        /* NTS: S3 emulation ties "compatible chain4" to CRTC register 31 bit 3 which controls
+         *      whether access to > 256KB of video RAM is enabled, which is why it's used here */
+        if (vga.config.compatible_chain4 || svgaCard == SVGA_None)
+            vga.draw.linear_mask &= 0x3FFFF;
+    }
+    else if (IS_EGA_ARCH) {
+        vga.draw.linear_mask &= 0x3FFFF;
+    }
+
     vga.draw.planar_mask = vga.draw.linear_mask >> 2;
+
     Bitu pix_per_char = 8;
     switch (vga.mode) {
     case M_VGA:
