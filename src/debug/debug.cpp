@@ -141,6 +141,9 @@ static bool debugging = false;
 static bool debug_running = false;
 static bool check_rescroll = false;
 
+bool IsDebuggerActive(void) {
+    return debugging;
+}
 
 static void SetColor(Bitu test) {
 	if (test) {
@@ -1147,6 +1150,9 @@ bool ChangeRegister(char* str)
 void DEBUG_GUI_Rebuild(void);
 void DBGUI_NextWindowIfActiveHidden(void);
 
+void DEBUG_BeginPagedContent(void);
+void DEBUG_EndPagedContent(void);
+
 bool ParseCommand(char* str) {
 	char* found = str;
 	for(char* idx = found;*idx != 0; idx++)
@@ -1625,6 +1631,7 @@ bool ParseCommand(char* str) {
 
 #endif
 	if (command == "HELP" || command == "?") {
+        DEBUG_BeginPagedContent();
 		DEBUG_ShowMsg("Debugger commands (enter all values in hex or as register):\n");
 		DEBUG_ShowMsg("--------------------------------------------------------------------------\n");
 		DEBUG_ShowMsg("F3/F6                     - Previous command in history.\n");
@@ -1680,6 +1687,7 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("TIMERIRQ                  - Run the system timer.\n");
 
 		DEBUG_ShowMsg("HELP                      - Help\n");
+        DEBUG_EndPagedContent();
 		
 		return true;
 	}
