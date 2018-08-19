@@ -554,6 +554,12 @@ void DBGUI_StartUp(void) {
 int debugPageCounter = 0;
 int debugPageStopAt = 0;
 
+bool DEBUG_IsPagingOutput(void) {
+    return debugPageStopAt > 0;
+}
+
+void DEBUG_DrawInput(void);
+
 void DEBUG_BeginPagedContent(void) {
 #if C_DEBUG
 	int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
@@ -567,6 +573,7 @@ void DEBUG_EndPagedContent(void) {
 #if C_DEBUG
     debugPageCounter = 0;
     debugPageStopAt = 0;
+    DEBUG_DrawInput();
 #endif
 }
 
@@ -641,6 +648,7 @@ void DEBUG_ShowMsg(char const* format,...) {
 
             debugPageCounter = 0;
             DEBUG_RefreshPage(0);
+            DEBUG_DrawInput();
 
             /* pause, wait for input */
             do {

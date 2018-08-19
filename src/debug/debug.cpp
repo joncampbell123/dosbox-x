@@ -80,6 +80,10 @@ static void DrawVariables(void);
 static void LogDOSKernMem(void);
 static void LogBIOSMem(void);
 
+void DEBUG_DrawInput(void) {
+    DrawInput();
+}
+
 bool XMS_Active(void);
 
 Bitu XMS_GetTotalHandles(void);
@@ -891,12 +895,20 @@ static void DrawRegisters(void) {
 	wrefresh(dbg.win_reg);
 }
 
+bool DEBUG_IsPagingOutput(void);
+
 static void DrawInput(void) {
     if (!debugging) {
         wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
         wattrset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
 
         mvwprintw(dbg.win_inp,0,0,"%s","(Running)");
+        wclrtoeol(dbg.win_inp);
+    } else if (DEBUG_IsPagingOutput()) {
+        wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
+        wattrset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
+
+        mvwprintw(dbg.win_inp,0,0,"%s","^ Paged content: Hit ENTER to continue, DEL/TAB/ESC to end");
         wclrtoeol(dbg.win_inp);
     } else {
         //TODO long lines
