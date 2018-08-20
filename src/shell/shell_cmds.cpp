@@ -1983,9 +1983,37 @@ void DOS_Shell::CMD_FOR(char *args){
     (void)args;//UNUSED
 }
 
+// Explanation: Start capture, run program, stop capture when program exits.
+//              Great for gameplay footage or demoscene capture.
+//
+//              The command name is chosen not to conform to the 8.3 pattern
+//              on purpose to avoid conflicts with any existing DOS applications.
 void DOS_Shell::CMD_DXCAPTURE(char * args) {
-    // TODO: Command line options prior to command
+    bool cap_video = false;
+    bool cap_audio = false;
+    bool cap_mtaudio = false;
+    unsigned long post_exit_delay_ms = 3000; /* 3 sec */
+
     while (*args == ' ') args++;
+
+    if (ScanCMDBool(args,"V"))
+        cap_video = true;
+    if (ScanCMDBool(args,"-V"))
+        cap_video = false;
+
+    if (ScanCMDBool(args,"A"))
+        cap_audio = true;
+    if (ScanCMDBool(args,"-A"))
+        cap_audio = false;
+
+    if (ScanCMDBool(args,"M"))
+        cap_mtaudio = true;
+    if (ScanCMDBool(args,"-M"))
+        cap_mtaudio = false;
+
+    if (!cap_video && !cap_audio && !cap_mtaudio)
+        cap_video = true;
+
     DoCommand(args);
 }
 
