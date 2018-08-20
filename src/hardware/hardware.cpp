@@ -1379,7 +1379,9 @@ skip_shot:
 
 		/* Everything went okay, set flag again for next frame */
 		CaptureState |= CAPTURE_VIDEO;
-	}
+
+        mainMenu.get_item("mapper_video").check(!!(CaptureState & CAPTURE_VIDEO)).refresh_item(mainMenu);
+    }
 
 	return;
 skip_video:
