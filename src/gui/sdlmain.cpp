@@ -5982,6 +5982,38 @@ bool VM_PowerOn() {
     return true;
 }
 
+extern bool native_zmbv;
+extern bool export_ffmpeg;
+
+void update_capture_fmt_menu(void) {
+    mainMenu.get_item("capture_fmt_avi_zmbv").check(native_zmbv).refresh_item(mainMenu);
+#if (C_AVCODEC)
+    mainMenu.get_item("capture_fmt_mpegts_h264").check(export_ffmpeg).refresh_item(mainMenu);
+#endif
+}
+
+bool capture_fmt_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    const char *ts = menuitem->get_name().c_str();
+
+    if (!strncmp(ts,"capture_fmt_",12))
+        ts += 12;
+
+#if (C_AVCODEC)
+    if (!strcmp(ts,"mpegts_h264")) {
+        native_zmbv = false;
+        export_ffmpeg = true;
+    }
+    else
+#endif
+    {
+        native_zmbv = true;
+        export_ffmpeg = false;
+    }
+
+    update_capture_fmt_menu();
+    return true;
+}
+
 void update_pc98_clock_pit_menu(void) {
     Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 
@@ -7129,6 +7161,19 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureMenu");
             item.set_text("Capture");
+        }
+        {
+            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureFormatMenu");
+            item.set_text("Capture format");
+
+            {
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"capture_fmt_avi_zmbv").set_text("AVI + ZMBV").
+                    set_callback_function(capture_fmt_menu_callback);
+#if (C_AVCODEC)
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"capture_fmt_mpegts_h264").set_text("MPEG-TS + H.264").
+                    set_callback_function(capture_fmt_menu_callback);
+#endif
+            }
         }
 
         /* more */
