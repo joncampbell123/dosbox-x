@@ -258,6 +258,7 @@ public:
     /*! \brief      Change TTY (console) device (CTTY)
      */
 	void CMD_CTTY(char * args);
+    void CMD_DXCAPTURE(char * args);
 
     /*! \brief      Looping execution (FOR)
      */

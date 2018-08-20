@@ -86,6 +86,7 @@ static SHELL_Cmd cmd_list[]={
 {	"FOR",	1,			&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
 {	"INT2FDBG",	1,			&DOS_Shell::CMD_INT2FDBG,	"Hook INT 2Fh for debugging purposes"},
 {	"CTTY",		1,			&DOS_Shell::CMD_CTTY,		"Change TTY device"},
+{   "DX-CAPTURE",0,         &DOS_Shell::CMD_DXCAPTURE,  "Run program with video/audio capture"},
 #if C_DEBUG
 {	"DEBUGBOX",	0,			&DOS_Shell::CMD_DEBUGBOX,	"Run program, break into debugger at entry point"},
 #endif
@@ -1980,6 +1981,12 @@ void DOS_Shell::CMD_DEBUGBOX(char * args) {
 
 void DOS_Shell::CMD_FOR(char *args){
     (void)args;//UNUSED
+}
+
+void DOS_Shell::CMD_DXCAPTURE(char * args) {
+    // TODO: Command line options prior to command
+    while (*args == ' ') args++;
+    DoCommand(args);
 }
 
 void DOS_Shell::CMD_CTTY(char * args) {
