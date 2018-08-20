@@ -626,6 +626,20 @@ void CAPTURE_VideoEvent(bool pressed) {
 	mainMenu.get_item("mapper_video").check(!!(CaptureState & CAPTURE_VIDEO)).refresh_item(mainMenu);
 }
 
+void CAPTURE_StartCapture(void) {
+#if (C_SSHOT)
+	if (!(CaptureState & CAPTURE_VIDEO))
+        CAPTURE_VideoEvent(true);
+#endif
+}
+
+void CAPTURE_StopCapture(void) {
+#if (C_SSHOT)
+	if (CaptureState & CAPTURE_VIDEO)
+        CAPTURE_VideoEvent(true);
+#endif
+}
+
 extern uint32_t GFX_palette32bpp[256];
 #endif
 
