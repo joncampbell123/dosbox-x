@@ -1854,23 +1854,30 @@ void update_capture_fmt_menu(void) {
 bool capture_fmt_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     const char *ts = menuitem->get_name().c_str();
     Bitu old_CaptureState = CaptureState;
+    bool new_native_zmbv = native_zmbv;
+    bool new_export_ffmpeg = export_ffmpeg;
 
     if (!strncmp(ts,"capture_fmt_",12))
         ts += 12;
 
-    void CAPTURE_StopCapture(void);
-    CAPTURE_StopCapture();
-
 #if (C_AVCODEC)
     if (!strcmp(ts,"mpegts_h264")) {
-        native_zmbv = false;
-        export_ffmpeg = true;
+        new_native_zmbv = false;
+        new_export_ffmpeg = true;
     }
     else
 #endif
     {
-        native_zmbv = true;
-        export_ffmpeg = false;
+        new_native_zmbv = true;
+        new_export_ffmpeg = false;
+    }
+
+    if (native_zmbv != new_native_zmbv || export_ffmpeg != new_export_ffmpeg) {
+        void CAPTURE_StopCapture(void);
+        CAPTURE_StopCapture();
+
+        native_zmbv = new_native_zmbv;
+        export_ffmpeg = new_export_ffmpeg;
     }
 
     if (old_CaptureState & CAPTURE_VIDEO) {
