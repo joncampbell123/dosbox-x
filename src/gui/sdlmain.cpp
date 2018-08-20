@@ -7360,6 +7360,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         OutputSettingMenuUpdate();
         update_pc98_clock_pit_menu();
+        update_capture_fmt_menu();
 
         /* The machine just "powered on", and then reset finished */
         if (!VM_PowerOn()) E_Exit("VM failed to power on");
