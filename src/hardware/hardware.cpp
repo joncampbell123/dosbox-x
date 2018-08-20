@@ -1843,3 +1843,42 @@ void HARDWARE_Init() {
 	/* TODO: Hardware init. We moved capture init to it's own function. */
 	AddExitFunction(AddExitFunctionFuncPair(HARDWARE_Destroy),true);
 }
+
+void update_capture_fmt_menu(void) {
+    mainMenu.get_item("capture_fmt_avi_zmbv").check(native_zmbv).refresh_item(mainMenu);
+#if (C_AVCODEC)
+    mainMenu.get_item("capture_fmt_mpegts_h264").check(export_ffmpeg).refresh_item(mainMenu);
+#endif
+}
+
+bool capture_fmt_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    const char *ts = menuitem->get_name().c_str();
+    Bitu old_CaptureState = CaptureState;
+
+    if (!strncmp(ts,"capture_fmt_",12))
+        ts += 12;
+
+    void CAPTURE_StopCapture(void);
+    CAPTURE_StopCapture();
+
+#if (C_AVCODEC)
+    if (!strcmp(ts,"mpegts_h264")) {
+        native_zmbv = false;
+        export_ffmpeg = true;
+    }
+    else
+#endif
+    {
+        native_zmbv = true;
+        export_ffmpeg = false;
+    }
+
+    if (old_CaptureState & CAPTURE_VIDEO) {
+        void CAPTURE_StartCapture(void);
+        CAPTURE_StartCapture();
+    }
+
+    update_capture_fmt_menu();
+    return true;
+}
+
