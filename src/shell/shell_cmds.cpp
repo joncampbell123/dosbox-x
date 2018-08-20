@@ -2036,8 +2036,33 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
         LOG_MSG("Pausing for post exit delay (%.3f seconds)",(double)post_exit_delay_ms / 1000);
 
         Bit32u lasttick=GetTicks();
-        while ((GetTicks()-lasttick)<post_exit_delay_ms)
+        while ((GetTicks()-lasttick)<post_exit_delay_ms) {
             CALLBACK_Idle();
+
+            if (machine == MCH_PC98) {
+                reg_eax = 0x0100;   // sense key
+                CALLBACK_RunRealInt(0x18);
+                SETFLAGBIT(ZF,reg_bh == 0);
+            }
+            else {
+                reg_eax = 0x0100;
+                CALLBACK_RunRealInt(0x16);
+            }
+
+            if (!GETFLAG(ZF)) {
+                if (machine == MCH_PC98) {
+                    reg_eax = 0x0000;   // read key
+                    CALLBACK_RunRealInt(0x18);
+                }
+                else {
+                    reg_eax = 0x0000;
+                    CALLBACK_RunRealInt(0x16);
+                }
+
+                if (reg_al == 32/*space*/ || reg_al == 27/*escape*/)
+                    break;
+            }
+        }
     }
 
     if (cap_video)
