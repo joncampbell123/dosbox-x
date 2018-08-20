@@ -2022,6 +2022,14 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
 
     DoCommand(args);
 
+    if (post_exit_delay_ms > 0) {
+        LOG_MSG("Pausing for post exit delay (%.3f seconds)",(double)post_exit_delay_ms / 1000);
+
+        Bit32u lasttick=GetTicks();
+        while ((GetTicks()-lasttick)<post_exit_delay_ms)
+            CALLBACK_Idle();
+    }
+
     if (cap_video)
         CAPTURE_StopCapture();
 }
