@@ -1986,6 +1986,9 @@ void DOS_Shell::CMD_FOR(char *args){
 void CAPTURE_StartCapture(void);
 void CAPTURE_StopCapture(void);
 
+void CAPTURE_StartWave(void);
+void CAPTURE_StopWave(void);
+
 // Explanation: Start capture, run program, stop capture when program exits.
 //              Great for gameplay footage or demoscene capture.
 //
@@ -2019,6 +2022,8 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
 
     if (cap_video)
         CAPTURE_StartCapture();
+    if (cap_audio)
+        CAPTURE_StartWave();
 
     DoCommand(args);
 
@@ -2032,6 +2037,8 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
 
     if (cap_video)
         CAPTURE_StopCapture();
+    if (cap_audio)
+        CAPTURE_StopWave();
 }
 
 void DOS_Shell::CMD_CTTY(char * args) {

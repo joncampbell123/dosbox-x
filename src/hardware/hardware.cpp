@@ -640,6 +640,18 @@ void CAPTURE_StopCapture(void) {
 #endif
 }
 
+void CAPTURE_WaveEvent(bool pressed);
+
+void CAPTURE_StartWave(void) {
+	if (!(CaptureState & CAPTURE_WAVE))
+        CAPTURE_WaveEvent(true);
+}
+
+void CAPTURE_StopWave(void) {
+	if (CaptureState & CAPTURE_WAVE)
+        CAPTURE_WaveEvent(true);
+}
+
 extern uint32_t GFX_palette32bpp[256];
 #endif
 
