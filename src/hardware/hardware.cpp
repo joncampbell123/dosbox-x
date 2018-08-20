@@ -652,6 +652,18 @@ void CAPTURE_StopWave(void) {
         CAPTURE_WaveEvent(true);
 }
 
+void CAPTURE_MTWaveEvent(bool pressed);
+
+void CAPTURE_StartMTWave(void) {
+	if (!(CaptureState & CAPTURE_MULTITRACK_WAVE))
+        CAPTURE_MTWaveEvent(true);
+}
+
+void CAPTURE_StopMTWave(void) {
+	if (CaptureState & CAPTURE_MULTITRACK_WAVE)
+        CAPTURE_MTWaveEvent(true);
+}
+
 extern uint32_t GFX_palette32bpp[256];
 #endif
 
