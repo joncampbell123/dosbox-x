@@ -298,6 +298,7 @@ void ffmpeg_flushout() {
 }
 #endif
 
+/* FIXME: This needs to be an enum */
 bool native_zmbv = false;
 bool export_ffmpeg = false;
 
