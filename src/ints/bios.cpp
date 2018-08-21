@@ -2393,6 +2393,8 @@ void update_pc98_function_row(bool enable) {
     real_writeb(0x60,0x11C,c);
     real_writeb(0x60,0x110,r);
 
+    real_writeb(0x60,0x111,pc98_function_row ? 0x01 : 0x00);/* function key row display status */
+
     void vga_pc98_direct_cursor_pos(Bit16u address);
     vga_pc98_direct_cursor_pos((r*80)+c);
 }

@@ -555,7 +555,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                         case 1: // show/hide function key row
                             void update_pc98_function_row(bool enable);
                             update_pc98_function_row(data[count] == 'l');
-                            ansi.nrows = real_readb(0x60,0x110)+1;
+                            ansi.nrows = real_readb(0x60,0x112)+1;
                             break;
                         case 3: // clear screen (doesn't matter if l or h)
                             INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
