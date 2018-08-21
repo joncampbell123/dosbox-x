@@ -1030,6 +1030,12 @@ void SHELL_Init() {
         VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
     }
 
+    /* DSXMENU.EXE */
+    if (IS_PC98_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98);
+    else
+        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC);
+
 	/* don't register 28.com unless EGA/VGA */
 	if (IS_EGAVGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
 
