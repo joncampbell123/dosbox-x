@@ -2012,7 +2012,7 @@ static const unsigned char bin_dsxmenu_exe_pc[] = {
 };
 
 struct BuiltinFileBlob bfb_DSXMENU_EXE_PC = {
-	/*recommended file name*/	"DSXMENU.EXE",
+    /*recommended file name*/	"DSXMENU.EXE",
 	/*data*/			bin_dsxmenu_exe_pc,
 	/*length*/			sizeof(bin_dsxmenu_exe_pc)
 };
