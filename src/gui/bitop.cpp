@@ -3,11 +3,9 @@
 
 #include "bitop.h"
 
-/* v140 is reported to choke on this self-test */
+/* I don't know when this happened.... but suddenly Microsoft C++ doesn't like these constexpr tests or static_assert >:( */
 #if defined(_MSC_VER)
-# if _MSC_VER >= 1900 && _MSC_VER < 1915 /* v140 up to (not including v141 */
-#  define DISABLE_SELF_TEST
-# endif
+# define DISABLE_SELF_TEST
 #endif
 
 namespace bitop {
