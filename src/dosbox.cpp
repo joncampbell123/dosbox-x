@@ -736,6 +736,7 @@ void DOSBOX_RealInit() {
     else if (mtype == "cga_rgb")       { machine = MCH_CGA; mono_cga = false; cga_comp = 2; }
     else if (mtype == "cga_composite") { machine = MCH_CGA; mono_cga = false; cga_comp = 1; new_cga = false; }
     else if (mtype == "cga_composite2"){ machine = MCH_CGA; mono_cga = false; cga_comp = 1; new_cga = true; }
+    else if (mtype == "mcga")          { machine = MCH_MCGA; }
     else if (mtype == "tandy")         { machine = MCH_TANDY; }
     else if (mtype == "pcjr")          { machine = MCH_PCJR; }
     else if (mtype == "hercules")      { machine = MCH_HERC; }
@@ -865,6 +866,8 @@ void DOSBOX_SetupConfigSections(void) {
         "svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", "pc9801", "pc9821",
 
         "fm_towns", // STUB
+
+        "mcga",
 
         0 };
 

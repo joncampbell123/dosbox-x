@@ -70,7 +70,9 @@ enum MachineType {
 	MCH_AMSTRAD,
 	MCH_PC98,
 
-    MCH_FM_TOWNS                    // STUB!!
+    MCH_FM_TOWNS,                    // STUB!!
+
+    MCH_MCGA                         // IBM PS/2 model 30 Multi-Color Graphics Adapter
 };
 
 enum SVGACards {
