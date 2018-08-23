@@ -90,6 +90,7 @@ extern SVGACards			svgaCard;
 extern MachineType			machine;
 extern bool				SDLNetInited;
 extern bool				mono_cga;
+extern bool             cga_as_mcga;
 extern bool				DEPRECATED mainline_compatible_mapping;
 extern bool				DEPRECATED mainline_compatible_bios_mapping;
 
@@ -114,6 +115,8 @@ void					DOSBOX_Init(void);
 #define IS_PC98_ARCH            (machine==MCH_PC98)
 
 #define IS_FM_TOWNS             (machine==MCH_FM_TOWNS)
+
+#define IS_MCGA_ARCH            (machine==MCH_MCGA || (machine==MCG_CGA && cga_as_mcga))
 
 /* machine tests for use with switch() statements */
 #define TANDY_ARCH_CASE			MCH_TANDY: case MCH_PCJR
