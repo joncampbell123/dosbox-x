@@ -669,6 +669,8 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\builtin\dos32a_exe.cpp" />
     <ClCompile Include="..\src\builtin\dos4gw_exe.cpp" />
     <ClCompile Include="..\src\builtin\dosidle_exe.cpp" />
+    <ClCompile Include="..\src\builtin\dsxmenu_exe_pc.cpp" />
+    <ClCompile Include="..\src\builtin\dsxmenu_exe_pc98.cpp" />
     <ClCompile Include="..\src\builtin\edit_com.cpp" />
     <ClCompile Include="..\src\builtin\fcbs_com.cpp" />
     <ClCompile Include="..\src\builtin\find_exe.cpp" />

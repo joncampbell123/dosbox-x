@@ -885,6 +885,12 @@
     <ClCompile Include="..\src\hardware\parport\printer_redir.cpp">
       <Filter>Sources\hardware\parport</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\builtin\dsxmenu_exe_pc.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\dsxmenu_exe_pc98.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
