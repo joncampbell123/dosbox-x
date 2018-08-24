@@ -123,6 +123,9 @@ void VGA_DAC_UpdateColor( Bitu index ) {
 
         VGA_DAC_SendColor( index, maskIndex );
     }
+    else if (machine == MCH_MCGA) {
+        VGA_DAC_SendColor( index, index & vga.dac.pel_mask );
+    }
     else {
         VGA_DAC_SendColor( index, index );
     }
@@ -322,7 +325,7 @@ void VGA_SetupDAC(void) {
     vga.dac.write_index=0;
     vga.dac.hidac_counter=0;
     vga.dac.reg02=0;
-    if (IS_VGA_ARCH) {
+    if (IS_VGA_ARCH || machine == MCH_MCGA) {
         /* Setup the DAC IO port Handlers */
         if (svga.setup_dac) {
             svga.setup_dac();
