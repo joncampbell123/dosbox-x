@@ -1859,6 +1859,7 @@ void VGA_SetupHandlers(void) {
 	PageHandler *newHandler;
 	switch (machine) {
 	case MCH_CGA:
+	case MCH_MCGA:
 		if (enableCGASnow && (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT))
 			MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.cgatext );
 		else

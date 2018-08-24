@@ -785,6 +785,9 @@ void VGA_Reset(Section*) {
         case MCH_PC98:
             if (vga.mem.memsize < _KB_bytes(512)) vga.mem.memsize = _KB_bytes(512);
             break;
+        case MCH_MCGA:
+            if (vga.mem.memsize < _KB_bytes(64)) vga.mem.memsize = _KB_bytes(64);
+            break;
         default:
             E_Exit("Unexpected machine");
     };

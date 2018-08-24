@@ -1472,6 +1472,7 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
                     else bg_color_index = 0;
                     break;
                 case MCH_CGA:
+                case MCH_MCGA:
                     // the background color
                     bg_color_index = vga.attr.overscan_color;
                     break;
@@ -1833,6 +1834,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         // fall-through
     case MCH_AMSTRAD:
     case MCH_CGA:
+    case MCH_MCGA:
     case MCH_HERC:
         // MC6845-powered graphics: Loading the display start latch happens somewhere
         // after vsync off and before first visible scanline, so probably here
@@ -2141,6 +2143,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     // set the drawing mode
     switch (machine) {
     case MCH_CGA:
+    case MCH_MCGA:
     case MCH_PCJR:
     case MCH_TANDY:
         vga.draw.mode = LINE;
@@ -2357,6 +2360,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             clock=(16000000/2)/8;
             break;
         case MCH_CGA:
+        case MCH_MCGA:
         case TANDY_ARCH_CASE:
             clock = (PIT_TICK_RATE*12)/8;
             if (!(vga.tandy.mode_control & 1)) clock /= 2;
@@ -2785,6 +2789,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     double scanfield_ratio = 4.0/3.0;
     switch(machine) {
         case MCH_CGA:
+        case MCH_MCGA:
         case MCH_PCJR:
         case MCH_TANDY:
             scanfield_ratio = 1.382;

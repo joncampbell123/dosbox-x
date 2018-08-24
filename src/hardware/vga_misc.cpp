@@ -184,7 +184,7 @@ void VGA_SetupMisc(void) {
 		} else {
 			IO_RegisterReadHandler(0x3c8,read_p3c8,IO_MB);
 		}
-	} else if (machine==MCH_CGA || machine==MCH_AMSTRAD || IS_TANDY_ARCH) {
+	} else if (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_AMSTRAD || IS_TANDY_ARCH) {
 		IO_RegisterReadHandler(0x3da,vga_read_p3da,IO_MB);
 	}
 }

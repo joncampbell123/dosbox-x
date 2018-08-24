@@ -555,6 +555,7 @@ bool INT10_SetCurMode(void) {
 	if (CurMode == NULL || CurMode->mode != bios_mode) {
 		switch (machine) {
 		case MCH_CGA:
+		case MCH_MCGA:
 			if (bios_mode<7) mode_changed=SetCurMode(ModeList_OTHER,bios_mode);
 			break;
 		case TANDY_ARCH_CASE:
@@ -678,6 +679,7 @@ extern bool en_int33;
 bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 	switch (machine) {
 	case MCH_CGA:
+	case MCH_MCGA:
 	case MCH_AMSTRAD:
 		if (mode>6) return false;
 	case TANDY_ARCH_CASE:
@@ -776,6 +778,7 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 	case MCH_AMSTRAD:
 		IO_WriteB( 0x3d9, 0x0f );
 	case MCH_CGA:
+	case MCH_MCGA:
 		mode_control=mode_control_list[CurMode->mode];
 		if (CurMode->mode == 0x6) color_select=0x3f;
 		else color_select=0x30;

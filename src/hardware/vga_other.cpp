@@ -891,7 +891,7 @@ void VGA_SetupOther(void) {
 	vga.tandy.line_mask = 3;
 	vga.tandy.line_shift = 13;
 
-	if (machine==MCH_CGA || machine==MCH_AMSTRAD || IS_TANDY_ARCH) {
+	if (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_AMSTRAD || IS_TANDY_ARCH) {
 		extern Bit8u int10_font_08[256 * 8];
 		for (i=0;i<256;i++)	memcpy(&vga.draw.font[i*32],&int10_font_08[i*8],8);
 		vga.draw.font_tables[0]=vga.draw.font_tables[1]=vga.draw.font;
@@ -907,7 +907,7 @@ void VGA_SetupOther(void) {
 		MAPPER_AddHandler(HercBlend,MK_nothing,0,"hercblend","Herc Blend");
 		MAPPER_AddHandler(CycleHercPal,MK_nothing,0,"hercpal","Herc Pal");
 	}
-	if (machine==MCH_CGA || machine==MCH_AMSTRAD) {
+	if (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_AMSTRAD) {
 		vga.amstrad.mask_plane = 0x07070707;
 		vga.amstrad.write_plane = 0x0F;
 		vga.amstrad.read_plane = 0x00;
@@ -968,7 +968,7 @@ void VGA_SetupOther(void) {
 		IO_RegisterWriteHandler(0x3bf,write_hercules,IO_MB);
 		IO_RegisterReadHandler(0x3ba,read_herc_status,IO_MB);
 	}
-	if (machine==MCH_CGA) {
+	if (machine==MCH_CGA || machine==MCH_MCGA) {
 		Bitu base=0x3d0;
 		for (Bitu port_ct=0; port_ct<4; port_ct++) {
 			IO_RegisterWriteHandler(base+port_ct*2,write_crtc_index_other,IO_MB);

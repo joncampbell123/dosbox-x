@@ -317,6 +317,7 @@ void INT10_SetBackgroundBorder(Bit8u val) {
 	
 	switch (machine) {
 	case MCH_CGA:
+	case MCH_MCGA:
 		// only write the color select register
 		IO_Write(0x3d9,color_select);
 		break;
@@ -378,7 +379,7 @@ void INT10_SetColorSelect(Bit8u val) {
 	Bit8u temp=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL);
 	temp=(temp & 0xdf) | ((val & 1) ? 0x20 : 0x0);
 	real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL,temp);
-	if (machine == MCH_CGA || machine == MCH_AMSTRAD || machine==MCH_TANDY)
+	if (machine == MCH_CGA || machine == MCH_MCGA || machine == MCH_AMSTRAD || machine==MCH_TANDY)
 		IO_Write(0x3d9,temp);
 	else if (machine == MCH_PCJR) {
 		IO_Read(VGAREG_TDY_RESET); // reset the flipflop
