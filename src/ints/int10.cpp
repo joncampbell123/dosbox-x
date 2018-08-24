@@ -306,7 +306,7 @@ graphics_chars:
 		}
 		break;
 	case 0x12:								/* alternate function select */
-		if (!IS_EGAVGA_ARCH) 
+		if (!IS_EGAVGA_ARCH && machine != MCH_MCGA) 
 			break;
 		switch (reg_bl) {
 		case 0x10:							/* Get EGA Information */
@@ -320,6 +320,9 @@ graphics_chars:
                     reg_bl=1;	//128 kb
                 else
                     reg_bl=0;	//64 kb
+            }
+            else if (machine == MCH_MCGA) {
+                reg_bl=0;	//64 kb
             }
             else {
                 reg_bl=3;	//256 kb
@@ -477,7 +480,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 		INT10_WriteString(reg_dh,reg_dl,reg_al,reg_bl,SegPhys(es)+reg_bp,reg_cx,reg_bh);
 		break;
 	case 0x1A:								/* Display Combination */
-		if (!IS_VGA_ARCH) break;
+		if (!IS_VGA_ARCH && machine != MCH_MCGA) break;
 		if (reg_al<2) {
 			INT10_DisplayCombinationCode(&reg_bx,(reg_al==1));
 			reg_ax=0x1A;	// high part destroyed or zeroed depending on BIOS
