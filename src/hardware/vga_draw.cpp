@@ -1773,6 +1773,11 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
     vga_display_start_hretrace = vga.crtc.start_horizontal_retrace;
     vga.config.real_start=vga.config.display_start & vga.mem.memmask;
     vga.draw.bytes_skip = vga.config.bytes_skip;
+
+    /* TODO: When does 640x480 2-color mode latch foreground/background colors from the DAC? */
+    if (machine == MCH_MCGA && (vga.other.mcga_mode_control & 2)) {//640x480 2-color mode MCGA
+        VGA_DAC_UpdateColorPalette();
+    }
 }
  
 static void VGA_PanningLatch(Bitu /*val*/) {

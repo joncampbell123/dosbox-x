@@ -153,6 +153,10 @@ void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
     if ( vga.dac.pel_mask != val ) {
         LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:DCA:Pel Mask set to %X", (int)val);
         vga.dac.pel_mask = val;
+
+        // TODO: MCGA 640x480 2-color mode appears to latch the DAC at retrace
+        //       for background/foreground. Does that apply to the PEL mask too?
+
         VGA_DAC_UpdateColorPalette();
     }
 }
@@ -245,7 +249,19 @@ void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
     }
 
     if (update) {
-        VGA_DAC_UpdateColorPalette(); // FIXME: Yes, this is very inefficient. Will improve later.
+        // As seen on real hardware: 640x480 2-color is the ONLY video mode
+        // where the MCGA hardware appears to latch foreground and background
+        // colors from the DAC at retrace, instead of always reading through
+        // the DAC.
+        //
+        // Perhaps IBM couldn't get the DAC to run fast enough for 640x480 2-color mode.
+        if (machine == MCH_MCGA && (vga.other.mcga_mode_control & 2)) {
+            /* do not update the palette right now.
+             * MCGA double-buffers foreground and background colors */
+        }
+        else {
+            VGA_DAC_UpdateColorPalette(); // FIXME: Yes, this is very inefficient. Will improve later.
+        }
 
         /* only if we just completed a color should we advance */
         if (vga.dac.pel_index == 0)
