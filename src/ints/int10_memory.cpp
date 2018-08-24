@@ -152,6 +152,19 @@ void INT10_SetupRomMemory(void) {
 		int10.rom.font_16=0;
 		RealSetVec(0x43,int10.rom.font_8_first);
 		RealSetVec(0x1F,int10.rom.font_8_second);
+
+        if (machine == MCH_MCGA) {
+            Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at);
+
+            Bitu base = ROMBIOS_GetMemory((Bitu)(256*16),"MCGA 16-line font",1,0u);
+            if (base == 0) E_Exit("Unable to alloc MCGA 16x font");
+
+            for (unsigned int i=0;i<256*16;i++)
+                phys_writeb(base+i,int10_font_16[i]);
+
+            int10.rom.font_16 = RealMake(base >> 4,base & 0xF);
+        }
+
 		return;
 	}
 
