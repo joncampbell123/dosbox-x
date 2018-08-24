@@ -197,13 +197,16 @@ static void write_crtc_data_mcga(Bitu port,Bitu val,Bitu iolen) {
                         VGA_DAC_UpdateColorPalette();
                     }
 
-                    if (vga.other.mcga_mode_control & 1) // MCGA 256-color mode
+                    if (vga.other.mcga_mode_control & 1) { // MCGA 256-color mode
 					    VGA_SetMode(M_VGA);
-                    else if (vga.other.mcga_mode_control & 2) // MCGA 640x480 2-color
-					    VGA_SetMode(M_CGA2);
+                    }
                     else {
-		                write_cga(0x3D8,vga.tandy.mode_control,1); // restore CGA
-		                write_cga(0x3D9,vga.tandy.color_select,1); // restore CGA
+                        if (vga.other.mcga_mode_control & 2) // MCGA 640x480 2-color
+					        VGA_SetMode(M_TANDY2);
+                        else
+                            write_cga(0x3D8,vga.tandy.mode_control,1); // restore CGA
+
+                        write_cga(0x3D9,vga.tandy.color_select,1); // restore CGA
                     }
 
                     if (changed & 0x0B)

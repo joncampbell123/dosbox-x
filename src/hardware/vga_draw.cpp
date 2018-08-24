@@ -2856,11 +2856,16 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
         /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
         if (machine == MCH_MCGA) {
-            vga.tandy.draw_base = vga.mem.linear + 0x8000;
             VGA_DrawLine=VGA_Draw_1BPP_Line_as_MCGA;
             vga.draw.blocks=width * 2;
             pix_per_char = 16;
             bpp = 32;
+
+            /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
+            if (vga.other.mcga_mode_control & 3) // 320x200 256-color or 640x480 2-color
+                vga.tandy.draw_base = vga.mem.linear;
+            else
+                vga.tandy.draw_base = vga.mem.linear + 0x8000;
         }
 
         break;

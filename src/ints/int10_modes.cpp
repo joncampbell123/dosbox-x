@@ -814,12 +814,15 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 	case MCH_MCGA:
         if (CurMode->mode == 0x13 && machine == MCH_MCGA)
             mode_control=0x0a;
+        else if (CurMode->mode == 0x11 && machine == MCH_MCGA)
+            mode_control=0x1e;
         else if (CurMode->mode < sizeof(mode_control_list))
             mode_control=mode_control_list[CurMode->mode];
         else
             mode_control=0x00;
 
 		if (CurMode->mode == 0x6) color_select=0x3f;
+        else if (CurMode->mode == 0x11) color_select=0x3f;
 		else color_select=0x30;
 		IO_WriteB(0x3d8,mode_control);
 		IO_WriteB(0x3d9,color_select);
