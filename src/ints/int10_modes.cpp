@@ -413,6 +413,8 @@ VideoModeBlock ModeList_MCGA[]={//FIXME: These are GUESSES made by adapting VGA 
 { 0x004  ,M_CGA4   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,49  ,108 ,40 ,100 ,0   },
 { 0x005  ,M_CGA4   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,49  ,108 ,40 ,100 ,0   },
 { 0x006  ,M_CGA2   ,640 ,200 ,80 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,49  ,108 ,40 ,100 ,0   },
+{ 0x011  ,M_CGA2   ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0xA000 ,49  ,127 ,40 ,120 ,0	},//GUESS
+{ 0x013  ,M_VGA    ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x2000 ,49  ,108 ,40 ,100 ,0   },//GUESS
 {0xFFFF  ,M_ERROR  ,0   ,0   ,0  ,0  ,0 ,0  ,0 ,0x00000 ,0x0000 ,0   ,0   ,0  ,0   ,0 	},
 };
 
@@ -755,6 +757,7 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 		else scanline=8;
 		break;
 	case M_CGA2: // graphics mode: even/odd banks interleaved
+	case M_VGA: // MCGA (GUESS!!)
 		scanline=2;
 		break;
 	case M_CGA4:
@@ -768,6 +771,17 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 	default:
 		break;
 	}
+
+    if (machine == MCH_MCGA) {
+        IO_Write(0x3c8,0);
+        for (unsigned int i=0;i<248;i++) {
+            IO_Write(0x3c9,vga_palette[i][0]);
+            IO_Write(0x3c9,vga_palette[i][1]);
+            IO_Write(0x3c9,vga_palette[i][2]);
+        }
+		IO_Write(0x3c6,0xff); //Reset Pelmask
+    }
+
 	IO_WriteW(crtc_base,0x09 | (scanline-1u) << 8u);
 	//Setup the CGA palette using VGA DAC palette
 	for (Bit8u ct=0;ct<16;ct++) VGA_DAC_SetEntry(ct,cga_palette[ct][0],cga_palette[ct][1],cga_palette[ct][2]);
@@ -798,7 +812,13 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 		IO_WriteB( 0x3d9, 0x0f );
 	case MCH_CGA:
 	case MCH_MCGA:
-		mode_control=mode_control_list[CurMode->mode];
+        if (CurMode->mode == 0x13 && machine == MCH_MCGA)
+            mode_control=0x0a;
+        else if (CurMode->mode < sizeof(mode_control_list))
+            mode_control=mode_control_list[CurMode->mode];
+        else
+            mode_control=0x00;
+
 		if (CurMode->mode == 0x6) color_select=0x3f;
 		else color_select=0x30;
 		IO_WriteB(0x3d8,mode_control);
@@ -806,6 +826,17 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 		real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,mode_control);
 		real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL,color_select);
 		if (mono_cga) Mono_CGA_Palette();
+
+        if (machine == MCH_MCGA) {
+            unsigned char mcga_mode = 0x10;
+
+            if (CurMode->type == M_VGA)
+                mcga_mode |= 0x01;//320x200 256-color
+            else if (CurMode->type == M_CGA2 && CurMode->sheight > 240)
+                mcga_mode |= 0x02;//640x480 2-color
+
+            IO_WriteW(crtc_base,0x10 | (mcga_mode) << 8);
+        }
 		break;
 	case MCH_TANDY:
 		/* Init some registers */

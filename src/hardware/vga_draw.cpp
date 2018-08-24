@@ -1984,6 +1984,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             if (vga.config.addr_shift == 1) /* NTS: Remember the ET4K steps by 4 pixels, one per byteplane, treats BYTE and DWORD modes the same */
                 vga.draw.address *= 2u;
         }
+        else if (machine == MCH_MCGA) {
+            vga.draw.linear_mask = 0xffffu;
+            vga.draw.address *= 2u;
+            break;// don't fall through
+        }
         else {
             vga.draw.address *= 1u<<vga.config.addr_shift; /* NTS: Remember the bizarre 4 x 4 mode most SVGA chipsets do */
         }
@@ -2120,6 +2125,9 @@ void VGA_CheckScanLength(void) {
                  *
                  *    TODO: Validate that this is correct. */
                 vga.draw.address_add=vga.config.scan_len*((vga.config.addr_shift == 1)?16:8);
+            }
+            else if (machine == MCH_MCGA) {
+                vga.draw.address_add=vga.draw.blocks*4;
             }
             else {
                 /* Most (almost ALL) VGA clones render chained modes as 4 8-bit planes one DWORD apart.
@@ -2694,6 +2702,12 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             /* ET4000 chipsets handle the chained mode (in my opinion) with sanity and we can scan linearly for it.
              * Chained VGA mode maps planar byte addr = (addr >> 2) and plane = (addr & 3) */
             VGA_DrawLine = VGA_Draw_Xlat32_Linear_Line;
+        }
+        else if (machine == MCH_MCGA) {
+            pix_per_char = 8;
+            VGA_DrawLine = VGA_Draw_Xlat32_Linear_Line;
+            vga.tandy.draw_base = vga.mem.linear;
+            vga.draw.address_line_total = 1;
         }
         else {
             /* other SVGA chipsets appear to handle chained mode by writing 4 pixels to 4 planes, and showing

@@ -29,6 +29,8 @@
 
 #define crtc(blah) vga.crtc.blah
 
+static void write_cga(Bitu port,Bitu val,Bitu /*iolen*/);
+
 static void write_crtc_index_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 	vga.other.index=(Bit8u)(val & 0x1f);
 }
@@ -87,7 +89,10 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 	case 0x0C:	/* Start Address High Register */
 		// Bit 12 (depending on video mode) and 13 are actually masked too,
 		// but so far no need to implement it.
-		vga.config.display_start=(vga.config.display_start & 0x00FF) | ((val&0x3F) << 8);
+        if (machine == MCH_MCGA)
+            vga.config.display_start=(vga.config.display_start & 0x00FF) | ((val&0xFF) << 8);
+        else
+            vga.config.display_start=(vga.config.display_start & 0x00FF) | ((val&0x3F) << 8);
 		break;
 	case 0x0D:	/* Start Address Low Register */
 		vga.config.display_start=(vga.config.display_start & 0xFF00) | val;
@@ -184,6 +189,22 @@ static void write_crtc_data_mcga(Bitu port,Bitu val,Bitu iolen) {
                         crtc(read_only) = true;
                     else
                         crtc(read_only) = false;
+
+                    if (vga.other.mcga_mode_control & 3) {
+                        for (unsigned int i=0;i < 16;i++)
+                            VGA_DAC_CombineColor(i,i);
+        
+                        VGA_DAC_UpdateColorPalette();
+                    }
+
+                    if (vga.other.mcga_mode_control & 1) // MCGA 256-color mode
+					    VGA_SetMode(M_VGA);
+                    else if (vga.other.mcga_mode_control & 2) // MCGA 640x480 2-color
+					    VGA_SetMode(M_CGA2);
+                    else {
+		                write_cga(0x3D8,vga.tandy.mode_control,1); // restore CGA
+		                write_cga(0x3D9,vga.tandy.color_select,1); // restore CGA
+                    }
 
                     if (changed & 0x0B)
                         VGA_StartResize();
@@ -454,6 +475,10 @@ static void DecreaseHue(bool pressed) {
 
 static void write_cga_color_select(Bitu val) {
 	vga.tandy.color_select=val;
+
+    if (vga.other.mcga_mode_control & 1) /* ignore COMPLETELY in 256-color MCGA mode */
+        return;
+
 	switch(vga.mode) {
 	case  M_TANDY4: {
 		Bit8u base = (val & 0x10) ? 0x08 : 0;
@@ -491,7 +516,10 @@ static void write_cga(Bitu port,Bitu val,Bitu /*iolen*/) {
 	case 0x3d8:
 		vga.tandy.mode_control=(Bit8u)val;
 		vga.attr.disabled = (val&0x8)? 0: 1; 
-		if (vga.tandy.mode_control & 0x2) {		// graphics mode
+        if (vga.other.mcga_mode_control & 3) { // MCGA 256-color mode or 2-color 640x480
+            // do nothing
+        }
+        else if (vga.tandy.mode_control & 0x2) {		// graphics mode
 			if (vga.tandy.mode_control & 0x10) {// highres mode
 				if (machine == MCH_AMSTRAD) {
 					VGA_SetMode(M_AMSTRAD);			//Amstrad 640x200x16 video mode.

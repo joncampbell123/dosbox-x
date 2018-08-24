@@ -1260,6 +1260,8 @@ void VGA_Init() {
     string str;
     Bitu i,j;
 
+    vga.other.mcga_mode_control = 0;
+
     vga.draw.render_step = 0;
     vga.draw.render_max = 1;
 

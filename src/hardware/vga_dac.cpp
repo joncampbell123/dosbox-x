@@ -91,8 +91,8 @@ static void VGA_DAC_SendColor( Bitu index, Bitu src ) {
 void VGA_DAC_UpdateColor( Bitu index ) {
     Bitu maskIndex;
 
-    if (IS_VGA_ARCH || machine == MCH_MCGA) {
-        if (machine != MCH_MCGA && (vga.mode == M_VGA || vga.mode == M_LIN8)) {
+    if (IS_VGA_ARCH) {
+        if (vga.mode == M_VGA || vga.mode == M_LIN8) {
             /* WARNING: This code assumes index < 256 */
             switch (VGA_AC_remap) {
                 case AC_4x4:
@@ -120,6 +120,14 @@ void VGA_DAC_UpdateColor( Bitu index ) {
         else {
             maskIndex = vga.dac.combine[index&0xF] & vga.dac.pel_mask;
         }
+
+        VGA_DAC_SendColor( index, maskIndex );
+    }
+    else if (machine == MCH_MCGA) {
+        if (vga.mode == M_VGA || vga.mode == M_LIN8)
+            maskIndex = index & vga.dac.pel_mask;
+        else
+            maskIndex = vga.dac.combine[index&0xF] & vga.dac.pel_mask;
 
         VGA_DAC_SendColor( index, maskIndex );
     }
