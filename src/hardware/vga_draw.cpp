@@ -267,6 +267,7 @@ static Bit8u * EGA_Draw_1BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
 
 static Bit8u * VGA_Draw_1BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
     const Bit8u *base = (Bit8u*)vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
+    unsigned char fg = vga.tandy.color_select & 0xF;
     Bit32u * draw=(Bit32u *)TempLine;
     VGA_Latch pixels;
     Bitu val,i;
@@ -282,7 +283,7 @@ static Bit8u * VGA_Draw_1BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
          * needs to act like it */
 
         for (i=0;i < 8;i++,val <<= 1)
-            *draw++ = vga.dac.xlat32[((val>>7)&1)*0xF];
+            *draw++ = vga.dac.xlat32[((val>>7)&1)*fg];
     }
     return TempLine;
 }
