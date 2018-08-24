@@ -848,7 +848,7 @@ void VGA_Reset(Section*) {
 
     // TODO: Code to remove programs added by PROGRAMS_MakeFile
 
-    if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart);
+    if (machine == MCH_CGA && !cga_as_mcga) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart);
     PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart);
 
     if (IS_PC98_ARCH) {
