@@ -2360,7 +2360,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             clock=(16000000/2)/8;
             break;
         case MCH_CGA:
-        case MCH_MCGA:
+        case MCH_MCGA://TODO: What is the MCGA dot clock? It can't just be double CGA because the video output is 70Hz VGA
         case TANDY_ARCH_CASE:
             clock = (PIT_TICK_RATE*12)/8;
             if (!(vga.tandy.mode_control & 1)) clock /= 2;
