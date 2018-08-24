@@ -73,11 +73,6 @@ struct Dynamic_Functionality {
 #pragma pack()
 
 void INT10_DisplayCombinationCode(Bit16u * dcc,bool set) {
-    if (IS_MCGA_ARCH) {
-	    *dcc=0x0C; // MCGA with color analog
-        return;
-    }
-
 	Bit8u index=0xff;
 	Bit16u dccentry=0xffff;
 	// walk the tables...

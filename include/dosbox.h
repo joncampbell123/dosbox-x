@@ -116,7 +116,7 @@ void					DOSBOX_Init(void);
 
 #define IS_FM_TOWNS             (machine==MCH_FM_TOWNS)
 
-#define IS_MCGA_ARCH            (machine==MCH_MCGA || (machine==MCH_CGA && cga_as_mcga))
+#define IS_MCGA_ARCH            (machine==MCH_MCGA || (machine==MCG_CGA && cga_as_mcga))
 
 /* machine tests for use with switch() statements */
 #define TANDY_ARCH_CASE			MCH_TANDY: case MCH_PCJR
