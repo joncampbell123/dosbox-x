@@ -404,6 +404,18 @@ VideoModeBlock ModeList_OTHER[]={
 {0xFFFF  ,M_ERROR  ,0   ,0   ,0  ,0  ,0 ,0  ,0 ,0x00000 ,0x0000 ,0   ,0   ,0  ,0   ,0 	},
 };
 
+VideoModeBlock ModeList_MCGA[]={//FIXME: These are GUESSES made by adapting VGA mode timings into CGA terms
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde ,special flags */
+{ 0x000  ,M_TEXT   ,360 ,400 ,40 ,25 ,8 ,16 ,8 ,0xB8000 ,0x0800 ,49  ,26  ,40 ,25  ,0	}, // FIXME: According to real hardware, 70.2Hz not 70.88
+{ 0x001  ,M_TEXT   ,360 ,400 ,40 ,25 ,8 ,16 ,8 ,0xB8000 ,0x0800 ,49  ,26  ,40 ,25  ,0	},
+{ 0x002  ,M_TEXT   ,640 ,400 ,80 ,25 ,8 ,16 ,8 ,0xB8000 ,0x1000 ,99  ,26  ,80 ,25  ,0	},
+{ 0x003  ,M_TEXT   ,640 ,400 ,80 ,25 ,8 ,16 ,8 ,0xB8000 ,0x1000 ,99  ,26  ,80 ,25  ,0	},
+{ 0x004  ,M_CGA4   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,49  ,108 ,40 ,100 ,0   },
+{ 0x005  ,M_CGA4   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,49  ,108 ,40 ,100 ,0   },
+{ 0x006  ,M_CGA2   ,640 ,200 ,80 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,49  ,108 ,40 ,100 ,0   },
+{0xFFFF  ,M_ERROR  ,0   ,0   ,0  ,0  ,0 ,0  ,0 ,0x00000 ,0x0000 ,0   ,0   ,0  ,0   ,0 	},
+};
+
 VideoModeBlock Hercules_Mode=
 { 0x007  ,M_TEXT   ,640 ,400 ,80 ,25 ,8 ,14 ,1 ,0xB0000 ,0x1000 ,97 ,25  ,80 ,25  ,0	};
 
@@ -555,8 +567,10 @@ bool INT10_SetCurMode(void) {
 	if (CurMode == NULL || CurMode->mode != bios_mode) {
 		switch (machine) {
 		case MCH_CGA:
-		case MCH_MCGA:
 			if (bios_mode<7) mode_changed=SetCurMode(ModeList_OTHER,bios_mode);
+			break;
+		case MCH_MCGA:
+			mode_changed=SetCurMode(ModeList_MCGA,bios_mode);
 			break;
 		case TANDY_ARCH_CASE:
 			if (bios_mode!=7 && bios_mode<=0xa) mode_changed=SetCurMode(ModeList_OTHER,bios_mode);
@@ -679,7 +693,6 @@ extern bool en_int33;
 bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 	switch (machine) {
 	case MCH_CGA:
-	case MCH_MCGA:
 	case MCH_AMSTRAD:
 		if (mode>6) return false;
 	case TANDY_ARCH_CASE:
@@ -690,7 +703,13 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 			return false;
 		}
 		break;
-	case MCH_HERC:
+	case MCH_MCGA:
+        if (!SetCurMode(ModeList_MCGA,mode)) {
+            LOG(LOG_INT10,LOG_ERROR)("Trying to set illegal mode %X",mode);
+            return false;
+        }
+        break;
+    case MCH_HERC:
 		// Only init the adapter if the equipment word is set to monochrome (Testdrive)
 		if ((real_readw(BIOSMEM_SEG,BIOSMEM_INITIAL_MODE)&0x30)!=0x30) return false;
 		CurMode=&Hercules_Mode;
