@@ -413,10 +413,6 @@ static void write_cga_color_select(Bitu val) {
 	case M_TANDY2:
 		VGA_SetCGA2Table(0,val & 0xf);
 		vga.attr.overscan_color = 0;
-
-        if (machine == MCH_MCGA)
-            VGA_DAC_CombineColor(0x1,val & 0xF);
-
 		break;
 	case M_CGA16:
 		cga16_color_select(val);
