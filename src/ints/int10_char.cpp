@@ -33,6 +33,18 @@ Bit8u DefaultANSIAttr();
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
 
+static void MCGA2_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt base) {
+    Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
+    PhysPt dest=base+((CurMode->twidth*rnew)*cheight+cleft);
+    PhysPt src=base+((CurMode->twidth*rold)*cheight+cleft);
+    Bitu copy=(Bitu)(cright-cleft);
+    Bitu nextline=CurMode->twidth;
+    for (Bitu i=0;i<cheight;i++) {
+        MEM_BlockCopy(dest,src,copy);
+        dest+=nextline;src+=nextline;
+    }
+}
+
 static void CGA2_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt base) {
     Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
     PhysPt dest=base+((CurMode->twidth*rnew)*(cheight/2)+cleft);
@@ -277,7 +289,11 @@ void INT10_ScrollWindow(Bit8u rul,Bit8u cul,Bit8u rlr,Bit8u clr,Bit8s nlines,Bit
         case M_TEXT:
             TEXT_CopyRow(cul,clr,start,start+nlines,base);break;
         case M_CGA2:
-            CGA2_CopyRow(cul,clr,start,start+nlines,base);break;
+            if (machine == MCH_MCGA && CurMode->mode == 0x11)
+                MCGA2_CopyRow(cul,clr,start,start+nlines,base);
+            else
+                CGA2_CopyRow(cul,clr,start,start+nlines,base);
+            break;
         case M_CGA4:
             CGA4_CopyRow(cul,clr,start,start+nlines,base);break;
         case M_TANDY16:

@@ -69,7 +69,19 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 	}
 	break;
 	case M_CGA2:
-		{
+        if (machine == MCH_MCGA && real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE) == 0x11) {
+            Bit16u off=y*80+(x>>3);
+            Bit8u old=real_readb(0xa000,off);
+
+            if (color & 0x80) {
+                color&=1;
+                old^=color << ((7-(x&7)));
+            } else {
+                old=(old&cga_masks2[x&7])|((color&1) << ((7-(x&7))));
+            }
+            real_writeb(0xa000,off,old);
+        }
+        else {
 				Bit16u off=(y>>1)*80+(x>>3);
 				if (y&1) off+=8*1024;
 				Bit8u old=real_readb(0xb800,off);
