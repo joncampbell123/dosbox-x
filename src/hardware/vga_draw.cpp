@@ -1937,20 +1937,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
          * and false. Otherwise it's true */
         vga.draw.blink = ((vga.draw.blinking & (unsigned int)(vga.draw.cursor.count >> 4u))
             || !vga.draw.blinking) ? true:false;
-
-        /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
-        if (machine == MCH_MCGA)
-			vga.tandy.draw_base = vga.mem.linear + 0x8000;
         break;
     case M_HERC_GFX:
     case M_CGA4:
     case M_CGA2:
         vga.draw.address=(vga.draw.address*2u)&0x1fffu;
-
-        /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
-        if (machine == MCH_MCGA)
-			vga.tandy.draw_base = vga.mem.linear + 0x8000;
-
         break;
     case M_AMSTRAD: // Base address: No difference?
         vga.draw.address=(vga.draw.address*2u)&0xffffu;
@@ -2674,6 +2665,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         else {
             vga.draw.blocks=width*2;
             VGA_DrawLine=VGA_Draw_2BPP_Line;
+
+            /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
+            if (machine == MCH_MCGA)
+                vga.tandy.draw_base = vga.mem.linear + 0x8000;
         }
         break;
     case M_CGA2:
@@ -2690,6 +2685,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         else {
             vga.draw.blocks=width*2;
             VGA_DrawLine=VGA_Draw_1BPP_Line;
+
+            /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
+            if (machine == MCH_MCGA)
+                vga.tandy.draw_base = vga.mem.linear + 0x8000; 
         }
         break;
     case M_PC98:
@@ -2736,6 +2735,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             pix_per_char = 8;
         }
         VGA_DrawLine=VGA_Draw_1BPP_Line;
+
+        /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
+        if (machine == MCH_MCGA)
+            vga.tandy.draw_base = vga.mem.linear + 0x8000;
+
         break;
     case M_TANDY4:
         vga.draw.blocks=width * 2;
@@ -2744,6 +2748,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             (machine==MCH_PCJR && (vga.tandy.mode_control==0x0b)))
             VGA_DrawLine=VGA_Draw_2BPPHiRes_Line;
         else VGA_DrawLine=VGA_Draw_2BPP_Line;
+
+        /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
+        if (machine == MCH_MCGA)
+            vga.tandy.draw_base = vga.mem.linear + 0x8000;
+
         break;
     case M_TANDY16:
         if (vga.tandy.mode_control & 0x1) {
@@ -2767,6 +2776,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             VGA_DrawLine=VGA_CGASNOW_TEXT_Draw_Line; /* Alternate version that emulates CGA snow */
         else
             VGA_DrawLine=VGA_TEXT_Draw_Line;
+
+        /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
+        if (machine == MCH_MCGA)
+            vga.tandy.draw_base = vga.mem.linear + 0x8000;
+
         break;
     case M_HERC_TEXT:
         vga.draw.blocks=width;
