@@ -437,13 +437,13 @@ static void write_cga(Bitu port,Bitu val,Bitu /*iolen*/) {
 			if (vga.tandy.mode_control & 0x10) {// highres mode
 				if (machine == MCH_AMSTRAD) {
 					VGA_SetMode(M_AMSTRAD);			//Amstrad 640x200x16 video mode.
-				} else if ((cga_comp==1 || (cga_comp==0 && !(val&0x4))) && !mono_cga) {	// composite display
+				} else if (machine != MCH_MCGA && (cga_comp==1 || (cga_comp==0 && !(val&0x4))) && !mono_cga) {	// composite display
 					VGA_SetMode(M_CGA16);		// composite ntsc 640x200 16 color mode
 				} else {
 					VGA_SetMode(M_TANDY2);
 				}
 			} else {							// lowres mode
-				if (cga_comp==1) {				// composite display
+				if (machine != MCH_MCGA && cga_comp==1) {				// composite display
 					VGA_SetMode(M_CGA16);		// composite ntsc 640x200 16 color mode
 				} else {
 					VGA_SetMode(M_TANDY4);
