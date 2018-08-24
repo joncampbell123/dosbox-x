@@ -193,7 +193,7 @@ static void write_crtc_data_mcga(Bitu port,Bitu val,Bitu iolen) {
                     if (vga.other.mcga_mode_control & 3) {
                         for (unsigned int i=0;i < 16;i++)
                             VGA_DAC_CombineColor(i,i);
-        
+
                         VGA_DAC_UpdateColorPalette();
                     }
 
