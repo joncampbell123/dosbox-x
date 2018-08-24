@@ -27,6 +27,8 @@
 #include "render.h"
 #include "mapper.h"
 
+#define crtc(blah) vga.crtc.blah
+
 static void write_crtc_index_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 	vga.other.index=(Bit8u)(val & 0x1f);
 }
@@ -157,11 +159,36 @@ static Bitu read_crtc_data_other(Bitu /*port*/,Bitu /*iolen*/) {
 
 static void write_crtc_data_mcga(Bitu port,Bitu val,Bitu iolen) {
     if (vga.other.index < 0x10) {
+        /* MCGA has a write protect, just like VGA */
+		if (vga.other.index <= 0x07 && crtc(read_only)) return;
+
         /* 0x00 through 0x0F are the same as CGA */
         write_crtc_data_other(port,val,iolen);
     }
     else {
         switch (vga.other.index) {
+            case 0x10: /* MCGA Mode Control */
+                {
+                    const Bit8u changed = (vga.other.mcga_mode_control ^ val);
+
+                    /* bit 0: 1=select 320x200 256-color mode    0=all else
+                     * bit 1: 1=select 640x480 2-color mode      0=all else
+                     * bit 2: reserved
+                     * bit 3: 1=horizontal timing parameters computed in hardware for video mode   0=...from timing in registers 0-3
+                     * bit 4: 1=enable dot clock
+                     * bit 5: reserved
+                     * bit 6: inverse of bit 8 of vertical displayed register 0x06
+                     * bit 7: 1=write protect registers 0-7 */
+                    vga.other.mcga_mode_control = val;
+                    if (val & 0x80)
+                        crtc(read_only) = true;
+                    else
+                        crtc(read_only) = false;
+
+                    if (changed & 0x0B)
+                        VGA_StartResize();
+                }
+                break;
             default:
                 LOG(LOG_VGAMISC,LOG_NORMAL)("MC6845:MCGA Write %X to illegal index %x",(int)val,(int)vga.other.index);
                 break;
@@ -175,6 +202,8 @@ static Bitu read_crtc_data_mcga(Bitu port,Bitu iolen) {
     }
     else {
         switch (vga.other.index) {
+            case 0x10: /* MCGA Mode Control */
+                return vga.other.mcga_mode_control;
             default:
 		        LOG(LOG_VGAMISC,LOG_NORMAL)("MC6845:MCGA Read from illegal index %x",vga.other.index);
                 break;

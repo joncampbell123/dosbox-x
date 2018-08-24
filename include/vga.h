@@ -283,6 +283,7 @@ typedef struct {
 	bool lightpen_triggered;
 	Bit8u cursor_start;
 	Bit8u cursor_end;
+    Bit8u mcga_mode_control;
 } VGA_OTHER;
 
 typedef struct {
