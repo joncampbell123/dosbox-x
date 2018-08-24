@@ -905,6 +905,63 @@ skip_cursor:
     return TempLine;
 }
 
+static Bit8u * MCGA_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
+    // keep it aligned:
+    Bit32u* draw = (Bit32u*)TempLine;
+    const Bit8u* vidmem = VGA_Text_Memwrap(vidstart);
+    Bitu blocks = vga.draw.blocks;
+    if (vga.draw.panning) blocks++; // if the text is panned part of an 
+                                    // additional character becomes visible
+    while (blocks--) { // for each character in the line
+        Bitu chr = *vidmem++;
+        Bitu attr = *vidmem++;
+        // the font pattern
+        Bitu font = vga.draw.font_tables[(attr >> 3u)&1u][(chr<<5u)+line];
+        
+        Bitu background = attr >> 4u;
+        // if blinking is enabled bit7 is not mapped to attributes
+        if (vga.draw.blinking) background &= ~0x8u;
+        // choose foreground color if blinking not set for this cell or blink on
+        Bitu foreground = (vga.draw.blink || (!(attr&0x80)))?
+            (attr&0xf):background;
+        // underline: all foreground [freevga: 0x77, previous 0x7]
+        if (GCC_UNLIKELY(((attr&0x77) == 0x01) &&
+            (vga.crtc.underline_location&0x1f)==line))
+                background = foreground;
+        if (vga.draw.char9dot) {
+            font <<=1; // 9 pixels
+            // extend to the 9th pixel if needed
+            if ((font&0x2) && (vga.attr.mode_control&0x04) &&
+                (chr>=0xc0) && (chr<=0xdf)) font |= 1;
+            for (Bitu n = 0; n < 9; n++) {
+                *draw++ = vga.dac.xlat32[(font&0x100)? foreground:background];
+                font <<= 1;
+            }
+        } else {
+            for (Bitu n = 0; n < 8; n++) {
+                *draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
+                font <<= 1;
+            }
+        }
+    }
+    // draw the text mode cursor if needed
+    if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
+        (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
+        // the adress of the attribute that makes up the cell the cursor is in
+        Bits attr_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) >> (Bits)1; /* <- FIXME: This right? */
+        if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
+            Bitu index = (Bitu)attr_addr * (vga.draw.char9dot?9u:8u) * 4u;
+            draw = (Bit32u*)(&TempLine[index]);
+            
+            Bitu foreground = vga.tandy.draw_base[(vga.draw.cursor.address<<1)+1] & 0xf;
+            for (Bitu i = 0; i < 8; i++) {
+                *draw++ = vga.dac.xlat32[foreground];
+            }
+        }
+    }
+    return TempLine;
+}
+
 static Bit8u * VGA_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
     Bits font_addr;
     Bit32u * draw=(Bit32u *)TempLine;
@@ -2778,8 +2835,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             VGA_DrawLine=VGA_TEXT_Draw_Line;
 
         /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
-        if (machine == MCH_MCGA)
+        if (machine == MCH_MCGA) {
             vga.tandy.draw_base = vga.mem.linear + 0x8000;
+            VGA_DrawLine = MCGA_TEXT_Draw_Line;
+            bpp = 32;
+        }
 
         break;
     case M_HERC_TEXT:
