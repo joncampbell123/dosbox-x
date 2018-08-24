@@ -2803,6 +2803,9 @@ void VGA_SetupDrawing(Bitu /*val*/) {
                 vga.tandy.draw_base = vga.mem.linear;
             else
                 vga.tandy.draw_base = vga.mem.linear + 0x8000;
+
+            if (vga.other.mcga_mode_control & 2) // 640x480 2-color
+                vga.draw.address_line_total = 1;
         }
         else {
             vga.draw.blocks=width*2;
@@ -2866,6 +2869,9 @@ void VGA_SetupDrawing(Bitu /*val*/) {
                 vga.tandy.draw_base = vga.mem.linear;
             else
                 vga.tandy.draw_base = vga.mem.linear + 0x8000;
+
+            if (vga.other.mcga_mode_control & 2) // 640x480 2-color
+                vga.draw.address_line_total = 1;
         }
 
         break;
