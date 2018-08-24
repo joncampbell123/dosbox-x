@@ -137,6 +137,20 @@ static void PC98_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt b
     MEM_BlockCopy(dest+0x2000,src+0x2000,(Bitu)(cright-cleft)*2u);
 }
 
+static void MCGA2_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u attr) {
+    Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
+    PhysPt dest=base+((CurMode->twidth*row)*cheight+cleft);
+    Bitu copy=(Bitu)(cright-cleft);
+    Bitu nextline=CurMode->twidth;
+    attr=(attr & 0x3) | ((attr & 0x3) << 2) | ((attr & 0x3) << 4) | ((attr & 0x3) << 6);
+    for (Bitu i=0;i<cheight;i++) {
+        for (Bitu x=0;x<copy;x++) {
+            mem_writeb(dest+x,attr);
+        }
+        dest+=nextline;
+    }
+}
+
 static void CGA2_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u attr) {
     Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
     PhysPt dest=base+((CurMode->twidth*row)*(cheight/2)+cleft);
@@ -328,7 +342,11 @@ filling:
         case M_TEXT:
             TEXT_FillRow(cul,clr,start,base,attr);break;
         case M_CGA2:
-            CGA2_FillRow(cul,clr,start,base,attr);break;
+            if (machine == MCH_MCGA && CurMode->mode == 0x11)
+                MCGA2_FillRow(cul,clr,start,base,attr);
+            else
+                CGA2_FillRow(cul,clr,start,base,attr);
+            break;
         case M_CGA4:
             CGA4_FillRow(cul,clr,start,base,attr);break;
         case M_TANDY16:     
