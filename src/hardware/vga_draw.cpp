@@ -275,8 +275,14 @@ static Bit8u * VGA_Draw_1BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
         val = base[vidstart & vga.tandy.addr_mask];
         vidstart++;
 
+        /* Real MCGA hardware acts as if it internally converts the monochrome output
+         * to RGBI (4-bit) then feeds that to the DAC.
+         *
+         * So pixels coming out of this scan are either 0x0 or 0xF and the DAC lookup
+         * needs to act like it */
+
         for (i=0;i < 8;i++,val <<= 1)
-            *draw++ = vga.dac.xlat32[(val>>7)&1];
+            *draw++ = vga.dac.xlat32[((val>>7)&1)*0xF];
     }
     return TempLine;
 }
