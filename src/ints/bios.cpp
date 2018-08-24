@@ -6456,11 +6456,7 @@ private:
 
             switch (machine) {
                 case MCH_CGA:
-                case MCH_MCGA://FIXME: MCH_MCGA, instead of MCH_CGA && cga_as_mcga
-                    if (cga_as_mcga)
-                        card = "IBM Multi Color Graphics Adapter";
-                    else
-                        card = "IBM Color Graphics Adapter";
+                    card = "IBM Color Graphics Adapter";
                     break;
                 case MCH_HERC:
                     card = "IBM Monochrome Display Adapter (Hercules)";
