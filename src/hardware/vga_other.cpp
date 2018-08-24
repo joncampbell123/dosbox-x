@@ -155,6 +155,35 @@ static Bitu read_crtc_data_other(Bitu /*port*/,Bitu /*iolen*/) {
 	return (Bitu)(~0);
 }
 
+static void write_crtc_data_mcga(Bitu port,Bitu val,Bitu iolen) {
+    if (vga.other.index < 0x10) {
+        /* 0x00 through 0x0F are the same as CGA */
+        write_crtc_data_other(port,val,iolen);
+    }
+    else {
+        switch (vga.other.index) {
+            default:
+                LOG(LOG_VGAMISC,LOG_NORMAL)("MC6845:MCGA Write %X to illegal index %x",(int)val,(int)vga.other.index);
+                break;
+        }
+    }
+}
+static Bitu read_crtc_data_mcga(Bitu port,Bitu iolen) {
+    if (vga.other.index < 0x10) {
+        /* 0x00 through 0x0F are the same as CGA */
+        return read_crtc_data_other(port,iolen);
+    }
+    else {
+        switch (vga.other.index) {
+            default:
+		        LOG(LOG_VGAMISC,LOG_NORMAL)("MC6845:MCGA Read from illegal index %x",vga.other.index);
+                break;
+        }
+    }
+
+	return (Bitu)(~0);
+}
+
 static void write_lightpen(Bitu port,Bitu val,Bitu) {
     (void)val;//UNUSED
 	switch (port) {
@@ -968,13 +997,22 @@ void VGA_SetupOther(void) {
 		IO_RegisterWriteHandler(0x3bf,write_hercules,IO_MB);
 		IO_RegisterReadHandler(0x3ba,read_herc_status,IO_MB);
 	}
-	if (machine==MCH_CGA || machine==MCH_MCGA) {
+	if (machine==MCH_CGA) {
 		Bitu base=0x3d0;
 		for (Bitu port_ct=0; port_ct<4; port_ct++) {
 			IO_RegisterWriteHandler(base+port_ct*2,write_crtc_index_other,IO_MB);
 			IO_RegisterWriteHandler(base+port_ct*2+1,write_crtc_data_other,IO_MB);
 			IO_RegisterReadHandler(base+port_ct*2,read_crtc_index_other,IO_MB);
 			IO_RegisterReadHandler(base+port_ct*2+1,read_crtc_data_other,IO_MB);
+		}
+	}
+	if (machine==MCH_MCGA) {
+		Bitu base=0x3d0;
+		for (Bitu port_ct=0; port_ct<4; port_ct++) {
+			IO_RegisterWriteHandler(base+port_ct*2,write_crtc_index_other,IO_MB);
+			IO_RegisterWriteHandler(base+port_ct*2+1,write_crtc_data_mcga,IO_MB);
+			IO_RegisterReadHandler(base+port_ct*2,read_crtc_index_other,IO_MB);
+			IO_RegisterReadHandler(base+port_ct*2+1,read_crtc_data_mcga,IO_MB);
 		}
 	}
 	if (IS_TANDY_ARCH) {
