@@ -511,6 +511,24 @@ public:
 	}
 };
 
+class VGA_MCGATEXT_PageHandler : public PageHandler {
+public:
+	VGA_MCGATEXT_PageHandler() {
+		flags=PFLAG_NOCODE;
+	}
+	Bitu readb(PhysPt addr) {
+		addr = PAGING_GetPhysicalAddress(addr) & 0xFFFF;
+		VGAMEM_USEC_read_delay();
+		return vga.tandy.mem_base[addr];
+	}
+	void writeb(PhysPt addr,Bitu val){
+		VGAMEM_USEC_write_delay();
+
+		addr = PAGING_GetPhysicalAddress(addr) & 0xFFFF;
+		vga.tandy.mem_base[addr] = val;
+	}
+};
+
 extern uint8_t pc98_egc_srcmask[2]; /* host given (Neko: egc.srcmask) */
 extern uint8_t pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
 extern uint8_t pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
@@ -1827,6 +1845,7 @@ static struct vg {
 	VGA_Slow_CGA_Handler		slow;
 //	VGA_TEXT_PageHandler		text;
 	VGA_CGATEXT_PageHandler		cgatext;
+	VGA_MCGATEXT_PageHandler	mcgatext;
 	VGA_TANDY_PageHandler		tandy;
 //	VGA_ChainedEGA_Handler		cega;
 //	VGA_ChainedVGA_Handler		cvga;
@@ -1859,11 +1878,15 @@ void VGA_SetupHandlers(void) {
 	PageHandler *newHandler;
 	switch (machine) {
 	case MCH_CGA:
-	case MCH_MCGA:
 		if (enableCGASnow && (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT))
 			MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.cgatext );
 		else
 			MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.slow );
+		goto range_done;
+	case MCH_MCGA://Based on real hardware, A0000-BFFFF is the 64KB of RAM mapped twice
+		MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.mcgatext );     // A0000-AFFFF is the 64KB of video RAM
+        MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 8 );            // B0000-B7FFF is unmapped
+		MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.mcgatext );      // B8000-BFFFF is the last 32KB half of video RAM, alias
 		goto range_done;
 	case MCH_PCJR:
 		MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.pcjr );

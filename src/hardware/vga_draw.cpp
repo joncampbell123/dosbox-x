@@ -1922,7 +1922,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     case M_TANDY_TEXT:
     case M_HERC_TEXT:
         if (machine==MCH_HERC) vga.draw.linear_mask = 0xfff; // 1 page
-        else if (IS_EGAVGA_ARCH) vga.draw.linear_mask = 0x7fff; // 8 pages
+        else if (IS_EGAVGA_ARCH || machine == MCH_MCGA) vga.draw.linear_mask = 0x7fff; // 8 pages
         else vga.draw.linear_mask = 0x3fff; // CGA, Tandy 4 pages
         if (IS_EGAVGA_ARCH)
             vga.draw.cursor.address=vga.config.cursor_start<<vga.config.addr_shift;
@@ -1937,11 +1937,20 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
          * and false. Otherwise it's true */
         vga.draw.blink = ((vga.draw.blinking & (unsigned int)(vga.draw.cursor.count >> 4u))
             || !vga.draw.blinking) ? true:false;
+
+        /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
+        if (machine == MCH_MCGA)
+			vga.tandy.draw_base = vga.mem.linear + 0x8000;
         break;
     case M_HERC_GFX:
     case M_CGA4:
     case M_CGA2:
         vga.draw.address=(vga.draw.address*2u)&0x1fffu;
+
+        /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
+        if (machine == MCH_MCGA)
+			vga.tandy.draw_base = vga.mem.linear + 0x8000;
+
         break;
     case M_AMSTRAD: // Base address: No difference?
         vga.draw.address=(vga.draw.address*2u)&0xffffu;
