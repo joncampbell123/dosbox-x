@@ -418,7 +418,14 @@ void VGA_SetCGA4Table(Bit8u val0,Bit8u val1,Bit8u val2,Bit8u val3) {
             ((Bitu)total[((i >> 3u) & 1u) | ((i >> 6u) & 2u)] << 0u  ) | (Bitu)(total[((i >> 2u) & 1u) | ((i >> 5u) & 2u)] << 8u  ) |
             ((Bitu)total[((i >> 1u) & 1u) | ((i >> 4u) & 2u)] << 16u ) | (Bitu)(total[((i >> 0u) & 1u) | ((i >> 3u) & 2u)] << 24u );
 #endif
-    }   
+    }
+
+    if (machine == MCH_MCGA) {
+        VGA_DAC_CombineColor(0x0,val0);
+        VGA_DAC_CombineColor(0x1,val1);
+        VGA_DAC_CombineColor(0x2,val2);
+        VGA_DAC_CombineColor(0x3,val3);
+    }
 }
 
 class VFRCRATE : public Program {

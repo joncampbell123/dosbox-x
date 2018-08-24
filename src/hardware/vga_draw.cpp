@@ -268,7 +268,6 @@ static Bit8u * EGA_Draw_1BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
 static Bit8u * VGA_Draw_1BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
     const Bit8u *base = (Bit8u*)vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
     Bit32u * draw=(Bit32u *)TempLine;
-    VGA_Latch pixels;
     Bitu val,i;
 
     for (Bitu x=0;x<vga.draw.blocks;x++) {
@@ -295,6 +294,23 @@ static Bit8u * VGA_Draw_1BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
         for (i=0;i < 8;i++,val <<= 1)
             *draw++ = vga.dac.xlat32[(val>>7)&1];
     }
+    return TempLine;
+}
+
+static Bit8u * VGA_Draw_2BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
+    const Bit8u *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
+    Bit32u * draw=(Bit32u *)TempLine;
+    unsigned char val;
+    unsigned int i;
+
+    for (Bitu x=0;x<vga.draw.blocks;x++) {
+        val = base[vidstart & vga.tandy.addr_mask];
+        vidstart++;
+
+        for (i=0;i < 4;i++,val <<= 2)
+            *draw++ = vga.dac.xlat32[(val>>6)&3];
+    }
+
     return TempLine;
 }
 
@@ -2738,6 +2754,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             VGA_DrawLine=VGA_Draw_2BPP_Line_as_VGA;
             bpp = 32;
         }
+        else if (machine == MCH_MCGA) {
+            vga.draw.blocks=width*2;
+            VGA_DrawLine=VGA_Draw_2BPP_Line_as_MCGA;
+            bpp = 32;
+        }
         else {
             vga.draw.blocks=width*2;
             VGA_DrawLine=VGA_Draw_2BPP_Line;
@@ -2764,7 +2785,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             pix_per_char = 16;
             bpp = 32;
         }
-       else {
+        else {
             vga.draw.blocks=width*2;
             VGA_DrawLine=VGA_Draw_1BPP_Line;
 
@@ -2837,8 +2858,12 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         else VGA_DrawLine=VGA_Draw_2BPP_Line;
 
         /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
-        if (machine == MCH_MCGA)
+        if (machine == MCH_MCGA) {
             vga.tandy.draw_base = vga.mem.linear + 0x8000;
+            vga.draw.blocks=width * 2;
+            VGA_DrawLine=VGA_Draw_2BPP_Line_as_MCGA;
+            bpp = 32;
+        }
 
         break;
     case M_TANDY16:
