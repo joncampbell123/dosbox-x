@@ -40,6 +40,8 @@
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
 
+bool mcga_double_scan = false;
+
 const char* const mode_texts[M_MAX] = {
     "M_CGA2",           // 0
     "M_CGA4",
@@ -1535,8 +1537,10 @@ void VGA_Update_SplitLineCompare() {
 }
 
 static void VGA_DrawSingleLine(Bitu /*blah*/) {
+    unsigned int lines = 0;
     bool skiprender;
 
+again:
     if (vga.draw.render_step == 0)
         skiprender = false;
     else
@@ -1633,6 +1637,13 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
     if (!skiprender) {
         vga.draw.lines_done++;
         if (vga.draw.split_line==vga.draw.lines_done) VGA_ProcessSplit();
+    }
+
+    if (mcga_double_scan) {
+        if (vga.draw.lines_done < vga.draw.lines_total) {
+            if (++lines < 2)
+                goto again;
+        }
     }
 
     if (vga.draw.lines_done < vga.draw.lines_total) {
@@ -2944,6 +2955,15 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     width *= pix_per_char;
     VGA_CheckScanLength();
 
+    /* for MCGA, need to "double scan" the screen in some cases */
+    if (vga.other.mcga_mode_control & 2) { // 640x480 2-color
+        height *= 2;
+        mcga_double_scan = true;
+    }
+    else {
+        mcga_double_scan = false;
+    }
+    
     vga.draw.lines_total=height;
     vga.draw.line_length = width * ((bpp + 1) / 8);
     vga.draw.clock = clock;
