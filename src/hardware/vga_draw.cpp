@@ -2965,6 +2965,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         height *= 2;
         mcga_double_scan = true;
     }
+    else if (machine == MCH_MCGA && vga.mode == M_TANDY_TEXT) { // MCGA text mode
+        height *= 2;
+        mcga_double_scan = true;
+        vga.draw.address_line_total *= 2;
+    }
     else {
         mcga_double_scan = false;
     }

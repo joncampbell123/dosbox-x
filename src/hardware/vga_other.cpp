@@ -984,11 +984,16 @@ void VGA_SetupOther(void) {
 	vga.tandy.line_mask = 3;
 	vga.tandy.line_shift = 13;
 
-	if (machine==MCH_CGA || machine==MCH_MCGA || machine==MCH_AMSTRAD || IS_TANDY_ARCH) {
+	if (machine==MCH_CGA || machine==MCH_AMSTRAD || IS_TANDY_ARCH) {
 		extern Bit8u int10_font_08[256 * 8];
 		for (i=0;i<256;i++)	memcpy(&vga.draw.font[i*32],&int10_font_08[i*8],8);
 		vga.draw.font_tables[0]=vga.draw.font_tables[1]=vga.draw.font;
 	}
+    if (machine==MCH_MCGA) { // MCGA uses a 8x16 font, through double-scanning as if 8x8 CGA text mode
+        extern Bit8u int10_font_16[256 * 16];
+        for (i=0;i<256;i++)	memcpy(&vga.draw.font[i*32],&int10_font_16[i*16],16);
+        vga.draw.font_tables[0]=vga.draw.font_tables[1]=vga.draw.font;
+    }
 	if (machine==MCH_CGA || IS_TANDY_ARCH || machine==MCH_HERC) {
 		IO_RegisterWriteHandler(0x3db,write_lightpen,IO_MB);
 		IO_RegisterWriteHandler(0x3dc,write_lightpen,IO_MB);
