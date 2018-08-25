@@ -129,10 +129,19 @@ Bitu INT10_Handler(void) {
 		reg_ah=(Bit8u)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
 		break;					
 	case 0x10:								/* Palette functions */
-		if (!IS_EGAVGA_ARCH && (reg_al>0x02)) break;
-		else if (!IS_VGA_ARCH && (reg_al>0x03)) break;
-        else if (machine==MCH_MCGA && !(reg_al == 0x10 || reg_al == 0x12 || reg_al == 0x15 || reg_al == 0x17 || reg_al == 0x18 || reg_al == 0x19)) break;
-        else if (machine==MCH_PCJR && (reg_al>0x02)) break; /* "Looking at the PCjr tech ref page A-61, ... the BIOS listing stops at subfunction 2." */
+        if (machine==MCH_MCGA) {
+            if (!(reg_al == 0x10 || reg_al == 0x12 || reg_al == 0x15 || reg_al == 0x17 || reg_al == 0x18 || reg_al == 0x19))
+                break;
+        }
+        else if (machine==MCH_PCJR) {
+            if (reg_al>0x02) /* "Looking at the PCjr tech ref page A-61, ... the BIOS listing stops at subfunction 2." */
+                break;
+        }
+        else {
+            if (!IS_EGAVGA_ARCH && (reg_al>0x02)) break;
+            else if (!IS_VGA_ARCH && (reg_al>0x03)) break;
+        }
+
 		switch (reg_al) {
 		case 0x00:							/* SET SINGLE PALETTE REGISTER */
 			INT10_SetSinglePaletteRegister(reg_bl,reg_bh);
