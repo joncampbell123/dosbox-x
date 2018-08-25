@@ -978,6 +978,11 @@ static Bit8u * MCGA_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
             }
         }
     }
+
+    // cursor appearance is also affected by the MCGA double-scanning
+    if (mcga_double_scan)
+        line >>= 1ul;
+
     // draw the text mode cursor if needed
     if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
         (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
