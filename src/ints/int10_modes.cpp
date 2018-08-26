@@ -761,8 +761,16 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 		else scanline=8;
 		break;
 	case M_CGA2: // graphics mode: even/odd banks interleaved
-	case M_VGA: // MCGA (GUESS!!)
-		scanline=2;
+        if (machine == MCH_MCGA && CurMode->mode >= 0x11)
+    		scanline=1; // as seen on real hardware, modes 0x11 and 0x13 have max scanline register == 0x00
+        else
+    		scanline=2;
+		break;
+	case M_VGA: // MCGA
+        if (machine == MCH_MCGA)
+    		scanline=1; // as seen on real hardware, modes 0x11 and 0x13 have max scanline register == 0x00
+        else
+    		scanline=2;
 		break;
 	case M_CGA4:
 		if (CurMode->mode!=0xa) scanline=2;

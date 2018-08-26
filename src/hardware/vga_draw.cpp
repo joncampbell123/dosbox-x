@@ -2469,6 +2469,14 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         hrend = hrstart + (vga.other.hsyncw) ;
 
         vga.draw.address_line_total = vga.other.max_scanline + 1u;
+
+        if (machine == MCH_MCGA) {
+            // mode 0x11 and 0x13 on real hardware have max_scanline == 0,
+            // will need doubling again to work properly.
+            if (vga.other.mcga_mode_control & 3)
+                vga.draw.address_line_total *= 2;
+        }
+
         vtotal = vga.draw.address_line_total * (vga.other.vtotal+1u)+vga.other.vadjust;
         vdend = vga.draw.address_line_total * vga.other.vdend;
         vrstart = vga.draw.address_line_total * vga.other.vsyncp;
