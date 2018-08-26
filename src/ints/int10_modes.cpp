@@ -875,6 +875,10 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
             else if (CurMode->type == M_CGA2 && CurMode->sheight > 240)
                 mcga_mode |= 0x02;//640x480 2-color
 
+            /* real hardware: BIOS sets the "hardware computes horizontal timings" bits for mode 0-3 */
+            if (CurMode->mode <= 0x03)
+                mcga_mode |= 0x08;//hardware computes horizontal timing
+
             IO_WriteW(crtc_base,0x10 | (mcga_mode) << 8);
         }
 		break;
