@@ -569,12 +569,8 @@ static void write_cga(Bitu port,Bitu val,Bitu /*iolen*/) {
 
         /* MCGA: Changes to this bit are important to track, because
          *       horizontal timings do not change between 40x25 and 80x25 */
-        if (machine == MCH_MCGA) {
-            if (changed & 1) {
-                VGA_StartResize();
-                LOG_MSG("aaaaaaaa");
-            }
-        }
+        if (changed & 1) /* 80x25 enable bit changed */
+            VGA_StartResize();
 
 		break;
 	case 0x3d9: // color select
