@@ -644,9 +644,16 @@ static void FinishSetMode(bool clearmem) {
 		case M_CGA4:
 		case M_CGA2:
 		case M_TANDY16:
-			for (Bit16u ct=0;ct<16*1024;ct++) {
-				real_writew( 0xb800,ct*2,0x0000);
-			}
+            if (machine == MCH_MCGA && CurMode->mode == 0x11) {
+                for (Bit16u ct=0;ct<32*1024;ct++) {
+                    real_writew( 0xa000,ct*2,0x0000);
+                }
+            }
+            else {
+                for (Bit16u ct=0;ct<16*1024;ct++) {
+                    real_writew( 0xb800,ct*2,0x0000);
+                }
+            }
 			break;
 		case M_TEXT: {
 			Bit16u max = (CurMode->ptotal*CurMode->plength)>>1;
