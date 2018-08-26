@@ -203,8 +203,15 @@ Bitu INT10_Handler(void) {
 		}
 		break;
 	case 0x11:								/* Character generator functions */
-		if (!IS_EGAVGA_ARCH) 
-			break;
+        if (machine==MCH_MCGA) {
+            if (!(reg_al == 0x24 || reg_al == 0x30))
+                break;
+        }
+        else {
+            if (!IS_EGAVGA_ARCH)
+                break;
+        }
+
 		switch (reg_al) {
 /* Textmode calls */
 		case 0x00:			/* Load user font */
