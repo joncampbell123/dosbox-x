@@ -533,8 +533,12 @@ static Bitu read_cga(Bitu port,Bitu /*iolen*/) {
 }
 
 static void write_cga(Bitu port,Bitu val,Bitu /*iolen*/) {
+    Bitu changed;
+
 	switch (port) {
 	case 0x3d8:
+        changed = vga.tandy.mode_control ^ val;
+
 		vga.tandy.mode_control=(Bit8u)val;
 		vga.attr.disabled = (val&0x8)? 0: 1; 
         if (vga.other.mcga_mode_control & 3) { // MCGA 256-color mode or 2-color 640x480
@@ -562,6 +566,16 @@ static void write_cga(Bitu port,Bitu val,Bitu /*iolen*/) {
 			VGA_SetMode(M_TANDY_TEXT);
 		}
 		VGA_SetBlinking(val & 0x20);
+
+        /* MCGA: Changes to this bit are important to track, because
+         *       horizontal timings do not change between 40x25 and 80x25 */
+        if (machine == MCH_MCGA) {
+            if (changed & 1) {
+                VGA_StartResize();
+                LOG_MSG("aaaaaaaa");
+            }
+        }
+
 		break;
 	case 0x3d9: // color select
 		write_cga_color_select(val);

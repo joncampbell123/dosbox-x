@@ -2475,6 +2475,21 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             // will need doubling again to work properly.
             if (vga.other.mcga_mode_control & 3)
                 vga.draw.address_line_total *= 2;
+
+            // 80x25 has horizontal timings like 40x25, but the hardware
+            // knows if 80x25 text is intended by bit 0 of port 3D8h and
+            // adjusts appropriately.
+            //
+            // The BIOS will only set bit 0 for modes 2 and 3 (80x25) and
+            // will not set it for any other mode.
+            if (vga.tandy.mode_control & 1) {
+                htotal *= 2;
+                hdend *= 2;
+                hbstart *= 2;
+                hbend *= 2;
+                hrstart *= 2;
+                hrend *= 2;
+            }
         }
 
         vtotal = vga.draw.address_line_total * (vga.other.vtotal+1u)+vga.other.vadjust;
