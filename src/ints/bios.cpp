@@ -6713,7 +6713,8 @@ public:
         /* model byte */
         if (machine==MCH_TANDY || machine==MCH_AMSTRAD) phys_writeb(0xffffe,0xff);  /* Tandy model */
         else if (machine==MCH_PCJR) phys_writeb(0xffffe,0xfd);  /* PCJr model */
-        else phys_writeb(0xffffe,0xfc); /* PC */
+        else if (machine==MCH_MCGA) phys_writeb(0xffffe,0xfa);  /* PC/2 model 30 model */
+        else phys_writeb(0xffffe,0xfc); /* PC (FIXME: This is listed as model byte PS/2 model 60) */
 
         // signature
         phys_writeb(0xfffff,0x55);
