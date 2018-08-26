@@ -410,7 +410,11 @@ VideoModeBlock ModeList_OTHER[]={
  * for 40x25 CGA modes, including 80x25 modes.
  *
  * These modes should generally make a 70Hz VGA compatible output, except 640x480 2-color MCGA
- * mode, which should make a 60Hz VGA compatible mode. */
+ * mode, which should make a 60Hz VGA compatible mode.
+ *
+ * Register values are CGA-like, meaning that the modes are defined in character clocks
+ * horizontally and character cells vertically and the actual scan line numbers are determined
+ * by the vertical param times max scanline. */
 VideoModeBlock ModeList_MCGA[]={
 /* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde ,special flags */
 { 0x000  ,M_TEXT   ,320 ,400 ,40 ,25 ,8 ,16 ,8 ,0xB8000 ,0x0800 ,49  ,26  ,40 ,25  ,0   },
