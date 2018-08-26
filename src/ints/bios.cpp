@@ -5986,7 +5986,11 @@ private:
                     /* Tandy doesn't have a 2nd PIC, left as is for now */
                     phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));   // Feature Byte 1
                 } else {
-                    if (PS1AudioCard) { /* FIXME: Won't work because BIOS_Init() comes before PS1SOUND_Init() */
+                    if (machine==MCH_MCGA) {
+                        /* PC/2 model 30 model */
+                        phys_writeb(data+2,0xFA);
+                        phys_writeb(data+3,0x00);                   // Submodel ID (PS/2) model 30
+                    } else if (PS1AudioCard) { /* FIXME: Won't work because BIOS_Init() comes before PS1SOUND_Init() */
                         phys_writeb(data+2,0xFC);                   // Model ID (PC)
                         phys_writeb(data+3,0x0B);                   // Submodel ID (PS/1).
                     } else {
