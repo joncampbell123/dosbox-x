@@ -404,10 +404,14 @@ VideoModeBlock ModeList_OTHER[]={
 {0xFFFF  ,M_ERROR  ,0   ,0   ,0  ,0  ,0 ,0  ,0 ,0x00000 ,0x0000 ,0   ,0   ,0  ,0   ,0 	},
 };
 
-VideoModeBlock ModeList_MCGA[]={//FIXME: These are GUESSES made by adapting VGA mode timings into CGA terms
+/* MCGA mode list.
+ * These are based off of a register capture of actual MCGA hardware for each mode.
+ * According to register captures, all modes seem to be consistently programmed as if
+ * for 40x25 CGA modes, including 80x25 modes */
+VideoModeBlock ModeList_MCGA[]={
 /* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde ,special flags */
-{ 0x000  ,M_TEXT   ,360 ,400 ,40 ,25 ,8 ,16 ,8 ,0xB8000 ,0x0800 ,49  ,26  ,40 ,25  ,0	}, // FIXME: According to real hardware, 70.2Hz not 70.88
-{ 0x001  ,M_TEXT   ,360 ,400 ,40 ,25 ,8 ,16 ,8 ,0xB8000 ,0x0800 ,49  ,26  ,40 ,25  ,0	},
+{ 0x000  ,M_TEXT   ,320 ,400 ,40 ,25 ,8 ,16 ,8 ,0xB8000 ,0x0800 ,49  ,26  ,40 ,25  ,0	}, // FIXME: According to real hardware, 70.2Hz not 70.88
+{ 0x001  ,M_TEXT   ,320 ,400 ,40 ,25 ,8 ,16 ,8 ,0xB8000 ,0x0800 ,49  ,26  ,40 ,25  ,0	},
 { 0x002  ,M_TEXT   ,640 ,400 ,80 ,25 ,8 ,16 ,8 ,0xB8000 ,0x1000 ,99  ,26  ,80 ,25  ,0	},
 { 0x003  ,M_TEXT   ,640 ,400 ,80 ,25 ,8 ,16 ,8 ,0xB8000 ,0x1000 ,99  ,26  ,80 ,25  ,0	},
 { 0x004  ,M_CGA4   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,49  ,108 ,40 ,100 ,0   },
