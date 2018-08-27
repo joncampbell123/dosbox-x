@@ -578,17 +578,17 @@ static Bit8u * EGA_Draw_VGA_Planar_Xlat8_Line(Bitu vidstart, Bitu /*line*/) {
             for (Bitu w = 0;w < 2;w++,t1>>=8,t2>>=8,i+=8) {
                 tmp =   Expand16Table[0][(t1>>0)&0xFF] |
                     Expand16Table[2][(t1>>16)&0xFF];
-                temps[i+0] = vga.attr.palette[(tmp>>0)&0xFF];
-                temps[i+1] = vga.attr.palette[(tmp>>8)&0xFF];
-                temps[i+2] = vga.attr.palette[(tmp>>16)&0xFF];
-                temps[i+3] = vga.attr.palette[(tmp>>24)&0xFF];
+                temps[i+0] = vga.attr.palette[(tmp>>0)&vga.attr.color_plane_enable];
+                temps[i+1] = vga.attr.palette[(tmp>>8)&vga.attr.color_plane_enable];
+                temps[i+2] = vga.attr.palette[(tmp>>16)&vga.attr.color_plane_enable];
+                temps[i+3] = vga.attr.palette[(tmp>>24)&vga.attr.color_plane_enable];
 
                 tmp =   Expand16Table[0][(t2>>0)&0xFF] |
                     Expand16Table[2][(t2>>16)&0xFF];
-                temps[i+4] = vga.attr.palette[(tmp>>0)&0xFF];
-                temps[i+5] = vga.attr.palette[(tmp>>8)&0xFF];
-                temps[i+6] = vga.attr.palette[(tmp>>16)&0xFF];
-                temps[i+7] = vga.attr.palette[(tmp>>24)&0xFF];
+                temps[i+4] = vga.attr.palette[(tmp>>0)&vga.attr.color_plane_enable];
+                temps[i+5] = vga.attr.palette[(tmp>>8)&vga.attr.color_plane_enable];
+                temps[i+6] = vga.attr.palette[(tmp>>16)&vga.attr.color_plane_enable];
+                temps[i+7] = vga.attr.palette[(tmp>>24)&vga.attr.color_plane_enable];
             }
         }
     }
@@ -603,19 +603,19 @@ static Bit8u * EGA_Draw_VGA_Planar_Xlat8_Line(Bitu vidstart, Bitu /*line*/) {
                 Expand16Table[1][(t1>>8)&0xFF] |
                 Expand16Table[2][(t1>>16)&0xFF] |
                 Expand16Table[3][(t1>>24)&0xFF];
-            temps[i+0] = vga.attr.palette[(tmp>>0)&0xFF];
-            temps[i+1] = vga.attr.palette[(tmp>>8)&0xFF];
-            temps[i+2] = vga.attr.palette[(tmp>>16)&0xFF];
-            temps[i+3] = vga.attr.palette[(tmp>>24)&0xFF];
+            temps[i+0] = vga.attr.palette[(tmp>>0)&vga.attr.color_plane_enable];
+            temps[i+1] = vga.attr.palette[(tmp>>8)&vga.attr.color_plane_enable];
+            temps[i+2] = vga.attr.palette[(tmp>>16)&vga.attr.color_plane_enable];
+            temps[i+3] = vga.attr.palette[(tmp>>24)&vga.attr.color_plane_enable];
 
             tmp =   Expand16Table[0][(t2>>0)&0xFF] |
                 Expand16Table[1][(t2>>8)&0xFF] |
                 Expand16Table[2][(t2>>16)&0xFF] |
                 Expand16Table[3][(t2>>24)&0xFF];
-            temps[i+4] = vga.attr.palette[(tmp>>0)&0xFF];
-            temps[i+5] = vga.attr.palette[(tmp>>8)&0xFF];
-            temps[i+6] = vga.attr.palette[(tmp>>16)&0xFF];
-            temps[i+7] = vga.attr.palette[(tmp>>24)&0xFF];
+            temps[i+4] = vga.attr.palette[(tmp>>0)&vga.attr.color_plane_enable];
+            temps[i+5] = vga.attr.palette[(tmp>>8)&vga.attr.color_plane_enable];
+            temps[i+6] = vga.attr.palette[(tmp>>16)&vga.attr.color_plane_enable];
+            temps[i+7] = vga.attr.palette[(tmp>>24)&vga.attr.color_plane_enable];
         }
     }
 
