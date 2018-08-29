@@ -1,3 +1,166 @@
+<next version>
+  - EGA emulaton fixed to obey Color Plane Enable register in
+    16-color planar modes.
+  - Fixed BIOS model byte to report PS/2 model 30 correctly when
+    machine=mcga, to allow certain DOS games to detect MCGA that way.
+  - CGA mode/color select registers are readable on MCGA, fix 3D8-3D9h
+    to reflect that.
+  - INT 10h fixed to properly allow/deny AH=10h, AH=11h, and AH=12h calls
+    according to machine= type instead of mistakes that blocked too many
+    calls.
+  - CGA composite mode should not be available when machine=mcga.
+  - Fixed INT 10h to report MCGA color display if machine=mcga.
+  - MCGA (IBM PS/2 Multi-Color Graphics Adapter) emulation added.
+  - bitop C++11 self-test disabled for Microsoft Visual Studio builds.
+    Microsoft's compiler can't handle them for some reason.
+  - Added DOSLIB DSXMENU.EXE to the built-in executable list.
+    DSXMENU.EXE allows DOS CONFIG.SYS style menus to be set up to
+    run commands based on menu selection.
+  - PC-98 ANSI emulation fixed to use the number of rows on the screen,
+    not cursor position, to range-clip ANSI cursor positioning.
+  - Added code to have DX-CAPTURE wait 3 seconds (or until ENTER/SPACE
+    is pressed) after the program exits, before stopping capture.
+  - DOSBox-X menus now allow runtime selection of capture format
+    (AVI+ZMBV or MPEG-TS H.264). Changing while capturing will stop/start
+    capture correctly.
+  - Added switches to DX-CAPTURE to allow specifying audio, multitrack audio,
+    and video as well.
+  - DX-CAPTURE shell command added. The command to run is specified
+    after DX-CAPTURE and DX-CAPTURE will start video capture, run the
+    program, then stop capture when the program exits.
+  - VGA/SVGA emulation fixed to enforce 256KB (64KB planar) wraparound
+    when emulating stock VGA modes (not SVGA/VESA BIOS). Some
+    demoscene productions rely on the 256KB wraparound when showing
+    scrolling credits.
+  - Gravis Ultrasound emulation now uses I/O callout system, with
+    I/O port handling to emulate ISA bus 10-bit decoding (but with
+    consideration of GUS MAX 7xx registers) so that GUS I/O ports
+    are visible every 1000h I/O ports. A demoscene production was
+    found that relies on an alias of GUS ports at 5xxxh rather than
+    using the I/O ports directly.
+  - Mouse emulation no longer sends motion to serial and PC-98 mouse
+    emulation unless mouse cursor has been captured.
+  - Mouse emulation fixed to set sensitivity and mickey count even if
+    int33=false on mouse emulation reset.
+  - Debugger fixed to paginate commands with a lot of output, including
+    HELP, PIC, and various commands to dump interrupts and GDT/IDT tables.
+  - CPU core no longer triggers Double Fault if Divide Overflow
+    occurs within Divide Overflow. This is needed for bizarre anti-debugger
+    obfuscated code seen in a demoscene production, where the program
+    wraps the demo in a mini-filesystem emulated by trapping INT 21h.
+  - cputype= dosbox.conf setting fixed to allow selecting between
+    new 486 emulation (cputype=486) and old 486 emulation (cputype=486old).
+    The "old" 486 core emulates older 486 CPUs that differ significantly
+    from the newer 486 CPUs that inherited features from the Pentium.
+  - IRQ hack setting for GUS and Sound Blaster is now a list so that
+    multiple hacks can be specified, but in a way that is backwards
+    compatible with existing dosbox.conf files.
+  - IRQ hack option for Gravis Ultrasound added.
+  - INT 20h emulation fixed to work with demoscene productions that
+    call INT 20h in a way that the interrupt frame wraps around the
+    64KB limit of the stack.
+  - XMS emulation now has a dosbox.conf setting to control the number
+    of XMS handles available.
+  - Added INT 33h option not to round mouse cursor coordinates to text
+    cell boundaries in text mode. Some demoscene productions were found
+    that detects mouse movement, but reads initial position from text mode
+    before switching to graphics.
+  - Removed IRQ0 error measurement hack, to match DOSBox SVN. This fixes
+    timing problems with some demoscene productions. The error measurement
+    hack was apparently added for Microsoft Flight simulator, but has not
+    been needed since and has been causing timing issues since.
+  - Fixed INT 10h VGA save state function to program the Attribute Controller
+    properly so that the screen is not left blank after the call.
+  - 8042 keyboard emulation now initializes port 60h to 0xAA on hardware
+    reset and initialization. Some DOS games and demoscene productions
+    need something with bit 7 set in the register at startup in order not
+    to act as if a key was immediately pressed.
+  - Add printer emulation from Daum's branch of DOSBox, add FreeType 2.9.1
+    to go with it (Alex/AT)
+  - Add keyboard type setting, for use in future development.
+  - PCjr emulation fixed to emulate PC/XT style NMI mask at port A0h
+    rather than emulate the secondary PIC.
+  - Code of Conduct revised to make it clear that forks/derivatives CAN
+    have their own Code of Conduct but that it only applies to that fork
+    or derivative version. No forking DOSBox-X, changing the code of
+    conduct, and enforcing it on anyone outside your fork.
+  - CPU normal core fixed to clear ZF flag after MUL when cputype=8086,
+    which fixes problems with MSD.EXE mis-detecting the CPU as a NEC V20.
+  - Fixed PCjr emulation not to allow UMB (upper memory blocks) since
+    that seems to cause stability issues with emulation. Also, PCjr
+    does not have UMB as far as I know.
+  - Fixed PCjr not to re-read port 60h from IRQ1 handler.
+  - Fixed PCjr not to emulate INT 15h keyboard hook.
+  - PCjr keyboard emulation fixed to trigger NMI and reflect to IRQ1
+    the way it actually works on IBM PCjr systems, which also fixes
+    keyboard control issues with the PCjr version of "Pitfall".
+  - configure.ac now provides an option for compiler optimization (Yksoft1)
+  - Code of Conduct, initial version, added to source tree
+  - PC-98 palette save/load state
+  - CPU, memory, VGA palette and attribute controller save/load state
+  - DOS SHELL now implements INT 0x2E to allow DOS programs to invoke
+    shell commands through COMMAND.COM (borrowed from DOSBox SVN).
+  - Added dosbox.conf option to control the physical memory address of the
+    S3 SVGA linear framebuffer.
+  - Save/load state system added, currently very minimal and experimental.
+  - Appveyor XML added to source tree (Allofich)
+  - Fixed *most* SDL2 refresh problems.
+  - Sound Blaster Pro mixer volume fixed to return reserved bits SET rather
+    than CLEAR. Some demoscene productions detect Sound Blaster Pro by whether
+    these bits remain set when written. This fix allows them to detect Sound
+    Blaster Pro as Sound Blaster Pro.
+  - VGA emulation fixed not to add 2 scanlines twice, which fixes VGA vertical
+    timing and scanline count and fixes the scroller in "Inconexia".
+  - Gravis Ultrasound emulation now prints a warning if the game/demo attempts
+    a DMA transfer while leaving the DMA channel masked.
+  - Fixed Gravis Ultrasound emulation to mask DRAM peek/poke I/O to the 1MB
+    offered by the card, which fixes GUS problems with a demoscene production
+    that has random values in DRAM address bits 23-20.
+  - Added dosbox.conf option that, if set, lets Gravis Ultrasound emulation
+    start a DMA transfer if the game/demo is polling the DMA control register
+    when DMA is unmasked and DMA terminal count has not occured, which helps
+    some demoscene productions.
+  - Added "PIC unmask IRQ" option for Gravis Ultrasound emulation.
+  - Gravis Ultrasound emulation now has a dosbox.conf setting to initialize
+    the hardware at startup as if ULTRINIT had been run.
+  - Added dosbox.conf option for VESA BIOS emulation that, if set, instructs
+    non-LFB modes to report 64KB windows but map 128KB from the start of
+    the window, which helps (but does not fully solve) some Demoscene
+    productions with redraw problems handling non-LFB as if LFB.
+  - Fixed ET4000 emulation to support the hretrace "wobble" needed for
+    "Copper"
+  - VGA DAC/attribute controller behavior updated to reflect actual behavior
+    as seen on an IBM PS/2 VGA model, as well as almost any SVGA clone.
+  - VGA DAC behavior unique to Tseng ET4000 implemented when machine=svga_et4000.
+    256-color mode on the ET4000 seems to map the low 4 bits through the
+    attribute controller and, if enabled, the upper 4 bits through the
+    color select register. Note this behavior is REQUIRED for the
+    "copper" demo to display properly.
+  - VGA palette, DAC, and attribute controller emulation updated to
+    reflect actual VGA behavior, including the way that 256-color mode
+    is mapped through the attribute controller.
+  - Sierra highcolor DAC can now be enabled for any VGA/SVGA emulation
+  - Cleanup and reorganization of scaler, aspect ratio handling (Alex/AT)
+  - MinGW config.h builds fixed to enable Direct3D (Alex/AT)
+  - Build fixes for SDL1 and Linux and extended functions (JP Cimalando)
+  - Fixed ALSA MIDI mistake preventing the creation of subscription
+    ports (JP Cimalando)
+  - Previous release broke SVGA 16-color planar modes by masking video
+    memory to 64KB planar boundaries at all times, fixed code to do so
+    only for non-VESA modes. 1024x768 16-color mode works again.
+  - Fixed user-defined VESA BIOS modes to validate the required video
+    memory against the available memory on the emulated SVGA hardware.
+  - VESA BIOS modelist generaton moved into it's own function. Modelist
+    is regenerated upon editing/deletion of modes.
+  - VESA BIOS modes added as suggested by hail-to-the-ryzen
+  - VESA BIOS emulation now allows scriptable editing, deletion, and
+    mode renaming of VESA BIOS modes for use with picky DOS games and
+    demoscene productions that assume mode numbers.
+  - Added VESA BIOS mode 0x136 as an alias for 320x200x16bpp mode
+  - Enhancements to GFX_CaptureMouse and CaptureMouseNotify added
+  - Fixed scaler change detection to use sizeof(int) properly than assume
+    a certain byte count
+  - Fixed undefined sse2_available reference issue in certain builds
 0.82.8
   - New xBRZ scaler (with bilinear mode) (Alexat)
   - Fixed aspect ratio correction to use the ratio given by VGA emulation
