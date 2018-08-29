@@ -141,6 +141,8 @@ bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
 	return true;
 }
 
+bool enable_config_as_shell_commands = false;
+
 void DOS_Shell::DoCommand(char * line) {
 /* First split the line into command and arguments */
 	line=trim(line);
@@ -178,7 +180,7 @@ void DOS_Shell::DoCommand(char * line) {
 	}
 /* This isn't an internal command execute it */
 	if(Execute(cmd_buffer,line)) return;
-	if(CheckConfig(cmd_buffer,line)) return;
+	if(enable_config_as_shell_commands && CheckConfig(cmd_buffer,line)) return;
 	WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),cmd_buffer);
 }
 

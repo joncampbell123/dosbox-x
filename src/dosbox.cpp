@@ -2384,6 +2384,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("xms handles",Property::Changeable::WhenIdle,0);
     Pint->Set_help("Number of XMS handles available for the DOS environment, or 0 to use a reasonable default");
 
+    Pbool = secprop->Add_bool("shell configuration as commands",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("Allow entering dosbox.conf configuration parameters as shell commands to get and set settings.\n"
+                    "This is disabled by default to avoid conflicts between commands and executables.\n"
+                    "It is recommended to get and set dosbox.conf settings using the CONFIG command instead.\n"
+                    "Compatibility with DOSBox SVN can be improved by enabling this option.");
+
     Pbool = secprop->Add_bool("hma",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Report through XMS that HMA exists (not necessarily available)");
 
