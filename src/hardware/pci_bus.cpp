@@ -389,8 +389,10 @@ static void Deinitialize(void) {
 static PCI_Device *S3_PCI=NULL;
 static PCI_Device *SST_PCI=NULL;
 
+extern bool enable_pci_vga;
+
 void PCI_AddSVGAS3_Device(void) {
-	if (!pcibus_enable) return;
+	if (!pcibus_enable || !enable_pci_vga) return;
 
 	if (S3_PCI == NULL) {
 		if ((S3_PCI=new PCI_VGADevice()) == NULL)
