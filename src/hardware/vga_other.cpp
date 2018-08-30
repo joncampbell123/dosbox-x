@@ -1105,10 +1105,15 @@ void VGA_SetupOther(void) {
 		vga.herc.enable_bits=0;
 		vga.herc.mode_control=0xa; // first mode written will be text mode
 		vga.crtc.underline_location = 13;
-		IO_RegisterWriteHandler(0x3b8,write_hercules,IO_MB);
-		IO_RegisterWriteHandler(0x3bf,write_hercules,IO_MB);
 		IO_RegisterReadHandler(0x3ba,read_herc_status,IO_MB);
+    }
+	if (machine==MCH_HERC) {
+        IO_RegisterWriteHandler(0x3b8,write_hercules,IO_MB);
+		IO_RegisterWriteHandler(0x3bf,write_hercules,IO_MB);
 	}
+	if (machine==MCH_MDA) {
+        VGA_SetMode(M_HERC_TEXT); // HACK
+    }
 	if (machine==MCH_CGA) {
 		Bitu base=0x3d0;
 		for (Bitu port_ct=0; port_ct<4; port_ct++) {
