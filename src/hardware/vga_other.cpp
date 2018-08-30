@@ -981,16 +981,31 @@ Bitu read_herc_status(Bitu /*port*/,Bitu /*iolen*/) {
 	double timeInFrame = PIC_FullIndex()-vga.draw.delay.framestart;
 	Bit8u retval=0x72; // Hercules ident; from a working card (Winbond W86855AF)
 					// Another known working card has 0x76 ("KeysoGood", full-length)
-	if (timeInFrame < vga.draw.delay.vrstart ||
-		timeInFrame > vga.draw.delay.vrend) retval |= 0x80;
+
+    if (machine == MCH_HERC) {
+        /* NTS: Vertical retrace bit is hercules-specific, as documented.
+         *      DOSLIB uses this to detect MDA vs Hercules.
+         *
+         *      This (and DOSLIB) will be revised when I get around to
+         *      plugging in my old MDA in one machine and Hercules card
+         *      in another machine to double-check ---J.C. */
+        if (timeInFrame < vga.draw.delay.vrstart ||
+                timeInFrame > vga.draw.delay.vrend) retval |= 0x80;
+    }
+    else {
+        retval |= 0x80; // bit 7 always set on MDA (right??)
+    }
 
 	double timeInLine=fmod(timeInFrame,vga.draw.delay.htotal);
 	if (timeInLine >= vga.draw.delay.hrstart &&
 		timeInLine <= vga.draw.delay.hrend) retval |= 0x1;
 
-	// 688 Attack sub checks bit 3 - as a workaround have the bit enabled
-	// if no sync active (corresponds to a completely white screen)
-	if ((retval&0x81)==0x80) retval |= 0x8;
+    if (machine == MCH_HERC) {
+        // 688 Attack sub checks bit 3 - as a workaround have the bit enabled
+        // if no sync active (corresponds to a completely white screen)
+        if ((retval&0x81)==0x80) retval |= 0x8;
+    }
+
 	return retval;
 }
 
