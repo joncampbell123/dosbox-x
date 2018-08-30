@@ -628,8 +628,18 @@ void VGA_Reset(Section*) {
             (enable_pci_vga && has_pcibus_enable()) ? "PCI" : "(E)ISA");
 
     /* other applicable warnings: */
-    if (IS_VGA_ARCH && svgaCard == SVGA_S3Trio && cpu_addr_bits < 26)
-        LOG(LOG_VGA,LOG_WARN)("S3 linear framebuffer warning: memalias below 26 and S3 emulation can cause Windows 3.x S3 driver to crash");
+    /* Microsoft Windows 3.1 S3 driver:
+     *   If the LFB is set to an address below 16MB, the driver will program the base to something
+     *   odd like 0x73000000 and then fail to talk to the MMIO range, causing graphical issues.
+     *
+     *   If memalias=24, the driver hangs and nothing appears on screen.
+     *
+     *   I'd like to know what registers to emulate that tell the driver we're an older S3 chipset
+     *   without a LFB so it can use the MMIO range somewhere in the A0000-BFFFF range.*/
+    if (IS_VGA_ARCH && svgaCard == SVGA_S3Trio && cpu_addr_bits <= 24)
+        LOG(LOG_VGA,LOG_WARN)("S3 linear framebuffer warning: memalias setting is known to cause the Windows 3.1 S3 driver to crash");
+    if (IS_VGA_ARCH && svgaCard == SVGA_S3Trio && S3_LFB_BASE < 0x1000000ul) /* below 16MB */
+        LOG(LOG_VGA,LOG_WARN)("S3 linear framebuffer warning: A linear framebuffer below the 16MB mark in physical memory is known to have problems with the Windows 3.1 S3 driver");
 
     pc98_allow_scanline_effect = section->Get_bool("pc-98 allow scanline effect");
     mainMenu.get_item("pc98_allow_200scanline").check(pc98_allow_scanline_effect).refresh_item(mainMenu);
