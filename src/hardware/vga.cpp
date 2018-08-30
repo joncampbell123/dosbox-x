@@ -545,6 +545,7 @@ VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr) {
 }
 
 bool has_pcibus_enable(void);
+Bit32u MEM_get_address_bits();
 
 void VGA_Reset(Section*) {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -552,13 +553,24 @@ void VGA_Reset(Section*) {
     string str;
     int i;
 
+    Bit32u cpu_addr_bits = MEM_get_address_bits();
+    Bit64u cpu_max_addr = (Bit64u)1 << (Bit64u)cpu_addr_bits;
+
     LOG(LOG_MISC,LOG_DEBUG)("VGA_Reset() reinitializing VGA emulation");
 
     GDC_display_plane_wait_for_vsync = section->Get_bool("pc-98 buffer page flip");
 
     S3_LFB_BASE = section->Get_hex("svga lfb base");
     if (S3_LFB_BASE == 0) {
-        S3_LFB_BASE = S3_LFB_BASE_DEFAULT;
+        if (cpu_addr_bits >= 32)
+            S3_LFB_BASE = S3_LFB_BASE_DEFAULT;
+        else if (cpu_addr_bits >= 26)
+            S3_LFB_BASE = has_pcibus_enable() ? 0x02000000 : 0x03400000;
+        else if (cpu_addr_bits >= 24)
+            S3_LFB_BASE = 0x00E00000;
+        else
+            S3_LFB_BASE = S3_LFB_BASE_DEFAULT;
+
         lfb_default = true;
     }
 
