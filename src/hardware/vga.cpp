@@ -570,10 +570,8 @@ void VGA_Reset(Section*) {
             S3_LFB_BASE = S3_LFB_BASE_DEFAULT;
         else if (cpu_addr_bits >= 26)
             S3_LFB_BASE = (enable_pci_vga && has_pcibus_enable()) ? 0x02000000 : 0x03400000;
-        else if (cpu_addr_bits >= 24) {
+        else if (cpu_addr_bits >= 24)
             S3_LFB_BASE = 0x00C00000;
-            enable_pci_vga = false;//avoid impossible constraint, 32MB PCI rounding vs 16MB limit of the CPU
-        }
         else
             S3_LFB_BASE = S3_LFB_BASE_DEFAULT;
 
@@ -583,6 +581,21 @@ void VGA_Reset(Section*) {
     /* no farther than 32MB below the top */
     if (S3_LFB_BASE > 0xFE000000UL)
         S3_LFB_BASE = 0xFE000000UL;
+
+    /* if the user WANTS the base address to be PCI misaligned, then turn off PCI VGA emulation */
+    if (enable_pci_vga && has_pcibus_enable() && (S3_LFB_BASE & 0x1FFFFFFul)) {
+        if (!lfb_default)
+            LOG(LOG_VGA,LOG_DEBUG)("S3 linear framebuffer was set by user to an address not aligned to 32MB, switching off PCI VGA emulation");
+
+        enable_pci_vga = false;
+    }
+    /* if memalias is below 26 bits, PCI VGA emulation is impossible */
+    if (cpu_addr_bits < 26) {
+        if (IS_VGA_ARCH && enable_pci_vga && has_pcibus_enable())
+            LOG(LOG_VGA,LOG_DEBUG)("CPU memalias setting is below 26 bits, switching off PCI VGA emulation");
+
+        enable_pci_vga = false;
+    }
 
     if (enable_pci_vga && has_pcibus_enable()) {
         /* must be 32MB aligned (PCI) */
@@ -614,7 +627,7 @@ void VGA_Reset(Section*) {
             (unsigned long)S3_LFB_BASE,lfb_default?" by default":"",
             (enable_pci_vga && has_pcibus_enable()) ? "PCI" : "(E)ISA");
 
-    /* other applicable warnings */
+    /* other applicable warnings: */
     if (IS_VGA_ARCH && svgaCard == SVGA_S3Trio && cpu_addr_bits < 26)
         LOG(LOG_VGA,LOG_WARN)("S3 linear framebuffer warning: memalias below 26 and S3 emulation can cause Windows 3.x S3 driver to crash");
 
