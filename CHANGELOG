@@ -1,4 +1,8 @@
 <next version>
+  - Fixed Hercules emulation (and MDA) so that the Hercules palette
+    is always enforced. This fixes a bug where switching to HGC
+    graphics mode resulted in monochrome blue/black graphics instead
+    of the intended white/green/amber color expected.
   - Added MDA emulation (machine=mda). It functions like
     machine=hercules minus the graphics mode and Hercules-specific
     extensions to the base MDA card.
