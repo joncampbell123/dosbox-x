@@ -1,4 +1,6 @@
 <next version>
+  - ROM BIOS now forces reported RAM down to make room for BIOS
+    alias at top of memory instead of throwing an E_Exit error.
   - Fixed Hercules emulation (and MDA) so that the Hercules palette
     is always enforced. This fixes a bug where switching to HGC
     graphics mode resulted in monochrome blue/black graphics instead
