@@ -855,6 +855,10 @@ void VGA_Reset(Section*) {
 
     LOG(LOG_VGA,LOG_NORMAL)("Video RAM: %uKB",vga.mem.memsize>>10);
 
+    // TODO: If S3 emulation, and linear framebuffer bumps up against the CPU memalias limits,
+    //       trim Video RAM to fit (within reasonable limits) or else E_Exit() to let the user
+    //       know of impossible constraints.
+
     VGA_SetupMemory();      // memory is allocated here
     if (!IS_PC98_ARCH) {
         VGA_SetupMisc();
