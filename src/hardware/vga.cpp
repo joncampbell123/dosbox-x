@@ -571,7 +571,7 @@ void VGA_Reset(Section*) {
         else if (cpu_addr_bits >= 26)
             S3_LFB_BASE = (enable_pci_vga && has_pcibus_enable()) ? 0x02000000 : 0x03400000;
         else if (cpu_addr_bits >= 24) {
-            S3_LFB_BASE = 0x00E00000;
+            S3_LFB_BASE = 0x00C00000;
             enable_pci_vga = false;//avoid impossible constraint, 32MB PCI rounding vs 16MB limit of the CPU
         }
         else
