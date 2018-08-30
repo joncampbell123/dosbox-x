@@ -1,4 +1,6 @@
 <next version>
+  - VGA emulation revised to report possible known problems with
+    Windows 3.1 with regard to LFB base address or memalias setting.
   - VGA emulation fixed to emit warning if memalias=24, for S3 LFB,
     if machine=svga_s3, to inform the user that the configuration is
     known to cause the Windows 3.x driver to crash.
