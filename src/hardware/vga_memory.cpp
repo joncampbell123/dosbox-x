@@ -2064,10 +2064,17 @@ void VGA_StartUpdateLFB(void) {
 		// FIXME: What about the 8MB window?
 	}
 
-	/* if the DOS application or Windows 3.1 driver attempts to put the linear framebuffer
+    /* The LFB register has an enable bit */
+    if (!(vga.s3.reg_58 & 0x10)) {
+        vga.lfb.page = (unsigned int)vga.s3.la_window << 4u;
+        vga.lfb.addr = (unsigned int)vga.s3.la_window << 16u;
+        vga.lfb.handler = NULL;
+        MEM_SetLFB(0,0,NULL,NULL);
+    }
+    /* if the DOS application or Windows 3.1 driver attempts to put the linear framebuffer
 	 * below the top of memory, then we're probably entering a DOS VM and it's probably
 	 * a 64KB window. If it's not a 64KB window then print a warning. */
-	if ((unsigned long)(vga.s3.la_window << 4UL) < (unsigned long)MEM_TotalPages()) {
+    else if ((unsigned long)(vga.s3.la_window << 4UL) < (unsigned long)MEM_TotalPages()) {
 		if (winsz != 0x10000) // 64KB window normal for entering a DOS VM in Windows 3.1 or legacy bank switching in DOS
 			LOG(LOG_MISC,LOG_WARN)("S3 warning: Window size != 64KB and address conflict with system RAM!");
 
