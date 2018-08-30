@@ -577,7 +577,9 @@ void VGA_Reset(Section*) {
     if (S3_LFB_BASE < (MEM_TotalPages()*4096))
         S3_LFB_BASE = (MEM_TotalPages()*4096);
 
-    LOG(LOG_VGA,LOG_DEBUG)("S3 linear framebuffer at 0x%lx",(unsigned long)S3_LFB_BASE);
+    /* announce LFB framebuffer address only if actually emulating the S3 */
+    if (IS_VGA_ARCH && svgaCard == SVGA_S3Trio)
+        LOG(LOG_VGA,LOG_DEBUG)("S3 linear framebuffer at 0x%lx",(unsigned long)S3_LFB_BASE);
 
     pc98_allow_scanline_effect = section->Get_bool("pc-98 allow scanline effect");
     mainMenu.get_item("pc98_allow_200scanline").check(pc98_allow_scanline_effect).refresh_item(mainMenu);
