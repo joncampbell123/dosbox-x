@@ -639,7 +639,14 @@ void VGA_Reset(Section*) {
      *
      *   As far as I can tell, it's mapping for the LFB, not the MMIO. It uses the MMIO in the
      *   A0000-AFFFF range anyway. The failure to blit and draw seems to be caused by mapping the
-     *   LFB out of range like that and then trying to draw on the LFB. */
+     *   LFB out of range like that and then trying to draw on the LFB.
+     *
+     *   As far as I can tell from http://www.vgamuseum.info and the list of S3 cards, the S3 chipsets
+     *   emulated by DOSBox-X and DOSBox SVN here are all EISA and PCI cards, so it's likely the driver
+     *   is written around the assumption that memory addresses are the full 32 bits to the card, not
+     *   just the low 24 seen on the ISA slot. So it is unlikely the driver could ever support the
+     *   card on a 386SX nor could such a card work on a 386SX. It shouldn't even work on a 486SX
+     *   (26-bit limit), but it could. */
     if (IS_VGA_ARCH && svgaCard == SVGA_S3Trio && cpu_addr_bits <= 24)
         LOG(LOG_VGA,LOG_WARN)("S3 linear framebuffer warning: memalias setting is known to cause the Windows 3.1 S3 driver to crash");
     if (IS_VGA_ARCH && svgaCard == SVGA_S3Trio && cpu_addr_bits < 31 && S3_LFB_BASE < 0x1000000ul) /* below 16MB and memalias == 31 bits */
