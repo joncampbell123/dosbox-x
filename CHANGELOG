@@ -1,4 +1,17 @@
 <next version>
+  - VGA emulation fixed to emit warning if memalias=24, for S3 LFB,
+    if machine=svga_s3, to inform the user that the configuration is
+    known to cause the Windows 3.x driver to crash.
+  - VGA emulation will no longer report S3 linear framebuffer address
+    unless machine=svga_s3. The LFB address doesn't matter for anything
+    other than SVGA S3 emulation.
+  - S3 emulation will now automatically disable PCI VGA emulation if
+    constraints prevent DOSBox-X from setting a linear framebuffer
+    address aligned to 32MB (as required for PCI emulation).
+  - VGA emulation fixed to pick a more appropriate linear framebuffer
+    (S3) address if memalias is set to a value below 32.
+  - Added dosbox.conf option "pci vga" to control whether the VGA
+    emulation appears as a PCI or ISA device.
   - ROM BIOS now forces reported RAM down to make room for BIOS
     alias at top of memory instead of throwing an E_Exit error.
   - Fixed Hercules emulation (and MDA) so that the Hercules palette
