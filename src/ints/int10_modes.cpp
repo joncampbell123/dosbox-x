@@ -1816,6 +1816,8 @@ dac_text16:
 				reg_3a=5;
 				break;
 		};
+
+        unsigned char s3_mode = 0x00;
 		
 		switch (CurMode->type) {
 		case M_LIN4: // <- Theres a discrepance with real hardware on this
@@ -1830,16 +1832,21 @@ dac_text16:
 			reg_31 = 5;
 			break;
 		}
+
+        /* whether to enable the linear framebuffer */
+        if (CurMode->mode >= 0x100)
+            s3_mode |= 0x10; /* enable LFB */
+
 		IO_Write(crtc_base,0x3a);IO_Write(crtc_base+1u,reg_3a);
 		IO_Write(crtc_base,0x31);IO_Write(crtc_base+1u,reg_31);	//Enable banked memory and 256k+ access
 
 		IO_Write(crtc_base,0x58);
 		if (vga.mem.memsize >= (4*1024*1024))
-			IO_Write(crtc_base+1u,0x3);		// 4+ MB window
+			IO_Write(crtc_base+1u,0x3 | s3_mode);		// 4+ MB window
 		else if (vga.mem.memsize >= (2*1024*1024))
-			IO_Write(crtc_base+1u,0x2);		// 2 MB window
+			IO_Write(crtc_base+1u,0x2 | s3_mode);		// 2 MB window
 		else
-			IO_Write(crtc_base+1u,0x1);		// 1 MB window
+			IO_Write(crtc_base+1u,0x1 | s3_mode);		// 1 MB window
 
 		IO_Write(crtc_base,0x38);IO_Write(crtc_base+1u,0x48);	//Register lock 1
 		IO_Write(crtc_base,0x39);IO_Write(crtc_base+1u,0xa5);	//Register lock 2
