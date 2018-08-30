@@ -171,6 +171,8 @@ extern uint8_t                      pc98_egc_mask[2]; /* host given (Neko: egc.m
 
 uint32_t S3_LFB_BASE =              S3_LFB_BASE_DEFAULT;
 
+bool                                enable_pci_vga = true;
+
 VGA_Type vga;
 SVGA_Driver svga;
 int enableCGASnow;
@@ -560,14 +562,18 @@ void VGA_Reset(Section*) {
 
     GDC_display_plane_wait_for_vsync = section->Get_bool("pc-98 buffer page flip");
 
+    enable_pci_vga = section->Get_bool("pci vga");
+
     S3_LFB_BASE = section->Get_hex("svga lfb base");
     if (S3_LFB_BASE == 0) {
         if (cpu_addr_bits >= 32)
             S3_LFB_BASE = S3_LFB_BASE_DEFAULT;
         else if (cpu_addr_bits >= 26)
-            S3_LFB_BASE = has_pcibus_enable() ? 0x02000000 : 0x03400000;
-        else if (cpu_addr_bits >= 24)
+            S3_LFB_BASE = (enable_pci_vga && has_pcibus_enable()) ? 0x02000000 : 0x03400000;
+        else if (cpu_addr_bits >= 24) {
             S3_LFB_BASE = 0x00E00000;
+            enable_pci_vga = false;//avoid impossible constraint, 32MB PCI rounding vs 16MB limit of the CPU
+        }
         else
             S3_LFB_BASE = S3_LFB_BASE_DEFAULT;
 
@@ -578,7 +584,7 @@ void VGA_Reset(Section*) {
     if (S3_LFB_BASE > 0xFE000000UL)
         S3_LFB_BASE = 0xFE000000UL;
 
-    if (has_pcibus_enable()) {
+    if (enable_pci_vga && has_pcibus_enable()) {
         /* must be 32MB aligned (PCI) */
         S3_LFB_BASE +=  0x0FFFFFFUL;
         S3_LFB_BASE &= ~0x1FFFFFFUL;
@@ -593,9 +599,19 @@ void VGA_Reset(Section*) {
     if (S3_LFB_BASE < (MEM_TotalPages()*4096))
         S3_LFB_BASE = (MEM_TotalPages()*4096);
 
+    /* if the constraints we imposed make it impossible to maintain the alignment required for PCI,
+     * then just switch off PCI VGA emulation. */
+    if (IS_VGA_ARCH && enable_pci_vga && has_pcibus_enable()) {
+        if (S3_LFB_BASE & 0x1FFFFFFUL) { /* not 32MB aligned */
+            LOG(LOG_VGA,LOG_DEBUG)("S3 linear framebuffer is not 32MB aligned, switching off PCI VGA emulation");
+        }
+    }
+
     /* announce LFB framebuffer address only if actually emulating the S3 */
     if (IS_VGA_ARCH && svgaCard == SVGA_S3Trio)
-        LOG(LOG_VGA,LOG_DEBUG)("S3 linear framebuffer at 0x%lx%s",(unsigned long)S3_LFB_BASE,lfb_default?" by default":"");
+        LOG(LOG_VGA,LOG_DEBUG)("S3 linear framebuffer at 0x%lx%s as %s",
+            (unsigned long)S3_LFB_BASE,lfb_default?" by default":"",
+            (enable_pci_vga && has_pcibus_enable()) ? "PCI" : "(E)ISA");
 
     pc98_allow_scanline_effect = section->Get_bool("pc-98 allow scanline effect");
     mainMenu.get_item("pc98_allow_200scanline").check(pc98_allow_scanline_effect).refresh_item(mainMenu);
