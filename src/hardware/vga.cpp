@@ -548,6 +548,7 @@ bool has_pcibus_enable(void);
 
 void VGA_Reset(Section*) {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+    bool lfb_default = false;
     string str;
     int i;
 
@@ -556,7 +557,10 @@ void VGA_Reset(Section*) {
     GDC_display_plane_wait_for_vsync = section->Get_bool("pc-98 buffer page flip");
 
     S3_LFB_BASE = section->Get_hex("svga lfb base");
-    if (S3_LFB_BASE == 0) S3_LFB_BASE = S3_LFB_BASE_DEFAULT;
+    if (S3_LFB_BASE == 0) {
+        S3_LFB_BASE = S3_LFB_BASE_DEFAULT;
+        lfb_default = true;
+    }
 
     /* no farther than 32MB below the top */
     if (S3_LFB_BASE > 0xFE000000UL)
@@ -579,7 +583,7 @@ void VGA_Reset(Section*) {
 
     /* announce LFB framebuffer address only if actually emulating the S3 */
     if (IS_VGA_ARCH && svgaCard == SVGA_S3Trio)
-        LOG(LOG_VGA,LOG_DEBUG)("S3 linear framebuffer at 0x%lx",(unsigned long)S3_LFB_BASE);
+        LOG(LOG_VGA,LOG_DEBUG)("S3 linear framebuffer at 0x%lx%s",(unsigned long)S3_LFB_BASE,lfb_default?" by default":"");
 
     pc98_allow_scanline_effect = section->Get_bool("pc-98 allow scanline effect");
     mainMenu.get_item("pc98_allow_200scanline").check(pc98_allow_scanline_effect).refresh_item(mainMenu);
