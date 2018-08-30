@@ -1,4 +1,7 @@
 <next version>
+  - Added MDA emulation (machine=mda). It functions like
+    machine=hercules minus the graphics mode and Hercules-specific
+    extensions to the base MDA card.
   - DOSBox shell no longer accepts dosbox.conf settings as commands
     by default, unless enabled in dosbox.conf. Typing "cycles" will
     no longer show cycle count. The dosbox.conf setting allows the
