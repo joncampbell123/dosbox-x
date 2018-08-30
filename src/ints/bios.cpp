@@ -7294,7 +7294,18 @@ void ROMBIOS_Init() {
             alias_end = (unsigned long)top - (unsigned long)1UL;
 
             LOG(LOG_BIOS,LOG_DEBUG)("ROM BIOS also mapping alias to 0x%08lx-0x%08lx",alias_base,alias_end);
-            if (!MEM_map_ROM_alias_physmem(alias_base,alias_end)) E_Exit("Unable to map ROM region as ROM alias");
+            if (!MEM_map_ROM_alias_physmem(alias_base,alias_end)) {
+                void MEM_cut_RAM_up_to(Bitu addr);
+
+                /* it's possible if memory aliasing is set that memsize is too large to make room.
+                 * let memory emulation know where the ROM BIOS starts so it can unmap the RAM pages,
+                 * reduce the memory reported to the OS, and try again... */
+                LOG(LOG_BIOS,LOG_DEBUG)("No room for ROM BIOS alias, reducing reported memory and unmapping RAM pages to make room");
+                MEM_cut_RAM_up_to(alias_base);
+
+                if (!MEM_map_ROM_alias_physmem(alias_base,alias_end))
+                    E_Exit("Unable to map ROM region as ROM alias");
+            }
         }
     }
 

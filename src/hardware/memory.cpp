@@ -1866,6 +1866,19 @@ void Init_RAM() {
         memory.phandlers[i] = NULL;//&unmapped_page_handler;
 }
 
+/* ROM BIOS emulation will call this to impose an additional cap on RAM
+ * to make sure the upper alias of the ROM BIOS has room. */
+void MEM_cut_RAM_up_to(Bitu addr) {
+    Bitu pages = addr >> 12ul;
+
+    if (memory.reported_pages > pages) {
+        LOG(LOG_MISC,LOG_DEBUG)("Memory: Reducing RAM to 0x%lx",(unsigned long)addr);
+
+        do { memory.phandlers[--memory.reported_pages] = NULL;
+        } while (memory.reported_pages > pages);
+    }
+}
+
 static IO_ReadHandleObject PS2_Port_92h_ReadHandler;
 static IO_WriteHandleObject PS2_Port_92h_WriteHandler;
 static IO_WriteHandleObject PS2_Port_92h_WriteHandler2;
