@@ -5918,6 +5918,7 @@ private:
                 config|=0x2;
 #endif
             switch (machine) {
+                case MCH_MDA:
                 case MCH_HERC:
                     //Startup monochrome
                     config|=0x30;
@@ -6466,6 +6467,9 @@ private:
                 case MCH_MCGA:
                     card = "IBM Multi Color Graphics Adapter";
                     break;
+                case MCH_MDA:
+                    card = "IBM Monochrome Display Adapter";
+                    break;
                 case MCH_HERC:
                     card = "IBM Monochrome Display Adapter (Hercules)";
                     break;
@@ -6786,7 +6790,7 @@ public:
         if (allow_more_than_640kb) {
             if (machine == MCH_CGA)
                 ulimit = 736;       /* 640KB + 64KB + 32KB  0x00000-0xB7FFF */
-            else if (machine == MCH_HERC)
+            else if (machine == MCH_HERC || machine == MCH_MDA)
                 ulimit = 704;       /* 640KB + 64KB = 0x00000-0xAFFFF */
 
             if (t_conv > ulimit) t_conv = ulimit;

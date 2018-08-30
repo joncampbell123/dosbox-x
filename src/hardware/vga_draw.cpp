@@ -1944,6 +1944,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         // fall-through
     case MCH_AMSTRAD:
     case MCH_CGA:
+    case MCH_MDA:
     case MCH_MCGA:
     case MCH_HERC:
         // MC6845-powered graphics: Loading the display start latch happens somewhere
@@ -2036,7 +2037,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         // fall-through
     case M_TANDY_TEXT:
     case M_HERC_TEXT:
-        if (machine==MCH_HERC) vga.draw.linear_mask = 0xfff; // 1 page
+        if (machine==MCH_HERC || machine==MCH_MDA) vga.draw.linear_mask = 0xfff; // 1 page
         else if (IS_EGAVGA_ARCH || machine == MCH_MCGA) vga.draw.linear_mask = 0x7fff; // 8 pages
         else vga.draw.linear_mask = 0x3fff; // CGA, Tandy 4 pages
         if (IS_EGAVGA_ARCH)
@@ -2512,6 +2513,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             clock = 25175000 / 2 / 8;//FIXME: Guess. Verify
             if (!(vga.tandy.mode_control & 1)) clock /= 2;
             break;
+        case MCH_MDA:
         case MCH_HERC:
             clock=16000000/8;
             if (vga.herc.mode_control & 0x2) clock/=2;
@@ -3019,6 +3021,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         case MCH_TANDY:
             scanfield_ratio = 1.382;
             break;
+        case MCH_MDA:
         case MCH_HERC:
             scanfield_ratio = 1.535;
             break;

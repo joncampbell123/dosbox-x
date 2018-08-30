@@ -740,6 +740,7 @@ void DOSBOX_RealInit() {
     else if (mtype == "tandy")         { machine = MCH_TANDY; }
     else if (mtype == "pcjr")          { machine = MCH_PCJR; }
     else if (mtype == "hercules")      { machine = MCH_HERC; }
+    else if (mtype == "mda")           { machine = MCH_MDA; }
     else if (mtype == "ega")           { machine = MCH_EGA; }
     else if (mtype == "svga_s3")       { svgaCard = SVGA_S3Trio; }
     else if (mtype == "vesa_nolfb")    { svgaCard = SVGA_S3Trio; int10.vesa_nolfb = true;}
@@ -867,7 +868,7 @@ void DOSBOX_SetupConfigSections(void) {
 
         "fm_towns", // STUB
 
-        "mcga",
+        "mcga", "mda",
 
         0 };
 

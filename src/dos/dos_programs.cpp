@@ -3921,7 +3921,7 @@ void MODE::Run(void) {
     }
     else if (cmd->GetCount()>1) goto modeparam;
     else if (strcasecmp(temp_line.c_str(),"mono")==0) mode=7;
-    else if (machine==MCH_HERC) goto modeparam;
+    else if (machine==MCH_HERC || machine==MCH_MDA) goto modeparam;
     else if (strcasecmp(temp_line.c_str(),"co80")==0) mode=3;
     else if (strcasecmp(temp_line.c_str(),"bw80")==0) mode=2;
     else if (strcasecmp(temp_line.c_str(),"co40")==0) mode=1;

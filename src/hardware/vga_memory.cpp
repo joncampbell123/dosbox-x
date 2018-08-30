@@ -1891,6 +1891,7 @@ void VGA_SetupHandlers(void) {
 	case MCH_PCJR:
 		MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.pcjr );
 		goto range_done;
+	case MCH_MDA:
 	case MCH_HERC:
 		vgapages.base=VGA_PAGE_B0;
 		/* NTS: Implemented according to [http://www.seasip.info/VintagePC/hercplus.html#regs] */
