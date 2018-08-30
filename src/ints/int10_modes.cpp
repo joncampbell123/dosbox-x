@@ -1834,7 +1834,7 @@ dac_text16:
 		}
 
         /* whether to enable the linear framebuffer */
-        if (CurMode->mode >= 0x100)
+        if (CurMode->mode >= 0x100 && !int10.vesa_nolfb)
             s3_mode |= 0x10; /* enable LFB */
 
 		IO_Write(crtc_base,0x3a);IO_Write(crtc_base+1u,reg_3a);
