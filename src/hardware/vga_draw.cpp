@@ -2517,7 +2517,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         case MCH_HERC:
             clock=16000000/8;
             if (vga.herc.mode_control & 0x2) clock/=2;
-
             break;
         default:
             clock = (PIT_TICK_RATE*12);
@@ -3128,9 +3127,14 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     }
     vga.draw.delay.singleline_delay = (float)vga.draw.delay.htotal;
 
-    /* FIXME: Why is this required to prevent VGA palette errors with Crystal Dream II?
-     *        What is this code doing to change the palette prior to this point? */
-    VGA_DAC_UpdateColorPalette();
+    if (machine == MCH_HERC || machine == MCH_MDA) {
+        Herc_Palette();
+    }
+    else {
+        /* FIXME: Why is this required to prevent VGA palette errors with Crystal Dream II?
+         *        What is this code doing to change the palette prior to this point? */
+        VGA_DAC_UpdateColorPalette();
+    }
 }
 
 void VGA_KillDrawing(void) {
