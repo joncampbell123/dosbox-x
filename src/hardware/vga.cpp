@@ -613,6 +613,10 @@ void VGA_Reset(Section*) {
             (unsigned long)S3_LFB_BASE,lfb_default?" by default":"",
             (enable_pci_vga && has_pcibus_enable()) ? "PCI" : "(E)ISA");
 
+    /* other applicable warnings */
+    if (IS_VGA_ARCH && svgaCard == SVGA_S3Trio && cpu_addr_bits < 26)
+        LOG(LOG_VGA,LOG_WARN)("S3 linear framebuffer warning: memalias below 26 and S3 emulation can cause Windows 3.x S3 driver to crash");
+
     pc98_allow_scanline_effect = section->Get_bool("pc-98 allow scanline effect");
     mainMenu.get_item("pc98_allow_200scanline").check(pc98_allow_scanline_effect).refresh_item(mainMenu);
 
