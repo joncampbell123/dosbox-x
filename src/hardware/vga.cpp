@@ -604,6 +604,7 @@ void VGA_Reset(Section*) {
     if (IS_VGA_ARCH && enable_pci_vga && has_pcibus_enable()) {
         if (S3_LFB_BASE & 0x1FFFFFFUL) { /* not 32MB aligned */
             LOG(LOG_VGA,LOG_DEBUG)("S3 linear framebuffer is not 32MB aligned, switching off PCI VGA emulation");
+            enable_pci_vga = false;
         }
     }
 
