@@ -1,4 +1,6 @@
 <next version>
+  - PS/2 mouse emulation fixed not to send relative mouse motion
+    unless mouse cursor is captured.
   - Shell no longer provides MEM.COM if machine=pc98 or cputype=8086.
     MEM.COM is not compatible with either case.
   - INT 10h emulation will now set the S3 LFB enable bit for VESA
