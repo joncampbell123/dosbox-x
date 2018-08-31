@@ -25,6 +25,7 @@
 #include "control.h"
 #include "shell.h"
 #include "menu.h"
+#include "cpu.h"
 #include "callback.h"
 #include "support.h"
 #include "builtin.h"
@@ -1027,9 +1028,12 @@ void SHELL_Init() {
         VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
         VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
         VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
-        VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM);
         VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
     }
+
+    /* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
+    if (!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
+        VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM);
 
     /* DSXMENU.EXE */
     if (IS_PC98_ARCH)
