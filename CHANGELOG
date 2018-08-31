@@ -1,4 +1,6 @@
 <next version>
+  - Shell no longer provides MEM.COM if machine=pc98 or cputype=8086.
+    MEM.COM is not compatible with either case.
   - INT 10h emulation will now set the S3 LFB enable bit for VESA
     SVGA modes, unless machine=vesa_nolfb was specified.
   - VGA emulation revised to report possible known problems with
