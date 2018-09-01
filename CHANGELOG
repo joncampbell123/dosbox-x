@@ -1,4 +1,5 @@
 <next version>
+  - "Always on top" mode is now available for Mac OS X builds.
   - PS/2 mouse emulation fixed not to send relative mouse motion
     unless mouse cursor is captured.
   - Shell no longer provides MEM.COM if machine=pc98 or cputype=8086.
