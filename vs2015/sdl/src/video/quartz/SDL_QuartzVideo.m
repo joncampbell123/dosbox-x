@@ -47,6 +47,21 @@ static inline BOOL IS_SNOW_LEOPARD_OR_LATER(_THIS)
     return (system_version >= 0x1060);
 }
 
+unsigned char wants_topmost = 0;
+
+void sdl1_hax_set_topmost(unsigned char topmost) {
+	wants_topmost = topmost;
+
+    if (qz_window != nil) {
+        if (topmost) {
+            [ qz_window setLevel: NSStatusWindowLevel ];
+        }
+        else {
+            [ qz_window setLevel: NSNormalWindowLevel ];
+        }
+    }
+}
+
 #if (MAC_OS_X_VERSION_MAX_ALLOWED < 1060) && !defined(__LP64__)  /* Fixed in Snow Leopard */
 /*
     Add methods to get at private members of NSScreen. 
@@ -807,6 +822,8 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
             if (isLion) {
                 [ qz_window setContentView: [ [ [ SDL_QuartzView alloc ] init ] autorelease ] ];
             }
+
+            sdl1_hax_set_topmost(wants_topmost);
         }
     }
     /* We already have a window, just change its size */
