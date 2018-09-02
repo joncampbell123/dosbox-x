@@ -1,3 +1,6 @@
+(next version)
+  - CONFIG -get now populates %CONFIG% environment variable with
+    configuration setting (follow DOSBox SVN behavior)
 0.82.9
   - "Always on top" mode is now available for Mac OS X builds.
   - PS/2 mouse emulation fixed not to send relative mouse motion
