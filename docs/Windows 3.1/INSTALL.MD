@@ -1,5 +1,5 @@
 
-# Setup Windows 3.1 in DOSBox-X
+# Installing Windows 3.X in DOSBox-X
 
 (instructions tested against `dosbox-x-windows-20180901-124401-windows.zip`)
 
@@ -7,11 +7,18 @@
 
 ### Mouse
 
-During the graphical portion of the installation, you will see that there are two mouse pointers visible on the screen but only one is moving and does nothing. This is because DOSBox-X mouse integration driver for Windows needs to be installed first. To use the mouse at this point, capture it with <key>Ctrl</key>+<key>F10</key>.
+For the mouse to work after Windows installation, either of the following scenarios has to be met:
 
-Or
+Scenario 1
 
-If you don't want mouse integration from within Windows 3.1 (i.e. you prefer the old behavior), do not add `integration device=true` to the `[cpu]` section in `dosbox.conf` and skip the mouse integration driver installation section below.
+- Mouse integration driver is not installed
+- Mouse is captured with <kbd>Ctrl</kbd>+<kbd>F10</kbd>
+- DOSBox-X has been reset at least once with <kbd>F11</kbd>+<kbd>R</kbd>
+
+Scenario 2
+
+- Mouse integration driver is installed and defined in dosbox.conf
+- DOSBox-X has been reset at least once with <kbd>F11</kbd>+<kbd>R</kbd>
 
 ### Video
 
@@ -86,7 +93,9 @@ C:
 Here are some extra references to further tweak your installation:
 
 [Windows 3.1x DOSBox Guide](https://www.vogons.org/viewtopic.php?t=9405)
+
 [Windows 3x Downloads](http://www.sierrahelp.com/Utilities/Emulators/DOSBox/3x_Downloads.html)
+
 [VOGONS Vintage Driver Library](http://vogonsdrivers.com/)
 
 Tip : backup your working installation before attempting to install other drivers.
