@@ -190,6 +190,11 @@ static int TST_aullshl (void *a, void *b, int arg, void *result, void *expected)
     return (*(unsigned long long *)result) == (*(unsigned long long *)expected);
 }
 
+#if defined(_MSC_VER)
+/* some weird conflict between Whole Program Optimization and TST_allshr */
+# define TST_allshr TST_allshr_not_msvc_predefined_shut_up_
+#endif
+
 static int TST_allshr (void *a, void *b, int arg, void *result, void *expected)
 {
     (*(long long *)result) = (*(long long *)a) >> arg;

@@ -1,1558 +1,1752 @@
-DOSBox v0.74 Manual (always use the latest version from www.dosbox.com)
-
-
-
-=====
-NOTE:
-=====
-
-While we are hoping that one day DOSBox will run all programs ever made for
-the PC, we are not there yet.
-At present, DOSBox running on a high-end machine will roughly be the equivalent
-of a Pentium I PC. DOSBox can be configured to run a wide range of DOS games,
-from CGA/Tandy/PCjr classics up to games from the Quake era.
-
-
-
-======
-INDEX:
-======
-
-1. Quickstart
-2. Start (FAQ)
-3. Command Line Parameters
-4. Internal Programs
-5. Special Keys
-6. Joystick/Gamepad
-7. KeyMapper
-8. Keyboard Layout
-9. Serial Multiplayer feature
-10. How to speed up/slow down DOSBox
-11. Troubleshooting
-12. DOSBox Status Window
-13. The configuration (options) file
-14. The language file
-15. Building your own version of DOSBox
-16. Special thanks
-17. Contact
-
-
-
-==============
-1. Quickstart:
-==============
-
-Type INTRO in DOSBox for a quick tour.
-It is essential that you get familiar with the idea of mounting, DOSBox does not
-automatically make any drive (or a part of it) accessible to the emulation. See
-the FAQ entry "How to start?" as well as the description of the MOUNT command
-(Section 4: "Internal Programs"). If you have your game on a cdrom you may try
-this guide: http://vogons.zetafleet.com/viewtopic.php?t=8933
-
-
-
-===============
-2. Start (FAQ):
-===============
-
-START:      How to start?
-AUTOMATION: Do I always have to type these "mount" commands?
-FULLSCREEN: How do I change to fullscreen?
-CD-ROM:     My CD-ROM doesn't work.
-CD-ROM:     The game/application can't find its CD-ROM.
-MOUSE:      The mouse doesn't work.
-SOUND:      There is no sound.
-SOUND:      What sound hardware does DOSBox presently emulate?
-SOUND:      The sound stutters or sounds stretched/weird.
-KEYBOARD:   I can't type \ or : in DOSBox.
-KEYBOARD:   Right Shift and "\" doesn't work in DOSBox. (Windows only)
-KEYBOARD:   The keyboard lags.
-CONTROL:    The character/cursor/mouse pointer always moves into one direction!
-SPEED:      The game/application runs much too slow/too fast!
-CRASH:      The game/application does not run at all/crashes!
-CRASH:      DOSBox crashes on startup!
-GAME:       My Build game(Duke3D/Blood/Shadow Warrior) has problems.
-SAFETY:     Can DOSBox harm my computer?
-OPTIONS:    I would like to change DOSBox's options.
-HELP:       Great Manual, but I still don't get it.
-
-
-
-START: How to start?
-    At the beginning you've got a Z:\> instead of a C:\> at the prompt.
-    You have to make your directories available as drives in DOSBox by using
-    the "mount" command. For example, in Windows "mount C D:\GAMES" will give
-    you a C drive in DOSBox which points to your Windows D:\GAMES directory
-    (that was created before). In Linux, "mount c /home/username" will give you
-    a C drive in DOSBox which points to /home/username in Linux.
-    To change to the drive mounted like above, type "C:". If everything went
-    fine, DOSBox will display the prompt "C:\>".
-
-
-AUTOMATION: Do I always have to type these commands?
-    In the DOSBox configuration file is an [autoexec] section. The commands
-    present there are run when DOSBox starts, so you can use this section
-    for the mounting. Look at Section 13: "The configuration (options) file".
-
-
-FULLSCREEN: How do I change to fullscreen?
-    Press alt-enter. Alternatively: Edit the configuration file of DOSBox and
-    change the option fullscreen=false to fullscreen=true. If fullscreen looks
-    wrong in your opinion: Play with the options: fullresolution, output and
-    aspect in the configuration file of DOSBox. To get back from fullscreen
-    mode: Press alt-enter again.
-
-
-CD-ROM: My CD-ROM doesn't work.
-    To mount your CD-ROM in DOSBox you have to specify some additional options
-    when mounting the CD-ROM.
-    To enable CD-ROM support (includes MSCDEX) in Windows:
-      - mount d f:\ -t cdrom
-    in Linux:
-      - mount d /media/cdrom -t cdrom
-
-    In some cases you might want to use a different CD-ROM interface,
-    for example if CD audio does not work:
-      To enable SDL-support (does not include low-level CD access!):
-        - mount d f:\ -t cdrom -usecd 0 -noioctl
-      To enable ioctl access using digital audio extraction for CD audio
-      (Windows-only, useful for Vista):
-        - mount d f:\ -t cdrom -ioctl_dx
-      To enable ioctl access using MCI for CD audio (Windows-only):
-        - mount d f:\ -t cdrom -ioctl_mci
-      To force ioctl-only access (Windows-only):
-        - mount d f:\ -t cdrom -ioctl_dio
-      To enable low-level aspi-support (win98 with aspi-layer installed):
-        - mount d f:\ -t cdrom -aspi
-
-    explanation: - d   driveletter you will get in DOSBox (d is the best,
-                          don't change it!)
-                 - f:\ location of CD-ROM on your PC. In most cases it will
-                          be d:\ or e:\
-                 - 0   The number of the CD-ROM drive, reported by "mount -cd"
-                          (note that this value is only needed when using SDL
-                          for CD audio, otherwise it is ignored)
-    See also the next question: The game/application can't find its CD-ROM.
-
-
-CD-ROM: The game/application can't find its CD-ROM.
-    Be sure to mount the CD-ROM with -t cdrom switch, this will enable the
-    MSCDEX interface required by DOS games to interface with CD-ROMs.
-    Also try adding the correct label (-label LABEL) to the mount command,
-    where LABEL is the CD-label (volume ID) of the CD-ROM.
-    Under Windows you can specify -ioctl, -aspi or -noioctl. Look at the
-    description of the mount command in Section 4: "Internal programs"
-    for their meaning and the
-    additional audio-CD related options -ioctl_dx, -ioctl_mci, -ioctl_dio.
-
-    Try creating a CD-ROM image (preferably CUE/BIN pair) and use the
-    DOSBox's internal IMGMOUNT tool to mount the image (the CUE sheet).
-    This enables very good low-level CD-ROM support on any operating system.
-
-
-MOUSE: The mouse doesn't work.
-    Usually, DOSBox detects when a game uses mouse control. When you click on
-    the screen it should get locked (confined to the DOSBox window) and work.
-    With certain games, the DOSBox mouse detection doesn't work. In that case
-    you will have to lock the mouse manually by pressing CTRL-F10.
-
-
-SOUND: There is no sound.
-    Be sure that the sound is correctly configured in the game. This might be
-    done during the installation or with a setup/setsound utility that
-    accompanies the game. First see if an autodetection option is provided. If
-    there is none try selecting SoundBlaster or SoundBlaster 16 with the default
-    settings being "address=220 irq=7 dma=1" (sometimes highdma=5). You might
-    also want to select Sound Canvas/SCC/MPU-401/General MIDI/Wave Blaster
-    at "address=330 IRQ=2" as music device.
-    The parameters of the emulated sound cards can be changed in the DOSBox
-    configuration file.
-    If you still don't get any sound set the core to normal in DOSBox
-    configuration and use some lower fixed cycles value (like cycles=2000). Also
-    assure that your host operating sound does provide sound.
-    In certain cases it might be useful to use a different emulated sound device
-    like a SoundBlaster Pro (sbtype=sbpro1 in the DOSBox configuration file) or
-    the Gravis Ultrasound (gus=true).
-
-
-SOUND: What sound hardware does DOSBox presently emulate?
-    DOSBox emulates several legacy sound devices:
-    - Internal PC speaker/Buzzer
-      This emulation includes both the tone generator and several forms of
-      digital sound output through the internal speaker.
-    - Creative CMS/Gameblaster
-      The is the first card released by Creative Labs(R).  The default
-      configuration places it on address 220. It is disabled by default.
-    - Tandy 3 voice
-      The emulation of this sound hardware is complete with the exception of
-      the noise channel. The noise channel is not very well documented and as
-      such is only a best guess as to the sound's accuracy. It is disabled as
-      default.
-    - Tandy DAC
-      Some games may require turning off SoundBlaster emulation (sbtype=none)
-      for better Tandy DAC sound support. Don't forget to set the sbtype back to
-      sb16 if you don't use Tandy sound.
-    - Adlib
-      This emulation is almost perfect and includes the Adlib's ability to
-      almost play digitized sound. Placed at address 220 (also on 388).
-    - SoundBlaster 16 / SoundBlaster Pro I & II / SoundBlaster I & II
-      By default DOSBox provides SoundBlaster 16 level 16-bit stereo sound.
-      You can select a different SoundBlaster version in the configuration of
-      DOSBox. AWE32 music is not emulated as you can use MPU-401 instead
-      (see below).
-    - Disney Sound Source and Covox Speech Thing
-      Using the printer port, this sound device outputs digital sound only.
-      Placed at LPT1
-    - Gravis Ultrasound
-      The emulation of this hardware is nearly complete, though the MIDI
-      capabilities have been left out, since an MPU-401 has been emulated
-      in other code. For Gravis music you also have to install Gravis drivers
-      inside DOSBox. It is disabled by default.
-    - MPU-401
-      A MIDI passthrough interface is also emulated. This method of sound
-      output will only work when used with external device/emulator.
-      Every Windows XP/Vista/7 and Mac OS X has got a default emulator 
-      compatible with: Sound Canvas/SCC/General Standard/General MIDI/Wave 
-      Blaster. A different device/emulator is needed for 
-      Roland LAPC/CM-32L/MT-32 compatibility.
-
-
-SOUND: The sound stutters or sounds stretched/weird.
-    You may be using too much CPU power to keep DOSBox running at the current
-    speed. You can lower the cycles, skip frames, reduce the sampling rate of
-    the respective sound device, increase the prebuffer. See Section 13: "The
-    configuration (options) file".
-    If you are using 'cycles=max' or 'cycles=auto', then make sure that there is
-    no background processes interfering! (especially if they access the harddisk)
-    Also look at Section 10: "How to speed up/slow down DOSBox" as well as
-    Section 11: "Troubleshooting".
-
-
-KEYBOARD: I can't type \ or : in DOSBox.
-    This can happen in various cases, like your host keyboard layout does not
-    have a matching DOS layout representation (or it was not correctly
-    detected), or the key mapping is wrong.
-    Some possible fixes:
-      1. Use / instead, or ALT-58 for : and ALT-92 for \.
-      2. Change the DOS keyboard layout (see Section 8: "Keyboard Layout").
-      3. Add the commands you want to execute to the [autoexec] section
-         of the DOSBox configuration file.
-      4. Open the DOSBox configuration file and change the usescancodes entry.
-      5. Switch the keyboard layout of your operating system.
-
-    Note that if the host layout can not be identified, or keyboardlayout is
-    set to none in the DOSBox configuration file, the standard US layout is
-    used. In this configuration try the keys around "enter" for the key \
-    (backslash), and for the key : (colon) use shift and the keys between
-    "enter" and "L".
-
-
-KEYBOARD: Right Shift and "\" doesn't work in DOSBox. (Windows only)
-    This may happen if Windows thinks that you have more than one keyboard
-    connected to your PC when you use some remote control devices.
-    To verity this problem run cmd.exe, navigate to DOSBox program folder
-    and type:
-    set sdl_videodriver=windib
-    dosbox.exe
-    check whether keyboard started to work properly. As windib is slower it is
-    best to use one of the two solutions provided here:
-    http://vogons.zetafleet.com/viewtopic.php?t=24072
-
-
-KEYBOARD: The keyboard lags.
-    Lower the priority setting in the DOSBox configuration file, for example
-    set "priority=normal,normal". You might also want to try lowering the
-    cycles (use a fixed cycle amount to start with, like cycles=10000).
-
-
-CONTROL: The character/cursor/mouse pointer always moves into one direction!
-    See if it still happens if you disable the joystick emulation,
-    set joysticktype=none in the [joystick] section of your DOSBox
-    configuration file. Maybe also try unplugging any joystick/gamepad.
-    If you want to use the joystick in the game, try setting timed=false
-    and be sure to calibrate the joystick (both in your OS as well as
-    in the game or the game's setup program).
-
-
-SPEED: The game/application runs much too slow/too fast!
-    Look at Section 10: "How to speed up/slow down DOSBox" for more
-    information.
-
-
-CRASH: The game/application does not run at all/crashes!
-    Look at Section 11: "Troubleshooting".
-
-
-CRASH: DOSBox crashes on startup!
-    Look at Section 11: "Troubleshooting".
-
-
-GAME: My Build game(Duke3D/Blood/Shadow Warrior) has problems.
-    First of all, try to find a port of the game. Those will offer a better
-    experience. To fix the graphics problem that occurs in DOSBox on higher
-    resolutions: Open the configuration file of DOSBox and search for
-    machine=svga_s3. Change svga_s3 to vesa_nolfb
-    Change memsize=16 to memsize=63
-
-
-SAFETY: Can DOSBox harm my computer?
-    DOSBox can not harm your computer more than any other resource demanding
-    program. Increasing the cycles does not overclock your real CPU.
-    Setting the cycles too high has a negative performance effect on the
-    software running inside DOSBox.
-
-
-OPTIONS: I would like to change DOSBox's options.
-    Look at Section 13: "The configuration (options) file".
-
-
-HELP: Great Manual, but I still don't get it.
-    For more questions read the rest of this Manual. You may also look at:
-    guides located at http://vogons.zetafleet.com/viewforum.php?f=39
-    the wiki of DOSBox http://www.dosbox.com/wiki/
-    the site/forum: http://www.dosbox.com
-
-
-
-===========================
-3. Command Line Parameters:
-===========================
-
-An overview of the command line options you can give to DOSBox. Although
-in most cases it is easier to use DOSBox's configuration file instead.
-See Section 13: "The configuration (options) file".
-
-To be able to use Command Line Parameters:
-(Windows)  open cmd.exe or command.com or edit the shortcut to dosbox.exe
-(Linux)    use console
-(Mac OS X) start terminal.app and navigate to:
-           /applications/dosbox.app/contents/macos/dosbox
-
-The options are valid for all operating systems unless noted in the option
-description:
-
-dosbox [name] [-exit] [-c command] [-fullscreen] [-userconf]
-       [-conf congfigfilelocation] [-lang languagefilelocation]
-       [-machine machine type] [-noconsole] [-startmapper] [-noautoexec]
-       [-securemode] [-scaler scaler | -forcescaler scaler] [-version]
-       [-socket socket]
-       
-dosbox -version
-dosbox -editconf program
-dosbox -opencaptures program
-dosbox -printconf
-dosbox -eraseconf
-dosbox -erasemapper
-
-  name
-        If "name" is a directory it will mount that as the C: drive.
-        If "name" is an executable it will mount the directory of "name"
-        as the C: drive and execute "name".
-
-  -exit
-        DOSBox will close itself when the DOS application "name" ends.
-
-  -c command
-        Runs the specified command before running "name". Multiple commands
-        can be specified. Each command should start with "-c" though.
-        A command can be: an Internal Program, a DOS command or an executable
-        on a mounted drive.
-
-  -fullscreen
-        Starts DOSBox in fullscreen mode.
-
-  -userconf
-        Start DOSBox with the users specific configuration file. Can be used
-        together with multiple -conf parameters, but -userconf will always be 
-        loaded before them.
-
-  -conf configfilelocation
-        Start DOSBox with the options specified in "configfilelocation".
-        Multiple -conf options may be present.
-        See Section 13: "The configuration (options) file" for more details.
-
-  -lang languagefilelocation
-        Start DOSBox using the language specified in "languagefilelocation".
-        See Section 14: "The Language File" for more details.
-
-  -machine machinetype
-        Setup DOSBox to emulate a specific type of machine. Valid choices are:
-        hercules, cga, ega, pcjr, tandy, svga_s3 (default) as well as
-        the additional SVGA chipsets listed in the DOSBox configuration file.
-        svga_s3 enables VESA emulation as well.
-        For some special VGA effects the machinetype vgaonly can be used,
-        note that this disables SVGA capabilities and might be slower due to the
-        higher emulation precision.
-        The machinetype affects the video card and the available sound cards.
-
-  -noconsole (Windows Only)
-        Start DOSBox without showing the DOSBox status window (console).
-        Output will be redirected to stdout.txt and stderr.txt
-
-  -startmapper
-        Enter the keymapper directly on startup. Useful for people with
-        keyboard problems.
-
-  -noautoexec
-        Skips the [autoexec] section of the loaded configuration file.
-
-  -securemode
-        Same as -noautoexec, but adds config.com -securemode at the
-        bottom of AUTOEXEC.BAT (which in turn disables any changes to how
-        the drives are mounted inside DOSBox).
-
-  -scaler scaler
-        Uses the scaler specified by "scaler". See the DOSBox configuration file
-        for the available scalers.
-
-  -forcescaler scaler
-        Similar to the -scaler parameter, but tries to force usage of
-        the specified scaler even if it might not fit.
-
-  -version
-        output version information and exit. Useful for frontends.
-
-  -editconf program
-        calls program with as first parameter the configuration file.
-        You can specify this command more than once. In this case it will
-        move to second program if the first one fails to start.
-
-  -opencaptures program
-        calls program with as first parameter the location of the captures
-        folder.
-
-  -printconf
-        prints the location of the default configuration file.
-
-  -resetconf
-        removes the default configuration file.
-
-  -resetmapper
-        removes the mapperfile used by the default clean configuration file.
-
-  -socket
-        passes the socket number to the nullmodem emulation. See Section 9:
-        "Serial Multiplayer feature."
-
-Note: If a name/command/configfilelocation/languagefilelocation contains
-     a space, put the whole name/command/configfilelocation/languagefilelocation
-     between quotes ("command or file name"). If you need to use quotes within
-     quotes (most likely with -c and mount):
-     Windows and OS/2 users can use single quotes inside the double quotes.
-     Other people should be able to use escaped double quotes inside the
-     double quotes.
-     Windows: -c "mount c 'c:\My folder with DOS games\'"
-     Linux: -c "mount c \"/tmp/name with space\""
-
-A rather unusual example, just to demonstrate what you can do (Windows):
-dosbox D:\folder\file.exe -c "MOUNT Y H:\MyFolder"
-  This mounts D:\folder as C:\ and runs file.exe.
-  Before it does that, it will first mount H:\MyFolder as the Y drive.
-
-In Windows, you can also drag directories/files onto the DOSBox executable.
-
-
-
-=====================
-4. Internal Programs:
-=====================
-
-DOSBox supports most of the DOS commands found in command.com.
-To get a list of the internal commands type "HELP" at the prompt.
-
-In addition, the following commands are available:
-
-MOUNT "Emulated Drive letter" "Real Drive or Directory"
-      [-t type] [-aspi] [-ioctl] [-noioctl] [-usecd number] [-size drivesize]
-      [-label drivelabel] [-freesize size_in_mb]
-      [-freesize size_in_kb (floppies)]
-MOUNT -cd
-MOUNT -u "Emulated Drive letter"
-
-  Program to mount local directories as drives inside DOSBox.
-
-  "Emulated Drive letter"
-        The driveletter inside DOSBox (for example C).
-
-  "Real Drive letter (usually for CD-ROMs in Windows) or Directory"
-        The local directory you want accessible inside DOSBox.
-
-  -t type
-        Type of the mounted directory.
-        Supported are: dir (default), floppy, cdrom.
-
-  -size drivesize
-	(experts only)
-        Sets the size of the drive, where drivesize is of the form
-        "bps,spc,tcl,fcl":
-           bps: bytes per sector, by default 512 for regular drives and
-                2048 for CD-ROM drives
-           spc: sectors per cluster, usually between 1 and 127
-           tcl: total clusters, between 1 and 65534
-           fcl: total free clusters, between 1 and tcl
-
-  -freesize size_in_mb | size_in_kb
-        Sets the amount of free space available on a drive
-        in megabytes (regular drives) or kilobytes (floppy drives).
-        This is a simpler version of -size.
-
-  -label drivelabel
-        Sets the name of the drive to "drivelabel". Needed on some systems
-        if the CD-ROM label isn't read correctly (useful when a program
-        can't find its CD-ROM). If you don't specify a label
-        and no lowlevel support is selected (that is omitting the -usecd #
-        and/or -aspi parameters, or specifying -noioctl):
-          For Windows: label is extracted from "Real Drive".
-          For Linux: label is set to NO_LABEL.
-
-        If you do specify a label, this label will be kept as long as the drive
-        is mounted. It will not be updated !!
-
-  -aspi
-        Forces use of the aspi layer. Only valid if mounting a CD-ROM under
-        Windows systems with an ASPI-Layer.
-
-  -ioctl (automatic selection of the CD audio interface)
-  -ioctl_dx (digital audio extraction used for CD audio)
-  -ioctl_dio (ioctl calls used for CD audio)
-  -ioctl_mci (MCI used for CD audio)
-        Forces use of ioctl commands. Only valid if mounting a CD-ROM under
-        a Windows OS which support them (Win2000/XP/NT).
-        The various choices only differ in the way CD audio is handled,
-        preferably -ioctl_dio is used (lowest workload), but this might not
-        work on all systems, so -ioctl_dx (or -ioctl_mci) can be used.
-
-  -noioctl
-        Forces use of the SDL CD-ROM layer. Valid on all systems.
-
-  -usecd number
-        Valid on all systems, under Windows the -noioctl switch has to be
-        present to make use of the -usecd switch.
-        Enables to select the drive that should be used by SDL. Use this if
-        the wrong or no CD-ROM drive is mounted while using the SDL CD-ROM
-        interface. "number" can be found by "MOUNT -cd".
-
-  -cd
-        Displays all CD-ROM drives detected by SDL, and their numbers.
-        See the information at the -usecd entry above.
-
-  -u
-        Removes the mount. Doesn't work for Z:\.
-
-  Note: It's possible to mount a local directory as CD-ROM drive,
-        but hardware support is then missing.
-
-  Basically MOUNT allows you to connect real hardware to DOSBox's emulated PC.
-  So MOUNT C C:\GAMES tells DOSBox to use your C:\GAMES directory as drive C:
-  in DOSBox. MOUNT C E:\SomeFolder tells DOSBox to use your E:\SomeFolder
-  directory as drive C: in DOSBox.
-
-  Mounting your entire C drive with MOUNT C C:\ is NOT recommended! The same
-  is true for mounting the root of any other drive, except for CD-ROMs (due to
-  their read-only nature).
-  Otherwise if you or DOSBox make a mistake you may lose all your files.
-  Also never mount a "Windows" or "Program Files" folders or their subfolders
-  in Windows Vista/7 as DOSBox may not work correctly, or will stop working
-  correctly later. It is recommended to keep all your dos applications/games
-  in a simple folder (for example c:\dosgames) and mount that.
-
-  You should always install your game inside DOSBox.
-  So if you have the game on CD you always (even after installation!)
-  have to mount both: folder as a harddisk drive and a CD-ROM.
-  HardDisk should always be mounted as c
-    CD-ROM should always be mounted as d
-    Floppy should always be mounted as a (or b)
-
-  Basic MOUNT Examples for normal usage (Windows):
-
-   1. To mount a folder as a harddisk drive:
-          mount c d:\dosgames
-
-   3. To mount your CD-ROM drive E as CD-ROM drive D in DOSBox:
-          mount d e:\ -t cdrom
-
-   2. To mount your drive a: as a floppy:
-          mount a a:\ -t floppy
-
-  Advanced MOUNT examples (Windows):
-
-   4. To mount a hard disk drive with ~870 mb free diskspace (simple version):
-          mount c d:\dosgames -freesize 870
-
-   5. To mount a drive with ~870 mb free diskspace (experts only, full control):
-          mount c d:\dosgames -size 512,127,16513,13500
-
-   1. To mount c:\dosgames\floppy as a floppy:
-          mount a c:\dosgames\floppy -t floppy
-
-
-  Other MOUNT examples:
-
-   3. To mount system CD-ROM drive at mountpoint /media/cdrom as CD-ROM drive D
-      in DOSBox:
-          mount d /media/cdrom -t cdrom -usecd 0
-
-   6. To mount /home/user/dosgames as drive C in DOSBox:
-          mount c /home/user/dosgames
-
-   7. To mount the directory where DOSBox was started as C in DOSBox:
-          mount c .
-          (note the . which represents the directory where DOSBox was started,
-          on Windows Vista/7 don't use this if you installed DOSBox
-          to your "Program Files" folder)
-
-  If you want to mount a CD image or floppy image, check IMGMOUNT.
-  MOUNT also works with images but only if you use external program,
-  for example (both are free):
-  - Daemon Tools Lite (for CD images),
-  - Virtual Floppy Drive (for floppy images).
-  Although IMGMOUNT can give better compatibility.
-
-
-MEM
-  Program to display the amount and type of free memory.
-
-
-VER
-VER set major_version [minor_version]
-  Display the current DOSBox version and reported DOS version
-  (parameterless usage).
-  Change the reported DOS version with the "set" parameter,
-  for example: "VER set 6 22" to have DOSBox report DOS 6.22 as version number.
-
-
-CONFIG -writeconf filelocation
-CONFIG -writeconf
-CONFIG -wcp filelocation
-CONFIG -wcd
-CONFIG -writelang filelocation
-CONFIG -axadd
-CONFIG -axclear
-CONFIG -axtype
-CONFIG -r [parameters]
-CONFIG -l
-CONFIG -help
-CONFIG -help sections
-CONFIG -help section
-CONFIG -help section property
-CONFIG -securemode
-CONFIG -set "section property=value"
-CONFIG -get "section property"
-
-  CONFIG can be used to change or query various settings of DOSBox
-  during runtime. It can save the current settings and language strings to
-  disk. Information about all possible sections and properties can
-  be found in Section 13: "The configuration (options) file".
-
-  -writeconf filelocation
-     (or -wc filelocation)
-     Write the current configuration settings to a file in a specified location
-     relative to the DOSBox config directory. Relative and absolute paths are 
-     possible. "filelocation" is located on the local drive, not a mounted 
-     drive in DOSBox.
-     
-     The configuration file controls various settings of DOSBox:
-     the amount of emulated memory, the emulated sound cards and many more
-     things. It allows access to AUTOEXEC.BAT as well.
-     See Section 13: "The configuration (options) file" for more information.
-
-  -writeconf
-     (or -wc)
-     Write the configuration to the primary loaded config file.
-
-  -wcp filelocation
-     Write the current configuration settings to the specified file in or 
-     relative to the DOSBox program start directory. Realtive and absolute 
-     paths are possible. This is located on a drive on the host, not a mounted
-     drive in DOSBox. It is useful if you keep DOSBox on a removable media.
-     If file is omitted, the configuration will be written to dosbox.conf.
-     
-  -wcd
-     Write the current configuration to the default config file.
-        
-     
-  -writelang filelocation
-     (or -wl filelocation)
-     Write the current language settings to a file in a specified location.
-     "filelocation" is located on the local drive, not a mounted drive
-     in DOSBox. The language file controls all visible output of the internal
-     commands and the internal DOS.
-     See Section 14: "The Language File" for more information.
-
-  -axadd "line1" "line2" ...
-     Adds a command line to the autoexec section.
-
-  -axclear
-     Clears the autoexec section.
-     
-  -axtype
-     Prints the content of the autoexec section.
-
-  -r [parameters]
-     Restart DOSBox, either with the parameters that were used to start the
-     current instance or any that are appended.
-
-  -l 
-     lists DOSBox parameters:
-     - the configuration directory
-     - the config files that were used when starting this session
-     - the command line parameters DOSBox was started with
-
-  -h, -help, -?
-     Displays an overvie of the config commands.
-
-  -h, -help, -? sections
-     Displays the list of sections in the config file.
-  
-  -h, -help, -? section
-     Displays the list of properties contained in the specified section.
-     
-  -h, -help, -? section property
-     Shows information about the specified property in the specified section:
-     - purpose of the property
-     - possible values, current value, default value
-     - wether it can definitely not be changed at runtime
-       
-  -securemode
-     Switches DOSBox to a more secure mode. In this mode the internal
-     commands MOUNT, IMGMOUNT and BOOT won't work. It's not possible either
-     to create a new configfile or languagefile in this mode.
-     (Warning: you can only undo this mode by restarting DOSBox.)
-
-  -set "section property=value"
-     CONFIG will attempt to set the property to new value.
-
-  -get "section property"
-     The current value of the property is reported and stored in the
-     environment variable %CONFIG%. This can be used to store the value
-     when using batch files.
-
-  Both "-set" and "-get" work from batch files and can be used to set up your
-  own preferences for each game. Although it may be easier to use separate
-  DOSBox's configuration files for each game instead.
-
-  Examples:
-    1. To create a configuration file in your c:\dosgames directory:
-        config -writeconf c:\dosgames\dosbox.conf
-    2. To set the cpu cycles to 10000:
-        config -set "cpu cycles=10000"
-    3. To turn EMS memory emulation off:
-        config -set "dos ems=false"
-    4. To check which cpu core is being used.
-        config -get "cpu core"
-    5. To view the list of possible cpu cores:
-        config -help cpu core
-    6. To change the machine type and restart:
-        config -set "machine cga"
-        config -wc -r
-    7. To configure the autoexec section to auto-mount a directory at start:
-        config -axadd "mount c c:\dosgames" "c:"
-        config -wc
-    8. To create a specific config file in the config directory:
-        config -set "dos ems=false"
-        config -set "cpu cycles=10000"
-        config -set "core dynamic"
-        config -axadd "mount c c:\dosgames" "c:" "cd my_game" "my_game"
-        config -wc my_config.conf
-    9. To restart DOSBox from a specific config file in the config directory:
-        config -r -conf my_config.conf
-
-LOADFIX [-size] [program] [program-parameters]
-LOADFIX -f
-  Program to reduce the amount of available conventional memory.
-  Useful for old programs which don't expect much memory to be free.
-
-  -size
-        number of kilobytes to "eat up", default = 64kb
-
-  -f
-        frees all previously allocated memory
-
-  Examples:
-    1. To start mm2.exe and allocate 64kb memory
-       (mm2 will have 64 kb less available):
-       loadfix mm2
-    2. To start mm2.exe and allocate 32kb memory:
-       loadfix -32 mm2
-    3. To free previous allocated memory:
-       loadfix -f
-
-
-RESCAN [Drive:] [-All]
-  Make DOSBox reread the directory structure. Useful if you changed something
-  on a mounted drive outside of DOSBox. (CTRL - F4 does this as well!)
-  
-  Drive: 
-        Drive to refresh.
-
-  -All
-        Refresh all drives.
-
-  if both a Drive: and -All are missing, then the current drive will be 
-  refreshed.
-  
-
-MIXER
-  Makes DOSBox display its current volume settings.
-  Here's how you can change them:
-
-  mixer channel left:right [/NOSHOW] [/LISTMIDI]
-
-  channel
-     Can be one of the following: MASTER, DISNEY, SPKR, GUS, SB, FM [, CDAUDIO].
-     CDAUDIO is only available if a CD-ROM interface with volume control is
-     enabled (CD image, ioctl_dx).
-
-  left:right
-     The volume levels in percentages. If you put a D in front it will be
-     in decibel (Example: mixer gus d-10).
-
-  /NOSHOW
-     Prevents DOSBox from showing the result if you set one
-     of the volume levels.
-
-  /LISTMIDI
-     In Windows lists the available midi devices on your PC. To select a device
-     other than the Windows default midi-mapper, change the line 'midiconfig='
-     in the [midi] section of the configuration file to 'midiconfig=id', where
-     'id' is the number for the device as listed by LISTMIDI. eg. midiconfig=2
-
-     In Linux this option doesn't work, but you get similar results by using
-     'pmidi -l' in console. Then change the line 'midiconfig=' to 
-     'midiconfig=port', where 'port' is the port for the device as listed by 
-     'pmidi -l'. eg. midiconfig=128:0
-
-
-IMGMOUNT
-  A utility to mount disk images and CD-ROM images in DOSBox.
-
-  IMGMOUNT DRIVE [imagefile] -t [image_type] -fs [image_format]
-            -size [sectorsbytesize, sectorsperhead, heads, cylinders]
-  IMGMOUNT DRIVE [imagefile1 imagefile2 .. imagefileN] -t cdrom -fs iso
-
-  imagefile
-      Location of the image file to mount in DOSBox. The location can be
-      on a mounted drive inside DOSBox, or on your real disk. It is possible
-      to mount CD-ROM images (ISOs or CUE/BIN or CUE/IMG) too.
-      If you need CD swapping capabilities, specify all images in succession
-      (see the next entry).
-      CUE/BIN pairs and cue/img are the preferred CD-ROM image types as they can
-      store audio tracks compared to ISOs (which are data-only). For
-      the CUE/BIN mounting always specify the CUE sheet.
-
-  imagefile1 imagefile2 .. imagefileN
-      Location of the image files to mount in DOSBox. Specifying a number
-      of image files is only allowed for CD-ROM images.
-      The CD's can be swapped with CTRL-F4 at any time.
-      This is required for games which use multiple CD-ROMs and require the CD
-      to be switched during the gameplay at some point.
-
-  -t
-      The following are valid image types:
-        floppy: Specifies a floppy image. DOSBox will automatically identify
-                the disk geometry (360K, 1.2MB, 720K, 1.44MB, etc).
-        cdrom:  Specifies a CD-ROM image. The geometry is automatic and
-                set for this size. This can be an iso or a cue/bin pair or
-                a cue/img pair.
-        hdd:    Specifies a harddrive image. The proper CHS geometry must be set
-                for this to work.
-
-  -fs
-      The following are valid file system formats:
-        iso:  Specifies the ISO 9660 CD-ROM format.
-        fat:  Specifies that the image uses the FAT file system. DOSBox will
-              attempt to mount this image as a drive in DOSBox and make
-              the files available from inside DOSBox.
-        none: DOSBox will make no attempt to read the file system on the disk.
-              This is useful if you need to format it or if you want to boot
-              the disk using the BOOT command. When using the "none"
-              filesystem, you must specify the drive number (2 or 3,
-              where 2 = master, 3 = slave) rather than a drive letter.
-              For example, to mount a 70MB image as the slave drive device,
-              you would type (without the quotes):
-                "imgmount 3 d:\test.img -size 512,63,16,142 -fs none"
-                Compare this with a mount to be able to access the drive
-                within DOSBox, which would read as:
-                "imgmount e: d:\test.img -size 512,63,16,142"
-
-  -size
-     The Cylinders, Heads and Sectors of the drive.
-     Required to mount hard drive images.
-
-  An example how to mount CD-ROM images (in Linux):
-    1. imgmount d /tmp/cdimage1.cue /tmp/cdimage2.cue -t cdrom
-  or (which also works):
-    2a. mount c /tmp
-    2b. imgmount d c:\cdimage1.cue c:\cdimage2.cue -t cdrom
-  (in Windows):
-    imgmount d f:\img\CD1.cue f:\img\CD2.cue f:\img\CD3.cue -t cdrom
-    imgmount d "g:\img\7th Guest CD1.cue" "g:\img\7th Guest CD2.cue" -t cdrom
-  Don't forget that you can also use MOUNT with images, but only if you use
-  external program, for example (both are free):
-  - Daemon Tools Lite (for CD images),
-  - Virtual Floppy Drive (for floppy images).
-  Although IMGMOUNT can give better compatibility.
-
-
-BOOT
-  Boot will start floppy images or hard disk images independent of
-  the operating system emulation offered by DOSBox. This will allow you to
-  play booter floppies or boot other operating systems inside DOSBox.
-  If the target emulated system is PCjr (machine=pcjr) the boot command
-  can be used to load PCjr cartridges (.jrc). 
-
-  BOOT [diskimg1.img diskimg2.img .. diskimgN.img] [-l driveletter]
-  BOOT [cart.jrc]  (PCjr only)
-
-  diskimg1.img diskimg2.img .. diskimgN.img
-     This can be any number of floppy disk images one wants mounted after
-     DOSBox boots the specified drive letter.
-     To swap between images, hit CTRL-F4 to change from the current disk
-     to the next disk in the list. The list will loop back from the last
-     disk image to the beginning.
-
-  [-l driveletter]
-     This parameter allows you to specify the drive to boot from.
-     The default is the A drive, the floppy drive. You can also boot
-     a hard drive image mounted as master by specifying "-l C"
-     without the quotes, or the drive as slave by specifying "-l D"
-
-   cart.jrc (PCjr only)
-     When emulation of a PCjr is enabled, cartridges can be loaded with
-     the BOOT command. Support is still limited.
-
-
-IPX
-
-  You need to enable IPX networking in the configuration file of DOSBox.
-
-  All of the IPX networking is managed through the internal DOSBox program
-  IPXNET. For help on the IPX networking from inside DOSBox, type
-  "IPXNET HELP" (without quotes) and the program will list the commands
-  and relevant documentation.
-
-  With regard to actually setting up a network, one system needs to be
-  the server. To set this up, type "IPXNET STARTSERVER" (without the quotes)
-  in a DOSBox session. The server DOSBox session will automatically add
-  itself to the virtual IPX network. For every additional computer that
-  should be part of the virtual IPX network, you'll need to type
-  "IPXNET CONNECT <computer host name or IP>".
-  For example, if your server is at bob.dosbox.com, you would type
-  "IPXNET CONNECT bob.dosbox.com" on every non-server system.
-
-  To play games that need Netbios a file named NETBIOS.EXE from Novell is
-  needed. Establish the IPX connection as explained above, then run
-  "netbios.exe".
-
-  The following is an IPXNET command reference:
-
-  IPXNET CONNECT
-
-     IPXNET CONNECT opens a connection to an IPX tunneling server
-     running on another DOSBox session. The "address" parameter specifies
-     the IP address or host name of the server computer. You can also
-     specify the UDP port to use. By default IPXNET uses port 213 - the
-     assigned IANA port for IPX tunneling - for its connection.
-
-     The syntax for IPXNET CONNECT is:
-     IPXNET CONNECT address <port>
-
-  IPXNET DISCONNECT
-
-     IPXNET DISCONNECT closes the connection to the IPX tunneling server.
-
-     The syntax for IPXNET DISCONNECT is:
-     IPXNET DISCONNECT
-
-  IPXNET STARTSERVER
-
-     IPXNET STARTSERVER starts an IPX tunneling server on this DOSBox
-     session. By default, the server will accept connections on UDP port
-     213, though this can be changed. Once the server is started, DOSBox
-     will automatically start a client connection to the IPX tunneling server.
-
-     The syntax for IPXNET STARTSERVER is:
-     IPXNET STARTSERVER <port>
-
-     If the server is behind a router, UDP port <port> needs to be forwarded
-     to that computer.
-
-     On Linux/Unix-based systems port numbers smaller than 1023 can only be
-     used with root privileges. Use ports greater than 1023 on those systems.
-
-  IPXNET STOPSERVER
-
-     IPXNET STOPSERVER stops the IPX tunneling server running on this DOSBox
-     session. Care should be taken to ensure that all other connections have
-     terminated as well, since stopping the server may cause lockups on other
-     machines that are still using the IPX tunneling server.
-
-     The syntax for IPXNET STOPSERVER is:
-     IPXNET STOPSERVER
-
-  IPXNET PING
-
-     IPXNET PING broadcasts a ping request through the IPX tunneled network.
-     In response, all other connected computers will respond to the ping
-     and report the time it took to receive and send the ping message.
-
-     The syntax for IPXNET PING is:
-     IPXNET PING
-
-  IPXNET STATUS
-
-     IPXNET STATUS reports the current state of this DOSBox session's
-     IPX tunneling network. For a list of all computers connected to the
-     network use the IPXNET PING command.
-
-     The syntax for IPXNET STATUS is:
-     IPXNET STATUS
-
-
-KEYB [keyboardlayoutcode [codepage [codepagefile]]]
-
-  Change the keyboard layout. For detailed information about keyboard layouts
-  please see Section 8: "Keyboard Layout".
-
-  [keyboardlayoutcode] is a string consisting of five or less characters,
-     examples are PL214 (Polish typists) or PL457 (Polish programmers).
-     It specifies the keyboard layout to be used.
-     The list of all layouts built into DOSBox is here:
-     http://vogons.zetafleet.com/viewtopic.php?t=21824
-
-  [codepage] is the number of the codepage to be used. The keyboard layout
-     has to provide support for the specified codepage, otherwise the layout
-     loading will fail.
-     If no codepage is specified, an appropriate codepage for the requested
-     layout is chosen automatically.
-
-  [codepagefile] can be used to load codepages that are yet not compiled
-     into DOSBox. This is only needed when DOSBox does not find the codepage.
-     If no codepagefile is specified, but you place all ten ega.cpx files
-     (from FreeDOS) in the DOSBox program folder, an appropriate codepagefile
-     for the requested layout/codepage is chosen automatically.
-
-  Examples:
-    1. To load the polish typist keys layout (automatically uses codepage 852):
-         keyb pl214
-    2. To load one of russian keyboard layouts with codepage 866:
-         keyb ru441 866
-       In order to type russian characters press ALT+RIGHT-SHIFT.
-    3. To load one of french keyboard layouts with codepage 850 (where the
-       codepage is defined in EGACPI.DAT):
-         keyb fr189 850 EGACPI.DAT
-    4. To load codepage 858 (without a keyboard layout):
-         keyb none 858
-       This can be used to change the codepage for the FreeDOS keyb2 utility.
-    5. To display the current codepage and, if loaded, the keyboard layout:
-         keyb
-
-
-
-For more information use the /? command line switch with the programs.
-
-
-
-================
-5. Special Keys:
-================
-
-ALT-ENTER     Switch to full screen and back.
-ALT-PAUSE     Pause emulation (hit ALT-PAUSE again to continue).
-CTRL-F1       Start the keymapper.
-CTRL-F4       Change between mounted floppy/CD images. Update directory cache 
-              for all drives.
-CTRL-ALT-F5   Start/Stop creating a movie of the screen. (avi video capturing)
-CTRL-F5       Save a screenshot. (PNG format)
-CTRL-F6       Start/Stop recording sound output to a wave file.
-CTRL-ALT-F7   Start/Stop recording of OPL commands. (DRO format)
-CTRL-ALT-F8   Start/Stop the recording of raw MIDI commands.
-CTRL-F7       Decrease frameskip.
-CTRL-F8       Increase frameskip.
-CTRL-F9       Kill DOSBox.
-CTRL-F10      Capture/Release the mouse.
-CTRL-F11      Slow down emulation (Decrease DOSBox Cycles).
-CTRL-F12      Speed up emulation (Increase DOSBox Cycles)*.
-ALT-F12       Unlock speed (turbo button/fast forward)**.
-CTRL-ALT-HOME Restart DOSBox.
-F11, ALT-F11  (machine=cga) change tint in NTSC output modes***.
-F11           (machine=hercules) cycle through amber, green, white colouring***.
-
-*NOTE: Once you increase your DOSBox cycles beyond your computer CPU resources,
-       it will produce the same effect as slowing down the emulation.
-       This maximum will vary from computer to computer.
-
-**NOTE: You need free CPU resources for this (the more you have, the faster
-        it goes), so it won't work at all with cycles=max or a too high amount
-        of fixed cycles. You have to keep the keys pressed for it to work!
-
-***NOTE: These keys won't work if you saved a mapper file earlier with
-         a different machine type. So either reassign them or reset the mapper.
-
-These are the default keybindings. They can be changed in the keymapper
-(see Section 7: "KeyMapper"). 
-
-In Mac OS X you can try using cmd(applekey) together with Ctrl (and/or ) Fn, 
-if the key doesn't work i.e. fn-cmd-ctrl-F1, but some keys may still need 
-remapping (in Linux too).
-
-Saved/recorded files can be found in:
-   (Windows)    "Start/WinLogo Menu"->"All Programs"->DOSBox-0.74->Extras
-   (Linux)      ~/.dosbox/capture
-   (Mac OS X)   "~/Library/Preferences/capture"
-This can be changed in the DOSBox configuration file.
-
-
-
-====================
-6. Joystick/Gamepad:
-====================
-
-The standard joystick port in DOS supports a maximum of 4 axes and 4 buttons.
-For more, different modifications of that configuration were used.
-
-To force DOSBox to use a different type of emulated joystick/gamepad, the entry
-"joysticktype" in the [joystick] section of the DOSBox configuration file can
-be used.
-
-none  - disables controller support.
-auto  - (default) autodetects whether you have one or two controllers connected:
-          if you have one - '4axis' setting is used,
-          if you have two - '2axis' setting is used.
-2axis - If you have two controllers connected, each will emulate a joystick
-        with 2 axes and 2 buttons. If you have only one controller connected,
-        it will emulate a joystick with only 2 axis and 2 buttons.
-4axis - supports only first controller, emulates a joystick
-        with 4 axis and 4 buttons or a gamepad with 2axis and 6 buttons.
-4axis_2 - supports only second controller.
-fcs   - supports only first controller, emulates ThrustMaster
-        Flight Control System, with 3-axes, 4 buttons and 1 hat.
-ch    - supports only first controller, emulates CH Flightstick,
-        with 4-axes, 6 buttons and 1 hat, but you cannot press more
-        than one button at the same time.
-
-You also have to configure controller properly inside the game.
-It is important to remember that if you saved the mapperfile without joystick
-connected, or with a different joystick setting, your new setting will not work
-properly, or not work at all, until you reset DOSBox's mapperfile.
-
-If controller is working properly outside DOSBox, but doesn't calibrate properly
-inside DOSBox, try a different 'timed' setting in DOSBox's configuration file.
-
-
-
-=============
-7. KeyMapper:
-=============
-
-Start the DOSBox mapper either with CTRL-F1 (see Section 5: "Special Keys") or
--startmapper (see Section 3: "Command Line Parameters"). 
-You are presented with a virtual keyboard and a virtual joystick.
-
-These virtual devices correspond to the keys and events DOSBox will
-report to the DOS applications. If you click on a button with your mouse,
-you can see in the lower left corner with which event it is associated
-(EVENT) and to what events it is currently bound.
-
-Event: EVENT
-BIND: BIND (the real key/button/axis you push with your finger/hand)
-
-                                    Add   Del
-mod1  hold                                Next
-mod2
-mod3
-
-
-EVENT
-    The key or joystick axis/button/hat DOSBox will report to DOS applications.
-    (the event that will happen during the game, (eg. shooting/jumping/walking)
-BIND
-    The key on your real keyboard or the axis/button/hat on your real
-    joystick(s) (as reported by SDL), which is connected to the EVENT.
-mod1,2,3
-    Modifiers. These are keys you need to have to be pressed while pressing
-    BIND. mod1 = CTRL and mod2 = ALT. These are generally only used when you
-    want to change the special keys of DOSBox.
-Add
-    Add a new BIND to this EVENT. Basically add a key from your keyboard or an
-    event from the joystick (button press, axis/hat movement) which will
-    produce the EVENT in DOSBox.
-Del
-    Delete the BIND to this EVENT. If an EVENT has no BINDS, then it is not
-    possible to trigger this event in DOSBox (that is there's no way to type
-    the key or use the respective action of the joystick).
-Next
-    Go through the list of bindings which map to this EVENT.
-
-
-Example:
-Q1. You want to have the X on your keyboard to type a Z in DOSBox.
-    A. Click on the Z on the keyboard mapper. Click "Add".
-       Now press the X key on your keyboard.
-
-Q2. If you click "Next" a couple of times, you will notice that the Z on your
-    keyboard also produces an Z in DOSBox.
-    A. Therefore select the Z again, and click "Next" until you have the Z on
-       your keyboard. Now click "Del".
-
-Q3. If you try it out in DOSBox, you will notice that pressing X makes ZX
-    appear.
-     A. The X on your keyboard is still mapped to the X as well! Click on
-        the X in the keyboard mapper and search with "Next" until you find the
-        mapped key X. Click "Del".
-
-
-Examples of remapping the joystick:
-  You have a joystick attached, it is working fine under DOSBox and you
-  want to play some keyboard-only game with the joystick (it is assumed
-  that the game is controlled by the arrows on the keyboard):
-    1. Start the mapper, then click on one of the left keyboard arrow.
-       EVENT should be key_left. Now click on Add and move your joystick
-       in the respective direction, this should add an event to the BIND.
-    2. Repeat the above for the missing three directions, additionally
-       the buttons of the joystick can be remapped as well (fire/jump).
-    3. Click on Save, then on Exit and test it with some game.
-
-  You want to swap the y-axis of the joystick because some flightsim uses
-  the up/down joystick movement in a way you don't like, and it is not
-  configurable in the game itself:
-    1. Start the mapper and click on Y- in the first joystick field.
-       EVENT should be jaxis_0_1-.
-    2. Click on Del to remove the current binding, then click Add and move
-       your joystick downwards. A new bind should be created.
-    3. Repeat this for Y+, save the layout and finally test it with some game.
-
-  If you want to remap anything to your d-pad/hat you will have to change
-  'joysticktype=auto' to 'joysticktype=fcs' in configuration file. Maybe this
-  will be improved in the next DOSBox version.
-
-
-If you change the default mapping, you can save your changes by clicking on
-"Save". DOSBox will save the mapping to a location specified in
-the configuration file (the mapperfile= entry). At startup, DOSBox will load
-your mapperfile, if it is present in the DOSBox configuration file.
-
-
-
-===================
-8. Keyboard Layout:
-===================
-
-To switch to a different keyboard layout, either the entry "keyboardlayout"
-in the [dos] section of the DOSBox configuration file or the internal DOSBox
-program keyb.com (Section 4: "Internal Programs") can be used. Both accept
-DOS conforming language codes (see below), but only by using keyb.com a
-custom codepage can be specified.
-
-The default keyboardlayout=auto currently works under Windows only. The language
-is chosen according to the OS language, but the keyboard layout is not detected.
-
-Layout switching
-  DOSBox supports a number of keyboard layouts and codepages by default,
-  in this case just the layout identifier needs to be specified (like
-  keyboardlayout=PL214 in the DOSBox configuration file, or using "keyb PL214"
-  at the DOSBox command prompt). The list of all layouts built into DOSBox is
-  here: http://vogons.zetafleet.com/viewtopic.php?t=21824
-
-  Some keyboard layouts (for example layout GK319 codepage 869 and layout RU441
-  codepage 808) have support for dual layouts that can be accessed by pressing
-  LeftALT+RrightSHIFT for one layout and LeftALT+LeftSHIFT for the other.
-  Some keyboard layouts (for example layout LT456 codepage 771) have support
-  for three layouts, third can be accessed by pressing LeftALT+LeftCTRL
-
-Supported external files
-  The FreeDOS .kl files are supported (FreeDOS keyb2 keyboard layoutfiles) as
-  well as the FreeDOS keyboard.sys/keybrd2.sys/keybrd3.sys libraries which
-  consist of all available .kl files.
-  See http://www.freedos.org/ for precompiled keyboard layouts if
-  the DOSBox-integrated layouts don't work for some reason, or if updated or
-  new layouts become available.
-
-  Both .CPI (MS-DOS and compatible codepage files) and .CPX (FreeDOS
-  UPX-compressed codepage files) can be used. Some codepages are compiled
-  into DOSBox, so it is mostly not needed to care about external codepage
-  files. If you need a different (or custom) codepage file, copy it into
-  the directory of the DOSBox so it is accessible for DOSBox.
-  If you place all ten ega.cpx files (from FreeDOS) in DOSBox folder,
-  an appropriate codepagefile for the requested layout/codepage is
-  chosen automatically.
-
-  Additional layouts can be added by copying the corresponding .kl file into
-  the directory of the DOSBox configuration file and using the first part of
-  the filename as language code.
-  Example: For the file UZ.KL (keyboard layout for Uzbekistan) specify
-           "keyboardlayout=uz" in the DOSBox configuration file.
-  The integration of keyboard layout packages (like keybrd2.sys) works similar.
-
-Note that the keyboard layout allows foreign characters to be entered, but
-there is NO support for them in filenames. Try to avoid them both inside
-DOSBox as well as in files on your host operating system that are accessible
-by DOSBox.
-
-
-
-==============================
-9. Serial Multiplayer feature:
-==============================
-
-DOSBox can emulate a serial nullmodem cable over network and internet.
-It can be configured through the [serialports] section in the DOSBox
-configuration file.
-
-To create a nullmodem connection, one side needs to act as the server and
-one as the client.
-
-The server needs to be set up in the DOSBox configuration file like this:
-   serial1=nullmodem
-
-The client:
-   serial1=nullmodem server:<IP or name of the server>
-
-Now start your game and choose nullmodem / serial cable / already connected
-as multiplayer method on COM1. Set the same baudrate on both computers.
-
-Furthermore, additional parameters can be specified to control the behavior
-of the nullmodem connection. These are all parameters:
-
- * port:         - TCP port number. Default: 23
- * rxdelay:      - how long (milliseconds) to delay received data if the
-                   interface is not ready. Increase this value if you encounter
-                   overrun errors in the DOSBox status window. Default: 100
- * txdelay:      - how long to gather data before sending a packet. Default: 12
-                   (reduces Network overhead)
- * server:       - This nullmodem will be a client connecting to the specified
-                   server. (No server argument: be a server.)
- * transparent:1 - Only send the serial data, no RTS/DTR handshake. Use this
-                   when connecting to anything other than a nullmodem.
- * telnet:1      - Interpret Telnet data from the remote site. Automatically
-                   sets transparent.
- * usedtr:1      - The connection will not be established until DTR is switched
-                   on by the DOS program. Useful for modem terminals.
-                   Automatically sets transparent.
- * inhsocket:1   - Use a socket passed to DOSBox by command line. Automatically
-                   sets transparent. (Socket Inheritance: It is used for
-                   playing old DOS door games on new BBS software.)
-
-Example: Be a server listening on TCP port 5000.
-   serial1=nullmodem server:<IP or name of the server> port:5000 rxdelay:1000
-
-
-
-=====================================
-10. How to speed up/slow down DOSBox:
-=====================================
-
-DOSBox emulates the CPU, the sound and graphic cards, and other peripherals
-of a PC, all at the same time. The speed of an emulated DOS application
-depends on how many instructions can be emulated, which is adjustable
-(number of cycles).
-
-CPU Cycles (speed up/slow down)
-  By default (cycles=auto) DOSBox tries to detect whether a game needs to
-  be run with as many instructions emulated per time interval as possible
-  (cycles=max, sometimes this results in game working too fast or unstable),
-  or whether to use fixed amount of cycles (cycles=3000, sometimes this results
-  in game working too slow or too fast). But you can always manually force
-  a different setting in the DOSBox's configuration file.
-
-  You can force the slow or fast behavior by setting a fixed amount of cycles
-  in the DOSBox's configuration file. If you set for example cycles=10000, the
-  DOSBox window will display a line "CPU speed: fixed 10000 cycles" at the top.
-  In this mode you can reduce the amount of cycles even more by hitting CTRL-F11
-  (you can go as low as you want) or raise it by hitting CTRL-F12 as much as you
-  want, but you will be limited by the power of one core of your computer's CPU.
-  You can see how much free time your real CPU's cores have by looking at
-  the Task Manager in Windows 2000/XP/Vista/7 and the System Monitor
-  in Windows 95/98/ME. Once 100% of the power of your computer's real CPU's one
-  core is used, there is no further way to speed up DOSBox (it will actually
-  start to slow down), unless you reduce the load generated by the non-CPU parts
-  of DOSBox. DOSBox can use only one core of your CPU, so If you have
-  for example a CPU with 4 cores, DOSBox will not be able to use the power
-  of three other cores.
-
-  You can also force the fast behavior by setting cycles=max in the DOSBox
-  configuration file. The DOSBox window will display a line
-  "CPU speed: max 100% cycles" at the top then. This time you won't have to care
-  how much free time your real CPU cores have, because DOSBox will always use
-  100% of your real CPU's one core. In this mode you can reduce the amount
-  of your real CPU's core usage by CTRL-F11 or raise it with CTRL-F12.
-
-CPU Core (speed up)
-  On x86 architectures you can try to force the usage of a dynamically
-  recompiling core (set core=dynamic in the DOSBox configuration file).
-  This usually gives better results if the auto detection (core=auto) fails.
-  It is best accompanied by cycles=max. But you may also try using it with
-  high amounts of cycles (for example 20000 or more). Note that there might be
-  games that work worse/crash with the dynamic core (so save your game often),
-  or do not work at all!
-
-Graphics emulation (speed up)
-  VGA emulation is a demanding part of DOSBox in terms of actual CPU usage.
-  Increase the number of frames skipped (in increments of one) by pressing
-  CTRL-F8. Your CPU usage should decrease when using a fixed cycle setting,
-  and you will be able to increase cycles with CTRL-F12.
-  You can repeat this until the game runs fast enough for you.
-  Please note that this is a trade-off: you lose in fluidity of video what
-  you gain in speed.
-
-Sound emulation (speed up)
-  You can also try to disable the sound through the setup utility of the game
-  to reduce load on your CPU further. Setting nosound=true in DOSBox's
-  configuration does NOT disable the emulation of sound devices, just
-  the output of sound will be disabled.
-
-Also try to close every program but DOSBox to reserve as much resources
-as possible for DOSBox.
-
-
-Advanced cycles configuration:
-The cycles=auto and cycles=max settings can be parameterized to have
-different startup defaults. The syntax is
-  cycles=auto ["realmode default"] ["protected mode default"%]
-              [limit "cycle limit"]
-  cycles=max ["protected mode default"%] [limit "cycle limit"]
-Example:
-  cycles=auto 5000 80% limit 20000
-  will use cycles=5000 for real mode games, 80% CPU throttling for
-  protected mode games along with a hard cycle limit of 20000
-
-
-
-====================
-11. Troubleshooting:
-====================
-
-General tip:
-  Check messages in the DOSBox status window. See Section 12: "DOSBox Status Window".
-
-DOSBox crashes right after starting it:
-  - use different values for the output= entry in your DOSBox
-    configuration file
-  - try to update your graphics card driver and DirectX
-  - (Linux) set the environment variable SDL_AUDIODRIVER to alsa or oss.
-
-Running a certain game closes DOSBox, crashes with some message or hangs:
-  - see if it works with a default DOSBox installation
-    (unmodified configuration file)
-  - try it with sound disabled (use the sound configuration
-    program that comes with the game, additionally you can
-    set sbtype=none and gus=false in the DOSBox configuration file)
-  - change some entries of the DOSBox configuration file, especially try:
-      core=normal
-      fixed cycles (for example cycles=10000)
-      ems=false
-      xms=false
-    or combinations of the above settings,
-    similar the machine settings that control the emulated chipset and
-    functionality:
-      machine=vesa_nolfb
-    or
-      machine=vgaonly
-  - use loadfix before starting the game
-
-The game exits to the DOSBox prompt with some error message:
-  - read the error message closely and try to locate the error
-  - try the hints at the above sections
-  - mount differently as some games are picky about the locations,
-    for example if you used "mount d d:\oldgames\game" try
-    "mount c d:\oldgames\game" and "mount c d:\oldgames"
-  - if the game requires a CD-ROM be sure you used "-t cdrom" when
-    mounting and try different additional parameters (the ioctl,
-    usecd and label switches, see the appropriate section)
-  - check the file permissions of the game files (remove read-only
-    attributes, add write permissions etc.)
-  - try reinstalling the game within DOSBox
-
-
-
-=========================
-12. DOSBox Status Window:
-=========================
-
-DOSBox's status window contains useful information about your current
-configuration, your actions in DOSBox, errors which occurred and more.
-Check these messages in case you encounter any problems with DOSBox.
-
-To display the DOSBox status window:
-  (Windows)  The status window is being started together with main DOSBox window.
-  (Linux)    You may have to start DOSBox from a console to see the status window.
-  (Mac OS X) Right click on DOSBox.app, choose "Show Package Contents"->
-             ->enter "Contents"->enter "MacOS"->run "DOSBox"
-
-
-
-=====================================
-13. The configuration (options) file:
-=====================================
-
-The configuration file is automatically created the first time you run DOSBox.
-The file can be found in:
-   (Windows)  "Start/WinLogo Menu"->"All Programs"->DOSBox-0.74->Options
-   (Linux)    ~/.dosbox/dosbox-0.74.conf
-   (Mac OS X) "~/Library/Preferences/DOSBox 0.74 Preferences"
-The file is divided into several sections. Each section starts with a
-[section name] line. The settings are the property=value lines where value can
-be altered to customize DOSBox.
-# and % indicate comment-lines.
-
-
-An extra configuration file can be generated by CONFIG.COM, which can be found
-on the internal DOSBox Z: drive when you start up DOSBox. Look in the Section 4:
-"Internal programs" for usage of CONFIG.COM. You can start DOSBox with
-the -conf switch to load the generated file and use its settings.
-
-DOSBox will load configuration files that are specified with -conf. If none were
-specified, it will try to load "dosbox.conf" from the local directory.
-If there is none, DOSBox will load the user configuration file.
-This file will be created if it doesn't exist.
-
-Important!: In Windows Vista/7 the configuration file won't work correctly
-if it is located in "Windows" or "Program Files" folder or their subfolders,
-or directly on c:\, so the best place for storing extra configuration files is
-for example: C:\oldgames
-
-
-
-======================
-14. The Language File:
-======================
-
-A language file can be generated by CONFIG.COM, which can be found on the
-internal DOSBox Z: drive when you start up DOSBox. Look in the Section 4:
-"Internal programs" for usage of CONFIG.COM.
-Read the language file, and you will hopefully understand how to change it.
-Start DOSBox with the -lang switch to use your new language file.
-Alternatively, you can setup the filename in the configuration file
-in the [dosbox] section. There's a language= entry that can be changed with
-the filelocation.
-
-
-
-========================================
-15. Building your own version of DOSBox:
-========================================
-
-Download the source.
-Check the INSTALL in the source distribution.
-
-
-
-===================
-16. Special thanks:
-===================
-
-See the THANKS file.
-
-
-
-============
-17. Contact:
-============
-
-See the site: 
-http://www.dosbox.com
-for an email address (The Crew-page).
+DOSBox-X Manual (always use the latest version from www.dosbox-x.com)
 
+DOSBox-X is a fork of the original DOSBox project (www.dosbox.com)
+
+
+
+
+I am rewriting this README, and new information will be added over time --J.C.
+
+
+
+How to compile DOSBox-X in Ubuntu (kapper1224)
+----------------------------------------------
+
+sudo apt install libavformat-* libswscale-* libavcodec-*
+./autogen.sh
+./configure
+make
+sudo make install
+
+
+
+How to compile in general
+-------------------------
+
+General Linux compile (FFMPEG/libav support required)
+./build-debug
+
+
+General Linux compile if FFMPEG/libav not desired
+./build-debug-no-avcodec
+
+
+MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP
+./build-mingw
+
+
+MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP, lower-end systems that lack MMX/SSE
+./build-mingw-lowend
+
+
+MinGW compile (on Windows, using MinGW, not MinGW64) to target MS-DOS and the HX DOS extender
+./build-mingw-hx-dos
+
+NOTICE: Use the 32-bit toolchain from the main MinGW project, not the MinGW64 project.
+        Binaries compiled with MinGW64 have extra dependencies not provided by the HX DOS extender.
+
+
+Visual Studio 2017 compile for 32/64-bit Windows Vista or higher
+Use the ./vs2015/dosbox-x.sln "solution" file and compile.
+You will need the DirectX 2010 SDK for Direct3D9 support.
+
+As of 2018/06/06, VS2017 builds (32-bit and 64-bit) explicitly require
+a processor that supports the SSE instruction set.
+
+Visual Studio Code is supported, too.
+
+Check the README.Windows file for more information about this platform.
+
+
+XCode (on Mac OS X, from the Terminal) to target Mac OS X
+./build-debug
+
+
+Open source development
+-----------------------
+
+Ideas and patches are always welcome, though not necessarily accepted.
+
+If you really need that feature or change, and your changes are not
+accepted into this main project (or you just want to mess around with
+the code), feel free to fork this project and make your changes in
+your fork.
+
+As joncampbell123 only has limited time to work on DOSBox-X, help is
+greatly appreciated:
+
+  - Testing
+    - Features
+    - Hardware accuracy
+    - Software accuracy
+    - Games, applications, demoscene executables
+    - Windows 1.x through Millenium guest OS support
+    - Retro development
+  - Bug fixes, patches, improvements, refinements
+  - Suggestions, ideas, general conversation
+  - Platform support (primarily Linux and Windows, but others are welcome)
+  - Documentation
+  - Notes regarding games, applications, hacks, weird MS-DOS tricks, etc.
+
+If you want to tweak or write some code and you don't know what to work
+on, feel free to visit the issue tracker to get some ideas.
+
+
+Warnings regarding C integer types
+----------------------------------
+
+Contrary to initial assumptions, never assume that int and long have specific
+sizes. Even long long.
+
+The general assumption is that int is 32 bit and long is 32 bit.
+That is not always true, and that can get you in trouble when
+working on this or other projects.
+
+Another common problem is the use of integers for pointer manipulation.
+Storing pointers or computing differences between pointers may happen
+to work on 32-bit, where ints and pointers are the same size, but the
+same code may break on 64-bit.
+
+Therefore, for manipulating pointers, use uintptr_t instead of int or
+long.
+
+For quick reference, here is a breakdown of the development
+targets and their sizes:
+
+Windows (Microsoft C++) 32-bit:
+  sizeof(int) == 32-bit
+  sizeof(long) == 32-bit
+  sizeof(long long) == 64-bit
+  sizeof(uintptr_t) == 32-bit
+
+Windows (Microsoft C++) 64-bit:
+  sizeof(int) == 32-bit
+  sizeof(long) == 32-bit
+  sizeof(long long) == 64-bit
+  sizeof(uintptr_t) == 64-bit
+
+NOTE: If you ever intend to compile against older versions of Microsoft C++/Visual Studio,
+      the "long long" type will need to be replaced by __int64.
+
+Linux 32-bit:
+  sizeof(int) == 32-bit
+  sizeof(long) == 32-bit
+  sizeof(long long) == 64-bit
+  sizeof(uintptr_t) == 32-bit
+
+Linux 64-bit:
+  sizeof(int) == 32-bit
+  sizeof(long) == 64-bit
+  sizeof(long long) == 64-bit
+  sizeof(uintptr_t) == 64-bit
+
+
+This code is written to assume that sizeof(int) >= 32-bit.
+However know that there are platforms where sizeof(int) is
+even smaller. In real-mode MS-DOS and 16-bit Windows for
+example, sizeof(int) == 16 bits (2 bytes). DOSBox-X will
+not target 16-bit DOS and Windows, so this is not a problem
+so far.
+
+For obvious reasons, far pointers are not supported. The
+memory map of the runtime environment is assumed to be
+flat with possible virtual memory and paging.
+
+When working on this code, please understand the limits of
+the integer type in the code you are writing to avoid
+problems. Pick a data type that is large enough for the
+expected range of input.
+
+It is suggested to use C header constants if possible
+for min and max integer values, like UINT_MAX.
+
+If the code needs to operate with specific widths of
+integer, please use data types like uint16_t, uint32_t,
+int16_t and int32_t provided by modern C libraries, and
+do not assume the width of int and long.
+
+If compiling with older versions of Visual Studio, you will
+need to include a header file to provide the uintptr_t and
+uint32_t datatypes to fill in what is lacking in the C library.
+
+When multiplying integers, overflow cases can be avoided
+with a * b by rejecting the operation if b > (UINT_MAX / a)
+or by multiplying a * b with a and b typecast to the next
+largest datatype.
+
+Remember that signed and unsigned integers have the same
+width but the MSB changes the interpretation. This code
+is written for processors (such as x86) where signed integers
+are 2's complement. It will not work correctly with any
+other type of signed integer.
+
+2's complement means that the MSB bit of an integer indicates
+the number is negative. When it is negative, the value could
+be thought of as N - (2^sizeof_in_bits(int)). For a 16-bit
+signed integer:
+
+   2^16 = 0x10000 = 65536
+
+     hex         int    unsigned int        equiv
+   0x7FFE       32766       32766           32766 - 0
+   0x7FFF       32767       32767           32767 - 0
+   0x8000      -32768       32768           32768 - 65536
+   0x8001      -32767       32769           32769 - 65536
+   ...
+   0xFFFE      -2           65534           65534 - 65536
+   0xFFFF      -1           65535           65535 - 65536
+   (carry, overflow all 16-bits, roll back to 0)
+   0x0000       0           0               0 - 0
+   0x0001       1           1               1 - 0
+
+Another possible problem may lie in using negation (-) or
+inverting all bits (~) of an integer for masking. The
+result may be treated by the compiler as an integer. Make
+sure to typecast it to clarify.
+
+Another possible incompatiblity lies with printf() and
+long long integers.
+
+Always typecast the printf() parameters to the data type
+intended to avoid problems and warnings.
+
+While Mac OS X and Linux have runtimes that can take %llu
+or %llx, Microsoft's runtime in Windows cannot. Either
+avoid printing long long integers or add conditional code
+to use %llx or %llx on Linux and %I64u or %I64d on Windows.
+
+Note that MinGW compilation on Windows suffers from the
+same limitation due to use of Microsoft C runtime.
+
+When dealing with sizes, including file I/O and byte counts,
+use size_t (unsigned value) and ssize_t (signed value) instead.
+This will help with using the C++ standard template library
+and the C file I/O library. If compiling for a target where
+read and write use int for a return value instead, then
+use typecasting.
+
+When handling file offsets, use off_t instead of long.
+Modern C runtime versions of lseek and tell will use that
+datatype. For older runtimes that use "long", make a typecast
+in a header file for your target to declare off_t. Remember
+that off_t is a signed value and that it can be negative.
+
+Make sure to use the 64-bit version of lseek (often named
+lseek64 or _lseeki64) in order to support files 4GB or
+larger if allowed by the runtime environment.
+
+On most modern runtimes, an alternate version of open()
+may be required in order to open or create files larger
+than 2GB. However the alternate open() reference can be
+eliminated in certain cases.
+
+On 32-bit Linux, direct calls to open64() can be avoided
+if CFLAGS contains -D_FILE_OFFSET_BITS=64 or
+#define _FILE_OFFSET_BITS=64 is added to the project.
+
+Remember that lseek() can return -1 to indicate an error.
+lseek() however will permit seeking past the end of a file.
+
+writing at that point will extend the file to allow the
+file write to occur at that offset. Depending on the platform,
+that will either cause a sparse file (Linux + ext) or will
+cause a loop within the filesystem driver to extend the file
+and zero clusters to make it happen (Windows XP through 10).
+
+Use of the FILE* file I/O layer is OK, but not recommended
+unless there is a need to use text parsing with functions
+like fgets() or fprintf(). For other uses, please use C
+functions open, close, read, write, lseek and learn to use
+file handles.
+
+Understand that when fgets() returns with the buffer filled
+with the line of text, the end of the string will always include
+the newline (\n) that fgets() stopped reading at.
+
+If fopen() was called with the "b" flag on DOS and Windows
+formatted text files, the end of the string will probably
+contain \r\n (CR LF). On platforms other than DOS and Windows,
+\r\n will always appear if it is in the file.
+
+C file handles are signed integers. They can be negative.
+File handles returned by the C runtime however are never
+negative except to indicate an error.
+
+A good way to track whether an int holds an open file therefore,
+is to initialize at startup that integer to -1, and then when
+open succeeds, assign that value the file handle. When closing
+the file, assign -1 to the integer to record that the handle was
+closed.
+
+Other parts of the code can also check if the file handle is
+non-negative before operating on the file as a safety measure
+against calling that function when the file was never opened.
+
+On Windows, the HANDLE value at the Win32 API level can be obtained
+from an integer file handle using _get_osfhandle() for use with
+the Win32 API functions directly.
+
+When using open(), make sure to use O_BINARY to avoid
+CR/LF translation on DOS and Windows systems. Make sure
+there is a header that defines O_BINARY as (0) if the
+platform does not provide O_BINARY to avoid #ifdef's
+around each open() call.
+
+When using arithmetic with C pointers and integers,
+understand that the pointer is adjusted by the value of the
+integer times the size of the pointer type. If you intend
+to adjust by bytes, then typecast the pointer to char* or
+unsigned char* first, or typecast to uintptr_t to operate
+on the pointer value as if an integer, then add the integer
+value to the pointer.
+
+At the lowest level, a pointer could be thought of as an
+integer that is interepreted by the CPU as a memory address
+to operate on, rather than an integer value directly.
+
+Therefore, when adding an integer to a pointer value, the
+result could be thought of as:
+
+  (new pointer value in bytes) = (current pointer value in bytes) + integer value * sizeof(pointer data type)
+
+If the pointer is char, then adding 4 will advance by 4 bytes.
+If the pointer is int, then adding 4 will advance by 4 * sizeof(int) bytes, or, 4 memory locations of type int.
+
+Keep this in mind when manipulating pointers while working
+on this code.
+
+
+Software security comments
+--------------------------
+
+DOSBox-X cannot claim to be a "secure" application. It contains a lot of
+code designed for performance, not security. There may be vulnerabilities,
+bugs, and flaws in the emulation that could permit malicious DOS executables
+within to cause problems or exploit bugs in the emulator to cause harm.
+There is no guarantee of complete containment by DOSBox-X of the guest
+operating system or application.
+
+If security is a priority, then:
+
+Do not use DOSBox-X on a secure system.
+
+Do not run DOSBox-X as root or Administrator.
+
+If you need to use DOSBox-X, run it under a lesser privileged user, or in
+a chroot jail or sandbox.
+
+If your Linux distribution has it enabled, consider using the auditing
+system to limit what the DOSBox-X executable is allowed to do.
+
+
+
+Comments on DOSBox-X development
+--------------------------------
+
+The four major operating systems and platforms of DOSBox-X are (in this order):
+
+1. Linux (with X11) 32-bit and 64-bit x86.
+
+2. Windows 10 (followed by Windows 8, and Windows 7) for 32-bit and 64-bit x86.
+
+3. Linux (with X11) on a Raspberry Pi 3 (arm 7).
+
+4. Mac OS X Sierra 10.12 or higher 64-bit.
+
+
+Linux and MinGW Windows builds are expected to compile with the GNU autotools.
+
+A preliminary CMake build system is available, see README.cmake.md for details.
+
+Straight Windows builds are expected to compile using the free community edition
+of Visual Studio 2015 or Visual Studio 2017 and the DirectX 2010 SDK.
+
+Mac OS X builds are expected to compile on the terminal using GNU autotools
+and the LLVM/Clang compiler provided by XCode.
+
+In all cases, the code requires a C++ compiler that can support the C++11
+standard.
+
+
+Note that DOSBox-X is written to compile against the in-tree copy of the
+SDL 1.x (Simple Directmedia Libary), or against the SDL 2.x library provided
+by your Linux distribution.
+
+For Visual Studio and MinGW compilation, the in-tree copy of SDL is always
+used.
+
+
+The in-tree SDL 1.x library has been HEAVILY MODIFIED from the original
+SDL 1.x source code and is somewhat incompatible with the stock library.
+
+The modifications provide additional functions needed to improve DOSBox-X
+and fix many issues with keyboard input, window mangement, and display
+management that previously required terrible kludges within the DOSBox
+and DOSBox-X source code.
+
+In Windows, the modifications also permit the emulation to run independent
+of the main window so that moving, resizing, or using menus does not cause
+emulation to pause.
+
+In Mac OS X, the modifications provide an interface to allow DOSBox-X to
+replace and manage the OS X menu bar.
+
+
+
+Comments on what DOSBox-X is lacking
+------------------------------------
+
+DOSBox-X aims for accuracy in emulation however there are some things the
+design as implemented now cannot accomodate.
+
+* Cycle-accurate timing of x86 instructions and execution.
+
+  Instructions generally run one per cycle in DOSBox-X, except for I/O
+  and memory access.
+
+  If accurate emulation of cycles per instruction is needed, please
+  consider using PCem or PCem-X instead.
+
+* Full precision floating point emulation.
+
+  Unless using the dynamic core, DOSBox and DOSBox-X emulate the FPU
+  registers using the "double" 64-bit floating point data type.
+
+  The Intel FPU registers are 80-bit "extended precision" floating
+  point values, not 64-bit double precision, so this is effectively
+  12 bits of precision loss and 5 bits of range loss (64 to 53 mantissa
+  bits and 16 to 11 exponent bits).
+
+  This slight loss of precision is perfectly fine considering DOSBox's
+  original goal in supporting DOS games, but may cause problems in
+  other cases that need the full precision.
+
+  It is known at this time that this lack of precision is enough to
+  cause otherwise straightforward comparisons against integers to
+  fail in DOS applications originally written in QBasic or Turbo Basic.
+  There are such DOS games written that check their file size using
+  a floating point compare that will fail in this manner. To run these
+  games, you will need to disable FPU emulation (fpu=false) to force
+  the QBasic/TurboBasic runtime to use software emulation instead.
+
+* Pentium II or higher CPU level emulation.
+
+  DOSBox-X contains code only to emulate the 8088 through the Pentium Pro.
+
+  If Pentium II or higher emulation is desired, consider using Bochs
+  or QEMU instead. DOSBox-X may eventually develop Pentium II emulation,
+  if wanted by the DOSBox-X community in general.
+
+* Emulation of PC hardware 2001 or later.
+
+  The official cutoff for DOSBox-X is 2001, when updated "PC 2001"
+  specifications from Microsoft mandated the removal of the ISA slots
+  from motherboards. 
+
+  The focus is on implementing hardware emulation for hardware made
+  before that point.
+
+  Contributers are free to focus on emulating hardware within the
+  1980-2001 timeframe of their choice.
+
+* Windows guest emulation, Windows XP or later.
+
+  DOSBox-X emulation, in terms of running Windows in DOSBox-X, will
+  focus primarily on Windows 1.0 through Windows Millenium Edition,
+  and then on Windows NT through Windows 2000. Windows XP and later
+  versions are not a priority and will not be considered at this time.
+
+  If you need to run Windows XP and later, please consider using
+  QEMU, Bochs, or VirtualBox.
+
+* Any MS-DOS system other than IBM PC/XT/AT, Tandy, PCjr, and NEC PC-98.
+
+  Only the above listed systems will be considered for development
+  in DOSBox-X. This restriction prevents stretching of the codebase
+  to an unmanageable level and helps keep the code base organized.
+
+  However, if adding emulation of the system requires only small
+  minimal changes, then the new system in question may be considered.
+
+  You are strongly encouraged to fork this project and implement
+  your own variation if you need to develop MS-DOS emulation for
+  any other system or console. In doing that, you gain the complete
+  freedom to focus on implementing the particular MS-DOS based
+  system of interest, and if desired, the ability to strip away
+  conflicting IBM PC/XT/AT emulation and unnecessary code to keep
+  your branch's code manageable and maintainable.
+
+  It would be easier on myself and the open source community if
+  developers could focus on emulating their platform of interest in
+  parallel instead of putting everything into one project that,
+  most likely, will do a worse job overall emulating all platforms.
+
+  If you are starting a fork, feel free to let me know where your
+  fork is and what system it is emulating, so I can list it in
+  this README file for others seeking emulation of that system.
+
+  To help, I have added machine and video mode enumerations as
+  "stubs" to provide a starting point for your branch's implementation
+  of the platform.
+
+  Stubs implemented so far:
+    - FM Towns emulation (machine=fm_towns)
+
+
+Origins, and crediting of source code
+-------------------------------------
+
+by Jonathan Campbell.
+
+As the developer of DOSBox-X, I cannot legitimately claim to have
+written all of the code in this project.
+
+DOSBox-X started as a fork of the main DOSBox project sometime
+mid 2011. It was started out of a desire to improve the emulator
+without having to fight with or worry about submitting patches
+upstream.
+
+As the forums make it clear, DOSBox's main focus is on DOS games.
+This is evident by the fact that much of the code is somewhat
+accurate code with kludges to make DOS games run, instead of
+focusing on what hardware actually does.
+
+Many of the changes I wanted to make were non-game related, and
+therefore were unlikely to be accepted by the developers.
+
+Since then, I have been modifying the source code over time to
+improve emulation, fix bugs, and resolve incompatibilities with
+Windows 95 through ME. I have added options so that DOSBox-X
+by default can emulate a wider variety of configurations more
+accurately, while allowing the user to enable hacks if needed
+to run their favorite DOS game. I have also been cleaning up
+and organizing the code to improve stability and portability
+where possible.
+
+It's more accurate to say then, that I wrote *some* of the code,
+that I rewrote other parts of the code, and the rest is the DOSBox
+SVN code as it existed since mid 2011.
+
+The purpose of this section, is to try and build a comprehensive
+list of source code in this repository that was borrowed from
+other projects.
+
+Some of the code is DOSBox SVN code in which some of the SVN
+commits made since 2011 were incorporated into DOSBox-X.
+
+The main DOSBox project was not written by one programmer. It has
+been under development since late 2000 with patches, fixes, and
+improvements from members all over the Vogons forums. Despite
+not having an official release since DOSBox 0.74 over 10 years
+ago, the project is still in active development today. Some of
+the changes themselves incorporated code from other projects,
+which are also credited in the list below.
+
+Some of the code in this source tree also came from another
+branch of DOSBox known as DOSBox Daum (http://ykhwong.x-y.net)
+which itself incorporated code from the main DOSBox project,
+DOSBox-X, and many experimental patches. Although the Daum
+branch seems to be dead, the code borrowed from it still
+exists in DOSBox-X.
+
+This is my attempt to properly credit the code and it's
+sources below. Feel free to revise and correct this list
+if there are errors.
+
+NE2000 network card emulation (Bochs)
+  src/hardware/ne2000.cpp
+
+MT32 synthesizer (MUNT)
+  src/mt32/*.cpp
+  src/mt32/*.h
+
+AVI writer with OpenDML support (written by myself)
+  src/aviwriter/*.cpp
+  src/aviwriter/*.h
+
+Framework-agnostic GUI toolkit (Jorg Walter)
+  src/libs/gui_tk/*.cpp
+  src/libs/gui_tk/*.h
+
+Porttalk library, to read/write I/O ports directly (Unknown source)
+  src/libs/porttalk/*.cpp
+  src/libs/porttalk/*.h
+
+FreeDOS utilities as binary blobs (FreeDOS)
+  src/builtin/*.cpp
+
+NukedOPL OPL3 emulation (Alexey Khokholov)
+  src/hardware/nukedopl.cpp
+
+OPL emulation based on Ken Silverman OPL2 emulation
+  src/hardware/opl.cpp
+
+MOS6581 SID emulation
+  src/hardware/reSID/*.cpp
+  src/hardware/reSID/*.h
+
+SN76496 emulation (MAME project)
+  src/hardware/sn76496.h
+  src/hardware/tandy_sound.cpp
+
+PC-98 video rendering and I/O handling code (written by myself)
+  src/hardware/vga_pc98*.cpp
+
+3dfx Voodoo Graphics SST-1/2 emulation (Aaron Giles)
+  src/hardware/voodoo_emu.cpp
+
+PC-98 FM board emulation (Neko Project II)
+  src/hardware/snd_pc98/*
+
+QCOW image support (Michael Greger)
+  src/ints/qcow2_disk.cpp
+
+HQ2X and HQ3X render scaler (ScummVM, Maxim Stepin)
+  src/gui/render_templates_hq2x.h
+
+
+Tips for hacking and modifying the source code
+----------------------------------------------
+
+As a SDL (Simple Directmedia Layer) based application,
+DOSBox-X starts execution from main(), which is either
+the real main() function or a redefined main() function
+called from SDLmain depending on the platform.
+
+On Linux and Mac OS X, main() is the real main function.
+
+On Windows, main() is SDLmain() and is called from the
+WinMain function defined in the SDL library.
+
+The entry point main() is in src/gui/sdlmain.cpp,
+somewhere closer to the bottom.
+
+
+Configuration and control state (from dosbox.conf and
+the command line) are accessible through a globally
+scoped pointer named "control".
+
+In the original DOSBox SVN project, "control" is
+most often used for accessing the sections and
+settings of dosbox.conf.
+
+In DOSBox-X, "control" also holds flags and variables
+gathered from the command line (such as -conf).
+
+Most (though not all) of the sections and settings
+are defined in src/dosbox.cpp. There is one function
+DOSBox_SetupConfigSections() that adds sections and
+settings.
+
+Each section has a list of settings by name. Each
+setting can be defined as an int, hexadecimal,
+string, double, and multivalue item. Read
+include/setup.h and src/misc/setup.cpp for more
+information.
+
+There is one section (the autoexec section) that
+is defined as lines of text.
+
+In the original DOSBox SVN project, each section
+also has an init and destructor function. The
+codebase in SVN is heavily written around emulator
+setup from each section, which is why the order
+of the sections is important. DOSBox-X eliminated
+these init and destructor functions and encourages
+initial setup from functions called in main(),
+and additional setup/teardown through VM event
+callbacks (see include/setup.h). A callback
+mechanism is provided however (at a section level)
+when settings change.
+
+Most of the code in this codebase assumes that
+it can retrieve a section by name, and a setting
+by name, without checking whether the returned
+referce to a setting is NULL. Therefore, removing
+a setting or referring to settings before the
+creation of them can cause this code to crash
+until that reference is removed.
+
+
+Time and cycles in DOSBox-X
+---------------------------
+
+Time is handled as a macro unit of 1ms time called "ticks",
+tied heavily to SDL_GetTicks() to track time.
+
+Within each 1ms tick, a cycle count specified by the user
+is executed as CPU time.
+
+Setting cycles=3000 therefore, instructs DOSBox and DOSBox-X
+to execute 3000 cpu cycles per millisecond. That generally
+means (though not always) that 3000 instructions are executed
+per millisecond.
+
+Other parts of emulation may consume additional CPU cycles
+to simulate I/O or video RAM delay.
+
+Normal_Loop() in src/dosbox.cpp controls per-tick execution
+as directed by PIC_RunQueue() whether or not the 1ms tick
+has completed.
+
+Generally the CPU core will execute instructions for the
+entire 1ms tick, but the loop will cut short if events
+are scheduled to execute sooner.
+
+Events are scheduled in src/hardware/timer.cpp, using
+PIC_AddEvent() given a callback and a delay in milliseconds.
+Scheduling an event will cut the CPU cycle count back to
+enable the event to execute on time.
+
+PIC_AddEvent() events are scheduled once. Periodic events
+should call PIC_AddEvent() again within the callback. For
+precision reasons, PIC_AddEvent() can identify whether it
+is being called from an event callback, and it will use
+the delta time differently to help periodic events maintain
+regular intervals.
+
+Events can be removed using PIC_RemoveEvents().
+
+Per-tick event handlers can be added using the
+TIMER_AddTickHandler() function in src/hardware/pic.cpp.
+The callback will be called at the completion of the
+1ms tick.
+
+Emulator code can query emulator time at any time
+using the functions in include/pic.h.
+
+PIC_TickIndex() returns the time within the 1ms
+tick as a floating point value from 0.0 to 1.0.
+
+PIC_TickIndexND() returns the same as cycle counts
+within the 1ms tick.
+
+PIC_FullIndex() returns absolute emulator time
+by combining ticks and cycle count time.
+
+
+How DOSBox and DOSBox-X mix x86 and native code
+-----------------------------------------------
+
+Much of the DOS and BIOS handling in DOSBox and DOSBox-X
+is done through the use of the "callback" instruction
+and a callback system in src/cpu/callback.cpp.
+
+Each BIOS interrupt is a callback, as is the DOS kernel
+interrupts. INT 21h is handled as a callback to src/dos/dos.cpp
+function DOS21_Handler(), for example. That native code
+function can then manipulate CPU registers and memory as
+needed to emulate the DOS call.
+
+Some callback functions will also modify the stack frame
+to set or clear specific CPU flags on return, using
+functions CALLBACK_SCF(), CALLBACK_SZF(), and CALLBACK_SIF().
+
+The callback instruction is 0xFE 0x38 <uint16_t>. This
+is an invalid opcode on actual x86 hardware, but it is
+a call into a callback function within the DOSBox
+emulation. The uint16_t value specifies which callback.
+
+Callbacks are registered through CALLBACK_Allocate(),
+which then returns an integer value that is an index into
+the callback table. 0 is an invalid callback value that
+indicates no callback was allocated, though at this time,
+CALLBACK_Allocate() is written to E_Exit() and abort
+emulation in the case that none are available, instead
+of returning zero.
+
+CALLBACK_DeAllocate() can be used with the index to
+free that slot so that other code can use CALLBACK_Allocate()
+to take that slot if needed, though it is rare to use
+CALLBACK_DeAllocate() so far.
+
+When allocated, the emulation code can then write x86
+instructions where needed that include the callback
+instruction in order to work from native code at that
+point in execution. Generally, most of the x86 code
+generation is done within the callback framework itself
+using CALLBACK_SetupExtra to write common patterns of
+x86 code depending on how the native code is meant to
+execute or return to the caller.
+
+When the CPU core encounters a callback instruction,
+the index of the instruction (nonzero, remember) is
+returned from the execution loop with the expectation
+the caller will then index the callback array with it.
+
+If the callback instruction is called from protected
+mode, memory and I/O access may cause recursion of
+the emulator. Memory access functions called by the
+native code may trigger an I/O port or page fault
+exception within the guest. DOSBox and DOSBox-X
+resolve the fault by pushing an exception frame
+onto the stack and then recursing into another
+emulation loop which does not break until the fault
+is resolved. While this is perfectly fine for
+DOS and Windows 3.1 simple fault handling, this
+may cause recursion issues with more advanced
+task switching and fault handling in Windows 95
+and later.
+
+The most common reason a callback handler might
+get caught with a page fault is the emulation
+of DOS and BIOS interrupts while running within
+the virtualization environment of Windows 3.0
+through Windows ME.
+
+Another possible source of page faults may occur
+with DOS extenders that enable paging of memory
+to disk.
+
+Callback functions will typically return CBRET_NONE.
+
+
+General description of source code
+----------------------------------
+
+src/shell/shell.cpp         SHELL init, SHELL run, fake COMMAND.COM setup,
+                                startup messages and ANSI art, AUTOEXEC.BAT
+                                emulation and setup, shell interface,
+                                input, parsing, and execution
+
+src/shell/shell_batch.cpp   Batch file (*.BAT) handling
+
+src/shell/shell_cmds.cpp    Shell internal command handling, shell commands:
+                                DIR     CHDIR   ATTRIB  CALL    CD      CHOICE
+                                CLS     COPY    DATE    DEL     DELETE  ERASE
+                                ECHO    EXIT    GOTO    HELP    IF      LOADHIGH
+                                LH      MKDIR   MD      PATH    PAUSE   RMDIR
+                                RD      REM     RENAME  REN     SET     SHIFT
+                                SUBST   TIME    TYPE    VER     ADDKEY  VOL
+                                PROMPT  LABEL   MORE    FOR     INT2FDBG
+                                CTTY    DEBUGBOX
+
+src/shell/shell_misc.cpp    PROMPT generator, command line input interface,
+                            shell execution, and command location via PATH
+                            interface.
+
+src/gui/sdlmain.cpp         Entry point, emulator setup, runtime execution,
+                            cleanup. Menu management, GFX start/end handling,
+                            GFX mode setup and management. Menu handling.
+                            Logging of GFX state. A lot of other misc code.
+
+src/gui/sdlmain_linux.cpp   Linux-specific state tracking and handling.
+
+src/gui/sdl_mapper.cpp      Mapper interface, mapper event handling and routing,
+                            mapper file reading and writing. Keyboard, mouse,
+                            joystick, and shortcut handling. In DOSBox-X,
+                            also ties mapper shortcuts to the menu system.
+
+src/gui/sdl_gui.cpp         Configuration GUI (using gui_tk), dialog boxes,
+                            background "golden blur" behind dialog boxes,
+                            input management and display of dialog boxes.
+
+src/gui/menu.cpp            Menu handling and management, processing,
+                            application of menu to host OS menu framework
+                            if applicable. In DOSBox-X, contains the menu
+                            C++ class and menu item object system which then
+                            maps to Windows HMENU, Mac OS X NSMenu, or the
+                            custom drawn SDL menus if neither are available.
+
+                            Which menu framework is used depends on the
+                            assignment of the DOSBOXMENU_* constant as defined
+                            in include/menu.h. By default:
+
+                                Windows (HMENU) is used if targeting Windows
+                                and not HX DOS and not SDL2
+
+                                Mac OS X (NSMENU) is used if targeting Apple
+                                Mac OS X and not SDL2
+
+                                SDL drawn menus are used in all other cases.
+
+                                A define is available via configure.ac if
+                                SDL drawn menus should be used regardless of
+                                the host OS and environment.
+
+                                A NULL menu define is provided if a build
+                                with no visible menus is desired.
+
+src/gui/render.cpp          RENDER_ and render scaler code. Also handles
+                            color palette, aspect ratio, autofit options.
+                            The selection of render scaler is defined and
+                            chosen here.
+
+src/gui/render_scalers.cpp  Render scaler definitions and code. Note that
+                            scalers are defined using header files as
+                            templates and #defines to support each color
+                            format.
+
+src/gui/midi.cpp            MIDI output framework. Header files include
+                            additional platform-specific code.
+
+src/gui/menu_osx.mm         Mac OS X Objective C++ code to bridge Objective C
+                            and C++ so that the menu manipulation code can
+                            work correctly.
+
+src/gui/direct3d.cpp        Windows Direct3D9 support code. This code allows
+                            output=direct3d to work properly. Uses DirectX 9
+                            interfaces.
+
+include/bitop.h             Header file to provide compile-time and runtime
+                            inline functions for bit manipulation and masking.
+                            Additional code is in src/gui/bitop.cpp
+
+include/ptrop.h             Header file to provide compile-time and runtime
+                            inline functions for pointer manipulation and
+                            alignment. Additional code is in src/gui/ptrop.cpp.
+
+src/aviwriter/*             AVI writer library, written by Jonathan Campbell
+                            sometime around 2010, and incorporated into DOSBox-X.
+                            Unlike the initial code from DOSBox SVN, this code
+                            can support writing OpenDML AVI files that exceed
+                            the 2GB file size limit.
+
+                            All definitions, including Windows PCM formats and
+                            GUIDs, are provided here.
+
+src/misc/cross.cpp          Cross-platform utility functions.
+
+src/misc/messages.cpp       Message translation table functions.
+
+src/misc/setup.cpp          Configuration, section, and setting management.
+
+src/misc/shiftjis.cpp       Shift-JIS utility functions.
+
+src/misc/support.cpp        String support functions including case conversion.
+
+src/builtin/*.cpp           Built-in executable binaries, defined as unsigned char[]
+                            arrays and registered at runtime:
+
+                                25.COM          28.COM          50.COM          APPEND.EXE
+                                BUFFERS.COM     COPY.EXE        CWSDPMI.EXE     DEBUG.EXE
+                                DEVICE.COM      DOS32A.EXE      DOS4GW.EXE      DOSIDLE.EXE
+                                EDIT.COM        FCBS.COM        FIND.EXE        HEXMEM16.EXE
+                                HEXMEM32.EXE    LASTDRIV.COM    MEM.COM         MOVE.EXE
+                                TREE.EXE        XCOPY.EXE
+
+src/cpu/paging.cpp          Paging and page handling code, TLB (translation lookaside buffer),
+                            Page handlers
+
+src/cpu/modrm.cpp           x86 mod/reg/rm effective address handling and lookup
+
+src/cpu/mmx.cpp             Minimalist MMX register handling and effective address lookup
+
+src/cpu/lazyflags.cpp       Lazy CPU flag evalulation. CPU flags are evaluated only if needed.
+
+src/cpu/flags.cpp           CPU flag evaluation code.
+
+src/cpu/cpu.cpp             NMI emulation, protected mode descriptors, stack push/pop,
+                            Selector base/limit handling, CPL, flags, exception handling,
+                            TSS (Task State Segment), task switching, I/O exception
+                            handling, general exception handling, interrupt handling,
+                            general flow control instruction handling, evaluation of
+                            [cpu] section settings and application of settings and
+                            changes to settings, I/O instruction stubs, model-specific
+                            register emulation, CMPXCHG8B.
+
+src/cpu/core_simple.cpp     Simple CPU core (core=simple). Uses normal core header files.
+                            Core cannot be used if paging is enabled or when executing
+                            from memory outside the valid range of system memory.
+
+src/cpu/core_prefetch.cpp   Prefetch CPU core (cputype=*_prefetch). Uses normal core header files.
+                            This core should be used for any application that is dependent
+                            on CPU prefetch including anti-debugger, copy protection, or
+                            self modifying code.
+
+src/cpu/core_normal.cpp     Normal CPU core.
+
+src/cpu/core_normal_286.cpp Normal CPU core, 286 emulation.
+
+src/cpu/core_normal_8086.cpp Normal CPU core, 8086 emulation.
+
+src/cpu/core_full.cpp       Full CPU core (core=full). Appears to have been borrowed from
+                            Bochs.
+
+src/cpu/core_dyn_x86.cpp    Dynamic CPU core (core=dynamic). On 32-bit x86 builds, this code
+                            interprets the guest executable code and produces executable
+                            code for the host process. This core is faster than the other
+                            cores however it may have problems with paging and it does not
+                            emulate CPU cycle counts accurately.
+
+src/cpu/callback.cpp        DOSBox/DOSBox-X callback instruction and callback handling system.
+
+src/debug/debug.cpp         Debugger, breakpoint handling and enforcement, debugger commands,
+                            debugger interface, debug runtime loop (when broken into the
+                            debugger)
+
+src/debug/debug_gui.cpp     Debugger interface windowing system, GUI drawing, logging system
+                            and LOG() C++ class, LOG_MSG() function, log file writing
+
+src/debug/debug_disasm.cpp  16/32-bit i486 instruction disassembler, used in the debugger
+                            to show instructions in the code window. Apparently taken from
+                            the GNU debugger.
+
+src/debug/debug_win32.cpp   Win32 console handling code, including resizing.
+
+src/hardware/iohandler.cpp  I/O port handling code and registration system.
+
+src/hardware/memory.cpp     Memory mapping, handling code, registration,
+                            system RAM allocation, A20 gate control,
+                            CPU reset vector handling, A20 config setting.
+
+src/hardware/mixer.cpp      Audio mixer, audio system. All audio is mixed
+                            in 1ms frames from all mixer channels. Other parts of
+                            the emulator register mixer callbacks, where they are
+                            called on to render up to 1ms of audio. All audio is
+                            processed and rendered as 16-bit stereo PCM even if
+                            the audio source provides 8/16-bit mono/stereo. See
+                            mixer framework section for more information. This
+                            also provides MIXER.COM on drive Z:, volume control
+                            mapper shortcuts, menu controls "mute" and "swap stereo".
+
+src/hardware/adlib.cpp      Adlib OPL2 and OPL3 emulation. Also provides the NukedOPL
+                            emulation. Note that this is accomplished by including
+                            nukedopl.h, and including opl.cpp twice inline. Once
+                            for OPL2, and once for OPL3.
+
+src/hardware/opl.cpp        This is the OPL2/OPL3 implementation, except for NukedOPL.
+
+src/hardware/nukedopl.cpp   NukedOPL FM emulation.
+
+src/hardware/sblaster.cpp   Sound Blaster emulation, overall. The same codebase
+                            emulates Sound Blaster 1.0 through Sound Blaster 16
+                            as well as ESS688 and Reveal SC400.
+
+src/hardware/pci_bus.cpp    PCI bus emulation and framework.
+
+src/hardware/vga.cpp        VGA emulation, modeset, resize event, lookup tables,
+                            config parsing.
+
+src/hardware/vga_attr.cpp   VGA attribute controller emulation
+
+src/hardware/vga_crtc.cpp   VGA CRTC emulation
+
+src/hardware/vga_dac.cpp    VGA DAC (palette) emulation
+
+src/hardware/vga_draw.cpp   Code to draw pixels in each VGA mode, including PC-98
+
+src/hardware/vga_gfx.cpp    VGA GFX (0x3CE-0x3CF) emulation
+
+src/hardware/vga_memory.cpp VGA RAM and RAM access emulation, video RAM allocation
+
+src/hardware/vga_misc.cpp   Misc VGA ports, including port 3DAh, 3C2h, 3CCh, 3CAh, 3C8h
+
+src/hardware/vga_other.cpp  Other emulation, including CGA functions
+
+src/hardware/vga_paradise.cpp Paradise SVGA emulation
+
+src/hardware/vga_s3.cpp     S3 SVGA emulation
+
+src/hardware/vga_seq.cpp    VGA sequencer emulation
+
+src/hardware/vga_tseng.cpp  Tseng ET3000/ET4000 emulation
+
+src/hardware/vga_xga.cpp    VGA XGA emulation
+
+src/hardware/vga_pc98_cg.cpp PC-98 CG (character generator) emulation
+
+src/hardware/vga_pc98_crtc.cpp PC-98 CRTC emulation
+
+src/hardware/vga_pc98_dac.cpp PC-98 DAC (palette) emulation
+
+src/hardware/vga_pc98_egc.cpp PC-98 EGC (extended graphics charger) emulation
+
+src/hardware/vga_pc98_gdc.cpp PC-98 GDC (graphics display controller) emulation
+
+src/hardware/voodoo.cpp     3Dfx Voodoo emulation
+
+src/hardware/voodoo_emu.cpp 3Dfx Voodoo emulation
+
+src/hardware/voodoo_interface.cpp 3Dfx Voodoo emulation
+
+src/hardware/voodoo_opengl.cpp 3Dfx Voodoo emulation
+
+src/hardware/voodoo_vogl.cpp 3Dfx Voodoo emulation
+
+src/hardware/pc98.cpp       PC98UTIL.COM utility built-in command
+
+src/hardware/pc98_fm.cpp    PC-98 FM board emulation (ties DOSBox-X to emulation
+                            code borrowed from Neko Project II)
+
+src/hardware/snd_pc98/*     PC-98 FM board emulation (code borrowed from
+                            Neko Project II)
+
+DOSBox-X menu framework
+-----------------------
+
+Instead of using a specific menu system directly, DOSBox-X uses a menu
+framework as defined in include/menu.h and src/gui/menu.cpp.
+
+This menu framework allows using the same menu item and menu layout
+on all supported targets.
+
+Prior to the framework, DOSBox-X menus were exclusively for Windows only
+and defined in an *.rc file.
+
+The design of the system is that all components of the emulator define
+and register their menu items during init by a specific name. Mapper
+shortcuts automatically register a menu item named "mapper_" + mapper
+shortcut name.
+
+Popup menus are also menu items by name, controlled by src/gui/menu.cpp.
+
+The final layout is controlled by src/gui/menu.cpp which refers to
+menu items by name and the order that they are arranged in.
+
+The final layout can be seen through the display list in the menu object
+and the display list in each menu item that was created as a submenu.
+The display list contains the exact order that menu items are arranged.
+
+In the SDL drawn menus, each menu item also contains the screen and
+relative coordinates that were decided on when the menu object was last
+called to rebuild or arrange the menus.
+
+The SDL drawn menus are the only type that requires the main DOSBox-X
+event loop to process menu events on their behalf including drawing
+and reacting to mouse/touchscreen input. Windows and Mac OS X menus do
+not require the main event loop's attention except when the user selects
+an item.
+
+Access to the menu items is by name, as well. get_item() returns a menu
+item by reference, which itself contains methods to control the state
+of the menu item and to reflect the changes to the menu framework.
+
+Menu item methods return a reference to themselves to permit chaining
+the calls on one line to keep visual clutter to a minimum.
+
+The menu framework will call E_Exit() if the menu item by name does
+not exist. Another method exists in the menu object to test if an
+item exists by name.
+
+It is expected that references returned from get_item() are used
+short-term and never held onto for longer than needed. References
+point directly to a vector within the menu object that can become
+invalid if anything is done to cause the vector to resize. Always
+call get_item() for a menu item to operate on it, never cache or
+store the return value. Never add items while holding a reference.
+
+
+Debugger interface
+------------------
+
+In builds where it is enabled, DOSBox-X supports breaking into the debugger
+interface, which is shown on the console.
+
+A mapper shortcut is provided to break into the debugger on demand. Normally
+this shortcut is set to Alt+Pause.
+
+In Windows, DOSBox-X can create a console and show the debugger interface
+on it.
+
+On other systems including Linux and Mac OS X, DOSBox-X must be started
+from a terminal in order to enable the debugger.
+
+The debugger interface should scale and respond to resizing of the
+terminal window.
+
+WARNING: Fitting to the window was added in DOSBox-X. The debugger
+         interface in DOSBox SVN requires a minimum terminal window
+         size to function, and may segfault if the terminal is too
+         small.
+
+The debugger interface is written against the "ncurses" library.
+
+The window regions of the debugger interface are:
+ - Register Overview
+ - Data view
+ - Code Overview
+ - Variable (not shown by default)
+ - Output
+
+The register window will show at all times the contents of the CPU
+registers and segment registers as well as other important CPU
+state.
+
+Data view allows viewing the contents of memory while debugging.
+The location shown is controlled by a segment:offset pair.
+
+In DOSBox-X, the Data view also permits viewing data as a linear
+(pageable) offset and as a physical memory view (outside the
+CPU's paging control).
+
+The code overview/disassembly window shows the contents of a
+memory location as disassembled x86 instructions. Normally, this
+is set to the instruction pointer, but it can be set anywhere.
+Decoding is based on the CPU mode.
+
+The variable list is used when the debugger is given variables
+to debug by.
+
+The output window allows you to scroll through the last 1000
+or so log messages written from within the codebase by LOG()
+or LOG_MSG(). If the window is scrolled to the bottom, new
+messages will appear by default.
+
+The lowest row of the terminal is reserved for a line where
+the user can enter debugger commands. An underscore shows
+where the cursor is positioned.
+
+The code and data views have been fixed in DOSBox-X to indicate
+when data is not available to view for a specific segment:offset
+or linear address.
+
+If the CPU is in protected mode, and the segment portion refers
+to a segment that does not exist, or the offset extends past
+the limit of that segment, the code or data view will show
+'na' instead of a byte value.
+
+If 80386 paging is enabled, and the segment:offset or linear
+address refers to a page that is not present, then the data
+view will show 'pf' to indicate this.
+
+  na = segment does not exist, or offset exceeds segment limit
+
+  pf = segment:offset or linear address is paged out or
+       not present according to page tables.
+
+
+Debugger keyboard shortcuts
+---------------------------
+
+Tab                 Switch between windows
+F5                  Resume emulation
+F9                  Set/clear breakpoint
+F10                 Single step (over)
+F11                 Single step (into)
+Up arrow            Scroll up one line (if applicable)
+Down arrow          Scroll down one line (if applicable)
+Page Up             Scroll up by window height (if applicable)
+Page Down           Scroll down by window height (if applicable)
+
+
+Debugger commands
+-----------------
+
+MOVEWINDN                                   Move current window down
+MOVEWINDU                                   Move current window up
+SHOWWIN <winname>                           Show window (by name)
+HIDEWIN <winname>                           Hide window (by name)
+MEMDUMP <seg> <off> <bytecount>             Dump memory to file (MEMDUMP.TXT)
+MEMDUMPBIN <seg> <off> <bytecount>          Dump memory to file (MEMDUMP.BIN)
+IV <seg> <off> <name>                       Insert variable
+SV <name>                                   Save variables to <name>
+LV <name>                                   Load variables from <name>
+SR <reg> <value>                            Set register <reg> value to <value>
+SM <seg> <off> [bytes in hex]               Set memory at <seg>:<off> to byte values given
+BP <seg> <off>                              Add breakpoint (real mode)
+BPM <seg> <off>                             Add breakpoint (protected mode)
+BPLM <offset>                               Add breakpoint (linear/virtual address)
+BPINT <intnum>                              Add breakpoint on interrupt
+BPINT <intnum> <value>                      Add breakpoint on interrupt and AH=<value>
+BPLIST                                      List breakpoints
+BPDEL <breakpoint number>                   Delete breakpoint
+RUN                                         Resume emulation
+RUNWATCH                                    Resume emulation, but show state while running
+A20                                         Show A20 gate state
+A20 ON                                      Turn on A20 gate
+A20 OFF                                     Turn off A20 gate
+PIC                                         Show interrupt controller state
+PIC MASKIRQ <irq>                           Mask IRQ at interrupt controller
+PIC UNMASKIRQ <irq>                         Unmask IRQ at interrupt controller
+PIC ACKIRQ <irq>                            Acknowledge IRQ at interrupt controller
+PIC LOWERIRQ <irq>                          Manually lower interrupt signal
+PIC RAISEIRQ <irq>                          Manually raise interrupt signal
+C <seg> <off>                               Set code view to address
+D <seg> <off>                               Set data view to address (segment:offset)
+DV <offset>                                 Set data view to address (linear/virtual address)
+DP <offset>                                 Set data view to address (physical)
+LOG <hexadecimal count>                     Log CPU state, for the specified number of instructions, to LOGCPU.TXT
+LOGS <hexadecimal count>                    Log CPU state, short log, to LOGCPU.TXT
+LOGL <hexadecimal count>                    Log CPU state, long log, to LOGCPU.TXT
+INTT <intnum>                               Trace interrupt
+INT <intnum>                                Start interrupt
+SELINFO <n>                                 Show selector information
+DOS MCBS                                    Dump DOS kernel MCB chain (conventional memory allocation chain)
+DOS KERN                                    Dump DOS kernel memory allocation list
+DOS XMS                                     Dump XMS (extended memory) allocation list
+DOS EMS                                     Dump EMS (expanded memory) allocation list
+BIOS MEM                                    Dump BIOS allocation and layout list
+GDT                                         Dump GDT (global descriptor table)
+LDT                                         Dump LDT (local descriptor table)
+IDT                                         Dump IDT (interrupt descriptor table)
+PAGING                                      Dump page table information
+CPU                                         Dump additional CPU information
+INTVEC <file>                               Dump interrupt vector table to <file>
+INTHAND <intnum>                            Set code view to start of interrupt handler
+EXTEND                                      Toggle additional information
+TIMERIRQ                                    Start timer IRQ
+HEAVYLOG                                    Toggle heavy CPU logging
+ZEROPROTECT                                 Toggle zero protection
+HELP                                        Show some debugger commands for reference
+
+
+Mixer audio framework
+---------------------
+
+Audio is rendered from all sources once a millisecond (once per tick).
+
+Audio is rendered to 16-bit stereo at the sample rate of the user's
+choice (in dosbox.conf).
+
+Audio may be rendered within the 1ms tick at any point if code calls
+the MIXER_FillUp() function or FillUp() member of a mixer channel.
+Typically that is done when a significant state change is made to
+an audio source in order to render accurately while not rendering
+once per sample in an inefficient manner.
+
+It is important to note that when a significant state change happens,
+the device calls FillUp() first to render audio UP TO THAT POINT,
+then applies the state change.
+
+When the 1ms tick is completed, the audio is filled out to 1ms
+and then sent off to a circular buffer where it can be picked up
+and sent to the sound card when the Simple Directmedia Library
+calls to pick it up.
+
+In DOSBox-X, the mixer is written to render exactly 1ms at the
+sample rate per 1ms of emulator time. Fractional integer math
+is carried out in src/hardware/mixer.cpp to ensure the exact
+number of samples is rendered.
+
+Audio is rendered down to a common mixer buffer that is at least
+16384 samples large.
+
+The mixer channel specifies the sample rate of the source, so that
+the mixer can upsample properly. The source format is determined
+at the time of writing to the mixer channel. The source is free
+to change from 8/16-bit PCM mono/stereo at any time.
+
+In DOSBox-X, there is additional framework provided to emulate
+analog properties and DAC characteristics through lowpass filters
+and rate vs slew rate interpolation.
+
+Normally, the source does not specify a lowpass filter nor does
+it provide a slew rate. In that case, normal linear interpolation
+is applied on upsample.
+
+If the source provides a slew rate, the slew rate is used for
+linear interpolation. If the slew rate is higher than the sample
+rate, then the interpolation within the sample completes faster.
+If the slew rate is lower than the sample rate, the interpolation
+will be done too slow to complete fully before the next sample.
+
+The reason for slew rate rendering is simple. DACs without filters
+change instantaneously between samples. This is what gives older
+sound cards (including the older Sound Blaster cards) their grungy
+metallic characteristic. Sound cards since then filter the audio
+after the DAC (or filter as part of DAC output) to smooth
+transitions between samples to improve sound quality for low sample
+rates.
+
+However, as anyone knows in the analog domain, transistors do not
+actually change instantaneously. There is a transition period from
+ON to OFF, and OFF to ON, however fast it is. The slew rate parameter
+specifies the "sample rate" that defines the transition period.
+The higher the slew rate, the faster the transition.
+
+The lowpass filter is there to simulate the analog filtering post
+DAC. In most cases, a sound card could be thought of as a DAC with
+or without DAC interpolation, put through an audio amplifier
+circuit that can only amplify and pass up to about 20KHz.
+
+Sound Blaster 1.0/2.0 emulation in DOSBox-X for example is written
+to simulate a DAC with a slew rate of 16-20KHz and a lowpass filter
+of 20KHz, to simulate the grungy metallic flavor of the sound.
+
+Sound Blaster Pro adds to the setup by using the lowpass parameter
+according to the "filter bit" in the mixer registers.
+
+Sound Blaster 16 and ESS emulation simulates the newer DACs using
+normal linear interpolation and the lowpass filter according to
+the source rate.
+
+Within the mixer framework, audio routing is provided to render
+to a WAV file if instructed by the user, and to the audio track
+of an AVI file if also instructed by the user.
+
+In DOSBox-X, individual audio channels from each source are also
+recorded to an AVI file that has one audio track per channel, to
+allow recording each channel individually. The intent of this
+setup is to enable editing audio and video from a DOS game with
+the ability to selectively disable unrelated audio or extract
+game music without the sound effects in ways appropriate for
+video production.
+
+In DOSBox SVN, audio rendering is driven by the SDL audio device,
+which may (usually) or may not drift slightly from emulation.
+
+In DOSBox-X, audio rendering is tied to emulation time, and
+audio/video sync will never drift in a captured AVI file.
+
+In DOSBox-X, if compiled against FFMPEG, the captured audio may
+be sent instead to the AAC codec and muxed into an MPEG transport
+stream as part of video capture.
+
+A device creates a mixer channel by calling MIXER_AddChannel()
+to create another audio channel. The function will return a pointer
+to a mixer channel object which can then be directed to start,
+stop, and render audio. The function will also call the callback
+handler function given at creation time when audio rendering is
+needed.
+
+When a device is finished with the channel, it should call
+MIXER_DelChannel() to destroy the channel.
+
+Mixer channel enumeration is possible with MIXER_FirstChannel()
+or MIXER_FindChannel(). Mixer channels are linked together in
+a singly linked list when active.
+
+src/hardware/mixer.cpp also registers a .COM program on
+drive Z: that can be used to list mixer channels and control
+mixer volume.
+
+
+Sound Blaster emulation
+-----------------------
+
+src/hardware/sblaster.cpp emulates all models of Sound Blaster
+from Sound Blaster 1.0 through Sound Blaster 16. In DOSBox-X,
+additional code was added to emulate the ESS688 and SC400
+cards as well.
+
+The code is written to be as accurate as possible about
+the state and function of Sound Blaster cards, including many
+undocumented quirks.
+
+Additional hacks were added for additional tricks the some
+old DOS games and demos use. One such hack is "goldplay" mode,
+referring to an old music tracker playback library that
+supported playing MOD files to LPT DAC, PC speaker, and
+Sound Blaster. The reason a hack was added is due to the
+way this library renders single-sample output via DMA.
+Instead of normal DMA, the library allocates a 1-sample
+buffer and instructs the DMA controller to loop over the
+single sample. The timer interrupt then overwrites the
+1-sample buffer at the sample rate it believes is the
+best to render at.
+
+In DOSBox SVN, sample rates are not capped.
+
+In DOSBox-X, sample rates are capped according to the
+behavior of the actual hardware. That includes the 23KHz
+cap for non-highspeed and 45KHz cap for highspeed DSP
+playback.
+
+The emulation is written in a fairly straightforward way
+that should be easy to modify if needed. DSP commands are
+collected into a buffer according to a table that indicates
+how long each command is from the first byte.
+
+A buffer is used to return DSP bytes read back from the
+sound card.
+
+Unless otherwise asked, the Sound Blaster code will also
+register I/O handlers for and initialize OPL2/OPL3 FM
+emulation at port 0x388. The code may initialize Game
+Blaster compatible CMS emulation as well.
+
+On DOS kernel initialization, the Sound Blaster emulation
+will also automatically create the BLASTER environment
+variable. This environment variable is used by many DOS
+games to find the sound card. Some games require it,
+while others will probe manually for the sound card.
+
+
+VGA emulation
+-------------
+
+The VGA emulation written in DOSBox-X is written in two
+parts.
+
+The first part concerns IBM PC/XT/AT emulation and VGA
+emulation, with adjustments for some SVGA chipsets and
+for MDA/Hercules/Tandy/EGA as well.
+
+The second part concerns NEC PC-98 and emulation of it's
+subsystem.
+
+The two parts work somewhat independently. Which one
+becomes active depends on the machine= setting, whether
+it enables IBM PC or NEC PC-98 emulation.
+
+All VGA emulation is tied to a VGA state structure that
+is globally visible in the code. The state stores in the
+structure exactly or closely mirrors the values written
+to the registers. Extended state is either carried in
+the same registers or stored in other values. Extended
+state is generally stored and represented as if emulating
+the S3 chipset. Some fields are either extended or
+stored separately when holding Tandy/PCjr state.
+
+All PC-98 emulation is tied to the GDC controller emulation
+state of both GDCs (master and slave). VGA state is not
+used much in PC-98 mode.
+
+Support is not implemented for oddball PC-98 GDC state such
+as programming the master and slave GDCs to run out of
+sync with each other. Custom modes are supported however,
+such as the custom video timing used in Ishtar.
+
+VGA state is determined by the register contents (low level)
+instead of INT 10h mode (high level). The register contents
+are used to select a mode enumeration which affects the
+way video memory is rendered. The modes are the M_*
+enumeration constants defined in include/vga.h.
+
+    M_CGA2          CGA 1bpp 2-color mode (e.g. 640x200)
+    M_CGA4          CGA 2bpp 4-color mode (e.g. 320x200)
+    M_EGA           EGA/VGA 4bpp 16-color planar modes
+    M_VGA           VGA 8bpp 256-color modes, usually chained planar, or highcolor DAC output
+    M_LIN4          SVGA 4bpp 16-color planar modes
+    M_LIN8          SVGA 8bpp 256-color modes (linear)
+    M_LIN15         SVGA 16bpp highcolor modes (15bpp 5:5:5 RGB = XRRRRRGGGGGBBBBB)
+    M_LIN16         SVGA 16bpp highcolor modes (16bpp 5:6:5 RGB = RRRRRGGGGGGBBBBB)
+    M_LIN24         SVGA 24bpp truecolor modes (24bpp 8:8:8 RGB)
+    M_LIN32         SVGA 32bpp truecolor modes (32bpp 8:8:8:8 ARGB)
+    M_TEXT          Alphanumeric text modes (CGA/EGA/VGA/SVGA/Tandy/PCjr)
+    M_HERC_GFX      Hercules 1bpp 2-color mode (usually 720x348)
+    M_HERC_TEXT     MDA/Hercules alphanumeric text mode
+    M_CGA16         CGA composite video emulation
+    M_TANDY2        Tandy/PCjr 1bpp 2-color mode
+    M_TANDY4        Tandy/PCjr 2bpp 4-color mode
+    M_TANDY16       Tandy/PCjr 4bpp 16-color mode
+    M_TANDY_TEXT    Tandy/PCjr text mode
+    M_AMSTRAD       Amstrad 4bpp 16-color mode
+    M_PC98          NEC PC-98 text/graphics output (combined)
+    M_FM_TOWNS      Stub for FM Towns
+
+    NOTICE: A string array is also defined for private use of the
+            VGA_SetupDrawing() function for each M_ constant.
+            If you add a new constant, you must add a string
+            for that constant in src/hardware/vga_draw.cpp,
+            or else DOSBox-X may segfault when announcing the
+            video mode on mode change.
+
+            The order of the enumeration MUST match the strings.
+
+            The string array is defined (at the time of writing
+            this documentation) at line 2755 of
+            src/hardware/vga_draw.cpp.
+
+VGA drawing setup is initialized using the VGA_SetupDrawing()
+function in src/hardware/vga_draw.cpp. The function uses
+machine type, VGA mode, and register state to determine the
+active display area (used to size DOSBox's window) and
+refresh rate.
+
+DOSBox SVN will generally render the VGA display in quarters
+of the screen, except when machine=vgaonly, where it will
+render one line at a time.
+
+DOSBox-X will always render one line at a time, in all video
+modes.
+
+Rendering one line at a time may be required if the DOS
+game in question uses raster or palette effects that require
+scanline precision. "Copper" effects in the demoscene, such
+as the act of changing color palette entries per scanline to
+produce moving bars of color, require per-line rendering to
+appear correctly.
+
+NOTE: To better understand the term "copper effects", read
+      the following links describing the original
+      Commodore Amiga video hardware:
+
+      http://eab.abime.net/showthread.php?t=21866
+      https://en.wikipedia.org/wiki/Original_Chip_Set#Copper
+
+PIC events are used in the VGA code to trigger rendering
+a scanline at the interval determined by the horizontal
+sync rate. Some additional events are used for horizontal
+blank, sync, and return to active display. The VGA system
+is set up so that these events set up continuous rasterization
+of the display.
+
+If for any reason, these events should stop, the display
+in the emulator window will stop updating.
+
+Rendering of VGA memory per scanline is carried out using
+a function pointer to a function assigned by the last
+call to VGA_SetupDrawing(). At call time, the function
+is expected to render to a buffer and return the pixel
+data as the return value. In most cases, that is done
+by rendering to a specific temporary buffer set aside
+for rasterizing, and then returning any number of bytes
+(0 to 31) from the start of the buffer. VGA text rendering
+may return 0 to 8 pixels from the start depending on the
+horizontal panning (hpel) register state for example.
+
+Per-scanline rendering is handled by PIC event
+VGA_DrawSingleLine() which calls the render function
+and manages VGA state as it advances through the
+scan lines and addresses in memory.
+
+Vertical retrace is handled by PIC event
+VGA_VerticalTimer().
+
+Emulation of a vertical retrace interrupt is handled by
+PIC event VGA_VertInterrupt. This event has code to
+emulate the IRQ 2/9 interrupt of EGA and the IRQ 2
+vsync interrupt in PC-98 mode.
+
+It is known that some double-buffered VGA registers
+take effect some time between blanking at the end of
+the active display, and active display at the start.
+Whenever that happens the PIC event function
+VGA_DisplayStartLatch() is set up to emulate the
+transfer of those registers.
+
+DOSBox SVN will generally render per scanline in
+video memory, using the scaler to double the scanline
+if appropriate. machine=vgaonly however may override
+that.
+
+DOSBox-X will generally render all scanlines that
+would be sent to a CRT, meaning that 200-line modes
+are doubled, by default for accuracy. This can be
+disabled by setting doublescan=false to get DOSBox
+SVN behavior.
+
+The reason it matters is that the doublescan
+behavior prevents the advanced scalers (such as 2xsai)
+from working. To enable these scalers, turn off
+the doublescan mode.
+
+VGA memory size and allocation is handled in
+src/hardware/vga_memory.cpp. VGA memory is mapped
+to the appropriate memory ranges depending on
+register state, machine type, and video mode in
+VGA_SetupHandlers(). Register-level emulation of
+certain registers will call VGA_SetupHandlers()
+if it might or will affect how VGA memory is
+mapped.
+
+VGA_SetupHandlers() also determines the callback
+handler used to respond to video memory access
+from the CPU. Register state and hardware state
+determine how the video hardware handles read
+and write operations, this is where it's handled.
+
+In the simplest case, VGA_SetupHandlers() will
+emulate straightforward memory access for
+MDA/CGA/Hercules text and graphics modes. No
+advanced logic is involved, video RAM behaves
+like normal RAM.
+
+In the more complex cases, especially EGA/VGA,
+a handler is set up to accept reads and writes
+and route it through the read/write modes that
+determine how it's handled across the planar
+memory of the EGA/VGA hardware.
+
+In PC-98 mode, the memory handler accepts
+read/write to text and character RAM,
+non-volatile RAM, and maps read/write operations
+to graphics RAM through the state of the EGC
+hardware.
+
+There is separate code for S3 emulation to map
+a linear framebuffer to an extended memory
+address (currently 0xE0000000) defined in
+src/hardware/memory.cpp. VESA BIOS emulation
+involving linear framebuffer modes rely on
+S3 emulation to provide them. There are registers
+emulated by src/hardware/vga_s3.cpp that
+indirectly control the linear framebuffer.
+
+In DOSBox SVN, the linear framebuffer is
+handled directly by the MEM_GetPageHandler()
+function.
+
+In DOSBox-X, the linear framebuffer is given
+using the memory callout system when reads
+and writes are issued to that range for the
+first time.
+
+Note that the linear framebuffer handler also
+includes the memory-mapped I/O registers also
+provided by S3 chipsets.
+
+VGA memory handlers, just like any other
+memory handler, must translate the given address
+to the physical address before handling.
+
+For some strange reason, DOSBox SVN page
+mapping calls the memory handler with the CPU's
+virtual memory address. This behavior was
+inherited by DOSBox-X when forked from DOSBox SVN.
+
+Convert the virtual address to physical using
+the PAGING_GetPhysicalAddress() function before
+using it in video RAM emulation.
+
+The memory handler C++ base class is written
+so that there are methods for getting a host
+pointer or handling memory read/write as
+a byte, word, or dword.
+
+A memory handler object can simplify code by
+implementing only the byte handler, and letting
+the C++ base class break word and dword I/O
+down to byte access. Memory handlers can
+implement their own word/dword handlers if
+the device requires different handling for
+larger than byte sized I/O, or for performance
+reasons.
+
+The base C++ class of a memory handler has a
+flags member that describes how to handle
+memory I/O. The constructor can call down
+to the base constructor with the flag value
+to initialize by.
+
+DOSBox-X includes code to consume CPU cycles
+on memory I/O to simulate the fact that, at
+least on older hardware, video memory is slower
+than system memory. There are older DOS games
+that rely on slow system memory, and they will
+run too fast without it.
+
+EGA/VGA planar write modes are handled
+in src/hardware/vga_memory.cpp function
+ModeOperation().
+
+EGA/VGA planar memory is emulated by treating
+the allocated RAM as if an array of 32-bit
+unsigned integers (uint32_t). Each bitplane
+occupies 8 bits within that 32-bit unsigned
+int. Keeping the planes together enables
+faster more efficient emulation of VGA
+bit planar operations including copying
+with write mode 2 and raster operations,
+as well as Mode X tricks used by older
+DOS games.
+
+Due to the general way that video modes are
+handled on EGA/VGA/SVGA hardware, all modes
+including text mode must operate within the
+constraints of bytes through the planar
+layout of VGA video RAM.
+
+One good example of that requirement is the
+Windows 95 "boot logo", which relies on
+IO.SYS setting 320x400 256-color Mode X, then
+resetting BIOS and VGA hardware state so that
+DOS and INT 10h still think the display is in
+text mode, and the VGA hardware continues to
+accept writes to B8000 as if running in text
+mode. In this way, the text console can
+continue to show console output underneath
+the Windows 95 logo unscathed. When Windows
+95 switches the VGA hardware back to text
+mode, whatever was written to the console
+is revealed.
+
+Some exceptions are made for SVGA chipsets
+known to function differently, such as the
+Tseng ET3000/ET4000 chipsets known to operate
+VGA Mode X differently from standard VGA.
 
 -------------------------
 Now with Appveyor windows CI.

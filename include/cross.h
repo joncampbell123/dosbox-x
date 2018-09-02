@@ -32,7 +32,8 @@
 #if defined (_MSC_VER)						/* MS Visual C++ */
 #include <direct.h>
 #include <io.h>
-#define LONGTYPE(a) a##i64
+#define ULONGTYPE(a) a##ULL
+#define LONGTYPE(a) a##LL
 #define snprintf _snprintf
 #define vsnprintf _vsnprintf
 #define alloca _alloca
@@ -40,6 +41,7 @@
 #else										/* LINUX / GCC */
 #include <dirent.h>
 #include <unistd.h>
+#define ULONGTYPE(a) a##ULL
 #define LONGTYPE(a) a##LL
 #endif
 
@@ -70,6 +72,7 @@ static inline float powf (float x, float y) { return (float) pow (x,y); }
 
 class Cross {
 public:
+	static void GetPlatformResDir(std::string& in);
 	static void GetPlatformConfigDir(std::string& in);
 	static void GetPlatformConfigName(std::string& in);
 	static void CreatePlatformConfigDir(std::string& in);

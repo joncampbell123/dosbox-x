@@ -199,38 +199,38 @@ static INLINE void FPU_SetCW(Bitu word){
 
 
 static INLINE Bitu FPU_GET_TOP(void) {
-	return (fpu.sw & 0x3800)>>11;
+	return (fpu.sw & 0x3800U) >> 11U;
 }
 
 static INLINE void FPU_SET_TOP(Bitu val){
-	fpu.sw &= ~0x3800;
-	fpu.sw |= (val&7)<<11;
+	fpu.sw &= ~0x3800U;
+	fpu.sw |= (val & 7U) << 11U;
 }
 
 
 static INLINE void FPU_SET_C0(Bitu C){
-	fpu.sw &= ~0x0100;
-	if(C) fpu.sw |=  0x0100;
+	fpu.sw &= ~0x0100U;
+	if(C) fpu.sw |=  0x0100U;
 }
 
 static INLINE void FPU_SET_C1(Bitu C){
-	fpu.sw &= ~0x0200;
-	if(C) fpu.sw |=  0x0200;
+	fpu.sw &= ~0x0200U;
+	if(C) fpu.sw |=  0x0200U;
 }
 
 static INLINE void FPU_SET_C2(Bitu C){
-	fpu.sw &= ~0x0400;
-	if(C) fpu.sw |=  0x0400;
+	fpu.sw &= ~0x0400U;
+	if(C) fpu.sw |=  0x0400U;
 }
 
 static INLINE void FPU_SET_C3(Bitu C){
-	fpu.sw &= ~0x4000;
-	if(C) fpu.sw |= 0x4000;
+	fpu.sw &= ~0x4000U;
+	if(C) fpu.sw |= 0x4000U;
 }
 
 static INLINE void FPU_SET_D(Bitu C){
-	fpu.sw &= ~0x0002;
-	if(C) fpu.sw |= 0x0002;
+	fpu.sw &= ~0x0002U;
+	if(C) fpu.sw |= 0x0002U;
 }
 
 

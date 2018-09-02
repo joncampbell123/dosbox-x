@@ -155,6 +155,7 @@
 				Push_32(tmpesp);Push_32(reg_ebp);Push_32(reg_esi);Push_32(reg_edi);
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				LOG_MSG("PUSHAD interrupted by page fault");
 				reg_esp = old_esp;
 				throw;
@@ -168,6 +169,7 @@
 				reg_ebx=Pop_32();reg_edx=Pop_32();reg_ecx=Pop_32();reg_eax=Pop_32();
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				LOG_MSG("POPAD interrupted by page fault");
 				reg_esp = old_esp;
 				throw;
@@ -177,8 +179,8 @@
 		{
 			Bit32s bound_min, bound_max;
 			GetRMrd;GetEAa;
-			bound_min=LoadMd(eaa);
-			bound_max=LoadMd(eaa+4);
+			bound_min=(Bit32s)LoadMd(eaa);
+			bound_max=(Bit32s)LoadMd(eaa+4);
 			if ( (((Bit32s)*rmrd) < bound_min) || (((Bit32s)*rmrd) > bound_max) ) {
 				EXCEPTION(5);
 			}
@@ -205,7 +207,7 @@
 		RMGdEdOp3(DIMULD,Fetchds());
 		break;
 	CASE_D(0x6a)												/* PUSH Ib */
-		Push_32(Fetchbs());break;
+		Push_32((Bitu)Fetchbs());break;
 	CASE_D(0x6b)												/* IMUL Gd,Ed,Ib */
 		RMGdEdOp3(DIMULD,Fetchbs());
 		break;
@@ -281,7 +283,7 @@
 		{
 			GetRM;Bitu which=(rm>>3)&7;
 			if (rm >= 0xc0) {
-				GetEArd;Bit32u id=(Bit32s)Fetchbs();
+				GetEArd;Bit32u id=(Bit32u)Fetchbs();
 				switch (which) {
 				case 0x00:ADDD(*eard,id,LoadRd,SaveRd);break;
 				case 0x01: ORD(*eard,id,LoadRd,SaveRd);break;
@@ -293,7 +295,7 @@
 				case 0x07:CMPD(*eard,id,LoadRd,SaveRd);break;
 				}
 			} else {
-				GetEAa;Bit32u id=(Bit32s)Fetchbs();
+				GetEAa;Bit32u id=(Bit32u)Fetchbs();
 				switch (which) {
 				case 0x00:ADDD(eaa,id,LoadMd,SaveMd);break;
 				case 0x01: ORD(eaa,id,LoadMd,SaveMd);break;
@@ -377,6 +379,7 @@
 				else {GetEAa;SaveMd(eaa,val);}
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				reg_esp = old_esp;
 				throw;
 			}
@@ -402,7 +405,7 @@
 		{ Bit32u temp=reg_eax;reg_eax=reg_edi;reg_edi=temp;break;}
 		break;
 	CASE_D(0x98)												/* CWDE */
-		reg_eax=(Bit16s)reg_ax;break;
+		reg_eax=(Bit32u)((Bit16s)reg_ax);break;
 	CASE_D(0x99)												/* CDQ */
 		if (reg_eax & 0x80000000) reg_edx=0xffffffff;
 		else reg_edx=0;
@@ -489,6 +492,7 @@
 				reg_eip = new_eip;
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				reg_esp = old_esp; /* restore stack pointer */
 				throw;
 			}
@@ -538,6 +542,7 @@
 				reg_ebp = Pop_32();
 			}
 			catch (GuestPageFaultException &pf) {
+				(void)pf;
 				reg_esp = old_esp;
 				throw;
 			}
@@ -618,14 +623,14 @@
 			Bit32s addip=Fetchds();
 			Bit32u here=GETIP;
 			Push_32(here);
-			reg_eip=(Bit32u)(addip+here);
+			reg_eip=(Bit32u)((Bit32u)addip+here);
 			continue;
 		}
 	CASE_D(0xe9)												/* JMP Jd */
 		{ 
 			Bit32s addip=Fetchds();
 			SAVEIP;
-			reg_eip+=addip;
+			reg_eip+=(Bit32u)addip;
 			continue;
 		}
 	CASE_D(0xea)												/* JMP Ad */
@@ -646,7 +651,7 @@
 		{ 
 			Bit32s addip=Fetchbs();
 			SAVEIP;
-			reg_eip+=addip;
+			reg_eip+=(Bit32u)addip;
 			continue;
 		}
 	CASE_D(0xed)												/* IN EAX,DX */

@@ -1641,7 +1641,7 @@ SDL_Surface *DX5_SetVideoMode(_THIS, SDL_Surface *current,
 		}
 
 	}
-	ShowWindow(SDL_Window, SW_SHOW);
+//	ShowWindow(SDL_Window, SW_SHOW);
 	SetForegroundWindow(SDL_Window);
 	SDL_resizing = 0;
 

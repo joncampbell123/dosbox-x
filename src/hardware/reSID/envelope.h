@@ -202,16 +202,16 @@ void EnvelopeGenerator::clock(cycle_count delta_t)
   //
 
   // NB! This requires two's complement integer.
-  int rate_step = rate_period - rate_counter;
+  int rate_step = (int)(rate_period - rate_counter);
   if (rate_step <= 0) {
     rate_step += 0x7fff;
   }
 
   while (delta_t) {
     if (delta_t < rate_step) {
-      rate_counter += delta_t;
-      if (rate_counter & 0x8000) {
-	++rate_counter &= 0x7fff;
+      rate_counter += (unsigned int)delta_t;
+      if (rate_counter & 0x8000u) {
+	++rate_counter &= 0x7fffu;
       }
       return;
     }
@@ -228,7 +228,7 @@ void EnvelopeGenerator::clock(cycle_count delta_t)
 
       // Check whether the envelope counter is frozen at zero.
       if (hold_zero) {
-	rate_step = rate_period;
+	rate_step = (int)rate_period;
 	continue;
       }
 
@@ -291,7 +291,7 @@ void EnvelopeGenerator::clock(cycle_count delta_t)
       }
     }
 
-    rate_step = rate_period;
+    rate_step = (int)rate_period;
   }
 }
 

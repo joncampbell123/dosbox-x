@@ -45,7 +45,7 @@ static void DOS_Mem_E_Exit(const char *msg) {
 	char c;
 
 	LOG_MSG("DOS MCB dump:\n");
-	while ((c=mcb.GetType()) != 'Z') {
+	while ((c=(char)mcb.GetType()) != 'Z') {
 		if (counter++ > 10000) break;
 		if (c != 'M') break;
 
@@ -59,12 +59,17 @@ static void DOS_Mem_E_Exit(const char *msg) {
 	}
 
 	mcb.GetFileName(name);
-	c = mcb.GetType(); if (c < 32) c = '.';
+	c = (char)mcb.GetType(); if (c < 32) c = '.';
 	LOG_MSG("FINAL: Type=0x%02x(%c) Seg=0x%04x size=0x%04x name='%s'\n",
 		mcb.GetType(),c,mcb_segment+1,mcb.GetSize(),name);
 	LOG_MSG("End dump\n");
 
-	E_Exit(msg);
+#if C_DEBUG
+    LOG_MSG("DOS fatal memory error: %s",msg);
+    throw int(7); // DOS non-fatal error (restart when debugger runs again)
+#else
+	E_Exit("%s",msg);
+#endif
 }
 
 void DOS_CompressMemory(Bit16u first_segment=0/*default*/) {
@@ -407,16 +412,17 @@ bool DOS_FreeMemory(Bit16u segment) {
 	return true;
 }
 
+Bitu GetEMSPageFrameSegment(void);
 
 void DOS_BuildUMBChain(bool umb_active,bool ems_active) {
 	unsigned int seg_limit = MEM_TotalPages()*256;
 
 	/* UMBs are only possible if the machine has 1MB+64KB of RAM */
-	if (umb_active && (machine!=MCH_TANDY) && seg_limit >= (0x10000+0x1000-1)) {
+	if (umb_active && (machine!=MCH_TANDY) && seg_limit >= (0x10000+0x1000-1) && first_umb_seg < GetEMSPageFrameSegment()) {
 		if (ems_active) {
 			/* we can use UMBs up to the EMS page frame */
 			/* FIXME: when we make the EMS page frame configurable this will need to be updated */
-			first_umb_size = 0xE000 - first_umb_seg;
+			first_umb_size = GetEMSPageFrameSegment() - first_umb_seg;
 		}
 		else if (machine == MCH_PCJR) {
 			/* we can use UMBs up to where PCjr wants cartridge ROM */
@@ -512,8 +518,6 @@ static Bitu DOS_default_handler(void) {
 
 extern Bit16u DOS_IHSEG;
 
-extern bool enable_dummy_environment_block;
-extern bool enable_dummy_loadfix_padding;
 extern bool enable_dummy_device_mcb;
 extern bool iret_only_for_debug_interrupts;
 
@@ -522,7 +526,7 @@ void DOS_SetupMemory(void) {
 	unsigned int max_conv;
 	unsigned int seg_limit;
 
-	max_conv = mem_readw(BIOS_MEMORY_SIZE) << (10-4);
+	max_conv = (unsigned int)mem_readw(BIOS_MEMORY_SIZE) << (10u - 4u);
 	seg_limit = MEM_TotalPages()*256;
 	if (seg_limit > max_conv) seg_limit = max_conv;
 	UMB_START_SEG = max_conv - 1;
@@ -560,30 +564,17 @@ void DOS_SetupMemory(void) {
 
 	if (enable_dummy_device_mcb) {
 		// Create a dummy device MCB with PSPSeg=0x0008
+        LOG_MSG("Dummy device MCB at segment 0x%x",DOS_MEM_START+mcb_sizes);
 		DOS_MCB mcb_devicedummy((Bit16u)DOS_MEM_START+mcb_sizes);
 		mcb_devicedummy.SetPSPSeg(MCB_DOS);	// Devices
-		mcb_devicedummy.SetSize(1);
+		mcb_devicedummy.SetSize(16);
 		mcb_devicedummy.SetType(0x4d);		// More blocks will follow
-		mcb_sizes+=1+1;
+		mcb_sizes+=1+16;
+
+// We DO need to mark this area as 'SD' but leaving it blank so far
+// confuses MEM.EXE (shows ???????) which suggests other software
+// might have a problem with it as well.
 //		mcb_devicedummy.SetFileName("SD      ");
-	}
-
-	if (enable_dummy_environment_block) {
-		// Create a small empty MCB (result from a growing environment block)
-		DOS_MCB tempmcb((Bit16u)DOS_MEM_START+mcb_sizes);
-		tempmcb.SetPSPSeg(MCB_FREE);
-		tempmcb.SetSize(4);
-		mcb_sizes+=4+1;
-		tempmcb.SetType(0x4d);
-	}
-
-	if (enable_dummy_loadfix_padding) {
-		// Lock the previous empty MCB
-		DOS_MCB tempmcb2((Bit16u)DOS_MEM_START+mcb_sizes);
-		tempmcb2.SetPSPSeg(0x40);	// can be removed by loadfix
-		tempmcb2.SetSize(16);
-		mcb_sizes+=16+1;
-		tempmcb2.SetType(0x4d);
 	}
 
 	DOS_MCB mcb((Bit16u)DOS_MEM_START+mcb_sizes);

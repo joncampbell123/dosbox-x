@@ -26,8 +26,7 @@
 
 #include "reSID/sid.h"
 
-#define SID_FREQ 1022727
-//#define SID_FREQ 985248
+#define SID_FREQ 894886
 
 static struct {
 	SID2* sid;
@@ -38,6 +37,7 @@ static struct {
 } innova;
 
 static void innova_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if (!innova.last_used) {
 		innova.chan->Enable(true);
 	}
@@ -48,6 +48,7 @@ static void innova_write(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static Bitu innova_read(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
 	Bitu sidPort = port-innova.basePort;
 	return innova.sid->read(sidPort);
 }
@@ -61,7 +62,7 @@ static void INNOVA_CallBack(Bitu len) {
 	Bitu bufindex = 0;
 
 	while(delta_t && bufindex != len) {
-		bufindex += innova.sid->clock(delta_t, buffer+bufindex, len-bufindex);
+		bufindex += (Bitu)innova.sid->clock(delta_t, buffer+bufindex, len-bufindex);
 	}
 	innova.chan->AddSamples_m16(len, buffer);
 
@@ -80,8 +81,8 @@ public:
 	INNOVA(Section* configuration):Module_base(configuration) {
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 		if(!section->Get_bool("innova")) return;
-		innova.rate = section->Get_int("samplerate");
-		innova.basePort = section->Get_hex("sidbase");
+		innova.rate = (unsigned int)section->Get_int("samplerate");
+		innova.basePort = (unsigned int)section->Get_hex("sidbase");
 		sampling_method method = SAMPLE_FAST;
 		int m = section->Get_int("quality");
 		switch(m) {
@@ -115,14 +116,7 @@ public:
 static INNOVA* test = NULL;
 
 static void INNOVA_ShutDown(Section* sec){
-    if (test != NULL) {
-        delete test;
-        test = NULL;
-    }
-}
-
-static void INNOVA_OnEnterPC98(Section* sec){
-    /* No such device on PC-98 */
+    (void)sec;//UNUSED
     if (test != NULL) {
         delete test;
         test = NULL;
@@ -130,7 +124,8 @@ static void INNOVA_OnEnterPC98(Section* sec){
 }
 
 void INNOVA_OnReset(Section *sec) {
-	if (test == NULL) {
+    (void)sec;//UNUSED
+	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating Innova emulation");
 		test = new INNOVA(control->GetSection("innova"));
 	}
@@ -141,7 +136,5 @@ void INNOVA_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(INNOVA_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(INNOVA_OnReset));
-
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(INNOVA_OnEnterPC98));
 }
 

@@ -38,6 +38,8 @@
 #include <cctype>
 #include <assert.h>
 
+#include "SDL_syswm.h"
+
 /* helper class for command execution */
 class VirtualBatch : public BatchFile {
 public:
@@ -54,6 +56,7 @@ extern bool			MSG_Write(const char *);
 extern void			LoadMessageFile(const char * fname);
 extern void			GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
 
+#if !defined(C_SDL2)
 static int			cursor;
 static bool			running;
 static int			saved_bpp;
@@ -63,6 +66,7 @@ static bool			mousetoggle;
 static bool			shortcut=false;
 static SDL_Surface*		screenshot;
 static SDL_Surface*		background;
+#endif
 
 #if !defined(C_SDL2)
 /* Prepare screen for UI */
@@ -81,33 +85,34 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
 	Bit32u pixel;
 	switch (render.scale.inMode) {
 	case scalerMode8:
-		pixel = *(x+(Bit8u*)(src+y*render.scale.cachePitch));
-		r += render.pal.rgb[pixel].red >> shift;
-		g += render.pal.rgb[pixel].green >> shift;
-		b += render.pal.rgb[pixel].blue >> shift;
+		pixel = *((unsigned int)x+(Bit8u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+		r += (int)((unsigned int)render.pal.rgb[pixel].red >> (unsigned int)shift);
+		g += (int)((unsigned int)render.pal.rgb[pixel].green >> (unsigned int)shift);
+		b += (int)((unsigned int)render.pal.rgb[pixel].blue >> (unsigned int)shift);
 		break;
 	case scalerMode15:
-		pixel = *(x+(Bit16u*)(src+y*render.scale.cachePitch));
-		r += (pixel >> (7+shift)) & (0xf8 >> shift);
-		g += (pixel >> (2+shift)) & (0xf8 >> shift);
-		b += (pixel << (3-shift)) & (0xf8 >> shift);
+		pixel = *((unsigned int)x+(Bit16u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+		r += (int)((pixel >> (7u+(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
+		g += (int)((pixel >> (2u+(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
+		b += (int)((pixel << (3u-(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
 		break;
 	case scalerMode16:
-		pixel = *(x+(Bit16u*)(src+y*render.scale.cachePitch));
-		r += (pixel >> (8+shift)) & (0xf8 >> shift);
-		g += (pixel >> (3+shift)) & (0xfc >> shift);
-		b += (pixel << (3-shift)) & (0xf8 >> shift);
+		pixel = *((unsigned int)x+(Bit16u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+		r += (int)((pixel >> (8u+(unsigned int)shift)) & (0xf8u >> shift));
+		g += (int)((pixel >> (3u+(unsigned int)shift)) & (0xfcu >> shift));
+		b += (int)((pixel << (3u-(unsigned int)shift)) & (0xf8u >> shift));
 		break;
 	case scalerMode32:
-		pixel = *(x+(Bit32u*)(src+y*render.scale.cachePitch));
-		r += (pixel >> (16+shift)) & (0xff >> shift);
-		g += (pixel >> (8+shift))  & (0xff >> shift);
-		b += (pixel >> shift)      & (0xff >> shift);
+		pixel = *((unsigned int)x+(Bit32u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+		r += (int)((pixel >> (16u+(unsigned int)shift)) & (0xffu >> shift));
+		g += (int)((pixel >> ( 8u+(unsigned int)shift)) & (0xffu >> shift));
+		b += (int)((pixel >>      (unsigned int)shift)  & (0xffu >> shift));
 		break;
 	}
 }
 
 extern bool dos_kernel_disabled;
+extern Bitu currentWindowWidth, currentWindowHeight;
 
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	GFX_EndUpdate(0);
@@ -130,18 +135,29 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 		w *=2; h *=2;
 	}
 
+    if (!fs) {
+        if (w < (int)currentWindowWidth)
+            w = (int)currentWindowWidth;
+        if (h < (int)currentWindowHeight)
+            h = (int)currentWindowHeight;
+    }
+
 	old_unicode = SDL_EnableUNICODE(1);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);
 	screenshot = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
 
 	// create screenshot for fade effect
-	int rs = screenshot->format->Rshift, gs = screenshot->format->Gshift, bs = screenshot->format->Bshift, am = GUI::Color::AlphaMask;
-	for (int y = 0; y < h; y++) {
-		Bit32u *bg = (Bit32u*)(y*screenshot->pitch + (char*)screenshot->pixels);
-		for (int x = 0; x < w; x++) {
+	unsigned int rs = screenshot->format->Rshift, gs = screenshot->format->Gshift, bs = screenshot->format->Bshift, am = GUI::Color::AlphaMask;
+	for (unsigned int y = 0; (int)y < h; y++) {
+		Bit32u *bg = (Bit32u*)(y*(unsigned int)screenshot->pitch + (char*)screenshot->pixels);
+		for (unsigned int x = 0; (int)x < w; x++) {
 			int r = 0, g = 0, b = 0;
-			getPixel(x    *(int)render.src.width/w, y    *(int)render.src.height/h, r, g, b, 0);
-			bg[x] = r << rs | g << gs | b << bs;
+			getPixel((int)(x*(unsigned int)render.src.width/(unsigned int)w),
+                     (int)(y*(unsigned int)render.src.height/(unsigned int)h),
+                     r, g, b, 0);
+			bg[x] = ((unsigned int)r << (unsigned int)rs) |
+                    ((unsigned int)g << (unsigned int)gs) |
+                    ((unsigned int)b << (unsigned int)bs);
 		}
 	}
 
@@ -166,7 +182,10 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 			int r1 = (int)((r * 393 + g * 769 + b * 189) / 1351); // 1351 -- tweak colors 
 			int g1 = (int)((r * 349 + g * 686 + b * 168) / 1503); // 1203 -- for a nice 
 			int b1 = (int)((r * 272 + g * 534 + b * 131) / 2340); // 2140 -- golden hue 
-			bg[x] = r1 << rs | g1 << gs | b1 << bs | am; 
+			bg[x] = ((unsigned int)r1 << (unsigned int)rs) |
+                    ((unsigned int)g1 << (unsigned int)gs) |
+                    ((unsigned int)b1 << (unsigned int)bs) |
+                     (unsigned int)am; 
 #endif
 		}
 	}
@@ -177,7 +196,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	mousetoggle = mouselocked;
 	if (mouselocked) GFX_CaptureMouse();
 
-	SDL_Surface* sdlscreen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE|(fs?SDL_FULLSCREEN:SDL_RESIZABLE));
+	SDL_Surface* sdlscreen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE|(fs?SDL_FULLSCREEN:0));
 	if (sdlscreen == NULL) E_Exit("Could not initialize video mode %ix%ix32 for UI: %s", w, h, SDL_GetError());
 
 	// fade out
@@ -207,12 +226,12 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 /* Restore screen */
 static void UI_Shutdown(GUI::ScreenSDL *screen) {
 	SDL_Surface *sdlscreen = screen->getSurface();
-	render.src.bpp = saved_bpp;
+	render.src.bpp = (Bitu)saved_bpp;
 
 	// fade in
 	// Jonathan C: do it FASTER!
 	SDL_Event event;
-	for (int i = 0x00; i < 0xff; i += 0x30) {
+	for (unsigned int i = 0x00; i < 0xff; i += 0x30) {
 		SDL_SetAlpha(screenshot, SDL_SRCALPHA, i);
 		SDL_BlitSurface(background, NULL, sdlscreen, NULL);
 		SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
@@ -308,6 +327,8 @@ public:
 	virtual bool prepare(std::string &buffer) = 0;
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        (void)arg;//UNUSED
 		std::string line;
 		if (prepare(line)) {
 			prop->SetValue(GUI::String(line));
@@ -562,6 +583,8 @@ public:
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        (void)arg;//UNUSED
 		if (arg == "OK") control->PrintConfig(name->getText());
 		close();
 		if(shortcut) running=false;
@@ -582,39 +605,76 @@ public:
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
 		if (arg == "OK") MSG_Write(name->getText());
 		close();
 		if(shortcut) running=false;
 	}
 };
 
+// override Input field with one that responds to the Enter key as a keyboard-based cue to click "OK"
+class InputWithEnterKey : public GUI::Input {
+public:
+										InputWithEnterKey(Window *parent, int x, int y, int w, int h = 0) : GUI::Input(parent,x,y,w,h) { };
+public:
+	void								set_trigger_target(GUI::ToplevelWindow *_who) { trigger_who = _who; };
+protected:
+	GUI::ToplevelWindow*				trigger_who = NULL;
+public:
+	std::string							trigger_enter = "OK";
+	std::string							trigger_esc = "Cancel";
+public:
+	virtual bool						keyDown(const GUI::Key &key) {
+		if (key.special == GUI::Key::Special::Enter) {
+			if (trigger_who != NULL && !trigger_enter.empty())
+				trigger_who->actionExecuted(this, trigger_enter);
+
+			return true;
+		}
+		else if (key.special == GUI::Key::Special::Escape) {
+			if (trigger_who != NULL && !trigger_esc.empty())
+				trigger_who->actionExecuted(this, trigger_esc);
+
+			return true;
+		}
+		else {
+			return GUI::Input::keyDown(key);
+		}
+	}
+};
+
 class SetCycles : public GUI::ToplevelWindow {
 protected:
-	GUI::Input *name;
+	InputWithEnterKey *name;
 public:
 	SetCycles(GUI::Screen *parent, int x, int y, const char *title) :
 		ToplevelWindow(parent, x, y, 400, 150, title) {
 		new GUI::Label(this, 5, 10, "Enter CPU cycles:");
-		name = new GUI::Input(this, 5, 30, 350);
-	    std::ostringstream str;
+//		name = new GUI::Input(this, 5, 30, 350);
+		name = new InputWithEnterKey(this, 5, 30, 350);
+		name->set_trigger_target(this);
+		std::ostringstream str;
 		str << "fixed " << CPU_CycleMax;
 
 		std::string cycles=str.str();
 		name->setText(cycles.c_str());
 		(new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
 		(new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
+
+		name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
+		this->raise(); /* make sure THIS WINDOW has the keyboard focus */
+
+		name->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
 		if (arg == "OK") {
 			Section* sec = control->GetSection("cpu");
 			if (sec) {
 				std::string tmp("cycles=");
-				const char* well = name->getText();
-				std::string s(well, 20);
-				tmp.append(s);
+				tmp.append((const char*)(name->getText()));
 				sec->HandleInputline(tmp);
-				delete well;
 			}
 		}
 		close();
@@ -640,6 +700,7 @@ public:
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
 		Section_prop * sec = static_cast<Section_prop *>(control->GetSection("vsync"));
 		if (arg == "OK") {
 			if (sec) {
@@ -666,25 +727,26 @@ public:
 			new GUI::Label(this, 5, 10, "Enter default local freesize (MB, min=0, max=1024):");
 			name = new GUI::Input(this, 5, 30, 400);
 			extern unsigned int hdd_defsize;
-			int human_readable = 512 * 32 * hdd_defsize / 1024 / 1024;
+			unsigned int human_readable = 512u * 32u * hdd_defsize / 1024u / 1024u;
 			char buffer[6];
-			sprintf(buffer, "%d", human_readable);
+			sprintf(buffer, "%u", human_readable);
 			name->setText(buffer);
 			(new GUI::Button(this, 120, 70, "Cancel", 70))->addActionHandler(this);
 			(new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
 	}
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
 		if (arg == "OK") {
 			extern unsigned int hdd_defsize;
 			int human_readable = atoi(name->getText());
 			if (human_readable < 0)
-				hdd_defsize = 0;
+				hdd_defsize = 0u;
 			else if (human_readable > 1024)
-				hdd_defsize = 256000;
+				hdd_defsize = 256000u;
 			else
-				hdd_defsize = human_readable * 1024 * 1024 / 512 / 32;
-			LOG_MSG("GUI: Current default freesize for local disk: %dMB", 512 * 32 * hdd_defsize / 1024 / 1024);
+				hdd_defsize = (unsigned int)human_readable * 1024u * 1024u / 512u / 32u;
+			LOG_MSG("GUI: Current default freesize for local disk: %dMB", 512u * 32u * hdd_defsize / 1024u / 1024u);
 		}
 		close();
 		if (shortcut) running = false;
@@ -694,9 +756,9 @@ public:
 class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
 	ConfigurationWindow(GUI::Screen *parent, GUI::Size x, GUI::Size y, GUI::String title) :
-		GUI::ToplevelWindow(parent, x, y, 470, 380, title) {
+		GUI::ToplevelWindow(parent, (int)x, (int)y, 580, 380, title) {
 
-		(new GUI::Button(this, 185, 305, "Close", 80))->addActionHandler(this);
+		(new GUI::Button(this, 240, 305, "Close", 80))->addActionHandler(this);
 
 		GUI::Menubar *bar = new GUI::Menubar(this, 0, 0, getWidth());
 		bar->addMenu("Configuration");
@@ -738,7 +800,7 @@ public:
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
 		GUI::String sname = arg;
-		sname.at(0) = std::tolower(sname.at(0));
+		sname.at(0) = (unsigned int)std::tolower((int)sname.at(0));
 		Section *sec;
 		if (arg == "Close" || arg == "Cancel" || arg == "Close") {
 			running = false;
@@ -809,7 +871,6 @@ static void UI_Execute(GUI::ScreenSDL *screen) {
 	}
 }
 
-#ifdef WIN32
 static void UI_Select(GUI::ScreenSDL *screen, int select) {
 	SDL_Surface *sdlscreen = NULL;
 	Section_line *section2 = NULL;
@@ -920,7 +981,20 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
 
 void GUI_Shortcut(int select) {
 	if(running) return;
+
+    bool GFX_GetPreventFullscreen(void);
+
+    /* Sorry, the UI screws up 3Dfx OpenGL emulation.
+     * Remove this block when fixed. */
+    if (GFX_GetPreventFullscreen()) {
+        LOG_MSG("GUI is not available while 3Dfx OpenGL emulation is running");
+        return;
+    }
+
+#ifdef WIN32
 	if(menu.maxwindow) ShowWindow(GetHWND(), SW_RESTORE);
+#endif
+
 	shortcut=true;
 	GUI::ScreenSDL *screen = UI_Startup(NULL);
 	UI_Select(screen,select);
@@ -928,10 +1002,19 @@ void GUI_Shortcut(int select) {
 	shortcut=false;
 	delete screen;
 }
-#endif
 
 void GUI_Run(bool pressed) {
 	if (pressed || running) return;
+
+    bool GFX_GetPreventFullscreen(void);
+
+    /* Sorry, the UI screws up 3Dfx OpenGL emulation.
+     * Remove this block when fixed. */
+    if (GFX_GetPreventFullscreen()) {
+        LOG_MSG("GUI is not available while 3Dfx OpenGL emulation is running");
+        return;
+    }
+
 	GUI::ScreenSDL *screen = UI_Startup(NULL);
 	UI_Execute(screen);
 	UI_Shutdown(screen);

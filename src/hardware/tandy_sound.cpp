@@ -87,6 +87,7 @@ static struct {
 } tandy;
 
 void SN76496Write(struct SN76496 *R,Bitu port,Bitu data) {
+    (void)port;//UNUSED
 	/* update the output buffer before changing the registers */
 
 	if (data & 0x80)
@@ -101,7 +102,7 @@ void SN76496Write(struct SN76496 *R,Bitu port,Bitu data) {
 			case 0:	/* tone 0 : frequency */
 			case 2:	/* tone 1 : frequency */
 			case 4:	/* tone 2 : frequency */
-				R->Period[c] = R->UpdateStep * R->Register[r];
+				R->Period[c] = (int)R->UpdateStep * R->Register[r];
 				if (R->Period[c] == 0) R->Period[c] = 0x3fe;
 				if (r == 4)
 				{
@@ -122,7 +123,7 @@ void SN76496Write(struct SN76496 *R,Bitu port,Bitu data) {
 					R->NoiseFB = (n & 4) ? FB_WNOISE : FB_PNOISE;
 					n &= 3;
 					/* N/512,N/1024,N/2048,Tone #3 output */
-					R->Period[3] = (n == 3) ? 2 * R->Period[2] : (R->UpdateStep << (5+n));
+					R->Period[3] = (int)((n == 3) ? 2 * R->Period[2] : (int)(R->UpdateStep << (5+n)));
 
 					/* reset noise shifter */
 //					R->RNG = NG_PRESET;
@@ -142,7 +143,7 @@ void SN76496Write(struct SN76496 *R,Bitu port,Bitu data) {
 			case 2:	/* tone 1 : frequency */
 			case 4:	/* tone 2 : frequency */
 				R->Register[r] = (R->Register[r] & 0x0f) | ((data & 0x3f) << 4);
-				R->Period[c] = R->UpdateStep * R->Register[r];
+				R->Period[c] = (int)R->UpdateStep * R->Register[r];
 				if (R->Period[c] == 0) R->Period[c] = 0x3fe;
 				if (r == 4)
 				{
@@ -166,7 +167,7 @@ void SN76496Update(struct SN76496 *R, Bit16s *buffer, Bitu length) {
 			/* note that I do count += length, NOT count = length + 1. You might think */
 			/* it's the same since the volume is 0, but doing the latter could cause */
 			/* interferencies when the program is rapidly modulating the volume. */
-			if (R->Count[i] <= (int)length*STEP) R->Count[i] += length*STEP;
+			if (R->Count[i] <= (int)length*STEP) R->Count[i] += (int)length*STEP;
 		}
 	}
 
@@ -222,7 +223,7 @@ void SN76496Update(struct SN76496 *R, Bit16s *buffer, Bitu length) {
 			R->Count[3] -= nextevent;
 			if (R->Count[3] <= 0)
 			{
-				if (R->RNG & 1) R->RNG ^= R->NoiseFB;
+				if (R->RNG & 1) R->RNG ^= (unsigned int)R->NoiseFB;
 				R->RNG >>= 1;
 				R->Output[3] = R->RNG & 1;
 				R->Count[3] += R->Period[3];
@@ -233,8 +234,9 @@ void SN76496Update(struct SN76496 *R, Bit16s *buffer, Bitu length) {
 			left -= nextevent;
 		} while (left > 0);
 
-		out = vol[0] * R->Volume[0] + vol[1] * R->Volume[1] +
-				vol[2] * R->Volume[2] + vol[3] * R->Volume[3];
+        out = (unsigned int)
+              (vol[0] * R->Volume[0] + vol[1] * R->Volume[1] +
+               vol[2] * R->Volume[2] + vol[3] * R->Volume[3]);
 
 		if (out > MAX_OUTPUT * STEP) out = MAX_OUTPUT * STEP;
 
@@ -245,6 +247,7 @@ void SN76496Update(struct SN76496 *R, Bit16s *buffer, Bitu length) {
 }
 
 static void TandySN76496Write(Bitu port,Bitu data,Bitu iolen) {
+    (void)iolen;//UNUSED
 	struct SN76496 *R = &sn;
  
 	tandy.last_write=PIC_Ticks;
@@ -274,6 +277,7 @@ static void TandySN76496Update(Bitu length) {
 }
 
 static void TandyDACWrite(Bitu port,Bitu data,Bitu iolen) {
+    (void)iolen;//UNUSED
 	LOG_MSG("Write tandy dac %X val %X",(int)port,(int)data);
 }
 
@@ -326,7 +330,7 @@ void SN76496Reset(struct SN76496 *R, Bitu Clock, Bitu sample_rate) {
 	for (i = 0;i < 4;i++)
 	{
 		R->Output[i] = 0;
-		R->Period[i] = R->Count[i] = R->UpdateStep;
+		R->Period[i] = R->Count[i] = (int)R->UpdateStep;
 	}
 	R->RNG = NG_PRESET;
 	R->Output[3] = R->RNG & 1;
@@ -392,11 +396,11 @@ void TandyDACModeChanged(void) {
 static Bitu TandyDACRead(Bitu port,Bitu /*iolen*/) {
 	switch (port) {
 	case 0xc4:
-		return (tandy.dac.mode&0x77) | (tandy.dac.irq_activated ? 0x08 : 0x00);
+		return (tandy.dac.mode&0x77u) | (tandy.dac.irq_activated ? 0x08u : 0x00u);
 	case 0xc6:
-		return (Bit8u)(tandy.dac.frequency&0xff);
+		return (Bit8u)(tandy.dac.frequency&0xffu);
 	case 0xc7:
-		return (Bit8u)(((tandy.dac.frequency>>8)&0xf) | (tandy.dac.amplitude<<5));
+		return (Bit8u)((((Bitu)tandy.dac.frequency>>8u)&0xfu) | (Bitu)(tandy.dac.amplitude<<5u));
 	}
 	LOG_MSG("Tandy DAC: Read from unknown %X",(int)port);
 	return 0xff;
@@ -470,7 +474,7 @@ public:
 		}
 
 
-		Bit32u sample_rate = section->Get_int("tandyrate");
+		Bit32u sample_rate = (unsigned int)section->Get_int("tandyrate");
 		tandy.chan=MixerChan.Install(&TandySN76496Update,sample_rate,"TANDY");
 
 		WriteHandler[0].Install(0xc0,TandySN76496Write,IO_MB,2);
@@ -520,15 +524,9 @@ void TANDYSOUND_ShutDown(Section* /*sec*/) {
     }
 }
 
-void TANDYSOUND_OnEnterPC98(Section* /*sec*/) {
-    if (test) {
-        delete test;
-        test = NULL;
-    }
-}
-
 void TANDYSOUND_OnReset(Section* sec) {
-	if (test == NULL) {
+    (void)sec;//UNUSED
+	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating Tandy speaker emulation");
 		test = new TANDYSOUND(control->GetSection("speaker"));
 	}
@@ -539,7 +537,5 @@ void TANDYSOUND_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(TANDYSOUND_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(TANDYSOUND_OnReset));
-
-    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(TANDYSOUND_OnEnterPC98));
 }
 

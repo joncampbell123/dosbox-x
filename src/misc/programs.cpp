@@ -202,7 +202,7 @@ void Program::WriteOut(const char * format,...) {
 		if (buf[i] == 0xA && last_written_character != 0xD) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 		}
-		last_written_character = out = buf[i];
+		last_written_character = (char)(out = (Bit8u)buf[i]);
 		DOS_WriteFile(STDOUT,&out,&s);
 	}
 	
@@ -217,7 +217,7 @@ void Program::WriteOut_NoParsing(const char * format) {
 		if (buf[i] == 0xA && last_written_character != 0xD) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 		}
-		last_written_character = out = buf[i];
+		last_written_character = (char)(out = (Bit8u)buf[i]);
 		DOS_WriteFile(STDOUT,&out,&s);
 	}
 
@@ -232,11 +232,12 @@ static bool LocateEnvironmentBlock(PhysPt &env_base,PhysPt &env_fence,Bitu env_s
 
 	DOS_MCB env_mcb(env_seg-1); /* read the environment block's MCB to determine how large it is */
 	env_base = PhysMake(env_seg,0);
-	env_fence = env_base + (env_mcb.GetSize() << 4);
+	env_fence = env_base + (PhysPt)(env_mcb.GetSize() << 4u);
 	return true;
 }
 
 int EnvPhys_StrCmp(PhysPt es,PhysPt ef,const char *ls) {
+    (void)ef;//UNUSED
 	unsigned char a,b;
 
 	while (1) {
@@ -403,7 +404,7 @@ void Program::DebugDumpEnv() {
 
 		while (env_scan < env_fence) {
 			if ((c=mem_readb(env_scan++)) == 0) break;
-			tmp += c;
+			tmp += (char)c;
 		}
 
 		LOG_MSG("...%s",tmp.c_str());
@@ -482,11 +483,11 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 		}
 
 		assert(env_scan < env_fence);
-		for (const char *s=bigentry.c_str();*s != 0;) mem_writeb(env_scan++,*s++);
+		for (const char *s=bigentry.c_str();*s != 0;) mem_writeb(env_scan++,(Bit8u)(*s++));
 		mem_writeb(env_scan++,'=');
 
 		assert(env_scan < env_fence);
-		for (const char *s=new_string;*s != 0;) mem_writeb(env_scan++,*s++);
+		for (const char *s=new_string;*s != 0;) mem_writeb(env_scan++,(Bit8u)(*s++));
 		mem_writeb(env_scan++,0);
 		mem_writeb(env_scan++,0);
 
@@ -499,13 +500,21 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 bool MSG_Write(const char *);
 void restart_program(std::vector<std::string> & parameters);
 
+/*! \brief          CONFIG.COM utility to control configuration and files
+ *
+ *  \description    Utility to write configuration, set configuration,
+ *                  and other configuration related functions.
+ */
 class CONFIG : public Program {
 public:
+    /*! \brief      Program entry point, when the command is run
+     */
 	void Run(void);
 private:
 	void restart(const char* useconfig);
 	
 	void writeconf(std::string name, bool configdir,bool everything) {
+        (void)configdir;//UNUSED
 #if 0 /* I'd rather have an option stating the user wants to write to user homedir */
 		if (configdir) {
 			// write file to the default config directory
@@ -583,7 +592,7 @@ void CONFIG::Run(void) {
 			return;
 		
 		case P_LISTCONF: {
-			Bitu size = control->configfiles.size();
+			Bitu size = (Bitu)control->configfiles.size();
 			std::string config_path;
 			Cross::GetPlatformConfigDir(config_path);
 			WriteOut(MSG_Get("PROGRAM_CONFIG_CONFDIR"), VERSION,config_path.c_str());
@@ -713,7 +722,7 @@ void CONFIG::Run(void) {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_HLP_SECTHLP"),pvars[0].c_str());
 				while(true) {
 					// list the properties
-					Property* p = psec->Get_prop(i++);
+					Property* p = psec->Get_prop((int)(i++));
 					if (p==NULL) break;
 					WriteOut("%s\n", p->propname.c_str());
 				}
@@ -721,7 +730,7 @@ void CONFIG::Run(void) {
 				// find the property by it's name
 				size_t i = 0;
 				while (true) {
-					Property *p = psec->Get_prop(i++);
+					Property *p = psec->Get_prop((int)(i++));
 					if (p==NULL) break;
 					if (!strcasecmp(p->propname.c_str(),pvars[1].c_str())) {
 						// found it; make the list of possible values

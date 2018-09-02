@@ -69,6 +69,7 @@ Any comments/updates/bug reports to:
 #include <stdarg.h>
 #include <stdlib.h>
 #include "mem.h"
+#include "paging.h"
 
 typedef Bit8u  UINT8;
 typedef Bit16u UINT16;
@@ -461,7 +462,12 @@ static PhysPt getbyte_mac;
 static PhysPt startPtr;
 
 static UINT8 getbyte(void) {
-	return mem_readb(getbyte_mac++);
+    Bit8u c;
+
+	if (!mem_readb_checked(getbyte_mac++,&c))
+        return c;
+
+    return 0xFF;
 }
 
 /*
@@ -611,7 +617,7 @@ static void outhex(char subtype, int extend, int optional, int defsize, int sign
     return;
   }
   if ((n == 4) && !sign) {
-    name = addr_to_hex(delta, 0);
+    name = addr_to_hex((UINT32)delta, 0);
     uprintf("%s", name);
     return;
   }
@@ -823,7 +829,7 @@ static void floating_point(int e1)
 /*------------------------------------------------------------------------*/
 /* Main table driver                                                      */
 
-#define INSTRUCTION_SIZE (int)getbyte_mac - (int)startPtr
+#define INSTRUCTION_SIZE ( (int)getbyte_mac - (int)startPtr )
 
 static void percent(char type, char subtype)
 {
@@ -867,21 +873,21 @@ static void percent(char type, char subtype)
        switch (bytes(subtype)) {              /* sizeof offset value */
        case 1:
             vofs = (INT8)getbyte();
-			name = addr_to_hex(vofs+instruction_offset+INSTRUCTION_SIZE,0);
+			name = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,0);
             break;
        case 2:
-            vofs = getbyte();
-            vofs += getbyte()<<8;
-            vofs = (INT16)vofs;
-			name = addr_to_hex(vofs+instruction_offset+INSTRUCTION_SIZE,0);
+            vofs  = (INT32)((UINT32)getbyte());
+            vofs |= (INT32)((UINT32)getbyte() << 8);
+            vofs  = (INT16)vofs;
+			name  = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,0);
             break;
 			/* i386 */
        case 4:
-            vofs = (UINT32)getbyte();           /* yuk! */
-            vofs |= (UINT32)getbyte() << 8;
-            vofs |= (UINT32)getbyte() << 16;
-            vofs |= (UINT32)getbyte() << 24;
-			name = addr_to_hex(vofs+instruction_offset+INSTRUCTION_SIZE,(addrsize == 32)?0:1);
+            vofs  = (INT32)((UINT32)getbyte());           /* yuk! */
+            vofs |= (INT32)((UINT32)getbyte() << 8);
+            vofs |= (INT32)((UINT32)getbyte() << 16);
+            vofs |= (INT32)((UINT32)getbyte() << 24);
+			name = addr_to_hex((UINT32)vofs+(UINT32)instruction_offset+(UINT32)INSTRUCTION_SIZE,(addrsize == 32)?0:1);
             break;
        }
 	   if (vofs<0)
@@ -1115,7 +1121,7 @@ Bitu DasmI386(char* buffer, PhysPt pc, Bitu cur_ip, bool bit32)
 int DasmLastOperandSize()
 {
 	return opsize;
-};
+}
 
 
 #endif

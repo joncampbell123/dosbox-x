@@ -1,8 +1,8 @@
 
 /* pngwio.c - functions for data output
  *
- * Last changed in libpng 1.6.8 [December 19, 2013]
- * Copyright (c) 1998-2013 Glenn Randers-Pehrson
+ * Last changed in libpng 1.6.24 [August 4, 2016]
+ * Copyright (c) 1998-2002,2004,2006-2014,2016 Glenn Randers-Pehrson
  * (Version 0.96 Copyright (c) 1996, 1997 Andreas Dilger)
  * (Version 0.88 Copyright (c) 1995, 1996 Guy Eric Schalnat, Group 42, Inc.)
  *
@@ -26,7 +26,7 @@
  * writes to a file pointer.  Note that this routine sometimes gets called
  * with very small lengths, so you should implement some kind of simple
  * buffering if you are using unbuffered writes.  This should never be asked
- * to write more than 64K on a 16 bit machine.
+ * to write more than 64K on a 16-bit machine.
  */
 
 void /* PRIVATE */
@@ -35,7 +35,7 @@ png_write_data(png_structrp png_ptr, png_const_bytep data, png_size_t length)
    /* NOTE: write_data_fn must not change the buffer! */
    if (png_ptr->write_data_fn != NULL )
       (*(png_ptr->write_data_fn))(png_ptr, png_constcast(png_bytep,data),
-         length);
+          length);
 
    else
       png_error(png_ptr, "Call to NULL write function");
@@ -151,8 +151,9 @@ png_set_write_fn(png_structrp png_ptr, png_voidp io_ptr,
 #  endif
 #else
    PNG_UNUSED(output_flush_fn)
-#endif /* PNG_WRITE_FLUSH_SUPPORTED */
+#endif /* WRITE_FLUSH */
 
+#ifdef PNG_READ_SUPPORTED
    /* It is an error to read while writing a png file */
    if (png_ptr->read_data_fn != NULL)
    {
@@ -162,5 +163,6 @@ png_set_write_fn(png_structrp png_ptr, png_voidp io_ptr,
           "Can't set both read_data_fn and write_data_fn in the"
           " same structure");
    }
+#endif
 }
-#endif /* PNG_WRITE_SUPPORTED */
+#endif /* WRITE */

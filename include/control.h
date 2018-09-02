@@ -21,8 +21,8 @@
 #define DOSBOX_CONTROL_H
 
 #ifdef _MSC_VER
-#pragma warning ( disable : 4786 )
-#pragma warning ( disable : 4290 )
+//#pragma warning ( disable : 4786 )
+//#pragma warning ( disable : 4290 )
 #endif
 
 #ifndef DOSBOX_PROGRAMS_H
@@ -59,10 +59,11 @@ private:
 	typedef std::list<Section*>::reverse_iterator reverse_it;
 	typedef std::list<Section*>::const_iterator const_it;
 	typedef std::list<Section*>::const_reverse_iterator const_reverse_it;
-	void (* _start_function)(void);
+//	void (* _start_function)(void);
 	bool secure_mode; //Sandbox mode
 public:
 	bool initialised;
+    std::vector<std::string> auto_bat_additional;
 	std::vector<std::string> startup_params;
 	std::vector<std::string> configfiles;
 	Config(CommandLine * cmd):cmdline(cmd),secure_mode(false) {
@@ -90,10 +91,13 @@ public:
 		opt_erasemapper = false;
 		opt_resetmapper = false;
 		opt_startmapper = false;
+        opt_fastbioslogo = false;
 		opt_date_host_forced = false;
 		opt_disable_numlock_check = false;
 		opt_disable_dpi_awareness = false;
-	}
+        opt_time_limit = -1;
+        opt_log_con = false;
+    }
 	~Config();
 
 	Section_line * AddSection_line(char const * const _name,void (*_initfunction)(Section*));
@@ -109,12 +113,15 @@ public:
 	bool SecureMode() const { return secure_mode; }
 	void SwitchToSecureMode() { secure_mode = true; }//can't be undone
 public:
+    bool opt_log_con;
+    double opt_time_limit;
 	std::string opt_editconf,opt_opensaves,opt_opencaptures,opt_lang;
 	std::vector<std::string> config_file_list;
 	std::vector<std::string> opt_c;
 	bool opt_disable_dpi_awareness;
 	bool opt_disable_numlock_check;
 	bool opt_date_host_forced;
+    bool opt_fastbioslogo;
 	bool opt_break_start;
 	bool opt_erasemapper;
 	bool opt_resetmapper;

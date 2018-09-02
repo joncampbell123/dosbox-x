@@ -21,8 +21,8 @@
 #define DOSBOX_SETUP_H
 
 #ifdef _MSC_VER
-#pragma warning ( disable : 4786 )
-#pragma warning ( disable : 4290 )
+//#pragma warning ( disable : 4786 )
+//#pragma warning ( disable : 4290 )
 #endif
 
 
@@ -89,27 +89,27 @@ public:
 	Value(std::string const& in,Etype _t) :_hex(0),_bool(false),_int(0),_string(0),_double(0),type(V_NONE) {SetValue(in,_t);}
 
 	/* Assigment operators */
-	Value& operator= (Hex in) throw(WrongType)                { return copy(Value(in));}
-	Value& operator= (int in) throw(WrongType)                { return copy(Value(in));}
-	Value& operator= (bool in) throw(WrongType)               { return copy(Value(in));}
-	Value& operator= (double in) throw(WrongType)             { return copy(Value(in));}
-	Value& operator= (std::string const& in) throw(WrongType) { return copy(Value(in));}
-	Value& operator= (char const * const in) throw(WrongType) { return copy(Value(in));}
-	Value& operator= (Value const& in) throw(WrongType)       { return copy(Value(in));}
+	Value& operator= (Hex in)                { return copy(Value(in));}
+	Value& operator= (int in)                { return copy(Value(in));}
+	Value& operator= (bool in)               { return copy(Value(in));}
+	Value& operator= (double in)             { return copy(Value(in));}
+	Value& operator= (std::string const& in) { return copy(Value(in));}
+	Value& operator= (char const * const in) { return copy(Value(in));}
+	Value& operator= (Value const& in)       { return copy(Value(in));}
 
 	bool operator== (Value const & other);
-	operator bool () const throw(WrongType);
-	operator Hex () const throw(WrongType);
-	operator int () const throw(WrongType);
-	operator double () const throw(WrongType);
-	operator char const* () const throw(WrongType);
-	bool SetValue(std::string const& in,Etype _type = V_CURRENT) throw(WrongType);
+	operator bool () const;
+	operator Hex () const;
+	operator int () const;
+	operator double () const;
+	operator char const* () const;
+	bool SetValue(std::string const& in,Etype _type = V_CURRENT);
 	std::string ToString() const;
 
 private:
-	void destroy() throw();
-	Value& copy(Value const& in) throw(WrongType);
-	void plaincopy(Value const& in) throw();
+	void destroy();
+	Value& copy(Value const& in);
+	void plaincopy(Value const& in);
 	bool set_hex(std::string const& in);
 	bool set_int(std::string const&in);
 	bool set_bool(std::string const& in);
@@ -181,9 +181,23 @@ public:
 	Prop_double(std::string const & _propname, Changeable::Value when, double _value)
 		:Property(_propname,when){
 		default_value = value = _value;
+		min = max = -1.0;
 	}
+	Prop_double(std::string const & propname, Changeable::Value when, double _value, double _min, double _max)
+		:Property(propname, when)
+	{
+		default_value = value = _value;
+		min = _min;
+		max = _max;
+	}
+	double getMin() const { return min; }
+	double getMax() const { return max; }
+	void SetMinMax(Value const& min, Value const& max) { this->min = min; this->max = max; }
 	bool SetValue(std::string const& input);
 	virtual ~Prop_double(){ }
+	virtual bool CheckValue(Value const& in, bool warn);
+private:
+	Value min, max;
 };
 
 class Prop_bool:public Property {
@@ -298,8 +312,8 @@ enum vm_event {
 
 	VM_EVENT_DOS_EXIT_REBOOT_KERNEL=15,	// DOS kernel has just finished exiting (hard reset)
     VM_EVENT_DOS_SURPRISE_REBOOT,       // DOS kernel asked to boot, when apparently having never been shut down (jmp to FFFF:0000)
-    VM_EVENT_ENTER_PC98_MODE,           // Switching into PC-98 emulation mode, phase 1 (unregistering devices) (NOTE: This is TEMPORARY until full implementation is complete)
-    VM_EVENT_ENTER_PC98_MODE_END,       // Switching into PC-98 emulation mode, phase 2 (registering devices) (NOTE: This is TEMPORARY until full implementation is complete)
+    VM_EVENT_SAVE_STATE,            // Save state in progress. Callback handler should refer to global object to write it's state to.
+    VM_EVENT_LOAD_STATE,            // Loading a save state in progress. Callback handler should refer to global object to read state from.
 
 	VM_EVENT_MAX
 };

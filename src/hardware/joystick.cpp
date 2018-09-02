@@ -50,8 +50,12 @@ static bool swap34 = false;
 bool button_wrapping_enabled = true;
 
 extern bool autofire; //sdl_mapper.cpp
+extern int joy1axes[]; //sdl_mapper.cpp
+extern int joy2axes[]; //sdl_mapper.cpp
 
 static Bitu read_p201(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
+    (void)port;//UNUSED
 	/* Reset Joystick to 0 after TIMEOUT ms */
 	if(write_active && ((PIC_Ticks - last_write) > TIMEOUT)) {
 		write_active = false;
@@ -88,6 +92,8 @@ static Bitu read_p201(Bitu port,Bitu iolen) {
 }
 
 static Bitu read_p201_timed(Bitu port,Bitu iolen) {
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	Bit8u ret=0xff;
 	double currentTick = PIC_FullIndex();
 	if( stick[0].enabled ){
@@ -111,6 +117,9 @@ static Bitu read_p201_timed(Bitu port,Bitu iolen) {
 }
 
 static void write_p201(Bitu port,Bitu val,Bitu iolen) {
+    (void)val;//UNUSED
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	/* Store writetime index */
 	write_active = true;
 	last_write = PIC_Ticks;
@@ -125,6 +134,9 @@ static void write_p201(Bitu port,Bitu val,Bitu iolen) {
 
 }
 static void write_p201_timed(Bitu port,Bitu val,Bitu iolen) {
+    (void)val;//UNUSED
+    (void)port;//UNUSED
+    (void)iolen;//UNUSED
 	// Store writetime index
 	// Axes take time = 24.2 microseconds + ( 0.011 microsecons/ohm * resistance )
 	// to reset to 0
@@ -207,6 +219,7 @@ public:
 static JOYSTICK* test = NULL;
 
 void JOYSTICK_Destroy(Section* sec) {
+    (void)sec;//UNUSED
     if (test != NULL) {
         delete test;
         test = NULL;
@@ -214,16 +227,10 @@ void JOYSTICK_Destroy(Section* sec) {
 }
 
 void JOYSTICK_OnPowerOn(Section* sec) {
+    (void)sec;//UNUSED
     if (test == NULL) {
         LOG(LOG_MISC,LOG_DEBUG)("Allocating joystick emulation");
         test = new JOYSTICK(control->GetSection("joystick"));
-    }
-}
-
-void JOYSTICK_OnEnterPC98(Section* sec) {
-    if (test != NULL) {
-        delete test;
-        test = NULL;
     }
 }
 
@@ -254,11 +261,31 @@ void JOYSTICK_Init() {
 		stick[1].enabled = false;
 		stick[0].xtick = stick[0].ytick = stick[1].xtick =
 		                 stick[1].ytick = PIC_FullIndex();
+		
+		// retrieves axes mapping
+		auto joysticks = 2;
+		auto axes = 8;
+		for (auto i = 0; i < joysticks; i++)
+		{
+			for (auto j = 0; j < axes; j++)
+			{
+				auto propname = "joy" + std::to_string(i + 1) + "axis" + std::to_string(j);
+				auto axis = section->Get_int(propname);
+				if (i == 0)
+				{
+					joy1axes[j] = axis;
+				}
+				else
+				{
+					joy2axes[j] = axis;
+				}
+			}
+		}
 	}
 
-	AddExitFunction(AddExitFunctionFuncPair(JOYSTICK_Destroy),true); 
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(JOYSTICK_OnPowerOn));
+	AddExitFunction(AddExitFunctionFuncPair(JOYSTICK_Destroy),true);
 
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(JOYSTICK_OnEnterPC98));
+    if (!IS_PC98_ARCH)
+        AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(JOYSTICK_OnPowerOn));
 }
 

@@ -44,14 +44,21 @@
 # define HAS_LONG_DOUBLE		1
 #endif
 
-#define UPDATED_STR			"April 9, 2015"
-
 GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
+
+typedef Bits cpu_cycles_count_t;
+typedef Bitu cpu_cycles_countu_t;
 
 #include "clockdomain.h"
 
 class Config;
 class Section;
+
+#if defined(__GNUC__)
+# define DEPRECATED __attribute__((deprecated))
+#else
+# define DEPRECATED
+#endif
 
 enum MachineType {
 	MCH_HERC,
@@ -61,7 +68,12 @@ enum MachineType {
 	MCH_EGA,
 	MCH_VGA,
 	MCH_AMSTRAD,
-	MCH_PC98
+	MCH_PC98,
+
+    MCH_FM_TOWNS,                    // STUB!!
+
+    MCH_MCGA,                        // IBM PS/2 model 30 Multi-Color Graphics Adapter
+    MCH_MDA
 };
 
 enum SVGACards {
@@ -79,8 +91,8 @@ extern SVGACards			svgaCard;
 extern MachineType			machine;
 extern bool				SDLNetInited;
 extern bool				mono_cga;
-extern bool				mainline_compatible_mapping;
-extern bool				mainline_compatible_bios_mapping;
+extern bool				DEPRECATED mainline_compatible_mapping;
+extern bool				DEPRECATED mainline_compatible_bios_mapping;
 
 #ifdef __SSE__
 extern bool				sse1_available;
@@ -98,14 +110,19 @@ void					DOSBOX_Init(void);
 /* machine tests for use with if() statements */
 #define IS_TANDY_ARCH			((machine==MCH_TANDY) || (machine==MCH_PCJR))
 #define IS_EGAVGA_ARCH			((machine==MCH_EGA) || (machine==MCH_VGA))
-#define IS_VGA_ARCH			(machine==MCH_VGA)
-#define IS_PC98_ARCH			(machine==MCH_PC98)
+#define IS_EGA_ARCH             (machine==MCH_EGA)
+#define IS_VGA_ARCH             (machine==MCH_VGA)
+#define IS_PC98_ARCH            (machine==MCH_PC98)
+
+#define IS_FM_TOWNS             (machine==MCH_FM_TOWNS)
 
 /* machine tests for use with switch() statements */
 #define TANDY_ARCH_CASE			MCH_TANDY: case MCH_PCJR
 #define EGAVGA_ARCH_CASE		MCH_EGA: case MCH_VGA
 #define VGA_ARCH_CASE			MCH_VGA
 #define PC98_ARCH_CASE			MCH_PC98
+
+#define FM_TOWNS_ARCH_CASE      MCH_FM_TOWNS
 
 #ifndef DOSBOX_LOGGING_H
 #include "logging.h"
@@ -114,13 +131,10 @@ void					DOSBOX_Init(void);
 extern ClockDomain			clockdom_PCI_BCLK;
 extern ClockDomain			clockdom_ISA_OSC;
 extern ClockDomain			clockdom_ISA_BCLK;
-extern ClockDomain			clockdom_8254_PIT;
-extern ClockDomain			clockdom_8250_UART;
 
 signed long long time_to_clockdom(ClockDomain &src,double t);
 unsigned long long update_clockdom_from_now(ClockDomain &dst);
 unsigned long long update_ISA_OSC_clock();
-unsigned long long update_8254_PIT_clock();
 unsigned long long update_ISA_BCLK_clock();
 unsigned long long update_PCI_BCLK_clock();
 
@@ -142,5 +156,8 @@ int utf16le_decode(const char **ptr,const char *fence);
 
 typedef char utf8_t;
 typedef uint16_t utf16_t;
+
+/* for DOS filename handling we want a toupper that uses the MS-DOS code page within not the locale of the host */
+int ascii_toupper(int c);
 
 #endif /* DOSBOX_DOSBOX_H */

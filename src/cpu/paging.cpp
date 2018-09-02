@@ -135,7 +135,7 @@ Bitu DEBUG_EnableDebugger(void);
 #define ACCESS_UR  2
 #define ACCESS_URW 3
 #define ACCESS_TABLEFAULT 4
-const char* const mtr[] = {"KR ","KRW","UR ","URW","PFL"};
+//const char* const mtr[] = {"KR ","KRW","UR ","URW","PFL"};
 
 // bit0 entry write
 // bit1 entry access
@@ -173,7 +173,7 @@ static const Bit8u translate_array[] = {
 #define ACMAP_RE 1
 #define ACMAP_EE 2
 
-static const char* const lnm[] = {"RW ","RE ","EE "}; // debug stuff
+//static const char* const lnm[] = {"RW ","RE ","EE "}; // debug stuff
 
 // bit0-1 ACCESS_ type
 // bit2   1=user mode
@@ -225,10 +225,10 @@ static const Bit8u fault_table[] = {
 
 // helper functions for calculating table entry addresses
 static inline PhysPt GetPageDirectoryEntryAddr(PhysPt lin_addr) {
-	return paging.base.addr | ((lin_addr >> 22) << 2);
+	return paging.base.addr | ((lin_addr >> 22u) << 2u);
 }
 static inline PhysPt GetPageTableEntryAddr(PhysPt lin_addr, X86PageEntry& dir_entry) {
-	return (dir_entry.block.base<<12) | ((lin_addr >> 10) & 0xffc);
+	return ((PhysPt)dir_entry.block.base << (PhysPt)12U) | ((lin_addr >> 10U) & 0xffcu);
 }
 /*
 void PrintPageInfo(const char* string, PhysPt lin_addr, bool writing, bool prepare_only) {
@@ -267,9 +267,8 @@ void PrintPageInfo(const char* string, PhysPt lin_addr, bool writing, bool prepa
 }
 */
 
-bool dosbox_enable_nonrecursive_page_fault = true;	/* user option */
+bool use_dynamic_core_with_paging = false; /* allow dynamic core even with paging (AT YOUR OWN RISK!!!!) */
 bool dosbox_allow_nonrecursive_page_fault = false;	/* when set, do nonrecursive mode (when executing instruction) */
-Bitu dosbox_check_nonrecursive_pf_cs,dosbox_check_nonrecursive_pf_eip;
 
 // PAGING_NewPageFault
 // lin_addr, page_addr: the linear and page address the fault happened at
@@ -282,50 +281,7 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 	if (prepare_only) {
 		cpu.exception.which = EXCEPTION_PF;
 		cpu.exception.error = faultcode;
-	} else if (dosbox_enable_nonrecursive_page_fault && dosbox_allow_nonrecursive_page_fault) {
-		/* FIXME: Apparently, if Window 98/ME executes a floating point instruction that triggers a page
-		 *        fault and DOSBox is running the dynamic core, this code will throw the exception and
-		 *        the Normal_Loop() function farther up the call chain will not receive the exception,
-		 *        but the main function in sdlmain.cpp will, and DOSBox will crash and exit.
-		 *        If I disable the nonrecursive mode (let it go to the code below that uses RunMachine),
-		 *        then it causes a segfault in DOSBox.
-		 *
-		 *        There seem to be two known methods to reliably trigger this bug:
-		 *        - Microsoft Windows 98: Click on the "satellite dish" in the quicklaunch area next to
-		 *          the start button to bring up "channels". Note that DOSBox fails to catch the exception,
-		 *          and the stack trace points the blame at FST_FPU_32 who triggered the page fault.
-		 *
-		 *        - Microsoft Windows ME: During the "system configuration" stage of the setup process,
-		 *          Windows ME apparently executes the 64-bit wide version of FST which triggers
-		 *          FPU_FST_64 and the same problem.
-		 *
-		 *        Fixing this bug would allow the channel guide in Win98, the setup process in WinME,
-		 *        and anything else reliant on floating point that can trigger page faults, to run
-		 *        properly in DOSBox.
-		 */
-		/* NTS: The reason we check against CS:EIP for changes is that blindly doing this method causes
-		 *      far more crashes and instability within DOSBox than taking careful steps. Interestingly,
-		 *      the crashes are more severe with core=normal or core=full than with the more subtle crashes
-		 *      with core=dynamic. Checking this way avoids the crashes.
-		 *
-		 *      Other ways that blindly doing the method causes crashes:
-		 *
-		 *      Windows 3.1: With core=dynamic, everything seems OK until eventually the dynamic core
-		 *                   reports an anomaly in it's cache, and then segfaults. core=normal may work,
-		 *                   but is guaranteed to crash if you're in Windows 3.1 and you enter the DOS
-		 *                   box. */
-#if 0//TODO make option
-		LOG_MSG("DEBUG: Using non-recursive page fault for lin=0x%08lx page=0x%08lx faultcode=%u. Wish me luck.\n",
-			(unsigned long)lin_addr,(unsigned long)page_addr,(unsigned int)faultcode);
-#endif
-
-		if (!(dosbox_check_nonrecursive_pf_cs == SegValue(cs) && dosbox_check_nonrecursive_pf_eip == reg_eip))
-			LOG_MSG("....CS:IP mistmatch expect %x:%x got %x:%x",
-				(unsigned int)dosbox_check_nonrecursive_pf_cs,
-				(unsigned int)dosbox_check_nonrecursive_pf_eip,
-				(unsigned int)SegValue(cs),
-				(unsigned int)reg_eip);
-
+	} else if (dosbox_allow_nonrecursive_page_fault) {
 		throw GuestPageFaultException(lin_addr,page_addr,faultcode);
 	} else {
 		// Save the state of the cpu cores
@@ -405,45 +361,45 @@ private:
 	}
 public:
 	PageFoilHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
-	Bitu readb(PhysPt addr) {read();return 0;}
-	Bitu readw(PhysPt addr) {read();return 0;}
-	Bitu readd(PhysPt addr) {read();return 0;}
+	Bitu readb(PhysPt addr) {(void)addr;read();return 0;}
+	Bitu readw(PhysPt addr) {(void)addr;read();return 0;}
+	Bitu readd(PhysPt addr) {(void)addr;read();return 0;}
 
-	void writeb(PhysPt addr,Bitu val) {
-		work(addr);
-		// execute the write:
-		// no need to care about mpl because we won't be entered
-		// if write isn't allowed
-		mem_writeb(addr,val);
-	}
-	void writew(PhysPt addr,Bitu val) {
-		work(addr);
-		mem_writew(addr,val);
-	}
-	void writed(PhysPt addr,Bitu val) {
-		work(addr);
-		mem_writed(addr,val);
-	}
+    void writeb(PhysPt addr,Bitu val) {
+        work(addr);
+        // execute the write:
+        // no need to care about mpl because we won't be entered
+        // if write isn't allowed
+        mem_writeb(addr,val);
+    }
+    void writew(PhysPt addr,Bitu val) {
+        work(addr);
+        mem_writew(addr,val);
+    }
+    void writed(PhysPt addr,Bitu val) {
+        work(addr);
+        mem_writed(addr,val);
+    }
 
-	bool readb_checked(PhysPt addr, Bit8u * val) {read();return true;}
-	bool readw_checked(PhysPt addr, Bit16u * val) {read();return true;}
-	bool readd_checked(PhysPt addr, Bit32u * val) {read();return true;}
+    bool readb_checked(PhysPt addr, Bit8u * val) {(void)addr;(void)val;read();return true;}
+    bool readw_checked(PhysPt addr, Bit16u * val) {(void)addr;(void)val;read();return true;}
+    bool readd_checked(PhysPt addr, Bit32u * val) {(void)addr;(void)val;read();return true;}
 
-	bool writeb_checked(PhysPt addr,Bitu val) {
-		work(addr);
-			mem_writeb(addr,val);
-			return false;
-	}
-	bool writew_checked(PhysPt addr,Bitu val) {
-		work(addr);
-			mem_writew(addr,val);
-			return false;
-	}
-	bool writed_checked(PhysPt addr,Bitu val) {
-		work(addr);
-			mem_writed(addr,val);
-			return false;
-	}
+    bool writeb_checked(PhysPt addr,Bitu val) {
+        work(addr);
+        mem_writeb(addr,val);
+        return false;
+    }
+    bool writew_checked(PhysPt addr,Bitu val) {
+        work(addr);
+        mem_writew(addr,val);
+        return false;
+    }
+    bool writed_checked(PhysPt addr,Bitu val) {
+        work(addr);
+        mem_writed(addr,val);
+        return false;
+    }
 };
 
 class ExceptionPageHandler : public PageHandler {
@@ -491,7 +447,7 @@ private:
 			//tableaddr=(paging.base.page<<12) | (d_index<<2);
 		} 
 		PAGING_NewPageFault(addr, tableaddr, checked,
-			1 | (writing? 2:0) | (((cpu.cpl&cpu.mpl)==3)? 4:0));
+			1u | (writing ? 2u : 0u) | (((cpu.cpl&cpu.mpl) == 3u) ? 4u : 0u));
 		
 		PAGING_ClearTLB(); // TODO got a better idea?
 	}
@@ -611,18 +567,22 @@ public:
 	}
 	// returning true means an exception was triggered for these _checked functions
 	bool readb_checked(PhysPt addr, Bit8u * val) {
+        (void)val;//UNUSED
 		Exception(addr, false, true);
 		return true;
 	}
 	bool readw_checked(PhysPt addr, Bit16u * val) {
+        (void)val;//UNUSED
 		Exception(addr, false, true);
 		return true;
 			}
 	bool readd_checked(PhysPt addr, Bit32u * val) {
+        (void)val;//UNUSED
 		Exception(addr, false, true);
 		return true;
 		}
 	bool writeb_checked(PhysPt addr,Bitu val) {
+        (void)val;//UNUSED
 		Exception(addr, true, true);
 		return true;
 	}
@@ -637,6 +597,7 @@ public:
 		return true;
 	}
 	bool writed_checked(PhysPt addr,Bitu val) {
+        (void)val;//UNUSED
 		Exception(addr, true, true);
 		return true;
 	}
@@ -718,7 +679,7 @@ initpage_retry:
 			if (!dir_entry.block.p) {
 				// table pointer is not present, do a page fault
 				PAGING_NewPageFault(lin_addr, dirEntryAddr, prepare_only,
-					(writing? 2:0) | (isUser? 4:0));
+					(writing ? 2u : 0u) | (isUser ? 4u : 0u));
 				
 				if (prepare_only) return true;
 				else goto initpage_retry; // TODO maybe E_Exit after a few loops
@@ -736,7 +697,7 @@ initpage_retry:
 			if (!table_entry.block.p) {
 				// physpage pointer is not present, do a page fault
 				PAGING_NewPageFault(lin_addr, tableEntryAddr, prepare_only,
-					 (writing? 2:0) | (isUser? 4:0));
+					 (writing ? 2u : 0u) | (isUser ? 4u : 0u));
 				
 				if (prepare_only) return true;
 				else goto initpage_retry;
@@ -749,14 +710,14 @@ initpage_retry:
 			// If a page access right exception occurs we shouldn't change a or d
 			// I'd prefer running into the prepared exception handler but we'd need
 			// an additional handler that sets the 'a' bit - idea - foiler read?
-			Bitu ft_index = result | (writing? 8:0) | (isUser? 4:0) |
-				(paging.wp? 16:0);
+			Bitu ft_index = result | (writing ? 8u : 0u) | (isUser ? 4u : 0u) |
+				(paging.wp ? 16u : 0u);
 			
 			if (GCC_UNLIKELY(fault_table[ft_index])) {
 				// exception error code format: 
 				// bit0 - protection violation, bit1 - writing, bit2 - user mode
 				PAGING_NewPageFault(lin_addr, tableEntryAddr, prepare_only,
-					1 | (writing? 2:0) | (isUser? 4:0));
+					1u | (writing ? 2u : 0u) | (isUser ? 4u : 0u));
 				
 				if (prepare_only) return true;
 				else goto initpage_retry; // unlikely to happen?
@@ -1192,8 +1153,8 @@ void PAGING_LinkPage_ReadOnly(Bitu lin_page,Bitu phys_page) {
 void PAGING_SetDirBase(Bitu cr3) {
 	paging.cr3=cr3;
 	
-	paging.base.page=cr3 >> 12;
-	paging.base.addr=cr3 & ~0xFFF;
+	paging.base.page=cr3 >> 12U;
+	paging.base.addr=cr3 & ~0xFFFU;
 //	LOG(LOG_PAGING,LOG_NORMAL)("CR3:%X Base %X",cr3,paging.base.page);
 	if (paging.enabled) {
 		PAGING_ClearTLB();
@@ -1211,12 +1172,6 @@ void PAGING_Enable(bool enabled) {
 	if (paging.enabled==enabled) return;
 	paging.enabled=enabled;
 	if (enabled) {
-		if (GCC_UNLIKELY(cpudecoder==CPU_Core_Simple_Run)) {
-//			LOG_MSG("CPU core simple won't run this game,switching to normal");
-			cpudecoder=CPU_Core_Normal_Run;
-			CPU_CycleLeft+=CPU_Cycles;
-			CPU_Cycles=0;
-		}
 //		LOG(LOG_PAGING,LOG_NORMAL)("Enabled");
 		PAGING_SetDirBase(paging.cr3);
 	}

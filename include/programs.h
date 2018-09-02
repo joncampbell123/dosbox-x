@@ -71,6 +71,11 @@ public:
 	bool GetOptGNUSingleCharCheck(std::string &name);
 	void ChangeOptStyle(enum opt_style opt_style);
 	void EndOpt();
+
+    bool GetCurrentArgv(std::string &argv);
+    bool CurrentArgvEnd(void);
+    void EatCurrentArgv(void);
+    void NextArgv(void);
 private:
 	typedef std::list<std::string>::iterator cmd_it;
 	std::string opt_gnu_getopt_singlechar;		/* non-empty if we hit GNU options like -abcd => -a -b -c -d */
@@ -82,27 +87,36 @@ private:
 	bool FindEntry(char const * const name,cmd_it & it,bool neednext=false);
 };
 
+/*! \brief          Base Program class for built-in programs on drive Z:
+ *
+ *  \description    This provides the base class for built-in programs registered on drive Z:.
+ *                  In most cases, the class will override just the Run() method.
+ */
 class Program {
 public:
-	Program();
-	virtual ~Program(){
+	Program();                                          //! Constructor
+	virtual ~Program(){                                 //! Default destructor
 		if (cmd != NULL) delete cmd;
 		if (psp != NULL) delete psp;
 	}
-	unsigned char exit_status;
-	std::string temp_line;
-	CommandLine * cmd;
-	DOS_PSP * psp;
-	virtual void Run(void)=0;
-	bool GetEnvStr(const char * entry,std::string & result);
-	bool GetEnvNum(Bitu num,std::string & result);
-	Bitu GetEnvCount(void);
-	bool SetEnv(const char * entry,const char * new_string);
-	void WriteOut(const char * format,...);				/* Write to standard output */
-	void WriteOut_NoParsing(const char * format);				/* Write to standard output, no parsing */
-	void ChangeToLongCmd();
-	void DebugDumpEnv();
-	void WriteExitStatus();
+
+    /*! \brief      Exit status of the program
+     */
+	unsigned char exit_status;                          //! Exit status, returned to the parent DOS process
+
+	std::string temp_line;                              //! Temporary string object for parsing
+	CommandLine * cmd;                                  //! Command line object
+	DOS_PSP * psp;                                      //! DOS kernel Program Segment Prefix associated with this program at runtime
+	virtual void Run(void)=0;                           //! Run() method, called when the program is run. Subclass must override this
+	bool GetEnvStr(const char * entry,std::string & result); //! Return an environment variable by name
+	bool GetEnvNum(Bitu num,std::string & result);      //! Return an environment variable by index
+	Bitu GetEnvCount(void);                             //! Return the number of enviormental variables
+	bool SetEnv(const char * entry,const char * new_string); //! Set environment variable
+	void WriteOut(const char * format,...);				//! Write to standard output 
+	void WriteOut_NoParsing(const char * format);		//! Write to standard output, no parsing
+	void ChangeToLongCmd();                             //! Get command line from shell instead of PSP
+	void DebugDumpEnv();                                //! Dump environment block to log
+	void WriteExitStatus();                             //! Write exit status to CPU register AL for return to MS-DOS
 };
 
 typedef void (PROGRAMS_Main)(Program * * make);

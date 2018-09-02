@@ -56,7 +56,7 @@ bool device_COM::Read(Bit8u * data,Bit16u * size) {
 }
 
 
-bool device_COM::Write(Bit8u * data,Bit16u * size) {
+bool device_COM::Write(const Bit8u * data,Bit16u * size) {
 	// DTR + RTS on
 	sclass->Write_MCR(0x03);
 	for (Bit16u i=0; i<*size; i++)
@@ -73,6 +73,7 @@ bool device_COM::Write(Bit8u * data,Bit16u * size) {
 }
 
 bool device_COM::Seek(Bit32u * pos,Bit32u type) {
+    (void)type;//UNUSED
 	*pos = 0;
 	return true;
 }
@@ -102,6 +103,7 @@ device_COM::~device_COM() {
 CSerial* serialports[4] ={0,0,0,0};
 
 static Bitu SERIAL_Read (Bitu port, Bitu iolen) {
+    (void)iolen;//UNUSED
 	Bitu i;
 	Bitu retval;
 	Bitu index = port & 0x7;
@@ -214,7 +216,7 @@ void CSerial::log_ser(bool active, char const* format,...) {
 		vsprintf(buf+strlen(buf),format,msg);
 		va_end(msg);
 		// Add newline if not present
-		Bitu len=strlen(buf);
+		Bitu len=(Bitu)strlen(buf);
 		if(buf[len-1]!='\n') strcat(buf,"\r\n");
 		fputs(buf,debugfp);
 	}
@@ -247,12 +249,12 @@ static void Serial_EventHandler(Bitu val) {
 }
 
 void CSerial::setEvent(Bit16u type, float duration) {
-    PIC_AddEvent(Serial_EventHandler,duration,(type<<2)|idnumber);
+    PIC_AddEvent(Serial_EventHandler,duration,(Bitu)(((unsigned int)type<<2u)|(unsigned int)idnumber));
 }
 
 void CSerial::removeEvent(Bit16u type) {
     // TODO
-	PIC_RemoveSpecificEvents(Serial_EventHandler,(type<<2)|idnumber);
+	PIC_RemoveSpecificEvents(Serial_EventHandler,(Bitu)(((unsigned int)type<<2u)|(unsigned int)idnumber));
 }
 
 void CSerial::handleEvent(Bit16u type) {
@@ -588,7 +590,7 @@ Bitu CSerial::Read_IER () {
 	// 3	modem status 
 	// 4-7	0
 
-	if (LCR & LCR_DIVISOR_Enable_MASK) return baud_divider>>8;
+	if (LCR & LCR_DIVISOR_Enable_MASK) return (Bitu)baud_divider>>8u;
 	else return IER&0x0f;
 }
 
@@ -890,6 +892,8 @@ void CSerial::Write_SPR (Bit8u data) {
 /* Write_reserved                                                           **/
 /*****************************************************************************/
 void CSerial::Write_reserved (Bit8u data, Bit8u address) {
+    (void)data;//UNUSED
+    (void)address;//UNUSED
 	/*LOG_UART("Serial%d: Write to reserved register, value 0x%x, register %x",
 		COMNUMBER, data, address);*/
 }
@@ -1195,7 +1199,7 @@ CSerial::~CSerial(void) {
 		delete errorfifo;
 		errorfifo = NULL;
 	}
-};
+}
 
 bool CSerial::Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout) {
 	double starttime=PIC_FullIndex();
@@ -1304,6 +1308,10 @@ public:
 	SERIALPORTS (Section * configuration):Module_base (configuration) {
 		Section_prop *section = static_cast <Section_prop*>(configuration);
 
+        // TODO: PC-98 does have serial ports, though differently.
+        //       COM1 is a 8251 UART, while COM2 and higher if they exist are 8250/16xxx UARTs
+        if (IS_PC98_ARCH) return;
+
 		char s_property[] = "serialx"; 
 		for(Bitu i = 0; i < 4; i++) {
 			// get the configuration property
@@ -1369,6 +1377,7 @@ public:
 static SERIALPORTS *testSerialPortsBaseclass;
 
 void SERIAL_Destroy (Section * sec) {
+    (void)sec;//UNUSED
 	if (testSerialPortsBaseclass) {
 		LOG(LOG_MISC,LOG_DEBUG)("Deleting serial port base class");
 		delete testSerialPortsBaseclass;
@@ -1377,6 +1386,7 @@ void SERIAL_Destroy (Section * sec) {
 }
 
 void SERIAL_OnPowerOn (Section * sec) {
+    (void)sec;//UNUSED
 	// should never happen
 	LOG(LOG_MISC,LOG_DEBUG)("Reinitializing serial emulation");
 	if (testSerialPortsBaseclass) delete testSerialPortsBaseclass;
@@ -1384,6 +1394,7 @@ void SERIAL_OnPowerOn (Section * sec) {
 }
 
 void SERIAL_OnDOSKernelInit (Section * sec) {
+    (void)sec;//UNUSED
 	unsigned int i;
 
 	LOG(LOG_MISC,LOG_DEBUG)("DOS kernel initializing, creating COMx devices");
@@ -1395,6 +1406,7 @@ void SERIAL_OnDOSKernelInit (Section * sec) {
 }
 
 void SERIAL_OnDOSKernelExit (Section * sec) {
+    (void)sec;//UNUSED
 	unsigned int i;
 
 	for (i=0;i < 3;i++) {
@@ -1404,6 +1416,7 @@ void SERIAL_OnDOSKernelExit (Section * sec) {
 }
 
 void SERIAL_OnReset (Section * sec) {
+    (void)sec;//UNUSED
 	unsigned int i;
 
 	// FIXME: Unregister/destroy the DOS devices, but consider that the DOS kernel at reset is gone.
@@ -1413,39 +1426,16 @@ void SERIAL_OnReset (Section * sec) {
 	}
 }
 
-void SERIAL_OnEnterPC98Mode (Section * sec) {
-    // TODO: PC-98 systems do have serial port(s).
-    //
-    //       I will update the code to match when I better understand them.
-    //
-    //       Note that up to two different chipsets are involved.
-    //
-    //       COM1 is usually an Intel 8251, which is completely different from the 8250/16550 used on IBM PC.
-    //
-    //       COM2 however, is usually an 16550.
-	unsigned int i;
-
-	for (i=0;i < 3;i++) {
-		if (serialports[i] != NULL)
-			serialports[i]->unregisterDOSDevice();
-	}
-
-    if (testSerialPortsBaseclass) {
-		LOG(LOG_MISC,LOG_DEBUG)("Deleting serial port base class");
-		delete testSerialPortsBaseclass;
-		testSerialPortsBaseclass = NULL;
-	}
-}
-
 void SERIAL_Init () {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing serial port emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(SERIAL_Destroy),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(SERIAL_OnPowerOn));
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SERIAL_OnReset));
-	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelExit));
-	AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelInit));
 
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(SERIAL_OnEnterPC98Mode));
+    if (!IS_PC98_ARCH) {
+        AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(SERIAL_OnPowerOn));
+        AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SERIAL_OnReset));
+        AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelExit));
+        AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelInit));
+    }
 }
 

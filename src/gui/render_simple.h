@@ -18,11 +18,15 @@
 
 
 #if defined (SCALERLINEAR)
-static void conc4d(SCALERNAME,SBPP,DBPP,L)(const void *s) {
-    (void)conc4d(SCALERNAME,SBPP,DBPP,L);
+static inline void conc4d(SCALERNAME,SBPP,DBPP,L)(const void *s) {
+# if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
+	(void)conc4d(SCALERNAME,SBPP,DBPP,L);
+# endif
 #else
-static void conc4d(SCALERNAME,SBPP,DBPP,R)(const void *s) {
-    (void)conc4d(SCALERNAME,SBPP,DBPP,R);
+static inline void conc4d(SCALERNAME,SBPP,DBPP,R)(const void *s) {
+# if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
+	(void)conc4d(SCALERNAME,SBPP,DBPP,R);
+# endif
 #endif
 
 #ifdef RENDER_NULL_INPUT
@@ -44,7 +48,7 @@ static void conc4d(SCALERNAME,SBPP,DBPP,R)(const void *s) {
 	render.scale.cacheRead += render.scale.cachePitch;
 	PTYPE * line0=(PTYPE *)(render.scale.outWrite);
 #if (SBPP == 9)
-	for (Bits x=render.src.width;x>0;) {
+	for (Bits x=(Bits)render.src.width;x>0;) {
 		if (*(Bit32u const*)src == *(Bit32u*)cache && !(
 			render.pal.modified[src[0]] | 
 			render.pal.modified[src[1]] | 
@@ -55,12 +59,12 @@ static void conc4d(SCALERNAME,SBPP,DBPP,R)(const void *s) {
 			cache+=4;
 			line0+=4*SCALERWIDTH;
 #else 
-	for (Bits x=render.src.width;x>0;) {
+	for (Bits x=(Bits)render.src.width;x>0;) {
 		if (*(Bitu const*)src == *(Bitu*)cache) {
-			x-=(sizeof(Bitu)/sizeof(SRCTYPE));
-			src+=(sizeof(Bitu)/sizeof(SRCTYPE));
-			cache+=(sizeof(Bitu)/sizeof(SRCTYPE));
-			line0+=(sizeof(Bitu)/sizeof(SRCTYPE))*SCALERWIDTH;
+			x-=(Bits)(sizeof(Bitu)/sizeof(SRCTYPE));
+			src+=(Bits)(sizeof(Bitu)/sizeof(SRCTYPE));
+			cache+=(Bits)(sizeof(Bitu)/sizeof(SRCTYPE));
+			line0+=(Bits)(sizeof(Bitu)/sizeof(SRCTYPE))*SCALERWIDTH;
 #endif
 		} else {
 #if defined(SCALERLINEAR)
@@ -97,7 +101,7 @@ static void conc4d(SCALERNAME,SBPP,DBPP,R)(const void *s) {
 #endif
 #endif //defined(SCALERLINEAR)
 			hadChange = 1;
-			for (Bitu i = x > 32 ? 32 : x;i>0;i--,x--) {
+			for (Bitu i = x > 32 ? 32 : (Bitu)x;i>0;i--,x--) {
 				const SRCTYPE S = *src;
 				*cache = S;
 				src++;cache++;

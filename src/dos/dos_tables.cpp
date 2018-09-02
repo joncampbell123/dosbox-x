@@ -27,6 +27,8 @@ extern Bitu DOS_PRIVATE_SEGMENT_Size;
 
 void CALLBACK_DeAllocate(Bitu in);
 
+std::list<DOS_GetMemLog_Entry> DOS_GetMemLog;
+
 #ifdef _MSC_VER
 #pragma pack(1)
 #endif
@@ -41,8 +43,6 @@ GCC_ATTRIBUTE (packed);
 
 RealPt DOS_TableUpCase;
 RealPt DOS_TableLowCase;
-
-extern bool mainline_compatible_mapping;
 
 static Bitu call_casemap = 0;
 
@@ -69,8 +69,8 @@ void DOS_GetMemory_reinit() {
 
 void DOS_GetMemory_unmap() {
 	if (DOS_PRIVATE_SEGMENT != 0) {
-		LOG(LOG_MISC,LOG_DEBUG)("Unmapping DOS private segment 0x%04x-0x%04x",DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
-		if (DOS_PRIVATE_SEGMENT >= 0xA000) MEM_unmap_physmem(DOS_PRIVATE_SEGMENT<<4,(DOS_PRIVATE_SEGMENT_END<<4)-1);
+		LOG(LOG_MISC,LOG_DEBUG)("Unmapping DOS private segment 0x%04x-0x%04x",DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1u);
+		if (DOS_PRIVATE_SEGMENT >= 0xA000u) MEM_unmap_physmem((unsigned int)DOS_PRIVATE_SEGMENT<<4u,((unsigned int)DOS_PRIVATE_SEGMENT_END<<4u)-1u);
 		DOS_GetMemory_unmapped = true;
 		DOS_PRIVATE_SEGMENT_END = 0;
 		DOS_PRIVATE_SEGMENT = 0;
@@ -80,21 +80,14 @@ void DOS_GetMemory_unmap() {
 
 void DOS_GetMemory_Choose() {
 	if (DOS_PRIVATE_SEGMENT == 0) {
-		if (mainline_compatible_mapping) {
-			/* DOSBox mainline compatible: private area 0xC800-0xCFFF */
-			DOS_PRIVATE_SEGMENT=0xc800;
-			DOS_PRIVATE_SEGMENT_END=0xc800 + DOS_PRIVATE_SEGMENT_Size;
-		}
-		else {
-			/* DOSBox-X non-compatible: Position ourself just past the VGA BIOS */
-			/* NTS: Code has been arranged so that DOS kernel init follows BIOS INT10h init */
-			DOS_PRIVATE_SEGMENT=VGA_BIOS_SEG_END;
-			DOS_PRIVATE_SEGMENT_END=DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size;
-		}
+        /* DOSBox-X non-compatible: Position ourself just past the VGA BIOS */
+        /* NTS: Code has been arranged so that DOS kernel init follows BIOS INT10h init */
+        DOS_PRIVATE_SEGMENT=VGA_BIOS_SEG_END;
+        DOS_PRIVATE_SEGMENT_END=DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size;
 
 		if (DOS_PRIVATE_SEGMENT >= 0xA000) {
-			memset(GetMemBase()+(DOS_PRIVATE_SEGMENT<<4),0x00,(DOS_PRIVATE_SEGMENT_END-DOS_PRIVATE_SEGMENT)<<4);
-			MEM_map_RAM_physmem(DOS_PRIVATE_SEGMENT<<4,(DOS_PRIVATE_SEGMENT_END<<4)-1);
+			memset(GetMemBase()+((unsigned int)DOS_PRIVATE_SEGMENT<<4u),0x00,(unsigned int)(DOS_PRIVATE_SEGMENT_END-DOS_PRIVATE_SEGMENT)<<4u);
+			MEM_map_RAM_physmem((unsigned int)DOS_PRIVATE_SEGMENT<<4u,((unsigned int)DOS_PRIVATE_SEGMENT_END<<4u)-1u);
 		}
 
 		LOG(LOG_MISC,LOG_DEBUG)("DOS private segment set to 0x%04x-0x%04x",DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
@@ -117,6 +110,17 @@ Bit16u DOS_GetMemory(Bit16u pages,const char *who) {
 	}
 	Bit16u page=dos_memseg;
 	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x",pages,who,page);
+
+    {
+        DOS_GetMemLog_Entry ent;
+
+        ent.segbase = page;
+        ent.pages = pages;
+        ent.who = who;
+
+        DOS_GetMemLog.push_back(ent);
+    }
+
 	dos_memseg+=pages;
 	return page;
 }

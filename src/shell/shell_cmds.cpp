@@ -39,6 +39,10 @@
 #include <string>
 #include <time.h>
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
+
 static SHELL_Cmd cmd_list[]={
 {	"DIR",		0,			&DOS_Shell::CMD_DIR,		"SHELL_CMD_DIR_HELP"},
 {	"CHDIR",	1,			&DOS_Shell::CMD_CHDIR,		"SHELL_CMD_CHDIR_HELP"},
@@ -82,6 +86,10 @@ static SHELL_Cmd cmd_list[]={
 {	"FOR",	1,			&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
 {	"INT2FDBG",	1,			&DOS_Shell::CMD_INT2FDBG,	"Hook INT 2Fh for debugging purposes"},
 {	"CTTY",		1,			&DOS_Shell::CMD_CTTY,		"Change TTY device"},
+{   "DX-CAPTURE",0,         &DOS_Shell::CMD_DXCAPTURE,  "Run program with video/audio capture"},
+#if C_DEBUG
+{	"DEBUGBOX",	0,			&DOS_Shell::CMD_DEBUGBOX,	"Run program, break into debugger at entry point"},
+#endif
 {0,0,0,0}
 }; 
 
@@ -133,6 +141,8 @@ bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
 	return true;
 }
 
+bool enable_config_as_shell_commands = false;
+
 void DOS_Shell::DoCommand(char * line) {
 /* First split the line into command and arguments */
 	line=trim(line);
@@ -170,7 +180,7 @@ void DOS_Shell::DoCommand(char * line) {
 	}
 /* This isn't an internal command execute it */
 	if(Execute(cmd_buffer,line)) return;
-	if(CheckConfig(cmd_buffer,line)) return;
+	if(enable_config_as_shell_commands && CheckConfig(cmd_buffer,line)) return;
 	WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),cmd_buffer);
 }
 
@@ -234,12 +244,12 @@ static Bitu INT2FDBG_Handler(void) {
 			{
 				devname[0] = 0;
 				if (name_seg != 0 || name_ofs != 0) {
+					unsigned char c;
 					unsigned int i;
 					PhysPt scan;
-					char c;
 
 					scan = PhysMake(name_seg,name_ofs);
-					for (i=0;i < 63 && (c=mem_readb(scan++)) != 0;) devname[i++] = c;
+					for (i=0;i < 63 && (c=mem_readb(scan++)) != 0;) devname[i++] = (char)c;
 					devname[i] = 0;
 				}
 			}
@@ -316,7 +326,8 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 
 void DOS_Shell::CMD_CLS(char * args) {
 	HELP("CLS");
-   if (CurMode->type==M_TEXT) WriteOut("[2J"); 
+   if (CurMode->type==M_TEXT || IS_PC98_ARCH)
+       WriteOut("[2J");
    else { 
       reg_ax=(Bit16u)CurMode->mode; 
       CALLBACK_RunRealInt(0x10); 
@@ -859,11 +870,11 @@ void DOS_Shell::CMD_DIR(char * args) {
 		WriteOut(MSG_Get("SHELL_CMD_DIR_BYTES_USED"),file_count,numformat);
 		Bit8u drive=dta.GetSearchDrive();
 		//TODO Free Space
-		Bitu free_space=1024*1024*100;
+		Bitu free_space=1024u*1024u*100u;
 		if (Drives[drive]) {
 			Bit16u bytes_sector;Bit8u sectors_cluster;Bit16u total_clusters;Bit16u free_clusters;
 			Drives[drive]->AllocationInfo(&bytes_sector,&sectors_cluster,&total_clusters,&free_clusters);
-			free_space=bytes_sector*sectors_cluster*free_clusters;
+			free_space=(Bitu)bytes_sector * (Bitu)sectors_cluster * (Bitu)free_clusters;
 		}
 		FormatNumber(free_space,numformat);
 		WriteOut(MSG_Get("SHELL_CMD_DIR_BYTES_FREE"),dir_count,numformat);
@@ -1458,9 +1469,9 @@ void DOS_Shell::CMD_DATE(char * args) {
 			buffer[bufferptr] = formatstring[i];
 			bufferptr++;
 		} else {
-			if(formatstring[i]=='M') bufferptr += sprintf(buffer+bufferptr,"%02u",(Bit8u) reg_dh);
-			if(formatstring[i]=='D') bufferptr += sprintf(buffer+bufferptr,"%02u",(Bit8u) reg_dl);
-			if(formatstring[i]=='Y') bufferptr += sprintf(buffer+bufferptr,"%04u",(Bit16u) reg_cx);
+			if(formatstring[i]=='M') bufferptr += (Bitu)sprintf(buffer+bufferptr,"%02u",(Bit8u) reg_dh);
+			if(formatstring[i]=='D') bufferptr += (Bitu)sprintf(buffer+bufferptr,"%02u",(Bit8u) reg_dl);
+			if(formatstring[i]=='Y') bufferptr += (Bitu)sprintf(buffer+bufferptr,"%04u",(Bit16u) reg_cx);
 		}
 	}
 	if(date_host_forced) {
@@ -1485,7 +1496,7 @@ void DOS_Shell::CMD_DATE(char * args) {
 	} else
 	WriteOut("%s %s\n",day, buffer);
 	if(!dateonly) WriteOut(MSG_Get("SHELL_CMD_DATE_SETHLP"));
-};
+}
 
 void DOS_Shell::CMD_TIME(char * args) {
 	HELP("TIME");
@@ -1525,7 +1536,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 		WriteOut(MSG_Get("SHELL_CMD_TIME_NOW"));
 		WriteOut("%2u:%02u:%02u,%02u\n",reg_ch,reg_cl,reg_dh,reg_dl);
 	}
-};
+}
 
 void DOS_Shell::CMD_SUBST (char * args) {
 /* If more that one type can be substed think of something else 
@@ -1629,7 +1640,7 @@ void DOS_Shell::CMD_CHOICE(char * args){
 	if (!rem || !*rem) rem = defchoice; /* No choices specified use YN */
 	ptr = rem;
 	Bit8u c;
-	if(!optS) while ((c = *ptr)) *ptr++ = (char)toupper(c); /* When in no case-sensitive mode. make everything upcase */
+	if(!optS) while ((c = (Bit8u)(*ptr))) *ptr++ = (char)toupper(c); /* When in no case-sensitive mode. make everything upcase */
 	if(args && *args ) {
 		StripSpaces(args);
 		size_t argslen = strlen(args);
@@ -1726,7 +1737,7 @@ void DOS_Shell::CMD_VOL(char *args){
 	Bit8u drive=DOS_GetDefaultDrive();
 	if(args && *args && strlen(args)){
 		args++;
-		Bit32u argLen = strlen(args);
+		Bit32u argLen = (Bit32u)strlen(args);
 		switch (args[argLen-1]) {
 		case ':' :
 			if(!strcasecmp(args,":")) return;
@@ -1801,50 +1812,50 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 			}
 		}
 		if (!strcasecmp(word,"enter")) {
-			word[0] = 10;
-			word[1] = 0;
+			word[0] = (char)10;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"space")) {
-			word[0] = 32;
-			word[1] = 0;
+			word[0] = (char)32;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"bs")) {
-			word[0] = 8;
-			word[1] = 0;
+			word[0] = (char)8;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"tab")) {
-			word[0] = 9;
-			word[1] = 0;
+			word[0] = (char)9;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"escape")) {
-			word[0] = 27;
-			word[1] = 0;
+			word[0] = (char)27;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"up")) {
-			word[0] = 141;
-			word[1] = 0;
+			word[0] = (char)141;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"down")) {
-			word[0] = 142;
-			word[1] = 0;
+			word[0] = (char)142;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"left")) {
-			word[0] = 143;
-			word[1] = 0;
+			word[0] = (char)143;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"right")) {
-			word[0] = 144;
-			word[1] = 0;
+			word[0] = (char)144;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"ins")) {
-			word[0] = 145;
-			word[1] = 0;
+			word[0] = (char)145;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"del")) {
-			word[0] = 146;
-			word[1] = 0;
+			word[0] = (char)146;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"home")) {
-			word[0] = 147;
-			word[1] = 0;
+			word[0] = (char)147;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"end")) {
-			word[0] = 148;
-			word[1] = 0;
+			word[0] = (char)148;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"pgup")) {
-			word[0] = 149;
-			word[1] = 0;
+			word[0] = (char)149;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"pgdown")) {
-			word[0] = 150;
-			word[1] = 0;
+			word[0] = (char)150;
+			word[1] = (char)0;
 		} else if (!strcasecmp(word,"normal")) {
 			core = 1;
 		} else if (!strcasecmp(word,"simple")) {
@@ -1958,7 +1969,110 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 	}
  }
 
+#if C_DEBUG
+bool debugger_break_on_exec = false;
+
+void DOS_Shell::CMD_DEBUGBOX(char * args) {
+    /* TODO: The command as originally taken from DOSBox SVN supported a /NOMOUSE option to remove the INT 33h vector */
+    debugger_break_on_exec = true;
+    while (*args == ' ') args++;
+    DoCommand(args);
+    debugger_break_on_exec = false;
+}
+#endif
+
 void DOS_Shell::CMD_FOR(char *args){
+    (void)args;//UNUSED
+}
+
+void CAPTURE_StartCapture(void);
+void CAPTURE_StopCapture(void);
+
+void CAPTURE_StartWave(void);
+void CAPTURE_StopWave(void);
+
+void CAPTURE_StartMTWave(void);
+void CAPTURE_StopMTWave(void);
+
+// Explanation: Start capture, run program, stop capture when program exits.
+//              Great for gameplay footage or demoscene capture.
+//
+//              The command name is chosen not to conform to the 8.3 pattern
+//              on purpose to avoid conflicts with any existing DOS applications.
+void DOS_Shell::CMD_DXCAPTURE(char * args) {
+    bool cap_video = false;
+    bool cap_audio = false;
+    bool cap_mtaudio = false;
+    unsigned long post_exit_delay_ms = 3000; /* 3 sec */
+
+    while (*args == ' ') args++;
+
+    if (ScanCMDBool(args,"V"))
+        cap_video = true;
+    if (ScanCMDBool(args,"-V"))
+        cap_video = false;
+
+    if (ScanCMDBool(args,"A"))
+        cap_audio = true;
+    if (ScanCMDBool(args,"-A"))
+        cap_audio = false;
+
+    if (ScanCMDBool(args,"M"))
+        cap_mtaudio = true;
+    if (ScanCMDBool(args,"-M"))
+        cap_mtaudio = false;
+
+    if (!cap_video && !cap_audio && !cap_mtaudio)
+        cap_video = true;
+
+    if (cap_video)
+        CAPTURE_StartCapture();
+    if (cap_audio)
+        CAPTURE_StartWave();
+    if (cap_mtaudio)
+        CAPTURE_StartMTWave();
+
+    DoCommand(args);
+
+    if (post_exit_delay_ms > 0) {
+        LOG_MSG("Pausing for post exit delay (%.3f seconds)",(double)post_exit_delay_ms / 1000);
+
+        Bit32u lasttick=GetTicks();
+        while ((GetTicks()-lasttick)<post_exit_delay_ms) {
+            CALLBACK_Idle();
+
+            if (machine == MCH_PC98) {
+                reg_eax = 0x0100;   // sense key
+                CALLBACK_RunRealInt(0x18);
+                SETFLAGBIT(ZF,reg_bh == 0);
+            }
+            else {
+                reg_eax = 0x0100;
+                CALLBACK_RunRealInt(0x16);
+            }
+
+            if (!GETFLAG(ZF)) {
+                if (machine == MCH_PC98) {
+                    reg_eax = 0x0000;   // read key
+                    CALLBACK_RunRealInt(0x18);
+                }
+                else {
+                    reg_eax = 0x0000;
+                    CALLBACK_RunRealInt(0x16);
+                }
+
+                if (reg_al == 32/*space*/ || reg_al == 27/*escape*/)
+                    break;
+            }
+        }
+    }
+
+    if (cap_video)
+        CAPTURE_StopCapture();
+    if (cap_audio)
+        CAPTURE_StopWave();
+    if (cap_mtaudio)
+        CAPTURE_StopMTWave();
 }
 
 void DOS_Shell::CMD_CTTY(char * args) {

@@ -295,8 +295,8 @@ void CDirectSerial::updatePortConfig (Bit16u divider, Bit8u lcr) {
 
 	// baudrate
 	Bitu baudrate;
-	if(divider==0) baudrate=115200;
-	else baudrate = 115200 / divider;
+	if(divider==0) baudrate=115200u;
+	else baudrate = 115200u / divider;
 
 	// stopbits
 	Bit8u stopbits;
@@ -305,7 +305,7 @@ void CDirectSerial::updatePortConfig (Bit16u divider, Bit8u lcr) {
 		else stopbits = SERIAL_2STOP;
 	} else stopbits = SERIAL_1STOP;
 
-	if(!SERIAL_setCommParameters(comport, baudrate, parity, stopbits, bytelength)) {
+	if(!SERIAL_setCommParameters(comport, baudrate, (char)parity, (char)stopbits, (char)bytelength)) {
 #if SERIAL_DEBUG
 		log_ser(dbg_aux,"Serial port settings not supported by host." );
 #endif
@@ -325,7 +325,7 @@ void CDirectSerial::updateMSR () {
 }
 
 void CDirectSerial::transmitByte (Bit8u val, bool first) {
-	if(!SERIAL_sendchar(comport, val))
+	if(!SERIAL_sendchar(comport, (char)val))
 		LOG_MSG("Serial%d: COM port error: write failed!", (int)COMNUMBER);
 	if(first) setEvent(SERIAL_THR_EVENT, bytetime/8);
 	else setEvent(SERIAL_TX_EVENT, bytetime);

@@ -24,7 +24,7 @@
 #define ACTL_MAX_REG   0x14
 
 static INLINE void ResetACTL(void) {
-	IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
+	IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 }
 
 static INLINE void WriteTandyACTL(Bit8u creg,Bit8u val) {
@@ -218,7 +218,7 @@ void INT10_SetSingleDACRegister(Bit8u index,Bit8u red,Bit8u green,Bit8u blue) {
 		IO_Write(VGAREG_DAC_DATA,blue);
 	} else {
 		/* calculate clamped intensity, taken from VGABIOS */
-		Bit32u i=(( 77*red + 151*green + 28*blue ) + 0x80) >> 8;
+		Bit32u i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) >> 8u;
 		Bit8u ic=(i>0x3f) ? 0x3f : ((Bit8u)(i & 0xff));
 		IO_Write(VGAREG_DAC_DATA,ic);
 		IO_Write(VGAREG_DAC_DATA,ic);
@@ -248,7 +248,7 @@ void INT10_SetDACBlock(Bit16u index,Bit16u count,PhysPt data) {
 			Bit8u blue=mem_readb(data++);
 
 			/* calculate clamped intensity, taken from VGABIOS */
-			Bit32u i=(( 77*red + 151*green + 28*blue ) + 0x80) >> 8;
+			Bit32u i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) >> 8u;
 			Bit8u ic=(i>0x3f) ? 0x3f : ((Bit8u)(i & 0xff));
 			IO_Write(VGAREG_DAC_DATA,ic);
 			IO_Write(VGAREG_DAC_DATA,ic);
@@ -317,6 +317,7 @@ void INT10_SetBackgroundBorder(Bit8u val) {
 	
 	switch (machine) {
 	case MCH_CGA:
+	case MCH_MCGA:
 		// only write the color select register
 		IO_Write(0x3d9,color_select);
 		break;
@@ -378,7 +379,7 @@ void INT10_SetColorSelect(Bit8u val) {
 	Bit8u temp=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL);
 	temp=(temp & 0xdf) | ((val & 1) ? 0x20 : 0x0);
 	real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL,temp);
-	if (machine == MCH_CGA || machine == MCH_AMSTRAD || machine==MCH_TANDY)
+	if (machine == MCH_CGA || machine == MCH_MCGA || machine == MCH_AMSTRAD || machine==MCH_TANDY)
 		IO_Write(0x3d9,temp);
 	else if (machine == MCH_PCJR) {
 		IO_Read(VGAREG_TDY_RESET); // reset the flipflop
@@ -425,7 +426,7 @@ void INT10_PerformGrayScaleSumming(Bit16u start_reg,Bit16u count) {
 		Bit8u blue=IO_Read(VGAREG_DAC_DATA);
 
 		/* calculate clamped intensity, taken from VGABIOS */
-		Bit32u i=(( 77*red + 151*green + 28*blue ) + 0x80) >> 8;
+		Bit32u i=(( 77u*red + 151u*green + 28u*blue ) + 0x80u) >> 8u;
 		Bit8u ic=(i>0x3f) ? 0x3f : ((Bit8u)(i & 0xff));
 		INT10_SetSingleDACRegister(start_reg+ct,ic,ic,ic);
 	}

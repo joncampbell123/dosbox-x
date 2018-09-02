@@ -29,6 +29,9 @@
 #include "paging.h"
 #include "mmx.h"
 
+bool CPU_RDMSR();
+bool CPU_WRMSR();
+
 #define CPU_CORE CPU_ARCHTYPE_386
 
 #define DoString DoString_Normal
@@ -63,18 +66,18 @@ extern bool ignore_opcode_63;
 Bitu cycle_count;
 
 #if C_FPU
-#define CPU_FPU	1						//Enable FPU escape instructions
+#define CPU_FPU	1u						//Enable FPU escape instructions
 #endif
 
-#define CPU_PIC_CHECK 1
-#define CPU_TRAP_CHECK 1
+#define CPU_PIC_CHECK 1u
+#define CPU_TRAP_CHECK 1u
 
-#define OPCODE_NONE			0x000
-#define OPCODE_0F			0x100
-#define OPCODE_SIZE			0x200
+#define OPCODE_NONE			0x000u
+#define OPCODE_0F			0x100u
+#define OPCODE_SIZE			0x200u
 
-#define PREFIX_ADDR			0x1
-#define PREFIX_REP			0x2
+#define PREFIX_ADDR			0x1u
+#define PREFIX_REP			0x2u
 
 #define TEST_PREFIX_ADDR	(core.prefixes & PREFIX_ADDR)
 #define TEST_PREFIX_REP		(core.prefixes & PREFIX_REP)
@@ -88,7 +91,7 @@ Bitu cycle_count;
 #define DO_PREFIX_ADDR()								\
 	core.prefixes=(core.prefixes & ~PREFIX_ADDR) |		\
 	(cpu.code.big ^ PREFIX_ADDR);						\
-	core.ea_table=&EATable[(core.prefixes&1) * 256];	\
+	core.ea_table=&EATable[(core.prefixes&1u) * 256u];	\
 	goto restart_opcode;
 
 #define DO_PREFIX_REP(_ZERO)				\
@@ -98,7 +101,7 @@ Bitu cycle_count;
 
 typedef PhysPt (*GetEAHandler)(void);
 
-static const Bit32u AddrMaskTable[2]={0x0000ffff,0xffffffff};
+static const Bit32u AddrMaskTable[2]={0x0000ffffu,0xffffffffu};
 
 static struct {
 	Bitu opcode_index;
@@ -110,9 +113,10 @@ static struct {
 	GetEAHandler * ea_table;
 } core;
 
-#define GETIP		(core.cseip-SegBase(cs))
+/* FIXME: Someone at Microsoft tell how subtracting PhysPt - PhysPt = __int64, or PhysPt + PhysPt = __int64 */
+#define GETIP		((PhysPt)(core.cseip-SegBase(cs)))
 #define SAVEIP		reg_eip=GETIP;
-#define LOADIP		core.cseip=(SegBase(cs)+reg_eip);
+#define LOADIP		core.cseip=((PhysPt)(SegBase(cs)+reg_eip));
 
 #define SegBase(c)	SegPhys(c)
 #define BaseDS		core.base_ds
@@ -147,17 +151,12 @@ static INLINE Bit32u Fetchd() {
 
 #define EALookupTable (core.ea_table)
 
-extern Bitu dosbox_check_nonrecursive_pf_cs;
-extern Bitu dosbox_check_nonrecursive_pf_eip;
-
 Bits CPU_Core_Normal_Run(void) {
 	while (CPU_Cycles-->0) {
 		LOADIP;
-		dosbox_check_nonrecursive_pf_cs = SegValue(cs);
-		dosbox_check_nonrecursive_pf_eip = reg_eip;
-		core.opcode_index=cpu.code.big*0x200;
+		core.opcode_index=cpu.code.big*0x200u;
 		core.prefixes=cpu.code.big;
-		core.ea_table=&EATable[cpu.code.big*256];
+		core.ea_table=&EATable[cpu.code.big*256u];
 		BaseDS=SegBase(ds);
 		BaseSS=SegBase(ss);
 		core.base_val_ds=ds;
@@ -165,7 +164,7 @@ Bits CPU_Core_Normal_Run(void) {
 #if C_HEAVY_DEBUG
 		if (DEBUG_HeavyIsBreakpoint()) {
 			FillFlags();
-			return debugCallback;
+			return (Bits)debugCallback;
 		};
 #endif
 #endif

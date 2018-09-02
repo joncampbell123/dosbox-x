@@ -24,6 +24,12 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+# define ParentWindowHWND SDL_Window
+#else
+extern HWND	ParentWindowHWND;
+#endif
+
 /* Not yet in the mingw32 cross-compile headers */
 #ifndef CDS_FULLSCREEN
 #define CDS_FULLSCREEN	4
@@ -504,6 +510,27 @@ static int DIB_SussScreenDepth()
 #endif /* NO_GETDIBITS */
 }
 
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
+extern volatile BOOL ParentWindowIsBeingResized;
+extern volatile RECT ParentWindowDeferredResizeRect;
+#endif
+
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
+extern CRITICAL_SECTION ParentWindowCritSec;
+#endif
+
+unsigned char wants_topmost = 0;
+
+void sdl1_hax_set_topmost(unsigned char topmost) {
+	wants_topmost = topmost;
+
+	HWND top = wants_topmost ? HWND_TOPMOST : HWND_NOTOPMOST;
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
+	SetWindowPos(ParentWindowHWND, top, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
+#else
+	SetWindowPos(SDL_Window, top, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
+#endif
+}
 
 /* Various screen update functions available */
 static void DIB_NormalUpdate(_THIS, int numrects, SDL_Rect *rects);
@@ -515,7 +542,7 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 
 #ifndef _WIN32_WCE
 	/* Resize the window */
-	if ( !SDL_windowid && !IsZoomed(SDL_Window) ) {
+	if ( !SDL_windowid && !IsZoomed(ParentWindowHWND) ) {
 #else
 	if ( !SDL_windowid ) {
 #endif
@@ -537,17 +564,17 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 				}
 			}
 		}
-		swp_flags = (SWP_NOCOPYBITS | SWP_SHOWWINDOW);
+		swp_flags = (SWP_SHOWWINDOW);
 
 		bounds.left = SDL_windowX;
 		bounds.top = SDL_windowY;
 		bounds.right = SDL_windowX+width;
 		bounds.bottom = SDL_windowY+height;
 #ifndef _WIN32_WCE
-		AdjustWindowRectEx(&bounds, GetWindowLong(SDL_Window, GWL_STYLE), (GetMenu(SDL_Window) != NULL), 0);
+		AdjustWindowRectEx(&bounds, GetWindowLong(ParentWindowHWND, GWL_STYLE), (GetMenu(ParentWindowHWND) != NULL), 0);
 #else
 		// The bMenu parameter must be FALSE; menu bars are not supported
-		AdjustWindowRectEx(&bounds, GetWindowLong(SDL_Window, GWL_STYLE), 0, 0);
+		AdjustWindowRectEx(&bounds, GetWindowLong(ParentWindowHWND, GWL_STYLE), 0, 0);
 #endif
 		width = bounds.right-bounds.left;
 		height = bounds.bottom-bounds.top;
@@ -564,21 +591,73 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 			x = y = -1;
 			swp_flags |= SWP_NOMOVE;
 		}
-		if ( flags & SDL_FULLSCREEN ) {
+		if ((flags & SDL_FULLSCREEN) || wants_topmost) {
 			top = HWND_TOPMOST;
 		} else {
 			top = HWND_NOTOPMOST;
 		}
+
+#if defined(SDL_WIN32_HX_DOS)
+		swp_flags |= SWP_NOSIZE;
+#endif
+
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
+		if (SDL_VideoSurface != NULL)
+			SetWindowPos(SDL_Window, HWND_TOP, 0, 0, SDL_VideoSurface->w, SDL_VideoSurface->h, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+
+		EnterCriticalSection(&ParentWindowCritSec);
+
+		/* Windows 10 has developed a strange deadlock that can happen if the user is resizing the parent window
+		   and we call SetWindowPos() to confirm the size here. Use SWP_NOMOVE just in case that's problematic too. */
+		if (ParentWindowIsBeingResized) {
+			/* record the window position/size to be applied when the user is finished resizing */
+			ParentWindowDeferredResizeRect.top = y;
+			ParentWindowDeferredResizeRect.left = x;
+			ParentWindowDeferredResizeRect.right = x + width;
+			ParentWindowDeferredResizeRect.bottom = y + height;
+			/* tell SetWindowPos() not to move or resize */
+			swp_flags |= SWP_NOSIZE | SWP_NOMOVE;
+		}
+
+		LeaveCriticalSection(&ParentWindowCritSec);
+
+		SetWindowPos(ParentWindowHWND, top, x, y, width, height, swp_flags);
+#else
 		SetWindowPos(SDL_Window, top, x, y, width, height, swp_flags);
+#endif
+
+#if defined(SDL_WIN32_HX_DOS)
+		ShowWindow(SDL_Window, SW_MAXIMIZE);
+#endif
+
 		if ( !(flags & SDL_FULLSCREEN) ) {
 			SDL_windowX = SDL_bounds.left;
 			SDL_windowY = SDL_bounds.top;
 		}
 		if ( GetParent(SDL_Window) == NULL ) {
-			SetForegroundWindow(SDL_Window);
+			SetForegroundWindow(ParentWindowHWND);
 		}
 	}
 }
+
+HMENU DIB_SurfaceMenu = NULL;
+
+void SDL1_hax_SetMenu(HMENU menu) {
+#ifndef SDL_WIN32_HX_DOS
+	if (menu == DIB_SurfaceMenu)
+		return;
+
+	DIB_SurfaceMenu = menu;
+	if (SDL_VideoSurface && (SDL_VideoSurface->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN)
+		SetMenu(ParentWindowHWND, NULL);
+	else
+		SetMenu(ParentWindowHWND, DIB_SurfaceMenu);
+
+    DrawMenuBar(ParentWindowHWND);
+#endif
+}
+
+unsigned char SDL1_hax_RemoveMinimize = 0;
 
 SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 				int width, int height, int bpp, Uint32 flags)
@@ -589,9 +668,9 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 	DWORD style;
 	const DWORD directstyle =
 			(WS_POPUP);
-	const DWORD windowstyle = 
+	DWORD windowstyle = 
 			(WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX);
-	const DWORD resizestyle =
+	DWORD resizestyle =
 			(WS_THICKFRAME|WS_MAXIMIZEBOX);
 	int binfo_size;
 	BITMAPINFO *binfo;
@@ -622,6 +701,12 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 		DIB_ResizeWindow(this, width, height, prev_w, prev_h, flags);
 		SDL_resizing = 0;
 		return current;
+	}
+
+	/* Minimizing a window can screw up OpenGL state. */
+	if ((current->flags & SDL_OPENGL) && SDL1_hax_RemoveMinimize) {
+		windowstyle &= ~WS_MINIMIZEBOX;
+		resizestyle |= WS_MINIMIZEBOX;
 	}
 
 	/* Clean up any GL context that may be hanging around */
@@ -750,7 +835,7 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 		}
 #endif
 
-#ifndef _WIN32_WCE
+#ifdef _WIN32_WCE_DONT_USE_THIS
 		settings.dmBitsPerPel = video->format->BitsPerPixel;
 		settings.dmPelsWidth = width;
 		settings.dmPelsHeight = height;
@@ -799,17 +884,20 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 		DIB_CreatePalette(this, bpp);
 	}
 
-	style = GetWindowLong(SDL_Window, GWL_STYLE);
+#ifdef SDL_WIN32_HX_DOS
+	/* do not change window style */
+#else
+	style = GetWindowLong(ParentWindowHWND/*SDL_Window*/, GWL_STYLE);
 	style &= ~(resizestyle|WS_MAXIMIZE);
 	if ( (video->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN ) {
 		style &= ~windowstyle;
 		style |= directstyle;
 	} else {
-#ifndef NO_CHANGEDISPLAYSETTINGS
+# ifndef NO_CHANGEDISPLAYSETTINGS
 		if ( (prev_flags & SDL_FULLSCREEN) == SDL_FULLSCREEN ) {
 			ChangeDisplaySettings(NULL, 0);
 		}
-#endif
+# endif
 		if ( flags & SDL_NOFRAME ) {
 			style &= ~windowstyle;
 			style |= directstyle;
@@ -822,14 +910,23 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 				video->flags |= SDL_RESIZABLE;
 			}
 		}
-#if WS_MAXIMIZE && !defined(_WIN32_WCE)
-		if (IsZoomed(SDL_Window)) style |= WS_MAXIMIZE;
-#endif
+# if WS_MAXIMIZE && !defined(_WIN32_WCE)
+		if (IsZoomed(ParentWindowHWND)) style |= WS_MAXIMIZE;
+# endif
 	}
+#endif
 
 	/* DJM: Don't piss of anyone who has setup his own window */
 	if ( !SDL_windowid )
-		SetWindowLong(SDL_Window, GWL_STYLE, style);
+		SetWindowLong(ParentWindowHWND, GWL_STYLE, style);
+
+#ifndef SDL_WIN32_HX_DOS
+	/* show/hide menu according to fullscreen */
+	if ((current->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN)
+		SetMenu(ParentWindowHWND, NULL);
+	else
+		SetMenu(ParentWindowHWND, DIB_SurfaceMenu);
+#endif
 
 	/* Delete the old bitmap if necessary */
 	if ( screen_bmp != NULL ) {
@@ -905,6 +1002,16 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 			video->flags |= SDL_HWPALETTE;
 		}
 	}
+
+	if ((video->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN) {
+		/* HACK */
+		SDL_windowX = 0;
+		SDL_windowY = 0;
+
+		/* pay attention! */
+		SetFocus(SDL_Window);
+	}
+
 	DIB_ResizeWindow(this, width, height, prev_w, prev_h, flags);
 	SDL_resizing = 0;
 

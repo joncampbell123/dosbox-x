@@ -214,7 +214,7 @@ static Bit32u read_kcl_data(Bit8u * kcl_data, Bit32u kcl_data_size, const char* 
 		return 0;
 	}
 
-	Bit32u dpos=7+kcl_data[6];
+	Bit32u dpos=7u+kcl_data[6];
 
 	for (;;) {
 		if (dpos+5>kcl_data_size) break;
@@ -355,7 +355,7 @@ Bitu keyboard_layout::read_keyboard_file(const char* keyboard_file_name, Bit32s 
 	if (additional_planes>(layout_pages-4)) additional_planes=(layout_pages-4);
 
 	// seek to plane descriptor
-	read_buf_pos=start_pos+0x14+submappings*8;
+	read_buf_pos=start_pos+0x14u+submappings*8u;
 	for (Bit16u cplane=0; cplane<additional_planes; cplane++) {
 		Bit16u plane_flags;
 
@@ -388,14 +388,14 @@ Bitu keyboard_layout::read_keyboard_file(const char* keyboard_file_name, Bit32s 
 		if ((sub_map!=0) && (specific_layout!=-1)) sub_map=(Bit16u)(specific_layout&0xffff);
 
 		// read codepage of submapping
-		submap_cp=host_readw(&read_buf[start_pos+0x14+sub_map*8]);
+		submap_cp=host_readw(&read_buf[start_pos+0x14u+sub_map*8u]);
 		if ((submap_cp!=0) && (submap_cp!=requested_codepage) && (specific_layout==-1))
 			continue;		// skip nonfitting submappings
 
 		if (submap_cp==requested_codepage) found_matching_layout=true;
 
 		// get table offset
-		table_offset=host_readw(&read_buf[start_pos+0x18+sub_map*8]);
+		table_offset=host_readw(&read_buf[start_pos+0x18u+sub_map*8u]);
 		diacritics_entries=0;
 		if (table_offset!=0) {
 			// process table
@@ -411,7 +411,7 @@ Bitu keyboard_layout::read_keyboard_file(const char* keyboard_file_name, Bit32s 
 
 
 		// get table offset
-		table_offset=host_readw(&read_buf[start_pos+0x16+sub_map*8]);
+		table_offset=host_readw(&read_buf[start_pos+0x16u+sub_map*8u]);
 		if (table_offset==0) continue;	// non-present table
 
 		read_buf_pos=start_pos+table_offset;
@@ -429,7 +429,7 @@ Bitu keyboard_layout::read_keyboard_file(const char* keyboard_file_name, Bit32s 
 				// add all available mappings
 				for (Bit16u addmap=0; addmap<scan_length; addmap++) {
 					if (addmap>additional_planes+2) break;
-					Bitu charptr=read_buf_pos+addmap*((read_buf[read_buf_pos-2]&0x80)?2:1);
+					Bitu charptr=read_buf_pos+addmap*((read_buf[read_buf_pos-2u]&0x80u)?2u:1u);
 					Bit16u kchar=read_buf[charptr];
 
 					if (kchar!=0) {		// key remapped
@@ -691,7 +691,7 @@ Bit16u keyboard_layout::extract_codepage(const char* keyboard_file_name) {
 		Bit16u submap_cp;
 
 		// read codepage of submapping
-		submap_cp=host_readw(&read_buf[start_pos+0x14+sub_map*8]);
+		submap_cp=host_readw(&read_buf[start_pos+0x14u+sub_map*8u]);
 
 		if (submap_cp!=0) return submap_cp;
 	}
@@ -847,7 +847,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
 		Bit16u seg=0;
 		Bit16u size=0x1500;
 		if (!DOS_AllocateMemory(&seg,&size)) E_Exit("Not enough free low memory to unpack data");
-		MEM_BlockWrite((seg<<4)+0x100,cpi_buf,size_of_cpxdata);
+		MEM_BlockWrite(((unsigned int)seg<<4u)+0x100u,cpi_buf,size_of_cpxdata);
 
 		// setup segments
 		Bit16u save_ds=SegValue(ds);
@@ -868,7 +868,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
 		reg_esp=save_esp;
 
 		// get unpacked content
-		MEM_BlockRead((seg<<4)+0x100,cpi_buf,65536);
+		MEM_BlockRead(((unsigned int)seg<<4u)+0x100u,cpi_buf,65536u);
 		cpi_buf_size=65536;
 
 		DOS_FreeMemory(seg);
@@ -907,32 +907,41 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
 				Bit8u font_height=cpi_buf[font_data_start];
 				font_data_start+=6;
 				if (font_height==0x10) {
-					// 16x8 font
-					PhysPt font16pt=Real2Phys(int10.rom.font_16);
-					for (Bitu i=0;i<256*16;i++) {
-						phys_writeb(font16pt+i,cpi_buf[font_data_start+i]);
-					}
-					font_changed=true;
+					// 16x8 font, IF supported by the video card
+                    if (int10.rom.font_16 != 0) {
+                        PhysPt font16pt=Real2Phys(int10.rom.font_16);
+                        for (Bitu i=0;i<256*16;i++) {
+                            phys_writeb(font16pt+i,cpi_buf[font_data_start+i]);
+                        }
+                        font_changed=true;
+                    }
 				} else if (font_height==0x0e) {
-					// 14x8 font
-					PhysPt font14pt=Real2Phys(int10.rom.font_14);
-					for (Bitu i=0;i<256*14;i++) {
-						phys_writeb(font14pt+i,cpi_buf[font_data_start+i]);
-					}
-					font_changed=true;
+					// 14x8 font, IF supported by the video card
+                    if (int10.rom.font_14 != 0) {
+                        PhysPt font14pt=Real2Phys(int10.rom.font_14);
+                        for (Bitu i=0;i<256*14;i++) {
+                            phys_writeb(font14pt+i,cpi_buf[font_data_start+i]);
+                        }
+                        font_changed=true;
+                    }
 				} else if (font_height==0x08) {
-					// 8x8 fonts
-					PhysPt font8pt=Real2Phys(int10.rom.font_8_first);
-					for (Bitu i=0;i<128*8;i++) {
-						phys_writeb(font8pt+i,cpi_buf[font_data_start+i]);
-					}
-					font8pt=Real2Phys(int10.rom.font_8_second);
-					for (Bitu i=0;i<128*8;i++) {
-						phys_writeb(font8pt+i,cpi_buf[font_data_start+i+128*8]);
-					}
-					font_changed=true;
-				}
-				font_data_start+=font_height*256;
+                    // 8x8 fonts. All video cards support it
+                    if (int10.rom.font_8_first != 0) {
+                        PhysPt font8pt=Real2Phys(int10.rom.font_8_first);
+                        for (Bitu i=0;i<128*8;i++) {
+                            phys_writeb(font8pt+i,cpi_buf[font_data_start+i]);
+                        }
+                        font_changed=true;
+                    }
+                    if (int10.rom.font_8_second != 0) {
+                        PhysPt font8pt=Real2Phys(int10.rom.font_8_second);
+                        for (Bitu i=0;i<128*8;i++) {
+                            phys_writeb(font8pt+i,cpi_buf[font_data_start+i+128*8]);
+                        }
+                        font_changed=true;
+                    }
+                }
+				font_data_start+=font_height*256u;
 			}
 
 			LOG(LOG_BIOS,LOG_NORMAL)("Codepage %i successfully loaded",codepage_id);
@@ -940,7 +949,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
 			// set codepage entries
 			dos.loaded_codepage=(Bit16u)(codepage_id&0xffff);
 
-			// update font if necessary
+			// update font if necessary (EGA/VGA/SVGA only)
 			if (font_changed && (CurMode->type==M_TEXT) && (IS_EGAVGA_ARCH)) {
 				INT10_ReloadFont();
 			}
@@ -1299,6 +1308,7 @@ void DOS_KeyboardLayout_ShutDown(Section* /*sec*/) {
 }
 
 void DOS_KeyboardLayout_Startup(Section* sec) {
+    (void)sec;//UNUSED
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Reinitializing DOS keyboard layout support");
 		test = new DOS_KeyboardLayout(control->GetSection("dos"));

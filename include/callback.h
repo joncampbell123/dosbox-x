@@ -33,8 +33,8 @@ enum { CB_RETN,CB_RETF,CB_RETF8,CB_IRET,CB_IRETD,CB_IRET_STI,CB_IRET_EOI_PIC1,
 		CB_INT21,CB_INT13,CB_VESA_START,CB_IRET_EOI_PIC2,CB_CPM };
 
 /* NTS: Cannot make runtime configurable, because CB_MAX is used to define an array */
-#define CB_MAX		128
-#define CB_SIZE		32
+#define CB_MAX		128U
+#define CB_SIZE		32U
 
 /* we can make THESE configurable though! */
 //#define CB_SEG	0xF000
@@ -54,8 +54,8 @@ static INLINE PhysPt CALLBACK_PhysPointer(Bitu callback) {
 	return PhysMake(CB_SEG,(Bit16u)(CB_SOFFSET+callback*CB_SIZE));
 }
 
-static INLINE PhysPt CALLBACK_GetBase(void) {
-	return (CB_SEG << 4) + CB_SOFFSET;
+static inline PhysPt CALLBACK_GetBase(void) {
+	return (PhysPt)(((PhysPt)CB_SEG << (PhysPt)4U) + (PhysPt)CB_SOFFSET);
 }
 
 Bitu CALLBACK_Allocate();

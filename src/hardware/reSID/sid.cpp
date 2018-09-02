@@ -285,8 +285,8 @@ SID2::State::State()
 // ----------------------------------------------------------------------------
 SID2::State SID2::read_state()
 {
+  unsigned int i, j;
   State state;
-  int i, j;
 
   for (i = 0, j = 0; i < 3; i++, j += 7) {
     WaveformGenerator& wave = voice[i].wave;
@@ -345,10 +345,10 @@ SID2::State SID2::read_state()
 // ----------------------------------------------------------------------------
 void SID2::write_state(const State& state)
 {
-  int i;
+  unsigned int i;
 
   for (i = 0; i <= 0x18; i++) {
-    write(i, state.sid_register[i]);
+    write(i, (unsigned char)state.sid_register[i]);
   }
 
   bus_value = state.bus_value;
@@ -681,7 +681,7 @@ void SID2::clock(cycle_count delta_t)
       reg24 delta_accumulator =
 	(accumulator & 0x800000 ? 0x1000000 : 0x800000) - accumulator;
 
-      cycle_count delta_t_next = delta_accumulator/freq;
+      cycle_count delta_t_next = (cycle_count)((unsigned int)delta_accumulator / (unsigned int)freq);
       if (delta_accumulator%freq) {
 	++delta_t_next;
       }

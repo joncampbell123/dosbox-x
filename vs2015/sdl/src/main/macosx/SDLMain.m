@@ -194,6 +194,12 @@ static void setupWindowMenu(void)
     [windowMenuItem release];
 }
 
+static NSMenu *stock_menu = NULL;
+
+void* sdl1_hax_stock_osx_menu(void) {
+	return stock_menu;
+}
+
 /* Replacement for NSApplicationMain */
 static void CustomApplicationMain (int argc, char **argv)
 {
@@ -219,13 +225,18 @@ static void CustomApplicationMain (int argc, char **argv)
     setApplicationMenu();
     setupWindowMenu();
 
+    /* save a copy of our menu */
+    stock_menu = [NSApp mainMenu];
+    [stock_menu retain];
+
     /* Create SDLMain and make it the app delegate */
     sdlMain = [[SDLMain alloc] init];
     [NSApp setDelegate:sdlMain];
     
     /* Start the main event loop */
     [NSApp run];
-    
+ 
+    [stock_menu release];   
     [sdlMain release];
     [pool release];
 }

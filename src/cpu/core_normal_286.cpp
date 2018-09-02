@@ -29,6 +29,9 @@
 #include "paging.h"
 #include "mmx.h"
 
+bool CPU_RDMSR();
+bool CPU_WRMSR();
+
 #define CPU_CORE CPU_ARCHTYPE_286
 #define CPU_Core_Normal_Trap_Run CPU_Core286_Normal_Trap_Run
 
@@ -64,22 +67,22 @@ extern bool ignore_opcode_63;
 extern Bitu cycle_count;
 
 #if C_FPU
-#define CPU_FPU	1						//Enable FPU escape instructions
+#define CPU_FPU	1u						//Enable FPU escape instructions
 #endif
 
-#define CPU_PIC_CHECK 1
-#define CPU_TRAP_CHECK 1
+#define CPU_PIC_CHECK 1u
+#define CPU_TRAP_CHECK 1u
 
-#define OPCODE_NONE			0x000
-#define OPCODE_0F			0x100
+#define OPCODE_NONE			0x000u
+#define OPCODE_0F			0x100u
 
-#define OPCODE_SIZE			0			//DISABLED
+#define OPCODE_SIZE			0u			//DISABLED
 
-#define PREFIX_ADDR			0			//DISABLED
+#define PREFIX_ADDR			0u			//DISABLED
 
-#define PREFIX_REP			0x2
+#define PREFIX_REP			0x2u
 
-#define TEST_PREFIX_ADDR	(0)				//DISABLED
+#define TEST_PREFIX_ADDR	(0u)				//DISABLED
 #define TEST_PREFIX_REP		(core.prefixes & PREFIX_REP)
 
 #define DO_PREFIX_SEG(_SEG)					\
@@ -99,7 +102,7 @@ extern Bitu cycle_count;
 
 typedef PhysPt (*GetEAHandler)(void);
 
-static const Bit32u AddrMaskTable[2]={0x0000ffff,0x0000ffff};
+static const Bit32u AddrMaskTable[2]={0x0000ffffu,0x0000ffffu};
 
 static struct {
 	Bitu opcode_index;
@@ -111,9 +114,10 @@ static struct {
 	GetEAHandler * ea_table;
 } core;
 
-#define GETIP		(core.cseip-SegBase(cs))
+/* FIXME: Someone at Microsoft tell how subtracting PhysPt - PhysPt = __int64, or PhysPt + PhysPt = __int64 */
+#define GETIP		((PhysPt)(core.cseip-SegBase(cs)))
 #define SAVEIP		reg_eip=GETIP;
-#define LOADIP		core.cseip=(SegBase(cs)+reg_eip);
+#define LOADIP		core.cseip=((PhysPt)(SegBase(cs)+reg_eip));
 
 #define SegBase(c)	SegPhys(c)
 #define BaseDS		core.base_ds
@@ -159,7 +163,7 @@ Bits CPU_Core286_Normal_Run(void) {
 #if C_HEAVY_DEBUG
 		if (DEBUG_HeavyIsBreakpoint()) {
 			FillFlags();
-			return debugCallback;
+			return (Bits)debugCallback;
 		};
 #endif
 #endif

@@ -727,14 +727,14 @@
 		else {
 			Bit32s product0 = (Bit32s)dest->sw.w0 * (Bit32s)src.sw.w0;
 			Bit32s product1 = (Bit32s)dest->sw.w1 * (Bit32s)src.sw.w1;
-			dest->ud.d0 = product0 + product1;
+			dest->ud.d0 = (uint32_t)(product0 + product1);
 		}
 		if (dest->ud.d1 == 0x80008000 && src.ud.d1 == 0x80008000)
 			dest->ud.d1 = 0x80000000;
 		else {
 			Bit32s product2 = (Bit32s)dest->sw.w2 * (Bit32s)src.sw.w2;
 			Bit32s product3 = (Bit32s)dest->sw.w3 * (Bit32s)src.sw.w3;
-			dest->sd.d1 = product2 + product3;
+			dest->sd.d1 = (int32_t)(product2 + product3);
 		}
 		break;
 	}

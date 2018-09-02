@@ -48,11 +48,18 @@ IO_ReadHandler * io_readhandlers[3][IO_MAX];
 
 static IO_callout_vector IO_callouts[IO_callouts_max];
 
+#if C_DEBUG
+void DEBUG_EnableDebugger(void);
+#endif
+
 static Bitu IO_ReadBlocked(Bitu /*port*/,Bitu /*iolen*/) {
-	return ~0;
+	return ~0ul;
 }
 
 static void IO_WriteBlocked(Bitu /*port*/,Bitu /*val*/,Bitu /*iolen*/) {
+#if C_DEBUG && 0
+    DEBUG_EnableDebugger();
+#endif
 }
 
 static Bitu IO_ReadDefault(Bitu port,Bitu iolen) {
@@ -70,7 +77,7 @@ static Bitu IO_ReadDefault(Bitu port,Bitu iolen) {
 			(io_readhandlers[1][port+0](port+0,2) << 0) |
 			(io_readhandlers[1][port+2](port+2,2) << 16);
 	}
-	return ~0;
+	return ~0ul;
 }
 
 void IO_WriteDefault(Bitu port,Bitu val,Bitu iolen) {
@@ -172,7 +179,7 @@ static Bitu IO_ReadSlowPath(Bitu port,Bitu iolen) {
     IO_ReadHandler *f = iolen > 1 ? IO_ReadDefault : IO_ReadBlocked;
     unsigned int match = 0;
     unsigned int porti;
-    Bitu ret = ~0;
+    Bitu ret = ~0ul;
 
     /* check motherboard devices */
     if ((port & 0xFF00) == 0x0000) /* motherboard-level I/O */
@@ -287,6 +294,10 @@ void IO_WriteSlowPath(Bitu port,Bitu val,Bitu iolen) {
     LOG(LOG_MISC,LOG_DEBUG)("IO write slow path port=%x data=%x iolen=%u: device matches=%u",(unsigned int)port,(unsigned int)val,(unsigned int)iolen,(unsigned int)match);
     if (match == 0) f(port,val,iolen); /* if nobody responded, then call the default */
     if (match <= 1) io_writehandlers[porti][port] = f;
+
+#if C_DEBUG && 0
+    if (match == 0) DEBUG_EnableDebugger();
+#endif
 }
 
 void IO_RegisterReadHandler(Bitu port,IO_ReadHandler * handler,Bitu mask,Bitu range) {
@@ -603,8 +614,8 @@ void IO_CalloutObject::InvalidateCachedHandlers(void) {
      *      Not too bad, really. */
 
     /* for both the base I/O, as well as it's aliases, revert the I/O ports back to "slow path" */
-    for (p=m_port;p < 0x10000;p += alias_mask+1)
-        IO_InvalidateCachedHandler(p,range_mask+1);
+    for (p=m_port;p < 0x10000ul;p += alias_mask+1ul)
+        IO_InvalidateCachedHandler(p,range_mask+1ul);
 }
 
 void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/,IO_ReadCalloutHandler *r_handler,IO_WriteCalloutHandler *w_handler) {
@@ -758,7 +769,7 @@ try_again:
         size_t nsz = vec.size() * 2;
 
         LOG(LOG_MISC,LOG_WARN)("IO_AllocateCallout type %u expanding array to %u",(unsigned int)t,(unsigned int)nsz);
-        vec.alloc_from = vec.size(); /* allocate from end of old vector size */
+        vec.alloc_from = (unsigned int)vec.size(); /* allocate from end of old vector size */
         vec.resize(nsz);
         goto try_again;
     }

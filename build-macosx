@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# I'm sick and tired of all the churn the three versions of autoconf
+# are causing in this repo. Stop committing the configure scripts
+# and just autoregen.
+./autogen.sh || exit 1
+
+# where are we?
+top=`pwd`
+if test -z "$top" ; then exit 1; fi
+
+# fix
+chmod +x vs2015/sdl/build-scripts/strip_fPIC.sh
+
+# prefer to compile against our own copy of SDL 1.x
+echo Compiling our internal SDL 1.x
+(cd vs2015/sdl && ./build-dosbox.sh) || exit 1
+
+# perfer to compile against our own zlib
+echo Compiling our internal zlib
+(cd vs2015/zlib && ./build-dosbox.sh) || exit 1
+new="-I$top/vs2015/zlib/linux-host/include "
+nld="-L$top/vs2015/zlib/linux-host/lib "
+export CFLAGS="$new$CFLAGS"
+export LDFLAGS="$nld$LDFLAGS"
+export CPPFLAGS="$new$CPPFLAGS"
+export CXXFLAGS="$new$CXXFLAGS"
+
+# perfer to compile against our own libpng (comment this out to disable)
+echo Compiling our internal libpng
+(cd vs2015/libpng && ./build-dosbox.sh) || exit 1
+new="-I$top/vs2015/libpng/linux-host/include "
+nld="-L$top/vs2015/libpng/linux-host/lib "
+export CFLAGS="$new$CFLAGS"
+export LDFLAGS="$nld$LDFLAGS"
+export CPPFLAGS="$new$CPPFLAGS"
+export CXXFLAGS="$new$CXXFLAGS"
+
+# now compile ourself
+echo Compiling DOSBox-X
+chmod +x configure
+./configure --enable-core-inline --enable-debug=heavy --enable-avcodec --prefix=/usr || exit 1
+make -j3 || exit 1
+

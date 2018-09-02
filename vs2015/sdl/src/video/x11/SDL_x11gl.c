@@ -240,7 +240,7 @@ int X11_GL_CreateWindow(_THIS, int w, int h)
 	attributes.background_pixel = black;
 	attributes.border_pixel = black;
 	attributes.colormap = SDL_XColorMap;
-	mask = CWBackPixel | CWBorderPixel | CWColormap;
+	mask = /*CWBackPixel | CWBorderPixel | */CWColormap;
 
 	SDL_Window = XCreateWindow(SDL_Display, WMwindow,
 			0, 0, w, h, 0, glx_visualinfo->depth,
@@ -264,10 +264,22 @@ int X11_GL_CreateContext(_THIS)
 #if SDL_VIDEO_OPENGL_GLX
 
 	/* We do this to create a clean separation between X and GLX errors. */
-	XSync( SDL_Display, False );
+    XSync(GFX_Display, False);
+    XSync(SDL_Display, False);
+    glFinish();
+    glFlush();
+    XSync(GFX_Display, False);
+    XSync(SDL_Display, False);
+
 	glx_context = this->gl_data->glXCreateContext(GFX_Display, 
 				     glx_visualinfo, NULL, True);
-	XSync( GFX_Display, False );
+
+    XSync(GFX_Display, False);
+    XSync(SDL_Display, False);
+    glFinish();
+    glFlush();
+    XSync(GFX_Display, False);
+    XSync(SDL_Display, False);
 
 	if ( glx_context == NULL ) {
 		SDL_SetError("Could not create GL context");
@@ -318,7 +330,21 @@ void X11_GL_Shutdown(_THIS)
 #if SDL_VIDEO_OPENGL_GLX
 	/* Clean up OpenGL */
 	if( glx_context ) {
+        XSync(GFX_Display, False);
+        XSync(SDL_Display, False);
+        glFinish();
+        glFlush();
+        XSync(GFX_Display, False);
+        XSync(SDL_Display, False);
+
 		this->gl_data->glXMakeCurrent(GFX_Display, None, NULL);
+
+        XSync(GFX_Display, False);
+        XSync(SDL_Display, False);
+        glFinish();
+        glFlush();
+        XSync(GFX_Display, False);
+        XSync(SDL_Display, False);
 
 		if (glx_context != NULL)
 			this->gl_data->glXDestroyContext(GFX_Display, glx_context);
@@ -335,14 +361,27 @@ void X11_GL_Shutdown(_THIS)
 int X11_GL_MakeCurrent(_THIS)
 {
 	int retval;
-	
+
+    XSync(GFX_Display, False);
+    XSync(SDL_Display, False);
+    glFinish();
+    glFlush();
+    XSync(GFX_Display, False);
+    XSync(SDL_Display, False);
+
 	retval = 0;
 	if ( ! this->gl_data->glXMakeCurrent(GFX_Display,
 	                                     SDL_Window, glx_context) ) {
 		SDL_SetError("Unable to make GL context current");
 		retval = -1;
 	}
-	XSync( GFX_Display, False );
+
+    XSync(GFX_Display, False);
+    XSync(SDL_Display, False);
+    glFinish();
+    glFlush();
+    XSync(GFX_Display, False);
+    XSync(SDL_Display, False);
 
 	/* More Voodoo X server workarounds... Grr... */
 	SDL_Lock_EventThread();

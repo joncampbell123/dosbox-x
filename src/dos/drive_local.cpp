@@ -40,7 +40,7 @@ class localFile : public DOS_File {
 public:
 	localFile(const char* name, FILE * handle);
 	bool Read(Bit8u * data,Bit16u * size);
-	bool Write(Bit8u * data,Bit16u * size);
+	bool Write(const Bit8u * data,Bit16u * size);
 	bool Seek(Bit32u * pos,Bit32u type);
 	bool Close();
 #ifdef WIN32
@@ -72,8 +72,13 @@ private:
 typedef wchar_t host_cnv_char_t;
 # define host_cnv_use_wchar
 # define _HT(x) L##x
-# define ht_stat_t struct _stat64i32 /* WTF Microsoft?? Why aren't _stat and _wstat() consistent on stat struct type? */
-# define ht_stat(x,y) _wstat64i32(x,y)
+# if defined(__MINGW32__) /* TODO: Get MinGW to support 64-bit file offsets, at least targeting Windows XP! */
+#  define ht_stat_t struct _stat
+#  define ht_stat(x,y) _wstat(x,y)
+# else
+#  define ht_stat_t struct _stat64i32 /* WTF Microsoft?? Why aren't _stat and _wstat() consistent on stat struct type? */
+#  define ht_stat(x,y) _wstat64i32(x,y)
+# endif
 # define ht_access(x,y) _waccess(x,y)
 # define ht_strdup(x) _wcsdup(x)
 # define ht_unlink(x) _wunlink(x)
@@ -180,7 +185,7 @@ template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS(host_cnv_char_t *d/*CROSS_
 template <class MT> int SBCS_From_Host_Find(int c,const MT *map,const size_t map_max) {
     for (size_t i=0;i < map_max;i++) {
         if ((MT)c == map[i])
-            return i;
+            return (int)i;
     }
 
     return -1;
@@ -196,7 +201,7 @@ template <class MT> int DBCS_SHIFTJIS_From_Host_Find(int c,const MT *hitbl,const
 
         for (size_t l=0;l < 0x40;l++) {
             if ((MT)c == rawtbl[ofs+l])
-                return (h << 6) + l;
+                return (int)((h << 6) + l);
         }
     }
 
@@ -223,12 +228,12 @@ template <class MT> bool String_HOST_TO_DBCS_SHIFTJIS(char *d/*CROSS_LEN*/,const
 
         if (oc >= 0x100) {
             if ((d+1) >= df) return false;
-            *d++ = (unsigned char)(oc >> 8U);
-            *d++ = (unsigned char)oc;
+            *d++ = (char)(oc >> 8U);
+            *d++ = (char)oc;
         }
         else {
             if (d >= df) return false;
-            *d++ = (unsigned char)oc;
+            *d++ = (char)oc;
         }
     }
 
@@ -257,7 +262,7 @@ template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const host_cnv
             return false; // non-representable
 
         if (d >= df) return false;
-        *d++ = (unsigned char)oc;
+        *d++ = (char)oc;
     }
 
     assert(d <= df);
@@ -283,7 +288,7 @@ bool String_HOST_TO_ASCII(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_L
             return false; // non-representable
 
         if (d >= df) return false;
-        *d++ = (unsigned char)ic;
+        *d++ = (char)ic;
     }
 
     assert(d <= df);
@@ -347,6 +352,13 @@ char *CodePageHostToGuest(const host_cnv_char_t *s) {
 }
 
 bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u /*attributes*/) {
+    if (nocachedir) EmptyCache();
+
+    if (readonly) {
+		DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
+
 //TODO Maybe care for attributes but not likely
 	char newname[CROSS_LEN];
 	strcpy(newname,basedir);
@@ -360,6 +372,7 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u /*attribu
     host_cnv_char_t *host_name = CodePageGuestToHost(temp_name);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND); // FIXME
         return false;
     }
 
@@ -398,6 +411,15 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u /*attribu
 }
 
 bool localDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
+    if (nocachedir) EmptyCache();
+
+    if (readonly) {
+        if ((flags&0xf) == OPEN_WRITE || (flags&0xf) == OPEN_READWRITE) {
+            DOS_SetError(DOSERR_WRITE_PROTECTED);
+            return false;
+        }
+    }
+
 	const host_cnv_char_t * type;
 	switch (flags&0xf) {
 	case OPEN_READ:        type = _HT("rb");  break;
@@ -434,6 +456,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
     host_cnv_char_t *host_name = CodePageGuestToHost(newname);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND);
         return false;
     }
 
@@ -452,7 +475,11 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 #endif
 			if (hmm) {
 				fclose(hmm);
+#ifdef host_cnv_use_wchar
+				LOG_MSG("Warning: file %ls exists and failed to open in write mode.\nPlease Remove write-protection",host_name);
+#else
 				LOG_MSG("Warning: file %s exists and failed to open in write mode.\nPlease Remove write-protection",host_name);
+#endif
 			}
 		}
 		return false;
@@ -519,6 +546,11 @@ bool localDrive::GetSystemFilename(char *sysName, char const * const dosName) {
 }
 
 bool localDrive::FileUnlink(const char * name) {
+    if (readonly) {
+        DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
+
 	char newname[CROSS_LEN];
 	strcpy(newname,basedir);
 	strcat(newname,name);
@@ -529,6 +561,7 @@ bool localDrive::FileUnlink(const char * name) {
     host_cnv_char_t *host_name = CodePageGuestToHost(fullname);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,fullname);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND);
         return false;
     }
 
@@ -577,6 +610,8 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	strcat(tempDir,_dir);
 	CROSS_FILENAME(tempDir);
 
+    if (nocachedir) EmptyCache();
+
 	if (allocation.mediaid==0xF0 ) {
 		EmptyCache(); //rescan floppie-content on each findfirst
 	}
@@ -623,6 +658,8 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	}
 	return FindNext(dta);
 }
+
+char * shiftjis_upcase(char * str);
 
 bool localDrive::FindNext(DOS_DTA & dta) {
 
@@ -674,8 +711,11 @@ again:
 
 	if(strlen(dir_entcopy)<DOS_NAMELENGTH_ASCII){
 		strcpy(find_name,dir_entcopy);
-		upcase(find_name);
-	} 
+        if (IS_PC98_ARCH)
+            shiftjis_upcase(find_name);
+        else
+            upcase(find_name);
+    } 
 
 	find_size=(Bit32u) stat_block.st_size;
 	struct tm *time;
@@ -691,6 +731,8 @@ again:
 }
 
 bool localDrive::GetFileAttr(const char * name,Bit16u * attr) {
+    if (nocachedir) EmptyCache();
+
 	char newname[CROSS_LEN];
 	strcpy(newname,basedir);
 	strcat(newname,name);
@@ -701,6 +743,7 @@ bool localDrive::GetFileAttr(const char * name,Bit16u * attr) {
     host_cnv_char_t *host_name = CodePageGuestToHost(newname);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND);
         return false;
     }
 
@@ -715,6 +758,13 @@ bool localDrive::GetFileAttr(const char * name,Bit16u * attr) {
 }
 
 bool localDrive::MakeDir(const char * dir) {
+    if (nocachedir) EmptyCache();
+
+    if (readonly) {
+        DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
+
 	char newdir[CROSS_LEN];
 	strcpy(newdir,basedir);
 	strcat(newdir,dir);
@@ -726,6 +776,7 @@ bool localDrive::MakeDir(const char * dir) {
     host_cnv_char_t *host_name = CodePageGuestToHost(temp_name);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newdir);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND); // FIXME
         return false;
     }
 
@@ -740,6 +791,13 @@ bool localDrive::MakeDir(const char * dir) {
 }
 
 bool localDrive::RemoveDir(const char * dir) {
+    if (nocachedir) EmptyCache();
+
+    if (readonly) {
+        DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
+
 	char newdir[CROSS_LEN];
 	strcpy(newdir,basedir);
 	strcat(newdir,dir);
@@ -751,6 +809,7 @@ bool localDrive::RemoveDir(const char * dir) {
     host_cnv_char_t *host_name = CodePageGuestToHost(temp_name);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newdir);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND);
         return false;
     }
 
@@ -764,6 +823,8 @@ bool localDrive::RemoveDir(const char * dir) {
 }
 
 bool localDrive::TestDir(const char * dir) {
+    if (nocachedir) EmptyCache();
+
 	char newdir[CROSS_LEN];
 	strcpy(newdir,basedir);
 	strcat(newdir,dir);
@@ -790,6 +851,11 @@ bool localDrive::TestDir(const char * dir) {
 }
 
 bool localDrive::Rename(const char * oldname,const char * newname) {
+    if (readonly) {
+        DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
+
     host_cnv_char_t *ht;
 
 	char newold[CROSS_LEN];
@@ -808,6 +874,7 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
     ht = CodePageGuestToHost(newold);
     if (ht == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newold);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND);
         return false;
     }
     host_cnv_char_t *o_temp_name = ht_strdup(ht);
@@ -817,6 +884,7 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
     if (ht == NULL) {
         free(o_temp_name);
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newnew);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND); // FIXME
         return false;
     }
     host_cnv_char_t *n_temp_name = ht_strdup(ht);
@@ -845,6 +913,8 @@ bool localDrive::AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,
 }
 
 bool localDrive::FileExists(const char* name) {
+    if (nocachedir) EmptyCache();
+
 	char newname[CROSS_LEN];
 	strcpy(newname,basedir);
 	strcat(newname,name);
@@ -865,6 +935,8 @@ bool localDrive::FileExists(const char* name) {
 }
 
 bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
+    if (nocachedir) EmptyCache();
+
 	char newname[CROSS_LEN];
 	strcpy(newname,basedir);
 	strcat(newname,name);
@@ -934,7 +1006,11 @@ bool localDrive::read_directory_first(void *handle, char* entry_name, bool& is_d
         // guest to host code page translation
         char *n_temp_name = CodePageHostToGuest(tmp);
         if (n_temp_name == NULL) {
+#ifdef host_cnv_use_wchar
+            LOG_MSG("%s: Filename '%ls' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
+#else
             LOG_MSG("%s: Filename '%s' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
+#endif
             return false;
         }
         strcpy(entry_name,n_temp_name);
@@ -947,12 +1023,17 @@ bool localDrive::read_directory_first(void *handle, char* entry_name, bool& is_d
 bool localDrive::read_directory_next(void *handle, char* entry_name, bool& is_directory) {
     host_cnv_char_t tmp[MAX_PATH+1];
 
+next:
     if (::read_directory_nextw((dir_information*)handle, tmp, is_directory)) {
         // guest to host code page translation
         char *n_temp_name = CodePageHostToGuest(tmp);
         if (n_temp_name == NULL) {
+#ifdef host_cnv_use_wchar
+            LOG_MSG("%s: Filename '%ls' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
+#else
             LOG_MSG("%s: Filename '%s' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
-            return false;
+#endif
+            goto next;
         }
         strcpy(entry_name,n_temp_name);
         return true;
@@ -994,7 +1075,7 @@ bool localFile::Read(Bit8u * data,Bit16u * size) {
 	return true;
 }
 
-bool localFile::Write(Bit8u * data,Bit16u * size) {
+bool localFile::Write(const Bit8u * data,Bit16u * size) {
 	if ((this->flags & 0xf) == OPEN_READ) {	// check if file opened in read-only mode
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
@@ -1194,7 +1275,7 @@ cdromDrive::cdromDrive(const char driveLetter, const char * startdir,Bit16u _byt
 
 bool cdromDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 	if ((flags&0xf)==OPEN_READWRITE) {
-		flags &= ~OPEN_READWRITE;
+		flags &= ~((unsigned int)OPEN_READWRITE);
 	} else if ((flags&0xf)==OPEN_WRITE) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;

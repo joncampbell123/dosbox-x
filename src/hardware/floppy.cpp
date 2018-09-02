@@ -5,6 +5,10 @@
  * [insert open source license here]
  */
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
+
 #include <math.h>
 #include <assert.h>
 #include "dosbox.h"
@@ -170,7 +174,7 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 		idx,devidx,fdc->motor_steps,fdc->motor_dir,fdc->current_cylinder[devidx]);
 #endif
 
-	if (dev != NULL && dev->track0) {
+	if (dev != NULL && dev->track0 && fdc->motor_dir < 0) {
 		LOG_MSG("FDC: motor step abort. floppy drive signalling track0\n");
 		fdc->motor_steps = 0;
 		fdc->current_cylinder[devidx] = 0;
@@ -183,10 +187,11 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 			fdc->current_cylinder[devidx] = 0;
 			fdc->motor_steps = 0;
 		}
-		else if (fdc->current_cylinder[devidx] > 255) {
+/* NTS: fdc->current_cylinder[] is unsigned char, will never exceed 255 */
+/*		else if (fdc->current_cylinder[devidx] > 255) {
 			fdc->current_cylinder[devidx] = 255;
 			fdc->motor_steps = 0;
-		}
+		} */
 
 		if (dev != NULL)
 			dev->motor_step(fdc->motor_dir);
@@ -202,7 +207,7 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 		fdc->data_register_ready = 1;
 		fdc->busy_status = 0;
 		fdc->ST[0] &= 0x1F;
-		if (fdc->current_cylinder == 0) fdc->ST[0] |= 0x20;
+		if (fdc->current_cylinder[devidx] == 0) fdc->ST[0] |= 0x20;
 		/* fire IRQ */
 		fdc->raise_irq();
 		/* no result phase */
@@ -247,6 +252,7 @@ FloppyDevice::~FloppyDevice() {
 }
 
 FloppyDevice::FloppyDevice(FloppyController *c) {
+    (void)c;//UNUSED
 	motor = select = false;
 	current_track = 0;
 	int13_disk = -1;
@@ -263,7 +269,7 @@ void FloppyDevice::set_motor(bool enable) {
 
 void FloppyDevice::motor_step(int dir) {
 	current_track += dir;
-	if (current_track < 0) current_track = 0;
+//	if (current_track < 0) current_track = 0;
 	if (current_track > 84) current_track = 84;
 	track0 = (current_track == 0);
 }
@@ -277,6 +283,7 @@ bool FloppyController::dma_irq_enabled() {
 }
 
 static void FDC_Destroy(Section* sec) {
+    (void)sec;//UNUSED
 	for (unsigned int i=0;i < MAX_FLOPPY_CONTROLLERS;i++) {
 		if (floppycontroller[i] != NULL) {
 			delete floppycontroller[i];
@@ -303,35 +310,23 @@ static void FDC_Init(Section* sec,unsigned char fdc_interface) {
 
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing floppy controller interface %u",fdc_interface);
 
-	fdc = floppycontroller[fdc_interface] = new FloppyController(sec,fdc_interface);
-	fdc->install_io_port();
+    if (!IS_PC98_ARCH) {
+        fdc = floppycontroller[fdc_interface] = new FloppyController(sec,fdc_interface);
+        fdc->install_io_port();
 
-	PIC_SetIRQMask(fdc->IRQ,false);
+		PIC_SetIRQMask((unsigned int)(fdc->IRQ), false);
+	}
 }
 
 void FDC_OnReset(Section *sec) {
+    (void)sec;//UNUSED
 	FDC_Init(control->GetSection("fdc, primary"),0);
-}
-
-void FDC_OnEnterPC98(Section *sec) {
-	for (unsigned int i=0;i < MAX_FLOPPY_CONTROLLERS;i++) {
-		if (floppycontroller[i] != NULL) {
-			delete floppycontroller[i];
-			floppycontroller[i] = NULL;
-		}
-	}
-
-	init_floppy = 0;
 }
 
 void FDC_Primary_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing floppy controller emulation");
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(FDC_OnReset));
-
-    // TODO: I *think* the floppy controller is the same NEC chipset as used on IBM.
-    //       However I don't know what the I/O ports and IRQ are yet.
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(FDC_OnEnterPC98));
 }
 
 void FloppyController::update_ST3() {
@@ -550,8 +545,8 @@ void FloppyController::on_dor_change(unsigned char b) {
 
 	/* DMA/IRQ enable */
 	if (chg & 0x08 && IRQ >= 0) {
-		if ((b&0x08) && irq_pending) PIC_ActivateIRQ(IRQ);
-		else PIC_DeActivateIRQ(IRQ);
+		if ((b&0x08) && irq_pending) PIC_ActivateIRQ((unsigned int)IRQ);
+		else PIC_DeActivateIRQ((unsigned int)IRQ);
 	}
 
 	/* drive motors */
@@ -669,9 +664,9 @@ void FloppyController::on_fdc_in_command() {
 			 * current physical cylinder position must be within range of the image. request must have MFM bit set. */
 			dma = GetDMAChannel(DMA);
 			if (dev != NULL && dma != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
-				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4?1:0) <= image->heads &&
-				(in_cmd[1]&4?1:0) == in_cmd[3] && in_cmd[2] == current_cylinder[devidx] &&
-				in_cmd[5] == 2/*512 bytes/sector*/ && in_cmd[4] > 0 && in_cmd[4] <= image->sectors) {
+				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4U?1U:0U) <= image->heads &&
+				(in_cmd[1]&4U?1U:0U) == in_cmd[3] && in_cmd[2] == current_cylinder[devidx] &&
+				in_cmd[5] == 2U/*512 bytes/sector*/ && in_cmd[4] > 0U && in_cmd[4] <= image->sectors) {
 				unsigned char sector[512];
 				bool fail = false;
 
@@ -699,6 +694,12 @@ void FloppyController::on_fdc_in_command() {
 
 					/* if we're at the last sector of the track according to program, then stop */
 					if (in_cmd[4] == in_cmd[6]) break;
+
+                    /* next sector (TODO "multi-track" mode) */
+                    if (in_cmd[4] == image->sectors)
+                        in_cmd[4] = 1;
+                    else
+                        in_cmd[4]++;
 				}
 
 				if (fail) {
@@ -747,9 +748,9 @@ void FloppyController::on_fdc_in_command() {
 			 * current physical cylinder position must be within range of the image. request must have MFM bit set. */
 			dma = GetDMAChannel(DMA);
 			if (dev != NULL && dma != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
-				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4?1:0) <= image->heads &&
-				(in_cmd[1]&4?1:0) == in_cmd[3] && in_cmd[2] == current_cylinder[devidx] &&
-				in_cmd[5] == 2/*512 bytes/sector*/ && in_cmd[4] > 0 && in_cmd[4] <= image->sectors) {
+				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4U?1U:0U) <= image->heads &&
+				(in_cmd[1]&4U?1U:0U) == in_cmd[3] && in_cmd[2] == current_cylinder[devidx] &&
+				in_cmd[5] == 2U/*512 bytes/sector*/ && in_cmd[4] > 0U && in_cmd[4] <= image->sectors) {
 				unsigned char sector[512];
 				bool fail = false;
 
@@ -777,6 +778,12 @@ void FloppyController::on_fdc_in_command() {
 
 					/* if we're at the last sector of the track according to program, then stop */
 					if (in_cmd[4] == in_cmd[6]) break;
+
+                    /* next sector (TODO "multi-track" mode) */
+                    if (in_cmd[4] == image->sectors)
+                        in_cmd[4] = 1;
+                    else
+                        in_cmd[4]++;
 				}
 
 				if (fail) {
@@ -878,7 +885,7 @@ void FloppyController::on_fdc_in_command() {
 			/* must have a device present. must have an image. device motor and select must be enabled.
 			 * current physical cylinder position must be within range of the image. request must have MFM bit set. */
 			if (dev != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
-				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4?1:0) <= image->heads) {
+				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4U?1U:0U) <= image->heads) {
 				int ns = (int)floor(dev->floppy_image_motor_position() * image->sectors);
 				/* TODO: minor delay to emulate time for one sector to pass under the head */
 				reset_res();
@@ -963,7 +970,7 @@ void FloppyController::on_fdc_in_command() {
 			}
 			else {
 				/* delay due to stepping the head to the desired cylinder */
-				motor_steps = abs(in_cmd[2] - current_cylinder[devidx]);
+				motor_steps = (unsigned int)abs((int)in_cmd[2] - (int)current_cylinder[devidx]);
 				motor_dir = in_cmd[2] > current_cylinder[devidx] ? 1 : -1;
 
 				/* the command takes time to move the head */
@@ -1269,12 +1276,12 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 
 void FloppyController::raise_irq() {
 	irq_pending = true;
-	if (dma_irq_enabled() && IRQ >= 0) PIC_ActivateIRQ(IRQ);
+	if (dma_irq_enabled() && IRQ >= 0) PIC_ActivateIRQ((unsigned int)IRQ);
 }
 
 void FloppyController::lower_irq() {
 	irq_pending = false;
-	if (IRQ >= 0) PIC_DeActivateIRQ(IRQ);
+	if (IRQ >= 0) PIC_DeActivateIRQ((unsigned int)IRQ);
 }
 
 void BIOS_Post_register_FDC() {

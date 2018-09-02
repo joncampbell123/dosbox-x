@@ -87,10 +87,10 @@ Bitu INT10_Handler(void) {
 		else INT10_SetActivePage(reg_al);
 		break;	
 	case 0x06:								/* Scroll Up */
-		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,-reg_al,reg_bh,0xFF);
+		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,-(Bit8s)reg_al,reg_bh,0xFF);
 		break;
 	case 0x07:								/* Scroll Down */
-		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,reg_al,reg_bh,0xFF);
+		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,(Bit8s)reg_al,reg_bh,0xFF);
 		break;
 	case 0x08:								/* Read character & attribute at cursor */
 		INT10_ReadCharAttr(&reg_ax,reg_bh);
@@ -129,8 +129,19 @@ Bitu INT10_Handler(void) {
 		reg_ah=(Bit8u)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
 		break;					
 	case 0x10:								/* Palette functions */
-		if (!IS_EGAVGA_ARCH && (reg_al>0x02)) break;
-		else if (!IS_VGA_ARCH && (reg_al>0x03)) break;
+        if (machine==MCH_MCGA) {
+            if (!(reg_al == 0x10 || reg_al == 0x12 || reg_al == 0x15 || reg_al == 0x17 || reg_al == 0x18 || reg_al == 0x19))
+                break;
+        }
+        else if (machine==MCH_PCJR) {
+            if (reg_al>0x02) /* "Looking at the PCjr tech ref page A-61, ... the BIOS listing stops at subfunction 2." */
+                break;
+        }
+        else {
+            if (!IS_EGAVGA_ARCH && (reg_al>0x02)) break;
+            else if (!IS_VGA_ARCH && (reg_al>0x03)) break;
+        }
+
 		switch (reg_al) {
 		case 0x00:							/* SET SINGLE PALETTE REGISTER */
 			INT10_SetSinglePaletteRegister(reg_bl,reg_bh);
@@ -192,8 +203,15 @@ Bitu INT10_Handler(void) {
 		}
 		break;
 	case 0x11:								/* Character generator functions */
-		if (!IS_EGAVGA_ARCH) 
-			break;
+        if (machine==MCH_MCGA) {
+            if (!(reg_al == 0x24 || reg_al == 0x30))
+                break;
+        }
+        else {
+            if (!IS_EGAVGA_ARCH)
+                break;
+        }
+
 		switch (reg_al) {
 /* Textmode calls */
 		case 0x00:			/* Load user font */
@@ -305,12 +323,27 @@ graphics_chars:
 		}
 		break;
 	case 0x12:								/* alternate function select */
-		if (!IS_EGAVGA_ARCH) 
+		if (!IS_EGAVGA_ARCH && machine != MCH_MCGA) 
 			break;
 		switch (reg_bl) {
 		case 0x10:							/* Get EGA Information */
-			reg_bh=(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS)==0x3B4);	
-			reg_bl=3;	//256 kb
+			reg_bh=(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS)==0x3B4);
+            if (IS_EGA_ARCH) {
+                     if (vga.mem.memsize >= (256*1024))
+                    reg_bl=3;	//256 kb
+                else if (vga.mem.memsize >= (192*1024))
+                    reg_bl=2;	//192 kb
+                else if (vga.mem.memsize >= (128*1024))
+                    reg_bl=1;	//128 kb
+                else
+                    reg_bl=0;	//64 kb
+            }
+            else if (machine == MCH_MCGA) {
+                reg_bl=0;	//64 kb
+            }
+            else {
+                reg_bl=3;	//256 kb
+            }
 			reg_cl=real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES) & 0x0F;
 			reg_ch=real_readb(BIOSMEM_SEG,BIOSMEM_SWITCHES) >> 4;
 			break;
@@ -464,7 +497,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 		INT10_WriteString(reg_dh,reg_dl,reg_al,reg_bl,SegPhys(es)+reg_bp,reg_cx,reg_bh);
 		break;
 	case 0x1A:								/* Display Combination */
-		if (!IS_VGA_ARCH) break;
+		if (!IS_VGA_ARCH && machine != MCH_MCGA) break;
 		if (reg_al<2) {
 			INT10_DisplayCombinationCode(&reg_bx,(reg_al==1));
 			reg_ax=0x1A;	// high part destroyed or zeroed depending on BIOS
@@ -618,19 +651,19 @@ CX	640x480	800x600	  1024x768/1280x1024
 				reg_ax=0x004f;
 				break;
 			case 0x01:						/* Get code for "set window" */
-				reg_edi=RealOff(int10.rom.pmode_interface)+int10.rom.pmode_interface_window;
+				reg_edi=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_window;
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
 				reg_cx=0x10;		//0x10 should be enough for the callbacks
 				reg_ax=0x004f;
 				break;
 			case 0x02:						/* Get code for "set display start" */
-				reg_edi=RealOff(int10.rom.pmode_interface)+int10.rom.pmode_interface_start;
+				reg_edi=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_start;
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
 				reg_cx=0x10;		//0x10 should be enough for the callbacks
 				reg_ax=0x004f;
 				break;
 			case 0x03:						/* Get code for "set palette" */
-				reg_edi=RealOff(int10.rom.pmode_interface)+int10.rom.pmode_interface_palette;
+				reg_edi=RealOff(int10.rom.pmode_interface)+(Bit32u)int10.rom.pmode_interface_palette;
 				SegSet16(es,RealSeg(int10.rom.pmode_interface));
 				reg_cx=0x10;		//0x10 should be enough for the callbacks
 				reg_ax=0x004f;
@@ -762,7 +795,7 @@ void INT10_OnResetComplete() {
     if (BIOS_VIDEO_TABLE_LOCATION != (~0U) && BIOS_VIDEO_TABLE_LOCATION != 0) {
         LOG(LOG_MISC,LOG_DEBUG)("INT 10h freeing BIOS VIDEO TABLE LOCATION");
         ROMBIOS_FreeMemory(RealToPhys(BIOS_VIDEO_TABLE_LOCATION));
-        BIOS_VIDEO_TABLE_LOCATION = ~0;		// RealMake(0xf000,0xf0a4)
+        BIOS_VIDEO_TABLE_LOCATION = ~0u;		// RealMake(0xf000,0xf0a4)
     }
 
     void VESA_OnReset_Clear_Callbacks(void);
@@ -810,6 +843,74 @@ typedef struct tagBITMAPINFOHEADER {
 } BITMAPINFOHEADER, *PBITMAPINFOHEADER;
 #endif
 
+bool Load_FONT_ROM(void) {
+    unsigned int hibyte,lowbyte,r;
+    unsigned char tmp[256*16]; // 8x16 256 cells
+    FILE *fp;
+
+             fp = fopen("font.rom","rb");
+    if (!fp) fp = fopen("FONT.rom","rb");
+    if (!fp) fp = fopen("font.ROM","rb");
+    if (!fp) fp = fopen("FONT.ROM","rb");
+    if (!fp) {
+        LOG_MSG("PC-98 font loading: FONT.ROM not found");
+        return false;
+    }
+
+    // prepare
+    memset(vga.draw.font,0,sizeof(vga.draw.font));
+
+    /* FONT.ROM is always 288768 bytes large and contains:
+     *
+     * 256      8x8     Single-wide character cells         at      0x00000
+     * 256      8x16    Single-wide character cells         at      0x00800
+     * 96 x 92  16x16   Double-wide character cells         at      0x01800 */
+    fseek(fp,0,SEEK_END);
+    if (ftell(fp) != 288768) {
+        LOG_MSG("PC-98 FONT.ROM is not the correct size");
+        goto fail;
+    }
+    fseek(fp,0,SEEK_SET);
+
+    /* NTS: We do not yet use the 8x8 character set */
+
+    /* 8x16 single-wide */
+    fseek(fp,0x800,SEEK_SET);
+    if (fread(tmp,256*16,1,fp) != 1) goto fail;
+    for (lowbyte=0;lowbyte < 256;lowbyte++) {
+        for (r=0;r < 16;r++) {
+            vga.draw.font[(lowbyte*16)+r] = tmp[(lowbyte*16)+r];
+        }
+    }
+
+    /* 16x16 double-wide */
+    assert(sizeof(tmp) >= (96 * 16 * 2));
+    for (lowbyte=0x01;lowbyte < 0x5D;lowbyte++) {
+        fseek(fp,0x1800 + ((lowbyte - 0x01) * 96 * 16 * 2/*16 wide*/),SEEK_SET);
+        if (fread(tmp,96 * 16 * 2/*16 wide*/,1,fp) != 1) goto fail;
+
+        for (hibyte=0;hibyte < 96;hibyte++) {
+            unsigned int i;
+            unsigned int o;
+
+            i = hibyte * 16 * 2;
+            o = (((hibyte + 0x20) * 128) + lowbyte) * 16 * 2;
+
+            for (r=0;r < 16;r++) {
+                vga.draw.font[o+(r*2)  ] = tmp[i+r+0];
+                vga.draw.font[o+(r*2)+1] = tmp[i+r+16];
+            }
+        }
+    }
+
+    LOG_MSG("FONT.ROM loaded");
+    fclose(fp);
+    return true;
+fail:
+    fclose(fp);
+    return false;
+}
+
 /* ANEX86.BMP from the Anex86 emulator.
  * Holds the font as a giant 2048x2048 1-bit monochromatic bitmap. */
 /* We load it separately because I am uncertain whether it is legal or not to
@@ -818,12 +919,39 @@ bool Load_Anex86_Font(void) {
     unsigned char tmp[(2048/8)*16]; /* enough for one 2048x16 row and bitmap header */
     unsigned int hibyte,lowbyte,r;
     unsigned int bmp_ofs;
-    FILE *fp;
+    FILE *fp = NULL;
 
-    fp = fopen("anex86.bmp","rb");
+    /* ANEX86.BMP accurate dump of actual font */
+    if (!fp) fp = fopen("anex86.bmp","rb");
     if (!fp) fp = fopen("ANEX86.bmp","rb");
+    if (!fp) fp = fopen("ANEX86.BMP","rb");
+
+    /* FREECG98.BMP free open source generated copy from system fonts */
+    if (!fp) fp = fopen("freecg98.bmp","rb");
+    if (!fp) fp = fopen("FREECG98.bmp","rb");
+    if (!fp) fp = fopen("FREECG98.BMP","rb");
+
+    /* Linux builds allow FREECG98.BMP in /usr/share/dosbox-x */
+    /* Mac OS X builds carry FREECG98.BMP in the Resources subdirectory of the .app bundle */
+    {
+        std::string resdir,tmpdir;
+
+        Cross::GetPlatformResDir(resdir);
+        if (!resdir.empty()) {
+            /* FREECG98.BMP free open source generated copy from system fonts */
+            if (!fp) {
+                tmpdir = resdir + "freecg98.bmp";
+                fp = fopen(tmpdir.c_str(),"rb");
+            }
+            if (!fp) {
+                tmpdir = resdir + "FREECG98.BMP";
+                fp = fopen(tmpdir.c_str(),"rb");
+            }
+        }
+    }
+
     if (!fp) {
-        LOG_MSG("PC-98 font loading: ANEX86.BMP not found");
+        LOG_MSG("PC-98 font loading: neither ANEX86.BMP nor FREECG98.BMP found");
         return false;
     }
 
@@ -872,16 +1000,18 @@ bool Load_Anex86_Font(void) {
         }
     }
 
-    LOG_MSG("ANEX86.BMP font loaded");
+    LOG_MSG("ANEX86.BMP/FREECG98.BMP font loaded");
     fclose(fp);
     return true;
 fail:
-    LOG_MSG("ANEX86.BMP invalid, ignoring");
+    LOG_MSG("ANEX86.BMP/FREECG98.BMP invalid, ignoring");
     fclose(fp);
     return false;
 }
 
 extern Bit8u int10_font_16[256 * 16];
+
+extern VideoModeBlock PC98_Mode;
 
 bool Load_VGAFont_As_PC98(void) {
     unsigned int i;
@@ -893,64 +1023,97 @@ bool Load_VGAFont_As_PC98(void) {
 }
 
 void INT10_EnterPC98(Section *sec) {
-    /* shut down INT 10h for PC-98 mode */
-    if (call_10 != 0) {
-        CALLBACK_DeAllocate(call_10);
-        RealSetVec(0x10,0);
-        call_10 = 0;
-    }
-
-    /* remove VGA BIOS */
-    void INT10_RemoveVGABIOS(void);
-    INT10_RemoveVGABIOS();
-
-    /* load PC-98 character ROM data, if possible */
-    {
-        bool ok = false;
-
-        /* We can use ANEX86.BMP from the Anex86 emulator */
-        if (!ok) ok = Load_Anex86_Font();
-        /* Failing all else we can just re-use the IBM VGA 8x16 font to show SOMETHING on the screen.
-         * Japanese text will not display properly though. */
-        if (!ok) ok = Load_VGAFont_As_PC98();
-    }
+    (void)sec;//UNUSED
+    /* deprecated */
 }
 
 void INT10_Startup(Section *sec) {
+    (void)sec;//UNUSED
 	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");
 
     unmask_irq0_on_int10_setmode = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask timer on int 10 setmode");
 	int16_unmask_irq1_on_read = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask keyboard on int 16 read");
     int16_ah_01_cf_undoc = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("int16 keyboard polling undocumented cf behavior");
 
-	INT10_InitVGA();
-	if (IS_TANDY_ARCH) SetupTandyBios();
-	/* Setup the INT 10 vector */
-	call_10=CALLBACK_Allocate();	
-	CALLBACK_Setup(call_10,&INT10_Handler,CB_IRET,"Int 10 video");
-	RealSetVec(0x10,CALLBACK_RealPointer(call_10));
-	//Init the 0x40 segment and init the datastructures in the the video rom area
-	INT10_SetupRomMemory();
-	INT10_Seg40Init();
-	INT10_SetupVESA();
-	INT10_SetupRomMemoryChecksum();//SetupVesa modifies the rom as well.
-	INT10_SetupBasicVideoParameterTable();
+    if (!IS_PC98_ARCH) {
+        INT10_InitVGA();
+        if (IS_TANDY_ARCH) SetupTandyBios();
+        /* Setup the INT 10 vector */
+        call_10=CALLBACK_Allocate();	
+        CALLBACK_Setup(call_10,&INT10_Handler,CB_IRET,"Int 10 video");
+        RealSetVec(0x10,CALLBACK_RealPointer(call_10));
+        //Init the 0x40 segment and init the datastructures in the the video rom area
+        INT10_SetupRomMemory();
+        INT10_Seg40Init();
+        INT10_SetupVESA();
+        INT10_SetupRomMemoryChecksum();//SetupVesa modifies the rom as well.
+        INT10_SetupBasicVideoParameterTable();
 
-	LOG(LOG_MISC,LOG_DEBUG)("INT 10: VGA bios used %d / %d memory",(int)int10.rom.used,(int)VGA_BIOS_Size);
-	if (int10.rom.used > VGA_BIOS_Size) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
-		E_Exit("VGA BIOS size too small");
+        LOG(LOG_MISC,LOG_DEBUG)("INT 10: VGA bios used %d / %d memory",(int)int10.rom.used,(int)VGA_BIOS_Size);
+        if (int10.rom.used > VGA_BIOS_Size) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
+            E_Exit("VGA BIOS size too small");
 
-    /* NTS: Uh, this does seem bass-ackwards... INT 10h making the VGA BIOS appear. Can we refactor this a bit? */
-	if (VGA_BIOS_Size > 0) {
-		LOG(LOG_MISC,LOG_DEBUG)("VGA BIOS occupies segment 0x%04x-0x%04x",(int)VGA_BIOS_SEG,(int)VGA_BIOS_SEG_END-1);
-		if (!MEM_map_ROM_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1))
-			LOG(LOG_MISC,LOG_WARN)("INT 10 video: unable to map BIOS");
-	}
-	else {
-		LOG(LOG_MISC,LOG_DEBUG)("Not mapping VGA BIOS");
-	}
+        /* NTS: Uh, this does seem bass-ackwards... INT 10h making the VGA BIOS appear. Can we refactor this a bit? */
+        if (VGA_BIOS_Size > 0) {
+            LOG(LOG_MISC,LOG_DEBUG)("VGA BIOS occupies segment 0x%04x-0x%04x",(int)VGA_BIOS_SEG,(int)VGA_BIOS_SEG_END-1);
+            if (!MEM_map_ROM_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1))
+                LOG(LOG_MISC,LOG_WARN)("INT 10 video: unable to map BIOS");
+        }
+        else {
+            LOG(LOG_MISC,LOG_DEBUG)("Not mapping VGA BIOS");
+        }
 
-	INT10_SetVideoMode(0x3);
+        INT10_SetVideoMode(0x3);
+    }
+    else {
+        /* load PC-98 character ROM data, if possible */
+        {
+            bool ok = false;
+
+            /* We can use FONT.ROM as generated by T98Tools */
+            if (!ok) ok = Load_FONT_ROM();
+            /* We can use ANEX86.BMP from the Anex86 emulator */
+            if (!ok) ok = Load_Anex86_Font();
+            /* Failing all else we can just re-use the IBM VGA 8x16 font to show SOMETHING on the screen.
+             * Japanese text will not display properly though. */
+            if (!ok) ok = Load_VGAFont_As_PC98();
+        }
+
+        CurMode = &PC98_Mode;
+
+        /* FIXME: This belongs in MS-DOS kernel init, because these reside in the CON driver */
+        /* Some PC-98 game behavior seems to suggest the BIOS data area stretches all the way from segment 0x40:0x00 to segment 0x7F:0x0F inclusive.
+         * Compare that to IBM PC platform, where segment fills only 0x40:0x00 to 0x50:0x00 inclusive and extra state is held in the "Extended BIOS Data Area".
+         */
+
+        /* number of text rows on the screen.
+         * Touhou Project will not clear/format the text layer properly without this variable. */
+        mem_writeb(0x710,0); /* cursor position Y coordinate */
+        mem_writeb(0x711,1); /* function definition display status flag */
+        mem_writeb(0x712,25 - 1 - 1); /* scroll range lower limit (usually 23 when function key row is visible) */
+        mem_writeb(0x713,1); /* normal 25 lines */
+        mem_writeb(0x714,0xE1); /* content erase attribute */
+
+        mem_writeb(0x719,0x20); /* content erase character */
+
+        mem_writeb(0x71B,0x01); /* cursor displayed */
+        mem_writeb(0x71C,0x00); /* cursor position X coordinate */
+        mem_writeb(0x71D,0xE1); /* content display attribute */
+        mem_writeb(0x71E,0x00); /* scroll range upper limit (usually 0) */
+        mem_writeb(0x71F,0x01); /* scrolling speed is normal */
+
+        /* init text RAM */
+        for (unsigned int i=0;i < 0x2000;i += 2) {
+            mem_writew(0xA0000+i,0);
+            mem_writeb(0xA2000+i,0xE1);
+        }
+        /* clear graphics RAM */
+        for (unsigned int i=0;i < 0x8000;i += 2) {
+            mem_writew(0xA8000+i,0);
+            mem_writew(0xB0000+i,0);
+            mem_writew(0xB8000+i,0);
+        }
+    }
 }
 
 void INT10_Init() {

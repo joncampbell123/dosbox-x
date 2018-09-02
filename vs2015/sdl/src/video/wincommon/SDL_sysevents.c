@@ -24,6 +24,10 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4996) /* Nobody cares that GetVersionExA() is deprecated */
+#endif
+
 /* Make sure XBUTTON stuff is defined that isn't in older Platform SDKs... */
 #ifndef WM_XBUTTONDOWN
 #define WM_XBUTTONDOWN 0x020B
@@ -64,10 +68,17 @@
 #endif
 #endif
 
+#ifdef SDL_WIN32_HX_DOS
+#define NO_GETKEYBOARDSTATE
+#endif
+
 /* The window we use for everything... */
 #ifdef _WIN32_WCE
 LPWSTR SDL_Appname = NULL;
 #else
+# ifndef SDL_WIN32_NO_PARENT_WINDOW
+LPSTR SDL_AppnameParent = "SDLParent";
+# endif
 LPSTR SDL_Appname = NULL;
 #endif
 Uint32 SDL_Appstyle = 0;
@@ -135,6 +146,12 @@ static void LoadAygshell(void)
 
 #endif
 
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+# define ParentWindowHWND SDL_Window
+#else
+extern HWND	ParentWindowHWND;
+#endif
+
 /* JC 14 Mar 2006
    This is used all over the place, in the windib driver and in the dx5 driver
    So we may as well stick it here instead of having multiple copies scattered
@@ -166,12 +183,12 @@ static void SDL_RestoreGameMode(void)
 #endif
 	
 #else
-	ShowWindow(SDL_Window, SW_RESTORE);
+	ShowWindow(ParentWindowHWND, SW_RESTORE);
 #endif
 
 #ifndef NO_CHANGEDISPLAYSETTINGS
 #ifndef _WIN32_WCE
-	ChangeDisplaySettings(&SDL_fullscreen_mode, CDS_FULLSCREEN);
+//	ChangeDisplaySettings(&SDL_fullscreen_mode, CDS_FULLSCREEN);
 #endif
 #endif /* NO_CHANGEDISPLAYSETTINGS */
 }
@@ -193,12 +210,13 @@ static void SDL_RestoreDesktopMode(void)
 	
 #else
 	/* WinCE does not have a taskbar, so minimizing is not convenient */
-	ShowWindow(SDL_Window, SW_MINIMIZE);
+	ShowWindow(ParentWindowHWND, SW_RESTORE);
+    ShowWindow(SDL_Window, SW_RESTORE);
 #endif
 
 #ifndef NO_CHANGEDISPLAYSETTINGS
 #ifndef _WIN32_WCE
-	ChangeDisplaySettings(NULL, 0);
+//	ChangeDisplaySettings(NULL, 0);
 #endif
 #endif /* NO_CHANGEDISPLAYSETTINGS */
 }
@@ -243,7 +261,14 @@ static BOOL WINAPI WIN_TrackMouseEvent(TRACKMOUSEEVENT *ptme)
 }
 #endif /* WM_MOUSELEAVE */
 
+extern HKL hLayout;
+extern unsigned char hLayoutChanged;
 int sysevents_mouse_pressed = 0;
+unsigned int SDL1_hax_inhibit_WM_PAINT = 0;
+
+LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+void DIB_InitOSKeymapPriv(void);
 
 /* The main Win32 event handler
 DJM: This is no longer static as (DX5/DIB)_CreateWindow needs it
@@ -265,6 +290,7 @@ LRESULT CALLBACK WinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_ACTIVATE: {
 			SDL_VideoDevice *this = current_video;
 			BOOL active, minimized;
+			HKL hLayoutNew = NULL;
 			Uint8 appstate;
 
 			minimized = HIWORD(wParam);
@@ -377,6 +403,18 @@ LRESULT CALLBACK WinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				WORD xbuttonval = 0;
 				Uint8 button, state;
                 int x, y;
+
+				/* We need to register mouse cursor position FIRST before registering button position.
+				   It causes problems with DOSBox-X guest pointer integration for SDL to report a button
+				   event before reporting that the cursor moved to that position.
+				   
+				   Of course, Windows 10 considers holding your finger on the screen as something to withhold
+				   from the window until released, to signal right-click, so touchscreen interaction is a
+				   little funny where drag & drop is desired in the guest. */
+				if (1/*TODO: If windib or any other driver that needs this*/) {
+					void DIB_CheckMouse(void);
+					DIB_CheckMouse();
+				}
 
 				/* DJM:
 				   We want the SDL window to take focus so that
@@ -642,7 +680,8 @@ this->hidden->hiresFix, &x, &y);
 			PAINTSTRUCT ps;
 
 			hdc = BeginPaint(SDL_Window, &ps);
-			if ( current_video->screen &&
+			if (  !SDL1_hax_inhibit_WM_PAINT &&
+				   current_video->screen &&
 			     !(current_video->screen->flags & SDL_OPENGL) ) {
 				WIN_WinPAINT(current_video, hdc);
 			}
@@ -668,11 +707,24 @@ this->hidden->hiresFix, &x, &y);
 		return(0);
 
 #ifndef NO_GETKEYBOARDSTATE
-		case WM_INPUTLANGCHANGE:
+		/* FIXME: Windows will not notify us of input lang change if the user takes focus from our window,
+		          and then changes input language. How do we get this notification even if inactive?? */
+		case WM_INPUTLANGCHANGE: {
+			HKL hLayoutNew = NULL;
+
+			hLayoutNew = (HKL)lParam;
+			ActivateKeyboardLayout(hLayoutNew, 0);
+
+			if (hLayout != hLayoutNew) {
+				hLayoutChanged = 1;
+				hLayout = hLayoutNew;
+				DIB_InitOSKeymapPriv();
+			}
 #ifndef _WIN64
 			codepage = GetCodePage();
 #endif
-		return(TRUE);
+			return(TRUE);
+		}
 #endif
 
 		default: {
@@ -765,6 +817,29 @@ int SDL_RegisterApp(char *name, Uint32 style, void *hInst)
 		SDL_SetError("Couldn't register application class");
 		return(-1);
 	}
+
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
+	/* another for the DIB parent window*/
+	class.hCursor = NULL;
+	class.hIcon = LoadImage(SDL_Instance, SDL_Appname,
+		IMAGE_ICON,
+		0, 0, LR_DEFAULTCOLOR);
+	class.lpszMenuName = NULL;
+	class.lpszClassName = SDL_AppnameParent;
+	class.hbrBackground = GetStockObject(BLACK_BRUSH);
+	class.hInstance = SDL_Instance;
+	class.style = SDL_Appstyle;
+#if SDL_VIDEO_OPENGL
+	class.style |= CS_OWNDC;
+#endif
+	class.lpfnWndProc = ParentWinMessage;
+	class.cbWndExtra = 0;
+	class.cbClsExtra = 0;
+	if (!RegisterClass(&class)) {
+		SDL_SetError("Couldn't register application class");
+		return(-1);
+	}
+#endif
 
 #ifdef WM_MOUSELEAVE
 	/* Get the version of TrackMouseEvent() we use */

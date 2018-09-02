@@ -32,6 +32,14 @@
 #include "lazyflags.h"
 #include "support.h"
 #include "control.h"
+#include "zipfile.h"
+
+#if defined(_MSC_VER)
+/* we don't care about switch statements with no case labels */
+#pragma warning(disable:4065)
+#endif
+
+extern ZIPFile savestate_zip;
 
 /* caution: do not uncomment unless you want a lot of spew */
 //#define CPU_DEBUG_SPEW
@@ -65,6 +73,8 @@ bool enable_cmpxchg8b = true;
 bool ignore_undefined_msr = true;
 
 extern bool ignore_opcode_63;
+
+extern bool use_dynamic_core_with_paging;
 
 bool cpu_double_fault_enable;
 bool cpu_triple_fault_reset;
@@ -135,27 +145,27 @@ Segments Segs;
  *             --J.C. */
 bool cpu_allow_big16 = false;
 
-Bit32s CPU_Cycles = 0;
-Bit32s CPU_CycleLeft = 3000;
-Bit32s CPU_CycleMax = 3000;
-Bit32s CPU_OldCycleMax = 3000;
-Bit32s CPU_CyclePercUsed = 100;
-Bit32s CPU_CycleLimit = -1;
-Bit32s CPU_CycleUp = 0;
-Bit32s CPU_CycleDown = 0;
-Bit32s CPU_CyclesSet = 3000;
-Bit64s CPU_IODelayRemoved = 0;
+cpu_cycles_count_t CPU_Cycles = 0;
+cpu_cycles_count_t CPU_CycleLeft = 3000;
+cpu_cycles_count_t CPU_CycleMax = 3000;
+cpu_cycles_count_t CPU_OldCycleMax = 3000;
+cpu_cycles_count_t CPU_CyclePercUsed = 100;
+cpu_cycles_count_t CPU_CycleLimit = -1;
+cpu_cycles_count_t CPU_CycleUp = 0;
+cpu_cycles_count_t CPU_CycleDown = 0;
+cpu_cycles_count_t CPU_CyclesSet = 3000;
+cpu_cycles_count_t CPU_IODelayRemoved = 0;
 char core_mode[16];
 CPU_Decoder * cpudecoder;
 bool CPU_CycleAutoAdjust = false;
 bool CPU_SkipCycleAutoAdjust = false;
-Bitu CPU_AutoDetermineMode = 0;
+unsigned char CPU_AutoDetermineMode = 0;
 
-Bitu CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
+unsigned char CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
 
 Bitu CPU_extflags_toggle=0;	// ID and AC flags may be toggled depending on emulated CPU architecture
 
-Bitu CPU_PrefetchQueueSize=0;
+unsigned int CPU_PrefetchQueueSize=0;
 
 void CPU_Core_Full_Init(void);
 void CPU_Core_Normal_Init(void);
@@ -167,6 +177,110 @@ void CPU_Core_Dyn_X86_Cache_Close(void);
 void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
 void CPU_Core_Dyn_X86_Cache_Reset(void);
 #endif
+
+void menu_update_cputype(void) {
+	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
+	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
+
+    mainMenu.get_item("cputype_auto").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_MIXED).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_8086").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder != &CPU_Core_Prefetch_Run)).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_8086_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_80186").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder != &CPU_Core_Prefetch_Run)).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_80186_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_286").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder != &CPU_Core_Prefetch_Run)).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_286_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_386").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder != &CPU_Core_Prefetch_Run)).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_386_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_486old").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder != &CPU_Core_Prefetch_Run)).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_486old_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_486").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder != &CPU_Core_Prefetch_Run)).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_486_prefetch").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_pentium").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_pentium_mmx").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_P55CSLOW).
+        refresh_item(mainMenu);
+    mainMenu.get_item("cputype_ppro_slow").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW).
+        refresh_item(mainMenu);
+}
+
+void menu_update_core(void) {
+	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
+	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
+    bool allow_dynamic = false;
+
+    (void)cpu_section;
+    (void)cpu_sec_type;
+    (void)allow_dynamic;
+
+    /* cannot select Dynamic core if prefetch cpu types are in use */
+    allow_dynamic = (strstr(cpu_sec_type.c_str(),"_prefetch") == NULL);
+
+    mainMenu.get_item("mapper_normal").
+        check(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
+        refresh_item(mainMenu);
+    mainMenu.get_item("mapper_simple").
+        check(cpudecoder == &CPU_Core_Simple_Run).
+        enable(cpudecoder != &CPU_Core_Prefetch_Run).
+        refresh_item(mainMenu);
+    mainMenu.get_item("mapper_full").
+        check(cpudecoder == &CPU_Core_Full_Run).
+        enable(cpudecoder != &CPU_Core_Prefetch_Run).
+        refresh_item(mainMenu);
+#if (C_DYNAMIC_X86)
+    mainMenu.get_item("mapper_dynamic").
+        check(cpudecoder == &CPU_Core_Dyn_X86_Run).
+        enable(allow_dynamic && (cpudecoder != &CPU_Core_Prefetch_Run)).
+        refresh_item(mainMenu);
+#endif
+}
+
+void menu_update_autocycle(void) {
+    DOSBoxMenu::item &item = mainMenu.get_item("mapper_cycauto");
+    if (CPU_CycleAutoAdjust)
+        item.set_text("Auto cycles [max]");
+    else if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES)
+        item.set_text("Auto cycles [auto]");
+    else
+        item.set_text("Auto cycles [off]");
+
+    item.check(CPU_CycleAutoAdjust || (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES));
+    item.refresh_item(mainMenu);
+}
 
 /* called to signal an NMI. */
 
@@ -366,23 +480,23 @@ void CPU_SetFlags(Bitu word,Bitu mask) {
 	/* 8086: bits 12-15 cannot be zeroed */
 	if (CPU_ArchitectureType <= CPU_ARCHTYPE_80186) {
 		/* update mask and word to ensure bits 12-15 are set */
-		word |= 0xF000;
-		mask |= 0xF000;
+		word |= 0xF000U;
+		mask |= 0xF000U;
 	}
 	/* 286 real mode: bits 12-15 bits cannot be set, always zero */
 	else if (CPU_ArchitectureType <= CPU_ARCHTYPE_286) {
 		if (!(cpu.cr0 & CR0_PROTECTION)) {
 			/* update mask and word to ensure bits 12-15 are zero */
-			word &= ~0xF000;
-			mask |= 0xF000;
+			word &= ~0xF000U;
+			mask |= 0xF000U;
 		}
 	}
 	else {
 		mask |= CPU_extflags_toggle;	// ID-flag and AC-flag can be toggled on CPUID-supporting CPUs
 	}
 
-	reg_flags=(reg_flags & ~mask)|(word & mask)|2;
-	cpu.direction=1-((reg_flags & FLAG_DF) >> 9);
+	reg_flags=(reg_flags & ~mask)|(word & mask)|2U;
+	cpu.direction=1 - (int)((reg_flags & FLAG_DF) >> 9U);
 	// ^ NTS: Notice the DF flag is bit 10. This code computes (reg_flags & FLAG_DF) >> 9 on purpose.
 	//        It's not a typo (9 vs 10), it's done to set cpu.direction to either 1 or -1.
 }
@@ -439,49 +553,35 @@ bool CPU_PUSHF(Bitu use32) {
 	return false;
 }
 
-void CPU_CheckSegments(void) {
+void CPU_CheckSegment(const enum SegNames segi) {
 	bool needs_invalidation=false;
 	Descriptor desc;
-	if (!cpu.gdt.GetDescriptor(SegValue(es),desc)) needs_invalidation=true;
-	else switch (desc.Type()) {
-		case DESC_DATA_EU_RO_NA:	case DESC_DATA_EU_RO_A:	case DESC_DATA_EU_RW_NA:	case DESC_DATA_EU_RW_A:
-		case DESC_DATA_ED_RO_NA:	case DESC_DATA_ED_RO_A:	case DESC_DATA_ED_RW_NA:	case DESC_DATA_ED_RW_A:
-		case DESC_CODE_N_NC_A:	case DESC_CODE_N_NC_NA:	case DESC_CODE_R_NC_A:	case DESC_CODE_R_NC_NA:
-			if (cpu.cpl>desc.DPL()) needs_invalidation=true; break;
-		default: break;	}
-	if (needs_invalidation) CPU_SetSegGeneral(es,0);
 
-	needs_invalidation=false;
-	if (!cpu.gdt.GetDescriptor(SegValue(ds),desc)) needs_invalidation=true;
-	else switch (desc.Type()) {
-		case DESC_DATA_EU_RO_NA:	case DESC_DATA_EU_RO_A:	case DESC_DATA_EU_RW_NA:	case DESC_DATA_EU_RW_A:
-		case DESC_DATA_ED_RO_NA:	case DESC_DATA_ED_RO_A:	case DESC_DATA_ED_RW_NA:	case DESC_DATA_ED_RW_A:
-		case DESC_CODE_N_NC_A:	case DESC_CODE_N_NC_NA:	case DESC_CODE_R_NC_A:	case DESC_CODE_R_NC_NA:
-			if (cpu.cpl>desc.DPL()) needs_invalidation=true; break;
-		default: break;	}
-	if (needs_invalidation) CPU_SetSegGeneral(ds,0);
+    if (!cpu.gdt.GetDescriptor(SegValue(segi),desc)) {
+        needs_invalidation=true;
+    }
+    else {
+        switch (desc.Type()) {
+            case DESC_DATA_EU_RO_NA:    case DESC_DATA_EU_RO_A: case DESC_DATA_EU_RW_NA:    case DESC_DATA_EU_RW_A:
+            case DESC_DATA_ED_RO_NA:    case DESC_DATA_ED_RO_A: case DESC_DATA_ED_RW_NA:    case DESC_DATA_ED_RW_A:
+            case DESC_CODE_N_NC_A:      case DESC_CODE_N_NC_NA: case DESC_CODE_R_NC_A:      case DESC_CODE_R_NC_NA:
+                if (cpu.cpl>desc.DPL()) needs_invalidation=true;
+                break;
+            default:
+                break;
+        }
+    }
 
-	needs_invalidation=false;
-	if (!cpu.gdt.GetDescriptor(SegValue(fs),desc)) needs_invalidation=true;
-	else switch (desc.Type()) {
-		case DESC_DATA_EU_RO_NA:	case DESC_DATA_EU_RO_A:	case DESC_DATA_EU_RW_NA:	case DESC_DATA_EU_RW_A:
-		case DESC_DATA_ED_RO_NA:	case DESC_DATA_ED_RO_A:	case DESC_DATA_ED_RW_NA:	case DESC_DATA_ED_RW_A:
-		case DESC_CODE_N_NC_A:	case DESC_CODE_N_NC_NA:	case DESC_CODE_R_NC_A:	case DESC_CODE_R_NC_NA:
-			if (cpu.cpl>desc.DPL()) needs_invalidation=true; break;
-		default: break;	}
-	if (needs_invalidation) CPU_SetSegGeneral(fs,0);
-
-	needs_invalidation=false;
-	if (!cpu.gdt.GetDescriptor(SegValue(gs),desc)) needs_invalidation=true;
-	else switch (desc.Type()) {
-		case DESC_DATA_EU_RO_NA:	case DESC_DATA_EU_RO_A:	case DESC_DATA_EU_RW_NA:	case DESC_DATA_EU_RW_A:
-		case DESC_DATA_ED_RO_NA:	case DESC_DATA_ED_RO_A:	case DESC_DATA_ED_RW_NA:	case DESC_DATA_ED_RW_A:
-		case DESC_CODE_N_NC_A:	case DESC_CODE_N_NC_NA:	case DESC_CODE_R_NC_A:	case DESC_CODE_R_NC_NA:
-			if (cpu.cpl>desc.DPL()) needs_invalidation=true; break;
-		default: break;	}
-	if (needs_invalidation) CPU_SetSegGeneral(gs,0);
+    if (needs_invalidation)
+        CPU_SetSegGeneral(segi,0);
 }
 
+void CPU_CheckSegments(void) {
+    CPU_CheckSegment(es);
+    CPU_CheckSegment(ds);
+    CPU_CheckSegment(fs);
+    CPU_CheckSegment(gs);
+}
 
 class TaskStateSegment {
 public:
@@ -719,7 +819,7 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
 			if (cpu.cpl < cs_desc.DPL()) E_Exit("Task CS RPL < DPL");
 doconforming:
 			Segs.expanddown[cs]=cs_desc.GetExpandDown();
-			Segs.limit[cs]=do_seg_limits?cs_desc.GetLimit():(~0UL);
+			Segs.limit[cs]=do_seg_limits?cs_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=cs_desc.GetBase();
 			cpu.code.big=cs_desc.Big()>0;
 			Segs.val[cs]=new_cs;
@@ -753,7 +853,7 @@ bool CPU_IO_Exception(Bitu port,Bitu size) {
 		if (ofs>cpu_tss.limit) goto doexception;
 		bwhere=cpu_tss.base+ofs+(port/8);
 		Bitu map=mem_readw(bwhere);
-		Bitu mask=(0xffff>>(16-size)) << (port&7);
+		Bitu mask=(0xffffu >> (16u - size)) << (port & 7u);
 		if (map & mask) goto doexception;
 		cpu.mpl=3;
 	}
@@ -810,9 +910,16 @@ void CPU_Exception(Bitu which,Bitu error ) {
 	}
 
 	if (cpu_double_fault_enable) {
-		/* CPU_Interrupt() could cause another fault during memory access. This needs to happen here */
-		CPU_Exception_Level[which]++;
-		CPU_Exception_In_Progress.push(which);
+        /* NTS: Putting some thought into it, I don't think divide by zero counts as something to throw a double fault
+         *      over. I may be wrong. The behavior of Intel processors will ultimately decide.
+         *
+         *      Until then, don't count Divide Overflow exceptions, so that the "EFP loader" can do it's disgusting
+         *      anti-debugger hackery when loading parts of a demo. --J.C. */
+        if (!(which == 0/*divide by zero/overflow*/)) {
+            /* CPU_Interrupt() could cause another fault during memory access. This needs to happen here */
+            CPU_Exception_Level[which]++;
+            CPU_Exception_In_Progress.push(which);
+        }
 	}
 
 	cpu.exception.error=error;
@@ -839,6 +946,16 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 	lastint=num;
 	FillFlags();
 #if C_DEBUG
+# if C_HEAVY_DEBUG
+    bool DEBUG_IntBreakpoint(Bit8u intNum);
+    Bitu DEBUG_EnableDebugger(void);
+
+    if (type != CPU_INT_SOFTWARE) { /* CPU core already takes care of SW interrupts */
+        if (DEBUG_IntBreakpoint(num))
+            DEBUG_EnableDebugger();
+    }
+# endif
+
 	switch (num) {
 	case 0xcd:
 #if C_HEAVY_DEBUG
@@ -962,7 +1079,7 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 
 						// commit point
 						Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
-						Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():(~0UL);
+						Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():((PhysPt)(~0UL));
 						Segs.phys[ss]=n_ss_desc.GetBase();
 						Segs.val[ss]=n_ss;
 						if (n_ss_desc.Big()) {
@@ -1026,7 +1143,7 @@ do_interrupt:
 
 				Segs.val[cs]=(gate_sel&0xfffc) | cpu.cpl;
 				Segs.phys[cs]=cs_desc.GetBase();
-				Segs.limit[cs]=do_seg_limits?cs_desc.GetLimit():(~0UL);
+				Segs.limit[cs]=do_seg_limits?cs_desc.GetLimit():((PhysPt)(~0UL));
 				Segs.expanddown[cs]=cs_desc.GetExpandDown();
 				cpu.code.big=cs_desc.Big()>0;
 				reg_eip=gate_off;
@@ -1057,6 +1174,7 @@ do_interrupt:
 		}
 		}
 		catch (GuestPageFaultException &pf) {
+            (void)pf;//UNUSED
 			LOG_MSG("CPU_Interrupt() interrupted");
 			CPU_SetSegGeneral(ss,old_ss);
 			reg_esp = old_esp;
@@ -1136,7 +1254,8 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 				}
 				}
 				catch (GuestPageFaultException &pf) {
-					LOG_MSG("CPU_IRET() interrupted prot vm86");
+                    (void)pf;//UNUSED
+                    LOG_MSG("CPU_IRET() interrupted prot vm86");
 					reg_esp = orig_esp;
 					throw;
 				}
@@ -1197,7 +1316,8 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 				return;
 				}
 				catch (GuestPageFaultException &pf) {
-					LOG_MSG("CPU_IRET() interrupted prot use32");
+                    (void)pf;//UNUSED
+                    LOG_MSG("CPU_IRET() interrupted prot use32");
 					reg_esp = orig_esp;
 					throw;
 				}
@@ -1252,7 +1372,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 			// commit point
 			reg_esp=tempesp;
 			Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
-			Segs.limit[cs]=do_seg_limits?n_cs_desc.GetLimit():(~0UL);
+			Segs.limit[cs]=do_seg_limits?n_cs_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=n_cs_desc.GetBase();
 			cpu.code.big=n_cs_desc.Big()>0;
 			Segs.val[cs]=n_cs_sel;
@@ -1304,7 +1424,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 			// commit point
 
 			Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
-			Segs.limit[cs]=do_seg_limits?n_cs_desc.GetLimit():(~0UL);
+			Segs.limit[cs]=do_seg_limits?n_cs_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=n_cs_desc.GetBase();
 			cpu.code.big=n_cs_desc.Big()>0;
 			Segs.val[cs]=n_cs_sel;
@@ -1319,7 +1439,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 
 			Segs.val[ss]=n_ss;
 			Segs.phys[ss]=n_ss_desc.GetBase();
-			Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():(~0UL);
+			Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
 			if (n_ss_desc.Big()) {
 				cpu.stack.big=true;
@@ -1388,7 +1508,7 @@ CODE_jmp:
 
 			/* Normal jump to another selector:offset */
 			Segs.expanddown[cs]=desc.GetExpandDown();
-			Segs.limit[cs]=do_seg_limits?desc.GetLimit():(~0UL);
+			Segs.limit[cs]=do_seg_limits?desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
 			Segs.val[cs]=(selector & 0xfffc) | cpu.cpl;
@@ -1429,6 +1549,7 @@ void CPU_CALL(bool use32,Bitu selector,Bitu offset,Bitu oldeip) {
 		}
 		}
 		catch (GuestPageFaultException &pf) {
+            (void)pf;//UNUSED
 			reg_esp = old_esp;
 			reg_eip = old_eip;
 			throw;
@@ -1482,13 +1603,14 @@ call_code:
 			}
 			}
 			catch (GuestPageFaultException &pf) {
-				reg_esp = old_esp;
+                (void)pf;//UNUSED
+                reg_esp = old_esp;
 				reg_eip = old_eip;
 				throw;
 			}
 
 			Segs.expanddown[cs]=call.GetExpandDown();
-			Segs.limit[cs]=do_seg_limits?call.GetLimit():(~0UL);
+			Segs.limit[cs]=do_seg_limits?call.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=call.GetBase();
 			cpu.code.big=call.Big()>0;
 			Segs.val[cs]=(selector & 0xfffc) | cpu.cpl;
@@ -1580,7 +1702,7 @@ call_code:
 						// commit point
 						Segs.val[ss]=n_ss_sel;
 						Segs.phys[ss]=n_ss_desc.GetBase();
-						Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():(~0UL);
+						Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():((PhysPt)(~0UL));
 						Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
 						if (n_ss_desc.Big()) {
 							cpu.stack.big=true;
@@ -1598,7 +1720,7 @@ call_code:
 						Bit16u oldcs    = SegValue(cs);
 						/* Switch to new CS:EIP */
 						Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
-						Segs.limit[cs]  = do_seg_limits?n_cs_desc.GetLimit():(~0UL);
+						Segs.limit[cs]  = do_seg_limits?n_cs_desc.GetLimit():((PhysPt)(~0UL));
 						Segs.phys[cs]	= n_cs_desc.GetBase();
 						Segs.val[cs]	= (n_cs_sel & 0xfffc) | cpu.cpl;
 						cpu.code.big	= n_cs_desc.Big()>0;
@@ -1641,14 +1763,15 @@ call_code:
 					}
 					}
 					catch (GuestPageFaultException &pf) {
-						reg_esp = old_esp;
+                        (void)pf;//UNUSED
+                        reg_esp = old_esp;
 						reg_eip = old_eip;
 						throw;
 					}
 
 					/* Switch to new CS:EIP */
 					Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
-					Segs.limit[cs]  = do_seg_limits?n_cs_desc.GetLimit():(~0UL);
+					Segs.limit[cs]  = do_seg_limits?n_cs_desc.GetLimit():((PhysPt)(~0UL));
 					Segs.phys[cs]	= n_cs_desc.GetBase();
 					Segs.val[cs]	= (n_cs_sel & 0xfffc) | cpu.cpl;
 					cpu.code.big	= n_cs_desc.Big()>0;
@@ -1688,6 +1811,8 @@ call_code:
 
 
 void CPU_RET(bool use32,Bitu bytes,Bitu oldeip) {
+    (void)oldeip;//UNUSED
+
 	Bitu orig_esp = reg_esp;
 
 	if (!cpu.pmode || (reg_flags & FLAG_VM)) {
@@ -1707,7 +1832,8 @@ void CPU_RET(bool use32,Bitu bytes,Bitu oldeip) {
 		return;
 		}
 		catch (GuestPageFaultException &pf) {
-			LOG_MSG("CPU_RET() interrupted real/vm86");
+            (void)pf;//UNUSED
+            LOG_MSG("CPU_RET() interrupted real/vm86");
 			reg_esp = orig_esp;
 			throw;
 		}
@@ -1767,13 +1893,14 @@ RET_same_level:
 			}
 			}
 			catch (GuestPageFaultException &pf) {
-				LOG_MSG("CPU_RET() interrupted prot rpl==cpl");
+                (void)pf;//UNUSED
+                LOG_MSG("CPU_RET() interrupted prot rpl==cpl");
 				reg_esp = orig_esp;
 				throw;
 			}
 
 			Segs.expanddown[cs]=desc.GetExpandDown();
-			Segs.limit[cs]=do_seg_limits?desc.GetLimit():(~0UL);
+			Segs.limit[cs]=do_seg_limits?desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
 			Segs.val[cs]=selector;
@@ -1826,7 +1953,8 @@ RET_same_level:
 			}
 			}
 			catch (GuestPageFaultException &pf) {
-				LOG_MSG("CPU_RET() interrupted prot #2");
+                (void)pf;//UNUSED
+                LOG_MSG("CPU_RET() interrupted prot #2");
 				reg_esp = orig_esp;
 				throw;
 			}
@@ -1856,7 +1984,7 @@ RET_same_level:
 
 			CPU_SetCPL(rpl);
 			Segs.expanddown[cs]=desc.GetExpandDown();
-			Segs.limit[cs]=do_seg_limits?desc.GetLimit():(~0UL);
+			Segs.limit[cs]=do_seg_limits?desc.GetLimit():((PhysPt)(~0UL));
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
 			Segs.val[cs]=(selector&0xfffc) | cpu.cpl;
@@ -1864,7 +1992,7 @@ RET_same_level:
 
 			Segs.val[ss]=n_ss;
 			Segs.phys[ss]=n_ss_desc.GetBase();
-			Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():(~0UL);
+			Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():((PhysPt)(~0UL));
 			Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
 			if (n_ss_desc.Big()) {
 				cpu.stack.big=true;
@@ -2040,16 +2168,12 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 						printed_cycles_auto_info = true;
 						LOG_MSG("DOSBox switched to max cycles, because of the setting: cycles=auto. If the game runs too fast try a fixed cycles amount in DOSBox's options.");
 					}
+                    menu_update_autocycle();
 				} else {
 					GFX_SetTitle(-1,-1,-1,false);
 				}
 #if (C_DYNAMIC_X86)
 				if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
-					if (dosbox_enable_nonrecursive_page_fault) {
-						dosbox_enable_nonrecursive_page_fault = false;
-						_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-					}
-
 					CPU_Core_Dyn_X86_Cache_Init(true);
 					cpudecoder=&CPU_Core_Dyn_X86_Run;
 					strcpy(core_mode, "dynamic");
@@ -2432,7 +2556,7 @@ bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
 
 			Segs.val[seg]=value;
 			Segs.phys[seg]=desc.GetBase();
-			Segs.limit[seg]=do_seg_limits?desc.GetLimit():(~0UL);
+			Segs.limit[seg]=do_seg_limits?desc.GetLimit():((PhysPt)(~0UL));
 			Segs.expanddown[seg]=desc.GetExpandDown();
 			if (desc.Big()) {
 				cpu.stack.big=true;
@@ -2478,7 +2602,7 @@ bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
 
 			Segs.val[seg]=value;
 			Segs.phys[seg]=desc.GetBase();
-			Segs.limit[seg]=do_seg_limits?desc.GetLimit():(~0UL);
+			Segs.limit[seg]=do_seg_limits?desc.GetLimit():((PhysPt)(~0UL));
 			Segs.expanddown[seg]=desc.GetExpandDown();
 		}
 
@@ -2610,7 +2734,7 @@ void CPU_CycleIncrease(bool pressed) {
 	if (CPU_CycleAutoAdjust) {
 		CPU_CyclePercUsed+=5;
 		if (CPU_CyclePercUsed>105) CPU_CyclePercUsed=105;
-		LOG_MSG("CPU speed: max %d percent.",CPU_CyclePercUsed);
+		LOG_MSG("CPU speed: max %ld percent.",CPU_CyclePercUsed);
 		GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 	} else {
 		Bit32s old_cycles=CPU_CycleMax;
@@ -2623,13 +2747,16 @@ void CPU_CycleIncrease(bool pressed) {
 		CPU_CycleLeft=0;CPU_Cycles=0;
 		if (CPU_CycleMax==old_cycles) CPU_CycleMax++;
 		if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-		    LOG_MSG("CPU:%d cycles (auto)",CPU_CycleMax);
+		    LOG_MSG("CPU:%ld cycles (auto)",CPU_CycleMax);
 		} else {
 		    CPU_CyclesSet=CPU_CycleMax;
-		    if(CPU_CycleMax > 15000 )
-			LOG_MSG("CPU speed: fixed %d cycles. If you need more than 20000, try core=dynamic in DOSBox's options.",CPU_CycleMax);
-			else LOG_MSG("CPU speed: fixed %d cycles.",CPU_CycleMax);
-		}
+#if (C_DYNAMIC_X86)
+            if (CPU_CycleMax > 15000 && cpudecoder != &CPU_Core_Dyn_X86_Run)
+                LOG_MSG("CPU speed: fixed %ld cycles. If you need more than 20000, try core=dynamic in DOSBox's options.",CPU_CycleMax);
+            else
+#endif
+                LOG_MSG("CPU speed: fixed %ld cycles.",CPU_CycleMax);
+        }
 		GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 	}
 }
@@ -2640,9 +2767,9 @@ void CPU_CycleDecrease(bool pressed) {
 		CPU_CyclePercUsed-=5;
 		if (CPU_CyclePercUsed<=0) CPU_CyclePercUsed=1;
 		if(CPU_CyclePercUsed <=70)
-			LOG_MSG("CPU speed: max %d percent. If the game runs too fast, try a fixed cycles amount in DOSBox's options.",CPU_CyclePercUsed);
+			LOG_MSG("CPU speed: max %ld percent. If the game runs too fast, try a fixed cycles amount in DOSBox's options.",CPU_CyclePercUsed);
 		else
-			LOG_MSG("CPU speed: max %d percent.",CPU_CyclePercUsed);
+			LOG_MSG("CPU speed: max %ld percent.",CPU_CyclePercUsed);
 		GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 	} else {
 		if (CPU_CycleDown < 100) {
@@ -2653,10 +2780,10 @@ void CPU_CycleDecrease(bool pressed) {
 		CPU_CycleLeft=0;CPU_Cycles=0;
 		if (CPU_CycleMax <= 0) CPU_CycleMax=1;
 		if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-		    LOG_MSG("CPU:%d cycles (auto)",CPU_CycleMax);
+		    LOG_MSG("CPU:%ld cycles (auto)",CPU_CycleMax);
 		} else {
 		    CPU_CyclesSet=CPU_CycleMax;
-		    LOG_MSG("CPU speed: fixed %d cycles.",CPU_CycleMax);
+		    LOG_MSG("CPU speed: fixed %ld cycles.",CPU_CycleMax);
 		}
 		GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 	}
@@ -2664,20 +2791,22 @@ void CPU_CycleDecrease(bool pressed) {
 
 static void CPU_ToggleAutoCycles(bool pressed) {
     if (!pressed)
-	return;
+        return;
+
     Section* sec=control->GetSection("cpu");
-    if(sec) {
-	std::string tmp("cycles=");
-	if(CPU_CycleAutoAdjust) {
-	    std::ostringstream str;
-	    str << "fixed " << CPU_CyclesSet;
-	    tmp.append(str.str());
-	} else if(CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-	    tmp.append("max");
-	} else {
-	    tmp.append("auto");
-	}
-	sec->HandleInputline(tmp);
+    if (sec) {
+        std::string tmp("cycles=");
+        if (CPU_CycleAutoAdjust) {
+            std::ostringstream str;
+            str << "fixed " << CPU_CyclesSet;
+            tmp.append(str.str());
+        } else if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
+            tmp.append("max");
+        } else {
+            tmp.append("auto");
+        }
+
+        sec->HandleInputline(tmp);
     }
 }
 
@@ -2793,7 +2922,31 @@ void Weitek_PageHandler::writed(PhysPt addr,Bitu val) {
 Weitek_PageHandler weitek_pagehandler(0);
 
 PageHandler* weitek_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
+    (void)co; // UNUSED
+    (void)phys_page; // UNUSED
     return &weitek_pagehandler;
+}
+
+bool CpuType_Auto(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    Section* sec=control->GetSection("cpu");
+    if (sec) sec->HandleInputline("cputype=auto");
+    return true;
+}
+
+bool CpuType_ByName(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+
+    const char *name = menuitem->get_name().c_str();
+
+    /* name should be cputype_... */
+    if (!strncmp(name,"cputype_",8)) name += 8;
+    else abort();
+
+    Section* sec=control->GetSection("cpu");
+    if (sec) sec->HandleInputline(std::string("cputype=")+name);
+    return true;
 }
 
 class CPU: public Module_base {
@@ -2802,6 +2955,7 @@ private:
 public:
 	CPU(Section* configuration):Module_base(configuration) {
 		Section_prop * section=static_cast<Section_prop *>(configuration);
+		DOSBoxMenu::item *item;
 
 		if(inited) {
 			Change_Config(configuration);
@@ -2820,12 +2974,12 @@ public:
 
 		do_seg_limits = section->Get_bool("segment limits");
 	
-		SegSet16(cs,0); Segs.limit[cs] = do_seg_limits ? 0xFFFF : ~0UL; Segs.expanddown[cs] = false;
-		SegSet16(ds,0); Segs.limit[ds] = do_seg_limits ? 0xFFFF : ~0UL; Segs.expanddown[ds] = false;
-		SegSet16(es,0); Segs.limit[es] = do_seg_limits ? 0xFFFF : ~0UL; Segs.expanddown[es] = false;
-		SegSet16(fs,0); Segs.limit[fs] = do_seg_limits ? 0xFFFF : ~0UL; Segs.expanddown[fs] = false;
-		SegSet16(gs,0); Segs.limit[gs] = do_seg_limits ? 0xFFFF : ~0UL; Segs.expanddown[gs] = false;
-		SegSet16(ss,0); Segs.limit[ss] = do_seg_limits ? 0xFFFF : ~0UL; Segs.expanddown[ss] = false;
+		SegSet16(cs,0); Segs.limit[cs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[cs] = false;
+		SegSet16(ds,0); Segs.limit[ds] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[ds] = false;
+		SegSet16(es,0); Segs.limit[es] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[es] = false;
+		SegSet16(fs,0); Segs.limit[fs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[fs] = false;
+		SegSet16(gs,0); Segs.limit[gs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[gs] = false;
+		SegSet16(ss,0); Segs.limit[ss] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[ss] = false;
 	
 		CPU_SetFlags(FLAG_IF,FMASK_ALL);		//Enable interrupts
 		cpu.cr0=0xffffffff;
@@ -2856,15 +3010,64 @@ public:
 #if (C_DYNAMIC_X86)
 		CPU_Core_Dyn_X86_Init();
 #endif
-		MAPPER_AddHandler(CPU_CycleDecrease,MK_f11,MMOD1,"cycledown","Dec Cycles");
-		MAPPER_AddHandler(CPU_CycleIncrease,MK_f12,MMOD1,"cycleup"  ,"Inc Cycles");
-		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_equals,MMOD1,"cycauto","Tog. Cycles Auto");
-		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_1,MMOD1,"normal"  ,"Tog. Normal Core");
-		MAPPER_AddHandler(CPU_ToggleFullCore,MK_2,MMOD1,"full","Tog. Full Core");
+		MAPPER_AddHandler(CPU_CycleDecrease,MK_minus,MMODHOST,"cycledown","Dec Cycles",&item);
+		item->set_text("Decrement cycles");
+
+		MAPPER_AddHandler(CPU_CycleIncrease,MK_equals,MMODHOST,"cycleup"  ,"Inc Cycles",&item);
+		item->set_text("Increment cycles");
+
+		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_nothing,0,"cycauto","AutoCycles",&item);
+		item->set_text("Auto cycles");
+		item->set_description("Enable automatic cycle count");
+
+		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_nothing,0,"normal"  ,"NormalCore", &item);
+		item->set_text("Normal core");
+
+		MAPPER_AddHandler(CPU_ToggleFullCore,MK_nothing,0,"full","Full Core", &item);
+		item->set_text("Full core");
+
+		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_nothing,0,"simple","SimpleCore", &item);
+		item->set_text("Simple core");
 #if (C_DYNAMIC_X86)
-		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_3,MMOD1,"dynamic","Tog. Dyn. Core");
+		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_nothing,0,"dynamic","DynCore",&item);
+		item->set_text("Dynamic core");
 #endif
-		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_4,MMOD1,"simple","Tog. Simple Core");
+
+        /* these are not mapper shortcuts, and probably should not be mapper shortcuts */
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_auto").
+            set_text("Auto").set_callback_function(CpuType_Auto);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_8086").
+            set_text("8086").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_8086_prefetch").
+            set_text("8086 with prefetch").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_80186").
+            set_text("80186").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_80186_prefetch").
+            set_text("80186 with prefetch").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_286").
+            set_text("286").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_286_prefetch").
+            set_text("286 with prefetch").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_386").
+            set_text("386").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_386_prefetch").
+            set_text("386 with prefetch").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486old").
+            set_text("486 (old)").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486old_prefetch").
+            set_text("486 (old) with prefetch").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486").
+            set_text("486").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486_prefetch").
+            set_text("486 with prefetch").set_callback_function(CpuType_ByName);
+
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium").
+            set_text("Pentium").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium_mmx").
+            set_text("Pentium MMX").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_ppro_slow").
+            set_text("Pentium Pro").set_callback_function(CpuType_ByName);
+
 		Change_Config(configuration);	
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core
 	}
@@ -2875,12 +3078,16 @@ public:
 		CPU_Cycles=0;
 		CPU_SkipCycleAutoAdjust=false;
 
-		dosbox_enable_nonrecursive_page_fault = section->Get_bool("non-recursive page fault");
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
+		use_dynamic_core_with_paging = section->Get_bool("use dynamic core with paging on");
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
 		cpu_allow_big16 = section->Get_bool("realbig16");
-		if (cpu_allow_big16) LOG(LOG_CPU,LOG_DEBUG)("Emulation of the B (big) bit in real mode enabled\n");
+
+        if (cpu_allow_big16) {
+            /* FIXME: GCC 4.8: How is this an empty body? Explain. */
+            LOG(LOG_CPU,LOG_DEBUG)("Emulation of the B (big) bit in real mode enabled\n");
+        }
 
 		always_report_double_fault = section->Get_bool("always report double fault");
 		always_report_triple_fault = section->Get_bool("always report triple fault");
@@ -2965,6 +3172,8 @@ public:
 			CPU_CycleAutoAdjust=false;
 		}
 
+        menu_update_autocycle();
+
 		enable_fpu=section->Get_bool("fpu");
 		cpu_rep_max=section->Get_int("interruptible rep string op");
 		ignore_undefined_msr=section->Get_bool("ignore undefined msr");
@@ -2984,32 +3193,20 @@ public:
 			cpudecoder=&CPU_Core_Full_Run;
 		} else if (core == "auto") {
 			cpudecoder=&CPU_Core_Normal_Run;
-#if (C_DYNAMIC_X86)
 			CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CORE;
-		}
-		else if (core == "dynamic") {
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-
+#if (C_DYNAMIC_X86)
+		} else if (core == "dynamic") {
 			cpudecoder=&CPU_Core_Dyn_X86_Run;
 			CPU_Core_Dyn_X86_SetFPUMode(true);
 		} else if (core == "dynamic_nodhfpu") {
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-
 			cpudecoder=&CPU_Core_Dyn_X86_Run;
 			CPU_Core_Dyn_X86_SetFPUMode(false);
-#else
 #endif
 		} else {
 			strcpy(core_mode,"normal");
+			cpudecoder=&CPU_Core_Normal_Run;
 			LOG_MSG("CPU:Unknown core type %s, switching back to normal.",core.c_str());
 		}
-  
 
 #if (C_DYNAMIC_X86)
 		CPU_Core_Dyn_X86_Cache_Init((core == "dynamic") || (core == "dynamic_nodhfpu"));
@@ -3092,6 +3289,20 @@ public:
 			} else {
 				E_Exit("prefetch queue emulation requires the normal core setting.");
 			}
+		} else if (cputype == "486old") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_486OLD;
+		} else if (cputype == "486old_prefetch") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_486OLD;
+			if (core == "normal") {
+				cpudecoder=&CPU_Core_Prefetch_Run;
+				CPU_PrefetchQueueSize = 16;
+			} else if (core == "auto") {
+				cpudecoder=&CPU_Core_Prefetch_Run;
+				CPU_PrefetchQueueSize = 16;
+				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
+			} else {
+				E_Exit("prefetch queue emulation requires the normal core setting.");
+			}
 		} else if (cputype == "pentium") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUM;
 		} else if (cputype == "pentium_mmx") {
@@ -3111,13 +3322,6 @@ public:
 		if (CPU_ArchitectureType>=CPU_ARCHTYPE_486NEW) CPU_extflags_toggle=(FLAG_ID|FLAG_AC);
 		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) CPU_extflags_toggle=(FLAG_AC);
 		else CPU_extflags_toggle=0;
-
-		if (cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run) {
-			if (!dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = true;
-				_LOG(LOG_CPU,LOG_NORMAL)("normal/prefetch core requires nonrecursive page fault handling, turning it on");
-			}
-		}
 
     // weitek coprocessor emulation?
         if (CPU_ArchitectureType == CPU_ARCHTYPE_386 || CPU_ArchitectureType == CPU_ARCHTYPE_486OLD || CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) {
@@ -3161,6 +3365,12 @@ public:
 
         if (enable_cmpxchg8b && CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) LOG_MSG("Pentium CMPXCHG8B emulation is enabled");
 
+		menu_update_core();
+		menu_update_cputype();
+
+        void CPU_Core_Prefetch_reset(void);
+        CPU_Core_Prefetch_reset();
+
 		if (CPU_CycleAutoAdjust) GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 		else GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 		return true;
@@ -3171,6 +3381,8 @@ public:
 static CPU * test;
 
 void CPU_ShutDown(Section* sec) {
+    (void)sec;//UNUSED
+
 #if (C_DYNAMIC_X86)
 	CPU_Core_Dyn_X86_Cache_Close();
 #endif
@@ -3178,11 +3390,13 @@ void CPU_ShutDown(Section* sec) {
 }
 
 void CPU_OnReset(Section* sec) {
+    (void)sec;//UNUSED
+
 	LOG(LOG_CPU,LOG_DEBUG)("CPU reset");
 
 	CPU_Snap_Back_To_Real_Mode();
 	CPU_Snap_Back_Forget();
-	CPU_SetFlags(0,~0);
+	CPU_SetFlags(0,~0UL);
 
 	Segs.limit[cs]=0xFFFF;
 	Segs.expanddown[cs]=false;
@@ -3208,6 +3422,113 @@ void CPU_OnSectionPropChange(Section *x) {
 	if (test != NULL) test->Change_Config(x);
 }
 
+void CPU_LoadState(Section *sec) {
+    (void)sec;//UNUSED
+
+    /* STOP THE CPU */
+	CPU_Cycles = CPU_CycleLeft = 0;
+
+    {
+        ZIPFileEntry *ent = savestate_zip.get_entry("cpureg.txt");
+        if (ent != NULL) {
+            zip_nv_pair_map nv(*ent);
+            reg_eax =       nv.get_ulong("eax");
+            reg_ebx =       nv.get_ulong("ebx");
+            reg_ecx =       nv.get_ulong("ecx");
+            reg_edx =       nv.get_ulong("edx");
+            reg_esi =       nv.get_ulong("esi");
+            reg_edi =       nv.get_ulong("edi");
+            reg_ebp =       nv.get_ulong("ebp");
+            reg_esp =       nv.get_ulong("esp");
+            reg_eip =       nv.get_ulong("eip");
+            reg_flags =     nv.get_ulong("eflags");
+
+            Segs.val[es] =          nv.get_ulong("es.val");
+            Segs.phys[es] =         nv.get_ulong("es.phys");
+            Segs.limit[es] =        nv.get_ulong("es.limit");
+            Segs.expanddown[es] =   nv.get_bool("es.expanddown");
+
+            Segs.val[cs] =          nv.get_ulong("cs.val");
+            Segs.phys[cs] =         nv.get_ulong("cs.phys");
+            Segs.limit[cs] =        nv.get_ulong("cs.limit");
+            Segs.expanddown[cs] =   nv.get_bool("cs.expanddown");
+
+            Segs.val[ss] =          nv.get_ulong("ss.val");
+            Segs.phys[ss] =         nv.get_ulong("ss.phys");
+            Segs.limit[ss] =        nv.get_ulong("ss.limit");
+            Segs.expanddown[ss] =   nv.get_bool("ss.expanddown");
+
+            Segs.val[ds] =          nv.get_ulong("ds.val");
+            Segs.phys[ds] =         nv.get_ulong("ds.phys");
+            Segs.limit[ds] =        nv.get_ulong("ds.limit");
+            Segs.expanddown[ds] =   nv.get_bool("ds.expanddown");
+
+            Segs.val[fs] =          nv.get_ulong("fs.val");
+            Segs.phys[fs] =         nv.get_ulong("fs.phys");
+            Segs.limit[fs] =        nv.get_ulong("fs.limit");
+            Segs.expanddown[fs] =   nv.get_bool("fs.expanddown");
+
+            Segs.val[gs] =          nv.get_ulong("gs.val");
+            Segs.phys[gs] =         nv.get_ulong("gs.phys");
+            Segs.limit[gs] =        nv.get_ulong("gs.limit");
+            Segs.expanddown[gs] =   nv.get_bool("gs.expanddown");
+
+            /* CPU state includes other variables based on flags, update them */
+            CPU_SetFlags(reg_flags, FMASK_ALL);
+        }
+    }
+}
+
+void CPU_SaveState(Section *sec) {
+    (void)sec;//UNUSED
+
+    {
+        ZIPFileEntry *ent = savestate_zip.new_entry("cpureg.txt");
+        if (ent != NULL) {
+            zip_nv_write_hex(*ent,"eax",        reg_eax);
+            zip_nv_write_hex(*ent,"ebx",        reg_ebx);
+            zip_nv_write_hex(*ent,"ecx",        reg_ecx);
+            zip_nv_write_hex(*ent,"edx",        reg_edx);
+            zip_nv_write_hex(*ent,"esi",        reg_esi);
+            zip_nv_write_hex(*ent,"edi",        reg_edi);
+            zip_nv_write_hex(*ent,"ebp",        reg_ebp);
+            zip_nv_write_hex(*ent,"esp",        reg_esp);
+            zip_nv_write_hex(*ent,"eip",        reg_eip);
+            zip_nv_write_hex(*ent,"eflags",     reg_flags);
+
+            zip_nv_write_hex(*ent,"es.val",         Segs.val[es]);
+            zip_nv_write_hex(*ent,"es.phys",        Segs.phys[es]);
+            zip_nv_write_hex(*ent,"es.limit",       Segs.limit[es]);
+            zip_nv_write(*ent,"es.expanddown",      Segs.expanddown[es]);
+
+            zip_nv_write_hex(*ent,"cs.val",         Segs.val[cs]);
+            zip_nv_write_hex(*ent,"cs.phys",        Segs.phys[cs]);
+            zip_nv_write_hex(*ent,"cs.limit",       Segs.limit[cs]);
+            zip_nv_write(*ent,"cs.expanddown",      Segs.expanddown[cs]);
+
+            zip_nv_write_hex(*ent,"ss.val",         Segs.val[ss]);
+            zip_nv_write_hex(*ent,"ss.phys",        Segs.phys[ss]);
+            zip_nv_write_hex(*ent,"ss.limit",       Segs.limit[ss]);
+            zip_nv_write(*ent,"ss.expanddown",      Segs.expanddown[ss]);
+
+            zip_nv_write_hex(*ent,"ds.val",         Segs.val[ds]);
+            zip_nv_write_hex(*ent,"ds.phys",        Segs.phys[ds]);
+            zip_nv_write_hex(*ent,"ds.limit",       Segs.limit[ds]);
+            zip_nv_write(*ent,"ds.expanddown",      Segs.expanddown[ds]);
+
+            zip_nv_write_hex(*ent,"fs.val",         Segs.val[fs]);
+            zip_nv_write_hex(*ent,"fs.phys",        Segs.phys[fs]);
+            zip_nv_write_hex(*ent,"fs.limit",       Segs.limit[fs]);
+            zip_nv_write(*ent,"fs.expanddown",      Segs.expanddown[fs]);
+
+            zip_nv_write_hex(*ent,"gs.val",         Segs.val[gs]);
+            zip_nv_write_hex(*ent,"gs.phys",        Segs.phys[gs]);
+            zip_nv_write_hex(*ent,"gs.limit",       Segs.limit[gs]);
+            zip_nv_write(*ent,"gs.expanddown",      Segs.expanddown[gs]);
+        }
+    }
+}
+
 void CPU_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing CPU");
 
@@ -3216,6 +3537,9 @@ void CPU_Init() {
 	test = new CPU(control->GetSection("cpu"));
 	AddExitFunction(AddExitFunctionFuncPair(CPU_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(CPU_OnReset));
+
+    AddVMEventFunction(VM_EVENT_LOAD_STATE,AddVMEventFunctionFuncPair(CPU_LoadState));
+    AddVMEventFunction(VM_EVENT_SAVE_STATE,AddVMEventFunctionFuncPair(CPU_SaveState));
 }
 //initialize static members
 bool CPU::inited=false;
@@ -3223,6 +3547,8 @@ bool CPU::inited=false;
 
 Bit16u CPU_FindDecoderType( CPU_Decoder *decoder )
 {
+    (void)decoder;//UNUSED
+
 	Bit16u decoder_idx;
 
 	decoder_idx = 0xffff;
@@ -3254,38 +3580,17 @@ CPU_Decoder *CPU_IndexDecoderType( Bit16u decoder_idx )
 
 	cpudecoder = 0;
 	switch( decoder_idx ) {
-		case 0: cpudecoder = &CPU_Core_Normal_Run;
-			if (!dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = true;
-				_LOG(LOG_CPU,LOG_NORMAL)("normal/prefetch core requires nonrecursive page fault handling, turning it on");
-			}
-			break;
-		case 1: cpudecoder = &CPU_Core_Prefetch_Run;
-			if (!dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = true;
-				_LOG(LOG_CPU,LOG_NORMAL)("normal/prefetch core requires nonrecursive page fault handling, turning it on");
-			}
-			break;
+		case 0: cpudecoder = &CPU_Core_Normal_Run; break;
+		case 1: cpudecoder = &CPU_Core_Prefetch_Run; break;
 		case 2: cpudecoder = &CPU_Core_Simple_Run; break;
 		case 3: cpudecoder = &CPU_Core_Full_Run; break;
 #if C_DYNAMIC_X86
-		case 4: cpudecoder = &CPU_Core_Dyn_X86_Run;
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-			break;
+		case 4: cpudecoder = &CPU_Core_Dyn_X86_Run; break;
 #endif
 		case 100: cpudecoder = &CPU_Core_Normal_Trap_Run; break;
 #if C_DYNAMIC_X86
-		case 101: cpudecoder = &CPU_Core_Dyn_X86_Trap_Run;
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-			break;
+		case 101: cpudecoder = &CPU_Core_Dyn_X86_Trap_Run; break;
 #endif
-
 		case 200: cpudecoder = &HLT_Decode; break;
 	}
 

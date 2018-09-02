@@ -31,6 +31,15 @@
 //Enable this for scalers to support 0 input for empty lines
 //#define RENDER_NULL_INPUT
 
+enum ASPECT_MODES {
+    ASPECT_FALSE = 0
+    ,ASPECT_TRUE
+#if C_SURFACE_POSTRENDER_ASPECT
+    ,ASPECT_NEAREST
+    ,ASPECT_BILINEAR
+#endif
+};
+
 typedef struct {
 	struct { 
 		Bit8u red;
@@ -82,16 +91,18 @@ typedef struct {
 		Bit8u *cacheRead;
 		Bitu inHeight, inLine, outLine;
 	} scale;
-	RenderPal_t pal;
+    RenderPal_t pal;
 	bool updating;
 	bool active;
-	bool aspect;
+	int aspect;
+    bool aspectOffload;
 	bool fullFrame;
 	bool forceUpdate;
 	bool autofit;
 } Render_t;
 
 extern Render_t render;
+extern Bitu last_gfx_flags;
 extern ScalerLineHandler_t RENDER_DrawLine;
 void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio);
 bool RENDER_StartUpdate(void);

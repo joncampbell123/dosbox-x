@@ -45,7 +45,6 @@ public:
 	Bit8u DMA16;
 	bool increment;
 	bool autoinit;
-	Bit8u trantype;
 	bool masked;
 	bool tcount;
 	bool request;
@@ -81,7 +80,7 @@ public:
 	}
 	void SetPage(Bit8u val) {
 		pagenum=val;
-		pagebase=(pagenum >> DMA16_PAGESHIFT) << (16+DMA16_PAGESHIFT);
+		pagebase=(Bitu)((Bitu)(pagenum >> DMA16_PAGESHIFT) << (Bitu)(16u + DMA16_PAGESHIFT));
 	}
 	void Raise_Request(void) {
 		request=true;

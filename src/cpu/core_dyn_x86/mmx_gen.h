@@ -40,7 +40,7 @@ void dyn_mmx_op(Bit8u op) {
 		gen_call_function((void*)&MMX_LOAD_64, "%Ddr", DREG(EA));
 		cache_addw(0x0F | (op << 8));
 		cache_addb(0x05 | (decode.modrm.val & 0x38));
-		cache_addd((Bit32u)&mmxtmp);
+		cache_addd((uintptr_t)&mmxtmp);
 	} else dyn_mmx_simple(op, decode.modrm.val);
 }
 
@@ -64,7 +64,7 @@ void dyn_mmx_movd_pqed() {
 		// mmxtmp contains loaded value - finish by loading it to mm
 		cache_addw(0x6E0F);	// movd  mm, m32
 		cache_addb(0x05 | (decode.modrm.val & 0x38));
-		cache_addd((Bit32u)&mmxtmp);
+		cache_addd((uintptr_t)&mmxtmp);
 	}
 	else {
 		// movd mm, r32 - r32->mmxtmp->mm
@@ -75,11 +75,11 @@ void dyn_mmx_movd_pqed() {
 		// move from genreg to mmxtmp
 		cache_addb(0x89);	// mov m32, r32
 		cache_addb(0x05 | (gr->index << 3));
-		cache_addd((Bit32u)&mmxtmp);
+		cache_addd((uintptr_t)&mmxtmp);
 		// mmxtmp contains loaded value - finish by loading it to mm
 		cache_addw(0x6E0F);	// movd  mm, m32
 		cache_addb(0x05 | (decode.modrm.val & 0x38));
-		cache_addd((Bit32u)&mmxtmp);
+		cache_addd((uintptr_t)&mmxtmp);
 	}
 }
 
@@ -96,7 +96,7 @@ void dyn_mmx_movq_pqqq() {
 		// mmxtmp contains loaded value - finish by loading it to mm
 		cache_addw(0x6F0F);	// movq  mm, m64
 		cache_addb(0x05 | (decode.modrm.val & 0x38));
-		cache_addd((Bit32u)&mmxtmp);
+		cache_addd((uintptr_t)&mmxtmp);
 	}
 	else {
 		// movq mm, mm
@@ -114,7 +114,7 @@ void dyn_mmx_movd_edpq() {
 		// fill mmxtmp
 		cache_addw(0x7E0F);	// movd  mm, m32
 		cache_addb(0x05 | (decode.modrm.val & 0x38));
-		cache_addd((Bit32u)&mmxtmp);
+		cache_addd((uintptr_t)&mmxtmp);
 		// generate call to mmxtmp store
 		gen_call_function((void*)&MMX_STORE_32, "%Ddr", DREG(EA));
 	}
@@ -127,11 +127,11 @@ void dyn_mmx_movd_edpq() {
 		// fill mmxtmp
 		cache_addw(0x7E0F);	// movd  mm, m32
 		cache_addb(0x05 | (decode.modrm.val & 0x38));
-		cache_addd((Bit32u)&mmxtmp);
+		cache_addd((uintptr_t)&mmxtmp);
 		// move from mmxtmp to genreg
 		cache_addb(0x8b);	// mov r32, m32
 		cache_addb(0x05 | (gr->index << 3));
-		cache_addd((Bit32u)&mmxtmp);
+		cache_addd((uintptr_t)&mmxtmp);
 		// mark dynreg as changed
 		reg->flags |= DYNFLG_CHANGED;
 	}
@@ -147,7 +147,7 @@ void dyn_mmx_movq_qqpq() {
 		// fill mmxtmp
 		cache_addw(0x7F0F);	// movq  mm, m64
 		cache_addb(0x05 | (decode.modrm.val & 0x38));
-		cache_addd((Bit32u)&mmxtmp);
+		cache_addd((uintptr_t)&mmxtmp);
 		// generate call to mmxtmp store
 		gen_call_function((void*)&MMX_STORE_64, "%Ddr", DREG(EA));
 	}

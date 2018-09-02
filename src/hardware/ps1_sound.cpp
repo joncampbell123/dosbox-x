@@ -130,6 +130,7 @@ static void PS1DAC_Reset(bool bTotal)
 
 #include "regs.h"
 static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if( port != 0x0205 ) {
 		ps1.last_writeDAC=PIC_Ticks;
 		if (!ps1.enabledDAC) {
@@ -183,7 +184,7 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 				ps1.Divisor = data;
 				ps1.Rate = ( DAC_CLOCK / ( data + 1 ) );
 				// 22050 << FRAC_SHIFT / 22050 = 1 << FRAC_SHIFT
-				ps1.Adder = ( ps1.Rate << FRAC_SHIFT ) / ps1.SampleRate;
+				ps1.Adder = ( ps1.Rate << FRAC_SHIFT ) / (unsigned int)ps1.SampleRate;
 				if( ps1.Rate > 22050 )
 				{
 //					if( ( ps1.Command & 3 ) == 3 ) {
@@ -217,6 +218,7 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 }
 
 static Bitu PS1SOUNDRead(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
 	ps1.last_writeDAC=PIC_Ticks;
 	if (!ps1.enabledDAC) {
 		ps1.chanDAC->Enable(true);
@@ -271,7 +273,7 @@ static void PS1SOUNDUpdate(Bitu length)
 	if( ps1.Playing )
 	{
 		ps1.Status = PS1SOUND_CalcStatus();
-		pending = ps1.Pending;
+		pending = (Bits)ps1.Pending;
 		add = ps1.Adder;
 		if( ( ps1.Status & FIFO_NEARLY_EMPTY ) && ( ps1.CanTriggerIRQ ) )
 		{
@@ -299,7 +301,7 @@ static void PS1SOUNDUpdate(Bitu length)
 			out = ps1.FIFO[ pos >> FRAC_SHIFT ];
 			pos += add;
 			pos &= ( ( FIFOSIZE << FRAC_SHIFT ) - 1 );
-			pending -= add;
+			pending -= (Bits)add;
 		}
 
 		*(buffer++) = out;
@@ -310,7 +312,7 @@ static void PS1SOUNDUpdate(Bitu length)
 //	if( ps1.FIFO_RDIndex != ( pos >> FRAC_SHIFT ) ) ps1.Status &= ~FIFO_FULL;
 	ps1.FIFO_RDIndex = pos >> FRAC_SHIFT;
 	if( pending < 0 ) pending = 0;
-	ps1.Pending = pending;
+	ps1.Pending = (Bitu)pending;
 
 	ps1.chanDAC->AddSamples_m8(length,MixTemp);
 }
@@ -357,11 +359,11 @@ public:
 		WriteHandler[0].Install(0x200,PS1SOUNDWrite,IO_MB);
 		WriteHandler[1].Install(0x202,PS1SOUNDWrite,IO_MB,4);
 
-		Bit32u sample_rate = section->Get_int("ps1audiorate");
+		Bit32u sample_rate = (Bit32u)section->Get_int("ps1audiorate");
 		ps1.chanDAC=MixerChanDAC.Install(&PS1SOUNDUpdate,sample_rate,"PS1 DAC");
 		ps1.chanSN=MixerChanSN.Install(&PS1SN76496Update,sample_rate,"PS1 SN76496");
 
-		ps1.SampleRate=sample_rate;
+		ps1.SampleRate=(int)sample_rate;
 		ps1.enabledDAC=false;
 		ps1.enabledSN=false;
 		ps1.last_writeDAC = 0;
@@ -389,13 +391,7 @@ public:
 static PS1SOUND* test = NULL;
 
 void PS1SOUND_ShutDown(Section* sec) {
-    if (test) {
-        delete test;
-        test = NULL;
-    }
-}
-
-void PS1SOUND_OnEnterPC98(Section* sec) {
+    (void)sec;//UNUSED
     if (test) {
         delete test;
         test = NULL;
@@ -403,7 +399,8 @@ void PS1SOUND_OnEnterPC98(Section* sec) {
 }
 
 void PS1SOUND_OnReset(Section* sec) {
-	if (test == NULL) {
+    (void)sec;//UNUSED
+	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating PS/1 sound emulation");
 		test = new PS1SOUND(control->GetSection("speaker"));
 	}
@@ -414,7 +411,5 @@ void PS1SOUND_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(PS1SOUND_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PS1SOUND_OnReset));
-
-    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(PS1SOUND_OnEnterPC98));
 }
 

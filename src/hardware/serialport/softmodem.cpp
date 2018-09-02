@@ -123,7 +123,7 @@ void CSerialModem::handleUpperEvent(Bit16u type) {
 void CSerialModem::SendLine(const char *line) {
 	rqueue->addb(0xd);
 	rqueue->addb(0xa);
-	rqueue->adds((Bit8u *)line,strlen(line));
+	rqueue->adds((Bit8u *)line,(Bitu)strlen(line));
 	rqueue->addb(0xd);
 	rqueue->addb(0xa);
 }

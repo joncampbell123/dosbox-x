@@ -47,6 +47,22 @@ static inline BOOL IS_SNOW_LEOPARD_OR_LATER(_THIS)
     return (system_version >= 0x1060);
 }
 
+static NSWindow *my_qz_window = nil;
+unsigned char wants_topmost = 0;
+
+void sdl1_hax_set_topmost(unsigned char topmost) {
+    wants_topmost = topmost;
+
+    if (my_qz_window != nil) {
+        if (topmost) {
+            [ my_qz_window setLevel: NSStatusWindowLevel ];
+        }
+        else {
+            [ my_qz_window setLevel: NSNormalWindowLevel ];
+        }
+    }
+}
+
 #if (MAC_OS_X_VERSION_MAX_ALLOWED < 1060) && !defined(__LP64__)  /* Fixed in Snow Leopard */
 /*
     Add methods to get at private members of NSScreen. 
@@ -575,6 +591,7 @@ static void QZ_UnsetVideoMode (_THIS, BOOL to_desktop, BOOL save_gl)
             NSCAssert([ qz_window delegate ] == nil, @"full screen window shouldn't have a delegate"); /* if that should ever change, we'd have to release it here */
             [ qz_window close ]; /* includes release because [qz_window isReleasedWhenClosed] */
             qz_window = nil;
+            my_qz_window = nil;
             window_view = nil;
         }
         /* 
@@ -618,6 +635,7 @@ static void QZ_UnsetVideoMode (_THIS, BOOL to_desktop, BOOL save_gl)
         id delegate = [ qz_window delegate ];
         [ qz_window close ]; /* includes release because [qz_window isReleasedWhenClosed] */
         if (delegate != nil) [ delegate release ];
+        my_qz_window = nil;
         qz_window = nil;
         window_view = nil;
 
@@ -802,11 +820,14 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
                         defer:NO ];
 
         if (qz_window != nil) {
+            my_qz_window = qz_window;
             [ qz_window setAcceptsMouseMovedEvents:YES ];
             [ qz_window setViewsNeedDisplay:NO ];
             if (isLion) {
                 [ qz_window setContentView: [ [ [ SDL_QuartzView alloc ] init ] autorelease ] ];
             }
+
+            sdl1_hax_set_topmost(wants_topmost);
         }
     }
     /* We already have a window, just change its size */
@@ -1035,6 +1056,8 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
             return NULL;
         }
 
+        my_qz_window = qz_window;
+
         /*[ qz_window setReleasedWhenClosed:YES ];*/ /* no need to set this as it's the default for NSWindows */
         QZ_SetCaption(this, this->wm_title, this->wm_icon);
         [ qz_window setAcceptsMouseMovedEvents:YES ];
@@ -1051,6 +1074,8 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
         [ qz_window setDelegate:
             [ [ SDL_QuartzWindowDelegate alloc ] init ] ];
         [ qz_window setContentView: [ [ [ SDL_QuartzView alloc ] init ] autorelease ] ];
+
+        sdl1_hax_set_topmost(wants_topmost);
     }
     /* We already have a window, just change its size */
     else {

@@ -1,4 +1,4 @@
-/** \mainpage gui::tk - framework-agnostic C++ GUI toolkit
+/** \page gui::tk - framework-agnostic C++ GUI toolkit
  *
  * \section i Introduction
  *
@@ -239,18 +239,18 @@ extern RGB Titlebar;
 extern RGB TitlebarText;
 
 /// Convert separate r, g, b and a values (each 0-255) to an RGB value.
-static inline RGB rgba(int r, int g, int b, int a=0) {
+static inline RGB rgba(unsigned int r, unsigned int g, unsigned int b, unsigned int a=0) {
 	return (((r&255)<<RedShift)|((g&255)<<GreenShift)|((b&255)<<BlueShift)|((a&255)<<AlphaShift));
 }
 
 /// Get red value (0-255) from an RGB value.
-static inline int R(RGB val) { return ((val&Color::RedMask)>>Color::RedShift); }
+static inline unsigned int R(RGB val) { return ((val&Color::RedMask)>>Color::RedShift); }
 /// Get green value (0-255) from an RGB value.
-static inline int G(RGB val) { return ((val&Color::GreenMask)>>Color::GreenShift); }
+static inline unsigned int G(RGB val) { return ((val&Color::GreenMask)>>Color::GreenShift); }
 /// Get blue value (0-255) from an RGB value.
-static inline int B(RGB val) { return ((val&Color::BlueMask)>>Color::BlueShift); }
+static inline unsigned int B(RGB val) { return ((val&Color::BlueMask)>>Color::BlueShift); }
 /// Get alpha value (0-255) from an RGB value.
-static inline int A(RGB val) { return ((val&Color::AlphaMask)>>Color::AlphaShift); }
+static inline unsigned int A(RGB val) { return ((val&Color::AlphaMask)>>Color::AlphaShift); }
 
 }
 
@@ -296,7 +296,7 @@ public:
 	bool windows;
 
 	/// Constructor.
-	Key(int character, Special special, bool shift, bool ctrl, bool alt, bool windows) :
+	Key(GUI::Char character, Special special, bool shift, bool ctrl, bool alt, bool windows) :
 		character(character), special(special),
 		shift(shift), ctrl(ctrl), alt(alt), windows(windows) {}
 };
@@ -326,14 +326,14 @@ protected:
 	friend class String;
 
 	/// Converts a native string into a String object
-	static void getString(String &dest, const STR &src)  { STR::_this_string_type_is_not_supported_(); }
+	static void getString(String &dest, const STR &src)  { (void)dest; (void)src; STR::_this_string_type_is_not_supported_(); }
 
 	/** \brief Converts a string object to native representation.
 	*
 	*  If some characters cannot be converted, they should silently be skipped. Apart from that,
 	*  \c nativeString(stringNative(String(),X)) should be value-equal to \c X.
 	*/
-	static STR& getNative(const String &src) { STR::_this_string_type_is_not_supported_();return*new STR(); }
+	static STR& getNative(const String &src) { (void)src; STR::_this_string_type_is_not_supported_();return*new STR(); }
 };
 
 template <typename STR> class NativeString<STR*> {
@@ -430,7 +430,7 @@ template <typename STR> void NativeString<STR*>::getString(String &dest, const S
 	Size strlen = 0;
 	while (src[strlen]) strlen++;
 	dest.resize(strlen);
-	for (strlen = 0; src[strlen]; strlen++) dest[strlen] = (sizeof(STR)==1?(unsigned char)src[strlen]:sizeof(STR)==2?(unsigned short)src[strlen]:src[strlen]);
+	for (strlen = 0; src[(unsigned int)strlen]; strlen++) dest[(unsigned int)strlen] = (unsigned int)(sizeof(STR)==1?(unsigned char)src[strlen]:sizeof(STR)==2?(unsigned short)src[strlen]:src[strlen]);
 }
 
 template <typename STR> STR* NativeString<STR*>::getNative(const String &src) {
@@ -448,7 +448,7 @@ protected:
 	static void getString(String &dest, const std::string *src) {
 		Size strlen = (Size)src->length();
 		dest.resize(strlen);
-		for (Size i = 0; i< strlen; i++) dest[i] = (*src)[i];
+		for (Size i = 0; i< strlen; i++) dest[i] = (unsigned int)((*src)[i]);
 	}
 	static std::string* getNative(const String &src) {
 		Size strlen = (Size)src.size();
@@ -467,7 +467,7 @@ protected:
 	static void getString(String &dest, const std::string &src) {
 		Size strlen = (Size)src.length();
 		dest.resize(strlen);
-		for (Size i = 0; i< strlen; i++) dest[i] = src[i];
+		for (Size i = 0; i< strlen; i++) dest[i] = (unsigned int)src[i];
 	}
 	static std::string& getNative(const String &src) {
 		Size strlen = (Size)src.size();
@@ -603,7 +603,7 @@ public:
 	virtual void paintAll(Drawable &d) const;
 
 	/// Draw this window's content.
-	virtual void paint(Drawable &d) const {};
+	virtual void paint(Drawable &d) const { (void)d; };
 
 	/// Show or hide this window.
 	/** By default, most windows are shown when created. Hidden windows do not receive any events. */
@@ -840,10 +840,10 @@ public:
 class ScreenSDL : public Screen {
 protected:
 	/// not used.
-	virtual void rgbToSurface(RGB color, void **pixel) {};
+	virtual void rgbToSurface(RGB color, void **pixel) { (void)color; (void)pixel; };
 
 	/// not used.
-	virtual RGB surfaceToRGB(void *pixel) { return 0; };
+	virtual RGB surfaceToRGB(void *pixel) { (void)pixel; return 0; };
 
 	/// The SDL surface being drawn to.
 	SDL_Surface *surface;
@@ -1067,14 +1067,14 @@ public:
 
 	/// Draw a text string at a fixed position.
 	/** see drawText(const String& text, bool interpret, Size start, Size len) */
-	template <typename STR> void drawText(int x, int y, const STR text, bool interpret, Size start, Size len = (Size)-1) { gotoXY(x,y); drawText(String(text), interpret, start, len); };
+	template <typename STR> void drawText(int x, int y, const STR text, bool interpret, Size start, Size len = (Size)-1) { gotoXY(x,y); drawText(String(text), interpret, start, len); }
 	/// Draw a single character.
 	/** see drawText(const STR text, bool interpret), except wrapping is
 	    performed on this character only */
 	void drawText(const Char c, bool interpret = false);
 	/// Draw a single character at a fixed position.
 	/** see drawText(const Char c, bool interpret). */
-	void drawText(int x, int y, const Char c, bool interpret = false) { gotoXY(x,y); drawText(c, interpret); };
+	void drawText(int x, int y, const Char c, bool interpret = false) { gotoXY(x,y); drawText(c, interpret); }
 
 	/// Copy the contents of another Drawable to this one.
 	/** The top left corner of the source Drawable is put at the current
@@ -1085,7 +1085,7 @@ public:
 	/// Copy the contents of another Drawable to this one at a given position.
 	/** see drawDrawable(Drawable &d, unsigned char alpha). The current position
 	    is moved to the given coordinates. */
-	void drawDrawable(int x, int y, Drawable &d, unsigned char alpha = 1) { gotoXY(x,y); drawDrawable(d, alpha); };
+	void drawDrawable(int x, int y, Drawable &d, unsigned char alpha = 1) { gotoXY(x,y); drawDrawable(d, alpha); }
 
 };
 
@@ -1416,6 +1416,7 @@ public:
 
 	/// Calculate label size. Parameters are ignored.
 	virtual void resize(int w = -1, int h = -1) {
+        (void)h;//UNUSED
 		if (w == -1) w = (interpret?getWidth():0);
 		else interpret = (w != 0);
 		Drawable d((w?w:1), 1);
@@ -1530,7 +1531,7 @@ public:
 	Size findPos(int x, int y);
 
 	/// Set text to be edited.
-	template <typename STR> void setText(const STR text) { this->text = text; setDirty(); };
+	template <typename STR> void setText(const STR text) { this->text = text; setDirty(); }
 	/// Get the entered text. If you need it longer, copy it immediately.
 	const String& getText() { return text; };
 
@@ -1545,8 +1546,10 @@ public:
 
 	/// Timer callback function
 	virtual Ticks timerExpired(Ticks time)
-	{ blink = !blink; setDirty(); return 30; }
+	{ (void)time; blink = !blink; setDirty(); return 30; }
 
+	/// Move the cursor to the end of the text field
+	virtual void posToEnd(void);
 };
 
 class ToplevelWindow;
@@ -1601,6 +1604,7 @@ public:
 
 	/// Menu callback function
 	virtual void actionExecuted(ActionEventSource *src, const String &item) {
+        (void)src;
 		if (item == String("Close")) close();
 	}
 
@@ -1701,11 +1705,12 @@ public:
 
 	/// Handle automatic delete
 	void windowClosed(ToplevelWindow *win) {
+        (void)win;
 		delete this;
 	}
 
 	/// No-op
-	bool windowClosing(ToplevelWindow *win) { return true; }
+	bool windowClosing(ToplevelWindow *win) { (void)win; return true; }
 
 	/// Create a transient window with given position and size
 	/** \a parent is the logical parent. The true parent object is
@@ -1739,7 +1744,7 @@ public:
 	virtual int getX() const { return x-realparent->getScreenX(); }
 	virtual int getY() const { return y-realparent->getScreenY(); }
 	virtual void setVisible(bool v) { if (v) raise(); Window::setVisible(v); }
-	virtual void windowMoved(Window *src, int x, int y) { move(relx,rely); }
+	virtual void windowMoved(Window *src, int x, int y) { (void)src; (void)x; (void)y; move(relx,rely); }
 
 	/// Put window on top of all other windows without changing their relative order
 	virtual bool raise() {
@@ -1783,6 +1788,7 @@ protected:
 	/// Selects menu item at position (x,y).
 	/** \a selected is set to -1 if there is no active item at that location. */
 	virtual void selectItem(int x, int y) {
+        (void)x;//UNUSED
 		y -= 2;
 		selected = -1;
 		const int height = Font::getFont("menu")->getHeight()+2;
@@ -1792,7 +1798,7 @@ protected:
 			if ((*i).size() > 0) y -= height;
 			else y -= 12;
 		}
-		if (y > 0 || (selected >= 0 && items[selected].size() == 0)) selected = -1;
+		if (y > 0 || (selected >= 0 && items[(unsigned int)selected].size() == 0)) selected = -1;
 	}
 
 	virtual Size getPreferredWidth() {
@@ -1800,7 +1806,7 @@ protected:
 		const Font *f = Font::getFont("menu");
 		std::vector<String>::iterator i;
 		for (i = items.begin(); i != items.end() && y > 0; ++i) {
-			Size newwidth = f->getWidth(*i);
+			Size newwidth = (unsigned int)f->getWidth(*i);
 			if (newwidth > width) width = newwidth;
 		}
 		return width+39;
@@ -1808,7 +1814,7 @@ protected:
 
 	virtual Size getPreferredHeight() {
 		Size height = 0;
-		const Size h = Font::getFont("menu")->getHeight()+2;
+		const Size h = (unsigned int)Font::getFont("menu")->getHeight()+2u;
 		std::vector<String>::iterator i;
 		for (i = items.begin(); i != items.end() && y > 0; ++i) {
 			height += ((*i).size() > 0?h:12);
@@ -1838,15 +1844,23 @@ public:
 	}
 
 	/// Highlight current item.
-	virtual bool mouseDragged(int x, int y, MouseButton b)  {
+	virtual bool mouseDragged(int x, int y, MouseButton button)  {
+        (void)button;//UNUSED	
 		selectItem(x,y);
 		return true;
 	}
 
-	virtual bool mouseDown(int x, int y, MouseButton button)  { return true; }
+	virtual bool mouseDown(int x, int y, MouseButton button)  {
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED	
+        return true;
+    }
 
 	/// Possibly select item.
 	virtual bool mouseUp(int x, int y, MouseButton button)  {
+        (void)button;//UNUSED
+	
 		selectItem(x,y);
 		if (firstMouseUp) firstMouseUp = false;
 		else setVisible(false);
@@ -1861,7 +1875,7 @@ public:
 		else if (key.special == Key::Enter) { execute(); return true; }
 		else if (key.special == Key::Escape) { setVisible(false); return true; }
 		else return true;
-		if (items[selected].size() == 0 && items.size() > 1) return keyDown(key);
+		if (items[(unsigned int)selected].size() == 0 && items.size() > 1) return keyDown(key);
 		if (selected < 0) selected = (int)(items.size()-1);
 		if (selected >= (int)items.size()) selected = 0;
 		return true;
@@ -1871,7 +1885,7 @@ public:
 	/// Add a menu item at end. An empty string denotes a separator.
 	template <typename T> void addItem(const T item) {
 		items.push_back(String(item));
-		resize(getPreferredWidth(),getPreferredHeight());
+		resize((int)getPreferredWidth(),(int)getPreferredHeight());
 	}
 
 	/// Remove an existing menu item.
@@ -1896,7 +1910,7 @@ public:
 	void execute() {
 		if (selected >= 0) {
 			setVisible(false);
-			executeAction(items[selected]);
+			executeAction(items[(unsigned int)selected]);
 		}
 	}
 };
@@ -1923,6 +1937,10 @@ public:
 
 	/// Press button.
 	virtual bool mouseDown(int x, int y, MouseButton button) {
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED
+	
 		if (button == Left) {
 			border_left = 7; border_right = 5; border_top = 7; border_bottom = 3;
 			pressed = true;
@@ -1932,6 +1950,10 @@ public:
 
 	/// Release button.
 	virtual bool mouseUp(int x, int y, MouseButton button)  {
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED
+	
 		if (button == Left) {
 			border_left = 6; border_right = 6; border_top = 5; border_bottom = 5;
 			pressed = false;
@@ -1941,6 +1963,10 @@ public:
 
 	/// Handle mouse activation.
 	virtual bool mouseClicked(int x, int y, MouseButton button) {
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED
+	
 		if (button == Left) {
 			executeAction();
 			return true;
@@ -1988,31 +2014,33 @@ public:
 	}
 
 	/// Add a Menuitem.
-	template <typename STR> void addItem(int index, const STR name) { menus[index]->addItem(name); }
+	template <typename STR> void addItem(int index, const STR name) { menus[(unsigned int)index]->addItem(name); }
 
 	/// Remove a Menuitem.
-	template <typename STR> void removeItem(int index, const STR name) { menus[index]->removeItem(name); }
+	template <typename STR> void removeItem(int index, const STR name) { menus[(unsigned int)index]->removeItem(name); }
 
 	/// Paint menubar.
 	virtual void paint(Drawable &d) const;
 
 	/// Open menu.
 	virtual bool mouseDown(int x, int y, MouseButton button) {
+        (void)button;//UNUSED
+        (void)y;//UNUSED
 		int oldselected = selected;
-		if (selected >= 0 && !menus[selected]->isVisible()) oldselected = -1;
-		if (selected >= 0) menus[selected]->setVisible(false);
+		if (selected >= 0 && !menus[(unsigned int)selected]->isVisible()) oldselected = -1;
+		if (selected >= 0) menus[(unsigned int)selected]->setVisible(false);
 		if (x < 0 || x >= lastx) return true;
-		for (selected = (int)(menus.size()-1); menus[selected]->getX() > x; selected--) {};
+		for (selected = (int)(menus.size()-1); menus[(unsigned int)selected]->getX() > x; selected--) {};
 		if (oldselected == selected) selected = -1;
-		else menus[selected]->setVisible(true);
+		else menus[(unsigned int)selected]->setVisible(true);
 		return true;
 	}
 
 	/// Handle keyboard input.
-	virtual bool keyDown(const Key &key) { return true; };
+	virtual bool keyDown(const Key &key) { (void)key; return true; }
 
 	/// Handle keyboard input.
-	virtual bool keyUp(const Key &key) { return true; };
+	virtual bool keyUp(const Key &key) { (void)key; return true; }
 
 	virtual void actionExecuted(ActionEventSource *src, const String &arg) {
 		std::list<ActionEventSource_Callback*>::iterator i = actionHandlers.begin();
@@ -2054,12 +2082,18 @@ public:
 
 	/// Press checkbox.
 	virtual bool mouseDown(int x, int y, MouseButton button) {
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED	
 		checked = !checked;
 		return true;
 	}
 
 	/// Release checkbox.
 	virtual bool mouseUp(int x, int y, MouseButton button)  {
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED	
 		execute();
 		return true;
 	}
@@ -2108,12 +2142,18 @@ public:
 
 	/// Press radio box.
 	virtual bool mouseDown(int x, int y, MouseButton button) {
-		checked = true;
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED
+        checked = true;
 		return true;
 	}
 
 	/// Release checkbox.
 	virtual bool mouseUp(int x, int y, MouseButton button)  {
+        (void)button;//UNUSED
+        (void)x;//UNUSED
+        (void)y;//UNUSED
 		executeAction();
 		return true;
 	}
@@ -2140,6 +2180,7 @@ protected:
 
 	/// Execute handlers.
 	virtual void actionExecuted(ActionEventSource *src, const String &arg) {
+        (void)arg;//UNUSED
 		for (std::list<Window *>::iterator i = children.begin(); i != children.end(); ++i) {
 			Radiobox *r = dynamic_cast<Radiobox*>(*i);
 			if (r != NULL && src != dynamic_cast<ActionEventSource*>(r)) r->setChecked(false);
@@ -2233,6 +2274,6 @@ template <typename STR> Radiobox::Radiobox(Frame *parent, int x, int y, const ST
 	addActionHandler(parent);
 }
 
-};
+}
 
 #endif

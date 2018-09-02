@@ -55,7 +55,7 @@ void CALLBACK_Dump(void) {
 
         LOG(LOG_CPU,LOG_DEBUG)("  [%u] func=%p desc='%s'",
             (unsigned int)i,
-            (void*)CallBack_Handlers[i],
+            (void*)((uintptr_t)CallBack_Handlers[i]), /* shut the compiler up by func -> uintptr_t -> void* conversion */
             CallBack_Description[i] != NULL ? CallBack_Description[i] : "");
     }
 	LOG(LOG_CPU,LOG_DEBUG)("--------------");
@@ -148,7 +148,7 @@ void CALLBACK_RunRealFar(Bit16u seg,Bit16u off) {
 void CALLBACK_RunRealInt_retcsip(Bit8u intnum,Bitu &rcs,Bitu &rip) {
 	Bit32u oldeip=reg_eip;
 	Bit16u oldcs=SegValue(cs);
-	reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*6);
+	reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*6U);
 	SegSet16(cs,CB_SEG);
 	DOSBOX_RunMachine();
 	rcs = SegValue(cs);
@@ -160,7 +160,7 @@ void CALLBACK_RunRealInt_retcsip(Bit8u intnum,Bitu &rcs,Bitu &rip) {
 void CALLBACK_RunRealInt(Bit8u intnum) {
 	Bit32u oldeip=reg_eip;
 	Bit16u oldcs=SegValue(cs);
-	reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*6);
+	reg_eip=CB_SOFFSET+(CB_MAX*CB_SIZE)+(intnum*6U);
 	SegSet16(cs,CB_SEG);
 	DOSBOX_RunMachine();
 	reg_eip=oldeip;
@@ -331,8 +331,19 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		return (use_cb?0x13:0x0f);
 	case CB_IRQ1:	// keyboard int9
 		phys_writeb(physAddress+0x00,(Bit8u)0x50);			// push ax
-		phys_writew(physAddress+0x01,(Bit16u)0x60e4);		// in al, 0x60
-        if (IS_PC98_ARCH) {
+        if (machine == MCH_PCJR || IS_PC98_ARCH) {
+            /* NTS: NEC PC-98 does not have keyboard input on port 60h, it's a 8251 UART elsewhere.
+             *
+             *      IBM PCjr reads the infared input on NMI interrupt, which then calls INT 48h to
+             *      translate to IBM PC/XT scan codes before passing AL directly to IRQ1 (INT 9).
+             *      PCjr keyboard handlers, including games made for the PCjr, assume the scan code
+             *      is in AL and do not read the I/O port */
+            phys_writew(physAddress+0x01,(Bit16u)0x9090);		// nop, nop
+        }
+        else {
+            phys_writew(physAddress+0x01,(Bit16u)0x60e4);		// in al, 0x60
+        }
+        if (IS_PC98_ARCH || IS_TANDY_ARCH) {
             phys_writew(physAddress+0x03,(Bit16u)0x9090);		// nop, nop
             phys_writeb(physAddress+0x05,(Bit8u)0x90);			// nop
             phys_writew(physAddress+0x06,(Bit16u)0x9090);		// nop, nop (PC-98 does not have INT 15h keyboard hook)
@@ -344,7 +355,7 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
         }
 
 		if (use_cb) {
-            if (IS_PC98_ARCH)
+            if (IS_PC98_ARCH || IS_TANDY_ARCH)
                 phys_writew(physAddress+0x08,(Bit16u)0x9090);	// nop nop
             else
                 phys_writew(physAddress+0x08,(Bit16u)0x0473);	// jc skip
@@ -748,23 +759,7 @@ void CALLBACK_HandlerObject::Set_RealVec(Bit8u vec,bool reinstall){
 }
 
 void CALLBACK_Init() {
-	if (mainline_compatible_bios_mapping) {
-		LOG(LOG_MISC,LOG_DEBUG)("Initializing DOSBox callback instruction system (mainline compatible)");
-
-		CB_SOFFSET=0x1000;
-		CB_SEG=0xF000;
-
-		/* mark the fixed callback location as off-limits */
-		if (ROMBIOS_GetMemory((CB_MAX*CB_SIZE)+(256*6),"DOSBox callbacks region",1,PhysMake(CB_SEG,CB_SOFFSET)) == 0)
-			E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
-
-		vm86_fake_io_seg = 0xF000;	/* unused area in BIOS for IO instruction */
-		vm86_fake_io_off = 0x0700;
-		/* mark the vm86 hack as off-limits */
-		if (ROMBIOS_GetMemory(14/*2+2+3+2+2+3*/,"DOSBox vm86 hack",1,(vm86_fake_io_seg<<4)+vm86_fake_io_off) == 0)
-			E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
-	}
-	else {
+	{
 		/* NTS: Layout of the callback area:
 		 *
 		 * CB_MAX entries CB_SIZE each, where executable x86 code is written per callback,

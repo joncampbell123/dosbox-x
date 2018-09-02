@@ -40,7 +40,25 @@
 /* #define bios_expansion_memory_size      (*(unsigned int   *) 0x415) */
 #define BIOS_KEYBOARD_STATE             0x417
 #define BIOS_KEYBOARD_FLAGS1            BIOS_KEYBOARD_STATE
+#define BIOS_KEYBOARD_FLAGS1_RSHIFT_PRESSED			(1 << 0)
+#define BIOS_KEYBOARD_FLAGS1_LSHIFT_PRESSED			(1 << 1)
+#define BIOS_KEYBOARD_FLAGS1_CTRL_PRESSED			(1 << 2)
+#define BIOS_KEYBOARD_FLAGS1_ALT_PRESSED			(1 << 3)
+#define BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE		(1 << 4)
+#define BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE			(1 << 5)
+#define BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE		(1 << 6)
+#define BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE			(1 << 7)
+
 #define BIOS_KEYBOARD_FLAGS2            0x418
+#define BIOS_KEYBOARD_FLAGS2_LCTRL_PRESSED			(1 << 0)
+#define BIOS_KEYBOARD_FLAGS2_LALT_PRESSED			(1 << 1)
+#define BIOS_KEYBOARD_FLAGS2_SYSTEMKEY_HELD			(1 << 2)
+#define BIOS_KEYBOARD_FLAGS2_SUSPENDKEY_TOGGLED		(1 << 3)
+#define BIOS_KEYBOARD_FLAGS2_SCROLL_LOCK_PRESSED	(1 << 4)
+#define BIOS_KEYBOARD_FLAGS2_NUM_LOCK_PRESSED		(1 << 5)
+#define BIOS_KEYBOARD_FLAGS2_CAPS_LOCK_PRESSED		(1 << 6)
+#define BIOS_KEYBOARD_FLAGS2_INSERT_PRESSED			(1 << 7)
+
 #define BIOS_KEYBOARD_TOKEN             0x419
 /* used for keyboard input with Alt-Number */
 #define BIOS_KEYBOARD_BUFFER_HEAD       0x41a
@@ -95,7 +113,24 @@
 #define BIOS_VIDEO_COMBO                0x48a
 
 #define BIOS_KEYBOARD_FLAGS3            0x496
+#define BIOS_KEYBOARD_FLAGS3_HIDDEN_E1			(1 << 0)
+#define BIOS_KEYBOARD_FLAGS3_HIDDEN_E0			(1 << 1)
+#define BIOS_KEYBOARD_FLAGS3_RCTRL_PRESSED		(1 << 2)
+#define BIOS_KEYBOARD_FLAGS3_RALT_PRESSED		(1 << 3)
+#define BIOS_KEYBOARD_FLAGS3_ENHANCED_KEYBOARD	(1 << 4)
+#define BIOS_KEYBOARD_FLAGS3_NUM_LOCK_FORCED	(1 << 5)
+#define BIOS_KEYBOARD_FLAGS3_ID_CHAR_WAS_LAST	(1 << 6)
+#define BIOS_KEYBOARD_FLAGS3_ID_READ_IN_PROCESS	(1 << 7)
+
 #define BIOS_KEYBOARD_LEDS              0x497
+#define BIOS_KEYBOARD_LEDS_SCROLL_LOCK    (1 << 0)
+#define BIOS_KEYBOARD_LEDS_NUM_LOCK       (1 << 1)
+#define BIOS_KEYBOARD_LEDS_CAPS_LOCK      (1 << 2)
+#define BIOS_KEYBOARD_LEDS_CIRCUS         (1 << 3)
+#define BIOS_KEYBOARD_LEDS_ACK            (1 << 4)
+#define BIOS_KEYBOARD_LEDS_RESEND         (1 << 5)
+#define BIOS_KEYBOARD_LEDS_MODE           (1 << 6)
+#define BIOS_KEYBOARD_LEDS_TRANSMIT_ERROR (1 << 7)
 
 #define BIOS_WAIT_FLAG_POINTER          0x498
 #define BIOS_WAIT_FLAG_COUNT	        0x49c		
@@ -107,6 +142,9 @@
 
 #define BIOS_VIDEO_SAVEPTR              0x4a8
 
+#define CURSOR_SCAN_LINE_NORMAL			(0x6)
+#define CURSOR_SCAN_LINE_INSERT			(0x4)
+#define CURSOR_SCAN_LINE_END			(0x7)
 
 //#define BIOS_DEFAULT_IRQ0_LOCATION		(RealMake(0xf000,0xfea5))
 //#define BIOS_DEFAULT_IRQ1_LOCATION		(RealMake(0xf000,0xe987))
@@ -150,6 +188,15 @@ void INT10_ReloadRomFonts();
 
 void BIOS_SetComPorts (Bit16u baseaddr[]);
 void BIOS_SetLPTPort (Bitu port, Bit16u baseaddr);
+
+// \brief Synchronizes emulator num lock state with host.
+void BIOS_SynchronizeNumLock();
+
+// \brief Synchronizes emulator caps lock state with host.
+void BIOS_SynchronizeCapsLock();
+
+// \brief Synchronizes emulator scroll lock state with host.
+void BIOS_SynchronizeScrollLock();
 
 bool ISAPNP_RegisterSysDev(const unsigned char *raw,Bitu len,bool already=false);
 
@@ -195,20 +242,20 @@ public:
 		IRQFormatInfo_LowTrueLevelSensitive =	0x8
 	};
 	// IRQ format, helper IRQ mask generator
-	static inline const uint16_t irq2mask(const int IRQ) {
+	static inline uint16_t irq2mask(const int IRQ) {
 		if (IRQ < 0 || IRQ > 15) return 0;
-		return (uint16_t)1 << (unsigned char)IRQ;
+		return (uint16_t)(1U << (unsigned char)IRQ);
 	}
-	static inline const uint16_t irq2mask(const int a,const int b) {
+	static inline uint16_t irq2mask(const int a,const int b) {
 		return irq2mask(a) | irq2mask(b);
 	}
-	static inline const uint16_t irq2mask(const int a,const int b,const int c) {
+	static inline uint16_t irq2mask(const int a,const int b,const int c) {
 		return irq2mask(a) | irq2mask(b) | irq2mask(c);
 	}
-	static inline const uint16_t irq2mask(const int a,const int b,const int c,const int d) {
+	static inline uint16_t irq2mask(const int a,const int b,const int c,const int d) {
 		return irq2mask(a) | irq2mask(b) | irq2mask(c) | irq2mask(d);
 	}
-	static inline const uint16_t irq2mask(const int a,const int b,const int c,const int d,const int e) {
+	static inline uint16_t irq2mask(const int a,const int b,const int c,const int d,const int e) {
 		return irq2mask(a) | irq2mask(b) | irq2mask(c) | irq2mask(d) | irq2mask(e);
 	}
 	// DMA format transfer type
@@ -224,20 +271,20 @@ public:
 		DMASpeedSupported_TypeF=3
 	};
 	// DMA format
-	static inline const uint16_t dma2mask(const int DMA) {
+	static inline uint16_t dma2mask(const int DMA) {
 		if (DMA < 0 || DMA > 7 || DMA == 4) return 0;
-		return (uint16_t)1 << (unsigned char)DMA;
+		return (uint16_t)(1U << (unsigned char)DMA);
 	}
-	static inline const uint16_t dma2mask(const int a,const int b) {
+	static inline uint16_t dma2mask(const int a,const int b) {
 		return dma2mask(a) | dma2mask(b);
 	}
-	static inline const uint16_t dma2mask(const int a,const int b,const int c) {
+	static inline uint16_t dma2mask(const int a,const int b,const int c) {
 		return dma2mask(a) | dma2mask(b) | dma2mask(c);
 	}
-	static inline const uint16_t dma2mask(const int a,const int b,const int c,const int d) {
+	static inline uint16_t dma2mask(const int a,const int b,const int c,const int d) {
 		return dma2mask(a) | dma2mask(b) | dma2mask(c) | dma2mask(d);
 	}
-	static inline const uint16_t dma2mask(const int a,const int b,const int c,const int d,const int e) {
+	static inline uint16_t dma2mask(const int a,const int b,const int c,const int d,const int e) {
 		return dma2mask(a) | dma2mask(b) | dma2mask(c) | dma2mask(d) | dma2mask(e);
 	}
 public:

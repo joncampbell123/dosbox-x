@@ -24,9 +24,17 @@
 #include "regs.h"
 #include "control.h"
 #include "shell.h"
+#include "menu.h"
+#include "cpu.h"
 #include "callback.h"
 #include "support.h"
 #include "builtin.h"
+#include "build_timestamp.h"
+
+extern bool enable_config_as_shell_commands;
+extern bool dos_shell_running_program;
+
+Bitu shell_psp = 0;
 
 void CALLBACK_DeAllocate(Bitu in);
 
@@ -143,6 +151,7 @@ DOS_Shell::DOS_Shell():Program(){
 	exit=false;
 	bf=0;
 	call=false;
+    input_eof=false;
 }
 
 Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn,bool * append) {
@@ -177,8 +186,8 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn,bool * append) {
 //				*lr++=0; 
 //			else 
 //				*lr=0;
-			t = (char*)malloc(lr-*ofn+1);
-			safe_strncpy(t,*ofn,lr-*ofn+1);
+			t = (char*)malloc(lr-*ofn+1); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
+			safe_strncpy(t,*ofn,lr-*ofn+1); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
 			*ofn=t;
 			continue;
 		case '<':
@@ -191,8 +200,8 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn,bool * append) {
 //				*lr++=0; 
 //			else 
 //				*lr=0;
-			t = (char*)malloc(lr-*ifn+1);
-			safe_strncpy(t,*ifn,lr-*ifn+1);
+			t = (char*)malloc(lr-*ifn+1); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
+			safe_strncpy(t,*ifn,lr-*ifn+1); // FIXME: *ofn is signed char, so if extended ASCII, could cause an error here!
 			*ifn=t;
 			continue;
 		case '|':
@@ -257,7 +266,21 @@ void DOS_Shell::ParseLine(char * line) {
 		if(!normalstdin && !in) DOS_CloseFile(0);
 	}
 	/* Run the actual command */
+
+	if (this == first_shell) dos_shell_running_program = true;
+#if defined(WIN32) && !defined(C_SDL2)
+	int Reflect_Menu(void);
+	Reflect_Menu();
+#endif
+
 	DoCommand(line);
+
+	if (this == first_shell) dos_shell_running_program = false;
+#if defined(WIN32) && !defined(C_SDL2)
+	int Reflect_Menu(void);
+	Reflect_Menu();
+#endif
+
 	/* Restore handles */
 	if(in) {
 		DOS_CloseFile(0);
@@ -305,15 +328,21 @@ void DOS_Shell::Run(void) {
 		temp.RunInternal();				// exits when no bf is found.
 		return;
 	}
-	/* Start a normal shell and check for a first command init */
-	WriteOut(MSG_Get("SHELL_STARTUP_BEGIN"),VERSION,UPDATED_STR);
+
+    if (this == first_shell) {
+        /* Start a normal shell and check for a first command init */
+        WriteOut(MSG_Get("SHELL_STARTUP_BEGIN"),VERSION,UPDATED_STR);
 #if C_DEBUG
-	WriteOut(MSG_Get("SHELL_STARTUP_DEBUG"));
+        WriteOut(MSG_Get("SHELL_STARTUP_DEBUG"));
 #endif
-	if (machine == MCH_CGA || machine == MCH_AMSTRAD) WriteOut(MSG_Get("SHELL_STARTUP_CGA"));
-    if (machine == MCH_PC98) WriteOut(MSG_Get("SHELL_STARTUP_PC98"));
-	if (machine == MCH_HERC) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
-	WriteOut(MSG_Get("SHELL_STARTUP_END"));
+        if (machine == MCH_CGA || machine == MCH_AMSTRAD) WriteOut(MSG_Get("SHELL_STARTUP_CGA"));
+        if (machine == MCH_PC98) WriteOut(MSG_Get("SHELL_STARTUP_PC98"));
+        if (machine == MCH_HERC || machine == MCH_MDA) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
+        WriteOut(MSG_Get("SHELL_STARTUP_END"));
+    }
+    else {
+        WriteOut("DOSBox command shell %s %s\n\n",VERSION,UPDATED_STR);
+    }
 
 	if (cmd->FindString("/INIT",line,true)) {
 		strcpy(input_line,line.c_str());
@@ -335,7 +364,12 @@ void DOS_Shell::Run(void) {
 		} else {
 			if (echo) ShowPrompt();
 			InputCommand(input_line);
-			if (echo) WriteOut("\n");
+			if (echo && !input_eof) WriteOut("\n");
+
+            /* Bugfix: CTTY NUL will return immediately, the shell input will return
+             *         immediately, and if we don't consume CPU cycles to compensate,
+             *         will leave DOSBox-X running in an endless loop, hung. */
+            if (input_eof) CALLBACK_Idle();
 		}
 
 		/* do it */
@@ -354,6 +388,7 @@ class AUTOEXEC:public Module_base {
 private:
 	AutoexecObject autoexec[17];
 	AutoexecObject autoexec_echo;
+    AutoexecObject autoexec_auto_bat;
 public:
 	AUTOEXEC(Section* configuration):Module_base(configuration) {
 		/* Register a virtual AUOEXEC.BAT file */
@@ -362,6 +397,35 @@ public:
 
 		/* Check -securemode switch to disable mount/imgmount/boot after running autoexec.bat */
 		bool secure = control->opt_securemode;
+
+        /* The user may have given .BAT files to run on the command line */
+        if (!control->auto_bat_additional.empty()) {
+            std::string cmd;
+
+            for (unsigned int i=0;i<control->auto_bat_additional.size();i++) {
+				std::string batname;
+				/* NTS: this code might have problems with DBCS filenames - yksoft1 */
+				size_t pos = control->auto_bat_additional[i].find_last_of(CROSS_FILESPLIT);
+				if(pos == std::string::npos) {  //Only a filename, mount current directory
+					batname = control->auto_bat_additional[i];
+					cmd += "@mount c: . -q\n";
+				} else { //Parse the path of .BAT file
+					std::string batpath = control->auto_bat_additional[i].substr(0,pos+1);
+					batname = control->auto_bat_additional[i].substr(pos+1);
+					cmd += "@mount c: " + batpath + " -q\n";
+				}
+				cmd += "@c:\n";
+				cmd += "@cd \\\n";
+                /* NTS: "CALL" does not support quoting the filename.
+                 *      This will break if the batch file name has spaces in it. */
+                cmd += "@CALL ";
+                cmd += batname;
+                cmd += "\n";
+				cmd += "@mount -u c: -q\n";
+            }
+
+            autoexec_auto_bat.Install(cmd);
+        }
 
 		/* add stuff from the configfile unless -noautexec or -securemode is specified. */
 		char * extra = const_cast<char*>(section->data.c_str());
@@ -470,6 +534,7 @@ nomount:
 static AUTOEXEC* test = NULL;
 	
 static void AUTOEXEC_ShutDown(Section * sec) {
+    (void)sec;//UNUSED
 	if (test != NULL) {
 		delete test;
 		test = NULL;
@@ -485,6 +550,7 @@ static void AUTOEXEC_ShutDown(Section * sec) {
 }
 
 void AUTOEXEC_Startup(Section *sec) {
+    (void)sec;//UNUSED
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating AUTOEXEC.BAT emulation");
 		test = new AUTOEXEC(control->GetSection("autoexec"));
@@ -499,6 +565,41 @@ void AUTOEXEC_Init() {
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(AUTOEXEC_ShutDown));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_REBOOT_BEGIN,AddVMEventFunctionFuncPair(AUTOEXEC_ShutDown));
 	AddVMEventFunction(VM_EVENT_DOS_SURPRISE_REBOOT,AddVMEventFunctionFuncPair(AUTOEXEC_ShutDown));
+}
+
+static Bitu INT2E_Handler(void) {
+	/* Save return address and current process */
+	RealPt save_ret=real_readd(SegValue(ss),reg_sp);
+	Bit16u save_psp=dos.psp();
+
+	/* Set first shell as process and copy command */
+	dos.psp(shell_psp);//DOS_FIRST_SHELL);
+	DOS_PSP psp(shell_psp);//DOS_FIRST_SHELL);
+	psp.SetCommandTail(RealMakeSeg(ds,reg_si));
+	SegSet16(ss,RealSeg(psp.GetStack()));
+	reg_sp=2046;
+
+	/* Read and fix up command string */
+	CommandTail tail;
+	MEM_BlockRead(PhysMake(dos.psp(),128),&tail,128);
+	if (tail.count<127) tail.buffer[tail.count]=0;
+	else tail.buffer[126]=0;
+	char* crlf=strpbrk(tail.buffer,"\r\n");
+	if (crlf) *crlf=0;
+
+	/* Execute command */
+	if (strlen(tail.buffer)) {
+		DOS_Shell temp;
+		temp.ParseLine(tail.buffer);
+		temp.RunInternal();
+	}
+
+	/* Restore process and "return" to caller */
+	dos.psp(save_psp);
+	SegSet16(cs,RealSeg(save_ret));
+	reg_ip=RealOff(save_ret);
+	reg_ax=0;
+	return CBRET_NONE;
 }
 
 static char const * const path_string="PATH=Z:\\";
@@ -580,53 +681,96 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_SUBST_NO_REMOVE","Unable to remove, drive not in use.\n");
 	MSG_Add("SHELL_CMD_SUBST_FAILURE","SUBST failed. You either made an error in your commandline or the target drive is already used.\nIt's only possible to use SUBST on Local drives\n");
 
-	MSG_Add("SHELL_STARTUP_BEGIN",
-		"\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-		"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-		"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n"
-		"\xBA \033[32mWelcome to DOSBox-X %-8s %-25s\033[37m             \xBA\n"
-		"\xBA                                                                    \xBA\n"
-		"\xBA For a short introduction for new users type: \033[33mINTRO\033[37m                 \xBA\n"
-		"\xBA For supported shell commands type: \033[33mHELP\033[37m                            \xBA\n"
-		"\xBA                                                                    \xBA\n"
-		"\xBA To adjust the emulated CPU speed, use \033[31mctrl-F11\033[37m and \033[31mctrl-F12\033[37m.       \xBA\n"
-		"\xBA To activate the keymapper \033[31mctrl-F1\033[37m.                                 \xBA\n"
-		"\xBA For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \xBA\n"
-		"\xBA                                                                    \xBA\n"
-	);
-	if (!mono_cga) {
-		MSG_Add("SHELL_STARTUP_CGA","\xBA DOSBox supports Composite CGA mode.                                \xBA\n"
-		        "\xBA Use \033[31mF12\033[37m to set composite output ON, OFF, or AUTO (default).        \xBA\n"
-		        "\xBA \033[31m(Alt-)F11\033[37m changes hue; \033[31mctrl-alt-F11\033[37m selects early/late CGA model.  \xBA\n"
-		        "\xBA                                                                    \xBA\n"
-		);
-	} else {
-		MSG_Add("SHELL_STARTUP_CGA","\xBA Use \033[31mF11\033[37m to cycle through green, amber, and white monochrome color, \xBA\n"
-		        "\xBA and \033[31mAlt-F11\033[37m to change contrast/brightness settings.                \xBA\n"
-		);
-	}
-    MSG_Add("SHELL_STARTUP_PC98","\xBA DOSBox-X is now running in NEC PC-98 emulation mode.               \xBA\n"
-        "\xBA \033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m        \xBA\n");
-    MSG_Add("SHELL_STARTUP_HERC","\xBA Use F11 to cycle through white, amber, and green monochrome color. \xBA\n"
-		"\xBA Use alt-F11 to toggle horizontal blending (only in graphics mode). \xBA\n"
-	        "\xBA                                                                    \xBA\n"
-	);
-	MSG_Add("SHELL_STARTUP_DEBUG",
-	#if defined(MACOSX)
-	        "\xBA Debugger is available, use \033[31malt-F12\033[37m to enter.                       \xBA\n"
-	#else
-	        "\xBA Debugger is available, use \033[31malt-Pause\033[37m to enter.                     \xBA\n"
-	#endif
-	        "\xBA                                                                    \xBA\n"
-	);
-	MSG_Add("SHELL_STARTUP_END",
-	        "\xBA \033[32mDOSBox-X project \033[33mhttp://dosbox-x.software\033[32m      PentiumPro support \033[37m \xBA\n"
-	        "\xBA \033[32mDerived from DOSBox \033[33mhttp://www.dosbox.com\033[37m                          \xBA\n"
-	        "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-	        "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-	        "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m\n"
-	        "\033[1m\033[32mHAVE FUN!\033[0m\n"
-	);
+    if (machine == MCH_PC98) {
+        MSG_Add("SHELL_STARTUP_BEGIN",
+                "\x86\x52\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"
+                "\x86\x46 \033[32mWelcome to DOSBox-X %-8s %-25s\033[37m             \x86\x46\n"
+                "\x86\x46                                                                    \x86\x46\n"
+                "\x86\x46 For a short introduction for new users type: \033[33mINTRO\033[37m                 \x86\x46\n"
+                "\x86\x46 For supported shell commands type: \033[33mHELP\033[37m                            \x86\x46\n"
+                "\x86\x46                                                                    \x86\x46\n"
+                "\x86\x46 To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \x86\x46\n"
+                "\x86\x46 To activate the keymapper \033[31mhost+m\033[37m. Host key is F11.                 \x86\x46\n"
+                "\x86\x46 For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \x86\x46\n"
+                "\x86\x46                                                                    \x86\x46\n"
+               );
+        MSG_Add("SHELL_STARTUP_PC98","\x86\x46 DOSBox-X is now running in NEC PC-98 emulation mode.               \x86\x46\n"
+                "\x86\x46 \033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m        \x86\x46\n");
+        MSG_Add("SHELL_STARTUP_DEBUG",
+#if defined(MACOSX)
+                "\x86\x46 Debugger is available, use \033[31malt-F12\033[37m to enter.                       \x86\x46\n"
+#else
+                "\x86\x46 Debugger is available, use \033[31malt-Pause\033[37m to enter.                     \x86\x46\n"
+#endif
+                "\x86\x46                                                                    \x86\x46\n"
+               );
+        MSG_Add("SHELL_STARTUP_END",
+                "\x86\x46 \033[32mDOSBox-X project \033[33mhttp://dosbox-x.software\033[32m      PentiumPro support \033[37m \x86\x46\n"
+                "\x86\x46 \033[32mDerived from DOSBox \033[33mhttp://www.dosbox.com\033[37m                          \x86\x46\n"
+                "\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x5E\033[0m\n"
+                "\033[1m\033[32mHAVE FUN!\033[0m\n"
+               );
+    }
+    else {
+        MSG_Add("SHELL_STARTUP_BEGIN",
+                "\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n"
+                "\xBA \033[32mWelcome to DOSBox-X %-8s %-25s\033[37m             \xBA\n"
+                "\xBA                                                                    \xBA\n"
+                "\xBA For a short introduction for new users type: \033[33mINTRO\033[37m                 \xBA\n"
+                "\xBA For supported shell commands type: \033[33mHELP\033[37m                            \xBA\n"
+                "\xBA                                                                    \xBA\n"
+                "\xBA To adjust the emulated CPU speed, use \033[31mhost -\033[37m and \033[31mhost +\033[37m.           \xBA\n"
+                "\xBA To activate the keymapper \033[31mhost+m\033[37m. Host key is F11.                 \xBA\n"
+                "\xBA For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \xBA\n"
+                "\xBA                                                                    \xBA\n"
+               );
+        if (!mono_cga) {
+            MSG_Add("SHELL_STARTUP_CGA","\xBA DOSBox supports Composite CGA mode.                                \xBA\n"
+                    "\xBA Use \033[31mF12\033[37m to set composite output ON, OFF, or AUTO (default).        \xBA\n"
+                    "\xBA \033[31m(Alt-)F11\033[37m changes hue; \033[31mctrl-alt-F11\033[37m selects early/late CGA model.  \xBA\n"
+                    "\xBA                                                                    \xBA\n"
+                   );
+        } else {
+            MSG_Add("SHELL_STARTUP_CGA","\xBA Use \033[31mF11\033[37m to cycle through green, amber, and white monochrome color, \xBA\n"
+                    "\xBA and \033[31mAlt-F11\033[37m to change contrast/brightness settings.                \xBA\n"
+                   );
+        }
+        MSG_Add("SHELL_STARTUP_PC98","\xBA DOSBox-X is now running in NEC PC-98 emulation mode.               \xBA\n"
+                "\xBA \033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m        \xBA\n");
+        MSG_Add("SHELL_STARTUP_HERC","\xBA Use F11 to cycle through white, amber, and green monochrome color. \xBA\n"
+                "\xBA Use alt-F11 to toggle horizontal blending (only in graphics mode). \xBA\n"
+                "\xBA                                                                    \xBA\n"
+               );
+        MSG_Add("SHELL_STARTUP_DEBUG",
+#if defined(MACOSX)
+                "\xBA Debugger is available, use \033[31malt-F12\033[37m to enter.                       \xBA\n"
+#else
+                "\xBA Debugger is available, use \033[31malt-Pause\033[37m to enter.                     \xBA\n"
+#endif
+                "\xBA                                                                    \xBA\n"
+               );
+        MSG_Add("SHELL_STARTUP_END",
+                "\xBA \033[32mDOSBox-X project \033[33mhttp://dosbox-x.software\033[32m      PentiumPro support \033[37m \xBA\n"
+                "\xBA \033[32mDerived from DOSBox \033[33mhttp://www.dosbox.com\033[37m                          \xBA\n"
+                "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m\n"
+                "\033[1m\033[32mHAVE FUN!\033[0m\n"
+               );
+    }
+
 	MSG_Add("SHELL_CMD_CHDIR_HELP","Displays/changes the current directory.\n");
 	MSG_Add("SHELL_CMD_CHDIR_HELP_LONG","CHDIR [drive:][path]\n"
 	        "CHDIR [..]\n"
@@ -637,13 +781,18 @@ void SHELL_Init() {
 	        "Type CD without parameters to display the current drive and directory.\n");
 	MSG_Add("SHELL_CMD_CLS_HELP","Clear screen.\n");
 	MSG_Add("SHELL_CMD_DIR_HELP","Directory View.\n");
-	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/W] [/S] [/P] [/AD]\n\n"
+	MSG_Add("SHELL_CMD_DIR_HELP_LONG","DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/AD] [/O[N|E|S|D]\n\n"
 		   "   [drive:][path][filename]\n"
 		   "       Specifies drive, directory, and/or files to list.\n\n"
 		   "   /W\tUses wide list format.\n"
+		   "   /B\tUses bare format (no heading information or summary).\n"
 		   "   /S\tDisplays files in specified directory and all subdirectories.\n\t(not supported)\n"
 		   "   /P\tPauses after each screenful of information.\n"
-		   "   /AD\tDisplays directories.\n");
+		   "   /AD\tDisplays directories.\n"
+		   "   /ON\tList files sorted by name (alphabetic).\n"
+		   "   /OE\tList files sorted by extension (alphabetic).\n"
+		   "   /OS\tList files sorted by size (smallest first).\n"
+		   "   /OD\tList files sorted by date (oldest first).\n");
 	MSG_Add("SHELL_CMD_ECHO_HELP","Display messages and enable/disable command echoing.\n");
 	MSG_Add("SHELL_CMD_EXIT_HELP","Exit from the shell.\n");
 	MSG_Add("SHELL_CMD_HELP_HELP","Show help.\n");
@@ -765,10 +914,65 @@ void SHELL_Init() {
 	CALLBACK_Setup(call_shellstop,shellstop_handler,CB_IRET,"shell stop");
 	PROGRAMS_MakeFile("COMMAND.COM",SHELL_ProgramStart);
 
+    /* NTS: Some DOS programs behave badly if run from a command interpreter
+     *      who's PSP segment is too low in memory and does not appear in
+     *      the MCB chain (SimCity 2000). So allocate shell memory normally
+     *      as any DOS application would do.
+     *
+     *      That includes allocating COMMAND.COM stack NORMALLY (not up in
+     *      the UMB as DOSBox SVN would do) */
+
 	/* Now call up the shell for the first time */
-	Bit16u psp_seg=DOS_FIRST_SHELL;
-	Bit16u env_seg=DOS_FIRST_SHELL+19; //DOS_GetMemory(1+(4096/16))+1;
-	Bit16u stack_seg=DOS_GetMemory(2048/16,"COMMAND.COM stack");
+	Bit16u psp_seg;//=DOS_FIRST_SHELL;
+	Bit16u env_seg;//=DOS_FIRST_SHELL+19; //DOS_GetMemory(1+(4096/16))+1;
+	Bit16u stack_seg;//=DOS_GetMemory(2048/16,"COMMAND.COM stack");
+    Bit16u tmp,total_sz;
+
+    // decide shell env size
+    if (dosbox_shell_env_size == 0)
+        dosbox_shell_env_size = (0x158u - (0x118u + 19u)) << 4u; /* equivalent to mainline DOSBox */
+    else
+        dosbox_shell_env_size = (dosbox_shell_env_size+15u)&(~15u); /* round up to paragraph */
+
+    LOG_MSG("COMMAND.COM env size:             %u bytes",dosbox_shell_env_size);
+
+    // According to some sources, 0x0008 is a special PSP segment value used by DOS before the first
+    // program is used. We need the current PSP segment to be nonzero so that DOS_AllocateMemory()
+    // can properly allocate memory.
+    dos.psp(8);
+
+    // COMMAND.COM environment block
+    tmp = dosbox_shell_env_size>>4;
+	if (!DOS_AllocateMemory(&env_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate environment block segment");
+    LOG_MSG("COMMAND.COM environment block:    0x%04x sz=0x%04x",env_seg,tmp);
+
+    // COMMAND.COM main binary (including PSP and stack)
+    tmp = 0x1A + (2048/16);
+    total_sz = tmp;
+	if (!DOS_AllocateMemory(&psp_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate main body + PSP segment");
+    LOG_MSG("COMMAND.COM main body (PSP):      0x%04x sz=0x%04x",psp_seg,tmp);
+
+    // now COMMAND.COM has a main body and PSP segment, reflect it
+    dos.psp(psp_seg);
+    shell_psp = psp_seg;
+
+    {
+        DOS_MCB mcb((Bit16u)(env_seg-1));
+        mcb.SetPSPSeg(psp_seg);
+        mcb.SetFileName("COMMAND");
+    }
+
+    {
+        DOS_MCB mcb((Bit16u)(psp_seg-1));
+        mcb.SetPSPSeg(psp_seg);
+        mcb.SetFileName("COMMAND");
+    }
+
+    // set the stack at 0x1A
+    stack_seg = psp_seg + 0x1A;
+    LOG_MSG("COMMAND.COM stack:                0x%04x",stack_seg);
+
+    // set the stack pointer
 	SegSet16(ss,stack_seg);
 	reg_sp=2046;
 
@@ -780,26 +984,12 @@ void SHELL_Init() {
 	/* Set up int 23 to "int 20" in the psp. Fixes what.exe */
 	real_writed(0,0x23*4,((Bit32u)psp_seg<<16));
 
-	/* sanity check */
-	if (DOS_FIRST_SHELL_END < 0xA000) { assert(DOS_FIRST_SHELL_END <= DOS_MEM_START); };
-	assert(DOS_FIRST_SHELL_END > env_seg);
+	/* Set up int 2e handler */
+	Bitu call_int2e=CALLBACK_Allocate();
+	RealPt addr_int2e=RealMake(psp_seg+16+1,8);
+	CALLBACK_Setup(call_int2e,&INT2E_Handler,CB_IRET_STI,Real2Phys(addr_int2e),"Shell Int 2e");
+	RealSetVec(0x2e,addr_int2e);
 
-	if ((env_seg+(dosbox_shell_env_size>>4)) > DOS_FIRST_SHELL_END)
-		E_Exit("env_seg + env_size > SHELL_END programming mistake");
-
-	/* Setup MCBs */
-	DOS_MCB pspmcb((Bit16u)(psp_seg-1));
-	pspmcb.SetPSPSeg(psp_seg);	// MCB of the command shell psp
-	pspmcb.SetSize(0x10+2);
-	pspmcb.SetType(0x4d);
-	DOS_MCB envmcb((Bit16u)(env_seg-1));
-	envmcb.SetPSPSeg(psp_seg);	// MCB of the command shell environment
-	envmcb.SetSize(DOS_FIRST_SHELL_END-env_seg);
-	envmcb.SetType(0x4d);
-
-	LOG(LOG_MISC,LOG_DEBUG)("SHELL: psp_seg 0x%04x",psp_seg);
-	LOG(LOG_MISC,LOG_DEBUG)("SHELL: env_seg 0x%04x",env_seg);
-	
 	/* Setup environment */
 	PhysPt env_write=PhysMake(env_seg,0);
 	MEM_BlockWrite(env_write,path_string,(Bitu)(strlen(path_string)+1));
@@ -813,29 +1003,43 @@ void SHELL_Init() {
 	env_write+=2;
 	MEM_BlockWrite(env_write,full_name,(Bitu)(strlen(full_name)+1));
 
+//    extern bool Mouse_Vertical;
 	extern bool Mouse_Drv;
 	Mouse_Drv = true;
 
-	VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_LASTDRIV_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_FCBS_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_XCOPY_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_COPY_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
+
+    /* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
+    if (!IS_PC98_ARCH) {
+        VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
+        VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
+    }
+
+    /* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
+    if (!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
+        VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM);
+
+    /* DSXMENU.EXE */
+    if (IS_PC98_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98);
+    else
+        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC);
 
 	/* don't register 28.com unless EGA/VGA */
 	if (IS_EGAVGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
@@ -860,6 +1064,8 @@ void SHELL_Init() {
 	DOS_OpenFile("CON",OPEN_READWRITE,&dummy);	/* STDAUX */
 	if (!DOS_OpenFile("PRN",OPEN_READWRITE,&dummy)) DOS_OpenFile("CON",OPEN_READWRITE,&dummy);	/* STDPRN */
 
+    psp.SetSize(psp_seg + total_sz);
+    psp.SetStack(((unsigned int)stack_seg << 16u) + (unsigned int)reg_sp);
 	psp.SetParent(psp_seg);
 	/* Set the environment */
 	psp.SetEnvironment(env_seg);
@@ -872,11 +1078,23 @@ void SHELL_Init() {
 	/* Setup internal DOS Variables */
 	dos.dta(RealMake(psp_seg,0x80));
 	dos.psp(psp_seg);
+
+    /* settings */
+    {
+        Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
+        enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
+    }
 }
 
 /* Pfff... starting and running the shell from a configuration section INIT
  * What the hell were you guys thinking? --J.C. */
 void SHELL_Run() {
+	dos_shell_running_program = false;
+#if defined(WIN32) && !defined(C_SDL2)
+	int Reflect_Menu(void);
+	Reflect_Menu();
+#endif
+
 	LOG(LOG_MISC,LOG_DEBUG)("Running DOS shell now");
 
 	if (first_shell != NULL) E_Exit("Attempt to start shell when shell already running");
@@ -886,10 +1104,20 @@ void SHELL_Run() {
 		first_shell->Run();
 		delete first_shell;
 		first_shell = 0;//Make clear that it shouldn't be used anymore
+		dos_shell_running_program = false;
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
 	}
 	catch (...) {
 		delete first_shell;
 		first_shell = 0;//Make clear that it shouldn't be used anymore
+		dos_shell_running_program = false;
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
 		throw;
 	}
 }

@@ -129,7 +129,7 @@ public:
 	
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void* data);
 
-	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void* data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, const void* data);
 
 private:
 

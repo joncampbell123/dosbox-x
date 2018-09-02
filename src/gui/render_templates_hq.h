@@ -65,7 +65,9 @@ static inline void conc2d(InitLUTs,SBPP)(void)
 	int r, g, b;
 	int Y, u, v;
 
-    (void)conc2d(InitLUTs,SBPP);
+# if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
+	(void)conc2d(InitLUTs,SBPP);
+# endif
 
 	_RGBtoYUV = (Bit32u *)malloc(65536 * sizeof(Bit32u));
 
@@ -82,6 +84,6 @@ static inline void conc2d(InitLUTs,SBPP)(void)
 		Y = (r + g + b) >> 2;
 		u = 128 + ((r - b) >> 2);
 		v = 128 + ((-r + 2 * g - b) >> 3);
-		_RGBtoYUV[color] = (Y << 16) | (u << 8) | v;
+		_RGBtoYUV[color] = (Bit32u)((Y << 16) | (u << 8) | v);
 	}
 }

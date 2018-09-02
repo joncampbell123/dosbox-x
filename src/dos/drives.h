@@ -189,6 +189,12 @@ struct partTable {
 	} pentry[4];
 	Bit8u  magic1; /* 0x55 */
 	Bit8u  magic2; /* 0xaa */
+#ifndef SECTOR_SIZE_MAX
+# pragma warning SECTOR_SIZE_MAX not defined
+#endif
+#if SECTOR_SIZE_MAX > 512
+    Bit8u  extra[SECTOR_SIZE_MAX - 512];
+#endif
 } GCC_ATTRIBUTE(packed);
 
 #ifdef _MSC_VER
@@ -198,8 +204,10 @@ struct partTable {
 class imageDisk;
 class fatDrive : public DOS_Drive {
 public:
-	fatDrive(const char * sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u startSector);
-	virtual ~fatDrive();
+	fatDrive(const char * sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders);
+	fatDrive(imageDisk *sourceLoadedDisk);
+    void fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize);
+    virtual ~fatDrive();
 	virtual bool FileOpen(DOS_File * * file,const char * name,Bit32u flags);
 	virtual bool FileCreate(DOS_File * * file,const char * name,Bit16u attributes);
 	virtual bool FileUnlink(const char * name);
@@ -264,6 +272,16 @@ private:
 
 	Bit8u fatSectBuffer[SECTOR_SIZE_MAX * 2];
 	Bit32u curFatSect;
+public:
+    /* the driver code must use THESE functions to read the disk, not directly from the disk drive,
+     * in order to support a drive with a smaller sector size than the FAT filesystem's "sector".
+     *
+     * It is very common for instance to have PC-98 HDI images formatted with 256 bytes/sector at
+     * the disk level and a FAT filesystem marked as having 1024 bytes/sector. */
+	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit32u getSectSize(void);
+	Bit32u sector_size;
 };
 
 
@@ -373,17 +391,17 @@ struct isoDirEntry {
 #define DATA_LENGTH(de)		((de).dataLengthL)
 #endif
 
-#define ISO_FRAMESIZE		2048
-#define ISO_ASSOCIATED		4
-#define ISO_DIRECTORY		2
-#define ISO_HIDDEN		1
-#define ISO_MAX_FILENAME_LENGTH 37
-#define ISO_MAXPATHNAME		256
-#define ISO_FIRST_VD		16
+#define ISO_FRAMESIZE		2048u
+#define ISO_ASSOCIATED		4u
+#define ISO_DIRECTORY		2u
+#define ISO_HIDDEN		1u
+#define ISO_MAX_FILENAME_LENGTH 37u
+#define ISO_MAXPATHNAME		256u
+#define ISO_FIRST_VD		16u
 #define IS_ASSOC(fileFlags)	(fileFlags & ISO_ASSOCIATED)
 #define IS_DIR(fileFlags)	(fileFlags & ISO_DIRECTORY)
 #define IS_HIDDEN(fileFlags)	(fileFlags & ISO_HIDDEN)
-#define ISO_MAX_HASH_TABLE_SIZE 	100
+#define ISO_MAX_HASH_TABLE_SIZE 	100u
 
 class isoDrive : public DOS_Drive {
 public:

@@ -27,146 +27,38 @@
 
 #define VGA_LFB_MAPPED
 
-#define PC98_GDC_FIFO_SIZE      32      /* taken from Neko Project II, but what is it really? */
-#define GDC_COMMAND_BYTE        0x100
-
-enum {
-    GDC_MASTER=0,
-    GDC_SLAVE=1
-};
-
-struct PC98_GDC_state {
-    PC98_GDC_state();
-    void reset_fifo(void);
-    void reset_rfifo(void);
-    void flush_fifo_old(void);
-    bool write_fifo(const uint16_t c);
-    bool write_fifo_command(const unsigned char c);
-    bool write_fifo_param(const unsigned char c);
-    bool rfifo_has_content(void);
-    uint8_t read_status(void);
-    uint8_t rfifo_read_data(void);
-    void idle_proc(void);
-
-    void force_fifo_complete(void);
-    void take_cursor_char_setup(unsigned char bi);
-    void take_cursor_pos(unsigned char bi);
-    void take_reset_sync_parameters(void);
-    void cursor_advance(void);
-
-    void begin_frame(void);
-    void next_line(void);
-
-    void load_display_partition(void);
-    void next_display_partition(void);
-
-    size_t fifo_can_read(void);
-    bool fifo_empty(void);
-    Bit16u read_fifo(void);
-
-    /* NTS:
-     *
-     * We're following the Neko Project II method of FIFO emulation BUT
-     * I wonder if the GDC maintains two FIFOs and allows stacking params
-     * in one and commands in another....? */
-
-    uint8_t                 cmd_parm_tmp[8];            /* temp storage before accepting params */
-
-    uint8_t                 rfifo[PC98_GDC_FIFO_SIZE];
-    uint8_t                 rfifo_read,rfifo_write;
-
-    uint16_t                fifo[PC98_GDC_FIFO_SIZE];   /* NTS: Neko Project II uses one big FIFO for command and data, which makes sense to me */
-    uint8_t                 fifo_read,fifo_write;
-
-    uint8_t                 param_ram[16];
-    uint8_t                 param_ram_wptr;
-
-    uint16_t                scan_address;
-    uint8_t                 row_height;
-    uint8_t                 row_line;
-
-    uint8_t                 display_partition;
-    uint16_t                display_partition_rem_lines;
-    uint8_t                 display_partition_mask;
-
-    uint16_t                active_display_lines;       /* AL (translated) */
-    uint16_t                active_display_words_per_line;/* AW bits (translated) */
-    uint16_t                display_pitch;
-    uint8_t                 horizontal_sync_width;      /* HS (translated) */
-    uint8_t                 vertical_sync_width;        /* VS (translated) */
-    uint8_t                 horizontal_front_porch_width;/* HFP (translated) */
-    uint8_t                 horizontal_back_porch_width;/* HBP (translated) */
-    uint8_t                 vertical_front_porch_width; /* VFP (translated) */
-    uint8_t                 vertical_back_porch_width;  /* VBP (translated) */
-    uint8_t                 display_mode;               /* CG bits */
-            /* CG = 00 = mixed graphics & character
-             * CG = 01 = graphics mode
-             * CG = 10 = character mode
-             * CG = 11 = invalid */
-    uint8_t                 video_framing;              /* IS bits */
-            /* IS = 00 = non-interlaced
-             * IS = 01 = invalid
-             * IS = 10 = interlaced repeat field for character displays
-             * IS = 11 = interlaced */
-    uint8_t                 current_command;
-    uint8_t                 proc_step;
-    uint8_t                 cursor_blink_state;
-    uint8_t                 cursor_blink_count;         /* count from 0 to BR - 1 */
-    uint8_t                 cursor_blink_rate;          /* BR */
-    bool                    draw_only_during_retrace;   /* F bits */
-    bool                    dynamic_ram_refresh;        /* D bits */
-    bool                    master_sync;                /* master source generation */
-    bool                    display_enable;
-    bool                    cursor_enable;
-    bool                    cursor_blink;
-    bool                    idle;
-
-    bool                    doublescan;                 /* 200-line as 400-line */
-};
-
-union pc98_tile {
-    uint8_t                 b[2];
-    uint16_t                w;
-};
-
-typedef union pc98_tile egc_quad[4];
-
-extern uint32_t                    pc98_text_palette[8];
-
-extern struct PC98_GDC_state       pc98_gdc[2];
-extern egc_quad                    pc98_gdc_tiles;
-extern uint8_t                     pc98_gdc_vramop;
-extern uint8_t                     pc98_gdc_modereg;
-
-// VOPBIT_* source: Neko Project II
-
-// operate:		bit0	access page
-//				bit1	egc enable
-//				bit2	grcg bit6
-//				bit3	grcg bit7
-//				bit4	analog enable (16/256-color mode). 8-color mode if not.
-//				bit5	pc9821 vga
-
-enum {
-	VOPBIT_ACCESS	= 0,
-	VOPBIT_EGC		= 1,
-	VOPBIT_GRCG		= 2,
-	VOPBIT_ANALOG	= 4,
-	VOPBIT_VGA		= 5
-};
+#define S3_LFB_BASE_DEFAULT	  0xE0000000u
 
 class PageHandler;
 
 enum VGAModes {
-	M_CGA2, M_CGA4,
-	M_EGA, M_VGA,
-	M_LIN4, M_LIN8, M_LIN15, M_LIN16, M_LIN24, M_LIN32,
-	M_TEXT,
-	M_HERC_GFX, M_HERC_TEXT,
-	M_CGA16, M_TANDY2, M_TANDY4, M_TANDY16, M_TANDY_TEXT, M_AMSTRAD,
+    M_CGA2,         // 0
+    M_CGA4,
+    M_EGA,
+    M_VGA,
+    M_LIN4,
+    M_LIN8,         // 5
+    M_LIN15,
+    M_LIN16,
+    M_LIN24,
+    M_LIN32,
+    M_TEXT,         // 10
+    M_HERC_GFX,
+    M_HERC_TEXT,
+    M_CGA16,
+    M_TANDY2,
+    M_TANDY4,       // 15
+    M_TANDY16,
+    M_TANDY_TEXT,
+    M_AMSTRAD,
     M_PC98,
-	M_ERROR
+    M_FM_TOWNS,     // 20 STUB
+    M_ERROR,
+
+    M_MAX
 };
+
+extern const char* const mode_texts[M_MAX];
 
 enum VGA_Vsync {
 	VS_Off,
@@ -185,27 +77,27 @@ struct vsync_state {
 extern struct vsync_state vsync;
 extern float uservsyncjolt;
 
-#define CLK_25 25175
-#define CLK_28 28322
+#define CLK_25 25175u
+#define CLK_28 28322u
 
-#define MIN_VCO	180000
-#define MAX_VCO 360000
+#define MIN_VCO	180000u
+#define MAX_VCO 360000u
 
-#define S3_CLOCK_REF	14318	/* KHz */
-#define S3_CLOCK(_M,_N,_R)	((S3_CLOCK_REF * ((_M) + 2)) / (((_N) + 2) * (1 << (_R))))
-#define S3_MAX_CLOCK	150000	/* KHz */
+#define S3_CLOCK_REF	14318u	/* KHz */
+#define S3_CLOCK(_M,_N,_R)	((S3_CLOCK_REF * (((Bitu)_M) + 2ul)) / ((((Bitu)_N) + 2ul) * (1ul << ((Bitu)_R))))
+#define S3_MAX_CLOCK	150000u	/* KHz */
 
-#define S3_XGA_1024		0x00
-#define S3_XGA_1152		0x01
-#define S3_XGA_640		0x40
-#define S3_XGA_800		0x80
-#define S3_XGA_1280		0xc0
-#define S3_XGA_1600		0x81
+#define S3_XGA_1024		0x00u
+#define S3_XGA_1152		0x01u
+#define S3_XGA_640		0x40u
+#define S3_XGA_800		0x80u
+#define S3_XGA_1280		0xc0u
+#define S3_XGA_1600		0x81u
 #define S3_XGA_WMASK	(S3_XGA_640|S3_XGA_800|S3_XGA_1024|S3_XGA_1152|S3_XGA_1280)
 
-#define S3_XGA_8BPP  0x00
-#define S3_XGA_16BPP 0x10
-#define S3_XGA_32BPP 0x30
+#define S3_XGA_8BPP  0x00u
+#define S3_XGA_16BPP 0x10u
+#define S3_XGA_32BPP 0x30u
 #define S3_XGA_CMASK (S3_XGA_8BPP|S3_XGA_16BPP|S3_XGA_32BPP)
 
 typedef struct {
@@ -391,6 +283,7 @@ typedef struct {
 	bool lightpen_triggered;
 	Bit8u cursor_start;
 	Bit8u cursor_end;
+    Bit8u mcga_mode_control;
 } VGA_OTHER;
 
 typedef struct {
@@ -516,8 +409,12 @@ typedef union {
 } VGA_Latch;
 
 typedef struct {
-	Bit8u* linear;
-	Bit8u* linear_orgptr;
+	Bit8u*      linear = NULL;
+	Bit8u*      linear_orgptr = NULL;
+
+    uint32_t    memsize = 0;
+    uint32_t    memmask = 0;
+    uint32_t    memmask_crtc = 0;       // in CRTC-visible units (depends on byte/word/dword mode)
 } VGA_Memory;
 
 typedef struct {
@@ -558,9 +455,6 @@ typedef struct {
 	VGA_AMSTRAD amstrad;
 	VGA_OTHER other;
 	VGA_Memory mem;
-	Bit32u vmemwrap; /* this is assumed to be power of 2 */
-	Bit32u vmemsize;
-    Bit32u vmemsize_alloced;
 	VGA_LFB lfb;
 } VGA_Type;
 
@@ -586,6 +480,10 @@ void VGA_DAC_SetEntry(Bitu entry,Bit8u red,Bit8u green,Bit8u blue);
 void VGA_ATTR_SetPalette(Bit8u index,Bit8u val);
 
 typedef enum {CGA, EGA, MONO} EGAMonitorMode;
+
+typedef enum {AC_4x4, AC_low4/*4low*/} ACPalRemapMode;
+
+extern unsigned char VGA_AC_remap;
 
 void VGA_ATTR_SetEGAMonitorPalette(EGAMonitorMode m);
 
@@ -614,48 +512,6 @@ void VGA_KillDrawing(void);
 void VGA_SetOverride(bool vga_override);
 
 extern VGA_Type vga;
-
-/* mapping function from 16-bit WORD to font RAM offset */
-/* in: code = 16-bit JIS code word (unshifted)
- *     line = scan line within character cell
- *     right_half = 1 if right half, 0 if left half (double-wide only)
- * out: byte offset in FONT RAM (0x00000-0x7FFFF inclusive)
- *
- * NTS: Font ROM/RAM in PC-98 is laid out as follows in this emulation:
- *
- *      0x00 0xAA    ASCII single-wide character AA          offset = (AA * 16)
- *      0xHH 0xLL    Double-wide char (HH != 0) number HHLL  offset = ((HH & 0x7F) * 256) + ((LL & 0x7F) * 2) + right_half
- *
- *      Visual layout:
- *
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+................
- *      | | | | | | | | | | | | | | | | |................   0x00 to 0xFF, 8-bit wide, at 0x0000
- *      +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+................
- *      |   |   |   |   |   |   |   |   |................   0x0100 to 0x7F7F, 16-bit wide, at 0x0100, lower 7 bits only each byte
- *      +---+---+---+---+---+---+---+---+................
- *
- *      This is not necessarily how the font data is stored in ROM on actual hardware.
- *      The hardware appears to accept 16 bits but only use the low 7 bits of each byte for double-wide.
- *      0x80 0xAA is NOT an alias of single-wide chars. */
-static inline uint32_t pc98_font_char_to_ofs(const uint16_t code,const uint8_t line,const uint8_t right_half) {
-    if (code & 0xFF00) {
-        /* double-wide. this maps 0x01-0x7F, 0x80 to 0x80, 0x81-0xFF to 0x01-0x7F */
-        const uint16_t x_code = (code & 0x7F) + ((((code + 0x7F00) & 0x7F00) + 0x0100) >> 1); /* 16-bit to 14-bit conversion. */
-        return ((((uint32_t)x_code * (uint32_t)16) + (uint32_t)(line & 0xF)) * (uint32_t)2) + (uint32_t)right_half;
-    }
-    else {
-        /* single-wide */
-        return ((uint32_t)code * (uint32_t)16) + (line & 0xF);
-    }
-}
-
-static inline uint8_t pc98_font_char_read(const uint16_t code,const uint8_t line,const uint8_t right_half) {
-    return vga.draw.font[pc98_font_char_to_ofs(code,line,right_half)];
-}
-
-static inline void pc98_font_char_write(const uint16_t code,const uint8_t line,const uint8_t right_half,const uint8_t byte) {
-    vga.draw.font[pc98_font_char_to_ofs(code,line,right_half)] = byte;
-}
 
 /* Support for modular SVGA implementation */
 /* Video mode extra data to be passed to FinishSetMode_SVGA().

@@ -23,6 +23,13 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <process.h>
+
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+# define ParentWindowHWND SDL_Window
+#else
+extern HWND ParentWindowHWND;
+#endif
 
 #include "SDL_main.h"
 #include "SDL_events.h"
@@ -32,6 +39,8 @@
 #include "../wincommon/SDL_lowvideo.h"
 #include "SDL_gapidibvideo.h"
 #include "SDL_vkeys.h"
+
+void (*SDL1_hax_INITMENU_cb)() = NULL;
 
 #ifdef SDL_VIDEO_DRIVER_GAPI
 #include "../gapi/SDL_gapivideo.h"
@@ -48,6 +57,21 @@
 #ifdef _WIN32_WCE
 #define NO_GETKEYBOARDSTATE
 #endif
+
+#ifdef SDL_WIN32_HX_DOS
+#define NO_GETKEYBOARDSTATE
+#endif
+
+HKL hLayout = NULL;
+unsigned char hLayoutChanged = 0;
+
+unsigned char SDL1_hax_hasLayoutChanged(void) {
+	return hLayoutChanged;
+}
+
+void SDL1_hax_ackLayoutChanged(void) {
+	hLayoutChanged = 0;
+}
 
 /* The translation table from a Microsoft VK keysym to a SDL keysym */
 static SDLKey VK_keymap[SDLK_LAST];
@@ -138,6 +162,20 @@ void __declspec(dllexport) SDL_DOSBox_X_Hack_Set_Toggle_Key_WM_USER_Hack(unsigne
 }
 #endif
 
+/* SDL has only so much queue, we don't want to pass EVERY message
+   that comes to us into it. As this SDL code is specialized for
+   DOSBox-X, only messages that DOSBox-X would care about are
+   queued. */
+int Win32_ShouldPassMessageToSysWMEvent(UINT msg) {
+	switch (msg) {
+		case WM_COMMAND:
+		case WM_SYSCOMMAND:
+			return 1;
+	}
+
+	return 0;
+}
+
 /* The main Win32 event handler */
 LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -167,6 +205,14 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 #endif
 
 	switch (msg) {
+		case WM_KILLFOCUS:
+			if (!SDL_resizing &&
+				 SDL_PublicSurface &&
+				(SDL_PublicSurface->flags & SDL_FULLSCREEN)) {
+				/* In fullscreen mode, this window must have focus... or else we must exit fullscreen mode! */
+				ShowWindow(ParentWindowHWND, SW_RESTORE);
+			}
+			break;
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN: {
 			SDL_keysym keysym;
@@ -241,6 +287,13 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 				TranslateKey(wParam,HIWORD(lParam),&keysym,1));
 		}
 		return(0);
+
+		case WM_INITMENU:
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+			if (SDL1_hax_INITMENU_cb != NULL)
+				SDL1_hax_INITMENU_cb();
+#endif
+			break;
 
 		case WM_SYSKEYUP:
 		case WM_KEYUP: {
@@ -318,15 +371,20 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 
 		default: {
 			/* Only post the event if we're watching for it */
-			if ( SDL_ProcessEvents[SDL_SYSWMEVENT] == SDL_ENABLE ) {
-			        SDL_SysWMmsg wmmsg;
+			if (SDL_ProcessEvents[SDL_SYSWMEVENT] == SDL_ENABLE) {
+				SDL_SysWMmsg wmmsg;
 
-				SDL_VERSION(&wmmsg.version);
-				wmmsg.hwnd = hwnd;
-				wmmsg.msg = msg;
-				wmmsg.wParam = wParam;
-				wmmsg.lParam = lParam;
-				posted = SDL_PrivateSysWMEvent(&wmmsg);
+				/* Stop queuing all the various blather the Win32 world
+				   throws at us, we only have so much queue to hold it.
+				   Queue only what is important. */
+				if (Win32_ShouldPassMessageToSysWMEvent(msg)) {
+					SDL_VERSION(&wmmsg.version);
+					wmmsg.hwnd = hwnd;
+					wmmsg.msg = msg;
+					wmmsg.wParam = wParam;
+					wmmsg.lParam = lParam;
+					posted = SDL_PrivateSysWMEvent(&wmmsg);
+				}
 
 			/* DJM: If the user isn't watching for private
 				messages in her SDL event loop, then pass it
@@ -390,8 +448,23 @@ static void DIB_GenerateMouseMotionEvent(_THIS)
 	}
 }
 
+#include "SDL_timer.h"
+
+static unsigned long last_dib_mouse_motion = 0;
+
 void DIB_PumpEvents(_THIS)
 {
+	/* NTS: Impose a 60Hz cap on mouse motion polling because SetCursorPos/GetCursorPos
+	        no longer have an immediate effect on cursor position in the way that the
+			DIB mouse motion code expects. In Windows 10 there seems to be enough of
+			a round-trip delay between SetCursorPos/GetCursorPos and the compositor
+			to cause the DIB mouse motion code to often register many duplicate mouse
+			movements that never happened. Imposing a time interval between polling
+			seems to fix this. This should not have any negative effects on older
+			versions of Windows. --J.C. */
+	unsigned long pollInterval = 1000 / 60; /* 60Hz mouse motion polling rate */
+	unsigned long now = SDL_GetTicks();
+	_Bool mouseMotion = 0;
 	MSG msg;
 
 	while ( PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE) ) {
@@ -400,47 +473,27 @@ void DIB_PumpEvents(_THIS)
 		}
 	}
 
-	if ( SDL_GetAppState() & SDL_APPMOUSEFOCUS ) {
+	if (!mouseMotion && now > (last_dib_mouse_motion + pollInterval))
+		mouseMotion = 1;
+
+	if ( mouseMotion && (SDL_GetAppState() & SDL_APPMOUSEFOCUS) ) {
 		DIB_GenerateMouseMotionEvent( this );
+		last_dib_mouse_motion = now;
 	}
 }
 
-static HKL hLayoutUS = NULL;
+void DIB_CheckMouse(void) {
+	DIB_GenerateMouseMotionEvent(NULL/*FIXME*/);
+	last_dib_mouse_motion = SDL_GetTicks();
+}
 
-void DIB_InitOSKeymap(_THIS)
-{
+void DIB_InitOSKeymapPriv(void) {
 	int	i;
-#ifndef _WIN32_WCE
-	char	current_layout[KL_NAMELENGTH];
 
-	GetKeyboardLayoutName(current_layout);
-	//printf("Initial Keyboard Layout Name: '%s'\n", current_layout);
+	hLayout = GetKeyboardLayout(0);
 
-	hLayoutUS = LoadKeyboardLayout("00000409", KLF_NOTELLSHELL);
-
-	if (!hLayoutUS) {
-		//printf("Failed to load US keyboard layout. Using current.\n");
-		hLayoutUS = GetKeyboardLayout(0);
-	}
-	LoadKeyboardLayout(current_layout, KLF_ACTIVATE);
-#else
-#if _WIN32_WCE >=420
-	TCHAR	current_layout[KL_NAMELENGTH];
-
-	GetKeyboardLayoutName(current_layout);
-	//printf("Initial Keyboard Layout Name: '%s'\n", current_layout);
-
-	hLayoutUS = LoadKeyboardLayout(L"00000409", 0);
-
-	if (!hLayoutUS) {
-		//printf("Failed to load US keyboard layout. Using current.\n");
-		hLayoutUS = GetKeyboardLayout(0);
-	}
-	LoadKeyboardLayout(current_layout, 0);
-#endif // _WIN32_WCE >=420
-#endif
 	/* Map the VK keysyms */
-	for ( i=0; i<SDL_arraysize(VK_keymap); ++i )
+	for (i = 0; i<SDL_arraysize(VK_keymap); ++i)
 		VK_keymap[i] = SDLK_UNKNOWN;
 
 	VK_keymap[VK_BACK] = SDLK_BACKSPACE;
@@ -469,7 +522,6 @@ void DIB_InitOSKeymap(_THIS)
 	VK_keymap[VK_EQUALS] = SDLK_EQUALS;
 	VK_keymap[VK_LBRACKET] = SDLK_LEFTBRACKET;
 	VK_keymap[VK_BACKSLASH] = SDLK_BACKSLASH;
-	VK_keymap[VK_OEM_102] = SDLK_LESS;
 	VK_keymap[VK_RBRACKET] = SDLK_RIGHTBRACKET;
 	VK_keymap[VK_GRAVE] = SDLK_BACKQUOTE;
 	VK_keymap[VK_BACKTICK] = SDLK_BACKQUOTE;
@@ -563,10 +615,34 @@ void DIB_InitOSKeymap(_THIS)
 	VK_keymap[VK_CANCEL] = SDLK_BREAK;
 	VK_keymap[VK_APPS] = SDLK_MENU;
 
+	VK_keymap[VK_OEM_102] = SDLK_LESS;
+
+	/* per-layout adjustments */
+	switch (LOWORD(hLayout)) {
+		case 0x411: /* JP */
+			VK_keymap[VK_OEM_PERIOD] = SDLK_PERIOD;
+			VK_keymap[VK_OEM_MINUS] = SDLK_MINUS;
+			VK_keymap[VK_OEM_COMMA] = SDLK_COMMA;
+			VK_keymap[VK_OEM_PLUS] = SDLK_SEMICOLON;
+			VK_keymap[VK_OEM_102] = SDLK_JP_RO;
+			VK_keymap[VK_OEM_1] = SDLK_COLON;
+			VK_keymap[VK_OEM_7] = SDLK_CARET;
+			VK_keymap[VK_OEM_3] = SDLK_AT;
+			VK_keymap[VK_OEM_4] = SDLK_LEFTBRACKET;
+			VK_keymap[VK_OEM_6] = SDLK_RIGHTBRACKET;
+			VK_keymap[VK_OEM_5] = SDLK_JP_YEN;
+			break;
+	};
+
 	Arrows_keymap[3] = 0x25;
 	Arrows_keymap[2] = 0x26;
 	Arrows_keymap[1] = 0x27;
 	Arrows_keymap[0] = 0x28;
+}
+
+void DIB_InitOSKeymap(_THIS)
+{
+	DIB_InitOSKeymapPriv();
 }
 
 #define EXTKEYPAD(keypad) ((scancode & 0x100)?(mvke):(keypad))
@@ -574,9 +650,21 @@ void DIB_InitOSKeymap(_THIS)
 static int SDL_MapVirtualKey(int scancode, int vkey)
 {
 #ifndef _WIN32_WCE
-	int	mvke  = MapVirtualKeyEx(scancode & 0xFF, 1, hLayoutUS);
+	int	mvke  = MapVirtualKeyEx(scancode & 0xFF, 1, hLayout);
 #else
 	int	mvke  = MapVirtualKey(scancode & 0xFF, 1);
+#endif
+
+#if 0 /* set to 1 to debug VK scancodes i.e. if debugging foreign keyboard layouts and SDL 1.x */
+	{
+		char tmp[128];
+		char tmp2[256];
+
+		tmp[0] = 0;
+		GetKeyNameText(scancode << 16, tmp, sizeof(tmp) - 1);
+		sprintf(tmp2, "Scan 0x%x VK 0x%x name=%s\n", scancode, mvke, tmp);
+		OutputDebugString(tmp2);
+	}
 #endif
 
 	switch(vkey) {
@@ -619,10 +707,11 @@ static int SDL_MapVirtualKey(int scancode, int vkey)
 static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, int pressed)
 {
 	/* Set the keysym information */
+	keysym->win32_vk = vkey;
 	keysym->scancode = (unsigned char) scancode;
 	keysym->mod = KMOD_NONE;
 	keysym->unicode = 0;
-	
+
 	if ((vkey == VK_RETURN) && (scancode & 0x100)) {
 		/* No VK_ code for the keypad enter key */
 		keysym->sym = SDLK_KP_ENTER;
@@ -654,23 +743,264 @@ static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, 
 #endif /* NO_GETKEYBOARDSTATE */
 	}
 
-#if 0
-	{
-		HKL     hLayoutCurrent = GetKeyboardLayout(0);
-		int     sc = scancode & 0xFF;
-
-		printf("SYM:%d, VK:0x%02X, SC:0x%04X, US:(1:0x%02X, 3:0x%02X), "
-			"Current:(1:0x%02X, 3:0x%02X)\n",
-			keysym->sym, vkey, scancode,
-			MapVirtualKeyEx(sc, 1, hLayoutUS),
-			MapVirtualKeyEx(sc, 3, hLayoutUS),
-			MapVirtualKeyEx(sc, 1, hLayoutCurrent),
-			MapVirtualKeyEx(sc, 3, hLayoutCurrent)
-		);
-	}
-#endif
 	return(keysym);
 }
+
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
+/*-----------------------------------------------------------*/
+HANDLE			ParentWindowThread = INVALID_HANDLE_VALUE;
+DWORD			ParentWindowThreadID = 0;
+HWND			ParentWindowHWND = NULL;
+volatile int	ParentWindowInit = 0;
+volatile int	ParentWindowShutdown = 0;
+volatile int	ParentWindowReady = 0;
+volatile BOOL	ParentWindowIsBeingResized = FALSE;
+volatile RECT	ParentWindowDeferredResizeRect = { -1,-1,-1,-1 };
+CRITICAL_SECTION ParentWindowCritSec;
+
+LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	if (msg == WM_CREATE) {
+		return(0);
+	}
+	else if (msg == WM_PAINT) {
+		PAINTSTRUCT ps;
+		HDC hdc;
+
+		hdc = BeginPaint(hwnd, &ps);
+		EndPaint(hwnd, &ps);
+
+		return(0);
+	}
+	else if (msg == WM_ACTIVATEAPP) {
+		if (wParam)
+			SetFocus(SDL_Window);
+
+		SendMessage(SDL_Window, msg, wParam, lParam);
+		return(0);
+	}
+	else if (msg == WM_ACTIVATE) {
+		if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE)
+			SetFocus(SDL_Window);
+
+		SendMessage(SDL_Window, msg, wParam, lParam);
+		return(0);
+	}
+	else if (msg == WM_SIZE) {
+		SetWindowPos(SDL_Window, HWND_TOP, 0, 0, LOWORD(lParam), HIWORD(lParam), SWP_NOACTIVATE);
+		return(0);
+	}
+	else if (msg == WM_SYSCOMMAND) {
+		/* CAREFUL! We only want to forward custom system menu items. Anything standard to Windows must be handled ourselves. */
+		if (wParam < 0xF000) {
+			PostMessage(SDL_Window, WM_SYSCOMMAND, wParam, lParam);
+			return(0);
+		}
+		else if ((wParam & 0xFFF0) == SC_SIZE) {
+			LRESULT r;
+			RECT nr;
+
+			/* Windows 10 has recently developed a problem where calling SetWindowPos() from the main thread
+			   on this window while the user is resizing the window eventually results in a deadlock where
+			   the user is unable to move or resize the window anymore.
+
+			   To avoid this, set a flag and run DefWindowProc() here so that SDL_SetVideoMode() will know
+			   NOT to use SetWindowPos() */
+			EnterCriticalSection(&ParentWindowCritSec);
+			ParentWindowIsBeingResized = TRUE;
+			LeaveCriticalSection(&ParentWindowCritSec);
+
+			r = DefWindowProc(hwnd, msg, wParam, lParam);
+			nr = ParentWindowDeferredResizeRect;
+			ParentWindowDeferredResizeRect.top = -1;
+			ParentWindowDeferredResizeRect.left = -1;
+			ParentWindowDeferredResizeRect.right = -1;
+			ParentWindowDeferredResizeRect.bottom = -1;
+
+			EnterCriticalSection(&ParentWindowCritSec);
+			ParentWindowIsBeingResized = FALSE;
+			LeaveCriticalSection(&ParentWindowCritSec);
+
+			/* SetWindowPos() gave us a deferred window position/size to apply after resize */
+			if (nr.right > 0 && nr.bottom > 0)
+				SetWindowPos(ParentWindowHWND, NULL,
+					nr.left, nr.top, nr.right - nr.left, nr.bottom - nr.top, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOMOVE);
+
+			return r;
+		}
+		else {
+			/* fall through, to DefWindowProc() */
+		}
+	}
+	else if (msg == WM_COMMAND) {
+		PostMessage(SDL_Window, msg, wParam, lParam);
+		return(0);
+	}
+	else if (msg == WM_WINDOWPOSCHANGING) {
+		WINDOWPOS *windowpos = (WINDOWPOS*)lParam;
+
+		/* FIXME: Why do MinGW builds crash here on thread shutdown, as if SDL_PublicSurface never existed? */
+		if (ParentWindowShutdown) return(0);
+
+		/* When menu is at the side or top, Windows likes
+		to try to reposition the fullscreen window when
+		changing video modes.
+		*/
+		if (!SDL_resizing && SDL_PublicSurface) {
+			if (SDL_PublicSurface->flags & SDL_FULLSCREEN) {
+				windowpos->x = 0;
+				windowpos->y = 0;
+			}
+		}
+
+		return(0);
+	}
+	else if (msg == WM_WINDOWPOSCHANGED) {
+		/* Before we forward to the child, we need to get the new dimensions, resize the child,
+		   and THEN forward it to the child. Note that this forwarding is required if SDL is
+		   to keep the window position intact when resizing the DIB window. */
+		{
+			RECT rc;
+
+			GetClientRect(hwnd, &rc);
+			SetWindowPos(SDL_Window, HWND_TOP, 0, 0, rc.right, rc.bottom, SWP_NOACTIVATE);
+		}
+
+		return SendMessage(SDL_Window, msg, wParam, lParam);
+	}
+	else if (msg == WM_INITMENU) {
+		if (SDL1_hax_INITMENU_cb != NULL)
+			SDL1_hax_INITMENU_cb();
+
+		/* fall through */
+	}
+	else if (msg == WM_CLOSE) {
+		return SendMessage(SDL_Window, msg, wParam, lParam);
+	}
+	else if (msg == WM_DESTROY) {
+		DestroyWindow(SDL_Window);
+		PostQuitMessage(0);
+	}
+
+	return(DefWindowProc(hwnd, msg, wParam, lParam));
+}
+
+extern LPSTR SDL_AppnameParent;
+
+unsigned int __stdcall ParentWindowThreadProc(void *arg) {
+	MSG msg;
+
+	if (!ParentWindowInit) return 1;
+
+	/* main thread already registered our wndclass */
+	ParentWindowHWND = CreateWindow(SDL_AppnameParent, SDL_Appname,
+		(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN | WS_CLIPSIBLINGS),
+		CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, SDL_Instance, NULL);
+	if (ParentWindowHWND == NULL) {
+		ParentWindowInit = 0;
+		return 1;
+	}
+
+	ParentWindowReady = 1;
+	ParentWindowInit = 0;
+
+	while (!ParentWindowShutdown && GetMessage(&msg, ParentWindowHWND, 0, 0) > 0) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	DestroyWindow(ParentWindowHWND);
+	ParentWindowReady = 0;
+	ParentWindowInit = 0;
+
+	return 0;
+}
+
+int ParentWindowThreadRunning(void) {
+	return (ParentWindowThread != INVALID_HANDLE_VALUE);
+}
+
+void ParentWindowThreadCheck(void) {
+	if (ParentWindowThread != INVALID_HANDLE_VALUE) {
+		if (WaitForSingleObject(ParentWindowThread, 0) == WAIT_OBJECT_0) {
+			/* thread just died */
+			ParentWindowThread = INVALID_HANDLE_VALUE;
+			ParentWindowThreadID = 0;
+		}
+	}
+}
+
+void StopParentWindow(void) {
+	if (ParentWindowThreadRunning()) {
+		ParentWindowShutdown = 1;
+
+		PostMessage(ParentWindowHWND, WM_USER, 0, 0); // make the pump respond
+		while (ParentWindowThreadRunning()) {
+			Sleep(100);
+			ParentWindowThreadCheck();
+		}
+
+		DeleteCriticalSection(&ParentWindowCritSec);
+	}
+}
+
+int InitParentWindow(void) {
+	if (ParentWindowThread == INVALID_HANDLE_VALUE) {
+		unsigned int patience;
+
+		InitializeCriticalSection(&ParentWindowCritSec);
+
+		ParentWindowShutdown = 0;
+		ParentWindowReady = 0;
+		ParentWindowInit = 1;
+
+		ParentWindowThread = (HANDLE)_beginthreadex(NULL,0,ParentWindowThreadProc,NULL,0,&ParentWindowThreadID);
+		if (ParentWindowThread == NULL) {
+			ParentWindowThread = INVALID_HANDLE_VALUE;
+			return 0;
+		}
+
+		patience = 50;
+		while (ParentWindowInit && !ParentWindowReady) {
+			ParentWindowThreadCheck();
+			if (!ParentWindowThreadRunning()) {
+				/* it ended early?? */
+				ParentWindowShutdown = 0;
+				ParentWindowReady = 0;
+				ParentWindowInit = 0;
+				return 0;
+			}
+
+			if (--patience <= 0)
+				break;
+			else
+				Sleep(100);
+		}
+
+		if (!ParentWindowReady) {
+			ParentWindowShutdown = 1;
+			Sleep(1000); // shutdown now. you have one second.
+			ParentWindowThreadCheck();
+
+			if (ParentWindowThreadRunning()) {
+				/* hasn't terminated. kill it. */
+				/* this is brutal and may cause memory leaks in the Windows API, but it must be done */
+				TerminateThread(ParentWindowThread, 1);
+				do {
+					ParentWindowThreadCheck();
+				} while (ParentWindowThreadRunning());
+			}
+
+			ParentWindowShutdown = 0;
+			ParentWindowReady = 0;
+			ParentWindowInit = 0;
+			return 0;
+		}
+	}
+
+	return 1;
+}
+/*-----------------------------------------------------------*/
+#endif
 
 int DIB_CreateWindow(_THIS)
 {
@@ -701,13 +1031,34 @@ int DIB_CreateWindow(_THIS)
 		userWindowProc = (WNDPROCTYPE)GetWindowLongPtr(SDL_Window, GWLP_WNDPROC);
 		SetWindowLongPtr(SDL_Window, GWLP_WNDPROC, (LONG_PTR)WinMessage);
 	} else {
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
+		if (!InitParentWindow()) {
+			SDL_SetError("Couldn't init parent window");
+			return(-1);
+		}
+#endif
+
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+# ifdef SDL_WIN32_HX_DOS
 		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
-                        (WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX),
-                        CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, SDL_Instance, NULL);
+			WS_OVERLAPPED | WS_CAPTION | WS_MAXIMIZEBOX,
+			0, 0, 640, 480, NULL, NULL, SDL_Instance, NULL);
+# else
+		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
+			(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN | WS_CLIPSIBLINGS),
+			0, 0, 640, 480, NULL, NULL, SDL_Instance, NULL);
+# endif
+#else
+		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
+                        WS_CHILD,
+                        0, 0, 640, 480, ParentWindowHWND, NULL, SDL_Instance, NULL);
+#endif
 		if ( SDL_Window == NULL ) {
 			SDL_SetError("Couldn't create window");
 			return(-1);
 		}
+
+		SetFocus(SDL_Window);
 		ShowWindow(SDL_Window, SW_HIDE);
 	}
 
@@ -727,6 +1078,11 @@ void DIB_DestroyWindow(_THIS)
 	} else {
 		DestroyWindow(SDL_Window);
 	}
+
+// NTS: DOSBox-X likes to call SQL_Quit/SQL_QuitSubSystem just to reinit the window.
+//      It's better if the parent window doesn't disappear and reappear.
+//	StopParentWindow();
+
 	SDL_UnregisterApp();
 
 	/* JC 14 Mar 2006

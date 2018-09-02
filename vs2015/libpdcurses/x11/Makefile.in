@@ -1,0 +1,593 @@
+# Makefile for PDCurses library for X11
+
+SHELL		= @SHELL@
+THIS		= Makefile
+
+@SET_MAKE@
+
+PDCURSES_SRCDIR	= ..
+
+osdir		= .
+srcdir		= $(PDCURSES_SRCDIR)/pdcurses
+demodir		= $(PDCURSES_SRCDIR)/demos
+
+prefix		= @prefix@
+exec_prefix	= @exec_prefix@
+libdir		= @libdir@
+bindir		= @bindir@
+includedir	= @includedir@
+
+PDCURSES_CONFIG_H	=$(osdir)/config.h
+PDCURSES_CURSES_H	=$(PDCURSES_SRCDIR)/curses.h
+PDCURSES_CURSPRIV_H	=$(PDCURSES_SRCDIR)/curspriv.h
+PDCURSES_HEADERS	=$(PDCURSES_CONFIG_H) $(PDCURSES_CURSES_H) \
+$(PDCURSES_CURSPRIV_H)
+PDCURSES_X11_H		=$(osdir)/pdcx11.h
+
+SHLPRE		= @SHLPRE@
+SHLPST		= @SHLPST@
+LD_RXLIB1	= @LD_RXLIB1@
+LD_RXLIB2	= @MH_XLIBS@ @MH_EXTRA_LIBS@ -lc
+
+CFLAGS		= @CFLAGS@
+
+CPPFLAGS	= @DEFS@ -DXCURSES @SYS_DEFS@ -I$(PDCURSES_SRCDIR)
+
+BUILD		= @CC@ -c $(CFLAGS) $(CPPFLAGS) @MH_XINC_DIR@
+DYN_BUILD	= @O2SAVE@ $(BUILD) @DYN_COMP@ @CC2O@
+
+LINK		= @PURIFY@ @CC@
+LDFLAGS		= $(LIBCURSES) @LDFLAGS@ @LIBS@ @MH_XLIBS@ @MH_EXTRA_LIBS@
+
+INSTALL		= $(osdir)/install-sh
+RANLIB		= @RANLIB@
+
+LIBCURSES	= libXCurses.a
+
+LIB_DEPS        = -L$(PDCURSES_SRCDIR)/x11 -lXCurses
+
+PDCLIBS		= $(LIBCURSES) @SHL_TARGETS@
+
+DEMOS		= firework ozdemo ptest rain testcurs tuidemo worm xmas
+DEMOOBJS	= firework.o ozdemo.o ptest.o rain.o testcurs.o tui.o \
+tuidemo.o worm.o xmas.o
+
+SHLFILE		= XCurses
+
+all:	$(PDCLIBS) $(DEMOS)
+
+install:
+	$(INSTALL) -d -m 755 $(libdir)
+	$(INSTALL) -d -m 755 $(bindir)
+	$(INSTALL) -d -m 755 $(includedir)
+	$(INSTALL) -d -m 755 $(includedir)/xcurses
+	$(INSTALL) -c -m 644 $(PDCURSES_CURSES_H) \
+		$(includedir)/xcurses/curses.h
+	$(INSTALL) -c -m 644 $(PDCURSES_SRCDIR)/panel.h \
+		$(includedir)/xcurses/panel.h
+	$(INSTALL) -c -m 644 $(PDCURSES_SRCDIR)/term.h \
+		$(includedir)/xcurses/term.h
+	$(INSTALL) -c -m 644 $(osdir)/libXCurses.a $(libdir)/libXCurses.a
+	-$(RANLIB) $(libdir)/libXCurses.a
+	-$(INSTALL) -c -m 755 $(osdir)/$(SHLPRE)$(SHLFILE)$(SHLPST) \
+		$(libdir)/$(SHLPRE)$(SHLFILE)$(SHLPST)
+	$(INSTALL) -c -m 755 $(osdir)/xcurses-config $(bindir)/xcurses-config
+
+clean:
+	-rm -rf *.o *.sho trace $(PDCLIBS) $(DEMOS) config.log \
+		config.cache config.status
+
+demos:	$(DEMOS)
+
+distclean: clean
+	-rm -f Makefile config.h xcurses-config
+
+mostlyclean: clean
+
+realclean: distclean
+
+LIBOBJS = addch.o addchstr.o addstr.o attr.o beep.o bkgd.o border.o \
+clear.o color.o delch.o deleteln.o deprec.o getch.o getstr.o getyx.o \
+inch.o inchstr.o initscr.o inopts.o insch.o insstr.o instr.o kernel.o \
+keyname.o mouse.o move.o outopts.o overlay.o pad.o panel.o printw.o \
+refresh.o scanw.o scr_dump.o scroll.o slk.o termattr.o terminfo.o \
+touch.o util.o window.o debug.o
+
+PDCOBJS = pdcclip.o pdcdisp.o pdcgetsc.o pdckbd.o pdcscrn.o pdcsetsc.o \
+pdcutil.o pdcx11.o x11.o sb.o ScrollBox.o
+
+LIBSHOBJS = $(LIBOBJS:.o=.sho)
+PDCSHOBJS = $(PDCOBJS:.o=.sho)
+
+SHOFILES = $(LIBSHOBJS) $(PDCSHOBJS)
+
+$(LIBCURSES) : $(LIBOBJS) $(PDCOBJS)
+	ar rv $@ $?
+	-$(RANLIB) $@
+
+$(SHLPRE)$(SHLFILE)$(SHLPST) : $(SHOFILES)
+	$(LD_RXLIB1) -o $@ $(SHOFILES) $(LD_RXLIB2)
+
+$(LIBOBJS) $(PDCOBJS) $(SHOFILES) : $(PDCURSES_HEADERS)
+$(PDCOBJS) $(PDCSHOBJS) : $(PDCURSES_X11_H)
+$(DEMOOBJS) : $(PDCURSES_CURSES_H)
+$(DEMOS) : $(LIBCURSES)
+terminfo.o terminfo.sho: $(TERM_HEADER)
+
+addch.o: $(srcdir)/addch.c
+	$(BUILD) $(srcdir)/addch.c
+
+addchstr.o: $(srcdir)/addchstr.c
+	$(BUILD) $(srcdir)/addchstr.c
+
+addstr.o: $(srcdir)/addstr.c
+	$(BUILD) $(srcdir)/addstr.c
+
+attr.o: $(srcdir)/attr.c
+	$(BUILD) $(srcdir)/attr.c
+
+beep.o: $(srcdir)/beep.c
+	$(BUILD) $(srcdir)/beep.c
+
+bkgd.o: $(srcdir)/bkgd.c
+	$(BUILD) $(srcdir)/bkgd.c
+
+border.o: $(srcdir)/border.c
+	$(BUILD) $(srcdir)/border.c
+
+clear.o: $(srcdir)/clear.c
+	$(BUILD) $(srcdir)/clear.c
+
+color.o: $(srcdir)/color.c
+	$(BUILD) $(srcdir)/color.c
+
+delch.o: $(srcdir)/delch.c
+	$(BUILD) $(srcdir)/delch.c
+
+deleteln.o: $(srcdir)/deleteln.c
+	$(BUILD) $(srcdir)/deleteln.c
+
+deprec.o: $(srcdir)/deprec.c
+	$(BUILD) $(srcdir)/deprec.c
+
+getch.o: $(srcdir)/getch.c
+	$(BUILD) $(srcdir)/getch.c
+
+getstr.o: $(srcdir)/getstr.c
+	$(BUILD) $(srcdir)/getstr.c
+
+getyx.o: $(srcdir)/getyx.c
+	$(BUILD) $(srcdir)/getyx.c
+
+inch.o: $(srcdir)/inch.c
+	$(BUILD) $(srcdir)/inch.c
+
+inchstr.o: $(srcdir)/inchstr.c
+	$(BUILD) $(srcdir)/inchstr.c
+
+initscr.o: $(srcdir)/initscr.c
+	$(BUILD) $(srcdir)/initscr.c
+
+inopts.o: $(srcdir)/inopts.c
+	$(BUILD) $(srcdir)/inopts.c
+
+insch.o: $(srcdir)/insch.c
+	$(BUILD) $(srcdir)/insch.c
+
+insstr.o: $(srcdir)/insstr.c
+	$(BUILD) $(srcdir)/insstr.c
+
+instr.o: $(srcdir)/instr.c
+	$(BUILD) $(srcdir)/instr.c
+
+kernel.o: $(srcdir)/kernel.c
+	$(BUILD) $(srcdir)/kernel.c
+
+keyname.o: $(srcdir)/keyname.c
+	$(BUILD) $(srcdir)/keyname.c
+
+mouse.o: $(srcdir)/mouse.c
+	$(BUILD) $(srcdir)/mouse.c
+
+move.o: $(srcdir)/move.c
+	$(BUILD) $(srcdir)/move.c
+
+outopts.o: $(srcdir)/outopts.c
+	$(BUILD) $(srcdir)/outopts.c
+
+overlay.o: $(srcdir)/overlay.c
+	$(BUILD) $(srcdir)/overlay.c
+
+pad.o: $(srcdir)/pad.c
+	$(BUILD) $(srcdir)/pad.c
+
+panel.o: $(srcdir)/panel.c $(PDCURSES_SRCDIR)/panel.h
+	$(BUILD) $(srcdir)/panel.c
+
+printw.o: $(srcdir)/printw.c
+	$(BUILD) $(srcdir)/printw.c
+
+refresh.o: $(srcdir)/refresh.c
+	$(BUILD) $(srcdir)/refresh.c
+
+scanw.o: $(srcdir)/scanw.c
+	$(BUILD) $(srcdir)/scanw.c
+
+scr_dump.o: $(srcdir)/scr_dump.c
+	$(BUILD) $(srcdir)/scr_dump.c
+
+scroll.o: $(srcdir)/scroll.c
+	$(BUILD) $(srcdir)/scroll.c
+
+slk.o: $(srcdir)/slk.c
+	$(BUILD) $(srcdir)/slk.c
+
+termattr.o: $(srcdir)/termattr.c
+	$(BUILD) $(srcdir)/termattr.c
+
+terminfo.o: $(srcdir)/terminfo.c
+	$(BUILD) $(srcdir)/terminfo.c
+
+touch.o: $(srcdir)/touch.c
+	$(BUILD) $(srcdir)/touch.c
+
+util.o: $(srcdir)/util.c
+	$(BUILD) $(srcdir)/util.c
+
+window.o: $(srcdir)/window.c
+	$(BUILD) $(srcdir)/window.c
+
+debug.o: $(srcdir)/debug.c
+	$(BUILD) $(srcdir)/debug.c
+
+pdcclip.o: $(osdir)/pdcclip.c
+	$(BUILD) $(osdir)/pdcclip.c
+
+pdcdisp.o: $(osdir)/pdcdisp.c
+	$(BUILD) $(osdir)/pdcdisp.c
+
+pdcgetsc.o: $(osdir)/pdcgetsc.c
+	$(BUILD) $(osdir)/pdcgetsc.c
+
+pdckbd.o: $(osdir)/pdckbd.c
+	$(BUILD) $(osdir)/pdckbd.c
+
+pdcscrn.o: $(osdir)/pdcscrn.c
+	$(BUILD) $(osdir)/pdcscrn.c
+
+pdcsetsc.o: $(osdir)/pdcsetsc.c
+	$(BUILD) $(osdir)/pdcsetsc.c
+
+pdcutil.o: $(osdir)/pdcutil.c
+	$(BUILD) $(osdir)/pdcutil.c
+
+pdcx11.o: $(osdir)/pdcx11.c
+	$(BUILD) $(osdir)/pdcx11.c
+
+ScrollBox.o: $(osdir)/ScrollBox.c
+	$(BUILD) $(osdir)/ScrollBox.c
+
+sb.o: $(osdir)/sb.c
+	$(BUILD) $(osdir)/sb.c
+
+x11.o: $(osdir)/x11.c
+	$(BUILD) $(osdir)/x11.c
+
+addch.sho: $(srcdir)/addch.c
+	$(DYN_BUILD) $(srcdir)/addch.c
+	@SAVE2O@
+
+addchstr.sho: $(srcdir)/addchstr.c
+	$(DYN_BUILD) $(srcdir)/addchstr.c
+	@SAVE2O@
+
+addstr.sho: $(srcdir)/addstr.c
+	$(DYN_BUILD) $(srcdir)/addstr.c
+	@SAVE2O@
+
+attr.sho: $(srcdir)/attr.c
+	$(DYN_BUILD) $(srcdir)/attr.c
+	@SAVE2O@
+
+beep.sho: $(srcdir)/beep.c
+	$(DYN_BUILD) $(srcdir)/beep.c
+	@SAVE2O@
+
+bkgd.sho: $(srcdir)/bkgd.c
+	$(DYN_BUILD) $(srcdir)/bkgd.c
+	@SAVE2O@
+
+border.sho: $(srcdir)/border.c
+	$(DYN_BUILD) $(srcdir)/border.c
+	@SAVE2O@
+
+clear.sho: $(srcdir)/clear.c
+	$(DYN_BUILD) $(srcdir)/clear.c
+	@SAVE2O@
+
+color.sho: $(srcdir)/color.c
+	$(DYN_BUILD) $(srcdir)/color.c
+	@SAVE2O@
+
+delch.sho: $(srcdir)/delch.c
+	$(DYN_BUILD) $(srcdir)/delch.c
+	@SAVE2O@
+
+deleteln.sho: $(srcdir)/deleteln.c
+	$(DYN_BUILD) $(srcdir)/deleteln.c
+	@SAVE2O@
+
+deprec.sho: $(srcdir)/deprec.c
+	$(DYN_BUILD) $(srcdir)/deprec.c
+	@SAVE2O@
+
+getch.sho: $(srcdir)/getch.c
+	$(DYN_BUILD) $(srcdir)/getch.c
+	@SAVE2O@
+
+getstr.sho: $(srcdir)/getstr.c
+	$(DYN_BUILD) $(srcdir)/getstr.c
+	@SAVE2O@
+
+getyx.sho: $(srcdir)/getyx.c
+	$(DYN_BUILD) $(srcdir)/getyx.c
+	@SAVE2O@
+
+inch.sho: $(srcdir)/inch.c
+	$(DYN_BUILD) $(srcdir)/inch.c
+	@SAVE2O@
+
+inchstr.sho: $(srcdir)/inchstr.c
+	$(DYN_BUILD) $(srcdir)/inchstr.c
+	@SAVE2O@
+
+initscr.sho: $(srcdir)/initscr.c
+	$(DYN_BUILD) $(srcdir)/initscr.c
+	@SAVE2O@
+
+inopts.sho: $(srcdir)/inopts.c
+	$(DYN_BUILD) $(srcdir)/inopts.c
+	@SAVE2O@
+
+insch.sho: $(srcdir)/insch.c
+	$(DYN_BUILD) $(srcdir)/insch.c
+	@SAVE2O@
+
+insstr.sho: $(srcdir)/insstr.c
+	$(DYN_BUILD) $(srcdir)/insstr.c
+	@SAVE2O@
+
+instr.sho: $(srcdir)/instr.c
+	$(DYN_BUILD) $(srcdir)/instr.c
+	@SAVE2O@
+
+kernel.sho: $(srcdir)/kernel.c
+	$(DYN_BUILD) $(srcdir)/kernel.c
+	@SAVE2O@
+
+keyname.sho: $(srcdir)/keyname.c
+	$(DYN_BUILD) $(srcdir)/keyname.c
+	@SAVE2O@
+
+mouse.sho: $(srcdir)/mouse.c
+	$(DYN_BUILD) $(srcdir)/mouse.c
+	@SAVE2O@
+
+move.sho: $(srcdir)/move.c
+	$(DYN_BUILD) $(srcdir)/move.c
+	@SAVE2O@
+
+outopts.sho: $(srcdir)/outopts.c
+	$(DYN_BUILD) $(srcdir)/outopts.c
+	@SAVE2O@
+
+overlay.sho: $(srcdir)/overlay.c
+	$(DYN_BUILD) $(srcdir)/overlay.c
+	@SAVE2O@
+
+pad.sho: $(srcdir)/pad.c
+	$(DYN_BUILD) $(srcdir)/pad.c
+	@SAVE2O@
+
+panel.sho: $(srcdir)/panel.c $(PDCURSES_SRCDIR)/panel.h
+	$(DYN_BUILD) $(srcdir)/panel.c
+	@SAVE2O@
+
+printw.sho: $(srcdir)/printw.c
+	$(DYN_BUILD) $(srcdir)/printw.c
+	@SAVE2O@
+
+refresh.sho: $(srcdir)/refresh.c
+	$(DYN_BUILD) $(srcdir)/refresh.c
+	@SAVE2O@
+
+scanw.sho: $(srcdir)/scanw.c
+	$(DYN_BUILD) $(srcdir)/scanw.c
+	@SAVE2O@
+
+scr_dump.sho: $(srcdir)/scr_dump.c
+	$(DYN_BUILD) $(srcdir)/scr_dump.c
+	@SAVE2O@
+
+scroll.sho: $(srcdir)/scroll.c
+	$(DYN_BUILD) $(srcdir)/scroll.c
+	@SAVE2O@
+
+slk.sho: $(srcdir)/slk.c
+	$(DYN_BUILD) $(srcdir)/slk.c
+	@SAVE2O@
+
+termattr.sho: $(srcdir)/termattr.c
+	$(DYN_BUILD) $(srcdir)/termattr.c
+	@SAVE2O@
+
+terminfo.sho: $(srcdir)/terminfo.c
+	$(DYN_BUILD) $(srcdir)/terminfo.c
+	@SAVE2O@
+
+touch.sho: $(srcdir)/touch.c
+	$(DYN_BUILD) $(srcdir)/touch.c
+	@SAVE2O@
+
+util.sho: $(srcdir)/util.c
+	$(DYN_BUILD) $(srcdir)/util.c
+	@SAVE2O@
+
+window.sho: $(srcdir)/window.c
+	$(DYN_BUILD) $(srcdir)/window.c
+	@SAVE2O@
+
+debug.sho: $(srcdir)/debug.c
+	$(DYN_BUILD) $(srcdir)/debug.c
+	@SAVE2O@
+
+pdcclip.sho: $(osdir)/pdcclip.c
+	$(DYN_BUILD) $(osdir)/pdcclip.c
+	@SAVE2O@
+
+pdcdisp.sho: $(osdir)/pdcdisp.c
+	$(DYN_BUILD) $(osdir)/pdcdisp.c
+	@SAVE2O@
+
+pdcgetsc.sho: $(osdir)/pdcgetsc.c
+	$(DYN_BUILD) $(osdir)/pdcgetsc.c
+	@SAVE2O@
+
+pdckbd.sho: $(osdir)/pdckbd.c
+	$(DYN_BUILD) $(osdir)/pdckbd.c
+	@SAVE2O@
+
+pdcscrn.sho: $(osdir)/pdcscrn.c
+	$(DYN_BUILD) $(osdir)/pdcscrn.c
+	@SAVE2O@
+
+pdcsetsc.sho: $(osdir)/pdcsetsc.c
+	$(DYN_BUILD) $(osdir)/pdcsetsc.c
+	@SAVE2O@
+
+pdcutil.sho: $(osdir)/pdcutil.c
+	$(DYN_BUILD) $(osdir)/pdcutil.c
+	@SAVE2O@
+
+pdcx11.sho: $(osdir)/pdcx11.c
+	$(DYN_BUILD) $(osdir)/pdcx11.c
+	@SAVE2O@
+
+ScrollBox.sho: $(osdir)/ScrollBox.c
+	$(DYN_BUILD) $(osdir)/ScrollBox.c
+	@SAVE2O@
+
+sb.sho: $(osdir)/sb.c
+	$(DYN_BUILD) $(osdir)/sb.c
+	@SAVE2O@
+
+x11.sho: $(osdir)/x11.c
+	$(DYN_BUILD) $(osdir)/x11.c
+	@SAVE2O@
+
+firework: firework.o
+	$(LINK) firework.o -o $@ $(LDFLAGS)
+
+ozdemo: ozdemo.o
+	$(LINK) ozdemo.o -o $@ $(LDFLAGS)
+
+ptest: ptest.o
+	$(LINK) ptest.o -o $@ $(LDFLAGS)
+
+rain: rain.o
+	$(LINK) rain.o -o $@ $(LDFLAGS)
+
+testcurs: testcurs.o
+	$(LINK) testcurs.o -o $@ $(LDFLAGS)
+
+tuidemo: tuidemo.o tui.o
+	$(LINK) tui.o tuidemo.o -o $@ $(LDFLAGS)
+
+worm: worm.o
+	$(LINK) worm.o -o $@ $(LDFLAGS)
+
+xmas: xmas.o
+	$(LINK) xmas.o -o $@ $(LDFLAGS)
+
+firework.o: $(demodir)/firework.c
+	$(BUILD) $(demodir)/firework.c
+
+ozdemo.o: $(demodir)/ozdemo.c
+	$(BUILD) $(demodir)/ozdemo.c
+
+ptest.o: $(demodir)/ptest.c $(PDCURSES_SRCDIR)/panel.h
+	$(BUILD) $(demodir)/ptest.c
+
+rain.o: $(demodir)/rain.c
+	$(BUILD) $(demodir)/rain.c
+
+testcurs.o: $(demodir)/testcurs.c
+	$(BUILD) $(demodir)/testcurs.c
+
+tui.o: $(demodir)/tui.c $(demodir)/tui.h
+	$(BUILD) $(demodir)/tui.c
+
+tuidemo.o: $(demodir)/tuidemo.c
+	$(BUILD) $(demodir)/tuidemo.c
+
+worm.o: $(demodir)/worm.c
+	$(BUILD) $(demodir)/worm.c
+
+xmas.o: $(demodir)/xmas.c
+	$(BUILD) $(demodir)/xmas.c
+
+# This section provides for compiling and linking the
+# ncurses test programs.
+
+ncurses_testdir	= $(HOME)/ncurses-5.9/test
+
+NCURSES_TESTS	= bs gdc hanoi knight tclock ncurses
+
+ncurses_tests: $(NCURSES_TESTS)
+
+ncurses_clean:
+	-rm -f *.o trace $(NCURSES_TESTS)
+
+NCFLAGS		= -I$(demodir) -I$(ncurses_testdir)
+
+bs: bs.o $(LIBCURSES)
+	$(LINK) bs.o -o $@ $(LDFLAGS)
+
+gdc: gdc.o $(LIBCURSES)
+	$(LINK) gdc.o -o $@ $(LDFLAGS)
+
+hanoi: hanoi.o $(LIBCURSES)
+	$(LINK) hanoi.o -o $@ $(LDFLAGS)
+
+knight: knight.o $(LIBCURSES)
+	$(LINK) knight.o -o $@ $(LDFLAGS)
+
+tclock: tclock.o $(LIBCURSES)
+	$(LINK) tclock.o -o $@ $(LDFLAGS) -lm
+
+view: view.o $(LIBCURSES)
+	$(LINK) view.o -o $@ $(LDFLAGS)
+
+ncurses: ncurses.o $(LIBCURSES)
+	$(LINK) ncurses.o -o $@ $(LDFLAGS)
+
+bs.o: $(ncurses_testdir)/bs.c $(PDCURSES_CURSES_H)
+	$(BUILD) $(NCFLAGS) $(ncurses_testdir)/bs.c
+
+gdc.o: $(ncurses_testdir)/gdc.c $(PDCURSES_CURSES_H)
+	$(BUILD) $(NCFLAGS) $(ncurses_testdir)/gdc.c
+
+hanoi.o: $(ncurses_testdir)/hanoi.c $(PDCURSES_CURSES_H)
+	$(BUILD) $(NCFLAGS) $(ncurses_testdir)/hanoi.c
+
+knight.o: $(ncurses_testdir)/knight.c $(PDCURSES_CURSES_H)
+	$(BUILD) $(NCFLAGS) $(ncurses_testdir)/knight.c
+
+tclock.o: $(ncurses_testdir)/tclock.c $(PDCURSES_CURSES_H)
+	$(BUILD) $(NCFLAGS) $(ncurses_testdir)/tclock.c
+
+view.o: $(ncurses_testdir)/view.c $(PDCURSES_CURSES_H)
+	$(BUILD) $(NCFLAGS) $(ncurses_testdir)/view.c
+
+ncurses.o: $(ncurses_testdir)/ncurses.c $(PDCURSES_CURSES_H)
+	$(BUILD) $(NCFLAGS) $(ncurses_testdir)/ncurses.c

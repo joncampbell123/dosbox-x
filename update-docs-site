@@ -1,0 +1,9 @@
+#!/bin/bash
+make dox || exit 1
+make dox-site-update || exit 1
+make compat-site-update
+(cd ../dosbox-x-gh-pages && git commit .)
+(cd ../dosbox-x-gh-pages && git push)
+
+exit 0
+

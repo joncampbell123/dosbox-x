@@ -38,13 +38,14 @@
 #include "dos_inc.h"
 
 bool device_LPT::Read(Bit8u * data,Bit16u * size) {
+    (void)data;//UNUSED
 	*size=0;
 	LOG(LOG_DOSMISC,LOG_NORMAL)("LPTDEVICE:Read called");
 	return true;
 }
 
 
-bool device_LPT::Write(Bit8u * data,Bit16u * size) {
+bool device_LPT::Write(const Bit8u * data,Bit16u * size) {
 	for (Bit16u i=0; i<*size; i++)
 	{
 		if(!pportclass->Putchar(data[i])) return false;
@@ -53,6 +54,7 @@ bool device_LPT::Write(Bit8u * data,Bit16u * size) {
 }
 
 bool device_LPT::Seek(Bit32u * pos,Bit32u type) {
+    (void)type;//UNUSED
 	*pos = 0;
 	return true;
 }
@@ -63,7 +65,8 @@ bool device_LPT::Close() {
 
 Bit16u device_LPT::GetInformation(void) {
 	return 0x80A0;
-};
+}
+
 const char* lptname[]={"LPT1","LPT2","LPT3"};
 device_LPT::device_LPT(Bit8u num, class CParallel* pp) {
 	pportclass = pp;
@@ -87,12 +90,12 @@ static void Parallel_EventHandler(Bitu val) {
 }
 
 void CParallel::setEvent(Bit16u type, float duration) {
-    PIC_AddEvent(Parallel_EventHandler,duration,(type<<2)|port_nr);
+    PIC_AddEvent(Parallel_EventHandler,duration,((Bitu)type<<2u)|(Bitu)port_nr);
 }
 
 void CParallel::removeEvent(Bit16u type) {
     // TODO
-	PIC_RemoveSpecificEvents(Parallel_EventHandler,(type<<2)|port_nr);
+	PIC_RemoveSpecificEvents(Parallel_EventHandler,((Bitu)type<<2u)|(Bitu)port_nr);
 }
 
 void CParallel::handleEvent(Bit16u type) {
@@ -100,6 +103,7 @@ void CParallel::handleEvent(Bit16u type) {
 }
 
 static Bitu PARALLEL_Read (Bitu port, Bitu iolen) {
+    (void)iolen;//UNUSED
 	for(Bitu i = 0; i < 3; i++) {
 		if(parallel_baseaddr[i]==(port&0xfffc) && (parallelPortObjects[i]!=0)) {
 			Bitu retval=0xff;
@@ -176,6 +180,7 @@ void CParallel::log_par(bool active, char const* format,...) {
 
 // Initialisation
 CParallel::CParallel(CommandLine* cmd, Bitu portnr, Bit8u initirq) {
+    (void)cmd;//UNUSED
 	base = parallel_baseaddr[portnr];
 	irq = initirq;
 	port_nr = portnr;
@@ -221,7 +226,7 @@ CParallel::CParallel(CommandLine* cmd, Bitu portnr, Bit8u initirq) {
 	}
 
 	mydosdevice = NULL;
-};
+}
 
 void CParallel::registerDOSDevice() {
 	if (mydosdevice == NULL) {
@@ -241,7 +246,7 @@ void CParallel::unregisterDOSDevice() {
 
 CParallel::~CParallel(void) {
 	unregisterDOSDevice();
-};
+}
 
 Bit8u CParallel::getPrinterStatus()
 {
@@ -319,6 +324,14 @@ public:
 	
 	PARPORTS (Section * configuration):Module_base (configuration) {
 
+        // TODO: PC-98 does have one parallel port, if at all
+        if (IS_PC98_ARCH) return;
+
+#if C_PRINTER
+        // we can only have one printer redirection, hence the variable
+        bool printer_used = false;
+#endif
+
 		// default ports & interrupts
 		Bit8u defaultirq[] = { 7, 5, 12};
 		Section_prop *section = static_cast <Section_prop*>(configuration);
@@ -353,7 +366,26 @@ public:
 				}
 			}
 			else 
-			if(str=="disabled") {
+#if C_PRINTER
+            // allow printer redirection on a single port
+            if (str == "printer" && !printer_used)
+            {
+                CPrinterRedir* cprd = new CPrinterRedir(i, defaultirq[i], &cmd);
+                if (cprd->InstallationSuccessful)
+                {
+                    parallelPortObjects[i] = cprd;
+                    printer_used = true;
+                }
+                else
+                {
+                    LOG_MSG("Error: printer is not enabled.");
+                    delete cprd;
+                    parallelPortObjects[i] = 0;
+                }
+            }
+            else
+#endif				
+            if(str=="disabled") {
 				parallelPortObjects[i] = 0;
 			} else if (str == "disney") {
 				if (!DISNEY_HasInit()) {
@@ -384,6 +416,7 @@ public:
 static PARPORTS *testParallelPortsBaseclass = NULL;
 
 void PARALLEL_Destroy (Section * sec) {
+    (void)sec;//UNUSED
 	if (testParallelPortsBaseclass != NULL) {
 		delete testParallelPortsBaseclass;
 		testParallelPortsBaseclass = NULL;
@@ -391,6 +424,7 @@ void PARALLEL_Destroy (Section * sec) {
 }
 
 void PARALLEL_OnPowerOn (Section * sec) {
+    (void)sec;//UNUSED
 	LOG(LOG_MISC,LOG_DEBUG)("Reinitializing parallel port emulation");
 
 	if (testParallelPortsBaseclass) delete testParallelPortsBaseclass;
@@ -405,6 +439,7 @@ void PARALLEL_OnPowerOn (Section * sec) {
 }
 
 void PARALLEL_OnDOSKernelInit (Section * sec) {
+    (void)sec;//UNUSED
 	unsigned int i;
 
 	LOG(LOG_MISC,LOG_DEBUG)("DOS kernel initializing, creating LPTx devices");
@@ -416,6 +451,7 @@ void PARALLEL_OnDOSKernelInit (Section * sec) {
 }
 
 void PARALLEL_OnDOSKernelExit (Section * sec) {
+    (void)sec;//UNUSED
 	unsigned int i;
 
 	for (i=0;i < 3;i++) {
@@ -425,6 +461,7 @@ void PARALLEL_OnDOSKernelExit (Section * sec) {
 }
 
 void PARALLEL_OnReset (Section * sec) {
+    (void)sec;//UNUSED
 	unsigned int i;
 
 	// FIXME: Unregister/destroy the DOS devices, but consider that the DOS kernel at reset is gone.
@@ -434,31 +471,16 @@ void PARALLEL_OnReset (Section * sec) {
 	}
 }
 
-void PARALLEL_OnPC98Enter (Section * sec) {
-    /* TODO: PC-98 systems do have parallel ports.
-     *       Update this code to match when I figure out how they work and what I/O ports are involved. */
-    unsigned int i;
-
-    for (i=0;i < 3;i++) {
-        if (parallelPortObjects[i] != NULL)
-            parallelPortObjects[i]->unregisterDOSDevice();
-    }
-
-    if (testParallelPortsBaseclass != NULL) {
-        delete testParallelPortsBaseclass;
-        testParallelPortsBaseclass = NULL;
-    }
-}
-
 void PARALLEL_Init () {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing parallel port emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(PARALLEL_Destroy),true);
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PARALLEL_OnReset));
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PARALLEL_OnPowerOn));
-	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(PARALLEL_OnDOSKernelExit));
-	AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(PARALLEL_OnDOSKernelInit));
 
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(PARALLEL_OnPC98Enter));
+    if (!IS_PC98_ARCH) {
+        AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PARALLEL_OnReset));
+        AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PARALLEL_OnPowerOn));
+        AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(PARALLEL_OnDOSKernelExit));
+        AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(PARALLEL_OnDOSKernelInit));
+    }
 }
 

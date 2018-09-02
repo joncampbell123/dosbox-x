@@ -124,7 +124,7 @@ static void DISNEY_analyze(Bitu channel){
 		case DS_FINISH: 
 		{
 			// detect stereo: if we have about the same data amount in both channels
-			Bits st_diff = disney.da[0].used - disney.da[1].used;
+			Bits st_diff = (Bits)disney.da[0].used - (Bits)disney.da[1].used;
 			
 			// find leader channel (the one with higher rate) [this good for the stereo case?]
 			if(disney.da[0].used > disney.da[1].used) {
@@ -190,6 +190,7 @@ static void DISNEY_analyze(Bitu channel){
 }
 
 static void disney_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	//LOG_MSG("write disney time %f addr%x val %x",PIC_FullIndex(),port,val);
 	disney.last_used=PIC_Ticks;
 	switch (port-DISNEY_BASE) {
@@ -268,6 +269,7 @@ static void disney_write(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static Bitu disney_read(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
 	Bitu retval;
 	switch (port-DISNEY_BASE) {
 	case 0:		/* Data Port */
@@ -279,8 +281,8 @@ static Bitu disney_read(Bitu port,Bitu iolen) {
 		retval = 0x07;//0x40; // Stereo-on-1 and (or) New-Stereo DACs present
 		if(disney.interface_det_ext > 5) {
 			if (disney.leader && disney.leader->used >= 16){
-				retval |= 0x40; // ack
-				retval &= ~0x4; // interrupt
+				retval |= 0x40u; // ack
+				retval &= ~0x4u; // interrupt
 			}
 		}
 		if(!(disney.data&0x80)) retval |= 0x80; // pin 9 is wired to pin 11
@@ -419,13 +421,7 @@ public:
 static DISNEY* test = NULL;
 
 static void DISNEY_ShutDown(Section* sec){
-    if (test) {
-        delete test;
-        test = NULL;
-    }
-}
-
-static void DISNEY_OnEnterPC98(Section* sec){
+    (void)sec;//UNUSED
     if (test) {
         delete test;
         test = NULL;
@@ -458,11 +454,5 @@ void DISNEY_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Disney Sound Source emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(DISNEY_ShutDown),true);
-
-    /* FIXME: We *could* emulate a Disney Sound Source / LPT DAC / etc. attached to the parallel port
-     *        of a PC-98 system, but, since this code attaches to the I/O ports to emulate the hardware
-     *        we have to disable it in PC-98 mode until such time that this code can remap to emulate
-     *        the PC-98's printer port. */
-    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(DISNEY_OnEnterPC98));
 }
 

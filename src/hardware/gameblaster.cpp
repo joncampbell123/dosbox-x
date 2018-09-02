@@ -32,6 +32,8 @@
 #define RIGHT	0x01
 #define CMS_BUFFER_SIZE 128
 #define CMS_RATE 22050
+/*#define MASTER_CLOCK 14318180/2 */
+#define MASTER_CLOCK 7159090
 
 
 typedef Bit8u UINT8;
@@ -196,8 +198,8 @@ static void saa1099_update(int chip, INT16 **buffer, int length)
 	if (!saa->all_ch_enable)
 	{
 		/* init output data */
-		memset(buffer[LEFT],0,length*sizeof(INT16));
-		memset(buffer[RIGHT],0,length*sizeof(INT16));
+		memset(buffer[LEFT],0,(unsigned int)length*sizeof(INT16));
+		memset(buffer[RIGHT],0,(unsigned int)length*sizeof(INT16));
         return;
 	}
 
@@ -205,9 +207,9 @@ static void saa1099_update(int chip, INT16 **buffer, int length)
     {
 		switch (saa->noise_params[ch])
 		{
-		case 0: saa->noise[ch].freq = 31250.0 * 2; break;
-		case 1: saa->noise[ch].freq = 15625.0 * 2; break;
-		case 2: saa->noise[ch].freq =  7812.5 * 2; break;
+		case 0: saa->noise[ch].freq = MASTER_CLOCK/256  * 2; break;
+		case 1: saa->noise[ch].freq = MASTER_CLOCK/512  * 2; break;
+		case 2: saa->noise[ch].freq = MASTER_CLOCK/1024 * 2; break;
 		case 3: saa->noise[ch].freq = saa->channels[ch * 3].freq; break;
 		}
 	}
@@ -221,7 +223,7 @@ static void saa1099_update(int chip, INT16 **buffer, int length)
 		for (ch = 0; ch < 6; ch++)
 		{
             if (saa->channels[ch].freq == 0.0)
-                saa->channels[ch].freq = (double)((2 * 15625) << saa->channels[ch].octave) /
+                saa->channels[ch].freq = (double)((2 * MASTER_CLOCK/512) << saa->channels[ch].octave) /
                     (511.0 - (double)saa->channels[ch].frequency);
 
             /* check the actual position in the square wave */
@@ -229,7 +231,7 @@ static void saa1099_update(int chip, INT16 **buffer, int length)
 			while (saa->channels[ch].counter < 0)
 			{
 				/* calculate new frequency now after the half wave is updated */
-				saa->channels[ch].freq = (double)((2 * 15625) << saa->channels[ch].octave) /
+				saa->channels[ch].freq = (double)((2 * MASTER_CLOCK/512) << saa->channels[ch].octave) /
 					(511.0 - (double)saa->channels[ch].frequency);
 
 				saa->channels[ch].counter += sample_rate;
@@ -404,7 +406,8 @@ static void CMS_CallBack(Bitu len) {
 	 Bit16s * stream=(Bit16s *) MixTemp;
 	/* Mix chip outputs */
 	for (Bitu l=0;l<len;l++) {
-		register Bits left, right;
+		Bits left, right;
+
 		left = cms_buffer[0][LEFT][l] + cms_buffer[1][LEFT][l];
 		right = cms_buffer[0][RIGHT][l] + cms_buffer[1][RIGHT][l];
 
@@ -459,9 +462,9 @@ private:
 public:
 	CMS(Section* configuration):Module_base(configuration) {
 		Section_prop * section = static_cast<Section_prop *>(configuration);
-		Bitu sample_rate_temp = section->Get_int("oplrate");
+		Bitu sample_rate_temp = (Bitu)section->Get_int("oplrate");
 		sample_rate = static_cast<double>(sample_rate_temp);
-		base_port = section->Get_hex("sbbase");
+		base_port = (unsigned int)section->Get_hex("sbbase");
 		WriteHandler.Install(base_port, write_cms, IO_MB,4);
 
 		// A standalone Gameblaster has a magic chip on it which is
@@ -495,6 +498,7 @@ void CMS_Init(Section* sec) {
     	test = new CMS(sec);
 }
 void CMS_ShutDown(Section* sec) {
+    (void)sec;//UNUSED
     if (test) {
         delete test;
         test = NULL;

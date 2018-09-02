@@ -32,6 +32,10 @@
 #include "regs.h"
 using namespace std;
 
+#if defined(_MSC_VER)
+# pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
+#endif
+
 enum GUSType {
 	GUS_CLASSIC=0,
 	GUS_MAX,
@@ -63,11 +67,19 @@ static Bit8u const irqtable[8] = { 0/*invalid*/, 2, 5, 3, 7, 11, 12, 15 };
 static Bit8u const dmatable[8] = { 0/*NO DMA*/, 1, 3, 5, 6, 7, 0/*invalid*/, 0/*invalid*/ };
 static Bit8u GUSRam[1024*1024 + 16/*safety margin*/]; // 1024K of GUS Ram
 static Bit32s AutoAmp = 512;
+static bool unmask_irq = false;
 static bool enable_autoamp = false;
+static bool startup_ultrinit = false;
+static bool dma_enable_on_dma_control_polling = false;
 static Bit16u vol16bit[4096];
 static Bit32u pantable[16];
 static enum GUSType gus_type = GUS_CLASSIC;
 static bool gus_ics_mixer = false;
+static bool gus_warn_irq_conflict = false;
+static bool gus_warn_dma_conflict = false;
+
+static IO_Callout_t gus_iocallout = IO_Callout_t_none;
+static IO_Callout_t gus_iocallout2 = IO_Callout_t_none;
 
 class GUSChannels;
 static void CheckVoiceIrq(void);
@@ -79,6 +91,7 @@ struct GFGus {
 	Bit8u gRegSelect;
 	Bit16u gRegData;
 	Bit32u gDramAddr;
+	Bit32u gDramAddrMask;
 	Bit16u gCurChannel;
 
 	Bit8u gUltraMAXControl;
@@ -180,7 +193,6 @@ public:
 	Bit32u RampEnd;
 	Bit32u RampVol;
 	Bit32u RampAdd;
-	Bit32u RampAddReal;
 
 	Bit8u RampRate;
 	Bit8u RampCtrl;
@@ -195,7 +207,7 @@ public:
 
 	GUSChannels(Bit8u num) { 
 		channum = num;
-		irqmask = 1 << num;
+		irqmask = 1u << num;
 		WaveStart = 0;
 		WaveEnd = 0;
 		WaveAddr = 0;
@@ -207,7 +219,6 @@ public:
 		RampEnd = 0;
 		RampCtrl = 3;
 		RampAdd = 0;
-		RampAddReal = 0;
 		RampVol = 0;
 		VolLeft = 0;
 		VolRight = 0;
@@ -359,10 +370,10 @@ public:
 		}
 	}
 	INLINE void UpdateVolumes(void) {
-		Bit32s templeft=RampVol - PanLeft;
-		templeft&=~(templeft >> 31);
-		Bit32s tempright=RampVol - PanRight;
-		tempright&=~(tempright >> 31);
+		Bit32s templeft=(Bit32s)RampVol - (Bit32s)PanLeft;
+		templeft&=~(templeft >> 31); /* <- NTS: This is a rather elaborate way to clamp negative values to zero using negate and sign extend */
+		Bit32s tempright=(Bit32s)RampVol - (Bit32s)PanRight;
+		tempright&=~(tempright >> 31); /* <- NTS: This is a rather elaborate way to clamp negative values to zero using negate and sign extend */
 		VolLeft=vol16bit[templeft >> RAMP_FRACT];
 		VolRight=vol16bit[tempright >> RAMP_FRACT];
 	}
@@ -373,11 +384,11 @@ public:
 		if (RampCtrl & 0x40) {
 			RampVol-=RampAdd;
 			if ((Bit32s)RampVol < (Bit32s)0) RampVol=0;
-			RampLeft=RampStart-RampVol;
+			RampLeft=(Bit32s)RampStart-(Bit32s)RampVol;
 		} else {
 			RampVol+=RampAdd;
 			if (RampVol > ((4096 << RAMP_FRACT)-1)) RampVol=((4096 << RAMP_FRACT)-1);
-			RampLeft=RampVol-RampEnd;
+			RampLeft=(Bit32s)RampVol-(Bit32s)RampEnd;
 		}
 		if (RampLeft<0) {
 			UpdateVolumes();
@@ -391,7 +402,7 @@ public:
 		if (RampCtrl & 0x08) {
 			/* Bi-directional looping */
 			if (RampCtrl & 0x10) RampCtrl^=0x40;
-			RampVol = (RampCtrl & 0x40) ? (RampEnd-RampLeft) : (RampStart+RampLeft);
+			RampVol = (RampCtrl & 0x40) ? (Bit32u)((Bit32s)RampEnd-(Bit32s)RampLeft) : (Bit32u)((Bit32s)RampStart+(Bit32s)RampLeft);
 		} else {
 			RampCtrl|=1;	//Stop the channel
 			RampVol = (RampCtrl & 0x40) ? RampStart : RampEnd;
@@ -615,8 +626,14 @@ static INLINE void GUS_CheckIRQ(void) {
 			/* The GUS fires an IRQ, then waits for the interrupt service routine to
 			 * clear all pending interrupt events before firing another one. if you
 			 * don't service all events, then you don't get another interrupt. */
-			if (gus_prev_effective_irqstat == 0)
+			if (gus_prev_effective_irqstat == 0) {
 				PIC_ActivateIRQ(myGUS.irq1);
+
+                if (gus_warn_irq_conflict)
+					LOG(LOG_MISC,LOG_WARN)(
+                        "GUS warning: Both IRQs set to the same signal line WITHOUT combining! "
+                        "This is documented to cause bus conflicts on real hardware");
+            }
 		}
 
 		gus_prev_effective_irqstat = irqstat;
@@ -634,7 +651,7 @@ static void CheckVoiceIrq(void) {
 	if (myGUS.WaveIRQ) myGUS.IRQStatus|=0x20;
 	GUS_CheckIRQ();
 	for (;;) {
-		Bit32u check=(1 << myGUS.IRQChan);
+		Bit32u check=(1u << myGUS.IRQChan);
 		if (totalmask & check) return;
 		myGUS.IRQChan++;
 		if (myGUS.IRQChan>=myGUS.ActiveChannels) myGUS.IRQChan=0;
@@ -649,6 +666,14 @@ static Bit16u ExecuteReadRegister(void) {
 		// NTS: The GUS SDK documents the active channel count as bits 5-0, which is wrong. it's bits 4-0. bits 7-5 are always 1 on real hardware.
 		return ((Bit16u)(0xE0 | (myGUS.ActiveChannelsUser - 1))) << 8;
 	case 0x41: // Dma control register - read acknowledges DMA IRQ
+        if (dma_enable_on_dma_control_polling) {
+            if (!GetDMAChannel(myGUS.dma1)->masked && !(myGUS.DMAControl & 0x01) && !(myGUS.IRQStatus & 0x80)) {
+                LOG(LOG_MISC,LOG_DEBUG)("GUS: As instructed, switching on DMA ENABLE upon polling DMA control register (HACK) as workaround");
+                myGUS.DMAControl |= 0x01;
+                GUS_StartDMA();
+            }
+        }
+
 		tmpreg = myGUS.DMAControl & 0xbf;
 		tmpreg |= (myGUS.IRQStatus & 0x80) >> 1;
 		myGUS.IRQStatus&=0x7f;
@@ -702,7 +727,7 @@ static Bit16u ExecuteReadRegister(void) {
 	case 0x8f: // General channel IRQ status register
 		tmpreg=myGUS.IRQChan|0x20;
 		Bit32u mask;
-		mask=1 << myGUS.IRQChan;
+		mask=1u << myGUS.IRQChan;
 		if (!(myGUS.RampIRQ & mask)) tmpreg|=0x40;
 		if (!(myGUS.WaveIRQ & mask)) tmpreg|=0x80;
 		myGUS.RampIRQ&=~mask;
@@ -775,20 +800,20 @@ static void ExecuteGlobRegister(void) {
 	case 0x7:  // Channel volume ramp start register  EEEEMMMM
 		if(curchan != NULL) {
 			Bit8u tmpdata = (Bit16u)myGUS.gRegData >> 8;
-			curchan->RampStart = tmpdata << (4+RAMP_FRACT);
+			curchan->RampStart = (Bit32u)(tmpdata << (4+RAMP_FRACT));
 		}
 		break;
 	case 0x8:  // Channel volume ramp end register  EEEEMMMM
 		if(curchan != NULL) {
 			Bit8u tmpdata = (Bit16u)myGUS.gRegData >> 8;
-			curchan->RampEnd = tmpdata << (4+RAMP_FRACT);
+			curchan->RampEnd = (Bit32u)(tmpdata << (4+RAMP_FRACT));
 		}
 		break;
 	case 0x9:  // Channel current volume register
 		gus_chan->FillUp();
 		if(curchan != NULL) {
 			Bit16u tmpdata = (Bit16u)myGUS.gRegData >> 4;
-			curchan->RampVol = tmpdata << RAMP_FRACT;
+			curchan->RampVol = (Bit32u)(tmpdata << RAMP_FRACT);
 			curchan->UpdateVolumes();
 		}
 		break;
@@ -1264,6 +1289,7 @@ public:
 } GUS_CS4231;
 
 static Bitu read_gus_cs4231(Bitu port,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if (myGUS.gUltraMAXControl & 0x40/*codec enable*/)
 		return GUS_CS4231.ioread((port - GUS_BASE) & 3); // FIXME: UltraMAX allows this to be relocatable
 
@@ -1271,6 +1297,7 @@ static Bitu read_gus_cs4231(Bitu port,Bitu iolen) {
 }
 
 static void write_gus_cs4231(Bitu port,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if (myGUS.gUltraMAXControl & 0x40/*codec enable*/)
 		GUS_CS4231.iowrite((port - GUS_BASE) & 3,val&0xFF);
 }
@@ -1278,7 +1305,14 @@ static void write_gus_cs4231(Bitu port,Bitu val,Bitu iolen) {
 static Bitu read_gus(Bitu port,Bitu iolen) {
 	Bit16u reg16;
 
+    (void)iolen;//UNUSED
 //	LOG_MSG("read from gus port %x",port);
+
+    /* 12-bit ISA decode (FIXME: Check GUS MAX ISA card to confirm)
+     *
+     * More than 10 bits must be decoded in order for GUS MAX extended registers at 7xx to work */
+    port &= 0xFFF;
+
 	switch(port - GUS_BASE) {
 	case 0x206:
 		if (myGUS.clearTCIfPollingIRQStatus) {
@@ -1329,7 +1363,7 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 	case 0x20f:
 		if (gus_type >= GUS_MAX || gus_ics_mixer)
 			return 0x02; /* <- FIXME: What my GUS MAX returns. What does this mean? */
-		return ~0; // should not happen
+		return ~0ul; // should not happen
 	case 0x302:
 		return myGUS.gRegSelectData;
 	case 0x303:
@@ -1350,8 +1384,8 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 
 		return reg16;
 	case 0x307:
-		if(myGUS.gDramAddr < myGUS.memsize) {
-			return GUSRam[myGUS.gDramAddr];
+		if((myGUS.gDramAddr & myGUS.gDramAddrMask) < myGUS.memsize) {
+			return GUSRam[myGUS.gDramAddr & myGUS.gDramAddrMask];
 		} else {
 			return 0;
 		}
@@ -1377,7 +1411,13 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 
 static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 //	LOG_MSG("Write gus port %x val %x",port,val);
-	switch(port - GUS_BASE) {
+
+    /* 12-bit ISA decode (FIXME: Check GUS MAX ISA card to confirm)
+     *
+     * More than 10 bits must be decoded in order for GUS MAX extended registers at 7xx to work */
+    port &= 0xFFF;
+
+    switch(port - GUS_BASE) {
 	case 0x200:
 		myGUS.gRegControl = 0;
 		myGUS.mixControl = (Bit8u)val;
@@ -1467,8 +1507,7 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 
 				LOG(LOG_MISC,LOG_DEBUG)("GUS IRQ reprogrammed: GF1 IRQ %d, MIDI IRQ %d",(int)myGUS.irq1,(int)myGUS.irq2);
 
-				if (!(val & 0x40) && (val & 7) == ((val >> 3) & 7))
-					LOG(LOG_MISC,LOG_WARN)("GUS warning: Both IRQs set to the same signal line WITHOUT combining! This is documented to cause bus conflicts on real hardware");
+                gus_warn_irq_conflict = (!(val & 0x40) && (val & 7) == ((val >> 3) & 7));
 			} else {
 				// GUS SDK: DMA Control Register
 				//     Channel 1 (bits 2-0)
@@ -1516,8 +1555,7 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 				// NTS: The Windows 3.1 Gravis Ultrasound drivers will program the same DMA channel into both without setting the "combining" bit,
 				//      even though their own SDK says not to, when Windows starts up. But it then immediately reprograms it normally, so no bus
 				//      conflicts actually occur. Strange.
-				if (!(val & 0x40) && (val & 7) == ((val >> 3) & 7))
-					LOG(LOG_MISC,LOG_WARN)("GUS warning: Both DMA channels set to the same channel WITHOUT combining! This is documented to cause bus conflicts on real hardware");
+				gus_warn_dma_conflict = (!(val & 0x40) && (val & 7) == ((val >> 3) & 7));
 			}
 		}
 		else {
@@ -1563,7 +1601,8 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 		ExecuteGlobRegister();
 		break;
 	case 0x307:
-		if(myGUS.gDramAddr < myGUS.memsize) GUSRam[myGUS.gDramAddr] = (Bit8u)val;
+		if ((myGUS.gDramAddr & myGUS.gDramAddrMask) < myGUS.memsize)
+            GUSRam[myGUS.gDramAddr & myGUS.gDramAddrMask] = (Bit8u)val;
 		break;
 	case 0x306:
 	case 0x706:
@@ -1610,13 +1649,13 @@ static bool GUS_DMA_Active = false;
 void GUS_Update_DMA_Event_transfer() {
 	/* NTS: From the GUS SDK, bits 3-4 of DMA Control divide the ISA DMA transfer rate down from "approx 650KHz".
 	 *      Bits 3-4 are documented as "DMA Rate divisor" */
-	GUS_DMA_Event_transfer = GUS_Master_Clock / GUS_DMA_Events_per_sec / (((myGUS.DMAControl >> 3) & 3) + 1);
-	GUS_DMA_Event_transfer &= ~1; /* make sure it's word aligned in case of 16-bit PCM */
+	GUS_DMA_Event_transfer = GUS_Master_Clock / GUS_DMA_Events_per_sec / (Bitu)(((Bitu)(myGUS.DMAControl >> 3u) & 3u) + 1u);
+	GUS_DMA_Event_transfer &= ~1u; /* make sure it's word aligned in case of 16-bit PCM */
 	if (GUS_DMA_Event_transfer == 0) GUS_DMA_Event_transfer = 2;
 }
 
 void GUS_DMA_Event_Transfer(DmaChannel *chan,Bitu dmawords) {
-	Bitu dmaaddr = (myGUS.dmaAddr << 4) + myGUS.dmaAddrOffset;
+	Bitu dmaaddr = (Bitu)(myGUS.dmaAddr << 4ul) + (Bitu)myGUS.dmaAddrOffset;
 	Bitu dmalimit = myGUS.memsize;
 	int step = 0,docount = 0;
 	bool dma16xlate;
@@ -1705,9 +1744,9 @@ void GUS_DMA_Event_Transfer(DmaChannel *chan,Bitu dmawords) {
 
 	if (docount > 0) {
 		if ((myGUS.DMAControl & 0x2) == 0) {
-			Bitu read=chan->Read(docount,&GUSRam[dmaaddr]);
+			Bitu read=(Bitu)chan->Read((Bitu)docount,&GUSRam[dmaaddr]);
 			//Check for 16 or 8bit channel
-			read*=(chan->DMA16+1);
+			read*=(chan->DMA16+1u);
 			if((myGUS.DMAControl & 0x80) != 0) {
 				//Invert the MSB to convert twos compliment form
 				Bitu i;
@@ -1723,9 +1762,9 @@ void GUS_DMA_Event_Transfer(DmaChannel *chan,Bitu dmawords) {
 			step = read;
 		} else {
 			//Read data out of UltraSound
-			int wd = chan->Write(docount,&GUSRam[dmaaddr]);
+			Bitu wd = (Bitu)chan->Write((Bitu)docount,&GUSRam[dmaaddr]);
 			//Check for 16 or 8bit channel
-			wd*=(chan->DMA16+1);
+			wd*=(chan->DMA16+1u);
 
 			step = wd;
 		}
@@ -1762,6 +1801,7 @@ void GUS_DMA_Event_Transfer(DmaChannel *chan,Bitu dmawords) {
 }
 
 void GUS_DMA_Event(Bitu val) {
+    (void)val;//UNUSED
 	DmaChannel *chan = GetDMAChannel(myGUS.dma1);
 	if (chan == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("GUS DMA event: DMA channel no longer exists, stopping DMA transfer events");
@@ -1807,10 +1847,19 @@ void GUS_StartDMA() {
 		GUS_DMA_Active = true;
 		LOG(LOG_MISC,LOG_DEBUG)("GUS: Starting DMA transfer interval");
 		PIC_AddEvent(GUS_DMA_Event,GUS_DMA_Event_interval_init);
-	}
+
+        if (GetDMAChannel(myGUS.dma1)->masked)
+            LOG(LOG_MISC,LOG_WARN)("GUS: DMA transfer interval started when channel is masked");
+
+        if (gus_warn_dma_conflict)
+            LOG(LOG_MISC,LOG_WARN)(
+                "GUS warning: Both DMA channels set to the same channel WITHOUT combining! "
+                "This is documented to cause bus conflicts on real hardware");
+    }
 }
 
 static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event) {
+    (void)chan;//UNUSED
 	if (event == DMA_UNMASKED) {
 		LOG(LOG_MISC,LOG_DEBUG)("GUS: DMA unmasked");
 		if (myGUS.DMAControl & 0x01/*DMA enable*/) GUS_StartDMA();
@@ -1881,7 +1930,7 @@ static void MakeTables(void) {
 	int i;
 	double out = (double)(1 << 13);
 	for (i=4095;i>=0;i--) {
-		vol16bit[i]=(Bit16s)out;
+		vol16bit[i]=(Bit16u)((Bit16s)out);
 		out/=1.002709201;		/* 0.0235 dB Steps */
 	}
 	/* FIX: DOSBox 0.74 had code here that produced a pantable which
@@ -1902,7 +1951,7 @@ static void MakeTables(void) {
 	 *      mono. */
 	if (gus_fixed_table) {
 		for (i=0;i < 16;i++)
-			pantable[i] = pantablePDF[i] * 2048;
+			pantable[i] = pantablePDF[i] * 2048u;
 
 		LOG(LOG_MISC,LOG_DEBUG)("GUS: using accurate (fixed) pantable");
 	}
@@ -1938,12 +1987,44 @@ static void MakeTables(void) {
 		((double)pantable[15]) / (1 << RAMP_FRACT));
 }
 
+static IO_ReadHandler* gus_cb_port_r(IO_CalloutObject &co,Bitu port,Bitu iolen) {
+    (void)co;
+    (void)iolen;
+
+    /* 10-bit ISA decode.
+     * NOTE that the I/O handlers still need more than 10 bits to handle GUS MAX/Interwave registers at 0x7xx. */
+    port &= 0x3FF;
+
+    if (gus_type >= GUS_MAX) {
+        if (port >= (0x30C + GUS_BASE) && port <= (0x30F + GUS_BASE))
+            return read_gus_cs4231;
+    }
+
+    return read_gus;
+}
+
+static IO_WriteHandler* gus_cb_port_w(IO_CalloutObject &co,Bitu port,Bitu iolen) {
+    (void)co;
+    (void)iolen;
+
+    /* 10-bit ISA decode.
+     * NOTE that the I/O handlers still need more than 10 bits to handle GUS MAX/Interwave registers at 0x7xx. */
+    port &= 0x3FF;
+
+    if (gus_type >= GUS_MAX) {
+        if (port >= (0x30C + GUS_BASE) && port <= (0x30F + GUS_BASE))
+            return write_gus_cs4231;
+    }
+
+    return write_gus;
+}
+
 class GUS:public Module_base{
 private:
-	IO_ReadHandleObject ReadHandler[12];
-	IO_WriteHandleObject WriteHandler[12];
-	IO_ReadHandleObject ReadCS4231Handler[4];
-	IO_WriteHandleObject WriteCS4231Handler[4];
+//	IO_ReadHandleObject ReadHandler[12];
+//	IO_WriteHandleObject WriteHandler[12];
+//	IO_ReadHandleObject ReadCS4231Handler[4];
+//	IO_WriteHandleObject WriteCS4231Handler[4];
 	AutoexecObject autoexecline[3];
 	MixerObject MixerChan;
     bool gus_enable;
@@ -1960,7 +2041,12 @@ public:
         memset(&myGUS,0,sizeof(myGUS));
         memset(GUSRam,0,1024*1024);
 
+        unmask_irq = section->Get_bool("pic unmask irq");
         enable_autoamp = section->Get_bool("autoamp");
+
+        startup_ultrinit = section->Get_bool("startup initialized");
+
+        dma_enable_on_dma_control_polling = section->Get_bool("dma enable on dma control polling");
 
 		string s_pantable = section->Get_string("gus panning table");
 		if (s_pantable == "default" || s_pantable == "" || s_pantable == "accurate")
@@ -2015,25 +2101,25 @@ public:
 		if (myGUS.force_master_irq_enable)
 			LOG(LOG_MISC,LOG_DEBUG)("GUS: Master IRQ enable will be forced on as instructed");
 
-		myGUS.rate=section->Get_int("gusrate");
+		myGUS.rate=(unsigned int)section->Get_int("gusrate");
 
         ultradir = section->Get_string("ultradir");
 
 		x = section->Get_int("gusmemsize");
-		if (x >= 0) myGUS.memsize = x*1024;
-		else myGUS.memsize = 1024*1024;
+		if (x >= 0) myGUS.memsize = (unsigned int)x*1024u;
+		else myGUS.memsize = 1024u*1024u;
 
-		if (myGUS.memsize > (1024*1024))
-			myGUS.memsize = (1024*1024);
+		if (myGUS.memsize > (1024u*1024u))
+			myGUS.memsize = (1024u*1024u);
 
-		if ((myGUS.memsize&((256 << 10) - 1)) != 0)
+		if ((myGUS.memsize&((256u << 10u) - 1u)) != 0)
 			LOG(LOG_MISC,LOG_WARN)("GUS emulation warning: %uKB onboard is an unusual value. Usually GUS cards have some multiple of 256KB RAM onboard",myGUS.memsize>>10);
 
 		LOG(LOG_MISC,LOG_DEBUG)("GUS emulation: %uKB onboard",myGUS.memsize>>10);
 
 		// FIXME: HUH?? Read the port number and subtract 0x200, then use GUS_BASE
 		// in other parts of the code to compare against 0x200 and 0x300? That's confusing. Fix!
-		myGUS.portbase = section->Get_hex("gusbase") - 0x200;
+		myGUS.portbase = (unsigned int)section->Get_hex("gusbase") - 0x200u;
 
 		// TODO: so, if the GUS ULTRASND variable actually mentions two DMA and two IRQ channels,
 		//       shouldn't we offer the ability to specify them independently? especially when
@@ -2044,11 +2130,54 @@ public:
 		int irq_val = section->Get_int("gusirq");
 		if ((irq_val<0) || (irq_val>255)) irq_val = 5;	// sensible default
 
+        if (irq_val > 0) {
+            string s = section->Get_string("irq hack");
+            if (!s.empty() && s != "none") {
+                LOG(LOG_MISC,LOG_NORMAL)("GUS emulation: Assigning IRQ hack '%s' as instruced",s.c_str());
+                PIC_Set_IRQ_hack(irq_val,PIC_parse_IRQ_hack_string(s.c_str()));
+            }
+        }
+
 		myGUS.dma1 = (Bit8u)dma_val;
 		myGUS.dma2 = (Bit8u)dma_val;
 		myGUS.irq1 = (Bit8u)irq_val;
 		myGUS.irq2 = (Bit8u)irq_val;
 
+        if (gus_iocallout != IO_Callout_t_none) {
+            IO_FreeCallout(gus_iocallout);
+            gus_iocallout = IO_Callout_t_none;
+        }
+
+        if (gus_iocallout2 != IO_Callout_t_none) {
+            IO_FreeCallout(gus_iocallout2);
+            gus_iocallout2 = IO_Callout_t_none;
+        }
+
+        if (gus_iocallout == IO_Callout_t_none)
+            gus_iocallout = IO_AllocateCallout(IO_TYPE_ISA);
+        if (gus_iocallout == IO_Callout_t_none)
+            E_Exit("Failed to get GUS IO callout handle");
+
+        if (gus_iocallout2 == IO_Callout_t_none)
+            gus_iocallout2 = IO_AllocateCallout(IO_TYPE_ISA);
+        if (gus_iocallout2 == IO_Callout_t_none)
+            E_Exit("Failed to get GUS IO callout handle");
+
+        {
+            IO_CalloutObject *obj = IO_GetCallout(gus_iocallout);
+            if (obj == NULL) E_Exit("Failed to get GUS IO callout");
+            obj->Install(0x200 + GUS_BASE,IOMASK_Combine(IOMASK_ISA_10BIT,IOMASK_Range(16)),gus_cb_port_r,gus_cb_port_w);
+            IO_PutCallout(obj);
+        }
+
+        {
+            IO_CalloutObject *obj = IO_GetCallout(gus_iocallout2);
+            if (obj == NULL) E_Exit("Failed to get GUS IO callout");
+            obj->Install(0x300 + GUS_BASE,IOMASK_Combine(IOMASK_ISA_10BIT,IOMASK_Range(16)),gus_cb_port_r,gus_cb_port_w);
+            IO_PutCallout(obj);
+        }
+
+#if 0
 		// We'll leave the MIDI interface to the MPU-401 
 		// Ditto for the Joystick 
 		// GF1 Synthesizer 
@@ -2094,16 +2223,19 @@ public:
 			WriteHandler[10].Install(0x306 + GUS_BASE,write_gus,IO_MB); // Mixer control
 			WriteHandler[11].Install(0x706 + GUS_BASE,write_gus,IO_MB); // Mixer data / GUS UltraMAX Control register
 		}
+#endif
 		if (gus_type >= GUS_MAX) {
 			LOG(LOG_MISC,LOG_WARN)("GUS caution: CS4231 UltraMax emulation is new and experimental at this time and it is not guaranteed to work.");
 			LOG(LOG_MISC,LOG_WARN)("GUS caution: CS4231 UltraMax emulation as it exists now may cause applications to hang or malfunction attempting to play through it.");
 
+#if 0
 			/* UltraMax has a CS4231 codec at 3XC-3XF */
 			/* FIXME: Does the Interwave have a CS4231? */
 			for (unsigned int i=0;i < 4;i++) {
 				ReadCS4231Handler[i].Install(0x30C + i + GUS_BASE,read_gus_cs4231,IO_MB);
 				WriteCS4231Handler[i].Install(0x30C + i + GUS_BASE,write_gus_cs4231,IO_MB);
 			}
+#endif
 		}
 	
 	//	DmaChannels[myGUS.dma1]->Register_TC_Callback(GUS_DMA_TC_Callback);
@@ -2122,6 +2254,8 @@ public:
 
 		if (myGUS.initUnmaskDMA)
 			GetDMAChannel(myGUS.dma1)->SetMask(false);
+        if (unmask_irq)
+            PIC_SetIRQMask(myGUS.irq1,false);
 
 		gus_chan->Enable(true);
 
@@ -2143,7 +2277,19 @@ public:
 			// master volume update, updates ALL pairs
 			GUS_ICS2101.updateVolPair(gus_ICS2101::MASTER_OUTPUT_PORT);
 		}
-	}
+
+        // Default to GUS MAX 1MB maximum
+        myGUS.gDramAddrMask = 0xFFFFF;
+
+        // if instructed, configure the card as if ULTRINIT had been run
+        if (startup_ultrinit) {
+            myGUS.gRegData=0x700;
+            GUSReset();
+
+            myGUS.gRegData=0x700;
+            GUSReset();
+        }
+    }
 
     void DOS_Startup() {
 		int portat = 0x200+GUS_BASE;
@@ -2178,6 +2324,16 @@ public:
 	}
 
 	~GUS() {
+        if (gus_iocallout != IO_Callout_t_none) {
+            IO_FreeCallout(gus_iocallout);
+            gus_iocallout = IO_Callout_t_none;
+        }
+
+        if (gus_iocallout2 != IO_Callout_t_none) {
+            IO_FreeCallout(gus_iocallout2);
+            gus_iocallout2 = IO_Callout_t_none;
+        }
+
 #if 0 // FIXME
 		if(!IS_EGAVGA_ARCH) return;
 	
@@ -2209,28 +2365,21 @@ void GUS_ShutDown(Section* /*sec*/) {
 }
 
 void GUS_OnReset(Section *sec) {
-	if (test == NULL) {
+    (void)sec;//UNUSED
+	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating GUS emulation");
 		test = new GUS(control->GetSection("gus"));
 	}
 }
 
 void GUS_DOS_Exit(Section *sec) {
+    (void)sec;//UNUSED
     GUS_DOS_Shutdown();
 }
 
 void GUS_DOS_Boot(Section *sec) {
+    (void)sec;//UNUSED
     if (test != NULL) test->DOS_Startup();
-}
-
-void GUS_OnEnterPC98(Section *sec) {
-    /* PC-98 does not have Gravis Ultrasound.
-     * Upon entry, remove all I/O ports and shutdown emulation */
-    GUS_DOS_Shutdown();
-	if (test != NULL) {
-		delete test;	
-		test = NULL;
-	}
 }
 
 void GUS_Init() {
@@ -2242,7 +2391,5 @@ void GUS_Init() {
 	AddVMEventFunction(VM_EVENT_DOS_SURPRISE_REBOOT,AddVMEventFunctionFuncPair(GUS_DOS_Exit));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_REBOOT_BEGIN,AddVMEventFunctionFuncPair(GUS_DOS_Exit));
     AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(GUS_DOS_Boot));
-
-    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(GUS_OnEnterPC98));
 }
 

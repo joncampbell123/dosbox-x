@@ -52,25 +52,25 @@
 #define CPU_ARCHTYPE_PPROSLOW		0x60
 
 /* CPU Cycle Timing */
-extern Bit32s CPU_Cycles;
-extern Bit32s CPU_CycleLeft;
-extern Bit32s CPU_CycleMax;
-extern Bit32s CPU_OldCycleMax;
-extern Bit32s CPU_CyclePercUsed;
-extern Bit32s CPU_CycleLimit;
-extern Bit64s CPU_IODelayRemoved;
+extern cpu_cycles_count_t CPU_Cycles;
+extern cpu_cycles_count_t CPU_CycleLeft;
+extern cpu_cycles_count_t CPU_CycleMax;
+extern cpu_cycles_count_t CPU_OldCycleMax;
+extern cpu_cycles_count_t CPU_CyclePercUsed;
+extern cpu_cycles_count_t CPU_CycleLimit;
+extern cpu_cycles_count_t CPU_IODelayRemoved;
+extern cpu_cycles_count_t CPU_CyclesSet;
+extern unsigned char CPU_AutoDetermineMode;
+extern char core_mode[16];
+
 extern bool CPU_CycleAutoAdjust;
 extern bool CPU_SkipCycleAutoAdjust;
-extern Bitu CPU_AutoDetermineMode;
-extern Bitu CPU_CyclesCur;
-extern Bit32s CPU_CyclesSet;
-extern char core_mode[16];
 
 extern bool enable_weitek;
 
-extern Bitu CPU_ArchitectureType;
+extern unsigned char CPU_ArchitectureType;
 
-extern Bitu CPU_PrefetchQueueSize;
+extern unsigned int CPU_PrefetchQueueSize;
 
 /* Some common Defines */
 /* A CPU Handler */
@@ -194,61 +194,61 @@ void CPU_Push32(Bitu value);
 void CPU_SetFlags(Bitu word,Bitu mask);
 
 
-#define EXCEPTION_UD			6
-#define EXCEPTION_DF                    8
-#define EXCEPTION_TS			10
-#define EXCEPTION_NP			11
-#define EXCEPTION_SS			12
-#define EXCEPTION_GP			13
-#define EXCEPTION_PF			14
+#define EXCEPTION_UD			6u
+#define EXCEPTION_DF            8u
+#define EXCEPTION_TS			10u
+#define EXCEPTION_NP			11u
+#define EXCEPTION_SS			12u
+#define EXCEPTION_GP			13u
+#define EXCEPTION_PF			14u
 
-#define CR0_PROTECTION			0x00000001
-#define CR0_MONITORPROCESSOR	0x00000002
-#define CR0_FPUEMULATION		0x00000004
-#define CR0_TASKSWITCH			0x00000008
-#define CR0_FPUPRESENT			0x00000010
-#define CR0_WRITEPROTECT		0x00010000
-#define CR0_PAGING				0x80000000
+#define CR0_PROTECTION			0x00000001u
+#define CR0_MONITORPROCESSOR	0x00000002u
+#define CR0_FPUEMULATION		0x00000004u
+#define CR0_TASKSWITCH			0x00000008u
+#define CR0_FPUPRESENT			0x00000010u
+#define CR0_WRITEPROTECT		0x00010000u
+#define CR0_PAGING				0x80000000u
 
 
 // *********************************************************************
 // Descriptor
 // *********************************************************************
 
-#define DESC_INVALID				0x00
-#define DESC_286_TSS_A				0x01
-#define DESC_LDT					0x02
-#define DESC_286_TSS_B				0x03
-#define DESC_286_CALL_GATE			0x04
-#define DESC_TASK_GATE				0x05
-#define DESC_286_INT_GATE			0x06
-#define DESC_286_TRAP_GATE			0x07
+#define DESC_INVALID				0x00u
+#define DESC_286_TSS_A				0x01u
+#define DESC_LDT					0x02u
+#define DESC_286_TSS_B				0x03u
+#define DESC_286_CALL_GATE			0x04u
+#define DESC_TASK_GATE				0x05u
+#define DESC_286_INT_GATE			0x06u
+#define DESC_286_TRAP_GATE			0x07u
 
-#define DESC_386_TSS_A				0x09
-#define DESC_386_TSS_B				0x0b
-#define DESC_386_CALL_GATE			0x0c
-#define DESC_386_INT_GATE			0x0e
-#define DESC_386_TRAP_GATE			0x0f
+#define DESC_386_TSS_A				0x09u
+#define DESC_386_TSS_B				0x0bu
+#define DESC_386_CALL_GATE			0x0cu
+#define DESC_386_INT_GATE			0x0eu
+#define DESC_386_TRAP_GATE			0x0fu
 
 /* EU/ED Expand UP/DOWN RO/RW Read Only/Read Write NA/A Accessed */
-#define DESC_DATA_EU_RO_NA			0x10
-#define DESC_DATA_EU_RO_A			0x11
-#define DESC_DATA_EU_RW_NA			0x12
-#define DESC_DATA_EU_RW_A			0x13
-#define DESC_DATA_ED_RO_NA			0x14
-#define DESC_DATA_ED_RO_A			0x15
-#define DESC_DATA_ED_RW_NA			0x16
-#define DESC_DATA_ED_RW_A			0x17
+#define DESC_DATA_EU_RO_NA			0x10u
+#define DESC_DATA_EU_RO_A			0x11u
+#define DESC_DATA_EU_RW_NA			0x12u
+#define DESC_DATA_EU_RW_A			0x13u
+#define DESC_DATA_ED_RO_NA			0x14u
+#define DESC_DATA_ED_RO_A			0x15u
+#define DESC_DATA_ED_RW_NA			0x16u
+#define DESC_DATA_ED_RW_A			0x17u
 
 /* N/R Readable  NC/C Confirming A/NA Accessed */
-#define DESC_CODE_N_NC_A			0x18
-#define DESC_CODE_N_NC_NA			0x19
-#define DESC_CODE_R_NC_A			0x1a
-#define DESC_CODE_R_NC_NA			0x1b
-#define DESC_CODE_N_C_A				0x1c
-#define DESC_CODE_N_C_NA			0x1d
-#define DESC_CODE_R_C_A				0x1e
-#define DESC_CODE_R_C_NA			0x1f
+#define DESC_CODE_N_NC_A			0x18u
+#define DESC_CODE_N_NC_NA			0x19u
+#define DESC_CODE_R_NC_A			0x1au
+#define DESC_CODE_R_NC_NA			0x1bu
+#define DESC_CODE_N_C_A				0x1cu
+#define DESC_CODE_N_C_NA			0x1du
+#define DESC_CODE_R_C_A				0x1eu
+#define DESC_CODE_R_C_NA			0x1fu
 
 #ifdef _MSC_VER
 #pragma pack (1)
@@ -358,9 +358,12 @@ public:
 	void Load(PhysPt address);
 	void Save(PhysPt address);
 
-	PhysPt GetBase (void) { 
-		return (saved.seg.base_24_31<<24) | (saved.seg.base_16_23<<16) | saved.seg.base_0_15; 
-	}
+    PhysPt GetBase (void) const {
+        return (PhysPt)(
+            ((PhysPt)saved.seg.base_24_31 << (PhysPt)24U) |
+            ((PhysPt)saved.seg.base_16_23 << (PhysPt)16U) |
+             (PhysPt)saved.seg.base_0_15);
+    }
 	bool GetExpandDown (void) {
 #if 0
 	Bit32u limit_0_15	:16;
@@ -387,27 +390,27 @@ public:
 		/* it's data. return the 'E' bit */
 		return (saved.seg.type & 4) != 0;
 	}
-	Bitu GetLimit (void) {
-		Bitu limit = (saved.seg.limit_16_19<<16) | saved.seg.limit_0_15;
-		if (saved.seg.g)	return (limit<<12) | 0xFFF;
+	Bitu GetLimit (void) const {
+		const Bitu limit = ((Bitu)saved.seg.limit_16_19 << (Bitu)16U) | (Bitu)saved.seg.limit_0_15;
+		if (saved.seg.g) return ((Bitu)limit << (Bitu)12U) | (Bitu)0xFFFU;
 		return limit;
 	}
-	Bitu GetOffset(void) {
-		return (saved.gate.offset_16_31 << 16) | saved.gate.offset_0_15;
+	Bitu GetOffset(void) const {
+		return ((Bitu)saved.gate.offset_16_31 << (Bitu)16U) | (Bitu)saved.gate.offset_0_15;
 	}
-	Bitu GetSelector(void) {
+	Bitu GetSelector(void) const {
 		return saved.gate.selector;
 	}
-	Bitu Type(void) {
+	Bitu Type(void) const {
 		return saved.seg.type;
 	}
-	Bitu Conforming(void) {
-		return saved.seg.type & 8;
+	Bitu Conforming(void) const {
+		return saved.seg.type & 8U;
 	}
-	Bitu DPL(void) {
+	Bitu DPL(void) const {
 		return saved.seg.dpl;
 	}
-	Bitu Big(void) {
+	Bitu Big(void) const {
 		return saved.seg.big;
 	}
 public:
@@ -420,53 +423,53 @@ public:
 
 class DescriptorTable {
 public:
-	PhysPt	GetBase			(void)			{ return table_base;	}
-	Bitu	GetLimit		(void)			{ return table_limit;	}
-	void	SetBase			(PhysPt _base)	{ table_base = _base;	}
-	void	SetLimit		(Bitu _limit)	{ table_limit= _limit;	}
+    PhysPt  GetBase         (void) const    { return table_base;    }
+    Bitu    GetLimit        (void) const    { return table_limit;   }
+    void    SetBase         (PhysPt _base)  { table_base = _base;   }
+    void    SetLimit        (Bitu _limit)   { table_limit= _limit;  }
 
-	bool GetDescriptor	(Bitu selector, Descriptor& desc) {
-		selector&=~7;
-		if (selector>=table_limit) return false;
-		desc.Load(table_base+(selector));
-		return true;
-	}
+    bool GetDescriptor  (Bitu selector, Descriptor& desc) {
+        selector&=~7U;
+        if (selector>=table_limit) return false;
+        desc.Load((PhysPt)(table_base+selector));
+        return true;
+    }
 
 protected:
-	PhysPt table_base;
-	Bitu table_limit;
+    PhysPt table_base;
+    Bitu table_limit;
 };
 
 class GDTDescriptorTable : public DescriptorTable {
 public:
 	bool GetDescriptor(Bitu selector, Descriptor& desc) {
-		Bitu address=selector & ~7;
-		if (selector & 4) {
+		Bitu address=selector & ~7U;
+		if (selector & 4U) {
 			if (address>=ldt_limit) return false;
-			desc.Load(ldt_base+address);
+			desc.Load((PhysPt)(ldt_base+address));
 			return true;
 		} else {
 			if (address>=table_limit) return false;
-			desc.Load(table_base+address);
+			desc.Load((PhysPt)(table_base+address));
 			return true;
 		}
 	}
 	bool SetDescriptor(Bitu selector, Descriptor& desc) {
-		Bitu address=selector & ~7;
-		if (selector & 4) {
+		Bitu address=selector & ~7U;
+		if (selector & 4U) {
 			if (address>=ldt_limit) return false;
-			desc.Save(ldt_base+address);
+			desc.Save((PhysPt)(ldt_base+address));
 			return true;
 		} else {
 			if (address>=table_limit) return false;
-			desc.Save(table_base+address);
+			desc.Save((PhysPt)(table_base+address));
 			return true;
 		}
 	} 
-	Bitu SLDT(void)	{
+	Bitu SLDT(void) const {
 		return ldt_value;
 	}
-	bool LLDT(Bitu value)	{
+	bool LLDT(Bitu value) {
 		if ((value&0xfffc)==0) {
 			ldt_value=0;
 			ldt_base=0;
@@ -491,15 +494,15 @@ private:
 
 class TSS_Descriptor : public Descriptor {
 public:
-	Bitu IsBusy(void) {
+	Bitu IsBusy(void) const {
 		return saved.seg.type & 2;
 	}
-	Bitu Is386(void) {
+	Bitu Is386(void) const {
 		return saved.seg.type & 8;
 	}
-	void SetBusy(bool busy) {
-		if (busy) saved.seg.type|=2;
-		else saved.seg.type&=~2;
+	void SetBusy(const bool busy) {
+		if (busy) saved.seg.type|=(2U);
+		else saved.seg.type&=(~2U); /* -Wconversion cannot silence without hard-coding ~2U & 0x1F */
 	}
 };
 
@@ -538,13 +541,13 @@ struct CPUBlock {
 
 extern CPUBlock cpu;
 
-static INLINE void CPU_SetFlagsd(Bitu word) {
-	Bitu mask=cpu.cpl ? FMASK_NORMAL : FMASK_ALL;
+static INLINE void CPU_SetFlagsd(const Bitu word) {
+	const Bitu mask=cpu.cpl ? FMASK_NORMAL : FMASK_ALL;
 	CPU_SetFlags(word,mask);
 }
 
-static INLINE void CPU_SetFlagsw(Bitu word) {
-	Bitu mask=(cpu.cpl ? FMASK_NORMAL : FMASK_ALL) & 0xffff;
+static INLINE void CPU_SetFlagsw(const Bitu word) {
+	const Bitu mask=(cpu.cpl ? FMASK_NORMAL : FMASK_ALL) & 0xffff;
 	CPU_SetFlags(word,mask);
 }
 

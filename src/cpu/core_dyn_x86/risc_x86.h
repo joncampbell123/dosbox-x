@@ -19,6 +19,10 @@
 #include "dos_inc.h"
 static void gen_init(void);
 
+#if defined(_MSC_VER)
+#pragma warning(disable:4731) /* frame pointer register 'ebp' modified by inline assembly code */
+#endif
+
 /* End of needed */
 
 #define X86_REGS		7
@@ -57,7 +61,7 @@ public:
 		dynreg->genreg=this;
 		if ((!stale) && (dynreg->flags & (DYNFLG_LOAD|DYNFLG_ACTIVE))) {
 			cache_addw(0x058b+(index << (8+3)));		//Mov reg,[data]
-			cache_addd((Bit32u)dynreg->data);
+			cache_addd((uintptr_t)dynreg->data);
 		}
 		dynreg->flags|=DYNFLG_ACTIVE;
 	}
@@ -65,7 +69,7 @@ public:
 		if (GCC_UNLIKELY(!((Bitu)dynreg))) IllegalOption("GenReg->Save");
 		dynreg->flags&=~DYNFLG_CHANGED;
 		cache_addw(0x0589+(index << (8+3)));		//Mov [data],reg
-		cache_addd((Bit32u)dynreg->data);
+		cache_addd((uintptr_t)dynreg->data);
 	}
 	void Release(void) {
 		if (GCC_UNLIKELY(!((Bitu)dynreg))) return;
@@ -128,35 +132,17 @@ return_address:
 	);
 	reg_flags=(reg_flags & ~FMASK_TEST) | (tempflags & FMASK_TEST);
 #else
-	/* TODO: How can we modify this so that GDB can stack trace into the dynamic
-	 *       code properly as well as from any function called by the dynamic
-	 *       code, so that the next time an I/O handler screws up I can
-	 *       get a correct stack trace? Also, failure to do a stack trace seems
-	 *       to be the reason C++ exceptions do not work properly from functions
-	 *       called by the dynamic code.
-	 *
-	 *       If it helps, according to experimentation, GDB loses track of the
-	 *       overall stack trace the INSTANT we start pushing things in this
-	 *       assembly language code. Literally, one 'stepi' past the pushl
-	 *       at the top of the asm block below and GDB suddenly can't trace
-	 *       past this function. And it doesn't come back until the ESP stack
-	 *       pointer is resolved. Knowing this, is there anything we can do
-	 *       to create a valid stack frame for GDB to stack trace properly?
-	 *
-	 *       In the meantime, I am considering adding an #if 0 block to this
-	 *       code that would contain calls to GLIBC function backtrace().
-	 *       If anything is going wrong, change it to #if 1 and get a stack
-	 *       trace dump every time this function is called to get a general
-	 *       idea how it got there. --J.C. */
 	register Bit32u tempflags=reg_flags & FMASK_TEST;
 	__asm__ volatile (
+		"pushl %%ebp							\n"
 		"pushl $(run_return_adress)					\n"
 		"pushl  %2							\n"
 		"jmp  *%3							\n"
 		"run_return_adress:						\n"
+		"popl %%ebp							\n"
 		:"=a" (retval), "=c" (tempflags)
 		:"r" (tempflags),"r" (code)
-		:"%edx","%ebx","%edi","%esi","%ebp","cc","memory"
+		:"%edx","%ebx","%edi","%esi"/*,"%ebp"*/,"cc","memory" /* NTS: GCC 7.3.0 MinGW suddenly will not allow this code to declare EBP clobbered */
 	);
 	reg_flags=(reg_flags & ~FMASK_TEST) | (tempflags & FMASK_TEST);
 #endif
@@ -325,7 +311,7 @@ static void gen_load_host(void * data,DynReg * dr1,Bitu size) {
 		IllegalOption("gen_load_host");
 	}
 	cache_addb(0x5+(gr1->index<<3));
-	cache_addd((Bit32u)data);
+	cache_addd((uintptr_t)data);
 	dr1->flags|=DYNFLG_CHANGED;
 }
 
@@ -339,7 +325,7 @@ static void gen_mov_host(void * data,DynReg * dr1,Bitu size,Bit8u di1=0) {
 		IllegalOption("gen_load_host");
 	}
 	cache_addb(0x5+((gr1->index+(di1?4:0))<<3));
-	cache_addd((Bit32u)data);
+	cache_addd((uintptr_t)data);
 	dr1->flags|=DYNFLG_CHANGED;
 }
 
@@ -413,7 +399,7 @@ static void gen_dop_byte_imm_mem(DualOps op,DynReg * dr1,Bit8u di1,void* data) {
 	dr1->flags|=DYNFLG_CHANGED;
 nochange:
 	cache_addw(tmp+((gr1->index+di1)<<11));
-	cache_addd((Bit32u)data);
+	cache_addd((uintptr_t)data);
 }
 
 static void gen_sop_byte(SingleOps op,DynReg * dr1,Bit8u di1) {
@@ -501,7 +487,7 @@ static void gen_lea_imm_mem(DynReg * ddr,DynReg * dsr,void* data) {
 	GenReg * gdr=FindDynReg(ddr);
 	Bit8u rm_base=(gdr->index << 3);
 	cache_addw(0x058b+(rm_base<<8));
-	cache_addd((Bit32u)data);
+	cache_addd((uintptr_t)data);
 	GenReg * gsr=FindDynReg(dsr);
 	cache_addb(0x8d);		//LEA
 	cache_addb(rm_base+0x44);
@@ -594,7 +580,7 @@ static void gen_dop_word_imm_mem(DualOps op,bool dword,DynReg * dr1,void* data) 
 nochange:
 	if (!dword) cache_addb(0x66);
 	cache_addw(tmp+(gr1->index<<11));
-	cache_addd((Bit32u)data);
+	cache_addd((uintptr_t)data);
 }
 
 static void gen_dop_word_var(DualOps op,bool dword,DynReg * dr1,void* drd) {
@@ -617,7 +603,7 @@ static void gen_dop_word_var(DualOps op,bool dword,DynReg * dr1,void* drd) {
 	}
 	if (!dword) cache_addb(0x66);
 	cache_addw(tmp|(0x05+((gr1->index)<<3))<<8);
-	cache_addd((Bit32u)drd);
+	cache_addd((uintptr_t)drd);
 }
 
 static void gen_imul_word(bool dword,DynReg * dr1,DynReg * dr2) {
@@ -886,7 +872,7 @@ static void gen_call_function(void * func,char const* ops,...) {
 	x86gen.regs[X86_REG_EDX]->Clear();
 	/* Do the actual call to the procedure */
 	cache_addb(0xe8);
-	cache_addd((Bit32u)func - (Bit32u)cache.pos-4);
+	cache_addd((uintptr_t)func - (uintptr_t)cache.pos - (uintptr_t)4);
 	/* Restore the params of the stack */
 	if (paramcount) {
 		cache_addw(0xc483);				//add ESP,imm byte
@@ -958,9 +944,9 @@ static void gen_call_write(DynReg * dr,Bit32u val,Bitu write_size) {
 	/* Do the actual call to the procedure */
 	cache_addb(0xe8);
 	switch (write_size) {
-		case 1: cache_addd((Bit32u)mem_writeb_checked - (Bit32u)cache.pos-4); break;
-		case 2: cache_addd((Bit32u)mem_writew_checked - (Bit32u)cache.pos-4); break;
-		case 4: cache_addd((Bit32u)mem_writed_checked - (Bit32u)cache.pos-4); break;
+		case 1: cache_addd((uintptr_t)mem_writeb_checked - (uintptr_t)cache.pos - (uintptr_t)4); break;
+		case 2: cache_addd((uintptr_t)mem_writew_checked - (uintptr_t)cache.pos - (uintptr_t)4); break;
+		case 4: cache_addd((uintptr_t)mem_writed_checked - (uintptr_t)cache.pos - (uintptr_t)4); break;
 		default: IllegalOption("gen_call_write");
 	}
 
@@ -1014,7 +1000,7 @@ static void gen_fill_jump(Bit8u * data,Bit8u * to=cache.pos) {
 
 static void gen_jmp_ptr(void * ptr,Bits imm=0) {
 	cache_addb(0xa1);
-	cache_addd((Bit32u)ptr);
+	cache_addd((uintptr_t)ptr);
 	cache_addb(0xff);		//JMP EA
 	if (!imm) {			//NO EBP
 		cache_addb(0x20);
@@ -1045,7 +1031,7 @@ static void gen_load_flags(DynReg * dynreg) {
 
 static void gen_save_host_direct(void * data,Bits imm) {
 	cache_addw(0x05c7);		//MOV [],dword
-	cache_addd((Bit32u)data);
+	cache_addd((uintptr_t)data);
 	cache_addd(imm);
 }
 
@@ -1063,7 +1049,7 @@ static void gen_return(BlockReturn retcode) {
 static void gen_return_fast(BlockReturn retcode,bool ret_exception=false) {
 	if (GCC_UNLIKELY(x86gen.flagsactive)) IllegalOption("gen_return_fast");
 	cache_addw(0x0d8b);			//MOV ECX, the flags
-	cache_addd((Bit32u)&cpu_regs.flags);
+	cache_addd((uintptr_t)&cpu_regs.flags);
 	if (!ret_exception) {
 		cache_addw(0xc483);			//ADD ESP,4
 		cache_addb(0x4);

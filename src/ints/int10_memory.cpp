@@ -54,9 +54,16 @@ static Bit16u map_offset[8]={
 };
 
 void INT10_LoadFont(PhysPt font,bool reload,Bitu count,Bitu offset,Bitu map,Bitu height) {
+    unsigned char m64k;
+
+	if (IS_VGA_ARCH || (IS_EGA_ARCH && vga.mem.memsize >= 0x20000))
+        m64k=0x02;
+    else
+        m64k=0x00;
+
 	PhysPt ftwhere=PhysMake(0xa000,map_offset[map & 0x7]+(Bit16u)(offset*32));
 	IO_Write(0x3c4,0x2);IO_Write(0x3c5,0x4);	//Enable plane 2
-	IO_Write(0x3c4,0x4);IO_Write(0x3c5,0x6);	//disable odd/even memory write
+	IO_Write(0x3c4,0x4);IO_Write(0x3c5,0x4|m64k);	//disable odd/even memory write
 	IO_Write(0x3ce,0x6);Bitu old_6=IO_Read(0x3cf);
 	IO_Write(0x3cf,0x0);	//Disable odd/even and a0000 addressing
 	for (Bitu i=0;i<count;i++) {
@@ -65,7 +72,7 @@ void INT10_LoadFont(PhysPt font,bool reload,Bitu count,Bitu offset,Bitu map,Bitu
 		font+=height;
 	}
 	IO_Write(0x3c4,0x2);IO_Write(0x3c5,0x3);	//Enable textmode planes (0,1)
-	IO_Write(0x3c4,0x4);IO_Write(0x3c5,0x2);	//reenable odd/even memory write
+	IO_Write(0x3c4,0x4);IO_Write(0x3c5,0x0|m64k);	//reenable odd/even memory write
 	IO_Write(0x3ce,0x6);
 	if (IS_VGA_ARCH) IO_Write(0x3cf,(Bit8u)old_6);	//odd/even and b8000 addressing
 	else IO_Write(0x3cf,0x0e);
@@ -74,19 +81,19 @@ void INT10_LoadFont(PhysPt font,bool reload,Bitu count,Bitu offset,Bitu map,Bitu
 		//Max scanline 
 		Bit16u base=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
 		IO_Write(base,0x9);
-		IO_Write(base+1,(IO_Read(base+1) & 0xe0)|(height-1));
+		IO_Write(base+1u,(IO_Read(base+1u) & 0xe0u)|((unsigned int)height-1u));
 		// Vertical display end bios says, but should stay the same?
 		// Not on EGA.
         Bitu rows = CurMode->sheight/height;
 		if (machine==MCH_EGA) {
 			Bitu displayend = rows*height - 1;
 			IO_Write(base,0x12);
-			IO_Write(base+1,(Bit8u)(displayend & 0xff));
+			IO_Write(base+1u,(Bit8u)(displayend & 0xff));
 			IO_Write(base,0x7);
 			// Note: IBM EGA registers can't be read
-			Bitu v_overflow = IO_Read(base+1) & ~0x2;
-			if (displayend & 0x100) v_overflow |= 0x2;
-			IO_Write(base+1,(Bit8u)v_overflow);
+			Bitu v_overflow = IO_Read(base+1u) & ~0x2u;
+			if (displayend & 0x100) v_overflow |= 0x2u;
+			IO_Write(base+1u,(Bit8u)v_overflow);
 		}
 		//Rows setting in bios segment
 		real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,rows-1);
@@ -145,6 +152,19 @@ void INT10_SetupRomMemory(void) {
 		int10.rom.font_16=0;
 		RealSetVec(0x43,int10.rom.font_8_first);
 		RealSetVec(0x1F,int10.rom.font_8_second);
+
+        if (machine == MCH_MCGA) {
+            Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at);
+
+            Bitu base = ROMBIOS_GetMemory((Bitu)(256*16),"MCGA 16-line font",1,0u);
+            if (base == 0) E_Exit("Unable to alloc MCGA 16x font");
+
+            for (unsigned int i=0;i<256*16;i++)
+                phys_writeb(base+i,int10_font_16[i]);
+
+            int10.rom.font_16 = RealMake(base >> 4,base & 0xF);
+        }
+
 		return;
 	}
 

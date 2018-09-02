@@ -140,7 +140,9 @@ typedef unsigned int uintptr_t;
 #ifdef _WIN32_WCE
 #define SDL_JOYSTICK_DISABLED   1
 #else
+#ifndef SDL_JOYSTICK_XINPUT
 #define SDL_JOYSTICK_WINMM	1
+#endif
 #endif
 
 /* Enable various shared object loading systems */
@@ -161,7 +163,8 @@ typedef unsigned int uintptr_t;
 #define SDL_VIDEO_DRIVER_GAPI	1
 #endif
 #ifndef _WIN32_WCE
-#define SDL_VIDEO_DRIVER_DDRAW	1
+// DirectDraw support DISABLED until it can be fixed to work with the async mode
+//#define SDL_VIDEO_DRIVER_DDRAW	1
 #endif
 #define SDL_VIDEO_DRIVER_DUMMY	1
 #define SDL_VIDEO_DRIVER_WINDIB	1
@@ -179,5 +182,8 @@ typedef unsigned int uintptr_t;
 #ifndef _WIN64
 #define SDL_ASSEMBLY_ROUTINES	1
 #endif
+
+/* Keep async mode for Windows */
+#undef SDL_WIN32_NO_PARENT_WINDOW
 
 #endif /* _SDL_config_win32_h */

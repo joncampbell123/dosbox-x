@@ -19,6 +19,16 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+/* DOSBox-X currently targets Windows XP or higher. */
+/* TODO: Can we drop this to 0x500 for Windows 2000? */
+/* TODO: What is the minimum appropriate WINVER for HX DOS extender? */
+#ifndef WINVER
+#define WINVER 0x0501
+#endif
+
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0501
+#endif
 
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
@@ -35,18 +45,27 @@
 /* Define to 1 to use inlined memory functions in cpu core */
 #define C_CORE_INLINE	1
 
+/* Define to 1 if you have the <d3d9.h> header file. */
+#if !defined(C_SDL2)
+#define HAVE_D3D9_H 1
+#endif
+
+#if HAVE_D3D9_H
+/* Define to 1 if you want to add Direct3D output to the list of available outputs */
+#define C_DIRECT3D 1
 /* Define to 1 to use Direct3D shaders, requires d3d9.h and libd3dx9 */
 #define C_D3DSHADERS 1
+#endif
 
 /* Define to 1 to enable internal debugger, requires libcurses */
-#undef C_DEBUG
+#define C_DEBUG 1
 
 /* Define to 1 if you want parallel passthrough support (Win32, Linux). */
-#undef C_DIRECTLPT
+#define C_DIRECTLPT 1
 
 /* Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).
    */
-#undef C_DIRECTSERIAL
+#define C_DIRECTSERIAL 1
 
 #ifdef _M_AMD64 /* Microsoft C++ amd64 */
 # undef C_DYNAMIC_X86
@@ -86,10 +105,15 @@
 #define C_LIBPNG 1
 
 /* Define to 1 to enable internal modem support, requires SDL_net */
-#undef C_MODEM
+#if !defined(C_SDL2)
+#define C_MODEM 1
+#endif
+
+/* Define to 1 to enable internal printer redirection support*/
+#define C_PRINTER 1
 
 /* Define to 1 to enable NE2000 ethernet passthrough, requires libpcap */
-#undef C_NE2000
+#define C_NE2000 1
 
 /* Define to 1 to use opengl display output support */
 #if !defined(C_SDL2)
@@ -101,6 +125,16 @@
 
 /* Set to 1 to enable SDL 2.x support */
 /* #undef C_SDL2 */
+
+#if !defined(C_SDL2)
+/* Set to 1 to enable XBRZ support */
+#define C_XBRZ 1
+
+/* Set to 1 to enable scaler friendly but CPU intensive aspect ratio correction options (post-scalers) for 'surface' output */
+/* Please note that this option includes small part of xBRZ code and uses task group parallelism like xBRZ (batch size is hardcoded here) */
+#define C_SURFACE_POSTRENDER_ASPECT 1
+#define C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE 16
+#endif /*!defined(C_SDL2)*/
 
 /* Define to 1 if you have setpriority support */
 #undef C_SET_PRIORITY
@@ -128,11 +162,6 @@
 
 /* Define to 1 to use ALSA for MIDI */
 #undef HAVE_ALSA
-
-/* Define to 1 if you have the <d3d9.h> header file. */
-#if !defined(C_SDL2)
-#define HAVE_D3D9_H 1
-#endif
 
 /* Define to 1 if you have the <ddraw.h> header file. */
 #if !defined(C_SDL2)
@@ -187,9 +216,6 @@
 /* Compiling on OS/2 EMX */
 #undef OS2
 
-/* Name of package */
-#define PACKAGE					"dosbox"
-
 /* Define to the address where bug reports for this package should be sent. */
 
 /* Define to the full name of this package. */
@@ -225,9 +251,6 @@
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
-
-/* Version number of package */
-#define VERSION					"DOSBox-X"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
@@ -335,9 +358,7 @@ typedef         double     Real64;
 #if defined(WIN32)
 # pragma warning(disable:4996)
 #endif
-#define PACKAGE_BUGREPORT "https://github.com/joncampbell123/dosbox-x/issues"
-#define PACKAGE_NAME "dosbox-x"
-#define PACKAGE_STRING "dosbox-x 0.801"
-#define PACKAGE_TARNAME "dosbox-x"
-#define PACKAGE_URL "http://dosbox-x.software"
-#define PACKAGE_VERSION "0.801"
+
+/* Linux-side configure script will write/rewrite this file so both Windows and Linux builds carry the same information --J.C. */
+#include "config_package.h"
+

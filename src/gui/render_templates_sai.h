@@ -37,7 +37,9 @@ static inline int conc2d(GetResult,SBPP)(PTYPE A, PTYPE B, PTYPE C, PTYPE D) {
 
 inline void conc2d(Super2xSaI,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fc)
 {
-    (void)conc2d(Super2xSaI,SBPP);
+# if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
+	(void)conc2d(Super2xSaI,SBPP);
+# endif
 
 	//--------------------------------------
 	if (C7 == C5 && C4 != C8) {
@@ -45,7 +47,7 @@ inline void conc2d(Super2xSaI,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * 
 	} else if (C4 == C8 && C7 != C5) {
 		line1[1] = line0[1] = C4;
 	} else if (C4 == C8 && C7 == C5) {
-		register int r = 0;
+		int r = 0;
 		r += conc2d(GetResult,SBPP)(C5,C4,C6,D1);
 		r += conc2d(GetResult,SBPP)(C5,C4,C3,C1);
 		r += conc2d(GetResult,SBPP)(C5,C4,D2,D5);
@@ -129,7 +131,7 @@ inline void conc2d(SuperEagle,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * 
 				line1[0] = interp_w2(C7,C8,1U,1U);
 			}
 		} else {
-			register int r = 0;
+			int r = 0;
 			r += conc2d(GetResult,SBPP)(C5,C4,C6,D1);
 			r += conc2d(GetResult,SBPP)(C5,C4,C3,C1);
 			r += conc2d(GetResult,SBPP)(C5,C4,D2,D5);
@@ -187,7 +189,7 @@ inline void conc2d(_2xSaI,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fc)
 			line1[0] = C4;
 			line1[1] = C4;
 		} else {
-			register int r = 0;
+			int r = 0;
 			r += conc2d(GetResult,SBPP)(C4,C5,C3,C1);
 			r -= conc2d(GetResult,SBPP)(C5,C4,D4,C2);
 			r -= conc2d(GetResult,SBPP)(C5,C4,C6,D1);

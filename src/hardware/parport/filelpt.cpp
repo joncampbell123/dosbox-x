@@ -171,9 +171,11 @@ void CFileLPT::Write_CON(Bitu val) {
 	controlreg=val&0xF; /* do NOT store bit 5, we do not emulate bidirectional LPT ports, yet */
 }
 void CFileLPT::Write_IOSEL(Bitu val) {
+    (void)val;//UNUSED
 	// not needed for file printing functionality
 }
 void CFileLPT::handleUpperEvent(Bit16u type) {
+    (void)type;//UNUSED
 	if(fileOpen) {
 		if(lastUsedTick + timeout < PIC_Ticks) {
 			if(addFF) {

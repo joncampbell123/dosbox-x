@@ -48,6 +48,7 @@
 #include "SDL_x11mouse_c.h"
 #include "SDL_x11events_c.h"
 
+KeySym xlate_last = 0;
 
 /* Define this if you want to debug X11 events */
 /*#define DEBUG_XEVENTS*/
@@ -568,6 +569,7 @@ printf("KeyPress (X11 keycode = 0x%X)\n", xevent.xkey.keycode);
 			/* Get the translated SDL virtual keysym and put it on the queue.*/
 			keysym.scancode = keycode;
 			keysym.sym = X11_TranslateKeycode(SDL_Display, keycode);
+            keysym.x11_sym = xlate_last;
 			keysym.mod = KMOD_NONE;
 			keysym.unicode = 0;
 			posted = SDL_PrivateKeyboard(SDL_PRESSED, &keysym);
@@ -676,6 +678,7 @@ printf("KeyPress (X11 keycode = 0x%X)\n", xevent.xkey.keycode);
 			  if (utf16length > 0) {			       
 			    keysym.scancode = keycode;
 			    keysym.sym = (keycode ? X11_TranslateKeycode(SDL_Display, keycode) : 0);
+                keysym.x11_sym = keycode ? xlate_last : 0;
 			    keysym.mod = KMOD_NONE;
 			    keysym.unicode = utf16data[utf16length - 1];
 			    posted = SDL_PrivateKeyboard(SDL_PRESSED, &keysym);
@@ -696,6 +699,7 @@ printf("KeyPress (X11 keycode = 0x%X)\n", xevent.xkey.keycode);
 			  if (keycode) {
 			    keysym.scancode = keycode;
 			    keysym.sym = X11_TranslateKeycode(SDL_Display, keycode);
+                keysym.x11_sym = xlate_last;
 			    keysym.mod = KMOD_NONE;
 			    keysym.unicode = 0;
 			    posted = SDL_PrivateKeyboard(SDL_PRESSED, &keysym);
@@ -729,7 +733,8 @@ printf("KeyPress (X11 keycode = 0x%X)\n", xevent.xkey.keycode);
 
 			keysym.scancode = keycode;
 			keysym.sym = X11_TranslateKeycode(SDL_Display, keycode);
-			keysym.mod = KMOD_NONE;
+            keysym.x11_sym = xlate_last;
+            keysym.mod = KMOD_NONE;
 			keysym.unicode = 0;
 			if ( XLookupString(&xevent.xkey,
 			                    keybuf, sizeof(keybuf),
@@ -768,7 +773,8 @@ printf("KeyRelease (X11 keycode = 0x%X)\n", xevent.xkey.keycode);
 		/* Get the translated SDL virtual keysym */
 		keysym.scancode = keycode;
 		keysym.sym = X11_TranslateKeycode(SDL_Display, keycode);
-		keysym.mod = KMOD_NONE;
+        keysym.x11_sym = xlate_last;
+        keysym.mod = KMOD_NONE;
 		keysym.unicode = 0;
 
 		posted = SDL_PrivateKeyboard(SDL_RELEASED, &keysym);
@@ -825,6 +831,7 @@ printf("MapNotify!\n");
 #ifdef DEBUG_XEVENTS
 printf("ConfigureNotify! (resize: %dx%d)\n", xevent.xconfigure.width, xevent.xconfigure.height);
 #endif
+#if 0 /* combined with DOSBox's insistence to SDL_SetVideoMode per resize this is killing the ability to resize the window after one event --J.C */
 		if ((X11_PendingConfigureNotifyWidth != -1) &&
 		    (X11_PendingConfigureNotifyHeight != -1)) {
 		    if ((xevent.xconfigure.width != X11_PendingConfigureNotifyWidth) &&
@@ -835,6 +842,7 @@ printf("ConfigureNotify! (resize: %dx%d)\n", xevent.xconfigure.width, xevent.xco
 		    X11_PendingConfigureNotifyWidth = -1;
 		    X11_PendingConfigureNotifyHeight = -1;
 		}
+#endif
 		if ( SDL_VideoSurface ) {
 		    if ((xevent.xconfigure.width != SDL_VideoSurface->w) ||
 		        (xevent.xconfigure.height != SDL_VideoSurface->h)) {
@@ -1115,17 +1123,45 @@ void X11_InitKeymap(void)
 	MISC_keymap[XK_Hyper_R&0xFF] = SDLK_MENU;   /* Windows "Menu" key */
 }
 
+/* HACK: Set up hack/fix for JP keyboards and Ro/Yen keys */
+static int keybhack_jp = 0;
+static int keybhack_jp_ro = -1;
+static int keybhack_jp_yen = -1;
+
+void DECLSPEC SDL1_hax_X11_clearfix(void) {
+    keybhack_jp = 0;
+    keybhack_jp_ro = -1;
+    keybhack_jp_yen = -1;
+}
+
+void DECLSPEC SDL1_hax_X11_jpfix(int ro_scan,int yen_scan) {
+    SDL1_hax_X11_clearfix();
+
+    keybhack_jp = 1;
+    keybhack_jp_ro = ro_scan;
+    keybhack_jp_yen = yen_scan;
+}
+
 /* Get the translated SDL virtual keysym */
 SDLKey X11_TranslateKeycode(Display *display, KeyCode kc)
 {
 	KeySym xsym;
 	SDLKey key;
 
-	xsym = XKeycodeToKeysym(display, kc, 0);
+	xsym = xlate_last = XKeycodeToKeysym(display, kc, 0);
 #ifdef DEBUG_KEYS
 	fprintf(stderr, "Translating key code %d -> 0x%.4x\n", kc, xsym);
 #endif
 	key = SDLK_UNKNOWN;
+
+    /* JP Linux/X11 hack for Ro/Yen keys */
+    if (keybhack_jp && xsym == '\\') {
+        if (keybhack_jp_ro >= 0 && kc == keybhack_jp_ro)
+            return SDLK_JP_RO;
+        if (keybhack_jp_yen >= 0 && kc == keybhack_jp_yen)
+            return SDLK_JP_YEN;
+    }
+
 	if ( xsym ) {
 		switch (xsym>>8) {
 		    case 0x1005FF:

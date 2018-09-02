@@ -29,7 +29,7 @@ public:
 	
 		// Get the MIDIEndPoint
 		m_endpoint = 0;
-		OSStatus result;
+//		OSStatus result;
 		Bitu numDests = MIDIGetNumberOfDestinations();
 	        Bitu destId = 0;
 	        if(conf && conf[0]) destId = atoi(conf);
@@ -89,7 +89,7 @@ public:
 	void PlaySysex(Bit8u * sysex, Bitu len) {
 		// Acquire a MIDIPacketList
 		Byte packetBuf[SYSEX_SIZE*4];
-		Bitu pos=0;
+//		Bitu pos=0;
 		MIDIPacketList *packetList = (MIDIPacketList *)packetBuf;
 		m_pCurPacket = MIDIPacketListInit(packetList);
 		

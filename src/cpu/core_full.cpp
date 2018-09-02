@@ -64,16 +64,11 @@ typedef PhysPt EAPoint;
 
 Bits CPU_Core_Normal_Trap_Run(void);
 
-extern Bitu dosbox_check_nonrecursive_pf_cs;
-extern Bitu dosbox_check_nonrecursive_pf_eip;
-
 Bits CPU_Core_Full_Run(void) {
 	static bool tf_warn=false;
 	FullData inst;
 
 	while (CPU_Cycles-->0) {
-		dosbox_check_nonrecursive_pf_cs = SegValue(cs);
-		dosbox_check_nonrecursive_pf_eip = reg_eip;
 		cycle_count++;
 
 		/* this core isn't written to emulate the Trap Flag. at least
@@ -96,17 +91,18 @@ Bits CPU_Core_Full_Run(void) {
 #if C_HEAVY_DEBUG
 		if (DEBUG_HeavyIsBreakpoint()) {
 			FillFlags();
-			return debugCallback;
+			return (Bits)debugCallback;
 		};
 #endif
 #endif
 
 		LoadIP();
-		inst.entry=cpu.code.big*0x200;
+		inst.entry=cpu.code.big*0x200u;
 		inst.prefix=cpu.code.big;
 restartopcode:
-		inst.entry=(inst.entry & 0xffffff00) | Fetchb();
+		inst.entry=(inst.entry & 0xffffff00u) | Fetchb();
 		inst.code=OpCodeTable[inst.entry];
+        Bitu old_flags = reg_flags;
 		Bitu old_esp = reg_esp; // always restore stack pointer on page fault
 		try {
 			#include "core_full/load.h"
@@ -114,6 +110,8 @@ restartopcode:
 			#include "core_full/save.h"
 		}
 		catch (GuestPageFaultException &pf) {
+			(void)pf;
+			reg_flags = old_flags; /* core_full/op.h may have modified flags */
 			reg_esp = old_esp;
 			throw;
 		}

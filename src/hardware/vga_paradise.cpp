@@ -59,6 +59,7 @@ static void bank_setup_pvga1a() {
 }
 
 void write_p3cf_pvga1a(Bitu reg,Bitu val,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if (pvga1a.locked() && reg >= 0x09 && reg <= 0x0e)
 		return;
 
@@ -77,7 +78,7 @@ void write_p3cf_pvga1a(Bitu reg,Bitu val,Bitu iolen) {
 		break;
 	case 0x0b:
 		// Memory size. We only allow to mess with bit 3 here (enable bank B) - this may break some detection schemes
-		pvga1a.PR1 = (pvga1a.PR1 & ~0x08) | (val & 0x08);
+		pvga1a.PR1 = (pvga1a.PR1 & ~0x08u) | (val & 0x08u);
 		bank_setup_pvga1a();
 		break;
 	case 0x0c:
@@ -90,8 +91,8 @@ void write_p3cf_pvga1a(Bitu reg,Bitu val,Bitu iolen) {
 		// TODO: Implement bit 2 (CRT address doubling - this mechanism is present in other chipsets as well,
 		// but not implemented in DosBox core)
 		pvga1a.PR3 = val;
-		vga.config.display_start = (vga.config.display_start & 0xffff) | ((val & 0x18)<<13);
-		vga.config.cursor_start = (vga.config.cursor_start & 0xffff) | ((val & 0x18)<<13);
+		vga.config.display_start = (vga.config.display_start & 0xffffu) | ((val & 0x18u)<<13u);
+		vga.config.cursor_start = (vga.config.cursor_start & 0xffffu) | ((val & 0x18u)<<13u);
 		break;
 	case 0x0e:
 		// Video control
@@ -109,6 +110,7 @@ void write_p3cf_pvga1a(Bitu reg,Bitu val,Bitu iolen) {
 }
 
 Bitu read_p3cf_pvga1a(Bitu reg,Bitu iolen) {
+    (void)iolen;//UNUSED
 	if (pvga1a.locked() && reg >= 0x09 && reg <= 0x0e)
 		return 0x0;
 
@@ -163,12 +165,13 @@ void FinishSetMode_PVGA1A(Bitu /*crtc_base*/, VGA_ModeExtraData* modeData) {
 
 	if(vga.mode != M_VGA) {
 		vga.config.compatible_chain4 = false;
-		vga.vmemwrap = vga.vmemsize;
+//		vga.vmemwrap = vga.mem.memsize;
 	} else {
 		vga.config.compatible_chain4 = true;
-		vga.vmemwrap = 256*1024;
+//		vga.vmemwrap = 256*1024;
 	}
 
+    // FIXME: What? Is this needed?
 	vga.config.compatible_chain4 = false;
 
 	VGA_SetupHandlers();
@@ -200,7 +203,7 @@ Bitu GetClock_PVGA1A() {
 }
 
 bool AcceptsMode_PVGA1A(Bitu mode) {
-	return VideoModeMemSize(mode) < vga.vmemsize;
+	return VideoModeMemSize(mode) < vga.mem.memsize;
 }
 
 void SVGA_Setup_ParadisePVGA1A(void) {
@@ -219,14 +222,14 @@ void SVGA_Setup_ParadisePVGA1A(void) {
 	VGA_SetClock(3,35900);
 
 	// Adjust memory, default to 512K
-	if (vga.vmemsize == 0)
-		vga.vmemsize = 512*1024;
+	if (vga.mem.memsize == 0)
+		vga.mem.memsize = 512*1024;
 
-	if (vga.vmemsize < 512*1024)	{
-		vga.vmemsize = 256*1024;
+	if (vga.mem.memsize < 512*1024)	{
+		vga.mem.memsize = 256*1024;
 		pvga1a.PR1 = 1<<6;
-	} else if (vga.vmemsize > 512*1024) {
-		vga.vmemsize = 1024*1024;
+	} else if (vga.mem.memsize > 512*1024) {
+		vga.mem.memsize = 1024*1024;
 		pvga1a.PR1 = 3<<6;
 	} else {
 		pvga1a.PR1 = 2<<6;

@@ -69,7 +69,7 @@ emptyline:
 			 * escape for ansi
 			 * backspace for alien odyssey */
 			if (c>31 || c==0x1b || c=='\t' || c==8)
-				*cmd_write++=c;
+				*cmd_write++=(char)c;
 		}
 	} while (c!='\n' && n);
 	*cmd_write=0;
@@ -107,7 +107,7 @@ emptyline:
 				next -= '0';
 				if (cmd->GetCount()<(unsigned int)next) continue;
 				std::string word;
-				if (!cmd->FindCommand(next,word)) continue;
+				if (!cmd->FindCommand((unsigned int)next,word)) continue;
 				strcpy(cmd_write,word.c_str());
 				cmd_write+=strlen(word.c_str());
 				continue;
@@ -159,7 +159,7 @@ again:
 		DOS_ReadFile(file_handle,&c,&n);
 		if (n>0) {
 			if (c>31)
-				*cmd_write++=c;
+				*cmd_write++=(char)c;
 		}
 	} while (c!='\n' && n);
 	*cmd_write++ = 0;

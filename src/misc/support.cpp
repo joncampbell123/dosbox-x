@@ -32,7 +32,8 @@
 #include "debug.h"
 #include "support.h"
 #include "video.h"
-
+#include "menu.h"
+#include "SDL.h"
 
 void upcase(std::string &str) {
 	int (*tf)(int) = std::toupper;
@@ -145,26 +146,27 @@ Bits ConvDecWord(char * word) {
 		word++;
 	}
 	while (char c=*word) {
-		ret*=10;
-		ret+=c-'0';
+		ret*=10u;
+		ret+=(Bitu)c-'0';
 		word++;
 	}
-	if (negative) return 0-ret;
-	else return ret;
+	if (negative) return 0-(Bits)ret;
+	else return (Bits)ret;
 }
 
 Bits ConvHexWord(char * word) {
 	Bitu ret=0;
 	while (char c=toupper(*reinterpret_cast<unsigned char*>(word))) {
 		ret*=16;
-		if (c>='0' && c<='9') ret+=c-'0';
-		else if (c>='A' && c<='F') ret+=10+(c-'A');
+		if (c>='0' && c<='9') ret+=(Bitu)c-'0';
+		else if (c>='A' && c<='F') ret+=10u+((Bitu)c-'A');
 		word++;
 	}
-	return ret;
+	return (Bits)ret;
 }
 
 double ConvDblWord(char * word) {
+    (void)word;//UNUSED
 	return 0.0f;
 }
 
@@ -183,10 +185,15 @@ void E_Exit(const char * format,...) {
 	va_end(msg);
 	strcat(buf,"\n");
 	LOG_MSG("E_Exit: %s\n",buf);
+#if defined(WIN32) && !defined(C_SDL2)
+	/* Most Windows users DON'T run DOSBox-X from the command line! */
+	MessageBox(GetHWND(), buf, "E_Exit", MB_OK | MB_ICONEXCLAMATION);
+#endif
 #if C_DEBUG
 	endwin();
 #endif
-	fprintf(stderr,"E_Exit: %s\n",buf);
+	fprintf(stderr, "E_Exit: %s\n", buf);
+	SDL_Quit();
 	exit(0);
 }
 

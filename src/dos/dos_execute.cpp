@@ -328,15 +328,15 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 		}
 		if ((head.signature!=MAGIC1) && (head.signature!=MAGIC2)) iscom=true;
 		else {
-			if(head.pages & ~0x07ff) /* 1 MB dos maximum address limit. Fixes TC3 IDE (kippesoep) */
+			if(head.pages & ~0x07ffu) /* 1 MB dos maximum address limit. Fixes TC3 IDE (kippesoep) */
 				LOG(LOG_EXEC,LOG_NORMAL)("Weird header: head.pages > 1 MB");
-			head.pages&=0x07ff;
-			headersize = head.headersize*16;
-			imagesize = head.pages*512-headersize; 
-			if (imagesize+headersize<512) imagesize = 512-headersize;
+			head.pages&=0x07ffu;
+			headersize = head.headersize*16u;
+			imagesize = head.pages*512u-headersize; 
+			if (imagesize+headersize<512u) imagesize = 512u-headersize;
 		}
 	}
-	Bit8u * loadbuf=(Bit8u *)new Bit8u[0x10000];
+	Bit8u * loadbuf=(Bit8u *)new Bit8u[0x10000u];
 	if (flags!=OVERLAY) {
 		/* Create an environment block */
 		envseg=block.exec.envseg;
@@ -357,9 +357,16 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 				if (minsize>maxsize) minsize=maxsize;
 			}
 		} else {	/* Exe size calculated from header */
-			minsize=long2para(imagesize+(head.minmemory<<4)+256);
-			if (head.maxmemory!=0) maxsize=long2para(imagesize+(head.maxmemory<<4)+256);
-			else maxsize=0xffff;
+			minsize=long2para(imagesize+((unsigned int)head.minmemory<<4u)+256u);
+			if (head.maxmemory!=0) maxsize=long2para(imagesize+((unsigned int)head.maxmemory<<4u)+256u);
+			else maxsize=0xffffu;
+
+            /* Bugfix: scene.org mirrors/hornet/demos/1991/putrefac.zip Putrefaction !PF.{3}
+             *         has an EXE header that specifies a maxsize less than minsize, and a
+             *         initial stack pointer that is only valid if we use the maxsize.
+             *
+             *         This allows it to run without the SS:IP out of range error below. */
+            if (maxsize < minsize) maxsize = minsize;
 		}
 		if (maxfree<minsize) {
 			if (iscom) {
@@ -399,7 +406,7 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 				loadseg = (pspseg+memsize);
 				loadseg -= (imagesize+0xF)/0x10;
 				if (loadseg < (pspseg+16)) loadseg = pspseg+16;
-				if ((loadseg+((imagesize+0xF)/0x10)) > (pspseg+memsize))
+				if ((unsigned int)(loadseg+((imagesize+0xF)/0x10)) > (unsigned int)(pspseg+memsize))
 					E_Exit("EXE loading error, unable to load to top of block, nor able to fit into block");
 			}
 		}
@@ -413,13 +420,13 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 		readsize = pos;
 		if (readsize > (0xffff-256)) readsize = 0xffff-256;
 		pos += 256; /* plus stack */
-		if (pos > (memsize*0x10)) E_Exit("DOS:Not enough memory for COM executable");
+		if (pos > (unsigned int)(memsize*0x10)) E_Exit("DOS:Not enough memory for COM executable");
 
 		pos=0;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);	
 		DOS_ReadFile(fhandle,loadbuf,&readsize);
 		MEM_BlockWrite(loadaddress,loadbuf,readsize);
 	} else {	/* EXE Load in 32kb blocks and then relocate */
-		if (imagesize > (memsize*0x10)) E_Exit("DOS:Not enough memory for EXE image");
+		if (imagesize > (unsigned int)(memsize*0x10)) E_Exit("DOS:Not enough memory for EXE image");
 		pos=headersize;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);	
 		while (imagesize>0x7FFF) {
 			readsize=0x8000;DOS_ReadFile(fhandle,loadbuf,&readsize);
@@ -467,8 +474,8 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 		 *
 		 * At some point I need to boot MS-DOS/PC-DOS 1.x and 2.x in small
 		 * amounts of RAM to verify that's what actually happens. --J.C. */
-		if (stack_sp >= (memsize*0x10))
-			stack_sp = (memsize*0x10)-2;
+		if (stack_sp > ((memsize*0x10UL)-2))
+			stack_sp = (memsize*0x10UL)-2;
 
 		csip=RealMake(pspseg,0x100);
 		sssp=RealMake(pspseg,stack_sp);
@@ -518,7 +525,9 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 		/* copy fcbs */
 		newpsp.SetFCB1(block.exec.fcb1);
 		newpsp.SetFCB2(block.exec.fcb2);
-		/* Set the stack for new program */
+        /* Save the SS:SP on the PSP of new program */
+        newpsp.SetStack(RealMakeSeg(ss,reg_sp));
+        /* Set the stack for new program */
 		SegSet16(ss,RealSeg(sssp));reg_sp=RealOff(sssp);
 		/* Add some flags and CS:IP on the stack for the IRET */
 		CPU_Push16(RealSeg(csip));

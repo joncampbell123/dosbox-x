@@ -100,6 +100,14 @@
  *  \endcode
  */
 
+#ifdef __cplusplus
+#define C_LINKAGE	"C"
+#define SDL_MAIN_NOEXCEPT noexcept(false)
+#else
+#define C_LINKAGE
+#define SDL_MAIN_NOEXCEPT
+#endif /* __cplusplus */
+
 #if defined(SDL_MAIN_NEEDED) || defined(SDL_MAIN_AVAILABLE)
 #define main    SDL_main
 #endif
@@ -107,7 +115,7 @@
 /**
  *  The prototype for the application's main() function
  */
-extern C_LINKAGE DECLSPEC int SDL_main(int argc, char *argv[]);
+extern C_LINKAGE DECLSPEC int SDL_main(int argc, char *argv[]) SDL_MAIN_NOEXCEPT;
 
 
 #include "begin_code.h"
