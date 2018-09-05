@@ -695,6 +695,11 @@ void MixerChannel::FillUp(void) {
     MIXER_FillUp();
 }
 
+void MIXER_MixSingle(Bitu /*val*/) {
+    MIXER_FillUp();
+    PIC_AddEvent(MIXER_MixSingle,1000.0 / mixer.freq);
+}
+
 static void MIXER_Mix(void) {
     Bitu thr;
 
@@ -991,7 +996,7 @@ void MIXER_Init() {
     mixer.nosound=section->Get_bool("nosound");
     mixer.blocksize=(unsigned int)section->Get_int("blocksize");
     mixer.swapstereo=section->Get_bool("swapstereo");
-    mixer.sampleaccurate=section->Get_bool("sample accurate");//FIXME: Make this bool mean something again!
+    mixer.sampleaccurate=section->Get_bool("sample accurate");
     mixer.mute=false;
 
     /* Initialize the internal stuff */
@@ -1031,6 +1036,7 @@ void MIXER_Init() {
         mixer.freq=(unsigned int)obtained.freq;
         mixer.blocksize=obtained.samples;
         TIMER_AddTickHandler(MIXER_Mix);
+        if (mixer.sampleaccurate) PIC_AddEvent(MIXER_MixSingle,1000.0 / mixer.freq);
         SDL_PauseAudio(0);
     }
     mixer_start_pic_time = PIC_FullIndex();
