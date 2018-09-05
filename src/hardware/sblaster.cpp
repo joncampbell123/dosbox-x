@@ -3091,7 +3091,6 @@ class ViBRA_PnP : public ISAPnPDevice {
         }
 };
 
-bool Mixer_SampleAccurate();
 bool JOYSTICK_IsEnabled(Bitu which);
 extern void HARDOPL_Init(Bitu hardwareaddr, Bitu sbbase, bool isCMS);
 
@@ -3251,11 +3250,6 @@ public:
          *
          */
         sb.write_status_must_return_7f=section->Get_bool("dsp write buffer status must return 0x7f or 0xff");
-
-        if (Mixer_SampleAccurate() && sb.goldplay) {
-            LOG_MSG("Sound Blaster goldplay mode is incompatible with mixer sample-accurate mode.");
-            sb.goldplay=false;
-        }
 
         sb.dsp.midi_rwpoll_mode = false;
         sb.dsp.midi_read_interrupt = false;
