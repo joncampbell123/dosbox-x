@@ -1,4 +1,19 @@
 (next version)
+  - Fixed EGA 16-color display modes (M_EGA) to honor CGA and
+    Hercules compatible mapping modes (bits 0 and 1 of the
+    CRTC mode control) and limit memory display to 8KB or 16KB
+    accordingly. This fixes the mode select screen in the game
+    "Prehistorik 2".
+  - Removed Sound Blaster goldplay mode + sample accurate mode
+    warning, goldplay mode no longer has issues with sample
+    accurate mode.
+  - Mixer "sample accurate" mode fixed to work again.
+  - Windows SDL1 builds fixed to work around Windows SDK-level API
+    limitation that normally prevents Win32 applications from
+    fully receiving WM_KEYDOWN events for the left/right shift
+    keys independently. Left and right shift keys are now fully
+    usable on Windows builds (i.e. for use with pinball games).
+  - INSTALL.MD guide and test files (Aybe)
   - CONFIG -get now populates %CONFIG% environment variable with
     configuration setting (follow DOSBox SVN behavior)
 0.82.9
