@@ -596,12 +596,14 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
         if (IS_PC98_ARCH) pc98_mouse_movement_apply(xrel,yrel);
     }
 
-    mouse.mickey_x += (dx * mouse.mickeysPerPixel_x);
-    mouse.mickey_y += (dy * mouse.mickeysPerPixel_y);
-    if (mouse.mickey_x >= 32768.0) mouse.mickey_x -= 65536.0;
-    else if (mouse.mickey_x <= -32769.0) mouse.mickey_x += 65536.0;
-    if (mouse.mickey_y >= 32768.0) mouse.mickey_y -= 65536.0;
-    else if (mouse.mickey_y <= -32769.0) mouse.mickey_y += 65536.0;
+    if (user_cursor_locked) {
+        mouse.mickey_x += (dx * mouse.mickeysPerPixel_x);
+        mouse.mickey_y += (dy * mouse.mickeysPerPixel_y);
+        if (mouse.mickey_x >= 32768.0) mouse.mickey_x -= 65536.0;
+        else if (mouse.mickey_x <= -32769.0) mouse.mickey_x += 65536.0;
+        if (mouse.mickey_y >= 32768.0) mouse.mickey_y -= 65536.0;
+        else if (mouse.mickey_y <= -32769.0) mouse.mickey_y += 65536.0;
+    }
 
     if (emulate) {
         mouse.x += dx;
