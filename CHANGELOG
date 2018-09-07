@@ -1,4 +1,10 @@
 (next version)
+  - VESA BIOS emulation now supports a packed 16-color (4bpp)
+    mode as seen on a Toshiba Libretto (Chips & Tech) system.
+    The packed format is different than the normal planar 16-color
+    SVGA modes seen on most systems.
+  - INT 33h no longer reports relative mouse motion unless the
+    user captures the cursor.
   - Fixed EGA 16-color display modes (M_EGA) to honor CGA and
     Hercules compatible mapping modes (bits 0 and 1 of the
     CRTC mode control) and limit memory display to 8KB or 16KB
