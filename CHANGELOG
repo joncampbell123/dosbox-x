@@ -1,4 +1,6 @@
 (next version)
+  - PIC emulation now accepts a dosbox.conf option not to mark
+    the cascade interrupt as in service, for troublesome games.
   - VESA BIOS emulation now supports a packed 16-color (4bpp)
     mode as seen on a Toshiba Libretto (Chips & Tech) system.
     The packed format is different than the normal planar 16-color
