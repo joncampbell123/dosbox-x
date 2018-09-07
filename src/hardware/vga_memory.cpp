@@ -1953,6 +1953,7 @@ void VGA_SetupHandlers(void) {
 	case M_LIN16:
 	case M_LIN24:
 	case M_LIN32:
+    case M_PACKED4:
 		newHandler = &vgaph.map;
 		break;
 	case M_TEXT:

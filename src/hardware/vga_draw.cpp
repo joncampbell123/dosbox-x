@@ -64,6 +64,7 @@ const char* const mode_texts[M_MAX] = {
     "M_AMSTRAD",
     "M_PC98",
     "M_FM_TOWNS",       // 20 STUB
+    "M_PACKED4",
     "M_ERROR"
 };
 
@@ -620,6 +621,21 @@ static Bit8u * EGA_Draw_VGA_Planar_Xlat8_Line(Bitu vidstart, Bitu /*line*/) {
     }
 
     return TempLine + (vga.draw.panning);
+}
+
+static Bit8u * VGA_Draw_VGA_Packed4_Xlat32_Line(Bitu vidstart, Bitu /*line*/) {
+    Bit32u* temps = (Bit32u*) TempLine;
+    Bit8u t;
+
+    for (Bitu i = 0; i < ((vga.draw.line_length>>2)+vga.draw.panning); i += 2) {
+        t = vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
+        vidstart++;
+
+        temps[i+0] = vga.dac.xlat32[(t>>4)&0xF];
+        temps[i+1] = vga.dac.xlat32[(t>>0)&0xF];
+    }
+
+    return TempLine + (vga.draw.panning*4);
 }
 
 static Bit8u * VGA_Draw_VGA_Planar_Xlat32_Line(Bitu vidstart, Bitu /*line*/) {
@@ -1481,6 +1497,7 @@ static void VGA_ProcessSplit() {
                 case M_TEXT:
                 case M_EGA:
                 case M_LIN4:
+                case M_PACKED4:
                     /* ignore */
                     break;
                 default:
@@ -1703,6 +1720,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
                     case M_TEXT:
                     case M_EGA:
                     case M_LIN4:
+                    case M_PACKED4:
                         /* ignore */
                         break;
                     default:
@@ -2045,6 +2063,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         vga.draw.address *= vga.draw.byte_panning_shift;
         vga.draw.address += vga.draw.panning;
         break;
+    case M_PACKED4:
+        vga.draw.byte_panning_shift = 4u;
+        vga.draw.address += vga.draw.bytes_skip;
+        vga.draw.address *= vga.draw.byte_panning_shift;
+        break;
     case M_PC98:
         vga.draw.linear_mask = 0xfff; // 1 page
         vga.draw.byte_panning_shift = 2;
@@ -2148,6 +2171,9 @@ void VGA_CheckScanLength(void) {
 
         if (IS_EGA_ARCH && (vga.seq.clocking_mode&4))
             vga.draw.address_add*=2;
+        break;
+    case M_PACKED4:
+        vga.draw.address_add=vga.config.scan_len*8;
         break;
     case M_VGA:
     case M_LIN8:
@@ -2803,6 +2829,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     case M_LIN16:
         pix_per_char = 4; // 15/16 bpp modes double the horizontal values
         VGA_ActivateHardwareCursor();
+        break;
+    case M_PACKED4:
+        bpp = 32;
+        vga.draw.blocks = width;
+        VGA_DrawLine = VGA_Draw_VGA_Packed4_Xlat32_Line;
         break;
     case M_LIN4:
     case M_EGA:

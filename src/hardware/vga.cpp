@@ -300,6 +300,7 @@ void VGA_DetermineMode(void) {
     case 5:VGA_SetMode(M_LIN16);break;
     case 7:VGA_SetMode(M_LIN24);break;
     case 13:VGA_SetMode(M_LIN32);break;
+    case 15:VGA_SetMode(M_PACKED4);break;// hacked
     }
 }
 

@@ -53,6 +53,7 @@ enum VGAModes {
     M_AMSTRAD,
     M_PC98,
     M_FM_TOWNS,     // 20 STUB
+    M_PACKED4,
     M_ERROR,
 
     M_MAX

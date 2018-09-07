@@ -265,6 +265,21 @@ VideoModeBlock ModeList_VGA[]={
 { 0x24F  ,M_LIN16  ,1440,1080,240,67 ,8 ,16 ,1 ,0xA0000 ,0x10000,400 ,1188,360 ,1080,0  },
 { 0x2F0  ,M_LIN32  ,1440,1080,240,67 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,1188,180 ,1080,0  },
 
+// packed 16-color (4bpp) modes seen on a Toshiba Libretto VESA BIOS
+{ 0x25F  ,M_PACKED4,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40  ,400 , _REPEAT1 },
+{ 0x260  ,M_PACKED4,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,449 ,80  ,400 ,0  },
+{ 0x261  ,M_PACKED4,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80  ,480 ,0  },
+{ 0x262  ,M_PACKED4,720 ,480 ,90 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,525 ,90  ,480 ,0	},
+{ 0x263  ,M_PACKED4,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,128 ,663 ,100 ,600 ,0	},
+{ 0x264  ,M_PACKED4,848 ,480 ,106,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,525 ,106 ,480 ,0	},
+{ 0x265  ,M_PACKED4,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128 ,768 ,0	},
+{ 0x266  ,M_PACKED4,1280,720 ,160,45 ,8 ,16 ,1 ,0xA0000 ,0x10000,176 ,792 ,160 ,720 ,0	},
+{ 0x267  ,M_PACKED4,1280,1024,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,212 ,1066,160 ,1024,0	},
+{ 0x268  ,M_PACKED4,1440,900 ,180,56 ,8 ,16 ,1 ,0xA0000 ,0x10000,220 ,980 ,180 ,900 ,0  },
+{ 0x269  ,M_PACKED4,1400,1050,175,66 ,8 ,16 ,1 ,0xA0000 ,0x10000,220 ,1100,176 ,1050,0	},
+{ 0x26A  ,M_PACKED4,1600,1200,200,75 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,1240,200 ,1200,0	},
+{ 0x26B  ,M_PACKED4,1920,1080,240,67 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,1188,240 ,1080,0	},
+
 {0xFFFF  ,M_ERROR  ,0   ,0   ,0  ,0  ,0 ,0  ,0 ,0x00000 ,0x0000 ,0   ,0   ,0  ,0   ,0 	},
 };
 
@@ -674,6 +689,7 @@ static void FinishSetMode(bool clearmem) {
 		case M_LIN16:
 		case M_LIN24:
 		case M_LIN32:
+        case M_PACKED4:
 			/* Hack we just access the memory directly */
 			memset(vga.mem.linear,0,vga.mem.memsize);
 			break;
@@ -1149,6 +1165,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	case M_LIN16:
 	case M_LIN24:
 	case M_LIN32:
+    case M_PACKED4:
 	case M_VGA:
 		seq_data[2]|=0xf;				//Enable all planes for writing
 		seq_data[4]|=0x8;				//Graphics - Chained
@@ -1427,6 +1444,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	case M_LIN16:
 	case M_LIN24:
 	case M_LIN32:
+    case M_PACKED4:
 		mode_control=0xa3;
 		if (CurMode->special & _VGA_PIXEL_DOUBLE)
 			mode_control |= 0x08;
@@ -1470,6 +1488,9 @@ bool INT10_SetVideoMode(Bit16u mode) {
 		case M_LIN32:
 			misc_control_2=0xd0;
 			break;
+        case M_PACKED4://HACK
+			misc_control_2=0xf0;
+			break;
 		}
 		IO_WriteB(crtc_base,0x67);IO_WriteB(crtc_base+1u,misc_control_2);
 	}
@@ -1491,6 +1512,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	case M_LIN16:
 	case M_LIN24:
 	case M_LIN32:
+    case M_PACKED4:
 		gfx_data[0x5]|=0x40;		//256 color mode
         if (int10_vesa_map_as_128kb)
     		gfx_data[0x6]|=0x01;	//graphics mode at 0xa000-bffff
@@ -1616,6 +1638,7 @@ att_text16:
 	case M_LIN16:
 	case M_LIN24:
 	case M_LIN32:
+    case M_PACKED4:
 		for (Bit8u ct=0;ct<16;ct++) att_data[ct]=ct;
 		att_data[0x10]=0x41;		//Color Graphics 8-bit
 		break;
@@ -1691,6 +1714,7 @@ dac_text16:
 		case M_LIN16:
 		case M_LIN24:
 		case M_LIN32:
+        case M_PACKED4:
 			// IBM and clones use 248 default colors in the palette for 256-color mode.
 			// The last 8 colors of the palette are only initialized to 0 at BIOS init.
 			// Palette index is left at 0xf8 as on most clones, IBM leaves it at 0x10.
@@ -1804,6 +1828,7 @@ dac_text16:
 			case M_LIN16:
 			case M_LIN24:
 			case M_LIN32:
+            case M_PACKED4:
 				reg_3a=0x15;
 				break;
 			case M_LIN8:
@@ -1826,6 +1851,7 @@ dac_text16:
 		case M_LIN16:
 		case M_LIN24:
 		case M_LIN32:
+        case M_PACKED4:
 			reg_31 = 9;
 			break;
 		default:
@@ -1924,6 +1950,7 @@ Bitu VideoModeMemSize(Bitu mode) {
 
 	switch(vmodeBlock->type) {
 	case M_LIN4:
+    case M_PACKED4:
 		if (mode >= 0x100 && !allow_vesa_4bpp) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight/2;
 	case M_LIN8:
@@ -2194,6 +2221,7 @@ public:
 
             switch (ModeList_VGA[array_i].type) {
                 case M_LIN4:
+                case M_PACKED4:
                     pitch = (ModeList_VGA[array_i].swidth / 8) * 4; /* not totally accurate but close enough */
                     break;
                 case M_LIN8:
