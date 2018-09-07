@@ -1,4 +1,10 @@
 (next version)
+  - For PC-98 mode, PIC emulation by default (but controllable
+    through dosbox.conf) now initializes the PIC at startup to
+    return the ISR (interrupt in-service) register instead of
+    the IRR (interrupt request) register. This fixes FM
+    music problems with Blackbird by Vivian caused by a
+    programming mistake in the FM interrupt handler.
   - PIC emulation now accepts a dosbox.conf option not to mark
     the cascade interrupt as in service, for troublesome games.
   - VESA BIOS emulation now supports a packed 16-color (4bpp)

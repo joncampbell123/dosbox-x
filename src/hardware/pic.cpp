@@ -855,6 +855,25 @@ void PIC_Reset(Section *sec) {
         pics[i].active_irq = 8;
     }
 
+    /* PC-98: By default (but an option otherwise)
+     *        initialize the PIC so that reading the command port
+     *        produces the ISR status not the IRR status.
+     *
+     *        The reason the option is on by default, is that there
+     *        is PC-98 programming literature that recommends reading
+     *        ISR status before acknowledging interrupts (to avoid
+     *        conflicts with other ISR handlers perhaps). So it's
+     *        probably a common convention.
+     *
+     * Notes: "Blackbird" by Vivian needs this in order for the FM interrupt
+     *        to continue working. A bug in the FM interrupt routine programs
+     *        only the master PIC into this mode but then reads from the slave
+     *        which is not necessarily initialized into this mode and may return
+     *        the IRR register instead, causing the game to misinterpret
+     *        incoming interrupts as in-service. */
+    if (section->Get_bool("pc-98 pic init to read isr"))
+        pics[0].request_issr = pics[1].request_issr = true;
+
     /* IBM: IRQ 0-15 is INT 0x08-0x0F, 0x70-0x7F
      * PC-98: IRQ 0-15 is INT 0x08-0x17 */
     master.vector_base = 0x08;
