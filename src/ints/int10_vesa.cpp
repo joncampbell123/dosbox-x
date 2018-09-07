@@ -209,7 +209,7 @@ foundit:
 	case M_PACKED4:
 		if (!allow_vesa_4bpp) return VESA_FAIL;//TODO: New option to disable
 		pageSize = mblock->sheight * mblock->swidth/2;
-		var_write(&minfo.BytesPerScanLine,((mblock->swidth+1U)/2U)&(~1U)); /* NTS: 4bpp requires even value due to VGA registers, round up */
+		var_write(&minfo.BytesPerScanLine,(((mblock->swidth+15U)/8U)&(~1U))*4); /* NTS: 4bpp requires even value due to VGA registers, round up */
 		var_write(&minfo.NumberOfPlanes,0x1);
 		var_write(&minfo.BitsPerPixel,4);
 		var_write(&minfo.MemoryModel,4);	//packed pixel
