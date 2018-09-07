@@ -33,6 +33,8 @@
 
 unsigned long PIC_irq_delay_ns = 0;
 
+bool never_mark_cascade_in_service = false;
+
 struct PIC_Controller {
     Bitu icw_words;
     Bitu icw_index;
@@ -185,8 +187,13 @@ void PIC_Controller::start_irq(Bit8u val){
     irr&=~(1<<(val));
     if (!auto_eoi) {
         active_irq = val;
-        isr |= 1<<(val);
-        isrr = ~isr;
+        if (never_mark_cascade_in_service && this == &master && val == master_cascade_irq) {
+            /* do nothing */
+        }
+        else {
+            isr |= 1<<(val);
+            isrr = ~isr;
+        }
     } else if (GCC_UNLIKELY(rotate_on_auto_eoi)) {
         LOG_MSG("rotate on auto EOI not handled");
     }
@@ -806,6 +813,7 @@ void PIC_Reset(Section *sec) {
 
     enable_slave_pic = section->Get_bool("enable slave pic");
     enable_pc_xt_nmi_mask = section->Get_bool("enable pc nmi mask");
+    never_mark_cascade_in_service = section->Get_bool("cascade interrupt never in service");
 
     if (enable_slave_pic && machine == MCH_PCJR && enable_pc_xt_nmi_mask) {
         LOG(LOG_MISC,LOG_DEBUG)("PIC_Reset(): PCjr emulation with NMI mask register requires disabling slave PIC (IRQ 8-15)");
