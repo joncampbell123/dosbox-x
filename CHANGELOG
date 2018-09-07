@@ -1,4 +1,5 @@
 (next version)
+  - Fixed bug that enabled IBM style APM BIOS in PC-98 mode.
   - For PC-98 mode, PIC emulation by default (but controllable
     through dosbox.conf) now initializes the PIC at startup to
     return the ISR (interrupt in-service) register instead of
