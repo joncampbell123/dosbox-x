@@ -33,6 +33,7 @@ int hack_lfb_yadjust = 0;
 extern int vesa_mode_width_cap;
 extern int vesa_mode_height_cap;
 extern bool allow_vesa_lowres_modes;
+extern bool allow_vesa_4bpp_packed;
 extern bool vesa12_modes_32bpp;
 extern bool allow_vesa_32bpp;
 extern bool allow_vesa_24bpp;
@@ -207,7 +208,7 @@ foundit:
 
 	switch (mblock->type) {
 	case M_PACKED4:
-		if (!allow_vesa_4bpp) return VESA_FAIL;//TODO: New option to disable
+		if (!allow_vesa_4bpp_packed) return VESA_FAIL;//TODO: New option to disable
 		pageSize = mblock->sheight * mblock->swidth/2;
 		var_write(&minfo.BytesPerScanLine,(((mblock->swidth+15U)/8U)&(~1U))*4); /* NTS: 4bpp requires even value due to VGA registers, round up */
 		var_write(&minfo.NumberOfPlanes,0x1);
@@ -676,9 +677,9 @@ Bitu INT10_WriteVESAModeList(Bitu max_modes) {
                         case M_LIN16:	canuse_mode=allow_vesa_16bpp && allow_res; break;
                         case M_LIN15:	canuse_mode=allow_vesa_15bpp && allow_res; break;
                         case M_LIN8:	canuse_mode=allow_vesa_8bpp && allow_res; break;
-                        case M_LIN4:	canuse_mode=allow_vesa_4bpp; break;
-                        case M_PACKED4:	canuse_mode=allow_vesa_4bpp; break;//TODO: Separate enable
-                        case M_TEXT:	canuse_mode=allow_vesa_tty; break;
+                        case M_LIN4:	canuse_mode=allow_vesa_4bpp && allow_res; break;
+                        case M_PACKED4:	canuse_mode=allow_vesa_4bpp_packed && allow_res; break;
+                        case M_TEXT:	canuse_mode=allow_vesa_tty && allow_res; break;
                         default:	break;
                     }
                 }

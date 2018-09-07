@@ -34,6 +34,7 @@
 
 extern bool int10_vesa_map_as_128kb;
 extern bool allow_vesa_lowres_modes;
+extern bool allow_vesa_4bpp_packed;
 extern bool vesa12_modes_32bpp;
 extern bool allow_vesa_32bpp;
 extern bool allow_vesa_24bpp;
@@ -1949,8 +1950,10 @@ Bitu VideoModeMemSize(Bitu mode) {
 	        return ~0ul;
 
 	switch(vmodeBlock->type) {
-	case M_LIN4:
     case M_PACKED4:
+		if (mode >= 0x100 && !allow_vesa_4bpp_packed) return ~0ul;
+		return vmodeBlock->swidth*vmodeBlock->sheight/2;
+	case M_LIN4:
 		if (mode >= 0x100 && !allow_vesa_4bpp) return ~0ul;
 		return vmodeBlock->swidth*vmodeBlock->sheight/2;
 	case M_LIN8:
