@@ -265,7 +265,7 @@ VideoModeBlock ModeList_VGA[]={
 { 0x24F  ,M_LIN16  ,1440,1080,240,67 ,8 ,16 ,1 ,0xA0000 ,0x10000,400 ,1188,360 ,1080,0  },
 { 0x2F0  ,M_LIN32  ,1440,1080,240,67 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,1188,180 ,1080,0  },
 
-// packed 16-color (4bpp) modes seen on a Toshiba Libretto VESA BIOS
+// packed 16-color (4bpp) modes seen on a Toshiba Libretto VESA BIOS (Chips & Technologies 65550)
 { 0x25F  ,M_PACKED4,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40  ,400 , _REPEAT1 },
 { 0x260  ,M_PACKED4,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,449 ,80  ,400 ,0  },
 { 0x261  ,M_PACKED4,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80  ,480 ,0  },
