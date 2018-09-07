@@ -1186,6 +1186,12 @@ void ISAPNP_Cfg_Reset(Section *sec) {
 
     std::string apmbiosver = section->Get_string("apmbios version");
 
+    /* PC-98 does not have the IBM PC/AT APM BIOS interface */
+    if (IS_PC98_ARCH) {
+        APMBIOS = false;
+        APMBIOS_pnp = false;
+    }
+
     if (apmbiosver == "1.0")
         APM_BIOS_minor_version = 0;
     else if (apmbiosver == "1.1")
