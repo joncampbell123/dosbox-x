@@ -41,6 +41,31 @@ enum PRIORITY_LEVELS {
     PRIORITY_LEVEL_HIGHEST
 };
 
+// Screen DPI and size info
+class ScreenSizeInfo {
+public:
+    struct wxh {
+        double      width = -1;
+        double      height = -1;
+
+        void clear(void) {
+            width = height = -1;
+        }
+    };
+public:
+    wxh             screen_dimensions_pixels;   // size of the screen in pixels
+    wxh             screen_dimensions_mm;       // size of the screen in mm
+    wxh             screen_dpi;                 // DPI of the screen
+public:
+    void clear(void) {
+        screen_dpi.clear();
+        screen_dimensions_mm.clear();
+        screen_dimensions_pixels.clear();
+    }
+};
+
+extern ScreenSizeInfo       screen_size_info;
+
 // do not specify any defaults inside, it is zeroed at start of main()
 struct SDL_Block {
     bool inited;

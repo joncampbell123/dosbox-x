@@ -70,6 +70,7 @@ void GFX_OpenGLRedrawScreen(void);
 #include "bitop.h"
 #include "ptrop.h"
 #include "mapper.h"
+#include "sdlmain.h"
 #include "zipfile.h"
 
 #include "../src/libs/gui_tk/gui_tk.h"
@@ -117,6 +118,8 @@ void GFX_OpenGLRedrawScreen(void);
 
 SDL_Block sdl;
 Bitu frames = 0;
+
+ScreenSizeInfo          screen_size_info;
 
 const char *scaler_menu_opts[][2] = {
     { "none",                   "None" },
@@ -342,6 +345,8 @@ void UpdateWindowDimensions(void)
 #if defined(LINUX) && !defined(C_SDL2)
     void UpdateWindowDimensions_Linux(void);
     UpdateWindowDimensions_Linux();
+    void Linux_GetWindowDPI(ScreenSizeInfo &info);
+    Linux_GetWindowDPI(/*&*/screen_size_info);
 #endif
 }
 
