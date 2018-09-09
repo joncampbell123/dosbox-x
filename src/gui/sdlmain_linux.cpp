@@ -296,14 +296,17 @@ static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display) {
                                   ((double)info.screen_dimensions_mm.height));
                     }
 
-                    /* TODO: Are we supposed to free result of XRRGetOutputInfo */
+                    XRRFreeOutputInfo(ochk);
+                    ochk = NULL;
                 }
             }
 
-            /* TODO: Are we supposed to free result of XRRGetCrtcInfo? */
+            XRRFreeCrtcInfo(chk);
+            chk = NULL;
         }
 
-        /* TODO: Are we supposed to free xr_screen? */
+        XRRFreeScreenResources(xr_screen);
+        xr_screen = NULL;
     }
 #endif
 
