@@ -263,7 +263,10 @@ static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display,Window w
 
             if (match_x >= chk->x && match_x < (chk->x+(int)chk->width) &&
                 match_y >= chk->y && match_y < (chk->y+(int)chk->height)) {
-                LOG_MSG("Our window lies on this CRTC display.");
+                LOG_MSG("Our window lies on this CRTC display (window pos=(%d,%d) size=(%d,%d) match=(%d,%d)).",
+                    attr.x,attr.y,
+                    attr.width,attr.height,
+                    match_x,match_y);
 
                 if (chk->noutput > 0) {
                     for (int o=0;o < chk->noutput;o++) {
