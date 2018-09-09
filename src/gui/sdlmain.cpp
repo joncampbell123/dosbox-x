@@ -330,25 +330,7 @@ void UpdateWindowDimensions(Bitu width, Bitu height)
     currentWindowHeight = height;
 }
 
-void UpdateWindowDimensions(void) 
-{
-#if defined(WIN32) && !defined(C_SDL2)
-    // When maximized, SDL won't actually tell us our new dimensions, so get it ourselves.
-    // FIXME: Instead of GetHWND() we need to track our own handle or add something to SDL 1.x
-    //        to provide the handle!
-    RECT r = { 0 };
-
-    GetClientRect(GetHWND(), &r);
-    UpdateWindowDimensions(r.right, r.bottom);
-    UpdateWindowMaximized(IsZoomed(GetHWND()));
-#endif
-#if defined(LINUX) && !defined(C_SDL2)
-    void UpdateWindowDimensions_Linux(void);
-    UpdateWindowDimensions_Linux();
-    void Linux_GetWindowDPI(ScreenSizeInfo &info);
-    Linux_GetWindowDPI(/*&*/screen_size_info);
-#endif
-
+void PrintScreenSizeInfo(void) {
 #if 1
     const char *method = "?";
 
@@ -374,6 +356,27 @@ void UpdateWindowDimensions(void)
             screen_size_info.screen_dpi.width,
             screen_size_info.screen_dpi.height);
 #endif
+}
+
+void UpdateWindowDimensions(void)
+{
+#if defined(WIN32) && !defined(C_SDL2)
+    // When maximized, SDL won't actually tell us our new dimensions, so get it ourselves.
+    // FIXME: Instead of GetHWND() we need to track our own handle or add something to SDL 1.x
+    //        to provide the handle!
+    RECT r = { 0 };
+
+    GetClientRect(GetHWND(), &r);
+    UpdateWindowDimensions(r.right, r.bottom);
+    UpdateWindowMaximized(IsZoomed(GetHWND()));
+#endif
+#if defined(LINUX) && !defined(C_SDL2)
+    void UpdateWindowDimensions_Linux(void);
+    UpdateWindowDimensions_Linux();
+    void Linux_GetWindowDPI(ScreenSizeInfo &info);
+    Linux_GetWindowDPI(/*&*/screen_size_info);
+#endif
+    PrintScreenSizeInfo();
 }
 
 #if defined(C_SDL2)
