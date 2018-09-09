@@ -242,12 +242,11 @@ static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display) {
     bool result = false;
 #if C_X11_XRANDR
     XRRScreenResources *xr_screen;
-    XRROutputInfo *xr_output_info;
-    XRRCrtcInfo *xr_crtc_info;
+//    XRROutputInfo *xr_output_info;
+//    XRRCrtcInfo *xr_crtc_info;
 
     if ((xr_screen=XRRGetScreenResources(display, DefaultRootWindow(display))) != NULL) {
         /* Look for a valid CRTC, don't assume the first is valid (as the StackOverflow example does) */
-        xr_crtc_info = NULL;
         for (int c=0;c < xr_screen->ncrtc;c++) {
             XRRCrtcInfo *chk = XRRGetCrtcInfo(display, xr_screen, xr_screen->crtcs[c]);
             if (chk == NULL) continue;
