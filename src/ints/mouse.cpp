@@ -988,6 +988,8 @@ static Bitu INT33_Handler(void) {
         reg_bx=mouse.buttons;
         reg_cx=(Bit16u)POS_X;
         reg_dx=(Bit16u)POS_Y;
+        mouse.first_range_setx = false;
+        mouse.first_range_sety = false;
         break;
     case 0x04:  /* Position Mouse */
         /* If position isn't different from current position
