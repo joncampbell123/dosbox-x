@@ -1,4 +1,8 @@
 (next version)
+  - Code added to read the screen dimensions in Linux/X11,
+    either through XRandR or through the base X11 API.
+  - Code added to read and store the dimensions, size, and
+    DPI (Dots per Inch) of the screen.
   - Fixed bug that enabled IBM style APM BIOS in PC-98 mode.
   - For PC-98 mode, PIC emulation by default (but controllable
     through dosbox.conf) now initializes the PIC at startup to
