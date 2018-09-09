@@ -194,7 +194,8 @@ static struct {
     bool enabled;
     bool inhibit_draw;
     bool timer_in_progress;
-    bool first_range_set;
+    bool first_range_setx;
+    bool first_range_sety;
     bool in_UIR;
     Bit8u mode;
     Bit16s gran_x,gran_y;
@@ -839,7 +840,8 @@ void Mouse_NewVideoMode(void) {
     /* Get the correct resolution from the current video mode */
     Bit8u mode = mem_readb(BIOS_VIDEO_MODE);
     if(mode == mouse.mode) {LOG(LOG_MOUSE,LOG_NORMAL)("New video is the same as the old"); /*return;*/}
-    mouse.first_range_set = false;
+    mouse.first_range_setx = false;
+    mouse.first_range_sety = false;
     mouse.gran_x = (Bit16s)0xffff;
     mouse.gran_y = (Bit16s)0xffff;
     mouse.min_x = 0;
@@ -888,7 +890,8 @@ void Mouse_NewVideoMode(void) {
         LOG(LOG_MOUSE,LOG_ERROR)("Unhandled videomode %X on reset",mode);
         mouse.inhibit_draw = true;
         if (CurMode != NULL) {
-            mouse.first_range_set = true;
+            mouse.first_range_setx = true;
+            mouse.first_range_sety = true;
             mouse.max_x = CurMode->swidth - 1;
             mouse.max_y = CurMode->sheight - 1;
         }
@@ -1045,11 +1048,11 @@ static Bitu INT33_Handler(void) {
              *      and then set a mouse range of x=0-1279 and y=0-479. Using the FIRST range
              *      set after mode set is the only way to make sure mouse pointer integration
              *      tracks the guest pointer properly. */
-            if (mouse.first_range_set) {
+            if (mouse.first_range_setx) {
                 if (mouse.max_screen_x < mouse.max_x)
                     mouse.max_screen_x = mouse.max_x;
 
-                mouse.first_range_set = false;
+                mouse.first_range_setx = false;
             }
         }
         break;
@@ -1068,6 +1071,21 @@ static Bitu INT33_Handler(void) {
             /* Or alternatively this: 
             mouse.y = (mouse.max_y - mouse.min_y + 1)/2;*/
             LOG(LOG_MOUSE,LOG_NORMAL)("Define Vertical range min:%d max:%d",min,max);
+
+            /* NTS: The mouse in VESA BIOS modes would ideally start with the x and y ranges
+             *      that fit the screen, but I'm not so sure mouse drivers even pay attention
+             *      to VESA BIOS modes so it's not certain what comes out. However some
+             *      demoscene productions like "Aqua" will set their own mouse range and draw
+             *      their own cursor. The menu in "Aqua" will set up 640x480 256-color mode
+             *      and then set a mouse range of x=0-1279 and y=0-479. Using the FIRST range
+             *      set after mode set is the only way to make sure mouse pointer integration
+             *      tracks the guest pointer properly. */
+            if (mouse.first_range_sety) {
+                if (mouse.max_screen_y < mouse.max_y)
+                    mouse.max_screen_y = mouse.max_y;
+
+                mouse.first_range_sety = false;
+            }
         }
         break;
     case 0x09:  /* Define GFX Cursor */
