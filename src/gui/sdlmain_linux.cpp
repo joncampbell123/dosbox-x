@@ -15,6 +15,10 @@
 void UpdateWindowDimensions(Bitu width, Bitu height);
 void UpdateWindowMaximized(bool flag);
 
+#if C_X11_XRANDR
+#include <X11/extensions/Xrandr.h>
+#endif
+
 #if !defined(C_SDL2)
 extern "C" void SDL1_hax_X11_jpfix(int ro_scan,int yen_scan);
 
@@ -235,7 +239,76 @@ void UpdateWindowDimensions_Linux(void) {
 
 /* Retrieve screen size/dimensions/DPI using XRandR */
 static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display) {
-    return false;
+    bool result = false;
+#if C_X11_XRANDR
+    XRRScreenResources *xr_screen;
+    XRROutputInfo *xr_output_info;
+    XRRCrtcInfo *xr_crtc_info;
+
+    if ((xr_screen=XRRGetScreenResources(display, DefaultRootWindow(display))) != NULL) {
+        /* Look for a valid CRTC, don't assume the first is valid (as the StackOverflow example does) */
+        xr_crtc_info = NULL;
+        for (int c=0;c < xr_screen->ncrtc;c++) {
+            XRRCrtcInfo *chk = XRRGetCrtcInfo(display, xr_screen, xr_screen->crtcs[c]);
+            if (chk == NULL) continue;
+            if (chk->width == 0 || chk->height == 0) continue;
+
+            LOG_MSG("XRandR CRTC %u: pos=(%d,%d) size=(%d,%d) outputs=%d",
+                c,chk->x,chk->y,chk->width,chk->height,chk->noutput);
+
+            /* TODO: Read our window position to determine which screen we are on!
+             *       XRandR reports the x,y coordinates and size in pixels of each screen! */
+
+            if (chk->noutput > 0) {
+                for (int o=0;o < chk->noutput;o++) {
+                    XRROutputInfo *ochk = XRRGetOutputInfo(display, xr_screen, chk->outputs[o]);
+                    if (ochk == NULL) continue;
+
+                    std::string oname;
+
+                    if (ochk->nameLen > 0 && ochk->name != NULL)
+                        oname = std::string(ochk->name,ochk->nameLen);
+
+                    LOG_MSG("  Goes to output %u: name='%s' size_mm=(%lu x %lu)",
+                        o,oname.c_str(),ochk->mm_width,ochk->mm_height);
+
+                    if (true/*TODO: Any decision making?*/) {
+                        o = chk->noutput; /* short circuit the for loop */
+                        c = xr_screen->ncrtc; /* and the other */
+                        result = true;
+
+                        /* choose this combo to determine screen size, and dimensions */
+                        info.method = ScreenSizeInfo::METHOD_XRANDR;
+
+                        info.screen_dimensions_pixels.width  = chk->width;
+                        info.screen_dimensions_pixels.height = chk->height;
+
+                        info.screen_dimensions_mm.width      = ochk->mm_width;
+                        info.screen_dimensions_mm.height     = ochk->mm_height;
+
+                        if (info.screen_dimensions_mm.width > 0)
+                            info.screen_dpi.width =
+                                ((((double)info.screen_dimensions_pixels.width) * 25.4) /
+                                  ((double)info.screen_dimensions_mm.width));
+
+                        if (info.screen_dimensions_mm.height > 0)
+                            info.screen_dpi.height =
+                                ((((double)info.screen_dimensions_pixels.height) * 25.4) /
+                                  ((double)info.screen_dimensions_mm.height));
+                    }
+
+                    /* TODO: Are we supposed to free result of XRRGetOutputInfo */
+                }
+            }
+
+            /* TODO: Are we supposed to free result of XRRGetCrtcInfo? */
+        }
+
+        /* TODO: Are we supposed to free xr_screen? */
+    }
+#endif
+
+    return result;
 }
 
 void Linux_GetWindowDPI(ScreenSizeInfo &info) {
