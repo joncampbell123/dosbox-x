@@ -259,7 +259,7 @@ static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display,Window w
 
             /* match our window position to the display, use the center */
             int match_x = attr.x + (attr.width / 2);
-            int match_y = attr.y + (attr.height / 20);
+            int match_y = attr.y + (attr.height / 2);
 
             if (match_x >= chk->x && match_x < (chk->x+(int)chk->width) &&
                 match_y >= chk->y && match_y < (chk->y+(int)chk->height)) {
