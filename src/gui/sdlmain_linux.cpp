@@ -255,6 +255,8 @@ void Linux_GetWindowDPI(ScreenSizeInfo &info) {
 			if (rootWindow != 0) {
                 int screen = 0;
 
+                info.method = ScreenSizeInfo::METHOD_X11;
+
                 /* found on StackOverflow */
 
                    /*

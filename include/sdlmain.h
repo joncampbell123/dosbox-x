@@ -44,6 +44,12 @@ enum PRIORITY_LEVELS {
 // Screen DPI and size info
 class ScreenSizeInfo {
 public:
+    enum method {
+        METHOD_NONE=0,
+        METHOD_X11,
+        METHOD_XRANDR
+    };
+public:
     struct wxh {
         double      width = -1;
         double      height = -1;
@@ -56,11 +62,13 @@ public:
     wxh             screen_dimensions_pixels;   // size of the screen in pixels
     wxh             screen_dimensions_mm;       // size of the screen in mm
     wxh             screen_dpi;                 // DPI of the screen
+    enum method     method = METHOD_NONE;
 public:
     void clear(void) {
         screen_dpi.clear();
         screen_dimensions_mm.clear();
         screen_dimensions_pixels.clear();
+        method = METHOD_NONE;
     }
 };
 

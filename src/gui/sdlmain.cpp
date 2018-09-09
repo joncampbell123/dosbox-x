@@ -350,7 +350,18 @@ void UpdateWindowDimensions(void)
 #endif
 
 #if 1
-    LOG_MSG("Screen report: (%.3f x %.3f pixels) (%.3f x %.3f mm) (%.3f x %.3f in) (%.3f x %.3f DPI)",
+    const char *method = "?";
+
+    switch (screen_size_info.method) {
+        case ScreenSizeInfo::METHOD_NONE:       method = "None";        break;
+        case ScreenSizeInfo::METHOD_X11:        method = "X11";         break;
+        case ScreenSizeInfo::METHOD_XRANDR:     method = "XRandR";      break;
+        default:                                                        break;
+    };
+
+    LOG_MSG("Screen report: Method '%s' (%.3f x %.3f pixels) (%.3f x %.3f mm) (%.3f x %.3f in) (%.3f x %.3f DPI)",
+            method,
+
             screen_size_info.screen_dimensions_pixels.width,
             screen_size_info.screen_dimensions_pixels.height,
 
