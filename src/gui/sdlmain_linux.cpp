@@ -279,21 +279,6 @@ void Linux_GetWindowDPI(ScreenSizeInfo &info) {
                     info.screen_dpi.height =
                         ((((double)info.screen_dimensions_pixels.height) * 25.4) /
                           ((double)info.screen_dimensions_mm.height));
-
-                LOG_MSG("X11 screen %d report: (%.3f x %.3f pixels) (%.3f x %.3f mm) (%.3f x %.3f in) (%.3f x %.3f DPI)",
-                    screen,
-
-                    info.screen_dimensions_pixels.width,
-                    info.screen_dimensions_pixels.height,
-
-                    info.screen_dimensions_mm.width,
-                    info.screen_dimensions_mm.height,
-
-                    info.screen_dimensions_mm.width / 25.4,
-                    info.screen_dimensions_mm.height / 25.4,
-
-                    info.screen_dpi.width,
-                    info.screen_dpi.height);
             }
         }
     }

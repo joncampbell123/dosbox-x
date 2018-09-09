@@ -348,6 +348,21 @@ void UpdateWindowDimensions(void)
     void Linux_GetWindowDPI(ScreenSizeInfo &info);
     Linux_GetWindowDPI(/*&*/screen_size_info);
 #endif
+
+#if 1
+    LOG_MSG("Screen report: (%.3f x %.3f pixels) (%.3f x %.3f mm) (%.3f x %.3f in) (%.3f x %.3f DPI)",
+            screen_size_info.screen_dimensions_pixels.width,
+            screen_size_info.screen_dimensions_pixels.height,
+
+            screen_size_info.screen_dimensions_mm.width,
+            screen_size_info.screen_dimensions_mm.height,
+
+            screen_size_info.screen_dimensions_mm.width / 25.4,
+            screen_size_info.screen_dimensions_mm.height / 25.4,
+
+            screen_size_info.screen_dpi.width,
+            screen_size_info.screen_dpi.height);
+#endif
 }
 
 #if defined(C_SDL2)
