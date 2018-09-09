@@ -697,6 +697,17 @@ else
    AC_MSG_RESULT(no)
 fi
 
+dnl FEATURE: Whether to use X11 XRandR
+AH_TEMPLATE(C_X11_XRANDR,[define to 1 if you have XRandr.h and X11 lib])
+AC_MSG_CHECKING(for XRandR support)
+if test x$have_x11_lib = xyes -a x$have_x11_h = xyes ; then
+   LIBS="$LIBS -lXrandr"
+   AC_DEFINE(C_X11_XRANDR,1)
+   AC_MSG_RESULT(yes)
+else
+   AC_MSG_RESULT(no)
+fi
+
 dnl FEATURE: Whether to use Fluidsynth
 AH_TEMPLATE(C_FLUIDSYNTH,[Define to 1 to enable fluidsynth MIDI synthesis])
 if test x$have_fluidsynth_lib = xyes -a x$have_fluidsynth_h = xyes ; then
