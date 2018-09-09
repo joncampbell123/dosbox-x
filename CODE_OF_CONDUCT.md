@@ -1,6 +1,6 @@
 # Community guidelines
 
-Be fair, and work cooperatively. This is a open source project where anyone with an interest in MS-DOS, emulation, and/or DOSBox-X is welcome to talk, chat, develop, and contribute to the project.
+Be fair, and cooperate. This is a open source project where anyone with an interest in MS-DOS, emulation, and/or DOSBox-X is welcome to talk, chat, develop, and contribute to the project.
 
 Leave your politics at the door. The focus of this project is DOSBox-X and topics related to it including emulation, games, software, hardware, accuracy, code, development, and documentation. Anything else is off-topic and will be treated as such.
 
