@@ -71,6 +71,8 @@ bool bochs_port_e9 = false;
 bool isa_memory_hole_512kb = false;
 bool int15_wait_force_unmask_irq = false;
 
+int unhandled_irq_method = UNHANDLED_IRQ_SIMPLE;
+
 Bit16u biosConfigSeg=0;
 
 Bitu BIOS_DEFAULT_IRQ0_LOCATION = ~0u;       // (RealMake(0xf000,0xfea5))
@@ -5321,6 +5323,15 @@ void gdc_16color_enable_update_vars(void) {
     }
 }
 
+static Bitu Default_IRQ_Handler(void) {
+    if (unhandled_irq_method == UNHANDLED_IRQ_MASK_ISR) {
+        /* loosely adapted from em-dosbox */
+        LOG_MSG("MASK ISR");
+    }
+
+    return CBRET_NONE;
+}
+
 class BIOS:public Module_base{
 private:
     static Bitu cb_bios_post__func(void) {
@@ -6750,6 +6761,17 @@ public:
             // FIXME: Erm, well this couldv'e been named better. It refers to the amount of conventional memory
             //        made available to the operating system below 1MB, which is usually DOS.
             dos_conventional_limit = (unsigned int)section->Get_int("dos mem limit");
+
+            {
+                std::string s = section->Get_string("unhandled irq handler");
+
+                if (s == "simple")
+                    unhandled_irq_method = UNHANDLED_IRQ_SIMPLE;
+                else if (s == "mask_isr")
+                    unhandled_irq_method = UNHANDLED_IRQ_MASK_ISR;
+                else
+                    unhandled_irq_method = UNHANDLED_IRQ_SIMPLE;
+            }
         }
 
         if (bochs_port_e9) {

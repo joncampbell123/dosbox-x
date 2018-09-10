@@ -200,6 +200,13 @@ void BIOS_SynchronizeScrollLock();
 
 bool ISAPNP_RegisterSysDev(const unsigned char *raw,Bitu len,bool already=false);
 
+enum {
+    UNHANDLED_IRQ_SIMPLE=0,
+    UNHANDLED_IRQ_MASK_ISR
+};
+
+extern int unhandled_irq_method;
+
 class ISAPnPDevice {
 public:
 	ISAPnPDevice();

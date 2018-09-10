@@ -860,6 +860,9 @@ void DOSBOX_SetupConfigSections(void) {
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
     const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", 0 };
 
+    const char* irqhandler[] = {
+        "", "simple", "mask_isr", 0 };
+
     /* Setup all the different modules making up DOSBox */
     const char* machines[] = {
         "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega",
@@ -1063,6 +1066,13 @@ void DOSBOX_SetupConfigSections(void) {
                       "It will be executed before the BIOS POST routine, only ONCE. The binary blob is expected either to IRET or to\n"
                       "jump directly to F000:FFF0 to return control to the BIOS.\n"
                       "This can be used for x86 assembly language experiments and automated testing against the CPU emulation.");
+
+    Pstring = secprop->Add_string("unhandled irq handler",Property::Changeable::WhenIdle,"");
+    Pstring->Set_values(irqhandler);
+    Pstring->Set_help("Determines how unhandled IRQs are handled. This may help some errant DOS applications.\n"
+                      "Leave unset for default behavior (simple).\n"
+                      "simple               Acknowledge the IRQ, and the master (if slave IRQ)\n"
+                      "mask_isr             Acknowledge IRQs in service on master and slave and mask IRQs still in service, to deal with errant handlers (em-dosbox method)");
 
     Pstring = secprop->Add_string("call binary on boot",Property::Changeable::WhenIdle,"");
     Pstring->Set_help("If set, this is the path of a binary blob to load into the ROM BIOS area and execute immediately before booting the DOS system.\n"
