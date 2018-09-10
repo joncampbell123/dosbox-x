@@ -1,4 +1,6 @@
 (next version)
+  - Added option to control how unhandled IRQs are dealt with.
+    One option, mask_isr, is derived from em-dosbox.
   - Code added to read the screen dimensions in Linux/X11,
     either through XRandR or through the base X11 API.
   - Code added to read and store the dimensions, size, and
