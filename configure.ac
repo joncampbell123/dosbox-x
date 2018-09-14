@@ -386,6 +386,7 @@ esac
 fi
 
 AM_CONDITIONAL(MACOSX, test x"$macosx" == x"1")
+AM_CONDITIONAL(EMSCRIPTEN, test x"$enable_emscripten" == x"yes")
 
 dnl The target cpu checks for dynamic cores
 AH_TEMPLATE(C_TARGETCPU,[The type of cpu this target has])
