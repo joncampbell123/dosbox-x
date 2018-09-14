@@ -527,8 +527,10 @@ dnl FEATURE: xBRZ
 AH_TEMPLATE(C_XBRZ,[Define to 1 to enable XBRZ scaler])
 AC_ARG_ENABLE(xbrz,AC_HELP_STRING([--enable-xbrz],[compile with xBRZ scaler (default yes)]),enable_xbrz=$enableval,enable_xbrz=yes)
 AM_CONDITIONAL(C_XBRZ, test "x$enable_xbrz" == "xyes")
-if test x$enable_xbrz = xyes; then
-AC_DEFINE(C_XBRZ,1)
+if test x$enable_emscripten != xyes; then
+  if test x$enable_xbrz = xyes; then
+    AC_DEFINE(C_XBRZ,1)
+  fi
 fi
 
 dnl FEATURE: MIDI through ALSA
