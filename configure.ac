@@ -156,6 +156,10 @@ dnl This is how the build script can specify a HX DOS extender target
 AH_TEMPLATE(C_HX_DOS,[Define to 1 to target HX DOS])
 AC_ARG_ENABLE(hx-dos,AC_HELP_STRING([--enable-hx-dos],[Enable HX target]),enable_hx=yes)
 
+dnl Let me know if you're targeting Emscripten
+AH_TEMPLATE(C_EMSCRIPTEN,[Define to 1 to target Emscripten])
+AC_ARG_ENABLE(emscripten,AC_HELP_STRING([--enable-emscripten],[Enable Emscripten target]),enable_emscripten=$enableval,enable_emscripten=no)
+
 dnl Optimize for speed by default
 AC_ARG_ENABLE(optimize,AC_HELP_STRING([--disable-optimize],[Don't enable compiler optimizations]))
 
@@ -166,6 +170,10 @@ CXXFLAGS=["`echo $CXXFLAGS' ' | sed -e 's/-O[^ ]* //g'`"]
 if test x$enable_optimize != xno; then
 	CFLAGS="$CFLAGS -O2"
 	CXXFLAGS="$CXXFLAGS -O2"
+fi
+
+if test x$enable_emscripten == xyes; then
+	AC_DEFINE(C_EMSCRIPTEN,1,[Targeting Emscripten])
 fi
 
 dnl Some stuff for the icon.
@@ -274,13 +282,17 @@ case "$host" in
        ;;
 esac
 
-dnl Some default CPU flags
-case "$host_cpu" in
-  x86_64 | amd64)
-    # SSE is part of the x86_64 ABI
-    CXXFLAGS="$CXXFLAGS -msse"
-    ;;
-esac
+if test x$enable_emscripten == xyes; then
+    CXXFLAGS="$CXXFLAGS"
+else
+    dnl Some default CPU flags
+    case "$host_cpu" in
+        x86_64 | amd64)
+        # SSE is part of the x86_64 ABI
+        CXXFLAGS="$CXXFLAGS -msse"
+        ;;
+    esac
+fi
 
 dnl Some needed libaries for OS2
 dnl perharps join this with the other target depended checks. move them upwards
@@ -331,6 +343,7 @@ esac
        AM_CONDITIONAL(HAVE_WINDRES, test "x$WINDRES" != "x:")
        AC_SUBST(WINDRES)
 
+if test x$enable_emscripten != xyes; then
 dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
@@ -370,6 +383,7 @@ case "$host" in
        AC_DEFINE(OS2, 1, [Compiling on OS/2 EMX])
        ;;
 esac
+fi
 
 AM_CONDITIONAL(MACOSX, test x"$macosx" == x"1")
 
@@ -475,9 +489,11 @@ dnl LIBRARY TEST: SDLnet 1.x
 AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
 AC_CHECK_LIB(SDL_net, SDLNet_Init, have_sdl_net_lib=yes, , )
 
-dnl LIBRARY TEST: X11 Xlib support
-AC_CHECK_LIB(X11, main, have_x11_lib=yes, have_x11_lib=no, )
-AC_CHECK_HEADER(X11/XKBlib.h, have_x11_h=yes, have_x11_h=no, )
+if test x$enable_emscripten != xyes; then
+  dnl LIBRARY TEST: X11 Xlib support
+  AC_CHECK_LIB(X11, main, have_x11_lib=yes, have_x11_lib=no, )
+  AC_CHECK_HEADER(X11/XKBlib.h, have_x11_h=yes, have_x11_h=no, )
+fi
 
 dnl LIBRARY TEST: Fluidsynth support
 AC_CHECK_HEADER(fluidsynth.h,have_fluidsynth_h=yes,)
@@ -686,26 +702,30 @@ else
   AC_MSG_WARN([Can't find libpcap, NE2000 ethernet passthrough disabled])
 fi
 
-dnl FEATURE: Whether to use X11 XKBlib
-AH_TEMPLATE(C_X11_XKB,[define to 1 if you have XKBlib.h and X11 lib])
-AC_MSG_CHECKING(for XKBlib support)
-if test x$have_x11_lib = xyes -a x$have_x11_h = xyes ; then
-   LIBS="$LIBS -lX11 -lxkbfile"
-   AC_DEFINE(C_X11_XKB,1)
-   AC_MSG_RESULT(yes)
-else
-   AC_MSG_RESULT(no)
+if test x$enable_emscripten != xyes; then
+  dnl FEATURE: Whether to use X11 XKBlib
+  AH_TEMPLATE(C_X11_XKB,[define to 1 if you have XKBlib.h and X11 lib])
+  AC_MSG_CHECKING(for XKBlib support)
+  if test x$have_x11_lib = xyes -a x$have_x11_h = xyes ; then
+    LIBS="$LIBS -lX11 -lxkbfile"
+    AC_DEFINE(C_X11_XKB,1)
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no)
+  fi
 fi
 
-dnl FEATURE: Whether to use X11 XRandR
-AH_TEMPLATE(C_X11_XRANDR,[define to 1 if you have XRandr.h and X11 lib])
-AC_MSG_CHECKING(for XRandR support)
-if test x$have_x11_lib = xyes -a x$have_x11_h = xyes ; then
-   LIBS="$LIBS -lXrandr"
-   AC_DEFINE(C_X11_XRANDR,1)
-   AC_MSG_RESULT(yes)
-else
-   AC_MSG_RESULT(no)
+if test x$enable_emscripten != xyes; then
+  dnl FEATURE: Whether to use X11 XRandR
+  AH_TEMPLATE(C_X11_XRANDR,[define to 1 if you have XRandr.h and X11 lib])
+  AC_MSG_CHECKING(for XRandR support)
+  if test x$have_x11_lib = xyes -a x$have_x11_h = xyes ; then
+    LIBS="$LIBS -lXrandr"
+    AC_DEFINE(C_X11_XRANDR,1)
+    AC_MSG_RESULT(yes)
+  else
+    AC_MSG_RESULT(no)
+  fi
 fi
 
 dnl FEATURE: Whether to use Fluidsynth

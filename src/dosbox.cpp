@@ -104,7 +104,7 @@ bool sse2_available = false;
 
 void CheckSSESupport()
 {
-#if defined (__GNUC__) || (_MSC_VER)
+#if (defined (__GNUC__) || (_MSC_VER)) && !defined(EMSCRIPTEN)
     Bitu a, b, c, d;
     cpuid(1, a, b, c, d);
     sse2_available = ((d >> 26) & 1)?true:false;
@@ -905,7 +905,7 @@ void DOSBOX_SetupConfigSections(void) {
         0
     };
 
-#if defined(__SSE__) && !defined(_M_AMD64)
+#if defined(__SSE__) && !defined(_M_AMD64) && !defined(EMSCRIPTEN)
     CheckSSESupport();
 #endif
     SDLNetInited = false;

@@ -31,6 +31,9 @@
 #ifdef WIN32
 # define BYTESEX_LITTLE
 # define _G_DIR_SEPARATOR '\\'
+#elif defined(EMSCRIPTEN)
+# define BYTESEX_LITTLE
+# define _G_DIR_SEPARATOR '/'
 #else
 # include "byteorder.h"
 # define _G_DIR_SEPARATOR '/'
