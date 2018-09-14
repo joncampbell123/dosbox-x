@@ -14,7 +14,7 @@ chmod +x configure
 export PATH=/opt/emsdk/emscripten/incoming/system/bin:$PATH
 
 # build command borrowed from Yksoft1 vanilla DOSBox-X port with modifications
-CC="emcc" CXX="em++" LD="emcc" LD_CXX="em++" CFLAGS="-DEMTERPRETER_SYNC" CXXFLAGS="-DEMSCRIPTEN=1 -DEMTERPRETER_SYNC" ./configure --host=x86_64-linux --disable-dynamic-x86 --enable-sdl2 --with-sdl-prefix=/opt/emsdk/emscripten/incoming/system --disable-opengl --disable-mt32 --enable-emscripten
+CC="emcc" CXX="em++" LD="emcc" LD_CXX="em++" CFLAGS="-DEMTERPRETER_SYNC" CXXFLAGS="-DEMSCRIPTEN=1 -DEMTERPRETER_SYNC" ./configure --host=x86_64-linux --disable-dynamic-x86 --enable-sdl2 --with-sdl-prefix=/opt/emsdk/emscripten/incoming/system --disable-opengl --disable-mt32 --enable-emscripten --enable-force-menu-sdldraw
 make -j3 || exit 1
 #emcc -O1 -s USE_SDL=2 -s TOTAL_MEMORY=104857600 -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1 -s EMTERPRETIFY_WHITELIST=@d3.txt dosbox-x.bc --memory-init-file 0 -o th5e.html --preload-file d:/tmpp/th5x@/
 
