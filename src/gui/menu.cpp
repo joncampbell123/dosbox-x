@@ -651,8 +651,10 @@ static const char *def_menu_main[] = {
 	"auto_lock_mouse",
 	"--",
 	"mapper_pause",
+#if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
     "mapper_reset",
+#endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
 	"--",
 #endif
