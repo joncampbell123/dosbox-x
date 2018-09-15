@@ -6609,6 +6609,7 @@ private:
             BIOS_Int10RightJustifiedPrint(x,y,"ISA Plug & Play BIOS active\n");
         }
 
+#if !defined(C_EMSCRIPTEN)
         BIOS_Int10RightJustifiedPrint(x,y,"\nHit SPACEBAR to pause at this screen\n");
         y--; /* next message should overprint */
         if (machine != MCH_PC98) {
@@ -6623,6 +6624,7 @@ private:
             reg_edx = (((unsigned int)y * 80u) + (unsigned int)x) * 2u; // byte position
             CALLBACK_RunRealInt(0x18);
         }
+#endif
 
         // TODO: Then at this screen, we can print messages demonstrating the detection of
         //       IDE devices, floppy, ISA PnP initialization, anything of importance.
@@ -6630,6 +6632,14 @@ private:
         //       a "BIOS setup" screen where all DOSBox configuration options can be
         //       modified, with the same look and feel of an old BIOS.
 
+#if C_EMSCRIPTEN
+        Bit32u lasttick=GetTicks();
+        while ((GetTicks()-lasttick)<1000) {
+            void CALLBACK_Idle(void);
+            CALLBACK_Idle();
+            emscripten_sleep_with_yield(100);
+        }
+#else
         if (!control->opt_fastbioslogo) {
             bool wait_for_user = false;
             Bit32u lasttick=GetTicks();
@@ -6663,10 +6673,6 @@ private:
             }
 
             while (wait_for_user) {
-#if C_EMSCRIPTEN
-                emscripten_sleep_with_yield(0);
-#endif
-
                 if (machine == MCH_PC98) {
                     reg_eax = 0x0000;   // read key
                     CALLBACK_RunRealInt(0x18);
@@ -6680,6 +6686,7 @@ private:
                     break;
             }
         }
+#endif
 
         if (machine == MCH_PC98) {
             reg_eax = 0x4100;   // hide the graphics layer (PC-98)

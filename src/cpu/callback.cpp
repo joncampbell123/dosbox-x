@@ -95,7 +95,8 @@ void CALLBACK_DeAllocate(Bitu in) {
 
 void CALLBACK_Idle(void) {
 #if C_EMSCRIPTEN
-    emscripten_sleep_with_yield(0);
+    void GFX_Events();
+    GFX_Events();
 #endif
 
 /* this makes the cpu execute instructions to handle irq's and then come back */
