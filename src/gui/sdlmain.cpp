@@ -6611,6 +6611,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
 
+#if C_EMSCRIPTEN
+    control->opt_debug = true;
+    control->opt_earlydebug = true;
+#endif
+
     bitop::self_test();
     ptrop::self_test();
 

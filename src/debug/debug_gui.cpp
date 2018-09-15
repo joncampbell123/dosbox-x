@@ -607,8 +607,16 @@ void DEBUG_ShowMsg(char const* format,...) {
 		fflush(debuglog);
 	}
 	if (stderrlog) {
+#if C_EMSCRIPTEN
+        /* Emscripten routes stderr to the browser console.error() function, and
+         * stdout to a console window below ours on the browser page. We want the
+         * user to see our blather, so print to stdout */
+		fprintf(stdout,"LOG: %s\n",buf);
+		fflush(stdout);
+#else
 		fprintf(stderr,"LOG: %s\n",buf);
 		fflush(stderr);
+#endif
 	}
 
 #if C_DEBUG
