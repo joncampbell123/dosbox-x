@@ -40,6 +40,10 @@
 #include "setup.h"
 #include "menu.h"
 
+#if C_EMSCRIPTEN
+# include <emscripten.h>
+#endif
+
 #include <map>
 
 std::map<std::string,std::string> pending_string_binds;
@@ -3555,7 +3559,15 @@ void BIND_MappingEvents(void) {
     if (GUI_JoystickCount()>0) SDL_JoystickUpdate();
     MAPPER_UpdateJoysticks();
 
+#if C_EMSCRIPTEN
+    emscripten_sleep_with_yield(0);
+#endif
+
     while (SDL_PollEvent(&event)) {
+#if C_EMSCRIPTEN
+        emscripten_sleep_with_yield(0);
+#endif
+
         switch (event.type) {
 #if defined(C_SDL2)
         case SDL_FINGERUP:
@@ -3876,6 +3888,10 @@ void MAPPER_RunInternal() {
     SDL_JoystickEventState(SDL_ENABLE);
 #endif
     while (!mapper.exit) {
+#if C_EMSCRIPTEN
+        emscripten_sleep_with_yield(0);
+#endif
+
         if (mapper.redraw) {
             mapper.redraw=false;        
             DrawButtons();

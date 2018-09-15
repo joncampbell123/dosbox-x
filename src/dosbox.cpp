@@ -75,6 +75,10 @@
 #include "parport.h"
 #include "clockdomain.h"
 
+#if C_EMSCRIPTEN
+# include <emscripten.h>
+#endif
+
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -1640,11 +1644,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(cputype_values);
     Pstring->Set_help("CPU Type used in emulation. auto emulates a 486 which tolerates Pentium instructions.");
 
-#if defined(C_EMSCRIPTEN)
-    Pmulti_remain = secprop->Add_multiremain("cycles",Property::Changeable::Always,"3000");
-#else
     Pmulti_remain = secprop->Add_multiremain("cycles",Property::Changeable::Always," ");
-#endif
     Pmulti_remain->Set_help(
         "Amount of instructions DOSBox tries to emulate each millisecond.\n"
         "Setting this value too high results in sound dropouts and lags.\n"

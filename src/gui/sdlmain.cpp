@@ -73,6 +73,10 @@ void GFX_OpenGLRedrawScreen(void);
 #include "sdlmain.h"
 #include "zipfile.h"
 
+#if C_EMSCRIPTEN
+# include <emscripten.h>
+#endif
+
 #include "../src/libs/gui_tk/gui_tk.h"
 
 #ifdef __WIN32__
@@ -702,7 +706,13 @@ void PauseDOSBox(bool pressed) {
 #endif
 
     while (paused) {
+#if C_EMSCRIPTEN
+        emscripten_sleep_with_yield(0);
+        SDL_PollEvent(&event);
+#else
         SDL_WaitEvent(&event);    // since we're not polling, cpu usage drops to 0.
+#endif
+
 #ifdef __WIN32__
   #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         if (event.type==SDL_SYSWMEVENT && event.syswm.msg->msg == WM_COMMAND && event.syswm.msg->wParam == (mainMenu.get_item("mapper_pause").get_master_id()+DOSBoxMenu::winMenuMinimumID)) {
@@ -2355,6 +2365,10 @@ void GFX_OpenGLRedrawScreen(void) {
 }
 
 void GFX_EndUpdate(const Bit16u *changedLines) {
+#if C_EMSCRIPTEN
+    emscripten_sleep_with_yield(0);
+#endif
+
     /* don't present our output if 3Dfx is in OpenGL mode */
     if (sdl.desktop.prevent_fullscreen)
         return;
@@ -3463,7 +3477,12 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
                 /* fall into another loop to process the menu */
                 while (runloop) {
+#if C_EMSCRIPTEN
+                    emscripten_sleep_with_yield(0);
+                    if (!SDL_PollEvent(&event)) continue;
+#else
                     if (!SDL_WaitEvent(&event)) break;
+#endif
 
 #if defined(C_SDL2)
                     switch (event.type) {
@@ -4492,6 +4511,10 @@ void GFX_Events() {
 
     GFX_EventsMouse();
 
+#if C_EMSCRIPTEN
+    emscripten_sleep_with_yield(0);
+#endif
+
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
         case SDL_WINDOWEVENT:
@@ -4545,8 +4568,13 @@ void GFX_Events() {
 //                  }
 
                     while (paused) {
+#if C_EMSCRIPTEN
+                        emscripten_sleep_with_yield(0);
+                        SDL_PollEvent(&ev);
+#else
                         // WaitEvent waits for an event rather than polling, so CPU usage drops to zero
                         SDL_WaitEvent(&ev);
+#endif
 
                         switch (ev.type) {
                         case SDL_QUIT:
@@ -4641,6 +4669,10 @@ void GFX_Events() {
 #endif
 
     GFX_EventsMouse();
+
+#if C_EMSCRIPTEN
+    emscripten_sleep_with_yield(0);
+#endif
 
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
@@ -4742,8 +4774,13 @@ void GFX_Events() {
 //                  }
 
                     while (paused) {
+#if C_EMSCRIPTEN
+                        emscripten_sleep_with_yield(0);
+                        SDL_PollEvent(&ev);
+#else
                         // WaitEvent waits for an event rather than polling, so CPU usage drops to zero
                         SDL_WaitEvent(&ev);
+#endif
 
                         switch (ev.type) {
                         case SDL_QUIT: throw(0); break; // a bit redundant at linux at least as the active events gets before the quit event.

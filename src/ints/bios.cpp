@@ -45,6 +45,10 @@ extern bool PS1AudioCard;
 #include <time.h>
 #include <sys/timeb.h>
 
+#if C_EMSCRIPTEN
+# include <emscripten.h>
+#endif
+
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 # pragma warning(disable:4305) /* truncation from double to float */
@@ -6659,6 +6663,10 @@ private:
             }
 
             while (wait_for_user) {
+#if C_EMSCRIPTEN
+                emscripten_sleep_with_yield(0);
+#endif
+
                 if (machine == MCH_PC98) {
                     reg_eax = 0x0000;   // read key
                     CALLBACK_RunRealInt(0x18);
