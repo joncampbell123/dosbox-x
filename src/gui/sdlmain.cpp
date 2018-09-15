@@ -2871,8 +2871,10 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
     item->set_text("Reset guest system");
 
+#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","ShutDown", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
     item->set_text("Quit");
+#endif
 
     MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Cap Mouse", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
     item->set_text("Capture mouse");
@@ -2880,8 +2882,10 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(SwitchFullScreen,MK_f,MMODHOST,"fullscr","Fullscreen", &item);
     item->set_text("Toggle fullscreen");
 
+#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     MAPPER_AddHandler(Restart,MK_nothing,0,"restart","Restart", &item); /* This is less useful, and now has no default binding */
     item->set_text("Restart DOSBox-X");
+#endif
 
     void PasteClipboard(bool bPressed); // emendelson from dbDOS adds MMOD2 to this for Ctrl-Alt-F5 for PasteClipboard
     MAPPER_AddHandler(PasteClipboard, MK_nothing, 0, "paste", "Paste Clipboard"); //end emendelson
@@ -6053,7 +6057,10 @@ bool VM_PowerOn() {
     return true;
 }
 
+#if !defined(C_EMSCRIPTEN)
 void update_capture_fmt_menu(void);
+#endif
+
 bool capture_fmt_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem);
 
 void update_pc98_clock_pit_menu(void) {
@@ -6461,18 +6468,22 @@ bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::it
 }
 
 bool show_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+#if !defined(C_EMSCRIPTEN)
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     DOSBox_ShowConsole();
     mainMenu.get_item("show_console").check(true).refresh_item(mainMenu);
+#endif
     return true;
 }
 
 bool wait_on_error_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+#if !defined(C_EMSCRIPTEN)
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     sdl.wait_on_error = !sdl.wait_on_error;
     mainMenu.get_item("wait_on_error").check(sdl.wait_on_error).refresh_item(mainMenu);
+#endif
     return true;
 }
 
@@ -7216,6 +7227,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 }
             }
         }
+#if !defined(C_EMSCRIPTEN)
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureMenu");
             item.set_text("Capture");
@@ -7233,6 +7245,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
             }
         }
+#endif
 
         /* more */
         {
@@ -7375,7 +7388,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 
         /* more */
+#if !defined(C_EMSCRIPTEN)
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show console").set_callback_function(show_console_menu_callback);
+#endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlesc").set_text("Ctrl+Esc").set_callback_function(sendkey_preset_menu_callback);
@@ -7414,11 +7429,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);
         mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
+#if !defined(C_EMSCRIPTEN)
         mainMenu.get_item("show_console").check(showconsole_init).refresh_item(mainMenu);
+#endif
 
         OutputSettingMenuUpdate();
         update_pc98_clock_pit_menu();
+#if !defined(C_EMSCRIPTEN)
         update_capture_fmt_menu();
+#endif
 
         /* The machine just "powered on", and then reset finished */
         if (!VM_PowerOn()) E_Exit("VM failed to power on");

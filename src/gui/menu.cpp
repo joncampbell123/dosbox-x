@@ -622,7 +622,9 @@ static const char *def_menu__toplevel[] = {
     "VideoMenu",
     "SoundMenu",
     "DOSMenu",
+#if !defined(C_EMSCRIPTEN)
     "CaptureMenu",
+#endif
     NULL
 };
 
@@ -633,13 +635,15 @@ static const char *def_menu_main[] = {
 	"--",
     "MainSendKey",
 	"--",
+#if !defined(C_EMSCRIPTEN)
 	"wait_on_error",
+#endif
     "showdetails",
 #if C_DEBUG
 	"--",
 	"mapper_debugger",
 #endif
-#if !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS)
+#if !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "show_console",
 #endif
     "--",
@@ -649,12 +653,16 @@ static const char *def_menu_main[] = {
 	"mapper_pause",
     "--",
     "mapper_reset",
+#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
 	"--",
-#if !defined(HX_DOS)
+#endif
+#if !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
 	"mapper_restart",
     "--",
 #endif
+#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     "mapper_shutdown",
+#endif
     NULL
 };
 
@@ -889,6 +897,7 @@ static const char *def_menu_capture[] = {
     "mapper_scrshot",
     "--",
 #endif
+#if !defined(C_EMSCRIPTEN)
     "CaptureFormatMenu",
     "--",
     "mapper_video",
@@ -896,9 +905,11 @@ static const char *def_menu_capture[] = {
     "mapper_recmtwave",
     "mapper_caprawopl",
     "mapper_caprawmidi",
+#endif
     NULL
 };
 
+#if !defined(C_EMSCRIPTEN)
 /* capture format menu ("CaptureFormatMenu") */
 static const char *def_menu_capture_format[] = {
     "capture_fmt_avi_zmbv",
@@ -907,6 +918,7 @@ static const char *def_menu_capture_format[] = {
 #endif
     NULL
 };
+#endif
 
 static DOSBoxMenu::item_handle_t separator_alloc = 0;
 static std::vector<DOSBoxMenu::item_handle_t> separators;
@@ -1045,11 +1057,15 @@ void ConstructMenu(void) {
     /* DOS PC-98 menu */
     ConstructSubMenu(mainMenu.get_item("DOSPC98Menu").get_master_id(), def_menu_dos_pc98);
 
+#if !defined(C_EMSCRIPTEN)
     /* capture menu */
     ConstructSubMenu(mainMenu.get_item("CaptureMenu").get_master_id(), def_menu_capture);
+#endif
 
+#if !defined(C_EMSCRIPTEN)
     /* capture format menu */
     ConstructSubMenu(mainMenu.get_item("CaptureFormatMenu").get_master_id(), def_menu_capture_format);
+#endif
 }
 
 bool MENU_SetBool(std::string secname, std::string value) {
