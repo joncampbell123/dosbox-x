@@ -7402,8 +7402,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         void ConstructMenu(void);
         ConstructMenu();
 
+#if 0
         mainMenu.dump_log_debug(); /*DEBUG*/
-
+#endif
         mainMenu.rebuild();
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
