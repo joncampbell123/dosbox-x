@@ -1132,7 +1132,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("acpi reserved size", Property::Changeable::WhenIdle,0);
     Pint->Set_help("Amount of memory at top to reserve for ACPI structures and tables. Set to 0 for automatic assignment.");
 
+#if defined(C_EMSCRIPTEN)
+    Pint = secprop->Add_int("memsize", Property::Changeable::WhenIdle,4);
+#else
     Pint = secprop->Add_int("memsize", Property::Changeable::WhenIdle,16);
+#endif
     Pint->SetMinMax(1,511);
     Pint->Set_help(
         "Amount of memory DOSBox has in megabytes.\n"
@@ -1636,7 +1640,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(cputype_values);
     Pstring->Set_help("CPU Type used in emulation. auto emulates a 486 which tolerates Pentium instructions.");
 
+#if defined(C_EMSCRIPTEN)
+    Pmulti_remain = secprop->Add_multiremain("cycles",Property::Changeable::Always,"3000");
+#else
     Pmulti_remain = secprop->Add_multiremain("cycles",Property::Changeable::Always," ");
+#endif
     Pmulti_remain->Set_help(
         "Amount of instructions DOSBox tries to emulate each millisecond.\n"
         "Setting this value too high results in sound dropouts and lags.\n"
