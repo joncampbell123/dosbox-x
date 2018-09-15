@@ -1,4 +1,5 @@
 (next version)
+  - Experimental Emscripten + Node target (not reliable yet).
   - Added option to control how unhandled IRQs are dealt with.
     One option, mask_isr, is derived from em-dosbox.
   - Code added to read the screen dimensions in Linux/X11,
