@@ -168,8 +168,13 @@ CFLAGS=["`echo $CFLAGS' ' | sed -e 's/-O[^ ]* //g'`"]
 CXXFLAGS=["`echo $CXXFLAGS' ' | sed -e 's/-O[^ ]* //g'`"]
 
 if test x$enable_optimize != xno; then
-	CFLAGS="$CFLAGS -O2"
-	CXXFLAGS="$CXXFLAGS -O2"
+    if test x$enable_emscripten == xyes; then
+	    CFLAGS="$CFLAGS -Os"
+	    CXXFLAGS="$CXXFLAGS -Os"
+    else
+	    CFLAGS="$CFLAGS -O2"
+	    CXXFLAGS="$CXXFLAGS -O2"
+    fi
 fi
 
 if test x$enable_emscripten == xyes; then
