@@ -47,7 +47,7 @@ endif
 
 if EMSCRIPTEN
 dosbox_x_js:
-	emcc -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1 $(dosbox_x_OBJECTS) $(dosbox_x_LDADD) $(LIBS) $(dosbox_x_OBJECTS) $(dosbox_x_DEPENDENCIES) $(EXTRA_dosbox_x_DEPENDENCIES) -o dosbox-x.html
+	emcc -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1 -s EMTERPRETIFY_WHITELIST=@d3.txt $(dosbox_x_OBJECTS) $(dosbox_x_LDADD) $(LIBS) $(dosbox_x_OBJECTS) $(dosbox_x_DEPENDENCIES) $(EXTRA_dosbox_x_DEPENDENCIES) -o dosbox-x.html
 
 dosbox_x_js_install:
 	sudo cp -v dosbox-x.html dosbox-x.js dosbox-x.wasm /var/www/html/em/
