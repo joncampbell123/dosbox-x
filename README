@@ -493,6 +493,17 @@ design as implemented now cannot accomodate.
     - FM Towns emulation (machine=fm_towns)
 
 
+Known DOSBox-X forks
+--------------------
+
+DOSBox-X Emscripten port (runnable in a web browser) by Yksoft1.
+Significant changes are made in order to run efficiently within the web browser when compiled using LLVM/Emscripten.
+These significant changes require dropping some useful features (including the menus) but are required for performance.
+
+url: https://github.com/yksoft1/dosbox-x-vanilla-sdl/tree/emscripten (look for clone URL and use the emscripten branch)
+
+
+
 Origins, and crediting of source code
 -------------------------------------
 
