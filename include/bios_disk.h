@@ -20,6 +20,7 @@
 #define DOSBOX_BIOS_DISK_H
 
 #include <stdio.h>
+#include <stdlib.h>
 #ifndef DOSBOX_MEM_H
 #include "mem.h"
 #endif

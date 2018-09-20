@@ -22,6 +22,7 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#include <limits.h>
 
 #include "dosbox.h"
 #include "dos_inc.h"
