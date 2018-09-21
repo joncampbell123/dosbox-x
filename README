@@ -606,7 +606,7 @@ PC-98 video rendering and I/O handling code (written by myself; GPLv2+)
 3dfx Voodoo Graphics SST-1/2 emulation (Aaron Giles; BSD 3-clause)
   src/hardware/voodoo_emu.cpp
 
-PC-98 FM board emulation (Neko Project II; no license)
+PC-98 FM board emulation (Neko Project II; BSD 3-clause)
   src/hardware/snd_pc98/*
 
 QCOW image support (Michael Greger; GPLv2+)
