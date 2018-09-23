@@ -744,8 +744,12 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
     int remains;
     Bit32s *in;
 
-    if (mixer.mute)
-        mixer.work_in = mixer.work_out = 0;
+    if (mixer.mute) {
+        if ((CaptureState & (CAPTURE_WAVE|CAPTURE_VIDEO|CAPTURE_MULTITRACK_WAVE)) != 0)
+            mixer.work_out = mixer.work_in;
+        else
+            mixer.work_out = mixer.work_in = 0;
+    }
 
     if (mixer.prebuffer_wait) {
         remains = (int)mixer.work_in - (int)mixer.work_out;
@@ -756,7 +760,7 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
             mixer.prebuffer_wait = false;
     }
 
-    if (!mixer.prebuffer_wait) {
+    if (!mixer.prebuffer_wait && !mixer.mute) {
         in = &mixer.work[mixer.work_out][0];
         while (need > 0) {
             if (mixer.work_out == mixer.work_in) break;
