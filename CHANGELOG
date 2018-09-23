@@ -1,4 +1,7 @@
 (next version)
+  - Audio/video capture fixed to render audio even if muted,
+    instead of rendering garbage to the capture file when
+    audio is muted.
   - Experimental Emscripten + Node target (not reliable yet).
   - Added option to control how unhandled IRQs are dealt with.
     One option, mask_isr, is derived from em-dosbox.
