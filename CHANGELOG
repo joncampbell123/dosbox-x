@@ -1,4 +1,10 @@
 (next version)
+  - Added "Emulation halt". When enabled, the CPU is directed
+    into a CALLBACK_Idle() loop to halt the game's main
+    logic while allowing interrupts to run. This is useful
+    for recording the game or demo's music because most DOS
+    games/demos run the music and sound effects from interrupt
+    handlers instead of the main loop.
   - Audio/video capture fixed to render audio even if muted,
     instead of rendering garbage to the capture file when
     audio is muted.
