@@ -6456,6 +6456,29 @@ bool scaler_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     return true;
 }
 
+void CALLBACK_Idle(void);
+
+bool emuhalt_run = false;
+
+void EmuHalt(Bitu /*val*/) {
+    while (emuhalt_run) CALLBACK_Idle();
+}
+
+bool emuhalt_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    if (!emuhalt_run) {
+        emuhalt_run = true;
+        PIC_AddEvent(EmuHalt,0.001);
+    }
+    else {
+        emuhalt_run = false;
+    }
+
+    return true;
+}
+
 bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
 
@@ -7064,6 +7087,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"MainSendKey");
                 item.set_text("Send Key");
             }
+#if !defined(C_EMSCRIPTEN)
+            {
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"emu_halt").
+                    set_text("Halt emulation (non-interrupt)").
+                    set_callback_function(emuhalt_menu_callback);
+            }
+#endif
         }
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CpuMenu");
