@@ -1759,3 +1759,40 @@ known to function differently, such as the
 Tseng ET3000/ET4000 chipsets known to operate
 VGA Mode X differently from standard VGA.
 
+VGA planar memory is handled in the code by
+typecasting video RAM as a 32-bit unsigned int
+(uint32_t) determined by an index directly
+computed from the planar byte offset.
+
+All EGA/VGA modes are mapped on top of this
+planar memory structure, in the same way that
+real hardware maps it. This includes text
+mode (planes 0 & 1 for char/attribute),
+CGA modes (planes 0 & 1 for even/odd bytes),
+and 256-color mode (every 4 pixels is one
+planar byte, and the pixel in that group
+is mapped to a plane).
+
+The code as written depends on a host CPU
+that is little endian, including bit masks
+and shift operations. Bitmask computation
+will need to be altered to work correctly
+on big endian systems in order to work
+correctly through the uint32_t typecast.
+
+To aid with planar memory, a VGA_Latch
+union is defined that allows the uint32_t
+to be accessed as one whole unit or
+individual bytes of video memory from the
+base of the bitplane up.
+
+The uint32_t masks and shifting should be
+maintained so that b[0] to b[3] refer to
+the same bytes of video memory. Only uint32_t
+should be handled differently to accomodate
+host byte order.
+
+For more information, see vga/hardware/vga_memory.cpp
+and vga/hardware/vga.cpp where these bitmasks
+are computed and used.
+
