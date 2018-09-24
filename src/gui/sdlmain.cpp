@@ -6461,6 +6461,15 @@ void CALLBACK_Idle(void);
 bool emuhalt_run = false;
 
 void EmuHalt(Bitu /*val*/) {
+    /* we can ONLY do this when the CPU is either in real mode or v86 mode.
+     * doing this from protected mode will only crash the game. */
+	if (cpu.pmode) {
+        if (!(reg_flags & FLAG_VM)) {
+            PIC_AddEvent(EmuHalt,0.1);
+            return;
+        }
+    }
+
     while (emuhalt_run) CALLBACK_Idle();
 }
 
