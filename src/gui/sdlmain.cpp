@@ -6476,6 +6476,8 @@ bool emuhalt_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menu
         emuhalt_run = false;
     }
 
+    mainMenu.get_item("emu_halt").check(emuhalt_run).refresh_item(mainMenu);
+
     return true;
 }
 
