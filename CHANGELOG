@@ -1,4 +1,6 @@
 (next version)
+  - Added "gus master volume" setting to deal with games or
+    demoscene productions where the music is too loud and clipping.
   - Added "Pause with interrupts". When enabled, the CPU is directed
     into a CALLBACK_Idle() loop to halt the game's main
     logic while allowing interrupts to run. This is useful
