@@ -6462,12 +6462,18 @@ bool pausewithinterrupts_enable = false;
 
 void PauseWithInterruptsEnabled(Bitu /*val*/) {
     /* we can ONLY do this when the CPU is either in real mode or v86 mode.
-     * doing this from protected mode will only crash the game. */
+     * doing this from protected mode will only crash the game.
+     * also require that interrupts are enabled before pausing. */
 	if (cpu.pmode) {
         if (!(reg_flags & FLAG_VM)) {
-            PIC_AddEvent(PauseWithInterruptsEnabled,0.1);
+            PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
             return;
         }
+    }
+
+    if (!(reg_flags & FLAG_IF)) {
+        PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
+        return;
     }
 
     while (pausewithinterrupts_enable) CALLBACK_Idle();
