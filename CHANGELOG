@@ -1,5 +1,5 @@
 (next version)
-  - Added "Emulation halt". When enabled, the CPU is directed
+  - Added "Pause with interrupts". When enabled, the CPU is directed
     into a CALLBACK_Idle() loop to halt the game's main
     logic while allowing interrupts to run. This is useful
     for recording the game or demo's music because most DOS
