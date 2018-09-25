@@ -652,7 +652,7 @@ static const char *def_menu_main[] = {
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
 	"--",
 	"mapper_pause",
-	"emu_halt",
+	"mapper_pauseints",
 #endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",

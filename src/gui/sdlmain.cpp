@@ -6458,36 +6458,33 @@ bool scaler_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 
 void CALLBACK_Idle(void);
 
-bool emuhalt_run = false;
+bool pausewithinterrupts_enable = false;
 
-void EmuHalt(Bitu /*val*/) {
+void PauseWithInterruptsEnabled(Bitu /*val*/) {
     /* we can ONLY do this when the CPU is either in real mode or v86 mode.
      * doing this from protected mode will only crash the game. */
 	if (cpu.pmode) {
         if (!(reg_flags & FLAG_VM)) {
-            PIC_AddEvent(EmuHalt,0.1);
+            PIC_AddEvent(PauseWithInterruptsEnabled,0.1);
             return;
         }
     }
 
-    while (emuhalt_run) CALLBACK_Idle();
+    while (pausewithinterrupts_enable) CALLBACK_Idle();
 }
 
-bool emuhalt_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
+void PauseWithInterrupts_mapper_shortcut(bool pressed) {
+    if (!pressed) return;
 
-    if (!emuhalt_run) {
-        emuhalt_run = true;
-        PIC_AddEvent(EmuHalt,0.001);
+    if (!pausewithinterrupts_enable) {
+        pausewithinterrupts_enable = true;
+        PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
     }
     else {
-        emuhalt_run = false;
+        pausewithinterrupts_enable = false;
     }
 
-    mainMenu.get_item("emu_halt").check(emuhalt_run).refresh_item(mainMenu);
-
-    return true;
+    mainMenu.get_item("mapper_pauseints").check(pausewithinterrupts_enable).refresh_item(mainMenu);
 }
 
 bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
@@ -7098,13 +7095,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"MainSendKey");
                 item.set_text("Send Key");
             }
-#if !defined(C_EMSCRIPTEN)
-            {
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"emu_halt").
-                    set_text("Halt emulation (non-interrupt)").
-                    set_callback_function(emuhalt_menu_callback);
-            }
-#endif
         }
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CpuMenu");
@@ -7298,6 +7288,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "TogMenu", &item);
             item->set_text("Hide/show menu bar");
             item->check(!menu.toggle);
+
+            MAPPER_AddHandler(&PauseWithInterrupts_mapper_shortcut, MK_nothing, 0, "pauseints", "PauseInts", &item);
+            item->set_text("Pause with interrupts enabled");
         }
 
         /* Start up main machine */
