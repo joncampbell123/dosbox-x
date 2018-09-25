@@ -137,6 +137,15 @@ struct GFGus {
 	Bit8u IRQChan;
 	Bit32u RampIRQ;
 	Bit32u WaveIRQ;
+    double masterVolume;    /* decibels */
+    Bit32s masterVolumeMul; /* 1<<9 fixed */
+
+    void updateMasterVolume(void) {
+        double vol = masterVolume;
+        if (vol > 6) vol = 6; // allow some amplification but don't let it overflow
+        masterVolumeMul = (Bit32s)((1 << 9) * pow(10.0,vol / 20.0));
+        if (AutoAmp > masterVolumeMul) AutoAmp = masterVolumeMul;
+    }
 } myGUS;
 
 Bitu DEBUG_EnableDebugger(void);
@@ -1914,7 +1923,7 @@ static void GUS_CallBack(Bitu len) {
             sample=-32768;
             if (enable_autoamp) AutoAmp -= 4; /* dampen faster than recovery */
         }
-        else if (AutoAmp < 512) {
+        else if (AutoAmp < myGUS.masterVolumeMul) {
             AutoAmp++; /* recovery back to 100% normal volume */
         }
 
@@ -2116,6 +2125,12 @@ public:
 			LOG(LOG_MISC,LOG_WARN)("GUS emulation warning: %uKB onboard is an unusual value. Usually GUS cards have some multiple of 256KB RAM onboard",myGUS.memsize>>10);
 
 		LOG(LOG_MISC,LOG_DEBUG)("GUS emulation: %uKB onboard",myGUS.memsize>>10);
+
+        // some demoscene stuff has music that's way too loud if we render at full volume.
+        // the GUS mixer emulation won't fix it because it changes the volume at the Mixer
+        // level AFTER the code has rendered and clipped samples to 16-bit range.
+        myGUS.masterVolume = section->Get_double("gus master volume");
+        myGUS.updateMasterVolume();
 
 		// FIXME: HUH?? Read the port number and subtract 0x200, then use GUS_BASE
 		// in other parts of the code to compare against 0x200 and 0x300? That's confusing. Fix!

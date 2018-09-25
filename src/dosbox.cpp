@@ -2117,6 +2117,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(-1,1024);
     Pint->Set_help("Amount of RAM on the Gravis Ultrasound in KB. Set to -1 for default.");
 
+    Pdouble = secprop->Add_double("gus master volume",Property::Changeable::WhenIdle,0);
+    Pdouble->SetMinMax(-120.0,6.0);
+    Pdouble->Set_help("Master Gravis Ultrasound GF1 volume, in decibels. Reducing the master volume can help with games or demoscene productions where the music is too loud and clipping");
+
     Phex = secprop->Add_hex("gusbase",Property::Changeable::WhenIdle,0x240);
     Phex->Set_values(iosgus);
     Phex->Set_help("The IO base address of the Gravis Ultrasound.");
