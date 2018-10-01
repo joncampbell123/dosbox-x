@@ -626,6 +626,7 @@ void CAPTURE_VideoEvent(bool pressed) {
 
 	mainMenu.get_item("mapper_video").check(!!(CaptureState & CAPTURE_VIDEO)).refresh_item(mainMenu);
 }
+#endif
 
 void CAPTURE_StartCapture(void) {
 #if (C_SSHOT)
@@ -677,6 +678,7 @@ void CAPTURE_StopMTWave(void) {
 #endif
 }
 
+#if (C_SSHOT)
 extern uint32_t GFX_palette32bpp[256];
 #endif
 
