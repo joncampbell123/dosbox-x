@@ -1,3 +1,5 @@
+# Community guidelines
+
 # Code of Merit
 
 1. The project creators, lead developers, core team, constitute
