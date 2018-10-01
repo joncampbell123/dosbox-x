@@ -1,31 +1,52 @@
-# Community guidelines
+# Code of Merit
 
-Be fair, and cooperate. This is a open source project where anyone with an interest in MS-DOS, emulation, and/or DOSBox-X is welcome to talk, chat, develop, and contribute to the project.
+1. The project creators, lead developers, core team, constitute
+the managing members of the project and have final say in every decision
+of the project, technical or otherwise, including overruling previous decisions.
+There are no limitations to this decisional power.
 
-Leave your politics at the door. The focus of this project is DOSBox-X and topics related to it including emulation, games, software, hardware, accuracy, code, development, and documentation. Anything else is off-topic and will be treated as such.
+2. Contributions are an expected result of your membership on the project.
+Don't expect others to do your work or help you with your work forever. 
 
-I (Jonathan Campbell) will block users from this project that are hostile to this project, it's developers, and/or users with an explicit explanation as to why. That includes threats, slander, gossip, doxxing, and spreading misinformation about myself and/or other users of this project, whether here or anywhere else, on the internet or in real life.
+3. All members have the same opportunities to seek any challenge they want
+within the project. 
 
-Humor and jokes are welcome as long as they are on-topic. This is a fun hobby project where enthusiasts can get together to hack, modify, explore and share a common interest in this project and the aforementioned topics listed above.
+4. Authority or position in the project will be proportional
+to the accrued contribution. Seniority must be earned.
 
-I (Jonathan Campbell), as the owner of this project, reserve the right to block users from this project that violate this Code of Conduct or otherwise disrupt this project according to my judgement. Other users whom I have given access to do so, may block users from this project that explicitly violate this Code of Conduct.
+5. Software is evolutive: the better implementations must supersede lesser
+implementations. Technical advantage is the primary evaluation metric.
 
-This Code of Conduct is applicable to the DOSBox-X project at https://github.com/joncampbell123/dosbox-x. Forks and projects derived from https://github.com/joncampbell123/dosbox-x may have their own Code of Conduct independent of the main DOSBox-X project, to be upheld and maintained by the owner of that repository only within the domain of that repository. The fork or derived project is free to allow or block users according to the whims and policy of the repository owner, independent of the main DOSBox-X project.
+6. This is a space for technical prowess; topics outside of the project
+will not be tolerated.
 
-Participation in this project is always voluntary. There is no requirement or obligation to work on this project continuously or in a consistent manner, or at all.
+7. Non technical conflicts will be discussed in a separate space. Disruption
+of the project will not be allowed.
 
-Definition of terms:
-* [Anyone, any person at all](https://www.merriam-webster.com/dictionary/anyone)
-* [Person, human, individual](https://www.merriam-webster.com/dictionary/person)
-* [Interest, a quality in a thing arousing interest](https://www.merriam-webster.com/dictionary/interest)
-* [Focus, directed attention](https://www.merriam-webster.com/dictionary/focus)
-* [Hostile, marked by malevolence, of an enemy, openly opposed, not hospitable](https://www.merriam-webster.com/dictionary/hostile)
-* [Threats, an expression of intention to inflict evil, injury, or damage](https://www.merriam-webster.com/dictionary/threats)
-* [Slander, to utter slander against, defame](https://www.merriam-webster.com/dictionary/slander)
-* [Defame, to harm the reputation of by communicating false statements about : to harm the reputation of by libel](https://www.merriam-webster.com/dictionary/defame)
-* [Gossip, rumor or report of an intimate nature](https://www.merriam-webster.com/dictionary/gossip)
-* [Dox, to publicly identify or publish private information about (someone) especially as a form of punishment or revenge](https://www.merriam-webster.com/dictionary/dox)
-* [Enthusiast, one who tends to become ardently absorbed in an interest](https://www.merriam-webster.com/dictionary/enthusiast)
-* [Joke, something said or done to provoke laughter; especially : a brief oral narrative with a climactic humorous twist, something not to be taken seriously : a trifling matter](https://www.merriam-webster.com/dictionary/joke)
-* [Humor, something that is or is designed to be comical or amusing](https://www.merriam-webster.com/dictionary/humor)
-* [Hobby, an activity or interest pursued for pleasure or relaxation and not as a main occupation](http://www.dictionary.com/browse/hobby)
+8. Individual characteristics, including but not limited to,
+body, sex, sexual preference, race, language, religion, nationality,
+or political preferences are irrelevant in the scope of the project and
+will not be taken into account concerning your value or that of your contribution
+to the project.
+
+9. Discuss or debate the idea, not the person.
+
+10. There is no room for ambiguity: Ambiguity will be met with questioning;
+further ambiguity will be met with silence. It is the responsibility
+of the originator to provide requested context.
+
+11. If something is illegal outside the scope of the project, it is illegal
+in the scope of the project. This Code of Merit does not take precedence over
+governing law.
+
+12. This Code of Merit governs the technical procedures of the project not the 
+activities outside of it. 
+
+13. Participation on the project equates to agreement of this Code of Merit.
+
+14. No objectives beyond the stated objectives of this project are relevant
+to the project. Any intent to deviate the project from its original purpose
+of existence will constitute grounds for remedial action which may include
+expulsion from the project.
+
+This document is the Code of Merit (http://code-of-merit.org), version 1.0.
