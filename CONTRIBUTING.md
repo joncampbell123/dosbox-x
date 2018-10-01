@@ -28,4 +28,8 @@ Recommendations about coding:
 
 Obviously when you'll dig in, you will quickly spot that there are many places where these rules are simply not followed ! Over the years, hundreds of people have worked on DOSBox (which DOSBox-X is a fork of), while that helped to raise this project to where it is today, it certainly didn't in terms of clean code. But keep the faith, a huge code cleanup endeavor has started with the goal to raise the metrics of DOSBox-X guts, hopefully ASAP.
 
+## Code of Conduct
+
+Please read CODE_OF_CONDUCT.md
+
 That said, welcome to this repository !
