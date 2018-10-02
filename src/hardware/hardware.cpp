@@ -1873,10 +1873,12 @@ void HARDWARE_Init() {
 
 #if !defined(C_EMSCRIPTEN)
 void update_capture_fmt_menu(void) {
+# if (C_SSHOT)
     mainMenu.get_item("capture_fmt_avi_zmbv").check(native_zmbv).refresh_item(mainMenu);
-#if (C_AVCODEC)
+#  if (C_AVCODEC)
     mainMenu.get_item("capture_fmt_mpegts_h264").check(export_ffmpeg).refresh_item(mainMenu);
-#endif
+#  endif
+# endif
 }
 #endif
 

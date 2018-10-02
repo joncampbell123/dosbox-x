@@ -905,8 +905,10 @@ static const char *def_menu_capture[] = {
     "--",
 #endif
 #if !defined(C_EMSCRIPTEN)
+# if (C_SSHOT)
     "CaptureFormatMenu",
     "--",
+# endif
     "mapper_video",
     "mapper_recwave",
     "mapper_recmtwave",
@@ -917,14 +919,16 @@ static const char *def_menu_capture[] = {
 };
 
 #if !defined(C_EMSCRIPTEN)
+# if (C_SSHOT)
 /* capture format menu ("CaptureFormatMenu") */
 static const char *def_menu_capture_format[] = {
     "capture_fmt_avi_zmbv",
-#if (C_AVCODEC)
+#  if (C_AVCODEC)
     "capture_fmt_mpegts_h264",
-#endif
+#  endif
     NULL
 };
+# endif
 #endif
 
 static DOSBoxMenu::item_handle_t separator_alloc = 0;
@@ -1070,8 +1074,10 @@ void ConstructMenu(void) {
 #endif
 
 #if !defined(C_EMSCRIPTEN)
+# if (C_SSHOT)
     /* capture format menu */
     ConstructSubMenu(mainMenu.get_item("CaptureFormatMenu").get_master_id(), def_menu_capture_format);
+# endif
 #endif
 }
 

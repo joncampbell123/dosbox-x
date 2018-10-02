@@ -7269,6 +7269,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureMenu");
             item.set_text("Capture");
         }
+# if (C_SSHOT)
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureFormatMenu");
             item.set_text("Capture format");
@@ -7276,12 +7277,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"capture_fmt_avi_zmbv").set_text("AVI + ZMBV").
                     set_callback_function(capture_fmt_menu_callback);
-#if (C_AVCODEC)
+#  if (C_AVCODEC)
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"capture_fmt_mpegts_h264").set_text("MPEG-TS + H.264").
                     set_callback_function(capture_fmt_menu_callback);
-#endif
+#  endif
             }
         }
+# endif
 #endif
 
         /* more */
