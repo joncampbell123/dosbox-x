@@ -420,7 +420,7 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	ffmpeg_vid_ctx->max_b_frames = 0;
 	ffmpeg_vid_ctx->pix_fmt = ffmpeg_choose_pixfmt(ffmpeg_yuv_format_choice);
 	ffmpeg_vid_ctx->thread_count = 0;		// auto-choose
-	ffmpeg_vid_ctx->flags2 = CODEC_FLAG2_FAST;
+	ffmpeg_vid_ctx->flags2 = AV_CODEC_FLAG2_FAST;
 	ffmpeg_vid_ctx->qmin = 1;
 	ffmpeg_vid_ctx->qmax = 63;
 	ffmpeg_vid_ctx->rc_max_rate = ffmpeg_vid_ctx->bit_rate;
@@ -1080,7 +1080,7 @@ skip_shot:
 			ffmpeg_vid_ctx->max_b_frames = 0;
 			ffmpeg_vid_ctx->pix_fmt = ffmpeg_choose_pixfmt(ffmpeg_yuv_format_choice); // TODO: auto-choose according to what codec says is supported, and let user choose as well
 			ffmpeg_vid_ctx->thread_count = 0;		// auto-choose
-			ffmpeg_vid_ctx->flags2 = CODEC_FLAG2_FAST;
+			ffmpeg_vid_ctx->flags2 = AV_CODEC_FLAG2_FAST;
 			ffmpeg_vid_ctx->qmin = 1;
 			ffmpeg_vid_ctx->qmax = 63;
 			ffmpeg_vid_ctx->rc_max_rate = ffmpeg_vid_ctx->bit_rate;
