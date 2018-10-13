@@ -1,4 +1,9 @@
 (next version)
+  - Gravis Ultrasound emulation will no longer log GUS reset
+    writes in cases where the same value is being written
+    repeatedly, to reduce log clutter. Some demoscene
+    productions have music routines that trigger GUS reset
+    repeatedly without changing the register.
   - Added "gus master volume" setting to deal with games or
     demoscene productions where the music is too loud and clipping.
   - Added "Pause with interrupts". When enabled, the CPU is directed
