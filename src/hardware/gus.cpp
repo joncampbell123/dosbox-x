@@ -510,7 +510,9 @@ static void GUSReset(void) {
 	else
 		myGUS.irqenabled = false;
 
-	LOG(LOG_MISC,LOG_DEBUG)("GUS reset with 0x%04X",myGUS.gRegData);
+    if (GUS_reset_reg ^ p_GUS_reset_reg)
+        LOG(LOG_MISC,LOG_DEBUG)("GUS reset with 0x%04X",myGUS.gRegData);
+
 	if ((myGUS.gRegData & 0x100) == 0x000) {
 		// Stop all channels
 		int i;
