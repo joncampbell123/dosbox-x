@@ -395,34 +395,73 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
             if (ext != NULL) {
                 if (!strcasecmp(ext,".fdi")) {
                     if (imgSizeK >= 160) {
-                        // PC-98 .FDI images appear to be 4096 bytes of unknown and mostly zeros,
-                        // followed by a straight sector dump of the disk.
-                        imgSizeK -= 4; // minus 4K
-                        image_base += 4096; // +4K
-                        image_length -= 4096; // -4K
-                        LOG_MSG("Image file has .FDI extension, assuming 4K offset");
+                        FDIHDR fdihdr;
+
+                        // PC-98 .FDI images appear to be 4096 bytes of a short header and many zeros.
+                        // followed by a straight sector dump of the disk. The header is NOT NECESSARILY
+                        // 4KB in size, but usually is.
+                        LOG_MSG("Image file has .FDI extension, assuming FDI image and will take on parameters in header.");
+
+                        assert(sizeof(fdihdr) == 0x20);
+                        if (fseek(imgFile,0,SEEK_SET) == 0 && ftell(imgFile) == 0 &&
+                            fread(&fdihdr,sizeof(fdihdr),1,imgFile) == 1) {
+                            uint32_t ofs = host_readd(fdihdr.headersize);
+                            uint32_t fddsize = host_readd(fdihdr.fddsize); /* includes header */
+                            uint32_t sectorsize = host_readd(fdihdr.sectorsize);
+
+                            if (sectorsize != 0 && ((sectorsize & (sectorsize - 1)) == 0/*is power of 2*/) &&
+                                sectorsize >= 256 && sectorsize <= 1024 &&
+                                ofs != 0 && (ofs % sectorsize) == 0/*offset is nonzero and multiple of sector size*/ &&
+                                (ofs % 1024) == 0/*offset is a multiple of 1024 because of imgSizeK*/ &&
+                                fddsize >= sectorsize && (fddsize/1024) <= (imgSizeK+4)) {
+
+                                founddisk = true;
+                                sector_size = sectorsize;
+                                imgSizeK -= (ofs / 1024);
+                                image_base = ofs;
+                                image_length -= ofs;
+                                LOG_MSG("FDI header: sectorsize is %u bytes/sector, header is %u bytes, fdd size (plus header) is %u bytes",
+                                    (unsigned int)sectorsize,(unsigned int)ofs,(unsigned int)fddsize);
+
+                                /* take on the geometry. */
+                                sectors = host_readd(fdihdr.sectors);
+                                heads = host_readd(fdihdr.surfaces);
+                                cylinders = host_readd(fdihdr.cylinders);
+                                LOG_MSG("FDI: Geometry is C/H/S %u/%u/%u",
+                                    (unsigned int)cylinders,(unsigned int)heads,(unsigned int)sectors);
+                            }
+                            else {
+                                LOG_MSG("FDI header rejected. sectorsize=%u headersize=%u fddsize=%u",
+                                    (unsigned int)sectorsize,(unsigned int)ofs,(unsigned int)fddsize);
+                            }
+                        }
+                        else {
+                            LOG_MSG("Unable to read .FDI header");
+                        }
                     }
                 }
             }
         }
 
-        while (DiskGeometryList[i].ksize!=0x0) {
-            if ((DiskGeometryList[i].ksize==imgSizeK) ||
-                (DiskGeometryList[i].ksize+1==imgSizeK)) {
-                if (DiskGeometryList[i].ksize!=imgSizeK)
-                    LOG_MSG("ImageLoader: image file with additional data, might not load!");
-                founddisk = true;
-                active = true;
-                floppytype = i;
-                heads = DiskGeometryList[i].headscyl;
-                cylinders = DiskGeometryList[i].cylcount;
-                sectors = DiskGeometryList[i].secttrack;
-                sector_size = DiskGeometryList[i].bytespersect;
-                LOG_MSG("Identified '%s' as C/H/S %u/%u/%u %u bytes/sector",
-                    imgName,cylinders,heads,sectors,sector_size);
-                break;
+        if (sectors == 0 && heads == 0 && cylinders == 0) {
+            while (DiskGeometryList[i].ksize!=0x0) {
+                if ((DiskGeometryList[i].ksize==imgSizeK) ||
+                        (DiskGeometryList[i].ksize+1==imgSizeK)) {
+                    if (DiskGeometryList[i].ksize!=imgSizeK)
+                        LOG_MSG("ImageLoader: image file with additional data, might not load!");
+                    founddisk = true;
+                    active = true;
+                    floppytype = i;
+                    heads = DiskGeometryList[i].headscyl;
+                    cylinders = DiskGeometryList[i].cylcount;
+                    sectors = DiskGeometryList[i].secttrack;
+                    sector_size = DiskGeometryList[i].bytespersect;
+                    LOG_MSG("Identified '%s' as C/H/S %u/%u/%u %u bytes/sector",
+                            imgName,cylinders,heads,sectors,sector_size);
+                    break;
+                }
+                i++;
             }
-            i++;
         }
         if(!founddisk) {
             active = false;
