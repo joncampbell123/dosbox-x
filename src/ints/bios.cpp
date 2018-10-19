@@ -3057,6 +3057,12 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
         /* TODO: 0x0A = Read ID */
         /* TODO: 0x0D = Format track */
         /* TODO: 0x0E = ?? */
+        case 0x03: /* equipment flags update (?) */
+            // TODO: Update the disk equipment flags in BDA.
+            //       For now, make Alantia happy by returning success.
+            reg_ah = 0x00;
+            CALLBACK_SCF(false);
+            break;
         case 0x00: /* seek */
             /* CL = track */
             if (floppy == NULL) {
