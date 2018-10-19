@@ -1013,7 +1013,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
     }
 
     /* NTS: PC-98 floppies (the 1024 byte/sector format) do not have magic bytes */
-    if (getSectSize() == 512) {
+    if (getSectSize() == 512 && !IS_PC98_ARCH) {
         if ((bootbuffer.magic1 != 0x55) || (bootbuffer.magic2 != 0xaa)) {
             /* Not a FAT filesystem */
             LOG_MSG("Loaded image has no valid magicnumbers at the end!");
