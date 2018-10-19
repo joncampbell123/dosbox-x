@@ -1312,7 +1312,39 @@ public:
              * 0xA3FFA      MSW7
              * 0xA3FFE      MSW8
              */
+            // TODO: What does WORD-sized reading do? This returns a BYTE
             return pc98_mem_msw((addr >> 2) & 7);
+        }
+
+        /* 0xA4000-0xA401F is word-sized access to the character generator.
+         *
+         * Some games, though not many, appear to prefer this memory-mapped I/O
+         * rather than the I/O ports.
+         *
+         * This fixes:
+         *   - Eve Burst Error
+         *
+         * Also noted: Disassembling the CG functions of the BIOS on an actual
+         *             PC9821 laptop reveals that the BIOS also uses this method,
+         *             using REP MOVSW
+         *
+         * TODO: It's not clear if only 0xA4000-0xA401F is involved or if a wider
+         *       range is involved (meaning that the hardware latches A4000-A5FFF
+         *       to this function and then decodes only the low bits).
+         *
+         *       CHECK REAL HARDWARE to answer this question. */
+        if ((addr & (~0x1F)) == 0xA4000) {
+            extern uint16_t a1_font_load_addr;
+
+            // TODO: Does the memory address update the char offset value written to the I/O port version?
+            if (sizeof(AWT) > 1) {
+                return
+                    (pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF,0)      ) +
+                    (pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF,1) << 8u);
+            }
+            else {
+                return pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1);
+            }
         }
 
         if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
@@ -1400,6 +1432,39 @@ public:
             addr = (addr & 0x7FFF) + 0x20000;
         else
             addr &= 0x1FFFF;
+
+        /* 0xA4000-0xA401F is word-sized access to the character generator.
+         *
+         * Some games, though not many, appear to prefer this memory-mapped I/O
+         * rather than the I/O ports.
+         *
+         * This fixes:
+         *   - Eve Burst Error
+         *
+         * Also noted: Disassembling the CG functions of the BIOS on an actual
+         *             PC9821 laptop reveals that the BIOS also uses this method,
+         *             using REP MOVSW
+         *
+         * TODO: It's not clear if only 0xA4000-0xA401F is involved or if a wider
+         *       range is involved (meaning that the hardware latches A4000-A5FFF
+         *       to this function and then decodes only the low bits).
+         *
+         *       CHECK REAL HARDWARE to answer this question. */
+        if ((addr & (~0x1F)) == 0xA4000) {
+            extern uint16_t a1_font_load_addr;
+
+            // TODO: Does the memory address update the char offset value written to the I/O port version?
+            if (sizeof(AWT) > 1) {
+                // FIXME: Untested
+                pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,0,val);
+                pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,1,val >> 8);
+            }
+            else {
+                pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1,val);
+            }
+
+            return;
+        }
 
         switch (addr>>13) {
             case 0:     /* A0000-A1FFF Character RAM */
