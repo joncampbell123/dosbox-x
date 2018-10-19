@@ -343,7 +343,7 @@ imageDisk::imageDisk(FILE* diskimg, const char* diskName, Bit32u cylinders, Bit3
     this->hardDrive = hardDrive;
 }
 
-/* .HDI header (NP2) */
+/* .HDI and .FDI header (NP2) */
 #pragma pack(push,1)
 typedef struct {
     uint8_t dummy[4];           // +0x00
@@ -355,6 +355,17 @@ typedef struct {
     uint8_t surfaces[4];        // +0x18
     uint8_t cylinders[4];       // +0x1C
 } HDIHDR;                       // =0x20
+
+typedef struct {
+	uint8_t	dummy[4];           // +0x00
+	uint8_t	fddtype[4];         // +0x04
+	uint8_t	headersize[4];      // +0x08
+	uint8_t	fddsize[4];         // +0x0C
+	uint8_t	sectorsize[4];      // +0x10
+	uint8_t	sectors[4];         // +0x14
+	uint8_t	surfaces[4];        // +0x18
+	uint8_t	cylinders[4];       // +0x1C
+} FDIHDR;                       // =0x20
 #pragma pack(pop)
 
 imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) {
