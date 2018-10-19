@@ -1,4 +1,7 @@
 (next version)
+  - PC-98 character generator is now accessible through both
+    I/O ports A1h-A9h and through memory-mapped I/O range
+    A4000-A401F. This fixes missing text in Eve Burst Error.
   - Gravis Ultrasound emulation will no longer log GUS reset
     writes in cases where the same value is being written
     repeatedly, to reduce log clutter. Some demoscene
