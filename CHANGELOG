@@ -1,4 +1,6 @@
 (next version)
+  - FDI image support fixed to read the header instead of
+    treating it as a plain disk image with 4096 of junk.
   - PC-98 character generator is now accessible through both
     I/O ports A1h-A9h and through memory-mapped I/O range
     A4000-A401F. This fixes missing text in Eve Burst Error.
