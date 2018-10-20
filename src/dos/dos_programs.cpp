@@ -563,6 +563,73 @@ void SBLASTER_DOS_Shutdown();
 
 extern int swapInDisksSpecificDrive;
 
+unsigned char PC98_ITF_ROM[0x8000];
+bool PC98_ITF_ROM_init = false;
+unsigned char PC98_BANK_Select = 0x12;
+
+#include "mem.h"
+#include "paging.h"
+
+class PC98ITFPageHandler : public PageHandler {
+public:
+    PC98ITFPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_HASROM) {}
+    PC98ITFPageHandler(Bitu flags) : PageHandler(flags) {}
+    HostPt GetHostReadPt(Bitu phys_page) {
+        return PC98_ITF_ROM+(phys_page&0x7)*MEM_PAGESIZE;
+    }
+    HostPt GetHostWritePt(Bitu phys_page) {
+        return PC98_ITF_ROM+(phys_page&0x7)*MEM_PAGESIZE;
+    }
+    void writeb(PhysPt addr,Bitu val){
+        LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
+    }
+    void writew(PhysPt addr,Bitu val){
+        LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
+    }
+    void writed(PhysPt addr,Bitu val){
+        LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
+    }
+};
+
+PC98ITFPageHandler          mem_itf_rom;
+
+void MEM_RegisterHandler(Bitu phys_page,PageHandler * handler,Bitu page_range);
+bool MEM_map_ROM_physmem(Bitu start,Bitu end);
+
+// Normal BIOS is in the BIOS memory area
+// ITF is in it's own buffer, served by mem_itf_rom
+void PC98_BIOS_Bank_Switch(void) {
+    if (PC98_BANK_Select == 0x00) {
+        MEM_RegisterHandler(0xF8,&mem_itf_rom,0x8);
+    }
+    else {
+        MEM_map_ROM_physmem(0xE8000,0xFFFFF);
+    }
+}
+
+void pc98_43d_write(Bitu port,Bitu val,Bitu iolen) {
+    (void)port;
+    (void)iolen;
+
+    LOG_MSG("PC-98 43Dh BIOS bank switching write: 0x%02x",(unsigned int)val);
+
+    switch (val) {
+        case 0x00: // ITF
+        case 0x10:
+        case 0x18:
+            PC98_BANK_Select = 0x00;
+            PC98_BIOS_Bank_Switch();
+            break;
+        case 0x12: // BIOS
+            PC98_BANK_Select = 0x12;
+            PC98_BIOS_Bank_Switch();
+            break;
+        default:
+            LOG_MSG("PC-98 43Dh BIOS bank switching write: 0x%02x unknown value",(unsigned int)val);
+            break;
+    };
+}
+
 /*! \brief          BOOT.COM utility to boot a floppy or hard disk device.
  *
  *  \description    Users will use this command to boot a guest operating system from
@@ -759,6 +826,34 @@ public:
             fseek(romfp, 0, SEEK_SET);
             fread(GetMemBase()+segbase,loadsz,1,romfp);
             fclose(romfp);
+
+            // The PC-98 BIOS has a bank switching system where at least the last 32KB
+            // can be switched to an Initial Firmware Test BIOS, which initializes the
+            // system then switches back to the full 96KB visible during runtime.
+            //
+            // We can emulate the same if a file named ITF.ROM exists in the same directory
+            // as the BIOS image we were given.
+            //
+            // To enable multiple ITFs per ROM image, we first try <bios filename>.itf.rom
+            // before trying itf.rom, for the user's convenience.
+            FILE *itffp;
+
+                               itffp = getFSFile((bios + ".itf.rom").c_str(), &isz1, &isz2);
+            if (itffp == NULL) itffp = getFSFile((bios + ".ITF.ROM").c_str(), &isz1, &isz2);
+            if (itffp == NULL) itffp = getFSFile("itf.rom", &isz1, &isz2);
+            if (itffp == NULL) itffp = getFSFile("ITF.ROM", &isz1, &isz2);
+
+            if (itffp != NULL && isz2 <= 0x8000ul) {
+                LOG_MSG("Found ITF (initial firmware test) BIOS image (0x%lx bytes)",(unsigned long)isz2);
+
+                memset(PC98_ITF_ROM,0xFF,sizeof(PC98_ITF_ROM));
+                fread(PC98_ITF_ROM,isz2,1,itffp);
+                PC98_ITF_ROM_init = true;
+
+                fclose(itffp);
+            }
+
+            IO_RegisterWriteHandler(0x43D,pc98_43d_write,IO_MB);
 
             custom_bios = true;
 
