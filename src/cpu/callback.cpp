@@ -767,6 +767,8 @@ void CALLBACK_HandlerObject::Set_RealVec(Bit8u vec,bool reinstall){
 	} else E_Exit ("double usage of vector handler");
 }
 
+extern bool custom_bios;
+
 void CALLBACK_Init() {
 	{
 		/* NTS: Layout of the callback area:
