@@ -7251,6 +7251,11 @@ void BIOS_OnResetComplete(Section *x) {
     (void)x;//UNUSED
     INT10_OnResetComplete();
 
+    if (IS_PC98_ARCH) {
+        void PC98_BIOS_Bank_Switch_Reset(void);
+        PC98_BIOS_Bank_Switch_Reset();
+    }
+
     if (biosConfigSeg != 0u) {
         ROMBIOS_FreeMemory((Bitu)(biosConfigSeg << 4u)); /* remember it was alloc'd paragraph aligned, then saved >> 4 */
         biosConfigSeg = 0u;

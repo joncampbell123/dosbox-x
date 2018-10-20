@@ -594,7 +594,9 @@ public:
 PC98ITFPageHandler          mem_itf_rom;
 
 void MEM_RegisterHandler(Bitu phys_page,PageHandler * handler,Bitu page_range);
+void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 bool MEM_map_ROM_physmem(Bitu start,Bitu end);
+PageHandler &Get_ROM_page_handler(void);
 
 // Normal BIOS is in the BIOS memory area
 // ITF is in it's own buffer, served by mem_itf_rom
@@ -603,8 +605,21 @@ void PC98_BIOS_Bank_Switch(void) {
         MEM_RegisterHandler(0xF8,&mem_itf_rom,0x8);
     }
     else {
-        MEM_map_ROM_physmem(0xE8000,0xFFFFF);
+        MEM_RegisterHandler(0xF8,&Get_ROM_page_handler(),0x8);
     }
+
+    PAGING_ClearTLB();
+}
+
+// BIOS behavior suggests a reset signal puts the BIOS back
+void PC98_BIOS_Bank_Switch_Reset(void) {
+    LOG_MSG("PC-98 43Dh mapping BIOS back into top of RAM");
+    PC98_BANK_Select = 0x12;
+    PC98_BIOS_Bank_Switch();
+#if 0
+    Bitu DEBUG_EnableDebugger(void);
+    DEBUG_EnableDebugger();
+#endif
 }
 
 void pc98_43d_write(Bitu port,Bitu val,Bitu iolen) {
