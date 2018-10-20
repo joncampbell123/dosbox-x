@@ -51,6 +51,20 @@ static Bitu illegal_handler(void) {
 	return 1;
 }
 
+void DBG_CALLBACK_Dump(void) {
+	LOG_MSG("Callbacks");
+    for (Bitu i=0;i < CB_MAX;i++) {
+        if (CallBack_Handlers[i] == &illegal_handler)
+            continue;
+
+        LOG_MSG("  [%u] func=%p desc='%s'",
+            (unsigned int)i,
+            (void*)((uintptr_t)CallBack_Handlers[i]), /* shut the compiler up by func -> uintptr_t -> void* conversion */
+            CallBack_Description[i] != NULL ? CallBack_Description[i] : "");
+    }
+	LOG_MSG("--------------");
+}
+
 void CALLBACK_Dump(void) {
 	LOG(LOG_CPU,LOG_DEBUG)("Callback dump");
     for (Bitu i=0;i < CB_MAX;i++) {

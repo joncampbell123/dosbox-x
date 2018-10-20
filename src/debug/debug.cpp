@@ -1594,6 +1594,16 @@ bool ParseCommand(char* str) {
         return true;
     }
 
+    if (command == "CALLBACKS") {
+        DEBUG_BeginPagedContent();
+
+        void DBG_CALLBACK_Dump(void);
+        DBG_CALLBACK_Dump();
+
+        DEBUG_EndPagedContent();
+        return true;
+    }
+
 	if (command == "GDT") {LogGDT(); return true;}
 	
 	if (command == "LDT") {LogLDT(); return true;}
