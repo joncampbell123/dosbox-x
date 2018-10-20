@@ -345,6 +345,9 @@ static Bitu Normal_Loop(void) {
                     if (GCC_UNLIKELY(ret >= CB_MAX))
                         return 0;
 
+                    extern unsigned int last_callback;
+
+                    last_callback = ret;
                     dosbox_allow_nonrecursive_page_fault = false;
                     Bitu blah = (*CallBack_Handlers[ret])();
                     dosbox_allow_nonrecursive_page_fault = saved_allow;
