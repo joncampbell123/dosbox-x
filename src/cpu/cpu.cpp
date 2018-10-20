@@ -3410,9 +3410,6 @@ void CPU_ShutDown(Section* sec) {
 	delete test;
 }
 
-void CALLBACK_Init();
-extern bool custom_bios;
-
 void CPU_OnReset(Section* sec) {
     (void)sec;//UNUSED
 
@@ -3440,10 +3437,6 @@ void CPU_OnReset(Section* sec) {
 		SegSet16(cs,0xFFFF);
 		reg_eip=0x0000;
 	}
-
-    if (custom_bios) {
-        CALLBACK_Init();
-    }
 }
 
 void CPU_OnSectionPropChange(Section *x) {

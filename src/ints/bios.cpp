@@ -171,6 +171,10 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at
     return rombios_alloc.getMemory(bytes,who,alignment,must_be_at);
 }
 
+void ROMBIOS_InitForCustomBIOS(void) {
+    rombios_alloc.initSetRange(0xD8000,0xE0000);
+}
+
 static IO_Callout_t dosbox_int_iocallout = IO_Callout_t_none;
 
 static unsigned char dosbox_int_register_shf = 0;
