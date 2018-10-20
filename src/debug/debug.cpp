@@ -3048,6 +3048,12 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 
 Bitu debugCallback;
 
+void DEBUG_ReinitCallback(void) {
+    /* this is REQUIRED after loading a custom BIOS */
+	debugCallback=CALLBACK_Allocate();
+	CALLBACK_Setup(debugCallback,DEBUG_EnableDebugger,CB_RETF,"debugger");
+}
+
 void DEBUG_Init() {
 	DOSBoxMenu::item *item;
 

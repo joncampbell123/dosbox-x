@@ -7746,6 +7746,9 @@ fresh_boot:
 
                 void CALLBACK_Init();
                 CALLBACK_Init();
+
+                void DEBUG_ReinitCallback(void);
+                DEBUG_ReinitCallback();
             }
 
             DispatchVMEvent(VM_EVENT_RESET_END);
