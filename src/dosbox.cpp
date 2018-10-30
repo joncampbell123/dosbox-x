@@ -1221,6 +1221,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("pc-98 enable egc",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Allow EGC graphics functions if set, disable if not set");
 
+    Pbool = secprop->Add_bool("pc-98 enable 188 user cg",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Allow 188+ user-defined CG cells if set");
+
     Pbool = secprop->Add_bool("pc-98 start gdc at 5mhz",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Start GDC at 5MHz if set, 2.5MHz if clear. May be required for some games.");
 

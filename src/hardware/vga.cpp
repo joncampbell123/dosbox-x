@@ -668,6 +668,7 @@ void VGA_Reset(Section*) {
     enable_pc98_egc = section->Get_bool("pc-98 enable egc");
     enable_pc98_grcg = section->Get_bool("pc-98 enable grcg");
     enable_pc98_16color = section->Get_bool("pc-98 enable 16-color");
+    enable_pc98_188usermod = section->Get_bool("pc-98 enable 188 user cg");
 
     // EGC implies GRCG
     if (enable_pc98_egc) enable_pc98_grcg = true;
