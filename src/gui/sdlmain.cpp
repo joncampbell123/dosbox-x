@@ -6226,6 +6226,31 @@ bool vid_pc98_4parts_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * co
     return true;
 }
 
+bool vid_pc98_enable_188user_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    void gdc_egc_enable_update_vars(void);
+    extern bool enable_pc98_egc;
+    extern bool enable_pc98_grcg;
+    extern bool enable_pc98_16color;
+    extern bool enable_pc98_188usermod;
+
+    if(IS_PC98_ARCH) {
+        enable_pc98_188usermod = !enable_pc98_188usermod;
+        gdc_egc_enable_update_vars();
+
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        if (enable_pc98_188usermod)
+            dosbox_section->HandleInputline("pc-98 enable 188 user cg=1");
+        else
+            dosbox_section->HandleInputline("pc-98 enable 188 user cg=0");
+
+        mainMenu.get_item("pc98_enable_188user").check(enable_pc98_188usermod).refresh_item(mainMenu);
+    }
+    
+    return true;
+}
+
 bool vid_pc98_enable_egc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -7218,6 +7243,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(vid_pc98_enable_grcg_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_enable_analog").set_text("Enable analog display").
                     set_callback_function(vid_pc98_enable_analog_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_enable_188user").set_text("Enable 188+ user CG cells").
+                    set_callback_function(vid_pc98_enable_188user_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_clear_text").set_text("Clear text layer").
                     set_callback_function(vid_pc98_cleartext_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_clear_graphics").set_text("Clear graphics layer").
@@ -7462,6 +7489,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("pc98_enable_egc").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_enable_grcg").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_enable_analog").enable(IS_PC98_ARCH);
+        mainMenu.get_item("pc98_enable_188user").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_clear_text").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_clear_graphics").enable(IS_PC98_ARCH);
         mainMenu.get_item("dos_pc98_pit_4mhz").enable(IS_PC98_ARCH);
