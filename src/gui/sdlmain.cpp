@@ -6233,6 +6233,7 @@ bool vid_pc98_enable_egc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item 
     extern bool enable_pc98_egc;
     extern bool enable_pc98_grcg;
     extern bool enable_pc98_16color;
+    extern bool enable_pc98_188usermod;
 
     if(IS_PC98_ARCH) {
         enable_pc98_egc = !enable_pc98_egc;

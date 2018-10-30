@@ -42,6 +42,7 @@ bool                        gdc_5mhz_mode = false;
 bool                        enable_pc98_egc = true;
 bool                        enable_pc98_grcg = true;
 bool                        enable_pc98_16color = true;
+bool                        enable_pc98_188usermod = true;
 bool                        GDC_vsync_interrupt = false;
 uint8_t                     GDC_display_plane_wait_for_vsync = false;
 uint8_t                     GDC_display_plane_pending = false;
