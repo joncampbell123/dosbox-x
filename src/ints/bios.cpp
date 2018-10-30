@@ -3656,6 +3656,17 @@ static Bitu INTDC_PC98_Handler(void) {
                 PC98_INTDC_WriteChar(reg_dl);
                 goto done;
             }
+            else if (reg_ah == 0x01) { /* CL=0x10 AL=0x01 DS:DX write string to CON */
+                /* According to the example at http://tepe.tec.fukuoka-u.ac.jp/HP98/studfile/grth/gt10.pdf
+                 * the string ends in '$' just like the main DOS string output function. */
+                Bit16u ofs = reg_dx;
+                do {
+                    unsigned char c = real_readb(SegValue(ds),ofs++);
+                    if (c == '$') break;
+                    PC98_INTDC_WriteChar(c);
+                } while (1);
+                goto done;
+            }
             goto unknown;
         default: /* some compilers don't like not having a default case */
             goto unknown;
