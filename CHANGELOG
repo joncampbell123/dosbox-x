@@ -1,4 +1,6 @@
 (next version)
+  - BIOS data area now reports 188+ user-definable CG slots,
+    which makes GAJET happy.
   - FDI image support fixed to read the header instead of
     treating it as a plain disk image with 4096 of junk.
   - PC-98 character generator is now accessible through both
