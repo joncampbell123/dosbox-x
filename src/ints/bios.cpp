@@ -5482,6 +5482,10 @@ private:
              *                             100=640KB      101=768KB
              *
              * Ref: http://hackipedia.org/browse/Computer/Platform/PC,%20NEC%20PC-98/Collections/Undocumented%209801,%209821%20Volume%202%20(webtech.co.jp)/memsys.txt */
+            /* NTS: High resolution means 640x400, not the 1120x750 mode known as super high resolution mode.
+             *      DOSBox-X does not yet emulate super high resolution nor does it emulate the 15khz 200-line "standard" mode.
+             *      ref: https://github.com/joncampbell123/dosbox-x/issues/906#issuecomment-434513930
+             *      ref: https://jisho.org/search?utf8=%E2%9C%93&keyword=%E8%B6%85 */
             mem_writeb(0x501,0x20 | memsize_real_code);
 
             /* keyboard buffer */
