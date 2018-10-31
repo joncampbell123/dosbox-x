@@ -1,4 +1,6 @@
 (next version)
+  - BIOS data area now properly reports a high-resolution
+    CRT display.
   - INT DCh AH=1 CL=10h added, which is apparently a print
     string function.
   - BIOS data area now reports 188+ user-definable CG slots,

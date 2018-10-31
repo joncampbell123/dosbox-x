@@ -5497,7 +5497,7 @@ private:
 
             /* Text screen status.
              * Note that most of the bits are used verbatim in INT 18h AH=0Ah/AH=0Bh */
-            /* bit[7:7] = High resolution display                   1=yes           0=no (standard)
+            /* bit[7:7] = High resolution display                   1=yes           0=no (standard)         NOT super high res
              * bit[6:6] = vsync                                     1=VSYNC wait    0=end of vsync handling
              * bit[5:5] = unused
              * bit[4:4] = Number of lines                           1=30 lines      0=20/25 lines
@@ -5505,21 +5505,21 @@ private:
              * bit[2:2] = Attribute mode (how to handle bit 4)      1=Simp. graphic 0=Vertical line
              * bit[1:1] = Number of columns                         1=40 cols       0=80 cols
              * bit[0:0] = Number of lines                           1=20/30 lines   0=25 lines */
-            mem_writeb(0x53C,0x00);
+            mem_writeb(0x53C,(true/*TODO*/ ? 0x80/*high res*/ : 0x00/*standard*/));
 
             /* BIOS raster location */
             mem_writew(0x54A,0x1900);
 
             /* BIOS flags */
             /* bit[7:7] = Graphics display state                    1=Visible       0=Blanked (hidden)
-             * bit[6:6] = CRT type                                  1=high res      0=standard
+             * bit[6:6] = CRT type                                  1=high res      0=standard              NOT super high res
              * bit[5:5] = Horizontal sync rate                      1=31.47KHz      0=24.83KHz
              * bit[4:4] = CRT line mode                             1=480-line      0=400-line
              * bit[3:3] = Number of user-defined characters         1=188+          0=63
              * bit[2:2] = Extended graphics RAM (for 16-color)      1=present       0=absent
              * bit[1:1] = Graphics Charger is present               1=present       0=absent
              * bit[0:0] = DIP switch 1-8 at startup                 1=ON            0=OFF (?) */
-            mem_writeb(0x54C,(enable_pc98_grcg ? 0x02 : 0x00) | (enable_pc98_16color ? 0x04 : 0x00) | (pc98_31khz_mode ? 0x20/*31khz*/ : 0x00/*24khz*/) | (enable_pc98_188usermod ? 0x08 : 0x00)); // PRXCRT, 16-color G-VRAM, GRCG
+            mem_writeb(0x54C,(true/*TODO*/ ? 0x40/*high res*/ : 0x00/*standard*/) | (enable_pc98_grcg ? 0x02 : 0x00) | (enable_pc98_16color ? 0x04 : 0x00) | (pc98_31khz_mode ? 0x20/*31khz*/ : 0x00/*24khz*/) | (enable_pc98_188usermod ? 0x08 : 0x00)); // PRXCRT, 16-color G-VRAM, GRCG
 
             /* BIOS flags */
             /* bit[7:7] = 256-color board present (PC-H98)
