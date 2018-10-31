@@ -366,6 +366,23 @@ typedef struct {
 	uint8_t	surfaces[4];        // +0x18
 	uint8_t	cylinders[4];       // +0x1C
 } FDIHDR;                       // =0x20
+
+typedef struct {
+	char	sig[16];            // +0x000
+	char	comment[0x100];     // +0x010
+	UINT8	headersize[4];      // +0x110
+    uint8_t prot;               // +0x114
+    uint8_t nhead;              // +0x115
+    uint8_t _unknown_[10];      // +0x116
+} NFDHDR;                       // =0x120
+
+typedef struct {
+    uint8_t log_cyl;            // +0x0
+    uint8_t log_head;           // +0x1
+    uint8_t log_rec;            // +0x2
+    uint8_t sec_len_pow2;       // +0x3         sz = 128 << len_pow2
+    uint8_t _unknown_[12];      // +0x4
+} NFDHDR_ENTRY;                 // =0x10
 #pragma pack(pop)
 
 imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) {
