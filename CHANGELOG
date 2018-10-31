@@ -1,4 +1,5 @@
 (next version)
+  - Initial (beta) support for NFD floppy disk images, read only.
   - BIOS data area now properly reports a high-resolution
     CRT display.
   - INT DCh AH=1 CL=10h added, which is apparently a print
