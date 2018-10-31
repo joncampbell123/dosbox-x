@@ -1828,9 +1828,6 @@ imageDiskNFD::vfdentry *imageDiskNFD::findSector(Bit8u head,Bit8u track,Bit8u se
 Bit8u imageDiskNFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const void * data,unsigned int req_sector_size) {
     vfdentry *ent;
 
-    // TODO
-    return 0x05;
-
     if (req_sector_size == 0)
         req_sector_size = sector_size;
 
@@ -1848,9 +1845,6 @@ Bit8u imageDiskNFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,const
 
 Bit8u imageDiskNFD::Write_AbsoluteSector(Bit32u sectnum,const void *data) {
     unsigned int c,h,s;
-
-    // TODO
-    return 0x05;
 
     if (sectors == 0 || heads == 0)
         return 0x05;
