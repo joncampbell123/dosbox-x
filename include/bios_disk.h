@@ -201,11 +201,11 @@ public:
         }
 
         bool hasSectorData(void) const {
-            return fillbyte == 0xFF;
+            return fillbyte == 0xFF && data_offset != 0xFFFFFFFFUL;
         }
 
         bool hasFill(void) const {
-            return fillbyte != 0xFF;
+            return fillbyte != 0xFF || data_offset == 0xFFFFFFFFUL;
         }
 
         uint16_t getSectorSize(void) const {
