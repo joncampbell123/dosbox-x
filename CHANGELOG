@@ -1,4 +1,8 @@
 (next version)
+  - VFD image support fixed to properly handle disk images
+    where a sector is marked with fill byte 0xFF and the
+    data field is 0xFFFFFFFF, which means the sector contents
+    are all 0xFF.
   - DOSBox-X now supports T98 NFD disk images (R0).
   - BIOS data area now properly reports a high-resolution
     CRT display.
