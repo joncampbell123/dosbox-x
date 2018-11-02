@@ -2426,7 +2426,7 @@ void KEYBOARD_Reset() {
     keyb.auxchanged=false;
     keyb.led_state = 0x00;
     keyb.repeat.key=KBD_NONE;
-    keyb.repeat.pause=200;
+    keyb.repeat.pause=500;
     keyb.repeat.rate=33;
     keyb.repeat.wait=0;
     keyb.leftctrl_pressed=false;
