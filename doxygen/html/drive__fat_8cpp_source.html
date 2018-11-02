@@ -1110,7 +1110,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l01013"></a>01013     }
 <a name="l01014"></a>01014 
 <a name="l01015"></a>01015     <span class="comment">/* NTS: PC-98 floppies (the 1024 byte/sector format) do not have magic bytes */</span>
-<a name="l01016"></a>01016     <span class="keywordflow">if</span> (getSectSize() == 512) {
+<a name="l01016"></a>01016     <span class="keywordflow">if</span> (getSectSize() == 512 &amp;&amp; !IS_PC98_ARCH) {
 <a name="l01017"></a>01017         <span class="keywordflow">if</span> ((bootbuffer.magic1 != 0x55) || (bootbuffer.magic2 != 0xaa)) {
 <a name="l01018"></a>01018             <span class="comment">/* Not a FAT filesystem */</span>
 <a name="l01019"></a>01019             LOG_MSG(<span class="stringliteral">&quot;Loaded image has no valid magicnumbers at the end!&quot;</span>);
@@ -1782,7 +1782,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jul 15 2018 11:44:16 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Nov 2 2018 12:40:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

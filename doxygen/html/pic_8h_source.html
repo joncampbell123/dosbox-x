@@ -127,19 +127,19 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00030"></a>00030 <span class="keyword">typedef</span> void (* PIC_EventHandler)(Bitu val);
 <a name="l00031"></a>00031 
 <a name="l00032"></a>00032 <span class="keyword">enum</span> PIC_irq_hacks {
-<a name="l00033"></a>00033         PIC_irq_hack_none=0,            <span class="comment">// dispatch IRQ normally</span>
-<a name="l00034"></a>00034         PIC_irq_hack_cs_equ_ds          <span class="comment">// do not fire IRQ unless segment registers in the CPU are DS == CS</span>
-<a name="l00035"></a>00035                                         <span class="comment">//    explanation: a handful of games and demos have Sound Blaster interrupt service</span>
-<a name="l00036"></a>00036                                         <span class="comment">//    routines that assume DS == CS and they make no attempt to reload DS to refer</span>
-<a name="l00037"></a>00037                                         <span class="comment">//    to local variables properly. eventually these programs crash or malfunction</span>
-<a name="l00038"></a>00038                                         <span class="comment">//    because sooner or later, the ISR is called with CS != DS. This hack can be</span>
-<a name="l00039"></a>00039                                         <span class="comment">//    used to prevent those games/demos from crashing.</span>
+<a name="l00033"></a>00033         PIC_irq_hack_none=0,                    <span class="comment">// dispatch IRQ normally</span>
+<a name="l00034"></a>00034         PIC_irq_hack_cs_equ_ds=(1u&lt;&lt;0u)         <span class="comment">// do not fire IRQ unless segment registers in the CPU are DS == CS</span>
+<a name="l00035"></a>00035         <span class="comment">//    explanation: a handful of games and demos have Sound Blaster interrupt service</span>
+<a name="l00036"></a>00036         <span class="comment">//    routines that assume DS == CS and they make no attempt to reload DS to refer</span>
+<a name="l00037"></a>00037         <span class="comment">//    to local variables properly. eventually these programs crash or malfunction</span>
+<a name="l00038"></a>00038         <span class="comment">//    because sooner or later, the ISR is called with CS != DS. This hack can be</span>
+<a name="l00039"></a>00039         <span class="comment">//    used to prevent those games/demos from crashing.</span>
 <a name="l00040"></a>00040 };
 <a name="l00041"></a>00041 
-<a name="l00042"></a>00042 <span class="keyword">extern</span> <span class="keyword">enum</span> PIC_irq_hacks PIC_IRQ_hax[16];
+<a name="l00042"></a>00042 <span class="keyword">extern</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> PIC_IRQ_hax[16];
 <a name="l00043"></a>00043 
-<a name="l00044"></a>00044 <span class="keywordtype">void</span> PIC_Set_IRQ_hack(<span class="keywordtype">int</span> IRQ,<span class="keyword">enum</span> PIC_irq_hacks hack);
-<a name="l00045"></a>00045 <span class="keyword">enum</span> PIC_irq_hacks PIC_parse_IRQ_hack_string(<span class="keyword">const</span> <span class="keywordtype">char</span> *str);
+<a name="l00044"></a>00044 <span class="keywordtype">void</span> PIC_Set_IRQ_hack(<span class="keywordtype">int</span> IRQ,<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> hack);
+<a name="l00045"></a>00045 <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> PIC_parse_IRQ_hack_string(<span class="keyword">const</span> <span class="keywordtype">char</span> *str);
 <a name="l00046"></a>00046 
 <a name="l00047"></a>00047 <span class="keyword">extern</span> Bitu PIC_IRQCheck;
 <a name="l00048"></a>00048 <span class="keyword">extern</span> Bitu PIC_Ticks;
@@ -179,7 +179,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jul 15 2018 11:44:15 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Nov 2 2018 12:40:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

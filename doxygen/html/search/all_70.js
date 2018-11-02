@@ -27,6 +27,7 @@ var searchData=
   ['pc98_5fmouse_5f8255',['PC98_Mouse_8255',['../classPC98__Mouse__8255.html',1,'']]],
   ['pc98_5fsystem_5f8255',['PC98_System_8255',['../classPC98__System__8255.html',1,'']]],
   ['pc98_5ftile',['pc98_tile',['../unionpc98__tile.html',1,'']]],
+  ['pc98itfpagehandler',['PC98ITFPageHandler',['../classPC98ITFPageHandler.html',1,'']]],
   ['pc98util',['PC98UTIL',['../classPC98UTIL.html',1,'']]],
   ['pci_5fdevice',['PCI_Device',['../classPCI__Device.html',1,'']]],
   ['pci_5fsstdevice',['PCI_SSTDevice',['../classPCI__SSTDevice.html',1,'']]],

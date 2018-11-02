@@ -10,6 +10,7 @@ var searchData=
   ['imagediskd88',['imageDiskD88',['../classimageDiskD88.html',1,'']]],
   ['imagediskeltoritofloppy',['imageDiskElToritoFloppy',['../classimageDiskElToritoFloppy.html',1,'']]],
   ['imagediskmemory',['imageDiskMemory',['../classimageDiskMemory.html',1,'']]],
+  ['imagedisknfd',['imageDiskNFD',['../classimageDiskNFD.html',1,'']]],
   ['imagediskvfd',['imageDiskVFD',['../classimageDiskVFD.html',1,'']]],
   ['imagediskvhd',['imageDiskVHD',['../classimageDiskVHD.html',1,'']]],
   ['imgmake',['IMGMAKE',['../classIMGMAKE.html',1,'']]],

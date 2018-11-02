@@ -938,240 +938,242 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00848"></a>00848                                         <span class="comment">// it&#39;s a property name</span>
 <a name="l00849"></a>00849                                         std::string val = sec-&gt;GetPropValue(pvars[0].c_str());
 <a name="l00850"></a>00850                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;%s&quot;</span>,val.c_str());
-<a name="l00851"></a>00851                                 }
-<a name="l00852"></a>00852                                 <span class="keywordflow">break</span>;
-<a name="l00853"></a>00853                         }
-<a name="l00854"></a>00854                         <span class="keywordflow">case</span> 2: {
-<a name="l00855"></a>00855                                 <span class="comment">// section + property</span>
-<a name="l00856"></a>00856                                 <a class="code" href="classSection.html">Section</a>* sec = control-&gt;GetSection(pvars[0].c_str());
-<a name="l00857"></a>00857                                 <span class="keywordflow">if</span> (!sec) {
-<a name="l00858"></a>00858                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_SECTION_ERROR&quot;</span>));
-<a name="l00859"></a>00859                                         <span class="keywordflow">return</span>;
-<a name="l00860"></a>00860                                 }
-<a name="l00861"></a>00861                                 std::string val = sec-&gt;GetPropValue(pvars[1].c_str());
-<a name="l00862"></a>00862                                 <span class="keywordflow">if</span> (val == NO_SUCH_PROPERTY) {
-<a name="l00863"></a>00863                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_NO_PROPERTY&quot;</span>),
-<a name="l00864"></a>00864                                                 pvars[1].c_str(),pvars[0].c_str());   
-<a name="l00865"></a>00865                                         <span class="keywordflow">return</span>;
-<a name="l00866"></a>00866                                 }
-<a name="l00867"></a>00867                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;%s&quot;</span>,val.c_str());
-<a name="l00868"></a>00868                                 <span class="keywordflow">break</span>;
-<a name="l00869"></a>00869                         }
-<a name="l00870"></a>00870                         <span class="keywordflow">default</span>:
-<a name="l00871"></a>00871                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_GET_SYNTAX&quot;</span>));
-<a name="l00872"></a>00872                                 <span class="keywordflow">return</span>;
-<a name="l00873"></a>00873                         }
-<a name="l00874"></a>00874                         <span class="keywordflow">return</span>;
-<a name="l00875"></a>00875                 }
-<a name="l00876"></a>00876                 <span class="keywordflow">case</span> P_SETPROP: {
-<a name="l00877"></a>00877                         <span class="comment">// Code for the configuration changes</span>
-<a name="l00878"></a>00878                         <span class="comment">// Official format: config -set &quot;section property=value&quot;</span>
-<a name="l00879"></a>00879                         <span class="comment">// Accepted: with or without -set, </span>
-<a name="l00880"></a>00880                         <span class="comment">// &quot;section property value&quot;</span>
-<a name="l00881"></a>00881                         <span class="comment">// &quot;section property=value&quot;</span>
-<a name="l00882"></a>00882                         <span class="comment">// &quot;property&quot; &quot;value&quot;</span>
-<a name="l00883"></a>00883                         <span class="comment">// &quot;section&quot; &quot;property=value&quot;</span>
-<a name="l00884"></a>00884                         <span class="comment">// &quot;section&quot; &quot;property=value&quot; &quot;value&quot; &quot;value&quot; ...</span>
-<a name="l00885"></a>00885                         <span class="comment">// &quot;section&quot; &quot;property&quot; &quot;value&quot; &quot;value&quot; ...</span>
-<a name="l00886"></a>00886                         <span class="comment">// &quot;section property&quot; &quot;value&quot; &quot;value&quot; ...</span>
-<a name="l00887"></a>00887                         <span class="comment">// &quot;property&quot; &quot;value&quot; &quot;value&quot; ...</span>
-<a name="l00888"></a>00888                         <span class="comment">// &quot;property=value&quot; &quot;value&quot; &quot;value&quot; ...</span>
-<a name="l00889"></a>00889 
-<a name="l00890"></a>00890                         <span class="keywordflow">if</span> (pvars.size()==0) {
-<a name="l00891"></a>00891                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_SET_SYNTAX&quot;</span>));
-<a name="l00892"></a>00892                                 <span class="keywordflow">return</span>;
-<a name="l00893"></a>00893                         }
-<a name="l00894"></a>00894 
-<a name="l00895"></a>00895                         <span class="comment">// add rest of command</span>
-<a name="l00896"></a>00896                         std::string rest;
-<a name="l00897"></a>00897                         <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;GetStringRemain(rest)) pvars.push_back(rest);
-<a name="l00898"></a>00898 
-<a name="l00899"></a>00899                         <span class="comment">// attempt to split off the first word</span>
-<a name="l00900"></a>00900                         std::string::size_type spcpos = pvars[0].find_first_of(<span class="charliteral">&#39; &#39;</span>);
-<a name="l00901"></a>00901                         std::string::size_type equpos = pvars[0].find_first_of(<span class="charliteral">&#39;=&#39;</span>);
-<a name="l00902"></a>00902 
-<a name="l00903"></a>00903                         <span class="keywordflow">if</span> ((equpos != std::string::npos) &amp;&amp; 
-<a name="l00904"></a>00904                                 ((spcpos == std::string::npos) || (equpos &lt; spcpos))) {
-<a name="l00905"></a>00905                                 <span class="comment">// If we have a &#39;=&#39; possibly before a &#39; &#39; split on the =</span>
-<a name="l00906"></a>00906                                 pvars.insert(++pvars.begin(),pvars[0].substr(equpos+1));
-<a name="l00907"></a>00907                                 pvars[0].erase(equpos);
-<a name="l00908"></a>00908                                 <span class="comment">// As we had a = the first thing must be a property now</span>
-<a name="l00909"></a>00909                                 <a class="code" href="classSection.html">Section</a>* sec=control-&gt;GetSectionFromProperty(pvars[0].c_str());
-<a name="l00910"></a>00910                                 <span class="keywordflow">if</span> (sec) pvars.insert(pvars.begin(),std::string(sec-&gt;GetName()));
-<a name="l00911"></a>00911                                 <span class="keywordflow">else</span> {
-<a name="l00912"></a>00912                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_PROPERTY_ERROR&quot;</span>));
-<a name="l00913"></a>00913                                         <span class="keywordflow">return</span>;
-<a name="l00914"></a>00914                                 }
-<a name="l00915"></a>00915                                 <span class="comment">// order in the vector should be ok now</span>
-<a name="l00916"></a>00916                         } <span class="keywordflow">else</span> {
-<a name="l00917"></a>00917                                 <span class="keywordflow">if</span> ((spcpos != std::string::npos) &amp;&amp;
-<a name="l00918"></a>00918                                         ((equpos == std::string::npos) || (spcpos &lt; equpos))) {
-<a name="l00919"></a>00919                                         <span class="comment">// &#39; &#39; before a possible &#39;=&#39;, split on the &#39; &#39;</span>
-<a name="l00920"></a>00920                                         pvars.insert(++pvars.begin(),pvars[0].substr(spcpos+1));
-<a name="l00921"></a>00921                                         pvars[0].erase(spcpos);
-<a name="l00922"></a>00922                                 }
-<a name="l00923"></a>00923                                 <span class="comment">// check if the first parameter is a section or property</span>
-<a name="l00924"></a>00924                                 <a class="code" href="classSection.html">Section</a>* sec = control-&gt;GetSection(pvars[0].c_str());
-<a name="l00925"></a>00925                                 <span class="keywordflow">if</span> (!sec) {
-<a name="l00926"></a>00926                                         <span class="comment">// not a section: little duplicate from above</span>
-<a name="l00927"></a>00927                                         <a class="code" href="classSection.html">Section</a>* sec=control-&gt;GetSectionFromProperty(pvars[0].c_str());
-<a name="l00928"></a>00928                                         <span class="keywordflow">if</span> (sec) pvars.insert(pvars.begin(),std::string(sec-&gt;GetName()));
-<a name="l00929"></a>00929                                         <span class="keywordflow">else</span> {
-<a name="l00930"></a>00930                                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_PROPERTY_ERROR&quot;</span>));
-<a name="l00931"></a>00931                                                 <span class="keywordflow">return</span>;
-<a name="l00932"></a>00932                                         }
-<a name="l00933"></a>00933                                 } <span class="keywordflow">else</span> {
-<a name="l00934"></a>00934                                         <span class="comment">// first of pvars is most likely a section, but could still be gus</span>
-<a name="l00935"></a>00935                                         <span class="comment">// have a look at the second parameter</span>
-<a name="l00936"></a>00936                                         <span class="keywordflow">if</span> (pvars.size() &lt; 2) {
-<a name="l00937"></a>00937                                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_SET_SYNTAX&quot;</span>));
-<a name="l00938"></a>00938                                                 <span class="keywordflow">return</span>;
-<a name="l00939"></a>00939                                         }
-<a name="l00940"></a>00940                                         std::string::size_type spcpos2 = pvars[1].find_first_of(<span class="charliteral">&#39; &#39;</span>);
-<a name="l00941"></a>00941                                         std::string::size_type equpos2 = pvars[1].find_first_of(<span class="charliteral">&#39;=&#39;</span>);
-<a name="l00942"></a>00942                                         <span class="keywordflow">if</span> ((equpos2 != std::string::npos) &amp;&amp; 
-<a name="l00943"></a>00943                                                 ((spcpos2 == std::string::npos) || (equpos2 &lt; spcpos2))) {
-<a name="l00944"></a>00944                                                 <span class="comment">// split on the =</span>
-<a name="l00945"></a>00945                                                 pvars.insert(pvars.begin()+2,pvars[1].substr(equpos2+1));
-<a name="l00946"></a>00946                                                 pvars[1].erase(equpos2);
-<a name="l00947"></a>00947                                         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((spcpos2 != std::string::npos) &amp;&amp;
-<a name="l00948"></a>00948                                                 ((equpos2 == std::string::npos) || (spcpos2 &lt; equpos2))) {
-<a name="l00949"></a>00949                                                 <span class="comment">// split on the &#39; &#39;</span>
-<a name="l00950"></a>00950                                                 pvars.insert(pvars.begin()+2,pvars[1].substr(spcpos2+1));
-<a name="l00951"></a>00951                                                 pvars[1].erase(spcpos2);
-<a name="l00952"></a>00952                                         }
-<a name="l00953"></a>00953                                         <span class="comment">// is this a property?</span>
-<a name="l00954"></a>00954                                         <a class="code" href="classSection.html">Section</a>* sec2 = control-&gt;GetSectionFromProperty(pvars[1].c_str());
-<a name="l00955"></a>00955                                         <span class="keywordflow">if</span> (!sec2) {
-<a name="l00956"></a>00956                                                 <span class="comment">// not a property, </span>
-<a name="l00957"></a>00957                                                 <a class="code" href="classSection.html">Section</a>* sec3 = control-&gt;GetSectionFromProperty(pvars[0].c_str());
-<a name="l00958"></a>00958                                                 <span class="keywordflow">if</span> (sec3) {
-<a name="l00959"></a>00959                                                         <span class="comment">// section and property name are identical</span>
-<a name="l00960"></a>00960                                                         pvars.insert(pvars.begin(),pvars[0]);
-<a name="l00961"></a>00961                                                 } <span class="comment">// else has been checked above already</span>
-<a name="l00962"></a>00962                                         }
-<a name="l00963"></a>00963                                 }
-<a name="l00964"></a>00964                         }
-<a name="l00965"></a>00965                         <span class="keywordflow">if</span>(pvars.size() &lt; 3) {
-<a name="l00966"></a>00966                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_SET_SYNTAX&quot;</span>));
-<a name="l00967"></a>00967                                 <span class="keywordflow">return</span>;
-<a name="l00968"></a>00968                         }
-<a name="l00969"></a>00969                         <span class="comment">// check if the property actually exists in the section</span>
-<a name="l00970"></a>00970                         <a class="code" href="classSection.html">Section</a>* sec2 = control-&gt;GetSectionFromProperty(pvars[1].c_str());
-<a name="l00971"></a>00971                         <span class="keywordflow">if</span> (!sec2) {
-<a name="l00972"></a>00972                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_NO_PROPERTY&quot;</span>),
-<a name="l00973"></a>00973                                         pvars[1].c_str(),pvars[0].c_str());
-<a name="l00974"></a>00974                                 <span class="keywordflow">return</span>;
-<a name="l00975"></a>00975                         }
-<a name="l00976"></a>00976                         <span class="comment">// Input has been parsed (pvar[0]=section, [1]=property, [2]=value)</span>
-<a name="l00977"></a>00977                         <span class="comment">// now execute</span>
-<a name="l00978"></a>00978                         <a class="code" href="classSection.html">Section</a>* tsec = control-&gt;GetSection(pvars[0]);
-<a name="l00979"></a>00979                         std::string value;
-<a name="l00980"></a>00980                         value += pvars[2];
-<a name="l00981"></a>00981                         <span class="keywordflow">for</span>(Bitu i = 3; i &lt; pvars.size(); i++) value += (std::string(<span class="stringliteral">&quot; &quot;</span>) + pvars[i]);
-<a name="l00982"></a>00982                         std::string inputline = pvars[1] + <span class="stringliteral">&quot;=&quot;</span> + value;
-<a name="l00983"></a>00983                         
-<a name="l00984"></a>00984                         <span class="keywordtype">bool</span> change_success = tsec-&gt;HandleInputline(inputline.c_str());
-<a name="l00985"></a>00985                         <span class="keywordflow">if</span> (!change_success) <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_VALUE_ERROR&quot;</span>),
-<a name="l00986"></a>00986                                 value.c_str(),pvars[1].c_str());
-<a name="l00987"></a>00987                         <span class="keywordflow">return</span>;
-<a name="l00988"></a>00988                 }
-<a name="l00989"></a>00989                 <span class="keywordflow">case</span> P_WRITELANG: <span class="keywordflow">case</span> P_WRITELANG2:
-<a name="l00990"></a>00990                         <span class="comment">// In secure mode don&#39;t allow a new languagefile to be created</span>
-<a name="l00991"></a>00991                         <span class="comment">// Who knows which kind of file we would overwrite.</span>
-<a name="l00992"></a>00992                         <span class="keywordflow">if</span> (securemode_check()) <span class="keywordflow">return</span>;
-<a name="l00993"></a>00993                         <span class="keywordflow">if</span> (pvars.size() &lt; 1) {
-<a name="l00994"></a>00994                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_MISSINGPARAM&quot;</span>));
-<a name="l00995"></a>00995                                 <span class="keywordflow">return</span>;
-<a name="l00996"></a>00996                         }
-<a name="l00997"></a>00997                         <span class="keywordflow">if</span> (!MSG_Write(pvars[0].c_str())) {
-<a name="l00998"></a>00998                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_FILE_ERROR&quot;</span>),pvars[0].c_str());
-<a name="l00999"></a>00999                                 <span class="keywordflow">return</span>;
-<a name="l01000"></a>01000                         }
-<a name="l01001"></a>01001                         <span class="keywordflow">break</span>;
-<a name="l01002"></a>01002 
-<a name="l01003"></a>01003                 <span class="keywordflow">case</span> P_SECURE:
-<a name="l01004"></a>01004                         <span class="comment">// Code for switching to secure mode</span>
-<a name="l01005"></a>01005                         control-&gt;SwitchToSecureMode();
-<a name="l01006"></a>01006                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_SECURE_ON&quot;</span>));
-<a name="l01007"></a>01007                         <span class="keywordflow">return</span>;
-<a name="l01008"></a>01008 
-<a name="l01009"></a>01009                 <span class="keywordflow">default</span>:
-<a name="l01010"></a>01010                         E_Exit(<span class="stringliteral">&quot;bug&quot;</span>);
-<a name="l01011"></a>01011                         <span class="keywordflow">break</span>;
-<a name="l01012"></a>01012                 }
-<a name="l01013"></a>01013                 first = <span class="keyword">false</span>;
-<a name="l01014"></a>01014         }
-<a name="l01015"></a>01015         <span class="keywordflow">return</span>;
-<a name="l01016"></a>01016 }
-<a name="l01017"></a>01017 
-<a name="l01018"></a>01018 
-<a name="l01019"></a>01019 <span class="keyword">static</span> <span class="keywordtype">void</span> CONFIG_ProgramStart(<a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> * * make) {
-<a name="l01020"></a>01020         *make=<span class="keyword">new</span> <a class="code" href="classCONFIG.html" title="CONFIG.COM utility to control configuration and files.">CONFIG</a>;
-<a name="l01021"></a>01021 }
-<a name="l01022"></a>01022 
-<a name="l01023"></a>01023 <span class="comment">/* FIXME: Rename the function to clarify it does not init programs, it inits the callback mechanism</span>
-<a name="l01024"></a>01024 <span class="comment"> *        that program generation on drive Z: needs to tie a .COM executable to a callback */</span>
-<a name="l01025"></a>01025 <span class="keywordtype">void</span> PROGRAMS_Init() {
-<a name="l01026"></a>01026         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PROGRAMS_Init(): initializing Z: drive .COM stub and program management&quot;</span>);
-<a name="l01027"></a>01027 
-<a name="l01028"></a>01028         <span class="comment">/* Setup a special callback to start virtual programs */</span>
-<a name="l01029"></a>01029         call_program=CALLBACK_Allocate();
-<a name="l01030"></a>01030         CALLBACK_Setup(call_program,&amp;PROGRAMS_Handler,CB_RETF,<span class="stringliteral">&quot;internal program&quot;</span>);
-<a name="l01031"></a>01031         PROGRAMS_MakeFile(<span class="stringliteral">&quot;CONFIG.COM&quot;</span>,CONFIG_ProgramStart);
-<a name="l01032"></a>01032 
-<a name="l01033"></a>01033         <span class="comment">// listconf</span>
-<a name="l01034"></a>01034         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_NOCONFIGFILE&quot;</span>,<span class="stringliteral">&quot;No config file loaded!\n&quot;</span>);
-<a name="l01035"></a>01035         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_PRIMARY_CONF&quot;</span>,<span class="stringliteral">&quot;Primary config file: \n%s\n&quot;</span>);
-<a name="l01036"></a>01036         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_ADDITIONAL_CONF&quot;</span>,<span class="stringliteral">&quot;Additional config files:\n&quot;</span>);
-<a name="l01037"></a>01037         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_CONFDIR&quot;</span>,<span class="stringliteral">&quot;DOSBox %s configuration directory: \n%s\n\n&quot;</span>);
-<a name="l01038"></a>01038         
-<a name="l01039"></a>01039         <span class="comment">// writeconf</span>
-<a name="l01040"></a>01040         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_FILE_ERROR&quot;</span>,<span class="stringliteral">&quot;\nCan&#39;t open file %s\n&quot;</span>);
-<a name="l01041"></a>01041         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_FILE_WHICH&quot;</span>,<span class="stringliteral">&quot;Writing config file %s&quot;</span>);
-<a name="l01042"></a>01042         
-<a name="l01043"></a>01043         <span class="comment">// help</span>
-<a name="l01044"></a>01044         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_USAGE&quot;</span>,<span class="stringliteral">&quot;Config tool:\n&quot;</span>\
-<a name="l01045"></a>01045                 <span class="stringliteral">&quot;-writeconf or -wc without parameter: write to primary loaded config file.\n&quot;</span>\
-<a name="l01046"></a>01046                 <span class="stringliteral">&quot;-writeconf or -wc with filename: write file to config directory.\n&quot;</span>\
-<a name="l01047"></a>01047                 <span class="stringliteral">&quot;Use -writelang or -wl filename to write the current language strings.\n&quot;</span>\
-<a name="l01048"></a>01048                 <span class="stringliteral">&quot;-all  Use -all with -wc and -writeconf to write ALL options to the file.\n&quot;</span>\
-<a name="l01049"></a>01049                 <span class="stringliteral">&quot;-r [parameters]\n Restart DOSBox, either using the previous parameters or any that are appended.\n&quot;</span>\
-<a name="l01050"></a>01050                 <span class="stringliteral">&quot;-wcp [filename]\n Write config file to the program directory, dosbox.conf or the specified \n filename.\n&quot;</span>\
-<a name="l01051"></a>01051                 <span class="stringliteral">&quot;-wcd\n Write to the default config file in the config directory.\n&quot;</span>\
-<a name="l01052"></a>01052                 <span class="stringliteral">&quot;-l lists configuration parameters.\n&quot;</span>\
-<a name="l01053"></a>01053                 <span class="stringliteral">&quot;-h, -help, -? sections / sectionname / propertyname\n&quot;</span>\
-<a name="l01054"></a>01054                 <span class="stringliteral">&quot; Without parameters, displays this help screen. Add \&quot;sections\&quot; for a list of\n sections.&quot;</span>\
-<a name="l01055"></a>01055                 <span class="stringliteral">&quot; For info about a specific section or property add its name behind.\n&quot;</span>\
-<a name="l01056"></a>01056                 <span class="stringliteral">&quot;-axclear clears the autoexec section.\n&quot;</span>\
-<a name="l01057"></a>01057                 <span class="stringliteral">&quot;-axadd [line] adds a line to the autoexec section.\n&quot;</span>\
-<a name="l01058"></a>01058                 <span class="stringliteral">&quot;-axtype prints the content of the autoexec section.\n&quot;</span>\
-<a name="l01059"></a>01059                 <span class="stringliteral">&quot;-securemode switches to secure mode.\n&quot;</span>\
-<a name="l01060"></a>01060                 <span class="stringliteral">&quot;-get \&quot;section property\&quot; returns the value of the property.\n&quot;</span>\
-<a name="l01061"></a>01061                 <span class="stringliteral">&quot;-set \&quot;section property=value\&quot; sets the value.&quot;</span> );
-<a name="l01062"></a>01062         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_HLP_PROPHLP&quot;</span>,<span class="stringliteral">&quot;Purpose of property \&quot;%s\&quot; (contained in section \&quot;%s\&quot;):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n&quot;</span>);
-<a name="l01063"></a>01063         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_HLP_LINEHLP&quot;</span>,<span class="stringliteral">&quot;Purpose of section \&quot;%s\&quot;:\n%s\nCurrent value:\n%s\n&quot;</span>);
-<a name="l01064"></a>01064         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_HLP_NOCHANGE&quot;</span>,<span class="stringliteral">&quot;This property cannot be changed at runtime.\n&quot;</span>);
-<a name="l01065"></a>01065         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_HLP_POSINT&quot;</span>,<span class="stringliteral">&quot;positive integer&quot;</span>); 
-<a name="l01066"></a>01066         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_HLP_SECTHLP&quot;</span>,<span class="stringliteral">&quot;Section %s contains the following properties:\n&quot;</span>);                                
-<a name="l01067"></a>01067         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_HLP_SECTLIST&quot;</span>,<span class="stringliteral">&quot;DOSBox configuration contains the following sections:\n\n&quot;</span>);
-<a name="l01068"></a>01068 
-<a name="l01069"></a>01069         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_SECURE_ON&quot;</span>,<span class="stringliteral">&quot;Switched to secure mode.\n&quot;</span>);
-<a name="l01070"></a>01070         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_SECURE_DISALLOW&quot;</span>,<span class="stringliteral">&quot;This operation is not permitted in secure mode.\n&quot;</span>);
-<a name="l01071"></a>01071         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_SECTION_ERROR&quot;</span>,<span class="stringliteral">&quot;Section %s doesn&#39;t exist.\n&quot;</span>);
-<a name="l01072"></a>01072         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_VALUE_ERROR&quot;</span>,<span class="stringliteral">&quot;\&quot;%s\&quot; is not a valid value for property %s.\n&quot;</span>);
-<a name="l01073"></a>01073         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_PROPERTY_ERROR&quot;</span>,<span class="stringliteral">&quot;No such section or property.\n&quot;</span>);
-<a name="l01074"></a>01074         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_NO_PROPERTY&quot;</span>,<span class="stringliteral">&quot;There is no property %s in section %s.\n&quot;</span>);
-<a name="l01075"></a>01075         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_SET_SYNTAX&quot;</span>,<span class="stringliteral">&quot;Correct syntax: config -set \&quot;section property\&quot;.\n&quot;</span>);
-<a name="l01076"></a>01076         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_GET_SYNTAX&quot;</span>,<span class="stringliteral">&quot;Correct syntax: config -get \&quot;section property\&quot;.\n&quot;</span>);
-<a name="l01077"></a>01077         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_PRINT_STARTUP&quot;</span>,<span class="stringliteral">&quot;\nDOSBox was started with the following command line parameters:\n%s&quot;</span>);
-<a name="l01078"></a>01078         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_MISSINGPARAM&quot;</span>,<span class="stringliteral">&quot;Missing parameter.&quot;</span>);
-<a name="l01079"></a>01079 }
+<a name="l00851"></a>00851                                         first_shell-&gt;<a class="code" href="classProgram.html#a8a7d72f5c08f644fb19e5f36dc1c3d46" title="Return the number of enviormental variables.">SetEnv</a>(<span class="stringliteral">&quot;CONFIG&quot;</span>,val.c_str());
+<a name="l00852"></a>00852                                 }
+<a name="l00853"></a>00853                                 <span class="keywordflow">break</span>;
+<a name="l00854"></a>00854                         }
+<a name="l00855"></a>00855                         <span class="keywordflow">case</span> 2: {
+<a name="l00856"></a>00856                                 <span class="comment">// section + property</span>
+<a name="l00857"></a>00857                                 <a class="code" href="classSection.html">Section</a>* sec = control-&gt;GetSection(pvars[0].c_str());
+<a name="l00858"></a>00858                                 <span class="keywordflow">if</span> (!sec) {
+<a name="l00859"></a>00859                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_SECTION_ERROR&quot;</span>));
+<a name="l00860"></a>00860                                         <span class="keywordflow">return</span>;
+<a name="l00861"></a>00861                                 }
+<a name="l00862"></a>00862                                 std::string val = sec-&gt;GetPropValue(pvars[1].c_str());
+<a name="l00863"></a>00863                                 <span class="keywordflow">if</span> (val == NO_SUCH_PROPERTY) {
+<a name="l00864"></a>00864                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_NO_PROPERTY&quot;</span>),
+<a name="l00865"></a>00865                                                 pvars[1].c_str(),pvars[0].c_str());   
+<a name="l00866"></a>00866                                         <span class="keywordflow">return</span>;
+<a name="l00867"></a>00867                                 }
+<a name="l00868"></a>00868                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(<span class="stringliteral">&quot;%s&quot;</span>,val.c_str());
+<a name="l00869"></a>00869                 first_shell-&gt;<a class="code" href="classProgram.html#a8a7d72f5c08f644fb19e5f36dc1c3d46" title="Return the number of enviormental variables.">SetEnv</a>(<span class="stringliteral">&quot;CONFIG&quot;</span>,val.c_str());
+<a name="l00870"></a>00870                 <span class="keywordflow">break</span>;
+<a name="l00871"></a>00871                         }
+<a name="l00872"></a>00872                         <span class="keywordflow">default</span>:
+<a name="l00873"></a>00873                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_GET_SYNTAX&quot;</span>));
+<a name="l00874"></a>00874                                 <span class="keywordflow">return</span>;
+<a name="l00875"></a>00875                         }
+<a name="l00876"></a>00876                         <span class="keywordflow">return</span>;
+<a name="l00877"></a>00877                 }
+<a name="l00878"></a>00878                 <span class="keywordflow">case</span> P_SETPROP: {
+<a name="l00879"></a>00879                         <span class="comment">// Code for the configuration changes</span>
+<a name="l00880"></a>00880                         <span class="comment">// Official format: config -set &quot;section property=value&quot;</span>
+<a name="l00881"></a>00881                         <span class="comment">// Accepted: with or without -set, </span>
+<a name="l00882"></a>00882                         <span class="comment">// &quot;section property value&quot;</span>
+<a name="l00883"></a>00883                         <span class="comment">// &quot;section property=value&quot;</span>
+<a name="l00884"></a>00884                         <span class="comment">// &quot;property&quot; &quot;value&quot;</span>
+<a name="l00885"></a>00885                         <span class="comment">// &quot;section&quot; &quot;property=value&quot;</span>
+<a name="l00886"></a>00886                         <span class="comment">// &quot;section&quot; &quot;property=value&quot; &quot;value&quot; &quot;value&quot; ...</span>
+<a name="l00887"></a>00887                         <span class="comment">// &quot;section&quot; &quot;property&quot; &quot;value&quot; &quot;value&quot; ...</span>
+<a name="l00888"></a>00888                         <span class="comment">// &quot;section property&quot; &quot;value&quot; &quot;value&quot; ...</span>
+<a name="l00889"></a>00889                         <span class="comment">// &quot;property&quot; &quot;value&quot; &quot;value&quot; ...</span>
+<a name="l00890"></a>00890                         <span class="comment">// &quot;property=value&quot; &quot;value&quot; &quot;value&quot; ...</span>
+<a name="l00891"></a>00891 
+<a name="l00892"></a>00892                         <span class="keywordflow">if</span> (pvars.size()==0) {
+<a name="l00893"></a>00893                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_SET_SYNTAX&quot;</span>));
+<a name="l00894"></a>00894                                 <span class="keywordflow">return</span>;
+<a name="l00895"></a>00895                         }
+<a name="l00896"></a>00896 
+<a name="l00897"></a>00897                         <span class="comment">// add rest of command</span>
+<a name="l00898"></a>00898                         std::string rest;
+<a name="l00899"></a>00899                         <span class="keywordflow">if</span> (<a class="code" href="classProgram.html#af637f18e9637b148fbecbd3f0bc748fc" title="Temporary string object for parsing.">cmd</a>-&gt;GetStringRemain(rest)) pvars.push_back(rest);
+<a name="l00900"></a>00900 
+<a name="l00901"></a>00901                         <span class="comment">// attempt to split off the first word</span>
+<a name="l00902"></a>00902                         std::string::size_type spcpos = pvars[0].find_first_of(<span class="charliteral">&#39; &#39;</span>);
+<a name="l00903"></a>00903                         std::string::size_type equpos = pvars[0].find_first_of(<span class="charliteral">&#39;=&#39;</span>);
+<a name="l00904"></a>00904 
+<a name="l00905"></a>00905                         <span class="keywordflow">if</span> ((equpos != std::string::npos) &amp;&amp; 
+<a name="l00906"></a>00906                                 ((spcpos == std::string::npos) || (equpos &lt; spcpos))) {
+<a name="l00907"></a>00907                                 <span class="comment">// If we have a &#39;=&#39; possibly before a &#39; &#39; split on the =</span>
+<a name="l00908"></a>00908                                 pvars.insert(++pvars.begin(),pvars[0].substr(equpos+1));
+<a name="l00909"></a>00909                                 pvars[0].erase(equpos);
+<a name="l00910"></a>00910                                 <span class="comment">// As we had a = the first thing must be a property now</span>
+<a name="l00911"></a>00911                                 <a class="code" href="classSection.html">Section</a>* sec=control-&gt;GetSectionFromProperty(pvars[0].c_str());
+<a name="l00912"></a>00912                                 <span class="keywordflow">if</span> (sec) pvars.insert(pvars.begin(),std::string(sec-&gt;GetName()));
+<a name="l00913"></a>00913                                 <span class="keywordflow">else</span> {
+<a name="l00914"></a>00914                                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_PROPERTY_ERROR&quot;</span>));
+<a name="l00915"></a>00915                                         <span class="keywordflow">return</span>;
+<a name="l00916"></a>00916                                 }
+<a name="l00917"></a>00917                                 <span class="comment">// order in the vector should be ok now</span>
+<a name="l00918"></a>00918                         } <span class="keywordflow">else</span> {
+<a name="l00919"></a>00919                                 <span class="keywordflow">if</span> ((spcpos != std::string::npos) &amp;&amp;
+<a name="l00920"></a>00920                                         ((equpos == std::string::npos) || (spcpos &lt; equpos))) {
+<a name="l00921"></a>00921                                         <span class="comment">// &#39; &#39; before a possible &#39;=&#39;, split on the &#39; &#39;</span>
+<a name="l00922"></a>00922                                         pvars.insert(++pvars.begin(),pvars[0].substr(spcpos+1));
+<a name="l00923"></a>00923                                         pvars[0].erase(spcpos);
+<a name="l00924"></a>00924                                 }
+<a name="l00925"></a>00925                                 <span class="comment">// check if the first parameter is a section or property</span>
+<a name="l00926"></a>00926                                 <a class="code" href="classSection.html">Section</a>* sec = control-&gt;GetSection(pvars[0].c_str());
+<a name="l00927"></a>00927                                 <span class="keywordflow">if</span> (!sec) {
+<a name="l00928"></a>00928                                         <span class="comment">// not a section: little duplicate from above</span>
+<a name="l00929"></a>00929                                         <a class="code" href="classSection.html">Section</a>* sec=control-&gt;GetSectionFromProperty(pvars[0].c_str());
+<a name="l00930"></a>00930                                         <span class="keywordflow">if</span> (sec) pvars.insert(pvars.begin(),std::string(sec-&gt;GetName()));
+<a name="l00931"></a>00931                                         <span class="keywordflow">else</span> {
+<a name="l00932"></a>00932                                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_PROPERTY_ERROR&quot;</span>));
+<a name="l00933"></a>00933                                                 <span class="keywordflow">return</span>;
+<a name="l00934"></a>00934                                         }
+<a name="l00935"></a>00935                                 } <span class="keywordflow">else</span> {
+<a name="l00936"></a>00936                                         <span class="comment">// first of pvars is most likely a section, but could still be gus</span>
+<a name="l00937"></a>00937                                         <span class="comment">// have a look at the second parameter</span>
+<a name="l00938"></a>00938                                         <span class="keywordflow">if</span> (pvars.size() &lt; 2) {
+<a name="l00939"></a>00939                                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_SET_SYNTAX&quot;</span>));
+<a name="l00940"></a>00940                                                 <span class="keywordflow">return</span>;
+<a name="l00941"></a>00941                                         }
+<a name="l00942"></a>00942                                         std::string::size_type spcpos2 = pvars[1].find_first_of(<span class="charliteral">&#39; &#39;</span>);
+<a name="l00943"></a>00943                                         std::string::size_type equpos2 = pvars[1].find_first_of(<span class="charliteral">&#39;=&#39;</span>);
+<a name="l00944"></a>00944                                         <span class="keywordflow">if</span> ((equpos2 != std::string::npos) &amp;&amp; 
+<a name="l00945"></a>00945                                                 ((spcpos2 == std::string::npos) || (equpos2 &lt; spcpos2))) {
+<a name="l00946"></a>00946                                                 <span class="comment">// split on the =</span>
+<a name="l00947"></a>00947                                                 pvars.insert(pvars.begin()+2,pvars[1].substr(equpos2+1));
+<a name="l00948"></a>00948                                                 pvars[1].erase(equpos2);
+<a name="l00949"></a>00949                                         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> ((spcpos2 != std::string::npos) &amp;&amp;
+<a name="l00950"></a>00950                                                 ((equpos2 == std::string::npos) || (spcpos2 &lt; equpos2))) {
+<a name="l00951"></a>00951                                                 <span class="comment">// split on the &#39; &#39;</span>
+<a name="l00952"></a>00952                                                 pvars.insert(pvars.begin()+2,pvars[1].substr(spcpos2+1));
+<a name="l00953"></a>00953                                                 pvars[1].erase(spcpos2);
+<a name="l00954"></a>00954                                         }
+<a name="l00955"></a>00955                                         <span class="comment">// is this a property?</span>
+<a name="l00956"></a>00956                                         <a class="code" href="classSection.html">Section</a>* sec2 = control-&gt;GetSectionFromProperty(pvars[1].c_str());
+<a name="l00957"></a>00957                                         <span class="keywordflow">if</span> (!sec2) {
+<a name="l00958"></a>00958                                                 <span class="comment">// not a property, </span>
+<a name="l00959"></a>00959                                                 <a class="code" href="classSection.html">Section</a>* sec3 = control-&gt;GetSectionFromProperty(pvars[0].c_str());
+<a name="l00960"></a>00960                                                 <span class="keywordflow">if</span> (sec3) {
+<a name="l00961"></a>00961                                                         <span class="comment">// section and property name are identical</span>
+<a name="l00962"></a>00962                                                         pvars.insert(pvars.begin(),pvars[0]);
+<a name="l00963"></a>00963                                                 } <span class="comment">// else has been checked above already</span>
+<a name="l00964"></a>00964                                         }
+<a name="l00965"></a>00965                                 }
+<a name="l00966"></a>00966                         }
+<a name="l00967"></a>00967                         <span class="keywordflow">if</span>(pvars.size() &lt; 3) {
+<a name="l00968"></a>00968                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_SET_SYNTAX&quot;</span>));
+<a name="l00969"></a>00969                                 <span class="keywordflow">return</span>;
+<a name="l00970"></a>00970                         }
+<a name="l00971"></a>00971                         <span class="comment">// check if the property actually exists in the section</span>
+<a name="l00972"></a>00972                         <a class="code" href="classSection.html">Section</a>* sec2 = control-&gt;GetSectionFromProperty(pvars[1].c_str());
+<a name="l00973"></a>00973                         <span class="keywordflow">if</span> (!sec2) {
+<a name="l00974"></a>00974                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_NO_PROPERTY&quot;</span>),
+<a name="l00975"></a>00975                                         pvars[1].c_str(),pvars[0].c_str());
+<a name="l00976"></a>00976                                 <span class="keywordflow">return</span>;
+<a name="l00977"></a>00977                         }
+<a name="l00978"></a>00978                         <span class="comment">// Input has been parsed (pvar[0]=section, [1]=property, [2]=value)</span>
+<a name="l00979"></a>00979                         <span class="comment">// now execute</span>
+<a name="l00980"></a>00980                         <a class="code" href="classSection.html">Section</a>* tsec = control-&gt;GetSection(pvars[0]);
+<a name="l00981"></a>00981                         std::string value;
+<a name="l00982"></a>00982                         value += pvars[2];
+<a name="l00983"></a>00983                         <span class="keywordflow">for</span>(Bitu i = 3; i &lt; pvars.size(); i++) value += (std::string(<span class="stringliteral">&quot; &quot;</span>) + pvars[i]);
+<a name="l00984"></a>00984                         std::string inputline = pvars[1] + <span class="stringliteral">&quot;=&quot;</span> + value;
+<a name="l00985"></a>00985                         
+<a name="l00986"></a>00986                         <span class="keywordtype">bool</span> change_success = tsec-&gt;HandleInputline(inputline.c_str());
+<a name="l00987"></a>00987                         <span class="keywordflow">if</span> (!change_success) <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_VALUE_ERROR&quot;</span>),
+<a name="l00988"></a>00988                                 value.c_str(),pvars[1].c_str());
+<a name="l00989"></a>00989                         <span class="keywordflow">return</span>;
+<a name="l00990"></a>00990                 }
+<a name="l00991"></a>00991                 <span class="keywordflow">case</span> P_WRITELANG: <span class="keywordflow">case</span> P_WRITELANG2:
+<a name="l00992"></a>00992                         <span class="comment">// In secure mode don&#39;t allow a new languagefile to be created</span>
+<a name="l00993"></a>00993                         <span class="comment">// Who knows which kind of file we would overwrite.</span>
+<a name="l00994"></a>00994                         <span class="keywordflow">if</span> (securemode_check()) <span class="keywordflow">return</span>;
+<a name="l00995"></a>00995                         <span class="keywordflow">if</span> (pvars.size() &lt; 1) {
+<a name="l00996"></a>00996                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_MISSINGPARAM&quot;</span>));
+<a name="l00997"></a>00997                                 <span class="keywordflow">return</span>;
+<a name="l00998"></a>00998                         }
+<a name="l00999"></a>00999                         <span class="keywordflow">if</span> (!MSG_Write(pvars[0].c_str())) {
+<a name="l01000"></a>01000                                 <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_FILE_ERROR&quot;</span>),pvars[0].c_str());
+<a name="l01001"></a>01001                                 <span class="keywordflow">return</span>;
+<a name="l01002"></a>01002                         }
+<a name="l01003"></a>01003                         <span class="keywordflow">break</span>;
+<a name="l01004"></a>01004 
+<a name="l01005"></a>01005                 <span class="keywordflow">case</span> P_SECURE:
+<a name="l01006"></a>01006                         <span class="comment">// Code for switching to secure mode</span>
+<a name="l01007"></a>01007                         control-&gt;SwitchToSecureMode();
+<a name="l01008"></a>01008                         <a class="code" href="classProgram.html#af3326c2431db683c8cbfcf1a4eb06f71" title="Set environment variable.">WriteOut</a>(MSG_Get(<span class="stringliteral">&quot;PROGRAM_CONFIG_SECURE_ON&quot;</span>));
+<a name="l01009"></a>01009                         <span class="keywordflow">return</span>;
+<a name="l01010"></a>01010 
+<a name="l01011"></a>01011                 <span class="keywordflow">default</span>:
+<a name="l01012"></a>01012                         E_Exit(<span class="stringliteral">&quot;bug&quot;</span>);
+<a name="l01013"></a>01013                         <span class="keywordflow">break</span>;
+<a name="l01014"></a>01014                 }
+<a name="l01015"></a>01015                 first = <span class="keyword">false</span>;
+<a name="l01016"></a>01016         }
+<a name="l01017"></a>01017         <span class="keywordflow">return</span>;
+<a name="l01018"></a>01018 }
+<a name="l01019"></a>01019 
+<a name="l01020"></a>01020 
+<a name="l01021"></a>01021 <span class="keyword">static</span> <span class="keywordtype">void</span> CONFIG_ProgramStart(<a class="code" href="classProgram.html" title="Base Program class for built-in programs on drive Z:">Program</a> * * make) {
+<a name="l01022"></a>01022         *make=<span class="keyword">new</span> <a class="code" href="classCONFIG.html" title="CONFIG.COM utility to control configuration and files.">CONFIG</a>;
+<a name="l01023"></a>01023 }
+<a name="l01024"></a>01024 
+<a name="l01025"></a>01025 <span class="comment">/* FIXME: Rename the function to clarify it does not init programs, it inits the callback mechanism</span>
+<a name="l01026"></a>01026 <span class="comment"> *        that program generation on drive Z: needs to tie a .COM executable to a callback */</span>
+<a name="l01027"></a>01027 <span class="keywordtype">void</span> PROGRAMS_Init() {
+<a name="l01028"></a>01028         <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;PROGRAMS_Init(): initializing Z: drive .COM stub and program management&quot;</span>);
+<a name="l01029"></a>01029 
+<a name="l01030"></a>01030         <span class="comment">/* Setup a special callback to start virtual programs */</span>
+<a name="l01031"></a>01031         call_program=CALLBACK_Allocate();
+<a name="l01032"></a>01032         CALLBACK_Setup(call_program,&amp;PROGRAMS_Handler,CB_RETF,<span class="stringliteral">&quot;internal program&quot;</span>);
+<a name="l01033"></a>01033         PROGRAMS_MakeFile(<span class="stringliteral">&quot;CONFIG.COM&quot;</span>,CONFIG_ProgramStart);
+<a name="l01034"></a>01034 
+<a name="l01035"></a>01035         <span class="comment">// listconf</span>
+<a name="l01036"></a>01036         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_NOCONFIGFILE&quot;</span>,<span class="stringliteral">&quot;No config file loaded!\n&quot;</span>);
+<a name="l01037"></a>01037         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_PRIMARY_CONF&quot;</span>,<span class="stringliteral">&quot;Primary config file: \n%s\n&quot;</span>);
+<a name="l01038"></a>01038         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_ADDITIONAL_CONF&quot;</span>,<span class="stringliteral">&quot;Additional config files:\n&quot;</span>);
+<a name="l01039"></a>01039         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_CONFDIR&quot;</span>,<span class="stringliteral">&quot;DOSBox %s configuration directory: \n%s\n\n&quot;</span>);
+<a name="l01040"></a>01040         
+<a name="l01041"></a>01041         <span class="comment">// writeconf</span>
+<a name="l01042"></a>01042         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_FILE_ERROR&quot;</span>,<span class="stringliteral">&quot;\nCan&#39;t open file %s\n&quot;</span>);
+<a name="l01043"></a>01043         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_FILE_WHICH&quot;</span>,<span class="stringliteral">&quot;Writing config file %s&quot;</span>);
+<a name="l01044"></a>01044         
+<a name="l01045"></a>01045         <span class="comment">// help</span>
+<a name="l01046"></a>01046         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_USAGE&quot;</span>,<span class="stringliteral">&quot;Config tool:\n&quot;</span>\
+<a name="l01047"></a>01047                 <span class="stringliteral">&quot;-writeconf or -wc without parameter: write to primary loaded config file.\n&quot;</span>\
+<a name="l01048"></a>01048                 <span class="stringliteral">&quot;-writeconf or -wc with filename: write file to config directory.\n&quot;</span>\
+<a name="l01049"></a>01049                 <span class="stringliteral">&quot;Use -writelang or -wl filename to write the current language strings.\n&quot;</span>\
+<a name="l01050"></a>01050                 <span class="stringliteral">&quot;-all  Use -all with -wc and -writeconf to write ALL options to the file.\n&quot;</span>\
+<a name="l01051"></a>01051                 <span class="stringliteral">&quot;-r [parameters]\n Restart DOSBox, either using the previous parameters or any that are appended.\n&quot;</span>\
+<a name="l01052"></a>01052                 <span class="stringliteral">&quot;-wcp [filename]\n Write config file to the program directory, dosbox.conf or the specified \n filename.\n&quot;</span>\
+<a name="l01053"></a>01053                 <span class="stringliteral">&quot;-wcd\n Write to the default config file in the config directory.\n&quot;</span>\
+<a name="l01054"></a>01054                 <span class="stringliteral">&quot;-l lists configuration parameters.\n&quot;</span>\
+<a name="l01055"></a>01055                 <span class="stringliteral">&quot;-h, -help, -? sections / sectionname / propertyname\n&quot;</span>\
+<a name="l01056"></a>01056                 <span class="stringliteral">&quot; Without parameters, displays this help screen. Add \&quot;sections\&quot; for a list of\n sections.&quot;</span>\
+<a name="l01057"></a>01057                 <span class="stringliteral">&quot; For info about a specific section or property add its name behind.\n&quot;</span>\
+<a name="l01058"></a>01058                 <span class="stringliteral">&quot;-axclear clears the autoexec section.\n&quot;</span>\
+<a name="l01059"></a>01059                 <span class="stringliteral">&quot;-axadd [line] adds a line to the autoexec section.\n&quot;</span>\
+<a name="l01060"></a>01060                 <span class="stringliteral">&quot;-axtype prints the content of the autoexec section.\n&quot;</span>\
+<a name="l01061"></a>01061                 <span class="stringliteral">&quot;-securemode switches to secure mode.\n&quot;</span>\
+<a name="l01062"></a>01062                 <span class="stringliteral">&quot;-get \&quot;section property\&quot; returns the value of the property.\n&quot;</span>\
+<a name="l01063"></a>01063                 <span class="stringliteral">&quot;-set \&quot;section property=value\&quot; sets the value.&quot;</span> );
+<a name="l01064"></a>01064         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_HLP_PROPHLP&quot;</span>,<span class="stringliteral">&quot;Purpose of property \&quot;%s\&quot; (contained in section \&quot;%s\&quot;):\n%s\n\nPossible Values: %s\nDefault value: %s\nCurrent value: %s\n&quot;</span>);
+<a name="l01065"></a>01065         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_HLP_LINEHLP&quot;</span>,<span class="stringliteral">&quot;Purpose of section \&quot;%s\&quot;:\n%s\nCurrent value:\n%s\n&quot;</span>);
+<a name="l01066"></a>01066         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_HLP_NOCHANGE&quot;</span>,<span class="stringliteral">&quot;This property cannot be changed at runtime.\n&quot;</span>);
+<a name="l01067"></a>01067         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_HLP_POSINT&quot;</span>,<span class="stringliteral">&quot;positive integer&quot;</span>); 
+<a name="l01068"></a>01068         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_HLP_SECTHLP&quot;</span>,<span class="stringliteral">&quot;Section %s contains the following properties:\n&quot;</span>);                                
+<a name="l01069"></a>01069         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_HLP_SECTLIST&quot;</span>,<span class="stringliteral">&quot;DOSBox configuration contains the following sections:\n\n&quot;</span>);
+<a name="l01070"></a>01070 
+<a name="l01071"></a>01071         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_SECURE_ON&quot;</span>,<span class="stringliteral">&quot;Switched to secure mode.\n&quot;</span>);
+<a name="l01072"></a>01072         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_SECURE_DISALLOW&quot;</span>,<span class="stringliteral">&quot;This operation is not permitted in secure mode.\n&quot;</span>);
+<a name="l01073"></a>01073         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_SECTION_ERROR&quot;</span>,<span class="stringliteral">&quot;Section %s doesn&#39;t exist.\n&quot;</span>);
+<a name="l01074"></a>01074         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_VALUE_ERROR&quot;</span>,<span class="stringliteral">&quot;\&quot;%s\&quot; is not a valid value for property %s.\n&quot;</span>);
+<a name="l01075"></a>01075         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_PROPERTY_ERROR&quot;</span>,<span class="stringliteral">&quot;No such section or property.\n&quot;</span>);
+<a name="l01076"></a>01076         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_NO_PROPERTY&quot;</span>,<span class="stringliteral">&quot;There is no property %s in section %s.\n&quot;</span>);
+<a name="l01077"></a>01077         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_SET_SYNTAX&quot;</span>,<span class="stringliteral">&quot;Correct syntax: config -set \&quot;section property\&quot;.\n&quot;</span>);
+<a name="l01078"></a>01078         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_GET_SYNTAX&quot;</span>,<span class="stringliteral">&quot;Correct syntax: config -get \&quot;section property\&quot;.\n&quot;</span>);
+<a name="l01079"></a>01079         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_PRINT_STARTUP&quot;</span>,<span class="stringliteral">&quot;\nDOSBox was started with the following command line parameters:\n%s&quot;</span>);
+<a name="l01080"></a>01080         MSG_Add(<span class="stringliteral">&quot;PROGRAM_CONFIG_MISSINGPARAM&quot;</span>,<span class="stringliteral">&quot;Missing parameter.&quot;</span>);
+<a name="l01081"></a>01081 }
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jul 15 2018 11:44:19 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Nov 2 2018 12:40:10 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

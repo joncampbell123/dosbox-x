@@ -736,7 +736,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00639"></a>00639 <span class="preprocessor">#define MULB(op1,load,save)                                                                     \</span>
 <a name="l00640"></a>00640 <span class="preprocessor">        reg_ax=reg_al*load(op1);                                                                \</span>
 <a name="l00641"></a>00641 <span class="preprocessor">        FillFlagsNoCFOF();                                                                              \</span>
-<a name="l00642"></a>00642 <span class="preprocessor">        SETFLAGBIT(ZF,reg_al == 0);                                                             \</span>
+<a name="l00642"></a>00642 <span class="preprocessor">        SETFLAGBIT(ZF,reg_al == 0 &amp;&amp; CPU_CORE &gt;= CPU_ARCHTYPE_286);                                                             \</span>
 <a name="l00643"></a>00643 <span class="preprocessor">        SETFLAGBIT(PF,PARITY16(reg_ax));                                                                \</span>
 <a name="l00644"></a>00644 <span class="preprocessor">        if (reg_ax &amp; 0xff00) {                                                                  \</span>
 <a name="l00645"></a>00645 <span class="preprocessor">                SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);                        \</span>
@@ -750,7 +750,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00653"></a>00653 <span class="preprocessor">        reg_ax=(Bit16u)(tempu);                                                                 \</span>
 <a name="l00654"></a>00654 <span class="preprocessor">        reg_dx=(Bit16u)(tempu &gt;&gt; 16);                                                   \</span>
 <a name="l00655"></a>00655 <span class="preprocessor">        FillFlagsNoCFOF();                                                                              \</span>
-<a name="l00656"></a>00656 <span class="preprocessor">        SETFLAGBIT(ZF,reg_ax == 0);                                                             \</span>
+<a name="l00656"></a>00656 <span class="preprocessor">        SETFLAGBIT(ZF,reg_ax == 0 &amp;&amp; CPU_CORE &gt;= CPU_ARCHTYPE_286);                                                             \</span>
 <a name="l00657"></a>00657 <span class="preprocessor">        SETFLAGBIT(PF,PARITY16(reg_ax)^PARITY16(reg_dx)^FLAG_PF);                                               \</span>
 <a name="l00658"></a>00658 <span class="preprocessor">        if (reg_dx) {                                                                                   \</span>
 <a name="l00659"></a>00659 <span class="preprocessor">                SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);                        \</span>
@@ -765,7 +765,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00668"></a>00668 <span class="preprocessor">        reg_eax=(Bit32u)(tempu);                                                                \</span>
 <a name="l00669"></a>00669 <span class="preprocessor">        reg_edx=(Bit32u)(tempu &gt;&gt; 32);                                                  \</span>
 <a name="l00670"></a>00670 <span class="preprocessor">        FillFlagsNoCFOF();                                                                              \</span>
-<a name="l00671"></a>00671 <span class="preprocessor">        SETFLAGBIT(ZF,reg_eax == 0);                                                    \</span>
+<a name="l00671"></a>00671 <span class="preprocessor">        SETFLAGBIT(ZF,reg_eax == 0 &amp;&amp; CPU_CORE &gt;= CPU_ARCHTYPE_286);                                                    \</span>
 <a name="l00672"></a>00672 <span class="preprocessor">        SETFLAGBIT(PF,PARITY32(reg_eax)^PARITY32(reg_edx)^FLAG_PF);                                             \</span>
 <a name="l00673"></a>00673 <span class="preprocessor">        if (reg_edx) {                                                                                  \</span>
 <a name="l00674"></a>00674 <span class="preprocessor">                SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);                        \</span>
@@ -1129,7 +1129,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jul 15 2018 11:44:16 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Nov 2 2018 12:40:05 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

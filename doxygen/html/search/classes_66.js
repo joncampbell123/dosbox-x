@@ -2,6 +2,7 @@ var searchData=
 [
   ['fatdrive',['fatDrive',['../classfatDrive.html',1,'']]],
   ['fatfile',['fatFile',['../classfatFile.html',1,'']]],
+  ['fdihdr',['FDIHDR',['../structFDIHDR.html',1,'']]],
   ['fi',['fi',['../unionfmath_1_1local_1_1fi.html',1,'fmath::local']]],
   ['file',['File',['../classMT32Emu_1_1File.html',1,'MT32Emu']]],
   ['filestat_5fblock',['FileStat_Block',['../structFileStat__Block.html',1,'']]],

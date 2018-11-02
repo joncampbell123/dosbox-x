@@ -262,53 +262,54 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00256"></a>00256         <span class="keywordtype">void</span> <a class="code" href="classDOS__Shell.html#a31d3f8107e9fc6bf368b02f5b15c861e" title="Text pager (MORE)">CMD_MORE</a>(<span class="keywordtype">char</span> * args);
 <a name="l00257"></a>00257 
 <a name="l00260"></a>00260         <span class="keywordtype">void</span> <a class="code" href="classDOS__Shell.html#ab4e4f875c54408e1c040ee0aa65b5314" title="Change TTY (console) device (CTTY)">CMD_CTTY</a>(<span class="keywordtype">char</span> * args);
-<a name="l00261"></a>00261 
-<a name="l00264"></a>00264         <span class="keywordtype">void</span> <a class="code" href="classDOS__Shell.html#a0d8acfd37eae2734a4a2cf623eafa536" title="Looping execution (FOR)">CMD_FOR</a>(<span class="keywordtype">char</span> * args);
-<a name="l00265"></a>00265 
-<a name="l00266"></a>00266 <span class="preprocessor">#if C_DEBUG</span>
-<a name="l00267"></a>00267 <span class="preprocessor"></span>
-<a name="l00269"></a>00269         <span class="keywordtype">void</span> CMD_DEBUGBOX(<span class="keywordtype">char</span> * args);
-<a name="l00270"></a>00270 <span class="preprocessor">#endif</span>
-<a name="l00271"></a>00271 <span class="preprocessor"></span>        <span class="comment">/* The shell&#39;s variables */</span>
-<a name="l00272"></a>00272         Bit16u input_handle;
-<a name="l00273"></a>00273         <a class="code" href="classBatchFile.html">BatchFile</a> * bf;                     
-<a name="l00274"></a><a class="code" href="classDOS__Shell.html#ab4ee052352ed1dedccf0854bcacadac2">00274</a>         <span class="keywordtype">bool</span> <a class="code" href="classDOS__Shell.html#ab4ee052352ed1dedccf0854bcacadac2" title="Batch file to execute.">echo</a>;
-<a name="l00275"></a>00275         <span class="keywordtype">bool</span> exit;
-<a name="l00276"></a>00276         <span class="keywordtype">bool</span> call;
-<a name="l00277"></a>00277     <span class="comment">/* Status */</span>
-<a name="l00278"></a>00278     <span class="keywordtype">bool</span> input_eof;                     
-<a name="l00279"></a>00279 };
-<a name="l00280"></a>00280 
-<a name="l00281"></a><a class="code" href="structSHELL__Cmd.html">00281</a> <span class="keyword">struct </span><a class="code" href="structSHELL__Cmd.html">SHELL_Cmd</a> {
-<a name="l00282"></a>00282         <span class="keyword">const</span> <span class="keywordtype">char</span> * name;                                                              <span class="comment">/* Command name*/</span>
-<a name="l00283"></a>00283         Bit32u flags;                                                                   <span class="comment">/* Flags about the command */</span>
-<a name="l00284"></a>00284         void (<a class="code" href="classDOS__Shell.html" title="DOS shell program object.">DOS_Shell</a>::*handler)(<span class="keywordtype">char</span> * args);                <span class="comment">/* Handler for this command */</span>
-<a name="l00285"></a>00285         <span class="keyword">const</span> <span class="keywordtype">char</span> * help;                                                              <span class="comment">/* String with command help */</span>
-<a name="l00286"></a>00286 };
-<a name="l00287"></a>00287 
-<a name="l00288"></a>00288 <span class="comment">/* Object to manage lines in the autoexec.bat The lines get removed from</span>
-<a name="l00289"></a>00289 <span class="comment"> * the file if the object gets destroyed. The environment is updated</span>
-<a name="l00290"></a>00290 <span class="comment"> * as well if the line set a a variable */</span>
-<a name="l00291"></a><a class="code" href="classAutoexecObject.html">00291</a> <span class="keyword">class </span><a class="code" href="classAutoexecObject.html">AutoexecObject</a>{
-<a name="l00292"></a>00292 <span class="keyword">private</span>:
-<a name="l00293"></a>00293         <span class="keywordtype">bool</span> installed;
-<a name="l00294"></a>00294         std::string buf;
-<a name="l00295"></a>00295 <span class="keyword">public</span>:
-<a name="l00296"></a>00296         <a class="code" href="classAutoexecObject.html">AutoexecObject</a>():installed(<span class="keyword">false</span>){ };
-<a name="l00297"></a>00297         <span class="keywordtype">void</span> Install(std::string <span class="keyword">const</span> &amp;in);
-<a name="l00298"></a>00298         <span class="keywordtype">void</span> InstallBefore(std::string <span class="keyword">const</span> &amp;in);
-<a name="l00299"></a>00299         <span class="keywordtype">void</span> Uninstall();
-<a name="l00300"></a>00300         ~<a class="code" href="classAutoexecObject.html">AutoexecObject</a>();
-<a name="l00301"></a>00301 <span class="keyword">private</span>:
-<a name="l00302"></a>00302         <span class="keywordtype">void</span> CreateAutoexec(<span class="keywordtype">void</span>);
-<a name="l00303"></a>00303 };
-<a name="l00304"></a>00304 
-<a name="l00305"></a>00305 <span class="preprocessor">#endif</span>
+<a name="l00261"></a>00261     <span class="keywordtype">void</span> CMD_DXCAPTURE(<span class="keywordtype">char</span> * args);
+<a name="l00262"></a>00262 
+<a name="l00265"></a>00265         <span class="keywordtype">void</span> <a class="code" href="classDOS__Shell.html#a0d8acfd37eae2734a4a2cf623eafa536" title="Looping execution (FOR)">CMD_FOR</a>(<span class="keywordtype">char</span> * args);
+<a name="l00266"></a>00266 
+<a name="l00267"></a>00267 <span class="preprocessor">#if C_DEBUG</span>
+<a name="l00268"></a>00268 <span class="preprocessor"></span>
+<a name="l00270"></a>00270         <span class="keywordtype">void</span> CMD_DEBUGBOX(<span class="keywordtype">char</span> * args);
+<a name="l00271"></a>00271 <span class="preprocessor">#endif</span>
+<a name="l00272"></a>00272 <span class="preprocessor"></span>        <span class="comment">/* The shell&#39;s variables */</span>
+<a name="l00273"></a>00273         Bit16u input_handle;
+<a name="l00274"></a>00274         <a class="code" href="classBatchFile.html">BatchFile</a> * bf;                     
+<a name="l00275"></a><a class="code" href="classDOS__Shell.html#ab4ee052352ed1dedccf0854bcacadac2">00275</a>         <span class="keywordtype">bool</span> <a class="code" href="classDOS__Shell.html#ab4ee052352ed1dedccf0854bcacadac2" title="Batch file to execute.">echo</a>;
+<a name="l00276"></a>00276         <span class="keywordtype">bool</span> exit;
+<a name="l00277"></a>00277         <span class="keywordtype">bool</span> call;
+<a name="l00278"></a>00278     <span class="comment">/* Status */</span>
+<a name="l00279"></a>00279     <span class="keywordtype">bool</span> input_eof;                     
+<a name="l00280"></a>00280 };
+<a name="l00281"></a>00281 
+<a name="l00282"></a><a class="code" href="structSHELL__Cmd.html">00282</a> <span class="keyword">struct </span><a class="code" href="structSHELL__Cmd.html">SHELL_Cmd</a> {
+<a name="l00283"></a>00283         <span class="keyword">const</span> <span class="keywordtype">char</span> * name;                                                              <span class="comment">/* Command name*/</span>
+<a name="l00284"></a>00284         Bit32u flags;                                                                   <span class="comment">/* Flags about the command */</span>
+<a name="l00285"></a>00285         void (<a class="code" href="classDOS__Shell.html" title="DOS shell program object.">DOS_Shell</a>::*handler)(<span class="keywordtype">char</span> * args);                <span class="comment">/* Handler for this command */</span>
+<a name="l00286"></a>00286         <span class="keyword">const</span> <span class="keywordtype">char</span> * help;                                                              <span class="comment">/* String with command help */</span>
+<a name="l00287"></a>00287 };
+<a name="l00288"></a>00288 
+<a name="l00289"></a>00289 <span class="comment">/* Object to manage lines in the autoexec.bat The lines get removed from</span>
+<a name="l00290"></a>00290 <span class="comment"> * the file if the object gets destroyed. The environment is updated</span>
+<a name="l00291"></a>00291 <span class="comment"> * as well if the line set a a variable */</span>
+<a name="l00292"></a><a class="code" href="classAutoexecObject.html">00292</a> <span class="keyword">class </span><a class="code" href="classAutoexecObject.html">AutoexecObject</a>{
+<a name="l00293"></a>00293 <span class="keyword">private</span>:
+<a name="l00294"></a>00294         <span class="keywordtype">bool</span> installed;
+<a name="l00295"></a>00295         std::string buf;
+<a name="l00296"></a>00296 <span class="keyword">public</span>:
+<a name="l00297"></a>00297         <a class="code" href="classAutoexecObject.html">AutoexecObject</a>():installed(<span class="keyword">false</span>){ };
+<a name="l00298"></a>00298         <span class="keywordtype">void</span> Install(std::string <span class="keyword">const</span> &amp;in);
+<a name="l00299"></a>00299         <span class="keywordtype">void</span> InstallBefore(std::string <span class="keyword">const</span> &amp;in);
+<a name="l00300"></a>00300         <span class="keywordtype">void</span> Uninstall();
+<a name="l00301"></a>00301         ~<a class="code" href="classAutoexecObject.html">AutoexecObject</a>();
+<a name="l00302"></a>00302 <span class="keyword">private</span>:
+<a name="l00303"></a>00303         <span class="keywordtype">void</span> CreateAutoexec(<span class="keywordtype">void</span>);
+<a name="l00304"></a>00304 };
+<a name="l00305"></a>00305 
+<a name="l00306"></a>00306 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jul 15 2018 11:44:15 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Fri Nov 2 2018 12:40:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

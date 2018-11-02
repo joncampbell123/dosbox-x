@@ -16,6 +16,8 @@ var searchData=
   ['newdiskswap',['newDiskSwap',['../classBOOT.html#ab165a586fbff98d26e21fba090440209',1,'BOOT']]],
   ['newinitpagehandler',['NewInitPageHandler',['../classNewInitPageHandler.html',1,'']]],
   ['next',['next',['../classGUI_1_1Timer.html#a44e2f3e6123c9513b87b81f244ef9311',1,'GUI::Timer']]],
+  ['nfdhdr',['NFDHDR',['../structNFDHDR.html',1,'']]],
+  ['nfdhdr_5fentry',['NFDHDR_ENTRY',['../structNFDHDR__ENTRY.html',1,'']]],
   ['nil_5fif_5fnull',['nil_if_null',['../classIntel8255.html#a4d14f0770973a9e416acc5ac04857eb1',1,'Intel8255']]],
   ['nmitest',['NMITEST',['../classNMITEST.html',1,'']]],
   ['nodetype',['nodeType',['../structnodeType.html',1,'']]],

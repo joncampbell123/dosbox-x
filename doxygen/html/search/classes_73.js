@@ -16,6 +16,7 @@ var searchData=
   ['scissorreg',['scissorreg',['../structXGAStatus_1_1scissorreg.html',1,'XGAStatus']]],
   ['screen',['Screen',['../classGUI_1_1Screen.html',1,'GUI']]],
   ['screenrgb32le',['ScreenRGB32le',['../classGUI_1_1ScreenRGB32le.html',1,'GUI']]],
+  ['screensizeinfo',['ScreenSizeInfo',['../classScreenSizeInfo.html',1,'']]],
   ['sctrl',['SCtrl',['../structSCtrl.html',1,'']]],
   ['sdeviceheader',['sDeviceHeader',['../structDOS__DeviceHeader_1_1sDeviceHeader.html',1,'DOS_DeviceHeader']]],
   ['sdib',['sDIB',['../structDOS__InfoBlock_1_1sDIB.html',1,'DOS_InfoBlock']]],

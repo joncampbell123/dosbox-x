@@ -13,6 +13,8 @@ var searchData=
   ['nativestring_3c_20str_20_2a_20_3e',['NativeString< STR * >',['../classGUI_1_1NativeString_3_01STR_01_5_01_4.html',1,'GUI']]],
   ['nativestring_3c_20str_5bn_5d_3e',['NativeString< STR[N]>',['../classGUI_1_1NativeString_3_01STR[N]_4.html',1,'GUI']]],
   ['newinitpagehandler',['NewInitPageHandler',['../classNewInitPageHandler.html',1,'']]],
+  ['nfdhdr',['NFDHDR',['../structNFDHDR.html',1,'']]],
+  ['nfdhdr_5fentry',['NFDHDR_ENTRY',['../structNFDHDR__ENTRY.html',1,'']]],
   ['nmitest',['NMITEST',['../classNMITEST.html',1,'']]],
   ['nodetype',['nodeType',['../structnodeType.html',1,'']]],
   ['np2cfg',['NP2CFG',['../structNP2CFG.html',1,'']]],
