@@ -1,4 +1,6 @@
 (next version)
+  - PC-98 INT 1Bh floppy disk BIOS call now resets timer
+    interval per call. This fixes Ys II after disk swap.
   - BIOS fixed to put normal "unhandled INT call" handler
     for INT 0-7 even in PC-98 mode to avoid confusion
     between game crashes and unknown INT calls.
