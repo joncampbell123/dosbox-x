@@ -1754,6 +1754,40 @@ imageDiskD88::imageDiskD88(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
         if (sector_size != 0 && sectors != 0 && cylinders != 0 && heads != 0)
             founddisk = true;
 
+        // CHECK: Some disk images (such as Ys I) have duplicate sectors on a track as a copy-protection measure.
+        //        In order for the game to run, we have to alternate between the duplicates per read.
+        //        To avoid performance loss, do that only if we know that duplicate sectors exist.
+        for (size_t scan=0;(scan+1) < dents.size();) {
+            size_t trkbeg = scan;
+            size_t trkendp1 = ++scan;
+
+            while (scan < dents.size()) {
+                if (dents[trkendp1].track       == dents[trkbeg].track &&
+                    dents[trkendp1].head        == dents[trkbeg].head) {
+                    trkendp1 = ++scan;
+                }
+                else {
+                    break;
+                }
+            }
+
+            unsigned char map[256];
+            memset(map,0,sizeof(map));
+
+            for (size_t i=trkbeg;i < trkendp1;i++) {
+                for (size_t j=i+1;j < trkendp1;j++) {
+                    if (dents[i].sector        == dents[j].sector &&
+                        dents[i].sector_size   == dents[j].sector_size) {
+                        LOG_MSG("C/H/S/sz %u/%u/%u/%u track has duplicate sector",
+                            dents[trkbeg].track,dents[trkbeg].head,
+                            dents[i].sector,dents[i].sector_size);
+                        dents[i].duplicate_sector_on_track = true;
+                        dents[j].duplicate_sector_on_track = true;
+                    }
+                }
+            }
+        }
+
         if(!founddisk) {
             active = false;
         } else {
