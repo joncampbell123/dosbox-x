@@ -1,4 +1,7 @@
 (next version)
+  - BIOS fixed to put normal "unhandled INT call" handler
+    for INT 0-7 even in PC-98 mode to avoid confusion
+    between game crashes and unknown INT calls.
   - VFD image support fixed to properly handle disk images
     where a sector is marked with fill byte 0xFF and the
     data field is 0xFFFFFFFF, which means the sector contents
