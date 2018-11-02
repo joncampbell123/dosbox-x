@@ -1652,8 +1652,8 @@ imageDiskD88::imageDiskD88(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
                 vent.head = s.h;
                 vent.sector = s.r;
 
-                LOG_MSG("D88: trackindex=%u C/H/S/sz=%u/%u/%u/%u",
-                    track,vent.track,vent.head,vent.sector,vent.sector_size);
+                LOG_MSG("D88: trackindex=%u C/H/S/sz=%u/%u/%u/%u data-at=0x%lx",
+                    track,vent.track,vent.head,vent.sector,vent.sector_size,(unsigned long)vent.data_offset);
 
                 dents.push_back(vent);
                 if ((++count) >= sector_count) break;
