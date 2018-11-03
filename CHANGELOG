@@ -1,4 +1,6 @@
 (next version)
+  - PC-98 INT 1Bh floppy emulation now fakes success for
+    calls to format track.
   - Initial keyboard pause fixed
   - PC-98 INT 1Bh floppy disk BIOS call now resets timer
     interval per call. This fixes Ys II after disk swap.
