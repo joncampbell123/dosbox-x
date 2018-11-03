@@ -1398,6 +1398,15 @@ public:
 
                 imageDiskList[drive-65]->Get_Geometry(&heads,&cyls,&sects,&ssize);
 
+                Bit8u RDISK_EQUIP = 0; /* 488h (ref. PC-9800 Series Technical Data Book - BIOS 1992 page 233 */
+                /* bits [7:4] = 640KB FD drives 3:0
+                 * bits [3:0] = 1MB FD drives 3:0 */
+                Bit8u F2HD_MODE = 0; /* 493h (ref. PC-9800 Series Technical Data Book - BIOS 1992 page 233 */
+                /* bits [7:4] = 640KB FD drives 3:0 ??
+                 * bits [3:0] = 1MB FD drives 3:0 ?? */
+                Bit8u F2DD_MODE = 0; /* 5CAh (ref. PC-9800 Series Technical Data Book - BIOS 1992 page 233 */
+                /* bits [7:4] = 640KB FD drives 3:0 ??
+                 * bits [3:0] = 1MB FD drives 3:0 ?? */
                 Bitu disk_equip = 0,disk_equip_144 = 0,scsi_equip = 0;
 
                 /* FIXME: MS-DOS appears to be able to see disk image B: but only
@@ -1408,8 +1417,10 @@ public:
 
                 for (unsigned int i=0;i < 2;i++) {
                     if (imageDiskList[i] != NULL) {
-                        disk_equip |= (1u << i);
+                        disk_equip |= (0x1111u << i);
                         disk_equip_144 |= (1u << i);
+                        RDISK_EQUIP |= (0x11u << i);
+                        F2HD_MODE |= (0x11u << i);
                     }
                 }
 
@@ -1425,24 +1436,22 @@ public:
                     }
                 }
 
+                mem_writew(0x55C,disk_equip);   /* disk equipment (drive 0 is present) */
+                mem_writew(0x5AE,disk_equip_144);   /* disk equipment (drive 0 is present, 1.44MB) */
+                mem_writeb(0x482,scsi_equip);
+                mem_writeb(0x488,RDISK_EQUIP);
+                mem_writeb(0x493,F2HD_MODE);
+                mem_writeb(0x5CA,F2DD_MODE);
+
                 if ((ssize == 1024 && heads == 2 && cyls == 77 && sects == 8) || pc98_sect128) {
                     mem_writeb(0x584,0x90/*type*/ + (drive - 65)/*drive*/); /* 1.2MB 3-mode */
-                    mem_writew(0x55C,disk_equip);   /* disk equipment (drive 0 is present) */
-                    mem_writew(0x5AE,disk_equip_144);   /* disk equipment (drive 0 is present, 1.44MB) */
-                    mem_writeb(0x482,scsi_equip);
                 }
                 else if (ssize == 512 && heads == 2 && cyls == 80 && sects == 18) {
                     mem_writeb(0x584,0x30/*type*/ + (drive - 65)/*drive*/); /* 1.44MB */
-                    mem_writew(0x55C,disk_equip);   /* disk equipment (drive 0 is present) */
-                    mem_writew(0x5AE,disk_equip_144);   /* disk equipment (drive 0 is present, 1.44MB) */
-                    mem_writeb(0x482,scsi_equip);
                 }
                 else if (drive >= 'C') {
                     /* hard drive */
                     mem_writeb(0x584,0xA0/*type*/ + (drive - 'C')/*drive*/);
-                    mem_writew(0x55C,disk_equip);   /* disk equipment (drive 0 is present) */
-                    mem_writew(0x5AE,disk_equip_144);   /* disk equipment (drive 0 is present, 1.44MB) */
-                    mem_writeb(0x482,scsi_equip);
                 }
                 else {
                     // FIXME
@@ -1450,9 +1459,6 @@ public:
                         ssize,heads,cyls,sects);
 
                     mem_writeb(0x584,(ssize < 1024 ? 0x30 : 0x90)/*type*/ + (drive - 65)/*drive*/);
-                    mem_writew(0x55C,disk_equip);   /* disk equipment (drive 0 is present) */
-                    mem_writew(0x5AE,disk_equip_144);   /* disk equipment (drive 0 is present, 1.44MB) */
-                    mem_writeb(0x482,scsi_equip);
                 }
             }
             else {
