@@ -2690,8 +2690,10 @@ extern void GFX_UpdateDisplayDimensions(int width, int height);
 #endif
 
 static void DrawButtons(void) {
+#if defined(C_SDL2)
+    SDL_FillRect(mapper.draw_surface,0,0);
+#else
     SDL_FillRect(mapper.surface,0,0);
-#if !defined(C_SDL2)
     SDL_LockSurface(mapper.surface);
 #endif
     for (CButton_it but_it = buttons.begin();but_it!=buttons.end();but_it++) {
@@ -3897,7 +3899,7 @@ void MAPPER_RunInternal() {
             DrawButtons();
         } else {
 #if defined(C_SDL2)
-            SDL_UpdateWindowSurface(mapper.window);
+//            SDL_UpdateWindowSurface(mapper.window);
 #endif
         }
         BIND_MappingEvents();
