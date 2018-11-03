@@ -3376,11 +3376,12 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             /* fake like we use the timer */
             PC98_Interval_Timer_Continue();
 
-            LOG_MSG("WARNING: INT 1Bh FDC format track command not implemented. Formatting is faked, for now on C/H/S/sz %u/%u/%u/%u.",
+            LOG_MSG("WARNING: INT 1Bh FDC format track command not implemented. Formatting is faked, for now on C/H/S/sz %u/%u/%u/%u drive %c.",
                 (unsigned int)fdc_cyl[drive],
                 (unsigned int)fdc_head[drive],
                 (unsigned int)fdc_sect[drive],
-                (unsigned int)unitsize);
+                (unsigned int)unitsize,
+                drive + 'A');
 
             reg_ah = 0x00;
             CALLBACK_SCF(false);
