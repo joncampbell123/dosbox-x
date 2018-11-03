@@ -3362,6 +3362,29 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             reg_ah = 0x00;
             CALLBACK_SCF(false);
             break;
+        case 0x0D: /* format track */
+            if (floppy == NULL) {
+                CALLBACK_SCF(true);
+                reg_ah = 0x00;
+                /* TODO? Error code? */
+                return;
+            }
+
+            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
+            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
+
+            /* fake like we use the timer */
+            PC98_Interval_Timer_Continue();
+
+            LOG_MSG("WARNING: INT 1Bh FDC format track command not implemented. Formatting is faked, for now on C/H/S/sz %u/%u/%u/%u.",
+                (unsigned int)fdc_cyl[drive],
+                (unsigned int)fdc_head[drive],
+                (unsigned int)fdc_sect[drive],
+                (unsigned int)unitsize);
+
+            reg_ah = 0x00;
+            CALLBACK_SCF(false);
+            break;
         case 0x0A: /* read ID */
             /* NTS: PC-98 "MEGDOS" used by some games seems to rely heavily on this call to
              *      verify the floppy head is where it thinks it should be! */
