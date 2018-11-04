@@ -1,3 +1,5 @@
+<next version>
+  - 
 0.82.10
   - PC-98 INT 1Bh floppy emulation now fakes success for
     calls to format track.
