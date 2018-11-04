@@ -131,7 +131,7 @@ Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
 	/* Fill 256 byte buffer with VESA information */
 	PhysPt buffer=PhysMake(seg,off);
 	Bitu i;
-	bool vbe2=false;Bit16u vbe2_pos=256+off;
+	bool vbe2=false;Bit16u vbe2_pos;
 	Bitu id=mem_readd(buffer);
 	if (((id==0x56424532)||(id==0x32454256)) && (!int10.vesa_oldvbe)) vbe2=true;
 	if (vbe2) {
@@ -144,6 +144,8 @@ Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
 	if (!int10.vesa_oldvbe) mem_writew(buffer+0x04,0x200);	//Vesa version 2.0
 	else mem_writew(buffer+0x04,0x102);						//Vesa version 1.2
 	if (vbe2) {
+        vbe2_pos=256+off;
+
 		mem_writed(buffer+0x06,RealMake(seg,vbe2_pos));
 		for (i=0;i<sizeof(string_oem);i++) real_writeb(seg,vbe2_pos++,(Bit8u)string_oem[i]);
 		mem_writew(buffer+0x14,0x200);					//VBE 2 software revision
@@ -154,6 +156,8 @@ Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
 		mem_writed(buffer+0x1e,RealMake(seg,vbe2_pos));
 		for (i=0;i<sizeof(string_productrev);i++) real_writeb(seg,vbe2_pos++,(Bit8u)string_productrev[i]);
     } else {
+        vbe2_pos=0x20+off;
+
         mem_writed(buffer+0x06,int10.rom.oemstring);	//Oemstring
 	}
 
@@ -167,7 +171,12 @@ Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
         mem_writed(buffer+0x0e,RealMake(seg,vbe2_pos));	//VESA Mode list
 
         do {
-            if (vbe2_pos >= (509+off)) break;
+            if (vbe2) {
+                if (vbe2_pos >= (509+off)) break;
+            }
+            else {
+                if (vbe2_pos >= (253+off)) break;
+            }
             m = real_readw(modesg,modoff);
             if (m == 0xFFFF) break;
             real_writew(seg,vbe2_pos,m);
