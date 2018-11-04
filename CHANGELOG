@@ -1,5 +1,8 @@
 <next version>
-  - 
+  - Added dosbox.conf option to determine whether INT 10h
+    VESA BIOS emulation points at the modelist in ROM or
+    copies the modelist into the DOS application's info
+    structure when asked.
 0.82.10
   - PC-98 INT 1Bh floppy emulation now fakes success for
     calls to format track.
