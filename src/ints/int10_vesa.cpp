@@ -125,6 +125,8 @@ void VESA_OnReset_Clear_Callbacks(void) {
     }
 }
 
+extern bool vesa_bios_modelist_in_info;
+
 Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
 	/* Fill 256 byte buffer with VESA information */
 	PhysPt buffer=PhysMake(seg,off);
@@ -151,11 +153,34 @@ Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
 		for (i=0;i<sizeof(string_productname);i++) real_writeb(seg,vbe2_pos++,(Bit8u)string_productname[i]);
 		mem_writed(buffer+0x1e,RealMake(seg,vbe2_pos));
 		for (i=0;i<sizeof(string_productrev);i++) real_writeb(seg,vbe2_pos++,(Bit8u)string_productrev[i]);
-	} else {
-		mem_writed(buffer+0x06,int10.rom.oemstring);	//Oemstring
+    } else {
+        mem_writed(buffer+0x06,int10.rom.oemstring);	//Oemstring
 	}
+
+    if (vesa_bios_modelist_in_info) {
+        /* put the modelist into the VBE struct itself, as modern BIOSes like to do.
+         * NOTICE: This limits the modelist to what is able to fit! Extended modes may not fit, which is why the option is OFF by default. */
+        uint16_t modesg = int10.rom.vesa_modes >> 16;
+        uint16_t modoff = int10.rom.vesa_modes & 0xFFFF;
+        uint16_t m;
+
+        mem_writed(buffer+0x0e,RealMake(seg,vbe2_pos));	//VESA Mode list
+
+        do {
+            if (vbe2_pos >= (509+off)) break;
+            m = real_readw(modesg,modoff);
+            if (m == 0xFFFF) break;
+            real_writew(seg,vbe2_pos,m);
+            vbe2_pos += 2;
+            modoff += 2;
+        } while (1);
+        real_writew(seg,vbe2_pos,0xFFFF);
+    }
+    else {
+        mem_writed(buffer+0x0e,int10.rom.vesa_modes);	//VESA Mode list
+    }
+
 	mem_writed(buffer+0x0a,0x0);					//Capabilities and flags
-	mem_writed(buffer+0x0e,int10.rom.vesa_modes);	//VESA Mode list
 	mem_writew(buffer+0x12,(Bit16u)(vga.mem.memsize/(64*1024))); // memory size in 64kb blocks
 	return VESA_SUCCESS;
 }
