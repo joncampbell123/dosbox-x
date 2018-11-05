@@ -393,7 +393,15 @@ typedef struct {
     uint8_t log_head;           // +0x1
     uint8_t log_rec;            // +0x2
     uint8_t sec_len_pow2;       // +0x3         sz = 128 << len_pow2
-    uint8_t _unknown_[12];      // +0x4
+    uint8_t flMFM;              // +0x4
+    uint8_t flDDAM;             // +0x5
+    uint8_t byStatus;           // +0x6
+    uint8_t bySTS0;             // +0x7
+    uint8_t bySTS1;             // +0x8
+    uint8_t bySTS2;             // +0x9
+    uint8_t byRetry;            // +0xA
+    uint8_t byPDA;              // +0xB
+    uint8_t _unknown_[4];       // +0xC
 } NFDHDR_ENTRY;                 // =0x10
 #pragma pack(pop)
 
@@ -1974,42 +1982,35 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
         /* The R1 images I have as reference always have offsets in ascending order. */
         for (unsigned int ti=0;ti < 164;ti++) {
             uint32_t trkoff = host_readd((ConstHostPt)(&headr1.trackheads[ti]));
-            uint32_t trkend = ti < 163 ? host_readd((ConstHostPt)(&headr1.trackheads[ti+1u])) : 0;
 
             if (trkoff == 0) break;
-            if (trkend == 0) trkend = host_readd((ConstHostPt)(&head.headersize));
-
-            if ((trkoff + 32) > trkend) {
-                LOG_MSG("Invalid NFD R1 track offset");
-                return;
-            }
-
-            LOG_MSG("NFD R1 track ent %u offset: %lu-%lu",ti,(unsigned long)trkoff,(unsigned long)trkend);
 
             fseek(diskimg,trkoff,SEEK_SET);
             if (ftell(diskimg) != trkoff) return;
 
             NFDHDR_ENTRY e;
 
-            /* 0x1A 0x00 ...... is a marker for start */
-            do {
+            // track id
+            if (fread(&e,sizeof(e),1,diskimg) != 1) return;
+            unsigned int sectors = e.log_cyl;
+
+            LOG_MSG("NFD R1 track ent %u offset %lu sectors %u",ti,(unsigned long)trkoff,sectors);
+
+            for (unsigned int s=0;s < sectors;s++) {
                 uint32_t ofs = (uint32_t)ftell(diskimg);
 
-                if ((ofs+16) > trkend) break;
                 if (fread(&e,sizeof(e),1,diskimg) != 1) return;
 
-                if (e.log_cyl == 0x1A && e.log_head == 0x00 && e.log_rec == 0x00 && e.sec_len_pow2 == 0x00 && !memcmp(e._unknown_,"\0\0\0\0\0\0\0\0\0\0\0\0",12))
-                    continue;
-                if (e.log_cyl == 0xFF || e.log_head == 0xFF || e.log_rec == 0xFF || e.sec_len_pow2 > 7)
-                    continue;
-
-                LOG_MSG("NFD: ofs=%lu data=%lu cyl=%u head=%u sec=%u len=%u",
+                LOG_MSG("NFD %u/%u: ofs=%lu data=%lu cyl=%u head=%u sec=%u len=%u rep=%u",
+                        (unsigned int)s,
+                        (unsigned int)sectors,
                         (unsigned long)ofs,
                         (unsigned long)data_offset,
                         e.log_cyl,
                         e.log_head,
                         e.log_rec,
-                        128 << e.sec_len_pow2);
+                        128 << e.sec_len_pow2,
+                        e.byRetry);
 
                 vfdentry vent;
                 vent.sector_size = 128 << e.sec_len_pow2;
@@ -2022,7 +2023,7 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
 
                 data_offset += 128u << e.sec_len_pow2;
                 if (data_offset > (unsigned int)fsz) return;
-            } while (1);
+            }
         }
     }
 
