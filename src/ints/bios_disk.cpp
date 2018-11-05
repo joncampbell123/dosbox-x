@@ -403,6 +403,19 @@ typedef struct {
     uint8_t byPDA;              // +0xB
     uint8_t _unknown_[4];       // +0xC
 } NFDHDR_ENTRY;                 // =0x10
+
+typedef struct {
+    char        szFileID[15];                 // 識別ID "T98HDDIMAGE.R0"
+    char        Reserve1[1];                  // 予約
+    char        szComment[0x100];             // イメージコメント(ASCIIz)
+    uint32_t    dwHeadSize;                   // ヘッダ部のサイズ
+    uint32_t    dwCylinder;                   // シリンダ数
+    uint16_t    wHead;                        // ヘッド数
+    uint16_t    wSect;                        // １トラックあたりのセクタ数
+    uint16_t    wSectLen;                     // セクタ長
+    char        Reserve2[2];                  // 予約
+    char        Reserve3[0xe0];               // 予約
+}NHD_FILE_HEAD,*LP_NHD_FILE_HEAD;
 #pragma pack(pop)
 
 imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) {
@@ -508,6 +521,49 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
         if (imgName != NULL) {
             char *ext = strrchr((char*)imgName,'.');
             if (ext != NULL) {
+                if (!strcasecmp(ext,".nhd")) {
+                    if (imgSizeK >= 160) {
+                        NHD_FILE_HEAD nhdhdr;
+
+                        LOG_MSG("Image file has .NHD extension, assuming NHD image and will take on parameters in header.");
+
+                        assert(sizeof(nhdhdr) == 0x200);
+                        if (fseek(imgFile,0,SEEK_SET) == 0 && ftell(imgFile) == 0 &&
+                            fread(&nhdhdr,sizeof(nhdhdr),1,imgFile) == 1 &&
+                            host_readd((ConstHostPt)(&nhdhdr.dwHeadSize)) >= 0x200 &&
+                            !memcmp(nhdhdr.szFileID,"T98HDDIMAGE.R0\0",15)) {
+                            uint32_t ofs = host_readd((ConstHostPt)(&nhdhdr.dwHeadSize));
+                            uint32_t sectorsize = host_readw((ConstHostPt)(&nhdhdr.wSectLen));
+
+                            if (sectorsize != 0 && ((sectorsize & (sectorsize - 1)) == 0/*is power of 2*/) &&
+                                sectorsize >= 256 && sectorsize <= 1024 &&
+                                ofs != 0 && (ofs % sectorsize) == 0/*offset is nonzero and multiple of sector size*/) {
+
+                                sector_size = sectorsize;
+                                imgSizeK -= (ofs / 1024);
+                                image_base = ofs;
+                                image_length -= ofs;
+                                LOG_MSG("NHD header: sectorsize is %u bytes/sector, header is %u bytes",
+                                        (unsigned int)sectorsize,(unsigned int)ofs);
+
+                                /* take on the geometry.
+                                 * PC-98 IPL1 support will need it to make sense of the partition table. */
+                                sectors = host_readw((ConstHostPt)(&nhdhdr.wSect));
+                                heads = host_readw((ConstHostPt)(&nhdhdr.wHead));
+                                cylinders = host_readd((ConstHostPt)(&nhdhdr.dwCylinder));
+                                LOG_MSG("NHD: Geometry is C/H/S %u/%u/%u",
+                                        (unsigned int)cylinders,(unsigned int)heads,(unsigned int)sectors);
+                            }
+                            else {
+                                LOG_MSG("NHD header rejected. sectorsize=%u headersize=%u",
+                                        (unsigned int)sectorsize,(unsigned int)ofs);
+                            }
+                        }
+                        else {
+                            LOG_MSG("Unable to read .NHD header");
+                        }
+                    }
+                }
                 if (!strcasecmp(ext,".hdi")) {
                     if (imgSizeK >= 160) {
                         HDIHDR hdihdr;
