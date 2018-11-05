@@ -1,4 +1,10 @@
 <next version>
+  - Added support for T98Next NHD hard disk images.
+  - Added support for T98Next NFD R1 disk images.
+  - Fixed crash with VGA BIOS allocation if video memory
+    allows the full modelist to overflow the available
+    ROM space.
+  - SDL2 mapper redraw issue resolved.
   - Added dosbox.conf option to determine whether INT 10h
     VESA BIOS emulation points at the modelist in ROM or
     copies the modelist into the DOS application's info
