@@ -968,7 +968,10 @@ public:
                         newDiskSwap[i] = new imageDiskVFD(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
                     }
                     else if (!memcmp(tmp,"T98FDDIMAGE.R0\0\0",16)) {
-                        newDiskSwap[i] = new imageDiskNFD(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
+                        newDiskSwap[i] = new imageDiskNFD(usefile, (Bit8u *)temp_line.c_str(), floppysize, false, 0);
+                    }
+                    else if (!memcmp(tmp,"T98FDDIMAGE.R1\0\0",16)) {
+                        newDiskSwap[i] = new imageDiskNFD(usefile, (Bit8u *)temp_line.c_str(), floppysize, false, 1);
                     }
                     else {
                         newDiskSwap[i] = new imageDisk(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
@@ -3884,7 +3887,14 @@ private:
                 sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
                 imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
-                newImage = new imageDiskNFD(newDisk, (Bit8u *)fileName, imagesize, (imagesize > 2880));
+                newImage = new imageDiskNFD(newDisk, (Bit8u *)fileName, imagesize, (imagesize > 2880), 0);
+            }
+            else if (!memcmp(tmp,"T98FDDIMAGE.R1\0\0",16)) {
+                fseeko64(newDisk, 0L, SEEK_END);
+                sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
+                imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
+                setbuf(newDisk, NULL);
+                newImage = new imageDiskNFD(newDisk, (Bit8u *)fileName, imagesize, (imagesize > 2880), 1);
             }
             else {
                 fseeko64(newDisk, 0L, SEEK_END);
