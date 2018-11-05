@@ -495,11 +495,26 @@ void DOSBOX_SetNormalLoop() {
     loop=Normal_Loop;
 }
 
+#ifdef DEBUG_RECURSION
+volatile int runmachine_recursion = 0;
+#endif
+
 void DOSBOX_RunMachine(void){
     Bitu ret;
+
+#ifdef DEBUG_RECURSION
+    if (runmachine_recursion++ != 0)
+        LOG_MSG("RunMachine recursion");
+#endif
+
     do {
         ret=(*loop)();
     } while (!ret);
+
+#ifdef DEBUG_RECURSION
+    if (--runmachine_recursion < 0)
+        LOG_MSG("RunMachine recursion leave error");
+#endif
 }
 
 static void DOSBOX_UnlockSpeed( bool pressed ) {
