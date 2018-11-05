@@ -3329,6 +3329,9 @@ private:
                         if (!strcasecmp(ext, ".nhd")) {
                             skipDetectGeometry = true;
                         }
+                        if (!strcasecmp(ext, ".nfd")) {
+                            skipDetectGeometry = true;
+                        }
                         //for all vhd files where the system will autodetect the chs values,
                         if (!strcasecmp(ext, ".vhd")) {
                             //load the file with imageDiskVHD, which supports fixed/dynamic/differential disks
