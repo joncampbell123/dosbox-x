@@ -24,3 +24,13 @@ In Linux, you may want to examine the X11 server keymap table and mod map
 table and look at the X11 codes visible in the mapper to determine how
 to add support.
 
+
+NOTE:
+- To assist with scan codes and keyboard input, the mapper interface will
+  show as much extra information as practical on keyboard input.
+
+  Windows builds will show the VK_* code.
+
+  Linux builds will show the X11 keyboard code.
+
+  This information should assist with adding additional keyboard layouts.
