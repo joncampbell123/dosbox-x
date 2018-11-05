@@ -6141,7 +6141,7 @@ private:
             LOG(LOG_MISC,LOG_DEBUG)("Registered ISA PnP read port at 0x%03x",ISA_PNP_WPORT);
         }
 
-        if (!IS_PC98_ARCH && enable_integration_device) {
+        if (enable_integration_device) {
             /* integration device callout */
             if (dosbox_int_iocallout == IO_Callout_t_none)
                 dosbox_int_iocallout = IO_AllocateCallout(IO_TYPE_MB);
@@ -6156,7 +6156,7 @@ private:
             }
 
             /* DOSBox integration device */
-            if (isapnpigdevice == NULL && enable_integration_device_pnp) {
+            if (!IS_PC98_ARCH && isapnpigdevice == NULL && enable_integration_device_pnp) {
                 isapnpigdevice = new ISAPnPIntegrationDevice;
                 ISA_PNP_devreg(isapnpigdevice);
             }
