@@ -3868,7 +3868,7 @@ void MAPPER_RunInternal() {
     SDL_SetPaletteColors(sdl2_map_pal_ptr, map_pal, 0, 6);
     SDL_SetSurfacePalette(mapper.draw_surface, sdl2_map_pal_ptr);
     if (last_clicked) {
-        last_clicked->BindColor();
+        last_clicked->SetColor(CLR_WHITE);
         last_clicked=NULL;
     }
 #else
