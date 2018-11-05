@@ -1992,9 +1992,10 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
 
             // track id
             if (fread(&e,sizeof(e),1,diskimg) != 1) return;
-            unsigned int sectors = e.log_cyl;
+            unsigned int sectors = host_readw((ConstHostPt)(&e) + 0);
+            unsigned int diagcount = host_readw((ConstHostPt)(&e) + 2);
 
-            LOG_MSG("NFD R1 track ent %u offset %lu sectors %u",ti,(unsigned long)trkoff,sectors);
+            LOG_MSG("NFD R1 track ent %u offset %lu sectors %u diag %u",ti,(unsigned long)trkoff,sectors,diagcount);
 
             for (unsigned int s=0;s < sectors;s++) {
                 uint32_t ofs = (uint32_t)ftell(diskimg);
@@ -2023,6 +2024,17 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
 
                 data_offset += 128u << e.sec_len_pow2;
                 if (data_offset > (unsigned int)fsz) return;
+            }
+
+            for (unsigned int d=0;d < diagcount;d++) {
+                if (fread(&e,sizeof(e),1,diskimg) != 1) return;
+
+                unsigned int retry = e.byRetry;
+                unsigned int len = host_readd((ConstHostPt)(&e) + 10);
+
+                LOG_MSG("NFD diag %u/%u: retry=%u len=%u data=%lu",d,diagcount,retry,len,(unsigned long)data_offset);
+
+                data_offset += (1+retry) * len;
             }
         }
     }
