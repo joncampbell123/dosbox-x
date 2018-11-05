@@ -1,4 +1,5 @@
 <next version>
+  - IMGMOUNT now supports NFD disk images.
   - DOSBox Integration Device now available for PC-98.
   - Added support for T98Next NHD hard disk images.
   - Added support for T98Next NFD R1 disk images.
