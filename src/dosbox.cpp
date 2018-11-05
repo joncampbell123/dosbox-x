@@ -651,8 +651,12 @@ void Init_VGABIOS() {
 
     if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
         VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FFU) & (~0xFFFU);
-    else if (IS_VGA_ARCH)
-        VGA_BIOS_Size = 0x3000; /* <- Experimentation shows the S3 emulation can fit in 12KB, doesn't need all 32KB */
+    else if (IS_VGA_ARCH) {
+        if (svgaCard == SVGA_S3Trio)
+            VGA_BIOS_Size = 0x4000;
+        else
+            VGA_BIOS_Size = 0x3000;
+    }
     else if (machine == MCH_EGA) {
         if (VIDEO_BIOS_always_carry_16_high_font)
             VGA_BIOS_Size = 0x3000;
