@@ -2645,6 +2645,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("int33",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable INT 33H (mouse) support.");
 
+    Pbool = secprop->Add_bool("int33 hide host cursor if interrupt subroutine",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, the cursor on the host will be hidden if the DOS application provides it's own\n"
+                    "interrupt subroutine for the mouse driver to call, which is usually an indication that\n"
+                    "the DOS game wishes to draw the cursor with it's own support routines (DeluxePaint II).");
+
     Pbool = secprop->Add_bool("int33 hide host cursor when polling",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, the cursor on the host will be hidden even if the DOS application has also\n"
                     "hidden the cursor in the guest, as long as the DOS application is polling position\n"

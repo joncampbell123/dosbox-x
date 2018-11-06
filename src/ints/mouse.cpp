@@ -55,6 +55,7 @@ bool en_int33=false;
 bool en_bios_ps2mouse=false;
 bool cell_granularity_disable=false;
 bool en_int33_hide_if_polling=false;
+bool en_int33_hide_if_intsub=false;
 
 double int33_last_poll = 0;
 
@@ -1493,6 +1494,8 @@ void MOUSE_Startup(Section *sec) {
 
     /* TODO: Needs to check for mouse, and fail to do anything if neither PS/2 nor serial mouse emulation enabled */
 
+    en_int33_hide_if_intsub=section->Get_bool("int33 hide host cursor if interrupt subroutine");
+
     en_int33_hide_if_polling=section->Get_bool("int33 hide host cursor when polling");
 
     en_int33=section->Get_bool("int33");
@@ -1569,6 +1572,9 @@ bool MOUSE_IsBeingPolled()
 
 bool MOUSE_HasInterruptSub()
 {
+    if (!en_int33_hide_if_intsub)
+        return false;
+
     return (mouse.sub_mask != 0);
 }
 
