@@ -1427,6 +1427,9 @@ void BIOS_PS2Mouse_Startup(Section *sec) {
 
     /* NTS: This assumes MOUSE_Init() is called after KEYBOARD_Init() */
     en_bios_ps2mouse = section->Get_bool("biosps2");
+
+    if (!enable_slave_pic || machine == MCH_PCJR) return;
+
     if (!en_bios_ps2mouse) return;
 
     if (MouseTypeNone()) {
