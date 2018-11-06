@@ -1567,3 +1567,8 @@ bool MOUSE_IsBeingPolled()
     return (PIC_FullIndex() < (int33_last_poll + 1000));
 }
 
+bool MOUSE_HasInterruptSub()
+{
+    return (mouse.sub_mask != 0);
+}
+
