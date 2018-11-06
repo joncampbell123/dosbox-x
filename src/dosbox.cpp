@@ -2645,7 +2645,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("int33",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable INT 33H (mouse) support.");
 
-    Pbool = secprop->Add_bool("int33 hide host cursor when in use",Property::Changeable::WhenIdle,false);
+    Pbool = secprop->Add_bool("int33 hide host cursor when polling",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, the cursor on the host will be hidden even if the DOS application has also\n"
                     "hidden the cursor in the guest, as long as the DOS application is polling position\n"
                     "and button status. This can be useful for DOS programs that draw the cursor on their\n"

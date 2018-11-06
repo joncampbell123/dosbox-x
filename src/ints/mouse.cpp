@@ -1493,7 +1493,7 @@ void MOUSE_Startup(Section *sec) {
 
     /* TODO: Needs to check for mouse, and fail to do anything if neither PS/2 nor serial mouse emulation enabled */
 
-    en_int33_hide_if_polling=section->Get_bool("int33 hide host cursor when in use");
+    en_int33_hide_if_polling=section->Get_bool("int33 hide host cursor when polling");
 
     en_int33=section->Get_bool("int33");
     if (!en_int33) {
