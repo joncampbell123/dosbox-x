@@ -614,7 +614,8 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
         if (CurMode->type == M_TEXT) {
             mouse.x = x*CurMode->swidth;
             mouse.y = y*CurMode->sheight * 8 / CurMode->cheight;
-        } else if ((mouse.max_x < 2048) || (mouse.max_y < 2048) || (mouse.max_x != mouse.max_y)) {
+        /* NTS: DeluxePaint II enhanced sets a large range (5112x3832) for VGA mode 0x12 640x480 16-color */
+        } else {
             if ((mouse.max_x > 0) && (mouse.max_y > 0)) {
                 mouse.x = x*mouse.max_x;
                 mouse.y = y*mouse.max_y;
@@ -622,9 +623,6 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
                 mouse.x += xrel;
                 mouse.y += yrel;
             }
-        } else { // Games faking relative movement through absolute coordinates. Quite surprising that this actually works..
-            mouse.x += xrel;
-            mouse.y += yrel;
         }
     }
 
@@ -884,10 +882,16 @@ void Mouse_NewVideoMode(void) {
     case 0x0f:
     case 0x10:
         mouse.max_y = 349;
+        // Deluxepaint II enhanced will redefine the range for 640x480 mode
+        mouse.first_range_setx = true;
+        mouse.first_range_sety = true;
         break;
     case 0x11:
     case 0x12:
         mouse.max_y = 479;
+        // Deluxepaint II enhanced will redefine the range for 640x480 mode
+        mouse.first_range_setx = true;
+        mouse.first_range_sety = true;
         break;
     default:
         LOG(LOG_MOUSE,LOG_ERROR)("Unhandled videomode %X on reset",mode);
