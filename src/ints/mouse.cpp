@@ -113,6 +113,7 @@ struct button_event {
     Bit8u buttons;
 };
 
+extern bool enable_slave_pic;
 extern uint8_t p7fd8_8255_mouse_int_enable;
 
 uint8_t MOUSE_IRQ = 12; // IBM PC/AT default
@@ -306,8 +307,10 @@ void MOUSE_Limit_Events(Bitu /*val*/) {
         if (IS_PC98_ARCH)
             p7fd8_8255_mouse_irq_signal = true;
 
-        if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
-            PIC_ActivateIRQ(MOUSE_IRQ);
+        if (MOUSE_IRQ != 0) {
+            if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
+                PIC_ActivateIRQ(MOUSE_IRQ);
+        }
     }
 }
 
@@ -333,8 +336,10 @@ INLINE void Mouse_AddEvent(Bit8u type) {
         if (IS_PC98_ARCH)
             p7fd8_8255_mouse_irq_signal = true;
 
-        if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
-            PIC_ActivateIRQ(MOUSE_IRQ);
+        if (MOUSE_IRQ != 0) {
+            if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
+                PIC_ActivateIRQ(MOUSE_IRQ);
+        }
     }
 }
 
@@ -1392,6 +1397,8 @@ void MOUSE_OnReset(Section *sec) {
     (void)sec;//UNUSED
     if (IS_PC98_ARCH)
         MOUSE_IRQ = 13; // PC-98 standard
+    else if (!enable_slave_pic)
+        MOUSE_IRQ = 0;
     else
         MOUSE_IRQ = 12; // IBM PC/AT standard
 
@@ -1449,8 +1456,10 @@ void BIOS_PS2Mouse_Startup(Section *sec) {
     //  pop ds
     //  iret
 
-    Bit8u hwvec=(MOUSE_IRQ>7)?(0x70+MOUSE_IRQ-8):(0x8+MOUSE_IRQ);
-    RealSetVec(hwvec,CALLBACK_RealPointer(call_int74));
+    if (MOUSE_IRQ != 0) {
+        Bit8u hwvec=(MOUSE_IRQ>7)?(0x70+MOUSE_IRQ-8):(0x8+MOUSE_IRQ);
+        RealSetVec(hwvec,CALLBACK_RealPointer(call_int74));
+    }
 
     // Callback for ps2 user callback handling
     useps2callback = false; ps2callbackinit = false;
