@@ -846,6 +846,13 @@ void Mouse_NewVideoMode(void) {
     mouse.max_x = 639;
     mouse.min_y = 0;
     mouse.max_y = 479;
+
+    if (machine == MCH_HERC) {
+        // DeluxePaint II again...
+        mouse.first_range_setx = true;
+        mouse.first_range_sety = true;
+    }
+
     switch (mode) {
     case 0x00:
     case 0x01:
