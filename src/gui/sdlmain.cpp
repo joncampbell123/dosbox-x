@@ -3293,7 +3293,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         /* Show only when DOS app is not using mouse */
 
         if (!sdl.mouse.locked && !sdl.desktop.fullscreen)
-            SDL_ShowCursor(((!inside || MOUSE_IsHidden()) && !(MOUSE_IsBeingPolled() || MOUSE_HasInterruptSub())) ? SDL_ENABLE : SDL_DISABLE);
+            SDL_ShowCursor(((!inside) || ((MOUSE_IsHidden()) && !(MOUSE_IsBeingPolled() || MOUSE_HasInterruptSub()))) ? SDL_ENABLE : SDL_DISABLE);
     }
     Mouse_CursorMoved(xrel, yrel, x, y, emu);
 }
