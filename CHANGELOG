@@ -1,4 +1,8 @@
 <next version>
+  - INT 33h emulation now offers hiding the host cursor
+    if the guest is polling the cursor position, to
+    better support guest/host integration with DOS games
+    that draw their own cursor.
   - AUX and PS/2 emulation no longer allowed if machine
     type is PCjr.
   - PS/2 mouse emulation fixed to disable itself if the
