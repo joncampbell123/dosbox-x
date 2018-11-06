@@ -877,6 +877,9 @@ void Mouse_NewVideoMode(void) {
     case 0x13:
         if (mode == 0x0d || mode == 0x13) mouse.gran_x = (Bit16s)0xfffe;
         mouse.max_y = 199;
+        // some games redefine the mouse range for this mode
+        mouse.first_range_setx = true;
+        mouse.first_range_sety = true;
         break;
     case 0x0f:
     case 0x10:
@@ -1051,8 +1054,11 @@ static Bitu INT33_Handler(void) {
              *      set after mode set is the only way to make sure mouse pointer integration
              *      tracks the guest pointer properly. */
             if (mouse.first_range_setx) {
-                if (mouse.max_screen_x < mouse.max_x)
+                if (mouse.min_x == 0 && mouse.max_x > 0) {
+                    // most games redefine the range so they can use a saner range matching the screen
                     mouse.max_screen_x = mouse.max_x;
+                    LOG(LOG_MOUSE,LOG_NORMAL)("Define Hortizontal range min:%d max:%d defines the bounds of the screen",min,max);
+                }
 
                 mouse.first_range_setx = false;
             }
@@ -1083,8 +1089,11 @@ static Bitu INT33_Handler(void) {
              *      set after mode set is the only way to make sure mouse pointer integration
              *      tracks the guest pointer properly. */
             if (mouse.first_range_sety) {
-                if (mouse.max_screen_y < mouse.max_y)
+                if (mouse.min_y == 0 && mouse.max_y > 0) {
+                    // most games redefine the range so they can use a saner range matching the screen
                     mouse.max_screen_y = mouse.max_y;
+                    LOG(LOG_MOUSE,LOG_NORMAL)("Define Vertical range min:%d max:%d defines the bounds of the screen",min,max);
+                }
 
                 mouse.first_range_sety = false;
             }
