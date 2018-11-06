@@ -1,4 +1,7 @@
 <next version>
+  - Fixed crash that occurs if you maximize the window
+    and then adjust scalers to produce output that is
+    larger than the maximized window.
   - INT 33h emulation now offers hiding the host cursor
     if the guest has provided an interrupt subroutine
     for the mouse driver to call, since it usually means
