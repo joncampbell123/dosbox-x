@@ -1,4 +1,8 @@
 <next version>
+  - AUX and PS/2 emulation no longer allowed if machine
+    type is PCjr.
+  - PS/2 mouse emulation fixed to disable itself if the
+    slave PIC needed for IRQ 12 is not present.
   - INT 33h pointer integration improved to support some
     additional DOS games, and to handle DeluxePaint II
     enhanced.
