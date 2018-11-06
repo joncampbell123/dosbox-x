@@ -1,5 +1,9 @@
 <next version>
   - INT 33h emulation now offers hiding the host cursor
+    if the guest has provided an interrupt subroutine
+    for the mouse driver to call, since it usually means
+    the DOS game wishes to draw the cursor itself.
+  - INT 33h emulation now offers hiding the host cursor
     if the guest is polling the cursor position, to
     better support guest/host integration with DOS games
     that draw their own cursor.
