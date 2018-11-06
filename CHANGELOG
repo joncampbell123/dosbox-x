@@ -1,4 +1,6 @@
 <next version>
+  - INT 33h pointer integration improved to support some
+    additional DOS games.
   - IMGMOUNT now supports NFD disk images.
   - DOSBox Integration Device now available for PC-98.
   - Added support for T98Next NHD hard disk images.
