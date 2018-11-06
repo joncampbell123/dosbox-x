@@ -206,12 +206,18 @@ static struct {
 bool Mouse_SetPS2State(bool use) {
     if (use && (!ps2callbackinit)) {
         useps2callback = false;
-        PIC_SetIRQMask(MOUSE_IRQ,true);
+
+        if (MOUSE_IRQ != 0)
+            PIC_SetIRQMask(MOUSE_IRQ,true);
+
         return false;
     }
     useps2callback = use;
     Mouse_AutoLock(useps2callback);
-    PIC_SetIRQMask(MOUSE_IRQ,!useps2callback);
+
+    if (MOUSE_IRQ != 0)
+        PIC_SetIRQMask(MOUSE_IRQ,!useps2callback);
+
     return true;
 }
 
@@ -831,7 +837,8 @@ static void Mouse_SetSensitivity(Bit16u px, Bit16u py, Bit16u dspeed){
 
 
 static void Mouse_ResetHardware(void){
-    PIC_SetIRQMask(MOUSE_IRQ,false);
+    if (MOUSE_IRQ != 0)
+        PIC_SetIRQMask(MOUSE_IRQ,false);
 
     if (IS_PC98_ARCH)
         p7fd8_8255_mouse_int_enable = 1;
@@ -1402,7 +1409,8 @@ void MOUSE_OnReset(Section *sec) {
     else
         MOUSE_IRQ = 12; // IBM PC/AT standard
 
-    PIC_SetIRQMask(MOUSE_IRQ,true);
+    if (MOUSE_IRQ != 0)
+        PIC_SetIRQMask(MOUSE_IRQ,true);
 }
 
 void MOUSE_ShutDown(Section *sec) {
