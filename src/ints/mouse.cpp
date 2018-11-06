@@ -54,6 +54,9 @@ void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
 bool en_int33=false;
 bool en_bios_ps2mouse=false;
 bool cell_granularity_disable=false;
+bool en_int33_hide_if_polling=false;
+
+double int33_last_poll = 0;
 
 void DisableINT33() {
     if (en_int33) {
@@ -1016,6 +1019,7 @@ static Bitu INT33_Handler(void) {
         reg_dx=(Bit16u)POS_Y;
         mouse.first_range_setx = false;
         mouse.first_range_sety = false;
+        if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
         break;
     case 0x04:  /* Position Mouse */
         /* If position isn't different from current position
@@ -1029,6 +1033,7 @@ static Bitu INT33_Handler(void) {
         else if (mouse.min_y >= (Bit16s)reg_dx) mouse.y = static_cast<float>(mouse.min_y); 
         else if ((Bit16s)reg_dx != POS_Y) mouse.y = static_cast<float>(reg_dx);
         DrawCursor();
+        if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
         break;
     case 0x05:  /* Return Button Press Data */
         {
@@ -1039,6 +1044,7 @@ static Bitu INT33_Handler(void) {
             reg_dx=mouse.last_pressed_y[but];
             reg_bx=mouse.times_pressed[but];
             mouse.times_pressed[but]=0;
+            if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
             break;
         }
     case 0x06:  /* Return Button Release Data */
@@ -1050,6 +1056,7 @@ static Bitu INT33_Handler(void) {
             reg_dx=mouse.last_released_y[but];
             reg_bx=mouse.times_released[but];
             mouse.times_released[but]=0;
+            if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
             break;
         }
     case 0x07:  /* Define horizontal cursor range */
@@ -1148,7 +1155,7 @@ static Bitu INT33_Handler(void) {
 	    reg_dx = (Bit16u)static_cast<Bit16s>(locked ? mouse.mickey_y : 0);
 	    mouse.mickey_x = 0;
 	    mouse.mickey_y = 0;
-	    break;
+        break;
     }
     case 0x0c:  /* Define interrupt subroutine parameters */
         mouse.sub_mask=reg_cx;
@@ -1486,6 +1493,8 @@ void MOUSE_Startup(Section *sec) {
 
     /* TODO: Needs to check for mouse, and fail to do anything if neither PS/2 nor serial mouse emulation enabled */
 
+    en_int33_hide_if_polling=section->Get_bool("int33 hide host cursor when in use");
+
     en_int33=section->Get_bool("int33");
     if (!en_int33) {
         Mouse_Reset();
@@ -1496,6 +1505,8 @@ void MOUSE_Startup(Section *sec) {
     cell_granularity_disable=section->Get_bool("int33 disable cell granularity");
 
     LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 33H emulation enabled");
+    if (en_int33_hide_if_polling)
+        LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 33H emulation will hide host cursor if polling");
 
     // Callback for mouse interrupt 0x33
     call_int33=CALLBACK_Allocate();
@@ -1547,3 +1558,12 @@ bool MOUSE_IsHidden()
 {
     return static_cast<bool>(mouse.hidden);
 }
+
+bool MOUSE_IsBeingPolled()
+{
+    if (!en_int33_hide_if_polling)
+        return false;
+
+    return (PIC_FullIndex() < (int33_last_poll + 1000));
+}
+
