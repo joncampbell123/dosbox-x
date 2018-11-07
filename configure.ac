@@ -580,6 +580,9 @@ else
 fi 
 AM_CONDITIONAL(C_MT32, test "x$enable_mt32" == "xyes")
 
+dnl NASM (Netwide Assembler)
+AC_PATH_PROG([NASM], [nasm])
+
 dnl FEATURE: DEBUG and HEAVY DEBUG options (debugger)
 AH_TEMPLATE(C_DEBUG,[Define to 1 to enable internal debugger, requires libcurses])
 AH_TEMPLATE(C_HEAVY_DEBUG,[Define to 1 to enable heavy debugging, also have to enable C_DEBUG])
