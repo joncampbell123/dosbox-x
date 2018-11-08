@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# Jonathan C dev hack: refer to LNKDOS16 in /usr/src/doslib
+doslib=
+if [ -d /usr/src/doslib ]; then doslib=/usr/src/doslib; fi
+
+if [ -n "$doslib" ]; then
+    if [ -x "$doslib/tool/linker/linux-host/lnkdos16" ]; then
+        export PATH="$doslib/tool/linker/linux-host:$PATH"
+    fi
+fi
+
 # I'm sick and tired of all the churn the three versions of autoconf
 # are causing in this repo. Stop committing the configure scripts
 # and just autoregen.
