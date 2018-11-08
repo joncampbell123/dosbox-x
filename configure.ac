@@ -582,6 +582,9 @@ AM_CONDITIONAL(C_MT32, test "x$enable_mt32" == "xyes")
 
 dnl NASM (Netwide Assembler)
 AC_PATH_PROG([NASM], [nasm])
+if test -z "$ac_cv_path_NASM"; then
+    AC_MSG_WARN([NASM (netwide assembler) not found, you will not be able to compile the external x86 .asm files if they are modified])
+fi
 
 dnl FEATURE: DEBUG and HEAVY DEBUG options (debugger)
 AH_TEMPLATE(C_DEBUG,[Define to 1 to enable internal debugger, requires libcurses])
