@@ -1650,9 +1650,87 @@ bool KEYBOARD_Report_BIOS_PS2Mouse() {
 
 static IO_ReadHandleObject ReadHandler_8255_PC98[4];
 static IO_WriteHandleObject WriteHandler_8255_PC98[4];
+
+static IO_ReadHandleObject ReadHandler_8255prn_PC98[4];
+static IO_WriteHandleObject WriteHandler_8255prn_PC98[4];
+
 static IO_WriteHandleObject Reset_PC98;
 
 extern bool gdc_5mhz_mode;
+
+//! \brief PC-98 Printer 8255 PPI emulation (Intel 8255A device)
+//!
+//! \description TODO...
+//!
+//!              This PPI is connected to I/O ports 0x40-0x46 even.
+//!              - 0x40 Port A
+//!              - 0x42 Port B
+//!              - 0x44 Port C
+//!              - 0x46 control/mode
+//!
+//!              Except on super high resolution
+//!              display units, Port B is also used to
+//!              return some dip switches and system configuration,
+//!              with only one bit to indicate printer status.
+//!
+//!              This PPI is connected to:
+//!              - Port A (out): Output to printer
+//!              - Port B (in):  PC-98 model, system clock (8 or 5/10MHz),
+//!                              HGC graphics extension, printer busy,
+//!                              V30/V33 vs Intel x86 CPU, CPU HA/LT sys type,
+//!                              VF flag (?)
+//!              - Port C (out): Strobe, IR8 interrupt enable, 287/387 reset(?)
+class PC98_Printer_8255 : public Intel8255 {
+public:
+    PC98_Printer_8255() : Intel8255() {
+        ppiName = "Printer 8255";
+        portNames[PortA] = "Printer output";
+        portNames[PortB] = "System configuration";
+        portNames[PortC] = "Strobe and controls";
+        pinNames[PortA][0] = "Latch bit 0";
+        pinNames[PortA][1] = "Latch bit 1";
+        pinNames[PortA][2] = "Latch bit 2";
+        pinNames[PortA][3] = "Latch bit 3";
+        pinNames[PortA][4] = "Latch bit 4";
+        pinNames[PortA][5] = "Latch bit 5";
+        pinNames[PortA][6] = "Latch bit 6";
+        pinNames[PortA][7] = "Latch bit 7";
+        pinNames[PortB][0] = "VF VF flag";
+        pinNames[PortB][1] = "CPUT operation CPU (V30 if set)";
+        pinNames[PortB][2] = "Printer busy signal";
+        pinNames[PortB][3] = "HGC graphics extension function DIP SW 1-8";
+        pinNames[PortB][4] = "LCD plasma display usage condition DIP SW 1-3";
+        pinNames[PortB][5] = "System clock (5/10mhz or 8mhz)";
+        pinNames[PortB][6] = "System type, bit 0";
+        pinNames[PortB][7] = "System type, bit 1";
+        pinNames[PortC][0] = "unused";
+        pinNames[PortC][1] = "Reset 287/387 by CPU reset if set";
+        pinNames[PortC][2] = "unused";
+        pinNames[PortC][3] = "IR8 interrupt request ON/OFF";
+        pinNames[PortC][4] = "unused";
+        pinNames[PortC][5] = "unused";
+        pinNames[PortC][6] = "unused";
+        pinNames[PortC][7] = "Printer strobe output";
+    }
+    virtual ~PC98_Printer_8255() {
+    }
+public:
+    /* TODO: Writes to Port A should go to printer emulation */
+    /* TODO: Writes to bit 7, Port C should go to printer emulation (strobe pin) */
+    /* port B is input */
+    virtual uint8_t inPortB(void) const {
+        return      0x80 +                                                          /* bits [7:6]   10 = other model */
+                    ((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x20 : 0x00) +    /* bit  [5:5]   1 = 8MHz  0 = 5/10MHz */
+                    0x10 +                                                          /* bit  [4:4]   1 = LCD plasma display usage cond. not used */
+                    0x04;                                                           /* bit  [2:2]   printer busy signal (1=inactive) */
+        /* NTS: also returns:
+         *       bit  [3:3]     0 = HGC graphics extension function extended mode
+         *       bit  [1:1]     0 = 80x86 processor (not V30)
+         *       bit  [0:0]     0 = other models (?) */
+    }
+};
+
+static PC98_Printer_8255 pc98_prn_8255;
 
 bool PC98_SHUT0=true,PC98_SHUT1=true;
 
@@ -1774,6 +1852,16 @@ static void pc98_8255_write(Bitu port,Bitu val,Bitu /*iolen*/) {
 static Bitu pc98_8255_read(Bitu port,Bitu /*iolen*/) {
     /* 0x31-0x37 odd */
     return pc98_sys_8255.readByPort((port - 0x31) >> 1U);
+}
+
+static void pc98_8255prn_write(Bitu port,Bitu val,Bitu /*iolen*/) {
+    /* 0x31-0x37 odd */
+    pc98_prn_8255.writeByPort((port - 0x40) >> 1U,val);
+}
+
+static Bitu pc98_8255prn_read(Bitu port,Bitu /*iolen*/) {
+    /* 0x31-0x37 odd */
+    return pc98_prn_8255.readByPort((port - 0x40) >> 1U);
 }
 
 static struct pc98_keyboard {
@@ -2247,6 +2335,9 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
         for (i=0;i < 4;i++) {
             ReadHandler_8255_PC98[i].Uninstall();
             WriteHandler_8255_PC98[i].Uninstall();
+
+            ReadHandler_8255prn_PC98[i].Uninstall();
+            WriteHandler_8255prn_PC98[i].Uninstall();
         }
         
         Section_prop *section=static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -2294,12 +2385,32 @@ void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
     pc98_sys_8255.writeControl(0x92);
     pc98_sys_8255.writePortC(0xF8); /* SHUT0=1 SHUT1=1 mask printer RAM parity check buzzer inhibit */
 
+    /* Another 8255 is at 0x40-0x46 even for the printer interface */
+    /* bit[7:7] =  1 = mode set
+     * bit[6:5] = 00 = port A mode 0
+     * bit[4:4] =  0 = port A output
+     * bit[3:3] =  0 = port C upper output              1000 0010 = 0x82
+     * bit[2:2] =  0 = port B mode 0
+     * bit[1:1] =  1 = port B input
+     * bit[0:0] =  0 = port C lower output */
+    pc98_prn_8255.writeControl(0x82);
+    pc98_prn_8255.writePortA(0x00); /* printer latch all 0s */
+    pc98_prn_8255.writePortC(0x0A); /* 1=IR8 OFF, reset 287/387 by CPU reset */
+
     for (i=0;i < 4;i++) {
+        /* system */
         ReadHandler_8255_PC98[i].Uninstall();
         ReadHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_read,IO_MB);
 
         WriteHandler_8255_PC98[i].Uninstall();
         WriteHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_write,IO_MB);
+
+        /* printer */
+        ReadHandler_8255prn_PC98[i].Uninstall();
+        ReadHandler_8255prn_PC98[i].Install(0x40 + (i * 2),pc98_8255prn_read,IO_MB);
+
+        WriteHandler_8255prn_PC98[i].Uninstall();
+        WriteHandler_8255prn_PC98[i].Install(0x40 + (i * 2),pc98_8255prn_write,IO_MB);
     }
 
     /* reset port */
