@@ -1,4 +1,7 @@
 <next version>
+  - PC-98 minimal (non-functional at this time) printer
+    port emulation added, as well as system configuration
+    port.
   - PC-98 CG memory region fixed to match real hardware
     behavior, responding to A4000-A4FFF.
   - FAT filesystem driver now supports 2048 bytes per
