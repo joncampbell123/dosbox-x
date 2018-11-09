@@ -1333,7 +1333,7 @@ public:
         if ((addr & (~0xFFF)) == 0xA4000) {
             extern uint16_t a1_font_load_addr;
 
-            // TODO: Does the memory address update the char offset value written to the I/O port version?
+            /* according to real hardware, memory address does not affect char offset (port 0xA5) */
             if (sizeof(AWT) > 1) {
                 return
                     (pc98_font_char_read(a1_font_load_addr,(addr >> 1) & 0xF,0)      ) +
@@ -1447,7 +1447,7 @@ public:
         if ((addr & (~0xFFF)) == 0xA4000) {
             extern uint16_t a1_font_load_addr;
 
-            // TODO: Does the memory address update the char offset value written to the I/O port version?
+            /* according to real hardware, memory address does not affect char offset (port 0xA5) */
             if (sizeof(AWT) > 1) {
                 // FIXME: Untested
                 pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,0,val);
