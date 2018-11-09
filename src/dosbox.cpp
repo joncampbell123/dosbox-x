@@ -495,6 +495,8 @@ void DOSBOX_SetNormalLoop() {
     loop=Normal_Loop;
 }
 
+//#define DEBUG_RECURSION
+
 #ifdef DEBUG_RECURSION
 volatile int runmachine_recursion = 0;
 #endif
