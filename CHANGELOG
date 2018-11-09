@@ -1,4 +1,6 @@
 <next version>
+  - Fixed music/interrupt slowdown whenever I/O and INT 10h
+    BIOS emulation is involved.
   - PC-98 minimal (non-functional at this time) printer
     port emulation added, as well as system configuration
     port.
