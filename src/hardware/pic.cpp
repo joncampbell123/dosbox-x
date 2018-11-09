@@ -656,7 +656,17 @@ void PIC_RemoveEvents(PIC_EventHandler handler) {
 
 extern ClockDomain clockdom_DOSBox_cycles;
 
+//#define DEBUG_CPU_CYCLE_OVERRUN
+
 bool PIC_RunQueue(void) {
+#ifdef DEBUG_CPU_CYCLE_OVERRUN
+    /* I/O delay can cause negative CPU_Cycles and PIC event / audio rendering issues */
+    cpu_cycles_count_t overrun = -std::min(CPU_Cycles,(cpu_cycles_count_t)0);
+
+    if (overrun > (CPU_CycleMax/100))
+        LOG_MSG("PIC_RunQueue: CPU cycles count overrun by %ld (%.3fms)\n",(signed long)overrun,(double)overrun / CPU_CycleMax);
+#endif
+
     /* Check to see if a new millisecond needs to be started */
     CPU_CycleLeft += CPU_Cycles;
     CPU_Cycles = 0;
