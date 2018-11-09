@@ -1,4 +1,8 @@
 <next version>
+  - FAT filesystem driver now supports 2048 bytes per
+    sector filesystems.
+  - FAT filesystem driver logical/physical sector matching
+    fixed to improve flexibility.
   - Fixed crash that occurs if you maximize the window
     and then adjust scalers to produce output that is
     larger than the maximized window.
