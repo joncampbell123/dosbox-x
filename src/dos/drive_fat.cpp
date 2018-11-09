@@ -997,28 +997,31 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
      * that indicates 1024 bytes per sector. */
     if (pc98_512_to_1024_allow &&
          bootbuffer.bytespersector != getSectSize() &&
-        (bootbuffer.bytespersector == 1024 || bootbuffer.bytespersector == 512) &&
-        (getSectSize() == 512 || getSectSize() == 256)) {
-        unsigned int ratio = (unsigned int)(bootbuffer.bytespersector / getSectSize());
-        unsigned int ratiof = (unsigned int)(bootbuffer.bytespersector % getSectSize());
-        unsigned int ratioshift = (ratio == 4) ? 2 : 1;
+         bootbuffer.bytespersector >  getSectSize() &&
+        (bootbuffer.bytespersector %  getSectSize()) == 0) {
+        unsigned int ratioshift = 1;
 
-        LOG_MSG("Disk indicates %u bytes/sector, FAT filesystem indicates %u bytes/sector. Ratio=%u shift=%u",
-            getSectSize(),bootbuffer.bytespersector,ratio,ratioshift);
-        assert(ratiof == 0);
-        assert((ratio & (ratio - 1)) == 0); /* power of 2 */
-        assert(ratio >= 2);
-        assert(ratio <= 4);
+        while ((unsigned int)(bootbuffer.bytespersector >> ratioshift) > getSectSize())
+            ratioshift++;
 
-        /* we can hack things in place IF the starting sector is an even number */
-        if ((partSectOff & (ratio - 1)) == 0) {
-            partSectOff >>= ratioshift;
-            startSector >>= ratioshift;
-            sector_size = bootbuffer.bytespersector;
-            LOG_MSG("Using logical sector size %u",sector_size);
-        }
-        else {
-            LOG_MSG("However there's nothing I can do, because the partition starts on an odd sector");
+        unsigned int ratio = 1u << ratioshift;
+
+        LOG_MSG("Disk indicates %u bytes/sector, FAT filesystem indicates %u bytes/sector. Ratio=%u:1 shift=%u",
+                getSectSize(),bootbuffer.bytespersector,ratio,ratioshift);
+
+        if ((unsigned int)(bootbuffer.bytespersector >> ratioshift) == getSectSize()) {
+            assert(ratio >= 2);
+
+            /* we can hack things in place IF the starting sector is an even number */
+            if ((partSectOff & (ratio - 1)) == 0) {
+                partSectOff >>= ratioshift;
+                startSector >>= ratioshift;
+                sector_size = bootbuffer.bytespersector;
+                LOG_MSG("Using logical sector size %u",sector_size);
+            }
+            else {
+                LOG_MSG("However there's nothing I can do, because the partition starts on an odd sector");
+            }
         }
     }
 
