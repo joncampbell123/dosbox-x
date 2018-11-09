@@ -404,8 +404,11 @@ IO_WriteHandleObject::~IO_WriteHandleObject(){
 /* how much delay to add to I/O in nanoseconds */
 int io_delay_ns[3] = {-1,-1,-1};
 
+/* nonzero if we're in a callback */
+extern unsigned int last_callback;
+
 inline void IO_USEC_read_delay(const unsigned int szidx) {
-	if (io_delay_ns[szidx] > 0) {
+	if (io_delay_ns[szidx] > 0 && last_callback == 0/*NOT running within a callback function*/) {
 		Bits delaycyc = (CPU_CycleMax * io_delay_ns[szidx]) / 1000000;
 		CPU_Cycles -= delaycyc;
 		CPU_IODelayRemoved += delaycyc;
@@ -413,7 +416,7 @@ inline void IO_USEC_read_delay(const unsigned int szidx) {
 }
 
 inline void IO_USEC_write_delay(const unsigned int szidx) {
-	if (io_delay_ns[szidx] > 0) {
+	if (io_delay_ns[szidx] > 0 && last_callback == 0/*NOT running within a callback function*/) {
 		Bits delaycyc = (CPU_CycleMax * io_delay_ns[szidx] * 3) / (1000000 * 4);
 		CPU_Cycles -= delaycyc;
 		CPU_IODelayRemoved += delaycyc;
