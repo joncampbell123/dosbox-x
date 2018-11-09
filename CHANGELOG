@@ -1,4 +1,6 @@
 <next version>
+  - PC-98 CG memory region fixed to match real hardware
+    behavior, responding to A4000-A4FFF.
   - FAT filesystem driver now supports 2048 bytes per
     sector filesystems.
   - FAT filesystem driver logical/physical sector matching
