@@ -1,4 +1,7 @@
 <next version>
+  - PC-98 text hardware cursor fixed to cover both halves
+    of doublewide characters if cursor positioned on left
+    half, to match real hardware.
   - Fixed music/interrupt slowdown whenever I/O and INT 10h
     BIOS emulation is involved.
   - PC-98 minimal (non-functional at this time) printer
