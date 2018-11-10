@@ -1,4 +1,6 @@
 <next version>
+  - PC-98 emulation of text height/vertical position
+    registers 70h-74h even added.
   - PC-98 text hardware cursor fixed to cover both halves
     of doublewide characters if cursor positioned on left
     half, to match real hardware.
