@@ -1273,7 +1273,7 @@ struct Text_Draw_State {
     void begin_frame(void) {
         row_scroll_countdown = 0xFF;
         row_scanline_cg = pc98_text_first_row_scanline_start;
-        row_char = pc98_text_row_scroll_count_start & 0xFFu;/*TODO: How big is this register? */
+        row_char = pc98_text_row_scroll_count_start & 0x1Fu;
         check_scroll_region();
     }
     void next_line(void) {

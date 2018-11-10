@@ -76,7 +76,7 @@ void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
             pc98_text_row_scroll_lines = (unsigned char)val & 0x1F;
             break;
         case 0x08:
-            pc98_text_row_scroll_count_start = (unsigned char)val & 0xFF;
+            pc98_text_row_scroll_count_start = (unsigned char)val & 0x1F;
             break;
         case 0x0A:
             pc98_text_row_scroll_num_lines = (unsigned char)val & 0xFF;
