@@ -1304,6 +1304,9 @@ struct Text_Draw_State {
     void check_scroll_region(void) {
         if (row_char == 0) {
             /* begin scroll region */
+            /* NTS: Confirmed on real hardware: The scroll count ADDs to the vertical offset already applied to the text.
+             *      For example in 20-line text mode (20 pixels high) setting the scroll region offset to 2 pixels cancels
+             *      out the 2 pixel centering of the text. */
             row_scroll_countdown = pc98_text_row_scroll_num_lines & 0x1Fu;
             scroll_vmem = pc98_gdc[GDC_MASTER].scan_address;
             scroll_scanline_cg = pc98_text_first_row_scanline_start;
