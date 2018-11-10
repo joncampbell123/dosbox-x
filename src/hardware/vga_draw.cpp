@@ -1405,6 +1405,22 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             fline = pc98_text_draw.row_scanline_cg;
         }
 
+        /* NTS: This code will render the cursor in the scroll region with a weird artifact
+         *      when the character under it is double-wide, and the cursor covers the top half.
+         *
+         *      For example:
+         *
+         *      ＡＡＡ
+         *      ＡＡＡ
+         *      ＡＡＡＡ     <- scroll region ends here
+         *      ＡＡＡＡ
+         *
+         *      Placing the cursor on the third row of Ａ's, on the right, will produce an
+         *      oddly shaped cursor.
+         *
+         *      Before filing a bug about this, consider from my testing that real PC-9821
+         *      hardware will also render a strangely shaped cursor there as well. --J.C. */
+
         while (blocks--) { // for each character in the line
             bool was_doublewide = doublewide;
 
