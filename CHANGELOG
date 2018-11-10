@@ -1,4 +1,7 @@
 <next version>
+  - PC-98 CRTC mode set regarding 20/25-line mode fixed
+    to update line height, text vertical position/height,
+    and cursor shape.
   - PC-98 emulation of text height/vertical position
     registers 70h-74h even added.
   - PC-98 text hardware cursor fixed to cover both halves
