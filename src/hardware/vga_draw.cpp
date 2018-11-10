@@ -1275,11 +1275,11 @@ struct Text_Draw_State {
         row_scanline_cg = pc98_text_first_row_scanline_start;
         row_char = pc98_text_row_scroll_count_start & 0x1Fu;
         check_scroll_region();
+
+        if (row_scroll_countdown != 0xFF)
+            update_scroll_line();
     }
     void next_line(void) {
-        if (row_scroll_countdown != 0xFF)
-            next_scroll_line();
-
         if (row_scanline_cg == pc98_text_first_row_scanline_end) {
             row_scanline_cg = pc98_text_first_row_scanline_start;
             next_character_row();
@@ -1287,14 +1287,21 @@ struct Text_Draw_State {
         else {
             row_scanline_cg = (row_scanline_cg + 1u) & 0x1Fu;
         }
+
+        if (row_scroll_countdown != 0xFF)
+            update_scroll_line();
     }
-    void next_scroll_line(void) {
-        if (scroll_scanline_cg == pc98_text_first_row_scanline_end) {
-            scroll_scanline_cg = pc98_text_first_row_scanline_start;
-            scroll_vmem += pc98_gdc[GDC_MASTER].display_pitch;
-        }
-        else {
-            scroll_scanline_cg = (scroll_scanline_cg + 1u) & 0x1Fu;
+    void update_scroll_line(void) {
+        scroll_vmem = 0;
+        scroll_scanline_cg = row_scanline_cg;
+        for (unsigned int i=0;i < pc98_text_row_scroll_lines;i++) {
+            if (scroll_scanline_cg == pc98_text_first_row_scanline_end) {
+                scroll_scanline_cg = pc98_text_first_row_scanline_start;
+                scroll_vmem += pc98_gdc[GDC_MASTER].display_pitch;
+            }
+            else {
+                scroll_scanline_cg = (scroll_scanline_cg + 1u) & 0x1Fu;
+            }
         }
     }
     void next_character_row(void) {
@@ -1308,10 +1315,6 @@ struct Text_Draw_State {
              *      For example in 20-line text mode (20 pixels high) setting the scroll region offset to 2 pixels cancels
              *      out the 2 pixel centering of the text. */
             row_scroll_countdown = pc98_text_row_scroll_num_lines & 0x1Fu;
-            scroll_vmem = pc98_gdc[GDC_MASTER].scan_address;
-            scroll_scanline_cg = pc98_text_first_row_scanline_start;
-            for (unsigned int i=0;i < pc98_text_row_scroll_lines;i++)
-                next_scroll_line();
         }
         else if (row_scroll_countdown == 0) {
             /* end scroll region */
@@ -1396,12 +1399,12 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         draw = ((Bit32u*)TempLine);
         blocks = vga.draw.blocks;
 
+        vidmem = pc98_gdc[GDC_MASTER].scan_address;
         if (pc98_text_draw.in_scroll_region()) {
-            vidmem = pc98_text_draw.scroll_vmem;
+            vidmem += pc98_text_draw.scroll_vmem;
             fline = pc98_text_draw.scroll_scanline_cg;
         }
         else {
-            vidmem = pc98_gdc[GDC_MASTER].scan_address;
             fline = pc98_text_draw.row_scanline_cg;
         }
 
