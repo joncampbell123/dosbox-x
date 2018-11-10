@@ -1,4 +1,6 @@
 <next version>
+  - PC-98 text scroll region implemented (I/O ports
+    76h-7Ah even).
   - PC-98 CRTC mode set regarding 20/25-line mode fixed
     to update line height, text vertical position/height,
     and cursor shape.
