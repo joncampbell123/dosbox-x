@@ -4038,6 +4038,8 @@ void MAPPER_StartUp() {
         /* Note: table has to be tested/updated for various OSs */
 #if defined (MACOSX)
         /* nothing */
+#elif defined(HAIKU)
+		usescancodes = false;
 #elif defined(OS2)
         sdlkey_map[0x61]=SDLK_UP;
         sdlkey_map[0x66]=SDLK_DOWN;
