@@ -1304,7 +1304,7 @@ struct Text_Draw_State {
     void check_scroll_region(void) {
         if (row_char == 0) {
             /* begin scroll region */
-            row_scroll_countdown = pc98_text_row_scroll_num_lines;
+            row_scroll_countdown = pc98_text_row_scroll_num_lines & 0x1Fu;
             scroll_vmem = pc98_gdc[GDC_MASTER].scan_address;
             scroll_scanline_cg = pc98_text_first_row_scanline_start;
             for (unsigned int i=0;i < pc98_text_row_scroll_lines;i++)

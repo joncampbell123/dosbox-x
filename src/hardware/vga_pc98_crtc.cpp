@@ -79,7 +79,7 @@ void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
             pc98_text_row_scroll_count_start = (unsigned char)val & 0x1F;
             break;
         case 0x0A:
-            pc98_text_row_scroll_num_lines = (unsigned char)val & 0xFF;
+            pc98_text_row_scroll_num_lines = (unsigned char)val & 0x1F;
             break;
         case 0x0C:      // 0x7C: mode reg / vram operation mode (also, reset tile counter)
             if (enable_pc98_grcg) {
