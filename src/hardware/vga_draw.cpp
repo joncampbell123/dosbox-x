@@ -1253,6 +1253,35 @@ extern bool pc98_graphics_hide_odd_raster_200line;
 extern bool pc98_allow_scanline_effect;
 extern bool gdc_analog;
 
+unsigned char       pc98_text_first_row_scanline_start = 0x00;  /* port 70h */
+unsigned char       pc98_text_first_row_scanline_end = 0x0F;    /* port 72h */
+unsigned char       pc98_text_row_scanline_blank_at = 0x10;     /* port 74h */
+
+// Text layer rendering state.
+// Track row, row count, scanline row within the cell,
+// for accurate emulation
+struct Text_Draw_State {
+    unsigned char       row_scanline_cg;            /* scanline within row, CG bitmap */
+
+    void begin_frame(void) {
+        row_scanline_cg = pc98_text_first_row_scanline_start;
+    }
+    void next_line(void) {
+        if (row_scanline_cg == pc98_text_first_row_scanline_end) {
+            row_scanline_cg = pc98_text_first_row_scanline_start;
+            next_character_row();
+        }
+        else {
+            row_scanline_cg = (row_scanline_cg + 1u) & 0x1Fu;
+        }
+    }
+    void next_character_row(void) {
+        /* TODO */
+    }
+};
+
+Text_Draw_State     pc98_text_draw;
+
 static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     // keep it aligned:
     Bit32u* draw = ((Bit32u*)TempLine);
@@ -1322,12 +1351,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         while (blocks--) { // for each character in the line
             bool was_doublewide = doublewide;
 
-            /* NTS: On real hardware, in 20-line mode, either the hardware or the BIOS sets
-             *      up the text mode in such a way that the text is centered vertically
-             *      against the cursor, and the cursor fills all 20 lines */
-            fline = pc98_gdc[GDC_MASTER].row_line;
-            if (pc98_gdc[GDC_MASTER].row_height > 16) /* 20-line */
-                fline -= 2; /* vertically center */
+            fline = pc98_text_draw.row_scanline_cg;
 
             /* Amusing question: How does it handle the "simple graphics" in 20-line mode? */
 
@@ -1382,8 +1406,7 @@ interrupted_char_begin:
                         doublewide = true;
                     }
 
-                    /* the hardware appears to blank the lines beyond the 16-line cell */
-                    if (fline < 0x10)
+                    if (fline < pc98_text_row_scanline_blank_at)
                         font = pc98_font_char_read(chr,fline,0);
                     else
                         font = 0;
@@ -1420,8 +1443,7 @@ interrupted_char_begin:
                         goto interrupted_char_begin;
                 }
 
-                /* the hardware appears to blank the lines beyond the 16-line cell */
-                if (fline < 0x10)
+                if (fline < pc98_text_row_scanline_blank_at)
                     font = pc98_font_char_read(chr,fline,1);
                 else
                     font = 0;
@@ -1679,6 +1701,7 @@ again:
     }
 
     if (IS_PC98_ARCH) {
+        pc98_text_draw.next_line();
         for (unsigned int i=0;i < 2;i++)
             pc98_gdc[i].next_line();
     }
@@ -1810,6 +1833,7 @@ static void VGA_PanningLatch(Bitu /*val*/) {
     vga.draw.panning = vga.config.pel_panning;
 
     if (IS_PC98_ARCH) {
+        pc98_text_draw.begin_frame();
         for (unsigned int i=0;i < 2;i++)
             pc98_gdc[i].begin_frame();
     }
