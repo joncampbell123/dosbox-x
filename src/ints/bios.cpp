@@ -2447,6 +2447,12 @@ void pc98_update_text_layer_lineheight_from_bda(void) {
         pc98_text_first_row_scanline_end = lineheight - 1;
         pc98_text_row_scanline_blank_at = lineheight;
     }
+
+    vga.crtc.cursor_start = 0;
+    vga.draw.cursor.sline = 0;
+
+    vga.crtc.cursor_end   = lineheight - 1;
+    vga.draw.cursor.eline = lineheight - 1;
 }
 
 void pc98_update_text_lineheight_from_bda(void) {
