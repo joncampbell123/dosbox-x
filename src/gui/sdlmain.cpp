@@ -434,6 +434,8 @@ struct private_hwdata {
 # define DEFAULT_CONFIG_FILE            "/dosbox.conf"
 #elif defined(MACOSX)
 # define DEFAULT_CONFIG_FILE            "/Library/Preferences/DOSBox Preferences"
+#elif defined(HAIKU)
+#define DEFAULT_CONFIG_FILE "~/config/settings/dosbox/dosbox.conf"
 #else /*linux freebsd*/
 # define DEFAULT_CONFIG_FILE            "/.dosboxrc"
 #endif

@@ -110,6 +110,11 @@
 
 #include <endian.h>
 
+#elif defined(__HAIKU__)
+
+#define _BSD_SOURCE
+#include <endian.h>
+
 #elif defined(__OpenBSD__)
 
 #include <sys/endian.h>

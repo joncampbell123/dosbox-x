@@ -254,7 +254,7 @@ bool SERIAL_setCommParameters(COMPORT port,
 }
 #endif
 
-#if defined (LINUX) || defined (MACOSX) || defined (BSD)
+#if defined (LINUX) || defined (MACOSX) || defined (BSD) || defined (HAIKU)
 
 #include <string.h> // strlen
 #include <stdlib.h>

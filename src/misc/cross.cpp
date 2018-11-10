@@ -80,6 +80,9 @@ void Cross::GetPlatformConfigDir(std::string& in) {
 #elif defined(MACOSX)
 	in = "~/Library/Preferences";
 	ResolveHomedir(in);
+#elif defined(HAIKU)
+	in = "~/config/settings/dosbox";
+	ResolveHomedir(in);
 #elif !defined(HX_DOS)
 	in = "~/.dosbox";
 	ResolveHomedir(in);
@@ -107,6 +110,10 @@ void Cross::CreatePlatformConfigDir(std::string& in) {
 	in = "~/Library/Preferences/";
 	ResolveHomedir(in);
 	//Don't create it. Assume it exists
+#elif defined(HAIKU)
+	in = "~/config/settings/dosbox";
+	ResolveHomedir(in);
+	mkdir(in.c_str(),0700);
 #elif !defined(HX_DOS)
 	in = "~/.dosbox";
 	ResolveHomedir(in);
