@@ -1391,6 +1391,8 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 
     // Text RAM layer
     if (pc98_gdc[GDC_MASTER].display_enable) {
+        Bitu gdcvidmem = pc98_gdc[GDC_MASTER].scan_address;
+
         draw = ((Bit32u*)TempLine);
         blocks = vga.draw.blocks;
 
@@ -1517,7 +1519,7 @@ interrupted_char_begin:
 
             /* based on real hardware, the cursor seems to act like a reverse attribute */
             /* if the character is double-wide, and the cursor is on the left half, the cursor affects the right half too. */
-            if (((vidmem == vga.draw.cursor.address) || (was_doublewide && vidmem == (vga.draw.cursor.address+1))) &&
+            if (((gdcvidmem == vga.draw.cursor.address) || (was_doublewide && gdcvidmem == (vga.draw.cursor.address+1))) &&
                 pc98_gdc[GDC_MASTER].cursor_enable &&
                 ((!pc98_gdc[GDC_MASTER].cursor_blink) || (pc98_gdc[GDC_MASTER].cursor_blink_state&1)) &&
                 (line >= vga.draw.cursor.sline) &&
@@ -1551,6 +1553,7 @@ interrupted_char_begin:
             }
 
             vidmem++;
+            gdcvidmem++;
         }
     }
 
