@@ -1320,6 +1320,8 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         blocks = vga.draw.blocks;
         vidmem = pc98_gdc[GDC_MASTER].scan_address;
         while (blocks--) { // for each character in the line
+            bool was_doublewide = doublewide;
+
             /* NTS: On real hardware, in 20-line mode, either the hardware or the BIOS sets
              *      up the text mode in such a way that the text is centered vertically
              *      against the cursor, and the cursor fills all 20 lines */
@@ -1439,7 +1441,8 @@ interrupted_char_begin:
             if (attr & 0x04/*reverse*/) font ^= 0xFF;
 
             /* based on real hardware, the cursor seems to act like a reverse attribute */
-            if (vidmem == vga.draw.cursor.address &&
+            /* if the character is double-wide, and the cursor is on the left half, the cursor affects the right half too. */
+            if (((vidmem == vga.draw.cursor.address) || (was_doublewide && vidmem == (vga.draw.cursor.address+1))) &&
                 pc98_gdc[GDC_MASTER].cursor_enable &&
                 ((!pc98_gdc[GDC_MASTER].cursor_blink) || (pc98_gdc[GDC_MASTER].cursor_blink_state&1)) &&
                 (line >= vga.draw.cursor.sline) &&
