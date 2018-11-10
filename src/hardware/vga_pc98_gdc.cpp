@@ -316,7 +316,7 @@ void PC98_GDC_state::idle_proc(void) {
                 current_command = GDC_CMD_PARAMETER_RAM_LOAD;
                 break;
             default:
-                LOG_MSG("GDC: Unknown command 0x%x",current_command);
+                LOG_MSG("GDC: %s: Unknown command 0x%x",master_sync?"master":"slave",current_command);
                 break;
         };
     }
