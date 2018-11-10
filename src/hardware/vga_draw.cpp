@@ -1298,7 +1298,7 @@ struct Text_Draw_State {
         }
     }
     void next_character_row(void) {
-        row_char = (row_char + 1u) & 0xFFu;/*TODO: How big is this register? */
+        row_char = (row_char + 1u) & 0x1Fu;
         check_scroll_region();
     }
     void check_scroll_region(void) {
