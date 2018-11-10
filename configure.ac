@@ -376,6 +376,10 @@ case "$host" in
        dnl FEATURE: Whether to support direct parallel port passthrough
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
        ;;
+    *-*-haiku*)
+       AC_DEFINE(HAIKU, 1, [Compiling on Haiku])
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+       ;;
     *-*-freebsd* | *-*-dragonfly* | *-*-netbsd* | *-*-openbsd*)
        dnl Disabled directserial for now. It doesn't do anything without
        dnl specifying an extra ifdef in directserial_posix.*
