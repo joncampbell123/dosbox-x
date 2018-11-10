@@ -1256,17 +1256,30 @@ extern bool gdc_analog;
 unsigned char       pc98_text_first_row_scanline_start = 0x00;  /* port 70h */
 unsigned char       pc98_text_first_row_scanline_end = 0x0F;    /* port 72h */
 unsigned char       pc98_text_row_scanline_blank_at = 0x10;     /* port 74h */
+unsigned char       pc98_text_row_scroll_lines = 0x00;          /* port 76h */
+unsigned char       pc98_text_row_scroll_count_start = 0x00;    /* port 78h */
+unsigned char       pc98_text_row_scroll_num_lines = 0x00;      /* port 7Ah */
 
 // Text layer rendering state.
 // Track row, row count, scanline row within the cell,
 // for accurate emulation
 struct Text_Draw_State {
+    unsigned int        scroll_vmem;
+    unsigned char       scroll_scanline_cg;
     unsigned char       row_scanline_cg;            /* scanline within row, CG bitmap */
+    unsigned char       row_char;                   /* character row. scroll region 0 <= num_lines */
+    unsigned char       row_scroll_countdown;
 
     void begin_frame(void) {
+        row_scroll_countdown = 0xFF;
         row_scanline_cg = pc98_text_first_row_scanline_start;
+        row_char = pc98_text_row_scroll_count_start & 0xFFu;/*TODO: How big is this register? */
+        check_scroll_region();
     }
     void next_line(void) {
+        if (row_scroll_countdown != 0xFF)
+            next_scroll_line();
+
         if (row_scanline_cg == pc98_text_first_row_scanline_end) {
             row_scanline_cg = pc98_text_first_row_scanline_start;
             next_character_row();
@@ -1275,8 +1288,38 @@ struct Text_Draw_State {
             row_scanline_cg = (row_scanline_cg + 1u) & 0x1Fu;
         }
     }
+    void next_scroll_line(void) {
+        if (scroll_scanline_cg == pc98_text_first_row_scanline_end) {
+            scroll_scanline_cg = pc98_text_first_row_scanline_start;
+            scroll_vmem += pc98_gdc[GDC_MASTER].display_pitch;
+        }
+        else {
+            scroll_scanline_cg = (scroll_scanline_cg + 1u) & 0x1Fu;
+        }
+    }
     void next_character_row(void) {
-        /* TODO */
+        row_char = (row_char + 1u) & 0xFFu;/*TODO: How big is this register? */
+        check_scroll_region();
+    }
+    void check_scroll_region(void) {
+        if (row_char == 0) {
+            /* begin scroll region */
+            row_scroll_countdown = pc98_text_row_scroll_num_lines;
+            scroll_vmem = pc98_gdc[GDC_MASTER].scan_address;
+            scroll_scanline_cg = pc98_text_first_row_scanline_start;
+            for (unsigned int i=0;i < pc98_text_row_scroll_lines;i++)
+                next_scroll_line();
+        }
+        else if (row_scroll_countdown == 0) {
+            /* end scroll region */
+            row_scroll_countdown = 0xFF;
+        }
+        else if (row_scroll_countdown != 0xFF) {
+            row_scroll_countdown--;
+        }
+    }
+    bool in_scroll_region(void) const {
+        return row_scroll_countdown != 0xFFu;
     }
 };
 
@@ -1347,11 +1390,18 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     if (pc98_gdc[GDC_MASTER].display_enable) {
         draw = ((Bit32u*)TempLine);
         blocks = vga.draw.blocks;
-        vidmem = pc98_gdc[GDC_MASTER].scan_address;
+
+        if (pc98_text_draw.in_scroll_region()) {
+            vidmem = pc98_text_draw.scroll_vmem;
+            fline = pc98_text_draw.scroll_scanline_cg;
+        }
+        else {
+            vidmem = pc98_gdc[GDC_MASTER].scan_address;
+            fline = pc98_text_draw.row_scanline_cg;
+        }
+
         while (blocks--) { // for each character in the line
             bool was_doublewide = doublewide;
-
-            fline = pc98_text_draw.row_scanline_cg;
 
             /* Amusing question: How does it handle the "simple graphics" in 20-line mode? */
 
@@ -1701,9 +1751,10 @@ again:
     }
 
     if (IS_PC98_ARCH) {
-        pc98_text_draw.next_line();
         for (unsigned int i=0;i < 2;i++)
             pc98_gdc[i].next_line();
+
+        pc98_text_draw.next_line();
     }
 
     /* some VGA cards (ATI chipsets especially) do not double-buffer the
@@ -1833,9 +1884,10 @@ static void VGA_PanningLatch(Bitu /*val*/) {
     vga.draw.panning = vga.config.pel_panning;
 
     if (IS_PC98_ARCH) {
-        pc98_text_draw.begin_frame();
         for (unsigned int i=0;i < 2;i++)
             pc98_gdc[i].begin_frame();
+
+        pc98_text_draw.begin_frame();
     }
 }
 

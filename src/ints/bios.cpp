@@ -2429,6 +2429,9 @@ extern bool                         pc98_attr4_graphic;
 extern unsigned char                pc98_text_first_row_scanline_start;  /* port 70h */
 extern unsigned char                pc98_text_first_row_scanline_end;    /* port 72h */
 extern unsigned char                pc98_text_row_scanline_blank_at;     /* port 74h */
+extern unsigned char                pc98_text_row_scroll_lines;          /* port 76h */
+extern unsigned char                pc98_text_row_scroll_count_start;    /* port 78h */
+extern unsigned char                pc98_text_row_scroll_num_lines;      /* port 7Ah */
 
 void pc98_update_text_layer_lineheight_from_bda(void) {
 //    unsigned char c = mem_readb(0x53C);
@@ -2447,6 +2450,10 @@ void pc98_update_text_layer_lineheight_from_bda(void) {
         pc98_text_first_row_scanline_end = lineheight - 1;
         pc98_text_row_scanline_blank_at = lineheight;
     }
+
+    pc98_text_row_scroll_lines = 0;
+    pc98_text_row_scroll_count_start = 0;
+    pc98_text_row_scroll_num_lines = 0;
 
     vga.crtc.cursor_start = 0;
     vga.draw.cursor.sline = 0;
