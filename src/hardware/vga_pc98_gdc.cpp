@@ -394,7 +394,8 @@ Bit16u PC98_GDC_state::read_fifo(void) {
 }
 
 void PC98_GDC_state::next_line(void) {
-    if ((++row_line) == row_height) {
+    row_line++;
+    if (row_line == row_height) {
         scan_address += display_pitch;
         row_line = 0;
     }
