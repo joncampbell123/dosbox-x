@@ -1,4 +1,6 @@
 <next version>
+  - INT 18h AH=42 implement display "bank" bit for games
+    that need it.
   - PC-98 text scroll region implemented (I/O ports
     76h-7Ah even).
   - PC-98 CRTC mode set regarding 20/25-line mode fixed
