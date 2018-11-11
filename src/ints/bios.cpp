@@ -2309,6 +2309,7 @@ bool INT16_get_key(Bit16u &code);
 bool INT16_peek_key(Bit16u &code);
 
 extern uint8_t                     GDC_display_plane;
+extern uint8_t                     GDC_display_plane_pending;
 
 unsigned char prev_pc98_mode42 = 0;
 
@@ -2776,6 +2777,10 @@ static Bitu INT18_PC98_Handler(void) {
             //           01 = 640x200 upper half
             //           10 = 640x200 lower half
             //           11 = 640x400
+            //   [5:5] = CRT
+            //           0 = color
+            //           1 = monochrome
+            //   [4:4] = Display bank
 
             // FIXME: This is a guess. I have no idea as to actual behavior, yet.
             //        This seems to help with clearing the text layer when games start the graphics.
@@ -2807,7 +2812,7 @@ static Bitu INT18_PC98_Handler(void) {
             }
 
             pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
-            GDC_display_plane = 0;
+            GDC_display_plane = GDC_display_plane_pending = (reg_ch & 0x10) ? 1 : 0;
 
             prev_pc98_mode42 = reg_ch;
 
