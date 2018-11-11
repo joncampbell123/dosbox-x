@@ -1,4 +1,6 @@
 <next version>
+  - INT 1Dh vector now points at segment FD80 to satisfy
+    some games that autodetect PC-98 vs other platforms.
   - INT 18h AH=42 implement display "bank" bit for games
     that need it.
   - PC-98 text scroll region implemented (I/O ports
