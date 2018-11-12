@@ -1391,6 +1391,10 @@ public:
                     mem_writew(0xA2000+i,0x00E1);
                 }
 
+                /* hide the cursor */
+                void PC98_show_cursor(bool show);
+                PC98_show_cursor(false);
+
                 /* There is a byte at 0x584 that describes the boot drive + type.
                  * This is confirmed in Neko Project II source and by the behavior
                  * of an MS-DOS boot disk formatted by a PC-98 system.
