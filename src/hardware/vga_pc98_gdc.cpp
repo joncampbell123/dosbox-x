@@ -281,10 +281,10 @@ void PC98_GDC_state::idle_proc(void) {
             case GDC_CMD_PITCH_SPEC:          // 0x47        0 1 0 0 0 1 1 1
                 break;
             case GDC_CMD_CURSOR_POSITION:     // 0x49        0 1 0 0 1 0 0 1
-                LOG_MSG("GDC: cursor pos");
+//              LOG_MSG("GDC: cursor pos");
                 break;
             case GDC_CMD_CURSOR_CHAR_SETUP:   // 0x4B        0 1 0 0 1 0 1 1
-                LOG_MSG("GDC: cursor setup");
+//              LOG_MSG("GDC: cursor setup");
                 break;
             case GDC_CMD_START_DISPLAY:       // 0x6B        0 1 1 0 1 0 1 1
                 display_enable = true;
