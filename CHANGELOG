@@ -1,4 +1,6 @@
 <next version>
+  - BOOT now hides hardware cursor when booting a guest
+    OS in PC-98 mode.
   - INT 1Dh vector now points at segment FD80 to satisfy
     some games that autodetect PC-98 vs other platforms.
   - INT 18h AH=42 implement display "bank" bit for games
