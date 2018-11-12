@@ -564,6 +564,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                         case 5: // show/hide cursor
                             void PC98_show_cursor(bool show);
                             PC98_show_cursor(data[count] == 'l');
+                            mem_writeb(0x71B,data[count] == 'l' ? 0x01 : 0x00); /* 60:11B cursor display state */
                             break;
                         default:
                             LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unhandled esc [ > %d %c",ansi.data[0],data[count]);
