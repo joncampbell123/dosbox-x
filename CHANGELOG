@@ -1,4 +1,6 @@
 <next version>
+  - PC-98 DOS CON device emulation now maintains ANSI
+    attribute byte at 60:11D as documented.
   - BOOT now hides hardware cursor when booting a guest
     OS in PC-98 mode.
   - INT 1Dh vector now points at segment FD80 to satisfy
