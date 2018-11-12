@@ -3736,11 +3736,11 @@ static Bitu INTDC_PC98_Handler(void) {
 
     switch (reg_cl) {
         case 0x10:
-            if (reg_ah == 0x00) { /* CL=0x10 AL=0x00 DL=char write char to CON */
+            if (reg_ah == 0x00) { /* CL=0x10 AH=0x00 DL=char write char to CON */
                 PC98_INTDC_WriteChar(reg_dl);
                 goto done;
             }
-            else if (reg_ah == 0x01) { /* CL=0x10 AL=0x01 DS:DX write string to CON */
+            else if (reg_ah == 0x01) { /* CL=0x10 AH=0x01 DS:DX write string to CON */
                 /* According to the example at http://tepe.tec.fukuoka-u.ac.jp/HP98/studfile/grth/gt10.pdf
                  * the string ends in '$' just like the main DOS string output function. */
                 Bit16u ofs = reg_dx;
@@ -3749,6 +3749,13 @@ static Bitu INTDC_PC98_Handler(void) {
                     if (c == '$') break;
                     PC98_INTDC_WriteChar(c);
                 } while (1);
+                goto done;
+            }
+            else if (reg_ah == 0x02) { /* CL=0x10 AH=0x02 DL=attribute set console output attribute */
+                /* Ref: https://nas.jmc/jmcs/docs/browse/Computer/Platform/PC%2c%20NEC%20PC%2d98/Collections/Undocumented%209801%2c%209821%20Volume%202%20%28webtech.co.jp%29%20English%20translation/memdos%2eenglish%2dgoogle%2dtranslate%2etxt
+                 *
+                 * DL is the attribute byte (in the format written directly to video RAM, not the ANSI code) */
+                mem_writeb(0x71D,reg_dl);   /* 60:11D */
                 goto done;
             }
             goto unknown;

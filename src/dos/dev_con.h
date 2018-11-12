@@ -71,7 +71,9 @@ private:
 		bool warned;
 
 		void Disable() {
-			enabled = false;
+            if (!IS_PC98_ARCH)
+                enabled = false;
+
 			attr = DefaultANSIAttr();
 		}
 	} ansi;
@@ -476,6 +478,12 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
     Bit8u col,row;
     Bit8u tempdata;
     INT10_SetCurMode();
+
+    if (IS_PC98_ARCH) {
+        ansi.enabled = true; // ANSI is enabled at all times
+        ansi.attr = mem_readb(0x71D); // 60:11D
+    }
+
     while (*size>count) {
         if (log_dev_con) {
             if (log_dev_con_str.size() >= 255 || data[count] == '\n' || data[count] == 27) {
@@ -670,6 +678,7 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                                 break;
                         }
                     }
+                    if (IS_PC98_ARCH) mem_writeb(0x71D,ansi.attr); // 60:11D
                     ClearAnsi();
                     break;
                 case 'f':
