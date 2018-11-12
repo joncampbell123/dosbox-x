@@ -5936,7 +5936,7 @@ private:
             real_writed(0,0x0e*4,CALLBACK_RealPointer(call_default2));  //design your own railroad
 
         if (IS_PC98_ARCH) {
-            real_writew(0,0x58A,0xFFFFU); // countdown timer value
+            real_writew(0,0x58A,0x0001U); // countdown timer value
             PIC_SetIRQMask(0,true); /* PC-98 keeps the timer off unless INT 1Ch is called to set a timer interval */
         }
 
@@ -6427,6 +6427,7 @@ private:
             /* initialize IRQ0 timer to default tick interval.
              * PC-98 does not pre-initialize timer 0 of the PIT to 0xFFFF the way IBM PC/XT/AT do */
             PC98_Interval_Timer_Continue();
+            PIC_SetIRQMask(0,true); /* PC-98 keeps the timer off unless INT 1Ch is called to set a timer interval */
         }
 
         CPU_STI();
