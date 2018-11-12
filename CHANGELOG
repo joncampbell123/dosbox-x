@@ -1,4 +1,6 @@
 <next version>
+  - PC-98 GDC command to read back cursor position
+    added.
   - PC-98 DOS CON device emulation now maintains ANSI
     attribute byte at 60:11D as documented.
   - BOOT now hides hardware cursor when booting a guest
