@@ -35,6 +35,7 @@ struct PC98_GDC_state {
     void reset_rfifo(void);
     void flush_fifo_old(void);
     bool write_fifo(const uint16_t c);
+    bool write_rfifo(const uint16_t c);
     bool write_fifo_command(const unsigned char c);
     bool write_fifo_param(const unsigned char c);
     bool rfifo_has_content(void);

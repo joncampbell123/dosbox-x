@@ -315,23 +315,13 @@ void PC98_GDC_state::idle_proc(void) {
                 param_ram_wptr = current_command & 0xF;
                 current_command = GDC_CMD_PARAMETER_RAM_LOAD;
                 break;
-#if 0 // TODO: I do not yet have any games to verify this works nor test code in DOSLIB.
-      //
-      //       "Ancient Dragon" sends this command apparently to test that data would return,
-      //       rather than reading the data, then crashes.
             case GDC_CMD_CURSOR_ADDRESS_READ:  // 0xE0       1 1 1 0 0 0 0 0
-
-                Bitu DEBUG_EnableDebugger(void);
-                DEBUG_EnableDebugger();
-
-                rfifo[0] = (unsigned char)( vga.config.cursor_start         & 0xFFu);
-                rfifo[1] = (unsigned char)((vga.config.cursor_start >>  8u) & 0xFFu);
-                rfifo[2] = (unsigned char)((vga.config.cursor_start >> 16u) & 0xFFu);
-                rfifo[3] = 0x00; // TODO
-                rfifo[4] = 0x00; // TODO
-                rfifo_write = 5;
+                write_rfifo((unsigned char)( vga.config.cursor_start         & 0xFFu));
+                write_rfifo((unsigned char)((vga.config.cursor_start >>  8u) & 0xFFu));
+                write_rfifo((unsigned char)((vga.config.cursor_start >> 16u) & 0xFFu));
+                write_rfifo(0x00); // TODO
+                write_rfifo(0x00); // TODO
                 break;
-#endif
             default:
                 LOG_MSG("GDC: %s: Unknown command 0x%x",master_sync?"master":"slave",current_command);
                 break;
@@ -478,6 +468,14 @@ void PC98_GDC_state::flush_fifo_old(void) {
         fifo_read = 0;
         fifo_write = sz;
     }
+}
+
+bool PC98_GDC_state::write_rfifo(const uint16_t c) {
+    if (rfifo_write >= PC98_GDC_FIFO_SIZE)
+        return false;
+
+    rfifo[rfifo_write++] = c;
+    return true;
 }
 
 bool PC98_GDC_state::write_fifo(const uint16_t c) {
