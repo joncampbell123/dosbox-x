@@ -179,14 +179,34 @@ static void counter_latch(Bitu counter) {
 		p->read_latch=(Bit16u)(p->cntr - (index/p->delay)*p->cntr);
 		break;
 	case 3:		/* Square Wave Rate Generator */
-		index=fmod(index,(double)p->delay);
-		index*=2;
-		if (index>p->delay) index-=p->delay;
-		p->read_latch=(Bit16u)(p->cntr - (index/p->delay)*p->cntr);
-		// In mode 3 it never returns odd numbers LSB (if odd number is written 1 will be
-		// subtracted on first clock and then always 2)
-		// fixes "Corncob 3D"
-		p->read_latch&=0xfffe;
+        {
+            bool out = true;
+
+            index=fmod(index,(double)p->delay);
+            index*=2;
+            if (index>p->delay) {
+                index-=p->delay;
+                out = false;
+            }
+            p->read_latch=(Bit16u)(p->cntr - (index/p->delay)*p->cntr);
+            // In mode 3 it never returns odd numbers LSB (if odd number is written 1 will be
+            // subtracted on first clock and then always 2)
+            // fixes "Corncob 3D"
+            p->read_latch&=0xfffe;
+
+            // for the second half of the cycle, OUT goes low.
+            // remember that counter #0 is tied to IRQ0 on both IBM PC and PC-98.
+            // therefore, counter #0 output directly affects bit 0 of the interrupt request register on the PIC.
+            // I don't know any IBM PC compatible game that uses this behavior, but I did find a PC-98 game
+            // "Steel Gun Nyan" with delay loops that are dependent on polling the IRR like that.
+            // Yes, instead of polling the timer directly, it polls the PIC's interrupt request register instead. Ick.
+            if (counter == 0/*IRQ 0*/) {
+                if (!out)
+                    PIC_ActivateIRQ(0);
+                else
+                    PIC_DeActivateIRQ(0);
+            }
+        }
 		break;
 	default:
 		LOG(LOG_PIT,LOG_ERROR)("Illegal Mode %d for reading counter %d",(int)p->mode,(int)counter);
@@ -195,6 +215,11 @@ static void counter_latch(Bitu counter) {
 	}
 }
 
+void TIMER_IRQ0Poll(void) {
+    // WARNING: This is not 100% accurate. Polling the square wave through the PIC
+    //          does not latch the result for readback!
+    counter_latch(0);
+}
 
 static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 //LOG(LOG_PIT,LOG_ERROR)("port %X write:%X state:%X",port,val,pit[port-0x40].write_state);
@@ -363,6 +388,9 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			 * Mode 2,3 start with a high line.
 			 * counter_output tells if the current counter is high or low 
 			 * So actually a mode 3 timer enables and disables irq al the time. (not handled) */
+
+            /* Jon C: Oh yeah? Nobody abuses counter == 0 on IBM PC that way, but there is a PC-98
+             *        game that relies on that behavior: Steel Gun Nyan! */
 
 			if (latch == 0) {
 				PIC_RemoveEvents(PIT0_Event);
