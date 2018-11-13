@@ -1,4 +1,7 @@
 <next version>
+  - Timer and PIC updated to emulate Mode 3 Square Wave
+    output through the IRR register. Needed for Steel
+    Gun Nyan.
   - PC-98 INT 18h fixed to reenable and process any
     keyboard data waiting when the DOS game or application
     calls INT 18h to read keyboard input. This fixes
