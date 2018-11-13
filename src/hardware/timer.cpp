@@ -135,7 +135,7 @@ static void status_latch(Bitu counter) {
 		latched_timerstatus_locked=true;
 	}
 }
-static void counter_latch(Bitu counter) {
+static void counter_latch(Bitu counter,bool do_latch=true) {
 	/* Fill the read_latch of the selected counter with current count */
 	PIT_Block * p=&pit[counter];
 	p->go_read_latch=false;
@@ -188,11 +188,14 @@ static void counter_latch(Bitu counter) {
                 index-=p->delay;
                 out = false;
             }
-            p->read_latch=(Bit16u)(p->cntr - (index/p->delay)*p->cntr);
-            // In mode 3 it never returns odd numbers LSB (if odd number is written 1 will be
-            // subtracted on first clock and then always 2)
-            // fixes "Corncob 3D"
-            p->read_latch&=0xfffe;
+
+            if (do_latch) {
+                p->read_latch=(Bit16u)(p->cntr - (index/p->delay)*p->cntr);
+                // In mode 3 it never returns odd numbers LSB (if odd number is written 1 will be
+                // subtracted on first clock and then always 2)
+                // fixes "Corncob 3D"
+                p->read_latch&=0xfffe;
+            }
 
             // for the second half of the cycle, OUT goes low.
             // remember that counter #0 is tied to IRQ0 on both IBM PC and PC-98.
@@ -216,9 +219,7 @@ static void counter_latch(Bitu counter) {
 }
 
 void TIMER_IRQ0Poll(void) {
-    // WARNING: This is not 100% accurate. Polling the square wave through the PIC
-    //          does not latch the result for readback!
-    counter_latch(0);
+    counter_latch(0,false/*do not latch*/);
 }
 
 static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
