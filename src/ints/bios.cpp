@@ -6000,7 +6000,7 @@ private:
             real_writed(0,0x0e*4,CALLBACK_RealPointer(call_default2));  //design your own railroad
 
         if (IS_PC98_ARCH) {
-            real_writew(0,0x58A,0x0001U); // countdown timer value
+            real_writew(0,0x58A,0x0000U); // countdown timer value
             PIC_SetIRQMask(0,true); /* PC-98 keeps the timer off unless INT 1Ch is called to set a timer interval */
         }
 
