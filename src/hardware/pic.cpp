@@ -884,6 +884,15 @@ void PIC_Reset(Section *sec) {
     if (IS_PC98_ARCH && section->Get_bool("pc-98 pic init to read isr"))
         pics[0].request_issr = pics[1].request_issr = true;
 
+    /* I have a hunch (at this time) that the PC-98 uses auto-EOI, at
+     * least on the master PIC. Many PC-98 games seem to have interrupt
+     * handlers that do not acknowledge the master when handling an
+     * interrupt from the slave (IRQ 8-15) */
+    if (IS_PC98_ARCH) {
+        pics[0].auto_eoi = section->Get_bool("pc-98 auto eoi master");
+        pics[1].auto_eoi = section->Get_bool("pc-98 auto eoi slave");
+    }
+
     /* IBM: IRQ 0-15 is INT 0x08-0x0F, 0x70-0x7F
      * PC-98: IRQ 0-15 is INT 0x08-0x17 */
     master.vector_base = 0x08;
