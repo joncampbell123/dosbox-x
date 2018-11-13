@@ -1,4 +1,6 @@
 <next version>
+  - Added PC-98 LIO BIOS list and stub for games that
+    require it.
   - Timer and PIC updated to emulate Mode 3 Square Wave
     output through the IRR register. Needed for Steel
     Gun Nyan.
