@@ -3858,6 +3858,25 @@ static Bitu INTF2_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+static Bitu PC98_BIOS_LIO(void) {
+    /* on entry, AL (from our BIOS code) is set to the call number that lead here */
+    LOG_MSG("PC-98 BIOS LIO graphics call 0x%02x with AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_al,
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
+    // from Yksoft1's patch
+    reg_ah = 0;
+
+    return CBRET_NONE;
+}
+
 static Bitu INT11_Handler(void) {
     reg_ax=mem_readw(BIOS_CONFIGURATION);
     return CBRET_NONE;
@@ -5419,6 +5438,7 @@ static Bitu adapter_scan_start;
 static CALLBACK_HandlerObject int4b_callback;
 static CALLBACK_HandlerObject callback[20]; /* <- fixme: this is stupid. just declare one per interrupt. */
 static CALLBACK_HandlerObject cb_bios_post;
+static CALLBACK_HandlerObject callback_pc98_lio;
 
 Bitu call_pnp_r = ~0UL;
 Bitu call_pnp_rp = 0;
@@ -5872,6 +5892,8 @@ private:
             void INT10_EnterPC98(Section *sec);
             INT10_EnterPC98(NULL); /* INT 10h */
 
+            callback_pc98_lio.Uninstall();
+
             callback[1].Uninstall(); /* INT 11h */
             callback[2].Uninstall(); /* INT 12h */
             callback[3].Uninstall(); /* INT 14h */
@@ -5993,6 +6015,46 @@ private:
             // default handler for IRQ 8-15
             for (Bit16u ct=0;ct < 8;ct++)
                 RealSetVec(ct+(IS_PC98_ARCH ? 0x10 : 0x70),BIOS_DEFAULT_IRQ815_DEF_LOCATION);
+
+            // LIO graphics interface (number of entry points, unknown WORD value and offset into the segment).
+            {
+                callback_pc98_lio.Install(&PC98_BIOS_LIO,CB_IRET,"LIO graphics library");
+
+                Bitu ofs = 0xF990u << 4u; // F990:0000...
+                unsigned int entrypoints = 0x11;
+                Bitu final_addr = callback_pc98_lio.Get_RealPointer();
+
+                /* NTS: Based on GAME/MAZE 999 behavior, these numbers are interrupt vector numbers.
+                 *      The entry point marked 0xA0 is copied by the game to interrupt vector A0 and
+                 *      then called with INT A0h even though it blindly assumes the numbers are
+                 *      sequential from 0xA0-0xAF. */
+                unsigned char entrypoint_indexes[0x11] = {
+                    0xA0,   0xA1,   0xA2,   0xA3,       // +0x00
+                    0xA4,   0xA5,   0xA6,   0xA7,       // +0x04
+                    0xA8,   0xA9,   0xAA,   0xAB,       // +0x08
+                    0xAC,   0xAD,   0xAE,   0xAF,       // +0x0C
+                    0xCE                                // +0x10
+                };
+
+                assert(((entrypoints * 4) + 4) <= 0x50);
+                assert((50 + (entrypoints * 7)) <= 0x100); // a 256-byte region is set aside for this!
+
+                phys_writed(ofs+0,entrypoints);
+                for (unsigned int ent=0;ent < entrypoints;ent++) {
+                    /* each entry point is "MOV AL,<entrypoint> ; JMP FAR <callback>" */
+                    /* Yksoft1's patch suggests a segment offset of 0x50 which I'm OK with */
+                    unsigned int ins_ofs = ofs + 0x50 + (ent * 7);
+
+                    phys_writew(ofs+4+(ent*4)+0,entrypoint_indexes[ent]);
+                    phys_writew(ofs+4+(ent*4)+2,ins_ofs - ofs);
+
+                    phys_writeb(ins_ofs+0,0xB0);                        // MOV AL,(entrypoint index)
+                    phys_writeb(ins_ofs+1,entrypoint_indexes[ent]);
+                    phys_writeb(ins_ofs+2,0xEA);                        // JMP FAR <callback>
+                    phys_writed(ins_ofs+3,final_addr);
+                    // total:   ins_ofs+7
+                }
+            }
         }
 
         // setup a few interrupt handlers that point to bios IRETs by default
@@ -7612,6 +7674,13 @@ void ROMBIOS_Init() {
     if (IS_PC98_ARCH) {
         if (ROMBIOS_GetMemory(128,"PC-98 INT vector stub segment 0xFD80",1,0xFD800) == 0) {
             LOG_MSG("WARNING: Was not able to mark off 0xFD800 off-limits for PC-98 int vector stubs");
+        }
+    }
+
+    /* PC-98 BIOSes have a LIO interface at segment F990 with graphic subroutines for Microsoft BASIC */
+    if (IS_PC98_ARCH) {
+        if (ROMBIOS_GetMemory(256,"PC-98 LIO graphic ROM BIOS library",1,0xF9900) == 0) {
+            LOG_MSG("WARNING: Was not able to mark off 0xF9900 off-limits for PC-98 LIO graphics library");
         }
     }
 
