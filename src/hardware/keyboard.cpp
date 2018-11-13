@@ -2134,6 +2134,12 @@ static void keyboard_pc98_8251_uart_43_write(Bitu port,Bitu val,Bitu /*iolen*/) 
     pc98_8251_keyboard_uart_state.writecmd((unsigned char)val);
 }
 
+/* called from INT 18h */
+void check_keyboard_fire_IRQ1(void) {
+    if (pc98_8251_keyboard_uart_state.read_status() & 2/*RxRDY*/)
+        PIC_ActivateIRQ(1);
+}
+
 int8_t p7fd9_8255_mouse_x = 0;
 int8_t p7fd9_8255_mouse_y = 0;
 int8_t p7fd9_8255_mouse_x_latch = 0;

@@ -2509,6 +2509,16 @@ static Bitu INT18_PC98_Handler(void) {
                 reg_ax = temp16;
             }
             else {
+                /* Keyboard checks.
+                 * If the interrupt got masked, unmask it.
+                 * If the keyboard has data waiting, make sure the interrupt signal is active in case the last interrupt handler
+                 * handled the keyboard interrupt and never read the keyboard (Quarth).
+                 *
+                 * TODO: Is this what real PC-98 BIOSes do? */
+                void check_keyboard_fire_IRQ1(void);
+                check_keyboard_fire_IRQ1();
+                PIC_SetIRQMask(1,false);
+
                 reg_ip += 1; /* step over IRET, to NOPs which then JMP back to callback */
             }
             break;
@@ -2520,6 +2530,16 @@ static Bitu INT18_PC98_Handler(void) {
                 reg_bh = 1;
             }
             else {
+                /* Keyboard checks.
+                 * If the interrupt got masked, unmask it.
+                 * If the keyboard has data waiting, make sure the interrupt signal is active in case the last interrupt handler
+                 * handled the keyboard interrupt and never read the keyboard (Quarth).
+                 *
+                 * TODO: Is this what real PC-98 BIOSes do? */
+                void check_keyboard_fire_IRQ1(void);
+                check_keyboard_fire_IRQ1();
+                PIC_SetIRQMask(1,false);
+
                 reg_bh = 0;
             }
             break;
@@ -2540,6 +2560,16 @@ static Bitu INT18_PC98_Handler(void) {
                 reg_bh = 1;
             }
             else {
+                /* Keyboard checks.
+                 * If the interrupt got masked, unmask it.
+                 * If the keyboard has data waiting, make sure the interrupt signal is active in case the last interrupt handler
+                 * handled the keyboard interrupt and never read the keyboard (Quarth).
+                 *
+                 * TODO: Is this what real PC-98 BIOSes do? */
+                void check_keyboard_fire_IRQ1(void);
+                check_keyboard_fire_IRQ1();
+                PIC_SetIRQMask(1,false);
+
                 reg_bh = 0;
             }
             break;
