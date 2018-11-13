@@ -3641,7 +3641,7 @@ void PC98_Interval_Timer_Continue(void) {
     else
         IO_WriteB(0x71,0x60);
 
-    PIC_SetIRQMask(0,false);
+    IO_WriteB(0x02,IO_ReadB(0x02) & (~(1u << /*IRQ*/0u))); // unmask IRQ0
 }
 
 unsigned char pc98_dec2bcd(unsigned char c) {
