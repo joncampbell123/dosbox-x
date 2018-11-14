@@ -279,6 +279,10 @@ static Bitu SOUNDROM_INTD2_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+bool PC98_FM_SoundBios_Enabled(void) {
+    return pc98_soundbios_enabled;
+}
+
 void PC98_FM_OnEnterPC98(Section *sec) {
     (void)sec;//UNUSED
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
