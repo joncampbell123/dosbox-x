@@ -85,6 +85,15 @@ void DOS_GetMemory_Choose() {
         DOS_PRIVATE_SEGMENT=VGA_BIOS_SEG_END;
         DOS_PRIVATE_SEGMENT_END=DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size;
 
+        if (IS_PC98_ARCH) {
+            /* Do not let the private segment overlap with anything else after segment C800:0000 including the SOUND ROM at CC00:0000 */
+            if (DOS_PRIVATE_SEGMENT_END > 0xC800)
+                DOS_PRIVATE_SEGMENT_END = 0xC800;
+
+            if (DOS_PRIVATE_SEGMENT >= DOS_PRIVATE_SEGMENT_END)
+                E_Exit("Insufficient room in upper memory area for private area");
+        }
+
 		if (DOS_PRIVATE_SEGMENT >= 0xA000) {
 			memset(GetMemBase()+((unsigned int)DOS_PRIVATE_SEGMENT<<4u),0x00,(unsigned int)(DOS_PRIVATE_SEGMENT_END-DOS_PRIVATE_SEGMENT)<<4u);
 			MEM_map_RAM_physmem((unsigned int)DOS_PRIVATE_SEGMENT<<4u,((unsigned int)DOS_PRIVATE_SEGMENT_END<<4u)-1u);
