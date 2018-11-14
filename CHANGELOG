@@ -1,4 +1,9 @@
 <next version>
+  - DOS kernel fixed to limit it's private area and
+    UMB region to avoid overlapping the PC-98 SOUND
+    BIOS.
+  - PC-98 SOUND BIOS dummy stub added for games that
+    call into it.
   - Emulator hanging problem fixed when inputs are
     processed while running at a very low cycle count.
   - Added PC-98 LIO BIOS list and stub for games that
