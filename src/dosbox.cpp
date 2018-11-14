@@ -664,6 +664,9 @@ void Init_VGABIOS() {
     assert(section != NULL);
 
     if (IS_PC98_ARCH) {
+        // There IS no VGA BIOS, this is PC-98 mode!
+        VGA_BIOS_SEG = 0xC000;
+        VGA_BIOS_SEG_END = 0xC000; // Important: DOS kernel uses this to determine where to place the private area!
         VGA_BIOS_Size = 0;
         return;
     }
