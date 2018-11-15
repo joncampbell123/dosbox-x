@@ -916,7 +916,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", 0 };
 
     const char* irqhandler[] = {
-        "", "simple", "mask_isr", 0 };
+        "", "simple", "cooperative_2nd", 0 };
 
     /* Setup all the different modules making up DOSBox */
     const char* machines[] = {

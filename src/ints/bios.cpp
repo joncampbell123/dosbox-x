@@ -5524,29 +5524,28 @@ void gdc_16color_enable_update_vars(void) {
     }
 }
 
-void Default_IRQ_Handler_Mask_ISR(void) {
-    /* loosely adapted from em-dosbox */
-    IO_WriteB(IS_PC98_ARCH ? 0x00 : 0x20,0x0B); // ask the PIC for the ISR register
-    Bit8u master_isr = IO_ReadB(IS_PC98_ARCH ? 0x00 : 0x20);
-    if (master_isr) {
-        IO_WriteB(IS_PC98_ARCH ? 0x08 : 0xA0,0x0B); // ask the PIC for the ISR register
-        Bit8u slave_isr = IO_ReadB(IS_PC98_ARCH ? 0x08 : 0xA0);
-        if (slave_isr) {
-            IO_WriteB(IS_PC98_ARCH ? 0x0A : 0xA1,IO_ReadB(IS_PC98_ARCH ? 0x0A : 0xA1)|slave_isr);
-            IO_WriteB(IS_PC98_ARCH ? 0x08 : 0xA0,0x20);//ACK
-        }
-        else {
-            IO_WriteB(IS_PC98_ARCH ? 0x02 : 0x21,IO_ReadB(IS_PC98_ARCH ? 0x02 : 0x21)|(master_isr&(~4)));
-        }
-        IO_WriteB(IS_PC98_ARCH ? 0x00 : 0x20,0x20);//ACK
-
-        LOG_MSG("Unhandled IRQ, ISR master=0x%02x slave=0x%02x",master_isr,slave_isr);
-    }
-}
-
-static Bitu Default_IRQ_Handler(void) {
-    if (unhandled_irq_method == UNHANDLED_IRQ_MASK_ISR)
-        Default_IRQ_Handler_Mask_ISR();
+/* NTS: Remember the 8259 is non-sentient, and the term "slave" is used in a computer programming context */
+static Bitu Default_IRQ_Handler_Cooperative_Slave_Pic(void) {
+    /* PC-98 style IRQ 8-15 handling.
+     *
+     * This mimics the recommended procedure [https://www.webtech.co.jp/company/doc/undocumented_mem/io_pic.txt]
+     *
+     *  mov al,20h      ;Send EOI to SLAVE
+     *  out 0008h,al
+     *  jmp $+2         ;I/O WAIT
+     *  mov al,0Bh      ;ISR read mode set(slave)
+     *  out 0008h,al
+     *  jmp $+2         ;I/O WAIT
+     *  in  al,0008h    ;ISR read(slave)
+     *  cmp al,00h      ;slave pic in-service ?
+     *  jne EoiEnd
+     *  mov al,20h      ;Send EOI to MASTER
+     *  out 0000h,al
+     */
+    IO_WriteB(IS_PC98_ARCH ? 0x08 : 0xA0,0x20); // send EOI to slave
+    IO_WriteB(IS_PC98_ARCH ? 0x08 : 0xA0,0x0B); // ISR read mode set
+    if (IO_ReadB(IS_PC98_ARCH ? 0x08 : 0xA0) == 0) // if slave pic in service..
+        IO_WriteB(IS_PC98_ARCH ? 0x00 : 0x20,0x20); // then EOI the master
 
     return CBRET_NONE;
 }
@@ -5847,16 +5846,20 @@ private:
                 RealSetVec(ct,BIOS_DEFAULT_IRQ07_DEF_LOCATION);
         }
 
-        if (IS_PC98_ARCH) {
-            if (unhandled_irq_method == UNHANDLED_IRQ_MASK_ISR) {
-                CALLBACK_Setup(call_irq07default,Default_IRQ_Handler,CB_IRET,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
-                CALLBACK_Setup(call_irq815default,Default_IRQ_Handler,CB_IRET,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
-            }
-            else {
-                CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
-                CALLBACK_Setup(call_irq815default,NULL,CB_IRET_EOI_PIC2,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
-            }
+        if (unhandled_irq_method == UNHANDLED_IRQ_COOPERATIVE_2ND) {
+            // PC-98 style: Master PIC ack with 0x20 for IRQ 0-7.
+            //              For the slave PIC, ack with 0x20 on the slave, then only ack the master (cascade interrupt)
+            //              if the ISR register on the slave indicates none are in service.
+            CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
+            CALLBACK_Setup(call_irq815default,Default_IRQ_Handler_Cooperative_Slave_Pic,CB_IRET,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
+        }
+        else {
+            // IBM PC style: Master PIC ack with 0x20, slave PIC ack with 0x20, no checking
+            CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
+            CALLBACK_Setup(call_irq815default,NULL,CB_IRET_EOI_PIC2,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
+        }
 
+        if (IS_PC98_ARCH) {
             BIOS_UnsetupKeyboard();
             BIOS_UnsetupDisks();
 
@@ -7070,8 +7073,11 @@ public:
 
                 if (s == "simple")
                     unhandled_irq_method = UNHANDLED_IRQ_SIMPLE;
-                else if (s == "mask_isr")
-                    unhandled_irq_method = UNHANDLED_IRQ_MASK_ISR;
+                else if (s == "cooperative_2nd")
+                    unhandled_irq_method = UNHANDLED_IRQ_COOPERATIVE_2ND;
+                // pick default
+                else if (IS_PC98_ARCH)
+                    unhandled_irq_method = UNHANDLED_IRQ_COOPERATIVE_2ND;
                 else
                     unhandled_irq_method = UNHANDLED_IRQ_SIMPLE;
             }
@@ -7213,17 +7219,9 @@ public:
 
         /* Irq 2-7 */
         call_irq07default=CALLBACK_Allocate();
-        if (unhandled_irq_method == UNHANDLED_IRQ_MASK_ISR)
-            CALLBACK_Setup(call_irq07default,Default_IRQ_Handler,CB_IRET,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
-        else
-            CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
 
         /* Irq 8-15 */
         call_irq815default=CALLBACK_Allocate();
-        if (unhandled_irq_method == UNHANDLED_IRQ_MASK_ISR)
-            CALLBACK_Setup(call_irq815default,Default_IRQ_Handler,CB_IRET,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
-        else
-            CALLBACK_Setup(call_irq815default,NULL,CB_IRET_EOI_PIC2,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
 
         /* BIOS boot stages */
         cb_bios_post.Install(&cb_bios_post__func,CB_RETF,"BIOS POST");
