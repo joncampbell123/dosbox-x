@@ -3107,7 +3107,8 @@ void PC98_BIOS_FDC_CALL_GEO_UNPACK(unsigned int &fdc_cyl,unsigned int &fdc_head,
 void PC98_Interval_Timer_Continue(void);
 
 void FDC_WAIT_TIMER_HACK(void) {
-    unsigned int v;
+    unsigned int v,pv;
+    unsigned int c=0;
 
     // Explanation:
     //
@@ -3128,12 +3129,21 @@ void FDC_WAIT_TIMER_HACK(void) {
     //       to break out of the loop if this runs for more than 1 second, since that
     //       is a sign the timer is in an odd state that will never terminate this loop.
 
+    v = ~0U;
+    c = 10;
     do {
         void CALLBACK_Idle(void);
         CALLBACK_Idle();
 
+        pv = v;
+
         v  = IO_ReadB(0x71);
         v |= IO_ReadB(0x71) << 8;
+
+        if (v > pv) {
+            /* if the timer rolled around, we might have missed the narrow window we're watching for */
+            if (--c == 0) break;
+        }
     } while (v >= 0x60);
 }
 
