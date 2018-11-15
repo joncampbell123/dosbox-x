@@ -1,4 +1,10 @@
 <next version>
+  - Add to cascade interrupt hacks by offering an option
+    to ignore the "in service" bit of the PIC for the
+    cascade interrupt, while still tracking it for
+    the DOS game or interrupt. Handy for PC-98 games
+    that check the cascade "in service" bit before
+    acting on the interrupt (IRQ 8-15).
   - DOS kernel fixed to limit it's private area and
     UMB region to avoid overlapping the PC-98 SOUND
     BIOS.

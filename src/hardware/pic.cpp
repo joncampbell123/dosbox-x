@@ -34,6 +34,7 @@
 unsigned long PIC_irq_delay_ns = 0;
 
 bool never_mark_cascade_in_service = false;
+bool ignore_cascade_in_service = false;
 
 struct PIC_Controller {
     Bitu icw_words;
@@ -50,6 +51,7 @@ struct PIC_Controller {
     Bit8u imrr;       // mask register reversed (makes bit tests simpler)
     Bit8u isr;        // in service register
     Bit8u isrr;       // in service register reversed (makes bit tests simpler)
+    Bit8u isr_ignore; // in service bits to ignore
     Bit8u active_irq; //currently active irq
 
 
@@ -68,11 +70,16 @@ struct PIC_Controller {
 
         if(isr == 0) {active_irq = 8; return;}
         for(Bit8u i = 0, s = 1; i < 8;i++, s<<=1){
-            if( isr & s){
+            if (isr & s) {
+                if (isr_ignore & s)
+                    continue;
+
                 active_irq = i;
                 return;
             }
         }
+
+        active_irq = 8;
     }
 
     void check_for_irq(){
@@ -194,9 +201,15 @@ void PIC_Controller::start_irq(Bit8u val){
             /* do nothing */
         }
         else {
-            active_irq = val;
+            if (ignore_cascade_in_service && this == &master && val == master_cascade_irq) {
+                active_irq = 8;
+            }
+            else {
+                active_irq = val;
+            }
+
             isr |= 1<<(val);
-            isrr = ~isr;
+            isrr = (~isr) | isr_ignore;
         }
     } else if (GCC_UNLIKELY(rotate_on_auto_eoi)) {
         LOG_MSG("rotate on auto EOI not handled");
@@ -245,14 +258,14 @@ static void write_command(Bitu port,Bitu val,Bitu iolen) {
             if (GCC_UNLIKELY(val&0x80)) LOG_MSG("rotate mode not supported");
             if (val&0x40) {     // specific EOI
                 pic->isr &= ~(1<< ((val-0x60)));
-                pic->isrr = ~pic->isr;
+                pic->isrr = (~pic->isr) | pic->isr_ignore;
                 pic->check_after_EOI();
 //              if (val&0x80);  // perform rotation
             } else {        // nonspecific EOI
                 if (pic->active_irq != 8) { 
                     //If there is no irq in service, ignore the call, some games send an eoi to both pics when a sound irq happens (regardless of the irq).
                     pic->isr &= ~(1 << (pic->active_irq));
-                    pic->isrr = ~pic->isr;
+                    pic->isrr = (~pic->isr) | pic->isr_ignore;
                     pic->check_after_EOI();
                 }
 //              if (val&0x80);  // perform rotation
@@ -558,7 +571,7 @@ void DEBUG_PICAck(int irq) {
         PIC_Controller * pic=&pics[irq>7 ? 1 : 0];
 
         pic->isr &= ~(1u << ((unsigned int)irq & 7U));
-        pic->isrr = ~pic->isr;
+        pic->isrr = (~pic->isr) | pic->isr_ignore;
         pic->check_after_EOI();
     }
 }
@@ -844,6 +857,7 @@ void PIC_Reset(Section *sec) {
     enable_slave_pic = section->Get_bool("enable slave pic");
     enable_pc_xt_nmi_mask = section->Get_bool("enable pc nmi mask");
     never_mark_cascade_in_service = section->Get_bool("cascade interrupt never in service");
+    ignore_cascade_in_service = section->Get_bool("cascade interrupt ignore in service");
 
     if (enable_slave_pic && machine == MCH_PCJR && enable_pc_xt_nmi_mask) {
         LOG(LOG_MISC,LOG_DEBUG)("PIC_Reset(): PCjr emulation with NMI mask register requires disabling slave PIC (IRQ 8-15)");
@@ -882,6 +896,7 @@ void PIC_Reset(Section *sec) {
         pics[i].icw_words=0;
         pics[i].irr = pics[i].isr = pics[i].imrr = 0;
         pics[i].isrr = pics[i].imr = 0xff;
+        pics[i].isr_ignore = 0x00;
         pics[i].active_irq = 8;
     }
 
@@ -916,8 +931,12 @@ void PIC_Reset(Section *sec) {
     PIC_SetIRQMask(1,false);                    /* Enable system timer */
     PIC_SetIRQMask(8,false);                    /* Enable RTC IRQ */
 
-    if (master_cascade_irq >= 0)
+    if (master_cascade_irq >= 0) {
         PIC_SetIRQMask((unsigned int)master_cascade_irq,false);/* Enable second pic */
+
+        if (ignore_cascade_in_service)
+            pics[0].isr_ignore |= 1u << (unsigned char)master_cascade_irq;
+    }
 
     /* I/O port map
      *
@@ -973,7 +992,7 @@ void Init_PIC() {
 #if C_DEBUG
 void DEBUG_LogPIC_C(PIC_Controller &pic) {
     LOG_MSG("%s interrupt controller state",&pic == &master ? "Master" : "Slave");
-    LOG_MSG("ICW %u/%u special=%u auto-eoi=%u rotate-eoi=%u single=%u request_issr=%u vectorbase=0x%02x active_irq=%u",
+    LOG_MSG("ICW %u/%u special=%u auto-eoi=%u rotate-eoi=%u single=%u request_issr=%u vectorbase=0x%02x active_irq=%u isr=%02x isrr=%02x isrignore=%02x",
         (unsigned int)pic.icw_index,
         (unsigned int)pic.icw_words,
         pic.special?1:0,
@@ -982,7 +1001,10 @@ void DEBUG_LogPIC_C(PIC_Controller &pic) {
         pic.single?1:0,
         pic.request_issr?1:0,
         pic.vector_base,
-        pic.active_irq);
+        pic.active_irq,
+        pic.isr,
+        pic.isrr,
+        pic.isr_ignore);
 
     LOG_MSG("IRQ INT#  Req /Mask/Serv");
     for (unsigned int si=0;si < 8;si++) {
