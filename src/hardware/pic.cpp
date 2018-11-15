@@ -673,6 +673,7 @@ void PIC_RemoveEvents(PIC_EventHandler handler) {
 extern ClockDomain clockdom_DOSBox_cycles;
 
 //#define DEBUG_CPU_CYCLE_OVERRUN
+//#define DEBUG_PIC_IRQCHECK_VS_IRR
 
 bool PIC_RunQueue(void) {
 #ifdef DEBUG_CPU_CYCLE_OVERRUN
@@ -686,6 +687,11 @@ bool PIC_RunQueue(void) {
     /* Check to see if a new millisecond needs to be started */
     CPU_CycleLeft += CPU_Cycles;
     CPU_Cycles = 0;
+
+#ifdef DEBUG_PIC_IRQCHECK_VS_IRR
+    if (!PIC_IRQCheck && !PIC_IRQCheckPending && ((master.irr&master.imrr) != 0 || (slave.irr&slave.imrr) != 0))
+        LOG_MSG("PIC_IRQCheck not set and interrupts pending");
+#endif
 
     if (CPU_CycleLeft > 0) {
         if (PIC_IRQCheck)
