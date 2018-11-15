@@ -1404,12 +1404,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("cascade interrupt never in service",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, PIC emulation will never mark cascade interrupt as in service. This is OFF by default. It is a hack for troublesome games.");
 
-    Pbool = secprop->Add_bool("pc-98 auto eoi master",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, and running in PC-98 mode, the master PIC is programmed to run in auto EOI mode");
-
-    Pbool = secprop->Add_bool("pc-98 auto eoi slave",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, and running in PC-98 mode, the slave PIC is programmed to run in auto EOI mode");
-
     Pbool = secprop->Add_bool("enable slave pic",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable slave PIC (IRQ 8-15). Set this to 0 if you want to emulate a PC/XT type arrangement with IRQ 0-7 and no IRQ 2 cascade.");
 
