@@ -15,9 +15,6 @@
     keyboard data waiting when the DOS game or application
     calls INT 18h to read keyboard input. This fixes
     keyboard problems with Quarth.
-  - Added dosbox.conf settings to enable Auto EOI mode
-    in PC-98 mode. DOS game behavior suggests that
-    the platform may use Auto EOI.
   - PC-98 FDC BIOS emulation no longer reprograms the
     timer interrupt, but uses an alternate hack to
     avoid divide by zero fault with Ys II.
