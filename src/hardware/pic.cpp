@@ -154,8 +154,8 @@ void PIC_Controller::activate() {
         //cycles 0, take care of the port IO stuff added in raise_irq base caller.
         if (!PIC_IRQCheckPending) {
             /* NTS: PIC_AddEvent by design caps CPU_Cycles to make the event happen on time */
-            PIC_AddEvent(PIC_IRQCheckDelayed,(double)PIC_irq_delay_ns / 1000000,0);
             PIC_IRQCheckPending = 1;
+            PIC_AddEvent(PIC_IRQCheckDelayed,(double)PIC_irq_delay_ns / 1000000,0);
         }
     } else {
         master.raise_irq(master_cascade_irq);
@@ -190,11 +190,11 @@ void PIC_Controller::deactivate() {
 void PIC_Controller::start_irq(Bit8u val){
     irr&=~(1<<(val));
     if (!auto_eoi) {
-        active_irq = val;
         if (never_mark_cascade_in_service && this == &master && val == master_cascade_irq) {
             /* do nothing */
         }
         else {
+            active_irq = val;
             isr |= 1<<(val);
             isrr = ~isr;
         }
@@ -523,16 +523,13 @@ void PIC_runIRQs(void) {
     if (master.auto_eoi)
         master.check_for_irq();
 
-    /* if we cleared all IRQs, then stop checking.
-     * otherwise, keep the flag set for the next IRQ to process. */
-    if (i == max && (master.irr&master.imrr) == 0 && (slave.irr&slave.imrr) == 0) {
-        PIC_IRQCheckPending = 0;
-        PIC_IRQCheck = 0;
-    }
-    else if (PIC_IRQCheck) {
-        PIC_AddEvent(PIC_IRQCheckDelayed,(double)PIC_irq_delay_ns / 1000000,0);
-        PIC_IRQCheckPending = 1;
-        PIC_IRQCheck = 0;
+    /* continue (delayed) processing if more interrupts to handle */
+    PIC_IRQCheck = 0;
+    if (i != max) {
+        if (!PIC_IRQCheckPending) {
+            PIC_IRQCheckPending = 1;
+            PIC_AddEvent(PIC_IRQCheckDelayed,(double)PIC_irq_delay_ns / 1000000,0);
+        }
     }
 }
 
@@ -689,6 +686,7 @@ bool PIC_RunQueue(void) {
     CPU_Cycles = 0;
 
 #ifdef DEBUG_PIC_IRQCHECK_VS_IRR
+    // WARNING: If the problem is the cascade interrupt un-acknowledged, this will give a false positive
     if (!PIC_IRQCheck && !PIC_IRQCheckPending && ((master.irr&master.imrr) != 0 || (slave.irr&slave.imrr) != 0))
         LOG_MSG("PIC_IRQCheck not set and interrupts pending");
 #endif
