@@ -1,4 +1,8 @@
 <next version>
+  - Update Metal Force mouse hack to become a more general
+    "fire interrupt on Port C write" with a dosbox.conf
+    option to enable. This fixes the requirement to move
+    the mouse constantly for "Amaranth" when enabled.
   - Add to cascade interrupt hacks by offering an option
     to ignore the "in service" bit of the PIC for the
     cascade interrupt, while still tracking it for

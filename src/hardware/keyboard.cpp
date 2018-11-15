@@ -2159,6 +2159,8 @@ void MOUSE_DummyEvent(void);
 
 bool p7fd8_8255_mouse_irq_signal = false;
 
+bool pc98_periodic_mouse_interrupts = false;
+
 extern uint8_t MOUSE_IRQ;
 
 //! \brief PC-98 System Bus Mouse PPI emulation (Intel 8255A device)
@@ -2295,13 +2297,17 @@ public:
 
             p7fd8_8255_mouse_int_enable = ((latchOutPortC >> 4) & 1) ^ 1; // bit 4 is interrupt MASK
 
-            if (mode == 0x90 && mask == 0xFF) {
-                /* Metal Force (PC-98) likes to use the bus mouse as a periodic interrupt source
-                 * by setting mode byte 0x90 and re-sending that mode byte once per interrupt.
-                 * Does real hardware do this?? */
-                if (p7fd8_8255_mouse_int_enable)
-                    MOUSE_DummyEvent();
-            }
+            /* Some games use the mouse interrupt as a periodic source by writing this from the interrupt handler.
+             *
+             * Does that work on real hardware?? Is this what real hardware does?
+             *
+             * Games that need this:
+             * - Metal Force
+             * - Amaranth
+             */
+
+            if (pc98_periodic_mouse_interrupts && p7fd8_8255_mouse_int_enable)
+                MOUSE_DummyEvent();
             else if (p != p7fd8_8255_mouse_int_enable) {
                 /* FIXME: If a mouse interrupt is pending but not yet read this should re-signal the IRQ */
                 if (p7fd8_8255_mouse_int_enable && p7fd8_8255_mouse_irq_signal)
@@ -2350,6 +2356,8 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
         pc98_force_ibm_layout = section->Get_bool("pc-98 force ibm keyboard layout");
         if(pc98_force_ibm_layout)
             LOG_MSG("Forcing PC-98 keyboard to use IBM US-English like default layout");
+
+        pc98_periodic_mouse_interrupts = section->Get_bool("pc-98 mouse interrupt on port C write");
     }
 
     if (!IS_PC98_ARCH) {
