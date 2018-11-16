@@ -313,7 +313,7 @@ void MOUSE_Limit_Events(Bitu /*val*/) {
         PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
 
         if (MOUSE_IRQ != 0) {
-            if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
+            if (!IS_PC98_ARCH)
                 PIC_ActivateIRQ(MOUSE_IRQ);
         }
     }
@@ -339,7 +339,7 @@ INLINE void Mouse_AddEvent(Bit8u type) {
         PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
 
         if (MOUSE_IRQ != 0) {
-            if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
+            if (!IS_PC98_ARCH)
                 PIC_ActivateIRQ(MOUSE_IRQ);
         }
     }
