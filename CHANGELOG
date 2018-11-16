@@ -1,4 +1,6 @@
 <next version>
+  - Eliminated mouse periodic interrupt hack, the mouse
+    interrupt on PC-98 is periodic when enabled.
   - 256-byte/sector hard disk images fixed to ensure the
     proper boot drive identifier is presented for MS-DOS
     when booting a hard disk image.
