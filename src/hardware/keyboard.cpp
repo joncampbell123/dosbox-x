@@ -2159,8 +2159,6 @@ void MOUSE_DummyEvent(void);
 
 bool p7fd8_8255_mouse_irq_signal = false;
 
-bool pc98_periodic_mouse_interrupts = false;
-
 extern uint8_t MOUSE_IRQ;
 
 //! \brief PC-98 System Bus Mouse PPI emulation (Intel 8255A device)
@@ -2306,9 +2304,7 @@ public:
              * - Amaranth
              */
 
-            if (pc98_periodic_mouse_interrupts && p7fd8_8255_mouse_int_enable)
-                MOUSE_DummyEvent();
-            else if (p != p7fd8_8255_mouse_int_enable) {
+            if (p != p7fd8_8255_mouse_int_enable) {
                 /* FIXME: If a mouse interrupt is pending but not yet read this should re-signal the IRQ */
                 if (p7fd8_8255_mouse_int_enable && p7fd8_8255_mouse_irq_signal)
                     PIC_ActivateIRQ(MOUSE_IRQ);
@@ -2356,8 +2352,6 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
         pc98_force_ibm_layout = section->Get_bool("pc-98 force ibm keyboard layout");
         if(pc98_force_ibm_layout)
             LOG_MSG("Forcing PC-98 keyboard to use IBM US-English like default layout");
-
-        pc98_periodic_mouse_interrupts = true;
     }
 
     if (!IS_PC98_ARCH) {
