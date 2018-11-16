@@ -2642,6 +2642,8 @@ bool FDC_UnassignINT13Disk(unsigned char drv);
 
 class IMGMOUNT : public Program {
 public:
+    std::vector<std::string> options;
+public:
     void Run(void) {
         //Hack To allow long commandlines
         ChangeToLongCmd();
@@ -2693,6 +2695,14 @@ public:
         if (!(type == "floppy" || type == "hdd" || type == "iso" || type == "ram")) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_TYPE_UNSUPPORTED"), type.c_str());
             return;
+        }
+
+        //look for -o options
+        {
+            std::string s;
+
+            while (cmd->FindString("-o", s, true))
+                options.push_back(s);
         }
 
         //look for -el-torito parameter and remove it from the command line
@@ -3284,7 +3294,7 @@ private:
         imageDisk * newImage = new imageDiskElToritoFloppy((unsigned char)el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
         newImage->Addref();
 
-        DOS_Drive* newDrive = new fatDrive(newImage);
+        DOS_Drive* newDrive = new fatDrive(newImage, options);
         newImage->Release(); //fatDrive calls Addref, and this will release newImage if fatDrive doesn't use it
         if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
@@ -3381,11 +3391,11 @@ private:
             DOS_Drive* newDrive = NULL;
             if (!errorMessage) {
                 if (vhdImage) {
-                    newDrive = new fatDrive(vhdImage);
+                    newDrive = new fatDrive(vhdImage, options);
                     vhdImage = NULL;
                 }
                 else {
-                    newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3]);
+                    newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3], options);
                 }
                 imgDisks.push_back(newDrive);
                 if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
@@ -3507,7 +3517,7 @@ private:
             return false;
         }
         dsk->Addref();
-        DOS_Drive* newDrive = new fatDrive(dsk);
+        DOS_Drive* newDrive = new fatDrive(dsk, options);
         dsk->Release();
         if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));

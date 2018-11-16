@@ -671,7 +671,7 @@ struct _PC98RawPartition {
 };
 #pragma pack(pop)
 
-fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders) : loadedDisk(NULL) {
+fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, std::vector<std::string> &options) : loadedDisk(NULL) {
 	created_successfully = true;
 	FILE *diskfile;
 	Bit32u filesize;
@@ -736,10 +736,10 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         }
 	}
 
-    fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, filesize);
+    fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, filesize, options);
 }
 
-fatDrive::fatDrive(imageDisk *sourceLoadedDisk) : loadedDisk(NULL) {
+fatDrive::fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &options) : loadedDisk(NULL) {
 	if (sourceLoadedDisk == 0) {
 		created_successfully = false;
 		return;
@@ -754,7 +754,7 @@ fatDrive::fatDrive(imageDisk *sourceLoadedDisk) : loadedDisk(NULL) {
 
     loadedDisk = sourceLoadedDisk;
 
-    fatDriveInit("", loadedDisk->sector_size, loadedDisk->sectors, loadedDisk->heads, loadedDisk->cylinders, loadedDisk->diskSizeK);
+    fatDriveInit("", loadedDisk->sector_size, loadedDisk->sectors, loadedDisk->heads, loadedDisk->cylinders, loadedDisk->diskSizeK, options);
 }
 
 Bit8u fatDrive::Read_AbsoluteSector(Bit32u sectnum, void * data) {
@@ -807,7 +807,7 @@ Bit32u fatDrive::getSectSize(void) {
     return sector_size;
 }
 
-void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize) {
+void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, std::vector<std::string> &options) {
 	Bit32u startSector;
 	bool pc98_512_to_1024_allow = false;
 	struct partTable mbrData;
