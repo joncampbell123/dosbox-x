@@ -2383,6 +2383,18 @@ static Bitu read_p7fd9_mouse(Bitu port,Bitu /*iolen*/) {
     /* 0x7FD9-0x7FDF odd */
     return pc98_mouse_8255.readByPort((port - 0x7FD9) >> 1U);
 }
+
+static void write_pbfdb_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
+    (void)port;
+    /* bits [7:2] = ??
+     * bits [1:0] = 120hz clock divider
+     *              00 = 120hz (at reset)
+     *              01 = 60hz
+     *              10 = 30hz
+     *              11 = 15hz */
+    pc98_mouse_rate_hz = 120u / ((val & 3u) + 1u);
+    LOG(LOG_MISC,LOG_DEBUG)("PC-98 mouse interrupt rate: %u",pc98_mouse_rate_hz);
+}
 //////////
 
 void KEYBOARD_OnEnterPC98(Section *sec) {
@@ -2486,6 +2498,9 @@ void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
         IO_RegisterWriteHandler(0x7FD9+(i*2),write_p7fd9_mouse,IO_MB);
         IO_RegisterReadHandler(0x7FD9+(i*2),read_p7fd9_mouse,IO_MB);
     }
+
+    /* Mouse control port at BFDB (which can be used to reduce the interrupt rate of the mouse) */
+    IO_RegisterWriteHandler(0xBFDB,write_pbfdb_mouse,IO_MB);
 
     /* Port A = input
      * Port B = input
