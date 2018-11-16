@@ -71,31 +71,13 @@ struct PIC_Controller {
         if(isr == 0) {active_irq = 8; return;}
         for(Bit8u i = 0, s = 1; i < 8;i++, s<<=1){
             if (isr & s) {
-                if (isr_ignore & s)
-                    continue;
-
                 active_irq = i;
                 return;
             }
         }
-
-        active_irq = 8;
     }
 
-    void check_for_irq(){
-        const Bit8u possible_irq = (irr&imrr)&isrr;
-        if (possible_irq) {
-            const Bit8u a_irq = special?8:active_irq;
-            for(Bit8u i = 0, s = 1; i < a_irq;i++, s<<=1){
-                if ( possible_irq & s ) {
-                    //There is an irq ready to be served => signal master and/or cpu
-                    activate();
-                    return;
-                }
-            }
-        }
-        deactivate(); //No irq, remove signal to master and/or cpu
-    }
+    void check_for_irq();
 
     //Signals master/cpu that there is an irq ready.
     void activate();
@@ -103,15 +85,7 @@ struct PIC_Controller {
     //Removes signal to master/cpu that there is an irq ready.
     void deactivate();
 
-    void raise_irq(Bit8u val){
-        Bit8u bit = 1 << (val);
-        if((irr & bit)==0) { //value changed (as it is currently not active)
-            irr|=bit;
-            if((bit&imrr)&isrr) { //not masked and not in service
-                if(special || val < active_irq) activate();
-            }
-        }
-    }
+    void raise_irq(Bit8u val);
 
     void lower_irq(Bit8u val){
         Bit8u bit = 1 << ( val);
@@ -138,6 +112,36 @@ Bitu PIC_IRQCheck = 0; //Maybe make it a bool and/or ensure 32bit size (x86 dyna
 Bitu PIC_IRQCheckPending = 0; //Maybe make it a bool and/or ensure 32bit size (x86 dynamic core seems to assume 32 bit variable size)
 bool enable_slave_pic = true; /* if set, emulate slave with cascade to master. if clear, emulate only master, and no cascade (IRQ 2 is open) */
 bool enable_pc_xt_nmi_mask = false;
+
+void PIC_Controller::check_for_irq(){
+    const Bit8u possible_irq = (irr&imrr)&isrr;
+    if (possible_irq) {
+        Bit8u a_irq = special?8:active_irq;
+
+        if (ignore_cascade_in_service && this == &master && a_irq == (unsigned char)master_cascade_irq)
+            a_irq++;
+
+        for(Bit8u i = 0, s = 1; i < a_irq;i++, s<<=1){
+            if ( possible_irq & s ) {
+                //There is an irq ready to be served => signal master and/or cpu
+                activate();
+                return;
+            }
+        }
+    }
+    deactivate(); //No irq, remove signal to master and/or cpu
+}
+
+void PIC_Controller::raise_irq(Bit8u val){
+    Bit8u bit = 1 << (val);
+    if((irr & bit)==0) { //value changed (as it is currently not active)
+        irr|=bit;
+        if((bit&imrr)&isrr) { //not masked and not in service
+            if(special || val < active_irq) activate();
+            else if (ignore_cascade_in_service && this == &master && val == (unsigned char)master_cascade_irq) activate();
+        }
+    }
+}
 
 void PIC_IRQCheckDelayed(Bitu val) {
     (void)val;//UNUSED
@@ -201,13 +205,7 @@ void PIC_Controller::start_irq(Bit8u val){
             /* do nothing */
         }
         else {
-            if (ignore_cascade_in_service && this == &master && val == master_cascade_irq) {
-                active_irq = 8;
-            }
-            else {
-                active_irq = val;
-            }
-
+            active_irq = val;
             isr |= 1<<(val);
             isrr = (~isr) | isr_ignore;
         }
@@ -513,8 +511,11 @@ void PIC_runIRQs(void) {
     if (GCC_UNLIKELY(CPU_NMI_active) || GCC_UNLIKELY(CPU_NMI_pending)) return; /* NMI has higher priority than PIC */
 
     const Bit8u p = (master.irr & master.imrr)&master.isrr;
-    const Bit8u max = master.special?8:master.active_irq;
+    Bit8u max = master.special?8:master.active_irq;
     Bit8u i,s;
+
+    if (ignore_cascade_in_service && max == (unsigned char)master_cascade_irq)
+        max++;
 
     for (i = 0,s = 1;i < max;i++, s<<=1){
         if (p&s) {
