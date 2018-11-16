@@ -726,8 +726,29 @@ public:
 		mpu.intelligent = true;	//Default is on
 		if(strcasecmp(s_mpu,"uart") == 0) mpu.intelligent = false;
 		if (!mpu.intelligent) return;
-		/*Set IRQ and unmask it(for timequest/princess maker 2) */
-		PIC_SetIRQMask(mpu.irq,false);
+
+        if (IS_PC98_ARCH) {
+            /* Mask IRQ by default.
+             * 
+             * MMD.COM, a common MIDI MPU-401 driver in the PC-98 world, seems to have
+             * IRQ detection problems unless the IRQ is masked during the detection phase.
+             * It will fail to detect any IRQ that is unmasked during it's detection phase.
+             * For some reason it's not totally consistent i.e. the MMD.COM driver included
+             * with Touhou Project 2 can detect MIDI on IRQ 5 when unmasked, but not 3, 12, or 6,
+             * or sometimes only on IRQ 6 if I/O delays are lengthened.
+             *
+             * Perhaps the driver assumes that if the IRQ is unmasked, that it's probably in
+             * use and not safe to probe.
+             *
+             * Also noted: MMD.COM cannot detect IRQs reliably if I/O delay is disabled in
+             *             the emulation (iodelay=0) */
+            PIC_SetIRQMask(mpu.irq,true);
+        }
+        else {
+            /*Set IRQ and unmask it(for timequest/princess maker 2) */
+            PIC_SetIRQMask(mpu.irq,false);
+        }
+
 		MPU401_Reset();
 	}
 };
