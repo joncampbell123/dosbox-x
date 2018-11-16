@@ -817,6 +817,22 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 		return;
 	}
 
+    for (const auto &opt : options) {
+        size_t equ = opt.find_first_of('=');
+        std::string name,value;
+
+        if (equ != std::string::npos) {
+            name = opt.substr(0,equ);
+            value = opt.substr(equ+1);
+        }
+        else {
+            name = opt;
+            value.clear();
+        }
+
+//        LOG_MSG("'%s' = '%s'",name.c_str(),value.c_str());
+    }
+
 	loadedDisk->Addref();
 
     if (loadedDisk->getSectSize() > sizeof(bootbuffer)) {
