@@ -299,8 +299,6 @@ Bitu PS2_Handler(void) {
 #define MOUSE_DUMMY 128
 #define MOUSE_DELAY 5.0
 
-extern bool p7fd8_8255_mouse_irq_signal;
-
 void MOUSE_Limit_Events(Bitu /*val*/) {
     mouse.timer_in_progress = false;
 
@@ -313,9 +311,6 @@ void MOUSE_Limit_Events(Bitu /*val*/) {
     if (mouse.events) {
         mouse.timer_in_progress = true;
         PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
-
-        if (IS_PC98_ARCH)
-            p7fd8_8255_mouse_irq_signal = true;
 
         if (MOUSE_IRQ != 0) {
             if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
@@ -342,9 +337,6 @@ INLINE void Mouse_AddEvent(Bit8u type) {
     if (!mouse.timer_in_progress) {
         mouse.timer_in_progress = true;
         PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
-
-        if (IS_PC98_ARCH)
-            p7fd8_8255_mouse_irq_signal = true;
 
         if (MOUSE_IRQ != 0) {
             if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))

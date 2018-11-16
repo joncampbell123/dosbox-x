@@ -2163,12 +2163,51 @@ static double pc98_mouse_tick_interval_ms(void) {
     return 1000.0/*ms*/ / pc98_mouse_rate_hz;
 }
 
-static double pc98_mouse_time_to_next_tick(void) {
+static double pc98_mouse_tick_time_ms(void) {
+    return fmod(PIC_FullIndex(),pc98_mouse_tick_interval_ms());
+}
+
+static double pc98_mouse_time_to_next_tick_ms(void) {
     const double x = pc98_mouse_tick_interval_ms();
     return x - fmod(PIC_FullIndex(),x);
 }
 
-bool p7fd8_8255_mouse_irq_signal = false;
+static bool pc98_mouse_tick_signal(void) {
+    /* TODO: How is the 120Hz signal generated? If it's a square wave, what is the duty cycle? */
+    /*       At what point in the cycle is the interrupt generated? Beginning, or end? */
+    return pc98_mouse_tick_time_ms() < 0.1; /* GUESS: 100us = 0.1ms */
+}
+
+static bool pc98_mouse_tick_scheduled = false;
+
+static void pc98_mouse_tick_event(Bitu val) {
+    (void)val;
+
+    /* TODO */
+
+    /* keep the periodic interrupt going */
+    if (p7fd8_8255_mouse_int_enable)
+        PIC_AddEvent(pc98_mouse_tick_event,pc98_mouse_tick_interval_ms());
+}
+
+static void pc98_mouse_tick_unschedule(void) {
+    if (pc98_mouse_tick_scheduled) {
+        pc98_mouse_tick_scheduled = false;
+        PIC_RemoveEvents(pc98_mouse_tick_event);
+    }
+}
+
+static void pc98_mouse_tick_schedule(void) {
+    if (p7fd8_8255_mouse_int_enable) {
+        if (!pc98_mouse_tick_scheduled) {
+            pc98_mouse_tick_scheduled = true;
+            PIC_AddEvent(pc98_mouse_tick_event,pc98_mouse_time_to_next_tick_ms());
+        }
+    }
+    else {
+        pc98_mouse_tick_unschedule();
+    }
+}
 
 extern uint8_t MOUSE_IRQ;
 
@@ -2296,7 +2335,6 @@ public:
             }
 
             p7fd9_8255_mouse_latch = (latchOutPortC >> 7) & 1;
-            p7fd8_8255_mouse_irq_signal = false;//This is a GUESS
         }
         if (mask & 0x60) { /* bits 6-5 */
             p7fd9_8255_mouse_sel = (latchOutPortC >> 5) & 3;
@@ -2317,10 +2355,12 @@ public:
 
             if (p != p7fd8_8255_mouse_int_enable) {
                 /* FIXME: If a mouse interrupt is pending but not yet read this should re-signal the IRQ */
-                if (p7fd8_8255_mouse_int_enable && p7fd8_8255_mouse_irq_signal)
+                if (p7fd8_8255_mouse_int_enable && pc98_mouse_tick_signal())
                     PIC_ActivateIRQ(MOUSE_IRQ);
                 else
                     PIC_DeActivateIRQ(MOUSE_IRQ);
+
+                pc98_mouse_tick_schedule();
             }
         }
     }
