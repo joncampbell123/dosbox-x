@@ -1450,15 +1450,15 @@ public:
                 mem_writeb(0x493,F2HD_MODE);
                 mem_writeb(0x5CA,F2DD_MODE);
 
-                if ((ssize == 1024 && heads == 2 && cyls == 77 && sects == 8) || pc98_sect128) {
+                if (drive >= 'C') {
+                    /* hard drive */
+                    mem_writeb(0x584,0xA0/*type*/ + (drive - 'C')/*drive*/);
+                }
+                else if ((ssize == 1024 && heads == 2 && cyls == 77 && sects == 8) || pc98_sect128) {
                     mem_writeb(0x584,0x90/*type*/ + (drive - 65)/*drive*/); /* 1.2MB 3-mode */
                 }
                 else if (ssize == 512 && heads == 2 && cyls == 80 && sects == 18) {
                     mem_writeb(0x584,0x30/*type*/ + (drive - 65)/*drive*/); /* 1.44MB */
-                }
-                else if (drive >= 'C') {
-                    /* hard drive */
-                    mem_writeb(0x584,0xA0/*type*/ + (drive - 'C')/*drive*/);
                 }
                 else {
                     // FIXME
