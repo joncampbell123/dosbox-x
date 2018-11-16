@@ -1,4 +1,9 @@
 <next version>
+  - Added IMGMOUNT -o partidx=N option. N is an integer
+    value that indicates which partition to mount, counting
+    up from zero. This allows mounting disk images that
+    the FAT driver otherwise can't identify which partition
+    to mount.
   - New general -o name=value option for IMGMOUNT, to pass
     various options to the FAT driver.
   - Update Metal Force mouse hack to become a more general
