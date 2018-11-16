@@ -3106,6 +3106,8 @@ void PC98_BIOS_FDC_CALL_GEO_UNPACK(unsigned int &fdc_cyl,unsigned int &fdc_head,
 
 void PC98_Interval_Timer_Continue(void);
 
+bool enable_fdc_timer_hack = false;
+
 void FDC_WAIT_TIMER_HACK(void) {
     unsigned int v,pv;
     unsigned int c=0;
@@ -3193,8 +3195,10 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 return;
             }
 
-            // Hack for Ys II
-            FDC_WAIT_TIMER_HACK();
+            if (enable_fdc_timer_hack) {
+                // Hack for Ys II
+                FDC_WAIT_TIMER_HACK();
+            }
 
             fdc_cyl[drive] = reg_cl;
 
@@ -3217,8 +3221,10 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             }
             floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
 
-            // Hack for Ys II
-            FDC_WAIT_TIMER_HACK();
+            if (enable_fdc_timer_hack) {
+                // Hack for Ys II
+                FDC_WAIT_TIMER_HACK();
+            }
 
             /* Prevent reading 1.44MB floppyies using 1.2MB read commands and vice versa.
              * FIXME: It seems MS-DOS 5.0 booted from a HDI image has trouble understanding
@@ -3294,8 +3300,10 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             }
             floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
 
-            // Hack for Ys II
-            FDC_WAIT_TIMER_HACK();
+            if (enable_fdc_timer_hack) {
+                // Hack for Ys II
+                FDC_WAIT_TIMER_HACK();
+            }
 
             /* Prevent reading 1.44MB floppyies using 1.2MB read commands and vice versa.
              * FIXME: It seems MS-DOS 5.0 booted from a HDI image has trouble understanding
@@ -3409,8 +3417,10 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             }
             floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
 
-            // Hack for Ys II
-            FDC_WAIT_TIMER_HACK();
+            if (enable_fdc_timer_hack) {
+                // Hack for Ys II
+                FDC_WAIT_TIMER_HACK();
+            }
 
             /* TODO: Error if write protected */
 
@@ -3463,8 +3473,10 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 return;
             }
 
-            // Hack for Ys II
-            FDC_WAIT_TIMER_HACK();
+            if (enable_fdc_timer_hack) {
+                // Hack for Ys II
+                FDC_WAIT_TIMER_HACK();
+            }
 
             reg_ah = 0x00;
             CALLBACK_SCF(false);
@@ -3480,8 +3492,10 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
             unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
 
-            // Hack for Ys II
-            FDC_WAIT_TIMER_HACK();
+            if (enable_fdc_timer_hack) {
+                // Hack for Ys II
+                FDC_WAIT_TIMER_HACK();
+            }
 
             LOG_MSG("WARNING: INT 1Bh FDC format track command not implemented. Formatting is faked, for now on C/H/S/sz %u/%u/%u/%u drive %c.",
                 (unsigned int)fdc_cyl[drive],
@@ -3505,8 +3519,10 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
 
             floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
 
-            // Hack for Ys II
-            FDC_WAIT_TIMER_HACK();
+            if (enable_fdc_timer_hack) {
+                // Hack for Ys II
+                FDC_WAIT_TIMER_HACK();
+            }
 
             if (reg_ah & 0x10) { // seek to track number in CL
                 if (img_cyl != 0 && reg_cl >= img_cyl) {
@@ -7077,6 +7093,10 @@ public:
             // FIXME: Erm, well this couldv'e been named better. It refers to the amount of conventional memory
             //        made available to the operating system below 1MB, which is usually DOS.
             dos_conventional_limit = (unsigned int)section->Get_int("dos mem limit");
+
+            // for PC-98: When accessing the floppy through INT 1Bh, when enabled, run through a waiting loop to make sure
+            //     the timer count is not too high on exit (Ys II)
+            enable_fdc_timer_hack = section->Get_bool("pc-98 int 1b fdc timer wait");
 
             {
                 std::string s = section->Get_string("unhandled irq handler");
