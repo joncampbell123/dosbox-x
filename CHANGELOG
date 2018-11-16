@@ -1,4 +1,6 @@
 <next version>
+  - New general -o name=value option for IMGMOUNT, to pass
+    various options to the FAT driver.
   - Update Metal Force mouse hack to become a more general
     "fire interrupt on Port C write" with a dosbox.conf
     option to enable. This fixes the requirement to move
