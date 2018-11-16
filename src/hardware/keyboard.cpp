@@ -2357,7 +2357,7 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
         if(pc98_force_ibm_layout)
             LOG_MSG("Forcing PC-98 keyboard to use IBM US-English like default layout");
 
-        pc98_periodic_mouse_interrupts = section->Get_bool("pc-98 mouse interrupt on port C write");
+        pc98_periodic_mouse_interrupts = true;
     }
 
     if (!IS_PC98_ARCH) {
