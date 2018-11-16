@@ -2178,12 +2178,16 @@ static bool pc98_mouse_tick_signal(void) {
     return pc98_mouse_tick_time_ms() < 0.1; /* GUESS: 100us = 0.1ms */
 }
 
+extern uint8_t MOUSE_IRQ;
+
 static bool pc98_mouse_tick_scheduled = false;
 
 static void pc98_mouse_tick_event(Bitu val) {
     (void)val;
 
-    /* TODO */
+    /* Generate interrupt */
+    if (p7fd8_8255_mouse_int_enable)
+        PIC_ActivateIRQ(MOUSE_IRQ);
 
     /* keep the periodic interrupt going */
     if (p7fd8_8255_mouse_int_enable)
@@ -2208,8 +2212,6 @@ static void pc98_mouse_tick_schedule(void) {
         pc98_mouse_tick_unschedule();
     }
 }
-
-extern uint8_t MOUSE_IRQ;
 
 //! \brief PC-98 System Bus Mouse PPI emulation (Intel 8255A device)
 //!
