@@ -1,4 +1,6 @@
 <next version>
+  - PIC event handling fixed, IRQ breakpoints now stop
+    at the beginning of the interrupt handler.
   - MPU-401 MIDI default IRQ is now IRQ 6 in PC-98 mode,
     to match factory default setting.
   - MPU-401 MIDI IRQ masked by default in PC-98.
