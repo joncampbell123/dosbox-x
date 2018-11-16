@@ -2192,6 +2192,8 @@ static void pc98_mouse_tick_event(Bitu val) {
     /* keep the periodic interrupt going */
     if (p7fd8_8255_mouse_int_enable)
         PIC_AddEvent(pc98_mouse_tick_event,pc98_mouse_tick_interval_ms());
+    else
+        pc98_mouse_tick_scheduled = false;
 }
 
 static void pc98_mouse_tick_unschedule(void) {
@@ -2496,7 +2498,7 @@ void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
      * bit[1:1] =  1 = port B input
      * bit[0:0] =  1 = port C lower input */
     pc98_mouse_8255.writeControl(0x93);
-    pc98_mouse_8255.writePortC(0x00);
+    pc98_mouse_8255.writePortC(0x10); /* start with interrupt inhibited. INT 33h emulation will enable it later */
 }
 
 extern bool enable_slave_pic;

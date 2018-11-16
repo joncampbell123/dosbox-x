@@ -837,7 +837,7 @@ static void Mouse_ResetHardware(void){
         PIC_SetIRQMask(MOUSE_IRQ,false);
 
     if (IS_PC98_ARCH)
-        p7fd8_8255_mouse_int_enable = 1;
+        IO_WriteB(0x7FDD,IO_ReadB(0x7FDD) & (~0x10)); // remove interrupt inhibit
 }
 
 //Does way to much. Many things should be moved to mouse reset one day
