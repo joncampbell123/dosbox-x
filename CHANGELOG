@@ -1,4 +1,7 @@
 <next version>
+  - 256-byte/sector hard disk images fixed to ensure the
+    proper boot drive identifier is presented for MS-DOS
+    when booting a hard disk image.
   - Added IMGMOUNT -o partidx=N option. N is an integer
     value that indicates which partition to mount, counting
     up from zero. This allows mounting disk images that
