@@ -2157,6 +2157,17 @@ void pc98_mouse_movement_apply(int x,int y) {
 
 void MOUSE_DummyEvent(void);
 
+unsigned int pc98_mouse_rate_hz = 120;
+
+static double pc98_mouse_tick_interval_ms(void) {
+    return 1000.0/*ms*/ / pc98_mouse_rate_hz;
+}
+
+static double pc98_mouse_time_to_next_tick(void) {
+    const double x = pc98_mouse_tick_interval_ms();
+    return x - fmod(PIC_FullIndex(),x);
+}
+
 bool p7fd8_8255_mouse_irq_signal = false;
 
 extern uint8_t MOUSE_IRQ;
