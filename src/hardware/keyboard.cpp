@@ -2209,7 +2209,8 @@ static void pc98_mouse_tick_schedule(void) {
         }
     }
     else {
-        pc98_mouse_tick_unschedule();
+        /* Don't unschedule the event, the game may un-inhibit the interrupt later.
+         * The PIC event will not reschedule itself if inhibited at the time of the signal. */
     }
 }
 
@@ -2356,12 +2357,12 @@ public:
              */
 
             if (p != p7fd8_8255_mouse_int_enable) {
-                /* FIXME: If a mouse interrupt is pending but not yet read this should re-signal the IRQ */
-                if (p7fd8_8255_mouse_int_enable && pc98_mouse_tick_signal())
-                    PIC_ActivateIRQ(MOUSE_IRQ);
-                else
-                    PIC_DeActivateIRQ(MOUSE_IRQ);
-
+                /* NTS: I'm guessing that if the mouse interrupt has fired, inhibiting the interrupt
+                 *      does not remove the IRQ signal already sent.
+                 *
+                 *      Amaranth's mouse driver appears to rapidly toggle this bit. If we re-fire
+                 *      and inhibit the interrupt in reaction the game will get an interrupt rate
+                 *      far higher than normal and animation will run way too fast. */
                 pc98_mouse_tick_schedule();
             }
         }
