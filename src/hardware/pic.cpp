@@ -687,6 +687,11 @@ extern ClockDomain clockdom_DOSBox_cycles;
 //#define DEBUG_PIC_IRQCHECK_VS_IRR
 
 bool PIC_RunQueue(void) {
+#if C_DEBUG
+    bool IsDebuggerActive(void);
+    if (IsDebuggerActive())
+        return false;
+#endif
 #ifdef DEBUG_CPU_CYCLE_OVERRUN
     /* I/O delay can cause negative CPU_Cycles and PIC event / audio rendering issues */
     cpu_cycles_count_t overrun = -std::min(CPU_Cycles,(cpu_cycles_count_t)0);
