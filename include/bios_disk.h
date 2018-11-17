@@ -367,6 +367,7 @@ void incrementFDD(void);
 #define MAX_HDD_IMAGES 4
 #define MAX_DISK_IMAGES 6 //MAX_HDD_IMAGES + 2
 
+extern bool imageDiskChange[MAX_DISK_IMAGES];
 extern imageDisk *imageDiskList[MAX_DISK_IMAGES];
 extern imageDisk *diskSwap[20];
 extern Bits swapPosition;

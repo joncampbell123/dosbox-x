@@ -64,6 +64,7 @@ static bool swapping_requested;
 void CMOS_SetRegister(Bitu regNr, Bit8u val); //For setting equipment word
 
 /* 2 floppys and 2 harddrives, max */
+bool imageDiskChange[MAX_DISK_IMAGES]={false};
 imageDisk *imageDiskList[MAX_DISK_IMAGES]={NULL};
 imageDisk *diskSwap[MAX_SWAPPABLE_DISKS]={NULL};
 Bits swapPosition;
@@ -174,6 +175,8 @@ void swapInDisks(void) {
 
             imageDiskList[diskswapdrive] = diskSwap[swapPos];
             imageDiskList[diskswapdrive]->Addref();
+
+            imageDiskChange[diskswapdrive] = true;
 
             diskcount++;
             diskswapdrive++;
