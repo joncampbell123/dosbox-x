@@ -1,4 +1,8 @@
 <next version>
+  - INT 13h AH=2 (read sector) updated to return disk
+    change error on first read after disk change, to
+    match real BIOS behavior.
+  - Floppy emulation now tracks "disk change" signal.
   - PIC event handling fixed, IRQ breakpoints now stop
     at the beginning of the interrupt handler.
   - MPU-401 MIDI default IRQ is now IRQ 6 in PC-98 mode,
