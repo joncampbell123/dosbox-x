@@ -1,4 +1,9 @@
 <next version>
+  - INT 13h read/write functions fixed to refuse the
+    command if the floppy disk has a sector size too
+    large for the implementation (such as a PC-98
+    disk image mounted in IBM PC mode with 1024 bytes
+    per sector).
   - INT 13h AH=2 (read sector) updated to return disk
     change error on first read after disk change, to
     match real BIOS behavior.
