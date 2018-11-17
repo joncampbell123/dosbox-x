@@ -1081,6 +1081,10 @@ public:
             return;
         }
 
+        /* clear the disk change flag.
+         * Most OSes don't expect the disk change error signal when they first boot up */
+        imageDiskChange[drive-65] = false;
+
         bool has_read = false;
         bool pc98_sect128 = false;
         unsigned int bootsize = imageDiskList[drive-65]->getSectSize();
