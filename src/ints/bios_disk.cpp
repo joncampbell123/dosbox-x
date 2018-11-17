@@ -809,6 +809,17 @@ static Bitu INT13_DiskHandler(void) {
             return CBRET_NONE;
         }
 
+        /* If the disk changed, the first INT 13h read will signal an error and set AH = 0x06 to indicate disk change */
+        if (drivenum < 2 && imageDiskChange[drivenum]) {
+            LOG(LOG_MISC,LOG_DEBUG)("INT 13h: Failing first read of drive %c to indicate disk change",(char)drivenum+'A');
+
+            imageDiskChange[drivenum] = false;
+
+            reg_ah = 0x06; /* diskette changed or removed */
+            CALLBACK_SCF(true);
+            return CBRET_NONE;
+        }
+
         segat = SegValue(es);
         bufptr = reg_bx;
         for(i=0;i<reg_al;i++) {
