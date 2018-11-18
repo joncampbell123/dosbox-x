@@ -48,6 +48,8 @@ void KEYBOARD_AddBuffer(Bit16u data);
 static void KEYBOARD_Add8042Response(Bit8u data);
 void KEYBOARD_SetLEDs(Bit8u bits);
 
+bool enable_pc98_bus_mouse = true;
+
 static unsigned int aux_warning = 0;
 
 enum AuxCommands {
@@ -2330,6 +2332,9 @@ public:
     }
     /* port C is input[3:0] and output[7:4] */
     virtual void outPortC(const uint8_t mask) {
+        if (!enable_pc98_bus_mouse)
+            return;
+
         if (mask & 0x80) { /* bit 7 */
             /* changing from 0 to 1 latches counters and clears them */
             if ((latchOutPortC & 0x80) && !p7fd9_8255_mouse_latch) { // change from 0 to 1 latches counters and clears them
@@ -2400,6 +2405,11 @@ static void write_pbfdb_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
 void KEYBOARD_OnEnterPC98(Section *sec) {
     (void)sec;//UNUSED
     unsigned int i;
+
+    {
+        Section_prop *section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+        enable_pc98_bus_mouse = section->Get_bool("pc-98 bus mouse");
+    }
 
     /* TODO: Keyboard interface change, layout change. */
 
@@ -2493,14 +2503,16 @@ void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
     Reset_PC98.Uninstall();
     Reset_PC98.Install(0xF0,pc98_reset_write,IO_MB);
 
-    /* Mouse */
-    for (i=0;i < 4;i++) {
-        IO_RegisterWriteHandler(0x7FD9+(i*2),write_p7fd9_mouse,IO_MB);
-        IO_RegisterReadHandler(0x7FD9+(i*2),read_p7fd9_mouse,IO_MB);
-    }
+    if (enable_pc98_bus_mouse) {
+        /* Mouse */
+        for (i=0;i < 4;i++) {
+            IO_RegisterWriteHandler(0x7FD9+(i*2),write_p7fd9_mouse,IO_MB);
+            IO_RegisterReadHandler(0x7FD9+(i*2),read_p7fd9_mouse,IO_MB);
+        }
 
-    /* Mouse control port at BFDB (which can be used to reduce the interrupt rate of the mouse) */
-    IO_RegisterWriteHandler(0xBFDB,write_pbfdb_mouse,IO_MB);
+        /* Mouse control port at BFDB (which can be used to reduce the interrupt rate of the mouse) */
+        IO_RegisterWriteHandler(0xBFDB,write_pbfdb_mouse,IO_MB);
+    }
 
     /* Port A = input
      * Port B = input
