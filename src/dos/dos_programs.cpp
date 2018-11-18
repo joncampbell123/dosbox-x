@@ -1093,10 +1093,12 @@ public:
             /* this may be one of those odd FDD images where track 0, head 0 is all 128-byte sectors
              * and the rest of the disk is 256-byte sectors. */
             if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (Bit8u *)&bootarea, 128) == 0 &&
-                imageDiskList[drive - 65]->Read_Sector(0, 0, 2, (Bit8u *)&bootarea + 128, 128) == 0) {
-                LOG_MSG("First sector is 128 byte/sector. Booting from first two sectors.");
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 2, (Bit8u *)&bootarea + 128, 128) == 0 &&
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 3, (Bit8u *)&bootarea + 256, 128) == 0 &&
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 4, (Bit8u *)&bootarea + 384, 128) == 0) {
+                LOG_MSG("First sector is 128 byte/sector. Booting from first four sectors.");
                 has_read = true;
-                bootsize = 256; // 128 x 2
+                bootsize = 512; // 128 x 4
                 pc98_sect128 = true;
             }
         }
