@@ -1,4 +1,9 @@
 <next version>
+  - Added dosbox.conf option to enable/disable the
+    PC-98 bus mouse interface
+  - PC-98 boot disks with 128 bytes/sector boot sectors
+    now load 4 sectors instead of 2. Seems to be
+    required by some games.
   - INT 13h read/write functions fixed to refuse the
     command if the floppy disk has a sector size too
     large for the implementation (such as a PC-98
