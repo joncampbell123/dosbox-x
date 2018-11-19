@@ -616,13 +616,13 @@ void TIMER_OnPowerOn(Section*) {
 
     if (IS_PC98_ARCH) {
         /* This code is written to eventually copy-paste out in general */
-        WriteHandler[0].Install(IS_PC98_ARCH ? 0x71 : 0x40,write_latch,IO_MB);
-        WriteHandler[1].Install(IS_PC98_ARCH ? 0x73 : 0x41,write_latch,IO_MB);
-        WriteHandler[2].Install(IS_PC98_ARCH ? 0x75 : 0x42,write_latch,IO_MB);
-        WriteHandler[3].Install(IS_PC98_ARCH ? 0x77 : 0x43,write_p43,IO_MB);
-        ReadHandler[0].Install(IS_PC98_ARCH ? 0x71 : 0x40,read_latch,IO_MB);
-        ReadHandler[1].Install(IS_PC98_ARCH ? 0x73 : 0x41,read_latch,IO_MB);
-        ReadHandler[2].Install(IS_PC98_ARCH ? 0x75 : 0x42,read_latch,IO_MB);
+        WriteHandler[0].Install(0x71,write_latch,IO_MB);
+        WriteHandler[1].Install(0x73,write_latch,IO_MB);
+        WriteHandler[2].Install(0x75,write_latch,IO_MB);
+        WriteHandler[3].Install(0x77,write_p43,IO_MB);
+        ReadHandler[0].Install(0x71,read_latch,IO_MB);
+        ReadHandler[1].Install(0x73,read_latch,IO_MB);
+        ReadHandler[2].Install(0x75,read_latch,IO_MB);
 
         /* Apparently all but the first PC-9801 systems have an alias of these
          * ports at 0x3FD9-0x3FDF odd. This alias is required for games that
