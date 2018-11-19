@@ -1,4 +1,6 @@
 <next version>
+  - Debug output fixed to make it easier to break into
+    the debugger even during a flood of debug output.
   - Added dosbox.conf option to enable/disable the
     PC-98 bus mouse interface
   - PC-98 boot disks with 128 bytes/sector boot sectors
