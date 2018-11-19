@@ -6083,7 +6083,7 @@ void update_pc98_clock_pit_menu(void) {
 bool dos_pc98_clock_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    void TIMER_OnEnterPC98_Phase2(Section*);
+    void TIMER_OnPowerOn(Section*);
     void TIMER_OnEnterPC98_Phase2_UpdateBDA(void);
 
     const char *ts = menuitem->get_name().c_str();
@@ -6103,7 +6103,7 @@ bool dos_pc98_clock_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
     Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     dosbox_section->HandleInputline(tmp.c_str());
 
-    TIMER_OnEnterPC98_Phase2(NULL);
+    TIMER_OnPowerOn(NULL);
     TIMER_OnEnterPC98_Phase2_UpdateBDA();
 
     update_pc98_clock_pit_menu();
