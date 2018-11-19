@@ -25,6 +25,7 @@ var searchData=
   ['pc98_5fegc_5fshifter',['pc98_egc_shifter',['../structpc98__egc__shifter.html',1,'']]],
   ['pc98_5fgdc_5fstate',['PC98_GDC_state',['../structPC98__GDC__state.html',1,'']]],
   ['pc98_5fmouse_5f8255',['PC98_Mouse_8255',['../classPC98__Mouse__8255.html',1,'']]],
+  ['pc98_5fprinter_5f8255',['PC98_Printer_8255',['../classPC98__Printer__8255.html',1,'']]],
   ['pc98_5fsystem_5f8255',['PC98_System_8255',['../classPC98__System__8255.html',1,'']]],
   ['pc98_5ftile',['pc98_tile',['../unionpc98__tile.html',1,'']]],
   ['pc98itfpagehandler',['PC98ITFPageHandler',['../classPC98ITFPageHandler.html',1,'']]],

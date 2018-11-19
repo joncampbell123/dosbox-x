@@ -768,7 +768,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00671"></a>00671 };
 <a name="l00672"></a>00672 <span class="preprocessor">#pragma pack(pop)</span>
 <a name="l00673"></a>00673 <span class="preprocessor"></span>
-<a name="l00674"></a>00674 fatDrive::fatDrive(<span class="keyword">const</span> <span class="keywordtype">char</span> *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders) : loadedDisk(NULL) {
+<a name="l00674"></a>00674 fatDrive::fatDrive(<span class="keyword">const</span> <span class="keywordtype">char</span> *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, std::vector&lt;std::string&gt; &amp;options) : loadedDisk(NULL) {
 <a name="l00675"></a>00675         created_successfully = <span class="keyword">true</span>;
 <a name="l00676"></a>00676         FILE *diskfile;
 <a name="l00677"></a>00677         Bit32u filesize;
@@ -816,973 +816,1058 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00719"></a>00719             filesize = (Bit32u)(ftello64(diskfile) / 1024L);
 <a name="l00720"></a>00720             loadedDisk = <span class="keyword">new</span> <a class="code" href="classimageDiskVFD.html">imageDiskVFD</a>(diskfile, (Bit8u *)sysFilename, filesize, (filesize &gt; 2880));
 <a name="l00721"></a>00721         }
-<a name="l00722"></a>00722         <span class="keywordflow">else</span> {
+<a name="l00722"></a>00722         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!memcmp(bootbuffer.bootcode,<span class="stringliteral">&quot;T98FDDIMAGE.R0\0\0&quot;</span>,16)) {
 <a name="l00723"></a>00723             fseeko64(diskfile, 0L, SEEK_END);
 <a name="l00724"></a>00724             filesize = (Bit32u)(ftello64(diskfile) / 1024L);
-<a name="l00725"></a>00725             loadedDisk = <span class="keyword">new</span> <a class="code" href="classimageDisk.html">imageDisk</a>(diskfile, (Bit8u *)sysFilename, filesize, (filesize &gt; 2880));
+<a name="l00725"></a>00725             loadedDisk = <span class="keyword">new</span> <a class="code" href="classimageDiskNFD.html">imageDiskNFD</a>(diskfile, (Bit8u *)sysFilename, filesize, (filesize &gt; 2880), 0);
 <a name="l00726"></a>00726         }
-<a name="l00727"></a>00727         }
-<a name="l00728"></a>00728 
-<a name="l00729"></a>00729     fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, filesize);
-<a name="l00730"></a>00730 }
-<a name="l00731"></a>00731 
-<a name="l00732"></a>00732 fatDrive::fatDrive(<a class="code" href="classimageDisk.html">imageDisk</a> *sourceLoadedDisk) : loadedDisk(NULL) {
-<a name="l00733"></a>00733         <span class="keywordflow">if</span> (sourceLoadedDisk == 0) {
-<a name="l00734"></a>00734                 created_successfully = <span class="keyword">false</span>;
-<a name="l00735"></a>00735                 <span class="keywordflow">return</span>;
+<a name="l00727"></a>00727         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (!memcmp(bootbuffer.bootcode,<span class="stringliteral">&quot;T98FDDIMAGE.R1\0\0&quot;</span>,16)) {
+<a name="l00728"></a>00728             fseeko64(diskfile, 0L, SEEK_END);
+<a name="l00729"></a>00729             filesize = (Bit32u)(ftello64(diskfile) / 1024L);
+<a name="l00730"></a>00730             loadedDisk = <span class="keyword">new</span> <a class="code" href="classimageDiskNFD.html">imageDiskNFD</a>(diskfile, (Bit8u *)sysFilename, filesize, (filesize &gt; 2880), 1);
+<a name="l00731"></a>00731         }
+<a name="l00732"></a>00732         <span class="keywordflow">else</span> {
+<a name="l00733"></a>00733             fseeko64(diskfile, 0L, SEEK_END);
+<a name="l00734"></a>00734             filesize = (Bit32u)(ftello64(diskfile) / 1024L);
+<a name="l00735"></a>00735             loadedDisk = <span class="keyword">new</span> <a class="code" href="classimageDisk.html">imageDisk</a>(diskfile, (Bit8u *)sysFilename, filesize, (filesize &gt; 2880));
 <a name="l00736"></a>00736         }
-<a name="l00737"></a>00737         created_successfully = <span class="keyword">true</span>;
-<a name="l00738"></a>00738         
-<a name="l00739"></a>00739         <span class="keywordflow">if</span>(imgDTASeg == 0) {
-<a name="l00740"></a>00740                 imgDTASeg = DOS_GetMemory(2,<span class="stringliteral">&quot;imgDTASeg&quot;</span>);
-<a name="l00741"></a>00741                 imgDTAPtr = RealMake(imgDTASeg, 0);
-<a name="l00742"></a>00742                 imgDTA    = <span class="keyword">new</span> <a class="code" href="classDOS__DTA.html">DOS_DTA</a>(imgDTAPtr);
-<a name="l00743"></a>00743         }
-<a name="l00744"></a>00744 
-<a name="l00745"></a>00745     loadedDisk = sourceLoadedDisk;
-<a name="l00746"></a>00746 
-<a name="l00747"></a>00747     fatDriveInit(<span class="stringliteral">&quot;&quot;</span>, loadedDisk-&gt;sector_size, loadedDisk-&gt;sectors, loadedDisk-&gt;heads, loadedDisk-&gt;cylinders, loadedDisk-&gt;diskSizeK);
-<a name="l00748"></a>00748 }
-<a name="l00749"></a>00749 
-<a name="l00750"></a>00750 Bit8u fatDrive::Read_AbsoluteSector(Bit32u sectnum, <span class="keywordtype">void</span> * data) {
-<a name="l00751"></a>00751     <span class="keywordflow">if</span> (loadedDisk != NULL) {
-<a name="l00752"></a>00752         <span class="comment">/* this will only work if the logical sector size is larger than the disk sector size */</span>
-<a name="l00753"></a>00753         <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> lsz = loadedDisk-&gt;getSectSize();
-<a name="l00754"></a>00754         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> c = sector_size / lsz;
-<a name="l00755"></a>00755 
-<a name="l00756"></a>00756         <span class="keywordflow">if</span> (c != 0 &amp;&amp; (sector_size % lsz) == 0) {
-<a name="l00757"></a>00757             Bit32u ssect = sectnum * c;
-<a name="l00758"></a>00758 
-<a name="l00759"></a>00759             <span class="keywordflow">while</span> (c-- != 0) {
-<a name="l00760"></a>00760                 <span class="keywordflow">if</span> (loadedDisk-&gt;Read_AbsoluteSector(ssect++,data) != 0)
-<a name="l00761"></a>00761                     <span class="keywordflow">return</span> 0x05;
-<a name="l00762"></a>00762 
-<a name="l00763"></a>00763                 data = (<span class="keywordtype">void</span>*)((<span class="keywordtype">char</span>*)data + lsz);
-<a name="l00764"></a>00764             }
+<a name="l00737"></a>00737         }
+<a name="l00738"></a>00738 
+<a name="l00739"></a>00739     fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, filesize, options);
+<a name="l00740"></a>00740 }
+<a name="l00741"></a>00741 
+<a name="l00742"></a>00742 fatDrive::fatDrive(<a class="code" href="classimageDisk.html">imageDisk</a> *sourceLoadedDisk, std::vector&lt;std::string&gt; &amp;options) : loadedDisk(NULL) {
+<a name="l00743"></a>00743         <span class="keywordflow">if</span> (sourceLoadedDisk == 0) {
+<a name="l00744"></a>00744                 created_successfully = <span class="keyword">false</span>;
+<a name="l00745"></a>00745                 <span class="keywordflow">return</span>;
+<a name="l00746"></a>00746         }
+<a name="l00747"></a>00747         created_successfully = <span class="keyword">true</span>;
+<a name="l00748"></a>00748         
+<a name="l00749"></a>00749         <span class="keywordflow">if</span>(imgDTASeg == 0) {
+<a name="l00750"></a>00750                 imgDTASeg = DOS_GetMemory(2,<span class="stringliteral">&quot;imgDTASeg&quot;</span>);
+<a name="l00751"></a>00751                 imgDTAPtr = RealMake(imgDTASeg, 0);
+<a name="l00752"></a>00752                 imgDTA    = <span class="keyword">new</span> <a class="code" href="classDOS__DTA.html">DOS_DTA</a>(imgDTAPtr);
+<a name="l00753"></a>00753         }
+<a name="l00754"></a>00754 
+<a name="l00755"></a>00755     loadedDisk = sourceLoadedDisk;
+<a name="l00756"></a>00756 
+<a name="l00757"></a>00757     fatDriveInit(<span class="stringliteral">&quot;&quot;</span>, loadedDisk-&gt;sector_size, loadedDisk-&gt;sectors, loadedDisk-&gt;heads, loadedDisk-&gt;cylinders, loadedDisk-&gt;diskSizeK, options);
+<a name="l00758"></a>00758 }
+<a name="l00759"></a>00759 
+<a name="l00760"></a>00760 Bit8u fatDrive::Read_AbsoluteSector(Bit32u sectnum, <span class="keywordtype">void</span> * data) {
+<a name="l00761"></a>00761     <span class="keywordflow">if</span> (loadedDisk != NULL) {
+<a name="l00762"></a>00762         <span class="comment">/* this will only work if the logical sector size is larger than the disk sector size */</span>
+<a name="l00763"></a>00763         <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> lsz = loadedDisk-&gt;getSectSize();
+<a name="l00764"></a>00764         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> c = sector_size / lsz;
 <a name="l00765"></a>00765 
-<a name="l00766"></a>00766             <span class="keywordflow">return</span> 0;
-<a name="l00767"></a>00767         }
-<a name="l00768"></a>00768     }
-<a name="l00769"></a>00769 
-<a name="l00770"></a>00770     <span class="keywordflow">return</span> 0x05;
-<a name="l00771"></a>00771 }
+<a name="l00766"></a>00766         <span class="keywordflow">if</span> (c != 0 &amp;&amp; (sector_size % lsz) == 0) {
+<a name="l00767"></a>00767             Bit32u ssect = sectnum * c;
+<a name="l00768"></a>00768 
+<a name="l00769"></a>00769             <span class="keywordflow">while</span> (c-- != 0) {
+<a name="l00770"></a>00770                 <span class="keywordflow">if</span> (loadedDisk-&gt;Read_AbsoluteSector(ssect++,data) != 0)
+<a name="l00771"></a>00771                     <span class="keywordflow">return</span> 0x05;
 <a name="l00772"></a>00772 
-<a name="l00773"></a>00773 Bit8u fatDrive::Write_AbsoluteSector(Bit32u sectnum, <span class="keywordtype">void</span> * data) {
-<a name="l00774"></a>00774     <span class="keywordflow">if</span> (loadedDisk != NULL) {
-<a name="l00775"></a>00775         <span class="comment">/* this will only work if the logical sector size is larger than the disk sector size */</span>
-<a name="l00776"></a>00776         <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> lsz = loadedDisk-&gt;getSectSize();
-<a name="l00777"></a>00777         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> c = sector_size / lsz;
-<a name="l00778"></a>00778 
-<a name="l00779"></a>00779         <span class="keywordflow">if</span> (c != 0 &amp;&amp; (sector_size % lsz) == 0) {
-<a name="l00780"></a>00780             Bit32u ssect = sectnum * c;
-<a name="l00781"></a>00781 
-<a name="l00782"></a>00782             <span class="keywordflow">while</span> (c-- != 0) {
-<a name="l00783"></a>00783                 <span class="keywordflow">if</span> (loadedDisk-&gt;Write_AbsoluteSector(ssect++,data) != 0)
-<a name="l00784"></a>00784                     <span class="keywordflow">return</span> 0x05;
-<a name="l00785"></a>00785 
-<a name="l00786"></a>00786                 data = (<span class="keywordtype">void</span>*)((<span class="keywordtype">char</span>*)data + lsz);
-<a name="l00787"></a>00787             }
+<a name="l00773"></a>00773                 data = (<span class="keywordtype">void</span>*)((<span class="keywordtype">char</span>*)data + lsz);
+<a name="l00774"></a>00774             }
+<a name="l00775"></a>00775 
+<a name="l00776"></a>00776             <span class="keywordflow">return</span> 0;
+<a name="l00777"></a>00777         }
+<a name="l00778"></a>00778     }
+<a name="l00779"></a>00779 
+<a name="l00780"></a>00780     <span class="keywordflow">return</span> 0x05;
+<a name="l00781"></a>00781 }
+<a name="l00782"></a>00782 
+<a name="l00783"></a>00783 Bit8u fatDrive::Write_AbsoluteSector(Bit32u sectnum, <span class="keywordtype">void</span> * data) {
+<a name="l00784"></a>00784     <span class="keywordflow">if</span> (loadedDisk != NULL) {
+<a name="l00785"></a>00785         <span class="comment">/* this will only work if the logical sector size is larger than the disk sector size */</span>
+<a name="l00786"></a>00786         <span class="keyword">const</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> lsz = loadedDisk-&gt;getSectSize();
+<a name="l00787"></a>00787         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> c = sector_size / lsz;
 <a name="l00788"></a>00788 
-<a name="l00789"></a>00789             <span class="keywordflow">return</span> 0;
-<a name="l00790"></a>00790         }
-<a name="l00791"></a>00791     }
-<a name="l00792"></a>00792 
-<a name="l00793"></a>00793     <span class="keywordflow">return</span> 0x05;
-<a name="l00794"></a>00794 }
+<a name="l00789"></a>00789         <span class="keywordflow">if</span> (c != 0 &amp;&amp; (sector_size % lsz) == 0) {
+<a name="l00790"></a>00790             Bit32u ssect = sectnum * c;
+<a name="l00791"></a>00791 
+<a name="l00792"></a>00792             <span class="keywordflow">while</span> (c-- != 0) {
+<a name="l00793"></a>00793                 <span class="keywordflow">if</span> (loadedDisk-&gt;Write_AbsoluteSector(ssect++,data) != 0)
+<a name="l00794"></a>00794                     <span class="keywordflow">return</span> 0x05;
 <a name="l00795"></a>00795 
-<a name="l00796"></a>00796 Bit32u fatDrive::getSectSize(<span class="keywordtype">void</span>) {
-<a name="l00797"></a>00797     <span class="keywordflow">return</span> sector_size;
-<a name="l00798"></a>00798 }
-<a name="l00799"></a>00799 
-<a name="l00800"></a>00800 <span class="keywordtype">void</span> fatDrive::fatDriveInit(<span class="keyword">const</span> <span class="keywordtype">char</span> *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize) {
-<a name="l00801"></a>00801         Bit32u startSector;
-<a name="l00802"></a>00802         <span class="keywordtype">bool</span> pc98_512_to_1024_allow = <span class="keyword">false</span>;
-<a name="l00803"></a>00803         <span class="keyword">struct </span><a class="code" href="structpartTable.html">partTable</a> mbrData;
-<a name="l00804"></a>00804 
-<a name="l00805"></a>00805         <span class="keywordflow">if</span>(!loadedDisk) {
-<a name="l00806"></a>00806                 created_successfully = <span class="keyword">false</span>;
-<a name="l00807"></a>00807                 <span class="keywordflow">return</span>;
-<a name="l00808"></a>00808         }
+<a name="l00796"></a>00796                 data = (<span class="keywordtype">void</span>*)((<span class="keywordtype">char</span>*)data + lsz);
+<a name="l00797"></a>00797             }
+<a name="l00798"></a>00798 
+<a name="l00799"></a>00799             <span class="keywordflow">return</span> 0;
+<a name="l00800"></a>00800         }
+<a name="l00801"></a>00801     }
+<a name="l00802"></a>00802 
+<a name="l00803"></a>00803     <span class="keywordflow">return</span> 0x05;
+<a name="l00804"></a>00804 }
+<a name="l00805"></a>00805 
+<a name="l00806"></a>00806 Bit32u fatDrive::getSectSize(<span class="keywordtype">void</span>) {
+<a name="l00807"></a>00807     <span class="keywordflow">return</span> sector_size;
+<a name="l00808"></a>00808 }
 <a name="l00809"></a>00809 
-<a name="l00810"></a>00810         loadedDisk-&gt;Addref();
-<a name="l00811"></a>00811 
-<a name="l00812"></a>00812     <span class="keywordflow">if</span> (loadedDisk-&gt;getSectSize() &gt; <span class="keyword">sizeof</span>(bootbuffer)) {
-<a name="l00813"></a>00813         LOG_MSG(<span class="stringliteral">&quot;Disk sector/bytes (%u) is too large, not attempting FAT filesystem access&quot;</span>,loadedDisk-&gt;getSectSize());
-<a name="l00814"></a>00814                 created_successfully = <span class="keyword">false</span>;
-<a name="l00815"></a>00815         <span class="keywordflow">return</span>;
-<a name="l00816"></a>00816     }
-<a name="l00817"></a>00817 
-<a name="l00818"></a>00818         <span class="keywordflow">if</span>(filesize &gt; 2880) {
-<a name="l00819"></a>00819                 <span class="comment">/* Set user specified harddrive parameters */</span>
-<a name="l00820"></a>00820         <span class="keywordflow">if</span> (headscyl &gt; 0 &amp;&amp; cylinders &gt; 0 &amp;&amp; cylsector &gt; 0 &amp;&amp; bytesector &gt; 0)
-<a name="l00821"></a>00821                 loadedDisk-&gt;Set_Geometry(headscyl, cylinders,cylsector, bytesector);
-<a name="l00822"></a>00822 
-<a name="l00823"></a>00823         <span class="keywordflow">if</span> (loadedDisk-&gt;heads == 0 || loadedDisk-&gt;sectors == 0 || loadedDisk-&gt;cylinders == 0) {
-<a name="l00824"></a>00824             created_successfully = <span class="keyword">false</span>;
-<a name="l00825"></a>00825             LOG_MSG(<span class="stringliteral">&quot;No geometry&quot;</span>);
-<a name="l00826"></a>00826             <span class="keywordflow">return</span>;
-<a name="l00827"></a>00827         }
-<a name="l00828"></a>00828 
-<a name="l00829"></a>00829                 loadedDisk-&gt;Read_Sector(0,0,1,&amp;mbrData);
-<a name="l00830"></a>00830 
-<a name="l00831"></a>00831                 <span class="keywordflow">if</span>(mbrData.magic1!= 0x55 ||     mbrData.magic2!= 0xaa) LOG_MSG(<span class="stringliteral">&quot;Possibly invalid partition table in disk image.&quot;</span>);
-<a name="l00832"></a>00832 
-<a name="l00833"></a>00833         startSector = 63;
-<a name="l00834"></a>00834 
-<a name="l00835"></a>00835         <span class="comment">/* PC-98 bootloader support.</span>
-<a name="l00836"></a>00836 <span class="comment">         * These can be identified by the &quot;IPL1&quot; in the boot sector.</span>
-<a name="l00837"></a>00837 <span class="comment">         * These boot sectors do not have a valid partition table though the code below might</span>
-<a name="l00838"></a>00838 <span class="comment">         * pick up a false partition #3 with a zero offset. Partition table is in sector 1 */</span>
-<a name="l00839"></a>00839         <span class="keywordflow">if</span> (!memcmp(mbrData.booter+4,<span class="stringliteral">&quot;IPL1&quot;</span>,4)) {
-<a name="l00840"></a>00840             <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> ipltable[SECTOR_SIZE_MAX];
-<a name="l00841"></a>00841             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> max_entries = (std::min)(16UL,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)(loadedDisk-&gt;getSectSize() / <span class="keyword">sizeof</span>(<a class="code" href="struct__PC98RawPartition.html">_PC98RawPartition</a>)));
-<a name="l00842"></a>00842             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
-<a name="l00843"></a>00843 
-<a name="l00844"></a>00844             LOG_MSG(<span class="stringliteral">&quot;PC-98 IPL1 signature detected&quot;</span>);
-<a name="l00845"></a>00845 
-<a name="l00846"></a>00846             assert(<span class="keyword">sizeof</span>(<a class="code" href="struct__PC98RawPartition.html">_PC98RawPartition</a>) == 32);
-<a name="l00847"></a>00847 
-<a name="l00848"></a>00848             memset(ipltable,0,<span class="keyword">sizeof</span>(ipltable));
-<a name="l00849"></a>00849             loadedDisk-&gt;Read_Sector(0,0,2,ipltable);
-<a name="l00850"></a>00850 
-<a name="l00851"></a>00851             <span class="keywordflow">for</span> (i=0;i &lt; max_entries;i++) {
-<a name="l00852"></a>00852                 <a class="code" href="struct__PC98RawPartition.html">_PC98RawPartition</a> *pe = (<a class="code" href="struct__PC98RawPartition.html">_PC98RawPartition</a>*)(ipltable+(i * 32));
-<a name="l00853"></a>00853 
-<a name="l00854"></a>00854                 <span class="keywordflow">if</span> (pe-&gt;mid == 0 &amp;&amp; pe-&gt;sid == 0 &amp;&amp;
-<a name="l00855"></a>00855                     pe-&gt;ipl_sect == 0 &amp;&amp; pe-&gt;ipl_head == 0 &amp;&amp; pe-&gt;ipl_cyl == 0 &amp;&amp;
-<a name="l00856"></a>00856                     pe-&gt;sector == 0 &amp;&amp; pe-&gt;head == 0 &amp;&amp; pe-&gt;cyl == 0 &amp;&amp;
-<a name="l00857"></a>00857                     pe-&gt;end_sector == 0 &amp;&amp; pe-&gt;end_head == 0 &amp;&amp; pe-&gt;end_cyl == 0)
-<a name="l00858"></a>00858                     <span class="keywordflow">continue</span>; <span class="comment">/* unused */</span>
-<a name="l00859"></a>00859 
-<a name="l00860"></a>00860                 <span class="comment">/* We&#39;re looking for MS-DOS partitions.</span>
-<a name="l00861"></a>00861 <span class="comment">                 * I&#39;ve heard that some other OSes were once ported to PC-98, including Windows NT and OS/2,</span>
-<a name="l00862"></a>00862 <span class="comment">                 * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.</span>
-<a name="l00863"></a>00863 <span class="comment">                 * FIXME: Is there a better way? */</span>
-<a name="l00864"></a>00864                 <span class="keywordflow">if</span> (!strncasecmp(pe-&gt;name,<span class="stringliteral">&quot;MS-DOS&quot;</span>,6) ||
-<a name="l00865"></a>00865                     !strncasecmp(pe-&gt;name,<span class="stringliteral">&quot;MSDOS&quot;</span>,5) ||
-<a name="l00866"></a>00866                     !strncasecmp(pe-&gt;name,<span class="stringliteral">&quot;Windows&quot;</span>,7)) {
-<a name="l00867"></a>00867                     <span class="comment">/* unfortunately start and end are in C/H/S geometry, so we have to translate.</span>
-<a name="l00868"></a>00868 <span class="comment">                     * this is why it matters so much to read the geometry from the HDI header.</span>
-<a name="l00869"></a>00869 <span class="comment">                     *</span>
-<a name="l00870"></a>00870 <span class="comment">                     * NOTE: C/H/S values in the IPL1 table are similar to IBM PC except that sectors are counted from 0, not 1 */</span>
-<a name="l00871"></a>00871                     startSector =
-<a name="l00872"></a>00872                         (pe-&gt;cyl * loadedDisk-&gt;sectors * loadedDisk-&gt;heads) +
-<a name="l00873"></a>00873                         (pe-&gt;head * loadedDisk-&gt;sectors) +
-<a name="l00874"></a>00874                          pe-&gt;sector;
-<a name="l00875"></a>00875 
-<a name="l00876"></a>00876                     <span class="comment">/* Many HDI images I&#39;ve encountered so far indicate 512 bytes/sector,</span>
-<a name="l00877"></a>00877 <span class="comment">                     * but then the FAT filesystem itself indicates 1024 bytes per sector. */</span>
-<a name="l00878"></a>00878                     pc98_512_to_1024_allow = <span class="keyword">true</span>;
-<a name="l00879"></a>00879 
-<a name="l00880"></a>00880                     {
-<a name="l00881"></a>00881                         <span class="comment">/* FIXME: What if the label contains SHIFT-JIS? */</span>
-<a name="l00882"></a>00882                         std::string name = std::string(pe-&gt;name,<span class="keyword">sizeof</span>(pe-&gt;name));
-<a name="l00883"></a>00883 
-<a name="l00884"></a>00884                         LOG_MSG(<span class="stringliteral">&quot;Using IPL1 entry %u name &#39;%s&#39; which starts at sector %lu&quot;</span>,
-<a name="l00885"></a>00885                             i,name.c_str(),(<span class="keywordtype">unsigned</span> long)startSector);
-<a name="l00886"></a>00886                         <span class="keywordflow">break</span>;
-<a name="l00887"></a>00887                     }
-<a name="l00888"></a>00888                 }
-<a name="l00889"></a>00889             }
-<a name="l00890"></a>00890 
-<a name="l00891"></a>00891             <span class="keywordflow">if</span> (i == max_entries)
-<a name="l00892"></a>00892                 LOG_MSG(<span class="stringliteral">&quot;No partitions found in the IPL1 table&quot;</span>);
-<a name="l00893"></a>00893         }
-<a name="l00894"></a>00894         <span class="keywordflow">else</span> {
-<a name="l00895"></a>00895             <span class="comment">/* IBM PC master boot record search */</span>
-<a name="l00896"></a>00896             <span class="keywordtype">int</span> m;
-<a name="l00897"></a>00897             <span class="keywordflow">for</span>(m=0;m&lt;4;m++) {
-<a name="l00898"></a>00898                 <span class="comment">/* Pick the first available partition */</span>
-<a name="l00899"></a>00899                 <span class="keywordflow">if</span>(mbrData.pentry[m].partSize != 0x00 &amp;&amp;
-<a name="l00900"></a>00900                         (mbrData.pentry[m].parttype == 0x01 || mbrData.pentry[m].parttype == 0x04 ||
-<a name="l00901"></a>00901                          mbrData.pentry[m].parttype == 0x06 || mbrData.pentry[m].parttype == 0x0B ||
-<a name="l00902"></a>00902                          mbrData.pentry[m].parttype == 0x0C || mbrData.pentry[m].parttype == 0x0D ||
-<a name="l00903"></a>00903                          mbrData.pentry[m].parttype == 0x0E || mbrData.pentry[m].parttype == 0x0F)) {
-<a name="l00904"></a>00904                     LOG_MSG(<span class="stringliteral">&quot;Using partition %d on drive (type 0x%02x); skipping %d sectors&quot;</span>, m, mbrData.pentry[m].parttype, mbrData.pentry[m].absSectStart);
-<a name="l00905"></a>00905                     startSector = mbrData.pentry[m].absSectStart;
-<a name="l00906"></a>00906                     <span class="keywordflow">break</span>;
-<a name="l00907"></a>00907                 }
-<a name="l00908"></a>00908             }
+<a name="l00810"></a>00810 <span class="keywordtype">void</span> fatDrive::fatDriveInit(<span class="keyword">const</span> <span class="keywordtype">char</span> *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, std::vector&lt;std::string&gt; &amp;options) {
+<a name="l00811"></a>00811         Bit32u startSector;
+<a name="l00812"></a>00812         <span class="keywordtype">bool</span> pc98_512_to_1024_allow = <span class="keyword">false</span>;
+<a name="l00813"></a>00813     <span class="keywordtype">int</span> opt_partition_index = -1;
+<a name="l00814"></a>00814         <span class="keyword">struct </span><a class="code" href="structpartTable.html">partTable</a> mbrData;
+<a name="l00815"></a>00815 
+<a name="l00816"></a>00816         <span class="keywordflow">if</span>(!loadedDisk) {
+<a name="l00817"></a>00817                 created_successfully = <span class="keyword">false</span>;
+<a name="l00818"></a>00818                 <span class="keywordflow">return</span>;
+<a name="l00819"></a>00819         }
+<a name="l00820"></a>00820 
+<a name="l00821"></a>00821     <span class="keywordflow">for</span> (<span class="keyword">const</span> <span class="keyword">auto</span> &amp;opt : options) {
+<a name="l00822"></a>00822         <span class="keywordtype">size_t</span> equ = opt.find_first_of(<span class="charliteral">&#39;=&#39;</span>);
+<a name="l00823"></a>00823         std::string name,value;
+<a name="l00824"></a>00824 
+<a name="l00825"></a>00825         <span class="keywordflow">if</span> (equ != std::string::npos) {
+<a name="l00826"></a>00826             name = opt.substr(0,equ);
+<a name="l00827"></a>00827             value = opt.substr(equ+1);
+<a name="l00828"></a>00828         }
+<a name="l00829"></a>00829         <span class="keywordflow">else</span> {
+<a name="l00830"></a>00830             name = opt;
+<a name="l00831"></a>00831             value.clear();
+<a name="l00832"></a>00832         }
+<a name="l00833"></a>00833 
+<a name="l00834"></a>00834         <span class="keywordflow">if</span> (name == <span class="stringliteral">&quot;partidx&quot;</span>) {
+<a name="l00835"></a>00835             <span class="keywordflow">if</span> (!value.empty())
+<a name="l00836"></a>00836                 opt_partition_index = (<span class="keywordtype">int</span>)atol(value.c_str());
+<a name="l00837"></a>00837         }
+<a name="l00838"></a>00838         <span class="keywordflow">else</span> {
+<a name="l00839"></a>00839             <a class="code" href="classLOG.html">LOG</a>(LOG_MISC,LOG_DEBUG)(<span class="stringliteral">&quot;FAT: option &#39;%s&#39; = &#39;%s&#39; ignored, unknown&quot;</span>,name.c_str(),value.c_str());
+<a name="l00840"></a>00840         }
+<a name="l00841"></a>00841 
+<a name="l00842"></a>00842 <span class="comment">//        LOG_MSG(&quot;&#39;%s&#39; = &#39;%s&#39;&quot;,name.c_str(),value.c_str());</span>
+<a name="l00843"></a>00843     }
+<a name="l00844"></a>00844 
+<a name="l00845"></a>00845         loadedDisk-&gt;Addref();
+<a name="l00846"></a>00846 
+<a name="l00847"></a>00847     <span class="keywordflow">if</span> (loadedDisk-&gt;getSectSize() &gt; <span class="keyword">sizeof</span>(bootbuffer)) {
+<a name="l00848"></a>00848         LOG_MSG(<span class="stringliteral">&quot;Disk sector/bytes (%u) is too large, not attempting FAT filesystem access&quot;</span>,loadedDisk-&gt;getSectSize());
+<a name="l00849"></a>00849                 created_successfully = <span class="keyword">false</span>;
+<a name="l00850"></a>00850         <span class="keywordflow">return</span>;
+<a name="l00851"></a>00851     }
+<a name="l00852"></a>00852 
+<a name="l00853"></a>00853         <span class="keywordflow">if</span>(filesize &gt; 2880) {
+<a name="l00854"></a>00854                 <span class="comment">/* Set user specified harddrive parameters */</span>
+<a name="l00855"></a>00855         <span class="keywordflow">if</span> (headscyl &gt; 0 &amp;&amp; cylinders &gt; 0 &amp;&amp; cylsector &gt; 0 &amp;&amp; bytesector &gt; 0)
+<a name="l00856"></a>00856                 loadedDisk-&gt;Set_Geometry(headscyl, cylinders,cylsector, bytesector);
+<a name="l00857"></a>00857 
+<a name="l00858"></a>00858         <span class="keywordflow">if</span> (loadedDisk-&gt;heads == 0 || loadedDisk-&gt;sectors == 0 || loadedDisk-&gt;cylinders == 0) {
+<a name="l00859"></a>00859             created_successfully = <span class="keyword">false</span>;
+<a name="l00860"></a>00860             LOG_MSG(<span class="stringliteral">&quot;No geometry&quot;</span>);
+<a name="l00861"></a>00861             <span class="keywordflow">return</span>;
+<a name="l00862"></a>00862         }
+<a name="l00863"></a>00863 
+<a name="l00864"></a>00864                 loadedDisk-&gt;Read_Sector(0,0,1,&amp;mbrData);
+<a name="l00865"></a>00865 
+<a name="l00866"></a>00866                 <span class="keywordflow">if</span>(mbrData.magic1!= 0x55 ||     mbrData.magic2!= 0xaa) LOG_MSG(<span class="stringliteral">&quot;Possibly invalid partition table in disk image.&quot;</span>);
+<a name="l00867"></a>00867 
+<a name="l00868"></a>00868         startSector = 63;
+<a name="l00869"></a>00869 
+<a name="l00870"></a>00870         <span class="comment">/* PC-98 bootloader support.</span>
+<a name="l00871"></a>00871 <span class="comment">         * These can be identified by the &quot;IPL1&quot; in the boot sector.</span>
+<a name="l00872"></a>00872 <span class="comment">         * These boot sectors do not have a valid partition table though the code below might</span>
+<a name="l00873"></a>00873 <span class="comment">         * pick up a false partition #3 with a zero offset. Partition table is in sector 1 */</span>
+<a name="l00874"></a>00874         <span class="keywordflow">if</span> (!memcmp(mbrData.booter+4,<span class="stringliteral">&quot;IPL1&quot;</span>,4)) {
+<a name="l00875"></a>00875             <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> ipltable[SECTOR_SIZE_MAX];
+<a name="l00876"></a>00876             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> max_entries = (std::min)(16UL,(<span class="keywordtype">unsigned</span> <span class="keywordtype">long</span>)(loadedDisk-&gt;getSectSize() / <span class="keyword">sizeof</span>(<a class="code" href="struct__PC98RawPartition.html">_PC98RawPartition</a>)));
+<a name="l00877"></a>00877             <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l00878"></a>00878 
+<a name="l00879"></a>00879             LOG_MSG(<span class="stringliteral">&quot;PC-98 IPL1 signature detected&quot;</span>);
+<a name="l00880"></a>00880 
+<a name="l00881"></a>00881             assert(<span class="keyword">sizeof</span>(<a class="code" href="struct__PC98RawPartition.html">_PC98RawPartition</a>) == 32);
+<a name="l00882"></a>00882 
+<a name="l00883"></a>00883             memset(ipltable,0,<span class="keyword">sizeof</span>(ipltable));
+<a name="l00884"></a>00884             loadedDisk-&gt;Read_Sector(0,0,2,ipltable);
+<a name="l00885"></a>00885 
+<a name="l00886"></a>00886             <span class="keywordflow">if</span> (opt_partition_index &gt;= 0) {
+<a name="l00887"></a>00887                 <span class="comment">/* user knows best! */</span>
+<a name="l00888"></a>00888                 <span class="keywordflow">if</span> ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)opt_partition_index &gt;= max_entries) {
+<a name="l00889"></a>00889                     LOG_MSG(<span class="stringliteral">&quot;Partition index out of range&quot;</span>);
+<a name="l00890"></a>00890                     created_successfully = <span class="keyword">false</span>;
+<a name="l00891"></a>00891                     <span class="keywordflow">return</span>;
+<a name="l00892"></a>00892                 }
+<a name="l00893"></a>00893 
+<a name="l00894"></a>00894                 i = opt_partition_index;
+<a name="l00895"></a>00895                 <a class="code" href="struct__PC98RawPartition.html">_PC98RawPartition</a> *pe = (<a class="code" href="struct__PC98RawPartition.html">_PC98RawPartition</a>*)(ipltable+(i * 32));
+<a name="l00896"></a>00896 
+<a name="l00897"></a>00897                 <span class="comment">/* unfortunately start and end are in C/H/S geometry, so we have to translate.</span>
+<a name="l00898"></a>00898 <span class="comment">                 * this is why it matters so much to read the geometry from the HDI header.</span>
+<a name="l00899"></a>00899 <span class="comment">                 *</span>
+<a name="l00900"></a>00900 <span class="comment">                 * NOTE: C/H/S values in the IPL1 table are similar to IBM PC except that sectors are counted from 0, not 1 */</span>
+<a name="l00901"></a>00901                 startSector =
+<a name="l00902"></a>00902                     (pe-&gt;cyl * loadedDisk-&gt;sectors * loadedDisk-&gt;heads) +
+<a name="l00903"></a>00903                     (pe-&gt;head * loadedDisk-&gt;sectors) +
+<a name="l00904"></a>00904                     pe-&gt;sector;
+<a name="l00905"></a>00905 
+<a name="l00906"></a>00906                 <span class="comment">/* Many HDI images I&#39;ve encountered so far indicate 512 bytes/sector,</span>
+<a name="l00907"></a>00907 <span class="comment">                 * but then the FAT filesystem itself indicates 1024 bytes per sector. */</span>
+<a name="l00908"></a>00908                 pc98_512_to_1024_allow = <span class="keyword">true</span>;
 <a name="l00909"></a>00909 
-<a name="l00910"></a>00910             <span class="keywordflow">if</span>(m==4) LOG_MSG(<span class="stringliteral">&quot;No good partiton found in image.&quot;</span>);
-<a name="l00911"></a>00911         }
-<a name="l00912"></a>00912 
-<a name="l00913"></a>00913                 partSectOff = startSector;
-<a name="l00914"></a>00914         } <span class="keywordflow">else</span> {
-<a name="l00915"></a>00915                 <span class="comment">/* Floppy disks don&#39;t have partitions */</span>
-<a name="l00916"></a>00916                 partSectOff = 0;
-<a name="l00917"></a>00917 
-<a name="l00918"></a>00918         <span class="keywordflow">if</span> (loadedDisk-&gt;heads == 0 || loadedDisk-&gt;sectors == 0 || loadedDisk-&gt;cylinders == 0) {
-<a name="l00919"></a>00919             created_successfully = <span class="keyword">false</span>;
-<a name="l00920"></a>00920             LOG_MSG(<span class="stringliteral">&quot;No geometry&quot;</span>);
-<a name="l00921"></a>00921             <span class="keywordflow">return</span>;
-<a name="l00922"></a>00922         }
-<a name="l00923"></a>00923         }
-<a name="l00924"></a>00924 
-<a name="l00925"></a>00925         loadedDisk-&gt;Read_AbsoluteSector(0+partSectOff,&amp;bootbuffer);
-<a name="l00926"></a>00926 
-<a name="l00927"></a>00927         <span class="comment">/* Check for DOS 1.x format floppy */</span>
-<a name="l00928"></a>00928         <span class="keywordflow">if</span> ((bootbuffer.mediadescriptor &amp; 0xf0) != 0xf0 &amp;&amp; filesize &lt;= 360 &amp;&amp; loadedDisk-&gt;getSectSize() == 512) {
-<a name="l00929"></a>00929 
-<a name="l00930"></a>00930                 Bit8u sectorBuffer[512];
-<a name="l00931"></a>00931                 loadedDisk-&gt;Read_AbsoluteSector(1,&amp;sectorBuffer);
-<a name="l00932"></a>00932                 Bit8u mdesc = sectorBuffer[0];
-<a name="l00933"></a>00933 
-<a name="l00934"></a>00934                 <span class="comment">/* Allowed if media descriptor in FAT matches image size  */</span>
-<a name="l00935"></a>00935                 <span class="keywordflow">if</span> ((mdesc == 0xfc &amp;&amp; filesize == 180) ||
-<a name="l00936"></a>00936                         (mdesc == 0xfd &amp;&amp; filesize == 360) ||
-<a name="l00937"></a>00937                         (mdesc == 0xfe &amp;&amp; filesize == 160) ||
-<a name="l00938"></a>00938                         (mdesc == 0xff &amp;&amp; filesize == 320)) {
-<a name="l00939"></a>00939 
-<a name="l00940"></a>00940                         <span class="comment">/* Create parameters for a 160kB floppy */</span>
-<a name="l00941"></a>00941                         bootbuffer.bytespersector = 512;
-<a name="l00942"></a>00942                         bootbuffer.sectorspercluster = 1;
-<a name="l00943"></a>00943                         bootbuffer.reservedsectors = 1;
-<a name="l00944"></a>00944                         bootbuffer.fatcopies = 2;
-<a name="l00945"></a>00945                         bootbuffer.rootdirentries = 64;
-<a name="l00946"></a>00946                         bootbuffer.totalsectorcount = 320;
-<a name="l00947"></a>00947                         bootbuffer.mediadescriptor = mdesc;
-<a name="l00948"></a>00948                         bootbuffer.sectorsperfat = 1;
-<a name="l00949"></a>00949                         bootbuffer.sectorspertrack = 8;
-<a name="l00950"></a>00950                         bootbuffer.headcount = 1;
-<a name="l00951"></a>00951                         bootbuffer.magic1 = 0x55;       <span class="comment">// to silence warning</span>
-<a name="l00952"></a>00952                         bootbuffer.magic2 = 0xaa;
-<a name="l00953"></a>00953                         <span class="keywordflow">if</span> (!(mdesc &amp; 0x2)) {
-<a name="l00954"></a>00954                                 <span class="comment">/* Adjust for 9 sectors per track */</span>
-<a name="l00955"></a>00955                                 bootbuffer.totalsectorcount = 360;
-<a name="l00956"></a>00956                                 bootbuffer.sectorsperfat = 2;
-<a name="l00957"></a>00957                                 bootbuffer.sectorspertrack = 9;
-<a name="l00958"></a>00958                         }
-<a name="l00959"></a>00959                         <span class="keywordflow">if</span> (mdesc &amp; 0x1) {
-<a name="l00960"></a>00960                                 <span class="comment">/* Adjust for 2 sides */</span>
-<a name="l00961"></a>00961                                 bootbuffer.sectorspercluster = 2;
-<a name="l00962"></a>00962                                 bootbuffer.rootdirentries = 112;
-<a name="l00963"></a>00963                                 bootbuffer.totalsectorcount *= 2;
-<a name="l00964"></a>00964                                 bootbuffer.headcount = 2;
-<a name="l00965"></a>00965                         }
-<a name="l00966"></a>00966                 }
-<a name="l00967"></a>00967         }
-<a name="l00968"></a>00968 
-<a name="l00969"></a>00969     LOG_MSG(<span class="stringliteral">&quot;FAT: BPB says %u sectors/track %u heads %u bytes/sector&quot;</span>,
-<a name="l00970"></a>00970         bootbuffer.sectorspertrack,
-<a name="l00971"></a>00971         bootbuffer.headcount,
-<a name="l00972"></a>00972         bootbuffer.bytespersector);
-<a name="l00973"></a>00973 
-<a name="l00974"></a>00974     <span class="comment">/* NTS: Some HDI images of PC-98 games do in fact have headcount == 0 */</span>
-<a name="l00975"></a>00975     <span class="comment">/* a clue that we&#39;re not really looking at FAT is invalid or weird values in the boot sector */</span>
-<a name="l00976"></a>00976     <span class="keywordflow">if</span> (bootbuffer.sectorspertrack == 0 || (bootbuffer.sectorspertrack &gt; ((filesize &lt;= 3000) ? 40 : 255)) ||
-<a name="l00977"></a>00977         (bootbuffer.headcount &gt; ((filesize &lt;= 3000) ? 64 : 255))) {
-<a name="l00978"></a>00978         LOG_MSG(<span class="stringliteral">&quot;Rejecting image, boot sector has weird values not consistent with FAT filesystem&quot;</span>);
-<a name="l00979"></a>00979                 created_successfully = <span class="keyword">false</span>;
-<a name="l00980"></a>00980         <span class="keywordflow">return</span>;
-<a name="l00981"></a>00981     }
-<a name="l00982"></a>00982 
-<a name="l00983"></a>00983     <span class="comment">/* work at this point in logical sectors */</span>
-<a name="l00984"></a>00984         sector_size = loadedDisk-&gt;getSectSize();
-<a name="l00985"></a>00985 
-<a name="l00986"></a>00986     <span class="comment">/* Many HDI images indicate a disk format of 256 or 512 bytes per sector combined with a FAT filesystem</span>
-<a name="l00987"></a>00987 <span class="comment">     * that indicates 1024 bytes per sector. */</span>
-<a name="l00988"></a>00988     <span class="keywordflow">if</span> (pc98_512_to_1024_allow &amp;&amp;
-<a name="l00989"></a>00989          bootbuffer.bytespersector != getSectSize() &amp;&amp;
-<a name="l00990"></a>00990         (bootbuffer.bytespersector == 1024 || bootbuffer.bytespersector == 512) &amp;&amp;
-<a name="l00991"></a>00991         (getSectSize() == 512 || getSectSize() == 256)) {
-<a name="l00992"></a>00992         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> ratio = (<span class="keywordtype">unsigned</span> int)(bootbuffer.bytespersector / getSectSize());
-<a name="l00993"></a>00993         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> ratiof = (<span class="keywordtype">unsigned</span> int)(bootbuffer.bytespersector % getSectSize());
-<a name="l00994"></a>00994         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> ratioshift = (ratio == 4) ? 2 : 1;
-<a name="l00995"></a>00995 
-<a name="l00996"></a>00996         LOG_MSG(<span class="stringliteral">&quot;Disk indicates %u bytes/sector, FAT filesystem indicates %u bytes/sector. Ratio=%u shift=%u&quot;</span>,
-<a name="l00997"></a>00997             getSectSize(),bootbuffer.bytespersector,ratio,ratioshift);
-<a name="l00998"></a>00998         assert(ratiof == 0);
-<a name="l00999"></a>00999         assert((ratio &amp; (ratio - 1)) == 0); <span class="comment">/* power of 2 */</span>
-<a name="l01000"></a>01000         assert(ratio &gt;= 2);
-<a name="l01001"></a>01001         assert(ratio &lt;= 4);
-<a name="l01002"></a>01002 
-<a name="l01003"></a>01003         <span class="comment">/* we can hack things in place IF the starting sector is an even number */</span>
-<a name="l01004"></a>01004         <span class="keywordflow">if</span> ((partSectOff &amp; (ratio - 1)) == 0) {
-<a name="l01005"></a>01005             partSectOff &gt;&gt;= ratioshift;
-<a name="l01006"></a>01006             startSector &gt;&gt;= ratioshift;
-<a name="l01007"></a>01007             sector_size = bootbuffer.bytespersector;
-<a name="l01008"></a>01008             LOG_MSG(<span class="stringliteral">&quot;Using logical sector size %u&quot;</span>,sector_size);
-<a name="l01009"></a>01009         }
-<a name="l01010"></a>01010         <span class="keywordflow">else</span> {
-<a name="l01011"></a>01011             LOG_MSG(<span class="stringliteral">&quot;However there&#39;s nothing I can do, because the partition starts on an odd sector&quot;</span>);
-<a name="l01012"></a>01012         }
-<a name="l01013"></a>01013     }
-<a name="l01014"></a>01014 
-<a name="l01015"></a>01015     <span class="comment">/* NTS: PC-98 floppies (the 1024 byte/sector format) do not have magic bytes */</span>
-<a name="l01016"></a>01016     <span class="keywordflow">if</span> (getSectSize() == 512 &amp;&amp; !IS_PC98_ARCH) {
-<a name="l01017"></a>01017         <span class="keywordflow">if</span> ((bootbuffer.magic1 != 0x55) || (bootbuffer.magic2 != 0xaa)) {
-<a name="l01018"></a>01018             <span class="comment">/* Not a FAT filesystem */</span>
-<a name="l01019"></a>01019             LOG_MSG(<span class="stringliteral">&quot;Loaded image has no valid magicnumbers at the end!&quot;</span>);
-<a name="l01020"></a>01020             created_successfully = <span class="keyword">false</span>;
-<a name="l01021"></a>01021             <span class="keywordflow">return</span>;
-<a name="l01022"></a>01022         }
-<a name="l01023"></a>01023     }
-<a name="l01024"></a>01024 
-<a name="l01025"></a>01025         <span class="keywordflow">if</span>(!bootbuffer.sectorsperfat) {
-<a name="l01026"></a>01026                 <span class="comment">/* FAT32 not implemented yet */</span>
-<a name="l01027"></a>01027                 LOG_MSG(<span class="stringliteral">&quot;FAT32 not implemented yet, mounting image only&quot;</span>);
-<a name="l01028"></a>01028                 fattype = FAT32;        <span class="comment">// Avoid parsing dir entries, see fatDrive::FindFirst()...should work for unformatted images as well</span>
-<a name="l01029"></a>01029                 created_successfully = <span class="keyword">false</span>;
-<a name="l01030"></a>01030                 <span class="keywordflow">return</span>;
-<a name="l01031"></a>01031         }
-<a name="l01032"></a>01032 
-<a name="l01033"></a>01033     <span class="comment">/* too much of this code assumes 512 bytes per sector or more.</span>
-<a name="l01034"></a>01034 <span class="comment">     * MS-DOS itself as I understand it relies on bytes per sector being a power of 2.</span>
-<a name="l01035"></a>01035 <span class="comment">     * this is to protect against errant FAT structures and to help prep this code</span>
-<a name="l01036"></a>01036 <span class="comment">     * later to work with the 1024 bytes/sector used by PC-98 floppy formats.</span>
-<a name="l01037"></a>01037 <span class="comment">     * When done, this code should be able to then handle the FDI/FDD images</span>
-<a name="l01038"></a>01038 <span class="comment">     * PC-98 games are normally distributed in on the internet.</span>
-<a name="l01039"></a>01039 <span class="comment">     *</span>
-<a name="l01040"></a>01040 <span class="comment">     * The value &quot;128&quot; comes from the smallest sector size possible on the floppy</span>
-<a name="l01041"></a>01041 <span class="comment">     * controller of MS-DOS based systems. */</span>
-<a name="l01042"></a>01042     <span class="comment">/* NTS: Power of 2 test: A number is a power of 2 if (x &amp; (x - 1)) == 0</span>
-<a name="l01043"></a>01043 <span class="comment">     *</span>
-<a name="l01044"></a>01044 <span class="comment">     * 15        15 &amp; 14       01111 AND 01110     RESULT: 01110 (15)</span>
-<a name="l01045"></a>01045 <span class="comment">     * 16        16 &amp; 15       10000 AND 01111     RESULT: 00000 (0)</span>
-<a name="l01046"></a>01046 <span class="comment">     * 17        17 &amp; 16       10001 AND 10000     RESULT: 10000 (16) */</span>
-<a name="l01047"></a>01047     <span class="keywordflow">if</span> (bootbuffer.bytespersector &lt; 128 || bootbuffer.bytespersector &gt; <span class="keyword">sizeof</span>(bootbuffer) ||
-<a name="l01048"></a>01048         (bootbuffer.bytespersector &amp; (bootbuffer.bytespersector - 1)) != 0<span class="comment">/*not a power of 2*/</span>) {
-<a name="l01049"></a>01049         LOG_MSG(<span class="stringliteral">&quot;FAT bytes/sector value %u not supported&quot;</span>,bootbuffer.bytespersector);
-<a name="l01050"></a>01050                 created_successfully = <span class="keyword">false</span>;
-<a name="l01051"></a>01051         <span class="keywordflow">return</span>;
-<a name="l01052"></a>01052     }
-<a name="l01053"></a>01053 
-<a name="l01054"></a>01054     <span class="comment">/* another fault of this code is that it assumes the sector size of the medium matches</span>
-<a name="l01055"></a>01055 <span class="comment">     * the bytespersector value of the MS-DOS filesystem. if they don&#39;t match, problems</span>
-<a name="l01056"></a>01056 <span class="comment">     * will result. */</span>
-<a name="l01057"></a>01057     <span class="keywordflow">if</span> (bootbuffer.bytespersector != getSectSize()) {
-<a name="l01058"></a>01058         LOG_MSG(<span class="stringliteral">&quot;FAT bytes/sector %u does not match disk image bytes/sector %u&quot;</span>,
-<a name="l01059"></a>01059             (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)bootbuffer.bytespersector,
-<a name="l01060"></a>01060             (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)getSectSize());
+<a name="l00910"></a>00910                 {
+<a name="l00911"></a>00911                     <span class="comment">/* FIXME: What if the label contains SHIFT-JIS? */</span>
+<a name="l00912"></a>00912                     std::string name = std::string(pe-&gt;name,<span class="keyword">sizeof</span>(pe-&gt;name));
+<a name="l00913"></a>00913 
+<a name="l00914"></a>00914                     LOG_MSG(<span class="stringliteral">&quot;Using IPL1 entry %u name &#39;%s&#39; which starts at sector %lu&quot;</span>,
+<a name="l00915"></a>00915                         i,name.c_str(),(<span class="keywordtype">unsigned</span> long)startSector);
+<a name="l00916"></a>00916                 }
+<a name="l00917"></a>00917             }
+<a name="l00918"></a>00918             <span class="keywordflow">else</span> {
+<a name="l00919"></a>00919                 <span class="keywordflow">for</span> (i=0;i &lt; max_entries;i++) {
+<a name="l00920"></a>00920                     <a class="code" href="struct__PC98RawPartition.html">_PC98RawPartition</a> *pe = (<a class="code" href="struct__PC98RawPartition.html">_PC98RawPartition</a>*)(ipltable+(i * 32));
+<a name="l00921"></a>00921 
+<a name="l00922"></a>00922                     <span class="keywordflow">if</span> (pe-&gt;mid == 0 &amp;&amp; pe-&gt;sid == 0 &amp;&amp;
+<a name="l00923"></a>00923                             pe-&gt;ipl_sect == 0 &amp;&amp; pe-&gt;ipl_head == 0 &amp;&amp; pe-&gt;ipl_cyl == 0 &amp;&amp;
+<a name="l00924"></a>00924                             pe-&gt;sector == 0 &amp;&amp; pe-&gt;head == 0 &amp;&amp; pe-&gt;cyl == 0 &amp;&amp;
+<a name="l00925"></a>00925                             pe-&gt;end_sector == 0 &amp;&amp; pe-&gt;end_head == 0 &amp;&amp; pe-&gt;end_cyl == 0)
+<a name="l00926"></a>00926                         <span class="keywordflow">continue</span>; <span class="comment">/* unused */</span>
+<a name="l00927"></a>00927 
+<a name="l00928"></a>00928                     <span class="comment">/* We&#39;re looking for MS-DOS partitions.</span>
+<a name="l00929"></a>00929 <span class="comment">                     * I&#39;ve heard that some other OSes were once ported to PC-98, including Windows NT and OS/2,</span>
+<a name="l00930"></a>00930 <span class="comment">                     * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.</span>
+<a name="l00931"></a>00931 <span class="comment">                     * FIXME: Is there a better way? */</span>
+<a name="l00932"></a>00932                     <span class="keywordflow">if</span> (!strncasecmp(pe-&gt;name,<span class="stringliteral">&quot;MS-DOS&quot;</span>,6) ||
+<a name="l00933"></a>00933                         !strncasecmp(pe-&gt;name,<span class="stringliteral">&quot;MSDOS&quot;</span>,5) ||
+<a name="l00934"></a>00934                         !strncasecmp(pe-&gt;name,<span class="stringliteral">&quot;Windows&quot;</span>,7)) {
+<a name="l00935"></a>00935                         <span class="comment">/* unfortunately start and end are in C/H/S geometry, so we have to translate.</span>
+<a name="l00936"></a>00936 <span class="comment">                         * this is why it matters so much to read the geometry from the HDI header.</span>
+<a name="l00937"></a>00937 <span class="comment">                         *</span>
+<a name="l00938"></a>00938 <span class="comment">                         * NOTE: C/H/S values in the IPL1 table are similar to IBM PC except that sectors are counted from 0, not 1 */</span>
+<a name="l00939"></a>00939                         startSector =
+<a name="l00940"></a>00940                             (pe-&gt;cyl * loadedDisk-&gt;sectors * loadedDisk-&gt;heads) +
+<a name="l00941"></a>00941                             (pe-&gt;head * loadedDisk-&gt;sectors) +
+<a name="l00942"></a>00942                             pe-&gt;sector;
+<a name="l00943"></a>00943 
+<a name="l00944"></a>00944                         <span class="comment">/* Many HDI images I&#39;ve encountered so far indicate 512 bytes/sector,</span>
+<a name="l00945"></a>00945 <span class="comment">                         * but then the FAT filesystem itself indicates 1024 bytes per sector. */</span>
+<a name="l00946"></a>00946                         pc98_512_to_1024_allow = <span class="keyword">true</span>;
+<a name="l00947"></a>00947 
+<a name="l00948"></a>00948                         {
+<a name="l00949"></a>00949                             <span class="comment">/* FIXME: What if the label contains SHIFT-JIS? */</span>
+<a name="l00950"></a>00950                             std::string name = std::string(pe-&gt;name,<span class="keyword">sizeof</span>(pe-&gt;name));
+<a name="l00951"></a>00951 
+<a name="l00952"></a>00952                             LOG_MSG(<span class="stringliteral">&quot;Using IPL1 entry %u name &#39;%s&#39; which starts at sector %lu&quot;</span>,
+<a name="l00953"></a>00953                                 i,name.c_str(),(<span class="keywordtype">unsigned</span> long)startSector);
+<a name="l00954"></a>00954                             <span class="keywordflow">break</span>;
+<a name="l00955"></a>00955                         }
+<a name="l00956"></a>00956                     }
+<a name="l00957"></a>00957                 }
+<a name="l00958"></a>00958             }
+<a name="l00959"></a>00959 
+<a name="l00960"></a>00960             <span class="keywordflow">if</span> (i == max_entries)
+<a name="l00961"></a>00961                 LOG_MSG(<span class="stringliteral">&quot;No partitions found in the IPL1 table&quot;</span>);
+<a name="l00962"></a>00962         }
+<a name="l00963"></a>00963         <span class="keywordflow">else</span> {
+<a name="l00964"></a>00964             <span class="comment">/* IBM PC master boot record search */</span>
+<a name="l00965"></a>00965             <span class="keywordtype">int</span> m;
+<a name="l00966"></a>00966 
+<a name="l00967"></a>00967             <span class="keywordflow">if</span> (opt_partition_index &gt;= 0) {
+<a name="l00968"></a>00968                 <span class="comment">/* user knows best! */</span>
+<a name="l00969"></a>00969                 <span class="keywordflow">if</span> (opt_partition_index &gt;= 4) {
+<a name="l00970"></a>00970                     LOG_MSG(<span class="stringliteral">&quot;Partition index out of range&quot;</span>);
+<a name="l00971"></a>00971                     created_successfully = <span class="keyword">false</span>;
+<a name="l00972"></a>00972                     <span class="keywordflow">return</span>;
+<a name="l00973"></a>00973                 }
+<a name="l00974"></a>00974 
+<a name="l00975"></a>00975                 startSector = mbrData.pentry[m=opt_partition_index].absSectStart;
+<a name="l00976"></a>00976             }
+<a name="l00977"></a>00977             <span class="keywordflow">else</span> {
+<a name="l00978"></a>00978                 <span class="keywordflow">for</span>(m=0;m&lt;4;m++) {
+<a name="l00979"></a>00979                     <span class="comment">/* Pick the first available partition */</span>
+<a name="l00980"></a>00980                     <span class="keywordflow">if</span>(mbrData.pentry[m].partSize != 0x00 &amp;&amp;
+<a name="l00981"></a>00981                             (mbrData.pentry[m].parttype == 0x01 || mbrData.pentry[m].parttype == 0x04 ||
+<a name="l00982"></a>00982                              mbrData.pentry[m].parttype == 0x06 || mbrData.pentry[m].parttype == 0x0B ||
+<a name="l00983"></a>00983                              mbrData.pentry[m].parttype == 0x0C || mbrData.pentry[m].parttype == 0x0D ||
+<a name="l00984"></a>00984                              mbrData.pentry[m].parttype == 0x0E || mbrData.pentry[m].parttype == 0x0F)) {
+<a name="l00985"></a>00985                         LOG_MSG(<span class="stringliteral">&quot;Using partition %d on drive (type 0x%02x); skipping %d sectors&quot;</span>, m, mbrData.pentry[m].parttype, mbrData.pentry[m].absSectStart);
+<a name="l00986"></a>00986                         startSector = mbrData.pentry[m].absSectStart;
+<a name="l00987"></a>00987                         <span class="keywordflow">break</span>;
+<a name="l00988"></a>00988                     }
+<a name="l00989"></a>00989                 }
+<a name="l00990"></a>00990             }
+<a name="l00991"></a>00991 
+<a name="l00992"></a>00992             <span class="keywordflow">if</span>(m==4) LOG_MSG(<span class="stringliteral">&quot;No good partiton found in image.&quot;</span>);
+<a name="l00993"></a>00993         }
+<a name="l00994"></a>00994 
+<a name="l00995"></a>00995                 partSectOff = startSector;
+<a name="l00996"></a>00996         } <span class="keywordflow">else</span> {
+<a name="l00997"></a>00997                 <span class="comment">/* Floppy disks don&#39;t have partitions */</span>
+<a name="l00998"></a>00998                 partSectOff = 0;
+<a name="l00999"></a>00999 
+<a name="l01000"></a>01000         <span class="keywordflow">if</span> (loadedDisk-&gt;heads == 0 || loadedDisk-&gt;sectors == 0 || loadedDisk-&gt;cylinders == 0) {
+<a name="l01001"></a>01001             created_successfully = <span class="keyword">false</span>;
+<a name="l01002"></a>01002             LOG_MSG(<span class="stringliteral">&quot;No geometry&quot;</span>);
+<a name="l01003"></a>01003             <span class="keywordflow">return</span>;
+<a name="l01004"></a>01004         }
+<a name="l01005"></a>01005         }
+<a name="l01006"></a>01006 
+<a name="l01007"></a>01007         loadedDisk-&gt;Read_AbsoluteSector(0+partSectOff,&amp;bootbuffer);
+<a name="l01008"></a>01008 
+<a name="l01009"></a>01009         <span class="comment">/* Check for DOS 1.x format floppy */</span>
+<a name="l01010"></a>01010         <span class="keywordflow">if</span> ((bootbuffer.mediadescriptor &amp; 0xf0) != 0xf0 &amp;&amp; filesize &lt;= 360 &amp;&amp; loadedDisk-&gt;getSectSize() == 512) {
+<a name="l01011"></a>01011 
+<a name="l01012"></a>01012                 Bit8u sectorBuffer[512];
+<a name="l01013"></a>01013                 loadedDisk-&gt;Read_AbsoluteSector(1,&amp;sectorBuffer);
+<a name="l01014"></a>01014                 Bit8u mdesc = sectorBuffer[0];
+<a name="l01015"></a>01015 
+<a name="l01016"></a>01016                 <span class="comment">/* Allowed if media descriptor in FAT matches image size  */</span>
+<a name="l01017"></a>01017                 <span class="keywordflow">if</span> ((mdesc == 0xfc &amp;&amp; filesize == 180) ||
+<a name="l01018"></a>01018                         (mdesc == 0xfd &amp;&amp; filesize == 360) ||
+<a name="l01019"></a>01019                         (mdesc == 0xfe &amp;&amp; filesize == 160) ||
+<a name="l01020"></a>01020                         (mdesc == 0xff &amp;&amp; filesize == 320)) {
+<a name="l01021"></a>01021 
+<a name="l01022"></a>01022                         <span class="comment">/* Create parameters for a 160kB floppy */</span>
+<a name="l01023"></a>01023                         bootbuffer.bytespersector = 512;
+<a name="l01024"></a>01024                         bootbuffer.sectorspercluster = 1;
+<a name="l01025"></a>01025                         bootbuffer.reservedsectors = 1;
+<a name="l01026"></a>01026                         bootbuffer.fatcopies = 2;
+<a name="l01027"></a>01027                         bootbuffer.rootdirentries = 64;
+<a name="l01028"></a>01028                         bootbuffer.totalsectorcount = 320;
+<a name="l01029"></a>01029                         bootbuffer.mediadescriptor = mdesc;
+<a name="l01030"></a>01030                         bootbuffer.sectorsperfat = 1;
+<a name="l01031"></a>01031                         bootbuffer.sectorspertrack = 8;
+<a name="l01032"></a>01032                         bootbuffer.headcount = 1;
+<a name="l01033"></a>01033                         bootbuffer.magic1 = 0x55;       <span class="comment">// to silence warning</span>
+<a name="l01034"></a>01034                         bootbuffer.magic2 = 0xaa;
+<a name="l01035"></a>01035                         <span class="keywordflow">if</span> (!(mdesc &amp; 0x2)) {
+<a name="l01036"></a>01036                                 <span class="comment">/* Adjust for 9 sectors per track */</span>
+<a name="l01037"></a>01037                                 bootbuffer.totalsectorcount = 360;
+<a name="l01038"></a>01038                                 bootbuffer.sectorsperfat = 2;
+<a name="l01039"></a>01039                                 bootbuffer.sectorspertrack = 9;
+<a name="l01040"></a>01040                         }
+<a name="l01041"></a>01041                         <span class="keywordflow">if</span> (mdesc &amp; 0x1) {
+<a name="l01042"></a>01042                                 <span class="comment">/* Adjust for 2 sides */</span>
+<a name="l01043"></a>01043                                 bootbuffer.sectorspercluster = 2;
+<a name="l01044"></a>01044                                 bootbuffer.rootdirentries = 112;
+<a name="l01045"></a>01045                                 bootbuffer.totalsectorcount *= 2;
+<a name="l01046"></a>01046                                 bootbuffer.headcount = 2;
+<a name="l01047"></a>01047                         }
+<a name="l01048"></a>01048                 }
+<a name="l01049"></a>01049         }
+<a name="l01050"></a>01050 
+<a name="l01051"></a>01051     LOG_MSG(<span class="stringliteral">&quot;FAT: BPB says %u sectors/track %u heads %u bytes/sector&quot;</span>,
+<a name="l01052"></a>01052         bootbuffer.sectorspertrack,
+<a name="l01053"></a>01053         bootbuffer.headcount,
+<a name="l01054"></a>01054         bootbuffer.bytespersector);
+<a name="l01055"></a>01055 
+<a name="l01056"></a>01056     <span class="comment">/* NTS: Some HDI images of PC-98 games do in fact have headcount == 0 */</span>
+<a name="l01057"></a>01057     <span class="comment">/* a clue that we&#39;re not really looking at FAT is invalid or weird values in the boot sector */</span>
+<a name="l01058"></a>01058     <span class="keywordflow">if</span> (bootbuffer.sectorspertrack == 0 || (bootbuffer.sectorspertrack &gt; ((filesize &lt;= 3000) ? 40 : 255)) ||
+<a name="l01059"></a>01059         (bootbuffer.headcount &gt; ((filesize &lt;= 3000) ? 64 : 255))) {
+<a name="l01060"></a>01060         LOG_MSG(<span class="stringliteral">&quot;Rejecting image, boot sector has weird values not consistent with FAT filesystem&quot;</span>);
 <a name="l01061"></a>01061                 created_successfully = <span class="keyword">false</span>;
 <a name="l01062"></a>01062         <span class="keywordflow">return</span>;
 <a name="l01063"></a>01063     }
 <a name="l01064"></a>01064 
-<a name="l01065"></a>01065         <span class="comment">/* Determine FAT format, 12, 16 or 32 */</span>
-<a name="l01066"></a>01066 
-<a name="l01067"></a>01067         <span class="comment">/* Get size of root dir in sectors */</span>
-<a name="l01068"></a>01068         <span class="comment">/* TODO: Get 32-bit total sector count if needed */</span>
-<a name="l01069"></a>01069         Bit32u RootDirSectors = ((bootbuffer.rootdirentries * 32u) + (bootbuffer.bytespersector - 1u)) / bootbuffer.bytespersector;
-<a name="l01070"></a>01070         Bit32u DataSectors;
-<a name="l01071"></a>01071         <span class="keywordflow">if</span>(bootbuffer.totalsectorcount != 0) {
-<a name="l01072"></a>01072                 DataSectors = (Bitu)bootbuffer.totalsectorcount - ((Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)RootDirSectors);
-<a name="l01073"></a>01073         } <span class="keywordflow">else</span> {
-<a name="l01074"></a>01074                 DataSectors = (Bitu)bootbuffer.totalsecdword - ((Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)RootDirSectors);
+<a name="l01065"></a>01065     <span class="comment">/* work at this point in logical sectors */</span>
+<a name="l01066"></a>01066         sector_size = loadedDisk-&gt;getSectSize();
+<a name="l01067"></a>01067 
+<a name="l01068"></a>01068     <span class="comment">/* Many HDI images indicate a disk format of 256 or 512 bytes per sector combined with a FAT filesystem</span>
+<a name="l01069"></a>01069 <span class="comment">     * that indicates 1024 bytes per sector. */</span>
+<a name="l01070"></a>01070     <span class="keywordflow">if</span> (pc98_512_to_1024_allow &amp;&amp;
+<a name="l01071"></a>01071          bootbuffer.bytespersector != getSectSize() &amp;&amp;
+<a name="l01072"></a>01072          bootbuffer.bytespersector &gt;  getSectSize() &amp;&amp;
+<a name="l01073"></a>01073         (bootbuffer.bytespersector %  getSectSize()) == 0) {
+<a name="l01074"></a>01074         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> ratioshift = 1;
 <a name="l01075"></a>01075 
-<a name="l01076"></a>01076         }
-<a name="l01077"></a>01077         CountOfClusters = DataSectors / bootbuffer.sectorspercluster;
+<a name="l01076"></a>01076         <span class="keywordflow">while</span> ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(bootbuffer.bytespersector &gt;&gt; ratioshift) &gt; getSectSize())
+<a name="l01077"></a>01077             ratioshift++;
 <a name="l01078"></a>01078 
-<a name="l01079"></a>01079         firstDataSector = ((Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)RootDirSectors) + (Bitu)partSectOff;
-<a name="l01080"></a>01080         firstRootDirSect = (Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)partSectOff;
-<a name="l01081"></a>01081 
-<a name="l01082"></a>01082         <span class="keywordflow">if</span>(CountOfClusters &lt; 4085) {
-<a name="l01083"></a>01083                 <span class="comment">/* Volume is FAT12 */</span>
-<a name="l01084"></a>01084                 LOG_MSG(<span class="stringliteral">&quot;Mounted FAT volume is FAT12 with %d clusters&quot;</span>, CountOfClusters);
-<a name="l01085"></a>01085                 fattype = FAT12;
-<a name="l01086"></a>01086         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CountOfClusters &lt; 65525) {
-<a name="l01087"></a>01087                 LOG_MSG(<span class="stringliteral">&quot;Mounted FAT volume is FAT16 with %d clusters&quot;</span>, CountOfClusters);
-<a name="l01088"></a>01088                 fattype = FAT16;
-<a name="l01089"></a>01089         } <span class="keywordflow">else</span> {
-<a name="l01090"></a>01090                 LOG_MSG(<span class="stringliteral">&quot;Mounted FAT volume is FAT32 with %d clusters&quot;</span>, CountOfClusters);
-<a name="l01091"></a>01091                 fattype = FAT32;
-<a name="l01092"></a>01092         }
-<a name="l01093"></a>01093 
-<a name="l01094"></a>01094         <span class="comment">/* There is no cluster 0, this means we are in the root directory */</span>
-<a name="l01095"></a>01095         cwdDirCluster = 0;
-<a name="l01096"></a>01096 
-<a name="l01097"></a>01097         memset(fatSectBuffer,0,1024);
-<a name="l01098"></a>01098         curFatSect = 0xffffffff;
+<a name="l01079"></a>01079         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> ratio = 1u &lt;&lt; ratioshift;
+<a name="l01080"></a>01080 
+<a name="l01081"></a>01081         LOG_MSG(<span class="stringliteral">&quot;Disk indicates %u bytes/sector, FAT filesystem indicates %u bytes/sector. Ratio=%u:1 shift=%u&quot;</span>,
+<a name="l01082"></a>01082                 getSectSize(),bootbuffer.bytespersector,ratio,ratioshift);
+<a name="l01083"></a>01083 
+<a name="l01084"></a>01084         <span class="keywordflow">if</span> ((<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)(bootbuffer.bytespersector &gt;&gt; ratioshift) == getSectSize()) {
+<a name="l01085"></a>01085             assert(ratio &gt;= 2);
+<a name="l01086"></a>01086 
+<a name="l01087"></a>01087             <span class="comment">/* we can hack things in place IF the starting sector is an even number */</span>
+<a name="l01088"></a>01088             <span class="keywordflow">if</span> ((partSectOff &amp; (ratio - 1)) == 0) {
+<a name="l01089"></a>01089                 partSectOff &gt;&gt;= ratioshift;
+<a name="l01090"></a>01090                 startSector &gt;&gt;= ratioshift;
+<a name="l01091"></a>01091                 sector_size = bootbuffer.bytespersector;
+<a name="l01092"></a>01092                 LOG_MSG(<span class="stringliteral">&quot;Using logical sector size %u&quot;</span>,sector_size);
+<a name="l01093"></a>01093             }
+<a name="l01094"></a>01094             <span class="keywordflow">else</span> {
+<a name="l01095"></a>01095                 LOG_MSG(<span class="stringliteral">&quot;However there&#39;s nothing I can do, because the partition starts on an odd sector&quot;</span>);
+<a name="l01096"></a>01096             }
+<a name="l01097"></a>01097         }
+<a name="l01098"></a>01098     }
 <a name="l01099"></a>01099 
-<a name="l01100"></a>01100         strcpy(info, <span class="stringliteral">&quot;fatDrive &quot;</span>);
-<a name="l01101"></a>01101         strcat(info, sysFilename);
-<a name="l01102"></a>01102 }
-<a name="l01103"></a>01103 
-<a name="l01104"></a>01104 <span class="keywordtype">bool</span> fatDrive::AllocationInfo(Bit16u *_bytes_sector, Bit8u *_sectors_cluster, Bit16u *_total_clusters, Bit16u *_free_clusters) {
-<a name="l01105"></a>01105         Bit32u countFree = 0;
-<a name="l01106"></a>01106         Bit32u i;
-<a name="l01107"></a>01107         
-<a name="l01108"></a>01108         *_bytes_sector = (Bit16u)getSectSize();
-<a name="l01109"></a>01109         *_sectors_cluster = bootbuffer.sectorspercluster;
-<a name="l01110"></a>01110         <span class="keywordflow">if</span> (CountOfClusters&lt;65536) *_total_clusters = (Bit16u)CountOfClusters;
-<a name="l01111"></a>01111         <span class="keywordflow">else</span> {
-<a name="l01112"></a>01112                 <span class="comment">// maybe some special handling needed for fat32</span>
-<a name="l01113"></a>01113                 *_total_clusters = 65535;
-<a name="l01114"></a>01114         }
-<a name="l01115"></a>01115         <span class="keywordflow">for</span>(i=0;i&lt;CountOfClusters;i++) <span class="keywordflow">if</span>(!getClusterValue(i+2)) countFree++;
-<a name="l01116"></a>01116         <span class="keywordflow">if</span> (countFree&lt;65536) *_free_clusters = (Bit16u)countFree;
-<a name="l01117"></a>01117         <span class="keywordflow">else</span> {
-<a name="l01118"></a>01118                 <span class="comment">// maybe some special handling needed for fat32</span>
-<a name="l01119"></a>01119                 *_free_clusters = 65535;
-<a name="l01120"></a>01120         }
-<a name="l01121"></a>01121         
-<a name="l01122"></a>01122         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01123"></a>01123 }
-<a name="l01124"></a>01124 
-<a name="l01125"></a>01125 Bit32u fatDrive::getFirstFreeClust(<span class="keywordtype">void</span>) {
-<a name="l01126"></a>01126         Bit32u i;
-<a name="l01127"></a>01127         <span class="keywordflow">for</span>(i=0;i&lt;CountOfClusters;i++) {
-<a name="l01128"></a>01128                 <span class="keywordflow">if</span>(!getClusterValue(i+2)) <span class="keywordflow">return</span> (i+2);
-<a name="l01129"></a>01129         }
-<a name="l01130"></a>01130 
-<a name="l01131"></a>01131         <span class="comment">/* No free cluster found */</span>
-<a name="l01132"></a>01132         <span class="keywordflow">return</span> 0;
-<a name="l01133"></a>01133 }
-<a name="l01134"></a>01134 
-<a name="l01135"></a>01135 <span class="keywordtype">bool</span> fatDrive::isRemote(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> <span class="keyword">false</span>; }
-<a name="l01136"></a>01136 <span class="keywordtype">bool</span> fatDrive::isRemovable(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> <span class="keyword">false</span>; }
-<a name="l01137"></a>01137 
-<a name="l01138"></a>01138 Bits fatDrive::UnMount(<span class="keywordtype">void</span>) {
-<a name="l01139"></a>01139         <span class="keyword">delete</span> <span class="keyword">this</span>;
-<a name="l01140"></a>01140         <span class="keywordflow">return</span> 0;
-<a name="l01141"></a>01141 }
-<a name="l01142"></a>01142 
-<a name="l01143"></a>01143 Bit8u fatDrive::GetMediaByte(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> loadedDisk-&gt;GetBiosType(); }
-<a name="l01144"></a>01144 
-<a name="l01145"></a>01145 <span class="keywordtype">bool</span> fatDrive::FileCreate(<a class="code" href="classDOS__File.html">DOS_File</a> **file, <span class="keyword">const</span> <span class="keywordtype">char</span> *name, Bit16u attributes) {
-<a name="l01146"></a>01146         <a class="code" href="structdirentry.html">direntry</a> fileEntry;
-<a name="l01147"></a>01147         Bit32u dirClust, subEntry;
-<a name="l01148"></a>01148         <span class="keywordtype">char</span> dirName[DOS_NAMELENGTH_ASCII];
-<a name="l01149"></a>01149         <span class="keywordtype">char</span> pathName[11];
-<a name="l01150"></a>01150 
-<a name="l01151"></a>01151         Bit16u save_errorcode=dos.errorcode;
-<a name="l01152"></a>01152 
-<a name="l01153"></a>01153         <span class="comment">/* Check if file already exists */</span>
-<a name="l01154"></a>01154         <span class="keywordflow">if</span>(getFileDirEntry(name, &amp;fileEntry, &amp;dirClust, &amp;subEntry)) {
-<a name="l01155"></a>01155                 <span class="comment">/* Truncate file */</span>
-<a name="l01156"></a>01156                 fileEntry.entrysize=0;
-<a name="l01157"></a>01157                 directoryChange(dirClust, &amp;fileEntry, (Bit32s)subEntry);
+<a name="l01100"></a>01100     <span class="comment">/* NTS: PC-98 floppies (the 1024 byte/sector format) do not have magic bytes */</span>
+<a name="l01101"></a>01101     <span class="keywordflow">if</span> (getSectSize() == 512 &amp;&amp; !IS_PC98_ARCH) {
+<a name="l01102"></a>01102         <span class="keywordflow">if</span> ((bootbuffer.magic1 != 0x55) || (bootbuffer.magic2 != 0xaa)) {
+<a name="l01103"></a>01103             <span class="comment">/* Not a FAT filesystem */</span>
+<a name="l01104"></a>01104             LOG_MSG(<span class="stringliteral">&quot;Loaded image has no valid magicnumbers at the end!&quot;</span>);
+<a name="l01105"></a>01105             created_successfully = <span class="keyword">false</span>;
+<a name="l01106"></a>01106             <span class="keywordflow">return</span>;
+<a name="l01107"></a>01107         }
+<a name="l01108"></a>01108     }
+<a name="l01109"></a>01109 
+<a name="l01110"></a>01110         <span class="keywordflow">if</span>(!bootbuffer.sectorsperfat) {
+<a name="l01111"></a>01111                 <span class="comment">/* FAT32 not implemented yet */</span>
+<a name="l01112"></a>01112                 LOG_MSG(<span class="stringliteral">&quot;FAT32 not implemented yet, mounting image only&quot;</span>);
+<a name="l01113"></a>01113                 fattype = FAT32;        <span class="comment">// Avoid parsing dir entries, see fatDrive::FindFirst()...should work for unformatted images as well</span>
+<a name="l01114"></a>01114                 created_successfully = <span class="keyword">false</span>;
+<a name="l01115"></a>01115                 <span class="keywordflow">return</span>;
+<a name="l01116"></a>01116         }
+<a name="l01117"></a>01117 
+<a name="l01118"></a>01118     <span class="comment">/* too much of this code assumes 512 bytes per sector or more.</span>
+<a name="l01119"></a>01119 <span class="comment">     * MS-DOS itself as I understand it relies on bytes per sector being a power of 2.</span>
+<a name="l01120"></a>01120 <span class="comment">     * this is to protect against errant FAT structures and to help prep this code</span>
+<a name="l01121"></a>01121 <span class="comment">     * later to work with the 1024 bytes/sector used by PC-98 floppy formats.</span>
+<a name="l01122"></a>01122 <span class="comment">     * When done, this code should be able to then handle the FDI/FDD images</span>
+<a name="l01123"></a>01123 <span class="comment">     * PC-98 games are normally distributed in on the internet.</span>
+<a name="l01124"></a>01124 <span class="comment">     *</span>
+<a name="l01125"></a>01125 <span class="comment">     * The value &quot;128&quot; comes from the smallest sector size possible on the floppy</span>
+<a name="l01126"></a>01126 <span class="comment">     * controller of MS-DOS based systems. */</span>
+<a name="l01127"></a>01127     <span class="comment">/* NTS: Power of 2 test: A number is a power of 2 if (x &amp; (x - 1)) == 0</span>
+<a name="l01128"></a>01128 <span class="comment">     *</span>
+<a name="l01129"></a>01129 <span class="comment">     * 15        15 &amp; 14       01111 AND 01110     RESULT: 01110 (15)</span>
+<a name="l01130"></a>01130 <span class="comment">     * 16        16 &amp; 15       10000 AND 01111     RESULT: 00000 (0)</span>
+<a name="l01131"></a>01131 <span class="comment">     * 17        17 &amp; 16       10001 AND 10000     RESULT: 10000 (16) */</span>
+<a name="l01132"></a>01132     <span class="keywordflow">if</span> (bootbuffer.bytespersector &lt; 128 || bootbuffer.bytespersector &gt; <span class="keyword">sizeof</span>(bootbuffer) ||
+<a name="l01133"></a>01133         (bootbuffer.bytespersector &amp; (bootbuffer.bytespersector - 1)) != 0<span class="comment">/*not a power of 2*/</span>) {
+<a name="l01134"></a>01134         LOG_MSG(<span class="stringliteral">&quot;FAT bytes/sector value %u not supported&quot;</span>,bootbuffer.bytespersector);
+<a name="l01135"></a>01135                 created_successfully = <span class="keyword">false</span>;
+<a name="l01136"></a>01136         <span class="keywordflow">return</span>;
+<a name="l01137"></a>01137     }
+<a name="l01138"></a>01138 
+<a name="l01139"></a>01139     <span class="comment">/* another fault of this code is that it assumes the sector size of the medium matches</span>
+<a name="l01140"></a>01140 <span class="comment">     * the bytespersector value of the MS-DOS filesystem. if they don&#39;t match, problems</span>
+<a name="l01141"></a>01141 <span class="comment">     * will result. */</span>
+<a name="l01142"></a>01142     <span class="keywordflow">if</span> (bootbuffer.bytespersector != getSectSize()) {
+<a name="l01143"></a>01143         LOG_MSG(<span class="stringliteral">&quot;FAT bytes/sector %u does not match disk image bytes/sector %u&quot;</span>,
+<a name="l01144"></a>01144             (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)bootbuffer.bytespersector,
+<a name="l01145"></a>01145             (<span class="keywordtype">unsigned</span> <span class="keywordtype">int</span>)getSectSize());
+<a name="l01146"></a>01146                 created_successfully = <span class="keyword">false</span>;
+<a name="l01147"></a>01147         <span class="keywordflow">return</span>;
+<a name="l01148"></a>01148     }
+<a name="l01149"></a>01149 
+<a name="l01150"></a>01150         <span class="comment">/* Determine FAT format, 12, 16 or 32 */</span>
+<a name="l01151"></a>01151 
+<a name="l01152"></a>01152         <span class="comment">/* Get size of root dir in sectors */</span>
+<a name="l01153"></a>01153         <span class="comment">/* TODO: Get 32-bit total sector count if needed */</span>
+<a name="l01154"></a>01154         Bit32u RootDirSectors = ((bootbuffer.rootdirentries * 32u) + (bootbuffer.bytespersector - 1u)) / bootbuffer.bytespersector;
+<a name="l01155"></a>01155         Bit32u DataSectors;
+<a name="l01156"></a>01156         <span class="keywordflow">if</span>(bootbuffer.totalsectorcount != 0) {
+<a name="l01157"></a>01157                 DataSectors = (Bitu)bootbuffer.totalsectorcount - ((Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)RootDirSectors);
 <a name="l01158"></a>01158         } <span class="keywordflow">else</span> {
-<a name="l01159"></a>01159                 <span class="comment">/* Can we even get the name of the file itself? */</span>
-<a name="l01160"></a>01160                 <span class="keywordflow">if</span>(!getEntryName(name, &amp;dirName[0])) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01161"></a>01161                 convToDirFile(&amp;dirName[0], &amp;pathName[0]);
-<a name="l01162"></a>01162 
-<a name="l01163"></a>01163                 <span class="comment">/* Can we find the base directory? */</span>
-<a name="l01164"></a>01164                 <span class="keywordflow">if</span>(!getDirClustNum(name, &amp;dirClust, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01165"></a>01165                 memset(&amp;fileEntry, 0, <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
-<a name="l01166"></a>01166                 memcpy(&amp;fileEntry.entryname, &amp;pathName[0], 11);
-<a name="l01167"></a>01167                 fileEntry.attrib = (Bit8u)(attributes &amp; 0xff);
-<a name="l01168"></a>01168                 addDirectoryEntry(dirClust, fileEntry);
-<a name="l01169"></a>01169 
-<a name="l01170"></a>01170                 <span class="comment">/* Check if file exists now */</span>
-<a name="l01171"></a>01171                 <span class="keywordflow">if</span>(!getFileDirEntry(name, &amp;fileEntry, &amp;dirClust, &amp;subEntry)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01172"></a>01172         }
-<a name="l01173"></a>01173 
-<a name="l01174"></a>01174         <span class="comment">/* Empty file created, now lets open it */</span>
-<a name="l01175"></a>01175         <span class="comment">/* TODO: check for read-only flag and requested write access */</span>
-<a name="l01176"></a>01176         *file = <span class="keyword">new</span> <a class="code" href="classfatFile.html">fatFile</a>(name, fileEntry.loFirstClust, fileEntry.entrysize, <span class="keyword">this</span>);
-<a name="l01177"></a>01177         (*file)-&gt;flags=OPEN_READWRITE;
-<a name="l01178"></a>01178         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;dirCluster = dirClust;
-<a name="l01179"></a>01179         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;dirIndex = subEntry;
-<a name="l01180"></a>01180         <span class="comment">/* Maybe modTime and date should be used ? (crt matches findnext) */</span>
-<a name="l01181"></a>01181         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;time = fileEntry.crtTime;
-<a name="l01182"></a>01182         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;date = fileEntry.crtDate;
-<a name="l01183"></a>01183 
-<a name="l01184"></a>01184         dos.errorcode=save_errorcode;
-<a name="l01185"></a>01185         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01186"></a>01186 }
-<a name="l01187"></a>01187 
-<a name="l01188"></a>01188 <span class="keywordtype">bool</span> fatDrive::FileExists(<span class="keyword">const</span> <span class="keywordtype">char</span> *name) {
-<a name="l01189"></a>01189         <a class="code" href="structdirentry.html">direntry</a> fileEntry;
-<a name="l01190"></a>01190         Bit32u dummy1, dummy2;
-<a name="l01191"></a>01191         <span class="keywordflow">if</span>(!getFileDirEntry(name, &amp;fileEntry, &amp;dummy1, &amp;dummy2)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01192"></a>01192         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01193"></a>01193 }
-<a name="l01194"></a>01194 
-<a name="l01195"></a>01195 <span class="keywordtype">bool</span> fatDrive::FileOpen(<a class="code" href="classDOS__File.html">DOS_File</a> **file, <span class="keyword">const</span> <span class="keywordtype">char</span> *name, Bit32u flags) {
-<a name="l01196"></a>01196         <a class="code" href="structdirentry.html">direntry</a> fileEntry;
-<a name="l01197"></a>01197         Bit32u dirClust, subEntry;
-<a name="l01198"></a>01198         <span class="keywordflow">if</span>(!getFileDirEntry(name, &amp;fileEntry, &amp;dirClust, &amp;subEntry)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01199"></a>01199         <span class="comment">/* TODO: check for read-only flag and requested write access */</span>
-<a name="l01200"></a>01200         *file = <span class="keyword">new</span> <a class="code" href="classfatFile.html">fatFile</a>(name, fileEntry.loFirstClust, fileEntry.entrysize, <span class="keyword">this</span>);
-<a name="l01201"></a>01201         (*file)-&gt;flags = flags;
-<a name="l01202"></a>01202         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;dirCluster = dirClust;
-<a name="l01203"></a>01203         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;dirIndex = subEntry;
-<a name="l01204"></a>01204         <span class="comment">/* Maybe modTime and date should be used ? (crt matches findnext) */</span>
-<a name="l01205"></a>01205         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;time = fileEntry.crtTime;
-<a name="l01206"></a>01206         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;date = fileEntry.crtDate;
+<a name="l01159"></a>01159                 DataSectors = (Bitu)bootbuffer.totalsecdword - ((Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)RootDirSectors);
+<a name="l01160"></a>01160 
+<a name="l01161"></a>01161         }
+<a name="l01162"></a>01162         CountOfClusters = DataSectors / bootbuffer.sectorspercluster;
+<a name="l01163"></a>01163 
+<a name="l01164"></a>01164         firstDataSector = ((Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)RootDirSectors) + (Bitu)partSectOff;
+<a name="l01165"></a>01165         firstRootDirSect = (Bitu)bootbuffer.reservedsectors + ((Bitu)bootbuffer.fatcopies * (Bitu)bootbuffer.sectorsperfat) + (Bitu)partSectOff;
+<a name="l01166"></a>01166 
+<a name="l01167"></a>01167         <span class="keywordflow">if</span>(CountOfClusters &lt; 4085) {
+<a name="l01168"></a>01168                 <span class="comment">/* Volume is FAT12 */</span>
+<a name="l01169"></a>01169                 LOG_MSG(<span class="stringliteral">&quot;Mounted FAT volume is FAT12 with %d clusters&quot;</span>, CountOfClusters);
+<a name="l01170"></a>01170                 fattype = FAT12;
+<a name="l01171"></a>01171         } <span class="keywordflow">else</span> <span class="keywordflow">if</span> (CountOfClusters &lt; 65525) {
+<a name="l01172"></a>01172                 LOG_MSG(<span class="stringliteral">&quot;Mounted FAT volume is FAT16 with %d clusters&quot;</span>, CountOfClusters);
+<a name="l01173"></a>01173                 fattype = FAT16;
+<a name="l01174"></a>01174         } <span class="keywordflow">else</span> {
+<a name="l01175"></a>01175                 LOG_MSG(<span class="stringliteral">&quot;Mounted FAT volume is FAT32 with %d clusters&quot;</span>, CountOfClusters);
+<a name="l01176"></a>01176                 fattype = FAT32;
+<a name="l01177"></a>01177         }
+<a name="l01178"></a>01178 
+<a name="l01179"></a>01179         <span class="comment">/* There is no cluster 0, this means we are in the root directory */</span>
+<a name="l01180"></a>01180         cwdDirCluster = 0;
+<a name="l01181"></a>01181 
+<a name="l01182"></a>01182         memset(fatSectBuffer,0,1024);
+<a name="l01183"></a>01183         curFatSect = 0xffffffff;
+<a name="l01184"></a>01184 
+<a name="l01185"></a>01185         strcpy(info, <span class="stringliteral">&quot;fatDrive &quot;</span>);
+<a name="l01186"></a>01186         strcat(info, sysFilename);
+<a name="l01187"></a>01187 }
+<a name="l01188"></a>01188 
+<a name="l01189"></a>01189 <span class="keywordtype">bool</span> fatDrive::AllocationInfo(Bit16u *_bytes_sector, Bit8u *_sectors_cluster, Bit16u *_total_clusters, Bit16u *_free_clusters) {
+<a name="l01190"></a>01190         Bit32u countFree = 0;
+<a name="l01191"></a>01191         Bit32u i;
+<a name="l01192"></a>01192         
+<a name="l01193"></a>01193         *_bytes_sector = (Bit16u)getSectSize();
+<a name="l01194"></a>01194         *_sectors_cluster = bootbuffer.sectorspercluster;
+<a name="l01195"></a>01195         <span class="keywordflow">if</span> (CountOfClusters&lt;65536) *_total_clusters = (Bit16u)CountOfClusters;
+<a name="l01196"></a>01196         <span class="keywordflow">else</span> {
+<a name="l01197"></a>01197                 <span class="comment">// maybe some special handling needed for fat32</span>
+<a name="l01198"></a>01198                 *_total_clusters = 65535;
+<a name="l01199"></a>01199         }
+<a name="l01200"></a>01200         <span class="keywordflow">for</span>(i=0;i&lt;CountOfClusters;i++) <span class="keywordflow">if</span>(!getClusterValue(i+2)) countFree++;
+<a name="l01201"></a>01201         <span class="keywordflow">if</span> (countFree&lt;65536) *_free_clusters = (Bit16u)countFree;
+<a name="l01202"></a>01202         <span class="keywordflow">else</span> {
+<a name="l01203"></a>01203                 <span class="comment">// maybe some special handling needed for fat32</span>
+<a name="l01204"></a>01204                 *_free_clusters = 65535;
+<a name="l01205"></a>01205         }
+<a name="l01206"></a>01206         
 <a name="l01207"></a>01207         <span class="keywordflow">return</span> <span class="keyword">true</span>;
 <a name="l01208"></a>01208 }
 <a name="l01209"></a>01209 
-<a name="l01210"></a>01210 <span class="keywordtype">bool</span> fatDrive::FileStat(<span class="keyword">const</span> <span class="keywordtype">char</span> * <span class="comment">/*name*/</span>, <a class="code" href="structFileStat__Block.html">FileStat_Block</a> *<span class="keyword">const</span> <span class="comment">/*stat_block*/</span>) {
-<a name="l01211"></a>01211         <span class="comment">/* TODO: Stub */</span>
-<a name="l01212"></a>01212         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01213"></a>01213 }
-<a name="l01214"></a>01214 
-<a name="l01215"></a>01215 <span class="keywordtype">bool</span> fatDrive::FileUnlink(<span class="keyword">const</span> <span class="keywordtype">char</span> * name) {
-<a name="l01216"></a>01216         <a class="code" href="structdirentry.html">direntry</a> fileEntry;
-<a name="l01217"></a>01217         Bit32u dirClust, subEntry;
-<a name="l01218"></a>01218 
-<a name="l01219"></a>01219         <span class="keywordflow">if</span>(!getFileDirEntry(name, &amp;fileEntry, &amp;dirClust, &amp;subEntry)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01220"></a>01220 
-<a name="l01221"></a>01221         fileEntry.entryname[0] = 0xe5;
-<a name="l01222"></a>01222         directoryChange(dirClust, &amp;fileEntry, (Bit32s)subEntry);
-<a name="l01223"></a>01223 
-<a name="l01224"></a>01224         <span class="keywordflow">if</span>(fileEntry.loFirstClust != 0) deleteClustChain(fileEntry.loFirstClust);
-<a name="l01225"></a>01225 
-<a name="l01226"></a>01226         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01227"></a>01227 }
-<a name="l01228"></a>01228 
-<a name="l01229"></a>01229 <span class="keywordtype">bool</span> fatDrive::FindFirst(<span class="keyword">const</span> <span class="keywordtype">char</span> *_dir, <a class="code" href="classDOS__DTA.html">DOS_DTA</a> &amp;dta,<span class="keywordtype">bool</span> <span class="comment">/*fcb_findfirst*/</span>) {
-<a name="l01230"></a>01230         <a class="code" href="structdirentry.html">direntry</a> dummyClust;
-<a name="l01231"></a>01231         <span class="keywordflow">if</span>(fattype==FAT32) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01232"></a>01232 <span class="preprocessor">#if 0</span>
-<a name="l01233"></a>01233 <span class="preprocessor"></span>        Bit8u attr;<span class="keywordtype">char</span> pattern[DOS_NAMELENGTH_ASCII];
-<a name="l01234"></a>01234         dta.GetSearchParams(attr,pattern);
-<a name="l01235"></a>01235         <span class="keywordflow">if</span>(attr==DOS_ATTR_VOLUME) {
-<a name="l01236"></a>01236                 <span class="keywordflow">if</span> (strcmp(GetLabel(), <span class="stringliteral">&quot;&quot;</span>) == 0 ) {
-<a name="l01237"></a>01237                         DOS_SetError(DOSERR_NO_MORE_FILES);
-<a name="l01238"></a>01238                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01239"></a>01239                 }
-<a name="l01240"></a>01240                 dta.SetResult(GetLabel(),0,0,0,DOS_ATTR_VOLUME);
-<a name="l01241"></a>01241                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01242"></a>01242         }
-<a name="l01243"></a>01243         <span class="keywordflow">if</span>(attr &amp; DOS_ATTR_VOLUME) <span class="comment">//check for root dir or fcb_findfirst</span>
-<a name="l01244"></a>01244                 <a class="code" href="classLOG.html">LOG</a>(LOG_DOSMISC,LOG_WARN)(<span class="stringliteral">&quot;findfirst for volumelabel used on fatDrive. Unhandled!!!!!&quot;</span>);
-<a name="l01245"></a>01245 <span class="preprocessor">#endif</span>
-<a name="l01246"></a>01246 <span class="preprocessor"></span>        <span class="keywordflow">if</span>(!getDirClustNum(_dir, &amp;cwdDirCluster, <span class="keyword">false</span>)) {
-<a name="l01247"></a>01247                 DOS_SetError(DOSERR_PATH_NOT_FOUND);
-<a name="l01248"></a>01248                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01249"></a>01249         }
-<a name="l01250"></a>01250         dta.SetDirID(0);
-<a name="l01251"></a>01251         dta.SetDirIDCluster((Bit16u)(cwdDirCluster&amp;0xffff));
-<a name="l01252"></a>01252         <span class="keywordflow">return</span> FindNextInternal(cwdDirCluster, dta, &amp;dummyClust);
-<a name="l01253"></a>01253 }
+<a name="l01210"></a>01210 Bit32u fatDrive::getFirstFreeClust(<span class="keywordtype">void</span>) {
+<a name="l01211"></a>01211         Bit32u i;
+<a name="l01212"></a>01212         <span class="keywordflow">for</span>(i=0;i&lt;CountOfClusters;i++) {
+<a name="l01213"></a>01213                 <span class="keywordflow">if</span>(!getClusterValue(i+2)) <span class="keywordflow">return</span> (i+2);
+<a name="l01214"></a>01214         }
+<a name="l01215"></a>01215 
+<a name="l01216"></a>01216         <span class="comment">/* No free cluster found */</span>
+<a name="l01217"></a>01217         <span class="keywordflow">return</span> 0;
+<a name="l01218"></a>01218 }
+<a name="l01219"></a>01219 
+<a name="l01220"></a>01220 <span class="keywordtype">bool</span> fatDrive::isRemote(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> <span class="keyword">false</span>; }
+<a name="l01221"></a>01221 <span class="keywordtype">bool</span> fatDrive::isRemovable(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> <span class="keyword">false</span>; }
+<a name="l01222"></a>01222 
+<a name="l01223"></a>01223 Bits fatDrive::UnMount(<span class="keywordtype">void</span>) {
+<a name="l01224"></a>01224         <span class="keyword">delete</span> <span class="keyword">this</span>;
+<a name="l01225"></a>01225         <span class="keywordflow">return</span> 0;
+<a name="l01226"></a>01226 }
+<a name="l01227"></a>01227 
+<a name="l01228"></a>01228 Bit8u fatDrive::GetMediaByte(<span class="keywordtype">void</span>) { <span class="keywordflow">return</span> loadedDisk-&gt;GetBiosType(); }
+<a name="l01229"></a>01229 
+<a name="l01230"></a>01230 <span class="keywordtype">bool</span> fatDrive::FileCreate(<a class="code" href="classDOS__File.html">DOS_File</a> **file, <span class="keyword">const</span> <span class="keywordtype">char</span> *name, Bit16u attributes) {
+<a name="l01231"></a>01231         <a class="code" href="structdirentry.html">direntry</a> fileEntry;
+<a name="l01232"></a>01232         Bit32u dirClust, subEntry;
+<a name="l01233"></a>01233         <span class="keywordtype">char</span> dirName[DOS_NAMELENGTH_ASCII];
+<a name="l01234"></a>01234         <span class="keywordtype">char</span> pathName[11];
+<a name="l01235"></a>01235 
+<a name="l01236"></a>01236         Bit16u save_errorcode=dos.errorcode;
+<a name="l01237"></a>01237 
+<a name="l01238"></a>01238         <span class="comment">/* Check if file already exists */</span>
+<a name="l01239"></a>01239         <span class="keywordflow">if</span>(getFileDirEntry(name, &amp;fileEntry, &amp;dirClust, &amp;subEntry)) {
+<a name="l01240"></a>01240                 <span class="comment">/* Truncate file */</span>
+<a name="l01241"></a>01241                 fileEntry.entrysize=0;
+<a name="l01242"></a>01242                 directoryChange(dirClust, &amp;fileEntry, (Bit32s)subEntry);
+<a name="l01243"></a>01243         } <span class="keywordflow">else</span> {
+<a name="l01244"></a>01244                 <span class="comment">/* Can we even get the name of the file itself? */</span>
+<a name="l01245"></a>01245                 <span class="keywordflow">if</span>(!getEntryName(name, &amp;dirName[0])) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01246"></a>01246                 convToDirFile(&amp;dirName[0], &amp;pathName[0]);
+<a name="l01247"></a>01247 
+<a name="l01248"></a>01248                 <span class="comment">/* Can we find the base directory? */</span>
+<a name="l01249"></a>01249                 <span class="keywordflow">if</span>(!getDirClustNum(name, &amp;dirClust, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01250"></a>01250                 memset(&amp;fileEntry, 0, <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
+<a name="l01251"></a>01251                 memcpy(&amp;fileEntry.entryname, &amp;pathName[0], 11);
+<a name="l01252"></a>01252                 fileEntry.attrib = (Bit8u)(attributes &amp; 0xff);
+<a name="l01253"></a>01253                 addDirectoryEntry(dirClust, fileEntry);
 <a name="l01254"></a>01254 
-<a name="l01255"></a>01255 <span class="keywordtype">char</span>* removeTrailingSpaces(<span class="keywordtype">char</span>* str) {
-<a name="l01256"></a>01256         <span class="keywordtype">char</span>* end = str + strlen(str) - 1;
-<a name="l01257"></a>01257         <span class="keywordflow">while</span> (end &gt;= str &amp;&amp; *end == <span class="charliteral">&#39; &#39;</span>) end--;
-<a name="l01258"></a>01258     <span class="comment">/* NTS: The loop will exit with &#39;end&#39; one char behind the last &#39; &#39; space character.</span>
-<a name="l01259"></a>01259 <span class="comment">     *      So to ASCIIZ snip off the space, step forward one and overwrite with NUL.</span>
-<a name="l01260"></a>01260 <span class="comment">     *      The loop may end with &#39;end&#39; one char behind &#39;ptr&#39; if the string was empty &quot;&quot;</span>
-<a name="l01261"></a>01261 <span class="comment">     *      or nothing but spaces. This is OK because after the step forward, end &gt;= str</span>
-<a name="l01262"></a>01262 <span class="comment">     *      in all cases. */</span>
-<a name="l01263"></a>01263         *(++end) = <span class="charliteral">&#39;\0&#39;</span>;
-<a name="l01264"></a>01264         <span class="keywordflow">return</span> str;
-<a name="l01265"></a>01265 }
-<a name="l01266"></a>01266 
-<a name="l01267"></a>01267 <span class="keywordtype">char</span>* removeLeadingSpaces(<span class="keywordtype">char</span>* str) {
-<a name="l01268"></a>01268         <span class="keywordtype">size_t</span> len = strlen(str);
-<a name="l01269"></a>01269         <span class="keywordtype">size_t</span> pos = strspn(str,<span class="stringliteral">&quot; &quot;</span>);
-<a name="l01270"></a>01270         memmove(str,str + pos,len - pos + 1);
-<a name="l01271"></a>01271         <span class="keywordflow">return</span> str;
-<a name="l01272"></a>01272 }
-<a name="l01273"></a>01273 
-<a name="l01274"></a>01274 <span class="keywordtype">char</span>* trimString(<span class="keywordtype">char</span>* str) {
-<a name="l01275"></a>01275         <span class="keywordflow">return</span> removeTrailingSpaces(removeLeadingSpaces(str));
-<a name="l01276"></a>01276 }
-<a name="l01277"></a>01277 
-<a name="l01278"></a>01278 <span class="keywordtype">bool</span> fatDrive::FindNextInternal(Bit32u dirClustNumber, <a class="code" href="classDOS__DTA.html">DOS_DTA</a> &amp;dta, <a class="code" href="structdirentry.html">direntry</a> *foundEntry) {
-<a name="l01279"></a>01279         <a class="code" href="structdirentry.html">direntry</a> sectbuf[MAX_DIRENTS_PER_SECTOR]; <span class="comment">/* 16 directory entries per 512 byte sector */</span>
-<a name="l01280"></a>01280         Bit32u logentsector; <span class="comment">/* Logical entry sector */</span>
-<a name="l01281"></a>01281         Bit32u entryoffset;  <span class="comment">/* Index offset within sector */</span>
-<a name="l01282"></a>01282         Bit32u tmpsector;
-<a name="l01283"></a>01283         Bit8u attrs;
-<a name="l01284"></a>01284         Bit16u dirPos;
-<a name="l01285"></a>01285         <span class="keywordtype">char</span> srch_pattern[DOS_NAMELENGTH_ASCII];
-<a name="l01286"></a>01286         <span class="keywordtype">char</span> find_name[DOS_NAMELENGTH_ASCII];
-<a name="l01287"></a>01287         <span class="keywordtype">char</span> extension[4];
-<a name="l01288"></a>01288 
-<a name="l01289"></a>01289     <span class="keywordtype">size_t</span> dirent_per_sector = getSectSize() / <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>);
-<a name="l01290"></a>01290     assert(dirent_per_sector &lt;= MAX_DIRENTS_PER_SECTOR);
-<a name="l01291"></a>01291     assert((dirent_per_sector * <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>)) &lt;= SECTOR_SIZE_MAX);
-<a name="l01292"></a>01292 
-<a name="l01293"></a>01293         dta.GetSearchParams(attrs, srch_pattern);
-<a name="l01294"></a>01294         dirPos = dta.GetDirID();
-<a name="l01295"></a>01295 
-<a name="l01296"></a>01296 nextfile:
-<a name="l01297"></a>01297         logentsector = (Bit32u)((<span class="keywordtype">size_t</span>)dirPos / dirent_per_sector);
-<a name="l01298"></a>01298         entryoffset = (Bit32u)((<span class="keywordtype">size_t</span>)dirPos % dirent_per_sector);
+<a name="l01255"></a>01255                 <span class="comment">/* Check if file exists now */</span>
+<a name="l01256"></a>01256                 <span class="keywordflow">if</span>(!getFileDirEntry(name, &amp;fileEntry, &amp;dirClust, &amp;subEntry)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01257"></a>01257         }
+<a name="l01258"></a>01258 
+<a name="l01259"></a>01259         <span class="comment">/* Empty file created, now lets open it */</span>
+<a name="l01260"></a>01260         <span class="comment">/* TODO: check for read-only flag and requested write access */</span>
+<a name="l01261"></a>01261         *file = <span class="keyword">new</span> <a class="code" href="classfatFile.html">fatFile</a>(name, fileEntry.loFirstClust, fileEntry.entrysize, <span class="keyword">this</span>);
+<a name="l01262"></a>01262         (*file)-&gt;flags=OPEN_READWRITE;
+<a name="l01263"></a>01263         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;dirCluster = dirClust;
+<a name="l01264"></a>01264         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;dirIndex = subEntry;
+<a name="l01265"></a>01265         <span class="comment">/* Maybe modTime and date should be used ? (crt matches findnext) */</span>
+<a name="l01266"></a>01266         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;time = fileEntry.crtTime;
+<a name="l01267"></a>01267         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;date = fileEntry.crtDate;
+<a name="l01268"></a>01268 
+<a name="l01269"></a>01269         dos.errorcode=save_errorcode;
+<a name="l01270"></a>01270         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01271"></a>01271 }
+<a name="l01272"></a>01272 
+<a name="l01273"></a>01273 <span class="keywordtype">bool</span> fatDrive::FileExists(<span class="keyword">const</span> <span class="keywordtype">char</span> *name) {
+<a name="l01274"></a>01274         <a class="code" href="structdirentry.html">direntry</a> fileEntry;
+<a name="l01275"></a>01275         Bit32u dummy1, dummy2;
+<a name="l01276"></a>01276         <span class="keywordflow">if</span>(!getFileDirEntry(name, &amp;fileEntry, &amp;dummy1, &amp;dummy2)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01277"></a>01277         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01278"></a>01278 }
+<a name="l01279"></a>01279 
+<a name="l01280"></a>01280 <span class="keywordtype">bool</span> fatDrive::FileOpen(<a class="code" href="classDOS__File.html">DOS_File</a> **file, <span class="keyword">const</span> <span class="keywordtype">char</span> *name, Bit32u flags) {
+<a name="l01281"></a>01281         <a class="code" href="structdirentry.html">direntry</a> fileEntry;
+<a name="l01282"></a>01282         Bit32u dirClust, subEntry;
+<a name="l01283"></a>01283         <span class="keywordflow">if</span>(!getFileDirEntry(name, &amp;fileEntry, &amp;dirClust, &amp;subEntry)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01284"></a>01284         <span class="comment">/* TODO: check for read-only flag and requested write access */</span>
+<a name="l01285"></a>01285         *file = <span class="keyword">new</span> <a class="code" href="classfatFile.html">fatFile</a>(name, fileEntry.loFirstClust, fileEntry.entrysize, <span class="keyword">this</span>);
+<a name="l01286"></a>01286         (*file)-&gt;flags = flags;
+<a name="l01287"></a>01287         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;dirCluster = dirClust;
+<a name="l01288"></a>01288         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;dirIndex = subEntry;
+<a name="l01289"></a>01289         <span class="comment">/* Maybe modTime and date should be used ? (crt matches findnext) */</span>
+<a name="l01290"></a>01290         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;time = fileEntry.crtTime;
+<a name="l01291"></a>01291         ((<a class="code" href="classfatFile.html">fatFile</a> *)(*file))-&gt;date = fileEntry.crtDate;
+<a name="l01292"></a>01292         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01293"></a>01293 }
+<a name="l01294"></a>01294 
+<a name="l01295"></a>01295 <span class="keywordtype">bool</span> fatDrive::FileStat(<span class="keyword">const</span> <span class="keywordtype">char</span> * <span class="comment">/*name*/</span>, <a class="code" href="structFileStat__Block.html">FileStat_Block</a> *<span class="keyword">const</span> <span class="comment">/*stat_block*/</span>) {
+<a name="l01296"></a>01296         <span class="comment">/* TODO: Stub */</span>
+<a name="l01297"></a>01297         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01298"></a>01298 }
 <a name="l01299"></a>01299 
-<a name="l01300"></a>01300         <span class="keywordflow">if</span>(dirClustNumber==0) {
-<a name="l01301"></a>01301                 <span class="keywordflow">if</span>(dirPos &gt;= bootbuffer.rootdirentries) {
-<a name="l01302"></a>01302                         DOS_SetError(DOSERR_NO_MORE_FILES);
-<a name="l01303"></a>01303                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01304"></a>01304                 }
-<a name="l01305"></a>01305                 Read_AbsoluteSector(firstRootDirSect+logentsector,sectbuf);
-<a name="l01306"></a>01306         } <span class="keywordflow">else</span> {
-<a name="l01307"></a>01307                 tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
-<a name="l01308"></a>01308                 <span class="comment">/* A zero sector number can&#39;t happen */</span>
-<a name="l01309"></a>01309                 <span class="keywordflow">if</span>(tmpsector == 0) {
-<a name="l01310"></a>01310                         DOS_SetError(DOSERR_NO_MORE_FILES);
-<a name="l01311"></a>01311                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01312"></a>01312                 }
-<a name="l01313"></a>01313                 Read_AbsoluteSector(tmpsector,sectbuf);
-<a name="l01314"></a>01314         }
-<a name="l01315"></a>01315         dirPos++;
-<a name="l01316"></a>01316         dta.SetDirID(dirPos);
-<a name="l01317"></a>01317 
-<a name="l01318"></a>01318         <span class="comment">/* Deleted file entry */</span>
-<a name="l01319"></a>01319         <span class="keywordflow">if</span> (sectbuf[entryoffset].entryname[0] == 0xe5) <span class="keywordflow">goto</span> nextfile;
-<a name="l01320"></a>01320 
-<a name="l01321"></a>01321         <span class="comment">/* End of directory list */</span>
-<a name="l01322"></a>01322         <span class="keywordflow">if</span> (sectbuf[entryoffset].entryname[0] == 0x00) {
-<a name="l01323"></a>01323                 DOS_SetError(DOSERR_NO_MORE_FILES);
-<a name="l01324"></a>01324                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01325"></a>01325         }
-<a name="l01326"></a>01326         memset(find_name,0,DOS_NAMELENGTH_ASCII);
-<a name="l01327"></a>01327         memset(extension,0,4);
-<a name="l01328"></a>01328         memcpy(find_name,&amp;sectbuf[entryoffset].entryname[0],8);
-<a name="l01329"></a>01329         memcpy(extension,&amp;sectbuf[entryoffset].entryname[8],3);
-<a name="l01330"></a>01330         trimString(&amp;find_name[0]);
-<a name="l01331"></a>01331         trimString(&amp;extension[0]);
-<a name="l01332"></a>01332         
-<a name="l01333"></a>01333         <span class="comment">//if(!(sectbuf[entryoffset].attrib &amp; DOS_ATTR_DIRECTORY))</span>
-<a name="l01334"></a>01334         <span class="keywordflow">if</span> (extension[0]!=0) {
-<a name="l01335"></a>01335                 strcat(find_name, <span class="stringliteral">&quot;.&quot;</span>);
-<a name="l01336"></a>01336                 strcat(find_name, extension);
-<a name="l01337"></a>01337         }
-<a name="l01338"></a>01338 
-<a name="l01339"></a>01339         <span class="comment">/* Compare attributes to search attributes */</span>
-<a name="l01340"></a>01340 
-<a name="l01341"></a>01341         <span class="comment">//TODO What about attrs = DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY ?</span>
-<a name="l01342"></a>01342         <span class="keywordflow">if</span> (attrs == DOS_ATTR_VOLUME) {
-<a name="l01343"></a>01343                 <span class="keywordflow">if</span> (!(sectbuf[entryoffset].attrib &amp; DOS_ATTR_VOLUME)) <span class="keywordflow">goto</span> nextfile;
-<a name="l01344"></a>01344                 <a class="code" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a> dirCache;
-<a name="l01345"></a>01345                 dirCache.SetLabel(find_name, <span class="keyword">false</span>, <span class="keyword">true</span>);
-<a name="l01346"></a>01346         } <span class="keywordflow">else</span> {
-<a name="l01347"></a>01347                 <span class="keywordflow">if</span> (~attrs &amp; sectbuf[entryoffset].attrib &amp; (DOS_ATTR_DIRECTORY | DOS_ATTR_VOLUME | DOS_ATTR_SYSTEM | DOS_ATTR_HIDDEN) ) <span class="keywordflow">goto</span> nextfile;
-<a name="l01348"></a>01348         }
-<a name="l01349"></a>01349 
-<a name="l01350"></a>01350 
-<a name="l01351"></a>01351         <span class="comment">/* Compare name to search pattern */</span>
-<a name="l01352"></a>01352         <span class="keywordflow">if</span>(!WildFileCmp(find_name,srch_pattern)) <span class="keywordflow">goto</span> nextfile;
-<a name="l01353"></a>01353 
-<a name="l01354"></a>01354         <span class="comment">//dta.SetResult(find_name, sectbuf[entryoffset].entrysize, sectbuf[entryoffset].crtDate, sectbuf[entryoffset].crtTime, sectbuf[entryoffset].attrib);</span>
-<a name="l01355"></a>01355 
-<a name="l01356"></a>01356         dta.SetResult(find_name, sectbuf[entryoffset].entrysize, sectbuf[entryoffset].modDate, sectbuf[entryoffset].modTime, sectbuf[entryoffset].attrib);
-<a name="l01357"></a>01357 
-<a name="l01358"></a>01358         memcpy(foundEntry, &amp;sectbuf[entryoffset], <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
-<a name="l01359"></a>01359 
-<a name="l01360"></a>01360         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01300"></a>01300 <span class="keywordtype">bool</span> fatDrive::FileUnlink(<span class="keyword">const</span> <span class="keywordtype">char</span> * name) {
+<a name="l01301"></a>01301         <a class="code" href="structdirentry.html">direntry</a> fileEntry;
+<a name="l01302"></a>01302         Bit32u dirClust, subEntry;
+<a name="l01303"></a>01303 
+<a name="l01304"></a>01304         <span class="keywordflow">if</span>(!getFileDirEntry(name, &amp;fileEntry, &amp;dirClust, &amp;subEntry)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01305"></a>01305 
+<a name="l01306"></a>01306         fileEntry.entryname[0] = 0xe5;
+<a name="l01307"></a>01307         directoryChange(dirClust, &amp;fileEntry, (Bit32s)subEntry);
+<a name="l01308"></a>01308 
+<a name="l01309"></a>01309         <span class="keywordflow">if</span>(fileEntry.loFirstClust != 0) deleteClustChain(fileEntry.loFirstClust);
+<a name="l01310"></a>01310 
+<a name="l01311"></a>01311         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01312"></a>01312 }
+<a name="l01313"></a>01313 
+<a name="l01314"></a>01314 <span class="keywordtype">bool</span> fatDrive::FindFirst(<span class="keyword">const</span> <span class="keywordtype">char</span> *_dir, <a class="code" href="classDOS__DTA.html">DOS_DTA</a> &amp;dta,<span class="keywordtype">bool</span> <span class="comment">/*fcb_findfirst*/</span>) {
+<a name="l01315"></a>01315         <a class="code" href="structdirentry.html">direntry</a> dummyClust;
+<a name="l01316"></a>01316         <span class="keywordflow">if</span>(fattype==FAT32) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01317"></a>01317 <span class="preprocessor">#if 0</span>
+<a name="l01318"></a>01318 <span class="preprocessor"></span>        Bit8u attr;<span class="keywordtype">char</span> pattern[DOS_NAMELENGTH_ASCII];
+<a name="l01319"></a>01319         dta.GetSearchParams(attr,pattern);
+<a name="l01320"></a>01320         <span class="keywordflow">if</span>(attr==DOS_ATTR_VOLUME) {
+<a name="l01321"></a>01321                 <span class="keywordflow">if</span> (strcmp(GetLabel(), <span class="stringliteral">&quot;&quot;</span>) == 0 ) {
+<a name="l01322"></a>01322                         DOS_SetError(DOSERR_NO_MORE_FILES);
+<a name="l01323"></a>01323                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01324"></a>01324                 }
+<a name="l01325"></a>01325                 dta.SetResult(GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+<a name="l01326"></a>01326                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01327"></a>01327         }
+<a name="l01328"></a>01328         <span class="keywordflow">if</span>(attr &amp; DOS_ATTR_VOLUME) <span class="comment">//check for root dir or fcb_findfirst</span>
+<a name="l01329"></a>01329                 <a class="code" href="classLOG.html">LOG</a>(LOG_DOSMISC,LOG_WARN)(<span class="stringliteral">&quot;findfirst for volumelabel used on fatDrive. Unhandled!!!!!&quot;</span>);
+<a name="l01330"></a>01330 <span class="preprocessor">#endif</span>
+<a name="l01331"></a>01331 <span class="preprocessor"></span>        <span class="keywordflow">if</span>(!getDirClustNum(_dir, &amp;cwdDirCluster, <span class="keyword">false</span>)) {
+<a name="l01332"></a>01332                 DOS_SetError(DOSERR_PATH_NOT_FOUND);
+<a name="l01333"></a>01333                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01334"></a>01334         }
+<a name="l01335"></a>01335         dta.SetDirID(0);
+<a name="l01336"></a>01336         dta.SetDirIDCluster((Bit16u)(cwdDirCluster&amp;0xffff));
+<a name="l01337"></a>01337         <span class="keywordflow">return</span> FindNextInternal(cwdDirCluster, dta, &amp;dummyClust);
+<a name="l01338"></a>01338 }
+<a name="l01339"></a>01339 
+<a name="l01340"></a>01340 <span class="keywordtype">char</span>* removeTrailingSpaces(<span class="keywordtype">char</span>* str) {
+<a name="l01341"></a>01341         <span class="keywordtype">char</span>* end = str + strlen(str) - 1;
+<a name="l01342"></a>01342         <span class="keywordflow">while</span> (end &gt;= str &amp;&amp; *end == <span class="charliteral">&#39; &#39;</span>) end--;
+<a name="l01343"></a>01343     <span class="comment">/* NTS: The loop will exit with &#39;end&#39; one char behind the last &#39; &#39; space character.</span>
+<a name="l01344"></a>01344 <span class="comment">     *      So to ASCIIZ snip off the space, step forward one and overwrite with NUL.</span>
+<a name="l01345"></a>01345 <span class="comment">     *      The loop may end with &#39;end&#39; one char behind &#39;ptr&#39; if the string was empty &quot;&quot;</span>
+<a name="l01346"></a>01346 <span class="comment">     *      or nothing but spaces. This is OK because after the step forward, end &gt;= str</span>
+<a name="l01347"></a>01347 <span class="comment">     *      in all cases. */</span>
+<a name="l01348"></a>01348         *(++end) = <span class="charliteral">&#39;\0&#39;</span>;
+<a name="l01349"></a>01349         <span class="keywordflow">return</span> str;
+<a name="l01350"></a>01350 }
+<a name="l01351"></a>01351 
+<a name="l01352"></a>01352 <span class="keywordtype">char</span>* removeLeadingSpaces(<span class="keywordtype">char</span>* str) {
+<a name="l01353"></a>01353         <span class="keywordtype">size_t</span> len = strlen(str);
+<a name="l01354"></a>01354         <span class="keywordtype">size_t</span> pos = strspn(str,<span class="stringliteral">&quot; &quot;</span>);
+<a name="l01355"></a>01355         memmove(str,str + pos,len - pos + 1);
+<a name="l01356"></a>01356         <span class="keywordflow">return</span> str;
+<a name="l01357"></a>01357 }
+<a name="l01358"></a>01358 
+<a name="l01359"></a>01359 <span class="keywordtype">char</span>* trimString(<span class="keywordtype">char</span>* str) {
+<a name="l01360"></a>01360         <span class="keywordflow">return</span> removeTrailingSpaces(removeLeadingSpaces(str));
 <a name="l01361"></a>01361 }
 <a name="l01362"></a>01362 
-<a name="l01363"></a>01363 <span class="keywordtype">bool</span> fatDrive::FindNext(<a class="code" href="classDOS__DTA.html">DOS_DTA</a> &amp;dta) {
-<a name="l01364"></a>01364         <a class="code" href="structdirentry.html">direntry</a> dummyClust;
-<a name="l01365"></a>01365 
-<a name="l01366"></a>01366         <span class="keywordflow">return</span> FindNextInternal(dta.GetDirIDCluster(), dta, &amp;dummyClust);
-<a name="l01367"></a>01367 }
-<a name="l01368"></a>01368 
-<a name="l01369"></a>01369 <span class="keywordtype">bool</span> fatDrive::GetFileAttr(<span class="keyword">const</span> <span class="keywordtype">char</span> *name, Bit16u *attr) {
-<a name="l01370"></a>01370         <a class="code" href="structdirentry.html">direntry</a> fileEntry;
-<a name="l01371"></a>01371         Bit32u dirClust, subEntry;
-<a name="l01372"></a>01372         <span class="keywordflow">if</span>(!getFileDirEntry(name, &amp;fileEntry, &amp;dirClust, &amp;subEntry)) {
-<a name="l01373"></a>01373                 <span class="keywordtype">char</span> dirName[DOS_NAMELENGTH_ASCII];
-<a name="l01374"></a>01374                 <span class="keywordtype">char</span> pathName[11];
-<a name="l01375"></a>01375 
-<a name="l01376"></a>01376                 <span class="comment">/* Can we even get the name of the directory itself? */</span>
-<a name="l01377"></a>01377                 <span class="keywordflow">if</span>(!getEntryName(name, &amp;dirName[0])) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01378"></a>01378                 convToDirFile(&amp;dirName[0], &amp;pathName[0]);
-<a name="l01379"></a>01379 
-<a name="l01380"></a>01380                 <span class="comment">/* Get parent directory starting cluster */</span>
-<a name="l01381"></a>01381                 <span class="keywordflow">if</span>(!getDirClustNum(name, &amp;dirClust, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01382"></a>01382 
-<a name="l01383"></a>01383                 <span class="comment">/* Find directory entry in parent directory */</span>
-<a name="l01384"></a>01384                 Bit32s fileidx = 2;
-<a name="l01385"></a>01385                 <span class="keywordflow">if</span> (dirClust==0) fileidx = 0;   <span class="comment">// root directory</span>
-<a name="l01386"></a>01386                 Bit32s last_idx=0; 
-<a name="l01387"></a>01387                 <span class="keywordflow">while</span>(directoryBrowse(dirClust, &amp;fileEntry, fileidx, last_idx)) {
-<a name="l01388"></a>01388                         <span class="keywordflow">if</span>(memcmp(&amp;fileEntry.entryname, &amp;pathName[0], 11) == 0) {
-<a name="l01389"></a>01389                                 *attr=fileEntry.attrib;
-<a name="l01390"></a>01390                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01391"></a>01391                         }
-<a name="l01392"></a>01392                         fileidx++;
-<a name="l01393"></a>01393                 }
-<a name="l01394"></a>01394                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01395"></a>01395         } <span class="keywordflow">else</span> *attr=fileEntry.attrib;
-<a name="l01396"></a>01396         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01397"></a>01397 }
-<a name="l01398"></a>01398 
-<a name="l01399"></a>01399 <span class="keywordtype">bool</span> fatDrive::directoryBrowse(Bit32u dirClustNumber, <a class="code" href="structdirentry.html">direntry</a> *useEntry, Bit32s entNum, Bit32s start<span class="comment">/*=0*/</span>) {
-<a name="l01400"></a>01400         <a class="code" href="structdirentry.html">direntry</a> sectbuf[MAX_DIRENTS_PER_SECTOR];       <span class="comment">/* 16 directory entries per 512 byte sector */</span>
-<a name="l01401"></a>01401         Bit32u logentsector;    <span class="comment">/* Logical entry sector */</span>
-<a name="l01402"></a>01402         Bit32u entryoffset = 0; <span class="comment">/* Index offset within sector */</span>
-<a name="l01403"></a>01403         Bit32u tmpsector;
-<a name="l01404"></a>01404         Bit16u dirPos = 0;
+<a name="l01363"></a>01363 <span class="keywordtype">bool</span> fatDrive::FindNextInternal(Bit32u dirClustNumber, <a class="code" href="classDOS__DTA.html">DOS_DTA</a> &amp;dta, <a class="code" href="structdirentry.html">direntry</a> *foundEntry) {
+<a name="l01364"></a>01364         <a class="code" href="structdirentry.html">direntry</a> sectbuf[MAX_DIRENTS_PER_SECTOR]; <span class="comment">/* 16 directory entries per 512 byte sector */</span>
+<a name="l01365"></a>01365         Bit32u logentsector; <span class="comment">/* Logical entry sector */</span>
+<a name="l01366"></a>01366         Bit32u entryoffset;  <span class="comment">/* Index offset within sector */</span>
+<a name="l01367"></a>01367         Bit32u tmpsector;
+<a name="l01368"></a>01368         Bit8u attrs;
+<a name="l01369"></a>01369         Bit16u dirPos;
+<a name="l01370"></a>01370         <span class="keywordtype">char</span> srch_pattern[DOS_NAMELENGTH_ASCII];
+<a name="l01371"></a>01371         <span class="keywordtype">char</span> find_name[DOS_NAMELENGTH_ASCII];
+<a name="l01372"></a>01372         <span class="keywordtype">char</span> extension[4];
+<a name="l01373"></a>01373 
+<a name="l01374"></a>01374     <span class="keywordtype">size_t</span> dirent_per_sector = getSectSize() / <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>);
+<a name="l01375"></a>01375     assert(dirent_per_sector &lt;= MAX_DIRENTS_PER_SECTOR);
+<a name="l01376"></a>01376     assert((dirent_per_sector * <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>)) &lt;= SECTOR_SIZE_MAX);
+<a name="l01377"></a>01377 
+<a name="l01378"></a>01378         dta.GetSearchParams(attrs, srch_pattern);
+<a name="l01379"></a>01379         dirPos = dta.GetDirID();
+<a name="l01380"></a>01380 
+<a name="l01381"></a>01381 nextfile:
+<a name="l01382"></a>01382         logentsector = (Bit32u)((<span class="keywordtype">size_t</span>)dirPos / dirent_per_sector);
+<a name="l01383"></a>01383         entryoffset = (Bit32u)((<span class="keywordtype">size_t</span>)dirPos % dirent_per_sector);
+<a name="l01384"></a>01384 
+<a name="l01385"></a>01385         <span class="keywordflow">if</span>(dirClustNumber==0) {
+<a name="l01386"></a>01386                 <span class="keywordflow">if</span>(dirPos &gt;= bootbuffer.rootdirentries) {
+<a name="l01387"></a>01387                         DOS_SetError(DOSERR_NO_MORE_FILES);
+<a name="l01388"></a>01388                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01389"></a>01389                 }
+<a name="l01390"></a>01390                 Read_AbsoluteSector(firstRootDirSect+logentsector,sectbuf);
+<a name="l01391"></a>01391         } <span class="keywordflow">else</span> {
+<a name="l01392"></a>01392                 tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+<a name="l01393"></a>01393                 <span class="comment">/* A zero sector number can&#39;t happen */</span>
+<a name="l01394"></a>01394                 <span class="keywordflow">if</span>(tmpsector == 0) {
+<a name="l01395"></a>01395                         DOS_SetError(DOSERR_NO_MORE_FILES);
+<a name="l01396"></a>01396                         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01397"></a>01397                 }
+<a name="l01398"></a>01398                 Read_AbsoluteSector(tmpsector,sectbuf);
+<a name="l01399"></a>01399         }
+<a name="l01400"></a>01400         dirPos++;
+<a name="l01401"></a>01401         dta.SetDirID(dirPos);
+<a name="l01402"></a>01402 
+<a name="l01403"></a>01403         <span class="comment">/* Deleted file entry */</span>
+<a name="l01404"></a>01404         <span class="keywordflow">if</span> (sectbuf[entryoffset].entryname[0] == 0xe5) <span class="keywordflow">goto</span> nextfile;
 <a name="l01405"></a>01405 
-<a name="l01406"></a>01406     (void)start;<span class="comment">//UNUSED</span>
-<a name="l01407"></a>01407 
-<a name="l01408"></a>01408     <span class="keywordtype">size_t</span> dirent_per_sector = getSectSize() / <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>);
-<a name="l01409"></a>01409     assert(dirent_per_sector &lt;= MAX_DIRENTS_PER_SECTOR);
-<a name="l01410"></a>01410     assert((dirent_per_sector * <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>)) &lt;= SECTOR_SIZE_MAX);
-<a name="l01411"></a>01411 
-<a name="l01412"></a>01412         <span class="keywordflow">while</span>(entNum&gt;=0) {
-<a name="l01413"></a>01413                 logentsector = ((Bit32u)((<span class="keywordtype">size_t</span>)dirPos / dirent_per_sector));
-<a name="l01414"></a>01414                 entryoffset = ((Bit32u)((<span class="keywordtype">size_t</span>)dirPos % dirent_per_sector));
-<a name="l01415"></a>01415 
-<a name="l01416"></a>01416                 <span class="keywordflow">if</span>(dirClustNumber==0) {
-<a name="l01417"></a>01417                         <span class="keywordflow">if</span>(dirPos &gt;= bootbuffer.rootdirentries) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01418"></a>01418                         tmpsector = firstRootDirSect+logentsector;
-<a name="l01419"></a>01419                         Read_AbsoluteSector(tmpsector,sectbuf);
-<a name="l01420"></a>01420                 } <span class="keywordflow">else</span> {
-<a name="l01421"></a>01421                         tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
-<a name="l01422"></a>01422                         <span class="comment">/* A zero sector number can&#39;t happen */</span>
-<a name="l01423"></a>01423                         <span class="keywordflow">if</span>(tmpsector == 0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01424"></a>01424                         Read_AbsoluteSector(tmpsector,sectbuf);
-<a name="l01425"></a>01425                 }
-<a name="l01426"></a>01426                 dirPos++;
-<a name="l01427"></a>01427 
-<a name="l01428"></a>01428 
-<a name="l01429"></a>01429                 <span class="comment">/* End of directory list */</span>
-<a name="l01430"></a>01430                 <span class="keywordflow">if</span> (sectbuf[entryoffset].entryname[0] == 0x00) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01431"></a>01431                 --entNum;
-<a name="l01432"></a>01432         }
-<a name="l01433"></a>01433 
-<a name="l01434"></a>01434         memcpy(useEntry, &amp;sectbuf[entryoffset],<span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
-<a name="l01435"></a>01435         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01436"></a>01436 }
-<a name="l01437"></a>01437 
-<a name="l01438"></a>01438 <span class="keywordtype">bool</span> fatDrive::directoryChange(Bit32u dirClustNumber, <a class="code" href="structdirentry.html">direntry</a> *useEntry, Bit32s entNum) {
-<a name="l01439"></a>01439         <a class="code" href="structdirentry.html">direntry</a> sectbuf[MAX_DIRENTS_PER_SECTOR];       <span class="comment">/* 16 directory entries per 512 byte sector */</span>
-<a name="l01440"></a>01440         Bit32u logentsector;    <span class="comment">/* Logical entry sector */</span>
-<a name="l01441"></a>01441         Bit32u entryoffset = 0; <span class="comment">/* Index offset within sector */</span>
-<a name="l01442"></a>01442         Bit32u tmpsector = 0;
-<a name="l01443"></a>01443         Bit16u dirPos = 0;
-<a name="l01444"></a>01444         
-<a name="l01445"></a>01445     <span class="keywordtype">size_t</span> dirent_per_sector = getSectSize() / <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>);
-<a name="l01446"></a>01446     assert(dirent_per_sector &lt;= MAX_DIRENTS_PER_SECTOR);
-<a name="l01447"></a>01447     assert((dirent_per_sector * <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>)) &lt;= SECTOR_SIZE_MAX);
-<a name="l01448"></a>01448 
-<a name="l01449"></a>01449         <span class="keywordflow">while</span>(entNum&gt;=0) {              
-<a name="l01450"></a>01450                 logentsector = ((Bit32u)((<span class="keywordtype">size_t</span>)dirPos / dirent_per_sector));
-<a name="l01451"></a>01451                 entryoffset = ((Bit32u)((<span class="keywordtype">size_t</span>)dirPos % dirent_per_sector));
-<a name="l01452"></a>01452 
-<a name="l01453"></a>01453                 <span class="keywordflow">if</span>(dirClustNumber==0) {
-<a name="l01454"></a>01454                         <span class="keywordflow">if</span>(dirPos &gt;= bootbuffer.rootdirentries) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01455"></a>01455                         tmpsector = firstRootDirSect+logentsector;
-<a name="l01456"></a>01456                         Read_AbsoluteSector(tmpsector,sectbuf);
-<a name="l01457"></a>01457                 } <span class="keywordflow">else</span> {
-<a name="l01458"></a>01458                         tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
-<a name="l01459"></a>01459                         <span class="comment">/* A zero sector number can&#39;t happen */</span>
-<a name="l01460"></a>01460                         <span class="keywordflow">if</span>(tmpsector == 0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01461"></a>01461                         Read_AbsoluteSector(tmpsector,sectbuf);
-<a name="l01462"></a>01462                 }
-<a name="l01463"></a>01463                 dirPos++;
+<a name="l01406"></a>01406         <span class="comment">/* End of directory list */</span>
+<a name="l01407"></a>01407         <span class="keywordflow">if</span> (sectbuf[entryoffset].entryname[0] == 0x00) {
+<a name="l01408"></a>01408                 DOS_SetError(DOSERR_NO_MORE_FILES);
+<a name="l01409"></a>01409                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01410"></a>01410         }
+<a name="l01411"></a>01411         memset(find_name,0,DOS_NAMELENGTH_ASCII);
+<a name="l01412"></a>01412         memset(extension,0,4);
+<a name="l01413"></a>01413         memcpy(find_name,&amp;sectbuf[entryoffset].entryname[0],8);
+<a name="l01414"></a>01414         memcpy(extension,&amp;sectbuf[entryoffset].entryname[8],3);
+<a name="l01415"></a>01415         trimString(&amp;find_name[0]);
+<a name="l01416"></a>01416         trimString(&amp;extension[0]);
+<a name="l01417"></a>01417         
+<a name="l01418"></a>01418         <span class="comment">//if(!(sectbuf[entryoffset].attrib &amp; DOS_ATTR_DIRECTORY))</span>
+<a name="l01419"></a>01419         <span class="keywordflow">if</span> (extension[0]!=0) {
+<a name="l01420"></a>01420                 strcat(find_name, <span class="stringliteral">&quot;.&quot;</span>);
+<a name="l01421"></a>01421                 strcat(find_name, extension);
+<a name="l01422"></a>01422         }
+<a name="l01423"></a>01423 
+<a name="l01424"></a>01424         <span class="comment">/* Compare attributes to search attributes */</span>
+<a name="l01425"></a>01425 
+<a name="l01426"></a>01426         <span class="comment">//TODO What about attrs = DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY ?</span>
+<a name="l01427"></a>01427         <span class="keywordflow">if</span> (attrs == DOS_ATTR_VOLUME) {
+<a name="l01428"></a>01428                 <span class="keywordflow">if</span> (!(sectbuf[entryoffset].attrib &amp; DOS_ATTR_VOLUME)) <span class="keywordflow">goto</span> nextfile;
+<a name="l01429"></a>01429                 <a class="code" href="classDOS__Drive__Cache.html">DOS_Drive_Cache</a> dirCache;
+<a name="l01430"></a>01430                 dirCache.SetLabel(find_name, <span class="keyword">false</span>, <span class="keyword">true</span>);
+<a name="l01431"></a>01431         } <span class="keywordflow">else</span> {
+<a name="l01432"></a>01432                 <span class="keywordflow">if</span> (~attrs &amp; sectbuf[entryoffset].attrib &amp; (DOS_ATTR_DIRECTORY | DOS_ATTR_VOLUME | DOS_ATTR_SYSTEM | DOS_ATTR_HIDDEN) ) <span class="keywordflow">goto</span> nextfile;
+<a name="l01433"></a>01433         }
+<a name="l01434"></a>01434 
+<a name="l01435"></a>01435 
+<a name="l01436"></a>01436         <span class="comment">/* Compare name to search pattern */</span>
+<a name="l01437"></a>01437         <span class="keywordflow">if</span>(!WildFileCmp(find_name,srch_pattern)) <span class="keywordflow">goto</span> nextfile;
+<a name="l01438"></a>01438 
+<a name="l01439"></a>01439         <span class="comment">//dta.SetResult(find_name, sectbuf[entryoffset].entrysize, sectbuf[entryoffset].crtDate, sectbuf[entryoffset].crtTime, sectbuf[entryoffset].attrib);</span>
+<a name="l01440"></a>01440 
+<a name="l01441"></a>01441         dta.SetResult(find_name, sectbuf[entryoffset].entrysize, sectbuf[entryoffset].modDate, sectbuf[entryoffset].modTime, sectbuf[entryoffset].attrib);
+<a name="l01442"></a>01442 
+<a name="l01443"></a>01443         memcpy(foundEntry, &amp;sectbuf[entryoffset], <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
+<a name="l01444"></a>01444 
+<a name="l01445"></a>01445         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01446"></a>01446 }
+<a name="l01447"></a>01447 
+<a name="l01448"></a>01448 <span class="keywordtype">bool</span> fatDrive::FindNext(<a class="code" href="classDOS__DTA.html">DOS_DTA</a> &amp;dta) {
+<a name="l01449"></a>01449         <a class="code" href="structdirentry.html">direntry</a> dummyClust;
+<a name="l01450"></a>01450 
+<a name="l01451"></a>01451         <span class="keywordflow">return</span> FindNextInternal(dta.GetDirIDCluster(), dta, &amp;dummyClust);
+<a name="l01452"></a>01452 }
+<a name="l01453"></a>01453 
+<a name="l01454"></a>01454 <span class="keywordtype">bool</span> fatDrive::GetFileAttr(<span class="keyword">const</span> <span class="keywordtype">char</span> *name, Bit16u *attr) {
+<a name="l01455"></a>01455         <a class="code" href="structdirentry.html">direntry</a> fileEntry;
+<a name="l01456"></a>01456         Bit32u dirClust, subEntry;
+<a name="l01457"></a>01457         <span class="keywordflow">if</span>(!getFileDirEntry(name, &amp;fileEntry, &amp;dirClust, &amp;subEntry)) {
+<a name="l01458"></a>01458                 <span class="keywordtype">char</span> dirName[DOS_NAMELENGTH_ASCII];
+<a name="l01459"></a>01459                 <span class="keywordtype">char</span> pathName[11];
+<a name="l01460"></a>01460 
+<a name="l01461"></a>01461                 <span class="comment">/* Can we even get the name of the directory itself? */</span>
+<a name="l01462"></a>01462                 <span class="keywordflow">if</span>(!getEntryName(name, &amp;dirName[0])) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01463"></a>01463                 convToDirFile(&amp;dirName[0], &amp;pathName[0]);
 <a name="l01464"></a>01464 
-<a name="l01465"></a>01465 
-<a name="l01466"></a>01466                 <span class="comment">/* End of directory list */</span>
-<a name="l01467"></a>01467                 <span class="keywordflow">if</span> (sectbuf[entryoffset].entryname[0] == 0x00) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01468"></a>01468                 --entNum;
-<a name="l01469"></a>01469         }
-<a name="l01470"></a>01470         <span class="keywordflow">if</span>(tmpsector != 0) {
-<a name="l01471"></a>01471         memcpy(&amp;sectbuf[entryoffset], useEntry, <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
-<a name="l01472"></a>01472                 Write_AbsoluteSector(tmpsector, sectbuf);
-<a name="l01473"></a>01473         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01474"></a>01474         } <span class="keywordflow">else</span> {
-<a name="l01475"></a>01475                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01476"></a>01476         }
-<a name="l01477"></a>01477 }
-<a name="l01478"></a>01478 
-<a name="l01479"></a>01479 <span class="keywordtype">bool</span> fatDrive::addDirectoryEntry(Bit32u dirClustNumber, <a class="code" href="structdirentry.html">direntry</a> useEntry) {
-<a name="l01480"></a>01480         <a class="code" href="structdirentry.html">direntry</a> sectbuf[MAX_DIRENTS_PER_SECTOR]; <span class="comment">/* 16 directory entries per 512 byte sector */</span>
-<a name="l01481"></a>01481         Bit32u logentsector; <span class="comment">/* Logical entry sector */</span>
-<a name="l01482"></a>01482         Bit32u entryoffset;  <span class="comment">/* Index offset within sector */</span>
-<a name="l01483"></a>01483         Bit32u tmpsector;
-<a name="l01484"></a>01484         Bit16u dirPos = 0;
-<a name="l01485"></a>01485         
-<a name="l01486"></a>01486     <span class="keywordtype">size_t</span> dirent_per_sector = getSectSize() / <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>);
-<a name="l01487"></a>01487     assert(dirent_per_sector &lt;= MAX_DIRENTS_PER_SECTOR);
-<a name="l01488"></a>01488     assert((dirent_per_sector * <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>)) &lt;= SECTOR_SIZE_MAX);
-<a name="l01489"></a>01489 
-<a name="l01490"></a>01490         <span class="keywordflow">for</span>(;;) {               
-<a name="l01491"></a>01491                 logentsector = ((Bit32u)((<span class="keywordtype">size_t</span>)dirPos / dirent_per_sector));
-<a name="l01492"></a>01492                 entryoffset = ((Bit32u)((<span class="keywordtype">size_t</span>)dirPos % dirent_per_sector));
-<a name="l01493"></a>01493 
-<a name="l01494"></a>01494                 <span class="keywordflow">if</span>(dirClustNumber==0) {
-<a name="l01495"></a>01495                         <span class="keywordflow">if</span>(dirPos &gt;= bootbuffer.rootdirentries) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01496"></a>01496                         tmpsector = firstRootDirSect+logentsector;
-<a name="l01497"></a>01497                         Read_AbsoluteSector(tmpsector,sectbuf);
-<a name="l01498"></a>01498                 } <span class="keywordflow">else</span> {
-<a name="l01499"></a>01499                         tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
-<a name="l01500"></a>01500                         <span class="comment">/* A zero sector number can&#39;t happen - we need to allocate more room for this directory*/</span>
-<a name="l01501"></a>01501                         <span class="keywordflow">if</span>(tmpsector == 0) {
-<a name="l01502"></a>01502                                 Bit32u newClust;
-<a name="l01503"></a>01503                                 newClust = appendCluster(dirClustNumber);
-<a name="l01504"></a>01504                                 <span class="keywordflow">if</span>(newClust == 0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01505"></a>01505                                 <span class="comment">/* Try again to get tmpsector */</span>
-<a name="l01506"></a>01506                                 tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
-<a name="l01507"></a>01507                                 <span class="keywordflow">if</span>(tmpsector == 0) <span class="keywordflow">return</span> <span class="keyword">false</span>; <span class="comment">/* Give up if still can&#39;t get more room for directory */</span>
-<a name="l01508"></a>01508                         }
+<a name="l01465"></a>01465                 <span class="comment">/* Get parent directory starting cluster */</span>
+<a name="l01466"></a>01466                 <span class="keywordflow">if</span>(!getDirClustNum(name, &amp;dirClust, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01467"></a>01467 
+<a name="l01468"></a>01468                 <span class="comment">/* Find directory entry in parent directory */</span>
+<a name="l01469"></a>01469                 Bit32s fileidx = 2;
+<a name="l01470"></a>01470                 <span class="keywordflow">if</span> (dirClust==0) fileidx = 0;   <span class="comment">// root directory</span>
+<a name="l01471"></a>01471                 Bit32s last_idx=0; 
+<a name="l01472"></a>01472                 <span class="keywordflow">while</span>(directoryBrowse(dirClust, &amp;fileEntry, fileidx, last_idx)) {
+<a name="l01473"></a>01473                         <span class="keywordflow">if</span>(memcmp(&amp;fileEntry.entryname, &amp;pathName[0], 11) == 0) {
+<a name="l01474"></a>01474                                 *attr=fileEntry.attrib;
+<a name="l01475"></a>01475                                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01476"></a>01476                         }
+<a name="l01477"></a>01477                         fileidx++;
+<a name="l01478"></a>01478                 }
+<a name="l01479"></a>01479                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01480"></a>01480         } <span class="keywordflow">else</span> *attr=fileEntry.attrib;
+<a name="l01481"></a>01481         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01482"></a>01482 }
+<a name="l01483"></a>01483 
+<a name="l01484"></a>01484 <span class="keywordtype">bool</span> fatDrive::directoryBrowse(Bit32u dirClustNumber, <a class="code" href="structdirentry.html">direntry</a> *useEntry, Bit32s entNum, Bit32s start<span class="comment">/*=0*/</span>) {
+<a name="l01485"></a>01485         <a class="code" href="structdirentry.html">direntry</a> sectbuf[MAX_DIRENTS_PER_SECTOR];       <span class="comment">/* 16 directory entries per 512 byte sector */</span>
+<a name="l01486"></a>01486         Bit32u logentsector;    <span class="comment">/* Logical entry sector */</span>
+<a name="l01487"></a>01487         Bit32u entryoffset = 0; <span class="comment">/* Index offset within sector */</span>
+<a name="l01488"></a>01488         Bit32u tmpsector;
+<a name="l01489"></a>01489         Bit16u dirPos = 0;
+<a name="l01490"></a>01490 
+<a name="l01491"></a>01491     (void)start;<span class="comment">//UNUSED</span>
+<a name="l01492"></a>01492 
+<a name="l01493"></a>01493     <span class="keywordtype">size_t</span> dirent_per_sector = getSectSize() / <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>);
+<a name="l01494"></a>01494     assert(dirent_per_sector &lt;= MAX_DIRENTS_PER_SECTOR);
+<a name="l01495"></a>01495     assert((dirent_per_sector * <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>)) &lt;= SECTOR_SIZE_MAX);
+<a name="l01496"></a>01496 
+<a name="l01497"></a>01497         <span class="keywordflow">while</span>(entNum&gt;=0) {
+<a name="l01498"></a>01498                 logentsector = ((Bit32u)((<span class="keywordtype">size_t</span>)dirPos / dirent_per_sector));
+<a name="l01499"></a>01499                 entryoffset = ((Bit32u)((<span class="keywordtype">size_t</span>)dirPos % dirent_per_sector));
+<a name="l01500"></a>01500 
+<a name="l01501"></a>01501                 <span class="keywordflow">if</span>(dirClustNumber==0) {
+<a name="l01502"></a>01502                         <span class="keywordflow">if</span>(dirPos &gt;= bootbuffer.rootdirentries) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01503"></a>01503                         tmpsector = firstRootDirSect+logentsector;
+<a name="l01504"></a>01504                         Read_AbsoluteSector(tmpsector,sectbuf);
+<a name="l01505"></a>01505                 } <span class="keywordflow">else</span> {
+<a name="l01506"></a>01506                         tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+<a name="l01507"></a>01507                         <span class="comment">/* A zero sector number can&#39;t happen */</span>
+<a name="l01508"></a>01508                         <span class="keywordflow">if</span>(tmpsector == 0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
 <a name="l01509"></a>01509                         Read_AbsoluteSector(tmpsector,sectbuf);
 <a name="l01510"></a>01510                 }
 <a name="l01511"></a>01511                 dirPos++;
 <a name="l01512"></a>01512 
-<a name="l01513"></a>01513                 <span class="comment">/* Deleted file entry or end of directory list */</span>
-<a name="l01514"></a>01514                 <span class="keywordflow">if</span> ((sectbuf[entryoffset].entryname[0] == 0xe5) || (sectbuf[entryoffset].entryname[0] == 0x00)) {
-<a name="l01515"></a>01515                         sectbuf[entryoffset] = useEntry;
-<a name="l01516"></a>01516                         Write_AbsoluteSector(tmpsector,sectbuf);
-<a name="l01517"></a>01517                         <span class="keywordflow">break</span>;
-<a name="l01518"></a>01518                 }
-<a name="l01519"></a>01519         }
-<a name="l01520"></a>01520 
-<a name="l01521"></a>01521         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01522"></a>01522 }
-<a name="l01523"></a>01523 
-<a name="l01524"></a>01524 <span class="keywordtype">void</span> fatDrive::zeroOutCluster(Bit32u clustNumber) {
-<a name="l01525"></a>01525         Bit8u secBuffer[SECTOR_SIZE_MAX];
-<a name="l01526"></a>01526 
-<a name="l01527"></a>01527         memset(&amp;secBuffer[0], 0, SECTOR_SIZE_MAX);
-<a name="l01528"></a>01528 
-<a name="l01529"></a>01529         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
-<a name="l01530"></a>01530         <span class="keywordflow">for</span>(i=0;i&lt;bootbuffer.sectorspercluster;i++) {
-<a name="l01531"></a>01531                 Write_AbsoluteSector(getAbsoluteSectFromChain(clustNumber,i), &amp;secBuffer[0]);
-<a name="l01532"></a>01532         }
-<a name="l01533"></a>01533 }
-<a name="l01534"></a>01534 
-<a name="l01535"></a>01535 <span class="keywordtype">bool</span> fatDrive::MakeDir(<span class="keyword">const</span> <span class="keywordtype">char</span> *dir) {
-<a name="l01536"></a>01536         Bit32u dummyClust, dirClust;
-<a name="l01537"></a>01537         <a class="code" href="structdirentry.html">direntry</a> tmpentry;
-<a name="l01538"></a>01538         <span class="keywordtype">char</span> dirName[DOS_NAMELENGTH_ASCII];
-<a name="l01539"></a>01539         <span class="keywordtype">char</span> pathName[11];
-<a name="l01540"></a>01540 
-<a name="l01541"></a>01541         <span class="comment">/* Can we even get the name of the directory itself? */</span>
-<a name="l01542"></a>01542         <span class="keywordflow">if</span>(!getEntryName(dir, &amp;dirName[0])) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01543"></a>01543         convToDirFile(&amp;dirName[0], &amp;pathName[0]);
-<a name="l01544"></a>01544 
-<a name="l01545"></a>01545         <span class="comment">/* Fail to make directory if already exists */</span>
-<a name="l01546"></a>01546         <span class="keywordflow">if</span>(getDirClustNum(dir, &amp;dummyClust, <span class="keyword">false</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01547"></a>01547 
-<a name="l01548"></a>01548         dummyClust = getFirstFreeClust();
-<a name="l01549"></a>01549         <span class="comment">/* No more space */</span>
-<a name="l01550"></a>01550         <span class="keywordflow">if</span>(dummyClust == 0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01551"></a>01551         
-<a name="l01552"></a>01552         <span class="keywordflow">if</span>(!allocateCluster(dummyClust, 0)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01553"></a>01553 
-<a name="l01554"></a>01554         zeroOutCluster(dummyClust);
-<a name="l01555"></a>01555 
-<a name="l01556"></a>01556         <span class="comment">/* Can we find the base directory? */</span>
-<a name="l01557"></a>01557         <span class="keywordflow">if</span>(!getDirClustNum(dir, &amp;dirClust, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01558"></a>01558         
-<a name="l01559"></a>01559         <span class="comment">/* Add the new directory to the base directory */</span>
-<a name="l01560"></a>01560         memset(&amp;tmpentry,0, <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
-<a name="l01561"></a>01561         memcpy(&amp;tmpentry.entryname, &amp;pathName[0], 11);
-<a name="l01562"></a>01562         tmpentry.loFirstClust = (Bit16u)(dummyClust &amp; 0xffff);
-<a name="l01563"></a>01563         tmpentry.hiFirstClust = (Bit16u)(dummyClust &gt;&gt; 16);
-<a name="l01564"></a>01564         tmpentry.attrib = DOS_ATTR_DIRECTORY;
-<a name="l01565"></a>01565         addDirectoryEntry(dirClust, tmpentry);
-<a name="l01566"></a>01566 
-<a name="l01567"></a>01567         <span class="comment">/* Add the [.] and [..] entries to our new directory*/</span>
-<a name="l01568"></a>01568         <span class="comment">/* [.] entry */</span>
-<a name="l01569"></a>01569         memset(&amp;tmpentry,0, <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
-<a name="l01570"></a>01570         memcpy(&amp;tmpentry.entryname, <span class="stringliteral">&quot;.          &quot;</span>, 11);
-<a name="l01571"></a>01571         tmpentry.loFirstClust = (Bit16u)(dummyClust &amp; 0xffff);
-<a name="l01572"></a>01572         tmpentry.hiFirstClust = (Bit16u)(dummyClust &gt;&gt; 16);
-<a name="l01573"></a>01573         tmpentry.attrib = DOS_ATTR_DIRECTORY;
-<a name="l01574"></a>01574         addDirectoryEntry(dummyClust, tmpentry);
-<a name="l01575"></a>01575 
-<a name="l01576"></a>01576         <span class="comment">/* [..] entry */</span>
-<a name="l01577"></a>01577         memset(&amp;tmpentry,0, <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
-<a name="l01578"></a>01578         memcpy(&amp;tmpentry.entryname, <span class="stringliteral">&quot;..         &quot;</span>, 11);
-<a name="l01579"></a>01579         tmpentry.loFirstClust = (Bit16u)(dirClust &amp; 0xffff);
-<a name="l01580"></a>01580         tmpentry.hiFirstClust = (Bit16u)(dirClust &gt;&gt; 16);
-<a name="l01581"></a>01581         tmpentry.attrib = DOS_ATTR_DIRECTORY;
-<a name="l01582"></a>01582         addDirectoryEntry(dummyClust, tmpentry);
-<a name="l01583"></a>01583 
-<a name="l01584"></a>01584         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01585"></a>01585 }
-<a name="l01586"></a>01586 
-<a name="l01587"></a>01587 <span class="keywordtype">bool</span> fatDrive::RemoveDir(<span class="keyword">const</span> <span class="keywordtype">char</span> *dir) {
-<a name="l01588"></a>01588         Bit32u dummyClust, dirClust;
-<a name="l01589"></a>01589         <a class="code" href="structdirentry.html">direntry</a> tmpentry;
-<a name="l01590"></a>01590         <span class="keywordtype">char</span> dirName[DOS_NAMELENGTH_ASCII];
-<a name="l01591"></a>01591         <span class="keywordtype">char</span> pathName[11];
-<a name="l01592"></a>01592 
-<a name="l01593"></a>01593         <span class="comment">/* Can we even get the name of the directory itself? */</span>
-<a name="l01594"></a>01594         <span class="keywordflow">if</span>(!getEntryName(dir, &amp;dirName[0])) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01595"></a>01595         convToDirFile(&amp;dirName[0], &amp;pathName[0]);
-<a name="l01596"></a>01596 
-<a name="l01597"></a>01597         <span class="comment">/* Get directory starting cluster */</span>
-<a name="l01598"></a>01598         <span class="keywordflow">if</span>(!getDirClustNum(dir, &amp;dummyClust, <span class="keyword">false</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01599"></a>01599 
-<a name="l01600"></a>01600         <span class="comment">/* Can&#39;t remove root directory */</span>
-<a name="l01601"></a>01601         <span class="keywordflow">if</span>(dummyClust == 0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01602"></a>01602 
-<a name="l01603"></a>01603         <span class="comment">/* Get parent directory starting cluster */</span>
-<a name="l01604"></a>01604         <span class="keywordflow">if</span>(!getDirClustNum(dir, &amp;dirClust, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01513"></a>01513 
+<a name="l01514"></a>01514                 <span class="comment">/* End of directory list */</span>
+<a name="l01515"></a>01515                 <span class="keywordflow">if</span> (sectbuf[entryoffset].entryname[0] == 0x00) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01516"></a>01516                 --entNum;
+<a name="l01517"></a>01517         }
+<a name="l01518"></a>01518 
+<a name="l01519"></a>01519         memcpy(useEntry, &amp;sectbuf[entryoffset],<span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
+<a name="l01520"></a>01520         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01521"></a>01521 }
+<a name="l01522"></a>01522 
+<a name="l01523"></a>01523 <span class="keywordtype">bool</span> fatDrive::directoryChange(Bit32u dirClustNumber, <a class="code" href="structdirentry.html">direntry</a> *useEntry, Bit32s entNum) {
+<a name="l01524"></a>01524         <a class="code" href="structdirentry.html">direntry</a> sectbuf[MAX_DIRENTS_PER_SECTOR];       <span class="comment">/* 16 directory entries per 512 byte sector */</span>
+<a name="l01525"></a>01525         Bit32u logentsector;    <span class="comment">/* Logical entry sector */</span>
+<a name="l01526"></a>01526         Bit32u entryoffset = 0; <span class="comment">/* Index offset within sector */</span>
+<a name="l01527"></a>01527         Bit32u tmpsector = 0;
+<a name="l01528"></a>01528         Bit16u dirPos = 0;
+<a name="l01529"></a>01529         
+<a name="l01530"></a>01530     <span class="keywordtype">size_t</span> dirent_per_sector = getSectSize() / <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>);
+<a name="l01531"></a>01531     assert(dirent_per_sector &lt;= MAX_DIRENTS_PER_SECTOR);
+<a name="l01532"></a>01532     assert((dirent_per_sector * <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>)) &lt;= SECTOR_SIZE_MAX);
+<a name="l01533"></a>01533 
+<a name="l01534"></a>01534         <span class="keywordflow">while</span>(entNum&gt;=0) {              
+<a name="l01535"></a>01535                 logentsector = ((Bit32u)((<span class="keywordtype">size_t</span>)dirPos / dirent_per_sector));
+<a name="l01536"></a>01536                 entryoffset = ((Bit32u)((<span class="keywordtype">size_t</span>)dirPos % dirent_per_sector));
+<a name="l01537"></a>01537 
+<a name="l01538"></a>01538                 <span class="keywordflow">if</span>(dirClustNumber==0) {
+<a name="l01539"></a>01539                         <span class="keywordflow">if</span>(dirPos &gt;= bootbuffer.rootdirentries) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01540"></a>01540                         tmpsector = firstRootDirSect+logentsector;
+<a name="l01541"></a>01541                         Read_AbsoluteSector(tmpsector,sectbuf);
+<a name="l01542"></a>01542                 } <span class="keywordflow">else</span> {
+<a name="l01543"></a>01543                         tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+<a name="l01544"></a>01544                         <span class="comment">/* A zero sector number can&#39;t happen */</span>
+<a name="l01545"></a>01545                         <span class="keywordflow">if</span>(tmpsector == 0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01546"></a>01546                         Read_AbsoluteSector(tmpsector,sectbuf);
+<a name="l01547"></a>01547                 }
+<a name="l01548"></a>01548                 dirPos++;
+<a name="l01549"></a>01549 
+<a name="l01550"></a>01550 
+<a name="l01551"></a>01551                 <span class="comment">/* End of directory list */</span>
+<a name="l01552"></a>01552                 <span class="keywordflow">if</span> (sectbuf[entryoffset].entryname[0] == 0x00) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01553"></a>01553                 --entNum;
+<a name="l01554"></a>01554         }
+<a name="l01555"></a>01555         <span class="keywordflow">if</span>(tmpsector != 0) {
+<a name="l01556"></a>01556         memcpy(&amp;sectbuf[entryoffset], useEntry, <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
+<a name="l01557"></a>01557                 Write_AbsoluteSector(tmpsector, sectbuf);
+<a name="l01558"></a>01558         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01559"></a>01559         } <span class="keywordflow">else</span> {
+<a name="l01560"></a>01560                 <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01561"></a>01561         }
+<a name="l01562"></a>01562 }
+<a name="l01563"></a>01563 
+<a name="l01564"></a>01564 <span class="keywordtype">bool</span> fatDrive::addDirectoryEntry(Bit32u dirClustNumber, <a class="code" href="structdirentry.html">direntry</a> useEntry) {
+<a name="l01565"></a>01565         <a class="code" href="structdirentry.html">direntry</a> sectbuf[MAX_DIRENTS_PER_SECTOR]; <span class="comment">/* 16 directory entries per 512 byte sector */</span>
+<a name="l01566"></a>01566         Bit32u logentsector; <span class="comment">/* Logical entry sector */</span>
+<a name="l01567"></a>01567         Bit32u entryoffset;  <span class="comment">/* Index offset within sector */</span>
+<a name="l01568"></a>01568         Bit32u tmpsector;
+<a name="l01569"></a>01569         Bit16u dirPos = 0;
+<a name="l01570"></a>01570         
+<a name="l01571"></a>01571     <span class="keywordtype">size_t</span> dirent_per_sector = getSectSize() / <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>);
+<a name="l01572"></a>01572     assert(dirent_per_sector &lt;= MAX_DIRENTS_PER_SECTOR);
+<a name="l01573"></a>01573     assert((dirent_per_sector * <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>)) &lt;= SECTOR_SIZE_MAX);
+<a name="l01574"></a>01574 
+<a name="l01575"></a>01575         <span class="keywordflow">for</span>(;;) {               
+<a name="l01576"></a>01576                 logentsector = ((Bit32u)((<span class="keywordtype">size_t</span>)dirPos / dirent_per_sector));
+<a name="l01577"></a>01577                 entryoffset = ((Bit32u)((<span class="keywordtype">size_t</span>)dirPos % dirent_per_sector));
+<a name="l01578"></a>01578 
+<a name="l01579"></a>01579                 <span class="keywordflow">if</span>(dirClustNumber==0) {
+<a name="l01580"></a>01580                         <span class="keywordflow">if</span>(dirPos &gt;= bootbuffer.rootdirentries) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01581"></a>01581                         tmpsector = firstRootDirSect+logentsector;
+<a name="l01582"></a>01582                         Read_AbsoluteSector(tmpsector,sectbuf);
+<a name="l01583"></a>01583                 } <span class="keywordflow">else</span> {
+<a name="l01584"></a>01584                         tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+<a name="l01585"></a>01585                         <span class="comment">/* A zero sector number can&#39;t happen - we need to allocate more room for this directory*/</span>
+<a name="l01586"></a>01586                         <span class="keywordflow">if</span>(tmpsector == 0) {
+<a name="l01587"></a>01587                                 Bit32u newClust;
+<a name="l01588"></a>01588                                 newClust = appendCluster(dirClustNumber);
+<a name="l01589"></a>01589                                 <span class="keywordflow">if</span>(newClust == 0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01590"></a>01590                                 <span class="comment">/* Try again to get tmpsector */</span>
+<a name="l01591"></a>01591                                 tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+<a name="l01592"></a>01592                                 <span class="keywordflow">if</span>(tmpsector == 0) <span class="keywordflow">return</span> <span class="keyword">false</span>; <span class="comment">/* Give up if still can&#39;t get more room for directory */</span>
+<a name="l01593"></a>01593                         }
+<a name="l01594"></a>01594                         Read_AbsoluteSector(tmpsector,sectbuf);
+<a name="l01595"></a>01595                 }
+<a name="l01596"></a>01596                 dirPos++;
+<a name="l01597"></a>01597 
+<a name="l01598"></a>01598                 <span class="comment">/* Deleted file entry or end of directory list */</span>
+<a name="l01599"></a>01599                 <span class="keywordflow">if</span> ((sectbuf[entryoffset].entryname[0] == 0xe5) || (sectbuf[entryoffset].entryname[0] == 0x00)) {
+<a name="l01600"></a>01600                         sectbuf[entryoffset] = useEntry;
+<a name="l01601"></a>01601                         Write_AbsoluteSector(tmpsector,sectbuf);
+<a name="l01602"></a>01602                         <span class="keywordflow">break</span>;
+<a name="l01603"></a>01603                 }
+<a name="l01604"></a>01604         }
 <a name="l01605"></a>01605 
-<a name="l01606"></a>01606         <span class="comment">/* Check to make sure directory is empty */</span>
-<a name="l01607"></a>01607         Bit32u filecount = 0;
-<a name="l01608"></a>01608         <span class="comment">/* Set to 2 to skip first 2 entries, [.] and [..] */</span>
-<a name="l01609"></a>01609         Bit32s fileidx = 2;
-<a name="l01610"></a>01610         <span class="keywordflow">while</span>(directoryBrowse(dummyClust, &amp;tmpentry, fileidx)) {
-<a name="l01611"></a>01611                 <span class="comment">/* Check for non-deleted files */</span>
-<a name="l01612"></a>01612                 <span class="keywordflow">if</span>(tmpentry.entryname[0] != 0xe5) filecount++;
-<a name="l01613"></a>01613                 fileidx++;
-<a name="l01614"></a>01614         }
-<a name="l01615"></a>01615 
-<a name="l01616"></a>01616         <span class="comment">/* Return if directory is not empty */</span>
-<a name="l01617"></a>01617         <span class="keywordflow">if</span>(filecount &gt; 0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01618"></a>01618 
-<a name="l01619"></a>01619         <span class="comment">/* Find directory entry in parent directory */</span>
-<a name="l01620"></a>01620         <span class="keywordflow">if</span> (dirClust==0) fileidx = 0;   <span class="comment">// root directory</span>
-<a name="l01621"></a>01621         <span class="keywordflow">else</span> fileidx = 2;
-<a name="l01622"></a>01622         <span class="keywordtype">bool</span> found = <span class="keyword">false</span>;
-<a name="l01623"></a>01623         <span class="keywordflow">while</span>(directoryBrowse(dirClust, &amp;tmpentry, fileidx)) {
-<a name="l01624"></a>01624                 <span class="keywordflow">if</span>(memcmp(&amp;tmpentry.entryname, &amp;pathName[0], 11) == 0) {
-<a name="l01625"></a>01625                         found = <span class="keyword">true</span>;
-<a name="l01626"></a>01626                         tmpentry.entryname[0] = 0xe5;
-<a name="l01627"></a>01627                         directoryChange(dirClust, &amp;tmpentry, fileidx);
-<a name="l01628"></a>01628                         deleteClustChain(dummyClust);
+<a name="l01606"></a>01606         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01607"></a>01607 }
+<a name="l01608"></a>01608 
+<a name="l01609"></a>01609 <span class="keywordtype">void</span> fatDrive::zeroOutCluster(Bit32u clustNumber) {
+<a name="l01610"></a>01610         Bit8u secBuffer[SECTOR_SIZE_MAX];
+<a name="l01611"></a>01611 
+<a name="l01612"></a>01612         memset(&amp;secBuffer[0], 0, SECTOR_SIZE_MAX);
+<a name="l01613"></a>01613 
+<a name="l01614"></a>01614         <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> i;
+<a name="l01615"></a>01615         <span class="keywordflow">for</span>(i=0;i&lt;bootbuffer.sectorspercluster;i++) {
+<a name="l01616"></a>01616                 Write_AbsoluteSector(getAbsoluteSectFromChain(clustNumber,i), &amp;secBuffer[0]);
+<a name="l01617"></a>01617         }
+<a name="l01618"></a>01618 }
+<a name="l01619"></a>01619 
+<a name="l01620"></a>01620 <span class="keywordtype">bool</span> fatDrive::MakeDir(<span class="keyword">const</span> <span class="keywordtype">char</span> *dir) {
+<a name="l01621"></a>01621         Bit32u dummyClust, dirClust;
+<a name="l01622"></a>01622         <a class="code" href="structdirentry.html">direntry</a> tmpentry;
+<a name="l01623"></a>01623         <span class="keywordtype">char</span> dirName[DOS_NAMELENGTH_ASCII];
+<a name="l01624"></a>01624         <span class="keywordtype">char</span> pathName[11];
+<a name="l01625"></a>01625 
+<a name="l01626"></a>01626         <span class="comment">/* Can we even get the name of the directory itself? */</span>
+<a name="l01627"></a>01627         <span class="keywordflow">if</span>(!getEntryName(dir, &amp;dirName[0])) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01628"></a>01628         convToDirFile(&amp;dirName[0], &amp;pathName[0]);
 <a name="l01629"></a>01629 
-<a name="l01630"></a>01630                         <span class="keywordflow">break</span>;
-<a name="l01631"></a>01631                 }
-<a name="l01632"></a>01632                 fileidx++;
-<a name="l01633"></a>01633         }
-<a name="l01634"></a>01634 
-<a name="l01635"></a>01635         <span class="keywordflow">if</span>(!found) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01636"></a>01636 
-<a name="l01637"></a>01637         <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01638"></a>01638 }
-<a name="l01639"></a>01639 
-<a name="l01640"></a>01640 <span class="keywordtype">bool</span> fatDrive::Rename(<span class="keyword">const</span> <span class="keywordtype">char</span> * oldname, <span class="keyword">const</span> <span class="keywordtype">char</span> * newname) {
-<a name="l01641"></a>01641         <a class="code" href="structdirentry.html">direntry</a> fileEntry1;
-<a name="l01642"></a>01642         Bit32u dirClust1, subEntry1;
-<a name="l01643"></a>01643         <span class="keywordflow">if</span>(!getFileDirEntry(oldname, &amp;fileEntry1, &amp;dirClust1, &amp;subEntry1)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01644"></a>01644         <span class="comment">/* File to be renamed really exists */</span>
-<a name="l01645"></a>01645 
-<a name="l01646"></a>01646         <a class="code" href="structdirentry.html">direntry</a> fileEntry2;
-<a name="l01647"></a>01647         Bit32u dirClust2, subEntry2;
-<a name="l01648"></a>01648 
-<a name="l01649"></a>01649         <span class="comment">/* Check if file already exists */</span>
-<a name="l01650"></a>01650         <span class="keywordflow">if</span>(!getFileDirEntry(newname, &amp;fileEntry2, &amp;dirClust2, &amp;subEntry2)) {
-<a name="l01651"></a>01651                 <span class="comment">/* Target doesn&#39;t exist, can rename */</span>
-<a name="l01652"></a>01652 
-<a name="l01653"></a>01653                 <span class="keywordtype">char</span> dirName2[DOS_NAMELENGTH_ASCII];
-<a name="l01654"></a>01654                 <span class="keywordtype">char</span> pathName2[11];
-<a name="l01655"></a>01655                 <span class="comment">/* Can we even get the name of the file itself? */</span>
-<a name="l01656"></a>01656                 <span class="keywordflow">if</span>(!getEntryName(newname, &amp;dirName2[0])) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01657"></a>01657                 convToDirFile(&amp;dirName2[0], &amp;pathName2[0]);
-<a name="l01658"></a>01658 
-<a name="l01659"></a>01659                 <span class="comment">/* Can we find the base directory? */</span>
-<a name="l01660"></a>01660                 <span class="keywordflow">if</span>(!getDirClustNum(newname, &amp;dirClust2, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01661"></a>01661                 memcpy(&amp;fileEntry2, &amp;fileEntry1, <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
-<a name="l01662"></a>01662                 memcpy(&amp;fileEntry2.entryname, &amp;pathName2[0], 11);
-<a name="l01663"></a>01663                 addDirectoryEntry(dirClust2, fileEntry2);
-<a name="l01664"></a>01664 
-<a name="l01665"></a>01665                 <span class="comment">/* Check if file exists now */</span>
-<a name="l01666"></a>01666                 <span class="keywordflow">if</span>(!getFileDirEntry(newname, &amp;fileEntry2, &amp;dirClust2, &amp;subEntry2)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01667"></a>01667 
-<a name="l01668"></a>01668                 <span class="comment">/* Remove old entry */</span>
-<a name="l01669"></a>01669                 fileEntry1.entryname[0] = 0xe5;
-<a name="l01670"></a>01670                 directoryChange(dirClust1, &amp;fileEntry1, (Bit32s)subEntry1);
+<a name="l01630"></a>01630         <span class="comment">/* Fail to make directory if already exists */</span>
+<a name="l01631"></a>01631         <span class="keywordflow">if</span>(getDirClustNum(dir, &amp;dummyClust, <span class="keyword">false</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01632"></a>01632 
+<a name="l01633"></a>01633         dummyClust = getFirstFreeClust();
+<a name="l01634"></a>01634         <span class="comment">/* No more space */</span>
+<a name="l01635"></a>01635         <span class="keywordflow">if</span>(dummyClust == 0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01636"></a>01636         
+<a name="l01637"></a>01637         <span class="keywordflow">if</span>(!allocateCluster(dummyClust, 0)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01638"></a>01638 
+<a name="l01639"></a>01639         zeroOutCluster(dummyClust);
+<a name="l01640"></a>01640 
+<a name="l01641"></a>01641         <span class="comment">/* Can we find the base directory? */</span>
+<a name="l01642"></a>01642         <span class="keywordflow">if</span>(!getDirClustNum(dir, &amp;dirClust, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01643"></a>01643         
+<a name="l01644"></a>01644         <span class="comment">/* Add the new directory to the base directory */</span>
+<a name="l01645"></a>01645         memset(&amp;tmpentry,0, <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
+<a name="l01646"></a>01646         memcpy(&amp;tmpentry.entryname, &amp;pathName[0], 11);
+<a name="l01647"></a>01647         tmpentry.loFirstClust = (Bit16u)(dummyClust &amp; 0xffff);
+<a name="l01648"></a>01648         tmpentry.hiFirstClust = (Bit16u)(dummyClust &gt;&gt; 16);
+<a name="l01649"></a>01649         tmpentry.attrib = DOS_ATTR_DIRECTORY;
+<a name="l01650"></a>01650         addDirectoryEntry(dirClust, tmpentry);
+<a name="l01651"></a>01651 
+<a name="l01652"></a>01652         <span class="comment">/* Add the [.] and [..] entries to our new directory*/</span>
+<a name="l01653"></a>01653         <span class="comment">/* [.] entry */</span>
+<a name="l01654"></a>01654         memset(&amp;tmpentry,0, <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
+<a name="l01655"></a>01655         memcpy(&amp;tmpentry.entryname, <span class="stringliteral">&quot;.          &quot;</span>, 11);
+<a name="l01656"></a>01656         tmpentry.loFirstClust = (Bit16u)(dummyClust &amp; 0xffff);
+<a name="l01657"></a>01657         tmpentry.hiFirstClust = (Bit16u)(dummyClust &gt;&gt; 16);
+<a name="l01658"></a>01658         tmpentry.attrib = DOS_ATTR_DIRECTORY;
+<a name="l01659"></a>01659         addDirectoryEntry(dummyClust, tmpentry);
+<a name="l01660"></a>01660 
+<a name="l01661"></a>01661         <span class="comment">/* [..] entry */</span>
+<a name="l01662"></a>01662         memset(&amp;tmpentry,0, <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
+<a name="l01663"></a>01663         memcpy(&amp;tmpentry.entryname, <span class="stringliteral">&quot;..         &quot;</span>, 11);
+<a name="l01664"></a>01664         tmpentry.loFirstClust = (Bit16u)(dirClust &amp; 0xffff);
+<a name="l01665"></a>01665         tmpentry.hiFirstClust = (Bit16u)(dirClust &gt;&gt; 16);
+<a name="l01666"></a>01666         tmpentry.attrib = DOS_ATTR_DIRECTORY;
+<a name="l01667"></a>01667         addDirectoryEntry(dummyClust, tmpentry);
+<a name="l01668"></a>01668 
+<a name="l01669"></a>01669         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01670"></a>01670 }
 <a name="l01671"></a>01671 
-<a name="l01672"></a>01672                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
-<a name="l01673"></a>01673         }
-<a name="l01674"></a>01674 
-<a name="l01675"></a>01675         <span class="comment">/* Target already exists, fail */</span>
-<a name="l01676"></a>01676         <span class="keywordflow">return</span> <span class="keyword">false</span>;
-<a name="l01677"></a>01677 }
-<a name="l01678"></a>01678 
-<a name="l01679"></a>01679 <span class="keywordtype">bool</span> fatDrive::TestDir(<span class="keyword">const</span> <span class="keywordtype">char</span> *dir) {
-<a name="l01680"></a>01680         Bit32u dummyClust;
-<a name="l01681"></a>01681         <span class="keywordflow">return</span> getDirClustNum(dir, &amp;dummyClust, <span class="keyword">false</span>);
-<a name="l01682"></a>01682 }
-<a name="l01683"></a>01683 
+<a name="l01672"></a>01672 <span class="keywordtype">bool</span> fatDrive::RemoveDir(<span class="keyword">const</span> <span class="keywordtype">char</span> *dir) {
+<a name="l01673"></a>01673         Bit32u dummyClust, dirClust;
+<a name="l01674"></a>01674         <a class="code" href="structdirentry.html">direntry</a> tmpentry;
+<a name="l01675"></a>01675         <span class="keywordtype">char</span> dirName[DOS_NAMELENGTH_ASCII];
+<a name="l01676"></a>01676         <span class="keywordtype">char</span> pathName[11];
+<a name="l01677"></a>01677 
+<a name="l01678"></a>01678         <span class="comment">/* Can we even get the name of the directory itself? */</span>
+<a name="l01679"></a>01679         <span class="keywordflow">if</span>(!getEntryName(dir, &amp;dirName[0])) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01680"></a>01680         convToDirFile(&amp;dirName[0], &amp;pathName[0]);
+<a name="l01681"></a>01681 
+<a name="l01682"></a>01682         <span class="comment">/* Get directory starting cluster */</span>
+<a name="l01683"></a>01683         <span class="keywordflow">if</span>(!getDirClustNum(dir, &amp;dummyClust, <span class="keyword">false</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01684"></a>01684 
+<a name="l01685"></a>01685         <span class="comment">/* Can&#39;t remove root directory */</span>
+<a name="l01686"></a>01686         <span class="keywordflow">if</span>(dummyClust == 0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01687"></a>01687 
+<a name="l01688"></a>01688         <span class="comment">/* Get parent directory starting cluster */</span>
+<a name="l01689"></a>01689         <span class="keywordflow">if</span>(!getDirClustNum(dir, &amp;dirClust, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01690"></a>01690 
+<a name="l01691"></a>01691         <span class="comment">/* Check to make sure directory is empty */</span>
+<a name="l01692"></a>01692         Bit32u filecount = 0;
+<a name="l01693"></a>01693         <span class="comment">/* Set to 2 to skip first 2 entries, [.] and [..] */</span>
+<a name="l01694"></a>01694         Bit32s fileidx = 2;
+<a name="l01695"></a>01695         <span class="keywordflow">while</span>(directoryBrowse(dummyClust, &amp;tmpentry, fileidx)) {
+<a name="l01696"></a>01696                 <span class="comment">/* Check for non-deleted files */</span>
+<a name="l01697"></a>01697                 <span class="keywordflow">if</span>(tmpentry.entryname[0] != 0xe5) filecount++;
+<a name="l01698"></a>01698                 fileidx++;
+<a name="l01699"></a>01699         }
+<a name="l01700"></a>01700 
+<a name="l01701"></a>01701         <span class="comment">/* Return if directory is not empty */</span>
+<a name="l01702"></a>01702         <span class="keywordflow">if</span>(filecount &gt; 0) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01703"></a>01703 
+<a name="l01704"></a>01704         <span class="comment">/* Find directory entry in parent directory */</span>
+<a name="l01705"></a>01705         <span class="keywordflow">if</span> (dirClust==0) fileidx = 0;   <span class="comment">// root directory</span>
+<a name="l01706"></a>01706         <span class="keywordflow">else</span> fileidx = 2;
+<a name="l01707"></a>01707         <span class="keywordtype">bool</span> found = <span class="keyword">false</span>;
+<a name="l01708"></a>01708         <span class="keywordflow">while</span>(directoryBrowse(dirClust, &amp;tmpentry, fileidx)) {
+<a name="l01709"></a>01709                 <span class="keywordflow">if</span>(memcmp(&amp;tmpentry.entryname, &amp;pathName[0], 11) == 0) {
+<a name="l01710"></a>01710                         found = <span class="keyword">true</span>;
+<a name="l01711"></a>01711                         tmpentry.entryname[0] = 0xe5;
+<a name="l01712"></a>01712                         directoryChange(dirClust, &amp;tmpentry, fileidx);
+<a name="l01713"></a>01713                         deleteClustChain(dummyClust);
+<a name="l01714"></a>01714 
+<a name="l01715"></a>01715                         <span class="keywordflow">break</span>;
+<a name="l01716"></a>01716                 }
+<a name="l01717"></a>01717                 fileidx++;
+<a name="l01718"></a>01718         }
+<a name="l01719"></a>01719 
+<a name="l01720"></a>01720         <span class="keywordflow">if</span>(!found) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01721"></a>01721 
+<a name="l01722"></a>01722         <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01723"></a>01723 }
+<a name="l01724"></a>01724 
+<a name="l01725"></a>01725 <span class="keywordtype">bool</span> fatDrive::Rename(<span class="keyword">const</span> <span class="keywordtype">char</span> * oldname, <span class="keyword">const</span> <span class="keywordtype">char</span> * newname) {
+<a name="l01726"></a>01726         <a class="code" href="structdirentry.html">direntry</a> fileEntry1;
+<a name="l01727"></a>01727         Bit32u dirClust1, subEntry1;
+<a name="l01728"></a>01728         <span class="keywordflow">if</span>(!getFileDirEntry(oldname, &amp;fileEntry1, &amp;dirClust1, &amp;subEntry1)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01729"></a>01729         <span class="comment">/* File to be renamed really exists */</span>
+<a name="l01730"></a>01730 
+<a name="l01731"></a>01731         <a class="code" href="structdirentry.html">direntry</a> fileEntry2;
+<a name="l01732"></a>01732         Bit32u dirClust2, subEntry2;
+<a name="l01733"></a>01733 
+<a name="l01734"></a>01734         <span class="comment">/* Check if file already exists */</span>
+<a name="l01735"></a>01735         <span class="keywordflow">if</span>(!getFileDirEntry(newname, &amp;fileEntry2, &amp;dirClust2, &amp;subEntry2)) {
+<a name="l01736"></a>01736                 <span class="comment">/* Target doesn&#39;t exist, can rename */</span>
+<a name="l01737"></a>01737 
+<a name="l01738"></a>01738                 <span class="keywordtype">char</span> dirName2[DOS_NAMELENGTH_ASCII];
+<a name="l01739"></a>01739                 <span class="keywordtype">char</span> pathName2[11];
+<a name="l01740"></a>01740                 <span class="comment">/* Can we even get the name of the file itself? */</span>
+<a name="l01741"></a>01741                 <span class="keywordflow">if</span>(!getEntryName(newname, &amp;dirName2[0])) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01742"></a>01742                 convToDirFile(&amp;dirName2[0], &amp;pathName2[0]);
+<a name="l01743"></a>01743 
+<a name="l01744"></a>01744                 <span class="comment">/* Can we find the base directory? */</span>
+<a name="l01745"></a>01745                 <span class="keywordflow">if</span>(!getDirClustNum(newname, &amp;dirClust2, <span class="keyword">true</span>)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01746"></a>01746                 memcpy(&amp;fileEntry2, &amp;fileEntry1, <span class="keyword">sizeof</span>(<a class="code" href="structdirentry.html">direntry</a>));
+<a name="l01747"></a>01747                 memcpy(&amp;fileEntry2.entryname, &amp;pathName2[0], 11);
+<a name="l01748"></a>01748                 addDirectoryEntry(dirClust2, fileEntry2);
+<a name="l01749"></a>01749 
+<a name="l01750"></a>01750                 <span class="comment">/* Check if file exists now */</span>
+<a name="l01751"></a>01751                 <span class="keywordflow">if</span>(!getFileDirEntry(newname, &amp;fileEntry2, &amp;dirClust2, &amp;subEntry2)) <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01752"></a>01752 
+<a name="l01753"></a>01753                 <span class="comment">/* Remove old entry */</span>
+<a name="l01754"></a>01754                 fileEntry1.entryname[0] = 0xe5;
+<a name="l01755"></a>01755                 directoryChange(dirClust1, &amp;fileEntry1, (Bit32s)subEntry1);
+<a name="l01756"></a>01756 
+<a name="l01757"></a>01757                 <span class="keywordflow">return</span> <span class="keyword">true</span>;
+<a name="l01758"></a>01758         }
+<a name="l01759"></a>01759 
+<a name="l01760"></a>01760         <span class="comment">/* Target already exists, fail */</span>
+<a name="l01761"></a>01761         <span class="keywordflow">return</span> <span class="keyword">false</span>;
+<a name="l01762"></a>01762 }
+<a name="l01763"></a>01763 
+<a name="l01764"></a>01764 <span class="keywordtype">bool</span> fatDrive::TestDir(<span class="keyword">const</span> <span class="keywordtype">char</span> *dir) {
+<a name="l01765"></a>01765         Bit32u dummyClust;
+<a name="l01766"></a>01766         <span class="keywordflow">return</span> getDirClustNum(dir, &amp;dummyClust, <span class="keyword">false</span>);
+<a name="l01767"></a>01767 }
+<a name="l01768"></a>01768 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Nov 2 2018 12:40:06 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Nov 19 2018 07:54:18 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

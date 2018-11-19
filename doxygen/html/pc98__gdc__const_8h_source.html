@@ -105,14 +105,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00008"></a>00008     GDC_CMD_PITCH_SPEC = 0x47,                  <span class="comment">// 0   1   0   0   0   1   1   1</span>
 <a name="l00009"></a>00009     GDC_CMD_START_DISPLAY = 0x6B,               <span class="comment">// 0   1   1   0   1   0   1   1</span>
 <a name="l00010"></a>00010     GDC_CMD_VERTICAL_SYNC_MODE = 0x6E,          <span class="comment">// 0   1   1   0   1   1   1   M</span>
-<a name="l00011"></a>00011     GDC_CMD_PARAMETER_RAM_LOAD = 0x70           <span class="comment">// 0   1   1   1   S   S   S   S    S[3:0] = starting address in parameter RAM</span>
-<a name="l00012"></a>00012 };
-<a name="l00013"></a>00013 
+<a name="l00011"></a>00011     GDC_CMD_PARAMETER_RAM_LOAD = 0x70,          <span class="comment">// 0   1   1   1   S   S   S   S    S[3:0] = starting address in parameter RAM</span>
+<a name="l00012"></a>00012     GDC_CMD_CURSOR_ADDRESS_READ = 0xE0          <span class="comment">// 1   1   1   0   0   0   0   0</span>
+<a name="l00013"></a>00013 };
+<a name="l00014"></a>00014 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Nov 2 2018 12:40:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Nov 19 2018 07:54:16 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

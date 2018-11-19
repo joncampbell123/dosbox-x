@@ -115,12 +115,12 @@ Inheritance diagram for fatDrive:</div>
 <table class="memberdecls">
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a914f62f083ce6eddfad1b5134b1126c6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a914f62f083ce6eddfad1b5134b1126c6"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>fatDrive</b> (const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders)</td></tr>
-<tr class="memitem:a91d1fe4018933b8e2127a71c38c1a711"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a91d1fe4018933b8e2127a71c38c1a711"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>fatDrive</b> (<a class="el" href="classimageDisk.html">imageDisk</a> *sourceLoadedDisk)</td></tr>
-<tr class="memitem:a69f9335cc4cca6ca0b54e895ff3c578b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a69f9335cc4cca6ca0b54e895ff3c578b"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>fatDriveInit</b> (const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize)</td></tr>
+<tr class="memitem:a7c013afd3b01a41b003be5d88229cbf9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7c013afd3b01a41b003be5d88229cbf9"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>fatDrive</b> (const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, std::vector&lt; std::string &gt; &amp;options)</td></tr>
+<tr class="memitem:acee540d8f7ed9571f8d905920ba04615"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acee540d8f7ed9571f8d905920ba04615"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>fatDrive</b> (<a class="el" href="classimageDisk.html">imageDisk</a> *sourceLoadedDisk, std::vector&lt; std::string &gt; &amp;options)</td></tr>
+<tr class="memitem:a7dafc7cbf5e782c11d6e51e058e276d0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7dafc7cbf5e782c11d6e51e058e276d0"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><b>fatDriveInit</b> (const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, std::vector&lt; std::string &gt; &amp;options)</td></tr>
 <tr class="memitem:a2b7f5898cbfdf595b07b0c0c7da86c10"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2b7f5898cbfdf595b07b0c0c7da86c10"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>FileOpen</b> (<a class="el" href="classDOS__File.html">DOS_File</a> **file, const char *name, Bit32u flags)</td></tr>
 <tr class="memitem:ac070fec3dd29d777417aae60bd7c6081"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac070fec3dd29d777417aae60bd7c6081"></a>
@@ -215,7 +215,7 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>DOS_Shell::CMD_SUBST<
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Nov 2 2018 12:40:13 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Nov 19 2018 07:54:24 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

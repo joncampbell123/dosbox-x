@@ -23,7 +23,7 @@ var searchData=
   ['initnewmedia',['InitNewMedia',['../classCDROM__Interface.html#a688bdeb135e3238178883666c34aaa75',1,'CDROM_Interface::InitNewMedia()'],['../classCDROM__Interface__Image.html#a8b1323ddfae9e59fae8fa5d8f862c8c4',1,'CDROM_Interface_Image::InitNewMedia()']]],
   ['innova',['INNOVA',['../classINNOVA.html',1,'']]],
   ['inporta',['inPortA',['../classIntel8255.html#a387e1edf0b09feea29362f1854398237',1,'Intel8255::inPortA()'],['../classPC98__System__8255.html#a75fbaf4c6f1de6a5a4680f6e9ddfef48',1,'PC98_System_8255::inPortA()'],['../classPC98__Mouse__8255.html#ae7643f0d9646d6aac477f26fbf6132a4',1,'PC98_Mouse_8255::inPortA()']]],
-  ['inportb',['inPortB',['../classIntel8255.html#a5e4a8c34778bef66b5d2ddcf7b372be1',1,'Intel8255::inPortB()'],['../classPC98__System__8255.html#ac40439f86eb00db1563e9c8fedab3dd3',1,'PC98_System_8255::inPortB()'],['../classPC98__Mouse__8255.html#a62483e81d5fad011aaaca35aeee59308',1,'PC98_Mouse_8255::inPortB()']]],
+  ['inportb',['inPortB',['../classIntel8255.html#a5e4a8c34778bef66b5d2ddcf7b372be1',1,'Intel8255::inPortB()'],['../classPC98__Printer__8255.html#a0c5fd663ef9c3b1392da2255aa0ba888',1,'PC98_Printer_8255::inPortB()'],['../classPC98__System__8255.html#ac40439f86eb00db1563e9c8fedab3dd3',1,'PC98_System_8255::inPortB()'],['../classPC98__Mouse__8255.html#a62483e81d5fad011aaaca35aeee59308',1,'PC98_Mouse_8255::inPortB()']]],
   ['inportc',['inPortC',['../classIntel8255.html#ac02d52c1bf5c0fb0478dfb0ffb1b8ec8',1,'Intel8255::inPortC()'],['../classPC98__Mouse__8255.html#aa65cf202bb7b8c59cd7911aeddf9f2bd',1,'PC98_Mouse_8255::inPortC()']]],
   ['input',['Input',['../classGUI_1_1Input.html',1,'GUI']]],
   ['input',['Input',['../classGUI_1_1Input.html#acf596747bc99bee86e0ad0cd4f0b3a7e',1,'GUI::Input']]],

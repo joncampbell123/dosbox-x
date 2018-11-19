@@ -262,177 +262,178 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00165"></a>00165 <span class="comment">         *       byte can cause the chip to re-trigger an interrupt. So... */</span>
 <a name="l00166"></a>00166         <span class="comment">/* FIXME: Or am I wrong here, and the retriggering of the interrupt may simply be that internal</span>
 <a name="l00167"></a>00167 <span class="comment">         *        interrupts on the PC-98 are level triggered? */</span>
-<a name="l00168"></a>00168         <a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63" title="Interrupt Request A (to the microprocessor)">INTR_A</a> = <a class="code" href="classIntel8255.html#af60b776612a4b393fb3ceb0fcb273750" title="Interrupt Request B (to the microprocessor)">INTR_B</a> = <span class="keyword">false</span>;
-<a name="l00169"></a>00169         <a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394" title="Internal 8255 emulation code to check INTR A change and dispatch signal.">checkINTR_A</a>();
-<a name="l00170"></a>00170         <a class="code" href="classIntel8255.html#aa1fb90bb0a5ecf6121e8f79eb7b757d8" title="Internal 8255 emulation code to check INTR B change and dispatch signal.">checkINTR_B</a>();
-<a name="l00171"></a>00171 
-<a name="l00172"></a>00172         <span class="comment">/* then reset actual state again */</span>
-<a name="l00173"></a>00173         <a class="code" href="classIntel8255.html#a862582a9f1779bb8af99365361b63c03" title="Internal 8255 emulation code to update INTR A signal.">updateINTR_A</a>();
-<a name="l00174"></a>00174         <a class="code" href="classIntel8255.html#ad2adbe70f430d36a9f4f27124de3335d" title="Internal 8255 emulation code to update INTR B signal.">updateINTR_B</a>();
-<a name="l00175"></a>00175         <a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394" title="Internal 8255 emulation code to check INTR A change and dispatch signal.">checkINTR_A</a>();
-<a name="l00176"></a>00176         <a class="code" href="classIntel8255.html#aa1fb90bb0a5ecf6121e8f79eb7b757d8" title="Internal 8255 emulation code to check INTR B change and dispatch signal.">checkINTR_B</a>();
-<a name="l00177"></a>00177     }
-<a name="l00178"></a>00178     <span class="keywordflow">else</span> {
-<a name="l00179"></a>00179         <span class="comment">/* bit[7:7] = 0             bit set/reset</span>
-<a name="l00180"></a>00180 <span class="comment">         * bit[6:4] = X             don&#39;t care</span>
-<a name="l00181"></a>00181 <span class="comment">         * bit[3:1] = bit           bit select</span>
-<a name="l00182"></a>00182 <span class="comment">         * bit[0:0] = set/reset     1=set 0=reset */</span>
-<a name="l00183"></a>00183         <span class="comment">/* single bit set/reset port C */</span>
-<a name="l00184"></a>00184         <span class="keyword">const</span> uint8_t bit = ((<span class="keywordtype">unsigned</span> int)data &gt;&gt; 1U) &amp; 7U;
-<a name="l00185"></a>00185 
-<a name="l00186"></a>00186         <span class="keywordflow">if</span> (mode &amp; 0x40) { <span class="comment">/* Port A mode 2 */</span>
-<a name="l00187"></a>00187             <span class="keywordflow">if</span> (bit == 4) {
-<a name="l00188"></a>00188                 <a class="code" href="classIntel8255.html#a3c4ae09573e23e4d7ebe5fd5974e7237" title="Interrupt 2 enable (mode 2)">INTE_2</a> = !!(data &amp; 1);
-<a name="l00189"></a>00189                 <a class="code" href="classIntel8255.html#a862582a9f1779bb8af99365361b63c03" title="Internal 8255 emulation code to update INTR A signal.">updateINTR_A</a>();
-<a name="l00190"></a>00190                 <a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394" title="Internal 8255 emulation code to check INTR A change and dispatch signal.">checkINTR_A</a>();
-<a name="l00191"></a>00191             }
-<a name="l00192"></a>00192             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (bit == 6) {
-<a name="l00193"></a>00193                 <a class="code" href="classIntel8255.html#a86ff75a1d1c588498770aef868af1646" title="Interrupt 1 enable (mode 2)">INTE_1</a> = !!(data &amp; 1);
-<a name="l00194"></a>00194                 <a class="code" href="classIntel8255.html#a862582a9f1779bb8af99365361b63c03" title="Internal 8255 emulation code to update INTR A signal.">updateINTR_A</a>();
-<a name="l00195"></a>00195                 <a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394" title="Internal 8255 emulation code to check INTR A change and dispatch signal.">checkINTR_A</a>();
-<a name="l00196"></a>00196             }
-<a name="l00197"></a>00197         }
-<a name="l00198"></a>00198         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mode &amp; 0x20) { <span class="comment">/* Port A mode 1 */</span>
-<a name="l00199"></a>00199             <span class="keywordflow">if</span> (bit == ((mode &amp; 0x10) ? <span class="comment">/*input*/</span> 4 : <span class="comment">/*output*/</span>6)) {
-<a name="l00200"></a>00200                 <a class="code" href="classIntel8255.html#acb70507c44eaf7feb0e9d27a6a4546e8" title="Interrupt A enable.">INTE_A</a> = !!(data &amp; 1);
-<a name="l00201"></a>00201                 <a class="code" href="classIntel8255.html#a862582a9f1779bb8af99365361b63c03" title="Internal 8255 emulation code to update INTR A signal.">updateINTR_A</a>();
-<a name="l00202"></a>00202                 <a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394" title="Internal 8255 emulation code to check INTR A change and dispatch signal.">checkINTR_A</a>();
-<a name="l00203"></a>00203             }
-<a name="l00204"></a>00204         }
-<a name="l00205"></a>00205 
-<a name="l00206"></a>00206         <span class="keywordflow">if</span> (mode &amp; 0x04) { <span class="comment">/* Port B mode 1 */</span>
-<a name="l00207"></a>00207             <span class="keywordflow">if</span> (bit == 2) {
-<a name="l00208"></a>00208                 <a class="code" href="classIntel8255.html#a8417a1099c39abfa19d027e6d341bb7b" title="Interrupt B enable.">INTE_B</a> = !!(data &amp; 1);
-<a name="l00209"></a>00209                 <a class="code" href="classIntel8255.html#ad2adbe70f430d36a9f4f27124de3335d" title="Internal 8255 emulation code to update INTR B signal.">updateINTR_B</a>();
-<a name="l00210"></a>00210                 <a class="code" href="classIntel8255.html#aa1fb90bb0a5ecf6121e8f79eb7b757d8" title="Internal 8255 emulation code to check INTR B change and dispatch signal.">checkINTR_B</a>();
-<a name="l00211"></a>00211             }
-<a name="l00212"></a>00212         }
-<a name="l00213"></a>00213 
-<a name="l00214"></a>00214         <a class="code" href="classIntel8255.html#ad08321013139ad0a6f168165ae8c68a7" title="Called when CPU writes port C.">writePortC</a>(<span class="comment">/*data*/</span>(data &amp; 1U) &lt;&lt; bit,<span class="comment">/*mask*/</span>1U &lt;&lt; bit);
-<a name="l00215"></a>00215     }
-<a name="l00216"></a>00216 }
-<a name="l00217"></a>00217 
-<a name="l00218"></a><a class="code" href="classIntel8255.html#a387e1edf0b09feea29362f1854398237">00218</a> uint8_t <a class="code" href="classIntel8255.html#a387e1edf0b09feea29362f1854398237" title="Called by 8255 emulation to latch from port A pins.">Intel8255::inPortA</a>(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{
-<a name="l00219"></a>00219     <span class="keywordflow">return</span> 0x00U; <span class="comment">/* override this */</span>
-<a name="l00220"></a>00220 }
-<a name="l00221"></a>00221 
-<a name="l00222"></a><a class="code" href="classIntel8255.html#a5e4a8c34778bef66b5d2ddcf7b372be1">00222</a> uint8_t <a class="code" href="classIntel8255.html#a5e4a8c34778bef66b5d2ddcf7b372be1" title="Called by 8255 emulation to latch from port B pins.">Intel8255::inPortB</a>(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{
-<a name="l00223"></a>00223     <span class="keywordflow">return</span> 0x00U; <span class="comment">/* override this */</span>
-<a name="l00224"></a>00224 }
-<a name="l00225"></a>00225 
-<a name="l00226"></a><a class="code" href="classIntel8255.html#ac02d52c1bf5c0fb0478dfb0ffb1b8ec8">00226</a> uint8_t <a class="code" href="classIntel8255.html#ac02d52c1bf5c0fb0478dfb0ffb1b8ec8" title="Called by 8255 emulation to latch from port C pins.">Intel8255::inPortC</a>(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{
-<a name="l00227"></a>00227     <span class="keywordflow">return</span> 0x00U; <span class="comment">/* override this */</span>
-<a name="l00228"></a>00228 }
-<a name="l00229"></a>00229 
-<a name="l00230"></a><a class="code" href="classIntel8255.html#a15b8c1a78f8f1ca7ac90b92cc329f7d0">00230</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a15b8c1a78f8f1ca7ac90b92cc329f7d0" title="Called by 8255 emulation when latching to port A pins.">Intel8255::outPortA</a>(<span class="keyword">const</span> uint8_t mask) {
-<a name="l00231"></a>00231     (void)mask;<span class="comment">//UNUSED</span>
-<a name="l00232"></a>00232     <span class="comment">/* override this */</span>
-<a name="l00233"></a>00233 }
-<a name="l00234"></a>00234 
-<a name="l00235"></a><a class="code" href="classIntel8255.html#a3004cbfc1a1eade447d2e312bc1faa29">00235</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a3004cbfc1a1eade447d2e312bc1faa29" title="Called by 8255 emulation when latching to port B pins.">Intel8255::outPortB</a>(<span class="keyword">const</span> uint8_t mask) {
-<a name="l00236"></a>00236     (void)mask;<span class="comment">//UNUSED</span>
-<a name="l00237"></a>00237     <span class="comment">/* override this */</span>
-<a name="l00238"></a>00238 }
-<a name="l00239"></a>00239 
-<a name="l00240"></a><a class="code" href="classIntel8255.html#afaff12790fc1b0cf538c7b1a4f27d804">00240</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#afaff12790fc1b0cf538c7b1a4f27d804" title="Called by 8255 emulation when latching to port C pins.">Intel8255::outPortC</a>(<span class="keyword">const</span> uint8_t mask) {
-<a name="l00241"></a>00241     (void)mask;<span class="comment">//UNUSED</span>
-<a name="l00242"></a>00242     <span class="comment">/* override this */</span>
-<a name="l00243"></a>00243 }
-<a name="l00244"></a>00244 
-<a name="l00245"></a><a class="code" href="classIntel8255.html#a862582a9f1779bb8af99365361b63c03">00245</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a862582a9f1779bb8af99365361b63c03" title="Internal 8255 emulation code to update INTR A signal.">Intel8255::updateINTR_A</a>(<span class="keywordtype">void</span>) {
-<a name="l00246"></a>00246     <span class="keywordflow">if</span> (mode &amp; 0x40) { <span class="comment">/* mode 2 */</span>
-<a name="l00247"></a>00247         <a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63" title="Interrupt Request A (to the microprocessor)">INTR_A</a> = (<a class="code" href="classIntel8255.html#a86ff75a1d1c588498770aef868af1646" title="Interrupt 1 enable (mode 2)">INTE_1</a> &amp;&amp; (!<a class="code" href="classIntel8255.html#ad6207273407dcfb3ed9785613838baf7" title="Output Buffer Full, port A contains information for the external device (port A, Mode 1)...">OBF_A</a>)) ^ (<a class="code" href="classIntel8255.html#a3c4ae09573e23e4d7ebe5fd5974e7237" title="Interrupt 2 enable (mode 2)">INTE_2</a> &amp;&amp; <a class="code" href="classIntel8255.html#aab8c8fd1a89d777816aecbcd3b27eea8" title="Input Buffer Full, port A contains information (port A, Mode 1)">IBF_A</a>); <span class="comment">/* OBF goes low when CPU writes, goes high when cleared */</span>
-<a name="l00248"></a>00248     }
-<a name="l00249"></a>00249     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mode &amp; 0x20) { <span class="comment">/* mode 1 */</span>
-<a name="l00250"></a>00250         <span class="keywordflow">if</span> (mode &amp; 0x10)    <span class="comment">/* input */</span>
-<a name="l00251"></a>00251             <a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63" title="Interrupt Request A (to the microprocessor)">INTR_A</a> = <a class="code" href="classIntel8255.html#acb70507c44eaf7feb0e9d27a6a4546e8" title="Interrupt A enable.">INTE_A</a> &amp;&amp; <a class="code" href="classIntel8255.html#aab8c8fd1a89d777816aecbcd3b27eea8" title="Input Buffer Full, port A contains information (port A, Mode 1)">IBF_A</a>;
-<a name="l00252"></a>00252         <span class="keywordflow">else</span>                <span class="comment">/* output */</span>
-<a name="l00253"></a>00253             <a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63" title="Interrupt Request A (to the microprocessor)">INTR_A</a> = <a class="code" href="classIntel8255.html#acb70507c44eaf7feb0e9d27a6a4546e8" title="Interrupt A enable.">INTE_A</a> &amp;&amp; (!<a class="code" href="classIntel8255.html#ad6207273407dcfb3ed9785613838baf7" title="Output Buffer Full, port A contains information for the external device (port A, Mode 1)...">OBF_A</a>); <span class="comment">/* OBF goes low when CPU writes, goes high when cleared */</span>
-<a name="l00254"></a>00254     }
-<a name="l00255"></a>00255     <span class="keywordflow">else</span> {
-<a name="l00256"></a>00256         <a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63" title="Interrupt Request A (to the microprocessor)">INTR_A</a> = <span class="keyword">false</span>;
-<a name="l00257"></a>00257     }
-<a name="l00258"></a>00258 }
-<a name="l00259"></a>00259 
-<a name="l00260"></a><a class="code" href="classIntel8255.html#ad2adbe70f430d36a9f4f27124de3335d">00260</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#ad2adbe70f430d36a9f4f27124de3335d" title="Internal 8255 emulation code to update INTR B signal.">Intel8255::updateINTR_B</a>(<span class="keywordtype">void</span>) {
-<a name="l00261"></a>00261     <span class="keywordflow">if</span> (mode &amp; 0x04) { <span class="comment">/* mode 1 */</span>
-<a name="l00262"></a>00262         <span class="keywordflow">if</span> (mode &amp; 0x02)    <span class="comment">/* input */</span>
-<a name="l00263"></a>00263             <a class="code" href="classIntel8255.html#af60b776612a4b393fb3ceb0fcb273750" title="Interrupt Request B (to the microprocessor)">INTR_B</a> = <a class="code" href="classIntel8255.html#a8417a1099c39abfa19d027e6d341bb7b" title="Interrupt B enable.">INTE_B</a> &amp;&amp; <a class="code" href="classIntel8255.html#a5576bb32d1d14c809954c95b1e140b00" title="Input Buffer Full, port B contains information (port B, Mode 1)">IBF_B</a>;
-<a name="l00264"></a>00264         <span class="keywordflow">else</span>                <span class="comment">/* output */</span>
-<a name="l00265"></a>00265             <a class="code" href="classIntel8255.html#af60b776612a4b393fb3ceb0fcb273750" title="Interrupt Request B (to the microprocessor)">INTR_B</a> = <a class="code" href="classIntel8255.html#a8417a1099c39abfa19d027e6d341bb7b" title="Interrupt B enable.">INTE_B</a> &amp;&amp; (!<a class="code" href="classIntel8255.html#a5d84e8f433d4aeaf15d5f79cbadd878e" title="Output Buffer Full, port B contains information for the external device (port B, Mode 1)...">OBF_B</a>); <span class="comment">/* OBF goes low when CPU writes, goes high when cleared */</span>
-<a name="l00266"></a>00266     }
-<a name="l00267"></a>00267     <span class="keywordflow">else</span> {
-<a name="l00268"></a>00268         <a class="code" href="classIntel8255.html#af60b776612a4b393fb3ceb0fcb273750" title="Interrupt Request B (to the microprocessor)">INTR_B</a> = <span class="keyword">false</span>;
-<a name="l00269"></a>00269     }
-<a name="l00270"></a>00270 }
-<a name="l00271"></a>00271 
-<a name="l00272"></a><a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394">00272</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394" title="Internal 8255 emulation code to check INTR A change and dispatch signal.">Intel8255::checkINTR_A</a>(<span class="keywordtype">void</span>) {
-<a name="l00273"></a>00273     <span class="keywordflow">if</span> (<a class="code" href="classIntel8255.html#a3f0b361bdd3b3e17f2e4155a562e97f6" title="Previous Interrupt Request A state (for change detection)">pINTR_A</a> != <a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63" title="Interrupt Request A (to the microprocessor)">INTR_A</a>) {
-<a name="l00274"></a>00274         <a class="code" href="classIntel8255.html#a3f0b361bdd3b3e17f2e4155a562e97f6" title="Previous Interrupt Request A state (for change detection)">pINTR_A</a>  = <a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63" title="Interrupt Request A (to the microprocessor)">INTR_A</a>;
-<a name="l00275"></a>00275         <a class="code" href="classIntel8255.html#a2338b0324884d4362c516631dd838466" title="Called by 8255 emulation when INTR A signal changes to dispatch signal.">sigINTR_A</a>();
-<a name="l00276"></a>00276     }
-<a name="l00277"></a>00277 }
-<a name="l00278"></a>00278 
-<a name="l00279"></a><a class="code" href="classIntel8255.html#aa1fb90bb0a5ecf6121e8f79eb7b757d8">00279</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#aa1fb90bb0a5ecf6121e8f79eb7b757d8" title="Internal 8255 emulation code to check INTR B change and dispatch signal.">Intel8255::checkINTR_B</a>(<span class="keywordtype">void</span>) {
-<a name="l00280"></a>00280     <span class="keywordflow">if</span> (<a class="code" href="classIntel8255.html#a20fdff00b2ce0c6ff6853a812cb4bd9d" title="Previous Interrupt Request B state (for change detection)">pINTR_B</a> != <a class="code" href="classIntel8255.html#af60b776612a4b393fb3ceb0fcb273750" title="Interrupt Request B (to the microprocessor)">INTR_B</a>) {
-<a name="l00281"></a>00281         <a class="code" href="classIntel8255.html#a20fdff00b2ce0c6ff6853a812cb4bd9d" title="Previous Interrupt Request B state (for change detection)">pINTR_B</a>  = <a class="code" href="classIntel8255.html#af60b776612a4b393fb3ceb0fcb273750" title="Interrupt Request B (to the microprocessor)">INTR_B</a>;
-<a name="l00282"></a>00282         <a class="code" href="classIntel8255.html#a6d81c4a61f0cc7033e1da1a16cc2275e" title="Called by 8255 emulation when INTR B signal changes to dispatch signal.">sigINTR_B</a>();
-<a name="l00283"></a>00283     }
-<a name="l00284"></a>00284 }
-<a name="l00285"></a>00285 
-<a name="l00286"></a><a class="code" href="classIntel8255.html#a2338b0324884d4362c516631dd838466">00286</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a2338b0324884d4362c516631dd838466" title="Called by 8255 emulation when INTR A signal changes to dispatch signal.">Intel8255::sigINTR_A</a>(<span class="keywordtype">void</span>) {
-<a name="l00287"></a>00287     <span class="comment">/* override this */</span>
-<a name="l00288"></a>00288 }
-<a name="l00289"></a>00289 
-<a name="l00290"></a><a class="code" href="classIntel8255.html#a6d81c4a61f0cc7033e1da1a16cc2275e">00290</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a6d81c4a61f0cc7033e1da1a16cc2275e" title="Called by 8255 emulation when INTR B signal changes to dispatch signal.">Intel8255::sigINTR_B</a>(<span class="keywordtype">void</span>) {
-<a name="l00291"></a>00291     <span class="comment">/* override this */</span>
-<a name="l00292"></a>00292 }
-<a name="l00293"></a>00293 
-<a name="l00294"></a><a class="code" href="classIntel8255.html#a7794eec4462ed1d6b3888b9af91445c6">00294</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a7794eec4462ed1d6b3888b9af91445c6" title="Strobed Input (latch to port A)">Intel8255::strobePortA</a>(<span class="keywordtype">void</span>) {
-<a name="l00295"></a>00295     <a class="code" href="classIntel8255.html#a751260da953e9f51d5537664cc6e0173" title="Called when CPU reads port A.">readPortA</a>(); <span class="comment">/* override this */</span>
-<a name="l00296"></a>00296 }
-<a name="l00297"></a>00297 
-<a name="l00298"></a><a class="code" href="classIntel8255.html#aa3fece75effbbf7eeb60a2a44976f1d3">00298</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#aa3fece75effbbf7eeb60a2a44976f1d3" title="Strobed Input (latch to port B)">Intel8255::strobePortB</a>(<span class="keywordtype">void</span>) {
-<a name="l00299"></a>00299     <a class="code" href="classIntel8255.html#a0b4e956de16abf229c6599e8eedbe887" title="Called when CPU reads port B.">readPortB</a>(); <span class="comment">/* override this */</span>
-<a name="l00300"></a>00300 }
-<a name="l00301"></a>00301 
-<a name="l00302"></a><a class="code" href="classIntel8255.html#a1a94705b45a2560e8a81cc2bd5a4275a">00302</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a1a94705b45a2560e8a81cc2bd5a4275a" title="External acknowledgement of port A.">Intel8255::ackPortA</a>(<span class="keywordtype">void</span>) {
-<a name="l00303"></a>00303     <a class="code" href="classIntel8255.html#ad6207273407dcfb3ed9785613838baf7" title="Output Buffer Full, port A contains information for the external device (port A, Mode 1)...">OBF_A</a> = <span class="keyword">false</span>;
-<a name="l00304"></a>00304     <a class="code" href="classIntel8255.html#a862582a9f1779bb8af99365361b63c03" title="Internal 8255 emulation code to update INTR A signal.">updateINTR_A</a>();
-<a name="l00305"></a>00305     <a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394" title="Internal 8255 emulation code to check INTR A change and dispatch signal.">checkINTR_A</a>();
-<a name="l00306"></a>00306 }
-<a name="l00307"></a>00307 
-<a name="l00308"></a><a class="code" href="classIntel8255.html#af08c9c489604d0eb1340f41e71a7bdc5">00308</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#af08c9c489604d0eb1340f41e71a7bdc5" title="External acknowledgement of port B.">Intel8255::ackPortB</a>(<span class="keywordtype">void</span>) {
-<a name="l00309"></a>00309     <a class="code" href="classIntel8255.html#a5d84e8f433d4aeaf15d5f79cbadd878e" title="Output Buffer Full, port B contains information for the external device (port B, Mode 1)...">OBF_B</a> = <span class="keyword">false</span>;
-<a name="l00310"></a>00310     <a class="code" href="classIntel8255.html#ad2adbe70f430d36a9f4f27124de3335d" title="Internal 8255 emulation code to update INTR B signal.">updateINTR_B</a>();
-<a name="l00311"></a>00311     <a class="code" href="classIntel8255.html#aa1fb90bb0a5ecf6121e8f79eb7b757d8" title="Internal 8255 emulation code to check INTR B change and dispatch signal.">checkINTR_B</a>();
-<a name="l00312"></a>00312 }
-<a name="l00313"></a>00313 
-<a name="l00314"></a><a class="code" href="classIntel8255.html#a2b1c343c6cfa15e20122571ce3a42c6e">00314</a> uint8_t <a class="code" href="classIntel8255.html#a2b1c343c6cfa15e20122571ce3a42c6e" title="Called when CPU reads from the chip.">Intel8255::readByPort</a>(uint8_t p03) {
-<a name="l00315"></a>00315     <span class="keywordflow">switch</span> (p03) {
-<a name="l00316"></a>00316         <span class="keywordflow">case</span> 0: <span class="keywordflow">return</span> <a class="code" href="classIntel8255.html#a751260da953e9f51d5537664cc6e0173" title="Called when CPU reads port A.">readPortA</a>();
-<a name="l00317"></a>00317         <span class="keywordflow">case</span> 1: <span class="keywordflow">return</span> <a class="code" href="classIntel8255.html#a0b4e956de16abf229c6599e8eedbe887" title="Called when CPU reads port B.">readPortB</a>();
-<a name="l00318"></a>00318         <span class="keywordflow">case</span> 2: <span class="keywordflow">return</span> <a class="code" href="classIntel8255.html#a8d19749a800aa3250004d744d0fa6da8" title="Called when CPU reads port C.">readPortC</a>();
-<a name="l00319"></a>00319         <span class="keywordflow">case</span> 3: <span class="keywordflow">return</span> <a class="code" href="classIntel8255.html#ab997e7e58d497ed718396817a786892a" title="Called when CPU reads control port.">readControl</a>();
-<a name="l00320"></a>00320     }
-<a name="l00321"></a>00321 
-<a name="l00322"></a>00322     <span class="keywordflow">return</span> 0;
-<a name="l00323"></a>00323 }
-<a name="l00324"></a>00324 
-<a name="l00325"></a><a class="code" href="classIntel8255.html#afc2d37b28f019c4ba64495a19d37eb1a">00325</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#afc2d37b28f019c4ba64495a19d37eb1a" title="Called when CPU writes to the chip.">Intel8255::writeByPort</a>(uint8_t p03,uint8_t data) {
-<a name="l00326"></a>00326     <span class="keywordflow">switch</span> (p03) {
-<a name="l00327"></a>00327         <span class="keywordflow">case</span> 0: <a class="code" href="classIntel8255.html#a2b959c90c912c12e8d881cd21b59671e" title="Called when CPU writes port A.">writePortA</a>(data);   <span class="keywordflow">break</span>;
-<a name="l00328"></a>00328         <span class="keywordflow">case</span> 1: <a class="code" href="classIntel8255.html#a54bf45490f90f882c7ddba55bb9dcff3" title="Called when CPU writes port B.">writePortB</a>(data);   <span class="keywordflow">break</span>;
-<a name="l00329"></a>00329         <span class="keywordflow">case</span> 2: <a class="code" href="classIntel8255.html#ad08321013139ad0a6f168165ae8c68a7" title="Called when CPU writes port C.">writePortC</a>(data);   <span class="keywordflow">break</span>;
-<a name="l00330"></a>00330         <span class="keywordflow">case</span> 3: <a class="code" href="classIntel8255.html#a7f5bc4528c2d868b1530c45ee6172982" title="Called when CPU writes control port.">writeControl</a>(data); <span class="keywordflow">break</span>;
-<a name="l00331"></a>00331     }
-<a name="l00332"></a>00332 }
-<a name="l00333"></a>00333 
+<a name="l00168"></a>00168         <span class="comment">/* TODO: It&#39;s confirmed PC-98 has edge-triggered interrupts, like IBM PC */</span>
+<a name="l00169"></a>00169         <a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63" title="Interrupt Request A (to the microprocessor)">INTR_A</a> = <a class="code" href="classIntel8255.html#af60b776612a4b393fb3ceb0fcb273750" title="Interrupt Request B (to the microprocessor)">INTR_B</a> = <span class="keyword">false</span>;
+<a name="l00170"></a>00170         <a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394" title="Internal 8255 emulation code to check INTR A change and dispatch signal.">checkINTR_A</a>();
+<a name="l00171"></a>00171         <a class="code" href="classIntel8255.html#aa1fb90bb0a5ecf6121e8f79eb7b757d8" title="Internal 8255 emulation code to check INTR B change and dispatch signal.">checkINTR_B</a>();
+<a name="l00172"></a>00172 
+<a name="l00173"></a>00173         <span class="comment">/* then reset actual state again */</span>
+<a name="l00174"></a>00174         <a class="code" href="classIntel8255.html#a862582a9f1779bb8af99365361b63c03" title="Internal 8255 emulation code to update INTR A signal.">updateINTR_A</a>();
+<a name="l00175"></a>00175         <a class="code" href="classIntel8255.html#ad2adbe70f430d36a9f4f27124de3335d" title="Internal 8255 emulation code to update INTR B signal.">updateINTR_B</a>();
+<a name="l00176"></a>00176         <a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394" title="Internal 8255 emulation code to check INTR A change and dispatch signal.">checkINTR_A</a>();
+<a name="l00177"></a>00177         <a class="code" href="classIntel8255.html#aa1fb90bb0a5ecf6121e8f79eb7b757d8" title="Internal 8255 emulation code to check INTR B change and dispatch signal.">checkINTR_B</a>();
+<a name="l00178"></a>00178     }
+<a name="l00179"></a>00179     <span class="keywordflow">else</span> {
+<a name="l00180"></a>00180         <span class="comment">/* bit[7:7] = 0             bit set/reset</span>
+<a name="l00181"></a>00181 <span class="comment">         * bit[6:4] = X             don&#39;t care</span>
+<a name="l00182"></a>00182 <span class="comment">         * bit[3:1] = bit           bit select</span>
+<a name="l00183"></a>00183 <span class="comment">         * bit[0:0] = set/reset     1=set 0=reset */</span>
+<a name="l00184"></a>00184         <span class="comment">/* single bit set/reset port C */</span>
+<a name="l00185"></a>00185         <span class="keyword">const</span> uint8_t bit = ((<span class="keywordtype">unsigned</span> int)data &gt;&gt; 1U) &amp; 7U;
+<a name="l00186"></a>00186 
+<a name="l00187"></a>00187         <span class="keywordflow">if</span> (mode &amp; 0x40) { <span class="comment">/* Port A mode 2 */</span>
+<a name="l00188"></a>00188             <span class="keywordflow">if</span> (bit == 4) {
+<a name="l00189"></a>00189                 <a class="code" href="classIntel8255.html#a3c4ae09573e23e4d7ebe5fd5974e7237" title="Interrupt 2 enable (mode 2)">INTE_2</a> = !!(data &amp; 1);
+<a name="l00190"></a>00190                 <a class="code" href="classIntel8255.html#a862582a9f1779bb8af99365361b63c03" title="Internal 8255 emulation code to update INTR A signal.">updateINTR_A</a>();
+<a name="l00191"></a>00191                 <a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394" title="Internal 8255 emulation code to check INTR A change and dispatch signal.">checkINTR_A</a>();
+<a name="l00192"></a>00192             }
+<a name="l00193"></a>00193             <span class="keywordflow">else</span> <span class="keywordflow">if</span> (bit == 6) {
+<a name="l00194"></a>00194                 <a class="code" href="classIntel8255.html#a86ff75a1d1c588498770aef868af1646" title="Interrupt 1 enable (mode 2)">INTE_1</a> = !!(data &amp; 1);
+<a name="l00195"></a>00195                 <a class="code" href="classIntel8255.html#a862582a9f1779bb8af99365361b63c03" title="Internal 8255 emulation code to update INTR A signal.">updateINTR_A</a>();
+<a name="l00196"></a>00196                 <a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394" title="Internal 8255 emulation code to check INTR A change and dispatch signal.">checkINTR_A</a>();
+<a name="l00197"></a>00197             }
+<a name="l00198"></a>00198         }
+<a name="l00199"></a>00199         <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mode &amp; 0x20) { <span class="comment">/* Port A mode 1 */</span>
+<a name="l00200"></a>00200             <span class="keywordflow">if</span> (bit == ((mode &amp; 0x10) ? <span class="comment">/*input*/</span> 4 : <span class="comment">/*output*/</span>6)) {
+<a name="l00201"></a>00201                 <a class="code" href="classIntel8255.html#acb70507c44eaf7feb0e9d27a6a4546e8" title="Interrupt A enable.">INTE_A</a> = !!(data &amp; 1);
+<a name="l00202"></a>00202                 <a class="code" href="classIntel8255.html#a862582a9f1779bb8af99365361b63c03" title="Internal 8255 emulation code to update INTR A signal.">updateINTR_A</a>();
+<a name="l00203"></a>00203                 <a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394" title="Internal 8255 emulation code to check INTR A change and dispatch signal.">checkINTR_A</a>();
+<a name="l00204"></a>00204             }
+<a name="l00205"></a>00205         }
+<a name="l00206"></a>00206 
+<a name="l00207"></a>00207         <span class="keywordflow">if</span> (mode &amp; 0x04) { <span class="comment">/* Port B mode 1 */</span>
+<a name="l00208"></a>00208             <span class="keywordflow">if</span> (bit == 2) {
+<a name="l00209"></a>00209                 <a class="code" href="classIntel8255.html#a8417a1099c39abfa19d027e6d341bb7b" title="Interrupt B enable.">INTE_B</a> = !!(data &amp; 1);
+<a name="l00210"></a>00210                 <a class="code" href="classIntel8255.html#ad2adbe70f430d36a9f4f27124de3335d" title="Internal 8255 emulation code to update INTR B signal.">updateINTR_B</a>();
+<a name="l00211"></a>00211                 <a class="code" href="classIntel8255.html#aa1fb90bb0a5ecf6121e8f79eb7b757d8" title="Internal 8255 emulation code to check INTR B change and dispatch signal.">checkINTR_B</a>();
+<a name="l00212"></a>00212             }
+<a name="l00213"></a>00213         }
+<a name="l00214"></a>00214 
+<a name="l00215"></a>00215         <a class="code" href="classIntel8255.html#ad08321013139ad0a6f168165ae8c68a7" title="Called when CPU writes port C.">writePortC</a>(<span class="comment">/*data*/</span>(data &amp; 1U) &lt;&lt; bit,<span class="comment">/*mask*/</span>1U &lt;&lt; bit);
+<a name="l00216"></a>00216     }
+<a name="l00217"></a>00217 }
+<a name="l00218"></a>00218 
+<a name="l00219"></a><a class="code" href="classIntel8255.html#a387e1edf0b09feea29362f1854398237">00219</a> uint8_t <a class="code" href="classIntel8255.html#a387e1edf0b09feea29362f1854398237" title="Called by 8255 emulation to latch from port A pins.">Intel8255::inPortA</a>(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{
+<a name="l00220"></a>00220     <span class="keywordflow">return</span> 0x00U; <span class="comment">/* override this */</span>
+<a name="l00221"></a>00221 }
+<a name="l00222"></a>00222 
+<a name="l00223"></a><a class="code" href="classIntel8255.html#a5e4a8c34778bef66b5d2ddcf7b372be1">00223</a> uint8_t <a class="code" href="classIntel8255.html#a5e4a8c34778bef66b5d2ddcf7b372be1" title="Called by 8255 emulation to latch from port B pins.">Intel8255::inPortB</a>(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{
+<a name="l00224"></a>00224     <span class="keywordflow">return</span> 0x00U; <span class="comment">/* override this */</span>
+<a name="l00225"></a>00225 }
+<a name="l00226"></a>00226 
+<a name="l00227"></a><a class="code" href="classIntel8255.html#ac02d52c1bf5c0fb0478dfb0ffb1b8ec8">00227</a> uint8_t <a class="code" href="classIntel8255.html#ac02d52c1bf5c0fb0478dfb0ffb1b8ec8" title="Called by 8255 emulation to latch from port C pins.">Intel8255::inPortC</a>(<span class="keywordtype">void</span>)<span class="keyword"> const </span>{
+<a name="l00228"></a>00228     <span class="keywordflow">return</span> 0x00U; <span class="comment">/* override this */</span>
+<a name="l00229"></a>00229 }
+<a name="l00230"></a>00230 
+<a name="l00231"></a><a class="code" href="classIntel8255.html#a15b8c1a78f8f1ca7ac90b92cc329f7d0">00231</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a15b8c1a78f8f1ca7ac90b92cc329f7d0" title="Called by 8255 emulation when latching to port A pins.">Intel8255::outPortA</a>(<span class="keyword">const</span> uint8_t mask) {
+<a name="l00232"></a>00232     (void)mask;<span class="comment">//UNUSED</span>
+<a name="l00233"></a>00233     <span class="comment">/* override this */</span>
+<a name="l00234"></a>00234 }
+<a name="l00235"></a>00235 
+<a name="l00236"></a><a class="code" href="classIntel8255.html#a3004cbfc1a1eade447d2e312bc1faa29">00236</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a3004cbfc1a1eade447d2e312bc1faa29" title="Called by 8255 emulation when latching to port B pins.">Intel8255::outPortB</a>(<span class="keyword">const</span> uint8_t mask) {
+<a name="l00237"></a>00237     (void)mask;<span class="comment">//UNUSED</span>
+<a name="l00238"></a>00238     <span class="comment">/* override this */</span>
+<a name="l00239"></a>00239 }
+<a name="l00240"></a>00240 
+<a name="l00241"></a><a class="code" href="classIntel8255.html#afaff12790fc1b0cf538c7b1a4f27d804">00241</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#afaff12790fc1b0cf538c7b1a4f27d804" title="Called by 8255 emulation when latching to port C pins.">Intel8255::outPortC</a>(<span class="keyword">const</span> uint8_t mask) {
+<a name="l00242"></a>00242     (void)mask;<span class="comment">//UNUSED</span>
+<a name="l00243"></a>00243     <span class="comment">/* override this */</span>
+<a name="l00244"></a>00244 }
+<a name="l00245"></a>00245 
+<a name="l00246"></a><a class="code" href="classIntel8255.html#a862582a9f1779bb8af99365361b63c03">00246</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a862582a9f1779bb8af99365361b63c03" title="Internal 8255 emulation code to update INTR A signal.">Intel8255::updateINTR_A</a>(<span class="keywordtype">void</span>) {
+<a name="l00247"></a>00247     <span class="keywordflow">if</span> (mode &amp; 0x40) { <span class="comment">/* mode 2 */</span>
+<a name="l00248"></a>00248         <a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63" title="Interrupt Request A (to the microprocessor)">INTR_A</a> = (<a class="code" href="classIntel8255.html#a86ff75a1d1c588498770aef868af1646" title="Interrupt 1 enable (mode 2)">INTE_1</a> &amp;&amp; (!<a class="code" href="classIntel8255.html#ad6207273407dcfb3ed9785613838baf7" title="Output Buffer Full, port A contains information for the external device (port A, Mode 1)...">OBF_A</a>)) ^ (<a class="code" href="classIntel8255.html#a3c4ae09573e23e4d7ebe5fd5974e7237" title="Interrupt 2 enable (mode 2)">INTE_2</a> &amp;&amp; <a class="code" href="classIntel8255.html#aab8c8fd1a89d777816aecbcd3b27eea8" title="Input Buffer Full, port A contains information (port A, Mode 1)">IBF_A</a>); <span class="comment">/* OBF goes low when CPU writes, goes high when cleared */</span>
+<a name="l00249"></a>00249     }
+<a name="l00250"></a>00250     <span class="keywordflow">else</span> <span class="keywordflow">if</span> (mode &amp; 0x20) { <span class="comment">/* mode 1 */</span>
+<a name="l00251"></a>00251         <span class="keywordflow">if</span> (mode &amp; 0x10)    <span class="comment">/* input */</span>
+<a name="l00252"></a>00252             <a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63" title="Interrupt Request A (to the microprocessor)">INTR_A</a> = <a class="code" href="classIntel8255.html#acb70507c44eaf7feb0e9d27a6a4546e8" title="Interrupt A enable.">INTE_A</a> &amp;&amp; <a class="code" href="classIntel8255.html#aab8c8fd1a89d777816aecbcd3b27eea8" title="Input Buffer Full, port A contains information (port A, Mode 1)">IBF_A</a>;
+<a name="l00253"></a>00253         <span class="keywordflow">else</span>                <span class="comment">/* output */</span>
+<a name="l00254"></a>00254             <a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63" title="Interrupt Request A (to the microprocessor)">INTR_A</a> = <a class="code" href="classIntel8255.html#acb70507c44eaf7feb0e9d27a6a4546e8" title="Interrupt A enable.">INTE_A</a> &amp;&amp; (!<a class="code" href="classIntel8255.html#ad6207273407dcfb3ed9785613838baf7" title="Output Buffer Full, port A contains information for the external device (port A, Mode 1)...">OBF_A</a>); <span class="comment">/* OBF goes low when CPU writes, goes high when cleared */</span>
+<a name="l00255"></a>00255     }
+<a name="l00256"></a>00256     <span class="keywordflow">else</span> {
+<a name="l00257"></a>00257         <a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63" title="Interrupt Request A (to the microprocessor)">INTR_A</a> = <span class="keyword">false</span>;
+<a name="l00258"></a>00258     }
+<a name="l00259"></a>00259 }
+<a name="l00260"></a>00260 
+<a name="l00261"></a><a class="code" href="classIntel8255.html#ad2adbe70f430d36a9f4f27124de3335d">00261</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#ad2adbe70f430d36a9f4f27124de3335d" title="Internal 8255 emulation code to update INTR B signal.">Intel8255::updateINTR_B</a>(<span class="keywordtype">void</span>) {
+<a name="l00262"></a>00262     <span class="keywordflow">if</span> (mode &amp; 0x04) { <span class="comment">/* mode 1 */</span>
+<a name="l00263"></a>00263         <span class="keywordflow">if</span> (mode &amp; 0x02)    <span class="comment">/* input */</span>
+<a name="l00264"></a>00264             <a class="code" href="classIntel8255.html#af60b776612a4b393fb3ceb0fcb273750" title="Interrupt Request B (to the microprocessor)">INTR_B</a> = <a class="code" href="classIntel8255.html#a8417a1099c39abfa19d027e6d341bb7b" title="Interrupt B enable.">INTE_B</a> &amp;&amp; <a class="code" href="classIntel8255.html#a5576bb32d1d14c809954c95b1e140b00" title="Input Buffer Full, port B contains information (port B, Mode 1)">IBF_B</a>;
+<a name="l00265"></a>00265         <span class="keywordflow">else</span>                <span class="comment">/* output */</span>
+<a name="l00266"></a>00266             <a class="code" href="classIntel8255.html#af60b776612a4b393fb3ceb0fcb273750" title="Interrupt Request B (to the microprocessor)">INTR_B</a> = <a class="code" href="classIntel8255.html#a8417a1099c39abfa19d027e6d341bb7b" title="Interrupt B enable.">INTE_B</a> &amp;&amp; (!<a class="code" href="classIntel8255.html#a5d84e8f433d4aeaf15d5f79cbadd878e" title="Output Buffer Full, port B contains information for the external device (port B, Mode 1)...">OBF_B</a>); <span class="comment">/* OBF goes low when CPU writes, goes high when cleared */</span>
+<a name="l00267"></a>00267     }
+<a name="l00268"></a>00268     <span class="keywordflow">else</span> {
+<a name="l00269"></a>00269         <a class="code" href="classIntel8255.html#af60b776612a4b393fb3ceb0fcb273750" title="Interrupt Request B (to the microprocessor)">INTR_B</a> = <span class="keyword">false</span>;
+<a name="l00270"></a>00270     }
+<a name="l00271"></a>00271 }
+<a name="l00272"></a>00272 
+<a name="l00273"></a><a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394">00273</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394" title="Internal 8255 emulation code to check INTR A change and dispatch signal.">Intel8255::checkINTR_A</a>(<span class="keywordtype">void</span>) {
+<a name="l00274"></a>00274     <span class="keywordflow">if</span> (<a class="code" href="classIntel8255.html#a3f0b361bdd3b3e17f2e4155a562e97f6" title="Previous Interrupt Request A state (for change detection)">pINTR_A</a> != <a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63" title="Interrupt Request A (to the microprocessor)">INTR_A</a>) {
+<a name="l00275"></a>00275         <a class="code" href="classIntel8255.html#a3f0b361bdd3b3e17f2e4155a562e97f6" title="Previous Interrupt Request A state (for change detection)">pINTR_A</a>  = <a class="code" href="classIntel8255.html#a1b037b991428a40a2c4437723fc26b63" title="Interrupt Request A (to the microprocessor)">INTR_A</a>;
+<a name="l00276"></a>00276         <a class="code" href="classIntel8255.html#a2338b0324884d4362c516631dd838466" title="Called by 8255 emulation when INTR A signal changes to dispatch signal.">sigINTR_A</a>();
+<a name="l00277"></a>00277     }
+<a name="l00278"></a>00278 }
+<a name="l00279"></a>00279 
+<a name="l00280"></a><a class="code" href="classIntel8255.html#aa1fb90bb0a5ecf6121e8f79eb7b757d8">00280</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#aa1fb90bb0a5ecf6121e8f79eb7b757d8" title="Internal 8255 emulation code to check INTR B change and dispatch signal.">Intel8255::checkINTR_B</a>(<span class="keywordtype">void</span>) {
+<a name="l00281"></a>00281     <span class="keywordflow">if</span> (<a class="code" href="classIntel8255.html#a20fdff00b2ce0c6ff6853a812cb4bd9d" title="Previous Interrupt Request B state (for change detection)">pINTR_B</a> != <a class="code" href="classIntel8255.html#af60b776612a4b393fb3ceb0fcb273750" title="Interrupt Request B (to the microprocessor)">INTR_B</a>) {
+<a name="l00282"></a>00282         <a class="code" href="classIntel8255.html#a20fdff00b2ce0c6ff6853a812cb4bd9d" title="Previous Interrupt Request B state (for change detection)">pINTR_B</a>  = <a class="code" href="classIntel8255.html#af60b776612a4b393fb3ceb0fcb273750" title="Interrupt Request B (to the microprocessor)">INTR_B</a>;
+<a name="l00283"></a>00283         <a class="code" href="classIntel8255.html#a6d81c4a61f0cc7033e1da1a16cc2275e" title="Called by 8255 emulation when INTR B signal changes to dispatch signal.">sigINTR_B</a>();
+<a name="l00284"></a>00284     }
+<a name="l00285"></a>00285 }
+<a name="l00286"></a>00286 
+<a name="l00287"></a><a class="code" href="classIntel8255.html#a2338b0324884d4362c516631dd838466">00287</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a2338b0324884d4362c516631dd838466" title="Called by 8255 emulation when INTR A signal changes to dispatch signal.">Intel8255::sigINTR_A</a>(<span class="keywordtype">void</span>) {
+<a name="l00288"></a>00288     <span class="comment">/* override this */</span>
+<a name="l00289"></a>00289 }
+<a name="l00290"></a>00290 
+<a name="l00291"></a><a class="code" href="classIntel8255.html#a6d81c4a61f0cc7033e1da1a16cc2275e">00291</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a6d81c4a61f0cc7033e1da1a16cc2275e" title="Called by 8255 emulation when INTR B signal changes to dispatch signal.">Intel8255::sigINTR_B</a>(<span class="keywordtype">void</span>) {
+<a name="l00292"></a>00292     <span class="comment">/* override this */</span>
+<a name="l00293"></a>00293 }
+<a name="l00294"></a>00294 
+<a name="l00295"></a><a class="code" href="classIntel8255.html#a7794eec4462ed1d6b3888b9af91445c6">00295</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a7794eec4462ed1d6b3888b9af91445c6" title="Strobed Input (latch to port A)">Intel8255::strobePortA</a>(<span class="keywordtype">void</span>) {
+<a name="l00296"></a>00296     <a class="code" href="classIntel8255.html#a751260da953e9f51d5537664cc6e0173" title="Called when CPU reads port A.">readPortA</a>(); <span class="comment">/* override this */</span>
+<a name="l00297"></a>00297 }
+<a name="l00298"></a>00298 
+<a name="l00299"></a><a class="code" href="classIntel8255.html#aa3fece75effbbf7eeb60a2a44976f1d3">00299</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#aa3fece75effbbf7eeb60a2a44976f1d3" title="Strobed Input (latch to port B)">Intel8255::strobePortB</a>(<span class="keywordtype">void</span>) {
+<a name="l00300"></a>00300     <a class="code" href="classIntel8255.html#a0b4e956de16abf229c6599e8eedbe887" title="Called when CPU reads port B.">readPortB</a>(); <span class="comment">/* override this */</span>
+<a name="l00301"></a>00301 }
+<a name="l00302"></a>00302 
+<a name="l00303"></a><a class="code" href="classIntel8255.html#a1a94705b45a2560e8a81cc2bd5a4275a">00303</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#a1a94705b45a2560e8a81cc2bd5a4275a" title="External acknowledgement of port A.">Intel8255::ackPortA</a>(<span class="keywordtype">void</span>) {
+<a name="l00304"></a>00304     <a class="code" href="classIntel8255.html#ad6207273407dcfb3ed9785613838baf7" title="Output Buffer Full, port A contains information for the external device (port A, Mode 1)...">OBF_A</a> = <span class="keyword">false</span>;
+<a name="l00305"></a>00305     <a class="code" href="classIntel8255.html#a862582a9f1779bb8af99365361b63c03" title="Internal 8255 emulation code to update INTR A signal.">updateINTR_A</a>();
+<a name="l00306"></a>00306     <a class="code" href="classIntel8255.html#a5a0199f3c744cd05b81936aaf58dc394" title="Internal 8255 emulation code to check INTR A change and dispatch signal.">checkINTR_A</a>();
+<a name="l00307"></a>00307 }
+<a name="l00308"></a>00308 
+<a name="l00309"></a><a class="code" href="classIntel8255.html#af08c9c489604d0eb1340f41e71a7bdc5">00309</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#af08c9c489604d0eb1340f41e71a7bdc5" title="External acknowledgement of port B.">Intel8255::ackPortB</a>(<span class="keywordtype">void</span>) {
+<a name="l00310"></a>00310     <a class="code" href="classIntel8255.html#a5d84e8f433d4aeaf15d5f79cbadd878e" title="Output Buffer Full, port B contains information for the external device (port B, Mode 1)...">OBF_B</a> = <span class="keyword">false</span>;
+<a name="l00311"></a>00311     <a class="code" href="classIntel8255.html#ad2adbe70f430d36a9f4f27124de3335d" title="Internal 8255 emulation code to update INTR B signal.">updateINTR_B</a>();
+<a name="l00312"></a>00312     <a class="code" href="classIntel8255.html#aa1fb90bb0a5ecf6121e8f79eb7b757d8" title="Internal 8255 emulation code to check INTR B change and dispatch signal.">checkINTR_B</a>();
+<a name="l00313"></a>00313 }
+<a name="l00314"></a>00314 
+<a name="l00315"></a><a class="code" href="classIntel8255.html#a2b1c343c6cfa15e20122571ce3a42c6e">00315</a> uint8_t <a class="code" href="classIntel8255.html#a2b1c343c6cfa15e20122571ce3a42c6e" title="Called when CPU reads from the chip.">Intel8255::readByPort</a>(uint8_t p03) {
+<a name="l00316"></a>00316     <span class="keywordflow">switch</span> (p03) {
+<a name="l00317"></a>00317         <span class="keywordflow">case</span> 0: <span class="keywordflow">return</span> <a class="code" href="classIntel8255.html#a751260da953e9f51d5537664cc6e0173" title="Called when CPU reads port A.">readPortA</a>();
+<a name="l00318"></a>00318         <span class="keywordflow">case</span> 1: <span class="keywordflow">return</span> <a class="code" href="classIntel8255.html#a0b4e956de16abf229c6599e8eedbe887" title="Called when CPU reads port B.">readPortB</a>();
+<a name="l00319"></a>00319         <span class="keywordflow">case</span> 2: <span class="keywordflow">return</span> <a class="code" href="classIntel8255.html#a8d19749a800aa3250004d744d0fa6da8" title="Called when CPU reads port C.">readPortC</a>();
+<a name="l00320"></a>00320         <span class="keywordflow">case</span> 3: <span class="keywordflow">return</span> <a class="code" href="classIntel8255.html#ab997e7e58d497ed718396817a786892a" title="Called when CPU reads control port.">readControl</a>();
+<a name="l00321"></a>00321     }
+<a name="l00322"></a>00322 
+<a name="l00323"></a>00323     <span class="keywordflow">return</span> 0;
+<a name="l00324"></a>00324 }
+<a name="l00325"></a>00325 
+<a name="l00326"></a><a class="code" href="classIntel8255.html#afc2d37b28f019c4ba64495a19d37eb1a">00326</a> <span class="keywordtype">void</span> <a class="code" href="classIntel8255.html#afc2d37b28f019c4ba64495a19d37eb1a" title="Called when CPU writes to the chip.">Intel8255::writeByPort</a>(uint8_t p03,uint8_t data) {
+<a name="l00327"></a>00327     <span class="keywordflow">switch</span> (p03) {
+<a name="l00328"></a>00328         <span class="keywordflow">case</span> 0: <a class="code" href="classIntel8255.html#a2b959c90c912c12e8d881cd21b59671e" title="Called when CPU writes port A.">writePortA</a>(data);   <span class="keywordflow">break</span>;
+<a name="l00329"></a>00329         <span class="keywordflow">case</span> 1: <a class="code" href="classIntel8255.html#a54bf45490f90f882c7ddba55bb9dcff3" title="Called when CPU writes port B.">writePortB</a>(data);   <span class="keywordflow">break</span>;
+<a name="l00330"></a>00330         <span class="keywordflow">case</span> 2: <a class="code" href="classIntel8255.html#ad08321013139ad0a6f168165ae8c68a7" title="Called when CPU writes port C.">writePortC</a>(data);   <span class="keywordflow">break</span>;
+<a name="l00331"></a>00331         <span class="keywordflow">case</span> 3: <a class="code" href="classIntel8255.html#a7f5bc4528c2d868b1530c45ee6172982" title="Called when CPU writes control port.">writeControl</a>(data); <span class="keywordflow">break</span>;
+<a name="l00332"></a>00332     }
+<a name="l00333"></a>00333 }
+<a name="l00334"></a>00334 
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Nov 2 2018 12:40:07 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Nov 19 2018 07:54:19 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

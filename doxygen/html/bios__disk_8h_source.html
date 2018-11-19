@@ -254,7 +254,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00157"></a>00157         <span class="keyword">virtual</span> Bit8u Read_AbsoluteSector(Bit32u sectnum, <span class="keywordtype">void</span> * data);
 <a name="l00158"></a>00158         <span class="keyword">virtual</span> Bit8u Write_AbsoluteSector(Bit32u sectnum, <span class="keyword">const</span> <span class="keywordtype">void</span> * data);
 <a name="l00159"></a>00159 
-<a name="l00160"></a>00160         <a class="code" href="classimageDiskNFD.html">imageDiskNFD</a>(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, <span class="keywordtype">bool</span> isHardDisk);
+<a name="l00160"></a>00160         <a class="code" href="classimageDiskNFD.html">imageDiskNFD</a>(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, <span class="keywordtype">bool</span> isHardDisk, <span class="keywordtype">unsigned</span> <span class="keywordtype">int</span> rev);
 <a name="l00161"></a>00161         <span class="keyword">virtual</span> ~<a class="code" href="classimageDiskNFD.html">imageDiskNFD</a>();
 <a name="l00162"></a>00162 
 <a name="l00163"></a><a class="code" href="structimageDiskNFD_1_1vfdentry.html">00163</a>     <span class="keyword">struct </span><a class="code" href="structimageDiskNFD_1_1vfdentry.html">vfdentry</a> {
@@ -464,25 +464,26 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a name="l00367"></a>00367 <span class="preprocessor">#define MAX_HDD_IMAGES 4</span>
 <a name="l00368"></a>00368 <span class="preprocessor"></span><span class="preprocessor">#define MAX_DISK_IMAGES 6 //MAX_HDD_IMAGES + 2</span>
 <a name="l00369"></a>00369 <span class="preprocessor"></span>
-<a name="l00370"></a>00370 <span class="keyword">extern</span> <a class="code" href="classimageDisk.html">imageDisk</a> *imageDiskList[MAX_DISK_IMAGES];
-<a name="l00371"></a>00371 <span class="keyword">extern</span> <a class="code" href="classimageDisk.html">imageDisk</a> *diskSwap[20];
-<a name="l00372"></a>00372 <span class="keyword">extern</span> Bits swapPosition;
-<a name="l00373"></a>00373 <span class="keyword">extern</span> Bit16u imgDTASeg; <span class="comment">/* Real memory location of temporary DTA pointer for fat image disk access */</span>
-<a name="l00374"></a>00374 <span class="keyword">extern</span> RealPt imgDTAPtr; <span class="comment">/* Real memory location of temporary DTA pointer for fat image disk access */</span>
-<a name="l00375"></a>00375 <span class="keyword">extern</span> <a class="code" href="classDOS__DTA.html">DOS_DTA</a> *imgDTA;
-<a name="l00376"></a>00376 
-<a name="l00377"></a>00377 <span class="keywordtype">void</span> swapInDisks(<span class="keywordtype">void</span>);
-<a name="l00378"></a>00378 <span class="keywordtype">void</span> swapInNextDisk(<span class="keywordtype">void</span>);
-<a name="l00379"></a>00379 <span class="keywordtype">bool</span> getSwapRequest(<span class="keywordtype">void</span>);
-<a name="l00380"></a>00380 <a class="code" href="classimageDisk.html">imageDisk</a> *GetINT13HardDrive(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> drv);
-<a name="l00381"></a>00381 <a class="code" href="classimageDisk.html">imageDisk</a> *GetINT13FloppyDrive(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> drv);
-<a name="l00382"></a>00382 
-<a name="l00383"></a>00383 <span class="preprocessor">#endif</span>
+<a name="l00370"></a>00370 <span class="keyword">extern</span> <span class="keywordtype">bool</span> imageDiskChange[MAX_DISK_IMAGES];
+<a name="l00371"></a>00371 <span class="keyword">extern</span> <a class="code" href="classimageDisk.html">imageDisk</a> *imageDiskList[MAX_DISK_IMAGES];
+<a name="l00372"></a>00372 <span class="keyword">extern</span> <a class="code" href="classimageDisk.html">imageDisk</a> *diskSwap[20];
+<a name="l00373"></a>00373 <span class="keyword">extern</span> Bits swapPosition;
+<a name="l00374"></a>00374 <span class="keyword">extern</span> Bit16u imgDTASeg; <span class="comment">/* Real memory location of temporary DTA pointer for fat image disk access */</span>
+<a name="l00375"></a>00375 <span class="keyword">extern</span> RealPt imgDTAPtr; <span class="comment">/* Real memory location of temporary DTA pointer for fat image disk access */</span>
+<a name="l00376"></a>00376 <span class="keyword">extern</span> <a class="code" href="classDOS__DTA.html">DOS_DTA</a> *imgDTA;
+<a name="l00377"></a>00377 
+<a name="l00378"></a>00378 <span class="keywordtype">void</span> swapInDisks(<span class="keywordtype">void</span>);
+<a name="l00379"></a>00379 <span class="keywordtype">void</span> swapInNextDisk(<span class="keywordtype">void</span>);
+<a name="l00380"></a>00380 <span class="keywordtype">bool</span> getSwapRequest(<span class="keywordtype">void</span>);
+<a name="l00381"></a>00381 <a class="code" href="classimageDisk.html">imageDisk</a> *GetINT13HardDrive(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> drv);
+<a name="l00382"></a>00382 <a class="code" href="classimageDisk.html">imageDisk</a> *GetINT13FloppyDrive(<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> drv);
+<a name="l00383"></a>00383 
+<a name="l00384"></a>00384 <span class="preprocessor">#endif</span>
 </pre></div></div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Fri Nov 2 2018 12:40:04 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Nov 19 2018 07:54:16 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

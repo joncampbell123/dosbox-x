@@ -18,6 +18,8 @@ var searchData=
   ['next',['next',['../classGUI_1_1Timer.html#a44e2f3e6123c9513b87b81f244ef9311',1,'GUI::Timer']]],
   ['nfdhdr',['NFDHDR',['../structNFDHDR.html',1,'']]],
   ['nfdhdr_5fentry',['NFDHDR_ENTRY',['../structNFDHDR__ENTRY.html',1,'']]],
+  ['nfdhdrr1',['NFDHDRR1',['../structNFDHDRR1.html',1,'']]],
+  ['nhd_5ffile_5fhead',['NHD_FILE_HEAD',['../structNHD__FILE__HEAD.html',1,'']]],
   ['nil_5fif_5fnull',['nil_if_null',['../classIntel8255.html#a4d14f0770973a9e416acc5ac04857eb1',1,'Intel8255']]],
   ['nmitest',['NMITEST',['../classNMITEST.html',1,'']]],
   ['nodetype',['nodeType',['../structnodeType.html',1,'']]],
