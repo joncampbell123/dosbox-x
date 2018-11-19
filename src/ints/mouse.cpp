@@ -617,7 +617,7 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
     if (emulate) {
         mouse.x += dx;
         mouse.y += dy;
-    } else {
+    } else if (CurMode != NULL) {
         if (CurMode->type == M_TEXT) {
             mouse.x = x*CurMode->swidth;
             mouse.y = y*CurMode->sheight * 8 / CurMode->cheight;
