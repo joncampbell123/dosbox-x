@@ -585,7 +585,14 @@ void DEBUG_ShowMsg(char const* format,...) {
 	va_list msg;
 	size_t len;
 
-	va_start(msg,format);
+    // in case of runaway error from the CPU core, user responsiveness can be helpful
+    CPU_CycleLeft += CPU_Cycles;
+    CPU_Cycles = 0;
+
+    void GFX_Events();
+    GFX_Events();
+
+    va_start(msg,format);
 	len = (size_t)vsnprintf(buf,sizeof(buf)-2u,format,msg); /* <- NTS: Did you know sprintf/vsnprintf returns number of chars written? */
 	va_end(msg);
 
