@@ -1,4 +1,7 @@
 <next version>
+  - BOOT command bug fixed that made it impossible to
+    specify both disk images and the --debug and --force
+    options.
   - Debug output fixed to make it easier to break into
     the debugger even during a flood of debug output.
   - Added dosbox.conf option to enable/disable the
