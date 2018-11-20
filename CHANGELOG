@@ -1,4 +1,8 @@
 <next version>
+  - PC-98 BIOS keyboard emulation now maps numeric keypad
+    to produce the correct keyboard input to the console
+    and games. This fixes games that rely on the numeric
+    keypad and the DOS console driver
   - Command line parsing fixed to add any BAT, COM, and
     EXE file references given at DOSBox-X's command line
     to the autoexec.bat file run at startup.
