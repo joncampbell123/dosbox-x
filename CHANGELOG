@@ -1,4 +1,10 @@
 <next version>
+  - PC-98 BIOS keyboard handling now returns capitals
+    for A-Z if SHIFT xor CAPS LOCK is engaged.
+  - PC-98 BIOS keyboard handling now uses modifier bits
+    of keyboard bitmap to process scan codes, hackish
+    IBM PC/AT data area status handling in PC-98 mode
+    removed.
   - PC-98 BIOS keyboard emulation now maps numeric keypad
     to produce the correct keyboard input to the console
     and games. This fixes games that rely on the numeric
