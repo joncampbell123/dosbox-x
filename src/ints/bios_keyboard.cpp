@@ -631,6 +631,8 @@ static Bitu IRQ1_Handler_PC98(void) {
          */
         Bit8u modflags = mem_readb(0x52A + 0xE);
 
+        bool caps_capitals = (modflags & 1) ^ ((modflags >> 1) & 1); /* CAPS XOR SHIFT */
+
         /* According to Neko Project II, the BIOS maintains a "pressed key" bitmap at 0x50:0x2A.
          * Without this bitmap many PC-98 games are unplayable. */
         /* ALSO note that byte 0xE of this array is the "shift" state byte. */
@@ -852,7 +854,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x10: // q
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'Q');
                     else
                         add_key(scan_add + 'q');
@@ -860,7 +862,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x11: // w
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'W');
                     else
                         add_key(scan_add + 'w');
@@ -868,7 +870,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x12: // e
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'E');
                     else
                         add_key(scan_add + 'e');
@@ -876,7 +878,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x13: // r
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'R');
                     else
                         add_key(scan_add + 'r');
@@ -884,7 +886,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x14: // t
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'T');
                     else
                         add_key(scan_add + 't');
@@ -892,7 +894,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x15: // y
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'Y');
                     else
                         add_key(scan_add + 'y');
@@ -900,7 +902,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x16: // u
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'U');
                     else
                         add_key(scan_add + 'u');
@@ -908,7 +910,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x17: // i
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'I');
                     else
                         add_key(scan_add + 'i');
@@ -916,7 +918,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x18: // o
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'O');
                     else
                         add_key(scan_add + 'o');
@@ -924,7 +926,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x19: // p
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'P');
                     else
                         add_key(scan_add + 'p');
@@ -958,7 +960,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x1D: // A
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'A');
                     else
                         add_key(scan_add + 'a');
@@ -966,7 +968,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x1E: // S
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'S');
                     else
                         add_key(scan_add + 's');
@@ -974,7 +976,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x1F: // D
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'D');
                     else
                         add_key(scan_add + 'd');
@@ -982,7 +984,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x20: // F
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'F');
                     else
                         add_key(scan_add + 'f');
@@ -990,7 +992,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x21: // G
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'G');
                     else
                         add_key(scan_add + 'g');
@@ -998,7 +1000,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x22: // H
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'H');
                     else
                         add_key(scan_add + 'h');
@@ -1006,7 +1008,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x23: // J
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'J');
                     else
                         add_key(scan_add + 'j');
@@ -1014,7 +1016,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x24: // K
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'K');
                     else
                         add_key(scan_add + 'k');
@@ -1022,7 +1024,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x25: // L
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'L');
                     else
                         add_key(scan_add + 'l');
@@ -1066,7 +1068,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x29: // Z
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'Z');
                     else
                         add_key(scan_add + 'z');
@@ -1074,7 +1076,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x2A: // X
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'X');
                     else
                         add_key(scan_add + 'x');
@@ -1082,7 +1084,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x2B: // C
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'C');
                     else
                         add_key(scan_add + 'c');
@@ -1090,7 +1092,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x2C: // V
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'V');
                     else
                         add_key(scan_add + 'v');
@@ -1098,7 +1100,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x2D: // B
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'B');
                     else
                         add_key(scan_add + 'b');
@@ -1106,7 +1108,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x2E: // N
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'N');
                     else
                         add_key(scan_add + 'n');
@@ -1114,7 +1116,7 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
             case 0x2F: // M
                 if (pressed) {
-                    if (modflags & 1) /* shift */
+                    if (caps_capitals) /* shift */
                         add_key(scan_add + 'M');
                     else
                         add_key(scan_add + 'm');
