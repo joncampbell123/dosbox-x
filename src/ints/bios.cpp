@@ -5652,6 +5652,27 @@ private:
              * bit[0:0] = 98 NOTE coprocessor function available */
             mem_writeb(0x45C,(enable_pc98_egc ? 0x40/*Extended Graphics*/ : 0x00));
 
+            /* Keyboard type */
+            /* bit[7:7] = ?
+             * bit[6:6] = keyboard type bit 1
+             * bit[5:5] = EMS page frame at B0000h 1=present 0=none
+             * bit[4:4] = EMS page frame at B0000h 1=page frame 0=G-VRAM
+             * bit[3:3] = keyboard type bit 0
+             * bit[2:2] = High resolution memory window available
+             * bit[1:1] = ?
+             * bit[0:0] = ?
+             *
+             * keyboard bits[1:0] from bit 6 as bit 1 and bit 3 as bit 0 combined:
+             * 11 = new keyboard (NUM key, DIP switch 2-7 OFF)
+             * 10 = new keyboard (without NUM key)
+             * 01 = new keyboard (NUM key, DIP switch 2-7 ON)
+             * 00 = old keyboard
+             *
+             * The old keyboard is documented not to support software control of CAPS and KANA states */
+            /* TODO: Make this a dosbox.conf option. Default is new keyboard without NUM key because that is what
+             *       keyboard emulation currently acts like anyway. */
+            mem_writeb(0x481,0x40/*bit 6=1 bit 3=0 new keyboard without NUM key*/);
+
             /* BIOS flags */
             /* bit[7:7] = Startup            1=hot start    0=cold start
              * bit[6:6] = BASIC type         ??
