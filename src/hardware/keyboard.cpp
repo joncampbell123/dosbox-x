@@ -2397,7 +2397,7 @@ static void write_pbfdb_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
      *              01 = 60hz
      *              10 = 30hz
      *              11 = 15hz */
-    pc98_mouse_rate_hz = 120u / ((val & 3u) + 1u);
+    pc98_mouse_rate_hz = 120u >> (val & 3u);
     LOG(LOG_MISC,LOG_DEBUG)("PC-98 mouse interrupt rate: %u",pc98_mouse_rate_hz);
 }
 //////////
