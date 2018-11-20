@@ -1,4 +1,7 @@
 <next version>
+  - Command line parsing fixed to add any BAT, COM, and
+    EXE file references given at DOSBox-X's command line
+    to the autoexec.bat file run at startup.
   - BOOT command bug fixed that made it impossible to
     specify both disk images and the --debug and --force
     options.
