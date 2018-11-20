@@ -606,11 +606,8 @@ static Bitu IRQ1_Handler_PC98(void) {
     while (status & 2/*RxRDY*/) {
         sc_8251 = IO_ReadB(0x41); /* 8251 data */
 
-        Bit8u flags1,flags2,flags3,leds;
+        Bit8u flags1;
         flags1=mem_readb(BIOS_KEYBOARD_FLAGS1);
-        flags2=mem_readb(BIOS_KEYBOARD_FLAGS2);
-        flags3=mem_readb(BIOS_KEYBOARD_FLAGS3);
-        leds  =mem_readb(BIOS_KEYBOARD_LEDS); 
 
         pressed = !(sc_8251 & 0x80);
         sc_8251 &= 0x7F;
@@ -1289,9 +1286,6 @@ static Bitu IRQ1_Handler_PC98(void) {
         }
 
         mem_writeb(BIOS_KEYBOARD_FLAGS1,flags1);
-        mem_writeb(BIOS_KEYBOARD_FLAGS2,flags2);
-        mem_writeb(BIOS_KEYBOARD_FLAGS3,flags3);
-        mem_writeb(BIOS_KEYBOARD_LEDS,leds);
 
         if (--patience == 0) break; /* in case of stuck 8251 */
         status = IO_ReadB(0x43); /* 8251 status */
