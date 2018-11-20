@@ -1466,27 +1466,33 @@ extern bool startup_state_capslock;
 extern bool startup_state_scrlock;
 
 static void InitBiosSegment(void) {
-    /* Setup the variables for keyboard in the bios data segment */
-    mem_writew(BIOS_KEYBOARD_BUFFER_START,0x1e);
-    mem_writew(BIOS_KEYBOARD_BUFFER_END,0x3e);
-    mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,0x1e);
-    mem_writew(BIOS_KEYBOARD_BUFFER_TAIL,0x1e);
-    Bit8u flag1 = 0;
-    Bit8u leds = 16; /* Ack received */
+    if (IS_PC98_ARCH) {
+        mem_writew(0x524/*tail*/,0x502);
+        mem_writew(0x526/*tail*/,0x502);
+    }
+    else { /* IBM PC */
+        /* Setup the variables for keyboard in the bios data segment */
+        mem_writew(BIOS_KEYBOARD_BUFFER_START,0x1e);
+        mem_writew(BIOS_KEYBOARD_BUFFER_END,0x3e);
+        mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,0x1e);
+        mem_writew(BIOS_KEYBOARD_BUFFER_TAIL,0x1e);
+        Bit8u flag1 = 0;
+        Bit8u leds = 16; /* Ack received */
 
 #if 0 /*SDL_VERSION_ATLEAST(1, 2, 14)*/
-//Nothing, mapper handles all.
+        //Nothing, mapper handles all.
 #else
-    if (startup_state_capslock) { flag1|=BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_CAPS_LOCK;}
-    if (startup_state_numlock)  { flag1|=BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_NUM_LOCK;}
-    if (startup_state_scrlock)  { flag1|=BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_SCROLL_LOCK;}
+        if (startup_state_capslock) { flag1|=BIOS_KEYBOARD_FLAGS1_CAPS_LOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_CAPS_LOCK;}
+        if (startup_state_numlock)  { flag1|=BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_NUM_LOCK;}
+        if (startup_state_scrlock)  { flag1|=BIOS_KEYBOARD_FLAGS1_SCROLL_LOCK_ACTIVE; leds|=BIOS_KEYBOARD_LEDS_SCROLL_LOCK;}
 #endif
 
-    mem_writeb(BIOS_KEYBOARD_FLAGS1,flag1);
-    mem_writeb(BIOS_KEYBOARD_FLAGS2,0);
-    mem_writeb(BIOS_KEYBOARD_FLAGS3,16); /* Enhanced keyboard installed */  
-    mem_writeb(BIOS_KEYBOARD_TOKEN,0);
-    mem_writeb(BIOS_KEYBOARD_LEDS,leds);
+        mem_writeb(BIOS_KEYBOARD_FLAGS1,flag1);
+        mem_writeb(BIOS_KEYBOARD_FLAGS2,0);
+        mem_writeb(BIOS_KEYBOARD_FLAGS3,16); /* Enhanced keyboard installed */  
+        mem_writeb(BIOS_KEYBOARD_TOKEN,0);
+        mem_writeb(BIOS_KEYBOARD_LEDS,leds);
+    }
 }
 
 void CALLBACK_DeAllocate(Bitu in);
