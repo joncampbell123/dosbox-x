@@ -1155,6 +1155,92 @@ static Bitu IRQ1_Handler_PC98(void) {
                 }
                 break;
 
+            case 0x40: // keypad minus
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '-');
+                }
+                break;
+            case 0x41: // keypad divide
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '/');
+                }
+                break;
+            case 0x42: // keypad 7
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '7');
+                }
+                break;
+            case 0x43: // keypad 8
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '8');
+                }
+                break;
+            case 0x44: // keypad 9
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '9');
+                }
+                break;
+            case 0x45: // keypad multiply
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '*');
+                }
+                break;
+            case 0x46: // keypad 4
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '4');
+                }
+                break;
+            case 0x47: // keypad 5
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '5');
+                }
+                break;
+            case 0x48: // keypad 6
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '6');
+                }
+                break;
+            case 0x49: // keypad +
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '+');
+                }
+                break;
+            case 0x4A: // keypad 1
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '1');
+                }
+                break;
+            case 0x4B: // keypad 2
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '2');
+                }
+                break;
+            case 0x4C: // keypad 3
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '3');
+                }
+                break;
+            case 0x4D: // keypad =
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '=');
+                }
+                break;
+            case 0x4E: // keypad 0
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '0');
+                }
+                break;
+            case 0x4F: // keypad ,
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + ',');
+                }
+                break;
+            case 0x50: // keypad .
+                if (pressed) {//TODO: Shift state?
+                    add_key(scan_add + '.');
+                }
+                break;
+
             case 0x60: // STOP
                 // does not pass it on
                 break;
