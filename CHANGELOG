@@ -1,4 +1,7 @@
 <next version>
+  - SDL GUI fixed to make fade/sepia effect fit the
+    actual display rectangle instead of filling the
+    window.
   - PC-98 BIOS keyboard handling now returns capitals
     for A-Z if SHIFT xor CAPS LOCK is engaged.
   - PC-98 BIOS keyboard handling now uses modifier bits
