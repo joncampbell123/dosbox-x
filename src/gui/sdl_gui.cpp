@@ -138,6 +138,9 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     dw = (int)currentWindowWidth;
     dh = (int)currentWindowHeight;
 
+    if (dw < 640) dw = 640;
+    if (dh < 480) dh = 480;
+
     assert(sx < dw);
     assert(sy < dh);
 
