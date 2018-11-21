@@ -138,8 +138,22 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     dw = (int)currentWindowWidth;
     dh = (int)currentWindowHeight;
 
-    assert((sx+sw) <= dw);
-    assert((sy+sh) <= dh);
+    assert(sx < dw);
+    assert(sy < dh);
+
+    int sw_draw = sw,sh_draw = sh;
+
+    if ((sx+sw_draw) > dw) sw_draw = dw-sx;
+    if ((sy+sh_draw) > dh) sh_draw = dh-sy;
+
+    assert((sx+sw_draw) <= dw);
+    assert((sy+sh_draw) <= dh);
+
+    assert(sw_draw > 0);
+    assert(sh_draw > 0);
+
+    assert(sw_draw <= sw);
+    assert(sh_draw <= sh);
 
 	old_unicode = SDL_EnableUNICODE(1);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);
@@ -148,9 +162,9 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 
 	// create screenshot for fade effect
 	unsigned int rs = screenshot->format->Rshift, gs = screenshot->format->Gshift, bs = screenshot->format->Bshift;
-	for (unsigned int y = 0; (int)y < sh; y++) {
+	for (unsigned int y = 0; (int)y < sh_draw; y++) {
 		Bit32u *bg = (Bit32u*)((y+sy)*(unsigned int)screenshot->pitch + (char*)screenshot->pixels) + sx;
-		for (unsigned int x = 0; (int)x < sw; x++) {
+		for (unsigned int x = 0; (int)x < sw_draw; x++) {
 			int r = 0, g = 0, b = 0;
 			getPixel((int)(x*(unsigned int)render.src.width/(unsigned int)sw),
                      (int)(y*(unsigned int)render.src.height/(unsigned int)sh),
@@ -163,9 +177,9 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 
 	background = SDL_CreateRGBSurface(SDL_SWSURFACE, dw, dh, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
     SDL_FillRect(background,0,0);
-	for (int y = 0; y < sh; y++) {
+	for (int y = 0; y < sh_draw; y++) {
 		Bit32u *bg = (Bit32u*)((y+sy)*(unsigned int)background->pitch + (char*)background->pixels) + sx;
-		for (int x = 0; x < sw; x++) {
+		for (int x = 0; x < sw_draw; x++) {
 			int r = 0, g = 0, b = 0;
 			getPixel(x    *(int)render.src.width/sw, y    *(int)render.src.height/sh, r, g, b, 3); 
 			getPixel((x-1)*(int)render.src.width/sw, y    *(int)render.src.height/sh, r, g, b, 3); 
