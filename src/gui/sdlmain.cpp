@@ -7905,6 +7905,14 @@ fresh_boot:
     return 0;
 }
 
+void GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen) {
+    x = sdl.clip.x;
+    y = sdl.clip.y;
+    width = sdl.clip.w; // draw.width
+    height = sdl.clip.h; // draw.height
+    fullscreen = sdl.desktop.fullscreen;
+}
+
 void GFX_GetSize(int &width, int &height, bool &fullscreen) {
     width = sdl.clip.w; // draw.width
     height = sdl.clip.h; // draw.height
