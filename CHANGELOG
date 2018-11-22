@@ -1,4 +1,4 @@
-<next version>
+0.82.11
   - SDL GUI fixed to make fade/sepia effect fit the
     actual display rectangle instead of filling the
     window.
