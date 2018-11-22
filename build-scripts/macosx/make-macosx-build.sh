@@ -17,6 +17,9 @@ cd "$top" || exit 1
 cd "$top/dosbox-x" || exit 1
 git clean -dfx
 git reset --hard
+git checkout master
+git clean -dfx
+git reset --hard
 git pull
 git clean -dfx
 git reset --hard
@@ -25,6 +28,9 @@ make dosbox-x.app || exit 1
 cp CHANGELOG CHANGELOG.txt || exit 1
 
 cd "$top/dosbox-x-sdl2" || exit 1
+git clean -dfx
+git reset --hard
+git checkout master
 git clean -dfx
 git reset --hard
 git pull
