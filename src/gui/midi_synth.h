@@ -28,7 +28,12 @@ static MixerChannel *synthchan = NULL;
 static fluid_synth_t *synth_soft = NULL;
 static int synthsamplerate = 0;
 
-static void synth_log(int level, char *message, void *data) {
+static void synth_log(int level,
+#if FLUIDSYNTH_VERSION_MAJOR >= 2
+                      const
+#endif
+                      char *message,
+                      void *data) {
     (void)data;//UNUSED
 
 	switch (level) {

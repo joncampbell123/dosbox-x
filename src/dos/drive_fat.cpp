@@ -671,7 +671,7 @@ struct _PC98RawPartition {
 };
 #pragma pack(pop)
 
-fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders) : loadedDisk(NULL) {
+fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, std::vector<std::string> &options) : loadedDisk(NULL) {
 	created_successfully = true;
 	FILE *diskfile;
 	Bit32u filesize;
@@ -719,6 +719,16 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
             filesize = (Bit32u)(ftello64(diskfile) / 1024L);
             loadedDisk = new imageDiskVFD(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
         }
+        else if (!memcmp(bootbuffer.bootcode,"T98FDDIMAGE.R0\0\0",16)) {
+            fseeko64(diskfile, 0L, SEEK_END);
+            filesize = (Bit32u)(ftello64(diskfile) / 1024L);
+            loadedDisk = new imageDiskNFD(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880), 0);
+        }
+        else if (!memcmp(bootbuffer.bootcode,"T98FDDIMAGE.R1\0\0",16)) {
+            fseeko64(diskfile, 0L, SEEK_END);
+            filesize = (Bit32u)(ftello64(diskfile) / 1024L);
+            loadedDisk = new imageDiskNFD(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880), 1);
+        }
         else {
             fseeko64(diskfile, 0L, SEEK_END);
             filesize = (Bit32u)(ftello64(diskfile) / 1024L);
@@ -726,10 +736,10 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         }
 	}
 
-    fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, filesize);
+    fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, filesize, options);
 }
 
-fatDrive::fatDrive(imageDisk *sourceLoadedDisk) : loadedDisk(NULL) {
+fatDrive::fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &options) : loadedDisk(NULL) {
 	if (sourceLoadedDisk == 0) {
 		created_successfully = false;
 		return;
@@ -744,7 +754,7 @@ fatDrive::fatDrive(imageDisk *sourceLoadedDisk) : loadedDisk(NULL) {
 
     loadedDisk = sourceLoadedDisk;
 
-    fatDriveInit("", loadedDisk->sector_size, loadedDisk->sectors, loadedDisk->heads, loadedDisk->cylinders, loadedDisk->diskSizeK);
+    fatDriveInit("", loadedDisk->sector_size, loadedDisk->sectors, loadedDisk->heads, loadedDisk->cylinders, loadedDisk->diskSizeK, options);
 }
 
 Bit8u fatDrive::Read_AbsoluteSector(Bit32u sectnum, void * data) {
@@ -797,15 +807,40 @@ Bit32u fatDrive::getSectSize(void) {
     return sector_size;
 }
 
-void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize) {
+void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit64u filesize, std::vector<std::string> &options) {
 	Bit32u startSector;
 	bool pc98_512_to_1024_allow = false;
+    int opt_partition_index = -1;
 	struct partTable mbrData;
 
 	if(!loadedDisk) {
 		created_successfully = false;
 		return;
 	}
+
+    for (const auto &opt : options) {
+        size_t equ = opt.find_first_of('=');
+        std::string name,value;
+
+        if (equ != std::string::npos) {
+            name = opt.substr(0,equ);
+            value = opt.substr(equ+1);
+        }
+        else {
+            name = opt;
+            value.clear();
+        }
+
+        if (name == "partidx") {
+            if (!value.empty())
+                opt_partition_index = (int)atol(value.c_str());
+        }
+        else {
+            LOG(LOG_MISC,LOG_DEBUG)("FAT: option '%s' = '%s' ignored, unknown",name.c_str(),value.c_str());
+        }
+
+//        LOG_MSG("'%s' = '%s'",name.c_str(),value.c_str());
+    }
 
 	loadedDisk->Addref();
 
@@ -848,42 +883,76 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
             memset(ipltable,0,sizeof(ipltable));
             loadedDisk->Read_Sector(0,0,2,ipltable);
 
-            for (i=0;i < max_entries;i++) {
+            if (opt_partition_index >= 0) {
+                /* user knows best! */
+                if ((unsigned int)opt_partition_index >= max_entries) {
+                    LOG_MSG("Partition index out of range");
+                    created_successfully = false;
+                    return;
+                }
+
+                i = opt_partition_index;
                 _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
 
-                if (pe->mid == 0 && pe->sid == 0 &&
-                    pe->ipl_sect == 0 && pe->ipl_head == 0 && pe->ipl_cyl == 0 &&
-                    pe->sector == 0 && pe->head == 0 && pe->cyl == 0 &&
-                    pe->end_sector == 0 && pe->end_head == 0 && pe->end_cyl == 0)
-                    continue; /* unused */
+                /* unfortunately start and end are in C/H/S geometry, so we have to translate.
+                 * this is why it matters so much to read the geometry from the HDI header.
+                 *
+                 * NOTE: C/H/S values in the IPL1 table are similar to IBM PC except that sectors are counted from 0, not 1 */
+                startSector =
+                    (pe->cyl * loadedDisk->sectors * loadedDisk->heads) +
+                    (pe->head * loadedDisk->sectors) +
+                    pe->sector;
 
-                /* We're looking for MS-DOS partitions.
-                 * I've heard that some other OSes were once ported to PC-98, including Windows NT and OS/2,
-                 * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.
-                 * FIXME: Is there a better way? */
-                if (!strncasecmp(pe->name,"MS-DOS",6) ||
-                    !strncasecmp(pe->name,"MSDOS",5) ||
-                    !strncasecmp(pe->name,"Windows",7)) {
-                    /* unfortunately start and end are in C/H/S geometry, so we have to translate.
-                     * this is why it matters so much to read the geometry from the HDI header.
-                     *
-                     * NOTE: C/H/S values in the IPL1 table are similar to IBM PC except that sectors are counted from 0, not 1 */
-                    startSector =
-                        (pe->cyl * loadedDisk->sectors * loadedDisk->heads) +
-                        (pe->head * loadedDisk->sectors) +
-                         pe->sector;
+                /* Many HDI images I've encountered so far indicate 512 bytes/sector,
+                 * but then the FAT filesystem itself indicates 1024 bytes per sector. */
+                pc98_512_to_1024_allow = true;
 
-                    /* Many HDI images I've encountered so far indicate 512 bytes/sector,
-                     * but then the FAT filesystem itself indicates 1024 bytes per sector. */
-                    pc98_512_to_1024_allow = true;
+                {
+                    /* FIXME: What if the label contains SHIFT-JIS? */
+                    std::string name = std::string(pe->name,sizeof(pe->name));
 
-                    {
-                        /* FIXME: What if the label contains SHIFT-JIS? */
-                        std::string name = std::string(pe->name,sizeof(pe->name));
+                    LOG_MSG("Using IPL1 entry %u name '%s' which starts at sector %lu",
+                        i,name.c_str(),(unsigned long)startSector);
+                }
+            }
+            else {
+                for (i=0;i < max_entries;i++) {
+                    _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
 
-                        LOG_MSG("Using IPL1 entry %u name '%s' which starts at sector %lu",
-                            i,name.c_str(),(unsigned long)startSector);
-                        break;
+                    if (pe->mid == 0 && pe->sid == 0 &&
+                            pe->ipl_sect == 0 && pe->ipl_head == 0 && pe->ipl_cyl == 0 &&
+                            pe->sector == 0 && pe->head == 0 && pe->cyl == 0 &&
+                            pe->end_sector == 0 && pe->end_head == 0 && pe->end_cyl == 0)
+                        continue; /* unused */
+
+                    /* We're looking for MS-DOS partitions.
+                     * I've heard that some other OSes were once ported to PC-98, including Windows NT and OS/2,
+                     * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.
+                     * FIXME: Is there a better way? */
+                    if (!strncasecmp(pe->name,"MS-DOS",6) ||
+                        !strncasecmp(pe->name,"MSDOS",5) ||
+                        !strncasecmp(pe->name,"Windows",7)) {
+                        /* unfortunately start and end are in C/H/S geometry, so we have to translate.
+                         * this is why it matters so much to read the geometry from the HDI header.
+                         *
+                         * NOTE: C/H/S values in the IPL1 table are similar to IBM PC except that sectors are counted from 0, not 1 */
+                        startSector =
+                            (pe->cyl * loadedDisk->sectors * loadedDisk->heads) +
+                            (pe->head * loadedDisk->sectors) +
+                            pe->sector;
+
+                        /* Many HDI images I've encountered so far indicate 512 bytes/sector,
+                         * but then the FAT filesystem itself indicates 1024 bytes per sector. */
+                        pc98_512_to_1024_allow = true;
+
+                        {
+                            /* FIXME: What if the label contains SHIFT-JIS? */
+                            std::string name = std::string(pe->name,sizeof(pe->name));
+
+                            LOG_MSG("Using IPL1 entry %u name '%s' which starts at sector %lu",
+                                i,name.c_str(),(unsigned long)startSector);
+                            break;
+                        }
                     }
                 }
             }
@@ -894,16 +963,29 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
         else {
             /* IBM PC master boot record search */
             int m;
-            for(m=0;m<4;m++) {
-                /* Pick the first available partition */
-                if(mbrData.pentry[m].partSize != 0x00 &&
-                        (mbrData.pentry[m].parttype == 0x01 || mbrData.pentry[m].parttype == 0x04 ||
-                         mbrData.pentry[m].parttype == 0x06 || mbrData.pentry[m].parttype == 0x0B ||
-                         mbrData.pentry[m].parttype == 0x0C || mbrData.pentry[m].parttype == 0x0D ||
-                         mbrData.pentry[m].parttype == 0x0E || mbrData.pentry[m].parttype == 0x0F)) {
-                    LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, mbrData.pentry[m].parttype, mbrData.pentry[m].absSectStart);
-                    startSector = mbrData.pentry[m].absSectStart;
-                    break;
+
+            if (opt_partition_index >= 0) {
+                /* user knows best! */
+                if (opt_partition_index >= 4) {
+                    LOG_MSG("Partition index out of range");
+                    created_successfully = false;
+                    return;
+                }
+
+                startSector = mbrData.pentry[m=opt_partition_index].absSectStart;
+            }
+            else {
+                for(m=0;m<4;m++) {
+                    /* Pick the first available partition */
+                    if(mbrData.pentry[m].partSize != 0x00 &&
+                            (mbrData.pentry[m].parttype == 0x01 || mbrData.pentry[m].parttype == 0x04 ||
+                             mbrData.pentry[m].parttype == 0x06 || mbrData.pentry[m].parttype == 0x0B ||
+                             mbrData.pentry[m].parttype == 0x0C || mbrData.pentry[m].parttype == 0x0D ||
+                             mbrData.pentry[m].parttype == 0x0E || mbrData.pentry[m].parttype == 0x0F)) {
+                        LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, mbrData.pentry[m].parttype, mbrData.pentry[m].absSectStart);
+                        startSector = mbrData.pentry[m].absSectStart;
+                        break;
+                    }
                 }
             }
 
@@ -987,28 +1069,31 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
      * that indicates 1024 bytes per sector. */
     if (pc98_512_to_1024_allow &&
          bootbuffer.bytespersector != getSectSize() &&
-        (bootbuffer.bytespersector == 1024 || bootbuffer.bytespersector == 512) &&
-        (getSectSize() == 512 || getSectSize() == 256)) {
-        unsigned int ratio = (unsigned int)(bootbuffer.bytespersector / getSectSize());
-        unsigned int ratiof = (unsigned int)(bootbuffer.bytespersector % getSectSize());
-        unsigned int ratioshift = (ratio == 4) ? 2 : 1;
+         bootbuffer.bytespersector >  getSectSize() &&
+        (bootbuffer.bytespersector %  getSectSize()) == 0) {
+        unsigned int ratioshift = 1;
 
-        LOG_MSG("Disk indicates %u bytes/sector, FAT filesystem indicates %u bytes/sector. Ratio=%u shift=%u",
-            getSectSize(),bootbuffer.bytespersector,ratio,ratioshift);
-        assert(ratiof == 0);
-        assert((ratio & (ratio - 1)) == 0); /* power of 2 */
-        assert(ratio >= 2);
-        assert(ratio <= 4);
+        while ((unsigned int)(bootbuffer.bytespersector >> ratioshift) > getSectSize())
+            ratioshift++;
 
-        /* we can hack things in place IF the starting sector is an even number */
-        if ((partSectOff & (ratio - 1)) == 0) {
-            partSectOff >>= ratioshift;
-            startSector >>= ratioshift;
-            sector_size = bootbuffer.bytespersector;
-            LOG_MSG("Using logical sector size %u",sector_size);
-        }
-        else {
-            LOG_MSG("However there's nothing I can do, because the partition starts on an odd sector");
+        unsigned int ratio = 1u << ratioshift;
+
+        LOG_MSG("Disk indicates %u bytes/sector, FAT filesystem indicates %u bytes/sector. Ratio=%u:1 shift=%u",
+                getSectSize(),bootbuffer.bytespersector,ratio,ratioshift);
+
+        if ((unsigned int)(bootbuffer.bytespersector >> ratioshift) == getSectSize()) {
+            assert(ratio >= 2);
+
+            /* we can hack things in place IF the starting sector is an even number */
+            if ((partSectOff & (ratio - 1)) == 0) {
+                partSectOff >>= ratioshift;
+                startSector >>= ratioshift;
+                sector_size = bootbuffer.bytespersector;
+                LOG_MSG("Using logical sector size %u",sector_size);
+            }
+            else {
+                LOG_MSG("However there's nothing I can do, because the partition starts on an odd sector");
+            }
         }
     }
 

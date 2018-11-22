@@ -281,10 +281,10 @@ void PC98_GDC_state::idle_proc(void) {
             case GDC_CMD_PITCH_SPEC:          // 0x47        0 1 0 0 0 1 1 1
                 break;
             case GDC_CMD_CURSOR_POSITION:     // 0x49        0 1 0 0 1 0 0 1
-                LOG_MSG("GDC: cursor pos");
+//              LOG_MSG("GDC: cursor pos");
                 break;
             case GDC_CMD_CURSOR_CHAR_SETUP:   // 0x4B        0 1 0 0 1 0 1 1
-                LOG_MSG("GDC: cursor setup");
+//              LOG_MSG("GDC: cursor setup");
                 break;
             case GDC_CMD_START_DISPLAY:       // 0x6B        0 1 1 0 1 0 1 1
                 display_enable = true;
@@ -315,8 +315,15 @@ void PC98_GDC_state::idle_proc(void) {
                 param_ram_wptr = current_command & 0xF;
                 current_command = GDC_CMD_PARAMETER_RAM_LOAD;
                 break;
+            case GDC_CMD_CURSOR_ADDRESS_READ:  // 0xE0       1 1 1 0 0 0 0 0
+                write_rfifo((unsigned char)( vga.config.cursor_start         & 0xFFu));
+                write_rfifo((unsigned char)((vga.config.cursor_start >>  8u) & 0xFFu));
+                write_rfifo((unsigned char)((vga.config.cursor_start >> 16u) & 0xFFu));
+                write_rfifo(0x00); // TODO
+                write_rfifo(0x00); // TODO
+                break;
             default:
-                LOG_MSG("GDC: Unknown command 0x%x",current_command);
+                LOG_MSG("GDC: %s: Unknown command 0x%x",master_sync?"master":"slave",current_command);
                 break;
         };
     }
@@ -377,7 +384,8 @@ Bit16u PC98_GDC_state::read_fifo(void) {
 }
 
 void PC98_GDC_state::next_line(void) {
-    if ((++row_line) == row_height) {
+    row_line++;
+    if (row_line == row_height) {
         scan_address += display_pitch;
         row_line = 0;
     }
@@ -460,6 +468,14 @@ void PC98_GDC_state::flush_fifo_old(void) {
         fifo_read = 0;
         fifo_write = sz;
     }
+}
+
+bool PC98_GDC_state::write_rfifo(const uint16_t c) {
+    if (rfifo_write >= PC98_GDC_FIFO_SIZE)
+        return false;
+
+    rfifo[rfifo_write++] = c;
+    return true;
 }
 
 bool PC98_GDC_state::write_fifo(const uint16_t c) {

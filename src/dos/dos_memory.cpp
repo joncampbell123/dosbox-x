@@ -419,6 +419,9 @@ void DOS_BuildUMBChain(bool umb_active,bool ems_active) {
 
 	/* UMBs are only possible if the machine has 1MB+64KB of RAM */
 	if (umb_active && (machine!=MCH_TANDY) && seg_limit >= (0x10000+0x1000-1) && first_umb_seg < GetEMSPageFrameSegment()) {
+        /* XMS emulation sets UMB size now.
+         * PCjr mode disables UMB emulation */
+#if 0
 		if (ems_active) {
 			/* we can use UMBs up to the EMS page frame */
 			/* FIXME: when we make the EMS page frame configurable this will need to be updated */
@@ -428,6 +431,7 @@ void DOS_BuildUMBChain(bool umb_active,bool ems_active) {
 			/* we can use UMBs up to where PCjr wants cartridge ROM */
 			first_umb_size = 0xE000 - first_umb_seg;
 		}
+#endif
 
 		dos_infoblock.SetStartOfUMBChain(UMB_START_SEG);
 		dos_infoblock.SetUMBChainState(0);		// UMBs not linked yet

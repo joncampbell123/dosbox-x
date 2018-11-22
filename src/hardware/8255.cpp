@@ -165,6 +165,7 @@ void Intel8255::writeControl(const uint8_t data) {
          *       byte can cause the chip to re-trigger an interrupt. So... */
         /* FIXME: Or am I wrong here, and the retriggering of the interrupt may simply be that internal
          *        interrupts on the PC-98 are level triggered? */
+        /* TODO: It's confirmed PC-98 has edge-triggered interrupts, like IBM PC */
         INTR_A = INTR_B = false;
         checkINTR_A();
         checkINTR_B();

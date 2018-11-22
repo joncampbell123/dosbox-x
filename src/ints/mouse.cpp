@@ -54,6 +54,10 @@ void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
 bool en_int33=false;
 bool en_bios_ps2mouse=false;
 bool cell_granularity_disable=false;
+bool en_int33_hide_if_polling=false;
+bool en_int33_hide_if_intsub=false;
+
+double int33_last_poll = 0;
 
 void DisableINT33() {
     if (en_int33) {
@@ -113,6 +117,7 @@ struct button_event {
     Bit8u buttons;
 };
 
+extern bool enable_slave_pic;
 extern uint8_t p7fd8_8255_mouse_int_enable;
 
 uint8_t MOUSE_IRQ = 12; // IBM PC/AT default
@@ -205,12 +210,18 @@ static struct {
 bool Mouse_SetPS2State(bool use) {
     if (use && (!ps2callbackinit)) {
         useps2callback = false;
-        PIC_SetIRQMask(MOUSE_IRQ,true);
+
+        if (MOUSE_IRQ != 0)
+            PIC_SetIRQMask(MOUSE_IRQ,true);
+
         return false;
     }
     useps2callback = use;
     Mouse_AutoLock(useps2callback);
-    PIC_SetIRQMask(MOUSE_IRQ,!useps2callback);
+
+    if (MOUSE_IRQ != 0)
+        PIC_SetIRQMask(MOUSE_IRQ,!useps2callback);
+
     return true;
 }
 
@@ -288,8 +299,6 @@ Bitu PS2_Handler(void) {
 #define MOUSE_DUMMY 128
 #define MOUSE_DELAY 5.0
 
-extern bool p7fd8_8255_mouse_irq_signal;
-
 void MOUSE_Limit_Events(Bitu /*val*/) {
     mouse.timer_in_progress = false;
 
@@ -303,11 +312,10 @@ void MOUSE_Limit_Events(Bitu /*val*/) {
         mouse.timer_in_progress = true;
         PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
 
-        if (IS_PC98_ARCH)
-            p7fd8_8255_mouse_irq_signal = true;
-
-        if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
-            PIC_ActivateIRQ(MOUSE_IRQ);
+        if (MOUSE_IRQ != 0) {
+            if (!IS_PC98_ARCH)
+                PIC_ActivateIRQ(MOUSE_IRQ);
+        }
     }
 }
 
@@ -330,11 +338,10 @@ INLINE void Mouse_AddEvent(Bit8u type) {
         mouse.timer_in_progress = true;
         PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
 
-        if (IS_PC98_ARCH)
-            p7fd8_8255_mouse_irq_signal = true;
-
-        if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
-            PIC_ActivateIRQ(MOUSE_IRQ);
+        if (MOUSE_IRQ != 0) {
+            if (!IS_PC98_ARCH)
+                PIC_ActivateIRQ(MOUSE_IRQ);
+        }
     }
 }
 
@@ -610,11 +617,12 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
     if (emulate) {
         mouse.x += dx;
         mouse.y += dy;
-    } else {
+    } else if (CurMode != NULL) {
         if (CurMode->type == M_TEXT) {
             mouse.x = x*CurMode->swidth;
             mouse.y = y*CurMode->sheight * 8 / CurMode->cheight;
-        } else if ((mouse.max_x < 2048) || (mouse.max_y < 2048) || (mouse.max_x != mouse.max_y)) {
+        /* NTS: DeluxePaint II enhanced sets a large range (5112x3832) for VGA mode 0x12 640x480 16-color */
+        } else {
             if ((mouse.max_x > 0) && (mouse.max_y > 0)) {
                 mouse.x = x*mouse.max_x;
                 mouse.y = y*mouse.max_y;
@@ -622,9 +630,6 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
                 mouse.x += xrel;
                 mouse.y += yrel;
             }
-        } else { // Games faking relative movement through absolute coordinates. Quite surprising that this actually works..
-            mouse.x += xrel;
-            mouse.y += yrel;
         }
     }
 
@@ -828,10 +833,11 @@ static void Mouse_SetSensitivity(Bit16u px, Bit16u py, Bit16u dspeed){
 
 
 static void Mouse_ResetHardware(void){
-    PIC_SetIRQMask(MOUSE_IRQ,false);
+    if (MOUSE_IRQ != 0)
+        PIC_SetIRQMask(MOUSE_IRQ,false);
 
     if (IS_PC98_ARCH)
-        p7fd8_8255_mouse_int_enable = 1;
+        IO_WriteB(0x7FDD,IO_ReadB(0x7FDD) & (~0x10)); // remove interrupt inhibit
 }
 
 //Does way to much. Many things should be moved to mouse reset one day
@@ -848,6 +854,13 @@ void Mouse_NewVideoMode(void) {
     mouse.max_x = 639;
     mouse.min_y = 0;
     mouse.max_y = 479;
+
+    if (machine == MCH_HERC) {
+        // DeluxePaint II again...
+        mouse.first_range_setx = true;
+        mouse.first_range_sety = true;
+    }
+
     switch (mode) {
     case 0x00:
     case 0x01:
@@ -877,14 +890,23 @@ void Mouse_NewVideoMode(void) {
     case 0x13:
         if (mode == 0x0d || mode == 0x13) mouse.gran_x = (Bit16s)0xfffe;
         mouse.max_y = 199;
+        // some games redefine the mouse range for this mode
+        mouse.first_range_setx = true;
+        mouse.first_range_sety = true;
         break;
     case 0x0f:
     case 0x10:
         mouse.max_y = 349;
+        // Deluxepaint II enhanced will redefine the range for 640x480 mode
+        mouse.first_range_setx = true;
+        mouse.first_range_sety = true;
         break;
     case 0x11:
     case 0x12:
         mouse.max_y = 479;
+        // Deluxepaint II enhanced will redefine the range for 640x480 mode
+        mouse.first_range_setx = true;
+        mouse.first_range_sety = true;
         break;
     default:
         LOG(LOG_MOUSE,LOG_ERROR)("Unhandled videomode %X on reset",mode);
@@ -990,6 +1012,7 @@ static Bitu INT33_Handler(void) {
         reg_dx=(Bit16u)POS_Y;
         mouse.first_range_setx = false;
         mouse.first_range_sety = false;
+        if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
         break;
     case 0x04:  /* Position Mouse */
         /* If position isn't different from current position
@@ -1003,6 +1026,7 @@ static Bitu INT33_Handler(void) {
         else if (mouse.min_y >= (Bit16s)reg_dx) mouse.y = static_cast<float>(mouse.min_y); 
         else if ((Bit16s)reg_dx != POS_Y) mouse.y = static_cast<float>(reg_dx);
         DrawCursor();
+        if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
         break;
     case 0x05:  /* Return Button Press Data */
         {
@@ -1013,6 +1037,7 @@ static Bitu INT33_Handler(void) {
             reg_dx=mouse.last_pressed_y[but];
             reg_bx=mouse.times_pressed[but];
             mouse.times_pressed[but]=0;
+            if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
             break;
         }
     case 0x06:  /* Return Button Release Data */
@@ -1024,6 +1049,7 @@ static Bitu INT33_Handler(void) {
             reg_dx=mouse.last_released_y[but];
             reg_bx=mouse.times_released[but];
             mouse.times_released[but]=0;
+            if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
             break;
         }
     case 0x07:  /* Define horizontal cursor range */
@@ -1051,8 +1077,11 @@ static Bitu INT33_Handler(void) {
              *      set after mode set is the only way to make sure mouse pointer integration
              *      tracks the guest pointer properly. */
             if (mouse.first_range_setx) {
-                if (mouse.max_screen_x < mouse.max_x)
+                if (mouse.min_x == 0 && mouse.max_x > 0) {
+                    // most games redefine the range so they can use a saner range matching the screen
                     mouse.max_screen_x = mouse.max_x;
+                    LOG(LOG_MOUSE,LOG_NORMAL)("Define Hortizontal range min:%d max:%d defines the bounds of the screen",min,max);
+                }
 
                 mouse.first_range_setx = false;
             }
@@ -1083,8 +1112,11 @@ static Bitu INT33_Handler(void) {
              *      set after mode set is the only way to make sure mouse pointer integration
              *      tracks the guest pointer properly. */
             if (mouse.first_range_sety) {
-                if (mouse.max_screen_y < mouse.max_y)
+                if (mouse.min_y == 0 && mouse.max_y > 0) {
+                    // most games redefine the range so they can use a saner range matching the screen
                     mouse.max_screen_y = mouse.max_y;
+                    LOG(LOG_MOUSE,LOG_NORMAL)("Define Vertical range min:%d max:%d defines the bounds of the screen",min,max);
+                }
 
                 mouse.first_range_sety = false;
             }
@@ -1116,7 +1148,7 @@ static Bitu INT33_Handler(void) {
 	    reg_dx = (Bit16u)static_cast<Bit16s>(locked ? mouse.mickey_y : 0);
 	    mouse.mickey_x = 0;
 	    mouse.mickey_y = 0;
-	    break;
+        break;
     }
     case 0x0c:  /* Define interrupt subroutine parameters */
         mouse.sub_mask=reg_cx;
@@ -1372,10 +1404,13 @@ void MOUSE_OnReset(Section *sec) {
     (void)sec;//UNUSED
     if (IS_PC98_ARCH)
         MOUSE_IRQ = 13; // PC-98 standard
+    else if (!enable_slave_pic)
+        MOUSE_IRQ = 0;
     else
         MOUSE_IRQ = 12; // IBM PC/AT standard
 
-    PIC_SetIRQMask(MOUSE_IRQ,true);
+    if (MOUSE_IRQ != 0)
+        PIC_SetIRQMask(MOUSE_IRQ,true);
 }
 
 void MOUSE_ShutDown(Section *sec) {
@@ -1392,6 +1427,9 @@ void BIOS_PS2Mouse_Startup(Section *sec) {
 
     /* NTS: This assumes MOUSE_Init() is called after KEYBOARD_Init() */
     en_bios_ps2mouse = section->Get_bool("biosps2");
+
+    if (!enable_slave_pic || machine == MCH_PCJR) return;
+
     if (!en_bios_ps2mouse) return;
 
     if (MouseTypeNone()) {
@@ -1429,8 +1467,10 @@ void BIOS_PS2Mouse_Startup(Section *sec) {
     //  pop ds
     //  iret
 
-    Bit8u hwvec=(MOUSE_IRQ>7)?(0x70+MOUSE_IRQ-8):(0x8+MOUSE_IRQ);
-    RealSetVec(hwvec,CALLBACK_RealPointer(call_int74));
+    if (MOUSE_IRQ != 0) {
+        Bit8u hwvec=(MOUSE_IRQ>7)?(0x70+MOUSE_IRQ-8):(0x8+MOUSE_IRQ);
+        RealSetVec(hwvec,CALLBACK_RealPointer(call_int74));
+    }
 
     // Callback for ps2 user callback handling
     useps2callback = false; ps2callbackinit = false;
@@ -1446,6 +1486,10 @@ void MOUSE_Startup(Section *sec) {
 
     /* TODO: Needs to check for mouse, and fail to do anything if neither PS/2 nor serial mouse emulation enabled */
 
+    en_int33_hide_if_intsub=section->Get_bool("int33 hide host cursor if interrupt subroutine");
+
+    en_int33_hide_if_polling=section->Get_bool("int33 hide host cursor when polling");
+
     en_int33=section->Get_bool("int33");
     if (!en_int33) {
         Mouse_Reset();
@@ -1456,6 +1500,8 @@ void MOUSE_Startup(Section *sec) {
     cell_granularity_disable=section->Get_bool("int33 disable cell granularity");
 
     LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 33H emulation enabled");
+    if (en_int33_hide_if_polling)
+        LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 33H emulation will hide host cursor if polling");
 
     // Callback for mouse interrupt 0x33
     call_int33=CALLBACK_Allocate();
@@ -1507,3 +1553,20 @@ bool MOUSE_IsHidden()
 {
     return static_cast<bool>(mouse.hidden);
 }
+
+bool MOUSE_IsBeingPolled()
+{
+    if (!en_int33_hide_if_polling)
+        return false;
+
+    return (PIC_FullIndex() < (int33_last_poll + 1000));
+}
+
+bool MOUSE_HasInterruptSub()
+{
+    if (!en_int33_hide_if_intsub)
+        return false;
+
+    return (mouse.sub_mask != 0);
+}
+

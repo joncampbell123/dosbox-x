@@ -21,6 +21,7 @@
 #include "mem.h"
 #include "dos_inc.h"
 #include "callback.h"
+#include "control.h"
 #include <assert.h>
 
 extern Bitu DOS_PRIVATE_SEGMENT_Size;
@@ -78,12 +79,43 @@ void DOS_GetMemory_unmap() {
 	}
 }
 
+bool DOS_User_Wants_UMBs() {
+    Section_prop * section=static_cast<Section_prop *>(control->GetSection("dos"));
+    return section->Get_bool("umb");
+}
+
 void DOS_GetMemory_Choose() {
 	if (DOS_PRIVATE_SEGMENT == 0) {
         /* DOSBox-X non-compatible: Position ourself just past the VGA BIOS */
         /* NTS: Code has been arranged so that DOS kernel init follows BIOS INT10h init */
         DOS_PRIVATE_SEGMENT=VGA_BIOS_SEG_END;
         DOS_PRIVATE_SEGMENT_END=DOS_PRIVATE_SEGMENT + DOS_PRIVATE_SEGMENT_Size;
+
+        if (IS_PC98_ARCH) {
+            bool PC98_FM_SoundBios_Enabled(void);
+
+            /* Do not let the private segment overlap with anything else after segment C800:0000 including the SOUND ROM at CC00:0000.
+             * Limiting to 32KB also leaves room for UMBs if enabled between C800:0000 and the EMS page frame at (usually) D000:0000 */
+            unsigned int limit = 0xD000;
+
+            if (PC98_FM_SoundBios_Enabled()) {
+                // TODO: What about sound BIOSes larger than 16KB?
+                if (limit > 0xCC00)
+                    limit = 0xCC00;
+            }
+
+            if (DOS_User_Wants_UMBs()) {
+                // leave room for UMBs, things are cramped a bit in PC-98 mode
+                if (limit > 0xC600)
+                    limit = 0xC600;
+            }
+
+            if (DOS_PRIVATE_SEGMENT_END > limit)
+                DOS_PRIVATE_SEGMENT_END = limit;
+
+            if (DOS_PRIVATE_SEGMENT >= DOS_PRIVATE_SEGMENT_END)
+                E_Exit("Insufficient room in upper memory area for private area");
+        }
 
 		if (DOS_PRIVATE_SEGMENT >= 0xA000) {
 			memset(GetMemBase()+((unsigned int)DOS_PRIVATE_SEGMENT<<4u),0x00,(unsigned int)(DOS_PRIVATE_SEGMENT_END-DOS_PRIVATE_SEGMENT)<<4u);

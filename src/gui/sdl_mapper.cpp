@@ -3868,7 +3868,7 @@ void MAPPER_RunInternal() {
     SDL_SetPaletteColors(sdl2_map_pal_ptr, map_pal, 0, 6);
     SDL_SetSurfacePalette(mapper.draw_surface, sdl2_map_pal_ptr);
     if (last_clicked) {
-        last_clicked->BindColor();
+        last_clicked->SetColor(CLR_WHITE);
         last_clicked=NULL;
     }
 #else
@@ -4038,6 +4038,8 @@ void MAPPER_StartUp() {
         /* Note: table has to be tested/updated for various OSs */
 #if defined (MACOSX)
         /* nothing */
+#elif defined(HAIKU)
+		usescancodes = false;
 #elif defined(OS2)
         sdlkey_map[0x61]=SDLK_UP;
         sdlkey_map[0x66]=SDLK_DOWN;

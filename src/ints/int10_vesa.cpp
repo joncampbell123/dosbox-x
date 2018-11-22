@@ -125,11 +125,13 @@ void VESA_OnReset_Clear_Callbacks(void) {
     }
 }
 
+extern bool vesa_bios_modelist_in_info;
+
 Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
 	/* Fill 256 byte buffer with VESA information */
 	PhysPt buffer=PhysMake(seg,off);
 	Bitu i;
-	bool vbe2=false;Bit16u vbe2_pos=256+off;
+	bool vbe2=false;Bit16u vbe2_pos;
 	Bitu id=mem_readd(buffer);
 	if (((id==0x56424532)||(id==0x32454256)) && (!int10.vesa_oldvbe)) vbe2=true;
 	if (vbe2) {
@@ -142,6 +144,8 @@ Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
 	if (!int10.vesa_oldvbe) mem_writew(buffer+0x04,0x200);	//Vesa version 2.0
 	else mem_writew(buffer+0x04,0x102);						//Vesa version 1.2
 	if (vbe2) {
+        vbe2_pos=256+off;
+
 		mem_writed(buffer+0x06,RealMake(seg,vbe2_pos));
 		for (i=0;i<sizeof(string_oem);i++) real_writeb(seg,vbe2_pos++,(Bit8u)string_oem[i]);
 		mem_writew(buffer+0x14,0x200);					//VBE 2 software revision
@@ -151,11 +155,41 @@ Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
 		for (i=0;i<sizeof(string_productname);i++) real_writeb(seg,vbe2_pos++,(Bit8u)string_productname[i]);
 		mem_writed(buffer+0x1e,RealMake(seg,vbe2_pos));
 		for (i=0;i<sizeof(string_productrev);i++) real_writeb(seg,vbe2_pos++,(Bit8u)string_productrev[i]);
-	} else {
-		mem_writed(buffer+0x06,int10.rom.oemstring);	//Oemstring
+    } else {
+        vbe2_pos=0x20+off;
+
+        mem_writed(buffer+0x06,int10.rom.oemstring);	//Oemstring
 	}
+
+    if (vesa_bios_modelist_in_info) {
+        /* put the modelist into the VBE struct itself, as modern BIOSes like to do.
+         * NOTICE: This limits the modelist to what is able to fit! Extended modes may not fit, which is why the option is OFF by default. */
+        uint16_t modesg = int10.rom.vesa_modes >> 16;
+        uint16_t modoff = int10.rom.vesa_modes & 0xFFFF;
+        uint16_t m;
+
+        mem_writed(buffer+0x0e,RealMake(seg,vbe2_pos));	//VESA Mode list
+
+        do {
+            if (vbe2) {
+                if (vbe2_pos >= (509+off)) break;
+            }
+            else {
+                if (vbe2_pos >= (253+off)) break;
+            }
+            m = real_readw(modesg,modoff);
+            if (m == 0xFFFF) break;
+            real_writew(seg,vbe2_pos,m);
+            vbe2_pos += 2;
+            modoff += 2;
+        } while (1);
+        real_writew(seg,vbe2_pos,0xFFFF);
+    }
+    else {
+        mem_writed(buffer+0x0e,int10.rom.vesa_modes);	//VESA Mode list
+    }
+
 	mem_writed(buffer+0x0a,0x0);					//Capabilities and flags
-	mem_writed(buffer+0x0e,int10.rom.vesa_modes);	//VESA Mode list
 	mem_writew(buffer+0x12,(Bit16u)(vga.mem.memsize/(64*1024))); // memory size in 64kb blocks
 	return VESA_SUCCESS;
 }

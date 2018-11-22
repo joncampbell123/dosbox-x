@@ -1253,6 +1253,84 @@ extern bool pc98_graphics_hide_odd_raster_200line;
 extern bool pc98_allow_scanline_effect;
 extern bool gdc_analog;
 
+unsigned char       pc98_text_first_row_scanline_start = 0x00;  /* port 70h */
+unsigned char       pc98_text_first_row_scanline_end = 0x0F;    /* port 72h */
+unsigned char       pc98_text_row_scanline_blank_at = 0x10;     /* port 74h */
+unsigned char       pc98_text_row_scroll_lines = 0x00;          /* port 76h */
+unsigned char       pc98_text_row_scroll_count_start = 0x00;    /* port 78h */
+unsigned char       pc98_text_row_scroll_num_lines = 0x00;      /* port 7Ah */
+
+// Text layer rendering state.
+// Track row, row count, scanline row within the cell,
+// for accurate emulation
+struct Text_Draw_State {
+    unsigned int        scroll_vmem;
+    unsigned char       scroll_scanline_cg;
+    unsigned char       row_scanline_cg;            /* scanline within row, CG bitmap */
+    unsigned char       row_char;                   /* character row. scroll region 0 <= num_lines */
+    unsigned char       row_scroll_countdown;
+
+    void begin_frame(void) {
+        row_scroll_countdown = 0xFF;
+        row_scanline_cg = pc98_text_first_row_scanline_start;
+        row_char = pc98_text_row_scroll_count_start & 0x1Fu;
+        check_scroll_region();
+
+        if (row_scroll_countdown != 0xFF)
+            update_scroll_line();
+    }
+    void next_line(void) {
+        if (row_scanline_cg == pc98_text_first_row_scanline_end) {
+            row_scanline_cg = pc98_text_first_row_scanline_start;
+            next_character_row();
+        }
+        else {
+            row_scanline_cg = (row_scanline_cg + 1u) & 0x1Fu;
+        }
+
+        if (row_scroll_countdown != 0xFF)
+            update_scroll_line();
+    }
+    void update_scroll_line(void) {
+        scroll_vmem = 0;
+        scroll_scanline_cg = row_scanline_cg;
+        for (unsigned int i=0;i < pc98_text_row_scroll_lines;i++) {
+            if (scroll_scanline_cg == pc98_text_first_row_scanline_end) {
+                scroll_scanline_cg = pc98_text_first_row_scanline_start;
+                scroll_vmem += pc98_gdc[GDC_MASTER].display_pitch;
+            }
+            else {
+                scroll_scanline_cg = (scroll_scanline_cg + 1u) & 0x1Fu;
+            }
+        }
+    }
+    void next_character_row(void) {
+        row_char = (row_char + 1u) & 0x1Fu;
+        check_scroll_region();
+    }
+    void check_scroll_region(void) {
+        if (row_char == 0) {
+            /* begin scroll region */
+            /* NTS: Confirmed on real hardware: The scroll count ADDs to the vertical offset already applied to the text.
+             *      For example in 20-line text mode (20 pixels high) setting the scroll region offset to 2 pixels cancels
+             *      out the 2 pixel centering of the text. */
+            row_scroll_countdown = pc98_text_row_scroll_num_lines & 0x1Fu;
+        }
+        else if (row_scroll_countdown == 0) {
+            /* end scroll region */
+            row_scroll_countdown = 0xFF;
+        }
+        else if (row_scroll_countdown != 0xFF) {
+            row_scroll_countdown--;
+        }
+    }
+    bool in_scroll_region(void) const {
+        return row_scroll_countdown != 0xFFu;
+    }
+};
+
+Text_Draw_State     pc98_text_draw;
+
 static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     // keep it aligned:
     Bit32u* draw = ((Bit32u*)TempLine);
@@ -1316,16 +1394,38 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 
     // Text RAM layer
     if (pc98_gdc[GDC_MASTER].display_enable) {
+        Bitu gdcvidmem = pc98_gdc[GDC_MASTER].scan_address;
+
         draw = ((Bit32u*)TempLine);
         blocks = vga.draw.blocks;
+
         vidmem = pc98_gdc[GDC_MASTER].scan_address;
+        if (pc98_text_draw.in_scroll_region()) {
+            vidmem += pc98_text_draw.scroll_vmem;
+            fline = pc98_text_draw.scroll_scanline_cg;
+        }
+        else {
+            fline = pc98_text_draw.row_scanline_cg;
+        }
+
+        /* NTS: This code will render the cursor in the scroll region with a weird artifact
+         *      when the character under it is double-wide, and the cursor covers the top half.
+         *
+         *      For example:
+         *
+         *      ＡＡＡ
+         *      ＡＡＡ
+         *      ＡＡＡＡ     <- scroll region ends here
+         *      ＡＡＡＡ
+         *
+         *      Placing the cursor on the third row of Ａ's, on the right, will produce an
+         *      oddly shaped cursor.
+         *
+         *      Before filing a bug about this, consider from my testing that real PC-9821
+         *      hardware will also render a strangely shaped cursor there as well. --J.C. */
+
         while (blocks--) { // for each character in the line
-            /* NTS: On real hardware, in 20-line mode, either the hardware or the BIOS sets
-             *      up the text mode in such a way that the text is centered vertically
-             *      against the cursor, and the cursor fills all 20 lines */
-            fline = pc98_gdc[GDC_MASTER].row_line;
-            if (pc98_gdc[GDC_MASTER].row_height > 16) /* 20-line */
-                fline -= 2; /* vertically center */
+            bool was_doublewide = doublewide;
 
             /* Amusing question: How does it handle the "simple graphics" in 20-line mode? */
 
@@ -1380,8 +1480,7 @@ interrupted_char_begin:
                         doublewide = true;
                     }
 
-                    /* the hardware appears to blank the lines beyond the 16-line cell */
-                    if (fline < 0x10)
+                    if (fline < pc98_text_row_scanline_blank_at)
                         font = pc98_font_char_read(chr,fline,0);
                     else
                         font = 0;
@@ -1418,8 +1517,7 @@ interrupted_char_begin:
                         goto interrupted_char_begin;
                 }
 
-                /* the hardware appears to blank the lines beyond the 16-line cell */
-                if (fline < 0x10)
+                if (fline < pc98_text_row_scanline_blank_at)
                     font = pc98_font_char_read(chr,fline,1);
                 else
                     font = 0;
@@ -1439,7 +1537,8 @@ interrupted_char_begin:
             if (attr & 0x04/*reverse*/) font ^= 0xFF;
 
             /* based on real hardware, the cursor seems to act like a reverse attribute */
-            if (vidmem == vga.draw.cursor.address &&
+            /* if the character is double-wide, and the cursor is on the left half, the cursor affects the right half too. */
+            if (((gdcvidmem == vga.draw.cursor.address) || (was_doublewide && gdcvidmem == (vga.draw.cursor.address+1))) &&
                 pc98_gdc[GDC_MASTER].cursor_enable &&
                 ((!pc98_gdc[GDC_MASTER].cursor_blink) || (pc98_gdc[GDC_MASTER].cursor_blink_state&1)) &&
                 (line >= vga.draw.cursor.sline) &&
@@ -1473,6 +1572,7 @@ interrupted_char_begin:
             }
 
             vidmem++;
+            gdcvidmem++;
         }
     }
 
@@ -1678,6 +1778,8 @@ again:
     if (IS_PC98_ARCH) {
         for (unsigned int i=0;i < 2;i++)
             pc98_gdc[i].next_line();
+
+        pc98_text_draw.next_line();
     }
 
     /* some VGA cards (ATI chipsets especially) do not double-buffer the
@@ -1809,6 +1911,8 @@ static void VGA_PanningLatch(Bitu /*val*/) {
     if (IS_PC98_ARCH) {
         for (unsigned int i=0;i < 2;i++)
             pc98_gdc[i].begin_frame();
+
+        pc98_text_draw.begin_frame();
     }
 }
 

@@ -434,6 +434,8 @@ struct private_hwdata {
 # define DEFAULT_CONFIG_FILE            "/dosbox.conf"
 #elif defined(MACOSX)
 # define DEFAULT_CONFIG_FILE            "/Library/Preferences/DOSBox Preferences"
+#elif defined(HAIKU)
+#define DEFAULT_CONFIG_FILE "~/config/settings/dosbox/dosbox.conf"
 #else /*linux freebsd*/
 # define DEFAULT_CONFIG_FILE            "/.dosboxrc"
 #endif
@@ -3287,11 +3289,13 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     }
     else if (!user_cursor_locked)
     {
+        bool MOUSE_HasInterruptSub();
+        bool MOUSE_IsBeingPolled();
         bool MOUSE_IsHidden();
         /* Show only when DOS app is not using mouse */
 
         if (!sdl.mouse.locked && !sdl.desktop.fullscreen)
-            SDL_ShowCursor((!inside || MOUSE_IsHidden()) ? SDL_ENABLE : SDL_DISABLE);
+            SDL_ShowCursor(((!inside) || ((MOUSE_IsHidden()) && !(MOUSE_IsBeingPolled() || MOUSE_HasInterruptSub()))) ? SDL_ENABLE : SDL_DISABLE);
     }
     Mouse_CursorMoved(xrel, yrel, x, y, emu);
 }
@@ -5640,7 +5644,7 @@ bool DOSBOX_parse_argv() {
     assert(control != NULL);
     assert(control->cmdline != NULL);
 
-    control->cmdline->BeginOpt();
+    control->cmdline->BeginOpt(true/*eat argv*/);
     while (control->cmdline->GetOpt(optname)) {
         std::transform(optname.begin(), optname.end(), optname.begin(), ::tolower);
 
@@ -5837,7 +5841,7 @@ bool DOSBOX_parse_argv() {
             const char *ext = strrchr(tmp.c_str(),'.');
             if (ext != NULL) { /* if it looks like a file... with an extension */
                 if (stat(tmp.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
-                    if (!strcasecmp(ext,".bat")) { /* .BAT files given on the command line trigger automounting C: to run it */
+                    if (!strcasecmp(ext,".bat") || !strcasecmp(ext,".exe") || !strcasecmp(ext,".com")) { /* .BAT files given on the command line trigger automounting C: to run it */
                         control->auto_bat_additional.push_back(tmp);
                         control->cmdline->EatCurrentArgv();
                         continue;
@@ -6079,7 +6083,7 @@ void update_pc98_clock_pit_menu(void) {
 bool dos_pc98_clock_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    void TIMER_OnEnterPC98_Phase2(Section*);
+    void TIMER_OnPowerOn(Section*);
     void TIMER_OnEnterPC98_Phase2_UpdateBDA(void);
 
     const char *ts = menuitem->get_name().c_str();
@@ -6099,7 +6103,7 @@ bool dos_pc98_clock_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * con
     Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     dosbox_section->HandleInputline(tmp.c_str());
 
-    TIMER_OnEnterPC98_Phase2(NULL);
+    TIMER_OnPowerOn(NULL);
     TIMER_OnEnterPC98_Phase2_UpdateBDA();
 
     update_pc98_clock_pit_menu();
@@ -7899,6 +7903,14 @@ fresh_boot:
     mainMenu.clear_all_menu_items();
 
     return 0;
+}
+
+void GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen) {
+    x = sdl.clip.x;
+    y = sdl.clip.y;
+    width = sdl.clip.w; // draw.width
+    height = sdl.clip.h; // draw.height
+    fullscreen = sdl.desktop.fullscreen;
 }
 
 void GFX_GetSize(int &width, int &height, bool &fullscreen) {

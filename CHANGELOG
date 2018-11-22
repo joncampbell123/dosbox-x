@@ -1,3 +1,148 @@
+<next version>
+  - SDL GUI fixed to make fade/sepia effect fit the
+    actual display rectangle instead of filling the
+    window.
+  - PC-98 BIOS keyboard handling now returns capitals
+    for A-Z if SHIFT xor CAPS LOCK is engaged.
+  - PC-98 BIOS keyboard handling now uses modifier bits
+    of keyboard bitmap to process scan codes, hackish
+    IBM PC/AT data area status handling in PC-98 mode
+    removed.
+  - PC-98 BIOS keyboard emulation now maps numeric keypad
+    to produce the correct keyboard input to the console
+    and games. This fixes games that rely on the numeric
+    keypad and the DOS console driver
+  - Command line parsing fixed to add any BAT, COM, and
+    EXE file references given at DOSBox-X's command line
+    to the autoexec.bat file run at startup.
+  - BOOT command bug fixed that made it impossible to
+    specify both disk images and the --debug and --force
+    options.
+  - Debug output fixed to make it easier to break into
+    the debugger even during a flood of debug output.
+  - Added dosbox.conf option to enable/disable the
+    PC-98 bus mouse interface
+  - PC-98 boot disks with 128 bytes/sector boot sectors
+    now load 4 sectors instead of 2. Seems to be
+    required by some games.
+  - INT 13h read/write functions fixed to refuse the
+    command if the floppy disk has a sector size too
+    large for the implementation (such as a PC-98
+    disk image mounted in IBM PC mode with 1024 bytes
+    per sector).
+  - INT 13h AH=2 (read sector) updated to return disk
+    change error on first read after disk change, to
+    match real BIOS behavior.
+  - Floppy emulation now tracks "disk change" signal.
+  - PIC event handling fixed, IRQ breakpoints now stop
+    at the beginning of the interrupt handler.
+  - MPU-401 MIDI default IRQ is now IRQ 6 in PC-98 mode,
+    to match factory default setting.
+  - MPU-401 MIDI IRQ masked by default in PC-98.
+  - PC-98 port BFDB implemented, which allows control
+    of the mouse interrupt rate.
+  - Eliminated mouse periodic interrupt hack, the mouse
+    interrupt on PC-98 is periodic when enabled.
+  - 256-byte/sector hard disk images fixed to ensure the
+    proper boot drive identifier is presented for MS-DOS
+    when booting a hard disk image.
+  - Added IMGMOUNT -o partidx=N option. N is an integer
+    value that indicates which partition to mount, counting
+    up from zero. This allows mounting disk images that
+    the FAT driver otherwise can't identify which partition
+    to mount.
+  - New general -o name=value option for IMGMOUNT, to pass
+    various options to the FAT driver.
+  - Update Metal Force mouse hack to become a more general
+    "fire interrupt on Port C write" with a dosbox.conf
+    option to enable. This fixes the requirement to move
+    the mouse constantly for "Amaranth" when enabled.
+  - Add to cascade interrupt hacks by offering an option
+    to ignore the "in service" bit of the PIC for the
+    cascade interrupt, while still tracking it for
+    the DOS game or interrupt. Handy for PC-98 games
+    that check the cascade "in service" bit before
+    acting on the interrupt (IRQ 8-15).
+  - DOS kernel fixed to limit it's private area and
+    UMB region to avoid overlapping the PC-98 SOUND
+    BIOS.
+  - PC-98 SOUND BIOS dummy stub added for games that
+    call into it.
+  - Emulator hanging problem fixed when inputs are
+    processed while running at a very low cycle count.
+  - Added PC-98 LIO BIOS list and stub for games that
+    require it.
+  - Timer and PIC updated to emulate Mode 3 Square Wave
+    output through the IRR register. Needed for Steel
+    Gun Nyan.
+  - PC-98 INT 18h fixed to reenable and process any
+    keyboard data waiting when the DOS game or application
+    calls INT 18h to read keyboard input. This fixes
+    keyboard problems with Quarth.
+  - PC-98 FDC BIOS emulation no longer reprograms the
+    timer interrupt, but uses an alternate hack to
+    avoid divide by zero fault with Ys II.
+  - PC-98 GDC command to read back cursor position
+    added.
+  - PC-98 DOS CON device emulation now maintains ANSI
+    attribute byte at 60:11D as documented.
+  - BOOT now hides hardware cursor when booting a guest
+    OS in PC-98 mode.
+  - INT 1Dh vector now points at segment FD80 to satisfy
+    some games that autodetect PC-98 vs other platforms.
+  - INT 18h AH=42 implement display "bank" bit for games
+    that need it.
+  - PC-98 text scroll region implemented (I/O ports
+    76h-7Ah even).
+  - PC-98 CRTC mode set regarding 20/25-line mode fixed
+    to update line height, text vertical position/height,
+    and cursor shape.
+  - PC-98 emulation of text height/vertical position
+    registers 70h-74h even added.
+  - PC-98 text hardware cursor fixed to cover both halves
+    of doublewide characters if cursor positioned on left
+    half, to match real hardware.
+  - Fixed music/interrupt slowdown whenever I/O and INT 10h
+    BIOS emulation is involved.
+  - PC-98 minimal (non-functional at this time) printer
+    port emulation added, as well as system configuration
+    port.
+  - PC-98 CG memory region fixed to match real hardware
+    behavior, responding to A4000-A4FFF.
+  - FAT filesystem driver now supports 2048 bytes per
+    sector filesystems.
+  - FAT filesystem driver logical/physical sector matching
+    fixed to improve flexibility.
+  - Fixed crash that occurs if you maximize the window
+    and then adjust scalers to produce output that is
+    larger than the maximized window.
+  - INT 33h emulation now offers hiding the host cursor
+    if the guest has provided an interrupt subroutine
+    for the mouse driver to call, since it usually means
+    the DOS game wishes to draw the cursor itself.
+  - INT 33h emulation now offers hiding the host cursor
+    if the guest is polling the cursor position, to
+    better support guest/host integration with DOS games
+    that draw their own cursor.
+  - AUX and PS/2 emulation no longer allowed if machine
+    type is PCjr.
+  - PS/2 mouse emulation fixed to disable itself if the
+    slave PIC needed for IRQ 12 is not present.
+  - INT 33h pointer integration improved to support some
+    additional DOS games, and to handle DeluxePaint II
+    enhanced.
+  - IMGMOUNT now supports NFD disk images.
+  - DOSBox Integration Device now available for PC-98.
+  - Added support for T98Next NHD hard disk images.
+  - Added support for T98Next NFD R1 disk images.
+  - Fixed crash with VGA BIOS allocation if video memory
+    allows the full modelist to overflow the available
+    ROM space.
+  - SDL2 mapper redraw issue resolved.
+  - Added dosbox.conf option to determine whether INT 10h
+    VESA BIOS emulation points at the modelist in ROM or
+    copies the modelist into the DOS application's info
+    structure when asked.
 0.82.10
   - PC-98 INT 1Bh floppy emulation now fakes success for
     calls to format track.

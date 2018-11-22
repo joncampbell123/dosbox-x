@@ -781,6 +781,9 @@ public:
         bool swaponedrive = false;
         bool force = false;
 
+        //Hack To allow long commandlines
+        ChangeToLongCmd();
+
         boot_debug_break = false;
         if (cmd->FindExist("-debug",true))
             boot_debug_break = true;
@@ -794,8 +797,6 @@ public:
         if (cmd->FindString("-bios",bios,true))
             bios_boot = true;
 
-        //Hack To allow long commandlines
-        ChangeToLongCmd();
         /* In secure mode don't allow people to boot stuff. 
          * They might try to corrupt the data on it */
         if(control->SecureMode()) {
@@ -968,7 +969,10 @@ public:
                         newDiskSwap[i] = new imageDiskVFD(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
                     }
                     else if (!memcmp(tmp,"T98FDDIMAGE.R0\0\0",16)) {
-                        newDiskSwap[i] = new imageDiskNFD(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
+                        newDiskSwap[i] = new imageDiskNFD(usefile, (Bit8u *)temp_line.c_str(), floppysize, false, 0);
+                    }
+                    else if (!memcmp(tmp,"T98FDDIMAGE.R1\0\0",16)) {
+                        newDiskSwap[i] = new imageDiskNFD(usefile, (Bit8u *)temp_line.c_str(), floppysize, false, 1);
                     }
                     else {
                         newDiskSwap[i] = new imageDisk(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
@@ -1037,6 +1041,7 @@ public:
 
                 /* attach directly without using the swap list */
                 if (imageDiskList[drive-65] != NULL) {
+                    imageDiskChange[drive-65] = true;
                     imageDiskList[drive-65]->Release();
                     imageDiskList[drive-65] = NULL;
                 }
@@ -1077,6 +1082,10 @@ public:
             return;
         }
 
+        /* clear the disk change flag.
+         * Most OSes don't expect the disk change error signal when they first boot up */
+        imageDiskChange[drive-65] = false;
+
         bool has_read = false;
         bool pc98_sect128 = false;
         unsigned int bootsize = imageDiskList[drive-65]->getSectSize();
@@ -1085,10 +1094,12 @@ public:
             /* this may be one of those odd FDD images where track 0, head 0 is all 128-byte sectors
              * and the rest of the disk is 256-byte sectors. */
             if (imageDiskList[drive - 65]->Read_Sector(0, 0, 1, (Bit8u *)&bootarea, 128) == 0 &&
-                imageDiskList[drive - 65]->Read_Sector(0, 0, 2, (Bit8u *)&bootarea + 128, 128) == 0) {
-                LOG_MSG("First sector is 128 byte/sector. Booting from first two sectors.");
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 2, (Bit8u *)&bootarea + 128, 128) == 0 &&
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 3, (Bit8u *)&bootarea + 256, 128) == 0 &&
+                imageDiskList[drive - 65]->Read_Sector(0, 0, 4, (Bit8u *)&bootarea + 384, 128) == 0) {
+                LOG_MSG("First sector is 128 byte/sector. Booting from first four sectors.");
                 has_read = true;
-                bootsize = 256; // 128 x 2
+                bootsize = 512; // 128 x 4
                 pc98_sect128 = true;
             }
         }
@@ -1388,6 +1399,10 @@ public:
                     mem_writew(0xA2000+i,0x00E1);
                 }
 
+                /* hide the cursor */
+                void PC98_show_cursor(bool show);
+                PC98_show_cursor(false);
+
                 /* There is a byte at 0x584 that describes the boot drive + type.
                  * This is confirmed in Neko Project II source and by the behavior
                  * of an MS-DOS boot disk formatted by a PC-98 system.
@@ -1443,15 +1458,15 @@ public:
                 mem_writeb(0x493,F2HD_MODE);
                 mem_writeb(0x5CA,F2DD_MODE);
 
-                if ((ssize == 1024 && heads == 2 && cyls == 77 && sects == 8) || pc98_sect128) {
+                if (drive >= 'C') {
+                    /* hard drive */
+                    mem_writeb(0x584,0xA0/*type*/ + (drive - 'C')/*drive*/);
+                }
+                else if ((ssize == 1024 && heads == 2 && cyls == 77 && sects == 8) || pc98_sect128) {
                     mem_writeb(0x584,0x90/*type*/ + (drive - 65)/*drive*/); /* 1.2MB 3-mode */
                 }
                 else if (ssize == 512 && heads == 2 && cyls == 80 && sects == 18) {
                     mem_writeb(0x584,0x30/*type*/ + (drive - 65)/*drive*/); /* 1.44MB */
-                }
-                else if (drive >= 'C') {
-                    /* hard drive */
-                    mem_writeb(0x584,0xA0/*type*/ + (drive - 'C')/*drive*/);
                 }
                 else {
                     // FIXME
@@ -2635,6 +2650,8 @@ bool FDC_UnassignINT13Disk(unsigned char drv);
 
 class IMGMOUNT : public Program {
 public:
+    std::vector<std::string> options;
+public:
     void Run(void) {
         //Hack To allow long commandlines
         ChangeToLongCmd();
@@ -2686,6 +2703,14 @@ public:
         if (!(type == "floppy" || type == "hdd" || type == "iso" || type == "ram")) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_TYPE_UNSUPPORTED"), type.c_str());
             return;
+        }
+
+        //look for -o options
+        {
+            std::string s;
+
+            while (cmd->FindString("-o", s, true))
+                options.push_back(s);
         }
 
         //look for -el-torito parameter and remove it from the command line
@@ -3087,6 +3112,7 @@ private:
                 if (index > 1) IDE_Hard_Disk_Detach(index);
                 imageDiskList[index]->Release();
                 imageDiskList[index] = NULL;
+                imageDiskChange[index] = true;
                 return true;
             }
             WriteOut("No drive loaded at specified point\n");
@@ -3277,7 +3303,7 @@ private:
         imageDisk * newImage = new imageDiskElToritoFloppy((unsigned char)el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
         newImage->Addref();
 
-        DOS_Drive* newDrive = new fatDrive(newImage);
+        DOS_Drive* newDrive = new fatDrive(newImage, options);
         newImage->Release(); //fatDrive calls Addref, and this will release newImage if fatDrive doesn't use it
         if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
@@ -3321,6 +3347,12 @@ private:
                     const char *ext = strrchr(paths[i].c_str(), '.');
                     if (ext != NULL) {
                         if (!strcasecmp(ext, ".hdi")) {
+                            skipDetectGeometry = true;
+                        }
+                        if (!strcasecmp(ext, ".nhd")) {
+                            skipDetectGeometry = true;
+                        }
+                        if (!strcasecmp(ext, ".nfd")) {
                             skipDetectGeometry = true;
                         }
                         //for all vhd files where the system will autodetect the chs values,
@@ -3368,11 +3400,11 @@ private:
             DOS_Drive* newDrive = NULL;
             if (!errorMessage) {
                 if (vhdImage) {
-                    newDrive = new fatDrive(vhdImage);
+                    newDrive = new fatDrive(vhdImage, options);
                     vhdImage = NULL;
                 }
                 else {
-                    newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3]);
+                    newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3], options);
                 }
                 imgDisks.push_back(newDrive);
                 if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
@@ -3494,7 +3526,7 @@ private:
             return false;
         }
         dsk->Addref();
-        DOS_Drive* newDrive = new fatDrive(dsk);
+        DOS_Drive* newDrive = new fatDrive(dsk, options);
         dsk->Release();
         if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
@@ -3519,6 +3551,7 @@ private:
             imageDiskList[bios_drive_index]->Release();
         }
         imageDiskList[bios_drive_index] = image;
+        imageDiskChange[bios_drive_index] = true;
         image->Addref();
 
         // let FDC know if we mounted a floppy
@@ -3593,6 +3626,7 @@ private:
                 if (imageDiskList[index] == image) {
                     if (index > 1) IDE_Hard_Disk_Detach(index);
                     imageDiskList[index]->Release();
+                    imageDiskChange[index] = true;
                     imageDiskList[index] = NULL;
                 }
             }
@@ -3884,7 +3918,14 @@ private:
                 sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
                 imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
                 setbuf(newDisk, NULL);
-                newImage = new imageDiskNFD(newDisk, (Bit8u *)fileName, imagesize, (imagesize > 2880));
+                newImage = new imageDiskNFD(newDisk, (Bit8u *)fileName, imagesize, (imagesize > 2880), 0);
+            }
+            else if (!memcmp(tmp,"T98FDDIMAGE.R1\0\0",16)) {
+                fseeko64(newDisk, 0L, SEEK_END);
+                sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
+                imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
+                setbuf(newDisk, NULL);
+                newImage = new imageDiskNFD(newDisk, (Bit8u *)fileName, imagesize, (imagesize > 2880), 1);
             }
             else {
                 fseeko64(newDisk, 0L, SEEK_END);

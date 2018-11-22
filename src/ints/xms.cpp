@@ -731,6 +731,26 @@ public:
 			LOG(LOG_MISC,LOG_NORMAL)("UMB starting segment 0x%04x conflict with BIOS at 0x%04x. Disabling UMBs",(int)first_umb_seg,(int)(rombios_minimum_location>>4));
 			umb_available = false;
 		}
+
+        if (IS_PC98_ARCH) {
+            bool PC98_FM_SoundBios_Enabled(void);
+
+            /* Do not let the private segment overlap with anything else after segment C800:0000 including the SOUND ROM at CC00:0000.
+             * Limiting to 32KB also leaves room for UMBs if enabled between C800:0000 and the EMS page frame at (usually) D000:0000 */
+            unsigned int limit = 0xCFFF;
+
+            if (PC98_FM_SoundBios_Enabled()) {
+                // TODO: What about sound BIOSes larger than 16KB?
+                if (limit > 0xCBFF)
+                    limit = 0xCBFF;
+            }
+
+            if (first_umb_seg > limit)
+                first_umb_seg = limit;
+            if (first_umb_size > limit)
+                first_umb_size = limit;
+        }
+
 		if (first_umb_size >= (rombios_minimum_location>>4)) {
 			/* we can ask the BIOS code to trim back the region, assuming it hasn't allocated anything there yet */
 			LOG(LOG_MISC,LOG_DEBUG)("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, asking BIOS to move aside",(int)first_umb_size,(int)(rombios_minimum_location>>4));

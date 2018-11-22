@@ -164,8 +164,15 @@ retry:
 #endif
 
         /* menu size and consideration of width and height */
-        Bitu consider_height = menu.maxwindow ? currentWindowHeight : (height + (unsigned int)menuheight + (sdl.overscan_width * 2));
-        Bitu consider_width = menu.maxwindow ? currentWindowWidth : (width + (sdl.overscan_width * 2));
+        Bitu consider_height = height + (unsigned int)menuheight + (sdl.overscan_width * 2);
+        Bitu consider_width = width + (sdl.overscan_width * 2);
+
+        if (menu.maxwindow) {
+            if (consider_height < currentWindowHeight)
+                consider_height = currentWindowHeight;
+            if (consider_width < currentWindowWidth)
+                consider_width = currentWindowWidth;
+        }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
         if (mainMenu.isVisible())

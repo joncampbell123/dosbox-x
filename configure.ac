@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.82.10,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
+AC_INIT(dosbox-x,0.82.11,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README)
 
@@ -376,6 +376,10 @@ case "$host" in
        dnl FEATURE: Whether to support direct parallel port passthrough
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
        ;;
+    *-*-haiku*)
+       AC_DEFINE(HAIKU, 1, [Compiling on Haiku])
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+       ;;
     *-*-freebsd* | *-*-dragonfly* | *-*-netbsd* | *-*-openbsd*)
        dnl Disabled directserial for now. It doesn't do anything without
        dnl specifying an extra ifdef in directserial_posix.*
@@ -579,6 +583,24 @@ else
   AC_MSG_RESULT(no)
 fi 
 AM_CONDITIONAL(C_MT32, test "x$enable_mt32" == "xyes")
+
+dnl NASM (Netwide Assembler)
+AC_PATH_PROG([NASM], [nasm])
+if test -z "$ac_cv_path_NASM"; then
+    AC_MSG_WARN([NASM (netwide assembler) not found, you will not be able to compile the external x86 .asm files if they are modified])
+fi
+
+dnl LNKDOS16 (16-bit MS-DOS linker, DOSLIB project)
+dnl To be fair to others compiling this code, search the PATH.
+dnl If not found, let the developer know that they can git clone DOSLIB
+dnl and use GNU Make + GCC to compile lnkdos16 in tool/linker in DOSLIB,
+dnl then include the Linux binary in the PATH variable so this script can find it.
+AC_PATH_PROG([LNKDOS16], [lnkdos16])
+if test -z "$ac_cv_path_LNKDOS16"; then
+    AC_MSG_WARN([LNKDOS16 (DOSLIB 16-bit linker) not found, you will not be able to compile the external x86 .asm files if they are modified.])
+    AC_MSG_WARN([LNKDOS16 can be found in the DOSLIB project under tool/linker. Compile it using GNU make and GCC and then either install it])
+    AC_MSG_WARN([on your system or run this configure script again with PATH directed at the compiled binary in the linux-host directory.])
+fi
 
 dnl FEATURE: DEBUG and HEAVY DEBUG options (debugger)
 AH_TEMPLATE(C_DEBUG,[Define to 1 to enable internal debugger, requires libcurses])

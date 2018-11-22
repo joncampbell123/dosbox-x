@@ -202,7 +202,7 @@ bool ISAPNP_RegisterSysDev(const unsigned char *raw,Bitu len,bool already=false)
 
 enum {
     UNHANDLED_IRQ_SIMPLE=0,
-    UNHANDLED_IRQ_MASK_ISR
+    UNHANDLED_IRQ_COOPERATIVE_2ND       // PC-98 type IRQ 8-15 handling
 };
 
 extern int unhandled_irq_method;

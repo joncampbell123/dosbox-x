@@ -157,7 +157,7 @@ public:
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
 	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, const void * data);
 
-	imageDiskNFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk);
+	imageDiskNFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk, unsigned int rev);
 	virtual ~imageDiskNFD();
 
     struct vfdentry {
@@ -367,6 +367,7 @@ void incrementFDD(void);
 #define MAX_HDD_IMAGES 4
 #define MAX_DISK_IMAGES 6 //MAX_HDD_IMAGES + 2
 
+extern bool imageDiskChange[MAX_DISK_IMAGES];
 extern imageDisk *imageDiskList[MAX_DISK_IMAGES];
 extern imageDisk *diskSwap[20];
 extern Bits swapPosition;

@@ -114,6 +114,8 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
 extern bool dos_kernel_disabled;
 extern Bitu currentWindowWidth, currentWindowHeight;
 
+void GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen);
+
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	GFX_EndUpdate(0);
 	GFX_SetTitle(-1,-1,-1,true);
@@ -128,32 +130,47 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	// Comparable to the code of intro.com, but not the same! (the code of intro.com is called from within a com file)
 	shell_idle = !dos_kernel_disabled && first_shell && (DOS_PSP(dos.psp()).GetSegment() == DOS_PSP(dos.psp()).GetParent());
 
-	int w, h;
+	int sx, sy, sw, sh;
 	bool fs;
-	GFX_GetSize(w, h, fs);
-	if (w <= 400) {
-		w *=2; h *=2;
-	}
+	GFX_GetSizeAndPos(sx, sy, sw, sh, fs);
 
-    if (!fs) {
-        if (w < (int)currentWindowWidth)
-            w = (int)currentWindowWidth;
-        if (h < (int)currentWindowHeight)
-            h = (int)currentWindowHeight;
-    }
+    int dw,dh;
+    dw = (int)currentWindowWidth;
+    dh = (int)currentWindowHeight;
+
+    if (dw < 640) dw = 640;
+    if (dh < 480) dh = 480;
+
+    assert(sx < dw);
+    assert(sy < dh);
+
+    int sw_draw = sw,sh_draw = sh;
+
+    if ((sx+sw_draw) > dw) sw_draw = dw-sx;
+    if ((sy+sh_draw) > dh) sh_draw = dh-sy;
+
+    assert((sx+sw_draw) <= dw);
+    assert((sy+sh_draw) <= dh);
+
+    assert(sw_draw > 0);
+    assert(sh_draw > 0);
+
+    assert(sw_draw <= sw);
+    assert(sh_draw <= sh);
 
 	old_unicode = SDL_EnableUNICODE(1);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);
-	screenshot = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
+	screenshot = SDL_CreateRGBSurface(SDL_SWSURFACE, dw, dh, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
+    SDL_FillRect(screenshot,0,0);
 
 	// create screenshot for fade effect
-	unsigned int rs = screenshot->format->Rshift, gs = screenshot->format->Gshift, bs = screenshot->format->Bshift, am = GUI::Color::AlphaMask;
-	for (unsigned int y = 0; (int)y < h; y++) {
-		Bit32u *bg = (Bit32u*)(y*(unsigned int)screenshot->pitch + (char*)screenshot->pixels);
-		for (unsigned int x = 0; (int)x < w; x++) {
+	unsigned int rs = screenshot->format->Rshift, gs = screenshot->format->Gshift, bs = screenshot->format->Bshift;
+	for (unsigned int y = 0; (int)y < sh_draw; y++) {
+		Bit32u *bg = (Bit32u*)((y+sy)*(unsigned int)screenshot->pitch + (char*)screenshot->pixels) + sx;
+		for (unsigned int x = 0; (int)x < sw_draw; x++) {
 			int r = 0, g = 0, b = 0;
-			getPixel((int)(x*(unsigned int)render.src.width/(unsigned int)w),
-                     (int)(y*(unsigned int)render.src.height/(unsigned int)h),
+			getPixel((int)(x*(unsigned int)render.src.width/(unsigned int)sw),
+                     (int)(y*(unsigned int)render.src.height/(unsigned int)sh),
                      r, g, b, 0);
 			bg[x] = ((unsigned int)r << (unsigned int)rs) |
                     ((unsigned int)g << (unsigned int)gs) |
@@ -161,32 +178,26 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 		}
 	}
 
-	background = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, GUI::Color::AlphaMask);
-	// use a blurred and sepia-toned screenshot as menu background
-	for (int y = 0; y < h; y++) {
-		Bit32u *bg = (Bit32u*)(y*background->pitch + (char*)background->pixels);
-		for (int x = 0; x < w; x++) {
+	background = SDL_CreateRGBSurface(SDL_SWSURFACE, dw, dh, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
+    SDL_FillRect(background,0,0);
+	for (int y = 0; y < sh_draw; y++) {
+		Bit32u *bg = (Bit32u*)((y+sy)*(unsigned int)background->pitch + (char*)background->pixels) + sx;
+		for (int x = 0; x < sw_draw; x++) {
 			int r = 0, g = 0, b = 0;
-#ifdef WIN32
-			getPixel(x    *(int)render.src.width/w, y    *(int)render.src.height/h, r, g, b, 0);
-			bg[x] = r << rs | g << gs | b << bs | am;
-#else
-			getPixel(x    *(int)render.src.width/w, y    *(int)render.src.height/h, r, g, b, 3); 
-			getPixel((x-1)*(int)render.src.width/w, y    *(int)render.src.height/h, r, g, b, 3); 
-			getPixel(x    *(int)render.src.width/w, (y-1)*(int)render.src.height/h, r, g, b, 3); 
-			getPixel((x-1)*(int)render.src.width/w, (y-1)*(int)render.src.height/h, r, g, b, 3); 
-			getPixel((x+1)*(int)render.src.width/w, y    *(int)render.src.height/h, r, g, b, 3); 
-			getPixel(x    *(int)render.src.width/w, (y+1)*(int)render.src.height/h, r, g, b, 3); 
-			getPixel((x+1)*(int)render.src.width/w, (y+1)*(int)render.src.height/h, r, g, b, 3); 
-			getPixel((x-1)*(int)render.src.width/w, (y+1)*(int)render.src.height/h, r, g, b, 3); 
+			getPixel(x    *(int)render.src.width/sw, y    *(int)render.src.height/sh, r, g, b, 3); 
+			getPixel((x-1)*(int)render.src.width/sw, y    *(int)render.src.height/sh, r, g, b, 3); 
+			getPixel(x    *(int)render.src.width/sw, (y-1)*(int)render.src.height/sh, r, g, b, 3); 
+			getPixel((x-1)*(int)render.src.width/sw, (y-1)*(int)render.src.height/sh, r, g, b, 3); 
+			getPixel((x+1)*(int)render.src.width/sw, y    *(int)render.src.height/sh, r, g, b, 3); 
+			getPixel(x    *(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
+			getPixel((x+1)*(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
+			getPixel((x-1)*(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
 			int r1 = (int)((r * 393 + g * 769 + b * 189) / 1351); // 1351 -- tweak colors 
 			int g1 = (int)((r * 349 + g * 686 + b * 168) / 1503); // 1203 -- for a nice 
 			int b1 = (int)((r * 272 + g * 534 + b * 131) / 2340); // 2140 -- golden hue 
 			bg[x] = ((unsigned int)r1 << (unsigned int)rs) |
                     ((unsigned int)g1 << (unsigned int)gs) |
-                    ((unsigned int)b1 << (unsigned int)bs) |
-                     (unsigned int)am; 
-#endif
+                    ((unsigned int)b1 << (unsigned int)bs); 
 		}
 	}
 
@@ -196,8 +207,8 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	mousetoggle = mouselocked;
 	if (mouselocked) GFX_CaptureMouse();
 
-	SDL_Surface* sdlscreen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE|(fs?SDL_FULLSCREEN:0));
-	if (sdlscreen == NULL) E_Exit("Could not initialize video mode %ix%ix32 for UI: %s", w, h, SDL_GetError());
+	SDL_Surface* sdlscreen = SDL_SetVideoMode(dw, dh, 32, SDL_SWSURFACE|(fs?SDL_FULLSCREEN:0));
+	if (sdlscreen == NULL) E_Exit("Could not initialize video mode %ix%ix32 for UI: %s", dw, dh, SDL_GetError());
 
 	// fade out
 	// Jonathan C: do it FASTER!

@@ -48,6 +48,8 @@ void KEYBOARD_AddBuffer(Bit16u data);
 static void KEYBOARD_Add8042Response(Bit8u data);
 void KEYBOARD_SetLEDs(Bit8u bits);
 
+bool enable_pc98_bus_mouse = true;
+
 static unsigned int aux_warning = 0;
 
 enum AuxCommands {
@@ -1650,9 +1652,87 @@ bool KEYBOARD_Report_BIOS_PS2Mouse() {
 
 static IO_ReadHandleObject ReadHandler_8255_PC98[4];
 static IO_WriteHandleObject WriteHandler_8255_PC98[4];
+
+static IO_ReadHandleObject ReadHandler_8255prn_PC98[4];
+static IO_WriteHandleObject WriteHandler_8255prn_PC98[4];
+
 static IO_WriteHandleObject Reset_PC98;
 
 extern bool gdc_5mhz_mode;
+
+//! \brief PC-98 Printer 8255 PPI emulation (Intel 8255A device)
+//!
+//! \description TODO...
+//!
+//!              This PPI is connected to I/O ports 0x40-0x46 even.
+//!              - 0x40 Port A
+//!              - 0x42 Port B
+//!              - 0x44 Port C
+//!              - 0x46 control/mode
+//!
+//!              Except on super high resolution
+//!              display units, Port B is also used to
+//!              return some dip switches and system configuration,
+//!              with only one bit to indicate printer status.
+//!
+//!              This PPI is connected to:
+//!              - Port A (out): Output to printer
+//!              - Port B (in):  PC-98 model, system clock (8 or 5/10MHz),
+//!                              HGC graphics extension, printer busy,
+//!                              V30/V33 vs Intel x86 CPU, CPU HA/LT sys type,
+//!                              VF flag (?)
+//!              - Port C (out): Strobe, IR8 interrupt enable, 287/387 reset(?)
+class PC98_Printer_8255 : public Intel8255 {
+public:
+    PC98_Printer_8255() : Intel8255() {
+        ppiName = "Printer 8255";
+        portNames[PortA] = "Printer output";
+        portNames[PortB] = "System configuration";
+        portNames[PortC] = "Strobe and controls";
+        pinNames[PortA][0] = "Latch bit 0";
+        pinNames[PortA][1] = "Latch bit 1";
+        pinNames[PortA][2] = "Latch bit 2";
+        pinNames[PortA][3] = "Latch bit 3";
+        pinNames[PortA][4] = "Latch bit 4";
+        pinNames[PortA][5] = "Latch bit 5";
+        pinNames[PortA][6] = "Latch bit 6";
+        pinNames[PortA][7] = "Latch bit 7";
+        pinNames[PortB][0] = "VF VF flag";
+        pinNames[PortB][1] = "CPUT operation CPU (V30 if set)";
+        pinNames[PortB][2] = "Printer busy signal";
+        pinNames[PortB][3] = "HGC graphics extension function DIP SW 1-8";
+        pinNames[PortB][4] = "LCD plasma display usage condition DIP SW 1-3";
+        pinNames[PortB][5] = "System clock (5/10mhz or 8mhz)";
+        pinNames[PortB][6] = "System type, bit 0";
+        pinNames[PortB][7] = "System type, bit 1";
+        pinNames[PortC][0] = "unused";
+        pinNames[PortC][1] = "Reset 287/387 by CPU reset if set";
+        pinNames[PortC][2] = "unused";
+        pinNames[PortC][3] = "IR8 interrupt request ON/OFF";
+        pinNames[PortC][4] = "unused";
+        pinNames[PortC][5] = "unused";
+        pinNames[PortC][6] = "unused";
+        pinNames[PortC][7] = "Printer strobe output";
+    }
+    virtual ~PC98_Printer_8255() {
+    }
+public:
+    /* TODO: Writes to Port A should go to printer emulation */
+    /* TODO: Writes to bit 7, Port C should go to printer emulation (strobe pin) */
+    /* port B is input */
+    virtual uint8_t inPortB(void) const {
+        return      0x80 +                                                          /* bits [7:6]   10 = other model */
+                    ((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x20 : 0x00) +    /* bit  [5:5]   1 = 8MHz  0 = 5/10MHz */
+                    0x10 +                                                          /* bit  [4:4]   1 = LCD plasma display usage cond. not used */
+                    0x04;                                                           /* bit  [2:2]   printer busy signal (1=inactive) */
+        /* NTS: also returns:
+         *       bit  [3:3]     0 = HGC graphics extension function extended mode
+         *       bit  [1:1]     0 = 80x86 processor (not V30)
+         *       bit  [0:0]     0 = other models (?) */
+    }
+};
+
+static PC98_Printer_8255 pc98_prn_8255;
 
 bool PC98_SHUT0=true,PC98_SHUT1=true;
 
@@ -1774,6 +1854,16 @@ static void pc98_8255_write(Bitu port,Bitu val,Bitu /*iolen*/) {
 static Bitu pc98_8255_read(Bitu port,Bitu /*iolen*/) {
     /* 0x31-0x37 odd */
     return pc98_sys_8255.readByPort((port - 0x31) >> 1U);
+}
+
+static void pc98_8255prn_write(Bitu port,Bitu val,Bitu /*iolen*/) {
+    /* 0x31-0x37 odd */
+    pc98_prn_8255.writeByPort((port - 0x40) >> 1U,val);
+}
+
+static Bitu pc98_8255prn_read(Bitu port,Bitu /*iolen*/) {
+    /* 0x31-0x37 odd */
+    return pc98_prn_8255.readByPort((port - 0x40) >> 1U);
 }
 
 static struct pc98_keyboard {
@@ -2046,6 +2136,12 @@ static void keyboard_pc98_8251_uart_43_write(Bitu port,Bitu val,Bitu /*iolen*/) 
     pc98_8251_keyboard_uart_state.writecmd((unsigned char)val);
 }
 
+/* called from INT 18h */
+void check_keyboard_fire_IRQ1(void) {
+    if (pc98_8251_keyboard_uart_state.read_status() & 2/*RxRDY*/)
+        PIC_ActivateIRQ(1);
+}
+
 int8_t p7fd9_8255_mouse_x = 0;
 int8_t p7fd9_8255_mouse_y = 0;
 int8_t p7fd9_8255_mouse_x_latch = 0;
@@ -2063,9 +2159,64 @@ void pc98_mouse_movement_apply(int x,int y) {
 
 void MOUSE_DummyEvent(void);
 
-bool p7fd8_8255_mouse_irq_signal = false;
+unsigned int pc98_mouse_rate_hz = 120;
+
+static double pc98_mouse_tick_interval_ms(void) {
+    return 1000.0/*ms*/ / pc98_mouse_rate_hz;
+}
+
+static double pc98_mouse_tick_time_ms(void) {
+    return fmod(PIC_FullIndex(),pc98_mouse_tick_interval_ms());
+}
+
+static double pc98_mouse_time_to_next_tick_ms(void) {
+    const double x = pc98_mouse_tick_interval_ms();
+    return x - fmod(PIC_FullIndex(),x);
+}
+
+static bool pc98_mouse_tick_signal(void) {
+    /* TODO: How is the 120Hz signal generated? If it's a square wave, what is the duty cycle? */
+    /*       At what point in the cycle is the interrupt generated? Beginning, or end? */
+    return pc98_mouse_tick_time_ms() < 0.1; /* GUESS: 100us = 0.1ms */
+}
 
 extern uint8_t MOUSE_IRQ;
+
+static bool pc98_mouse_tick_scheduled = false;
+
+static void pc98_mouse_tick_event(Bitu val) {
+    (void)val;
+
+    /* Generate interrupt */
+    if (p7fd8_8255_mouse_int_enable)
+        PIC_ActivateIRQ(MOUSE_IRQ);
+
+    /* keep the periodic interrupt going */
+    if (p7fd8_8255_mouse_int_enable)
+        PIC_AddEvent(pc98_mouse_tick_event,pc98_mouse_tick_interval_ms());
+    else
+        pc98_mouse_tick_scheduled = false;
+}
+
+static void pc98_mouse_tick_unschedule(void) {
+    if (pc98_mouse_tick_scheduled) {
+        pc98_mouse_tick_scheduled = false;
+        PIC_RemoveEvents(pc98_mouse_tick_event);
+    }
+}
+
+static void pc98_mouse_tick_schedule(void) {
+    if (p7fd8_8255_mouse_int_enable) {
+        if (!pc98_mouse_tick_scheduled) {
+            pc98_mouse_tick_scheduled = true;
+            PIC_AddEvent(pc98_mouse_tick_event,pc98_mouse_time_to_next_tick_ms());
+        }
+    }
+    else {
+        /* Don't unschedule the event, the game may un-inhibit the interrupt later.
+         * The PIC event will not reschedule itself if inhibited at the time of the signal. */
+    }
+}
 
 //! \brief PC-98 System Bus Mouse PPI emulation (Intel 8255A device)
 //!
@@ -2181,6 +2332,9 @@ public:
     }
     /* port C is input[3:0] and output[7:4] */
     virtual void outPortC(const uint8_t mask) {
+        if (!enable_pc98_bus_mouse)
+            return;
+
         if (mask & 0x80) { /* bit 7 */
             /* changing from 0 to 1 latches counters and clears them */
             if ((latchOutPortC & 0x80) && !p7fd9_8255_mouse_latch) { // change from 0 to 1 latches counters and clears them
@@ -2191,7 +2345,6 @@ public:
             }
 
             p7fd9_8255_mouse_latch = (latchOutPortC >> 7) & 1;
-            p7fd8_8255_mouse_irq_signal = false;//This is a GUESS
         }
         if (mask & 0x60) { /* bits 6-5 */
             p7fd9_8255_mouse_sel = (latchOutPortC >> 5) & 3;
@@ -2201,19 +2354,23 @@ public:
 
             p7fd8_8255_mouse_int_enable = ((latchOutPortC >> 4) & 1) ^ 1; // bit 4 is interrupt MASK
 
-            if (mode == 0x90 && mask == 0xFF) {
-                /* Metal Force (PC-98) likes to use the bus mouse as a periodic interrupt source
-                 * by setting mode byte 0x90 and re-sending that mode byte once per interrupt.
-                 * Does real hardware do this?? */
-                if (p7fd8_8255_mouse_int_enable)
-                    MOUSE_DummyEvent();
-            }
-            else if (p != p7fd8_8255_mouse_int_enable) {
-                /* FIXME: If a mouse interrupt is pending but not yet read this should re-signal the IRQ */
-                if (p7fd8_8255_mouse_int_enable && p7fd8_8255_mouse_irq_signal)
-                    PIC_ActivateIRQ(MOUSE_IRQ);
-                else
-                    PIC_DeActivateIRQ(MOUSE_IRQ);
+            /* Some games use the mouse interrupt as a periodic source by writing this from the interrupt handler.
+             *
+             * Does that work on real hardware?? Is this what real hardware does?
+             *
+             * Games that need this:
+             * - Metal Force
+             * - Amaranth
+             */
+
+            if (p != p7fd8_8255_mouse_int_enable) {
+                /* NTS: I'm guessing that if the mouse interrupt has fired, inhibiting the interrupt
+                 *      does not remove the IRQ signal already sent.
+                 *
+                 *      Amaranth's mouse driver appears to rapidly toggle this bit. If we re-fire
+                 *      and inhibit the interrupt in reaction the game will get an interrupt rate
+                 *      far higher than normal and animation will run way too fast. */
+                pc98_mouse_tick_schedule();
             }
         }
     }
@@ -2231,11 +2388,28 @@ static Bitu read_p7fd9_mouse(Bitu port,Bitu /*iolen*/) {
     /* 0x7FD9-0x7FDF odd */
     return pc98_mouse_8255.readByPort((port - 0x7FD9) >> 1U);
 }
+
+static void write_pbfdb_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
+    (void)port;
+    /* bits [7:2] = ??
+     * bits [1:0] = 120hz clock divider
+     *              00 = 120hz (at reset)
+     *              01 = 60hz
+     *              10 = 30hz
+     *              11 = 15hz */
+    pc98_mouse_rate_hz = 120u >> (val & 3u);
+    LOG(LOG_MISC,LOG_DEBUG)("PC-98 mouse interrupt rate: %u",pc98_mouse_rate_hz);
+}
 //////////
 
 void KEYBOARD_OnEnterPC98(Section *sec) {
     (void)sec;//UNUSED
     unsigned int i;
+
+    {
+        Section_prop *section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+        enable_pc98_bus_mouse = section->Get_bool("pc-98 bus mouse");
+    }
 
     /* TODO: Keyboard interface change, layout change. */
 
@@ -2247,6 +2421,9 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
         for (i=0;i < 4;i++) {
             ReadHandler_8255_PC98[i].Uninstall();
             WriteHandler_8255_PC98[i].Uninstall();
+
+            ReadHandler_8255prn_PC98[i].Uninstall();
+            WriteHandler_8255prn_PC98[i].Uninstall();
         }
         
         Section_prop *section=static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -2294,22 +2471,47 @@ void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
     pc98_sys_8255.writeControl(0x92);
     pc98_sys_8255.writePortC(0xF8); /* SHUT0=1 SHUT1=1 mask printer RAM parity check buzzer inhibit */
 
+    /* Another 8255 is at 0x40-0x46 even for the printer interface */
+    /* bit[7:7] =  1 = mode set
+     * bit[6:5] = 00 = port A mode 0
+     * bit[4:4] =  0 = port A output
+     * bit[3:3] =  0 = port C upper output              1000 0010 = 0x82
+     * bit[2:2] =  0 = port B mode 0
+     * bit[1:1] =  1 = port B input
+     * bit[0:0] =  0 = port C lower output */
+    pc98_prn_8255.writeControl(0x82);
+    pc98_prn_8255.writePortA(0x00); /* printer latch all 0s */
+    pc98_prn_8255.writePortC(0x0A); /* 1=IR8 OFF, reset 287/387 by CPU reset */
+
     for (i=0;i < 4;i++) {
+        /* system */
         ReadHandler_8255_PC98[i].Uninstall();
         ReadHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_read,IO_MB);
 
         WriteHandler_8255_PC98[i].Uninstall();
         WriteHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_write,IO_MB);
+
+        /* printer */
+        ReadHandler_8255prn_PC98[i].Uninstall();
+        ReadHandler_8255prn_PC98[i].Install(0x40 + (i * 2),pc98_8255prn_read,IO_MB);
+
+        WriteHandler_8255prn_PC98[i].Uninstall();
+        WriteHandler_8255prn_PC98[i].Install(0x40 + (i * 2),pc98_8255prn_write,IO_MB);
     }
 
     /* reset port */
     Reset_PC98.Uninstall();
     Reset_PC98.Install(0xF0,pc98_reset_write,IO_MB);
 
-    /* Mouse */
-    for (i=0;i < 4;i++) {
-        IO_RegisterWriteHandler(0x7FD9+(i*2),write_p7fd9_mouse,IO_MB);
-        IO_RegisterReadHandler(0x7FD9+(i*2),read_p7fd9_mouse,IO_MB);
+    if (enable_pc98_bus_mouse) {
+        /* Mouse */
+        for (i=0;i < 4;i++) {
+            IO_RegisterWriteHandler(0x7FD9+(i*2),write_p7fd9_mouse,IO_MB);
+            IO_RegisterReadHandler(0x7FD9+(i*2),read_p7fd9_mouse,IO_MB);
+        }
+
+        /* Mouse control port at BFDB (which can be used to reduce the interrupt rate of the mouse) */
+        IO_RegisterWriteHandler(0xBFDB,write_pbfdb_mouse,IO_MB);
     }
 
     /* Port A = input
@@ -2323,8 +2525,10 @@ void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
      * bit[1:1] =  1 = port B input
      * bit[0:0] =  1 = port C lower input */
     pc98_mouse_8255.writeControl(0x93);
-    pc98_mouse_8255.writePortC(0x00);
+    pc98_mouse_8255.writePortC(0x10); /* start with interrupt inhibited. INT 33h emulation will enable it later */
 }
+
+extern bool enable_slave_pic;
 
 void KEYBOARD_OnReset(Section *sec) {
     (void)sec;//UNUSED
@@ -2333,7 +2537,12 @@ void KEYBOARD_OnReset(Section *sec) {
     LOG(LOG_MISC,LOG_DEBUG)("Keyboard reinitializing");
 
     if ((keyb.enable_aux=section->Get_bool("aux")) != false) {
-        LOG(LOG_KEYBOARD,LOG_NORMAL)("Keyboard AUX emulation enabled");
+        if (machine == MCH_PCJR) {
+            keyb.enable_aux = false;
+        }
+        else {
+            LOG(LOG_KEYBOARD,LOG_NORMAL)("Keyboard AUX emulation enabled");
+        }
     }
 
     TIMER_DelTickHandler(&KEYBOARD_TickHandler);
@@ -2345,7 +2554,7 @@ void KEYBOARD_OnReset(Section *sec) {
 
     const char * sbtype=section->Get_string("auxdevice");
     keyb.ps2mouse.type = MOUSE_NONE;
-    if (sbtype != NULL) {
+    if (sbtype != NULL && machine != MCH_PCJR && enable_slave_pic) {
         if (!strcasecmp(sbtype,"2button"))
             keyb.ps2mouse.type=MOUSE_2BUTTON;
         else if (!strcasecmp(sbtype,"3button"))

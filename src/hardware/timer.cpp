@@ -135,7 +135,7 @@ static void status_latch(Bitu counter) {
 		latched_timerstatus_locked=true;
 	}
 }
-static void counter_latch(Bitu counter) {
+static void counter_latch(Bitu counter,bool do_latch=true) {
 	/* Fill the read_latch of the selected counter with current count */
 	PIT_Block * p=&pit[counter];
 	p->go_read_latch=false;
@@ -179,14 +179,37 @@ static void counter_latch(Bitu counter) {
 		p->read_latch=(Bit16u)(p->cntr - (index/p->delay)*p->cntr);
 		break;
 	case 3:		/* Square Wave Rate Generator */
-		index=fmod(index,(double)p->delay);
-		index*=2;
-		if (index>p->delay) index-=p->delay;
-		p->read_latch=(Bit16u)(p->cntr - (index/p->delay)*p->cntr);
-		// In mode 3 it never returns odd numbers LSB (if odd number is written 1 will be
-		// subtracted on first clock and then always 2)
-		// fixes "Corncob 3D"
-		p->read_latch&=0xfffe;
+        {
+            bool out = true;
+
+            index=fmod(index,(double)p->delay);
+            index*=2;
+            if (index>p->delay) {
+                index-=p->delay;
+                out = false;
+            }
+
+            if (do_latch) {
+                p->read_latch=(Bit16u)(p->cntr - (index/p->delay)*p->cntr);
+                // In mode 3 it never returns odd numbers LSB (if odd number is written 1 will be
+                // subtracted on first clock and then always 2)
+                // fixes "Corncob 3D"
+                p->read_latch&=0xfffe;
+            }
+
+            // for the second half of the cycle, OUT goes low.
+            // remember that counter #0 is tied to IRQ0 on both IBM PC and PC-98.
+            // therefore, counter #0 output directly affects bit 0 of the interrupt request register on the PIC.
+            // I don't know any IBM PC compatible game that uses this behavior, but I did find a PC-98 game
+            // "Steel Gun Nyan" with delay loops that are dependent on polling the IRR like that.
+            // Yes, instead of polling the timer directly, it polls the PIC's interrupt request register instead. Ick.
+            if (counter == 0/*IRQ 0*/) {
+                if (!out)
+                    PIC_ActivateIRQ(0);
+                else
+                    PIC_DeActivateIRQ(0);
+            }
+        }
 		break;
 	default:
 		LOG(LOG_PIT,LOG_ERROR)("Illegal Mode %d for reading counter %d",(int)p->mode,(int)counter);
@@ -195,6 +218,9 @@ static void counter_latch(Bitu counter) {
 	}
 }
 
+void TIMER_IRQ0Poll(void) {
+    counter_latch(0,false/*do not latch*/);
+}
 
 static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 //LOG(LOG_PIT,LOG_ERROR)("port %X write:%X state:%X",port,val,pit[port-0x40].write_state);
@@ -363,6 +389,9 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			 * Mode 2,3 start with a high line.
 			 * counter_output tells if the current counter is high or low 
 			 * So actually a mode 3 timer enables and disables irq al the time. (not handled) */
+
+            /* Jon C: Oh yeah? Nobody abuses counter == 0 on IBM PC that way, but there is a PC-98
+             *        game that relies on that behavior: Steel Gun Nyan! */
 
 			if (latch == 0) {
 				PIC_RemoveEvents(PIT0_Event);
@@ -546,6 +575,27 @@ void TIMER_OnPowerOn(Section*) {
 
 	PIC_RemoveEvents(PIT0_Event);
 
+        /* I/O port map (8254)
+         *
+         * IBM PC/XT/AT      NEC-PC98     A1-A0
+         * -----------------------------------
+         *  0x40              0x71        0
+         *  0x41              0x73        1
+         *  0x42              0x75        2
+         *  0x43              0x77        3
+         */
+        /* Timer output connection
+         * 
+         * IBM PC/XT/AT      NEC-PC98     Timer
+         * ------------------------------------
+         * Timer int.        Timer int.   0
+         * DRAM refresh      Speaker      1
+         * Speaker           RS-232C clk  2
+         *
+         * If I read documentation correctly, PC-98 wires timer output 2
+         * to the clock pin of the 8251 UART for COM1 as a way to set the
+         * baud rate. */
+
 	WriteHandler[0].Uninstall();
 	WriteHandler[1].Uninstall();
 	WriteHandler[2].Uninstall();
@@ -564,20 +614,59 @@ void TIMER_OnPowerOn(Section*) {
 	ReadHandler2[2].Uninstall();
 	ReadHandler2[3].Uninstall();
 
-	WriteHandler[0].Install(0x40,write_latch,IO_MB);
-//	WriteHandler[1].Install(0x41,write_latch,IO_MB);
-	WriteHandler[2].Install(0x42,write_latch,IO_MB);
-	WriteHandler[3].Install(0x43,write_p43,IO_MB);
-	ReadHandler[0].Install(0x40,read_latch,IO_MB);
-	ReadHandler[1].Install(0x41,read_latch,IO_MB);
-	ReadHandler[2].Install(0x42,read_latch,IO_MB);
+    if (IS_PC98_ARCH) {
+        /* This code is written to eventually copy-paste out in general */
+        WriteHandler[0].Install(0x71,write_latch,IO_MB);
+        WriteHandler[1].Install(0x73,write_latch,IO_MB);
+        WriteHandler[2].Install(0x75,write_latch,IO_MB);
+        WriteHandler[3].Install(0x77,write_p43,IO_MB);
+        ReadHandler[0].Install(0x71,read_latch,IO_MB);
+        ReadHandler[1].Install(0x73,read_latch,IO_MB);
+        ReadHandler[2].Install(0x75,read_latch,IO_MB);
+
+        /* Apparently all but the first PC-9801 systems have an alias of these
+         * ports at 0x3FD9-0x3FDF odd. This alias is required for games that
+         * rely on this alias. */
+        WriteHandler2[0].Install(0x3FD9,write_latch,IO_MB);
+        WriteHandler2[1].Install(0x3FDB,write_latch,IO_MB);
+        WriteHandler2[2].Install(0x3FDD,write_latch,IO_MB);
+        WriteHandler2[3].Install(0x3FDF,write_p43,IO_MB);
+        ReadHandler2[0].Install(0x3FD9,read_latch,IO_MB);
+        ReadHandler2[1].Install(0x3FDB,read_latch,IO_MB);
+        ReadHandler2[2].Install(0x3FDD,read_latch,IO_MB);
+    }
+    else {
+        WriteHandler[0].Install(0x40,write_latch,IO_MB);
+//	    WriteHandler[1].Install(0x41,write_latch,IO_MB);
+        WriteHandler[2].Install(0x42,write_latch,IO_MB);
+        WriteHandler[3].Install(0x43,write_p43,IO_MB);
+        ReadHandler[0].Install(0x40,read_latch,IO_MB);
+        ReadHandler[1].Install(0x41,read_latch,IO_MB);
+        ReadHandler[2].Install(0x42,read_latch,IO_MB);
+    }
 
 	latched_timerstatus_locked=false;
 	gate2 = false;
 
     if (IS_PC98_ARCH) {
-        void TIMER_OnEnterPC98_Phase2(Section*);
-        TIMER_OnEnterPC98_Phase2(NULL);
+        int pc98rate;
+
+        /* PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */
+        pc98rate = section->Get_int("pc-98 timer master frequency");
+        if (pc98rate > 6) pc98rate /= 2;
+        if (pc98rate == 0) pc98rate = 5; /* Pick the most likely to work with DOS games (FIXME: This is a GUESS!! Is this correct?) */
+        else if (pc98rate < 5) pc98rate = 4;
+        else pc98rate = 5;
+
+        if (pc98rate >= 5)
+            PIT_TICK_RATE = PIT_TICK_RATE_PC98_10MHZ;
+        else
+            PIT_TICK_RATE = PIT_TICK_RATE_PC98_8MHZ;
+
+        LOG_MSG("PC-98 PIT master clock rate %luHz",PIT_TICK_RATE);
+
+        latched_timerstatus_locked=false;
+        gate2 = false;
     }
 }
 
@@ -592,103 +681,6 @@ void TIMER_OnEnterPC98_Phase2_UpdateBDA(void) {
 	else {
 		LOG_MSG("PC-98 warning: PIT timer change cannot be reflected to BIOS data area in protected/vm86 mode");
 	}
-}
-
-/* NTS: This comes in two phases because we're taking ports 0x71-0x77 which overlap
- *      with ports 0x70-0x71 from CMOS emulation.
- *
- *      Phase 1 is where we unregister our I/O ports. CMOS emulation will do so as
- *      well either before or after our callback procedure.
- *
- *      Phase 2 is where we can then claim the I/O ports without our claim getting
- *      overwritten by CMOS emulation unregistering the I/O port. */
-
-void TIMER_OnEnterPC98_Phase2(Section*) {
-	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-	assert(section != NULL);
-    int pc98rate;
-
-	PIC_RemoveEvents(PIT0_Event);
-
-	WriteHandler[0].Uninstall();
-	WriteHandler[1].Uninstall();
-	WriteHandler[2].Uninstall();
-	WriteHandler[3].Uninstall();
-	ReadHandler[0].Uninstall();
-	ReadHandler[1].Uninstall();
-	ReadHandler[2].Uninstall();
-	ReadHandler[3].Uninstall();
-
-	WriteHandler2[0].Uninstall();
-	WriteHandler2[1].Uninstall();
-	WriteHandler2[2].Uninstall();
-	WriteHandler2[3].Uninstall();
-	ReadHandler2[0].Uninstall();
-	ReadHandler2[1].Uninstall();
-	ReadHandler2[2].Uninstall();
-	ReadHandler2[3].Uninstall();
-
-    /* PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */
-    pc98rate = section->Get_int("pc-98 timer master frequency");
-	if (pc98rate > 6) pc98rate /= 2;
-    if (pc98rate == 0) pc98rate = 5; /* Pick the most likely to work with DOS games (FIXME: This is a GUESS!! Is this correct?) */
-    else if (pc98rate < 5) pc98rate = 4;
-    else pc98rate = 5;
-
-    if (pc98rate >= 5)
-        PIT_TICK_RATE = PIT_TICK_RATE_PC98_10MHZ;
-    else
-        PIT_TICK_RATE = PIT_TICK_RATE_PC98_8MHZ;
-
-    LOG_MSG("PC-98 PIT master clock rate %luHz",PIT_TICK_RATE);
-
-    /* I/O port map (8254)
-     *
-     * IBM PC/XT/AT      NEC-PC98     A1-A0
-     * -----------------------------------
-     *  0x40              0x71        0
-     *  0x41              0x73        1
-     *  0x42              0x75        2
-     *  0x43              0x77        3
-     */
-    /* Timer output connection
-     * 
-     * IBM PC/XT/AT      NEC-PC98     Timer
-     * ------------------------------------
-     * Timer int.        Timer int.   0
-     * DRAM refresh      Speaker      1
-     * Speaker           RS-232C clk  2
-     *
-     * If I read documentation correctly, PC-98 wires timer output 2
-     * to the clock pin of the 8251 UART for COM1 as a way to set the
-     * baud rate. */
-
-    /* This code is written to eventually copy-paste out in general */
-	WriteHandler[0].Install(IS_PC98_ARCH ? 0x71 : 0x40,write_latch,IO_MB);
-	WriteHandler[1].Install(IS_PC98_ARCH ? 0x73 : 0x41,write_latch,IO_MB);
-	WriteHandler[2].Install(IS_PC98_ARCH ? 0x75 : 0x42,write_latch,IO_MB);
-	WriteHandler[3].Install(IS_PC98_ARCH ? 0x77 : 0x43,write_p43,IO_MB);
-	ReadHandler[0].Install(IS_PC98_ARCH ? 0x71 : 0x40,read_latch,IO_MB);
-	ReadHandler[1].Install(IS_PC98_ARCH ? 0x73 : 0x41,read_latch,IO_MB);
-	ReadHandler[2].Install(IS_PC98_ARCH ? 0x75 : 0x42,read_latch,IO_MB);
-
-    /* Apparently all but the first PC-9801 systems have an alias of these
-     * ports at 0x3FD9-0x3FDF odd. This alias is required for games that
-     * rely on this alias. */
-    if (IS_PC98_ARCH) {
-        WriteHandler2[0].Install(0x3FD9,write_latch,IO_MB);
-        WriteHandler2[1].Install(0x3FDB,write_latch,IO_MB);
-        WriteHandler2[2].Install(0x3FDD,write_latch,IO_MB);
-        WriteHandler2[3].Install(0x3FDF,write_p43,IO_MB);
-        ReadHandler2[0].Install(0x3FD9,read_latch,IO_MB);
-        ReadHandler2[1].Install(0x3FDB,read_latch,IO_MB);
-        ReadHandler2[2].Install(0x3FDD,read_latch,IO_MB);
-    }
-
-	latched_timerstatus_locked=false;
-	gate2 = false;
-
-    TIMER_BIOS_INIT_Configure();
 }
 
 void TIMER_Destroy(Section*) {
@@ -718,8 +710,5 @@ void TIMER_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(TIMER_Destroy));
 	AddVMEventFunction(VM_EVENT_POWERON, AddVMEventFunctionFuncPair(TIMER_OnPowerOn));
-
-    if (IS_PC98_ARCH) /* HACK! Clean this up! */
-    	AddVMEventFunction(VM_EVENT_RESET, AddVMEventFunctionFuncPair(TIMER_OnEnterPC98_Phase2));
 }
 

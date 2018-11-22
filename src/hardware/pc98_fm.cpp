@@ -17,7 +17,9 @@
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
 #include "joystick.h"
+#include "regs.h"
 #include "mixer.h"
+#include "callback.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -258,6 +260,29 @@ void pc98_set_msw4_soundbios(void)
         pc98_mem_msw_m[3/*MSW4*/] &= ~((unsigned char)0x8);
 }
 
+static CALLBACK_HandlerObject soundbios_callback;
+
+static Bitu SOUNDROM_INTD2_PC98_Handler(void) {
+    LOG_MSG("PC-98 SOUND BIOS (INT D2h) call with AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
+    // guessing, from Yksoft1's patch
+    reg_ah = 0;
+
+    return CBRET_NONE;
+}
+
+bool PC98_FM_SoundBios_Enabled(void) {
+    return pc98_soundbios_enabled;
+}
+
 void PC98_FM_OnEnterPC98(Section *sec) {
     (void)sec;//UNUSED
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -268,6 +293,8 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         unsigned int baseio;
         std::string board;
         int irq;
+
+        soundbios_callback.Uninstall();
 
         board = section->Get_string("pc-98 fm board");
         if (board == "off" || board == "false") {
@@ -282,8 +309,28 @@ void PC98_FM_OnEnterPC98(Section *sec) {
 
         pc98_soundbios_enabled = section->Get_bool("pc-98 sound bios");
         pc98_set_msw4_soundbios();
-        /* TODO: Load SOUND.ROM to CC000h - CFFFFh when Sound BIOS is enabled? 
-		 * Or simulate Sound BIOS calls ourselves? */
+
+        if (pc98_soundbios_enabled) {
+            /* TODO: Load SOUND.ROM to CC000h - CFFFFh when Sound BIOS is enabled? 
+             * Or simulate Sound BIOS calls ourselves? */
+            if (false/*TODO: Loaded SOUND.ROM*/) {
+                /* TODO */
+            }
+            else {
+                soundbios_callback.Install(&SOUNDROM_INTD2_PC98_Handler,CB_IRET,"Sound ROM INT D2h");
+
+                /* fake INT D2h sound BIOS entry point at CEE0:0000.
+                 * Unlike the LIO interface there's only one interrupt (if Neko Project II code is correct) */
+                Bit32u ofs = 0xCEE0u << 4u;
+                Bit32u callback_addr = soundbios_callback.Get_RealPointer();
+
+                phys_writed(ofs+0,0x0001);      // number of entries
+                phys_writew(ofs+4,0xD2);        // INT D2h entry point
+                phys_writew(ofs+6,0x08);
+                phys_writeb(ofs+8,0xEA);        // JMP FAR <callback>
+                phys_writed(ofs+9,callback_addr);
+            }
+        }
 
         /* Manual testing shows PC-98 games like it when the board is on IRQ 12 */
         if (irq == 0) irq = 12;

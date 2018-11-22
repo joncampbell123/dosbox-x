@@ -53,9 +53,34 @@ uint8_t                     pc98_gdc_modereg=0;
 uint8_t                     pc98_gdc_vramop=0;
 egc_quad                    pc98_gdc_tiles;
 
+extern unsigned char        pc98_text_first_row_scanline_start;  /* port 70h */
+extern unsigned char        pc98_text_first_row_scanline_end;    /* port 72h */
+extern unsigned char        pc98_text_row_scanline_blank_at;     /* port 74h */
+extern unsigned char        pc98_text_row_scroll_lines;          /* port 76h */
+extern unsigned char        pc98_text_row_scroll_count_start;    /* port 78h */
+extern unsigned char        pc98_text_row_scroll_num_lines;      /* port 7Ah */
+
 void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     switch (port&0xE) {
+        case 0x00:      // 0x70: Character row, CG start scanline
+            pc98_text_first_row_scanline_start = (unsigned char)val & 0x1F;
+            break;
+        case 0x02:      // 0x72: Character row, CG end scanline
+            pc98_text_first_row_scanline_end = (unsigned char)val & 0x1F;
+            break;
+        case 0x04:      // 0x74: Character row, number of CG scanlines to display
+            pc98_text_row_scanline_blank_at = (unsigned char)val & 0x1F;
+            break;
+        case 0x06:
+            pc98_text_row_scroll_lines = (unsigned char)val & 0x1F;
+            break;
+        case 0x08:
+            pc98_text_row_scroll_count_start = (unsigned char)val & 0x1F;
+            break;
+        case 0x0A:
+            pc98_text_row_scroll_num_lines = (unsigned char)val & 0x1F;
+            break;
         case 0x0C:      // 0x7C: mode reg / vram operation mode (also, reset tile counter)
             if (enable_pc98_grcg) {
                 pc98_gdc_tile_counter = 0;
@@ -79,7 +104,24 @@ void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
 
 Bitu pc98_crtc_read(Bitu port,Bitu iolen) {
     (void)iolen;//UNUSED
-    LOG_MSG("PC98 CRTC r: port=0x%02X unknown",(unsigned int)port);
+    switch (port&0xE) {
+        case 0x00:      // 0x70: Character row, CG start scanline
+            return pc98_text_first_row_scanline_start;
+        case 0x02:      // 0x72: Character row, CG end scanline
+            return pc98_text_first_row_scanline_end;
+        case 0x04:      // 0x74: Character row, number of CG scanlines to display
+            return pc98_text_row_scanline_blank_at;
+        case 0x06:
+            return pc98_text_row_scroll_lines;
+        case 0x08:
+            return pc98_text_row_scroll_count_start;
+        case 0x0A:
+            return pc98_text_row_scroll_num_lines;
+        default:
+            LOG_MSG("PC98 CRTC r: port=0x%02X unknown",(unsigned int)port);
+            break;
+    }
+
     return ~0ul;
 }
 
