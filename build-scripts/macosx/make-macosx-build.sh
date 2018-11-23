@@ -23,7 +23,7 @@ git reset --hard
 git pull
 git clean -dfx
 git reset --hard
-./build-debug || exit 1
+./build-macosx || exit 1
 make dosbox-x.app || exit 1
 cp CHANGELOG CHANGELOG.txt || exit 1
 
@@ -36,7 +36,7 @@ git reset --hard
 git pull
 git clean -dfx
 git reset --hard
-./build-debug-sdl2 || exit 1
+./build-macosx-sdl2 || exit 1
 make dosbox-x.app || exit 1
 cp CHANGELOG CHANGELOG.txt || exit 1
 
