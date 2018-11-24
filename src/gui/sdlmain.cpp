@@ -5168,8 +5168,6 @@ void SDL_OnSectionPropChange(Section *x) {
 void SDL_SetupConfigSection() {
     Section_prop * sdl_sec=control->AddSection_prop("sdl",&Null_Init);
 
-    sdl_sec->onpropchange.push_back(&SDL_OnSectionPropChange);
-
     Prop_bool* Pbool;
     Prop_string* Pstring;
     Prop_int* Pint;
@@ -7038,6 +7036,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* -- -- other steps to prepare SDL window/output */
         SDL_Prepare();
+
+        /* -- NOW it is safe to send change events to SDL */
+        {
+            Section_prop *sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
+            sdl_sec->onpropchange.push_back(&SDL_OnSectionPropChange);
+        }
 
         /* -- -- Keyboard layout detection and setup */
         KeyboardLayoutDetect();
