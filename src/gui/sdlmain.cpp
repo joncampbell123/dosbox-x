@@ -7334,21 +7334,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 # endif
 #endif
 
-        /* more */
-        {
-            DOSBoxMenu::item *item;
-
-            MAPPER_AddHandler(&SetCyclesCount_mapper_shortcut, MK_nothing, 0, "editcycles", "EditCycles", &item);
-            item->set_text("Edit cycles");
-
-            MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "TogMenu", &item);
-            item->set_text("Hide/show menu bar");
-            item->check(!menu.toggle);
-
-            MAPPER_AddHandler(&PauseWithInterrupts_mapper_shortcut, MK_nothing, 0, "pauseints", "PauseInts", &item);
-            item->set_text("Pause with interrupts enabled");
-        }
-
         /* Start up main machine */
 
         // Shows menu bar (window)
@@ -7373,6 +7358,19 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         if (host_keyboard_layout == DKM_JPN && IS_PC98_ARCH)
             SetMapperKeyboardLayout(DKM_JPN_PC98);
 
+        /* more */
+        {
+            DOSBoxMenu::item *item;
+
+            MAPPER_AddHandler(&SetCyclesCount_mapper_shortcut, MK_nothing, 0, "editcycles", "EditCycles", &item);
+            item->set_text("Edit cycles");
+
+            MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "TogMenu", &item);
+            item->set_text("Hide/show menu bar");
+
+            MAPPER_AddHandler(&PauseWithInterrupts_mapper_shortcut, MK_nothing, 0, "pauseints", "PauseInts", &item);
+            item->set_text("Pause with interrupts enabled");
+        }
 
         {
             DOSBoxMenu::item *item;
