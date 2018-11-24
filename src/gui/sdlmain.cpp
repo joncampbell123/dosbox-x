@@ -5150,8 +5150,25 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
 
 void Null_Init(Section *sec);
 
+void SDL_OnSectionPropChange(Section *x) {
+    (void)x;//UNUSED
+    Section_prop * section = static_cast<Section_prop *>(control->GetSection("sdl"));
+
+    {
+        bool cfg_want_menu = section->Get_bool("showmenu");
+
+        /* -- -- decide whether to set menu */
+        if (menu_gui && !control->opt_nomenu && cfg_want_menu)
+            DOSBox_SetMenu();
+        else
+            DOSBox_NoMenu();
+    }
+}
+
 void SDL_SetupConfigSection() {
     Section_prop * sdl_sec=control->AddSection_prop("sdl",&Null_Init);
+
+    sdl_sec->onpropchange.push_back(&SDL_OnSectionPropChange);
 
     Prop_bool* Pbool;
     Prop_string* Pstring;
