@@ -380,6 +380,16 @@ private:
 // VF4      --          --          --
 // VF5      --          --          --
 
+// TODO for PC-98 mode:
+//
+// According to:
+//
+// http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20NEC%20PC%2d98/Collections/PC%2d9801%20Bible%20%e6%9d%b1%e4%ba%ac%e7%90%86%e7%a7%91%e5%a4%a7%e5%ad%a6EIC%20%281994%29%2epdf
+//
+// Section 4-8.
+//
+// The PDF documents ANSI codes defined on PC-98, which may or may not be a complete listing.
+
 bool device_CON::Read(Bit8u * data,Bit16u * size) {
 	Bit16u oldax=reg_ax;
 	Bit16u count=0;
