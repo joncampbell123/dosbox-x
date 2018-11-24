@@ -1,4 +1,7 @@
 <next version>
+  - CONFIG -set render scaler= fixed to apply changes
+    to scaler and force setting, and update menu items,
+    instead of ignoring it.
   - CONFIG -set render aspect= now keeps menu synchronized
     with setting.
 0.82.11
