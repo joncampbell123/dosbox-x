@@ -1097,7 +1097,10 @@ void SetScaleForced(bool forced)
 
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
     Prop_multival* prop = section->Get_multival("scaler");
-    prop->GetSection()->Get_prop("force")->SetValue(forced?"forced":"");
+    std::string scaler = prop->GetSection()->Get_string("type");
+
+	auto value = scaler + (render.scale.forced ? " forced" : "");
+	SetVal("render", "scaler", value);
 
 	RENDER_CallBack(GFX_CallBackReset);
     mainMenu.get_item("scaler_forced").check(render.scale.forced).refresh_item(mainMenu);
