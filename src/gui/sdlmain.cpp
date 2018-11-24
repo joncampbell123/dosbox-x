@@ -6695,7 +6695,6 @@ void AspectRatio_mapper_shortcut(bool pressed) {
 
     if (!GFX_GetPreventFullscreen()) {
         SetVal("render", "aspect", render.aspect ? "false" : "true");
-        mainMenu.get_item("mapper_aspratio").check(render.aspect).refresh_item(mainMenu);
     }
 }
 
@@ -7357,16 +7356,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         if (host_keyboard_layout == DKM_JPN && IS_PC98_ARCH)
             SetMapperKeyboardLayout(DKM_JPN_PC98);
 
-        RENDER_Init();
 
-        { /* Depends on RENDER_Init */
+        {
             DOSBoxMenu::item *item;
 
             MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "AspRatio", &item);
             item->set_text("Fit to aspect ratio");
-            item->check(render.aspect);
         }
 
+        RENDER_Init();
         CAPTURE_Init();
         IO_Init();
         HARDWARE_Init();

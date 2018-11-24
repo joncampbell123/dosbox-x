@@ -779,6 +779,7 @@ void RENDER_OnSectionPropChange(Section *x) {
 
     mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
     mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_aspratio").check(render.aspect).refresh_item(mainMenu);
 
 #if C_XBRZ
     xBRZ_Change_Options(section);
@@ -873,9 +874,6 @@ void RENDER_Init() {
     vga.draw.doublescan_set=section->Get_bool("doublescan");
     vga.draw.char9_set=section->Get_bool("char9");
 
-    mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
-    mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
-
     //For restarting the renderer.
     static bool running = false;
     int aspect = render.aspect;
@@ -898,6 +896,10 @@ void RENDER_Init() {
 #endif
 
     render.frameskip.max=(Bitu)section->Get_int("frameskip");
+
+    mainMenu.get_item("vga_9widetext").check(vga.draw.char9_set).refresh_item(mainMenu);
+    mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_aspratio").check(render.aspect).refresh_item(mainMenu);
 
     RENDER_UpdateFrameskipMenu();
 
