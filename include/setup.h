@@ -365,6 +365,7 @@ public:
 	Prop_multival_remain *Add_multiremain(std::string const& _propname, Property::Changeable::Value when,std::string const& sep);
 
 	Property* Get_prop(int index);
+    Property* Get_prop(std::string const& _propname);
 	int Get_int(std::string const& _propname) const;
 	const char* Get_string(std::string const& _propname) const;
 	bool Get_bool(std::string const& _propname) const;

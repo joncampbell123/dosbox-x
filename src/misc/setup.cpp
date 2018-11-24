@@ -605,9 +605,19 @@ Prop_multival_remain* Section_prop::Get_multivalremain(string const& _propname) 
     }
     return NULL;
 }
+
 Property* Section_prop::Get_prop(int index){
     for(it tel=properties.begin();tel!=properties.end();tel++){
         if(!index--) return (*tel);
+    }
+    return NULL;
+}
+
+Property* Section_prop::Get_prop(string const& _propname){
+    for(it tel=properties.begin();tel!=properties.end();tel++){
+        if((*tel)->propname==_propname) {
+            return (*tel);
+        }
     }
     return NULL;
 }
