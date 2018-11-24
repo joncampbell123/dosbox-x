@@ -735,6 +735,8 @@ static void ChangeScaler(bool pressed) {
 
 #include "vga.h"
 
+void RENDER_UpdateFromScalerSetting(void);
+
 void RENDER_SetForceUpdate(bool f) {
     render.forceUpdate = f;
 }
@@ -750,6 +752,7 @@ void RENDER_UpdateFrameskipMenu(void) {
 }
 
 void VGA_SetupDrawing(Bitu /*val*/);
+void RENDER_UpdateScalerMenu(void);
 
 void RENDER_OnSectionPropChange(Section *x) {
     (void)x;//UNUSED
@@ -786,6 +789,8 @@ void RENDER_OnSectionPropChange(Section *x) {
 #endif
 
     RENDER_UpdateFrameskipMenu();
+    RENDER_UpdateFromScalerSetting();
+    RENDER_UpdateScalerMenu();
 }
 
 std::string RENDER_GetScaler(void) {
@@ -799,6 +804,7 @@ extern const char *scaler_menu_opts[][2];
 void RENDER_UpdateScalerMenu(void) {
     const std::string scaler = RENDER_GetScaler();
 
+    mainMenu.get_item("scaler_forced").check(render.scale.forced);
     for (size_t i=0;scaler_menu_opts[i][0] != NULL;i++) {
         const std::string name = std::string("scaler_set_") + scaler_menu_opts[i][0];
         mainMenu.get_item(name).check(scaler == scaler_menu_opts[i][0]).refresh_item(mainMenu);
@@ -815,6 +821,11 @@ void RENDER_UpdateFromScalerSetting(void) {
     bool old_xBRZ_enable = sdl_xbrz.enable;
     sdl_xbrz.enable = false;
 #endif
+
+    bool p_forced = render.scale.forced;
+    unsigned int p_size = render.scale.size;
+    bool p_hardware = render.scale.hardware;
+    unsigned int p_op = render.scale.op;
 
     render.scale.forced = false;
     if(f == "forced") render.scale.forced = true;
@@ -859,9 +870,17 @@ void RENDER_UpdateFromScalerSetting(void) {
     }
 #endif
 
+    bool reset = false;
+
 #if C_XBRZ
-    if (old_xBRZ_enable != sdl_xbrz.enable) RENDER_CallBack(GFX_CallBackReset);
+    if (old_xBRZ_enable != sdl_xbrz.enable) reset = true;
 #endif
+    if (p_forced != render.scale.forced) reset = true;
+    if (p_size != render.scale.size) reset = true;
+    if (p_hardware != render.scale.hardware) reset = true;
+    if (p_op != render.scale.op) reset = true;
+
+    if (reset) RENDER_CallBack(GFX_CallBackReset);
 }
 
 void RENDER_Init() {
