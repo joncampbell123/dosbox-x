@@ -1094,6 +1094,11 @@ void RENDER_CallBack( GFX_CallBackFunctions_t function );
 void SetScaleForced(bool forced)
 {
 	render.scale.forced = forced;
+
+    Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
+    Prop_multival* prop = section->Get_multival("scaler");
+    prop->GetSection()->Get_prop("force")->SetValue(forced?"forced":"");
+
 	RENDER_CallBack(GFX_CallBackReset);
     mainMenu.get_item("scaler_forced").check(render.scale.forced).refresh_item(mainMenu);
 }
