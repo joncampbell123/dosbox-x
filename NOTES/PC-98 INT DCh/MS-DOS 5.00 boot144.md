@@ -24,7 +24,7 @@ INT DC = 60:36B3
         if BYTE PTR cs:[014E] == 0 jmp 0060:36BE
         call 3b30
     0060:36BE:
-        jmp far WORD PTR cs:[0214]
+        jmp far WORD PTR cs:[0214] (0ADC:3126)
 
 --
 
