@@ -136,6 +136,9 @@ INT DC = 60:36B3
     CL = 0x3D       0x0E94                  ; ESC [ =
     Any other (0)   0x10C0                  ; ESC [ (anything else)
 
+    The anything else handler returns immediately (escape code is ignored) and
+    the calling code resets the flag and allows the console to proceed normally.
+
 --
 
     0ADC:00000A7C E2 12 F2 12 E2 12 CA 12 BC 12 F2 12 C3 12 D1 12  ................
