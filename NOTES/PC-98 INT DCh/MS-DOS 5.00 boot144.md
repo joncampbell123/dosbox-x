@@ -85,6 +85,15 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:0A00 Subroutine lookup table
+        Referred from 0ADC:0AAC, CL is single char or first byte of kanji
+
+    0ADC:00000A00 07 E7 10 08 19 11 09 F8 10 0A 49 11 0B 3A 11 0C  ..........I..:..
+    0ADC:00000A10 8C 11 0D 5E 11 1A 7D 11 1B C1 10 1E 6B 11 00 B3  ...^..}.....k...
+    0ADC:00000A20 11 5B B2 0B 3D E4 0A 2A 84 0B 28 77 0B 44 90 0B  .[..=..*..(w.D..
+
+--
+
     ; Entry: BX = memory location of a lookup table, 3 bytes/entry in this format:
     ;           BYTE    subroutine number
     ;           WORD    subroutine address
