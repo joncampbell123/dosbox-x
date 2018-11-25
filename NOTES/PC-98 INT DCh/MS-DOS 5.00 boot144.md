@@ -44,6 +44,26 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:4080:
+        DS = DOS kernel segment 60h from 0ADC:0030
+        BYTE PTR DS:[00B4] = 0
+        (other cleanup, not yet traced)
+        CALL 0060:3C6F
+        RET
+
+--
+
+    0ADC:378E: (CL=10h entry point)
+        BX = WORD PTR DS:[05DB] caller's AX value
+        BX = (BX >> 8)   (BX = caller's AH value)
+        ADDR = (BX * 4) + 3A7Ch
+        AX = WORD PTR CS:[ADDR]   (0ADC:[ADDR])
+        BX = WORD PTR CS:[ADDR+2]
+        CALL NEAR AX
+        return
+
+--
+
     0ADC:3A5C table contents.
     Note the INT DCh code maps:
         CL = 0x09..0x15 to table index 0x00..0x0C
@@ -68,26 +88,6 @@ INT DC = 60:36B3
     CL = 0x80    0x3927
     CL = 0x81    0x39B5
     CL = 0x82    0x3A10
-
---
-
-    0ADC:4080:
-        DS = DOS kernel segment 60h from 0ADC:0030
-        BYTE PTR DS:[00B4] = 0
-        (other cleanup, not yet traced)
-        CALL 0060:3C6F
-        RET
-
---
-
-    0ADC:378E: (CL=10h entry point)
-        BX = WORD PTR DS:[05DB] caller's AX value
-        BX = (BX >> 8)   (BX = caller's AH value)
-        ADDR = (BX * 4) + 3A7Ch
-        AX = WORD PTR CS:[ADDR]   (0ADC:[ADDR])
-        BX = WORD PTR CS:[ADDR+2]
-        CALL NEAR AX
-        return
 
 --
     
