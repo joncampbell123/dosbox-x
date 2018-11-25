@@ -807,7 +807,7 @@ extern const char *scaler_menu_opts[][2];
 void RENDER_UpdateScalerMenu(void) {
     const std::string scaler = RENDER_GetScaler();
 
-    mainMenu.get_item("scaler_forced").check(render.scale.forced);
+    mainMenu.get_item("scaler_forced").check(render.scale.forced).refresh_item(mainMenu);
     for (size_t i=0;scaler_menu_opts[i][0] != NULL;i++) {
         const std::string name = std::string("scaler_set_") + scaler_menu_opts[i][0];
         mainMenu.get_item(name).check(scaler == scaler_menu_opts[i][0]).refresh_item(mainMenu);
