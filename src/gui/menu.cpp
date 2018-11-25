@@ -824,10 +824,8 @@ static const char *def_menu_video_pc98[] = {
 
 /* video menu ("VideoMenu") */
 static const char *def_menu_video[] = {
-#if !defined(C_SDL2)
 	"mapper_aspratio",
 	"--",
-#endif
 #if !defined(C_SDL2) && !defined(HX_DOS)
 	"mapper_fullscr",
 	"--",

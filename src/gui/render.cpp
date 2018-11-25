@@ -501,6 +501,9 @@ forcenormal:
     }
 #if !defined(C_SDL2)
     gfx_flags=GFX_GetBestMode(gfx_flags);
+#else
+    gfx_flags &= ~GFX_SCALING;
+    gfx_flags |= GFX_RGBONLY | GFX_CAN_RANDOM;
 #endif
     if (!gfx_flags) {
         if (!complexBlock && simpleBlock == &ScaleNormal1x) 
