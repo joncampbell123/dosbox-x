@@ -10,6 +10,26 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:0A9C: (CL=10h AH=00h, at this time CL == caller's DL and DS = DOS segment 60h)
+        IF BYTE PTR DS:[0128] != 0 JMP AB5  (60:128)
+        IF CL < 0x20 JMP AACh
+        CALL 11B3h
+    0ADC:0AAC: (CL < 0x20)
+        BX = 0A00h
+        CALL 0ACFh
+        CALL NEAR BX (BX comes from subroutine ACFh)
+        return
+    0ADC:0AB5: (BYTE PTR DS:[0128] != 0) aka (60:128)
+        (BYTE DS:[0128])++
+        IF BYTE PTR DS:[0128] == 2 JMP 0ACAh
+        BX = 0A21h
+        CALL 0ACFh
+        WORD PTR DS:[0124] = BX (BX comes from subroutine ACFh) (60:124)
+        CALL NEAR WORD PTR DS:[0124]
+        return
+
+--
+
     0ADC:3126:
         PUSH DS
         WORD PTR DS:[05E1] = caller DS
@@ -44,15 +64,6 @@ INT DC = 60:36B3
 
 --
 
-    0ADC:4080:
-        DS = DOS kernel segment 60h from 0ADC:0030
-        BYTE PTR DS:[00B4] = 0
-        (other cleanup, not yet traced)
-        CALL 0060:3C6F
-        RET
-
---
-
     0ADC:378E: (CL=10h entry point)
         BX = WORD PTR DS:[05DB] caller's AX value
         BX = (BX >> 8)   (BX = caller's AH value)
@@ -70,23 +81,12 @@ INT DC = 60:36B3
 
 --
 
-    0ADC:0A9C: (CL=10h AH=00h, at this time CL == caller's DL and DS = DOS segment 60h)
-        IF BYTE PTR DS:[0128] != 0 JMP AB5  (60:128)
-        IF CL < 0x20 JMP AACh
-        CALL 11B3h
-    0ADC:0AAC: (CL < 0x20)
-        BX = 0A00h
-        CALL 0ACFh
-        CALL NEAR BX (BX comes from subroutine ACFh)
-        return
-    0ADC:0AB5: (BYTE PTR DS:[0128] != 0) aka (60:128)
-        (BYTE DS:[0128])++
-        IF BYTE PTR DS:[0128] == 2 JMP 0ACAh
-        BX = 0A21h
-        CALL 0ACFh
-        WORD PTR DS:[0124] = BX (BX comes from subroutine ACFh) (60:124)
-        CALL NEAR WORD PTR DS:[0124]
-        return
+    0ADC:4080:
+        DS = DOS kernel segment 60h from 0ADC:0030
+        BYTE PTR DS:[00B4] = 0
+        (other cleanup, not yet traced)
+        CALL 0060:3C6F
+        RET
 
 --
 
