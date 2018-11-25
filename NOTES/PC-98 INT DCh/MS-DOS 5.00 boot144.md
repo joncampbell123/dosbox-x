@@ -185,6 +185,15 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:12E2 (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
+        WORD PTR ES:[DI] = AX ; write character code
+        DI += 0x2000
+        WORD PTR ES:[DI] = WORD PTR DS:[013C] (60:13C display attribute in extended attribute mode) ; write attribute code
+        AL = 1 (this indicates to caller to move cursor X position 1 unit to the right)
+        return
+
+--
+
     0ADC:00000A7C E2 12 F2 12 E2 12 CA 12 BC 12 F2 12 C3 12 D1 12  ................
     0ADC:00000A8C C3 12 D8 12 E8 01 00 CB B8 00 01 C3 E8 01 00 CB  ................
     
@@ -227,14 +236,4 @@ INT DC = 60:36B3
     0ADC:05E3 WORD stored DX value from caller
     0ADC:05E5 WORD stored BX value from caller
     0ADC:3A5C array of WORD values, offsets of procedures for each value of CL.
-
---
-
-    0ADC:12E2 (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
-        WORD PTR ES:[DI] = AX ; write character code
-        DI += 0x2000
-        WORD PTR ES:[DI] = WORD PTR DS:[013C] (60:13C display attribute in extended attribute mode) ; write attribute code
-        AL = 1 (this indicates to caller to move cursor X position 1 unit to the right)
-        return
-
 
