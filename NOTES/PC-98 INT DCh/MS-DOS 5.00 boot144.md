@@ -101,6 +101,8 @@ INT DC = 60:36B3
 
     0ADC:0A3C Subroutine lookup table
         Referred from ADC:0BDC, CL is the last byte of the ANSI ESC [ code.
+        This is called only on the final byte, not the intermediate digits and
+        semicolons of the code.
 
                   .        .        .        .        .        .
     0ADC:00000A3C 41 49 0C 42 6C 0C 43 93 0C 44 BA 0C 48 DD 0C 4A  AI.Bl.C..D..H..J
@@ -110,6 +112,29 @@ INT DC = 60:36B3
     0ADC:00000A5C 0C 68 32 0F 6C 9A 0E 6E CB 0F 73 24 10 70 6F 10  .h2.l..n..s$.po.
                   .        .        .        .        .       |END
     0ADC:00000A6C 75 48 10 3E 88 0E 3F 8E 0E 3D 94 0E 00 C0 10 90  uH.>..?..=......
+
+    CL value    |   Subroutine address
+    CL = 0x41       0x0C49                  ; ESC [ A
+    CL = 0x42       0x0C6C                  ; ESC [ B
+    CL = 0x43       0x0C93                  ; ESC [ C
+    CL = 0x44       0x0CBA                  ; ESC [ D
+    CL = 0x48       0x0CDD                  ; ESC [ H
+    CL = 0x4A       0x0D25                  ; ESC [ J
+    CL = 0x4B       0x0D69                  ; ESC [ K
+    CL = 0x4C       0x0E3E                  ; ESC [ L
+    CL = 0x4D       0x0E69                  ; ESC [ M
+    CL = 0x6D       0x0DBD                  ; ESC [ m
+    CL = 0x66       0x0CDD                  ; ESC [ f
+    CL = 0x68       0x0F32                  ; ESC [ h
+    CL = 0x6C       0x0E9A                  ; ESC [ l
+    CL = 0x6E       0x0FCB                  ; ESC [ n
+    CL = 0x73       0x1024                  ; ESC [ s
+    CL = 0x70       0x106F                  ; ESC [ p
+    CL = 0x75       0x1048                  ; ESC [ u
+    CL = 0x3E       0x0E88                  ; ESC [ >
+    CL = 0x3F       0x0E8E                  ; ESC [ ?
+    CL = 0x3D       0x0E94                  ; ESC [ =
+    Any other (0)   0x10C0                  ; ESC [ (anything else)
 
 --
 
