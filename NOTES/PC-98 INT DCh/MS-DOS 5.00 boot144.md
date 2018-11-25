@@ -155,6 +155,31 @@ INT DC = 60:36B3
 
 --
 
+    ; Entry: CL = character code
+    ;
+    ; This is executed per character after ESC [ until the end of the ANSI code
+    0ADC:0BB2:
+        IF BYTE PTR DS:[0128] == 0x02 JMP BF3h
+        IF CL == 0x3B JMP C05h
+        IF CL == 0x27 JMP C1Bh
+        IF CL == 0x22 JMP C1Bh
+        IF BYTE PTR DS:[012A] == 0xFF JMP C2Ch
+        IF CL >= 0x3A JMP BDCh
+        CL = CL AND 0x0F
+        IF CL <= 0x09 JMP BF4h
+    0ADC:0BDC:
+        BX = 0A3Ch
+        CALL ACFh
+        SI = 2852h
+        CALL NEAR BX
+    0ADC:0BE7:
+        IF BYTE PTR DS:[012A] != 0 JMP BF3h
+        BYTE PTR DS:[0128] = 0
+    0ADC:0BF3:
+        return
+
+--
+
     0ADC:11B3: (CL=10h AH=00h, at this time CL == caller's DL and DS = DOS segment 60h)
         IF BYTE PTR DS:[011C] < 0x50 JMP 11C7h ; (60:11C cursor X position)
         IF BYTE PTR DS:[0117] == 0 JMP 11C2h ; (60:117 line wrap flag)
