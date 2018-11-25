@@ -114,8 +114,8 @@ INT DC = 60:36B3
 
     0ADC:3126:
         PUSH DS
-        WORD PTR DS:[05E1] = caller DS
         DS = WORD PTR CS:[0030] = DOS segment 60h
+        WORD PTR DS:[05E1] = caller DS
         Store caller AX, SS, SP, DX, BX into DS: [5DB], [5DD], [5DF], [5E3], [5E5]
         SS:SP = WORD PTR CS:[0030] : 0767
         CLD, STI
