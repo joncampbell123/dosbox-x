@@ -413,6 +413,7 @@ INT DC = 60:36B3
         WORD PTR DS:[05DB] = 0x0000 (caller AX set to 0x0000)
         BX += WORD PTR DS:[0268]
         IF CX > 0 THEN CX--, JMP 3B06h
+    0ADC:3B1B:
         return
 
 --
