@@ -10,6 +10,23 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:00000A7C E2 12 F2 12 E2 12 CA 12 BC 12 F2 12 C3 12 D1 12  ................
+    0ADC:00000A8C C3 12 D8 12 E8 01 00 CB B8 00 01 C3 E8 01 00 CB  ................
+    
+    0ADC:0A7C table (routine 0ADC:1201 return from CALL 129Dh)
+        AX = 0x0000 DL = 0x00    0x12E2
+        AX = 0x0000 DL = 0x01    0x12F2
+        AX = 0x0001 DL = 0x00    0x12E2
+        AX = 0x0001 DL = 0x01    0x12CA
+        AX = 0x0002 DL = 0x00    0x12BC
+        AX = 0x0002 DL = 0x01    0x12F2
+        AX = 0x0003 DL = 0x00    0x12C3
+        AX = 0x0003 DL = 0x01    0x12D1
+        AX = 0x0004 DL = 0x00    0x12C3
+        AX = 0x0004 DL = 0x01    0x12D8
+
+--
+
     0ADC:0A9C: (CL=10h AH=00h, at this time CL == caller's DL and DS = DOS segment 60h)
         IF BYTE PTR DS:[0128] != 0 JMP AB5  (60:128)
         IF CL < 0x20 JMP AACh
@@ -191,23 +208,6 @@ INT DC = 60:36B3
         (other cleanup, not yet traced)
         CALL 0060:3C6F
         RET
-
---
-
-    0ADC:00000A7C E2 12 F2 12 E2 12 CA 12 BC 12 F2 12 C3 12 D1 12  ................
-    0ADC:00000A8C C3 12 D8 12 E8 01 00 CB B8 00 01 C3 E8 01 00 CB  ................
-    
-    0ADC:0A7C table (routine 0ADC:1201 return from CALL 129Dh)
-        AX = 0x0000 DL = 0x00    0x12E2
-        AX = 0x0000 DL = 0x01    0x12F2
-        AX = 0x0001 DL = 0x00    0x12E2
-        AX = 0x0001 DL = 0x01    0x12CA
-        AX = 0x0002 DL = 0x00    0x12BC
-        AX = 0x0002 DL = 0x01    0x12F2
-        AX = 0x0003 DL = 0x00    0x12C3
-        AX = 0x0003 DL = 0x01    0x12D1
-        AX = 0x0004 DL = 0x00    0x12C3
-        AX = 0x0004 DL = 0x01    0x12D8
 
 --
 
