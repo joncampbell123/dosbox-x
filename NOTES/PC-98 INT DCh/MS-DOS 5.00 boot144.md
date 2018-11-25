@@ -385,6 +385,18 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:3AB8: (INT DCh CL=0x09)
+        DX = WORD PTR DS:[05E3] (caller DX)
+        AX = WORD PTR DS:[05DB] (caller AX)
+        IF AX == 0x0000 JMP 3AD4h
+        IF AX == 0x0001 JMP 3AE9h
+        IF AX == 0x0010 JMP 3B1Ch
+        IF AX == 0x0011 JMP 3B1Ch
+    0ADC:3AD3:
+        return
+
+--
+
     0ADC:4080:
         DS = DOS kernel segment 60h from 0ADC:0030
         BYTE PTR DS:[00B4] = 0
