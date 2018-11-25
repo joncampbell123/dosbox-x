@@ -78,8 +78,8 @@ INT DC = 60:36B3
     0ADC:0AC0: (BYTE PTR DS:[0128] == 2)
         BX = 0A21h
         CALL 0ACFh
-    0ADC:0ACA: (jmp here from BYTE PTR DS:[0128] != 2 compare under 0ADC:0AB5)
         WORD PTR DS:[0124] = BX (BX comes from subroutine ACFh) (60:124)
+    0ADC:0ACA: (jmp here from BYTE PTR DS:[0128] != 2 compare under 0ADC:0AB5)
         CALL NEAR WORD PTR DS:[0124]
         return
 
