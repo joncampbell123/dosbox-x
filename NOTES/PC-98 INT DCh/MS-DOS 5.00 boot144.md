@@ -213,21 +213,14 @@ INT DC = 60:36B3
 
     0060:0124 WORD ACFh BX value (?))
     0060:0128 BYTE (?)
-
---
-
-    0ADC:3A7C array of WORD value pairs (address, parameter). NOTE: Lack of range checking!
-
---
-
     0060:014E BYTE some sort of flag
     0060:0214 WORD:WORD 16-bit far pointer (0ADC:3126)
+    0060:0767 Stack pointer (from DOS segment), stack switches to on entry to procedure
     0060:36B3 INT DCh entry point
     0060:3B30 Subroutine called on INT DCh if 0060:014E is nonzero
 
 --
 
-    0060:0767 Stack pointer (from DOS segment), stack switches to on entry to procedure
     0ADC:0030 WORD DOS kernel segment (60h)
     0ADC:05E1 WORD stored DS value from caller
     0ADC:05DB WORD stored AX value from caller
@@ -236,4 +229,5 @@ INT DC = 60:36B3
     0ADC:05E3 WORD stored DX value from caller
     0ADC:05E5 WORD stored BX value from caller
     0ADC:3A5C array of WORD values, offsets of procedures for each value of CL.
+    0ADC:3A7C array of WORD value pairs (address, parameter). NOTE: Lack of range checking!
 
