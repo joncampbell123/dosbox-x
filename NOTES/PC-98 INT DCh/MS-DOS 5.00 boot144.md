@@ -42,6 +42,7 @@ INT DC = 60:36B3
         CALL FAR WORD PTR cs:[014F]     ; <- ??? Pointer so far has been either 0000:0000 or FFFF:FFFF
         POP BX, AX
         return
+    ; ^ NOTE: Not sure, but this may be a call into HIMEM.SYS (XMS), in which case AH = 5 means Local Enable A20
 
 --
 
