@@ -85,6 +85,23 @@ INT DC = 60:36B3
 
 --
 
+    ; Entry: BX = memory location of a lookup table, 3 bytes/entry in this format:
+    ;           BYTE    subroutine number
+    ;           WORD    subroutine address
+    ;        CL = subroutine number to match
+    ;
+    ; Exit: BX = subroutine address
+    0ADC:0ACF:
+        IF BYTE PTR CS:[BX] == 0 JMP ADFh
+        IF BYTE PTR CS:[BX] == CL JMP ADFh
+        BX += 3
+        JMP ACFh
+    0ADC:0ADF:
+        BX = WORD PTR CS:[BX+1]
+        return
+
+--
+
     0ADC:11B3: (CL=10h AH=00h, at this time CL == caller's DL and DS = DOS segment 60h)
         IF BYTE PTR DS:[011C] < 0x50 JMP 11C7h ; (60:11C cursor X position)
         IF BYTE PTR DS:[0117] == 0 JMP 11C2h ; (60:117 line wrap flag)
