@@ -394,6 +394,13 @@ INT DC = 60:36B3
         IF AX == 0x0011 JMP 3B1Ch
     0ADC:3AD3:
         return
+    0ADC:3AD4: (INT DCh CL=0x09 AX=0x0000)
+        ES = WORD PTR DS:[05E1] (caller DS)
+        DI = DX (caller DX)
+        DS = WORD PTR CS:[0030] (DOS segment 60h)
+        SI = 1DBBh
+        _fmemcpy(ES:DI,DS:SI,8)
+        return
 
 --
 
