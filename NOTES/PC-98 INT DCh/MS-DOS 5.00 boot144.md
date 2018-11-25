@@ -128,15 +128,6 @@ INT DC = 60:36B3
 
 --
 
-    0ADC:4080:
-        DS = DOS kernel segment 60h from 0ADC:0030
-        BYTE PTR DS:[00B4] = 0
-        (other cleanup, not yet traced)
-        CALL 0060:3C6F
-        RET
-
---
-
     0ADC:3A5C table contents.
     Note the INT DCh code maps:
         CL = 0x09..0x15 to table index 0x00..0x0C
@@ -191,6 +182,15 @@ INT DC = 60:36B3
     AH = 0x0D    0x37DA    0x0E72
     AH = 0x0E    0x37E8    0x0B2D
     AH = 0x0F    0x168B    0x05E3
+
+--
+
+    0ADC:4080:
+        DS = DOS kernel segment 60h from 0ADC:0030
+        BYTE PTR DS:[00B4] = 0
+        (other cleanup, not yet traced)
+        CALL 0060:3C6F
+        RET
 
 --
 
