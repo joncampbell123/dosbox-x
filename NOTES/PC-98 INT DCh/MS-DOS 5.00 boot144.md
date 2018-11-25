@@ -85,6 +85,23 @@ INT DC = 60:36B3
 
 --
 
+    ; Entry: BX = memory location of a lookup table, 3 bytes/entry in this format:
+    ;           BYTE    subroutine number
+    ;           WORD    subroutine address
+    ;        CL = subroutine number to match
+    ;
+    ; Exit: BX = subroutine address
+    0ADC:0ACF:
+        IF BYTE PTR CS:[BX] == 0 JMP ADFh
+        IF BYTE PTR CS:[BX] == CL JMP ADFh
+        BX += 3
+        JMP ACFh
+    0ADC:0ADF:
+        BX = WORD PTR CS:[BX+1]
+        return
+
+--
+
     0ADC:0A00 Subroutine lookup table
         Referred from 0ADC:0AAC, CL is single char or first byte of kanji
 
@@ -128,23 +145,6 @@ INT DC = 60:36B3
     CL = 0x4D       0x0B99
     CL = 0x29       0x0B26
     Any other (0)   0x0B93
-
---
-
-    ; Entry: BX = memory location of a lookup table, 3 bytes/entry in this format:
-    ;           BYTE    subroutine number
-    ;           WORD    subroutine address
-    ;        CL = subroutine number to match
-    ;
-    ; Exit: BX = subroutine address
-    0ADC:0ACF:
-        IF BYTE PTR CS:[BX] == 0 JMP ADFh
-        IF BYTE PTR CS:[BX] == CL JMP ADFh
-        BX += 3
-        JMP ACFh
-    0ADC:0ADF:
-        BX = WORD PTR CS:[BX+1]
-        return
 
 --
 
