@@ -46,6 +46,52 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:0A00 Subroutine lookup table
+        Referred from 0ADC:0AAC, CL is single char or first byte of kanji
+
+                  .        .        .        .        .        .
+    0ADC:00000A00 07 E7 10 08 19 11 09 F8 10 0A 49 11 0B 3A 11 0C  ..........I..:..
+                        .        .        .        .        .
+    0ADC:00000A10 8C 11 0D 5E 11 1A 7D 11 1B C1 10 1E 6B 11 00 B3  ...^..}.....k...
+                    |END
+    0ADC:00000A20 11 5B B2 0B 3D E4 0A 2A 84 0B 28 77 0B 44 90 0B  .[..=..*..(w.D..
+
+    CL value    |   Subroutine address
+    CL = 0x07       0x10E7
+    CL = 0x08       0x1119
+    CL = 0x09       0x10F8
+    CL = 0x0A       0x1149
+    CL = 0x0B       0x113A
+    CL = 0x0C       0x118C
+    CL = 0x0D       0x115E
+    CL = 0x1A       0x117D
+    CL = 0x1B       0x10C1
+    CL = 0x1E       0x116B
+    Any other (0)   0x11B3
+
+--
+
+    0ADC:0A21 Subroutine lookup table
+        Referred from 0ADC:0AC0, CL is (BYTE PTR DS:[0128] == 2)
+
+                     .        .        .        .        .
+    0ADC:00000A20 11 5B B2 0B 3D E4 0A 2A 84 0B 28 77 0B 44 90 0B  .[..=..*..(w.D..
+                  .        .        .        .       |END
+    0ADC:00000A30 45 8D 0B 4D 99 0B 29 26 0B 00 93 0B 41 49 0C 42  E..M..)&....AI.B
+
+    CL value    |   Subroutine address
+    CL = 0x5B       0x0BB2
+    CL = 0x3D       0x0AE4
+    CL = 0x2A       0x0B84
+    CL = 0x28       0x0B77
+    CL = 0x44       0x0B90
+    CL = 0x45       0x0B8D
+    CL = 0x4D       0x0B99
+    CL = 0x29       0x0B26
+    Any other (0)   0x0B93
+
+--
+
     0ADC:00000A7C E2 12 F2 12 E2 12 CA 12 BC 12 F2 12 C3 12 D1 12  ................
     0ADC:00000A8C C3 12 D8 12 E8 01 00 CB B8 00 01 C3 E8 01 00 CB  ................
     
@@ -99,52 +145,6 @@ INT DC = 60:36B3
     0ADC:0ADF:
         BX = WORD PTR CS:[BX+1]
         return
-
---
-
-    0ADC:0A00 Subroutine lookup table
-        Referred from 0ADC:0AAC, CL is single char or first byte of kanji
-
-                  .        .        .        .        .        .
-    0ADC:00000A00 07 E7 10 08 19 11 09 F8 10 0A 49 11 0B 3A 11 0C  ..........I..:..
-                        .        .        .        .        .
-    0ADC:00000A10 8C 11 0D 5E 11 1A 7D 11 1B C1 10 1E 6B 11 00 B3  ...^..}.....k...
-                    |END
-    0ADC:00000A20 11 5B B2 0B 3D E4 0A 2A 84 0B 28 77 0B 44 90 0B  .[..=..*..(w.D..
-
-    CL value    |   Subroutine address
-    CL = 0x07       0x10E7
-    CL = 0x08       0x1119
-    CL = 0x09       0x10F8
-    CL = 0x0A       0x1149
-    CL = 0x0B       0x113A
-    CL = 0x0C       0x118C
-    CL = 0x0D       0x115E
-    CL = 0x1A       0x117D
-    CL = 0x1B       0x10C1
-    CL = 0x1E       0x116B
-    Any other (0)   0x11B3
-
---
-
-    0ADC:0A21 Subroutine lookup table
-        Referred from 0ADC:0AC0, CL is (BYTE PTR DS:[0128] == 2)
-
-                     .        .        .        .        .
-    0ADC:00000A20 11 5B B2 0B 3D E4 0A 2A 84 0B 28 77 0B 44 90 0B  .[..=..*..(w.D..
-                  .        .        .        .       |END
-    0ADC:00000A30 45 8D 0B 4D 99 0B 29 26 0B 00 93 0B 41 49 0C 42  E..M..)&....AI.B
-
-    CL value    |   Subroutine address
-    CL = 0x5B       0x0BB2
-    CL = 0x3D       0x0AE4
-    CL = 0x2A       0x0B84
-    CL = 0x28       0x0B77
-    CL = 0x44       0x0B90
-    CL = 0x45       0x0B8D
-    CL = 0x4D       0x0B99
-    CL = 0x29       0x0B26
-    Any other (0)   0x0B93
 
 --
 
