@@ -415,6 +415,37 @@ INT DC = 60:36B3
         IF CX > 0 THEN CX--, JMP 3B06h
     0ADC:3B1B:
         return
+    0ADC:3B1C: (INT DCh CL=0x09 AX=0x0010 or AX=0x0011)
+        WORD PTR DS:[05DB] = 0xFFFF (caller AX set to 0xFFFF)
+        IF BYTE PTR DS:[1DC4] == 0 JMP 3B84h
+        DX = DX AND 0xFF
+        CX = 0x1A
+        BX = 2C86h
+    0ADC:3B31:
+        IF BYTE PTR DS:[BX+1] == DL JMP 3B3Fh
+        BX += 2
+        DH += 1
+        IF CX > 0 THEN CX--, JMP 3B31h
+        JMP 3B84h
+    0ADC:3B3F:
+        IF (BYTE PTR DS:[BX] AND 1) == 0 JMP 3B84h
+        BYTE PTR DS:[0136] = DH
+        IF AX != 0x0010 JMP 3B52h
+        CALL 5B07h
+        JMP 3B69h
+    0ADC:3B52:
+        WORD PTR DS:[05DB] = 0x0001 (caller AX set to 0x0001)
+        BX = DL & 0x0F
+        IF BYTE PTR [BX+03E9h] == 0 JMP 3B84h
+        CALL 5B4Bh, RESULT = CARRY FLAG
+    0ADC:3B69:
+        WORD PTR DS:[05DB] = 0x0000
+        IF RESULT == 0 (CF=0) JMP 3B84h
+        WORD PTR DS:[05DB] = 0x0002
+        IF BYTE PTR DS:[025B] == 2 JMP 3B84h
+        WORD PTR DS:[05DB] = 0x0003
+    0ADC:3B84:
+        return
 
 --
 
