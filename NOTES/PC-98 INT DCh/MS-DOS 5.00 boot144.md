@@ -30,6 +30,53 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:11B3: (CL=10h AH=00h, at this time CL == caller's DL and DS = DOS segment 60h)
+        IF BYTE PTR DS:[011C] < 0x50 JMP 11C7h ; (60:11C cursor X position)
+        IF BYTE PTR DS:[0117] == 0 JMP 11C2h ; (60:117 line wrap flag)
+    0ADC:11C7: (60:11C < 0x50)
+        IF BYTE PTR DS:[008A] == 0 JMP 1201h ; (60:8A kanji / graph mode flag)
+        IF BYTE PTR DS:[0115] != 0 JMP 11F3h ; (60:115 kanji upper byte storage flag)
+        IF CL < 0x81 JMP 1201h
+        IF CL < 0xA0 JMP 11E9h
+        IF CL < 0xE0 JMP 1201h
+        IF CL >= 0xFD JMP 1201h
+        BYTE PTR DS:[0116] = CL (60:116 kanji upper byte)
+        BYTE PTR DS:[0115] = 1 (60:115 kanji upper byte storage flag)
+    0ADC:11E9:
+        return
+    0ADC:11F3: (60:115 kanji upper byte storage flag set)
+        CH = DS:[0116] (60:116 kanji upper byte)
+        CALL 1236h
+        (TODO finish this later, at 0ADC:11FA)
+    0ADC:1201:
+        CH = 0
+        CALL 1260h
+        CALL 129Dh
+        DI = BX
+        AX = ((AX * 2) + DL) * 2
+        BX = (AX + 0A7Ch)
+        BX = WORD PTR CS:[BX]
+        PUSH ES
+        ES = WORD PTR DS:[0032] ; (60:32 appears to be Text VRAM segment A000h)
+        AX = CX
+        CALL NEAR BX
+        POP ES
+        BYTE PTR DS:[0115] = 0 (60:115 upper byte storage flag)
+        BYTE PTR DS:[011C] += AL (60:11C cursor X coordinate)
+        CALL 1535h
+        return
+
+--
+
+    0ADC:12E2 (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
+        WORD PTR ES:[DI] = AX ; write character code
+        DI += 0x2000
+        WORD PTR ES:[DI] = WORD PTR DS:[013C] (60:13C display attribute in extended attribute mode) ; write attribute code
+        AL = 1 (this indicates to caller to move cursor X position 1 unit to the right)
+        return
+
+--
+
     0ADC:3126:
         PUSH DS
         WORD PTR DS:[05E1] = caller DS
@@ -87,53 +134,6 @@ INT DC = 60:36B3
         (other cleanup, not yet traced)
         CALL 0060:3C6F
         RET
-
---
-
-    0ADC:11B3: (CL=10h AH=00h, at this time CL == caller's DL and DS = DOS segment 60h)
-        IF BYTE PTR DS:[011C] < 0x50 JMP 11C7h ; (60:11C cursor X position)
-        IF BYTE PTR DS:[0117] == 0 JMP 11C2h ; (60:117 line wrap flag)
-    0ADC:11C7: (60:11C < 0x50)
-        IF BYTE PTR DS:[008A] == 0 JMP 1201h ; (60:8A kanji / graph mode flag)
-        IF BYTE PTR DS:[0115] != 0 JMP 11F3h ; (60:115 kanji upper byte storage flag)
-        IF CL < 0x81 JMP 1201h
-        IF CL < 0xA0 JMP 11E9h
-        IF CL < 0xE0 JMP 1201h
-        IF CL >= 0xFD JMP 1201h
-        BYTE PTR DS:[0116] = CL (60:116 kanji upper byte)
-        BYTE PTR DS:[0115] = 1 (60:115 kanji upper byte storage flag)
-    0ADC:11E9:
-        return
-    0ADC:11F3: (60:115 kanji upper byte storage flag set)
-        CH = DS:[0116] (60:116 kanji upper byte)
-        CALL 1236h
-        (TODO finish this later, at 0ADC:11FA)
-    0ADC:1201:
-        CH = 0
-        CALL 1260h
-        CALL 129Dh
-        DI = BX
-        AX = ((AX * 2) + DL) * 2
-        BX = (AX + 0A7Ch)
-        BX = WORD PTR CS:[BX]
-        PUSH ES
-        ES = WORD PTR DS:[0032] ; (60:32 appears to be Text VRAM segment A000h)
-        AX = CX
-        CALL NEAR BX
-        POP ES
-        BYTE PTR DS:[0115] = 0 (60:115 upper byte storage flag)
-        BYTE PTR DS:[011C] += AL (60:11C cursor X coordinate)
-        CALL 1535h
-        return
-
---
-
-    0ADC:12E2 (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
-        WORD PTR ES:[DI] = AX ; write character code
-        DI += 0x2000
-        WORD PTR ES:[DI] = WORD PTR DS:[013C] (60:13C display attribute in extended attribute mode) ; write attribute code
-        AL = 1 (this indicates to caller to move cursor X position 1 unit to the right)
-        return
 
 --
 
