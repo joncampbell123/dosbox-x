@@ -324,6 +324,8 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:3A5C array of WORD values, offsets of procedures for each value of CL.
+
     0ADC:3A5C table contents.
     Note the INT DCh code maps:
         CL = 0x09..0x15 to table index 0x00..0x0C
@@ -350,7 +352,9 @@ INT DC = 60:36B3
     CL = 0x82    0x3A10
 
 --
-    
+
+    0ADC:3A7C array of WORD value pairs (address, parameter). NOTE: Lack of range checking!
+
     0ADC:00003A7C A7 37 9C 0A AC 37 00 00 C3 37 00 00 CC 37 FA 0A  .7...7...7...7..
     0ADC:00003A8C D7 37 90 0B D7 37 99 0B DA 37 52 0C DA 37 75 0C  .7...7...7R..7u.
     0ADC:00003A9C DA 37 9C 0C DA 37 C3 0C E1 37 2E 0D E1 37 72 0D  .7...7...7...7r.
@@ -387,9 +391,4 @@ INT DC = 60:36B3
         (other cleanup, not yet traced)
         CALL 0060:3C6F
         RET
-
---
-
-    0ADC:3A5C array of WORD values, offsets of procedures for each value of CL.
-    0ADC:3A7C array of WORD value pairs (address, parameter). NOTE: Lack of range checking!
 
