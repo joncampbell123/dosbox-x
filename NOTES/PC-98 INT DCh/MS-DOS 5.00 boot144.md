@@ -46,6 +46,10 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:0030 WORD DOS kernel segment (60h)
+
+--
+
     0ADC:0A00 Subroutine lookup table
         Referred from 0ADC:0AAC, CL is single char or first byte of kanji
 
@@ -386,7 +390,6 @@ INT DC = 60:36B3
 
 --
 
-    0ADC:0030 WORD DOS kernel segment (60h)
     0ADC:3A5C array of WORD values, offsets of procedures for each value of CL.
     0ADC:3A7C array of WORD value pairs (address, parameter). NOTE: Lack of range checking!
 
