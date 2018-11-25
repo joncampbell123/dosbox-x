@@ -69,10 +69,14 @@ INT DC = 60:36B3
     CL = 0x1E       0x116B                  ; RECORD SEPARATOR
     Any other (0)   0x11B3
 
+    The ESCAPE subroutine sets BYTE PTR [60:128] = 1, BYTE PTR [60:129] = 1,
+    and WORD PTR [60:134] = 0x2852
+
 --
 
     0ADC:0A21 Subroutine lookup table
-        Referred from 0ADC:0AC0, CL is (BYTE PTR DS:[0128] == 2)
+        Referred from 0ADC:0AC0, CL is byte from caller when (BYTE PTR DS:[0128] == 2)
+        In most cases this is called with CL the first byte after ANSI ESCAPE code.
 
                      .        .        .        .        .
     0ADC:00000A20 11 5B B2 0B 3D E4 0A 2A 84 0B 28 77 0B 44 90 0B  .[..=..*..(w.D..
