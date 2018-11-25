@@ -10,13 +10,6 @@ INT DC = 60:36B3
 
 --
 
-    0060:014E BYTE some sort of flag
-    0060:0214 WORD:WORD 16-bit far pointer (0ADC:3126)
-    0060:36B3 INT DCh entry point
-    0060:3B30 Subroutine called on INT DCh if 0060:014E is nonzero
-
---
-
     0ADC:3126:
         PUSH DS
         WORD PTR DS:[05E1] = caller DS
@@ -48,18 +41,6 @@ INT DC = 60:36B3
         Restore caller AX, SS, SP, DX, BX from [5DB], [5DD], [5DF], [5E3], [5E5]
         POP DS (restore caller DS)
         IRET
-
---
-
-    0060:0767 Stack pointer (from DOS segment), stack switches to on entry to procedure
-    0ADC:0030 WORD DOS kernel segment (60h)
-    0ADC:05E1 WORD stored DS value from caller
-    0ADC:05DB WORD stored AX value from caller
-    0ADC:05DD WORD stored SS value from caller
-    0ADC:05DF WORD stored SP value from caller (after INT DCh int frame and PUSH DS)
-    0ADC:05E3 WORD stored DX value from caller
-    0ADC:05E5 WORD stored BX value from caller
-    0ADC:3A5C array of WORD values, offsets of procedures for each value of CL.
 
 --
 
@@ -107,10 +88,6 @@ INT DC = 60:36B3
         BX = WORD PTR CS:[ADDR+2]
         CALL NEAR AX
         return
-
---
-
-    0ADC:3A7C array of WORD value pairs (address, parameter). NOTE: Lack of range checking!
 
 --
     
@@ -170,11 +147,6 @@ INT DC = 60:36B3
 
 --
 
-    0060:0124 WORD ACFh BX value (?))
-    0060:0128 BYTE (?)
-
---
-
     0ADC:11B3: (CL=10h AH=00h, at this time CL == caller's DL and DS = DOS segment 60h)
         IF BYTE PTR DS:[011C] < 0x50 JMP 11C7h ; (60:11C cursor X position)
         IF BYTE PTR DS:[0117] == 0 JMP 11C2h ; (60:117 line wrap flag)
@@ -213,6 +185,15 @@ INT DC = 60:36B3
 
 --
 
+    0060:0124 WORD ACFh BX value (?))
+    0060:0128 BYTE (?)
+
+--
+
+    0ADC:3A7C array of WORD value pairs (address, parameter). NOTE: Lack of range checking!
+
+--
+
     0ADC:00000A7C E2 12 F2 12 E2 12 CA 12 BC 12 F2 12 C3 12 D1 12  ................
     0ADC:00000A8C C3 12 D8 12 E8 01 00 CB B8 00 01 C3 E8 01 00 CB  ................
     
@@ -227,6 +208,25 @@ INT DC = 60:36B3
         AX = 0x0003 DL = 0x01    0x12D1
         AX = 0x0004 DL = 0x00    0x12C3
         AX = 0x0004 DL = 0x01    0x12D8
+
+--
+
+    0060:014E BYTE some sort of flag
+    0060:0214 WORD:WORD 16-bit far pointer (0ADC:3126)
+    0060:36B3 INT DCh entry point
+    0060:3B30 Subroutine called on INT DCh if 0060:014E is nonzero
+
+--
+
+    0060:0767 Stack pointer (from DOS segment), stack switches to on entry to procedure
+    0ADC:0030 WORD DOS kernel segment (60h)
+    0ADC:05E1 WORD stored DS value from caller
+    0ADC:05DB WORD stored AX value from caller
+    0ADC:05DD WORD stored SS value from caller
+    0ADC:05DF WORD stored SP value from caller (after INT DCh int frame and PUSH DS)
+    0ADC:05E3 WORD stored DX value from caller
+    0ADC:05E5 WORD stored BX value from caller
+    0ADC:3A5C array of WORD values, offsets of procedures for each value of CL.
 
 --
 
