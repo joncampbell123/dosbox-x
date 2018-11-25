@@ -28,6 +28,23 @@ INT DC = 60:36B3
 
 --
 
+    0060:3B30: (called by INT DCh entry point if BYTE PTR CS:[014E] != 0
+        PUSH DS, ES, CX, SI, DI
+        DS:SI = WORD PTR cs:[3B28] (FFFF:0090)
+        ES:DI = WORD PTR cs:[3B2C] (0000:0080)
+        ZF = ((result=_fmemcmp(DS:SI,ES:DI,16)) == 0) (CX = 8, REP CMPSW)   ; <- Testing A20 gate, apparently?
+        POP DI, SI, CX, ES, DS
+        IF result == 0 JMP 3B4Ch (if ZF=1)
+        return
+    0060:3B4C: (if _fmemcmp(DS:SI,ES:DI,16) == 0)
+        PUSH AX, BX
+        AH = 5
+        CALL FAR WORD PTR cs:[014F]     ; <- ??? Pointer so far has been either 0000:0000 or FFFF:FFFF
+        POP BX, AX
+        return
+
+--
+
     0ADC:00000A7C E2 12 F2 12 E2 12 CA 12 BC 12 F2 12 C3 12 D1 12  ................
     0ADC:00000A8C C3 12 D8 12 E8 01 00 CB B8 00 01 C3 E8 01 00 CB  ................
     
