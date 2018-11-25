@@ -99,6 +99,20 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:0A3C Subroutine lookup table
+        Referred from ADC:0BDC, CL is the last byte of the ANSI ESC [ code.
+
+                  .        .        .        .        .        .
+    0ADC:00000A3C 41 49 0C 42 6C 0C 43 93 0C 44 BA 0C 48 DD 0C 4A  AI.Bl.C..D..H..J
+                        .        .        .        .        .
+    0ADC:00000A4C 25 0D 4B 69 0D 4C 3E 0E 4D 69 0E 6D BD 0D 66 DD  %.Ki.L>.Mi.m..f.
+                     .        .        .        .        .
+    0ADC:00000A5C 0C 68 32 0F 6C 9A 0E 6E CB 0F 73 24 10 70 6F 10  .h2.l..n..s$.po.
+                  .        .        .        .        .       |END
+    0ADC:00000A6C 75 48 10 3E 88 0E 3F 8E 0E 3D 94 0E 00 C0 10 90  uH.>..?..=......
+
+--
+
     0ADC:00000A7C E2 12 F2 12 E2 12 CA 12 BC 12 F2 12 C3 12 D1 12  ................
     0ADC:00000A8C C3 12 D8 12 E8 01 00 CB B8 00 01 C3 E8 01 00 CB  ................
     
