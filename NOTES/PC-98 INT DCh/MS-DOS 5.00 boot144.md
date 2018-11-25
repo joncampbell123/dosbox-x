@@ -64,63 +64,6 @@ INT DC = 60:36B3
 
 --
 
-    0ADC:3A5C table contents.
-    Note the INT DCh code maps:
-        CL = 0x09..0x15 to table index 0x00..0x0C
-        CL = 0x80..0x82 to table index 0x0D..0x0F
-
-    0ADC:00003A5C B8 3A 5B 35 A4 31 A5 31 DF 32 1B 36 44 37 8E 37
-    0ADC:00003A6C F0 37 6E 38 F7 38 85 3B 52 3C 27 39 B5 39 10 3A
-
-    CL = 0x09    0x3AB8
-    CL = 0x0A    0x355B
-    CL = 0x0B    0x31A4
-    CL = 0x0C    0x31A5
-    CL = 0x0D    0x32DF
-    CL = 0x0E    0x361B
-    CL = 0x0F    0x3744
-    CL = 0x10    0x378E
-    CL = 0x11    0x37F0
-    CL = 0x12    0x386E
-    CL = 0x13    0x38F7
-    CL = 0x14    0x3B85
-    CL = 0x15    0x3C52
-    CL = 0x80    0x3927
-    CL = 0x81    0x39B5
-    CL = 0x82    0x3A10
-
---
-    
-    0ADC:00003A7C A7 37 9C 0A AC 37 00 00 C3 37 00 00 CC 37 FA 0A  .7...7...7...7..
-    0ADC:00003A8C D7 37 90 0B D7 37 99 0B DA 37 52 0C DA 37 75 0C  .7...7...7R..7u.
-    0ADC:00003A9C DA 37 9C 0C DA 37 C3 0C E1 37 2E 0D E1 37 72 0D  .7...7...7...7r.
-    0ADC:00003AAC DA 37 4E 0E DA 37 72 0E E8 37 2D 0B 8B 16 E3 05  .7N..7r..7-.....
-    0ADC:00003ABC A1 DB 05 3D 00 00 74 10 3D 01 00 74 20 3D 10 00  ...=..t.=..t =..
-    0ADC:00003ACC 74 4E 3D 11 00 74 49 C3 8E 06 E1 05 8B FA 2E 8E  tN=..tI.........
-
-    0ADC:3A7C Call table (address, param)
-
-    Calling convention on entry: AX = subroutine address, BX = param
-    
-    AH = 0x00    0x37A7    0x0A9C  ; 0ADC:00003A7C
-    AH = 0x01    0x37AC    0x0000
-    AH = 0x02    0x37C3    0x0000
-    AH = 0x03    0x37CC    0x0AFA
-    AH = 0x04    0x37D7    0x0B90  ; 0ADC:00003A8C
-    AH = 0x05    0x37D7    0x0BDA
-    AH = 0x06    0x37DA    0x0B99
-    AH = 0x07    0x37DA    0x0C75
-    AH = 0x08    0x37DA    0x0C9C  ; 0ADC:00003A9C
-    AH = 0x09    0x37DA    0x0CC3
-    AH = 0x0A    0x37E1    0x0D2E
-    AH = 0x0B    0x37E1    0x0D72
-    AH = 0x0C    0x37DA    0x0E4E  ; 0ADC:00003AAC
-    AH = 0x0D    0x37DA    0x0E72
-    AH = 0x0E    0x37E8    0x0B2D
-    AH = 0x0F    0x168B    0x05E3
-
---
-
     0ADC:37A7: (CL=10h AH=00h entry point)
         CL = DL
         CALL NEAR BX (BX is 0A9C, no other case)
@@ -191,6 +134,63 @@ INT DC = 60:36B3
         WORD PTR ES:[DI] = WORD PTR DS:[013C] (60:13C display attribute in extended attribute mode) ; write attribute code
         AL = 1 (this indicates to caller to move cursor X position 1 unit to the right)
         return
+
+--
+
+    0ADC:3A5C table contents.
+    Note the INT DCh code maps:
+        CL = 0x09..0x15 to table index 0x00..0x0C
+        CL = 0x80..0x82 to table index 0x0D..0x0F
+
+    0ADC:00003A5C B8 3A 5B 35 A4 31 A5 31 DF 32 1B 36 44 37 8E 37
+    0ADC:00003A6C F0 37 6E 38 F7 38 85 3B 52 3C 27 39 B5 39 10 3A
+
+    CL = 0x09    0x3AB8
+    CL = 0x0A    0x355B
+    CL = 0x0B    0x31A4
+    CL = 0x0C    0x31A5
+    CL = 0x0D    0x32DF
+    CL = 0x0E    0x361B
+    CL = 0x0F    0x3744
+    CL = 0x10    0x378E
+    CL = 0x11    0x37F0
+    CL = 0x12    0x386E
+    CL = 0x13    0x38F7
+    CL = 0x14    0x3B85
+    CL = 0x15    0x3C52
+    CL = 0x80    0x3927
+    CL = 0x81    0x39B5
+    CL = 0x82    0x3A10
+
+--
+    
+    0ADC:00003A7C A7 37 9C 0A AC 37 00 00 C3 37 00 00 CC 37 FA 0A  .7...7...7...7..
+    0ADC:00003A8C D7 37 90 0B D7 37 99 0B DA 37 52 0C DA 37 75 0C  .7...7...7R..7u.
+    0ADC:00003A9C DA 37 9C 0C DA 37 C3 0C E1 37 2E 0D E1 37 72 0D  .7...7...7...7r.
+    0ADC:00003AAC DA 37 4E 0E DA 37 72 0E E8 37 2D 0B 8B 16 E3 05  .7N..7r..7-.....
+    0ADC:00003ABC A1 DB 05 3D 00 00 74 10 3D 01 00 74 20 3D 10 00  ...=..t.=..t =..
+    0ADC:00003ACC 74 4E 3D 11 00 74 49 C3 8E 06 E1 05 8B FA 2E 8E  tN=..tI.........
+
+    0ADC:3A7C Call table (address, param)
+
+    Calling convention on entry: AX = subroutine address, BX = param
+    
+    AH = 0x00    0x37A7    0x0A9C  ; 0ADC:00003A7C
+    AH = 0x01    0x37AC    0x0000
+    AH = 0x02    0x37C3    0x0000
+    AH = 0x03    0x37CC    0x0AFA
+    AH = 0x04    0x37D7    0x0B90  ; 0ADC:00003A8C
+    AH = 0x05    0x37D7    0x0BDA
+    AH = 0x06    0x37DA    0x0B99
+    AH = 0x07    0x37DA    0x0C75
+    AH = 0x08    0x37DA    0x0C9C  ; 0ADC:00003A9C
+    AH = 0x09    0x37DA    0x0CC3
+    AH = 0x0A    0x37E1    0x0D2E
+    AH = 0x0B    0x37E1    0x0D72
+    AH = 0x0C    0x37DA    0x0E4E  ; 0ADC:00003AAC
+    AH = 0x0D    0x37DA    0x0E72
+    AH = 0x0E    0x37E8    0x0B2D
+    AH = 0x0F    0x168B    0x05E3
 
 --
 
