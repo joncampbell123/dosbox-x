@@ -57,16 +57,16 @@ INT DC = 60:36B3
     0ADC:00000A20 11 5B B2 0B 3D E4 0A 2A 84 0B 28 77 0B 44 90 0B  .[..=..*..(w.D..
 
     CL value    |   Subroutine address
-    CL = 0x07       0x10E7
-    CL = 0x08       0x1119
-    CL = 0x09       0x10F8
-    CL = 0x0A       0x1149
-    CL = 0x0B       0x113A
-    CL = 0x0C       0x118C
-    CL = 0x0D       0x115E
-    CL = 0x1A       0x117D
-    CL = 0x1B       0x10C1
-    CL = 0x1E       0x116B
+    CL = 0x07       0x10E7                  ; CTRL+G / BEL
+    CL = 0x08       0x1119                  ; CTRL+H / BACKSPACE
+    CL = 0x09       0x10F8                  ; CTRL+I / TAB
+    CL = 0x0A       0x1149                  ; CTRL+J / LINEFEED
+    CL = 0x0B       0x113A                  ; CTRL+K / VERTICAL TAB
+    CL = 0x0C       0x118C                  ; CTRL+L / FORM FEED
+    CL = 0x0D       0x115E                  ; CTRL+M / CARRIAGE RETURN
+    CL = 0x1A       0x117D                  ; CTRL+Z / SUBSTITUE
+    CL = 0x1B       0x10C1                  ; ESCAPE
+    CL = 0x1E       0x116B                  ; RECORD SEPARATOR
     Any other (0)   0x11B3
 
 --
