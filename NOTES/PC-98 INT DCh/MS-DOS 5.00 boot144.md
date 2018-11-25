@@ -84,15 +84,15 @@ INT DC = 60:36B3
     0ADC:00000A30 45 8D 0B 4D 99 0B 29 26 0B 00 93 0B 41 49 0C 42  E..M..)&....AI.B
 
     CL value    |   Subroutine address
-    CL = 0x5B       0x0BB2
-    CL = 0x3D       0x0AE4
-    CL = 0x2A       0x0B84
-    CL = 0x28       0x0B77
-    CL = 0x44       0x0B90
-    CL = 0x45       0x0B8D
-    CL = 0x4D       0x0B99
-    CL = 0x29       0x0B26
-    Any other (0)   0x0B93
+    CL = 0x5B       0x0BB2                  ; ESC [
+    CL = 0x3D       0x0AE4                  ; ESC =
+    CL = 0x2A       0x0B84                  ; ESC *
+    CL = 0x28       0x0B77                  ; ESC (
+    CL = 0x44       0x0B90                  ; ESC D
+    CL = 0x45       0x0B8D                  ; ESC E
+    CL = 0x4D       0x0B99                  ; ESC M
+    CL = 0x29       0x0B26                  ; ESC )
+    Any other (0)   0x0B93                  ; ESC (anything else)
 
 --
 
