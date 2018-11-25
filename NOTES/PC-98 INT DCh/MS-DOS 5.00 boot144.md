@@ -110,6 +110,27 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:0A21 Subroutine lookup table
+        Referred from 0ADC:0AC0, CL is (BYTE PTR DS:[0128] == 2)
+
+                     .        .        .        .        .
+    0ADC:00000A20 11 5B B2 0B 3D E4 0A 2A 84 0B 28 77 0B 44 90 0B  .[..=..*..(w.D..
+                  .        .        .        .       |END
+    0ADC:00000A30 45 8D 0B 4D 99 0B 29 26 0B 00 93 0B 41 49 0C 42  E..M..)&....AI.B
+
+    CL value    |   Subroutine address
+    CL = 0x5B       0x0BB2
+    CL = 0x3D       0x0AE4
+    CL = 0x2A       0x0B84
+    CL = 0x28       0x0B77
+    CL = 0x44       0x0B90
+    CL = 0x45       0x0B8D
+    CL = 0x4D       0x0B99
+    CL = 0x29       0x0B26
+    Any other (0)   0x0B93
+
+--
+
     ; Entry: BX = memory location of a lookup table, 3 bytes/entry in this format:
     ;           BYTE    subroutine number
     ;           WORD    subroutine address
