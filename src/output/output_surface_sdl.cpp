@@ -110,8 +110,8 @@ retry:
             if (sdl.clip.x < 0) sdl.clip.x = 0;
             if (sdl.clip.y < 0) sdl.clip.y = 0;
 
-            int fw = std::max((int)sdl.desktop.full.width,  (sdl.clip.x+sdl.clip.w));
-            int fh = std::max((int)sdl.desktop.full.height, (sdl.clip.y+sdl.clip.h));
+            int fw = (std::max)((int)sdl.desktop.full.width,  (sdl.clip.x+sdl.clip.w));
+            int fh = (std::max)((int)sdl.desktop.full.height, (sdl.clip.y+sdl.clip.h));
 
             sdl.surface = SDL_SetVideoMode(fw, fh, bpp, wflags);
             sdl.deferred_resize = false;
