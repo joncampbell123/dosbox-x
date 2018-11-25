@@ -1,4 +1,8 @@
 <next version>
+  - SDL1 fullscreen mode fixed to use either the desktop
+    size or the desired output size, and fallback to
+    non-fullscreen on failure, to fix a segfault that
+    would otherwise happen.
   - CONFIG -set sdl showmenu= now changes menu visibility.
   - CONFIG -set render scaler= fixed to apply changes
     to scaler and force setting, and update menu items,
