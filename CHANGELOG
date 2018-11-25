@@ -1,4 +1,6 @@
 <next version>
+  - SDL2 builds now have a working "Fit aspect ratio"
+    option.
   - SDL1 fullscreen mode fixed to use either the desktop
     size or the desired output size, and fallback to
     non-fullscreen on failure, to fix a segfault that
