@@ -117,7 +117,7 @@ INT DC = 60:36B3
         DS = WORD PTR CS:[0030] = DOS segment 60h
         WORD PTR DS:[05E1] = caller DS
         Store caller AX, SS, SP, DX, BX into DS: [5DB], [5DD], [5DF], [5E3], [5E5]
-        SS:SP = WORD PTR CS:[0030] : 0767
+        SS:SP = WORD PTR CS:[0030] (DOS segment 60h : offset 767h)
         CLD, STI
         PUSH ES, BX, CX, DX, SI, DI
         BYTE PTR DS:[00B4] = 1
