@@ -94,6 +94,9 @@ INT DC = 60:36B3
     CL = 0x29       0x0B26                  ; ESC )
     Any other (0)   0x0B93                  ; ESC (anything else)
 
+    The subroutine for (anything else) sets BYTE PTR [60:128] = 0, cancelling the
+    ESC handling and ignoring the byte.
+
 --
 
     0ADC:00000A7C E2 12 F2 12 E2 12 CA 12 BC 12 F2 12 C3 12 D1 12  ................
