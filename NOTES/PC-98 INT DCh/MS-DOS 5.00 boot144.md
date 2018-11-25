@@ -401,6 +401,18 @@ INT DC = 60:36B3
         SI = 1DBBh
         _fmemcpy(ES:DI,DS:SI,8)
         return
+    0ADC:3AE9: (INT DCh CL=0x09 AX=0x0001)
+        WORD PTR DS:[05DB] = 0xFFFF (caller AX set to 0xFFFF)
+        IF BYTE PTR DS:[1DC4] == 0 JMP 3B1Bh
+        DL = DL AND 0x0F
+        BX = 26Ah
+        CX = (WORD)BYTE PTR DS:[1DC4] * 4
+    0ADC:3B06:
+        IF BYTE PTR DS:[BX+2] != DL JMP 3B15h
+        BYTE PTR DS:[BX+1] = 2
+        WORD PTR DS:[05DB] = 0x0000 (caller AX set to 0x0000)
+        BX += WORD PTR DS:[0268]
+        IF CX > 0 THEN CX--, JMP 3B06h
 
 --
 
