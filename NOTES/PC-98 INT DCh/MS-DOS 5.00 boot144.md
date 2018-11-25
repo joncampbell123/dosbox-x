@@ -88,9 +88,25 @@ INT DC = 60:36B3
     0ADC:0A00 Subroutine lookup table
         Referred from 0ADC:0AAC, CL is single char or first byte of kanji
 
+                  .        .        .        .        .        .
     0ADC:00000A00 07 E7 10 08 19 11 09 F8 10 0A 49 11 0B 3A 11 0C  ..........I..:..
+                        .        .        .        .        .
     0ADC:00000A10 8C 11 0D 5E 11 1A 7D 11 1B C1 10 1E 6B 11 00 B3  ...^..}.....k...
+                    |END
     0ADC:00000A20 11 5B B2 0B 3D E4 0A 2A 84 0B 28 77 0B 44 90 0B  .[..=..*..(w.D..
+
+    CL value    |   Subroutine address
+    CL = 0x07       0x10E7
+    CL = 0x08       0x1119
+    CL = 0x09       0x10F8
+    CL = 0x0A       0x1149
+    CL = 0x0B       0x113A
+    CL = 0x0C       0x118C
+    CL = 0x0D       0x115E
+    CL = 0x1A       0x117D
+    CL = 0x1B       0x10C1
+    CL = 0x1E       0x116B
+    Any other (0)   0x11B3
 
 --
 
