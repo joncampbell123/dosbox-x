@@ -1,4 +1,7 @@
 <next version>
+  - SDL2 Linux/X11 hack, added to compensate for bugs
+    in SDL2 v2.0.5 regarding Linux/X11 touchscreen
+    events, removed. SDL2 v2.0.9 fixed it.
   - Linux/X11 SDL2 builds will now encourage the user
     to update the SDL2 library installation if
     SDL2 library v2.0.5 is installed.

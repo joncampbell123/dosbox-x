@@ -3539,15 +3539,9 @@ void Mapper_FingerInputEvent(SDL_Event &event) {
     memset(&ev,0,sizeof(ev));
     ev.type = SDL_MOUSEBUTTONUP;
 
-#if defined(WIN32)
     /* NTS: Windows versions of SDL2 do normalize the coordinates */
     ev.button.x = (Sint32)(event.tfinger.x * mapper.surface->w);
     ev.button.y = (Sint32)(event.tfinger.y * mapper.surface->h);
-#else
-    /* NTS: Linux versions of SDL2 don't normalize the coordinates? */
-    ev.button.x = event.tfinger.x;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
-    ev.button.y = event.tfinger.y;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
-#endif
 
     Mapper_MouseInputEvent(ev);
 }
