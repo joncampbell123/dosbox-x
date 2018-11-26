@@ -134,8 +134,18 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	GFX_GetSizeAndPos(sx, sy, sw, sh, fs);
 
     int dw,dh;
+#if defined(C_SDL2)
+    {
+        dw = 640; dh = 480;
+
+        SDL_Window* GFX_GetSDLWindow(void);
+        SDL_Window *w = GFX_GetSDLWindow();
+        SDL_GetWindowSize(w,&dw,&dh);
+    }
+#else
     dw = (int)currentWindowWidth;
     dh = (int)currentWindowHeight;
+#endif
 
     if (dw < 640) dw = 640;
     if (dh < 480) dh = 480;
