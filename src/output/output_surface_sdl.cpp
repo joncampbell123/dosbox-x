@@ -336,6 +336,11 @@ retry:
 #endif
     }
 
+    /* WARNING: If the user is resizing our window to smaller than what we want, SDL2 will give us a
+     *          window surface according to the smaller size, and then we crash! */
+    assert(sdl.surface->w >= (sdl.clip.x+sdl.clip.w));
+    assert(sdl.surface->h >= (sdl.clip.y+sdl.clip.h));
+
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     mainMenu.screenWidth = (size_t)sdl.surface->w;
     mainMenu.updateRect();
