@@ -1,4 +1,6 @@
 <next version>
+  - Configuration GUI now available and working in
+    SDL2 builds as well as SDL1.
   - SDL2 builds now have a working "Fit aspect ratio"
     option.
   - SDL1 fullscreen mode fixed to use either the desktop
