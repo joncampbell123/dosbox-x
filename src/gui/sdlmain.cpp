@@ -3322,7 +3322,24 @@ void GFX_SDLMenuTrackHilight(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id)
 
 uint8_t Mouse_GetButtonState(void);
 
+bool GFX_CursorInOrNearScreen(int wx,int wy) {
+    int minx = sdl.clip.x - (sdl.clip.w / 10);
+    int miny = sdl.clip.y - (sdl.clip.h / 10);
+    int maxx = sdl.clip.x + sdl.clip.w + (sdl.clip.w / 10);
+    int maxy = sdl.clip.y + sdl.clip.h + (sdl.clip.h / 10);
+
+    return  (wx >= minx && wx < maxx) && (wy >= miny && wy < maxy);
+}
+
 static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
+    bool inputToScreen = false;
+
+    /* limit mouse input to whenever the cursor is on the screen, or near the edge of the screen. */
+    if (Mouse_GetButtonState() != 0)
+        inputToScreen = true;
+    else
+        inputToScreen = GFX_CursorInOrNearScreen(motion->x,motion->y);
+
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
     if (!sdl.mouse.locked && !sdl.desktop.fullscreen && mainMenu.isVisible() && motion->y < mainMenu.menuBox.h && Mouse_GetButtonState() == 0) {
         GFX_SDLMenuTrackHover(mainMenu,mainMenu.display_list.itemFromPoint(mainMenu,motion->x,motion->y));
@@ -3352,6 +3369,10 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         }
     }
 #endif
+
+    if (!inputToScreen)
+        return;
+
     user_cursor_x      = motion->x - sdl.clip.x;
     user_cursor_y      = motion->y - sdl.clip.y;
     user_cursor_locked = sdl.mouse.locked;
@@ -3459,6 +3480,7 @@ void MenuFreeScreen(void) {
 #endif
 
 static void HandleMouseButton(SDL_MouseButtonEvent * button) {
+    bool inputToScreen = false;
     bool inMenu = false;
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
@@ -3469,6 +3491,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
     else {
         GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
     }
+
+    /* limit mouse input to whenever the cursor is on the screen, or near the edge of the screen. */
+    if (!inMenu)
+        inputToScreen = GFX_CursorInOrNearScreen(button->x,button->y);
 
     if (button->button == SDL_BUTTON_LEFT) {
         if (button->state == SDL_PRESSED) {
@@ -3907,7 +3933,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
  
     switch (button->state) {
     case SDL_PRESSED:
-        if (inMenu) return;
+        if (inMenu || !inputToScreen) return;
         if (sdl.mouse.requestlock && !sdl.mouse.locked && mouse_notify_mode == 0) {
             CaptureMouseNotify();
             GFX_CaptureMouse();

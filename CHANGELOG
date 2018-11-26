@@ -1,4 +1,7 @@
 <next version>
+  - Mouse input and guest pointer integration limited
+    to send input only if within the display region or
+    within a 10% border around the display region.
   - SDL2 tapping the SDL drawn menu bar (on a touch
     screen) no longer triggers mouse click in the
     guest application (bugfix).
