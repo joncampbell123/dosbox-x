@@ -1,4 +1,7 @@
 <next version>
+  - SDL2 tapping the SDL drawn menu bar (on a touch
+    screen) no longer triggers mouse click in the
+    guest application (bugfix).
   - SDL2 Linux/X11 hack, added to compensate for bugs
     in SDL2 v2.0.5 regarding Linux/X11 touchscreen
     events, removed. SDL2 v2.0.9 fixed it.
