@@ -31,7 +31,6 @@
 
 #include "config.h"
 
-#if !defined(C_SDL2)
 #include <SDL.h>
 #include "gui_tk.h"
 
@@ -1401,13 +1400,19 @@ static MouseButton SDL_to_GUI(const int button)
 	case SDL_BUTTON_LEFT:      return GUI::Left;
 	case SDL_BUTTON_RIGHT:     return GUI::Right;
 	case SDL_BUTTON_MIDDLE:    return GUI::Middle;
+#if !defined(C_SDL2)
 	case SDL_BUTTON_WHEELUP:   return GUI::WheelUp;
 	case SDL_BUTTON_WHEELDOWN: return GUI::WheelDown;
+#endif /* !C_SDL2 */
 	default: return GUI::NoButton;
 	}
 }
 
+#if defined(C_SDL2)
+static const Key SDL_to_GUI(const SDL_Keysym &key)
+#else
 static const Key SDL_to_GUI(const SDL_keysym &key)
+#endif
 {
 	GUI::Key::Special ksym = GUI::Key::None;
 	switch (key.sym) {
@@ -1426,22 +1431,36 @@ static const Key SDL_to_GUI(const SDL_keysym &key)
 	case SDLK_MENU: ksym = GUI::Key::Menu; break;
 	case SDLK_PAGEUP: ksym = GUI::Key::PageUp; break;
 	case SDLK_PAGEDOWN: ksym = GUI::Key::PageDown; break;
+#if !defined(C_SDL2)
 	case SDLK_PRINT: ksym = GUI::Key::Print; break;
+#endif
 	case SDLK_PAUSE: ksym = GUI::Key::Pause; break;
+#if !defined(C_SDL2)
 	case SDLK_BREAK: ksym = GUI::Key::Break; break;
+#endif
 	case SDLK_CAPSLOCK: ksym = GUI::Key::CapsLock; break;
+#if !defined(C_SDL2)
 	case SDLK_NUMLOCK: ksym = GUI::Key::NumLock; break;
 	case SDLK_SCROLLOCK: ksym = GUI::Key::ScrollLock; break;
+#endif
 	case SDLK_F1:case SDLK_F2:case SDLK_F3:case SDLK_F4:case SDLK_F5:case SDLK_F6:
 	case SDLK_F7:case SDLK_F8:case SDLK_F9:case SDLK_F10:case SDLK_F11:case SDLK_F12:
 		ksym = (GUI::Key::Special)(GUI::Key::F1 + key.sym-SDLK_F1);
 	default: break;
 	}
+#if defined(C_SDL2)
+	return Key(key.sym, ksym,
+		(key.mod&KMOD_SHIFT)>0,
+		(key.mod&KMOD_CTRL)>0,
+		(key.mod&KMOD_ALT)>0,
+        false);
+#else
 	return Key(key.unicode, ksym,
 		(key.mod&KMOD_SHIFT)>0,
 		(key.mod&KMOD_CTRL)>0,
 		(key.mod&KMOD_ALT)>0,
 		(key.mod&KMOD_META)>0);
+#endif
 }
 
 /** \brief Internal class that handles different screen bit depths and layouts the SDL way */
@@ -1451,7 +1470,9 @@ protected:
 
 public:
 	SDL_Drawable(int width, int height, RGB clear = Color::Transparent) : Drawable(width, height, clear), surface(SDL_CreateRGBSurfaceFrom(buffer, width, height, 32, width*4, Color::RedMask, Color::GreenMask, Color::BlueMask, Color::AlphaMask)) {
+#if !defined(C_SDL2)
 	    surface->flags |= SDL_SRCALPHA;
+#endif
 	}
 
 	~SDL_Drawable() {
@@ -1550,4 +1571,3 @@ bool ScreenSDL::event(const SDL_Event &event) {
 }
 
 } /* end namespace GUI */
-#endif /* !C_SDL2 */
