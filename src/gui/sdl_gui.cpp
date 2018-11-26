@@ -56,19 +56,18 @@ extern bool			MSG_Write(const char *);
 extern void			LoadMessageFile(const char * fname);
 extern void			GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
 
-#if !defined(C_SDL2)
 static int			cursor;
 static bool			running;
 static int			saved_bpp;
 static bool			shell_idle;
+#if !defined(C_SDL2)
 static int			old_unicode;
+#endif
 static bool			mousetoggle;
 static bool			shortcut=false;
 static SDL_Surface*		screenshot;
 static SDL_Surface*		background;
-#endif
 
-#if !defined(C_SDL2)
 /* Prepare screen for UI */
 void GUI_LoadFonts(void) {
 	GUI::Font::addFont("default",new GUI::BitmapFont(int10_font_14,14,10));
@@ -158,8 +157,10 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     assert(sw_draw <= sw);
     assert(sh_draw <= sh);
 
+#if !defined(C_SDL2)
 	old_unicode = SDL_EnableUNICODE(1);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);
+#endif
 	screenshot = SDL_CreateRGBSurface(SDL_SWSURFACE, dw, dh, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
     SDL_FillRect(screenshot,0,0);
 
@@ -207,6 +208,14 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	mousetoggle = mouselocked;
 	if (mouselocked) GFX_CaptureMouse();
 
+#if defined(C_SDL2)
+    extern SDL_Window * GFX_SetSDLSurfaceWindow(Bit16u width, Bit16u height);
+
+    SDL_Window* window = GFX_SetSDLSurfaceWindow(dw, dh);
+    if (window == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
+    SDL_Surface* sdlscreen = SDL_GetWindowSurface(window);
+    if (sdlscreen == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
+#else
 	SDL_Surface* sdlscreen = SDL_SetVideoMode(dw, dh, 32, SDL_SWSURFACE|(fs?SDL_FULLSCREEN:0));
 	if (sdlscreen == NULL) E_Exit("Could not initialize video mode %ix%ix32 for UI: %s", dw, dh, SDL_GetError());
 
@@ -221,9 +230,15 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 		while (SDL_PollEvent(&event)); 
 		SDL_Delay(40); 
 	} 
+#endif
  
 	SDL_BlitSurface(background, NULL, sdlscreen, NULL);
+#if defined(C_SDL2)
+    SDL_Window* GFX_GetSDLWindow(void);
+    SDL_UpdateWindowSurface(GFX_GetSDLWindow());
+#else	
 	SDL_UpdateRect(sdlscreen, 0, 0, 0, 0);
+#endif
 
 	if (screen) screen->setSurface(sdlscreen);
 	else screen = new GUI::ScreenSDL(sdlscreen);
@@ -239,6 +254,9 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 	SDL_Surface *sdlscreen = screen->getSurface();
 	render.src.bpp = (Bitu)saved_bpp;
 
+#if defined(C_SDL2)
+    // TODO
+#else
 	// fade in
 	// Jonathan C: do it FASTER!
 	SDL_Event event;
@@ -250,6 +268,7 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 		while (SDL_PollEvent(&event)) {};
 		SDL_Delay(40); 
 	}
+#endif
 
 	// clean up
 	if (mousetoggle) GFX_CaptureMouse();
@@ -270,8 +289,10 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 	GFX_ResetScreen();
 #endif
 #endif
+#if !defined(C_SDL2)
 	SDL_EnableUNICODE(old_unicode);
 	SDL_EnableKeyRepeat(0,0);
+#endif
 	GFX_SetTitle(-1,-1,-1,false);
 
 	void GFX_ForceRedrawScreen(void);
@@ -876,7 +897,13 @@ static void UI_Execute(GUI::ScreenSDL *screen) {
 		sdlscreen = screen->getSurface();
 		SDL_BlitSurface(background, NULL, sdlscreen, NULL);
 		screen->update(screen->getTime());
+
+#if defined(C_SDL2)
+        SDL_Window* GFX_GetSDLWindow(void);
+        SDL_UpdateWindowSurface(GFX_GetSDLWindow());
+#else
 		SDL_UpdateRect(sdlscreen, 0, 0, 0, 0);
+#endif
 
 		SDL_Delay(40);
 	}
@@ -985,7 +1012,12 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
 		}
 		SDL_BlitSurface(background, NULL, sdlscreen, NULL);
 		screen->update(4);
-		SDL_UpdateRect(sdlscreen, 0, 0, 0, 0);
+#if defined(C_SDL2)
+        SDL_Window* GFX_GetSDLWindow(void);
+        SDL_UpdateWindowSurface(GFX_GetSDLWindow());
+#else	
+        SDL_UpdateRect(sdlscreen, 0, 0, 0, 0);
+#endif
 		SDL_Delay(20);
 	}
 }
@@ -1031,4 +1063,3 @@ void GUI_Run(bool pressed) {
 	UI_Shutdown(screen);
 	delete screen;
 }
-#endif /* !defined(C_SDL2) */
