@@ -17,6 +17,8 @@ Bitu OUTPUT_SURFACE_SetSize()
     Bitu retFlags = 0;
     (void)bpp;
 
+    SDL_SetWindowMinimumSize(sdl.window, 1, 1); /* NTS: 0 x 0 is not valid */
+
 retry:
     sdl.clip.w = sdl.draw.width;
     sdl.clip.h = sdl.draw.height;
@@ -136,6 +138,15 @@ retry:
         sdl.window = GFX_SetSDLWindowMode(final_width, final_height, SCREEN_SURFACE);
         if (sdl.window == NULL)
             E_Exit("Could not set windowed video mode %ix%i: %s", (int)sdl.draw.width, (int)sdl.draw.height, SDL_GetError());
+
+        sdl.surface = SDL_GetWindowSurface(sdl.window);
+        if (sdl.surface->w < (sdl.clip.x+sdl.clip.w) ||
+            sdl.surface->h < (sdl.clip.y+sdl.clip.h)) {
+            /* the window surface must not be smaller than the size we want!
+             * This is a way to prevent that! */
+            SDL_SetWindowMinimumSize(sdl.window, sdl.clip.x+sdl.clip.w, sdl.clip.y+sdl.clip.h);
+            sdl.window = GFX_SetSDLWindowMode(sdl.clip.x+sdl.clip.w, sdl.clip.y+sdl.clip.h, SCREEN_SURFACE);
+        }
     }
     sdl.surface = SDL_GetWindowSurface(sdl.window);
     if (sdl.surface == NULL)
@@ -154,6 +165,11 @@ retry:
         retFlags = GFX_CAN_32;
         break;
     }
+
+    /* WARNING: If the user is resizing our window to smaller than what we want, SDL2 will give us a
+     *          window surface according to the smaller size, and then we crash! */
+    assert(sdl.surface->w >= (sdl.clip.x+sdl.clip.w));
+    assert(sdl.surface->h >= (sdl.clip.y+sdl.clip.h));
 
     sdl.deferred_resize = false;
     sdl.must_redraw_all = true;
