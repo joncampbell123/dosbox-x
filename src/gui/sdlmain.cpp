@@ -3596,16 +3596,9 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                 touchscreen_touch_lock = event.tfinger.touchId;
                                 Sint32 x,y;
 
-#if defined(WIN32)
-                                /* NTS: Windows versions of SDL2 do normalize the coordinates */
-                                x = (Sint32)(event.tfinger.x * sdl.clip.w);
-                                y = (Sint32)(event.tfinger.y * sdl.clip.h);
-#else
-                                /* NTS: Linux versions of SDL2 don't normalize the coordinates? */
-                                x = event.tfinger.x;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
-                                y = event.tfinger.y;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
-#endif
-                                
+                                x = (Sint32)(event.tfinger.x * currentWindowWidth);
+                                y = (Sint32)(event.tfinger.y * currentWindowHeight);
+
                                 memset(&event.button,0,sizeof(event.button));
                                 event.type = SDL_MOUSEBUTTONDOWN;
                                 event.button.x = x;
@@ -3622,15 +3615,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                 touchscreen_touch_lock = no_touch_id;
                                 Sint32 x,y;
 
-#if defined(WIN32)
-                                /* NTS: Windows versions of SDL2 do normalize the coordinates */
-                                x = (Sint32)(event.tfinger.x * sdl.clip.w);
-                                y = (Sint32)(event.tfinger.y * sdl.clip.h);
-#else
-                                /* NTS: Linux versions of SDL2 don't normalize the coordinates? */
-                                x = event.tfinger.x;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
-                                y = event.tfinger.y;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
-#endif
+                                x = (Sint32)(event.tfinger.x * currentWindowWidth);
+                                y = (Sint32)(event.tfinger.y * currentWindowHeight);
                                 
                                 memset(&event.button,0,sizeof(event.button));
                                 event.type = SDL_MOUSEBUTTONUP;
@@ -3646,16 +3632,9 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                 touchscreen_touch_lock == event.tfinger.touchId) {
                                 Sint32 x,y;
 
-#if defined(WIN32)
-                                /* NTS: Windows versions of SDL2 do normalize the coordinates */
-                                x = (Sint32)(event.tfinger.x * sdl.clip.w);
-                                y = (Sint32)(event.tfinger.y * sdl.clip.h);
-#else
-                                /* NTS: Linux versions of SDL2 don't normalize the coordinates? */
-                                x = event.tfinger.x;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
-                                y = event.tfinger.y;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
-#endif
-                                
+                                x = (Sint32)(event.tfinger.x * currentWindowWidth);
+                                y = (Sint32)(event.tfinger.y * currentWindowHeight);
+
                                 memset(&event.button,0,sizeof(event.button));
                                 event.type = SDL_MOUSEMOTION;
                                 event.button.x = x;
@@ -4447,8 +4426,8 @@ static void FingerToFakeMouseMotion(SDL_TouchFingerEvent * finger) {
 
     memset(&fake,0,sizeof(fake));
     /* NTS: Windows versions of SDL2 do normalize the coordinates */
-    fake.x = (Sint32)(finger->x * sdl.clip.w);
-    fake.y = (Sint32)(finger->y * sdl.clip.h);
+    fake.x = (Sint32)(finger->x * currentWindowWidth);
+    fake.y = (Sint32)(finger->y * currentWindowHeight);
     fake.xrel = (Sint32)finger->dx;
     fake.yrel = (Sint32)finger->dy;
     HandleMouseMotion(&fake);
