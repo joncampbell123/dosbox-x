@@ -358,7 +358,7 @@ INT DC = 60:36B3
         BH = BH | 0x40
     0ADC:35F1:
         DX = 0x0100
-        IF WORD PTR [F800:7FFC] == 0 JMP 3605h
+        IF WORD PTR [F800:7FFC] == 0 JMP 3605h (IF WORD at memory address 0xFFFFC == 0)
         DX = DX + 1
     0ADC:3605:
         PUSH AX
