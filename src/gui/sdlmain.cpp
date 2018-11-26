@@ -4461,7 +4461,6 @@ static void HandleTouchscreenFinger(SDL_TouchFingerEvent * finger) {
             touchscreen_finger_lock = finger->fingerId;
             touchscreen_touch_lock = finger->touchId;
             FingerToFakeMouseMotion(finger);
-            Mouse_ButtonPressed(0);
         }
     }
     else if (finger->type == SDL_FINGERUP) {
@@ -4470,7 +4469,6 @@ static void HandleTouchscreenFinger(SDL_TouchFingerEvent * finger) {
             touchscreen_finger_lock = no_finger_id;
             touchscreen_touch_lock = no_touch_id;
             FingerToFakeMouseMotion(finger);
-            Mouse_ButtonReleased(0);
         }
     }
     else if (finger->type == SDL_FINGERMOTION) {
