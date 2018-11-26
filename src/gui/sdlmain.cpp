@@ -766,6 +766,8 @@ void PauseDOSBox(bool pressed) {
 }
 
 #if defined(C_SDL2)
+static bool SDL2_resize_enable = false;
+
 SDL_Window* GFX_GetSDLWindow(void) {
     return sdl.window;
 }
@@ -826,7 +828,8 @@ SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES scree
                                       SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber),
                                       width, height,
                                       (GFX_IsFullscreen() ? (sdl.desktop.full.display_res ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_WINDOW_FULLSCREEN) : 0)
-                                      | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | SDL_WINDOW_SHOWN);
+                                      | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | SDL_WINDOW_SHOWN
+                                      | (SDL2_resize_enable ? SDL_WINDOW_RESIZABLE : 0));
         if (sdl.window) {
             GFX_SetTitle(-1, -1, -1, false); //refresh title.
         }
@@ -846,6 +849,7 @@ SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES scree
      * if one is not interested in scaling.
      * On Android, desktop res is the only way.
      */
+    SDL_SetWindowResizable(sdl.window, SDL2_resize_enable ? SDL_TRUE : SDL_FALSE);
     if (GFX_IsFullscreen()) {
         SDL_DisplayMode displayMode;
         SDL_GetWindowDisplayMode(sdl.window, &displayMode);
@@ -867,6 +871,15 @@ SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES scree
     currentWindowHeight = currHeight;
 
     return sdl.window;
+}
+
+void GFX_SetResizeable(bool enable) {
+    if (SDL2_resize_enable != enable) {
+        SDL2_resize_enable = enable;
+
+        if (sdl.window != NULL)
+            SDL_SetWindowResizable(sdl.window, SDL2_resize_enable ? SDL_TRUE : SDL_FALSE);
+    }
 }
 
 // Used for the mapper UI and more: Creates a fullscreen window with desktop res
@@ -2876,6 +2889,7 @@ static void GUI_StartUp() {
 
 #if defined(C_SDL2)
     /* Initialize screen for first time */
+    GFX_SetResizeable(true);
     if (!GFX_SetSDLSurfaceWindow(640,400))
         E_Exit("Could not initialize video: %s",SDL_GetError());
     sdl.surface = SDL_GetWindowSurface(sdl.window);

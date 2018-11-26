@@ -3849,6 +3849,8 @@ void MAPPER_RunInternal() {
     /* Be sure that there is no update in progress */
     GFX_EndUpdate( 0 );
 #if defined(C_SDL2)
+    void GFX_SetResizeable(bool enable);
+    GFX_SetResizeable(false);
     mapper.window=GFX_SetSDLSurfaceWindow(640,480);
     if (mapper.window == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
     mapper.surface=SDL_GetWindowSurface(mapper.window);
@@ -3903,6 +3905,7 @@ void MAPPER_RunInternal() {
     SDL_FreeSurface(mapper.draw_surface);
     SDL_FreeSurface(mapper.draw_surface_nonpaletted);
     SDL_FreePalette(sdl2_map_pal_ptr);
+    GFX_SetResizeable(true);
 #endif
 #if defined (REDUCE_JOYSTICK_POLLING)
     SDL_JoystickEventState(SDL_DISABLE);

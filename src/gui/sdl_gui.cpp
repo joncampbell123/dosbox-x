@@ -221,6 +221,9 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 #if defined(C_SDL2)
     extern SDL_Window * GFX_SetSDLSurfaceWindow(Bit16u width, Bit16u height);
 
+    void GFX_SetResizeable(bool enable);
+    GFX_SetResizeable(false);
+
     SDL_Window* window = GFX_SetSDLSurfaceWindow(dw, dh);
     if (window == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
     SDL_Surface* sdlscreen = SDL_GetWindowSurface(window);
@@ -294,6 +297,9 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 		SDL_Delay(40); 
 	} 
     SDL_SetSurfaceBlendMode(screenshot, SDL_BLENDMODE_NONE);
+
+    void GFX_SetResizeable(bool enable);
+    GFX_SetResizeable(true);
 #else
 	// fade in
 	// Jonathan C: do it FASTER!
