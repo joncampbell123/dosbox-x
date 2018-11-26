@@ -1061,7 +1061,7 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
 }
 
 void GUI_Shortcut(int select) {
-	if(running) return;
+	if(!select || running) return;
 
     bool GFX_GetPreventFullscreen(void);
 
