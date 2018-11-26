@@ -2650,6 +2650,21 @@ static void GUI_StartUp() {
     LOG(LOG_GUI,LOG_DEBUG)("This version compiled against SDL 1.x");
 #endif
 
+#if defined(C_SDL2)
+    /* while we're here, SDL 2.0.5 has some issues with Linux/X11, encourage the user to update SDL2. */
+    {
+        SDL_version v;
+        SDL_GetVersion(&v);
+        LOG(LOG_GUI,LOG_DEBUG)("SDL2 version %u.%u.%u",v.major,v.minor,v.patch);
+
+# if defined(LINUX)
+        /* Linux/X11 2.0.5 has window positioning issues i.e. with XFCE */
+        if (v.major == 2 && v.minor == 0 && v.patch == 5)
+            LOG_MSG("WARNING: Your SDL2 library is known to have some issues with Linux/X11, please update your SDL2 library");
+# endif
+    }
+#endif
+
     AddExitFunction(AddExitFunctionFuncPair(GUI_ShutDown));
     GUI_LoadFonts();
 
