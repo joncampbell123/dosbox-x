@@ -1,4 +1,5 @@
 <next version>
+  - Fullscreen mode fixed in SDL2 builds.
   - Fixed configuration GUI fade out/in effect after
     exiting mapper GUI bug.
   - Configuration GUI now available and working in
