@@ -668,15 +668,11 @@ bool DOSBox_Paused()
 bool pause_on_vsync = false;
 
 #if defined(C_SDL2)
-bool GFX_IsFullscreen() {
+static bool IsFullscreen() {
     if (sdl.window == NULL) return false;
     uint32_t windowFlags = SDL_GetWindowFlags(sdl.window);
     if (windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) return true;
     return false;
-}
-
-static bool IsFullscreen() {
-    return GFX_IsFullscreen();
 }
 #endif
 
@@ -3904,11 +3900,9 @@ void GFX_LosingFocus(void) {
 static bool PasteClipboardNext(); // added emendelson from dbDOS
 #endif
 
-#if !defined(C_SDL2)
 bool GFX_IsFullscreen(void) {
     return sdl.desktop.fullscreen;
 }
-#endif
 
 #if defined(__WIN32__) && !defined(C_SDL2) && !defined(HX_DOS)
 void OpenFileDialog( char * path_arg ) {
