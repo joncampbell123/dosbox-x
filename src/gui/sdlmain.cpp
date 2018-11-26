@@ -364,6 +364,14 @@ void PrintScreenSizeInfo(void) {
 
 void UpdateWindowDimensions(void)
 {
+#if defined(C_SDL2)
+    int w = 640,h = 480;
+    SDL_GetWindowSize(sdl.window, &w, &h);
+    UpdateWindowDimensions(w,h);
+
+    Uint32 fl = SDL_GetWindowFlags(sdl.window);
+    UpdateWindowMaximized((fl & SDL_WINDOW_MAXIMIZED) != 0);
+#endif
 #if defined(WIN32) && !defined(C_SDL2)
     // When maximized, SDL won't actually tell us our new dimensions, so get it ourselves.
     // FIXME: Instead of GetHWND() we need to track our own handle or add something to SDL 1.x
@@ -3092,6 +3100,29 @@ void GFX_HandleVideoResize(int width, int height) {
             LOG_MSG("SDL2 unable to determine desktop display mode, error %s",SDL_GetError());
         }
     }
+
+    /* assume the resize comes from user preference UNLESS the window
+     * is fullscreen or maximized */
+    if (!menu.maxwindow && !sdl.desktop.fullscreen && !sdl.init_ignore && NonUserResizeCounter == 0 && !window_was_maximized) {
+        UpdateWindowDimensions();
+        UpdateWindowDimensions((unsigned int)width, (unsigned int)height);
+
+        /* if the dimensions actually changed from our surface dimensions, then
+           assume it's the user's input. Linux/X11 is good at doing this anyway,
+           but the Windows SDL 1.x support will return us a resize event for the
+           window size change resulting from SDL mode set. */
+        if (width != sdl.surface->w || height != sdl.surface->h) {
+            userResizeWindowWidth = (unsigned int)width;
+            userResizeWindowHeight = (unsigned int)height;
+        }
+    }
+    else {
+        UpdateWindowDimensions();
+    }
+
+    window_was_maximized = menu.maxwindow;
+    if (NonUserResizeCounter > 0)
+        NonUserResizeCounter--;
 
     /* Even if the new window's dimensions are actually the desired ones
      * we may still need to re-obtain a new window surface or do
