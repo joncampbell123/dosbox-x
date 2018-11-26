@@ -397,9 +397,7 @@ void UpdateWindowDimensions(void)
 # define MAPPERFILE             "mapper-" VERSION ".map"
 #endif
 
-#if !defined(C_SDL2)
 void                        GUI_ResetResize(bool);
-#endif
 void                        GUI_LoadFonts();
 void                        GUI_Run(bool);
 void                        Restart(bool pressed);
@@ -2964,10 +2962,8 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(&GUI_Run, MK_nothing, 0, "gui", "ShowGUI", &item);
     item->set_text("Configuration GUI");
 
-#if !defined(C_SDL2)
     MAPPER_AddHandler(&GUI_ResetResize, MK_nothing, 0, "resetsize", "ResetSize", &item);
     item->set_text("Reset window size");
-#endif
 
     /* EXPERIMENTAL!!!! */
     MAPPER_AddHandler(&GUI_EXP_SaveState, MK_f1, MMODHOST, "exp_savestate", "EX:SvState", &item);
@@ -3077,6 +3073,13 @@ void GFX_RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
     RedrawScreen(nWidth, nHeight);
 }
 
+bool GFX_MustActOnResize() {
+    if (!GFX_IsFullscreen())
+        return false;
+
+    return true;
+}
+
 #if defined(C_SDL2)
 void GFX_HandleVideoResize(int width, int height) {
     /* Maybe a screen rotation has just occurred, so we simply resize.
@@ -3140,13 +3143,6 @@ void GFX_HandleVideoResize(int width, int height) {
     sdl.update_window = true;
 }
 #else
-bool GFX_MustActOnResize() {
-    if (!GFX_IsFullscreen())
-        return false;
-
-    return true;
-}
-
 static void HandleVideoResize(void * event) {
     if(sdl.desktop.fullscreen) return;
 
@@ -7633,10 +7629,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         UpdateOverscanMenu();
 
-#if !defined(C_SDL2)
         void GUI_ResetResize(bool pressed);
         GUI_ResetResize(true);
-#endif
 
         void ConstructMenu(void);
         ConstructMenu();
@@ -8051,7 +8045,6 @@ bool Get_Custom_SaveDir(std::string& savedir) {
     return false;
 }
 
-#if !defined(C_SDL2)
 void GUI_ResetResize(bool pressed) {
     void RENDER_CallBack( GFX_CallBackFunctions_t function );
 
@@ -8071,7 +8064,6 @@ void GUI_ResetResize(bool pressed) {
         RENDER_CallBack(GFX_CallBackReset);
     }
 }
-#endif
 
 bool MOUSE_IsLocked()
 {

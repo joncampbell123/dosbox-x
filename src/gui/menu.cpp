@@ -839,11 +839,11 @@ static const char *def_menu_video[] = {
 #endif
 #ifndef MACOSX
     "mapper_togmenu",
-# if !defined(C_SDL2) && !defined(HX_DOS)
+# if !defined(HX_DOS)
 	"--",
 # endif
 #endif
-#if !defined(C_SDL2) && !defined(HX_DOS)
+#if !defined(HX_DOS)
 	"mapper_resetsize",
 #endif
 	"--",
