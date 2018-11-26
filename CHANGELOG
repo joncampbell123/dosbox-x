@@ -1,4 +1,6 @@
 <next version>
+  - Fixed configuration GUI fade out/in effect after
+    exiting mapper GUI bug.
   - Configuration GUI now available and working in
     SDL2 builds as well as SDL1.
   - SDL2 builds now have a working "Fit aspect ratio"
