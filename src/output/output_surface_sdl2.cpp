@@ -40,14 +40,100 @@ retry:
         }
     }
     else {
+        int width = sdl.draw.width;
+        int height = sdl.draw.height;
         int menuheight = 0;
+
+        sdl.clip.x = 0; sdl.clip.y = 0;
+
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+        /* scale the menu bar if the window is large enough */
+        {
+            Bitu consider_height = menu.maxwindow ? currentWindowHeight : height;
+            Bitu consider_width = menu.maxwindow ? currentWindowWidth : width;
+            Bitu final_height = max(max(consider_height, userResizeWindowHeight), (Bitu)(sdl.clip.y + sdl.clip.h));
+            Bitu final_width = max(max(consider_width, userResizeWindowWidth), (Bitu)(sdl.clip.x + sdl.clip.w));
+            Bitu scale = 1;
+
+            while ((final_width / scale) >= (640 * 2) && (final_height / scale) >= (400 * 2))
+                scale++;
+
+            LOG_MSG("menuScale=%lu", (unsigned long)scale);
+            mainMenu.setScale(scale);
+        }
+
         if (mainMenu.isVisible()) menuheight = mainMenu.menuBox.h;
 #endif
 
-        sdl.clip.x = sdl.overscan_width;
-        sdl.clip.y = sdl.overscan_width + menuheight;
-        sdl.window = GFX_SetSDLWindowMode(sdl.draw.width + 2 * sdl.overscan_width, sdl.draw.height + menuheight + 2 * sdl.overscan_width, SCREEN_SURFACE);
+        /* menu size and consideration of width and height */
+        Bitu consider_height = height + (unsigned int)menuheight + (sdl.overscan_width * 2);
+        Bitu consider_width = width + (sdl.overscan_width * 2);
+
+        if (menu.maxwindow) {
+            if (consider_height < currentWindowHeight)
+                consider_height = currentWindowHeight;
+            if (consider_width < currentWindowWidth)
+                consider_width = currentWindowWidth;
+        }
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+        if (mainMenu.isVisible())
+        {
+            /* enforce a minimum 640x400 surface size.
+             * the menus are useless below 640x400 */
+            if (consider_width < (640 + (sdl.overscan_width * 2)))
+                consider_width = (640 + (sdl.overscan_width * 2));
+            if (consider_height < (400 + (sdl.overscan_width * 2) + (unsigned int)menuheight))
+                consider_height = (400 + (sdl.overscan_width * 2) + (unsigned int)menuheight);
+        }
+#endif
+
+        /* decide where the rectangle on the screen goes */
+        int final_width,final_height,ax,ay;
+
+#if C_XBRZ
+        /* scale to fit the window.
+         * fit by aspect ratio if asked to do so. */
+        if (sdl_xbrz.enable)
+        {
+            final_height = (int)max(consider_height, userResizeWindowHeight) - (int)menuheight - ((int)sdl.overscan_width * 2);
+            final_width = (int)max(consider_width, userResizeWindowWidth) - ((int)sdl.overscan_width * 2);
+
+            sdl.clip.x = sdl.clip.y = 0;
+            sdl.clip.w = final_width;
+            sdl.clip.h = final_height;
+            if (render.aspect) aspectCorrectFitClip(sdl.clip.w, sdl.clip.h, sdl.clip.x, sdl.clip.y, final_width, final_height);
+        }
+        else
+#endif 
+        /* center the screen in the window */
+        {
+
+            final_height = (int)max(max(consider_height, userResizeWindowHeight), (Bitu)(sdl.clip.y + sdl.clip.h)) - (int)menuheight - ((int)sdl.overscan_width * 2);
+            final_width = (int)max(max(consider_width, userResizeWindowWidth), (Bitu)(sdl.clip.x + sdl.clip.w)) - ((int)sdl.overscan_width * 2);
+            ax = (final_width - (sdl.clip.x + sdl.clip.w)) / 2;
+            ay = (final_height - (sdl.clip.y + sdl.clip.h)) / 2;
+            if (ax < 0) ax = 0;
+            if (ay < 0) ay = 0;
+            sdl.clip.x += ax + (int)sdl.overscan_width;
+            sdl.clip.y += ay + (int)sdl.overscan_width;
+            // sdl.clip.w = currentWindowWidth - sdl.clip.x;
+            // sdl.clip.h = currentWindowHeight - sdl.clip.y;
+        }
+
+        {
+            final_width += (int)sdl.overscan_width * 2;
+            final_height += (int)menuheight + (int)sdl.overscan_width * 2;
+            sdl.clip.y += (int)menuheight;
+
+            LOG_MSG("surface consider=%ux%u final=%ux%u",
+                (unsigned int)consider_width,
+                (unsigned int)consider_height,
+                (unsigned int)final_width,
+                (unsigned int)final_height);
+        }
+
+        sdl.window = GFX_SetSDLWindowMode(final_width, final_height, SCREEN_SURFACE);
         if (sdl.window == NULL)
             E_Exit("Could not set windowed video mode %ix%i: %s", (int)sdl.draw.width, (int)sdl.draw.height, SDL_GetError());
     }
