@@ -799,6 +799,10 @@ SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES scree
         if (!sdl.update_window) {
             SDL_GetWindowSize(sdl.window, &currWidth, &currHeight);
             sdl.update_display_contents = ((width == currWidth) && (height == currHeight));
+
+            currentWindowWidth = currWidth;
+            currentWindowHeight = currHeight;
+
             return sdl.window;
         }
     }
@@ -828,6 +832,10 @@ SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES scree
         }
         SDL_GetWindowSize(sdl.window, &currWidth, &currHeight);
         sdl.update_display_contents = ((width == currWidth) && (height == currHeight));
+
+        currentWindowWidth = currWidth;
+        currentWindowHeight = currHeight;
+
         return sdl.window;
     }
     /* Fullscreen mode switching has its limits, and is also problematic on
@@ -854,6 +862,10 @@ SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES scree
     /* Maybe some requested fullscreen resolution is unsupported? */
     SDL_GetWindowSize(sdl.window, &currWidth, &currHeight);
     sdl.update_display_contents = ((width == currWidth) && (height == currHeight));
+
+    currentWindowWidth = currWidth;
+    currentWindowHeight = currHeight;
+
     return sdl.window;
 }
 
