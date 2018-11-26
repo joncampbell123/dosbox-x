@@ -215,6 +215,21 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     if (window == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
     SDL_Surface* sdlscreen = SDL_GetWindowSurface(window);
     if (sdlscreen == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
+
+	// fade out
+	// Jonathan C: do it FASTER!
+	SDL_Event event;
+    SDL_SetSurfaceBlendMode(screenshot, SDL_BLENDMODE_BLEND);
+	for (int i = 0xff; i > 0; i -= 0x30) { 
+		SDL_SetSurfaceAlphaMod(screenshot, i); 
+		SDL_BlitSurface(background, NULL, sdlscreen, NULL); 
+		SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
+        SDL_Window* GFX_GetSDLWindow(void);
+        SDL_UpdateWindowSurface(GFX_GetSDLWindow());
+		while (SDL_PollEvent(&event)); 
+		SDL_Delay(40); 
+	} 
+    SDL_SetSurfaceBlendMode(screenshot, SDL_BLENDMODE_NONE);
 #else
 	SDL_Surface* sdlscreen = SDL_SetVideoMode(dw, dh, 32, SDL_SWSURFACE|(fs?SDL_FULLSCREEN:0));
 	if (sdlscreen == NULL) E_Exit("Could not initialize video mode %ix%ix32 for UI: %s", dw, dh, SDL_GetError());
@@ -255,7 +270,20 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 	render.src.bpp = (Bitu)saved_bpp;
 
 #if defined(C_SDL2)
-    // TODO
+	// fade in
+	// Jonathan C: do it FASTER!
+	SDL_Event event;
+    SDL_SetSurfaceBlendMode(screenshot, SDL_BLENDMODE_BLEND);
+	for (unsigned int i = 0x00; i < 0xff; i += 0x30) {
+		SDL_SetSurfaceAlphaMod(screenshot, i); 
+		SDL_BlitSurface(background, NULL, sdlscreen, NULL); 
+		SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
+        SDL_Window* GFX_GetSDLWindow(void);
+        SDL_UpdateWindowSurface(GFX_GetSDLWindow());
+		while (SDL_PollEvent(&event)); 
+		SDL_Delay(40); 
+	} 
+    SDL_SetSurfaceBlendMode(screenshot, SDL_BLENDMODE_NONE);
 #else
 	// fade in
 	// Jonathan C: do it FASTER!
