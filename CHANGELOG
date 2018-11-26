@@ -1,4 +1,7 @@
 <next version>
+  - Linux/X11 SDL2 builds will now encourage the user
+    to update the SDL2 library installation if
+    SDL2 library v2.0.5 is installed.
   - Fullscreen mode fixed in SDL2 builds.
   - Fixed configuration GUI fade out/in effect after
     exiting mapper GUI bug.
