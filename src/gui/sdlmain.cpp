@@ -2735,6 +2735,19 @@ static void GUI_StartUp() {
         }
     }
     sdl.desktop.doublebuf=section->Get_bool("fulldouble");
+#if defined(C_SDL2)
+    {
+        SDL_DisplayMode dm;
+        if (SDL_GetDesktopDisplayMode(0/*FIXME display index*/,&dm) == 0) {
+            sdl.desktop.full.width = dm.w;
+            sdl.desktop.full.height = dm.h;
+            LOG_MSG("SDL2 reports desktop display mode %u x %u",dm.w,dm.h);
+        }
+        else {
+            LOG_MSG("SDL2 unable to determine desktop display mode, error %s",SDL_GetError());
+        }
+    }
+#endif
 #if !defined(C_SDL2)
   #if SDL_VERSION_ATLEAST(1, 2, 10)
     if (!sdl.desktop.full.width || !sdl.desktop.full.height){
@@ -2748,12 +2761,13 @@ static void GUI_StartUp() {
   #endif
 #endif
 
-    int width=1024;// int height=768;
+    int width=1024;
+    int height=768;
     if (!sdl.desktop.full.width) {
         sdl.desktop.full.width=width;
     }
     if (!sdl.desktop.full.height) {
-        sdl.desktop.full.height=width;
+        sdl.desktop.full.height=height;
     }
     sdl.mouse.autoenable=section->Get_bool("autolock");
     if (!sdl.mouse.autoenable) SDL_ShowCursor(SDL_DISABLE);
@@ -3036,6 +3050,18 @@ void GFX_HandleVideoResize(int width, int height) {
            The older values from application startup are returned. */
         sdl.desktop.full.width = width;
         sdl.desktop.full.height = height;
+    }
+    /* TODO: Only if FULLSCREEN_DESKTOP */
+    {
+        SDL_DisplayMode dm;
+        if (SDL_GetDesktopDisplayMode(0/*FIXME display index*/,&dm) == 0) {
+            sdl.desktop.full.width = dm.w;
+            sdl.desktop.full.height = dm.h;
+            LOG_MSG("SDL2 reports desktop display mode %u x %u",dm.w,dm.h);
+        }
+        else {
+            LOG_MSG("SDL2 unable to determine desktop display mode, error %s",SDL_GetError());
+        }
     }
 
     /* Even if the new window's dimensions are actually the desired ones
