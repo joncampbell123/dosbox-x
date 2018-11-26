@@ -307,6 +307,72 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:355B: (CL=0Ah entry point)
+        IF WORD PTR DS:[1802] != 0 JMP 3563h
+        return
+    0ADC:3563: (CL=0Ah and WORD PTR DS:[1802] == 0)
+        IF (BYTE PTR DS:[0037] & 8) != 0 JMP 357Eh
+    0ADC:356A:
+        AH = 00h
+        INT 19h
+        CX = 0
+        IF AH == 0 JMP 3579h
+        CX = 0xFFFF
+    0ADC:3579:
+        WORD PTR DS:[05DB],CX (AX value to return to caller)
+        return
+    0ADC:357E:
+        IF (AH & 0xF0) != 0 JMP 3597h
+        BYTE PTR DS:[0068],DH
+        PUSH DX
+        DL = (DL AND 0x0F)
+        BYTE PTR DS:[0069] = (BYTE PTR DS:[0069] & 0xF0) | DL
+        POP DX
+        JMP 35A4h
+    0ADC:3597:
+        IF AH > 0x20 JMP 35A3h
+        IF WORD PTR DS:[17FA] != 0 JMP 35A4h
+    0ADC:35A3:
+        return
+    0ADC:35A4:
+        AH = (DL & 0x30)
+        BX = AH >> 3
+        ES = WORD PTR DS:[1802]
+        DI = WORD PTR ES:[BX+0x40]
+        AH = AH | 7
+        BX = 0
+        IF (DH & 1) == 0 JMP 35C9h
+        BH = BH | 0x30
+    0ADC:35C9:
+        AL = (DL & 0x0F) + 1
+        DH = ((DH & 0xFE) | 0x02)
+    0ADC:35D5:
+        IF (AH & 0x30) != 0 JMP 35E1h
+        IF (AL & 0x08) != 0 JMP 35E1h
+        DH = DH | 1
+    0ADC:35E1:
+        CH = DH
+        CL = 37h
+        AL = AL - 2
+        IF (CH & 0x04) != 0 JMP 35F1h
+        BH = BH | 0x40
+    0ADC:35F1:
+        DX = 0x0100
+        IF WORD PTR [F800:7FFC] == 0 JMP 3605h
+        DX = DX + 1
+    0ADC:3605:
+        PUSH AX
+        INT 19h, RESULT = AH
+        POP AX
+        IF RESULT == 0 JMP 3614h
+        WORD PTR DS:[05DB] = 0xFFFF (returned to caller as AX)
+        return
+    0ADC:3614:
+        WORD PTR DS:[05DB] = 0x0000 (returned to caller as AX)
+        return
+
+--
+
     0ADC:378E: (CL=10h entry point)
         BX = WORD PTR DS:[05DB] caller's AX value
         BX = (BX >> 8)   (BX = caller's AH value)
