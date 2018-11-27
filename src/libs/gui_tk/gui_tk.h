@@ -1819,6 +1819,10 @@ protected:
         (void)x;//UNUSED
 		y -= 2;
 		selected = -1;
+
+        // mouse input should select nothing if outside the bounds of this menu
+        if (x < 0 || x >= width || y < 0 || y >= height) return;
+
 		const int height = Font::getFont("menu")->getHeight()+2;
 		std::vector<String>::iterator i;
 		for (i = items.begin(); i != items.end() && y > 0; ++i) {
