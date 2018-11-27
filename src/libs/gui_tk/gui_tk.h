@@ -1860,25 +1860,40 @@ public:
 
 	/// Highlight current item.
 	virtual bool mouseMoved(int x, int y)  {
-		selectItem(x,y);
-		return true;
+        if (visible) {
+    		selectItem(x,y);
+	    	return true;
+        }
+
+        return false;
 	}
 
 	/// Highlight current item.
 	virtual bool mouseDragged(int x, int y, MouseButton button)  {
         (void)button;//UNUSED	
-		selectItem(x,y);
-		return true;
+
+        if (visible) {
+            selectItem(x,y);
+            return true;
+        }
+
+        return false;
 	}
 
 	virtual bool mouseDown(int x, int y, MouseButton button)  {
         (void)button;//UNUSED
         (void)x;//UNUSED
-        (void)y;//UNUSED	
-        return true;
+        (void)y;//UNUSED
+
+        if (visible)
+            return true;
+
+        return false;
     }
 
 	virtual bool mouseDownOutside(MouseButton button) {
+        (void)button;//UNUSED
+
         if (visible) {
             setVisible(false);
             selected = -1;
@@ -1891,25 +1906,33 @@ public:
 	/// Possibly select item.
 	virtual bool mouseUp(int x, int y, MouseButton button)  {
         (void)button;//UNUSED
-	
-		selectItem(x,y);
-		if (firstMouseUp) firstMouseUp = false;
-		else setVisible(false);
-		execute();
-		return true;
-	}
+
+        if (visible) {
+            selectItem(x,y);
+            if (firstMouseUp) firstMouseUp = false;
+            else setVisible(false);
+            execute();
+            return true;
+        }
+
+        return false;
+    }
 
 	/// Handle keyboard input.
 	virtual bool keyDown(const Key &key) {
-		if (key.special == Key::Up) selected--;
-		else if (key.special == Key::Down) selected++;
-		else if (key.special == Key::Enter) { execute(); return true; }
-		else if (key.special == Key::Escape) { setVisible(false); selected = -1; return true; }
-		else return true;
-		if (items[(unsigned int)selected].size() == 0 && items.size() > 1) return keyDown(key);
-		if (selected < 0) selected = (int)(items.size()-1);
-		if (selected >= (int)items.size()) selected = 0;
-		return true;
+        if (visible) {
+            if (key.special == Key::Up) selected--;
+            else if (key.special == Key::Down) selected++;
+            else if (key.special == Key::Enter) { execute(); return true; }
+            else if (key.special == Key::Escape) { setVisible(false); selected = -1; return true; }
+            else return true;
+            if (items[(unsigned int)selected].size() == 0 && items.size() > 1) return keyDown(key);
+            if (selected < 0) selected = (int)(items.size()-1);
+            if (selected >= (int)items.size()) selected = 0;
+            return true;
+        }
+
+        return false;
 	}
 
 
