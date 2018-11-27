@@ -534,7 +534,8 @@ Window::Window(Window *parent, int x, int y, int w, int h) :
 	dirty(true),
 	visible(true),
 	parent(parent),
-	mouseChild(NULL)
+	mouseChild(NULL),
+    transient(false)
 {
 	parent->addChild(this);
 }
@@ -755,6 +756,29 @@ void ToplevelWindow::paint(Drawable &d) const
 	d.drawLine(32,5,32,30);
 
     bool active = hasFocus();
+
+    // FIX: "has focus" is defined as "being at the back of the child list".
+    //      Transient windows such as menus will steal focus, but we don't
+    //      want the title to flash inactive every time a menu comes up.
+    //      Avoid that by searching backwards past transient windows above
+    //      us to check if we'd be at the top anyway without the transient windows.
+    if (!active) {
+        auto i = parent->children.rbegin();
+        while (i != parent->children.rend()) {
+            Window *w = *i;
+
+            if (w->transient) {
+                i++;
+            }
+            else if (w == this) {
+                active = true;
+                break;
+            }
+            else {
+                break;
+            }
+        }
+    }
 
 	d.setColor(active ? Color::Titlebar : Color::TitlebarInactive);
 	d.fillRect(33,5,width-39,26);

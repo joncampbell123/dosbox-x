@@ -538,6 +538,9 @@ protected:
 	/** It receives all drag/up/click/doubleclick events until an up event is received */
 	Window  *mouseChild;
 
+    /// \c true if this window is transient (such as menu popus)
+    bool transient;
+
 	/// Child windows.
 	/** Z ordering is done in list order. The first element is the lowermost
 	 *  window. This window's content is below all children. */
@@ -1731,6 +1734,7 @@ public:
 			last = p;
 			p = p->getParent();
 		}
+        transient = true;
 		dynamic_cast<ToplevelWindow *>(last2)->addCloseHandler(this);
 	}
 
