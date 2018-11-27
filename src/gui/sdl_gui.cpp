@@ -864,12 +864,6 @@ public:
 			bar->addItem(1, name);
 			i++;
 		}
-
-		if (first_shell) {
-			(new GUI::Button(this, 12+(i/7)*110, 50+(i%7)*35, "Keyboard", 100))->addActionHandler(this);
-			bar->addItem(1, "");
-			bar->addItem(1, "Keyboard");
-		}
 	}
 
 	~ConfigurationWindow() { running = false; }
