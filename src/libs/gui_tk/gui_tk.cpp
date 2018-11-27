@@ -1511,6 +1511,16 @@ void ScreenSDL::paint(Drawable &d) const {
 bool ScreenSDL::event(const SDL_Event &event) {
 	bool rc;
 
+#if defined(C_SDL2)
+    /* handle mouse events only if it comes from the mouse.
+     * ignore the fake mouse events some OSes generate from the touchscreen.
+     * Note that Windows will fake mouse events, Linux/X11 wil not */
+    if (event.type == SDL_MOUSEMOTION || event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
+        if (event.button.which != SDL_TOUCH_MOUSEID) /* don't handle mouse events faked by touchscreen */
+            return false;
+    }
+#endif
+
 	switch (event.type) {
 	case SDL_KEYUP: {
 		const Key &key = SDL_to_GUI(event.key.keysym);
