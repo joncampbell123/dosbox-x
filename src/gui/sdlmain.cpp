@@ -6288,9 +6288,7 @@ bool dos_mouse_y_axis_reverse_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::
 bool dos_mouse_sensitivity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-#if !defined(C_SDL2)
     GUI_Shortcut(2);
-#endif
     return true;
 }
 
@@ -6791,7 +6789,6 @@ bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
 }
 
 void SetCyclesCount_mapper_shortcut_RunInternal(void) {
-#if !defined(C_SDL2)
     void MAPPER_ReleaseAllKeys(void);
     MAPPER_ReleaseAllKeys();
 
@@ -6803,7 +6800,6 @@ void SetCyclesCount_mapper_shortcut_RunInternal(void) {
     MAPPER_ReleaseAllKeys();
 
     GFX_LosingFocus();
-#endif
 }
 
 void SetCyclesCount_mapper_shortcut_RunEvent(Bitu /*val*/) {

@@ -725,9 +725,7 @@ static const char *def_menu_cpu[] = {
     "--",
     "mapper_cycleup",
     "mapper_cycledown",
-#if !defined(C_SDL2)
 	"mapper_editcycles",
-#endif
     "--",
     "CpuCoreMenu",
     "CpuTypeMenu",
@@ -873,10 +871,8 @@ static const char *def_menu_dos[] = {
 static const char *def_menu_dos_mouse[] = {
     "dos_mouse_enable_int33",
     "dos_mouse_y_axis_reverse",
-#if !defined(C_SDL2)
     "--",
     "dos_mouse_sensitivity",
-#endif
     NULL
 };
 
@@ -1122,9 +1118,7 @@ extern bool dos_shell_running_program;
 bool GFX_GetPreventFullscreen(void);
 void DOSBox_ShowConsole();
 
-#if !defined(C_SDL2)
 void GUI_ResetResize(bool pressed);
-#endif
 
 std::string MSCDEX_Output(int num) {
 	std::string MSCDEX_MSG = "GUI: MSCDEX ";
