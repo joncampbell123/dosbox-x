@@ -1420,6 +1420,14 @@ static const Key SDL_to_GUI(const SDL_keysym &key)
 {
 	GUI::Key::Special ksym = GUI::Key::None;
 	switch (key.sym) {
+#if !defined(C_SDL2) /* hack for SDL1 that fails to send char code for spacebar up event */
+    case SDLK_SPACE:
+    	return Key(' ', ksym,
+    		(key.mod&KMOD_SHIFT)>0,
+    		(key.mod&KMOD_CTRL)>0,
+    		(key.mod&KMOD_ALT)>0,
+    		(key.mod&KMOD_META)>0);
+#endif
 	case SDLK_ESCAPE: ksym = GUI::Key::Escape; break;
 	case SDLK_BACKSPACE: ksym = GUI::Key::Backspace; break;
 	case SDLK_TAB: ksym = GUI::Key::Tab; break;
