@@ -1878,6 +1878,16 @@ public:
         return true;
     }
 
+	virtual bool mouseDownOutside(MouseButton button) {
+        if (visible) {
+            setVisible(false);
+            selected = -1;
+            return true;
+        }
+
+        return false;
+    }
+
 	/// Possibly select item.
 	virtual bool mouseUp(int x, int y, MouseButton button)  {
         (void)button;//UNUSED
@@ -1894,7 +1904,7 @@ public:
 		if (key.special == Key::Up) selected--;
 		else if (key.special == Key::Down) selected++;
 		else if (key.special == Key::Enter) { execute(); return true; }
-		else if (key.special == Key::Escape) { setVisible(false); return true; }
+		else if (key.special == Key::Escape) { setVisible(false); selected = -1; return true; }
 		else return true;
 		if (items[(unsigned int)selected].size() == 0 && items.size() > 1) return keyDown(key);
 		if (selected < 0) selected = (int)(items.size()-1);
@@ -1925,6 +1935,11 @@ public:
 			raise();
 			firstMouseUp = true;
 		}
+
+        // NTS: Do not set selected = -1 here on hide, other code in this C++
+        //      class relies on calling setVisible() then acting on selection.
+        //      Unless of course you want to hunt down random and sporadic
+        //      segfaults. --J.C.
 	}
 
 	/// Execute menu item.
