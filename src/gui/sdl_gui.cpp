@@ -886,10 +886,12 @@ public:
 			UI_Startup(dynamic_cast<GUI::ScreenSDL*>(getScreen()));
 		} else if (sname == "autoexec") {
 			Section_line *section = static_cast<Section_line *>(control->GetSection((const char *)sname));
-			new AutoexecEditor(getScreen(), 50, 30, section);
+			auto *np = new AutoexecEditor(getScreen(), 50, 30, section);
+            np->raise();
 		} else if ((sec = control->GetSection((const char *)sname))) {
 			Section_prop *section = static_cast<Section_prop *>(sec);
-			new SectionEditor(getScreen(), 50, 30, section);
+			auto *np = new SectionEditor(getScreen(), 50, 30, section);
+            np->raise();
 		} else if (arg == "About") {
             const char *msg = PACKAGE_STRING " (C) 2002-" COPYRIGHT_END_YEAR " The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
 			new GUI::MessageBox2(getScreen(), 100, 150, 480, "About DOSBox-X", msg);
