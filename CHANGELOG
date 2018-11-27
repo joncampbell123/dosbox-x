@@ -1,4 +1,7 @@
 <next version>
+  - INT 33h fixed to regard cursor as hidden if hidden
+    for at least 100ms, which fixes host cursor flickering
+    when running the built-in FreeDOS EDIT.COM program.
   - Mouse input and guest pointer integration limited
     to send input only if within the display region or
     within a 10% border around the display region.
