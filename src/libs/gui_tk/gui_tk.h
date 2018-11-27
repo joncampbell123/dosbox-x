@@ -1978,11 +1978,13 @@ public:
 	}
 
 	virtual void setVisible(bool v) {
-		TransientWindow::setVisible(v);
+        if (!visible && v)
+            firstMouseUp = true;
+
+        TransientWindow::setVisible(v);
 		if (v) {
 			parent->mouseChild = this;
 			raise();
-			firstMouseUp = true;
 		}
 
         // NTS: Do not set selected = -1 here on hide, other code in this C++
