@@ -3510,12 +3510,6 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
         GFX_SDLMenuTrackHover(mainMenu,DOSBoxMenu::unassigned_item_handle);
     }
 
-    /* limit mouse input to whenever the cursor is on the screen, or near the edge of the screen. */
-    if (sdl.mouse.locked)
-        inputToScreen = true;
-    else if (!inMenu)
-        inputToScreen = GFX_CursorInOrNearScreen(button->x,button->y);
-
     if (button->button == SDL_BUTTON_LEFT) {
         if (button->state == SDL_PRESSED) {
             GFX_SDLMenuTrackHilight(mainMenu,mainMenu.menuUserHoverAt);
@@ -3950,7 +3944,13 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
         }
     }
 #endif
- 
+
+    /* limit mouse input to whenever the cursor is on the screen, or near the edge of the screen. */
+    if (sdl.mouse.locked)
+        inputToScreen = true;
+    else if (!inMenu)
+        inputToScreen = GFX_CursorInOrNearScreen(button->x, button->y);
+
     switch (button->state) {
     case SDL_PRESSED:
         if (inMenu || !inputToScreen) return;
