@@ -3335,7 +3335,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     bool inputToScreen = false;
 
     /* limit mouse input to whenever the cursor is on the screen, or near the edge of the screen. */
-    if (Mouse_GetButtonState() != 0)
+    if (sdl.mouse.locked || Mouse_GetButtonState() != 0)
         inputToScreen = true;
     else
         inputToScreen = GFX_CursorInOrNearScreen(motion->x,motion->y);
@@ -3493,7 +3493,9 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
     }
 
     /* limit mouse input to whenever the cursor is on the screen, or near the edge of the screen. */
-    if (!inMenu)
+    if (sdl.mouse.locked)
+        inputToScreen = true;
+    else if (!inMenu)
         inputToScreen = GFX_CursorInOrNearScreen(button->x,button->y);
 
     if (button->button == SDL_BUTTON_LEFT) {
