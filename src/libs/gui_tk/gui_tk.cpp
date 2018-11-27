@@ -1531,6 +1531,7 @@ bool ScreenSDL::event(const SDL_Event &event) {
 
         memset(&fake,0,sizeof(fake));
         fake.type = SDL_MOUSEMOTION;
+        fake.motion.state = SDL_BUTTON(1);
         fake.motion.x = (Sint32)(event.tfinger.x * surface->w);
         fake.motion.y = (Sint32)(event.tfinger.y * surface->h);
         fake.motion.xrel = (Sint32)event.tfinger.dx;
