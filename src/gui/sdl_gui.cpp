@@ -21,6 +21,8 @@
 #include "menu.h"
 #include "../libs/gui_tk/gui_tk.h"
 
+#include "build_timestamp.h"
+
 #include "dosbox.h"
 #include "keyboard.h"
 #include "video.h"
@@ -891,7 +893,8 @@ public:
 			Section_prop *section = static_cast<Section_prop *>(sec);
 			new SectionEditor(getScreen(), 50, 30, section);
 		} else if (arg == "About") {
-			new GUI::MessageBox2(getScreen(), 200, 150, 280, "About DOSBox", "\nDOSBox-X\nAn emulator for old DOS Games\n\nCopyright 2002-2014\nThe DOSBox Team");
+            const char *msg = PACKAGE_STRING " (C) 2002-" COPYRIGHT_END_YEAR " The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
+			new GUI::MessageBox2(getScreen(), 100, 150, 480, "About DOSBox-X", msg);
 		} else if (arg == "Introduction") {
 			new GUI::MessageBox2(getScreen(), 20, 50, 600, "Introduction", MSG_Get("PROGRAM_INTRO"));
 		} else if (arg == "Getting Started") {
