@@ -1,4 +1,6 @@
 <next version>
+  - Configuration GUI now works with touchscreens in
+    SDL2 builds.
   - INT 33h fixed to regard cursor as hidden if hidden
     for at least 100ms, which fixes host cursor flickering
     when running the built-in FreeDOS EDIT.COM program.
