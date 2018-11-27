@@ -673,19 +673,24 @@ bool Window::mouseDownOutside(MouseButton button) {
 bool Window::mouseDown(int x, int y, MouseButton button)
 {
 	std::list<Window *>::reverse_iterator i = children.rbegin();
+    bool handled = false;
 	Window *last = NULL;
 
 	while (i != children.rend()) {
 		Window *w = *i;
 
 		if (w->visible && x >= w->x && x <= w->x+w->width && y >= w->y && y <= w->y+w->height) {
+            if (handled) {
+                mouseChild = NULL;
+                return true;
+            }
 			mouseChild = last = w;
 			if (w->mouseDown(x-w->x, y-w->y, button) && w->raise()) {
 				return true;
 			}
 		}
         else if (w->transient) {
-            w->mouseDownOutside(button);
+            handled |= w->mouseDownOutside(button);
         }
 
 		i++;
@@ -693,7 +698,7 @@ bool Window::mouseDown(int x, int y, MouseButton button)
 
 	mouseChild = NULL;
 	if (last != NULL) last->raise();
-	return false;
+	return handled;
 }
 
 bool Window::mouseUp(int x, int y, MouseButton button)

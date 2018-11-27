@@ -1758,9 +1758,13 @@ public:
 	virtual int getY() const { return y-realparent->getScreenY(); }
 	virtual void setVisible(bool v) { if (v) raise(); Window::setVisible(v); }
 	virtual void windowMoved(Window *src, int x, int y) { (void)src; (void)x; (void)y; move(relx,rely); }
-	virtual bool mouseDownOutside(MouseButton button) {
-        setVisible(false);
-        return true;
+    virtual bool mouseDownOutside(MouseButton button) {
+        if (visible) {
+            setVisible(false);
+            return true;
+        }
+
+        return false;
     }
 
 	/// Put window on top of all other windows without changing their relative order
