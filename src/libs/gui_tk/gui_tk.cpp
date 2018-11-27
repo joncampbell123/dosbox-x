@@ -652,6 +652,24 @@ bool Window::mouseDragged(int x, int y, MouseButton button)
 	return mouseChild->mouseDragged(x-mouseChild->x, y-mouseChild->y, button);
 }
 
+bool Window::mouseDownOutside(MouseButton button) {
+	std::list<Window *>::reverse_iterator i = children.rbegin();
+    bool handled = false;
+
+	while (i != children.rend()) {
+		Window *w = *i;
+
+		if (w->hasFocus()) {
+			if (w->mouseDownOutside(button))
+				handled = true;
+		}
+
+		i++;
+	}
+
+    return handled;
+}
+
 bool Window::mouseDown(int x, int y, MouseButton button)
 {
 	std::list<Window *>::reverse_iterator i = children.rbegin();
@@ -666,6 +684,9 @@ bool Window::mouseDown(int x, int y, MouseButton button)
 				return true;
 			}
 		}
+        else if (w->transient) {
+            w->mouseDownOutside(button);
+        }
 
 		i++;
 	}

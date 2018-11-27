@@ -644,6 +644,9 @@ public:
 	virtual bool mouseClicked(int x, int y, MouseButton button);
 	/// Mouse was double-clicked. Returns true if event was handled.
 	virtual bool mouseDoubleClicked(int x, int y, MouseButton button);
+	/// Mouse was pressed outside the bounds of the window, if this window has focus (for transient windows). Returns true if event was handled.
+    /// Transient windows by default should disappear.
+	virtual bool mouseDownOutside(MouseButton button);
 
 	/// Key was pressed. Returns true if event was handled.
 	virtual bool keyDown(const Key &key);
@@ -1755,6 +1758,10 @@ public:
 	virtual int getY() const { return y-realparent->getScreenY(); }
 	virtual void setVisible(bool v) { if (v) raise(); Window::setVisible(v); }
 	virtual void windowMoved(Window *src, int x, int y) { (void)src; (void)x; (void)y; move(relx,rely); }
+	virtual bool mouseDownOutside(MouseButton button) {
+        setVisible(false);
+        return true;
+    }
 
 	/// Put window on top of all other windows without changing their relative order
 	virtual bool raise() {
