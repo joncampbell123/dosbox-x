@@ -1872,6 +1872,7 @@ public:
 	/// Highlight current item.
 	virtual bool mouseMoved(int x, int y)  {
         if (visible) {
+            firstMouseUp = false;
     		selectItem(x,y);
 	    	return true;
         }
@@ -1881,6 +1882,7 @@ public:
 
     void mouseMovedOutside(void) {
         if (visible && selected >= 0) {
+            firstMouseUp = false;
             selected = -1;
             setDirty();
         }
@@ -1891,6 +1893,9 @@ public:
         (void)button;//UNUSED	
 
         if (visible) {
+            if (x >= 0 && x < width && y >= 0 && y < height)
+                firstMouseUp = false;
+
             selectItem(x,y);
             return true;
         }
