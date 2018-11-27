@@ -533,7 +533,6 @@ static void MOUNT_ProgramStart(Program * * make) {
     *make=new MOUNT;
 }
 
-#if !defined(C_SDL2)
 void GUI_Run(bool pressed);
 
 class SHOWGUI : public Program {
@@ -546,7 +545,6 @@ public:
 static void SHOWGUI_ProgramStart(Program * * make) {
     *make=new SHOWGUI;
 }
-#endif
 
 extern bool custom_bios;
 extern Bit32u floppytype;
@@ -4672,9 +4670,7 @@ void DOS_SetupPrograms(void) {
         PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart);
 
     PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
-#if !defined(C_SDL2)
     PROGRAMS_MakeFile("SHOWGUI.COM",SHOWGUI_ProgramStart);
-#endif
     PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
     PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart);
 
