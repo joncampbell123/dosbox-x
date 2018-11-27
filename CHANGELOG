@@ -1,4 +1,7 @@
 <next version>
+  - About dialog in configuration GUI updated to
+    reflect that this is DOSBox-X in 2018, not
+    DOSBox in 2014.
   - Configuration GUI now works with touchscreens in
     SDL2 builds.
   - INT 33h fixed to regard cursor as hidden if hidden
