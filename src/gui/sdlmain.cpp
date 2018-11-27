@@ -3402,7 +3402,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 #if defined(C_SDL2)
         if (!sdl.mouse.locked)
 #else
-        /* Linux/X11 has some sort of weird mouse warping bug in fullscreen mode no matter whether the mouse is captured or not */
+        /* SDL1 has some sort of weird mouse warping bug in fullscreen mode no matter whether the mouse is captured or not (Windows, Linux/X11) */
         if (!sdl.mouse.locked && !sdl.desktop.fullscreen)
 #endif
             SDL_ShowCursor((isdown || inside) ? SDL_DISABLE : SDL_ENABLE);
@@ -3417,7 +3417,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 #if defined(C_SDL2)
         if (!sdl.mouse.locked)
 #else
-        /* Linux/X11 has some sort of weird mouse warping bug in fullscreen mode no matter whether the mouse is captured or not */
+        /* SDL1 has some sort of weird mouse warping bug in fullscreen mode no matter whether the mouse is captured or not (Windows, Linux/X11) */
         if (!sdl.mouse.locked && !sdl.desktop.fullscreen)
 #endif
             SDL_ShowCursor(((!inside) || ((MOUSE_IsHidden()) && !(MOUSE_IsBeingPolled() || MOUSE_HasInterruptSub()))) ? SDL_ENABLE : SDL_DISABLE);
