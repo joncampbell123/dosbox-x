@@ -929,7 +929,8 @@ static void UI_Execute(GUI::ScreenSDL *screen) {
 	SDL_Event event;
 
 	sdlscreen = screen->getSurface();
-	new ConfigurationWindow(screen, 30, 30, "DOSBox Configuration");
+	auto *cfg_wnd = new ConfigurationWindow(screen, 30, 30, "DOSBox Configuration");
+    cfg_wnd->raise();
 
 	// event loop
 	while (running) {
