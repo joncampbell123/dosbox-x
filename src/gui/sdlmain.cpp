@@ -3370,8 +3370,17 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     }
 #endif
 
-    if (!inputToScreen)
+    if (!inputToScreen) {
+#if defined(C_SDL2)
+        if (!sdl.mouse.locked)
+#else
+        /* SDL1 has some sort of weird mouse warping bug in fullscreen mode no matter whether the mouse is captured or not (Windows, Linux/X11) */
+        if (!sdl.mouse.locked && !sdl.desktop.fullscreen)
+#endif
+            SDL_ShowCursor(SDL_ENABLE);
+ 
         return;
+    }
 
     user_cursor_x      = motion->x - sdl.clip.x;
     user_cursor_y      = motion->y - sdl.clip.y;
