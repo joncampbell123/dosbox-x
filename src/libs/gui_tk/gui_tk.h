@@ -2215,6 +2215,9 @@ public:
 		close = new GUI::Button(this, width/2-40, 10, "Close", 70);
 		close->addActionHandler(this);
 		setText(text);
+
+		close->raise(); /* make sure keyboard focus is on the close button */
+		this->raise(); /* make sure THIS WINDOW has the keyboard focus */
 	}
 
 	/// Set a new text. Size of the box is adjusted accordingly.
