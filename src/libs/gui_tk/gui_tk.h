@@ -541,6 +541,9 @@ protected:
     /// \c true if this window is transient (such as menu popus)
     bool transient;
 
+    /// \c mouse is within the boundaries of the window
+    bool mouse_in_window;
+
 	/// Child windows.
 	/** Z ordering is done in list order. The first element is the lowermost
 	 *  window. This window's content is below all children. */
@@ -616,7 +619,7 @@ public:
 
 	/// Show or hide this window.
 	/** By default, most windows are shown when created. Hidden windows do not receive any events. */
-	virtual void setVisible(bool v) { visible = !!v; parent->setDirty(); }
+	virtual void setVisible(bool v) { visible = !!v; parent->setDirty(); if (!visible) mouse_in_window = false; }
 
 	/// Returns \c true if this window is visible.
 	virtual bool isVisible() const { return (!parent || parent->isVisible()) && visible; }
@@ -633,6 +636,8 @@ public:
 
 	/// Mouse was moved. Returns true if event was handled.
 	virtual bool mouseMoved(int x, int y);
+	/// Mouse was moved outside the window (when it was once inside the window)
+	virtual void mouseMovedOutside(void);
 	/// Mouse was moved while a button was pressed. Returns true if event was handled.
 	virtual bool mouseDragged(int x, int y, MouseButton button);
 	/// Mouse was pressed. Returns true if event was handled.
@@ -1869,6 +1874,13 @@ public:
 
         return false;
 	}
+
+    void mouseMovedOutside(void) {
+        if (visible && selected >= 0) {
+            selected = -1;
+            setDirty();
+        }
+    }
 
 	/// Highlight current item.
 	virtual bool mouseDragged(int x, int y, MouseButton button)  {

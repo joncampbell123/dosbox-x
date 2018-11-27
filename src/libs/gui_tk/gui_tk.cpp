@@ -535,7 +535,8 @@ Window::Window(Window *parent, int x, int y, int w, int h) :
 	visible(true),
 	parent(parent),
 	mouseChild(NULL),
-    transient(false)
+    transient(false),
+    mouse_in_window(false)
 {
 	parent->addChild(this);
 }
@@ -631,6 +632,9 @@ bool Window::keyUp(const Key &key)
 	return (*children.rbegin())->keyUp(key);
 }
 
+void Window::mouseMovedOutside(void) {
+}
+
 bool Window::mouseMoved(int x, int y)
 {
 	std::list<Window *>::reverse_iterator i = children.rbegin();
@@ -641,8 +645,16 @@ bool Window::mouseMoved(int x, int y)
 		end = (i == children.rend());
 		if (w->visible && x >= w->x && x <= w->x+w->width
 			&& y >= w->y && y <= w->y+w->height
-			&& w->mouseMoved(x-w->x, y-w->y)) return true;
+			&& w->mouseMoved(x-w->x, y-w->y)) {
+            w->mouse_in_window = true;
+            return true;
+        }
+        else if (w->mouse_in_window) {
+            w->mouse_in_window = false;
+            w->mouseMovedOutside();
+        }
 	}
+
 	return false;
 }
 
