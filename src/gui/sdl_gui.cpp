@@ -533,7 +533,7 @@ public:
 			while ((p = sec->Get_prop(i++))) {
 				msg += std::string("\033[34m")+p->propname+":\033[0m "+p->Get_help()+"\n";
 			}
-			msg.replace(msg.end()-1,msg.end(),"");
+            if (!msg.empty()) msg.replace(msg.end()-1,msg.end(),"");
 			setText(msg);
 		} else {
 		std::string name = section->GetName();
