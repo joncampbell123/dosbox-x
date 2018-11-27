@@ -48,6 +48,8 @@ namespace Color {
 	RGB EditableBackground =	0xffffffff;
 	RGB Titlebar =			0xff000080;
 	RGB TitlebarText =		0xffffffff;
+	RGB TitlebarInactive =			0xffffffff;
+	RGB TitlebarInactiveText =		0xff7f7f7f;
 }
 
 std::map<const char *,Font *,Font::ltstr> Font::registry;
@@ -752,11 +754,13 @@ void ToplevelWindow::paint(Drawable &d) const
 	d.setColor(Color::Border);
 	d.drawLine(32,5,32,30);
 
-	d.setColor(Color::Titlebar);
+    bool active = hasFocus();
+
+	d.setColor(active ? Color::Titlebar : Color::TitlebarInactive);
 	d.fillRect(33,5,width-39,26);
 
 	const Font *font = Font::getFont("title");
-	d.setColor(Color::TitlebarText);
+	d.setColor(active ? Color::TitlebarText : Color::TitlebarInactiveText);
 	d.setFont(font);
 	d.drawText(31+(width-39-font->getWidth(title))/2,5+(26-font->getHeight())/2+font->getAscent(),title,false,0);
 }

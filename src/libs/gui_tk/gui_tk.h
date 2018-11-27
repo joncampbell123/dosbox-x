@@ -238,6 +238,12 @@ extern RGB Titlebar;
 /// Title bar text color for windows. May be customized.
 extern RGB TitlebarText;
 
+/// Title bar color for windows. May be customized.
+extern RGB TitlebarInactive;
+
+/// Title bar text color for windows. May be customized.
+extern RGB TitlebarInactiveText;
+
 /// Convert separate r, g, b and a values (each 0-255) to an RGB value.
 static inline RGB rgba(unsigned int r, unsigned int g, unsigned int b, unsigned int a=0) {
 	return (((r&255)<<RedShift)|((g&255)<<GreenShift)|((b&255)<<BlueShift)|((a&255)<<AlphaShift));
