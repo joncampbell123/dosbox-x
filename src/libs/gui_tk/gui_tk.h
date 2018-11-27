@@ -1759,6 +1759,8 @@ public:
 	virtual void setVisible(bool v) { if (v) raise(); Window::setVisible(v); }
 	virtual void windowMoved(Window *src, int x, int y) { (void)src; (void)x; (void)y; move(relx,rely); }
     virtual bool mouseDownOutside(MouseButton button) {
+        (void)button;
+
         if (visible) {
             setVisible(false);
             return true;
@@ -1921,8 +1923,16 @@ public:
 	/// Handle keyboard input.
 	virtual bool keyDown(const Key &key) {
         if (visible) {
-            if (key.special == Key::Up) selected--;
-            else if (key.special == Key::Down) selected++;
+            if (key.special == Key::Up) {
+                if (selected == 0)
+                    selected = items.size() - 1;
+                else
+                    selected--;
+            }
+            else if (key.special == Key::Down) {
+                if ((size_t)(++selected) == items.size())
+                    selected = 0;
+            }
             else if (key.special == Key::Enter) { execute(); return true; }
             else if (key.special == Key::Escape) { setVisible(false); selected = -1; return true; }
             else return true;
