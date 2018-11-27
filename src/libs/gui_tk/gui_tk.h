@@ -1921,6 +1921,9 @@ public:
 		if (selected >= 0) {
 			setVisible(false);
 			executeAction(items[(unsigned int)selected]);
+
+            // once executed, forget the selection
+            selected = -1;
 		}
 	}
 };
