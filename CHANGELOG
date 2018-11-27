@@ -1,4 +1,6 @@
 <next version>
+  - Configuration GUI top level windows no longer show
+    inactive title bar whenever you access a menu.
   - About dialog in configuration GUI updated to
     reflect that this is DOSBox-X in 2018, not
     DOSBox in 2014.
