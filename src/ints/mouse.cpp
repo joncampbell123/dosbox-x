@@ -159,6 +159,7 @@ static struct {
     Bit16u last_released_y[MOUSE_BUTTONS];
     Bit16u last_pressed_x[MOUSE_BUTTONS];
     Bit16u last_pressed_y[MOUSE_BUTTONS];
+    pic_tickindex_t hidden_at;
     Bit16u hidden;
     float add_x,add_y;
     Bit16s min_x,max_x,min_y,max_y;
@@ -924,7 +925,10 @@ void Mouse_NewVideoMode(void) {
         break;
     }
     mouse.mode = mode;
-    mouse.hidden = 1;
+    if (!mouse.hidden) {
+        mouse.hidden = 1;
+        mouse.hidden_at = PIC_FullIndex();
+    }
 
     if (cell_granularity_disable) {
         mouse.gran_x = (Bit16s)0xffff;
@@ -962,7 +966,11 @@ static void Mouse_Reset(void) {
     /* Remove drawn mouse Legends of Valor */
     if (CurMode->type!=M_TEXT) RestoreCursorBackground();
     else RestoreCursorBackgroundText();
-    mouse.hidden = 1;
+
+    if (!mouse.hidden) {
+        mouse.hidden = 1;
+        mouse.hidden_at = PIC_FullIndex();
+    }
 
     Mouse_NewVideoMode();
     Mouse_SetMickeyPixelRate(8,16);
@@ -1003,6 +1011,7 @@ static Bitu INT33_Handler(void) {
         {
             if (CurMode->type!=M_TEXT) RestoreCursorBackground();
             else RestoreCursorBackgroundText();
+            if (mouse.hidden == 0) mouse.hidden_at = PIC_FullIndex();
             mouse.hidden++;
         }
         break;
@@ -1232,7 +1241,10 @@ static Bitu INT33_Handler(void) {
         SegSet16(es,0);    
         mouse.enabled=false; /* Just for reporting not doing a thing with it */
         mouse.oldhidden=mouse.hidden;
-        mouse.hidden=1;
+        if (!mouse.hidden) {
+            mouse.hidden = 1;
+            mouse.hidden_at = PIC_FullIndex();
+        }
         break;
     case 0x20:  /* Enable Mousedriver */
         mouse.enabled=true;
@@ -1525,7 +1537,12 @@ void MOUSE_Startup(Section *sec) {
     //  iret
 
     memset(&mouse,0,sizeof(mouse));
-    mouse.hidden = 1; //Hide mouse on startup
+
+    if (!mouse.hidden) {
+        mouse.hidden = 1;
+        mouse.hidden_at = PIC_FullIndex();
+    }
+
     mouse.timer_in_progress = false;
     mouse.mode = 0xFF; //Non existing mode
     mouse.scrollwheel = 0;
@@ -1551,7 +1568,9 @@ void MOUSE_Init() {
 
 bool MOUSE_IsHidden()
 {
-    return static_cast<bool>(mouse.hidden);
+    /* mouse is returned hidden IF hidden for more than 100ms.
+     * rapidly hiding/showing should not signal hidden (FreeDOS EDIT.COM) */
+    return static_cast<bool>(mouse.hidden) && (PIC_FullIndex() >= (mouse.hidden_at + 100));
 }
 
 bool MOUSE_IsBeingPolled()
