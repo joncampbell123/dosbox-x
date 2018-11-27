@@ -461,6 +461,8 @@ HWND GetHWND()
 {
     SDL_SysWMinfo wmi;
     SDL_VERSION(&wmi.version);
+    if (sdl.window == NULL)
+        return nullptr;
     if (!SDL_GetWindowWMInfo(sdl.window, &wmi))
         return nullptr;
     return wmi.info.win.window;
