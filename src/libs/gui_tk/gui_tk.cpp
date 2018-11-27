@@ -1522,6 +1522,33 @@ bool ScreenSDL::event(const SDL_Event &event) {
 #endif
 
 	switch (event.type) {
+#if defined(C_SDL2)
+    case SDL_FINGERUP:
+    case SDL_FINGERDOWN:
+    case SDL_FINGERMOTION: {
+        SDL_Event fake;
+        bool comb = false;
+
+        memset(&fake,0,sizeof(fake));
+        fake.type = SDL_MOUSEMOTION;
+        fake.motion.x = (Sint32)(event.tfinger.x * surface->w);
+        fake.motion.y = (Sint32)(event.tfinger.y * surface->h);
+        fake.motion.xrel = (Sint32)event.tfinger.dx;
+        fake.motion.yrel = (Sint32)event.tfinger.dy;
+        comb |= this->event(fake);
+
+        if (event.type == SDL_FINGERUP || event.type == SDL_FINGERDOWN) {
+            memset(&fake,0,sizeof(fake));
+            fake.button.button = SDL_BUTTON_LEFT;
+            fake.button.x = (Sint32)(event.tfinger.x * surface->w);
+            fake.button.y = (Sint32)(event.tfinger.y * surface->h);
+            fake.type = (event.type == SDL_FINGERUP) ? SDL_MOUSEBUTTONUP : SDL_MOUSEBUTTONDOWN;
+            comb |= this->event(fake);
+        }
+
+        return comb;
+    }
+#endif
 	case SDL_KEYUP: {
 		const Key &key = SDL_to_GUI(event.key.keysym);
 		if (key.special == GUI::Key::None && key.character == 0) break;
