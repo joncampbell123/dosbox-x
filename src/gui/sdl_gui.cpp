@@ -740,8 +740,6 @@ public:
 		(new GUI::Button(this, 210, 70, "OK", 70))->addActionHandler(this);
 
 		name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
-		this->raise(); /* make sure THIS WINDOW has the keyboard focus */
-
 		name->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
 	}
 
@@ -973,11 +971,12 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
 		case 1:
 			new SaveDialog(screen, 90, 100, "Save Configuration...");
 			break;
-		case 2:
+		case 2: {
 			sec = control->GetSection("sdl");
 			section=static_cast<Section_prop *>(sec); 
-			new SectionEditor(screen,50,30,section);
-			break;
+			auto *p = new SectionEditor(screen,50,30,section);
+            p->raise();
+            } break;
 		case 3:
 			sec = control->GetSection("dosbox");
 			section=static_cast<Section_prop *>(sec); 
@@ -1010,9 +1009,10 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
 		case 9:
 			new SaveLangDialog(screen, 90, 100, "Save Language File...");
 			break;
-		case 10:
-			new ConfigurationWindow(screen, 30, 30, "DOSBox Configuration");
-			break;
+		case 10: {
+			auto *np = new ConfigurationWindow(screen, 30, 30, "DOSBox Configuration");
+            np->raise();
+            } break;
 		case 11:
 			sec = control->GetSection("parallel");
 			section=static_cast<Section_prop *>(sec);
@@ -1038,15 +1038,18 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
 			section=static_cast<Section_prop *>(sec);
 			new SectionEditor(screen,50,30,section);
 			break;
-		case 16:
-			new SetCycles(screen, 90, 100, "Set CPU Cycles...");
-			break;
-		case 17:
-			new SetVsyncrate(screen, 90, 100, "Set vertical syncrate...");
-			break;
-		case 18:
-			new SetLocalSize(screen, 90, 100, "Set Default Local Freesize...");
-			break;
+		case 16: {
+			auto *np1 = new SetCycles(screen, 90, 100, "Set CPU Cycles...");
+            np1->raise();
+            } break;
+		case 17: {
+			auto *np2 = new SetVsyncrate(screen, 90, 100, "Set vertical syncrate...");
+            np2->raise();
+            } break;
+		case 18: {
+			auto *np3 = new SetLocalSize(screen, 90, 100, "Set Default Local Freesize...");
+            np3->raise();
+            } break;
 		default:
 			break;
 	}
