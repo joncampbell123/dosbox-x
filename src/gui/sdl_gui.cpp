@@ -548,20 +548,25 @@ class SectionEditor : public GUI::ToplevelWindow {
 	Section_prop * section;
 public:
 	SectionEditor(GUI::Screen *parent, int x, int y, Section_prop *section) :
-		ToplevelWindow(parent, x, y, 510, 300, ""), section(section) {
+		ToplevelWindow(parent, x, y, 510, 442, ""), section(section) {
 		if (section == NULL) {
 			LOG_MSG("BUG: SectionEditor constructor called with section == NULL\n");
 			return;
 		}
+
+        int items_per_col = 11;
+
+        int button_row_y = 40 + (items_per_col * 30);
+
 		std::string title(section->GetName());
 		title[0] = std::toupper(title[0]);
 		setTitle("Configuration for "+title);
 		new GUI::Label(this, 5, 10, "Settings:");
-		GUI::Button *b = new GUI::Button(this, 120, 220, "Cancel", 70);
+		GUI::Button *b = new GUI::Button(this, 120, button_row_y, "Cancel", 70);
 		b->addActionHandler(this);
-		b = new GUI::Button(this, 200, 220, "Help", 70);
+		b = new GUI::Button(this, 200, button_row_y, "Help", 70);
 		b->addActionHandler(this);
-		b = new GUI::Button(this, 280, 220, "OK", 70);
+		b = new GUI::Button(this, 280, button_row_y, "OK", 70);
 
 		int i = 0;
 		Property *prop;
@@ -575,13 +580,13 @@ public:
 			Prop_multival_remain* pmulti_remain = dynamic_cast<Prop_multival_remain*>(prop);
 
 			PropertyEditor *p;
-			if (pbool) p = new PropertyEditorBool(this, 5+250*(i/6), 40+(i%6)*30, section, prop);
-			else if (phex) p = new PropertyEditorHex(this, 5+250*(i/6), 40+(i%6)*30, section, prop);
-			else if (pint) p = new PropertyEditorInt(this, 5+250*(i/6), 40+(i%6)*30, section, prop);
-			else if (pdouble) p = new PropertyEditorFloat(this, 5+250*(i/6), 40+(i%6)*30, section, prop);
-			else if (pstring) p = new PropertyEditorString(this, 5+250*(i/6), 40+(i%6)*30, section, prop);
-			else if (pmulti) p = new PropertyEditorString(this, 5+250*(i/6), 40+(i%6)*30, section, prop);
-			else if (pmulti_remain) p = new PropertyEditorString(this, 5+250*(i/6), 40+(i%6)*30, section, prop);
+			if (pbool) p = new PropertyEditorBool(this, 5+250*(i/items_per_col), 40+(i%items_per_col)*30, section, prop);
+			else if (phex) p = new PropertyEditorHex(this, 5+250*(i/items_per_col), 40+(i%items_per_col)*30, section, prop);
+			else if (pint) p = new PropertyEditorInt(this, 5+250*(i/items_per_col), 40+(i%items_per_col)*30, section, prop);
+			else if (pdouble) p = new PropertyEditorFloat(this, 5+250*(i/items_per_col), 40+(i%items_per_col)*30, section, prop);
+			else if (pstring) p = new PropertyEditorString(this, 5+250*(i/items_per_col), 40+(i%items_per_col)*30, section, prop);
+			else if (pmulti) p = new PropertyEditorString(this, 5+250*(i/items_per_col), 40+(i%items_per_col)*30, section, prop);
+			else if (pmulti_remain) p = new PropertyEditorString(this, 5+250*(i/items_per_col), 40+(i%items_per_col)*30, section, prop);
 			else { i++; continue; }
 			b->addActionHandler(p);
 			i++;
