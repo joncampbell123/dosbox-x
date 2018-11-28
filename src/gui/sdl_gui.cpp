@@ -566,6 +566,11 @@ public:
         int items_per_col = 1;
         int columns = 1;
 
+        /* HACK: The titlebar doesn't look very good if the dialog is one column wide
+         *       and the text spills over the nearby UI elements... */
+        if ((strlen(section->GetName())+18) > 26)
+            columns++;
+
         /* NTS: Notice assign from compute then compare */
         while ((items_per_col=((num_prop+columns-1)/columns)) > items_per_col_max)
             columns++;
