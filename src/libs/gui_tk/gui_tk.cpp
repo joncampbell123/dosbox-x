@@ -621,6 +621,7 @@ bool Window::keyDown(const Key &key)
 		return (i != e);
 	} else {
 		std::list<Window *>::iterator i = children.begin(), e = children.end();
+        --e;
 		while (i != e && !(*i)->raise()) ++i;
 		return (i != e);
 	}
