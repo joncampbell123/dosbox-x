@@ -554,19 +554,41 @@ public:
 			return;
 		}
 
-        int items_per_col = 11;
+        int first_row_y = 40;
+        int row_height = 30;
+        int first_column_x = 5;
+        int column_width = 250;
 
-        int button_row_y = 40 + (items_per_col * 30);
+        int num_prop = 0;
+		while (section->Get_prop(num_prop) != NULL) num_prop++;
+
+        int items_per_col_max = 11;
+        int items_per_col = 1;
+        int columns = 1;
+
+        /* NTS: Notice assign from compute then compare */
+        while ((items_per_col=((num_prop+columns-1)/columns)) > items_per_col_max)
+            columns++;
+
+        int button_row_y = first_row_y + (items_per_col * row_height);
+        int button_row_h = 26;
+        int button_w = 70;
+        int button_pad_w = 10;
+        int button_row_w = ((button_pad_w + button_w) * 3) - button_pad_w;
+        int button_row_cx = first_column_x + (((columns * column_width) + first_column_x - button_row_w) / 2);
+
+        resize(first_column_x + (columns * column_width) + first_column_x + border_left + border_right,
+               button_row_y + 5 + button_row_h + 5 + border_top + border_bottom);
 
 		std::string title(section->GetName());
 		title[0] = std::toupper(title[0]);
 		setTitle("Configuration for "+title);
 		new GUI::Label(this, 5, 10, "Settings:");
-		GUI::Button *b = new GUI::Button(this, 120, button_row_y, "Cancel", 70);
+		GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Cancel", button_w);
 		b->addActionHandler(this);
-		b = new GUI::Button(this, 200, button_row_y, "Help", 70);
+		b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, "Help", button_w);
 		b->addActionHandler(this);
-		b = new GUI::Button(this, 280, button_row_y, "OK", 70);
+		b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, "OK", button_w);
 
 		int i = 0;
 		Property *prop;
@@ -580,13 +602,13 @@ public:
 			Prop_multival_remain* pmulti_remain = dynamic_cast<Prop_multival_remain*>(prop);
 
 			PropertyEditor *p;
-			if (pbool) p = new PropertyEditorBool(this, 5+250*(i/items_per_col), 40+(i%items_per_col)*30, section, prop);
-			else if (phex) p = new PropertyEditorHex(this, 5+250*(i/items_per_col), 40+(i%items_per_col)*30, section, prop);
-			else if (pint) p = new PropertyEditorInt(this, 5+250*(i/items_per_col), 40+(i%items_per_col)*30, section, prop);
-			else if (pdouble) p = new PropertyEditorFloat(this, 5+250*(i/items_per_col), 40+(i%items_per_col)*30, section, prop);
-			else if (pstring) p = new PropertyEditorString(this, 5+250*(i/items_per_col), 40+(i%items_per_col)*30, section, prop);
-			else if (pmulti) p = new PropertyEditorString(this, 5+250*(i/items_per_col), 40+(i%items_per_col)*30, section, prop);
-			else if (pmulti_remain) p = new PropertyEditorString(this, 5+250*(i/items_per_col), 40+(i%items_per_col)*30, section, prop);
+			if (pbool) p = new PropertyEditorBool(this, first_column_x+column_width*(i/items_per_col), first_row_y+(i%items_per_col)*row_height, section, prop);
+			else if (phex) p = new PropertyEditorHex(this, first_column_x+column_width*(i/items_per_col), first_row_y+(i%items_per_col)*row_height, section, prop);
+			else if (pint) p = new PropertyEditorInt(this, first_column_x+column_width*(i/items_per_col), first_row_y+(i%items_per_col)*row_height, section, prop);
+			else if (pdouble) p = new PropertyEditorFloat(this, first_column_x+column_width*(i/items_per_col), first_row_y+(i%items_per_col)*row_height, section, prop);
+			else if (pstring) p = new PropertyEditorString(this, first_column_x+column_width*(i/items_per_col), first_row_y+(i%items_per_col)*row_height, section, prop);
+			else if (pmulti) p = new PropertyEditorString(this, first_column_x+column_width*(i/items_per_col), first_row_y+(i%items_per_col)*row_height, section, prop);
+			else if (pmulti_remain) p = new PropertyEditorString(this, first_column_x+column_width*(i/items_per_col), first_row_y+(i%items_per_col)*row_height, section, prop);
 			else { i++; continue; }
 			b->addActionHandler(p);
 			i++;
