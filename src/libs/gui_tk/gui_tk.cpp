@@ -533,6 +533,7 @@ Window::Window(Window *parent, int x, int y, int w, int h) :
 	x(x), y(y),
 	dirty(true),
 	visible(true),
+    tabbable(true),
 	parent(parent),
 	mouseChild(NULL),
     transient(false),
@@ -617,12 +618,26 @@ bool Window::keyDown(const Key &key)
 	if (key.shift) {
 		std::list<Window *>::reverse_iterator i = children.rbegin(), e = children.rend();
 		++i;
-		while (i != e && !(*i)->raise()) ++i;
-		return (i != e);
+        while (i != e) {
+            if ((*i)->tabbable) {
+                if ((*i)->raise())
+                    break;
+            }
+
+            ++i;
+        }
+        return (i != e);
 	} else {
 		std::list<Window *>::iterator i = children.begin(), e = children.end();
         --e;
-		while (i != e && !(*i)->raise()) ++i;
+		while (i != e) {
+            if ((*i)->tabbable) {
+                if ((*i)->raise())
+                    break;
+            }
+
+            ++i;
+        }
 		return (i != e);
 	}
 }

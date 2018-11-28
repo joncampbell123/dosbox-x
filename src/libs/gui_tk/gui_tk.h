@@ -531,6 +531,9 @@ protected:
 	/// \c true if this window should be visible on screen.
 	bool visible;
 
+    /// \c true if the user should be allowed to TAB to this window.
+    bool tabbable;
+
 	/// Parent window.
 	Window *const parent;
 
@@ -1416,7 +1419,7 @@ public:
 	/** If \p width is given, the resulting label is a word-wrapped multiline label */
 	template <typename STR> Label(Window *parent, int x, int y, const STR text, int width = 0, const Font *font = Font::getFont("default"), RGB color = Color::Text) :
 		Window(parent, x, y, (width?width:1), 1), font(font), color(color), text(text), interpret(width != 0)
-	{ resize(); }
+	{ resize(); tabbable = false; }
 
 	/// Set a new text. Size of the label is adjusted accordingly.
 	template <typename STR> void setText(const STR text) { this->text = text; resize(); }
@@ -1862,7 +1865,7 @@ public:
 	 *  always the screen the logical parent resides on. */
 	template <typename STR> Menu(Window *parent, int x, int y, const STR name) :
 		TransientWindow(parent,x,y,4,4), ActionEventSource(name), selected(-1)
-		{ setVisible(false); }
+		{ setVisible(false); tabbable = false; }
 
 	~Menu() {
 		setVisible(false);
@@ -2111,7 +2114,7 @@ protected:
 public:
 	/// Create a menubar with given position and size
 	/** Height is autocalculated from font size */
-	Menubar(Window *parent, int x, int y, int w) : Window(parent,x,y,w,Font::getFont("menu")->getHeight()+5), ActionEventSource("GUI::Menubar"), selected(-1), lastx(0) {}
+	Menubar(Window *parent, int x, int y, int w) : Window(parent,x,y,w,Font::getFont("menu")->getHeight()+5), ActionEventSource("GUI::Menubar"), selected(-1), lastx(0) { tabbable = false; }
 
 	/// Add a Menu.
 	template <typename STR> void addMenu(const STR name) {
