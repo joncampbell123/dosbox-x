@@ -558,11 +558,17 @@ public:
         int row_height = 30;
         int first_column_x = 5;
         int column_width = 250;
+        int button_row_h = 26;
+        int button_row_padding_y = 5 + 5;
 
         int num_prop = 0;
 		while (section->Get_prop(num_prop) != NULL) num_prop++;
 
-        int items_per_col_max = 11;
+        int allowed_dialog_y = parent->getHeight() - 25 - (border_top + border_bottom);
+
+        int items_per_col_max =
+            (allowed_dialog_y - (button_row_h + button_row_padding_y + row_height - 1)) / row_height;
+        if (items_per_col_max < 4) items_per_col_max = 4;
         int items_per_col = 1;
         int columns = 1;
 
@@ -576,14 +582,16 @@ public:
             columns++;
 
         int button_row_y = first_row_y + (items_per_col * row_height);
-        int button_row_h = 26;
         int button_w = 70;
         int button_pad_w = 10;
         int button_row_w = ((button_pad_w + button_w) * 3) - button_pad_w;
         int button_row_cx = first_column_x + (((columns * column_width) + first_column_x - button_row_w) / 2);
 
         resize(first_column_x + (columns * column_width) + first_column_x + border_left + border_right,
-               button_row_y + 5 + button_row_h + 5 + border_top + border_bottom);
+               button_row_y + button_row_h + button_row_padding_y + border_top + border_bottom);
+
+        if ((this->y + this->getHeight()) > parent->getHeight())
+            move(this->x,parent->getHeight() - this->getHeight());
 
 		std::string title(section->GetName());
 		title[0] = std::toupper(title[0]);
