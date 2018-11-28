@@ -1503,6 +1503,9 @@ protected:
 	/// Horizontal scrolling offset.
 	int offset;
 
+    /// Allow user to type Tab into multiline
+    bool enable_tab_input;
+
 	/// Ensure that pos is visible.
 	void checkOffset() {
 		if (lastpos == pos) return;
@@ -1529,7 +1532,7 @@ public:
 	/// Create an input with given position and width. If not set, height is calculated from the font and input is single-line.
 	Input(Window *parent, int x, int y, int w, int h = 0) :
 		Window(parent,x,y,w,(h?h:Font::getFont("input")->getHeight()+10)), ActionEventSource("GUI::Input"),
-		text(""), pos(0), lastpos(0), posx(0), posy(0), start_sel(0), end_sel(0), blink(true), insert(true), multi(h != 0), offset(0)
+		text(""), pos(0), lastpos(0), posx(0), posy(0), start_sel(0), end_sel(0), blink(true), insert(true), multi(h != 0), offset(0), enable_tab_input(false)
 	{ Timer::add(this,30); }
 
 	~Input() {

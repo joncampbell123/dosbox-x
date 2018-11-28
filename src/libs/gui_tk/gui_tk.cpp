@@ -1070,7 +1070,7 @@ bool Input::keyDown(const Key &key)
 		} else executeAction(text);
 		break;
 	case Key::Tab:
-		if (multi) {
+		if (multi && enable_tab_input) {
 			if (start_sel != end_sel) clearSelection();
 			if (insert || pos >= text.size() ) text.insert(text.begin()+pos++,f->fromSpecial(Font::Tab));
 			else text[pos++] = f->fromSpecial(Font::Tab);
