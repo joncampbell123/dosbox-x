@@ -544,6 +544,9 @@ protected:
     /// \c true if this window is transient (such as menu popus)
     bool transient;
 
+    /// \c toplevel window
+    bool toplevel;
+
     /// \c mouse is within the boundaries of the window
     bool mouse_in_window;
 
@@ -2354,6 +2357,7 @@ template <typename STR> ToplevelWindow::ToplevelWindow(Screen *parent, int x, in
 #endif
 	systemMenu->addItem("Close");
 	systemMenu->addActionHandler(this);
+    toplevel = true;
 }
 
 template <typename STR> Button::Button(Window *parent, int x, int y, const STR text, int w, int h) :

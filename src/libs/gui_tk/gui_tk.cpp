@@ -537,6 +537,7 @@ Window::Window(Window *parent, int x, int y, int w, int h) :
 	parent(parent),
 	mouseChild(NULL),
     transient(false),
+    toplevel(false),
     mouse_in_window(false)
 {
 	parent->addChild(this);
@@ -626,7 +627,7 @@ bool Window::keyDown(const Key &key)
 
             ++i;
         }
-        return (i != e);
+        return (i != e) || toplevel/*prevent TAB escape to another window*/;
 	} else {
 		std::list<Window *>::iterator i = children.begin(), e = children.end();
         --e;
@@ -638,7 +639,7 @@ bool Window::keyDown(const Key &key)
 
             ++i;
         }
-		return (i != e);
+		return (i != e) || toplevel/*prevent TAB escape to another window*/;
 	}
 }
 
