@@ -1,4 +1,8 @@
 <next version>
+  - Configuration GUI fixed to size dialog boxes as
+    large as needed to show all options, to allow tabbing
+    between options, to show a focus rectangle on the
+    items.
   - Configuration GUI top level windows no longer show
     inactive title bar whenever you access a menu.
   - About dialog in configuration GUI updated to
