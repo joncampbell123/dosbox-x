@@ -691,7 +691,7 @@ bool Window::mouseDown(int x, int y, MouseButton button)
 	while (i != children.rend()) {
 		Window *w = *i;
 
-		if (w->visible && x >= w->x && x <= w->x+w->width && y >= w->y && y <= w->y+w->height) {
+		if (w->visible && x >= w->x && x < (w->x+w->width) && y >= w->y && y < (w->y+w->height)) {
             if (handled) {
                 mouseChild = NULL;
                 return true;
