@@ -887,7 +887,7 @@ public:
 			auto *np = new SectionEditor(getScreen(), 50, 30, section);
             np->raise();
 		} else if (arg == "About") {
-            const char *msg = PACKAGE_STRING " (C) 2002-" COPYRIGHT_END_YEAR " The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
+            const char *msg = PACKAGE_STRING " (C) 2002-" COPYRIGHT_END_YEAR " The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nBuild date: " UPDATED_STR "\n\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
 			new GUI::MessageBox2(getScreen(), 100, 150, 480, "About DOSBox-X", msg);
 		} else if (arg == "Introduction") {
 			new GUI::MessageBox2(getScreen(), 20, 50, 600, "Introduction", MSG_Get("PROGRAM_INTRO"));
