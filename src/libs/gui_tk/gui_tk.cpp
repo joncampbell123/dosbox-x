@@ -618,7 +618,7 @@ bool Window::keyDown(const Key &key)
 		std::list<Window *>::reverse_iterator i = children.rbegin(), e = children.rend();
 		++i;
 		while (i != e && !(*i)->raise()) ++i;
-		return i != e;
+		return (i != e);
 	} else {
 		std::list<Window *>::iterator i = children.begin(), e = children.end();
 		while (i != e && !(*i)->raise()) ++i;
