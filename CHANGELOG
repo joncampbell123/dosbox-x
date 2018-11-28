@@ -1,4 +1,6 @@
 <next version>
+  - Configuration GUI will pack settings closer together
+    if the window/screen size is below 800x600.
   - Configuration GUI fixed to size dialog boxes as
     large as needed to show all options, to allow tabbing
     between options, to show a focus rectangle on the
