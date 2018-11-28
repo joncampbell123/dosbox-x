@@ -554,24 +554,7 @@ Window::Window() :
 
 Window::~Window()
 {
-    // NTS: child windows on delete call parent->removeChild() so simple
-    //      list enumeration is not sufficient because it means the list
-    //      will change out from under us as we go and invalidate the
-    //      iterator.
-    //
-    //      Work around this by copying the list, clearing the original
-    //      list, and iterating from the copy. That way there's nothing
-    //      to search and clear as each child cleans up.
-    {
-        auto listcopy = children;
-        children.clear();
-
-        for (auto &w : listcopy) {
-            delete w;
-            w = NULL;
-        }
-    }
-
+	while (!children.empty()) delete children.front();
 	if (parent) parent->removeChild(this);
 	if (parent && parent->mouseChild == this) parent->mouseChild = NULL;
 }
@@ -584,12 +567,7 @@ void Window::addChild(Window *child)
 
 void Window::removeChild(Window *child)
 {
-    // NTS: Do not use std::list::remove() it will remove the element AND delete the pointer
-    {
-        auto i = std::find(children.begin(), children.end(), child);
-        if (i != children.end()) children.erase(i);
-    }
-
+	children.remove(child);
 	setDirty();
 }
 
