@@ -734,7 +734,7 @@ bool Window::mouseDoubleClicked(int x, int y, MouseButton button)
 bool BorderedWindow::mouseDown(int x, int y, MouseButton button)
 {
 	mouseChild = NULL;
-	if (x > width-border_right || y > width-border_bottom) return false;
+	if (x > width-border_right || y > height-border_bottom) return false;
 	x -= border_left; y -= border_top;
 	if (x < 0 || y < 0) return false;
 	return Window::mouseDown(x,y,button);
@@ -742,7 +742,7 @@ bool BorderedWindow::mouseDown(int x, int y, MouseButton button)
 
 bool BorderedWindow::mouseMoved(int x, int y)
 {
-	if (x > width-border_right || y > width-border_bottom) return false;
+	if (x > width-border_right || y > height-border_bottom) return false;
 	x -= border_left; y -= border_top;
 	if (x < 0 || y < 0) return false;
 	return Window::mouseMoved(x,y);
@@ -750,7 +750,7 @@ bool BorderedWindow::mouseMoved(int x, int y)
 
 bool BorderedWindow::mouseDragged(int x, int y, MouseButton button)
 {
-	if (x > width-border_right || y > width-border_bottom) return false;
+	if (x > width-border_right || y > height-border_bottom) return false;
 	x -= border_left; y -= border_top;
 	if (x < 0 || y < 0) return false;
 	return Window::mouseDragged(x,y,button);
