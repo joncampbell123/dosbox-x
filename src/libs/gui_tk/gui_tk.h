@@ -2004,10 +2004,21 @@ public:
 	void execute() {
 		if (selected >= 0) {
 			setVisible(false);
-			executeAction(items[(unsigned int)selected]);
 
-            // once executed, forget the selection
+            // FIXME: Some action callbacks including the "Close" command in
+            //        the system menu will delete this window object before
+            //        returning to this level in the call stack. Therefore,
+            //        copy selection index and clear it BEFORE calling the
+            //        callbacks.
+            unsigned int sel = (unsigned int)selected;
             selected = -1;
+
+			executeAction(items[sel]);
+
+            // WARNING: Do not access C++ class methods or variables here,
+            //          the "Close" callback may have deleted this window
+            //          out from under us! It may happen to work but
+            //          understand it becomes a use-after-free bug!
 		}
 	}
 };
