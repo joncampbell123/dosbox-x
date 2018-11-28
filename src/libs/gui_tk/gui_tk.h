@@ -1045,6 +1045,11 @@ public:
 	/// Draw a straight line from (\p x1,\p y1) to (\p x2,\p y2).
 	void drawLine(int x1, int y1, int x2, int y2) { gotoXY(x1,y1); drawLine(x2,y2); };
 
+	/// Draw a straight line from the current position to the given coordinates.
+	void drawDotLine(int x2, int y2);
+	/// Draw a straight line from (\p x1,\p y1) to (\p x2,\p y2).
+	void drawDotLine(int x1, int y1, int x2, int y2) { gotoXY(x1,y1); drawDotLine(x2,y2); };
+
 	/// Draw a circle centered at the current position with diameter \p d.
 	/** The current position is not changed. */
 	void drawCircle(int d);
@@ -1058,6 +1063,13 @@ public:
 	/// Draw a rectangle with top left at the given coordinates and size \p w, \p h.
 	/** The current position is set to the top left corner. */
 	void drawRect(int x, int y, int w, int h) { gotoXY(x, y); drawRect(w, h); };
+
+	/// Draw a rectangle with top left at the current position and size \p w, \p h.
+	/** The current position is not changed. */
+	void drawDotRect(int w, int h);
+	/// Draw a rectangle with top left at the given coordinates and size \p w, \p h.
+	/** The current position is set to the top left corner. */
+	void drawDotRect(int x, int y, int w, int h) { gotoXY(x, y); drawDotRect(w, h); };
 
 	/// Flood-fill an area at the current position.
 	/** A continuous area with the same RGB value as the selected pixel is
@@ -1452,7 +1464,7 @@ public:
 	}
 
 	/// Paint label
-	virtual void paint(Drawable &d) const { d.setColor(color); d.drawText(0, font->getAscent(), text, interpret, 0); }
+	virtual void paint(Drawable &d) const { d.setColor(color); d.drawText(0, font->getAscent(), text, interpret, 0); if (hasFocus()) d.drawDotRect(0,0,width-1,height-1); }
 
 	virtual bool raise() { return false; }
 };
