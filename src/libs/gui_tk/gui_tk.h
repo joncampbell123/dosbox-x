@@ -133,6 +133,7 @@ typedef unsigned __int32 uint32_t;
 #include <typeinfo>
 #include <string>
 #include <iostream>
+#include <algorithm>
 
 /// This namespace contains all GUI toolkit classes, types and functions.
 namespace GUI {
