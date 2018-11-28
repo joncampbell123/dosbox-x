@@ -712,6 +712,7 @@ class Screen : public Window {
 protected:
 	/// Screen buffer.
 	Drawable *const buffer;
+    bool buffer_i_alloc;
 
 	/// Clipboard.
 	String clipboard;
@@ -880,6 +881,7 @@ public:
 	 *  later on will not change the available area.
 	 */
 	ScreenSDL(SDL_Surface *surface);
+    virtual ~ScreenSDL();
 
 	/** Change current surface
 	 *

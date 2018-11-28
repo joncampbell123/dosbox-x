@@ -1317,7 +1317,8 @@ Screen *Window::getScreen() { return (parent == NULL?dynamic_cast<Screen*>(this)
 
 Screen::Screen(unsigned int width, unsigned int height) :
 	Window(),
-	buffer(new Drawable((int)width, (int)height))
+	buffer(new Drawable((int)width, (int)height)),
+    buffer_i_alloc(true)
 {
 	this->width = (int)width;
 	this->height = (int)height;
@@ -1325,7 +1326,8 @@ Screen::Screen(unsigned int width, unsigned int height) :
 
 Screen::Screen(Drawable *d) :
 	Window(),
-	buffer(d)
+	buffer(d),
+    buffer_i_alloc(true) /* our primary use is from ScreenSDL that calls new */
 {
 	this->width = d->getClipWidth();
 	this->height = d->getClipHeight();
@@ -1333,6 +1335,7 @@ Screen::Screen(Drawable *d) :
 
 Screen::~Screen()
 {
+    if (buffer_i_alloc) delete buffer;
 }
 
 void Screen::paint(Drawable &d) const
@@ -1557,6 +1560,9 @@ public:
 	    SDL_BlitSurface(surface, NULL, dest, NULL);
 	}
 };
+
+ScreenSDL::~ScreenSDL() {
+}
 
 ScreenSDL::ScreenSDL(SDL_Surface *surface) : Screen(new SDL_Drawable(surface->w, surface->h)), surface(surface), downx(0), downy(0), lastclick(0), lastdown(0) {
 	current_abs_time = start_abs_time = SDL_GetTicks();
