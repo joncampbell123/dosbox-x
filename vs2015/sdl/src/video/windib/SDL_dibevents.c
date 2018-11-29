@@ -1085,7 +1085,7 @@ int DIB_CreateWindow(_THIS)
 #ifdef SDL_WIN32_NO_PARENT_WINDOW
 # ifdef SDL_WIN32_HX_DOS
 		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
-			WS_OVERLAPPED | WS_VISIBLE, /* NTS: HX-DOS does not draw a caption even if we give WS_CAPTION. This also fixes caption bar glitches in Windows XP */
+			WS_OVERLAPPED | WS_CAPTION | WS_MAXIMIZEBOX,
 			0, 0, 640, 480, NULL, NULL, SDL_Instance, NULL);
 # else
 		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
@@ -1103,7 +1103,10 @@ int DIB_CreateWindow(_THIS)
 		}
 
 		SetFocus(SDL_Window);
-#ifndef SDL_WIN32_HX_DOS
+#ifdef SDL_WIN32_HX_DOS
+        /* maximize, remove the caption bar */
+		ShowWindow(SDL_Window, SW_MAXIMIZE | SW_SHOW);
+#else
 		ShowWindow(SDL_Window, SW_HIDE);
 #endif
 	}
