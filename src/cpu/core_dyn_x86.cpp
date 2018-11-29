@@ -262,6 +262,9 @@ extern int dynamic_core_cache_block_size;
 static bool paging_warning = true;
 
 Bits CPU_Core_Dyn_X86_Run(void) {
+    if (CPU_Cycles <= 0)
+	    return CBRET_NONE;
+
     /* Dynamic core is NOT compatible with the way page faults
      * in the guest are handled in this emulator. Do not use
      * dynamic core if paging is enabled. Do not comment this
