@@ -538,7 +538,7 @@ static void DIB_NormalUpdate(_THIS, int numrects, SDL_Rect *rects);
 static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int prev_height, Uint32 flags)
 {
 #if defined(SDL_WIN32_HX_DOS)
-    ShowWindow(SDL_Window, SW_MAXIMIZE);
+    ShowWindow(SDL_Window, SW_MAXIMIZE | SW_SHOW);
 #else
 	RECT bounds;
 	int x, y;
@@ -630,7 +630,7 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 # endif
 
 # if defined(SDL_WIN32_HX_DOS)
-		ShowWindow(SDL_Window, SW_MAXIMIZE);
+		ShowWindow(SDL_Window, SW_MAXIMIZE | SW_SHOW);
 # endif
 
 		if ( !(flags & SDL_FULLSCREEN) ) {
