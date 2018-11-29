@@ -691,7 +691,7 @@ static const char *def_menu_cpu_core[] = {
     "mapper_full",
     "mapper_simple",
 #endif
-#if (C_DYNAMIC_X86)
+#if defined(C_DYNAMIC_X86) || defined(C_DYNREC)
     "mapper_dynamic",
 #endif
     NULL
