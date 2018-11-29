@@ -206,12 +206,14 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 
 	switch (msg) {
 		case WM_KILLFOCUS:
+# ifndef SDL_WIN32_HX_DOS
 			if (!SDL_resizing &&
 				 SDL_PublicSurface &&
 				(SDL_PublicSurface->flags & SDL_FULLSCREEN)) {
 				/* In fullscreen mode, this window must have focus... or else we must exit fullscreen mode! */
 				ShowWindow(ParentWindowHWND, SW_RESTORE);
 			}
+# endif
 			break;
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN: {

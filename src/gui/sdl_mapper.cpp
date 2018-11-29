@@ -3838,7 +3838,7 @@ void MAPPER_RunInternal() {
         return;
     }
 
-#if defined(__WIN32__) && !defined(C_SDL2)
+#if defined(__WIN32__) && !defined(C_SDL2) && !defined(C_HX_DOS)
     if(menu.maxwindow) ShowWindow(GetHWND(), SW_RESTORE);
 #endif
     int cursor = SDL_ShowCursor(SDL_QUERY);

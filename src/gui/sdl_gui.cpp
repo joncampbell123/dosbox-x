@@ -1133,7 +1133,9 @@ void GUI_Shortcut(int select) {
     }
 
 #ifdef WIN32
+# ifndef C_HX_DOS
 	if(menu.maxwindow) ShowWindow(GetHWND(), SW_RESTORE);
+# endif
 #endif
 
 	shortcut=true;

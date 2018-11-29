@@ -171,6 +171,7 @@ static void SDL_RestoreGameMode(void)
 {
 #if defined(SDL_WIN32_HX_DOS)
 	ShowWindow(ParentWindowHWND, SW_MAXIMIZE);
+	return;
 #endif
 
 #ifdef _WIN32_WCE //Under ce we don't minimize, therefore no restore
@@ -200,6 +201,7 @@ static void SDL_RestoreDesktopMode(void)
 {
 #if defined(SDL_WIN32_HX_DOS)
 	ShowWindow(ParentWindowHWND, SW_MAXIMIZE);
+	return;
 #endif
 
 #ifdef _WIN32_WCE
