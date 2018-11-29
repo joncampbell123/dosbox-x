@@ -274,7 +274,12 @@ void menu_update_core(void) {
         check(cpudecoder == &CPU_Core_Dyn_X86_Run).
         enable(allow_dynamic && (cpudecoder != &CPU_Core_Prefetch_Run)).
         refresh_item(mainMenu);
-// TODO: Find out if the C_DYNREC should also be checked here
+#endif
+#if (C_DYNREC)
+    mainMenu.get_item("mapper_dynamic").
+        check(cpudecoder == &CPU_Core_Dynrec_Run).
+        enable(allow_dynamic && (cpudecoder != &CPU_Core_Prefetch_Run)).
+        refresh_item(mainMenu);
 #endif
 }
 
