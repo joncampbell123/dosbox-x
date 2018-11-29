@@ -945,7 +945,7 @@ void DOSBOX_SetupConfigSections(void) {
         0 };
 
     const char* cores[] = { "auto",
-#if (C_DYNAMIC_X86)
+#if (C_DYNAMIC_X86) || (C_DYNREC)
         "dynamic",
 #endif
         "normal", "full", "simple", 0 };
