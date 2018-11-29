@@ -2032,7 +2032,7 @@ public:
         if (visible) {
             if (key.special == Key::Up) {
                 if (selected == 0)
-                    selected = items.size() - 1;
+                    selected = (int)items.size() - 1;
                 else
                     selected--;
             }
