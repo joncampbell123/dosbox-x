@@ -1,10 +1,4 @@
 <next version>
-  - HX-DOS builds fixed not to specify WS_CAPTION when
-    creating the emulator window, since WS_CAPTION is
-    removed later on. This fixes GUI glitches in Windows
-    XP where any update to the window caption causes
-    Windows XP to draw a caption bar on top of DOSBox-X's
-    display region.
   - Dynrec core ported from DOSBox SVN (Daniel-Trevitz)
   - Configuration GUI will pack settings closer together
     if the window/screen size is below 800x600.
