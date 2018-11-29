@@ -1,4 +1,5 @@
 <next version>
+  - Dynrec core ported from DOSBox SVN (Daniel-Trevitz)
   - Configuration GUI will pack settings closer together
     if the window/screen size is below 800x600.
   - Configuration GUI fixed to size dialog boxes as
