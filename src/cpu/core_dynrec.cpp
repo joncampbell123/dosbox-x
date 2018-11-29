@@ -185,6 +185,9 @@ CacheBlockDynRec * LinkBlocks(BlockReturn ret) {
 */
 
 Bits CPU_Core_Dynrec_Run(void) {
+    if (CPU_Cycles <= 0)
+	    return CBRET_NONE;
+
 	for (;;) {
 		// Determine the linear address of CS:EIP
 		PhysPt ip_point=SegPhys(cs)+reg_eip;
@@ -230,6 +233,16 @@ run_block:
 		// now we're ready to run the dynamic code block
 //		BlockReturn ret=((BlockReturn (*)(void))(block->cache.start))();
 		BlockReturn ret=core_dynrec.runcode(block->cache.start);
+
+        if (sizeof(CPU_Cycles) > 4) {
+            // HACK: All dynrec cores for each processor assume CPU_Cycles is 32-bit wide.
+            //       The purpose of this hack is to sign-extend the lower 32 bits so that
+            //       when CPU_Cycles goes negative it doesn't suddenly appear as a very
+            //       large integer value.
+            //
+            //       This hack is needed for dynrec to work on x86_64 targets.
+            CPU_Cycles = (Bits)((int32_t)CPU_Cycles);
+        }
 
 		switch (ret) {
 		case BR_Iret:
