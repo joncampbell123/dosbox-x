@@ -210,7 +210,9 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 				 SDL_PublicSurface &&
 				(SDL_PublicSurface->flags & SDL_FULLSCREEN)) {
 				/* In fullscreen mode, this window must have focus... or else we must exit fullscreen mode! */
+#ifndef SDL_WIN32_HX_DOS
 				ShowWindow(ParentWindowHWND, SW_RESTORE);
+#endif
 			}
 			break;
 		case WM_SYSKEYDOWN:
@@ -1101,7 +1103,9 @@ int DIB_CreateWindow(_THIS)
 		}
 
 		SetFocus(SDL_Window);
+#ifndef SDL_WIN32_HX_DOS
 		ShowWindow(SDL_Window, SW_HIDE);
+#endif
 	}
 
 	/* JC 14 Mar 2006

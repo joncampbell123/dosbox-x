@@ -239,7 +239,9 @@ void WIN_SetWMCaption(_THIS, const char *title, const char *icon)
 
 int WIN_IconifyWindow(_THIS)
 {
+#ifndef SDL_WIN32_HX_DOS
 	ShowWindow(ParentWindowHWND, SW_MINIMIZE);
+#endif
 	return(1);
 }
 

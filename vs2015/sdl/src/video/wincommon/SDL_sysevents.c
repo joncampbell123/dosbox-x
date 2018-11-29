@@ -169,9 +169,10 @@ void WIN_FlushMessageQueue()
 
 static void SDL_RestoreGameMode(void)
 {
-#ifdef _WIN32_WCE //Under ce we don't minimize, therefore no restore
+#ifndef SDL_WIN32_HX_DOS
+# ifdef _WIN32_WCE //Under ce we don't minimize, therefore no restore
 	
-#ifdef SDL_VIDEO_DRIVER_GAPI
+#  ifdef SDL_VIDEO_DRIVER_GAPI
 	SDL_VideoDevice *this = current_video;
 	if(SDL_strcmp(this->name, "gapi") == 0)
 	{
@@ -180,24 +181,26 @@ static void SDL_RestoreGameMode(void)
 			this->hidden->gapiInfo->suspended = 0;
 		}
 	}
-#endif
+#  endif
 	
-#else
+# else
 	ShowWindow(ParentWindowHWND, SW_RESTORE);
-#endif
+# endif
 
-#ifndef NO_CHANGEDISPLAYSETTINGS
-#ifndef _WIN32_WCE
+# ifndef NO_CHANGEDISPLAYSETTINGS
+#  ifndef _WIN32_WCE
 //	ChangeDisplaySettings(&SDL_fullscreen_mode, CDS_FULLSCREEN);
+#  endif
+# endif /* NO_CHANGEDISPLAYSETTINGS */
 #endif
-#endif /* NO_CHANGEDISPLAYSETTINGS */
 }
 static void SDL_RestoreDesktopMode(void)
 {
+#ifndef SDL_WIN32_HX_DOS
 
-#ifdef _WIN32_WCE
+# ifdef _WIN32_WCE
 	
-#ifdef SDL_VIDEO_DRIVER_GAPI
+#  ifdef SDL_VIDEO_DRIVER_GAPI
 	SDL_VideoDevice *this = current_video;
 	if(SDL_strcmp(this->name, "gapi") == 0)
 	{
@@ -206,19 +209,20 @@ static void SDL_RestoreDesktopMode(void)
 			this->hidden->gapiInfo->suspended = 1;
 		}
 	}
-#endif
+#  endif
 	
-#else
+# else
 	/* WinCE does not have a taskbar, so minimizing is not convenient */
 	ShowWindow(ParentWindowHWND, SW_RESTORE);
     ShowWindow(SDL_Window, SW_RESTORE);
-#endif
+# endif
 
-#ifndef NO_CHANGEDISPLAYSETTINGS
-#ifndef _WIN32_WCE
+# ifndef NO_CHANGEDISPLAYSETTINGS
+#  ifndef _WIN32_WCE
 //	ChangeDisplaySettings(NULL, 0);
+#  endif
+# endif /* NO_CHANGEDISPLAYSETTINGS */
 #endif
-#endif /* NO_CHANGEDISPLAYSETTINGS */
 }
 
 #ifdef WM_MOUSELEAVE
@@ -309,7 +313,8 @@ LRESULT CALLBACK WinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						SDL_RestoreGameMode();
 					}
 				}
-#if defined(_WIN32_WCE)
+#ifndef SDL_WIN32_HX_DOS
+# if defined(_WIN32_WCE)
 				if ( WINDIB_FULLSCREEN() ) {
 					LoadAygshell();
 					if( SHFullScreen )
@@ -317,6 +322,7 @@ LRESULT CALLBACK WinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					else
 						ShowWindow(FindWindow(TEXT("HHTaskBar"),NULL),SW_HIDE);
 				}
+# endif
 #endif
 				posted = SDL_PrivateAppActive(1, appstate);
 			} else {
@@ -338,12 +344,14 @@ LRESULT CALLBACK WinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						SDL_RestoreDesktopMode();
 						/* A fullscreen app gets hidden but will not get a minimize event */
 						appstate |= (SDL_APPACTIVE | SDL_APPMOUSEFOCUS);
-#if defined(_WIN32_WCE)
+#ifndef SDL_WIN32_HX_DOS
+# if defined(_WIN32_WCE)
 						LoadAygshell();
 						if( SHFullScreen ) 
 							SHFullScreen(SDL_Window, SHFS_SHOWSTARTICON|SHFS_SHOWTASKBAR|SHFS_SHOWSIPBUTTON);
 						else
 							ShowWindow(FindWindow(TEXT("HHTaskBar"),NULL),SW_SHOW);
+# endif
 #endif
 					}
 				}

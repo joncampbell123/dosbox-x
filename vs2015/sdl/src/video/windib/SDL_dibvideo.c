@@ -1295,11 +1295,13 @@ void DIB_VideoQuit(_THIS)
 			if ( grab_palette ) {
 				DIB_ReleaseStaticColors(SDL_Window);
 			}
-#ifndef NO_CHANGEDISPLAYSETTINGS
+#ifndef SDL_WIN32_HX_DOS
+# ifndef NO_CHANGEDISPLAYSETTINGS
 			if ( this->screen->flags & SDL_FULLSCREEN ) {
 				ChangeDisplaySettings(NULL, 0);
 				ShowWindow(SDL_Window, SW_HIDE);
 			}
+# endif
 #endif
 			if ( this->screen->flags & SDL_OPENGL ) {
 				WIN_GL_ShutDown(this);
