@@ -170,7 +170,7 @@ void WIN_FlushMessageQueue()
 static void SDL_RestoreGameMode(void)
 {
 #ifdef SDL_WIN32_HX_DOS
-    ShowWindow(SDL_Window, SW_MAXIMIZE | SW_SHOW);
+	ShowWindow(ParentWindowHWND, SW_MAXIMIZE);
 #else
 # ifdef _WIN32_WCE //Under ce we don't minimize, therefore no restore
 	
@@ -199,7 +199,7 @@ static void SDL_RestoreGameMode(void)
 static void SDL_RestoreDesktopMode(void)
 {
 #ifdef SDL_WIN32_HX_DOS
-    ShowWindow(SDL_Window, SW_MAXIMIZE | SW_SHOW);
+    ShowWindow(SDL_Window, SW_MAXIMIZE);
 #else
 # ifdef _WIN32_WCE
 
