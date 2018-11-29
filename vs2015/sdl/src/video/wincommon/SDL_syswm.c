@@ -217,15 +217,12 @@ extern HWND	ParentWindowHWND;
 
 void WIN_SetWMCaption(_THIS, const char *title, const char *icon)
 {
-// NTS: Windows XP has a bug where setting the window title of a window with no title causes
-//      Windows to paint over the top with a title bar.
-#ifndef SDL_WIN32_HX_DOS
-# ifdef _WIN32_WCE
+#ifdef _WIN32_WCE
 	/* WinCE uses the UNICODE version */
 	LPWSTR lpszW = SDL_iconv_utf8_ucs2((char *)title);
 	SetWindowText(ParentWindowHWND, lpszW);
 	SDL_free(lpszW);
-# else
+#else
 	Uint16 *lpsz = SDL_iconv_utf8_ucs2(title);
 	size_t len = WideCharToMultiByte(CP_ACP, 0, lpsz, -1, NULL, 0, NULL, NULL);
 	char *cvt = SDL_stack_alloc(char, len + 1);
@@ -233,7 +230,6 @@ void WIN_SetWMCaption(_THIS, const char *title, const char *icon)
 	SetWindowText(ParentWindowHWND, cvt);
 	SDL_stack_free(cvt);
 	SDL_free(lpsz);
-# endif
 #endif
 }
 
