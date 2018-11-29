@@ -356,6 +356,66 @@ template <typename STR> class NativeString<const STR*> : public NativeString<STR
 /// 'less-than' comparison between pointer addresses
 struct ltvoid { bool operator()(const void* s1, const void* s2) const { return s1 < s2; } };
 
+class Refcount {
+public:
+    Refcount() : _refcount(1) { }
+    virtual ~Refcount() {
+        if (_refcount != 0) fprintf(stderr,"WARNING: GUI_TK::Refcount object %p refcount is nonzero (%d) on destructor\n",(void*)this,_refcount);
+    }
+public:
+    int addref(void) {
+        return ++_refcount;
+    }
+    int release(void) {
+        int ref = --_refcount;
+
+        if (ref < 0) fprintf(stderr,"WARNING: GUI_TK::Refcount object %p refcount is negative (%d) after release\n",(void*)this,_refcount);
+        if (ref == 0) delete this;
+
+        return ref;
+    }
+private:
+    volatile int _refcount;
+};
+
+template <class C> class RefcountAuto {
+public:
+    RefcountAuto() : Refcount(), _ptr(NULL) { }
+    RefcountAuto(C * const np) : _ptr(np) { if (_ptr != NULL) _ptr->addref(); }
+    virtual ~RefcountAuto() { if (_ptr != NULL) _ptr->release(); }
+public:
+    C* operator=(C * const np) {
+        if (_ptr != np) {
+            C* _old = _ptr;
+            _ptr = np;
+            if (_ptr != NULL) _ptr->addref();
+            if (_old != NULL) _old->release();
+        }
+
+        return _ptr;
+    }
+    bool operator==(const C * const np) const {
+        return (_ptr == np);
+    }
+    bool operator!=(const C * const np) const {
+        return !(*this == np);
+    }
+    bool operator!() const { /* ex: if (!ptr) ... equiv. if (ptr == NULL) */
+        return (_ptr == NULL);
+    }
+    C* getptr(void) const {
+        return _ptr;
+    }
+    C& operator*(void) const {
+        return *_ptr;
+    }
+    C* operator->(void) const {
+        return _ptr;
+    }
+private:
+    C*              _ptr;
+};
+
 /** \brief Simple STL-based string class.
  *
  *  This is intended as internal helper class to allow gui::tk to work with any kind of
