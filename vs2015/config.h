@@ -231,7 +231,11 @@
 /* Define to the version of this package. */
 
 /* The size of `int *', as computed by sizeof. */
-#define SIZEOF_INT_P				4
+#ifdef _M_AMD64 /* Microsoft C++ amd64 */
+# define SIZEOF_INT_P				8
+#else
+# define SIZEOF_INT_P				4
+#endif
 
 /* The size of `unsigned char', as computed by sizeof. */
 #define SIZEOF_UNSIGNED_CHAR		1
