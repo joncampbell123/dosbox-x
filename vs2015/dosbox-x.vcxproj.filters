@@ -109,6 +109,9 @@
     <Filter Include="Sources\output\direct3d">
       <UniqueIdentifier>{3755469d-f02e-4c3e-b6cd-25db8b71b1fd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\cpu\core_dynrec">
+      <UniqueIdentifier>{8d1a73c6-be58-4d9f-aa03-b9f57516bedb}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -890,6 +893,9 @@
     </ClCompile>
     <ClCompile Include="..\src\builtin\dsxmenu_exe_pc98.cpp">
       <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\core_dynrec.cpp">
+      <Filter>Sources\cpu\core_dynrec</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

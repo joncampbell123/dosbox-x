@@ -140,6 +140,12 @@ static struct {
 #define ARMV7LE		0x05
 #define ARMV8LE		0x07
 
+#if !defined(C_TARGETCPU)
+# if defined(_MSC_VER) && defined(_M_AMD64)
+#  define C_TARGETCPU X86_64
+# endif
+#endif
+
 #if C_TARGETCPU == X86_64
 #include "core_dynrec/risc_x64.h"
 #elif C_TARGETCPU == X86
