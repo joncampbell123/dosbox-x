@@ -920,11 +920,11 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 	}
 #endif
 
-#ifndef SDL_WIN32_HX_DOS
 	/* DJM: Don't piss of anyone who has setup his own window */
 	if ( !SDL_windowid )
 		SetWindowLong(ParentWindowHWND, GWL_STYLE, style);
 
+#ifndef SDL_WIN32_HX_DOS
 	/* show/hide menu according to fullscreen */
 	if ((current->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN)
 		SetMenu(ParentWindowHWND, NULL);
