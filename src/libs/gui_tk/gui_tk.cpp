@@ -595,8 +595,12 @@ Window::Window() :
 	x(0), y(0),
 	dirty(false),
 	visible(true),
+    tabbable(true),
 	parent(NULL),
-	mouseChild(NULL)
+	mouseChild(NULL),
+    transient(false),
+    toplevel(false),
+    mouse_in_window(false)
 {
 }
 

@@ -358,7 +358,10 @@ struct ltvoid { bool operator()(const void* s1, const void* s2) const { return s
 
 class Refcount {
 public:
-    Refcount() : _refcount(1) { }
+    /* NTS: Refcount starts at zero because there's so much of this damn code that expects to
+     *      create UI elements with just "new Window blah blah" and for the class to delete it.
+     *      This makes the transition to proper refcounting less painful and more gradual. */
+    Refcount() : _refcount(0) { }
     virtual ~Refcount() {
         if (_refcount != 0) fprintf(stderr,"WARNING: GUI_TK::Refcount object %p refcount is nonzero (%d) on destructor\n",(void*)this,_refcount);
     }
@@ -570,7 +573,7 @@ public:
  *  \em not a GUI window with decorations like border and title bar. See ToplevelWindow
  *  for that.
  */
-class Window {
+class Window : public Refcount {
 protected:
 	friend class ToplevelWindow;
 	friend class TransientWindow;
