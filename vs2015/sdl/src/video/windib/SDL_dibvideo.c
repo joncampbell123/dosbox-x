@@ -669,11 +669,7 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 	const DWORD directstyle =
 			(WS_POPUP);
 	DWORD windowstyle = 
-#ifdef SDL_WIN32_HX_DOS
-			WS_OVERLAPPED;
-#else
 			(WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX);
-#endif
 	DWORD resizestyle =
 			(WS_THICKFRAME|WS_MAXIMIZEBOX);
 	int binfo_size;
