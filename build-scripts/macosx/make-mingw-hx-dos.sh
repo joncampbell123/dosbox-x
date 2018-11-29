@@ -41,6 +41,8 @@ fi
 top=`pwd`
 cd "$top" || exit 1
 
+ziptool="$top/dosbox-x-mingw-hx-dos/vs2015/tool/zip.exe"
+
 cd "$top/dosbox-x-mingw-hx-dos" || exit 1
 git clean -dfx
 git reset --hard
@@ -58,7 +60,7 @@ cp CHANGELOG CHANGELOG.txt || exit 1
 cd "$top" || exit 1
 echo "Packing up now..."
 
-zip -r -9 "$name" dosbox-x-mingw-hx-dos/{CHANGELOG.txt,dosbox-x.exe} || exit 1
+$ziptool -r -9 "$name" dosbox-x-mingw-hx-dos/{CHANGELOG.txt,dosbox-x.exe} || exit 1
 
 exit 0
 
