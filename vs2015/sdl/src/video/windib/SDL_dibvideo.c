@@ -537,15 +537,18 @@ static void DIB_NormalUpdate(_THIS, int numrects, SDL_Rect *rects);
 
 static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int prev_height, Uint32 flags)
 {
+#if defined(SDL_WIN32_HX_DOS)
+    ShowWindow(SDL_Window, SW_MAXIMIZE);
+#else
 	RECT bounds;
 	int x, y;
 
-#ifndef _WIN32_WCE
+# ifndef _WIN32_WCE
 	/* Resize the window */
 	if ( !SDL_windowid && !IsZoomed(ParentWindowHWND) ) {
-#else
+# else
 	if ( !SDL_windowid ) {
-#endif
+# endif
 		HWND top;
 		UINT swp_flags;
 		const char *window = NULL;
@@ -570,12 +573,12 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 		bounds.top = SDL_windowY;
 		bounds.right = SDL_windowX+width;
 		bounds.bottom = SDL_windowY+height;
-#ifndef _WIN32_WCE
+# ifndef _WIN32_WCE
 		AdjustWindowRectEx(&bounds, GetWindowLong(ParentWindowHWND, GWL_STYLE), (GetMenu(ParentWindowHWND) != NULL), 0);
-#else
+# else
 		// The bMenu parameter must be FALSE; menu bars are not supported
 		AdjustWindowRectEx(&bounds, GetWindowLong(ParentWindowHWND, GWL_STYLE), 0, 0);
-#endif
+# endif
 		width = bounds.right-bounds.left;
 		height = bounds.bottom-bounds.top;
 		if ( (flags & SDL_FULLSCREEN) ) {
@@ -597,11 +600,11 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 			top = HWND_NOTOPMOST;
 		}
 
-#if defined(SDL_WIN32_HX_DOS)
+# if defined(SDL_WIN32_HX_DOS)
 		swp_flags |= SWP_NOSIZE;
-#endif
+# endif
 
-#ifndef SDL_WIN32_NO_PARENT_WINDOW
+# ifndef SDL_WIN32_NO_PARENT_WINDOW
 		if (SDL_VideoSurface != NULL)
 			SetWindowPos(SDL_Window, HWND_TOP, 0, 0, SDL_VideoSurface->w, SDL_VideoSurface->h, SWP_NOACTIVATE | SWP_SHOWWINDOW);
 
@@ -622,13 +625,13 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 		LeaveCriticalSection(&ParentWindowCritSec);
 
 		SetWindowPos(ParentWindowHWND, top, x, y, width, height, swp_flags);
-#else
+# else
 		SetWindowPos(SDL_Window, top, x, y, width, height, swp_flags);
-#endif
+# endif
 
-#if defined(SDL_WIN32_HX_DOS)
+# if defined(SDL_WIN32_HX_DOS)
 		ShowWindow(SDL_Window, SW_MAXIMIZE);
-#endif
+# endif
 
 		if ( !(flags & SDL_FULLSCREEN) ) {
 			SDL_windowX = SDL_bounds.left;
@@ -638,6 +641,7 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 			SetForegroundWindow(ParentWindowHWND);
 		}
 	}
+#endif
 }
 
 HMENU DIB_SurfaceMenu = NULL;
