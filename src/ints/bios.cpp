@@ -5604,13 +5604,13 @@ private:
         void TIMER_BIOS_INIT_Configure();
 #if C_DEBUG
         void DEBUG_CheckCSIP();
-#endif
 
-#if C_HEAVY_DEBUG
+# if C_HEAVY_DEBUG
         /* the game/app obviously crashed, which is way more important
          * to log than what we do here in the BIOS at POST */
         void DEBUG_StopLog(void);
         DEBUG_StopLog();
+# endif
 #endif
 
         if (bios_first_init) {
