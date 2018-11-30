@@ -23,6 +23,12 @@
 #include "config.h"
 #include "logging.h"
 
+/* SANITY CHECK */
+#if defined(C_HEAVY_DEBUG) && !defined(C_DEBUG)
+# error If C_HEAVY_DEBUG is defined, then so must C_DEBUG
+#endif
+/* ------------ */
+
 #if defined(_MSC_VER)
 # include <sys/types.h>
 # include <sys/stat.h>
