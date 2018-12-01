@@ -538,6 +538,11 @@ static void DIB_NormalUpdate(_THIS, int numrects, SDL_Rect *rects);
 static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int prev_height, Uint32 flags)
 {
 #if defined(SDL_WIN32_HX_DOS)
+    /* Windows XP understands the window is maximized, and route cursor input like so.
+     * HX DOS needs a little help to let cursor input work correctly */
+    if (SDL_VideoSurface != NULL)
+        SetWindowPos(SDL_Window, HWND_TOP, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_NOACTIVATE | SWP_SHOWWINDOW);
+
 	if (!IsZoomed(ParentWindowHWND))
 		ShowWindow(SDL_Window, SW_MAXIMIZE);
 
