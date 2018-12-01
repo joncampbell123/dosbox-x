@@ -1,4 +1,7 @@
 <next version>
+  - New build scripts for Mac OS X, MinGW, and MinGW HX-DOS,
+    under build-scripts in the source tree, to help make
+    DOSBox-X releases more timely and consistent.
   - MinGW HX DOS builds now use WS_POPUP style instead
     of WS_OVERLAPPED to avoid window caption redraw
     glitches when in Windows XP.
