@@ -1,4 +1,4 @@
-<next version>
+0.82.12
   - MinGW HX DOS builds fixed to accept mouse input properly
     even beyond the 640x480 of the original SDL window
     dimensions. HX DOS seems to use the original dimensions
