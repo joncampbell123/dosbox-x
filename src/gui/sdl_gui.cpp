@@ -144,6 +144,13 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
         SDL_Window *w = GFX_GetSDLWindow();
         SDL_GetWindowSize(w,&dw,&dh);
     }
+#elif defined(C_HX_DOS)
+    /* FIXME: HX DOS builds are not updating the window dimensions vars.. */
+    /*        However our window is always fullscreen (maximized) */
+    {
+        dw = GetSystemMetrics(SM_CXSCREEN);
+        dh = GetSystemMetrics(SM_CYSCREEN);
+    }
 #else
     void UpdateWindowDimensions(void);
     UpdateWindowDimensions();
