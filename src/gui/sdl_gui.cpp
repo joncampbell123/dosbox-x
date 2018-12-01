@@ -1141,12 +1141,6 @@ void GUI_Shortcut(int select) {
         return;
     }
 
-#ifdef WIN32
-# ifndef C_HX_DOS
-	if(menu.maxwindow) ShowWindow(GetHWND(), SW_RESTORE);
-# endif
-#endif
-
 	shortcut=true;
 	GUI::ScreenSDL *screen = UI_Startup(NULL);
 	UI_Select(screen,select);
