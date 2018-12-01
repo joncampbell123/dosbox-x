@@ -1,4 +1,9 @@
 <next version>
+  - Steel Gun Nyan PIT/Timer hack revised so that polling
+    the timer does not cause an interrupt storm. This
+    fixes "God of Thunder" MS-DOS game where entering or
+    leaving a house causes the Adlib music to play
+    REALLY FAST during the transition effect.
   - Dynrec core ported from DOSBox SVN (Daniel-Trevitz)
   - Configuration GUI will pack settings closer together
     if the window/screen size is below 800x600.
