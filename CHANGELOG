@@ -1,4 +1,11 @@
 <next version>
+  - MinGW HX DOS builds fixed to accept mouse input properly
+    even beyond the 640x480 of the original SDL window
+    dimensions. HX DOS seems to use the original dimensions
+    of the window even if the window is maximized, thus the
+    mouse input issue.
+  - Configuration GUI fixed not to restore (unmaximize)
+    the window, it's unnecessary.
   - New build scripts for Mac OS X, MinGW, and MinGW HX-DOS,
     under build-scripts in the source tree, to help make
     DOSBox-X releases more timely and consistent.
