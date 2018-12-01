@@ -381,7 +381,7 @@ private:
     volatile int _refcount;
 };
 
-template <class C> class RefcountAuto {
+template <class C> class RefcountAuto : public Refcount {
 public:
     RefcountAuto() : Refcount(), _ptr(NULL) { }
     RefcountAuto(C * const np) : _ptr(np) { if (_ptr != NULL) _ptr->addref(); }
