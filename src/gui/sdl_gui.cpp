@@ -145,6 +145,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
         SDL_GetWindowSize(w,&dw,&dh);
     }
 #else
+    UpdateWindowDimensions();
     dw = (int)currentWindowWidth;
     dh = (int)currentWindowHeight;
 #endif
