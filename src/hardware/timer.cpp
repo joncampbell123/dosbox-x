@@ -203,10 +203,11 @@ static void counter_latch(Bitu counter,bool do_latch=true) {
             // I don't know any IBM PC compatible game that uses this behavior, but I did find a PC-98 game
             // "Steel Gun Nyan" with delay loops that are dependent on polling the IRR like that.
             // Yes, instead of polling the timer directly, it polls the PIC's interrupt request register instead. Ick.
+            //
+            // NTS: We can count on the scheduled PIC event to fire the IRQ on time. What Steel Gun Nyan expects is for
+            //      IRR to clear by itself due to the nature of the square wave.
             if (counter == 0/*IRQ 0*/) {
                 if (!out)
-                    PIC_ActivateIRQ(0);
-                else
                     PIC_DeActivateIRQ(0);
             }
         }
