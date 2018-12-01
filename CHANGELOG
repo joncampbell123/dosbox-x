@@ -1,4 +1,11 @@
 <next version>
+  - MinGW HX DOS builds now use WS_POPUP style instead
+    of WS_OVERLAPPED to avoid window caption redraw
+    glitches when in Windows XP.
+  - MinGW HX DOS builds fixed to force the SDL window
+    maximized at all times. Mapper and Configuration GUI
+    interfaces fixed not to call on Windows to SW_RESTORE
+    the window, in order to keep it maximized.
   - Steel Gun Nyan PIT/Timer hack revised so that polling
     the timer does not cause an interrupt storm. This
     fixes "God of Thunder" MS-DOS game where entering or
