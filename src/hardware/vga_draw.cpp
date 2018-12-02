@@ -2321,7 +2321,7 @@ void VGA_CheckScanLength(void) {
     case M_CGA4:
     case M_CGA16:
     case M_AMSTRAD: // Next line.
-        if (IS_EGAVGA_ARCH || IS_PC98_ARCH)
+        if (IS_EGAVGA_ARCH)
             vga.draw.address_add=vga.config.scan_len*(unsigned int)(2u<<vga.config.addr_shift);
         else
             vga.draw.address_add=vga.draw.blocks;
