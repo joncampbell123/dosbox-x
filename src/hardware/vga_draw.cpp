@@ -2987,7 +2987,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             VGA_DrawLine=EGA_Draw_1BPP_Line_as_EGA;
             bpp = 8;
         }
-        else if (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
+        else if (IS_EGAVGA_ARCH) {
             vga.draw.blocks=width;
             VGA_DrawLine=VGA_Draw_1BPP_Line_as_VGA;
             bpp = 32;
