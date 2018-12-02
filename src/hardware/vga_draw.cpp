@@ -646,7 +646,7 @@ static Bit8u * VGA_Draw_VGA_Planar_Xlat32_Line(Bitu vidstart, Bitu /*line*/) {
         t1 = t2 = *((Bit32u*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
         t1 = (t1 >> 4) & 0x0f0f0f0f;
         t2 &= 0x0f0f0f0f;
-        vidstart += 4;
+        vidstart += (uintptr_t)4 << (uintptr_t)vga.config.addr_shift;
 
         tmp =   Expand16Table[0][(t1>>0)&0xFF] |
             Expand16Table[1][(t1>>8)&0xFF] |
@@ -2269,9 +2269,9 @@ void VGA_CheckScanLength(void) {
     case M_EGA:
     case M_LIN4:
         if ((machine==MCH_EGA)&&(vga.crtc.mode_control&0x8))
-            vga.draw.address_add=vga.config.scan_len*16;
+            vga.draw.address_add=vga.config.scan_len*16; // TODO
         else
-            vga.draw.address_add=vga.config.scan_len*8;
+            vga.draw.address_add=vga.config.scan_len*(8u<<(unsigned int)vga.config.addr_shift);
 
         if (IS_EGA_ARCH && (vga.seq.clocking_mode&4))
             vga.draw.address_add*=2;
