@@ -1,5 +1,6 @@
 0.82.13 (next)
-  - TODO
+  - VGA 16-color planar modes now obey CRTC byte/word/dword
+    bits.
 0.82.12
   - MinGW HX DOS builds fixed to accept mouse input properly
     even beyond the 640x480 of the original SDL window
