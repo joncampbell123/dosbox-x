@@ -405,11 +405,6 @@ typedef struct {
 } VGA_SVGA;
 
 typedef union {
-	Bit16u w;
-	Bit8u b[2];
-} CGA_Latch;
-
-typedef union {
 	Bit32u d;
 	Bit8u b[4];
 } VGA_Latch;
