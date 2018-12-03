@@ -562,47 +562,35 @@ static Bit8u * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 
 extern Bit32u Expand16Table[4][16];
 
+template <const unsigned int card,typename templine_type_t> static inline templine_type_t EGA_Planar_Common_Block_xlat(const Bit8u t) {
+    if (card == MCH_VGA)
+        return vga.dac.xlat32[t];
+    else if (card == MCH_EGA)
+        return vga.attr.palette[t&vga.attr.color_plane_enable];
+
+    return 0;
+}
+
 template <const unsigned int card,typename templine_type_t> static inline void EGA_Planar_Common_Block(templine_type_t * const temps,const Bit32u t1,const Bit32u t2) {
     Bit32u tmp;
 
-    if (card == MCH_VGA) {
         tmp =   Expand16Table[0][(t1>>0)&0xFF] |
                 Expand16Table[1][(t1>>8)&0xFF] |
                 Expand16Table[2][(t1>>16)&0xFF] |
                 Expand16Table[3][(t1>>24)&0xFF];
-        temps[0] = vga.dac.xlat32[(tmp>>0)&0xFF];
-        temps[1] = vga.dac.xlat32[(tmp>>8)&0xFF];
-        temps[2] = vga.dac.xlat32[(tmp>>16)&0xFF];
-        temps[3] = vga.dac.xlat32[(tmp>>24)&0xFF];
+        temps[0] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>> 0ul)&0xFFul);
+        temps[1] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>> 8ul)&0xFFul);
+        temps[2] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>>16ul)&0xFFul);
+        temps[3] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>>24ul)&0xFFul);
 
         tmp =   Expand16Table[0][(t2>>0)&0xFF] |
                 Expand16Table[1][(t2>>8)&0xFF] |
                 Expand16Table[2][(t2>>16)&0xFF] |
                 Expand16Table[3][(t2>>24)&0xFF];
-        temps[4] = vga.dac.xlat32[(tmp>>0)&0xFF];
-        temps[5] = vga.dac.xlat32[(tmp>>8)&0xFF];
-        temps[6] = vga.dac.xlat32[(tmp>>16)&0xFF];
-        temps[7] = vga.dac.xlat32[(tmp>>24)&0xFF];
-    }
-    else if (card == MCH_EGA) {
-        tmp =   Expand16Table[0][(t1>>0)&0xFF] |
-                Expand16Table[1][(t1>>8)&0xFF] |
-                Expand16Table[2][(t1>>16)&0xFF] |
-                Expand16Table[3][(t1>>24)&0xFF];
-        temps[0] = vga.attr.palette[(tmp>>0)&vga.attr.color_plane_enable];
-        temps[1] = vga.attr.palette[(tmp>>8)&vga.attr.color_plane_enable];
-        temps[2] = vga.attr.palette[(tmp>>16)&vga.attr.color_plane_enable];
-        temps[3] = vga.attr.palette[(tmp>>24)&vga.attr.color_plane_enable];
-
-        tmp =   Expand16Table[0][(t2>>0)&0xFF] |
-                Expand16Table[1][(t2>>8)&0xFF] |
-                Expand16Table[2][(t2>>16)&0xFF] |
-                Expand16Table[3][(t2>>24)&0xFF];
-        temps[4] = vga.attr.palette[(tmp>>0)&vga.attr.color_plane_enable];
-        temps[5] = vga.attr.palette[(tmp>>8)&vga.attr.color_plane_enable];
-        temps[6] = vga.attr.palette[(tmp>>16)&vga.attr.color_plane_enable];
-        temps[7] = vga.attr.palette[(tmp>>24)&vga.attr.color_plane_enable];
-    }
+        temps[4] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>> 0ul)&0xFFul);
+        temps[5] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>> 8ul)&0xFFul);
+        temps[6] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>>16ul)&0xFFul);
+        temps[7] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>>24ul)&0xFFul);
 }
 
 template <const unsigned int card,typename templine_type_t> static Bit8u * EGA_Planar_Common_Line(Bitu vidstart, Bitu /*line*/) {
