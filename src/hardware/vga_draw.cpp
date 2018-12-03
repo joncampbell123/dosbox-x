@@ -853,7 +853,12 @@ static Bit8u * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
 }
 
 static const Bit16u* CGA_Planar_Memwrap(Bitu vidstart) {
-    return (const Bit16u*)vga.mem.linear + (vidstart & vga.draw.planar_mask);
+//  return (const Bit16u*)vga.mem.linear + (vidstart & vga.draw.planar_mask);
+    return (const Bit16u*)vga.tandy.draw_base + (vidstart & vga.draw.planar_mask);
+}
+
+static void CGA_Planar_Advance(Bitu &vidstart) {
+    vidstart++;
 }
 
 static const Bit32u* VGA_Planar_Memwrap(Bitu vidstart) {
@@ -877,8 +882,8 @@ static Bit32u FontMask[2]={0xffffffff,0x0};
 
 template <const bool snow> static Bit8u * CGA_COMMON_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
     Bits font_addr;
-    Bit32u * draw=(Bit32u *)TempLine;
-    const Bit8u* vidmem = VGA_Text_Memwrap(vidstart);
+    Bit32u * draw=(Bit32u *)TempLine;/*WARNING: Output is 8bpp, this typecast allows quick rendering*/
+    CGA_Latch latch;
 
     if (snow) {
         /* HACK: our code does not have render control during VBLANK, zero our
@@ -887,41 +892,50 @@ template <const bool snow> static Bit8u * CGA_COMMON_TEXT_Draw_Line(Bitu vidstar
             memset(vga.draw.cga_snow,0,sizeof(vga.draw.cga_snow));
     }
 
-    for (Bitu cx=0;cx<vga.draw.blocks;cx++) {
-        Bitu chr,col;
-        chr=vidmem[cx*2];
-        col=vidmem[cx*2+1];
-        if (snow && (cx&1) == 0 && cx <= 78) {
-            /* Trixter's "CGA test" program and reference video seems to suggest
-             * to me that the CGA "snow" might contain the value written by the CPU. */
-            if (vga.draw.cga_snow[cx] != 0)
-                chr = vga.draw.cga_snow[cx];
-            if (vga.draw.cga_snow[cx+1] != 0)
-                col = vga.draw.cga_snow[cx+1];
-        }
+    {
+        Bitu vidscan = vidstart;
 
-        Bitu font=vga.draw.font_tables[(col >> 3)&1][chr*32+line];
-        Bit32u mask1=TXT_Font_Table[font>>4] & FontMask[col >> 7];
-        Bit32u mask2=TXT_Font_Table[font&0xf] & FontMask[col >> 7];
-        Bit32u fg=TXT_FG_Table[col&0xf];
-        Bit32u bg=TXT_BG_Table[col>>4];
-        *draw++=(fg&mask1) | (bg&~mask1);
-        *draw++=(fg&mask2) | (bg&~mask2);
+        for (Bitu cx=0;cx<vga.draw.blocks;cx++) {
+            latch.w = *CGA_Planar_Memwrap(vidscan);
+            CGA_Planar_Advance(/*&*/vidscan);
+
+            Bitu chr,col;
+            chr=latch.b[0];
+            col=latch.b[1];
+            if (snow && (cx&1) == 0 && cx <= 78) {
+                /* Trixter's "CGA test" program and reference video seems to suggest
+                 * to me that the CGA "snow" might contain the value written by the CPU. */
+                if (vga.draw.cga_snow[cx] != 0)
+                    chr = vga.draw.cga_snow[cx];
+                if (vga.draw.cga_snow[cx+1] != 0)
+                    col = vga.draw.cga_snow[cx+1];
+            }
+
+            Bitu font=vga.draw.font_tables[(col >> 3)&1][chr*32+line];
+            Bit32u mask1=TXT_Font_Table[font>>4] & FontMask[col >> 7];
+            Bit32u mask2=TXT_Font_Table[font&0xf] & FontMask[col >> 7];
+            Bit32u fg=TXT_FG_Table[col&0xf];
+            Bit32u bg=TXT_BG_Table[col>>4];
+            *draw++=(fg&mask1) | (bg&~mask1);
+            *draw++=(fg&mask2) | (bg&~mask2);
+        }
     }
 
     if (snow)
         memset(vga.draw.cga_snow,0,sizeof(vga.draw.cga_snow));
 
     if (!vga.draw.cursor.enabled || !(vga.draw.cursor.count&0x8)) goto skip_cursor;
-    font_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) >> 1ll;
+    font_addr = (Bits)vga.draw.cursor.address - (Bits)vidstart;
     if (font_addr>=0 && font_addr<(Bits)vga.draw.blocks) {
         if (line<vga.draw.cursor.sline) goto skip_cursor;
         if (line>vga.draw.cursor.eline) goto skip_cursor;
         draw=(Bit32u *)&TempLine[(unsigned long)font_addr*8ul];
-        Bit32u att=TXT_FG_Table[vga.tandy.draw_base[vga.draw.cursor.address+1ul]&0xfu];
+        latch.w = *CGA_Planar_Memwrap(vga.draw.cursor.address);
+        Bit32u att=TXT_FG_Table[latch.b[1]&0xfu];
         *draw++=att;*draw++=att;
     }
 skip_cursor:
+
     return TempLine;
 }
 
@@ -934,110 +948,107 @@ static Bit8u * VGA_CGASNOW_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
 }
 
 static Bit8u * MCGA_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
-    // keep it aligned:
-    Bit32u* draw = (Bit32u*)TempLine;
-    const Bit8u* vidmem = VGA_Text_Memwrap(vidstart);
-    Bitu blocks = vga.draw.blocks;
-    if (vga.draw.panning) blocks++; // if the text is panned part of an 
-                                    // additional character becomes visible
-    while (blocks--) { // for each character in the line
-        Bitu chr = *vidmem++;
-        Bitu attr = *vidmem++;
-        // the font pattern
-        Bitu font = vga.draw.font_tables[(attr >> 3u)&1u][(chr<<5u)+line];
-        
-        Bitu background = attr >> 4u;
-        // if blinking is enabled bit7 is not mapped to attributes
-        if (vga.draw.blinking) background &= ~0x8u;
-        // choose foreground color if blinking not set for this cell or blink on
-        Bitu foreground = (vga.draw.blink || (!(attr&0x80)))?
-            (attr&0xf):background;
-        // underline: all foreground [freevga: 0x77, previous 0x7]
-        if (GCC_UNLIKELY(((attr&0x77) == 0x01) &&
-            (vga.crtc.underline_location&0x1f)==line))
-                background = foreground;
-        if (vga.draw.char9dot) {
-            font <<=1; // 9 pixels
-            // extend to the 9th pixel if needed
-            if ((font&0x2) && (vga.attr.mode_control&0x04) &&
-                (chr>=0xc0) && (chr<=0xdf)) font |= 1;
-            for (Bitu n = 0; n < 9; n++) {
-                *draw++ = vga.dac.xlat32[(font&0x100)? foreground:background];
-                font <<= 1;
+    Bits font_addr;
+    Bit32u * draw=(Bit32u *)TempLine;
+    CGA_Latch latch;
+
+    {
+        Bitu vidscan = vidstart;
+
+        for (Bitu cx=0;cx<vga.draw.blocks;cx++) {
+            latch.w = *CGA_Planar_Memwrap(vidscan);
+            CGA_Planar_Advance(/*&*/vidscan);
+
+            Bitu chr,col;
+            chr=latch.b[0];
+            col=latch.b[1];
+
+            if (vga.draw.blinking && (col & 0x80u)) {
+                if (vga.draw.blink) col |=  0x80u;
+                else                col &= ~0x80u;
             }
-        } else {
-            for (Bitu n = 0; n < 8; n++) {
-                *draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
-                font <<= 1;
-            }
+
+            Bit32u fg = vga.dac.xlat32[col & 0xFu];
+            Bit32u bg = vga.dac.xlat32[col >> 4u];
+
+            Bitu font=vga.draw.font_tables[0][chr*32+line];
+            for (unsigned int x=0;x < 8;x++,font<<=1u)
+                *draw++ = (font & 0x80) ? fg : bg;
         }
     }
+
+    if (!vga.draw.cursor.enabled || !(vga.draw.cursor.count&0x8)) goto skip_cursor;
 
     // cursor appearance is also affected by the MCGA double-scanning
     if (mcga_double_scan)
         line >>= 1ul;
 
-    // draw the text mode cursor if needed
-    if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
-        (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
-        // the adress of the attribute that makes up the cell the cursor is in
-        Bits attr_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) >> (Bits)1; /* <- FIXME: This right? */
-        if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
-            Bitu index = (Bitu)attr_addr * (vga.draw.char9dot?9u:8u) * 4u;
-            draw = (Bit32u*)(&TempLine[index]);
-            
-            Bitu foreground = vga.tandy.draw_base[(vga.draw.cursor.address<<1)+1] & 0xf;
-            for (Bitu i = 0; i < 8; i++) {
-                *draw++ = vga.dac.xlat32[foreground];
-            }
-        }
+    font_addr = (Bits)vga.draw.cursor.address - (Bits)vidstart;
+    if (font_addr>=0 && font_addr<(Bits)vga.draw.blocks) {
+        if (line<vga.draw.cursor.sline) goto skip_cursor;
+        if (line>vga.draw.cursor.eline) goto skip_cursor;
+        draw=(Bit32u *)TempLine + (unsigned long)font_addr*8ul;
+        latch.w = *CGA_Planar_Memwrap(vga.draw.cursor.address);
+        Bit32u att=vga.dac.xlat32[latch.b[1]&0xfu];
+        for (unsigned int x=0;x < 8;x++) draw[x] = att;
     }
+skip_cursor:
     return TempLine;
 }
 
 static Bit8u * VGA_TEXT_Herc_Draw_Line(Bitu vidstart, Bitu line) {
     Bits font_addr;
     Bit32u * draw=(Bit32u *)TempLine;
-    const Bit8u* vidmem = VGA_Text_Memwrap(vidstart);
+    CGA_Latch latch;
 
-    for (Bitu cx=0;cx<vga.draw.blocks;cx++) {
-        Bitu chr=vidmem[cx*2];
-        Bitu attrib=vidmem[cx*2+1];
-        if (!(attrib&0x77)) {
-            // 00h, 80h, 08h, 88h produce black space
-            *draw++=0;
-            *draw++=0;
-        } else {
-            Bit32u bg, fg;
-            bool underline=false;
-            if ((attrib&0x77)==0x70) {
-                bg = TXT_BG_Table[0x7];
-                if (attrib&0x8) fg = TXT_FG_Table[0xf];
-                else fg = TXT_FG_Table[0x0];
+    {
+        Bitu vidscan = vidstart;
+
+        for (Bitu cx=0;cx<vga.draw.blocks;cx++) {
+            latch.w = *CGA_Planar_Memwrap(vidscan);
+            CGA_Planar_Advance(/*&*/vidscan);
+
+            Bitu chr=latch.b[0];
+            Bitu attrib=latch.b[1];
+            if (!(attrib&0x77)) {
+                // 00h, 80h, 08h, 88h produce black space
+                *draw++=0;
+                *draw++=0;
             } else {
-                if (((Bitu)(vga.crtc.underline_location&0x1f)==line) && ((attrib&0x77)==0x1)) underline=true;
-                bg = TXT_BG_Table[0x0];
-                if (attrib&0x8) fg = TXT_FG_Table[0xf];
-                else fg = TXT_FG_Table[0x7];
+                Bit32u bg, fg;
+                bool underline=false;
+                if ((attrib&0x77)==0x70) {
+                    bg = TXT_BG_Table[0x7];
+                    if (attrib&0x8) fg = TXT_FG_Table[0xf];
+                    else fg = TXT_FG_Table[0x0];
+                } else {
+                    if (((Bitu)(vga.crtc.underline_location&0x1f)==line) && ((attrib&0x77)==0x1)) underline=true;
+                    bg = TXT_BG_Table[0x0];
+                    if (attrib&0x8) fg = TXT_FG_Table[0xf];
+                    else fg = TXT_FG_Table[0x7];
+                }
+                Bit32u mask1, mask2;
+                if (GCC_UNLIKELY(underline)) mask1 = mask2 = FontMask[attrib >> 7];
+                else {
+                    Bitu font=vga.draw.font_tables[0][chr*32+line];
+                    mask1=TXT_Font_Table[font>>4] & FontMask[attrib >> 7]; // blinking
+                    mask2=TXT_Font_Table[font&0xf] & FontMask[attrib >> 7];
+                }
+                *draw++=(fg&mask1) | (bg&~mask1);
+                *draw++=(fg&mask2) | (bg&~mask2);
             }
-            Bit32u mask1, mask2;
-            if (GCC_UNLIKELY(underline)) mask1 = mask2 = FontMask[attrib >> 7];
-            else {
-                Bitu font=vga.draw.font_tables[0][chr*32+line];
-                mask1=TXT_Font_Table[font>>4] & FontMask[attrib >> 7]; // blinking
-                mask2=TXT_Font_Table[font&0xf] & FontMask[attrib >> 7];
-            }
-            *draw++=(fg&mask1) | (bg&~mask1);
-            *draw++=(fg&mask2) | (bg&~mask2);
         }
     }
+
     if (!vga.draw.cursor.enabled || !(vga.draw.cursor.count&0x8)) goto skip_cursor;
-    font_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) >> 1ll;
+    font_addr = (Bits)vga.draw.cursor.address - (Bits)vidstart;
     if (font_addr>=0 && font_addr<(Bits)vga.draw.blocks) {
         if (line<vga.draw.cursor.sline) goto skip_cursor;
         if (line>vga.draw.cursor.eline) goto skip_cursor;
         draw=(Bit32u *)&TempLine[(unsigned long)font_addr*8ul];
-        Bit8u attr = vga.tandy.draw_base[vga.draw.cursor.address+1];
+
+        latch.w = *CGA_Planar_Memwrap(vga.draw.cursor.address);
+        Bit8u attr = latch.b[1];
         Bit32u cg;
         if (attr&0x8) {
             cg = TXT_FG_Table[0xf];
@@ -2081,8 +2092,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         if (IS_EGAVGA_ARCH)
             vga.draw.cursor.address=vga.config.cursor_start<<vga.config.addr_shift;
         else
-            vga.draw.cursor.address=vga.config.cursor_start*2;
-        vga.draw.address *= 2;
+            vga.draw.cursor.address=vga.config.cursor_start;
 
         /* check for blinking and blinking change delay */
         FontMask[1]=(vga.draw.blinking & (unsigned int)(vga.draw.cursor.count >> 4u)) ?
@@ -2235,10 +2245,10 @@ void VGA_CheckScanLength(void) {
         vga.draw.address_add=vga.draw.blocks;
         break;
     case M_TANDY_TEXT:
-        vga.draw.address_add=vga.draw.blocks*2;
+        vga.draw.address_add=vga.draw.blocks;
         break;
     case M_HERC_TEXT:
-        vga.draw.address_add=vga.draw.blocks*2;
+        vga.draw.address_add=vga.draw.blocks;
         break;
     case M_HERC_GFX:
         vga.draw.address_add=vga.draw.blocks;
