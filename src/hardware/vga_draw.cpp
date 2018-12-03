@@ -909,7 +909,6 @@ static const Bit8u* VGA_Text_Memwrap(Bitu vidstart) {
 }
 
 static Bit32u FontMask[2]={0xffffffff,0x0};
-static Bit32u CGA_PRND = 1;
 
 static Bit8u * VGA_CGASNOW_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
     Bits font_addr;
@@ -932,8 +931,6 @@ static Bit8u * VGA_CGASNOW_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
                 chr = vga.draw.cga_snow[cx];
             if (vga.draw.cga_snow[cx+1] != 0)
                 col = vga.draw.cga_snow[cx+1];
-
-            CGA_PRND = ((CGA_PRND+1)*9421)&0xFFFF;
         }
 
         Bitu font=vga.draw.font_tables[(col >> 3)&1][chr*32+line];
