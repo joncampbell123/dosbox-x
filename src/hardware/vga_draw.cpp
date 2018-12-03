@@ -2108,6 +2108,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         break;
     }
 
+    if (IS_EGAVGA_ARCH)
+        vga.draw.planar_mask = vga.draw.linear_mask >> 2;
+    else
+        vga.draw.planar_mask = vga.draw.linear_mask >> 1;
+
     /* ET4000 High Sierra DAC programs can change SVGA mode */
     if ((vga.mode == M_LIN15 || vga.mode == M_LIN16) && (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)) {
         if (et4k_highcolor_half_pixel_rate())
