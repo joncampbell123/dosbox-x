@@ -1,4 +1,6 @@
 0.82.13 (next)
+  - EGA/VGA text rendering combined to reduce code copypasta
+    and reduce bugs.
   - VGA 16-color planar modes now obey CRTC byte/word/dword
     bits.
 0.82.12
