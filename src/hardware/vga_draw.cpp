@@ -562,81 +562,74 @@ static Bit8u * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 
 extern Bit32u Expand16Table[4][16];
 
-static inline void EGA_Planar_Xlat8(Bit8u * const temps,const Bit32u t1,const Bit32u t2) {
+template <const unsigned int card,typename templine_type_t> static inline void EGA_Planar_Common_Block(templine_type_t * const temps,const Bit32u t1,const Bit32u t2) {
     Bit32u tmp;
 
-    tmp =   Expand16Table[0][(t1>>0)&0xFF] |
-            Expand16Table[1][(t1>>8)&0xFF] |
-            Expand16Table[2][(t1>>16)&0xFF] |
-            Expand16Table[3][(t1>>24)&0xFF];
-    temps[0] = vga.attr.palette[(tmp>>0)&vga.attr.color_plane_enable];
-    temps[1] = vga.attr.palette[(tmp>>8)&vga.attr.color_plane_enable];
-    temps[2] = vga.attr.palette[(tmp>>16)&vga.attr.color_plane_enable];
-    temps[3] = vga.attr.palette[(tmp>>24)&vga.attr.color_plane_enable];
+    if (card == MCH_VGA) {
+        tmp =   Expand16Table[0][(t1>>0)&0xFF] |
+                Expand16Table[1][(t1>>8)&0xFF] |
+                Expand16Table[2][(t1>>16)&0xFF] |
+                Expand16Table[3][(t1>>24)&0xFF];
+        temps[0] = vga.dac.xlat32[(tmp>>0)&0xFF];
+        temps[1] = vga.dac.xlat32[(tmp>>8)&0xFF];
+        temps[2] = vga.dac.xlat32[(tmp>>16)&0xFF];
+        temps[3] = vga.dac.xlat32[(tmp>>24)&0xFF];
 
-    tmp =   Expand16Table[0][(t2>>0)&0xFF] |
-            Expand16Table[1][(t2>>8)&0xFF] |
-            Expand16Table[2][(t2>>16)&0xFF] |
-            Expand16Table[3][(t2>>24)&0xFF];
-    temps[4] = vga.attr.palette[(tmp>>0)&vga.attr.color_plane_enable];
-    temps[5] = vga.attr.palette[(tmp>>8)&vga.attr.color_plane_enable];
-    temps[6] = vga.attr.palette[(tmp>>16)&vga.attr.color_plane_enable];
-    temps[7] = vga.attr.palette[(tmp>>24)&vga.attr.color_plane_enable];
-}
-
-static Bit8u * EGA_Draw_VGA_Planar_Xlat8_Line(Bitu vidstart, Bitu /*line*/) {
-    Bit8u* temps = (Bit8u*) TempLine;
-    Bit32u t1,t2;
-
-    // TODO: Odd/even mode i.e. 64KB EGA 640x350 4-color mode
-    // if (vga.seq.clocking_mode&4) { /* odd/even mode serialization */
-
-    for (Bitu i = 0; i < ((vga.draw.line_length)+vga.draw.panning); i += 8) {
-        t1 = t2 = *((Bit32u*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
-        t1 = (t1 >> 4) & 0x0f0f0f0f;
-        t2 &= 0x0f0f0f0f;
-        vidstart += 4;
-        EGA_Planar_Xlat8(temps+i,t1,t2);
+        tmp =   Expand16Table[0][(t2>>0)&0xFF] |
+                Expand16Table[1][(t2>>8)&0xFF] |
+                Expand16Table[2][(t2>>16)&0xFF] |
+                Expand16Table[3][(t2>>24)&0xFF];
+        temps[4] = vga.dac.xlat32[(tmp>>0)&0xFF];
+        temps[5] = vga.dac.xlat32[(tmp>>8)&0xFF];
+        temps[6] = vga.dac.xlat32[(tmp>>16)&0xFF];
+        temps[7] = vga.dac.xlat32[(tmp>>24)&0xFF];
     }
+    else if (card == MCH_EGA) {
+        tmp =   Expand16Table[0][(t1>>0)&0xFF] |
+                Expand16Table[1][(t1>>8)&0xFF] |
+                Expand16Table[2][(t1>>16)&0xFF] |
+                Expand16Table[3][(t1>>24)&0xFF];
+        temps[0] = vga.attr.palette[(tmp>>0)&vga.attr.color_plane_enable];
+        temps[1] = vga.attr.palette[(tmp>>8)&vga.attr.color_plane_enable];
+        temps[2] = vga.attr.palette[(tmp>>16)&vga.attr.color_plane_enable];
+        temps[3] = vga.attr.palette[(tmp>>24)&vga.attr.color_plane_enable];
 
-    return TempLine + (vga.draw.panning);
+        tmp =   Expand16Table[0][(t2>>0)&0xFF] |
+                Expand16Table[1][(t2>>8)&0xFF] |
+                Expand16Table[2][(t2>>16)&0xFF] |
+                Expand16Table[3][(t2>>24)&0xFF];
+        temps[4] = vga.attr.palette[(tmp>>0)&vga.attr.color_plane_enable];
+        temps[5] = vga.attr.palette[(tmp>>8)&vga.attr.color_plane_enable];
+        temps[6] = vga.attr.palette[(tmp>>16)&vga.attr.color_plane_enable];
+        temps[7] = vga.attr.palette[(tmp>>24)&vga.attr.color_plane_enable];
+    }
 }
 
-static inline void VGA_Planar_Xlat32(Bit32u * const temps,const Bit32u t1,const Bit32u t2) {
-    Bit32u tmp;
-
-    tmp =   Expand16Table[0][(t1>>0)&0xFF] |
-            Expand16Table[1][(t1>>8)&0xFF] |
-            Expand16Table[2][(t1>>16)&0xFF] |
-            Expand16Table[3][(t1>>24)&0xFF];
-    temps[0] = vga.dac.xlat32[(tmp>>0)&0xFF];
-    temps[1] = vga.dac.xlat32[(tmp>>8)&0xFF];
-    temps[2] = vga.dac.xlat32[(tmp>>16)&0xFF];
-    temps[3] = vga.dac.xlat32[(tmp>>24)&0xFF];
-
-    tmp =   Expand16Table[0][(t2>>0)&0xFF] |
-            Expand16Table[1][(t2>>8)&0xFF] |
-            Expand16Table[2][(t2>>16)&0xFF] |
-            Expand16Table[3][(t2>>24)&0xFF];
-    temps[4] = vga.dac.xlat32[(tmp>>0)&0xFF];
-    temps[5] = vga.dac.xlat32[(tmp>>8)&0xFF];
-    temps[6] = vga.dac.xlat32[(tmp>>16)&0xFF];
-    temps[7] = vga.dac.xlat32[(tmp>>24)&0xFF];
-}
-
-static Bit8u * VGA_Draw_VGA_Planar_Xlat32_Line(Bitu vidstart, Bitu /*line*/) {
-    Bit32u* temps = (Bit32u*) TempLine;
+template <const unsigned int card,typename templine_type_t> static Bit8u * EGA_Planar_Common_Line(Bitu vidstart, Bitu /*line*/) {
+    templine_type_t* temps = (templine_type_t*)TempLine;
+    Bitu count = vga.draw.blocks + ((vga.draw.panning + 7u) >> 3u);
     Bit32u t1,t2;
+    Bitu i = 0;
 
-    for (Bitu i = 0; i < ((vga.draw.line_length>>2)+vga.draw.panning); i += 8) {
+    while (count > 0u) {
         t1 = t2 = *((Bit32u*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
         t1 = (t1 >> 4) & 0x0f0f0f0f;
         t2 &= 0x0f0f0f0f;
         vidstart += (uintptr_t)4 << (uintptr_t)vga.config.addr_shift;
-        VGA_Planar_Xlat32(temps+i,t1,t2);
+        EGA_Planar_Common_Block<card,templine_type_t>(temps+i,t1,t2);
+        count--;
+        i += 8;
     }
 
-    return TempLine + (vga.draw.panning*4);
+    return TempLine + (vga.draw.panning*sizeof(templine_type_t));
+}
+
+static Bit8u * EGA_Draw_VGA_Planar_Xlat8_Line(Bitu vidstart, Bitu line) {
+    return EGA_Planar_Common_Line<MCH_EGA,Bit8u>(vidstart,line);
+}
+
+static Bit8u * VGA_Draw_VGA_Planar_Xlat32_Line(Bitu vidstart, Bitu line) {
+    return EGA_Planar_Common_Line<MCH_VGA,Bit32u>(vidstart,line);
 }
 
 static Bit8u * VGA_Draw_VGA_Packed4_Xlat32_Line(Bitu vidstart, Bitu /*line*/) {
