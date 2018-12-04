@@ -47,8 +47,8 @@ static inline void conc4d(SCALERNAME,SBPP,DBPP,R)(const void *s) {
 	SRCTYPE *cache = (SRCTYPE*)(render.scale.cacheRead);
 	render.scale.cacheRead += render.scale.cachePitch;
 	PTYPE * line0=(PTYPE *)(render.scale.outWrite);
-#if (SBPP == 9)
 	for (Bits x=(Bits)render.src.width;x>0;) {
+#if (SBPP == 9)
 		if (*(Bit32u const*)src == *(Bit32u*)cache && !(
 			render.pal.modified[src[0]] | 
 			render.pal.modified[src[1]] | 
@@ -59,7 +59,6 @@ static inline void conc4d(SCALERNAME,SBPP,DBPP,R)(const void *s) {
 			cache+=4;
 			line0+=4*SCALERWIDTH;
 #else 
-	for (Bits x=(Bits)render.src.width;x>0;) {
 		if (*(Bitu const*)src == *(Bitu*)cache) {
 			x-=(Bits)(sizeof(Bitu)/sizeof(SRCTYPE));
 			src+=(Bits)(sizeof(Bitu)/sizeof(SRCTYPE));
