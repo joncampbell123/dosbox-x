@@ -25,8 +25,6 @@
 #include "render.h"
 #include <string.h>
 
-extern bool enable_partial_screen_update;
-
 Bit8u Scaler_Aspect[SCALER_MAXHEIGHT];
 Bit16u Scaler_ChangedLines[SCALER_MAXHEIGHT];
 Bitu Scaler_ChangedLineIndex;
