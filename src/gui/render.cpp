@@ -38,8 +38,6 @@
 #include <emmintrin.h>
 #endif
 
-bool enable_partial_screen_update = true;
-
 Render_t render;
 Bitu last_gfx_flags = 0;
 ScalerLineHandler_t RENDER_DrawLine;
@@ -134,42 +132,40 @@ extern bool				sse2_available;
 /*END HACK*/
 
 static void RENDER_StartLineHandler(const void * s) {
-    if (enable_partial_screen_update) {
-        if (s) {
-            const Bitu *src = (Bitu*)s;
-            Bitu *cache = (Bitu*)(render.scale.cacheRead);
-            Bits count = (Bits)render.src.start;
+    if (s) {
+        const Bitu *src = (Bitu*)s;
+        Bitu *cache = (Bitu*)(render.scale.cacheRead);
+        Bits count = (Bits)render.src.start;
 #if defined(__SSE__)
-            if (sse2_available) {
+        if (sse2_available) {
 #define MY_SIZEOF_INT_P sizeof(*src)
-                static const Bitu simd_inc = 16/MY_SIZEOF_INT_P;
-                while (count >= (Bits)simd_inc) {
-                    __m128i v = _mm_loadu_si128((const __m128i*)src);
-                    __m128i c = _mm_loadu_si128((const __m128i*)cache);
-                    __m128i cmp = _mm_cmpeq_epi32(v, c);
-                    if (GCC_UNLIKELY(_mm_movemask_epi8(cmp) != 0xFFFF))
-                        goto cacheMiss;
-                    count-=(Bits)simd_inc; src+=simd_inc; cache+=simd_inc;
-                }
-#undef MY_SIZEOF_INT_P
+            static const Bitu simd_inc = 16/MY_SIZEOF_INT_P;
+            while (count >= (Bits)simd_inc) {
+                __m128i v = _mm_loadu_si128((const __m128i*)src);
+                __m128i c = _mm_loadu_si128((const __m128i*)cache);
+                __m128i cmp = _mm_cmpeq_epi32(v, c);
+                if (GCC_UNLIKELY(_mm_movemask_epi8(cmp) != 0xFFFF))
+                    goto cacheMiss;
+                count-=(Bits)simd_inc; src+=simd_inc; cache+=simd_inc;
             }
-            else
+#undef MY_SIZEOF_INT_P
+        }
+        else
 #endif
-            {
-                while (count) {
-                    if (GCC_UNLIKELY(src[0] != cache[0]))
-                        goto cacheMiss;
-                    count--; src++; cache++;
-                }
+        {
+            while (count) {
+                if (GCC_UNLIKELY(src[0] != cache[0]))
+                    goto cacheMiss;
+                count--; src++; cache++;
             }
         }
-        /* cacheHit */
-        render.scale.cacheRead += render.scale.cachePitch;
-        Scaler_ChangedLines[0] += Scaler_Aspect[ render.scale.inLine ];
-        render.scale.inLine++;
-        render.scale.outLine++;
-        return;
     }
+/* cacheHit */
+    render.scale.cacheRead += render.scale.cachePitch;
+    Scaler_ChangedLines[0] += Scaler_Aspect[ render.scale.inLine ];
+    render.scale.inLine++;
+    render.scale.outLine++;
+    return;
 cacheMiss:
     if (!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch )) {
         RENDER_DrawLine = RENDER_EmptyLineHandler;
@@ -779,7 +775,6 @@ void RENDER_OnSectionPropChange(Section *x) {
 
     render.frameskip.max = (Bitu)section->Get_int("frameskip");
 
-    enable_partial_screen_update=section->Get_bool("partial screen update");
     vga.draw.doublescan_set=section->Get_bool("doublescan");
     vga.draw.char9_set=section->Get_bool("char9");
 
@@ -898,7 +893,6 @@ void RENDER_Init() {
 
     control->GetSection("render")->onpropchange.push_back(&RENDER_OnSectionPropChange);
 
-    enable_partial_screen_update=section->Get_bool("partial screen update");
     vga.draw.doublescan_set=section->Get_bool("doublescan");
     vga.draw.char9_set=section->Get_bool("char9");
 

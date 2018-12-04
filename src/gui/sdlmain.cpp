@@ -6754,16 +6754,6 @@ bool alwaysontop_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const
     return true;
 }
 
-extern bool enable_partial_screen_update;
-
-bool partialscreenupdate_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    enable_partial_screen_update = !enable_partial_screen_update;
-    mainMenu.get_item("partialscreenupdate").check(enable_partial_screen_update).refresh_item(mainMenu);
-    return true;
-}
-
 bool sendkey_preset_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     if (menuitem->get_name() == "sendkey_ctrlesc") {
@@ -7609,7 +7599,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_cad").set_text("Ctrl+Alt+Del").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, "desktop.doublebuf", 0));
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"partialscreenupdate").set_text("Partial screen update").set_callback_function(partialscreenupdate_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles);
 
         bool MENU_get_swapstereo(void);
@@ -7618,9 +7607,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         bool MENU_get_mute(void);
         mainMenu.get_item("mixer_mute").check(MENU_get_mute()).refresh_item(mainMenu);
 
-        mainMenu.get_item("scaler_forced").check(render.scale.forced).refresh_item(mainMenu);
-
-        mainMenu.get_item("partialscreenupdate").check(enable_partial_screen_update).refresh_item(mainMenu);
+        mainMenu.get_item("scaler_forced").check(render.scale.forced);
 
         mainMenu.get_item("vga_9widetext").enable(!IS_PC98_ARCH);
         mainMenu.get_item("doublescan").enable(!IS_PC98_ARCH);

@@ -1557,10 +1557,6 @@ void DOSBOX_SetupConfigSections(void) {
                     "This option forces VGA emulation to ignore odd/even mode except in text and CGA modes.");
 
     secprop=control->AddSection_prop("render",&Null_Init,true);
-
-    Pbool = secprop->Add_bool("partial screen update",Property::Changeable::Always,true);
-    Pbool->Set_help("Enable partial screen updating. Set to false to always re-draw the screen.");
-
     Pint = secprop->Add_int("frameskip",Property::Changeable::Always,0);
     Pint->SetMinMax(0,10);
     Pint->Set_help("How many frames DOSBox skips before drawing one.");
