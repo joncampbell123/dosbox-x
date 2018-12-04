@@ -831,6 +831,7 @@ static const char *def_menu_video[] = {
 #if !defined(C_SDL2) && !defined(HX_DOS)
     "alwaysontop",
 #endif
+    "partialscreenupdate",
 #if !defined(C_SDL2)
     "doublebuf",
 	"--",
