@@ -6755,6 +6755,12 @@ void BlankDisplay(void);
 
 bool refreshtest_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
     BlankDisplay();
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    mainMenu.setRedraw();
+    GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+#endif
+
     return true;
 }
 
