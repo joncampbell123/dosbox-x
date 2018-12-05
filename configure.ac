@@ -560,6 +560,14 @@ if test x$enable_emscripten != xyes; then
   fi
 fi
 
+dnl FEATURE: xBRZ
+AH_TEMPLATE(C_SCALER_FULL_LINE,[Define to 1 to alter the simpler render scalers to operate only on the full scanline instead of detecting differences. This is a performance adjustment for slow or embedded systems])
+AC_ARG_ENABLE(scaler-full-line,AC_HELP_STRING([--enable-scaler-full-line],[scaler render full line instead of detecting changes, for slower systems]),enable_scaler_full_line=$enableval,enable_scaler_full_line=no)
+AM_CONDITIONAL(C_SCALER_FULL_LINE, test "x$enable_scaler_full_line" == "xyes")
+if test x$enable_scaler_full_line = xyes; then
+  AC_DEFINE(C_SCALER_FULL_LINE,1)
+fi
+
 dnl FEATURE: MIDI through ALSA
 AC_ARG_ENABLE(alsa-midi,
 AC_HELP_STRING([--enable-alsa-midi],[compile with alsa midi support (default yes)]),
