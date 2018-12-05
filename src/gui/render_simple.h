@@ -27,8 +27,9 @@
 #endif
 
 static inline void conc4d_sub_func(const SRCTYPE* &src, SRCTYPE* &cache, PTYPE* &line0, const unsigned int block_proc, Bitu &hadChange) {
+#if !defined(C_SCALER_FULL_LINE)
         if (memcmp(src,cache,block_proc * sizeof(SRCTYPE)) == 0
-#if (SBPP == 9)
+# if (SBPP == 9)
             && !(
 			render.pal.modified[src[0]] | 
 			render.pal.modified[src[1]] | 
@@ -38,13 +39,15 @@ static inline void conc4d_sub_func(const SRCTYPE* &src, SRCTYPE* &cache, PTYPE* 
             render.pal.modified[src[5]] | 
 			render.pal.modified[src[6]] | 
 			render.pal.modified[src[7]])
-#endif
+# endif
             ) {
 			src   += block_proc;
 			cache += block_proc;
 			line0 += block_proc*SCALERWIDTH;
 		}
-        else {
+        else
+#endif
+        {
 #if defined(SCALERLINEAR)
 #if (SCALERHEIGHT > 1) 
 			PTYPE *line1 = WC[0];
@@ -139,17 +142,21 @@ static inline void conc4d_func(const void *s) {
 	/* Clear the complete line marker */
 	Bitu hadChange = 0;
 	const SRCTYPE *src = (SRCTYPE*)s;
-#if (SBPP == 9)
-    // the pal change code above limits this to 8 pixels only, see function above
-    const unsigned int block_size = 8;
-#else
-    // larger blocks encourage memcmp() to optimize, scaler loop to process before coming back to check again.
-    const unsigned int block_size = 128;
-#endif
 
 	SRCTYPE *cache = (SRCTYPE*)(render.scale.cacheRead);
 	render.scale.cacheRead += render.scale.cachePitch;
 	PTYPE * line0=(PTYPE *)(render.scale.outWrite);
+
+#if defined(C_SCALER_FULL_LINE)
+    conc4d_sub_func(src,cache,line0,(unsigned int)render.src.width,hadChange);
+#else
+# if (SBPP == 9)
+    // the pal change code above limits this to 8 pixels only, see function above
+    const unsigned int block_size = 8;
+# else
+    // larger blocks encourage memcmp() to optimize, scaler loop to process before coming back to check again.
+    const unsigned int block_size = 128;
+# endif
 
     Bitu x = (Bitu)render.src.width;
     while (x >= block_size) {
@@ -159,6 +166,8 @@ static inline void conc4d_func(const void *s) {
     if (x > 0) {
         conc4d_sub_func(src,cache,line0,(unsigned int)x,hadChange);
 	}
+#endif
+
 #if defined(SCALERLINEAR) 
 	Bitu scaleLines = SCALERHEIGHT;
 #else
