@@ -1,4 +1,12 @@
 0.82.13 (next)
+  - Simple scaler rendering has altered the RENDER start line
+    state so that detection of a changed line triggers a block
+    of rendering without compare within a limited count before
+    checking again. This means a reduced CPU load with scalers
+    because it only detects frame changes every line before
+    changes detected, and then on average every 12th line
+    when running the scaler code. Hopefully this helps the
+    Raspberry Pi keep up with DOS gaming better.
   - Simple scalers now offer compile-time (not run-time)
     option to omit per-pixel compare in scaler and process
     the entire scanline instead as a performance adjustment
