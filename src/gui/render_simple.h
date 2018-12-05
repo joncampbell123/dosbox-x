@@ -17,36 +17,16 @@
  */
 
 #undef conc4d_func
+#undef conc4d_sub_func
 #if defined (SCALERLINEAR)
-# define conc4d_func conc4d(SCALERNAME,SBPP,DBPP,L)
+# define conc4d_func        conc4d(SCALERNAME,SBPP,DBPP,L)
+# define conc4d_sub_func    conc4d(SCALERNAME,SBPP,DBPP,Lsub)
 #else
-# define conc4d_func conc4d(SCALERNAME,SBPP,DBPP,R)
+# define conc4d_func        conc4d(SCALERNAME,SBPP,DBPP,R)
+# define conc4d_sub_func    conc4d(SCALERNAME,SBPP,DBPP,Rsub)
 #endif
 
-static inline void conc4d_func(const void *s) {
-#ifdef RENDER_NULL_INPUT
-	if (!s) {
-		render.scale.cacheRead += render.scale.cachePitch;
-#if defined(SCALERLINEAR) 
-		Bitu skipLines = SCALERHEIGHT;
-#else
-		Bitu skipLines = Scaler_Aspect[ render.scale.outLine++ ];
-#endif
-		ScalerAddLines( 0, skipLines );
-		return;
-	}
-#endif
-	/* Clear the complete line marker */
-	Bitu hadChange = 0;
-	const SRCTYPE *src = (SRCTYPE*)s;
-    const unsigned int block_size = 128; // larger blocks encourage memcmp() to optimize, scaler loop to process before coming back to check again.
-	SRCTYPE *cache = (SRCTYPE*)(render.scale.cacheRead);
-	render.scale.cacheRead += render.scale.cachePitch;
-	PTYPE * line0=(PTYPE *)(render.scale.outWrite);
-	for (Bitu x=(Bitu)render.src.width;x>(Bitu)0u;) {
-        const unsigned int block_proc = (Bitu)x > block_size ? block_size : (Bitu)x;
-        x -= block_proc;
-
+static inline void conc4d_sub_func(const SRCTYPE* &src, SRCTYPE* &cache, PTYPE* &line0, const unsigned int block_proc, Bitu &hadChange) {
         if (memcmp(src,cache,block_proc * sizeof(SRCTYPE)) == 0
 #if (SBPP == 9)
             && !(
@@ -95,7 +75,8 @@ static inline void conc4d_func(const void *s) {
 #endif
 #endif //defined(SCALERLINEAR)
 			hadChange = 1;
-			for (Bitu i = block_proc;i>0u;i--) {
+            unsigned int i = block_proc; /* WARNING: assume block_proc != 0 */
+            do {
 				const SRCTYPE S = *src++;
 				*cache++ = S;
 				const PTYPE P = PMAKE(S);
@@ -116,7 +97,7 @@ static inline void conc4d_func(const void *s) {
 #if (SCALERHEIGHT > 5) 
 				line5 += SCALERWIDTH;
 #endif
-			}
+			} while (--i != 0u);
 #if defined(SCALERLINEAR)
 #if (SCALERHEIGHT > 1)
 			Bitu copyLen = (Bitu)((Bit8u*)line1 - (Bit8u*)WC[0]);
@@ -136,6 +117,36 @@ static inline void conc4d_func(const void *s) {
 #endif
 #endif //defined(SCALERLINEAR)
 		}
+}
+
+static inline void conc4d_func(const void *s) {
+#ifdef RENDER_NULL_INPUT
+	if (!s) {
+		render.scale.cacheRead += render.scale.cachePitch;
+#if defined(SCALERLINEAR) 
+		Bitu skipLines = SCALERHEIGHT;
+#else
+		Bitu skipLines = Scaler_Aspect[ render.scale.outLine++ ];
+#endif
+		ScalerAddLines( 0, skipLines );
+		return;
+	}
+#endif
+	/* Clear the complete line marker */
+	Bitu hadChange = 0;
+	const SRCTYPE *src = (SRCTYPE*)s;
+    const unsigned int block_size = 128; // larger blocks encourage memcmp() to optimize, scaler loop to process before coming back to check again.
+	SRCTYPE *cache = (SRCTYPE*)(render.scale.cacheRead);
+	render.scale.cacheRead += render.scale.cachePitch;
+	PTYPE * line0=(PTYPE *)(render.scale.outWrite);
+
+    Bitu x = (Bitu)render.src.width;
+    while (x >= block_size) {
+        x -= block_size;
+        conc4d_sub_func(src,cache,line0,block_size,hadChange);
+    }
+    if (x > 0) {
+        conc4d_sub_func(src,cache,line0,(unsigned int)x,hadChange);
 	}
 #if defined(SCALERLINEAR) 
 	Bitu scaleLines = SCALERHEIGHT;
