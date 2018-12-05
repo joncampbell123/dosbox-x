@@ -131,6 +131,86 @@ extern bool				sse2_available;
 #endif
 /*END HACK*/
 
+/* NTS: In normal conditions, the renderer at the start of the frame
+ *      does not call the scaler but instead compares line by line
+ *      from the cache. The instant a line differs, it switches to
+ *      running the scaler for the rest of the frame and the scaler
+ *      will compare pixels and process only those pixel groups that
+ *      changed, and then send the scanline to the changed lines
+ *      list.
+ *
+ *      If C_SCALER_FULL_LINE, the scaler will blindly process pixels
+ *      without comparing to detect changes. This code changes to
+ *      let the scaler blast pixels at least for some scan lines
+ *      before switching back to comparing scan lines to determine
+ *      whether more scaler processing is needed.
+ *
+ *      The intent of C_SCALER_FULL_LINE is to process the scalers
+ *      in a way more appropriate for embedded systems where memory
+ *      and video bandwidth are more limited. */
+
+#if defined(C_SCALER_FULL_LINE)
+static unsigned int RENDER_scaler_countdown = 0;
+static const unsigned int RENDER_scaler_countdown_init = 12;
+
+static INLINE void cn_ScalerAddLines( Bitu changed, Bitu count ) {
+	if ((Scaler_ChangedLineIndex & 1) == changed ) {
+		Scaler_ChangedLines[Scaler_ChangedLineIndex] += count;
+	} else {
+		Scaler_ChangedLines[++Scaler_ChangedLineIndex] = count;
+	}
+	render.scale.outWrite += render.scale.outPitch * count;
+}
+
+static void RENDER_DrawLine_countdown(const void * s);
+
+static void RENDER_DrawLine_countdown_wait(const void * s) {
+    if (s) {
+        const Bitu *src = (Bitu*)s;
+        Bitu *cache = (Bitu*)(render.scale.cacheRead);
+        Bits count = (Bits)render.src.start;
+#if defined(__SSE__)
+        if (sse2_available) {
+#define MY_SIZEOF_INT_P sizeof(*src)
+            static const Bitu simd_inc = 16/MY_SIZEOF_INT_P;
+            while (count >= (Bits)simd_inc) {
+                __m128i v = _mm_loadu_si128((const __m128i*)src);
+                __m128i c = _mm_loadu_si128((const __m128i*)cache);
+                __m128i cmp = _mm_cmpeq_epi32(v, c);
+                if (GCC_UNLIKELY(_mm_movemask_epi8(cmp) != 0xFFFF))
+                    goto cacheMiss;
+                count-=(Bits)simd_inc; src+=simd_inc; cache+=simd_inc;
+            }
+#undef MY_SIZEOF_INT_P
+        }
+        else
+#endif
+        {
+            while (count) {
+                if (GCC_UNLIKELY(src[0] != cache[0]))
+                    goto cacheMiss;
+                count--; src++; cache++;
+            }
+        }
+    }
+/* cacheHit */
+    render.scale.inLine++;
+    render.scale.cacheRead += render.scale.cachePitch;
+    cn_ScalerAddLines(0,Scaler_Aspect[ render.scale.outLine++ ]);
+    return;
+cacheMiss:
+    RENDER_scaler_countdown = RENDER_scaler_countdown_init;
+    RENDER_DrawLine = RENDER_DrawLine_countdown;
+    RENDER_DrawLine( s );
+}
+
+static void RENDER_DrawLine_countdown(const void * s) {
+    render.scale.lineHandler(s);
+    if (--RENDER_scaler_countdown == 0)
+        RENDER_DrawLine = RENDER_DrawLine_countdown_wait;
+}
+#endif
+
 static void RENDER_StartLineHandler(const void * s) {
     if (s) {
         const Bitu *src = (Bitu*)s;
@@ -172,7 +252,12 @@ cacheMiss:
         return;
     }
     render.scale.outWrite += render.scale.outPitch * Scaler_ChangedLines[0];
+#if defined(C_SCALER_FULL_LINE)
+    RENDER_scaler_countdown = RENDER_scaler_countdown_init;
+    RENDER_DrawLine = RENDER_DrawLine_countdown;
+#else
     RENDER_DrawLine = render.scale.lineHandler;
+#endif
     RENDER_DrawLine( s );
 }
 
