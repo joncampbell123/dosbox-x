@@ -19,6 +19,29 @@ void UpdateWindowMaximized(bool flag);
 #include <X11/extensions/Xrandr.h>
 #endif
 
+/* The XRandR extension may or may not be there */
+#if C_X11_XRANDR
+bool X11_XRR_avail = false;
+bool X11_XRR_checked = false;
+
+bool X11_XRR_check(Display *display) {
+    if (!X11_XRR_checked) {
+        X11_XRR_checked = true;
+
+        int major=0,minor=0,err=0;
+
+        if (XQueryExtension(display,"RANDR",&major,&minor,&err) && major != 0)
+            X11_XRR_avail = true;
+        else
+            X11_XRR_avail = false;
+
+        LOG_MSG("X11 extension XRANDR is %s",X11_XRR_avail ? "available" : "not available");
+    }
+
+    return X11_XRR_avail;
+}
+#endif
+
 #if !defined(C_SDL2)
 extern "C" void SDL1_hax_X11_jpfix(int ro_scan,int yen_scan);
 
@@ -245,6 +268,10 @@ static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display,Window w
     XWindowAttributes attr;
     int x = 0, y = 0;
     Window child;
+
+    /* do not use XRandR if the X11 server does not support it */
+    if (!X11_XRR_check(display))
+        return false;
 
     memset(&attr,0,sizeof(attr));
     XGetWindowAttributes(display, window, &attr);
