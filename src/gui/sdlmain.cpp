@@ -619,6 +619,20 @@ static void KillSwitch(bool pressed) {
     throw 1;
 }
 
+void BlankDisplay(void) {
+    if (OpenGL_using()) {
+        LOG_MSG("FIXME: BlankDisplay() not implemented for OpenGL mode");
+    }
+    else {
+        SDL_FillRect(sdl.surface,0,0);
+#if defined(C_SDL2)
+        SDL_UpdateWindowSurface(sdl.window);
+#else
+        SDL_Flip(sdl.surface);
+#endif
+    }
+}
+
 void GFX_SDL_Overscan(void) {
     sdl.overscan_color=0;
     if (sdl.overscan_width) {
