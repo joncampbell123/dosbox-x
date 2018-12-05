@@ -820,6 +820,12 @@ static const char *def_menu_video_pc98[] = {
     NULL
 };
 
+/* video output debug ("VideoDebugMenu") */
+static const char *def_menu_video_debug[] = {
+    "mapper_blankrefreshtest",
+    NULL
+};
+
 /* video menu ("VideoMenu") */
 static const char *def_menu_video[] = {
 	"mapper_aspratio",
@@ -856,6 +862,8 @@ static const char *def_menu_video[] = {
     "VideoOverscanMenu",
     "VideoCompatMenu",
     "VideoPC98Menu",
+    "--",
+    "VideoDebugMenu",
     NULL
 };
 
@@ -1050,6 +1058,9 @@ void ConstructMenu(void) {
 
     /* video PC-98 menu */
     ConstructSubMenu(mainMenu.get_item("VideoPC98Menu").get_master_id(), def_menu_video_pc98);
+
+    /* video debug menu */
+    ConstructSubMenu(mainMenu.get_item("VideoDebugMenu").get_master_id(), def_menu_video_debug);
 
     /* sound menu */
     ConstructSubMenu(mainMenu.get_item("SoundMenu").get_master_id(), def_menu_sound);
