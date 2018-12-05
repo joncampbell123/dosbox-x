@@ -1,4 +1,6 @@
 0.82.13 (next)
+  - Linux/X11 support fixed not to assume XRandR extensions
+    are present, but to instead ask the X11 server first.
   - Simple scaler rendering has altered the RENDER start line
     state so that detection of a changed line triggers a block
     of rendering without compare within a limited count before
