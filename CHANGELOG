@@ -1,4 +1,8 @@
 0.82.13 (next)
+  - Simple scalers now offer compile-time (not run-time)
+    option to omit per-pixel compare in scaler and process
+    the entire scanline instead as a performance adjustment
+    for slower and embedded systems.
   - Video debug menu added. First item is one that blanks the
     display to test screen updating.
   - Simple scalers (normal 2x-5x and SAI) revised to process
