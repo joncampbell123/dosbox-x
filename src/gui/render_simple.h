@@ -44,28 +44,28 @@ static inline void conc4d(SCALERNAME,SBPP,DBPP,R)(const void *s) {
 	/* Clear the complete line marker */
 	Bitu hadChange = 0;
 	const SRCTYPE *src = (SRCTYPE*)s;
+    const unsigned int block_size = 128; // larger blocks encourage memcmp() to optimize, scaler loop to process before coming back to check again.
 	SRCTYPE *cache = (SRCTYPE*)(render.scale.cacheRead);
 	render.scale.cacheRead += render.scale.cachePitch;
 	PTYPE * line0=(PTYPE *)(render.scale.outWrite);
-	for (Bits x=(Bits)render.src.width;x>0;) {
+	for (Bitu x=(Bitu)render.src.width;x>(Bitu)0u;) {
+        const unsigned int block_proc = (Bitu)x > block_size ? block_size : (Bitu)x;
+        x -= block_proc;
+
+        if (memcmp(src,cache,block_proc * sizeof(SRCTYPE)) == 0
 #if (SBPP == 9)
-		if (*(Bit32u const*)src == *(Bit32u*)cache && !(
+            && !(
 			render.pal.modified[src[0]] | 
 			render.pal.modified[src[1]] | 
 			render.pal.modified[src[2]] | 
-			render.pal.modified[src[3]] )) {
-			x-=4;
-			src+=4;
-			cache+=4;
-			line0+=4*SCALERWIDTH;
-#else 
-		if (*(Bitu const*)src == *(Bitu*)cache) {
-			x-=(Bits)(sizeof(Bitu)/sizeof(SRCTYPE));
-			src+=(Bits)(sizeof(Bitu)/sizeof(SRCTYPE));
-			cache+=(Bits)(sizeof(Bitu)/sizeof(SRCTYPE));
-			line0+=(Bits)(sizeof(Bitu)/sizeof(SRCTYPE))*SCALERWIDTH;
+			render.pal.modified[src[3]] )
 #endif
-		} else {
+            ) {
+			src   += block_proc;
+			cache += block_proc;
+			line0 += block_proc*SCALERWIDTH;
+		}
+        else {
 #if defined(SCALERLINEAR)
 #if (SCALERHEIGHT > 1) 
 			PTYPE *line1 = WC[0];
@@ -100,10 +100,9 @@ static inline void conc4d(SCALERNAME,SBPP,DBPP,R)(const void *s) {
 #endif
 #endif //defined(SCALERLINEAR)
 			hadChange = 1;
-			for (Bitu i = x > 32 ? 32 : (Bitu)x;i>0;i--,x--) {
-				const SRCTYPE S = *src;
-				*cache = S;
-				src++;cache++;
+			for (Bitu i = block_proc;i>0u;i--) {
+				const SRCTYPE S = *src++;
+				*cache++ = S;
 				const PTYPE P = PMAKE(S);
 				SCALERFUNC;
 				line0 += SCALERWIDTH;
