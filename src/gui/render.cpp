@@ -149,6 +149,41 @@ extern bool				sse2_available;
  *      in a way more appropriate for embedded systems where memory
  *      and video bandwidth are more limited. */
 
+static inline bool RENDER_DrawLine_scanline_cacheHit(const void *s) {
+    if (s) {
+        const Bitu *src = (Bitu*)s;
+        Bitu *cache = (Bitu*)(render.scale.cacheRead);
+        Bits count = (Bits)render.src.start;
+#if defined(__SSE__)
+        if (sse2_available) {
+#define MY_SIZEOF_INT_P sizeof(*src)
+            static const Bitu simd_inc = 16/MY_SIZEOF_INT_P;
+            while (count >= (Bits)simd_inc) {
+                __m128i v = _mm_loadu_si128((const __m128i*)src);
+                __m128i c = _mm_loadu_si128((const __m128i*)cache);
+                __m128i cmp = _mm_cmpeq_epi32(v, c);
+                if (GCC_UNLIKELY(_mm_movemask_epi8(cmp) != 0xFFFF))
+                    goto cacheMiss;
+                count-=(Bits)simd_inc; src+=simd_inc; cache+=simd_inc;
+            }
+#undef MY_SIZEOF_INT_P
+        }
+        else
+#endif
+        {
+            while (count) {
+                if (GCC_UNLIKELY(src[0] != cache[0]))
+                    goto cacheMiss;
+                count--; src++; cache++;
+            }
+        }
+    }
+/* cacheHit */
+    return true;
+cacheMiss:
+    return false;
+}
+
 #if defined(C_SCALER_FULL_LINE)
 static unsigned int RENDER_scaler_countdown = 0;
 static const unsigned int RENDER_scaler_countdown_init = 12;
@@ -165,43 +200,16 @@ static INLINE void cn_ScalerAddLines( Bitu changed, Bitu count ) {
 static void RENDER_DrawLine_countdown(const void * s);
 
 static void RENDER_DrawLine_countdown_wait(const void * s) {
-    if (s) {
-        const Bitu *src = (Bitu*)s;
-        Bitu *cache = (Bitu*)(render.scale.cacheRead);
-        Bits count = (Bits)render.src.start;
-#if defined(__SSE__)
-        if (sse2_available) {
-#define MY_SIZEOF_INT_P sizeof(*src)
-            static const Bitu simd_inc = 16/MY_SIZEOF_INT_P;
-            while (count >= (Bits)simd_inc) {
-                __m128i v = _mm_loadu_si128((const __m128i*)src);
-                __m128i c = _mm_loadu_si128((const __m128i*)cache);
-                __m128i cmp = _mm_cmpeq_epi32(v, c);
-                if (GCC_UNLIKELY(_mm_movemask_epi8(cmp) != 0xFFFF))
-                    goto cacheMiss;
-                count-=(Bits)simd_inc; src+=simd_inc; cache+=simd_inc;
-            }
-#undef MY_SIZEOF_INT_P
-        }
-        else
-#endif
-        {
-            while (count) {
-                if (GCC_UNLIKELY(src[0] != cache[0]))
-                    goto cacheMiss;
-                count--; src++; cache++;
-            }
-        }
+    if (RENDER_DrawLine_scanline_cacheHit(s)) { // line has not changed
+        render.scale.inLine++;
+        render.scale.cacheRead += render.scale.cachePitch;
+        cn_ScalerAddLines(0,Scaler_Aspect[ render.scale.outLine++ ]);
     }
-/* cacheHit */
-    render.scale.inLine++;
-    render.scale.cacheRead += render.scale.cachePitch;
-    cn_ScalerAddLines(0,Scaler_Aspect[ render.scale.outLine++ ]);
-    return;
-cacheMiss:
-    RENDER_scaler_countdown = RENDER_scaler_countdown_init;
-    RENDER_DrawLine = RENDER_DrawLine_countdown;
-    RENDER_DrawLine( s );
+    else {
+        RENDER_scaler_countdown = RENDER_scaler_countdown_init;
+        RENDER_DrawLine = RENDER_DrawLine_countdown;
+        RENDER_DrawLine( s );
+    }
 }
 
 static void RENDER_DrawLine_countdown(const void * s) {
@@ -212,53 +220,26 @@ static void RENDER_DrawLine_countdown(const void * s) {
 #endif
 
 static void RENDER_StartLineHandler(const void * s) {
-    if (s) {
-        const Bitu *src = (Bitu*)s;
-        Bitu *cache = (Bitu*)(render.scale.cacheRead);
-        Bits count = (Bits)render.src.start;
-#if defined(__SSE__)
-        if (sse2_available) {
-#define MY_SIZEOF_INT_P sizeof(*src)
-            static const Bitu simd_inc = 16/MY_SIZEOF_INT_P;
-            while (count >= (Bits)simd_inc) {
-                __m128i v = _mm_loadu_si128((const __m128i*)src);
-                __m128i c = _mm_loadu_si128((const __m128i*)cache);
-                __m128i cmp = _mm_cmpeq_epi32(v, c);
-                if (GCC_UNLIKELY(_mm_movemask_epi8(cmp) != 0xFFFF))
-                    goto cacheMiss;
-                count-=(Bits)simd_inc; src+=simd_inc; cache+=simd_inc;
-            }
-#undef MY_SIZEOF_INT_P
-        }
-        else
-#endif
-        {
-            while (count) {
-                if (GCC_UNLIKELY(src[0] != cache[0]))
-                    goto cacheMiss;
-                count--; src++; cache++;
-            }
-        }
+    if (RENDER_DrawLine_scanline_cacheHit(s)) { // line has not changed
+        render.scale.cacheRead += render.scale.cachePitch;
+        Scaler_ChangedLines[0] += Scaler_Aspect[ render.scale.inLine ];
+        render.scale.inLine++;
+        render.scale.outLine++;
     }
-/* cacheHit */
-    render.scale.cacheRead += render.scale.cachePitch;
-    Scaler_ChangedLines[0] += Scaler_Aspect[ render.scale.inLine ];
-    render.scale.inLine++;
-    render.scale.outLine++;
-    return;
-cacheMiss:
-    if (!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch )) {
-        RENDER_DrawLine = RENDER_EmptyLineHandler;
-        return;
-    }
-    render.scale.outWrite += render.scale.outPitch * Scaler_ChangedLines[0];
+    else {
+        if (!GFX_StartUpdate( render.scale.outWrite, render.scale.outPitch )) {
+            RENDER_DrawLine = RENDER_EmptyLineHandler;
+            return;
+        }
+        render.scale.outWrite += render.scale.outPitch * Scaler_ChangedLines[0];
 #if defined(C_SCALER_FULL_LINE)
-    RENDER_scaler_countdown = RENDER_scaler_countdown_init;
-    RENDER_DrawLine = RENDER_DrawLine_countdown;
+        RENDER_scaler_countdown = RENDER_scaler_countdown_init;
+        RENDER_DrawLine = RENDER_DrawLine_countdown;
 #else
-    RENDER_DrawLine = render.scale.lineHandler;
+        RENDER_DrawLine = render.scale.lineHandler;
 #endif
-    RENDER_DrawLine( s );
+        RENDER_DrawLine( s );
+    }
 }
 
 static void RENDER_FinishLineHandler(const void * s) {
