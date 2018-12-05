@@ -1,4 +1,12 @@
 0.82.13 (next)
+  - Video debug menu added. First item is one that blanks the
+    display to test screen updating.
+  - Simple scalers (normal 2x-5x and SAI) revised to process
+    changes and scaler rendering in larger blocks for possible
+    performance improvement.
+  - Simple scalers fixed to properly compare all pixels to
+    detect changes properly, instead of only the first 4-8
+    pixels.
   - EGA/VGA text rendering combined to reduce code copypasta
     and reduce bugs.
   - VGA 16-color planar modes now obey CRTC byte/word/dword
