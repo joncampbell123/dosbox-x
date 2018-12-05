@@ -16,19 +16,14 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
+#undef conc4d_func
 #if defined (SCALERLINEAR)
-static inline void conc4d(SCALERNAME,SBPP,DBPP,L)(const void *s) {
-# if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
-	(void)conc4d(SCALERNAME,SBPP,DBPP,L);
-# endif
+# define conc4d_func conc4d(SCALERNAME,SBPP,DBPP,L)
 #else
-static inline void conc4d(SCALERNAME,SBPP,DBPP,R)(const void *s) {
-# if !defined(_MSC_VER) /* Microsoft C++ thinks this is a failed attempt at a function call---it's not */
-	(void)conc4d(SCALERNAME,SBPP,DBPP,R);
-# endif
+# define conc4d_func conc4d(SCALERNAME,SBPP,DBPP,R)
 #endif
 
+static inline void conc4d_func(const void *s) {
 #ifdef RENDER_NULL_INPUT
 	if (!s) {
 		render.scale.cacheRead += render.scale.cachePitch;
