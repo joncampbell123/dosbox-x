@@ -2748,8 +2748,20 @@ void CPU_ENTER(bool use32,Bitu bytes,Bitu level) {
 	reg_esp=(reg_esp&cpu.stack.notmask)|((sp_index)&cpu.stack.mask);
 }
 
+void CPU_SyncCycleMaxToProp(void) {
+    char tmp[64];
+
+    Section* sec=control->GetSection("cpu");
+	Section_prop * secprop = static_cast<Section_prop *>(sec);
+    Prop_multival* p = secprop->Get_multival("cycles");
+    Property* prop = p->GetSection()->Get_prop("type");
+    sprintf(tmp,"%llu",(unsigned long long)CPU_CycleMax);
+    prop->SetValue(tmp);
+}
+
 void CPU_CycleIncrease(bool pressed) {
 	if (!pressed) return;
+
 	if (CPU_CycleAutoAdjust) {
 		CPU_CyclePercUsed+=5;
 		if (CPU_CyclePercUsed>105) CPU_CyclePercUsed=105;
@@ -2762,7 +2774,7 @@ void CPU_CycleIncrease(bool pressed) {
 		} else {
 			CPU_CycleMax = (Bit32s)(CPU_CycleMax + CPU_CycleUp);
 		}
-	    
+
 		CPU_CycleLeft=0;CPU_Cycles=0;
 		if (CPU_CycleMax==old_cycles) CPU_CycleMax++;
 		if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
@@ -2778,6 +2790,7 @@ void CPU_CycleIncrease(bool pressed) {
                 LOG_MSG("CPU speed: fixed %ld cycles.",CPU_CycleMax);
         }
 		GFX_SetTitle(CPU_CycleMax,-1,-1,false);
+        CPU_SyncCycleMaxToProp();
 	}
 }
 
@@ -2806,6 +2819,7 @@ void CPU_CycleDecrease(bool pressed) {
 		    LOG_MSG("CPU speed: fixed %ld cycles.",CPU_CycleMax);
 		}
 		GFX_SetTitle(CPU_CycleMax,-1,-1,false);
+        CPU_SyncCycleMaxToProp();
 	}
 }
 

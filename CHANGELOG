@@ -1,4 +1,9 @@
 0.82.13 (next)
+  - Adjusting CPU cycles with F12 + - / F12 + + (Increment
+    and Decrement Cycles shortcuts) now updates cpu cycles
+    property. This fixes a problem where adjusting the cycle
+    count then changing the CPU core caused DOSBox-X to reset
+    the cycle count back to the original value.
   - Linux/X11 support fixed not to assume XRandR extensions
     are present, but to instead ask the X11 server first.
   - Simple scaler rendering has altered the RENDER start line
