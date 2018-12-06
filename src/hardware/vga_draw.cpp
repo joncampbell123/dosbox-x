@@ -1808,7 +1808,7 @@ static void VGA_PanningLatch(Bitu /*val*/) {
 }
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
-    double current_time = PIC_FullIndex();
+    double current_time = PIC_GetCurrentEventTime();
 
     GDC_display_plane = GDC_display_plane_pending;
 
@@ -1824,7 +1824,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
      * DOS games dependent on vsync to fail/hang. */
     double shouldbe = (((double)vga_mode_frames_since_time_base * 1000.0) / vga_fps) + vga_mode_time_base;
     double vsync_err = shouldbe - current_time; /* < 0 too slow     > 0 too fast */
-    double vsync_adj = (vsync_err < 0 ? -1 : 1) * vsync_err * vsync_err * 0.05;
+    double vsync_adj = vsync_err * 0.25;
     if (vsync_adj < -0.1) vsync_adj = -0.1;
     else if (vsync_adj > 0.1) vsync_adj = 0.1;
 
@@ -3167,7 +3167,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             RENDER_SetSize(width,height,bpp,(float)fps,screenratio);
 
         if (fps_changed) {
-            vga_mode_time_base = PIC_FullIndex();
+            vga_mode_time_base = PIC_GetCurrentEventTime();
             vga_mode_frames_since_time_base = 0;
             PIC_RemoveEvents(VGA_Other_VertInterrupt);
             PIC_RemoveEvents(VGA_VerticalTimer);
