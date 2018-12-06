@@ -49,6 +49,8 @@ extern Bitu PIC_Ticks;
 
 typedef double pic_tickindex_t;
 
+pic_tickindex_t PIC_GetCurrentEventTime(void);
+
 static INLINE pic_tickindex_t PIC_TickIndex(void) {
 	return ((pic_tickindex_t)(CPU_CycleMax-CPU_CycleLeft-CPU_Cycles)) / ((pic_tickindex_t)CPU_CycleMax);
 }

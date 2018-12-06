@@ -616,6 +616,13 @@ static void AddEntry(PICEntry * entry) {
 static bool InEventService = false;
 static pic_tickindex_t srv_lag = 0;
 
+pic_tickindex_t PIC_GetCurrentEventTime(void) {
+    if (InEventService)
+        return (pic_tickindex_t)PIC_Ticks + srv_lag;
+    else
+        return PIC_FullIndex();
+}
+
 void PIC_AddEvent(PIC_EventHandler handler,pic_tickindex_t delay,Bitu val) {
     if (GCC_UNLIKELY(!pic_queue.free_entry)) {
         LOG(LOG_PIC,LOG_ERROR)("Event queue full");
