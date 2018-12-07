@@ -57,6 +57,9 @@
 #define C_D3DSHADERS 1
 #endif
 
+/* MT32 (munt) emulation */
+#define C_MT32 1
+
 /* Define to 1 to enable internal debugger, requires libcurses */
 #define C_DEBUG 1
 
