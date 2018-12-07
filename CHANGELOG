@@ -1,4 +1,6 @@
 0.82.13 (next)
+  - Windows builds (compiled with VS2017) now have working
+    MT32 (Munt) emulation.
   - Adjusting CPU cycles with F12 + - / F12 + + (Increment
     and Decrement Cycles shortcuts) now updates cpu cycles
     property. This fixes a problem where adjusting the cycle
