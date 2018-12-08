@@ -16,6 +16,6 @@ if test -z "$x" ; then
 fi
 
 chmod +x configure
-./configure --enable-core-inline --enable-debug=heavy --enable-avcodec --prefix=/usr --enable-sdl2 || exit 1
+./configure --enable-core-inline --enable-debug=heavy --enable-avcodec --prefix=/usr --enable-sdl2 "$@" || exit 1
 make -j3 || exit 1
 

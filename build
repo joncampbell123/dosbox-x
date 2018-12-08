@@ -15,6 +15,6 @@ echo Compiling our internal SDL 1.x
 # now compile ourself
 echo Compiling DOSBox-X
 chmod +x configure
-./configure --enable-core-inline --disable-debug --enable-avcodec --prefix=/usr || exit 1
+./configure --enable-core-inline --disable-debug --enable-avcodec --prefix=/usr "$@" || exit 1
 make -j3 || exit 1
 
