@@ -586,18 +586,15 @@ AC_ARG_ENABLE(mt32,AC_HELP_STRING([--disable-mt32],[Disable MT32 emulation]),,en
 AC_MSG_CHECKING(whether MT32 emulation will be enabled) 
 
 # test
-# Note that MT32 (MUNT) requires the SSE extensions
 if test x$enable_mt32 = xyes ; then 
   case "$host_cpu" in
     x86_64 | amd64)
       AC_MSG_RESULT(yes)
       AC_DEFINE(C_MT32,1)
-      CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
       ;;
     i?86)
       AC_MSG_RESULT(yes)
       AC_DEFINE(C_MT32,1)
-      CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
       ;;
     *)
       enable_mt32=no
