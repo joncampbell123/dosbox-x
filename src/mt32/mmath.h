@@ -18,6 +18,45 @@
 #ifndef MT32EMU_MMATH_H
 #define MT32EMU_MMATH_H
 
+#if !defined (__SSE2__) || (defined (_M_IX86_FP) && (_M_IX86_FP) < 2)
+#include <cmath>
+namespace MT32Emu {
+	// Mathematical constants
+	const double DOUBLE_PI = 3.141592653589793;
+	const double DOUBLE_LN_10 = 2.302585092994046;
+	const float FLOAT_PI = 3.1415927f;
+	const float FLOAT_2PI = 6.2831853f;
+	const float FLOAT_LN_2 = 0.6931472f;
+	const float FLOAT_LN_10 = 2.3025851f;
+	static inline float POWF(float x, float y) {
+		return pow(x, y);
+	}
+	static inline float EXPF(float x) {
+		return exp(x);
+	}
+	static inline float EXP2F(float x) {
+#ifdef __APPLE__
+	// on OSX exp2f() is 1.59 times faster than "exp() and the multiplication with FLOAT_LN_2"
+		return exp2f(x);
+#else
+		return exp(FLOAT_LN_2 * x);
+#endif
+	}
+	static inline float EXP10F(float x) {
+		return exp(FLOAT_LN_10 * x);
+	}
+	static inline float LOGF(float x) {
+		return log(x);
+	}
+	static inline float LOG2F(float x) {
+		return log(x) / FLOAT_LN_2;
+	}
+	static inline float LOG10F(float x) {
+		return log10(x);
+	}
+} // namespace MT32Emu
+
+#else
 #define FIXEDPOINT_UDIV(x, y, point) (((x) << (point)) / ((y)))
 #define FIXEDPOINT_SDIV(x, y, point) (((x) * (1 << point)) / ((y)))
 #define FIXEDPOINT_UMULT(x, y, point) (((x) * (y)) >> point)
@@ -782,4 +821,5 @@ static inline float LOG10F(float x) {
 
 }
 
-#endif
+#endif // #if !defined (__SSE2__)
+#endif // #ifndef MT32EMU_MMATH_H
