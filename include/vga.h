@@ -256,13 +256,15 @@ typedef struct {
          *      so that pixels/char changes mid-scanline are still rendered accurately */
     };
 
-    struct video_dim_vert_tracking : video_dim_tracking<unsigned int> {
+    struct video_dim_vert_tracking : video_dim_tracking< char_pixel_pair<Bit16u> > {
         bool                    interlaced = false;             /* interlaced output (current scan count by 2) */
         bool                    interlaced_second_field = false;/* interlaced, we're drawing second field */
         bool                    interlaced_top_field_first = true;/* interlaced, top field first */
         unsigned int            interlaced_switch_field_at = 0; /* scan line (during retrace) to emit half a scan line before switching field */
         char_pixel_pair<Bit16u> interlaced_last_line = {0,0};   /* how much scanline to emit before switching fields. should be HALF the horizontal total */
         Bit32u                  crtc_line = 0;      /* CRTC word counter, at start of scanline */
+        Bit8u                   crtc_char_row = 0;  /* character row, within character cell */
+        Bit8u                   crtc_char_height = 0;/* character cell height */
     };
 
     /* usually 8. For EGA/VGA, can be 9. Divide by 2 (to make 4) if 8BIT is set (such as 256-color mode) */
@@ -311,7 +313,7 @@ typedef struct {
         videotrk_time.time_to_end_of_scanline =     (1000ull * videotrk_horz.total.pixel) / videotrk_time.dot_clock.pixel;
 
         /* this should be correct even if interlaced */
-        videotrk_time.time_to_end_of_frame =        (1000ull * videotrk_horz.total.pixel * videotrk_vert.total) /
+        videotrk_time.time_to_end_of_frame =        (1000ull * videotrk_horz.total.pixel * videotrk_vert.total.pixel) /
                                                     videotrk_time.dot_clock.pixel;
     }
 
