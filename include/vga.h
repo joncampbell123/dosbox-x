@@ -216,7 +216,7 @@ typedef struct {
 
     template <typename ptype> inline void char_pixel_pair_set_char(struct char_pixel_pair<ptype> &p,const ptype c) {
         p.character = c;
-        p.pixel = c * pixels_per_char_clock;
+        p.pixel = c * videotrk_horz.pixels_per_char_clock;
     }
     template <typename ptype> inline void char_pixel_pair_update(struct char_pixel_pair<ptype> &p) {
         char_pixel_pair_set_char(p,p.character);
@@ -224,7 +224,7 @@ typedef struct {
     template <typename ptype> inline void char_pixel_pair_set_pixels(struct char_pixel_pair<ptype> &p,const ptype c) {
         /* this is best suited to ptype = double or ptype = pic_tickindex_t */
         p.pixel = c;
-        p.character = p.pixel / pixels_per_char_clock;
+        p.character = p.pixel / videotrk_horz.pixels_per_char_clock;
     }
     template <typename ptype> inline void char_pixel_pair_update_from_pixels(struct char_pixel_pair<ptype> &p) {
         /* this is best suited to ptype = double or ptype = pic_tickindex_t */
@@ -252,6 +252,9 @@ typedef struct {
         Bit32u                  crtc_scan = 0;      /* CRTC word counter, across the scanline */
         unsigned int            pixel_scan = 0;     /* pixel output counter */
 
+        /* usually 8. For EGA/VGA, can be 9. Divide by 2 (to make 4) if 8BIT is set (such as 256-color mode) */
+        Bit8u                   pixels_per_char_clock = 0;
+
         /* NTS: pixel_scan is intended to represent pixel count out to video output
          *      so that pixels/char changes mid-scanline are still rendered accurately */
     };
@@ -266,9 +269,6 @@ typedef struct {
         Bit8u                   crtc_char_row = 0;  /* character row, within character cell */
         Bit8u                   crtc_char_height = 0;/* character cell height */
     };
-
-    /* usually 8. For EGA/VGA, can be 9. Divide by 2 (to make 4) if 8BIT is set (such as 256-color mode) */
-    Bit8u                       pixels_per_char_clock = 0;
 
     // WARNING: To keep time, you must process all pixels UP to the change point,
     //          then change dot clock rate and call this function, THEN continue rendering.
@@ -288,8 +288,8 @@ typedef struct {
     }
 
     void set_pixels_per_char_clock(const Bit8u val) {
-        if (pixels_per_char_clock != val) {
-            pixels_per_char_clock = val;
+        if (videotrk_horz.pixels_per_char_clock != val) {
+            videotrk_horz.pixels_per_char_clock = val;
 
             /* dot clock pixel rate is important, character clock rate is recomputed */
             char_pixel_pair_update_from_pixels<pic_tickindex_t>(videotrk_time.dot_clock);
