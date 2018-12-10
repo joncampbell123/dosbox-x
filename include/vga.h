@@ -337,6 +337,13 @@ typedef struct {
 
     // update current dot clock pixel count from PIC index.
     // WARNING: There is no guard against now < pixel_base. If that happens, results will be WRONG.
+    //
+    // To keep floating point precision high, it is recommended the code using this reset the
+    // pixel time at exactly the start of every frame or at least the exact start of a frame every 10 seconds.
+    //
+    // On reset, use the PIC_GetCurrentEventTime() function which, if called within a PIC event callback, will
+    // return the event's intended time instead of PIC_FullIndex() which will be later depending on how late
+    // the event was called.
     inline void pixel_time_update(const pic_tickindex_t now) {
         videotrk_time.pixel_time.current = (unsigned long long)videotrk_time.dot_clock_ms_to_pixel.convert(now);
     }
