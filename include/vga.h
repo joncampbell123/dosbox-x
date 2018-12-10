@@ -235,6 +235,18 @@ typedef struct {
         ptype   pixel;
     };
 
+    template <typename ptype> struct char_pixel_pair_with_adj : char_pixel_pair<ptype> {
+        ptype   adjust;
+    };
+
+    template <typename ptype> inline void char_pixel_pair_set_char(struct char_pixel_pair_with_adj<ptype> &p,const ptype c) {
+        p.character = c;
+        p.pixel = c * videotrk_horz.pixels_per_char + p.adjust;
+    }
+    template <typename ptype> inline void char_pixel_pair_update(struct char_pixel_pair_with_adj<ptype> &p) {
+        char_pixel_pair_set_char(p,p.character);
+    }
+
     template <typename ptype> inline void char_pixel_pair_set_char(struct char_pixel_pair<ptype> &p,const ptype c) {
         p.character = c;
         p.pixel = c * videotrk_horz.pixels_per_char;
@@ -242,6 +254,7 @@ typedef struct {
     template <typename ptype> inline void char_pixel_pair_update(struct char_pixel_pair<ptype> &p) {
         char_pixel_pair_set_char(p,p.character);
     }
+
     template <typename ptype> inline void char_pixel_pair_set_pixels(struct char_pixel_pair<ptype> &p,const ptype c) {
         /* this is best suited to ptype = double or ptype = pic_tickindex_t */
         p.pixel = c;
@@ -271,7 +284,7 @@ typedef struct {
         Bit8u                   pixels_per_char = 0;
     };
 
-    struct video_dim_horz_tracking : video_dim_tracking< char_pixel_pair<Bit16u> > {
+    struct video_dim_horz_tracking : video_dim_tracking< char_pixel_pair_with_adj<Bit16u> > {
         Bit32u                  crtc_scan = 0;      /* CRTC word counter, across the scanline */
 
         /* Horizontal use of current:
@@ -282,7 +295,7 @@ typedef struct {
          * - Pixels per character clock. 8 or 9 depending on CGA/MDA/EGA/VGA/etc. configuration. Divided by 2 (to 4) for 8BIT modes (256-color VGA) in which 8-bit pixels are shifted through a register 4 bits at a time but latched every other clock to present the full 8-bit value to the DAC */
     };
 
-    struct video_dim_vert_tracking : video_dim_tracking< char_pixel_pair<Bit16u> > {
+    struct video_dim_vert_tracking : video_dim_tracking< char_pixel_pair_with_adj<Bit16u> > {
         bool                    interlaced = false;             /* interlaced output (current scan count by 2) */
         bool                    interlaced_second_field = false;/* interlaced, we're drawing second field */
         bool                    interlaced_top_field_first = true;/* interlaced, top field first */
@@ -293,6 +306,7 @@ typedef struct {
         /* Vertical use of current:
          * - current.character counts character rows. Decoupling permits emulation of changing row height mid-frame.
          * - current_pixel_char = character scanline row in character cell.
+         * - current.adjust = extra lines to count to total. This is needed for 6845-based emulation like CGA/MDA/Hercules/etc.
          * - current.pixel = current video scan line */
         /* Vertical use of pixels_per_char:
          * - Character cell height in pixels. */
