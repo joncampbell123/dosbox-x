@@ -266,6 +266,17 @@ typedef struct {
     /* usually 8. For EGA/VGA, can be 9. Divide by 2 (to make 4) if 8BIT is set (such as 256-color mode) */
     Bit8u                       pixels_per_char_clock = 0;
 
+    void set_dot_clock(const double c) {
+        if (videotrk_time.dot_clock.pixel != c) {
+            videotrk_time.dot_clock.pixel = c;
+
+            /* dot clock pixel rate is important, character clock rate is recomputed */
+            char_pixel_pair_update_from_pixels<pic_tickindex_t>(videotrk_time.dot_clock);
+
+            update_times();
+        }
+    }
+
     void set_pixels_per_char_clock(const Bit8u val) {
         if (pixels_per_char_clock != val) {
             pixels_per_char_clock = val;
@@ -283,13 +294,17 @@ typedef struct {
             char_pixel_pair_update<Bit16u>              (videotrk_horz.retrace.end);
             char_pixel_pair_update<Bit16u>              (videotrk_horz.current);
 
-            /* remember PIC intervals are in millseconds */
-            videotrk_time.time_to_end_of_scanline =     (1000ull * videotrk_horz.total.pixel) / videotrk_time.dot_clock.pixel;
-
-            /* this should be correct even if interlaced */
-            videotrk_time.time_to_end_of_frame =        (1000ull * videotrk_horz.total.pixel * videotrk_vert.total) /
-                                                        videotrk_time.dot_clock.pixel;
+            update_times();
         }
+    }
+
+    void update_times(void) {
+        /* remember PIC intervals are in millseconds */
+        videotrk_time.time_to_end_of_scanline =     (1000ull * videotrk_horz.total.pixel) / videotrk_time.dot_clock.pixel;
+
+        /* this should be correct even if interlaced */
+        videotrk_time.time_to_end_of_frame =        (1000ull * videotrk_horz.total.pixel * videotrk_vert.total) /
+                                                    videotrk_time.dot_clock.pixel;
     }
 
     struct video_dim_time_tracking {
@@ -300,7 +315,7 @@ typedef struct {
         pic_tickindex_t                             line_start = 0;   /* PIC time of the start of the scanline */
         pic_tickindex_t                             time_to_end_of_scanline = 0;/* PIC time from start to end of the scanline */
         pic_tickindex_t                             time_to_end_of_frame = 0;/* PIC time from start to end of frame. If interlaced, both fields */
-        char_pixel_pair<pic_tickindex_t>            dot_clock = {0,0};    /* character clocks per second, pixels per second */
+        char_pixel_pair<double>                     dot_clock = {0,0};    /* character clocks per second, pixels per second */
     };
 
     video_dim_time_tracking                         videotrk_time;
