@@ -235,17 +235,31 @@ typedef struct {
         video_dim_range<ptype>  blank;              /* first unit to enable blanking, first unit to disable blanking BEFORE render */
         video_dim_range<ptype>  retrace;            /* first unit to enable retrace, first unit to disable retrace BEFORE render */
         ptype                   current;            /* current position */
-   };
+    };
+
+    struct video_dim_horz_tracking : video_dim_tracking< char_pixel_pair<Bit16u> > {
+        Bit32u                  crtc_scan = 0;      /* CRTC word counter, across the scanline */
+        unsigned int            pixel_scan = 0;     /* pixel output counter */
+    };
+
+    struct video_dim_vert_tracking : video_dim_tracking<unsigned int> {
+        bool                    interlaced = false;             /* interlaced output (current scan count by 2) */
+        bool                    interlaced_second_field = false;/* interlaced, we're drawing second field */
+        bool                    interlaced_top_field_first = true;/* interlaced, top field first */
+        unsigned int            interlaced_switch_field_at = 0; /* scan line (during retrace) to emit half a scan line before switching field */
+        char_pixel_pair<Bit16u> interlaced_last_line = {0,0};   /* how much scanline to emit before switching fields. should be HALF the horizontal total */
+        Bit32u                  crtc_line = 0;      /* CRTC word counter, at start of scanline */
+    };
 
     /* usually 8. For EGA/VGA, can be 9. Divide by 2 (to make 4) if 8BIT is set (such as 256-color mode) */
-    Bit8u                                           pixels_per_char_clock;
+    Bit8u                       pixels_per_char_clock = 0;
 
     void set_pixels_per_char_clock(const Bit8u val) {
         if (pixels_per_char_clock != val) {
             pixels_per_char_clock = val;
 
             char_pixel_pair_update<cpu_cycles_count_t>  (video_clock);
-            char_pixel_pair_update<Bit16u>              (videotrk_horz_interlaced_last_line);
+            char_pixel_pair_update<Bit16u>              (videotrk_vert.interlaced_last_line);
 
             char_pixel_pair_update<Bit16u>              (videotrk_horz.total);
             char_pixel_pair_update<Bit16u>              (videotrk_horz.active);
@@ -260,17 +274,8 @@ typedef struct {
     cpu_cycles_count_t                              video_frame_start = 0;  /* PIC time of the start of the frame */
     cpu_cycles_count_t                              video_line_start = 0;   /* PIC time of the start of the scanline */
     char_pixel_pair<cpu_cycles_count_t>             video_clock = {0,0};    /* character clocks per second, pixels per second */
-    video_dim_tracking< char_pixel_pair<Bit16u> >   videotrk_horz;
-    video_dim_tracking<unsigned int>                videotrk_vert;
-
-    /* future ideas */
-    /* if interlaced, the video current position increments by two every line, and
-     * a half scanline is emitted (FIXME: at some point) during vertical retrace
-     * at which point the LSB switches to indicate a new field. It's not yet well
-     * thought out. If implemented properly, it can allow emulation of CGA interlaced
-     * output or old SVGA chipsets that support interlaced 1024x768 graphics mode. */
-    bool                                            video_interlaced = false;
-    char_pixel_pair<Bit16u>                         videotrk_horz_interlaced_last_line = {0,0};
+    video_dim_horz_tracking                         videotrk_horz;
+    video_dim_vert_tracking                         videotrk_vert;
 } VGA_Draw;
 
 typedef struct {
