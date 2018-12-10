@@ -274,6 +274,9 @@ typedef struct {
         }
     }
 
+    unsigned int                                    video_frame_current_char_clocks = 0;/* character clocks since start of frame */
+    unsigned int                                    video_frame_rendered_char_clocks = 0;/* character clocks rendered since start of frame */
+
     cpu_cycles_count_t                              video_frame_start = 0;  /* PIC time of the start of the frame */
     cpu_cycles_count_t                              video_line_start = 0;   /* PIC time of the start of the scanline */
     cpu_cycles_count_t                              video_time_to_end_of_scanline = 0;/* PIC time from start to end of the scanline */
