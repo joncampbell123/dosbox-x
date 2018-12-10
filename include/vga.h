@@ -207,6 +207,27 @@ typedef struct {
 	Bit8u cga_snow[80];			// one bit per horizontal column where snow should occur
 } VGA_Draw;
 
+// Notes on use of this code:
+//
+// CGA/MDA/Hercules/PCjr/Tandy emulation will use one instance of this
+// C++ class and count the video raster by the character clocks since
+// that is how the 6845 handles horizontal AND vertical timing.
+//
+// EGA/VGA/SVGA emulation will count horizontal time by character
+// clocks and vertical time by scan lines, since that is how vertical
+// timing is handled on EGA/VGA. That is why you can change character
+// height at any time without disrupting video timing.
+//
+// PC-98 emulation will use TWO instances of this C++ object, one for
+// each GDC, both of which will have the same dot clock and will NORMALLY
+// have the same horizontal/vertical video timing in pixels, though it
+// is possible to de-synchronize the two in which case the character
+// clock-wise emulation will correctly emulate the garbled video that
+// would result on real hardware.
+//
+// REMINDER: Confirm that the two GDCs on PC-98 have different pixels
+// per character clock: 8 per clock for text (for each character cell),
+// and 16 per clock for graphics.
 typedef struct {
     /* new parallel rewrite (DOSBox-X) */
     template <typename ptype> struct char_pixel_pair {
