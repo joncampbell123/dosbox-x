@@ -274,7 +274,7 @@ typedef struct {
 
             /* update multiply value. PIC index (in ms) to pixel count. */
             reset_pixel_time(base_time);
-            videotrk_time.dot_clock_ms_to_pixel_mult = c / 1000;
+            videotrk_time.dot_clock_ms_to_pixel.mult = c / 1000;
 
             /* dot clock pixel rate is important, character clock rate is recomputed */
             char_pixel_pair_update_from_pixels<pic_tickindex_t>(videotrk_time.dot_clock);
@@ -328,15 +328,20 @@ typedef struct {
     //          then change dot clock rate and call this function, THEN continue rendering.
     void reset_pixel_time(const pic_tickindex_t base_time) {
         videotrk_time.pixel_time.reset();
-        videotrk_time.dot_clock_ms_to_pixel_base = base_time;
+        videotrk_time.dot_clock_ms_to_pixel.base = base_time;
     }
 
     // update current dot clock pixel count from PIC index.
     // WARNING: There is no guard against now < pixel_base. If that happens, results will be WRONG.
     inline void pixel_time_update(const pic_tickindex_t now) {
         videotrk_time.pixel_time.current = (unsigned long long)
-            ((now - videotrk_time.dot_clock_ms_to_pixel_base) * videotrk_time.dot_clock_ms_to_pixel_mult);
+            ((now - videotrk_time.dot_clock_ms_to_pixel.base) * videotrk_time.dot_clock_ms_to_pixel.mult);
     }
+
+    struct video_dim_time_conversion {
+        pic_tickindex_t                             base = 0;
+        double                                      mult = 0;
+    };
 
     struct video_dim_time_tracking {
         video_prev_cur                              pixel_time;         /* for tracking the passage of time to drive dot clock */
@@ -346,8 +351,7 @@ typedef struct {
         pic_tickindex_t                             time_to_end_of_scanline = 0;/* PIC time from start to end of the scanline */
         pic_tickindex_t                             time_to_end_of_frame = 0;/* PIC time from start to end of frame. If interlaced, both fields */
         char_pixel_pair<double>                     dot_clock = {0,0};    /* character clocks per second, pixels per second */
-        pic_tickindex_t                             dot_clock_ms_to_pixel_base = 0;
-        double                                      dot_clock_ms_to_pixel_mult = 0; /* multiply, not divide, for performance */
+        video_dim_time_conversion                   dot_clock_ms_to_pixel;
     };
 
     video_dim_time_tracking                         videotrk_time;
