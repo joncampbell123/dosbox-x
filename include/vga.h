@@ -282,6 +282,13 @@ typedef struct {
             char_pixel_pair_update<Bit16u>              (videotrk_horz.retrace.start);
             char_pixel_pair_update<Bit16u>              (videotrk_horz.retrace.end);
             char_pixel_pair_update<Bit16u>              (videotrk_horz.current);
+
+            /* remember PIC intervals are in millseconds */
+            videotrk_time.time_to_end_of_scanline =     (1000ull * videotrk_horz.total.pixel) / videotrk_time.dot_clock.pixel;
+
+            /* this should be correct even if interlaced */
+            videotrk_time.time_to_end_of_frame =        (1000ull * videotrk_horz.total.pixel * videotrk_vert.total) /
+                                                        videotrk_time.dot_clock.pixel;
         }
     }
 
