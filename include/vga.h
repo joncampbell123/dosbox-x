@@ -319,6 +319,9 @@ typedef struct {
         void reset(void) {
             prev = current = 0ull;
         }
+        inline signed long long delta(void) {
+            return (signed long long)current - (signed long long)prev;
+        }
     };
 
     // WARNING: To keep time, you must process all pixels UP to the change point,
@@ -326,6 +329,12 @@ typedef struct {
     void reset_pixel_time(const pic_tickindex_t base_time) {
         videotrk_time.pixel_time.reset();
         videotrk_time.dot_clock_ms_to_pixel_base = base_time;
+    }
+
+    // update current dot clock pixel count from PIC index
+    inline void pixel_time_update(const pic_tickindex_t now) {
+        videotrk_time.pixel_time.current = (unsigned long long)
+            ((now - videotrk_time.dot_clock_ms_to_pixel_base) * videotrk_time.dot_clock_ms_to_pixel_mult);
     }
 
     struct video_dim_time_tracking {
