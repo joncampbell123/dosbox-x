@@ -282,6 +282,10 @@ typedef struct {
         ptype                   current;            /* current position */
         Bit8u                   current_char_pixel = 0;
         Bit8u                   pixels_per_char = 0;
+
+        bool                    sig_active = true;      /* active display signal at this time */
+        bool                    sig_blank = false;      /* blanking signal at this time */
+        bool                    sig_retrace = false;    /* retrace signal at this time */
     };
 
     struct video_dim_horz_tracking : video_dim_tracking< char_pixel_pair_with_adj<Bit16u> > {
