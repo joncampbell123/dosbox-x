@@ -302,7 +302,11 @@ typedef struct {
             char_pixel_pair_update<Bit16u>              (videotrk_horz.blank.end);
             char_pixel_pair_update<Bit16u>              (videotrk_horz.retrace.start);
             char_pixel_pair_update<Bit16u>              (videotrk_horz.retrace.end);
-            char_pixel_pair_update<Bit16u>              (videotrk_horz.current);
+
+            // VGA rendering code will use current.character to track character count and current.pixel to track
+            // pixels emitted. Do not keep synchronized, so that the code can render the output that would occur
+            // if suddenly changed between 8 and 9 pixels/char.
+            //char_pixel_pair_update<Bit16u>            (videotrk_horz.current);
 
             update_times();
         }
