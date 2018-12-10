@@ -205,6 +205,72 @@ typedef struct {
 	Bitu bpp;
 	double clock;
 	Bit8u cga_snow[80];			// one bit per horizontal column where snow should occur
+
+    /* new parallel rewrite (DOSBox-X) */
+    template <typename ptype> struct char_pixel_pair {
+        ptype   character;
+        ptype   pixel;
+    };
+
+    template <typename ptype> inline void char_pixel_pair_set_char(struct char_pixel_pair<ptype> &p,const ptype c) {
+        p.character = c;
+        p.pixel = c * pixels_per_char_clock;
+    }
+    template <typename ptype> inline void char_pixel_pair_update(struct char_pixel_pair<ptype> &p) {
+        char_pixel_pair_set_char(p,p.character);
+    }
+
+    template <typename ptype> struct video_dim_range {
+        ptype                   start,end;          /* first unit before render to enable, first unit before render to disable */
+    };
+
+    /* NTS: count == 0 is start of active display area.
+     *      count == active means the first character clock to show overscan border (usually)
+     *      count == blank means the first character clock to blank the display
+     *      count == blank.end means the first character clock to un-blank the display (showing overscan)
+     *      count == total means it's time to start a new scan line before rendering */
+    template <typename ptype> struct video_dim_tracking {
+        ptype                   total;              /* first unit that starts a new line/frame BEFORE render */
+        ptype                   active;             /* first unit to stop drawing active display BEFORE render */
+        video_dim_range<ptype>  blank;              /* first unit to enable blanking, first unit to disable blanking BEFORE render */
+        video_dim_range<ptype>  retrace;            /* first unit to enable retrace, first unit to disable retrace BEFORE render */
+        ptype                   current;            /* current position */
+   };
+
+    /* usually 8. For EGA/VGA, can be 9. Divide by 2 (to make 4) if 8BIT is set (such as 256-color mode) */
+    Bit8u                                           pixels_per_char_clock;
+
+    void set_pixels_per_char_clock(const Bit8u val) {
+        if (pixels_per_char_clock != val) {
+            pixels_per_char_clock = val;
+
+            char_pixel_pair_update<cpu_cycles_count_t>  (video_clock);
+            char_pixel_pair_update<Bit16u>              (videotrk_horz_interlaced_last_line);
+
+            char_pixel_pair_update<Bit16u>              (videotrk_horz.total);
+            char_pixel_pair_update<Bit16u>              (videotrk_horz.active);
+            char_pixel_pair_update<Bit16u>              (videotrk_horz.blank.start);
+            char_pixel_pair_update<Bit16u>              (videotrk_horz.blank.end);
+            char_pixel_pair_update<Bit16u>              (videotrk_horz.retrace.start);
+            char_pixel_pair_update<Bit16u>              (videotrk_horz.retrace.end);
+            char_pixel_pair_update<Bit16u>              (videotrk_horz.current);
+        }
+    }
+
+    cpu_cycles_count_t                              video_frame_start = 0;  /* PIC time of the start of the frame */
+    cpu_cycles_count_t                              video_line_start = 0;   /* PIC time of the start of the scanline */
+    char_pixel_pair<cpu_cycles_count_t>             video_clock = {0,0};    /* character clocks per second, pixels per second */
+    video_dim_tracking< char_pixel_pair<Bit16u> >   videotrk_horz;
+    video_dim_tracking<unsigned int>                videotrk_vert;
+
+    /* future ideas */
+    /* if interlaced, the video current position increments by two every line, and
+     * a half scanline is emitted (FIXME: at some point) during vertical retrace
+     * at which point the LSB switches to indicate a new field. It's not yet well
+     * thought out. If implemented properly, it can allow emulation of CGA interlaced
+     * output or old SVGA chipsets that support interlaced 1024x768 graphics mode. */
+    bool                                            video_interlaced = false;
+    char_pixel_pair<Bit16u>                         videotrk_horz_interlaced_last_line = {0,0};
 } VGA_Draw;
 
 typedef struct {
