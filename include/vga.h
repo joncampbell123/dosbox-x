@@ -219,6 +219,15 @@ typedef struct {
     template <typename ptype> inline void char_pixel_pair_update(struct char_pixel_pair<ptype> &p) {
         char_pixel_pair_set_char(p,p.character);
     }
+    template <typename ptype> inline void char_pixel_pair_set_pixels(struct char_pixel_pair<ptype> &p,const ptype c) {
+        /* this is best suited to ptype = double or ptype = pic_tickindex_t */
+        p.pixel = c;
+        p.character = p.pixel / pixels_per_char_clock;
+    }
+    template <typename ptype> inline void char_pixel_pair_update_from_pixels(struct char_pixel_pair<ptype> &p) {
+        /* this is best suited to ptype = double or ptype = pic_tickindex_t */
+        char_pixel_pair_set_pixels(p,p.pixel);
+    }
 
     template <typename ptype> struct video_dim_range {
         ptype                   start,end;          /* first unit before render to enable, first unit before render to disable */
@@ -261,7 +270,9 @@ typedef struct {
         if (pixels_per_char_clock != val) {
             pixels_per_char_clock = val;
 
-            char_pixel_pair_update<cpu_cycles_count_t>  (video_clock);
+            /* dot clock pixel rate is important, character clock rate is recomputed */
+            char_pixel_pair_update_from_pixels<pic_tickindex_t>(videotrk_time.dot_clock);
+
             char_pixel_pair_update<Bit16u>              (videotrk_vert.interlaced_last_line);
 
             char_pixel_pair_update<Bit16u>              (videotrk_horz.total);
@@ -274,14 +285,18 @@ typedef struct {
         }
     }
 
-    unsigned int                                    video_frame_current_char_clocks = 0;/* character clocks since start of frame */
-    unsigned int                                    video_frame_rendered_char_clocks = 0;/* character clocks rendered since start of frame */
+    struct video_dim_time_tracking {
+        unsigned int                                frame_current_char_clocks = 0;/* character clocks since start of frame */
+        unsigned int                                frame_rendered_char_clocks = 0;/* character clocks rendered since start of frame */
 
-    cpu_cycles_count_t                              video_frame_start = 0;  /* PIC time of the start of the frame */
-    cpu_cycles_count_t                              video_line_start = 0;   /* PIC time of the start of the scanline */
-    cpu_cycles_count_t                              video_time_to_end_of_scanline = 0;/* PIC time from start to end of the scanline */
-    cpu_cycles_count_t                              video_time_to_end_of_frame = 0;/* PIC time from start to end of frame. If interlaced, both fields */
-    char_pixel_pair<cpu_cycles_count_t>             video_clock = {0,0};    /* character clocks per second, pixels per second */
+        pic_tickindex_t                             frame_start = 0;  /* PIC time of the start of the frame */
+        pic_tickindex_t                             line_start = 0;   /* PIC time of the start of the scanline */
+        pic_tickindex_t                             time_to_end_of_scanline = 0;/* PIC time from start to end of the scanline */
+        pic_tickindex_t                             time_to_end_of_frame = 0;/* PIC time from start to end of frame. If interlaced, both fields */
+        char_pixel_pair<pic_tickindex_t>            dot_clock = {0,0};    /* character clocks per second, pixels per second */
+    };
+
+    video_dim_time_tracking                         videotrk_time;
     video_dim_horz_tracking                         videotrk_horz;
     video_dim_vert_tracking                         videotrk_vert;
 } VGA_Draw;
