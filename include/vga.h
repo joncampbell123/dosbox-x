@@ -205,7 +205,9 @@ typedef struct {
 	Bitu bpp;
 	double clock;
 	Bit8u cga_snow[80];			// one bit per horizontal column where snow should occur
+} VGA_Draw;
 
+typedef struct {
     /* new parallel rewrite (DOSBox-X) */
     template <typename ptype> struct char_pixel_pair {
         ptype   character;
@@ -360,7 +362,7 @@ typedef struct {
     video_dim_time_tracking                         videotrk_time;
     video_dim_horz_tracking                         videotrk_horz;
     video_dim_vert_tracking                         videotrk_vert;
-} VGA_Draw;
+} VGA_Draw_2;
 
 typedef struct {
 	Bit8u curmode;
