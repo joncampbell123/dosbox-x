@@ -240,6 +240,9 @@ typedef struct {
     struct video_dim_horz_tracking : video_dim_tracking< char_pixel_pair<Bit16u> > {
         Bit32u                  crtc_scan = 0;      /* CRTC word counter, across the scanline */
         unsigned int            pixel_scan = 0;     /* pixel output counter */
+
+        /* NTS: pixel_scan is intended to represent pixel count out to video output
+         *      so that pixels/char changes mid-scanline are still rendered accurately */
     };
 
     struct video_dim_vert_tracking : video_dim_tracking<unsigned int> {
@@ -273,6 +276,8 @@ typedef struct {
 
     cpu_cycles_count_t                              video_frame_start = 0;  /* PIC time of the start of the frame */
     cpu_cycles_count_t                              video_line_start = 0;   /* PIC time of the start of the scanline */
+    cpu_cycles_count_t                              video_time_to_end_of_scanline = 0;/* PIC time from start to end of the scanline */
+    cpu_cycles_count_t                              video_time_to_end_of_frame = 0;/* PIC time from start to end of frame. If interlaced, both fields */
     char_pixel_pair<cpu_cycles_count_t>             video_clock = {0,0};    /* character clocks per second, pixels per second */
     video_dim_horz_tracking                         videotrk_horz;
     video_dim_vert_tracking                         videotrk_vert;
