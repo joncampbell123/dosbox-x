@@ -266,9 +266,15 @@ typedef struct {
     /* usually 8. For EGA/VGA, can be 9. Divide by 2 (to make 4) if 8BIT is set (such as 256-color mode) */
     Bit8u                       pixels_per_char_clock = 0;
 
-    void set_dot_clock(const double c) {
+    // WARNING: To keep time, you must process all pixels UP to the change point,
+    //          then change dot clock rate and call this function, THEN continue rendering.
+    void set_dot_clock(const double c,const pic_tickindex_t base_time) {
         if (videotrk_time.dot_clock.pixel != c) {
             videotrk_time.dot_clock.pixel = c;
+
+            /* update multiply value. PIC index (in ms) to pixel count. */
+            reset_pixel_time(base_time);
+            videotrk_time.dot_clock_ms_to_pixel_mult = c / 1000;
 
             /* dot clock pixel rate is important, character clock rate is recomputed */
             char_pixel_pair_update_from_pixels<pic_tickindex_t>(videotrk_time.dot_clock);
@@ -307,15 +313,31 @@ typedef struct {
                                                     videotrk_time.dot_clock.pixel;
     }
 
+    struct video_prev_cur {
+        unsigned long long                          prev,current;
+
+        void reset(void) {
+            prev = current = 0ull;
+        }
+    };
+
+    // WARNING: To keep time, you must process all pixels UP to the change point,
+    //          then change dot clock rate and call this function, THEN continue rendering.
+    void reset_pixel_time(const pic_tickindex_t base_time) {
+        videotrk_time.pixel_time.reset();
+        videotrk_time.dot_clock_ms_to_pixel_base = base_time;
+    }
+
     struct video_dim_time_tracking {
-        unsigned int                                frame_current_char_clocks = 0;/* character clocks since start of frame */
-        unsigned int                                frame_rendered_char_clocks = 0;/* character clocks rendered since start of frame */
+        video_prev_cur                              pixel_time;         /* for tracking the passage of time to drive dot clock */
 
         pic_tickindex_t                             frame_start = 0;  /* PIC time of the start of the frame */
         pic_tickindex_t                             line_start = 0;   /* PIC time of the start of the scanline */
         pic_tickindex_t                             time_to_end_of_scanline = 0;/* PIC time from start to end of the scanline */
         pic_tickindex_t                             time_to_end_of_frame = 0;/* PIC time from start to end of frame. If interlaced, both fields */
         char_pixel_pair<double>                     dot_clock = {0,0};    /* character clocks per second, pixels per second */
+        pic_tickindex_t                             dot_clock_ms_to_pixel_base = 0;
+        double                                      dot_clock_ms_to_pixel_mult = 0; /* multiply, not divide, for performance */
     };
 
     video_dim_time_tracking                         videotrk_time;
