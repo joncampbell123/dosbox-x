@@ -331,7 +331,8 @@ typedef struct {
         videotrk_time.dot_clock_ms_to_pixel_base = base_time;
     }
 
-    // update current dot clock pixel count from PIC index
+    // update current dot clock pixel count from PIC index.
+    // WARNING: There is no guard against now < pixel_base. If that happens, results will be WRONG.
     inline void pixel_time_update(const pic_tickindex_t now) {
         videotrk_time.pixel_time.current = (unsigned long long)
             ((now - videotrk_time.dot_clock_ms_to_pixel_base) * videotrk_time.dot_clock_ms_to_pixel_mult);
