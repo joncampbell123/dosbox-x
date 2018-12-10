@@ -246,17 +246,19 @@ typedef struct {
         video_dim_range<ptype>  blank;              /* first unit to enable blanking, first unit to disable blanking BEFORE render */
         video_dim_range<ptype>  retrace;            /* first unit to enable retrace, first unit to disable retrace BEFORE render */
         ptype                   current;            /* current position */
+        Bit8u                   current_char_pixel = 0;
     };
 
     struct video_dim_horz_tracking : video_dim_tracking< char_pixel_pair<Bit16u> > {
         Bit32u                  crtc_scan = 0;      /* CRTC word counter, across the scanline */
-        unsigned int            pixel_scan = 0;     /* pixel output counter */
 
         /* usually 8. For EGA/VGA, can be 9. Divide by 2 (to make 4) if 8BIT is set (such as 256-color mode) */
         Bit8u                   pixels_per_char_clock = 0;
 
-        /* NTS: pixel_scan is intended to represent pixel count out to video output
-         *      so that pixels/char changes mid-scanline are still rendered accurately */
+        /* Horizontal use of current:
+         * - current.character counts character clocks.
+         * - current_pixel_char = pixel count from start of character clock.
+         * - current.pixel counts pixels emitted. If the hardware allows changing between 8/9 pixels/clock this design will emulate correctly. */
     };
 
     struct video_dim_vert_tracking : video_dim_tracking< char_pixel_pair<Bit16u> > {
@@ -266,8 +268,11 @@ typedef struct {
         unsigned int            interlaced_switch_field_at = 0; /* scan line (during retrace) to emit half a scan line before switching field */
         char_pixel_pair<Bit16u> interlaced_last_line = {0,0};   /* how much scanline to emit before switching fields. should be HALF the horizontal total */
         Bit32u                  crtc_line = 0;      /* CRTC word counter, at start of scanline */
-        Bit8u                   crtc_char_row = 0;  /* character row, within character cell */
-        Bit8u                   crtc_char_height = 0;/* character cell height */
+
+        /* Vertical use of current:
+         * - current.character counts character rows. Decoupling permits emulation of changing row height mid-frame.
+         * - current_pixel_char = character scanline row in character cell.
+         * - current.pixel = current video scan line */
     };
 
     // WARNING: To keep time, you must process all pixels UP to the change point,
