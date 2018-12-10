@@ -334,13 +334,16 @@ typedef struct {
     // update current dot clock pixel count from PIC index.
     // WARNING: There is no guard against now < pixel_base. If that happens, results will be WRONG.
     inline void pixel_time_update(const pic_tickindex_t now) {
-        videotrk_time.pixel_time.current = (unsigned long long)
-            ((now - videotrk_time.dot_clock_ms_to_pixel.base) * videotrk_time.dot_clock_ms_to_pixel.mult);
+        videotrk_time.pixel_time.current = (unsigned long long)videotrk_time.dot_clock_ms_to_pixel.convert(now);
     }
 
     struct video_dim_time_conversion {
         pic_tickindex_t                             base = 0;
         double                                      mult = 0;
+
+        inline double convert(const pic_tickindex_t now) {
+            return (now - base) * mult;
+        }
     };
 
     struct video_dim_time_tracking {
