@@ -216,7 +216,7 @@ typedef struct {
 
     template <typename ptype> inline void char_pixel_pair_set_char(struct char_pixel_pair<ptype> &p,const ptype c) {
         p.character = c;
-        p.pixel = c * videotrk_horz.pixels_per_char_clock;
+        p.pixel = c * videotrk_horz.pixels_per_char;
     }
     template <typename ptype> inline void char_pixel_pair_update(struct char_pixel_pair<ptype> &p) {
         char_pixel_pair_set_char(p,p.character);
@@ -224,7 +224,7 @@ typedef struct {
     template <typename ptype> inline void char_pixel_pair_set_pixels(struct char_pixel_pair<ptype> &p,const ptype c) {
         /* this is best suited to ptype = double or ptype = pic_tickindex_t */
         p.pixel = c;
-        p.character = p.pixel / videotrk_horz.pixels_per_char_clock;
+        p.character = p.pixel / videotrk_horz.pixels_per_char;
     }
     template <typename ptype> inline void char_pixel_pair_update_from_pixels(struct char_pixel_pair<ptype> &p) {
         /* this is best suited to ptype = double or ptype = pic_tickindex_t */
@@ -247,18 +247,18 @@ typedef struct {
         video_dim_range<ptype>  retrace;            /* first unit to enable retrace, first unit to disable retrace BEFORE render */
         ptype                   current;            /* current position */
         Bit8u                   current_char_pixel = 0;
+        Bit8u                   pixels_per_char = 0;
     };
 
     struct video_dim_horz_tracking : video_dim_tracking< char_pixel_pair<Bit16u> > {
         Bit32u                  crtc_scan = 0;      /* CRTC word counter, across the scanline */
 
-        /* usually 8. For EGA/VGA, can be 9. Divide by 2 (to make 4) if 8BIT is set (such as 256-color mode) */
-        Bit8u                   pixels_per_char_clock = 0;
-
         /* Horizontal use of current:
          * - current.character counts character clocks.
          * - current_pixel_char = pixel count from start of character clock.
          * - current.pixel counts pixels emitted. If the hardware allows changing between 8/9 pixels/clock this design will emulate correctly. */
+        /* Horizontal use of pixels_per_char:
+         * - Pixels per character clock. 8 or 9 depending on CGA/MDA/EGA/VGA/etc. configuration. Divided by 2 (to 4) for 8BIT modes (256-color VGA) in which 8-bit pixels are shifted through a register 4 bits at a time but latched every other clock to present the full 8-bit value to the DAC */
     };
 
     struct video_dim_vert_tracking : video_dim_tracking< char_pixel_pair<Bit16u> > {
@@ -273,6 +273,8 @@ typedef struct {
          * - current.character counts character rows. Decoupling permits emulation of changing row height mid-frame.
          * - current_pixel_char = character scanline row in character cell.
          * - current.pixel = current video scan line */
+        /* Vertical use of pixels_per_char:
+         * - Character cell height in pixels. */
     };
 
     // WARNING: To keep time, you must process all pixels UP to the change point,
@@ -293,8 +295,8 @@ typedef struct {
     }
 
     void set_pixels_per_char_clock(const Bit8u val) {
-        if (videotrk_horz.pixels_per_char_clock != val) {
-            videotrk_horz.pixels_per_char_clock = val;
+        if (videotrk_horz.pixels_per_char != val) {
+            videotrk_horz.pixels_per_char  = val;
 
             /* dot clock pixel rate is important, character clock rate is recomputed */
             char_pixel_pair_update_from_pixels<pic_tickindex_t>(videotrk_time.dot_clock);
