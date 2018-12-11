@@ -246,7 +246,10 @@ typedef struct {
 
     template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_set_char(struct char_pixel_pair_with_adj<ptype> &p,const ptype c) {
         p.character = c;
-        p.pixel = c * videotrk_horz.pixels_per_char + p.adjust;
+        if (oren == PAIR_HORZ)
+            p.pixel = c * videotrk_horz.pixels_per_char + p.adjust;
+        else if (oren == PAIR_VERT)
+            p.pixel = c * videotrk_vert.pixels_per_char + p.adjust;
     }
     template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_update(struct char_pixel_pair_with_adj<ptype> &p) {
         char_pixel_pair_set_char<ptype,oren>(p,p.character);
@@ -254,7 +257,10 @@ typedef struct {
 
     template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_set_char(struct char_pixel_pair<ptype> &p,const ptype c) {
         p.character = c;
-        p.pixel = c * videotrk_horz.pixels_per_char;
+        if (oren == PAIR_HORZ)
+            p.pixel = c * videotrk_horz.pixels_per_char;
+        else if (oren == PAIR_VERT)
+            p.pixel = c * videotrk_vert.pixels_per_char;
     }
     template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_update(struct char_pixel_pair<ptype> &p) {
         char_pixel_pair_set_char<ptype,oren>(p,p.character);
@@ -263,7 +269,10 @@ typedef struct {
     template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_set_pixels(struct char_pixel_pair<ptype> &p,const ptype c) {
         /* this is best suited to ptype = double or ptype = pic_tickindex_t */
         p.pixel = c;
-        p.character = p.pixel / videotrk_horz.pixels_per_char;
+        if (oren == PAIR_HORZ)
+            p.character = p.pixel / videotrk_horz.pixels_per_char;
+        else if (oren == PAIR_VERT)
+            p.character = p.pixel / videotrk_vert.pixels_per_char;
     }
     template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_update_from_pixels(struct char_pixel_pair<ptype> &p) {
         /* this is best suited to ptype = double or ptype = pic_tickindex_t */
