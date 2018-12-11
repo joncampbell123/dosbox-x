@@ -235,34 +235,39 @@ typedef struct {
         ptype   pixel;
     };
 
+    enum ptype_orientation_t {
+        PAIR_HORZ=0,
+        PAIR_VERT
+    };
+
     template <typename ptype> struct char_pixel_pair_with_adj : char_pixel_pair<ptype> {
         ptype   adjust;
     };
 
-    template <typename ptype> inline void char_pixel_pair_set_char(struct char_pixel_pair_with_adj<ptype> &p,const ptype c) {
+    template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_set_char(struct char_pixel_pair_with_adj<ptype> &p,const ptype c) {
         p.character = c;
         p.pixel = c * videotrk_horz.pixels_per_char + p.adjust;
     }
-    template <typename ptype> inline void char_pixel_pair_update(struct char_pixel_pair_with_adj<ptype> &p) {
-        char_pixel_pair_set_char(p,p.character);
+    template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_update(struct char_pixel_pair_with_adj<ptype> &p) {
+        char_pixel_pair_set_char<ptype,oren>(p,p.character);
     }
 
-    template <typename ptype> inline void char_pixel_pair_set_char(struct char_pixel_pair<ptype> &p,const ptype c) {
+    template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_set_char(struct char_pixel_pair<ptype> &p,const ptype c) {
         p.character = c;
         p.pixel = c * videotrk_horz.pixels_per_char;
     }
-    template <typename ptype> inline void char_pixel_pair_update(struct char_pixel_pair<ptype> &p) {
-        char_pixel_pair_set_char(p,p.character);
+    template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_update(struct char_pixel_pair<ptype> &p) {
+        char_pixel_pair_set_char<ptype,oren>(p,p.character);
     }
 
-    template <typename ptype> inline void char_pixel_pair_set_pixels(struct char_pixel_pair<ptype> &p,const ptype c) {
+    template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_set_pixels(struct char_pixel_pair<ptype> &p,const ptype c) {
         /* this is best suited to ptype = double or ptype = pic_tickindex_t */
         p.pixel = c;
         p.character = p.pixel / videotrk_horz.pixels_per_char;
     }
-    template <typename ptype> inline void char_pixel_pair_update_from_pixels(struct char_pixel_pair<ptype> &p) {
+    template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_update_from_pixels(struct char_pixel_pair<ptype> &p) {
         /* this is best suited to ptype = double or ptype = pic_tickindex_t */
-        char_pixel_pair_set_pixels(p,p.pixel);
+        char_pixel_pair_set_pixels<ptype,oren>(p,p.pixel);
     }
 
     template <typename ptype> struct video_dim_range {
@@ -327,7 +332,7 @@ typedef struct {
             videotrk_time.dot_clock_ms_to_pixel.mult = c / 1000;
 
             /* dot clock pixel rate is important, character clock rate is recomputed */
-            char_pixel_pair_update_from_pixels<pic_tickindex_t>(videotrk_time.dot_clock);
+            char_pixel_pair_update_from_pixels<pic_tickindex_t,PAIR_HORZ>(videotrk_time.dot_clock);
 
             update_times();
         }
@@ -338,16 +343,16 @@ typedef struct {
             videotrk_horz.pixels_per_char  = val;
 
             /* dot clock pixel rate is important, character clock rate is recomputed */
-            char_pixel_pair_update_from_pixels<pic_tickindex_t>(videotrk_time.dot_clock);
+            char_pixel_pair_update_from_pixels<pic_tickindex_t,PAIR_HORZ>(videotrk_time.dot_clock);
 
-            char_pixel_pair_update<Bit16u>              (videotrk_vert.interlaced_last_line);
+            char_pixel_pair_update<Bit16u,PAIR_HORZ>(videotrk_vert.interlaced_last_line);
 
-            char_pixel_pair_update<Bit16u>              (videotrk_horz.total);
-            char_pixel_pair_update<Bit16u>              (videotrk_horz.active);
-            char_pixel_pair_update<Bit16u>              (videotrk_horz.blank.start);
-            char_pixel_pair_update<Bit16u>              (videotrk_horz.blank.end);
-            char_pixel_pair_update<Bit16u>              (videotrk_horz.retrace.start);
-            char_pixel_pair_update<Bit16u>              (videotrk_horz.retrace.end);
+            char_pixel_pair_update<Bit16u,PAIR_HORZ>(videotrk_horz.total);
+            char_pixel_pair_update<Bit16u,PAIR_HORZ>(videotrk_horz.active);
+            char_pixel_pair_update<Bit16u,PAIR_HORZ>(videotrk_horz.blank.start);
+            char_pixel_pair_update<Bit16u,PAIR_HORZ>(videotrk_horz.blank.end);
+            char_pixel_pair_update<Bit16u,PAIR_HORZ>(videotrk_horz.retrace.start);
+            char_pixel_pair_update<Bit16u,PAIR_HORZ>(videotrk_horz.retrace.end);
 
             // VGA rendering code will use current.character to track character count and current.pixel to track
             // pixels emitted. Do not keep synchronized, so that the code can render the output that would occur
