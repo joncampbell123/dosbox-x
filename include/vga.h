@@ -207,6 +207,8 @@ typedef struct {
 	Bit8u cga_snow[80];			// one bit per horizontal column where snow should occur
 } VGA_Draw;
 
+/* I think I over-engineered this code, but the ideas are there */
+#if 0
 // Notes on use of this code:
 //
 // CGA/MDA/Hercules/PCjr/Tandy emulation will use one instance of this
@@ -436,6 +438,7 @@ typedef struct {
     video_dim_horz_tracking                         videotrk_horz;
     video_dim_vert_tracking                         videotrk_vert;
 } VGA_Draw_2;
+#endif
 
 typedef struct {
 	Bit8u curmode;
