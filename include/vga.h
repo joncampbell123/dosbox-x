@@ -236,6 +236,7 @@ typedef struct {
     //      VGA 320x200x256-color mode will have 4 pixels/char.
 
     struct dotclock_t {
+        double                  rate_invmult = 0;
         double                  rate_mult = 0;
         double                  rate = 0;
         pic_tickindex_t         base = 0;
@@ -246,6 +247,7 @@ typedef struct {
         void set_rate(const double new_rate,const pic_tickindex_t now) {
             if (rate != new_rate) {
                 rate = new_rate;
+                rate_invmult = 1000 / new_rate; /* Hz -> ms */
                 rate_mult = new_rate / 1000; /* ms -> Hz */
                 ticks_prev = ticks = 0;
                 base = now;
