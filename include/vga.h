@@ -239,8 +239,8 @@ typedef struct {
         double                  rate_mult = 0;
         double                  rate = 0;
         pic_tickindex_t         base = 0;
-        unsigned long long      ticks = 0;
-        unsigned long long      ticks_prev = 0;
+        signed long long        ticks = 0;
+        signed long long        ticks_prev = 0;
 
         // do not call unless all ticks processed
         void set_rate(const double new_rate,const pic_tickindex_t now) {
@@ -254,14 +254,13 @@ typedef struct {
 
         // inline and minimal for performance!
         inline void update(const pic_tickindex_t now) {
-            /* WARNING: No protection against now < base */
             /* NTS: now = PIC_FullIndex() which is time in ms (1/1000 of a sec) */
-            ticks = (unsigned long long)((now - base) * rate_mult);
+            ticks = (signed long long)((now - base) * rate_mult);
         }
 
         // retrival of tick count and reset of counter
-        inline unsigned long long delta(void) {
-            unsigned long long ret = ticks - ticks_prev;
+        inline signed long long delta(void) {
+            signed long long ret = ticks - ticks_prev;
             ticks_prev = ticks;
             return ret;
         }
