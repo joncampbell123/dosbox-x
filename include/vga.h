@@ -248,12 +248,12 @@ typedef struct {
             if (rate != new_rate) {
                 update_ceil(now);
                 rebase();
+                base = now;
+                update(now);
 
                 rate_invmult = 1000 / new_rate; /* Hz -> ms */
                 rate_mult = new_rate / 1000; /* ms -> Hz */
                 rate = new_rate;
-
-                if (fabs(base - now) > (0.5 * rate_invmult)) base = now;
             }
         }
 
