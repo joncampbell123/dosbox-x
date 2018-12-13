@@ -253,7 +253,7 @@ typedef struct {
                 rate_mult = new_rate / 1000; /* ms -> Hz */
                 rate = new_rate;
 
-                if (fabs(base - now) > 0.5) base = now;
+                if (fabs(base - now) > (0.5 * rate_invmult)) base = now;
             }
         }
 
