@@ -249,7 +249,7 @@ typedef struct {
                 update_ceil(now);
                 rebase();
 
-                if (fabs(now - base) > (0.5 * rate_invmult))
+                if (rate <= 0 || fabs(now - base) > (0.5 * rate_invmult))
                     base = now;
 
                 update(now);
