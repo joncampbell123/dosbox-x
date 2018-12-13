@@ -276,6 +276,14 @@ typedef struct {
         }
     };
 
+    // use the dot clock to map advancement of emulator time to dot clock ticks.
+    // apply the dot clock ticks against the horizontal and vertical current position
+    // to emulate the raster of the video output over time.
+    //
+    // if anything changes dot clock rate, process all ticks and advance hardware
+    // state, then set the rate and process all dot clock ticks after that point
+    // at the new rate.
+
     dotclock_t                  dotclock;
     general_dim                 horz,vert;
 } VGA_Draw_2;
