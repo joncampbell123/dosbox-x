@@ -6905,12 +6905,19 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         t.dotclock.set_rate(1000,start_time);/*hz*/
         for (int i=0;i < 10000;i++) {
             t.dotclock.update(start_time + i);
-            count += t.dotclock.delta();
+            count += t.dotclock.delta_get();
             assert(t.dotclock.ticks == t.dotclock.ticks_prev);
 
             if (labs(count - (signed long long)i) > 1ll) { /* NTS: Expect possible +/- 1 error due to floating point */
                 fprintf(stderr,"* TEST FAILURE:\n");
                 fprintf(stderr,"   count=%lld ticks=%lld ticks_prev=%lld\n",count,(signed long long)i,(signed long long)t.dotclock.ticks);
+                return 1;
+            }
+
+            signed long long rc = t.dotclock.ticks2pic(count);
+            if (labs(rc - (signed long long)i) > 1ll) { /* NTS: Expect possible +/- 1 error due to floating point */
+                fprintf(stderr,"* TEST FAILURE:\n");
+                fprintf(stderr,"   count=%lld ticks=%lld ticks_prev=%lld rc=%lld\n",count,(signed long long)i,(signed long long)t.dotclock.ticks,rc);
                 return 1;
             }
         }
@@ -6921,12 +6928,19 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         t.dotclock.set_rate(100,start_time + 1000);/*hz, rate change*/
         for (int i=0;i < 10000;i++) {
             t.dotclock.update(start_time + 1000 + (i * 10));/*1ms * 10 = 10ms = 100Hz */
-            count += t.dotclock.delta();
+            count += t.dotclock.delta_get();
             assert(t.dotclock.ticks == t.dotclock.ticks_prev);
 
             if (labs(count - (signed long long)i) > 1ll) { /* NTS: Expect possible +/- 1 error due to floating point */
                 fprintf(stderr,"* TEST FAILURE:\n");
                 fprintf(stderr,"   count=%lld ticks=%lld ticks_prev=%lld\n",count,(signed long long)i,(signed long long)t.dotclock.ticks);
+                return 1;
+            }
+
+            signed long long rc = t.dotclock.ticks2pic(count);
+            if (labs(rc - ((signed long long)(i * 10) + 1000 + start_time)) > 1ll) { /* NTS: Expect possible +/- 1 error due to floating point */
+                fprintf(stderr,"* TEST FAILURE:\n");
+                fprintf(stderr,"   count=%lld ticks=%lld ticks_prev=%lld rc=%lld\n",count,(signed long long)i,(signed long long)t.dotclock.ticks,rc);
                 return 1;
             }
         }
