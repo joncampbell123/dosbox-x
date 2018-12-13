@@ -266,19 +266,19 @@ typedef struct {
             }
         }
 
-        inline pic_tickindex_t ticks2pic_relative(signed long long t,const pic_tickindex_t now) {
+        inline pic_tickindex_t ticks2pic_relative(const signed long long t,const pic_tickindex_t now) const {
             return (t * rate_invmult) + (base - now);/* group float operations to maintain precision */
         }
 
-        inline pic_tickindex_t ticks2pic(signed long long t) {
+        inline pic_tickindex_t ticks2pic(const signed long long t) const {
             return (t * rate_invmult) + base;
         }
 
-        inline signed long long pic2ticks(const pic_tickindex_t now) {
+        inline signed long long pic2ticks(const pic_tickindex_t now) const {
             return (signed long long)floor((now - base) * rate_mult);
         }
 
-        inline signed long long pic2ticks_ceil(const pic_tickindex_t now) {
+        inline signed long long pic2ticks_ceil(const pic_tickindex_t now) const {
             return (signed long long)ceil((now - base) * rate_mult);
         }
 
@@ -294,7 +294,7 @@ typedef struct {
         }
 
         // retrival of tick count and reset of counter
-        inline signed long long delta_peek(void) {
+        inline signed long long delta_peek(void) const {
             return ticks - ticks_prev;
         }
 
