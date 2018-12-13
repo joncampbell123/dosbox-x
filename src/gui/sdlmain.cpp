@@ -6875,6 +6875,66 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
 
+#if 0 /* VGA_Draw_2 self test: dot clock */
+    {
+        const double start_time = 0;
+        signed long long count = 0;
+        VGA_Draw_2 t;
+
+        fprintf(stderr,"VGA_Draw_2: 1000Hz\n");
+
+        t.dotclock.set_rate(1000,start_time);/*hz*/
+        for (int i=0;i < 10000;i++) {
+            t.dotclock.update(start_time + i);
+
+            if (labs(t.dotclock.ticks - (signed long long)i) > 1ll) { /* NTS: Expect possible +/- 1 error due to floating point */
+                fprintf(stderr,"* TEST FAILURE:\n");
+                fprintf(stderr,"   ticks=%lld ticks_prev=%lld\n",(signed long long)i,(signed long long)t.dotclock.ticks);
+                return 1;
+            }
+        }
+
+        t.dotclock.reset(start_time);
+        assert(t.dotclock.base == start_time);
+        assert(t.dotclock.ticks_prev == 0);
+        assert(t.dotclock.ticks == 0);
+
+        fprintf(stderr,"VGA_Draw_2: 1000Hz incremental\n");
+
+        count = 0;
+        t.dotclock.set_rate(1000,start_time);/*hz*/
+        for (int i=0;i < 10000;i++) {
+            t.dotclock.update(start_time + i);
+            count += t.dotclock.delta();
+            assert(t.dotclock.ticks == t.dotclock.ticks_prev);
+
+            if (labs(count - (signed long long)i) > 1ll) { /* NTS: Expect possible +/- 1 error due to floating point */
+                fprintf(stderr,"* TEST FAILURE:\n");
+                fprintf(stderr,"   count=%lld ticks=%lld ticks_prev=%lld\n",count,(signed long long)i,(signed long long)t.dotclock.ticks);
+                return 1;
+            }
+        }
+
+        fprintf(stderr,"VGA_Draw_2: 1000Hz inc then 100Hz inc\n");
+
+        count = 0;
+        t.dotclock.set_rate(100,start_time + 1000);/*hz, rate change*/
+        for (int i=0;i < 10000;i++) {
+            t.dotclock.update(start_time + 1000 + (i * 10));/*1ms * 10 = 10ms = 100Hz */
+            count += t.dotclock.delta();
+            assert(t.dotclock.ticks == t.dotclock.ticks_prev);
+
+            if (labs(count - (signed long long)i) > 1ll) { /* NTS: Expect possible +/- 1 error due to floating point */
+                fprintf(stderr,"* TEST FAILURE:\n");
+                fprintf(stderr,"   count=%lld ticks=%lld ticks_prev=%lld\n",count,(signed long long)i,(signed long long)t.dotclock.ticks);
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+#endif
+
 #if C_EMSCRIPTEN
     control->opt_debug = true;
     control->opt_earlydebug = true;

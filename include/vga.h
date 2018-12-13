@@ -243,20 +243,26 @@ typedef struct {
         signed long long        ticks = 0;
         signed long long        ticks_prev = 0;
 
+        void reset(const pic_tickindex_t now) {
+            ticks = ticks_prev = 0;
+            base = now;
+        }
+
         // do not call unless all ticks processed
         void set_rate(const double new_rate,const pic_tickindex_t now) {
             if (rate != new_rate) {
                 update_ceil(now);
                 rebase();
 
-                if (rate <= 0 || fabs(now - base) > (0.5 * rate_invmult))
+                if ((rate <= 0) || (fabs(now - base) > (0.5 * rate_invmult)))
                     base = now;
-
-                update(now);
 
                 rate_invmult = 1000 / new_rate; /* Hz -> ms */
                 rate_mult = new_rate / 1000; /* ms -> Hz */
                 rate = new_rate;
+
+                update(now);
+                ticks_prev = ticks;
             }
         }
 
