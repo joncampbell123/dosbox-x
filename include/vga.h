@@ -207,238 +207,79 @@ typedef struct {
 	Bit8u cga_snow[80];			// one bit per horizontal column where snow should occur
 } VGA_Draw;
 
-/* I think I over-engineered this code, but the ideas are there */
-#if 0
-// Notes on use of this code:
-//
-// CGA/MDA/Hercules/PCjr/Tandy emulation will use one instance of this
-// C++ class and count the video raster by the character clocks since
-// that is how the 6845 handles horizontal AND vertical timing.
-//
-// EGA/VGA/SVGA emulation will count horizontal time by character
-// clocks and vertical time by scan lines, since that is how vertical
-// timing is handled on EGA/VGA. That is why you can change character
-// height at any time without disrupting video timing.
-//
-// PC-98 emulation will use TWO instances of this C++ object, one for
-// each GDC, both of which will have the same dot clock and will NORMALLY
-// have the same horizontal/vertical video timing in pixels, though it
-// is possible to de-synchronize the two in which case the character
-// clock-wise emulation will correctly emulate the garbled video that
-// would result on real hardware.
-//
-// REMINDER: Confirm that the two GDCs on PC-98 have different pixels
-// per character clock: 8 per clock for text (for each character cell),
-// and 16 per clock for graphics.
 typedef struct {
-    /* new parallel rewrite (DOSBox-X) */
-    template <typename ptype> struct char_pixel_pair {
-        ptype   character;
-        ptype   pixel;
+    struct start_end_t {
+        unsigned int            start = 0,end = 0;
     };
 
-    enum ptype_orientation_t {
-        PAIR_HORZ=0,
-        PAIR_VERT
+    /* pixel 0 is start of display area.
+     * next scanline starts when current == total before drawing next pixel.
+     */
+    struct general_dim {
+        unsigned int            current = 0;        // current position (pixels)
+        unsigned int            total = 0;          // total pixels in scan line (H) / total scan lines (V)
+        start_end_t             active;             // first pixel (H) / scan line (V) that active display STARTs, ENDs (start == 0 usually)
+        start_end_t             blank;              // first pixel (H) / scan line (V) that blanking BEGINs, ENDs
+        start_end_t             retrace;            // first pixel (H) / scan line (V) that retrace BEGINs, ENDs
+
+        pic_tickindex_t         time_begin;                     // start of scan line (H) / frame (V) PIC full index time
+
+        unsigned char           current_char_pixel = 0;         // current pixel position (H) / scan line (V) within character cell
+        unsigned char           char_pixels = 0;                // width (H) / scan lines (V) of a character cell
+
+        bool                    blank_enable = false;           // blank enable
+        bool                    active_enable = false;          // active display enable
+        bool                    retrace_enable = false;         // retrace enable
     };
 
-    template <typename ptype> struct char_pixel_pair_with_adj : char_pixel_pair<ptype> {
-        ptype   adjust;
-    };
+    // NTS: horz.char_pixels == 8 for CGA/MDA/etc and EGA/VGA text, but EGA/VGA can select 9 pixels/char.
+    //      VGA 320x200x256-color mode will have 4 pixels/char.
 
-    template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_set_char(struct char_pixel_pair_with_adj<ptype> &p,const ptype c) {
-        p.character = c;
-        if (oren == PAIR_HORZ)
-            p.pixel = c * videotrk_horz.pixels_per_char + p.adjust;
-        else if (oren == PAIR_VERT)
-            p.pixel = c * videotrk_vert.pixels_per_char + p.adjust;
-    }
-    template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_update(struct char_pixel_pair_with_adj<ptype> &p) {
-        char_pixel_pair_set_char<ptype,oren>(p,p.character);
-    }
+    struct dotclock_t {
+        double                  rate_mult = 0;
+        double                  rate = 0;
+        pic_tickindex_t         base = 0;
+        unsigned long long      ticks = 0;
+        unsigned long long      ticks_prev = 0;
 
-    template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_set_char(struct char_pixel_pair<ptype> &p,const ptype c) {
-        p.character = c;
-        if (oren == PAIR_HORZ)
-            p.pixel = c * videotrk_horz.pixels_per_char;
-        else if (oren == PAIR_VERT)
-            p.pixel = c * videotrk_vert.pixels_per_char;
-    }
-    template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_update(struct char_pixel_pair<ptype> &p) {
-        char_pixel_pair_set_char<ptype,oren>(p,p.character);
-    }
-
-    template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_set_pixels(struct char_pixel_pair<ptype> &p,const ptype c) {
-        /* this is best suited to ptype = double or ptype = pic_tickindex_t */
-        p.pixel = c;
-        if (oren == PAIR_HORZ)
-            p.character = p.pixel / videotrk_horz.pixels_per_char;
-        else if (oren == PAIR_VERT)
-            p.character = p.pixel / videotrk_vert.pixels_per_char;
-    }
-    template <typename ptype,const ptype_orientation_t oren> inline void char_pixel_pair_update_from_pixels(struct char_pixel_pair<ptype> &p) {
-        /* this is best suited to ptype = double or ptype = pic_tickindex_t */
-        char_pixel_pair_set_pixels<ptype,oren>(p,p.pixel);
-    }
-
-    template <typename ptype> struct video_dim_range {
-        ptype                   start,end;          /* first unit before render to enable, first unit before render to disable */
-    };
-
-    /* NTS: count == 0 is start of active display area.
-     *      count == active means the first character clock to show overscan border (usually)
-     *      count == blank means the first character clock to blank the display
-     *      count == blank.end means the first character clock to un-blank the display (showing overscan)
-     *      count == total means it's time to start a new scan line before rendering */
-    template <typename ptype> struct video_dim_tracking {
-        ptype                   total;              /* first unit that starts a new line/frame BEFORE render */
-        ptype                   active;             /* first unit to stop drawing active display BEFORE render */
-        video_dim_range<ptype>  blank;              /* first unit to enable blanking, first unit to disable blanking BEFORE render */
-        video_dim_range<ptype>  retrace;            /* first unit to enable retrace, first unit to disable retrace BEFORE render */
-        ptype                   current;            /* current position */
-        Bit8u                   current_char_pixel = 0;
-        Bit8u                   pixels_per_char = 0;
-
-        bool                    sig_active = true;      /* active display signal at this time */
-        bool                    sig_blank = false;      /* blanking signal at this time */
-        bool                    sig_retrace = false;    /* retrace signal at this time */
-    };
-
-    struct video_dim_horz_tracking : video_dim_tracking< char_pixel_pair_with_adj<Bit16u> > {
-        Bit32u                  crtc_scan = 0;      /* CRTC word counter, across the scanline */
-
-        /* Horizontal use of current:
-         * - current.character counts character clocks.
-         * - current_pixel_char = pixel count from start of character clock.
-         * - current.pixel counts pixels emitted. If the hardware allows changing between 8/9 pixels/clock this design will emulate correctly. */
-        /* Horizontal use of pixels_per_char:
-         * - Pixels per character clock. 8 or 9 depending on CGA/MDA/EGA/VGA/etc. configuration. Divided by 2 (to 4) for 8BIT modes (256-color VGA) in which 8-bit pixels are shifted through a register 4 bits at a time but latched every other clock to present the full 8-bit value to the DAC */
-    };
-
-    struct video_dim_vert_tracking : video_dim_tracking< char_pixel_pair_with_adj<Bit16u> > {
-        bool                    interlaced = false;             /* interlaced output (current scan count by 2) */
-        bool                    interlaced_second_field = false;/* interlaced, we're drawing second field */
-        bool                    interlaced_top_field_first = true;/* interlaced, top field first */
-        unsigned int            interlaced_switch_field_at = 0; /* scan line (during retrace) to emit half a scan line before switching field */
-        char_pixel_pair<Bit16u> interlaced_last_line = {0,0};   /* how much scanline to emit before switching fields. should be HALF the horizontal total */
-        Bit32u                  crtc_line = 0;      /* CRTC word counter, at start of scanline */
-
-        /* Vertical use of current:
-         * - current.character counts character rows. Decoupling permits emulation of changing row height mid-frame.
-         * - current_pixel_char = character scanline row in character cell.
-         * - current.adjust = extra lines to count to total. This is needed for 6845-based emulation like CGA/MDA/Hercules/etc.
-         * - current.pixel = current video scan line */
-        /* Vertical use of pixels_per_char:
-         * - Character cell height in pixels. */
-    };
-
-    // WARNING: To keep time, you must process all pixels UP to the change point,
-    //          then change dot clock rate and call this function, THEN continue rendering.
-    void set_dot_clock(const double c,const pic_tickindex_t base_time) {
-        if (videotrk_time.dot_clock.pixel != c) {
-            videotrk_time.dot_clock.pixel = c;
-
-            /* update multiply value. PIC index (in ms) to pixel count. */
-            reset_pixel_time(base_time);
-            videotrk_time.dot_clock_ms_to_pixel.mult = c / 1000;
-
-            /* dot clock pixel rate is important, character clock rate is recomputed */
-            char_pixel_pair_update_from_pixels<pic_tickindex_t,PAIR_HORZ>(videotrk_time.dot_clock);
-
-            update_times();
+        // do not call unless all ticks processed
+        void set_rate(const double new_rate,const pic_tickindex_t now) {
+            if (rate != new_rate) {
+                rate = new_rate;
+                rate_mult = new_rate / 1000; /* ms -> Hz */
+                ticks_prev = ticks = 0;
+                base = now;
+            }
         }
-    }
 
-    void set_pixels_per_char_clock(const Bit8u val) {
-        if (videotrk_horz.pixels_per_char != val) {
-            videotrk_horz.pixels_per_char  = val;
-
-            /* dot clock pixel rate is important, character clock rate is recomputed */
-            char_pixel_pair_update_from_pixels<pic_tickindex_t,PAIR_HORZ>(videotrk_time.dot_clock);
-
-            char_pixel_pair_update<Bit16u,PAIR_HORZ>(videotrk_vert.interlaced_last_line);
-
-            char_pixel_pair_update<Bit16u,PAIR_HORZ>(videotrk_horz.total);
-            char_pixel_pair_update<Bit16u,PAIR_HORZ>(videotrk_horz.active);
-            char_pixel_pair_update<Bit16u,PAIR_HORZ>(videotrk_horz.blank.start);
-            char_pixel_pair_update<Bit16u,PAIR_HORZ>(videotrk_horz.blank.end);
-            char_pixel_pair_update<Bit16u,PAIR_HORZ>(videotrk_horz.retrace.start);
-            char_pixel_pair_update<Bit16u,PAIR_HORZ>(videotrk_horz.retrace.end);
-
-            // VGA rendering code will use current.character to track character count and current.pixel to track
-            // pixels emitted. Do not keep synchronized, so that the code can render the output that would occur
-            // if suddenly changed between 8 and 9 pixels/char.
-            //char_pixel_pair_update<Bit16u>            (videotrk_horz.current);
-
-            update_times();
+        // inline and minimal for performance!
+        inline void update(const pic_tickindex_t now) {
+            /* WARNING: No protection against now < base */
+            /* NTS: now = PIC_FullIndex() which is time in ms (1/1000 of a sec) */
+            ticks = (unsigned long long)((now - base) * rate_mult);
         }
-    }
 
-    void update_times(void) {
-        /* remember PIC intervals are in millseconds */
-        videotrk_time.time_to_end_of_scanline =     (1000ull * videotrk_horz.total.pixel) / videotrk_time.dot_clock.pixel;
-
-        /* this should be correct even if interlaced */
-        videotrk_time.time_to_end_of_frame =        (1000ull * videotrk_horz.total.pixel * videotrk_vert.total.pixel) /
-                                                    videotrk_time.dot_clock.pixel;
-    }
-
-    struct video_prev_cur {
-        unsigned long long                          prev,current;
-
-        void reset(void) {
-            prev = current = 0ull;
+        // retrival of tick count and reset of counter
+        inline unsigned long long delta(void) {
+            unsigned long long ret = ticks - ticks_prev;
+            ticks_prev = ticks;
+            return ret;
         }
-        inline signed long long delta(void) {
-            return (signed long long)current - (signed long long)prev;
+
+        // rebase of the counter.
+        // call this every so often (but not too often) in order to prevent floating point
+        // precision loss over time as the numbers get larger and larger.
+        void rebase(void) {
+            if (rate_mult > 0.1) {
+                base += ticks / rate_mult;
+                ticks = ticks_prev = 0;
+            }
         }
     };
 
-    // WARNING: To keep time, you must process all pixels UP to the change point,
-    //          then change dot clock rate and call this function, THEN continue rendering.
-    void reset_pixel_time(const pic_tickindex_t base_time) {
-        videotrk_time.pixel_time.reset();
-        videotrk_time.dot_clock_ms_to_pixel.base = base_time;
-    }
-
-    // update current dot clock pixel count from PIC index.
-    // WARNING: There is no guard against now < pixel_base. If that happens, results will be WRONG.
-    //
-    // To keep floating point precision high, it is recommended the code using this reset the
-    // pixel time at exactly the start of every frame or at least the exact start of a frame every 10 seconds.
-    //
-    // On reset, use the PIC_GetCurrentEventTime() function which, if called within a PIC event callback, will
-    // return the event's intended time instead of PIC_FullIndex() which will be later depending on how late
-    // the event was called.
-    inline void pixel_time_update(const pic_tickindex_t now) {
-        videotrk_time.pixel_time.current = (unsigned long long)videotrk_time.dot_clock_ms_to_pixel.convert(now);
-    }
-
-    struct video_dim_time_conversion {
-        pic_tickindex_t                             base = 0;
-        double                                      mult = 0;
-
-        inline double convert(const pic_tickindex_t now) {
-            return (now - base) * mult;
-        }
-    };
-
-    struct video_dim_time_tracking {
-        video_prev_cur                              pixel_time;         /* for tracking the passage of time to drive dot clock */
-
-        pic_tickindex_t                             frame_start = 0;  /* PIC time of the start of the frame */
-        pic_tickindex_t                             line_start = 0;   /* PIC time of the start of the scanline */
-        pic_tickindex_t                             time_to_end_of_scanline = 0;/* PIC time from start to end of the scanline */
-        pic_tickindex_t                             time_to_end_of_frame = 0;/* PIC time from start to end of frame. If interlaced, both fields */
-        char_pixel_pair<double>                     dot_clock = {0,0};    /* character clocks per second, pixels per second */
-        video_dim_time_conversion                   dot_clock_ms_to_pixel;
-    };
-
-    video_dim_time_tracking                         videotrk_time;
-    video_dim_horz_tracking                         videotrk_horz;
-    video_dim_vert_tracking                         videotrk_vert;
+    dotclock_t                  dotclock;
+    general_dim                 horz,vert;
 } VGA_Draw_2;
-#endif
 
 typedef struct {
 	Bit8u curmode;
