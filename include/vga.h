@@ -207,6 +207,24 @@ typedef struct {
 	Bit8u cga_snow[80];			// one bit per horizontal column where snow should occur
 } VGA_Draw;
 
+/* NTS: Usage of this general struct will vary between the various video modes.
+ *
+ *      MDA/Hercules/CGA/PCjr/Tandy: Video hardware is based on the 6845 which
+ *      counts horizontal AND vertical timing based on character cells. The
+ *      fact that vertical timing is based on character cells is the reason
+ *      why changing character cell height requires reprogramming the vertical
+ *      timings. Most video modes are not entirely a multiple of the character
+ *      cell height, which is why the 6845 has a "vertical adjust" to add to
+ *      the total. For example, CGA produces a video signal with NTSC timing
+ *      by programming enough character cells vertically with a vertical adjust
+ *      to bring video output to the 262 scanlines required by one field of
+ *      NTSC video, or 524 scanlines per frame. This isn't quite NTSC since
+ *      CGA does not emit the half-a-scanline needed for interlaced (to produce
+ *      262.5 lines per field or 525 scanlines per frame) but it happens to
+ *      work with most TV sets (although incompatible with Happauge video
+ *      capture cards).
+ *
+ */
 typedef struct {
     struct start_end_t {
         unsigned int            start = 0,end = 0;
