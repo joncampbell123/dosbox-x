@@ -332,11 +332,13 @@ typedef struct {
                 if (new_rate > 0) {
                     rate_invmult = 1000 / new_rate; /* Hz -> ms */
                     rate_mult = new_rate / 1000; /* ms -> Hz */
+                    rate = new_rate;
                 }
                 else {
-                    rate_mult = rate_invmult = 0;
+                    rate_invmult = 0;
+                    rate_mult = 0;
+                    rate = 0;
                 }
-                rate = new_rate;
 
                 update(now);
                 ticks_prev = ticks;
