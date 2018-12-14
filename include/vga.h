@@ -224,6 +224,9 @@ typedef struct {
  *      work with most TV sets (although incompatible with Happauge video
  *      capture cards).
  *
+ *      Note that the CGA is not the only 80s hardware to emit non-interlaced
+ *      NTSC, most video game consoles of the time period do as well. Your
+ *      old Nintendo Entertainment System does it too.
  */
 typedef struct {
     struct start_end_t {
