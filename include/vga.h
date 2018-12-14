@@ -274,6 +274,7 @@ typedef struct {
         start_end_t             retrace;            // first pixel (H) / scan line (V) that retrace BEGINs, ENDs
 
         pic_tickindex_t         time_begin;                     // start of scan line (H) / frame (V) PIC full index time
+        pic_tickindex_t         time_duration;                  // length of scan line (H) / length of frame (V)
 
         unsigned char           current_char_pixel = 0;         // current pixel position (H) / scan line (V) within character cell
         unsigned char           char_pixels = 0;                // width (H) / scan lines (V) of a character cell
