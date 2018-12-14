@@ -340,7 +340,8 @@ typedef struct {
         }
 
         inline signed long long pic2ticks(const pic_tickindex_t now) const {
-            return (signed long long)floor((now - base) * rate_mult);
+            /* typecasting rounds down to 0 apparently. floor() is slower. */
+            return (signed long long)((now - base) * rate_mult);
         }
 
         // inline and minimal for performance!
