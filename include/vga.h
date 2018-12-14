@@ -300,7 +300,9 @@ typedef struct {
     //      in which the 8BIT bit is cleared (which makes it a sort of 640x200x256-color-ish mode that
     //      reveals the intermediate register states normally hidden) will have 8 pixels/char.
     //
-    //      MCGA 320x200x256-color will have horz.char_pixels == 2
+    //      MCGA 320x200x256-color will have horz.char_pixels == 8. A register dump from real hardware shows
+    //      that Mode 13 has the same horizontal timings as every other mode (as if 320x200 CGA graphics!).
+    //      This is very different from VGA where 320x200x256 is programmed as if a 640x200 graphics mode.
     //
     //      PC-98 will render as if horz.char_pixels == 8 on the text layer. It may set horz.char_pixels == 16
     //      on some text cells if the hardware is to render a double-wide character. The graphics layer is
