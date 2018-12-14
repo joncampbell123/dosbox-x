@@ -227,6 +227,35 @@ typedef struct {
  *      Note that the CGA is not the only 80s hardware to emit non-interlaced
  *      NTSC, most video game consoles of the time period do as well. Your
  *      old Nintendo Entertainment System does it too.
+ *
+ *      Because of the character cell-based vertical timing, CGA emulation here
+ *      will probably not rely so much on vert.total as it will on counting
+ *      scan lines of the character cell.
+ *
+ *
+ *      EGA/VGA/SVGA: Horizontal timing is based on character cells (which
+ *      varies according to the mode and configuration). Vertical timing is
+ *      based on scanlines, which is why it is easy to change character cell
+ *      height without having to reprogram vertical timing.
+ *
+ *      Because of that, VGA emulation will count vertical timing entirely by
+ *      vert.current and vert.total.
+ *
+ *
+ *      MCGA: Not sure. This is weird hardware. Needs more study. It looks a
+ *      lot like the marriage of CGA with a VGA DAC and a 256-color mode tied
+ *      to 64KB of memory, and a CRTC that emulates a 6845 but generally ignores
+ *      some horizontal and vertical values and hacks others and possibly
+ *      carries video line doubling circuitry in order to produce 400-line video
+ *      from 200-line video timings (except the 640x480 2-color mode).
+ *
+ *
+ *      NEC PC-98: Two instances of this C++ class will be used in parallel,
+ *      with the same dot clock, to emulate the text and graphics "layers" of
+ *      PC-98 video. Both instances will generally have the same horizontal
+ *      and vertical timing but they don't have to, in which case the VGA
+ *      render code will generate the gibberish that would occur on real
+ *      hardware when the two are not synchronized.
  */
 typedef struct {
     struct start_end_t {
