@@ -311,7 +311,7 @@ typedef struct {
         // do not call unless all ticks processed
         void set_rate(const double new_rate,const pic_tickindex_t now) {
             if (rate != new_rate) {
-                update_ceil(now);
+                update(now);
                 rebase();
 
                 if ((rate <= 0) || (fabs(now - base) > (0.5 * rate_invmult)))
@@ -343,19 +343,10 @@ typedef struct {
             return (signed long long)floor((now - base) * rate_mult);
         }
 
-        inline signed long long pic2ticks_ceil(const pic_tickindex_t now) const {
-            return (signed long long)ceil((now - base) * rate_mult);
-        }
-
         // inline and minimal for performance!
         inline void update(const pic_tickindex_t now) {
             /* NTS: now = PIC_FullIndex() which is time in ms (1/1000 of a sec) */
             ticks = pic2ticks(now);
-        }
-
-        inline void update_ceil(const pic_tickindex_t now) {
-            /* NTS: now = PIC_FullIndex() which is time in ms (1/1000 of a sec) */
-            ticks = pic2ticks_ceil(now);
         }
 
         // retrival of tick count and reset of counter
