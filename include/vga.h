@@ -261,35 +261,65 @@ extern bool vga_alt_new_mode;
  *      hardware when the two are not synchronized.
  */
 typedef struct {
-    struct start_end_t {
-        unsigned int            start = 0,end = 0;
+    template <typename T> struct pix_char_t {
+        T                       pixels;
+        T                       chars;
+
+        pix_char_t() { }
+        pix_char_t(const T val) : pixels(val), chars(val) { }
+    };
+
+    template <typename T> struct start_end_t {
+        T                       start;
+        T                       end;
+
+        start_end_t() { }
+        start_end_t(const T val) : start(val), end(val) { }
+        start_end_t(const unsigned int val) : start(val), end(val) { }
     };
 
     /* pixel 0 is start of display area.
      * next scanline starts when current == total before drawing next pixel.
      */
     struct general_dim {
-        unsigned int            crtc_addr = 0;      // CRTC counter address (H) / CRTC counter address at start of line (V)
-        unsigned int            current = 0;        // current position in pixels within scan line (H) / number of scan line (V)
-        unsigned int            current_char = 0;   // current position in character clocks (H) / character rows (V)
-        unsigned int            total = 0;          // total pixels in scan line (H) / total scan lines (V)
-        start_end_t             active;             // first pixel (H) / scan line (V) that active display STARTs, ENDs (start == 0 usually)
-        start_end_t             blank;              // first pixel (H) / scan line (V) that blanking BEGINs, ENDs
-        start_end_t             retrace;            // first pixel (H) / scan line (V) that retrace BEGINs, ENDs
+        // CRTC counter address (H) / CRTC counter address at start of line (V)
+        unsigned int                                crtc_addr = 0;
 
-        unsigned int            active_max = 0;     // largest horizontal active.end value during the entire frame (H) for demos like DoWhackaDo.
-                                                    // largest vertical active.end value during the entire frame (V).
-                                                    // reset to active.end at start of active display. (H/V)
+        // current position in pixels within scan line (H) / number of scan line (V)
+        pix_char_t<unsigned int>                    current = 0;
 
-        pic_tickindex_t         time_begin;                     // start of scan line (H) / frame (V) PIC full index time
-        pic_tickindex_t         time_duration;                  // length of scan line (H) / length of frame (V)
+        // total pixels in scan line (H) / total scan lines (V)
+        pix_char_t<unsigned int>                    total = 0;
 
-        unsigned char           current_char_pixel = 0;         // current pixel position (H) / scan line (V) within character cell
-        unsigned char           char_pixels = 0;                // width (H) / scan lines (V) of a character cell
+        // first pixel (H) / scan line (V) that active display STARTs, ENDs (start == 0 usually)
+        start_end_t< pix_char_t<unsigned int> >     active = 0;
 
-        bool                    blank_enable = false;           // blank enable
-        bool                    active_enable = false;          // active display enable
-        bool                    retrace_enable = false;         // retrace enable
+        // first pixel (H) / scan line (V) that blanking BEGINs, ENDs
+        start_end_t< pix_char_t<unsigned int> >     blank = 0;
+
+        // first pixel (H) / scan line (V) that retrace BEGINs, ENDs
+        start_end_t< pix_char_t<unsigned int> >     retrace = 0;
+
+        // largest horizontal active.end value during the entire frame (H) for demos like DoWhackaDo.
+        // largest vertical active.end value during the entire frame (V).
+        // reset to active.end at start of active display. (H/V)
+        pix_char_t<unsigned int>                    active_max = 0;
+
+        // start of scan line (H) / frame (V) PIC full index time
+        pic_tickindex_t                             time_begin = 0;
+
+        // length of scan line (H) / length of frame (V)
+        pic_tickindex_t                             time_duration = 0;
+
+        // current pixel position (H) / scan line (V) within character cell
+        unsigned char                               current_char_pixel = 0;
+
+        // width (H) / scan lines (V) of a character cell
+        unsigned char                               char_pixels = 0;
+
+        bool                                        blank_enable = false;           // blank enable
+        bool                                        display_enable = false;         // display enable (active area)
+        bool                                        retrace_enable = false;         // retrace enable
     };
 
     unsigned int                crtc_mask = 0;      // draw from memory ((addr & mask) + add)
