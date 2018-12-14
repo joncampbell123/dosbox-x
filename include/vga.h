@@ -273,6 +273,10 @@ typedef struct {
         start_end_t             blank;              // first pixel (H) / scan line (V) that blanking BEGINs, ENDs
         start_end_t             retrace;            // first pixel (H) / scan line (V) that retrace BEGINs, ENDs
 
+        unsigned int            active_max = 0;     // largest horizontal active.end value during the entire frame (H) for demos like DoWhackaDo.
+                                                    // largest vertical active.end value during the entire frame (V).
+                                                    // reset to active.end at start of active display. (H/V)
+
         pic_tickindex_t         time_begin;                     // start of scan line (H) / frame (V) PIC full index time
         pic_tickindex_t         time_duration;                  // length of scan line (H) / length of frame (V)
 
