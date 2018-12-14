@@ -284,7 +284,7 @@ typedef struct {
     };
 
     unsigned int                crtc_mask = 0;      // draw from memory ((addr & mask) + add)
-    unsigned int                crtc_add = 0;
+    unsigned int                crtc_add = 0;       // NTS: For best results crtc_add should only change bits that are masked off
 
     inline unsigned int crtc_addr_fetch(void) const {
         return (horz.crtc_addr & crtc_mask) + crtc_add;
