@@ -271,6 +271,7 @@ typedef struct {
     struct general_dim {
         unsigned int            crtc_addr = 0;      // CRTC counter address (H) / CRTC counter address at start of line (V)
         unsigned int            current = 0;        // current position in pixels within scan line (H) / number of scan line (V)
+        unsigned int            current_char = 0;   // current position in character clocks (H) / character rows (V)
         unsigned int            total = 0;          // total pixels in scan line (H) / total scan lines (V)
         start_end_t             active;             // first pixel (H) / scan line (V) that active display STARTs, ENDs (start == 0 usually)
         start_end_t             blank;              // first pixel (H) / scan line (V) that blanking BEGINs, ENDs
