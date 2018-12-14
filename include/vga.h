@@ -628,6 +628,7 @@ typedef struct {
 	VGAModes mode;								/* The mode the vga system is in */
 	VGAModes lastmode;
 	Bit8u misc_output;
+    VGA_Draw_2 draw_2[2];                       /* new parallel video emulation. PC-98 mode will use both, all others only the first. */
 	VGA_Draw draw;
 	VGA_Config config;
 	VGA_Internal internal;
