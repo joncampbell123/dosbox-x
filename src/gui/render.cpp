@@ -1014,6 +1014,9 @@ void RENDER_Init() {
 
     RENDER_UpdateFromScalerSetting();
 
+    vga_alt_new_mode=section->Get_bool("alt render");
+    if (vga_alt_new_mode) LOG_MSG("Alternative VGA render engine not yet fully implemented!");
+
     render.autofit=section->Get_bool("autofit");
 
     //If something changed that needs a ReInit
