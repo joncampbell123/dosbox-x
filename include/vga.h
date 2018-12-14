@@ -265,8 +265,13 @@ typedef struct {
                 if ((rate <= 0) || (fabs(now - base) > (0.5 * rate_invmult)))
                     base = now;
 
-                rate_invmult = 1000 / new_rate; /* Hz -> ms */
-                rate_mult = new_rate / 1000; /* ms -> Hz */
+                if (new_rate > 0) {
+                    rate_invmult = 1000 / new_rate; /* Hz -> ms */
+                    rate_mult = new_rate / 1000; /* ms -> Hz */
+                }
+                else {
+                    rate_mult = rate_invmult = 0;
+                }
                 rate = new_rate;
 
                 update(now);
@@ -316,7 +321,7 @@ typedef struct {
         // call this every so often (but not too often) in order to prevent floating point
         // precision loss over time as the numbers get larger and larger.
         void rebase(void) {
-            if (rate_mult > 0.1) {
+            if (rate_mult > 0) {
                 base += ticks / rate_mult;
                 ticks = ticks_prev = 0;
             }
