@@ -608,16 +608,6 @@ typedef struct {
 } VGA_Memory;
 
 typedef struct {
-	//Add a few more just to be safe
-	Bit8u*	map; /* allocated dynamically: [(VGA_MEMORY >> VGA_CHANGE_SHIFT) + 32] */
-	Bit8u	checkMask, frame, writeMask;
-	bool	active;
-	Bit32u  clearMask;
-	Bit32u	start, last;
-	Bit32u	lastAddress;
-} VGA_Changes;
-
-typedef struct {
 	Bit32u page;
 	Bit32u addr;
 	Bit32u mask;
