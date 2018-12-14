@@ -299,6 +299,13 @@ typedef struct {
     //      VGA 320x200x256-color mode will have 4 pixels/char. A hacked version of 320x200x256-color mode
     //      in which the 8BIT bit is cleared (which makes it a sort of 640x200x256-color-ish mode that
     //      reveals the intermediate register states normally hidden) will have 8 pixels/char.
+    //
+    //      MCGA 320x200x256-color will have horz.char_pixels == 2
+    //
+    //      PC-98 will render as if horz.char_pixels == 8 on the text layer. It may set horz.char_pixels == 16
+    //      on some text cells if the hardware is to render a double-wide character. The graphics layer is
+    //      generally programmed into WORDs mode which means horz.char_pixels == 16 at all times. If it is
+    //      ever programmed into byte mode then it will set horz.char_pixels == 8.
 
     struct dotclock_t {
         double                  rate_invmult = 0;
