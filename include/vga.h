@@ -325,6 +325,11 @@ typedef struct {
         bool                                        retrace_enable = false;         // retrace enable
     };
 
+    bool                        cursor_enable = false;  // if set, show cursor
+
+    unsigned char               cursor_start = 0;       // cursor starts on this line (toggle cursor enable)
+    unsigned char               cursor_end = 0;         // cursor stops on this line (first line to toggle again to disable)
+
     unsigned int                crtc_cursor_addr = 0;   // crtc address to display cursor at
 
     unsigned int                crtc_mask = 0;      // draw from memory ((addr & mask) + add)
