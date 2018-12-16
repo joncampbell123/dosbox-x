@@ -325,6 +325,8 @@ typedef struct {
         bool                                        retrace_enable = false;         // retrace enable
     };
 
+    unsigned int                crtc_cursor_addr = 0;   // crtc address to display cursor at
+
     unsigned int                crtc_mask = 0;      // draw from memory ((addr & mask) + add)
     unsigned int                crtc_add = 0;       // NTS: For best results crtc_add should only change bits that are masked off
 
