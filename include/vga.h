@@ -325,6 +325,14 @@ typedef struct {
         bool                                        retrace_enable = false;         // retrace enable
     };
 
+    // NTS: If start < end, cell starts with enable = false. at start of line,
+    //      toggle enable (true) when line == start, then toggle enable (false) when
+    //      line == end, then draw.
+    //
+    //      If start >= end, cell starts with enable = true, at start of line,
+    //      toggle enable (false) when line == start, then toggle enable (true) when
+    //      line == end, then draw.
+
     bool                        cursor_enable = false;  // if set, show cursor
 
     unsigned char               cursor_start = 0;       // cursor starts on this line (toggle cursor enable)
