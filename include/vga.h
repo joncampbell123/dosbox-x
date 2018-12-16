@@ -416,7 +416,7 @@ typedef struct {
         // precision loss over time as the numbers get larger and larger.
         void rebase(void) {
             if (rate_mult > 0) {
-                base += ticks / rate_mult;
+                base += ticks * rate_invmult;
                 ticks = ticks_prev = 0;
             }
         }
