@@ -285,6 +285,9 @@ typedef struct {
         // CRTC counter address (H) / CRTC counter address at start of line (V)
         unsigned int                                crtc_addr = 0;
 
+        // CRTC counter address to add per character clock (H) / per scan line (V)
+        unsigned int                                crtc_addr_add = 0;
+
         // current position in pixels within scan line (H) / number of scan line (V)
         pix_char_t<unsigned int>                    current = 0;
 
