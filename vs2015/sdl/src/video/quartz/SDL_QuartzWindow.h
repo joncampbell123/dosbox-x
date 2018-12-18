@@ -47,5 +47,6 @@ typedef unsigned int NSUInteger;
 
 /* Subclass of NSView to set cursor rectangle */
 @interface SDL_QuartzView : NSView
+- (void)drawRect:(NSRect)dirtyRect;
 - (void)resetCursorRects;
 @end

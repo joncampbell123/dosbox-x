@@ -220,6 +220,13 @@ static void QZ_SetPortAlphaOpaque () {
 
 @implementation SDL_QuartzView
 
+void QZ_UpdateRectsOnDrawRect(/*TODO: NSRect from drawRect*/);
+
+- (void)drawRect:(NSRect)dirtyRect
+{
+	QZ_UpdateRectsOnDrawRect();
+}
+
 - (void)resetCursorRects
 {
     SDL_Cursor *sdlc = SDL_GetCursor();
