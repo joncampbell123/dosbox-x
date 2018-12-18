@@ -1141,6 +1141,10 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
     /* Save flags to ensure correct teardown */
     mode_flags = current->flags;
 
+	[ window_view setNeedsDisplay:YES ];
+	[ [ qz_window contentView ] setNeedsDisplay:YES ];
+	[ qz_window displayIfNeeded ];
+
     /* Fade in again (asynchronously) if we came from a fullscreen mode and faded to black */
     if (fade_token != kCGDisplayFadeReservationInvalidToken) {
         CGDisplayFade (fade_token, 0.5, kCGDisplayBlendSolidColor, kCGDisplayBlendNormal, 0.0, 0.0, 0.0, FALSE);
