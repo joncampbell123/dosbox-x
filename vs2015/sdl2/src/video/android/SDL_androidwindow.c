@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,6 +26,8 @@
 #include "../SDL_sysvideo.h"
 #include "../../events/SDL_keyboard_c.h"
 #include "../../events/SDL_mouse_c.h"
+#include "../../events/SDL_windowevents_c.h"
+#include "../../core/android/SDL_android.h"
 
 #include "SDL_androidvideo.h"
 #include "SDL_androidwindow.h"
@@ -49,11 +51,10 @@ Android_CreateWindow(_THIS, SDL_Window * window)
     /* Adjust the window data to match the screen */
     window->x = 0;
     window->y = 0;
-    window->w = Android_ScreenWidth;
-    window->h = Android_ScreenHeight;
+    window->w = Android_SurfaceWidth;
+    window->h = Android_SurfaceHeight;
 
     window->flags &= ~SDL_WINDOW_RESIZABLE;     /* window is NEVER resizeable */
-    window->flags |= SDL_WINDOW_FULLSCREEN;     /* window is always fullscreen */
     window->flags &= ~SDL_WINDOW_HIDDEN;
     window->flags |= SDL_WINDOW_SHOWN;          /* only one window on Android */
     window->flags |= SDL_WINDOW_INPUT_FOCUS;    /* always has input focus */
@@ -96,6 +97,41 @@ void
 Android_SetWindowTitle(_THIS, SDL_Window * window)
 {
     Android_JNI_SetActivityTitle(window->title);
+}
+
+void
+Android_SetWindowFullscreen(_THIS, SDL_Window * window, SDL_VideoDisplay * display, SDL_bool fullscreen)
+{
+    /* If the window is being destroyed don't change visible state */
+    if (!window->is_destroying) {
+        Android_JNI_SetWindowStyle(fullscreen);
+    }
+
+    /* Ensure our size matches reality after we've executed the window style change.
+     *
+     * It is possible that we've set width and height to the full-size display, but on
+     * Samsung DeX or Chromebooks or other windowed Android environemtns, our window may 
+     * still not be the full display size.
+     */
+    if (!SDL_IsDeXMode() && !SDL_IsChromebook()) {
+        return;
+    }
+
+    SDL_WindowData * data = (SDL_WindowData *)window->driverdata;
+
+    if (!data || !data->native_window) {
+        return;
+    }
+
+    int old_w = window->w;
+    int old_h = window->h;
+
+    int new_w = ANativeWindow_getWidth(data->native_window);
+    int new_h = ANativeWindow_getHeight(data->native_window);
+
+    if (old_w != new_w || old_h != new_h) {
+        SDL_SendWindowEvent(window, SDL_WINDOWEVENT_RESIZED, new_w, new_h);
+    }
 }
 
 void

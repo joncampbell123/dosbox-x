@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2016 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -123,10 +123,10 @@ VkExtensionProperties *SDL_Vulkan_CreateInstanceExtensionsList(
     {
         retval = SDL_calloc(1, sizeof(VkExtensionProperties)); // so we can return non-null
     }
-	else
-	{
-		retval = SDL_calloc(count, sizeof(VkExtensionProperties));
-	}
+    else
+    {
+        retval = SDL_calloc(count, sizeof(VkExtensionProperties));
+    }
     if(!retval)
     {
         SDL_OutOfMemory();
@@ -152,26 +152,21 @@ SDL_bool SDL_Vulkan_GetInstanceExtensions_Helper(unsigned *userCount,
                                                  unsigned nameCount,
                                                  const char *const *names)
 {
-    if(userNames)
-    {
-		unsigned int i;
+    if (userNames) {
+        unsigned i;
 
-        if(*userCount != nameCount)
-        {
-            SDL_SetError(
-                "Count doesn't match count from previous call of SDL_Vulkan_GetInstanceExtensions");
+        if (*userCount < nameCount) {
+            SDL_SetError("Output array for SDL_Vulkan_GetInstanceExtensions needs to be at least %d big", nameCount);
             return SDL_FALSE;
         }
-        for(i = 0; i < nameCount; i++)
-        {
+        for (i = 0; i < nameCount; i++) {
             userNames[i] = names[i];
         }
     }
-    else
-    {
-        *userCount = nameCount;
-    }
+    *userCount = nameCount;
     return SDL_TRUE;
 }
 
 #endif
+
+/* vi: set ts=4 sw=4 expandtab: */

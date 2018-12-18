@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -63,9 +63,12 @@
 /* On Android SDL provides a Java class in SDLActivity.java that is the
    main activity entry point.
 
-   See README-android.md for more details on extending that class.
+   See docs/README-android.md for more details on extending that class.
  */
 #define SDL_MAIN_NEEDED
+
+/* We need to export SDL_main so it can be launched from Java */
+#define SDLMAIN_DECLSPEC    DECLSPEC
 
 #elif defined(__NACL__)
 /* On NACL we use ppapi_simple to set up the application helper code,
@@ -85,6 +88,10 @@
 #define C_LINKAGE
 #endif /* __cplusplus */
 
+#ifndef SDLMAIN_DECLSPEC
+#define SDLMAIN_DECLSPEC
+#endif
+
 /**
  *  \file SDL_main.h
  *
@@ -100,14 +107,6 @@
  *  \endcode
  */
 
-#ifdef __cplusplus
-#define C_LINKAGE	"C"
-#define SDL_MAIN_NOEXCEPT noexcept(false)
-#else
-#define C_LINKAGE
-#define SDL_MAIN_NOEXCEPT
-#endif /* __cplusplus */
-
 #if defined(SDL_MAIN_NEEDED) || defined(SDL_MAIN_AVAILABLE)
 #define main    SDL_main
 #endif
@@ -115,7 +114,7 @@
 /**
  *  The prototype for the application's main() function
  */
-extern C_LINKAGE DECLSPEC int SDL_main(int argc, char *argv[]) SDL_MAIN_NOEXCEPT;
+extern C_LINKAGE SDLMAIN_DECLSPEC int SDL_main(int argc, char *argv[]);
 
 
 #include "begin_code.h"

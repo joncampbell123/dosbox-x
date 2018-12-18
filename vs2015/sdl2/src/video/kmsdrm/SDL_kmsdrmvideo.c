@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2016 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,6 +27,7 @@
 #include "../SDL_sysvideo.h"
 #include "SDL_syswm.h"
 #include "SDL_log.h"
+#include "SDL_hints.h"
 #include "../../events/SDL_mouse_c.h"
 #include "../../events/SDL_keyboard_c.h"
 
@@ -40,20 +41,27 @@
 #include "SDL_kmsdrmopengles.h"
 #include "SDL_kmsdrmmouse.h"
 #include "SDL_kmsdrmdyn.h"
+#include <sys/stat.h>
+#include <dirent.h>
+#include <errno.h>
 
-#define KMSDRM_DRI_CARD_0 "/dev/dri/card0"
+#define KMSDRM_DRI_PATH "/dev/dri/"
 
 static int
-KMSDRM_Available(void)
+check_modestting(int devindex)
 {
-    int available = 0;
+    SDL_bool available = SDL_FALSE;
+    char device[512];
+    int drm_fd;
 
-    int drm_fd = open(KMSDRM_DRI_CARD_0, O_RDWR | O_CLOEXEC);
+    SDL_snprintf(device, sizeof (device), "%scard%d", KMSDRM_DRI_PATH, devindex);
+
+    drm_fd = open(device, O_RDWR | O_CLOEXEC);
     if (drm_fd >= 0) {
         if (SDL_KMSDRM_LoadSymbols()) {
             drmModeRes *resources = KMSDRM_drmModeGetResources(drm_fd);
             if (resources != NULL) {
-                available = 1;
+                available = SDL_TRUE;
                 KMSDRM_drmModeFreeResources(resources);
             }
             SDL_KMSDRM_UnloadSymbols();
@@ -62,6 +70,66 @@ KMSDRM_Available(void)
     }
 
     return available;
+}
+
+static int get_dricount(void)
+{
+    int devcount = 0;
+    struct dirent *res;
+    struct stat sb;
+    DIR *folder;
+
+    if (!(stat(KMSDRM_DRI_PATH, &sb) == 0
+                && S_ISDIR(sb.st_mode))) {
+        printf("The path %s cannot be opened or is not available\n",
+               KMSDRM_DRI_PATH);
+        return 0;
+    }
+
+    if (access(KMSDRM_DRI_PATH, F_OK) == -1) {
+        printf("The path %s cannot be opened\n",
+               KMSDRM_DRI_PATH);
+        return 0;
+    }
+
+    folder = opendir(KMSDRM_DRI_PATH);
+    if (folder) {
+        while ((res = readdir(folder))) {
+            if (res->d_type == DT_CHR) {
+                devcount++;
+            }
+        }
+        closedir(folder);
+    }
+
+    return devcount;
+}
+
+static int
+get_driindex(void)
+{
+    const int devcount = get_dricount();
+    int i;
+
+    for (i = 0; i < devcount; i++) {
+        if (check_modestting(i)) {
+            return i;
+        }
+    }
+
+    return -ENOENT;
+}
+
+static int
+KMSDRM_Available(void)
+{
+    int ret = -ENOENT;
+
+    ret = get_driindex();
+    if (ret >= 0)
+        return 1;
+
+    return ret;
 }
 
 static void
@@ -82,7 +150,11 @@ KMSDRM_Create(int devindex)
     SDL_VideoDevice *device;
     SDL_VideoData *vdata;
 
-    if (devindex < 0 || devindex > 99) {
+    if (!devindex || (devindex > 99)) {
+        devindex = get_driindex();
+    }
+
+    if (devindex < 0) {
         SDL_SetError("devindex (%d) must be between 0 and 99.\n", devindex);
         return NULL;
     }
@@ -361,6 +433,7 @@ KMSDRM_VideoInit(_THIS)
                  vdata->saved_crtc->y, vdata->saved_crtc->width, vdata->saved_crtc->height);
     data->crtc_id = encoder->crtc_id;
     data->cur_mode = vdata->saved_crtc->mode;
+    vdata->crtc_id = encoder->crtc_id;
 
     SDL_zero(current_mode);
 
@@ -522,11 +595,17 @@ KMSDRM_CreateWindow(_THIS, SDL_Window * window)
     }
 #endif /* SDL_VIDEO_OPENGL_EGL */
 
+    /* In case we want low-latency, double-buffer video, we take note here */
+    wdata->double_buffer = SDL_FALSE;
+    if (SDL_GetHintBoolean(SDL_HINT_VIDEO_DOUBLE_BUFFER, SDL_FALSE)) {
+        wdata->double_buffer = SDL_TRUE;
+    }
+
     /* Window is created, but we have yet to set up CRTC to one of the GBM buffers if we want
        drmModePageFlip to work, and we can't do it until EGL is completely setup, because we
-       need to do eglSwapBuffers so we can get a valid GBM buffer object to call 
+       need to do eglSwapBuffers so we can get a valid GBM buffer object to call
        drmModeSetCrtc on it. */
-    wdata->crtc_ready = SDL_FALSE;    
+    wdata->crtc_ready = SDL_FALSE;
 
     /* Setup driver data for this window */
     window->driverdata = wdata;
@@ -558,6 +637,10 @@ KMSDRM_DestroyWindow(_THIS, SDL_Window * window)
     if(data) {
         /* Wait for any pending page flips and unlock buffer */
         KMSDRM_WaitPageFlip(_this, data, -1);
+        if (data->crtc_bo != NULL) {
+            KMSDRM_gbm_surface_release_buffer(data->gs, data->crtc_bo);
+            data->crtc_bo = NULL;
+        }
         if (data->next_bo != NULL) {
             KMSDRM_gbm_surface_release_buffer(data->gs, data->next_bo);
             data->next_bo = NULL;

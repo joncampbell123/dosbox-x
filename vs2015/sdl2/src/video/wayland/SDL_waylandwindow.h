@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -32,10 +32,32 @@
 struct SDL_WaylandInput;
 
 typedef struct {
+    struct zxdg_surface_v6 *surface;
+    union {
+        struct zxdg_toplevel_v6 *toplevel;
+        struct zxdg_popup_v6 *popup;
+    } roleobj;
+    SDL_bool initial_configure_seen;
+} SDL_zxdg_shell_surface;
+
+typedef struct {
+    struct xdg_surface *surface;
+    union {
+        struct xdg_toplevel *toplevel;
+        struct xdg_popup *popup;
+    } roleobj;
+    SDL_bool initial_configure_seen;
+} SDL_xdg_shell_surface;
+
+typedef struct {
     SDL_Window *sdlwindow;
     SDL_VideoData *waylandData;
     struct wl_surface *surface;
-    struct wl_shell_surface *shell_surface;
+    union {
+        SDL_xdg_shell_surface xdg;
+        SDL_zxdg_shell_surface zxdg;
+        struct wl_shell_surface *wl;
+    } shell_surface;
     struct wl_egl_window *egl_window;
     struct SDL_WaylandInput *keyboard_device;
     EGLSurface egl_surface;

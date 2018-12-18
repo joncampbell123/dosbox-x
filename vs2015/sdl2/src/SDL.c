@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -33,6 +33,7 @@
 #include "events/SDL_events_c.h"
 #include "haptic/SDL_haptic_c.h"
 #include "joystick/SDL_joystick_c.h"
+#include "sensor/SDL_sensor_c.h"
 
 /* Initialization/Cleanup routines */
 #if !SDL_TIMERS_DISABLED
@@ -123,11 +124,11 @@ SDL_InitSubSystem(Uint32 flags)
     }
 
 #if SDL_VIDEO_DRIVER_WINDOWS
-	if ((flags & (SDL_INIT_HAPTIC|SDL_INIT_JOYSTICK))) {
-		if (SDL_HelperWindowCreate() < 0) {
-			return -1;
-		}
-	}
+    if ((flags & (SDL_INIT_HAPTIC|SDL_INIT_JOYSTICK))) {
+        if (SDL_HelperWindowCreate() < 0) {
+            return -1;
+        }
+    }
 #endif
 
 #if !SDL_TIMERS_DISABLED
@@ -232,6 +233,20 @@ SDL_InitSubSystem(Uint32 flags)
 #endif
     }
 
+    /* Initialize the sensor subsystem */
+    if ((flags & SDL_INIT_SENSOR)){
+#if !SDL_SENSOR_DISABLED
+        if (SDL_PrivateShouldInitSubsystem(SDL_INIT_SENSOR)) {
+            if (SDL_SensorInit() < 0) {
+                return (-1);
+            }
+        }
+        SDL_PrivateSubsystemRefCountIncr(SDL_INIT_SENSOR);
+#else
+        return SDL_SetError("SDL not built with sensor support");
+#endif
+    }
+
     return (0);
 }
 
@@ -245,6 +260,15 @@ void
 SDL_QuitSubSystem(Uint32 flags)
 {
     /* Shut down requested initialized subsystems */
+#if !SDL_SENSOR_DISABLED
+    if ((flags & SDL_INIT_SENSOR)) {
+        if (SDL_PrivateShouldQuitSubsystem(SDL_INIT_SENSOR)) {
+            SDL_SensorQuit();
+        }
+        SDL_PrivateSubsystemRefCountDecr(SDL_INIT_SENSOR);
+    }
+#endif
+
 #if !SDL_JOYSTICK_DISABLED
     if ((flags & SDL_INIT_GAMECONTROLLER)) {
         /* game controller implies joystick */
@@ -451,9 +475,23 @@ SDL_GetPlatform()
 #endif
 }
 
+SDL_bool
+SDL_IsTablet()
+{
+#if __ANDROID__
+    extern SDL_bool SDL_IsAndroidTablet(void);
+    return SDL_IsAndroidTablet();
+#elif __IPHONEOS__
+    extern SDL_bool SDL_IsIPad(void);
+    return SDL_IsIPad();
+#else
+    return SDL_FALSE;
+#endif
+}
+
 #if defined(__WIN32__)
 
-#if !defined(HAVE_LIBC) || (defined(__WATCOMC__) && defined(BUILD_DLL))
+#if (!defined(HAVE_LIBC) || defined(__WATCOMC__)) && !defined(SDL_STATIC_LIB)
 /* Need to include DllMain() on Watcom C for some reason.. */
 
 BOOL APIENTRY
@@ -469,7 +507,7 @@ _DllMainCRTStartup(HANDLE hModule,
     }
     return TRUE;
 }
-#endif /* building DLL with Watcom C */
+#endif /* Building DLL */
 
 #endif /* __WIN32__ */
 

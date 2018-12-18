@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -231,6 +231,17 @@ UIKit_ComputeViewFrame(SDL_Window *window, UIScreen *screen)
 void SDL_NSLog(const char *text)
 {
     NSLog(@"%s", text);
+}
+
+/*
+ * iOS Tablet detection
+ *
+ * This doesn't really have aything to do with the interfaces of the SDL video
+ * subsystem, but we need to stuff this into an Objective-C source code file.
+ */
+SDL_bool SDL_IsIPad(void)
+{
+    return (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad);
 }
 
 #endif /* SDL_VIDEO_DRIVER_UIKIT */

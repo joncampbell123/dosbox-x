@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -285,6 +285,11 @@ HandleWindow(MirWindowEvent const* event, SDL_Window* window)
     }
 }
 
+static void
+MIR_HandleClose(SDL_Window* window) {
+    SDL_SendWindowEvent(window, SDL_WINDOWEVENT_CLOSE, 0, 0);
+}
+
 void
 MIR_HandleEvent(MirWindow* mirwindow, MirEvent const* ev, void* context)
 {
@@ -301,6 +306,9 @@ MIR_HandleEvent(MirWindow* mirwindow, MirEvent const* ev, void* context)
                 break;
             case (mir_event_type_window):
                 HandleWindow(MIR_mir_event_get_window_event(ev), window);
+                break;
+            case (mir_event_type_close_window):
+                MIR_HandleClose(window);
                 break;
             default:
                 break;

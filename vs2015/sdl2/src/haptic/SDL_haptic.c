@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -389,9 +389,11 @@ SDL_HapticClose(SDL_Haptic * haptic)
 void
 SDL_HapticQuit(void)
 {
+    while (SDL_haptics) {
+        SDL_HapticClose(SDL_haptics);
+    }
+
     SDL_SYS_HapticQuit();
-    SDL_assert(SDL_haptics == NULL);
-    SDL_haptics = NULL;
 }
 
 /*
@@ -765,6 +767,7 @@ SDL_HapticRumbleInit(SDL_Haptic * haptic)
     SDL_zerop(efx);
     if (haptic->supported & SDL_HAPTIC_SINE) {
         efx->type = SDL_HAPTIC_SINE;
+        efx->periodic.direction.type = SDL_HAPTIC_CARTESIAN;
         efx->periodic.period = 1000;
         efx->periodic.magnitude = 0x4000;
         efx->periodic.length = 5000;

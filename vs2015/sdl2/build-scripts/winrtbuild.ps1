@@ -39,7 +39,7 @@
 #
 
 # Base version of SDL, used for packaging purposes
-$SDLVersion = "2.0.4"
+$SDLVersion = "2.0.9"
 
 # Gets the .bat file that sets up an MSBuild environment, given one of
 # Visual Studio's, "PlatformToolset"s.
@@ -211,9 +211,11 @@ function Build-SDL-WinRT-Variant
 $DidAnyDLLBuildFail = $false
 $DidAnyNugetBuildFail = $false
 
+# Ryan disabled WP8.0, because it doesn't appear to have mmdeviceapi.h that SDL_wasapi needs.
+# My assumption is that no one will miss this, but send patches otherwise!  --ryan.
 # Build for Windows Phone 8.0, via VC++ 2012:
-if ( ! (Build-SDL-WinRT-Variant "SDL" "v110_wp80" "ARM"))   { $DidAnyDLLBuildFail = $true }
-if ( ! (Build-SDL-WinRT-Variant "SDL" "v110_wp80" "Win32")) { $DidAnyDLLBuildFail = $true }
+#if ( ! (Build-SDL-WinRT-Variant "SDL" "v110_wp80" "ARM"))   { $DidAnyDLLBuildFail = $true }
+#if ( ! (Build-SDL-WinRT-Variant "SDL" "v110_wp80" "Win32")) { $DidAnyDLLBuildFail = $true }
 
 # Build for Windows Phone 8.1, via VC++ 2013:
 if ( ! (Build-SDL-WinRT-Variant "SDL" "v120_wp81" "ARM"))   { $DidAnyDLLBuildFail = $true }

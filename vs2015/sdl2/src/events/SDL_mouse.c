@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -33,11 +33,37 @@
 
 /* The mouse state */
 static SDL_Mouse SDL_mouse;
-static Uint32 SDL_double_click_time = 500;
-static int SDL_double_click_radius = 1;
 
 static int
 SDL_PrivateSendMouseMotion(SDL_Window * window, SDL_MouseID mouseID, int relative, int x, int y);
+
+static void SDLCALL
+SDL_MouseDoubleClickTimeChanged(void *userdata, const char *name, const char *oldValue, const char *hint)
+{
+    SDL_Mouse *mouse = (SDL_Mouse *)userdata;
+
+    if (hint && *hint) {
+        mouse->double_click_time = SDL_atoi(hint);
+    } else {
+#ifdef __WIN32__
+        mouse->double_click_time = GetDoubleClickTime();
+#else
+        mouse->double_click_time = 500;
+#endif
+    }
+}
+
+static void SDLCALL
+SDL_MouseDoubleClickRadiusChanged(void *userdata, const char *name, const char *oldValue, const char *hint)
+{
+    SDL_Mouse *mouse = (SDL_Mouse *)userdata;
+
+    if (hint && *hint) {
+        mouse->double_click_radius = SDL_atoi(hint);
+    } else {
+        mouse->double_click_radius = 32;    /* 32 pixels seems about right for touch interfaces */
+    }
+}
 
 static void SDLCALL
 SDL_MouseNormalSpeedScaleChanged(void *userdata, const char *name, const char *oldValue, const char *hint)
@@ -83,6 +109,12 @@ SDL_MouseInit(void)
 
     SDL_zerop(mouse);
 
+    SDL_AddHintCallback(SDL_HINT_MOUSE_DOUBLE_CLICK_TIME,
+                        SDL_MouseDoubleClickTimeChanged, mouse);
+
+    SDL_AddHintCallback(SDL_HINT_MOUSE_DOUBLE_CLICK_RADIUS,
+                        SDL_MouseDoubleClickRadiusChanged, mouse);
+
     SDL_AddHintCallback(SDL_HINT_MOUSE_NORMAL_SPEED_SCALE,
                         SDL_MouseNormalSpeedScaleChanged, mouse);
 
@@ -112,12 +144,6 @@ SDL_Mouse *
 SDL_GetMouse(void)
 {
     return &SDL_mouse;
-}
-
-void
-SDL_SetDoubleClickTime(Uint32 interval)
-{
-    SDL_double_click_time = interval;
 }
 
 SDL_Window *
@@ -454,9 +480,9 @@ SDL_PrivateSendMouseButton(SDL_Window * window, SDL_MouseID mouseID, Uint8 state
             if (state == SDL_PRESSED) {
                 Uint32 now = SDL_GetTicks();
 
-                if (SDL_TICKS_PASSED(now, clickstate->last_timestamp + SDL_double_click_time) ||
-                    SDL_abs(mouse->x - clickstate->last_x) > SDL_double_click_radius ||
-                    SDL_abs(mouse->y - clickstate->last_y) > SDL_double_click_radius) {
+                if (SDL_TICKS_PASSED(now, clickstate->last_timestamp + mouse->double_click_time) ||
+                    SDL_abs(mouse->x - clickstate->last_x) > mouse->double_click_radius ||
+                    SDL_abs(mouse->y - clickstate->last_y) > mouse->double_click_radius) {
                     clickstate->click_count = 0;
                 }
                 clickstate->last_timestamp = now;
@@ -646,7 +672,6 @@ SDL_GetGlobalMouseState(int *x, int *y)
     *x = *y = 0;
 
     if (!mouse->GetGlobalMouseState) {
-        SDL_assert(0 && "This should really be implemented for every target.");
         return 0;
     }
 
@@ -689,6 +714,7 @@ static SDL_bool
 ShouldUseRelativeModeWarp(SDL_Mouse *mouse)
 {
     if (!mouse->SetRelativeMouseMode) {
+        SDL_assert(mouse->WarpMouse);   /* Need this functionality for relative mode warp implementation */
         return SDL_TRUE;
     }
 
@@ -721,6 +747,9 @@ SDL_SetRelativeMouseMode(SDL_bool enabled)
     } else if (mouse->SetRelativeMouseMode(enabled) < 0) {
         if (enabled) {
             /* Fall back to warp mode if native relative mode failed */
+            if (!mouse->WarpMouse) {
+                return SDL_SetError("No relative mode implementation available");
+            }
             mouse->relative_mode_warp = SDL_TRUE;
         }
     }

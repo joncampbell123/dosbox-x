@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -29,10 +29,15 @@
 #include "SDL_events.h"
 #include "SDL_androidwindow.h"
 
+#if !SDL_AUDIO_DISABLED
 /* Can't include sysaudio "../../audio/android/SDL_androidaudio.h"
  * because of THIS redefinition */
 extern void ANDROIDAUDIO_ResumeDevices(void);
 extern void ANDROIDAUDIO_PauseDevices(void);
+#else
+static void ANDROIDAUDIO_ResumeDevices(void) {}
+static void ANDROIDAUDIO_PauseDevices(void) {}
+#endif
 
 static void 
 android_egl_context_restore() 

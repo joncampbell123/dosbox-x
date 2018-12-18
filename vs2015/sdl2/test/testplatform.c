@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -189,11 +189,6 @@ static int TST_aullshl (void *a, void *b, int arg, void *result, void *expected)
     (*(unsigned long long *)result) = (*(unsigned long long *)a) << arg;
     return (*(unsigned long long *)result) == (*(unsigned long long *)expected);
 }
-
-#if defined(_MSC_VER)
-/* some weird conflict between Whole Program Optimization and TST_allshr */
-# define TST_allshr TST_allshr_not_msvc_predefined_shut_up_
-#endif
 
 static int TST_allshr (void *a, void *b, int arg, void *result, void *expected)
 {
@@ -385,6 +380,7 @@ TestCPUInfo(SDL_bool verbose)
         SDL_Log("SSE4.2 %s\n", SDL_HasSSE42()? "detected" : "not detected");
         SDL_Log("AVX %s\n", SDL_HasAVX()? "detected" : "not detected");
         SDL_Log("AVX2 %s\n", SDL_HasAVX2()? "detected" : "not detected");
+        SDL_Log("AVX-512F %s\n", SDL_HasAVX512F()? "detected" : "not detected");
         SDL_Log("NEON %s\n", SDL_HasNEON()? "detected" : "not detected");
         SDL_Log("System RAM %d MB\n", SDL_GetSystemRAM());
     }

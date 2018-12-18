@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -25,11 +25,19 @@
 
 #include "SDL_render.h"
 #include "SDL_events.h"
+#include "SDL_mutex.h"
 #include "SDL_yuv_sw_c.h"
 
 /* The SDL 2D rendering system */
 
 typedef struct SDL_RenderDriver SDL_RenderDriver;
+
+typedef enum
+{
+    SDL_ScaleModeNearest,
+    SDL_ScaleModeLinear,
+    SDL_ScaleModeBest
+} SDL_ScaleMode;
 
 typedef struct
 {
@@ -55,6 +63,7 @@ struct SDL_Texture
     int h;                      /**< The height of the texture */
     int modMode;                /**< The texture modulation mode */
     SDL_BlendMode blendMode;    /**< The texture blend mode */
+    SDL_ScaleMode scaleMode;    /**< The texture scale mode */
     Uint8 r, g, b, a;           /**< Texture modulation values */
 
     SDL_Renderer *renderer;
@@ -123,6 +132,9 @@ struct SDL_Renderer
     int (*GL_BindTexture) (SDL_Renderer * renderer, SDL_Texture *texture, float *texw, float *texh);
     int (*GL_UnbindTexture) (SDL_Renderer * renderer, SDL_Texture *texture);
 
+    void *(*GetMetalLayer) (SDL_Renderer * renderer);
+    void *(*GetMetalCommandEncoder) (SDL_Renderer * renderer);
+
     /* The current renderer info */
     SDL_RendererInfo info;
 
@@ -161,6 +173,7 @@ struct SDL_Renderer
     /* The list of textures */
     SDL_Texture *textures;
     SDL_Texture *target;
+    SDL_mutex *target_mutex;
 
     Uint8 r, g, b, a;                   /**< Color for drawing operations values */
     SDL_BlendMode blendMode;            /**< The drawing blend mode */
@@ -184,6 +197,7 @@ extern SDL_RenderDriver GL_RenderDriver;
 extern SDL_RenderDriver GLES2_RenderDriver;
 extern SDL_RenderDriver GLES_RenderDriver;
 extern SDL_RenderDriver DirectFB_RenderDriver;
+extern SDL_RenderDriver METAL_RenderDriver;
 extern SDL_RenderDriver PSP_RenderDriver;
 extern SDL_RenderDriver SW_RenderDriver;
 

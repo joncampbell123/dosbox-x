@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -89,13 +89,13 @@ SDL_iconv(SDL_iconv_t cd,
 #else
 
 /* Lots of useful information on Unicode at:
-	http://www.cl.cam.ac.uk/~mgk25/unicode.html
+    http://www.cl.cam.ac.uk/~mgk25/unicode.html
 */
 
-#define UNICODE_BOM	0xFEFF
+#define UNICODE_BOM    0xFEFF
 
-#define UNKNOWN_ASCII	'?'
-#define UNKNOWN_UNICODE	0xFFFD
+#define UNKNOWN_ASCII    '?'
+#define UNKNOWN_UNICODE    0xFFFD
 
 enum
 {
@@ -115,13 +115,13 @@ enum
     ENCODING_UCS4LE,
 };
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-#define ENCODING_UTF16NATIVE	ENCODING_UTF16BE
-#define ENCODING_UTF32NATIVE	ENCODING_UTF32BE
+#define ENCODING_UTF16NATIVE    ENCODING_UTF16BE
+#define ENCODING_UTF32NATIVE    ENCODING_UTF32BE
 #define ENCODING_UCS2NATIVE     ENCODING_UCS2BE
 #define ENCODING_UCS4NATIVE     ENCODING_UCS4BE
 #else
-#define ENCODING_UTF16NATIVE	ENCODING_UTF16LE
-#define ENCODING_UTF32NATIVE	ENCODING_UTF32LE
+#define ENCODING_UTF16NATIVE    ENCODING_UTF16LE
+#define ENCODING_UTF32NATIVE    ENCODING_UTF32LE
 #define ENCODING_UCS2NATIVE     ENCODING_UCS2LE
 #define ENCODING_UCS4NATIVE     ENCODING_UCS4LE
 #endif

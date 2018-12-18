@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -260,10 +260,8 @@ GL_CheckAllErrors (const char *prefix, SDL_Renderer *renderer, const char *file,
 
 #if 0
 #define GL_CheckError(prefix, renderer)
-#elif defined(_MSC_VER) || defined(__WATCOMC__)
-#define GL_CheckError(prefix, renderer) GL_CheckAllErrors(prefix, renderer, __FILE__, __LINE__, __FUNCTION__)
 #else
-#define GL_CheckError(prefix, renderer) GL_CheckAllErrors(prefix, renderer, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define GL_CheckError(prefix, renderer) GL_CheckAllErrors(prefix, renderer, SDL_FILE, SDL_LINE, SDL_FUNCTION)
 #endif
 
 static int
@@ -705,18 +703,6 @@ convert_format(GL_RenderData *renderdata, Uint32 pixel_format,
     return SDL_TRUE;
 }
 
-static GLenum
-GetScaleQuality(void)
-{
-    const char *hint = SDL_GetHint(SDL_HINT_RENDER_SCALE_QUALITY);
-
-    if (!hint || *hint == '0' || SDL_strcasecmp(hint, "nearest") == 0) {
-        return GL_NEAREST;
-    } else {
-        return GL_LINEAR;
-    }
-}
-
 static int
 GL_CreateTexture(SDL_Renderer * renderer, SDL_Texture * texture)
 {
@@ -805,7 +791,7 @@ GL_CreateTexture(SDL_Renderer * renderer, SDL_Texture * texture)
 
     data->format = format;
     data->formattype = type;
-    scaleMode = GetScaleQuality();
+    scaleMode = (texture->scaleMode == SDL_ScaleModeNearest) ? GL_NEAREST : GL_LINEAR;
     renderdata->glEnable(data->type);
     renderdata->glBindTexture(data->type, data->texture);
     renderdata->glTexParameteri(data->type, GL_TEXTURE_MIN_FILTER, scaleMode);
@@ -1349,13 +1335,37 @@ GL_SetupCopy(SDL_Renderer * renderer, SDL_Texture * texture)
 
     GL_SetBlendMode(data, texture->blendMode);
 
-    if (texturedata->yuv) {
-        GL_SetShader(data, SHADER_YUV);
-    } else if (texturedata->nv12) {
-        if (texture->format == SDL_PIXELFORMAT_NV12) {
-            GL_SetShader(data, SHADER_NV12);
-        } else {
-            GL_SetShader(data, SHADER_NV21);
+    if (texturedata->yuv || texturedata->nv12) {
+        switch (SDL_GetYUVConversionModeForResolution(texture->w, texture->h)) {
+        case SDL_YUV_CONVERSION_JPEG:
+            if (texturedata->yuv) {
+                GL_SetShader(data, SHADER_YUV_JPEG);
+            } else if (texture->format == SDL_PIXELFORMAT_NV12) {
+                GL_SetShader(data, SHADER_NV12_JPEG);
+            } else {
+                GL_SetShader(data, SHADER_NV21_JPEG);
+            }
+            break;
+        case SDL_YUV_CONVERSION_BT601:
+            if (texturedata->yuv) {
+                GL_SetShader(data, SHADER_YUV_BT601);
+            } else if (texture->format == SDL_PIXELFORMAT_NV12) {
+                GL_SetShader(data, SHADER_NV12_BT601);
+            } else {
+                GL_SetShader(data, SHADER_NV21_BT601);
+            }
+            break;
+        case SDL_YUV_CONVERSION_BT709:
+            if (texturedata->yuv) {
+                GL_SetShader(data, SHADER_YUV_BT709);
+            } else if (texture->format == SDL_PIXELFORMAT_NV12) {
+                GL_SetShader(data, SHADER_NV12_BT709);
+            } else {
+                GL_SetShader(data, SHADER_NV21_BT709);
+            }
+            break;
+        default:
+            return SDL_SetError("Unsupported YUV conversion mode");
         }
     } else {
         GL_SetShader(data, SHADER_RGB);

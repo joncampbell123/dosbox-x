@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -70,7 +70,7 @@ void SDLTest_RandomInitTime(SDLTest_RandomContext * rndContext)
 
   srand((unsigned int)time(NULL));
   a=rand();
-  srand(clock());
+  srand((unsigned int)clock());
   b=rand();
   SDLTest_RandomInit(rndContext, a, b);
 }

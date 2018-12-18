@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -44,7 +44,8 @@
 #define HAVE_STDIO_H    1
 #define HAVE_STRING_H   1
 #define HAVE_SYS_TYPES_H    1
-#define HAVE_LIBUNWIND_H    1
+/* The libunwind functions are only available on x86 */
+/* #undef HAVE_LIBUNWIND_H */
 
 /* C library functions */
 #define HAVE_MALLOC 1
@@ -84,19 +85,36 @@
 #define HAVE_VSSCANF 1
 #define HAVE_VSNPRINTF  1
 #define HAVE_M_PI   1
+#define HAVE_ACOS   1
+#define HAVE_ACOSF  1
+#define HAVE_ASIN   1
+#define HAVE_ASINF  1
 #define HAVE_ATAN   1
+#define HAVE_ATANF  1
 #define HAVE_ATAN2  1
-#define HAVE_ACOS  1
-#define HAVE_ASIN  1
+#define HAVE_ATAN2F 1
 #define HAVE_CEIL   1
+#define HAVE_CEILF  1
 #define HAVE_COPYSIGN   1
+#define HAVE_COPYSIGNF  1
 #define HAVE_COS    1
 #define HAVE_COSF   1
+#define HAVE_EXP    1
+#define HAVE_EXPF   1
 #define HAVE_FABS   1
+#define HAVE_FABSF  1
 #define HAVE_FLOOR  1
+#define HAVE_FLOORF 1
+#define HAVE_FMOD   1
+#define HAVE_FMODF  1
 #define HAVE_LOG    1
+#define HAVE_LOGF   1
+#define HAVE_LOG10  1
+#define HAVE_LOG10F 1
 #define HAVE_POW    1
+#define HAVE_POWF   1
 #define HAVE_SCALBN 1
+#define HAVE_SCALBNF    1
 #define HAVE_SIN    1
 #define HAVE_SINF   1
 #define HAVE_SQRT   1
@@ -119,6 +137,14 @@
 
 /* Enable MFi joystick support */
 #define SDL_JOYSTICK_MFI 1
+/*#define SDL_JOYSTICK_HIDAPI 1*/
+
+#ifdef __TVOS__
+#define SDL_SENSOR_DUMMY    1
+#else
+/* Enable the CoreMotion sensor driver */
+#define SDL_SENSOR_COREMOTION   1
+#endif
 
 /* Enable Unix style SO loading */
 #define SDL_LOADSO_DLOPEN 1
@@ -134,17 +160,25 @@
 #define SDL_VIDEO_DRIVER_UIKIT  1
 #define SDL_VIDEO_DRIVER_DUMMY  1
 
-/* enable OpenGL ES */
+/* Enable OpenGL ES */
 #define SDL_VIDEO_OPENGL_ES2 1
 #define SDL_VIDEO_OPENGL_ES 1
 #define SDL_VIDEO_RENDER_OGL_ES 1
 #define SDL_VIDEO_RENDER_OGL_ES2    1
 
-/* Enable Vulkan support on 64-bit devices when an iOS 8+ SDK is used. */
-#if !TARGET_OS_SIMULATOR && !TARGET_CPU_ARM && defined(__IPHONE_8_0)
-#define SDL_VIDEO_VULKAN 1
+/* Metal supported on 64-bit devices running iOS 8.0 and tvOS 9.0 and newer */
+#if !TARGET_OS_SIMULATOR && !TARGET_CPU_ARM && ((__IPHONE_OS_VERSION_MIN_REQUIRED >= 80000) || (__TV_OS_VERSION_MIN_REQUIRED >= 90000))
+#define SDL_PLATFORM_SUPPORTS_METAL	1
 #else
-#define SDL_VIDEO_VULKAN 0
+#define SDL_PLATFORM_SUPPORTS_METAL	0
+#endif
+
+#if SDL_PLATFORM_SUPPORTS_METAL
+#define SDL_VIDEO_RENDER_METAL  1
+#endif
+
+#if SDL_PLATFORM_SUPPORTS_METAL
+#define SDL_VIDEO_VULKAN 1
 #endif
 
 /* Enable system power support */

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -130,19 +130,36 @@
 #cmakedefine HAVE_VSSCANF 1
 #cmakedefine HAVE_VSNPRINTF 1
 #cmakedefine HAVE_M_PI 1
-#cmakedefine HAVE_ATAN 1
-#cmakedefine HAVE_ATAN2 1
 #cmakedefine HAVE_ACOS 1
+#cmakedefine HAVE_ACOSF 1
 #cmakedefine HAVE_ASIN 1
+#cmakedefine HAVE_ASINF 1
+#cmakedefine HAVE_ATAN 1
+#cmakedefine HAVE_ATANF 1
+#cmakedefine HAVE_ATAN2 1
+#cmakedefine HAVE_ATAN2F 1
 #cmakedefine HAVE_CEIL 1
+#cmakedefine HAVE_CEILF 1
 #cmakedefine HAVE_COPYSIGN 1
+#cmakedefine HAVE_COPYSIGNF 1
 #cmakedefine HAVE_COS 1
 #cmakedefine HAVE_COSF 1
+#cmakedefine HAVE_EXP 1
+#cmakedefine HAVE_EXPF 1
 #cmakedefine HAVE_FABS 1
+#cmakedefine HAVE_FABSF 1
 #cmakedefine HAVE_FLOOR 1
+#cmakedefine HAVE_FLOORF 1
+#cmakedefine HAVE_FMOD 1
+#cmakedefine HAVE_FMODF 1
 #cmakedefine HAVE_LOG 1
+#cmakedefine HAVE_LOGF 1
+#cmakedefine HAVE_LOG10 1
+#cmakedefine HAVE_LOG10F 1
 #cmakedefine HAVE_POW 1
+#cmakedefine HAVE_POWF 1
 #cmakedefine HAVE_SCALBN 1
+#cmakedefine HAVE_SCALBNF 1
 #cmakedefine HAVE_SIN 1
 #cmakedefine HAVE_SINF 1
 #cmakedefine HAVE_SQRT 1
@@ -178,20 +195,25 @@
 #endif /* HAVE_LIBC */
 
 #cmakedefine HAVE_ALTIVEC_H 1
-#cmakedefine HAVE_LIBUDEV_H 1
 #cmakedefine HAVE_DBUS_DBUS_H 1
-#cmakedefine HAVE_IBUS_IBUS_H 1
 #cmakedefine HAVE_FCITX_FRONTEND_H 1
+#cmakedefine HAVE_IBUS_IBUS_H 1
+#cmakedefine HAVE_IMMINTRIN_H 1
 #cmakedefine HAVE_LIBSAMPLERATE_H 1
+#cmakedefine HAVE_LIBUDEV_H 1
 
 #cmakedefine HAVE_D3D_H @HAVE_D3D_H@
 #cmakedefine HAVE_D3D11_H @HAVE_D3D11_H@
 #cmakedefine HAVE_DDRAW_H @HAVE_DDRAW_H@
 #cmakedefine HAVE_DSOUND_H @HAVE_DSOUND_H@
 #cmakedefine HAVE_DINPUT_H @HAVE_DINPUT_H@
-#cmakedefine HAVE_XAUDIO2_H @HAVE_XAUDIO2_H@
 #cmakedefine HAVE_XINPUT_H @HAVE_XINPUT_H@
 #cmakedefine HAVE_DXGI_H @HAVE_DXGI_H@
+
+#cmakedefine HAVE_ENDPOINTVOLUME_H @HAVE_ENDPOINTVOLUME_H@
+#cmakedefine HAVE_MMDEVICEAPI_H @HAVE_MMDEVICEAPI_H@
+#cmakedefine HAVE_AUDIOCLIENT_H @HAVE_AUDIOCLIENT_H@
+
 #cmakedefine HAVE_XINPUT_GAMEPAD_EX @HAVE_XINPUT_GAMEPAD_EX@
 #cmakedefine HAVE_XINPUT_STATE_EX @HAVE_XINPUT_STATE_EX@
 
@@ -206,6 +228,7 @@
 #cmakedefine SDL_FILE_DISABLED @SDL_FILE_DISABLED@
 #cmakedefine SDL_JOYSTICK_DISABLED @SDL_JOYSTICK_DISABLED@
 #cmakedefine SDL_HAPTIC_DISABLED @SDL_HAPTIC_DISABLED@
+#cmakedefine SDL_SENSOR_DISABLED @SDL_SENSOR_DISABLED@
 #cmakedefine SDL_LOADSO_DISABLED @SDL_LOADSO_DISABLED@
 #cmakedefine SDL_RENDER_DISABLED @SDL_RENDER_DISABLED@
 #cmakedefine SDL_THREADS_DISABLED @SDL_THREADS_DISABLED@
@@ -246,7 +269,6 @@
 #cmakedefine SDL_AUDIO_DRIVER_SUNAUDIO @SDL_AUDIO_DRIVER_SUNAUDIO@
 #cmakedefine SDL_AUDIO_DRIVER_WASAPI @SDL_AUDIO_DRIVER_WASAPI@
 #cmakedefine SDL_AUDIO_DRIVER_WINMM @SDL_AUDIO_DRIVER_WINMM@
-#cmakedefine SDL_AUDIO_DRIVER_XAUDIO2 @SDL_AUDIO_DRIVER_XAUDIO2@
 
 /* Enable various input drivers */
 #cmakedefine SDL_INPUT_LINUXEV @SDL_INPUT_LINUXEV@
@@ -270,6 +292,10 @@
 #cmakedefine SDL_HAPTIC_DINPUT @SDL_HAPTIC_DINPUT@
 #cmakedefine SDL_HAPTIC_XINPUT @SDL_HAPTIC_XINPUT@
 #cmakedefine SDL_HAPTIC_ANDROID @SDL_HAPTIC_ANDROID@
+
+/* Enable various sensor drivers */
+#cmakedefine SDL_SENSOR_ANDROID @SDL_SENSOR_ANDROID@
+#cmakedefine SDL_SENSOR_DUMMY @SDL_SENSOR_DUMMY@
 
 /* Enable various shared object loading systems */
 #cmakedefine SDL_LOADSO_DLOPEN @SDL_LOADSO_DLOPEN@
@@ -345,6 +371,7 @@
 #cmakedefine SDL_VIDEO_RENDER_OGL_ES @SDL_VIDEO_RENDER_OGL_ES@
 #cmakedefine SDL_VIDEO_RENDER_OGL_ES2 @SDL_VIDEO_RENDER_OGL_ES2@
 #cmakedefine SDL_VIDEO_RENDER_DIRECTFB @SDL_VIDEO_RENDER_DIRECTFB@
+#cmakedefine SDL_VIDEO_RENDER_METAL @SDL_VIDEO_RENDER_METAL@
 
 /* Enable OpenGL support */
 #cmakedefine SDL_VIDEO_OPENGL @SDL_VIDEO_OPENGL@

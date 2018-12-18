@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2017 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -30,10 +30,6 @@
 #include "SDL_stdinc.h"
 #include "../libm/math_libm.h"
 
-// HACK
-#ifndef HAVE_LIBC
-#define HAVE_LIBC 1
-#endif
 
 double
 SDL_atan(double x)
@@ -42,7 +38,17 @@ SDL_atan(double x)
     return atan(x);
 #else
     return SDL_uclibc_atan(x);
-#endif /* HAVE_ATAN */
+#endif
+}
+
+float
+SDL_atanf(float x)
+{
+#if defined(HAVE_ATANF)
+    return atanf(x);
+#else
+    return (float)SDL_atan((double)x);
+#endif
 }
 
 double
@@ -52,7 +58,17 @@ SDL_atan2(double x, double y)
     return atan2(x, y);
 #else
     return SDL_uclibc_atan2(x, y);
-#endif /* HAVE_ATAN2 */
+#endif
+}
+
+float
+SDL_atan2f(float x, float y)
+{
+#if defined(HAVE_ATAN2F)
+    return atan2f(x, y);
+#else
+    return (float)SDL_atan2((double)x, (double)y);
+#endif
 }
 
 double
@@ -75,6 +91,16 @@ SDL_acos(double val)
 #endif
 }
 
+float
+SDL_acosf(float val)
+{
+#if defined(HAVE_ACOSF)
+    return acosf(val);
+#else
+    return (float)SDL_acos((double)val);
+#endif
+}
+
 double
 SDL_asin(double val)
 {
@@ -91,6 +117,16 @@ SDL_asin(double val)
 #endif
 }
 
+float
+SDL_asinf(float val)
+{
+#if defined(HAVE_ASINF)
+    return asinf(val);
+#else
+    return (float)SDL_asin((double)val);
+#endif
+}
+
 double
 SDL_ceil(double x)
 {
@@ -104,6 +140,16 @@ SDL_ceil(double x)
     }
     return integer;
 #endif /* HAVE_CEIL */
+}
+
+float
+SDL_ceilf(float x)
+{
+#if defined(HAVE_CEILF)
+    return ceilf(x);
+#else
+    return (float)SDL_ceil((float)x);
+#endif
 }
 
 double
@@ -124,6 +170,16 @@ SDL_copysign(double x, double y)
 #endif /* HAVE_COPYSIGN */
 }
 
+float
+SDL_copysignf(float x, float y)
+{
+#if defined(HAVE_COPYSIGNF)
+    return copysignf(x, y);
+#else
+    return (float)SDL_copysign((double)x, (double)y);
+#endif
+}
+
 double
 SDL_cos(double x)
 {
@@ -131,7 +187,7 @@ SDL_cos(double x)
     return cos(x);
 #else
     return SDL_uclibc_cos(x);
-#endif /* HAVE_COS */
+#endif
 }
 
 float
@@ -145,13 +201,43 @@ SDL_cosf(float x)
 }
 
 double
+SDL_exp(double x)
+{
+#if defined(HAVE_EXP)
+    return exp(x);
+#else
+    return SDL_uclibc_exp(x);
+#endif
+}
+
+float
+SDL_expf(float x)
+{
+#if defined(HAVE_EXPF)
+    return expf(x);
+#else
+    return (float)SDL_exp((double)x);
+#endif
+}
+
+double
 SDL_fabs(double x)
 {
 #if defined(HAVE_FABS)
-    return fabs(x); 
+    return fabs(x);
 #else
     return SDL_uclibc_fabs(x);
-#endif /* HAVE_FABS */
+#endif
+}
+
+float
+SDL_fabsf(float x)
+{
+#if defined(HAVE_FABSF)
+    return fabsf(x);
+#else
+    return (float)SDL_fabs((double)x);
+#endif
 }
 
 double
@@ -161,7 +247,37 @@ SDL_floor(double x)
     return floor(x);
 #else
     return SDL_uclibc_floor(x);
-#endif /* HAVE_FLOOR */
+#endif
+}
+
+float
+SDL_floorf(float x)
+{
+#if defined(HAVE_FLOORF)
+    return floorf(x);
+#else
+    return (float)SDL_floor((double)x);
+#endif
+}
+
+double
+SDL_fmod(double x, double y)
+{
+#if defined(HAVE_FMOD)
+    return fmod(x, y);
+#else
+    return SDL_uclibc_fmod(x, y);
+#endif
+}
+
+float
+SDL_fmodf(float x, float y)
+{
+#if defined(HAVE_FMODF)
+    return fmodf(x, y);
+#else
+    return (float)SDL_fmod((double)x, (double)y);
+#endif
 }
 
 double
@@ -171,7 +287,37 @@ SDL_log(double x)
     return log(x);
 #else
     return SDL_uclibc_log(x);
-#endif /* HAVE_LOG */
+#endif
+}
+
+float
+SDL_logf(float x)
+{
+#if defined(HAVE_LOGF)
+    return logf(x);
+#else
+    return (float)SDL_log((double)x);
+#endif
+}
+
+double
+SDL_log10(double x)
+{
+#if defined(HAVE_LOG10)
+    return log10(x);
+#else
+    return SDL_uclibc_log10(x);
+#endif
+}
+
+float
+SDL_log10f(float x)
+{
+#if defined(HAVE_LOG10F)
+    return log10f(x);
+#else
+    return (float)SDL_log10((double)x);
+#endif
 }
 
 double
@@ -181,7 +327,17 @@ SDL_pow(double x, double y)
     return pow(x, y);
 #else
     return SDL_uclibc_pow(x, y);
-#endif /* HAVE_POW */
+#endif
+}
+
+float
+SDL_powf(float x, float y)
+{
+#if defined(HAVE_POWF)
+    return powf(x, y);
+#else
+    return (float)SDL_pow((double)x, (double)y);
+#endif
 }
 
 double
@@ -197,7 +353,17 @@ SDL_scalbn(double x, int n)
     return ldexp(x, n);
 #else
     return SDL_uclibc_scalbn(x, n);
-#endif /* HAVE_SCALBN */
+#endif
+}
+
+float
+SDL_scalbnf(float x, int n)
+{
+#if defined(HAVE_SCALBNF)
+    return scalbnf(x, n);
+#else
+    return (float)SDL_scalbn((double)x, n);
+#endif
 }
 
 double
@@ -207,7 +373,7 @@ SDL_sin(double x)
     return sin(x);
 #else
     return SDL_uclibc_sin(x);
-#endif /* HAVE_SIN */
+#endif
 }
 
 float 
@@ -217,7 +383,7 @@ SDL_sinf(float x)
     return sinf(x);
 #else
     return (float)SDL_sin((double)x);
-#endif /* HAVE_SINF */
+#endif
 }
 
 double
