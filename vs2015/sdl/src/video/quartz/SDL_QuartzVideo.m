@@ -961,6 +961,10 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
     /* Set app state, hide cursor if necessary, ... */
     QZ_DoActivate(this);
 
+	[ window_view setNeedsDisplay:YES ];
+	[ [ qz_window contentView ] setNeedsDisplay:YES ];
+	[ qz_window displayIfNeeded ];
+
     return current;
 
     /* Since the blanking window covers *all* windows (even force quit) correct recovery is crucial */
