@@ -446,7 +446,8 @@ typedef struct {
         unsigned int            numerator = 0;
         unsigned int            denominator = 0;
 
-        int_fraction_t(const unsigned int N,const unsigned int D) : numerator(N), denominator(D) { }
+        int_fraction_t() { }
+        int_fraction_t(const unsigned int n,const unsigned int d) : numerator(n), denominator(d) { }
     };
 
     /* 2D display dimensions */
@@ -454,7 +455,8 @@ typedef struct {
         unsigned int            width = 0;
         unsigned int            height = 0;
 
-        dimensions_t(const unsigned int W,const unsigned int H) : width(W), height(H) { }
+        dimensions_t() { }
+        dimensions_t(const unsigned int w,const unsigned int h) : width(w), height(h) { }
     };
 
     /* 2D coordinate */
@@ -462,7 +464,8 @@ typedef struct {
         int                     x = 0;
         int                     y = 0;
 
-        int_point2d_t(const int X,const int Y) : x(X), y(Y) { }
+        int_point2d_t() { }
+        int_point2d_t(const int nx,const int ny) : x(nx), y(ny) { }
     };
 
     // use the dot clock to map advancement of emulator time to dot clock ticks.
