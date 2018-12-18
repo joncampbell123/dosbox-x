@@ -152,6 +152,8 @@ extern ZIPFile savestate_zip;
 
 using namespace std;
 
+bool                                vga_alt_new_mode = false;
+
 extern int                          vga_memio_delay_ns;
 extern bool                         gdc_5mhz_mode;
 extern bool                         enable_pc98_egc;
