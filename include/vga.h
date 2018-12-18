@@ -480,6 +480,13 @@ typedef struct {
     dimensions_t                monitor_display;                // image sent to GFX (may include overscan, blanking, etc)
     int_point2d_t               monitor_start_point;            // pixel(x)/scanline(y) counter of the CRTC that is start of line(x)/frame(y)
     int_fraction_t              monitor_aspect_ratio = {4,3};   // display aspect ratio of the video frame
+
+    // The GFX/scaler system will be sent a frame of dimensions monitor_display.
+    // The start of the frame will happen when the CRTC pixel count matches the monitor_start_point.
+    // monitor_start_point will be set to 0,0 if DOSBox-X is set only to show active area.
+    // it will be set to match on the first clock/scanline of the non-blanking area (overscan), upper left corner if set to do so.
+    // it will be set to some point of the blanking area if asked to do so to approximate how a VGA monitor centers the image.
+    // finally, a debug mode will be offered to show the ENTIRE frame (htotal/vtotal) with markings for retrace if wanted by the user.
 } VGA_Draw_2;
 
 typedef struct {
