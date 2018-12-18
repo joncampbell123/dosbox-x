@@ -440,6 +440,31 @@ typedef struct {
         }
     };
 
+    /* integer fraction.
+     * If you need more precision (4.1:3 instead of 4:3) just scale up the values (4.1:3 -> 41:30) */
+    struct int_fraction_t {
+        unsigned int            numerator = 0;
+        unsigned int            denominator = 0;
+
+        int_fraction_t(const unsigned int N,const unsigned int D) : numerator(N), denominator(D) { }
+    };
+
+    /* 2D display dimensions */
+    struct dimensions_t {
+        unsigned int            width = 0;
+        unsigned int            height = 0;
+
+        dimensions_t(const unsigned int W,const unsigned int H) : width(W), height(H) { }
+    };
+
+    /* 2D coordinate */
+    struct int_point2d_t {
+        int                     x = 0;
+        int                     y = 0;
+
+        int_point2d_t(const int X,const int Y) : x(X), y(Y) { }
+    };
+
     // use the dot clock to map advancement of emulator time to dot clock ticks.
     // apply the dot clock ticks against the horizontal and vertical current position
     // to emulate the raster of the video output over time.
@@ -450,6 +475,11 @@ typedef struct {
 
     dotclock_t                  dotclock;
     general_dim                 horz,vert;
+
+    // monitor emulation
+    dimensions_t                monitor_display;                // image sent to GFX (may include overscan, blanking, etc)
+    int_point2d_t               monitor_start_point;            // pixel(x)/scanline(y) counter of the CRTC that is start of line(x)/frame(y)
+    int_fraction_t              monitor_aspect_ratio = {4,3};   // display aspect ratio of the video frame
 } VGA_Draw_2;
 
 typedef struct {
