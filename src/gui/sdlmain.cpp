@@ -6872,6 +6872,10 @@ void OutputSettingMenuUpdate(void) {
 #endif
 }
 
+#if defined(MACOSX) && !defined(C_SDL2)
+extern "C" void sdl1_hax_macosx_highdpi_set_enable(const bool enable);
+#endif
+
 bool custom_bios = false;
 
 //extern void UI_Init(void);
@@ -7223,11 +7227,24 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         sdl.init_ignore = true;
 
+	{
+		Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+		assert(section != NULL);
+
+		// boot-time option whether or not to report ourself as "DPI aware" to Windows so the
+		// DWM doesn't upscale our window for backwards compat.
+		dpi_aware_enable = section->Get_bool("dpi aware");
+	}
+
 #ifdef WIN32
         /* Windows Vista/7/8/10 DPI awareness. If we don't tell Windows we're high DPI aware, the DWM will
          * upscale our window to emulate a 96 DPI display which on high res screen will make our UI look blurry.
          * But we obey the user if they don't want us to do that. */
         Windows_DPI_Awareness_Init();
+#endif
+#if defined(MACOSX) && !defined(C_SDL2)
+	/* Our SDL1 in-tree library has a High DPI awareness function for Mac OS X now */
+	sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
 #endif
 
         /* -- SDL init */

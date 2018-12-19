@@ -47,6 +47,8 @@ static inline BOOL IS_SNOW_LEOPARD_OR_LATER(_THIS)
     return (system_version >= 0x1060);
 }
 
+extern bool sdl1_hax_highdpi_enable;
+
 static NSWindow *my_qz_window = nil;
 unsigned char wants_topmost = 0;
 
@@ -1064,6 +1066,13 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
             return NULL;
         }
 
+	/* need to convert width and height according to backing store scale (HighDPI).
+	   Sorry pre-Mac OS X 10.7.x users */
+	if (sdl1_hax_highdpi_enable)
+		contentRect = [ qz_window convertRectFromBacking:contentRect ];
+
+        [ qz_window setContentSize:contentRect.size ];
+
         my_qz_window = qz_window;
 
         /*[ qz_window setReleasedWhenClosed:YES ];*/ /* no need to set this as it's the default for NSWindows */
@@ -1087,6 +1096,9 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
     }
     /* We already have a window, just change its size */
     else {
+	    if (sdl1_hax_highdpi_enable)
+		    contentRect = [ qz_window convertRectFromBacking:contentRect ];
+
         [ qz_window setContentSize:contentRect.size ];
         current->flags |= (SDL_NOFRAME|SDL_RESIZABLE) & mode_flags;
         [ window_view setFrameSize:contentRect.size ];

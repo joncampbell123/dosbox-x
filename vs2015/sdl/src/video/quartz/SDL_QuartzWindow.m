@@ -25,6 +25,15 @@
 #include "SDL_QuartzWM.h"
 #include "SDL_QuartzWindow.h"
 
+bool sdl1_hax_highdpi_enable = false;
+
+void sdl1_hax_macosx_highdpi_set_enable(const bool enable) {
+	if (sdl1_hax_highdpi_enable != enable) {
+		sdl1_hax_highdpi_enable = enable;
+		// TODO: Force reinitialization of the window
+	}
+}
+
 /*
     This function makes the *SDL region* of the window 100% opaque. 
     The genie effect uses the alpha component. Otherwise,
@@ -111,7 +120,7 @@ static void QZ_SetPortAlphaOpaque () {
         so don't send the resize event. 
     */
     SDL_VideoDevice *this = (SDL_VideoDevice*)current_video;
-    
+
     if (this && SDL_VideoSurface == NULL) {
 
         [ super setFrame:frameRect display:flag ];
@@ -123,7 +132,10 @@ static void QZ_SetPortAlphaOpaque () {
         [ super setFrame:frameRect display:flag ];
         
         newViewFrame = [ window_view frame ];
-        
+
+	if (sdl1_hax_highdpi_enable)
+		newViewFrame = [ qz_window convertRectToBacking:newViewFrame ];
+
         SDL_PrivateResize (newViewFrame.size.width, newViewFrame.size.height);
     }
 }

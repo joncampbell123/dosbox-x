@@ -738,10 +738,6 @@ void DOSBOX_RealInit() {
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     assert(section != NULL);
 
-    // boot-time option whether or not to report ourself as "DPI aware" to Windows so the
-    // DWM doesn't upscale our window for backwards compat.
-    dpi_aware_enable = section->Get_bool("dpi aware");
-
     // TODO: allow change at any time. in fact if it were possible for DOSBox-X configuration
     //       schema code to attach event callbacks when a setting changes, we would set one
     //       on the title= setting now to auto-update the titlebar when this changes.
