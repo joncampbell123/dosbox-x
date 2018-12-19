@@ -161,6 +161,8 @@ void QZ_PrivateLocalToGlobal (_THIS, NSPoint *p) {
 		*p = [ qz_window convertBaseToScreen:*p ];
 }
 
+extern bool sdl1_hax_highdpi_enable;
+
 /* Convert SDL coordinate to Cocoa coordinate */
 void QZ_PrivateSDLToCocoa (_THIS, NSPoint *p) {
 
@@ -172,6 +174,12 @@ void QZ_PrivateSDLToCocoa (_THIS, NSPoint *p) {
        
         *p = [ window_view convertPoint:*p toView: nil ];
         p->y = [window_view frame].size.height - p->y;
+    }
+
+    if (sdl1_hax_highdpi_enable && qz_window) {
+        const CGFloat scale = [ qz_window backingScaleFactor ];//FIXME: Anything better?
+	p->x /= scale;
+	p->y /= scale;
     }
 }
 
@@ -186,6 +194,12 @@ void QZ_PrivateCocoaToSDL (_THIS, NSPoint *p) {
 
         *p = [ window_view convertPoint:*p fromView: nil ];
         p->y = [window_view frame].size.height - p->y;
+    }
+
+    if (sdl1_hax_highdpi_enable && qz_window) {
+        const CGFloat scale = [ qz_window backingScaleFactor ];//FIXME: Anything better?
+	p->x *= scale;
+	p->y *= scale;
     }
 }
 
