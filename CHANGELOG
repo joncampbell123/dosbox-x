@@ -1,4 +1,6 @@
 0.82.13 (next)
+  - SDL1 High DPI support for Mac OS X users with Retina
+    displays.
   - SDL1 fix for display problems (blank windows) on Mac
     OS X 10.14.x (Mojave).
   - Windows builds (compiled with VS2017) now have working
