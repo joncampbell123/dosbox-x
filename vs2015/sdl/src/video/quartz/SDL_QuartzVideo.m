@@ -1242,9 +1242,16 @@ static SDL_Surface* QZ_SetVideoModeInternal (_THIS, SDL_Surface *current,
                     bmask = 0x000000FF;
                 } else {
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
-                    rmask = 0x000000FF;
-                    gmask = 0x0000FF00;
-                    bmask = 0x00FF0000;
+		    if (flags & SDL_OPENGL) {
+			    rmask = 0x0000FF00;
+			    gmask = 0x00FF0000;
+			    bmask = 0xFF000000;
+		    }
+		    else {
+			    rmask = 0x000000FF;
+			    gmask = 0x0000FF00;
+			    bmask = 0x00FF0000;
+		    }
 #else
                     rmask = 0x00FF0000;
                     gmask = 0x0000FF00;
