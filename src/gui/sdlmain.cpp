@@ -6808,8 +6808,10 @@ bool highdpienable_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
 
 #if defined(MACOSX) && !defined(C_SDL2)
     dpi_aware_enable = !dpi_aware_enable;
-    sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
-    RENDER_CallBack(GFX_CallBackReset);
+    if (!control->opt_disable_dpi_awareness) {
+        sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
+        RENDER_CallBack(GFX_CallBackReset);
+    }
 #endif
 
     mainMenu.get_item("highdpienable").check(dpi_aware_enable).refresh_item(mainMenu);
@@ -7271,7 +7273,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 #if defined(MACOSX) && !defined(C_SDL2)
 	/* Our SDL1 in-tree library has a High DPI awareness function for Mac OS X now */
-	sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
+        if (!control->opt_disable_dpi_awareness)
+            sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
 #endif
 
         /* -- SDL init */
