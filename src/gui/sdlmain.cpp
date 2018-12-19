@@ -37,6 +37,8 @@
 # define INCL_WIN
 #endif
 
+extern bool dpi_aware_enable;
+
 bool OpenGL_using(void);
 void GFX_OpenGLRedrawScreen(void);
 
@@ -6073,8 +6075,6 @@ void FDC_Primary_Init();
 void AUTOEXEC_Init();
 
 #if defined(WIN32)
-extern bool dpi_aware_enable;
-
 // NTS: I intend to add code that not only indicates High DPI awareness but also queries the monitor DPI
 //      and then factor the DPI into DOSBox's scaler and UI decisions.
 void Windows_DPI_Awareness_Init() {
