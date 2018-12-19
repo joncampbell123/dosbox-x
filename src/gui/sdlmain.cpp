@@ -847,14 +847,18 @@ SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES scree
         if (sdl.window) {
             SDL_DestroyWindow(sdl.window);
         }
-        sdl.window = SDL_CreateWindow("",
-                                      SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber),
-                                      SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber),
-                                      width, height,
-                                      (GFX_IsFullscreen() ? (sdl.desktop.full.display_res ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_WINDOW_FULLSCREEN) : 0)
-                                      | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | SDL_WINDOW_SHOWN
-                                      | (SDL2_resize_enable ? SDL_WINDOW_RESIZABLE : 0)
-                                      | (dpi_aware_enable ? SDL_WINDOW_ALLOW_HIGHDPI : 0));
+        sdl.window = NULL;
+        sdl.renderer = NULL;
+        SDL_CreateWindowAndRenderer(
+                width, height,
+                (GFX_IsFullscreen() ? (sdl.desktop.full.display_res ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_WINDOW_FULLSCREEN) : 0)
+                | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | SDL_WINDOW_SHOWN
+                | (SDL2_resize_enable ? SDL_WINDOW_RESIZABLE : 0)
+                | (dpi_aware_enable ? SDL_WINDOW_ALLOW_HIGHDPI : 0),
+                &sdl.window,&sdl.renderer);
+        if (sdl.window == NULL || sdl.renderer == NULL)
+            E_Exit("SDL2 Window creation failed");
+
         if (sdl.window) {
             GFX_SetTitle(-1, -1, -1, false); //refresh title.
         }
