@@ -968,7 +968,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_path("title",Property::Changeable::Always,"");
     Pstring->Set_help("Additional text to place in the title bar of the window");
 
+#if defined(MACOSX)
+    /* Let's make DPI aware OFF by default so Mac OS X users with Retina displays don't yell at us about eyestrain.
+       They can turn it on in combination with a nice scaler when they want it. */
+    Pbool = secprop->Add_bool("dpi aware",Property::Changeable::OnlyAtStart,false);
+#else
     Pbool = secprop->Add_bool("dpi aware",Property::Changeable::OnlyAtStart,true);
+#endif
     Pbool->Set_help("Set this option (on by default) to indicate to your OS that DOSBox is DPI aware.\n"
             "If it is not set, Windows Vista/7/8/10 and higher may upscale the DOSBox window\n"
             "on higher resolution monitors which is probably not what you want.");
