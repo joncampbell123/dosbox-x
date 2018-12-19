@@ -6752,6 +6752,9 @@ extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
 #if defined(MACOSX) && !defined(C_SDL2)
 extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
 #endif
+#if defined(MACOSX) && !defined(C_SDL2)
+extern "C" void sdl1_hax_macosx_highdpi_set_enable(const bool enable);
+#endif
 
 void toggle_always_on_top(void) {
     bool cur = is_always_on_top();
@@ -6794,6 +6797,22 @@ bool alwaysontop_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const
     (void)menuitem;//UNUSED
     toggle_always_on_top();
     mainMenu.get_item("alwaysontop").check(is_always_on_top()).refresh_item(mainMenu);
+    return true;
+}
+
+bool highdpienable_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    void RENDER_CallBack( GFX_CallBackFunctions_t function );
+
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+#if defined(MACOSX) && !defined(C_SDL2)
+    dpi_aware_enable = !dpi_aware_enable;
+    sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
+    RENDER_CallBack(GFX_CallBackReset);
+#endif
+
+    mainMenu.get_item("highdpienable").check(dpi_aware_enable).refresh_item(mainMenu);
     return true;
 }
 
@@ -6883,10 +6902,6 @@ void OutputSettingMenuUpdate(void) {
     mainMenu.get_item("output_openglnb").check(sdl.desktop.want_type == SCREEN_OPENGL && !sdl_opengl.bilinear).refresh_item(mainMenu);
 #endif
 }
-
-#if defined(MACOSX) && !defined(C_SDL2)
-extern "C" void sdl1_hax_macosx_highdpi_set_enable(const bool enable);
-#endif
 
 bool custom_bios = false;
 
@@ -7738,6 +7753,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, "desktop.doublebuf", 0));
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"highdpienable").set_text("High DPI enable").set_callback_function(highdpienable_menu_callback).check(dpi_aware_enable);
 
         mainMenu.get_item("mapper_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback).refresh_item(mainMenu);
 
