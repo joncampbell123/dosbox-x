@@ -1221,12 +1221,19 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
                                     // additional character becomes visible
 
     const unsigned int line = vga.draw_2[0].vert.current_char_pixel;
+
+    const bool in_cursor_row =
+        ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
+        (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled);
+
     unsigned char foreground,background;
     unsigned int font;
 
     while (blocks--) { // for each character in the line
-        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>
-            (vga.draw_2[0].crtc_addr_fetch_and_advance() << vga.config.addr_shift));
+        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch();;
+        vga.draw_2[0].crtc_addr_advance();
+
+        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
 
         const unsigned char chr = pixels.b[0];
         const unsigned char attr = pixels.b[1];
@@ -1235,6 +1242,10 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
         font = Alt_EGAVGA_TEXT_Load_Font_Bitmap<card>(chr,attr,line);
         Alt_EGAVGA_TEXT_GetFGBG<card>(foreground,background,attr,line);
 
+        // text cursor
+        if (GCC_UNLIKELY(in_cursor_row) && addr == vga.config.cursor_start)
+            font = 0xFFu;
+
         if (vga.draw.char9dot)
             Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP<card,templine_type_t,9>
                 (draw,Alt_VGA_Alpha8to9Expand<card>(font,chr),foreground,background);
@@ -1242,27 +1253,6 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
             Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP<card,templine_type_t,8>
                 (draw,font,foreground,background);
     }
-
-#if 0
-    // draw the text mode cursor if needed
-    if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
-        (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
-        // the adress of the attribute that makes up the cell the cursor is in
-        Bits attr_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) >> (Bits)vga.config.addr_shift; /* <- FIXME: This right? */
-        if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
-            Bitu index = (Bitu)attr_addr * (vga.draw.char9dot ? 9u : 8u);
-            draw = (((templine_type_t*)TempLine) + index) + 16 - vga.draw.panning;
-            
-            Bitu foreground = vga.tandy.draw_base[(vga.draw.cursor.address<<2ul)+1] & 0xf;
-            for (Bitu i = 0; i < 8; i++) {
-                if (card == MCH_VGA)
-                    *draw++ = vga.dac.xlat32[foreground];
-                else /*MCH_EGA*/
-                    *draw++ = vga.attr.palette[foreground];
-            }
-        }
-    }
-#endif
 
     return TempLine+(16*sizeof(templine_type_t));
 }
