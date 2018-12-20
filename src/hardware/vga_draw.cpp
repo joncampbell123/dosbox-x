@@ -2062,6 +2062,15 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
         vga.draw_2[0].vert.crtc_addr = vga.config.display_start;
         vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
+
+        if (IS_EGAVGA_ARCH) {
+            vga.draw_2[0].horz.crtc_addr_add = 1;
+            vga.draw_2[0].vert.crtc_addr_add = vga.crtc.offset * 2u;
+        }
+        else {
+            vga.draw_2[0].horz.crtc_addr_add = 1;
+            vga.draw_2[0].vert.crtc_addr_add = vga.crtc.horizontal_display_end + 1u;
+        }
     }
 
     switch (vga.mode) {
