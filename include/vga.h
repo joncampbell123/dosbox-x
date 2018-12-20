@@ -347,6 +347,11 @@ typedef struct {
         return (horz.crtc_addr & crtc_mask) + crtc_add;
     }
 
+    inline unsigned int crtc_addr_advance(void) {
+        horz.crtc_addr += horz.crtc_addr_add;
+        return horz.crtc_addr;
+    }
+
     // NTS: horz.char_pixels == 8 for CGA/MDA/etc and EGA/VGA text, but EGA/VGA can select 9 pixels/char.
     //      VGA 320x200x256-color mode will have 4 pixels/char. A hacked version of 320x200x256-color mode
     //      in which the 8BIT bit is cleared (which makes it a sort of 640x200x256-color-ish mode that

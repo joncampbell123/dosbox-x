@@ -1209,7 +1209,7 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
         VGA_Latch pixels;
 
         pixels.d = *vga.draw_2[0].drawptr<Bit32u>(vga.draw_2[0].crtc_addr_fetch() << vga.config.addr_shift);
-        vga.draw_2[0].horz.crtc_addr += vga.draw_2[0].horz.crtc_addr_add;
+        vga.draw_2[0].crtc_addr_advance();
 
         unsigned char chr = pixels.b[0];
         unsigned char attr = pixels.b[1];
