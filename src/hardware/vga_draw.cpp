@@ -1236,23 +1236,39 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
     unsigned char foreground,background;
     unsigned int font;
 
-    while (blocks--) { // for each character in the line
-        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+    if (vga.draw.char9dot) {
+        while (blocks--) { // for each character in the line
+            const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+            VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
 
-        const unsigned char chr = pixels.b[0];
-        const unsigned char attr = pixels.b[1];
+            const unsigned char chr = pixels.b[0];
+            const unsigned char attr = pixels.b[1];
 
-        // the font pattern
-        font = Alt_EGAVGA_TEXT_Load_Font_Bitmap<card>(chr,attr,line);
-        Alt_EGAVGA_TEXT_GetFGBG<card>(foreground,background,attr,line,in_cursor_row,addr);
+            // the font pattern
+            font = Alt_EGAVGA_TEXT_Load_Font_Bitmap<card>(chr,attr,line);
+            Alt_EGAVGA_TEXT_GetFGBG<card>(foreground,background,attr,line,in_cursor_row,addr);
 
-        if (vga.draw.char9dot)
+            // Draw it
             Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP<card,templine_type_t,9>
                 (draw,Alt_VGA_Alpha8to9Expand<card>(font,chr),foreground,background);
-        else
+        }
+    }
+    else {
+        while (blocks--) { // for each character in the line
+            const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+            VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+
+            const unsigned char chr = pixels.b[0];
+            const unsigned char attr = pixels.b[1];
+
+            // the font pattern
+            font = Alt_EGAVGA_TEXT_Load_Font_Bitmap<card>(chr,attr,line);
+            Alt_EGAVGA_TEXT_GetFGBG<card>(foreground,background,attr,line,in_cursor_row,addr);
+
+            // Draw it
             Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP<card,templine_type_t,8>
                 (draw,font,foreground,background);
+        }
     }
 
     return TempLine+(16*sizeof(templine_type_t));
