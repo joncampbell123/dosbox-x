@@ -1208,8 +1208,8 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
     while (blocks--) { // for each character in the line
         VGA_Latch pixels;
 
-        pixels.d = *vga.draw_2[0].drawptr<Bit32u>(vga.draw_2[0].crtc_addr_fetch() << vga.config.addr_shift);
-        vga.draw_2[0].crtc_addr_advance();
+        pixels.d = *vga.draw_2[0].drawptr<Bit32u>
+            (vga.draw_2[0].crtc_addr_fetch_and_advance() << vga.config.addr_shift);
 
         unsigned char chr = pixels.b[0];
         unsigned char attr = pixels.b[1];
