@@ -1174,6 +1174,19 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     return EGAVGA_TEXT_Combined_Draw_Line<MCH_VGA,Bit32u>(vidstart,line);
 }
 
+template <const unsigned int card,typename templine_type_t,const unsigned int pixels> static inline void Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP(templine_type_t* &draw,unsigned int font,const unsigned char foreground,const unsigned char background) {
+    const unsigned int fontmask = 1u << (pixels - 1u);
+
+    for (unsigned int n = 0; n < pixels; n++) {
+        if (card == MCH_VGA)
+            *draw++ = vga.dac.xlat32[(font&fontmask)? foreground:background];
+        else /*MCH_EGA*/
+            *draw++ = vga.attr.palette[(font&fontmask)? foreground:background];
+
+        font <<= 1;
+    }
+}
+
 template <const unsigned int card,typename templine_type_t> static inline Bit8u* Alt_EGAVGA_TEXT_Combined_Draw_Line(Bitu /*vidstart*/,Bitu /*line*/) {
     // keep it aligned:
     templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
@@ -1190,16 +1203,16 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
         pixels.d = *vga.draw_2[0].drawptr<Bit32u>(vga.draw_2[0].crtc_addr_fetch() << vga.config.addr_shift);
         vga.draw_2[0].horz.crtc_addr += vga.draw_2[0].horz.crtc_addr_add;
 
-        Bitu chr = pixels.b[0];
-        Bitu attr = pixels.b[1];
+        unsigned char chr = pixels.b[0];
+        unsigned char attr = pixels.b[1];
         // the font pattern
-        Bitu font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
+        unsigned int font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
 
-        Bitu background = attr >> 4u;
+        unsigned char background = attr >> 4u;
         // if blinking is enabled bit7 is not mapped to attributes
         if (vga.draw.blinking) background &= ~0x8u;
         // choose foreground color if blinking not set for this cell or blink on
-        Bitu foreground = (vga.draw.blink || (!(attr&0x80)))?
+        unsigned char foreground = (vga.draw.blink || (!(attr&0x80)))?
             (attr&0xf):background;
         // underline: all foreground [freevga: 0x77, previous 0x7]
         if (GCC_UNLIKELY(((attr&0x77) == 0x01) &&
@@ -1210,23 +1223,10 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
             // extend to the 9th pixel if needed
             if ((font&0x2) && (vga.attr.mode_control&0x04) &&
                 (chr>=0xc0) && (chr<=0xdf)) font |= 1;
-            for (Bitu n = 0; n < 9; n++) {
-                if (card == MCH_VGA)
-                    *draw++ = vga.dac.xlat32[(font&0x100)? foreground:background];
-                else /*MCH_EGA*/
-                    *draw++ = vga.attr.palette[(font&0x100)? foreground:background];
 
-                font <<= 1;
-            }
+            Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP<card,templine_type_t,9>(draw,font,foreground,background);
         } else {
-            for (Bitu n = 0; n < 8; n++) {
-                if (card == MCH_VGA)
-                    *draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
-                else /*MCH_EGA*/
-                    *draw++ = vga.attr.palette[(font&0x80)? foreground:background];
-
-                font <<= 1;
-            }
+            Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP<card,templine_type_t,8>(draw,font,foreground,background);
         }
     }
 
