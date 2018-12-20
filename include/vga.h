@@ -347,14 +347,9 @@ typedef struct {
         return (horz.crtc_addr & crtc_mask) + crtc_add;
     }
 
-    inline unsigned int crtc_addr_advance(void) {
-        horz.crtc_addr += horz.crtc_addr_add;
-        return horz.crtc_addr;
-    }
-
     inline unsigned int crtc_addr_fetch_and_advance(void) {
         const unsigned int ret = crtc_addr_fetch();
-        crtc_addr_advance();
+        horz.crtc_addr += horz.crtc_addr_add;
         return ret;
     }
 
