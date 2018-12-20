@@ -1676,6 +1676,37 @@ void VGA_Update_SplitLineCompare() {
     vga.draw.split_line -= vga.draw.vblank_skip;
 }
 
+void VGA_Alt_NextScanLine(void) {
+    vga.draw_2[0].horz.current = 0;
+    vga.draw_2[0].vert.current.pixels++;
+
+    vga.draw_2[0].horz.current_char_pixel = 0;
+    vga.draw_2[0].vert.current_char_pixel++;
+
+    if (IS_EGAVGA_ARCH)
+        vga.draw_2[0].horz.char_pixels = (vga.attr.mode_control & 4/*9 pixels/char*/) ? 9 : 8;
+    else
+        vga.draw_2[0].horz.char_pixels = 8;
+    vga.draw_2[0].vert.char_pixels = (vga.crtc.maximum_scan_line & 0x1Fu) + 1u;
+
+    if (IS_EGAVGA_ARCH) {
+        vga.draw_2[0].horz.crtc_addr_add = 1;
+        vga.draw_2[0].vert.crtc_addr_add = vga.crtc.offset * 2u;
+    }
+    else {
+        vga.draw_2[0].horz.crtc_addr_add = 1;
+        vga.draw_2[0].vert.crtc_addr_add = vga.crtc.horizontal_display_end + 1u;
+    }
+
+    if ((vga.draw_2[0].vert.current_char_pixel & 0x1Fu) == (vga.draw_2[0].vert.char_pixels & 0x1Fu)) {
+        vga.draw_2[0].vert.current_char_pixel = 0;
+        vga.draw_2[0].vert.crtc_addr += vga.draw_2[0].vert.crtc_addr_add;
+    }
+    vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
+
+    VGA_Draw2_Recompute_CRTC_MaskAdd();
+}
+
 static void VGA_DrawSingleLine(Bitu /*blah*/) {
     unsigned int lines = 0;
     bool skiprender;
@@ -1769,36 +1800,8 @@ again:
     }
 
     /* parallel system */
-    if (vga_alt_new_mode) {
-        vga.draw_2[0].horz.current = 0;
-        vga.draw_2[0].vert.current.pixels++;
-
-        vga.draw_2[0].horz.current_char_pixel = 0;
-        vga.draw_2[0].vert.current_char_pixel++;
-
-        if (IS_EGAVGA_ARCH)
-            vga.draw_2[0].horz.char_pixels = (vga.attr.mode_control & 4/*9 pixels/char*/) ? 9 : 8;
-        else
-            vga.draw_2[0].horz.char_pixels = 8;
-        vga.draw_2[0].vert.char_pixels = (vga.crtc.maximum_scan_line & 0x1Fu) + 1u;
-
-        if (IS_EGAVGA_ARCH) {
-            vga.draw_2[0].horz.crtc_addr_add = 1;
-            vga.draw_2[0].vert.crtc_addr_add = vga.crtc.offset * 2u;
-        }
-        else {
-            vga.draw_2[0].horz.crtc_addr_add = 1;
-            vga.draw_2[0].vert.crtc_addr_add = vga.crtc.horizontal_display_end + 1u;
-        }
-
-        if ((vga.draw_2[0].vert.current_char_pixel & 0x1Fu) == (vga.draw_2[0].vert.char_pixels & 0x1Fu)) {
-            vga.draw_2[0].vert.current_char_pixel = 0;
-            vga.draw_2[0].vert.crtc_addr += vga.draw_2[0].vert.crtc_addr_add;
-        }
-        vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
-
-        VGA_Draw2_Recompute_CRTC_MaskAdd();
-    }
+    if (vga_alt_new_mode)
+        VGA_Alt_NextScanLine();
 
     vga.draw.address_line++;
     if (vga.draw.address_line>=vga.draw.address_line_total) {
@@ -1886,36 +1889,8 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
     }
 
     /* parallel system */
-    if (vga_alt_new_mode) {
-        vga.draw_2[0].horz.current = 0;
-        vga.draw_2[0].vert.current.pixels++;
-
-        vga.draw_2[0].horz.current_char_pixel = 0;
-        vga.draw_2[0].vert.current_char_pixel++;
-
-        if (IS_EGAVGA_ARCH)
-            vga.draw_2[0].horz.char_pixels = (vga.attr.mode_control & 4/*9 pixels/char*/) ? 9 : 8;
-        else
-            vga.draw_2[0].horz.char_pixels = 8;
-        vga.draw_2[0].vert.char_pixels = (vga.crtc.maximum_scan_line & 0x1Fu) + 1u;
-
-        if (IS_EGAVGA_ARCH) {
-            vga.draw_2[0].horz.crtc_addr_add = 1;
-            vga.draw_2[0].vert.crtc_addr_add = vga.crtc.offset * 2u;
-        }
-        else {
-            vga.draw_2[0].horz.crtc_addr_add = 1;
-            vga.draw_2[0].vert.crtc_addr_add = vga.crtc.horizontal_display_end + 1u;
-        }
-
-        if ((vga.draw_2[0].vert.current_char_pixel & 0x1Fu) == (vga.draw_2[0].vert.char_pixels & 0x1Fu)) {
-            vga.draw_2[0].vert.current_char_pixel = 0;
-            vga.draw_2[0].vert.crtc_addr += vga.draw_2[0].vert.crtc_addr_add;
-        }
-        vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
-
-        VGA_Draw2_Recompute_CRTC_MaskAdd();
-    }
+    if (vga_alt_new_mode)
+        VGA_Alt_NextScanLine();
 
     vga.draw.address_line++;
     if (vga.draw.address_line>=vga.draw.address_line_total) {
