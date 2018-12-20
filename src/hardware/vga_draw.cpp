@@ -1223,7 +1223,7 @@ template <const unsigned int card> static inline bool Alt_EGAVGA_TEXT_In_Cursor_
         (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled);
 }
 
-template <const unsigned int card,typename templine_type_t> static inline Bit8u* Alt_EGAVGA_TEXT_Combined_Draw_Line(void) {
+template <const unsigned int card,typename templine_type_t,const unsigned int pixelsperchar> static inline Bit8u* Alt_EGAVGA_TEXT_Combined_Draw_Line(void) {
     // keep it aligned:
     templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
     Bitu blocks = vga.draw.blocks;
@@ -1236,42 +1236,34 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
     unsigned char foreground,background;
     unsigned int font;
 
-    if (vga.draw.char9dot) {
-        while (blocks--) { // for each character in the line
-            const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-            VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+    while (blocks--) { // for each character in the line
+        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
 
-            const unsigned char chr = pixels.b[0];
-            const unsigned char attr = pixels.b[1];
+        const unsigned char chr = pixels.b[0];
+        const unsigned char attr = pixels.b[1];
 
-            // the font pattern
-            font = Alt_EGAVGA_TEXT_Load_Font_Bitmap<card>(chr,attr,line);
-            Alt_EGAVGA_TEXT_GetFGBG<card>(foreground,background,attr,line,in_cursor_row,addr);
+        // the font pattern
+        font = Alt_EGAVGA_TEXT_Load_Font_Bitmap<card>(chr,attr,line);
+        Alt_EGAVGA_TEXT_GetFGBG<card>(foreground,background,attr,line,in_cursor_row,addr);
 
-            // Draw it
+        // Draw it
+        if (pixelsperchar == 9)
             Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP<card,templine_type_t,9>
                 (draw,Alt_VGA_Alpha8to9Expand<card>(font,chr),foreground,background);
-        }
-    }
-    else {
-        while (blocks--) { // for each character in the line
-            const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-            VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
-
-            const unsigned char chr = pixels.b[0];
-            const unsigned char attr = pixels.b[1];
-
-            // the font pattern
-            font = Alt_EGAVGA_TEXT_Load_Font_Bitmap<card>(chr,attr,line);
-            Alt_EGAVGA_TEXT_GetFGBG<card>(foreground,background,attr,line,in_cursor_row,addr);
-
-            // Draw it
+        else
             Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP<card,templine_type_t,8>
                 (draw,font,foreground,background);
-        }
     }
 
     return TempLine+(16*sizeof(templine_type_t));
+}
+
+template <const unsigned int card,typename templine_type_t> static inline Bit8u* Alt_EGAVGA_TEXT_Combined_Draw_Line(void) {
+    if (vga.draw.char9dot)
+        return Alt_EGAVGA_TEXT_Combined_Draw_Line<card,templine_type_t,9>();
+    else
+        return Alt_EGAVGA_TEXT_Combined_Draw_Line<card,templine_type_t,8>();
 }
 
 // combined 8/9-dot wide text mode 16bpp line drawing function
