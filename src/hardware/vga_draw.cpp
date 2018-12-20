@@ -1211,17 +1211,20 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
         pixels.d = *vga.draw_2[0].drawptr<Bit32u>
             (vga.draw_2[0].crtc_addr_fetch_and_advance() << vga.config.addr_shift);
 
-        unsigned char chr = pixels.b[0];
-        unsigned char attr = pixels.b[1];
+        const unsigned char chr = pixels.b[0];
+        const unsigned char attr = pixels.b[1];
+
         // the font pattern
         unsigned int font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
 
-        unsigned char background = attr >> 4u;
         // if blinking is enabled bit7 is not mapped to attributes
+        unsigned char background = attr >> 4u;
         if (vga.draw.blinking) background &= ~0x8u;
+
         // choose foreground color if blinking not set for this cell or blink on
         unsigned char foreground = (vga.draw.blink || (!(attr&0x80)))?
             (attr&0xf):background;
+
         // underline: all foreground [freevga: 0x77, previous 0x7]
         if (GCC_UNLIKELY(((attr&0x77) == 0x01) &&
             (vga.crtc.underline_location&0x1f)==line))
