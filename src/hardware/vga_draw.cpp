@@ -1195,6 +1195,10 @@ template <const unsigned int card> inline unsigned int Alt_VGA_Alpha8to9Expand(u
 
     return font;
 }
+ 
+template <const unsigned int card> static inline unsigned int ALT_EGAVGA_TEXT_Load_Font_Bitmap(const unsigned char chr,const unsigned char attr,const unsigned int line) {
+    return vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
+}
 
 template <const unsigned int card,typename templine_type_t> static inline Bit8u* Alt_EGAVGA_TEXT_Combined_Draw_Line(Bitu /*vidstart*/,Bitu /*line*/) {
     // keep it aligned:
@@ -1213,7 +1217,7 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
         const unsigned char attr = pixels.b[1];
 
         // the font pattern
-        unsigned int font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
+        unsigned int font = ALT_EGAVGA_TEXT_Load_Font_Bitmap<card>(chr,attr,line);
 
         // if blinking is enabled bit7 is not mapped to attributes
         unsigned char background = attr >> 4u;
