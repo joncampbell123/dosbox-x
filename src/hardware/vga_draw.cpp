@@ -2763,6 +2763,44 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     vga.draw.linear_base = vga.mem.linear;
     vga.draw.linear_mask = vga.mem.memmask;
 
+    /* parallel system */
+    if (vga_alt_new_mode) {
+        if (IS_PC98_ARCH) {
+            // nothing yet
+        }
+        else if (IS_EGAVGA_ARCH) {
+            /* mem masking can be generalized for ALL VGA/SVGA modes */
+            size_t new_mask = vga.mem.memmask >> 2ul;
+            size_t new_add = 0;
+
+            if (vga.config.compatible_chain4 || svgaCard == SVGA_None) {
+                new_mask &= 0xFFFFul; /* 64KB planar (256KB linear when byte mode) */
+
+                /* MAP13: If zero, bit 13 is taken from bit 0 of row scan counter (CGA compatible) */
+                if ((vga.crtc.mode_control & 1u) == 0u) {
+                    new_mask &= ~(1u << 13u);
+                    new_add  +=  (vga.draw_2[0].vert.current_char_pixel & 1u) << 13u;
+                }
+                /* MAP14: If zero, bit 14 is taken from bit 1 of row scan counter (Hercules compatible) */
+                if ((vga.crtc.mode_control & 2u) == 0u) {
+                    new_mask &= ~(1u << 14u);
+                    new_add  +=  (vga.draw_2[0].vert.current_char_pixel & 2u) << 13u;    /* 2 << 13 == 1 << 14 */
+                }
+            }
+
+            /* 4 bitplanes are represented in emulation as 32 bits per planar byte */
+            vga.draw_2[0].draw_base = vga.mem.linear;
+            vga.draw_2[0].crtc_mask = new_mask;  // 8KB character clocks (16KB bytes)
+            vga.draw_2[0].crtc_add = new_add;
+        }
+        else {
+            /* CGA/MDA/Hercules/MCGA/PCJr/Tandy is emulated as 16 bits per character clock */
+            vga.draw_2[0].draw_base = vga.mem.linear;
+            vga.draw_2[0].crtc_mask = 0x1FFFu;  // 8KB character clocks (16KB bytes)
+            vga.draw_2[0].crtc_add = 0;
+        }
+    }
+
     /* Some games and plenty of demoscene productions like to rely on
      * the fact that the standard VGA modes wrap around at 256KB even
      * on SVGA hardware. Without this check, those demos will show

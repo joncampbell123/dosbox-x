@@ -492,20 +492,7 @@ typedef struct {
     // finally, a debug mode will be offered to show the ENTIRE frame (htotal/vtotal) with markings for retrace if wanted by the user.
 
     // Pointers to draw from. This represents CRTC character clock 0.
-    // It is expected that this pointer is valid from ptr to ptr + draw_mask - 1 inclusive.
-    // For best performance, draw_base, like vga.mem.linear, should be aligned to the datatype.
-    // CGA emulation uses a 16-bit WORD size and EGA/VGA a 32-bit WORD size so ((type*)ptr) to ((type*)ptr) + draw_mask_planar - 1
     Bit8u*                      draw_base = NULL;
-    size_t                      draw_mask = 0;
-    size_t                      draw_mask_planar = 0;
-
-    template <typename T> constexpr inline size_t compute_draw_mask(const size_t lin_mask) const {
-        return lin_mask / sizeof(T);
-    }
-
-    template <typename T> inline void set_draw_mask(const size_t lin_mask) {
-        draw_mask = compute_draw_mask<T>(lin_mask);
-    }
 
     template <typename T> inline const T* drawptr(const size_t offset) const {
         return (const T*)draw_base + offset; /* equiv T* ptr = (T*)draw_base; return &ptr[offset]; */
@@ -734,11 +721,13 @@ typedef struct {
 	PageHandler *handler;
 } VGA_LFB;
 
+static const size_t VGA_Draw_2_elem = 2;
+
 typedef struct {
 	VGAModes mode;								/* The mode the vga system is in */
 	VGAModes lastmode;
 	Bit8u misc_output;
-    VGA_Draw_2 draw_2[2];                       /* new parallel video emulation. PC-98 mode will use both, all others only the first. */
+    VGA_Draw_2 draw_2[VGA_Draw_2_elem];         /* new parallel video emulation. PC-98 mode will use both, all others only the first. */
 	VGA_Draw draw;
 	VGA_Config config;
 	VGA_Internal internal;
