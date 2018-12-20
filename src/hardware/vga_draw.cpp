@@ -2190,7 +2190,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         vga.draw_2[0].vert.current = 0;
 
         vga.draw_2[0].horz.current_char_pixel = 0;
-        vga.draw_2[0].vert.current_char_pixel = 0;
+        vga.draw_2[0].vert.current_char_pixel = vga.config.hlines_skip;
 
         if (IS_EGAVGA_ARCH)
             vga.draw_2[0].horz.char_pixels = (vga.attr.mode_control & 4/*9 pixels/char*/) ? 9 : 8;
@@ -2198,7 +2198,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             vga.draw_2[0].horz.char_pixels = 8;
         vga.draw_2[0].vert.char_pixels = (vga.crtc.maximum_scan_line & 0x1Fu) + 1u;
 
-        vga.draw_2[0].vert.crtc_addr = vga.config.display_start;
+        vga.draw_2[0].vert.crtc_addr = vga.config.display_start + vga.config.bytes_skip;
         vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
 
         if (IS_EGAVGA_ARCH) {
