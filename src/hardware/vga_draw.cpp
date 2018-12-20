@@ -1821,7 +1821,7 @@ again:
 
     if (!skiprender) {
         vga.draw.lines_done++;
-        if (vga.draw.split_line==vga.draw.lines_done) VGA_ProcessSplit();
+        if (vga.draw.split_line==vga.draw.lines_done && !vga_alt_new_mode) VGA_ProcessSplit();
     }
 
     if (mcga_double_scan) {
@@ -1910,7 +1910,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
 
     if (!skiprender) {
         vga.draw.lines_done++;
-        if (vga.draw.split_line==vga.draw.lines_done) VGA_ProcessSplit();
+        if (vga.draw.split_line==vga.draw.lines_done && !vga_alt_new_mode) VGA_ProcessSplit();
     }
 
     if (vga.draw.lines_done < vga.draw.lines_total) {
