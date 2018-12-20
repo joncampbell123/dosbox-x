@@ -1693,6 +1693,14 @@ void VGA_Alt_NextScanLine(void) {
     vga.draw_2[0].horz.current_char_pixel = 0;
     vga.draw_2[0].vert.current_char_pixel++;
 
+    if (vga.draw_2[0].vert.current.pixels == vga.draw.split_line) {
+        /* VGA line compare. split line */
+        vga.draw.has_split = true;
+        if (vga.attr.mode_control&0x20) vga.draw.panning=0;
+        vga.draw_2[0].vert.current_char_pixel = 0;
+        vga.draw_2[0].vert.crtc_addr = 0;
+    }
+
     if (IS_EGAVGA_ARCH)
         vga.draw_2[0].horz.char_pixels = (vga.attr.mode_control & 4/*9 pixels/char*/) ? 9 : 8;
     else
