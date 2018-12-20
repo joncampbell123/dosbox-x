@@ -1230,7 +1230,7 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
     unsigned int font;
 
     while (blocks--) { // for each character in the line
-        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch();;
+        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch();
         vga.draw_2[0].crtc_addr_advance();
 
         VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
