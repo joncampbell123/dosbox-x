@@ -1221,8 +1221,8 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
                                     // additional character becomes visible
 
     const unsigned int line = vga.draw_2[0].vert.current_char_pixel;
-        unsigned char foreground,background;
-unsigned int font;
+    unsigned char foreground,background;
+    unsigned int font;
 
     while (blocks--) { // for each character in the line
         VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>
