@@ -1223,7 +1223,7 @@ template <const unsigned int card> static inline bool Alt_EGAVGA_TEXT_In_Cursor_
         (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled);
 }
 
-template <const unsigned int card,typename templine_type_t> static inline Bit8u* Alt_EGAVGA_TEXT_Combined_Draw_Line(Bitu /*vidstart*/,Bitu /*line*/) {
+template <const unsigned int card,typename templine_type_t> static inline Bit8u* Alt_EGAVGA_TEXT_Combined_Draw_Line(void) {
     // keep it aligned:
     templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
     Bitu blocks = vga.draw.blocks;
@@ -1275,13 +1275,13 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
 }
 
 // combined 8/9-dot wide text mode 16bpp line drawing function
-static Bit8u* Alt_EGA_TEXT_Xlat8_Draw_Line(Bitu vidstart, Bitu line) {
-    return Alt_EGAVGA_TEXT_Combined_Draw_Line<MCH_EGA,Bit8u>(vidstart,line);
+static Bit8u* Alt_EGA_TEXT_Xlat8_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
+    return Alt_EGAVGA_TEXT_Combined_Draw_Line<MCH_EGA,Bit8u>();
 }
 
 // combined 8/9-dot wide text mode 16bpp line drawing function
-static Bit8u* Alt_VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
-    return Alt_EGAVGA_TEXT_Combined_Draw_Line<MCH_VGA,Bit32u>(vidstart,line);
+static Bit8u* Alt_VGA_TEXT_Xlat32_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
+    return Alt_EGAVGA_TEXT_Combined_Draw_Line<MCH_VGA,Bit32u>();
 }
 
 extern bool pc98_attr4_graphic;
