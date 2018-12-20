@@ -490,6 +490,30 @@ typedef struct {
     // it will be set to match on the first clock/scanline of the non-blanking area (overscan), upper left corner if set to do so.
     // it will be set to some point of the blanking area if asked to do so to approximate how a VGA monitor centers the image.
     // finally, a debug mode will be offered to show the ENTIRE frame (htotal/vtotal) with markings for retrace if wanted by the user.
+
+    // Pointers to draw from. This represents CRTC character clock 0.
+    // It is expected that this pointer is valid from ptr to ptr + draw_mask - 1 inclusive.
+    // For best performance, draw_base, like vga.mem.linear, should be aligned to the datatype.
+    // CGA emulation uses a 16-bit WORD size and EGA/VGA a 32-bit WORD size so ((type*)ptr) to ((type*)ptr) + draw_mask_planar - 1
+    Bit8u*                      draw_base = NULL;
+    size_t                      draw_mask = 0;
+    size_t                      draw_mask_planar = 0;
+
+    template <typename T> constexpr inline size_t compute_draw_mask(const size_t lin_mask) const {
+        return lin_mask / sizeof(T);
+    }
+
+    template <typename T> inline void set_draw_mask(const size_t lin_mask) {
+        draw_mask = compute_draw_mask<T>(lin_mask);
+    }
+
+    template <typename T> inline const T* drawptr(const size_t offset) const {
+        return (const T*)draw_base + offset; /* equiv T* ptr = (T*)draw_base; return &ptr[offset]; */
+    }
+
+    template <typename T> inline T* drawptr_rw(const size_t offset) const {
+        return (T*)draw_base + offset; /* equiv T* ptr = (T*)draw_base; return &ptr[offset]; */
+    }
 } VGA_Draw_2;
 
 typedef struct {
