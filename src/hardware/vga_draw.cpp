@@ -1213,6 +1213,12 @@ template <const unsigned int card> static inline void Alt_EGAVGA_TEXT_GetFGBG(un
         background = foreground;
 }
 
+template <const unsigned int card> static inline bool Alt_EGAVGA_TEXT_In_Cursor_Row(const unsigned int line) {
+    return
+        ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
+        (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled);
+}
+
 template <const unsigned int card,typename templine_type_t> static inline Bit8u* Alt_EGAVGA_TEXT_Combined_Draw_Line(Bitu /*vidstart*/,Bitu /*line*/) {
     // keep it aligned:
     templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
@@ -1221,10 +1227,7 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
                                     // additional character becomes visible
 
     const unsigned int line = vga.draw_2[0].vert.current_char_pixel;
-
-    const bool in_cursor_row =
-        ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
-        (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled);
+    const bool in_cursor_row = Alt_EGAVGA_TEXT_In_Cursor_Row<card>(line);
 
     unsigned char foreground,background;
     unsigned int font;
