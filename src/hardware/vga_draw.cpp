@@ -1174,7 +1174,7 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     return EGAVGA_TEXT_Combined_Draw_Line<MCH_VGA,Bit32u>(vidstart,line);
 }
 
-template <const unsigned int card,typename templine_type_t> static inline Bit8u* Alt_EGAVGA_TEXT_Combined_Draw_Line(Bitu vidstart,Bitu line) {
+template <const unsigned int card,typename templine_type_t> static inline Bit8u* Alt_EGAVGA_TEXT_Combined_Draw_Line(Bitu /*vidstart*/,Bitu /*line*/) {
     // keep it aligned:
     templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
 //    const Bit32u* vidmem = VGA_Planar_Memwrap(vidstart); // pointer to chars+attribs
@@ -1182,9 +1182,7 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
     if (vga.draw.panning) blocks++; // if the text is panned part of an 
                                     // additional character becomes visible
 
-    (void)vidstart;
-
-    line = vga.draw_2[0].vert.current_char_pixel;
+    const unsigned int line = vga.draw_2[0].vert.current_char_pixel;
 
     while (blocks--) { // for each character in the line
         VGA_Latch pixels;
