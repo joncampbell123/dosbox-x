@@ -1187,6 +1187,15 @@ template <const unsigned int card,typename templine_type_t,const unsigned int pi
     }
 }
 
+template <const unsigned int card> inline unsigned int Alt_VGA_Alpha8to9Expand(unsigned int font,const unsigned char chr) {
+    font <<=1; // 9 pixels
+    // extend to the 9th pixel if needed
+    if ((font&0x2) && (vga.attr.mode_control&0x04) &&
+            (chr>=0xc0) && (chr<=0xdf)) font |= 1;
+
+    return font;
+}
+
 template <const unsigned int card,typename templine_type_t> static inline Bit8u* Alt_EGAVGA_TEXT_Combined_Draw_Line(Bitu /*vidstart*/,Bitu /*line*/) {
     // keep it aligned:
     templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
@@ -1218,12 +1227,7 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
             (vga.crtc.underline_location&0x1f)==line))
                 background = foreground;
         if (vga.draw.char9dot) {
-            font <<=1; // 9 pixels
-            // extend to the 9th pixel if needed
-            if ((font&0x2) && (vga.attr.mode_control&0x04) &&
-                (chr>=0xc0) && (chr<=0xdf)) font |= 1;
-
-            Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP<card,templine_type_t,9>(draw,font,foreground,background);
+            Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP<card,templine_type_t,9>(draw,Alt_VGA_Alpha8to9Expand<card>(font,chr),foreground,background);
         } else {
             Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP<card,templine_type_t,8>(draw,font,foreground,background);
         }
