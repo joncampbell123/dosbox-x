@@ -2078,7 +2078,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         if (machine==MCH_HERC || machine==MCH_MDA) vga.draw.linear_mask = 0xfff; // 1 page
         else if (IS_EGAVGA_ARCH || machine == MCH_MCGA) {
             if (vga.config.compatible_chain4 || svgaCard == SVGA_None)
-                vga.draw.linear_mask = 0x7fff; // 8 pages (FIXME: Check real hardware to determine address masking)
+                vga.draw.linear_mask = vga.mem.memmask & 0x3ffff;
             else
                 vga.draw.linear_mask = vga.mem.memmask; // SVGA text mode
         }
