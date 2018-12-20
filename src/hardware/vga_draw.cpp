@@ -2076,7 +2076,12 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     case M_TANDY_TEXT:
     case M_HERC_TEXT:
         if (machine==MCH_HERC || machine==MCH_MDA) vga.draw.linear_mask = 0xfff; // 1 page
-        else if (IS_EGAVGA_ARCH || machine == MCH_MCGA) vga.draw.linear_mask = 0x7fff; // 8 pages
+        else if (IS_EGAVGA_ARCH || machine == MCH_MCGA) {
+            if (vga.config.compatible_chain4 || svgaCard == SVGA_None)
+                vga.draw.linear_mask = 0x7fff; // 8 pages (FIXME: Check real hardware to determine address masking)
+            else
+                vga.draw.linear_mask = vga.mem.memmask; // SVGA text mode
+        }
         else vga.draw.linear_mask = 0x3fff; // CGA, Tandy 4 pages
         if (IS_EGAVGA_ARCH)
             vga.draw.cursor.address=vga.config.cursor_start<<vga.config.addr_shift;

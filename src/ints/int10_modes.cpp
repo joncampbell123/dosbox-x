@@ -1860,6 +1860,10 @@ dac_text16:
 			break;
 		}
 
+        /* SVGA text modes need the 256k+ access bit */
+        if (CurMode->mode >= 0x100 && !int10.vesa_nolfb)
+            reg_31 |= 8; /* enable 256k+ access */
+
         /* whether to enable the linear framebuffer */
         if (CurMode->mode >= 0x100 && !int10.vesa_nolfb)
             s3_mode |= 0x10; /* enable LFB */
