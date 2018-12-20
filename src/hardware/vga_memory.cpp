@@ -2206,6 +2206,13 @@ void VGA_SetupMemory() {
         vga.tandy.draw_base = vga.mem.linear;
         vga.tandy.mem_base = vga.mem.linear;
 
+        /* parallel system */
+        if (vga_alt_new_mode) {
+            for (size_t si=0;si < VGA_Draw_2_elem;si++) {
+                vga.draw_2[si].draw_base = vga.mem.linear;
+            }
+        }
+
         /* may be related */
         VGA_SetupHandlers();
     }

@@ -347,6 +347,12 @@ typedef struct {
         return (horz.crtc_addr & crtc_mask) + crtc_add;
     }
 
+    inline unsigned int crtc_addr_fetch_and_advance(void) {
+        const unsigned int ret = crtc_addr_fetch();
+        horz.crtc_addr += horz.crtc_addr_add;
+        return ret;
+    }
+
     // NTS: horz.char_pixels == 8 for CGA/MDA/etc and EGA/VGA text, but EGA/VGA can select 9 pixels/char.
     //      VGA 320x200x256-color mode will have 4 pixels/char. A hacked version of 320x200x256-color mode
     //      in which the 8BIT bit is cleared (which makes it a sort of 640x200x256-color-ish mode that
@@ -490,6 +496,17 @@ typedef struct {
     // it will be set to match on the first clock/scanline of the non-blanking area (overscan), upper left corner if set to do so.
     // it will be set to some point of the blanking area if asked to do so to approximate how a VGA monitor centers the image.
     // finally, a debug mode will be offered to show the ENTIRE frame (htotal/vtotal) with markings for retrace if wanted by the user.
+
+    // Pointers to draw from. This represents CRTC character clock 0.
+    Bit8u*                      draw_base = NULL;
+
+    template <typename T> inline const T* drawptr(const size_t offset) const {
+        return (const T*)draw_base + offset; /* equiv T* ptr = (T*)draw_base; return &ptr[offset]; */
+    }
+
+    template <typename T> inline T* drawptr_rw(const size_t offset) const {
+        return (T*)draw_base + offset; /* equiv T* ptr = (T*)draw_base; return &ptr[offset]; */
+    }
 } VGA_Draw_2;
 
 typedef struct {
@@ -689,9 +706,12 @@ typedef struct {
 	Bitu	bank_size;
 } VGA_SVGA;
 
-typedef union {
+typedef union VGA_Latch {
 	Bit32u d;
 	Bit8u b[4];
+
+    VGA_Latch() { }
+    VGA_Latch(const Bit32u raw) : d(raw) { }
 } VGA_Latch;
 
 typedef struct {
@@ -710,11 +730,13 @@ typedef struct {
 	PageHandler *handler;
 } VGA_LFB;
 
+static const size_t VGA_Draw_2_elem = 2;
+
 typedef struct {
 	VGAModes mode;								/* The mode the vga system is in */
 	VGAModes lastmode;
 	Bit8u misc_output;
-    VGA_Draw_2 draw_2[2];                       /* new parallel video emulation. PC-98 mode will use both, all others only the first. */
+    VGA_Draw_2 draw_2[VGA_Draw_2_elem];         /* new parallel video emulation. PC-98 mode will use both, all others only the first. */
 	VGA_Draw draw;
 	VGA_Config config;
 	VGA_Internal internal;
