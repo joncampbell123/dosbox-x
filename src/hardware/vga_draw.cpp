@@ -1716,6 +1716,13 @@ void VGA_Alt_NextScanLine(void) {
     }
 
     vga.draw_2[0].vert.current_char_pixel++;
+
+    // TODO: DOSBox SVN and DOSBox-X main VGA emulation go to next line if row char line >= max.
+    //       Real hardware suggests that it only happens when line == max, meaning if you reprogram
+    //       the max scanline register in such a way the card misses it, it will count through all
+    //       5 bits of the row counter before coming back around to match it again.
+    //
+    //       It might be a nice emulation option to select comparator function, whether >= or == .
     if ((vga.draw_2[0].vert.current_char_pixel & 0x1Fu) == (vga.draw_2[0].vert.char_pixels & 0x1Fu)) {
         vga.draw_2[0].vert.current_char_pixel = 0;
         vga.draw_2[0].vert.crtc_addr += vga.draw_2[0].vert.crtc_addr_add;
