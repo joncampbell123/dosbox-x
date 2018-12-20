@@ -1686,13 +1686,7 @@ void VGA_Update_SplitLineCompare() {
     vga.draw.split_line -= vga.draw.vblank_skip;
 }
 
-void VGA_Alt_NextScanLine(void) {
-    vga.draw_2[0].horz.current = 0;
-    vga.draw_2[0].vert.current.pixels++;
-
-    vga.draw_2[0].horz.current_char_pixel = 0;
-    vga.draw_2[0].vert.current_char_pixel++;
-
+void VGA_Alt_CheckSplit(void) {
     if (vga.draw_2[0].vert.current.pixels == vga.draw.split_line) {
         /* VGA line compare. split line */
         vga.draw.has_split = true;
@@ -1700,6 +1694,11 @@ void VGA_Alt_NextScanLine(void) {
         vga.draw_2[0].vert.current_char_pixel = 0;
         vga.draw_2[0].vert.crtc_addr = 0;
     }
+}
+
+void VGA_Alt_NextScanLine(void) {
+    vga.draw_2[0].horz.current = 0;
+    vga.draw_2[0].vert.current.pixels++;
 
     if (IS_EGAVGA_ARCH)
         vga.draw_2[0].horz.char_pixels = (vga.attr.mode_control & 4/*9 pixels/char*/) ? 9 : 8;
@@ -1716,11 +1715,16 @@ void VGA_Alt_NextScanLine(void) {
         vga.draw_2[0].vert.crtc_addr_add = vga.crtc.horizontal_display_end + 1u;
     }
 
+    vga.draw_2[0].vert.current_char_pixel++;
     if ((vga.draw_2[0].vert.current_char_pixel & 0x1Fu) == (vga.draw_2[0].vert.char_pixels & 0x1Fu)) {
         vga.draw_2[0].vert.current_char_pixel = 0;
         vga.draw_2[0].vert.crtc_addr += vga.draw_2[0].vert.crtc_addr_add;
     }
+
+    VGA_Alt_CheckSplit();
+
     vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
+    vga.draw_2[0].horz.current_char_pixel = 0;
 
     VGA_Draw2_Recompute_CRTC_MaskAdd();
 }
@@ -2211,6 +2215,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         }
 
         VGA_Draw2_Recompute_CRTC_MaskAdd();
+        VGA_Alt_CheckSplit();
     }
 
     switch (vga.mode) {
@@ -2348,7 +2353,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     }
 
     /* do VGA split now if line compare <= 0. NTS: vga.draw.split_line is defined as Bitu (unsigned integer) so we need the typecast. */
-    if (GCC_UNLIKELY((Bits)vga.draw.split_line <= 0)) {
+    if (GCC_UNLIKELY((Bits)vga.draw.split_line <= 0) && !vga_alt_new_mode) {
         VGA_ProcessSplit();
 
         /* if vblank_skip != 0, line compare can become a negative value! Fixes "Warlock" 1992 demo by Warlock */
