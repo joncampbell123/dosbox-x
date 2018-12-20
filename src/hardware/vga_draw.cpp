@@ -1255,6 +1255,11 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
 }
 
 // combined 8/9-dot wide text mode 16bpp line drawing function
+static Bit8u* Alt_EGA_TEXT_Xlat8_Draw_Line(Bitu vidstart, Bitu line) {
+    return Alt_EGAVGA_TEXT_Combined_Draw_Line<MCH_EGA,Bit8u>(vidstart,line);
+}
+
+// combined 8/9-dot wide text mode 16bpp line drawing function
 static Bit8u* Alt_VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     return Alt_EGAVGA_TEXT_Combined_Draw_Line<MCH_VGA,Bit32u>(vidstart,line);
 }
@@ -1878,6 +1883,38 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
             Bit8u * data=VGA_DrawLine(address, vga.draw.address_line ); 
             RENDER_DrawLine(data);
         }
+    }
+
+    /* parallel system */
+    if (vga_alt_new_mode) {
+        vga.draw_2[0].horz.current = 0;
+        vga.draw_2[0].vert.current.pixels++;
+
+        vga.draw_2[0].horz.current_char_pixel = 0;
+        vga.draw_2[0].vert.current_char_pixel++;
+
+        if (IS_EGAVGA_ARCH)
+            vga.draw_2[0].horz.char_pixels = (vga.attr.mode_control & 4/*9 pixels/char*/) ? 9 : 8;
+        else
+            vga.draw_2[0].horz.char_pixels = 8;
+        vga.draw_2[0].vert.char_pixels = (vga.crtc.maximum_scan_line & 0x1Fu) + 1u;
+
+        if (IS_EGAVGA_ARCH) {
+            vga.draw_2[0].horz.crtc_addr_add = 1;
+            vga.draw_2[0].vert.crtc_addr_add = vga.crtc.offset * 2u;
+        }
+        else {
+            vga.draw_2[0].horz.crtc_addr_add = 1;
+            vga.draw_2[0].vert.crtc_addr_add = vga.crtc.horizontal_display_end + 1u;
+        }
+
+        if ((vga.draw_2[0].vert.current_char_pixel & 0x1Fu) == (vga.draw_2[0].vert.char_pixels & 0x1Fu)) {
+            vga.draw_2[0].vert.current_char_pixel = 0;
+            vga.draw_2[0].vert.crtc_addr += vga.draw_2[0].vert.crtc_addr_add;
+        }
+        vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
+
+        VGA_Draw2_Recompute_CRTC_MaskAdd();
     }
 
     vga.draw.address_line++;
@@ -3123,7 +3160,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         }
 
         if (IS_EGA_ARCH) {
-            VGA_DrawLine = EGA_TEXT_Xlat8_Draw_Line;
+            if (vga_alt_new_mode)
+                VGA_DrawLine = Alt_EGA_TEXT_Xlat8_Draw_Line;
+            else
+                VGA_DrawLine = EGA_TEXT_Xlat8_Draw_Line;
             bpp = 8;
         }
         else {
