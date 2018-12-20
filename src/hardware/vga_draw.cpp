@@ -1200,6 +1200,19 @@ template <const unsigned int card> static inline unsigned int Alt_EGAVGA_TEXT_Lo
     return vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
 }
 
+template <const unsigned int card> static inline void Alt_EGAVGA_TEXT_GetFGBG(unsigned char &foreground,unsigned char &background,const unsigned char attr,const unsigned char line) {
+    // if blinking is enabled bit7 is not mapped to attributes
+    background = attr >> 4u;
+    if (vga.draw.blinking) background &= ~0x8u;
+
+    // choose foreground color if blinking not set for this cell or blink on
+    foreground = (vga.draw.blink || (!(attr&0x80))) ? (attr&0xf) : background;
+
+    // underline: all foreground [freevga: 0x77, previous 0x7]
+    if (GCC_UNLIKELY(((attr&0x77) == 0x01) && (vga.crtc.underline_location&0x1f)==line))
+        background = foreground;
+}
+
 template <const unsigned int card,typename templine_type_t> static inline Bit8u* Alt_EGAVGA_TEXT_Combined_Draw_Line(Bitu /*vidstart*/,Bitu /*line*/) {
     // keep it aligned:
     templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
@@ -1208,6 +1221,8 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
                                     // additional character becomes visible
 
     const unsigned int line = vga.draw_2[0].vert.current_char_pixel;
+        unsigned char foreground,background;
+unsigned int font;
 
     while (blocks--) { // for each character in the line
         VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>
@@ -1217,20 +1232,8 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
         const unsigned char attr = pixels.b[1];
 
         // the font pattern
-        unsigned int font = Alt_EGAVGA_TEXT_Load_Font_Bitmap<card>(chr,attr,line);
-
-        // if blinking is enabled bit7 is not mapped to attributes
-        unsigned char background = attr >> 4u;
-        if (vga.draw.blinking) background &= ~0x8u;
-
-        // choose foreground color if blinking not set for this cell or blink on
-        unsigned char foreground = (vga.draw.blink || (!(attr&0x80)))?
-            (attr&0xf):background;
-
-        // underline: all foreground [freevga: 0x77, previous 0x7]
-        if (GCC_UNLIKELY(((attr&0x77) == 0x01) &&
-            (vga.crtc.underline_location&0x1f)==line))
-                background = foreground;
+        font = Alt_EGAVGA_TEXT_Load_Font_Bitmap<card>(chr,attr,line);
+        Alt_EGAVGA_TEXT_GetFGBG<card>(foreground,background,attr,line);
 
         if (vga.draw.char9dot)
             Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP<card,templine_type_t,9>
