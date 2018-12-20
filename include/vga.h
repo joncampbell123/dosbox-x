@@ -711,9 +711,12 @@ typedef struct {
 	Bitu	bank_size;
 } VGA_SVGA;
 
-typedef union {
+typedef union VGA_Latch {
 	Bit32u d;
 	Bit8u b[4];
+
+    VGA_Latch() { }
+    VGA_Latch(const Bit32u raw) : d(raw) { }
 } VGA_Latch;
 
 typedef struct {
