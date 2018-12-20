@@ -1200,7 +1200,7 @@ template <const unsigned int card> static inline unsigned int Alt_EGAVGA_TEXT_Lo
     return vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
 }
 
-template <const unsigned int card> static inline void Alt_EGAVGA_TEXT_GetFGBG(unsigned char &foreground,unsigned char &background,const unsigned char attr,const unsigned char line) {
+template <const unsigned int card> static inline void Alt_EGAVGA_TEXT_GetFGBG(unsigned char &foreground,unsigned char &background,const unsigned char attr,const unsigned char line,const bool in_cursor_row,const unsigned int addr) {
     // if blinking is enabled bit7 is not mapped to attributes
     background = attr >> 4u;
     if (vga.draw.blinking) background &= ~0x8u;
@@ -1210,6 +1210,10 @@ template <const unsigned int card> static inline void Alt_EGAVGA_TEXT_GetFGBG(un
 
     // underline: all foreground [freevga: 0x77, previous 0x7]
     if (GCC_UNLIKELY(((attr&0x77) == 0x01) && (vga.crtc.underline_location&0x1f)==line))
+        background = foreground;
+
+    // text cursor
+    if (GCC_UNLIKELY(in_cursor_row) && addr == vga.config.cursor_start)
         background = foreground;
 }
 
@@ -1241,11 +1245,7 @@ template <const unsigned int card,typename templine_type_t> static inline Bit8u*
 
         // the font pattern
         font = Alt_EGAVGA_TEXT_Load_Font_Bitmap<card>(chr,attr,line);
-        Alt_EGAVGA_TEXT_GetFGBG<card>(foreground,background,attr,line);
-
-        // text cursor
-        if (GCC_UNLIKELY(in_cursor_row) && addr == vga.config.cursor_start)
-            font = 0xFFu;
+        Alt_EGAVGA_TEXT_GetFGBG<card>(foreground,background,attr,line,in_cursor_row,addr);
 
         if (vga.draw.char9dot)
             Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP<card,templine_type_t,9>
