@@ -215,6 +215,11 @@ void VGA_Draw2_Recompute_CRTC_MaskAdd(void) {
         vga.draw_2[0].crtc_mask = 0x7FFu;  // 2KB character clocks (4KB bytes)
         vga.draw_2[0].crtc_add = 0;
     }
+    else if (machine == MCH_TANDY) {
+        vga.draw_2[0].draw_base = vga.tandy.mem_base;
+        vga.draw_2[0].crtc_mask = 0x3FFFu;  // 16KB character clocks (32KB bytes)
+        vga.draw_2[0].crtc_add = 0;
+    }
     else {
         /* CGA/MCGA/PCJr/Tandy is emulated as 16 bits per character clock */
         vga.draw_2[0].draw_base = vga.mem.linear;
