@@ -215,7 +215,7 @@ void VGA_Draw2_Recompute_CRTC_MaskAdd(void) {
         vga.draw_2[0].crtc_mask = 0x7FFu;  // 2KB character clocks (4KB bytes)
         vga.draw_2[0].crtc_add = 0;
     }
-    else if (machine == MCH_TANDY) {
+    else if (machine == MCH_TANDY || machine == MCH_PCJR) {
         vga.draw_2[0].draw_base = vga.tandy.mem_base;
         vga.draw_2[0].crtc_mask = 0x3FFFu;  // 16KB character clocks (32KB bytes)
         vga.draw_2[0].crtc_add = 0;
