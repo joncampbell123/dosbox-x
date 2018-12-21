@@ -1902,7 +1902,8 @@ void VGA_Alt_NextScanLine(void) {
         vga.draw_2[0].vert.crtc_addr += vga.draw_2[0].vert.crtc_addr_add;
     }
 
-    VGA_Alt_CheckSplit();
+    if (IS_EGAVGA_ARCH)
+        VGA_Alt_CheckSplit();
 
     vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
     vga.draw_2[0].horz.current_char_pixel = 0;
