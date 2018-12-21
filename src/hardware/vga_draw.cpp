@@ -1704,7 +1704,7 @@ void VGA_Alt_NextScanLine(void) {
         vga.draw_2[0].horz.char_pixels = (vga.attr.mode_control & 4/*9 pixels/char*/) ? 9 : 8;
     else
         vga.draw_2[0].horz.char_pixels = 8;
-    vga.draw_2[0].vert.char_pixels = (vga.crtc.maximum_scan_line & 0x1Fu) + 1u;
+    vga.draw_2[0].vert.char_pixels = (vga.crtc.maximum_scan_line & vga.draw_2[0].vert.char_pixel_mask) + 1u;
 
     if (IS_EGAVGA_ARCH) {
         vga.draw_2[0].horz.crtc_addr_add = 1;
@@ -1723,7 +1723,8 @@ void VGA_Alt_NextScanLine(void) {
     //       5 bits of the row counter before coming back around to match it again.
     //
     //       It might be a nice emulation option to select comparator function, whether >= or == .
-    if ((vga.draw_2[0].vert.current_char_pixel & 0x1Fu) == (vga.draw_2[0].vert.char_pixels & 0x1Fu)) {
+    if ((vga.draw_2[0].vert.current_char_pixel & vga.draw_2[0].vert.char_pixel_mask) ==
+        (vga.draw_2[0].vert.char_pixels        & vga.draw_2[0].vert.char_pixel_mask)) {
         vga.draw_2[0].vert.current_char_pixel = 0;
         vga.draw_2[0].vert.crtc_addr += vga.draw_2[0].vert.crtc_addr_add;
     }
@@ -2207,7 +2208,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             vga.draw_2[0].horz.char_pixels = (vga.attr.mode_control & 4/*9 pixels/char*/) ? 9 : 8;
         else
             vga.draw_2[0].horz.char_pixels = 8;
-        vga.draw_2[0].vert.char_pixels = (vga.crtc.maximum_scan_line & 0x1Fu) + 1u;
+        vga.draw_2[0].vert.char_pixels = (vga.crtc.maximum_scan_line & vga.draw_2[0].vert.char_pixel_mask) + 1u;
 
         vga.draw_2[0].vert.crtc_addr = vga.config.display_start + vga.config.bytes_skip;
         vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;

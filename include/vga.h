@@ -320,6 +320,9 @@ typedef struct {
         // width (H) / scan lines (V) of a character cell
         unsigned char                               char_pixels = 0;
 
+        // bit mask for character row compare
+        unsigned char                               char_pixel_mask = 0;
+
         bool                                        blank_enable = false;           // blank enable
         bool                                        display_enable = false;         // display enable (active area)
         bool                                        retrace_enable = false;         // retrace enable

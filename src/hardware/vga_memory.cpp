@@ -2208,9 +2208,11 @@ void VGA_SetupMemory() {
 
         /* parallel system */
         if (vga_alt_new_mode) {
-            for (size_t si=0;si < VGA_Draw_2_elem;si++) {
+            for (size_t si=0;si < VGA_Draw_2_elem;si++)
                 vga.draw_2[si].draw_base = vga.mem.linear;
-            }
+
+            vga.draw_2[0].horz.char_pixel_mask = 0xFFu;
+            vga.draw_2[0].vert.char_pixel_mask = 0x1Fu;
         }
 
         /* may be related */
