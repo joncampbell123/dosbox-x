@@ -1013,7 +1013,6 @@ template <const bool snow> static Bit8u * Alt_CGA_COMMON_TEXT_Draw_Line(void) {
     const bool in_cursor_row = Alt_CGA_TEXT_In_Cursor_Row(line);
 
     unsigned int cx = 0;
-    unsigned char font;
 
     if (snow) {
         /* HACK: our code does not have render control during VBLANK, zero our
@@ -1038,8 +1037,9 @@ template <const bool snow> static Bit8u * Alt_CGA_COMMON_TEXT_Draw_Line(void) {
                 attr = vga.draw.cga_snow[cx+1];
         }
 
-        font = Alt_CGA_TEXT_Load_Font_Bitmap(chr,attr,line,addr,in_cursor_row);
-        Alt_CGA_TEXT_Combined_Draw_Line_RenderBMP(draw,font,attr);
+        Alt_CGA_TEXT_Combined_Draw_Line_RenderBMP(draw,
+            Alt_CGA_TEXT_Load_Font_Bitmap(chr,attr,line,addr,in_cursor_row),attr);
+
         cx++;
     }
 
