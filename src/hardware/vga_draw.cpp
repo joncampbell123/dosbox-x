@@ -986,6 +986,17 @@ static inline bool Alt_CGA_TEXT_In_Cursor_Row(const unsigned int line) {
         (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled);
 }
 
+// NTS: 8bpp typecast as Bit32u to speedily draw characters
+static inline void Alt_CGA_TEXT_Combined_Draw_Line_RenderBMP(Bit32u* &draw,unsigned int font,unsigned char attr) {
+    const Bit32u mask1=TXT_Font_Table[font>>4] & FontMask[attr >> 7];
+    const Bit32u mask2=TXT_Font_Table[font&0xf] & FontMask[attr >> 7];
+    const Bit32u fg=TXT_FG_Table[attr&0xf];
+    const Bit32u bg=TXT_BG_Table[attr>>4];
+
+    *draw++=(fg&mask1) | (bg&~mask1);
+    *draw++=(fg&mask2) | (bg&~mask2);
+}
+
 template <const bool snow> static Bit8u * Alt_CGA_COMMON_TEXT_Draw_Line(void) {
     // keep it aligned:
     Bit32u* draw = (Bit32u*)TempLine; // NTS: This is typecast in this way only to write 4 pixels at once at 8bpp
@@ -1025,14 +1036,7 @@ template <const bool snow> static Bit8u * Alt_CGA_COMMON_TEXT_Draw_Line(void) {
         else // the font pattern
             font = Alt_CGA_TEXT_Load_Font_Bitmap(chr,attr,line);
 
-        const Bit32u mask1=TXT_Font_Table[font>>4] & FontMask[attr >> 7];
-        const Bit32u mask2=TXT_Font_Table[font&0xf] & FontMask[attr >> 7];
-        const Bit32u fg=TXT_FG_Table[attr&0xf];
-        const Bit32u bg=TXT_BG_Table[attr>>4];
-
-        *draw++=(fg&mask1) | (bg&~mask1);
-        *draw++=(fg&mask2) | (bg&~mask2);
-
+        Alt_CGA_TEXT_Combined_Draw_Line_RenderBMP(draw,font,attr);
         cx++;
     }
 
