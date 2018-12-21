@@ -1181,17 +1181,6 @@ skip_cursor:
     return TempLine;
 }
 
-
-
-
-
-
-
-
-
-
-
-
 static inline unsigned int Alt_MDA_TEXT_Load_Font_Bitmap(const unsigned char chr,const unsigned int line) {
     return vga.draw.font_tables[0][(chr<<5)+line];
 }
@@ -1262,30 +1251,6 @@ static Bit8u * Alt_MDA_COMMON_TEXT_Draw_Line(void) {
 static Bit8u * Alt_MDA_TEXT_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
     return Alt_MDA_COMMON_TEXT_Draw_Line();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 template <const unsigned int card,typename templine_type_t> static inline Bit8u* EGAVGA_TEXT_Combined_Draw_Line(Bitu vidstart,Bitu line) {
     // keep it aligned:
