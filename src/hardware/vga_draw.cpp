@@ -1181,6 +1181,95 @@ skip_cursor:
     return TempLine;
 }
 
+
+
+
+
+
+
+
+
+
+
+ 
+static inline unsigned int Alt_MDA_TEXT_Load_Font_Bitmap(const unsigned char chr,const unsigned char attr,const unsigned int line) {
+    return vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
+}
+
+static inline bool Alt_MDA_TEXT_In_Cursor_Row(const unsigned int line) {
+    return
+        ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
+        (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled);
+}
+
+// NTS: 8bpp typecast as Bit32u to speedily draw characters
+static inline void Alt_MDA_TEXT_Combined_Draw_Line_RenderBMP(Bit32u* &draw,unsigned int font,unsigned char attr) {
+    const Bit32u mask1=TXT_Font_Table[font>>4] & FontMask[attr >> 7];
+    const Bit32u mask2=TXT_Font_Table[font&0xf] & FontMask[attr >> 7];
+    const Bit32u fg=TXT_FG_Table[attr&0xf];
+    const Bit32u bg=TXT_BG_Table[attr>>4];
+
+    *draw++=(fg&mask1) | (bg&~mask1);
+    *draw++=(fg&mask2) | (bg&~mask2);
+}
+
+static inline unsigned char Alt_MDA_TEXT_Load_Font_Bitmap(const unsigned char chr,const unsigned char attr,const unsigned char line,const unsigned int addr,const bool in_cursor_row) {
+    if (GCC_UNLIKELY(in_cursor_row) && addr == vga.config.cursor_start) // cursor
+        return 0xff;
+    else // the font pattern
+        return Alt_MDA_TEXT_Load_Font_Bitmap(chr,attr,line);
+}
+
+static Bit8u * Alt_MDA_COMMON_TEXT_Draw_Line(void) {
+    // keep it aligned:
+    Bit32u* draw = (Bit32u*)TempLine; // NTS: This is typecast in this way only to write 4 pixels at once at 8bpp
+    Bitu blocks = vga.draw.blocks;
+
+    const unsigned int line = vga.draw_2[0].vert.current_char_pixel & 15;
+    const bool in_cursor_row = Alt_MDA_TEXT_In_Cursor_Row(line);
+
+    while (blocks--) { // for each character in the line
+        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+        CGA_Latch pixels(*vga.draw_2[0].drawptr<Bit16u>(addr));
+
+        unsigned char chr = pixels.b[0];
+        unsigned char attr = pixels.b[1];
+
+        Alt_MDA_TEXT_Combined_Draw_Line_RenderBMP(draw,
+            Alt_MDA_TEXT_Load_Font_Bitmap(chr,attr,line,addr,in_cursor_row),attr);
+    }
+
+    return TempLine;
+}
+
+static Bit8u * Alt_MDA_TEXT_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
+    return Alt_MDA_COMMON_TEXT_Draw_Line();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 template <const unsigned int card,typename templine_type_t> static inline Bit8u* EGAVGA_TEXT_Combined_Draw_Line(Bitu vidstart,Bitu line) {
     // keep it aligned:
     templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
@@ -3363,7 +3452,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         break;
     case M_HERC_TEXT:
         vga.draw.blocks=width;
-        VGA_DrawLine=VGA_TEXT_Herc_Draw_Line;
+        if (vga_alt_new_mode)
+            VGA_DrawLine=Alt_MDA_TEXT_Draw_Line;
+        else
+            VGA_DrawLine=VGA_TEXT_Herc_Draw_Line;
         break;
     case M_AMSTRAD: // Probably OK?
         pix_per_char = 16;
