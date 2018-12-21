@@ -2371,20 +2371,37 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
     /* parallel system */
     if (vga_alt_new_mode) {
-        vga.draw_2[0].horz.current = 0;
-        vga.draw_2[0].vert.current = 0;
+        if (IS_EGAVGA_ARCH) {
+            vga.draw_2[0].horz.current = 0;
+            vga.draw_2[0].vert.current = 0;
 
-        vga.draw_2[0].horz.current_char_pixel = 0;
-        vga.draw_2[0].vert.current_char_pixel = vga.config.hlines_skip;
+            vga.draw_2[0].horz.current_char_pixel = 0;
+            vga.draw_2[0].vert.current_char_pixel = vga.config.hlines_skip;
 
-        VGA_Alt_UpdateCRTCPixels();
-        VGA_Alt_UpdateCRTCAdd();
+            VGA_Alt_UpdateCRTCPixels();
+            VGA_Alt_UpdateCRTCAdd();
 
-        vga.draw_2[0].vert.crtc_addr = vga.config.display_start + vga.config.bytes_skip;
-        vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
+            vga.draw_2[0].vert.crtc_addr = vga.config.display_start + vga.config.bytes_skip;
+            vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
 
-        VGA_Draw2_Recompute_CRTC_MaskAdd();
-        VGA_Alt_CheckSplit();
+            VGA_Draw2_Recompute_CRTC_MaskAdd();
+            VGA_Alt_CheckSplit();
+        }
+        else {
+            vga.draw_2[0].horz.current = 0;
+            vga.draw_2[0].vert.current = 0;
+
+            vga.draw_2[0].horz.current_char_pixel = 0;
+            vga.draw_2[0].vert.current_char_pixel = 0;
+
+            VGA_Alt_UpdateCRTCPixels();
+            VGA_Alt_UpdateCRTCAdd();
+
+            vga.draw_2[0].vert.crtc_addr = vga.config.display_start;
+            vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
+
+            VGA_Draw2_Recompute_CRTC_MaskAdd();
+        }
     }
 
     switch (vga.mode) {
