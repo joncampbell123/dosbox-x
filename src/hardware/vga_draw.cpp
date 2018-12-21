@@ -209,8 +209,14 @@ void VGA_Draw2_Recompute_CRTC_MaskAdd(void) {
         vga.draw_2[0].crtc_mask = new_mask;  // 8KB character clocks (16KB bytes)
         vga.draw_2[0].crtc_add = new_add;
     }
+    else if (machine == MCH_HERC || machine == MCH_MDA) {
+        /* MDA/Hercules is emulated as 16 bits per character clock */
+        vga.draw_2[0].draw_base = vga.mem.linear;
+        vga.draw_2[0].crtc_mask = 0x7FFu;  // 2KB character clocks (4KB bytes)
+        vga.draw_2[0].crtc_add = 0;
+    }
     else {
-        /* CGA/MDA/Hercules/MCGA/PCJr/Tandy is emulated as 16 bits per character clock */
+        /* CGA/MCGA/PCJr/Tandy is emulated as 16 bits per character clock */
         vga.draw_2[0].draw_base = vga.mem.linear;
         vga.draw_2[0].crtc_mask = 0x1FFFu;  // 8KB character clocks (16KB bytes)
         vga.draw_2[0].crtc_add = 0;
@@ -969,6 +975,80 @@ static Bit8u * VGA_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
 static Bit8u * VGA_CGASNOW_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
     return CGA_COMMON_TEXT_Draw_Line<true>(vidstart,line);
 }
+ 
+static inline unsigned int Alt_CGA_TEXT_Load_Font_Bitmap(const unsigned char chr,const unsigned char attr,const unsigned int line) {
+    return vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
+}
+
+static inline bool Alt_CGA_TEXT_In_Cursor_Row(const unsigned int line) {
+    return
+        ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
+        (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled);
+}
+
+template <const bool snow> static Bit8u * Alt_CGA_COMMON_TEXT_Draw_Line(void) {
+    // keep it aligned:
+    Bit32u* draw = (Bit32u*)TempLine; // NTS: This is typecast in this way only to write 4 pixels at once at 8bpp
+    Bitu blocks = vga.draw.blocks;
+
+    const unsigned int line = vga.draw_2[0].vert.current_char_pixel & 7;
+    const bool in_cursor_row = Alt_CGA_TEXT_In_Cursor_Row(line);
+
+    unsigned int cx = 0;
+    unsigned int font;
+
+    if (snow) {
+        /* HACK: our code does not have render control during VBLANK, zero our
+         *       noise bits on the first scanline */
+        if (vga.draw_2[0].vert.current.pixels == 0)
+            memset(vga.draw.cga_snow,0,sizeof(vga.draw.cga_snow));
+    }
+
+    while (blocks--) { // for each character in the line
+        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+        CGA_Latch pixels(*vga.draw_2[0].drawptr<Bit16u>(addr));
+
+        unsigned char chr = pixels.b[0];
+        unsigned char attr = pixels.b[1];
+
+        if (snow && (cx&1) == 0 && cx <= 78) {
+            /* Trixter's "CGA test" program and reference video seems to suggest
+             * to me that the CGA "snow" might contain the value written by the CPU. */
+            if (vga.draw.cga_snow[cx] != 0)
+                chr = vga.draw.cga_snow[cx];
+            if (vga.draw.cga_snow[cx+1] != 0)
+                attr = vga.draw.cga_snow[cx+1];
+        }
+
+        if (GCC_UNLIKELY(in_cursor_row) && addr == vga.config.cursor_start) // cursor
+            font = 0xff;
+        else // the font pattern
+            font = Alt_CGA_TEXT_Load_Font_Bitmap(chr,attr,line);
+
+        const Bit32u mask1=TXT_Font_Table[font>>4] & FontMask[attr >> 7];
+        const Bit32u mask2=TXT_Font_Table[font&0xf] & FontMask[attr >> 7];
+        const Bit32u fg=TXT_FG_Table[attr&0xf];
+        const Bit32u bg=TXT_BG_Table[attr>>4];
+
+        *draw++=(fg&mask1) | (bg&~mask1);
+        *draw++=(fg&mask2) | (bg&~mask2);
+
+        cx++;
+    }
+
+    if (snow)
+        memset(vga.draw.cga_snow,0,sizeof(vga.draw.cga_snow));
+
+    return TempLine;
+}
+
+static Bit8u * Alt_CGA_TEXT_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
+    return Alt_CGA_COMMON_TEXT_Draw_Line<false>();
+}
+
+static Bit8u * Alt_CGA_CGASNOW_TEXT_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
+    return Alt_CGA_COMMON_TEXT_Draw_Line<true>();
+}
 
 static Bit8u * MCGA_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
     // keep it aligned:
@@ -1700,11 +1780,14 @@ void VGA_Alt_NextScanLine(void) {
     vga.draw_2[0].horz.current = 0;
     vga.draw_2[0].vert.current.pixels++;
 
-    if (IS_EGAVGA_ARCH)
+    if (IS_EGAVGA_ARCH) {
         vga.draw_2[0].horz.char_pixels = (vga.attr.mode_control & 4/*9 pixels/char*/) ? 9 : 8;
-    else
+        vga.draw_2[0].vert.char_pixels = (vga.crtc.maximum_scan_line & vga.draw_2[0].vert.char_pixel_mask) + 1u;
+    }
+    else {
         vga.draw_2[0].horz.char_pixels = 8;
-    vga.draw_2[0].vert.char_pixels = (vga.crtc.maximum_scan_line & vga.draw_2[0].vert.char_pixel_mask) + 1u;
+        vga.draw_2[0].vert.char_pixels = (vga.other.max_scanline & vga.draw_2[0].vert.char_pixel_mask) + 1u;
+    }
 
     if (IS_EGAVGA_ARCH) {
         vga.draw_2[0].horz.crtc_addr_add = 1;
@@ -1712,7 +1795,7 @@ void VGA_Alt_NextScanLine(void) {
     }
     else {
         vga.draw_2[0].horz.crtc_addr_add = 1;
-        vga.draw_2[0].vert.crtc_addr_add = vga.crtc.horizontal_display_end + 1u;
+        vga.draw_2[0].vert.crtc_addr_add = vga.other.hdend;
     }
 
     vga.draw_2[0].vert.current_char_pixel++;
@@ -2204,11 +2287,14 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         vga.draw_2[0].horz.current_char_pixel = 0;
         vga.draw_2[0].vert.current_char_pixel = vga.config.hlines_skip;
 
-        if (IS_EGAVGA_ARCH)
+        if (IS_EGAVGA_ARCH) {
             vga.draw_2[0].horz.char_pixels = (vga.attr.mode_control & 4/*9 pixels/char*/) ? 9 : 8;
-        else
+            vga.draw_2[0].vert.char_pixels = (vga.crtc.maximum_scan_line & vga.draw_2[0].vert.char_pixel_mask) + 1u;
+        }
+        else {
             vga.draw_2[0].horz.char_pixels = 8;
-        vga.draw_2[0].vert.char_pixels = (vga.crtc.maximum_scan_line & vga.draw_2[0].vert.char_pixel_mask) + 1u;
+            vga.draw_2[0].vert.char_pixels = (vga.other.max_scanline & vga.draw_2[0].vert.char_pixel_mask) + 1u;
+        }
 
         vga.draw_2[0].vert.crtc_addr = vga.config.display_start + vga.config.bytes_skip;
         vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
@@ -2219,7 +2305,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         }
         else {
             vga.draw_2[0].horz.crtc_addr_add = 1;
-            vga.draw_2[0].vert.crtc_addr_add = vga.crtc.horizontal_display_end + 1u;
+            vga.draw_2[0].vert.crtc_addr_add = vga.other.hdend;
         }
 
         VGA_Draw2_Recompute_CRTC_MaskAdd();
@@ -3250,10 +3336,18 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         break;
     case M_TANDY_TEXT: /* Also CGA */
         vga.draw.blocks=width;
-        if (machine==MCH_CGA /*&& !doublewidth*/ && enableCGASnow && (vga.tandy.mode_control & 1)/*80-column mode*/)
-            VGA_DrawLine=VGA_CGASNOW_TEXT_Draw_Line; /* Alternate version that emulates CGA snow */
-        else
-            VGA_DrawLine=VGA_TEXT_Draw_Line;
+        if (vga_alt_new_mode) {
+            if (machine==MCH_CGA /*&& !doublewidth*/ && enableCGASnow && (vga.tandy.mode_control & 1)/*80-column mode*/)
+                VGA_DrawLine=Alt_CGA_CGASNOW_TEXT_Draw_Line; /* Alternate version that emulates CGA snow */
+            else
+                VGA_DrawLine=Alt_CGA_TEXT_Draw_Line;
+        }
+        else {
+            if (machine==MCH_CGA /*&& !doublewidth*/ && enableCGASnow && (vga.tandy.mode_control & 1)/*80-column mode*/)
+                VGA_DrawLine=VGA_CGASNOW_TEXT_Draw_Line; /* Alternate version that emulates CGA snow */
+            else
+                VGA_DrawLine=VGA_TEXT_Draw_Line;
+        }
 
         /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
         if (machine == MCH_MCGA) {
