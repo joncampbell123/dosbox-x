@@ -1191,9 +1191,9 @@ skip_cursor:
 
 
 
- 
-static inline unsigned int Alt_MDA_TEXT_Load_Font_Bitmap(const unsigned char chr,const unsigned char attr,const unsigned int line) {
-    return vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
+
+static inline unsigned int Alt_MDA_TEXT_Load_Font_Bitmap(const unsigned char chr,const unsigned int line) {
+    return vga.draw.font_tables[0][(chr<<5)+line];
 }
 
 static inline bool Alt_MDA_TEXT_In_Cursor_Row(const unsigned int line) {
@@ -1203,7 +1203,8 @@ static inline bool Alt_MDA_TEXT_In_Cursor_Row(const unsigned int line) {
 }
 
 // NTS: 8bpp typecast as Bit32u to speedily draw characters
-static inline void Alt_MDA_TEXT_Combined_Draw_Line_RenderBMP(Bit32u* &draw,unsigned int font,unsigned char attr) {
+static inline void Alt_MDA_TEXT_Combined_Draw_Line_RenderBMP(Bit32u* &draw,unsigned int font,unsigned char attrib) {
+#if 0
     const Bit32u mask1=TXT_Font_Table[font>>4] & FontMask[attr >> 7];
     const Bit32u mask2=TXT_Font_Table[font&0xf] & FontMask[attr >> 7];
     const Bit32u fg=TXT_FG_Table[attr&0xf];
@@ -1211,13 +1212,43 @@ static inline void Alt_MDA_TEXT_Combined_Draw_Line_RenderBMP(Bit32u* &draw,unsig
 
     *draw++=(fg&mask1) | (bg&~mask1);
     *draw++=(fg&mask2) | (bg&~mask2);
+#endif
+    if (!(attrib&0x77)) {
+        // 00h, 80h, 08h, 88h produce black space
+        *draw++=0;
+        *draw++=0;
+    } else {
+        Bit32u bg, fg;
+//        bool underline=false;
+        if ((attrib&0x77)==0x70) {
+            bg = TXT_BG_Table[0x7];
+            if (attrib&0x8) fg = TXT_FG_Table[0xf];
+            else fg = TXT_FG_Table[0x0];
+        } else {
+//            if (((Bitu)(vga.crtc.underline_location&0x1f)==line) && ((attrib&0x77)==0x1)) underline=true;
+            bg = TXT_BG_Table[0x0];
+            if (attrib&0x8) fg = TXT_FG_Table[0xf];
+            else fg = TXT_FG_Table[0x7];
+        }
+        Bit32u mask1, mask2;
+//        if (GCC_UNLIKELY(underline)) mask1 = mask2 = FontMask[attrib >> 7];
+//        else {
+//            Bitu font=vga.draw.font_tables[0][chr*32+line];
+            mask1=TXT_Font_Table[font>>4] & FontMask[attrib >> 7]; // blinking
+            mask2=TXT_Font_Table[font&0xf] & FontMask[attrib >> 7];
+//        }
+        *draw++=(fg&mask1) | (bg&~mask1);
+        *draw++=(fg&mask2) | (bg&~mask2);
+    }
 }
 
-static inline unsigned char Alt_MDA_TEXT_Load_Font_Bitmap(const unsigned char chr,const unsigned char attr,const unsigned char line,const unsigned int addr,const bool in_cursor_row) {
+static inline unsigned char Alt_MDA_TEXT_Load_Font_Bitmap(const unsigned char chr,const unsigned char attrib,const unsigned char line,const unsigned int addr,const bool in_cursor_row) {
     if (GCC_UNLIKELY(in_cursor_row) && addr == vga.config.cursor_start) // cursor
         return 0xff;
+    else if ((attrib&0x77) == 0x01 && ((Bitu)(vga.crtc.underline_location&0x1f)==line)) // underline
+        return 0xff;
     else // the font pattern
-        return Alt_MDA_TEXT_Load_Font_Bitmap(chr,attr,line);
+        return Alt_MDA_TEXT_Load_Font_Bitmap(chr,line);
 }
 
 static Bit8u * Alt_MDA_COMMON_TEXT_Draw_Line(void) {
