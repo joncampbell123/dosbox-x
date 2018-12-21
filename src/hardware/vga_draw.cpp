@@ -1232,7 +1232,7 @@ template <const unsigned int card,typename templine_type_t,const unsigned int pi
     if (vga.draw.panning) blocks++; // if the text is panned part of an 
                                     // additional character becomes visible
 
-    const unsigned int line = vga.draw_2[0].vert.current_char_pixel;
+    const unsigned int line = vga.draw_2[0].vert.current_char_pixel & vga.draw_2[0].vert.char_pixel_mask;
     const bool in_cursor_row = Alt_EGAVGA_TEXT_In_Cursor_Row<card>(line);
 
     unsigned char foreground,background;
