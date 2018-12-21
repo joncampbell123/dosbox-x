@@ -997,6 +997,13 @@ static inline void Alt_CGA_TEXT_Combined_Draw_Line_RenderBMP(Bit32u* &draw,unsig
     *draw++=(fg&mask2) | (bg&~mask2);
 }
 
+static inline unsigned char Alt_CGA_TEXT_Load_Font_Bitmap(const unsigned char chr,const unsigned char attr,const unsigned char line,const unsigned int addr,const bool in_cursor_row) {
+    if (GCC_UNLIKELY(in_cursor_row) && addr == vga.config.cursor_start) // cursor
+        return 0xff;
+    else // the font pattern
+        return Alt_CGA_TEXT_Load_Font_Bitmap(chr,attr,line);
+}
+
 template <const bool snow> static Bit8u * Alt_CGA_COMMON_TEXT_Draw_Line(void) {
     // keep it aligned:
     Bit32u* draw = (Bit32u*)TempLine; // NTS: This is typecast in this way only to write 4 pixels at once at 8bpp
@@ -1006,7 +1013,7 @@ template <const bool snow> static Bit8u * Alt_CGA_COMMON_TEXT_Draw_Line(void) {
     const bool in_cursor_row = Alt_CGA_TEXT_In_Cursor_Row(line);
 
     unsigned int cx = 0;
-    unsigned int font;
+    unsigned char font;
 
     if (snow) {
         /* HACK: our code does not have render control during VBLANK, zero our
@@ -1031,11 +1038,7 @@ template <const bool snow> static Bit8u * Alt_CGA_COMMON_TEXT_Draw_Line(void) {
                 attr = vga.draw.cga_snow[cx+1];
         }
 
-        if (GCC_UNLIKELY(in_cursor_row) && addr == vga.config.cursor_start) // cursor
-            font = 0xff;
-        else // the font pattern
-            font = Alt_CGA_TEXT_Load_Font_Bitmap(chr,attr,line);
-
+        font = Alt_CGA_TEXT_Load_Font_Bitmap(chr,attr,line,addr,in_cursor_row);
         Alt_CGA_TEXT_Combined_Draw_Line_RenderBMP(draw,font,attr);
         cx++;
     }
