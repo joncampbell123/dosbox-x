@@ -146,7 +146,7 @@ if test x$warn_cpp0x = x1; then
 fi
 
 CFLAGS="$CFLAGS -std=gnu11";
-CXXFLAGS="$CXXFLAGS -std=gnu++0x";
+CXXFLAGS="$CXXFLAGS -std=gnu++11";
 
 dnl yksoft1 wants a MinGW build for Windows that doesn't use the Windows menu system.
 AH_TEMPLATE(C_FORCE_MENU_SDLDRAW,[Define to 1 to force SDL-drawn menus])
@@ -366,7 +366,7 @@ case "$host" in
        dnl to do more to distinguish them.
        dnl For now I am lazy and do not add proper detection code.
        macosx=1
-       OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++0x";
+       OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++11";
        AC_DEFINE(MACOSX, 1, [Compiling on Mac OS X])
        LIBS="$LIBS -framework CoreMIDI -framework AudioUnit -framework AudioToolbox"
        ;;
