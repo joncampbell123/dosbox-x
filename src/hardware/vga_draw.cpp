@@ -1776,10 +1776,7 @@ void VGA_Alt_CheckSplit(void) {
     }
 }
 
-void VGA_Alt_NextScanLine(void) {
-    vga.draw_2[0].horz.current = 0;
-    vga.draw_2[0].vert.current.pixels++;
-
+void VGA_Alt_UpdateCRTCPixels(void) {
     if (IS_EGAVGA_ARCH) {
         vga.draw_2[0].horz.char_pixels = (vga.attr.mode_control & 4/*9 pixels/char*/) ? 9 : 8;
         vga.draw_2[0].vert.char_pixels = (vga.crtc.maximum_scan_line & vga.draw_2[0].vert.char_pixel_mask) + 1u;
@@ -1788,7 +1785,9 @@ void VGA_Alt_NextScanLine(void) {
         vga.draw_2[0].horz.char_pixels = 8;
         vga.draw_2[0].vert.char_pixels = (vga.other.max_scanline & vga.draw_2[0].vert.char_pixel_mask) + 1u;
     }
+}
 
+void VGA_Alt_UpdateCRTCAdd(void) {
     if (IS_EGAVGA_ARCH) {
         vga.draw_2[0].horz.crtc_addr_add = 1;
         vga.draw_2[0].vert.crtc_addr_add = vga.crtc.offset * 2u;
@@ -1797,6 +1796,14 @@ void VGA_Alt_NextScanLine(void) {
         vga.draw_2[0].horz.crtc_addr_add = 1;
         vga.draw_2[0].vert.crtc_addr_add = vga.other.hdend;
     }
+}
+
+void VGA_Alt_NextScanLine(void) {
+    vga.draw_2[0].horz.current = 0;
+    vga.draw_2[0].vert.current.pixels++;
+
+    VGA_Alt_UpdateCRTCPixels();
+    VGA_Alt_UpdateCRTCAdd();
 
     vga.draw_2[0].vert.current_char_pixel++;
 
@@ -2287,23 +2294,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         vga.draw_2[0].horz.current_char_pixel = 0;
         vga.draw_2[0].vert.current_char_pixel = vga.config.hlines_skip;
 
-        if (IS_EGAVGA_ARCH) {
-            vga.draw_2[0].horz.char_pixels = (vga.attr.mode_control & 4/*9 pixels/char*/) ? 9 : 8;
-            vga.draw_2[0].vert.char_pixels = (vga.crtc.maximum_scan_line & vga.draw_2[0].vert.char_pixel_mask) + 1u;
-        }
-        else {
-            vga.draw_2[0].horz.char_pixels = 8;
-            vga.draw_2[0].vert.char_pixels = (vga.other.max_scanline & vga.draw_2[0].vert.char_pixel_mask) + 1u;
-        }
-
-        if (IS_EGAVGA_ARCH) {
-            vga.draw_2[0].horz.crtc_addr_add = 1;
-            vga.draw_2[0].vert.crtc_addr_add = vga.crtc.offset * 2u;
-        }
-        else {
-            vga.draw_2[0].horz.crtc_addr_add = 1;
-            vga.draw_2[0].vert.crtc_addr_add = vga.other.hdend;
-        }
+        VGA_Alt_UpdateCRTCPixels();
+        VGA_Alt_UpdateCRTCAdd();
 
         vga.draw_2[0].vert.crtc_addr = vga.config.display_start + vga.config.bytes_skip;
         vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
