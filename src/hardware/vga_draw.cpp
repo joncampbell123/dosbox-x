@@ -2296,9 +2296,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             vga.draw_2[0].vert.char_pixels = (vga.other.max_scanline & vga.draw_2[0].vert.char_pixel_mask) + 1u;
         }
 
-        vga.draw_2[0].vert.crtc_addr = vga.config.display_start + vga.config.bytes_skip;
-        vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
-
         if (IS_EGAVGA_ARCH) {
             vga.draw_2[0].horz.crtc_addr_add = 1;
             vga.draw_2[0].vert.crtc_addr_add = vga.crtc.offset * 2u;
@@ -2307,6 +2304,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             vga.draw_2[0].horz.crtc_addr_add = 1;
             vga.draw_2[0].vert.crtc_addr_add = vga.other.hdend;
         }
+
+        vga.draw_2[0].vert.crtc_addr = vga.config.display_start + vga.config.bytes_skip;
+        vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
 
         VGA_Draw2_Recompute_CRTC_MaskAdd();
         VGA_Alt_CheckSplit();
