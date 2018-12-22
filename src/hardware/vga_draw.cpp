@@ -1008,6 +1008,21 @@ static Bit8u *Alt_CGA_2color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
     return TempLine;
 }
 
+static Bit8u *Alt_CGA_4color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
+    Bit32u* draw = (Bit32u*)TempLine; // NTS: This is typecast in this way only to write 4 pixels at once at 8bpp
+    Bitu blocks = vga.draw.blocks;
+
+    while (blocks--) { // for each character in the line
+        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+        CGA_Latch pixels(*vga.draw_2[0].drawptr<Bit16u>(addr));
+
+        *draw++=CGA_4_Table[pixels.b[0]];
+        *draw++=CGA_4_Table[pixels.b[1]];
+    }
+
+    return TempLine;
+}
+
 static inline unsigned int Alt_CGA_TEXT_Load_Font_Bitmap(const unsigned char chr,const unsigned char attr,const unsigned int line) {
     return vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
 }
@@ -3317,8 +3332,14 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             vga.tandy.draw_base = vga.mem.linear + 0x8000;
         }
         else {
-            vga.draw.blocks=width*2;
-            VGA_DrawLine=VGA_Draw_2BPP_Line;
+            if (vga_alt_new_mode) {
+                VGA_DrawLine=Alt_CGA_4color_Draw_Line;
+                vga.draw.blocks=width;
+            }
+            else {
+                VGA_DrawLine=VGA_Draw_2BPP_Line;
+                vga.draw.blocks=width*2;
+            }
         }
         break;
     case M_CGA2:
@@ -3438,9 +3459,18 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         vga.draw.blocks=width * 2;
         pix_per_char = 8;
         if ((machine==MCH_TANDY && (vga.tandy.gfx_control & 0x8)) ||
-            (machine==MCH_PCJR && (vga.tandy.mode_control==0x0b)))
+            (machine==MCH_PCJR && (vga.tandy.mode_control==0x0b))) {
             VGA_DrawLine=VGA_Draw_2BPPHiRes_Line;
-        else VGA_DrawLine=VGA_Draw_2BPP_Line;
+        }
+        else {
+            if (vga_alt_new_mode) {
+                VGA_DrawLine=Alt_CGA_4color_Draw_Line;
+                vga.draw.blocks=width;
+            }
+            else {
+                VGA_DrawLine=VGA_Draw_2BPP_Line;
+            }
+        }
 
         /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
         if (machine == MCH_MCGA) {
