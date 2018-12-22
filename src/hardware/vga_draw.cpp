@@ -661,6 +661,34 @@ template <const unsigned int card,typename templine_type_t> static inline void E
         temps[7] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>>24ul)&0xFFul);
 }
 
+template <const unsigned int card,typename templine_type_t> static inline void Alt_EGA_Planar_Common_Block(templine_type_t * &temps,const Bit32u t) {
+    Bit32u tmp;
+    Bit32u t1,t2;
+
+        t1 = (t >> 4) & 0x0f0f0f0f;
+        t2 =  t       & 0x0f0f0f0f;
+
+        tmp =   Expand16Table[0][(t1>>0)&0xFF] |
+                Expand16Table[1][(t1>>8)&0xFF] |
+                Expand16Table[2][(t1>>16)&0xFF] |
+                Expand16Table[3][(t1>>24)&0xFF];
+        temps[0] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>> 0ul)&0xFFul);
+        temps[1] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>> 8ul)&0xFFul);
+        temps[2] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>>16ul)&0xFFul);
+        temps[3] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>>24ul)&0xFFul);
+
+        tmp =   Expand16Table[0][(t2>>0)&0xFF] |
+                Expand16Table[1][(t2>>8)&0xFF] |
+                Expand16Table[2][(t2>>16)&0xFF] |
+                Expand16Table[3][(t2>>24)&0xFF];
+        temps[4] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>> 0ul)&0xFFul);
+        temps[5] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>> 8ul)&0xFFul);
+        temps[6] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>>16ul)&0xFFul);
+        temps[7] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>>24ul)&0xFFul);
+
+        temps += 8;
+}
+
 template <const unsigned int card,typename templine_type_t> static Bit8u * EGA_Planar_Common_Line(Bitu vidstart, Bitu /*line*/) {
     templine_type_t* temps = (templine_type_t*)TempLine;
     Bitu count = vga.draw.blocks + ((vga.draw.panning + 7u) >> 3u);
@@ -686,6 +714,28 @@ static Bit8u * EGA_Draw_VGA_Planar_Xlat8_Line(Bitu vidstart, Bitu line) {
 
 static Bit8u * VGA_Draw_VGA_Planar_Xlat32_Line(Bitu vidstart, Bitu line) {
     return EGA_Planar_Common_Line<MCH_VGA,Bit32u>(vidstart,line);
+}
+
+template <const unsigned int card,typename templine_type_t> static Bit8u * Alt_EGA_Planar_Common_Line() {
+    templine_type_t* temps = (templine_type_t*)TempLine;
+    Bitu count = vga.draw.blocks + ((vga.draw.panning + 7u) >> 3u);
+
+    while (count > 0u) {
+        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+        Alt_EGA_Planar_Common_Block<card,templine_type_t>(temps,pixels.d);
+        count--;
+    }
+
+    return TempLine + (vga.draw.panning*sizeof(templine_type_t));
+}
+
+static Bit8u * Alt_EGA_Planar_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
+    return Alt_EGA_Planar_Common_Line<MCH_EGA,Bit8u>();
+}
+
+static Bit8u * Alt_VGA_Planar_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
+    return Alt_EGA_Planar_Common_Line<MCH_VGA,Bit32u>();
 }
 
 static Bit8u * VGA_Draw_VGA_Packed4_Xlat32_Line(Bitu vidstart, Bitu /*line*/) {
@@ -3388,11 +3438,19 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         vga.draw.blocks = width;
 
         if (IS_EGA_ARCH) {
-            VGA_DrawLine = EGA_Draw_VGA_Planar_Xlat8_Line;
+            if (vga_alt_new_mode)
+                VGA_DrawLine = Alt_EGA_Planar_Draw_Line;
+            else
+                VGA_DrawLine = EGA_Draw_VGA_Planar_Xlat8_Line;
+
             bpp = 8;
         }
         else {
-            VGA_DrawLine = VGA_Draw_VGA_Planar_Xlat32_Line;
+            if (vga_alt_new_mode)
+                VGA_DrawLine = Alt_VGA_Planar_Draw_Line;
+            else
+                VGA_DrawLine = VGA_Draw_VGA_Planar_Xlat32_Line;
+
             bpp = 32;
         }
         break;
