@@ -2072,7 +2072,7 @@ void VGA_Update_SplitLineCompare() {
 }
 
 void VGA_Alt_CheckSplit(void) {
-    if (vga.draw_2[0].vert.current.pixels == vga.draw.split_line) {
+    if (vga.draw_2[0].raster_scanline == vga.draw.split_line) {
         /* VGA line compare. split line */
         vga.draw.has_split = true;
         if (vga.attr.mode_control&0x20) vga.draw.panning=0;
@@ -2134,6 +2134,9 @@ void VGA_Alt_NextLogScanLine(void) {
 }
 
 void VGA_Alt_NextScanLine(void) {
+    /* track actual raster line to output */
+    vga.draw_2[0].raster_scanline++;
+
     /* do not advance the vertical count nor carry out new scanline functions
      * if doublescan is set and this is the EVEN scan line */
     if (vga.draw_2[0].doublescan_count >= vga.draw_2[0].doublescan_max) {
@@ -2142,6 +2145,9 @@ void VGA_Alt_NextScanLine(void) {
     }
     else {
         vga.draw_2[0].doublescan_count++;
+
+        if (IS_EGAVGA_ARCH)
+            VGA_Alt_CheckSplit();
 
         vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
         vga.draw_2[0].horz.current_char_pixel = 0;
@@ -2611,6 +2617,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
     /* parallel system */
     if (vga_alt_new_mode) {
+        vga.draw_2[0].raster_scanline = 0;
         vga.draw_2[0].doublescan_count = 0;
 
         if (IS_EGAVGA_ARCH) {

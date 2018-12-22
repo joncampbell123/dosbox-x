@@ -356,6 +356,8 @@ typedef struct {
         return ret;
     }
 
+    unsigned int                raster_scanline = 0;    // actual scan line out to display
+
     unsigned char               doublescan_count = 0;   // VGA doublescan counter
     unsigned char               doublescan_max = 0;     // Advance scanline at this count
 
