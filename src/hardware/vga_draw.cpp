@@ -223,8 +223,14 @@ void VGA_Draw2_Recompute_CRTC_MaskAdd(void) {
     else {
         /* CGA/MCGA/PCJr/Tandy is emulated as 16 bits per character clock */
         vga.draw_2[0].draw_base = vga.mem.linear;
-        vga.draw_2[0].crtc_mask = 0x1FFFu;  // 8KB character clocks (16KB bytes)
-        vga.draw_2[0].crtc_add = 0;
+        if (vga.tandy.mode_control & 0x2) { /*graphics*/
+            vga.draw_2[0].crtc_mask = 0xFFFu;  // 4KB character clocks (8KB bytes)
+            vga.draw_2[0].crtc_add = (vga.draw_2[0].vert.current_char_pixel & 1u) << 12u;
+        }
+        else { /*text*/
+            vga.draw_2[0].crtc_mask = 0x1FFFu;  // 8KB character clocks (16KB bytes)
+            vga.draw_2[0].crtc_add = 0;
+        }
     }
 }
 
@@ -980,7 +986,25 @@ static Bit8u * VGA_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
 static Bit8u * VGA_CGASNOW_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
     return CGA_COMMON_TEXT_Draw_Line<true>(vidstart,line);
 }
- 
+
+static Bit8u *Alt_CGA_2color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
+    Bit32u* draw = (Bit32u*)TempLine; // NTS: This is typecast in this way only to write 4 pixels at once at 8bpp
+    Bitu blocks = vga.draw.blocks;
+
+    while (blocks--) { // for each character in the line
+        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+        CGA_Latch pixels(*vga.draw_2[0].drawptr<Bit16u>(addr));
+
+        *draw++=CGA_2_Table[pixels.b[0] >> 4];
+        *draw++=CGA_2_Table[pixels.b[0] & 0xf];
+
+        *draw++=CGA_2_Table[pixels.b[1] >> 4];
+        *draw++=CGA_2_Table[pixels.b[1] & 0xf];
+    }
+
+    return TempLine;
+}
+
 static inline unsigned int Alt_CGA_TEXT_Load_Font_Bitmap(const unsigned char chr,const unsigned char attr,const unsigned int line) {
     return vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
 }
@@ -3321,8 +3345,14 @@ void VGA_SetupDrawing(Bitu /*val*/) {
                 vga.draw.address_line_total = 1;
         }
         else {
-            vga.draw.blocks=width*2;
-            VGA_DrawLine=VGA_Draw_1BPP_Line;
+            if (vga_alt_new_mode) {
+                VGA_DrawLine=Alt_CGA_2color_Draw_Line;
+                vga.draw.blocks=width;
+            }
+            else {
+                VGA_DrawLine=VGA_Draw_1BPP_Line;
+                vga.draw.blocks=width*2;
+            }
         }
         break;
     case M_PC98:
@@ -3374,7 +3404,14 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             vga.draw.blocks=width * 4;
             pix_per_char = 8;
         }
-        VGA_DrawLine=VGA_Draw_1BPP_Line;
+
+        if (vga_alt_new_mode) {
+            vga.draw.blocks = width;
+            VGA_DrawLine=Alt_CGA_2color_Draw_Line;
+        }
+        else {
+            VGA_DrawLine=VGA_Draw_1BPP_Line;
+        }
 
         /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
         if (machine == MCH_MCGA) {
