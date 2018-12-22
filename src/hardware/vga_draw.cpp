@@ -3403,7 +3403,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
                 else {
                     /* if doublescan=false and line_total is even, then halve the height.
                      * the VGA raster scan will skip every other line to accomodate that. */
-                    if ((!vga.draw.doublescan_effect) && (vga.draw.address_line_total & 1) == 0)
+                    if ((vga.draw.address_line_total & 1) == 0)
                         height /= 2;
                     else
                         vga.draw.doublescan_effect = true;
