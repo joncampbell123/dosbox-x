@@ -663,24 +663,20 @@ template <const unsigned int card,typename templine_type_t> static inline void E
 
 template <const unsigned int card,typename templine_type_t> static inline void Alt_EGA_Planar_Common_Block(templine_type_t * &temps,const Bit32u t) {
     Bit32u tmp;
-    Bit32u t1,t2;
 
-        t1 = (t >> 4) & 0x0f0f0f0f;
-        t2 =  t       & 0x0f0f0f0f;
-
-        tmp =   Expand16Table[0][(t1>>0)&0xFF] |
-                Expand16Table[1][(t1>>8)&0xFF] |
-                Expand16Table[2][(t1>>16)&0xFF] |
-                Expand16Table[3][(t1>>24)&0xFF];
+        tmp =   Expand16Table[0][(t >>  4)&0xF] |
+                Expand16Table[1][(t >> 12)&0xF] |
+                Expand16Table[2][(t >> 20)&0xF] |
+                Expand16Table[3][(t >> 28)&0xF];
         temps[0] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>> 0ul)&0xFFul);
         temps[1] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>> 8ul)&0xFFul);
         temps[2] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>>16ul)&0xFFul);
         temps[3] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>>24ul)&0xFFul);
 
-        tmp =   Expand16Table[0][(t2>>0)&0xFF] |
-                Expand16Table[1][(t2>>8)&0xFF] |
-                Expand16Table[2][(t2>>16)&0xFF] |
-                Expand16Table[3][(t2>>24)&0xFF];
+        tmp =   Expand16Table[0][(t >>  0)&0xF] |
+                Expand16Table[1][(t >>  8)&0xF] |
+                Expand16Table[2][(t >> 16)&0xF] |
+                Expand16Table[3][(t >> 24)&0xF];
         temps[4] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>> 0ul)&0xFFul);
         temps[5] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>> 8ul)&0xFFul);
         temps[6] = EGA_Planar_Common_Block_xlat<card,templine_type_t>((tmp>>16ul)&0xFFul);
