@@ -186,21 +186,25 @@ void VGA_Draw2_Recompute_CRTC_MaskAdd(void) {
     }
     else if (IS_EGAVGA_ARCH) {
         /* mem masking can be generalized for ALL VGA/SVGA modes */
-        size_t new_mask = vga.mem.memmask >> 2ul;
+        size_t new_mask = vga.mem.memmask >> (2ul + vga.config.addr_shift);
         size_t new_add = 0;
 
         if (vga.config.compatible_chain4 || svgaCard == SVGA_None) {
             new_mask &= 0xFFFFul; /* 64KB planar (256KB linear when byte mode) */
 
-            /* MAP13: If zero, bit 13 is taken from bit 0 of row scan counter (CGA compatible) */
-            if ((vga.crtc.mode_control & 1u) == 0u) {
-                new_mask &= ~(1u << 13u);
-                new_add  +=  (vga.draw_2[0].vert.current_char_pixel & 1u) << 13u;
-            }
-            /* MAP14: If zero, bit 14 is taken from bit 1 of row scan counter (Hercules compatible) */
-            if ((vga.crtc.mode_control & 2u) == 0u) {
-                new_mask &= ~(1u << 14u);
-                new_add  +=  (vga.draw_2[0].vert.current_char_pixel & 2u) << 13u;    /* 2 << 13 == 1 << 14 */
+            if ((vga.crtc.mode_control & 3u) != 3u) {
+                const unsigned int shift = 13u - vga.config.addr_shift;
+
+                /* MAP13: If zero, bit 13 is taken from bit 0 of row scan counter (CGA compatible) */
+                if ((vga.crtc.mode_control & 1u) == 0u) {
+                    new_mask &= ~(1u << shift);
+                    new_add  +=  (vga.draw_2[0].vert.current_char_pixel & 1u) << shift;
+                }
+                /* MAP14: If zero, bit 14 is taken from bit 1 of row scan counter (Hercules compatible) */
+                if ((vga.crtc.mode_control & 2u) == 0u) {
+                    new_mask &= ~(2u << shift);
+                    new_add  +=  (vga.draw_2[0].vert.current_char_pixel & 2u) << shift;
+                }
             }
         }
 
