@@ -356,6 +356,9 @@ typedef struct {
         return ret;
     }
 
+    unsigned char               doublescan_count = 0;   // VGA doublescan counter
+    unsigned char               doublescan_max = 0;     // Advance scanline at this count
+
     // NTS: horz.char_pixels == 8 for CGA/MDA/etc and EGA/VGA text, but EGA/VGA can select 9 pixels/char.
     //      VGA 320x200x256-color mode will have 4 pixels/char. A hacked version of 320x200x256-color mode
     //      in which the 8BIT bit is cleared (which makes it a sort of 640x200x256-color-ish mode that

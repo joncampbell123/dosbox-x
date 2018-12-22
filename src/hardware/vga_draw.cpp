@@ -2058,7 +2058,7 @@ void VGA_Alt_UpdateCRTCAdd(void) {
     }
 }
 
-void VGA_Alt_NextScanLine(void) {
+void VGA_Alt_NextLogScanLine(void) {
     vga.draw_2[0].horz.current = 0;
     vga.draw_2[0].vert.current.pixels++;
 
@@ -2086,6 +2086,18 @@ void VGA_Alt_NextScanLine(void) {
     vga.draw_2[0].horz.current_char_pixel = 0;
 
     VGA_Draw2_Recompute_CRTC_MaskAdd();
+}
+
+void VGA_Alt_NextScanLine(void) {
+    /* do not advance the vertical count nor carry out new scanline functions
+     * if doublescan is set and this is the EVEN scan line */
+    if (vga.draw_2[0].doublescan_count >= vga.draw_2[0].doublescan_max) {
+        vga.draw_2[0].doublescan_count = 0;
+        VGA_Alt_NextLogScanLine();
+    }
+    else {
+        vga.draw_2[0].doublescan_count++;
+    }
 }
 
 static void VGA_DrawSingleLine(Bitu /*blah*/) {
@@ -3282,6 +3294,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     vga.draw.has_split=false;
     vga.draw.vret_triggered=false;
 
+    if (vga_alt_new_mode) {
+        vga.draw_2[0].doublescan_count = 0;
+        vga.draw_2[0].doublescan_max = 0;
+    }
+
     //Check to prevent useless black areas
     if (hbstart<hdend) hdend=hbstart;
     if ((!(IS_VGA_ARCH || IS_PC98_ARCH)) && (vbstart<vdend)) vdend=vbstart;
@@ -3308,15 +3325,33 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         default:
             vga.draw.doublescan_effect = vga.draw.doublescan_set;
 
-            if (vga.crtc.maximum_scan_line & 0x80)
-                vga.draw.address_line_total *= 2;
+            if (vga_alt_new_mode) {
+                if (vga.draw.doublescan_effect) {
+                    if (vga.crtc.maximum_scan_line & 0x80)
+                        vga.draw_2[0].doublescan_max = 1;
+                    else
+                        vga.draw_2[0].doublescan_max = 0;
+                }
+                else {
+                    /* if doublescan=false and line_total is even, then halve the height.
+                     * the VGA raster scan will skip every other line to accomodate that. */
+                    if ((!vga.draw.doublescan_effect) && (vga.draw.address_line_total & 1) == 0)
+                        height /= 2;
+                    else
+                        vga.draw.doublescan_effect = true;
+                }
+            }
+            else {
+                if (vga.crtc.maximum_scan_line & 0x80)
+                    vga.draw.address_line_total *= 2;
 
-            /* if doublescan=false and line_total is even, then halve the height.
-             * the VGA raster scan will skip every other line to accomodate that. */
-            if ((!vga.draw.doublescan_effect) && (vga.draw.address_line_total & 1) == 0)
-                height /= 2;
-            else
-                vga.draw.doublescan_effect = true;
+                /* if doublescan=false and line_total is even, then halve the height.
+                 * the VGA raster scan will skip every other line to accomodate that. */
+                if ((!vga.draw.doublescan_effect) && (vga.draw.address_line_total & 1) == 0)
+                    height /= 2;
+                else
+                    vga.draw.doublescan_effect = true;
+            }
 
             break;
         }
