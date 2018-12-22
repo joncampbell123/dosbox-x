@@ -1056,6 +1056,29 @@ static Bit8u *Alt_EGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
     return TempLine;
 }
 
+static Bit8u *Alt_VGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
+    Bit32u* draw = (Bit32u*)TempLine;
+    Bitu blocks = vga.draw.blocks;
+    unsigned char val;
+
+    while (blocks--) { // for each character in the line
+        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+
+        /* CGA odd/even mode, first plane */
+        val = pixels.b[0];
+        for (unsigned int i=0;i < 4;i++,val <<= 2)
+            *draw++ = vga.dac.xlat32[(val>>6)&3];
+
+        /* CGA odd/even mode, second plane */
+        val = pixels.b[1];
+        for (unsigned int i=0;i < 4;i++,val <<= 2)
+            *draw++ = vga.dac.xlat32[(val>>6)&3];
+    }
+
+    return TempLine;
+}
+
 static Bit8u *Alt_CGA_2color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
     Bit32u* draw = (Bit32u*)TempLine; // NTS: This is typecast in this way only to write 4 pixels at once at 8bpp
     Bitu blocks = vga.draw.blocks;
@@ -3390,7 +3413,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         }
         else if (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
             vga.draw.blocks=width;
-            VGA_DrawLine=VGA_Draw_2BPP_Line_as_VGA;
+            if (vga_alt_new_mode)
+                VGA_DrawLine=Alt_VGA_2BPP_Draw_Line;
+            else
+                VGA_DrawLine=VGA_Draw_2BPP_Line_as_VGA;
+
             bpp = 32;
         }
         else if (machine == MCH_MCGA) {
