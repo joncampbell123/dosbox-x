@@ -215,14 +215,17 @@ void VGA_Draw2_Recompute_CRTC_MaskAdd(void) {
         vga.draw_2[0].crtc_mask = 0x7FFu;  // 2KB character clocks (4KB bytes)
         vga.draw_2[0].crtc_add = 0;
     }
-    else if (machine == MCH_TANDY || machine == MCH_PCJR) {
-        vga.draw_2[0].draw_base = vga.tandy.mem_base;
-        vga.draw_2[0].crtc_mask = 0x3FFFu;  // 16KB character clocks (32KB bytes)
-        vga.draw_2[0].crtc_add = 0;
-    }
     else {
+        /* TODO: PCjr/Tandy 16-color extended modes */
+
         /* CGA/MCGA/PCJr/Tandy is emulated as 16 bits per character clock */
-        vga.draw_2[0].draw_base = vga.mem.linear;
+        /* PCJr uses system memory < 128KB for video memory.
+         * Tandy has an alternate location as well. */
+        if (machine == MCH_TANDY || machine == MCH_PCJR)
+            vga.draw_2[0].draw_base = vga.tandy.mem_base;
+        else
+            vga.draw_2[0].draw_base = vga.mem.linear;
+
         if (vga.tandy.mode_control & 0x2) { /*graphics*/
             vga.draw_2[0].crtc_mask = 0xFFFu;  // 4KB character clocks (8KB bytes)
             vga.draw_2[0].crtc_add = (vga.draw_2[0].vert.current_char_pixel & 1u) << 12u;
