@@ -2075,9 +2075,14 @@ void VGA_Alt_CheckSplit(void) {
     if (vga.draw_2[0].raster_scanline == vga.draw.split_line) {
         /* VGA line compare. split line */
         vga.draw.has_split = true;
-        if (vga.attr.mode_control&0x20) vga.draw.panning=0;
+        if (vga.attr.mode_control&0x20) {
+            vga.draw_2[0].vert.crtc_addr = 0;
+            vga.draw.panning = 0;
+        }
+        else {
+            vga.draw_2[0].vert.crtc_addr = 0 + vga.draw.bytes_skip;
+        }
         vga.draw_2[0].vert.current_char_pixel = 0;
-        vga.draw_2[0].vert.crtc_addr = 0;
     }
 }
 
@@ -2630,7 +2635,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             VGA_Alt_UpdateCRTCPixels();
             VGA_Alt_UpdateCRTCAdd();
 
-            vga.draw_2[0].vert.crtc_addr = vga.config.display_start + vga.config.bytes_skip;
+            vga.draw_2[0].vert.crtc_addr = vga.config.real_start + vga.draw.bytes_skip;
             vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
 
             VGA_Draw2_Recompute_CRTC_MaskAdd();
@@ -2646,7 +2651,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             VGA_Alt_UpdateCRTCPixels();
             VGA_Alt_UpdateCRTCAdd();
 
-            vga.draw_2[0].vert.crtc_addr = vga.config.display_start;
+            vga.draw_2[0].vert.crtc_addr = vga.config.real_start;
             vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
 
             VGA_Draw2_Recompute_CRTC_MaskAdd();
