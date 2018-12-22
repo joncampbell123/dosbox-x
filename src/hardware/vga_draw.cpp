@@ -2097,6 +2097,11 @@ void VGA_Alt_NextScanLine(void) {
     }
     else {
         vga.draw_2[0].doublescan_count++;
+
+        vga.draw_2[0].horz.crtc_addr = vga.draw_2[0].vert.crtc_addr;
+        vga.draw_2[0].horz.current_char_pixel = 0;
+
+        VGA_Draw2_Recompute_CRTC_MaskAdd();
     }
 }
 
