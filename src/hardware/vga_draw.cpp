@@ -539,6 +539,31 @@ static Bit8u * VGA_Draw_Linear_Line(Bitu vidstart, Bitu /*line*/) {
     return ret;
 }
 
+static Bit8u * Alt_VGA_256color_Draw_Line_Tseng_ET4000(Bitu /*vidstart*/, Bitu /*line*/) {
+    Bit32u* temps = (Bit32u*) TempLine;
+    Bitu count = vga.draw.blocks;
+
+    // Tseng ET4000 cards in 256-color mode appear to treat DWORD mode the same as BYTE mode,
+    // which is why you can directly draw into the first 128KB and make it visible and even
+    // pan to it. Most SVGA cards have DWORD mode ON and wrap 64KB in the stock 256-color mode.
+    const unsigned int shift = (vga.config.addr_shift & 1);
+
+    while (count > 0u) {
+        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << shift));
+
+        /* one group of 4 */
+        *temps++ = vga.dac.xlat32[pixels.b[0]];
+        *temps++ = vga.dac.xlat32[pixels.b[1]];
+        *temps++ = vga.dac.xlat32[pixels.b[2]];
+        *temps++ = vga.dac.xlat32[pixels.b[3]];
+
+        count--;
+    }
+
+    return TempLine;
+}
+
 static Bit8u * Alt_VGA_256color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
     Bit32u* temps = (Bit32u*) TempLine;
     Bitu count = vga.draw.blocks;
@@ -3448,7 +3473,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         if (vga.mode == M_VGA && (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)) {
             /* ET4000 chipsets handle the chained mode (in my opinion) with sanity and we can scan linearly for it.
              * Chained VGA mode maps planar byte addr = (addr >> 2) and plane = (addr & 3) */
-            VGA_DrawLine = VGA_Draw_Xlat32_Linear_Line;
+            if (vga_alt_new_mode) {
+                vga.draw.blocks = width;
+                VGA_DrawLine = Alt_VGA_256color_Draw_Line_Tseng_ET4000;
+            }
+            else {
+                VGA_DrawLine = VGA_Draw_Xlat32_Linear_Line;
+            }
         }
         else if (machine == MCH_MCGA) {
             pix_per_char = 8;
