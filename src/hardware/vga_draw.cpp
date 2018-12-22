@@ -3391,7 +3391,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
             if (vga_alt_new_mode) {
                 if (vga.draw.doublescan_effect) {
-                    if (vga.crtc.maximum_scan_line & 0x80)
+                    if (IS_VGA_ARCH && (vga.crtc.maximum_scan_line & 0x80))
                         vga.draw_2[0].doublescan_max = 1;
                     else
                         vga.draw_2[0].doublescan_max = 0;
