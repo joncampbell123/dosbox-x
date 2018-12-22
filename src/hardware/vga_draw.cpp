@@ -539,6 +539,26 @@ static Bit8u * VGA_Draw_Linear_Line(Bitu vidstart, Bitu /*line*/) {
     return ret;
 }
 
+static Bit8u * Alt_VGA_256color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
+    Bit32u* temps = (Bit32u*) TempLine;
+    Bitu count = vga.draw.blocks;
+
+    while (count > 0u) {
+        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+
+        /* one group of 4 */
+        *temps++ = vga.dac.xlat32[pixels.b[0]];
+        *temps++ = vga.dac.xlat32[pixels.b[1]];
+        *temps++ = vga.dac.xlat32[pixels.b[2]];
+        *temps++ = vga.dac.xlat32[pixels.b[3]];
+
+        count--;
+    }
+
+    return TempLine;
+}
+
 /* WARNING: This routine assumes (vidstart&3) == 0 */
 static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/) {
     Bit32u* temps = (Bit32u*) TempLine;
@@ -3443,7 +3463,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
              * of whatever contents of memory remain. but when you unchain the bitplanes the card will allow
              * "planar" writing to all 16 pixels properly. Chained VGA maps like planar byte = (addr & ~3) and
              * plane = (addr & 3) */
-            VGA_DrawLine = VGA_Draw_Xlat32_VGA_CRTC_bmode_Line;
+            if (vga_alt_new_mode) {
+                vga.draw.blocks = width;
+                VGA_DrawLine = Alt_VGA_256color_Draw_Line;
+            }
+            else {
+                VGA_DrawLine = VGA_Draw_Xlat32_VGA_CRTC_bmode_Line;
+            }
         }
         break;
     case M_LIN8:
