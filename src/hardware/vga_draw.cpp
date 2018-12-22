@@ -2037,7 +2037,11 @@ static Bit8u VGA_GetBlankedIndex() {
 /* this is now called PER LINE because most VGA cards do not double-buffer the value.
  * a few demos rely on line compare schenanigans to play with the raster, as does my own VGA test program --J.C. */
 void VGA_Update_SplitLineCompare() {
-    vga.draw.split_line = (vga.config.line_compare + 1) / vga.draw.render_max;
+    if (vga_alt_new_mode)
+        vga.draw.split_line = vga.config.line_compare + 1;
+    else
+        vga.draw.split_line = (vga.config.line_compare + 1) / vga.draw.render_max;
+
     if (svgaCard==SVGA_S3Trio) {
         /* FIXME: Is this really necessary? Is this what S3 chipsets do?
          *        What is supposed to happen is that line_compare == 0 on normal VGA will cause the first
