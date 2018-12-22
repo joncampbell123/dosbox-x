@@ -208,7 +208,19 @@ void VGA_Draw2_Recompute_CRTC_MaskAdd(void) {
         vga.draw_2[0].crtc_mask = new_mask;  // 8KB character clocks (16KB bytes)
         vga.draw_2[0].crtc_add = new_add;
     }
-    else if (machine == MCH_HERC || machine == MCH_MDA) {
+    else if (machine == MCH_HERC) {
+        vga.draw_2[0].draw_base = vga.tandy.mem_base;
+
+        if (vga.herc.mode_control & 2) { /* graphics */
+            vga.draw_2[0].crtc_mask = 0xFFFu;  // 4KB character clocks (8KB bytes)
+            vga.draw_2[0].crtc_add = (vga.draw_2[0].vert.current_char_pixel & 3u) << 12u;
+        }
+        else { /* text */
+            vga.draw_2[0].crtc_mask = 0x7FFu;  // 2KB character clocks (4KB bytes)
+            vga.draw_2[0].crtc_add = 0;
+        }
+    }
+    else if (machine == MCH_MDA) {
         /* MDA/Hercules is emulated as 16 bits per character clock */
         vga.draw_2[0].draw_base = vga.mem.linear;
         vga.draw_2[0].crtc_mask = 0x7FFu;  // 2KB character clocks (4KB bytes)
@@ -3460,10 +3472,16 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         }
         break;
     case M_HERC_GFX:
-        vga.draw.blocks=width*2;
+        if (vga_alt_new_mode) {
+            vga.draw.blocks = width;
+            VGA_DrawLine = Alt_CGA_2color_Draw_Line;
+        }
+        else {
+            vga.draw.blocks=width*2;
+            if (vga.herc.blend) VGA_DrawLine=VGA_Draw_1BPP_Blend_Line;
+            else VGA_DrawLine=VGA_Draw_1BPP_Line;
+        }
         pix_per_char = 16;
-        if (vga.herc.blend) VGA_DrawLine=VGA_Draw_1BPP_Blend_Line;
-        else VGA_DrawLine=VGA_Draw_1BPP_Line;
         break;
     case M_TANDY2:
         if (((machine==MCH_PCJR)&&(vga.tandy.gfx_control & 0x8)) ||
