@@ -3394,16 +3394,15 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             vga.draw.doublescan_effect = vga.draw.doublescan_set;
 
             if (vga_alt_new_mode) {
-                if (vga.draw.doublescan_effect) {
-                    if (IS_VGA_ARCH && (vga.crtc.maximum_scan_line & 0x80))
-                        vga.draw_2[0].doublescan_max = 1;
-                    else
-                        vga.draw_2[0].doublescan_max = 0;
-                }
-                else {
-                    /* if doublescan=false and line_total is even, then halve the height.
-                     * the VGA raster scan will skip every other line to accomodate that. */
-                    if ((vga.draw.address_line_total & 1) == 0)
+                if (IS_VGA_ARCH && (vga.crtc.maximum_scan_line & 0x80))
+                    vga.draw_2[0].doublescan_max = 1;
+                else
+                    vga.draw_2[0].doublescan_max = 0;
+
+                if (!vga.draw.doublescan_effect) {
+                    if (IS_VGA_ARCH && (vga.crtc.maximum_scan_line & 0x80)) /* CGA/EGA modes on VGA */
+                        height /= 2;
+                    else if ((vga.crtc.maximum_scan_line & 1) == 1) /* multiple of 2, 256-color mode on VGA, for example */
                         height /= 2;
                     else
                         vga.draw.doublescan_effect = true;
