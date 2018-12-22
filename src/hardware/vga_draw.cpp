@@ -2566,6 +2566,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
     /* parallel system */
     if (vga_alt_new_mode) {
+        vga.draw_2[0].doublescan_count = 0;
+
         if (IS_EGAVGA_ARCH) {
             vga.draw_2[0].horz.current = 0;
             vga.draw_2[0].vert.current = 0;
