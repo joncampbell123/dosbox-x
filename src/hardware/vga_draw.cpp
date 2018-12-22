@@ -192,19 +192,14 @@ void VGA_Draw2_Recompute_CRTC_MaskAdd(void) {
         if (vga.config.compatible_chain4 || svgaCard == SVGA_None) {
             new_mask &= 0xFFFFul; /* 64KB planar (256KB linear when byte mode) */
 
+            /* MAP13: If zero, bit 13 is taken from bit 0 of row scan counter (CGA compatible) */
+            /* MAP14: If zero, bit 14 is taken from bit 1 of row scan counter (Hercules compatible) */
             if ((vga.crtc.mode_control & 3u) != 3u) {
                 const unsigned int shift = 13u - vga.config.addr_shift;
+                const unsigned char mask = (vga.crtc.mode_control & 3u) ^ 3u;
 
-                /* MAP13: If zero, bit 13 is taken from bit 0 of row scan counter (CGA compatible) */
-                if ((vga.crtc.mode_control & 1u) == 0u) {
-                    new_mask &= ~(1u << shift);
-                    new_add  +=  (vga.draw_2[0].vert.current_char_pixel & 1u) << shift;
-                }
-                /* MAP14: If zero, bit 14 is taken from bit 1 of row scan counter (Hercules compatible) */
-                if ((vga.crtc.mode_control & 2u) == 0u) {
-                    new_mask &= ~(2u << shift);
-                    new_add  +=  (vga.draw_2[0].vert.current_char_pixel & 2u) << shift;
-                }
+                new_mask &= ~(mask << shift);
+                new_add  +=  (vga.draw_2[0].vert.current_char_pixel & mask) << shift;
             }
         }
 
