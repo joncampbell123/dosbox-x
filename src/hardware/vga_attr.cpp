@@ -184,6 +184,8 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 			
 			if (difference & 0x41)
 				VGA_DetermineMode();
+            if ((difference & 0x40) && (vga.mode == M_VGA)) // 8BIT changes in 256-color mode must be handled
+                VGA_StartResize(50);
 
 			if (difference & 0x04) {
 				// recompute the panning value
