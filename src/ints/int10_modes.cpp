@@ -1620,6 +1620,7 @@ att_text16:
 		real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAL,0x3f);
 		break;
 	case M_CGA4:
+		att_data[0x12]=0x3;			//Only enable 2 planes
 		att_data[0x10]=0x01;		//Color Graphics
 		att_data[0]=0x0;
 		att_data[1]=0x13;

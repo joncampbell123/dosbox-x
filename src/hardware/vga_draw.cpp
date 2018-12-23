@@ -1094,7 +1094,7 @@ static Bit8u * VGA_CGASNOW_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
 static Bit8u *Alt_EGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
     Bit8u* draw = (Bit8u*)TempLine;
     Bitu blocks = vga.draw.blocks;
-    unsigned char val;
+    unsigned int val,val2;
 
     while (blocks--) { // for each character in the line
         const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
@@ -1102,13 +1102,15 @@ static Bit8u *Alt_EGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
 
         /* CGA odd/even mode, first plane */
         val = pixels.b[0];
-        for (unsigned int i=0;i < 4;i++,val <<= 2)
-            *draw++ = vga.attr.palette[(val>>6)&3];
+        val2 = pixels.b[2] << 2u;
+        for (unsigned int i=0;i < 4;i++,val <<= 2,val2 <<= 2)
+            *draw++ = vga.attr.palette[(((val>>6)&0x3) + ((val2>>6)&0xC))&vga.attr.color_plane_enable];
 
         /* CGA odd/even mode, second plane */
         val = pixels.b[1];
-        for (unsigned int i=0;i < 4;i++,val <<= 2)
-            *draw++ = vga.attr.palette[(val>>6)&3];
+        val2 = pixels.b[3] << 2u;
+        for (unsigned int i=0;i < 4;i++,val <<= 2,val2 <<= 2)
+            *draw++ = vga.attr.palette[(((val>>6)&0x3) + ((val2>>6)&0xC))&vga.attr.color_plane_enable];
     }
 
     return TempLine;
@@ -1117,7 +1119,7 @@ static Bit8u *Alt_EGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
 static Bit8u *Alt_VGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
     Bit32u* draw = (Bit32u*)TempLine;
     Bitu blocks = vga.draw.blocks;
-    unsigned char val;
+    unsigned int val,val2;
 
     while (blocks--) { // for each character in the line
         const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
@@ -1125,13 +1127,15 @@ static Bit8u *Alt_VGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
 
         /* CGA odd/even mode, first plane */
         val = pixels.b[0];
-        for (unsigned int i=0;i < 4;i++,val <<= 2)
-            *draw++ = vga.dac.xlat32[(val>>6)&3];
+        val2 = pixels.b[2] << 2u;
+        for (unsigned int i=0;i < 4;i++,val <<= 2,val2 <<= 2)
+            *draw++ = vga.dac.xlat32[(((val>>6)&0x3) + ((val2>>6)&0xC))&vga.attr.color_plane_enable];
 
         /* CGA odd/even mode, second plane */
         val = pixels.b[1];
-        for (unsigned int i=0;i < 4;i++,val <<= 2)
-            *draw++ = vga.dac.xlat32[(val>>6)&3];
+        val2 = pixels.b[3] << 2u;
+        for (unsigned int i=0;i < 4;i++,val <<= 2,val2 <<= 2)
+            *draw++ = vga.dac.xlat32[(((val>>6)&0x3) + ((val2>>6)&0xC))&vga.attr.color_plane_enable];
     }
 
     return TempLine;
