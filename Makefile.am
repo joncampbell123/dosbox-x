@@ -17,7 +17,7 @@ dosbox-x.app: src/dosbox-x src/dosbox.icns
 	cp -v font/FREECG98.BMP dosbox-x.app/Contents/Resources/freecg98.bmp
 	cp -v src/dosbox-x dosbox-x.app/Contents/MacOS/DosBox
 # this is where it gets ugly
-	otool -L dosbox-x.app/Contents/MacOS/DosBox | grep '/usr/local/lib' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
+	otool -L dosbox-x.app/Contents/MacOS/DosBox | grep -E '/usr/local/lib|/usr/local/opt/ffmpeg/lib' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
 		dylib=`basename $$Y`; \
 		cp -v $$Y dosbox-x.app/Contents/MacOS/; \
 		install_name_tool -change $$Y @executable_path/$$dylib dosbox-x.app/Contents/MacOS/DosBox; \
