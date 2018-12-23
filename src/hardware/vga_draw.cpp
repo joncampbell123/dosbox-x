@@ -604,7 +604,11 @@ template <const unsigned int pixelcount> static inline void Alt_VGA_256color_2x4
  * top nibble can be seen as the last clocked out pixel before end of
  * active display, pixels == 1 */
 
-    if (pixelcount == 1 || pixelcount == 7) {
+    if (pixelcount == 1) {
+        LOAD_NEXT_PIXEL(0);
+        SHIFTED_PIXEL;
+    }
+    else if (pixelcount == 7) {
         LOAD_NEXT_PIXEL(0);
         UNSHIFTED_PIXEL;
     }
