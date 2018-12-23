@@ -587,6 +587,75 @@ static Bit8u * Alt_VGA_256color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
     return TempLine;
 }
 
+/* 256-color mode with 8BIT=0, in which the intermediate shift states are visible between
+ * each 8-bit pixel, producing a weird 640x200 256-color mode.
+ *
+ * Not all SVGA cards emulate this. Tseng ET4000 for example will react by just rendering
+ * the 320 pixels horizontally squeezed on the left half of the screen and nothing on the right. */
+static Bit8u * Alt_VGA_256color_2x4bit_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
+    Bit32u* temps = (Bit32u*) TempLine;
+    Bitu count = vga.draw.blocks;
+    unsigned char cur,nex;
+
+#define LOAD_NEXT_PIXEL(n)  nex = pixels.b[n]
+#define SHIFTED_PIXEL       *temps++ = vga.dac.xlat32[((cur << 4u) + (nex >> 4u)) & 0xFFu]
+#define UNSHIFTED_PIXEL     *temps++ = vga.dac.xlat32[nex]; cur = nex
+
+    if (count > 0u) {
+        /* on VGA hardware I've seen, the first pixel is the full 8-bit pixel value of the FIRST pixel in memory. */
+        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+
+        /* NTS: Emits 7 pixels, not 8. On VGA hardware the first visible pixel is the full pixel */
+        LOAD_NEXT_PIXEL(0);
+        UNSHIFTED_PIXEL;
+
+        LOAD_NEXT_PIXEL(1);
+        SHIFTED_PIXEL;
+        UNSHIFTED_PIXEL;
+
+        LOAD_NEXT_PIXEL(2);
+        SHIFTED_PIXEL;
+        UNSHIFTED_PIXEL;
+
+        LOAD_NEXT_PIXEL(3);
+        SHIFTED_PIXEL;
+        UNSHIFTED_PIXEL;
+
+        count--;
+    }
+
+    while (count > 0u) {
+        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+
+        /* NTS: Emits 8 pixels, including intermediate from last loop */
+        LOAD_NEXT_PIXEL(0);
+        SHIFTED_PIXEL;
+        UNSHIFTED_PIXEL;
+
+        LOAD_NEXT_PIXEL(1);
+        SHIFTED_PIXEL;
+        UNSHIFTED_PIXEL;
+
+        LOAD_NEXT_PIXEL(2);
+        SHIFTED_PIXEL;
+        UNSHIFTED_PIXEL;
+
+        LOAD_NEXT_PIXEL(3);
+        SHIFTED_PIXEL;
+        UNSHIFTED_PIXEL;
+
+        count--;
+    }
+
+#undef LOAD_NEXT_PIXEL
+#undef SHIFTED_PIXEL
+#undef UNSHIFTED_PIXEL
+
+    return TempLine;
+}
+
 /* WARNING: This routine assumes (vidstart&3) == 0 */
 static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/) {
     Bit32u* temps = (Bit32u*) TempLine;
@@ -3484,7 +3553,23 @@ void VGA_SetupDrawing(Bitu /*val*/) {
              * plane = (addr & 3) */
             if (vga_alt_new_mode) {
                 vga.draw.blocks = width;
-                VGA_DrawLine = Alt_VGA_256color_Draw_Line;
+
+                /* NTS: 8BIT (bit 6) is normally set for 256-color mode. What it does when enabled
+                 *      is latch every other pixel clock an 8-bit value to the DAC. It is needed
+                 *      because VGA hardware appears to generate a 4-bit (16-color) value per pixel
+                 *      clock internally. For 256-color mode, it shifts 4 bits through an 8-bit
+                 *      register per pixel clock. You're supposed to set 8BIT so that it latches
+                 *      the 8-bit value only when it's completed two 4-bit values to get a proper
+                 *      256-color mode. If you turn off 8BIT, then the 8-bit values and the
+                 *      intermediate shifted values are emitted to the screen as a sort of weird
+                 *      640x200 256-color mode. */
+                if (vga.attr.mode_control & 0x40) { /* 8BIT=1 (normal) 256-color mode */
+                    VGA_DrawLine = Alt_VGA_256color_Draw_Line;
+                }
+                else {
+                    VGA_DrawLine = Alt_VGA_256color_2x4bit_Draw_Line;
+                    pix_per_char = 8;
+                }
             }
             else {
                 VGA_DrawLine = VGA_Draw_Xlat32_VGA_CRTC_bmode_Line;
