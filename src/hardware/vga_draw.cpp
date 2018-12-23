@@ -1091,8 +1091,8 @@ static Bit8u * VGA_CGASNOW_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
     return CGA_COMMON_TEXT_Draw_Line<true>(vidstart,line);
 }
 
-static Bit8u *Alt_EGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
-    Bit8u* draw = (Bit8u*)TempLine;
+template <const unsigned int card,typename templine_type_t> static inline Bit8u *Alt_EGAVGA_Common_2BPP_Draw_Line(void) {
+    templine_type_t* draw = (templine_type_t*)TempLine;
     Bitu blocks = vga.draw.blocks;
     unsigned int val,val2;
 
@@ -1104,41 +1104,24 @@ static Bit8u *Alt_EGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
         val = pixels.b[0];
         val2 = pixels.b[2] << 2u;
         for (unsigned int i=0;i < 4;i++,val <<= 2,val2 <<= 2)
-            *draw++ = EGA_Planar_Common_Block_xlat<MCH_EGA,Bit8u>(((val>>6)&0x3) + ((val2>>6)&0xC));
+            *draw++ = EGA_Planar_Common_Block_xlat<card,templine_type_t>(((val>>6)&0x3) + ((val2>>6)&0xC));
 
         /* CGA odd/even mode, second plane */
         val = pixels.b[1];
         val2 = pixels.b[3] << 2u;
         for (unsigned int i=0;i < 4;i++,val <<= 2,val2 <<= 2)
-            *draw++ = EGA_Planar_Common_Block_xlat<MCH_EGA,Bit8u>(((val>>6)&0x3) + ((val2>>6)&0xC));
+            *draw++ = EGA_Planar_Common_Block_xlat<card,templine_type_t>(((val>>6)&0x3) + ((val2>>6)&0xC));
     }
 
     return TempLine;
 }
 
+static Bit8u *Alt_EGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
+    return Alt_EGAVGA_Common_2BPP_Draw_Line<MCH_EGA,Bit8u>();
+}
+
 static Bit8u *Alt_VGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
-    Bit32u* draw = (Bit32u*)TempLine;
-    Bitu blocks = vga.draw.blocks;
-    unsigned int val,val2;
-
-    while (blocks--) { // for each character in the line
-        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
-
-        /* CGA odd/even mode, first plane */
-        val = pixels.b[0];
-        val2 = pixels.b[2] << 2u;
-        for (unsigned int i=0;i < 4;i++,val <<= 2,val2 <<= 2)
-            *draw++ = EGA_Planar_Common_Block_xlat<MCH_VGA,Bit32u>(((val>>6)&0x3) + ((val2>>6)&0xC));
-
-        /* CGA odd/even mode, second plane */
-        val = pixels.b[1];
-        val2 = pixels.b[3] << 2u;
-        for (unsigned int i=0;i < 4;i++,val <<= 2,val2 <<= 2)
-            *draw++ = EGA_Planar_Common_Block_xlat<MCH_VGA,Bit32u>(((val>>6)&0x3) + ((val2>>6)&0xC));
-    }
-
-    return TempLine;
+    return Alt_EGAVGA_Common_2BPP_Draw_Line<MCH_VGA,Bit32u>();
 }
 
 static Bit8u *Alt_CGA_2color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
