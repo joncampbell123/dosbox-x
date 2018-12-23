@@ -147,7 +147,24 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 		case 0x04:		case 0x05:		case 0x06:		case 0x07:
 		case 0x08:		case 0x09:		case 0x0a:		case 0x0b:
 		case 0x0c:		case 0x0d:		case 0x0e:		case 0x0f:
-			if (attr(disabled) & 0x1) VGA_ATTR_SetPalette(attr(index),(Bit8u)val);
+			if (attr(disabled) & 0x1) {
+                VGA_ATTR_SetPalette(attr(index),(Bit8u)val);
+
+                /* if the color plane enable register is anything other than 0x0F, then
+                 * the whole attribute palette must be re-sent to the DAC because the
+                 * masking causes one entry to affect others due to the way the VGA
+                 * lookup table works (array xlat32[]). This is not necessary for EGA
+                 * emulation because it uses the color plane enable mask directly. */
+                if (IS_VGA_ARCH && (attr(color_plane_enable) & 0x0F) != 0x0F) {
+                    /* update entries before the desired index */
+                    for (Bit8u i=0;i < attr(index);i++)
+                        VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
+
+                    /* update entries after the desired index */
+                    for (Bit8u i=attr(index)+1;i < 0x10;i++)
+                        VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
+                }
+            }
 			/*
 				0-5	Index into the 256 color DAC table. May be modified by 3C0h index
 				10h and 14h.
