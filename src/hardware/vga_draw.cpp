@@ -194,7 +194,7 @@ void VGA_Draw2_Recompute_CRTC_MaskAdd(void) {
 
         /* CGA/Hercules compatible interlacing, unless SVGA graphics mode.
          * Note that ET4000 and ET3000 emulation will NOT set compatible_chain4 */
-        if (vga.config.compatible_chain4 || svgaCard == SVGA_None ||svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) {
+        if (vga.config.compatible_chain4 || svgaCard == SVGA_None || svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) {
             /* MAP13: If zero, bit 13 is taken from bit 0 of row scan counter (CGA compatible) */
             /* MAP14: If zero, bit 14 is taken from bit 1 of row scan counter (Hercules compatible) */
             if ((vga.crtc.mode_control & 3u) != 3u) {
