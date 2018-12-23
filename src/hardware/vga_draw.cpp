@@ -2629,6 +2629,18 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
     /* parallel system */
     if (vga_alt_new_mode) {
+        /* the doublescan bit can be changed between frames, it can happen!
+         *
+         * "Show" by Majic 12: Two parts use 320x200 16-color planar mode, which by default
+         *                     is programmed by INT 10h to use the doublescan bit and max scanline == 0.
+         *                     These two parts then reprogram that register to turn off doublescan
+         *                     and set max scanline == 1. This compensation is needed for those two
+         *                     parts to show correctly. */
+        if (IS_VGA_ARCH && (vga.crtc.maximum_scan_line & 0x80))
+            vga.draw_2[0].doublescan_max = 1;
+        else
+            vga.draw_2[0].doublescan_max = 0;
+
         vga.draw_2[0].raster_scanline = 0;
         vga.draw_2[0].doublescan_count = 0;
 
