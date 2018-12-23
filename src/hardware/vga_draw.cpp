@@ -3623,10 +3623,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         }
         break;
     case M_CGA2:
+        // CGA 2-color mode on EGA/VGA is just EGA 16-color planar mode with one bitplane enabled and a
+        // color palette to match. Therefore CGA 640x200 2-color mode can be rendered correctly using
+        // the 16-color planar renderer.
         if (IS_EGA_ARCH) {
             vga.draw.blocks=width;
             if (vga_alt_new_mode)
-                VGA_DrawLine=Alt_EGA_1BPP_Draw_Line;
+                VGA_DrawLine=Alt_EGA_Planar_Draw_Line;
             else
                 VGA_DrawLine=EGA_Draw_1BPP_Line_as_EGA;
 
@@ -3635,7 +3638,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         else if (IS_EGAVGA_ARCH) {
             vga.draw.blocks=width;
             if (vga_alt_new_mode)
-                VGA_DrawLine=Alt_VGA_1BPP_Draw_Line;
+                VGA_DrawLine=Alt_VGA_Planar_Draw_Line;
             else
                 VGA_DrawLine=VGA_Draw_1BPP_Line_as_VGA;
 
