@@ -653,20 +653,20 @@ static Bit8u * Alt_VGA_256color_2x4bit_Draw_Line(Bitu /*vidstart*/, Bitu /*line*
         VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
         Alt_VGA_256color_2x4bit_Draw_CharClock<7>(temps,pixels,cur,nex);
         count--;
-    }
 
-    while (count > 0u) {
-        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
-        Alt_VGA_256color_2x4bit_Draw_CharClock<8>(temps,pixels,cur,nex);
-        count--;
-    }
+        while (count > 0u) {
+            const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+            VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+            Alt_VGA_256color_2x4bit_Draw_CharClock<8>(temps,pixels,cur,nex);
+            count--;
+        }
 
-    /* the top nibble of the first pixel past the end is visible on real hardware */
-    {
-        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
-        Alt_VGA_256color_2x4bit_Draw_CharClock<1>(temps,pixels,cur,nex);
+        /* the top nibble of the first pixel past the end is visible on real hardware */
+        {
+            const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
+            VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
+            Alt_VGA_256color_2x4bit_Draw_CharClock<1>(temps,pixels,cur,nex);
+        }
     }
 
     return TempLine;
