@@ -1014,10 +1014,6 @@ static Bit8u * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
 #endif
 }
 
-static const Bit16u* CGA_Planar_Memwrap(Bitu vidstart) {
-    return (const Bit16u*)vga.mem.linear + (vidstart & vga.draw.planar_mask);
-}
-
 static const Bit32u* VGA_Planar_Memwrap(Bitu vidstart) {
     return (const Bit32u*)vga.mem.linear + (vidstart & vga.draw.planar_mask);
 }
