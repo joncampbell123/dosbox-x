@@ -3592,7 +3592,9 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     case M_CGA2:
         // CGA 2-color mode on EGA/VGA is just EGA 16-color planar mode with one bitplane enabled and a
         // color palette to match. Therefore CGA 640x200 2-color mode can be rendered correctly using
-        // the 16-color planar renderer.
+        // the 16-color planar renderer. The MEM13 bit is configured to replace address bit 13 with
+        // character row counter bit 0 to match CGA memory layout, doublescan is set (as if 320x200),
+        // max_scanline is set to 1 (2 lines).
         if (IS_EGA_ARCH) {
             vga.draw.blocks=width;
             if (vga_alt_new_mode)
