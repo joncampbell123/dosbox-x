@@ -3361,14 +3361,17 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         case M_CGA4:
         case M_PC98:
         case M_TEXT:
-            // these use line_total internal
-            // doublescanning needs to be emulated by renderer doubleheight
-            // EGA has no doublescanning bit at 0x80
-            if (vga.crtc.maximum_scan_line&0x80) {
-                // vga_draw only needs to draw every second line
-                height /= 2;
+            if (!vga_alt_new_mode) {
+                // these use line_total internal
+                // doublescanning needs to be emulated by renderer doubleheight
+                // EGA has no doublescanning bit at 0x80
+                if (vga.crtc.maximum_scan_line&0x80) {
+                    // vga_draw only needs to draw every second line
+                    height /= 2;
+                }
+                break;
             }
-            break;
+            /* fall through if vga_alt_new_mode */
         default:
             vga.draw.doublescan_effect = vga.draw.doublescan_set;
 
