@@ -30,6 +30,7 @@
  */
 
 #include "config.h"
+#include "dosbox.h"
 
 #include <SDL.h>
 #include "gui_tk.h"
@@ -1681,7 +1682,7 @@ bool ScreenSDL::event(const SDL_Event &event) {
 #endif
 
 	switch (event.type) {
-#if defined(C_SDL2)
+#if defined(C_SDL2) && !defined(IGNORE_TOUCHSCREEN)
     case SDL_FINGERUP:
     case SDL_FINGERDOWN:
     case SDL_FINGERMOTION: {

@@ -3658,7 +3658,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                     if (!SDL_WaitEvent(&event)) break;
 #endif
 
-#if defined(C_SDL2)
+#if defined(C_SDL2) && !defined(IGNORE_TOUCHSCREEN)
                     switch (event.type) {
                         case SDL_FINGERDOWN:
                             if (touchscreen_finger_lock == no_finger_id &&
@@ -4497,7 +4497,7 @@ void* GetSetSDLValue(int isget, std::string target, void* setval) {
     return NULL;
 }
 
-#if defined(C_SDL2)
+#if defined(C_SDL2) && !defined(IGNORE_TOUCHSCREEN)
 static void FingerToFakeMouseMotion(SDL_TouchFingerEvent * finger) {
     SDL_MouseMotionEvent fake;
 
@@ -4777,11 +4777,13 @@ void GFX_Events() {
             HandleMouseButton(&event.button);
 #endif
             break;
+#if !defined(IGNORE_TOUCHSCREEN)
         case SDL_FINGERDOWN:
         case SDL_FINGERUP:
         case SDL_FINGERMOTION:
             HandleTouchscreenFinger(&event.tfinger);
             break;
+#endif
         case SDL_QUIT:
             throw(0);
             break;

@@ -3568,7 +3568,7 @@ void BIND_MappingEvents(void) {
 #endif
 
         switch (event.type) {
-#if defined(C_SDL2)
+#if defined(C_SDL2) && !defined(IGNORE_TOUCHSCREEN)
         case SDL_FINGERUP:
             Mapper_FingerInputEvent(event);
             break;

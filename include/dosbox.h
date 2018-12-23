@@ -23,6 +23,20 @@
 #include "config.h"
 #include "logging.h"
 
+/* Mac OS X: There seems to be a problem with Macbooks where the touchpad
+             is seen by SDL2 as a "touchscreen", even though the screen is
+	     not a touchscreen. The result is DOSBox-X getting mixed messages
+             from both the mouse cursor and the touch pad, which makes the
+             interface unusable. The solution is to ignore touch events on
+             Mac OS X.
+
+             Perhaps if DOSBox-X is someday ported to run on an iPad (with
+             a touchscreen) this can be made conditional to allow touch
+             events there. */
+#if defined(C_SDL2) && defined(MACOSX)
+# define IGNORE_TOUCHSCREEN
+#endif
+
 /* SANITY CHECK */
 #if defined(C_HEAVY_DEBUG) && !defined(C_DEBUG)
 # error If C_HEAVY_DEBUG is defined, then so must C_DEBUG
