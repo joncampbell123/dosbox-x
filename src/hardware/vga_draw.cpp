@@ -1104,13 +1104,13 @@ static Bit8u *Alt_EGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
         val = pixels.b[0];
         val2 = pixels.b[2] << 2u;
         for (unsigned int i=0;i < 4;i++,val <<= 2,val2 <<= 2)
-            *draw++ = vga.attr.palette[(((val>>6)&0x3) + ((val2>>6)&0xC))&vga.attr.color_plane_enable];
+            *draw++ = EGA_Planar_Common_Block_xlat<MCH_EGA,Bit8u>(((val>>6)&0x3) + ((val2>>6)&0xC));
 
         /* CGA odd/even mode, second plane */
         val = pixels.b[1];
         val2 = pixels.b[3] << 2u;
         for (unsigned int i=0;i < 4;i++,val <<= 2,val2 <<= 2)
-            *draw++ = vga.attr.palette[(((val>>6)&0x3) + ((val2>>6)&0xC))&vga.attr.color_plane_enable];
+            *draw++ = EGA_Planar_Common_Block_xlat<MCH_EGA,Bit8u>(((val>>6)&0x3) + ((val2>>6)&0xC));
     }
 
     return TempLine;
@@ -1129,13 +1129,13 @@ static Bit8u *Alt_VGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
         val = pixels.b[0];
         val2 = pixels.b[2] << 2u;
         for (unsigned int i=0;i < 4;i++,val <<= 2,val2 <<= 2)
-            *draw++ = vga.dac.xlat32[(((val>>6)&0x3) + ((val2>>6)&0xC))&vga.attr.color_plane_enable];
+            *draw++ = EGA_Planar_Common_Block_xlat<MCH_VGA,Bit32u>(((val>>6)&0x3) + ((val2>>6)&0xC));
 
         /* CGA odd/even mode, second plane */
         val = pixels.b[1];
         val2 = pixels.b[3] << 2u;
         for (unsigned int i=0;i < 4;i++,val <<= 2,val2 <<= 2)
-            *draw++ = vga.dac.xlat32[(((val>>6)&0x3) + ((val2>>6)&0xC))&vga.attr.color_plane_enable];
+            *draw++ = EGA_Planar_Common_Block_xlat<MCH_VGA,Bit32u>(((val>>6)&0x3) + ((val2>>6)&0xC));
     }
 
     return TempLine;
