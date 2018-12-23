@@ -542,6 +542,14 @@ static Bit8u * VGA_Draw_Linear_Line(Bitu vidstart, Bitu /*line*/) {
     return ret;
 }
 
+static void Alt_VGA_256color_CharClock(Bit32u* &temps,const VGA_Latch &pixels) {
+    /* one group of 4 */
+    *temps++ = vga.dac.xlat32[pixels.b[0]];
+    *temps++ = vga.dac.xlat32[pixels.b[1]];
+    *temps++ = vga.dac.xlat32[pixels.b[2]];
+    *temps++ = vga.dac.xlat32[pixels.b[3]];
+}
+
 static Bit8u * Alt_VGA_256color_Draw_Line_Tseng_ET4000(Bitu /*vidstart*/, Bitu /*line*/) {
     Bit32u* temps = (Bit32u*) TempLine;
     Bitu count = vga.draw.blocks;
@@ -554,13 +562,7 @@ static Bit8u * Alt_VGA_256color_Draw_Line_Tseng_ET4000(Bitu /*vidstart*/, Bitu /
     while (count > 0u) {
         const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
         VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << shift));
-
-        /* one group of 4 */
-        *temps++ = vga.dac.xlat32[pixels.b[0]];
-        *temps++ = vga.dac.xlat32[pixels.b[1]];
-        *temps++ = vga.dac.xlat32[pixels.b[2]];
-        *temps++ = vga.dac.xlat32[pixels.b[3]];
-
+        Alt_VGA_256color_CharClock(temps,pixels);
         count--;
     }
 
@@ -574,13 +576,7 @@ static Bit8u * Alt_VGA_256color_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
     while (count > 0u) {
         const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
         VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
-
-        /* one group of 4 */
-        *temps++ = vga.dac.xlat32[pixels.b[0]];
-        *temps++ = vga.dac.xlat32[pixels.b[1]];
-        *temps++ = vga.dac.xlat32[pixels.b[2]];
-        *temps++ = vga.dac.xlat32[pixels.b[3]];
-
+        Alt_VGA_256color_CharClock(temps,pixels);
         count--;
     }
 
