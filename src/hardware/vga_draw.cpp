@@ -1095,38 +1095,6 @@ static Bit8u * VGA_CGASNOW_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
     return CGA_COMMON_TEXT_Draw_Line<true>(vidstart,line);
 }
 
-static Bit8u *Alt_EGA_1BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
-    Bit8u* draw = (Bit8u*)TempLine;
-    Bitu blocks = vga.draw.blocks;
-
-    while (blocks--) { // for each character in the line
-        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
-
-        unsigned char val = pixels.b[0];
-        for (unsigned int i=0;i < 8;i++,val <<= 1)
-            *draw++ = vga.attr.palette[(val>>7)&1];
-    }
-
-    return TempLine;
-}
-
-static Bit8u *Alt_VGA_1BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
-    Bit32u* draw = (Bit32u*)TempLine;
-    Bitu blocks = vga.draw.blocks;
-
-    while (blocks--) { // for each character in the line
-        const unsigned int addr = vga.draw_2[0].crtc_addr_fetch_and_advance();
-        VGA_Latch pixels(*vga.draw_2[0].drawptr<Bit32u>(addr << vga.config.addr_shift));
-
-        unsigned char val = pixels.b[0];
-        for (unsigned int i=0;i < 8;i++,val <<= 1)
-            *draw++ = vga.dac.xlat32[(val>>7)&1];
-    }
-
-    return TempLine;
-}
-
 static Bit8u *Alt_EGA_2BPP_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
     Bit8u* draw = (Bit8u*)TempLine;
     Bitu blocks = vga.draw.blocks;
