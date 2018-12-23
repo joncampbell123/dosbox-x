@@ -318,7 +318,8 @@ void VGA_DAC_CombineColor(Bit8u attr,Bit8u pal) {
             }
         }
         else {
-            VGA_DAC_UpdateColor( attr );
+            for (unsigned int i=(unsigned int)attr;i < 0x100;i += 0x10)
+                VGA_DAC_UpdateColor( i );
         }
     }
     else if (machine == MCH_MCGA) {
