@@ -333,7 +333,7 @@ static INLINE Bit16u DOS_PackDate(Bit16u year,Bit16u mon,Bit16u day) {
 
 class MemStruct {
 public:
-	Bitu GetIt(Bitu size,PhysPt addr) {
+    inline Bit32u GetIt(const Bit32u size, const PhysPt addr) {
 		switch (size) {
 		case 1:return mem_readb(pt+addr);
 		case 2:return mem_readw(pt+addr);
@@ -341,16 +341,16 @@ public:
 		}
 		return 0;
 	}
-	void SaveIt(Bitu size,PhysPt addr,Bitu val) {
+	inline void SaveIt(const Bit32u size, const PhysPt addr, const Bit32u val) {
 		switch (size) {
 		case 1:mem_writeb(pt+addr,(Bit8u)val);break;
 		case 2:mem_writew(pt+addr,(Bit16u)val);break;
 		case 4:mem_writed(pt+addr,(Bit32u)val);break;
 		}
 	}
-	void SetPt(Bit16u seg) { pt=PhysMake(seg,0);}
-	void SetPt(Bit16u seg,Bit16u off) { pt=PhysMake(seg,off);}
-	void SetPt(RealPt addr) { pt=Real2Phys(addr);}
+    inline void SetPt(const Bit16u seg) { pt=PhysMake(seg,0);}
+    inline void SetPt(const Bit16u seg, const Bit16u off) { pt=PhysMake(seg,off);}
+    inline void SetPt(const RealPt addr) { pt=Real2Phys(addr);}
 protected:
 	PhysPt pt;
 };
