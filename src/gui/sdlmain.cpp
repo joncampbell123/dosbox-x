@@ -2813,7 +2813,9 @@ static void GUI_StartUp() {
         //Can only be done on the very first call! Not restartable.
         const SDL_VideoInfo* vidinfo = SDL_GetVideoInfo();
         if (vidinfo) {
+            sdl.desktop.full.width_auto = true;
             sdl.desktop.full.width = vidinfo->current_w;
+            sdl.desktop.full.height_auto = true;
             sdl.desktop.full.height = vidinfo->current_h;
         }
     }

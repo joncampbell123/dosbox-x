@@ -98,6 +98,7 @@ struct SDL_Block {
             Bit16u width, height;
             bool fixed;
             bool display_res;
+            bool width_auto = false,height_auto = false;
         } full;
         struct {
             Bit16u width, height;
