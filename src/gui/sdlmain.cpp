@@ -127,6 +127,11 @@ void GFX_OpenGLRedrawScreen(void);
 
 #include "sdlmain.h"
 
+#ifdef MACOSX
+extern bool has_touch_bar_support;
+bool osx_detect_nstouchbar(void);
+#endif
+
 SDL_Block sdl;
 Bitu frames = 0;
 
@@ -7293,6 +7298,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 	/* Our SDL1 in-tree library has a High DPI awareness function for Mac OS X now */
         if (!control->opt_disable_dpi_awareness)
             sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
+#endif
+
+#ifdef MACOSX
+        osx_detect_nstouchbar();/*assigns to has_touch_bar_support*/
+        if (has_touch_bar_support) LOG_MSG("Mac OS X: NSTouchBar support detected in system");
 #endif
 
         /* -- SDL init */

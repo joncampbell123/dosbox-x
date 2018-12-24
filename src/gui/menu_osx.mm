@@ -126,5 +126,11 @@ void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu) {
 	mainMenu.mainMenuAction([sender tag]);
 }
 @end
+
+bool has_touch_bar_support = false;
+
+bool osx_detect_nstouchbar(void) {
+    return (has_touch_bar_support = (NSClassFromString(@"NSTouchBar") != nil));
+}
 #endif
 
