@@ -46,6 +46,11 @@ void GFX_OpenGLRedrawScreen(void);
 # define _GNU_SOURCE
 #endif
 
+// Tell Mac OS X to shut up about deprecated OpenGL calls
+#ifndef GL_SILENCE_DEPRECATION
+#define GL_SILENCE_DEPRECATION
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
