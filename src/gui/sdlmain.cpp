@@ -3455,9 +3455,9 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     }
     else if (!user_cursor_locked)
     {
-        bool MOUSE_HasInterruptSub();
-        bool MOUSE_IsBeingPolled();
-        bool MOUSE_IsHidden();
+        extern bool MOUSE_HasInterruptSub();
+        extern bool MOUSE_IsBeingPolled();
+        extern bool MOUSE_IsHidden();
         /* Show only when DOS app is not using mouse */
 
 #if defined(C_SDL2)
