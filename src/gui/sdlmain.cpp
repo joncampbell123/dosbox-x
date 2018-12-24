@@ -1615,12 +1615,6 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     if (!sdl.mouse.autoenable)
         SDL_ShowCursor(sdl.mouse.autolock?SDL_DISABLE:SDL_ENABLE);
 
-#if defined(MACOSX) && !defined(C_SDL2)
-    /* RGBA order changes between surface and OpenGL, refresh palette */
-    void VGA_DAC_UpdateColorPalette();
-    VGA_DAC_UpdateColorPalette();
-#endif
-
     UpdateWindowDimensions();
 
     return retFlags;
@@ -2222,12 +2216,6 @@ void change_output(int output) {
 
     GFX_SetTitle(CPU_CycleMax,-1,-1,false);
     GFX_LogSDLState();
-
-#if defined(MACOSX) && !defined(C_SDL2)
-    /* RGBA order changes between surface and OpenGL, refresh palette */
-    void VGA_DAC_UpdateColorPalette();
-    VGA_DAC_UpdateColorPalette();
-#endif
 
     UpdateWindowDimensions();
 }
