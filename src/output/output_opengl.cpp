@@ -1,3 +1,9 @@
+
+// Tell Mac OS X to shut up about deprecated OpenGL calls
+#ifndef GL_SILENCE_DEPRECATION
+#define GL_SILENCE_DEPRECATION
+#endif
+
 #include <sys/types.h>
 #include <assert.h>
 #include <math.h>

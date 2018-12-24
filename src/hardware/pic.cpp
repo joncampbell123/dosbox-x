@@ -447,6 +447,8 @@ unsigned int PIC_parse_IRQ_hack_string(const char *str) {
 }
 
 static bool IRQ_hack_check_cs_equ_ds(const int IRQ) {
+    (void)IRQ;
+
     uint16_t s_cs = SegValue(cs);
     uint16_t s_ds = SegValue(ds);
 
