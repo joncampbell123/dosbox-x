@@ -7,11 +7,16 @@
 # include <MacTypes.h>
 # include <Cocoa/Cocoa.h>
 # include <Foundation/NSString.h>
+# include <ApplicationServices/ApplicationServices.h>
+# include <IOKit/pwr_mgt/IOPMLib.h>
+# include <Cocoa/Cocoa.h>
 
 @interface NSApplication (DOSBoxX)
 @end
 
+#if !defined(C_SDL2)
 extern "C" void* sdl1_hax_stock_osx_menu(void);
+#endif
 
 void *sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag) {
 	NSMenuItem *ns_item = [((NSMenu*)nsMenu) itemWithTag: tag];
@@ -64,8 +69,10 @@ void sdl_hax_macosx_setmenu(void *nsMenu) {
 		[NSApp setMainMenu:((NSMenu*)nsMenu)];
 	}
 	else {
+#if !defined(C_SDL2)
 		/* switch back to the menu SDL 1.x made */
 		[NSApp setMainMenu:((NSMenu*)sdl1_hax_stock_osx_menu())];
+#endif
 	}
 }
 

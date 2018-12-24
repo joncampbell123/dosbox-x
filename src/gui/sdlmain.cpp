@@ -3465,6 +3465,13 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     Mouse_CursorMoved(xrel, yrel, x, y, emu);
 }
 
+#if defined(C_SDL2)
+static const SDL_TouchID no_touch_id = (SDL_TouchID)(~0ULL);
+static const SDL_FingerID no_finger_id = (SDL_FingerID)(~0ULL);
+static SDL_FingerID touchscreen_finger_lock = no_finger_id;
+static SDL_TouchID touchscreen_touch_lock = no_touch_id;
+#endif
+
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
 void MenuFullScreenRedraw(void) {
 #if defined(C_SDL2)
@@ -3473,13 +3480,6 @@ void MenuFullScreenRedraw(void) {
     SDL_Flip(sdl.surface);
 #endif
 }
-
-#if defined(C_SDL2)
-static const SDL_TouchID no_touch_id = (SDL_TouchID)(~0ULL);
-static const SDL_FingerID no_finger_id = (SDL_FingerID)(~0ULL);
-static SDL_FingerID touchscreen_finger_lock = no_finger_id;
-static SDL_TouchID touchscreen_touch_lock = no_touch_id;
-#endif
 
 static struct {
     unsigned char*      bmp = NULL;
