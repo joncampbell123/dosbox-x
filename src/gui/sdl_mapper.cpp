@@ -774,7 +774,7 @@ public:
         sprintf(buf,"key %d",MapSDLCode((Bitu)key));
 #endif
     }
-    virtual std::string GetBindMenuText(void) {
+    virtual std::string GetBindMenuText(void) override {
         const char *s;
         std::string r,m;
 
