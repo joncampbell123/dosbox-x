@@ -1115,6 +1115,10 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
 
         window_view = [ [ NSView alloc ] initWithFrame:contentRect ];
         [ window_view setAutoresizingMask: NSViewWidthSizable | NSViewHeightSizable ];
+
+        NSRect contentRectOrig = NSMakeRect (0, 0, width, height);
+        [ window_view setBoundsSize: contentRectOrig.size ];
+
         [ [ qz_window contentView ] addSubview:window_view ];
         [ gl_context setView: window_view ];
         [ window_view release ];
