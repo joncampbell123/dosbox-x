@@ -470,7 +470,7 @@ void PC98_GDC_state::flush_fifo_old(void) {
     }
 }
 
-bool PC98_GDC_state::write_rfifo(const uint16_t c) {
+bool PC98_GDC_state::write_rfifo(const uint8_t c) {
     if (rfifo_write >= PC98_GDC_FIFO_SIZE)
         return false;
 
