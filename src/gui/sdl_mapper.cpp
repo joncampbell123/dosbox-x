@@ -760,14 +760,14 @@ public:
         key = _key;
     }
     virtual ~CKeyBind() {}
-    virtual void BindName(char * buf) {
+    virtual void BindName(char * buf) override {
 #if defined(C_SDL2)
         sprintf(buf,"Key %s",SDL_GetScancodeName(key));
 #else
         sprintf(buf,"Key %s",SDL_GetKeyName(MapSDLCode((Bitu)key)));
 #endif
     }
-    virtual void ConfigName(char * buf) {
+    virtual void ConfigName(char * buf) override {
 #if defined(C_SDL2)
         sprintf(buf,"key %d",key);
 #else
@@ -963,10 +963,10 @@ public:
 		joystick = _joystick;
     }
     virtual ~CJAxisBind() {}
-    virtual void ConfigName(char * buf) {
+    virtual void ConfigName(char * buf) override {
         sprintf(buf,"%s axis %d %d",group->ConfigStart(),(int)axis,positive ? 1 : 0);
     }
-    virtual void BindName(char * buf) {
+    virtual void BindName(char * buf) override {
         sprintf(buf,"%s Axis %d%s",group->BindStart(),(int)axis,positive ? "+" : "-");
     }
 
@@ -1023,10 +1023,10 @@ public:
         button=_button;
     }
     virtual ~CJButtonBind() {}
-    virtual void ConfigName(char * buf) {
+    virtual void ConfigName(char * buf) override {
         sprintf(buf,"%s button %d",group->ConfigStart(),(int)button);
     }
-    virtual void BindName(char * buf) {
+    virtual void BindName(char * buf) override {
         sprintf(buf,"%s Button %d",group->BindStart(),(int)button);
     }
 protected:
@@ -1048,10 +1048,10 @@ public:
         else E_Exit("MAPPER:JOYSTICK:Invalid hat position");
     }
     virtual ~CJHatBind() {}
-    virtual void ConfigName(char * buf) {
+    virtual void ConfigName(char * buf) override {
         sprintf(buf,"%s hat %d %d",group->ConfigStart(),(int)hat,(int)dir);
     }
-    virtual void BindName(char * buf) {
+    virtual void BindName(char * buf) override {
         sprintf(buf,"%s Hat %d %s",group->BindStart(),(int)hat,(dir==SDL_HAT_UP)?"up":
                                                         ((dir==SDL_HAT_RIGHT)?"right":
                                                         ((dir==SDL_HAT_DOWN)?"down":"left")));
