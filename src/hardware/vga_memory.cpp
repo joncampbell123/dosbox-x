@@ -1450,11 +1450,11 @@ public:
             /* according to real hardware, memory address does not affect char offset (port 0xA5) */
             if (sizeof(AWT) > 1) {
                 // FIXME: Untested
-                pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,0,val);
-                pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,1,val >> 8);
+                pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,0,(uint8_t)val);
+                pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,1,(uint8_t)((unsigned int)val >> 8u));
             }
             else {
-                pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1,val);
+                pc98_font_char_write(a1_font_load_addr,(addr >> 1) & 0xF,addr & 1,(uint8_t)val);
             }
 
             return;

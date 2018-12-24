@@ -2838,7 +2838,7 @@ static void LogCPUInfo(void) {
 static void LogInstruction(Bit16u segValue, Bit32u eipValue,  ofstream& out) {
 	static char empty[23] = { 32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0 };
 
-	PhysPt start = GetAddress(segValue,eipValue);
+	PhysPt start = (PhysPt)GetAddress(segValue,eipValue);
 	char dline[200];Bitu size;
 	size = DasmI386(dline, start, reg_eip, cpu.code.big);
 	char* res = empty;
@@ -3312,7 +3312,7 @@ void DEBUG_HeavyLogInstruction(void) {
 
 	static char empty[23] = { 32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,0 };
 
-	PhysPt start = GetAddress(SegValue(cs),reg_eip);
+	PhysPt start = (PhysPt)GetAddress(SegValue(cs),reg_eip);
 	char dline[200];
 	DasmI386(dline, start, reg_eip, cpu.code.big);
 	char* res = empty;
