@@ -173,18 +173,18 @@ void QZ_PrivateSDLToCocoa (_THIS, NSPoint *p) {
         p->y = (p->y * b.size.height) / f.size.height;
     }
 
+    if (sdl1_hax_highdpi_enable && qz_window) {
+        const CGFloat scale = [ qz_window backingScaleFactor ];//FIXME: Anything better?
+        p->x /= scale;
+        p->y /= scale;
+    }
+
     if ( CGDisplayIsCaptured (display_id) ) { /* capture signals fullscreen */
         p->y = CGDisplayPixelsHigh (display_id) - p->y;
     }
     else {
         *p = [ window_view convertPoint:*p toView: nil ];
         p->y = [window_view frame].size.height - p->y;
-    }
-
-    if (sdl1_hax_highdpi_enable && qz_window) {
-        const CGFloat scale = [ qz_window backingScaleFactor ];//FIXME: Anything better?
-        p->x /= scale;
-        p->y /= scale;
     }
 }
 
