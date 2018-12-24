@@ -113,7 +113,7 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
             if (mustLock) SDL_UnlockSurface(sdl.surface);
             if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
 #if defined(C_SDL2)
-            SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 1);
+            SDL_UpdateWindowSurface(sdl.window);
 #else
             SDL_Flip(sdl.surface);
 #endif
