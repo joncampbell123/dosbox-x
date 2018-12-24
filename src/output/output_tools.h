@@ -55,8 +55,8 @@ inline void aspectCorrectFitClip(volatile WH &clipW, volatile WH &clipH, volatil
 
     clipX = ax; clipY = ay; clipW = sw; clipH = sh;
 
-    assert((sdl.clip.x + sdl.clip.w) <= sdl.desktop.full.width);
-    assert((sdl.clip.y + sdl.clip.h) <= sdl.desktop.full.height);
+//    assert((sdl.clip.x + sdl.clip.w) <= sdl.desktop.full.width);
+//    assert((sdl.clip.y + sdl.clip.h) <= sdl.desktop.full.height);
 }
 
 #endif
