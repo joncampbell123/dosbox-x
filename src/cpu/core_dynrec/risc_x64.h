@@ -395,6 +395,9 @@ static void INLINE gen_call_function_raw(void * func) {
 // note: the parameters are loaded in the architecture specific way
 // using the gen_load_param_ functions below
 static Bit64u INLINE gen_call_function_setup(void * func,Bitu paramcount,bool fastcall=false) {
+	(void)paramcount;
+	(void)fastcall;
+
 	// align the stack
 	cache_addb(0x48);
 	cache_addw(0xc48b);		// mov rax,rsp
@@ -628,7 +631,7 @@ static void gen_fill_branch(DRC_PTR_SIZE_IM data) {
 #if C_DEBUG
 	Bit64s len=(Bit64u)cache.pos-data;
 	if (len<0) len=-len;
-	if (len>126) LOG_MSG("Big jump %d",len);
+	if (len>126) LOG_MSG("Big jump %d",(int)len);
 #endif
 	*(Bit8u*)data=(Bit8u)((Bit64u)cache.pos-data-1);
 }
@@ -815,6 +818,9 @@ static void gen_fill_function_ptr(Bit8u * pos,void* fct_ptr,Bitu flags_type) {
 }
 #endif
 
-static void cache_block_closing(Bit8u* block_start,Bitu block_size) { }
+static void cache_block_closing(Bit8u* block_start,Bitu block_size) {
+	(void)block_start;
+	(void)block_size;
+}
 
 static void cache_block_before_close(void) { }
