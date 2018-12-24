@@ -1721,7 +1721,7 @@ void MEM_LoadState(Section *sec) {
         ZIPFileEntry *ent = savestate_zip.get_entry("memory.bin");
         if (ent != NULL) {
             ent->rewind();
-            if ((memory.pages*4096) == ent->file_length)
+            if (((off_t)memory.pages * (off_t)4096) == ent->file_length)
                 ent->read(MemBase, memory.pages*4096);
             else
                 LOG_MSG("Memory load state failure: Memory size mismatch");
