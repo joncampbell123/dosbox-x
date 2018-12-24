@@ -247,6 +247,8 @@ static void dyn_dop_byte_imm_mem(DualOps op,Bit8u reg,Bit8u idx) {
 }
 
 static void dyn_prep_word_imm(Bit8u reg) {
+	(void)reg;
+
 	Bitu val;
 	if (decode.big_op) {
 		if (decode_fetchd_imm(val)) {
@@ -1140,6 +1142,8 @@ static void dyn_loop(LoopTypes type) {
 		dyn_branchflag_to_reg(BR_Z);
 		branch1=gen_create_branch_on_nonzero(FC_RETOP,true);
 		break;
+	default:
+		break;
 	}
 	switch (type) {
 	case LOOP_E:
@@ -1153,6 +1157,8 @@ static void dyn_loop(LoopTypes type) {
 	case LOOP_JCXZ:
 		MOV_REG_WORD_TO_HOST_REG(FC_OP1,DRC_REG_ECX,decode.big_addr);
 		branch2=gen_create_branch_on_nonzero(FC_OP1,decode.big_addr);
+		break;
+	default:
 		break;
 	}
 	gen_add_direct_word(&reg_eip,eip_base+eip_add,true);
