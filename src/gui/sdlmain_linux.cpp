@@ -260,6 +260,7 @@ void UpdateWindowDimensions_Linux(void) {
 #endif
 }
 
+#if !defined(C_SDL2)
 /* Retrieve screen size/dimensions/DPI using XRandR */
 static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display,Window window) {
     bool result = false;
@@ -356,6 +357,7 @@ static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display,Window w
 
     return result;
 }
+#endif
 
 void Linux_GetWindowDPI(ScreenSizeInfo &info) {
     info.clear();
