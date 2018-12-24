@@ -1883,6 +1883,8 @@ void update_capture_fmt_menu(void) {
 #endif
 
 bool capture_fmt_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;
+
     const char *ts = menuitem->get_name().c_str();
     Bitu old_CaptureState = CaptureState;
     bool new_native_zmbv = native_zmbv;
