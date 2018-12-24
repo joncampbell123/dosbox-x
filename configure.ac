@@ -368,7 +368,7 @@ case "$host" in
        macosx=1
        OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++11";
        AC_DEFINE(MACOSX, 1, [Compiling on Mac OS X])
-       LIBS="$LIBS -framework Carbon -framework CoreFoundation -framework CoreMIDI -framework AudioUnit -framework AudioToolbox"
+       LIBS="$LIBS -framework Carbon -framework CoreFoundation -framework CoreMIDI -framework AudioUnit -framework AudioToolbox -framework ApplicationServices -framework AppKit"
        ;;
     *-*-linux*)
        AC_DEFINE(LINUX, 1, [Compiling on GNU/Linux])
