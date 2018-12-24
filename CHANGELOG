@@ -1,4 +1,9 @@
 0.82.13 (next)
+  - Mac OS X SDL1 builds now default to the OpenGL
+    output (if compiled with OpenGL support). Under
+    recent versions of OS X, OpenGL output gives
+    better performance than surface (CGBitmap) based
+    display.
   - SDL2 builds now have working XBRZ scaler support.
   - Mac OS X SDL2 builds updated to completely ignore
     touch events, because SDL2 sees the touchpad on
