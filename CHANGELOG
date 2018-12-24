@@ -1,4 +1,6 @@
 0.82.13 (next)
+  - Mac OS X SDL2 builds now use the native OS X menu
+    system instead of the "SDL drawn" menus.
   - Mac OS X SDL1 builds now default to the OpenGL
     output (if compiled with OpenGL support). Under
     recent versions of OS X, OpenGL output gives
