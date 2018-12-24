@@ -1556,7 +1556,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
         (unsigned int)flags,
         scalex,scaley);
 
-    Bitu bpp = 0;
+//    Bitu bpp = 0;
     Bitu retFlags = 0;
 
     if (sdl.blit.surface) {
@@ -2001,6 +2001,7 @@ void CaptureMouseNotify(bool capture)
 #if WIN32
     CaptureMouseNotifyWin32(capture);
 #else
+    (void)capture;
     // TODO
 #endif
 }
@@ -6391,9 +6392,9 @@ bool vid_pc98_enable_188user_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::i
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     void gdc_egc_enable_update_vars(void);
-    extern bool enable_pc98_egc;
-    extern bool enable_pc98_grcg;
-    extern bool enable_pc98_16color;
+//    extern bool enable_pc98_egc;
+//    extern bool enable_pc98_grcg;
+//    extern bool enable_pc98_16color;
     extern bool enable_pc98_188usermod;
 
     if(IS_PC98_ARCH) {
@@ -6419,7 +6420,7 @@ bool vid_pc98_enable_egc_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item 
     extern bool enable_pc98_egc;
     extern bool enable_pc98_grcg;
     extern bool enable_pc98_16color;
-    extern bool enable_pc98_188usermod;
+//    extern bool enable_pc98_188usermod;
 
     if(IS_PC98_ARCH) {
         enable_pc98_egc = !enable_pc98_egc;
@@ -6775,6 +6776,9 @@ void toggle_always_on_top(void) {
 void BlankDisplay(void);
 
 bool refreshtest_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
+    (void)menuitem;
+    (void)xmenu;
+
     BlankDisplay();
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
