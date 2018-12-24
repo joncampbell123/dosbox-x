@@ -2817,6 +2817,10 @@ static void GUI_StartUp() {
             sdl.desktop.full.width = vidinfo->current_w;
             sdl.desktop.full.height_auto = true;
             sdl.desktop.full.height = vidinfo->current_h;
+
+            LOG_MSG("SDL1 auto-detected desktop as %u x %u",
+                (unsigned int)sdl.desktop.full.width,
+                (unsigned int)sdl.desktop.full.height);
         }
     }
   #endif
