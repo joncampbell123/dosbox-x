@@ -760,14 +760,14 @@ public:
         key = _key;
     }
     virtual ~CKeyBind() {}
-    void BindName(char * buf) {
+    virtual void BindName(char * buf) {
 #if defined(C_SDL2)
         sprintf(buf,"Key %s",SDL_GetScancodeName(key));
 #else
         sprintf(buf,"Key %s",SDL_GetKeyName(MapSDLCode((Bitu)key)));
 #endif
     }
-    void ConfigName(char * buf) {
+    virtual void ConfigName(char * buf) {
 #if defined(C_SDL2)
         sprintf(buf,"key %d",key);
 #else
@@ -963,10 +963,10 @@ public:
 		joystick = _joystick;
     }
     virtual ~CJAxisBind() {}
-    void ConfigName(char * buf) {
+    virtual void ConfigName(char * buf) {
         sprintf(buf,"%s axis %d %d",group->ConfigStart(),(int)axis,positive ? 1 : 0);
     }
-    void BindName(char * buf) {
+    virtual void BindName(char * buf) {
         sprintf(buf,"%s Axis %d%s",group->BindStart(),(int)axis,positive ? "+" : "-");
     }
 
@@ -1023,10 +1023,10 @@ public:
         button=_button;
     }
     virtual ~CJButtonBind() {}
-    void ConfigName(char * buf) {
+    virtual void ConfigName(char * buf) {
         sprintf(buf,"%s button %d",group->ConfigStart(),(int)button);
     }
-    void BindName(char * buf) {
+    virtual void BindName(char * buf) {
         sprintf(buf,"%s Button %d",group->BindStart(),(int)button);
     }
 protected:
@@ -1048,10 +1048,10 @@ public:
         else E_Exit("MAPPER:JOYSTICK:Invalid hat position");
     }
     virtual ~CJHatBind() {}
-    void ConfigName(char * buf) {
+    virtual void ConfigName(char * buf) {
         sprintf(buf,"%s hat %d %d",group->ConfigStart(),(int)hat,(int)dir);
     }
-    void BindName(char * buf) {
+    virtual void BindName(char * buf) {
         sprintf(buf,"%s Hat %d %s",group->BindStart(),(int)hat,(dir==SDL_HAT_UP)?"up":
                                                         ((dir==SDL_HAT_RIGHT)?"right":
                                                         ((dir==SDL_HAT_DOWN)?"down":"left")));
