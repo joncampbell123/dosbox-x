@@ -665,7 +665,7 @@ void GFX_SDL_Overscan(void) {
                 for (Bitu i=0; i<4; i++) {
                     rect = &sdl.updateRects[i];
                     Bit8u* start = pixelptr + (unsigned int)rect->y*(unsigned int)linepitch + (unsigned int)rect->x;
-                    for (Bitu j=0; j<rect->h; j++) {
+                    for (Bitu j=0; j<(unsigned int)rect->h; j++) {
                         memset(start, vga.attr.overscan_color, rect->w);
                         start += linepitch;
                     }
