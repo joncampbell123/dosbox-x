@@ -1,4 +1,4 @@
-0.82.13 (next)
+0.82.13
   - Mac OS X SDL2 builds now use the native OS X menu
     system instead of the "SDL drawn" menus.
   - Mac OS X SDL1 builds now default to the OpenGL
