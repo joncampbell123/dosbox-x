@@ -471,7 +471,7 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
             const int srcWidth = sdl.draw.width;
             const int srcHeight = sdl.draw.height;
 
-            if (sdl_xbrz.renderbuf.size() == srcWidth * srcHeight && srcWidth > 0 && srcHeight > 0)
+            if (sdl_xbrz.renderbuf.size() == (unsigned int)srcWidth * (unsigned int)srcHeight && srcWidth > 0 && srcHeight > 0)
             {
                 // we assume render buffer is *not* scaled!
                 const uint32_t* renderBuf = &sdl_xbrz.renderbuf[0]; // help VS compiler a little + support capture by value

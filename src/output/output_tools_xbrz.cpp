@@ -153,6 +153,8 @@ void xBRZ_PostScale(const uint32_t* src, const int srcWidth, const int srcHeight
                     uint32_t* tgt, const int tgtWidth, const int tgtHeight, const int tgtPitch, 
                     const bool bilinear, const int task_granularity)
 {
+    (void)task_granularity;
+
 # if defined(XBRZ_PPL)
     if (bilinear) {
         concurrency::task_group tg;

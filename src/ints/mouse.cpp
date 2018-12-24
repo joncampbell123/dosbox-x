@@ -1151,7 +1151,7 @@ static Bitu INT33_Handler(void) {
         break;
     case 0x0b:  /* Read Motion Data */
     {
-	    bool MOUSE_IsLocked();
+	    extern bool MOUSE_IsLocked();
 	    const auto locked = MOUSE_IsLocked();
 	    reg_cx = (Bit16u)static_cast<Bit16s>(locked ? mouse.mickey_x : 0);
 	    reg_dx = (Bit16u)static_cast<Bit16s>(locked ? mouse.mickey_y : 0);
