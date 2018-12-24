@@ -165,13 +165,18 @@ extern bool sdl1_hax_highdpi_enable;
 
 /* Convert SDL coordinate to Cocoa coordinate */
 void QZ_PrivateSDLToCocoa (_THIS, NSPoint *p) {
+    {
+        /* In OpenGL mode HighDPI we have to force scaling down by setting the bounds to twice the frame width */
+        NSRect b = [ window_view bounds ];
+        NSRect f = [ window_view frame ];
+        p->x = (p->x * b.size.width) / f.size.width;
+        p->y = (p->y * b.size.height) / f.size.height;
+    }
 
     if ( CGDisplayIsCaptured (display_id) ) { /* capture signals fullscreen */
-    
         p->y = CGDisplayPixelsHigh (display_id) - p->y;
     }
     else {
-       
         *p = [ window_view convertPoint:*p toView: nil ];
         p->y = [window_view frame].size.height - p->y;
     }
@@ -185,13 +190,18 @@ void QZ_PrivateSDLToCocoa (_THIS, NSPoint *p) {
 
 /* Convert Cocoa coordinate to SDL coordinate */
 void QZ_PrivateCocoaToSDL (_THIS, NSPoint *p) {
+    {
+        /* In OpenGL mode HighDPI we have to force scaling down by setting the bounds to twice the frame width */
+        NSRect b = [ window_view bounds ];
+        NSRect f = [ window_view frame ];
+        p->x = (p->x * f.size.width) / b.size.width;
+        p->y = (p->y * f.size.height) / b.size.height;
+    }
 
     if ( CGDisplayIsCaptured (display_id) ) { /* capture signals fullscreen */
-
         p->y = CGDisplayPixelsHigh (display_id) - p->y;
     }
     else {
-
         *p = [ window_view convertPoint:*p fromView: nil ];
         p->y = [window_view frame].size.height - p->y;
     }
