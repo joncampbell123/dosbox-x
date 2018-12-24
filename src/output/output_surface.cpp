@@ -79,7 +79,7 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
     {
         const int srcWidth = sdl.draw.width;
         const int srcHeight = sdl.draw.height;
-        if (sdl_xbrz.renderbuf.size() == srcWidth * srcHeight && srcWidth > 0 && srcHeight > 0)
+        if (sdl_xbrz.renderbuf.size() == (unsigned int)srcWidth * (unsigned int)srcHeight && srcWidth > 0 && srcHeight > 0)
         {
             // please use sdl.clip to keep screen positioning consistent with the rest of the emulator
             int clipWidth = sdl.clip.w;
