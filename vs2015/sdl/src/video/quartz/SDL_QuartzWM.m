@@ -178,8 +178,8 @@ void QZ_PrivateSDLToCocoa (_THIS, NSPoint *p) {
 
     if (sdl1_hax_highdpi_enable && qz_window) {
         const CGFloat scale = [ qz_window backingScaleFactor ];//FIXME: Anything better?
-	p->x /= scale;
-	p->y /= scale;
+        p->x /= scale;
+        p->y /= scale;
     }
 }
 
@@ -187,7 +187,7 @@ void QZ_PrivateSDLToCocoa (_THIS, NSPoint *p) {
 void QZ_PrivateCocoaToSDL (_THIS, NSPoint *p) {
 
     if ( CGDisplayIsCaptured (display_id) ) { /* capture signals fullscreen */
-    
+
         p->y = CGDisplayPixelsHigh (display_id) - p->y;
     }
     else {
@@ -198,8 +198,8 @@ void QZ_PrivateCocoaToSDL (_THIS, NSPoint *p) {
 
     if (sdl1_hax_highdpi_enable && qz_window) {
         const CGFloat scale = [ qz_window backingScaleFactor ];//FIXME: Anything better?
-	p->x *= scale;
-	p->y *= scale;
+        p->x *= scale;
+        p->y *= scale;
     }
 }
 
