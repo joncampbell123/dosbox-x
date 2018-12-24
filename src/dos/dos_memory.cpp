@@ -414,7 +414,7 @@ bool DOS_FreeMemory(Bit16u segment) {
 
 Bitu GetEMSPageFrameSegment(void);
 
-void DOS_BuildUMBChain(bool umb_active,bool ems_active) {
+void DOS_BuildUMBChain(bool umb_active,bool /*ems_active*/) {
 	unsigned int seg_limit = MEM_TotalPages()*256;
 
 	/* UMBs are only possible if the machine has 1MB+64KB of RAM */
