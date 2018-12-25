@@ -7876,7 +7876,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.screenWidth = (unsigned int)sdl.surface->w;
         mainMenu.updateRect();
 #endif
-#ifdef WIN32
+#if defined(WIN32) && !defined(HX_DOS)
         /* Windows 7 taskbar extension support */
         {
             HRESULT hr;
@@ -7884,7 +7884,29 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             hr = CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_SERVER, IID_ITaskbarList3, (LPVOID*)(&winTaskbarList));
             if (hr == S_OK) {
                 LOG_MSG("Windows: IID_ITaskbarList3 is available");
-                // TODO: Buttons
+
+                THUMBBUTTON buttons[8];
+                int buttoni = 0;
+
+                {
+                    THUMBBUTTON &b = buttons[buttoni++];
+                    memset(&b, 0, sizeof(b));
+                    b.iId = ID_WIN_SYSMENU_MAPPER;
+                    b.dwMask = THB_TOOLTIP | THB_FLAGS;
+                    b.dwFlags = THBF_ENABLED | THBF_DISMISSONCLICK;
+                    wcscpy(b.szTip, L"Mapper");
+                }
+
+                {
+                    THUMBBUTTON &b = buttons[buttoni++];
+                    memset(&b, 0, sizeof(b));
+                    b.iId = ID_WIN_SYSMENU_CFG_GUI;
+                    b.dwMask = THB_TOOLTIP | THB_FLAGS;
+                    b.dwFlags = THBF_ENABLED | THBF_DISMISSONCLICK;
+                    wcscpy(b.szTip, L"Configuration GUI");
+                }
+
+                winTaskbarList->ThumbBarAddButtons(GetHWND(), buttoni, buttons);
             }
         }
 #endif
