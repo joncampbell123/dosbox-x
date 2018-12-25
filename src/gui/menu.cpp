@@ -1632,8 +1632,6 @@ void reflectmenu_INITMENU_cb() {
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
     bool GFX_GetPreventFullscreen(void);
 
-    if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
-    if (!GetMenu(GetHWND())) return;
     if (Message.msg != WM_COMMAND) return;
 #if defined(WIN32) && !defined(HX_DOS)
     if (LOWORD(Message.wParam) == ID_WIN_SYSMENU_MAPPER) {
@@ -1649,6 +1647,8 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
         PauseDOSBox(true);
     }
 #endif
+    if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
+    if (!GetMenu(GetHWND())) return;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 	if (mainMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(Message.wParam))) return;
 #endif
