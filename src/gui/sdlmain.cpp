@@ -7920,6 +7920,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 {
                     THUMBBUTTON &b = buttons[buttoni++];
                     memset(&b, 0, sizeof(b));
+                    b.iId = 1;
+                    b.dwMask = THB_FLAGS;
+                    b.dwFlags = THBF_DISABLED | THBF_NONINTERACTIVE | THBF_NOBACKGROUND;
+                }
+
+                {
+                    THUMBBUTTON &b = buttons[buttoni++];
+                    memset(&b, 0, sizeof(b));
                     b.iId = ID_WIN_SYSMENU_PAUSE;
                     b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(dosbox_ico));
                     b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
