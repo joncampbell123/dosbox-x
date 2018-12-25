@@ -7901,7 +7901,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     THUMBBUTTON &b = buttons[buttoni++];
                     memset(&b, 0, sizeof(b));
                     b.iId = ID_WIN_SYSMENU_MAPPER;
-                    b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(dosbox_ico));
+                    b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_MAPPER));
                     b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
                     b.dwFlags = THBF_ENABLED | THBF_DISMISSONCLICK;
                     wcscpy(b.szTip, L"Mapper");
@@ -7911,7 +7911,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     THUMBBUTTON &b = buttons[buttoni++];
                     memset(&b, 0, sizeof(b));
                     b.iId = ID_WIN_SYSMENU_CFG_GUI;
-                    b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(dosbox_ico));
+                    b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_CFG_GUI));
                     b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
                     b.dwFlags = THBF_ENABLED | THBF_DISMISSONCLICK;
                     wcscpy(b.szTip, L"Configuration GUI");
@@ -7929,9 +7929,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     THUMBBUTTON &b = buttons[buttoni++];
                     memset(&b, 0, sizeof(b));
                     b.iId = ID_WIN_SYSMENU_PAUSE;
-                    b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(dosbox_ico));
+                    b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_PAUSE));
                     b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
-                    b.dwFlags = THBF_ENABLED | THBF_DISMISSONCLICK;
+                    b.dwFlags = THBF_ENABLED;
                     wcscpy(b.szTip, L"Pause");
                 }
 
