@@ -1,4 +1,7 @@
 0.82.14 (next)
+  - Centos 7 SDL1 builds (Linux X11) can now go fullscreen
+    properly, instead of making the user input devices
+    unusable running in an endless loop.
   - Windows builds now include Mapper and Configuration GUI
     commands in the system menu.
 0.82.13
