@@ -756,6 +756,11 @@ void PauseDOSBox(bool pressed) {
             GFX_SetTitle(-1,-1,-1,false);   
             break;
         }
+        if (event.type == SDL_SYSWMEVENT && event.syswm.msg->msg == WM_SYSCOMMAND && LOWORD(event.syswm.msg->wParam) == ID_WIN_SYSMENU_PAUSE) {
+            paused = false;
+            GFX_SetTitle(-1, -1, -1, false);
+            break;
+        }
   #endif
 #endif
         switch (event.type) {
