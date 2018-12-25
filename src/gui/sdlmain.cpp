@@ -7894,6 +7894,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             if (hr == S_OK) {
                 LOG_MSG("Windows: IID_ITaskbarList3 is available");
 
+#if !defined(C_SDL2)
                 THUMBBUTTON buttons[8];
                 int buttoni = 0;
 
@@ -7936,6 +7937,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 }
 
                 winTaskbarList->ThumbBarAddButtons(GetHWND(), buttoni, buttons);
+#endif
             }
         }
 #endif
