@@ -464,6 +464,8 @@ printf("Mode: NotifyUngrab\n");
 
 	    /* Gaining input focus? */
 	    case FocusIn: {
+            if ((!currently_fullscreen && xevent.xany.window == SDL_Window) ||
+                 (currently_fullscreen && xevent.xany.window == FSwindow)) {
 #ifdef DEBUG_XEVENTS
 printf("FocusIn!\n");
 #endif
@@ -478,10 +480,13 @@ printf("FocusIn!\n");
 		switch_waiting = 0x01 | SDL_FULLSCREEN;
 		switch_time = SDL_GetTicks() + 1500;
 	    }
+        }
 	    break;
 
 	    /* Losing input focus? */
 	    case FocusOut: {
+            if ((!currently_fullscreen && xevent.xany.window == SDL_Window) ||
+                 (currently_fullscreen && xevent.xany.window == FSwindow)) {
 #ifdef DEBUG_XEVENTS
 printf("FocusOut!\n");
 #endif
@@ -496,6 +501,7 @@ printf("FocusOut!\n");
 		switch_waiting = 0x01;
 		switch_time = SDL_GetTicks() + 200;
 	    }
+        }
 	    break;
 
 #ifdef X_HAVE_UTF8_STRING
