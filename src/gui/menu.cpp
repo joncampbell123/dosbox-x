@@ -1464,6 +1464,36 @@ void DOSBox_SetSysMenu(void) {
 
 		InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
 	}
+
+    AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
+
+    {
+        const char *msg = "Show &mapper interface";
+
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = MFS_ENABLED;
+        mii.wID = ID_WIN_SYSMENU_MAPPER;
+        mii.dwTypeData = (LPTSTR)(msg);
+        mii.cch = (UINT)(strlen(msg) + 1);
+
+        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+    }
+
+    {
+        const char *msg = "Show configuration &GUI";
+
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = MFS_ENABLED;
+        mii.wID = ID_WIN_SYSMENU_CFG_GUI;
+        mii.dwTypeData = (LPTSTR)(msg);
+        mii.cch = (UINT)(strlen(msg) + 1);
+
+        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+    }
 #endif
 }
 

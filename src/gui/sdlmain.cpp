@@ -4875,6 +4875,16 @@ void GFX_Events() {
                                 mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
                             }
                             break;
+#if !defined(HX_DOS)
+                        case ID_WIN_SYSMENU_MAPPER:
+                            extern void MAPPER_Run(bool pressed);
+                            MAPPER_Run(false);
+                            break;
+                        case ID_WIN_SYSMENU_CFG_GUI:
+                            extern void GUI_Run(bool pressed);
+                            GUI_Run(false);
+                            break;
+#endif
                     }
                 default:
                     break;
