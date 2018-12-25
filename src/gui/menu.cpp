@@ -1494,6 +1494,20 @@ void DOSBox_SetSysMenu(void) {
 
         InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
     }
+
+    {
+        const char *msg = "&Pause";
+
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = MFS_ENABLED;
+        mii.wID = ID_WIN_SYSMENU_PAUSE;
+        mii.dwTypeData = (LPTSTR)(msg);
+        mii.cch = (UINT)(strlen(msg) + 1);
+
+        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+    }
 #endif
 }
 
@@ -1627,6 +1641,10 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
     if (LOWORD(Message.wParam) == ID_WIN_SYSMENU_CFG_GUI) {
         extern void GUI_Run(bool pressed);
         GUI_Run(false);
+    }
+    if (LOWORD(Message.wParam) == ID_WIN_SYSMENU_PAUSE) {
+        extern void PauseDOSBox(bool pressed);
+        PauseDOSBox(true);
     }
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU

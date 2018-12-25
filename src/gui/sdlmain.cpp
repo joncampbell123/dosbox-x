@@ -4888,6 +4888,10 @@ void GFX_Events() {
                             extern void GUI_Run(bool pressed);
                             GUI_Run(false);
                             break;
+                        case ID_WIN_SYSMENU_PAUSE:
+                            extern void PauseDOSBox(bool pressed);
+                            PauseDOSBox(true);
+                            break;
 #endif
                     }
                 default:
@@ -7906,6 +7910,16 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
                     b.dwFlags = THBF_ENABLED | THBF_DISMISSONCLICK;
                     wcscpy(b.szTip, L"Configuration GUI");
+                }
+
+                {
+                    THUMBBUTTON &b = buttons[buttoni++];
+                    memset(&b, 0, sizeof(b));
+                    b.iId = ID_WIN_SYSMENU_PAUSE;
+                    b.hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(dosbox_ico));
+                    b.dwMask = THB_TOOLTIP | THB_FLAGS | THB_ICON;
+                    b.dwFlags = THBF_ENABLED | THBF_DISMISSONCLICK;
+                    wcscpy(b.szTip, L"Pause");
                 }
 
                 winTaskbarList->ThumbBarAddButtons(GetHWND(), buttoni, buttons);
