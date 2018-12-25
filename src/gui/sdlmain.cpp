@@ -80,6 +80,10 @@ void GFX_OpenGLRedrawScreen(void);
 #include "sdlmain.h"
 #include "zipfile.h"
 
+#if defined(WIN32) && !defined(HX_DOS)
+# include <shobjidl.h>
+#endif
+
 #if C_EMSCRIPTEN
 # include <emscripten.h>
 #endif
@@ -6940,10 +6944,16 @@ void OutputSettingMenuUpdate(void) {
 
 bool custom_bios = false;
 
+ITaskbarList3 *winTaskbarList = NULL;
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
+
+#if defined(WIN32) && !defined(HX_DOS)
+    CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+#endif
 
 #if 0 /* VGA_Draw_2 self test: dot clock */
     {
@@ -7866,7 +7876,18 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.screenWidth = (unsigned int)sdl.surface->w;
         mainMenu.updateRect();
 #endif
+#ifdef WIN32
+        /* Windows 7 taskbar extension support */
+        {
+            HRESULT hr;
 
+            hr = CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_SERVER, IID_ITaskbarList3, (LPVOID*)(&winTaskbarList));
+            if (hr == S_OK) {
+                LOG_MSG("Windows: IID_ITaskbarList3 is available");
+                // TODO: Buttons
+            }
+        }
+#endif
         {
             Section_prop *section = static_cast<Section_prop *>(control->GetSection("SDL"));
             assert(section != NULL);
@@ -8218,6 +8239,11 @@ fresh_boot:
 #endif
 
     SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
+
+    if (winTaskbarList != NULL) {
+        winTaskbarList->Release();
+        winTaskbarList = NULL;
+    }
 
     mainMenu.unbuild();
     mainMenu.clear_all_menu_items();
