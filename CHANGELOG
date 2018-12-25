@@ -1,3 +1,6 @@
+0.82.14 (next)
+  - Windows builds now include Mapper and Configuration GUI
+    commands in the system menu.
 0.82.13
   - Mac OS X SDL2 builds now use the native OS X menu
     system instead of the "SDL drawn" menus.
