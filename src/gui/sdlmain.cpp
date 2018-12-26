@@ -714,6 +714,11 @@ static bool IsFullscreen() {
 }
 #endif
 
+#if defined(MACOSX)
+bool is_paused = false;
+bool unpause_now = false;
+#endif
+
 void PauseDOSBox(bool pressed) {
     bool paused = true;
     SDL_Event event;
@@ -741,7 +746,19 @@ void PauseDOSBox(bool pressed) {
     SDL_WM_GrabInput(SDL_GRAB_OFF);
 #endif
 
+#if defined(MACOSX)
+    is_paused = true;
+#endif
+
     while (paused) {
+#if defined(MACOSX)
+        if (unpause_now) {
+            unpause_now = false;
+            break;
+        }
+#endif
+
+
 #if C_EMSCRIPTEN
         emscripten_sleep_with_yield(0);
         SDL_PollEvent(&event);
@@ -806,6 +823,10 @@ void PauseDOSBox(bool pressed) {
 
     /* reflect in the menu that we're paused now */
     mainMenu.get_item("mapper_pause").check(false).refresh_item(mainMenu);
+
+#if defined(MACOSX)
+    is_paused = false;
+#endif
 }
 
 #if defined(C_SDL2)
@@ -7334,6 +7355,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #ifdef MACOSX
         osx_detect_nstouchbar();/*assigns to has_touch_bar_support*/
         if (has_touch_bar_support) LOG_MSG("Mac OS X: NSTouchBar support detected in system");
+
+        extern void osx_init_dock_menu(void);
+        osx_init_dock_menu();
 #endif
 
         /* -- SDL init */

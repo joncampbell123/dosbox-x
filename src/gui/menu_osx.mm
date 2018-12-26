@@ -125,12 +125,79 @@ void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu) {
 	/* sorry! */
 	mainMenu.mainMenuAction([sender tag]);
 }
+
+- (void)DOSBoxXMenuActionMapper:(id)sender
+{
+    (void)sender;
+    extern void MAPPER_Run(bool pressed);
+    MAPPER_Run(false);
+}
+
+- (void)DOSBoxXMenuActionCfgGUI:(id)sender
+{
+    (void)sender;
+    extern void GUI_Run(bool pressed);
+    GUI_Run(false);
+}
+
+- (void)DOSBoxXMenuActionPause:(id)sender
+{
+    (void)sender;
+    extern bool is_paused;
+    extern bool unpause_now;
+    extern void PauseDOSBox(bool pressed);
+
+    if (is_paused)
+        unpause_now = true;
+    else
+        PauseDOSBox(true);
+}
 @end
 
 bool has_touch_bar_support = false;
 
 bool osx_detect_nstouchbar(void) {
     return (has_touch_bar_support = (NSClassFromString(@"NSTouchBar") != nil));
+}
+
+extern "C" void sdl1_hax_set_dock_menu(NSMenu *menu);
+
+void osx_init_dock_menu(void) {
+    NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
+
+    {
+        NSString *title = [[NSString alloc] initWithUTF8String: "Mapper"];
+        NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:title action:@selector(DOSBoxXMenuActionMapper:) keyEquivalent:@""];
+        [menu addItem:item];
+        [title release];
+        [item release];
+    }
+
+    {
+        NSString *title = [[NSString alloc] initWithUTF8String: "Configuration GUI"];
+        NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:title action:@selector(DOSBoxXMenuActionCfgGUI:) keyEquivalent:@""];
+        [menu addItem:item];
+        [title release];
+        [item release];
+    }
+
+    {
+	    NSMenuItem *item = [NSMenuItem separatorItem];
+        [menu addItem:item];
+        [item release];
+    }
+
+    {
+        NSString *title = [[NSString alloc] initWithUTF8String: "Pause"];
+        NSMenuItem *item = [[NSMenuItem alloc] initWithTitle:title action:@selector(DOSBoxXMenuActionPause:) keyEquivalent:@""];
+        [menu addItem:item];
+        [title release];
+        [item release];
+    }
+
+    sdl1_hax_set_dock_menu(menu);
+
+    [menu release];
 }
 #endif
 
