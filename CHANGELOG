@@ -1,4 +1,8 @@
 0.82.14 (next)
+  - Added support for taskbar extensions offered by
+    Windows 7 and higher that allow DOSBox-X to put
+    additional buttons in the preview pane that appears
+    when you hover over DOSBox-X in the taskbar.
   - Centos 7 SDL1 builds (Linux X11) can now go fullscreen
     properly, instead of making the user input devices
     unusable running in an endless loop.
