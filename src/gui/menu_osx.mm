@@ -160,9 +160,12 @@ bool osx_detect_nstouchbar(void) {
     return (has_touch_bar_support = (NSClassFromString(@"NSTouchBar") != nil));
 }
 
+#if !defined(C_SDL2)
 extern "C" void sdl1_hax_set_dock_menu(NSMenu *menu);
+#endif
 
 void osx_init_dock_menu(void) {
+#if !defined(C_SDL2)
     NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
 
     {
@@ -198,6 +201,7 @@ void osx_init_dock_menu(void) {
     sdl1_hax_set_dock_menu(menu);
 
     [menu release];
+#endif
 }
 #endif
 
