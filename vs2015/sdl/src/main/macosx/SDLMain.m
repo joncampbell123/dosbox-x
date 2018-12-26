@@ -78,8 +78,29 @@ static NSString *getApplicationName(void)
 }
 @end
 
+static NSMenu*          sdl1_hax_dock_menu = NULL;
+
+void sdl1_hax_set_dock_menu(NSMenu *menu) {
+    if (sdl1_hax_dock_menu != menu) {
+        if (sdl1_hax_dock_menu != nil) {
+            [sdl1_hax_dock_menu release];
+        }
+
+        sdl1_hax_dock_menu = menu;
+
+        if (sdl1_hax_dock_menu != nil) {
+            [sdl1_hax_dock_menu retain];
+        }
+    }
+}
+
 /* The main class of the application, the application's delegate */
 @implementation SDLMain
+
+- (NSMenu *)applicationDockMenu:(NSApplication *)sender
+{
+    return sdl1_hax_dock_menu;
+}
 
 /* Set the working directory to the .app's parent directory */
 - (void) setupWorkingDirectory:(BOOL)shouldChdir
