@@ -6953,7 +6953,9 @@ void OutputSettingMenuUpdate(void) {
 
 bool custom_bios = false;
 
+#if defined(WIN32) && !defined(HX_DOS)
 ITaskbarList3 *winTaskbarList = NULL;
+#endif
 
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
@@ -8293,10 +8295,12 @@ fresh_boot:
 
     SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
 
+#if defined(WIN32) && !defined(HX_DOS)
     if (winTaskbarList != NULL) {
         winTaskbarList->Release();
         winTaskbarList = NULL;
     }
+#endif
 
     mainMenu.unbuild();
     mainMenu.clear_all_menu_items();
