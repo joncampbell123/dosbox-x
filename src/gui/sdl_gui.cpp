@@ -62,6 +62,7 @@ static int			cursor;
 static bool			running;
 static int			saved_bpp;
 static bool			shell_idle;
+static bool         in_gui = false;
 #if !defined(C_SDL2)
 static int			old_unicode;
 #endif
@@ -352,6 +353,12 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 
 	void GFX_ForceRedrawScreen(void);
 	GFX_ForceRedrawScreen();
+
+    in_gui = false;
+}
+
+bool GUI_IsRunning(void) {
+    return in_gui;
 }
 
 static void UI_RunCommands(GUI::ScreenSDL *s, const std::string &cmds) {
@@ -981,6 +988,8 @@ public:
 static void UI_Execute(GUI::ScreenSDL *screen) {
 	SDL_Surface *sdlscreen;
 	SDL_Event event;
+
+    in_gui = true;
 
 	sdlscreen = screen->getSurface();
 	auto *cfg_wnd = new ConfigurationWindow(screen, 30, 30, "DOSBox Configuration");
