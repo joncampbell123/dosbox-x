@@ -119,6 +119,8 @@ void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu) {
 	[appMenu release];
 }
 
+extern void PushDummySDL(void);
+
 @implementation NSApplication (DOSBoxX)
 - (void)DOSBoxXMenuAction:(id)sender
 {
@@ -147,10 +149,13 @@ void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu) {
     extern bool unpause_now;
     extern void PauseDOSBox(bool pressed);
 
-    if (is_paused)
+    if (is_paused) {
+        PushDummySDL();
         unpause_now = true;
-    else
+    }
+    else {
         PauseDOSBox(true);
+    }
 }
 @end
 

@@ -720,6 +720,14 @@ bool is_paused = false;
 bool unpause_now = false;
 #endif
 
+void PushDummySDL(void) {
+    SDL_Event event;
+
+    memset(&event,0,sizeof(event));
+    event.type = SDL_KEYUP;
+    SDL_PushEvent(&event);
+}
+
 void PauseDOSBox(bool pressed) {
     bool paused = true;
     SDL_Event event;
