@@ -135,6 +135,13 @@ extern void PushDummySDL(void);
     MAPPER_Run(false);
 }
 
+- (void)DOSBoxXMenuActionCapMouse:(id)sender
+{
+    (void)sender;
+    extern void MapperCapCursorToggle(void);
+    MapperCapCursorToggle();
+}
+
 - (void)DOSBoxXMenuActionCfgGUI:(id)sender
 {
     (void)sender;
@@ -174,6 +181,7 @@ static NSTouchBarItemIdentifier TouchBarMapperIdentifier = @"com.dosbox-x.touchb
 static NSTouchBarItemIdentifier TouchBarCFGGUIIdentifier = @"com.dosbox-x.touchbar.cfggui";
 static NSTouchBarItemIdentifier TouchBarHostKeyIdentifier = @"com.dosbox-x.touchbar.hostkey";
 static NSTouchBarItemIdentifier TouchBarPauseIdentifier = @"com.dosbox-x.touchbar.pause";
+static NSTouchBarItemIdentifier TouchBarCursorCaptureIdentifier = @"com.dosbox-x.touchbar.capcursor";
 
 @interface DOSBoxXTouchBarDelegate : NSViewController
 @end
@@ -248,6 +256,14 @@ extern void ext_signal_host_key(bool enable);
 
         return item;
     }
+    else if ([identifier isEqualToString:TouchBarCursorCaptureIdentifier]) {
+        NSCustomTouchBarItem *item = [[NSCustomTouchBarItem alloc] initWithIdentifier:TouchBarCursorCaptureIdentifier];
+
+        item.view = [NSButton buttonWithTitle:@"CapMouse" target:NSApp action:@selector(DOSBoxXMenuActionCapMouse:)];
+        item.customizationLabel = TouchBarCustomIdentifier;
+
+        return item;
+    }
     else {
         fprintf(stderr,"Touch bar warning, unknown item '%s'\n",[identifier UTF8String]);
     }
@@ -269,6 +285,8 @@ NSTouchBar* osx_on_make_touch_bar(NSWindow *wnd) {
         NSTouchBarItemIdentifierFixedSpaceLarge,
         TouchBarPauseIdentifier,
         NSTouchBarItemIdentifierFixedSpaceLarge,
+        TouchBarCursorCaptureIdentifier,
+        NSTouchBarItemIdentifierFixedSpaceLarge,
         TouchBarMapperIdentifier,
         TouchBarCFGGUIIdentifier,
         NSTouchBarItemIdentifierOtherItemsProxy
@@ -277,6 +295,7 @@ NSTouchBar* osx_on_make_touch_bar(NSWindow *wnd) {
         TouchBarHostKeyIdentifier,
         TouchBarMapperIdentifier,
         TouchBarCFGGUIIdentifier,
+        TouchBarCursorCaptureIdentifier,
         TouchBarPauseIdentifier
     ];
 

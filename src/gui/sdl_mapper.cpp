@@ -4218,3 +4218,7 @@ void ext_signal_host_key(bool enable) {
     }
 }
 
+void MapperCapCursorToggle(void) {
+    MAPPER_TriggerEventByName("hand_capmouse");
+}
+
