@@ -144,7 +144,7 @@ void sdl1_hax_set_dock_menu(NSMenu *menu) {
 
 #else
 
-static void setApplicationMenu(void)
+static void setApplicationMenu(NSMenu *modme)
 {
     /* warning: this code is very odd */
     NSMenu *appleMenu;
@@ -178,7 +178,7 @@ static void setApplicationMenu(void)
     /* Put menu into the menubar */
     menuItem = [[NSMenuItem alloc] initWithTitle:@"" action:nil keyEquivalent:@""];
     [menuItem setSubmenu:appleMenu];
-    [[NSApp mainMenu] addItem:menuItem];
+    [modme addItem:menuItem];
 
     /* Tell the application object that this is now the application menu */
     [NSApp setAppleMenu:appleMenu];
@@ -186,6 +186,10 @@ static void setApplicationMenu(void)
     /* Finally give up our references to the objects */
     [appleMenu release];
     [menuItem release];
+}
+
+void sdl1_hax_stock_osx_menu_additem(NSMenu *modme) {
+    setApplicationMenu(modme);
 }
 
 /* Create a window menu */
@@ -243,7 +247,7 @@ static void CustomApplicationMain (int argc, char **argv)
 
     /* Set up the menubar */
     [NSApp setMainMenu:[[NSMenu alloc] init]];
-    setApplicationMenu();
+    setApplicationMenu([NSApp mainMenu]);
     setupWindowMenu();
 
     /* save a copy of our menu */

@@ -16,6 +16,7 @@
 
 #if !defined(C_SDL2)
 extern "C" void* sdl1_hax_stock_osx_menu(void);
+extern "C" void sdl1_hax_stock_osx_menu_additem(NSMenu *modme);
 #endif
 
 void *sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag) {
@@ -109,6 +110,7 @@ void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu) {
 	NSMenu *appMenu;
 	NSMenuItem *appMenuItem;
 
+#if defined(C_SDL2)
 	appMenu = [[NSMenu alloc] initWithTitle:@""];
 	[appMenu addItemWithTitle:@"About DOSBox-X" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
 
@@ -117,6 +119,10 @@ void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu) {
 	[((NSMenu*)nsMenu) addItem:appMenuItem];
 	[appMenuItem release];
 	[appMenu release];
+#else
+    /* Re-use the application menu from SDL1 */
+    sdl1_hax_stock_osx_menu_additem((NSMenu*)nsMenu);
+#endif
 }
 
 extern bool is_paused;
