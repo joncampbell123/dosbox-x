@@ -224,7 +224,7 @@ NSTouchBar* osx_on_make_touch_bar(NSWindow *wnd) {
 
     touchBar.customizationIdentifier = TouchBarCustomIdentifier;
     touchBar.defaultItemIdentifiers = @[
-        NSTouchBarItemIdentifierFixedSpaceLarge, // try to keep the user from hitting the ESC button
+        NSTouchBarItemIdentifierFixedSpaceLarge, // try to keep the user from hitting the ESC button accidentally when reaching for Host Key
         TouchBarHostKeyIdentifier,
         NSTouchBarItemIdentifierFixedSpaceLarge,
         TouchBarPauseIdentifier,
