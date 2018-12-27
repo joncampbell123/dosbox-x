@@ -134,6 +134,7 @@ void GFX_OpenGLRedrawScreen(void);
 #ifdef MACOSX
 extern bool has_touch_bar_support;
 bool osx_detect_nstouchbar(void);
+void osx_init_touchbar(void);
 #endif
 
 SDL_Block sdl;
@@ -7354,7 +7355,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
 #ifdef MACOSX
         osx_detect_nstouchbar();/*assigns to has_touch_bar_support*/
-        if (has_touch_bar_support) LOG_MSG("Mac OS X: NSTouchBar support detected in system");
+        if (has_touch_bar_support) {
+            LOG_MSG("Mac OS X: NSTouchBar support detected in system");
+            osx_init_touchbar();
+        }
 
         extern void osx_init_dock_menu(void);
         osx_init_dock_menu();

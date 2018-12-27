@@ -60,7 +60,20 @@ static void QZ_SetPortAlphaOpaque () {
     }
 }
 
+static NSTouchBar* (*sdl1_hax_maketouchbar_cb)(NSWindow *wnd) = NULL;
+
+void sdl1_hax_make_touch_bar_set_callback(NSTouchBar* (*newcb)(NSWindow*)) {
+    sdl1_hax_maketouchbar_cb = newcb;
+}
+
 @implementation SDL_QuartzWindow
+
+- (NSTouchBar *)makeTouchBar {
+    if (sdl1_hax_maketouchbar_cb != NULL)
+        return sdl1_hax_maketouchbar_cb(self);
+
+    return nil;
+}
 
 /* we override these methods to fix the miniaturize animation/dock icon bug */
 - (void)miniaturize:(id)sender

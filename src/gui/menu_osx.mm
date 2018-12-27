@@ -160,6 +160,97 @@ bool osx_detect_nstouchbar(void) {
     return (has_touch_bar_support = (NSClassFromString(@"NSTouchBar") != nil));
 }
 
+extern "C" void sdl1_hax_make_touch_bar_set_callback(NSTouchBar* (*newcb)(NSWindow*));
+
+static NSTouchBarItemIdentifier TouchBarCustomIdentifier = @"com.dosbox-x.touchbar.custom";
+static NSTouchBarItemIdentifier TouchBarMapperIdentifier = @"com.dosbox-x.touchbar.mapper";
+static NSTouchBarItemIdentifier TouchBarCFGGUIIdentifier = @"com.dosbox-x.touchbar.cfggui";
+static NSTouchBarItemIdentifier TouchBarHostKeyIdentifier = @"com.dosbox-x.touchbar.hostkey";
+static NSTouchBarItemIdentifier TouchBarPauseIdentifier = @"com.dosbox-x.touchbar.pause";
+
+@interface DOSBoxXTouchBarDelegate : NSViewController
+@end
+
+@interface DOSBoxXTouchBarDelegate () <NSTouchBarDelegate,NSTextViewDelegate>
+@end
+
+@implementation DOSBoxXTouchBarDelegate
+- (NSTouchBarItem *)touchBar:(NSTouchBar *)touchBar makeItemForIdentifier:(NSTouchBarItemIdentifier)identifier {
+    if ([identifier isEqualToString:TouchBarMapperIdentifier]) {
+        NSCustomTouchBarItem *item = [[NSCustomTouchBarItem alloc] initWithIdentifier:TouchBarMapperIdentifier];
+
+        item.view = [NSButton buttonWithTitle:@"Mapper" target:nil action:nil];
+        item.customizationLabel = TouchBarCustomIdentifier;
+
+        return item;
+    }
+    else if ([identifier isEqualToString:TouchBarHostKeyIdentifier]) {
+        NSCustomTouchBarItem *item = [[NSCustomTouchBarItem alloc] initWithIdentifier:TouchBarHostKeyIdentifier];
+
+        item.view = [NSButton buttonWithTitle:@"Host Key" target:nil action:nil];
+        item.customizationLabel = TouchBarCustomIdentifier;
+
+        return item;
+    }
+    else if ([identifier isEqualToString:TouchBarCFGGUIIdentifier]) {
+        NSCustomTouchBarItem *item = [[NSCustomTouchBarItem alloc] initWithIdentifier:TouchBarCFGGUIIdentifier];
+
+        item.view = [NSButton buttonWithTitle:@"Cfg GUI" target:nil action:nil];
+        item.customizationLabel = TouchBarCustomIdentifier;
+
+        return item;
+    }
+    else if ([identifier isEqualToString:TouchBarPauseIdentifier]) {
+        NSCustomTouchBarItem *item = [[NSCustomTouchBarItem alloc] initWithIdentifier:TouchBarPauseIdentifier];
+
+        item.view = [NSButton buttonWithImage:[NSImage imageNamed:NSImageNameTouchBarPauseTemplate] target:nil action:nil];
+        item.customizationLabel = TouchBarCustomIdentifier;
+
+        return item;
+    }
+    else {
+        fprintf(stderr,"Touch bar warning, unknown item '%s'\n",[identifier UTF8String]);
+    }
+
+    return nil;
+}
+@end
+
+NSTouchBar* osx_on_make_touch_bar(NSWindow *wnd) {
+    (void)wnd;
+
+    NSTouchBar* touchBar = [[NSTouchBar alloc] init];
+    touchBar.delegate = [DOSBoxXTouchBarDelegate alloc];
+
+    touchBar.customizationIdentifier = TouchBarCustomIdentifier;
+    touchBar.defaultItemIdentifiers = @[
+        NSTouchBarItemIdentifierFixedSpaceLarge, // try to keep the user from hitting the ESC button
+        TouchBarHostKeyIdentifier,
+        NSTouchBarItemIdentifierFixedSpaceLarge,
+        TouchBarPauseIdentifier,
+        NSTouchBarItemIdentifierFixedSpaceLarge,
+        TouchBarMapperIdentifier,
+        TouchBarCFGGUIIdentifier,
+        NSTouchBarItemIdentifierOtherItemsProxy
+    ];
+    touchBar.customizationAllowedItemIdentifiers = @[
+        TouchBarHostKeyIdentifier,
+        TouchBarMapperIdentifier,
+        TouchBarCFGGUIIdentifier,
+        TouchBarPauseIdentifier
+    ];
+
+// Do not mark as principal, it just makes the button centered in the touch bar
+//    touchBar.principalItemIdentifier = TouchBarMapperIdentifier;
+
+    return touchBar;
+}
+
+void osx_init_touchbar(void) {
+    if (has_touch_bar_support)
+        sdl1_hax_make_touch_bar_set_callback(osx_on_make_touch_bar);
+}
+
 #if !defined(C_SDL2)
 extern "C" void sdl1_hax_set_dock_menu(NSMenu *menu);
 #endif
