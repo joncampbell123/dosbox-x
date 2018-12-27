@@ -319,7 +319,7 @@ public:
         return true;
     }
 
-    void ActivateEvent(bool ev_trigger,bool skip_action) {
+    virtual void ActivateEvent(bool ev_trigger,bool skip_action) {
         if (current_value>25000) {
             /* value exceeds boundary, trigger event if not active */
             if (!activity && !skip_action) Active(true);
@@ -333,8 +333,8 @@ public:
         }
     }
 
-    void DeActivateEvent(bool /*ev_trigger*/) {
-        activity--;
+    virtual void DeActivateEvent(bool /*ev_trigger*/) {
+        if (activity > 0) activity--;
         if (!activity) Active(false);
     }
 };
@@ -353,7 +353,7 @@ public:
         return false;
     }
 
-    void ActivateEvent(bool ev_trigger,bool skip_action) {
+    virtual void ActivateEvent(bool ev_trigger,bool skip_action) {
         if (ev_trigger) {
             activity++;
             if (!skip_action) Active(true);
@@ -364,7 +364,7 @@ public:
         }
     }
 
-    void DeActivateEvent(bool ev_trigger) {
+    virtual void DeActivateEvent(bool ev_trigger) {
         if (ev_trigger) {
             if (activity>0) activity--;
             if (activity==0) {
@@ -4202,6 +4202,19 @@ void MAPPER_Shutdown() {
 }
 
 void ext_signal_host_key(bool enable) {
-// TODO
+    CEvent *x = get_mapper_event_by_name("host");
+    if (x != NULL) {
+        if (enable) {
+            x->SetValue(32767);//HACK
+            x->ActivateEvent(true,false);
+        }
+        else {
+            x->SetValue(0);
+            x->DeActivateEvent(true);
+        }
+    }
+    else {
+        fprintf(stderr,"WARNING: No host mapper event\n");
+    }
 }
 
