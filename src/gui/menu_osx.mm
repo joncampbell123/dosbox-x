@@ -175,11 +175,31 @@ static NSTouchBarItemIdentifier TouchBarPauseIdentifier = @"com.dosbox-x.touchba
 @end
 
 @implementation DOSBoxXTouchBarDelegate
+- (void)onMapper:(id)sender
+{
+    fprintf(stderr,"Mapper\n");
+}
+
+- (void)onHostKey:(id)sender
+{
+    fprintf(stderr,"HostKey\n");
+}
+
+- (void)onCfgGui:(id)sender
+{
+    fprintf(stderr,"CfgGUI\n");
+}
+
+- (void)onPauseButton:(id)sender
+{
+    fprintf(stderr,"Pause\n");
+}
+
 - (NSTouchBarItem *)touchBar:(NSTouchBar *)touchBar makeItemForIdentifier:(NSTouchBarItemIdentifier)identifier {
     if ([identifier isEqualToString:TouchBarMapperIdentifier]) {
         NSCustomTouchBarItem *item = [[NSCustomTouchBarItem alloc] initWithIdentifier:TouchBarMapperIdentifier];
 
-        item.view = [NSButton buttonWithTitle:@"Mapper" target:nil action:nil];
+        item.view = [NSButton buttonWithTitle:@"Mapper" target:self action:@selector(onMapper:)];
         item.customizationLabel = TouchBarCustomIdentifier;
 
         return item;
@@ -187,7 +207,7 @@ static NSTouchBarItemIdentifier TouchBarPauseIdentifier = @"com.dosbox-x.touchba
     else if ([identifier isEqualToString:TouchBarHostKeyIdentifier]) {
         NSCustomTouchBarItem *item = [[NSCustomTouchBarItem alloc] initWithIdentifier:TouchBarHostKeyIdentifier];
 
-        item.view = [NSButton buttonWithTitle:@"Host Key" target:nil action:nil];
+        item.view = [NSButton buttonWithTitle:@"Host Key" target:self action:@selector(onHostKey:)];
         item.customizationLabel = TouchBarCustomIdentifier;
 
         return item;
@@ -195,7 +215,7 @@ static NSTouchBarItemIdentifier TouchBarPauseIdentifier = @"com.dosbox-x.touchba
     else if ([identifier isEqualToString:TouchBarCFGGUIIdentifier]) {
         NSCustomTouchBarItem *item = [[NSCustomTouchBarItem alloc] initWithIdentifier:TouchBarCFGGUIIdentifier];
 
-        item.view = [NSButton buttonWithTitle:@"Cfg GUI" target:nil action:nil];
+        item.view = [NSButton buttonWithTitle:@"Cfg GUI" target:self action:@selector(onCfgGui:)];
         item.customizationLabel = TouchBarCustomIdentifier;
 
         return item;
@@ -203,7 +223,7 @@ static NSTouchBarItemIdentifier TouchBarPauseIdentifier = @"com.dosbox-x.touchba
     else if ([identifier isEqualToString:TouchBarPauseIdentifier]) {
         NSCustomTouchBarItem *item = [[NSCustomTouchBarItem alloc] initWithIdentifier:TouchBarPauseIdentifier];
 
-        item.view = [NSButton buttonWithImage:[NSImage imageNamed:NSImageNameTouchBarPauseTemplate] target:nil action:nil];
+        item.view = [NSButton buttonWithImage:[NSImage imageNamed:NSImageNameTouchBarPauseTemplate] target:self action:@selector(onPauseButton:)];
         item.customizationLabel = TouchBarCustomIdentifier;
 
         return item;
