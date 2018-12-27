@@ -119,6 +119,8 @@ extern Bitu currentWindowWidth, currentWindowHeight;
 void GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen);
 
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
+    in_gui = true;
+
 	GFX_EndUpdate(0);
 	GFX_SetTitle(-1,-1,-1,true);
 	if(!screen) { //Coming from DOSBox. Clean up the keyboard buffer.
@@ -988,8 +990,6 @@ public:
 static void UI_Execute(GUI::ScreenSDL *screen) {
 	SDL_Surface *sdlscreen;
 	SDL_Event event;
-
-    in_gui = true;
 
 	sdlscreen = screen->getSurface();
 	auto *cfg_wnd = new ConfigurationWindow(screen, 30, 30, "DOSBox Configuration");
