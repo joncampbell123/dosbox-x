@@ -4201,3 +4201,7 @@ void MAPPER_Shutdown() {
     handlergroup.clear();
 }
 
+void ext_signal_host_key(bool enable) {
+// TODO
+}
+

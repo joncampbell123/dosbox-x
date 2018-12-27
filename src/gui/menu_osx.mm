@@ -184,16 +184,27 @@ static NSTouchBarItemIdentifier TouchBarPauseIdentifier = @"com.dosbox-x.touchba
 @interface DOSBoxHostButton : NSButton
 @end
 
+extern void ext_signal_host_key(bool enable);
+
 @implementation DOSBoxHostButton
 - (void)touchesBeganWithEvent:(NSEvent*)event
 {
     fprintf(stderr,"Host key down\n");
+    ext_signal_host_key(true);
     [super touchesBeganWithEvent:event];
 }
 
 - (void)touchesEndedWithEvent:(NSEvent*)event
 {
     fprintf(stderr,"Host key up\n");
+    ext_signal_host_key(false);
+    [super touchesEndedWithEvent:event];
+}
+
+- (void)touchesCancelledWithEvent:(NSEvent*)event
+{
+    fprintf(stderr,"Host key cancelled\n");
+    ext_signal_host_key(false);
     [super touchesEndedWithEvent:event];
 }
 @end
