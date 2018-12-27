@@ -119,11 +119,14 @@ void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu) {
 	[appMenu release];
 }
 
+extern bool is_paused;
 extern void PushDummySDL(void);
+extern bool MAPPER_IsRunning(void);
 
 @implementation NSApplication (DOSBoxX)
 - (void)DOSBoxXMenuAction:(id)sender
 {
+    if (is_paused || MAPPER_IsRunning()) return;
 	/* sorry! */
 	mainMenu.mainMenuAction([sender tag]);
 }
@@ -131,6 +134,7 @@ extern void PushDummySDL(void);
 - (void)DOSBoxXMenuActionMapper:(id)sender
 {
     (void)sender;
+    if (is_paused || MAPPER_IsRunning()) return;
     extern void MAPPER_Run(bool pressed);
     MAPPER_Run(false);
 }
@@ -138,6 +142,7 @@ extern void PushDummySDL(void);
 - (void)DOSBoxXMenuActionCapMouse:(id)sender
 {
     (void)sender;
+    if (is_paused || MAPPER_IsRunning()) return;
     extern void MapperCapCursorToggle(void);
     MapperCapCursorToggle();
 }
@@ -145,6 +150,7 @@ extern void PushDummySDL(void);
 - (void)DOSBoxXMenuActionCfgGUI:(id)sender
 {
     (void)sender;
+    if (is_paused || MAPPER_IsRunning()) return;
     extern void GUI_Run(bool pressed);
     GUI_Run(false);
 }
@@ -152,9 +158,10 @@ extern void PushDummySDL(void);
 - (void)DOSBoxXMenuActionPause:(id)sender
 {
     (void)sender;
-    extern bool is_paused;
     extern bool unpause_now;
     extern void PauseDOSBox(bool pressed);
+
+    if (MAPPER_IsRunning()) return;
 
     if (is_paused) {
         PushDummySDL();

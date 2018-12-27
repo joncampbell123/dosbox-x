@@ -1810,6 +1810,7 @@ static struct CMapper {
     CBindList_it abindit;           //Location of active bind in list
     bool redraw;
     bool addbind;
+    bool running=false;
     Bitu mods;
     struct {
         Bitu num_groups,num;
@@ -3838,6 +3839,8 @@ void MAPPER_RunInternal() {
         return;
     }
 
+    mapper.running = true;
+
 #if defined(__WIN32__) && !defined(C_SDL2) && !defined(C_HX_DOS)
     if(menu.maxwindow) ShowWindow(GetHWND(), SW_RESTORE);
 #endif
@@ -3952,6 +3955,12 @@ void MAPPER_RunInternal() {
 
     void GFX_ForceRedrawScreen(void);
     GFX_ForceRedrawScreen();
+
+    mapper.running = false;
+}
+
+bool MAPPER_IsRunning(void) {
+    return mapper.running;
 }
 
 void MAPPER_CheckKeyboardLayout() {
