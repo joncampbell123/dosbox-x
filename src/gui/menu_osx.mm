@@ -181,6 +181,23 @@ static NSTouchBarItemIdentifier TouchBarPauseIdentifier = @"com.dosbox-x.touchba
 @interface DOSBoxXTouchBarDelegate () <NSTouchBarDelegate,NSTextViewDelegate>
 @end
 
+@interface DOSBoxHostButton : NSButton
+@end
+
+@implementation DOSBoxHostButton
+- (void)touchesBeganWithEvent:(NSEvent*)event
+{
+    fprintf(stderr,"Host key down\n");
+    [super touchesBeganWithEvent:event];
+}
+
+- (void)touchesEndedWithEvent:(NSEvent*)event
+{
+    fprintf(stderr,"Host key up\n");
+    [super touchesEndedWithEvent:event];
+}
+@end
+
 @implementation DOSBoxXTouchBarDelegate
 - (void)onHostKey:(id)sender
 {
@@ -199,7 +216,7 @@ static NSTouchBarItemIdentifier TouchBarPauseIdentifier = @"com.dosbox-x.touchba
     else if ([identifier isEqualToString:TouchBarHostKeyIdentifier]) {
         NSCustomTouchBarItem *item = [[NSCustomTouchBarItem alloc] initWithIdentifier:TouchBarHostKeyIdentifier];
 
-        item.view = [NSButton buttonWithTitle:@"Host Key" target:self action:@selector(onHostKey:)];
+        item.view = [DOSBoxHostButton buttonWithTitle:@"Host Key" target:self action:@selector(onHostKey:)];
         item.customizationLabel = TouchBarCustomIdentifier;
 
         return item;
