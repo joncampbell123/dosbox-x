@@ -1,4 +1,12 @@
 0.82.14 (next)
+  - SDL1 builds under Mac OS X now support the "touch bar"
+    on Macbook Pro and offer a few basic shortcuts,
+    including a few that the touch bar makes much more
+    inconvenient to use since the function key row is
+    virtual on the touch bar instead of physical.
+  - SDL1 builds under Mac OS X now offer a few basic
+    DOSBox-X shortcuts if you command-click or double-tap
+    the application icon in the dock.
   - Added support for taskbar extensions offered by
     Windows 7 and higher that allow DOSBox-X to put
     additional buttons in the preview pane that appears
