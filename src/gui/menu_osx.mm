@@ -165,7 +165,9 @@ bool osx_detect_nstouchbar(void) {
     return (has_touch_bar_support = (NSClassFromString(@"NSTouchBar") != nil));
 }
 
+#if !defined(C_SDL2)
 extern "C" void sdl1_hax_make_touch_bar_set_callback(NSTouchBar* (*newcb)(NSWindow*));
+#endif
 
 static NSTouchBarItemIdentifier TouchBarCustomIdentifier = @"com.dosbox-x.touchbar.custom";
 static NSTouchBarItemIdentifier TouchBarMapperIdentifier = @"com.dosbox-x.touchbar.mapper";
@@ -257,8 +259,10 @@ NSTouchBar* osx_on_make_touch_bar(NSWindow *wnd) {
 }
 
 void osx_init_touchbar(void) {
+#if !defined(C_SDL2)
     if (has_touch_bar_support)
         sdl1_hax_make_touch_bar_set_callback(osx_on_make_touch_bar);
+#endif
 }
 
 #if !defined(C_SDL2)
