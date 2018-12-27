@@ -4685,6 +4685,17 @@ void GFX_EventsMouse()
 #endif
 }
 
+/* DOSBox SVN revision 4176:4177: For Linux/X11, Xorg 1.20.1
+ * will make spurious focus gain and loss events when locking the mouse in windowed mode.
+ *
+ * This has not been tested with DOSBox-X yet becaus I do not run Xorg 1.20.1, yet */
+#if defined(LINUX)
+#define SDL_XORG_FIX 1
+#else
+#define SDL_XORG_FIX 0
+#endif
+/* end patch fragment */
+
 void GFX_Events() {
     CheckMapperKeyboardLayout();
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
@@ -4709,6 +4720,24 @@ void GFX_Events() {
 #endif
 
     while (SDL_PollEvent(&event)) {
+        /* DOSBox SVN revision 4176:4177: For Linux/X11, Xorg 1.20.1
+         * will make spurious focus gain and loss events when locking the mouse in windowed mode.
+         *
+         * This has not been tested with DOSBox-X yet becaus I do not run Xorg 1.20.1, yet */
+#if SDL_XORG_FIX
+		// Special code for broken SDL with Xorg 1.20.1, where pairs of inputfocus gain and loss events are generated
+		// when locking the mouse in windowed mode.
+		if (event.type == SDL_ACTIVEEVENT && event.active.state == SDL_APPINPUTFOCUS && event.active.gain == 0) {
+			SDL_Event test; //Check if the next event would undo this one.
+			if (SDL_PeepEvents(&test,1,SDL_PEEKEVENT,SDL_ACTIVEEVENTMASK) == 1 && test.active.state == SDL_APPINPUTFOCUS && test.active.gain == 1) {
+				// Skip both events.
+				SDL_PeepEvents(&test,1,SDL_GETEVENT,SDL_ACTIVEEVENTMASK);
+				continue;
+			}
+		}
+#endif
+        /* end patch fragment */
+
         switch (event.type) {
         case SDL_WINDOWEVENT:
             switch (event.window.event) {
