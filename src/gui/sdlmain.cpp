@@ -2559,7 +2559,13 @@ Bitu GFX_GetRGB(Bit8u red, Bit8u green, Bit8u blue) {
 
 #if C_OPENGL
         case SCREEN_OPENGL:
-            return (((unsigned int)blue << 0u) | ((unsigned int)green << 8u) | ((unsigned int)red << 16u)) | (255u << 24u);
+# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+            //USE BGRA
+            return ((blue << 24) | (green << 16) | (red << 8)) | (255 << 0);
+# else
+            //USE ARGB
+            return ((blue << 0) | (green << 8) | (red << 16)) | (255 << 24);
+# endif
 #endif
 
 #if C_DIRECT3D
