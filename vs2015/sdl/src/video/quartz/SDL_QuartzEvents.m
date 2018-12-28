@@ -925,7 +925,7 @@ void QZ_PumpEvents (_THIS)
                         dx += dx1;
                         dy += dy1;
                     }
-                    else {
+                    else if (expect_mouse_up != 0 || isInGameWin) {
                         
                         /*
                             Get the absolute mouse location. This is not the
