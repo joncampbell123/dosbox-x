@@ -1,4 +1,7 @@
 0.82.14 (next)
+  - Mac OS X SDL1 builds fixed to ignore mouse movement that
+    occurs outside the window, unless any buttons are held
+    down.
   - Mac OS X RGBA color order error with output=opengl fixed.
     EGA/CGA/MDA/Hercules/etc. modes should display properly
     now on OS X with OpenGL output.
