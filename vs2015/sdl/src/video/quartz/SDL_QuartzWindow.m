@@ -60,20 +60,24 @@ static void QZ_SetPortAlphaOpaque () {
     }
 }
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
 static NSTouchBar* (*sdl1_hax_maketouchbar_cb)(NSWindow *wnd) = NULL;
 
 void sdl1_hax_make_touch_bar_set_callback(NSTouchBar* (*newcb)(NSWindow*)) {
     sdl1_hax_maketouchbar_cb = newcb;
 }
+#endif
 
 @implementation SDL_QuartzWindow
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
 - (NSTouchBar *)makeTouchBar {
     if (sdl1_hax_maketouchbar_cb != NULL)
         return sdl1_hax_maketouchbar_cb(self);
 
     return nil;
 }
+#endif
 
 /* we override these methods to fix the miniaturize animation/dock icon bug */
 - (void)miniaturize:(id)sender
