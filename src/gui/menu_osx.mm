@@ -183,12 +183,17 @@ extern bool GUI_IsRunning(void);
 bool has_touch_bar_support = false;
 
 bool osx_detect_nstouchbar(void) {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
     return (has_touch_bar_support = (NSClassFromString(@"NSTouchBar") != nil));
+#else
+    return false;
+#endif
 }
 
-#if !defined(C_SDL2)
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
+# if !defined(C_SDL2)
 extern "C" void sdl1_hax_make_touch_bar_set_callback(NSTouchBar* (*newcb)(NSWindow*));
-#endif
+# endif
 
 static NSTouchBarItemIdentifier TouchBarCustomIdentifier = @"com.dosbox-x.touchbar.custom";
 static NSTouchBarItemIdentifier TouchBarMapperIdentifier = @"com.dosbox-x.touchbar.mapper";
@@ -205,9 +210,11 @@ static NSTouchBarItemIdentifier TouchBarCursorCaptureIdentifier = @"com.dosbox-x
 
 @interface DOSBoxHostButton : NSButton
 @end
+#endif
 
 extern void ext_signal_host_key(bool enable);
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
 @implementation DOSBoxHostButton
 - (void)touchesBeganWithEvent:(NSEvent*)event
 {
@@ -230,7 +237,9 @@ extern void ext_signal_host_key(bool enable);
     [super touchesEndedWithEvent:event];
 }
 @end
+#endif
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
 @implementation DOSBoxXTouchBarDelegate
 - (void)onHostKey:(id)sender
 {
@@ -285,7 +294,9 @@ extern void ext_signal_host_key(bool enable);
     return nil;
 }
 @end
+#endif
 
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
 NSTouchBar* osx_on_make_touch_bar(NSWindow *wnd) {
     (void)wnd;
 
@@ -318,11 +329,14 @@ NSTouchBar* osx_on_make_touch_bar(NSWindow *wnd) {
 
     return touchBar;
 }
+#endif
 
 void osx_init_touchbar(void) {
-#if !defined(C_SDL2)
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
+# if !defined(C_SDL2)
     if (has_touch_bar_support)
         sdl1_hax_make_touch_bar_set_callback(osx_on_make_touch_bar);
+# endif
 #endif
 }
 
