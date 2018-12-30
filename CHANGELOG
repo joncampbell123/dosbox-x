@@ -1,4 +1,8 @@
 0.82.14 (next)
+  - Segfault fixed (NULL pointer de-reference) that
+    occurs when running DOSBox SVN on anything older than
+    Mojave. DOSBox-X was not affected but the fix was applied
+    just the same because the possibility is there.
   - Configuration GUI fixed to fade out with the right color
     RGBA order on Mac OS X.
   - Mac OS X SDL1 builds fixed to ignore mouse movement that
