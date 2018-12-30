@@ -431,7 +431,8 @@ public:
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        (void)arg;//UNUSED
+        // HACK: Attempting to cast a String to void causes "forming reference to void" errors when building with GCC 4.7
+        (void)arg.size();//UNUSED
 		std::string line;
 		if (prepare(line)) {
 			prop->SetValue(GUI::String(line));
@@ -738,7 +739,8 @@ public:
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        (void)arg;//UNUSED
+        // HACK: Attempting to cast a String to void causes "forming reference to void" errors when building with GCC 4.7
+        (void)arg.size();//UNUSED
 		if (arg == "OK") control->PrintConfig(name->getText());
 		close();
 		if(shortcut) running=false;
