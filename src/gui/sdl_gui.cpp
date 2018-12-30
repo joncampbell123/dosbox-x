@@ -106,9 +106,15 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
 		break;
 	case scalerMode32:
 		pixel = *((unsigned int)x+(Bit32u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+		b += (int)((pixel >> (24u+(unsigned int)shift)) & (0xffu >> shift));
+		g += (int)((pixel >> (16u+(unsigned int)shift)) & (0xffu >> shift));
+		r += (int)((pixel >> ( 8u+(unsigned int)shift)) & (0xffu >> shift));
+#else
 		r += (int)((pixel >> (16u+(unsigned int)shift)) & (0xffu >> shift));
 		g += (int)((pixel >> ( 8u+(unsigned int)shift)) & (0xffu >> shift));
 		b += (int)((pixel >>      (unsigned int)shift)  & (0xffu >> shift));
+#endif
 		break;
 	}
 }
