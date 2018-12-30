@@ -76,6 +76,13 @@ void GUI_LoadFonts(void) {
 	GUI::Font::addFont("default",new GUI::BitmapFont(int10_font_14,14,10));
 }
 
+extern uint32_t GFX_Rmask;
+extern unsigned char GFX_Rshift;
+extern uint32_t GFX_Gmask;
+extern unsigned char GFX_Gshift;
+extern uint32_t GFX_Bmask;
+extern unsigned char GFX_Bshift;
+
 static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
 {
 	if (x >= (Bits)render.src.width) x = (Bits)render.src.width-1;
@@ -106,15 +113,9 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
 		break;
 	case scalerMode32:
 		pixel = *((unsigned int)x+(Bit32u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
-		b += (int)((pixel >> (24u+(unsigned int)shift)) & (0xffu >> shift));
-		g += (int)((pixel >> (16u+(unsigned int)shift)) & (0xffu >> shift));
-		r += (int)((pixel >> ( 8u+(unsigned int)shift)) & (0xffu >> shift));
-#else
-		r += (int)((pixel >> (16u+(unsigned int)shift)) & (0xffu >> shift));
-		g += (int)((pixel >> ( 8u+(unsigned int)shift)) & (0xffu >> shift));
-		b += (int)((pixel >>      (unsigned int)shift)  & (0xffu >> shift));
-#endif
+        r += (int)(((pixel & GFX_Rmask) >> (GFX_Rshift + shift)) & (0xffu >> shift));
+        g += (int)(((pixel & GFX_Gmask) >> (GFX_Gshift + shift)) & (0xffu >> shift));
+        b += (int)(((pixel & GFX_Bmask) >> (GFX_Bshift + shift)) & (0xffu >> shift));
 		break;
 	}
 }
