@@ -21,6 +21,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
 
 #include "dosbox.h"
 #include "logging.h"

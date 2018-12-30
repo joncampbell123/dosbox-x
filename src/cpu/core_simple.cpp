@@ -17,6 +17,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "dosbox.h"
 #include "mem.h"
