@@ -160,6 +160,9 @@ dnl Let me know if you're targeting Emscripten
 AH_TEMPLATE(C_EMSCRIPTEN,[Define to 1 to target Emscripten])
 AC_ARG_ENABLE(emscripten,AC_HELP_STRING([--enable-emscripten],[Enable Emscripten target]),enable_emscripten=$enableval,enable_emscripten=no)
 
+dnl Allow disabling X11 integration if your platform doesn't support it
+AC_ARG_ENABLE(x11,AC_HELP_STRING([--disable-x11],[Don't enable X11 integration]))
+
 dnl Optimize for speed by default
 AC_ARG_ENABLE(optimize,AC_HELP_STRING([--disable-optimize],[Don't enable compiler optimizations]))
 
@@ -528,9 +531,17 @@ dnl LIBRARY TEST: SDLnet 1.x
 AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
 AC_CHECK_LIB(SDL_net, SDLNet_Init, have_sdl_net_lib=yes, , )
 
-if test x$enable_emscripten != xyes; then
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+#include <SDL_config.h>
+#ifndef SDL_VIDEO_DRIVER_X11
+#error SDL_VIDEO_DRIVER_X11
+#endif
+void test(){}
+])], , enable_x11=no)
+if test x$enable_x11 != xno; then
   dnl LIBRARY TEST: X11 Xlib support
   AC_CHECK_LIB(X11, main, have_x11_lib=yes, have_x11_lib=no, )
+  AC_CHECK_LIB(Xrandr, XRRGetCrtcInfo, have_xrandr_lib=yes, have_xrandr_lib=no, )
   AC_CHECK_HEADER(X11/XKBlib.h, have_x11_h=yes, have_x11_h=no, )
 fi
 
@@ -811,7 +822,7 @@ else
   AC_MSG_WARN([Can't find libpcap, NE2000 ethernet passthrough disabled])
 fi
 
-if test x$enable_emscripten != xyes; then
+if test x$enable_x11 != xno; then
   dnl FEATURE: Whether to use X11 XKBlib
   AH_TEMPLATE(C_X11_XKB,[define to 1 if you have XKBlib.h and X11 lib])
   AC_MSG_CHECKING(for XKBlib support)
@@ -822,13 +833,11 @@ if test x$enable_emscripten != xyes; then
   else
     AC_MSG_RESULT(no)
   fi
-fi
 
-if test x$enable_emscripten != xyes; then
   dnl FEATURE: Whether to use X11 XRandR
   AH_TEMPLATE(C_X11_XRANDR,[define to 1 if you have XRandr.h and X11 lib])
   AC_MSG_CHECKING(for XRandR support)
-  if test x$have_x11_lib = xyes -a x$have_x11_h = xyes ; then
+  if test x$have_xrandr_lib = xyes -a x$have_x11_h = xyes ; then
     LIBS="$LIBS -lXrandr"
     AC_DEFINE(C_X11_XRANDR,1)
     AC_MSG_RESULT(yes)
