@@ -359,6 +359,8 @@ case "$host" in
        fi
        dnl FEATURE: Whether to support direct parallel port passthrough
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
+       dnl FEATURE: Whether to support direct serial port passthrough
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
        ;;
     *-*-darwin*)
        dnl We have a problem here: both Mac OS X and Darwin report 
@@ -369,15 +371,20 @@ case "$host" in
        OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++11";
        AC_DEFINE(MACOSX, 1, [Compiling on Mac OS X])
        LIBS="$LIBS -framework Carbon -framework CoreFoundation -framework CoreMIDI -framework AudioUnit -framework AudioToolbox -framework ApplicationServices -framework AppKit"
+       dnl FEATURE: Whether to support direct serial port passthrough
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
        ;;
     *-*-linux*)
        AC_DEFINE(LINUX, 1, [Compiling on GNU/Linux])
        CXXFLAGS="$CXXFLAGS -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L"
        dnl FEATURE: Whether to support direct parallel port passthrough
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
+       dnl FEATURE: Whether to support direct serial port passthrough
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
        ;;
     *-*-haiku*)
        AC_DEFINE(HAIKU, 1, [Compiling on Haiku])
+       dnl FEATURE: Whether to support direct serial port passthrough
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
        ;;
     *-*-freebsd* | *-*-dragonfly* | *-*-netbsd* | *-*-openbsd*)
@@ -387,9 +394,13 @@ case "$host" in
        dnl functions and headers. I currently do not know 
        dnl which ones are needed for BSD
        AC_DEFINE(BSD, 1, [Compiling on BSD])
+       dnl FEATURE: Whether to support direct serial port passthrough
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
        ;;
     *-*-os2-emx*)
        AC_DEFINE(OS2, 1, [Compiling on OS/2 EMX])
+       dnl FEATURE: Whether to support direct serial port passthrough
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
        ;;
 esac
 fi
@@ -755,9 +766,6 @@ if test x$enable_unaligned_memory = xyes -a x$c_unalignedmemory = xyes; then
 else
   AC_MSG_RESULT(no)
 fi
-
-dnl FEATURE: Whether to support direct serial port passthrough
-AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
 
 dnl FEATURE: Whether to support SDL net, and emulate modem and IPX connections
 AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
