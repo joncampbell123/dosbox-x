@@ -1,4 +1,6 @@
 0.82.14 (next)
+  - SDL initializion fixed not to bail out on startup if
+    DOSBox-X is unable to initialize SDL1 CD-ROM support (ccawley2011)
   - Segfault fixed (NULL pointer de-reference) that
     occurs when running DOSBox SVN on anything older than
     Mojave. DOSBox-X was not affected but the fix was applied
