@@ -1,4 +1,6 @@
 0.82.14 (next)
+  - Configuration GUI fixed to fade out with the right color
+    RGBA order on Mac OS X.
   - Mac OS X SDL1 builds fixed to ignore mouse movement that
     occurs outside the window, unless any buttons are held
     down.
