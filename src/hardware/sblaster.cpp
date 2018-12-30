@@ -203,7 +203,6 @@ struct SB_INFO {
         unsigned int dsp_write_busy_time; /* when you write to the DSP, how long it signals "busy" */
     } dsp;
     struct {
-        double pdt;
         Bit16s last;
         double dac_t,dac_pt;
     } dac;
@@ -3319,7 +3318,6 @@ public:
         if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
 
         sb.chan=MixerChan.Install(&SBLASTER_CallBack,22050,"SB");
-        sb.dac.pdt = -1;
         sb.dac.dac_pt = sb.dac.dac_t = 0;
         sb.dsp.state=DSP_S_NORMAL;
         sb.dsp.out.lastval=0xaa;
