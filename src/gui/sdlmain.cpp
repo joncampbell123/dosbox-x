@@ -4738,7 +4738,6 @@ void GFX_Events() {
                 GFX_HandleVideoResize(event.window.data1, event.window.data2);
                 continue;
             case SDL_WINDOWEVENT_EXPOSED:
-                fprintf(stderr,"Window exposure\n");
                 if (sdl.draw.callback) sdl.draw.callback( GFX_CallBackRedraw );
                 continue;
             case SDL_WINDOWEVENT_FOCUS_GAINED:
