@@ -1661,6 +1661,21 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 
     UpdateWindowDimensions();
 
+#if defined(WIN32) && !defined(HX_DOS)
+    if (winTaskbarList != NULL) {
+        /* Windows 7/8/10: Tell the taskbar which part of our window contains the DOS screen */
+        RECT r;
+
+        r.top = sdl.clip.y;
+        r.left = sdl.clip.x;
+        r.right = sdl.clip.w;
+        r.bottom = sdl.clip.h;
+
+        if (winTaskbarList->SetThumbnailClip(GetHWND(),&r) != S_OK)
+            LOG_MSG("WARNING: ITaskbarList3::SetThumbnailClip() failed");
+    }
+#endif
+
     return retFlags;
 }
 
