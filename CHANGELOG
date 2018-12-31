@@ -1,4 +1,7 @@
 0.82.14 (next)
+  - Fixed problems with SDL1 Mac OS X and the window/dock menu
+    filling up with multiple windows that have long ceased to
+    exist.
   - SDL1 Mac OS X startup code replaced with startup code from
     SDL2 in order to run from main() cleanly instead of running
     SDL_main from an OS X event callback. This also fixes the
