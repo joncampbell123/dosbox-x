@@ -67,6 +67,11 @@
 #include "../SDL_pixels_c.h"
 #include "../../events/SDL_events_c.h"
 
+@interface NSApplication (SDLApplication)
+@end
+
+@interface SDLApplication : NSApplication
+@end
 
 #ifdef __powerpc__
 /* 

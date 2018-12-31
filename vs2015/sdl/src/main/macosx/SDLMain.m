@@ -225,6 +225,7 @@ void* sdl1_hax_stock_osx_menu(void) {
 	return stock_menu;
 }
 
+#if 0
 /* Replacement for NSApplicationMain */
 static void CustomApplicationMain (int argc, char **argv)
 {
@@ -265,6 +266,7 @@ static void CustomApplicationMain (int argc, char **argv)
     [sdlMain release];
     [pool release];
 }
+#endif
 
 #endif
 
@@ -331,12 +333,14 @@ static void CustomApplicationMain (int argc, char **argv)
     [self fixMenu:[NSApp mainMenu] withAppName:getApplicationName()];
 #endif
 
+    [NSApp activateIgnoringOtherApps:YES];
+
     /* Hand off to main application code */
-    gCalledAppMainline = TRUE;
-    status = SDL_main (gArgc, gArgv);
+//    gCalledAppMainline = TRUE;
+//    status = SDL_main (gArgc, gArgv);
 
     /* We're done, thank you for playing */
-    exit(status);
+//    exit(status);
 }
 @end
 
@@ -390,6 +394,8 @@ static void CustomApplicationMain (int argc, char **argv)
 /* Main entry point to executable - should *not* be SDL_main! */
 int main (int argc, char **argv)
 {
+    return SDL_main(argc,argv);
+#if 0
     /* Copy the arguments into a global variable */
     /* This is passed if we are launched by double-clicking */
     if ( argc >= 2 && strncmp (argv[1], "-psn", 4) == 0 ) {
@@ -413,5 +419,48 @@ int main (int argc, char **argv)
     CustomApplicationMain (argc, argv);
 #endif
     return 0;
+#endif
+}
+
+static SDLMain *appDelegate = nil;
+
+void
+Cocoa_RegisterApp(void)
+{
+    /* This can get called more than once! Be careful what you initialize! */
+
+    if (NSApp == nil) {
+        [NSApplication sharedApplication];
+//        SDL_assert(NSApp != nil);
+
+//        s_bShouldHandleEventsInSDLApplication = SDL_TRUE;
+
+//        if (!SDL_GetHintBoolean(SDL_HINT_MAC_BACKGROUND_APP, SDL_FALSE)) {
+            [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+//        }
+
+        if ([NSApp mainMenu] == nil) {
+//            CreateApplicationMenus();
+        }
+        [NSApp finishLaunching];
+        if ([NSApp delegate]) {
+            /* The SDL app delegate calls this in didFinishLaunching if it's
+             * attached to the NSApp, otherwise we need to call it manually.
+             */
+//            [NApplication registerUserDefaults];
+        }
+    }
+    if (NSApp && !appDelegate) {
+        appDelegate = [[SDLMain alloc] init];
+
+        /* If someone else has an app delegate, it means we can't turn a
+         * termination into SDL_Quit, and we can't handle application:openFile:
+         */
+        if (![NSApp delegate]) {
+            [(NSApplication *)NSApp setDelegate:appDelegate];
+        } else {
+//            appDelegate->seenFirstActivate = YES;
+        }
+    }
 }
 

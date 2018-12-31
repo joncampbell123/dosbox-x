@@ -795,7 +795,38 @@ static int QZ_OtherMouseButtonToSDL(int button)
 }
 
 
-void QZ_PumpEvents (_THIS)
+void QZ_PumpEvents(_THIS)
+{
+{
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
+    /* Update activity every 30 seconds to prevent screensaver */
+    SDL_VideoData *data = (SDL_VideoData *)_this->driverdata;
+    if (_this->suspend_screensaver && !data->screensaver_use_iopm) {
+        Uint32 now = SDL_GetTicks();
+        if (!data->screensaver_activity ||
+            SDL_TICKS_PASSED(now, data->screensaver_activity + 30000)) {
+            UpdateSystemActivity(UsrActivity);
+            data->screensaver_activity = now;
+        }
+    }
+#endif
+
+    for ( ; ; ) {
+        NSEvent *event = [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES ];
+        if ( event == nil ) {
+            break;
+        }
+
+//        if (!s_bShouldHandleEventsInSDLApplication) {
+//            Cocoa_DispatchEvent(event);
+//        }
+
+        // Pass events down to SDLApplication to be handled in sendEvent:
+        [NSApp sendEvent:event];
+    }
+}}
+
+void QZ_PumpEvents_OLD (_THIS)
 {
     int32_t dx, dy;
 

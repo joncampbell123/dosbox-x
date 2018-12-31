@@ -20,6 +20,7 @@
     slouken@libsdl.org
 */
 #include "SDL_config.h"
+#include "../../main/macosx/SDLMain.h"
 
 #include "SDL_QuartzVideo.h"
 #include "SDL_QuartzWindow.h"
@@ -183,12 +184,17 @@ static int QZ_Available ()
     return 1;
 }
 
+void
+Cocoa_RegisterApp(void);
+
 static SDL_VideoDevice* QZ_CreateDevice (int device_index)
 {
 #pragma unused (device_index)
 
     SDL_VideoDevice *device;
     SDL_PrivateVideoData *hidden;
+
+    Cocoa_RegisterApp();
 
     device = (SDL_VideoDevice*) SDL_malloc (sizeof (*device) );
     hidden = (SDL_PrivateVideoData*) SDL_malloc (sizeof (*hidden) );
