@@ -576,6 +576,11 @@ static void QZ_UnsetVideoMode (_THIS, BOOL to_desktop, BOOL save_gl)
         CGContextRelease (cg_context);
         cg_context = nil;
     }
+
+    /* There seems to be a problem with old windows filling up the Window menu */
+    if ( qz_window != nil ) {
+        [ NSApp removeWindowsItem: qz_window ];
+    }
     
     /* Release fullscreen resources */
     if ( mode_flags & SDL_FULLSCREEN ) {
