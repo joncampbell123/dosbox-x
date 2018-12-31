@@ -562,6 +562,9 @@ static inline CGError QZ_RestoreDisplayMode(_THIS)
     return QZ_SetDisplayMode(this, save_mode);
 }
 
+static bool qz_last_window_set = false;
+static NSPoint qz_last_window_pos;
+
 static void QZ_UnsetVideoMode (_THIS, BOOL to_desktop, BOOL save_gl)
 {
     /* Reset values that may change between switches */
@@ -645,6 +648,14 @@ static void QZ_UnsetVideoMode (_THIS, BOOL to_desktop, BOOL save_gl)
     }
     /* Release window mode resources */
     else {
+        {
+            /* NTS: Remember Mac OS X considers the origin the bottom left corner. */
+            NSRect r = [ qz_window frame ];
+            qz_last_window_pos.x = r.origin.x;
+            qz_last_window_pos.y = r.origin.y + r.size.height; /* convert to top left  */
+            qz_last_window_set = true;
+        }
+
         id delegate = [ qz_window delegate ];
         [ qz_window close ]; /* includes release because [qz_window isReleasedWhenClosed] */
         if (delegate != nil) [ delegate release ];
@@ -1009,12 +1020,15 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
     
     contentRect = NSMakeRect (0, 0, width, height);
 
-    if (qz_window != nil) {
-        /* NTS: Remember Mac OS X considers the origin the bottom left corner. */
-        NSRect r = [ qz_window frame ];
-        current_pos.x = r.origin.x;
-        current_pos.y = r.origin.y + r.size.height; /* convert to top left  */
-        center_window = 0;
+    if (!(mode_flags & SDL_FULLSCREEN)) {
+        if (qz_window != nil) {
+            /* NTS: Remember Mac OS X considers the origin the bottom left corner. */
+            NSRect r = [ qz_window frame ];
+            current_pos.x = r.origin.x;
+            current_pos.y = r.origin.y + r.size.height; /* convert to top left  */
+            qz_last_window_set = false;
+            center_window = 0;
+        }
     }
 
     /*
@@ -1037,7 +1051,15 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
             QZ_UnsetVideoMode (this, TRUE, save_gl);
         }
     }
-    
+
+    if (!(flags & SDL_FULLSCREEN)) {
+        if (qz_last_window_set) {
+            current_pos = qz_last_window_pos;
+            qz_last_window_set = false;
+            center_window = 0;
+        }
+    }
+
     /* Sorry, QuickDraw was ripped out. */
     if (getenv("SDL_NSWindowPointer") || getenv("SDL_NSQuickDrawViewPointer")) {
         SDL_SetError ("Embedded QuickDraw windows are no longer supported");
