@@ -1,4 +1,6 @@
 0.82.14 (next)
+  - SDL1 Mac OS X builds fixed not to destroy and recreate the
+    window every time it is resized.
   - SDL1 Mac OS X builds fixed to keep the window position
     stable every time you resize or do anything to trigger
     window recreation. Resizing the window no longer causes it
