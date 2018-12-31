@@ -222,6 +222,30 @@ const char *DKM_to_descriptive_string(const unsigned int dkm) {
 ITaskbarList3 *winTaskbarList = NULL;
 #endif
 
+#if defined(WIN32) && !defined(HX_DOS)
+void WindowsTaskbarUpdatePreviewRegion(void) {
+    if (winTaskbarList != NULL) {
+        /* Windows 7/8/10: Tell the taskbar which part of our window contains the DOS screen */
+        RECT r;
+
+        r.top = sdl.clip.y;
+        r.left = sdl.clip.x;
+        r.right = sdl.clip.x + sdl.clip.w;
+        r.bottom = sdl.clip.y + sdl.clip.h;
+
+        /* NTS: The MSDN documentation is misleading. Apparently, despite 30+ years of Windows SDK
+                behavior where the "client area" is the area below the menu bar and inside the frame,
+                ITaskbarList3's idea of the "client area" is the the area inside the frame INCLUDING
+                the menu bar. Why? */
+        r.top += GetSystemMetrics(SM_CYMENU);//HACK
+        r.bottom += GetSystemMetrics(SM_CYMENU);//HACK
+
+        if (winTaskbarList->SetThumbnailClip(GetHWND(), &r) != S_OK)
+            LOG_MSG("WARNING: ITaskbarList3::SetThumbnailClip() failed");
+    }
+}
+#endif
+
 unsigned int mapper_keyboard_layout = DKM_US;
 unsigned int host_keyboard_layout = DKM_US;
 
@@ -1666,25 +1690,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     UpdateWindowDimensions();
 
 #if defined(WIN32) && !defined(HX_DOS)
-    if (winTaskbarList != NULL) {
-        /* Windows 7/8/10: Tell the taskbar which part of our window contains the DOS screen */
-        RECT r;
-
-        r.top = sdl.clip.y;
-        r.left = sdl.clip.x;
-        r.right = sdl.clip.x + sdl.clip.w;
-        r.bottom = sdl.clip.y + sdl.clip.h;
-
-        /* NTS: The MSDN documentation is misleading. Apparently, despite 30+ years of Windows SDK
-                behavior where the "client area" is the area below the menu bar and inside the frame,
-                ITaskbarList3's idea of the "client area" is the the area inside the frame INCLUDING
-                the menu bar. Why? */
-        r.top += GetSystemMetrics(SM_CYMENU);//HACK
-        r.bottom += GetSystemMetrics(SM_CYMENU);//HACK
-
-        if (winTaskbarList->SetThumbnailClip(GetHWND(),&r) != S_OK)
-            LOG_MSG("WARNING: ITaskbarList3::SetThumbnailClip() failed");
-    }
+    WindowsTaskbarUpdatePreviewRegion();
 #endif
 
     return retFlags;
