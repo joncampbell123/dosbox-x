@@ -1,4 +1,6 @@
 0.82.14 (next)
+  - SDL1 Mac OS X builds fixed to remember window position even
+    if going to or from fullscreen mode.
   - Fixed mistakes with SDL2 surface output that caused serious
     UI problems with fullscreen mode and fullresolution=original.
   - Fixed problems with SDL1 Mac OS X and the window/dock menu
