@@ -1,4 +1,8 @@
 0.82.14 (next)
+  - SDL1 Mac OS X builds fixed to keep the window position
+    stable every time you resize or do anything to trigger
+    window recreation. Resizing the window no longer causes it
+    to re-center to your screen.
   - SDL initializion fixed not to bail out on startup if
     DOSBox-X is unable to initialize SDL1 CD-ROM support (ccawley2011)
   - Segfault fixed (NULL pointer de-reference) that
