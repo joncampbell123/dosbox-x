@@ -218,6 +218,10 @@ const char *DKM_to_descriptive_string(const unsigned int dkm) {
     return "";
 }
 
+#if defined(WIN32) && !defined(HX_DOS)
+ITaskbarList3 *winTaskbarList = NULL;
+#endif
+
 unsigned int mapper_keyboard_layout = DKM_US;
 unsigned int host_keyboard_layout = DKM_US;
 
@@ -1668,8 +1672,15 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 
         r.top = sdl.clip.y;
         r.left = sdl.clip.x;
-        r.right = sdl.clip.w;
-        r.bottom = sdl.clip.h;
+        r.right = sdl.clip.x + sdl.clip.w;
+        r.bottom = sdl.clip.y + sdl.clip.h;
+
+        /* NTS: The MSDN documentation is misleading. Apparently, despite 30+ years of Windows SDK
+                behavior where the "client area" is the area below the menu bar and inside the frame,
+                ITaskbarList3's idea of the "client area" is the the area inside the frame INCLUDING
+                the menu bar. Why? */
+        r.top += GetSystemMetrics(SM_CYMENU);//HACK
+        r.bottom += GetSystemMetrics(SM_CYMENU);//HACK
 
         if (winTaskbarList->SetThumbnailClip(GetHWND(),&r) != S_OK)
             LOG_MSG("WARNING: ITaskbarList3::SetThumbnailClip() failed");
@@ -7036,10 +7047,6 @@ void OutputSettingMenuUpdate(void) {
 }
 
 bool custom_bios = false;
-
-#if defined(WIN32) && !defined(HX_DOS)
-ITaskbarList3 *winTaskbarList = NULL;
-#endif
 
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
