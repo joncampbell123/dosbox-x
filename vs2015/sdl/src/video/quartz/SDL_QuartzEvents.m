@@ -77,6 +77,10 @@
     #define NX_DEVICERCTLKEYMASK    0x00002000
 #endif
 
+#ifndef MAC_OS_X_VERSION_10_12
+static const NSEventMask NSEventMaskAny = NSAnyEventMask;
+#endif
+
 void     QZ_InitOSKeymap (_THIS) {
     BOOL saw_layout = NO;
     UInt32 state;
