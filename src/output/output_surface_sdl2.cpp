@@ -19,7 +19,6 @@ Bitu OUTPUT_SURFACE_SetSize()
 
     SDL_SetWindowMinimumSize(sdl.window, 1, 1); /* NTS: 0 x 0 is not valid */
 
-retry:
     sdl.clip.w = sdl.draw.width;
     sdl.clip.h = sdl.draw.height;
     if (GFX_IsFullscreen()) {
@@ -38,7 +37,6 @@ retry:
                 LOG_MSG("Fullscreen not supported: %s", SDL_GetError());
             SDL_SetWindowFullscreen(sdl.window, 0);
             GFX_CaptureMouse();
-            goto retry;
         }
     }
     else {
