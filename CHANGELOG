@@ -1,4 +1,9 @@
 0.82.14 (next)
+  - SDL1 Mac OS X startup code replaced with startup code from
+    SDL2 in order to run from main() cleanly instead of running
+    SDL_main from an OS X event callback. This also fixes the
+    problem of an unresponsive menu on startup if run from the
+    terminal.
   - SDL1 Mac OS X builds fixed not to destroy and recreate the
     window every time it is resized.
   - SDL1 Mac OS X builds fixed to keep the window position
