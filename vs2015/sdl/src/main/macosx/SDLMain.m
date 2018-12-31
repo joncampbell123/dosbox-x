@@ -440,8 +440,16 @@ Cocoa_RegisterApp(void)
 //        }
 
         if ([NSApp mainMenu] == nil) {
-//            CreateApplicationMenus();
+            /* Set up the menubar */
+            [NSApp setMainMenu:[[NSMenu alloc] init]];
+            setApplicationMenu([NSApp mainMenu]);
+            setupWindowMenu();
+
+            /* save a copy of our menu */
+            stock_menu = [NSApp mainMenu];
+            [stock_menu retain];
         }
+
         [NSApp finishLaunching];
         if ([NSApp delegate]) {
             /* The SDL app delegate calls this in didFinishLaunching if it's
