@@ -35,7 +35,6 @@ Bitu OUTPUT_SURFACE_SetSize()
             sdl.window = GFX_SetSDLWindowMode(sdl.draw.width, sdl.draw.height, SCREEN_SURFACE);
             if (sdl.window == NULL)
                 LOG_MSG("Fullscreen not supported: %s", SDL_GetError());
-            SDL_SetWindowFullscreen(sdl.window, 0);
             GFX_CaptureMouse();
         }
     }
