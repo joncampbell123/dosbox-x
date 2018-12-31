@@ -1022,9 +1022,7 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
             }
             QZ_UnsetVideoMode (this, TRUE, save_gl);
         }
-        else if ( ((mode_flags ^ flags) & (SDL_NOFRAME|SDL_RESIZABLE)) ||
-                  (mode_flags & SDL_OPENGL) || 
-                  (flags & SDL_OPENGL) ) {
+        else if ((mode_flags ^ flags) & (SDL_NOFRAME|SDL_RESIZABLE|SDL_OPENGL)) {
             QZ_UnsetVideoMode (this, TRUE, save_gl);
         }
     }
