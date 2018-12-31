@@ -990,12 +990,21 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
     int center_window = 1;
     int origin_x, origin_y;
     CGDisplayFadeReservationToken fade_token = kCGDisplayFadeReservationInvalidToken;
+    NSPoint current_pos = NSMakePoint(0,0);
 
     current->flags = 0;
     current->w = width;
     current->h = height;
     
     contentRect = NSMakeRect (0, 0, width, height);
+
+    if (qz_window != nil) {
+        /* NTS: Remember Mac OS X considers the origin the bottom left corner. */
+        NSRect r = [ qz_window frame ];
+        current_pos.x = r.origin.x;
+        current_pos.y = r.origin.y + r.size.height; /* convert to top left  */
+        center_window = 0;
+    }
 
     /*
         Check if we should completely destroy the previous mode 
@@ -1082,6 +1091,8 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
             center_window = 0;
         } else if ( center_window ) {
             [ qz_window center ];
+        } else {
+            [ qz_window setFrameTopLeftPoint: current_pos ];
         }
 
         [ qz_window setDelegate:
@@ -1098,6 +1109,9 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
         [ qz_window setContentSize:contentRect.size ];
         current->flags |= (SDL_NOFRAME|SDL_RESIZABLE) & mode_flags;
         [ window_view setFrameSize:contentRect.size ];
+
+        if (!center_window)
+            [ qz_window setFrameTopLeftPoint: current_pos ];
     }
 
     /* For OpenGL, we bind the context to a subview */
