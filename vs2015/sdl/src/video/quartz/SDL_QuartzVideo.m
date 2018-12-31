@@ -1542,6 +1542,7 @@ static const unsigned char QZ_ResizeIcon[] = {
     0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0x0b
 };
 
+#if 0
 static void QZ_DrawResizeIcon (_THIS)
 {
     /* Check if we should draw the resize icon */
@@ -1572,6 +1573,7 @@ static void QZ_DrawResizeIcon (_THIS)
         SDL_BlitSurface (resize_icon, NULL, SDL_VideoSurface, &icon_rect);
     }
 }
+#endif
 
 static SDL_VideoDevice *last_this = NULL;
 
@@ -1598,7 +1600,7 @@ void QZ_UpdateRectsOnDrawRect(/*TODO: NSRect from drawRect*/) {
         }
 
         CGContextRef cgc = (CGContextRef) [ctx graphicsPort];
-        QZ_DrawResizeIcon (this);
+//        QZ_DrawResizeIcon (this);
         CGContextFlush (cg_context);
         CGImageRef image = CGBitmapContextCreateImage (cg_context);
         CGRect rectangle = CGRectMake (0,0,[window_view frame].size.width,[window_view frame].size.height);
