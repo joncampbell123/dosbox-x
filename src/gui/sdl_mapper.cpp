@@ -3827,8 +3827,17 @@ void MAPPER_Run(bool pressed) {
     PIC_AddEvent(MAPPER_RunEvent,0.0001f);  //In case mapper deletes the key object that ran it
 }
 
+#if defined(WIN32) && !defined(HX_DOS)
+void WindowsTaskbarUpdatePreviewRegion(void);
+void WindowsTaskbarResetPreviewRegion(void);
+#endif
+
 void MAPPER_RunInternal() {
     bool GFX_GetPreventFullscreen(void);
+
+#if defined(WIN32) && !defined(HX_DOS)
+    WindowsTaskbarResetPreviewRegion();
+#endif
 
     MAPPER_ReleaseAllKeys();
 
@@ -3941,6 +3950,11 @@ void MAPPER_RunInternal() {
         SendInput(1, &ip, sizeof(INPUT));
     }
 #endif
+
+#if defined(WIN32) && !defined(HX_DOS)
+    WindowsTaskbarUpdatePreviewRegion();
+#endif
+
 //  KEYBOARD_ClrBuffer();
     GFX_LosingFocus();
 

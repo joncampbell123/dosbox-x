@@ -244,6 +244,13 @@ void WindowsTaskbarUpdatePreviewRegion(void) {
             LOG_MSG("WARNING: ITaskbarList3::SetThumbnailClip() failed");
     }
 }
+
+void WindowsTaskbarResetPreviewRegion(void) {
+    if (winTaskbarList != NULL) {
+        if (winTaskbarList->SetThumbnailClip(GetHWND(), NULL) != S_OK)
+            LOG_MSG("WARNING: ITaskbarList3::SetThumbnailClip() failed");
+    }
+}
 #endif
 
 unsigned int mapper_keyboard_layout = DKM_US;
