@@ -4702,6 +4702,8 @@ void GFX_EventsMouse()
 #endif
 /* end patch fragment */
 
+bool gfx_in_mapper = false;
+
 void GFX_Events() {
     CheckMapperKeyboardLayout();
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
@@ -4736,6 +4738,7 @@ void GFX_Events() {
                 GFX_HandleVideoResize(event.window.data1, event.window.data2);
                 continue;
             case SDL_WINDOWEVENT_EXPOSED:
+                fprintf(stderr,"Window exposure\n");
                 if (sdl.draw.callback) sdl.draw.callback( GFX_CallBackRedraw );
                 continue;
             case SDL_WINDOWEVENT_FOCUS_GAINED:
@@ -4861,8 +4864,10 @@ void GFX_Events() {
             }
 #endif
         default:
+            gfx_in_mapper = true;
             void MAPPER_CheckEvent(SDL_Event * event);
             MAPPER_CheckEvent(&event);
+            gfx_in_mapper = false;
         }
     }
 #else /* SDL 1.x---------------------------------- */

@@ -578,6 +578,10 @@ void DEBUG_EndPagedContent(void) {
 #endif
 }
 
+extern bool gfx_in_mapper;
+
+bool in_debug_showmsg = false;
+
 bool IsDebuggerActive(void);
 
 void DEBUG_ShowMsg(char const* format,...) {
@@ -586,12 +590,16 @@ void DEBUG_ShowMsg(char const* format,...) {
 	va_list msg;
 	size_t len;
 
+    in_debug_showmsg = true;
+
     // in case of runaway error from the CPU core, user responsiveness can be helpful
     CPU_CycleLeft += CPU_Cycles;
     CPU_Cycles = 0;
 
-    void GFX_Events();
-    GFX_Events();
+    if (!gfx_in_mapper && !in_debug_showmsg) {
+        void GFX_Events();
+        GFX_Events();
+    }
 
     va_start(msg,format);
 	len = (size_t)vsnprintf(buf,sizeof(buf)-2u,format,msg); /* <- NTS: Did you know sprintf/vsnprintf returns number of chars written? */
@@ -685,6 +693,8 @@ void DEBUG_ShowMsg(char const* format,...) {
         }
     }
 #endif
+
+    in_debug_showmsg = false;
 }
 
 /* callback function when DOSBox-X exits */
