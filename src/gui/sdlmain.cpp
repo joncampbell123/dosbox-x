@@ -247,7 +247,19 @@ void WindowsTaskbarUpdatePreviewRegion(void) {
 
 void WindowsTaskbarResetPreviewRegion(void) {
     if (winTaskbarList != NULL) {
-        if (winTaskbarList->SetThumbnailClip(GetHWND(), NULL) != S_OK)
+        /* Windows 7/8/10: Tell the taskbar which part of our window contains the client area (not including the menu bar) */
+        RECT r;
+
+        GetClientRect(GetHWND(), &r);
+
+        /* NTS: The MSDN documentation is misleading. Apparently, despite 30+ years of Windows SDK
+                behavior where the "client area" is the area below the menu bar and inside the frame,
+                ITaskbarList3's idea of the "client area" is the the area inside the frame INCLUDING
+                the menu bar. Why? */
+        r.top += GetSystemMetrics(SM_CYMENU);//HACK
+        r.bottom += GetSystemMetrics(SM_CYMENU);//HACK
+
+        if (winTaskbarList->SetThumbnailClip(GetHWND(), &r) != S_OK)
             LOG_MSG("WARNING: ITaskbarList3::SetThumbnailClip() failed");
     }
 }
