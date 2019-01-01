@@ -3835,10 +3835,6 @@ void WindowsTaskbarResetPreviewRegion(void);
 void MAPPER_RunInternal() {
     bool GFX_GetPreventFullscreen(void);
 
-#if defined(WIN32) && !defined(HX_DOS)
-    WindowsTaskbarResetPreviewRegion();
-#endif
-
     MAPPER_ReleaseAllKeys();
 
     /* Sorry, the MAPPER screws up 3Dfx OpenGL emulation.
@@ -3885,6 +3881,10 @@ void MAPPER_RunInternal() {
 #else
     mapper.surface=SDL_SetVideoMode(640,480,8,0);
     if (mapper.surface == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
+
+#if defined(WIN32) && !defined(HX_DOS)
+    WindowsTaskbarResetPreviewRegion();
+#endif
 
     /* Set some palette entries */
     SDL_SetPalette(mapper.surface, SDL_LOGPAL|SDL_PHYSPAL, map_pal, 0, 5);
