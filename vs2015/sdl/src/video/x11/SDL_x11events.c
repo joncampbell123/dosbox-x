@@ -465,6 +465,7 @@ printf("Mode: NotifyUngrab\n");
 	    /* Gaining input focus? */
 	    case FocusIn: {
             if ((!currently_fullscreen && xevent.xany.window == SDL_Window) ||
+                (!currently_fullscreen && xevent.xany.window == WMwindow) ||
                  (currently_fullscreen && xevent.xany.window == FSwindow)) {
 #ifdef DEBUG_XEVENTS
 printf("FocusIn!\n");
@@ -486,6 +487,7 @@ printf("FocusIn!\n");
 	    /* Losing input focus? */
 	    case FocusOut: {
             if ((!currently_fullscreen && xevent.xany.window == SDL_Window) ||
+                (!currently_fullscreen && xevent.xany.window == WMwindow) ||
                  (currently_fullscreen && xevent.xany.window == FSwindow)) {
 #ifdef DEBUG_XEVENTS
 printf("FocusOut!\n");
