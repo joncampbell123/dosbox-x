@@ -661,10 +661,6 @@ static const char *def_menu_main[] = {
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
 	"--",
 #endif
-#if !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
-	"mapper_restart",
-    "--",
-#endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     "mapper_shutdown",
 #endif
