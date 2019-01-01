@@ -125,6 +125,11 @@ extern Bitu currentWindowWidth, currentWindowHeight;
 
 void GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen);
 
+#if defined(WIN32) && !defined(HX_DOS)
+void WindowsTaskbarUpdatePreviewRegion(void);
+void WindowsTaskbarResetPreviewRegion(void);
+#endif
+
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     in_gui = true;
 
@@ -268,6 +273,10 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	SDL_Surface* sdlscreen = SDL_SetVideoMode(dw, dh, 32, SDL_SWSURFACE|(fs?SDL_FULLSCREEN:0));
 	if (sdlscreen == NULL) E_Exit("Could not initialize video mode %ix%ix32 for UI: %s", dw, dh, SDL_GetError());
 
+#if defined(WIN32) && !defined(HX_DOS)
+    WindowsTaskbarResetPreviewRegion();
+#endif
+
 	// fade out
 	// Jonathan C: do it FASTER!
 	SDL_Event event; 
@@ -354,6 +363,11 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 	GFX_ResetScreen();
 #endif
 #endif
+
+#if defined(WIN32) && !defined(HX_DOS)
+    WindowsTaskbarUpdatePreviewRegion();
+#endif
+
 #if !defined(C_SDL2)
 	SDL_EnableUNICODE(old_unicode);
 	SDL_EnableKeyRepeat(0,0);
