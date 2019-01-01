@@ -84,6 +84,11 @@ void GFX_OpenGLRedrawScreen(void);
 # include <shobjidl.h>
 #endif
 
+#if defined(WIN32) && defined(__MINGW32__) /* MinGW does not have IID_ITaskbarList3 */
+static const GUID __my_IID_ITaskbarList3 = { 0xEA1AFB91ul,0x9E28u,0x4B86u,0x90u,0xE9u,0x9Eu,0x9Fu,0x8Au,0x5Eu,0xEFu,0xAFu };
+# define IID_ITaskbarList3 __my_IID_ITaskbarList3
+#endif
+
 #if C_EMSCRIPTEN
 # include <emscripten.h>
 #endif
