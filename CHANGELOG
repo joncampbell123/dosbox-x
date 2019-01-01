@@ -1,3 +1,5 @@
+0.82.15 (next)
+  - TODO
 0.82.14
   - Windows builds, if run on Windows 7 or higher, will now direct
     the task bar preview to show only the part of the window
