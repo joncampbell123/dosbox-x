@@ -237,8 +237,10 @@ void WindowsTaskbarUpdatePreviewRegion(void) {
                 behavior where the "client area" is the area below the menu bar and inside the frame,
                 ITaskbarList3's idea of the "client area" is the the area inside the frame INCLUDING
                 the menu bar. Why? */
-        r.top += GetSystemMetrics(SM_CYMENU);//HACK
-        r.bottom += GetSystemMetrics(SM_CYMENU);//HACK
+        if (GetMenu(GetHWND()) != NULL) {
+            r.top += GetSystemMetrics(SM_CYMENU);//HACK
+            r.bottom += GetSystemMetrics(SM_CYMENU);//HACK
+        }
 
         if (winTaskbarList->SetThumbnailClip(GetHWND(), &r) != S_OK)
             LOG_MSG("WARNING: ITaskbarList3::SetThumbnailClip() failed");
@@ -256,8 +258,10 @@ void WindowsTaskbarResetPreviewRegion(void) {
                 behavior where the "client area" is the area below the menu bar and inside the frame,
                 ITaskbarList3's idea of the "client area" is the the area inside the frame INCLUDING
                 the menu bar. Why? */
-        r.top += GetSystemMetrics(SM_CYMENU);//HACK
-        r.bottom += GetSystemMetrics(SM_CYMENU);//HACK
+        if (GetMenu(GetHWND()) != NULL) {
+            r.top += GetSystemMetrics(SM_CYMENU);//HACK
+            r.bottom += GetSystemMetrics(SM_CYMENU);//HACK
+        }
 
         if (winTaskbarList->SetThumbnailClip(GetHWND(), &r) != S_OK)
             LOG_MSG("WARNING: ITaskbarList3::SetThumbnailClip() failed");
