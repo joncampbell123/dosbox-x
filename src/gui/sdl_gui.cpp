@@ -273,10 +273,6 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	SDL_Surface* sdlscreen = SDL_SetVideoMode(dw, dh, 32, SDL_SWSURFACE|(fs?SDL_FULLSCREEN:0));
 	if (sdlscreen == NULL) E_Exit("Could not initialize video mode %ix%ix32 for UI: %s", dw, dh, SDL_GetError());
 
-#if defined(WIN32) && !defined(HX_DOS)
-    WindowsTaskbarResetPreviewRegion();
-#endif
-
 	// fade out
 	// Jonathan C: do it FASTER!
 	SDL_Event event; 
@@ -296,6 +292,10 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     SDL_UpdateWindowSurface(GFX_GetSDLWindow());
 #else	
 	SDL_UpdateRect(sdlscreen, 0, 0, 0, 0);
+#endif
+
+#if defined(WIN32) && !defined(HX_DOS)
+    WindowsTaskbarResetPreviewRegion();
 #endif
 
 	if (screen) screen->setSurface(sdlscreen);
