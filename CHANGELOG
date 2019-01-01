@@ -1,4 +1,7 @@
 0.82.14 (next)
+  - Windows builds, if run on Windows 7 or higher, will now direct
+    the task bar preview to show only the part of the window
+    containing the DOS screen.
   - SDL1 Mac OS X builds fixed to remember window position even
     if going to or from fullscreen mode.
   - Fixed mistakes with SDL2 surface output that caused serious
