@@ -1185,7 +1185,6 @@ void phys_writes(PhysPt addr, const char* string, Bitu length) {
 
 #include "control.h"
 
-void restart_program(std::vector<std::string> & parameters);
 unsigned char CMOS_GetShutdownByte();
 void CPU_Snap_Back_To_Real_Mode();
 void DEBUG_Enable(bool pressed);
@@ -1389,9 +1388,7 @@ void On_Software_CPU_Reset() {
 #if C_DYNAMIC_X86
     /* this technique is NOT reliable when running the dynamic core! */
     if (cpudecoder == &CPU_Core_Dyn_X86_Run) {
-        LOG_MSG("Using traditional DOSBox re-exec, C++ exception method is not compatible with dynamic core\n");
-        control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
-        restart_program(control->startup_params);
+        E_Exit("C++ exception method is not compatible with dynamic core when emulating reset, aborting");
         return;
     }
 #endif

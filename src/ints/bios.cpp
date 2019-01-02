@@ -5137,8 +5137,6 @@ void BIOS_SetupDisks(void);
 void CPU_Snap_Back_To_Real_Mode();
 void CPU_Snap_Back_Restore();
 
-void restart_program(std::vector<std::string> & parameters);
-
 static Bitu IRQ14_Dummy(void) {
     /* FIXME: That's it? Don't I EOI the PIC? */
     return CBRET_NONE;

@@ -516,7 +516,6 @@ void KEYBOARD_AUX_Write(Bitu val) {
 bool allow_keyb_reset = true;
 
 void On_Software_CPU_Reset();
-void restart_program(std::vector<std::string> & parameters);
 
 static void write_p60(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED

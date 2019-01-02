@@ -498,7 +498,6 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 }
 
 bool MSG_Write(const char *);
-void restart_program(std::vector<std::string> & parameters);
 
 /*! \brief          CONFIG.COM utility to control configuration and files
  *
