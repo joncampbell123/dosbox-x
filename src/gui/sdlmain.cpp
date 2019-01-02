@@ -5918,7 +5918,7 @@ bool DOSBOX_parse_argv() {
             DOSBox_ShowConsole();
 
             fprintf(stderr,"\ndosbox [options]\n");
-            fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
+            fprintf(stderr,"\nDOSBox version %s %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION,SDL_STRING);
             fprintf(stderr,"  -h     -help                            Show this help\n");
             fprintf(stderr,"  -editconf                               Launch editor\n");
             fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
