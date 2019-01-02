@@ -1,4 +1,6 @@
 0.82.15 (next)
+  - Windows SDL1 builds now remember window position even when
+    entering/leaving fullscreen mode.
   - "Restart DOSBox-X" menu and command code removed.
   - Linux/X11 window focus fixup. The change in 0.82.14 broke
     main window focus handling entirely by forgetting to check
