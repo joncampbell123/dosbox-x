@@ -79,6 +79,7 @@ void GFX_OpenGLRedrawScreen(void);
 #include "mapper.h"
 #include "sdlmain.h"
 #include "zipfile.h"
+#include "shell.h"
 
 #if defined(WIN32) && !defined(HX_DOS)
 # include <shobjidl.h>
@@ -5901,7 +5902,7 @@ bool DOSBOX_parse_argv() {
         if (optname == "version") {
             DOSBox_ShowConsole();
 
-            fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
+            fprintf(stderr,"\nDOSBox version %s %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION,SDL_STRING);
             fprintf(stderr,"DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
             fprintf(stderr,"DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
             fprintf(stderr,"and you are welcome to redistribute it under certain conditions;\n");
