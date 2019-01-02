@@ -46,6 +46,13 @@ cat >>include/SDL_config.h <<_EOF
 _EOF
 fi
 
+# SDL is having concurrency problems with Brew compiles, help it out
+# https://jenkins.brew.sh/job/Homebrew%20Core%20Pull%20Requests/35627/version=sierra/testReport/junit/brew-test-bot/sierra/install_dosbox_x/
+mkdir -p linux-host || exit 1
+mkdir -p linux-build || exit 1
+mkdir -p linux-build/build || exit 1
+mkdir -p linux-build/include || exit 1
+
 make -j || exit 1
 make install || exit 1  # will install into ./linux-host
 
