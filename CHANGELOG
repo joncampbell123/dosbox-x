@@ -1,4 +1,6 @@
 0.82.15 (next)
+  - Introductory text now indicates whether the build was
+    compiled against SDL1 or SDL2 (emendelson)
   - Windows SDL1 builds now remember window position even when
     entering/leaving fullscreen mode.
   - "Restart DOSBox-X" menu and command code removed.
