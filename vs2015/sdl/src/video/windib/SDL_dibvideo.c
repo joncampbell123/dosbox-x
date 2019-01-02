@@ -613,11 +613,10 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 #endif
 
 #ifndef SDL_WIN32_NO_PARENT_WINDOW
-        EnterCriticalSection(&ParentWindowCritSec);
-
         if (SDL_VideoSurface != NULL)
 			SetWindowPos(SDL_Window, HWND_TOP, 0, 0, SDL_VideoSurface->w, SDL_VideoSurface->h, SWP_NOACTIVATE | SWP_SHOWWINDOW);
 
+        EnterCriticalSection(&ParentWindowCritSec);
 		/* Windows 10 has developed a strange deadlock that can happen if the user is resizing the parent window
 		   and we call SetWindowPos() to confirm the size here. Use SWP_NOMOVE just in case that's problematic too. */
 		if (ParentWindowIsBeingResized) {
@@ -629,10 +628,9 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 			/* tell SetWindowPos() not to move or resize */
 			swp_flags |= SWP_NOSIZE | SWP_NOMOVE;
 		}
+        LeaveCriticalSection(&ParentWindowCritSec);
 
 		SetWindowPos(ParentWindowHWND, top, x, y, width, height, swp_flags);
-
-        LeaveCriticalSection(&ParentWindowCritSec);
 #else
 		SetWindowPos(SDL_Window, top, x, y, width, height, swp_flags);
 #endif

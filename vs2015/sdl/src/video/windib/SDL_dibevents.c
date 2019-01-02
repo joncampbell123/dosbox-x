@@ -864,14 +864,15 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			ParentWindowDeferredResizeRect.bottom = -1;
             ParentWindowIsBeingResized = FALSE;
 
+            LeaveCriticalSection(&ParentWindowCritSec);
+
 			/* SetWindowPos() gave us a deferred window position/size to apply after resize */
             if (nr.right > 0 && nr.bottom > 0) {
                 SetWindowPos(ParentWindowHWND, NULL,
                     nr.left, nr.top, nr.right - nr.left, nr.bottom - nr.top, SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOMOVE);
             }
 
-            LeaveCriticalSection(&ParentWindowCritSec);
-			return r;
+ 			return r;
 		}
 		else {
 			/* fall through, to DefWindowProc() */
