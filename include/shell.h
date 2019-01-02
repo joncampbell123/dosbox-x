@@ -31,6 +31,13 @@
 #include <string>
 #include <list>
 
+#include <SDL.h>
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+#define SDL_STRING "SDL2"
+#else
+#define SDL_STRING "SDL1"
+#endif
+
 #define CMD_MAXLINE 4096
 #define CMD_MAXCMDS 20
 #define CMD_OLDSIZE 4096

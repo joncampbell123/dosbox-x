@@ -1729,7 +1729,7 @@ void DOS_Shell::CMD_VER(char *args) {
 		word = StripWord(args);
 		dos.version.major = (Bit8u)(atoi(word));
 		dos.version.minor = (Bit8u)(atoi(args));
-	} else WriteOut(MSG_Get("SHELL_CMD_VER_VER"),VERSION,dos.version.major,dos.version.minor);
+	} else WriteOut(MSG_Get("SHELL_CMD_VER_VER"),VERSION,SDL_STRING,dos.version.major,dos.version.minor);
 }
 
 void DOS_Shell::CMD_VOL(char *args){
