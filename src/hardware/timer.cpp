@@ -426,6 +426,9 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 	}
 }
 
+// FIXME: I am assuming that the "buzzer inhibit" on PC-98 controls the "trigger" pin
+//        that either enables the PIT to count or stops it and resets the counter.
+//        Verify this on real hardware (DOSLIB TPCRAPI6.EXE)
 void TIMER_SetGate2(bool in) {
     unsigned int speaker_pit = IS_PC98_ARCH ? 1 : 2;
 
