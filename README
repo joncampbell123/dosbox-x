@@ -33,6 +33,14 @@ General Linux compile if FFMPEG/libav not desired
 ./build-debug-no-avcodec
 
 
+Mac OS X compile
+./build-macosx
+
+
+Mac OS X compile (SDL2)
+./build-macosx-sdl2
+
+
 MinGW compile (on Windows, using MinGW64) for 32-bit Windows XP
 ./build-mingw
 
@@ -46,6 +54,10 @@ MinGW compile (on Windows, using MinGW, not MinGW64) to target MS-DOS and the HX
 
 NOTICE: Use the 32-bit toolchain from the main MinGW project, not the MinGW64 project.
         Binaries compiled with MinGW64 have extra dependencies not provided by the HX DOS extender.
+
+
+Mac OS X: If you want to make an .app bundle you can run from the Finder, compile the
+program as instructed then run "make dosbox-x.app".
 
 
 Visual Studio 2017 compile for 32/64-bit Windows Vista or higher
