@@ -1,4 +1,9 @@
 0.82.15 (next)
+  - Timer clock gate emulation fixed to work properly in PC-98
+    mode as well as IBM PC mode, when the PC speaker clock is
+    enabled or disabled. This includes resetting the counter
+    on the 8254 when the clock gate (trigger pin) is turned off
+    [DOSLIB test TPCRAPI6.EXE]
   - Introductory text now indicates whether the build was
     compiled against SDL1 or SDL2 (emendelson)
   - Windows SDL1 builds now remember window position even when
