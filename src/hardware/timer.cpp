@@ -47,7 +47,6 @@ struct PIT_Block {
 	Bit16u write_latch;     /* counter value, written by host */
 
 	Bit8u mode;             /* 8254 mode (mode 0 through 5 inclusive) */
-	Bit8u latch_mode;       /* UNUSED */
 	Bit8u read_state;       /* 0=read MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=read LSB, switch to MSB, latch next value */
 	Bit8u write_state;      /* 0=write MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=write MSB, switch to LSB, accept value */
 
