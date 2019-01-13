@@ -40,7 +40,7 @@ static INLINE void BCD2BIN(Bit16u& val) {
 
 struct PIT_Block {
 	Bitu cntr;
-	float delay;
+	double delay;
 	double start;
 
 	Bit16u read_latch;
