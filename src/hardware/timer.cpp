@@ -39,24 +39,27 @@ static INLINE void BCD2BIN(Bit16u& val) {
 }
 
 struct PIT_Block {
-	Bitu cntr;
-	double delay;
-	double start;
+	Bitu cntr;      /* counter value written to 40h-42h as the interval. may take effect immediately (after port 43h) or after count expires */
+	double delay;   /* interval (in ms) between one full count cycle */
+	double start;   /* time base (in ms) that cycle started at */
 
-	Bit16u read_latch;
-	Bit16u write_latch;
+	Bit16u read_latch;      /* counter value, latched for read back */
+	Bit16u write_latch;     /* counter value, written by host */
 
-	Bit8u mode;
-	Bit8u latch_mode;
-	Bit8u read_state;
-	Bit8u write_state;
+	Bit8u mode;             /* 8254 mode (mode 0 through 5 inclusive) */
+	Bit8u latch_mode;       /* UNUSED */
+	Bit8u read_state;       /* 0=read MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=read LSB, switch to MSB, latch next value */
+	Bit8u write_state;      /* 0=write MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=write MSB, switch to LSB, accept value */
 
-	bool bcd;
-	bool go_read_latch;
-	bool new_mode;
-	bool counterstatus_set;
-	bool counting;
-	bool update_count;
+	bool bcd;               /* BCD mode */
+	bool go_read_latch;     /* reading should latch another value */
+	bool new_mode;          /* a new mode has been written to port 43h for this timer */
+	bool counterstatus_set; /* set by status_latch(), when using 8254 command to latch multiple counters */
+	bool counting;          /* is counting (?) */
+	bool update_count;      /* update count on completion */
+
+    bool gate = true;       /* gate signal (IN) */
+    bool output = true;     /* output signal (OUT) */
 };
 
 static PIT_Block pit[3];
@@ -493,6 +496,7 @@ void TIMER_SetGate2(bool in) {
 		LOG(LOG_MISC,LOG_WARN)("unsupported gate 2 mode %x",mode);
 		break;
 	}
+    pit[speaker_pit].gate = in;
 	gate2 = in; //Set it here so the counter_latch above works
 }
 
