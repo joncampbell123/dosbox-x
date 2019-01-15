@@ -40,6 +40,7 @@ static INLINE void BCD2BIN(Bit16u& val) {
 
 struct PIT_Block {
 	Bitu cntr;      /* counter value written to 40h-42h as the interval. may take effect immediately (after port 43h) or after count expires */
+    Bitu cntr_cur;  /* current counter value in effect */
 	double delay;   /* interval (in ms) between one full count cycle */
 	double start;   /* time base (in ms) that cycle started at */
 
