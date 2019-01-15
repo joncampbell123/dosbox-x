@@ -308,10 +308,8 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 
 		switch (counter) {
 		case 0x00:			/* Timer hooked to IRQ 0 */
-			if (p->new_mode || p->mode == 0 ) {
-				if(p->mode==0) PIC_RemoveEvents(PIT0_Event); // DoWhackaDo demo
-				PIC_AddEvent(PIT0_Event,p->delay);
-			}// else LOG(LOG_PIT,LOG_NORMAL)("PIT 0 Timer set without new control word");
+            PIC_RemoveEvents(PIT0_Event);
+            PIC_AddEvent(PIT0_Event,p->delay);
 
             //please do not spam the log and console if a game is writing the SAME counter value constantly
             if (p->cntr != old_cntr)
