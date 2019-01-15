@@ -297,10 +297,15 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
                 return;
             }
 
-            // this debug message will help development trace down cases where writing without a new mode
-            // would incorrectly restart the counter instead of letting the current count complete before
-            // writing a new one.
-            LOG(LOG_PIT,LOG_NORMAL)("WARNING: Writing counter %u in mode %u without writing port 43h not yet supported, will be handled as if new mode and reset of the cycle",(int)counter,(int)p->mode);
+            if (counter == 0 && p->mode == 0) {
+                /* TODO: remove this when implemented properly so running DoWhackaDo doesn't result in a lot of log spam */
+            }
+            else {
+                // this debug message will help development trace down cases where writing without a new mode
+                // would incorrectly restart the counter instead of letting the current count complete before
+                // writing a new one.
+                LOG(LOG_PIT,LOG_NORMAL)("WARNING: Writing counter %u in mode %u without writing port 43h not yet supported, will be handled as if new mode and reset of the cycle",(int)counter,(int)p->mode);
+            }
         }
 
         p->start=PIC_FullIndex();
