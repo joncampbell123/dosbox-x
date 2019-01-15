@@ -319,8 +319,14 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
             PIC_RemoveEvents(PIT0_Event);
             PIC_AddEvent(PIT0_Event,p->delay);
 
-            //please do not spam the log and console if a game is writing the SAME counter value constantly
-            if (p->cntr != old_cntr)
+#if 0//change to #if 1 if you want to debug Mode 0 one-shot events
+            if (p->mode == 0)
+                LOG(LOG_PIT,LOG_NORMAL)("PIT 0 Timer one-shot event %.3fms",p->delay);
+#endif
+
+            //please do not spam the log and console if a game is writing the SAME counter value constantly,
+            //and do not spam the console if Mode 0 is used because events are not consistent.
+            if (p->cntr != old_cntr && p->mode != 0)
                 LOG(LOG_PIT,LOG_NORMAL)("PIT 0 Timer at %.4f Hz mode %d",1000.0/p->delay,p->mode);
 
             break;
