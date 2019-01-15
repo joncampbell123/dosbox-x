@@ -279,7 +279,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 		} else p->cntr = p->write_latch;
 
         if (!p->new_mode) {
-            if ((p->mode == 2 || p->mode == 3) && (counter == 0)) {
+            if ((p->mode == 2/*common IBM PC mode*/ || p->mode == 3/*common PC-98 mode*/) && (counter == 0)) {
                 // In mode 2 writing another value has no direct effect on the count
                 // until the old one has run out. This might apply to other modes too.
                 // This is not fixed for PIT2 yet!!
