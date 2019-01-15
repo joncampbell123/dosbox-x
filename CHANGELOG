@@ -1,4 +1,11 @@
 0.82.15 (next)
+  - 8254 PIT timer connected to PC speaker now handles new counter
+    value without causing full reset of the square wave (mode 3),
+    which allows DOSBox-X to pass all tests in DOSLIB.
+  - Added dosbox.conf option to control bus speed (and therefore
+    I/O delay) of the C-BUS in PC-98 mode. Added defaults
+    appropriate to PC-98 mode according to bus speeds documented
+    for PC-98.
   - Timer clock gate emulation fixed to work properly in PC-98
     mode as well as IBM PC mode, when the PC speaker clock is
     enabled or disabled. This includes resetting the counter
