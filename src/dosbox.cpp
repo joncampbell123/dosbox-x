@@ -810,13 +810,28 @@ void DOSBOX_RealInit() {
     else E_Exit("DOSBOX:Unknown machine type %s",mtype.c_str());
 
     // TODO: should be parsed by motherboard emulation
-    std::string isabclk = section->Get_string("isa bus clock");
-    if (isabclk == "std8.3")
+    // FIXME: This re-uses the existing ISA bus delay code for C-BUS in PC-98 mode
+    std::string isabclk;
+
+    if (IS_PC98_ARCH)
+        isabclk = section->Get_string("cbus bus clock");
+    else
+        isabclk = section->Get_string("isa bus clock");
+
+    if (isabclk == "std10")
+        clockdom_ISA_BCLK.set_frequency(PIT_TICK_RATE_PC98_10MHZ * 4ul,1);          /* 10Mhz (PC-98) */
+    else if (isabclk == "std8.3")
         clockdom_ISA_BCLK.set_frequency(25000000,3);    /* 25MHz / 3 = 8.333MHz, early 386 systems did this, became an industry standard "norm" afterwards */
-    else if (isabclk == "std8")
-        clockdom_ISA_BCLK.set_frequency(8000000,1); /* 8Mhz */
+    else if (isabclk == "std8") {
+        if (IS_PC98_ARCH)
+            clockdom_ISA_BCLK.set_frequency(PIT_TICK_RATE_PC98_8MHZ * 4ul,1);       /* 8Mhz (PC-98) */
+        else
+            clockdom_ISA_BCLK.set_frequency(8000000,1);                             /* 8Mhz (IBM PC) */
+    }
     else if (isabclk == "std6")
-        clockdom_ISA_BCLK.set_frequency(6000000,1); /* 6MHz */
+        clockdom_ISA_BCLK.set_frequency(6000000,1);     /* 6MHz */
+    else if (isabclk == "std5")
+        clockdom_ISA_BCLK.set_frequency(PIT_TICK_RATE_PC98_10MHZ * 2ul,1);          /* 5Mhz (PC-98) */
     else if (isabclk == "std4.77")
         clockdom_ISA_BCLK.set_frequency(clockdom_ISA_OSC.freq,clockdom_ISA_OSC.freq_div*3LL); /* 14.31818MHz / 3 = 4.77MHz */
     else if (isabclk == "oc10")
@@ -839,6 +854,12 @@ void DOSBOX_RealInit() {
         clockdom_PCI_BCLK.set_frequency(25000000,1);    /* 25MHz */
     else
         parse_busclk_setting_str(&clockdom_PCI_BCLK,pcibclk.c_str());
+
+    LOG_MSG("%s BCLK: %.3fHz (%llu/%llu)",
+        IS_PC98_ARCH ? "C-BUS" : "ISA",
+        (double)clockdom_ISA_BCLK.freq / clockdom_ISA_BCLK.freq_div,
+        (unsigned long long)clockdom_ISA_BCLK.freq,
+        (unsigned long long)clockdom_ISA_BCLK.freq_div);
 
     clockdom_ISA_OSC.set_name("ISA OSC");
     clockdom_ISA_BCLK.set_name("ISA BCLK");
@@ -1094,6 +1115,29 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If enabled, A20 gate is switched off when booting a guest OS.\n"
                     "Enabled by default. Recommended for MS-DOS when HIMEM.SYS is not installed in the guest OS.\n"
                     "If disabled, and MS-DOS does not load HIMEM.SYS, programs and features that rely on the 1MB wraparound will fail.");
+
+    /* Ref:
+     *
+     * "Except the first generation, which C-Bus was synchronous with its 5MHz 8086, PC-98s
+     *  before the age of SuperIO and PCI use either 10MHz (9.8304MHz) or 8MHz (7.9872MHz)
+     *  for its C-Bus.
+     * 
+     *  It's determined by the CPU clock base (2.4756Mhz or 1.9968MHz). For example, on a
+     *  16MHz 386, C-Bus runs at 8MHz and on a 25MHz 386, C-Bus runs at 10MHz.
+     *
+     *  After NEC brought SuperIO and PCI to PC-98, C-Bus clock no longer ties to the CPU
+     *  oscillator and got fixed to 10MHz." -Yksoft1
+     *
+     * Assuming this is true, the selection is given below */
+
+    Pstring = secprop->Add_string("cbus bus clock",Property::Changeable::WhenIdle,"std10");
+    Pstring->Set_help("C-BUS BCLK frequency (PC-98), used to emulate I/O delay.\n"
+              "WARNING: In future revisions, PCI/motherboard chipset emulation will allow the guest OS/program to alter this value at runtime.\n"
+              "  std10                        10MHz (CPU speed multiple of 5MHz or PCI-based)\n"
+              "  std8                         8MHz (CPU speed multiple of 4MHz)\n"
+              "  std5                         5MHz (older PC-9801)\n"
+              "  <integer or float>           Any integer or floating point value will be used as the clock frequency in Hz\n"
+              "  <integer/integer ratio>      If a ratio is given (num/den), the ratio will be used as the clock frequency");
 
     Pstring = secprop->Add_string("isa bus clock",Property::Changeable::WhenIdle,"std8.3");
     Pstring->Set_help("ISA BCLK frequency, used to emulate I/O delay.\n"
