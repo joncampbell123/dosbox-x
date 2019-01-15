@@ -288,6 +288,60 @@ void PCSPEAKER_SetPITControl(Bitu mode) {
 	AddPITOutput(newindex);
 }
 
+// new mode WITHOUT writing port 43h
+void PCSPEAKER_SetCounter_NoNewMode(Bitu cntr) {
+	if (!spkr.last_ticks) {
+		if(spkr.chan) spkr.chan->Enable(true);
+		spkr.last_index=0;
+	}
+	spkr.last_ticks=PIC_Ticks;
+	pic_tickindex_t newindex=PIC_TickIndex();
+	ForwardPIT(newindex);
+	switch (spkr.pit_mode) {
+	case 0:		/* Mode 0 one shot, used with "realsound" (PWM) */
+        //FIXME
+		break;
+	case 1: // retriggerable one-shot, used by Star Control 1
+        //FIXME
+		break;
+	case 2:			/* Single cycle low, rest low high generator */
+        //FIXME
+		break;
+	case 3:		/* Square wave generator */
+		if (cntr < spkr.minimum_counter) {
+//#ifdef SPKR_DEBUGGING
+//			LOG_MSG(
+//				"SetCounter: too high frequency %u (cntr %u) at %f",
+//				PIT_TICK_RATE/cntr,
+//				cntr,
+//				PIC_FullIndex());
+//#endif
+			// hack to save CPU cycles
+			cntr = spkr.minimum_counter;
+			//spkr.pit_output_level = 1; // avoid breaking digger music
+			//spkr.pit_mode = 6; // dummy mode with constant output
+			//AddPITOutput(newindex);
+			//return;
+		}
+		spkr.pit_new_max = (1000.0f/PIT_TICK_RATE)*cntr;
+		spkr.pit_new_half=spkr.pit_new_max/2;
+		if (!spkr.pit_mode3_counting) {
+			spkr.pit_index = 0;
+			spkr.pit_max = spkr.pit_new_max;
+			spkr.pit_half = spkr.pit_new_half;
+		}
+		break;
+	case 4:		/* Software triggered strobe */
+        //FIXME
+		break;
+	default:
+#ifdef SPKR_DEBUGGING
+		LOG_MSG("Unhandled speaker mode %d at %f", mode, PIC_FullIndex());
+#endif
+		return;
+	}
+}
+
 void PCSPEAKER_SetCounter(Bitu cntr, Bitu mode) {
 #ifdef SPKR_DEBUGGING
 	fprintf(PCSpeakerLog, "%f counter: %u, mode: %u\n", PIC_FullIndex(), cntr, mode);

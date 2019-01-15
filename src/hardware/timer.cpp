@@ -286,6 +286,14 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
                 p->update_count=true;
                 return;
             }
+            else if ((p->mode == 3) && (counter == (IS_PC98_ARCH ? 1 : 2))) {
+                void PCSPEAKER_SetCounter_NoNewMode(Bitu cntr);
+
+                // PC speaker
+                PCSPEAKER_SetCounter_NoNewMode(p->cntr);
+                p->update_count=true;
+                return;
+            }
 
             // this debug message will help development trace down cases where writing without a new mode
             // would incorrectly restart the counter instead of letting the current count complete before
