@@ -278,14 +278,29 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 			else p->cntr=9999;
 		} else p->cntr = p->write_latch;
 
-		if ((!p->new_mode) && (p->mode == 2) && (counter == 0)) {
-			// In mode 2 writing another value has no direct effect on the count
-			// until the old one has run out. This might apply to other modes too.
-			// This is not fixed for PIT2 yet!!
-			p->update_count=true;
-			return;
-		}
-		p->start=PIC_FullIndex();
+        if (!p->new_mode) {
+            if ((p->mode == 2) && (counter == 0)) {
+                // In mode 2 writing another value has no direct effect on the count
+                // until the old one has run out. This might apply to other modes too.
+                // This is not fixed for PIT2 yet!!
+                p->update_count=true;
+                return;
+            }
+
+            // this debug message will help development trace down cases where writing without a new mode
+            // would incorrectly restart the counter instead of letting the current count complete before
+            // writing a new one.
+            //
+            // NOTES:
+            //
+            //  - "Elf" (PC-98). Apparently the reason animation is running way too fast is that the game
+            //    is constantly writing a new counter value to PIT 0 without writing a control word. The
+            //    game seems to rely on writing a counter and then waiting for the current one to lapse
+            //    to time it's animation correctly.
+            LOG(LOG_PIT,LOG_NORMAL)("WARNING: Writing counter %u in mode %u without writing port 43h not yet supported, will be handled as if new mode and reset of the cycle",(int)counter,(int)p->mode);
+        }
+
+        p->start=PIC_FullIndex();
         p->latch_next_counter();
 
 		switch (counter) {
@@ -293,7 +308,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 			if (p->new_mode || p->mode == 0 ) {
 				if(p->mode==0) PIC_RemoveEvents(PIT0_Event); // DoWhackaDo demo
 				PIC_AddEvent(PIT0_Event,p->delay);
-			} else LOG(LOG_PIT,LOG_NORMAL)("PIT 0 Timer set without new control word");
+			}// else LOG(LOG_PIT,LOG_NORMAL)("PIT 0 Timer set without new control word");
 			LOG(LOG_PIT,LOG_NORMAL)("PIT 0 Timer at %.4f Hz mode %d",1000.0/p->delay,p->mode);
 			break;
         case 0x01:          /* Timer hooked to PC-Speaker (NEC-PC98) */
