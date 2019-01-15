@@ -343,6 +343,20 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 		}
 		p->new_mode=false;
     }
+    else { /* write state == 0 */
+        /* If a new count is written to the Counter, it will be
+         * loaded on the next CLK pulse and counting will con-
+         * tinue from the new count. If a two-byte count is writ-
+         * ten, the following happens:
+         * 1) Writing the first byte disables counting. OUT is set
+         * low immediately (no clock pulse required)
+         * 2) Writing the second byte allows the new count to
+         * be loaded on the next CLK pulse. */
+        if (p->mode == 0) {
+            PIC_RemoveEvents(PIT0_Event);
+            p->update_count = false;
+        }
+    }
 }
 
 static Bitu read_latch(Bitu port,Bitu /*iolen*/) {
