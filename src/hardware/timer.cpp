@@ -73,6 +73,9 @@ struct PIT_Block {
     void latch_next_counter(void) {
         set_active_counter(cntr);
     }
+    void reset_count_at(pic_tickindex_t t) {
+        start = t;
+    }
 };
 
 static PIT_Block pit[3];
@@ -435,7 +438,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 				pit[latch].counterstatus_set=false;
 				latched_timerstatus_locked=false;
 			}
-			pit[latch].start = PIC_FullIndex(); // for undocumented newmode
+			pit[latch].reset_count_at(PIC_FullIndex()); // for undocumented newmode
 			pit[latch].go_read_latch = true;
 			pit[latch].update_count = false;
 			pit[latch].counting = false;
@@ -532,7 +535,7 @@ void TIMER_SetGate2(bool in) {
 	Bit8u & mode=pit[speaker_pit].mode;
 	switch(mode) {
 	case 0:
-		if(in) pit[speaker_pit].start = PIC_FullIndex();
+		if(in) pit[speaker_pit].reset_count_at(PIC_FullIndex());
 		else {
 			//Fill readlatch and store it.
 			counter_latch(speaker_pit);
@@ -543,13 +546,13 @@ void TIMER_SetGate2(bool in) {
 		// gate 1 on: reload counter; off: nothing
 		if(in) {
 			pit[speaker_pit].counting = true;
-			pit[speaker_pit].start = PIC_FullIndex();
+			pit[speaker_pit].reset_count_at(PIC_FullIndex());
 		}
 		break;
 	case 2:
 	case 3:
 		//If gate is enabled restart counting. If disable store the current read_latch
-		if(in) pit[speaker_pit].start = PIC_FullIndex();
+		if(in) pit[speaker_pit].reset_count_at(PIC_FullIndex());
 		else counter_latch(speaker_pit);
 		break;
 	case 4:
@@ -591,7 +594,7 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[0].go_read_latch = true;
 	pit[0].counterstatus_set = false;
 	pit[0].update_count = false;
-	pit[0].start = PIC_FullIndex();
+	pit[0].reset_count_at(PIC_FullIndex());
 
 	pit[1].bcd = false;
 	pit[1].write_state = 1;
@@ -601,7 +604,7 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[1].mode = 2;
 	pit[1].write_state = 3;
 	pit[1].counterstatus_set = false;
-	pit[1].start = PIC_FullIndex();
+	pit[1].reset_count_at(PIC_FullIndex());
 
 	pit[2].bcd = false;
 	pit[2].write_state = 1;
@@ -611,7 +614,7 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[2].mode = 2;
 	pit[2].write_state = 3;
 	pit[2].counterstatus_set = false;
-	pit[2].start = PIC_FullIndex();
+	pit[2].reset_count_at(PIC_FullIndex());
 
     /* TODO: I have observed that on real PC-98 hardware:
      * 
@@ -651,7 +654,7 @@ void TIMER_BIOS_INIT_Configure() {
 		pit[pcspeaker_pit].go_read_latch = true;
 		pit[pcspeaker_pit].counterstatus_set = false;
 		pit[pcspeaker_pit].counting = false;
-	    pit[pcspeaker_pit].start = PIC_FullIndex();
+	    pit[pcspeaker_pit].reset_count_at(PIC_FullIndex());
 	}
 
 	pit[0].latch_next_counter();
