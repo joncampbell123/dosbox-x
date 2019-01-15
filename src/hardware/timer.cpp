@@ -273,7 +273,9 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 	}
 	if (p->bcd==true) BCD2BIN(p->write_latch);
    	if (p->write_state != 0) {
-		if (p->write_latch == 0) {
+        Bitu old_cntr = p->cntr;
+
+        if (p->write_latch == 0) {
 			if (p->bcd == false) p->cntr = 0x10000;
 			else p->cntr=9999;
 		} else p->cntr = p->write_latch;
@@ -310,8 +312,12 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 				if(p->mode==0) PIC_RemoveEvents(PIT0_Event); // DoWhackaDo demo
 				PIC_AddEvent(PIT0_Event,p->delay);
 			}// else LOG(LOG_PIT,LOG_NORMAL)("PIT 0 Timer set without new control word");
-			LOG(LOG_PIT,LOG_NORMAL)("PIT 0 Timer at %.4f Hz mode %d",1000.0/p->delay,p->mode);
-			break;
+
+            //please do not spam the log and console if a game is writing the SAME counter value constantly
+            if (p->cntr != old_cntr)
+                LOG(LOG_PIT,LOG_NORMAL)("PIT 0 Timer at %.4f Hz mode %d",1000.0/p->delay,p->mode);
+
+            break;
         case 0x01:          /* Timer hooked to PC-Speaker (NEC-PC98) */
             if (IS_PC98_ARCH)
                 PCSPEAKER_SetCounter(p->cntr,p->mode);
