@@ -68,7 +68,7 @@ struct PIT_Block {
         assert(new_cntr != 0);
 
         cntr_cur = new_cntr;
-        delay = (1000.0f/((float)PIT_TICK_RATE/(float)cntr_cur));
+        delay = ((double)(1000ul * cntr_cur)) / PIT_TICK_RATE;
     }
     void latch_next_counter(void) {
         set_active_counter(cntr);
