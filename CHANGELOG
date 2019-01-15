@@ -1,4 +1,7 @@
 0.82.15 (next)
+  - 8254 PIT timer emulation fixed not to report writes to PIT 0
+    Timer counters if the game is writing the same value
+    repeatedly.
   - 8254 PIT timer connected to PC speaker now handles new counter
     value without causing full reset of the square wave (mode 3),
     which allows DOSBox-X to pass all tests in DOSLIB.
