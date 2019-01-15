@@ -60,6 +60,19 @@ struct PIT_Block {
 
     bool gate = true;       /* gate signal (IN) */
     bool output = true;     /* output signal (OUT) */
+
+    void set_next_counter(Bitu new_cntr) {
+        cntr = new_cntr;
+    }
+    void set_active_counter(Bitu new_cntr) {
+        assert(new_cntr != 0);
+
+        cntr_cur = new_cntr;
+        delay = (1000.0f/((float)PIT_TICK_RATE/(float)cntr_cur));
+    }
+    void latch_next_counter(void) {
+        set_active_counter(cntr);
+    }
 };
 
 static PIT_Block pit[3];
@@ -78,7 +91,7 @@ static void PIT0_Event(Bitu /*val*/) {
 		pit[0].start += pit[0].delay;
 
 		if (GCC_UNLIKELY(pit[0].update_count)) {
-			pit[0].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[0].cntr));
+            pit[0].latch_next_counter();
 			pit[0].update_count=false;
 		}
 		PIC_AddEvent(PIT0_Event,pit[0].delay);
@@ -273,7 +286,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 			return;
 		}
 		p->start=PIC_FullIndex();
-		p->delay=(1000.0f/((float)PIT_TICK_RATE/(float)p->cntr));
+        p->latch_next_counter();
 
 		switch (counter) {
 		case 0x00:			/* Timer hooked to IRQ 0 */
@@ -593,9 +606,9 @@ void TIMER_BIOS_INIT_Configure() {
 	    pit[pcspeaker_pit].start = PIC_FullIndex();
 	}
 
-	pit[0].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[0].cntr));
-	pit[1].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[1].cntr));
-	pit[2].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[2].cntr));
+	pit[0].latch_next_counter();
+	pit[1].latch_next_counter();
+	pit[2].latch_next_counter();
 
 	PCSPEAKER_SetCounter(pit[pcspeaker_pit].cntr,pit[pcspeaker_pit].mode);
 	PIC_AddEvent(PIT0_Event,pit[0].delay);
@@ -748,7 +761,7 @@ void TIMER_Init() {
 		pit[i].go_read_latch = false;
 		pit[i].counterstatus_set = false;
 		pit[i].update_count = false;
-		pit[i].delay = (1000.0f/((float)PIT_TICK_RATE/(float)pit[i].cntr));
+        pit[i].latch_next_counter();
 	}
 
 	AddExitFunction(AddExitFunctionFuncPair(TIMER_Destroy));
