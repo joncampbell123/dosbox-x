@@ -298,7 +298,10 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
             }
 
             if (counter == 0 && p->mode == 0) {
-                /* TODO: remove this when implemented properly so running DoWhackaDo doesn't result in a lot of log spam */
+                /* Mode 0 is the only mode NOT to wait for the current counter to finish if you write another counter value
+                 * according to the Intel 8254 datasheet.
+                 *
+                 * This is used by DoWhackaDo as a sort of one-shot timer interrupt */
             }
             else {
                 // this debug message will help development trace down cases where writing without a new mode
