@@ -284,7 +284,17 @@ static void PIT0_Event(Bitu /*val*/) {
 	PIC_ActivateIRQ(0);
 	if (pit[0].mode != 0) {
 		pit[0].track_time(PIC_FullIndex());
-		PIC_AddEvent(PIT0_Event,pit[0].delay);
+
+        /* event timing error checking */
+        double err = PIC_GetCurrentEventTime() - pit[0].start;
+
+        if (err >= (pit[0].delay/2))
+            err -=  pit[0].delay;
+
+        if (fabs(err) >= (0.5 / CPU_CycleMax))
+            LOG_MSG("PIT0_Event timing error %.6fms",err);
+
+        PIC_AddEvent(PIT0_Event,pit[0].delay - (err * 0.05));
 	}
 }
 
