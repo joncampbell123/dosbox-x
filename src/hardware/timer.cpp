@@ -284,11 +284,6 @@ static void PIT0_Event(Bitu /*val*/) {
 	PIC_ActivateIRQ(0);
 	if (pit[0].mode != 0) {
 		pit[0].track_time(PIC_FullIndex());
-
-		if (GCC_UNLIKELY(pit[0].update_count)) {
-            pit[0].latch_next_counter();
-			pit[0].update_count=false;
-		}
 		PIC_AddEvent(PIT0_Event,pit[0].delay);
 	}
 }
@@ -301,32 +296,6 @@ static bool counter_output(Bitu counter) {
     p->update_output_from_counter(res);
 
     return p->output;
-#if 0
-	double index=PIC_FullIndex()-p->start;
-	switch (p->mode) {
-	case 0:
-		if (p->new_mode) return false;
-		if (index>p->delay) return true;
-		else return false;
-		break;
-	case 2:
-		if (p->new_mode) return true;
-		index=fmod(index,(double)p->delay);
-		return index>0;
-	case 3:
-		if (p->new_mode) return true;
-		index=fmod(index,(double)p->delay);
-		return index*2<p->delay;
-	case 4:
-		//Only low on terminal count
-		// if(fmod(index,(double)p->delay) == 0) return false; //Maybe take one rate tick in consideration
-		//Easiest solution is to report always high (Space marines uses this mode)
-		return true;
-	default:
-		LOG(LOG_PIT,LOG_ERROR)("Illegal Mode %d for reading output",p->mode);
-		return true;
-	}
-#endif
 }
 static void status_latch(Bitu counter) {
 	// the timer status can not be overwritten until it is read or the timer was 
@@ -372,87 +341,6 @@ static void counter_latch(Bitu counter,bool do_latch=true) {
         if (!p->output)
             PIC_DeActivateIRQ(0);
     }
-
-#if 0
-
-	//If gate2 is disabled don't update the read_latch
-	if (counter == (IS_PC98_ARCH ? 1 : 2) && !gate2 && p->mode !=1) return;
-
-	if (GCC_UNLIKELY(p->new_mode)) {
-		double passed_time = PIC_FullIndex() - p->start;
-		Bitu ticks_since_then = (Bitu)(passed_time / (1000.0/PIT_TICK_RATE));
-		//if (p->mode==3) ticks_since_then /= 2; // TODO figure this out on real hardware
-		p->read_latch -= ticks_since_then;
-		return;
-	}
-	double index=PIC_FullIndex()-p->start;
-	switch (p->mode) {
-	case 4:		/* Software Triggered Strobe */
-	case 0:		/* Interrupt on Terminal Count */
-		{
-			/* Counter keeps on counting after passing terminal count */
-			if(p->bcd) {
-				index = fmod(index,(1000.0/PIT_TICK_RATE)*10000.0);
-				p->read_latch = (Bit16u)(((unsigned long)(p->cntr-index*(PIT_TICK_RATE/1000.0))) % 10000UL);
-			} else {
-				index = fmod(index,(1000.0/PIT_TICK_RATE)*(double)0x10000);
-				p->read_latch = (Bit16u)(p->cntr-index*(PIT_TICK_RATE/1000.0));
-			}
-		}
-		break;
-	case 1: // countdown
-		if(p->counting) {
-			if (index>p->delay) { // has timed out
-				p->read_latch = 0xffff; //unconfirmed
-			} else {
-				p->read_latch=(Bit16u)(p->cntr-index*(PIT_TICK_RATE/1000.0));
-			}
-		}
-		break;
-	case 2:		/* Rate Generator */
-		index=fmod(index,(double)p->delay);
-		p->read_latch=(Bit16u)(p->cntr - (index/p->delay)*p->cntr);
-		break;
-	case 3:		/* Square Wave Rate Generator */
-        {
-            bool out = true;
-
-            index=fmod(index,(double)p->delay);
-            index*=2;
-            if (index>p->delay) {
-                index-=p->delay;
-                out = false;
-            }
-
-            if (do_latch) {
-                p->read_latch=(Bit16u)(p->cntr - (index/p->delay)*p->cntr);
-                // In mode 3 it never returns odd numbers LSB (if odd number is written 1 will be
-                // subtracted on first clock and then always 2)
-                // fixes "Corncob 3D"
-                p->read_latch&=0xfffe;
-            }
-
-            // for the second half of the cycle, OUT goes low.
-            // remember that counter #0 is tied to IRQ0 on both IBM PC and PC-98.
-            // therefore, counter #0 output directly affects bit 0 of the interrupt request register on the PIC.
-            // I don't know any IBM PC compatible game that uses this behavior, but I did find a PC-98 game
-            // "Steel Gun Nyan" with delay loops that are dependent on polling the IRR like that.
-            // Yes, instead of polling the timer directly, it polls the PIC's interrupt request register instead. Ick.
-            //
-            // NTS: We can count on the scheduled PIC event to fire the IRQ on time. What Steel Gun Nyan expects is for
-            //      IRR to clear by itself due to the nature of the square wave.
-            if (counter == 0/*IRQ 0*/) {
-                if (!out)
-                    PIC_DeActivateIRQ(0);
-            }
-        }
-		break;
-	default:
-		LOG(LOG_PIT,LOG_ERROR)("Illegal Mode %d for reading counter %d",(int)p->mode,(int)counter);
-		p->read_latch=0xffff;
-		break;
-	}
-#endif
 }
 
 void TIMER_IRQ0Poll(void) {
@@ -747,40 +635,6 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 void TIMER_SetGate2(bool in) {
     unsigned int speaker_pit = IS_PC98_ARCH ? 1 : 2;
     pit[speaker_pit].set_gate(in);
-#if 0
-	Bit8u &mode = pit[speaker_pit].mode;
-	//No changes if gate doesn't change
-	if(gate2 == in) return;
-	switch(mode) {
-	case 0:
-		if(in) pit[speaker_pit].reset_count_at(PIC_FullIndex());
-		else {
-			//Fill readlatch and store it.
-			counter_latch(speaker_pit);
-			pit[speaker_pit].cntr = pit[speaker_pit].read_latch;
-		}
-		break;
-	case 1:
-		// gate 1 on: reload counter; off: nothing
-		if(in) {
-			pit[speaker_pit].counting = true;
-			pit[speaker_pit].reset_count_at(PIC_FullIndex());
-		}
-		break;
-	case 2:
-	case 3:
-		//If gate is enabled restart counting. If disable store the current read_latch
-		if(in) pit[speaker_pit].reset_count_at(PIC_FullIndex());
-		else counter_latch(speaker_pit);
-		break;
-	case 4:
-	case 5:
-		LOG(LOG_MISC,LOG_WARN)("unsupported gate 2 mode %x",mode);
-		break;
-	}
-    pit[speaker_pit].gate = in;
-	gate2 = in; //Set it here so the counter_latch above works
-#endif
 }
 
 bool TIMER_GetOutput2() {
