@@ -405,11 +405,12 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
                 return;
             }
 
-            if (counter == 0 && p->mode == 0) {
+            if (p->mode == 0) {
                 /* Mode 0 is the only mode NOT to wait for the current counter to finish if you write another counter value
                  * according to the Intel 8254 datasheet.
                  *
-                 * This is used by DoWhackaDo as a sort of one-shot timer interrupt */
+                 * For timer 0 (system timer) this is used by DoWhackaDo as a sort of one-shot timer interrupt.
+                 * For timer 2 (PC speaker) this is used to do PWM "realsound" digitized speech in some games. */
             }
             else {
                 // this debug message will help development trace down cases where writing without a new mode
