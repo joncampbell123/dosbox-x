@@ -384,9 +384,14 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
         Bitu old_cntr = p->cntr;
 
         if (p->write_latch == 0) {
-			if (p->bcd == false) p->cntr = 0x10000;
-			else p->cntr=9999;
-		} else p->cntr = p->write_latch;
+            if (p->bcd == false)
+                p->set_next_counter(0x10000);
+            else
+                p->set_next_counter(9999/*check this*/);
+        }
+        else {
+            p->set_next_counter(p->write_latch);
+        }
 
         if (!p->new_mode) {
             if ((p->mode == 2/*common IBM PC mode*/ || p->mode == 3/*common PC-98 mode*/) && (counter == 0)) {
