@@ -43,6 +43,7 @@ struct PIT_Block {
     Bitu cntr_cur;  /* current counter value in effect */
 	double delay;   /* interval (in ms) between one full count cycle */
 	double start;   /* time base (in ms) that cycle started at */
+    double now;     /* current time (in ms) */
 
 	Bit16u read_latch;      /* counter value, latched for read back */
 	Bit16u write_latch;     /* counter value, written by host */
@@ -62,6 +63,7 @@ struct PIT_Block {
     bool output = true;     /* output signal (OUT) */
 
     void set_next_counter(Bitu new_cntr) {
+        update_count = true;
         cntr = new_cntr;
     }
     void set_active_counter(Bitu new_cntr) {
@@ -75,6 +77,84 @@ struct PIT_Block {
     }
     void reset_count_at(pic_tickindex_t t) {
         start = t;
+    }
+    void track_time(pic_tickindex_t t) {
+        /* Mode 0 will always reset the count whether "new mode" or not.
+         * Mode 1 will count down and stop. TODO: Writing a new counter without "new mode" starts another countdown? */
+        /* if any periodic mode (Mode 2, 3, 4, 5), then process fully. */
+        if (mode >= 2) {
+            if (t >= (start+delay)) {
+                start += delay;
+                if (update_count) {
+                    latch_next_counter();
+                    update_count = false;
+                }
+
+                start += floor((t - start) / delay) * delay;
+
+                if (t >= (start+delay))
+                    start += delay;
+            }
+        }
+
+        now = t;
+    }
+    double reltime(void) const {
+        return now - start;
+    }
+
+    struct read_counter_result {
+        Bit16u          counter = 0xFFFFu;
+        Bit16u          cycle = 0;          // cycle (Mode 3: 0 or 1)
+    };
+
+    read_counter_result read_counter(void) const {//This assumes you call track_time()
+        const double index = reltime();
+        read_counter_result ret;
+
+        switch (mode) {
+            case 4:		/* Software Triggered Strobe */
+            case 0:		/* Interrupt on Terminal Count */
+                {
+                    double tmp;
+
+                    /* Counter keeps on counting after passing terminal count */
+                    if (bcd) {
+                        tmp = fmod(index,((double)(1000ul *   10000ul)) / PIT_TICK_RATE);
+                        ret.counter = (Bit16u)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) %   10000ul);
+                    } else {
+                        tmp = fmod(index,((double)(1000ul * 0x10000ul)) / PIT_TICK_RATE);
+                        ret.counter = (Bit16u)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) % 0x10000ul);
+                    }
+                }
+                break;
+            case 5:     /* Hardware Triggered Strobe */
+            case 1:     /* Hardware Retriggerable one-shot */
+                if (index > delay) // has timed out
+                    ret.counter = 0xFFFF;
+                else
+                    ret.counter = (Bit16u)(cntr_cur - (index * (PIT_TICK_RATE / 1000.0)));
+                break;
+            case 2:		/* Rate Generator */
+                ret.counter = (Bit16u)(cntr_cur - ((fmod(index,delay) / delay) * cntr_cur));
+                break;
+            case 3:		/* Square Wave Rate Generator */
+                {
+                    double tmp = fmod(index,(double)delay) * 2;
+
+                    if (tmp >= delay) {
+                        tmp -= delay;
+                        ret.cycle = 1;
+                    }
+
+                    ret.counter = (Bit16u)(cntr_cur - ((tmp * cntr_cur) / delay));
+                }
+                break;
+            default:
+                break;
+        }
+
+        return ret;
     }
 };
 
@@ -314,7 +394,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
             }
         }
 
-        p->start=PIC_FullIndex();
+        p->reset_count_at(PIC_FullIndex());
         p->latch_next_counter();
 
 		switch (counter) {
@@ -438,7 +518,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 				pit[latch].counterstatus_set=false;
 				latched_timerstatus_locked=false;
 			}
-			pit[latch].reset_count_at(PIC_FullIndex()); // for undocumented newmode
+//			pit[latch].reset_count_at(PIC_FullIndex()); // for undocumented newmode
 			pit[latch].go_read_latch = true;
 			pit[latch].update_count = false;
 			pit[latch].counting = false;
@@ -595,6 +675,7 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[0].counterstatus_set = false;
 	pit[0].update_count = false;
 	pit[0].reset_count_at(PIC_FullIndex());
+    pit[0].track_time(PIC_FullIndex());
 
 	pit[1].bcd = false;
 	pit[1].write_state = 1;
@@ -605,6 +686,7 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[1].write_state = 3;
 	pit[1].counterstatus_set = false;
 	pit[1].reset_count_at(PIC_FullIndex());
+    pit[1].track_time(PIC_FullIndex());
 
 	pit[2].bcd = false;
 	pit[2].write_state = 1;
@@ -615,6 +697,7 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[2].write_state = 3;
 	pit[2].counterstatus_set = false;
 	pit[2].reset_count_at(PIC_FullIndex());
+    pit[2].track_time(PIC_FullIndex());
 
     /* TODO: I have observed that on real PC-98 hardware:
      * 
