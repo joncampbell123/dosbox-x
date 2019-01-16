@@ -195,7 +195,7 @@ struct PIT_Block {
                 break;
             case 2:
                 if (new_mode) return true;
-                return res.counter == 0;
+                return res.counter != 0;
             case 3:
                 if (new_mode) return true;
                 return res.cycle == 0;
