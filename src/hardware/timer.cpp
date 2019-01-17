@@ -393,6 +393,8 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
    	if (p->write_state != 0) {
         Bitu old_cntr = p->cntr;
 
+        p->track_time(PIC_FullIndex());
+
         if (p->write_latch == 0) {
             if (p->bcd == false)
                 p->set_next_counter(0x10000);
@@ -650,6 +652,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 //                        +------+
 void TIMER_SetGate2(bool in) {
     unsigned int speaker_pit = IS_PC98_ARCH ? 1 : 2;
+    pit[speaker_pit].track_time(PIC_FullIndex());
     pit[speaker_pit].set_gate(in);
 }
 
