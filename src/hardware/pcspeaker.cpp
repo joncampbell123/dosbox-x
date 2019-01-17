@@ -150,7 +150,9 @@ static void CheckPITSynchronization(void) {
         //        This bludgeon is here to correct that. This is the problem with timer.cpp
         //        and pcspeaker.cpp tracking the counter separately.
         if (fabs(delta) >= (4.1 / CPU_CycleMax)) {
+#if 0//enable this when debugging PC speaker code
             LOG_MSG("PIT speaker synchronization error %.9f",delta);
+#endif
             spkr.pit_index = now_rel;
         }
         else {
