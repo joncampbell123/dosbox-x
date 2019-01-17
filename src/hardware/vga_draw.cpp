@@ -2293,7 +2293,7 @@ again:
                 vga_page_flip_occurred = false;
             }
             if (vga_3da_polled) {
-                memxor_greendotted_16bpp((uint16_t*)TempLine,(vga.draw.width>>1)*(vga.draw.bpp>>3),vga.draw.lines_done);
+                memxor_greendotted_16bpp((uint16_t*)data,(vga.draw.width>>1)*(vga.draw.bpp>>3),vga.draw.lines_done);
                 vga_3da_polled = false;
             }
             RENDER_DrawLine(data);
