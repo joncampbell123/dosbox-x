@@ -133,13 +133,25 @@ static void CheckPITSynchronization(void) {
         const pic_tickindex_t now_rel = speaker_pit_delta();
         pic_tickindex_t delta = spkr.pit_index - now_rel;
 
-        if (delta >= spkr.pit_half)
-            delta -= spkr.pit_max;
+        if (spkr.pit_mode == 3) {
+            if (delta >= (spkr.pit_half/2))
+                delta -=  spkr.pit_half;
+        }
+        else {
+            if (delta >=  spkr.pit_half)
+                delta -=  spkr.pit_max;
+        }
 
-        spkr.pit_index -= delta * 0.1;
-
+        // FIXME: This code maintains good synchronization EXCEPT in the case of Mode 3
+        //        with rapid changes to the counter WITHOUT writing port 43h (new_mode) first.
+        //        This bludgeon is here to correct that. This is the problem with timer.cpp
+        //        and pcspeaker.cpp tracking the counter separately.
         if (fabs(delta) >= (4.1 / CPU_CycleMax)) {
             LOG_MSG("PIT speaker synchronization error %.9f",delta);
+            spkr.pit_index = now_rel;
+        }
+        else {
+            spkr.pit_index -= delta * 0.005;
         }
     }
 }
@@ -223,41 +235,24 @@ static void ForwardPIT(pic_tickindex_t newindex) {
 		break;
 		//END CASE 2
 	case 3:
+        /* this version will only count up to pit_half. pit_max is ignored */
 		if (!spkr.pit_mode3_counting) break;
 		while (passed>0) {
 			/* Determine where in the wave we're located */
-			if (spkr.pit_index>=spkr.pit_half) {
-				if ((spkr.pit_index+passed)>=spkr.pit_max) {
-					pic_tickindex_t delay=spkr.pit_max-spkr.pit_index;
-					delay_base+=delay;passed-=delay;
-					spkr.pit_output_level = 1;
-					AddPITOutput(delay_base);
-					spkr.pit_index=0;
-					/* Load the new count */
-					spkr.pit_half=spkr.pit_new_half;
-					spkr.pit_max=spkr.pit_new_max;
-				} else {
-					spkr.pit_index+=passed;
-					return;
-				}
-			} else {
-				if ((spkr.pit_index+passed)>=spkr.pit_half) {
-					pic_tickindex_t delay=spkr.pit_half-spkr.pit_index;
-					delay_base+=delay;passed-=delay;
-					spkr.pit_output_level = 0;
-					AddPITOutput(delay_base);
-					spkr.pit_index=spkr.pit_half;
-#if 0//FIXME
-					/* Load the new count */
-					spkr.pit_half=spkr.pit_new_half;
-					spkr.pit_max=spkr.pit_new_max;
-#endif
-				} else {
-					spkr.pit_index+=passed;
-					return;
-				}
-			}
-		}
+            if ((spkr.pit_index+passed)>=spkr.pit_half) {
+                pic_tickindex_t delay=spkr.pit_half-spkr.pit_index;
+                delay_base+=delay;passed-=delay;
+                spkr.pit_output_level = !spkr.pit_output_level;
+                AddPITOutput(delay_base);
+                spkr.pit_index=0;
+                /* Load the new count */
+                spkr.pit_half=spkr.pit_new_half;
+                spkr.pit_max=spkr.pit_new_max;
+            } else {
+                spkr.pit_index+=passed;
+                return;
+            }
+        }
 		break;
 		//END CASE 3
 	case 4:
