@@ -142,6 +142,9 @@ static void CheckPITSynchronization(void) {
                 delta -=  spkr.pit_max;
         }
 
+        // FIXME: This code is also detecting many sync errors regarding Mode 0 aka the
+        //        "Realsound" (PWM) method of playing digitized speech, though ironically
+        //        this bludgeon seems to vastly improve the sound quality!
         // FIXME: This code maintains good synchronization EXCEPT in the case of Mode 3
         //        with rapid changes to the counter WITHOUT writing port 43h (new_mode) first.
         //        This bludgeon is here to correct that. This is the problem with timer.cpp
