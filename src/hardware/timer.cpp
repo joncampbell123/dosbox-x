@@ -143,6 +143,8 @@ struct PIT_Block {
             }
         }
 
+        // FIXME: The user can trigger this assertion by changing the CPU cycles count while a demo or game
+        //        is playing "Realsound" (PWM) digitized speech.
         assert(start <= now);
     }
     double reltime(void) const {
