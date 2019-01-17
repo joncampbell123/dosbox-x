@@ -109,6 +109,16 @@ void memxor_greendotted_16bpp(uint16_t *d,unsigned int count,unsigned int line) 
     }
 }
 
+void memxor_greendotted_32bpp(uint32_t *d,unsigned int count,unsigned int line) {
+    static const uint32_t greenptrn[2] = { (0xFF << 8), 0 };
+    line &= 1;
+    count >>= 2;
+    while (count-- > 0) {
+        *d++ ^= greenptrn[line];
+        *d++ ^= greenptrn[line^1];
+    }
+}
+
 typedef Bit8u * (* VGA_Line_Handler)(Bitu vidstart, Bitu line);
 
 static VGA_Line_Handler VGA_DrawLine;
@@ -2282,7 +2292,10 @@ again:
                 vga_page_flip_occurred = false;
             }
             if (vga_3da_polled) {
-                memxor_greendotted_16bpp((uint16_t*)TempLine,(vga.draw.width>>1)*(vga.draw.bpp>>3),vga.draw.lines_done);
+                if (vga.draw.bpp==32)
+                    memxor_greendotted_32bpp((uint32_t*)TempLine,(vga.draw.width>>1)*(vga.draw.bpp>>3),vga.draw.lines_done);
+                else
+                    memxor_greendotted_16bpp((uint16_t*)TempLine,(vga.draw.width>>1)*(vga.draw.bpp>>3),vga.draw.lines_done);
                 vga_3da_polled = false;
             }
             RENDER_DrawLine(TempLine);
@@ -2293,7 +2306,10 @@ again:
                 vga_page_flip_occurred = false;
             }
             if (vga_3da_polled) {
-                memxor_greendotted_16bpp((uint16_t*)data,(vga.draw.width>>1)*(vga.draw.bpp>>3),vga.draw.lines_done);
+                if (vga.draw.bpp==32)
+                    memxor_greendotted_32bpp((uint32_t*)data,(vga.draw.width>>1)*(vga.draw.bpp>>3),vga.draw.lines_done);
+                else
+                    memxor_greendotted_16bpp((uint16_t*)data,(vga.draw.width>>1)*(vga.draw.bpp>>3),vga.draw.lines_done);
                 vga_3da_polled = false;
             }
             RENDER_DrawLine(data);
