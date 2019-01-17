@@ -1,4 +1,7 @@
 0.82.15 (next)
+  - PC speaker emulation fixed not to print "queue overrun"
+    messages if the game or demo is attempting to use the PC
+    speaker while pcspeaker=off. 
   - PC speaker emulation fixed to improve accuracy and to ensure
     the square wave is synchronized to the 8254 PIT output.
     This change appears to have improved sound quality with
