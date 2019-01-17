@@ -360,14 +360,14 @@ void PCSPEAKER_SetCounter(Bitu cntr, Bitu mode) {
 	spkr.last_ticks=PIC_Ticks;
 	pic_tickindex_t newindex=PIC_TickIndex();
 	ForwardPIT(newindex);
-	switch (mode) {
+    spkr.pit_index = 0; // THIS function is always called on the port 43h reset case
+    switch (mode) {
 	case 0:		/* Mode 0 one shot, used with "realsound" (PWM) */
 		//if (cntr>80) { 
 		//	cntr=80;
 		//}
 		//spkr.pit_output_level=((pic_tickindex_t)cntr-40)*(SPKR_VOLUME/40.0f);
 		spkr.pit_output_level = 0;
-		spkr.pit_index = 0;
 		spkr.pit_max = (1000.0f / PIT_TICK_RATE) * cntr;
 		AddPITOutput(newindex);
 		break;
@@ -380,7 +380,6 @@ void PCSPEAKER_SetCounter(Bitu cntr, Bitu mode) {
 		}
 		break;
 	case 2:			/* Single cycle low, rest low high generator */
-		spkr.pit_index=0;
 		spkr.pit_output_level = 0;
 		AddPITOutput(newindex);
 		spkr.pit_half=(1000.0f/PIT_TICK_RATE)*1;
@@ -405,7 +404,6 @@ void PCSPEAKER_SetCounter(Bitu cntr, Bitu mode) {
 		spkr.pit_new_max = (1000.0f/PIT_TICK_RATE)*cntr;
 		spkr.pit_new_half=spkr.pit_new_max/2;
 		if (!spkr.pit_mode3_counting) {
-			spkr.pit_index = 0;
 			spkr.pit_max = spkr.pit_new_max;
 			spkr.pit_half = spkr.pit_new_half;
 			if (spkr.pit_clock_gate_enabled) {
@@ -418,8 +416,7 @@ void PCSPEAKER_SetCounter(Bitu cntr, Bitu mode) {
 	case 4:		/* Software triggered strobe */
 		spkr.pit_output_level = 1;
 		AddPITOutput(newindex);
-		spkr.pit_index=0;
-		spkr.pit_max=(1000.0f/PIT_TICK_RATE)*cntr;
+        spkr.pit_max=(1000.0f/PIT_TICK_RATE)*cntr;
 		break;
 	default:
 #ifdef SPKR_DEBUGGING
