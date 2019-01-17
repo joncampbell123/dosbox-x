@@ -479,7 +479,10 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
          * 2) Writing the second byte allows the new count to
          * be loaded on the next CLK pulse. */
         if (p->mode == 0) {
-            PIC_RemoveEvents(PIT0_Event);
+            if (counter == 0) {
+                PIC_RemoveEvents(PIT0_Event);
+                PIC_DeActivateIRQ(0);
+            }
             p->update_count = false;
         }
     }
