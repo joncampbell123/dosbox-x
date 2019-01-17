@@ -1,4 +1,9 @@
 0.82.15 (next)
+  - PC speaker emulation fixed to improve accuracy and to ensure
+    the square wave is synchronized to the 8254 PIT output.
+    This change appears to have improved sound quality with
+    PWM "digitized speech" output.
+  - 8254 emulation fixed to improve overall accuracy
   - 8254 PIT timer emulation fixed not to report writes to PIT 0
     Timer counters if the game is writing the same value
     repeatedly.
