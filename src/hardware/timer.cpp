@@ -56,6 +56,7 @@ struct PIT_Block {
 	Bit8u mode;             /* 8254 mode (mode 0 through 5 inclusive) */
 	Bit8u read_state;       /* 0=read MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=read LSB, switch to MSB, latch next value */
 	Bit8u write_state;      /* 0=write MSB, switch to LSB, 1=LSB only, 2=MSB only, 3=write MSB, switch to LSB, accept value */
+    Bit8u cycle_base = 0;
 
 	bool bcd;               /* BCD mode */
 	bool go_read_latch;     /* reading should latch another value */
@@ -91,6 +92,7 @@ struct PIT_Block {
     }
     void reset_count_at(pic_tickindex_t t) {
         start = now = t;
+        cycle_base = 0;
     }
     void restart_counter_at(pic_tickindex_t t,Bit16u counter) {
         double c_delay;
@@ -108,7 +110,26 @@ struct PIT_Block {
         /* Mode 0 will always reset the count whether "new mode" or not.
          * Mode 1 will count down and stop. TODO: Writing a new counter without "new mode" starts another countdown? */
         /* if any periodic mode (Mode 2, 3, 4, 5), then process fully. */
-        if (mode >= 2) {
+        if (mode == 3) {
+            const double half = delay / 2;
+
+            if (now >= (start+half)) {
+                cycle_base = (cycle_base + 1u) & 1u;
+                start += half;
+
+                if (update_count) {
+                    latch_next_counter();
+                    update_count = false;
+                }
+
+                if (now >= (start+half)) {
+                    unsigned int cnt = (unsigned int)floor((now - start) / half);
+                    cycle_base = (cycle_base + cnt) & 1u;
+                    start += cnt * half;
+                }
+            }
+        }
+        else if (mode >= 2) {
             if (now >= (start+delay)) {
                 start += delay;
 
@@ -255,9 +276,10 @@ struct PIT_Block {
                         abort();
                     }
 
+                    ret.cycle = cycle_base;
                     if (tmp >= delay) {
                         tmp -= delay;
-                        ret.cycle = 1;
+                        ret.cycle = (ret.cycle + 1u) & 1u;
                     }
 
                     ret.counter = ((Bit16u)(cntr_cur - ((tmp * cntr_cur) / delay))) & 0xFFFEu; /* always even value */
