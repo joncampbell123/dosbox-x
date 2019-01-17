@@ -277,6 +277,9 @@ static void ForwardPIT(pic_tickindex_t newindex) {
 }
 
 void PCSPEAKER_SetPITControl(Bitu mode) {
+    if (spkr.chan == NULL)
+        return;
+
 	pic_tickindex_t newindex = PIC_TickIndex();
 	ForwardPIT(newindex);
 #ifdef SPKR_DEBUGGING
@@ -313,6 +316,9 @@ void PCSPEAKER_SetPITControl(Bitu mode) {
 
 // new mode WITHOUT writing port 43h
 void PCSPEAKER_SetCounter_NoNewMode(Bitu cntr) {
+    if (spkr.chan == NULL)
+        return;
+
 	if (!spkr.last_ticks) {
 		if(spkr.chan) spkr.chan->Enable(true);
 		spkr.last_index=0;
@@ -366,6 +372,9 @@ void PCSPEAKER_SetCounter_NoNewMode(Bitu cntr) {
 }
 
 void PCSPEAKER_SetCounter(Bitu cntr, Bitu mode) {
+    if (spkr.chan == NULL)
+        return;
+
 #ifdef SPKR_DEBUGGING
 	fprintf(PCSpeakerLog, "%f counter: %u, mode: %u\n", PIC_FullIndex(), cntr, mode);
 	speaker_state_change_t temp;
@@ -452,6 +461,9 @@ void PCSPEAKER_SetCounter(Bitu cntr, Bitu mode) {
 }
 
 void PCSPEAKER_SetType(bool pit_clock_gate_enabled, bool pit_output_enabled) {
+    if (spkr.chan == NULL)
+        return;
+
 #ifdef SPKR_DEBUGGING
 	fprintf(
 			PCSpeakerLog,
