@@ -357,6 +357,16 @@ void TIMER_IRQ0Poll(void) {
     counter_latch(0,false/*do not latch*/);
 }
 
+pic_tickindex_t speaker_pit_delta(void) {
+    unsigned int speaker_pit = IS_PC98_ARCH ? 1 : 2;
+    return fmod(pit[speaker_pit].now - pit[speaker_pit].start, pit[speaker_pit].delay);
+}
+
+void speaker_pit_update(void) {
+    unsigned int speaker_pit = IS_PC98_ARCH ? 1 : 2;
+    pit[speaker_pit].track_time(PIC_FullIndex());
+}
+
 static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 //LOG(LOG_PIT,LOG_ERROR)("port %X write:%X state:%X",port,val,pit[port-0x40].write_state);
 

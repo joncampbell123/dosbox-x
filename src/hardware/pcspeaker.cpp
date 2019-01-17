@@ -123,6 +123,27 @@ inline static void AddPITOutput(pic_tickindex_t index) {
 	}
 }
 
+pic_tickindex_t speaker_pit_delta(void);
+void speaker_pit_update(void);
+
+static void CheckPITSynchronization(void) {
+    if (spkr.pit_clock_gate_enabled) {
+        speaker_pit_update();
+
+        const pic_tickindex_t now_rel = speaker_pit_delta();
+        pic_tickindex_t delta = spkr.pit_index - now_rel;
+
+        if (delta >= spkr.pit_half)
+            delta -= spkr.pit_max;
+
+        spkr.pit_index -= delta * 0.1;
+
+        if (fabs(delta) >= (4.1 / CPU_CycleMax)) {
+            LOG_MSG("PIT speaker synchronization error %.9f",delta);
+        }
+    }
+}
+
 static void ForwardPIT(pic_tickindex_t newindex) {
 #ifdef SPKR_DEBUGGING
 	if (newindex < 0 || newindex > 1) {
@@ -226,9 +247,11 @@ static void ForwardPIT(pic_tickindex_t newindex) {
 					spkr.pit_output_level = 0;
 					AddPITOutput(delay_base);
 					spkr.pit_index=spkr.pit_half;
+#if 0//FIXME
 					/* Load the new count */
 					spkr.pit_half=spkr.pit_new_half;
 					spkr.pit_max=spkr.pit_new_max;
+#endif
 				} else {
 					spkr.pit_index+=passed;
 					return;
@@ -425,6 +448,7 @@ void PCSPEAKER_SetCounter(Bitu cntr, Bitu mode) {
 		return;
 	}
 	spkr.pit_mode = mode;
+    CheckPITSynchronization();
 }
 
 void PCSPEAKER_SetType(bool pit_clock_gate_enabled, bool pit_output_enabled) {
@@ -501,6 +525,8 @@ void PCSPEAKER_SetType(bool pit_clock_gate_enabled, bool pit_output_enabled) {
 	} else {
 		AddDelayEntry(newindex, 0);
 	}
+
+    CheckPITSynchronization();
 }
 
 /* NTS: This code stinks. Sort of. The way it handles the delay entry queue
@@ -516,8 +542,9 @@ void PCSPEAKER_SetType(bool pit_clock_gate_enabled, bool pit_output_enabled) {
  *      the tick. */
 static void PCSPEAKER_CallBack(Bitu len) {
 	Bit16s * stream=(Bit16s*)MixTemp;
-	ForwardPIT(1);
-	spkr.last_index=0;
+	ForwardPIT(1.0 + PIC_TickIndex());
+    CheckPITSynchronization();
+	spkr.last_index = PIC_TickIndex();
 	Bitu count=len;
 	Bitu pos=0;
 	pic_tickindex_t sample_base=0;
