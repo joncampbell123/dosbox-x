@@ -986,8 +986,14 @@ void SHELL_Init() {
 
 	/* Set up int 2e handler */
 	Bitu call_int2e=CALLBACK_Allocate();
-	RealPt addr_int2e=RealMake(psp_seg+16+1,8);
-	CALLBACK_Setup(call_int2e,&INT2E_Handler,CB_IRET_STI,Real2Phys(addr_int2e),"Shell Int 2e");
+
+    //	RealPt addr_int2e=RealMake(psp_seg+16+1,8);
+    // NTS: It's apparently common practice to enumerate MCBs by reading the segment value of INT 2Eh and then
+    //      scanning forward from there. The assumption seems to be that COMMAND.COM writes INT 2Eh there using
+    //      it's PSP segment and an offset like that of a COM executable even though COMMAND.COM is often an EXE file.
+	RealPt addr_int2e=RealMake(psp_seg,8+((16+1)*16));
+
+    CALLBACK_Setup(call_int2e,&INT2E_Handler,CB_IRET_STI,Real2Phys(addr_int2e),"Shell Int 2e");
 	RealSetVec(0x2e,addr_int2e);
 
 	/* Setup environment */
