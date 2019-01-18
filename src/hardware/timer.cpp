@@ -315,8 +315,10 @@ static void PIT0_Event(Bitu /*val*/) {
         if (err >= (pit[0].delay/2))
             err -=  pit[0].delay;
 
+#if 0//change if debug information wanted
         if (fabs(err) >= (0.5 / CPU_CycleMax))
             LOG_MSG("PIT0_Event timing error %.6fms",err);
+#endif
 
         PIC_AddEvent(PIT0_Event,pit[0].delay - (err * 0.05));
 	}
