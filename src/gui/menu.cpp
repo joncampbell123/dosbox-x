@@ -871,6 +871,9 @@ static const char *def_menu_dos[] = {
     "DOSMouseMenu",
     "--",
     "DOSPC98Menu",
+    "--",
+    "mapper_swapimg",
+    "mapper_swapcd",
     NULL
 };
 
