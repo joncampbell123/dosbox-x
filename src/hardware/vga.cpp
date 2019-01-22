@@ -909,6 +909,9 @@ void VGA_Reset(Section*) {
     //       trim Video RAM to fit (within reasonable limits) or else E_Exit() to let the user
     //       know of impossible constraints.
 
+    mainMenu.get_item("debug_pageflip").check(enable_page_flip_debugging_marker).refresh_item(mainMenu);
+    mainMenu.get_item("debug_retracepoll").check(enable_vretrace_poll_debugging_marker).refresh_item(mainMenu);
+
     VGA_SetupMemory();      // memory is allocated here
     if (!IS_PC98_ARCH) {
         VGA_SetupMisc();
@@ -1347,6 +1350,26 @@ void VGA_SaveState(Section *sec) {
     }
 }
 
+bool debugpollvga_pf_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
+    (void)xmenu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    enable_page_flip_debugging_marker = !enable_page_flip_debugging_marker;
+    mainMenu.get_item("debug_pageflip").check(enable_page_flip_debugging_marker).refresh_item(mainMenu);
+
+    return true;
+}
+
+bool debugpollvga_rtp_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
+    (void)xmenu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    enable_vretrace_poll_debugging_marker = !enable_vretrace_poll_debugging_marker;
+    mainMenu.get_item("debug_retracepoll").check(enable_vretrace_poll_debugging_marker).refresh_item(mainMenu);
+
+    return true;
+}
+
 void VGA_Init() {
     string str;
     Bitu i,j;
@@ -1411,6 +1434,9 @@ void VGA_Init() {
 #endif
         }
     }
+
+    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_pageflip").set_text("Page flip debug line").set_callback_function(debugpollvga_pf_menu_callback);
+    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debug_retracepoll").set_text("Retrace poll debug line").set_callback_function(debugpollvga_rtp_menu_callback);
 
     AddExitFunction(AddExitFunctionFuncPair(VGA_Destroy));
     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(VGA_Reset));
