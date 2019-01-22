@@ -1,4 +1,6 @@
 0.82.15 (next)
+  - Added "debug page flip" and "debug retrace poll" options to
+    the menu.
   - Added "Swap Floppy" and "Swap CD" commands to the menu.
   - INT 2Eh (MS-DOS command interpreter interrupt) fixed so that
     the segment value of the interrupt vector matches the PSP
