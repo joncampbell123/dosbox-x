@@ -1,4 +1,7 @@
 0.82.15 (next)
+  - SVGA emulation (Tseng ET4000 and S3) fixed to reflect real
+    hardware behavior where BYTE/WORD/DWORD VGA bits in the CRTC
+    are ignored in SVGA modes.
   - Added "debug page flip" and "debug retrace poll" options to
     the menu.
   - Added "Swap Floppy" and "Swap CD" commands to the menu.
