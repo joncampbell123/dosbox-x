@@ -1,4 +1,6 @@
 0.82.15 (next)
+  - SVGA mode 0x10A (text mode) fixed to display properly instead
+    of only the top half.
   - BIOS keyboard handling fixed in PC-98 mode so that Shift+Ro
     types an underscore as expected.
   - SVGA emulation (Tseng ET4000 and S3) fixed to reflect real
