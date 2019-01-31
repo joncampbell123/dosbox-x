@@ -1146,6 +1146,14 @@ static Bitu IRQ1_Handler_PC98(void) {
                         add_key(scan_add + '/');
                 }
                 break;
+            case 0x33: //  _ / Ro
+                if (pressed) {
+                    if (modflags & 1) /* shift */
+                        add_key(scan_add + '_');
+                    else
+                        { /*nothing*/ }
+                }
+                break;
             case 0x34: // <space>
                 if (pressed) {
                     add_key(scan_add + ' ');
