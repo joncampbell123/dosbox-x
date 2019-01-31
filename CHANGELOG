@@ -1,4 +1,6 @@
 0.82.15 (next)
+  - BIOS keyboard handling fixed in PC-98 mode so that Shift+Ro
+    types an underscore as expected.
   - SVGA emulation (Tseng ET4000 and S3) fixed to reflect real
     hardware behavior where BYTE/WORD/DWORD VGA bits in the CRTC
     are ignored in SVGA modes.
