@@ -1166,22 +1166,28 @@ public:
     }
 
     template <class AWT> static inline void mode8_w(const unsigned int plane,const PhysPt vramoff) {
+        AWT tb;
+
         /* Neko Project II code suggests that the first byte is repeated. */
         if (sizeof(AWT) > 1)
-            pc98_gdc_tiles[plane].b[1] = pc98_gdc_tiles[plane].b[0];
+            tb = pc98_gdc_tiles[plane].b[0] | (pc98_gdc_tiles[plane].b[0] << 8u);
+        else
+            tb = pc98_gdc_tiles[plane].b[0];
 
-        *((AWT*)(vga.mem.linear + vramoff)) = *((AWT*)pc98_gdc_tiles[plane].b);
+        *((AWT*)(vga.mem.linear + vramoff)) = tb;
     }
 
     template <class AWT> static inline void modeC_w(const unsigned int plane,const PhysPt vramoff,const AWT mask,const AWT val) {
-        AWT t;
+        AWT t,tb;
 
         /* Neko Project II code suggests that the first byte is repeated. */
         if (sizeof(AWT) > 1)
-            pc98_gdc_tiles[plane].b[1] = pc98_gdc_tiles[plane].b[0];
+            tb = pc98_gdc_tiles[plane].b[0] | (pc98_gdc_tiles[plane].b[0] << 8u);
+        else
+            tb = pc98_gdc_tiles[plane].b[0];
 
         t  = *((AWT*)(vga.mem.linear + vramoff)) & mask;
-        t |= val & *((AWT*)pc98_gdc_tiles[plane].b);
+        t |= val & tb;
         *((AWT*)(vga.mem.linear + vramoff)) = t;
     }
 
