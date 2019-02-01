@@ -32,6 +32,7 @@ using namespace std;
 #include "debug.h"
 #include "cross.h" //snprintf
 #include "cpu.h"
+#include "fpu.h"
 #include "video.h"
 #include "pic.h"
 #include "mapper.h"
@@ -1165,6 +1166,8 @@ void DBGUI_NextWindowIfActiveHidden(void);
 void DEBUG_BeginPagedContent(void);
 void DEBUG_EndPagedContent(void);
 
+static void LogFPUInfo(void);
+
 bool ParseCommand(char* str) {
 	char* found = str;
 	for(char* idx = found;*idx != 0; idx++)
@@ -1613,6 +1616,8 @@ bool ParseCommand(char* str) {
 	if (command == "PAGING") {LogPages(found); return true;}
 
 	if (command == "CPU") {LogCPUInfo(); return true;}
+
+	if (command == "FPU") {LogFPUInfo(); return true;}
 
 	if (command == "INTVEC") {
 		if (found[0] != 0) {
@@ -2789,6 +2794,33 @@ void LogPages(char* selname) {
 			}
 		}
 	}
+
+    DEBUG_EndPagedContent();
+}
+
+const char *FPU_tag(unsigned int i) {
+    switch (i) {
+        case TAG_Valid: return "Valid";
+        case TAG_Zero:  return "Zero";
+        case TAG_Weird: return "Weird";
+        case TAG_Empty: return "Empty";
+    };
+
+    return "?";
+}
+
+static void LogFPUInfo(void) {
+    char out1[512];
+
+    DEBUG_BeginPagedContent();
+
+    LOG(LOG_MISC,LOG_ERROR)("FPU TOP=%u",(unsigned int)fpu.top);
+
+    for (unsigned int i=0;i < 8;i++) {
+        unsigned int adj = STV(i);
+
+        LOG(LOG_MISC,LOG_ERROR)(" st(%u): %s use80=%u val=%.9f",i,FPU_tag(fpu.tags[adj]),fpu.use80[adj],fpu.regs[adj].d);
+    }
 
     DEBUG_EndPagedContent();
 }
