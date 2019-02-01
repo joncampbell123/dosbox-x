@@ -1370,6 +1370,13 @@ public:
                 break;
         };
 
+        /* reminder:
+         *
+         * bit 1: VOPBIT_EGC
+         * bit 0: VOPBIT_ACCESS
+         * From GRGC bits:
+         * bit 3: VOPBIT_GRCG  1=GRGC active  0=GRGC invalid  (from bit 7)
+         * bit 2: VOPBIT_GRCG  1=Read/Modify/Write when writing  0=TCR mode at read, TDW mode at write  (from bit 6) */
         switch (pc98_gdc_vramop & 0xF) {
             case 0x00:
             case 0x01:
@@ -1484,6 +1491,13 @@ public:
                 break;
         };
 
+        /* reminder:
+         *
+         * bit 1: VOPBIT_EGC
+         * bit 0: VOPBIT_ACCESS
+         * From GRGC bits:
+         * bit 3: VOPBIT_GRCG  1=GRGC active  0=GRGC invalid  (from bit 7)
+         * bit 2: VOPBIT_GRCG  1=Read/Modify/Write when writing  0=TCR mode at read, TDW mode at write  (from bit 6) */
         switch (pc98_gdc_vramop & 0xF) {
             case 0x00:
             case 0x01:

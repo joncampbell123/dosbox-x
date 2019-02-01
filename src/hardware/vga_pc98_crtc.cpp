@@ -85,6 +85,8 @@ void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
             if (enable_pc98_grcg) {
                 pc98_gdc_tile_counter = 0;
                 pc98_gdc_modereg = val;
+                /* bit 7: 1=GRGC active  0=GRGC invalid
+                 * bit 6: 1=Read/Modify/Write when writing  0=TCR mode at read, TDW mode at write */
                 pc98_gdc_vramop &= ~(3 << VOPBIT_GRCG);
                 pc98_gdc_vramop |= (val & 0xC0) >> (6 - VOPBIT_GRCG);
             }
