@@ -45,7 +45,11 @@ Bit16u FPU_GetTag(void){
 	return tag;
 }
 
+#if C_FPU_X86
+#include "fpu_instructions_x86.h"
+#else
 #include "fpu_instructions.h"
+#endif
 
 /* WATCHIT : ALWAYS UPDATE REGISTERS BEFORE AND AFTER USING THEM 
 			STATUS WORD =>	FPU_SET_TOP(TOP) BEFORE a read

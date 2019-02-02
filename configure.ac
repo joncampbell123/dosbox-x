@@ -767,6 +767,25 @@ else
   AC_MSG_RESULT(no)
 fi 
 
+AH_TEMPLATE(C_FPU_X86,[Define to 1 to use a x86/x64 assembly fpu core])
+AC_ARG_ENABLE(fpu-x86,AC_HELP_STRING([--disable-fpu-x86],[Disable x86 assembly fpu core]),,enable_fpu_x86=yes)
+AC_ARG_ENABLE(fpu-x64,AC_HELP_STRING([--disable-fpu-x64],[Disable x64 assembly fpu core]),,enable_fpu_x64=yes)
+AC_MSG_CHECKING(whether the x86/x64 assembly fpu core will be enabled) 
+if test x$enable_fpu_x86 = xno -o x$enable_fpu_x64 = xno; then 
+   AC_MSG_RESULT(no)
+else
+  if test x$enable_fpu = xyes; then
+    if test x$c_targetcpu = xx86 -o x$c_targetcpu = xx86_64; then
+        AC_DEFINE(C_FPU_X86,1)
+        AC_MSG_RESULT(yes)
+    else
+        AC_MSG_RESULT(no)
+    fi
+  else
+      AC_MSG_RESULT(no)
+  fi
+fi
+
 dnl FEATURE: Whether to enable unaligned memory access
 AH_TEMPLATE(C_UNALIGNED_MEMORY,[Define to 1 to use a unaligned memory access])
 AC_ARG_ENABLE(unaligned_memory,AC_HELP_STRING([--disable-unaligned-memory],[Disable unaligned memory access]),,enable_unaligned_memory=yes)
