@@ -175,7 +175,7 @@ void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
             pc98_egc_fgcm[3].w = (val & 8) ? 0xFFFF : 0x0000;
             break;
         case 0x8: /* 0x4A8 */
-            if (pc98_egc_compare_lead == 0)
+            if (pc98_egc_fgc == 0)
                 *((uint16_t*)pc98_egc_mask) = val;
             break;
         case 0xA: /* 0x4AA */
