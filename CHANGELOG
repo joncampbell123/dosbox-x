@@ -1,4 +1,7 @@
 0.82.15 (next)
+  - PC-98 port 6Ah fixed not to allow setting EGC enable unless
+    another EGC enable bit has been set, as specified in the PC-9801
+    bible.
   - SVGA mode 0x10A (text mode) fixed to display properly instead
     of only the top half.
   - BIOS keyboard handling fixed in PC-98 mode so that Shift+Ro
