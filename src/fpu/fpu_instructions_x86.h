@@ -1182,18 +1182,19 @@ static void FPU_FCOM(Bitu op1, Bitu op2){
 }
 
 static void FPU_FUCOMI(Bitu st, Bitu other){
-	
+    LOG_MSG("FPU WARNING: FPU_FUCOMI called, needs testing");
+
+    FPU_FCOM(st,other);
+
 	FillFlags();
 	SETFLAGBIT(OF,false);
 
-#if 0//TODO
-	if(fpu.regs[st].d == fpu.regs[other].d){
+    if (fpu.sw & (1u << 14u)/*C3*/) {//if(fpu.regs[st].d == fpu.regs[other].d){
 		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
-	}
-	if(fpu.regs[st].d < fpu.regs[other].d){
+    }
+    else if (fpu.sw & (1u << 8u)/*C0*/) {//if(fpu.regs[st].d < fpu.regs[other].d){
 		SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,true);return;
-	}
-#endif
+    }
 	// st > other
 	SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
 }
