@@ -89,7 +89,12 @@
 #define C_FPU					1
 
 /* Define to 1 to use a x86/x64 assembly fpu core */
-#define C_FPU_X86 1
+/* FIXME: VS2015 x86_64 will not allow inline asm! */
+#ifdef _M_AMD64 /* Microsoft C++ amd64 */
+//TODO
+#else
+# define C_FPU_X86 1
+#endif
 
 /* Determines if the compilers supports attributes for structures. */
 #undef C_HAS_ATTRIBUTE
