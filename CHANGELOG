@@ -1,4 +1,4 @@
-0.82.15 (next)
+0.82.15
   - Incorporated x86 FPU emulation from DOSBox SVN to improve FPU
     precision at least on x86 and x86_64 targets.
   - PC-98 port 6Ah fixed not to allow setting EGC enable unless
