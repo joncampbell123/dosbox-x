@@ -127,6 +127,8 @@ Bitu pc98_crtc_read(Bitu port,Bitu iolen) {
     return ~0ul;
 }
 
+bool egc_enable_enable = false;
+
 /* Port 0x6A command handling */
 void pc98_port6A_command_write(unsigned char b) {
     switch (b) {
@@ -149,14 +151,18 @@ void pc98_port6A_command_write(unsigned char b) {
             }
             break;
         case 0x04:
-            pc98_gdc_vramop &= ~(1 << VOPBIT_EGC);
+            if (egc_enable_enable)
+                pc98_gdc_vramop &= ~(1 << VOPBIT_EGC);
             break;
         case 0x05:
-            if (enable_pc98_egc) pc98_gdc_vramop |= (1 << VOPBIT_EGC);
+            if (enable_pc98_egc && egc_enable_enable)
+                pc98_gdc_vramop |= (1 << VOPBIT_EGC);
             break;
-        case 0x06: // TODO
-        case 0x07: // TODO
-            // TODO
+        case 0x06:
+            egc_enable_enable = false;
+            break;
+        case 0x07:
+            egc_enable_enable = true;
             break;
         case 0x0A: // TODO
         case 0x0B: // TODO
