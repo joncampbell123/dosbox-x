@@ -1186,6 +1186,8 @@ static void FPU_FUCOMI(Bitu st, Bitu other){
 
     FPU_FCOM(st,other);
 
+    Bitu FillFlags(void);//Why is this needed for VS2015?
+
 	FillFlags();
 	SETFLAGBIT(OF,false);
 
