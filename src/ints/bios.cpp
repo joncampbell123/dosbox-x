@@ -2551,6 +2551,26 @@ static Bitu INT18_PC98_Handler(void) {
             break;
         case 0x04: /* Sense of key input state (キー入力状態のセンス) */
             reg_ah = mem_readb(0x52A + (unsigned int)(reg_al & 0x0Fu));
+            /* Hack for "Shangrlia" by Elf: The game's regulation of animation speed seems to depend on
+             * INT 18h AH=0x04 taking some amount of time. If we do not do this, animation will run way
+             * too fast and everyone will be talking/moving at a million miles a second.
+             *
+             * This is based on comparing animation speed vs the same game on real Pentium-class PC-98
+             * hardware.
+             *
+             * Looking at the software loop involved during opening cutscenes, the game is constantly
+             * polling INT 18h AH=04h (keyboard state) and INT 33h AH=03h (mouse button/position state)
+             * while animating the characters on the screen. Without this delay, animation runs way too
+             * fast.
+             *
+             * This guess is also loosely based on a report by the Touhou Community Reliant Automatic Patcher
+             * that Touhou Project directly reads this byte but delays by 0.6ms to handle the fact that
+             * the bit in question may toggle while the key is held down due to the scan codes returned by
+             * the keyboard.
+             *
+             * This is a guess, but it seems to help animation speed match that of real hardware regardless
+             * of cycle count in DOSBox-X. */
+            CPU_Cycles -= (unsigned int)(CPU_CycleMax * 0.006);
             break;
         case 0x05: /* Key input sense (キー入力センス) */
             /* This appears to return a key from the buffer (and remove from
