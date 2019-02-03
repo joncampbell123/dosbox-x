@@ -1,3 +1,5 @@
+0.82.16 (next)
+  - 
 0.82.15
   - Incorporated x86 FPU emulation from DOSBox SVN to improve FPU
     precision at least on x86 and x86_64 targets.
