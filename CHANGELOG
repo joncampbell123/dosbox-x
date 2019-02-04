@@ -1,4 +1,10 @@
 0.82.16 (next)
+  - For non-x86 targets, or x86 targets where the user prefers
+    not to use the x86 FPU core, code has been added to emulate
+    the FPU instructions and registers using the "long double"
+    data type for full 80-bit precision. This fixes 3D glitches
+    in "Explora" though it still doesn't pass the Intel i387
+    test program.
   - PC-98 INT 18h AH=04h: Added software delay to slow down some
     older PC-98 games that poll keyboard/mouse while animating
     cutscenes. The games seem to be timed around the assumption
