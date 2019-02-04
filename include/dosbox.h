@@ -59,6 +59,8 @@
 // TODO: The autoconf script should test the size of long double
 #if defined(_MSC_VER)
 // Microsoft C++ sizeof(long double) == sizeof(double)
+#elif defined(__arm__)
+// ARMv7 (Raspberry Pi) does not have long double, sizeof(long double) == sizeof(double)
 #else
 // GCC, other compilers, have sizeof(long double) == 10 80-bit IEEE
 # define HAS_LONG_DOUBLE		1
