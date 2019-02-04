@@ -2819,7 +2819,11 @@ static void LogFPUInfo(void) {
     for (unsigned int i=0;i < 8;i++) {
         unsigned int adj = STV(i);
 
+#if defined(HAS_LONG_DOUBLE)//probably shouldn't allow struct to change size based on this
+        LOG(LOG_MISC,LOG_ERROR)(" st(%u): %s val=%.9f",i,FPU_tag(fpu.tags[adj]),(double)fpu.regs_80[adj].v);
+#else
         LOG(LOG_MISC,LOG_ERROR)(" st(%u): %s use80=%u val=%.9f",i,FPU_tag(fpu.tags[adj]),fpu.use80[adj],fpu.regs[adj].d);
+#endif
     }
 
     DEBUG_EndPagedContent();

@@ -47,6 +47,8 @@ Bit16u FPU_GetTag(void){
 
 #if C_FPU_X86
 #include "fpu_instructions_x86.h"
+#elif defined(HAS_LONG_DOUBLE)
+#include "fpu_instructions_longdouble.h"
 #else
 #include "fpu_instructions.h"
 #endif
