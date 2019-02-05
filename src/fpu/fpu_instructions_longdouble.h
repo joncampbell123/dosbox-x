@@ -21,14 +21,19 @@
 
 #ifdef __GNUC__
 # include <fpu_control.h>
+static inline void FPU_SyncCW(void) {
+    _FPU_SETCW(fpu.cw);
+}
+#else
+static inline void FPU_SyncCW(void) {
+    /* nothing */
+}
 #endif
 
 static void FPU_FINIT(void) {
 	FPU_SetCW(0x37F);
-#ifdef __GNUC__
-    _FPU_SETCW(fpu.cw);
-#endif
-	fpu.sw = 0;
+    FPU_SyncCW();
+    fpu.sw = 0;
 	TOP=FPU_GET_TOP();
 	fpu.tags[0] = TAG_Empty;
 	fpu.tags[1] = TAG_Empty;
@@ -260,9 +265,7 @@ static void FPU_FBST(PhysPt addr) {
 #endif
 
 static void FPU_FADD(Bitu op1, Bitu op2){
-#ifdef __GNUC__
-    _FPU_SETCW(fpu.cw);
-#endif
+    FPU_SyncCW();
 	// HACK: Set the denormal flag according to whether the source or final result is a denormalized number.
 	//       This is vital if we don't want certain DOS programs to mis-detect our FPU emulation as an IIT clone chip when cputype == 286
 	bool was_not_normal = isdenormal(fpu.regs_80[op1].v);
@@ -296,9 +299,7 @@ static void FPU_FCOS(void){
 }
 
 static void FPU_FSQRT(void){
-#ifdef __GNUC__
-    _FPU_SETCW(fpu.cw);
-#endif
+    FPU_SyncCW();
 	fpu.regs_80[TOP].v = sqrtl(fpu.regs_80[TOP].v);
 	//flags and such :)
 	return;
@@ -317,45 +318,35 @@ static void FPU_FPTAN(void){
 	return;
 }
 static void FPU_FDIV(Bitu st, Bitu other){
-#ifdef __GNUC__
-    _FPU_SETCW(fpu.cw);
-#endif
+    FPU_SyncCW();
 	fpu.regs_80[st].v = fpu.regs_80[st].v/fpu.regs_80[other].v;
 	//flags and such :)
 	return;
 }
 
 static void FPU_FDIVR(Bitu st, Bitu other){
-#ifdef __GNUC__
-    _FPU_SETCW(fpu.cw);
-#endif
+    FPU_SyncCW();
 	fpu.regs_80[st].v = fpu.regs_80[other].v/fpu.regs_80[st].v;
 	// flags and such :)
 	return;
 }
 
 static void FPU_FMUL(Bitu st, Bitu other){
-#ifdef __GNUC__
-    _FPU_SETCW(fpu.cw);
-#endif
+    FPU_SyncCW();
 	fpu.regs_80[st].v *= fpu.regs_80[other].v;
 	//flags and such :)
 	return;
 }
 
 static void FPU_FSUB(Bitu st, Bitu other){
-#ifdef __GNUC__
-    _FPU_SETCW(fpu.cw);
-#endif
+    FPU_SyncCW();
 	fpu.regs_80[st].v = fpu.regs_80[st].v - fpu.regs_80[other].v;
 	//flags and such :)
 	return;
 }
 
 static void FPU_FSUBR(Bitu st, Bitu other){
-#ifdef __GNUC__
-    _FPU_SETCW(fpu.cw);
-#endif
+    FPU_SyncCW();
 	fpu.regs_80[st].v = fpu.regs_80[other].v - fpu.regs_80[st].v;
 	//flags and such :)
 	return;
@@ -551,9 +542,7 @@ static void FPU_FLDENV(PhysPt addr){
 	}
 	FPU_SetTag(tag);
 	FPU_SetCW(cw);
-#ifdef __GNUC__
-    _FPU_SETCW(fpu.cw);
-#endif
+    FPU_SyncCW();
 	TOP = FPU_GET_TOP();
 }
 
