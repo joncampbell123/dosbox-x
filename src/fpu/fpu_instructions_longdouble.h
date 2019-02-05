@@ -20,7 +20,11 @@
 #include "cpu/lazyflags.h"
 
 #ifdef __GNUC__
-# include <fpu_control.h>
+# ifdef __MINGW32__
+#  include "fpu_control_x86.h"
+# else
+#  include <fpu_control.h>
+# endif
 static inline void FPU_SyncCW(void) {
     _FPU_SETCW(fpu.cw);
 }
