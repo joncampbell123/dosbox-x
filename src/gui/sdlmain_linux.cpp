@@ -323,6 +323,9 @@ static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display,Window w
                             /* choose this combo to determine screen size, and dimensions */
                             info.method = ScreenSizeInfo::METHOD_XRANDR;
 
+                            info.screen_position_pixels.x        = chk->x;
+                            info.screen_position_pixels.y        = chk->y;
+
                             info.screen_dimensions_pixels.width  = chk->width;
                             info.screen_dimensions_pixels.height = chk->height;
 
