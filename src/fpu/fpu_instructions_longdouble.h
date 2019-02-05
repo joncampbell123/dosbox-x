@@ -20,7 +20,7 @@
 #include "cpu/lazyflags.h"
 
 #ifdef __GNUC__
-# ifdef __MINGW32__
+# if defined(__MINGW32__) || defined(MACOSX)
 #  include "fpu_control_x86.h"
 # else
 #  include <fpu_control.h>
