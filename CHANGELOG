@@ -1,4 +1,6 @@
 0.82.16 (next)
+  - Added support for multi-monitor and DPI determination for
+    Microsoft Windows.
   - SDL1 and SDL2 builds now examine multi-monitor setups and
     so that they can go fullscreen properly on one monitor
     instead of going fullscreen across all monitors, in
