@@ -2335,7 +2335,6 @@ void GFX_SwitchFullScreen(void)
     if (sdl.desktop.prevent_fullscreen)
         return;
 
-#if !defined(C_SDL2)
     if (!sdl.desktop.fullscreen) {/*is GOING fullscreen*/
         UpdateWindowDimensions();
 
@@ -2349,15 +2348,22 @@ void GFX_SwitchFullScreen(void)
             if (sdl.desktop.full.height_auto)
                 sdl.desktop.full.height = screen_size_info.screen_dimensions_pixels.height;
 
+            fprintf(stderr,"FS window: %d x %d\n",
+                sdl.desktop.full.width,
+                sdl.desktop.full.height);
+
+#if !defined(C_SDL2)
             SDL_hax_SetFSWindowPosition(
                 screen_size_info.screen_position_pixels.x,screen_size_info.screen_position_pixels.y,
                 screen_size_info.screen_dimensions_pixels.width,screen_size_info.screen_dimensions_pixels.height);
+#endif
         }
         else {
+#if !defined(C_SDL2)
             SDL_hax_SetFSWindowPosition(0,0,0,0);
+#endif
         }
     }
-#endif
 
     menu.resizeusing = true;
 
@@ -2937,8 +2943,14 @@ static void GUI_StartUp() {
     {
         SDL_DisplayMode dm;
         if (SDL_GetDesktopDisplayMode(0/*FIXME display index*/,&dm) == 0) {
-            sdl.desktop.full.width = dm.w;
-            sdl.desktop.full.height = dm.h;
+            if (sdl.desktop.full.width == 0) {
+                sdl.desktop.full.width_auto = true;
+                sdl.desktop.full.width = dm.w;
+            }
+            if (sdl.desktop.full.height == 0) {
+                sdl.desktop.full.height_auto = true;
+                sdl.desktop.full.height = dm.h;
+            }
             LOG_MSG("SDL2 reports desktop display mode %u x %u",dm.w,dm.h);
         }
         else {
@@ -2952,10 +2964,14 @@ static void GUI_StartUp() {
         //Can only be done on the very first call! Not restartable.
         const SDL_VideoInfo* vidinfo = SDL_GetVideoInfo();
         if (vidinfo) {
-            sdl.desktop.full.width_auto = true;
-            sdl.desktop.full.width = vidinfo->current_w;
-            sdl.desktop.full.height_auto = true;
-            sdl.desktop.full.height = vidinfo->current_h;
+            if (sdl.desktop.full.width == 0) {
+                sdl.desktop.full.width_auto = true;
+                sdl.desktop.full.width = vidinfo->current_w;
+            }
+            if (sdl.desktop.full.height == 0) {
+                sdl.desktop.full.height_auto = true;
+                sdl.desktop.full.height = vidinfo->current_h;
+            }
 
             LOG_MSG("SDL1 auto-detected desktop as %u x %u",
                 (unsigned int)sdl.desktop.full.width,
@@ -2968,9 +2984,11 @@ static void GUI_StartUp() {
     int width=1024;
     int height=768;
     if (!sdl.desktop.full.width) {
+        sdl.desktop.full.width_auto = true;
         sdl.desktop.full.width=width;
     }
     if (!sdl.desktop.full.height) {
+        sdl.desktop.full.height_auto = true;
         sdl.desktop.full.height=height;
     }
     sdl.mouse.autoenable=section->Get_bool("autolock");
