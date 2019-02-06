@@ -47,7 +47,8 @@ public:
     enum method {
         METHOD_NONE=0,
         METHOD_X11,
-        METHOD_XRANDR
+        METHOD_XRANDR,
+        METHOD_WIN32
     };
 public:
     struct wxh {

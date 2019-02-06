@@ -414,6 +414,7 @@ void PrintScreenSizeInfo(void) {
         case ScreenSizeInfo::METHOD_NONE:       method = "None";        break;
         case ScreenSizeInfo::METHOD_X11:        method = "X11";         break;
         case ScreenSizeInfo::METHOD_XRANDR:     method = "XRandR";      break;
+        case ScreenSizeInfo::METHOD_WIN32:      method = "Win32";       break;
         default:                                                        break;
     };
 
@@ -437,6 +438,37 @@ void PrintScreenSizeInfo(void) {
 #endif
 }
 
+#if defined(WIN32)
+void Windows_GetWindowDPI(ScreenSizeInfo &info) {
+    info.clear();
+
+# if !defined(HX_DOS)
+    HMONITOR mon;
+    HWND hwnd;
+
+    info.method = ScreenSizeInfo::WIN32;
+
+    hwnd = GetHWND();
+    if (hwnd == NULL) return;
+
+    mon = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+    if (mon == NULL) mon = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
+    if (mon == NULL) return;
+
+    MONITORINFO mi;
+    memset(&mi,0,sizeof(mi));
+    mi.cbSize = cbSize;
+    if (!GetMonitorInfo(mon,&mi)) return;
+
+    info.screen_position_pixels.x        = mi.rcMonitor.left;
+    info.screen_position_pixels.y        = mi.rcMonitor.top;
+
+    info.screen_dimensions_pixels.width  = mi.rcMonitor.right - mi.rcMonitor.left;
+    info.screen_dimensions_pixels.height = mi.rcMonitor.bottom - mi.rcMonitor.top;
+# endif
+}
+#endif
+
 void UpdateWindowDimensions(void)
 {
 #if defined(C_SDL2)
@@ -456,6 +488,7 @@ void UpdateWindowDimensions(void)
     GetClientRect(GetHWND(), &r);
     UpdateWindowDimensions(r.right, r.bottom);
     UpdateWindowMaximized(IsZoomed(GetHWND()));
+    Windows_GetWindowDPI(/*&*/screen_size_info);
 #endif
 #if defined(LINUX)
     void UpdateWindowDimensions_Linux(void);
