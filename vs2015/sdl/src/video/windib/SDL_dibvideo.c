@@ -592,10 +592,7 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 #endif
 		width = bounds.right-bounds.left;
 		height = bounds.bottom-bounds.top;
-		if ( (flags & SDL_FULLSCREEN) ) {
-			x = (GetSystemMetrics(SM_CXSCREEN)-width)/2;
-			y = (GetSystemMetrics(SM_CYSCREEN)-height)/2;
-		} else if ( center ) {
+		if ( (flags & SDL_FULLSCREEN) || center ) {
 			x = (GetSystemMetrics(SM_CXSCREEN)-width)/2;
 			y = (GetSystemMetrics(SM_CYSCREEN)-height)/2;
         } else if ( SDL_windowX || SDL_windowY || window ) {
