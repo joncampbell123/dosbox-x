@@ -642,14 +642,14 @@ void Linux_GetDesktopResolution(int *width,int *height) {
 				*height = 768;
 			}
 		}
-		else {
+		else
+# endif
+        {
 			*width = 1024; // guess
 			*height = 768;
 		}
 	}
-	else
-# endif
-    {
+	else {
 		*width = 1024; // guess
 		*height = 768;
 	}
@@ -681,14 +681,14 @@ void Linux_GetDesktopResolution(int *width,int *height) {
 				*height = 768;
 			}
 		}
-		else {
+		else
+# endif
+        {
 			*width = 1024; // guess
 			*height = 768;
 		}
 	}
-	else
-# endif
-    {
+	else {
 		*width = 1024; // guess
 		*height = 768;
 	}
