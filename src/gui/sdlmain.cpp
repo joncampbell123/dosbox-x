@@ -285,7 +285,6 @@ void KeyboardLayoutDetect(void) {
     unsigned int Linux_GetKeyboardLayout(void);
     nlayout = Linux_GetKeyboardLayout();
 
-# if !defined(C_SDL2)
     /* BUGFIX: The xkbmap for 'jp' in Linux/X11 has a problem that maps both
      *         Ro and Yen to backslash, which in SDL's default state makes
      *         it impossible to map them properly in the mapper. */
@@ -295,7 +294,6 @@ void KeyboardLayoutDetect(void) {
         void Linux_JPXKBFix(void);
         Linux_JPXKBFix();
     }
-# endif
 #elif defined(WIN32)
     WORD lid = LOWORD(GetKeyboardLayout(0));
 

@@ -195,12 +195,52 @@ void Linux_JPXKBFix(void) {
 unsigned int Linux_GetKeyboardLayout(void) {
     unsigned int ret = DKM_US;
 
-#if defined(C_SDL2)
-    // TODO
-#else
     SDL_SysWMinfo wminfo;
     memset(&wminfo,0,sizeof(wminfo));
     SDL_VERSION(&wminfo.version);
+
+#if defined(C_SDL2)
+    SDL_Window* GFX_GetSDLWindow(void);
+
+    if (SDL_GetWindowWMInfo(GFX_GetSDLWindow(),&wminfo) >= 0) {
+        if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
+            XkbRF_VarDefsRec vd = {0};
+            XkbStateRec state = {0};
+
+            XkbGetState(wminfo.info.x11.display, XkbUseCoreKbd, &state);
+
+            XkbDescPtr desc = XkbGetKeyboard(wminfo.info.x11.display, XkbAllComponentsMask, XkbUseCoreKbd);
+            char *group = desc ? XGetAtomName(wminfo.info.x11.display, desc->names->groups[state.group]) : NULL;
+
+            if (group != NULL) LOG_MSG("Current X11 keyboard layout (full name) is: '%s'\n",group);
+
+            /* FIXME: Does this allocate anything? Do I need to free it? I am concerned about memory leaks --J.C. */
+            XkbRF_GetNamesProp(wminfo.info.x11.display, NULL, &vd);
+
+            char *tok = vd.layout ? strtok(vd.layout, ",") : NULL;
+
+            if (tok != NULL) {
+                for (int i = 0; i < state.group; i++) {
+                    tok = strtok(NULL, ",");
+                    if (tok == NULL) break;
+                }
+                if (tok != NULL) {
+                    LOG_MSG("Current X11 keyboard layout (token) is: '%s'\n",tok);
+
+                    if (!strcmp(tok,"us"))
+                        ret = DKM_US;
+                    else if (!strcmp(tok,"jp"))
+                        ret = DKM_JPN;
+                    else if (!strcmp(tok,"de"))
+                        ret = DKM_DEU;
+                }
+            }
+
+            if (group) XFree(group);
+            if (desc) XFree(desc);
+        }
+    }
+#else
     if (SDL_GetWMInfo(&wminfo) >= 0) {
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             XkbRF_VarDefsRec vd = {0};
