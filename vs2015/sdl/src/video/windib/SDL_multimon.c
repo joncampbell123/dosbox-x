@@ -9,7 +9,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-void SDL_windib_multimonitor_adjust_from_window(int *x, int *y, HWND hwnd) {
+int SDL_windib_multimonitor_adjust_from_window(int *x, int *y, int width, int height, HWND hwnd) {
 #if !defined(SDL_WIN32_HX_DOS)
     // Win98+ multi-monitor awareness.
     // Try to go fullscreen on whatever monitor this window exists on
@@ -24,10 +24,13 @@ void SDL_windib_multimonitor_adjust_from_window(int *x, int *y, HWND hwnd) {
         memset(&mi,0,sizeof(mi));
         mi.cbSize = sizeof(mi);
         if (GetMonitorInfo(mon,&mi)) {
-            *x += mi.rcMonitor.left;
-            *y += mi.rcMonitor.top;
+            *x += mi.rcMonitor.left + (((mi.rcMonitor.right - mi.rcMonitor.left) - width) / 2);
+            *y += mi.rcMonitor.top  + (((mi.rcMonitor.bottom - mi.rcMonitor.top) - height) / 2);
+            return 0;
         }
     }
 #endif
+
+    return -1;
 }
 

@@ -593,9 +593,14 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 		width = bounds.right-bounds.left;
 		height = bounds.bottom-bounds.top;
 		if ( (flags & SDL_FULLSCREEN) || center ) {
-			x = (GetSystemMetrics(SM_CXSCREEN)-width)/2;
-			y = (GetSystemMetrics(SM_CYSCREEN)-height)/2;
-            SDL_windib_multimonitor_adjust_from_window(&x, &y, ParentWindowHWND);
+            // TODO move to header
+            int SDL_windib_multimonitor_adjust_from_window(int *x, int *y, int width, int height, HWND hwnd);
+
+            x = y = 0;
+            if (SDL_windib_multimonitor_adjust_from_window(&x, &y, width, height, ParentWindowHWND) < 0) {
+                x = (GetSystemMetrics(SM_CXSCREEN)-width)/2;
+                y = (GetSystemMetrics(SM_CYSCREEN)-height)/2;
+            }
         } else if ( SDL_windowX || SDL_windowY || window ) {
             x = bounds.left;
             y = bounds.top;
