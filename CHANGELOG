@@ -1,4 +1,7 @@
 0.82.16 (next)
+  - Fixed problem on multi-monitor Linux/X11 setups where going
+    fullscreen on the primary monitor leaves the non-fullscreen
+    window sticking out on the adjacent monitor.
   - Windows SDL1 builds fixed so that on multi-monitor setups,
     going fullscreen will fill the monitor the window is
     placed on.
