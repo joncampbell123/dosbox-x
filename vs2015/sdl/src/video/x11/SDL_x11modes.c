@@ -928,6 +928,10 @@ void X11_FreeVideoModes(_THIS)
 #endif /* SDL_VIDEO_DRIVER_X11_XRANDR */
 }
 
+/* DOSBox-X Hack API: Allow host program to determine size/position of the fullscreen window */
+extern int SDL_FSPositionX,SDL_FSPositionY;
+extern int SDL_FSWidth,SDL_FSHeight;
+
 int X11_ResizeFullScreen(_THIS)
 {
     int x = 0, y = 0;
@@ -948,16 +952,24 @@ int X11_ResizeFullScreen(_THIS)
 #endif /* SDL_VIDEO_DRIVER_X11_XINERAMA */
 
     if ( currently_fullscreen ) {
-        /* Switch resolution and cover it with the FSwindow */
-        move_cursor_to(this, x, y);
-        set_best_resolution(this, window_w, window_h);
-        move_cursor_to(this, x, y);
-        get_real_resolution(this, &real_w, &real_h);
-        if ( window_w > real_w ) {
-            real_w = MAX(real_w, screen_w);
+        if (SDL_FSWidth > 0 && SDL_FSHeight > 0) {
+            x = SDL_FSPositionX;
+            y = SDL_FSPositionY;
+            window_w = real_w = SDL_FSWidth;
+            window_h = real_h = SDL_FSHeight;
         }
-        if ( window_h > real_h ) {
-            real_h = MAX(real_h, screen_h);
+        else {
+            /* Switch resolution and cover it with the FSwindow */
+            move_cursor_to(this, x, y);
+            set_best_resolution(this, window_w, window_h);
+            move_cursor_to(this, x, y);
+            get_real_resolution(this, &real_w, &real_h);
+            if ( window_w > real_w ) {
+                real_w = MAX(real_w, screen_w);
+            }
+            if ( window_h > real_h ) {
+                real_h = MAX(real_h, screen_h);
+            }
         }
         XMoveResizeWindow(SDL_Display, FSwindow, x, y, real_w, real_h);
         move_cursor_to(this, real_w/2, real_h/2);

@@ -2324,11 +2324,34 @@ void change_output(int output) {
     UpdateWindowDimensions();
 }
 
+#if !defined(HX_DOS)
+extern "C" void SDL_hax_SetFSWindowPosition(int x,int y,int w,int h);
+#endif
+
 void GFX_SwitchFullScreen(void)
 {
 #if !defined(HX_DOS)
     if (sdl.desktop.prevent_fullscreen)
         return;
+
+#if !defined(C_SDL2)
+    if (!sdl.desktop.fullscreen) {/*is GOING fullscreen*/
+        UpdateWindowDimensions();
+
+        fprintf(stderr,"Setting FS window: x,y,w,h = %.3f,%.3f,%.3f,%.3f\n",
+                screen_size_info.screen_position_pixels.x,screen_size_info.screen_position_pixels.y,
+                screen_size_info.screen_dimensions_pixels.width,screen_size_info.screen_dimensions_pixels.height);
+
+        if (screen_size_info.screen_dimensions_pixels.width != 0 && screen_size_info.screen_dimensions_pixels.height != 0) {
+            SDL_hax_SetFSWindowPosition(
+                screen_size_info.screen_position_pixels.x,screen_size_info.screen_position_pixels.y,
+                screen_size_info.screen_dimensions_pixels.width,screen_size_info.screen_dimensions_pixels.height);
+        }
+        else {
+            SDL_hax_SetFSWindowPosition(0,0,0,0);
+        }
+    }
+#endif
 
     menu.resizeusing = true;
 

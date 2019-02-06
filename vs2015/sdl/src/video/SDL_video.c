@@ -1976,3 +1976,15 @@ int SDL_GetWMInfo (SDL_SysWMinfo *info)
 		return(0);
 	}
 }
+
+/* DOSBox-X Hack API: Allow host program to determine size/position of the fullscreen window */
+int SDL_FSPositionX = 0,SDL_FSPositionY = 0;
+int SDL_FSWidth = 0,SDL_FSHeight = 0;
+
+void SDL_hax_SetFSWindowPosition(int x,int y,int w,int h) {
+    SDL_FSPositionX = x;
+    SDL_FSPositionY = y;
+    SDL_FSWidth = w;
+    SDL_FSHeight = h;
+}
+
