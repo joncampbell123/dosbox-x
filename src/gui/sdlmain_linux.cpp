@@ -126,10 +126,20 @@ void LinuxX11_OnTop(bool f) {
 
 char *LinuxX11_KeySymName(Uint32 x) {
     (void)x;
-#if !defined(C_SDL2)
+
     SDL_SysWMinfo wminfo;
     memset(&wminfo,0,sizeof(wminfo));
     SDL_VERSION(&wminfo.version);
+
+#if defined(C_SDL2)
+    SDL_Window* GFX_GetSDLWindow(void);
+
+    if (SDL_GetWindowWMInfo(GFX_GetSDLWindow(),&wminfo) >= 0) {
+        if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
+            return XKeysymToString(x);
+        }
+    }
+#else
     if (SDL_GetWMInfo(&wminfo) >= 0) {
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             return XKeysymToString(x);
