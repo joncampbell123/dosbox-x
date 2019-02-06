@@ -64,6 +64,8 @@ void GFX_OpenGLRedrawScreen(void);
 # include <signal.h>
 # include <sys/stat.h>
 # include <process.h>
+# include <shcore.h>
+# include <shellscalingapi.h>
 #endif
 
 #include "dosbox.h"
@@ -6280,7 +6282,7 @@ void Windows_DPI_Awareness_Init() {
     // turn off DPI scaling so DOSBox-X doesn't look so blurry on Windows 8 & Windows 10.
     // use GetProcAddress and LoadLibrary so that these functions are not hard dependencies that prevent us from
     // running under Windows 7 or XP.
-    HRESULT (WINAPI *__SetProcessDpiAwareness)(PROCESS_DPI_AWARENESS value) = NULL;
+    HRESULT (WINAPI *__SetProcessDpiAwareness)(PROCESS_DPI_AWARENESS) = NULL; // windows 8.1
     BOOL (WINAPI *__SetProcessDPIAware)(void) = NULL; // vista/7/8/10
     HMODULE __user32;
     HMODULE __shcore;
