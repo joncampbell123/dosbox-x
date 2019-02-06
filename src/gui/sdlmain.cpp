@@ -64,8 +64,10 @@ void GFX_OpenGLRedrawScreen(void);
 # include <signal.h>
 # include <sys/stat.h>
 # include <process.h>
-# include <shcore.h>
-# include <shellscalingapi.h>
+# if !defined(__MINGW32__) /* MinGW does not have these headers */
+#  include <shcore.h>
+#  include <shellscalingapi.h>
+# endif
 #endif
 
 #include "dosbox.h"
