@@ -92,7 +92,7 @@ static SDL_Surface* SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp)
         LOG_MSG("menuScale=%d", scale);
         mainMenu.setScale((unsigned int)scale);
 
-        if (mainMenu.isVisible())
+        if (mainMenu.isVisible() && !sdl.desktop.fullscreen)
             fixedHeight -= mainMenu.menuBox.h;
     }
 #endif
@@ -127,7 +127,7 @@ static SDL_Surface* SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp)
         (unsigned int)sdl.clip.h);
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    if (mainMenu.isVisible()) 
+    if (mainMenu.isVisible() && !sdl.desktop.fullscreen) 
     {
         windowHeight += mainMenu.menuBox.h;
         sdl.clip.y += mainMenu.menuBox.h;
