@@ -932,6 +932,9 @@ void X11_FreeVideoModes(_THIS)
 extern int SDL_FSPositionX,SDL_FSPositionY;
 extern int SDL_FSWidth,SDL_FSHeight;
 
+static int WMwindow_saved_x = 0;
+static int WMwindow_saved_y = 0;
+
 int X11_ResizeFullScreen(_THIS)
 {
     int x = 0, y = 0;
@@ -1079,6 +1082,28 @@ int X11_EnterFullScreen(_THIS)
         X11_GrabInputNoLock(this, this->input_grab | SDL_GRAB_FULLSCREEN);
     }
 
+    /* hide the WMwindow behind the FSwindow.
+     * We can't unmap it because that kills the ability to receive input */
+    if ( WMwindow ) {
+        int x = 0,y = 0;
+        XWindowAttributes a;
+        Window child;
+
+        memset(&a,0,sizeof(a));
+        XGetWindowAttributes(SDL_Display, WMwindow, &a);
+        XTranslateCoordinates(SDL_Display, WMwindow, SDL_Root, 0, 0, &x, &y, &child );
+        WMwindow_saved_x = x - a.x;
+        WMwindow_saved_y = y - a.y;
+
+        fprintf(stderr,"Saved %d,%d\n",
+            WMwindow_saved_x,
+            WMwindow_saved_y);
+
+        memset(&a,0,sizeof(a));
+        XGetWindowAttributes(SDL_Display, FSwindow, &a);
+        XMoveResizeWindow(SDL_Display, WMwindow, a.x, a.y, 16, 16);
+    }
+
     /* We may need to refresh the screen at this point (no backing store)
        We also don't get an event, which is why we explicitly refresh. */
     if ( this->screen ) {
@@ -1095,6 +1120,9 @@ int X11_EnterFullScreen(_THIS)
 int X11_LeaveFullScreen(_THIS)
 {
     if ( currently_fullscreen ) {
+        if ( WMwindow )
+            XMoveWindow(SDL_Display, WMwindow, WMwindow_saved_x, WMwindow_saved_y);
+
         XReparentWindow(SDL_Display, SDL_Window, WMwindow, 0, 0);
 #if SDL_VIDEO_DRIVER_X11_VIDMODE
         if ( use_vidmode ) {

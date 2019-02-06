@@ -427,8 +427,8 @@ static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display,Window w
     XGetWindowAttributes(display, window, &attr);
     XTranslateCoordinates(display, window, DefaultRootWindow(display), 0, 0, &x, &y, &child );
 
-    attr.x += x;
-    attr.y += y;
+    attr.x = x - attr.x;
+    attr.y = y - attr.y;
 
     if ((xr_screen=XRRGetScreenResources(display, DefaultRootWindow(display))) != NULL) {
         /* Look for a valid CRTC, don't assume the first is valid (as the StackOverflow example does) */
