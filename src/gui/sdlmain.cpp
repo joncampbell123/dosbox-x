@@ -94,6 +94,14 @@ static const GUID __my_IID_ITaskbarList3 = { 0xEA1AFB91ul,0x9E28u,0x4B86u,0x90u,
 # define IID_ITaskbarList3 __my_IID_ITaskbarList3
 #endif
 
+#if defined(WIN32) && defined(__MINGW32__) /* MinGW does not have this */
+typedef enum PROCESS_DPI_AWARENESS {
+    PROCESS_DPI_UNAWARE             = 0,
+    PROCESS_SYSTEM_DPI_AWARE        = 1,
+    PROCESS_PER_MONITOR_DPI_AWARE   = 2
+} PROCESS_DPI_AWARENESS;
+#endif
+
 #if C_EMSCRIPTEN
 # include <emscripten.h>
 #endif
