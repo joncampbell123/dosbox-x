@@ -595,6 +595,25 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 		if ( (flags & SDL_FULLSCREEN) || center ) {
 			x = (GetSystemMetrics(SM_CXSCREEN)-width)/2;
 			y = (GetSystemMetrics(SM_CYSCREEN)-height)/2;
+#if !defined(SDL_WIN32_HX_DOS)
+            // Win98+ multi-monitor awareness.
+            // Try to go fullscreen on whatever monitor this window exists on
+            HMONITOR mon = NULL;
+
+            mon = MonitorFromWindow(ParentWindowHWND, MONITOR_DEFAULTTONEAREST);
+            if (mon == NULL) mon = MonitorFromWindow(ParentWindowHWND, MONITOR_DEFAULTTOPRIMARY);
+
+            if (mon != NULL) {
+                MONITORINFO mi;
+
+                memset(&mi,0,sizeof(mi));
+                mi.cbSize = sizeof(mi);
+                if (GetMonitorInfo(mon,&mi)) {
+                    x += mi.rcMonitor.left;
+                    y += mi.rcMonitor.top;
+                }
+            }
+#endif
         } else if ( SDL_windowX || SDL_windowY || window ) {
             x = bounds.left;
             y = bounds.top;
