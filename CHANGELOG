@@ -1,4 +1,8 @@
 0.82.16 (next)
+  - SDL1 and SDL2 builds now examine multi-monitor setups and
+    so that they can go fullscreen properly on one monitor
+    instead of going fullscreen across all monitors, in
+    Linux/X11.
   - SDL1 OpenGL code fixed not to leave a blank space at the
     top of the screen when going fullscreen (if the menus are
     SDL drawn menus).
