@@ -457,7 +457,7 @@ void Windows_GetWindowDPI(ScreenSizeInfo &info) {
 
     MONITORINFO mi;
     memset(&mi,0,sizeof(mi));
-    mi.cbSize = cbSize;
+    mi.cbSize = sizeof(mi);
     if (!GetMonitorInfo(mon,&mi)) return;
 
     info.screen_position_pixels.x        = mi.rcMonitor.left;
