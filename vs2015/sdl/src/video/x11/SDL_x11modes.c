@@ -972,7 +972,7 @@ int X11_ResizeFullScreen(_THIS)
             }
         }
         XMoveResizeWindow(SDL_Display, FSwindow, x, y, real_w, real_h);
-        move_cursor_to(this, real_w/2, real_h/2);
+        move_cursor_to(this, x + real_w/2, y + real_h/2);
 
         /* Center and reparent the drawing window */
         x = (real_w - window_w)/2;
