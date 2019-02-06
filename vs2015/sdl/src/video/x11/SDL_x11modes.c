@@ -1095,10 +1095,6 @@ int X11_EnterFullScreen(_THIS)
         WMwindow_saved_x = x - a.x;
         WMwindow_saved_y = y - a.y;
 
-        fprintf(stderr,"Saved %d,%d\n",
-            WMwindow_saved_x,
-            WMwindow_saved_y);
-
         memset(&a,0,sizeof(a));
         XGetWindowAttributes(SDL_Display, FSwindow, &a);
         XMoveResizeWindow(SDL_Display, WMwindow, a.x, a.y, 16, 16);

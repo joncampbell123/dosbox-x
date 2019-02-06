@@ -2406,19 +2406,11 @@ void GFX_SwitchFullScreen(void)
     if (!sdl.desktop.fullscreen) {/*is GOING fullscreen*/
         UpdateWindowDimensions();
 
-        fprintf(stderr,"Setting FS window: x,y,w,h = %.3f,%.3f,%.3f,%.3f\n",
-                screen_size_info.screen_position_pixels.x,screen_size_info.screen_position_pixels.y,
-                screen_size_info.screen_dimensions_pixels.width,screen_size_info.screen_dimensions_pixels.height);
-
         if (screen_size_info.screen_dimensions_pixels.width != 0 && screen_size_info.screen_dimensions_pixels.height != 0) {
             if (sdl.desktop.full.width_auto)
                 sdl.desktop.full.width = screen_size_info.screen_dimensions_pixels.width;
             if (sdl.desktop.full.height_auto)
                 sdl.desktop.full.height = screen_size_info.screen_dimensions_pixels.height;
-
-            fprintf(stderr,"FS window: %d x %d\n",
-                sdl.desktop.full.width,
-                sdl.desktop.full.height);
 
 #if !defined(C_SDL2)
             SDL_hax_SetFSWindowPosition(
