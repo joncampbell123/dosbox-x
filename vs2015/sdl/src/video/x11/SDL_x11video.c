@@ -799,34 +799,36 @@ static void X11_SetSizeHints(_THIS, int w, int h, Uint32 flags)
 {
 	XSizeHints *hints;
 
-	hints = XAllocSizeHints();
-	if ( hints ) {
-		if (!(flags & SDL_RESIZABLE)) {
-			hints->min_width = hints->max_width = w;
-			hints->min_height = hints->max_height = h;
-			hints->flags = PMaxSize | PMinSize;
-		}
-		if ( flags & SDL_FULLSCREEN ) {
-			hints->x = 0;
-			hints->y = 0;
-			hints->flags |= USPosition;
-		} else
-		/* Center it, if desired */
-		if ( X11_WindowPosition(this, &hints->x, &hints->y, w, h) ) {
-			hints->flags |= USPosition;
+    hints = XAllocSizeHints();
+    if ( hints ) {
+        if ( flags & SDL_FULLSCREEN ) {
+            hints->x = 0;
+            hints->y = 0;
+            hints->flags |= USPosition;
+        } else {
+            if (!(flags & SDL_RESIZABLE)) {
+                hints->min_width = hints->max_width = w;
+                hints->min_height = hints->max_height = h;
+                hints->flags = PMaxSize | PMinSize;
+            }
 
-			/* Hints must be set before moving the window, otherwise an
-			   unwanted ConfigureNotify event will be issued */
-			XSetWMNormalHints(SDL_Display, WMwindow, hints);
+            /* Center it, if desired */
+            if ( X11_WindowPosition(this, &hints->x, &hints->y, w, h) ) {
+                hints->flags |= USPosition;
 
-			XMoveWindow(SDL_Display, WMwindow, hints->x, hints->y);
+                /* Hints must be set before moving the window, otherwise an
+                   unwanted ConfigureNotify event will be issued */
+                XSetWMNormalHints(SDL_Display, WMwindow, hints);
 
-			/* Flush the resize event so we don't catch it later */
-			XSync(SDL_Display, True);
-		}
-		XSetWMNormalHints(SDL_Display, WMwindow, hints);
-		XFree(hints);
-	}
+                XMoveWindow(SDL_Display, WMwindow, hints->x, hints->y);
+
+                /* Flush the resize event so we don't catch it later */
+                XSync(SDL_Display, True);
+            }
+        }
+        XSetWMNormalHints(SDL_Display, WMwindow, hints);
+        XFree(hints);
+    }
 
 	/* Respect the window caption style */
 	if ( flags & SDL_NOFRAME ) {
@@ -1053,8 +1055,10 @@ static int X11_CreateWindow(_THIS, SDL_Surface *screen,
 	        X11_SetSizeHints(this, w, h, flags);
 		window_w = w;
 		window_h = h;
-		XResizeWindow(SDL_Display, WMwindow, w, h);
-	}
+
+        if (!( flags & SDL_FULLSCREEN ))
+            XResizeWindow(SDL_Display, WMwindow, w, h);
+    }
 
 	/* Create (or use) the X11 display window */
 	if ( !SDL_windowid ) {
@@ -1161,7 +1165,9 @@ static int X11_ResizeWindow(_THIS,
 		X11_SetSizeHints(this, w, h, flags);
 		window_w = w;
 		window_h = h;
-		XResizeWindow(SDL_Display, WMwindow, w, h);
+
+        if (!( flags & SDL_FULLSCREEN ))
+            XResizeWindow(SDL_Display, WMwindow, w, h);
 
 		/* Resize the fullscreen and display windows */
 		if ( flags & SDL_FULLSCREEN ) {
