@@ -483,6 +483,9 @@ void Windows_GetWindowDPI(ScreenSizeInfo &info) {
                 if (dpi != 0) {
                     info.screen_dpi.width = dpi;
                     info.screen_dpi.height = dpi;
+
+                    info.screen_dimensions_mm.width = (25.4 * screen_size_info.screen_dimensions_pixels.width) / dpi;
+                    info.screen_dimensions_mm.height = (25.4 * screen_size_info.screen_dimensions_pixels.height) / dpi;
                 }
             }
         }
