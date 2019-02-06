@@ -1,4 +1,7 @@
 0.82.16 (next)
+  - Windows SDL1 builds fixed so that on multi-monitor setups,
+    going fullscreen will fill the monitor the window is
+    placed on.
   - Added support for multi-monitor and DPI determination for
     Microsoft Windows.
   - SDL1 and SDL2 builds now examine multi-monitor setups and
