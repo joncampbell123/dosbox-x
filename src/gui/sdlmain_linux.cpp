@@ -137,15 +137,19 @@ char *LinuxX11_KeySymName(Uint32 x) {
     SDL_Window* GFX_GetSDLWindow(void);
 
     if (SDL_GetWindowWMInfo(GFX_GetSDLWindow(),&wminfo) >= 0) {
+# if C_X11
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             return XKeysymToString(x);
         }
+# endif
     }
 #else
     if (SDL_GetWMInfo(&wminfo) >= 0) {
+# if C_X11
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             return XKeysymToString(x);
         }
+# endif
     }
 #endif
 
