@@ -467,6 +467,26 @@ void Windows_GetWindowDPI(ScreenSizeInfo &info) {
 
     info.screen_dimensions_pixels.width  = mi.rcMonitor.right - mi.rcMonitor.left;
     info.screen_dimensions_pixels.height = mi.rcMonitor.bottom - mi.rcMonitor.top;
+
+    /* Windows 10 build 1607 and later offer a "Get DPI of window" function */
+    {
+        HMODULE __user32;
+
+        __user32 = GetModuleHandle("USER32.DLL");
+        if (__user32) {
+            UINT (WINAPI *__GetDpiForWindow)(HWND) = NULL;
+
+            __GetDpiForWindow = (UINT (WINAPI *)(HWND))GetProcAddress(__user32,"GetDpiForWindow");
+            if (__GetDpiForWindow) {
+                UINT dpi = __GetDpiForWindow(hwnd);
+
+                if (dpi != 0) {
+                    info.screen_dpi.width = dpi;
+                    info.screen_dpi.height = dpi;
+                }
+            }
+        }
+    }
 # endif
 }
 #endif
