@@ -48,7 +48,7 @@ public:
         METHOD_NONE=0,
         METHOD_X11,
         METHOD_XRANDR,
-        METHOD_WIN32
+        METHOD_WIN98BASE
     };
 public:
     struct wxh {

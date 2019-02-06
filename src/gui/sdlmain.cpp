@@ -414,7 +414,7 @@ void PrintScreenSizeInfo(void) {
         case ScreenSizeInfo::METHOD_NONE:       method = "None";        break;
         case ScreenSizeInfo::METHOD_X11:        method = "X11";         break;
         case ScreenSizeInfo::METHOD_XRANDR:     method = "XRandR";      break;
-        case ScreenSizeInfo::METHOD_WIN32:      method = "Win32";       break;
+        case ScreenSizeInfo::METHOD_WIN98BASE:  method = "Win98base";   break;
         default:                                                        break;
     };
 
@@ -446,7 +446,7 @@ void Windows_GetWindowDPI(ScreenSizeInfo &info) {
     HMONITOR mon;
     HWND hwnd;
 
-    info.method = ScreenSizeInfo::WIN32;
+    info.method = ScreenSizeInfo::METHOD_WIN98BASE;
 
     hwnd = GetHWND();
     if (hwnd == NULL) return;
