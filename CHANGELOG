@@ -1,4 +1,7 @@
 0.82.16 (next)
+  - SDL1 OpenGL code fixed not to leave a blank space at the
+    top of the screen when going fullscreen (if the menus are
+    SDL drawn menus).
   - SDL1 library modified to center cursor properly no matter
     where on the overall desktop the fullscreen window exists.
   - Multi-monitor and fullscreen support added for Linux/X11
