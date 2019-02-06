@@ -419,11 +419,14 @@ void PrintScreenSizeInfo(void) {
         default:                                                        break;
     };
 
-    LOG_MSG("Screen report: Method '%s' (%.3f x %.3f pixels) (%.3f x %.3f mm) (%.3f x %.3f in) (%.3f x %.3f DPI)",
+    LOG_MSG("Screen report: Method '%s' (%.3f x %.3f pixels) at (%.3f x %.3f) (%.3f x %.3f mm) (%.3f x %.3f in) (%.3f x %.3f DPI)",
             method,
 
             screen_size_info.screen_dimensions_pixels.width,
             screen_size_info.screen_dimensions_pixels.height,
+
+            screen_size_info.screen_position_pixels.x,
+            screen_size_info.screen_position_pixels.y,
 
             screen_size_info.screen_dimensions_mm.width,
             screen_size_info.screen_dimensions_mm.height,
