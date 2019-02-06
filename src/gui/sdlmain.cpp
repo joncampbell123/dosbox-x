@@ -2343,6 +2343,11 @@ void GFX_SwitchFullScreen(void)
                 screen_size_info.screen_dimensions_pixels.width,screen_size_info.screen_dimensions_pixels.height);
 
         if (screen_size_info.screen_dimensions_pixels.width != 0 && screen_size_info.screen_dimensions_pixels.height != 0) {
+            if (sdl.desktop.full.width_auto)
+                sdl.desktop.full.width = screen_size_info.screen_dimensions_pixels.width;
+            if (sdl.desktop.full.height_auto)
+                sdl.desktop.full.height = screen_size_info.screen_dimensions_pixels.height;
+
             SDL_hax_SetFSWindowPosition(
                 screen_size_info.screen_position_pixels.x,screen_size_info.screen_position_pixels.y,
                 screen_size_info.screen_dimensions_pixels.width,screen_size_info.screen_dimensions_pixels.height);
