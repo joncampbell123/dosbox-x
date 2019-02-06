@@ -396,7 +396,6 @@ void UpdateWindowDimensions_Linux(void) {
 #endif
 }
 
-#if !defined(C_SDL2)
 /* Retrieve screen size/dimensions/DPI using XRandR */
 static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display,Window window) {
     bool result = false;
@@ -496,17 +495,59 @@ static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display,Window w
 
     return result;
 }
-#endif
 
 void Linux_GetWindowDPI(ScreenSizeInfo &info) {
     info.clear();
 
-#if defined(C_SDL2)
-    /* TODO */
-#else
 	SDL_SysWMinfo wminfo;
 	memset(&wminfo,0,sizeof(wminfo));
 	SDL_VERSION(&wminfo.version);
+
+#if defined(C_SDL2)
+    SDL_Window* GFX_GetSDLWindow(void);
+
+    if (SDL_GetWindowWMInfo(GFX_GetSDLWindow(),&wminfo) >= 0) {
+		if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
+            if (Linux_TryXRandrGetDPI(info,wminfo.info.x11.display,wminfo.info.x11.window)) {
+                /* got it */
+            }
+            else {
+                /* fallback to X11 method, which may not return accurate info on modern systems */
+                Window rootWindow = DefaultRootWindow(wminfo.info.x11.display);
+                if (rootWindow != 0) {
+                    int screen = 0;
+
+                    info.method = ScreenSizeInfo::METHOD_X11;
+
+                    /* found on StackOverflow */
+
+                    /*
+                     * there are 2.54 centimeters to an inch; so there are 25.4 millimeters.
+                     *
+                     *     dpi = N pixels / (M millimeters / (25.4 millimeters / 1 inch))
+                     *         = N pixels / (M inch / 25.4)
+                     *         = N * 25.4 pixels / M inch
+                     */
+                    info.screen_dimensions_pixels.width  = DisplayWidth(   wminfo.info.x11.display,screen);
+                    info.screen_dimensions_pixels.height = DisplayHeight(  wminfo.info.x11.display,screen);
+
+                    info.screen_dimensions_mm.width      = DisplayWidthMM( wminfo.info.x11.display,screen);
+                    info.screen_dimensions_mm.height     = DisplayHeightMM(wminfo.info.x11.display,screen);
+
+                    if (info.screen_dimensions_mm.width > 0)
+                        info.screen_dpi.width =
+                            ((((double)info.screen_dimensions_pixels.width) * 25.4) /
+                             ((double)info.screen_dimensions_mm.width));
+
+                    if (info.screen_dimensions_mm.height > 0)
+                        info.screen_dpi.height =
+                            ((((double)info.screen_dimensions_pixels.height) * 25.4) /
+                             ((double)info.screen_dimensions_mm.height));
+                }
+            }
+        }
+    }
+#else
 	if (SDL_GetWMInfo(&wminfo) >= 0) {
 		if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             if (Linux_TryXRandrGetDPI(info,wminfo.info.x11.display,GFX_IsFullscreen() ? wminfo.info.x11.fswindow : wminfo.info.x11.wmwindow)) {
