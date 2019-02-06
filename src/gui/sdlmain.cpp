@@ -6280,17 +6280,24 @@ void Windows_DPI_Awareness_Init() {
     // turn off DPI scaling so DOSBox-X doesn't look so blurry on Windows 8 & Windows 10.
     // use GetProcAddress and LoadLibrary so that these functions are not hard dependencies that prevent us from
     // running under Windows 7 or XP.
-    // 
-    // I'm also told that Windows 8.1 has SetProcessDPIAwareness but nobody seems to know where it is.
-    // Perhaps the tooth fairy can find it for me. Come on, Microsoft get your act together! [https://msdn.microsoft.com/en-us/library/windows/desktop/dn302122(v=vs.85).aspx]
+    HRESULT (WINAPI *__SetProcessDpiAwareness)(PROCESS_DPI_AWARENESS value) = NULL;
     BOOL (WINAPI *__SetProcessDPIAware)(void) = NULL; // vista/7/8/10
     HMODULE __user32;
+    HMODULE __shcore;
 
     __user32 = GetModuleHandle("USER32.DLL");
+    __shcore = GetModuleHandle("SHCORE.DLL");
 
     if (__user32)
         __SetProcessDPIAware = (BOOL(WINAPI *)(void))GetProcAddress(__user32, "SetProcessDPIAware");
+    if (__shcore)
+        __SetProcessDpiAwareness = (HRESULT (WINAPI *)(PROCESS_DPI_AWARENESS))GetProcAddress(__shcore, "SetProcessDpiAwareness");
 
+    if (__SetProcessDpiAwareness) {
+        LOG(LOG_MISC,LOG_DEBUG)("SHCORE.DLL exports SetProcessDpiAwareness function, calling it to signal we are DPI aware.");
+        if (__SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE) != S_OK)
+            LOG(LOG_MISC,LOG_DEBUG)("SetProcessDpiAwareness failed");
+    }
     if (__SetProcessDPIAware) {
         LOG(LOG_MISC,LOG_DEBUG)("USER32.DLL exports SetProcessDPIAware function, calling it to signal we are DPI aware.");
         __SetProcessDPIAware();
