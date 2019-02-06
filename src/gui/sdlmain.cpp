@@ -3274,18 +3274,6 @@ void GFX_HandleVideoResize(int width, int height) {
         sdl.desktop.full.width = width;
         sdl.desktop.full.height = height;
     }
-    /* TODO: Only if FULLSCREEN_DESKTOP */
-    {
-        SDL_DisplayMode dm;
-        if (SDL_GetDesktopDisplayMode(0/*FIXME display index*/,&dm) == 0) {
-            sdl.desktop.full.width = dm.w;
-            sdl.desktop.full.height = dm.h;
-            LOG_MSG("SDL2 reports desktop display mode %u x %u",dm.w,dm.h);
-        }
-        else {
-            LOG_MSG("SDL2 unable to determine desktop display mode, error %s",SDL_GetError());
-        }
-    }
 
     /* assume the resize comes from user preference UNLESS the window
      * is fullscreen or maximized */
@@ -3304,6 +3292,23 @@ void GFX_HandleVideoResize(int width, int height) {
     }
     else {
         UpdateWindowDimensions();
+    }
+
+    /* TODO: Only if FULLSCREEN_DESKTOP */
+    if (screen_size_info.screen_dimensions_pixels.width != 0 && screen_size_info.screen_dimensions_pixels.height != 0) {
+        sdl.desktop.full.width = screen_size_info.screen_dimensions_pixels.width;
+        sdl.desktop.full.height = screen_size_info.screen_dimensions_pixels.height;
+    }
+    else {
+        SDL_DisplayMode dm;
+        if (SDL_GetDesktopDisplayMode(0/*FIXME display index*/,&dm) == 0) {
+            sdl.desktop.full.width = dm.w;
+            sdl.desktop.full.height = dm.h;
+            LOG_MSG("SDL2 reports desktop display mode %u x %u",dm.w,dm.h);
+        }
+        else {
+            LOG_MSG("SDL2 unable to determine desktop display mode, error %s",SDL_GetError());
+        }
     }
 
     window_was_maximized = menu.maxwindow;
