@@ -6851,7 +6851,7 @@ bool doublebuf_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const m
     return true;
 }
 
-#if defined(LINUX) && !defined(C_SDL2)
+#if defined(LINUX)
 bool x11_on_top = false;
 #endif
 
@@ -6865,7 +6865,7 @@ bool is_always_on_top(void) {
     return !!(dwExStyle & WS_EX_TOPMOST);
 #elif defined(MACOSX) && !defined(C_SDL2)
     return macosx_on_top;
-#elif defined(LINUX) && !defined(C_SDL2)
+#elif defined(LINUX)
     return x11_on_top;
 #else
     return false;
@@ -6888,7 +6888,7 @@ void toggle_always_on_top(void) {
     sdl1_hax_set_topmost(!cur);
 #elif defined(MACOSX) && !defined(C_SDL2)
     sdl1_hax_set_topmost(macosx_on_top = (!cur));
-#elif defined(LINUX) && !defined(C_SDL2)
+#elif defined(LINUX)
     void LinuxX11_OnTop(bool f);
     LinuxX11_OnTop(x11_on_top = (!cur));
 #else
