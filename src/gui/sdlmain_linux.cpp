@@ -65,6 +65,7 @@ void LinuxX11_OnTop(bool f) {
     SDL_Window* GFX_GetSDLWindow(void);
 
     if (SDL_GetWindowWMInfo(GFX_GetSDLWindow(),&wminfo) >= 0) {
+    # if C_X11
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             Atom wmStateAbove = XInternAtom(wminfo.info.x11.display, "_NET_WM_STATE_ABOVE", 1);
             if (wmStateAbove == None) return;
@@ -92,9 +93,11 @@ void LinuxX11_OnTop(bool f) {
                     SubstructureRedirectMask | SubstructureNotifyMask,
                     (XEvent *)&xclient );
         }
+    # endif
     }
 #else
     if (SDL_GetWMInfo(&wminfo) >= 0) {
+    # if C_X11
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             Atom wmStateAbove = XInternAtom(wminfo.info.x11.display, "_NET_WM_STATE_ABOVE", 1);
             if (wmStateAbove == None) return;
@@ -122,6 +125,7 @@ void LinuxX11_OnTop(bool f) {
                     SubstructureRedirectMask | SubstructureNotifyMask,
                     (XEvent *)&xclient );
         }
+    # endif
     }
 #endif
 }
