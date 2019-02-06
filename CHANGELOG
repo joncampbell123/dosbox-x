@@ -1,4 +1,8 @@
 0.82.16 (next)
+  - SDL1 library modified to center cursor properly no matter
+    where on the overall desktop the fullscreen window exists.
+  - Multi-monitor and fullscreen support added for Linux/X11
+    versions of SDL1 DOSBox-X.
   - For non-x86 targets, or x86 targets where the user prefers
     not to use the x86 FPU core, code has been added to emulate
     the FPU instructions and registers using the "long double"
