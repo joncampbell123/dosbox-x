@@ -650,6 +650,7 @@
     <ClCompile Include="..\..\src\video\wincommon\SDL_wingl.c" />
     <ClCompile Include="..\..\src\video\windib\SDL_dibevents.c" />
     <ClCompile Include="..\..\src\video\windib\SDL_dibvideo.c" />
+    <ClCompile Include="..\..\src\video\windib\SDL_multimon.c" />
     <ClCompile Include="..\..\src\video\Windx5\SDL_dx5events.c" />
   </ItemGroup>
   <ItemGroup>
