@@ -55,6 +55,11 @@ bool Mouse_Vertical = false;
 #include "os2.h"
 #endif
 
+#if defined(RISCOS)
+#include <unixlib/local.h>
+#include <limits.h>
+#endif
+
 #if C_DEBUG
 Bitu DEBUG_EnableDebugger(void);
 #endif
@@ -338,6 +343,17 @@ public:
             bool failed = false;
 
             (void)failed;// MAY BE UNUSED
+
+#if defined (RISCOS)
+            // If the user provided a RISC OS style path, convert it to a Unix style path
+            // TODO: Disable UnixLib's automatic path conversion and use RISC OS style paths internally?
+            if (temp_line.find('$',0) != std::string::npos) {
+                char fname[PATH_MAX];
+                is_physfs = false;
+                __unixify_std(temp_line.c_str(), fname, sizeof(fname), 0);
+		temp_line = fname;
+            }
+#endif
 
 #if defined (WIN32) || defined(OS2)
             /* nothing */

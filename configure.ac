@@ -405,6 +405,11 @@ case "$host" in
        dnl FEATURE: Whether to support direct serial port passthrough
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
        ;;
+    *-*-riscos*)
+       AC_DEFINE(RISCOS, 1, [Compiling on RISC OS])
+       dnl The following line is required in order to use std::to_string()
+       CXXFLAGS="$CXXFLAGS -D_GLIBCXX_USE_C99=1"
+       ;;
 esac
 fi
 

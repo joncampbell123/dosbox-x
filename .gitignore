@@ -325,6 +325,10 @@ windows-installer/DOSBox-X-standalone-*
 windows-installer/DOSBox-X-setup-*.exe
 windows-installer/DOSBox-X-setup-*.zip
 
+\!DosBox-X/*,ff8
+\!DosBox-X/CHANGELOG,fff
+\!DosBox-X/resources/*
+
 *.o
 *.a
 *.la

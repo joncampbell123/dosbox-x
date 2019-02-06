@@ -5,7 +5,7 @@
 #  include <endian.h>
 
 /* MinGW implements some MSVC idioms, so always test for MinGW first. */
-# elif defined(__MINGW32__)
+# elif defined(__MINGW32__) || defined(__riscos__)
 
 # if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 
