@@ -457,7 +457,7 @@ void UpdateWindowDimensions(void)
     UpdateWindowDimensions(r.right, r.bottom);
     UpdateWindowMaximized(IsZoomed(GetHWND()));
 #endif
-#if defined(LINUX) && !defined(C_SDL2)
+#if defined(LINUX)
     void UpdateWindowDimensions_Linux(void);
     UpdateWindowDimensions_Linux();
     void Linux_GetWindowDPI(ScreenSizeInfo &info);
