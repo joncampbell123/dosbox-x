@@ -9,8 +9,10 @@
 #include "SDL_syswm.h"
 #include "sdlmain.h"
 
+#if C_X11
 #include <X11/XKBlib.h>
 #include <X11/extensions/XKBrules.h>
+#endif
 
 void UpdateWindowDimensions(Bitu width, Bitu height);
 void UpdateWindowMaximized(bool flag);
@@ -203,6 +205,7 @@ unsigned int Linux_GetKeyboardLayout(void) {
     SDL_Window* GFX_GetSDLWindow(void);
 
     if (SDL_GetWindowWMInfo(GFX_GetSDLWindow(),&wminfo) >= 0) {
+# if C_X11
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             XkbRF_VarDefsRec vd = {0};
             XkbStateRec state = {0};
@@ -239,9 +242,11 @@ unsigned int Linux_GetKeyboardLayout(void) {
             if (group) XFree(group);
             if (desc) XFree(desc);
         }
+# endif
     }
 #else
     if (SDL_GetWMInfo(&wminfo) >= 0) {
+# if C_X11
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             XkbRF_VarDefsRec vd = {0};
             XkbStateRec state = {0};
@@ -278,6 +283,7 @@ unsigned int Linux_GetKeyboardLayout(void) {
             if (group) XFree(group);
             if (desc) XFree(desc);
         }
+# endif
     }
 #endif
 
@@ -295,6 +301,7 @@ void UpdateWindowDimensions_Linux(void) {
     SDL_Window* GFX_GetSDLWindow(void);
 
     if (SDL_GetWindowWMInfo(GFX_GetSDLWindow(),&wminfo) >= 0) {
+# if C_X11
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             XWindowAttributes attr;
             bool maximized = false;
@@ -342,9 +349,11 @@ void UpdateWindowDimensions_Linux(void) {
             UpdateWindowDimensions((unsigned int)attr.width, (unsigned int)attr.height);
             UpdateWindowMaximized(maximized);
         }
+# endif
     }
 #else
     if (SDL_GetWMInfo(&wminfo) >= 0) {
+# if C_X11
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             XWindowAttributes attr;
             bool maximized = false;
@@ -392,6 +401,7 @@ void UpdateWindowDimensions_Linux(void) {
             UpdateWindowDimensions((unsigned int)attr.width, (unsigned int)attr.height);
             UpdateWindowMaximized(maximized);
         }
+# endif
     }
 #endif
 }
@@ -507,6 +517,7 @@ void Linux_GetWindowDPI(ScreenSizeInfo &info) {
     SDL_Window* GFX_GetSDLWindow(void);
 
     if (SDL_GetWindowWMInfo(GFX_GetSDLWindow(),&wminfo) >= 0) {
+# if C_X11
 		if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             if (Linux_TryXRandrGetDPI(info,wminfo.info.x11.display,wminfo.info.x11.window)) {
                 /* got it */
@@ -546,9 +557,11 @@ void Linux_GetWindowDPI(ScreenSizeInfo &info) {
                 }
             }
         }
+# endif
     }
 #else
 	if (SDL_GetWMInfo(&wminfo) >= 0) {
+# if C_X11
 		if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             if (Linux_TryXRandrGetDPI(info,wminfo.info.x11.display,GFX_IsFullscreen() ? wminfo.info.x11.fswindow : wminfo.info.x11.wmwindow)) {
                 /* got it */
@@ -588,6 +601,7 @@ void Linux_GetWindowDPI(ScreenSizeInfo &info) {
                 }
             }
         }
+# endif
     }
 #endif
 }
@@ -602,6 +616,7 @@ void Linux_GetDesktopResolution(int *width,int *height) {
     SDL_Window* GFX_GetSDLWindow(void);
 
     if (SDL_GetWindowWMInfo(GFX_GetSDLWindow(),&wminfo) >= 0) {
+# if C_X11
 		if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
 			LOG_MSG("GetDesktopResolution reading X11 desktop resolution");
 
@@ -632,12 +647,15 @@ void Linux_GetDesktopResolution(int *width,int *height) {
 			*height = 768;
 		}
 	}
-	else {
+	else
+# endif
+    {
 		*width = 1024; // guess
 		*height = 768;
 	}
 #else
 	if (SDL_GetWMInfo(&wminfo) >= 0) {
+# if C_X11
 		if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
 			LOG_MSG("GetDesktopResolution reading X11 desktop resolution");
 
@@ -668,7 +686,9 @@ void Linux_GetDesktopResolution(int *width,int *height) {
 			*height = 768;
 		}
 	}
-	else {
+	else
+# endif
+    {
 		*width = 1024; // guess
 		*height = 768;
 	}
