@@ -745,7 +745,29 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
     if ( CGAcquireDisplayFadeReservation (5, &fade_token) == kCGErrorSuccess ) {
         CGDisplayFade (fade_token, 0.3, kCGDisplayBlendNormal, kCGDisplayBlendSolidColor, 0.0, 0.0, 0.0, TRUE);
     }
-    
+
+    CGDirectDisplayID new_display_id = 0;
+
+    if (qz_window != nil) {
+        CGError err;
+        uint32_t cnt = 1;
+        CGDirectDisplayID did = 0;
+        NSRect rct = [qz_window frame];
+        NSPoint pt = NSMakePoint(rct.origin.x + (rct.size.width / 2), rct.origin.y + (rct.size.height / 2));
+
+        err = CGGetDisplaysWithPoint(pt,1,&did,&cnt);
+
+        /* This might happen if our window is so far off the screen that the center point does not match any monitor */
+        if (err != kCGErrorSuccess) {
+            err = kCGErrorSuccess;
+            did = CGMainDisplayID(); /* Can't fail, eh, Apple? OK then. */
+        }
+
+        if (err == kCGErrorSuccess) {
+            new_display_id = did;
+        }
+    }
+
     /* Destroy any previous mode */
     if (video_set == SDL_TRUE)
         QZ_UnsetVideoMode (this, FALSE, save_gl);
@@ -758,6 +780,8 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
 
     QZ_ReleaseDisplayMode(this, mode);  /* NULL is okay. */
 
+    display_id = new_display_id;
+
     /* See if requested mode exists */
     mode = QZ_BestMode(this, bpp, width, height);
 
@@ -768,11 +792,8 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
     }
 
     /* Put up the blanking window (a window above all other windows) */
-    if (getenv ("SDL_SINGLEDISPLAY"))
-        error = CGDisplayCapture (display_id);
-    else
-        error = CGCaptureAllDisplays ();
-        
+    error = CGDisplayCapture (display_id);
+
     if ( CGDisplayNoErr != error ) {
         SDL_SetError ("Failed capturing display");
         goto ERR_NO_CAPTURE;
@@ -863,6 +884,7 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
         [ qz_window setContentSize:contentRect.size ];
         current->flags |= (SDL_NOFRAME|SDL_RESIZABLE) & mode_flags;
         [ window_view setFrameSize:contentRect.size ];
+        my_qz_window = qz_window;
     }
 
     /* Setup OpenGL for a fullscreen context */
@@ -973,6 +995,8 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
         CGReleaseDisplayFadeReservation(fade_token);
     }
 
+    CGRect drct = CGDisplayBounds(display_id);
+
     /* 
         There is a bug in Cocoa where NSScreen doesn't synchronize
         with CGDirectDisplay, so the main screen's frame is wrong.
@@ -980,8 +1004,14 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
         We can hack around this bug by setting the screen rect
         ourselves. This hack should be removed if/when the bug is fixed.
     */
-    screen_rect = NSMakeRect(0,0,width,height);
-    QZ_SetFrame(this, [ NSScreen mainScreen ], screen_rect);
+    {
+        /* Eugh this ugliness wouldn't be necessary if we didn't have to fudge relative to primary display. */
+        CGRect prct = CGDisplayBounds(CGMainDisplayID());
+
+        screen_rect = NSMakeRect(drct.origin.x,(prct.origin.y + prct.size.height) - (drct.origin.y + drct.size.height),width,height);
+        QZ_SetFrame(this, [ NSScreen mainScreen ], screen_rect);
+        [ qz_window setFrame:screen_rect display:YES animate:NO ];
+    }
 
     /* Save the flags to ensure correct tear-down */
     mode_flags = current->flags;
@@ -1144,6 +1174,7 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
         [ qz_window setContentSize:contentRect.size ];
         current->flags |= (SDL_NOFRAME|SDL_RESIZABLE) & mode_flags;
         [ window_view setFrameSize:contentRect.size ];
+        my_qz_window = qz_window;
 
         if (!center_window)
             [ qz_window setFrameTopLeftPoint: current_pos ];
