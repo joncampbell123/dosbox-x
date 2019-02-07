@@ -757,7 +757,6 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
     NSRect screen_rect;
     CGError error;
     NSRect contentRect;
-    CGDisplayFadeReservationToken fade_token = kCGDisplayFadeReservationInvalidToken;
 
     current->flags = SDL_FULLSCREEN;
     current->w = width;
@@ -808,12 +807,6 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
     if ( mode == NULL ) {
         SDL_SetError ("Failed to find display resolution: %dx%dx%d", width, height, bpp);
         goto ERR_NO_MATCH;
-    }
-
-    /* Fade to black to hide resolution-switching flicker (and garbage
-       that is displayed by a destroyed OpenGL context, if applicable) */
-    if ( CGAcquireDisplayFadeReservation (5, &fade_token) == kCGErrorSuccess ) {
-        CGDisplayFade (fade_token, 0.3, kCGDisplayBlendNormal, kCGDisplayBlendSolidColor, 0.0, 0.0, 0.0, TRUE);
     }
 
     /* Put up the blanking window (a window above all other windows) */
@@ -1014,12 +1007,6 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
     }
     #endif
 
-    /* Fade in again (asynchronously) */
-    if ( fade_token != kCGDisplayFadeReservationInvalidToken ) {
-        CGDisplayFade (fade_token, 0.5, kCGDisplayBlendSolidColor, kCGDisplayBlendNormal, 0.0, 0.0, 0.0, FALSE);
-        CGReleaseDisplayFadeReservation(fade_token);
-    }
-
     /* Save the flags to ensure correct tear-down */
     mode_flags = current->flags;
 
@@ -1055,10 +1042,7 @@ ERR_NO_GL:      goto ERR_DOUBLEBUF;  /* this goto is to stop a compiler warning 
 ERR_DOUBLEBUF:  QZ_RestoreDisplayMode(this);
 ERR_NO_SWITCH:  CGReleaseAllDisplays ();
 ERR_NO_CAPTURE:
-ERR_NO_MATCH:   if ( fade_token != kCGDisplayFadeReservationInvalidToken ) {
-                    CGDisplayFade (fade_token, 0.5, kCGDisplayBlendSolidColor, kCGDisplayBlendNormal, 0.0, 0.0, 0.0, FALSE);
-                    CGReleaseDisplayFadeReservation (fade_token);
-                }
+ERR_NO_MATCH:
                 return NULL;
 }
 
@@ -1070,7 +1054,6 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
     NSRect contentRect;
     int center_window = 1;
     int origin_x, origin_y;
-    CGDisplayFadeReservationToken fade_token = kCGDisplayFadeReservationInvalidToken;
     NSPoint current_pos = NSMakePoint(0,0);
 
     current->flags = 0;
@@ -1099,11 +1082,6 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
     */
     if (video_set == SDL_TRUE) {
         if (mode_flags & SDL_FULLSCREEN) {
-            /* Fade to black to hide resolution-switching flicker (and garbage
-               that is displayed by a destroyed OpenGL context, if applicable) */
-            if (CGAcquireDisplayFadeReservation (5, &fade_token) == kCGErrorSuccess) {
-                CGDisplayFade (fade_token, 0.3, kCGDisplayBlendNormal, kCGDisplayBlendSolidColor, 0.0, 0.0, 0.0, TRUE);
-            }
             QZ_UnsetVideoMode (this, TRUE, save_gl);
         }
         else if ((mode_flags ^ flags) & (SDL_NOFRAME|SDL_RESIZABLE|SDL_OPENGL)) {
@@ -1122,10 +1100,6 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
     /* Sorry, QuickDraw was ripped out. */
     if (getenv("SDL_NSWindowPointer") || getenv("SDL_NSQuickDrawViewPointer")) {
         SDL_SetError ("Embedded QuickDraw windows are no longer supported");
-        if (fade_token != kCGDisplayFadeReservationInvalidToken) {
-            CGDisplayFade (fade_token, 0.5, kCGDisplayBlendSolidColor, kCGDisplayBlendNormal, 0.0, 0.0, 0.0, FALSE);
-            CGReleaseDisplayFadeReservation (fade_token);
-        }
         return NULL;
     }
 
@@ -1154,10 +1128,6 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
                           
         if (qz_window == nil) {
             SDL_SetError ("Could not create the Cocoa window");
-            if (fade_token != kCGDisplayFadeReservationInvalidToken) {
-                CGDisplayFade (fade_token, 0.5, kCGDisplayBlendSolidColor, kCGDisplayBlendNormal, 0.0, 0.0, 0.0, FALSE);
-                CGReleaseDisplayFadeReservation (fade_token);
-            }
             return NULL;
         }
 
@@ -1210,10 +1180,6 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
 
         if ( ! save_gl ) {
             if ( ! QZ_SetupOpenGL (this, *bpp, flags) ) {
-                if (fade_token != kCGDisplayFadeReservationInvalidToken) {
-                    CGDisplayFade (fade_token, 0.5, kCGDisplayBlendSolidColor, kCGDisplayBlendNormal, 0.0, 0.0, 0.0, FALSE);
-                    CGReleaseDisplayFadeReservation (fade_token);
-                }
                 return NULL;
             }
         }
@@ -1269,12 +1235,6 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
 	[ window_view setNeedsDisplay:YES ];
 	[ [ qz_window contentView ] setNeedsDisplay:YES ];
 	[ qz_window displayIfNeeded ];
-
-    /* Fade in again (asynchronously) if we came from a fullscreen mode and faded to black */
-    if (fade_token != kCGDisplayFadeReservationInvalidToken) {
-        CGDisplayFade (fade_token, 0.5, kCGDisplayBlendSolidColor, kCGDisplayBlendNormal, 0.0, 0.0, 0.0, FALSE);
-        CGReleaseDisplayFadeReservation (fade_token);
-    }
 
     return current;
 }
@@ -1733,8 +1693,6 @@ static void QZ_UpdateRects (_THIS, int numRects, SDL_Rect *rects)
 
 static void QZ_VideoQuit (_THIS)
 {
-    CGDisplayFadeReservationToken fade_token = kCGDisplayFadeReservationInvalidToken;
-
     /* Restore gamma settings */
     CGDisplayRestoreColorSyncSettings ();
 
@@ -1742,18 +1700,8 @@ static void QZ_VideoQuit (_THIS)
     CGDisplayShowCursor (display_id);
     CGAssociateMouseAndMouseCursorPosition (1);
     
-    if (mode_flags & SDL_FULLSCREEN) {
-        /* Fade to black to hide resolution-switching flicker (and garbage
-           that is displayed by a destroyed OpenGL context, if applicable) */
-        if (CGAcquireDisplayFadeReservation (5, &fade_token) == kCGErrorSuccess) {
-            CGDisplayFade (fade_token, 0.3, kCGDisplayBlendNormal, kCGDisplayBlendSolidColor, 0.0, 0.0, 0.0, TRUE);
-        }
+    if (mode_flags & SDL_FULLSCREEN)
         QZ_UnsetVideoMode (this, TRUE, FALSE);
-        if (fade_token != kCGDisplayFadeReservationInvalidToken) {
-            CGDisplayFade (fade_token, 0.5, kCGDisplayBlendSolidColor, kCGDisplayBlendNormal, 0.0, 0.0, 0.0, FALSE);
-            CGReleaseDisplayFadeReservation (fade_token);
-        }
-    }
     else
         QZ_UnsetVideoMode (this, TRUE, FALSE);
 
