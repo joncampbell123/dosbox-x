@@ -45,6 +45,7 @@ static SDL_Surface* SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp)
     Bit16u windowWidth;
     Bit16u windowHeight;
 
+retry:
     if (sdl.desktop.prevent_fullscreen) /* 3Dfx openGL do not allow resize */
         sdl_flags &= ~((unsigned int)SDL_RESIZABLE);
 
@@ -135,6 +136,14 @@ static SDL_Surface* SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp)
 #endif
 
     sdl.surface = SDL_SetVideoMode(windowWidth, windowHeight, (int)bpp, (unsigned int)sdl_flags);
+    if (sdl.surface == NULL && sdl.desktop.fullscreen) {
+        LOG_MSG("Fullscreen not supported: %s", SDL_GetError());
+        sdl.desktop.fullscreen = false;
+        sdl_flags &= ~SDL_FULLSCREEN;
+        GFX_CaptureMouse();
+        goto retry;
+    }
+
     sdl.deferred_resize = false;
     sdl.must_redraw_all = true;
 
