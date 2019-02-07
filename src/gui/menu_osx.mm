@@ -11,12 +11,17 @@
 # include <IOKit/pwr_mgt/IOPMLib.h>
 # include <Cocoa/Cocoa.h>
 
+#if !defined(C_SDL2)
+# include "sdlmain.h"
+#endif
+
 @interface NSApplication (DOSBoxX)
 @end
 
 #if !defined(C_SDL2)
 extern "C" void* sdl1_hax_stock_osx_menu(void);
 extern "C" void sdl1_hax_stock_osx_menu_additem(NSMenu *modme);
+NSWindow *sdl1_hax_get_window(void);
 #endif
 
 void *sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag) {
@@ -384,4 +389,25 @@ void osx_init_dock_menu(void) {
 #endif
 }
 #endif
+
+void MacOSX_GetWindowDPI(ScreenSizeInfo &info) {
+    NSWindow *wnd = nil;
+
+    info.clear();
+
+#if !defined(C_SDL2)
+    wnd = sdl1_hax_get_window();
+    if (wnd != nil) {
+        uint32_t cnt = 1;
+        CGDirectDisplayID did = 0;
+        NSRect rct = [wnd frame];
+        NSPoint pt = NSMakePoint(rct.origin.x, rct.origin.y);
+
+        if (CGGetDisplaysWithPoint(pt,1,&did,&cnt) == kCGErrorSuccess) {
+            fprintf(stderr,"OSX %.3f,%.3f did=%lu\n",pt.x,pt.y,(unsigned long)did);
+            fflush(stderr);
+        }
+    }
+#endif
+}
 

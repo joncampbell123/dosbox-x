@@ -514,6 +514,10 @@ void UpdateWindowDimensions(void)
     Uint32 fl = SDL_GetWindowFlags(sdl.window);
     UpdateWindowMaximized((fl & SDL_WINDOW_MAXIMIZED) != 0);
 #endif
+#if defined(MACOSX) && !defined(C_SDL2)
+    void MacOSX_GetWindowDPI(ScreenSizeInfo &info);
+    MacOSX_GetWindowDPI(/*&*/screen_size_info);
+#endif
 #if defined(WIN32)
     // When maximized, SDL won't actually tell us our new dimensions, so get it ourselves.
     // FIXME: Instead of GetHWND() we need to track our own handle or add something to SDL 1.x

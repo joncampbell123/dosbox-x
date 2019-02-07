@@ -53,6 +53,10 @@ extern bool sdl1_hax_highdpi_enable;
 static NSWindow *my_qz_window = nil;
 unsigned char wants_topmost = 0;
 
+NSWindow *sdl1_hax_get_window(void) {
+    return my_qz_window;
+}
+
 void sdl1_hax_set_topmost(unsigned char topmost) {
     wants_topmost = topmost;
 
