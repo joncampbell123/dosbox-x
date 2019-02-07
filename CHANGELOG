@@ -1,4 +1,7 @@
 0.82.16 (next)
+  - "unmask keyboard on int 16 read" option is on by default,
+    to allow DOSBox-X to keep the keyboard working with
+    Windows 3.11 Windows for Workgroups.
   - Added multi-monitor support and detection for Mac OS X.
   - Fixed problem on multi-monitor Linux/X11 setups where going
     fullscreen on the primary monitor leaves the non-fullscreen
