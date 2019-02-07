@@ -21,7 +21,7 @@
 #if !defined(C_SDL2)
 extern "C" void* sdl1_hax_stock_osx_menu(void);
 extern "C" void sdl1_hax_stock_osx_menu_additem(NSMenu *modme);
-NSWindow *sdl1_hax_get_window(void);
+extern "C" NSWindow *sdl1_hax_get_window(void);
 #endif
 
 void *sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag) {
