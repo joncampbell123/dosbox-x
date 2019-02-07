@@ -3,6 +3,8 @@
 #include "config.h"
 #include "menu.h"
 
+#include "sdlmain.h"
+
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X NSMenu / NSMenuItem handle */
 # include <MacTypes.h>
 # include <Cocoa/Cocoa.h>
@@ -10,10 +12,6 @@
 # include <ApplicationServices/ApplicationServices.h>
 # include <IOKit/pwr_mgt/IOPMLib.h>
 # include <Cocoa/Cocoa.h>
-
-#if !defined(C_SDL2)
-# include "sdlmain.h"
-#endif
 
 @interface NSApplication (DOSBoxX)
 @end
