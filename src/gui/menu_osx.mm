@@ -398,12 +398,21 @@ void MacOSX_GetWindowDPI(ScreenSizeInfo &info) {
 #if !defined(C_SDL2)
     wnd = sdl1_hax_get_window();
     if (wnd != nil) {
+        CGError err;
         uint32_t cnt = 1;
         CGDirectDisplayID did = 0;
         NSRect rct = [wnd frame];
         NSPoint pt = NSMakePoint(rct.origin.x + (rct.size.width / 2), rct.origin.y + (rct.size.height / 2));
 
-        if (CGGetDisplaysWithPoint(pt,1,&did,&cnt) == kCGErrorSuccess) {
+        err = CGGetDisplaysWithPoint(pt,1,&did,&cnt);
+
+        /* This might happen if our window is so far off the screen that the center point does not match any monitor */
+        if (err != kCGErrorSuccess) {
+            err = kCGErrorSuccess;
+            did = CGMainDisplayID(); /* Can't fail, eh, Apple? OK then. */
+        }
+
+        if (err == kCGErrorSuccess) {
             CGRect drct = CGDisplayBounds(did);
             CGSize dsz = CGDisplayScreenSize(did);
 
