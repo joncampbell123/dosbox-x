@@ -48,7 +48,8 @@ public:
         METHOD_NONE=0,
         METHOD_X11,
         METHOD_XRANDR,
-        METHOD_WIN98BASE
+        METHOD_WIN98BASE,
+        METHOD_COREGRAPHICS
     };
 public:
     struct wxh {

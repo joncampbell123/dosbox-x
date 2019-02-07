@@ -404,8 +404,15 @@ void MacOSX_GetWindowDPI(ScreenSizeInfo &info) {
         NSPoint pt = NSMakePoint(rct.origin.x, rct.origin.y);
 
         if (CGGetDisplaysWithPoint(pt,1,&did,&cnt) == kCGErrorSuccess) {
-            fprintf(stderr,"OSX %.3f,%.3f did=%lu\n",pt.x,pt.y,(unsigned long)did);
-            fflush(stderr);
+            CGRect drct = CGDisplayBounds(did);
+
+            info.method = ScreenSizeInfo::METHOD_COREGRAPHICS;
+
+            info.screen_position_pixels.x        = drct.origin.x;
+            info.screen_position_pixels.y        = drct.origin.y;
+
+            info.screen_dimensions_pixels.width  = drct.size.width;
+            info.screen_dimensions_pixels.height = drct.size.height;
         }
     }
 #endif

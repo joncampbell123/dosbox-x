@@ -427,6 +427,7 @@ void PrintScreenSizeInfo(void) {
         case ScreenSizeInfo::METHOD_X11:        method = "X11";         break;
         case ScreenSizeInfo::METHOD_XRANDR:     method = "XRandR";      break;
         case ScreenSizeInfo::METHOD_WIN98BASE:  method = "Win98base";   break;
+        case ScreenSizeInfo::METHOD_COREGRAPHICS:method = "CoreGraphics";break;
         default:                                                        break;
     };
 
