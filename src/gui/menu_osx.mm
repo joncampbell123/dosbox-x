@@ -401,7 +401,7 @@ void MacOSX_GetWindowDPI(ScreenSizeInfo &info) {
         uint32_t cnt = 1;
         CGDirectDisplayID did = 0;
         NSRect rct = [wnd frame];
-        NSPoint pt = NSMakePoint(rct.origin.x, rct.origin.y);
+        NSPoint pt = NSMakePoint(rct.origin.x + (rct.size.width / 2), rct.origin.y + (rct.size.height / 2));
 
         if (CGGetDisplaysWithPoint(pt,1,&did,&cnt) == kCGErrorSuccess) {
             CGRect drct = CGDisplayBounds(did);
