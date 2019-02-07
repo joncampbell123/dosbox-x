@@ -4,6 +4,9 @@
 #include "menu.h"
 
 #include "sdlmain.h"
+#include "SDL.h"
+#include "SDL_version.h"
+#include "SDL_syswm.h"
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X NSMenu / NSMenuItem handle */
 # include <MacTypes.h>
@@ -395,6 +398,20 @@ void MacOSX_GetWindowDPI(ScreenSizeInfo &info) {
 
 #if !defined(C_SDL2)
     wnd = sdl1_hax_get_window();
+#else
+    SDL_Window* GFX_GetSDLWindow(void);
+
+    SDL_SysWMinfo wminfo;
+    memset(&wminfo,0,sizeof(wminfo));
+    SDL_VERSION(&wminfo.version);
+
+    if (SDL_GetWindowWMInfo(GFX_GetSDLWindow(),&wminfo) >= 0) {
+        if (wminfo.subsystem == SDL_SYSWM_COCOA && wminfo.info.cocoa.window != NULL) {
+            wnd = wminfo.info.cocoa.window;
+        }
+    }
+#endif
+
     if (wnd != nil) {
         CGError err;
         uint32_t cnt = 1;
@@ -439,6 +456,5 @@ void MacOSX_GetWindowDPI(ScreenSizeInfo &info) {
             }
         }
     }
-#endif
 }
 

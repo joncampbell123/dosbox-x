@@ -515,7 +515,7 @@ void UpdateWindowDimensions(void)
     Uint32 fl = SDL_GetWindowFlags(sdl.window);
     UpdateWindowMaximized((fl & SDL_WINDOW_MAXIMIZED) != 0);
 #endif
-#if defined(MACOSX) && !defined(C_SDL2)
+#if defined(MACOSX)
     void MacOSX_GetWindowDPI(ScreenSizeInfo &info);
     MacOSX_GetWindowDPI(/*&*/screen_size_info);
 #endif
