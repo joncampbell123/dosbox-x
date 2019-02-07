@@ -431,6 +431,31 @@ static SDL_Rect** QZ_ListModes (_THIS, SDL_PixelFormat *format, Uint32 flags)
     if ( (flags & SDL_FULLSCREEN) == 0 )
         return (SDL_Rect**)-1;
 
+    // TODO: This is copy-pasta of display_id update code in FullScreen setup.
+    //       This should be in a common function!
+    /* Update display_id based on the window, so when going fullscreen the mode list is correct */
+    CGDirectDisplayID new_display_id = 0;
+
+    if (qz_window != nil) {
+        CGError err;
+        uint32_t cnt = 1;
+        CGDirectDisplayID did = 0;
+        NSRect rct = [qz_window frame];
+        NSPoint pt = NSMakePoint(rct.origin.x + (rct.size.width / 2), rct.origin.y + (rct.size.height / 2));
+
+        err = CGGetDisplaysWithPoint(pt,1,&did,&cnt);
+
+        /* This might happen if our window is so far off the screen that the center point does not match any monitor */
+        if (err != kCGErrorSuccess) {
+            err = kCGErrorSuccess;
+            did = CGMainDisplayID(); /* Can't fail, eh, Apple? OK then. */
+        }
+
+        if (err == kCGErrorSuccess) {
+            display_id = new_display_id = did;
+        }
+    }
+
     /* Free memory from previous call, if any */
     if ( client_mode_list != NULL ) {
         int i;
