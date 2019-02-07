@@ -203,7 +203,8 @@ void sdl1_hax_make_touch_bar_set_callback(NSTouchBar* (*newcb)(NSWindow*)) {
 
 - (void)appDidChangeScreen:(NSNotification*)note
 {
-    /* TODO */
+    void QZ_ReinitWindow(void);
+    QZ_ReinitWindow();
 }
 
 - (void)appDidUnhide:(NSNotification*)note

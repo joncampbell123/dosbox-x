@@ -995,6 +995,9 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
         CGReleaseDisplayFadeReservation(fade_token);
     }
 
+    /* Save the flags to ensure correct tear-down */
+    mode_flags = current->flags;
+
     CGRect drct = CGDisplayBounds(display_id);
 
     /* 
@@ -1012,9 +1015,6 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
         QZ_SetFrame(this, [ NSScreen mainScreen ], screen_rect);
         [ qz_window setFrame:screen_rect display:YES animate:NO ];
     }
-
-    /* Save the flags to ensure correct tear-down */
-    mode_flags = current->flags;
 
     /* Set app state, hide cursor if necessary, ... */
     QZ_DoActivate(this);
@@ -1254,6 +1254,20 @@ static SDL_Surface* QZ_SetVideoWindowed (_THIS, SDL_Surface *current, int width,
     return current;
 }
 
+static void _QZ_ReinitWindow(_THIS) {
+    if ( qz_window != nil ) {
+        if ( !( mode_flags & SDL_FULLSCREEN ) ) {
+            // TODO
+            fprintf(stderr,"SDL1 window changed screens, need re-init\n");
+        }
+    }
+}
+
+extern SDL_VideoDevice *current_video;
+
+void QZ_ReinitWindow(void) {
+    _QZ_ReinitWindow(current_video);
+}
 
 static SDL_Surface* QZ_SetVideoModeInternal (_THIS, SDL_Surface *current,
                                              int width, int height, int bpp,
