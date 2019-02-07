@@ -1,4 +1,5 @@
 0.82.16 (next)
+  - Added multi-monitor support and detection for Mac OS X.
   - Fixed problem on multi-monitor Linux/X11 setups where going
     fullscreen on the primary monitor leaves the non-fullscreen
     window sticking out on the adjacent monitor.
