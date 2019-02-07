@@ -740,12 +740,6 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
 
     contentRect = NSMakeRect (0, 0, width, height);
 
-    /* Fade to black to hide resolution-switching flicker (and garbage
-       that is displayed by a destroyed OpenGL context, if applicable) */
-    if ( CGAcquireDisplayFadeReservation (5, &fade_token) == kCGErrorSuccess ) {
-        CGDisplayFade (fade_token, 0.3, kCGDisplayBlendNormal, kCGDisplayBlendSolidColor, 0.0, 0.0, 0.0, TRUE);
-    }
-
     CGDirectDisplayID new_display_id = 0;
 
     if (qz_window != nil) {
@@ -789,6 +783,12 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
     if ( mode == NULL ) {
         SDL_SetError ("Failed to find display resolution: %dx%dx%d", width, height, bpp);
         goto ERR_NO_MATCH;
+    }
+
+    /* Fade to black to hide resolution-switching flicker (and garbage
+       that is displayed by a destroyed OpenGL context, if applicable) */
+    if ( CGAcquireDisplayFadeReservation (5, &fade_token) == kCGErrorSuccess ) {
+        CGDisplayFade (fade_token, 0.3, kCGDisplayBlendNormal, kCGDisplayBlendSolidColor, 0.0, 0.0, 0.0, TRUE);
     }
 
     /* Put up the blanking window (a window above all other windows) */
