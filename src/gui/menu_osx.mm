@@ -417,7 +417,13 @@ void MacOSX_GetWindowDPI(ScreenSizeInfo &info) {
         uint32_t cnt = 1;
         CGDirectDisplayID did = 0;
         NSRect rct = [wnd frame];
-        NSPoint pt = NSMakePoint(rct.origin.x + (rct.size.width / 2), rct.origin.y + (rct.size.height / 2));
+        NSPoint pt = [wnd convertPointToScreen:NSMakePoint(rct.size.width / 2, rct.size.height / 2)];
+
+        {
+            /* Eugh this ugliness wouldn't be necessary if we didn't have to fudge relative to primary display. */
+            CGRect prct = CGDisplayBounds(CGMainDisplayID());
+            pt.y = (prct.origin.y + prct.size.height) - pt.y;
+        }
 
         err = CGGetDisplaysWithPoint(pt,1,&did,&cnt);
 

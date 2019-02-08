@@ -428,7 +428,15 @@ static CGDirectDisplayID QZ_MatchWindowToMonitor(_THIS) {
         uint32_t cnt = 1;
         CGDirectDisplayID did = 0;
         NSRect rct = [qz_window frame];
-        NSPoint pt = NSMakePoint(rct.origin.x + (rct.size.width / 2), rct.origin.y + (rct.size.height / 2));
+        NSPoint pt = [qz_window convertPointToScreen:NSMakePoint(rct.size.width / 2, rct.size.height / 2)];
+
+        {
+            /* Eugh this ugliness wouldn't be necessary if we didn't have to fudge relative to primary display. */
+            CGRect prct = CGDisplayBounds(CGMainDisplayID());
+            pt.y = (prct.origin.y + prct.size.height) - pt.y;
+        }
+
+ //       fprintf(stderr,"Match wnd=%.3f,%.3f res=%.3f,%.3f\n",rct.origin.x,rct.origin.y,pt.x,pt.y);
 
         err = CGGetDisplaysWithPoint(pt,1,&did,&cnt);
 
