@@ -419,6 +419,8 @@ static int QZ_VideoInit (_THIS, SDL_PixelFormat *video_format)
     return 0;
 }
 
+extern SDL_VideoDevice *current_video;
+
 static CGDirectDisplayID QZ_MatchWindowToMonitor(_THIS) {
     /* Update display_id based on the window, so when going fullscreen the mode list is correct */
     CGDirectDisplayID new_display_id = display_id;
@@ -452,6 +454,11 @@ static CGDirectDisplayID QZ_MatchWindowToMonitor(_THIS) {
     }
 
     return new_display_id;
+}
+
+int sdl1_hax_macosx_window_to_monitor_and_update(CGDirectDisplayID *did) {
+    *did = QZ_MatchWindowToMonitor(current_video);
+    return 0;
 }
 
 static SDL_Rect** QZ_ListModes (_THIS, SDL_PixelFormat *format, Uint32 flags)
@@ -1239,8 +1246,6 @@ static void _QZ_ReinitWindow(_THIS) {
         }
     }
 }
-
-extern SDL_VideoDevice *current_video;
 
 void QZ_ReinitWindow(void) {
     _QZ_ReinitWindow(current_video);

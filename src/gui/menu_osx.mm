@@ -391,6 +391,10 @@ void osx_init_dock_menu(void) {
 }
 #endif
 
+#if !defined(C_SDL2)
+extern "C" int sdl1_hax_macosx_window_to_monitor_and_update(CGDirectDisplayID *did);
+#endif
+
 void MacOSX_GetWindowDPI(ScreenSizeInfo &info) {
     NSWindow *wnd = nil;
 
@@ -413,27 +417,11 @@ void MacOSX_GetWindowDPI(ScreenSizeInfo &info) {
 #endif
 
     if (wnd != nil) {
-        CGError err;
-        uint32_t cnt = 1;
         CGDirectDisplayID did = 0;
-        NSRect rct = [wnd frame];
-        NSPoint pt = [wnd convertPointToScreen:NSMakePoint(rct.size.width / 2, rct.size.height / 2)];
+
+        sdl1_hax_macosx_window_to_monitor_and_update(&did);
 
         {
-            /* Eugh this ugliness wouldn't be necessary if we didn't have to fudge relative to primary display. */
-            CGRect prct = CGDisplayBounds(CGMainDisplayID());
-            pt.y = (prct.origin.y + prct.size.height) - pt.y;
-        }
-
-        err = CGGetDisplaysWithPoint(pt,1,&did,&cnt);
-
-        /* This might happen if our window is so far off the screen that the center point does not match any monitor */
-        if (err != kCGErrorSuccess) {
-            err = kCGErrorSuccess;
-            did = CGMainDisplayID(); /* Can't fail, eh, Apple? OK then. */
-        }
-
-        if (err == kCGErrorSuccess) {
             CGRect drct = CGDisplayBounds(did);
             CGSize dsz = CGDisplayScreenSize(did);
 
