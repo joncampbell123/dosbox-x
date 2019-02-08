@@ -419,22 +419,9 @@ static int QZ_VideoInit (_THIS, SDL_PixelFormat *video_format)
     return 0;
 }
 
-static SDL_Rect** QZ_ListModes (_THIS, SDL_PixelFormat *format, Uint32 flags)
-{
-    CFArrayRef mode_list = NULL;          /* list of available fullscreen modes */
-    CFIndex num_modes;
-    CFIndex i;
-
-    int list_size = 0;
-
-    /* Any windowed mode is acceptable */
-    if ( (flags & SDL_FULLSCREEN) == 0 )
-        return (SDL_Rect**)-1;
-
-    // TODO: This is copy-pasta of display_id update code in FullScreen setup.
-    //       This should be in a common function!
+static CGDirectDisplayID QZ_MatchWindowToMonitor(_THIS) {
     /* Update display_id based on the window, so when going fullscreen the mode list is correct */
-    CGDirectDisplayID new_display_id = 0;
+    CGDirectDisplayID new_display_id = display_id;
 
     if (qz_window != nil) {
         CGError err;
@@ -452,9 +439,26 @@ static SDL_Rect** QZ_ListModes (_THIS, SDL_PixelFormat *format, Uint32 flags)
         }
 
         if (err == kCGErrorSuccess) {
-            display_id = new_display_id = did;
+            new_display_id = did;
         }
     }
+
+    return new_display_id;
+}
+
+static SDL_Rect** QZ_ListModes (_THIS, SDL_PixelFormat *format, Uint32 flags)
+{
+    CFArrayRef mode_list = NULL;          /* list of available fullscreen modes */
+    CFIndex num_modes;
+    CFIndex i;
+
+    int list_size = 0;
+
+    /* Any windowed mode is acceptable */
+    if ( (flags & SDL_FULLSCREEN) == 0 )
+        return (SDL_Rect**)-1;
+
+    display_id = QZ_MatchWindowToMonitor(this);
 
     /* Free memory from previous call, if any */
     if ( client_mode_list != NULL ) {
@@ -764,27 +768,7 @@ static SDL_Surface* QZ_SetVideoFullScreen (_THIS, SDL_Surface *current, int widt
 
     contentRect = NSMakeRect (0, 0, width, height);
 
-    CGDirectDisplayID new_display_id = 0;
-
-    if (qz_window != nil) {
-        CGError err;
-        uint32_t cnt = 1;
-        CGDirectDisplayID did = 0;
-        NSRect rct = [qz_window frame];
-        NSPoint pt = NSMakePoint(rct.origin.x + (rct.size.width / 2), rct.origin.y + (rct.size.height / 2));
-
-        err = CGGetDisplaysWithPoint(pt,1,&did,&cnt);
-
-        /* This might happen if our window is so far off the screen that the center point does not match any monitor */
-        if (err != kCGErrorSuccess) {
-            err = kCGErrorSuccess;
-            did = CGMainDisplayID(); /* Can't fail, eh, Apple? OK then. */
-        }
-
-        if (err == kCGErrorSuccess) {
-            new_display_id = did;
-        }
-    }
+    CGDirectDisplayID new_display_id = QZ_MatchWindowToMonitor(this);
 
     /* Destroy any previous mode */
     if (video_set == SDL_TRUE)
