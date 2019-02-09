@@ -1,4 +1,9 @@
 0.82.16 (next)
+  - Mac OS X SDL1 builds fixed to always clip the desktop
+    dimensions against the available video modes provided
+    by the system to avoid problems with the 1080i/1080p
+    modes listed in the System Preferences dialog and older
+    HDTV LCD TVs with lower than 1920x1080 native resolution.
   - "unmask keyboard on int 16 read" option is on by default,
     to allow DOSBox-X to keep the keyboard working with
     Windows 3.11 Windows for Workgroups.
