@@ -423,37 +423,6 @@ extern SDL_VideoDevice *current_video;
 
 int (*sdl1_hax_quartz_match_window_to_monitor)(CGDirectDisplayID *new_id,NSWindow *wnd) = NULL;
 
-int my_quartz_match_window_to_monitor(CGDirectDisplayID *new_id,NSWindow *wnd) {
-    if (wnd != nil) {
-        CGError err;
-        uint32_t cnt = 1;
-        CGDirectDisplayID did = 0;
-        NSRect rct = [wnd frame];
-        NSPoint pt = [wnd convertPointToScreen:NSMakePoint(rct.size.width / 2, rct.size.height / 2)];
-
-        {
-            /* Eugh this ugliness wouldn't be necessary if we didn't have to fudge relative to primary display. */
-            CGRect prct = CGDisplayBounds(CGMainDisplayID());
-            pt.y = (prct.origin.y + prct.size.height) - pt.y;
-        }
-
-        err = CGGetDisplaysWithPoint(pt,1,&did,&cnt);
-
-        /* This might happen if our window is so far off the screen that the center point does not match any monitor */
-        if (err != kCGErrorSuccess) {
-            err = kCGErrorSuccess;
-            did = CGMainDisplayID(); /* Can't fail, eh, Apple? OK then. */
-        }
-
-        if (err == kCGErrorSuccess) {
-            *new_id = did;
-            return 0;
-        }
-    }
-
-    return -1;
-}
-
 static CGDirectDisplayID QZ_MatchWindowToMonitor(_THIS) {
     /* Update display_id based on the window, so when going fullscreen the mode list is correct */
     CGDirectDisplayID new_display_id = display_id;

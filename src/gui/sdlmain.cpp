@@ -7526,6 +7526,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         extern void osx_init_dock_menu(void);
         osx_init_dock_menu();
+
+        void qz_set_match_monitor_cb(void);
+        qz_set_match_monitor_cb();
 #endif
 
         /* -- SDL init */
