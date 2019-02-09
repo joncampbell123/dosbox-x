@@ -325,6 +325,8 @@ int X11_IconifyWindow(_THIS)
 	return(result);
 }
 
+int X11_GrabbedInput = 0;
+
 SDL_GrabMode X11_GrabInputNoLock(_THIS, SDL_GrabMode mode)
 {
 	int result;
@@ -375,7 +377,8 @@ SDL_GrabMode X11_GrabInputNoLock(_THIS, SDL_GrabMode mode)
 	}
 	XSync(SDL_Display, False);
 
-	return(mode);
+    X11_GrabbedInput = mode;
+    return(mode);
 }
 
 SDL_GrabMode X11_GrabInput(_THIS, SDL_GrabMode mode)

@@ -392,6 +392,8 @@ static __inline__ int X11_WarpedMotion(_THIS, XEvent *xevent)
 	return(posted);
 }
 
+extern int X11_GrabbedInput;
+
 static int X11_DispatchEvent(_THIS)
 {
 	int posted;
@@ -486,8 +488,10 @@ printf("FocusIn!\n");
 
 	    /* Losing input focus? */
 	    case FocusOut: {
+            /* NTS: X11_GrabInput() will cause a FocusOut event because SDL_Window is grabbing keyboard
+             *      input and WMwindow will report focus loss */
             if ((!currently_fullscreen && xevent.xany.window == SDL_Window) ||
-                (!currently_fullscreen && xevent.xany.window == WMwindow) ||
+                (!currently_fullscreen && xevent.xany.window == WMwindow && X11_GrabbedInput == SDL_GRAB_OFF) ||
                  (currently_fullscreen && xevent.xany.window == FSwindow)) {
 #ifdef DEBUG_XEVENTS
 printf("FocusOut!\n");
