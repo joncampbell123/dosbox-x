@@ -395,6 +395,8 @@ void osx_init_dock_menu(void) {
 extern "C" int sdl1_hax_macosx_window_to_monitor_and_update(CGDirectDisplayID *did);
 #endif
 
+int my_quartz_match_window_to_monitor(CGDirectDisplayID *new_id,NSWindow *wnd);
+
 void MacOSX_GetWindowDPI(ScreenSizeInfo &info) {
     NSWindow *wnd = nil;
 
@@ -419,9 +421,7 @@ void MacOSX_GetWindowDPI(ScreenSizeInfo &info) {
     if (wnd != nil) {
         CGDirectDisplayID did = 0;
 
-        sdl1_hax_macosx_window_to_monitor_and_update(&did);
-
-        {
+        if (my_quartz_match_window_to_monitor(&did,wnd) >= 0) {
             CGRect drct = CGDisplayBounds(did);
             CGSize dsz = CGDisplayScreenSize(did);
 
