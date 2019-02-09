@@ -361,7 +361,7 @@ SDL_GrabMode X11_GrabInputNoLock(_THIS, SDL_GrabMode mode)
 			/* Uh, oh, what do we do here? */ ;
 		}
 		/* Now grab the keyboard */
-		XGrabKeyboard(SDL_Display, WMwindow, True,
+		XGrabKeyboard(SDL_Display, SDL_Window, True,
 				GrabModeAsync, GrabModeAsync, CurrentTime);
 
 		/* Raise the window if we grab the mouse */
