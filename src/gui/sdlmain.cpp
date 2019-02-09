@@ -1800,7 +1800,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     if (retFlags) 
         GFX_Start();
 
-    if (!sdl.mouse.autoenable && !sdl.desktop.fullscreen)
+    if (!sdl.mouse.autoenable && !sdl.mouse.locked)
         SDL_ShowCursor(sdl.mouse.autolock?SDL_DISABLE:SDL_ENABLE);
 
     UpdateWindowDimensions();
