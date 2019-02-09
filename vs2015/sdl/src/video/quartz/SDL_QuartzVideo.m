@@ -458,8 +458,10 @@ static CGDirectDisplayID QZ_MatchWindowToMonitor(_THIS) {
     /* Update display_id based on the window, so when going fullscreen the mode list is correct */
     CGDirectDisplayID new_display_id = display_id;
 
-    if (my_quartz_match_window_to_monitor(&new_display_id,qz_window) >= 0)
-        return new_display_id;
+    if (sdl1_hax_quartz_match_window_to_monitor != NULL) {
+        if (sdl1_hax_quartz_match_window_to_monitor(&new_display_id,qz_window) >= 0)
+            return new_display_id;
+    }
 
     return display_id;
 }
