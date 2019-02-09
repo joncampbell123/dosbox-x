@@ -463,6 +463,7 @@ int sdl1_hax_macosx_window_to_monitor_and_update(CGDirectDisplayID *did) {
 
 static SDL_Rect** QZ_ListModes (_THIS, SDL_PixelFormat *format, Uint32 flags)
 {
+    CGDirectDisplayID temp_display_id = 0;
     CFArrayRef mode_list = NULL;          /* list of available fullscreen modes */
     CFIndex num_modes;
     CFIndex i;
@@ -473,7 +474,7 @@ static SDL_Rect** QZ_ListModes (_THIS, SDL_PixelFormat *format, Uint32 flags)
     if ( (flags & SDL_FULLSCREEN) == 0 )
         return (SDL_Rect**)-1;
 
-    display_id = QZ_MatchWindowToMonitor(this);
+    temp_display_id = QZ_MatchWindowToMonitor(this);
 
     /* Free memory from previous call, if any */
     if ( client_mode_list != NULL ) {
@@ -488,7 +489,7 @@ static SDL_Rect** QZ_ListModes (_THIS, SDL_PixelFormat *format, Uint32 flags)
 
 #if (MAC_OS_X_VERSION_MAX_ALLOWED >= 1060)
     if (use_new_mode_apis) {
-        mode_list = CGDisplayCopyAllDisplayModes(display_id, NULL);
+        mode_list = CGDisplayCopyAllDisplayModes(temp_display_id, NULL);
     }
 #endif
 
