@@ -2431,6 +2431,65 @@ void GFX_SwitchFullScreen(void)
             if (sdl.desktop.full.height_auto)
                 sdl.desktop.full.height = screen_size_info.screen_dimensions_pixels.height;
 
+#if !defined(C_SDL2) && defined(MACOSX)
+            /* Mac OS X has this annoying problem with their API where the System Preferences app, display settings panel
+               allows setting 720p and 1080i/1080p modes on monitors who's native resolution is less than 1920x1080 but
+               supports 1920x1080.
+
+               This is a problem with HDTV sets made in the late 2000s early 2010s when "HD" apparently meant LCD displays
+               with 1368x768 resolution that will nonetheless accept 1080i (and later, 1080p) and downscale on display.
+
+               The problem is that with these monitors, Mac OS X's display API will NOT list 1920x1080 as one of the
+               display modes even when the freaking desktop is obviously set to 1920x1080 on that monitor!
+
+               If the screen reporting code says 1920x1080 and we try to go fullscreen, SDL1 will intervene and say
+               "hey wait there's no 1920x1080 in the mode list" and then fail the call.
+
+               So to work around this, we have to go check SDL's mode list before using the screen size returned by the
+               API.
+
+               Oh and for extra fun, Mac OS X is one of those modern systems where "setting the video mode" apparently
+               means NOT setting the video hardware mode but just changing how the GPU scales the display... EXCEPT when
+               talking to these older displays where if the user set it to 1080i/1080p, our request to set 1368x768
+               actually DOES change the video mode. This is just wonderful considering the old HDTV set I bought back in
+               2008 takes 1-2 seconds to adjust to the mode change on it's HDMI input.
+
+               Frankly I wish I knew how to fix the SDL1 Quartz code to use whatever abracadabra magic code is required
+               to enumerate these extra HDTV modes so this hack isn't necessary, except that experience says this hack is
+               always necesary because it might not always work.
+
+               This magic hidden super secret API bullshit is annoying. You're worse than Microsoft with this stuff, Apple --J.C. */
+            {
+                SDL_Rect **ls = SDLCALL SDL_ListModes(NULL, SDL_FULLSCREEN);
+                if (ls != NULL) {
+                    unsigned int maxwidth = 0,maxheight = 0;
+
+                    for (size_t i=0;ls[i] != NULL;i++) {
+                        unsigned int w = ls[i]->w;
+                        unsigned int h = ls[i]->h;
+
+                        if (maxwidth < w || maxheight < h) {
+                            maxwidth = w;
+                            maxheight = h;
+                        }
+                    }
+
+                    if (maxwidth != 0 && maxheight != 0) {
+                        LOG_MSG("OS X: Actual maximum screen resolution is %d x %d\n",maxwidth,maxheight);
+
+                        if (sdl.desktop.full.width_auto) {
+                            if (sdl.desktop.full.width > maxwidth)
+                                sdl.desktop.full.width = maxwidth;
+                        }
+                        if (sdl.desktop.full.height_auto) {
+                            if (sdl.desktop.full.height > maxheight)
+                                sdl.desktop.full.height = maxheight;
+                        }
+                    }
+                }
+            }
+#endif
+
 #if !defined(C_SDL2)
             SDL_hax_SetFSWindowPosition(
                 screen_size_info.screen_position_pixels.x,screen_size_info.screen_position_pixels.y,
