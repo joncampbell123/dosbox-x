@@ -421,24 +421,21 @@ static int QZ_VideoInit (_THIS, SDL_PixelFormat *video_format)
 
 extern SDL_VideoDevice *current_video;
 
-static CGDirectDisplayID QZ_MatchWindowToMonitor(_THIS) {
-    /* Update display_id based on the window, so when going fullscreen the mode list is correct */
-    CGDirectDisplayID new_display_id = display_id;
+int (*sdl1_hax_quartz_match_window_to_monitor)(CGDirectDisplayID *new_id,NSWindow *wnd) = NULL;
 
-    if (qz_window != nil) {
+int my_quartz_match_window_to_monitor(CGDirectDisplayID *new_id,NSWindow *wnd) {
+    if (wnd != nil) {
         CGError err;
         uint32_t cnt = 1;
         CGDirectDisplayID did = 0;
-        NSRect rct = [qz_window frame];
-        NSPoint pt = [qz_window convertPointToScreen:NSMakePoint(rct.size.width / 2, rct.size.height / 2)];
+        NSRect rct = [wnd frame];
+        NSPoint pt = [wnd convertPointToScreen:NSMakePoint(rct.size.width / 2, rct.size.height / 2)];
 
         {
             /* Eugh this ugliness wouldn't be necessary if we didn't have to fudge relative to primary display. */
             CGRect prct = CGDisplayBounds(CGMainDisplayID());
             pt.y = (prct.origin.y + prct.size.height) - pt.y;
         }
-
- //       fprintf(stderr,"Match wnd=%.3f,%.3f res=%.3f,%.3f\n",rct.origin.x,rct.origin.y,pt.x,pt.y);
 
         err = CGGetDisplaysWithPoint(pt,1,&did,&cnt);
 
@@ -449,11 +446,22 @@ static CGDirectDisplayID QZ_MatchWindowToMonitor(_THIS) {
         }
 
         if (err == kCGErrorSuccess) {
-            new_display_id = did;
+            *new_id = did;
+            return 0;
         }
     }
 
-    return new_display_id;
+    return -1;
+}
+
+static CGDirectDisplayID QZ_MatchWindowToMonitor(_THIS) {
+    /* Update display_id based on the window, so when going fullscreen the mode list is correct */
+    CGDirectDisplayID new_display_id = display_id;
+
+    if (my_quartz_match_window_to_monitor(&new_display_id,qz_window) >= 0)
+        return new_display_id;
+
+    return display_id;
 }
 
 int sdl1_hax_macosx_window_to_monitor_and_update(CGDirectDisplayID *did) {
