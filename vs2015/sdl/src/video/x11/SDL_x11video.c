@@ -1056,8 +1056,7 @@ static int X11_CreateWindow(_THIS, SDL_Surface *screen,
 		window_w = w;
 		window_h = h;
 
-        if (!( flags & SDL_FULLSCREEN ))
-            XResizeWindow(SDL_Display, WMwindow, w, h);
+        XResizeWindow(SDL_Display, WMwindow, w, h);
     }
 
 	/* Create (or use) the X11 display window */
@@ -1166,8 +1165,7 @@ static int X11_ResizeWindow(_THIS,
 		window_w = w;
 		window_h = h;
 
-        if (!( flags & SDL_FULLSCREEN ))
-            XResizeWindow(SDL_Display, WMwindow, w, h);
+        XResizeWindow(SDL_Display, WMwindow, w, h);
 
 		/* Resize the fullscreen and display windows */
 		if ( flags & SDL_FULLSCREEN ) {
