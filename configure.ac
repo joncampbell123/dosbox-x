@@ -980,6 +980,7 @@ fi
 AC_CONFIG_FILES([ 
 Makefile
 src/Makefile
+src/dosbox.plist
 src/cpu/Makefile
 src/cpu/core_full/Makefile
 src/cpu/core_normal/Makefile
