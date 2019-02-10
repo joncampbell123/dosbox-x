@@ -1,4 +1,6 @@
 0.82.16 (next)
+  - Mac OS X builds now contain the correct version number in
+    the application plist.
   - SDL1 builds fixed to always compile with internal SDL_net
     library instead of public library on the system
   - Mac OS X SDL1 builds fixed to always clip the desktop
