@@ -140,7 +140,7 @@ typedef enum PROCESS_DPI_AWARENESS {
 # define MAX(a,b) std::max(a,b)
 #endif
 
-#if !defined(C_SDL2)
+#if !defined(C_SDL2) && !defined(RISCOS)
 # include "SDL_version.h"
 # ifndef SDL_DOSBOX_X_SPECIAL
 #  error This code must be compiled using the SDL 1.x library provided in this source repository
@@ -2412,7 +2412,7 @@ void change_output(int output) {
     UpdateWindowDimensions();
 }
 
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && defined(SDL_DOSBOX_X_SPECIAL)
 extern "C" void SDL_hax_SetFSWindowPosition(int x,int y,int w,int h);
 #endif
 
@@ -2490,14 +2490,14 @@ void GFX_SwitchFullScreen(void)
             }
 #endif
 
-#if !defined(C_SDL2)
+#if !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
             SDL_hax_SetFSWindowPosition(
                 screen_size_info.screen_position_pixels.x,screen_size_info.screen_position_pixels.y,
                 screen_size_info.screen_dimensions_pixels.width,screen_size_info.screen_dimensions_pixels.height);
 #endif
         }
         else {
-#if !defined(C_SDL2)
+#if !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
             SDL_hax_SetFSWindowPosition(0,0,0,0);
 #endif
         }
@@ -2746,7 +2746,7 @@ void GFX_EndUpdate(const Bit16u *changedLines) {
     {
         sdl.must_redraw_all = false;
 
-#if !defined(C_SDL2)
+#if !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
         sdl.surface->flags &= ~((unsigned int)SDL_HAX_NOREFRESH);
 #endif
 

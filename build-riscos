@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# I'm sick and tired of all the churn the three versions of autoconf
+# are causing in this repo. Stop committing the configure scripts
+# and just autoregen.
+./autogen.sh || exit 1
+
+echo Compiling DOSBox-X
+chmod +x configure
+
+# for sdl-config
+export PATH=$GCCSDK_INSTALL_ENV/bin:$PATH
+export CPPFLAGS=-I$GCCSDK_INSTALL_ENV/include
+export LDFLAGS="-L$GCCSDK_INSTALL_ENV/lib -static"
+
+./configure --host=arm-unknown-riscos --enable-core-inline "$@"
+make -j3 || exit 1
+elf2aif src/dosbox-x !DosBox-X/dosbox-x,ff8
+cp font/FREECG98.BMP !DosBox-X/resources/freecg98.bmp,69c
+dos2unix -n CHANGELOG !DosBox-X/CHANGELOG,fff

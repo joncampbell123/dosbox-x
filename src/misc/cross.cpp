@@ -66,6 +66,8 @@ static void W32_ConfDir(std::string& in,bool create) {
 void Cross::GetPlatformResDir(std::string& in) {
 #if defined(MACOSX)
 	in = MacOSXResPath;
+#elif defined(RISCOS)
+	in = "/<DosBox-X$Dir>/resources";
 #elif defined(RESDIR)
 	in = RESDIR;
 #endif
@@ -83,6 +85,8 @@ void Cross::GetPlatformConfigDir(std::string& in) {
 #elif defined(HAIKU)
 	in = "~/config/settings/dosbox";
 	ResolveHomedir(in);
+#elif defined(RISCOS)
+	in = "/<Choices$Write>/DosBox-X";
 #elif !defined(HX_DOS)
 	in = "~/.dosbox";
 	ResolveHomedir(in);
@@ -113,6 +117,9 @@ void Cross::CreatePlatformConfigDir(std::string& in) {
 #elif defined(HAIKU)
 	in = "~/config/settings/dosbox";
 	ResolveHomedir(in);
+	mkdir(in.c_str(),0700);
+#elif defined(RISCOS)
+	in = "/<Choices$Write>/DosBox-X";
 	mkdir(in.c_str(),0700);
 #elif !defined(HX_DOS)
 	in = "~/.dosbox";

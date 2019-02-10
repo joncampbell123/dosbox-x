@@ -238,7 +238,9 @@ retry:
 
             sdl.surface = SDL_SetVideoMode(final_width, final_height, bpp,
                 (unsigned int)((sdl.draw.flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
+#ifdef SDL_DOSBOX_X_SPECIAL
                 (unsigned int)SDL_HAX_NOREFRESH |
+#endif
                 (unsigned int)SDL_RESIZABLE);
 
             sdl.deferred_resize = false;

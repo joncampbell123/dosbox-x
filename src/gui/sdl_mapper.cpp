@@ -875,7 +875,7 @@ public:
         }
 #endif
 
-#if !defined(C_SDL2)
+#if !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
         /* HACK: As requested on the issue tracker, on US keyboards, remap the Windows menu key
          *       to the "Ro" key.
          *
@@ -3313,11 +3313,13 @@ static struct {
 #if defined(C_SDL2)
     // TODO??
 #else
+#ifdef SDL_DOSBOX_X_SPECIAL
     /* hack for Japanese keyboards with \ and _ */
     {"jp_bckslash",SDLK_JP_RO}, // Same difference
     {"jp_ro",SDLK_JP_RO}, // DOSBox proprietary
     /* hack for Japanese keyboards with Yen and | */
     {"jp_yen",SDLK_JP_YEN },
+#endif
     /* more */
     {"jp_hankaku", SDLK_WORLD_12 },
     {"jp_muhenkan", SDLK_WORLD_13 },
@@ -4059,7 +4061,7 @@ void MAPPER_StartUp() {
         /* Note: table has to be tested/updated for various OSs */
 #if defined (MACOSX)
         /* nothing */
-#elif defined(HAIKU)
+#elif defined(HAIKU) || defined(RISCOS)
 		usescancodes = false;
 #elif defined(OS2)
         sdlkey_map[0x61]=SDLK_UP;
