@@ -16,10 +16,7 @@ opts=
 
 sys=`uname -s`
 
-export SDL_CFLAGS=`../../sdl/linux-host/bin/sdl-config --cflags`
-export SDL_LIBS=`../../sdl/linux-host/bin/sdl-config --libs`
-
-../configure "--srcdir=$srcdir" "--prefix=$instdir" --enable-static --disable-shared $opts || exit 1
+../configure "--srcdir=$srcdir" "--prefix=$instdir" --enable-static --disable-shared "--with-sdl-prefix=$srcdir/../sdl/linux-host" $opts || exit 1
 
 # SDL is having concurrency problems with Brew compiles, help it out
 # https://jenkins.brew.sh/job/Homebrew%20Core%20Pull%20Requests/35627/version=sierra/testReport/junit/brew-test-bot/sierra/install_dosbox_x/
