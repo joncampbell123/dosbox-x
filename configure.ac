@@ -957,22 +957,23 @@ if test -n "$SDL2_LIBS"; then
 fi
 
 if test x$enable_d3d9 = xyes; then
-case "$host" in
-    *-*-cygwin* | *-*-mingw32*)
-      if test x$have_d3d9_h = xyes -a x$have_d3dx9math_h = xyes ; then
-        AC_MSG_RESULT(yes)
-        AC_DEFINE(HAVE_D3D9_H,1)
-	if test x$enable_d3d_shaders = xyes; then
-		AC_DEFINE(C_D3DSHADERS,1)
-	fi
-	  else
-        AC_MSG_RESULT(no)
-      fi
-    ;;
+    case "$host" in
+        *-*-cygwin* | *-*-mingw32*)
+        if test x$have_d3d9_h = xyes -a x$have_d3dx9math_h = xyes ; then
+            AC_MSG_RESULT(yes)
+            AC_DEFINE(HAVE_D3D9_H,1)
+            AC_DEFINE(C_DIRECT3D,1)
+            if test x$enable_d3d_shaders = xyes; then
+                AC_DEFINE(C_D3DSHADERS,1)
+            fi
+        else
+            AC_MSG_RESULT(no)
+        fi
+        ;;
     *)
-     AC_MSG_RESULT(no)
-    ;;
-esac
+        AC_MSG_RESULT(no)
+        ;;
+    esac
 else
   AC_MSG_RESULT(no)
 fi
