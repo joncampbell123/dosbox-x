@@ -961,6 +961,7 @@ if test x$enable_d3d9 = xyes; then
         *-*-cygwin* | *-*-mingw32*)
         if test x$have_d3d9_h = xyes -a x$have_d3dx9math_h = xyes ; then
             AC_MSG_RESULT(yes)
+            AH_TEMPLATE(C_DIRECT3D,[Define to 1 to enable Direct3D 9 display output support])
             AC_DEFINE(HAVE_D3D9_H,1)
             AC_DEFINE(C_DIRECT3D,1)
             if test x$enable_d3d_shaders = xyes; then
