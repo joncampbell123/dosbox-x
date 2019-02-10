@@ -527,6 +527,14 @@ dnl LIBRARY TEST: libpcap
 AC_CHECK_HEADER(pcap.h,have_pcap_h=yes,)
 AC_CHECK_LIB(pcap, pcap_open_live, have_pcap_lib=yes, ,-lz)
 
+# FIXME: Arrggh we need the WHOLE PATH
+pwd=`pwd`
+
+CFLAGS="$CFLAGS -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
+LDFLAGS="$LDFLAGS -L$pwd/vs2015/sdlnet/linux-host/lib"
+CPPFLAGS="$CPPFLAGS -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
+CXXFLAGS="$CXXFLAGS -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
+
 dnl LIBRARY TEST: SDLnet 1.x
 AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
 AC_CHECK_LIB(SDL_net, SDLNet_Init, have_sdl_net_lib=yes, , )
