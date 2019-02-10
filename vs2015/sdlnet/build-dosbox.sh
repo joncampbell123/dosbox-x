@@ -16,6 +16,9 @@ opts=
 
 sys=`uname -s`
 
+export SDL_CFLAGS=`../../sdl/linux-host/bin/sdl-config --cflags`
+export SDL_LIBS=`../../sdl/linux-host/bin/sdl-config --libs`
+
 ../configure "--srcdir=$srcdir" "--prefix=$instdir" --enable-static --disable-shared $opts || exit 1
 
 # SDL is having concurrency problems with Brew compiles, help it out
