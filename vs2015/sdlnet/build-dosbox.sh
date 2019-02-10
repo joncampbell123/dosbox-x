@@ -25,6 +25,10 @@ mkdir -p linux-build || exit 1
 mkdir -p linux-build/build || exit 1
 mkdir -p linux-build/include || exit 1
 
+# Um, what?
+chmod +x "$srcdir/install-sh" || exit 1
+
+# Proceed
 make -j || exit 1
 make install || exit 1  # will install into ./linux-host
 
