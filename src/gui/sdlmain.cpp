@@ -3311,7 +3311,7 @@ void Mouse_AutoLock(bool enable) {
 
 bool Mouse_IsLocked()
 {
-	return sdl.mouse.locked;
+    return sdl.mouse.locked;
 }
 
 static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
@@ -5141,16 +5141,16 @@ void GFX_Events() {
          *
          * This has not been tested with DOSBox-X yet becaus I do not run Xorg 1.20.1, yet */
 #if SDL_XORG_FIX
-		// Special code for broken SDL with Xorg 1.20.1, where pairs of inputfocus gain and loss events are generated
-		// when locking the mouse in windowed mode.
-		if (event.type == SDL_ACTIVEEVENT && event.active.state == SDL_APPINPUTFOCUS && event.active.gain == 0) {
-			SDL_Event test; //Check if the next event would undo this one.
-			if (SDL_PeepEvents(&test,1,SDL_PEEKEVENT,SDL_ACTIVEEVENTMASK) == 1 && test.active.state == SDL_APPINPUTFOCUS && test.active.gain == 1) {
-				// Skip both events.
-				SDL_PeepEvents(&test,1,SDL_GETEVENT,SDL_ACTIVEEVENTMASK);
-				continue;
-			}
-		}
+        // Special code for broken SDL with Xorg 1.20.1, where pairs of inputfocus gain and loss events are generated
+        // when locking the mouse in windowed mode.
+        if (event.type == SDL_ACTIVEEVENT && event.active.state == SDL_APPINPUTFOCUS && event.active.gain == 0) {
+            SDL_Event test; //Check if the next event would undo this one.
+            if (SDL_PeepEvents(&test,1,SDL_PEEKEVENT,SDL_ACTIVEEVENTMASK) == 1 && test.active.state == SDL_APPINPUTFOCUS && test.active.gain == 1) {
+                // Skip both events.
+                SDL_PeepEvents(&test,1,SDL_GETEVENT,SDL_ACTIVEEVENTMASK);
+                continue;
+            }
+        }
 #endif
         /* end patch fragment */
 
@@ -5225,10 +5225,10 @@ void GFX_Events() {
                         GFX_CaptureMouse();
                     SetPriority(sdl.priority.focus);
                     CPU_Disable_SkipAutoAdjust();
-					BIOS_SynchronizeNumLock();
-					BIOS_SynchronizeCapsLock();
-					BIOS_SynchronizeScrollLock();
-				} else {
+                    BIOS_SynchronizeNumLock();
+                    BIOS_SynchronizeCapsLock();
+                    BIOS_SynchronizeScrollLock();
+                } else {
                     if (sdl.mouse.locked)
                     {
                         CaptureMouseNotify();
@@ -5997,9 +5997,9 @@ void CheckNumLockState(void) {
     BYTE keyState[256];
 
     GetKeyboardState((LPBYTE)(&keyState));
-	if (keyState[VK_NUMLOCK] & 1) {
-		startup_state_numlock = true;
-	}
+    if (keyState[VK_NUMLOCK] & 1) {
+        startup_state_numlock = true;
+    }
 #endif
 }
 
@@ -6008,9 +6008,9 @@ void CheckCapsLockState(void) {
     BYTE keyState[256];
 
     GetKeyboardState((LPBYTE)(&keyState));
-	if (keyState[VK_CAPITAL] & 1) {
-		startup_state_capslock = true;
-	}
+    if (keyState[VK_CAPITAL] & 1) {
+        startup_state_capslock = true;
+    }
 #endif
 }
 
@@ -6019,9 +6019,9 @@ void CheckScrollLockState(void) {
     BYTE keyState[256];
 
     GetKeyboardState((LPBYTE)(&keyState));
-	if (keyState[VK_SCROLL] & 1) {
-		startup_state_scrlock = true;
-	}
+    if (keyState[VK_SCROLL] & 1) {
+        startup_state_scrlock = true;
+    }
 #endif
 }
 
@@ -6941,7 +6941,7 @@ void PauseWithInterruptsEnabled(Bitu /*val*/) {
     /* we can ONLY do this when the CPU is either in real mode or v86 mode.
      * doing this from protected mode will only crash the game.
      * also require that interrupts are enabled before pausing. */
-	if (cpu.pmode) {
+    if (cpu.pmode) {
         if (!(reg_flags & FLAG_VM)) {
             PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
             return;
@@ -7555,14 +7555,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         sdl.init_ignore = true;
 
-	{
-		Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
-		assert(section != NULL);
+    {
+        Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        assert(section != NULL);
 
-		// boot-time option whether or not to report ourself as "DPI aware" to Windows so the
-		// DWM doesn't upscale our window for backwards compat.
-		dpi_aware_enable = section->Get_bool("dpi aware");
-	}
+        // boot-time option whether or not to report ourself as "DPI aware" to Windows so the
+        // DWM doesn't upscale our window for backwards compat.
+        dpi_aware_enable = section->Get_bool("dpi aware");
+    }
 
 #ifdef WIN32
         /* Windows Vista/7/8/10 DPI awareness. If we don't tell Windows we're high DPI aware, the DWM will
@@ -7571,7 +7571,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         Windows_DPI_Awareness_Init();
 #endif
 #if defined(MACOSX) && !defined(C_SDL2)
-	/* Our SDL1 in-tree library has a High DPI awareness function for Mac OS X now */
+    /* Our SDL1 in-tree library has a High DPI awareness function for Mac OS X now */
         if (!control->opt_disable_dpi_awareness)
             sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
 #endif
@@ -8624,5 +8624,5 @@ void GUI_ResetResize(bool pressed) {
 
 bool MOUSE_IsLocked()
 {
-	return sdl.mouse.locked;
+    return sdl.mouse.locked;
 }
