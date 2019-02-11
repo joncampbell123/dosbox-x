@@ -111,12 +111,12 @@ void sdl_hax_nsMenuItemRelease(void *nsMenuItem) {
 }
 
 void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu) {
+#if defined(C_SDL2)
 	/* make up an Application menu and stick it in first.
 	   the caller should have passed us an empty menu */
 	NSMenu *appMenu;
 	NSMenuItem *appMenuItem;
 
-#if defined(C_SDL2)
 	appMenu = [[NSMenu alloc] initWithTitle:@""];
 	[appMenu addItemWithTitle:@"About DOSBox-X" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
 
@@ -249,10 +249,13 @@ extern void ext_signal_host_key(bool enable);
 @implementation DOSBoxXTouchBarDelegate
 - (void)onHostKey:(id)sender
 {
+    (void)sender;
     fprintf(stderr,"HostKey\n");
 }
 
 - (NSTouchBarItem *)touchBar:(NSTouchBar *)touchBar makeItemForIdentifier:(NSTouchBarItemIdentifier)identifier {
+    (void)touchBar;
+
     if ([identifier isEqualToString:TouchBarMapperIdentifier]) {
         NSCustomTouchBarItem *item = [[NSCustomTouchBarItem alloc] initWithIdentifier:TouchBarMapperIdentifier];
 
