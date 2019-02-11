@@ -623,7 +623,7 @@ static void cache_init(bool enable) {
 		dyn_return(BR_Link2,false);
 
 		cache.pos=&cache_code_link_blocks[64];
-		core_dynrec.runcode=(BlockReturn (*)(Bit8u*))cache.pos;
+		*(void**)(&core_dynrec.runcode) = (void*)cache.pos;
 //		link_blocks[1].cache.start=cache.pos;
 		dyn_run_code();
 
