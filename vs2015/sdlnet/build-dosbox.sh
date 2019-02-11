@@ -5,6 +5,8 @@ mkdir -p linux-host || exit 1
 rm -Rfv linux-build || exit 1
 mkdir -p linux-build || exit 1
 
+./autogen.sh
+
 chmod +x configure || exit 1
 
 srcdir="`pwd`"
