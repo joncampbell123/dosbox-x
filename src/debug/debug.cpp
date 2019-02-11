@@ -2810,8 +2810,6 @@ const char *FPU_tag(unsigned int i) {
 }
 
 static void LogFPUInfo(void) {
-    char out1[512];
-
     DEBUG_BeginPagedContent();
 
     LOG(LOG_MISC,LOG_ERROR)("FPU TOP=%u",(unsigned int)fpu.top);
