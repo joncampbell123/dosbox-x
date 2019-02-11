@@ -7329,15 +7329,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     /* If that's true, then we can move one level up the tree and look for */
     /* /blah/blah/dosbox-x.app/Contents/Resources */
     {
-    const char *ref = argv[0];
-    const char *s = strrchr(ref,'/');
-    if (s != NULL) {
-        if (s > ref) s--;
-        while (s > ref && *s != '/') s--;
-        if (!strncasecmp(s,"/MacOS/",7)) {
-            MacOSXResPath = std::string(ref,(size_t)(s-ref)) + "/Resources";
+        const char *ref = argv[0];
+        const char *s = strrchr(ref,'/');
+        if (s != NULL) {
+            if (s > ref) s--;
+            while (s > ref && *s != '/') s--;
+            if (!strncasecmp(s,"/MacOS/",7)) {
+                MacOSXResPath = std::string(ref,(size_t)(s-ref)) + "/Resources";
+            }
         }
-    }
     }
 
     /* If we were launched by the Finder, the current working directory will usually be
