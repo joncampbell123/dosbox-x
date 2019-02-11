@@ -1836,9 +1836,6 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
         if (y < my) y = my;
     }
 
-    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++)
-        menu.get_item(*i).layoutSubmenu(menu, /*toplevel*/false);
-
     popupBox.w = maxx - popupBox.x;
     popupBox.h = y - popupBox.y;
 
@@ -1858,6 +1855,9 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
     popupBox.w += 1;
     /* 1 pixel border, bottom */
     popupBox.h += 1;
+
+    for (auto i=display_list.disp_list.begin();i!=display_list.disp_list.end();i++)
+        menu.get_item(*i).layoutSubmenu(menu, /*toplevel*/false);
 }
 
 void DOSBoxMenu::item::placeItemFinal(DOSBoxMenu &menu,int finalwidth,bool isTopLevel) {
