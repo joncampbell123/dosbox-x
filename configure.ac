@@ -960,6 +960,7 @@ if test x$enable_d3d9 = xyes; then
     case "$host" in
         *-*-cygwin* | *-*-mingw32*)
         if test x$have_d3d9_h = xyes -a x$have_d3dx9math_h = xyes ; then
+	    do_d3d=1
             AC_MSG_RESULT(yes)
             AH_TEMPLATE(C_DIRECT3D,[Define to 1 to enable Direct3D 9 display output support])
             AC_DEFINE(HAVE_D3D9_H,1)
@@ -978,6 +979,8 @@ if test x$enable_d3d9 = xyes; then
 else
   AC_MSG_RESULT(no)
 fi
+
+AM_CONDITIONAL(C_DIRECT3D, test x"$do_d3d" == x"1")
 
 AC_CONFIG_FILES([ 
 Makefile
@@ -1002,6 +1005,7 @@ src/libs/zmbv/Makefile
 src/libs/gui_tk/Makefile
 src/libs/porttalk/Makefile
 src/output/Makefile
+src/output/direct3d/Makefile
 src/builtin/Makefile
 src/misc/Makefile
 src/shell/Makefile
