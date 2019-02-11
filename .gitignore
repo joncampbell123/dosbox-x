@@ -8,6 +8,10 @@
 aclocal.m4
 configure
 
+vs2015/sdlnet/Makefile.in
+vs2015/sdlnet/aclocal.m4
+vs2015/sdlnet/configure
+
 # User-specific files
 *.suo
 *.user
