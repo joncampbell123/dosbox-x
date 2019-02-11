@@ -573,14 +573,6 @@ extern "C" void SDL1_hax_SetMenu(HMENU menu);
 # include <windows.h>
 #endif
 
-#if (HAVE_DDRAW_H)
-# include <ddraw.h>
-struct private_hwdata {
-    LPDIRECTDRAWSURFACE3            dd_surface;
-    LPDIRECTDRAWSURFACE3            dd_writebuf;
-};
-#endif
-
 #ifdef WIN32
 # define STDOUT_FILE                TEXT("stdout.txt")
 # define STDERR_FILE                TEXT("stderr.txt")
