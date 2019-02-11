@@ -1193,11 +1193,11 @@ public:
 
 static IPX* test;
 
-void IPX_ShutDown(Section* sec) {
+void IPX_ShutDown(Section*) {
 	delete test;    
 }
 
-void IPX_OnReset(Section* sec) {
+void IPX_OnReset(Section*) {
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating IPX emulation");
 		test = new IPX(control->GetSection("ipx"));

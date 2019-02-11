@@ -226,8 +226,4 @@ bool IPX_StartServer(Bit16u portnum) {
 	return false;
 }
 
-
-// save state support
-void *IPX_ServerLoop_PIC_Timer = (void*)IPX_ServerLoop;
-
 #endif

@@ -770,7 +770,7 @@ void CSerialModem::transmitByte(Bit8u val, bool first) {
 	//LOG_MSG("MODEM: Byte %x to be transmitted",val);
 }
 
-void CSerialModem::updatePortConfig(Bit16u, Bit8u lcr) { 
+void CSerialModem::updatePortConfig(Bit16u, Bit8u) { 
 // nothing to do here right?
 }
 
@@ -783,10 +783,11 @@ void CSerialModem::setBreak(bool) {
 }
 
 void CSerialModem::setRTSDTR(bool rts, bool dtr) {
+    (void)rts;
 	setDTR(dtr);
 }
 void CSerialModem::setRTS(bool val) {
-	
+	(void)val;
 }
 void CSerialModem::setDTR(bool val) {
 	if(!val && connected) {
