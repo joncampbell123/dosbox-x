@@ -139,6 +139,8 @@ bool gui_menu_exit(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     return true;
 }
 
+static bool gui_menu_init = true;
+
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     in_gui = true;
 
@@ -307,26 +309,30 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     WindowsTaskbarResetPreviewRegion();
 #endif
 
-    {
-        DOSBoxMenu::item &item = guiMenu.alloc_item(DOSBoxMenu::submenu_type_id,"ConfigGuiMenu");
-        item.set_text("Configuration GUI");
-    }
+    if (gui_menu_init) {
+        gui_menu_init = false;
 
-    {
-        DOSBoxMenu::item &item = guiMenu.alloc_item(DOSBoxMenu::item_type_id,"ExitGUI");
-        item.set_callback_function(gui_menu_exit);
-        item.set_text("Exit configuration GUI");
-    }
+        {
+            DOSBoxMenu::item &item = guiMenu.alloc_item(DOSBoxMenu::submenu_type_id,"ConfigGuiMenu");
+            item.set_text("Configuration GUI");
+        }
 
-    guiMenu.displaylist_clear(guiMenu.display_list);
+        {
+            DOSBoxMenu::item &item = guiMenu.alloc_item(DOSBoxMenu::item_type_id,"ExitGUI");
+            item.set_callback_function(gui_menu_exit);
+            item.set_text("Exit configuration GUI");
+        }
 
-    guiMenu.displaylist_append(
-        guiMenu.display_list,
-        guiMenu.get_item_id_by_name("ConfigGuiMenu"));
+        guiMenu.displaylist_clear(guiMenu.display_list);
 
-    {
         guiMenu.displaylist_append(
-            guiMenu.get_item("ConfigGuiMenu").display_list, guiMenu.get_item_id_by_name("ExitGUI"));
+                guiMenu.display_list,
+                guiMenu.get_item_id_by_name("ConfigGuiMenu"));
+
+        {
+            guiMenu.displaylist_append(
+                    guiMenu.get_item("ConfigGuiMenu").display_list, guiMenu.get_item_id_by_name("ExitGUI"));
+        }
     }
 
     guiMenu.rebuild();
