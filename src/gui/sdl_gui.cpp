@@ -132,6 +132,13 @@ void WindowsTaskbarUpdatePreviewRegion(void);
 void WindowsTaskbarResetPreviewRegion(void);
 #endif
 
+bool gui_menu_exit(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    running = false;
+    return true;
+}
+
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     in_gui = true;
 
@@ -300,6 +307,31 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     WindowsTaskbarResetPreviewRegion();
 #endif
 
+    {
+        DOSBoxMenu::item &item = guiMenu.alloc_item(DOSBoxMenu::submenu_type_id,"ConfigGuiMenu");
+        item.set_text("Configuration GUI");
+    }
+
+    {
+        DOSBoxMenu::item &item = guiMenu.alloc_item(DOSBoxMenu::item_type_id,"ExitGUI");
+        item.set_callback_function(gui_menu_exit);
+        item.set_text("Exit configuration GUI");
+    }
+
+    guiMenu.displaylist_clear(guiMenu.display_list);
+
+    guiMenu.displaylist_append(
+        guiMenu.display_list,
+        guiMenu.get_item_id_by_name("ConfigGuiMenu"));
+
+    {
+        guiMenu.displaylist_append(
+            guiMenu.get_item("ConfigGuiMenu").display_list, guiMenu.get_item_id_by_name("ExitGUI"));
+    }
+
+    guiMenu.rebuild();
+    DOSBox_SetMenu(guiMenu);
+
 	if (screen) screen->setSurface(sdlscreen);
 	else screen = new GUI::ScreenSDL(sdlscreen);
 
@@ -313,6 +345,8 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 static void UI_Shutdown(GUI::ScreenSDL *screen) {
 	SDL_Surface *sdlscreen = screen->getSurface();
 	render.src.bpp = (Bitu)saved_bpp;
+
+    DOSBox_SetMenu(mainMenu);
 
 #if defined(C_SDL2)
 	// fade in
@@ -1023,6 +1057,24 @@ static void UI_Execute(GUI::ScreenSDL *screen) {
 	// event loop
 	while (running) {
 		while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+#if !defined(C_SDL2) && defined(_WIN32) && !defined(HX_DOS)
+                case SDL_SYSWMEVENT : {
+                    switch ( event.syswm.msg->msg ) {
+                        case WM_COMMAND:
+# if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+                            if (GetMenu(GetHWND())) {
+                                if (guiMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->wParam))) return;
+                            }
+# endif
+                            break;
+                    }
+                } break;
+#endif
+                default:
+                    break;
+            }
+
 			if (!screen->event(event)) {
 				if (event.type == SDL_QUIT) running = false;
 			}
@@ -1147,6 +1199,24 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
 	// event loop
 	while (running) {
 		while (SDL_PollEvent(&event)) {
+            switch (event.type) {
+#if !defined(C_SDL2) && defined(_WIN32) && !defined(HX_DOS)
+                case SDL_SYSWMEVENT : {
+                    switch ( event.syswm.msg->msg ) {
+                        case WM_COMMAND:
+# if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+                            if (GetMenu(GetHWND())) {
+                                if (guiMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->wParam))) return;
+                            }
+# endif
+                            break;
+                    }
+                } break;
+#endif
+                default:
+                    break;
+            }
+
 			if (!screen->event(event)) {
 				if (event.type == SDL_QUIT) running = false;
 			}
