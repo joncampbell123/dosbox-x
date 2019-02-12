@@ -1,4 +1,6 @@
 0.82.16 (next)
+  - Mapper now allows user to exit by hitting ESC key three
+    times in a row.
   - Windows MinGW builds now properly support and enable the
     Direct3D output
   - Mac OS X builds now contain the correct version number in
