@@ -46,7 +46,7 @@
 # include <emscripten.h>
 #endif
 
-DOSBoxMenu mapperMenu;
+static DOSBoxMenu mapperMenu;
 
 #include <map>
 

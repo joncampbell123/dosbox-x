@@ -42,6 +42,8 @@
 
 #include "SDL_syswm.h"
 
+static DOSBoxMenu guiMenu;
+
 /* helper class for command execution */
 class VirtualBatch : public BatchFile {
 public:
