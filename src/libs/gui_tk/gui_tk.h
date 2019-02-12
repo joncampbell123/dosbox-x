@@ -2419,6 +2419,22 @@ public:
 		close->move(width/2-40, 20+message->getHeight());
 		resize(width, message->getHeight()+100);
 	}
+
+	virtual bool keyDown(const GUI::Key &key) {
+        if (GUI::ToplevelWindow::keyDown(key)) return true;
+        return false;
+    }
+
+	virtual bool keyUp(const GUI::Key &key) {
+        if (GUI::ToplevelWindow::keyUp(key)) return true;
+
+        if (key.special == GUI::Key::Escape) {
+            close->executeAction();
+            return true;
+        }
+
+        return false;
+    }
 };
 
 template <typename STR> ToplevelWindow::ToplevelWindow(Screen *parent, int x, int y, int w, int h, const STR title) :
