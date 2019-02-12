@@ -3579,8 +3579,11 @@ void BIND_MappingEvents(void) {
         case SDL_SYSWMEVENT : {
             switch ( event.syswm.msg->msg ) {
                 case WM_COMMAND:
-                    void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message);
-                    MSG_WM_COMMAND_handle(/*&*/(*event.syswm.msg));
+# if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+                    if (GetMenu(GetHWND())) {
+                        if (mapperMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->wParam))) return;
+                    }
+# endif
                     break;
             }
         } break;
