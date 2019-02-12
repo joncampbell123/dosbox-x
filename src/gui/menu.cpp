@@ -1186,7 +1186,6 @@ extern HMENU MainMenu;
 
 void DOSBox_SetMenu(void) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    /* FIXME: SDL menu is NOT AVAILABLE if OpenGL surface is used */
     {
         menu.toggle=true;
         mainMenu.showMenu();
