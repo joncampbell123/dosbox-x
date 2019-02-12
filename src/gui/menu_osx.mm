@@ -136,12 +136,21 @@ extern void PushDummySDL(void);
 extern bool MAPPER_IsRunning(void);
 extern bool GUI_IsRunning(void);
 
+static DOSBoxMenu *altMenu = NULL;
+
+void menu_osx_set_menuobj(DOSBoxMenu *new_altMenu) {
+    altMenu = new_altMenu;
+}
+
 @implementation NSApplication (DOSBoxX)
 - (void)DOSBoxXMenuAction:(id)sender
 {
     if (is_paused || MAPPER_IsRunning() || GUI_IsRunning()) return;
-	/* sorry! */
-	mainMenu.mainMenuAction([sender tag]);
+    /* sorry! */
+    if (altMenu != NULL)
+        altMenu->mainMenuAction([sender tag]);
+    else
+        mainMenu.mainMenuAction([sender tag]);
 }
 
 - (void)DOSBoxXMenuActionMapper:(id)sender
