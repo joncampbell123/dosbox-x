@@ -1,4 +1,8 @@
 0.82.16 (next)
+  - If DOSBox-X is run on a platform where the GUI provides
+    a menu resource, bringing up the mapper will replace the
+    main menu with a mapper-specific menu until you exit the
+    mapper.
   - Mapper now allows user to exit by hitting ESC key three
     times in a row.
   - Windows MinGW builds now properly support and enable the
