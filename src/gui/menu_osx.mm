@@ -139,7 +139,7 @@ extern bool GUI_IsRunning(void);
 static DOSBoxMenu *altMenu = NULL;
 
 void menu_osx_set_menuobj(DOSBoxMenu *new_altMenu) {
-    if (altMenu != NULL && altMenu != &mainMenu)
+    if (new_altMenu != NULL && new_altMenu != &mainMenu)
         altMenu = new_altMenu;
     else
         altMenu = NULL;
@@ -148,12 +148,14 @@ void menu_osx_set_menuobj(DOSBoxMenu *new_altMenu) {
 @implementation NSApplication (DOSBoxX)
 - (void)DOSBoxXMenuAction:(id)sender
 {
-    if (is_paused || MAPPER_IsRunning() || GUI_IsRunning()) return;
-    /* sorry! */
-    if (altMenu != NULL)
+    if (altMenu != NULL) {
         altMenu->mainMenuAction([sender tag]);
-    else
+    }
+    else {
+        if (is_paused || MAPPER_IsRunning() || GUI_IsRunning()) return;
+        /* sorry! */
         mainMenu.mainMenuAction([sender tag]);
+    }
 }
 
 - (void)DOSBoxXMenuActionMapper:(id)sender
