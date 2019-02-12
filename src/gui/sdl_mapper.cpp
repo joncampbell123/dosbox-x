@@ -50,6 +50,8 @@ std::map<std::string,std::string> pending_string_binds;
 
 void MAPPER_CheckKeyboardLayout();
 
+static int mapper_esc_count = 0;
+
 Bitu next_handler_xpos=0;
 Bitu next_handler_ypos=0;
 
@@ -3599,7 +3601,24 @@ void BIND_MappingEvents(void) {
                 char tmp[256];
 
                 // ESC is your magic key out of capture
-                if (s.sym == SDLK_ESCAPE && mouselocked) GFX_CaptureMouse();
+                if (s.sym == SDLK_ESCAPE) {
+                    if (mouselocked) {
+                        GFX_CaptureMouse();
+                        mapper_esc_count = 0;
+                    }
+                    else {
+                        if (event.type == SDL_KEYUP) {
+                            if (++mapper_esc_count == 3) {
+                                void MAPPER_ReleaseAllKeys(void);
+                                MAPPER_ReleaseAllKeys();
+                                mapper.exit=true;
+                            }
+                        }
+                    }
+                }
+                else {
+                    mapper_esc_count = 0;
+                }
 
                 size_t tmpl;
 #if defined(C_SDL2)
@@ -3846,6 +3865,7 @@ void MAPPER_RunInternal() {
         return;
     }
 
+    mapper_esc_count = 0;
     mapper.running = true;
 
 #if defined(__WIN32__) && !defined(C_SDL2) && !defined(C_HX_DOS)
