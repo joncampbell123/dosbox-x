@@ -319,6 +319,20 @@ extern void ext_signal_host_key(bool enable);
 @end
 #endif
 
+void osx_reload_touchbar(void) {
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
+    NSWindow *wnd = nil;
+
+# if !defined(C_SDL2)
+    wnd = sdl1_hax_get_window();
+# endif
+
+    if (wnd != nil) {
+        [wnd setTouchBar:nil];
+    }
+#endif
+}
+
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 101202/* touch bar interface appeared in 10.12.2+ according to Apple */
 NSTouchBar* osx_on_make_touch_bar(NSWindow *wnd) {
     (void)wnd;
@@ -327,18 +341,29 @@ NSTouchBar* osx_on_make_touch_bar(NSWindow *wnd) {
     touchBar.delegate = [DOSBoxXTouchBarDelegate alloc];
 
     touchBar.customizationIdentifier = TouchBarCustomIdentifier;
-    touchBar.defaultItemIdentifiers = @[
-        NSTouchBarItemIdentifierFixedSpaceLarge, // try to keep the user from hitting the ESC button accidentally when reaching for Host Key
-        TouchBarHostKeyIdentifier,
-        NSTouchBarItemIdentifierFixedSpaceLarge,
-        TouchBarPauseIdentifier,
-        NSTouchBarItemIdentifierFixedSpaceLarge,
-        TouchBarCursorCaptureIdentifier,
-        NSTouchBarItemIdentifierFixedSpaceLarge,
-        TouchBarMapperIdentifier,
-        TouchBarCFGGUIIdentifier,
-        NSTouchBarItemIdentifierOtherItemsProxy
-    ];
+    if (MAPPER_IsRunning()) {
+        touchBar.defaultItemIdentifiers = @[
+            NSTouchBarItemIdentifierFixedSpaceLarge, // try to keep the user from hitting the ESC button accidentally when reaching for Host Key
+            TouchBarHostKeyIdentifier,
+            NSTouchBarItemIdentifierFixedSpaceLarge,
+            NSTouchBarItemIdentifierOtherItemsProxy
+        ];
+    }
+    else {
+        touchBar.defaultItemIdentifiers = @[
+            NSTouchBarItemIdentifierFixedSpaceLarge, // try to keep the user from hitting the ESC button accidentally when reaching for Host Key
+            TouchBarHostKeyIdentifier,
+            NSTouchBarItemIdentifierFixedSpaceLarge,
+            TouchBarPauseIdentifier,
+            NSTouchBarItemIdentifierFixedSpaceLarge,
+            TouchBarCursorCaptureIdentifier,
+            NSTouchBarItemIdentifierFixedSpaceLarge,
+            TouchBarMapperIdentifier,
+            TouchBarCFGGUIIdentifier,
+            NSTouchBarItemIdentifierOtherItemsProxy
+        ];
+    }
+
     touchBar.customizationAllowedItemIdentifiers = @[
         TouchBarHostKeyIdentifier,
         TouchBarMapperIdentifier,
