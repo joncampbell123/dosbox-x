@@ -1575,7 +1575,7 @@ void DOSBox_RefreshMenu2(void) {
 	if(menu.toggle) {
 		menu.toggle=true;
         NonUserResizeCounter=1;
-        SDL1_hax_SetMenu(MainMenu);
+        SDL1_hax_SetMenu(mainMenu.getWinMenu());
 	} else {
 		menu.toggle=false;
         NonUserResizeCounter=1;
