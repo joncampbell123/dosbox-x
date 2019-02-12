@@ -3575,6 +3575,16 @@ void BIND_MappingEvents(void) {
 #endif
 
         switch (event.type) {
+#if !defined(C_SDL2) && defined(_WIN32) && !defined(HX_DOS)
+        case SDL_SYSWMEVENT : {
+            switch ( event.syswm.msg->msg ) {
+                case WM_COMMAND:
+                    void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message);
+                    MSG_WM_COMMAND_handle(/*&*/(*event.syswm.msg));
+                    break;
+            }
+        } break;
+#endif
 #if defined(C_SDL2) && !defined(IGNORE_TOUCHSCREEN)
         case SDL_FINGERUP:
             Mapper_FingerInputEvent(event);
