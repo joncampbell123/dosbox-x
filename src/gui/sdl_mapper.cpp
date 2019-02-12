@@ -44,6 +44,8 @@
 # include <emscripten.h>
 #endif
 
+DOSBoxMenu mapperMenu;
+
 #include <map>
 
 std::map<std::string,std::string> pending_string_binds;
@@ -3858,6 +3860,8 @@ void MAPPER_RunInternal() {
 
     MAPPER_ReleaseAllKeys();
 
+    mapperMenu.rebuild();
+
     /* Sorry, the MAPPER screws up 3Dfx OpenGL emulation.
      * Remove this block when fixed. */
     if (GFX_GetPreventFullscreen()) {
@@ -3915,6 +3919,8 @@ void MAPPER_RunInternal() {
 #if defined(WIN32) && !defined(HX_DOS)
     WindowsTaskbarResetPreviewRegion();
 #endif
+
+    DOSBox_SetMenu(mapperMenu);
 
     /* Go in the event loop */
     mapper.exit=false;  
@@ -3994,6 +4000,8 @@ void MAPPER_RunInternal() {
     GFX_ForceRedrawScreen();
 
     mapper.running = false;
+
+    DOSBox_SetMenu(mainMenu);
 }
 
 bool MAPPER_IsRunning(void) {
@@ -4058,6 +4066,42 @@ void MAPPER_StartUp() {
     mapper.sticks.num=0;
     mapper.sticks.num_groups=0;
     Bitu i;
+
+    {
+        mapperMenu.alloc_item(DOSBoxMenu::separator_type_id,"_separator_");
+    }
+
+    {
+        DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::submenu_type_id,"MapperMenu");
+        item.set_text("Mapper");
+    }
+
+    {
+        DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::item_type_id,"ExitMapper");
+        item.set_text("Exit mapper");
+    }
+
+    {
+        DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::item_type_id,"SaveMapper");
+        item.set_text("Save to mapper file");
+    }
+
+    mapperMenu.displaylist_clear(mapperMenu.display_list);
+
+    mapperMenu.displaylist_append(
+        mapperMenu.display_list,
+        mapperMenu.get_item_id_by_name("MapperMenu"));
+
+    {
+        mapperMenu.displaylist_append(
+            mapperMenu.get_item("MapperMenu").display_list, mapperMenu.get_item_id_by_name("ExitMapper"));
+
+        mapperMenu.displaylist_append(
+            mapperMenu.get_item("MapperMenu").display_list, mapperMenu.get_item_id_by_name("_separator_"));
+
+        mapperMenu.displaylist_append(
+            mapperMenu.get_item("MapperMenu").display_list, mapperMenu.get_item_id_by_name("SaveMapper"));
+    }
 
     LOG(LOG_MISC,LOG_DEBUG)("MAPPER starting up");
 

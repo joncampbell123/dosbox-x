@@ -1183,6 +1183,25 @@ bool DOSBox_isMenuVisible(void) {
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
 #endif
 
+void DOSBox_SetMenu(DOSBoxMenu &altMenu) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+    /* nothing to do */
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* TODO: Move to menu.cpp DOSBox_SetMenu() and add setmenu(NULL) to DOSBox_NoMenu() @emendelson request showmenu=false */
+    void sdl_hax_macosx_setmenu(void *nsMenu);
+    sdl_hax_macosx_setmenu(altMenu.getNsMenu());
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+	if(!menu.gui) return;
+    if(!menu.toggle) return;
+
+	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching custom menu resource to DOSBox's window");
+
+    NonUserResizeCounter=1;
+	SDL1_hax_SetMenu(altMenu.getWinMenu());
+#endif
+}
+
 void DOSBox_SetMenu(void) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     {

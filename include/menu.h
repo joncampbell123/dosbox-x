@@ -515,5 +515,7 @@ class DOSBoxMenu {
 
 extern DOSBoxMenu mainMenu;
 
+void DOSBox_SetMenu(DOSBoxMenu &altMenu);
+
 #endif /* MENU_DOSBOXMENU_H */
 
