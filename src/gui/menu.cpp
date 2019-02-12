@@ -1652,6 +1652,9 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 
     if (Message.msg != WM_COMMAND) return;
 #if defined(WIN32) && !defined(HX_DOS)
+    bool MAPPER_IsRunning(void);
+    bool GUI_IsRunning(void);
+
     if (!MAPPER_IsRunning() && !GUI_IsRunning()) {
         if (LOWORD(Message.wParam) == ID_WIN_SYSMENU_MAPPER) {
             extern void MAPPER_Run(bool pressed);
