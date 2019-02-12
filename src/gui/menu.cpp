@@ -1186,6 +1186,7 @@ extern "C" void SDL1_hax_SetMenu(HMENU menu);
 void DOSBox_SetMenu(DOSBoxMenu &altMenu) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     /* nothing to do */
+    (void)altMenu;
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* TODO: Move to menu.cpp DOSBox_SetMenu() and add setmenu(NULL) to DOSBox_NoMenu() @emendelson request showmenu=false */
     void sdl_hax_macosx_setmenu(void *nsMenu);
