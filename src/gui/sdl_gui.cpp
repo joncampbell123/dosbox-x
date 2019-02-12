@@ -976,10 +976,11 @@ public:
 
 class ConfigurationWindow : public GUI::ToplevelWindow {
 public:
+    GUI::Button *closeButton;
 	ConfigurationWindow(GUI::Screen *parent, GUI::Size x, GUI::Size y, GUI::String title) :
 		GUI::ToplevelWindow(parent, (int)x, (int)y, 580, 380, title) {
 
-		(new GUI::Button(this, 240, 305, "Close", 80))->addActionHandler(this);
+		(closeButton = new GUI::Button(this, 240, 305, "Close", 80))->addActionHandler(this);
 
 		GUI::Menubar *bar = new GUI::Menubar(this, 0, 0, getWidth());
 		bar->addMenu("Configuration");
@@ -1012,6 +1013,22 @@ public:
 	}
 
 	~ConfigurationWindow() { running = false; }
+
+	virtual bool keyDown(const GUI::Key &key) {
+        if (GUI::ToplevelWindow::keyDown(key)) return true;
+        return false;
+    }
+
+	virtual bool keyUp(const GUI::Key &key) {
+        if (GUI::ToplevelWindow::keyUp(key)) return true;
+
+        if (key.special == GUI::Key::Escape) {
+            closeButton->executeAction();
+            return true;
+        }
+
+        return false;
+    }
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
 		GUI::String sname = arg;
