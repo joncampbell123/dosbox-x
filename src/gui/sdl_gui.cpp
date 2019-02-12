@@ -761,6 +761,7 @@ public:
 };
 
 class AutoexecEditor : public GUI::ToplevelWindow {
+    GUI::Button *closeButton;
 	Section_line * section;
 	GUI::Input *content;
 public:
@@ -779,7 +780,7 @@ public:
 		content->setText(section->data);
 		if (first_shell) (new GUI::Button(this, 5, 220, "Append History"))->addActionHandler(this);
 		if (shell_idle) (new GUI::Button(this, 180, 220, "Execute Now"))->addActionHandler(this);
-		(new GUI::Button(this, 290, 220, "Cancel", 70))->addActionHandler(this);
+		(closeButton = new GUI::Button(this, 290, 220, "Cancel", 70))->addActionHandler(this);
 		(new GUI::Button(this, 360, 220, "OK", 70))->addActionHandler(this);
 	}
 
@@ -800,6 +801,23 @@ public:
 			UI_RunCommands(dynamic_cast<GUI::ScreenSDL*>(getScreen()), content->getText());
 		} else ToplevelWindow::actionExecuted(b, arg);
 	}
+
+	virtual bool keyDown(const GUI::Key &key) {
+        if (GUI::ToplevelWindow::keyDown(key)) return true;
+        return false;
+    }
+
+	virtual bool keyUp(const GUI::Key &key) {
+        if (GUI::ToplevelWindow::keyUp(key)) return true;
+
+        if (key.special == GUI::Key::Escape) {
+            closeButton->executeAction();
+            return true;
+        }
+
+        return false;
+    }
+
 };
 
 class SaveDialog : public GUI::ToplevelWindow {
