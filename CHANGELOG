@@ -1,8 +1,11 @@
 0.82.16 (next)
+  - Entering the mapper UI on Mac OS X will now hide all but
+    the Host Key button on the touch bar. Entering the
+    Configuration GUI will hide all buttons.
   - If DOSBox-X is run on a platform where the GUI provides
     a menu resource, bringing up the mapper will replace the
     main menu with a mapper-specific menu until you exit the
-    mapper.
+    mapper. Same for the configuration GUI.
   - Mapper now allows user to exit by hitting ESC key three
     times in a row.
   - Windows MinGW builds now properly support and enable the
