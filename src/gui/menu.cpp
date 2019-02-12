@@ -1651,17 +1651,19 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 
     if (Message.msg != WM_COMMAND) return;
 #if defined(WIN32) && !defined(HX_DOS)
-    if (LOWORD(Message.wParam) == ID_WIN_SYSMENU_MAPPER) {
-        extern void MAPPER_Run(bool pressed);
-        MAPPER_Run(false);
-    }
-    if (LOWORD(Message.wParam) == ID_WIN_SYSMENU_CFG_GUI) {
-        extern void GUI_Run(bool pressed);
-        GUI_Run(false);
-    }
-    if (LOWORD(Message.wParam) == ID_WIN_SYSMENU_PAUSE) {
-        extern void PauseDOSBox(bool pressed);
-        PauseDOSBox(true);
+    if (!MAPPER_IsRunning() && !GUI_IsRunning()) {
+        if (LOWORD(Message.wParam) == ID_WIN_SYSMENU_MAPPER) {
+            extern void MAPPER_Run(bool pressed);
+            MAPPER_Run(false);
+        }
+        if (LOWORD(Message.wParam) == ID_WIN_SYSMENU_CFG_GUI) {
+            extern void GUI_Run(bool pressed);
+            GUI_Run(false);
+        }
+        if (LOWORD(Message.wParam) == ID_WIN_SYSMENU_PAUSE) {
+            extern void PauseDOSBox(bool pressed);
+            PauseDOSBox(true);
+        }
     }
 #endif
     if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
