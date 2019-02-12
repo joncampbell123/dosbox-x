@@ -40,6 +40,8 @@
 #include "setup.h"
 #include "menu.h"
 
+#include "SDL_syswm.h"
+
 #if C_EMSCRIPTEN
 # include <emscripten.h>
 #endif
