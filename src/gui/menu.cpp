@@ -1181,7 +1181,6 @@ bool DOSBox_isMenuVisible(void) {
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
-extern HMENU MainMenu;
 #endif
 
 void DOSBox_SetMenu(void) {
@@ -1200,13 +1199,11 @@ void DOSBox_SetMenu(void) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 	if(!menu.gui) return;
 
-    if (MainMenu == NULL) return;
-
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
 
 	menu.toggle=true;
     NonUserResizeCounter=1;
-	SDL1_hax_SetMenu(MainMenu);
+	SDL1_hax_SetMenu(mainMenu.getWinMenu());
 	mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
 
 	Reflect_Menu();

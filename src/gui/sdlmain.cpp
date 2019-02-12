@@ -195,7 +195,6 @@ const char *scaler_menu_opts[][2] = {
 
 #if defined(WIN32) && !defined(C_SDL2)
 bool isVirtualBox = false; /* OpenGL never works with Windows XP inside VirtualBox */
-HMENU MainMenu = NULL;
 #endif
 
 bool OpenGL_using(void);
@@ -7756,10 +7755,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
         mainMenu.rebuild();
 
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-        /* -- menu */
-        MainMenu = mainMenu.getWinMenu();
-#endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
         mainMenu.screenWidth = (unsigned int)sdl.surface->w;
         mainMenu.updateRect();
