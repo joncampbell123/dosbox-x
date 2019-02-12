@@ -139,7 +139,10 @@ extern bool GUI_IsRunning(void);
 static DOSBoxMenu *altMenu = NULL;
 
 void menu_osx_set_menuobj(DOSBoxMenu *new_altMenu) {
-    altMenu = new_altMenu;
+    if (altMenu != NULL && altMenu != &mainMenu)
+        altMenu = new_altMenu;
+    else
+        altMenu = NULL;
 }
 
 @implementation NSApplication (DOSBoxX)
