@@ -341,7 +341,12 @@ NSTouchBar* osx_on_make_touch_bar(NSWindow *wnd) {
     touchBar.delegate = [DOSBoxXTouchBarDelegate alloc];
 
     touchBar.customizationIdentifier = TouchBarCustomIdentifier;
-    if (MAPPER_IsRunning()) {
+    if (GUI_IsRunning()) {
+        touchBar.defaultItemIdentifiers = @[
+            NSTouchBarItemIdentifierOtherItemsProxy
+        ];
+    }
+    else if (MAPPER_IsRunning()) {
         touchBar.defaultItemIdentifiers = @[
             NSTouchBarItemIdentifierFixedSpaceLarge, // try to keep the user from hitting the ESC button accidentally when reaching for Host Key
             TouchBarHostKeyIdentifier,
