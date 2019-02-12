@@ -1,4 +1,6 @@
 0.82.16 (next)
+  - Configuration GUI now allows user to exit dialog boxes
+    and windows by hitting the ESC key.
   - Entering the mapper UI on Mac OS X will now hide all but
     the Host Key button on the touch bar. Entering the
     Configuration GUI will hide all buttons.
