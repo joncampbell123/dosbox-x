@@ -4035,6 +4035,20 @@ void MAPPER_CheckKeyboardLayout() {
 #endif
 }
 
+bool mapper_menu_exit(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    mapper.exit=true;
+    return true;
+}
+
+bool mapper_menu_save(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    MAPPER_SaveBinds();
+    return true;
+}
+
 void MAPPER_Init(void) {
     LOG(LOG_MISC,LOG_DEBUG)("Initializing DOSBox mapper");
 
@@ -4093,12 +4107,14 @@ void MAPPER_StartUp() {
 
     {
         DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::item_type_id,"ExitMapper");
+        item.set_callback_function(mapper_menu_exit);
         item.set_text("Exit mapper");
     }
 
     {
         DOSBoxMenu::item &item = mapperMenu.alloc_item(DOSBoxMenu::item_type_id,"SaveMapper");
-        item.set_text("Save to mapper file");
+        item.set_callback_function(mapper_menu_save);
+        item.set_text("Save mapper file");
     }
 
     mapperMenu.displaylist_clear(mapperMenu.display_list);
