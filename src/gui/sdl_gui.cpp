@@ -639,6 +639,7 @@ public:
 
 class SectionEditor : public GUI::ToplevelWindow {
 	Section_prop * section;
+    GUI::Button * closeButton;
 public:
 	SectionEditor(GUI::Screen *parent, int x, int y, Section_prop *section) :
 		ToplevelWindow(parent, x, y, 510, 442, ""), section(section) {
@@ -703,9 +704,12 @@ public:
 
 		GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, "Cancel", button_w);
 		b->addActionHandler(this);
+        closeButton = b;
+
 		b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, "Help", button_w);
 		b->addActionHandler(this);
-		b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, "OK", button_w);
+
+        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, "OK", button_w);
 
 		int i = 0;
 		Property *prop;
@@ -737,6 +741,23 @@ public:
 		else if (arg == "Help") new HelpWindow(static_cast<GUI::Screen*>(parent), getX()-10, getY()-10, section);
 		else ToplevelWindow::actionExecuted(b, arg);
 	}
+
+	virtual bool keyDown(const GUI::Key &key) {
+        if (GUI::ToplevelWindow::keyDown(key)) return true;
+        return false;
+    }
+
+	virtual bool keyUp(const GUI::Key &key) {
+        if (GUI::ToplevelWindow::keyUp(key)) return true;
+
+        if (key.special == GUI::Key::Escape) {
+            closeButton->executeAction();
+            return true;
+        }
+
+        return false;
+    }
+
 };
 
 class AutoexecEditor : public GUI::ToplevelWindow {
