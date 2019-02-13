@@ -106,21 +106,21 @@ bool                                    mapper_addhandler_create_buttons = false
 bool                                    isJPkeyboard = false;
 
 //! \brief Floating-point vector with 2 components.
-struct Vector2
+struct DOSBox_Vector2
 {
 	float X, Y;
 
-	Vector2(float x, float y) : X(x), Y(y)
+	DOSBox_Vector2(const float x, const float y) : X(x), Y(y)
 	{
 
 	}
 
-	Vector2() : X(0.0f), Y(0.0f)
+	DOSBox_Vector2() : X(0.0f), Y(0.0f)
 	{
 
 	}
 
-	Vector2 clamp(Vector2 min, Vector2 max) const
+	DOSBox_Vector2 clamp(const DOSBox_Vector2 min, const DOSBox_Vector2 max) const
 	{
 		float x = this->X;
 		float y = this->Y;
@@ -130,29 +130,29 @@ struct Vector2
 		float ymax = max.Y;
 		x = x < xmin ? xmin : x > xmax ? xmax : x;
 		y = y < ymin ? ymin : y > ymax ? ymax : y;
-		Vector2 clamp = Vector2(x, y);
+		DOSBox_Vector2 clamp = DOSBox_Vector2(x, y);
 		return clamp;
 	}
 
-	float magnitude() const
+	float magnitude(void) const
 	{
 		return sqrt(sqrMagnitude());
 	}
 
-	float sqrMagnitude() const
+	float sqrMagnitude(void) const
 	{
 		return X * X + Y * Y;
 	}
 
-	Vector2 normalized() const
+	DOSBox_Vector2 normalized(void) const
 	{
 		float m = this->magnitude();
-		return m > 0.0f ? Vector2(this->X / m, this->Y / m) : Vector2();
+		return m > 0.0f ? DOSBox_Vector2(this->X / m, this->Y / m) : DOSBox_Vector2();
 	}
 
-	Vector2 operator*(float f) const
+	DOSBox_Vector2 operator*(const float f) const
 	{
-		return Vector2(this->X * f, this->Y * f);
+		return DOSBox_Vector2(this->X * f, this->Y * f);
 	}
 };
 
@@ -1393,18 +1393,18 @@ private:
 		return response;
 	}
 
-	static void ProcessInput(Bit16s x, Bit16s y, float deadzone, Vector2& joy)
+	static void ProcessInput(Bit16s x, Bit16s y, float deadzone, DOSBox_Vector2& joy)
 	{
 		// http://www.third-helix.com/2013/04/12/doing-thumbstick-dead-zones-right.html
 
-		joy = Vector2((x + 0.5f) / 32767.5f, (y + 0.5f) / 32767.5f);
+		joy = DOSBox_Vector2((x + 0.5f) / 32767.5f, (y + 0.5f) / 32767.5f);
 
 		float m = joy.magnitude();
-		Vector2 n = joy.normalized();
-		joy = m < deadzone ? Vector2() : n * ((m - deadzone) / (1.0f - deadzone));
+		DOSBox_Vector2 n = joy.normalized();
+		joy = m < deadzone ? DOSBox_Vector2() : n * ((m - deadzone) / (1.0f - deadzone));
 
-		Vector2 min = Vector2(-1.0f, -1.0f);
-		Vector2 max = Vector2(+1.0f, +1.0f);
+		DOSBox_Vector2 min = DOSBox_Vector2(-1.0f, -1.0f);
+		DOSBox_Vector2 max = DOSBox_Vector2(+1.0f, +1.0f);
 		joy = joy.clamp(min, max);
 	}
 
@@ -1424,7 +1424,7 @@ protected:
     Uint8 old_hat_state[16];
     bool is_dummy;
 
-	Vector2 GetJoystickVector(int joystick, int thumbStick, int xAxis, int yAxis) const
+	DOSBox_Vector2 GetJoystickVector(int joystick, int thumbStick, int xAxis, int yAxis) const
 	{
 		Bit16s x = virtual_joysticks[joystick].axis_pos[xAxis];
 		Bit16s y = virtual_joysticks[joystick].axis_pos[yAxis];
@@ -1448,11 +1448,11 @@ protected:
 			deadzone = joy2dz1;
 			response = joy2rs1;
 		}
-		Vector2 v;
+		DOSBox_Vector2 v;
 		ProcessInput(x, y, deadzone, v);
 		float x1 = sgn(v.X) * abs(pow(v.X, response));
 		float y1 = sgn(v.Y) * abs(pow(v.Y, response));
-		Vector2 v1(x1, y1);
+		DOSBox_Vector2 v1(x1, y1);
 		return v1;
 	}
 };
