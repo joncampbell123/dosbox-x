@@ -40,6 +40,10 @@
 #include "cross.h"
 #include "keymap.h"
 
+static std::string          zip_nv_pair_empty;
+
+static char                 zip_nv_tmp[1024];
+
 bool ZIPFileEntry::rewind(void) {
     if (can_write) return false;
     return (seek_file(0) == 0);
@@ -369,9 +373,6 @@ void ZIPFile::writeZIPFooter(void) {
     current_entry.clear();
 }
 
-// MOVE
-static std::string zip_nv_pair_empty;
-
 zip_nv_pair_map::zip_nv_pair_map() {
 }
 
@@ -450,8 +451,6 @@ void zip_nv_pair_map::read_nv_pairs(ZIPFileEntry &ent) {
         w = line;
     }
 }
-
-static char zip_nv_tmp[1024];
 
 void zip_nv_write(ZIPFileEntry &ent,const char *name,bool val) {
     size_t l;
