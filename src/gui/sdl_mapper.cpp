@@ -208,6 +208,15 @@ static CModEvent*                               mod_event[8] = {NULL};
 
 static std::map<std::string, size_t>            name_to_events;
 
+static SDL_Color                                map_pal[5] =
+{
+    {0x00,0x00,0x00,0x00},          //0=black
+    {0xff,0xff,0xff,0x00},          //1=white
+    {0xff,0x00,0x00,0x00},          //2=red
+    {0x10,0x30,0xff,0x00},          //3=blue
+    {0x00,0xff,0x20,0x00}           //4=green
+};
+
 static void                                     SetActiveEvent(CEvent * event);
 static void                                     SetActiveBind(CBind * _bind);
 static void                                     change_action_text(const char* text,Bit8u col);
@@ -3104,14 +3113,6 @@ static void CreateLayout(void) {
 
     mapper_addhandler_create_buttons = true;
 }
-
-static SDL_Color map_pal[5]={
-    {0x00,0x00,0x00,0x00},          //0=black
-    {0xff,0xff,0xff,0x00},          //1=white
-    {0xff,0x00,0x00,0x00},          //2=red
-    {0x10,0x30,0xff,0x00},          //3=blue
-    {0x00,0xff,0x20,0x00}           //4=green
-};
 
 static void CreateStringBind(char * line,bool loading=false) {
     std::string o_line = line;
