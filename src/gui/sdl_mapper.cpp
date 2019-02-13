@@ -116,32 +116,32 @@ typedef std::vector<CHandlerEvent *>::iterator  CHandlerEventVector_it;
 typedef std::vector<CBindGroup *>::iterator     CBindGroup_it;
 
 static struct {
-    bool                                button_pressed[MAX_VJOY_BUTTONS];
-    Bit16s                              axis_pos[MAX_VJOY_AXES];
-    bool                                hat_pressed[16];
+    bool                                        button_pressed[MAX_VJOY_BUTTONS];
+    Bit16s                                      axis_pos[MAX_VJOY_AXES];
+    bool                                        hat_pressed[16];
 } virtual_joysticks[2];
 
 static struct CMapper {
 #if defined(C_SDL2)
-    SDL_Window * window;
-    SDL_Rect draw_rect;
-    SDL_Surface * draw_surface_nonpaletted;
-    SDL_Surface * draw_surface;
+    SDL_Window*                                 window;
+    SDL_Rect                                    draw_rect;
+    SDL_Surface*                                draw_surface_nonpaletted;
+    SDL_Surface*                                draw_surface;
 #endif
-    SDL_Surface * surface;
-    bool exit;
-    CEvent * aevent;                //Active Event
-    CBind * abind;                  //Active Bind
-    CBindList_it abindit;           //Location of active bind in list
-    bool redraw;
-    bool addbind;
-    bool running=false;
-    Bitu mods;
+    SDL_Surface*                                surface;
+    bool                                        exit;
+    CEvent*                                     aevent;                     //Active Event
+    CBind*                                      abind;                      //Active Bind
+    CBindList_it                                abindit;                    //Location of active bind in list
+    bool                                        redraw;
+    bool                                        addbind;
+    bool                                        running = false;
+    Bitu                                        mods;
     struct {
-        Bitu num_groups,num;
-        CStickBindGroup * stick[MAXSTICKS];
+        Bitu                                    num_groups,num;
+        CStickBindGroup*                        stick[MAXSTICKS];
     } sticks;
-    std::string filename;
+    std::string                                 filename;
 } mapper;
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
