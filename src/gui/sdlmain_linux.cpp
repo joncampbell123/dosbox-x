@@ -414,10 +414,11 @@ void UpdateWindowDimensions_Linux(void) {
 #endif
 }
 
+#if C_X11
 /* Retrieve screen size/dimensions/DPI using XRandR */
 static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display,Window window) {
     bool result = false;
-#if C_X11_XRANDR
+# if C_X11_XRANDR
     XRRScreenResources *xr_screen;
     XWindowAttributes attr;
     int x = 0, y = 0;
@@ -509,10 +510,11 @@ static bool Linux_TryXRandrGetDPI(ScreenSizeInfo &info,Display *display,Window w
         XRRFreeScreenResources(xr_screen);
         xr_screen = NULL;
     }
-#endif
+# endif
 
     return result;
 }
+#endif
 
 void Linux_GetWindowDPI(ScreenSizeInfo &info) {
     info.clear();
