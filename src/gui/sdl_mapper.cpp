@@ -70,6 +70,18 @@
 #define MAX_VJOY_AXES           8
 
 
+class CEvent;
+class CHandlerEvent;
+class CButton;
+class CBind;
+class CBindGroup;
+class CJAxisBind;
+class CJButtonBind;
+class CJHatBind;
+class CKeyBind;
+class CKeyBindGroup;
+class CStickBindGroup;
+
 enum {
     CLR_BLACK = 0,
     CLR_WHITE = 1,
@@ -95,11 +107,42 @@ enum BC_Types {
     BC_Hold
 };
 
+typedef std::list<CBind *>                      CBindList;
+typedef std::list<CEvent *>::iterator           CEventList_it;
+typedef std::list<CBind *>::iterator            CBindList_it;
+typedef std::vector<CButton *>::iterator        CButton_it;
+typedef std::vector<CEvent *>::iterator         CEventVector_it;
+typedef std::vector<CHandlerEvent *>::iterator  CHandlerEventVector_it;
+typedef std::vector<CBindGroup *>::iterator     CBindGroup_it;
+
 static struct {
     bool                                button_pressed[MAX_VJOY_BUTTONS];
     Bit16s                              axis_pos[MAX_VJOY_AXES];
     bool                                hat_pressed[16];
 } virtual_joysticks[2];
+
+static struct CMapper {
+#if defined(C_SDL2)
+    SDL_Window * window;
+    SDL_Rect draw_rect;
+    SDL_Surface * draw_surface_nonpaletted;
+    SDL_Surface * draw_surface;
+#endif
+    SDL_Surface * surface;
+    bool exit;
+    CEvent * aevent;                //Active Event
+    CBind * abind;                  //Active Bind
+    CBindList_it abindit;           //Location of active bind in list
+    bool redraw;
+    bool addbind;
+    bool running=false;
+    Bitu mods;
+    struct {
+        Bitu num_groups,num;
+        CStickBindGroup * stick[MAXSTICKS];
+    } sticks;
+    std::string filename;
+} mapper;
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
 static DOSBoxMenu                       mapperMenu;
@@ -126,25 +169,6 @@ int                                     joy1axes[8];
 
 //! \brief map of joystick 2 axes
 int                                     joy2axes[8];
-
-class CEvent;
-class CHandlerEvent;
-class CButton;
-class CBind;
-class CBindGroup;
-class CJAxisBind;
-class CJButtonBind;
-class CJHatBind;
-class CKeyBind;
-class CKeyBindGroup;
-
-typedef std::list<CBind *>                      CBindList;
-typedef std::list<CEvent *>::iterator           CEventList_it;
-typedef std::list<CBind *>::iterator            CBindList_it;
-typedef std::vector<CButton *>::iterator        CButton_it;
-typedef std::vector<CEvent *>::iterator         CEventVector_it;
-typedef std::vector<CHandlerEvent *>::iterator  CHandlerEventVector_it;
-typedef std::vector<CBindGroup *>::iterator     CBindGroup_it;
 
 static std::vector<CEvent *>                    events;
 static std::vector<CButton *>                   buttons;
@@ -1735,29 +1759,6 @@ public:
 protected:
     Bit16u button_state;
 };
-
-static struct CMapper {
-#if defined(C_SDL2)
-    SDL_Window * window;
-    SDL_Rect draw_rect;
-    SDL_Surface * draw_surface_nonpaletted;
-    SDL_Surface * draw_surface;
-#endif
-    SDL_Surface * surface;
-    bool exit;
-    CEvent * aevent;                //Active Event
-    CBind * abind;                  //Active Bind
-    CBindList_it abindit;           //Location of active bind in list
-    bool redraw;
-    bool addbind;
-    bool running=false;
-    Bitu mods;
-    struct {
-        Bitu num_groups,num;
-        CStickBindGroup * stick[MAXSTICKS];
-    } sticks;
-    std::string filename;
-} mapper;
 
 /* whether to run keystrokes through system but only to show how it comes out.
  * otherwise, do full mapper processing. */
