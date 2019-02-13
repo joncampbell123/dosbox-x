@@ -126,6 +126,8 @@ class CBindGroup;
 class CJAxisBind;
 class CJButtonBind;
 class CJHatBind;
+class CKeyBind;
+class CKeyBindGroup;
 
 typedef std::list<CBind *>                      CBindList;
 typedef std::list<CEvent *>::iterator           CEventList_it;
@@ -704,9 +706,6 @@ Bitu GetKeyCode(SDL_keysym keysym) {
 }
 
 #endif /* !defined(C_SDL2) */
-
-class CKeyBind;
-class CKeyBindGroup;
 
 class CKeyBind : public CBind {
 public:
