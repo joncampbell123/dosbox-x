@@ -214,6 +214,13 @@ static void                                     MAPPER_SaveBinds(void);
 CEvent*                                         get_mapper_event_by_name(const std::string &x);
 bool                                            MAPPER_DemoOnly(void);
 
+bool                                            GFX_GetPreventFullscreen(void);         // external
+void                                            GFX_ForceRedrawScreen(void);            // external
+#if defined(WIN32) && !defined(HX_DOS)
+void                                            WindowsTaskbarUpdatePreviewRegion(void);// external
+void                                            WindowsTaskbarResetPreviewRegion(void); // external
+#endif
+
 //! \brief Base CEvent class for mapper events
 class CEvent {
 public:
@@ -3818,14 +3825,7 @@ void MAPPER_Run(bool pressed) {
     PIC_AddEvent(MAPPER_RunEvent,0.0001f);  //In case mapper deletes the key object that ran it
 }
 
-#if defined(WIN32) && !defined(HX_DOS)
-void WindowsTaskbarUpdatePreviewRegion(void);
-void WindowsTaskbarResetPreviewRegion(void);
-#endif
-
 void MAPPER_RunInternal() {
-    bool GFX_GetPreventFullscreen(void);
-
     MAPPER_ReleaseAllKeys();
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
@@ -3973,7 +3973,6 @@ void MAPPER_RunInternal() {
     mainMenu.rebuild();
 #endif
 
-    void GFX_ForceRedrawScreen(void);
     GFX_ForceRedrawScreen();
 
     mapper.running = false;
