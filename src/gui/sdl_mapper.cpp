@@ -190,6 +190,9 @@ bool                                            isJPkeyboard = false;
 //! \brief joystick autofire config option
 bool                                            autofire = false;
 
+//! \brief log scancodes for debugging config option
+bool                                            log_keyboard_scan_codes = false;
+
 //! \brief map of joystick 1 axes
 int                                             joy1axes[8];
 
@@ -214,6 +217,7 @@ static void                                     MAPPER_SaveBinds(void);
 CEvent*                                         get_mapper_event_by_name(const std::string &x);
 bool                                            MAPPER_DemoOnly(void);
 
+Bitu                                            GUI_JoystickCount(void);                // external
 bool                                            GFX_GetPreventFullscreen(void);         // external
 void                                            GFX_ForceRedrawScreen(void);            // external
 #if defined(WIN32) && !defined(HX_DOS)
@@ -3480,8 +3484,6 @@ static bool MAPPER_LoadBinds(void) {
     return true;
 }
 
-bool log_keyboard_scan_codes = false;
-
 void MAPPER_CheckEvent(SDL_Event * event) {
     for (CBindGroup_it it=bindgroups.begin();it!=bindgroups.end();it++) {
         if ((*it)->CheckEvent(event)) return;
@@ -3518,8 +3520,6 @@ void Mapper_FingerInputEvent(SDL_Event &event) {
     Mapper_MouseInputEvent(ev);
 }
 #endif
-
-Bitu GUI_JoystickCount(void);
 
 void BIND_MappingEvents(void) {
     SDL_Event event;
