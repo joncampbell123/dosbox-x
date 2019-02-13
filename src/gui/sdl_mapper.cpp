@@ -81,6 +81,7 @@ class CJHatBind;
 class CKeyBind;
 class CKeyBindGroup;
 class CStickBindGroup;
+class CModEvent;
 
 enum {
     CLR_BLACK = 0,
@@ -175,11 +176,15 @@ static std::vector<CButton *>                   buttons;
 static std::vector<CBindGroup *>                bindgroups;
 static std::vector<CHandlerEvent *>             handlergroup;
 
+static CModEvent*                               mod_event[8] = {NULL};
+
 static std::map<std::string, size_t>            name_to_events;
 
 static void                                     SetActiveEvent(CEvent * event);
 static void                                     SetActiveBind(CBind * _bind);
 static void                                     change_action_text(const char* text,Bit8u col);
+static void                                     DrawText(Bitu x,Bitu y,const char * text,Bit8u color,Bit8u bkcolor=CLR_BLACK);
+static void                                     MAPPER_SaveBinds(void);
 
 CEvent*                                         get_mapper_event_by_name(const std::string &x);
 bool                                            MAPPER_DemoOnly(void);
@@ -1761,25 +1766,6 @@ protected:
     Bit16u button_state;
 };
 
-/* whether to run keystrokes through system but only to show how it comes out.
- * otherwise, do full mapper processing. */
-bool MAPPER_DemoOnly(void) {
-    return !mapper.exit;
-}
-
-CEvent *get_mapper_event_by_name(const std::string &x) {
-    auto i = name_to_events.find(x);
-
-    if (i != name_to_events.end()) {
-        if (i->second >= events.size())
-            E_Exit("Mapper: name to events contains out of range index for \"%s\"",x.c_str());
-
-        return events[i->second];
-    }
-
-    return NULL;
-}
-
 void CBindGroup::ActivateBindList(CBindList * list,Bits value,bool ev_trigger) {
     Bitu validmod=0;
     CBindList_it it;
@@ -1798,32 +1784,6 @@ void CBindGroup::DeactivateBindList(CBindList * list,bool ev_trigger) {
     CBindList_it it;
     for (it=list->begin();it!=list->end();it++) {
         (*it)->DeActivateBind(ev_trigger);
-    }
-}
-
-static void DrawText(Bitu x,Bitu y,const char * text,Bit8u color,Bit8u bkcolor=CLR_BLACK) {
-#if defined(C_SDL2)
-    Bit8u * draw=((Bit8u *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
-#else
-    Bit8u * draw=((Bit8u *)mapper.surface->pixels)+(y*mapper.surface->pitch)+x;
-#endif
-    while (*text) {
-        Bit8u * font=&int10_font_14[(*text)*14];
-        Bitu i,j;Bit8u * draw_line=draw;
-        for (i=0;i<14;i++) {
-            Bit8u map=*font++;
-            for (j=0;j<8;j++) {
-                if (map & 0x80) *(draw_line+j)=color;
-                else *(draw_line+j)=bkcolor;
-                map<<=1;
-            }
-#if defined(C_SDL2)
-            draw_line+=mapper.draw_surface->w;
-#else
-            draw_line+=mapper.surface->pitch;
-#endif
-        }
-        text++;draw+=8;
     }
 }
 
@@ -1990,7 +1950,6 @@ void CCaptionButton::Change(const char * format,...) {
     mapper.redraw=true;
 }       
 
-static void MAPPER_SaveBinds(void);
 class CBindButton : public CTextButton {
 public: 
     CBindButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy,const char * _text,BB_Types _type) 
@@ -2298,8 +2257,6 @@ protected:
     Bitu wmod;
 };
 
-static CModEvent* mod_event[8] = {NULL};
-
 std::string CBind::GetModifierText(void) {
     std::string r,t;
 
@@ -2559,6 +2516,52 @@ public:
     //! \brief Button name
     const char * buttonname;
 };
+
+/* whether to run keystrokes through system but only to show how it comes out.
+ * otherwise, do full mapper processing. */
+bool MAPPER_DemoOnly(void) {
+    return !mapper.exit;
+}
+
+CEvent *get_mapper_event_by_name(const std::string &x) {
+    auto i = name_to_events.find(x);
+
+    if (i != name_to_events.end()) {
+        if (i->second >= events.size())
+            E_Exit("Mapper: name to events contains out of range index for \"%s\"",x.c_str());
+
+        return events[i->second];
+    }
+
+    return NULL;
+}
+
+static void DrawText(Bitu x,Bitu y,const char * text,Bit8u color,Bit8u bkcolor/*=CLR_BLACK*/) {
+#if defined(C_SDL2)
+    Bit8u * draw=((Bit8u *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
+#else
+    Bit8u * draw=((Bit8u *)mapper.surface->pixels)+(y*mapper.surface->pitch)+x;
+#endif
+    while (*text) {
+        Bit8u * font=&int10_font_14[(*text)*14];
+        Bitu i,j;Bit8u * draw_line=draw;
+        for (i=0;i<14;i++) {
+            Bit8u map=*font++;
+            for (j=0;j<8;j++) {
+                if (map & 0x80) *(draw_line+j)=color;
+                else *(draw_line+j)=bkcolor;
+                map<<=1;
+            }
+#if defined(C_SDL2)
+            draw_line+=mapper.draw_surface->w;
+#else
+            draw_line+=mapper.surface->pitch;
+#endif
+        }
+        text++;draw+=8;
+    }
+}
+
 
 void MAPPER_TriggerEventByName(const std::string name) {
     CEvent *event = get_mapper_event_by_name(name);
