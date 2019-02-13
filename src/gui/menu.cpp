@@ -332,30 +332,30 @@ bool DOSBoxMenu::mainMenuAction(unsigned int id) {
 
 void DOSBoxMenu::item::nsAppendMenu(void* parent_nsMenu) {
     if (type == separator_type_id) {
-	sdl_hax_nsMenuAddItem(parent_nsMenu, sdl_hax_nsMenuAllocSeparator());
+    sdl_hax_nsMenuAddItem(parent_nsMenu, sdl_hax_nsMenuAllocSeparator());
     }
     else if (type == vseparator_type_id) {
-	sdl_hax_nsMenuAddItem(parent_nsMenu, sdl_hax_nsMenuAllocSeparator());
+    sdl_hax_nsMenuAddItem(parent_nsMenu, sdl_hax_nsMenuAllocSeparator());
     }
     else if (type == submenu_type_id) {
-	if (nsMenu != NULL) {
-		// NTS: You have to make a menu ITEM who's submenu is the submenu object
-		nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
+    if (nsMenu != NULL) {
+        // NTS: You have to make a menu ITEM who's submenu is the submenu object
+        nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
 
-		sdl_hax_nsMenuItemSetTag(nsMenuItem, master_id + nsMenuMinimumID);
-		sdl_hax_nsMenuItemSetSubmenu(nsMenuItem, nsMenu);
-		sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
-		sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
-		sdl_hax_nsMenuItemRelease(nsMenuItem);
-	}
+        sdl_hax_nsMenuItemSetTag(nsMenuItem, master_id + nsMenuMinimumID);
+        sdl_hax_nsMenuItemSetSubmenu(nsMenuItem, nsMenu);
+        sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
+        sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
+        sdl_hax_nsMenuItemRelease(nsMenuItem);
+    }
     }
     else if (type == item_type_id) {
-	nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
+    nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
 
-	sdl_hax_nsMenuItemSetTag(nsMenuItem, master_id + nsMenuMinimumID);
-	sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
-	sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
-	sdl_hax_nsMenuItemRelease(nsMenuItem);
+    sdl_hax_nsMenuItemSetTag(nsMenuItem, master_id + nsMenuMinimumID);
+    sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
+    sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
+    sdl_hax_nsMenuItemRelease(nsMenuItem);
     }
 }
 
@@ -385,9 +385,9 @@ bool DOSBoxMenu::nsMenuInit(void) {
         if ((nsMenu = sdl_hax_nsMenuAlloc("")) == NULL)
             return false;
 
-	/* For whatever reason, Mac OS X will always make the first top level menu
-	   the Application menu and will put the name of the app there NO MATTER WHAT */
-	sdl_hax_nsMenuAddApplicationMenu(nsMenu);
+    /* For whatever reason, Mac OS X will always make the first top level menu
+       the Application menu and will put the name of the app there NO MATTER WHAT */
+    sdl_hax_nsMenuAddApplicationMenu(nsMenu);
 
         /* top level */
         for (auto id : display_list.disp_list) {
@@ -402,15 +402,15 @@ bool DOSBoxMenu::nsMenuInit(void) {
             item.nsAppendMenu(nsMenu);
         }
 
-	/* release our handle on the nsMenus. Mac OS X will keep them alive with it's
-	   reference until the menu is destroyed at which point all items and submenus
-	   will be automatically destroyed */
-	for (auto &id : master_list) {
-		if (id.nsMenu != NULL) {
-		    sdl_hax_nsMenuRelease(id.nsMenu);
-		    id.nsMenu = NULL;
-		}
-	}
+    /* release our handle on the nsMenus. Mac OS X will keep them alive with it's
+       reference until the menu is destroyed at which point all items and submenus
+       will be automatically destroyed */
+    for (auto &id : master_list) {
+        if (id.nsMenu != NULL) {
+            sdl_hax_nsMenuRelease(id.nsMenu);
+            id.nsMenu = NULL;
+        }
+    }
     }
 
     return true;
@@ -424,7 +424,7 @@ void DOSBoxMenu::nsMenuDestroy(void) {
 }
 
 void* DOSBoxMenu::getNsMenu(void) const {
-	return nsMenu;
+    return nsMenu;
 }
 #endif
 
@@ -573,34 +573,34 @@ void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
         else
             phandle = menu.winMenu;
 
-		if (phandle != NULL) {
-			if (type == separator_type_id) {
-				/* none */
-			}
-			else if (type == vseparator_type_id) {
-				/* none */
-			}
-			else if (type == submenu_type_id) {
-				/* TODO: Can't change by ID, have to change by position */
-			}
-			else if (type == item_type_id) {
-				unsigned int attr = MF_STRING;
+        if (phandle != NULL) {
+            if (type == separator_type_id) {
+                /* none */
+            }
+            else if (type == vseparator_type_id) {
+                /* none */
+            }
+            else if (type == submenu_type_id) {
+                /* TODO: Can't change by ID, have to change by position */
+            }
+            else if (type == item_type_id) {
+                unsigned int attr = MF_STRING;
 
-				attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
-				attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
+                attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
+                attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
-				ModifyMenu(phandle, (uintptr_t)(master_id + winMenuMinimumID),
-					attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID),
-					winConstructMenuText().c_str());
-			}
-		}
+                ModifyMenu(phandle, (uintptr_t)(master_id + winMenuMinimumID),
+                    attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID),
+                    winConstructMenuText().c_str());
+            }
+        }
     }
 
     status.changed = false;
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
     if (nsMenuItem != NULL)
-	    sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
+        sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
 #endif
 }
 
@@ -632,34 +632,34 @@ static const char *def_menu__toplevel[] = {
 static const char *def_menu_main[] = {
     "mapper_mapper",
     "mapper_gui",
-	"--",
+    "--",
     "MainSendKey",
-	"--",
+    "--",
 #if !defined(C_EMSCRIPTEN)
-	"wait_on_error",
+    "wait_on_error",
 #endif
     "showdetails",
 #if C_DEBUG
-	"--",
-	"mapper_debugger",
+    "--",
+    "mapper_debugger",
 #endif
 #if !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
     "show_console",
 #endif
     "--",
     "mapper_capmouse",
-	"auto_lock_mouse",
+    "auto_lock_mouse",
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
-	"--",
-	"mapper_pause",
-	"mapper_pauseints",
+    "--",
+    "mapper_pause",
+    "mapper_pauseints",
 #endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
     "mapper_reset",
 #endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
-	"--",
+    "--",
 #endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     "mapper_shutdown",
@@ -721,7 +721,7 @@ static const char *def_menu_cpu[] = {
     "--",
     "mapper_cycleup",
     "mapper_cycledown",
-	"mapper_editcycles",
+    "mapper_editcycles",
     "--",
     "CpuCoreMenu",
     "CpuTypeMenu",
@@ -827,11 +827,11 @@ static const char *def_menu_video_debug[] = {
 
 /* video menu ("VideoMenu") */
 static const char *def_menu_video[] = {
-	"mapper_aspratio",
-	"--",
+    "mapper_aspratio",
+    "--",
 #if !defined(HX_DOS)
-	"mapper_fullscr",
-	"--",
+    "mapper_fullscr",
+    "--",
 #endif
 #if !defined(HX_DOS) && (defined(LINUX) || !defined(C_SDL2))
     "alwaysontop",
@@ -841,20 +841,20 @@ static const char *def_menu_video[] = {
 #endif
 #if !defined(C_SDL2)
     "doublebuf",
-	"--",
+    "--",
 #endif
 #ifndef MACOSX
     "mapper_togmenu",
 # if !defined(HX_DOS)
-	"--",
+    "--",
 # endif
 #endif
 #if !defined(HX_DOS)
-	"mapper_resetsize",
+    "mapper_resetsize",
 #endif
-	"--",
-	"VideoFrameskipMenu",
-	"--",
+    "--",
+    "VideoFrameskipMenu",
+    "--",
     "scaler_forced",
     "VideoScalerMenu",
     "VideoOutputMenu",
@@ -1093,9 +1093,9 @@ void ConstructMenu(void) {
 }
 
 bool MENU_SetBool(std::string secname, std::string value) {
-	Section_prop * sec = static_cast<Section_prop *>(control->GetSection(secname));
-	if(sec) SetVal(secname, value, sec->Get_bool(value) ? "false" : "true");
-	return sec->Get_bool(value);
+    Section_prop * sec = static_cast<Section_prop *>(control->GetSection(secname));
+    if(sec) SetVal(secname, value, sec->Get_bool(value) ? "false" : "true");
+    return sec->Get_bool(value);
 }
 
 void RENDER_CallBack( GFX_CallBackFunctions_t function );
@@ -1103,27 +1103,27 @@ void RENDER_CallBack( GFX_CallBackFunctions_t function );
 // Sets the scaler 'forced' flag.
 void SetScaleForced(bool forced)
 {
-	render.scale.forced = forced;
+    render.scale.forced = forced;
 
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
     Prop_multival* prop = section->Get_multival("scaler");
     std::string scaler = prop->GetSection()->Get_string("type");
 
-	auto value = scaler + (render.scale.forced ? " forced" : "");
-	SetVal("render", "scaler", value);
+    auto value = scaler + (render.scale.forced ? " forced" : "");
+    SetVal("render", "scaler", value);
 
-	RENDER_CallBack(GFX_CallBackReset);
+    RENDER_CallBack(GFX_CallBackReset);
     mainMenu.get_item("scaler_forced").check(render.scale.forced).refresh_item(mainMenu);
 }
 
 // Sets the scaler to use.
 void SetScaler(scalerOperation_t op, Bitu size, std::string prefix)
 {
-	auto value = prefix + (render.scale.forced ? " forced" : "");
-	SetVal("render", "scaler", value);
-	render.scale.size = size;
-	render.scale.op = op;
-	RENDER_CallBack(GFX_CallBackReset);
+    auto value = prefix + (render.scale.forced ? " forced" : "");
+    SetVal("render", "scaler", value);
+    render.scale.size = size;
+    render.scale.op = op;
+    RENDER_CallBack(GFX_CallBackReset);
 }
 
 extern int NonUserResizeCounter;
@@ -1137,37 +1137,37 @@ void DOSBox_ShowConsole();
 void GUI_ResetResize(bool pressed);
 
 std::string MSCDEX_Output(int num) {
-	std::string MSCDEX_MSG = "GUI: MSCDEX ";
-	std::string MSCDEX_MSG_Failure = "Failure: ";
-	switch (num) {
-	case 0: return MSCDEX_MSG + "installed";
-	case 1: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Drive-letters of multiple CDRom-drives have to be continuous.";
-	case 2: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Not yet supported.";
-	case 3: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Path not valid.";
-	case 4: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Too many CDRom-drives (max: 5). MSCDEX Installation failed";
-	case 5: return MSCDEX_MSG + "Mounted subdirectory: limited support.";
-	case 6: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Unknown error";
-	default: return 0;
-	}
+    std::string MSCDEX_MSG = "GUI: MSCDEX ";
+    std::string MSCDEX_MSG_Failure = "Failure: ";
+    switch (num) {
+    case 0: return MSCDEX_MSG + "installed";
+    case 1: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Drive-letters of multiple CDRom-drives have to be continuous.";
+    case 2: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Not yet supported.";
+    case 3: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Path not valid.";
+    case 4: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Too many CDRom-drives (max: 5). MSCDEX Installation failed";
+    case 5: return MSCDEX_MSG + "Mounted subdirectory: limited support.";
+    case 6: return MSCDEX_MSG + MSCDEX_MSG_Failure + "Unknown error";
+    default: return 0;
+    }
 }
 
 static std::string not_recommended = "Mounting C:\\ is NOT recommended.\nDo you want to continue?";
 
 void SetVal(const std::string secname, std::string preval, const std::string val) {
-	if(preval=="keyboardlayout" && !dos_kernel_disabled) {
-		DOS_MCB mcb(dos.psp()-1);
-		static char name[9];
-		mcb.GetFileName(name);
-		if (strlen(name)) {
-			LOG_MSG("GUI: Exit %s running in DOSBox, and then try again.",name);
-			return;
-		}
-	}
-	Section* sec = control->GetSection(secname);
-	if(sec) {
-		std::string real_val=preval+"="+val;
-		sec->HandleInputline(real_val);
-	}
+    if(preval=="keyboardlayout" && !dos_kernel_disabled) {
+        DOS_MCB mcb(dos.psp()-1);
+        static char name[9];
+        mcb.GetFileName(name);
+        if (strlen(name)) {
+            LOG_MSG("GUI: Exit %s running in DOSBox, and then try again.",name);
+            return;
+        }
+    }
+    Section* sec = control->GetSection(secname);
+    if(sec) {
+        std::string real_val=preval+"="+val;
+        sec->HandleInputline(real_val);
+    }
 }
 
 MENU_Block menu;
@@ -1195,13 +1195,13 @@ void DOSBox_SetMenu(DOSBoxMenu &altMenu) {
     menu_osx_set_menuobj(&altMenu);
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-	if(!menu.gui) return;
+    if(!menu.gui) return;
     if(!menu.toggle) return;
 
-	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching custom menu resource to DOSBox's window");
+    LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching custom menu resource to DOSBox's window");
 
     NonUserResizeCounter=1;
-	SDL1_hax_SetMenu(altMenu.getWinMenu());
+    SDL1_hax_SetMenu(altMenu.getWinMenu());
 #endif
 }
 
@@ -1219,20 +1219,20 @@ void DOSBox_SetMenu(void) {
     sdl_hax_macosx_setmenu(mainMenu.getNsMenu());
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-	if(!menu.gui) return;
+    if(!menu.gui) return;
 
-	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
+    LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
 
-	menu.toggle=true;
+    menu.toggle=true;
     NonUserResizeCounter=1;
-	SDL1_hax_SetMenu(mainMenu.getWinMenu());
-	mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+    SDL1_hax_SetMenu(mainMenu.getWinMenu());
+    mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
 
-	Reflect_Menu();
+    Reflect_Menu();
 
-	if(menu.startup) {
-		RENDER_CallBack( GFX_CallBackReset );
-	}
+    if(menu.startup) {
+        RENDER_CallBack( GFX_CallBackReset );
+    }
 
     void DOSBox_SetSysMenu(void);
     DOSBox_SetSysMenu();
@@ -1254,12 +1254,12 @@ void DOSBox_NoMenu(void) {
     sdl_hax_macosx_setmenu(NULL);
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-	if(!menu.gui) return;
-	menu.toggle=false;
+    if(!menu.gui) return;
+    menu.toggle=false;
     NonUserResizeCounter=1;
-	SDL1_hax_SetMenu(NULL);
-	mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
-	RENDER_CallBack( GFX_CallBackReset );
+    SDL1_hax_SetMenu(NULL);
+    mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+    RENDER_CallBack( GFX_CallBackReset );
 
     void DOSBox_SetSysMenu(void);
     DOSBox_SetSysMenu();
@@ -1274,20 +1274,20 @@ void ToggleMenu(bool pressed) {
         return;
 
     menu.resizeusing=true;
-	int width, height; bool fullscreen;
-	void GFX_GetSize(int &width, int &height, bool &fullscreen);
-	GFX_GetSize(width, height, fullscreen);
+    int width, height; bool fullscreen;
+    void GFX_GetSize(int &width, int &height, bool &fullscreen);
+    GFX_GetSize(width, height, fullscreen);
     if(!menu.gui || !pressed || fullscreen) return;
-	if(!menu.toggle) {
-		menu.toggle=true;
-		DOSBox_SetMenu();
-	} else {
-		menu.toggle=false;
-		DOSBox_NoMenu();
-	}
+    if(!menu.toggle) {
+        menu.toggle=true;
+        DOSBox_SetMenu();
+    } else {
+        menu.toggle=false;
+        DOSBox_NoMenu();
+    }
 
     void DOSBox_SetSysMenu(void);
-	DOSBox_SetSysMenu();
+    DOSBox_SetSysMenu();
 }
 
 #if !(defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS))
@@ -1308,23 +1308,23 @@ void DOSBox_CheckOS(int &id, int &major, int &minor) {
 #if defined(WIN32)
 # if defined(HX_DOS) || !defined(C_SDL2)
 HWND GetHWND(void) {
-	SDL_SysWMinfo wmi;
-	SDL_VERSION(&wmi.version);
+    SDL_SysWMinfo wmi;
+    SDL_VERSION(&wmi.version);
 
-	if(!SDL_GetWMInfo(&wmi)) {
-		return NULL;
-	}
-	return wmi.window;
+    if(!SDL_GetWMInfo(&wmi)) {
+        return NULL;
+    }
+    return wmi.window;
 }
 
 HWND GetSurfaceHWND(void) {
-	SDL_SysWMinfo wmi;
-	SDL_VERSION(&wmi.version);
+    SDL_SysWMinfo wmi;
+    SDL_VERSION(&wmi.version);
 
-	if (!SDL_GetWMInfo(&wmi)) {
-		return NULL;
-	}
-	return wmi.child_window;
+    if (!SDL_GetWMInfo(&wmi)) {
+        return NULL;
+    }
+    return wmi.child_window;
 }
 # endif
 #endif
@@ -1335,155 +1335,155 @@ HWND GetSurfaceHWND(void) {
 extern void RENDER_CallBack( GFX_CallBackFunctions_t function );
 
 void GetDefaultSize(void) {
-	char sizetemp[20]="512,32,32765,";
-	char sizetemp2[20]="";
-	sprintf(sizetemp2,"%d",hdd_defsize);
-	strcat(sizetemp,sizetemp2);
-	sprintf(hdd_size,sizetemp);
+    char sizetemp[20]="512,32,32765,";
+    char sizetemp2[20]="";
+    sprintf(sizetemp2,"%d",hdd_defsize);
+    strcat(sizetemp,sizetemp2);
+    sprintf(hdd_size,sizetemp);
 }
 
 void SearchFolder( char path[MAX_PATH], char drive, std::string drive_type ) {
-	WIN32_FIND_DATA FindFileData;
-	HANDLE hFind;
+    WIN32_FIND_DATA FindFileData;
+    HANDLE hFind;
 
-	hFind = FindFirstFile ( "*.*", &FindFileData );
+    hFind = FindFirstFile ( "*.*", &FindFileData );
 
-	if ( hFind != INVALID_HANDLE_VALUE ) MountDrive_2(drive,path,drive_type);
-	FindClose ( hFind );
+    if ( hFind != INVALID_HANDLE_VALUE ) MountDrive_2(drive,path,drive_type);
+    FindClose ( hFind );
 }
 
 void BrowseFolder( char drive , std::string drive_type ) {
 #if !defined(HX_DOS)
-	if (Drives[drive-'A']) {
-		LOG_MSG("Unmount drive %c first, and then try again.",drive);
-		return;
-	}
-	std::string title = "Select a drive/directory to mount";
-	char path[MAX_PATH];
-	BROWSEINFO bi = { 0 };
-	if(drive_type=="CDROM")
-		bi.lpszTitle = ( title + " CD-ROM\nMounting a directory as CD-ROM gives an limited support" ).c_str();
-	else if(drive_type=="FLOPPY")
-		bi.lpszTitle = ( title + " as Floppy" ).c_str();
-	else if(drive_type=="LOCAL")
-		bi.lpszTitle = ( title + " as Local").c_str();
-	else
-		bi.lpszTitle = (title.c_str());
-	LPITEMIDLIST pidl = SHBrowseForFolder ( &bi );
+    if (Drives[drive-'A']) {
+        LOG_MSG("Unmount drive %c first, and then try again.",drive);
+        return;
+    }
+    std::string title = "Select a drive/directory to mount";
+    char path[MAX_PATH];
+    BROWSEINFO bi = { 0 };
+    if(drive_type=="CDROM")
+        bi.lpszTitle = ( title + " CD-ROM\nMounting a directory as CD-ROM gives an limited support" ).c_str();
+    else if(drive_type=="FLOPPY")
+        bi.lpszTitle = ( title + " as Floppy" ).c_str();
+    else if(drive_type=="LOCAL")
+        bi.lpszTitle = ( title + " as Local").c_str();
+    else
+        bi.lpszTitle = (title.c_str());
+    LPITEMIDLIST pidl = SHBrowseForFolder ( &bi );
 
-	if ( pidl != 0 ) {
-		SHGetPathFromIDList ( pidl, path );
-//		SetCurrentDirectory ( path );
-		SearchFolder( path , drive, drive_type );
-		IMalloc * imalloc = 0;
-		if ( SUCCEEDED( SHGetMalloc ( &imalloc )) ) {
-			imalloc->Free ( pidl );
-			imalloc->Release ( );
-		}
-	}
+    if ( pidl != 0 ) {
+        SHGetPathFromIDList ( pidl, path );
+//      SetCurrentDirectory ( path );
+        SearchFolder( path , drive, drive_type );
+        IMalloc * imalloc = 0;
+        if ( SUCCEEDED( SHGetMalloc ( &imalloc )) ) {
+            imalloc->Free ( pidl );
+            imalloc->Release ( );
+        }
+    }
 #endif
 }
 
 void mem_conf(std::string memtype, int option) {
-	std::string tmp;
-	Section* sec = control->GetSection("dos");
-	Section_prop * section=static_cast<Section_prop *>(sec); 
-	if (!option) {
-		tmp = section->Get_bool(memtype) ? "false" : "true";
-	} else {
-		switch (option) {
-			case 1: tmp = "true"; break;
-			case 2: tmp = "false"; break;
-			case 3: tmp = "emsboard"; break;
-			case 4: tmp = "emm386"; break;
-			default: return;
-		}
-	}
-	if(sec) {
-		memtype += "=" + tmp;
-		sec->HandleInputline(memtype);
-	}
+    std::string tmp;
+    Section* sec = control->GetSection("dos");
+    Section_prop * section=static_cast<Section_prop *>(sec); 
+    if (!option) {
+        tmp = section->Get_bool(memtype) ? "false" : "true";
+    } else {
+        switch (option) {
+            case 1: tmp = "true"; break;
+            case 2: tmp = "false"; break;
+            case 3: tmp = "emsboard"; break;
+            case 4: tmp = "emm386"; break;
+            default: return;
+        }
+    }
+    if(sec) {
+        memtype += "=" + tmp;
+        sec->HandleInputline(memtype);
+    }
 }
 
 void UnMount(int i_drive) {
-	if (dos_kernel_disabled)
-		return;
+    if (dos_kernel_disabled)
+        return;
 
-	i_drive = toupper(i_drive);
-	if(i_drive-'A' == DOS_GetDefaultDrive()) {
-		DOS_MCB mcb(dos.psp()-1);
-		static char name[9];
-		mcb.GetFileName(name);
-		if (!strlen(name)) goto umount;
-		LOG_MSG("GUI:Drive %c is being used. Aborted.",i_drive);
-		return;
-	};
+    i_drive = toupper(i_drive);
+    if(i_drive-'A' == DOS_GetDefaultDrive()) {
+        DOS_MCB mcb(dos.psp()-1);
+        static char name[9];
+        mcb.GetFileName(name);
+        if (!strlen(name)) goto umount;
+        LOG_MSG("GUI:Drive %c is being used. Aborted.",i_drive);
+        return;
+    };
 umount:
-	if (i_drive-'A' < DOS_DRIVES && i_drive-'A' >= 0 && Drives[i_drive-'A']) {
-		switch (DriveManager::UnmountDrive(i_drive-'A')) {
-		case 0:
-			Drives[i_drive-'A'] = 0;
-			if(i_drive-'A' == DOS_GetDefaultDrive()) 
-				DOS_SetDrive(toupper('Z') - 'A');
-			LOG_MSG("GUI:Drive %c has succesfully been removed.",i_drive); break;
-		case 1:
-			LOG_MSG("GUI:Virtual Drives can not be unMOUNTed."); break;
-		case 2:
-			LOG_MSG(MSCDEX_Output(1).c_str()); break;
-		}
-	}
+    if (i_drive-'A' < DOS_DRIVES && i_drive-'A' >= 0 && Drives[i_drive-'A']) {
+        switch (DriveManager::UnmountDrive(i_drive-'A')) {
+        case 0:
+            Drives[i_drive-'A'] = 0;
+            if(i_drive-'A' == DOS_GetDefaultDrive()) 
+                DOS_SetDrive(toupper('Z') - 'A');
+            LOG_MSG("GUI:Drive %c has succesfully been removed.",i_drive); break;
+        case 1:
+            LOG_MSG("GUI:Virtual Drives can not be unMOUNTed."); break;
+        case 2:
+            LOG_MSG(MSCDEX_Output(1).c_str()); break;
+        }
+    }
 }
 
 void MountDrive_2(char drive, const char drive2[DOS_PATHLENGTH], std::string drive_type) {
-	(void)drive_type;
-	(void)drive2;
-	(void)drive;
+    (void)drive_type;
+    (void)drive2;
+    (void)drive;
 }
 
 void MountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
-	(void)drive2;
-	(void)drive;
+    (void)drive2;
+    (void)drive;
 }
 
 void Mount_Img_Floppy(char drive, std::string realpath) {
-	(void)realpath;
-	(void)drive;
+    (void)realpath;
+    (void)drive;
 }
 
 void Mount_Img_HDD(char drive, std::string realpath) {
-	(void)realpath;
-	(void)drive;
+    (void)realpath;
+    (void)drive;
 }
 
 void Mount_Img(char drive, std::string realpath) {
-	(void)realpath;
-	(void)drive;
+    (void)realpath;
+    (void)drive;
 }
 
 void DOSBox_SetSysMenu(void) {
 #if !defined(HX_DOS)
-	MENUITEMINFO mii;
-	HMENU sysmenu;
+    MENUITEMINFO mii;
+    HMENU sysmenu;
 
-	sysmenu = GetSystemMenu(GetHWND(), TRUE); // revert, so we can reapply menu items
-	sysmenu = GetSystemMenu(GetHWND(), FALSE);
-	if (sysmenu == NULL) return;
+    sysmenu = GetSystemMenu(GetHWND(), TRUE); // revert, so we can reapply menu items
+    sysmenu = GetSystemMenu(GetHWND(), FALSE);
+    if (sysmenu == NULL) return;
 
-	AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
+    AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
 
-	{
-		const char *msg = "Show menu &bar";
+    {
+        const char *msg = "Show menu &bar";
 
-		memset(&mii, 0, sizeof(mii));
-		mii.cbSize = sizeof(mii);
-		mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
-		mii.fState = (menu.toggle ? MFS_CHECKED : 0) | (GFX_GetPreventFullscreen() ? MFS_DISABLED : MFS_ENABLED);
-		mii.wID = ID_WIN_SYSMENU_TOGGLEMENU;
-		mii.dwTypeData = (LPTSTR)(msg);
-		mii.cch = (UINT)(strlen(msg)+1);
+        memset(&mii, 0, sizeof(mii));
+        mii.cbSize = sizeof(mii);
+        mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+        mii.fState = (menu.toggle ? MFS_CHECKED : 0) | (GFX_GetPreventFullscreen() ? MFS_DISABLED : MFS_ENABLED);
+        mii.wID = ID_WIN_SYSMENU_TOGGLEMENU;
+        mii.dwTypeData = (LPTSTR)(msg);
+        mii.cch = (UINT)(strlen(msg)+1);
 
-		InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
-	}
+        InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+    }
 
     AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
 
@@ -1534,14 +1534,14 @@ void DOSBox_SetSysMenu(void) {
 }
 
 void DOSBox_CheckOS(int &id, int &major, int &minor) {
-	OSVERSIONINFO osi;
-	ZeroMemory(&osi, sizeof(OSVERSIONINFO));
-	osi.dwOSVersionInfoSize = sizeof(osi);
-	GetVersionEx(&osi);
-	id=osi.dwPlatformId;
-	if(id==1) { major=0; minor=0; return; }
-	major=osi.dwMajorVersion;
-	minor=osi.dwMinorVersion;
+    OSVERSIONINFO osi;
+    ZeroMemory(&osi, sizeof(OSVERSIONINFO));
+    osi.dwOSVersionInfoSize = sizeof(osi);
+    GetVersionEx(&osi);
+    id=osi.dwPlatformId;
+    if(id==1) { major=0; minor=0; return; }
+    major=osi.dwMajorVersion;
+    minor=osi.dwMinorVersion;
 }
 
 bool DOSBox_Kor(void) {
@@ -1569,20 +1569,20 @@ void DOSBox_RefreshMenu(void) {
     if(fullscreen) {
         NonUserResizeCounter=1;
         SetMenu(GetHWND(), NULL);
-    	DrawMenuBar(GetHWND());
+        DrawMenuBar(GetHWND());
         return;
     }
-	DOSBox_SetSysMenu();
-	if(menu.toggle)
-		DOSBox_SetMenu();
-	else
-		DOSBox_NoMenu();
+    DOSBox_SetSysMenu();
+    if(menu.toggle)
+        DOSBox_SetMenu();
+    else
+        DOSBox_NoMenu();
 #endif
 }
 
 void DOSBox_RefreshMenu2(void) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-	if(!menu.gui) return;
+    if(!menu.gui) return;
    int width, height; bool fullscreen;
    void GFX_GetSize(int &width, int &height, bool &fullscreen);
    GFX_GetSize(width,height,fullscreen);
@@ -1594,15 +1594,15 @@ void DOSBox_RefreshMenu2(void) {
         NonUserResizeCounter=1;
         return;
     }
-	if(menu.toggle) {
-		menu.toggle=true;
+    if(menu.toggle) {
+        menu.toggle=true;
         NonUserResizeCounter=1;
         SDL1_hax_SetMenu(mainMenu.getWinMenu());
-	} else {
-		menu.toggle=false;
+    } else {
+        menu.toggle=false;
         NonUserResizeCounter=1;
-		SDL1_hax_SetMenu(NULL);
-	}
+        SDL1_hax_SetMenu(NULL);
+    }
 
     void DOSBox_SetSysMenu(void);
     DOSBox_SetSysMenu();
@@ -1611,21 +1611,21 @@ void DOSBox_RefreshMenu2(void) {
 
 void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image, int automount, int umount, char drive) {
 #if !defined(HX_DOS)
-	std::string full_drive(1, drive);
-	Section_prop * sec = static_cast<Section_prop *>(control->GetSection("dos"));
-	full_drive += ":\\";
-	EnableMenuItem(handle, cdrom, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(handle, floppy, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(handle, local, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
-	EnableMenuItem(handle, image, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
-	if(sec) EnableMenuItem(handle, automount, AUTOMOUNT(full_drive.c_str(), drive) && !menu.boot && sec->Get_bool("automount") ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(handle, umount, (!Drives[drive - 'A']) || menu.boot ? MF_GRAYED : MF_ENABLED);
+    std::string full_drive(1, drive);
+    Section_prop * sec = static_cast<Section_prop *>(control->GetSection("dos"));
+    full_drive += ":\\";
+    EnableMenuItem(handle, cdrom, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
+    EnableMenuItem(handle, floppy, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
+    EnableMenuItem(handle, local, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
+    EnableMenuItem(handle, image, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
+    if(sec) EnableMenuItem(handle, automount, AUTOMOUNT(full_drive.c_str(), drive) && !menu.boot && sec->Get_bool("automount") ? MF_ENABLED : MF_GRAYED);
+    EnableMenuItem(handle, umount, (!Drives[drive - 'A']) || menu.boot ? MF_GRAYED : MF_ENABLED);
 #endif
 }
 
 void MENU_KeyDelayRate(int delay, int rate) {
-	IO_Write(0x60,0xf3); IO_Write(0x60,(Bit8u)(((delay-1)<<5)|(32-rate)));
-	LOG_MSG("GUI: Keyboard rate %d, delay %d", rate, delay);
+    IO_Write(0x60,0xf3); IO_Write(0x60,(Bit8u)(((delay-1)<<5)|(32-rate)));
+    LOG_MSG("GUI: Keyboard rate %d, delay %d", rate, delay);
 }
 
 extern "C" void (*SDL1_hax_INITMENU_cb)();
@@ -1641,12 +1641,12 @@ int Reflect_Menu(void) {
 }
 
 void reflectmenu_INITMENU_cb() {
-	/* WARNING: SDL calls this from Parent Window Thread!
-	            This executes in the context of the Parent Window Thread, NOT the main thread!
-				As stupid as that seems, this is the only way the Parent Window Thread can make
-				sure to keep Windows waiting while we take our time to reset the checkmarks in
-				the menus before the menu is displayed. */
-	Reflect_Menu();
+    /* WARNING: SDL calls this from Parent Window Thread!
+                This executes in the context of the Parent Window Thread, NOT the main thread!
+                As stupid as that seems, this is the only way the Parent Window Thread can make
+                sure to keep Windows waiting while we take our time to reset the checkmarks in
+                the menus before the menu is displayed. */
+    Reflect_Menu();
 }
 
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
@@ -1675,7 +1675,7 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
     if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
     if (!GetMenu(GetHWND())) return;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-	if (mainMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(Message.wParam))) return;
+    if (mainMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(Message.wParam))) return;
 #endif
 }
 #else
