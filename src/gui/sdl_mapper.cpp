@@ -145,30 +145,30 @@ static struct CMapper {
 } mapper;
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
-static DOSBoxMenu                       mapperMenu;
+static DOSBoxMenu                               mapperMenu;
 #endif
 
-extern Bit8u                            int10_font_14[256 * 14];
+extern Bit8u                                    int10_font_14[256 * 14];
 
-std::map<std::string,std::string>       pending_string_binds;
+std::map<std::string,std::string>               pending_string_binds;
 
-static int                              mapper_esc_count = 0;
+static int                                      mapper_esc_count = 0;
 
-Bitu                                    next_handler_xpos = 0;
-Bitu                                    next_handler_ypos = 0;
+Bitu                                            next_handler_xpos = 0;
+Bitu                                            next_handler_ypos = 0;
 
-bool                                    mapper_addhandler_create_buttons = false;
+bool                                            mapper_addhandler_create_buttons = false;
 
-bool                                    isJPkeyboard = false;
+bool                                            isJPkeyboard = false;
 
 //! \brief joystick autofire config option
-bool                                    autofire = false;
+bool                                            autofire = false;
 
 //! \brief map of joystick 1 axes
-int                                     joy1axes[8];
+int                                             joy1axes[8];
 
 //! \brief map of joystick 2 axes
-int                                     joy2axes[8];
+int                                             joy2axes[8];
 
 static std::vector<CEvent *>                    events;
 static std::vector<CButton *>                   buttons;
