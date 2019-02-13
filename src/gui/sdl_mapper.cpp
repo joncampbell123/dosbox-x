@@ -110,18 +110,10 @@ struct DOSBox_Vector2
 {
 	float X, Y;
 
-	DOSBox_Vector2(const float x, const float y) : X(x), Y(y)
-	{
+	DOSBox_Vector2(const float x, const float y) : X(x), Y(y) { }
+	DOSBox_Vector2() : X(0.0f), Y(0.0f) { }
 
-	}
-
-	DOSBox_Vector2() : X(0.0f), Y(0.0f)
-	{
-
-	}
-
-	DOSBox_Vector2 clamp(const DOSBox_Vector2 min, const DOSBox_Vector2 max) const
-	{
+	DOSBox_Vector2 clamp(const DOSBox_Vector2 min, const DOSBox_Vector2 max) const {
 		float x = this->X;
 		float y = this->Y;
 		float xmin = min.X;
@@ -134,24 +126,20 @@ struct DOSBox_Vector2
 		return clamp;
 	}
 
-	float magnitude(void) const
-	{
+	float magnitude(void) const {
 		return sqrt(sqrMagnitude());
 	}
 
-	float sqrMagnitude(void) const
-	{
+	float sqrMagnitude(void) const {
 		return X * X + Y * Y;
 	}
 
-	DOSBox_Vector2 normalized(void) const
-	{
+	DOSBox_Vector2 normalized(void) const {
 		float m = this->magnitude();
 		return m > 0.0f ? DOSBox_Vector2(this->X / m, this->Y / m) : DOSBox_Vector2();
 	}
 
-	DOSBox_Vector2 operator*(const float f) const
-	{
+	DOSBox_Vector2 operator*(const float f) const {
 		return DOSBox_Vector2(this->X * f, this->Y * f);
 	}
 };
