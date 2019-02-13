@@ -182,6 +182,7 @@ static void                                     SetActiveBind(CBind * _bind);
 static void                                     change_action_text(const char* text,Bit8u col);
 
 CEvent*                                         get_mapper_event_by_name(const std::string &x);
+bool                                            MAPPER_DemoOnly(void);
 
 //! \brief Base CEvent class for mapper events
 class CEvent {
