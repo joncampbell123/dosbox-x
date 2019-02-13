@@ -118,6 +118,15 @@ bool                                    mapper_addhandler_create_buttons = false
 
 bool                                    isJPkeyboard = false;
 
+//! \brief joystick autofire config option
+bool                                    autofire = false;
+
+//! \brief map of joystick 1 axes
+int                                     joy1axes[8];
+
+//! \brief map of joystick 2 axes
+int                                     joy2axes[8];
+
 class CEvent;
 class CHandlerEvent;
 class CButton;
@@ -1000,14 +1009,6 @@ protected:
     Bitu hat;
     Bit8u dir;
 };
-
-bool autofire = false;
-
-//! \brief map of joystick 1 axes
-int joy1axes[8];
-
-//! \brief map of joystick 2 axes
-int joy2axes[8];
 
 class CStickBindGroup : public  CBindGroup {
 public:
