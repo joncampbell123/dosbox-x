@@ -149,19 +149,19 @@ static struct CMapper {
 } mapper;
 
 static struct {
-    CCaptionButton *  event_title;
-    CCaptionButton *  bind_title;
-    CCaptionButton *  selected;
-    CCaptionButton *  action;
-    CCaptionButton *  dbg2;
-    CCaptionButton *  dbg;
-    CBindButton * save;
-    CBindButton * exit;   
-    CBindButton * cap;
-    CBindButton * add;
-    CBindButton * del;
-    CBindButton * next;
-    CCheckButton * mod1,* mod2,* mod3,* host,* hold;
+    CCaptionButton*                             event_title;
+    CCaptionButton*                             bind_title;
+    CCaptionButton*                             selected;
+    CCaptionButton*                             action;
+    CCaptionButton*                             dbg2;
+    CCaptionButton*                             dbg;
+    CBindButton*                                save;
+    CBindButton*                                exit;   
+    CBindButton*                                cap;
+    CBindButton*                                add;
+    CBindButton*                                del;
+    CBindButton*                                next;
+    CCheckButton                                *mod1, *mod2, *mod3, *host, *hold;
 } bind_but;
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
