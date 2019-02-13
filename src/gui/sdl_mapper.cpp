@@ -65,6 +65,11 @@
 #define MAXAXIS                 8
 #define MAXHAT                  2
 
+
+#define MAX_VJOY_BUTTONS        8
+#define MAX_VJOY_AXES           8
+
+
 enum {
     CLR_BLACK = 0,
     CLR_WHITE = 1,
@@ -90,6 +95,12 @@ enum BC_Types {
     BC_Hold
 };
 
+static struct {
+    bool                                button_pressed[MAX_VJOY_BUTTONS];
+    Bit16s                              axis_pos[MAX_VJOY_AXES];
+    bool                                hat_pressed[16];
+} virtual_joysticks[2];
+
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
 static DOSBoxMenu                       mapperMenu;
 #endif
@@ -112,6 +123,9 @@ class CHandlerEvent;
 class CButton;
 class CBind;
 class CBindGroup;
+class CJAxisBind;
+class CJButtonBind;
+class CJHatBind;
 
 typedef std::list<CBind *>                      CBindList;
 typedef std::list<CEvent *>::iterator           CEventList_it;
@@ -130,6 +144,7 @@ static std::map<std::string, size_t>            name_to_events;
 
 static void                                     SetActiveEvent(CEvent * event);
 static void                                     SetActiveBind(CBind * _bind);
+static void                                     change_action_text(const char* text,Bit8u col);
 
 CEvent*                                         get_mapper_event_by_name(const std::string &x);
 
@@ -472,8 +487,6 @@ void CEvent::DeActivateAll(void) {
         (*bit)->DeActivateBind(true);
     }
 }
-
-
 
 class CBindGroup {
 public:
@@ -880,20 +893,6 @@ protected:
     CBindList * lists;
     Bitu keys;
 };
-
-#define MAX_VJOY_BUTTONS 8
-#define MAX_VJOY_AXES 8
-
-static struct {
-    bool button_pressed[MAX_VJOY_BUTTONS];
-    Bit16s axis_pos[MAX_VJOY_AXES];
-    bool hat_pressed[16];
-} virtual_joysticks[2];
-
-
-class CJAxisBind;
-class CJButtonBind;
-class CJHatBind;
 
 class CJAxisBind : public CBind {
 public:
@@ -1988,8 +1987,6 @@ void CCaptionButton::Change(const char * format,...) {
     va_end(msg);
     mapper.redraw=true;
 }       
-
-static void change_action_text(const char* text,Bit8u col);
 
 static void MAPPER_SaveBinds(void);
 class CBindButton : public CTextButton {
