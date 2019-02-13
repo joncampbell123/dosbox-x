@@ -246,19 +246,6 @@ protected:
     Bits current_value;
 };
 
-CEvent *get_mapper_event_by_name(const std::string &x) {
-    auto i = name_to_events.find(x);
-
-    if (i != name_to_events.end()) {
-        if (i->second >= events.size())
-            E_Exit("Mapper: name to events contains out of range index for \"%s\"",x.c_str());
-
-        return events[i->second];
-    }
-
-    return NULL;
-}
-
 //! \brief class for events which can be ON/OFF only: key presses, joystick buttons, joystick hat
 class CTriggeredEvent : public CEvent {
 public:
@@ -1777,6 +1764,19 @@ static struct CMapper {
  * otherwise, do full mapper processing. */
 bool MAPPER_DemoOnly(void) {
     return !mapper.exit;
+}
+
+CEvent *get_mapper_event_by_name(const std::string &x) {
+    auto i = name_to_events.find(x);
+
+    if (i != name_to_events.end()) {
+        if (i->second >= events.size())
+            E_Exit("Mapper: name to events contains out of range index for \"%s\"",x.c_str());
+
+        return events[i->second];
+    }
+
+    return NULL;
 }
 
 void CBindGroup::ActivateBindList(CBindList * list,Bits value,bool ev_trigger) {
