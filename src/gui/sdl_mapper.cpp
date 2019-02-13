@@ -48,28 +48,28 @@
 
 #include <map>
 
-#define BMOD_Mod1 0x0001
-#define BMOD_Mod2 0x0002
-#define BMOD_Mod3 0x0004
-#define BMOD_Host 0x0008
+#define BMOD_Mod1               0x0001
+#define BMOD_Mod2               0x0002
+#define BMOD_Mod3               0x0004
+#define BMOD_Host               0x0008
 
-#define BFLG_Hold 0x0001
-#define BFLG_Repeat 0x0004
+#define BFLG_Hold               0x0001
+#define BFLG_Repeat             0x0004
 
 
-#define MAXSTICKS 8
-#define MAXACTIVE 16
-#define MAXBUTTON 32
-#define MAXBUTTON_CAP 16
-#define MAXAXIS 8
-#define MAXHAT 2
+#define MAXSTICKS               8
+#define MAXACTIVE               16
+#define MAXBUTTON               32
+#define MAXBUTTON_CAP           16
+#define MAXAXIS                 8
+#define MAXHAT                  2
 
 enum {
-    CLR_BLACK=0,
-    CLR_WHITE=1,
-    CLR_RED=2,
-    CLR_BLUE=3,
-    CLR_GREEN=4
+    CLR_BLACK = 0,
+    CLR_WHITE = 1,
+    CLR_RED   = 2,
+    CLR_BLUE  = 3,
+    CLR_GREEN = 4
 };
 
 enum BB_Types {
