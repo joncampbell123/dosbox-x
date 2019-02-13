@@ -164,6 +164,12 @@ static struct {
     CCheckButton                                *mod1, *mod2, *mod3, *host, *hold;
 } bind_but;
 
+struct KeyBlock {
+    const char*                                 title;
+    const char*                                 entry;
+    KBD_KEYS                                    key;
+};
+
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
 static DOSBoxMenu                               mapperMenu;
 #endif
@@ -2734,11 +2740,6 @@ static void AddModButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,
     mod_event[_mod] = event;
 }
 
-struct KeyBlock {
-    const char * title;
-    const char * entry;
-    KBD_KEYS key;
-};
 static KeyBlock combo_f[12]={
     {"F1","f1",KBD_f1},     {"F2","f2",KBD_f2},     {"F3","f3",KBD_f3},     
     {"F4","f4",KBD_f4},     {"F5","f5",KBD_f5},     {"F6","f6",KBD_f6},
