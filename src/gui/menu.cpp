@@ -31,17 +31,17 @@
 #include "inout.h"
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
-void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu);
-void *sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag);
-void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item);
-void sdl_hax_nsMenuItemSetTag(void *nsMenuItem, unsigned int id);
-void sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu);
-void sdl_hax_nsMenuAddItem(void *nsMenu,void *nsMenuItem);
-void* sdl_hax_nsMenuAllocSeparator(void);
-void* sdl_hax_nsMenuAlloc(const char *initWithText);
-void sdl_hax_nsMenuRelease(void *nsMenu);
-void* sdl_hax_nsMenuItemAlloc(const char *initWithText);
-void sdl_hax_nsMenuItemRelease(void *nsMenuItem);
+void                            sdl_hax_nsMenuAddApplicationMenu(void *nsMenu);
+void*                           sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag);
+void                            sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item);
+void                            sdl_hax_nsMenuItemSetTag(void *nsMenuItem, unsigned int id);
+void                            sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu);
+void                            sdl_hax_nsMenuAddItem(void *nsMenu,void *nsMenuItem);
+void*                           sdl_hax_nsMenuAllocSeparator(void);
+void*                           sdl_hax_nsMenuAlloc(const char *initWithText);
+void                            sdl_hax_nsMenuRelease(void *nsMenu);
+void*                           sdl_hax_nsMenuItemAlloc(const char *initWithText);
+void                            sdl_hax_nsMenuItemRelease(void *nsMenuItem);
 #endif
 
 const DOSBoxMenu::mapper_event_t DOSBoxMenu::unassigned_mapper_event; /* empty std::string */
@@ -61,7 +61,7 @@ DOSBoxMenu::displaylist::~displaylist() {
 }
         
 bool DOSBoxMenu::item_exists(const std::string &name) {
-    auto i = name_map.find(name);
+    const auto i = name_map.find(name);
 
     if (i == name_map.end())
        return false;
@@ -86,7 +86,7 @@ bool DOSBoxMenu::item_exists(const item_handle_t i) {
 }
 
 DOSBoxMenu::item_handle_t DOSBoxMenu::get_item_id_by_name(const std::string &name) {
-    auto i = name_map.find(name);
+    const auto i = name_map.find(name);
 
     if (i == name_map.end())
         return unassigned_item_handle;
@@ -95,7 +95,7 @@ DOSBoxMenu::item_handle_t DOSBoxMenu::get_item_id_by_name(const std::string &nam
 }
 
 DOSBoxMenu::item& DOSBoxMenu::get_item(const std::string &name) {
-    item_handle_t handle = get_item_id_by_name(name);
+    const item_handle_t handle = get_item_id_by_name(name);
 
     if (handle == unassigned_item_handle)
         E_Exit("DOSBoxMenu::get_item() No such item '%s'",name.c_str());
@@ -332,30 +332,30 @@ bool DOSBoxMenu::mainMenuAction(unsigned int id) {
 
 void DOSBoxMenu::item::nsAppendMenu(void* parent_nsMenu) {
     if (type == separator_type_id) {
-    sdl_hax_nsMenuAddItem(parent_nsMenu, sdl_hax_nsMenuAllocSeparator());
+        sdl_hax_nsMenuAddItem(parent_nsMenu, sdl_hax_nsMenuAllocSeparator());
     }
     else if (type == vseparator_type_id) {
-    sdl_hax_nsMenuAddItem(parent_nsMenu, sdl_hax_nsMenuAllocSeparator());
+        sdl_hax_nsMenuAddItem(parent_nsMenu, sdl_hax_nsMenuAllocSeparator());
     }
     else if (type == submenu_type_id) {
-    if (nsMenu != NULL) {
-        // NTS: You have to make a menu ITEM who's submenu is the submenu object
+        if (nsMenu != NULL) {
+            // NTS: You have to make a menu ITEM who's submenu is the submenu object
+            nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
+
+            sdl_hax_nsMenuItemSetTag(nsMenuItem, master_id + nsMenuMinimumID);
+            sdl_hax_nsMenuItemSetSubmenu(nsMenuItem, nsMenu);
+            sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
+            sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
+            sdl_hax_nsMenuItemRelease(nsMenuItem);
+        }
+    }
+    else if (type == item_type_id) {
         nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
 
         sdl_hax_nsMenuItemSetTag(nsMenuItem, master_id + nsMenuMinimumID);
-        sdl_hax_nsMenuItemSetSubmenu(nsMenuItem, nsMenu);
         sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
         sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
         sdl_hax_nsMenuItemRelease(nsMenuItem);
-    }
-    }
-    else if (type == item_type_id) {
-    nsMenuItem = sdl_hax_nsMenuItemAlloc(text.c_str());
-
-    sdl_hax_nsMenuItemSetTag(nsMenuItem, master_id + nsMenuMinimumID);
-    sdl_hax_nsMenuAddItem(parent_nsMenu, nsMenuItem);
-    sdl_hax_nsMenuItemUpdateFromItem(nsMenuItem, *this);
-    sdl_hax_nsMenuItemRelease(nsMenuItem);
     }
 }
 
@@ -363,7 +363,7 @@ bool DOSBoxMenu::nsMenuSubInit(DOSBoxMenu::item &p_item) {
     if (p_item.nsMenu == NULL) {
         p_item.nsMenu = sdl_hax_nsMenuAlloc(p_item.get_text().c_str());
         if (p_item.nsMenu != NULL) {
-            for (auto id : p_item.display_list.disp_list) {
+            for (const auto id : p_item.display_list.disp_list) {
                 DOSBoxMenu::item &item = get_item(id);
 
                 /* if a submenu, make the submenu */
@@ -385,12 +385,12 @@ bool DOSBoxMenu::nsMenuInit(void) {
         if ((nsMenu = sdl_hax_nsMenuAlloc("")) == NULL)
             return false;
 
-    /* For whatever reason, Mac OS X will always make the first top level menu
-       the Application menu and will put the name of the app there NO MATTER WHAT */
-    sdl_hax_nsMenuAddApplicationMenu(nsMenu);
+        /* For whatever reason, Mac OS X will always make the first top level menu
+           the Application menu and will put the name of the app there NO MATTER WHAT */
+        sdl_hax_nsMenuAddApplicationMenu(nsMenu);
 
         /* top level */
-        for (auto id : display_list.disp_list) {
+        for (const auto id : display_list.disp_list) {
             DOSBoxMenu::item &item = get_item(id);
 
             /* if a submenu, make the submenu */
@@ -402,15 +402,15 @@ bool DOSBoxMenu::nsMenuInit(void) {
             item.nsAppendMenu(nsMenu);
         }
 
-    /* release our handle on the nsMenus. Mac OS X will keep them alive with it's
-       reference until the menu is destroyed at which point all items and submenus
-       will be automatically destroyed */
-    for (auto &id : master_list) {
-        if (id.nsMenu != NULL) {
-            sdl_hax_nsMenuRelease(id.nsMenu);
-            id.nsMenu = NULL;
+        /* release our handle on the nsMenus. Mac OS X will keep them alive with it's
+           reference until the menu is destroyed at which point all items and submenus
+           will be automatically destroyed */
+        for (auto &id : master_list) {
+            if (id.nsMenu != NULL) {
+                sdl_hax_nsMenuRelease(id.nsMenu);
+                id.nsMenu = NULL;
+            }
         }
-    }
     }
 
     return true;
@@ -434,7 +434,7 @@ std::string DOSBoxMenu::item::winConstructMenuText(void) {
 
     /* copy text, converting '&' to '&&' for Windows.
      * TODO: Use accelerator to place '&' for underline */
-    for (auto i=text.begin();i!=text.end();i++) {
+    for (const auto i=text.begin();i!=text.end();i++) {
         char c = *i;
 
         if (c == '&') {
@@ -449,7 +449,7 @@ std::string DOSBoxMenu::item::winConstructMenuText(void) {
     if (!shortcut_text.empty()) {
         r += "\t";
 
-        for (auto i=shortcut_text.begin();i!=shortcut_text.end();i++) {
+        for (const auto i=shortcut_text.begin();i!=shortcut_text.end();i++) {
             char c = *i;
 
             if (c == '&') {
