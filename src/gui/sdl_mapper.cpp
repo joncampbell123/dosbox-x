@@ -94,6 +94,8 @@ enum BC_Types {
 static DOSBoxMenu                       mapperMenu;
 #endif
 
+extern Bit8u                            int10_font_14[256 * 14];
+
 std::map<std::string,std::string>       pending_string_binds;
 
 static int                              mapper_esc_count = 0;
@@ -111,29 +113,25 @@ class CButton;
 class CBind;
 class CBindGroup;
 
-static void SetActiveEvent(CEvent * event);
-static void SetActiveBind(CBind * _bind);
-extern Bit8u int10_font_14[256 * 14];
+typedef std::list<CBind *>                      CBindList;
+typedef std::list<CEvent *>::iterator           CEventList_it;
+typedef std::list<CBind *>::iterator            CBindList_it;
+typedef std::vector<CButton *>::iterator        CButton_it;
+typedef std::vector<CEvent *>::iterator         CEventVector_it;
+typedef std::vector<CHandlerEvent *>::iterator  CHandlerEventVector_it;
+typedef std::vector<CBindGroup *>::iterator     CBindGroup_it;
 
-static std::vector<CEvent *> events;
-static std::vector<CButton *> buttons;
-static std::vector<CBindGroup *> bindgroups;
-static std::vector<CHandlerEvent *> handlergroup;
-typedef std::list<CBind *> CBindList;
-typedef std::list<CEvent *>::iterator CEventList_it;
-typedef std::list<CBind *>::iterator CBindList_it;
-typedef std::vector<CButton *>::iterator CButton_it;
-typedef std::vector<CEvent *>::iterator CEventVector_it;
-typedef std::vector<CHandlerEvent *>::iterator CHandlerEventVector_it;
-typedef std::vector<CBindGroup *>::iterator CBindGroup_it;
+static std::vector<CEvent *>                    events;
+static std::vector<CButton *>                   buttons;
+static std::vector<CBindGroup *>                bindgroups;
+static std::vector<CHandlerEvent *>             handlergroup;
 
-#include <map>
+static std::map<std::string, size_t>            name_to_events;
 
-static std::map<std::string, size_t> name_to_events;
+static void                                     SetActiveEvent(CEvent * event);
+static void                                     SetActiveBind(CBind * _bind);
 
-class CEvent;
-
-CEvent *get_mapper_event_by_name(const std::string &x);
+CEvent*                                         get_mapper_event_by_name(const std::string &x);
 
 //! \brief Base CEvent class for mapper events
 class CEvent {
