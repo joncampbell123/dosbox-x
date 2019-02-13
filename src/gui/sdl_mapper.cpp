@@ -71,6 +71,7 @@
 
 
 class CEvent;
+class CKeyEvent;
 class CHandlerEvent;
 class CButton;
 class CBind;
@@ -205,6 +206,9 @@ static std::vector<CBindGroup *>                bindgroups;
 static std::vector<CHandlerEvent *>             handlergroup;
 
 static CModEvent*                               mod_event[8] = {NULL};
+
+static CKeyEvent*                               caps_lock_event = NULL;
+static CKeyEvent*                               num_lock_event = NULL;
 
 static std::map<std::string, size_t>            name_to_events;
 
@@ -2814,9 +2818,6 @@ static KeyBlock combo_4[11]={
     {"m","m",KBD_m},            {",","comma",KBD_comma},
     {".","period",KBD_period},                      {"/","slash",KBD_slash},        
 };
-
-static CKeyEvent * caps_lock_event=NULL;
-static CKeyEvent * num_lock_event=NULL;
 
 static void CreateLayout(void) {
     Bitu i;
