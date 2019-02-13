@@ -81,6 +81,9 @@ class CJHatBind;
 class CKeyBind;
 class CKeyBindGroup;
 class CStickBindGroup;
+class CCaptionButton;
+class CCheckButton;
+class CBindButton;
 class CModEvent;
 
 enum {
@@ -144,6 +147,22 @@ static struct CMapper {
     } sticks;
     std::string                                 filename;
 } mapper;
+
+static struct {
+    CCaptionButton *  event_title;
+    CCaptionButton *  bind_title;
+    CCaptionButton *  selected;
+    CCaptionButton *  action;
+    CCaptionButton *  dbg2;
+    CCaptionButton *  dbg;
+    CBindButton * save;
+    CBindButton * exit;   
+    CBindButton * cap;
+    CBindButton * add;
+    CBindButton * del;
+    CBindButton * next;
+    CCheckButton * mod1,* mod2,* mod3,* host,* hold;
+} bind_but;
 
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
 static DOSBoxMenu                               mapperMenu;
@@ -2575,23 +2594,6 @@ void MAPPER_TriggerEventByName(const std::string name) {
         }
     }
 }
-
-static struct {
-    CCaptionButton *  event_title;
-    CCaptionButton *  bind_title;
-    CCaptionButton *  selected;
-    CCaptionButton *  action;
-    CCaptionButton *  dbg2;
-    CCaptionButton *  dbg;
-    CBindButton * save;
-    CBindButton * exit;   
-    CBindButton * cap;
-    CBindButton * add;
-    CBindButton * del;
-    CBindButton * next;
-    CCheckButton * mod1,* mod2,* mod3,* host,* hold;
-} bind_but;
-
 
 static void change_action_text(const char* text,Bit8u col) {
     bind_but.action->Change(text,"");
