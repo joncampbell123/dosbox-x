@@ -31,22 +31,400 @@
 #include "inout.h"
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
-void                            sdl_hax_nsMenuAddApplicationMenu(void *nsMenu);
-void*                           sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag);
-void                            sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item);
-void                            sdl_hax_nsMenuItemSetTag(void *nsMenuItem, unsigned int id);
-void                            sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu);
-void                            sdl_hax_nsMenuAddItem(void *nsMenu,void *nsMenuItem);
-void*                           sdl_hax_nsMenuAllocSeparator(void);
-void*                           sdl_hax_nsMenuAlloc(const char *initWithText);
-void                            sdl_hax_nsMenuRelease(void *nsMenu);
-void*                           sdl_hax_nsMenuItemAlloc(const char *initWithText);
-void                            sdl_hax_nsMenuItemRelease(void *nsMenuItem);
+void                                                sdl_hax_nsMenuAddApplicationMenu(void *nsMenu);
+void*                                               sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag);
+void                                                sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item);
+void                                                sdl_hax_nsMenuItemSetTag(void *nsMenuItem, unsigned int id);
+void                                                sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu);
+void                                                sdl_hax_nsMenuAddItem(void *nsMenu,void *nsMenuItem);
+void*                                               sdl_hax_nsMenuAllocSeparator(void);
+void*                                               sdl_hax_nsMenuAlloc(const char *initWithText);
+void                                                sdl_hax_nsMenuRelease(void *nsMenu);
+void*                                               sdl_hax_nsMenuItemAlloc(const char *initWithText);
+void                                                sdl_hax_nsMenuItemRelease(void *nsMenuItem);
 #endif
 
-void                            MAPPER_TriggerEventByName(const std::string name);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+extern "C" void                                     SDL1_hax_SetMenu(HMENU menu);
+#endif
 
-const DOSBoxMenu::mapper_event_t DOSBoxMenu::unassigned_mapper_event; /* empty std::string */
+void                                                MAPPER_TriggerEventByName(const std::string name);
+void                                                RENDER_CallBack( GFX_CallBackFunctions_t function );
+
+const DOSBoxMenu::mapper_event_t                    DOSBoxMenu::unassigned_mapper_event; /* empty std::string */
+
+static DOSBoxMenu::item_handle_t                    separator_alloc = 0;
+static std::vector<DOSBoxMenu::item_handle_t>       separators;
+
+static std::string                                  not_recommended = "Mounting C:\\ is NOT recommended.\nDo you want to continue?";
+
+/* this is THE menu */
+DOSBoxMenu                                          mainMenu;
+
+extern const char*                                  scaler_menu_opts[][2];
+extern int                                          NonUserResizeCounter;
+
+extern bool                                         dos_kernel_disabled;
+extern bool                                         dos_shell_running_program;
+
+bool                                                GFX_GetPreventFullscreen(void);
+void                                                DOSBox_ShowConsole();
+
+void                                                GUI_ResetResize(bool pressed);
+
+MENU_Block                                          menu;
+
+unsigned int                                        hdd_defsize=16000;
+char                                                hdd_size[20]="";
+
+/* top level menu ("") */
+static const char *def_menu__toplevel[] =
+{
+    "MainMenu",
+    "CpuMenu",
+    "VideoMenu",
+    "SoundMenu",
+    "DOSMenu",
+#if !defined(C_EMSCRIPTEN)
+    "CaptureMenu",
+#endif
+    NULL
+};
+
+/* main menu ("MainMenu") */
+static const char *def_menu_main[] =
+{
+    "mapper_mapper",
+    "mapper_gui",
+    "--",
+    "MainSendKey",
+    "--",
+#if !defined(C_EMSCRIPTEN)
+    "wait_on_error",
+#endif
+    "showdetails",
+#if C_DEBUG
+    "--",
+    "mapper_debugger",
+#endif
+#if !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+    "show_console",
+#endif
+    "--",
+    "mapper_capmouse",
+    "auto_lock_mouse",
+#if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
+    "--",
+    "mapper_pause",
+    "mapper_pauseints",
+#endif
+#if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
+    "--",
+    "mapper_reset",
+#endif
+#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
+    "--",
+#endif
+#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
+    "mapper_shutdown",
+#endif
+    NULL
+};
+
+/* main -> send key menu ("MenuSendKey") */
+static const char *def_menu_main_sendkey[] =
+{
+    "sendkey_ctrlesc",
+    "sendkey_alttab",
+    "sendkey_winlogo",
+    "sendkey_winmenu",
+    "--",
+    "sendkey_cad",
+    NULL
+};
+
+/* cpu -> core menu ("CpuCoreMenu") */
+static const char *def_menu_cpu_core[] =
+{
+    "mapper_cycauto",
+    "--",
+    "mapper_normal",
+#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
+    "mapper_full",
+    "mapper_simple",
+#endif
+#if defined(C_DYNAMIC_X86) || defined(C_DYNREC)
+    "mapper_dynamic",
+#endif
+    NULL
+};
+
+/* cpu -> type menu ("CpuTypeMenu") */
+static const char *def_menu_cpu_type[] =
+{
+    "cputype_auto",
+    "--",
+    "cputype_8086",
+    "cputype_8086_prefetch",
+    "cputype_80186",
+    "cputype_80186_prefetch",
+    "cputype_286",
+    "cputype_286_prefetch",
+    "cputype_386",
+    "cputype_386_prefetch",
+    "cputype_486old",
+    "cputype_486old_prefetch",
+    "cputype_486",
+    "cputype_486_prefetch",
+    "cputype_pentium",
+    "cputype_pentium_mmx",
+    "cputype_ppro_slow",
+    NULL
+};
+
+/* cpu menu ("CpuMenu") */
+static const char *def_menu_cpu[] =
+{
+    "mapper_speedlock2", /* NTS: "mapper_speedlock" doesn't work for a menu item because it requires holding the key */
+    "--",
+    "mapper_cycleup",
+    "mapper_cycledown",
+    "mapper_editcycles",
+    "--",
+    "CpuCoreMenu",
+    "CpuTypeMenu",
+    NULL
+};
+
+/* video frameskip menu ("VideoFrameskipMenu") */
+static const char *def_menu_video_frameskip[] =
+{
+    "frameskip_0",
+    "frameskip_1",
+    "frameskip_2",
+    "frameskip_3",
+    "frameskip_4",
+    "frameskip_5",
+    "frameskip_6",
+    "frameskip_7",
+    "frameskip_8",
+    "frameskip_9",
+    "frameskip_10",
+    NULL
+};
+
+/* video scaler menu ("VideoScalerMenu") */
+static const char *def_menu_video_scaler[] =
+{
+    NULL
+};
+
+/* video output menu ("VideoOutputMenu") */
+static const char *def_menu_video_output[] =
+{
+    "output_surface",
+#if !defined(C_SDL2) && !defined(HX_DOS)
+# if (HAVE_D3D9_H) && defined(WIN32)
+    "output_direct3d",
+# endif
+# if (C_OPENGL)
+    "output_opengl",
+    "output_openglnb",
+# endif
+#endif
+    NULL
+};
+
+/* video vsync menu ("VideoVsyncMenu") */
+static const char *def_menu_video_vsync[] =
+{
+#if !defined(C_SDL2)
+    "vsync_on",
+    "vsync_force",
+    "vsync_host",
+    "vsync_off",
+    "--",
+    "vsync_set_syncrate",
+#endif
+    NULL
+};
+
+/* video overscan menu ("VideoOverscanMenu") */
+static const char *def_menu_video_overscan[] =
+{
+    "overscan_0",
+    "overscan_1",
+    "overscan_2",
+    "overscan_3",
+    "overscan_4",
+    "overscan_5",
+    "overscan_6",
+    "overscan_7",
+    "overscan_8",
+    "overscan_9",
+    "overscan_10",
+    NULL
+};
+
+/* video output menu ("VideoCompatMenu") */
+static const char *def_menu_video_compat[] =
+{
+    "vga_9widetext",
+    "doublescan",
+    NULL
+};
+
+/* video output menu ("VideoPC98Menu") */
+static const char *def_menu_video_pc98[] =
+{
+    "pc98_5mhz_gdc",
+    "pc98_allow_200scanline",
+    "pc98_allow_4partitions",
+    "--",
+    "pc98_enable_egc",
+    "pc98_enable_grcg",
+    "pc98_enable_analog",
+    "pc98_enable_188user",
+    "--",
+    "pc98_clear_text",
+    "pc98_clear_graphics",
+    NULL
+};
+
+/* video output debug ("VideoDebugMenu") */
+static const char *def_menu_video_debug[] =
+{
+    "mapper_blankrefreshtest",
+    "--",
+    "debug_pageflip",
+    "debug_retracepoll",
+    NULL
+};
+
+/* video menu ("VideoMenu") */
+static const char *def_menu_video[] =
+{
+    "mapper_aspratio",
+    "--",
+#if !defined(HX_DOS)
+    "mapper_fullscr",
+    "--",
+#endif
+#if !defined(HX_DOS) && (defined(LINUX) || !defined(C_SDL2))
+    "alwaysontop",
+#endif
+#if !defined(C_SDL2) && defined(MACOSX)
+    "highdpienable",
+#endif
+#if !defined(C_SDL2)
+    "doublebuf",
+    "--",
+#endif
+#ifndef MACOSX
+    "mapper_togmenu",
+# if !defined(HX_DOS)
+    "--",
+# endif
+#endif
+#if !defined(HX_DOS)
+    "mapper_resetsize",
+#endif
+    "--",
+    "VideoFrameskipMenu",
+    "--",
+    "scaler_forced",
+    "VideoScalerMenu",
+    "VideoOutputMenu",
+#if !defined(C_SDL2)
+    "VideoVsyncMenu",
+#endif
+    "VideoOverscanMenu",
+    "VideoCompatMenu",
+    "VideoPC98Menu",
+    "--",
+    "VideoDebugMenu",
+    NULL
+};
+
+/* DOS menu ("DOSMenu") */
+static const char *def_menu_dos[] =
+{
+    "DOSMouseMenu",
+    "--",
+    "DOSPC98Menu",
+    "--",
+    "mapper_swapimg",
+    "mapper_swapcd",
+    NULL
+};
+
+/* DOS mouse menu ("DOSMouseMenu") */
+static const char *def_menu_dos_mouse[] =
+{
+    "dos_mouse_enable_int33",
+    "dos_mouse_y_axis_reverse",
+    "--",
+    "dos_mouse_sensitivity",
+    NULL
+};
+
+/* DOS pc-98 menu ("DOSPC98Menu") */
+static const char *def_menu_dos_pc98[] =
+{
+    "dos_pc98_pit_4mhz",
+    "dos_pc98_pit_5mhz",
+    NULL
+};
+
+/* sound menu ("SoundMenu") */
+static const char *def_menu_sound[] =
+{
+    "mapper_volup",
+    "mapper_voldown",
+    "--",
+    "mixer_mute",
+    "mixer_swapstereo",
+    NULL
+};
+
+/* capture menu ("CaptureMenu") */
+static const char *def_menu_capture[] =
+{
+#if defined(C_SSHOT)
+    "mapper_scrshot",
+    "--",
+#endif
+#if !defined(C_EMSCRIPTEN)
+# if (C_SSHOT)
+    "CaptureFormatMenu",
+    "--",
+# endif
+    "mapper_video",
+    "mapper_recwave",
+    "mapper_recmtwave",
+    "mapper_caprawopl",
+    "mapper_caprawmidi",
+#endif
+    NULL
+};
+
+#if !defined(C_EMSCRIPTEN)
+# if (C_SSHOT)
+/* capture format menu ("CaptureFormatMenu") */
+static const char *def_menu_capture_format[] =
+{
+    "capture_fmt_avi_zmbv",
+#  if (C_AVCODEC)
+    "capture_fmt_mpegts_h264",
+#  endif
+    NULL
+};
+# endif
+#endif
+
+bool DOSBox_isMenuVisible(void) {
+    return menu.toggle;
+}
 
 DOSBoxMenu::DOSBoxMenu() {
 }
@@ -612,336 +990,6 @@ void DOSBoxMenu::dispatchItemCommand(item &item) {
         MAPPER_TriggerEventByName(item.mapper_event);
 }
 
-/* this is THE menu */
-DOSBoxMenu mainMenu;
-
-/* top level menu ("") */
-static const char *def_menu__toplevel[] = {
-    "MainMenu",
-    "CpuMenu",
-    "VideoMenu",
-    "SoundMenu",
-    "DOSMenu",
-#if !defined(C_EMSCRIPTEN)
-    "CaptureMenu",
-#endif
-    NULL
-};
-
-/* main menu ("MainMenu") */
-static const char *def_menu_main[] = {
-    "mapper_mapper",
-    "mapper_gui",
-    "--",
-    "MainSendKey",
-    "--",
-#if !defined(C_EMSCRIPTEN)
-    "wait_on_error",
-#endif
-    "showdetails",
-#if C_DEBUG
-    "--",
-    "mapper_debugger",
-#endif
-#if !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
-    "show_console",
-#endif
-    "--",
-    "mapper_capmouse",
-    "auto_lock_mouse",
-#if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
-    "--",
-    "mapper_pause",
-    "mapper_pauseints",
-#endif
-#if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
-    "--",
-    "mapper_reset",
-#endif
-#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
-    "--",
-#endif
-#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
-    "mapper_shutdown",
-#endif
-    NULL
-};
-
-/* main -> send key menu ("MenuSendKey") */
-static const char *def_menu_main_sendkey[] = {
-    "sendkey_ctrlesc",
-    "sendkey_alttab",
-    "sendkey_winlogo",
-    "sendkey_winmenu",
-    "--",
-    "sendkey_cad",
-    NULL
-};
-
-/* cpu -> core menu ("CpuCoreMenu") */
-static const char *def_menu_cpu_core[] = {
-    "mapper_cycauto",
-    "--",
-    "mapper_normal",
-#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
-    "mapper_full",
-    "mapper_simple",
-#endif
-#if defined(C_DYNAMIC_X86) || defined(C_DYNREC)
-    "mapper_dynamic",
-#endif
-    NULL
-};
-
-/* cpu -> type menu ("CpuTypeMenu") */
-static const char *def_menu_cpu_type[] = {
-    "cputype_auto",
-    "--",
-    "cputype_8086",
-    "cputype_8086_prefetch",
-    "cputype_80186",
-    "cputype_80186_prefetch",
-    "cputype_286",
-    "cputype_286_prefetch",
-    "cputype_386",
-    "cputype_386_prefetch",
-    "cputype_486old",
-    "cputype_486old_prefetch",
-    "cputype_486",
-    "cputype_486_prefetch",
-    "cputype_pentium",
-    "cputype_pentium_mmx",
-    "cputype_ppro_slow",
-    NULL
-};
-
-/* cpu menu ("CpuMenu") */
-static const char *def_menu_cpu[] = {
-    "mapper_speedlock2", /* NTS: "mapper_speedlock" doesn't work for a menu item because it requires holding the key */
-    "--",
-    "mapper_cycleup",
-    "mapper_cycledown",
-    "mapper_editcycles",
-    "--",
-    "CpuCoreMenu",
-    "CpuTypeMenu",
-    NULL
-};
-
-/* video frameskip menu ("VideoFrameskipMenu") */
-static const char *def_menu_video_frameskip[] = {
-    "frameskip_0",
-    "frameskip_1",
-    "frameskip_2",
-    "frameskip_3",
-    "frameskip_4",
-    "frameskip_5",
-    "frameskip_6",
-    "frameskip_7",
-    "frameskip_8",
-    "frameskip_9",
-    "frameskip_10",
-    NULL
-};
-
-/* video scaler menu ("VideoScalerMenu") */
-static const char *def_menu_video_scaler[] = {
-    NULL
-};
-
-/* video output menu ("VideoOutputMenu") */
-static const char *def_menu_video_output[] = {
-    "output_surface",
-#if !defined(C_SDL2) && !defined(HX_DOS)
-# if (HAVE_D3D9_H) && defined(WIN32)
-    "output_direct3d",
-# endif
-# if (C_OPENGL)
-    "output_opengl",
-    "output_openglnb",
-# endif
-#endif
-    NULL
-};
-
-/* video vsync menu ("VideoVsyncMenu") */
-static const char *def_menu_video_vsync[] = {
-#if !defined(C_SDL2)
-    "vsync_on",
-    "vsync_force",
-    "vsync_host",
-    "vsync_off",
-    "--",
-    "vsync_set_syncrate",
-#endif
-    NULL
-};
-
-/* video overscan menu ("VideoOverscanMenu") */
-static const char *def_menu_video_overscan[] = {
-    "overscan_0",
-    "overscan_1",
-    "overscan_2",
-    "overscan_3",
-    "overscan_4",
-    "overscan_5",
-    "overscan_6",
-    "overscan_7",
-    "overscan_8",
-    "overscan_9",
-    "overscan_10",
-    NULL
-};
-
-/* video output menu ("VideoCompatMenu") */
-static const char *def_menu_video_compat[] = {
-    "vga_9widetext",
-    "doublescan",
-    NULL
-};
-
-/* video output menu ("VideoPC98Menu") */
-static const char *def_menu_video_pc98[] = {
-    "pc98_5mhz_gdc",
-    "pc98_allow_200scanline",
-    "pc98_allow_4partitions",
-    "--",
-    "pc98_enable_egc",
-    "pc98_enable_grcg",
-    "pc98_enable_analog",
-    "pc98_enable_188user",
-    "--",
-    "pc98_clear_text",
-    "pc98_clear_graphics",
-    NULL
-};
-
-/* video output debug ("VideoDebugMenu") */
-static const char *def_menu_video_debug[] = {
-    "mapper_blankrefreshtest",
-    "--",
-    "debug_pageflip",
-    "debug_retracepoll",
-    NULL
-};
-
-/* video menu ("VideoMenu") */
-static const char *def_menu_video[] = {
-    "mapper_aspratio",
-    "--",
-#if !defined(HX_DOS)
-    "mapper_fullscr",
-    "--",
-#endif
-#if !defined(HX_DOS) && (defined(LINUX) || !defined(C_SDL2))
-    "alwaysontop",
-#endif
-#if !defined(C_SDL2) && defined(MACOSX)
-    "highdpienable",
-#endif
-#if !defined(C_SDL2)
-    "doublebuf",
-    "--",
-#endif
-#ifndef MACOSX
-    "mapper_togmenu",
-# if !defined(HX_DOS)
-    "--",
-# endif
-#endif
-#if !defined(HX_DOS)
-    "mapper_resetsize",
-#endif
-    "--",
-    "VideoFrameskipMenu",
-    "--",
-    "scaler_forced",
-    "VideoScalerMenu",
-    "VideoOutputMenu",
-#if !defined(C_SDL2)
-    "VideoVsyncMenu",
-#endif
-    "VideoOverscanMenu",
-    "VideoCompatMenu",
-    "VideoPC98Menu",
-    "--",
-    "VideoDebugMenu",
-    NULL
-};
-
-/* DOS menu ("DOSMenu") */
-static const char *def_menu_dos[] = {
-    "DOSMouseMenu",
-    "--",
-    "DOSPC98Menu",
-    "--",
-    "mapper_swapimg",
-    "mapper_swapcd",
-    NULL
-};
-
-/* DOS mouse menu ("DOSMouseMenu") */
-static const char *def_menu_dos_mouse[] = {
-    "dos_mouse_enable_int33",
-    "dos_mouse_y_axis_reverse",
-    "--",
-    "dos_mouse_sensitivity",
-    NULL
-};
-
-/* DOS pc-98 menu ("DOSPC98Menu") */
-static const char *def_menu_dos_pc98[] = {
-    "dos_pc98_pit_4mhz",
-    "dos_pc98_pit_5mhz",
-    NULL
-};
-
-/* sound menu ("SoundMenu") */
-static const char *def_menu_sound[] = {
-    "mapper_volup",
-    "mapper_voldown",
-    "--",
-    "mixer_mute",
-    "mixer_swapstereo",
-    NULL
-};
-
-/* capture menu ("CaptureMenu") */
-static const char *def_menu_capture[] = {
-#if defined(C_SSHOT)
-    "mapper_scrshot",
-    "--",
-#endif
-#if !defined(C_EMSCRIPTEN)
-# if (C_SSHOT)
-    "CaptureFormatMenu",
-    "--",
-# endif
-    "mapper_video",
-    "mapper_recwave",
-    "mapper_recmtwave",
-    "mapper_caprawopl",
-    "mapper_caprawmidi",
-#endif
-    NULL
-};
-
-#if !defined(C_EMSCRIPTEN)
-# if (C_SSHOT)
-/* capture format menu ("CaptureFormatMenu") */
-static const char *def_menu_capture_format[] = {
-    "capture_fmt_avi_zmbv",
-#  if (C_AVCODEC)
-    "capture_fmt_mpegts_h264",
-#  endif
-    NULL
-};
-# endif
-#endif
-
-static DOSBoxMenu::item_handle_t separator_alloc = 0;
-static std::vector<DOSBoxMenu::item_handle_t> separators;
-
 static std::string separator_id(const DOSBoxMenu::item_handle_t r) {
     char tmp[32];
 
@@ -989,8 +1037,6 @@ void ConstructSubMenu(DOSBoxMenu::item_handle_t item_id, const char * const * li
         }
     }
 }
-
-extern const char *scaler_menu_opts[][2];
 
 void ConstructMenu(void) {
     mainMenu.displaylist_clear(mainMenu.display_list);
@@ -1098,8 +1144,6 @@ bool MENU_SetBool(std::string secname, std::string value) {
     return sec->Get_bool(value);
 }
 
-void RENDER_CallBack( GFX_CallBackFunctions_t function );
-
 // Sets the scaler 'forced' flag.
 void SetScaleForced(bool forced)
 {
@@ -1126,16 +1170,6 @@ void SetScaler(scalerOperation_t op, Bitu size, std::string prefix)
     RENDER_CallBack(GFX_CallBackReset);
 }
 
-extern int NonUserResizeCounter;
-
-extern bool dos_kernel_disabled;
-extern bool dos_shell_running_program;
-
-bool GFX_GetPreventFullscreen(void);
-void DOSBox_ShowConsole();
-
-void GUI_ResetResize(bool pressed);
-
 std::string MSCDEX_Output(int num) {
     std::string MSCDEX_MSG = "GUI: MSCDEX ";
     std::string MSCDEX_MSG_Failure = "Failure: ";
@@ -1150,8 +1184,6 @@ std::string MSCDEX_Output(int num) {
     default: return 0;
     }
 }
-
-static std::string not_recommended = "Mounting C:\\ is NOT recommended.\nDo you want to continue?";
 
 void SetVal(const std::string secname, std::string preval, const std::string val) {
     if(preval=="keyboardlayout" && !dos_kernel_disabled) {
@@ -1169,19 +1201,6 @@ void SetVal(const std::string secname, std::string preval, const std::string val
         sec->HandleInputline(real_val);
     }
 }
-
-MENU_Block menu;
-
-unsigned int hdd_defsize=16000;
-char hdd_size[20]="";
-
-bool DOSBox_isMenuVisible(void) {
-    return menu.toggle;
-}
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-extern "C" void SDL1_hax_SetMenu(HMENU menu);
-#endif
 
 void DOSBox_SetMenu(DOSBoxMenu &altMenu) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
