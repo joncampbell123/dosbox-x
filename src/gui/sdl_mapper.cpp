@@ -46,40 +46,7 @@
 # include <emscripten.h>
 #endif
 
-static DOSBoxMenu mapperMenu;
-
 #include <map>
-
-std::map<std::string,std::string> pending_string_binds;
-
-void MAPPER_CheckKeyboardLayout();
-
-static int mapper_esc_count = 0;
-
-Bitu next_handler_xpos=0;
-Bitu next_handler_ypos=0;
-
-bool mapper_addhandler_create_buttons = false;
-
-bool isJPkeyboard = false;
-
-enum {
-    CLR_BLACK=0,
-    CLR_WHITE=1,
-    CLR_RED=2,
-    CLR_BLUE=3,
-    CLR_GREEN=4
-};
-
-enum BB_Types {
-    BB_Next,BB_Add,BB_Del,
-    BB_Save,BB_Exit,BB_Capture
-};
-
-enum BC_Types {
-    BC_Mod1,BC_Mod2,BC_Mod3,BC_Host,
-    BC_Hold
-};
 
 #define BMOD_Mod1 0x0001
 #define BMOD_Mod2 0x0002
@@ -97,9 +64,46 @@ enum BC_Types {
 #define MAXAXIS 8
 #define MAXHAT 2
 
+enum {
+    CLR_BLACK=0,
+    CLR_WHITE=1,
+    CLR_RED=2,
+    CLR_BLUE=3,
+    CLR_GREEN=4
+};
+
+enum BB_Types {
+    BB_Next,
+    BB_Add,
+    BB_Del,
+    BB_Save,
+    BB_Exit,
+    BB_Capture
+};
+
+enum BC_Types {
+    BC_Mod1,
+    BC_Mod2,
+    BC_Mod3,
+    BC_Host,
+    BC_Hold
+};
+
+static DOSBoxMenu                       mapperMenu;
+
+std::map<std::string,std::string>       pending_string_binds;
+
+static int                              mapper_esc_count = 0;
+
+Bitu                                    next_handler_xpos = 0;
+Bitu                                    next_handler_ypos = 0;
+
+bool                                    mapper_addhandler_create_buttons = false;
+
+bool                                    isJPkeyboard = false;
+
 //! \brief Get value sign, i.e. less than zero: -1, zero: 0, greater than zero: 1.
 template <typename T> int sgn(T val) {
-
 	// http://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
 	return (T(0) < val) - (val < T(0));
 }
