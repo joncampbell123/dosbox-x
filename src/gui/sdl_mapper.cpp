@@ -221,6 +221,68 @@ static SDL_Color                                map_pal[5] =
     {0x00,0xff,0x20,0x00}           //4=green
 };
 
+static KeyBlock combo_f[12] =
+{
+    {"F1","f1",KBD_f1},     {"F2","f2",KBD_f2},     {"F3","f3",KBD_f3},
+    {"F4","f4",KBD_f4},     {"F5","f5",KBD_f5},     {"F6","f6",KBD_f6},
+    {"F7","f7",KBD_f7},     {"F8","f8",KBD_f8},     {"F9","f9",KBD_f9},
+    {"F10","f10",KBD_f10},  {"F11","f11",KBD_f11},  {"F12","f12",KBD_f12},
+};
+
+static KeyBlock combo_1[14] =
+{
+    {"`~","grave",KBD_grave},   {"1!","1",KBD_1},   {"2@","2",KBD_2},
+    {"3#","3",KBD_3},           {"4$","4",KBD_4},   {"5%","5",KBD_5},
+    {"6^","6",KBD_6},           {"7&","7",KBD_7},   {"8*","8",KBD_8},
+    {"9(","9",KBD_9},           {"0)","0",KBD_0},   {"-_","minus",KBD_minus},
+    {"=+","equals",KBD_equals}, {"\x1B","bspace",KBD_backspace},
+};
+
+static KeyBlock combo_1_pc98[14] =
+{
+    {"`~","grave",KBD_grave},   {"1!","1",KBD_1},   {"2\"","2",KBD_2},
+    {"3#","3",KBD_3},           {"4$","4",KBD_4},   {"5%","5",KBD_5},
+    {"6&","6",KBD_6},           {"7'","7",KBD_7},   {"8(","8",KBD_8},
+    {"9)","9",KBD_9},           {"0","0",KBD_0},    {"-=","minus",KBD_minus},
+    {"=+","equals",KBD_equals}, {"\x1B","bspace",KBD_backspace},
+};
+
+static KeyBlock combo_2[12] =
+{
+    {"q","q",KBD_q},            {"w","w",KBD_w},    {"e","e",KBD_e},
+    {"r","r",KBD_r},            {"t","t",KBD_t},    {"y","y",KBD_y},
+    {"u","u",KBD_u},            {"i","i",KBD_i},    {"o","o",KBD_o},
+    {"p","p",KBD_p},            {"[","lbracket",KBD_leftbracket},
+    {"]","rbracket",KBD_rightbracket},
+};
+
+static KeyBlock combo_3[12] =
+{
+    {"a","a",KBD_a},            {"s","s",KBD_s},    {"d","d",KBD_d},
+    {"f","f",KBD_f},            {"g","g",KBD_g},    {"h","h",KBD_h},
+    {"j","j",KBD_j},            {"k","k",KBD_k},    {"l","l",KBD_l},
+    {";","semicolon",KBD_semicolon},                {"'","quote",KBD_quote},
+    {"\\","backslash",KBD_backslash},
+};
+
+static KeyBlock combo_3_pc98[12] =
+{
+    {"a","a",KBD_a},            {"s","s",KBD_s},    {"d","d",KBD_d},
+    {"f","f",KBD_f},            {"g","g",KBD_g},    {"h","h",KBD_h},
+    {"j","j",KBD_j},            {"k","k",KBD_k},    {"l","l",KBD_l},
+    {";+","semicolon",KBD_semicolon},               {"'","quote",KBD_quote},
+    {"\\","backslash",KBD_backslash},
+};
+
+static KeyBlock combo_4[11] =
+{
+    {"<","lessthan",KBD_extra_lt_gt},
+    {"z","z",KBD_z},            {"x","x",KBD_x},    {"c","c",KBD_c},
+    {"v","v",KBD_v},            {"b","b",KBD_b},    {"n","n",KBD_n},
+    {"m","m",KBD_m},            {",","comma",KBD_comma},
+    {".","period",KBD_period},                      {"/","slash",KBD_slash},
+};
+
 static void                                     SetActiveEvent(CEvent * event);
 static void                                     SetActiveBind(CBind * _bind);
 static void                                     change_action_text(const char* text,Bit8u col);
@@ -2763,61 +2825,6 @@ static void AddModButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,
     assert(_mod < 8);
     mod_event[_mod] = event;
 }
-
-static KeyBlock combo_f[12]={
-    {"F1","f1",KBD_f1},     {"F2","f2",KBD_f2},     {"F3","f3",KBD_f3},     
-    {"F4","f4",KBD_f4},     {"F5","f5",KBD_f5},     {"F6","f6",KBD_f6},
-    {"F7","f7",KBD_f7},     {"F8","f8",KBD_f8},     {"F9","f9",KBD_f9},
-    {"F10","f10",KBD_f10},  {"F11","f11",KBD_f11},  {"F12","f12",KBD_f12},
-};
-
-static KeyBlock combo_1[14]={
-    {"`~","grave",KBD_grave},   {"1!","1",KBD_1},   {"2@","2",KBD_2},
-    {"3#","3",KBD_3},           {"4$","4",KBD_4},   {"5%","5",KBD_5},
-    {"6^","6",KBD_6},           {"7&","7",KBD_7},   {"8*","8",KBD_8},
-    {"9(","9",KBD_9},           {"0)","0",KBD_0},   {"-_","minus",KBD_minus},   
-    {"=+","equals",KBD_equals}, {"\x1B","bspace",KBD_backspace},
-};
-
-static KeyBlock combo_1_pc98[14]={
-    {"`~","grave",KBD_grave},   {"1!","1",KBD_1},   {"2\"","2",KBD_2},
-    {"3#","3",KBD_3},           {"4$","4",KBD_4},   {"5%","5",KBD_5},
-    {"6&","6",KBD_6},           {"7'","7",KBD_7},   {"8(","8",KBD_8},
-    {"9)","9",KBD_9},           {"0","0",KBD_0},    {"-=","minus",KBD_minus},   
-    {"=+","equals",KBD_equals}, {"\x1B","bspace",KBD_backspace},
-};
-
-static KeyBlock combo_2[12]={
-    {"q","q",KBD_q},            {"w","w",KBD_w},    {"e","e",KBD_e},
-    {"r","r",KBD_r},            {"t","t",KBD_t},    {"y","y",KBD_y},
-    {"u","u",KBD_u},            {"i","i",KBD_i},    {"o","o",KBD_o},    
-    {"p","p",KBD_p},            {"[","lbracket",KBD_leftbracket},   
-    {"]","rbracket",KBD_rightbracket},  
-};
-
-static KeyBlock combo_3[12]={
-    {"a","a",KBD_a},            {"s","s",KBD_s},    {"d","d",KBD_d},
-    {"f","f",KBD_f},            {"g","g",KBD_g},    {"h","h",KBD_h},
-    {"j","j",KBD_j},            {"k","k",KBD_k},    {"l","l",KBD_l},
-    {";","semicolon",KBD_semicolon},                {"'","quote",KBD_quote},
-    {"\\","backslash",KBD_backslash},   
-};
-
-static KeyBlock combo_3_pc98[12]={
-    {"a","a",KBD_a},            {"s","s",KBD_s},    {"d","d",KBD_d},
-    {"f","f",KBD_f},            {"g","g",KBD_g},    {"h","h",KBD_h},
-    {"j","j",KBD_j},            {"k","k",KBD_k},    {"l","l",KBD_l},
-    {";+","semicolon",KBD_semicolon},               {"'","quote",KBD_quote},
-    {"\\","backslash",KBD_backslash},   
-};
-
-static KeyBlock combo_4[11]={
-    {"<","lessthan",KBD_extra_lt_gt},
-    {"z","z",KBD_z},            {"x","x",KBD_x},    {"c","c",KBD_c},
-    {"v","v",KBD_v},            {"b","b",KBD_b},    {"n","n",KBD_n},
-    {"m","m",KBD_m},            {",","comma",KBD_comma},
-    {".","period",KBD_period},                      {"/","slash",KBD_slash},        
-};
 
 static void CreateLayout(void) {
     Bitu i;
