@@ -44,6 +44,8 @@ void*                           sdl_hax_nsMenuItemAlloc(const char *initWithText
 void                            sdl_hax_nsMenuItemRelease(void *nsMenuItem);
 #endif
 
+void                            MAPPER_TriggerEventByName(const std::string name);
+
 const DOSBoxMenu::mapper_event_t DOSBoxMenu::unassigned_mapper_event; /* empty std::string */
 
 DOSBoxMenu::DOSBoxMenu() {
@@ -156,7 +158,7 @@ void DOSBoxMenu::delete_item(const item_handle_t i) {
         E_Exit("DOSBoxMenu::delete_item() attempt to get out of range handle");
 
     {
-        auto it = name_map.find(master_list[i].name);
+        const auto it = name_map.find(master_list[i].name);
         if (it != name_map.end()) {
             if (it->second != i) E_Exit("DOSBoxMenu::delete_item() master_id mismatch");
             name_map.erase(it);
@@ -185,7 +187,7 @@ void DOSBoxMenu::dump_log_displaylist(DOSBoxMenu::displaylist &ls, unsigned int 
     for (unsigned int i=0;i < indent;i++)
         prep += "+ ";
 
-    for (auto &id : ls.disp_list) {
+    for (const auto &id : ls.disp_list) {
         DOSBoxMenu::item &item = get_item(id);
 
         if (!item.is_allocated()) {
@@ -489,7 +491,7 @@ bool DOSBoxMenu::winMenuSubInit(DOSBoxMenu::item &p_item) {
     if (p_item.winMenu == NULL) {
         p_item.winMenu = CreatePopupMenu();
         if (p_item.winMenu != NULL) {
-            for (auto id : p_item.display_list.disp_list) {
+            for (const auto id : p_item.display_list.disp_list) {
                 DOSBoxMenu::item &item = get_item(id);
 
                 /* if a submenu, make the submenu */
@@ -512,7 +514,7 @@ bool DOSBoxMenu::winMenuInit(void) {
         if (winMenu == NULL) return false;
 
         /* top level */
-        for (auto id : display_list.disp_list) {
+        for (const auto id : display_list.disp_list) {
             DOSBoxMenu::item &item = get_item(id);
 
             /* if a submenu, make the submenu */
@@ -559,8 +561,6 @@ bool DOSBoxMenu::mainMenuWM_COMMAND(unsigned int id) {
     return true;
 }
 #endif
-
-void MAPPER_TriggerEventByName(const std::string name);
 
 void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
     (void)menu;//POSSIBLY UNUSED
