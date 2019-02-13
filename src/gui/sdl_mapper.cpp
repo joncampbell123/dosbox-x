@@ -126,11 +126,11 @@ struct DOSBox_Vector2
 		return clamp;
 	}
 
-	float magnitude(void) const {
+	inline float magnitude(void) const {
 		return sqrt(sqrMagnitude());
 	}
 
-	float sqrMagnitude(void) const {
+	inline float sqrMagnitude(void) const {
 		return X * X + Y * Y;
 	}
 
