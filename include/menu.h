@@ -121,6 +121,11 @@ void DOSBox_NoMenu(void);
 # define DOSBOXMENU_TYPE    DOSBOXMENU_NULL
 #endif
 
+/* Whether or not the menu exists, and is NOT drawn by ourself (Windows and Mac OS X) */
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU || DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
+# define DOSBOXMENU_EXTERNALLY_MANAGED
+#endif
+
 void GUI_Shortcut(int select);
 
 #define DOSBOXMENU_ACCELMARK_STR        "\x01"

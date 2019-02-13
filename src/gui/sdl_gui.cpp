@@ -42,7 +42,9 @@
 
 #include "SDL_syswm.h"
 
+#ifdef DOSBOXMENU_EXTERNALLY_MANAGED
 static DOSBoxMenu guiMenu;
+#endif
 
 /* helper class for command execution */
 class VirtualBatch : public BatchFile {
@@ -139,7 +141,9 @@ bool gui_menu_exit(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     return true;
 }
 
+#ifdef DOSBOXMENU_EXTERNALLY_MANAGED
 static bool gui_menu_init = true;
+#endif
 
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     in_gui = true;
@@ -309,6 +313,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     WindowsTaskbarResetPreviewRegion();
 #endif
 
+#ifdef DOSBOXMENU_EXTERNALLY_MANAGED
     if (gui_menu_init) {
         gui_menu_init = false;
 
@@ -337,6 +342,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 
     guiMenu.rebuild();
     DOSBox_SetMenu(guiMenu);
+#endif
 
 	if (screen) screen->setSurface(sdlscreen);
 	else screen = new GUI::ScreenSDL(sdlscreen);
@@ -358,7 +364,9 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 	SDL_Surface *sdlscreen = screen->getSurface();
 	render.src.bpp = (Bitu)saved_bpp;
 
+#ifdef DOSBOXMENU_EXTERNALLY_MANAGED
     DOSBox_SetMenu(mainMenu);
+#endif
 
 #if defined(MACOSX)
     void osx_reload_touchbar(void);

@@ -89,7 +89,9 @@ enum BC_Types {
     BC_Hold
 };
 
+#ifdef DOSBOXMENU_EXTERNALLY_MANAGED
 static DOSBoxMenu                       mapperMenu;
+#endif
 
 std::map<std::string,std::string>       pending_string_binds;
 
@@ -3879,7 +3881,9 @@ void MAPPER_RunInternal() {
 
     MAPPER_ReleaseAllKeys();
 
+#ifdef DOSBOXMENU_EXTERNALLY_MANAGED
     mapperMenu.rebuild();
+#endif
 
     /* Sorry, the MAPPER screws up 3Dfx OpenGL emulation.
      * Remove this block when fixed. */
@@ -3939,7 +3943,9 @@ void MAPPER_RunInternal() {
     WindowsTaskbarResetPreviewRegion();
 #endif
 
+#ifdef DOSBOXMENU_EXTERNALLY_MANAGED
     DOSBox_SetMenu(mapperMenu);
+#endif
 
 #if defined(MACOSX)
     void osx_reload_touchbar(void);
@@ -4030,7 +4036,9 @@ void MAPPER_RunInternal() {
     osx_reload_touchbar();
 #endif
 
+#ifdef DOSBOXMENU_EXTERNALLY_MANAGED
     DOSBox_SetMenu(mainMenu);
+#endif
 }
 
 bool MAPPER_IsRunning(void) {
@@ -4110,6 +4118,7 @@ void MAPPER_StartUp() {
     mapper.sticks.num_groups=0;
     Bitu i;
 
+#ifdef DOSBOXMENU_EXTERNALLY_MANAGED
     {
         mapperMenu.alloc_item(DOSBoxMenu::separator_type_id,"_separator_");
     }
@@ -4147,6 +4156,7 @@ void MAPPER_StartUp() {
         mapperMenu.displaylist_append(
             mapperMenu.get_item("MapperMenu").display_list, mapperMenu.get_item_id_by_name("SaveMapper"));
     }
+#endif
 
     LOG(LOG_MISC,LOG_DEBUG)("MAPPER starting up");
 
