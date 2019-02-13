@@ -29,6 +29,8 @@ void self_test(void) {
     static_assert(allzero<uint64_t>() == (uint64_t)0, "whoops");
     static_assert((~allones<uint32_t>()) == allzero<uint32_t>(), "whoops");
     static_assert((~allzero<uint32_t>()) == allones<uint32_t>(), "whoops");
+    static_assert((~allones<uint64_t>()) == allzero<uint64_t>(), "whoops");
+    static_assert((~allzero<uint64_t>()) == allones<uint64_t>(), "whoops");
     assert(type_bits<uint64_t>() == 64u);
     assert(type_bits<uint32_t>() == 32u);
     assert(type_bits<uint16_t>() == 16u);
