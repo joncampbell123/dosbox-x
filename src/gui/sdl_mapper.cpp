@@ -34,6 +34,7 @@
 #include "pic.h"
 #include "control.h"
 #include "joystick.h"
+#include "util_math.h"
 #include "keymap.h"
 #include "support.h"
 #include "mapper.h"
@@ -103,12 +104,6 @@ Bitu                                    next_handler_ypos = 0;
 bool                                    mapper_addhandler_create_buttons = false;
 
 bool                                    isJPkeyboard = false;
-
-//! \brief Get value sign, i.e. less than zero: -1, zero: 0, greater than zero: 1.
-template <typename T> int sgn(T val) {
-	// http://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
-	return (T(0) < val) - (val < T(0));
-}
 
 //! \brief Floating-point vector with 2 components.
 struct Vector2
