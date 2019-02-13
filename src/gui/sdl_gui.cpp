@@ -274,7 +274,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	// Jonathan C: do it FASTER!
 	SDL_Event event;
     SDL_SetSurfaceBlendMode(screenshot, SDL_BLENDMODE_BLEND);
-	for (int i = 0xff; i > 0; i -= 0x30) { 
+	for (int i = 0xff; i > 0; i -= 0x40) {
 		SDL_SetSurfaceAlphaMod(screenshot, i); 
 		SDL_BlitSurface(background, NULL, sdlscreen, NULL); 
 		SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
@@ -291,7 +291,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	// fade out
 	// Jonathan C: do it FASTER!
 	SDL_Event event; 
-	for (int i = 0xff; i > 0; i -= 0x30) { 
+	for (int i = 0xff; i > 0; i -= 0x40) {
 		SDL_SetAlpha(screenshot, SDL_SRCALPHA, i); 
 		SDL_BlitSurface(background, NULL, sdlscreen, NULL); 
 		SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL); 
@@ -378,7 +378,7 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 	// Jonathan C: do it FASTER!
 	SDL_Event event;
     SDL_SetSurfaceBlendMode(screenshot, SDL_BLENDMODE_BLEND);
-	for (unsigned int i = 0x00; i < 0xff; i += 0x30) {
+	for (unsigned int i = 0x00; i < 0xff; i += 0x60) {
 		SDL_SetSurfaceAlphaMod(screenshot, i); 
 		SDL_BlitSurface(background, NULL, sdlscreen, NULL); 
 		SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
@@ -395,7 +395,7 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 	// fade in
 	// Jonathan C: do it FASTER!
 	SDL_Event event;
-	for (unsigned int i = 0x00; i < 0xff; i += 0x30) {
+	for (unsigned int i = 0x00; i < 0xff; i += 0x60) {
 		SDL_SetAlpha(screenshot, SDL_SRCALPHA, i);
 		SDL_BlitSurface(background, NULL, sdlscreen, NULL);
 		SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
