@@ -125,8 +125,8 @@ static void RENDER_EmptyLineHandler(const void * src) {
 # define sse2_available (1) /* SSE2 is always available on x86_64 */
 #else
 # ifdef __SSE__
-extern bool				sse1_available;
-extern bool				sse2_available;
+extern bool             sse1_available;
+extern bool             sse2_available;
 # endif
 #endif
 /*END HACK*/
@@ -189,12 +189,12 @@ static unsigned int RENDER_scaler_countdown = 0;
 static const unsigned int RENDER_scaler_countdown_init = 12;
 
 static INLINE void cn_ScalerAddLines( Bitu changed, Bitu count ) {
-	if ((Scaler_ChangedLineIndex & 1) == changed ) {
-		Scaler_ChangedLines[Scaler_ChangedLineIndex] += count;
-	} else {
-		Scaler_ChangedLines[++Scaler_ChangedLineIndex] = count;
-	}
-	render.scale.outWrite += render.scale.outPitch * count;
+    if ((Scaler_ChangedLineIndex & 1) == changed ) {
+        Scaler_ChangedLines[Scaler_ChangedLineIndex] += count;
+    } else {
+        Scaler_ChangedLines[++Scaler_ChangedLineIndex] = count;
+    }
+    render.scale.outWrite += render.scale.outPitch * count;
 }
 
 static void RENDER_DrawLine_countdown(const void * s);
