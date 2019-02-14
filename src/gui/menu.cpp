@@ -1260,7 +1260,6 @@ void DOSBox_SetMenu(void) {
 
 void DOSBox_NoMenu(void) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-    /* FIXME: SDL menu is NOT AVAILABLE if OpenGL surface is used */
     {
         menu.toggle=false;
         mainMenu.showMenu(false);
