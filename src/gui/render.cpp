@@ -38,11 +38,14 @@
 #include <emmintrin.h>
 #endif
 
-Render_t render;
-Bitu last_gfx_flags = 0;
-ScalerLineHandler_t RENDER_DrawLine;
+Render_t                                render;
+Bitu                                    last_gfx_flags = 0;
+ScalerLineHandler_t                     RENDER_DrawLine;
 
-void RENDER_CallBack( GFX_CallBackFunctions_t function );
+uint32_t                                GFX_palette32bpp[256] = {0};
+
+unsigned int                            GFX_GetBShift();
+void                                    RENDER_CallBack( GFX_CallBackFunctions_t function );
 
 static void Check_Palette(void) {
     /* Clean up any previous changed palette data */
@@ -54,46 +57,42 @@ static void Check_Palette(void) {
         return;
     Bitu i;
     switch (render.scale.outMode) {
-    case scalerMode8:
-        GFX_SetPalette(render.pal.first,render.pal.last-render.pal.first+1,(GFX_PalEntry *)&render.pal.rgb[render.pal.first]);
-        break;
-    case scalerMode15:
-    case scalerMode16:
-        for (i=render.pal.first;i<=render.pal.last;i++) {
-            Bit8u r=render.pal.rgb[i].red;
-            Bit8u g=render.pal.rgb[i].green;
-            Bit8u b=render.pal.rgb[i].blue;
-            Bit16u newPal = GFX_GetRGB(r,g,b);
-            if (newPal != render.pal.lut.b16[i]) {
-                render.pal.changed = true;
-                render.pal.modified[i] = 1;
-                render.pal.lut.b16[i] = newPal;
+        case scalerMode8:
+            GFX_SetPalette(render.pal.first,render.pal.last-render.pal.first+1,(GFX_PalEntry *)&render.pal.rgb[render.pal.first]);
+            break;
+        case scalerMode15:
+        case scalerMode16:
+            for (i=render.pal.first;i<=render.pal.last;i++) {
+                Bit8u r=render.pal.rgb[i].red;
+                Bit8u g=render.pal.rgb[i].green;
+                Bit8u b=render.pal.rgb[i].blue;
+                Bit16u newPal = GFX_GetRGB(r,g,b);
+                if (newPal != render.pal.lut.b16[i]) {
+                    render.pal.changed = true;
+                    render.pal.modified[i] = 1;
+                    render.pal.lut.b16[i] = newPal;
+                }
             }
-        }
-        break;
-    case scalerMode32:
-    default:
-        for (i=render.pal.first;i<=render.pal.last;i++) {
-            Bit8u r=render.pal.rgb[i].red;
-            Bit8u g=render.pal.rgb[i].green;
-            Bit8u b=render.pal.rgb[i].blue;
-            Bit32u newPal = GFX_GetRGB(r,g,b);
-            if (newPal != render.pal.lut.b32[i]) {
-                render.pal.changed = true;
-                render.pal.modified[i] = 1;
-                render.pal.lut.b32[i] = newPal;
+            break;
+        case scalerMode32:
+        default:
+            for (i=render.pal.first;i<=render.pal.last;i++) {
+                Bit8u r=render.pal.rgb[i].red;
+                Bit8u g=render.pal.rgb[i].green;
+                Bit8u b=render.pal.rgb[i].blue;
+                Bit32u newPal = GFX_GetRGB(r,g,b);
+                if (newPal != render.pal.lut.b32[i]) {
+                    render.pal.changed = true;
+                    render.pal.modified[i] = 1;
+                    render.pal.lut.b32[i] = newPal;
+                }
             }
-        }
-        break;
+            break;
     }
     /* Setup pal index to startup values */
     render.pal.first=256;
     render.pal.last=0;
 }
-
-uint32_t GFX_palette32bpp[256] = {0};
-
-unsigned int GFX_GetBShift();
 
 void RENDER_SetPal(Bit8u entry,Bit8u red,Bit8u green,Bit8u blue) {
     if (GFX_GetBShift() == 0) {
