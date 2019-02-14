@@ -821,8 +821,8 @@ std::string DOSBoxMenu::item::winConstructMenuText(void) {
 
     /* copy text, converting '&' to '&&' for Windows.
      * TODO: Use accelerator to place '&' for underline */
-    for (const auto i=text.begin();i!=text.end();i++) {
-        char c = *i;
+    for (auto i=text.begin();i!=text.end();i++) {
+        const char c = *i;
 
         if (c == '&') {
             r += "&&";
@@ -836,8 +836,8 @@ std::string DOSBoxMenu::item::winConstructMenuText(void) {
     if (!shortcut_text.empty()) {
         r += "\t";
 
-        for (const auto i=shortcut_text.begin();i!=shortcut_text.end();i++) {
-            char c = *i;
+        for (auto i=shortcut_text.begin();i!=shortcut_text.end();i++) {
+            const char c = *i;
 
             if (c == '&') {
                 r += "&&";
