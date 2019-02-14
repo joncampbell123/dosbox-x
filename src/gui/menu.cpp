@@ -48,6 +48,9 @@ void                                                sdl_hax_nsMenuItemRelease(vo
 extern "C" void                                     SDL1_hax_SetMenu(HMENU menu);
 #endif
 
+void                                                reflectmenu_INITMENU_cb();
+bool                                                GFX_GetPreventFullscreen(void);
+
 void                                                MAPPER_TriggerEventByName(const std::string name);
 void                                                RENDER_CallBack( GFX_CallBackFunctions_t function );
 
@@ -76,6 +79,8 @@ MENU_Block                                          menu;
 
 unsigned int                                        hdd_defsize=16000;
 char                                                hdd_size[20]="";
+
+extern "C" void                                     (*SDL1_hax_INITMENU_cb)();
 
 /* top level menu ("") */
 static const char *def_menu__toplevel[] =
@@ -1645,11 +1650,6 @@ void MENU_KeyDelayRate(int delay, int rate) {
     IO_Write(0x60,0xf3); IO_Write(0x60,(Bit8u)(((delay-1)<<5)|(32-rate)));
     LOG_MSG("GUI: Keyboard rate %d, delay %d", rate, delay);
 }
-
-extern "C" void (*SDL1_hax_INITMENU_cb)();
-void reflectmenu_INITMENU_cb();
-
-bool GFX_GetPreventFullscreen(void);
 
 int Reflect_Menu(void) {
 #if !defined(HX_DOS)
