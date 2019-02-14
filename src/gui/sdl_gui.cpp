@@ -49,43 +49,56 @@ static DOSBoxMenu guiMenu;
 /* helper class for command execution */
 class VirtualBatch : public BatchFile {
 public:
-                    VirtualBatch(DOS_Shell *host, const std::string& cmds);
-    bool                ReadLine(char *line);
+                            VirtualBatch(DOS_Shell *host, const std::string& cmds);
+    bool                    ReadLine(char *line);
 protected:
     std::istringstream      lines;
 };
 
-extern Bit8u            int10_font_14[256 * 14];
-extern Program*         first_shell;
+extern Bit8u                int10_font_14[256 * 14];
+extern Program*             first_shell;
 
-extern bool         MSG_Write(const char *);
-extern void         LoadMessageFile(const char * fname);
-extern void         GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
+extern uint32_t             GFX_Rmask;
+extern unsigned char        GFX_Rshift;
+extern uint32_t             GFX_Gmask;
+extern unsigned char        GFX_Gshift;
+extern uint32_t             GFX_Bmask;
+extern unsigned char        GFX_Bshift;
 
-static int          cursor;
-static bool         running;
-static int          saved_bpp;
-static bool         shell_idle;
-static bool         in_gui = false;
+extern bool                 dos_kernel_disabled;
+extern Bitu                 currentWindowWidth, currentWindowHeight;
+
+extern bool                 MSG_Write(const char *);
+extern void                 LoadMessageFile(const char * fname);
+extern void                 GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
+
+static int                  cursor;
+static bool                 running;
+static int                  saved_bpp;
+static bool                 shell_idle;
+static bool                 in_gui = false;
 #if !defined(C_SDL2)
-static int          old_unicode;
+static int                  old_unicode;
 #endif
-static bool         mousetoggle;
-static bool         shortcut=false;
-static SDL_Surface*     screenshot;
-static SDL_Surface*     background;
+static bool                 mousetoggle;
+static bool                 shortcut=false;
+static SDL_Surface*         screenshot;
+static SDL_Surface*         background;
+#ifdef DOSBOXMENU_EXTERNALLY_MANAGED
+static bool                 gui_menu_init = true;
+#endif
+
+void                        GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen);
+
+#if defined(WIN32) && !defined(HX_DOS)
+void                        WindowsTaskbarUpdatePreviewRegion(void);
+void                        WindowsTaskbarResetPreviewRegion(void);
+#endif
 
 /* Prepare screen for UI */
 void GUI_LoadFonts(void) {
     GUI::Font::addFont("default",new GUI::BitmapFont(int10_font_14,14,10));
 }
-
-extern uint32_t GFX_Rmask;
-extern unsigned char GFX_Rshift;
-extern uint32_t GFX_Gmask;
-extern unsigned char GFX_Gshift;
-extern uint32_t GFX_Bmask;
-extern unsigned char GFX_Bshift;
 
 static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
 {
@@ -124,26 +137,12 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
     }
 }
 
-extern bool dos_kernel_disabled;
-extern Bitu currentWindowWidth, currentWindowHeight;
-
-void GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen);
-
-#if defined(WIN32) && !defined(HX_DOS)
-void WindowsTaskbarUpdatePreviewRegion(void);
-void WindowsTaskbarResetPreviewRegion(void);
-#endif
-
 bool gui_menu_exit(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     running = false;
     return true;
 }
-
-#ifdef DOSBOXMENU_EXTERNALLY_MANAGED
-static bool gui_menu_init = true;
-#endif
 
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     in_gui = true;
