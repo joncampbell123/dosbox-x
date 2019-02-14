@@ -110,30 +110,30 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
     Bit8u* src = (Bit8u *)&scalerSourceCache;
     Bit32u pixel;
     switch (render.scale.inMode) {
-    case scalerMode8:
-        pixel = *((unsigned int)x+(Bit8u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
-        r += (int)((unsigned int)render.pal.rgb[pixel].red >> (unsigned int)shift);
-        g += (int)((unsigned int)render.pal.rgb[pixel].green >> (unsigned int)shift);
-        b += (int)((unsigned int)render.pal.rgb[pixel].blue >> (unsigned int)shift);
-        break;
-    case scalerMode15:
-        pixel = *((unsigned int)x+(Bit16u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
-        r += (int)((pixel >> (7u+(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
-        g += (int)((pixel >> (2u+(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
-        b += (int)((pixel << (3u-(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
-        break;
-    case scalerMode16:
-        pixel = *((unsigned int)x+(Bit16u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
-        r += (int)((pixel >> (8u+(unsigned int)shift)) & (0xf8u >> shift));
-        g += (int)((pixel >> (3u+(unsigned int)shift)) & (0xfcu >> shift));
-        b += (int)((pixel << (3u-(unsigned int)shift)) & (0xf8u >> shift));
-        break;
-    case scalerMode32:
-        pixel = *((unsigned int)x+(Bit32u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
-        r += (int)(((pixel & GFX_Rmask) >> (GFX_Rshift + shift)) & (0xffu >> shift));
-        g += (int)(((pixel & GFX_Gmask) >> (GFX_Gshift + shift)) & (0xffu >> shift));
-        b += (int)(((pixel & GFX_Bmask) >> (GFX_Bshift + shift)) & (0xffu >> shift));
-        break;
+        case scalerMode8:
+            pixel = *((unsigned int)x+(Bit8u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+            r += (int)((unsigned int)render.pal.rgb[pixel].red >> (unsigned int)shift);
+            g += (int)((unsigned int)render.pal.rgb[pixel].green >> (unsigned int)shift);
+            b += (int)((unsigned int)render.pal.rgb[pixel].blue >> (unsigned int)shift);
+            break;
+        case scalerMode15:
+            pixel = *((unsigned int)x+(Bit16u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+            r += (int)((pixel >> (7u+(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
+            g += (int)((pixel >> (2u+(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
+            b += (int)((pixel << (3u-(unsigned int)shift)) & (0xf8u >> (unsigned int)shift));
+            break;
+        case scalerMode16:
+            pixel = *((unsigned int)x+(Bit16u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+            r += (int)((pixel >> (8u+(unsigned int)shift)) & (0xf8u >> shift));
+            g += (int)((pixel >> (3u+(unsigned int)shift)) & (0xfcu >> shift));
+            b += (int)((pixel << (3u-(unsigned int)shift)) & (0xf8u >> shift));
+            break;
+        case scalerMode32:
+            pixel = *((unsigned int)x+(Bit32u*)(src+(unsigned int)y*(unsigned int)render.scale.cachePitch));
+            r += (int)(((pixel & GFX_Rmask) >> (GFX_Rshift + shift)) & (0xffu >> shift));
+            g += (int)(((pixel & GFX_Gmask) >> (GFX_Gshift + shift)) & (0xffu >> shift));
+            b += (int)(((pixel & GFX_Bmask) >> (GFX_Bshift + shift)) & (0xffu >> shift));
+            break;
     }
 }
 
