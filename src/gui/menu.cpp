@@ -50,6 +50,8 @@ extern "C" void                                     SDL1_hax_SetMenu(HMENU menu)
 
 void                                                reflectmenu_INITMENU_cb();
 bool                                                GFX_GetPreventFullscreen(void);
+void                                                RENDER_CallBack( GFX_CallBackFunctions_t function );
+bool                                                OpenGL_using(void);
 
 void                                                MAPPER_TriggerEventByName(const std::string name);
 void                                                RENDER_CallBack( GFX_CallBackFunctions_t function );
@@ -1314,8 +1316,6 @@ void ToggleMenu(bool pressed) {
 }
 
 #if !(defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS))
-bool OpenGL_using(void);
-
 int Reflect_Menu(void) {
     return 0;
 }
@@ -1354,8 +1354,6 @@ HWND GetSurfaceHWND(void) {
 
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 #include <shlobj.h>
-
-extern void RENDER_CallBack( GFX_CallBackFunctions_t function );
 
 void GetDefaultSize(void) {
     char sizetemp[20]="512,32,32765,";
