@@ -877,8 +877,10 @@ if test x$enable_x11 != xno; then
     AC_MSG_RESULT(no)
   fi
 
-  AH_TEMPLATE(C_X11,[define to 1 to enable X11 support])
-  AC_DEFINE(C_X11,1)
+  if test x$have_x11_h = xyes ; then
+    AH_TEMPLATE(C_X11,[define to 1 to enable X11 support])
+    AC_DEFINE(C_X11,1)
+  fi
 fi
 
 dnl FEATURE: Whether to use Fluidsynth
