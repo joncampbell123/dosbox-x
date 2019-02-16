@@ -61,6 +61,7 @@ public:
 	Bit32u dirCluster;
 	Bit32u dirIndex;
 
+    bool modified;
 	bool loadedSector;
 	fatDrive *myDrive;
 private:
@@ -105,6 +106,7 @@ fatFile::fatFile(const char* /*name*/, Bit32u startCluster, Bit32u fileLen, fatD
 	firstCluster = startCluster;
 	myDrive = useDrive;
 	filelength = fileLen;
+    modified = false;
 	open = true;
 	loadedSector = false;
 	curSectOff = 0;
@@ -235,6 +237,7 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 
 			loadedSector = true;
 		}
+        modified = true;
 		--sizedec;
 	}
 	if(curSectOff>0 && loadedSector) myDrive->Write_AbsoluteSector(currentSector, sectorBuffer);
@@ -284,6 +287,18 @@ bool fatFile::Seek(Bit32u *pos, Bit32u type) {
 bool fatFile::Close() {
 	/* Flush buffer */
 	if (loadedSector) myDrive->Write_AbsoluteSector(currentSector, sectorBuffer);
+
+    if (modified) {
+        direntry tmpentry;
+        Bit16u ct,cd;
+
+        time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
+
+        myDrive->directoryBrowse(dirCluster, &tmpentry, (Bit32s)dirIndex);
+        tmpentry.modTime = ct;
+        tmpentry.modDate = cd;
+        myDrive->directoryChange(dirCluster, &tmpentry, (Bit32s)dirIndex);
+    }
 
 	return false;
 }
