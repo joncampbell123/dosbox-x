@@ -264,6 +264,7 @@ unsigned int Linux_GetKeyboardLayout(void) {
     if (SDL_GetWMInfo(&wminfo) >= 0) {
 # if C_X11
 #  if C_X11_XKB
+#   if C_X11_EXT_XKBRULES
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             XkbRF_VarDefsRec vd = {0};
             XkbStateRec state = {0};
@@ -300,6 +301,7 @@ unsigned int Linux_GetKeyboardLayout(void) {
             if (group) XFree(group);
             if (desc) XFree(desc);
         }
+#   endif
 #  endif
 # endif
     }
