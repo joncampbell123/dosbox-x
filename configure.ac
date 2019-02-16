@@ -562,7 +562,10 @@ if test x$enable_x11 != xno; then
   if test x$have_x11_h = xyes; then
     save_CPPFLAGS=$CPPFLAGS
     CPPFLAGS="$CPPFLAGS -include X11/XKBlib.h"
+
     AC_CHECK_HEADER(X11/extensions/XKBrules.h, have_x11_ext_xkbrules_h=yes, have_x11_ext_xkbrules_h=no, )
+    AC_CHECK_HEADER(X11/extensions/XKBfile.h, have_xkbfile_h=yes, have_xkbfile_h=no, )
+
     CPPFLAGS=$save_CPPFLAGS
   fi
 fi
@@ -868,7 +871,7 @@ if test x$enable_x11 != xno; then
   AH_TEMPLATE(C_X11_XKB,[define to 1 if you have XKBlib.h and X11 lib])
   AC_MSG_CHECKING(for XKBlib support)
   if test x$have_x11_lib = xyes -a x$have_x11_h = xyes ; then
-    LIBS="$LIBS -lX11 -lxkbfile"
+    LIBS="$LIBS -lX11"
     AC_DEFINE(C_X11_XKB,1)
     AC_MSG_RESULT(yes)
   else
@@ -890,6 +893,11 @@ if test x$enable_x11 != xno; then
   if test x$have_x11_ext_xkbrules_h = xyes ; then
     AH_TEMPLATE(C_X11_EXT_XKBRULES,[define to 1 if XKBrules.h is present])
     AC_DEFINE(C_X11_EXT_XKBRULES,1)
+  fi
+  if test x$have_xkbfile_h = xyes ; then
+    AH_TEMPLATE(C_X11_XKBFILE,[define to 1 if XKBfile.h is present])
+    AC_DEFINE(C_X11_XKBFILE,1)
+    LIBS="$LIBS -lxkbfile"
   fi
 
   if test x$have_x11_h = xyes ; then
