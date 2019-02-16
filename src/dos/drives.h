@@ -165,10 +165,10 @@ struct direntry {
 	Bit8u attrib;
 	Bit8u NTRes;
 	Bit8u milliSecondStamp;
-	Bit16u crtTime;
-	Bit16u crtDate;
-	Bit16u accessDate;
-	Bit16u hiFirstClust;
+	Bit16u crtTime;             // <- NTS: This field did not appear until MS-DOS 7.0 (Windows 95)
+	Bit16u crtDate;             // <- NTS: This field did not appear until MS-DOS 7.0 (Windows 95)
+	Bit16u accessDate;          // <- NTS: This field did not appear until MS-DOS 7.0 (Windows 95)
+	Bit16u hiFirstClust;        // <- NTS: FAT32 only!
 	Bit16u modTime;
 	Bit16u modDate;
 	Bit16u loFirstClust;
