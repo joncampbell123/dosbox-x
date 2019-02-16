@@ -237,6 +237,7 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 
 			loadedSector = true;
 		}
+        newtime = false; // Guess: Writing the file supercedes any call to set DOS time, right?
         modified = true;
 		--sizedec;
 	}
@@ -288,15 +289,24 @@ bool fatFile::Close() {
 	/* Flush buffer */
 	if (loadedSector) myDrive->Write_AbsoluteSector(currentSector, sectorBuffer);
 
-    if (modified) {
+    if (modified || newtime) {
         direntry tmpentry;
-        Bit16u ct,cd;
-
-        time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
 
         myDrive->directoryBrowse(dirCluster, &tmpentry, (Bit32s)dirIndex);
-        tmpentry.modTime = ct;
-        tmpentry.modDate = cd;
+
+        if (newtime) {
+            tmpentry.modTime = time;
+            tmpentry.modDate = date;
+        }
+        else {
+            Bit16u ct,cd;
+
+            time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
+
+            tmpentry.modTime = ct;
+            tmpentry.modDate = cd;
+        }
+
         myDrive->directoryChange(dirCluster, &tmpentry, (Bit32s)dirIndex);
     }
 
