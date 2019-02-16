@@ -10,8 +10,10 @@
 #include "sdlmain.h"
 
 #if C_X11
-#include <X11/XKBlib.h>
-#include <X11/extensions/XKBrules.h>
+# if C_X11_XKB
+#  include <X11/XKBlib.h>
+#  include <X11/extensions/XKBrules.h>
+# endif
 #endif
 
 void UpdateWindowDimensions(Bitu width, Bitu height);
@@ -167,6 +169,7 @@ void Linux_JPXKBFix(void) {
     SDL_VERSION(&wminfo.version);
     if (SDL_GetWMInfo(&wminfo) >= 0) {
 # if C_X11
+#  if C_X11_XKB
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             /* detect xkbmap with Ro and Yen keys mapped to \, determine the scan codes,
              * and then hack the SDL 1.x X11 driver to handle it.
@@ -199,6 +202,7 @@ void Linux_JPXKBFix(void) {
 
             SDL1_hax_X11_jpfix(ro,yen);
         }
+#  endif
 # endif
     }
 #endif
@@ -257,6 +261,7 @@ unsigned int Linux_GetKeyboardLayout(void) {
 #else
     if (SDL_GetWMInfo(&wminfo) >= 0) {
 # if C_X11
+#  if C_X11_XKB
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             XkbRF_VarDefsRec vd = {0};
             XkbStateRec state = {0};
@@ -293,6 +298,7 @@ unsigned int Linux_GetKeyboardLayout(void) {
             if (group) XFree(group);
             if (desc) XFree(desc);
         }
+#  endif
 # endif
     }
 #endif
