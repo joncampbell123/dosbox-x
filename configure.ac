@@ -556,6 +556,15 @@ if test x$enable_x11 != xno; then
   AC_CHECK_LIB(X11, main, have_x11_lib=yes, have_x11_lib=no, )
   AC_CHECK_LIB(Xrandr, XRRGetCrtcInfo, have_xrandr_lib=yes, have_xrandr_lib=no, )
   AC_CHECK_HEADER(X11/XKBlib.h, have_x11_h=yes, have_x11_h=no, )
+
+  dnl Compile test will fail for XKBrules.h if we do not also include XKBlib.h
+  dnl Hope your compiler supports the GCC style -include option!
+  if test x$have_x11_h = xyes; then
+    save_CPPFLAGS=$CPPFLAGS
+    CPPFLAGS="$CPPFLAGS -include X11/XKBlib.h"
+    AC_CHECK_HEADER(X11/extensions/XKBrules.h, have_x11_ext_xkbrules_h=yes, have_x11_ext_xkbrules_h=no, )
+    CPPFLAGS=$save_CPPFLAGS
+  fi
 fi
 
 dnl LIBRARY TEST: Fluidsynth support
@@ -875,6 +884,12 @@ if test x$enable_x11 != xno; then
     AC_MSG_RESULT(yes)
   else
     AC_MSG_RESULT(no)
+  fi
+
+  dnl Having XKBlib doesn't mean XKBrules.h is around
+  if test x$have_x11_ext_xkbrules_h = xyes ; then
+    AH_TEMPLATE(C_X11_EXT_XKBRULES,[define to 1 if XKBrules.h is present])
+    AC_DEFINE(C_X11_EXT_XKBRULES,1)
   fi
 
   if test x$have_x11_h = xyes ; then

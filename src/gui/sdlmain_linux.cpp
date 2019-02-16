@@ -12,6 +12,8 @@
 #if C_X11
 # if C_X11_XKB
 #  include <X11/XKBlib.h>
+# endif
+# if C_X11_EXT_XKBRULES
 #  include <X11/extensions/XKBrules.h>
 # endif
 #endif
