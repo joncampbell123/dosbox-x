@@ -166,6 +166,7 @@ void Linux_JPXKBFix(void) {
     memset(&wminfo,0,sizeof(wminfo));
     SDL_VERSION(&wminfo.version);
     if (SDL_GetWMInfo(&wminfo) >= 0) {
+# if C_X11
         if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             /* detect xkbmap with Ro and Yen keys mapped to \, determine the scan codes,
              * and then hack the SDL 1.x X11 driver to handle it.
@@ -198,6 +199,7 @@ void Linux_JPXKBFix(void) {
 
             SDL1_hax_X11_jpfix(ro,yen);
         }
+# endif
     }
 #endif
 }
