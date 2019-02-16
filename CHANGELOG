@@ -1,4 +1,14 @@
 0.82.16 (next)
+  - Fixed FAT driver progamming mistake (inherited from
+    DOSBox SVN) that used the Windows 95 "Created" date/time
+    stamp rather than the original MS-DOS "Modified" date/time
+    stamp field.
+  - FAT driver now allows setting file date/time properly
+    on create or INT 21h call to set date/time, and updates
+    date/time on close after writing the file. Copy a file
+    to a disk image should preserve the date, and new files
+    created on the disk image should no longer have the
+    date/time stamp Jan 1st, 1980 12:00:00 AM midnight.
   - Configuration GUI now allows user to exit dialog boxes
     and windows by hitting the ESC key.
   - Entering the mapper UI on Mac OS X will now hide all but
