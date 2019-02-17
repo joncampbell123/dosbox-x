@@ -237,7 +237,6 @@ bool fatFile::Write(const Bit8u * data, Bit16u *size) {
 
 			loadedSector = true;
 		}
-        newtime = false; // Guess: Writing the file supercedes any call to set DOS time, right?
         modified = true;
 		--sizedec;
 	}
