@@ -1,4 +1,6 @@
 0.82.16 (next)
+  - VS2017 project files can now compile DOSBox-X to run on
+    ARM64 versions of Windows 10 (driver1998)
   - Fixed FAT driver progamming mistake (inherited from
     DOSBox SVN) that used the Windows 95 "Created" date/time
     stamp rather than the original MS-DOS "Modified" date/time
