@@ -1137,8 +1137,13 @@ static void gen_fill_function_ptr(Bit8u * pos,void* fct_ptr,Bitu flags_type) {
 #endif
 
 static void cache_block_closing(Bit8u* block_start,Bitu block_size) {
+#ifdef _MSC_VER
+    //flush cache - Win32 API for MSVC
+    FlushInstructionCache(GetCurrentProcess(), block_start, block_size);
+#else
 	//flush cache - GCC/LLVM builtin
 	__builtin___clear_cache((char *)block_start, (char *)(block_start+block_size));
+#endif
 }
 
 static void cache_block_before_close(void) { }
