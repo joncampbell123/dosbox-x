@@ -143,6 +143,8 @@ static struct {
 #if !defined(C_TARGETCPU)
 # if defined(_MSC_VER) && defined(_M_AMD64)
 #  define C_TARGETCPU X86_64
+# elif defined(_MSC_VER) && defined(_M_ARM64)
+#  define C_TARGETCPU ARMV8LE
 # endif
 #endif
 
