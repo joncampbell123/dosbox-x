@@ -1180,6 +1180,9 @@ bool localFile::Close() {
 		tim.tm_mday = date&0x1f;
 		tim.tm_mon  = ((date>>5)&0x0f)-1;
 		tim.tm_year = (date>>9)+1980-1900;
+        // sanitize the date in case of invalid timestamps (such as 0x0000 date/time fields)
+        if (tim.tm_mon < 0) tim.tm_mon = 0;
+        if (tim.tm_mday == 0) tim.tm_mday = 1;
 		//  have the C run-time library code compute whether standard time or daylight saving time is in effect.
 		tim.tm_isdst = -1;
 		// serialize time
