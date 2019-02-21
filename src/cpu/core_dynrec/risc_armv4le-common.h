@@ -88,6 +88,10 @@ typedef Bit8u HostReg;
 
 
 static void cache_block_closing(Bit8u* block_start,Bitu block_size) {
+#ifdef _MSC_VER
+    //flush cache - Win32 API for MSVC
+    FlushInstructionCache(GetCurrentProcess(), block_start, block_size);
+#else
 #if (__ARM_EABI__)
 	//flush cache - eabi
 	register unsigned long _beg __asm ("a1") = (unsigned long)(block_start);				// block start
@@ -109,5 +113,6 @@ static void cache_block_closing(Bit8u* block_start,Bitu block_size) {
 		: "r" (_beg), "r" (_end), "r" (_flg)
 		);
 // GP2X END
+#endif
 #endif
 }

@@ -70,7 +70,7 @@
    */
 #define C_DIRECTSERIAL 1
 
-#if defined (_M_AMD64) || defined (_M_ARM64) /* Microsoft C++ amd64 and arm64*/
+#if defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_ARM) /* Microsoft C++ amd64, arm32 and arm64 */
 # undef C_DYNAMIC_X86
 # undef C_TARGETCPU
 # define C_DYNREC 1
@@ -92,7 +92,7 @@
 /* FIXME: VS2015 x86_64 will not allow inline asm! */
 #ifdef _M_AMD64 /* Microsoft C++ amd64 */
 //TODO
-#elif _M_ARM64 /* Microsoft C++ arm64 */
+#elif defined(_M_ARM64) || defined (_M_ARM) /* Microsoft C++ arm32 and arm64 */
 # undef C_FPU_X86
 #else
 # define C_FPU_X86 1
@@ -132,8 +132,8 @@
 
 /* Define to 1 to use opengl display output support */
 #if !defined(C_SDL2)
- /* TODO: Windows SDK ARM64 doesn't provide opengl32.lib, find alternatives */
-#if !defined(_M_ARM64)
+ /* TODO: Windows SDK ARM32 and ARM64 doesn't provide opengl32.lib, find alternatives */
+#if !defined(_M_ARM64) && !defined (_M_ARM)
 #define C_OPENGL 1
 #endif
 #endif
