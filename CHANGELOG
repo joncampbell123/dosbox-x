@@ -1,4 +1,6 @@
 0.82.16 (next)
+  - VS2017 project files can now compile DOSBox-X to run on
+    ARM versions of Windows RT (driver1998)
   - Local filesystem support fixed to sanitize DOS dates
     before applying them to files on the host filesystem
     so that invalid dates within DOSBox-X do not make invalid
