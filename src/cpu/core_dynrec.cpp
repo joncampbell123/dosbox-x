@@ -143,6 +143,8 @@ static struct {
 #if !defined(C_TARGETCPU)
 # if defined(_MSC_VER) && defined(_M_AMD64)
 #  define C_TARGETCPU X86_64
+# elif defined(_MSC_VER) && defined(_M_ARM)
+#  define C_TARGETCPU ARMV7LE
 # elif defined(_MSC_VER) && defined(_M_ARM64)
 #  define C_TARGETCPU ARMV8LE
 # endif
@@ -155,7 +157,11 @@ static struct {
 #elif C_TARGETCPU == MIPSEL
 #include "core_dynrec/risc_mipsel32.h"
 #elif (C_TARGETCPU == ARMV4LE) || (C_TARGETCPU == ARMV7LE)
+#ifdef _MSC_VER
+#pragma message("warning: Using ARMV4 or ARMV7")
+#else
 #warning Using ARMV4 or ARMV7
+#endif
 #include "core_dynrec/risc_armv4le.h"
 #elif C_TARGETCPU == ARMV8LE
 #include "core_dynrec/risc_armv8le.h"
