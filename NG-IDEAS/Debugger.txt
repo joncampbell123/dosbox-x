@@ -48,6 +48,9 @@ Debugger ideas.
   such as the FAT filesystem driver exposing the parameters it obtained for
   the FAT filesystem and to permit viewing the FAT table and directory
   entries.
+- Debugger UI ISO 9660 filesystem driver might show ISO volumes, ISO structures,
+  Joliet structures, mapping, etc.
+- Local filesystem driver in the debug UI might show cached vs actual state.
 
 However:
 
