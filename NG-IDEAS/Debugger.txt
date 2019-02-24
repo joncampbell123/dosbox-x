@@ -28,6 +28,7 @@ Debugger ideas.
   view memory contents by
 - memory windows, of course, will allow user to edit contents as well. In byte
   or word mode, keyboard input will allow user to type in or alter text strings.
+- memory structure views will allow user to define their own structures, too.
 
 - debugger window to show TSS structure, protected mode registers, control registers,
   etc.
