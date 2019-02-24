@@ -44,8 +44,17 @@ Debugger ideas.
 - Debugger GUI would permit browsing the mounted filesystem whether or not
   emulation is running. If the built-in DOS kernel is in a state to allow it,
   the UI could also allow editing the filesystem.
-- Debugger UI might enable the filesystem driver to explose more information,
+- Debugger UI might enable the filesystem driver to expose more information,
   such as the FAT filesystem driver exposing the parameters it obtained for
   the FAT filesystem and to permit viewing the FAT table and directory
   entries.
+
+However:
+
+- All this debugging info can slow down emulation, so there will be a compile
+  time option to disable all debugging functions (or reduce it to a no-overhead
+  version) for those who just want to play DOS games.
+- Binary releases will include "debug" and "non-debug" builds of DOSBox-X.
+- Debug builds are intended for retro developers or those who wish to debug
+  what is causing problems with DOS games.
 
