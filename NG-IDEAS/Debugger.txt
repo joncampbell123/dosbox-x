@@ -1,0 +1,47 @@
+The debugger would be given a UI, using a GUI toolkit similar to the one used in
+the Configuration GUI now, make to look like classic Windows 3.1.
+
+Instead of only a command line interface on the console, the various parts of the
+system and debugging UI will be a graphical one in "Windows" atop the DOS screen.
+
+A command-line only interface would be available through the terminal, of course,
+as well.
+
+Debugger ideas.
+- CPU instruction list and register content windows (standard, flags), inspired
+  somewhat by Microsoft Codeview
+- ...with additional windows through which to browse segment registers and the
+  "cache" that holds the segment base, limit, etc.
+- ...and another one for MMX registers
+- ...and another one for the FPU
+
+- memory view windows (however many the user wants), with segmented, linear, and
+  physical memory views
+- ...and colors to indiate non-present pages, memory past the segment limit,
+  memory covered by the CPU prefetch queue, memory beyond the reach of the CPU,
+  video memory, system memory, MMIO memory, etc.
+- ...and UI elements in protected mode with 386 paging, with segmented or linear
+  views, to show linear to physical mapping.
+
+- memory windows allow user to set datatype (byte, word, dword, qword, float, double)
+- memory windows would also allow the user to select a structure or union to
+  view memory contents by
+- memory windows, of course, will allow user to edit contents as well. In byte
+  or word mode, keyboard input will allow user to type in or alter text strings.
+
+- debugger window to show TSS structure, protected mode registers, control registers,
+  etc.
+- memory windows can stay on screen while emulation is running to allow the user
+  to watch memory contents change
+- debugger interface would have a retrieve/dismiss menu/command so the user can
+  dismiss all debugger windows with one click to clear the screen, and retrieve
+  them later, so the game can be played in-between hacking without clutter.
+
+- Debugger commands and windows to view mounted DOS drives, BIOS drives, IDE
+  drives, etc. and their status, as well as commands to mount, unmount, eject,
+  retract CD-ROM drive door, etc.
+- Debugger GUI would permit browsing the mounted filesystem whether or not
+  emulation is running. If the built-in DOS kernel is in a state to allow it,
+  the UI could also allow editing the filesystem.
+
+
