@@ -1,0 +1,16 @@
+Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half until a better name can be given.
+
+- Full C++ implementation, rather than SDL-style plain C
+- C++ object for a window
+- C++ object for a surface
+- Surface attachment to a window
+- Surface attachment to a region on a window
+- Multiple surfaces can be attached to a window, overlapping allowed
+- Windows can be directed to go fullscreen (which locks out other windows)
+- Library will indicate if environment cannot support multiple windows (i.e. fullscreen, or framebuffer display without windowing system)
+- Surface updates can be queued to a window at a frame rate
+
+- Surface format implementation:
+  - First: 32-bit 8-bit RGBA (or ARGB or BGRA, etc) with our without alpha channel
+  - Second: 16-bit 5:6:5 RGB or BGR or 5:5:5 XRGB or XBGR
+
