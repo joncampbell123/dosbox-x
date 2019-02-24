@@ -44,5 +44,8 @@ Debugger ideas.
 - Debugger GUI would permit browsing the mounted filesystem whether or not
   emulation is running. If the built-in DOS kernel is in a state to allow it,
   the UI could also allow editing the filesystem.
-
+- Debugger UI might enable the filesystem driver to explose more information,
+  such as the FAT filesystem driver exposing the parameters it obtained for
+  the FAT filesystem and to permit viewing the FAT table and directory
+  entries.
 
