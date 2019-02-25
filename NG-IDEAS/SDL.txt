@@ -39,3 +39,6 @@ Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half u
   directly drawing on the overall SDL surface. This way, there is no longer any need
   to write duplicate code for SDL surface vs OpenGL.
 
+- Menu API, for native menu support on OSes that provide it i.e. Windows and Mac OS X, or at minimum a structure to support C++ menu objects
+- For OSes that do not provide menus, DOSBox-X can use compositing engine to draw it's own menus
+
