@@ -14,4 +14,16 @@ Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half u
   - First: 32-bit 8-bit RGBA (or ARGB or BGRA, etc) with or without alpha channel
   - Second: 16-bit 5:6:5 RGB or BGR or 5:5:5 XRGB or XBGR
   - Third: 32-bit 10-bit RGBA (or ARGB, etc) without alpha channel
+- Render backends to accomplish this:
+  - Pure software
+    - Generic integer
+    - MMX
+    - SSE2
+    - AVX
+    - AVX2
+    - AVX512
+  - OpenGL
+  - Direct3D9/10/11/12
+  - Vulkan
+  - Metal (OS X)
 
