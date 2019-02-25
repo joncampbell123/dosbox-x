@@ -48,6 +48,7 @@ Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half u
   - To determine the primary monitor
   - To determine the DPI (if available) of each monitor
   - To allow C++ window objects to determine what monitor they are on (which one the majority of it's area exists on)
+  - To determine logical vs pixel scaling at the desktop level for a monitor (i.e. Mac OS X "high DPI")
   - Provide callback (if possible) when a window is moved from one monitor to another
   - Provide callback when monitor resolution changes
   - Provide callback when monitors are added, removed, reconfigured (placement and size), and display depth changes
