@@ -52,3 +52,21 @@ Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half u
   - Provide callback when monitor resolution changes
   - Provide callback when monitors are added, removed, reconfigured (placement and size), and display depth changes
 
+- Keyboard API
+  - Common scan code enum, unambiguous and capable of supporting foreign keyboard layout
+  - Keyboard layout determination (no support for changing layout, that's up to the user)
+  - Identification of multiple keyboards?
+  - API (if possible, and enabled) to read/control Num lock, Caps lock, Scroll lock, etc. LEDs on the keyboard
+  - API to read host OS state of num, caps, scroll, etc.
+  - Keyboard capture (tied to a C++ window object)
+
+- Input Method Editor support (?)
+  - Something to allow the host IME to interact with DOSBox-Xng while not interfering with emulation
+
+- Terminal API
+  - Function to determine if a terminal is available, can be opened, is open
+  - Function to open a terminal window
+  - Function to close a terminal window
+  - Function to write to the terminal window
+  - If terminal is not VT100 compatible, then terminal API should emulate VT100
+
