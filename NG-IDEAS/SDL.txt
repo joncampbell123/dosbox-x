@@ -26,4 +26,7 @@ Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half u
   - Direct3D9/10/11/12
   - Vulkan
   - Metal (OS X)
+- DOSBox-Xng arranges content by describing layout and using compositor rather than
+  directly drawing on the overall SDL surface. This way, there is no longer any need
+  to write duplicate code for SDL surface vs OpenGL.
 
