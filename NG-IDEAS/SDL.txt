@@ -18,6 +18,11 @@ Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half u
   - Second: 16-bit 5:6:5 RGB or BGR or 5:5:5 XRGB or XBGR
   - Third: 32-bit 10-bit RGBA (or ARGB, etc) without alpha channel
   - 24bpp and 8-bit paletted will NOT be supported
+- Surface format conversion support:
+  - 8-bit paletted to screen surface
+  - 16-bit RGB to screen surface (15/16-bit) RGB/BGR
+  - 24-bit RGB to screen surface RGB/BGR
+  - 32-bit RGB to screen surface RGBA/RGBX/BGRA/BGRX/XBGR/etc
 - Render backends to accomplish this:
   - Pure software
     - Generic integer
