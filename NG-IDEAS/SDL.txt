@@ -11,6 +11,7 @@ Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half u
 - Surface updates can be queued to a window at a frame rate
 
 - Surface format implementation:
-  - First: 32-bit 8-bit RGBA (or ARGB or BGRA, etc) with our without alpha channel
+  - First: 32-bit 8-bit RGBA (or ARGB or BGRA, etc) with or without alpha channel
   - Second: 16-bit 5:6:5 RGB or BGR or 5:5:5 XRGB or XBGR
+  - Third: 32-bit 10-bit RGBA (or ARGB, etc) without alpha channel
 
