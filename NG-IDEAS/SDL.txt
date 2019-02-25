@@ -42,3 +42,13 @@ Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half u
 - Menu API, for native menu support on OSes that provide it i.e. Windows and Mac OS X, or at minimum a structure to support C++ menu objects
 - For OSes that do not provide menus, DOSBox-X can use compositing engine to draw it's own menus
 
+- Monitor API
+  - To determine virtual desktop resolution
+  - To determine monitors and their place on the virtual desktop
+  - To determine the primary monitor
+  - To determine the DPI (if available) of each monitor
+  - To allow C++ window objects to determine what monitor they are on (which one the majority of it's area exists on)
+  - Provide callback (if possible) when a window is moved from one monitor to another
+  - Provide callback when monitor resolution changes
+  - Provide callback when monitors are added, removed, reconfigured (placement and size), and display depth changes
+
