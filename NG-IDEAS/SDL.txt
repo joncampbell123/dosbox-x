@@ -6,14 +6,18 @@ Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half u
 - Surface attachment to a window
 - Surface attachment to a region on a window
 - Multiple surfaces can be attached to a window, overlapping allowed
+- Surfaces can have child surfaces, and can be reparented (i.e. OpenGL as render to texture instead of to screen)
+- Surfaces can scale, but not rotate (in order to help software renderer performance)
 - Windows can be directed to go fullscreen (which locks out other windows)
 - Library will indicate if environment cannot support multiple windows (i.e. fullscreen, or framebuffer display without windowing system)
 - Surface updates can be queued to a window at a frame rate
+- Surface output queue can also contain callback events i.e. to ensure smooth animation
 
 - Surface format implementation:
   - First: 32-bit 8-bit RGBA (or ARGB or BGRA, etc) with or without alpha channel
   - Second: 16-bit 5:6:5 RGB or BGR or 5:5:5 XRGB or XBGR
   - Third: 32-bit 10-bit RGBA (or ARGB, etc) without alpha channel
+  - 24bpp and 8-bit paletted will NOT be supported
 - Render backends to accomplish this:
   - Pure software
     - Generic integer
