@@ -68,6 +68,7 @@ Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half u
   - Aux button events
   - Identification whether mouse has scroll wheel
   - Handling of multiple mice?
+  - Capture of mouse to a window.
 
 - Joystick API
   - Joystick buttons, hats, etc.
