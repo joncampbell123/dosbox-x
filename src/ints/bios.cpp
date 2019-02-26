@@ -2657,7 +2657,6 @@ static Bitu INT18_PC98_Handler(void) {
 
             pc98_gdc[GDC_MASTER].force_fifo_complete();
             vga_pc98_direct_cursor_pos(reg_dx >> 1);
-            pc98_gdc[GDC_MASTER].cursor_enable = true; // FIXME: Right?
             break;
         case 0x14: /* read FONT RAM */
             {
