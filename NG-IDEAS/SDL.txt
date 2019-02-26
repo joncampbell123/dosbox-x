@@ -87,6 +87,7 @@ Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half u
     - Is it possible to identify that a touch device is the screen?
     - Make sure code can identify other touch devices such as the touchpad on Apple Macbooks which is NOT the screen
     - API to let the application know.
+  - Ability to determine mapping between touchscreen and monitor.
 
 - Input Method Editor support (?)
   - Something to allow the host IME to interact with DOSBox-Xng while not interfering with emulation
