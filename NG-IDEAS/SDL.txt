@@ -61,6 +61,29 @@ Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half u
   - API to read host OS state of num, caps, scroll, etc.
   - Keyboard capture (tied to a C++ window object)
 
+- Mouse API
+  - Mouse button events
+  - Mouse motion events
+  - Scroll wheel events
+  - Aux button events
+  - Identification whether mouse has scroll wheel
+  - Handling of multiple mice?
+
+- Joystick API
+  - Joystick buttons, hats, etc.
+  - Joystick axes and reading.
+  - Identification of joystick buttons, hats, etc.
+  - Handling of multiple joysticks
+
+- Touchscreen API
+  - Touch events, including finger up/down and motion
+  - Tracking of multiple fingers
+  - Distance from screen (if possible)
+  - Emulation of mouse events from touchscreen (if host environment doesn't do that already) so that DOSBox-X interaction
+    code can be simplified for GUI elements that don't need touch-specific input.
+  - Identification of touchscreen
+  - Apple Macbook touchpad will be ignored by this API (see DOSBox-X issue with SDL2 mistaking touchpad for touchscreen).
+
 - Input Method Editor support (?)
   - Something to allow the host IME to interact with DOSBox-Xng while not interfering with emulation
 
