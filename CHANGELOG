@@ -1,4 +1,7 @@
 0.82.16 (next)
+  - Fixed INT 18h AH=13h not to automatically show the cursor
+    (PC-98 fix), which fixes the visible blinking cursor
+    problem during games.
   - VS2017 project files can now compile DOSBox-X to run on
     ARM versions of Windows RT (driver1998)
   - Local filesystem support fixed to sanitize DOS dates
