@@ -1,47 +1,9 @@
 Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half until a better name can be given.
 
-- Full C++ implementation, rather than SDL-style plain C
-- C++ object for a window
-- C++ object for a surface
-- Surface attachment to a window (the whole window ONLY)
-- Surfaces can scale, but not rotate (in order to help software renderer performance)
-- Surfaces can indicate whether to scale with nearest neighbor or bilinear interpolation
-- Windows can be directed to go fullscreen (which locks out other windows)
-- Library will indicate if environment cannot support multiple windows (i.e. fullscreen, or framebuffer display without windowing system)
-- Surface updates can be queued to a window at a frame rate
-- Surface output queue can also contain callback events i.e. to ensure smooth animation
-- Surface can autofit to window size changes to maintain display until application calls to resize surface
-
-REJECTED:
-X Surface attachment to a region on a window [NOT NEEDED]
-X Multiple surfaces can be attached to a window, overlapping allowed [NOT NEEDED]
-X Surfaces can have child surfaces, and can be reparented (i.e. OpenGL as render to texture instead of to screen) [NOT NEEDED]
-
-- Surface format implementation:
-  - First: 32-bit 8-bit RGBA (or ARGB or BGRA, etc) with or without alpha channel
-  - Second: 16-bit 5:6:5 RGB or BGR or 5:5:5 XRGB or XBGR
-  - Third: 32-bit 10-bit RGBA (or ARGB, etc) without alpha channel
-  - 24bpp and 8-bit paletted will NOT be supported
-- Surface format conversion support:
-  - 8-bit paletted to screen surface
-  - 16-bit RGB to screen surface (15/16-bit) RGB/BGR
-  - 24-bit RGB to screen surface RGB/BGR
-  - 32-bit RGB to screen surface RGBA/RGBX/BGRA/BGRX/XBGR/etc
-- Render backends to accomplish this:
-  - Pure software
-    - Generic integer
-    - MMX
-    - SSE2
-    - AVX
-    - AVX2
-    - AVX512
-  - OpenGL
-  - Direct3D9/10/11/12
-  - Vulkan
-  - Metal (OS X)
 - DOSBox-Xng arranges content by describing layout and using compositor rather than
   directly drawing on the overall SDL surface. This way, there is no longer any need
   to write duplicate code for SDL surface vs OpenGL.
+  - How...?
 
 - Menu API, for native menu support on OSes that provide it i.e. Windows and Mac OS X, or at minimum a structure to support C++ menu objects
 - For OSes that do not provide menus, DOSBox-X can use compositing engine to draw it's own menus
