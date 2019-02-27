@@ -12,9 +12,9 @@ Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half u
 - Surface output queue can also contain callback events i.e. to ensure smooth animation
 
 REJECTED:
-X Surface attachment to a region on a window
-X Multiple surfaces can be attached to a window, overlapping allowed
-X Surfaces can have child surfaces, and can be reparented (i.e. OpenGL as render to texture instead of to screen)
+X Surface attachment to a region on a window [NOT NEEDED]
+X Multiple surfaces can be attached to a window, overlapping allowed [NOT NEEDED]
+X Surfaces can have child surfaces, and can be reparented (i.e. OpenGL as render to texture instead of to screen) [NOT NEEDED]
 
 - Surface format implementation:
   - First: 32-bit 8-bit RGBA (or ARGB or BGRA, etc) with or without alpha channel
