@@ -10,6 +10,7 @@ Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half u
 - Library will indicate if environment cannot support multiple windows (i.e. fullscreen, or framebuffer display without windowing system)
 - Surface updates can be queued to a window at a frame rate
 - Surface output queue can also contain callback events i.e. to ensure smooth animation
+- Surface can autofit to window size changes to maintain display until application calls to resize surface
 
 REJECTED:
 X Surface attachment to a region on a window [NOT NEEDED]
