@@ -3,15 +3,18 @@ Revised "SDL" code, combined SDL1 and SDL2 reimplementation, known as SDL1half u
 - Full C++ implementation, rather than SDL-style plain C
 - C++ object for a window
 - C++ object for a surface
-- Surface attachment to a window
-- Surface attachment to a region on a window
-- Multiple surfaces can be attached to a window, overlapping allowed
-- Surfaces can have child surfaces, and can be reparented (i.e. OpenGL as render to texture instead of to screen)
+- Surface attachment to a window (the whole window ONLY)
 - Surfaces can scale, but not rotate (in order to help software renderer performance)
+- Surfaces can indicate whether to scale with nearest neighbor or bilinear interpolation
 - Windows can be directed to go fullscreen (which locks out other windows)
 - Library will indicate if environment cannot support multiple windows (i.e. fullscreen, or framebuffer display without windowing system)
 - Surface updates can be queued to a window at a frame rate
 - Surface output queue can also contain callback events i.e. to ensure smooth animation
+
+REJECTED:
+X Surface attachment to a region on a window
+X Multiple surfaces can be attached to a window, overlapping allowed
+X Surfaces can have child surfaces, and can be reparented (i.e. OpenGL as render to texture instead of to screen)
 
 - Surface format implementation:
   - First: 32-bit 8-bit RGBA (or ARGB or BGRA, etc) with or without alpha channel
