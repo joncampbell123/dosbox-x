@@ -4108,6 +4108,11 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                         mainMenu.get_item(mainMenu.menuUserHoverAt).setHover(mainMenu,false);
                                         if (mainMenu.get_item(mainMenu.menuUserHoverAt).get_type() == DOSBoxMenu::item_type_id)
                                             mainMenu.get_item(mainMenu.menuUserHoverAt).setHilight(mainMenu,false);
+                                        else if (mainMenu.get_item(mainMenu.menuUserHoverAt).get_type() == DOSBoxMenu::submenu_type_id) {
+                                            if (mainMenu.get_item(mainMenu.menuUserHoverAt).isHilight()) {
+                                                noRedrawOld = true;
+                                            }
+                                        }
                                     }
 
                                     if (sel_item != DOSBoxMenu::unassigned_item_handle) {
