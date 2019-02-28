@@ -1794,6 +1794,7 @@ void DOSBoxMenu::updateRect(void) {
 #if 0
     LOG_MSG("SDL menuBox w=%d h=%d",menuBox.w,menuBox.h);
 #endif
+    layoutMenu();
 }
 
 void DOSBoxMenu::layoutMenu(void) {
@@ -1877,6 +1878,27 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
 
     popupBox.w = maxx - popupBox.x;
     popupBox.h = y - popupBox.y;
+
+    /* keep it on the screen if possible */
+    {
+        int new_y = 0;
+
+        new_y = popupBox.y;
+        if ((new_y + (int)popupBox.h) > (int)menu.screenHeight)
+            new_y = (int)menu.screenHeight - popupBox.h;
+        if (new_y < (int)menu.menuBarHeight)
+            new_y = (int)menu.menuBarHeight;
+
+        int adj_y = new_y - popupBox.y;
+        if (adj_y != 0) {
+            popupBox.y += adj_y;
+
+            for (auto &i : display_list.disp_list) {
+                DOSBoxMenu::item &item = menu.get_item(i);
+                item.screenBox.y += adj_y;
+            }
+        }
+    }
 
     /* 1 pixel border, top */
     if (!isTopLevel) {

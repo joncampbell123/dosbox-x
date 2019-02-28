@@ -75,18 +75,6 @@ Bitu OUTPUT_SURFACE_SetSize()
                 consider_width = currentWindowWidth;
         }
 
-#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-        if (mainMenu.isVisible())
-        {
-            /* enforce a minimum 640x400 surface size.
-             * the menus are useless below 640x400 */
-            if (consider_width < (640 + (sdl.overscan_width * 2)))
-                consider_width = (640 + (sdl.overscan_width * 2));
-            if (consider_height < (400 + (sdl.overscan_width * 2) + (unsigned int)menuheight))
-                consider_height = (400 + (sdl.overscan_width * 2) + (unsigned int)menuheight);
-        }
-#endif
-
         /* decide where the rectangle on the screen goes */
         int final_width,final_height,ax,ay;
 
@@ -190,6 +178,7 @@ Bitu OUTPUT_SURFACE_SetSize()
     SDL_FillRect(sdl.surface, NULL, SDL_MapRGB(sdl.surface->format, 0, 0, 0));
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     mainMenu.screenWidth = sdl.surface->w;
+    mainMenu.screenHeight = sdl.surface->h;
     mainMenu.updateRect();
     mainMenu.setRedraw();
     GFX_DrawSDLMenu(mainMenu, mainMenu.display_list);

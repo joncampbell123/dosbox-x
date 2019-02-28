@@ -498,7 +498,8 @@ class DOSBoxMenu {
         static constexpr size_t         menuBarHeightBase = (16 + 1);
         size_t                          menuBarHeight = menuBarHeightBase;
     public:
-        size_t                          screenWidth = 320;
+        size_t                          screenWidth = 640;
+        size_t                          screenHeight = 400;
     public:
         static constexpr size_t         fontCharWidthBase = 8;
         static constexpr size_t         fontCharHeightBase = 16;
