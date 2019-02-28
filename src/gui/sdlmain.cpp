@@ -1641,6 +1641,9 @@ void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
         fgshortcolor = GFX_GetRGB(191, 191, 255);
     }
 
+    itemHoverDrawn = itemHover;
+    itemHilightDrawn = itemHilight;
+
     if (SDL_MUSTLOCK(sdl.surface))
         SDL_LockSurface(sdl.surface);
 

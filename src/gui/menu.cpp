@@ -1719,7 +1719,6 @@ DOSBoxMenu::item &DOSBoxMenu::item::setHilight(DOSBoxMenu &menu,bool hi) {
     (void)menu;//UNUSED
     if (itemHilight != hi) {
         itemHilight = hi;
-        needRedraw = true;
     }
 
     return *this;
@@ -1729,7 +1728,6 @@ DOSBoxMenu::item &DOSBoxMenu::item::setHover(DOSBoxMenu &menu,bool ho) {
     (void)menu;//UNUSED
     if (itemHover != ho) {
         itemHover = ho;
-        needRedraw = true;
     }
 
     return *this;

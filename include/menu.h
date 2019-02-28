@@ -251,6 +251,8 @@ class DOSBoxMenu {
                 bool                    needRedraw = false;
                 bool                    itemHilight = false;
                 bool                    itemVisible = false;
+                bool                    itemHoverDrawn = false;
+                bool                    itemHilightDrawn = false;
                 bool                    borderTop = false;
             public:
                 void                    removeFocus(DOSBoxMenu &menu);
@@ -276,7 +278,7 @@ class DOSBoxMenu {
             public:
                 inline bool checkResetRedraw(void) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-					bool r = needRedraw;
+					bool r = needRedraw || (itemHilight != itemHilightDrawn) || (itemHover != itemHoverDrawn);
                     needRedraw = false;
                     return r;
 #else
