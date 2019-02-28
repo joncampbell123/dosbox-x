@@ -1899,6 +1899,25 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
             }
         }
     }
+    {
+        int new_x = 0;
+
+        new_x = popupBox.x;
+        if ((new_x + (int)popupBox.w) > (int)menu.screenWidth)
+            new_x = (int)menu.screenWidth - popupBox.w;
+        if (new_x < (int)0)
+            new_x = (int)0;
+
+        int adj_x = new_x - popupBox.x;
+        if (adj_x != 0) {
+            popupBox.x += adj_x;
+
+            for (auto &i : display_list.disp_list) {
+                DOSBoxMenu::item &item = menu.get_item(i);
+                item.screenBox.x += adj_x;
+            }
+        }
+    }
 
     /* 1 pixel border, top */
     if (!isTopLevel) {
