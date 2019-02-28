@@ -4150,15 +4150,19 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                     }
 
                                     if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle && !OpenGL_using() && !redrawAll) {
-                                        mainMenu.get_item(mainMenu.menuUserHoverAt).drawMenuItem(mainMenu);
-                                        mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
+                                        if (mainMenu.get_item(mainMenu.menuUserHoverAt).checkResetRedraw()) {
+                                            mainMenu.get_item(mainMenu.menuUserHoverAt).drawMenuItem(mainMenu);
+                                            mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
+                                        }
                                     }
 
                                     mainMenu.menuUserHoverAt = sel_item;
 
                                     if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle && !OpenGL_using() && !redrawAll) {
-                                        mainMenu.get_item(mainMenu.menuUserHoverAt).drawMenuItem(mainMenu);
-                                        mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
+                                        if (mainMenu.get_item(mainMenu.menuUserHoverAt).checkResetRedraw()) {
+                                            mainMenu.get_item(mainMenu.menuUserHoverAt).drawMenuItem(mainMenu);
+                                            mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
+                                        }
                                     }
                                 }
                             }
