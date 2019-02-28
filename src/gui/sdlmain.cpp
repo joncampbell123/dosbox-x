@@ -4078,6 +4078,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                             break;
                         case SDL_MOUSEMOTION:
                             {
+                                bool noRedrawNew = false,noRedrawOld = false;
+
                                 sel_item = DOSBoxMenu::unassigned_item_handle;
 
                                 auto search = popup_stack.end();
@@ -4125,6 +4127,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                                 popup_stack.push_back(sel_item);
                                                 redrawAll = true;
                                             }
+                                            else {
+                                                /* no change in item state, don't bother redrawing */
+                                                noRedrawNew = true;
+                                            }
                                         }
                                         else {
                                             /* use a copy of the iterator to scan forward and un-hilight the menu items.
@@ -4152,7 +4158,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                                             redrawAll = true;
                                     }
 
-                                    if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle && !OpenGL_using() && !redrawAll) {
+                                    if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle && !OpenGL_using() && !redrawAll && !noRedrawOld) {
                                         if (mainMenu.get_item(mainMenu.menuUserHoverAt).checkResetRedraw()) {
                                             mainMenu.get_item(mainMenu.menuUserHoverAt).drawMenuItem(mainMenu);
                                             mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
@@ -4161,7 +4167,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
                                     mainMenu.menuUserHoverAt = sel_item;
 
-                                    if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle && !OpenGL_using() && !redrawAll) {
+                                    if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle && !OpenGL_using() && !redrawAll && !noRedrawNew) {
                                         if (mainMenu.get_item(mainMenu.menuUserHoverAt).checkResetRedraw()) {
                                             mainMenu.get_item(mainMenu.menuUserHoverAt).drawMenuItem(mainMenu);
                                             mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
