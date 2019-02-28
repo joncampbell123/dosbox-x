@@ -257,6 +257,7 @@ Bitu OUTPUT_DIRECT3D_SetSize()
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     mainMenu.screenWidth = sdl.surface->w;
+    mainMenu.screenHeight = sdl.surface->h;
     mainMenu.updateRect();
     mainMenu.setRedraw();
     GFX_DrawSDLMenu(mainMenu, mainMenu.display_list);
