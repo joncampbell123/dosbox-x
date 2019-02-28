@@ -1889,8 +1889,8 @@ void DOSBoxMenu::item::layoutSubmenu(DOSBoxMenu &menu, bool isTopLevel) {
         new_y = popupBox.y;
         if ((new_y + (int)popupBox.h) > (int)menu.screenHeight)
             new_y = (int)menu.screenHeight - popupBox.h;
-        if (new_y < (int)menu.menuBarHeight)
-            new_y = (int)menu.menuBarHeight;
+        if (new_y < ((int)menu.menuBarHeight - 1))
+            new_y = ((int)menu.menuBarHeight - 1);
 
         int adj_y = new_y - popupBox.y;
         if (adj_y != 0) {
