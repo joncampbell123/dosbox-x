@@ -180,6 +180,20 @@ retry:
                 consider_width = currentWindowWidth;
         }
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+        if (mainMenu.isVisible())
+        {
+            extern unsigned int min_sdldraw_menu_width;
+            extern unsigned int min_sdldraw_menu_height;
+            /* enforce a minimum 500x300 surface size.
+             * the menus are useless below 500x300 */
+            if (consider_width < (min_sdldraw_menu_width + (sdl.overscan_width * 2)))
+                consider_width = (min_sdldraw_menu_width + (sdl.overscan_width * 2));
+            if (consider_height < (min_sdldraw_menu_height + (sdl.overscan_width * 2) + (unsigned int)menuheight))
+                consider_height = (min_sdldraw_menu_height + (sdl.overscan_width * 2) + (unsigned int)menuheight);
+        }
+#endif
+
         /* decide where the rectangle on the screen goes */
         int final_width,final_height,ax,ay;
 

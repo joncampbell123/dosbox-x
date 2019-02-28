@@ -30,6 +30,11 @@
 #include "timer.h"
 #include "inout.h"
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+unsigned int min_sdldraw_menu_width = 500;
+unsigned int min_sdldraw_menu_height = 300;
+#endif
+
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
 void                                                sdl_hax_nsMenuAddApplicationMenu(void *nsMenu);
 void*                                               sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag);
