@@ -1,4 +1,11 @@
 0.82.16 (next)
+  - SDL drawn menus now shift and adjust popup menu position
+    to ensure the popup is entirely within the screen in cases
+    where the window is too small. Redraw issues related to
+    that (overlapping item and popup menus) have been fixed.
+    Minimum window resolution has been reduced to 500x300,
+    enough to permit EGA 640x350 displays without a black
+    border.
   - Fixed INT 18h AH=13h not to automatically show the cursor
     (PC-98 fix), which fixes the visible blinking cursor
     problem during games.
