@@ -3596,17 +3596,23 @@ void GFX_SDLMenuTrackHover(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id) {
     (void)menu;//UNUSED
     if (mainMenu.menuUserHoverAt != item_id) {
         if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
-            mainMenu.get_item(mainMenu.menuUserHoverAt).setHover(mainMenu,false);
-            mainMenu.get_item(mainMenu.menuUserHoverAt).drawMenuItem(mainMenu);
-            mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
+            auto &item = mainMenu.get_item(mainMenu.menuUserHoverAt);
+            item.setHover(mainMenu,false);
+            if (item.checkResetRedraw()) {
+                item.drawMenuItem(mainMenu);
+                item.updateScreenFromItem(mainMenu);
+            }
         }
 
         mainMenu.menuUserHoverAt = item_id;
 
         if (mainMenu.menuUserHoverAt != DOSBoxMenu::unassigned_item_handle) {
-            mainMenu.get_item(mainMenu.menuUserHoverAt).setHover(mainMenu,true);
-            mainMenu.get_item(mainMenu.menuUserHoverAt).drawMenuItem(mainMenu);
-            mainMenu.get_item(mainMenu.menuUserHoverAt).updateScreenFromItem(mainMenu);
+            auto &item = mainMenu.get_item(mainMenu.menuUserHoverAt);
+            item.setHover(mainMenu,true);
+            if (item.checkResetRedraw()) {
+                item.drawMenuItem(mainMenu);
+                item.updateScreenFromItem(mainMenu);
+            }
         }
 
         if (OpenGL_using())
@@ -3618,17 +3624,23 @@ void GFX_SDLMenuTrackHilight(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id)
     (void)menu;//UNUSED
     if (mainMenu.menuUserAttentionAt != item_id) {
         if (mainMenu.menuUserAttentionAt != DOSBoxMenu::unassigned_item_handle) {
-            mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,false);
-            mainMenu.get_item(mainMenu.menuUserAttentionAt).drawMenuItem(mainMenu);
-            mainMenu.get_item(mainMenu.menuUserAttentionAt).updateScreenFromItem(mainMenu);
+            auto &item = mainMenu.get_item(mainMenu.menuUserAttentionAt);
+            item.setHilight(mainMenu,false);
+            if (item.checkResetRedraw()) {
+                item.drawMenuItem(mainMenu);
+                item.updateScreenFromItem(mainMenu);
+            }
         }
 
         mainMenu.menuUserAttentionAt = item_id;
 
         if (mainMenu.menuUserAttentionAt != DOSBoxMenu::unassigned_item_handle) {
-            mainMenu.get_item(mainMenu.menuUserAttentionAt).setHilight(mainMenu,true);
-            mainMenu.get_item(mainMenu.menuUserAttentionAt).drawMenuItem(mainMenu);
-            mainMenu.get_item(mainMenu.menuUserAttentionAt).updateScreenFromItem(mainMenu);
+            auto &item = mainMenu.get_item(mainMenu.menuUserAttentionAt);
+            item.setHilight(mainMenu,true);
+            if (item.checkResetRedraw()) {
+                item.drawMenuItem(mainMenu);
+                item.updateScreenFromItem(mainMenu);
+            }
         }
 
         if (OpenGL_using())
