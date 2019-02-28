@@ -161,6 +161,7 @@ retry:
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     mainMenu.screenWidth = (size_t)(sdl.surface->w);
+    mainMenu.screenHeight = (size_t)(sdl.surface->h);
     mainMenu.updateRect();
     mainMenu.setRedraw();
 #endif
