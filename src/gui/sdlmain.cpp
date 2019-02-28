@@ -7757,6 +7757,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
         mainMenu.screenWidth = (unsigned int)sdl.surface->w;
+        mainMenu.screenHeight = (unsigned int)sdl.surface->h;
         mainMenu.updateRect();
 #endif
 #if defined(WIN32) && !defined(HX_DOS)
