@@ -165,6 +165,7 @@ void DIB_WaitAudio(_THIS)
 #endif
 
         /* force audio device to reset, let go of all buffers */
+        /* FIXME: This DOES resolve the hang on shutdown, however audio will always stutter after this point. What can be done to fix that? */
         if (waveOutReset(sound) == MMSYSERR_NOERROR) {
             /* waveOutReset SHOULD call the callback function for any pending buffers which will then reorient the semaphore */
             next_buffer = 0;
