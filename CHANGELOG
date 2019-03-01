@@ -1,4 +1,7 @@
 0.82.16 (next)
+  - SDL1 support fixed to gracefully handle a case where,
+    under Windows XP, with a audio device that is not cycling
+    any audio DMA, DOSBox-X can hang on shutdown.
   - SDL drawn menus now shift and adjust popup menu position
     to ensure the popup is entirely within the screen in cases
     where the window is too small. Redraw issues related to
