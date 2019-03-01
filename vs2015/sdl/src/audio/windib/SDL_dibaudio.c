@@ -166,17 +166,7 @@ void DIB_WaitAudio(_THIS)
 
         /* force audio device to reset, let go of all buffers */
         if (waveOutReset(sound) == MMSYSERR_NOERROR) {
-            /* force the semaphore back to initial state */
-            BOOL result;
-
-            do {
-#if defined(_WIN32_WCE) && (_WIN32_WCE < 300)
-                result = ReleaseSemaphoreCE(audio_sem, 1, NULL);
-#else
-                result = ReleaseSemaphore(audio_sem, 1, NULL);
-#endif
-            } while (result);
-
+            /* waveOutReset SHOULD call the callback function for any pending buffers which will then reorient the semaphore */
             next_buffer = 0;
         }
         else {
