@@ -41,7 +41,9 @@
   - Windows MinGW builds now properly support and enable the
     Direct3D output
   - Mac OS X builds now contain the correct version number in
-    the application plist.
+    the application plist. Using the Finder's Information window
+    on the compiled application bundle will now show correct
+    version information.
   - SDL1 builds fixed to always compile with internal SDL_net
     library instead of public library on the system
   - Mac OS X SDL1 builds fixed to always clip the desktop
