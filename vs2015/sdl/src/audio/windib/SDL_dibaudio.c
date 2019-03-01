@@ -165,7 +165,7 @@ void DIB_WaitAudio(_THIS)
 #endif
 
         /* force audio device to reset, let go of all buffers */
-        if (waveOutReset(sound) == MMSYSTEM_NOERROR) {
+        if (waveOutReset(sound) == MMSYSERR_NOERROR) {
             /* force the semaphore back to initial state */
             BOOL result;
 
