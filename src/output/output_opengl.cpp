@@ -23,7 +23,7 @@ PFNGLBUFFERDATAARBPROC glBufferDataARB = NULL;
 PFNGLMAPBUFFERARBPROC glMapBufferARB = NULL;
 PFNGLUNMAPBUFFERARBPROC glUnmapBufferARB = NULL;
 
-#if C_OPENGL && !defined(C_SDL2) && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
 extern unsigned int SDLDrawGenFontTextureUnitPerRow;
 extern unsigned int SDLDrawGenFontTextureRows;
 extern unsigned int SDLDrawGenFontTextureWidth;

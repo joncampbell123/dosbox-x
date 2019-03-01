@@ -52,6 +52,9 @@ struct SDL_OpenGL {
     bool pixel_buffer_object;
     int menudraw_countdown;
     int clear_countdown;
+#if defined(C_SDL2)
+    SDL_GLContext context = NULL;
+#endif
 };
 
 extern SDL_OpenGL sdl_opengl;

@@ -1065,6 +1065,11 @@ SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES scree
     currentWindowWidth = currWidth;
     currentWindowHeight = currHeight;
 
+#if C_OPENGL
+    sdl_opengl.context = SDL_GL_CreateContext(sdl.window);
+    if (sdl_opengl.context == NULL) LOG_MSG("WARNING: SDL2 unable to create GL context");
+#endif
+
     return sdl.window;
 }
 
@@ -1101,7 +1106,7 @@ static SDL_Window * GFX_SetSDLOpenGLWindow(Bit16u width, Bit16u height) {
 # endif
 #endif
 
-#if C_OPENGL && !defined(C_SDL2) && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
 unsigned int SDLDrawGenFontTextureUnitPerRow = 16;
 unsigned int SDLDrawGenFontTextureRows = 16;
 unsigned int SDLDrawGenFontTextureWidth = SDLDrawGenFontTextureUnitPerRow * 8;
@@ -3682,7 +3687,11 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
             sdl_opengl.menudraw_countdown = 2; // two GL buffers
             GFX_OpenGLRedrawScreen();
             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+# if defined(C_SDL2)
+            SDL_GL_SwapWindow(sdl.window);
+# else
             SDL_GL_SwapBuffers();
+# endif
 #endif
         }
  
@@ -3696,7 +3705,11 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
             sdl_opengl.menudraw_countdown = 2; // two GL buffers
             GFX_OpenGLRedrawScreen();
             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+# if defined(C_SDL2)
+            SDL_GL_SwapWindow(sdl.window);
+# else
             SDL_GL_SwapBuffers();
+# endif
 #endif
         }
     }
@@ -3913,7 +3926,11 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                         }
                     }
 
+# if defined(C_SDL2)
+                    SDL_GL_SwapWindow(sdl.window);
+# else
                     SDL_GL_SwapBuffers();
+# endif
 #endif
                 }
                 else {
@@ -4221,8 +4238,13 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                         }
 
 #if C_OPENGL
-                        if (OpenGL_using())
+                        if (OpenGL_using()) {
+# if defined(C_SDL2)
+                            SDL_GL_SwapWindow(sdl.window);
+# else
                             SDL_GL_SwapBuffers();
+# endif
+                        }
                         else
 #endif
                             MenuFullScreenRedraw();
@@ -4268,7 +4290,11 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                     mainMenu.setRedraw();
                     GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 
+# if defined(C_SDL2)
+                    SDL_GL_SwapWindow(sdl.window);
+# else
                     SDL_GL_SwapBuffers();
+# endif
 
                     sdl_opengl.clear_countdown = 2;
                     sdl_opengl.menudraw_countdown = 2; // two GL buffers
