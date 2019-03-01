@@ -81,7 +81,9 @@
   - PC-98 INT 18h AH=04h: Added software delay to slow down some
     older PC-98 games that poll keyboard/mouse while animating
     cutscenes. The games seem to be timed around the assumption
-    that this call has some delay to it.
+    that this call has some delay to it. This fixes problems with
+    "Shangrlia" by Elf corporation and animation that runs way
+    too fast.
 0.82.15
   - Incorporated x86 FPU emulation from DOSBox SVN to improve FPU
     precision at least on x86 and x86_64 targets.
