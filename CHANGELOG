@@ -1,4 +1,4 @@
-0.82.16 (next)
+0.82.16
   - SDL1 support fixed to gracefully handle a case where,
     under Windows XP, with a audio device that is not cycling
     any audio DMA, DOSBox-X can hang on shutdown.
