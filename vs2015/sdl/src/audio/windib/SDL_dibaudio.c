@@ -146,12 +146,46 @@ static void DIB_ThreadInit(_THIS)
 
 void DIB_WaitAudio(_THIS)
 {
+    DWORD ret;
+
 	/* Wait for an audio chunk to finish */
 #if defined(_WIN32_WCE) && (_WIN32_WCE < 300)
-	WaitForSemaphoreCE(audio_sem, INFINITE);
+	ret = WaitForSemaphoreCE(audio_sem, 1000);
 #else
-	WaitForSingleObject(audio_sem, INFINITE);
+	ret = WaitForSingleObject(audio_sem, 1000);
 #endif
+
+    if (ret == WAIT_TIMEOUT) {
+        /* if for any reason the audio device is not moving audio data,
+         * this timeout handling is a failsafe to prevent DOSBox-X from
+         * hanging on shutdown. See also [https://github.com/joncampbell123/dosbox-x/issues/1021] */
+        OutputDebugString("SDL windib audio warning: Timeout waiting for audio to complete, possible audio driver problem. Forcing reset.\n");
+#if !defined(_WIN32_WCE)
+        fprintf(stderr,"SDL windib audio warning: Timeout waiting for audio to complete, possible audio driver problem. Forcing reset.\n");
+#endif
+
+        /* force audio device to reset, let go of all buffers */
+        if (waveOutReset(sound) == MMSYSTEM_NOERROR) {
+            /* force the semaphore back to initial state */
+            BOOL result;
+
+            do {
+#if defined(_WIN32_WCE) && (_WIN32_WCE < 300)
+                result = ReleaseSemaphoreCE(audio_sem, 1, NULL);
+#else
+                result = ReleaseSemaphore(audio_sem, 1, NULL);
+#endif
+            } while (result);
+
+            next_buffer = 0;
+        }
+        else {
+            OutputDebugString("SDL windib audio warning: Failed to reset audio output\n");
+#if !defined(_WIN32_WCE)
+            fprintf(stderr,"SDL windib audio warning: Failed to reset audio output\n");
+#endif
+        }
+    }
 }
 
 Uint8 *DIB_GetAudioBuf(_THIS)
