@@ -290,6 +290,26 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		phys_writeb(physAddress+0x00,(Bit8u)0xCA);		//A RETF 8 Instruction
 		phys_writew(physAddress+0x01,(Bit16u)0x0008);
 		return (use_cb?7:3);
+	case CB_RETF_STI:
+		phys_writeb(physAddress+0x00,(Bit8u)0xFB);		//STI
+		if (use_cb) {
+			phys_writeb(physAddress+0x01,(Bit8u)0xFE);	//GRP 4
+			phys_writeb(physAddress+0x02,(Bit8u)0x38);	//Extra Callback instruction
+			phys_writew(physAddress+0x03,(Bit16u)callback);	//The immediate word
+			physAddress+=4;
+		}
+		phys_writeb(physAddress+0x01,(Bit8u)0xCB);		//A RETF Instruction
+		return (use_cb?6:2);
+	case CB_RETF_CLI:
+		phys_writeb(physAddress+0x00,(Bit8u)0xFA);		//CLI
+		if (use_cb) {
+			phys_writeb(physAddress+0x01,(Bit8u)0xFE);	//GRP 4
+			phys_writeb(physAddress+0x02,(Bit8u)0x38);	//Extra Callback instruction
+			phys_writew(physAddress+0x03,(Bit16u)callback);	//The immediate word
+			physAddress+=4;
+		}
+		phys_writeb(physAddress+0x01,(Bit8u)0xCB);		//A RETF Instruction
+		return (use_cb?6:2);
 	case CB_IRET:
 		if (use_cb) {
 			phys_writeb(physAddress+0x00,(Bit8u)0xFE);	//GRP 4
