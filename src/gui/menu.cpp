@@ -239,10 +239,10 @@ static const char *def_menu_video_output[] =
 # if (HAVE_D3D9_H) && defined(WIN32)
     "output_direct3d",
 # endif
-# if (C_OPENGL)
+#endif
+#if defined(C_OPENGL) && !defined(HX_DOS)
     "output_opengl",
     "output_openglnb",
-# endif
 #endif
     NULL
 };
