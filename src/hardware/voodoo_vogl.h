@@ -26,11 +26,11 @@
 
 /* opengl extensions */
 #ifdef WIN32
-extern PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
-extern PFNGLMULTITEXCOORD4FARBPROC glMultiTexCoord4fARB;
-extern PFNGLMULTITEXCOORD4FVARBPROC glMultiTexCoord4fvARB;
-# define glMultiTexCoord4fv glMultiTexCoord4fvARB
-# define glActiveTexture glActiveTextureARB
+extern PFNGLACTIVETEXTUREARBPROC __glActiveTextureARB;
+extern PFNGLMULTITEXCOORD4FARBPROC __glMultiTexCoord4fARB;
+extern PFNGLMULTITEXCOORD4FVARBPROC __glMultiTexCoord4fvARB;
+# define glMultiTexCoord4fv __glMultiTexCoord4fvARB
+# define glActiveTexture __glActiveTextureARB
 #endif
 
 extern PFNGLCREATESHADEROBJECTARBPROC glCreateShaderObjectARB;
