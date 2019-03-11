@@ -11,6 +11,8 @@
 #include "dosbox.h"
 #include <output/output_opengl.h>
 
+#include <algorithm>
+
 #include "sdlmain.h"
 
 using namespace std;
