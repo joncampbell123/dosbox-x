@@ -1,4 +1,5 @@
 0.82.17 (next)
+  - SDL2 OpenGL fixed color order issue
   - OpenGL is now supported in SDL2 builds.
   - Changed MPU-401 reset duration (DOSBox SVN).
 0.82.16
