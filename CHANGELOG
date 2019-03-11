@@ -1,5 +1,6 @@
 0.82.17 (next)
-  - 
+  - OpenGL is now supported in SDL2 builds.
+  - Changed MPU-401 reset duration (DOSBox SVN).
 0.82.16
   - SDL1 support fixed to gracefully handle a case where,
     under Windows XP, with a audio device that is not cycling
