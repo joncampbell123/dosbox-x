@@ -218,10 +218,15 @@ Bitu OUTPUT_OPENGL_SetSize()
     sdl_opengl.framebuf = 0;
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-#if SDL_VERSION_ATLEAST(1, 2, 11)
-    Section_prop* sec = static_cast<Section_prop*>(control->GetSection("vsync"));
-    if (sec)
-        SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, (!strcmp(sec->Get_string("vsyncmode"), "host")) ? 1 : 0);
+#if !defined(C_SDL2)
+# if SDL_VERSION_ATLEAST(1, 2, 11)
+    {
+        Section_prop* sec = static_cast<Section_prop*>(control->GetSection("vsync"));
+
+        if (sec)
+            SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, (!strcmp(sec->Get_string("vsyncmode"), "host")) ? 1 : 0);
+    }
+# endif
 #endif
 
     SetupSurfaceScaledOpenGL(SDL_RESIZABLE, 0);
