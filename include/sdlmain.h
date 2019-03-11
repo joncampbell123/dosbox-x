@@ -218,4 +218,8 @@ void UpdateWindowDimensions(Bitu width, Bitu height);
 SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType);
 #endif
 
+#if defined(C_SDL2) && defined(C_OPENGL)/*HACK*/
+void SDL_GL_SwapBuffers(void);
+#endif
+
 #endif /*DOSBOX_SDLMAIN_H*/

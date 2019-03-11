@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/aviwriter -I$(top_srcdir)/src/hardware/snd_pc98/sound -I$(top_srcdir)/src/hardware/snd_pc98/common -I$(top_srcdir)/src/hardware/snd_pc98/generic -I$(top_srcdir)/src/hardware/snd_pc98/sound/getsnd -I$(top_srcdir)/src/hardware/snd_pc98/x11 -I$(top_srcdir)/src/hardware/snd_pc98/cbus
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/aviwriter -I$(top_srcdir)/src/hardware/snd_pc98/sound -I$(top_srcdir)/src/hardware/snd_pc98/common -I$(top_srcdir)/src/hardware/snd_pc98/generic -I$(top_srcdir)/src/hardware/snd_pc98/sound/getsnd -I$(top_srcdir)/src/hardware/snd_pc98/x11 -I$(top_srcdir)/src/hardware/snd_pc98/cbus -I$(top_srcdir)/src
 
 SUBDIRS = serialport parport reSID
 

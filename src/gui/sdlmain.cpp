@@ -8299,3 +8299,10 @@ bool MOUSE_IsLocked()
 {
     return sdl.mouse.locked;
 }
+
+#if defined(C_SDL2) && defined(C_OPENGL)/*HACK*/
+void SDL_GL_SwapBuffers(void) {
+    SDL_GL_SwapWindow(sdl.window);
+}
+#endif
+
