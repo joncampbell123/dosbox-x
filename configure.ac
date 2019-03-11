@@ -937,11 +937,6 @@ AH_TEMPLATE(C_OPENGL,[Define to 1 to use opengl display output support])
 AC_ARG_ENABLE(opengl,AC_HELP_STRING([--disable-opengl],[Disable opengl support]),,enable_opengl=yes)
 AC_MSG_CHECKING(whether opengl display output will be enabled)
 
-# HACK: Don't enable OPENGL on SDL2
-if test -n "$SDL2_LIBS"; then
-    enable_opengl=no
-fi
-
 # test
 if test x$enable_opengl = xyes; then
 case "$host" in
