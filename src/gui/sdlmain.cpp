@@ -1017,6 +1017,7 @@ SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES scree
         if (sdl.window) {
             SDL_DestroyWindow(sdl.window);
         }
+
         sdl.window = SDL_CreateWindow("",
                                       SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber),
                                       SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber),
@@ -1033,6 +1034,14 @@ SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES scree
 
         currentWindowWidth = currWidth;
         currentWindowHeight = currHeight;
+
+#if C_OPENGL
+        if (screenType == SCREEN_OPENGL) {
+            sdl_opengl.context = SDL_GL_CreateContext(sdl.window);
+            if (sdl_opengl.context == NULL) LOG_MSG("WARNING: SDL2 unable to create GL context");
+            if (SDL_GL_MakeCurrent(sdl.window, sdl_opengl.context) != 0) LOG_MSG("WARNING: SDL2 unable to make current GL context");
+        }
+#endif
 
         return sdl.window;
     }
@@ -1066,8 +1075,11 @@ SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES scree
     currentWindowHeight = currHeight;
 
 #if C_OPENGL
-    sdl_opengl.context = SDL_GL_CreateContext(sdl.window);
-    if (sdl_opengl.context == NULL) LOG_MSG("WARNING: SDL2 unable to create GL context");
+    if (screenType == SCREEN_OPENGL) {
+        sdl_opengl.context = SDL_GL_CreateContext(sdl.window);
+        if (sdl_opengl.context == NULL) LOG_MSG("WARNING: SDL2 unable to create GL context");
+        if (SDL_GL_MakeCurrent(sdl.window, sdl_opengl.context) != 0) LOG_MSG("WARNING: SDL2 unable to make current GL context");
+    }
 #endif
 
     return sdl.window;
@@ -2348,18 +2360,14 @@ void change_output(int output) {
 #if C_OPENGL
         change_output(2);
         OUTPUT_OPENGL_Select();
-#if !defined(C_SDL2)
         sdl_opengl.bilinear = true;
-#endif
 #endif
         break;
     case 4:
 #if C_OPENGL
         change_output(2);
         OUTPUT_OPENGL_Select();
-#if !defined(C_SDL2)
         sdl_opengl.bilinear = false; //NB
-#endif
 #endif
         break;
 #if C_DIRECT3D

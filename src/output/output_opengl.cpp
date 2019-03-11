@@ -46,23 +46,35 @@ static SDL_Surface* SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp)
     Bit16u windowHeight;
 
 retry:
+#if defined(C_SDL2)
+    if (sdl.desktop.prevent_fullscreen) /* 3Dfx openGL do not allow resize */
+        sdl_flags &= ~((unsigned int)SDL_WINDOW_RESIZABLE);
+    if (sdl.desktop.want_type == SCREEN_OPENGL)
+        sdl_flags |= (unsigned int)SDL_WINDOW_OPENGL;
+#else
     if (sdl.desktop.prevent_fullscreen) /* 3Dfx openGL do not allow resize */
         sdl_flags &= ~((unsigned int)SDL_RESIZABLE);
-
     if (sdl.desktop.want_type == SCREEN_OPENGL)
         sdl_flags |= (unsigned int)SDL_OPENGL;
+#endif
 
     if (sdl.desktop.fullscreen) 
     {
         fixedWidth = sdl.desktop.full.fixed ? sdl.desktop.full.width : 0;
         fixedHeight = sdl.desktop.full.fixed ? sdl.desktop.full.height : 0;
+#if defined(C_SDL2)
+        sdl_flags |= (unsigned int)(SDL_WINDOW_FULLSCREEN);
+#else
         sdl_flags |= (unsigned int)(SDL_FULLSCREEN | SDL_HWSURFACE);
+#endif
     }
     else 
     {
         fixedWidth = sdl.desktop.window.width;
         fixedHeight = sdl.desktop.window.height;
+#if !defined(C_SDL2)
         sdl_flags |= (unsigned int)SDL_HWSURFACE;
+#endif
     }
 
     if (fixedWidth == 0 || fixedHeight == 0) 
@@ -135,11 +147,21 @@ retry:
     }
 #endif
 
+#if defined(C_SDL2)
+    sdl.surface = NULL;
+    sdl.window = GFX_SetSDLWindowMode(windowWidth, windowHeight, (sdl_flags & SDL_WINDOW_OPENGL) ? SCREEN_OPENGL : SCREEN_SURFACE);
+    if (sdl.window != NULL) sdl.surface = SDL_GetWindowSurface(sdl.window);
+#else
     sdl.surface = SDL_SetVideoMode(windowWidth, windowHeight, (int)bpp, (unsigned int)sdl_flags);
+#endif
     if (sdl.surface == NULL && sdl.desktop.fullscreen) {
         LOG_MSG("Fullscreen not supported: %s", SDL_GetError());
         sdl.desktop.fullscreen = false;
+#if defined(C_SDL2)
+        sdl_flags &= ~SDL_WINDOW_FULLSCREEN;
+#else
         sdl_flags &= ~SDL_FULLSCREEN;
+#endif
         GFX_CaptureMouse();
         goto retry;
     }
@@ -229,7 +251,11 @@ Bitu OUTPUT_OPENGL_SetSize()
 # endif
 #endif
 
+#if defined(C_SDL2)
+    SetupSurfaceScaledOpenGL(SDL_WINDOW_RESIZABLE, 0);
+#else
     SetupSurfaceScaledOpenGL(SDL_RESIZABLE, 0);
+#endif
     if (!sdl.surface || sdl.surface->format->BitsPerPixel < 15)
     {
         LOG_MSG("SDL:OPENGL:Can't open drawing surface, are you running in 16bpp(or higher) mode?");
