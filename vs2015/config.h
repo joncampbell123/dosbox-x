@@ -130,19 +130,19 @@
 /* Define to 1 to enable NE2000 ethernet passthrough, requires libpcap */
 #define C_NE2000 1
 
-/* Define to 1 to use opengl display output support */
-#if !defined(C_SDL2)
- /* TODO: Windows SDK ARM32 and ARM64 doesn't provide opengl32.lib, find alternatives */
-#if !defined(_M_ARM64) && !defined (_M_ARM)
-#define C_OPENGL 1
-#endif
-#endif
-
 /* Set to 1 to enable SDL 1.x support */
 #define C_SDL1 1
 
 /* Set to 1 to enable SDL 2.x support */
 /* #undef C_SDL2 */
+
+/* Define to 1 to use opengl display output support */
+#if !defined(C_SDL2)
+ /* TODO: Windows SDK ARM32 and ARM64 doesn't provide opengl32.lib, find alternatives */
+# if !defined(_M_ARM64) && !defined (_M_ARM)
+#  define C_OPENGL 1
+# endif
+#endif
 
 #if !defined(C_SDL2)
 /* Set to 1 to enable XBRZ support */
