@@ -981,12 +981,6 @@ SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES scree
         SDL_DestroyTexture(sdl.texture.texture);
         sdl.texture.texture=0;
     }
-#if C_OPENGL
-    if (sdl_opengl.context) {
-        SDL_GL_DeleteContext(sdl_opengl.context);
-        sdl_opengl.context=0;
-    }
-#endif
     sdl.window_desired_width = width;
     sdl.window_desired_height = height;
     int currWidth, currHeight;
@@ -999,17 +993,17 @@ SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES scree
             currentWindowWidth = currWidth;
             currentWindowHeight = currHeight;
 
-#if C_OPENGL
-            if (screenType == SCREEN_OPENGL) {
-                sdl_opengl.context = SDL_GL_CreateContext(sdl.window);
-                if (sdl_opengl.context == NULL) LOG_MSG("WARNING: SDL2 unable to create GL context");
-                if (SDL_GL_MakeCurrent(sdl.window, sdl_opengl.context) != 0) LOG_MSG("WARNING: SDL2 unable to make current GL context");
-            }
-#endif
-
             return sdl.window;
         }
     }
+
+#if C_OPENGL
+    if (sdl_opengl.context) {
+        SDL_GL_DeleteContext(sdl_opengl.context);
+        sdl_opengl.context=0;
+    }
+#endif
+
     /* If we change screen type, recreate the window. Furthermore, if
      * it is our very first time then we simply create a new window.
      */
