@@ -548,6 +548,6 @@ INT DC = 60:36B3
         NOP
         NOP
         POP DS
-    0ADC:40C7:
+    0ADC:40C6:
         return
 
