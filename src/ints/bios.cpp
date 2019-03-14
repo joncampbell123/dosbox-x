@@ -3856,7 +3856,7 @@ static Bitu INTGEN_PC98_Handler(void) {
  * On actual PC-98 MS-DOS this is a direct interface to MS-DOS's built-in ANSI CON driver.
  *
  * CL = major function call number
- * AL = minor function call number
+ * AH = minor function call number
  * DX = data?? */
 extern bool dos_kernel_disabled;
 
