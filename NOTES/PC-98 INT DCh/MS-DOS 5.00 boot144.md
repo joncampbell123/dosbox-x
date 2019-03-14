@@ -516,9 +516,38 @@ INT DC = 60:36B3
 --
 
     0ADC:4080:
+        CLI
+        PUSH DS
         DS = DOS kernel segment 60h from 0ADC:0030
         BYTE PTR DS:[00B4] = 0
-        (other cleanup, not yet traced)
-        CALL 0060:3C6F
-        RET
+    0ADC:408C:
+        IF BYTE PTR DS:[00A5] != 01h JMP 40ACh
+    0ADC:4093:
+        IF BYTE PTR DS:[00A6] == 01h JMP 40A2h
+    0ADC:409A:
+        STI
+        PUSH AX
+        CALL 40AFh
+        POP AX
+        POP DS
+        return
+    0ADC:40A2:
+        BYTE PTR DS:[00A5] = 0x00
+        BYTE PTR DS:[00A6] = 0x00
+    0ADC:40AC:
+        STI
+        POP DS
+        return
+    0ADC:40AF:
+        IF WORD PTR DS:[2A7C] == 0h JMP 40C6h
+    0ADC:40B6:
+        PUSH DS
+        WORD PTR DS:[2A7A] = 0x18
+        CALL FAR 0060h:3C6Fh
+        NOP
+        NOP
+        NOP
+        POP DS
+    0ADC:40C7:
+        return
 
