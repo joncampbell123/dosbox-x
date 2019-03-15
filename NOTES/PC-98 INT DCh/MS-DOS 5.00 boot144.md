@@ -230,6 +230,12 @@ INT DC = 60:36B3
     0ADC:11B3: (CL=10h AH=00h, at this time CL == caller's DL and DS = DOS segment 60h)
         IF BYTE PTR DS:[011C] < 0x50 JMP 11C7h ; (60:11C cursor X position)
         IF BYTE PTR DS:[0117] == 0 JMP 11C2h ; (60:117 line wrap flag)
+    0ADC:11C1:
+        return
+    0ADC:11C2:
+        PUSH CX
+        CALL 118Ch
+        POP CX
     0ADC:11C7: (60:11C < 0x50)
         IF BYTE PTR DS:[008A] == 0 JMP 1201h ; (60:8A kanji / graph mode flag)
         IF BYTE PTR DS:[0115] != 0 JMP 11F3h ; (60:115 kanji upper byte storage flag)
