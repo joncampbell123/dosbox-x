@@ -515,6 +515,8 @@ INT DC = 60:36B3
 
 --
 
+    Called from 0ADC:3180 (near)
+
     0ADC:4080:
         CLI
         PUSH DS
