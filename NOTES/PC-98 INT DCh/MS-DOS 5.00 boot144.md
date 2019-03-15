@@ -4,6 +4,7 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
 
     0060:0124 WORD ACFh BX value (?))
     0060:0128 BYTE (?)
+    0060:0136 BYTE drive number last accessed by IO.SYS block driver
     0060:014E BYTE some sort of flag
     0060:0214 WORD:WORD 16-bit far pointer (0ADC:3126)
     0060:05E1 WORD stored DS value from caller
@@ -495,7 +496,7 @@ INT DC = 60:36B3
         JMP 3B84h
     0ADC:3B3F:
         IF (BYTE PTR DS:[BX] AND 1) == 0 JMP 3B84h
-        BYTE PTR DS:[0136] = DH
+        BYTE PTR DS:[0136] = DH (set last access drive number)
         IF AX != 0x0010 JMP 3B52h
         CALL 5B07h
         JMP 3B69h
