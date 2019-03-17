@@ -11,5 +11,13 @@ print(a)
 a = a + 3
 print(a)
 
+function func1 (x)
+    return x * 111
+end
+
 hello()
+
+print(func1(1))
+print(func1(2))
+print(func1(7))
 
