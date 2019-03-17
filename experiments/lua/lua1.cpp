@@ -32,7 +32,7 @@ int reg_c_function3(lua_State *LUA) {
 
     printf("* * From C++ here: LUA called reg_c_function3\n");
 
-    lua_pushnumber(LUA, 1111);
+    lua_pushstring(LUA, "Hello world I am a return value");
     return 1;
 }
 
