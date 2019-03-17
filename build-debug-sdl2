@@ -5,6 +5,7 @@ if [ "$1" == "32" ]; then
     export CC=`which gcc`" -m32"
     export CXX=`which g++`" -m32"
     shift
+    opt="--host=i686-pc-linux-gnu --target=i686-pc-linux-gnu"
 fi
 
 # I'm sick and tired of all the churn the three versions of autoconf
@@ -23,6 +24,6 @@ if test -z "$x" ; then
 fi
 
 chmod +x configure
-./configure --enable-core-inline --enable-debug=heavy --enable-avcodec --prefix=/usr --enable-sdl2 "$@" || exit 1
+./configure --enable-core-inline --enable-debug=heavy --enable-avcodec --prefix=/usr --enable-sdl2 "$@" $opt || exit 1
 make -j3 || exit 1
 
