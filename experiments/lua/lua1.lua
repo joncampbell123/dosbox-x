@@ -21,3 +21,7 @@ print(func1(1))
 print(func1(2))
 print(func1(7))
 
+reg_c_function1()
+
+print("That's all\n")
+

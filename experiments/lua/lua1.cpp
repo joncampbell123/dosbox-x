@@ -13,6 +13,13 @@ extern "C" {
 
 using namespace std;
 
+int reg_c_function1(lua_State *LUA) {
+    (void)LUA;
+
+    printf("* * From C++ here: LUA called reg_c_function1\n");
+    return 0;
+}
+
 int main(int argc,char **argv) {
     ifstream i;
 
@@ -27,6 +34,8 @@ int main(int argc,char **argv) {
     assert(LUA != NULL);
 
     luaL_openlibs(LUA);
+
+    lua_register(LUA, "reg_c_function1", reg_c_function1);
 
     int luaerr;
     char *blob;
