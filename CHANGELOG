@@ -1,4 +1,8 @@
 0.82.17 (next)
+  - Updated build-debug scripts to accept "32" on the command
+    line as a sign to compile 32-bit (i686) on a 64-bit (x86_64)
+    system. You will need a multilib-capable GCC and 32-bit
+    libraries installed on your system for this to work.
   - SDL2 OpenGL fixed color order issue
   - OpenGL is now supported in SDL2 builds.
   - Changed MPU-401 reset duration (DOSBox SVN).
