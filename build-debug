@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# allow 32-bit on 64-bit (x86) builds
+if [ "$1" == "32" ]; then
+    export CC=`which gcc`" -m32"
+    export CXX=`which g++`" -m32"
+    shift
+fi
+
 # Jonathan C dev hack: refer to LNKDOS16 in /usr/src/doslib
 doslib=
 if [ -d /usr/src/doslib ]; then doslib=/usr/src/doslib; fi
