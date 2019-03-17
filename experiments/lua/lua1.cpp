@@ -29,18 +29,33 @@ int main(int argc,char **argv) {
     luaL_openlibs(LUA);
 
     int luaerr;
-    char line[1024];
+    char *blob;
+    off_t sz;
 
-    while (!i.eof() && !i.fail()) {
-        i.getline(line,sizeof(line));
+    sz = 65536;
+    blob = new char[sz]; /* or throw a C++ exception on fail */
 
-        luaerr = luaL_loadstring(LUA, line);
-        if (luaerr == 0) luaerr = lua_pcall(LUA, 0, 0, 0);
+    i.read(blob,sz-1);
+    {
+        streamsize rd = i.gcount();
+        assert(rd < sz);
+        blob[rd] = 0;
+    }
 
-        if (luaerr) {
-            fprintf(stderr,"LUA error: %s\n", lua_tostring(LUA, -1));
-            lua_pop(LUA, 1);
-        }
+    luaerr = luaL_loadstring(LUA, blob);
+    if (luaerr) {
+        fprintf(stderr,"LUA error: %s\n", lua_tostring(LUA, -1));
+        lua_pop(LUA, 1);
+        return 1;
+    }
+
+    delete[] blob;
+
+    if (luaerr == 0) luaerr = lua_pcall(LUA, 0, 0, 0);
+
+    if (luaerr) {
+        fprintf(stderr,"LUA error: %s\n", lua_tostring(LUA, -1));
+        lua_pop(LUA, 1);
     }
 
     assert(LUA != NULL);
