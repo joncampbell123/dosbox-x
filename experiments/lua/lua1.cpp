@@ -14,11 +14,13 @@ extern "C" {
 using namespace std;
 
 int main(int argc,char **argv) {
-    if (argc < 2) return 1;
-
     ifstream i;
 
-    i.open(argv[1],ios_base::in);
+    if (argc > 1)
+        i.open(argv[1],ios_base::in);
+    else
+        i.open("lua1.lua",ios_base::in);
+
     if (!i.is_open()) return 1;
 
     lua_State *LUA = luaL_newstate();
