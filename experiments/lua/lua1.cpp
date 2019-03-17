@@ -27,6 +27,15 @@ int reg_c_function2(lua_State *LUA) {
     return 0;
 }
 
+int reg_c_function3(lua_State *LUA) {
+    (void)LUA;
+
+    printf("* * From C++ here: LUA called reg_c_function3\n");
+
+    lua_pushnumber(LUA, 1111);
+    return 1;
+}
+
 int main(int argc,char **argv) {
     ifstream i;
 
@@ -44,6 +53,7 @@ int main(int argc,char **argv) {
 
     lua_register(LUA, "reg_c_function1", reg_c_function1);
     lua_register(LUA, "reg_c_function2", reg_c_function2);
+    lua_register(LUA, "reg_c_function3", reg_c_function3);
 
     int luaerr;
     char *blob;

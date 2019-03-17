@@ -24,6 +24,7 @@ print(func1(7))
 reg_c_function1()
 reg_c_function2(42)
 reg_c_function2("This is a string")
+print(reg_c_function3())
 
 print("That's all\n")
 
