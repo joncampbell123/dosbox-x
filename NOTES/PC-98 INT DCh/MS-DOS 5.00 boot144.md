@@ -361,7 +361,7 @@ INT DC = 60:36B3
     0ADC:1369:
         PUSH ES, DS
         DX = AH << 8                    ; DH = AH, DL = 0
-        CALL 14F5h
+        CALL 14F5h                      ; take cursor position, convert to video RAM byte address, return in BX
         ES = DS = WORD PTR DS:[0032]    ; retrieve video (text) RAM segment
         DX = BX + 0xA0                  ; note 0xA0 = 160 = 80 * 2
     0ADC:1381:
@@ -410,7 +410,7 @@ INT DC = 60:36B3
         DL = BYTE PTR DS:[011C]
         IF DL >= 0x50 THEN DL--
     0ADC:154B:
-        CALL 14F5h
+        CALL 14F5h (take cursor position, convert to video RAM byte address, return in BX)
         AH = 0x13 (INT 18h AX=13h set cursor position)
         DX = BX (byte position of cursor)
         JMP 198Ah (calls INT 18h AX=13h to set cursor pos. function 198Ah then returns)
