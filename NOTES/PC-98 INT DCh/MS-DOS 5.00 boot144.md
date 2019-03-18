@@ -29,8 +29,6 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:36B3 INT DCh entry point
     0060:3B30 Subroutine called on INT DCh if 0060:014E is nonzero
 
-    0ADC:0030 WORD MS-DOS segment (60h)
-
 --
 
 INT DC = 60:36B3
