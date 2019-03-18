@@ -44,7 +44,7 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:17FA WORD ??
     0060:1802 WORD ??
     0060:1DC4 BYTE ??
-    0060:2852 WORD x 0x14 ?? related to ANSI escape handling state
+    0060:2852 BYTE x 0x28 ANSI escape parsing state (such as, numeric values from ESC[m )
     0060:2A7A WORD ??
     0060:2A7C WORD ??
     0060:2C86 WORD x 0x1A ??
