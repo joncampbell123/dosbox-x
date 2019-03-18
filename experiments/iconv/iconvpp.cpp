@@ -9,10 +9,8 @@ Iconv::~Iconv() {
 }
 
 void Iconv::finish(void) {
-    dst_adv = 0;
     dst_ptr = NULL;
     dst_ptr_fence = NULL;
-    src_adv = 0;
     src_ptr = NULL;
     src_ptr_fence = NULL;
 }
@@ -87,7 +85,11 @@ int Iconv::raw_convert(void) {
 
 int Iconv::cstring_convert(const char *src) {
     set_src(src);
-    return cstring_convert();
+
+    int err = cstring_convert();
+
+    finish();
+    return err;
 }
 
 int Iconv::cstring_convert(void) {

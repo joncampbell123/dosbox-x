@@ -49,8 +49,6 @@ int main() {
         cout << "   Res: " << tmp << endl;
         cout << "  Read: " << x->get_src_last_read() << endl;
         cout << " Wrote: " << x->get_dest_last_written() << endl;
-
-        x->finish();
     }
 
     delete x;
