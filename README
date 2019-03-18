@@ -106,6 +106,19 @@ If you want to tweak or write some code and you don't know what to work
 on, feel free to visit the issue tracker to get some ideas.
 
 
+Future development experiments
+------------------------------
+
+Scattered experiments and small projects are in experiments/ as
+proving grounds for future revisions to DOSBox-X and it's codebase.
+
+These experiments may or may not make it into future revisions
+or the next version.
+
+Comments are welcome on the experiments, to help improve the code
+overall.
+
+
 Warnings regarding C integer types
 ----------------------------------
 
