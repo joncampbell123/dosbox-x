@@ -176,7 +176,9 @@ INT DC = 60:36B3
 
 --
 
+                  .     .     .     .     .     .     .     .
     0ADC:00000A7C E2 12 F2 12 E2 12 CA 12 BC 12 F2 12 C3 12 D1 12  ................
+                  .     .    |END
     0ADC:00000A8C C3 12 D8 12 E8 01 00 CB B8 00 01 C3 E8 01 00 CB  ................
     
     0ADC:0A7C table (routine 0ADC:1201 return from CALL 129Dh)
@@ -448,7 +450,9 @@ INT DC = 60:36B3
         CL = 0x09..0x15 to table index 0x00..0x0C
         CL = 0x80..0x82 to table index 0x0D..0x0F
 
+                  .     .     .     .     .     .     .     .
     0ADC:00003A5C B8 3A 5B 35 A4 31 A5 31 DF 32 1B 36 44 37 8E 37
+                  .     .     .     .     .     .     .     .    |END
     0ADC:00003A6C F0 37 6E 38 F7 38 85 3B 52 3C 27 39 B5 39 10 3A
 
     CL = 0x09    0x3AB8
@@ -472,11 +476,17 @@ INT DC = 60:36B3
 
     0ADC:3A7C array of WORD value pairs (address, parameter). NOTE: Lack of range checking!
 
+                  .           .           .           .
     0ADC:00003A7C A7 37 9C 0A AC 37 00 00 C3 37 00 00 CC 37 FA 0A  .7...7...7...7..
+                  .           .           .           .
     0ADC:00003A8C D7 37 90 0B D7 37 99 0B DA 37 52 0C DA 37 75 0C  .7...7...7R..7u.
+                  .           .           .           .
     0ADC:00003A9C DA 37 9C 0C DA 37 C3 0C E1 37 2E 0D E1 37 72 0D  .7...7...7...7r.
+                  .           .           .           .          |END?
     0ADC:00003AAC DA 37 4E 0E DA 37 72 0E E8 37 2D 0B 8B 16 E3 05  .7N..7r..7-.....
+                  ?           ?           ?           ?
     0ADC:00003ABC A1 DB 05 3D 00 00 74 10 3D 01 00 74 20 3D 10 00  ...=..t.=..t =..
+                  ?           ?           ?           ?
     0ADC:00003ACC 74 4E 3D 11 00 74 49 C3 8E 06 E1 05 8B FA 2E 8E  tN=..tI.........
 
     0ADC:3A7C Call table (address, param)
