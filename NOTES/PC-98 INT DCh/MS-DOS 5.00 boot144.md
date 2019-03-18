@@ -4,18 +4,26 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
 
     0060:0032 WORD Text VRAM segment (A000h)
     0060:0037 BYTE ??
-    0060:0068 BYTE ??
-    0060:0069 BYTE ??
+    0060:0068 WORD RS-232C channel 0 AUX protocol [undocumented PC-98 webtech]
     0060:008A BYTE kanji / graph mode flag
     0060:00A5 BYTE ??
     0060:00A6 BYTE ??
-    0060:00B4 BYTE ??
+    0060:00B4 BYTE INT DCh in-progress flag [undocumented PC-98 webtech]
     0060:0110 BYTE Cursor Y coordinate
+    0060:0111 BYTE Function row display (0=off 1=on 2=shift function keys)
     0060:0112 BYTE Scroll range lower limit
+    0060:0113 BYTE Number of screen lines
+    0060:0114 BYTE Erasure attribute (usually E1h)
     0060:0115 BYTE kanji upper byte storage flag
     0060:0116 BYTE kanji upper byte
     0060:0117 BYTE Line wrap flag
+    0060:0118 BYTE Scroll speed (0=normal 1=slow)
+    0060:0119 BYTE Erasure character (usually 20h)
+    0060:011B BYTE Cursor display state (0=off 1=on)
     0060:011C BYTE Cursor X coordinate
+    0060:011D BYTE Character attribute (i.e. controlled by <ESC>[m )
+    0060:011E BYTE Scroll range upper limit
+    0060:011F BYTE Scroll "weight" (delay, apparently?) (0001h = normal  E000h = slow)
     0060:0124 WORD ACFh BX value (?))
     0060:0128 BYTE (?)
     0060:012A BYTE ??
