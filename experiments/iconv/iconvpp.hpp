@@ -43,10 +43,23 @@ public:
     }
 public:
     int raw_convert(void);
-    std::string string_convert(const std::string &src);
     int cstring_convert(std::string &dst,const std::string &src);
-    int cstring_convert(const std::string &src);
     int cstring_convert(void);
+    int cstring_convert(const std::string &src) {
+        set_src(src);
+
+        int err = cstring_convert();
+
+        finish();
+        return err;
+    }
+    std::string string_convert(const std::string &src) {
+        std::string res;
+
+        cstring_convert(res,src);
+
+        return res;
+    }
 public:
     inline bool eof(void) const {
         return src_ptr >= src_ptr_fence;

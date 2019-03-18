@@ -71,30 +71,13 @@ int Iconv::raw_convert(void) {
     return err_noinit;
 }
 
-std::string Iconv::string_convert(const std::string &src) {
-    std::string res;
-
-    cstring_convert(res,src);
-
-    return res;
-}
-
 int Iconv::cstring_convert(std::string &dst,const std::string &src) {
-    dst.resize(((src.length() + 4u) * 4u) + 1u); // maximum 4 bytes/char expansion UTF-8
+    dst.resize(std::max(dst.size(),((src.length()+4u)*4u)+2u)); // maximum 4 bytes/char expansion UTF-8 or bigger if caller resized already
     set_dest(&dst[0],dst.length());
 
     int err = cstring_convert(src);
 
     dst.resize(get_dest_last_written());
-
-    finish();
-    return err;
-}
-
-int Iconv::cstring_convert(const std::string &src) {
-    set_src(src);
-
-    int err = cstring_convert();
 
     finish();
     return err;
