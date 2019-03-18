@@ -286,6 +286,16 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:117D: (CTRL+Z handling)
+        DI = 0
+        CX = 0x9B0                          ; 0x9B0 = 80*31?
+        CALL 1516h                          ; clear the screen (fill with erasure)
+        CALL 13FFh
+        CALL 116Bh                          ; call 0x1E RECORD SEPARATOR function
+        return
+
+--
+
     0ADC:118C: (advance cursor one column. if past right edge of screen fall through to 1197h to advance one row)
         BYTE PTR DS:[011C] += 1 (cursor X coordinate += 1)
         IF BYTE PTR DS:[011C] <= 4Fh JMP 11AFh (if cursor X coordinate <= 4Fh then goto 11AFh)
