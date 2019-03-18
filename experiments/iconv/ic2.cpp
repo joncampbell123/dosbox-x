@@ -77,7 +77,7 @@ int main() {
         std::string dst;
         const std::string src = THIS_IS_JAPANESE;
 
-        int err = x->cstring_convert(dst,src);
+        int err = x->string_convert(dst,src);
 
         if (err < 0) {
             cerr << "Conversion failed, " << Iconv::errstring(err) << endl;

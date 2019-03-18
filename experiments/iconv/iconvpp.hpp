@@ -43,7 +43,7 @@ public:
     }
 public:
     int raw_convert(void);
-    int cstring_convert(std::string &dst,const std::string &src);
+    int string_convert(std::string &dst,const std::string &src);
     int cstring_convert(void);
     int cstring_convert(const std::string &src) {
         set_src(src);
@@ -56,7 +56,7 @@ public:
     std::string string_convert(const std::string &src) {
         std::string res;
 
-        cstring_convert(res,src);
+        string_convert(res,src);
 
         return res;
     }

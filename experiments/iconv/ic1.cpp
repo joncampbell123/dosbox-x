@@ -74,7 +74,7 @@ int main() {
         std::string dst;
         const std::string src = "\xC8\xC9\xCA Hello world \xC0\xC1\xC2";
 
-        int err = x->cstring_convert(dst,src);
+        int err = x->string_convert(dst,src);
 
         if (err < 0) {
             cerr << "Conversion failed, " << Iconv::errstring(err) << endl;
