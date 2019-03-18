@@ -20,17 +20,16 @@ public:
     ~Iconv();
 public:
     void finish(void);
+
     void set_dest(char * const dst,char * const dst_fence);
     void set_dest(char * const dst,const size_t len);
+    void set_dest(char * const dst) = delete; /* <- NO! */
+    void set_dest(std::string &dst); /* <- use string::resize() first before calling this */
+
     void set_src(const char * const src,const char * const src_fence);
+    void set_src(const char * const src,const size_t len);
     void set_src(const char * const src); /* <- must be separate from &std::string version, or else use-after free bugs happen */
     void set_src(const std::string &src);
-    inline size_t get_src_last_read(void) const {
-        return src_adv;
-    }
-    inline size_t get_dest_last_written(void) const {
-        return dst_adv;
-    }
 public:
     int raw_convert(void);
     std::string string_convert(const std::string &src);
@@ -42,6 +41,18 @@ public:
     }
     inline bool eof_dest(void) const {
         return dst_ptr >= dst_ptr_fence;
+    }
+    inline const char *get_srcp(void) const {
+        return src_ptr;
+    }
+    inline const char *get_destp(void) const {
+        return dst_ptr;
+    }
+    inline size_t get_src_last_read(void) const {
+        return src_adv;
+    }
+    inline size_t get_dest_last_written(void) const {
+        return dst_adv;
     }
 public:
     static const char *errstring(int x);
