@@ -12,8 +12,11 @@
 
 class Iconv {
 public:
-    Iconv(const iconv_t &ctx) : context(ctx) { /* takes ownership of ctx */
+    explicit Iconv(const iconv_t &ctx) : context(ctx) { /* takes ownership of ctx */
     }
+    Iconv(const Iconv &other) = delete; /* no copying */
+    Iconv(const Iconv &&other) = delete; /* no moving */
+    Iconv() = delete;
     ~Iconv() {
         close();
     }
