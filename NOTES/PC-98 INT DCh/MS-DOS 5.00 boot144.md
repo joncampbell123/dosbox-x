@@ -2,14 +2,23 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
 
 --
 
+    0060:0032 WORD Text VRAM segment (A000h)
     0060:0037 BYTE ??
     0060:0068 BYTE ??
     0060:0069 BYTE ??
+    0060:008A BYTE kanji / graph mode flag
     0060:00A5 BYTE ??
     0060:00A6 BYTE ??
     0060:00B4 BYTE ??
+    0060:0110 BYTE Cursor Y coordinate
+    0060:0112 BYTE Scroll range lower limit
+    0060:0115 BYTE kanji upper byte storage flag
+    0060:0116 BYTE kanji upper byte
+    0060:0117 BYTE Line wrap flag
+    0060:011C BYTE Cursor X coordinate
     0060:0124 WORD ACFh BX value (?))
     0060:0128 BYTE (?)
+    0060:012A BYTE ??
     0060:0136 BYTE drive number last accessed by IO.SYS block driver
     0060:014E BYTE some sort of flag
     0060:0214 WORD:WORD 16-bit far pointer (0ADC:3126)
