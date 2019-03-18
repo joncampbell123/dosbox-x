@@ -1,8 +1,11 @@
-all: iconvpp
+all: ic1
 
-iconvpp: iconvpp.cpp
-	g++ -Wall -Wextra -pedantic -std=c++11 -o $@ $< -liconv
+ic1: ic1.cpp iconvpp.o
+	g++ -Wall -Wextra -pedantic -std=c++11 -o $@ $< iconvpp.o -liconv
+
+iconvpp.o: iconvpp.cpp
+	g++  -Wall -Wextra -pedantic -std=c++11 -c -o $@ $<
 
 clean:
-	rm -f iconvpp
+	rm -f ic1 *.o
 
