@@ -1,0 +1,6 @@
+Experiments with Lua 5.1 or later (on my system, Lua 5.3).
+
+In a future revision of DOSBox-X the idea is to allow Lua scripting
+to customize the emulation or to enable hacking/modding games through
+scripting.
+

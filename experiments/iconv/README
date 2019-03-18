@@ -1,0 +1,7 @@
+Experiments with GNU iconv (character set encoding conversion).
+
+At some point the character set handling needs to be replaced
+with a library that has been well tested and written to handle
+any character set encoding you can imagine, including almost
+any legacy MS-DOS and Windows character set used in the past.
+
