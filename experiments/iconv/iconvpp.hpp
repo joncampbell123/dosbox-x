@@ -27,6 +27,7 @@ public:
     }
     void set_dest(char * const dst) = delete; /* <- NO! Prevent C-string calls to std::string &dst function! */
     void set_dest(std::string &dst) { /* <- use string::resize() first before calling this */
+        if (dst.size() == 0) dst.resize(256);
         set_dest(&dst[0],dst.size());
     }
 
@@ -34,7 +35,7 @@ public:
     void set_src(const char * const src,const size_t len) {
         set_src(src,src+len);
     }
-    void set_src(const std::string &src) { // C-string
+    void set_src(const std::string &src) { // C++-string
         set_src(src.c_str(),src.length());
     }
     void set_src(const char * const src) { // C-string
