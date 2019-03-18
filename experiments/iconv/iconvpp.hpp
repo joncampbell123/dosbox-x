@@ -22,14 +22,24 @@ public:
     void finish(void);
 
     void set_dest(char * const dst,char * const dst_fence);
-    void set_dest(char * const dst,const size_t len);
+    void set_dest(char * const dst,const size_t len) {
+        set_dest(dst,dst+len);
+    }
     void set_dest(char * const dst) = delete; /* <- NO! Prevent C-string calls to std::string &dst function! */
-    void set_dest(std::string &dst); /* <- use string::resize() first before calling this */
+    void set_dest(std::string &dst) { /* <- use string::resize() first before calling this */
+        set_dest(&dst[0],dst.size());
+    }
 
     void set_src(const char * const src,const char * const src_fence);
-    void set_src(const char * const src,const size_t len);
-    void set_src(const char * const src); /* <- must be separate from &std::string version, or else use-after free bugs happen */
-    void set_src(const std::string &src);
+    void set_src(const char * const src,const size_t len) {
+        set_src(src,src+len);
+    }
+    void set_src(const std::string &src) { // C-string
+        set_src(src.c_str(),src.length());
+    }
+    void set_src(const char * const src) { // C-string
+        set_src(src,strlen(src));
+    }
 public:
     int raw_convert(void);
     std::string string_convert(const std::string &src);
