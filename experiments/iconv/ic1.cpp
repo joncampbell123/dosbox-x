@@ -87,6 +87,16 @@ int main() {
         cout << " Wrote: " << x->get_dest_last_written() << endl;
     }
 
+    {
+        const std::string src = "\xC8\xC9\xCA Hello world \xC0\xC1\xC2";
+        std::string dst = x->string_convert(src);
+
+        cout << "Test 1: " << src << endl;
+        cout << "   Res: " << dst << endl;
+        cout << "  Read: " << x->get_src_last_read() << endl;
+        cout << " Wrote: " << x->get_dest_last_written() << endl;
+    }
+
     delete x;
     return 0;
 }
