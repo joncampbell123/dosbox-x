@@ -2,9 +2,11 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
 
 --
 
+    0060:0020 WORD MS-DOS product number        [see INT DCh CL=12h]
+    0060:0022 WORD Internal revision number     [see INT DCh CL=15h AH=0]
     0060:0032 WORD Text VRAM segment (A000h)
     0060:0037 BYTE ??
-    0060:0068 WORD RS-232C channel 0 AUX protocol [undocumented PC-98 webtech]
+    0060:0068 WORD RS-232C channel 0 AUX protocol [undocumented PC-98 webtech] [see INT DCh CL=0Ah, INT DCh CL=0Eh AH=01h]
     0060:008A BYTE kanji / graph mode flag
     0060:00A5 BYTE ??
     0060:00A6 BYTE ??
@@ -21,7 +23,7 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:0119 WORD Erasure character (usually 20h)
     0060:011B BYTE Cursor display state (0=off 1=on)
     0060:011C BYTE Cursor X coordinate
-    0060:011D BYTE Character attribute (i.e. controlled by <ESC>[m )
+    0060:011D BYTE Character attribute (i.e. controlled by <ESC>[m ) [INT DCh CL=10h AH=02h]
     0060:011E BYTE Scroll range upper limit
     0060:011F BYTE Scroll "weight" (delay, apparently?) (0001h = normal  E000h = slow)
     0060:0124 WORD ACFh BX value (?))
@@ -30,9 +32,9 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:012A BYTE ??
     0060:012B BYTE Saved cursor attribute ( ESC [s )
     0060:0134 WORD ANSI escape handling pointer of some kind (?)
-    0060:0136 BYTE drive number last accessed by IO.SYS block driver
-    0060:013C WORD display attribute in extended attribute mode
-    0060:013E WORD erasure attribute in extended attribute mode
+    0060:0136 BYTE drive number last accessed by IO.SYS block driver [INT DCh CL=13h]
+    0060:013C WORD display attribute in extended attribute mode [INT DCh CL=10h AL=02h]
+    0060:013E WORD erasure attribute in extended attribute mode [INT DCh CL=10h AL=02h]
     0060:014E BYTE some sort of flag
     0060:0214 WORD:WORD 16-bit far pointer (0ADC:3126)
     0060:0268 WORD ??
