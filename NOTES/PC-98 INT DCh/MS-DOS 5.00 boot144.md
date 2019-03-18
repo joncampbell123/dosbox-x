@@ -393,7 +393,7 @@ INT DC = 60:36B3
 
 --
 
-    0ADC:14F5:
+    0ADC:14F5: (DH = Y coordinate  DL = X coordinate    return in BX = video RAM byte address)
         BX = (WORD PTR DS:[(DH * 2) + 0x1814])
         DX = (DL * 2)
         BX += DX
