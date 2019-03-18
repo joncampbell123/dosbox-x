@@ -83,7 +83,7 @@ int Iconv::string_convert(std::string &dst,const std::string &src) {
     return err;
 }
 
-int Iconv::cstring_convert(void) {
+int Iconv::string_convert(void) {
     int err = raw_convert();
 
     if (err >= 0) {

@@ -44,11 +44,11 @@ public:
 public:
     int raw_convert(void);
     int string_convert(std::string &dst,const std::string &src);
-    int cstring_convert(void);
+    int string_convert(void);
     int string_convert_src(const std::string &src) {
         set_src(src);
 
-        int err = cstring_convert();
+        int err = string_convert();
 
         finish();
         return err;
