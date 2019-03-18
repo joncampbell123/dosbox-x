@@ -35,9 +35,6 @@ public:
     void set_src(const char * const src,const size_t len) {
         set_src(src,src+len);
     }
-    void set_src(const std::string &src) { // C++-string
-        set_src(src.c_str(),src.length());
-    }
     void set_src(const char * const src) { // C-string
         set_src(src,strlen(src));
     }
@@ -83,6 +80,25 @@ public:
     static Iconv *create(const char *to,const char *from);
 private:
     void close(void);
+private:
+    void set_src(const std::string &src) { // C++-string
+        /* This is PRIVATE for a good reason: This will only work 100% reliably if the std::string
+         * object lasts for the conversion, which is true if called from string_convert() but may
+         * not be true if called from external code that might do something to pass in a std::string
+         * that is destroyed before we can operate on it.
+         *
+         * For example, this will cause a use after free bug:
+         *
+         * set_src(std::string("Hello world") + " how are you");
+         *
+         * it constructs a temporary to hold the result of the addition operator, and then gives that
+         * to set_src(). set_src() points at the string, but on return, the std::string is destroyed.
+         * it might happen to work depending on the runtime environment, but it is a serious
+         * use-after-free bug.
+         *
+         * To avoid that, do not expose this function publicly. */
+        set_src(src.c_str(),src.length());
+    }
 public:
     static constexpr int        err_noinit = -EBADF;
     static constexpr int        err_noroom = -E2BIG;
