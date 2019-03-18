@@ -26,7 +26,10 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:011F BYTE Scroll "weight" (delay, apparently?) (0001h = normal  E000h = slow)
     0060:0124 WORD ACFh BX value (?))
     0060:0128 BYTE ANSI escape handling state (0=normal 1=ESC 2>=ANSI processing)
+    0060:0129 BYTE ANSI escape handling state (?)
     0060:012A BYTE ??
+    0060:012B BYTE Saved cursor attribute ( ESC [s )
+    0060:0134 WORD ANSI escape handling pointer of some kind (?)
     0060:0136 BYTE drive number last accessed by IO.SYS block driver
     0060:014E BYTE some sort of flag
     0060:0214 WORD:WORD 16-bit far pointer (0ADC:3126)
@@ -41,6 +44,7 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:17FA WORD ??
     0060:1802 WORD ??
     0060:1DC4 BYTE ??
+    0060:2852 WORD x 0x14 ??
     0060:2A7A WORD ??
     0060:2A7C WORD ??
     0060:2C86 WORD x 0x1A ??
