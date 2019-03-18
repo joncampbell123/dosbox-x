@@ -42,7 +42,6 @@ public:
         set_src(src,strlen(src));
     }
 public:
-    int raw_convert(void);
     int string_convert(std::string &dst,const std::string &src);
     int string_convert(void);
     int string_convert_src(const std::string &src) {
