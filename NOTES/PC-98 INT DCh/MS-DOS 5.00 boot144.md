@@ -417,6 +417,21 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:1814 Row value to video RAM address lookup table used by subroutine at 0ADC:14F5
+
+        VRAM_ADDRESS = WORD PTR [0ADC:1814 + (row * 2)]
+
+                  .     .     .     .     .     .     .     .      <- Cursor rows 0-7
+    0060:00001814 00 00 A0 00 40 01 E0 01 80 02 20 03 C0 03 60 04  ....@..... ...`.
+                  .     .     .     .     .     .     .     .      <- Cursor rows 8-15
+    0060:00001824 00 05 A0 05 40 06 E0 06 80 07 20 08 C0 08 60 09  ....@..... ...`.
+                  .     .     .     .     .     .     .     .      <- Cursor rows 16-23
+    0060:00001834 00 0A A0 0A 40 0B E0 0B 80 0C 20 0D C0 0D 60 0E  ....@..... ...`.
+                  .     .     .     .     .     .     .    |END    <- Cursor rows 24-30
+    0060:00001844 00 0F A0 0F 40 10 E0 10 80 11 20 12 C0 12 00 00  ....@..... .....
+
+--
+
     0ADC:198A (this code calls INT 18h in an elaborate way in order to make sure interrupts are disabled at entry point for some reason)
         PUSH DS
         DS = 0
