@@ -41,6 +41,14 @@ void Iconv::set_src(const std::string &src) { // C-string
     set_src(src.c_str(),src.c_str()+src.length());
 }
 
+void Iconv::set_src(const char * const src) { // C-string
+    if (src == NULL)
+        throw std::invalid_argument("Iconv set_src pointer out of range");
+
+    const size_t len = strlen(src);
+    set_src(src,src+len);
+}
+
 int Iconv::raw_convert(void) {
     if (context != notalloc) {
         if (dst_ptr == NULL || src_ptr == NULL)
