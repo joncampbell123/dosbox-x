@@ -290,7 +290,7 @@ INT DC = 60:36B3
         DI = 0
         CX = 0x9B0                          ; 0x9B0 = 80*31?
         CALL 1516h                          ; clear the screen (fill with erasure)
-        CALL 13FFh
+        CALL 13FFh                          ; remove function row
         CALL 116Bh                          ; call 0x1E RECORD SEPARATOR function
         return
 
@@ -404,6 +404,15 @@ INT DC = 60:36B3
         IF CX > 0 THEN CX--, JMP 13ACh  ; LOOP 13ACh
     0ADC:13AF:
         return
+
+--
+
+    0ADC:13FF:
+        IF BYTE PTR DS:[0111] != 0 JMP 1407h
+    0ADC:1406:
+        return
+    0ADC:1407:
+        (TODO)
 
 --
 
