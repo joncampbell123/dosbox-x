@@ -36,6 +36,25 @@ int main() {
     }
 
     {
+        std::string dst;
+        const char *src = THIS_IS_JAPANESE;
+
+        x->set_src(src);
+
+        int err = x->string_convert_dest(dst);
+
+        if (err < 0) {
+            cerr << "Conversion failed, " << Iconv::errstring(err) << endl;
+            return 1;
+        }
+
+        cout << "Test 1: " << src << endl;
+        cout << "   Res: " << dst << endl;
+        cout << "  Read: " << x->get_src_last_read() << endl;
+        cout << " Wrote: " << x->get_dest_last_written() << endl;
+    }
+
+    {
         char tmp[512];
         const char *src = THIS_IS_JAPANESE;
 
