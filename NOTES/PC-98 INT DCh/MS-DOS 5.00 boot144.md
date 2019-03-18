@@ -341,6 +341,15 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:12E2 (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
+        WORD PTR ES:[DI] = AX ; write character code
+        DI += 0x2000
+        WORD PTR ES:[DI] = WORD PTR DS:[013C] (60:13C display attribute in extended attribute mode) ; write attribute code
+        AL = 1 (this indicates to caller to move cursor X position 1 unit to the right)
+        return
+
+--
+
     0ADC:14F5:
         BX = (WORD PTR DS:[(DH * 2) + 0x1814])
         DX = (DL * 2)
@@ -362,15 +371,6 @@ INT DC = 60:36B3
         AH = 0x13
         DX = BX
         JMP 198Ah
-
---
-
-    0ADC:12E2 (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
-        WORD PTR ES:[DI] = AX ; write character code
-        DI += 0x2000
-        WORD PTR ES:[DI] = WORD PTR DS:[013C] (60:13C display attribute in extended attribute mode) ; write attribute code
-        AL = 1 (this indicates to caller to move cursor X position 1 unit to the right)
-        return
 
 --
 
