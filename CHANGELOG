@@ -1,4 +1,6 @@
 0.82.17 (next)
+  - FPU x86 core no longer calls E_Exit if the FPU stack
+    overflows or underflows.
   - Updated build-debug scripts to accept "32" on the command
     line as a sign to compile 32-bit (i686) on a 64-bit (x86_64)
     system. You will need a multilib-capable GCC and 32-bit
