@@ -24,6 +24,7 @@ public:
     void set_dest(char * const dst,const size_t len);
     void set_src(const char * const src,const char * const src_fence);
     void set_src(const char * const src);
+    void set_src(const std::string &src);
     inline size_t get_src_last_read(void) const {
         return src_adv;
     }
@@ -32,6 +33,7 @@ public:
     }
 public:
     int raw_convert(void);
+    int cstring_convert(const std::string &src);
     int cstring_convert(const char *src);
     int cstring_convert(void);
     inline bool eof(void) const {

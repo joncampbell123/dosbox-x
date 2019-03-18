@@ -37,6 +37,10 @@ void Iconv::set_src(const char * const src,const char * const src_fence) {
     src_ptr_fence = src_fence;
 }
 
+void Iconv::set_src(const std::string &src) { // C-string
+    set_src(src.c_str(),src.c_str()+src.length());
+}
+
 void Iconv::set_src(const char * const src) { // C-string
     if (src == NULL)
         throw std::invalid_argument("Iconv set_src pointer out of range");
@@ -81,6 +85,15 @@ int Iconv::raw_convert(void) {
     }
 
     return err_noinit;
+}
+
+int Iconv::cstring_convert(const std::string &src) {
+    set_src(src);
+
+    int err = cstring_convert();
+
+    finish();
+    return err;
 }
 
 int Iconv::cstring_convert(const char *src) {
