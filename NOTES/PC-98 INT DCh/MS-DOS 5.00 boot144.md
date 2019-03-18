@@ -477,7 +477,7 @@ INT DC = 60:36B3
 
 --
 
-    0ADC:3AB8: (INT DCh CL=0x09)
+    0ADC:3AB8: (INT DCh CL=0x09) [DS=0x0060 DOS SEGMENT]
         DX = WORD PTR DS:[05E3] (caller DX)
         AX = WORD PTR DS:[05DB] (caller AX)
         IF AX == 0x0000 JMP 3AD4h
