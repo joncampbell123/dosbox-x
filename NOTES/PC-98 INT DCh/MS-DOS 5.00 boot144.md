@@ -2,6 +2,9 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
 
 --
 
+    0060:00A5 BYTE ??
+    0060:00A6 BYTE ??
+    0060:00B4 BYTE ??
     0060:0124 WORD ACFh BX value (?))
     0060:0128 BYTE (?)
     0060:0136 BYTE drive number last accessed by IO.SYS block driver
@@ -14,6 +17,8 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:05E3 WORD stored DX value from caller
     0060:05E5 WORD stored BX value from caller
     0060:0767 Stack pointer (from DOS segment), stack switches to on entry to procedure
+    0060:2A7A WORD ??
+    0060:2A7C WORD ??
     0060:36B3 INT DCh entry point
     0060:3B30 Subroutine called on INT DCh if 0060:014E is nonzero
 
