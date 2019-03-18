@@ -38,7 +38,7 @@ int main() {
 
         x->set_dest(tmp,sizeof(tmp));
 
-        int err = x->cstring_convert(src);
+        int err = x->string_convert_src(src);
 
         if (err < 0) {
             cerr << "Conversion failed, " << Iconv::errstring(err) << endl;
@@ -57,7 +57,7 @@ int main() {
 
         x->set_dest(tmp,sizeof(tmp));
 
-        int err = x->cstring_convert(src);
+        int err = x->string_convert_src(src);
 
         if (err < 0) {
             cerr << "Conversion failed, " << Iconv::errstring(err) << endl;

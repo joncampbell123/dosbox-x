@@ -75,7 +75,7 @@ int Iconv::string_convert(std::string &dst,const std::string &src) {
     dst.resize(std::max(dst.size(),((src.length()+4u)*4u)+2u)); // maximum 4 bytes/char expansion UTF-8 or bigger if caller resized already
     set_dest(&dst[0],dst.length());
 
-    int err = cstring_convert(src);
+    int err = string_convert_src(src);
 
     dst.resize(get_dest_last_written());
 
