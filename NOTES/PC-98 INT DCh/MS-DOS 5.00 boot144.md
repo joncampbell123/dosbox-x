@@ -259,6 +259,25 @@ INT DC = 60:36B3
 
 --
 
+    ; Entry: CL = character code
+    ;
+    ; This is executed when the ESC is encountered outside of ANSI processing
+
+    0ADC:10C1:
+        PUSH ES
+        WORD PTR DS:[0134] = 0x2852
+        BYTE PTR DS:[0128] = 0x01
+        BYTE PTR DS:[0129] = 0x01
+        DI = 0x2852
+        AX = 0
+        CX = 0x14
+        DX = ES = DS
+        _fmemset(ES:DI,0,0x28)  ; REP STOSW
+        POP ES
+        return
+
+--
+
     0ADC:118C:
         BYTE PTR DS:[011C] += 1 (cursor X coordinate += 1)
         IF BYTE PTR DS:[011C] <= 4Fh JMP 11AFh (if cursor X coordinate <= 4Fh then goto 11AFh)
