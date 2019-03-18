@@ -350,6 +350,49 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:1348: (scroll up screen scroll region)
+        AH = BYTE PTR DS:[011E]         ; scroll region upper limit
+        WORD PTR DS:[011F] = 0x0001     ; scroll "weight" aka delay
+        IF BYTE PTR DS:[0118] != 0 THEN WORD PTR DS:[011F] = 0xE000 ; if slow scroll mode set "weight" aka delay to larger value
+    0ADC:135F:
+        CL = BYTE PTR DS:[0112]         ; scroll region lower limit
+        CX = CL - AH                    ; lower limit - upper limit and zero extend to CX
+        if CX == 0 JMP 13A1h
+    0ADC:1369:
+        PUSH ES, DS
+        DX = AH << 8                    ; DH = AH, DL = 0
+        CALL 14F5h
+        ES = DS = WORD PTR DS:[0032]    ; retrieve video (text) RAM segment
+        DX = BX + 0xA0                  ; note 0xA0 = 160 = 80 * 2
+    0ADC:1381:
+        PUSH CX
+                                        ; This part uses REP MOVSW first on character data at A000:0000+x
+                                        ; then on attribute data at A000:2000+x
+                                        ; Move and swap is used to let REP MOVSW advance SI and DI, then
+                                        ; re-use the same starting SI and DI for the attribute data, before
+                                        ; then using the post REP MOVSW SI and DI values for the next line.
+        SI = DX
+        DI = BX
+        _fmemcpy(ES:DI,DS:SI,0xA0)      ; CX = 0x50 REP MOVSW
+        SWAP(DX,SI), SI += 0x2000
+        SWAP(BX,DI), DI += 0x2000
+        _fmemcpy(ES:DI,DS:SI,0xA0)      ; CX = 0x50 REP MOVSW
+        POP CX
+        IF CX > 0 THEN CX--, JMP 1381h  ; LOOP 1381h
+    0ADC:139F:
+        POP DS, ES
+    0ADC:13A1:
+        DH = BYTE PTR DS:[0112]
+        call 1508h
+        CX = WORD PTR DS:[011F]
+    0ADC:13AC:                          ; <- delay loop, to "weight" down the console scroll
+        NOP
+        IF CX > 0 THEN CX--, JMP 13ACh  ; LOOP 13ACh
+    0ADC:13AF:
+        return
+
+--
+
     0ADC:14F5:
         BX = (WORD PTR DS:[(DH * 2) + 0x1814])
         DX = (DL * 2)
