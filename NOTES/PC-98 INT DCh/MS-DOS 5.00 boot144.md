@@ -341,6 +341,30 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:14F5:
+        BX = (WORD PTR DS:[(DH * 2) + 0x1814])
+        DX = (DL * 2)
+        BX += DX
+        return ; 0ADC:1507
+
+--
+
+    0ADC:1534:
+        return
+    0ADC:1535: (routine to scroll up the screen region)
+        IF BYTE PTR DS:[011B] == 0 JMP 1534h
+    0ADC:153C:
+        DH = BYTE PTR DS:[0110]
+        DL = BYTE PTR DS:[011C]
+        IF DL >= 0x50 THEN DL--
+    0ADC:154B:
+        CALL 14F5h
+        AH = 0x13
+        DX = BX
+        JMP 198Ah
+
+--
+
     0ADC:12E2 (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
         WORD PTR ES:[DI] = AX ; write character code
         DI += 0x2000
