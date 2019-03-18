@@ -374,6 +374,15 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:198A (this code calls INT 18h in an elaborate way in order to make sure interrupts are disabled at entry point for some reason)
+        PUSH DS
+        DS = 0
+        PUSHF, CLI, CALL FAR WORD PTR DS:[0060] (DS=0, CALL FAR 0000:0060, which is INT 18h but with interrupts disabled at entry)
+        POP DS
+        return
+
+--
+
     0ADC:3126:
         PUSH DS
         DS = WORD PTR CS:[0030] = DOS segment 60h
