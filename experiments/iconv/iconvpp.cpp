@@ -90,8 +90,7 @@ int Iconv::raw_convert(void) {
 std::string Iconv::string_convert(const std::string &src) {
     std::string res;
 
-    if (cstring_convert(res,src) < 0)
-        throw std::invalid_argument("Iconv::string_convert error");
+    cstring_convert(res,src);
 
     return res;
 }
@@ -109,15 +108,6 @@ int Iconv::cstring_convert(std::string &dst,const std::string &src) {
 }
 
 int Iconv::cstring_convert(const std::string &src) {
-    set_src(src);
-
-    int err = cstring_convert();
-
-    finish();
-    return err;
-}
-
-int Iconv::cstring_convert(const char *src) {
     set_src(src);
 
     int err = cstring_convert();

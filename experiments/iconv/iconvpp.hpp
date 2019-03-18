@@ -36,7 +36,6 @@ public:
     std::string string_convert(const std::string &src);
     int cstring_convert(std::string &dst,const std::string &src);
     int cstring_convert(const std::string &src);
-    int cstring_convert(const char *src);
     int cstring_convert(void);
     inline bool eof(void) const {
         return src_ptr >= src_ptr_fence;
