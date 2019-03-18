@@ -26,10 +26,6 @@ public:
         set_dest(dst,dst+len);
     }
     void set_dest(char * const dst) = delete; /* <- NO! Prevent C-string calls to std::string &dst function! */
-    void set_dest(std::string &dst) { /* <- use string::resize() first before calling this */
-        if (dst.size() == 0) dst.resize(256);
-        set_dest(&dst[0],dst.size());
-    }
 
     void set_src(const char * const src,const char * const src_fence);
     void set_src(const char * const src,const size_t len) {
@@ -41,6 +37,17 @@ public:
 public:
     int string_convert(std::string &dst,const std::string &src);
     int string_convert(void);
+    int string_convert_dest(std::string &dst) {
+        size_t srcl = (size_t)((uintptr_t)src_ptr_fence - (uintptr_t)src_ptr);
+
+        dst.resize(std::max(dst.size(),((srcl+4u)*4u)+2u));
+        set_dest(dst);
+
+        int err = string_convert();
+
+        finish();
+        return err;
+    }
     int string_convert_src(const std::string &src) {
         set_src(src);
 
@@ -81,6 +88,11 @@ public:
 private:
     void close(void);
 private:
+    void set_dest(std::string &dst) { /* <- use string::resize() first before calling this */
+        /* this is PRIVATE to avoid future bugs and problems where set_dest() is given a std::string
+         * that goes out of scope by mistake, or other possible use-after-free bugs. */
+        set_dest(&dst[0],dst.size());
+    }
     void set_src(const std::string &src) { // C++-string
         /* This is PRIVATE for a good reason: This will only work 100% reliably if the std::string
          * object lasts for the conversion, which is true if called from string_convert() but may
