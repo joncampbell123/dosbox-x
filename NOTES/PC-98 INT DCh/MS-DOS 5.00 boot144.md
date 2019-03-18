@@ -97,11 +97,11 @@ INT DC = 60:36B3
 
     CL value    |   Subroutine address
     CL = 0x07       0x10E7                  ; CTRL+G / BEL
-    CL = 0x08       0x1119                  ; CTRL+H / BACKSPACE
+    CL = 0x08       0x1119                  ; CTRL+H / BACKSPACE / LEFT ARROW
     CL = 0x09       0x10F8                  ; CTRL+I / TAB
-    CL = 0x0A       0x1149                  ; CTRL+J / LINEFEED
-    CL = 0x0B       0x113A                  ; CTRL+K / VERTICAL TAB
-    CL = 0x0C       0x118C                  ; CTRL+L / FORM FEED
+    CL = 0x0A       0x1149                  ; CTRL+J / DOWN ARROW
+    CL = 0x0B       0x113A                  ; CTRL+K / UP ARROW
+    CL = 0x0C       0x118C                  ; CTRL+L / RIGHT ARROW
     CL = 0x0D       0x115E                  ; CTRL+M / CARRIAGE RETURN
     CL = 0x1A       0x117D                  ; CTRL+Z / SUBSTITUE
     CL = 0x1B       0x10C1                  ; ESCAPE
@@ -282,15 +282,15 @@ INT DC = 60:36B3
 
 --
 
-    0ADC:118C: (CL=10h AH=00h, at this time CL == caller's DL == 0x0C and DS = DOS segment 60h)
+    0ADC:118C: (advance cursor one column. if past right edge of screen fall through to 1197h to advance one row)
         BYTE PTR DS:[011C] += 1 (cursor X coordinate += 1)
         IF BYTE PTR DS:[011C] <= 4Fh JMP 11AFh (if cursor X coordinate <= 4Fh then goto 11AFh)
-    0ADC:1197:
+    0ADC:1197: (advance cursor one row. if past lower scroll limit then fall through to 11A9h scroll up screen region) 
         BYTE PTR DS:[011C] = 0 (set cursor X coordinate = 0)
         AL = BYTE PTR DS:[0110] (AL = (cursor Y coordinate)++)
         BYTE PTR DS:[0110] += 1
         IF BYTE PTR DS:[0112] != AL JMP 11AFh (if cursor Y != scroll range lower limit then goto 11AFh)
-    0ADC:11A9:
+    0ADC:11A9: (put cursor back on the bottom row and scroll screen region up)
         BYTE PTR DS:[0110] = AL (set cursor Y coordinate to scroll range lower limit)
         CALL 1348h
     0ADC:11AF:
