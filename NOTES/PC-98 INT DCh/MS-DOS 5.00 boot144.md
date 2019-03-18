@@ -282,7 +282,7 @@ INT DC = 60:36B3
 
 --
 
-    0ADC:118C:
+    0ADC:118C: (CL=10h AH=00h, at this time CL == caller's DL == 0x0C and DS = DOS segment 60h)
         BYTE PTR DS:[011C] += 1 (cursor X coordinate += 1)
         IF BYTE PTR DS:[011C] <= 4Fh JMP 11AFh (if cursor X coordinate <= 4Fh then goto 11AFh)
     0ADC:1197:
@@ -296,6 +296,7 @@ INT DC = 60:36B3
     0ADC:11AF:
         CALL 1535h (update cursor position on screen)
         return
+
     0ADC:11B3: (CL=10h AH=00h, at this time CL == caller's DL and DS = DOS segment 60h)
         IF BYTE PTR DS:[011C] < 0x50 JMP 11C7h ; (60:11C cursor X position)
         IF BYTE PTR DS:[0117] == 0 JMP 11C2h ; (60:117 line wrap flag)
