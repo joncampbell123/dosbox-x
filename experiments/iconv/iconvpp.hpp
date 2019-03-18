@@ -23,7 +23,7 @@ public:
 
     void set_dest(char * const dst,char * const dst_fence);
     void set_dest(char * const dst,const size_t len);
-    void set_dest(char * const dst) = delete; /* <- NO! */
+    void set_dest(char * const dst) = delete; /* <- NO! Prevent C-string calls to std::string &dst function! */
     void set_dest(std::string &dst); /* <- use string::resize() first before calling this */
 
     void set_src(const char * const src,const char * const src_fence);
