@@ -33,6 +33,7 @@ public:
     }
 public:
     int raw_convert(void);
+    int cstring_convert(std::string &dst,const std::string &src);
     int cstring_convert(const std::string &src);
     int cstring_convert(const char *src);
     int cstring_convert(void);
