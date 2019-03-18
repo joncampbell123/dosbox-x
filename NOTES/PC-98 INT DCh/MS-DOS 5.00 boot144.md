@@ -368,9 +368,9 @@ INT DC = 60:36B3
         IF DL >= 0x50 THEN DL--
     0ADC:154B:
         CALL 14F5h
-        AH = 0x13
-        DX = BX
-        JMP 198Ah
+        AH = 0x13 (INT 18h AX=13h set cursor position)
+        DX = BX (byte position of cursor)
+        JMP 198Ah (calls INT 18h AX=13h to set cursor pos. function 198Ah then returns)
 
 --
 
