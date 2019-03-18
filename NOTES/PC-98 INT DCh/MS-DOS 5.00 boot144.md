@@ -2,6 +2,9 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
 
 --
 
+    0060:0037 BYTE ??
+    0060:0068 BYTE ??
+    0060:0069 BYTE ??
     0060:00A5 BYTE ??
     0060:00A6 BYTE ??
     0060:00B4 BYTE ??
@@ -18,6 +21,8 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:05E3 WORD stored DX value from caller
     0060:05E5 WORD stored BX value from caller
     0060:0767 Stack pointer (from DOS segment), stack switches to on entry to procedure
+    0060:17FA WORD ??
+    0060:1802 WORD ??
     0060:1DC4 BYTE ??
     0060:2A7A WORD ??
     0060:2A7C WORD ??
