@@ -25,7 +25,7 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:011E BYTE Scroll range upper limit
     0060:011F BYTE Scroll "weight" (delay, apparently?) (0001h = normal  E000h = slow)
     0060:0124 WORD ACFh BX value (?))
-    0060:0128 BYTE (?)
+    0060:0128 BYTE ANSI escape handling state (0=normal 1=ESC 2>=ANSI processing)
     0060:012A BYTE ??
     0060:0136 BYTE drive number last accessed by IO.SYS block driver
     0060:014E BYTE some sort of flag
