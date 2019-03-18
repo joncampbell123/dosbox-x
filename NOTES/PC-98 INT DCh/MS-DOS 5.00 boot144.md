@@ -18,7 +18,7 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:0116 BYTE kanji upper byte
     0060:0117 BYTE Line wrap flag
     0060:0118 BYTE Scroll speed (0=normal 1=slow)
-    0060:0119 BYTE Erasure character (usually 20h)
+    0060:0119 WORD Erasure character (usually 20h)
     0060:011B BYTE Cursor display state (0=off 1=on)
     0060:011C BYTE Cursor X coordinate
     0060:011D BYTE Character attribute (i.e. controlled by <ESC>[m )
@@ -31,6 +31,8 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:012B BYTE Saved cursor attribute ( ESC [s )
     0060:0134 WORD ANSI escape handling pointer of some kind (?)
     0060:0136 BYTE drive number last accessed by IO.SYS block driver
+    0060:013C WORD display attribute in extended attribute mode
+    0060:013E WORD erasure attribute in extended attribute mode
     0060:014E BYTE some sort of flag
     0060:0214 WORD:WORD 16-bit far pointer (0ADC:3126)
     0060:0268 WORD ??
@@ -398,6 +400,29 @@ INT DC = 60:36B3
         DX = (DL * 2)
         BX += DX
         return ; 0ADC:1507
+
+--
+
+    0ADC:1508: (DH = Scroll range lower limit)
+        DL = 0
+        CALL 14F5h  (get video RAM address of row DH from caller and column zero)
+        DI = BX
+        CX = 0x50
+        CALL 1516h
+        return
+    0ADC:1516: (CX = number of WORDs to write, DI = video ram address to fill)
+        PUSH ES
+        ES = WORD PTR DS:[0032]             ; get video RAM (text) segment A000h
+        DX = CX                             ; save CX (for later)
+        BX = DI                             ; save DI (for later)
+        AX = WORD PTR DS:[0119]             ; erasure character
+        _fmemset(ES:DI,cx*2)                ; REP STOSW (CX from caller)
+        AX = WORD PTR DS:[013E]             ; erasure attribute
+        CX = DX                             ; restore CX from caller
+        DI = BX + 0x2000                    ; restore DI from caller and add 2000h
+        _fmemset(ES:DI,cx*2)                ; REP STOSW (CX from caller)
+        POP ES
+        return
 
 --
 
