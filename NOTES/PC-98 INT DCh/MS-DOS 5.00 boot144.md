@@ -321,7 +321,7 @@ INT DC = 60:36B3
         CALL 1535h                                  ; update cursor position
         JMP BACh
     0ADC:0BA9:
-        CALL 13B0h
+        CALL 13B0h                                  ; scroll region down one line
     0ADC:0BAC:
         BYTE PTR DS:[0128] = 0
     0ADC:0BB1:
@@ -643,6 +643,37 @@ INT DC = 60:36B3
         NOP
         IF CX > 0 THEN CX--, JMP 13ACh  ; LOOP 13ACh
     0ADC:13AF:
+        return
+
+--
+
+    0ADC:13B0: (take scroll region, scroll down one line)
+        AH = BYTE PTR DS:[011E]         ; scroll range upper limit
+        CL = BYTE PTR DS:[0112], CH = 0 ; scroll range lower limit
+        CL -= AH
+        IF CL == 0 THEN JMP 13F8h
+    0ADC:13BE:
+        STD                             ; set direction flag, so that REP MOVSW works backwards
+        PUSH ES, DS
+        DH = BYTE PTR DS:[0112]
+        DL = 0x4F
+        CALL 14F5h                      ; convert scroll lower limit row, column 0x4F (79) to video ram address
+        ES = DS = WORD PTR DS:[0032]    ; video RAM segment
+        DX = BX - 0xA0                  ; DX = video RAM address one row up, BX = video RAM address
+    0ADC:13D8:
+        PUSH CX
+        SI = DX, DI = BX
+        _fmemcpy_backwards(ES:DI, DS:SI, 0xA0)      ; CX = 0x50, REP MOVSW, with DF=1
+        XCHG DX, SI ; XCHG BX, DI                   ; SI,DI modified by REP MOVSW, so swap with copy to re-use original addr for next step
+        SI += 0x2000 ; DI += 0x2000                 ; point at attribute RAM
+        _fmemcpy_backwards(ES:DI, DS:SI, 0xA0)      ; CX = 0x50, REP MOVSW, with DF=1
+        POP CX
+        IF CX > 0 THEN CX--, JMP 13D8h              ; LOOP 13D8h
+    0ADC:13F6:
+        POP DS, ES ; CLD
+        DH = AH                                     ; DH = scroll range upper limit
+        CALL 1508h
+    0ADC:13FE:
         return
 
 --
