@@ -2719,6 +2719,12 @@ static Bitu INT18_PC98_Handler(void) {
                 }
             }
             break;
+        case 0x17: /* BELL ON */
+            IO_WriteB(0x37,0x06);
+            break;
+        case 0x18: /* BELL OFF */
+            IO_WriteB(0x37,0x07);
+            break;
         case 0x1A: /* load FONT RAM */
             {
                 unsigned int i,o,r;
