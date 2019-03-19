@@ -340,6 +340,7 @@ INT DC = 60:36B3
     0ADC:112D:
         BYTE PTR DS:[0110] -= 1
         BYTE PTR DS:[011C] = 0x4F
+    0ADC:1136:
         CALL 1535h                          ; update cursor position on screen
     0ADC:1139:
         return
