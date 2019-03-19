@@ -377,6 +377,31 @@ INT DC = 60:36B3
 
 --
 
+    ; ??
+    0ADC:1167:
+        CALL 116Bh
+    0ADC:116A:
+        return far                          ; RETF
+
+--
+
+    ; ASCII RECORD SEPARATOR 1Eh
+    0ADC:116B:
+        BYTE PTR DS:[0110] = 0              ; set Y pos = 0
+        BYTE PTR DS:[011C] = 0              ; set X pos = 0
+        CALL 1535h                          ; update cursor position
+    0ADC:1178:
+        return
+
+--
+
+    0ADC:1179:
+        CALL 117Dh
+    0ADC:117C:
+        return far                          ; RETF
+
+--
+
     0ADC:117D: (CTRL+Z handling)
         DI = 0
         CX = 0x9B0                          ; 0x9B0 = 80*31?
