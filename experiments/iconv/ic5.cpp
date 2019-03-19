@@ -6,23 +6,24 @@ using namespace std;
 // borrowed from DOSLIB
 #define THIS_IS_JAPANESE "\x82\xb1\x82\xea\x82\xcd\x93\xfa\x96\x7b\x8c\xea\x82\xc5\x82\xb7"/* UTF-8 to Shift-JIS of "これは日本語です" */
 
-typedef std::basic_string<uint16_t> test_string;
+typedef uint16_t test_char_t;
+typedef std::basic_string<test_char_t> test_string;
 
 int main() {
-    _Iconv<char,uint16_t> *x = _Iconv<char,uint16_t>::create(/*FROM*/"SHIFT-JIS");
+    _Iconv<char,test_char_t> *x = _Iconv<char,test_char_t>::create(/*FROM*/"SHIFT-JIS");
     if (x == NULL) {
         cerr << "Failed to create context" << endl;
         return 1;
     }
 
-    _Iconv<uint16_t,char> *fx = _Iconv<uint16_t,char>::create("UTF-8");
+    _Iconv<test_char_t,char> *fx = _Iconv<test_char_t,char>::create("UTF-8");
     if (fx == NULL) {
         cerr << "Failed to create context" << endl;
         return 1;
     }
 
     {
-        uint16_t tmp[512];
+        test_char_t tmp[512];
         const char *src = THIS_IS_JAPANESE;
 
         x->set_src(src);
@@ -63,7 +64,7 @@ int main() {
     }
 
     {
-        uint16_t tmp[512];
+        test_char_t tmp[512];
         const char *src = THIS_IS_JAPANESE;
 
         x->set_dest(tmp,sizeof(tmp)/sizeof(tmp[0]));
@@ -82,7 +83,7 @@ int main() {
     }
 
     {
-        uint16_t tmp[512];
+        test_char_t tmp[512];
         const std::string src = THIS_IS_JAPANESE;
 
         x->set_dest(tmp,sizeof(tmp)/sizeof(tmp[0]));
