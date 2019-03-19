@@ -286,6 +286,24 @@ INT DC = 60:36B3
 
 --
 
+    ; ASCII BEL 07h handling
+    0ADC:10E7:
+        AH = 17h                    ; INT 18h AH=17h turn on bell
+        INT 18h
+        CX = 0x6E8C                 ; <- delay loop
+    0ADC:10EE:
+        PUSH AX
+        NOP AX
+        POP AX
+        IF CX > 0 THEN CX--, JMP 10EEh  ; LOOP 10EEh
+    0ADC:10F3:
+        AH = 18h                    ; INT 18h AH=18h turn off bell
+        INT 18h
+    0ADC:10F7:
+        return
+
+--
+
     0ADC:117D: (CTRL+Z handling)
         DI = 0
         CX = 0x9B0                          ; 0x9B0 = 80*31?
