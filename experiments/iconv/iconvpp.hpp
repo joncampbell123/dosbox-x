@@ -33,9 +33,11 @@ public:
 
         return "?";
     }
-protected:
-    static constexpr bool big_endian(void) {
-        return (BYTE_ORDER == BIG_ENDIAN);
+    inline size_t get_src_last_read(void) const { /* in units of sizeof(srcT) */
+        return src_adv;
+    }
+    inline size_t get_dest_last_written(void) const { /* in units of sizeof(dstT) */
+        return dst_adv;
     }
 public:
     size_t                      dst_adv = 0;
@@ -53,6 +55,9 @@ protected:
             return big_endian() ? "UTF-16BE" : "UTF-16LE";
 
         return NULL;
+    }
+    static constexpr bool big_endian(void) {
+        return (BYTE_ORDER == BIG_ENDIAN);
     }
 };
 
@@ -201,12 +206,6 @@ public:
     }
     inline const dstT *get_destp(void) const {
         return dst_ptr;
-    }
-    inline size_t get_src_last_read(void) const { /* in units of sizeof(srcT) */
-        return src_adv;
-    }
-    inline size_t get_dest_last_written(void) const { /* in units of sizeof(dstT) */
-        return dst_adv;
     }
 public:
     static _Iconv<srcT,dstT> *create(const char *nw) { /* factory function, wide to char, or char to wide */
