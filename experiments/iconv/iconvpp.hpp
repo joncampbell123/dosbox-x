@@ -7,10 +7,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <endian.h>
 
 #include <iconv.h>
 
 template <typename srcT,typename dstT> class _Iconv {
+public:
+    typedef std::basic_string<srcT> src_string;
+    typedef std::basic_string<dstT> dst_string;
 public:
     explicit _Iconv(const iconv_t &ctx) : context(ctx) {/* takes ownership of ctx */
     }
@@ -29,7 +33,7 @@ public:
         src_ptr_fence = NULL;
     }
 
-    void set_dest(char * const dst,char * const dst_fence) {
+    void set_dest(dstT * const dst,dstT * const dst_fence) {
         if (dst == NULL || dst_fence == NULL || dst > dst_fence)
             throw std::invalid_argument("Iconv set_dest pointer out of range");
 
@@ -37,12 +41,12 @@ public:
         dst_ptr = dst;
         dst_ptr_fence = dst_fence;
     }
-    void set_dest(char * const dst,const size_t len) {
+    void set_dest(dstT * const dst,const size_t len) {
         set_dest(dst,dst+len);
     }
-    void set_dest(char * const dst) = delete; /* <- NO! Prevent C-string calls to std::string &dst function! */
+    void set_dest(dstT * const dst) = delete; /* <- NO! Prevent C-string calls to std::string &dst function! */
 
-    void set_src(const char * const src,const char * const src_fence) {
+    void set_src(const srcT * const src,const srcT * const src_fence) {
         if (src == NULL || src_fence == NULL || src > src_fence)
             throw std::invalid_argument("Iconv set_src pointer out of range");
 
@@ -50,14 +54,14 @@ public:
         src_ptr = src;
         src_ptr_fence = src_fence;
     }
-    void set_src(const char * const src,const size_t len) {
+    void set_src(const srcT * const src,const size_t len) {
         set_src(src,src+len);
     }
-    void set_src(const char * const src) { // C-string
-        set_src(src,strlen(src));
+    void set_src(const srcT * const src) { // C-string
+        set_src(src,my_strlen(src));
     }
 public:
-    int string_convert(std::string &dst,const std::string &src) {
+    int string_convert(dst_string &dst,const src_string &src) {
         dst.resize(std::max(dst.size(),((src.length()+4u)*4u)+2u)); // maximum 4 bytes/char expansion UTF-8 or bigger if caller resized already
         set_dest(dst); /* will apply new size to dst/fence pointers */
 
@@ -77,10 +81,10 @@ public:
             if (src_ptr > src_ptr_fence)
                 return err_notvalid;
 
-            char *i_dst = dst_ptr;
-            const char *i_src = src_ptr;
-            size_t src_left = (size_t)((uintptr_t)src_ptr_fence - (uintptr_t)src_ptr);
-            size_t dst_left = (size_t)((uintptr_t)dst_ptr_fence - (uintptr_t)dst_ptr);
+            dstT *i_dst = dst_ptr;
+            const srcT *i_src = src_ptr;
+            size_t src_left = (size_t)((uintptr_t)((char*)src_ptr_fence) - (uintptr_t)((char*)src_ptr));
+            size_t dst_left = (size_t)((uintptr_t)((char*)dst_ptr_fence) - (uintptr_t)((char*)dst_ptr));
 
             iconv(context,NULL,NULL,NULL,NULL);
 
@@ -112,7 +116,7 @@ public:
 
         return err_noinit;
     }
-    int string_convert_dest(std::string &dst) {
+    int string_convert_dest(dst_string &dst) {
         size_t srcl = (size_t)((uintptr_t)src_ptr_fence - (uintptr_t)src_ptr);
 
         dst.resize(std::max(dst.size(),((srcl+4u)*4u)+2u));
@@ -123,7 +127,7 @@ public:
         finish();
         return err;
     }
-    int string_convert_src(const std::string &src) {
+    int string_convert_src(const src_string &src) {
         set_src(src);
 
         int err = string_convert();
@@ -131,8 +135,8 @@ public:
         finish();
         return err;
     }
-    std::string string_convert(const std::string &src) {
-        std::string res;
+    dst_string string_convert(const src_string &src) {
+        dst_string res;
 
         string_convert(res,src);
 
@@ -145,10 +149,10 @@ public:
     inline bool eof_dest(void) const {
         return dst_ptr >= dst_ptr_fence;
     }
-    inline const char *get_srcp(void) const {
+    inline const srcT *get_srcp(void) const {
         return src_ptr;
     }
-    inline const char *get_destp(void) const {
+    inline const dstT *get_destp(void) const {
         return dst_ptr;
     }
     inline size_t get_src_last_read(void) const {
@@ -172,9 +176,27 @@ public:
 
         return "?";
     }
+    static _Iconv<srcT,dstT> *create(const char *nw) { /* factory function, wide to char, or char to wide */
+        const char *wchar_encoding = _get_wchar_encoding();
+        if (wchar_encoding == NULL) return NULL;
+
+        if (sizeof(dstT) == sizeof(char) && sizeof(srcT) == sizeof(wchar_t)) {
+            iconv_t ctx = iconv_open(nw,wchar_encoding); /* from wchar to codepage nw */
+            if (ctx != notalloc) return new(std::nothrow) _Iconv<srcT,dstT>(ctx);
+        }
+        else if (sizeof(dstT) == sizeof(wchar_t) && sizeof(srcT) == sizeof(char)) {
+            iconv_t ctx = iconv_open(wchar_encoding,nw); /* from codepage new to wchar */
+            if (ctx != notalloc) return new(std::nothrow) _Iconv<srcT,dstT>(ctx);
+        }
+
+        return NULL;
+    }
     static _Iconv<srcT,dstT> *create(const char *to,const char *from) { /* factory function */
-        iconv_t ctx = iconv_open(to,from);
-        if (ctx != notalloc) return new(std::nothrow) _Iconv<srcT,dstT>(ctx);
+        if (sizeof(dstT) == sizeof(char) && sizeof(srcT) == sizeof(char)) {
+            iconv_t ctx = iconv_open(to,from);
+            if (ctx != notalloc) return new(std::nothrow) _Iconv<srcT,dstT>(ctx);
+        }
+
         return NULL;
     }
 private:
@@ -184,13 +206,30 @@ private:
             context = notalloc;
         }
     }
+    static inline size_t my_strlen(const char *s) {
+        return strlen(s);
+    }
+    static inline size_t my_strlen(const wchar_t *s) {
+        return wcslen(s);
+    }
 private:
-    void set_dest(std::string &dst) { /* <- use string::resize() first before calling this */
+    static constexpr bool big_endian(void) {
+        return (BYTE_ORDER == BIG_ENDIAN);
+    }
+    static const char *_get_wchar_encoding(void) {
+        if (sizeof(wchar_t) == 4)
+            return big_endian() ? "UTF-32BE" : "UTF-32LE";
+        else if (sizeof(wchar_t) == 2)
+            return big_endian() ? "UTF-16BE" : "UTF-16LE";
+
+        return NULL;
+    }
+    void set_dest(dst_string &dst) { /* <- use string::resize() first before calling this */
         /* this is PRIVATE to avoid future bugs and problems where set_dest() is given a std::string
          * that goes out of scope by mistake, or other possible use-after-free bugs. */
         set_dest(&dst[0],dst.size());
     }
-    void set_src(const std::string &src) { // C++-string
+    void set_src(const src_string &src) { // C++-string
         /* This is PRIVATE for a good reason: This will only work 100% reliably if the std::string
          * object lasts for the conversion, which is true if called from string_convert() but may
          * not be true if called from external code that might do something to pass in a std::string
@@ -215,14 +254,16 @@ public:
     static constexpr int        err_incomplete = -EINVAL;
     static constexpr iconv_t    notalloc = (iconv_t)(-1);
 private:
-    char*                       dst_ptr = NULL;
-    char*                       dst_ptr_fence = NULL;
-    const char*                 src_ptr = NULL;
-    const char*                 src_ptr_fence = NULL;
+    dstT*                       dst_ptr = NULL;
+    dstT*                       dst_ptr_fence = NULL;
+    const srcT*                 src_ptr = NULL;
+    const srcT*                 src_ptr_fence = NULL;
     size_t                      dst_adv = 0;
     size_t                      src_adv = 0;
     iconv_t                     context = notalloc;
 };
 
 typedef _Iconv<char,char> Iconv;
+typedef _Iconv<char,wchar_t> IconvToW;
+typedef _Iconv<wchar_t,char> IconvFromW;
 
