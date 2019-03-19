@@ -88,7 +88,7 @@ public:
 
             iconv(context,NULL,NULL,NULL,NULL);
 
-            int ret = iconv(context,(char**)(&src_ptr),&src_left,&dst_ptr,&dst_left);
+            int ret = iconv(context,(char**)(&src_ptr),&src_left,(char**)(&dst_ptr),&dst_left);
 
             src_adv = (size_t)(src_ptr - i_src);
             dst_adv = (size_t)(dst_ptr - i_dst);
