@@ -17,7 +17,36 @@
 
 #include <iconv.h>
 
-template <typename srcT,typename dstT> class _Iconv {
+class _Iconv_CommonBase {
+public:
+    static const char *errstring(int x) {
+        if (x >= 0)
+            return "no error";
+        else if (x == err_noinit)
+            return "not initialized";
+        else if (x == err_noroom)
+            return "out of room";
+        else if (x == err_notvalid)
+            return "illegal multibyte sequence or invalid state";
+        else if (x == err_incomplete)
+            return "incomplete multibyte sequence";
+
+        return "?";
+    }
+    static constexpr bool big_endian(void) {
+        return (BYTE_ORDER == BIG_ENDIAN);
+    }
+public:
+    size_t                      dst_adv = 0;
+    size_t                      src_adv = 0;
+public:
+    static constexpr int        err_noinit = -EBADF;
+    static constexpr int        err_noroom = -E2BIG;
+    static constexpr int        err_notvalid = -EILSEQ;
+    static constexpr int        err_incomplete = -EINVAL;
+};
+
+template <typename srcT,typename dstT> class _Iconv : public _Iconv_CommonBase {
 public:
     /* NTS: The C++ standard defines std::string as std::basic_string<char>.
      *      These typedefs will match if srcT = char and dstT = char */
@@ -170,20 +199,6 @@ public:
         return dst_adv;
     }
 public:
-    static const char *errstring(int x) {
-        if (x >= 0)
-            return "no error";
-        else if (x == err_noinit)
-            return "not initialized";
-        else if (x == err_noroom)
-            return "out of room";
-        else if (x == err_notvalid)
-            return "illegal multibyte sequence or invalid state";
-        else if (x == err_incomplete)
-            return "incomplete multibyte sequence";
-
-        return "?";
-    }
     static _Iconv<srcT,dstT> *create(const char *nw) { /* factory function, wide to char, or char to wide */
         const char *wchar_encoding = _get_wchar_encoding();
         if (wchar_encoding == NULL) return NULL;
@@ -221,9 +236,6 @@ private:
         return wcslen(s);
     }
 private:
-    static constexpr bool big_endian(void) {
-        return (BYTE_ORDER == BIG_ENDIAN);
-    }
     static const char *_get_wchar_encoding(void) {
         if (sizeof(wchar_t) == 4)
             return big_endian() ? "UTF-32BE" : "UTF-32LE";
@@ -238,18 +250,11 @@ private:
     void set_src(const src_string &src) { /* PRIVATE: External use can easily cause use-after-free bugs */
         set_src(src.c_str(),src.length());
     }
-public:
-    static constexpr int        err_noinit = -EBADF;
-    static constexpr int        err_noroom = -E2BIG;
-    static constexpr int        err_notvalid = -EILSEQ;
-    static constexpr int        err_incomplete = -EINVAL;
 private:
     dstT*                       dst_ptr = NULL;
     dstT*                       dst_ptr_fence = NULL;
     const srcT*                 src_ptr = NULL;
     const srcT*                 src_ptr_fence = NULL;
-    size_t                      dst_adv = 0;
-    size_t                      src_adv = 0;
     iconv_t                     context = NULL;
 };
 
