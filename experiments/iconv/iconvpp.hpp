@@ -75,7 +75,7 @@ public:
         return err;
     }
     int string_convert(void) {
-        if (context != notalloc) {
+        if (context != NULL) {
             if (dst_ptr == NULL || src_ptr == NULL)
                 return err_notvalid;
             if (dst_ptr > dst_ptr_fence)
@@ -184,11 +184,11 @@ public:
 
         if (sizeof(dstT) == sizeof(char) && sizeof(srcT) == sizeof(wchar_t)) {
             iconv_t ctx = iconv_open(nw,wchar_encoding); /* from wchar to codepage nw */
-            if (ctx != notalloc) return new(std::nothrow) _Iconv<srcT,dstT>(ctx);
+            if (ctx != iconv_t(-1)) return new(std::nothrow) _Iconv<srcT,dstT>(ctx);
         }
         else if (sizeof(dstT) == sizeof(wchar_t) && sizeof(srcT) == sizeof(char)) {
             iconv_t ctx = iconv_open(wchar_encoding,nw); /* from codepage new to wchar */
-            if (ctx != notalloc) return new(std::nothrow) _Iconv<srcT,dstT>(ctx);
+            if (ctx != iconv_t(-1)) return new(std::nothrow) _Iconv<srcT,dstT>(ctx);
         }
 
         return NULL;
@@ -196,16 +196,16 @@ public:
     static _Iconv<srcT,dstT> *create(const char *to,const char *from) { /* factory function */
         if (sizeof(dstT) == sizeof(char) && sizeof(srcT) == sizeof(char)) {
             iconv_t ctx = iconv_open(to,from);
-            if (ctx != notalloc) return new(std::nothrow) _Iconv<srcT,dstT>(ctx);
+            if (ctx != iconv_t(-1)) return new(std::nothrow) _Iconv<srcT,dstT>(ctx);
         }
 
         return NULL;
     }
 private:
     void close(void) {
-        if (context != notalloc) {
+        if (context != NULL) {
             iconv_close(context);
-            context = notalloc;
+            context = NULL;
         }
     }
     static inline size_t my_strlen(const char *s) {
@@ -237,7 +237,6 @@ public:
     static constexpr int        err_noroom = -E2BIG;
     static constexpr int        err_notvalid = -EILSEQ;
     static constexpr int        err_incomplete = -EINVAL;
-    static constexpr iconv_t    notalloc = (iconv_t)(-1);
 private:
     dstT*                       dst_ptr = NULL;
     dstT*                       dst_ptr_fence = NULL;
@@ -245,7 +244,7 @@ private:
     const srcT*                 src_ptr_fence = NULL;
     size_t                      dst_adv = 0;
     size_t                      src_adv = 0;
-    iconv_t                     context = notalloc;
+    iconv_t                     context = NULL;
 };
 
 /* Most of the time the Iconv form will be used, for Mac OS X and Linux platforms where UTF-8 is common.
