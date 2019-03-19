@@ -454,9 +454,11 @@ INT DC = 60:36B3
     0ADC:11F3: (60:115 kanji upper byte storage flag set)
         CH = DS:[0116] (60:116 kanji upper byte)
         CALL 1236h
-        (TODO finish this later, at 0ADC:11FA)
+        tCH = CH, tCL = CL, CL = tCH - 0x20, CH = tCL           ; XCHG CL, CH ; SUB CL, 0x20
+        JMP 1203h
     0ADC:1201:
         CH = 0
+    0ADC:1203:
         CALL 1260h
         CALL 129Dh
         DI = BX
@@ -471,7 +473,15 @@ INT DC = 60:36B3
         BYTE PTR DS:[0115] = 0 (60:115 upper byte storage flag)
         BYTE PTR DS:[011C] += AL (60:11C cursor X coordinate)
         CALL 1535h
+    0ADC:1231:
         return
+
+--
+
+    0ADC:1232:
+        CALL 1236h
+    0ADC:1235:
+        return far                                              ; RETF
 
 --
 
