@@ -282,7 +282,15 @@ INT DC = 60:36B3
         DX = ES = DS
         _fmemset(ES:DI,0,0x28)  ; REP STOSW
         POP ES
+    0ADC:10E2:
         return
+
+--
+
+    ; ??
+    0ADC:10E3:
+        CALL 10E7h
+        return far                  ; RETF
 
 --
 
