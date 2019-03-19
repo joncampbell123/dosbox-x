@@ -244,6 +244,32 @@ INT DC = 60:36B3
 
     ; Entry: CL = character code
     ;
+    ; This is executed per character after ESC =
+    0ADC:0AE4:
+        BX = WORD PTR DS:[0134]
+        WORD PTR DS:[BX],CL
+        WORD PTR DS:[0134] += 1
+        IF BYTE PTR DS:[0128] < 0x04 JMP B18h
+    0ADC:0AF5:
+        BX = 2853h
+        CX = WORD PTR DS:[BX]
+        AL = CL
+        AH = BYTE PTR DS:[0112]                     ; Scroll range lower limit
+        CALL B19h
+        BYTE PTR DS:[0110],AL                       ; Cursor Y position
+        AL = CH
+        AH = 0x4F
+        CALL B19h
+        BYTE PTR DS:[011C],AL                       ; Cursor X position
+        CALL 1535h                                  ; update cursor position
+        BYTE PTR DS:[0128],0
+    0ADC:0B18:
+        return
+
+--
+
+    ; Entry: CL = character code
+    ;
     ; This is executed per character after ESC [ until the end of the ANSI code
     0ADC:0BB2:
         IF BYTE PTR DS:[0128] == 0x02 JMP BF3h
