@@ -304,6 +304,23 @@ INT DC = 60:36B3
 
 --
 
+    ; ASCII BACKSPACE 08h / LEFT ARROW KEY
+    0ADC:1119:
+        IF BYTE PTR DS:[011C] == 0 JMP 1126h
+    0ADC:1120:
+        BYTE PTR DS:[011C] -= 1
+        JMP 1136h
+    0ADC:1126:
+        IF BYTE PTR DS:[0110] == 0 JMP 1139h
+    0ADC:112D:
+        BYTE PTR DS:[0110] -= 1
+        BYTE PTR DS:[011C] = 0x4F
+        CALL 1535h                          ; update cursor position on screen
+    0ADC:1139:
+        return
+
+--
+
     0ADC:117D: (CTRL+Z handling)
         DI = 0
         CX = 0x9B0                          ; 0x9B0 = 80*31?
@@ -467,8 +484,8 @@ INT DC = 60:36B3
 
     0ADC:1534:
         return
-    0ADC:1535: (routine to scroll up the screen region)
-        IF BYTE PTR DS:[011B] == 0 JMP 1534h
+    0ADC:1535: (update cursor position on screen)
+        IF BYTE PTR DS:[011B] == 0 JMP 1534h (return immediately if cursor is turned off)
     0ADC:153C:
         DH = BYTE PTR DS:[0110]
         DL = BYTE PTR DS:[011C]
