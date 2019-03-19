@@ -13,6 +13,8 @@
 
 template <typename srcT,typename dstT> class _Iconv {
 public:
+    /* NTS: The C++ standard defines std::string as std::basic_string<char>.
+     *      These typedefs will match if srcT = char and dstT = char */
     typedef std::basic_string<srcT> src_string;
     typedef std::basic_string<dstT> dst_string;
 public:
