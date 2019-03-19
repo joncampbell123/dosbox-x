@@ -263,7 +263,7 @@ INT DC = 60:36B3
         CALL B19h
         BYTE PTR DS:[011C],AL                       ; Cursor X position
         CALL 1535h                                  ; update cursor position
-        BYTE PTR DS:[0128],0
+        BYTE PTR DS:[0128] = 0
     0ADC:0B18:
         return
 
@@ -274,6 +274,16 @@ INT DC = 60:36B3
     0ADC:0B1F:
         AL = ((AL > AH) ? AH : AL)                  ; CMP AL, AH ; JBE B25h ; MOV AL, AH
     0ADC:0B25:
+        return
+
+--
+
+    ; Entry: CL = character code
+    ;
+    ; This is executed per character after ESC * until the end of the ANSI code
+    0ADC:0B84:
+        CALL 117Dh                                  ; CTRL+Z handling
+        BYTE PTR DS:[0128] = 0
         return
 
 --
