@@ -290,6 +290,7 @@ INT DC = 60:36B3
     ; ??
     0ADC:10E3:
         CALL 10E7h
+    0ADC:10E6:
         return far                  ; RETF
 
 --
