@@ -33,6 +33,7 @@ public:
 
         return "?";
     }
+protected:
     static constexpr bool big_endian(void) {
         return (BYTE_ORDER == BIG_ENDIAN);
     }
@@ -44,6 +45,15 @@ public:
     static constexpr int        err_noroom = -E2BIG;
     static constexpr int        err_notvalid = -EILSEQ;
     static constexpr int        err_incomplete = -EINVAL;
+protected:
+    template <typename W> static const char *_get_wchar_encoding(void) {
+        if (sizeof(W) == 4)
+            return big_endian() ? "UTF-32BE" : "UTF-32LE";
+        else if (sizeof(W) == 2)
+            return big_endian() ? "UTF-16BE" : "UTF-16LE";
+
+        return NULL;
+    }
 };
 
 template <typename srcT,typename dstT> class _Iconv : public _Iconv_CommonBase {
@@ -239,14 +249,6 @@ private:
         return wcslen(s);
     }
 private:
-    template <typename W> static const char *_get_wchar_encoding(void) {
-        if (sizeof(W) == 4)
-            return big_endian() ? "UTF-32BE" : "UTF-32LE";
-        else if (sizeof(W) == 2)
-            return big_endian() ? "UTF-16BE" : "UTF-16LE";
-
-        return NULL;
-    }
     void set_dest(dst_string &dst) { /* PRIVATE: External use can easily cause use-after-free bugs */
         set_dest(&dst[0],dst.size());
     }
