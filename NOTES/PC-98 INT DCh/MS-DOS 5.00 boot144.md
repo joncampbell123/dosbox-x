@@ -345,6 +345,29 @@ INT DC = 60:36B3
 
 --
 
+    ; ASCII UP ARROW 0Bh
+    0ADC:113A:
+        IF BYTE PTR DS:[0110] == 0 JMP 1148h
+        BYTE PTR DS:[0110] -= 1
+        CALL 1535h                          ; update cursor position on screen
+    0ADC:1148:
+        return
+
+--
+
+    ; ASCII DOWN ARROW 0Ah
+    0ADC:1149:
+        AL = BYTE PTR DS:[0110]
+        IF AL == BYTE PTR DS:[0112] JMP 115Ah
+        BYTE PTR DS:[0110] += 1
+        CALL 1535h                          ; update cursor position on screen
+        return
+    0ADC:115A:
+        CALL 1348h                          ; scroll up screen region
+        return
+
+--
+
     0ADC:117D: (CTRL+Z handling)
         DI = 0
         CX = 0x9B0                          ; 0x9B0 = 80*31?
