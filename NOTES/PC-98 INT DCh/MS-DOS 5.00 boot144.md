@@ -310,8 +310,8 @@ INT DC = 60:36B3
         BYTE PTR DS:[011C] = AL
         IF AL < 0x4F JMP 1115h                          ; interesting bug here, AL would be 0x50 on overflow
     0ADC:110C:
-        BYTE PTR DS:[011C] = 0x4F                       ; keep cursor on-screen
-        CALL 118Ch
+        BYTE PTR DS:[011C] = 0x4F                       ; keep cursor on-screen, set to last column
+        CALL 118Ch                                      ; call function to advance one column to wrap around to next line
         return
     0ADC:1115:
         call 1535h                                      ; update cursor position
