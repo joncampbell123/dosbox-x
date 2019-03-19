@@ -280,10 +280,22 @@ INT DC = 60:36B3
 
     ; Entry: CL = character code
     ;
+    ; This is executed per character after ESC ( until the end of the ANSI code
+    0ADC:0B77:
+        IF BYTE PTR DS:[0128] < 3 JMP B83h
+        BYTE PTR DS:[0128] = 0
+    0ADC:0B83:
+        return
+
+--
+
+    ; Entry: CL = character code
+    ;
     ; This is executed per character after ESC * until the end of the ANSI code
     0ADC:0B84:
         CALL 117Dh                                  ; CTRL+Z handling
         BYTE PTR DS:[0128] = 0
+    0ADC:0B8C:
         return
 
 --
