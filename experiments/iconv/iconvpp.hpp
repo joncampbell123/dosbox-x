@@ -209,14 +209,14 @@ public:
     }
 public:
     static _Iconv<srcT,dstT> *create(const char *nw) { /* factory function, wide to char, or char to wide */
-        if (sizeof(dstT) == sizeof(char) && sizeof(srcT) == sizeof(wchar_t)) {
+        if (sizeof(dstT) == sizeof(char) && sizeof(srcT) > sizeof(char)) {
             const char *wchar_encoding = _get_wchar_encoding<srcT>();
             if (wchar_encoding == NULL) return NULL;
 
             iconv_t ctx = iconv_open(nw,wchar_encoding); /* from wchar to codepage nw */
             if (ctx != iconv_t(-1)) return new(std::nothrow) _Iconv<srcT,dstT>(ctx);
         }
-        else if (sizeof(dstT) == sizeof(wchar_t) && sizeof(srcT) == sizeof(char)) {
+        else if (sizeof(dstT) > sizeof(char) && sizeof(srcT) == sizeof(char)) {
             const char *wchar_encoding = _get_wchar_encoding<dstT>();
             if (wchar_encoding == NULL) return NULL;
 
