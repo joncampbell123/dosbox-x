@@ -246,6 +246,17 @@ private:
     iconv_t                     context = notalloc;
 };
 
+/* Most of the time the Iconv form will be used, for Mac OS X and Linux platforms where UTF-8 is common.
+ *
+ * Conversion to/from wchar is intended for platforms like Microsoft Windows 98/ME/2000/XP/Vista/7/8/10/etc
+ * where the Win32 API functions take WCHAR (UTF-16 or UCS-16), in which case, the code will continue to
+ * use UTF-8 internally but convert to WCHAR when needed. For example, Win32 function CreateFileW().
+ *
+ * Note that because of the UTF-16 world of Windows, Microsoft C++ defines wchar_t as an unsigned 16-bit
+ * integer.
+ *
+ * Linux and other OSes however define wchar_t as a 32-bit integer, but do not use wchar_t APIs, and often
+ * instead use UTF-8 for unicode, so the wchar_t versions will not see much use there. */
 typedef _Iconv<char,char> Iconv;
 typedef _Iconv<char,wchar_t> IconvToW;
 typedef _Iconv<wchar_t,char> IconvFromW;
