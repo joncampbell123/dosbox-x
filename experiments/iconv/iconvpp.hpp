@@ -200,14 +200,17 @@ public:
     }
 public:
     static _Iconv<srcT,dstT> *create(const char *nw) { /* factory function, wide to char, or char to wide */
-        const char *wchar_encoding = _get_wchar_encoding();
-        if (wchar_encoding == NULL) return NULL;
-
         if (sizeof(dstT) == sizeof(char) && sizeof(srcT) == sizeof(wchar_t)) {
+            const char *wchar_encoding = _get_wchar_encoding<srcT>();
+            if (wchar_encoding == NULL) return NULL;
+
             iconv_t ctx = iconv_open(nw,wchar_encoding); /* from wchar to codepage nw */
             if (ctx != iconv_t(-1)) return new(std::nothrow) _Iconv<srcT,dstT>(ctx);
         }
         else if (sizeof(dstT) == sizeof(wchar_t) && sizeof(srcT) == sizeof(char)) {
+            const char *wchar_encoding = _get_wchar_encoding<dstT>();
+            if (wchar_encoding == NULL) return NULL;
+
             iconv_t ctx = iconv_open(wchar_encoding,nw); /* from codepage new to wchar */
             if (ctx != iconv_t(-1)) return new(std::nothrow) _Iconv<srcT,dstT>(ctx);
         }
@@ -236,10 +239,10 @@ private:
         return wcslen(s);
     }
 private:
-    static const char *_get_wchar_encoding(void) {
-        if (sizeof(wchar_t) == 4)
+    template <typename W> static const char *_get_wchar_encoding(void) {
+        if (sizeof(W) == 4)
             return big_endian() ? "UTF-32BE" : "UTF-32LE";
-        else if (sizeof(wchar_t) == 2)
+        else if (sizeof(W) == 2)
             return big_endian() ? "UTF-16BE" : "UTF-16LE";
 
         return NULL;
