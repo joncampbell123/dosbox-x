@@ -304,6 +304,22 @@ INT DC = 60:36B3
 
 --
 
+    ; ASCII TAB 09h handling
+    0ADC:10F8:
+        AL = ((BYTE PTR DS:[011C] + 8) >> 3) * 8        ; move cursor X position to next multiple of 8
+        BYTE PTR DS:[011C] = AL
+        IF AL < 0x4F JMP 1115h                          ; interesting bug here, AL would be 0x50 on overflow
+    0ADC:110C:
+        BYTE PTR DS:[011C] = 0x4F                       ; keep cursor on-screen
+        CALL 118Ch
+        return
+    0ADC:1115:
+        call 1535h                                      ; update cursor position
+    0ADC:1118:
+        return
+
+--
+
     ; ASCII BACKSPACE 08h / LEFT ARROW KEY
     0ADC:1119:
         IF BYTE PTR DS:[011C] == 0 JMP 1126h
