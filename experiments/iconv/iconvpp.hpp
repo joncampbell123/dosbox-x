@@ -247,6 +247,13 @@ private:
     static inline size_t my_strlen(const wchar_t *s) {
         return wcslen(s);
     }
+    template <typename X> static inline size_t my_strlen(const X *s) {
+        size_t c = 0;
+
+        while ((*s++) != 0) c++;
+
+        return c;
+    }
 private:
     void set_dest(dst_string &dst) { /* PRIVATE: External use can easily cause use-after-free bugs */
         set_dest(&dst[0],dst.size());
