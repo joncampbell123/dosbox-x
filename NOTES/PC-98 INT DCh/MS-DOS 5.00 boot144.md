@@ -428,6 +428,7 @@ INT DC = 60:36B3
         CALL 1348h
     0ADC:11AF:
         CALL 1535h (update cursor position on screen)
+    0ADC:11B2:
         return
 
     0ADC:11B3: (CL=10h AH=00h, at this time CL == caller's DL and DS = DOS segment 60h)
