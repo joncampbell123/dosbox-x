@@ -302,6 +302,18 @@ INT DC = 60:36B3
 
     ; Entry: CL = character code
     ;
+    ; This is executed per character after ESC E until the end of the ANSI code
+    0ADC:0B8D:
+        CALL 115Eh                                  ; carriage return
+        CALL 1149h                                  ; line feed / down arrow
+        BYTE PTR DS:[0128] = 0
+    0ADC:0B98:
+        return
+
+--
+
+    ; Entry: CL = character code
+    ;
     ; This is executed per character after ESC [ until the end of the ANSI code
     0ADC:0BB2:
         IF BYTE PTR DS:[0128] == 0x02 JMP BF3h
