@@ -485,6 +485,29 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:1236: (CH = upper Kanji byte)
+        IF CH == 0x80 JMP 125Fh
+        IF CH >= 0xA0 JMP 1245h
+        CH -= 0x70
+        JMP 1248h
+    0ADC:1245:
+        CH -= 0xB0
+    0ADC:1248:
+        IF (CL & 0x80) != 0x00 THEN CL--                        ; OR CL, CL ; JNS 124E ; DEC CL
+    0ADC:124E:
+        CH = CH * 2
+        IF CL < 0x9E JMP 125Ah
+        CL -= 0x5E
+        JMP 125Ch
+    0ADC:125A:
+        CH--
+    0ADC:125C:
+        CL -= 0x1F
+    0ADC:125F:
+        return
+
+--
+
     0ADC:12E2 (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
         WORD PTR ES:[DI] = AX ; write character code
         DI += 0x2000
