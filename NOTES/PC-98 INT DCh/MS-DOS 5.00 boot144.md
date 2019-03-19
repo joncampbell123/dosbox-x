@@ -251,7 +251,7 @@ INT DC = 60:36B3
         WORD PTR DS:[0134] += 1
         IF BYTE PTR DS:[0128] < 0x04 JMP B18h
     0ADC:0AF5:
-        BX = 2853h
+        BX = 2853h                                  ; ANSI escape parsing address + 1
     0ADC:0AF8:
         CX = WORD PTR DS:[BX]
         AL = CL
