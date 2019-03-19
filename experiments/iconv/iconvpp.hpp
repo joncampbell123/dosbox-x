@@ -224,27 +224,10 @@ private:
 
         return NULL;
     }
-    void set_dest(dst_string &dst) { /* <- use string::resize() first before calling this */
-        /* this is PRIVATE to avoid future bugs and problems where set_dest() is given a std::string
-         * that goes out of scope by mistake, or other possible use-after-free bugs. */
+    void set_dest(dst_string &dst) { /* PRIVATE: External use can easily cause use-after-free bugs */
         set_dest(&dst[0],dst.size());
     }
-    void set_src(const src_string &src) { // C++-string
-        /* This is PRIVATE for a good reason: This will only work 100% reliably if the std::string
-         * object lasts for the conversion, which is true if called from string_convert() but may
-         * not be true if called from external code that might do something to pass in a std::string
-         * that is destroyed before we can operate on it.
-         *
-         * For example, this will cause a use after free bug:
-         *
-         * set_src(std::string("Hello world") + " how are you");
-         *
-         * it constructs a temporary to hold the result of the addition operator, and then gives that
-         * to set_src(). set_src() points at the string, but on return, the std::string is destroyed.
-         * it might happen to work depending on the runtime environment, but it is a serious
-         * use-after-free bug.
-         *
-         * To avoid that, do not expose this function publicly. */
+    void set_src(const src_string &src) { /* PRIVATE: External use can easily cause use-after-free bugs */
         set_src(src.c_str(),src.length());
     }
 public:
