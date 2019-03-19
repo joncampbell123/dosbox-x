@@ -280,6 +280,39 @@ INT DC = 60:36B3
 
     ; Entry: CL = character code
     ;
+    ; This is executed per character after ESC ) until the end of the ANSI code
+    0ADC:0B26:
+        IF BYTE PTR DS:[0128] != 3 JMP B76h
+        IF CL == 0x33 JMP B43h
+        IF CL != 0x30 JMP B4Dh
+    0ADC:0B37:
+        BYTE PTR DS:[008A] = 0x01
+        BYTE PTR DS:[008B] = 0x20
+        JMP B4Dh
+    0ADC:0B43:
+        BYTE PTR DS:[008B] = 0x67
+        BYTE PTR DS:[008A] = 0x00
+    0ADC:0B4D:
+        IF BYTE PTR DS:[0111] == 0 JMP B71h
+    0ADC:0B54:
+        PUSH ES
+        ES = WORD PTR DS:[0032]                     ; video ram segment
+        DH = (BYTE PTR DS:[0112]) + 1
+        DL = 0
+        CALL 14F5h                                  ; convert row DH col DL to video memory address
+        BX += 2
+        AX = BYTE PTR DS:[008B]
+        WORD PTR DS:[BX] = AX
+        POP ES
+    0ADC:0B71:
+        BYTE PTR DS:[0128] = 0
+    0ADC:0B76:
+        return
+
+--
+
+    ; Entry: CL = character code
+    ;
     ; This is executed per character after ESC ( until the end of the ANSI code
     0ADC:0B77:
         IF BYTE PTR DS:[0128] < 3 JMP B83h
