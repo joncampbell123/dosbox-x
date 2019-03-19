@@ -339,6 +339,7 @@ INT DC = 60:36B3
     0ADC:0B8D:
         CALL 115Eh                                  ; carriage return
         CALL 1149h                                  ; line feed / down arrow
+    0ADC:0B93:                                      ; <- table jumps here for unknown escapes
         BYTE PTR DS:[0128] = 0
     0ADC:0B98:
         return
