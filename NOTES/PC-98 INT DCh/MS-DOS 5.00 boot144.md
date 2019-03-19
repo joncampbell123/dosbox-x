@@ -314,6 +314,23 @@ INT DC = 60:36B3
 
     ; Entry: CL = character code
     ;
+    ; This is executed per character after ESC M
+    0ADC:0B99:
+        IF BYTE PTR DS:[0110] == 0 JMP BA9h         ; Move cursor up one row
+        BYTE PTR DS:[0110] -= 1
+        CALL 1535h                                  ; update cursor position
+        JMP BACh
+    0ADC:0BA9:
+        CALL 13B0h
+    0ADC:0BAC:
+        BYTE PTR DS:[0128] = 0
+    0ADC:0BB1:
+        return
+
+--
+
+    ; Entry: CL = character code
+    ;
     ; This is executed per character after ESC [ until the end of the ANSI code
     0ADC:0BB2:
         IF BYTE PTR DS:[0128] == 0x02 JMP BF3h
