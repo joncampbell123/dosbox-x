@@ -368,6 +368,15 @@ INT DC = 60:36B3
 
 --
 
+    ; ASCII CARRIAGE RETURN 0Dh
+    0ADC:115E:
+        BYTE PTR DS:[011C] = 0              ; set X coordinate = 0
+        CALL 1535h                          ; update cursor position
+    0ADC:1166:
+        return
+
+--
+
     0ADC:117D: (CTRL+Z handling)
         DI = 0
         CX = 0x9B0                          ; 0x9B0 = 80*31?
