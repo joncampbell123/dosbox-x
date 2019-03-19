@@ -41,7 +41,7 @@ public:
         dst_ptr = dst;
         dst_ptr_fence = dst_fence;
     }
-    void set_dest(dstT * const dst,const size_t len) {
+    void set_dest(dstT * const dst,const size_t len/*in units of sizeof(dstT)*/) {
         set_dest(dst,dst+len);
     }
     void set_dest(dstT * const dst) = delete; /* <- NO! Prevent C-string calls to std::string &dst function! */
@@ -155,10 +155,10 @@ public:
     inline const dstT *get_destp(void) const {
         return dst_ptr;
     }
-    inline size_t get_src_last_read(void) const {
+    inline size_t get_src_last_read(void) const { /* in units of sizeof(srcT) */
         return src_adv;
     }
-    inline size_t get_dest_last_written(void) const {
+    inline size_t get_dest_last_written(void) const { /* in units of sizeof(dstT) */
         return dst_adv;
     }
 public:
