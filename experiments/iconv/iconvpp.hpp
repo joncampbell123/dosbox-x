@@ -7,7 +7,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <endian.h>
+#if defined(__MINGW32__)
+# define LITTLE_ENDIAN 1234
+# define BIG_ENDIAN 4321
+# define BYTE_ORDER LITTLE_ENDIAN
+#else
+# include <endian.h>
+#endif
 
 #include <iconv.h>
 
