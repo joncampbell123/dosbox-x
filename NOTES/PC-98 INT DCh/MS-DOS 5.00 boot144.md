@@ -246,12 +246,13 @@ INT DC = 60:36B3
     ;
     ; This is executed per character after ESC =
     0ADC:0AE4:
-        BX = WORD PTR DS:[0134]
+        BX = WORD PTR DS:[0134]                     ; [0134] is often set to 2852h
         WORD PTR DS:[BX],CL
         WORD PTR DS:[0134] += 1
         IF BYTE PTR DS:[0128] < 0x04 JMP B18h
     0ADC:0AF5:
         BX = 2853h
+    0ADC:0AF8:
         CX = WORD PTR DS:[BX]
         AL = CL
         AH = BYTE PTR DS:[0112]                     ; Scroll range lower limit
@@ -264,6 +265,15 @@ INT DC = 60:36B3
         CALL 1535h                                  ; update cursor position
         BYTE PTR DS:[0128],0
     0ADC:0B18:
+        return
+
+--
+
+    0ADC:0B19:
+        AL = ((AL >= 0x20) ? (AL - 0x20)) : 0       ; SUB AL, 20h ; JNC B1Fh ; MOV AL,00h
+    0ADC:0B1F:
+        AL = ((AL > AH) ? AH : AL)                  ; CMP AL, AH ; JBE B25h ; MOV AL, AH
+    0ADC:0B25:
         return
 
 --
