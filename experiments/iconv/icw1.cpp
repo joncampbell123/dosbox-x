@@ -7,6 +7,7 @@ using namespace std;
 #define THIS_IS_JAPANESE "\x82\xb1\x82\xea\x82\xcd\x93\xfa\x96\x7b\x8c\xea\x82\xc5\x82\xb7"/* UTF-8 to Shift-JIS of "これは日本語です" */
 
 int main() {
+#if defined(ENABLE_ICONV_WIN32)
     IconvWin32ToW *x = IconvWin32ToW::create(/*FROM*/932);
     if (x == NULL) {
         cerr << "Failed to create context" << endl;
@@ -127,6 +128,7 @@ int main() {
 
     delete fx;
     delete x;
+#endif
     return 0;
 }
 
