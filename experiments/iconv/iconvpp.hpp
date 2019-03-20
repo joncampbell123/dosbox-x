@@ -41,20 +41,7 @@
 
 class _Iconv_CommonBase {
 public:
-    static const char *errstring(int x) {
-        if (x >= 0)
-            return "no error";
-        else if (x == err_noinit)
-            return "not initialized";
-        else if (x == err_noroom)
-            return "out of room";
-        else if (x == err_notvalid)
-            return "illegal multibyte sequence or invalid state";
-        else if (x == err_incomplete)
-            return "incomplete multibyte sequence";
-
-        return "?";
-    }
+    static const char *errstring(int x);
     inline size_t get_src_last_read(void) const { /* in units of sizeof(srcT) */
         return src_adv;
     }
