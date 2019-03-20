@@ -217,7 +217,9 @@ protected:
 #if defined(ENABLE_ICONV)
 # include <iconv.h>
 
-/* _Iconv implementation of _IconvBase using GNU libiconv or GLIBC iconv, for Linux and Mac OS X systems */
+/* _Iconv implementation of _IconvBase using GNU libiconv or GLIBC iconv, for Linux and Mac OS X systems. */
+/* See also: "man iconv"
+ * See also: [http://man7.org/linux/man-pages/man3/iconv.3.html] */
 template <typename srcT,typename dstT> class _Iconv : public _IconvBase<srcT,dstT> {
 protected:
     using pclass = _IconvBase<srcT,dstT>;
@@ -241,6 +243,7 @@ public:
 
             iconv(context,NULL,NULL,NULL,NULL);
 
+            /* Ref: [http://man7.org/linux/man-pages/man3/iconv.3.html] */
             int ret = iconv(context,(char**)(&(pclass::src_ptr)),&src_left,(char**)(&(pclass::dst_ptr)),&dst_left);
 
             pclass::src_adv = (size_t)(pclass::src_ptr - i_src);
@@ -268,14 +271,14 @@ public:
             const char *wchar_encoding = _get_wchar_encoding<srcT>();
             if (wchar_encoding == NULL) return NULL;
 
-            iconv_t ctx = iconv_open(nw,wchar_encoding); /* from wchar to codepage nw */
+            iconv_t ctx = iconv_open(/*TO*/nw,/*FROM*/wchar_encoding); /* from wchar to codepage nw */
             if (ctx != iconv_t(-1)) return new(std::nothrow) _Iconv<srcT,dstT>(ctx);
         }
         else if (sizeof(dstT) > sizeof(char) && sizeof(srcT) == sizeof(char)) {
             const char *wchar_encoding = _get_wchar_encoding<dstT>();
             if (wchar_encoding == NULL) return NULL;
 
-            iconv_t ctx = iconv_open(wchar_encoding,nw); /* from codepage new to wchar */
+            iconv_t ctx = iconv_open(/*TO*/wchar_encoding,/*FROM*/nw); /* from codepage new to wchar */
             if (ctx != iconv_t(-1)) return new(std::nothrow) _Iconv<srcT,dstT>(ctx);
         }
 
