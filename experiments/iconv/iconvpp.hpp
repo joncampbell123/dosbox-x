@@ -35,6 +35,10 @@
 # define ENABLE_ICONV 1
 #endif
 
+#if defined(_WIN32)
+# include <windows.h>
+#endif
+
 class _Iconv_CommonBase {
 public:
     static const char *errstring(int x) {
