@@ -353,21 +353,29 @@ public:
 public:
     virtual int _do_convert(void) {
         if (codepage != 0u) {
-            dstT *i_dst = pclass::dst_ptr;
-            const srcT *i_src = pclass::src_ptr;
             size_t src_left = (size_t)((uintptr_t)((char*)pclass::src_ptr_fence) - (uintptr_t)((char*)pclass::src_ptr));
             size_t dst_left = (size_t)((uintptr_t)((char*)pclass::dst_ptr_fence) - (uintptr_t)((char*)pclass::dst_ptr));
             int ret;
 
-            if (sizeof(dstT) == sizeof(char) && sizeof(srcT) == sizeof(WCHAR))
-                ret = WideCharToMultiByte(codepage,0,pclass::src_ptr,src_left/sizeof(srcT),pclass::dst_ptr,dst_left,NULL,NULL);
-            else if (sizeof(dstT) == sizeof(WCHAR) && sizeof(srcT) == sizeof(char))
-                ret = MultiByteToWideChar(codepage,0,pclass::src_ptr,src_left,pclass::dst_ptr,dst_left/sizeof(dstT),NULL,NULL);
-            else
-                ret = -1;
-
-            pclass::src_adv = (size_t)(pclass::src_ptr - i_src);
-            pclass::dst_adv = (size_t)(pclass::dst_ptr - i_dst);
+            if (sizeof(dstT) == sizeof(char) && sizeof(srcT) == sizeof(WCHAR)) {
+                ret = WideCharToMultiByte(codepage,0,(WCHAR*)pclass::src_ptr,src_left/sizeof(srcT),(char*)pclass::dst_ptr,dst_left,NULL,NULL);
+		pclass::src_adv = src_left;
+		pclass::src_ptr += pclass::src_adv;
+		pclass::dst_adv = ret;
+		pclass::dst_ptr += pclass::dst_adv;
+	    }
+            else if (sizeof(dstT) == sizeof(WCHAR) && sizeof(srcT) == sizeof(char)) {
+                ret = MultiByteToWideChar(codepage,0,(char*)pclass::src_ptr,src_left,(WCHAR*)pclass::dst_ptr,dst_left/sizeof(dstT));
+		pclass::src_adv = src_left;
+		pclass::src_ptr += pclass::src_adv;
+		pclass::dst_adv = ret;
+		pclass::dst_ptr += pclass::dst_adv;
+	    }
+            else {
+		pclass::src_adv = 0;
+	        pclass::dst_adv = 0;
+   	    	ret = 0;
+	    }
 
             if (ret == 0) {
                 DWORD err = GetLastError();
@@ -379,11 +387,8 @@ public:
 
                 return pclass::err_noinit;
             }
-            else {
-                return 0;
-            }
 
-            return ret;
+            return 0;
         }
 
         return pclass::err_noinit;
