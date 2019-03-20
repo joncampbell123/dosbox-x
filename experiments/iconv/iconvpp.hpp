@@ -360,9 +360,9 @@ public:
             int ret;
 
             if (sizeof(dstT) == sizeof(char) && sizeof(srcT) == sizeof(WCHAR))
-                ret = WideCharToMultiByte(codepage,0,src_ptr,src_left/sizeof(srcT),dst_ptr,dst_left,NULL,NULL);
+                ret = WideCharToMultiByte(codepage,0,pclass::src_ptr,src_left/sizeof(srcT),pclass::dst_ptr,dst_left,NULL,NULL);
             else if (sizeof(dstT) == sizeof(WCHAR) && sizeof(srcT) == sizeof(char))
-                ret = MultiByteToWideChar(codepage,0,src_ptr,src_left,dst_ptr,dst_left/sizeof(dstT),NULL,NULL);
+                ret = MultiByteToWideChar(codepage,0,pclass::src_ptr,src_left,pclass::dst_ptr,dst_left/sizeof(dstT),NULL,NULL);
             else
                 ret = -1;
 
