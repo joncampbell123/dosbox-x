@@ -359,23 +359,23 @@ public:
 
             if (sizeof(dstT) == sizeof(char) && sizeof(srcT) == sizeof(WCHAR)) {
                 ret = WideCharToMultiByte(codepage,0,(WCHAR*)pclass::src_ptr,src_left/sizeof(srcT),(char*)pclass::dst_ptr,dst_left,NULL,NULL);
-		pclass::src_adv = src_left;
-		pclass::src_ptr += pclass::src_adv;
-		pclass::dst_adv = ret;
-		pclass::dst_ptr += pclass::dst_adv;
-	    }
+                pclass::src_adv = src_left;
+                pclass::src_ptr += pclass::src_adv;
+                pclass::dst_adv = ret;
+                pclass::dst_ptr += pclass::dst_adv;
+            }
             else if (sizeof(dstT) == sizeof(WCHAR) && sizeof(srcT) == sizeof(char)) {
                 ret = MultiByteToWideChar(codepage,0,(char*)pclass::src_ptr,src_left,(WCHAR*)pclass::dst_ptr,dst_left/sizeof(dstT));
-		pclass::src_adv = src_left;
-		pclass::src_ptr += pclass::src_adv;
-		pclass::dst_adv = ret;
-		pclass::dst_ptr += pclass::dst_adv;
-	    }
+                pclass::src_adv = src_left;
+                pclass::src_ptr += pclass::src_adv;
+                pclass::dst_adv = ret;
+                pclass::dst_ptr += pclass::dst_adv;
+            }
             else {
-		pclass::src_adv = 0;
-	        pclass::dst_adv = 0;
-   	    	ret = 0;
-	    }
+                pclass::src_adv = 0;
+                pclass::dst_adv = 0;
+                ret = 0;
+            }
 
             if (ret == 0) {
                 DWORD err = GetLastError();
