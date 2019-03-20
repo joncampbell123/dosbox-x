@@ -29,7 +29,11 @@
 # define ICONV_BIG_ENDIAN BIG_ENDIAN
 #endif
 
-#include <iconv.h>
+#if defined(_MSC_VER)
+/* no */
+#else
+# define ENABLE_ICONV 1
+#endif
 
 class _Iconv_CommonBase {
 public:
@@ -217,6 +221,9 @@ protected:
     friend _Iconv<srcT,dstT>;
 };
 
+#if defined(ENABLE_ICONV)
+# include <iconv.h>
+
 template <typename srcT,typename dstT> class _Iconv : public _IconvBase<srcT,dstT> {
 protected:
     using pclass = _IconvBase<srcT,dstT>;
@@ -321,4 +328,6 @@ protected:
 typedef _Iconv<char,char> Iconv;
 typedef _Iconv<char,wchar_t> IconvToW;
 typedef _Iconv<wchar_t,char> IconvFromW;
+
+#endif // ENABLE_ICONV
 
