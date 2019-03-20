@@ -62,35 +62,22 @@ public:
     static constexpr int        err_notvalid = -EILSEQ;
     static constexpr int        err_incomplete = -EINVAL;
 protected:
-    template <typename W> static const char *_get_wchar_encoding(void) {
-        if (sizeof(W) == 4)
-            return big_endian() ? "UTF-32BE" : "UTF-32LE";
-        else if (sizeof(W) == 2)
-            return big_endian() ? "UTF-16BE" : "UTF-16LE";
-
-        return NULL;
-    }
     static constexpr bool big_endian(void) {
         return (ICONV_BYTE_ORDER == ICONV_BIG_ENDIAN);
     }
 };
 
-template <typename srcT,typename dstT> class _Iconv : public _Iconv_CommonBase {
+template <typename srcT,typename dstT> class _Iconv;
+
+template <typename srcT,typename dstT> class _IconvBase : public _Iconv_CommonBase {
 public:
     /* NTS: The C++ standard defines std::string as std::basic_string<char>.
      *      These typedefs will match if srcT = char and dstT = char */
     typedef std::basic_string<srcT> src_string;
     typedef std::basic_string<dstT> dst_string;
 public:
-    explicit _Iconv(const iconv_t &ctx) : context(ctx) {/* takes ownership of ctx */
-    }
-    _Iconv(const _Iconv *p) = delete;
-    _Iconv(const _Iconv &other) = delete; /* no copying */
-    _Iconv(const _Iconv &&other) = delete; /* no moving */
-    _Iconv() = delete;
-    ~_Iconv() {
-        close();
-    }
+    _IconvBase() { }
+    virtual ~_IconvBase() { }
 public:
     void finish(void) {
         dst_ptr = NULL;
@@ -127,6 +114,9 @@ public:
         set_src(src,my_strlen(src));
     }
 public:
+    virtual int _do_convert(void) {
+        return err_noinit;
+    }
     int string_convert(dst_string &dst,const src_string &src) {
         dst.resize(std::max(dst.size(),((src.length()+4u)*4u)+2u)); // maximum 4 bytes/char expansion UTF-8 or bigger if caller resized already
         set_dest(dst); /* will apply new size to dst/fence pointers */
@@ -139,48 +129,24 @@ public:
         return err;
     }
     int string_convert(void) {
-        if (context != NULL) {
-            if (dst_ptr == NULL || src_ptr == NULL)
-                return err_notvalid;
-            if (dst_ptr > dst_ptr_fence)
-                return err_notvalid;
-            if (src_ptr > src_ptr_fence)
-                return err_notvalid;
+        if (dst_ptr == NULL || src_ptr == NULL)
+            return err_notvalid;
+        if (dst_ptr > dst_ptr_fence)
+            return err_notvalid;
+        if (src_ptr > src_ptr_fence)
+            return err_notvalid;
 
-            dstT *i_dst = dst_ptr;
-            const srcT *i_src = src_ptr;
-            size_t src_left = (size_t)((uintptr_t)((char*)src_ptr_fence) - (uintptr_t)((char*)src_ptr));
-            size_t dst_left = (size_t)((uintptr_t)((char*)dst_ptr_fence) - (uintptr_t)((char*)dst_ptr));
+        int ret = _do_convert();
 
-            iconv(context,NULL,NULL,NULL,NULL);
+        if (ret >= 0) {
+            /* add NUL */
+            if (dst_ptr >= dst_ptr_fence)
+                return err_noroom;
 
-            int ret = iconv(context,(char**)(&src_ptr),&src_left,(char**)(&dst_ptr),&dst_left);
-
-            src_adv = (size_t)(src_ptr - i_src);
-            dst_adv = (size_t)(dst_ptr - i_dst);
-
-            if (ret < 0) {
-                if (errno == E2BIG)
-                    return err_noroom;
-                else if (errno == EILSEQ)
-                    return err_notvalid;
-                else if (errno == EINVAL)
-                    return err_incomplete;
-
-                return err_notvalid;
-            }
-            else {
-                /* add NUL */
-                if (dst_ptr >= dst_ptr_fence)
-                    return err_noroom;
-
-                *dst_ptr++ = 0;
-            }
-
-            return ret;
+            *dst_ptr++ = 0;
         }
 
-        return err_noinit;
+        return ret;
     }
     int string_convert_dest(dst_string &dst) {
         size_t srcl = (size_t)((uintptr_t)src_ptr_fence - (uintptr_t)src_ptr);
@@ -221,6 +187,80 @@ public:
     inline const dstT *get_destp(void) const {
         return dst_ptr;
     }
+protected:
+    static inline size_t my_strlen(const char *s) {
+        return strlen(s);
+    }
+    static inline size_t my_strlen(const wchar_t *s) {
+        return wcslen(s);
+    }
+    template <typename X> static inline size_t my_strlen(const X *s) {
+        size_t c = 0;
+
+        while ((*s++) != 0) c++;
+
+        return c;
+    }
+protected:
+    void set_dest(dst_string &dst) { /* PRIVATE: External use can easily cause use-after-free bugs */
+        set_dest(&dst[0],dst.size());
+    }
+    void set_src(const src_string &src) { /* PRIVATE: External use can easily cause use-after-free bugs */
+        set_src(src.c_str(),src.length());
+    }
+protected:
+    dstT*                       dst_ptr = NULL;
+    dstT*                       dst_ptr_fence = NULL;
+    const srcT*                 src_ptr = NULL;
+    const srcT*                 src_ptr_fence = NULL;
+
+    friend _Iconv<srcT,dstT>;
+};
+
+template <typename srcT,typename dstT> class _Iconv : public _IconvBase<srcT,dstT> {
+protected:
+    using pclass = _IconvBase<srcT,dstT>;
+public:
+    explicit _Iconv(const iconv_t &ctx) : context(ctx) {/* takes ownership of ctx */
+    }
+    _Iconv(const _Iconv *p) = delete;
+    _Iconv(const _Iconv &other) = delete; /* no copying */
+    _Iconv(const _Iconv &&other) = delete; /* no moving */
+    _Iconv() = delete;
+    virtual ~_Iconv() {
+        close();
+    }
+public:
+    virtual int _do_convert(void) {
+        if (context != NULL) {
+            dstT *i_dst = pclass::dst_ptr;
+            const srcT *i_src = pclass::src_ptr;
+            size_t src_left = (size_t)((uintptr_t)((char*)pclass::src_ptr_fence) - (uintptr_t)((char*)pclass::src_ptr));
+            size_t dst_left = (size_t)((uintptr_t)((char*)pclass::dst_ptr_fence) - (uintptr_t)((char*)pclass::dst_ptr));
+
+            iconv(context,NULL,NULL,NULL,NULL);
+
+            int ret = iconv(context,(char**)(&(pclass::src_ptr)),&src_left,(char**)(&(pclass::dst_ptr)),&dst_left);
+
+            pclass::src_adv = (size_t)(pclass::src_ptr - i_src);
+            pclass::dst_adv = (size_t)(pclass::dst_ptr - i_dst);
+
+            if (ret < 0) {
+                if (errno == E2BIG)
+                    return pclass::err_noroom;
+                else if (errno == EILSEQ)
+                    return pclass::err_notvalid;
+                else if (errno == EINVAL)
+                    return pclass::err_incomplete;
+
+                return pclass::err_notvalid;
+            }
+
+            return ret;
+        }
+
+        return pclass::err_noinit;
+    }
 public:
     static _Iconv<srcT,dstT> *create(const char *nw) { /* factory function, wide to char, or char to wide */
         if (sizeof(dstT) == sizeof(char) && sizeof(srcT) > sizeof(char)) {
@@ -248,38 +288,22 @@ public:
 
         return NULL;
     }
-private:
+protected:
     void close(void) {
         if (context != NULL) {
             iconv_close(context);
             context = NULL;
         }
     }
-    static inline size_t my_strlen(const char *s) {
-        return strlen(s);
-    }
-    static inline size_t my_strlen(const wchar_t *s) {
-        return wcslen(s);
-    }
-    template <typename X> static inline size_t my_strlen(const X *s) {
-        size_t c = 0;
+    template <typename W> static const char *_get_wchar_encoding(void) {
+        if (sizeof(W) == 4)
+            return pclass::big_endian() ? "UTF-32BE" : "UTF-32LE";
+        else if (sizeof(W) == 2)
+            return pclass::big_endian() ? "UTF-16BE" : "UTF-16LE";
 
-        while ((*s++) != 0) c++;
-
-        return c;
+        return NULL;
     }
-private:
-    void set_dest(dst_string &dst) { /* PRIVATE: External use can easily cause use-after-free bugs */
-        set_dest(&dst[0],dst.size());
-    }
-    void set_src(const src_string &src) { /* PRIVATE: External use can easily cause use-after-free bugs */
-        set_src(src.c_str(),src.length());
-    }
-private:
-    dstT*                       dst_ptr = NULL;
-    dstT*                       dst_ptr_fence = NULL;
-    const srcT*                 src_ptr = NULL;
-    const srcT*                 src_ptr_fence = NULL;
+protected:
     iconv_t                     context = NULL;
 };
 
