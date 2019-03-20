@@ -338,6 +338,9 @@ typedef _Iconv<wchar_t,char> IconvFromW;
 #if defined(ENABLE_ICONV_WIN32)
 # include <windows.h>
 
+/* Alternative implementation (char to WCHAR, or WCHAR to char only) using Microsoft Win32 APIs instead of libiconv.
+ * For use with embedded or low memory Windows installations or environments where the added load of libiconv would
+ * be undesirable. */
 template <typename srcT,typename dstT> class _IconvWin32 : public _IconvBase<srcT,dstT> {
 protected:
     using pclass = _IconvBase<srcT,dstT>;
