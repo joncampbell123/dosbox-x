@@ -353,6 +353,8 @@ public:
             int ret;
 
             if (sizeof(dstT) == sizeof(char) && sizeof(srcT) == sizeof(WCHAR)) {
+                /* Convert wide char to multibyte using the Win32 API.
+                 * See also: [https://docs.microsoft.com/en-us/windows/desktop/api/stringapiset/nf-stringapiset-widechartomultibyte] */
                 ret = WideCharToMultiByte(codepage,0,(WCHAR*)pclass::src_ptr,src_left/sizeof(srcT),(char*)pclass::dst_ptr,dst_left,NULL,NULL);
                 pclass::src_adv = src_left;
                 pclass::src_ptr += pclass::src_adv;
@@ -360,6 +362,8 @@ public:
                 pclass::dst_ptr += pclass::dst_adv;
             }
             else if (sizeof(dstT) == sizeof(WCHAR) && sizeof(srcT) == sizeof(char)) {
+                /* Convert multibyte to wide char using the Win32 API.
+                 * See also: [https://docs.microsoft.com/en-us/windows/desktop/api/stringapiset/nf-stringapiset-multibytetowidechar] */
                 ret = MultiByteToWideChar(codepage,0,(char*)pclass::src_ptr,src_left,(WCHAR*)pclass::dst_ptr,dst_left/sizeof(dstT));
                 pclass::src_adv = src_left;
                 pclass::src_ptr += pclass::src_adv;
