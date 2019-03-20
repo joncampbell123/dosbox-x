@@ -11,6 +11,17 @@
 # define LITTLE_ENDIAN 1234
 # define BIG_ENDIAN 4321
 # define BYTE_ORDER LITTLE_ENDIAN
+#elif defined(__APPLE__)
+# include <libkern/OSByteOrder.h>
+# define LITTLE_ENDIAN 1234
+# define BIG_ENDIAN 4321
+# if defined(__LITTLE_ENDIAN__)
+#  define BYTE_ORDER LITTLE_ENDIAN
+# elif defined(__BIG_ENDIAN__)
+#  define BYTE_ORDER BIG_ENDIAN
+# else
+#  error Unable to determine byte order
+# endif
 #else
 # include <endian.h>
 #endif
