@@ -8,22 +8,25 @@
 #include <string.h>
 #include <stdlib.h>
 #if defined(__MINGW32__)
-# define LITTLE_ENDIAN 1234
-# define BIG_ENDIAN 4321
-# define BYTE_ORDER LITTLE_ENDIAN
+# define ICONV_LITTLE_ENDIAN 1234
+# define ICONV_BIG_ENDIAN 4321
+# define ICONV_BYTE_ORDER ICONV_LITTLE_ENDIAN
 #elif defined(__APPLE__)
 # include <libkern/OSByteOrder.h>
-# define LITTLE_ENDIAN 1234
-# define BIG_ENDIAN 4321
+# define ICONV_LITTLE_ENDIAN 1234
+# define ICONV_BIG_ENDIAN 4321
 # if defined(__LITTLE_ENDIAN__)
-#  define BYTE_ORDER LITTLE_ENDIAN
+#  define ICONV_BYTE_ORDER ICONV_LITTLE_ENDIAN
 # elif defined(__BIG_ENDIAN__)
-#  define BYTE_ORDER BIG_ENDIAN
+#  define ICONV_BYTE_ORDER ICONV_BIG_ENDIAN
 # else
 #  error Unable to determine byte order
 # endif
 #else
 # include <endian.h>
+# define ICONV_BYTE_ORDER BYTE_ORDER
+# define ICONV_LITTLE_ENDIAN LITTLE_ENDIAN
+# define ICONV_BIG_ENDIAN BIG_ENDIAN
 #endif
 
 #include <iconv.h>
@@ -68,7 +71,7 @@ protected:
         return NULL;
     }
     static constexpr bool big_endian(void) {
-        return (BYTE_ORDER == BIG_ENDIAN);
+        return (ICONV_BYTE_ORDER == ICONV_BIG_ENDIAN);
     }
 };
 
