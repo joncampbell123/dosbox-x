@@ -39,6 +39,7 @@
 # define ENABLE_ICONV_WIN32 1
 #endif
 
+/* common code to any templated version of _IconvBase */
 class _Iconv_CommonBase {
 public:
     static const char *errstring(int x);
@@ -64,6 +65,7 @@ protected:
 
 template <typename srcT,typename dstT> class _Iconv;
 
+/* base _Iconv implementation, common to all implementations */
 template <typename srcT,typename dstT> class _IconvBase : public _Iconv_CommonBase {
 public:
     /* NTS: The C++ standard defines std::string as std::basic_string<char>.
@@ -215,6 +217,7 @@ protected:
 #if defined(ENABLE_ICONV)
 # include <iconv.h>
 
+/* _Iconv implementation of _IconvBase using GNU libiconv or GLIBC iconv, for Linux and Mac OS X systems */
 template <typename srcT,typename dstT> class _Iconv : public _IconvBase<srcT,dstT> {
 protected:
     using pclass = _IconvBase<srcT,dstT>;
@@ -316,7 +319,7 @@ protected:
  *
  * Linux and other OSes however define wchar_t as a 32-bit integer, but do not use wchar_t APIs, and often
  * instead use UTF-8 for unicode, so the wchar_t versions will not see much use there. */
-typedef _Iconv<char,char> Iconv;
+typedef _Iconv<char,char>    Iconv;
 typedef _Iconv<char,wchar_t> IconvToW;
 typedef _Iconv<wchar_t,char> IconvFromW;
 
@@ -328,6 +331,8 @@ typedef _Iconv<wchar_t,char> IconvFromW;
 /* Alternative implementation (char to WCHAR, or WCHAR to char only) using Microsoft Win32 APIs instead of libiconv.
  * For use with embedded or low memory Windows installations or environments where the added load of libiconv would
  * be undesirable. */
+
+/* _IconvWin32 implementation of _IconvBase using Microsoft Win32 code page and WCHAR support functions for Windows 2000/XP/Vista/7/8/10/etc */
 template <typename srcT,typename dstT> class _IconvWin32 : public _IconvBase<srcT,dstT> {
 protected:
     using pclass = _IconvBase<srcT,dstT>;
