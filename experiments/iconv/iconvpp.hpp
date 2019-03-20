@@ -36,7 +36,7 @@
 #endif
 
 #if defined(_WIN32)
-# include <windows.h>
+# define ENABLE_ICONV_WIN32 1
 #endif
 
 class _Iconv_CommonBase {
@@ -334,4 +334,74 @@ typedef _Iconv<char,wchar_t> IconvToW;
 typedef _Iconv<wchar_t,char> IconvFromW;
 
 #endif // ENABLE_ICONV
+
+#if defined(ENABLE_ICONV_WIN32)
+# include <windows.h>
+
+template <typename srcT,typename dstT> class _IconvWin32 : public _IconvBase<srcT,dstT> {
+protected:
+    using pclass = _IconvBase<srcT,dstT>;
+public:
+    explicit _IconvWin32(const UINT _codepage) : codepage(_codepage) {
+    }
+    _IconvWin32(const _IconvWin32 *p) = delete;
+    _IconvWin32(const _IconvWin32 &other) = delete; /* no copying */
+    _IconvWin32(const _IconvWin32 &&other) = delete; /* no moving */
+    _IconvWin32() = delete;
+    virtual ~_IconvWin32() {
+    }
+public:
+    virtual int _do_convert(void) {
+        if (codepage != 0u) {
+            dstT *i_dst = pclass::dst_ptr;
+            const srcT *i_src = pclass::src_ptr;
+            size_t src_left = (size_t)((uintptr_t)((char*)pclass::src_ptr_fence) - (uintptr_t)((char*)pclass::src_ptr));
+            size_t dst_left = (size_t)((uintptr_t)((char*)pclass::dst_ptr_fence) - (uintptr_t)((char*)pclass::dst_ptr));
+            int ret;
+
+            if (sizeof(dstT) == sizeof(char) && sizeof(srcT) == sizeof(WCHAR))
+                ret = WideCharToMultiByte(codepage,0,src_ptr,src_left/sizeof(srcT),dst_ptr,dst_left,NULL,NULL);
+            else if (sizeof(dstT) == sizeof(WCHAR) && sizeof(srcT) == sizeof(char))
+                ret = MultiByteToWideChar(codepage,0,src_ptr,src_left,dst_ptr,dst_left/sizeof(dstT),NULL,NULL);
+            else
+                ret = -1;
+
+            pclass::src_adv = (size_t)(pclass::src_ptr - i_src);
+            pclass::dst_adv = (size_t)(pclass::dst_ptr - i_dst);
+
+            if (ret == 0) {
+                DWORD err = GetLastError();
+
+                if (err == ERROR_INSUFFICIENT_BUFFER)
+                    return pclass::err_noroom;
+                else if (err == ERROR_NO_UNICODE_TRANSLATION)
+                    return pclass::err_notvalid;
+
+                return pclass::err_noinit;
+            }
+            else {
+                return 0;
+            }
+
+            return ret;
+        }
+
+        return pclass::err_noinit;
+    }
+public:
+    static _IconvWin32<srcT,dstT> *create(const UINT codepage) { /* factory function, WCHAR to char or char to WCHAR */
+        if ((sizeof(dstT) == sizeof(char) && sizeof(srcT) == sizeof(WCHAR)) ||
+            (sizeof(dstT) == sizeof(WCHAR) && sizeof(srcT) == sizeof(char)))
+            return new(std::nothrow) _IconvWin32<srcT,dstT>(codepage);
+
+        return NULL;
+    }
+protected:
+    UINT                        codepage = 0;
+};
+
+typedef _IconvWin32<char,WCHAR> IconvWin32ToW;
+typedef _IconvWin32<WCHAR,char> IconvWin32FromW;
+
+#endif // ENABLE_ICONV_WIN32
 
