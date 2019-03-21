@@ -529,10 +529,6 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                 case '[': 
                     ansi.sci=true;
                     break;
-                case '7': /* save cursor pos + attr */
-                case '8': /* restore this  (Wonder if this is actually used) */
-                case 'D':/* scrolling DOWN*/
-                case 'M':/* scrolling UP*/ 
                 case '*':/* PC-98: clear screen */
                     if (IS_PC98_ARCH) {
                         Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
@@ -540,11 +536,16 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                         INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
                         Real_INT10_SetCursorPos(0,0,page);
                         ClearAnsi();
-                        break;
                     }
                     else {
-                        /* fall through */
+                        LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unknown char %c after a esc",data[count]); /*prob () */
+                        ClearAnsi();
                     }
+                    break;
+                case '7': /* save cursor pos + attr TODO */
+                case '8': /* restore this TODO */
+                case 'D':/* scrolling DOWN TODO */
+                case 'M':/* scrolling UP TODO */ 
                 default:
                     LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unknown char %c after a esc",data[count]); /*prob () */
                     ClearAnsi();
