@@ -506,6 +506,10 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
         }
 
         if (!ansi.esc){
+            // TODO: PC-98 MS-DOS ANSI driver accepts 0x1E (RECORD SEPARATOR) as a single char command
+            //       to put the cursor in home position.
+            // TODO: PC-98 MS-DOS ANSI driver accepts CTRL+Z as a single char command to clear the
+            //       screeen and move the cursor to home (upper left).
             if(data[count]=='\033') {
                 /*clear the datastructure */
                 ClearAnsi();
