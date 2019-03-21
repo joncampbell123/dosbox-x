@@ -1123,6 +1123,15 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:37E1: (CL=10h AH=0Ah entry point, where BX = 0x0D2E)
+               (CL=10h AH=0Bh entry point, where BX = 0x0D72)
+        DH = 0
+        AX = DX
+        CALL WORD PTR CS:[BX]
+        return
+
+--
+
     0ADC:3A5C array of WORD values, offsets of procedures for each value of CL.
 
     0ADC:3A5C table contents.
