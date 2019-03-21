@@ -3891,8 +3891,11 @@ static Bitu INTDC_PC98_Handler(void) {
             else if (reg_ah == 0x02) { /* CL=0x10 AH=0x02 DL=attribute set console output attribute */
                 /* Ref: https://nas.jmc/jmcs/docs/browse/Computer/Platform/PC%2c%20NEC%20PC%2d98/Collections/Undocumented%209801%2c%209821%20Volume%202%20%28webtech.co.jp%29%20English%20translation/memdos%2eenglish%2dgoogle%2dtranslate%2etxt
                  *
-                 * DL is the attribute byte (in the format written directly to video RAM, not the ANSI code) */
+                 * DL is the attribute byte (in the format written directly to video RAM, not the ANSI code)
+                 *
+                 * NTS: Reverse engineering INT DCh shows it sets both 71Dh and 73Ch as below */
                 mem_writeb(0x71D,reg_dl);   /* 60:11D */
+                mem_writeb(0x73C,reg_dx);   /* 60:13C */
                 goto done;
             }
             goto unknown;
