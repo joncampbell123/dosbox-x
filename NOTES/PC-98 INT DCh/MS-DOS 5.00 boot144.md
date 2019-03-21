@@ -376,8 +376,7 @@ INT DC = 60:36B3
         IF BYTE PTR DS:[012A] == 0xFF JMP C2Ch
         IF CL >= 0x3A JMP BDCh
         CL = CL AND 0x0F
-    0ADC:0BD7:
-        IF CL <= 0x09 JMP BF4h                  ; CMP CL, 9 ; 0ADC:0BDA = JBE BF4h
+        IF CL <= 0x09 JMP BF4h
     0ADC:0BDC:
         BX = 0A3Ch
         CALL ACFh
@@ -1007,10 +1006,10 @@ INT DC = 60:36B3
 
 --
 
-    0ADC:37D7: (CL=10h AH=04h entry point)
-        CALL WORD PTR CS:[BX]                       ; BX = 0x0B90 or BX = 0x0BDA
+    0ADC:37D7: (CL=10h AH=04h entry point, where BX = 0x0B90)
+               (CL=10h AH=05h entry point, where BX = 0x0B99)
+        CALL WORD PTR CS:[BX]                       ; BX = 0x0B90 or BX = 0x0B99
         return
-                                                    ; NOTE: In 0xBDA case call goes straight to JBE instruction! What happens?
 
 --
 
