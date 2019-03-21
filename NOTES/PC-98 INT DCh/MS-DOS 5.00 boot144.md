@@ -396,6 +396,7 @@ INT DC = 60:36B3
         IF BYTE PTR DS:[0129] != 1 JMP C6Bh
     0ADC:0C50:
         CX = WORD PTR DS:[SI]               ; numeric value before "A" character, parameter
+    0ADC:0C52:
         AX = BYTE PTR DS:[0110]             ; Cursor Y position
         IF CX == 0 THEN CX = 1              ; AND CX, CX ; JNE C5Eh ; MOV CX, 1
     0ADC:0C5E:
@@ -1006,14 +1007,14 @@ INT DC = 60:36B3
 
 --
 
-    0ADC:37D7: (CL=10h AH=04h entry point, where BX = 0x0B90)
-               (CL=10h AH=05h entry point, where BX = 0x0B99)
+    0ADC:37D7: (CL=10h AH=04h entry point, where BX = 0x0B90 aka the "ESC D" handler)
+               (CL=10h AH=05h entry point, where BX = 0x0B99 aka the "ESC M" handler)
         CALL WORD PTR CS:[BX]                       ; BX = 0x0B90 or BX = 0x0B99
         return
 
 --
 
-    0ADC:37DA: (CL=10h AH=06h entry point, where BX = 0x0C52)
+    0ADC:37DA: (CL=10h AH=06h entry point, where BX = 0x0C52 aka the "ESC [ A" handler)
                (CL=10h AH=07h entry point, where BX = 0x0C75)
                (CL=10h AH=08h entry point, where BX = 0x0C9C)
                (CL=10h AH=09h entry point, where BX = 0x0CC3)
