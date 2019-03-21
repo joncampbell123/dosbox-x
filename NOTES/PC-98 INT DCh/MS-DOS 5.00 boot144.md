@@ -1015,7 +1015,7 @@ INT DC = 60:36B3
 --
 
     0ADC:37DA: (CL=10h AH=06h entry point, where BX = 0x0C52 aka the "ESC [ A" handler)
-               (CL=10h AH=07h entry point, where BX = 0x0C75)
+               (CL=10h AH=07h entry point, where BX = 0x0C75 aka the "ESC [ B" handler)
                (CL=10h AH=08h entry point, where BX = 0x0C9C)
                (CL=10h AH=09h entry point, where BX = 0x0CC3)
                (CL=10h AH=0Ch entry point, where BX = 0x0E4E)
