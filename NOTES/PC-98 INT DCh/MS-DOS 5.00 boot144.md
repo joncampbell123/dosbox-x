@@ -468,6 +468,26 @@ INT DC = 60:36B3
 
 --
 
+    ; ESC [ M
+    ; SI = ANSI escape area (2852h)
+    0ADC:0E69:
+        IF BYTE PTR DS:[0129] != 1 JMP E87h
+        CX = WORD PTR DS:[SI]
+    0ADC:0E72:
+        IF CX == 0 THEN CX = 1                      ; AND CX, CX ; JNZ E55h
+    0ADC:0E79:
+        PUSH CX
+        AH = BYTE PTR DS:[0110]                     ; AH = Cursor Y position
+        CALL 135Fh
+        POP CX
+        IF CX > 0 THEN CX--, JMP E79h               ; LOOP E79h
+    0ADC:0E84:
+        CALL 115Eh
+    0ADC:0E87:
+        return
+
+--
+
     ; ESC [ D
     ; SI = ANSI escape area (2852h)
     0ADC:0CBA:
@@ -1095,7 +1115,7 @@ INT DC = 60:36B3
                (CL=10h AH=08h entry point, where BX = 0x0C9C aka the "ESC [ C" handler)
                (CL=10h AH=09h entry point, where BX = 0x0CC3 aka the "ESC [ D" handler)
                (CL=10h AH=0Ch entry point, where BX = 0x0E4E aka the "ESC [ L" handler)
-               (CL=10h AH=0Dh entry point, where BX = 0x0E72)
+               (CL=10h AH=0Dh entry point, where BX = 0x0E72 aka the "ESC [ M" handler)
         DH = 0
         CX = DX
         CALL WORD PTR CS:[BX]
