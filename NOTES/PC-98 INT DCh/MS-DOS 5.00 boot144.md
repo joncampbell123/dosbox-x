@@ -409,6 +409,22 @@ INT DC = 60:36B3
 
 --
 
+    ; ESC [ B
+    ; SI = ANSI escape area (2852h)
+    0ADC:0C6C:
+        IF BYTE PTR DS:[0129] != 1 JMP C92h
+        CX = WORD PTR DS:[SI]
+    0ADC:0C75:
+        AL = (BYTE PTR DS:[0112]) - (BYTE PTR DS:[0110]), AH = 0
+        IF CX == 0 THEN CX = 1              ; AND CX, CX ; JNE C85h ; MOV CX, 1
+        IF CX > AX THEN CX = AX             ; CMP AX, CX ; JNC C8Bh ; MOV CX, AX
+        BYTE PTR DS:[0110] += CL
+        CALL 1535h                          ; update cursor position on screen
+    0ADC:0C8F:
+        return
+
+--
+
     ; Entry: CL = character code
     ;
     ; This is executed when the ESC is encountered outside of ANSI processing
