@@ -254,6 +254,7 @@ INT DC = 60:36B3
         BX = 2853h                                  ; ANSI escape parsing address + 1
     0ADC:0AF8:
         CX = WORD PTR DS:[BX]
+    0ADC:0AFA:
         AL = CL
         AH = BYTE PTR DS:[0112]                     ; Scroll range lower limit
         CALL B19h
@@ -999,7 +1000,7 @@ INT DC = 60:36B3
         DX += 0x2020                                ; DX = caller's DX add 0x20 to both bytes
         swap(DL,DH)                                 ; XCHG DL, DH
         CX = DX
-        CALL WORD PTR CS:[BX]                       ; BX = 0x0AFA in all cases
+        CALL WORD PTR CS:[BX]                       ; BX = 0x0AFA in all cases, which then feeds the "ESC =" handling code
         return
 
 --
