@@ -418,7 +418,7 @@ INT DC = 60:36B3
         AL = (BYTE PTR DS:[0112]) - (BYTE PTR DS:[0110]), AH = 0
         IF CX == 0 THEN CX = 1              ; AND CX, CX ; JNE C85h ; MOV CX, 1
         IF CX > AX THEN CX = AX             ; CMP AX, CX ; JNC C8Bh ; MOV CX, AX
-        BYTE PTR DS:[0110] += CL
+        BYTE PTR DS:[0110] += CL            ; Cursor Y position += CL
         CALL 1535h                          ; update cursor position on screen
     0ADC:0C8F:
         return
@@ -436,7 +436,7 @@ INT DC = 60:36B3
         IF CX == 0 THEN CX = 1                      ; AND CX, CX ; JNZ CACh
     0ADC:0CAC:
         IF CX > AX THEN CX = AX             ; CMP AX, CX ; JNC CB2h ; MOV CX, AX
-        BYTE PTR DS:[011C] += CL
+        BYTE PTR DS:[011C] += CL            ; Cursor X position += CL
     0ADC:0CB6:
         CALL 1535h                          ; update cursor position on screen
     0ADC:0CB9:
