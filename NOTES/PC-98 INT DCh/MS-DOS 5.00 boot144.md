@@ -91,7 +91,7 @@ INT DC = 60:36B3
 
     0ADC:0A00 Subroutine lookup table
         Referred from 0ADC:0AAC, CL is single char or first byte of kanji
-
+        CL=10h AH=00h, search by CL register from caller, or normal CON output.
                   .        .        .        .        .        .
     0ADC:00000A00 07 E7 10 08 19 11 09 F8 10 0A 49 11 0B 3A 11 0C  ..........I..:..
                         .        .        .        .        .
