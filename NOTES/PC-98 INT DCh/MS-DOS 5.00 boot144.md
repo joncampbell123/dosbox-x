@@ -988,6 +988,13 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:37C3: (CL=10h AH=02h entry point)
+        BYTE PTR DS:[011D],DL                       ; DL = caller's DL, assign to character attribute
+        WORD PTR DS:[013C],DX                       ; DX = caller's DX, assign to extended character attribute
+        return
+
+--
+
     0ADC:3A5C array of WORD values, offsets of procedures for each value of CL.
 
     0ADC:3A5C table contents.
