@@ -548,6 +548,8 @@ bool device_CON::Write(const Bit8u * data,Bit16u * size) {
                          */
                         Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
+                        /* reverse engineering of a bootdisk shows that ESC * (and CTRL+Z) also remove the function key row */
+                        void update_pc98_function_row(bool enable);
                         update_pc98_function_row(false);
 
                         INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
