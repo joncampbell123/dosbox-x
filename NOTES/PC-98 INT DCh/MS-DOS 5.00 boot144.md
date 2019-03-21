@@ -649,6 +649,47 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:1260:
+        PUSH ES, CX
+        ES = WORD PTR DS:[0032]                                 ; video ram segment (A000h)
+        DH = BYTE PTR DS:[0110]                                 ; Cursor Y position
+        DL = BYTE PTR DS:[011C]                                 ; Cursor X position
+        CALL 14F5h                                              ; convert to video memory address (return in BX)
+        CX = WORD PTR ES:[BX]                                   ; read from video memory
+        CALL 129Dh                                              ; Determine cell width (single or double, indicated in DL)
+        AX = 2
+        IF DL == 1 JMP 129Ah
+        DH = DL
+        CX = WORD PTR ES:[BX+2]
+        CALL 129Dh
+        AX = 0
+        IF DH != 2 JMP 1294h
+        AX = 3
+    0ADC:1294:
+        IF DL == 0 JMP 129Ah
+        AX++
+    0ADC:129A:
+        POP CX, ES
+    0ADC:129C:
+        return
+
+--
+
+    0ADC:129D:
+        DL = 0
+        IF CH == 0x00 JMP 12BBh
+        IF CH == 0xFF JMP 12BBh
+        IF CL <  0x09 JMP 12B3h
+        IF CL <  0x0C JMP 12BBh
+    0ADC:12B3:
+        DL = 1
+        IF (CL & 0x80) != 0 JMP 12BBh
+        DL = 2
+    0ADC:12BB:
+        return
+
+--
+
     0ADC:12E2 (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
         WORD PTR ES:[DI] = AX ; write character code
         DI += 0x2000
