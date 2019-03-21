@@ -339,6 +339,7 @@ INT DC = 60:36B3
     ; This is executed per character after ESC E until the end of the ANSI code
     0ADC:0B8D:
         CALL 115Eh                                  ; carriage return
+    0ADC:0B90:
         CALL 1149h                                  ; line feed / down arrow
     0ADC:0B93:                                      ; <- table jumps here for unknown escapes
         BYTE PTR DS:[0128] = 0
@@ -375,7 +376,8 @@ INT DC = 60:36B3
         IF BYTE PTR DS:[012A] == 0xFF JMP C2Ch
         IF CL >= 0x3A JMP BDCh
         CL = CL AND 0x0F
-        IF CL <= 0x09 JMP BF4h
+    0ADC:0BD7:
+        IF CL <= 0x09 JMP BF4h                  ; CMP CL, 9 ; 0ADC:0BDA = JBE BF4h
     0ADC:0BDC:
         BX = 0A3Ch
         CALL ACFh
@@ -1008,6 +1010,7 @@ INT DC = 60:36B3
     0ADC:37D7: (CL=10h AH=04h entry point)
         CALL WORD PTR CS:[BX]                       ; BX = 0x0B90 or BX = 0x0BDA
         return
+                                                    ; NOTE: In 0xBDA case call goes straight to JBE instruction! What happens?
 
 --
 
