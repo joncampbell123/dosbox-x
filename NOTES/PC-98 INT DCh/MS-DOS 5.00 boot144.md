@@ -995,6 +995,21 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:37CC: (CL=10h AH=03h entry point)
+        DX += 0x2020                                ; DX = caller's DX add 0x20 to both bytes
+        swap(DL,DH)                                 ; XCHG DL, DH
+        CX = DX
+        CALL WORD PTR CS:[BX]                       ; BX = 0x0AFA in all cases
+        return
+
+--
+
+    0ADC:37D7: (CL=10h AH=04h entry point)
+        CALL WORD PTR CS:[BX]                       ; BX = 0x0B90 or BX = 0x0BDA
+        return
+
+--
+
     0ADC:3A5C array of WORD values, offsets of procedures for each value of CL.
 
     0ADC:3A5C table contents.
