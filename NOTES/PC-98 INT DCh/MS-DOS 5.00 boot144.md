@@ -967,6 +967,24 @@ INT DC = 60:36B3
     0ADC:37A7: (CL=10h AH=00h entry point)
         CL = DL
         CALL NEAR BX (BX is 0A9C, no other case)
+    0ADC:37AB:
+        return
+
+--
+
+    0ADC:37AC: (CL=10h AH=01h entry point)
+        ES = WORD PTR DS:[05E1]                     ; caller's DS segment
+        BX = DX                                     ; caller's DX register
+    0ADC:37B2:
+        CL = BYTE PTR ES:[BX]
+        IF CL == 0x24 JMP 37C2h                     ; stop at '$'
+        PUSH BX
+        CALL A9Ch
+        POP BX
+        INC BX
+        JMP 37B2h
+    0ADC:37C2:
+        return
 
 --
 
