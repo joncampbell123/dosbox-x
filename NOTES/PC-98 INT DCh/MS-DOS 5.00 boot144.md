@@ -460,7 +460,7 @@ INT DC = 60:36B3
         POP CX
         IF CX > 0 THEN CX--, JMP E55h               ; LOOP E55h
     0ADC:0E60:
-        CALL 115Eh
+        CALL 115Eh                                  ; carriage return
     0ADC:0E63:
         BYTE PTR DS:[012A] = 0
     0ADC:0E68:
@@ -482,7 +482,7 @@ INT DC = 60:36B3
         POP CX
         IF CX > 0 THEN CX--, JMP E79h               ; LOOP E79h
     0ADC:0E84:
-        CALL 115Eh
+        CALL 115Eh                                  ; carriage return
     0ADC:0E87:
         return
 
