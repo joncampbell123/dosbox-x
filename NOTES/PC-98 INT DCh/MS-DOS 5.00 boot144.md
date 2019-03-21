@@ -420,7 +420,7 @@ INT DC = 60:36B3
         IF CX > AX THEN CX = AX             ; CMP AX, CX ; JNC C8Bh ; MOV CX, AX
         BYTE PTR DS:[0110] += CL            ; Cursor Y position += CL
         CALL 1535h                          ; update cursor position on screen
-    0ADC:0C8F:
+    0ADC:0C92:
         return
 
 --
