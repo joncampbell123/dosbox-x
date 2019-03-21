@@ -397,6 +397,12 @@ public:
     }
 public:
     static _IconvWin32<srcT,dstT> *create(const UINT codepage) { /* factory function, WCHAR to char or char to WCHAR */
+	CPINFO cpi;
+
+	/* Test whether the code page exists */
+	if (!GetCPInfo(codepage,&cpi))
+		return NULL;
+
         if ((sizeof(dstT) == sizeof(char) && sizeof(srcT) == sizeof(WCHAR)) ||
             (sizeof(dstT) == sizeof(WCHAR) && sizeof(srcT) == sizeof(char)))
             return new(std::nothrow) _IconvWin32<srcT,dstT>(codepage);
