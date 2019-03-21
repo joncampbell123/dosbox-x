@@ -444,6 +444,23 @@ INT DC = 60:36B3
 
 --
 
+    ; ESC [ D
+    ; SI = ANSI escape area (2852h)
+    0ADC:0CBA:
+        IF BYTE PTR DS:[0129] != 1 JMP CDCh
+        CX = WORD PTR DS:[SI]
+    0ADC:0CC3:
+        AX = BYTE PTR DS:[011C]                     ; Cursor X position
+        IF CX == 0 THEN CX = 1                      ; AND CX, CX ; JNZ CCFh
+        IF CX > AX THEN CX = AX                     ; CMP AX, CX ; JNC CD5h ; MOV CX, AX
+        BYTE PTR DS:[011C] -= CL                    ; Cursor X position -= CL
+    0ADC:0CD9:
+        CALL 1535h                                  ; update cursor position on screen
+    0ADC:0CDC:
+        return
+
+--
+
     ; ESC [ L
     ; SI = ANSI escape area (2852h)
     0ADC:0E3E:
@@ -484,23 +501,6 @@ INT DC = 60:36B3
     0ADC:0E84:
         CALL 115Eh                                  ; carriage return
     0ADC:0E87:
-        return
-
---
-
-    ; ESC [ D
-    ; SI = ANSI escape area (2852h)
-    0ADC:0CBA:
-        IF BYTE PTR DS:[0129] != 1 JMP CDCh
-        CX = WORD PTR DS:[SI]
-    0ADC:0CC3:
-        AX = BYTE PTR DS:[011C]                     ; Cursor X position
-        IF CX == 0 THEN CX = 1                      ; AND CX, CX ; JNZ CCFh
-        IF CX > AX THEN CX = AX                     ; CMP AX, CX ; JNC CD5h ; MOV CX, AX
-        BYTE PTR DS:[011C] -= CL                    ; Cursor X position -= CL
-    0ADC:0CD9:
-        CALL 1535h                                  ; update cursor position on screen
-    0ADC:0CDC:
         return
 
 --
