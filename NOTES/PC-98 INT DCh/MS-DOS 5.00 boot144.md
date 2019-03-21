@@ -961,6 +961,7 @@ INT DC = 60:36B3
 --
 
     0ADC:3A7C array of WORD value pairs (address, parameter). NOTE: Lack of range checking!
+              Lookup table for CL=10h, index by AH
 
                   .           .           .           .
     0ADC:00003A7C A7 37 9C 0A AC 37 00 00 C3 37 00 00 CC 37 FA 0A  .7...7...7...7..
