@@ -986,6 +986,147 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:32DF: (CL=0Dh entry point)
+        ES = WORD PTR CS:[0030]                 ; MS-DOS segment (60h)
+        AX = WORD PTR DS:[05DB]                 ; AX from caller
+        DS = WORD PTR DS:[05E1]                 ; DS from caller
+        SI = DX                                 ; DX from caller
+        IF AX > 0xFF JMP 32F7h                  ; CMP AX,00FF ; JA 32F7h
+        IF AX != 0xFF JMP 3310h                 ; ... JNE 3310h
+        JMP 3350h
+    0ADC:32F7: (AX > 0xFF)
+        IF AX < 0x101 JMP 3304h                 ; CMP AX,0101 ; JC 3304h
+        IF AX == 0x101 JMP 3308h                ; ... JE 3308h
+        IF AX == 0x102 JMP 330Ch                ; CMP AX,0102 ; JE 330Ch
+    0ADC:3303:
+        return
+    0ADC:3304: (AX < 0x101)
+        CALL 3445h
+        return
+    0ADC:3308: (AX == 0x101)
+        CALL 349Ch
+        return
+    0ADC:330C: (AX == 0x102)
+        CALL 3538h
+        return
+    0ADC:3310: (AX < 0xFF)
+        IF AX != 0 THEN AX--, JMP 3390h         ; SUB AX, 1 ; JNC 3390h
+    0ADC:3315: (AX == 0, DS = caller DS segment, SI = caller DX register, ES = MS-DOS segment 60h)
+        DI = 2D2Eh                              ; This appears to be the memory location that holds the function key row strings and attributes
+        DL = 0Ah                                ; There are 10 entries, 16 bytes apart
+    0ADC:331A:
+        CALL 3547h                              ; 
+        _fmemcpy(ES:DI, DS:SI, 0x0F)            ; CX = 0x0F ; REP MOVSB
+                                                ; Side effect: SI += 0x0F, DI += 0x0F
+        SI++
+        IF DL > 0 THEN DL--, JMP 331Ah          ; DEC DL ; JNZ 331Ah
+    0ADC:3327:
+        DI += 0x50                              ; Reminder: 2D2Eh + (0x10 * 0x0A) + 0x50 = 2E1Eh
+                                                ; This (2E1Eh) appears to hold the text that is injected when the function key is pressed.
+                                                ; For example by default this table defines F1 -> "DIR A:\x0D"
+        DL = 0Ah
+    0ADC:332C:
+        CALL 3547h
+        _fmemcpy(ES:DI, DS:SI, 0x0F)            ; CX = 0x0F ; REP MOVSB
+                                                ; Side effect: SI += 0x0F, DI += 0x0F
+        SI++
+        IF DL > 0 THEN DL--, JMP 332Ch          ; DEC DL ; JNZ 332Ch
+    0ADC:3339:
+        DI += 0x50                              ; Reminder: 2E1Eh + (0x10 * 0x0A) + 0x50 = 2F0Eh
+        DL = 0x0B
+    0ADC:333E:
+        CALL 3547h
+        _fmemcpy(ES:DI, DS:SI, 0x05)            ; CX = 0x05 ; REP MOVSB
+                                                ; Side effect: SI += 0x05, DI += 0x05
+        SI++
+        DI += 2
+        IF DL > 0 THEN DL--, JMP 333Eh          ; DEC DL ; JNZ 333Eh
+    0ADC:334E:
+        JMP 3386h
+    0ADC:3350: (AX == 0xFF)
+        DI = 2D2Eh                              ; Memory location that appears to hold function key row strings
+        DL = 0x1E
+    0ADC:3355:
+        CALL 3547h
+        _fmemcpy(ES:DI, DS:SI, 0x0F)            ; CX = 0x0F ; REP MOVSB
+                                                ; Side effect: SI += 0x0F, DI += 0x0F
+        SI++
+        IF DL > 0 THEN DL--, JMP 3355h
+    0ADC:3362:
+        DL = 0x0B
+    0ADC:3364:
+        CALL 3547h
+        _fmemcpy(ES:DI, DS:SI, 0x05)            ; CX = 0x05 ; REP MOVSB
+                                                ; Side effect: SI += 0x05, DI += 0x05
+        DI += 2
+        IF DL > 0 THEN DL--, JMP 3364h
+    0ADC:3374:
+        DI = 0x2F86
+        DL = 0x0F
+    0ADC:3379:
+        CALL 3547h
+        _fmemcpy(ES:DI, DS:SI, 0x0F)            ; CX = 0x0F ; REP MOVSB
+        SI++
+        IF DL > 0 THEN DL--, JMP 3379h
+    0ADC:3386:
+        IF BYTE PTR ES:[0111] == 0 THEN JMP 33ECh   ; ES = DOS segment 60h
+        JMP 33ECh                                   ; Wait... what?
+    0ADC:3390:
+        (TODO)
+
+    0ADC:33EC:
+        IF AX < 0x29 JMP 33E3h                      ; CMP AX, 29h ; JC 33E3h
+        IF AX > 0x39 JMP 33E3h                      ; CMP AX, 39h ; JA 33E3h
+        IF AX == 0x39 JMP 3417h                     ; ... JE 3417h
+    0ADC:33F8:
+        IF AX <= 0x32 JMP 3405h                     ; CMP AX, 32h ; JBE 3405h
+        IF AX != 0x38 JMP 33E3h                     ; CMP AX, 38h ; JNE 33E3h
+    0ADC:3402:
+        AX = 0x28
+    0ADC:3405:
+        DI = ((AX - 0x29) * 16) + 0x2F86
+        CX = 0x000F
+        JMP 33DEh
+    0ADC:3417:
+        AX = 0x38
+        PUSH DS, SI, DI
+        CALL 33F8h
+        POP DI, SI, DS
+        SI += 0x10
+        DI += 0x10
+        CX = 0x0A
+    0ADC:342C:
+        PUSH CX, DS, SI, DI
+        AX = 0x33 - CX
+        CALL 33F8h
+        POP DI, SI
+        DI += 0x10
+        SI += 0x10
+        POP DS, CX
+        IF CX > 0 THEN CX--, JMP 342Ch              ; LOOP 342Ch
+    0ADC:3444:
+        return
+    0ADC:3445:
+        DI = 307Ah
+        SI += 2
+        AX = BX = 0
+        _fmemcpy(ES:DI, DS:SI, 0x200)               ; CX = 0x200 ; REP MOVSB
+    0ADC:3454:
+        DI = 307Ah
+        CX = DI
+        CX += 0x200
+        IF DI >= CX JMP 346Fh                       ; CMP DI, CX ; JNC 346Fh
+        IF BYTE PTR ES:[DI] == 0 JMP 346Fh
+        AL = BYTE PTR ES:[DI]                       ; AH = 0 at this point
+        DI += AX
+        JMP 345Dh
+    0ADC:346F:
+        WORD PTR ES:[3076] = DI - 0x307A            ; SUB DI, 307Ah ; MOV ES:[3076] DI
+        DI = 3078h
+        (TODO)
+
+--
+
     0ADC:355B: (CL=0Ah entry point)
         IF WORD PTR DS:[1802] != 0 JMP 3563h
         return
