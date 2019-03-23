@@ -1,0 +1,9 @@
+
+local a = 123;
+local b = 123.456;
+local c = "Hello world";
+
+print(a+"\n");
+print(b+"\n");
+print(c+"\n");
+
