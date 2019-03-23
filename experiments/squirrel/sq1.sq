@@ -24,3 +24,9 @@ print(e.a+"\n");
 print(e["c"]+"\n");
 print(e[20]+"\n");
 
+function aaa(x,y) {
+    return x*y;
+}
+
+print(aaa(4,3)+"\n");
+
