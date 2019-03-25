@@ -1,4 +1,9 @@
 0.82.17 (next)
+  - IDE emulation bug fixed that prevented BIOS to IDE
+    geometry translation when BIOS head count == 255. This
+    fix also allows Windows 95 to use it's IDE driver with
+    >= 4GB hard drives instead of running in MS-DOS compatibility
+    mode.
   - Disk image support fixed to allow 4GB or larger hard disk
     images to work again.
   - FPU x86 core no longer calls E_Exit if the FPU stack
