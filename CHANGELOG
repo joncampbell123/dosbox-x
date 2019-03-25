@@ -1,4 +1,6 @@
 0.82.17 (next)
+  - Disk image support fixed to allow 4GB or larger hard disk
+    images to work again.
   - FPU x86 core no longer calls E_Exit if the FPU stack
     overflows or underflows.
   - Updated build-debug scripts to accept "32" on the command
