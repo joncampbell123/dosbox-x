@@ -425,7 +425,7 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
     heads = 0;
     cylinders = 0;
     image_base = 0;
-    image_length = imgSizeK * 1024;
+    image_length = (Bit64u)imgSizeK * (Bit64u)1024;
     sectors = 0;
     refcount = 0;
     sector_size = 512;
