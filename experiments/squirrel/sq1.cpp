@@ -52,6 +52,12 @@ SQInteger hello1(HSQUIRRELVM v) {
                 sq_getstring(v,n,&i);
                 printf("\"%s\" ",(const char*)i);
                 } break;
+            case OT_CLOSURE: {
+                printf("(closure) ");
+                } break;
+            case OT_NATIVECLOSURE: {
+                printf("(native closure) ");
+                } break;
             default:
                 break;
         };
