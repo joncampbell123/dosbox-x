@@ -29,4 +29,8 @@ function aaa(x,y) {
 }
 
 print(aaa(4,3)+"\n");
+hello1();
+hello1(1);
+hello1(23.44);
+hello1("Hello world");
 

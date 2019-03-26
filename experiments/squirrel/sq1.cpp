@@ -29,6 +29,36 @@ extern "C" {
 #define scvprintf vfprintf
 #endif
 
+SQInteger hello1(HSQUIRRELVM v) {
+    printf("hello1 ");
+    for (SQInteger n=1;n <= sq_gettop(v);n++) {
+        switch (sq_gettype(v,n)) {
+            case OT_NULL:
+                printf("(null) ");
+                break;
+            case OT_INTEGER: {
+                SQInteger i = 0;
+                sq_getinteger(v,n,&i);
+                printf("%lld ",(long long)i);
+                } break;
+            case OT_FLOAT: {
+                SQFloat i = 0;
+                sq_getfloat(v,n,&i);
+                printf("%.3f ",(double)i);
+                } break;
+            case OT_STRING: {
+                const SQChar *i = NULL;
+                sq_getstring(v,n,&i);
+                printf("\"%s\" ",(const char*)i);
+                } break;
+            default:
+                break;
+        };
+    }
+    printf("\n");
+    return 0;
+}
+
 void printfunc(HSQUIRRELVM SQ_UNUSED_ARG(v),const SQChar *s,...)
 {
     va_list vl;
@@ -81,6 +111,14 @@ int main(int argc,char **argv) {
         streamsize rd = i.gcount();
         assert(rd < sz);
         blob[rd] = 0;
+    }
+
+    {
+        sq_pushroottable(sq);
+        sq_pushstring(sq,"hello1",-1);
+        sq_newclosure(sq,hello1,0);
+        sq_newslot(sq,-3,SQFalse);
+        sq_pop(sq,1);
     }
 
     if (SQ_SUCCEEDED(sq_compilebuffer(sq,blob,strlen(blob),"file",SQTrue))) {
