@@ -31,7 +31,8 @@ extern "C" {
 
 SQInteger hello1(HSQUIRRELVM v) {
     printf("hello1 ");
-    for (SQInteger n=1;n <= sq_gettop(v);n++) {
+    SQInteger mx = sq_gettop(v);
+    for (SQInteger n=1;n <= mx;n++) {
         switch (sq_gettype(v,n)) {
             case OT_NULL:
                 printf("(null) ");
