@@ -33,4 +33,5 @@ hello1();
 hello1(1);
 hello1(23.44);
 hello1("Hello world");
-
+hello1(1,2,3,4);
+hello1(1,2.3,"4");
