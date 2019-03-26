@@ -91,8 +91,8 @@ int main(int argc,char **argv) {
     sq = sq_open(1024);
     if (sq == NULL) return 1;
 
-    sqstd_register_bloblib(sq);
-    sqstd_register_iolib(sq);
+//  sqstd_register_bloblib(sq);             <- Valgrind complains about out of range memory access
+//  sqstd_register_iolib(sq);               <- Valgrind complains about out of range memory access
     sqstd_register_systemlib(sq);
     sqstd_register_mathlib(sq);
     sqstd_register_stringlib(sq);
