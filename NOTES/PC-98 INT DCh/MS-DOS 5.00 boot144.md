@@ -837,6 +837,31 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:12CA: (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
+        CALL 133Ch
+        CALL 12F2h          ; write double-wide
+    0ADC:12D0:
+        return
+
+--
+
+    0ADC:12D1: (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
+        CALL 1324h
+        CALL 12F2h          ; write double-wide
+    0ADC:12D7:
+        return
+
+--
+
+    0ADC:12D8: (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
+        CALL 1324h
+        CALL 133Ch
+        CALL 12F2h          ; write double-wide
+    0ADC:12E1:
+        return
+
+--
+
     ; This appears to write a single-wide character
     0ADC:12E2: (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
         WORD PTR ES:[DI] = AX ; write character code
