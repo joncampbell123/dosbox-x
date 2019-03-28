@@ -837,11 +837,36 @@ INT DC = 60:36B3
 
 --
 
+    ; This appears to write a single-wide character
     0ADC:12E2: (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
         WORD PTR ES:[DI] = AX ; write character code
         DI += 0x2000
         WORD PTR ES:[DI] = WORD PTR DS:[013C] (60:13C display attribute in extended attribute mode) ; write attribute code
         AL = 1 (this indicates to caller to move cursor X position 1 unit to the right)
+        return
+
+--
+
+    ; This appears to write a double-wide (two cell wide) character
+    0ADC:12F2: (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
+        IF BYTE PTR DS:[011C] < 0x4F JMP 1311h              ; if Cursor X coordinate < 0x4F
+        PUSH AX
+        CX = 0x20, WORD PTR ES:[DI] = CX
+        CALL 118Ch                                          ; advance cursor one column
+        DH = BYTE PTR DS:[0110]                             ; DH = cursor Y
+        DL = BYTE PTR DS:[011C]                             ; DL = cursor X
+        CALL 14F5h                                          ; Convert DH, DL to VRAM address in BX
+        DI = BX
+        POP AX
+    0ADC:1311:
+        WORD PTR ES:[DI] = AX, DI += 2                      ; STOSW
+        WORD PTR ES:[DI] = AX | 0x80, DI += 2               ; OR AL,80h ; STOSW
+        DI -= 4, DI += 0x2000
+        AX = WORD PTR DS:[013C]                             ; AX = extended color attribute
+        WORD PTR ES:[DI] = AX, DI += 2                      ; STOSW
+        WORD PTR ES:[DI] = AX, DI += 2                      ; STOSW
+        AL = 2
+    0ADC:1323:
         return
 
 --
