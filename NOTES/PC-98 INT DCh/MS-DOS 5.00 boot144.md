@@ -837,6 +837,22 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:12BC: (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
+        CALL 1330h
+        CALL 12E2h          ; write single-wide
+    0ADC:12C2:
+        return
+
+--
+
+    0ADC:12C3: (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
+        CALL 1324h
+        CALL 12E2h          ; write single-wide
+    0ADC:12C9:
+        return
+
+--
+
     0ADC:12CA: (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
         CALL 133Ch
         CALL 12F2h          ; write double-wide
@@ -868,6 +884,7 @@ INT DC = 60:36B3
         DI += 0x2000
         WORD PTR ES:[DI] = WORD PTR DS:[013C] (60:13C display attribute in extended attribute mode) ; write attribute code
         AL = 1 (this indicates to caller to move cursor X position 1 unit to the right)
+    0ADC:12F1:
         return
 
 --
