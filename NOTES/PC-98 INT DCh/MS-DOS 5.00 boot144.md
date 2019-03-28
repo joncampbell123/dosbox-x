@@ -917,6 +917,39 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:1324: (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
+        PUSH DI
+        DI -= 2
+        CX = 0x20
+        WORD PTR ES:[DI] = CX
+        POP DI
+    0ADC:132F:
+        return
+
+--
+
+    0ADC:1330: (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
+        PUSH DI
+        DI += 2
+        CX = 0x20
+        WORD PTR ES:[DI] = CX
+        POP DI
+    0ADC:133B:
+        return
+
+--
+
+    0ADC:133C: (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
+        PUSH DI
+        DI += 4
+        CX = 0x20
+        WORD PTR ES:[DI] = CX
+        POP DI
+    0ADC:1347:
+        return
+
+--
+
     0ADC:1348: (scroll up screen scroll region)
         AH = BYTE PTR DS:[011E]         ; scroll region upper limit
         WORD PTR DS:[011F] = 0x0001     ; scroll "weight" aka delay
