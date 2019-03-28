@@ -236,6 +236,21 @@ INT DC = 60:36B3
 
 --
 
+    0ADC:0A90:
+        CALL A94h
+        return far                          ; RETF
+    0ADC:0A94:
+        MOV AX,0100h
+        return
+
+--
+
+    0ADC:0A98:
+        CALL A9Ch
+        return far                          ; RET
+
+--
+
     0ADC:0A9C: (CL=10h AH=00h, at this time CL == caller's DL and DS = DOS segment 60h)
         IF BYTE PTR DS:[0128] != 0 JMP AB5  (60:128)
         IF CL < 0x20 JMP AACh
