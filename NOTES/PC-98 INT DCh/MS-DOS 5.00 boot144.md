@@ -850,6 +850,7 @@ INT DC = 60:36B3
     ; This appears to write a double-wide (two cell wide) character
     0ADC:12F2: (DS = DOS segment 60h, ES = Text VRAM segment A000h, AX = character code, DI = memory offset)
         IF BYTE PTR DS:[011C] < 0x4F JMP 1311h              ; if Cursor X coordinate < 0x4F
+    ; NTS: Cursor wraparound case (no room on last column). Write an empty cell then wrap to the next line and print char.
         PUSH AX
         CX = 0x20, WORD PTR ES:[DI] = CX
         CALL 118Ch                                          ; advance cursor one column
@@ -858,6 +859,9 @@ INT DC = 60:36B3
         CALL 14F5h                                          ; Convert DH, DL to VRAM address in BX
         DI = BX
         POP AX
+    ; NTS: Notice the double-wide (usually Kanji) writing routine writes the code from AX, then
+    ;      writes AX | 0x80. This has no effect on the display on real hardware, but follows
+    ;      NEC PC-98 recommendations.
     0ADC:1311:
         WORD PTR ES:[DI] = AX, DI += 2                      ; STOSW
         WORD PTR ES:[DI] = AX | 0x80, DI += 2               ; OR AL,80h ; STOSW
