@@ -4,6 +4,8 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
 
     0060:0020 WORD MS-DOS product number        [see INT DCh CL=12h]
     0060:0022 WORD Internal revision number     [see INT DCh CL=15h AH=0]
+    0060:002E WORD INT DCh / ANSI segment (in this dump, 0ADCh)
+    0060:0030 WORD ?? (in this dump, 3800h)
     0060:0032 WORD Text VRAM segment (A000h)
     0060:0037 BYTE ??
     0060:0068 WORD RS-232C channel 0 AUX protocol [undocumented PC-98 webtech] [see INT DCh CL=0Ah, INT DCh CL=0Eh AH=01h]
@@ -36,6 +38,7 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:013C WORD display attribute in extended attribute mode [INT DCh CL=10h AL=02h]
     0060:013E WORD erasure attribute in extended attribute mode [INT DCh CL=10h AL=02h]
     0060:014E BYTE some sort of flag
+    0060:0162 WORD ??
     0060:0214 WORD:WORD 16-bit far pointer (0ADC:3126)
     0060:0268 WORD ??
     0060:05DB WORD stored AX value from caller
@@ -47,6 +50,7 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:0767 Stack pointer (from DOS segment), stack switches to on entry to procedure
     0060:17FA WORD ??
     0060:1802 WORD ??
+    0060:197A BYTE ??
     0060:1DC4 BYTE ??
     0060:2852 BYTE x 0x28 ANSI escape parsing state (such as, numeric values from ESC[m )
     0060:2A7A WORD ??
@@ -86,6 +90,35 @@ INT DC = 60:36B3
 --
 
     0ADC:0030 WORD DOS kernel segment (60h)
+
+--
+
+    0ADC:0032:
+        PUSH DS
+        DS = WORD PTR CS:[0030]                             ; DOS kernel segment (60h)
+        IF (BYTE PTR DS:[197A] & 3) == 0 JMP 61h            ; 0060:197A
+    0ADC:003F:
+        ES = 0
+        CX = WORD PTR ES:[05EA]                             ; 0000:05EA Disk 0 Parameter table segment??
+        IF CX != WORD PTR DS:[002E] JMP 52h                 ; ??
+        DI = 5EAh
+        WORD PTR ES:[DI] = AX, DI += 2                      ; STOSW
+    0ADC:0052:
+        CX = WORD PTR ES:[05EE]                             ; 0000:05EE Disk 1 Parameter table segment?
+        IF CX != WORD PTR DS:[002E] JMP 61h
+        DI = 5EEh
+        WORD PTR ES:[DI] = AX, DI += 2                      ; STOSW
+    0ADC:0061:
+        POP DS
+        ES = WORD PTR CS:[0030]                             ; DOS kernel segment (60h)
+        WORD PTR ES:[002E] = AX                             ; ??
+        DI = 162h
+        CX = 36h
+    0ADC:0071:
+        WORD PTR ES:[DI] = AX, DI += 4                      ; STOSW ; INC DI ; INC DI
+        IF CX > 0 THEN CX--, JMP 71h                        ; LOOP 71h
+    0ADC:0076:
+        return far                                          ; RETF
 
 --
 
