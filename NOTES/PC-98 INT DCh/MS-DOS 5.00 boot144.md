@@ -10,6 +10,7 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:0037 BYTE ??
     0060:0068 WORD RS-232C channel 0 AUX protocol [undocumented PC-98 webtech] [see INT DCh CL=0Ah, INT DCh CL=0Eh AH=01h]
     0060:008A BYTE kanji / graph mode flag
+    0060:008B BYTE ??
     0060:00A5 BYTE ??
     0060:00A6 BYTE ??
     0060:00B4 BYTE INT DCh in-progress flag [undocumented PC-98 webtech]
