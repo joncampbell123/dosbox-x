@@ -556,6 +556,33 @@ INT DC = 60:36B3
 
     ; Entry: CL = character code
     ;
+    ; This is executed on ESC [ >
+    0ADC:0E88:
+        BYTE PTR DS:[012A] = 1
+        return
+
+--
+
+    ; Entry: CL = character code
+    ;
+    ; This is executed on ESC [ ?
+    0ADC:0E8E:
+        BYTE PTR DS:[012A] = 2
+        return
+
+--
+
+    ; Entry: CL = character code
+    ;
+    ; This is executed on ESC [ =
+    0ADC:0E94:
+        BYTE PTR DS:[012A] = 3
+        return
+
+--
+
+    ; Entry: CL = character code
+    ;
     ; This is executed when the ESC is encountered outside of ANSI processing
 
     0ADC:10C1:
