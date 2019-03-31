@@ -32,7 +32,7 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:0124 WORD ACFh BX value (?))
     0060:0128 BYTE ANSI escape handling state (0=normal 1=ESC 2>=ANSI processing)
     0060:0129 BYTE ANSI escape handling state (?)
-    0060:012A BYTE ??
+    0060:012A BYTE ANSI escape handling state (?) 0 = ?   1 = ESC[>  2 = ESC[?  3 = ESC[=
     0060:012B BYTE Saved cursor attribute ( ESC [s )
     0060:0134 WORD ANSI escape handling pointer of some kind (?)
     0060:0136 BYTE drive number last accessed by IO.SYS block driver [INT DCh CL=13h]
