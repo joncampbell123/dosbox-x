@@ -595,6 +595,11 @@ void DOS_SetupMemory(void) {
 	} else if (machine==MCH_PCJR) {
 		DOS_MCB mcb_devicedummy((Bit16u)0x2000);
 
+        /* FIXME: The PCjr can have built-in either 64KB or 128KB of RAM.
+         *        RAM beyond 128KB is made possible with expansion sidecars.
+         *        DOSBox-X needs to support memsizekb=64 or memsizekb=128,
+         *        and adjust video ram location appropriately. */
+
 		if (seg_limit < ((256*1024)/16))
 			E_Exit("PCjr requires at least 256K");
 		/* memory from 128k to 640k is available */
