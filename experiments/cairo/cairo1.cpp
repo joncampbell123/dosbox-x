@@ -4,6 +4,8 @@
 #include <SDL.h>
 
 int main() {
+    double ang = 0,angv = (M_PI * 2) / 360,angstep = (M_PI * 2) / 3;
+
     if (SDL_Init(SDL_INIT_VIDEO) != 0)
         return 1;
 
@@ -65,6 +67,32 @@ int main() {
         cairo_set_source_rgba(cactx,0.25,0.25,0.25,1.0);
         cairo_paint(cactx);
 
+        // draw
+        cairo_set_line_width(cactx,8.0);
+
+        {
+            unsigned int step=0;
+
+            for (double a=0;a < (M_PI * 2);a += angstep,step++) {
+                double x = 160.0 + cos(a+ang)*100.0;
+                double y = 120.0 + sin(a+ang)*100.0;
+
+                if (step == 0)
+                    cairo_move_to(cactx,x,y);
+                else
+                    cairo_line_to(cactx,x,y);
+            }
+
+            cairo_close_path(cactx);
+            ang += angv;
+        }
+
+        cairo_set_source_rgb(cactx,1.0,1.0,1.0);
+        cairo_fill_preserve(cactx);
+
+        cairo_set_source_rgb(cactx,0.0,0.0,1.0);
+        cairo_stroke(cactx);
+
         // copy Cairo output to display
         cairo_surface_flush(csurf);
         {
@@ -89,6 +117,8 @@ int main() {
             SDL_UnlockSurface(surface);
             SDL_UpdateWindowSurface(window);
         }
+
+        SDL_Delay(1000 / 30);
     }
 
     cairo_surface_flush(csurf);
