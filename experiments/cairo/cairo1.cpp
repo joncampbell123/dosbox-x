@@ -43,7 +43,7 @@ int main() {
     while (run) {
         SDL_Event ev;
 
-        if (SDL_PollEvent(&ev)) {
+        while (SDL_PollEvent(&ev)) {
             switch (ev.type) {
                 case SDL_WINDOWEVENT:
                     switch (ev.window.event) {
