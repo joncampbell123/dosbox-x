@@ -64,7 +64,7 @@ int main() {
 
         // clear
         cairo_reset_clip(cactx);
-        cairo_set_source_rgba(cactx,0.25,0.25,0.25,1.0);
+        cairo_set_source_rgb(cactx,0.25,0.25,0.25);
         cairo_paint(cactx);
 
         // draw
