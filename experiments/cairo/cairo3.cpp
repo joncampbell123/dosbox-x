@@ -31,7 +31,21 @@ int main() {
         return 1;
     }
 
-    cairo_surface_t* csurf = cairo_image_surface_create(csurffmt, 320, 240);
+    if (surface->pixels == NULL || SDL_MUSTLOCK(surface)) {
+        fprintf(stderr,"Surface not appropriate for Cairo\n");
+        return 1;
+    }
+
+    int csurfpitch = cairo_format_stride_for_width(csurffmt, 320);
+    fprintf(stderr,"Cairo stride %d\n",csurfpitch);
+    fprintf(stderr,"SDL stride %d\n",surface->pitch);
+
+    if (csurfpitch != surface->pitch) {
+        fprintf(stderr,"Sorry, Cairo and SDL do not agree\n");
+        return 1;
+    }
+
+    cairo_surface_t* csurf = cairo_image_surface_create_for_data((unsigned char*)surface->pixels, csurffmt, 320, 240, csurfpitch);
     if (csurf == NULL)
         return 1;
 
@@ -115,28 +129,8 @@ int main() {
 
         // copy Cairo output to display
         cairo_surface_flush(csurf);
-        {
-            unsigned char *cbuf = cairo_image_surface_get_data(csurf);
-            int width = cairo_image_surface_get_width(csurf);
-            int height = cairo_image_surface_get_height(csurf);
-            int stride = cairo_image_surface_get_stride(csurf);
 
-            SDL_LockSurface(surface);
-
-            if (cbuf != NULL && surface->pixels != NULL) {
-                if (width > surface->w) width = surface->w;
-                if (height > surface->h) height = surface->h;
-
-                for (int y=0;y < height;y++) {
-                    unsigned char *d = (unsigned char*)(surface->pixels) + (surface->pitch * y);
-                    unsigned char *s = (unsigned char*)(cbuf) + (stride * y);
-                    memcpy(d,s,width*surface->format->BytesPerPixel);
-                }
-            }
-
-            SDL_UnlockSurface(surface);
-            SDL_UpdateWindowSurface(window);
-        }
+        SDL_UpdateWindowSurface(window);
 
         SDL_Delay(1000 / 30);
     }
