@@ -10,6 +10,7 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:0037 BYTE ??
     0060:0068 WORD RS-232C channel 0 AUX protocol [undocumented PC-98 webtech] [see INT DCh CL=0Ah, INT DCh CL=0Eh AH=01h]
     0060:008A BYTE kanji / graph mode flag
+    0060:008B BYTE ??
     0060:00A5 BYTE ??
     0060:00A6 BYTE ??
     0060:00B4 BYTE INT DCh in-progress flag [undocumented PC-98 webtech]
@@ -31,7 +32,7 @@ Entry point (MS-DOS 5.00) 1.44MB disk image (on my hard drive, boot144.dsk). Con
     0060:0124 WORD ACFh BX value (?))
     0060:0128 BYTE ANSI escape handling state (0=normal 1=ESC 2>=ANSI processing)
     0060:0129 BYTE ANSI escape handling state (?)
-    0060:012A BYTE ??
+    0060:012A BYTE ANSI escape handling state (?) 0 = ?   1 = ESC[>  2 = ESC[?  3 = ESC[=
     0060:012B BYTE Saved cursor attribute ( ESC [s )
     0060:0134 WORD ANSI escape handling pointer of some kind (?)
     0060:0136 BYTE drive number last accessed by IO.SYS block driver [INT DCh CL=13h]
@@ -549,6 +550,33 @@ INT DC = 60:36B3
     0ADC:0E84:
         CALL 115Eh                                  ; carriage return
     0ADC:0E87:
+        return
+
+--
+
+    ; Entry: CL = character code
+    ;
+    ; This is executed on ESC [ >
+    0ADC:0E88:
+        BYTE PTR DS:[012A] = 1
+        return
+
+--
+
+    ; Entry: CL = character code
+    ;
+    ; This is executed on ESC [ ?
+    0ADC:0E8E:
+        BYTE PTR DS:[012A] = 2
+        return
+
+--
+
+    ; Entry: CL = character code
+    ;
+    ; This is executed on ESC [ =
+    0ADC:0E94:
+        BYTE PTR DS:[012A] = 3
         return
 
 --
