@@ -413,10 +413,10 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 {													\
 	Bitu halfpixel=(((P & redblueMask) >> 1) & redblueMask;	\
 	halfpixel|=(((P & greenMask) >> 1) & greenMask;			\
-	line0[0]=halfpixel;							\
-	line0[1]=halfpixel;							\
-	line1[0]=P;						\
-	line1[1]=P;						\
+	line0[0]=P;							\
+	line0[1]=P;							\
+	line1[0]=halfpixel;						\
+	line1[1]=halfpixel;						\
 }
 #include "render_simple.h"
 #undef SCALERNAME
