@@ -7811,7 +7811,7 @@ void ROMBIOS_Init() {
         std::string path = section->Get_string("call binary on reset");
         struct stat st;
 
-        if (!path.empty() && stat(path.c_str(),&st) == 0 && S_ISREG(st.st_mode) && st.st_size <= (128u*1024u)) {
+        if (!path.empty() && stat(path.c_str(),&st) == 0 && S_ISREG(st.st_mode) && st.st_size <= (off_t)(128u*1024u)) {
             Bitu base = ROMBIOS_GetMemory((Bitu)st.st_size,"User reset vector binary",16u/*page align*/,0u);
 
             if (base != 0) {
@@ -7846,7 +7846,7 @@ void ROMBIOS_Init() {
         std::string path = section->Get_string("call binary on boot");
         struct stat st;
 
-        if (!path.empty() && stat(path.c_str(),&st) == 0 && S_ISREG(st.st_mode) && st.st_size <= (128u*1024u)) {
+        if (!path.empty() && stat(path.c_str(),&st) == 0 && S_ISREG(st.st_mode) && st.st_size <= (off_t)(128u*1024u)) {
             Bitu base = ROMBIOS_GetMemory((Bitu)st.st_size,"User boot hook binary",16u/*page align*/,0u);
 
             if (base != 0) {
