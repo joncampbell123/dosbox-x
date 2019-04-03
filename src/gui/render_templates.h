@@ -430,40 +430,6 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #undef SCALERHEIGHT
 #undef SCALERFUNC
 
-#define SCALERNAME		CGA320Scanline
-#define SCALERWIDTH		2
-#define SCALERHEIGHT	2
-#define SCALERFUNC								\
-{\
-	line0[0] = P;\
-	line0[1] = P;\
-	line1[0] = 0;\
-	line1[1] = 0;\
-}
-#include "render_simple.h"
-#undef SCALERNAME
-#undef SCALERWIDTH
-#undef SCALERHEIGHT
-#undef SCALERFUNC
-
-#define SCALERNAME		CGA320ScanlineDim
-#define SCALERWIDTH		2
-#define SCALERHEIGHT	2
-#define SCALERFUNC								\
-{\
-	Bitu halfpixel=(((P & redblueMask) * 4) >> 3) & redblueMask;	\
-	halfpixel|=(((P & greenMask) * 4) >> 3) & greenMask;			\
-	line0[0]=P;							\
-	line0[1]=P;							\
-	line1[0]=halfpixel;\
-	line1[1]=halfpixel;\
-}
-#include "render_simple.h"
-#undef SCALERNAME
-#undef SCALERWIDTH
-#undef SCALERHEIGHT
-#undef SCALERFUNC
-
 #if (DBPP > 8)
 
 #if RENDER_USE_ADVANCED_SCALERS>0
@@ -473,12 +439,28 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERHEIGHT	2
 #define SCALERFUNC									\
 {													\
-	Bitu halfpixel=(((P & redblueMask) * 5) >> 3) & redblueMask;	\
-	halfpixel|=(((P & greenMask) * 5) >> 3) & greenMask;			\
+	Bitu halfpixel=(((P & redblueMask) >> 1) & redblueMask;	\
+	halfpixel|=(((P & greenMask) >> 1) & greenMask;			\
 	line0[0]=halfpixel;							\
 	line0[1]=halfpixel;							\
 	line1[0]=P;						\
 	line1[1]=P;						\
+}
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
+#define SCALERNAME		TVDh
+#define SCALERWIDTH		1
+#define SCALERHEIGHT	2
+#define SCALERFUNC									\
+{													\
+	Bitu halfpixel=(((P & redblueMask) >> 1) & redblueMask;	\
+	halfpixel|=(((P & greenMask) >> 1) & greenMask;			\
+	line0[0]=P;							\
+	line1[0]=halfpixel;						\
 }
 #include "render_simple.h"
 #undef SCALERNAME
@@ -552,6 +534,18 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 	line0[1]=P;							\
 	line1[0]=0;							\
 	line1[1]=0;
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
+#define SCALERNAME		ScanDh
+#define SCALERWIDTH		1
+#define SCALERHEIGHT	2
+#define SCALERFUNC								\
+	line0[0] = P;								\
+	line1[0] = 0;
 #include "render_simple.h"
 #undef SCALERNAME
 #undef SCALERWIDTH

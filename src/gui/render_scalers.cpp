@@ -222,40 +222,6 @@ ScalerSimpleBlock_t ScaleNormalDh = {
 {	NormalDh_8_8_R,		NormalDh_9_15_R ,	NormalDh_9_16_R ,	NormalDh_9_32_R }
 }};
 
-ScalerSimpleBlock_t ScaleCGA640Scanline = {
-	"CGAScan",
-	GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32,
-	1,2,{
-{	CGA640Scanline_8_8_L,		CGA640Scanline_8_15_L ,	CGA640Scanline_8_16_L ,	CGA640Scanline_8_32_L },
-{	             0,		CGA640Scanline_15_15_L,	CGA640Scanline_15_16_L,	CGA640Scanline_15_32_L},
-{	             0,		CGA640Scanline_16_15_L,	CGA640Scanline_16_16_L,	CGA640Scanline_16_32_L},
-{	             0,		CGA640Scanline_32_15_L,	CGA640Scanline_32_16_L,	CGA640Scanline_32_32_L},
-{	CGA640Scanline_8_8_L,		CGA640Scanline_9_15_L ,	CGA640Scanline_9_16_L ,	CGA640Scanline_9_32_L }
-},{
-{	CGA640Scanline_8_8_R,		CGA640Scanline_8_15_R ,	CGA640Scanline_8_16_R ,	CGA640Scanline_8_32_R },
-{	             0,		CGA640Scanline_15_15_R,	CGA640Scanline_15_16_R,	CGA640Scanline_15_32_R},
-{	             0,		CGA640Scanline_16_15_R,	CGA640Scanline_16_16_R,	CGA640Scanline_16_32_R},
-{	             0,		CGA640Scanline_32_15_R,	CGA640Scanline_32_16_R,	CGA640Scanline_32_32_R},
-{	CGA640Scanline_8_8_R,		CGA640Scanline_9_15_R ,	CGA640Scanline_9_16_R ,	CGA640Scanline_9_32_R }
-}};
-
-ScalerSimpleBlock_t ScaleCGA640ScanlineDim = {
-	"CGAScanDim",
-	GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32,
-	1,2,{
-{	CGA640ScanlineDim_8_8_L,		CGA640ScanlineDim_8_15_L ,	CGA640ScanlineDim_8_16_L ,	CGA640ScanlineDim_8_32_L },
-{	             0,		CGA640ScanlineDim_15_15_L,	CGA640ScanlineDim_15_16_L,	CGA640ScanlineDim_15_32_L},
-{	             0,		CGA640ScanlineDim_16_15_L,	CGA640ScanlineDim_16_16_L,	CGA640ScanlineDim_16_32_L},
-{	             0,		CGA640ScanlineDim_32_15_L,	CGA640ScanlineDim_32_16_L,	CGA640ScanlineDim_32_32_L},
-{	CGA640ScanlineDim_8_8_L,		CGA640ScanlineDim_9_15_L ,	CGA640ScanlineDim_9_16_L ,	CGA640ScanlineDim_9_32_L }
-},{
-{	CGA640ScanlineDim_8_8_R,		CGA640ScanlineDim_8_15_R ,	CGA640ScanlineDim_8_16_R ,	CGA640ScanlineDim_8_32_R },
-{	             0,		CGA640ScanlineDim_15_15_R,	CGA640ScanlineDim_15_16_R,	CGA640ScanlineDim_15_32_R},
-{	             0,		CGA640ScanlineDim_16_15_R,	CGA640ScanlineDim_16_16_R,	CGA640ScanlineDim_16_32_R},
-{	             0,		CGA640ScanlineDim_32_15_R,	CGA640ScanlineDim_32_16_R,	CGA640ScanlineDim_32_32_R},
-{	CGA640ScanlineDim_8_8_R,		CGA640ScanlineDim_9_15_R ,	CGA640ScanlineDim_9_16_R ,	CGA640ScanlineDim_9_32_R }
-}};
-
 ScalerSimpleBlock_t ScaleNormal2x = {
 	"Normal2x",
 	GFX_CAN_8|GFX_CAN_15|GFX_CAN_16|GFX_CAN_32,
@@ -359,6 +325,23 @@ ScalerSimpleBlock_t ScaleTV2x = {
 {	0,		TV2x_9_15_R ,	TV2x_9_16_R ,	TV2x_9_32_R }
 }};
 
+ScalerSimpleBlock_t ScaleTVDh = {
+	"TV2x",
+	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
+	1,2,{
+{	0,		TVDh_8_15_L ,	TVDh_8_16_L ,	TVDh_8_32_L },
+{	0,		TVDh_15_15_L,	TVDh_15_16_L,	TVDh_15_32_L},
+{	0,		TVDh_16_15_L,	TVDh_16_16_L,	TVDh_16_32_L},
+{	0,		TVDh_32_15_L,	TVDh_32_16_L,	TVDh_32_32_L},
+{	0,		TVDh_9_15_L ,	TVDh_9_16_L ,	TVDh_9_32_L }
+},{
+{	0,		TVDh_8_15_R ,	TVDh_8_16_R ,	TVDh_8_32_R },
+{	0,		TVDh_15_15_R,	TVDh_15_16_R,	TVDh_15_32_R},
+{	0,		TVDh_16_15_R,	TVDh_16_16_R,	TVDh_16_32_R},
+{	0,		TVDh_32_15_R,	TVDh_32_16_R,	TVDh_32_32_R},
+{	0,		TVDh_9_15_R ,	TVDh_9_16_R ,	TVDh_9_32_R }
+}};
+
 ScalerSimpleBlock_t ScaleTV3x = {
 	"TV3x",
 	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
@@ -391,6 +374,23 @@ ScalerSimpleBlock_t ScaleScan2x = {
 {	0,		Scan2x_16_15_R,	Scan2x_16_16_R,	Scan2x_16_32_R},
 {	0,		Scan2x_32_15_R,	Scan2x_32_16_R,	Scan2x_32_32_R},
 {	0,		Scan2x_9_15_R ,	Scan2x_9_16_R ,	Scan2x_9_32_R }
+}};
+
+ScalerSimpleBlock_t ScaleScanDh = {
+	"Scan2x",
+	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
+	1,2,{
+{	0,		ScanDh_8_15_L ,	ScanDh_8_16_L ,	ScanDh_8_32_L },
+{	0,		ScanDh_15_15_L,	ScanDh_15_16_L,	ScanDh_15_32_L},
+{	0,		ScanDh_16_15_L,	ScanDh_16_16_L,	ScanDh_16_32_L},
+{	0,		ScanDh_32_15_L,	ScanDh_32_16_L,	ScanDh_32_32_L},
+{	0,		ScanDh_9_15_L ,	ScanDh_9_16_L ,	ScanDh_9_32_L }
+},{
+{	0,		ScanDh_8_15_R ,	ScanDh_8_16_R ,	ScanDh_8_32_R },
+{	0,		ScanDh_15_15_R,	ScanDh_15_16_R,	ScanDh_15_32_R},
+{	0,		ScanDh_16_15_R,	ScanDh_16_16_R,	ScanDh_16_32_R},
+{	0,		ScanDh_32_15_R,	ScanDh_32_16_R,	ScanDh_32_32_R},
+{	0,		ScanDh_9_15_R ,	ScanDh_9_16_R ,	ScanDh_9_32_R }
 }};
 
 ScalerSimpleBlock_t ScaleScan3x = {
