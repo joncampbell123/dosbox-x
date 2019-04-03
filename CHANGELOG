@@ -1,4 +1,6 @@
 0.82.17 (next)
+  - Page fault handling no longer use non-recursive page fault
+    method with dynamic core, no matter what. It's too unreliable.
   - PC-98 mode now switches PIT Timer 2 clock gate ON by default
     to satisfy delay loops in Sunsoft "Photo Genic" and allow it
     to run. Note that PIT Timer 2 drives the baud rate clock of
