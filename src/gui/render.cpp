@@ -508,7 +508,14 @@ void RENDER_Reset( void ) {
     } else if (dblw && !render.scale.hardware) {
         simpleBlock = &ScaleNormalDw;
     } else if (dblh && !render.scale.hardware) {
-        simpleBlock = &ScaleNormalDh;
+		//Check whether tv2x and scan2x is selected
+		if(scalerOpTV == render.scale.op){
+			simpleBlock = &ScaleTVDh;
+        }else if(scalerOpScan == render.scale.op){
+			simpleBlock = &ScaleScanDh;
+        }else{
+			simpleBlock = &ScaleNormalDh;
+		}
     } else  {
 forcenormal:
         complexBlock = 0;
