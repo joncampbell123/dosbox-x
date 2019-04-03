@@ -110,8 +110,7 @@ static struct {
 Bits PageFaultCore(void) {
 	CPU_CycleLeft+=CPU_Cycles;
 	CPU_Cycles=1;
-//	Bits ret=CPU_Core_Full_Run();
-	Bits ret=CPU_Core_Normal_Run();
+	Bits ret=CPU_Core_Full_Run(); // FIXME: What is the Full core doing right that Normal core is doing wrong here?
 	CPU_CycleLeft+=CPU_Cycles;
 	if (ret<0) E_Exit("Got a dosbox close machine in pagefault core?");
 	if (ret) 
