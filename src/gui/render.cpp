@@ -980,16 +980,16 @@ void RENDER_Init() {
 	Prop_multival* prop = section->Get_multival("monochrome_pal");
 	std::string s_bright = prop->GetSection()->Get_string("bright");
 	std::string s_color = prop->GetSection()->Get_string("type");
-	if('bright'==s_bright){
+	if("bright"==s_bright){
 		vga.draw.monochrome_bright=1;
 	}
-	if('green'==s_color){
+	if("green"==s_color){
 		vga.draw.monochrome_pal=0;
-	}else if('amber'==s_color){
+	}else if("amber"==s_color){
 		vga.draw.monochrome_pal=1;
-	}else if('gray'==s_color){
+	}else if("gray"==s_color){
 		vga.draw.monochrome_pal=2;
-	}else if('white'==s_color){
+	}else if("white"==s_color){
 		vga.draw.monochrome_pal=3;
 	}
 
