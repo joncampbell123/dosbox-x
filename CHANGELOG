@@ -1,4 +1,8 @@
 0.82.17 (next)
+  - PC-98 mode now switches PIT Timer 2 clock gate ON by default
+    to satisfy delay loops in Sunsoft "Photo Genic" and allow it
+    to run. Note that PIT Timer 2 drives the baud rate clock of
+    the RS-232C port.
   - IDE emulation bug fixed that prevented BIOS to IDE
     geometry translation when BIOS head count == 255. This
     fix also allows Windows 95 to use it's IDE driver with
