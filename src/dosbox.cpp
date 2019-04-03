@@ -1690,6 +1690,19 @@ void DOSBOX_SetupConfigSections(void) {
         "Best fits image to window\n"
         "- Intended for output=direct3d, fullresolution=original, aspect=true");
 
+    Pmulti = secprop->Add_multi("monochrome_pal",Property::Changeable::Always," ");
+    Pmulti->SetValue("green",/*init*/true);
+    Pmulti->Set_help("Specify the color of monochrome display.\n"
+        "Possible values: green, amber, gray, white\n"
+        "Append 'bright' for a brighter look.");
+    Pstring = Pmulti->GetSection()->Add_string("color",Property::Changeable::Always,"green");
+    const char* monochrome_pal_colors[]={
+      "green","amber","gray","white",0
+    };
+    Pstring->Set_values(monochrome_pal_colors);
+    Pstring = Pmulti->GetSection()->Add_string("bright",Property::Changeable::Always,"");
+    const char* bright[] = { "", "bright", 0 };
+    Pstring->Set_values(bright);
 
     secprop=control->AddSection_prop("vsync",&Null_Init,true);//done
 

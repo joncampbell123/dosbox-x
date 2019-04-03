@@ -976,12 +976,13 @@ void RENDER_Init() {
 
 	//Set monochrome mode color and brightness
 	vga.draw.monochrome_pal=0;
-	vga.draw.monochrome_bright=0;
-	Prop_multival* prop = section->Get_multival("monochrome_pal");
-	std::string s_bright = prop->GetSection()->Get_string("bright");
-	std::string s_color = prop->GetSection()->Get_string("type");
+	vga.draw.monochrome_bright=1;
+  Prop_multival* prop = section->Get_multival("monochrome_pal");
+  std::string s_bright = prop->GetSection()->Get_string("bright");
+  std::string s_color = prop->GetSection()->Get_string("color");
+  LOG_MSG("monopal: %s, %s", s_color.c_str(), s_bright.c_str());
 	if("bright"==s_bright){
-		vga.draw.monochrome_bright=1;
+		vga.draw.monochrome_bright=0;
 	}
 	if("green"==s_color){
 		vga.draw.monochrome_pal=0;
