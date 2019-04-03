@@ -402,34 +402,6 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #undef SCALERHEIGHT
 #undef SCALERFUNC
 
-#define SCALERNAME		CGA640Scanline
-#define SCALERWIDTH		1
-#define SCALERHEIGHT	2
-#define SCALERFUNC								\
-	line0[0] = P;								\
-	line1[0] = 0;
-#include "render_simple.h"
-#undef SCALERNAME
-#undef SCALERWIDTH
-#undef SCALERHEIGHT
-#undef SCALERFUNC
-
-#define SCALERNAME		CGA640ScanlineDim
-#define SCALERWIDTH		1
-#define SCALERHEIGHT	2
-#define SCALERFUNC								\
-{\
-	Bitu halfpixel=(((P & redblueMask) * 4) >> 3) & redblueMask;	\
-	halfpixel|=(((P & greenMask) * 4) >> 3) & greenMask;			\
-	line0[0]=P;							\
-	line1[0]=halfpixel;\
-}
-#include "render_simple.h"
-#undef SCALERNAME
-#undef SCALERWIDTH
-#undef SCALERHEIGHT
-#undef SCALERFUNC
-
 #if (DBPP > 8)
 
 #if RENDER_USE_ADVANCED_SCALERS>0
