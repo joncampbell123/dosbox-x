@@ -809,6 +809,27 @@ void TIMER_BIOS_INIT_Configure() {
             (phys_readb(0x501) & 0x7F) |
             ((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      /* bit 7: 1=8MHz  0=5MHz/10MHz */
             );
+
+        /* HACK for "Photo Genic" enable PIT 2 for RS-232C baud rate clock because this game
+         * appears to read PIT 2 in it's delay loops, game will hang otherwise.
+         *
+         * However according to a PC-9821 laptop I've tested against, the BIOS has the RS-232C
+         * baud rate clock OFF by default.
+         *
+         * According to the Undocumented 9821 reference, there's I/O port 434h bit 6 that is
+         * said to control the PIT 2 clock gate (TODO: Examine on real hardware!). The long-term
+         * solution is to implement this bit to control the gate signal of PIT 2.
+         *
+         * Next solution is to figure out when the game (in the HDI image) is calling out to
+         * enable the serial port, since my observation is that the RS-232C clock is OFF by
+         * default. I need to determine whether the call is made to the BIOS, or DOS, and where
+         * this bit is flipped on to enable the baud rate clock.
+         *
+         * This may be related to one PC-9821 laptop where I was evidently unable to get DOSLIB's
+         * REMSRV.EXE to get any input or output through the RS-232C port (and therefore unable
+         * to remotely control it over the serial port). */
+        pit[2].track_time(PIC_FullIndex());
+        pit[2].set_gate(true);
     }
 }
 
