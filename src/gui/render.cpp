@@ -974,6 +974,25 @@ void RENDER_Init() {
     vga.draw.doublescan_set=section->Get_bool("doublescan");
     vga.draw.char9_set=section->Get_bool("char9");
 
+	//Set monochrome mode color and brightness
+	vga.draw.monochrome_pal=0;
+	vga.draw.monochrome_bright=0;
+	Prop_multival* prop = section->Get_multival("monochrome_pal");
+	std::string s_bright = prop->GetSection()->Get_string("bright");
+	std::string s_color = prop->GetSection()->Get_string("type");
+	if('bright'==s_bright){
+		vga.draw.monochrome_bright=1;
+	}
+	if('green'==s_color){
+		vga.draw.monochrome_pal=0;
+	}else if('amber'==s_color){
+		vga.draw.monochrome_pal=1;
+	}else if('gray'==s_color){
+		vga.draw.monochrome_pal=2;
+	}else if('white'==s_color){
+		vga.draw.monochrome_pal=3;
+	}
+
     //For restarting the renderer.
     static bool running = false;
     int aspect = render.aspect;

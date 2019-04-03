@@ -205,6 +205,10 @@ typedef struct {
 	Bitu bpp;
 	double clock;
 	Bit8u cga_snow[80];			// one bit per horizontal column where snow should occur
+
+	/*Color and brightness for monochrome display*/
+	Bit8u monochrome_pal;
+	Bit8u monochrome_bright;
 } VGA_Draw;
 
 /* enable switch for the "alternative video system" */
