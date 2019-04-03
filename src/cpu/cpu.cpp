@@ -2152,6 +2152,17 @@ void CPU_Snap_Back_Forget() {
 	snap_cpu_snapped = false;
 }
 
+bool CPU_IsDynamicCore(void) {
+#if (C_DYNAMIC_X86)
+    if (cpudecoder == &CPU_Core_Dyn_X86_Run)
+        return true;
+#elif (C_DYNREC)
+    if (cpudecoder == &CPU_Core_Dynrec_Run)
+        return true;
+#endif
+    return false;
+}
+
 static bool printed_cycles_auto_info = false;
 void CPU_SET_CRX(Bitu cr,Bitu value) {
 	switch (cr) {

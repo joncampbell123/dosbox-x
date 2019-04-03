@@ -270,6 +270,8 @@ void PrintPageInfo(const char* string, PhysPt lin_addr, bool writing, bool prepa
 bool use_dynamic_core_with_paging = false; /* allow dynamic core even with paging (AT YOUR OWN RISK!!!!) */
 bool dosbox_allow_nonrecursive_page_fault = false;	/* when set, do nonrecursive mode (when executing instruction) */
 
+bool CPU_IsDynamicCore(void);
+
 // PAGING_NewPageFault
 // lin_addr, page_addr: the linear and page address the fault happened at
 // prepare_only: true in case the calling core handles the fault, else the PageFaultCore does
@@ -281,7 +283,7 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 	if (prepare_only) {
 		cpu.exception.which = EXCEPTION_PF;
 		cpu.exception.error = faultcode;
-	} else if (dosbox_allow_nonrecursive_page_fault) {
+	} else if (dosbox_allow_nonrecursive_page_fault && !CPU_IsDynamicCore()) {
 		throw GuestPageFaultException(lin_addr,page_addr,faultcode);
 	} else {
 		// Save the state of the cpu cores
