@@ -1789,9 +1789,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(1,1000000);
     Pint->Set_help("Setting it lower than 100 will be a percentage.");
 
-    Pbool = secprop->Add_bool("use dynamic core with paging on",Property::Changeable::Always,false);
-    Pbool->Set_help("Dynamic core is NOT compatible with the way page faults in the guest are handled in DosBox-X.\n"
-            "Windows 9x may crash with paging on if dynamic core is enabled. Enable at your own risk.\n");
+    Pbool = secprop->Add_bool("use dynamic core with paging on",Property::Changeable::Always,true);
+    Pbool->Set_help("Allow dynamic core with 386 paging enabled. This is generally OK for DOS games and Windows 3.1.\n"
+                    "If the game becomes unstable, turn off this option.\n"
+                    "WARNING: Do NOT use this option with preemptive multitasking OSes including Windows 95 and Windows NT.");
             
     Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
     Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
