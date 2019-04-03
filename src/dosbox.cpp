@@ -344,7 +344,7 @@ static Bitu Normal_Loop(void) {
                     return 1;
 
                 if (ret>0) {
-                    if (GCC_UNLIKELY(ret >= CB_MAX))
+                    if (GCC_UNLIKELY((unsigned int)ret >= CB_MAX))
                         return 0;
 
                     extern unsigned int last_callback;
