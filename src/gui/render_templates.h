@@ -411,8 +411,8 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERHEIGHT	2
 #define SCALERFUNC									\
 {													\
-	Bitu halfpixel=(((P & redblueMask) >> 1) & redblueMask;	\
-	halfpixel|=(((P & greenMask) >> 1) & greenMask;			\
+	Bitu halfpixel=((P & redblueMask) >> 1) & redblueMask;	\
+	halfpixel|=((P & greenMask) >> 1) & greenMask;			\
 	line0[0]=P;							\
 	line0[1]=P;							\
 	line1[0]=halfpixel;						\
@@ -429,8 +429,8 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERHEIGHT	2
 #define SCALERFUNC									\
 {													\
-	Bitu halfpixel=(((P & redblueMask) >> 1) & redblueMask;	\
-	halfpixel|=(((P & greenMask) >> 1) & greenMask;			\
+	Bitu halfpixel=((P & redblueMask) >> 1) & redblueMask;	\
+	halfpixel|=((P & greenMask) >> 1) & greenMask;			\
 	line0[0]=P;							\
 	line1[0]=halfpixel;						\
 }
