@@ -1286,6 +1286,9 @@ void DOSBOX_SetupConfigSections(void) {
         "        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
         "    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31");
 
+    Pbool = secprop->Add_bool("pc-98 BIOS copyright string",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, the PC-98 BIOS copyright string is placed at E800:0000. Enable this for software that detects PC-98 vs Epson.");
+
     Pbool = secprop->Add_bool("pc-98 int 1b fdc timer wait",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, INT 1Bh floppy access will wait for the timer to count down before returning.\n"
                     "This is needed for Ys II to run without crashing.");
