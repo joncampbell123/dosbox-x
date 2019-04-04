@@ -2670,9 +2670,14 @@ static void LogMCBS(void)
 
             DEBUG_BeginPagedContent();
 
-            LOG(LOG_MISC,LOG_ERROR)("MCB Seg  Size (bytes)  PSP Seg (notes)  Filename");
-            LOG(LOG_MISC,LOG_ERROR)("Conventional memory:");
-            LogMCBChain(guest_msdos_mcb_chain);
+            try {
+                LOG(LOG_MISC,LOG_ERROR)("MCB Seg  Size (bytes)  PSP Seg (notes)  Filename");
+                LOG(LOG_MISC,LOG_ERROR)("Conventional memory:");
+                LogMCBChain(guest_msdos_mcb_chain);
+            }
+            catch (GuestPageFaultException &pf) {
+                LOG(LOG_MISC,LOG_ERROR)("(Enumeration caused page fault within the guest)");
+            }
 
             DEBUG_EndPagedContent();
             return;
