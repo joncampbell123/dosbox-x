@@ -801,7 +801,11 @@ pass2:
 	switch(hr) {
 	    case D3DERR_DEVICELOST:
         LOG_MSG("D3D:Driver device lost");
-        deviceLost = true;
+        if (!deviceLost) {
+            deviceLost = true;
+            void RENDER_CallBack(GFX_CallBackFunctions_t f);
+            RENDER_CallBack(GFX_CallBackRedraw);
+        }
 		return false;
 		break;
 	    case D3DERR_DRIVERINTERNALERROR:
