@@ -1,4 +1,7 @@
 0.82.17 (next)
+  - Added dosbox.conf option (off by default) to add the
+    NEC PC-98 copyright string at E800:0DD8 for games and
+    applications that require it.
   - Debugger can now show guest MS-DOS kernel MCB chain if you
     boot an MS-DOS floppy or hard disk image using
     BOOT --boothax msdos. For use with MS-DOS 3.3 or higher
