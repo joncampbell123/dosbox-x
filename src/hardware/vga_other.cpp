@@ -1016,6 +1016,10 @@ void VGA_SetupOther(void) {
 	vga.attr.disabled = 0;
 	vga.config.bytes_skip=0;
 
+	//Initialize monochrome pal and bright
+	herc_pal = mono_cga_pal = vga.draw.monochrome_pal;
+	mono_cga_bright = vga.draw.monochrome_bright;
+
 	//Initialize values common for most machines, can be overwritten
 	vga.tandy.draw_base = vga.mem.linear;
 	vga.tandy.mem_base = vga.mem.linear;

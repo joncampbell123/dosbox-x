@@ -508,7 +508,14 @@ void RENDER_Reset( void ) {
     } else if (dblw && !render.scale.hardware) {
         simpleBlock = &ScaleNormalDw;
     } else if (dblh && !render.scale.hardware) {
-        simpleBlock = &ScaleNormalDh;
+		//Check whether tv2x and scan2x is selected
+		if(scalerOpTV == render.scale.op){
+			simpleBlock = &ScaleTVDh;
+        }else if(scalerOpScan == render.scale.op){
+			simpleBlock = &ScaleScanDh;
+        }else{
+			simpleBlock = &ScaleNormalDh;
+		}
     } else  {
 forcenormal:
         complexBlock = 0;
@@ -966,6 +973,26 @@ void RENDER_Init() {
 
     vga.draw.doublescan_set=section->Get_bool("doublescan");
     vga.draw.char9_set=section->Get_bool("char9");
+
+	//Set monochrome mode color and brightness
+	vga.draw.monochrome_pal=0;
+	vga.draw.monochrome_bright=1;
+  Prop_multival* prop = section->Get_multival("monochrome_pal");
+  std::string s_bright = prop->GetSection()->Get_string("bright");
+  std::string s_color = prop->GetSection()->Get_string("color");
+  LOG_MSG("monopal: %s, %s", s_color.c_str(), s_bright.c_str());
+	if("bright"==s_bright){
+		vga.draw.monochrome_bright=0;
+	}
+	if("green"==s_color){
+		vga.draw.monochrome_pal=0;
+	}else if("amber"==s_color){
+		vga.draw.monochrome_pal=1;
+	}else if("gray"==s_color){
+		vga.draw.monochrome_pal=2;
+	}else if("white"==s_color){
+		vga.draw.monochrome_pal=3;
+	}
 
     //For restarting the renderer.
     static bool running = false;
