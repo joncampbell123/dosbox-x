@@ -1,4 +1,6 @@
 0.82.17 (next)
+  - "TV" scaler updated to render dimmer alternate scanlines
+    in CGA graphics modes (frank-deng)
   - Direct3D output no longer leaves DOS screen frozen when
     Direct3D device is "lost" (such as hitting CTRL+ALT+DEL
     to bring up the Windows C+A+D screen).
