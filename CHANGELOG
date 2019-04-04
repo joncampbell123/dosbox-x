@@ -1,4 +1,19 @@
 0.82.17 (next)
+  - Debugger can now show guest MS-DOS kernel MCB chain if you
+    boot an MS-DOS floppy or hard disk image using
+    BOOT --boothax msdos. For use with MS-DOS 3.3 or higher
+    including the real mode MS-DOS environment of Windows 95.
+
+    WARNING: Use boothax msdos ONLY with real mode MS-DOS, do
+    not use with the protected mode environment (desktop) of
+    Windows 95 especially a DOS VM within Windows. Use with
+    MS-DOS and a DOS extender (DOS4GW, etc) should be OK.
+
+  - Added "--boothax <mode>" option to BOOT command. At this
+    time <mode> is limited to "msdos" to instruct the emulation
+    to intercept specific INT 21h calls to locate the MS-DOS
+    kernel's List of List and MCB chain structures for use with
+    the debugger.
   - "TV" scaler updated to render dimmer alternate scanlines
     in CGA graphics modes (frank-deng)
   - Direct3D output no longer leaves DOS screen frozen when
