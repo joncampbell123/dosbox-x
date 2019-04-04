@@ -130,6 +130,10 @@ extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb;
 
+Bit32u              guest_msdos_LoL = 0;
+Bit16u              guest_msdos_mcb_chain = 0;
+int                 boothax = BOOTHAX_NONE;
+
 bool                dos_con_use_int16_to_detect_input = true;
 
 bool                dbg_zero_on_dos_allocmem = true;

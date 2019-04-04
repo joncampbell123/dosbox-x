@@ -791,6 +791,7 @@ public:
      */
     void Run(void) {
         std::string bios;
+        std::string boothax_str;
         bool bios_boot = false;
         bool swaponedrive = false;
         bool force = false;
@@ -810,6 +811,17 @@ public:
 
         if (cmd->FindString("-bios",bios,true))
             bios_boot = true;
+
+        cmd->FindString("-boothax",boothax_str,true);
+
+        if (boothax_str == "msdos") // WARNING: For MS-DOS only, or the real-mode portion of Windows 95/98/ME.
+            boothax = BOOTHAX_MSDOS; // do NOT use while in the graphical portion of Windows 95/98/ME especially a DOS VM.
+        else if (boothax_str == "")
+            boothax = BOOTHAX_NONE;
+        else {
+            WriteOut("Unknown boothax mode");
+            return;
+        }
 
         /* In secure mode don't allow people to boot stuff. 
          * They might try to corrupt the data on it */

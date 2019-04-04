@@ -969,6 +969,29 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
             DEBUG_Enable(true);
     }
 # endif
+    if (type == CPU_INT_SOFTWARE && boothax == BOOTHAX_MSDOS) {
+        if (num == 0x21 && boothax == BOOTHAX_MSDOS) {
+            extern bool dos_kernel_disabled;
+            if (dos_kernel_disabled) {
+                if (reg_ah == 0x52) { /* get list of lists. MS-DOS 5.0 and higher call this surprisingly often! */
+                    if (SegValue(cs) != CB_SEG) {
+                        LOG_MSG("INT 21h AH=52h intercepting call\n");
+                        reg_eip = oldeip;//HACK
+                        CALLBACK_RunRealInt(0x21);
+                        /* save off ES:BX */
+                        guest_msdos_LoL = RealMake(SegValue(es),reg_bx);
+                        /* Read off the MCB chain base (WARNING: Only works with MS-DOS 3.3 or later) */
+                        guest_msdos_mcb_chain = real_readw(guest_msdos_LoL>>16,(guest_msdos_LoL&0xFFFF)-2);
+#if 1
+                        LOG_MSG("List of Lists: %04x:%04x",guest_msdos_LoL>>16,guest_msdos_LoL&0xFFFF);
+                        LOG_MSG("MCB chain starts at: %04x",guest_msdos_mcb_chain);
+#endif
+                        return;
+                    }
+                }
+            }
+        }
+    }
 
 	switch (num) {
 	case 0xcd:
