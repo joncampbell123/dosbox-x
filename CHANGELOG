@@ -1,4 +1,7 @@
 0.82.17 (next)
+  - Direct3D output no longer leaves DOS screen frozen when
+    Direct3D device is "lost" (such as hitting CTRL+ALT+DEL
+    to bring up the Windows C+A+D screen).
   - Page fault handling on by default now for dynamic core,
     DOS games and Windows 3.1 seem to handle it OK.
   - Page fault handling no longer use non-recursive page fault
