@@ -501,15 +501,28 @@ void RENDER_Reset( void ) {
             else if (render.scale.size == 3)
                 simpleBlock = &ScaleScan3x;
             break;
+        case scalerOpGray:
+            if (render.scale.size == 2){
+			        simpleBlock = &ScaleGrayNormal;
+            }else if (render.scale.size == 2){
+			        simpleBlock = &ScaleGray2x;
+            }
+        break;
         default:
             break;
         }
 #endif
     } else if (dblw && !render.scale.hardware) {
+      if(scalerOpGray == render.scale.op){
+        simpleBlock = &ScaleGrayDw;
+      }else{
         simpleBlock = &ScaleNormalDw;
+      }
     } else if (dblh && !render.scale.hardware) {
 		//Check whether tv2x and scan2x is selected
-		if(scalerOpTV == render.scale.op){
+		if(scalerOpGray == render.scale.op){
+			simpleBlock = &ScaleGrayDh;
+    }else if(scalerOpTV == render.scale.op){
 			simpleBlock = &ScaleTVDh;
         }else if(scalerOpScan == render.scale.op){
 			simpleBlock = &ScaleScanDh;
@@ -519,7 +532,11 @@ void RENDER_Reset( void ) {
     } else  {
 forcenormal:
         complexBlock = 0;
-        simpleBlock = &ScaleNormal1x;
+        if(scalerOpGray==render.scale.op){
+          simpleBlock = &ScaleGrayNormal;
+        }else{
+          simpleBlock = &ScaleNormal1x;
+        }
     }
     if (complexBlock) {
 #if RENDER_USE_ADVANCED_SCALERS>1
@@ -934,6 +951,7 @@ void RENDER_UpdateFromScalerSetting(void) {
     else if (scaler == "rgb3x"){ render.scale.op = scalerOpRGB; render.scale.size = 3; render.scale.hardware=false; }
     else if (scaler == "scan2x"){ render.scale.op = scalerOpScan; render.scale.size = 2; render.scale.hardware=false; }
     else if (scaler == "scan3x"){ render.scale.op = scalerOpScan; render.scale.size = 3; render.scale.hardware=false; }
+    else if (scaler == "gray2x"){ render.scale.op = scalerOpGray; render.scale.size = 2; render.scale.hardware=false; }
 #endif
     else if (scaler == "hardware_none") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware=true; }
     else if (scaler == "hardware2x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=true; }
