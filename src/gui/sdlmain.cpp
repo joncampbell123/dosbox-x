@@ -866,16 +866,9 @@ static SDL_FingerID touchscreen_finger_lock = no_finger_id;
 static SDL_TouchID touchscreen_touch_lock = no_touch_id;
 #endif
 
-void PauseDOSBox(bool pressed) {
+void PauseDOSBoxLoop(Bitu /*unused*/) {
     bool paused = true;
     SDL_Event event;
-
-    if (!pressed) return;
-
-    if (is_paused) {
-        unpause_now = true;
-        return;
-    }
 
     /* reflect in the menu that we're paused now */
     mainMenu.get_item("mapper_pause").check(true).refresh_item(mainMenu);
@@ -1003,6 +996,15 @@ void PauseDOSBox(bool pressed) {
     mainMenu.get_item("mapper_pause").check(false).refresh_item(mainMenu);
 
     is_paused = false;
+}
+
+void PauseDOSBox(bool pressed) {
+    if (pressed) {
+        if (is_paused)
+            unpause_now = true;
+        else
+            PIC_AddEvent(PauseDOSBoxLoop,0.001);
+    }
 }
 
 #if defined(C_SDL2)
