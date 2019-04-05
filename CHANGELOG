@@ -1,4 +1,6 @@
 0.82.17 (next)
+  - New grayscale scaler option, to emulate monochrome VGA
+    monitors (frank-deng)
   - Menu handling cleanup from within Pause loop, including
     Mac OS X menu problems when invoking pause from the
     menu bar.
