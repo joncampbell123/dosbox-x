@@ -68,7 +68,6 @@
 //#define FC scalerFrameCache.b32
 #define FC (*(scalerFrameCache_t*)(&scalerSourceCache.b32[400][0])).b32
 # if !defined(C_SDL2) && defined(MACOSX) /* SDL1 builds are subject to Mac OS X strange BGRA (alpha in low byte) order */
-#  error test
 #  define redMask       0x0000ff00
 #  define greenMask     0x00ff0000
 #  define blueMask      0xff000000
