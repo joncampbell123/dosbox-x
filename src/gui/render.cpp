@@ -502,7 +502,7 @@ void RENDER_Reset( void ) {
                 simpleBlock = &ScaleScan3x;
             break;
         case scalerOpGray:
-            if (render.scale.size == 2){
+            if (render.scale.size == 1){
 			        simpleBlock = &ScaleGrayNormal;
             }else if (render.scale.size == 2){
 			        simpleBlock = &ScaleGray2x;
@@ -951,7 +951,8 @@ void RENDER_UpdateFromScalerSetting(void) {
     else if (scaler == "rgb3x"){ render.scale.op = scalerOpRGB; render.scale.size = 3; render.scale.hardware=false; }
     else if (scaler == "scan2x"){ render.scale.op = scalerOpScan; render.scale.size = 2; render.scale.hardware=false; }
     else if (scaler == "scan3x"){ render.scale.op = scalerOpScan; render.scale.size = 3; render.scale.hardware=false; }
-    else if (scaler == "gray"){ render.scale.op = scalerOpGray; render.scale.size = 2; render.scale.hardware=false; }
+    else if (scaler == "gray"){ render.scale.op = scalerOpGray; render.scale.size = 1; render.scale.hardware=false; }
+    else if (scaler == "gray2x"){ render.scale.op = scalerOpGray; render.scale.size = 2; render.scale.hardware=false; }
 #endif
     else if (scaler == "hardware_none") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware=true; }
     else if (scaler == "hardware2x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=true; }
