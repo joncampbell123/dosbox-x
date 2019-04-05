@@ -689,7 +689,7 @@ void SHELL_Init() {
                 "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
                 "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
                 "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"
-                "\x86\x46 \033[32mWelcome to DOSBox-X %-8s %-25s\033[37m             \x86\x46\n"
+                "\x86\x46 \033[32mWelcome to DOSBox-X %-8s (%-4s) %-25s\033[37m      \x86\x46\n"
                 "\x86\x46                                                                    \x86\x46\n"
                 "\x86\x46 For a short introduction for new users type: \033[33mINTRO\033[37m                 \x86\x46\n"
                 "\x86\x46 For supported shell commands type: \033[33mHELP\033[37m                            \x86\x46\n"
