@@ -838,6 +838,9 @@ static bool IsFullscreen() {
 
 bool is_paused = false;
 bool unpause_now = false;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
+int pause_menu_item_tag = -1;
+#endif
 
 void PushDummySDL(void) {
     SDL_Event event;
@@ -3332,6 +3335,11 @@ static void GUI_StartUp() {
 #else
     MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD2, "pause", "Pause");
 #endif
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
+    pause_menu_item_tag = mainMenu.get_item("mapper_pause").get_master_id() + DOSBoxMenu::nsMenuMinimumID;
+#endif
+
     MAPPER_AddHandler(&GUI_Run, MK_nothing, 0, "gui", "ShowGUI", &item);
     item->set_text("Configuration GUI");
 

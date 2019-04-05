@@ -131,6 +131,7 @@ void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu) {
 #endif
 }
 
+extern int pause_menu_item_tag;
 extern bool is_paused;
 extern void PushDummySDL(void);
 extern bool MAPPER_IsRunning(void);
@@ -152,7 +153,7 @@ void menu_osx_set_menuobj(DOSBoxMenu *new_altMenu) {
         altMenu->mainMenuAction([sender tag]);
     }
     else {
-        if (is_paused || MAPPER_IsRunning() || GUI_IsRunning()) return;
+        if ((is_paused && pause_menu_item_tag != [sender tag]) || MAPPER_IsRunning() || GUI_IsRunning()) return;
         /* sorry! */
         mainMenu.mainMenuAction([sender tag]);
     }
