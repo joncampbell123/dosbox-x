@@ -849,7 +849,12 @@ void PushDummySDL(void) {
 
 static void HandleMouseMotion(SDL_MouseMotionEvent * motion);
 static void HandleMouseButton(SDL_MouseButtonEvent * button);
+
+#if defined(C_SDL2)
+# if !defined(IGNORE_TOUCHSCREEN)
 static void HandleTouchscreenFinger(SDL_TouchFingerEvent * finger);
+# endif
+#endif
 
 #if defined(C_SDL2)
 static const SDL_TouchID no_touch_id = (SDL_TouchID)(~0ULL);
