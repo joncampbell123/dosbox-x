@@ -79,6 +79,21 @@ static INLINE void ScalerAddLines( Bitu changed, Bitu count ) {
 	while (bsize--) *bdst++=*bsrc++;		\
 }
 
+#if !defined(C_SDL2) && defined(MACOSX)
+/* SDL1 builds are subject to Mac OS X strange BGRA (alpha in low byte) order.
+   The code in the #else case happens to work because most OSes put the alpha byte in the upper 32 bits,
+   while on Mac OS X the blue channel is up there. Integer overflow will trash the blue channel in that
+   case, without this alternate code. */
+#define interp_w2(P0,P1,W0,W1)															\
+	((((uint64_t)(P0&redblueMask)*(uint64_t)W0+(uint64_t)(P1&redblueMask)*(uint64_t)W1)/(uint64_t)(W0+W1)) & redblueMask) |	\
+	((((uint64_t)(P0&  greenMask)*(uint64_t)W0+(uint64_t)(P1&  greenMask)*(uint64_t)W1)/(uint64_t)(W0+W1)) & greenMask)
+#define interp_w3(P0,P1,P2,W0,W1,W2)														\
+	((((uint64_t)(P0&redblueMask)*(uint64_t)W0+(uint64_t)(P1&redblueMask)*(uint64_t)W1+(uint64_t)(P2&redblueMask)*(uint64_t)W2)/(uint64_t)(W0+W1+W2)) & redblueMask) |	\
+	((((uint64_t)(P0&  greenMask)*(uint64_t)W0+(uint64_t)(P1&  greenMask)*(uint64_t)W1+(uint64_t)(P2&  greenMask)*(uint64_t)W2)/(uint64_t)(W0+W1+W2)) & greenMask)
+#define interp_w4(P0,P1,P2,P3,W0,W1,W2,W3)														\
+	((((uint64_t)(P0&redblueMask)*(uint64_t)W0+(uint64_t)(P1&redblueMask)*(uint64_t)W1+(uint64_t)(P2&redblueMask)*(uint64_t)W2+(uint64_t)(P3&redblueMask)*(uint64_t)W3)/(uint64_t)(W0+W1+W2+W3)) & redblueMask) |	\
+	((((uint64_t)(P0&  greenMask)*(uint64_t)W0+(uint64_t)(P1&  greenMask)*(uint64_t)W1+(uint64_t)(P2&  greenMask)*(uint64_t)W2+(uint64_t)(P3&  greenMask)*(uint64_t)W3)/(uint64_t)(W0+W1+W2+W3)) & greenMask)
+#else
 #define interp_w2(P0,P1,W0,W1)															\
 	((((P0&redblueMask)*W0+(P1&redblueMask)*W1)/(W0+W1)) & redblueMask) |	\
 	((((P0&  greenMask)*W0+(P1&  greenMask)*W1)/(W0+W1)) & greenMask)
@@ -88,7 +103,7 @@ static INLINE void ScalerAddLines( Bitu changed, Bitu count ) {
 #define interp_w4(P0,P1,P2,P3,W0,W1,W2,W3)														\
 	((((P0&redblueMask)*W0+(P1&redblueMask)*W1+(P2&redblueMask)*W2+(P3&redblueMask)*W3)/(W0+W1+W2+W3)) & redblueMask) |	\
 	((((P0&  greenMask)*W0+(P1&  greenMask)*W1+(P2&  greenMask)*W2+(P3&  greenMask)*W3)/(W0+W1+W2+W3)) & greenMask)
-
+#endif
 
 #define CC scalerChangeCache
 
