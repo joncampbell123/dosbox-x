@@ -1,4 +1,6 @@
 0.82.17 (next)
+  - Shell welcome text fixed to show consistent first line in
+    both IBM PC and PC-98 mode.
   - Pause mode fixed to handle mouse input while paused, so that
     SDL drawn menus (on Linux or HX DOS) continue to work while
     paused.
