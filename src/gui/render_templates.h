@@ -455,6 +455,24 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #define SCALERNAME		TV3x
 #define SCALERWIDTH		3
 #define SCALERHEIGHT	3
+#if !defined(C_SDL2) && defined(MACOSX) /* SDL1 builds are subject to Mac OS X strange BGRA (alpha in low byte) order */
+#define SCALERFUNC							\
+{											\
+	Bitu halfpixel=(((uint64_t)(P & redblueMask) * (uint64_t)5) >> (uint64_t)3) & redblueMask;	\
+	halfpixel|=(((uint64_t)(P & greenMask) * (uint64_t)5) >> (uint64_t)3) & greenMask;			\
+	line0[0]=P;								\
+	line0[1]=P;								\
+	line0[2]=P;								\
+	line1[0]=halfpixel;						\
+	line1[1]=halfpixel;						\
+	line1[2]=halfpixel;						\
+	halfpixel=(((uint64_t)(P & redblueMask) * (uint64_t)5) >> (uint64_t)4) & redblueMask;	\
+	halfpixel|=(((uint64_t)(P & greenMask) * (uint64_t)5) >> (uint64_t)4) & greenMask;			\
+	line2[0]=halfpixel;						\
+	line2[1]=halfpixel;						\
+	line2[2]=halfpixel;						\
+}
+#else
 #define SCALERFUNC							\
 {											\
 	Bitu halfpixel=(((P & redblueMask) * 5) >> 3) & redblueMask;	\
@@ -471,6 +489,7 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 	line2[1]=halfpixel;						\
 	line2[2]=halfpixel;						\
 }
+#endif
 #include "render_simple.h"
 #undef SCALERNAME
 #undef SCALERWIDTH
