@@ -1,5 +1,10 @@
 0.82.17 (next)
-  - Fix basic scaler template code to render correct RGBA
+  - Fixed hq2x/hq3x and the various sai render scalers to
+    render correctly on SDL1 builds of Mac OS X (where the
+    odd BGRA color order is used). Prior to this fix the
+    scaler output had a very strong yellow tint (missing
+    or misrendered blue channel).
+  - Fixed basic scaler template code to render correct RGBA
     colors in SDL1 builds for Mac OS X.
   - New grayscale scaler option, to emulate monochrome VGA
     monitors (frank-deng)
