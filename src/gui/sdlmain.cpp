@@ -1000,10 +1000,13 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
 
 void PauseDOSBox(bool pressed) {
     if (pressed) {
-        if (is_paused)
+        if (is_paused) {
             unpause_now = true;
-        else
+            PushDummySDL();
+        }
+        else {
             PIC_AddEvent(PauseDOSBoxLoop,0.001);
+        }
     }
 }
 
