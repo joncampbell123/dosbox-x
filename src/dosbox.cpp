@@ -282,21 +282,6 @@ unsigned long long update_clockdom_from_now(ClockDomain &dst) {
     return dst.counter;
 }
 
-/* for ISA components that rely on dividing down from OSC */
-unsigned long long update_ISA_OSC_clock() {
-    return update_clockdom_from_now(clockdom_ISA_OSC);
-}
-
-/* for ISA components */
-unsigned long long update_ISA_BCLK_clock() {
-    return update_clockdom_from_now(clockdom_ISA_BCLK);
-}
-
-/* for PCI components */
-unsigned long long update_PCI_BCLK_clock() {
-    return update_clockdom_from_now(clockdom_PCI_BCLK);
-}
-
 #include "paging.h"
 
 extern bool rom_bios_vptable_enable;
