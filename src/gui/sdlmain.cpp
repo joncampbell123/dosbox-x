@@ -171,6 +171,7 @@ const char *scaler_menu_opts[][2] = {
     { "hardware3x",             "Hardware 3X" },
     { "hardware4x",             "Hardware 4X" },
     { "hardware5x",             "Hardware 5X" },
+    { "gray2x",                 "Grayscale 2X" },
     { "tv2x",                   "TV 2X" },
     { "tv3x",                   "TV 3X" },
     { "scan2x",                 "Scan 2X" },
