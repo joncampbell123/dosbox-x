@@ -836,10 +836,8 @@ static bool IsFullscreen() {
 }
 #endif
 
-#if defined(MACOSX)
 bool is_paused = false;
 bool unpause_now = false;
-#endif
 
 void PushDummySDL(void) {
     SDL_Event event;
@@ -849,11 +847,19 @@ void PushDummySDL(void) {
     SDL_PushEvent(&event);
 }
 
+static void HandleMouseMotion(SDL_MouseMotionEvent * motion);
+static void HandleMouseButton(SDL_MouseButtonEvent * button);
+
 void PauseDOSBox(bool pressed) {
     bool paused = true;
     SDL_Event event;
 
     if (!pressed) return;
+
+    if (is_paused) {
+        unpause_now = true;
+        return;
+    }
 
     /* reflect in the menu that we're paused now */
     mainMenu.get_item("mapper_pause").check(true).refresh_item(mainMenu);
@@ -876,18 +882,13 @@ void PauseDOSBox(bool pressed) {
     SDL_WM_GrabInput(SDL_GRAB_OFF);
 #endif
 
-#if defined(MACOSX)
     is_paused = true;
-#endif
 
     while (paused) {
-#if defined(MACOSX)
         if (unpause_now) {
             unpause_now = false;
             break;
         }
-#endif
-
 
 #if C_EMSCRIPTEN
         emscripten_sleep_with_yield(0);
@@ -934,9 +935,40 @@ void PauseDOSBox(bool pressed) {
                 break;
             } 
 #endif
+        case SDL_MOUSEMOTION:
+#if defined(C_SDL2)
+            if (touchscreen_finger_lock == no_finger_id &&
+                touchscreen_touch_lock == no_touch_id &&
+                event.motion.which != SDL_TOUCH_MOUSEID) { /* don't handle mouse events faked by touchscreen */
+                HandleMouseMotion(&event.motion);
+            }
+#else
+            HandleMouseMotion(&event.motion);
+#endif
+            break;
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
+#if defined(C_SDL2)
+            if (touchscreen_finger_lock == no_finger_id &&
+                touchscreen_touch_lock == no_touch_id &&
+                event.button.which != SDL_TOUCH_MOUSEID) { /* don't handle mouse events faked by touchscreen */
+                HandleMouseButton(&event.button);
+            }
+#else
+            HandleMouseButton(&event.button);
+#endif
+            break;
+#if defined(C_SDL2)
+# if !defined(IGNORE_TOUCHSCREEN)
+        case SDL_FINGERDOWN:
+        case SDL_FINGERUP:
+        case SDL_FINGERMOTION:
+            HandleTouchscreenFinger(&event.tfinger);
+            break;
+# endif
+#endif
         }
     }
-
 
     // restore mouse state
     void GFX_UpdateSDLCaptureState();
@@ -954,9 +986,7 @@ void PauseDOSBox(bool pressed) {
     /* reflect in the menu that we're paused now */
     mainMenu.get_item("mapper_pause").check(false).refresh_item(mainMenu);
 
-#if defined(MACOSX)
     is_paused = false;
-#endif
 }
 
 #if defined(C_SDL2)
@@ -3682,7 +3712,9 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     bool inputToScreen = false;
 
     /* limit mouse input to whenever the cursor is on the screen, or near the edge of the screen. */
-    if (sdl.mouse.locked || Mouse_GetButtonState() != 0)
+    if (is_paused)
+        inputToScreen = false;
+    else if (sdl.mouse.locked || Mouse_GetButtonState() != 0)
         inputToScreen = true;
     else
         inputToScreen = GFX_CursorInOrNearScreen(motion->x,motion->y);
@@ -4329,7 +4361,9 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 #endif
 
     /* limit mouse input to whenever the cursor is on the screen, or near the edge of the screen. */
-    if (sdl.mouse.locked)
+    if (is_paused)
+        inputToScreen = false;
+    else if (sdl.mouse.locked)
         inputToScreen = true;
     else if (!inMenu)
         inputToScreen = GFX_CursorInOrNearScreen(button->x, button->y);
