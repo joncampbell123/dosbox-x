@@ -942,7 +942,7 @@ void DOSBOX_SetupConfigSections(void) {
         "advmame2x", "advmame3x", "advinterp2x", "advinterp3x", "hq2x", "hq3x", "2xsai", "super2xsai", "supereagle",
 #endif
 #if RENDER_USE_ADVANCED_SCALERS>0
-        "tv2x", "tv3x", "rgb2x", "rgb3x", "scan2x", "scan3x", "gray2x",
+        "tv2x", "tv3x", "rgb2x", "rgb3x", "scan2x", "scan3x", "gray",
 #endif
         "hardware_none", "hardware2x", "hardware3x", "hardware4x", "hardware5x",
 #if C_XBRZ
