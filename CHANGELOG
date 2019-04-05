@@ -1,4 +1,6 @@
 0.82.17 (next)
+  - Fix basic scaler template code to render correct RGBA
+    colors in SDL1 builds for Mac OS X.
   - New grayscale scaler option, to emulate monochrome VGA
     monitors (frank-deng)
   - Menu handling cleanup from within Pause loop, including
