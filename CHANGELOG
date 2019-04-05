@@ -1,4 +1,7 @@
 0.82.17 (next)
+  - Menu handling cleanup from within Pause loop, including
+    Mac OS X menu problems when invoking pause from the
+    menu bar.
   - Shell welcome text fixed to show consistent first line in
     both IBM PC and PC-98 mode.
   - Pause mode fixed to handle mouse input while paused, so that
