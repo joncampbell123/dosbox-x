@@ -543,6 +543,63 @@ static inline void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #undef SCALERHEIGHT
 #undef SCALERFUNC
 
+/* Grayscale scalers */
+#define SCALERNAME		GrayNormal
+#define SCALERWIDTH		1
+#define SCALERHEIGHT	1
+#define SCALERFUNC								\
+	Bitu _red=(P&redMask)>>redShift,_green=(P&greenMask)>>greenShift,_blue=(P&blueMask)>>blueShift;	\
+  double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \
+  Bitu _value = _gray>255?0xff:(uint8_t)(_gray);  \
+	line0[0] = ((_value<<redShift)|(_value<<greenShift)|(_value)<<blueShift);
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
+#define SCALERNAME		GrayDw
+#define SCALERWIDTH		2
+#define SCALERHEIGHT	1
+#define SCALERFUNC								\
+	Bitu _red=(P&redMask)>>redShift,_green=(P&greenMask)>>greenShift,_blue=(P&blueMask)>>blueShift;	\
+  double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \
+  Bitu _value = _gray>255?0xff:(uint8_t)(_gray);  \
+	line0[0]=line0[1] = ((_value<<redShift)|(_value<<greenShift)|(_value)<<blueShift);
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
+#define SCALERNAME		GrayDh
+#define SCALERWIDTH		1
+#define SCALERHEIGHT	2
+#define SCALERFUNC								\
+	Bitu _red=(P&redMask)>>redShift,_green=(P&greenMask)>>greenShift,_blue=(P&blueMask)>>blueShift;	\
+  double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \
+  Bitu _value = _gray>255?0xff:(uint8_t)(_gray);  \
+	line0[0]=line1[0] = ((_value<<redShift)|(_value<<greenShift)|(_value)<<blueShift);
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
+#define SCALERNAME		Gray2x
+#define SCALERWIDTH		2
+#define SCALERHEIGHT	2
+#define SCALERFUNC								\
+	Bitu _red=(P&redMask)>>redShift,_green=(P&greenMask)>>greenShift,_blue=(P&blueMask)>>blueShift;	\
+  double _gray=0.2125*(double)_red+0.7154*(double)_green+0.0721*(double)_blue; \
+  Bitu _value = _gray>255?0xff:(uint8_t)(_gray);  \
+	line0[0]=line1[0]=line0[1]=line1[1] = ((_value<<redShift)|(_value<<greenShift)|(_value)<<blueShift);
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
 #endif		//#if RENDER_USE_ADVANCED_SCALERS>0
 
 #endif		//#if (DBPP > 8)

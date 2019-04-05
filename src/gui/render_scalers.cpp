@@ -443,6 +443,74 @@ ScalerSimpleBlock_t ScaleRGB3x = {
 {	0,		RGB3x_32_15_R,	RGB3x_32_16_R,	RGB3x_32_32_R},
 {	0,		RGB3x_9_15_R ,	RGB3x_9_16_R ,	RGB3x_9_32_R }
 }};
+
+ScalerSimpleBlock_t ScaleGrayNormal = {
+	"Gray2x",
+	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
+	1,1,{
+{	0,		GrayNormal_8_15_L ,	GrayNormal_8_16_L ,	GrayNormal_8_32_L },
+{	0,		GrayNormal_15_15_L,	GrayNormal_15_16_L,	GrayNormal_15_32_L},
+{	0,		GrayNormal_16_15_L,	GrayNormal_16_16_L,	GrayNormal_16_32_L},
+{	0,		GrayNormal_32_15_L,	GrayNormal_32_16_L,	GrayNormal_32_32_L},
+{	0,		GrayNormal_9_15_L ,	GrayNormal_9_16_L ,	GrayNormal_9_32_L }
+},{
+{	0,		GrayNormal_8_15_R ,	GrayNormal_8_16_R ,	GrayNormal_8_32_R },
+{	0,		GrayNormal_15_15_R,	GrayNormal_15_16_R,	GrayNormal_15_32_R},
+{	0,		GrayNormal_16_15_R,	GrayNormal_16_16_R,	GrayNormal_16_32_R},
+{	0,		GrayNormal_32_15_R,	GrayNormal_32_16_R,	GrayNormal_32_32_R},
+{	0,		GrayNormal_9_15_R ,	GrayNormal_9_16_R ,	GrayNormal_9_32_R }
+}};
+
+ScalerSimpleBlock_t ScaleGrayDw = {
+	"Gray2x",
+	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
+	2,1,{
+{	0,		GrayDw_8_15_L ,	GrayDw_8_16_L ,	GrayDw_8_32_L },
+{	0,		GrayDw_15_15_L,	GrayDw_15_16_L,	GrayDw_15_32_L},
+{	0,		GrayDw_16_15_L,	GrayDw_16_16_L,	GrayDw_16_32_L},
+{	0,		GrayDw_32_15_L,	GrayDw_32_16_L,	GrayDw_32_32_L},
+{	0,		GrayDw_9_15_L ,	GrayDw_9_16_L ,	GrayDw_9_32_L }
+},{
+{	0,		GrayDw_8_15_R ,	GrayDw_8_16_R ,	GrayDw_8_32_R },
+{	0,		GrayDw_15_15_R,	GrayDw_15_16_R,	GrayDw_15_32_R},
+{	0,		GrayDw_16_15_R,	GrayDw_16_16_R,	GrayDw_16_32_R},
+{	0,		GrayDw_32_15_R,	GrayDw_32_16_R,	GrayDw_32_32_R},
+{	0,		GrayDw_9_15_R ,	GrayDw_9_16_R ,	GrayDw_9_32_R }
+}};
+
+ScalerSimpleBlock_t ScaleGrayDh = {
+	"Gray2x",
+	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
+	1,2,{
+{	0,		GrayDh_8_15_L ,	GrayDh_8_16_L ,	GrayDh_8_32_L },
+{	0,		GrayDh_15_15_L,	GrayDh_15_16_L,	GrayDh_15_32_L},
+{	0,		GrayDh_16_15_L,	GrayDh_16_16_L,	GrayDh_16_32_L},
+{	0,		GrayDh_32_15_L,	GrayDh_32_16_L,	GrayDh_32_32_L},
+{	0,		GrayDh_9_15_L ,	GrayDh_9_16_L ,	GrayDh_9_32_L }
+},{
+{	0,		GrayDh_8_15_R ,	GrayDh_8_16_R ,	GrayDh_8_32_R },
+{	0,		GrayDh_15_15_R,	GrayDh_15_16_R,	GrayDh_15_32_R},
+{	0,		GrayDh_16_15_R,	GrayDh_16_16_R,	GrayDh_16_32_R},
+{	0,		GrayDh_32_15_R,	GrayDh_32_16_R,	GrayDh_32_32_R},
+{	0,		GrayDh_9_15_R ,	GrayDh_9_16_R ,	GrayDh_9_32_R }
+}};
+
+ScalerSimpleBlock_t ScaleGray2x = {
+	"Gray2x",
+	GFX_CAN_15|GFX_CAN_16|GFX_CAN_32|GFX_RGBONLY,
+	2,2,{
+{	0,		Gray2x_8_15_L ,	Gray2x_8_16_L ,	Gray2x_8_32_L },
+{	0,		Gray2x_15_15_L,	Gray2x_15_16_L,	Gray2x_15_32_L},
+{	0,		Gray2x_16_15_L,	Gray2x_16_16_L,	Gray2x_16_32_L},
+{	0,		Gray2x_32_15_L,	Gray2x_32_16_L,	Gray2x_32_32_L},
+{	0,		Gray2x_9_15_L ,	Gray2x_9_16_L ,	Gray2x_9_32_L }
+},{
+{	0,		Gray2x_8_15_R ,	Gray2x_8_16_R ,	Gray2x_8_32_R },
+{	0,		Gray2x_15_15_R,	Gray2x_15_16_R,	Gray2x_15_32_R},
+{	0,		Gray2x_16_15_R,	Gray2x_16_16_R,	Gray2x_16_32_R},
+{	0,		Gray2x_32_15_R,	Gray2x_32_16_R,	Gray2x_32_32_R},
+{	0,		Gray2x_9_15_R ,	Gray2x_9_16_R ,	Gray2x_9_32_R }
+}};
 #endif
 
 
