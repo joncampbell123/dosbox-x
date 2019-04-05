@@ -1,4 +1,7 @@
 0.82.17 (next)
+  - Pause mode fixed to handle mouse input while paused, so that
+    SDL drawn menus (on Linux or HX DOS) continue to work while
+    paused.
   - Added dosbox.conf option (off by default) to add the
     NEC PC-98 copyright string at E800:0DD8 for games and
     applications that require it.
