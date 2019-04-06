@@ -337,7 +337,7 @@ static Bit8u const DSP_cmd_len_sb16[256] = {
   3,3,3,3, 3,3,3,3, 3,3,3,3, 3,3,3,3,  // 0xc0
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xd0
   1,0,1,0, 1,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xe0
-  0,0,0,0, 0,0,0,0, 0,1,0,0, 0,0,0,0   // 0xf0
+  0,0,0,0, 0,0,0,0, 0,1,2,0, 0,0,0,0   // 0xf0
 };
 
 static unsigned char ESSregs[0x20] = {0}; /* 0xA0-0xBF */
@@ -2050,7 +2050,14 @@ static void DSP_DoCommand(void) {
         LOG(LOG_SB,LOG_DEBUG)("SC400: DSP version changed to %u.%u",
             sb.sc400_dsp_major,sb.sc400_dsp_minor);
         break;
-    case 0xf9:  /* SB16 ASP ??? */
+    case 0xfa:  /* SB16 8051 memory write */
+        if (sb.type == SBT_16) {
+            LOG(LOG_SB,LOG_NORMAL)("SB16 8051 memory write %x byte %x (NOT YET IMPLEMENTED)",sb.dsp.in.data[0],sb.dsp.in.data[1]);
+        } else {
+            LOG(LOG_SB,LOG_ERROR)("DSP:Unhandled (undocumented) command %2X",sb.dsp.cmd);
+        }
+        break;
+    case 0xf9:  /* SB16 8051 memory read */
         if (sb.type == SBT_16) {
 /* Reference: Command 0xF9 result map taken from Sound Blaster 16 with DSP 4.4 and ASP chip version ID 0x10:
  *
@@ -2074,7 +2081,7 @@ f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 ASP> 
  * End reference */
 
-            LOG(LOG_SB,LOG_NORMAL)("SB16 ASP unknown function %x",sb.dsp.in.data[0]);
+            LOG(LOG_SB,LOG_NORMAL)("SB16 8051 memory read %x",sb.dsp.in.data[0]);
             // just feed it what it expects
             switch (sb.dsp.in.data[0]) {
             case 0x0b:
@@ -2109,7 +2116,7 @@ ASP>
                 break;
             }
         } else {
-            LOG(LOG_SB,LOG_NORMAL)("SB16 ASP unknown function %X",sb.dsp.cmd);
+            LOG(LOG_SB,LOG_ERROR)("DSP:Unhandled (undocumented) command %2X",sb.dsp.cmd);
         }
         break;
     default:
