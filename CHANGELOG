@@ -1,5 +1,6 @@
 0.82.18 (next)
-  - 
+  - Sound Blaster DSP command E2h (DMA identification/test)
+    code cleaned up and simplified.
 0.82.17
   - Fixed yellowish tint of tv3x scaler on SDL1 builds of
     Mac OS X.
