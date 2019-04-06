@@ -228,8 +228,14 @@ struct SB_INFO {
         bool sb_io_alias;
     } hw;
     struct {
+        /* -------------- NEW CODE TO VERIFY --------------- */
+        Bit8u valadd;
+        Bit8u valxor;
+        /* ------------------------------------------------- */
+        /* ------------- OLD CODE TO REPLACE --------------- */
         Bits value;
         Bitu count;
+        /* ------------------------------------------------- */
     } e2;
     MixerChannel * chan;
 };
@@ -1183,8 +1189,14 @@ static void DSP_Reset(void) {
     sb.freq_derived_from_tc=true;
     sb.time_constant=45;
     sb.dac.last=0;
+    /* -------------- NEW CODE TO VERIFY --------------- */
+    sb.e2.valadd=0xaa;
+    sb.e2.valxor=0x96; // I think cracyc got this wrong, it's 0x96 not 0x69. Look at E2_incr_table. 0x69 would be funnier though
+    /* ------------------------------------------------- */
+    /* ------------- OLD CODE TO REPLACE --------------- */
     sb.e2.value=0xaa;
     sb.e2.count=0;
+    /* ------------------------------------------------- */
     sb.dsp.highspeed=0;
     sb.irq.pending_8bit=false;
     sb.irq.pending_16bit=false;
@@ -1210,7 +1222,9 @@ static void DSP_DoReset(Bit8u val) {
 
 static void DSP_E2_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
     if (event==DMA_UNMASKED) {
+        /* ------------- OLD CODE TO REPLACE --------------- */
         Bit8u val=(Bit8u)(sb.e2.value&0xff);
+        /* ------------------------------------------------- */
         DmaChannel * chan=GetDMAChannel(sb.hw.dma8);
         chan->Register_Callback(0);
         chan->Write(1,&val);
@@ -1873,11 +1887,22 @@ static void DSP_DoCommand(void) {
     case 0xe2:  /* Weird DMA identification write routine */
         {
             LOG(LOG_SB,LOG_NORMAL)("DSP Function 0xe2");
+            /* ------------- OLD CODE TO REPLACE --------------- */
             for (Bitu i = 0; i < 8; i++)
                 if ((sb.dsp.in.data[0] >> i) & 0x01) sb.e2.value += E2_incr_table[sb.e2.count % 4][i];
-             sb.e2.value += E2_incr_table[sb.e2.count % 4][8];
-             sb.e2.count++;
-             GetDMAChannel(sb.hw.dma8)->Register_Callback(DSP_E2_DMA_CallBack);
+            sb.e2.value += E2_incr_table[sb.e2.count % 4][8];
+            sb.e2.count++;
+            /* ------------------------------------------------- */
+            /* -------------- NEW CODE TO VERIFY --------------- */
+            sb.e2.valadd += sb.dsp.in.data[0] ^ sb.e2.valxor;
+            sb.e2.valxor = (sb.e2.valxor >> 2u) | (sb.e2.valxor << 6u);
+            /* ------------------------------------------------- */
+            /* ---------------- VERIFICATION ------------------- */
+            if (((unsigned char)sb.e2.value & 0xFFu) != ((unsigned char)sb.e2.valadd & 0xFFu)) {
+                LOG_MSG("SB E2 inconsistency (change of code verification) %02x %02x",(unsigned char)sb.e2.value,sb.e2.valadd);
+            }
+            /* ------------------------------------------------- */
+            GetDMAChannel(sb.hw.dma8)->Register_Callback(DSP_E2_DMA_CallBack);
         }
         break;
     case 0xe3:  /* DSP Copyright */
