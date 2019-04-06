@@ -1,3 +1,5 @@
+0.82.18 (next)
+  - 
 0.82.17
   - Fixed yellowish tint of tv3x scaler on SDL1 builds of
     Mac OS X.
