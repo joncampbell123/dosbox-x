@@ -1,4 +1,4 @@
-0.82.17 (next)
+0.82.17
   - Fixed yellowish tint of tv3x scaler on SDL1 builds of
     Mac OS X.
   - Fixed hq2x/hq3x and the various sai render scalers to
