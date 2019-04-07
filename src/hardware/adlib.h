@@ -122,8 +122,8 @@ typedef Bit8u RegisterCache[512];
 class Capture;
 
 class Module: public Module_base {
-	IO_ReadHandleObject ReadHandler[3];
-	IO_WriteHandleObject WriteHandler[3];
+	IO_ReadHandleObject ReadHandler[12];
+	IO_WriteHandleObject WriteHandler[12];
 	MixerObject mixerObject;
 
 	//Mode we're running in

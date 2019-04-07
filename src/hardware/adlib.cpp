@@ -629,10 +629,14 @@ static void OPL_CallBack(Bitu len) {
 }
 
 static Bitu OPL_Read(Bitu port,Bitu iolen) {
+    if (IS_PC98_ARCH) port >>= 8u; // C8D2h -> C8h, C9D2h -> C9h, OPL emulation looks only at bit 0.
+
 	return module->PortRead( port, iolen );
 }
 
 void OPL_Write(Bitu port,Bitu val,Bitu iolen) {
+    if (IS_PC98_ARCH) port >>= 8u; // C8D2h -> C8h, C9D2h -> C9h, OPL emulation looks only at bit 0.
+
 	// if writing the data port, assume a change in OPL state that should be reflected immediately.
 	// this is a way to render "sample accurate" without needing "sample accurate" mode in the mixer.
 	// CHGOLF's Adlib digital audio hack works fine with this hack.
@@ -707,7 +711,15 @@ void OPL_SaveRawEvent(bool pressed) {
 namespace Adlib {
 
 Module::Module( Section* configuration ) : Module_base(configuration) {
+    Bitu sb_addr=0,sb_irq=0,sb_dma=0;
 	DOSBoxMenu::item *item;
+
+    SB_Get_Address(sb_addr,sb_irq,sb_dma);
+
+    if (IS_PC98_ARCH && sb_addr == 0) {
+        LOG_MSG("Adlib: Rejected configuration, OPL3 disabled in PC-98 mode");
+        return; // OPL3 emulation must work alongside SB16 emulation
+    }
 
 	reg.dual[0] = 0;
 	reg.dual[1] = 0;
@@ -758,17 +770,48 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	default:
 		break;
 	}
-	//0x388 range
-	WriteHandler[0].Install(0x388,OPL_Write,IO_MB, 4 );
-	ReadHandler[0].Install(0x388,OPL_Read,IO_MB, 4 );
-	//0x220 range
-	if ( !single ) {
-		WriteHandler[1].Install(base,OPL_Write,IO_MB, 4 );
-		ReadHandler[1].Install(base,OPL_Read,IO_MB, 4 );
-	}
-	//0x228 range
-	WriteHandler[2].Install(base+8,OPL_Write,IO_MB, 2);
-	ReadHandler[2].Install(base+8,OPL_Read,IO_MB, 1);
+
+    if (IS_PC98_ARCH) {
+        /* needs to match the low 8 bits */
+        assert(sb_addr != 0);
+
+        //0xC8XX range (ex. C8D2)
+        WriteHandler[0].Install(sb_addr+0xC800,OPL_Write,IO_MB, 1 );
+        ReadHandler[0].Install(sb_addr+0xC800,OPL_Read,IO_MB, 1 );
+        WriteHandler[1].Install(sb_addr+0xC900,OPL_Write,IO_MB, 1 );
+        ReadHandler[1].Install(sb_addr+0xC900,OPL_Read,IO_MB, 1 );
+        WriteHandler[2].Install(sb_addr+0xCA00,OPL_Write,IO_MB, 1 );
+        ReadHandler[2].Install(sb_addr+0xCA00,OPL_Read,IO_MB, 1 );
+        WriteHandler[3].Install(sb_addr+0xCB00,OPL_Write,IO_MB, 1 );
+        ReadHandler[3].Install(sb_addr+0xCB00,OPL_Read,IO_MB, 1 );
+        //0x20XX range (ex. 20D2)
+        WriteHandler[4].Install(sb_addr+0x2000,OPL_Write,IO_MB, 1 );
+        ReadHandler[4].Install(sb_addr+0x2000,OPL_Read,IO_MB, 1 );
+        WriteHandler[5].Install(sb_addr+0x2100,OPL_Write,IO_MB, 1 );
+        ReadHandler[5].Install(sb_addr+0x2100,OPL_Read,IO_MB, 1 );
+        WriteHandler[6].Install(sb_addr+0x2200,OPL_Write,IO_MB, 1 );
+        ReadHandler[6].Install(sb_addr+0x2200,OPL_Read,IO_MB, 1 );
+        WriteHandler[7].Install(sb_addr+0x2300,OPL_Write,IO_MB, 1 );
+        ReadHandler[7].Install(sb_addr+0x2300,OPL_Read,IO_MB, 1 );
+        //0x28XX range (ex. 28D2)
+        WriteHandler[8].Install(sb_addr+0x2800,OPL_Write,IO_MB, 1 );
+        ReadHandler[8].Install(sb_addr+0x2800,OPL_Read,IO_MB, 1 );
+        WriteHandler[9].Install(sb_addr+0x2900,OPL_Write,IO_MB, 1 );
+//      ReadHandler[9].Install(sb_addr+0x2900,OPL_Read,IO_MB, 1 );
+    }
+    else {
+        //0x388 range
+        WriteHandler[0].Install(0x388,OPL_Write,IO_MB, 4 );
+        ReadHandler[0].Install(0x388,OPL_Read,IO_MB, 4 );
+        //0x220 range
+        if ( !single ) {
+            WriteHandler[1].Install(base,OPL_Write,IO_MB, 4 );
+            ReadHandler[1].Install(base,OPL_Read,IO_MB, 4 );
+        }
+        //0x228 range
+        WriteHandler[2].Install(base+8,OPL_Write,IO_MB, 2);
+        ReadHandler[2].Install(base+8,OPL_Read,IO_MB, 1);
+    }
 
 	MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,"caprawopl","Cap OPL",&item);
 	item->set_text("Record FM (OPL) output");
