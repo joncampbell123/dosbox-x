@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - Sound Blaster 16 now implements 0xF9/0xFA fully, even if
+    the RAM contents they expose are not fully implemented.
   - Sound Blaster DSP command E2h (DMA identification/test)
     code cleaned up and simplified.
 0.82.17
