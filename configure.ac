@@ -532,6 +532,11 @@ dnl LIBRARY TEST: libpcap
 AC_CHECK_HEADER(pcap.h,have_pcap_h=yes,)
 AC_CHECK_LIB(pcap, pcap_open_live, have_pcap_lib=yes, ,-lz)
 
+dnl LIBRARY TEST: libiconv
+dnl This may be provided by glibc itself, -liconv may not be needed.
+AC_CHECK_HEADER(iconv.h,have_iconv_h=yes,)
+AC_CHECK_LIB(iconv, libiconv_open, have_iconv_lib=yes, ,-liconv)
+
 # FIXME: Arrggh we need the WHOLE PATH
 pwd=`pwd`
 
