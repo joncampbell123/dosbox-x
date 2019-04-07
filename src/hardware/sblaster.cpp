@@ -1433,6 +1433,9 @@ static uint8_t ESS_DoRead(uint8_t reg) {
 
 int MPU401_GetIRQ();
 
+/* SB16 cards have a 256-byte block of 8051 internal RAM accessible through DSP commands 0xF9 (Read) and 0xFA (Write) */
+static unsigned char sb16_8051_mem[256];
+
 /* The SB16 ASP appears to have a mystery 2KB RAM block that is accessible through register 0x83 of the ASP.
  * This array represents the initial contents as seen on my SB16 non-PnP ASP chip (version ID 0x10). */
 static unsigned int sb16asp_ram_contents_index = 0;
@@ -2016,75 +2019,16 @@ static void DSP_DoCommand(void) {
         break;
     case 0xfa:  /* SB16 8051 memory write */
         if (sb.type == SBT_16) {
-            LOG(LOG_SB,LOG_NORMAL)("SB16 8051 memory write %x byte %x (NOT YET IMPLEMENTED)",sb.dsp.in.data[0],sb.dsp.in.data[1]);
+            sb16_8051_mem[sb.dsp.in.data[0]] = sb.dsp.in.data[1];
+            LOG(LOG_SB,LOG_NORMAL)("SB16 8051 memory write %x byte %x",sb.dsp.in.data[0],sb.dsp.in.data[1]);
         } else {
             LOG(LOG_SB,LOG_ERROR)("DSP:Unhandled (undocumented) command %2X",sb.dsp.cmd);
         }
         break;
     case 0xf9:  /* SB16 8051 memory read */
         if (sb.type == SBT_16) {
-/* Reference: Command 0xF9 result map taken from Sound Blaster 16 with DSP 4.4 and ASP chip version ID 0x10:
- *
- * ASP> F9 result map:
-00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ff 07 
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-20: f9 00 00 00 00 aa 96 00 00 00 00 00 00 00 00 00 
-30: f9 00 00 00 00 00 00 38 00 00 00 00 00 00 00 00 
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-80: 00 19 0a 00 00 00 00 00 00 00 00 00 00 00 00 00 
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-ASP> 
- * End reference */
-
-            LOG(LOG_SB,LOG_NORMAL)("SB16 8051 memory read %x",sb.dsp.in.data[0]);
-            // just feed it what it expects
-            switch (sb.dsp.in.data[0]) {
-            case 0x0b:
-                DSP_AddData(0x00);
-                break;
-            case 0x0e:
-                DSP_AddData(0xff);
-                break;
-            case 0x0f:
-                DSP_AddData(0x07);
-                break;
-            case 0x23:
-                DSP_AddData(0x00);
-                break;
-            case 0x24:
-                DSP_AddData(0x00);
-                break;
-            case 0x2b:
-                DSP_AddData(0x00);
-                break;
-            case 0x2c:
-                DSP_AddData(0x00);
-                break;
-            case 0x2d:
-                DSP_AddData(0x00);
-                break;
-            case 0x37:
-                DSP_AddData(0x38);
-                break;
-            case 0x13:
-                DSP_AddData(sb.freq & 0xFFu);
-                break;
-            case 0x14:
-                DSP_AddData(sb.freq >> 8u);
-                break;
-            default:
-                DSP_AddData(0x00);
-                break;
-            }
+            DSP_AddData(sb16_8051_mem[sb.dsp.in.data[0]]);
+            LOG(LOG_SB,LOG_NORMAL)("SB16 8051 memory read %x, got byte %x",sb.dsp.in.data[0],sb16_8051_mem[sb.dsp.in.data[0]]);
         } else {
             LOG(LOG_SB,LOG_ERROR)("DSP:Unhandled (undocumented) command %2X",sb.dsp.cmd);
         }
@@ -3509,6 +3453,32 @@ public:
             if (((unsigned int)rand() & 31) == 0)
                 sb16asp_ram_contents[i>>3] ^= 1 << (i & 7);
         }
+
+/* Reference: Command 0xF9 result map taken from Sound Blaster 16 with DSP 4.4 and ASP chip version ID 0x10:
+ *
+ * ASP> F9 result map:
+00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ff 07 
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+20: f9 00 00 00 00 aa 96 00 00 00 00 00 00 00 00 00 
+30: f9 00 00 00 00 00 00 38 00 00 00 00 00 00 00 00 
+40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+80: 00 19 0a 00 00 00 00 00 00 00 00 00 00 00 00 00 
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+ASP> 
+ * End reference */
+        memset(sb16_8051_mem,0x00,256);
+        sb16_8051_mem[0x0E] = 0xFF;
+        sb16_8051_mem[0x0F] = 0x07;
+        sb16_8051_mem[0x37] = 0x38;
 
         if (sb.enable_asp)
             LOG(LOG_SB,LOG_WARN)("ASP emulation at this stage is extremely limited and only covers DSP command responses.");
