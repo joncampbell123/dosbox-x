@@ -1674,6 +1674,12 @@ static void DSP_DoCommand(void) {
         sb.timeconst=sb.dsp.in.data[0];
         sb.freq_derived_from_tc=true;
 
+        if (sb.type == SBT_16) {
+            // FIXME: This is a guess
+            sb16_8051_mem[0x13] = sb.freq & 0xffu;                  // rate low
+            sb16_8051_mem[0x14] = (sb.freq >> 8u) & 0xffu;          // rate high
+        }
+
         /* Nasty kind of hack to allow runtime changing of frequency */
         if (sb.dma.mode != DSP_DMA_NONE && sb.mode != MODE_DMA_PAUSE && sb.dma.autoinit)
             DSP_PrepareDMA_Old(sb.dma.mode,sb.dma.autoinit,sb.dma.sign,sb.dsp.highspeed);
@@ -1691,6 +1697,8 @@ static void DSP_DoCommand(void) {
 
         sb.freq=((unsigned int)sb.dsp.in.data[0] << 8u) | (unsigned int)sb.dsp.in.data[1];
         sb.freq_derived_from_tc=false;
+        sb16_8051_mem[0x13] = sb.freq & 0xffu;                  // rate low
+        sb16_8051_mem[0x14] = (sb.freq >> 8u) & 0xffu;          // rate high
         break;
     case 0x48:  /* Set DMA Block Size */
         DSP_SB2_ABOVE;
