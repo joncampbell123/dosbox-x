@@ -905,7 +905,10 @@ void DOSBOX_SetupConfigSections(void) {
 //    const char* joydeadzone[] = { "0.26", 0 };
 //    const char* joyresponse[] = { "1.0", 0 };
     const char* iosgus[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", "210", "230", "250", 0 };
-    const char* ios[] = { "220", "240", "260", "280", "2a0", "2c0", "2e0", 0 };
+    const char* ios[] = {
+        "220", "240", "260", "280", "2a0", "2c0", "2e0",            /* IBM PC      (base+port i.e. 220h base, 22Ch is DSP) */
+        "d2",  "d4",  "d6",  "d8",  "da",  "dc",  "de",             /* NEC PC-98   (base+(port << 8) i.e. 00D2h base, 2CD2h is DSP) */
+        0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
     const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
     const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
