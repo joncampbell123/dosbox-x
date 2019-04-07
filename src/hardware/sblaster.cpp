@@ -2075,6 +2075,12 @@ ASP>
             case 0x37:
                 DSP_AddData(0x38);
                 break;
+            case 0x13:
+                DSP_AddData(sb.freq & 0xFFu);
+                break;
+            case 0x14:
+                DSP_AddData(sb.freq >> 8u);
+                break;
             default:
                 DSP_AddData(0x00);
                 break;
