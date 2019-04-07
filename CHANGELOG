@@ -1,4 +1,5 @@
 0.82.18 (next)
+  - NEC PC-98 emulation mode now emulates DMA controller.
   - Gravis Ultrasound emulation now allows game to read back
     the channel's Pan Pot register.
   - Sound Blaster 16 now implements 0xF9/0xFA fully, even if
