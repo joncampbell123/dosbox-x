@@ -1,4 +1,7 @@
 0.82.18 (next)
+  - Fixed Sound Blaster 16 mixer IRQ/DMA select registers
+    to work in PC-98 mode as they apparently do on real
+    hardware.
   - Sound Blaster 16 and Adlib emulation now available in
     NEC PC-98 mode. I/O port mapping is based on a real
     SB16 card for PC-98 and some documentation. Only OPL3
