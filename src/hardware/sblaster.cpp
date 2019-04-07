@@ -2605,12 +2605,23 @@ static Bit8u CTMIXER_Read(void) {
         break;
     case 0x80:      /* IRQ Select */
         ret=0;
-        switch (sb.hw.irq) {
-        case 2:  return 0x1;
-        case 5:  return 0x2;
-        case 7:  return 0x4;
-        case 10: return 0x8;
+        if (IS_PC98_ARCH) {
+            switch (sb.hw.irq) {
+                case 3:  return 0x1;
+                case 10: return 0x2;
+                case 12: return 0x4;
+                case 5:  return 0x8;
+            }
         }
+        else {
+            switch (sb.hw.irq) {
+                case 2:  return 0x1;
+                case 5:  return 0x2;
+                case 7:  return 0x4;
+                case 10: return 0x8;
+            }
+        }
+        break;
     case 0x81:      /* DMA Select */
         ret=0;
         switch (sb.hw.dma8) {
