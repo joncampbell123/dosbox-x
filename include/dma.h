@@ -101,8 +101,8 @@ private:
 	bool flipflop;
 	DmaChannel *DmaChannels[4];
 public:
-	IO_ReadHandleObject DMA_ReadHandler[0x11];
-	IO_WriteHandleObject DMA_WriteHandler[0x11];
+	IO_ReadHandleObject DMA_ReadHandler[0x14];
+	IO_WriteHandleObject DMA_WriteHandler[0x14];
 	DmaController(Bit8u num) {
 		flipflop = false;
 		ctrlnum = num;		/* first or second DMA controller */
