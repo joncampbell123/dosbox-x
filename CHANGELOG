@@ -1,4 +1,9 @@
 0.82.18 (next)
+  - Sound Blaster 16 and Adlib emulation now available in
+    NEC PC-98 mode. I/O port mapping is based on a real
+    SB16 card for PC-98 and some documentation. Only OPL3
+    emulation is supported for Adlib. sbtype must be set
+    to sb16.
   - NEC PC-98 emulation mode now emulates DMA controller.
   - Gravis Ultrasound emulation now allows game to read back
     the channel's Pan Pot register.
