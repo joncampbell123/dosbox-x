@@ -1487,6 +1487,11 @@ static void DSP_DoCommand(void) {
         return;
     }
 
+    if (sb.type == SBT_16) {
+        // FIXME: This is a guess! See also [https://github.com/joncampbell123/dosbox-x/issues/1044#issuecomment-480024957]
+        sb16_8051_mem[0x20] = sb.dsp.last_cmd; /* cur_cmd */
+    }
+
     // TODO: There are more SD16 ASP commands we can implement, by name even, with microcode download,
     //       using as reference the Linux kernel driver code:
     //
@@ -2045,6 +2050,12 @@ static void DSP_DoCommand(void) {
         LOG(LOG_SB,LOG_ERROR)("DSP:Unhandled (undocumented) command %2X",sb.dsp.cmd);
         break;
     }
+
+    if (sb.type == SBT_16) {
+        // FIXME: This is a guess! See also [https://github.com/joncampbell123/dosbox-x/issues/1044#issuecomment-480024957]
+        sb16_8051_mem[0x30] = sb.dsp.last_cmd; /* last_cmd */
+    }
+
     sb.dsp.last_cmd=sb.dsp.cmd;
     sb.dsp.cmd=DSP_NO_COMMAND;
     sb.dsp.cmd_len=0;
