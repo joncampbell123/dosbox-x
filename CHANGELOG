@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - Gravis Ultrasound emulation now allows game to read back
+    the channel's Pan Pot register.
   - Sound Blaster 16 now implements 0xF9/0xFA fully, even if
     the RAM contents they expose are not fully implemented.
   - Sound Blaster DSP command E2h (DMA identification/test)
