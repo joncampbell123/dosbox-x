@@ -1985,7 +1985,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Phex = secprop->Add_hex("sbbase",Property::Changeable::WhenIdle,0x220);
     Phex->Set_values(ios);
-    Phex->Set_help("The IO address of the soundblaster.");
+    Phex->Set_help("The IO address of the soundblaster.\n"
+                   "220h to 2E0h are for use with IBM PC Sound Blaster emulation.\n"
+                   "D2h to DEh are for use with NEC PC-98 Sound Blaster 16 emulation.");
 
     Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,7);
     Pint->Set_values(irqssb);
