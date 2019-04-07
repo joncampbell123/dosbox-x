@@ -2473,15 +2473,21 @@ static void CTMIXER_Write(Bit8u val) {
             sb.mixer.lin[1]=expand16to32(val&0xF);
         }
         break;
-    // FIXME: The PC-98 version of DOOM attempts to write this byte, despite the fact the cards draw their
-    //        configuration from dip switches and probably do not allow runtime configuration changes.
     case 0x80:      /* IRQ Select */
-        if (sb.type==SBT_16 && !sb.vibra && !IS_PC98_ARCH/*FIXME*/) { /* ViBRA PnP cards do not allow reconfiguration by this byte */
+        if (sb.type==SBT_16 && !sb.vibra) { /* ViBRA PnP cards do not allow reconfiguration by this byte */
             sb.hw.irq=0xff;
-            if (val & 0x1) sb.hw.irq=2;
-            else if (val & 0x2) sb.hw.irq=5;
-            else if (val & 0x4) sb.hw.irq=7;
-            else if (val & 0x8) sb.hw.irq=10;
+            if (IS_PC98_ARCH) {
+                if (val & 0x1) sb.hw.irq=3;
+                else if (val & 0x2) sb.hw.irq=10;
+                else if (val & 0x4) sb.hw.irq=12;
+                else if (val & 0x8) sb.hw.irq=5;
+            }
+            else {
+                if (val & 0x1) sb.hw.irq=2;
+                else if (val & 0x2) sb.hw.irq=5;
+                else if (val & 0x4) sb.hw.irq=7;
+                else if (val & 0x8) sb.hw.irq=10;
+            }
         }
         break;
     case 0x81:      /* DMA Select */
