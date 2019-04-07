@@ -2491,15 +2491,22 @@ static void CTMIXER_Write(Bit8u val) {
         }
         break;
     case 0x81:      /* DMA Select */
-        if (sb.type==SBT_16 && !sb.vibra && !IS_PC98_ARCH/*FIXME*/) { /* ViBRA PnP cards do not allow reconfiguration by this byte */
+        if (sb.type==SBT_16 && !sb.vibra) { /* ViBRA PnP cards do not allow reconfiguration by this byte */
             sb.hw.dma8=0xff;
             sb.hw.dma16=0xff;
-            if (val & 0x1) sb.hw.dma8=0;
-            else if (val & 0x2) sb.hw.dma8=1;
-            else if (val & 0x8) sb.hw.dma8=3;
-            if (val & 0x20) sb.hw.dma16=5;
-            else if (val & 0x40) sb.hw.dma16=6;
-            else if (val & 0x80) sb.hw.dma16=7;
+            if (IS_PC98_ARCH) {
+                if (val & 0x1) sb.hw.dma8=0;
+                else if (val & 0x2) sb.hw.dma8=3;
+                // FIXME: Any other DMA channels available for SB16? DOOM only allows selecting 0 and 3.
+            }
+            else {
+                if (val & 0x1) sb.hw.dma8=0;
+                else if (val & 0x2) sb.hw.dma8=1;
+                else if (val & 0x8) sb.hw.dma8=3;
+                if (val & 0x20) sb.hw.dma16=5;
+                else if (val & 0x40) sb.hw.dma16=6;
+                else if (val & 0x80) sb.hw.dma16=7;
+            }
             LOG(LOG_SB,LOG_NORMAL)("Mixer select dma8:%x dma16:%x",sb.hw.dma8,sb.hw.dma16);
         }
         break;
