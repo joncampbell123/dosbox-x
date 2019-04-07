@@ -731,7 +731,9 @@ static Bit16u ExecuteReadRegister(void) {
 	case 0x8b: // Channel LSW current address register
 		if (curchan) return (Bit16u)(curchan->WaveAddr >> WAVE_BITS);
 		else return 0x0000;
-
+	case 0x8c: // Channel pan pot register
+        if (curchan) return (Bit16u)(curchan->PanPot << 8);
+        else return 0x0800;
 	case 0x8d: // Channel volume control register
 		if (curchan) return curchan->ReadRampCtrl() << 8;
 		else return 0x0300;
