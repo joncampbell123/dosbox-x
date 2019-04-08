@@ -848,6 +848,30 @@ static egc_quad &ope_xx(uint8_t ope, const PhysPt ad) {
     return pc98_egc_last_vram;
 }
 
+static egc_quad &ope_00(uint8_t ope, const PhysPt vramoff) {
+	(void)vramoff;
+	(void)ope;
+
+	pc98_egc_data[0].w = 0;
+	pc98_egc_data[1].w = 0;
+	pc98_egc_data[2].w = 0;
+	pc98_egc_data[3].w = 0;
+
+	return pc98_egc_data;
+}
+
+static egc_quad &ope_ff(uint8_t ope, const PhysPt vramoff) {
+	(void)vramoff;
+	(void)ope;
+
+	pc98_egc_data[0].w = ~0;
+	pc98_egc_data[1].w = ~0;
+	pc98_egc_data[2].w = ~0;
+	pc98_egc_data[3].w = ~0;
+
+	return pc98_egc_data;
+}
+
 static egc_quad &ope_np(uint8_t ope, const PhysPt vramoff) {
 	egc_quad dst;
 
@@ -1038,7 +1062,7 @@ static egc_quad &ope_gg(uint8_t ope, const PhysPt vramoff) {
 }
 
 static const PC98_OPEFN pc98_egc_opfn[256] = {
-			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_00, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_np, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
@@ -1069,7 +1093,7 @@ static const PC98_OPEFN pc98_egc_opfn[256] = {
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_f0, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
-			ope_xx, ope_xx, ope_xx, ope_xx, ope_fc, ope_xx, ope_xx, ope_xx};
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_fc, ope_xx, ope_xx, ope_ff};
 
 template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT val) {
     *((uint16_t*)pc98_egc_maskef) = *((uint16_t*)pc98_egc_mask);
