@@ -881,7 +881,7 @@ void VGA_Reset(Section*) {
             if (vga.mem.memsize < _KB_bytes(64)) vga.mem.memsize = _KB_bytes(64); /* FIXME: Right? */
             break;
         case MCH_PC98:
-            if (vga.mem.memsize < _KB_bytes(512)) vga.mem.memsize = _KB_bytes(512);
+            if (vga.mem.memsize < _KB_bytes(544)) vga.mem.memsize = _KB_bytes(544); /* 544 = 512KB graphics + 32KB text */
             break;
         case MCH_MCGA:
             if (vga.mem.memsize < _KB_bytes(64)) vga.mem.memsize = _KB_bytes(64);
