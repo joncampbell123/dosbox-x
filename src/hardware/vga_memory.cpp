@@ -2068,8 +2068,12 @@ void VGA_SetupHandlers(void) {
     case M_PC98:
 		newHandler = &vgaph.pc98;
 
-        /* We need something to catch access to E0000-E7FFF IF 16/256-color mode */
-        if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG))
+        if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
+            /* 256-color mode changes A8000h-B7FFFh from planar to packed, B8000h-BFFFFh is disconnected.
+             * A8000h is bank 0 and B0000h is bank 1, controlled by bank switching registers.
+             * E0000h becomes "memory mapped I/O" to control bank switching */
+            MEM_SetPageHandler(0xE0, 8, newHandler );
+        else if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG)) /* 16-color mode makes E000:0000 appear */
             MEM_SetPageHandler(0xE0, 8, newHandler );
         else
             MEM_ResetPageHandler_Unmapped(0xE0, 8);
