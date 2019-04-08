@@ -909,7 +909,7 @@ void DOSBOX_SetupConfigSections(void) {
         "0",                                                                                    /* Auto */
         "300", "310", "320", "330", "332", "334", "336", "340", "360",                          /* IBM PC */
         "c0d0","c8d0","d0d0","d8d0","e0d0","e8d0","f0d0","f8d0",                                /* NEC PC-98 MPU98 */
-        "c8d2","c8d4","c8d6","c8d8","c8dA","c8dc","c8de",                                       /* NEC PC-98 SB16 */
+        "80d2","80d4","80d6","80d8","80dA","80dc","80de",                                       /* NEC PC-98 SB16 */
         0 };
     const char* ios[] = {
         "220", "240", "260", "280", "2a0", "2c0", "2e0",            /* IBM PC      (base+port i.e. 220h base, 22Ch is DSP) */
@@ -1915,7 +1915,7 @@ void DOSBOX_SetupConfigSections(void) {
                    "Set to 0 to use a default I/O address.\n"
                    "300h to 330h are for use with IBM PC mode.\n"
                    "C0D0h to F8D0h (in steps of 800h) are for use with NEC PC-98 mode (MPU98).\n"
-                   "C8D2h through C8DEh are for use with NEC PC-98 Sound Blaster 16 MPU-401 emulation.\n"
+                   "80D2h through 80DEh are for use with NEC PC-98 Sound Blaster 16 MPU-401 emulation.\n"
                    "If not assigned (0), 330h is the default for IBM PC and E0D0h is the default for PC-98.");
 
     Pstring = secprop->Add_string("mididevice",Property::Changeable::WhenIdle,"default");
