@@ -2901,10 +2901,12 @@ static Bitu INT18_PC98_Handler(void) {
                 pc98_port6A_command_write(0x07);        // enable EGC
                 pc98_port6A_command_write(0x01);        // enable 16-color
                 pc98_port6A_command_write(0x21);        // enable 256-color
+                PC98_show_cursor(false);                // apparently hides the cursor?
             }
             else if (reg_ch == 0) {
                 void pc98_port6A_command_write(unsigned char b);
                 pc98_port6A_command_write(0x20);        // disable 256-color
+                PC98_show_cursor(false);                // apparently hides the cursor?
             }
             else {
                 LOG_MSG("PC-98 INT 18h AH=4Dh unknown CH=%02xh",reg_ch);
