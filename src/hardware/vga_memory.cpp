@@ -35,6 +35,9 @@
 
 extern ZIPFile savestate_zip;
 
+unsigned char pc98_vga_mmio[0x200] = {0}; /* PC-98 memory-mapped VGA registers at E0000h */
+uint32_t pc98_vga_banks[2] = {0x8000,0x8000}; /* bank switching offsets */
+
 extern bool non_cga_ignore_oddeven;
 extern bool non_cga_ignore_oddeven_engage;
 extern bool enable_pc98_256color;
@@ -146,6 +149,34 @@ INLINE static Bit32u ModeOperation(Bit8u val) {
 		break;
 	}
 	return full;
+}
+
+Bit8u pc98_vga_mmio_read(unsigned int reg) {
+    if (reg >= 0x200)
+        return 0x00;
+
+    return pc98_vga_mmio[reg];
+}
+
+void pc98_vga_mmio_write(unsigned int reg,Bit8u val) {
+    if (reg >= 0x200)
+        return;
+
+    switch (reg) {
+        case 0x004: // bank 0
+            pc98_vga_banks[0] = ((val + 1u) & 0xFu) << 15u;
+            break;
+        case 0x006: // bank 1
+            pc98_vga_banks[1] = ((val + 1u) & 0xFu) << 15u;
+            break;
+        default:
+            break;
+    }
+
+    if (reg >= 0x004 && reg <= 0x007)
+        pc98_vga_mmio[reg] = val;
+    else if (reg >= 0x100 && reg <= 0x13F)
+        pc98_vga_mmio[reg] = val;
 }
 
 /* Gonna assume that whoever maps vga memory, maps it on 32/64kb boundary */
@@ -1353,8 +1384,11 @@ public:
 
         if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
             if (addr >= 0xE0000) {
-                // TODO: In 256-color mode E0000h becomes memory-mapped I/O to control things like bank switching */
-                return 0x00;
+                if (sizeof(AWT) > 1)
+                    return (pc98_vga_mmio_read(addr + 1 - 0xE0000u) << 8u) +
+                            pc98_vga_mmio_read(addr     - 0xE0000u);
+
+                return pc98_vga_mmio_read(addr - 0xE0000u);
             }
             else if (addr >= 0xB8000) {
                 // B8000h is disconnected
@@ -1363,9 +1397,7 @@ public:
             else if (addr >= 0xA8000) {
                 // A8000h is bank 0
                 // B0000h is bank 1
-                addr &= 0x7FFF; // within 32KB bank
-                addr += 0x8000; // start of graphics RAM
-                // TODO
+                addr = pc98_vga_banks[(addr - 0xA8000u) >> 15u] + (addr & 0x7FFFu);
             }
             else {
                 addr &= 0x1FFFF;
@@ -1463,7 +1495,10 @@ public:
 
         if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
             if (addr >= 0xE0000) {
-                // TODO: In 256-color mode E0000h becomes memory-mapped I/O to control things like bank switching */
+                if (sizeof(AWT) > 1)
+                    pc98_vga_mmio_write(addr + 1 - 0xE0000u,(Bit8u)(val >> 8u));
+
+                pc98_vga_mmio_write(addr - 0xE0000u,(Bit8u)val);
                 return;
             }
             else if (addr >= 0xB8000) {
@@ -1473,9 +1508,7 @@ public:
             else if (addr >= 0xA8000) {
                 // A8000h is bank 0
                 // B0000h is bank 1
-                addr &= 0x7FFF; // within 32KB bank
-                addr += 0x8000; // start of graphics RAM
-                // TODO
+                addr = pc98_vga_banks[(addr - 0xA8000u) >> 15u] + (addr & 0x7FFFu);
             }
             else {
                 addr &= 0x1FFFF;
