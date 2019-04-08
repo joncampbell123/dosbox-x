@@ -74,6 +74,7 @@ Bitu bios_post_parport_count();
 Bitu bios_post_comport_count();
 bool KEYBOARD_Report_BIOS_PS2Mouse();
 bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
+void pc98_update_palette(void);
 
 bool bochs_port_e9 = false;
 bool isa_memory_hole_512kb = false;
@@ -2894,6 +2895,21 @@ static Bitu INT18_PC98_Handler(void) {
                 LOG_MSG("PC-98 INT 18 AH=43h CX=0x%04X DS=0x%04X", reg_cx, SegValue(ds));
                 break;
             }
+        case 0x4D:  // 256-color enable
+            if (reg_ch == 1) {
+                void pc98_port6A_command_write(unsigned char b);
+                pc98_port6A_command_write(0x07);        // enable EGC
+                pc98_port6A_command_write(0x01);        // enable 16-color
+                pc98_port6A_command_write(0x21);        // enable 256-color
+            }
+            else if (reg_ch == 0) {
+                void pc98_port6A_command_write(unsigned char b);
+                pc98_port6A_command_write(0x20);        // disable 256-color
+            }
+            else {
+                LOG_MSG("PC-98 INT 18h AH=4Dh unknown CH=%02xh",reg_ch);
+            }
+            break;
         default:
             LOG_MSG("PC-98 INT 18h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
                 reg_ax,
