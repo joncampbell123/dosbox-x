@@ -1,5 +1,5 @@
 0.82.18 (next)
-  - MPU-401 emulation now accepts dosbox.conf option mpubase
+  - MPU-401 emulation now accepts dosbox.conf option "mpubase"
     to control the base I/O port of the MPU-401 interface.
     The option can be set to "0" to tell DOSBox-X to pick the
     best default. Works in either IBM PC or NEC PC-98 mode.
