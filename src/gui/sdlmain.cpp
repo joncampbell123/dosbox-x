@@ -6530,6 +6530,29 @@ bool vid_pc98_enable_analog_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::it
     return true;
 }
 
+bool vid_pc98_enable_analog256_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    //NOTE: I thought that even later PC-9801s and some PC-9821s could use EGC features in digital 8-colors mode? 
+    extern bool enable_pc98_256color;
+    void gdc_16color_enable_update_vars(void);
+
+    if(IS_PC98_ARCH) {
+        enable_pc98_256color = !enable_pc98_256color;
+        gdc_16color_enable_update_vars();
+
+        Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+        if (enable_pc98_256color)
+            dosbox_section->HandleInputline("pc-98 enable 256-color=1");
+        else
+            dosbox_section->HandleInputline("pc-98 enable 256-color=0");
+
+        mainMenu.get_item("pc98_enable_analog256").check(enable_pc98_256color).refresh_item(mainMenu);
+    }
+
+    return true;
+}
+
 bool vid_pc98_cleartext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -7583,6 +7606,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(vid_pc98_enable_grcg_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_enable_analog").set_text("Enable analog display").
                     set_callback_function(vid_pc98_enable_analog_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_enable_analog256").set_text("Enable analog 256-color display").
+                    set_callback_function(vid_pc98_enable_analog256_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_enable_188user").set_text("Enable 188+ user CG cells").
                     set_callback_function(vid_pc98_enable_188user_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_clear_text").set_text("Clear text layer").
@@ -7833,6 +7858,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("pc98_enable_egc").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_enable_grcg").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_enable_analog").enable(IS_PC98_ARCH);
+        mainMenu.get_item("pc98_enable_analog256").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_enable_188user").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_clear_text").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_clear_graphics").enable(IS_PC98_ARCH);

@@ -2427,6 +2427,7 @@ extern bool                         gdc_5mhz_mode;
 extern bool                         enable_pc98_egc;
 extern bool                         enable_pc98_grcg;
 extern bool                         enable_pc98_16color;
+extern bool                         enable_pc98_256color;
 extern bool                         enable_pc98_188usermod;
 extern bool                         pc98_31khz_mode;
 extern bool                         pc98_attr4_graphic;
@@ -5607,7 +5608,11 @@ void gdc_16color_enable_update_vars(void) {
     b &= ~0x04;
     if (enable_pc98_16color) b |= 0x04;
     mem_writeb(0x54C,b);
-    
+
+    if(!enable_pc98_256color) {//force switch to 16-colors mode
+        void pc98_port6A_command_write(unsigned char b);
+        pc98_port6A_command_write(0x20);
+    }
     if(!enable_pc98_16color) {//force switch to 8-colors mode
         void pc98_port6A_command_write(unsigned char b);
         pc98_port6A_command_write(0x00);
