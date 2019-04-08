@@ -154,6 +154,7 @@ using namespace std;
 
 bool                                vga_8bit_dac = false;
 bool                                vga_alt_new_mode = false;
+bool                                enable_vga_8bit_dac = true;
 
 extern int                          vga_memio_delay_ns;
 extern bool                         gdc_5mhz_mode;
@@ -793,6 +794,8 @@ void VGA_Reset(Section*) {
 
     vga.draw.resizing=false;
     vga.mode=M_ERROR;           //For first init
+
+    enable_vga_8bit_dac = section->Get_bool("enable 8-bit dac");
 
     vga_memio_delay_ns = section->Get_int("vmemdelay");
     if (vga_memio_delay_ns < 0) {

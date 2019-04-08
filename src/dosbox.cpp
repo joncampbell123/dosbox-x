@@ -987,6 +987,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_path("title",Property::Changeable::Always,"");
     Pstring->Set_help("Additional text to place in the title bar of the window");
 
+    Pbool = secprop->Add_bool("enable 8-bit dac",Property::Changeable::OnlyAtStart,true);
+    Pbool->Set_help("If set, allow VESA BIOS calls in IBM PC mode to set DAC width. Has no effect in PC-98 mode.");
+
 #if defined(MACOSX)
     /* Let's make DPI aware OFF by default so Mac OS X users with Retina displays don't yell at us about eyestrain.
        They can turn it on in combination with a nice scaler when they want it. */

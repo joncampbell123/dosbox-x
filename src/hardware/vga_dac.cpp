@@ -233,6 +233,7 @@ Bitu read_p3c8(Bitu port, Bitu iolen){
     return vga.dac.write_index;
 }
 
+extern bool enable_vga_8bit_dac;
 extern bool vga_palette_update_on_full_load;
 
 static unsigned char tmp_dac[3] = {0,0,0};
@@ -243,7 +244,9 @@ void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
     vga.dac.hidac_counter=0;
-    val&=0x3f;
+
+    if (!enable_vga_8bit_dac)
+        val&=0x3f;
 
     if (vga.dac.pel_index < 3) {
         tmp_dac[vga.dac.pel_index]=val;

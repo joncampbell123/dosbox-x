@@ -32,6 +32,7 @@ int hack_lfb_yadjust = 0;
 
 extern int vesa_mode_width_cap;
 extern int vesa_mode_height_cap;
+extern bool enable_vga_8bit_dac;
 extern bool allow_vesa_lowres_modes;
 extern bool allow_vesa_4bpp_packed;
 extern bool vesa12_modes_32bpp;
@@ -42,6 +43,7 @@ extern bool allow_vesa_15bpp;
 extern bool allow_vesa_8bpp;
 extern bool allow_vesa_4bpp;
 extern bool allow_vesa_tty;
+extern bool vga_8bit_dac;
 
 #define VESA_SUCCESS          0x00
 #define VESA_FAIL             0x01
@@ -189,7 +191,7 @@ Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
         mem_writed(buffer+0x0e,int10.rom.vesa_modes);	//VESA Mode list
     }
 
-	mem_writed(buffer+0x0a,0x0);					//Capabilities and flags
+	mem_writed(buffer+0x0a,(enable_vga_8bit_dac ? 1 : 0));		//Capabilities and flags
 	mem_writew(buffer+0x12,(Bit16u)(vga.mem.memsize/(64*1024))); // memory size in 64kb blocks
 	return VESA_SUCCESS;
 }
