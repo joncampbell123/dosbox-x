@@ -3341,8 +3341,8 @@ public:
     
         switch (oplmode) {
         case OPL_none:
-            assert(!IS_PC98_ARCH);
-            WriteHandler[0].Install(0x388,adlib_gusforward,IO_MB);
+            if (!IS_PC98_ARCH)
+                WriteHandler[0].Install(0x388,adlib_gusforward,IO_MB);
             break;
         case OPL_cms:
             assert(!IS_PC98_ARCH);
