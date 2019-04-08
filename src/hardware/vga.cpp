@@ -1032,6 +1032,12 @@ void VGA_OnEnterPC98(Section *sec) {
         }
     }
 
+    for (unsigned int i=0;i < 256;i++) {
+        pc98_pal_vga[(i*3)+0] = i;
+        pc98_pal_vga[(i*3)+1] = i;
+        pc98_pal_vga[(i*3)+2] = i;
+    }
+
     pc98_update_palette();
 
     {
