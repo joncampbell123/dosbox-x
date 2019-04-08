@@ -754,7 +754,8 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
             return gdc->read_status();
         case 0x02:      /* 0x62/0xA2 read fifo */
             if (!gdc->rfifo_has_content())
-                LOG_MSG("GDC warning: FIFO read underrun");
+                return gdc->read_status();//FIXME this stops "Battle Skin Panic" from getting stuck is this correct behavior?
+
             return gdc->rfifo_read_data();
 
         case 0x08:
