@@ -1880,7 +1880,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             disp_base = 0x00000U;
 
             while (blocks--) {
-                s = (const unsigned char*)(&vga.mem.linear[(vidmem & 0x7FFFFU) + 0x08000U + disp_base]); /* A8000-AFFFF (B) */
+                s = (const unsigned char*)(&vga.mem.linear[(vidmem & 0x7FFFFU) + 0x08000U + disp_base]);
                 for (unsigned char i=0;i < 8;i++) *draw++ = vga.dac.xlat32[*s++];
 
                 vidmem += 8;
