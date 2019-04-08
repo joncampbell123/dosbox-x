@@ -1421,7 +1421,10 @@ public:
             case 3:     /* A6000-A7FFF Not present */
                 return (AWT)(~0ull);
             default:    /* A8000-BFFFF G-RAM */
-                vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x20000 : 0;
+                if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
+                    vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x40000 : 0;
+                else
+                    vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x20000 : 0;
                 break;
         };
 
@@ -1565,7 +1568,10 @@ public:
             case 3:     /* A6000-A7FFF Not present */
                 return;
             default:    /* A8000-BFFFF G-RAM */
-                vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x20000 : 0;
+                if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
+                    vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x40000 : 0;
+                else
+                    vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x20000 : 0;
                 break;
         };
 
