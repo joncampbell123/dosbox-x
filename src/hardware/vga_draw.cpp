@@ -1879,7 +1879,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
             const unsigned char *s;
 
-            vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << (1u+2u); /* as if reading across bitplanes */
+            vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << (1u+3u); /* as if reading across bitplanes */
             disp_base = 0x00000U;
 
             while (blocks--) {
