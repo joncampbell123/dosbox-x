@@ -626,8 +626,10 @@ CX	640x480	800x600	  1024x768/1280x1024
         case 0x08:
             switch (reg_bl) {
                 case 0x00:                  /* Set DAC width */
-                    if (CurMode->type == M_LIN8 && enable_vga_8bit_dac) {
-                        if (reg_bh >= 8)
+                    if (CurMode->type == M_LIN8) {
+                        /* TODO: If there is a bit on S3 cards to control DAC width in "pseudocolor" modes, replace this code
+                         *       with something to write that bit instead of internal state change like this. */
+                        if (reg_bh >= 8 && enable_vga_8bit_dac)
                             vga_8bit_dac = true;
                         else
                             vga_8bit_dac = false;
