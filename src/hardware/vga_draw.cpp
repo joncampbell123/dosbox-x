@@ -1822,14 +1822,14 @@ Text_Draw_State     pc98_text_draw;
  *      7. Turn ON 256-color mode. Memory map will change.
  *      8. Observe at A800:0000 the values 0x11 0x22 0x55 0x66 0x33 0x44 0x77 0x88
  *
- * The problem is that the 8/16-color planar modes currently emulated in DOSBox-X reflect my
- * misunderstanding that the memory literally stored the bytes as exposed to the CPU in planar
- * modes, when they are in fact remapped in hardware except in 256-color mode.
+ * So either the video memory is planar in design, and the 256-color mode is just the bitplanes
+ * "chained" together (same as 256-color VGA mode), OR, the 256-color mode reflects how memory
+ * is actually laid out and the planar memory is just emulated by packing each bitplane's WORDs
+ * together like that.
  *
- * The drawing code, as well as the memory access code in vga_memory.cpp, will need to be
- * updated to reflect this new knowledge. Until then, DOSBox-X will not be able to emulate the
- * change in memory layout and display of the pixels that occurs on real hardware when switching
- * between 8/16-color planar and 256-color packed mode.
+ * Proper emulation will require determining which is true and rewriting the draw and memory
+ * access code to reflect the true layout so mode changes behave in DOSBox-X exactly as they
+ * behave on real hardware.
  *
  * However it's very likely the few PC-98 games that use the 256-color mode only care about the
  * mode as it exists, and that they don't care about what the prior contents of video memory look
