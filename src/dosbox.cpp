@@ -909,7 +909,7 @@ void DOSBOX_SetupConfigSections(void) {
         "0",                                                                                    /* Auto */
         "300", "310", "320", "330", "332", "334", "336", "340", "360",                          /* IBM PC */
         "c0d0","c8d0","d0d0","d8d0","e0d0","e8d0","f0d0","f8d0",                                /* NEC PC-98 MPU98 */
-        "80d2","80d4","80d6","80d8","80dA","80dc","80de",                                       /* NEC PC-98 SB16 */
+        "80d2","80d4","80d6","80d8","80da","80dc","80de",                                       /* NEC PC-98 SB16 */
         0 };
     const char* ios[] = {
         "220", "240", "260", "280", "2a0", "2c0", "2e0",            /* IBM PC      (base+port i.e. 220h base, 22Ch is DSP) */
