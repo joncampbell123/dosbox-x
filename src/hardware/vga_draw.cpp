@@ -1797,6 +1797,52 @@ struct Text_Draw_State {
 
 Text_Draw_State     pc98_text_draw;
 
+/* NEC PC-9821Lt2 memory layout notes:
+ *
+ * - At first glance, the 8/16 color modes appear to be a sequence of bytes that are read
+ *   in parallel to form 8 or 16 colors.
+ * - Switching on 256-color mode disables the planar memory mapping, and appears to reveal
+ *   how the planar memory is ACTUALLY laid out.
+ * - Much like how VGA planar memory could be thought of as 32 bits per unit, 8 bits per plane,
+ *   PC-98 planar memory seems to behave as 64 bits per unit, 16 bits per plane.
+ * - 256-color mode seems to reveal that the bitplanes exposed at A800, B000, B800, E000
+ *   are in fact just interleaved WORDS in video memory in BGRE order, meaning that the
+ *   first 4 WORDs visible in 256-color mode are the same as, in 16-color mode, the first
+ *   word of (in this order) A800, B800, B000, E000. The traditional E/G/R/B
+ *   (E000, B800, B000, A800) planar order is actually stored in memory in BGRE order.
+ *
+ *   Example:
+ *
+ *      1. Enable 16-color mode
+ *      2. Turn OFF 256-color mode
+ *      3. Write 0x11 0x22 to A800:0000
+ *      4. Write 0x33 0x44 to B000:0000
+ *      5. Write 0x55 0x66 to B800:0000
+ *      6. Write 0x77 0x88 to E000:0000
+ *      7. Turn ON 256-color mode. Memory map will change.
+ *      8. Observe at A800:0000 the values 0x11 0x22 0x55 0x66 0x33 0x44 0x77 0x88
+ *
+ * The problem is that the 8/16-color planar modes currently emulated in DOSBox-X reflect my
+ * misunderstanding that the memory literally stored the bytes as exposed to the CPU in planar
+ * modes, when they are in fact remapped in hardware except in 256-color mode.
+ *
+ * The drawing code, as well as the memory access code in vga_memory.cpp, will need to be
+ * updated to reflect this new knowledge. Until then, DOSBox-X will not be able to emulate the
+ * change in memory layout and display of the pixels that occurs on real hardware when switching
+ * between 8/16-color planar and 256-color packed mode.
+ *
+ * However it's very likely the few PC-98 games that use the 256-color mode only care about the
+ * mode as it exists, and that they don't care about what the prior contents of video memory look
+ * like, so this isn't a problem in running the games, only a minor problem in emulation accuracy.
+ *
+ * Very likely, the same as IBM PC games that set up VGA unchained modes and do not necessarily
+ * care what happens to the display of prior video memory contents (except of course some lazy
+ * written code in the Demoscene that switches freely between the two modes).
+ *
+ * Please note this behavior so far has been noted from one PC-9821 laptop. It may be consistent
+ * across other models I have available for testing, or it may not. --J.C.
+ */
+
 static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     // keep it aligned:
     Bit32u* draw = ((Bit32u*)TempLine);
