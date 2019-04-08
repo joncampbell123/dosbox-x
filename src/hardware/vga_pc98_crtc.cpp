@@ -170,12 +170,18 @@ void pc98_port6A_command_write(unsigned char b) {
             // TODO
             break;
         case 0x20: // 256-color mode disable
-            if (enable_pc98_egc && egc_enable_enable)
+            if (enable_pc98_egc && egc_enable_enable) {
                 pc98_gdc_vramop &= ~(1 << VOPBIT_VGA);
+                VGA_SetupHandlers(); // memory mapping presented to the CPU changes
+                pc98_update_palette();
+            }
             break;
         case 0x21: // 256-color mode enable
-            if (enable_pc98_egc && egc_enable_enable)
+            if (enable_pc98_egc && egc_enable_enable) {
                 pc98_gdc_vramop |= (1 << VOPBIT_VGA);
+                VGA_SetupHandlers(); // memory mapping presented to the CPU changes
+                pc98_update_palette();
+            }
             break;
         default:
             LOG_MSG("PC-98 port 6Ah unknown command 0x%02x",b);

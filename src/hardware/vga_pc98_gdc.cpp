@@ -664,9 +664,16 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                            256-color: 4-bit green intensity. Color index is 8-bit palette index. */
             if (port == 0xAA) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
                 if (gdc_analog) { /* 16/256-color mode */
-                    pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 0] = val&0x0F;
-                    vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].green = dac_4to6(val&0xF); /* re-use VGA DAC */
-                    VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+                    if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+                        pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 0] = val;
+                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index].green = val >> 2u;
+                        VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index);
+                    }
+                    else {
+                        pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 0] = val&0x0F;
+                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].green = dac_4to6(val&0xF); /* re-use VGA DAC */
+                        VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+                    }
                 }
                 else {
                     pc98_set_digpal_pair(1,val);
@@ -682,9 +689,16 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                            256-color: 4-bit red intensity. Color index is 8-bit palette index. */
             if (port == 0xAC) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
                 if (gdc_analog) { /* 16/256-color mode */
-                    pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 1] = val&0x0F;
-                    vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].red = dac_4to6(val&0xF); /* re-use VGA DAC */
-                    VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+                    if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+                        pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 1] = val;
+                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index].red = val >> 2u;
+                        VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index);
+                    }
+                    else {
+                        pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 1] = val&0x0F;
+                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].red = dac_4to6(val&0xF); /* re-use VGA DAC */
+                        VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+                    }
                 }
                 else {
                     pc98_set_digpal_pair(2,val);
@@ -700,9 +714,16 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                            256-color: 4-bit blue intensity. Color index is 8-bit palette index. */
             if (port == 0xAE) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
                 if (gdc_analog) { /* 16/256-color mode */
-                    pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 2] = val&0x0F;
-                    vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].blue = dac_4to6(val&0xF); /* re-use VGA DAC */
-                    VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+                    if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+                        pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 2] = val;
+                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index].blue = val >> 2u;
+                        VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index);
+                    }
+                    else {
+                        pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 2] = val&0x0F;
+                        vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].blue = dac_4to6(val&0xF); /* re-use VGA DAC */
+                        VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+                    }
                 }
                 else {
                     pc98_set_digpal_pair(0,val);
@@ -752,7 +773,10 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
         case 0x0A:
             if (port == 0xAA) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
                 if (gdc_analog) { /* 16/256-color mode */
-                    return pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 0];
+                    if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
+                        return pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 0];
+                    else
+                        return pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 0];
                 }
                 else {
                     return pc98_get_digpal_pair(1);
@@ -765,7 +789,10 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
         case 0x0C:
             if (port == 0xAC) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
                 if (gdc_analog) { /* 16/256-color mode */
-                    return pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 1];
+                    if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
+                        return pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 1];
+                    else
+                        return pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 1];
                 }
                 else {
                     return pc98_get_digpal_pair(2);
@@ -778,7 +805,10 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
         case 0x0E:
             if (port == 0xAE) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
                 if (gdc_analog) { /* 16/256-color mode */
-                    return pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 2];
+                    if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
+                        return pc98_pal_vga[(3*pc98_16col_analog_rgb_palette_index) + 2];
+                    else
+                        return pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 2];
                 }
                 else {
                     return pc98_get_digpal_pair(0);
