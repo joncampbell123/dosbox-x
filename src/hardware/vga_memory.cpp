@@ -164,10 +164,10 @@ void pc98_vga_mmio_write(unsigned int reg,Bit8u val) {
 
     switch (reg) {
         case 0x004: // bank 0
-            pc98_vga_banks[0] = ((val + 1u) & 0xFu) << 15u;
+            pc98_vga_banks[0] = ((val & 0xFu) + 1u) << 15u;
             break;
         case 0x006: // bank 1
-            pc98_vga_banks[1] = ((val + 1u) & 0xFu) << 15u;
+            pc98_vga_banks[1] = ((val & 0xFu) + 1u) << 15u;
             break;
         default:
             break;
