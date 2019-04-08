@@ -1822,6 +1822,10 @@ Text_Draw_State     pc98_text_draw;
  *      7. Turn ON 256-color mode. Memory map will change.
  *      8. Observe at A800:0000 the values 0x11 0x22 0x55 0x66 0x33 0x44 0x77 0x88
  *
+ * Also, if you use I/O port A6h to write to page 1 instead of page 0, what you write will
+ * appear in 256-color mode at SVGA memory bank 4 (offset 128KB) instead of memory bank 0
+ * (offset 0KB). Considering 4 planes * 32KB = 128KB this makes sense.
+ *
  * So either the video memory is planar in design, and the 256-color mode is just the bitplanes
  * "chained" together (same as 256-color VGA mode), OR, the 256-color mode reflects how memory
  * is actually laid out and the planar memory is just emulated by packing each bitplane's WORDs
