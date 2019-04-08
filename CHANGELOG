@@ -1,9 +1,8 @@
 0.82.18 (next)
   - Added basic 256-color mode emulation to PC-98 mode.
     Linear framebuffer, needed by PC-98 ports of DOOM and
-    Wolfenstein 3D, is implemented. Bank switching framebuffer
-    for older 8086-based games is not implemented yet, and
-    I do not have any such games to test that yet.
+    Wolfenstein 3D, is implemented. Bank switching, needed
+    by a few PC-98 games, is implemented. 
   - MPU-401 emulation now accepts dosbox.conf option "mpubase"
     to control the base I/O port of the MPU-401 interface.
     The option can be set to "0" to tell DOSBox-X to pick the
