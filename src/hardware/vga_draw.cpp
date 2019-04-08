@@ -1880,10 +1880,10 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             const unsigned char *s;
 
             vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << (1u+3u); /* as if reading across bitplanes */
-            disp_base = 0x00000U;
+            vidmem += GDC_display_plane ? 0x40000U : 0x00000U;
 
             while (blocks--) {
-                s = (const unsigned char*)(&vga.mem.linear[(vidmem & 0x7FFFFU) + 0x08000U + disp_base]);
+                s = (const unsigned char*)(&vga.mem.linear[(vidmem & 0x7FFFFU) + 0x08000U]);
                 for (unsigned char i=0;i < 8;i++) *draw++ = vga.dac.xlat32[*s++];
 
                 vidmem += 8;
