@@ -1835,6 +1835,9 @@ Text_Draw_State     pc98_text_draw;
  * access code to reflect the true layout so mode changes behave in DOSBox-X exactly as they
  * behave on real hardware.
  *
+ * I have a hunch it's the case of 4 16-bit bitplanes shifted a byte at a time since doing that
+ * allows 256-color mode without having to reprogram any other parameters of the GDC.
+ *
  * However it's very likely the few PC-98 games that use the 256-color mode only care about the
  * mode as it exists, and that they don't care about what the prior contents of video memory look
  * like, so this isn't a problem in running the games, only a minor problem in emulation accuracy.
