@@ -152,6 +152,7 @@ extern ZIPFile savestate_zip;
 
 using namespace std;
 
+bool                                vga_8bit_dac = false;
 bool                                vga_alt_new_mode = false;
 
 extern int                          vga_memio_delay_ns;
