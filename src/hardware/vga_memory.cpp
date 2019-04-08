@@ -1351,10 +1351,32 @@ public:
             }
         }
 
-        if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
-            addr = (addr & 0x7FFF) + 0x20000;
-        else
-            addr &= 0x1FFFF;
+        if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+            if (addr >= 0xE0000) {
+                // TODO: In 256-color mode E0000h becomes memory-mapped I/O to control things like bank switching */
+                return 0x00;
+            }
+            else if (addr >= 0xB8000) {
+                // B8000h is disconnected
+                return ~((AWT)0);
+            }
+            else if (addr >= 0xA8000) {
+                // A8000h is bank 0
+                // B0000h is bank 1
+                addr &= 0x7FFF; // within 32KB bank
+                addr += 0x8000; // start of graphics RAM
+                // TODO
+            }
+            else {
+                addr &= 0x1FFFF;
+            }
+        }
+        else {
+            if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
+                addr = (addr & 0x7FFF) + 0x20000;
+            else
+                addr &= 0x1FFFF;
+        }
 
         switch (addr>>13) {
             case 0:     /* A0000-A1FFF Character RAM */
@@ -1439,10 +1461,32 @@ public:
         if ((addr & (~0x1F)) == 0xA3FE0)
             return;
 
-        if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
-            addr = (addr & 0x7FFF) + 0x20000;
-        else
-            addr &= 0x1FFFF;
+        if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+            if (addr >= 0xE0000) {
+                // TODO: In 256-color mode E0000h becomes memory-mapped I/O to control things like bank switching */
+                return;
+            }
+            else if (addr >= 0xB8000) {
+                // B8000h is disconnected
+                return;
+            }
+            else if (addr >= 0xA8000) {
+                // A8000h is bank 0
+                // B0000h is bank 1
+                addr &= 0x7FFF; // within 32KB bank
+                addr += 0x8000; // start of graphics RAM
+                // TODO
+            }
+            else {
+                addr &= 0x1FFFF;
+            }
+        }
+        else {
+            if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
+                addr = (addr & 0x7FFF) + 0x20000;
+            else
+                addr &= 0x1FFFF;
+        }
 
         /* 0xA4000-0xA4FFF is word-sized access to the character generator.
          *
