@@ -37,6 +37,7 @@ extern ZIPFile savestate_zip;
 
 extern bool non_cga_ignore_oddeven;
 extern bool non_cga_ignore_oddeven_engage;
+extern bool enable_pc98_256color;
 
 #ifndef C_VGARAM_CHECKED
 #define C_VGARAM_CHECKED 1
@@ -1592,6 +1593,17 @@ public:
     }
 };
 
+class VGA_PC98_LFB_Handler : public PageHandler {
+public:
+	VGA_PC98_LFB_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
+	HostPt GetHostReadPt(Bitu phys_page) {
+		return &vga.mem.linear[(phys_page&0x7F)*4096 + 0x8000u/*Graphics RAM*/]; /* 512KB mapping */
+	}
+	HostPt GetHostWritePt(Bitu phys_page) {
+		return &vga.mem.linear[(phys_page&0x7F)*4096 + 0x8000u/*Graphics RAM*/]; /* 512KB mapping */
+	}
+};
+
 class VGA_Map_Handler : public PageHandler {
 public:
 	VGA_Map_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
@@ -1920,6 +1932,7 @@ public:
 };
 
 static struct vg {
+	VGA_PC98_LFB_Handler		map_lfb_pc98;
 	VGA_Map_Handler				map;
 	VGA_Slow_CGA_Handler		slow;
 //	VGA_TEXT_PageHandler		text;
@@ -2259,6 +2272,21 @@ void VGA_SetupMemory() {
 		/* PCJr does not have dedicated graphics memory but uses
 		   conventional memory below 128k */
 		//TODO map?	
-	} 
+	}
+
+    if (IS_PC98_ARCH) {
+        if (enable_pc98_256color && MEM_TotalPages() <= 0xF00) {
+            /* on PC-98 systems with 256-color support, there exists a linear framebuffer
+             * of the 256-color mode at 0xF00000 (near the top of the 16MB limit of old
+             * 386SX CPUs). If memsize is smaller than 15MB, we can map that so games
+             * like DOOM and Wolf98 work.
+             *
+             * TODO: If memsize is larger than 15MB, allow user to specify whether to
+             *       emulate a 1MB hole at 15MB around which extended memory is wrapped,
+             *       so these games continue to work. */
+            LOG_MSG("PC-98: Mapping 256-color mode LFB at F00000");
+		    MEM_SetPageHandler(0xF00, 512/*kb*/ / 4/*kb*/, &vgaph.map_lfb_pc98 );
+        }
+    }
 }
 
