@@ -1,4 +1,7 @@
 0.82.18 (next)
+  - Added INT 10h VESA BIOS function AH=08h "SET DAC WIDTH"
+    so that, when enabled, DOS applications can switch the
+    DAC from 6-bit to 8-bit.
   - Added basic 256-color mode emulation to PC-98 mode.
     Linear framebuffer, needed by PC-98 ports of DOOM and
     Wolfenstein 3D, is implemented. Bank switching, needed
