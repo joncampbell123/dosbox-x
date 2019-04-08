@@ -1,4 +1,9 @@
 0.82.18 (next)
+  - MPU-401 emulation now accepts dosbox.conf option mpubase
+    to control the base I/O port of the MPU-401 interface.
+    The option can be set to "0" to tell DOSBox-X to pick the
+    best default. Works in either IBM PC or NEC PC-98 mode.
+    See dosbox.reference.conf for more details.
   - Fixed Sound Blaster 16 mixer IRQ/DMA select registers
     to work in PC-98 mode as they apparently do on real
     hardware.
