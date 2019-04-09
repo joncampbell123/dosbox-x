@@ -177,7 +177,7 @@ void pc98_port6A_command_write(unsigned char b) {
             }
             break;
         case 0x21: // 256-color mode enable
-            if (enable_pc98_egc && egc_enable_enable) {
+            if (enable_pc98_egc && egc_enable_enable && enable_pc98_256color) {
                 pc98_gdc_vramop |= (1 << VOPBIT_VGA);
                 VGA_SetupHandlers(); // memory mapping presented to the CPU changes
                 pc98_update_palette();
