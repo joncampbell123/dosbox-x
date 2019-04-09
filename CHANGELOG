@@ -1,4 +1,6 @@
 0.82.18 (next)
+  - INT 21h country-specific info now returns correct info
+    for PC-98 mode.
   - INT 21h DBCS lead table now contains correct values in
     PC-98 mode.
   - Added more PC-98 EGC raster opcode emulation. The PC-98
