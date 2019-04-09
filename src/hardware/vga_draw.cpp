@@ -1836,7 +1836,26 @@ Text_Draw_State     pc98_text_draw;
  * behave on real hardware.
  *
  * I have a hunch it's the case of 4 16-bit bitplanes shifted a byte at a time since doing that
- * allows 256-color mode without having to reprogram any other parameters of the GDC.
+ * allows 256-color mode without having to reprogram any other parameters of the GDC or change
+ * anything significant about the hardware.
+ *
+ * Think about it: VGA has planar memory, and each 8-bit byte is shifted out one bit at a time
+ * in parallel to produce a 4-bit value for each pixel, but VGA also permits the hardware to
+ * switch to shifting out each planar byte instead to produce a 256-color packed mode.
+ *
+ * As noted elsewhere in this source code, VGA memory is 4 planes tied together, even in standard
+ * 256-color mode where the planes are chained together to give the CPU the impression of a linear
+ * packed framebuffer.
+ *
+ * Since PC-98 also has planar memory, it wouldn't surprise me if the 256-color mode is just the
+ * same trick except with 16-bit quantitites loaded from memory instead of VGA's 8-bit quantities.
+ *
+ * The behavior of the hardware suggest to me that it also allowed NEC to change as little about
+ * the video hardware as possible, except how it shifts and interprets the planar word data.
+ *
+ * The distorted screen that the PC-98 version of Windows 3.1 presents if you select the 640x400
+ * 256-color driver seems to confirm my theory, along with the fact that you can apparently use
+ * EGC ROPs in 256-color mode.
  *
  * However it's very likely the few PC-98 games that use the 256-color mode only care about the
  * mode as it exists, and that they don't care about what the prior contents of video memory look
