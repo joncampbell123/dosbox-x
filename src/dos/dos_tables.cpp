@@ -216,14 +216,26 @@ void DOS_SetupTables(void) {
 
 
 
-	/* Allocate DCBS DOUBLE BYTE CHARACTER SET LEAD-BYTE TABLE */
-	if (enable_dbcs_tables) {
-		dos.tables.dbcs=RealMake(DOS_GetMemory(12,"dos.tables.dbcs"),0);
-		mem_writed(Real2Phys(dos.tables.dbcs),0); //empty table
-	}
-	else {
-		dos.tables.dbcs=0;
-	}
+    /* Allocate DCBS DOUBLE BYTE CHARACTER SET LEAD-BYTE TABLE */
+    if (enable_dbcs_tables) {
+        dos.tables.dbcs=RealMake(DOS_GetMemory(12,"dos.tables.dbcs"),0);
+
+        if (IS_PC98_ARCH) {
+            // write a valid table, or else Windows 3.1 is unhappy.
+            // Values are copied from INT 21h AX=6300h as returned by an MS-DOS 6.22 boot disk
+            mem_writeb(Real2Phys(dos.tables.dbcs)+0,0x81);  // low/high DBCS pair 1
+            mem_writeb(Real2Phys(dos.tables.dbcs)+1,0x9F);
+            mem_writeb(Real2Phys(dos.tables.dbcs)+2,0xE0);  // low/high DBCS pair 2
+            mem_writeb(Real2Phys(dos.tables.dbcs)+3,0xFC);
+            mem_writed(Real2Phys(dos.tables.dbcs)+4,0);
+        }
+        else {
+            mem_writed(Real2Phys(dos.tables.dbcs),0); //empty table
+        }
+    }
+    else {
+        dos.tables.dbcs=0;
+    }
 	/* FILENAME CHARACTER TABLE */
 	if (enable_filenamechar) {
 		dos.tables.filenamechar=RealMake(DOS_GetMemory(2,"dos.tables.filenamechar"),0);
