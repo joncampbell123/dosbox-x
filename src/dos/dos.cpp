@@ -2264,14 +2264,24 @@ public:
 		/* carry on setup */
 		DOS_SetupMemory();								/* Setup first MCB */
 
-        /* NTS: PC-98 by default starts higher up in memory by default because a normal MS-DOS system on that
-         *      platform has a lot more down there, including an ANSI driver. Windows 3.1 for PC-98 will not
-         *      start reliably if WIN.COM or WIN386.EXE is loaded below the 64KB mark in memory.
+        /* NTS: The reason PC-98 has a higher minimum free is that the MS-DOS kernel
+         *      has a larger footprint in memory, including fixed locations that
+         *      some PC-98 games will read directly, and an ANSI driver.
          *
-         *      A minimum free segment of 0xD80 seems to allow Windows 3.1 enhanced mode to start.
+         *      Some PC-98 games will have problems if loaded below a certain
+         *      threshhold as well.
          *
-         *      If you have a PC-98 game that needs more than offered, then you can set the "minimum mcb segment"
-         *      value manually to a lower value as long as you understand it will break Windows 3.1 */
+         *        Valkyrie: 0xE10 is not enough for the game to run. If a specific
+         *                  FM music selection is chosen, the remaining memory is
+         *                  insufficient for the game to start the battle.
+         *
+         *      The default assumes a DOS kernel and lower memory region of 32KB,
+         *      which might be a reasonable compromise so far.
+         *
+         * NOTES: A minimum mcb free value of at least 0xE10 is needed for Windows 3.1
+         *        386 enhanced to start, else it will complain about insufficient memory (?).
+         *        To get Windows 3.1 to run, either set "minimum mcb free=e10" or run
+         *        "LOADFIX" before starting Windows 3.1 */
 
         /* NTS: There is a mysterious memory corruption issue with some DOS games
          *      and applications when they are loaded at or around segment 0x800.
@@ -2279,7 +2289,7 @@ public:
          *      start segment before or after 0x800 helps to resolve these issues.
          *      It also puts DOSBox-X at parity with main DOSBox SVN behavior. */
         if (minimum_mcb_free == 0)
-            minimum_mcb_free = IS_PC98_ARCH ? 0xD80 : 0x100;
+            minimum_mcb_free = IS_PC98_ARCH ? 0x800 : 0x100;
         else if (minimum_mcb_free < minimum_mcb_segment)
             minimum_mcb_free = minimum_mcb_segment;
 
