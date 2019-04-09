@@ -2264,13 +2264,22 @@ public:
 		/* carry on setup */
 		DOS_SetupMemory();								/* Setup first MCB */
 
+        /* NTS: PC-98 by default starts higher up in memory by default because a normal MS-DOS system on that
+         *      platform has a lot more down there, including an ANSI driver. Windows 3.1 for PC-98 will not
+         *      start reliably if WIN.COM or WIN386.EXE is loaded below the 64KB mark in memory.
+         *
+         *      A minimum free segment of 0xD80 seems to allow Windows 3.1 enhanced mode to start.
+         *
+         *      If you have a PC-98 game that needs more than offered, then you can set the "minimum mcb segment"
+         *      value manually to a lower value as long as you understand it will break Windows 3.1 */
+
         /* NTS: There is a mysterious memory corruption issue with some DOS games
          *      and applications when they are loaded at or around segment 0x800.
          *      This should be looked into. In the meantime, setting the MCB
          *      start segment before or after 0x800 helps to resolve these issues.
          *      It also puts DOSBox-X at parity with main DOSBox SVN behavior. */
         if (minimum_mcb_free == 0)
-            minimum_mcb_free = 0x100;
+            minimum_mcb_free = IS_PC98_ARCH ? 0xD80 : 0x100;
         else if (minimum_mcb_free < minimum_mcb_segment)
             minimum_mcb_free = minimum_mcb_segment;
 
