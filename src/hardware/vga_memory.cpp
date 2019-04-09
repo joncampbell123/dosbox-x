@@ -860,6 +860,18 @@ static egc_quad &ope_00(uint8_t ope, const PhysPt vramoff) {
 	return pc98_egc_data;
 }
 
+static egc_quad &ope_0f(uint8_t ope, const PhysPt vramoff) {
+	(void)vramoff;
+	(void)ope;
+
+	pc98_egc_data[0].w = ~pc98_egc_src[0].w;
+	pc98_egc_data[1].w = ~pc98_egc_src[1].w;
+	pc98_egc_data[2].w = ~pc98_egc_src[2].w;
+	pc98_egc_data[3].w = ~pc98_egc_src[3].w;
+
+	return pc98_egc_data;
+}
+
 static egc_quad &ope_ff(uint8_t ope, const PhysPt vramoff) {
 	(void)vramoff;
 	(void)ope;
@@ -1132,7 +1144,7 @@ static egc_quad &ope_gg(uint8_t ope, const PhysPt vramoff) {
 
 static const PC98_OPEFN pc98_egc_opfn[256] = {
 			ope_00, ope_xx, ope_xx, ope_np, ope_xx, ope_nd, ope_xx, ope_xx,
-			ope_xx, ope_xx, ope_nd, ope_xx, ope_np, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_nd, ope_xx, ope_np, ope_xx, ope_xx, ope_0f,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
