@@ -178,6 +178,22 @@ static Bit8u country_info[0x22] = {
 /* Reservered 5     */  0x00, 0x00, 0x00, 0x00, 0x00
 };
 
+static Bit8u country_info_pc98[0x22] = {
+/* Date format      */  0x02, 0x00,
+/* Currencystring   */  0x5C, 0x00, 0x00, 0x00, 0x00,
+/* Thousands sep    */  0x2c, 0x00,
+/* Decimal sep      */  0x2e, 0x00,
+/* Date sep         */  0x2d, 0x00,
+/* time sep         */  0x3a, 0x00,
+/* currency form    */  0x00,
+/* digits after dec */  0x00,
+/* Time format      */  0x01,
+/* Casemap          */  0x00, 0x00, 0x00, 0x00,
+/* Data sep         */  0x2c, 0x00,
+/* Reservered 5     */  0x00, 0x00, 0x00, 0x00, 0x00,
+/* Reservered 5     */  0x00, 0x00, 0x00, 0x00, 0x00
+};
+
 extern bool enable_dbcs_tables;
 extern bool enable_filenamechar;
 extern bool enable_collating_uppercase;
@@ -308,7 +324,13 @@ void DOS_SetupTables(void) {
 	call_casemap = CALLBACK_Allocate();
 	CALLBACK_Setup(call_casemap,DOS_CaseMapFunc,CB_RETF,"DOS CaseMap");
 	/* Add it to country structure */
-	host_writed(country_info + 0x12, CALLBACK_RealPointer(call_casemap));
-	dos.tables.country=country_info;
+    if (IS_PC98_ARCH) {
+        host_writed(country_info_pc98 + 0x12, CALLBACK_RealPointer(call_casemap));
+        dos.tables.country=country_info_pc98;
+    }
+    else {
+        host_writed(country_info + 0x12, CALLBACK_RealPointer(call_casemap));
+        dos.tables.country=country_info;
+    }
 }
 
