@@ -2318,17 +2318,17 @@ public:
 		// ULTRASND=Port,DMA1,DMA2,IRQ1,IRQ2
 		// [GUS port], [GUS DMA (recording)], [GUS DMA (playback)], [GUS IRQ (playback)], [GUS IRQ (MIDI)]
 		ostringstream temp;
-		temp << "SET ULTRASND=" << hex << setw(3) << portat << ","
+		temp << "@SET ULTRASND=" << hex << setw(3) << portat << ","
 		     << dec << (Bitu)myGUS.dma1 << "," << (Bitu)myGUS.dma2 << ","
 		     << (Bitu)myGUS.irq1 << "," << (Bitu)myGUS.irq2 << ends;
 		// Create autoexec.bat lines
 		autoexecline[0].Install(temp.str());
-		autoexecline[1].Install(std::string("SET ULTRADIR=") + ultradir);
+		autoexecline[1].Install(std::string("@SET ULTRADIR=") + ultradir);
 
 		if (gus_type >= GUS_MAX) {
 			/* FIXME: Does the Interwave have a CS4231? */
 			ostringstream temp2;
-			temp2 << "SET ULTRA16=" << hex << setw(3) << (0x30C+GUS_BASE) << ","
+			temp2 << "@SET ULTRA16=" << hex << setw(3) << (0x30C+GUS_BASE) << ","
 				<< "0,0,1,0" << ends; // FIXME What do these numbers mean?
 			autoexecline[2].Install(temp2.str());
 		}

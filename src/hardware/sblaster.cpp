@@ -3603,9 +3603,9 @@ ASP>
             // Create set blaster line
             ostringstream temp;
             if (IS_PC98_ARCH)
-                temp << "SET BLASTER=A" << setw(2) << hex << sb.hw.base;
+                temp << "@SET BLASTER=A" << setw(2) << hex << sb.hw.base;
             else
-                temp << "SET BLASTER=A" << setw(3) << hex << sb.hw.base;
+                temp << "@SET BLASTER=A" << setw(3) << hex << sb.hw.base;
 
             if (sb.hw.irq != 0xFF) temp << " I" << dec << (Bitu)sb.hw.irq;
             if (sb.hw.dma8 != 0xFF) temp << " D" << (Bitu)sb.hw.dma8;
