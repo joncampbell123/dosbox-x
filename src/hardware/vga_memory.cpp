@@ -1168,7 +1168,7 @@ static const PC98_OPEFN pc98_egc_opfn[256] = {
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_c0, ope_xx, ope_xx, ope_np, ope_xx, ope_xx, ope_xx, ope_xx,
-			ope_gg, ope_xx, ope_gg, ope_xx, ope_np, ope_xx, ope_xx, ope_np,
+			ope_gg, ope_xx, ope_gg, ope_xx, ope_np, ope_gg, ope_xx, ope_np,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
