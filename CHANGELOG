@@ -1,4 +1,7 @@
 0.82.18 (next)
+  - GUS and Sound Blaster environment variable installation
+    is now quiet, does not echo the variable on screen at
+    startup.
   - INT 21h country-specific info now returns correct info
     for PC-98 mode.
   - INT 21h DBCS lead table now contains correct values in
