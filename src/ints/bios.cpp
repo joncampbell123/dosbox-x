@@ -45,10 +45,6 @@ extern bool PS1AudioCard;
 #include <time.h>
 #include <sys/timeb.h>
 
-#if C_EMSCRIPTEN
-# include <emscripten.h>
-#endif
-
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 # pragma warning(disable:4305) /* truncation from double to float */
@@ -7018,7 +7014,6 @@ private:
             BIOS_Int10RightJustifiedPrint(x,y,"ISA Plug & Play BIOS active\n");
         }
 
-#if !defined(C_EMSCRIPTEN)
         BIOS_Int10RightJustifiedPrint(x,y,"\nHit SPACEBAR to pause at this screen\n");
         y--; /* next message should overprint */
         if (machine != MCH_PC98) {
@@ -7033,7 +7028,6 @@ private:
             reg_edx = (((unsigned int)y * 80u) + (unsigned int)x) * 2u; // byte position
             CALLBACK_RunRealInt(0x18);
         }
-#endif
 
         // TODO: Then at this screen, we can print messages demonstrating the detection of
         //       IDE devices, floppy, ISA PnP initialization, anything of importance.
@@ -7041,14 +7035,6 @@ private:
         //       a "BIOS setup" screen where all DOSBox configuration options can be
         //       modified, with the same look and feel of an old BIOS.
 
-#if C_EMSCRIPTEN
-        Bit32u lasttick=GetTicks();
-        while ((GetTicks()-lasttick)<1000) {
-            void CALLBACK_Idle(void);
-            CALLBACK_Idle();
-            emscripten_sleep_with_yield(100);
-        }
-#else
         if (!control->opt_fastbioslogo) {
             bool wait_for_user = false;
             Bit32u lasttick=GetTicks();
@@ -7095,7 +7081,6 @@ private:
                     break;
             }
         }
-#endif
 
         if (machine == MCH_PC98) {
             reg_eax = 0x4100;   // hide the graphics layer (PC-98)

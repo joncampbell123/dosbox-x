@@ -97,9 +97,7 @@ static const char *def_menu__toplevel[] =
     "VideoMenu",
     "SoundMenu",
     "DOSMenu",
-#if !defined(C_EMSCRIPTEN)
     "CaptureMenu",
-#endif
     NULL
 };
 
@@ -111,35 +109,25 @@ static const char *def_menu_main[] =
     "--",
     "MainSendKey",
     "--",
-#if !defined(C_EMSCRIPTEN)
     "wait_on_error",
-#endif
     "showdetails",
 #if C_DEBUG
     "--",
     "mapper_debugger",
 #endif
-#if !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS) && !defined(C_EMSCRIPTEN)
+#if !defined(MACOSX) && !defined(LINUX) && !defined(HX_DOS)
     "show_console",
 #endif
     "--",
     "mapper_capmouse",
     "auto_lock_mouse",
-#if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
     "mapper_pause",
     "mapper_pauseints",
-#endif
-#if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
     "mapper_reset",
-#endif
-#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     "--",
-#endif
-#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     "mapper_shutdown",
-#endif
     NULL
 };
 
@@ -161,10 +149,8 @@ static const char *def_menu_cpu_core[] =
     "mapper_cycauto",
     "--",
     "mapper_normal",
-#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     "mapper_full",
     "mapper_simple",
-#endif
 #if defined(C_DYNAMIC_X86) || defined(C_DYNREC)
     "mapper_dynamic",
 #endif
@@ -407,32 +393,28 @@ static const char *def_menu_capture[] =
     "mapper_scrshot",
     "--",
 #endif
-#if !defined(C_EMSCRIPTEN)
-# if (C_SSHOT)
+#if (C_SSHOT)
     "CaptureFormatMenu",
     "--",
-# endif
+#endif
     "mapper_video",
     "mapper_recwave",
     "mapper_recmtwave",
     "mapper_caprawopl",
     "mapper_caprawmidi",
-#endif
     NULL
 };
 
-#if !defined(C_EMSCRIPTEN)
-# if (C_SSHOT)
+#if (C_SSHOT)
 /* capture format menu ("CaptureFormatMenu") */
 static const char *def_menu_capture_format[] =
 {
     "capture_fmt_avi_zmbv",
-#  if (C_AVCODEC)
+# if (C_AVCODEC)
     "capture_fmt_mpegts_h264",
-#  endif
+# endif
     NULL
 };
-# endif
 #endif
 
 bool DOSBox_isMenuVisible(void) {
@@ -1138,16 +1120,12 @@ void ConstructMenu(void) {
     /* DOS PC-98 menu */
     ConstructSubMenu(mainMenu.get_item("DOSPC98Menu").get_master_id(), def_menu_dos_pc98);
 
-#if !defined(C_EMSCRIPTEN)
     /* capture menu */
     ConstructSubMenu(mainMenu.get_item("CaptureMenu").get_master_id(), def_menu_capture);
-#endif
 
-#if !defined(C_EMSCRIPTEN)
-# if (C_SSHOT)
+#if (C_SSHOT)
     /* capture format menu */
     ConstructSubMenu(mainMenu.get_item("CaptureFormatMenu").get_master_id(), def_menu_capture_format);
-# endif
 #endif
 }
 
