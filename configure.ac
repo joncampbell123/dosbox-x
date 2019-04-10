@@ -726,58 +726,6 @@ case "$host" in
    ;;
 esac
 
-dnl FEATURE: Whether to enable dynamic core
-AC_ARG_ENABLE(dynamic-core,AC_HELP_STRING([--disable-dynamic-core],[Disable all dynamic cores]),,enable_dynamic_core=yes)
-
-dnl FEATURE: Whether to enable x86 dynamic core
-AH_TEMPLATE(C_DYNAMIC_X86,[Define to 1 to use x86 dynamic cpu core])
-AC_ARG_ENABLE(dynamic-x86,AC_HELP_STRING([--disable-dynamic-x86],[Disable x86 dynamic cpu core]),,enable_dynamic_x86=yes)
-AC_MSG_CHECKING(whether x86 dynamic cpu core will be enabled) 
-if test x$enable_dynamic_x86 = xno -o x$enable_dynamic_core = xno; then 
-   AC_MSG_RESULT(no)
-else
-  if test x$c_targetcpu = xx86 ; then
-      AC_DEFINE(C_DYNAMIC_X86,32)
-      AC_MSG_RESULT(yes)
-  elif test x$c_targetcpu = xx86_64 ; then
-      true
-dnl     TODO
-dnl      AC_DEFINE(C_DYNAMIC_X86,64)
-dnl      AC_MSG_RESULT(yes)
-  else
-      AC_MSG_RESULT(no)
-  fi
-fi
-
-AH_TEMPLATE(C_DYNREC,[Define to 1 to use recompiling cpu core. Can not be used together with the dynamic-x86 core])
-AC_ARG_ENABLE(dynrec,AC_HELP_STRING([--disable-dynrec],[Disable recompiling cpu core]),,enable_dynrec=yes)
-AC_MSG_CHECKING(whether recompiling cpu core will be enabled) 
-if test x$enable_dynrec = xno -o x$enable_dynamic_core = xno; then 
-   AC_MSG_RESULT(no)
-else
-dnl x86 only enable it if dynamic-x86 is disabled.
-  if test x$c_targetcpu = xx86 ; then
-    if test x$enable_dynamic_x86 = xno ; then
-        AC_DEFINE(C_DYNREC,1)
-        AC_MSG_RESULT(yes)
-    else
-        AC_MSG_RESULT([no, using dynamic-x86])
-    fi
-  else 
-    if test x$c_targetcpu = xx86_64 ; then
-        AC_DEFINE(C_DYNREC,1)
-        AC_MSG_RESULT(yes)
-    else
-      if test x$c_targetcpu = xarm ; then
-        AC_DEFINE(C_DYNREC,1)
-	AC_MSG_RESULT(yes)
-      else 
-        AC_MSG_RESULT(no)
-      fi
-    fi
-  fi
-fi
-
 dnl FEATURE: Whether to emulate the floating point unit
 AH_TEMPLATE(C_FPU,[Define to 1 to enable floating point emulation])
 AC_ARG_ENABLE(fpu,AC_HELP_STRING([--disable-fpu],[Disable fpu support]),,enable_fpu=yes)
