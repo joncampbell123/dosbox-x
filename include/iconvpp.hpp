@@ -3,15 +3,8 @@
 # error do not include directly
 #endif
 
-#include <iostream>
-#include <exception>
-#include <stdexcept>
-
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #if defined(__MINGW32__) || defined(_WIN32) || defined(WINDOWS)
+# include <windows.h>
 # define ICONV_LITTLE_ENDIAN 1234
 # define ICONV_BIG_ENDIAN 4321
 # define ICONV_BYTE_ORDER ICONV_LITTLE_ENDIAN
@@ -32,6 +25,15 @@
 # define ICONV_LITTLE_ENDIAN LITTLE_ENDIAN
 # define ICONV_BIG_ENDIAN BIG_ENDIAN
 #endif
+
+#include <errno.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include <iostream>
+#include <exception>
+#include <stdexcept>
 
 /* common code to any templated version of _IconvBase */
 class _Iconv_CommonBase {

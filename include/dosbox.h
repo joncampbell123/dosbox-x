@@ -21,6 +21,7 @@
 #define DOSBOX_DOSBOX_H
 
 #include "config.h"
+#include "iconvpp.hpp"
 #include "logging.h"
 
 #if defined(C_ICONV)
@@ -35,8 +36,6 @@
   #pragma warning "iconv backend not chosen, will become mandatory at some point"
  #endif
 #endif
-
-#include "iconvpp.hpp"
 
 /* Mac OS X: There seems to be a problem with Macbooks where the touchpad
              is seen by SDL2 as a "touchscreen", even though the screen is

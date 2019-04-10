@@ -2532,7 +2532,7 @@ bool EMS_Active(void);
 
 static void LogEMS(void) {
     Bitu h_size;
-    PhysPt h_addr;
+    PhysPt xh_addr;
     std::string h_name;
 
     if (dos_kernel_disabled) {
@@ -2550,10 +2550,10 @@ static void LogEMS(void) {
     LOG(LOG_MISC,LOG_ERROR)("EMS memory (type %s) handles:",EMS_Type_String());
     LOG(LOG_MISC,LOG_ERROR)("Handle Address  Size (bytes)    Name");
     for (Bitu h=0;h < EMS_Max_Handles();h++) {
-        if (EMS_GetHandle(/*&*/h_size,/*&*/h_addr,/*&*/h_name,h)) {
+        if (EMS_GetHandle(/*&*/h_size,/*&*/xh_addr,/*&*/h_name,h)) {
             LOG(LOG_MISC,LOG_ERROR)("%6lu %08lx %08lx %s",
                 (unsigned long)h,
-                (unsigned long)h_addr,
+                (unsigned long)xh_addr,
                 (unsigned long)h_size,
                 h_name.c_str());
         }
@@ -2574,15 +2574,15 @@ static void LogEMS(void) {
         if (EMS_GetMapping(handle,log_page,p)) {
             char tmp[192] = {0};
 
-            h_addr = 0;
+            xh_addr = 0;
             h_size = 0;
             h_name.clear();
-            EMS_GetHandle(/*&*/h_size,/*&*/h_addr,/*&*/h_name,handle);
+            EMS_GetHandle(/*&*/h_size,/*&*/xh_addr,/*&*/h_name,handle);
 
-            if (h_addr != 0)
+            if (xh_addr != 0)
                 sprintf(tmp," virt -> %08lx-%08lx phys",
-                    (unsigned long)h_addr + (log_page << 14UL),
-                    (unsigned long)h_addr + (log_page << 14UL) + (1 << 14UL) - 1);
+                    (unsigned long)xh_addr + (log_page << 14UL),
+                    (unsigned long)xh_addr + (log_page << 14UL) + (1 << 14UL) - 1);
 
             LOG(LOG_MISC,LOG_ERROR)("%6lu %4lu/%4lu %08lx-%08lx%s",(unsigned long)handle,
                 (unsigned long)p,(unsigned long)log_page,
