@@ -29,32 +29,18 @@ dosbox_x_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuilt
 	       cpu/libcpu.a hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a \
 		   output/liboutput.a
 
-if !EMSCRIPTEN
 dosbox_x_LDADD += aviwriter/libaviwriter.a
-endif
 
 if C_DIRECT3D
 dosbox_x_LDADD += output/direct3d/liboutputdirect3d.a
 endif
 
 if C_XBRZ
-if !EMSCRIPTEN
 dosbox_x_LDADD += xBRZ/libxbrz.a
-endif
 endif
 
 if C_MT32
-if !EMSCRIPTEN
 dosbox_x_LDADD += mt32/libmt32.a
-endif
-endif
-
-if EMSCRIPTEN
-dosbox_x_js:
-	emcc -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1 -s EMTERPRETIFY_FILE=dosbox-x.data $(dosbox_x_OBJECTS) $(dosbox_x_LDADD) $(LIBS) $(dosbox_x_OBJECTS) $(dosbox_x_DEPENDENCIES) $(EXTRA_dosbox_x_DEPENDENCIES) -o dosbox-x.html
-
-dosbox_x_js_install:
-	sudo cp -v dosbox-x.data dosbox-x.html dosbox-x.js dosbox-x.wasm /var/www/html/em/
 endif
 
 EXTRA_DIST = winres.rc dosbox.ico

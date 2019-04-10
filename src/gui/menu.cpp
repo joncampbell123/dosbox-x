@@ -149,7 +149,6 @@ static const char *def_menu_cpu_core[] =
     "mapper_cycauto",
     "--",
     "mapper_normal",
-    "mapper_full",
     "mapper_simple",
     NULL
 };
