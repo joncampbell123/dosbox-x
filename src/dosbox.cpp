@@ -921,10 +921,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
     Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host");
 
-    // STUB OPTION, NOT YET FULLY IMPLEMENTED
-    Pbool = secprop->Add_bool("weitek",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, emulate the Weitek coprocessor. This option only has effect if cputype=386 or cputype=486.");
-
     Pbool = secprop->Add_bool("bochs debug port e9",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, emulate Bochs debug port E9h. ASCII text written to this I/O port is assumed to be debug output, and logged.");
 
