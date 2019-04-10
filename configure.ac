@@ -156,10 +156,6 @@ dnl This is how the build script can specify a HX DOS extender target
 AH_TEMPLATE(C_HX_DOS,[Define to 1 to target HX DOS])
 AC_ARG_ENABLE(hx-dos,AC_HELP_STRING([--enable-hx-dos],[Enable HX target]),enable_hx=yes)
 
-dnl Let me know if you're targeting Emscripten
-AH_TEMPLATE(C_EMSCRIPTEN,[Define to 1 to target Emscripten])
-AC_ARG_ENABLE(emscripten,AC_HELP_STRING([--enable-emscripten],[Enable Emscripten target]),enable_emscripten=$enableval,enable_emscripten=no)
-
 dnl Allow disabling X11 integration if your platform doesn't support it
 AC_ARG_ENABLE(x11,AC_HELP_STRING([--disable-x11],[Don't enable X11 integration]))
 
@@ -178,10 +174,6 @@ if test x$enable_optimize != xno; then
 	    CFLAGS="$CFLAGS -O2"
 	    CXXFLAGS="$CXXFLAGS -O2"
     fi
-fi
-
-if test x$enable_emscripten == xyes; then
-	AC_DEFINE(C_EMSCRIPTEN,1,[Targeting Emscripten])
 fi
 
 dnl Some stuff for the icon.
