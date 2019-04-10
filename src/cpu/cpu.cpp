@@ -168,7 +168,6 @@ Bitu CPU_extflags_toggle=0;	// ID and AC flags may be toggled depending on emula
 unsigned int CPU_PrefetchQueueSize=0;
 
 void CPU_Core_Normal_Init(void);
-void CPU_Core_Simple_Init(void);
 
 void menu_update_cputype(void) {
 	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
@@ -244,10 +243,6 @@ void menu_update_core(void) {
 
     mainMenu.get_item("mapper_normal").
         check(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
-        refresh_item(mainMenu);
-    mainMenu.get_item("mapper_simple").
-        check(cpudecoder == &CPU_Core_Simple_Run).
-        enable(cpudecoder != &CPU_Core_Prefetch_Run).
         refresh_item(mainMenu);
 }
 
@@ -2858,16 +2853,6 @@ static void CPU_ToggleNormalCore(bool pressed) {
     }
 }
 
-static void CPU_ToggleSimpleCore(bool pressed) {
-    if (!pressed)
-	return;
-    Section* sec=control->GetSection("cpu");
-    std::string tmp="core=simple";
-    if(sec) {
-	sec->HandleInputline(tmp);
-    }
-}
-
 void CPU_Enable_SkipAutoAdjust(void) {
 	if (CPU_CycleAutoAdjust) {
 		CPU_CycleMax /= 2;
@@ -3021,7 +3006,6 @@ public:
 
 		/* Init the cpu cores */
 		CPU_Core_Normal_Init();
-		CPU_Core_Simple_Init();
 
 		MAPPER_AddHandler(CPU_CycleDecrease,MK_minus,MMODHOST,"cycledown","Dec Cycles",&item);
 		item->set_text("Decrement cycles");
@@ -3035,9 +3019,6 @@ public:
 
 		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_nothing,0,"normal"  ,"NormalCore", &item);
 		item->set_text("Normal core");
-
-        MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_nothing,0,"simple","SimpleCore", &item);
-		item->set_text("Simple core");
 
         /* these are not mapper shortcuts, and probably should not be mapper shortcuts */
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_auto").
@@ -3193,8 +3174,6 @@ public:
 		core_mode[15] = '\0';
 		if (core == "normal") {
 			cpudecoder=&CPU_Core_Normal_Run;
-		} else if (core =="simple") {
-			cpudecoder=&CPU_Core_Simple_Run;
 		} else if (core == "auto") {
 			cpudecoder=&CPU_Core_Normal_Run;
 			CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CORE;
@@ -3547,7 +3526,6 @@ Bit16u CPU_FindDecoderType( CPU_Decoder *decoder )
 	if(0) {}
 	else if( cpudecoder == &CPU_Core_Normal_Run ) decoder_idx = 0;
 	else if( cpudecoder == &CPU_Core_Prefetch_Run ) decoder_idx = 1;
-	else if( cpudecoder == &CPU_Core_Simple_Run ) decoder_idx = 2;
 	else if( cpudecoder == &CPU_Core_Normal_Trap_Run ) decoder_idx = 100;
 	else if( cpudecoder == &HLT_Decode ) decoder_idx = 200;
 
@@ -3565,7 +3543,6 @@ CPU_Decoder *CPU_IndexDecoderType( Bit16u decoder_idx )
 	switch( decoder_idx ) {
 		case 0: cpudecoder = &CPU_Core_Normal_Run; break;
 		case 1: cpudecoder = &CPU_Core_Prefetch_Run; break;
-		case 2: cpudecoder = &CPU_Core_Simple_Run; break;
 		case 100: cpudecoder = &CPU_Core_Normal_Trap_Run; break;
 		case 200: cpudecoder = &HLT_Decode; break;
 	}

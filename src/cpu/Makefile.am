@@ -6,5 +6,3 @@ libcpu_a_SOURCES = callback.cpp cpu.cpp flags.cpp modrm.cpp modrm.h instructions
 		   paging.cpp lazyflags.h core_normal.cpp core_normal_8086.cpp core_normal_286.cpp core_prefetch.cpp \
 		   mmx.cpp
 
-libcpu_a_SOURCES += core_simple.cpp
-

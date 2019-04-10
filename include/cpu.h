@@ -79,7 +79,6 @@ extern CPU_Decoder * cpudecoder;
 
 Bits CPU_Core_Normal_Run(void);
 Bits CPU_Core_Normal_Trap_Run(void);
-Bits CPU_Core_Simple_Run(void);
 Bits CPU_Core_Prefetch_Run(void);
 Bits CPU_Core_Prefetch_Trap_Run(void);
 
