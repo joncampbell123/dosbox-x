@@ -117,8 +117,7 @@ void CALLBACK_Idle(void) {
 	reg_eip=oldeip;
 	SegSet16(cs,oldcs);
 	SETFLAGBIT(IF,oldIF);
-	if (!CPU_CycleAutoAdjust && CPU_Cycles>0)
-		CPU_Cycles=0;
+    CPU_Cycles=0;
 }
 
 static Bitu default_handler(void) {

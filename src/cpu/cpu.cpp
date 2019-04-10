@@ -157,9 +157,6 @@ cpu_cycles_count_t CPU_CyclesSet = 3000;
 cpu_cycles_count_t CPU_IODelayRemoved = 0;
 char core_mode[16];
 CPU_Decoder * cpudecoder;
-bool CPU_CycleAutoAdjust = false;
-bool CPU_SkipCycleAutoAdjust = false;
-unsigned char CPU_AutoDetermineMode = 0;
 
 unsigned char CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
 
@@ -173,9 +170,6 @@ void menu_update_cputype(void) {
 	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
 	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
 
-    mainMenu.get_item("cputype_auto").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_MIXED).
-        refresh_item(mainMenu);
     mainMenu.get_item("cputype_8086").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder != &CPU_Core_Prefetch_Run)).
         refresh_item(mainMenu);
@@ -244,19 +238,6 @@ void menu_update_core(void) {
     mainMenu.get_item("mapper_normal").
         check(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
         refresh_item(mainMenu);
-}
-
-void menu_update_autocycle(void) {
-    DOSBoxMenu::item &item = mainMenu.get_item("mapper_cycauto");
-    if (CPU_CycleAutoAdjust)
-        item.set_text("Auto cycles [max]");
-    else if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES)
-        item.set_text("Auto cycles [auto]");
-    else
-        item.set_text("Auto cycles [off]");
-
-    item.check(CPU_CycleAutoAdjust || (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES));
-    item.refresh_item(mainMenu);
 }
 
 /* called to signal an NMI. */
@@ -2169,7 +2150,6 @@ bool CPU_IsDynamicCore(void) {
     return false;
 }
 
-static bool printed_cycles_auto_info = false;
 void CPU_SET_CRX(Bitu cr,Bitu value) {
 	switch (cr) {
 	case 0:
@@ -2186,24 +2166,6 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 				cpu.pmode=true;
 				LOG(LOG_CPU,LOG_NORMAL)("Protected mode");
 				PAGING_Enable((value&CR0_PAGING)? true:false);
-
-				if (!(CPU_AutoDetermineMode&CPU_AUTODETERMINE_MASK)) break;
-
-				if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-					CPU_CycleAutoAdjust=true;
-					CPU_CycleLeft=0;
-					CPU_Cycles=0;
-					CPU_OldCycleMax=CPU_CycleMax;
-					GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
-					if(!printed_cycles_auto_info) {
-						printed_cycles_auto_info = true;
-						LOG_MSG("DOSBox switched to max cycles, because of the setting: cycles=auto. If the game runs too fast try a fixed cycles amount in DOSBox's options.");
-					}
-                    menu_update_autocycle();
-				} else {
-					GFX_SetTitle(-1,-1,-1,false);
-				}
-				CPU_AutoDetermineMode<<=CPU_AUTODETERMINE_SHIFT;
 			} else {
 				cpu.pmode=false;
 				if (value & CR0_PAGING) LOG_MSG("Paging requested without PE=1");
@@ -2767,12 +2729,7 @@ void CPU_SyncCycleMaxToProp(void) {
 void CPU_CycleIncrease(bool pressed) {
 	if (!pressed) return;
 
-	if (CPU_CycleAutoAdjust) {
-		CPU_CyclePercUsed+=5;
-		if (CPU_CyclePercUsed>105) CPU_CyclePercUsed=105;
-		LOG_MSG("CPU speed: max %ld percent.",CPU_CyclePercUsed);
-		GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
-	} else {
+	{
 		Bit32s old_cycles=CPU_CycleMax;
 		if (CPU_CycleUp < 100) {
 			CPU_CycleMax = (Bit32s)(CPU_CycleMax * (1 + (float)CPU_CycleUp / 100.0));
@@ -2782,9 +2739,7 @@ void CPU_CycleIncrease(bool pressed) {
 
 		CPU_CycleLeft=0;CPU_Cycles=0;
 		if (CPU_CycleMax==old_cycles) CPU_CycleMax++;
-		if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-		    LOG_MSG("CPU:%ld cycles (auto)",CPU_CycleMax);
-		} else {
+		{
 		    CPU_CyclesSet=CPU_CycleMax;
             LOG_MSG("CPU speed: fixed %ld cycles.",CPU_CycleMax);
         }
@@ -2795,15 +2750,7 @@ void CPU_CycleIncrease(bool pressed) {
 
 void CPU_CycleDecrease(bool pressed) {
 	if (!pressed) return;
-	if (CPU_CycleAutoAdjust) {
-		CPU_CyclePercUsed-=5;
-		if (CPU_CyclePercUsed<=0) CPU_CyclePercUsed=1;
-		if(CPU_CyclePercUsed <=70)
-			LOG_MSG("CPU speed: max %ld percent. If the game runs too fast, try a fixed cycles amount in DOSBox's options.",CPU_CyclePercUsed);
-		else
-			LOG_MSG("CPU speed: max %ld percent.",CPU_CyclePercUsed);
-		GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
-	} else {
+	{
 		if (CPU_CycleDown < 100) {
 			CPU_CycleMax = (Bit32s)(CPU_CycleMax / (1 + (float)CPU_CycleDown / 100.0));
 		} else {
@@ -2811,9 +2758,7 @@ void CPU_CycleDecrease(bool pressed) {
 		}
 		CPU_CycleLeft=0;CPU_Cycles=0;
 		if (CPU_CycleMax <= 0) CPU_CycleMax=1;
-		if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-		    LOG_MSG("CPU:%ld cycles (auto)",CPU_CycleMax);
-		} else {
+		{
 		    CPU_CyclesSet=CPU_CycleMax;
 		    LOG_MSG("CPU speed: fixed %ld cycles.",CPU_CycleMax);
 		}
@@ -2822,48 +2767,14 @@ void CPU_CycleDecrease(bool pressed) {
 	}
 }
 
-static void CPU_ToggleAutoCycles(bool pressed) {
-    if (!pressed)
-        return;
-
-    Section* sec=control->GetSection("cpu");
-    if (sec) {
-        std::string tmp("cycles=");
-        if (CPU_CycleAutoAdjust) {
-            std::ostringstream str;
-            str << "fixed " << CPU_CyclesSet;
-            tmp.append(str.str());
-        } else if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-            tmp.append("max");
-        } else {
-            tmp.append("auto");
-        }
-
-        sec->HandleInputline(tmp);
-    }
-}
-
 static void CPU_ToggleNormalCore(bool pressed) {
     if (!pressed)
-	return;
+        return;
     Section* sec=control->GetSection("cpu");
     if(sec) {
-	std::string tmp="core=normal";
-	sec->HandleInputline(tmp);
+        std::string tmp="core=normal";
+        sec->HandleInputline(tmp);
     }
-}
-
-void CPU_Enable_SkipAutoAdjust(void) {
-	if (CPU_CycleAutoAdjust) {
-		CPU_CycleMax /= 2;
-		if (CPU_CycleMax < CPU_CYCLES_LOWER_LIMIT)
-			CPU_CycleMax = CPU_CYCLES_LOWER_LIMIT;
-	}
-	CPU_SkipCycleAutoAdjust=true;
-}
-
-void CPU_Disable_SkipAutoAdjust(void) {
-	CPU_SkipCycleAutoAdjust=false;
 }
 
 
@@ -2871,11 +2782,6 @@ extern Bit32s ticksDone;
 extern Bit32u ticksScheduled;
 extern int dynamic_core_cache_block_size;
 
-void CPU_Reset_AutoAdjust(void) {
-	CPU_IODelayRemoved = 0;
-	ticksDone = 0;
-	ticksScheduled = 0;
-}
 
 class Weitek_PageHandler : public PageHandler {
 public:
@@ -3013,10 +2919,6 @@ public:
 		MAPPER_AddHandler(CPU_CycleIncrease,MK_equals,MMODHOST,"cycleup"  ,"Inc Cycles",&item);
 		item->set_text("Increment cycles");
 
-		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_nothing,0,"cycauto","AutoCycles",&item);
-		item->set_text("Auto cycles");
-		item->set_description("Enable automatic cycle count");
-
 		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_nothing,0,"normal"  ,"NormalCore", &item);
 		item->set_text("Normal core");
 
@@ -3060,10 +2962,8 @@ public:
 	}
 	bool Change_Config(Section* newconfig){
 		Section_prop * section=static_cast<Section_prop *>(newconfig);
-		CPU_AutoDetermineMode=CPU_AUTODETERMINE_NONE;
 		//CPU_CycleLeft=0;//needed ?
 		CPU_Cycles=0;
-		CPU_SkipCycleAutoAdjust=false;
 
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
 		use_dynamic_core_with_paging = section->Get_bool("use dynamic core with paging on");
@@ -3089,7 +2989,6 @@ public:
 		if (type=="max") {
 			CPU_CycleMax=0;
 			CPU_CyclePercUsed=100;
-			CPU_CycleAutoAdjust=true;
 			CPU_CycleLimit=-1;
 			for (Bitu cmdnum=1; cmdnum<=cmd.GetCount(); cmdnum++) {
 				if (cmd.FindCommand(cmdnum,str)) {
@@ -3111,39 +3010,7 @@ public:
 				}
 			}
 		} else {
-			if (type=="auto") {
-				CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CYCLES;
-				CPU_CycleMax=3000;
-				CPU_OldCycleMax=3000;
-				CPU_CyclePercUsed=100;
-				for (Bitu cmdnum=0; cmdnum<=cmd.GetCount(); cmdnum++) {
-					if (cmd.FindCommand(cmdnum,str)) {
-						if (str.find('%')==str.length()-1) {
-							str.erase(str.find('%'));
-							int percval=0;
-							std::istringstream stream(str);
-							stream >> percval;
-							if ((percval>0) && (percval<=105)) CPU_CyclePercUsed=(Bit32s)percval;
-						} else if (str=="limit") {
-							cmdnum++;
-							if (cmd.FindCommand(cmdnum,str)) {
-								int cyclimit=0;
-								std::istringstream stream(str);
-								stream >> cyclimit;
-								if (cyclimit>0) CPU_CycleLimit=cyclimit;
-							}
-						} else {
-							int rmdval=0;
-							std::istringstream stream(str);
-							stream >> rmdval;
-							if (rmdval>0) {
-								CPU_CycleMax=(Bit32s)rmdval;
-								CPU_OldCycleMax=(Bit32s)rmdval;
-							}
-						}
-					}
-				}
-			} else if(type =="fixed") {
+            if(type =="fixed") {
 				cmd.FindCommand(1,str);
 				int rmdval=0;
 				std::istringstream stream(str);
@@ -3156,10 +3023,7 @@ public:
 				if(rmdval) CPU_CycleMax=(Bit32s)rmdval;
 				if(rmdval) CPU_CyclesSet=(Bit32s)rmdval;
 			}
-			CPU_CycleAutoAdjust=false;
 		}
-
-        menu_update_autocycle();
 
 		enable_fpu=section->Get_bool("fpu");
 		cpu_rep_max=section->Get_int("interruptible rep string op");
@@ -3174,9 +3038,6 @@ public:
 		core_mode[15] = '\0';
 		if (core == "normal") {
 			cpudecoder=&CPU_Core_Normal_Run;
-		} else if (core == "auto") {
-			cpudecoder=&CPU_Core_Normal_Run;
-			CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CORE;
 		} else {
 			strcpy(core_mode,"normal");
 			cpudecoder=&CPU_Core_Normal_Run;
@@ -3185,9 +3046,7 @@ public:
 
 		CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
 		std::string cputype(section->Get_string("cputype"));
-		if (cputype == "auto") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
-		} else if (cputype == "8086") {
+		if (cputype == "8086") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_8086;
 			cpudecoder=&CPU_Core8086_Normal_Run;
 		} else if (cputype == "8086_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
@@ -3195,10 +3054,6 @@ public:
 			if (core == "normal") {
 				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
 				CPU_PrefetchQueueSize = 4; /* Emulate the 8088, which was more common in home PCs than having an 8086 */
-			} else if (core == "auto") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
-				CPU_PrefetchQueueSize = 4; /* Emulate the 8088, which was more common in home PCs than having an 8086 */
-				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
 			} else {
 				E_Exit("prefetch queue emulation requires the normal core setting.");
 			}
@@ -3210,10 +3065,6 @@ public:
 			if (core == "normal") {
 				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
 				CPU_PrefetchQueueSize = 6;
-			} else if (core == "auto") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
-				CPU_PrefetchQueueSize = 6;
-				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
 			} else {
 				E_Exit("prefetch queue emulation requires the normal core setting.");
 			}
@@ -3225,10 +3076,6 @@ public:
 			if (core == "normal") {
 				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
 				CPU_PrefetchQueueSize = 6;
-			} else if (core == "auto") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
-				CPU_PrefetchQueueSize = 6;
-				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
 			} else {
 				E_Exit("prefetch queue emulation requires the normal core setting.");
 			}
@@ -3239,10 +3086,6 @@ public:
 			if (core == "normal") {
 				cpudecoder=&CPU_Core_Prefetch_Run;
 				CPU_PrefetchQueueSize = 16;
-			} else if (core == "auto") {
-				cpudecoder=&CPU_Core_Prefetch_Run;
-				CPU_PrefetchQueueSize = 16;
-				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
 			} else {
 				E_Exit("prefetch queue emulation requires the normal core setting.");
 			}
@@ -3253,10 +3096,6 @@ public:
 			if (core == "normal") {
 				cpudecoder=&CPU_Core_Prefetch_Run;
 				CPU_PrefetchQueueSize = 32;
-			} else if (core == "auto") {
-				cpudecoder=&CPU_Core_Prefetch_Run;
-				CPU_PrefetchQueueSize = 32;
-				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
 			} else {
 				E_Exit("prefetch queue emulation requires the normal core setting.");
 			}
@@ -3267,10 +3106,6 @@ public:
 			if (core == "normal") {
 				cpudecoder=&CPU_Core_Prefetch_Run;
 				CPU_PrefetchQueueSize = 16;
-			} else if (core == "auto") {
-				cpudecoder=&CPU_Core_Prefetch_Run;
-				CPU_PrefetchQueueSize = 16;
-				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
 			} else {
 				E_Exit("prefetch queue emulation requires the normal core setting.");
 			}
@@ -3342,8 +3177,7 @@ public:
         void CPU_Core_Prefetch_reset(void);
         CPU_Core_Prefetch_reset();
 
-		if (CPU_CycleAutoAdjust) GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
-		else GFX_SetTitle(CPU_CycleMax,-1,-1,false);
+		GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 		return true;
 	}
 	~CPU(){ /* empty */};

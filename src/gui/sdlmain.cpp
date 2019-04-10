@@ -545,7 +545,6 @@ void                        GUI_Run(bool);
 
 const char*                 titlebar = NULL;
 extern const char*              RunningProgram;
-extern bool                 CPU_CycleAutoAdjust;
 #if !(ENVIRON_INCLUDED)
 extern char**                   environ;
 #endif
@@ -1242,7 +1241,6 @@ void GFX_ResetScreen(void) {
     if (sdl.draw.callback)
         (sdl.draw.callback)( GFX_CallBackReset );
     GFX_Start();
-    CPU_Reset_AutoAdjust();
     fullscreen_switch=true;
 #if !defined(C_SDL2)
     if (!sdl.desktop.fullscreen) DOSBox_RefreshMenu(); // for menu
@@ -2189,7 +2187,6 @@ void GFX_UpdateSDLCaptureState(void) {
 #endif
         if (sdl.mouse.autoenable || !sdl.mouse.autolock) SDL_ShowCursor(SDL_ENABLE);
     }
-    CPU_Reset_AutoAdjust();
     GFX_SetTitle(-1,-1,-1,false);
 }
 
@@ -4703,7 +4700,6 @@ void GFX_Events() {
                 if (IsFullscreen() && !sdl.mouse.locked)
                     GFX_CaptureMouse();
                 SetPriority(sdl.priority.focus);
-                CPU_Disable_SkipAutoAdjust();
                 break;
             case SDL_WINDOWEVENT_FOCUS_LOST:
                 if (sdl.mouse.locked) {
@@ -4712,7 +4708,6 @@ void GFX_Events() {
                 }
                 SetPriority(sdl.priority.nofocus);
                 GFX_LosingFocus();
-                CPU_Enable_SkipAutoAdjust();
                 break;
             default:
                 ;
@@ -4929,7 +4924,6 @@ void GFX_Events() {
                     if (sdl.desktop.fullscreen && !sdl.mouse.locked)
                         GFX_CaptureMouse();
                     SetPriority(sdl.priority.focus);
-                    CPU_Disable_SkipAutoAdjust();
                     BIOS_SynchronizeNumLock();
                     BIOS_SynchronizeCapsLock();
                     BIOS_SynchronizeScrollLock();
@@ -4947,7 +4941,6 @@ void GFX_Events() {
 
                     SetPriority(sdl.priority.nofocus);
                     GFX_LosingFocus();
-                    CPU_Enable_SkipAutoAdjust();
                 }
             }
 

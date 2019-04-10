@@ -390,70 +390,6 @@ increaseticks:
                     ticksRemain = 20;
                 }
                 ticksAdded = ticksRemain;
-                if (CPU_CycleAutoAdjust && !CPU_SkipCycleAutoAdjust) {
-                    if (ticksScheduled >= 250 || ticksDone >= 250 || (ticksAdded > 15 && ticksScheduled >= 5) ) {
-                        if(ticksDone < 1) ticksDone = 1; // Protect against div by zero
-                        /* ratio we are aiming for is around 90% usage*/
-                        Bit32s ratio = (ticksScheduled * (CPU_CyclePercUsed*90*1024/100/100)) / ticksDone;
-                        Bit32s new_cmax = CPU_CycleMax;
-                        Bit64s cproc = (Bit64s)CPU_CycleMax * (Bit64s)ticksScheduled;
-                        if (cproc > 0) {
-                            /* ignore the cycles added due to the IO delay code in order
-                               to have smoother auto cycle adjustments */
-                            double ratioremoved = (double) CPU_IODelayRemoved / (double) cproc;
-                            if (ratioremoved < 1.0) {
-                                ratio = (Bit32s)((double)ratio * (1 - ratioremoved));
-                                /* Don't allow very high ratio which can cause us to lock as we don't scale down
-                                 * for very low ratios. High ratio might result because of timing resolution */
-                                if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 20480) 
-                                    ratio = 20480;
-                                Bit64s cmax_scaled = (Bit64s)CPU_CycleMax * (Bit64s)ratio;
-                                /* The auto cycle code seems reliable enough to disable the fast cut back code.
-                                 * This should improve the fluency of complex games.
-                                 if (ratio <= 1024) 
-                                 new_cmax = (Bit32s)(cmax_scaled / (Bit64s)1024);
-                                 else 
-                                 */
-                                new_cmax = (Bit32s)(1 + (CPU_CycleMax >> 1) + cmax_scaled / (Bit64s)2048);
-                            }
-                        }
-
-                        if (new_cmax<CPU_CYCLES_LOWER_LIMIT)
-                            new_cmax=CPU_CYCLES_LOWER_LIMIT;
-
-                        /*
-                           LOG_MSG("cyclelog: current %6d   cmax %6d   ratio  %5d  done %3d   sched %3d",
-                           CPU_CycleMax,
-                           new_cmax,
-                           ratio,
-                           ticksDone,
-                           ticksScheduled);
-                           */  
-                        /* ratios below 1% are considered to be dropouts due to
-                           temporary load imbalance, the cycles adjusting is skipped */
-                        if (ratio>10) {
-                            /* ratios below 12% along with a large time since the last update
-                               has taken place are most likely caused by heavy load through a
-                               different application, the cycles adjusting is skipped as well */
-                            if ((ratio>120) || (ticksDone<700)) {
-                                CPU_CycleMax = new_cmax;
-                                if (CPU_CycleLimit > 0) {
-                                    if (CPU_CycleMax>CPU_CycleLimit) CPU_CycleMax = CPU_CycleLimit;
-                                }
-                            }
-                        }
-                        CPU_IODelayRemoved = 0;
-                        ticksDone = 0;
-                        ticksScheduled = 0;
-                    } else if (ticksAdded > 15) {
-                        /* ticksAdded > 15 but ticksScheduled < 5, lower the cycles
-                           but do not reset the scheduled/done ticks to take them into
-                           account during the next auto cycle adjustment */
-                        CPU_CycleMax /= 3;
-                        if (CPU_CycleMax < CPU_CYCLES_LOWER_LIMIT)
-                            CPU_CycleMax = CPU_CYCLES_LOWER_LIMIT;
-                    }
-                }
             } else {
                 ticksAdded = 0;
                 SDL_Delay(1);
@@ -529,23 +465,12 @@ void DOSBOX_RunMachine(void){
 }
 
 static void DOSBOX_UnlockSpeed( bool pressed ) {
-    static bool autoadjust = false;
     if (pressed) {
         LOG_MSG("Fast Forward ON");
         ticksLocked = true;
-        if (CPU_CycleAutoAdjust) {
-            autoadjust = true;
-            CPU_CycleAutoAdjust = false;
-            CPU_CycleMax /= 3;
-            if (CPU_CycleMax<1000) CPU_CycleMax=1000;
-        }
     } else {
         LOG_MSG("Fast Forward OFF");
         ticksLocked = false;
-        if (autoadjust) {
-            autoadjust = false;
-            CPU_CycleAutoAdjust = true;
-        }
     }
     GFX_SetTitle(-1,-1,-1,false);
 }
@@ -867,7 +792,7 @@ void DOSBOX_SetupConfigSections(void) {
     // Some frequently used option sets
     const char* vsyncrate[] = { "%u", 0 };
     const char* force[] = { "", "forced", 0 };
-    const char* cyclest[] = { "auto","fixed","max","%u",0 };
+    const char* cyclest[] = { "fixed","max","%u",0 };
     const char* mputypes[] = { "intelligent", "uart", "none", 0 };
     const char* vsyncmode[] = { "off", "on" ,"force", "host", 0 };
     const char* captureformats[] = { "default", "avi-zmbv", "mpegts-h264", 0 };
@@ -955,8 +880,7 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
         0 };
 
-    const char* cores[] = { "auto",
-        "normal", "full", "simple", 0 };
+    const char* cores[] = { "normal", 0 };
 
     const char* voodoo_settings[] = {
         "false",

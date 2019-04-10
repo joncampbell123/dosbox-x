@@ -146,8 +146,6 @@ static const char *def_menu_main_sendkey[] =
 /* cpu -> core menu ("CpuCoreMenu") */
 static const char *def_menu_cpu_core[] =
 {
-    "mapper_cycauto",
-    "--",
     "mapper_normal",
     NULL
 };
@@ -155,8 +153,6 @@ static const char *def_menu_cpu_core[] =
 /* cpu -> type menu ("CpuTypeMenu") */
 static const char *def_menu_cpu_type[] =
 {
-    "cputype_auto",
-    "--",
     "cputype_8086",
     "cputype_8086_prefetch",
     "cputype_80186",

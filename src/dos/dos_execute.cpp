@@ -141,19 +141,6 @@ void DOS_Terminate(Bit16u pspseg,bool tsr,Bit8u exitcode) {
 	if (!tsr) DOS_FreeProcessMemory(pspseg);
 	DOS_UpdatePSPName();
 
-	if ((!(CPU_AutoDetermineMode>>CPU_AUTODETERMINE_SHIFT)) || (cpu.pmode)) return;
-
-	CPU_AutoDetermineMode>>=CPU_AUTODETERMINE_SHIFT;
-	if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
-		CPU_CycleAutoAdjust=false;
-		CPU_CycleLeft=0;
-		CPU_Cycles=0;
-		CPU_CycleMax=CPU_OldCycleMax;
-		GFX_SetTitle(CPU_OldCycleMax,-1,-1,false);
-	} else {
-		GFX_SetTitle(-1,-1,-1,false);
-	}
-
 	return;
 }
 
