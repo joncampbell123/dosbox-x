@@ -897,6 +897,9 @@
     <ClCompile Include="..\src\cpu\core_dynrec.cpp">
       <Filter>Sources\cpu\core_dynrec</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\iconvpp.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
