@@ -76,21 +76,6 @@
 #include "clockdomain.h"
 #include "iconvpp.hpp"
 
-#if 1
-#  if defined(_WIN32) || defined(WINDOWS)
-     typedef WCHAR host_fsapi_charset_t; /* WCHAR (UTF-16) */
-     typedef std::basic_string<host_fsapi_charset_t> host_fsapi_string;
-#    define HOST_FSAPI_STRING(x) (L ## x)
-#  else
-     typedef char host_fsapi_charset_t; /* UTF-8 */
-     typedef std::basic_string<char> host_fsapi_string;
-#    define HOST_FSAPI_STRING(x) (u8 ## x)
-#  endif
-#endif
-
-#define TEST_X
-host_fsapi_string test_x = HOST_FSAPI_STRING("Hello world. Ｈｅｌｌｏ　ｗｏｒｌｄ");
-
 #if C_EMSCRIPTEN
 # include <emscripten.h>
 #endif
@@ -1005,14 +990,6 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("enable 8-bit dac",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, allow VESA BIOS calls in IBM PC mode to set DAC width. Has no effect in PC-98 mode.");
-
-#if defined(TEST_X)
-#if defined(_WIN32)
-    MessageBoxW(NULL,test_x.c_str(),L"",MB_OK);
-#else
-    fprintf(stderr,"Test_x = %s\n",test_x.c_str());
-#endif
-#endif
 
 #if defined(MACOSX)
     /* Let's make DPI aware OFF by default so Mac OS X users with Retina displays don't yell at us about eyestrain.
