@@ -816,10 +816,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "ess688", "reveal_sc400", "none", 0 };
     const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "none", "hardware", "hardwaregb", 0};
     const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", 0 };
-    const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
-    const char* dosv_settings[] = { "off", "japanese", "chinese", "korean", 0 };
-    const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", 0 };
     const char* guspantables[] = { "old", "accurate", "default", 0 };
     const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
     const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none",0};
@@ -1121,31 +1118,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("iodelay32", Property::Changeable::WhenIdle,-1);
     Pint->SetMinMax(-1,100000);
     Pint->Set_help( "I/O delay for 32-bit transfers. -1 to use default, 0 to disable.");
-
-    // STUB OPTION, NOT YET FULLY IMPLEMENTED
-    Pstring = secprop->Add_string("acpi", Property::Changeable::OnlyAtStart,"off");
-    Pstring->Set_values(acpisettings);
-    Pstring->Set_help("ACPI emulation, and what version of the specification to follow.\n"
-            "WARNING: This option is very experimental at this time and should not be enabled unless you're willing to accept the consequences.\n"
-            "         Intended for use with ACPI-aware OSes including Linux and Windows 98/ME. This option will also slightly reduce available\n"
-            "         system memory to make room for the ACPI tables, just as real BIOSes do, and reserve an IRQ for ACPI functions.");
-
-    // STUB OPTION, NOT YET FULLY IMPLEMENTED
-    Pstring = secprop->Add_string("acpi rsd ptr location", Property::Changeable::OnlyAtStart,"auto");
-    Pstring->Set_values(acpi_rsd_ptr_settings);
-    Pstring->Set_help("Where to store the Root System Description Pointer structure. You can have it stored in the ROM BIOS area, or the Extended Bios Data Area.");
-
-    // STUB OPTION, NOT YET FULLY IMPLEMENTED
-    Pint = secprop->Add_int("acpi sci irq", Property::Changeable::WhenIdle,-1);
-    Pint->Set_help("IRQ to assign as ACPI system control interrupt. set to -1 to automatically assign.");
-
-    // STUB OPTION, NOT YET FULLY IMPLEMENTED
-    Phex = secprop->Add_hex("acpi iobase",Property::Changeable::WhenIdle,0);
-    Phex->Set_help("I/O port base for the ACPI device Power Management registers. Set to 0 for automatic assignment.");
-
-    // STUB OPTION, NOT YET FULLY IMPLEMENTED
-    Pint = secprop->Add_int("acpi reserved size", Property::Changeable::WhenIdle,0);
-    Pint->Set_help("Amount of memory at top to reserve for ACPI structures and tables. Set to 0 for automatic assignment.");
 
     Pint = secprop->Add_int("memsize", Property::Changeable::WhenIdle,16);
     Pint->SetMinMax(1,511);
@@ -2574,16 +2546,6 @@ void DOSBOX_SetupConfigSections(void) {
             "DOS actually does, but if set, can help certain DOS games and demos cope with problems\n"
             "related to uninitialized variables in extended memory. When enabled this option may\n"
             "incur a slight to moderate performance penalty.");
-
-    Pstring = secprop->Add_string("dosv",Property::Changeable::WhenIdle,"off");
-    Pstring->Set_values(dosv_settings);
-    Pstring->Set_help("Enable DOS/V emulation and specify which version to emulate. This option is intended for\n"
-            "use with games or software originating from Asia that use the double byte character set\n"
-            "encodings and the DOS/V extensions to display Japanese, Chinese, or Korean text.\n"
-            "Note that enabling DOS/V replaces 80x25 text mode (INT 10h mode 3) with a EGA/VGA graphics\n"
-            "mode that emulates text mode to display the characters and may be incompatible with non-Asian\n"
-            "software that assumes direct access to the text mode via segment 0xB800.\n"
-            "WARNING: This option is very experimental at this time.");
 
     Pstring = secprop->Add_string("ems",Property::Changeable::WhenIdle,"true");
     Pstring->Set_values(ems_settings);
