@@ -36,6 +36,8 @@
  #endif
 #endif
 
+#include "iconvpp.hpp"
+
 /* Mac OS X: There seems to be a problem with Macbooks where the touchpad
              is seen by SDL2 as a "touchscreen", even though the screen is
 	     not a touchscreen. The result is DOSBox-X getting mixed messages
