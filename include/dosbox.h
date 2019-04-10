@@ -21,7 +21,6 @@
 #define DOSBOX_DOSBOX_H
 
 #include "config.h"
-#include "iconvpp.hpp"
 #include "logging.h"
 
 #if defined(C_ICONV)
