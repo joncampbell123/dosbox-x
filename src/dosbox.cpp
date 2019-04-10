@@ -74,6 +74,21 @@
 #include "pci_bus.h"
 #include "parport.h"
 #include "clockdomain.h"
+#include "iconvpp.hpp"
+
+#if 1
+#  if defined(_WIN32) || defined(WINDOWS)
+     typedef WCHAR host_fsapi_charset_t; /* WCHAR (UTF-16) */
+     typedef std::basic_string<host_fsapi_charset_t> host_fsapi_string;
+#    define HOST_FSAPI_STRING(x) (L ## x)
+#  else
+     typedef char host_fsapi_charset_t; /* UTF-8 */
+     typedef std::basic_string<char> host_fsapi_string;
+#    define HOST_FSAPI_STRING(x) (u8 ## x)
+#  endif
+#endif
+
+host_fsapi_string x = HOST_FSAPI_STRING("Hello world");
 
 #if C_EMSCRIPTEN
 # include <emscripten.h>
