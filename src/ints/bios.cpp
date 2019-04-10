@@ -58,7 +58,15 @@ extern bool PS1AudioCard;
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
 
+/* NTS: The "Epson check" code in Windows 2.1 only compares up to the end of "NEC Corporation" */
 const std::string pc98_copyright_str = "Copyright (C) 1983 by NEC Corporation / Microsoft Corp.\x0D\x0A";
+
+/* more strange data involved in the "Epson check" */
+const unsigned char pc98_epson_check_2[0x27] = {
+    0x26,0x8A,0x05,0xA8,0x10,0x75,0x11,0xC6,0x06,0xD6,0x09,0x1B,0xC6,0x06,0xD7,0x09,
+    0x4B,0xC6,0x06,0xD8,0x09,0x48,0xEB,0x0F,0xC6,0x06,0xD6,0x09,0x1A,0xC6,0x06,0xD7 ,
+    0x09,0x70,0xC6,0x06,0xD8,0x09,0x71
+};
 
 bool enable_pc98_copyright_string = false;
 
@@ -7451,6 +7459,9 @@ public:
                     phys_writeb(0xE8000 + 0x0DD8 + i,pc98_copyright_str[i]);
 
                 phys_writeb(0xE8000 + 0x0DD8 + i,0);
+
+                for (size_t i=0;i < sizeof(pc98_epson_check_2);i++)
+                    phys_writeb(0xF5200 + 0x018E + i,pc98_epson_check_2[i]);
             }
         }
     }
@@ -7812,6 +7823,8 @@ void ROMBIOS_Init() {
 
     if (IS_PC98_ARCH && enable_pc98_copyright_string) { // PC-98 BIOSes have a copyright string at E800:0DD8
         if (ROMBIOS_GetMemory(pc98_copyright_str.length()+1,"PC-98 copyright string",1,0xE8000 + 0x0DD8) == 0)
+            LOG_MSG("WARNING: Was not able to mark off E800:0DD8 off-limits for PC-98 copyright string");
+        if (ROMBIOS_GetMemory(sizeof(pc98_epson_check_2),"PC-98 unknown data / Epson check",1,0xF5200 + 0x018E) == 0)
             LOG_MSG("WARNING: Was not able to mark off E800:0DD8 off-limits for PC-98 copyright string");
     }
  
