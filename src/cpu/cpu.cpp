@@ -170,17 +170,6 @@ unsigned int CPU_PrefetchQueueSize=0;
 void CPU_Core_Normal_Init(void);
 void CPU_Core_Simple_Init(void);
 void CPU_Core_Full_Init(void);
-#if (C_DYNAMIC_X86)
-void CPU_Core_Dyn_X86_Init(void);
-void CPU_Core_Dyn_X86_Cache_Init(bool enable_cache);
-void CPU_Core_Dyn_X86_Cache_Close(void);
-void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
-void CPU_Core_Dyn_X86_Cache_Reset(void);
-#elif (C_DYNREC)
-void CPU_Core_Dynrec_Init(void);
-void CPU_Core_Dynrec_Cache_Init(bool enable_cache);
-void CPU_Core_Dynrec_Cache_Close(void);
-#endif
 
 void menu_update_cputype(void) {
 	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
@@ -265,18 +254,6 @@ void menu_update_core(void) {
         check(cpudecoder == &CPU_Core_Full_Run).
         enable(cpudecoder != &CPU_Core_Prefetch_Run).
         refresh_item(mainMenu);
-#if (C_DYNAMIC_X86)
-    mainMenu.get_item("mapper_dynamic").
-        check(cpudecoder == &CPU_Core_Dyn_X86_Run).
-        enable(allow_dynamic && (cpudecoder != &CPU_Core_Prefetch_Run)).
-        refresh_item(mainMenu);
-#endif
-#if (C_DYNREC)
-    mainMenu.get_item("mapper_dynamic").
-        check(cpudecoder == &CPU_Core_Dynrec_Run).
-        enable(allow_dynamic && (cpudecoder != &CPU_Core_Prefetch_Run)).
-        refresh_item(mainMenu);
-#endif
 }
 
 void menu_update_autocycle(void) {
@@ -2199,13 +2176,6 @@ void CPU_Snap_Back_Forget() {
 }
 
 bool CPU_IsDynamicCore(void) {
-#if (C_DYNAMIC_X86)
-    if (cpudecoder == &CPU_Core_Dyn_X86_Run)
-        return true;
-#elif (C_DYNREC)
-    if (cpudecoder == &CPU_Core_Dynrec_Run)
-        return true;
-#endif
     return false;
 }
 
@@ -2243,18 +2213,6 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 				} else {
 					GFX_SetTitle(-1,-1,-1,false);
 				}
-#if (C_DYNAMIC_X86)
-				if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
-					CPU_Core_Dyn_X86_Cache_Init(true);
-					cpudecoder=&CPU_Core_Dyn_X86_Run;
-					strcpy(core_mode, "dynamic");
-				}
-#elif (C_DYNREC)
-				if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
-					CPU_Core_Dynrec_Cache_Init(true);
-					cpudecoder=&CPU_Core_Dynrec_Run;
-				}
-#endif
 				CPU_AutoDetermineMode<<=CPU_AUTODETERMINE_SHIFT;
 			} else {
 				cpu.pmode=false;
@@ -2838,13 +2796,7 @@ void CPU_CycleIncrease(bool pressed) {
 		    LOG_MSG("CPU:%ld cycles (auto)",CPU_CycleMax);
 		} else {
 		    CPU_CyclesSet=CPU_CycleMax;
-#if (C_DYNAMIC_X86)
-            if (CPU_CycleMax > 15000 && cpudecoder != &CPU_Core_Dyn_X86_Run)
-                LOG_MSG("CPU speed: fixed %ld cycles. If you need more than 20000, try core=dynamic in DOSBox's options.",CPU_CycleMax);
-            else
-// TODO: Add C_DYNREC version
-#endif
-                LOG_MSG("CPU speed: fixed %ld cycles.",CPU_CycleMax);
+            LOG_MSG("CPU speed: fixed %ld cycles.",CPU_CycleMax);
         }
 		GFX_SetTitle(CPU_CycleMax,-1,-1,false);
         CPU_SyncCycleMaxToProp();
@@ -2920,18 +2872,6 @@ static void CPU_ToggleNormalCore(bool pressed) {
 	sec->HandleInputline(tmp);
     }
 }
-
-#if (C_DYNAMIC_X86) || (C_DYNREC)
-static void CPU_ToggleDynamicCore(bool pressed) {
-    if (!pressed)
-	return;
-    Section* sec=control->GetSection("cpu");
-    if(sec) {
-	std::string tmp="core=dynamic";
-	sec->HandleInputline(tmp);
-    }
-}
-#endif
 
 static void CPU_ToggleSimpleCore(bool pressed) {
     if (!pressed)
@@ -3098,11 +3038,7 @@ public:
 		CPU_Core_Normal_Init();
 		CPU_Core_Simple_Init();
 		CPU_Core_Full_Init();
-#if (C_DYNAMIC_X86)
-		CPU_Core_Dyn_X86_Init();
-#elif (C_DYNREC)
-		CPU_Core_Dynrec_Init();
-#endif
+
 		MAPPER_AddHandler(CPU_CycleDecrease,MK_minus,MMODHOST,"cycledown","Dec Cycles",&item);
 		item->set_text("Decrement cycles");
 
@@ -3121,10 +3057,6 @@ public:
 
         MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_nothing,0,"simple","SimpleCore", &item);
 		item->set_text("Simple core");
-#if (C_DYNAMIC_X86) || (C_DYNREC)
-		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_nothing,0,"dynamic","DynCore",&item);
-		item->set_text("Dynamic core");
-#endif
 
         /* these are not mapper shortcuts, and probably should not be mapper shortcuts */
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_auto").
@@ -3287,28 +3219,11 @@ public:
 		} else if (core == "auto") {
 			cpudecoder=&CPU_Core_Normal_Run;
 			CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CORE;
-#if (C_DYNAMIC_X86)
-		} else if (core == "dynamic") {
-			cpudecoder=&CPU_Core_Dyn_X86_Run;
-			CPU_Core_Dyn_X86_SetFPUMode(true);
-		} else if (core == "dynamic_nodhfpu") {
-			cpudecoder=&CPU_Core_Dyn_X86_Run;
-			CPU_Core_Dyn_X86_SetFPUMode(false);
-#elif (C_DYNREC)
-		} else if (core == "dynamic") {
-			cpudecoder=&CPU_Core_Dynrec_Run;
-#endif
 		} else {
 			strcpy(core_mode,"normal");
 			cpudecoder=&CPU_Core_Normal_Run;
 			LOG_MSG("CPU:Unknown core type %s, switching back to normal.",core.c_str());
 		}
-
-#if (C_DYNAMIC_X86)
-		CPU_Core_Dyn_X86_Cache_Init((core == "dynamic") || (core == "dynamic_nodhfpu"));
-#elif (C_DYNREC)
-		CPU_Core_Dynrec_Cache_Init( core == "dynamic" );
-#endif
 
 		CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
 		std::string cputype(section->Get_string("cputype"));
@@ -3481,11 +3396,6 @@ static CPU * test;
 void CPU_ShutDown(Section* sec) {
     (void)sec;//UNUSED
 
-#if (C_DYNAMIC_X86)
-	CPU_Core_Dyn_X86_Cache_Close();
-#elif (C_DYNREC)
-	CPU_Core_Dynrec_Cache_Close();
-#endif
 	delete test;
 }
 
@@ -3660,13 +3570,7 @@ Bit16u CPU_FindDecoderType( CPU_Decoder *decoder )
 	else if( cpudecoder == &CPU_Core_Prefetch_Run ) decoder_idx = 1;
 	else if( cpudecoder == &CPU_Core_Simple_Run ) decoder_idx = 2;
 	else if( cpudecoder == &CPU_Core_Full_Run ) decoder_idx = 3;
-#if C_DYNAMIC_X86
-	else if( cpudecoder == &CPU_Core_Dyn_X86_Run ) decoder_idx = 4;
-#endif
 	else if( cpudecoder == &CPU_Core_Normal_Trap_Run ) decoder_idx = 100;
-#if C_DYNAMIC_X86
-	else if( cpudecoder == &CPU_Core_Dyn_X86_Trap_Run ) decoder_idx = 101;
-#endif
 	else if( cpudecoder == &HLT_Decode ) decoder_idx = 200;
 
 
@@ -3685,13 +3589,7 @@ CPU_Decoder *CPU_IndexDecoderType( Bit16u decoder_idx )
 		case 1: cpudecoder = &CPU_Core_Prefetch_Run; break;
 		case 2: cpudecoder = &CPU_Core_Simple_Run; break;
 		case 3: cpudecoder = &CPU_Core_Full_Run; break;
-#if C_DYNAMIC_X86
-		case 4: cpudecoder = &CPU_Core_Dyn_X86_Run; break;
-#endif
 		case 100: cpudecoder = &CPU_Core_Normal_Trap_Run; break;
-#if C_DYNAMIC_X86
-		case 101: cpudecoder = &CPU_Core_Dyn_X86_Trap_Run; break;
-#endif
 		case 200: cpudecoder = &HLT_Decode; break;
 	}
 

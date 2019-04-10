@@ -1792,13 +1792,6 @@ void voodoo_ogl_update_dimensions(void) {
 }
 
 bool voodoo_ogl_init(voodoo_state *v) {
-	extern void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
-//	CPU_Core_Dyn_X86_SetFPUMode(false);
-
-	extern void CPU_Core_Dyn_X86_Cache_Reset(void);
-//	CPU_Core_Dyn_X86_Cache_Reset();
-
-
 	voodoo_ogl_reset_videomode();
 
 	if (!VOGL_Initialize()) {
