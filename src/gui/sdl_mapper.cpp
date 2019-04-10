@@ -43,10 +43,6 @@
 
 #include "SDL_syswm.h"
 
-#if C_EMSCRIPTEN
-# include <emscripten.h>
-#endif
-
 #include <map>
 
 #define BMOD_Mod1               0x0001
@@ -3536,15 +3532,7 @@ void BIND_MappingEvents(void) {
     if (GUI_JoystickCount()>0) SDL_JoystickUpdate();
     MAPPER_UpdateJoysticks();
 
-#if C_EMSCRIPTEN
-    emscripten_sleep_with_yield(0);
-#endif
-
     while (SDL_PollEvent(&event)) {
-#if C_EMSCRIPTEN
-        emscripten_sleep_with_yield(0);
-#endif
-
         switch (event.type) {
 #if !defined(C_SDL2) && defined(_WIN32) && !defined(HX_DOS)
         case SDL_SYSWMEVENT : {
@@ -3916,10 +3904,6 @@ void MAPPER_RunInternal() {
     SDL_JoystickEventState(SDL_ENABLE);
 #endif
     while (!mapper.exit) {
-#if C_EMSCRIPTEN
-        emscripten_sleep_with_yield(0);
-#endif
-
         if (mapper.redraw) {
             mapper.redraw=false;        
             DrawButtons();

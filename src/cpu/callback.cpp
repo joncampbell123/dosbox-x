@@ -27,10 +27,6 @@
 #include "mem.h"
 #include "cpu.h"
 
-#if C_EMSCRIPTEN
-# include <emscripten.h>
-#endif
-
 Bit16u CB_SEG=0,CB_SOFFSET=0;
 extern Bitu vm86_fake_io_seg;
 extern Bitu vm86_fake_io_off;
@@ -110,11 +106,6 @@ void CALLBACK_DeAllocate(Bitu in) {
 
 
 void CALLBACK_Idle(void) {
-#if C_EMSCRIPTEN
-    void GFX_Events();
-    GFX_Events();
-#endif
-
 /* this makes the cpu execute instructions to handle irq's and then come back */
 	Bitu oldIF=GETFLAG(IF);
 	SETFLAGBIT(IF,true);

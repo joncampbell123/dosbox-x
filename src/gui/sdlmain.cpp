@@ -102,10 +102,6 @@ typedef enum PROCESS_DPI_AWARENESS {
 } PROCESS_DPI_AWARENESS;
 #endif
 
-#if C_EMSCRIPTEN
-# include <emscripten.h>
-#endif
-
 #include "../src/libs/gui_tk/gui_tk.h"
 
 #ifdef __WIN32__
@@ -901,12 +897,7 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
             break;
         }
 
-#if C_EMSCRIPTEN
-        emscripten_sleep_with_yield(0);
-        SDL_PollEvent(&event);
-#else
         SDL_WaitEvent(&event);    // since we're not polling, cpu usage drops to 0.
-#endif
 
 #ifdef __WIN32__
   #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
@@ -2765,10 +2756,6 @@ void GFX_OpenGLRedrawScreen(void) {
 }
 
 void GFX_EndUpdate(const Bit16u *changedLines) {
-#if C_EMSCRIPTEN
-    emscripten_sleep_with_yield(0);
-#endif
-
     /* don't present our output if 3Dfx is in OpenGL mode */
     if (sdl.desktop.prevent_fullscreen)
         return;
@@ -3323,10 +3310,8 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(ResetSystem, MK_r, MMODHOST, "reset", "Reset", &item); /* Host+R (Host+CTRL+R acts funny on my Linux system) */
     item->set_text("Reset guest system");
 
-#if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","ShutDown", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
     item->set_text("Quit");
-#endif
 
     MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Cap Mouse", &item); /* KEEP: Most DOSBox-X users may have muscle memory for this */
     item->set_text("Capture mouse");
@@ -4032,12 +4017,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 
                 /* fall into another loop to process the menu */
                 while (runloop) {
-#if C_EMSCRIPTEN
-                    emscripten_sleep_with_yield(0);
-                    if (!SDL_PollEvent(&event)) continue;
-#else
                     if (!SDL_WaitEvent(&event)) break;
-#endif
 
 #if defined(C_SDL2) && !defined(IGNORE_TOUCHSCREEN)
                     switch (event.type) {
@@ -4709,10 +4689,6 @@ void GFX_Events() {
 
     GFX_EventsMouse();
 
-#if C_EMSCRIPTEN
-    emscripten_sleep_with_yield(0);
-#endif
-
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
         case SDL_WINDOWEVENT:
@@ -4766,13 +4742,8 @@ void GFX_Events() {
 //                  }
 
                     while (paused) {
-#if C_EMSCRIPTEN
-                        emscripten_sleep_with_yield(0);
-                        SDL_PollEvent(&ev);
-#else
                         // WaitEvent waits for an event rather than polling, so CPU usage drops to zero
                         SDL_WaitEvent(&ev);
-#endif
 
                         switch (ev.type) {
                         case SDL_QUIT:
@@ -4871,10 +4842,6 @@ void GFX_Events() {
 #endif
 
     GFX_EventsMouse();
-
-#if C_EMSCRIPTEN
-    emscripten_sleep_with_yield(0);
-#endif
 
     while (SDL_PollEvent(&event)) {
         /* DOSBox SVN revision 4176:4177: For Linux/X11, Xorg 1.20.1
@@ -5008,13 +4975,8 @@ void GFX_Events() {
 //                  }
 
                     while (paused) {
-#if C_EMSCRIPTEN
-                        emscripten_sleep_with_yield(0);
-                        SDL_PollEvent(&ev);
-#else
                         // WaitEvent waits for an event rather than polling, so CPU usage drops to zero
                         SDL_WaitEvent(&ev);
-#endif
 
                         switch (ev.type) {
                         case SDL_QUIT: throw(0); break; // a bit redundant at linux at least as the active events gets before the quit event.
@@ -6251,9 +6213,7 @@ bool VM_PowerOn() {
     return true;
 }
 
-#if !defined(C_EMSCRIPTEN)
 void update_capture_fmt_menu(void);
-#endif
 
 bool capture_fmt_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem);
 
@@ -6746,22 +6706,18 @@ bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::it
 }
 
 bool show_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-#if !defined(C_EMSCRIPTEN)
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     DOSBox_ShowConsole();
     mainMenu.get_item("show_console").check(true).refresh_item(mainMenu);
-#endif
     return true;
 }
 
 bool wait_on_error_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-#if !defined(C_EMSCRIPTEN)
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     sdl.wait_on_error = !sdl.wait_on_error;
     mainMenu.get_item("wait_on_error").check(sdl.wait_on_error).refresh_item(mainMenu);
-#endif
     return true;
 }
 
@@ -7047,11 +7003,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         return 0;
     }
-#endif
-
-#if C_EMSCRIPTEN
-    control->opt_debug = true;
-    control->opt_earlydebug = true;
 #endif
 
     bitop::self_test();
@@ -7661,12 +7612,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 }
             }
         }
-#if !defined(C_EMSCRIPTEN)
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureMenu");
             item.set_text("Capture");
         }
-# if (C_SSHOT)
+#if (C_SSHOT)
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureFormatMenu");
             item.set_text("Capture format");
@@ -7674,13 +7624,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"capture_fmt_avi_zmbv").set_text("AVI + ZMBV").
                     set_callback_function(capture_fmt_menu_callback);
-#  if (C_AVCODEC)
+# if (C_AVCODEC)
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"capture_fmt_mpegts_h264").set_text("MPEG-TS + H.264").
                     set_callback_function(capture_fmt_menu_callback);
-#  endif
+# endif
             }
         }
-# endif
 #endif
 
         /* Start up main machine */
@@ -7824,9 +7773,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 
         /* more */
-#if !defined(C_EMSCRIPTEN)
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show console").set_callback_function(show_console_menu_callback);
-#endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_ctrlesc").set_text("Ctrl+Esc").set_callback_function(sendkey_preset_menu_callback);
@@ -7870,15 +7817,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         mainMenu.get_item("dos_mouse_enable_int33").check(Mouse_Drv).refresh_item(mainMenu);
         mainMenu.get_item("dos_mouse_y_axis_reverse").check(Mouse_Vertical).refresh_item(mainMenu);
-#if !defined(C_EMSCRIPTEN)
         mainMenu.get_item("show_console").check(showconsole_init).refresh_item(mainMenu);
-#endif
 
         OutputSettingMenuUpdate();
         update_pc98_clock_pit_menu();
-#if !defined(C_EMSCRIPTEN)
         update_capture_fmt_menu();
-#endif
 
         /* The machine just "powered on", and then reset finished */
         if (!VM_PowerOn()) E_Exit("VM failed to power on");
