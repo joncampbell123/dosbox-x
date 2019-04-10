@@ -1,7 +1,0 @@
-No! by Nooon
-
-Requirements:
- - xms=true (the demo will hang on startup if xms=false)
- - extended memory
- - at least cycles count 12000
-
