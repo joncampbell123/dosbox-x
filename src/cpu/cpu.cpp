@@ -2764,14 +2764,6 @@ extern Bit32s ticksDone;
 extern Bit32u ticksScheduled;
 extern int dynamic_core_cache_block_size;
 
-bool CpuType_Auto(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    Section* sec=control->GetSection("cpu");
-    if (sec) sec->HandleInputline("cputype=auto");
-    return true;
-}
-
 bool CpuType_ByName(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
 
@@ -2853,8 +2845,6 @@ public:
 		item->set_text("Normal core");
 
         /* these are not mapper shortcuts, and probably should not be mapper shortcuts */
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_auto").
-            set_text("Auto").set_callback_function(CpuType_Auto);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_8086").
             set_text("8086").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_8086_prefetch").
