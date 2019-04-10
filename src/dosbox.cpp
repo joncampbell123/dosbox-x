@@ -88,7 +88,8 @@
 #  endif
 #endif
 
-host_fsapi_string x = HOST_FSAPI_STRING("Hello world");
+#define TEST_X
+host_fsapi_string test_x = HOST_FSAPI_STRING("Hello world. Ｈｅｌｌｏ　ｗｏｒｌｄ");
 
 #if C_EMSCRIPTEN
 # include <emscripten.h>
@@ -1004,6 +1005,14 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("enable 8-bit dac",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, allow VESA BIOS calls in IBM PC mode to set DAC width. Has no effect in PC-98 mode.");
+
+#if defined(TEST_X)
+#if defined(_WIN32)
+    MessageBoxW(NULL,test_x.c_str(),L"",MB_OK);
+#else
+    fprintf(stderr,"Test_x = %s\n",test_x.c_str());
+#endif
+#endif
 
 #if defined(MACOSX)
     /* Let's make DPI aware OFF by default so Mac OS X users with Retina displays don't yell at us about eyestrain.
