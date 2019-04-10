@@ -23,6 +23,19 @@
 #include "config.h"
 #include "logging.h"
 
+#if defined(C_ICONV)
+/* good */
+#elif defined(C_ICONV_WIN32)
+/* good */
+#else
+/* auto-pick */
+ #if defined(_WIN32) || defined(WINDOWS)
+  #define C_ICONV_WIN32 1 /* use the Win32 API */
+ #else
+  #pragma warning "iconv backend not chosen, will become mandatory at some point"
+ #endif
+#endif
+
 /* Mac OS X: There seems to be a problem with Macbooks where the touchpad
              is seen by SDL2 as a "touchscreen", even though the screen is
 	     not a touchscreen. The result is DOSBox-X getting mixed messages
