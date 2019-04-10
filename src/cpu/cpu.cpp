@@ -175,42 +175,27 @@ void menu_update_cputype(void) {
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_8086_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder == &CPU_Core_Prefetch_Run)).
-        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_80186").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder != &CPU_Core_Prefetch_Run)).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_80186_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder == &CPU_Core_Prefetch_Run)).
-        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_286").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder != &CPU_Core_Prefetch_Run)).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_286_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder == &CPU_Core_Prefetch_Run)).
-        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_386").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder != &CPU_Core_Prefetch_Run)).
-        refresh_item(mainMenu);
-    mainMenu.get_item("cputype_386_prefetch").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder == &CPU_Core_Prefetch_Run)).
-        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_386).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_486old").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder != &CPU_Core_Prefetch_Run)).
-        refresh_item(mainMenu);
-    mainMenu.get_item("cputype_486old_prefetch").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder == &CPU_Core_Prefetch_Run)).
-        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_486OLD).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_486").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder != &CPU_Core_Prefetch_Run)).
-        refresh_item(mainMenu);
-    mainMenu.get_item("cputype_486_prefetch").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder == &CPU_Core_Prefetch_Run)).
-        enable(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_486NEW).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_pentium").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM).
@@ -2939,16 +2924,10 @@ public:
             set_text("286 with prefetch").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_386").
             set_text("386").set_callback_function(CpuType_ByName);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_386_prefetch").
-            set_text("386 with prefetch").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486old").
             set_text("486 (old)").set_callback_function(CpuType_ByName);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486old_prefetch").
-            set_text("486 (old) with prefetch").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486").
             set_text("486").set_callback_function(CpuType_ByName);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486_prefetch").
-            set_text("486 with prefetch").set_callback_function(CpuType_ByName);
 
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium").
             set_text("Pentium").set_callback_function(CpuType_ByName);
@@ -3050,66 +3029,39 @@ public:
 			CPU_ArchitectureType = CPU_ARCHTYPE_8086;
 			cpudecoder=&CPU_Core8086_Normal_Run;
 		} else if (cputype == "8086_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
+            LOG_MSG("WARNING: 8086 with prefetch is not stable at this time");
 			CPU_ArchitectureType = CPU_ARCHTYPE_8086;
-			if (core == "normal") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
-				CPU_PrefetchQueueSize = 4; /* Emulate the 8088, which was more common in home PCs than having an 8086 */
-			} else {
-				E_Exit("prefetch queue emulation requires the normal core setting.");
-			}
-		} else if (cputype == "80186") {
+            cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+            CPU_PrefetchQueueSize = 4; /* Emulate the 8088, which was more common in home PCs than having an 8086 */
+        } else if (cputype == "80186") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_80186;
 			cpudecoder=&CPU_Core286_Normal_Run;
 		} else if (cputype == "80186_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
+            LOG_MSG("WARNING: 186 with prefetch is not stable at this time");
 			CPU_ArchitectureType = CPU_ARCHTYPE_80186;
-			if (core == "normal") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
-				CPU_PrefetchQueueSize = 6;
-			} else {
-				E_Exit("prefetch queue emulation requires the normal core setting.");
-			}
-		} else if (cputype == "286") {
+            cpudecoder=&CPU_Core_Prefetch_Run;
+            CPU_PrefetchQueueSize = 6;
+        } else if (cputype == "286") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_286;
 			cpudecoder=&CPU_Core286_Normal_Run;
 		} else if (cputype == "286_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
+            LOG_MSG("WARNING: 286 with prefetch is not stable at this time");
 			CPU_ArchitectureType = CPU_ARCHTYPE_286;
-			if (core == "normal") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
-				CPU_PrefetchQueueSize = 6;
-			} else {
-				E_Exit("prefetch queue emulation requires the normal core setting.");
-			}
-		} else if (cputype == "386") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_386;
-		} else if (cputype == "386_prefetch") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_386;
-			if (core == "normal") {
-				cpudecoder=&CPU_Core_Prefetch_Run;
-				CPU_PrefetchQueueSize = 16;
-			} else {
-				E_Exit("prefetch queue emulation requires the normal core setting.");
-			}
+            cpudecoder=&CPU_Core_Prefetch_Run;
+            CPU_PrefetchQueueSize = 6;
+        } else if (cputype == "386") {
+            CPU_ArchitectureType = CPU_ARCHTYPE_386;
+            cpudecoder=&CPU_Core_Prefetch_Run;
+            CPU_PrefetchQueueSize = 16;
 		} else if (cputype == "486") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_486NEW;
-		} else if (cputype == "486_prefetch") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_486NEW;
-			if (core == "normal") {
-				cpudecoder=&CPU_Core_Prefetch_Run;
-				CPU_PrefetchQueueSize = 32;
-			} else {
-				E_Exit("prefetch queue emulation requires the normal core setting.");
-			}
+            cpudecoder=&CPU_Core_Prefetch_Run;
+            CPU_PrefetchQueueSize = 32;
 		} else if (cputype == "486old") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_486OLD;
-		} else if (cputype == "486old_prefetch") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_486OLD;
-			if (core == "normal") {
-				cpudecoder=&CPU_Core_Prefetch_Run;
-				CPU_PrefetchQueueSize = 16;
-			} else {
-				E_Exit("prefetch queue emulation requires the normal core setting.");
-			}
-		} else if (cputype == "pentium") {
+            cpudecoder=&CPU_Core_Prefetch_Run;
+            CPU_PrefetchQueueSize = 16;
+        } else if (cputype == "pentium") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUM;
 		} else if (cputype == "pentium_mmx") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_P55CSLOW;
