@@ -1007,6 +1007,14 @@ fi
 
 AM_CONDITIONAL(C_DIRECT3D, test x"$do_d3d" == x"1")
 
+AH_TEMPLATE(C_ICONV,[Define to 1 to use GNU libiconv])
+if test x$have_iconv_h = xyes; then
+    AC_DEFINE(C_ICONV,1)
+fi
+
+dnl placeholder
+AH_TEMPLATE(C_ICONV_WIN32,[Define to 1 to use Win32 functions in iconv backend])
+
 AC_CONFIG_FILES([ 
 Makefile
 src/Makefile
