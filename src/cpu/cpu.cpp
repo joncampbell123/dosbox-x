@@ -72,8 +72,6 @@ bool ignore_undefined_msr = true;
 
 extern bool ignore_opcode_63;
 
-extern bool use_dynamic_core_with_paging;
-
 bool cpu_double_fault_enable;
 bool cpu_triple_fault_reset;
 
@@ -2762,7 +2760,6 @@ static void CPU_ToggleNormalCore(bool pressed) {
 
 extern Bit32s ticksDone;
 extern Bit32u ticksScheduled;
-extern int dynamic_core_cache_block_size;
 
 bool CpuType_ByName(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -2880,7 +2877,6 @@ public:
 		CPU_Cycles=0;
 
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
-		use_dynamic_core_with_paging = section->Get_bool("use dynamic core with paging on");
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
 		cpu_allow_big16 = section->Get_bool("realbig16");
@@ -2892,9 +2888,6 @@ public:
 
 		always_report_double_fault = section->Get_bool("always report double fault");
 		always_report_triple_fault = section->Get_bool("always report triple fault");
-
-		dynamic_core_cache_block_size = section->Get_int("dynamic core cache block size");
-		if (dynamic_core_cache_block_size < 1 || dynamic_core_cache_block_size > 65536) dynamic_core_cache_block_size = 32;
 
 		Prop_multival* p = section->Get_multival("cycles");
 		std::string type = p->GetSection()->Get_string("type");

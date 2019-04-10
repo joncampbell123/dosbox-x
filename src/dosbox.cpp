@@ -1670,7 +1670,6 @@ void DOSBOX_SetupConfigSections(void) {
             "of Pentium Pro/Pentium II MTRR registers.\n"
             "WARNING: Leaving this option enabled while installing Windows 95/98/ME can cause crashes.");
 
-    /* NTS: This setting is honored by all cpu cores except dynamic core */
     Pint = secprop->Add_int("interruptible rep string op",Property::Changeable::Always,-1);
     Pint->SetMinMax(-1,65536);
     Pint->Set_help("if nonzero, REP string instructions (LODS/MOVS/STOS/INS/OUTS) are interruptible (by interrupts or other events).\n"
@@ -1680,13 +1679,6 @@ void DOSBOX_SetupConfigSections(void) {
             "A nonzero setting (1-8) may be needed for DOS games and demos that use the IRQ 0 interrupt to play digitized samples\n"
             "while doing VGA palette animation at the same time (use case of REP OUTS), where the non-interruptible version\n"
             "would cause an audible drop in audio pitch.");
-
-    Pint = secprop->Add_int("dynamic core cache block size",Property::Changeable::Always,32);
-    Pint->SetMinMax(1,65536);
-    Pint->Set_help("dynamic core cache block size. default value is 32. change this value carefully.\n"
-            "according to forum discussion, setting this to 1 can aid debugging, however doing so\n"
-            "also causes problems with 32-bit protected mode DOS games and reduces the performance\n"
-            "of the dynamic core.\n");
 
     Pstring = secprop->Add_string("cputype",Property::Changeable::Always,"pentium");
     Pstring->Set_values(cputype_values);
@@ -1717,11 +1709,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("cycledown",Property::Changeable::Always,20);
     Pint->SetMinMax(1,1000000);
     Pint->Set_help("Setting it lower than 100 will be a percentage.");
-
-    Pbool = secprop->Add_bool("use dynamic core with paging on",Property::Changeable::Always,true);
-    Pbool->Set_help("Allow dynamic core with 386 paging enabled. This is generally OK for DOS games and Windows 3.1.\n"
-                    "If the game becomes unstable, turn off this option.\n"
-                    "WARNING: Do NOT use this option with preemptive multitasking OSes including Windows 95 and Windows NT.");
             
     Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
     Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
