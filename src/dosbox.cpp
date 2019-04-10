@@ -74,7 +74,6 @@
 #include "pci_bus.h"
 #include "parport.h"
 #include "clockdomain.h"
-#include "iconvpp.hpp"
 
 #if C_EMSCRIPTEN
 # include <emscripten.h>
