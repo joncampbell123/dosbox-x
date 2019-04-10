@@ -158,7 +158,7 @@ cpu_cycles_count_t CPU_IODelayRemoved = 0;
 char core_mode[16];
 CPU_Decoder * cpudecoder;
 
-unsigned char CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
+unsigned char CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUM;
 
 Bitu CPU_extflags_toggle=0;	// ID and AC flags may be toggled depending on emulated CPU architecture
 
@@ -2601,8 +2601,7 @@ bool CPU_CPUID(void) {
 		reg_ecx='n' | ('t' << 8) | ('e' << 16) | ('l'<< 24); 
 		break;
 	case 1:	/* get processor type/family/model/stepping and feature flags */
-		if ((CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) ||
-			(CPU_ArchitectureType == CPU_ARCHTYPE_MIXED)) {
+		if (CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) {
 			reg_eax=0x402;		/* intel 486dx */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
@@ -3023,7 +3022,7 @@ public:
 			LOG_MSG("CPU:Unknown core type %s, switching back to normal.",core.c_str());
 		}
 
-		CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
+		CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUM;
 		std::string cputype(section->Get_string("cputype"));
 		if (cputype == "8086") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_8086;
