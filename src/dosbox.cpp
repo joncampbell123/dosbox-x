@@ -1708,8 +1708,8 @@ void DOSBOX_SetupConfigSections(void) {
         "  'max'           will allocate as much cycles as your computer is able to\n"
         "                  handle.");
 
-    Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::Always,"auto");
-    Pmulti_remain->SetValue("auto",/*init*/true);
+    Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::Always,"fixed");
+    Pmulti_remain->SetValue("fixed",/*init*/true);
     Pstring->Set_values(cyclest);
 
     Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::Always,"");
