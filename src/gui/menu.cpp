@@ -256,15 +256,6 @@ static const char *def_menu_video[] =
     "mapper_fullscr",
     "--",
 #endif
-#if !defined(HX_DOS) && (defined(LINUX) || !defined(C_SDL2))
-    "alwaysontop",
-#endif
-#if !defined(C_SDL2) && defined(MACOSX)
-    "highdpienable",
-#endif
-#if !defined(C_SDL2)
-    "--",
-#endif
 #ifndef MACOSX
     "mapper_togmenu",
 # if !defined(HX_DOS)

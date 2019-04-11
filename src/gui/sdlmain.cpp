@@ -37,8 +37,6 @@
 # define INCL_WIN
 #endif
 
-extern bool dpi_aware_enable;
-
 bool OpenGL_using(void);
 void GFX_OpenGLRedrawScreen(void);
 
@@ -1011,8 +1009,7 @@ SDL_Window* GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES scree
                                       width, height,
                                       (GFX_IsFullscreen() ? (sdl.desktop.full.display_res ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_WINDOW_FULLSCREEN) : 0)
                                       | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | SDL_WINDOW_SHOWN
-                                      | (SDL2_resize_enable ? SDL_WINDOW_RESIZABLE : 0)
-                                      | (dpi_aware_enable ? SDL_WINDOW_ALLOW_HIGHDPI : 0));
+                                      | (SDL2_resize_enable ? SDL_WINDOW_RESIZABLE : 0));
         if (sdl.window) {
             GFX_SetTitle(-1, -1, -1, false); //refresh title.
         }
@@ -5634,7 +5631,6 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -early-debug                            Log early initialization messages in DOSBox (implies -console)\n");
             fprintf(stderr,"  -keydbg                                 Log all SDL key events (debugging)\n");
             fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
-            fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
             fprintf(stderr,"  -securemode                             Enable secure mode\n");
             fprintf(stderr,"  -noautoexec                             Don't execute AUTOEXEC.BAT config section\n");
             fprintf(stderr,"  -exit                                   Exit after executing AUTOEXEC.BAT\n");
@@ -5676,9 +5672,6 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "securemode") {
             control->opt_securemode = true;
-        }
-        else if (optname == "nodpiaware") {
-            control->opt_disable_dpi_awareness = true;
         }
         else if (optname == "keydbg") {
             log_keyboard_scan_codes = true;
@@ -5867,10 +5860,6 @@ void AUTOEXEC_Init();
 // NTS: I intend to add code that not only indicates High DPI awareness but also queries the monitor DPI
 //      and then factor the DPI into DOSBox's scaler and UI decisions.
 void Windows_DPI_Awareness_Init() {
-    // if the user says not to from the command line, or disables it from dosbox.conf, then don't enable DPI awareness.
-    if (!dpi_aware_enable || control->opt_disable_dpi_awareness)
-        return;
-
     /* log it */
     LOG(LOG_MISC,LOG_DEBUG)("Win32: I will announce High DPI awareness to Windows to eliminate upscaling");
 
@@ -6435,42 +6424,12 @@ bool x11_on_top = false;
 bool macosx_on_top = false;
 #endif
 
-bool is_always_on_top(void) {
-#if defined(_WIN32) && !defined(C_SDL2)
-    DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
-    return !!(dwExStyle & WS_EX_TOPMOST);
-#elif defined(MACOSX) && !defined(C_SDL2)
-    return macosx_on_top;
-#elif defined(LINUX)
-    return x11_on_top;
-#else
-    return false;
-#endif
-}
-
 #if defined(_WIN32) && !defined(C_SDL2)
 extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
 #endif
 #if defined(MACOSX) && !defined(C_SDL2)
 extern "C" void sdl1_hax_set_topmost(unsigned char topmost);
 #endif
-#if defined(MACOSX) && !defined(C_SDL2)
-extern "C" void sdl1_hax_macosx_highdpi_set_enable(const bool enable);
-#endif
-
-void toggle_always_on_top(void) {
-    bool cur = is_always_on_top();
-#if defined(_WIN32) && !defined(C_SDL2)
-    sdl1_hax_set_topmost(!cur);
-#elif defined(MACOSX) && !defined(C_SDL2)
-    sdl1_hax_set_topmost(macosx_on_top = (!cur));
-#elif defined(LINUX)
-    void LinuxX11_OnTop(bool f);
-    LinuxX11_OnTop(x11_on_top = (!cur));
-#else
-    (void)cur;
-#endif
-}
 
 void BlankDisplay(void);
 
@@ -6494,32 +6453,6 @@ bool showdetails_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
     menu.hidecycles = !menu.hidecycles;
     GFX_SetTitle(CPU_CycleMax, -1, -1, false);
     mainMenu.get_item("showdetails").check(!menu.hidecycles).refresh_item(mainMenu);
-    return true;
-}
-
-bool alwaysontop_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    toggle_always_on_top();
-    mainMenu.get_item("alwaysontop").check(is_always_on_top()).refresh_item(mainMenu);
-    return true;
-}
-
-bool highdpienable_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    void RENDER_CallBack( GFX_CallBackFunctions_t function );
-
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-#if defined(MACOSX) && !defined(C_SDL2)
-    dpi_aware_enable = !dpi_aware_enable;
-    if (!control->opt_disable_dpi_awareness) {
-        sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
-        RENDER_CallBack(GFX_CallBackReset);
-    }
-#endif
-
-    mainMenu.get_item("highdpienable").check(dpi_aware_enable).refresh_item(mainMenu);
     return true;
 }
 
@@ -6957,10 +6890,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         assert(section != NULL);
-
-        // boot-time option whether or not to report ourself as "DPI aware" to Windows so the
-        // DWM doesn't upscale our window for backwards compat.
-        dpi_aware_enable = section->Get_bool("dpi aware");
     }
 
 #ifdef WIN32
@@ -6968,11 +6897,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
          * upscale our window to emulate a 96 DPI display which on high res screen will make our UI look blurry.
          * But we obey the user if they don't want us to do that. */
         Windows_DPI_Awareness_Init();
-#endif
-#if defined(MACOSX) && !defined(C_SDL2)
-    /* Our SDL1 in-tree library has a High DPI awareness function for Mac OS X now */
-        if (!control->opt_disable_dpi_awareness)
-            sdl1_hax_macosx_highdpi_set_enable(dpi_aware_enable);
 #endif
 
 #ifdef MACOSX
@@ -7402,9 +7326,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Logo key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Menu key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_cad").set_text("Ctrl+Alt+Del").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"highdpienable").set_text("High DPI enable").set_callback_function(highdpienable_menu_callback).check(dpi_aware_enable);
 
         mainMenu.get_item("mapper_blankrefreshtest").set_text("Refresh test (blank display)").set_callback_function(refreshtest_menu_callback).refresh_item(mainMenu);
 
