@@ -727,17 +727,6 @@ if test x$have_zlib_lib = xyes -a x$have_zlib_h = xyes ; then
   AC_DEFINE(C_LIBZ,1)
 fi
 
-dnl FEATURE: Whether to support libpng, and enable snapshots
-AH_TEMPLATE(C_LIBPNG,[Define to 1 if you have libpng])
-AH_TEMPLATE(C_SSHOT,[Define to 1 to enable screenshots, requires libpng])
-if test x$have_png_lib = xyes -a x$have_png_h = xyes ; then
-  LIBS="$LIBS -lpng -lz"
-  AC_DEFINE(C_LIBPNG,1)
-  AC_DEFINE(C_SSHOT,1)
-else
-  AC_MSG_WARN([Can't find libpng, screenshot support disabled])
-fi
-
 if test x$enable_x11 != xno; then
   dnl FEATURE: Whether to use X11 XKBlib
   AH_TEMPLATE(C_X11_XKB,[define to 1 if you have XKBlib.h and X11 lib])

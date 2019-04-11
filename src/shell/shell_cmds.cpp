@@ -1985,9 +1985,6 @@ void DOS_Shell::CMD_FOR(char *args){
     (void)args;//UNUSED
 }
 
-void CAPTURE_StartCapture(void);
-void CAPTURE_StopCapture(void);
-
 void CAPTURE_StartWave(void);
 void CAPTURE_StopWave(void);
 
@@ -2000,17 +1997,11 @@ void CAPTURE_StopMTWave(void);
 //              The command name is chosen not to conform to the 8.3 pattern
 //              on purpose to avoid conflicts with any existing DOS applications.
 void DOS_Shell::CMD_DXCAPTURE(char * args) {
-    bool cap_video = false;
     bool cap_audio = false;
     bool cap_mtaudio = false;
     unsigned long post_exit_delay_ms = 3000; /* 3 sec */
 
     while (*args == ' ') args++;
-
-    if (ScanCMDBool(args,"V"))
-        cap_video = true;
-    if (ScanCMDBool(args,"-V"))
-        cap_video = false;
 
     if (ScanCMDBool(args,"A"))
         cap_audio = true;
@@ -2022,11 +2013,6 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
     if (ScanCMDBool(args,"-M"))
         cap_mtaudio = false;
 
-    if (!cap_video && !cap_audio && !cap_mtaudio)
-        cap_video = true;
-
-    if (cap_video)
-        CAPTURE_StartCapture();
     if (cap_audio)
         CAPTURE_StartWave();
     if (cap_mtaudio)
@@ -2067,8 +2053,6 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
         }
     }
 
-    if (cap_video)
-        CAPTURE_StopCapture();
     if (cap_audio)
         CAPTURE_StopWave();
     if (cap_mtaudio)

@@ -332,14 +332,6 @@ static const char *def_menu_sound[] =
 /* capture menu ("CaptureMenu") */
 static const char *def_menu_capture[] =
 {
-#if defined(C_SSHOT)
-    "mapper_scrshot",
-    "--",
-#endif
-#if (C_SSHOT)
-    "CaptureFormatMenu",
-    "--",
-#endif
     "mapper_video",
     "mapper_recwave",
     "mapper_recmtwave",
@@ -347,15 +339,6 @@ static const char *def_menu_capture[] =
     "mapper_caprawmidi",
     NULL
 };
-
-#if (C_SSHOT)
-/* capture format menu ("CaptureFormatMenu") */
-static const char *def_menu_capture_format[] =
-{
-    "capture_fmt_avi_zmbv",
-    NULL
-};
-#endif
 
 bool DOSBox_isMenuVisible(void) {
     return menu.toggle;
@@ -1056,11 +1039,6 @@ void ConstructMenu(void) {
 
     /* capture menu */
     ConstructSubMenu(mainMenu.get_item("CaptureMenu").get_master_id(), def_menu_capture);
-
-#if (C_SSHOT)
-    /* capture format menu */
-    ConstructSubMenu(mainMenu.get_item("CaptureFormatMenu").get_master_id(), def_menu_capture_format);
-#endif
 }
 
 bool MENU_SetBool(std::string secname, std::string value) {

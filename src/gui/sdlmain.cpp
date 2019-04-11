@@ -7268,17 +7268,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureMenu");
             item.set_text("Capture");
         }
-#if (C_SSHOT)
-        {
-            DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"CaptureFormatMenu");
-            item.set_text("Capture format");
-
-            {
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"capture_fmt_avi_zmbv").set_text("AVI + ZMBV").
-                    set_callback_function(capture_fmt_menu_callback);
-            }
-        }
-#endif
 
         /* Start up main machine */
 
@@ -7454,7 +7443,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         OutputSettingMenuUpdate();
         update_pc98_clock_pit_menu();
-        update_capture_fmt_menu();
 
         /* The machine just "powered on", and then reset finished */
         if (!VM_PowerOn()) E_Exit("VM failed to power on");

@@ -315,18 +315,7 @@ void dosbox_integration_trigger_read() {
         case 0xC54010: /* Screenshot/capture trigger */
             /* TODO: This should also be hidden behind an enable switch, so that rogue DOS development
              *       can't retaliate if the user wants to capture video or screenshots. */
-#if (C_SSHOT)
-            extern Bitu CaptureState;
-            dosbox_int_register = 0x00000000; // available
-            if (CaptureState & CAPTURE_IMAGE)
-                dosbox_int_register |= 1 << 0; // Image capture is in progress
-            if (CaptureState & CAPTURE_VIDEO)
-                dosbox_int_register |= 1 << 1; // Video capture is in progress
-            if (CaptureState & CAPTURE_WAVE)
-                dosbox_int_register |= 1 << 2; // WAVE capture is in progress
-#else
             dosbox_int_register = 0xC0000000; // not available (bit 31 set), not enabled (bit 30 set)
-#endif
             break;
 
         case 0xAA55BB66UL: /* interface reset result */
@@ -441,20 +430,10 @@ void dosbox_integration_trigger_write() {
             break;
  
         case 0xC54010: /* Screenshot/capture trigger */
-#if (C_SSHOT)
-            void CAPTURE_ScreenShotEvent(bool pressed);
-            void CAPTURE_VideoEvent(bool pressed);
-#endif
             void CAPTURE_WaveEvent(bool pressed);
 
             /* TODO: It would be wise to grant/deny access to this register through another dosbox.conf option
              *       so that rogue DOS development cannot shit-spam the capture folder */
-#if (C_SSHOT)
-            if (dosbox_int_register & 1)
-                CAPTURE_ScreenShotEvent(true);
-            if (dosbox_int_register & 2)
-                CAPTURE_VideoEvent(true);
-#endif
             if (dosbox_int_register & 4)
                 CAPTURE_WaveEvent(true);
             break;
