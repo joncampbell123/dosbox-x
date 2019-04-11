@@ -20,9 +20,9 @@ endif
 
 dosbox_x_SOURCES = dosbox.cpp $(ico_stuff)
 dosbox_x_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuiltin.a \
-               ints/libints.a misc/libmisc.a hardware/serialport/libserial.a hardware/parport/libparallel.a \
+               ints/libints.a misc/libmisc.a \
                gui/libgui.a libs/gui_tk/libgui_tk.a hardware/libhardware.a \
-	       cpu/libcpu.a hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a \
+	       cpu/libcpu.a fpu/libfpu.a gui/libgui.a \
 		   output/liboutput.a
 
 EXTRA_DIST = winres.rc dosbox.ico

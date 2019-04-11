@@ -536,10 +536,6 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
     case 0x31:      /* Extended memory in KB High Byte */
 //      LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Read from reg %X : %04X",cmos.reg,cmos.regs[cmos.reg]);
         return cmos.regs[cmos.reg];
-    case 0x2F:
-        extern bool PS1AudioCard;
-        if( PS1AudioCard )
-            return 0xFF;
     default:
         LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Read from reg %X",cmos.reg);
         return cmos.regs[cmos.reg];

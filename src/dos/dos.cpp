@@ -31,8 +31,8 @@
 #include "dos_inc.h"
 #include "setup.h"
 #include "support.h"
-#include "parport.h"
-#include "serialport.h"
+#include "control.h"
+#include "timer.h"
 
 int ascii_toupper(int c) {
     if (c >= 'a' && c <= 'z')
@@ -474,36 +474,14 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x03:      /* Read character from STDAUX */
             {
-                Bit16u port = real_readw(0x40,0);
-                if(port!=0 && serialports[0]) {
-                    Bit8u status;
-                    // RTS/DTR on
-                    IO_WriteB(port+4u,0x3u);
-                    serialports[0]->Getchar(&reg_al, &status, true, 0xFFFFFFFF);
-                }
             }
             break;
         case 0x04:      /* Write Character to STDAUX */
             {
-                Bit16u port = real_readw(0x40,0);
-                if(port!=0 && serialports[0]) {
-                    // RTS/DTR on
-                    IO_WriteB(port+4u,0x3u);
-                    serialports[0]->Putchar(reg_dl,true,true, 0xFFFFFFFF);
-                    // RTS off
-                    IO_WriteB(port+4u,0x1u);
-                }
             }
             break;
         case 0x05:      /* Write Character to PRINTER */
             {
-                for(unsigned int i = 0; i < 3; i++) {
-                    // look up a parallel port
-                    if(parallelPortObjects[i] != NULL) {
-                        parallelPortObjects[i]->Putchar(reg_dl);
-                        break;
-                    }
-                }
                 break;
             }
         case 0x06:      /* Direct Console Output / Input */

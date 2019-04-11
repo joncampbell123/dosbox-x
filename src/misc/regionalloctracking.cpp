@@ -14,11 +14,9 @@
 #include "mouse.h"
 #include "callback.h"
 #include "setup.h"
-#include "serialport.h"
 #include "mapper.h"
 #include "vga.h"
 #include "regionalloctracking.h"
-#include "parport.h"
 #include <time.h>
 #include <sys/timeb.h>
 

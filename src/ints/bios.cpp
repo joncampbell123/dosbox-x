@@ -32,15 +32,14 @@
 #include "callback.h"
 #include "setup.h"
 #include "bios_disk.h"
-#include "serialport.h"
 #include "mapper.h"
 #include "vga.h"
+#include "timer.h"
+#include "control.h"
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
 #include "regionalloctracking.h"
 #include "build_timestamp.h"
-extern bool PS1AudioCard;
-#include "parport.h"
 #include <time.h>
 #include <sys/timeb.h>
 
@@ -72,8 +71,6 @@ extern bool rom_bios_8x8_cga_font;
 uint32_t Keyb_ig_status();
 bool VM_Boot_DOSBox_Kernel();
 Bit32u MEM_get_address_bits();
-Bitu bios_post_parport_count();
-Bitu bios_post_comport_count();
 bool KEYBOARD_Report_BIOS_PS2Mouse();
 bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
 void pc98_update_palette(void);
@@ -3754,22 +3751,11 @@ static Bitu INT17_Handler(void) {
 
     switch(reg_ah) {
     case 0x00:      // PRINTER: Write Character
-        if(parallelPortObjects[reg_dx]!=0) {
-            if(parallelPortObjects[reg_dx]->Putchar(reg_al))
-                reg_ah=parallelPortObjects[reg_dx]->getPrinterStatus();
-            else reg_ah=1;
-        }
+        reg_ah=1;
         break;
     case 0x01:      // PRINTER: Initialize port
-        if(parallelPortObjects[reg_dx]!= 0) {
-            parallelPortObjects[reg_dx]->initialize();
-            reg_ah=parallelPortObjects[reg_dx]->getPrinterStatus();
-        }
         break;
     case 0x02:      // PRINTER: Get Status
-        if(parallelPortObjects[reg_dx] != 0)
-            reg_ah=parallelPortObjects[reg_dx]->getPrinterStatus();
-        //LOG_MSG("printer status: %x",reg_ah);
         break;
     };
     return CBRET_NONE;
@@ -5889,9 +5875,6 @@ private:
             //Bit16u config=0x4400; //1 Floppy, 2 serial and 1 parallel 
             Bit16u config = 0x0;
 
-            config |= bios_post_parport_count() << 14;
-            config |= bios_post_comport_count() << 9;
-
 #if (C_FPU)
             extern bool enable_fpu;
 
@@ -5973,9 +5956,6 @@ private:
                         /* PC/2 model 30 model */
                         phys_writeb(data+2,0xFA);
                         phys_writeb(data+3,0x00);                   // Submodel ID (PS/2) model 30
-                    } else if (PS1AudioCard) { /* FIXME: Won't work because BIOS_Init() comes before PS1SOUND_Init() */
-                        phys_writeb(data+2,0xFC);                   // Model ID (PC)
-                        phys_writeb(data+3,0x0B);                   // Submodel ID (PS/1).
                     } else {
                         phys_writeb(data+2,0xFC);                   // Model ID (PC)
                         phys_writeb(data+3,0x00);                   // Submodel ID

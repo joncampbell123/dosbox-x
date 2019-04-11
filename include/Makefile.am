@@ -22,7 +22,6 @@ mem.h \
 mixer.h \
 modules.h \
 mouse.h \
-parport.h \
 paging.h \
 pic.h \
 programs.h \
@@ -30,7 +29,6 @@ qcow2_disk.h \
 render.h \
 regs.h \
 render.h \
-serialport.h \
 setup.h \
 shell.h \
 support.h \

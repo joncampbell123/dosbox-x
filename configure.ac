@@ -778,9 +778,6 @@ src/dos/Makefile
 src/fpu/Makefile
 src/gui/Makefile
 src/hardware/Makefile
-src/hardware/serialport/Makefile
-src/hardware/reSID/Makefile
-src/hardware/parport/Makefile
 src/ints/Makefile
 src/libs/Makefile
 src/libs/gui_tk/Makefile

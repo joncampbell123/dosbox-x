@@ -71,7 +71,6 @@
 #include "ints/int10.h"
 #include "menu.h"
 #include "render.h"
-#include "parport.h"
 #include "clockdomain.h"
 
 #ifdef WIN32
@@ -153,7 +152,6 @@ ClockDomain         clockdom_ISA_BCLK(25000000,3);      /* MASTER 25000000Hz / 3
 
 Config*             control;
 MachineType         machine;
-bool                PS1AudioCard;       // Perhaps have PS1 as a machine type...?
 SVGACards           svgaCard;
 bool                SDLNetInited;
 Bit32s              ticksDone;
@@ -769,7 +767,6 @@ void DOSBOX_SetupConfigSections(void) {
     const char* cputype_values[] = {"8086", "80186", "286", "386", "486old", "486", "pentium", "pentium_mmx", "ppro_slow", 0};
     const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
     const char* apmbiosversions[] = { "auto", "1.0", "1.1", "1.2", 0 };
-    const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
     const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none",0};
 //    const char* joydeadzone[] = { "0.26", 0 };
@@ -1720,85 +1717,6 @@ void DOSBOX_SetupConfigSections(void) {
 			}
 		}
 	}
-
-
-    secprop=control->AddSection_prop("serial",&Null_Init,true);
-   
-    Pmulti_remain = secprop->Add_multiremain("serial1",Property::Changeable::WhenIdle," ");
-    Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"dummy");
-    Pmulti_remain->SetValue("dummy",/*init*/true);
-    Pstring->Set_values(serials);
-    Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
-    Pmulti_remain->Set_help(
-        "set type of device connected to com port.\n"
-        "Can be disabled, dummy, modem, nullmodem, directserial.\n"
-        "Additional parameters must be in the same line in the form of\n"
-        "parameter:value. Parameter for all types is irq (optional).\n"
-        "for directserial: realport (required), rxdelay (optional).\n"
-        "                 (realport:COM1 realport:ttyS0).\n"
-        "for modem: listenport (optional).\n"
-        "for nullmodem: server, rxdelay, txdelay, telnet, usedtr,\n"
-        "               transparent, port, inhsocket, nonlocal (all optional).\n"
-        "               connections are limited to localhost unless you specify nonlocal:1\n"
-        "Example: serial1=modem listenport:5000");
-
-    Pmulti_remain = secprop->Add_multiremain("serial2",Property::Changeable::WhenIdle," ");
-    Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"dummy");
-    Pmulti_remain->SetValue("dummy",/*init*/true);
-    Pstring->Set_values(serials);
-    Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
-    Pmulti_remain->Set_help("see serial1");
-
-    Pmulti_remain = secprop->Add_multiremain("serial3",Property::Changeable::WhenIdle," ");
-    Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
-    Pmulti_remain->SetValue("disabled",/*init*/true);
-    Pstring->Set_values(serials);
-    Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
-    Pmulti_remain->Set_help("see serial1");
-
-    Pmulti_remain = secprop->Add_multiremain("serial4",Property::Changeable::WhenIdle," ");
-    Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
-    Pmulti_remain->SetValue("disabled",/*init*/true);
-    Pstring->Set_values(serials);
-    Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
-    Pmulti_remain->Set_help("see serial1");
-
-    // parallel ports
-    secprop=control->AddSection_prop("parallel",&Null_Init,true);
-    Pstring = secprop->Add_string("parallel1",Property::Changeable::WhenIdle,"disabled");
-    Pstring->Set_help(
-            "parallel1-3 -- set type of device connected to lpt port.\n"
-            "Can be:\n"
-            "   reallpt (direct parallel port passthrough),\n"
-            "   file (records data to a file or passes it to a device),\n"
-            "   printer (virtual dot-matrix printer, see [printer] section)\n"
-            "       disney (attach Disney Sound Source emulation to this port)\n"
-            "Additional parameters must be in the same line in the form of\n"
-            "parameter:value.\n"
-            "  for reallpt:\n"
-            "  Windows:\n"
-            "    realbase (the base address of your real parallel port).\n"
-            "      Default: 378\n"
-            "    ecpbase (base address of the ECP registers, optional).\n"
-            "  Linux: realport (the parallel port device i.e. /dev/parport0).\n"
-            "  for file: \n"
-            "    dev:<devname> (i.e. dev:lpt1) to forward data to a device,\n"
-            "    or append:<file> appends data to the specified file.\n"
-            "    Without the above parameters data is written to files in the capture dir.\n"
-            "    Additional parameters: timeout:<milliseconds> = how long to wait before\n"
-            "    closing the file on inactivity (default:500), addFF to add a formfeed when\n"
-            "    closing, addLF to add a linefeed if the app doesn't, cp:<codepage number>\n"
-            "    to perform codepage translation, i.e. cp:437\n"
-            "  for printer:\n"
-            "    printer still has it's own configuration section above."
-    );
-    Pstring = secprop->Add_string("parallel2",Property::Changeable::WhenIdle,"disabled");
-    Pstring->Set_help("see parallel1");
-    Pstring = secprop->Add_string("parallel3",Property::Changeable::WhenIdle,"disabled");
-    Pstring->Set_help("see parallel1");
-
-    Pbool = secprop->Add_bool("dongle",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Enable dongle");
 
     /* All the DOS Related stuff, which will eventually start up in the shell */
     secprop=control->AddSection_prop("dos",&Null_Init,false);//done
