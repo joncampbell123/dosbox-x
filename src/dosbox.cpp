@@ -769,7 +769,6 @@ void DOSBOX_SetupConfigSections(void) {
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
-    const char* pc98fmboards[] = { "auto", "off", "false", "board26k", "board86", "board86c", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
     const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", 0 };
@@ -1044,20 +1043,6 @@ void DOSBOX_SetupConfigSections(void) {
                     "so that the in-service interrupt status can be read immediately. There seems to be a common\n"
                     "convention in PC-98 games to program and/or assume this mode for cooperative interrupt handling.\n"
                     "This option is enabled by default for best compatibility with PC-98 games.");
-
-    Pstring = secprop->Add_string("pc-98 fm board",Property::Changeable::Always,"auto");
-    Pstring->Set_values(pc98fmboards);
-    Pstring->Set_help("In PC-98 mode, selects the FM music board to emulate.");
-
-    Pint = secprop->Add_int("pc-98 fm board irq", Property::Changeable::WhenIdle,0);
-    Pint->Set_help("If set, helps to determine the IRQ of the FM board. A setting of zero means to auto-determine the IRQ.");
-
-    Phex = secprop->Add_hex("pc-98 fm board io port", Property::Changeable::WhenIdle,0);
-    Phex->Set_help("If set, helps to determine the base I/O port of the FM board. A setting of zero means to auto-determine the port number.");
-
-    Pbool = secprop->Add_bool("pc-98 sound bios",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Set Sound BIOS enabled bit in MEMSW 4 for some games that require it.\n"
-                    "TODO: Real emulation of PC-9801-26K/86 Sound BIOS");
 
     Pbool = secprop->Add_bool("pc-98 buffer page flip",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, the game's request to page flip will be delayed to vertical retrace, which can eliminate tearline artifacts.\n"

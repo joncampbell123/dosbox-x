@@ -915,13 +915,9 @@ void VGA_Reset(Section*) {
     if (IS_PC98_ARCH) {
         void VGA_OnEnterPC98(Section *sec);
         void VGA_OnEnterPC98_phase2(Section *sec);
-        void PC98_FM_OnEnterPC98(Section *sec);
 
         VGA_OnEnterPC98(NULL);
         VGA_OnEnterPC98_phase2(NULL);
-
-        // TODO: Move to separate file
-        PC98_FM_OnEnterPC98(NULL);
     }
 }
 
@@ -1204,8 +1200,6 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
 }
 
 void VGA_Destroy(Section*) {
-    void PC98_FM_Destroy(Section *sec);
-    PC98_FM_Destroy(NULL);
 }
 
 extern uint8_t                     pc98_pal_analog[256*3]; /* G R B    0x0..0xF */
