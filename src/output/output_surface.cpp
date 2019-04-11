@@ -64,34 +64,6 @@ void OUTPUT_SURFACE_EndUpdate(const Bit16u *changedLines)
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     GFX_DrawSDLMenu(mainMenu, mainMenu.display_list);
 #endif
-#if C_SURFACE_POSTRENDER_ASPECT
-    if (render.aspect == ASPECT_NEAREST || render.aspect == ASPECT_BILINEAR) {
-        // here we go, adjusting source aspect ratio
-        int clipWidth = sdl.clip.w;
-        int clipHeight = sdl.clip.h;
-        int clipX = sdl.clip.x;
-        int clipY = sdl.clip.y;
-
-        const bool mustLock = SDL_MUSTLOCK(sdl.surface);
-        if (mustLock) SDL_LockSurface(sdl.surface);
-        if (sdl.surface->pixels) // if locking fails, this can be nullptr, also check if we really need to draw
-        {
-            uint32_t* clipTrg = reinterpret_cast<uint32_t*>(static_cast<char*>(sdl.surface->pixels) + clipY * sdl.surface->pitch + clipX * sizeof(uint32_t));
-            xBRZ_PostScale(&sdl.aspectbuf[0], sdl.draw.width, sdl.draw.height, sdl.draw.width * sizeof(uint32_t),
-                &clipTrg[0], clipWidth, clipHeight, sdl.surface->pitch,
-                (render.aspect == ASPECT_BILINEAR), C_SURFACE_POSTRENDER_ASPECT_BATCH_SIZE);
-        }
-
-        if (mustLock) SDL_UnlockSurface(sdl.surface);
-        if (!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
-#if defined(C_SDL2)
-        SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 1);
-#else
-        SDL_Flip(sdl.surface);
-#endif
-    }
-    else
-#endif /*C_SURFACE_POSTRENDER_ASPECT*/
     {
         if (SDL_MUSTLOCK(sdl.surface)) {
             if (sdl.blit.surface) {
