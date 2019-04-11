@@ -5789,7 +5789,6 @@ void ROMBIOS_Init();
 void CALLBACK_Init();
 void Init_DMA();
 void Init_PIC();
-void PCIBUS_Init();
 void PROGRAMS_Init();
 void RENDER_Init();
 void TIMER_Init();
@@ -7216,7 +7215,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         Init_DMA();
         Init_PIC();
         TIMER_Init();
-        PCIBUS_Init();
         PAGING_Init(); /* <- NTS: At this time, must come before memory init because paging is so well integrated into emulation code */
         CMOS_Init();
         ROMBIOS_Init();

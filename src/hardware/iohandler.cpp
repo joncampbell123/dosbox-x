@@ -30,8 +30,6 @@
 
 #include <vector>
 
-extern bool pcibus_enable;
-
 #define IO_callouts_max (IO_TYPE_MAX - IO_TYPE_MIN)
 #define IO_callouts_index(t) (t - IO_TYPE_MIN)
 
@@ -205,22 +203,7 @@ static Bitu IO_ReadSlowPath(Bitu port,Bitu iolen) {
          * That's what I think happened, anyway.
          *
          * I wish I had tools to watch I/O transactions on the ISA bus to verify this. --J.C. */
-        if (pcibus_enable) {
-            /* PCI and PCI/ISA bridge emulation */
-            match = IO_PCI_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
-
-            if (match == 0) {
-                /* PCI didn't take it, ask ISA bus */
-                match = IO_ISA_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
-            }
-            else {
-                Bitu dummy;
-
-                /* PCI did match. Based on behavior noted above, probe ISA bus anyway and discard data. */
-                match += IO_ISA_Callout_Read(/*&*/dummy,/*&*/f,port,iolen);
-            }
-        }
-        else {
+        {
             /* Pure ISA emulation */
             match = IO_ISA_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
         }
@@ -267,20 +250,7 @@ void IO_WriteSlowPath(Bitu port,Bitu val,Bitu iolen) {
          * That's what I think happened, anyway.
          *
          * I wish I had tools to watch I/O transactions on the ISA bus to verify this. --J.C. */
-        if (pcibus_enable) {
-            /* PCI and PCI/ISA bridge emulation */
-            match = IO_PCI_Callout_Write(/*&*/f,port,val,iolen);
-
-            if (match == 0) {
-                /* PCI didn't take it, ask ISA bus */
-                match = IO_ISA_Callout_Write(/*&*/f,port,val,iolen);
-            }
-            else {
-                /* PCI did match. Based on behavior noted above, probe ISA bus anyway and discard data. */
-                match += IO_ISA_Callout_Write(/*&*/f,port,val,iolen);
-            }
-        }
-        else {
+        {
             /* Pure ISA emulation */
             match = IO_ISA_Callout_Write(/*&*/f,port,val,iolen);
         }

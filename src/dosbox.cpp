@@ -71,7 +71,6 @@
 #include "ints/int10.h"
 #include "menu.h"
 #include "render.h"
-#include "pci_bus.h"
 #include "parport.h"
 #include "clockdomain.h"
 
@@ -141,11 +140,6 @@ bool                dbg_zero_on_ems_allocmem = true;
 #define             NTSC_COLOR_SUBCARRIER_NUM       (315000000ULL)
 #define             NTSC_COLOR_SUBCARRIER_DEN       (88ULL)
 
-/* PCI bus clock
- * Usual setting: 100MHz / 3 = 33.333MHz
- *                 90MHz / 3 = 30.000MHz */
-ClockDomain         clockdom_PCI_BCLK(100000000,3);     /* MASTER 100MHz / 3 = 33.33333MHz */
-
 /* ISA bus OSC clock (14.31818MHz), using a crystal that is 4x the NTSC subcarrier frequency 3.5795454..MHz */
 ClockDomain         clockdom_ISA_OSC(NTSC_COLOR_SUBCARRIER_NUM*4,NTSC_COLOR_SUBCARRIER_DEN);
 
@@ -202,9 +196,6 @@ void                DMA_Init(Section*);
 void                MIXER_Init(Section*);
 void                MIDI_Init(Section*);
 void                HARDWARE_Init(Section*);
-void                PCIBUS_Init(Section*);
-void                PCI_Init(Section*);
-void                VOODOO_Init(Section*);
 
 void                IDE_Primary_Init(Section*);
 void                IDE_Secondary_Init(Section*);
@@ -746,16 +737,6 @@ void DOSBOX_RealInit() {
     else
         parse_busclk_setting_str(&clockdom_ISA_BCLK,isabclk.c_str());
 
-    std::string pcibclk = section->Get_string("pci bus clock");
-    if (pcibclk == "std33.3")
-        clockdom_PCI_BCLK.set_frequency(100000000,3);   /* 100MHz / 3 = 33.333MHz, VERY common PCI speed */
-    else if (pcibclk == "std30")
-        clockdom_PCI_BCLK.set_frequency(30000000,1);    /* 30Mhz */
-    else if (pcibclk == "std25")
-        clockdom_PCI_BCLK.set_frequency(25000000,1);    /* 25MHz */
-    else
-        parse_busclk_setting_str(&clockdom_PCI_BCLK,pcibclk.c_str());
-
     LOG_MSG("%s BCLK: %.3fHz (%llu/%llu)",
         IS_PC98_ARCH ? "C-BUS" : "ISA",
         (double)clockdom_ISA_BCLK.freq / clockdom_ISA_BCLK.freq_div,
@@ -764,7 +745,6 @@ void DOSBOX_RealInit() {
 
     clockdom_ISA_OSC.set_name("ISA OSC");
     clockdom_ISA_BCLK.set_name("ISA BCLK");
-    clockdom_PCI_BCLK.set_name("PCI BCLK");
 
     // FM TOWNS is stub!!!
     if (IS_FM_TOWNS) E_Exit("FM Towns emulation not yet implemented");
@@ -882,9 +862,6 @@ void DOSBOX_SetupConfigSections(void) {
 
     Phex = secprop->Add_hex("svga lfb base", Property::Changeable::OnlyAtStart, 0);
     Phex->Set_help("If nonzero, define the physical memory address of the linear framebuffer.");
-
-    Pbool = secprop->Add_bool("pci vga",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, SVGA is emulated as if a PCI device (when enable pci bus=true)");
 
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(-1,100000);
@@ -1016,15 +993,6 @@ void DOSBOX_SetupConfigSections(void) {
               "  oc12                         12MHz\n"
               "  oc15                         15MHz\n"
               "  oc16                         16MHz\n"
-              "  <integer or float>           Any integer or floating point value will be used as the clock frequency in Hz\n"
-              "  <integer/integer ratio>      If a ratio is given (num/den), the ratio will be used as the clock frequency");
-
-    Pstring = secprop->Add_string("pci bus clock",Property::Changeable::WhenIdle,"std33.3");
-    Pstring->Set_help("PCI bus frequency, used to emulate I/O delay.\n"
-              "WARNING: In future revisions, PCI/motherboard chipset emulation will allow the guest OS/program to alter this value at runtime.\n"
-              "  std33.3                      33.333MHz (very common setting on motherboards)\n"
-              "  std30                        30MHz (some older mid-1990's Pentium systems)\n"
-              "  std25                        25MHz\n"
               "  <integer or float>           Any integer or floating point value will be used as the clock frequency in Hz\n"
               "  <integer/integer ratio>      If a ratio is given (num/den), the ratio will be used as the clock frequency");
 
@@ -1434,9 +1402,6 @@ void DOSBOX_SetupConfigSections(void) {
             "try setting this option. Else, leave it turned off. Changes to other VGA CRTC registers will trigger\n"
             "a DOSBox mode change as normal regardless of this setting.");
 
-    Pbool = secprop->Add_bool("enable pci bus",Property::Changeable::OnlyAtStart,true);
-    Pbool->Set_help("Enable PCI bus emulation");
-
     Pbool = secprop->Add_bool("vga palette update on full load",Property::Changeable::Always,true);
     Pbool->Set_help("If set, all three bytes of the palette entry must be loaded before taking the color,\n"
                     "which is fairly typical SVGA behavior. If not set, partial changes are allowed.");
@@ -1667,8 +1632,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("auxdevice",Property::Changeable::OnlyAtStart,"intellimouse");
     Pstring->Set_values(auxdevices);
     Pstring->Set_help("Type of PS/2 mouse attached to the AUX port");
-
-    secprop=control->AddSection_prop("pci",&Null_Init,false); //PCI bus
 
     secprop=control->AddSection_prop("mixer",&Null_Init);
     Pbool = secprop->Add_bool("nosound",Property::Changeable::OnlyAtStart,false);

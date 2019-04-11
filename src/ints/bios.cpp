@@ -27,7 +27,6 @@
 #include "inout.h"
 #include "pic.h"
 #include "hardware.h"
-#include "pci_bus.h"
 #include "joystick.h"
 #include "mouse.h"
 #include "callback.h"
@@ -69,7 +68,6 @@ bool enable_pc98_copyright_string = false;
 /* mouse.cpp */
 extern bool en_bios_ps2mouse;
 extern bool rom_bios_8x8_cga_font;
-extern bool pcibus_enable;
 
 uint32_t Keyb_ig_status();
 bool VM_Boot_DOSBox_Kernel();
@@ -1907,129 +1905,6 @@ static Bitu INT1A_Handler(void) {
         break;
     case 0x80:  /* Pcjr Setup Sound Multiplexer */
         LOG(LOG_BIOS,LOG_ERROR)("INT1A:80:Setup tandy sound multiplexer to %d",reg_al);
-        break;
-    case 0xb1:      /* PCI Bios Calls */
-        if (pcibus_enable) {
-            LOG(LOG_BIOS,LOG_WARN)("INT1A:PCI bios call %2X",reg_al);
-            switch (reg_al) {
-                case 0x01:  // installation check
-                    if (PCI_IsInitialized()) {
-                        reg_ah=0x00;
-                        reg_al=0x01;    // cfg space mechanism 1 supported
-                        reg_bx=0x0210;  // ver 2.10
-                        reg_cx=0x0000;  // only one PCI bus
-                        reg_edx=0x20494350;
-                        reg_edi=PCI_GetPModeInterface();
-                        CALLBACK_SCF(false);
-                    } else {
-                        CALLBACK_SCF(true);
-                    }
-                    break;
-                case 0x02: {    // find device
-                    Bitu devnr=0u;
-                    Bitu count=0x100u;
-                    Bit32u devicetag=((unsigned int)reg_cx<<16u)|reg_dx;
-                    Bits found=-1;
-                    for (Bitu i=0; i<=count; i++) {
-                        IO_WriteD(0xcf8,0x80000000u|(i<<8u)); // query unique device/subdevice entries
-                        if (IO_ReadD(0xcfc)==devicetag) {
-                            if (devnr==reg_si) {
-                                found=(Bits)i;
-                                break;
-                            } else {
-                                // device found, but not the SIth device
-                                devnr++;
-                            }
-                        }
-                    }
-                    if (found>=0) {
-                        reg_ah=0x00;
-                        reg_bh=0x00;    // bus 0
-                        reg_bl=(Bit8u)(found&0xff);
-                        CALLBACK_SCF(false);
-                    } else {
-                        reg_ah=0x86;    // device not found
-                        CALLBACK_SCF(true);
-                    }
-                    }
-                    break;
-                case 0x03: {    // find device by class code
-                    Bitu devnr=0;
-                    Bitu count=0x100u;
-                    Bit32u classtag=reg_ecx&0xffffffu;
-                    Bits found=-1;
-                    for (Bitu i=0; i<=count; i++) {
-                        IO_WriteD(0xcf8,0x80000000u|(i<<8u)); // query unique device/subdevice entries
-                        if (IO_ReadD(0xcfc)!=0xffffffffu) {
-                            IO_WriteD(0xcf8,0x80000000u|(i<<8u)|0x08u);
-                            if ((IO_ReadD(0xcfc)>>8u)==classtag) {
-                                if (devnr==reg_si) {
-                                    found=(Bits)i;
-                                    break;
-                                } else {
-                                    // device found, but not the SIth device
-                                    devnr++;
-                                }
-                            }
-                        }
-                    }
-                    if (found>=0) {
-                        reg_ah=0x00;
-                        reg_bh=0x00;    // bus 0
-                        reg_bl=(Bit8u)(found&0xffu);
-                        CALLBACK_SCF(false);
-                    } else {
-                        reg_ah=0x86;    // device not found
-                        CALLBACK_SCF(true);
-                    }
-                    }
-                    break;
-                case 0x08:  // read configuration byte
-                    IO_WriteD(0xcf8,0x80000000u|((unsigned int)reg_bx<<8u)|(reg_di&0xfcu));
-                    reg_cl=IO_ReadB(0xcfc+(reg_di&3u));
-                    CALLBACK_SCF(false);
-                    reg_ah=0x00;
-                    break;
-                case 0x09:  // read configuration word
-                    IO_WriteD(0xcf8,0x80000000u|((unsigned int)reg_bx<<8u)|(reg_di&0xfcu));
-                    reg_cx=IO_ReadW(0xcfc+(reg_di&2u));
-                    CALLBACK_SCF(false);
-                    reg_ah=0x00;
-                    break;
-                case 0x0a:  // read configuration dword
-                    IO_WriteD(0xcf8,0x80000000u|((unsigned int)reg_bx<<8u)|(reg_di&0xfcu));
-                    reg_ecx=IO_ReadD(0xcfc+(reg_di&3u));
-                    CALLBACK_SCF(false);
-                    reg_ah=0x00;
-                    break;
-                case 0x0b:  // write configuration byte
-                    IO_WriteD(0xcf8,0x80000000u|((unsigned int)reg_bx<<8u)|(reg_di&0xfcu));
-                    IO_WriteB(0xcfc+(reg_di&3u),reg_cl);
-                    CALLBACK_SCF(false);
-                    reg_ah=0x00;
-                    break;
-                case 0x0c:  // write configuration word
-                    IO_WriteD(0xcf8,0x80000000u|((unsigned int)reg_bx<<8u)|(reg_di&0xfcu));
-                    IO_WriteW(0xcfc+(reg_di&2u),reg_cx);
-                    CALLBACK_SCF(false);
-                    reg_ah=0x00;
-                    break;
-                case 0x0d:  // write configuration dword
-                    IO_WriteD(0xcf8,0x80000000u|((unsigned int)reg_bx<<8u)|(reg_di&0xfcu));
-                    IO_WriteD(0xcfc+((unsigned int)reg_di&3u),reg_ecx);
-                    CALLBACK_SCF(false);
-                    reg_ah=0x00;
-                    break;
-                default:
-                    LOG(LOG_BIOS,LOG_ERROR)("INT1A:PCI BIOS: unknown function %x (%x %x %x)",
-                        reg_ax,reg_bx,reg_cx,reg_dx);
-                    CALLBACK_SCF(true);
-                    break;
-            }
-        }
-        else {
-            CALLBACK_SCF(true);
-        }
         break;
     default:
         LOG(LOG_BIOS,LOG_ERROR)("INT1A:Undefined call %2X",reg_ah);
@@ -6232,14 +6107,6 @@ private:
              * "ISA Plug and Play bus" so that PnP devices are recognized automatically */
             if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_ISA_BUS,sizeof(ISAPNP_sysdev_ISA_BUS),true))
                 LOG_MSG("ISAPNP register failed\n");
-
-            if (pcibus_enable) {
-                /* PCI bus, meaning, a computer with PCI slots.
-                 * The purpose of this device is to tell Windows 95 that a PCI bus is present. Without
-                 * this entry, PCI devices will not be recognized until you manually install the PCI driver. */
-                if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_PCI_BUS,sizeof(ISAPNP_sysdev_PCI_BUS),true))
-                    LOG_MSG("ISAPNP register failed\n");
-            }
 
             /* APM BIOS device. To help Windows 95 see our APM BIOS. */
             if (APMBIOS && APMBIOS_pnp) {

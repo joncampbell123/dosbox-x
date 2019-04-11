@@ -1953,12 +1953,7 @@ public:
 
         ::disk_data_rate = section->Get_int("hard drive data rate limit");
         if (::disk_data_rate < 0) {
-            extern bool pcibus_enable;
-
-            if (pcibus_enable)
-                ::disk_data_rate = 8333333; /* Probably an average IDE data rate for mid 1990s PCI IDE controllers in PIO mode */
-            else
-                ::disk_data_rate = 3500000; /* Probably an average IDE data rate for early 1990s ISA IDE controllers in PIO mode */
+            ::disk_data_rate = 3500000; /* Probably an average IDE data rate for early 1990s ISA IDE controllers in PIO mode */
         }
 
         dos_in_hma = section->Get_bool("dos in hma");

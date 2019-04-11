@@ -21,7 +21,6 @@
 #include "inout.h"
 #include "vga.h"
 #include "mem.h"
-#include "pci_bus.h"
 
 void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
@@ -585,7 +584,5 @@ void SVGA_Setup_S3Trio(void) {
 
     // S3 ROM signature
     phys_writes(PhysMake(0xc000,0)+0x003f, "S3 86C764", 10);
-
-    PCI_AddSVGAS3_Device();
 }
 

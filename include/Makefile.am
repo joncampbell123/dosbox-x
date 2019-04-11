@@ -24,7 +24,6 @@ modules.h \
 mouse.h \
 parport.h \
 paging.h \
-pci_bus.h \
 pic.h \
 programs.h \
 qcow2_disk.h \
@@ -43,7 +42,6 @@ mmx.h \
 menu.h \
 menudef.h \
 resource.h \
-voodoo.h \
 ioapi.h \
 iowin32.h \
 unzip.h \
