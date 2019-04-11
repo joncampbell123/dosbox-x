@@ -36,10 +36,6 @@ extern bool SDLDrawGenFontTextureInit;
 
 SDL_OpenGL sdl_opengl;
 
-int Voodoo_OGL_GetWidth();
-int Voodoo_OGL_GetHeight();
-bool Voodoo_OGL_Active();
-
 static SDL_Surface* SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
 {
     Bit16u fixedWidth;
@@ -113,13 +109,7 @@ retry:
 #endif
 
     sdl.clip.x = 0; sdl.clip.y = 0;
-    if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen)
-    { 
-        /* 3Dfx openGL do not allow resize */
-        sdl.clip.w = windowWidth = (Bit16u)Voodoo_OGL_GetWidth();
-        sdl.clip.h = windowHeight = (Bit16u)Voodoo_OGL_GetHeight();
-    }
-    else if (fixedWidth && fixedHeight) 
+    if (fixedWidth && fixedHeight) 
     {
         sdl.clip.w = windowWidth = fixedWidth;
         sdl.clip.h = windowHeight = fixedHeight;
