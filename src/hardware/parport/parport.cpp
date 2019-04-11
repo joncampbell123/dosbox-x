@@ -31,10 +31,6 @@
 #include "hardware.h"				// OpenCaptureFile
 
 #include "parport.h"
-#include "directlpt_win32.h"
-#include "directlpt_linux.h"
-#include "printer_redir.h"
-#include "filelpt.h"
 #include "dos_inc.h"
 
 bool device_LPT::Read(Bit8u * data,Bit16u * size) {
@@ -333,7 +329,6 @@ public:
 #endif
 
 		// default ports & interrupts
-		Bit8u defaultirq[] = { 7, 5, 12};
 		Section_prop *section = static_cast <Section_prop*>(configuration);
 		
 		char pname[]="parallelx";
@@ -344,48 +339,7 @@ public:
 
 			std::string str;
 			cmd.FindCommand(1,str);
-#if C_DIRECTLPT			
-			if(str=="reallpt") {
-				CDirectLPT* cdlpt= new CDirectLPT(i, defaultirq[i],&cmd);
-				if(cdlpt->InstallationSuccessful)
-					parallelPortObjects[i]=cdlpt;
-				else {
-					delete cdlpt;
-					parallelPortObjects[i]=0;
-				}
-			}
-			else
-#endif
-			if(!str.compare("file")) {
-				CFileLPT* cflpt= new CFileLPT(i, defaultirq[i], &cmd);
-				if(cflpt->InstallationSuccessful)
-					parallelPortObjects[i]=cflpt;
-				else {
-					delete cflpt;
-					parallelPortObjects[i]=0;
-				}
-			}
-			else 
-#if C_PRINTER
-            // allow printer redirection on a single port
-            if (str == "printer" && !printer_used)
-            {
-                CPrinterRedir* cprd = new CPrinterRedir(i, defaultirq[i], &cmd);
-                if (cprd->InstallationSuccessful)
-                {
-                    parallelPortObjects[i] = cprd;
-                    printer_used = true;
-                }
-                else
-                {
-                    LOG_MSG("Error: printer is not enabled.");
-                    delete cprd;
-                    parallelPortObjects[i] = 0;
-                }
-            }
-            else
-#endif				
-            if(str=="disabled") {
+			if(str=="disabled") {
 				parallelPortObjects[i] = 0;
 			} else if (str == "disney") {
 				if (!DISNEY_HasInit()) {
