@@ -247,9 +247,6 @@ void                XMS_Init(Section*);
 void                DOS_KeyboardLayout_Init(Section*);
 void                AUTOEXEC_Init(Section*);
 void                INT10_Init(Section*);
-#if C_NE2000
-void                NE2K_Init(Section* sec);
-#endif
 #if C_PRINTER
 void                PRINTER_Init(Section*);
 #endif
