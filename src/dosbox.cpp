@@ -800,7 +800,6 @@ void DOSBOX_SetupConfigSections(void) {
     const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
     const char* guspantables[] = { "old", "accurate", "default", 0 };
-    const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
     const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none",0};
 //    const char* joydeadzone[] = { "0.26", 0 };
 //    const char* joyresponse[] = { "1.0", 0 };
@@ -821,9 +820,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
     const char* dmassb[] = { "1", "5", "0", "3", "6", "7", 0 };
     const char* oplemus[] = { "default", "compat", "fast", "nuked", 0 };
-    const char *qualityno[] = { "0", "1", "2", "3", 0 };
     const char* tandys[] = { "auto", "on", "off", 0};
-    const char* ps1opt[] = { "on", "off", 0};
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     const char* pc98fmboards[] = { "auto", "off", "false", "board26k", "board86", "board86c", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
@@ -2039,19 +2036,6 @@ void DOSBOX_SetupConfigSections(void) {
         "the patch files for GUS playback. Patch sets used\n"
         "with Timidity should work fine.");
 
-    secprop = control->AddSection_prop("innova",&Null_Init,true);//done
-    Pbool = secprop->Add_bool("innova",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Enable the Innovation SSI-2001 emulation.");
-    Pint = secprop->Add_int("samplerate",Property::Changeable::WhenIdle,22050);
-    Pint->Set_values(rates);
-    Pint->Set_help("Sample rate of Innovation SSI-2001 emulation");
-    Phex = secprop->Add_hex("sidbase",Property::Changeable::WhenIdle,0x280);
-    Phex->Set_values(sidbaseno);
-    Phex->Set_help("SID base port (typically 280h).");
-    Pint = secprop->Add_int("quality",Property::Changeable::WhenIdle,0);
-    Pint->Set_values(qualityno);
-    Pint->Set_help("Set SID emulation quality level (0 to 3).");
-
     secprop = control->AddSection_prop("speaker",&Null_Init,true);//done
     Pbool = secprop->Add_bool("pcspeaker",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable PC-Speaker emulation.");
@@ -2073,15 +2057,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("tandyrate",Property::Changeable::WhenIdle,44100);
     Pint->Set_values(rates);
     Pint->Set_help("Sample rate of the Tandy 3-Voice generation.");
-    
-    Pbool = secprop->Add_bool("disney",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Enable Disney Sound Source emulation. (Covox Voice Master and Speech Thing compatible).");
-    Pstring = secprop->Add_string("ps1audio",Property::Changeable::WhenIdle,"off");
-    Pstring->Set_values(ps1opt);
-    Pstring->Set_help("Enable PS1 audio emulation.");
-    Pint = secprop->Add_int("ps1audiorate",Property::Changeable::OnlyAtStart,22050);
-    Pint->Set_values(rates);
-    Pint->Set_help("Sample rate of the PS1 audio emulation.");
 
     secprop=control->AddSection_prop("joystick",&Null_Init,false);//done
     Pstring = secprop->Add_string("joysticktype",Property::Changeable::WhenIdle,"auto");
