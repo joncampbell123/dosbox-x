@@ -31,10 +31,7 @@
 
 #include "serialport.h"
 #include "serialmouse.h"
-#include "directserial.h"
 #include "serialdummy.h"
-#include "softmodem.h"
-#include "nullmodem.h"
 #include "seriallog.h"
 
 #include "cpu.h"
@@ -1330,32 +1327,6 @@ public:
 			else if (type=="serialmouse") {
 				serialports[i] = new CSerialMouse (i, &cmd);
 			}
-#ifdef DIRECTSERIAL_AVAILIBLE
-			else if (type=="directserial") {
-				serialports[i] = new CDirectSerial (i, &cmd);
-				if (!serialports[i]->InstallationSuccessful)  {
-					// serial port name was wrong or already in use
-					delete serialports[i];
-					serialports[i] = NULL;
-				}
-			}
-#endif
-#if C_MODEM
-			else if(type=="modem") {
-				serialports[i] = new CSerialModem (i, &cmd);
-				if (!serialports[i]->InstallationSuccessful)  {
-					delete serialports[i];
-					serialports[i] = NULL;
-				}
-			}
-			else if(type=="nullmodem") {
-				serialports[i] = new CNullModem (i, &cmd);
-				if (!serialports[i]->InstallationSuccessful)  {
-					delete serialports[i];
-					serialports[i] = NULL;
-				}
-			}
-#endif
 			else if(type=="disabled") {
 				serialports[i] = NULL;
 			} else {

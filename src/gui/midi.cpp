@@ -134,10 +134,6 @@ static struct {
 #include "midi_synth.h"
 #endif
 
-#if !defined(WIN32)
-# include "midi_timidity.h"
-#endif
-
 #if defined(MACOSX)
 
 #include "midi_coremidi.h"

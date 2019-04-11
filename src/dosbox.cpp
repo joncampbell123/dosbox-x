@@ -230,9 +230,6 @@ void                PS1SOUND_Init(Section*);
 void                INNOVA_Init(Section*);
 void                SERIAL_Init(Section*); 
 void                DONGLE_Init(Section*);
-#if C_IPX
-void                IPX_Init(Section*);
-#endif
 void                SID_Init(Section* sec);
 void                PIC_Init(Section*);
 void                TIMER_Init(Section*);

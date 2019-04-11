@@ -7519,9 +7519,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         XMS_Init();
         EMS_Init();
         AUTOEXEC_Init();
-#if C_IPX
-        IPX_Init();
-#endif
         MSCDEX_Init();
 
         /* Init memhandle system. This part is used by DOSBox's XMS/EMS emulation to associate handles
