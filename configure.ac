@@ -592,36 +592,6 @@ if test x$enable_scaler_full_line = xyes; then
   AC_DEFINE(C_SCALER_FULL_LINE,1)
 fi
 
-dnl FEATURE: MIDI through ALSA
-AC_ARG_ENABLE(alsa-midi,
-AC_HELP_STRING([--enable-alsa-midi],[compile with alsa midi support (default yes)]),
-[ case "${enableval}" in
- yes) alsa_midi=true;;
- no)  alsa_midi=false;;
-esac],
-[alsa_midi=true])
-if test x$alsa_midi = xtrue ; then 
-  CXXFLAGS="$CXXFLAGS $ALSA_CFLAGS"
-fi
-
-dnl NASM (Netwide Assembler)
-AC_PATH_PROG([NASM], [nasm])
-if test -z "$ac_cv_path_NASM"; then
-    AC_MSG_WARN([NASM (netwide assembler) not found, you will not be able to compile the external x86 .asm files if they are modified])
-fi
-
-dnl LNKDOS16 (16-bit MS-DOS linker, DOSLIB project)
-dnl To be fair to others compiling this code, search the PATH.
-dnl If not found, let the developer know that they can git clone DOSLIB
-dnl and use GNU Make + GCC to compile lnkdos16 in tool/linker in DOSLIB,
-dnl then include the Linux binary in the PATH variable so this script can find it.
-AC_PATH_PROG([LNKDOS16], [lnkdos16])
-if test -z "$ac_cv_path_LNKDOS16"; then
-    AC_MSG_WARN([LNKDOS16 (DOSLIB 16-bit linker) not found, you will not be able to compile the external x86 .asm files if they are modified.])
-    AC_MSG_WARN([LNKDOS16 can be found in the DOSLIB project under tool/linker. Compile it using GNU make and GCC and then either install it])
-    AC_MSG_WARN([on your system or run this configure script again with PATH directed at the compiled binary in the linux-host directory.])
-fi
-
 dnl FEATURE: DEBUG and HEAVY DEBUG options (debugger)
 AH_TEMPLATE(C_DEBUG,[Define to 1 to enable internal debugger, requires libcurses])
 AH_TEMPLATE(C_HEAVY_DEBUG,[Define to 1 to enable heavy debugging, also have to enable C_DEBUG])
@@ -758,15 +728,6 @@ if test x$enable_x11 != xno; then
     AH_TEMPLATE(C_X11,[define to 1 to enable X11 support])
     AC_DEFINE(C_X11,1)
   fi
-fi
-
-dnl FEATURE: Whether to use Fluidsynth
-AH_TEMPLATE(C_FLUIDSYNTH,[Define to 1 to enable fluidsynth MIDI synthesis])
-if test x$have_fluidsynth_lib = xyes -a x$have_fluidsynth_h = xyes ; then
-  LIBS="$LIBS -lfluidsynth"
-  AC_DEFINE(C_FLUIDSYNTH,1)
-else
-  AC_MSG_WARN([fluidsynth MIDI synthesis not available])
 fi
 
 dnl FEATURE: Whether to use OpenGL
