@@ -799,11 +799,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(machines);
     Pstring->Set_help("The type of machine DOSBox tries to emulate.");
 
-    Pbool = secprop->Add_bool("turn off a20 gate on boot",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If enabled, A20 gate is switched off when booting a guest OS.\n"
-                    "Enabled by default. Recommended for MS-DOS when HIMEM.SYS is not installed in the guest OS.\n"
-                    "If disabled, and MS-DOS does not load HIMEM.SYS, programs and features that rely on the 1MB wraparound will fail.");
-
     /* Ref:
      *
      * "Except the first generation, which C-Bus was synchronous with its 5MHz 8086, PC-98s

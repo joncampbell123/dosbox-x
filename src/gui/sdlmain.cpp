@@ -7285,10 +7285,8 @@ fresh_boot:
 #endif
 
         if (run_machine) {
-            bool disable_a20 = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("turn off a20 gate on boot");
-
-            /* if instructed, turn off A20 at boot */
-            if (disable_a20) MEM_A20_Enable(false);
+            /* turn off A20 at boot */
+            MEM_A20_Enable(false);
 
             /* PC-98: hide the cursor */
             if (IS_PC98_ARCH) {
