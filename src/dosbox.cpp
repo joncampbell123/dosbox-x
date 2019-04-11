@@ -794,13 +794,6 @@ void DOSBOX_SetupConfigSections(void) {
     const char* oplrates[] = {   "44100", "49716", "48000", "32000","22050", "16000", "11025", "8000", 0 };
     const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "synth", "timidity", "none", 0}; // FIXME: add some way to offer the actually available choices.
     const char* apmbiosversions[] = { "auto", "1.0", "1.1", "1.2", 0 };
-    const char *mt32log[] = {"off", "on",0};
-    const char *mt32thread[] = {"off", "on",0};
-    const char *mt32ReverseStereo[] = {"off", "on",0};
-    const char *mt32DACModes[] = {"0", "1", "2", "3", "auto",0};
-    const char *mt32reverbModes[] = {"0", "1", "2", "3", "auto",0};
-    const char *mt32reverbTimes[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
-    const char *mt32reverbLevels[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
     const char* gustypes[] = { "classic", "classic37", "max", "interwave", 0 };
     const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "ess688", "reveal_sc400", "none", 0 };
     const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "none", "hardware", "hardwaregb", 0};
@@ -1762,59 +1755,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("mpuirq",Property::Changeable::WhenIdle,-1);
     Pint->SetMinMax(-1,15);
     Pint->Set_help("MPU-401 IRQ. -1 to automatically choose.");
-
-    Pstring = secprop->Add_string("mt32.reverse.stereo",Property::Changeable::WhenIdle,"off");
-    Pstring->Set_values(mt32ReverseStereo);
-    Pstring->Set_help("Reverse stereo channels for MT-32 output");
-
-    Pstring = secprop->Add_string("mt32.verbose",Property::Changeable::WhenIdle,"off");
-    Pstring->Set_values(mt32log);
-    Pstring->Set_help("MT-32 debug logging");
-
-    Pstring = secprop->Add_string("mt32.thread",Property::Changeable::WhenIdle,"off");
-    Pstring->Set_values(mt32thread);
-    Pstring->Set_help("MT-32 rendering in separate thread");
-
-    Pstring = secprop->Add_string("mt32.dac",Property::Changeable::WhenIdle,"auto");
-    Pstring->Set_values(mt32DACModes);
-    Pstring->Set_help("MT-32 DAC input emulation mode\n"
-        "Nice = 0 - default\n"
-        "Produces samples at double the volume, without tricks.\n"
-        "Higher quality than the real devices\n\n"
-
-        "Pure = 1\n"
-        "Produces samples that exactly match the bits output from the emulated LA32.\n"
-        "Nicer overdrive characteristics than the DAC hacks (it simply clips samples within range)\n"
-        "Much less likely to overdrive than any other mode.\n"
-        "Half the volume of any of the other modes, meaning its volume relative to the reverb\n"
-        "output when mixed together directly will sound wrong. So, reverb level must be lowered.\n"
-        "Perfect for developers while debugging :)\n\n"
-
-        "GENERATION1 = 2\n"
-        "Re-orders the LA32 output bits as in early generation MT-32s (according to Wikipedia).\n"
-        "Bit order at DAC (where each number represents the original LA32 output bit number, and XX means the bit is always low):\n"
-        "15 13 12 11 10 09 08 07 06 05 04 03 02 01 00 XX\n\n"
-
-        "GENERATION2 = 3\n"
-        "Re-orders the LA32 output bits as in later geneerations (personally confirmed on my CM-32L - KG).\n"
-        "Bit order at DAC (where each number represents the original LA32 output bit number):\n"
-        "15 13 12 11 10 09 08 07 06 05 04 03 02 01 00 14\n");
-
-    Pstring = secprop->Add_string("mt32.reverb.mode",Property::Changeable::WhenIdle,"auto");
-    Pstring->Set_values(mt32reverbModes);
-    Pstring->Set_help("MT-32 reverb mode");
-
-    Pint = secprop->Add_int("mt32.reverb.time",Property::Changeable::WhenIdle,5);
-    Pint->Set_values(mt32reverbTimes);
-    Pint->Set_help("MT-32 reverb decaying time"); 
-
-    Pint = secprop->Add_int("mt32.reverb.level",Property::Changeable::WhenIdle,3);
-    Pint->Set_values(mt32reverbLevels);
-    Pint->Set_help("MT-32 reverb level");
-
-    Pint = secprop->Add_int("mt32.partials",Property::Changeable::WhenIdle,32);
-    Pint->SetMinMax(0,256);
-    Pint->Set_help("MT-32 max partials allowed (0-256)");
 
     secprop=control->AddSection_prop("debug",&Null_Init);
 
