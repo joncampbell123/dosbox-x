@@ -1347,6 +1347,8 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\cpu\core_normal_286.cpp" />
     <ClCompile Include="..\src\cpu\core_normal_8086.cpp" />
     <ClCompile Include="..\src\cpu\core_prefetch.cpp" />
+    <ClCompile Include="..\src\cpu\core_prefetch_286.cpp" />
+    <ClCompile Include="..\src\cpu\core_prefetch_8086.cpp" />
     <ClCompile Include="..\src\cpu\core_simple.cpp" />
     <ClCompile Include="..\src\cpu\cpu.cpp" />
     <ClCompile Include="..\src\cpu\flags.cpp" />
