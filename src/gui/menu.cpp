@@ -270,7 +270,6 @@ static const char *def_menu_video[] =
     "highdpienable",
 #endif
 #if !defined(C_SDL2)
-    "doublebuf",
     "--",
 #endif
 #ifndef MACOSX

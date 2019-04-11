@@ -123,7 +123,6 @@ struct SDL_Block {
         bool lazy_fullscreen;
         bool prevent_fullscreen;
         bool lazy_fullscreen_req;
-        bool doublebuf;
         SCREEN_TYPES type;
         SCREEN_TYPES want_type;
     } desktop;

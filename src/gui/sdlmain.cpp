@@ -2286,7 +2286,6 @@ void res_init(void) {
             }
         }
     }
-    sdl.desktop.doublebuf=section->Get_bool("fulldouble");
 
     int width = 1024;
     int height = 768;
@@ -3052,7 +3051,6 @@ static void GUI_StartUp() {
             }
         }
     }
-    sdl.desktop.doublebuf=section->Get_bool("fulldouble");
 #if defined(C_SDL2)
     {
         SDL_DisplayMode dm;
@@ -4400,9 +4398,6 @@ void* GetSetSDLValue(int isget, std::string target, void* setval) {
     } else if (target == "desktop.fullscreen") {
         if (isget) return (void*) sdl.desktop.fullscreen;
         else sdl.desktop.fullscreen = setval;
-    } else if (target == "desktop.doublebuf") {
-        if (isget) return (void*) sdl.desktop.doublebuf;
-        else sdl.desktop.doublebuf = setval;
 /*
     } else if (target == "desktop.type") {
         if (isget) return (void*) sdl.desktop.type;
@@ -6586,14 +6581,6 @@ bool autolock_mouse_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * co
     return true;
 }
 
-bool doublebuf_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    SetVal("sdl", "fulldouble", (GetSetSDLValue(1, "desktop.doublebuf", 0)) ? "false" : "true"); res_init();
-    mainMenu.get_item("doublebuf").check(!!GetSetSDLValue(1, "desktop.doublebuf", 0)).refresh_item(mainMenu);
-    return true;
-}
-
 #if defined(LINUX)
 bool x11_on_top = false;
 #endif
@@ -7607,7 +7594,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winlogo").set_text("Logo key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_winmenu").set_text("Menu key").set_callback_function(sendkey_preset_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sendkey_cad").set_text("Ctrl+Alt+Del").set_callback_function(sendkey_preset_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, "desktop.doublebuf", 0));
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show details").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"highdpienable").set_text("High DPI enable").set_callback_function(highdpienable_menu_callback).check(dpi_aware_enable);

@@ -100,8 +100,7 @@ retry:
     if (sdl.desktop.fullscreen)
     {
         Uint32 wflags = SDL_FULLSCREEN | SDL_HWPALETTE |
-            ((sdl.draw.flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
-            (sdl.desktop.doublebuf ? SDL_DOUBLEBUF | SDL_ASYNCBLIT : 0);
+            ((sdl.draw.flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE);
 
         if (sdl.desktop.full.fixed)
         {
