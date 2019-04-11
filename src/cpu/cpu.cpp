@@ -190,12 +190,16 @@ void menu_update_cputype(void) {
 	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
 	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
     bool allow_prefetch = false;
+    bool allow_pre386 = false;
 
     if (!CPU_IsDynamicCore()) {
         allow_prefetch = true;
+        allow_pre386 = true;
         if ((cpudecoder == &CPU_Core_Full_Run) ||
-            (cpudecoder == &CPU_Core_Simple_Run))
+            (cpudecoder == &CPU_Core_Simple_Run)) {
             allow_prefetch = false;
+            allow_pre386 = false;
+        }
     }
 
     mainMenu.get_item("cputype_auto").
@@ -203,24 +207,27 @@ void menu_update_cputype(void) {
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_8086").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder != &CPU_Core_Prefetch_Run)).
+        enable(allow_pre386).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_8086_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder == &CPU_Core_Prefetch_Run)).
-        enable(allow_prefetch).
+        enable(allow_prefetch && allow_pre386).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_80186").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder != &CPU_Core286_Prefetch_Run)).
+        enable(allow_pre386).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_80186_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder == &CPU_Core286_Prefetch_Run)).
-        enable(allow_prefetch).
+        enable(allow_prefetch && allow_pre386).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_286").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder != &CPU_Core286_Prefetch_Run)).
+        enable(allow_pre386).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_286_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder == &CPU_Core286_Prefetch_Run)).
-        enable(allow_prefetch).
+        enable(allow_prefetch && allow_pre386).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_386").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder != &CPU_Core_Prefetch_Run)).
