@@ -720,13 +720,6 @@ else
   AC_MSG_RESULT(no)
 fi
 
-dnl FEATURE: Whether to support libz, and enable snapshots
-AH_TEMPLATE(C_LIBZ,[Define to 1 if you have libz])
-if test x$have_zlib_lib = xyes -a x$have_zlib_h = xyes ; then
-  LIBS="$LIBS -lz"
-  AC_DEFINE(C_LIBZ,1)
-fi
-
 if test x$enable_x11 != xno; then
   dnl FEATURE: Whether to use X11 XKBlib
   AH_TEMPLATE(C_X11_XKB,[define to 1 if you have XKBlib.h and X11 lib])
