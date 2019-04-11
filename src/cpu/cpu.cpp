@@ -73,7 +73,6 @@ bool ignore_undefined_msr = true;
 extern bool ignore_opcode_63;
 
 bool cpu_double_fault_enable;
-bool cpu_triple_fault_reset;
 
 int cpu_rep_max = 0;
 
@@ -765,7 +764,7 @@ void CPU_Exception(Bitu which,Bitu error ) {
 	assert(which < 0x20);
 //	LOG_MSG("Exception %d error %x",which,error);
 	if (CPU_Exception_Level[which] != 0) {
-		if (CPU_Exception_Level[EXCEPTION_DF] != 0 && cpu_triple_fault_reset) {
+		if (CPU_Exception_Level[EXCEPTION_DF] != 0) {
 			if (always_report_triple_fault || !has_printed_triple_fault) {
 				LOG_MSG("CPU_Exception: Double fault already in progress == Triple Fault. Resetting CPU.");
 				has_printed_triple_fault = true;
@@ -2805,7 +2804,6 @@ public:
 
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
 		cpu_double_fault_enable = section->Get_bool("double fault");
-		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
 
 		always_report_double_fault = section->Get_bool("always report double fault");
 		always_report_triple_fault = section->Get_bool("always report triple fault");
