@@ -3048,6 +3048,8 @@ bool CpuType_ByName(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     return true;
 }
 
+static int pcpu_type = -1;
+
 class CPU: public Module_base {
 private:
 	static bool inited;
@@ -3438,6 +3440,36 @@ public:
 			LOG_MSG("CPU warning: 80186 cpu type is experimental at this time");
 		}
 
+        /* because of the way the BIOS writes certain entry points, a reboot is required
+         * if changing between specific levels of CPU. These entry points will fault the
+         * CPU otherwise. */
+        bool reboot_now = false;
+
+        if (pcpu_type >= 0 && pcpu_type != CPU_ArchitectureType) {
+            if (CPU_ArchitectureType >= CPU_ARCHTYPE_386) {
+                if (pcpu_type < CPU_ARCHTYPE_386) /* from 8086/286, to 386+ */
+                    reboot_now = true;
+            }
+            else if (CPU_ArchitectureType >= CPU_ARCHTYPE_286) {
+                if (pcpu_type >= CPU_ARCHTYPE_386) /* from 386, to 286 */
+                    reboot_now = true;
+                else if (pcpu_type < CPU_ARCHTYPE_286) /* from 8086, to 286 */
+                    reboot_now = true;
+            }
+            else if (CPU_ArchitectureType >= CPU_ARCHTYPE_80186) {
+                if (pcpu_type >= CPU_ARCHTYPE_286) /* from 286, to 80186 */
+                    reboot_now = true;
+                else if (pcpu_type < CPU_ARCHTYPE_80186) /* from 8086, to 80186 */
+                    reboot_now = true;
+            }
+            else if (CPU_ArchitectureType >= CPU_ARCHTYPE_8086) {
+                if (pcpu_type >= CPU_ARCHTYPE_80186) /* from 186, to 8086 */
+                    reboot_now = true;
+            }
+        }
+
+        pcpu_type = CPU_ArchitectureType;
+
 		if (CPU_ArchitectureType>=CPU_ARCHTYPE_486NEW) CPU_extflags_toggle=(FLAG_ID|FLAG_AC);
 		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) CPU_extflags_toggle=(FLAG_AC);
 		else CPU_extflags_toggle=0;
@@ -3489,6 +3521,11 @@ public:
 
         void CPU_Core_Prefetch_reset(void);
         CPU_Core_Prefetch_reset();
+ 
+        if (reboot_now) {
+            LOG_MSG("CPU change requires guest system reboot");
+            throw int(3);
+        }
 
 		if (CPU_CycleAutoAdjust) GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 		else GFX_SetTitle(CPU_CycleMax,-1,-1,false);
