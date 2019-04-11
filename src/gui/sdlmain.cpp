@@ -354,7 +354,6 @@ void DisableINT33();
 void EMS_DoShutDown();
 void XMS_DoShutDown();
 void DOS_DoShutDown();
-void SBLASTER_DOS_Shutdown();
 void DOS_ShutdownDevices(void);
 void RemoveEMSPageFrame(void);
 void RemoveUMBBlock();
@@ -5542,7 +5541,6 @@ void MPU401_Init();
 #if C_DEBUG
 void DEBUG_Init();
 #endif
-void SBLASTER_Init();
 void INNOVA_Init();
 void PCSPEAKER_Init();
 void BIOS_Init();
@@ -5603,7 +5601,6 @@ bool VM_Boot_DOSBox_Kernel() {
         VFILE_Shutdown();
         PROGRAMS_Shutdown();
         DOS_UninstallMisc();
-        SBLASTER_DOS_Shutdown();
         EMS_DoShutDown();
         XMS_DoShutDown();
         DOS_DoShutDown();
@@ -6960,7 +6957,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         VGA_Init();
         ISAPNP_Cfg_Init();
         KEYBOARD_Init();
-        SBLASTER_Init();
         JOYSTICK_Init();
         BIOS_Init();
         INT10_Init();
@@ -7276,7 +7272,6 @@ fresh_boot:
 
             /* remove environment variables for some components */
             DOS_UninstallMisc();
-            SBLASTER_DOS_Shutdown();
             /* disable Expanded Memory. EMM is a DOS API, not a BIOS API */
             EMS_DoShutDown();
             /* and XMS, also a DOS API */
