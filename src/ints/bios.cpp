@@ -3912,6 +3912,11 @@ private:
         DEBUG_StopLog();
 # endif
 #endif
+        {
+            Section_prop * section=static_cast<Section_prop *>(control->GetSection("cpu"));
+
+            enable_integration_device = section->Get_bool("integration device");
+        }
 
         if (bios_first_init) {
             /* clear the first 1KB-32KB */
