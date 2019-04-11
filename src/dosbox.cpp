@@ -858,16 +858,6 @@ void DOSBOX_SetupConfigSections(void) {
 
     const char* cores[] = { "normal", 0 };
 
-    const char* voodoo_settings[] = {
-        "false",
-        "software",
-#if C_OPENGL
-        "opengl",
-#endif
-        "auto",
-        0
-    };
-
 #if defined(__SSE__) && !defined(_M_AMD64)
     CheckSSESupport();
 #endif
@@ -1693,10 +1683,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Type of PS/2 mouse attached to the AUX port");
 
     secprop=control->AddSection_prop("pci",&Null_Init,false); //PCI bus
-
-    Pstring = secprop->Add_string("voodoo",Property::Changeable::WhenIdle,"auto");
-    Pstring->Set_values(voodoo_settings);
-    Pstring->Set_help("Enable VOODOO support.");
 
     secprop=control->AddSection_prop("mixer",&Null_Init);
     Pbool = secprop->Add_bool("nosound",Property::Changeable::OnlyAtStart,false);
