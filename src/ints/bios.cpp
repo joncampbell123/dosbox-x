@@ -27,7 +27,6 @@
 #include "inout.h"
 #include "pic.h"
 #include "hardware.h"
-#include "joystick.h"
 #include "mouse.h"
 #include "callback.h"
 #include "setup.h"
@@ -4003,42 +4002,6 @@ static Bitu INT15_Handler(void) {
             IO_Write(0x70,0xb);
             IO_Write(0x71,IO_Read(0x71)|0x40);
             CALLBACK_SCF(false);
-        }
-        break;
-    case 0x84:  /* BIOS - JOYSTICK SUPPORT (XT after 11/8/82,AT,XT286,PS) */
-        if (reg_dx == 0x0000) {
-            // Get Joystick button status
-            if (JOYSTICK_IsEnabled(0) || JOYSTICK_IsEnabled(1)) {
-                reg_al = IO_ReadB(0x201)&0xf0;
-                CALLBACK_SCF(false);
-            } else {
-                // dos values
-                reg_ax = 0x00f0; reg_dx = 0x0201;
-                CALLBACK_SCF(true);
-            }
-        } else if (reg_dx == 0x0001) {
-            if (JOYSTICK_IsEnabled(0)) {
-                reg_ax = (Bit16u)(JOYSTICK_GetMove_X(0)*127+128);
-                reg_bx = (Bit16u)(JOYSTICK_GetMove_Y(0)*127+128);
-                if(JOYSTICK_IsEnabled(1)) {
-                    reg_cx = (Bit16u)(JOYSTICK_GetMove_X(1)*127+128);
-                    reg_dx = (Bit16u)(JOYSTICK_GetMove_Y(1)*127+128);
-                }
-                else {
-                    reg_cx = reg_dx = 0;
-                }
-                CALLBACK_SCF(false);
-            } else if (JOYSTICK_IsEnabled(1)) {
-                reg_ax = reg_bx = 0;
-                reg_cx = (Bit16u)(JOYSTICK_GetMove_X(1)*127+128);
-                reg_dx = (Bit16u)(JOYSTICK_GetMove_Y(1)*127+128);
-                CALLBACK_SCF(false);
-            } else {            
-                reg_ax = reg_bx = reg_cx = reg_dx = 0;
-                CALLBACK_SCF(true);
-            }
-        } else {
-            LOG(LOG_BIOS,LOG_ERROR)("INT15:84:Unknown Bios Joystick functionality.");
         }
         break;
     case 0x86:  /* BIOS - WAIT (AT,PS) */

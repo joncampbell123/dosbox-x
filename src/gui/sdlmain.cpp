@@ -5543,7 +5543,6 @@ void INNOVA_Init();
 void PCSPEAKER_Init();
 void BIOS_Init();
 void INT10_Init();
-void JOYSTICK_Init();
 void DOS_Init();
 void XMS_Init();
 void EMS_Init();
@@ -6951,7 +6950,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         VGA_Init();
         ISAPNP_Cfg_Init();
         KEYBOARD_Init();
-        JOYSTICK_Init();
         BIOS_Init();
         INT10_Init();
 

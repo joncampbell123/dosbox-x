@@ -14,7 +14,6 @@ dosbox.h \
 fpu.h \
 hardware.h \
 inout.h \
-joystick.h \
 keyboard.h \
 logging.h \
 mapper.h \

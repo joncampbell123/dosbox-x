@@ -768,9 +768,6 @@ void DOSBOX_SetupConfigSections(void) {
     const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
     const char* apmbiosversions[] = { "auto", "1.0", "1.1", "1.2", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
-    const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none",0};
-//    const char* joydeadzone[] = { "0.26", 0 };
-//    const char* joyresponse[] = { "1.0", 0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     const char* pc98fmboards[] = { "auto", "off", "false", "board26k", "board86", "board86c", 0};
@@ -1619,104 +1616,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("pcrate",Property::Changeable::WhenIdle,44100);
     Pint->Set_values(rates);
     Pint->Set_help("Sample rate of the PC-Speaker sound generation.");
-
-    secprop=control->AddSection_prop("joystick",&Null_Init,false);//done
-    Pstring = secprop->Add_string("joysticktype",Property::Changeable::WhenIdle,"auto");
-    Pstring->Set_values(joytypes);
-    Pstring->Set_help(
-        "Type of joystick to emulate: auto (default), none,\n"
-        "2axis (supports two joysticks),\n"
-        "4axis (supports one joystick, first joystick used),\n"
-        "4axis_2 (supports one joystick, second joystick used),\n"
-        "fcs (Thrustmaster), ch (CH Flightstick).\n"
-        "none disables joystick emulation.\n"
-        "auto chooses emulation depending on real joystick(s).\n"
-        "(Remember to reset dosbox's mapperfile if you saved it earlier)");
-
-    Pbool = secprop->Add_bool("timed",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("enable timed intervals for axis. Experiment with this option, if your joystick drifts (away).");
-
-    Pbool = secprop->Add_bool("autofire",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("continuously fires as long as you keep the button pressed.");
-    
-    Pbool = secprop->Add_bool("swap34",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("swap the 3rd and the 4th axis. can be useful for certain joysticks.");
-
-    Pbool = secprop->Add_bool("buttonwrap",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("enable button wrapping at the number of emulated buttons.");
-
-	/*improved joystick
-	 * each axis has its own deadzone and response
-	 * each axis index can be remapped, e.g. fix poor driver mappings
-	 */
-
-	/* logical axes settings*/
-	std::vector<int> sticks = { 2, 1 };
-	for (auto i = 0u; i < sticks.size(); i++)
-	{
-		const auto count = sticks[i];
-		for (auto j = 0; j < count; j++)
-		{
-			const auto joy = std::to_string(i + 1);
-			const auto stick = std::to_string(j + 1);
-			const auto name = "joy" + joy + "deadzone" + stick;
-			const auto help = "deadzone for joystick " + joy + " thumbstick " + stick + ".";
-			Pdouble = secprop->Add_double(name, Property::Changeable::WhenIdle, 0.25);
-			Pdouble->SetMinMax(0.0, 1.0);
-			Pdouble->Set_help(help);
-		}
-	}
-	for (auto i = 0u; i < sticks.size(); i++)
-	{
-		const auto count = sticks[i];
-		for (auto j = 0; j < count; j++)
-		{
-			const auto joy = std::to_string(i + 1);
-			const auto stick = std::to_string(j + 1);
-			const auto name = "joy" + joy + "response" + stick;
-			const auto help = "response for joystick " + joy + " thumbstick " + stick + ".";
-			Pdouble = secprop->Add_double(name, Property::Changeable::WhenIdle, 1.0);
-			Pdouble->SetMinMax(-5.0, 5.0);
-			Pdouble->Set_help(help);
-		}
-	}
-
-	const auto joysticks = 2;
-	const auto axes = 8;
-	for (auto i = 0; i < joysticks; i++)
-	{
-		for (auto j = 0; j < axes; j++)
-		{
-			const auto joy = std::to_string(i + 1);
-			const auto axis = std::to_string(j);
-			const auto propname = "joy" + joy + "axis" + axis;
-			Pint = secprop->Add_int(propname, Property::Changeable::WhenIdle, j);
-			Pint->SetMinMax(0, axes - 1);
-			const auto help = "axis for joystick " + joy + " axis " + axis + ".";
-			Pint->Set_help(help);
-		}
-	}
-	/*physical axes settings*/
-	secprop = control->AddSection_prop("mapper", &Null_Init, true);
-
-	const auto directions = 2;
-	for (auto i = 0; i < joysticks; i++)
-	{
-		for (auto j = 0; j < axes; j++)
-		{
-			for (auto k = 0; k < directions; k++)
-			{
-				const auto joy = std::to_string(i + 1);
-				const auto axis = std::to_string(j);
-				const auto dir = k == 0 ? "-" : "+";
-				const auto name = "joy" + joy + "deadzone" + axis + dir;
-				Pdouble = secprop->Add_double(name, Property::Changeable::WhenIdle, 0.6);
-				Pdouble->SetMinMax(0.0, 1.0);
-				const auto help = "deadzone for joystick " + joy + " axis " + axis + dir;
-				Pdouble->Set_help(help);
-			}
-		}
-	}
 
     /* All the DOS Related stuff, which will eventually start up in the shell */
     secprop=control->AddSection_prop("dos",&Null_Init,false);//done

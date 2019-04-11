@@ -16,7 +16,6 @@
 #include "pc98_dac.h"
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
-#include "joystick.h"
 #include "regs.h"
 #include "mixer.h"
 #include "callback.h"
@@ -81,29 +80,7 @@ enum {
 
 
 REG8 joymng_getstat(void) {
-    unsigned char r = 0xFF;
-
-    if (JOYSTICK_IsEnabled(0)) {
-        if (JOYSTICK_GetButton(0,0))
-            r &= ~JOY_BTN1_BIT;
-        if (JOYSTICK_GetButton(0,1))
-            r &= ~JOY_BTN2_BIT;
-
-        float x = JOYSTICK_GetMove_X(0);
-        float y = JOYSTICK_GetMove_Y(0);
-
-        if (x >= 0.5)
-            r &= ~JOY_RIGHT_BIT;
-        else if (x <= -0.5)
-            r &= ~JOY_LEFT_BIT;
-
-        if (y >= 0.5)
-            r &= ~JOY_DOWN_BIT;
-        else if (y <= -0.5)
-            r &= ~JOY_UP_BIT;
-    }
-
-    return r;
+    return 0xFF;
 }
 
 REG8 keystat_getjoy(void) {

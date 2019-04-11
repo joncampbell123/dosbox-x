@@ -10,7 +10,6 @@
 #include "inout.h"
 #include "pic.h"
 #include "hardware.h"
-#include "joystick.h"
 #include "mouse.h"
 #include "callback.h"
 #include "setup.h"
