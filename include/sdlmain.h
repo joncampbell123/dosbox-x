@@ -160,8 +160,6 @@ struct SDL_Block {
         MOUSE_EMULATION emulation;
     } mouse;
     SDL_Rect updateRects[1024];
-    Bitu overscan_color;
-    Bitu overscan_width;
     Bitu num_joysticks;
 #if defined (WIN32)
     bool using_windib;

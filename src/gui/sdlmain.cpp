@@ -207,8 +207,6 @@ bool OpenGL_using(void);
 
 using namespace std;
 
-void UpdateOverscanMenu(void);
-
 const char *DKM_to_string(const unsigned int dkm) {
     switch (dkm) {
         case DKM_US:        return "us";
@@ -762,55 +760,6 @@ void BlankDisplay(void) {
 #else
         SDL_Flip(sdl.surface);
 #endif
-    }
-}
-
-void GFX_SDL_Overscan(void) {
-    sdl.overscan_color=0;
-    if (sdl.overscan_width) {
-        Bitu border_color =  GFX_GetRGB(vga.dac.rgb[vga.attr.overscan_color].red<<2,
-            vga.dac.rgb[vga.attr.overscan_color].green<<2, vga.dac.rgb[vga.attr.overscan_color].blue<<2);
-        if (border_color != sdl.overscan_color) {
-            sdl.overscan_color = border_color;
-
-        // Find four rectangles forming the border
-            SDL_Rect *rect = &sdl.updateRects[0];
-            rect->x = 0; rect->y = 0; rect->w = sdl.draw.width+(unsigned int)(2*sdl.clip.x); rect->h = (uint16_t)sdl.clip.y; // top
-            if ((Bitu)rect->h > (Bitu)sdl.overscan_width) { rect->y += (int)(rect->h-sdl.overscan_width); rect->h = (uint16_t)sdl.overscan_width; }
-            if ((Bitu)sdl.clip.x > (Bitu)sdl.overscan_width) { rect->x += (int)sdl.clip.x-(int)sdl.overscan_width; rect->w -= (uint16_t)(2*((int)sdl.clip.x-(int)sdl.overscan_width)); }
-            rect = &sdl.updateRects[1];
-            rect->x = 0; rect->y = sdl.clip.y; rect->w = (uint16_t)sdl.clip.x; rect->h = (uint16_t)sdl.draw.height; // left
-            if ((unsigned int)rect->w > (unsigned int)sdl.overscan_width) { rect->x += (int)rect->w-(int)sdl.overscan_width; rect->w = (uint16_t)sdl.overscan_width; }
-            rect = &sdl.updateRects[2];
-            rect->x = (int)sdl.clip.x+(int)sdl.draw.width; rect->y = sdl.clip.y; rect->w = (uint16_t)sdl.clip.x; rect->h = (uint16_t)sdl.draw.height; // right
-            if ((unsigned int)rect->w > (unsigned int)sdl.overscan_width) { rect->w = (uint16_t)sdl.overscan_width; }
-            rect = &sdl.updateRects[3];
-            rect->x = 0; rect->y = (int)sdl.clip.y+(int)sdl.draw.height; rect->w = sdl.draw.width+(unsigned int)(2*sdl.clip.x); rect->h = (uint16_t)sdl.clip.y; // bottom
-            if ((Bitu)rect->h > (Bitu)sdl.overscan_width) { rect->h = (uint16_t)sdl.overscan_width; }
-            if ((Bitu)sdl.clip.x > (Bitu)sdl.overscan_width) { rect->x += (int)sdl.clip.x-(int)sdl.overscan_width; rect->w -= (unsigned int)(2*((int)sdl.clip.x-(int)sdl.overscan_width)); }
-
-            if (sdl.surface->format->BitsPerPixel == 8) { // SDL_FillRect seems to have some issues with palettized hw surfaces
-                Bit8u* pixelptr = (Bit8u*)sdl.surface->pixels;
-                Bitu linepitch = sdl.surface->pitch;
-                for (Bitu i=0; i<4; i++) {
-                    rect = &sdl.updateRects[i];
-                    Bit8u* start = pixelptr + (unsigned int)rect->y*(unsigned int)linepitch + (unsigned int)rect->x;
-                    for (Bitu j=0; j<(unsigned int)rect->h; j++) {
-                        memset(start, vga.attr.overscan_color, rect->w);
-                        start += linepitch;
-                    }
-                }
-            } else {
-                for (Bitu i=0; i<4; i++)
-                    SDL_FillRect(sdl.surface, &sdl.updateRects[i], border_color);
-
-#if defined(C_SDL2)
-                SDL_UpdateWindowSurfaceRects(sdl.window, sdl.updateRects, 4);
-#else
-                SDL_UpdateRects(sdl.surface, 4, sdl.updateRects);
-#endif
-            }
-        }
     }
 }
 
@@ -2384,8 +2333,6 @@ void change_output(int output) {
     GFX_Stop();
     Section * sec = control->GetSection("sdl");
     Section_prop * section=static_cast<Section_prop *>(sec);
-    sdl.overscan_width=(unsigned int)section->Get_int("overscan");
-    UpdateOverscanMenu();
 
     switch (output) {
     case 0:
@@ -3258,9 +3205,6 @@ static void GUI_StartUp() {
         LOG_MSG("SDL:Unsupported output device %s, switching back to surface",output.c_str());
         OUTPUT_SURFACE_Select(); // should not reach there anymore
     }
-
-    sdl.overscan_width=(unsigned int)section->Get_int("overscan");
-//  sdl.overscan_color=section->Get_int("overscancolor");
 
 #if defined(C_SDL2)
     /* Initialize screen for first time */
@@ -4492,11 +4436,6 @@ void* GetSetSDLValue(int isget, std::string target, void* setval) {
     } else if (target == "mouse.autoenable") {
         if (isget) return (void*) sdl.mouse.autoenable;
         else sdl.mouse.autoenable = setval;
-/*
-    } else if (target == "overscan_width") {
-        if (isget) return (void*) sdl.overscan_width;
-        else sdl.overscan_width = *static_cast<Bitu*>(setval);
-*/
 #if defined (WIN32)
     } else if (target == "using_windib") {
         if (isget) return (void*) sdl.using_windib;
@@ -5464,19 +5403,11 @@ void SDL_SetupConfigSection() {
     Pbool = sdl_sec->Add_bool("usescancodes",Property::Changeable::Always,false);
     Pbool->Set_help("Avoid usage of symkeys, might not work on all operating systems.");
 
-    Pint = sdl_sec->Add_int("overscan",Property::Changeable::Always, 0);
-    Pint->SetMinMax(0,10);
-    Pint->Set_help("Width of overscan border (0 to 10). (works only if output=surface)");
-
     Pstring = sdl_sec->Add_string("titlebar", Property::Changeable::Always, "");
     Pstring->Set_help("Change the string displayed in the DOSBox title bar.");
 
     Pbool = sdl_sec->Add_bool("showmenu", Property::Changeable::Always, true);
     Pbool->Set_help("Whether to show the menu bar (if supported). Default true.");
-
-//  Pint = sdl_sec->Add_int("overscancolor",Property::Changeable::Always, 0);
-//  Pint->SetMinMax(0,1000);
-//  Pint->Set_help("Value of overscan color.");
 }
 
 static void show_warning(char const * const message) {
@@ -6519,25 +6450,6 @@ bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
     return true;
 }
 
-bool overscan_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    int f = atoi(menuitem->get_text().c_str()); /* Off becomes 0 */
-    char tmp[64];
-
-    sprintf(tmp,"%u",f);
-    SetVal("sdl", "overscan", tmp);
-    change_output(7);
-    return true;
-}
-
-void UpdateOverscanMenu(void) {
-    for (size_t i=0;i <= 10;i++) {
-        char tmp[64];
-        sprintf(tmp,"overscan_%zu",i);
-        mainMenu.get_item(tmp).check(sdl.overscan_width == i).refresh_item(mainMenu);
-    }
-}
-
 bool vsync_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -7516,22 +7428,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(vsync_set_syncrate_menu_callback);
             }
             {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoOverscanMenu");
-                item.set_text("Overscan");
-
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"overscan_0").set_text("Off").
-                    set_callback_function(overscan_menu_callback);
-
-                for (size_t i=1;i <= 10;i++) {
-                    char tmp1[64],tmp2[64];
-
-                    sprintf(tmp1,"overscan_%zu",i);
-                    sprintf(tmp2,"%zu",i);
-                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,tmp1).set_text(tmp2).
-                        set_callback_function(overscan_menu_callback);
-                }
-            }
-            {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoPC98Menu");
                 item.set_text("PC-98");
 
@@ -7821,8 +7717,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         UpdateWindowDimensions();
         userResizeWindowWidth = 0;
         userResizeWindowHeight = 0;
-
-        UpdateOverscanMenu();
 
         void GUI_ResetResize(bool pressed);
         GUI_ResetResize(true);

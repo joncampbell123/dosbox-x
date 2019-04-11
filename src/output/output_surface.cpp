@@ -64,7 +64,6 @@ bool OUTPUT_SURFACE_StartUpdate(Bit8u* &pixels, Bitu &pitch)
             }
         }
 
-    GFX_SDL_Overscan();
     sdl.updating = true;
     return true;
 }
