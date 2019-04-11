@@ -206,11 +206,11 @@ void menu_update_cputype(void) {
         check(CPU_ArchitectureType == CPU_ARCHTYPE_MIXED).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_8086").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder != &CPU_Core_Prefetch_Run)).
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder != &CPU_Core8086_Prefetch_Run)).
         enable(allow_pre386).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_8086_prefetch").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder == &CPU_Core8086_Prefetch_Run)).
         enable(allow_prefetch && allow_pre386).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_80186").
@@ -278,13 +278,15 @@ void menu_update_core(void) {
               cpudecoder == &CPU_Core286_Normal_Run ||
               cpudecoder == &CPU_Core8086_Normal_Run ||
               cpudecoder == &CPU_Core_Prefetch_Run ||
-              cpudecoder == &CPU_Core286_Prefetch_Run).
+              cpudecoder == &CPU_Core286_Prefetch_Run ||
+              cpudecoder == &CPU_Core8086_Prefetch_Run).
         refresh_item(mainMenu);
 #if !defined(C_EMSCRIPTEN)//FIXME: Shutdown causes problems with Emscripten
     mainMenu.get_item("mapper_simple").
         check(cpudecoder == &CPU_Core_Simple_Run).
         enable((cpudecoder != &CPU_Core_Prefetch_Run) &&
                (cpudecoder != &CPU_Core286_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core8086_Prefetch_Run) &&
                (cpudecoder != &CPU_Core286_Normal_Run) &&
                (cpudecoder != &CPU_Core8086_Normal_Run)).
         refresh_item(mainMenu);
@@ -292,6 +294,7 @@ void menu_update_core(void) {
         check(cpudecoder == &CPU_Core_Full_Run).
         enable((cpudecoder != &CPU_Core_Prefetch_Run) &&
                (cpudecoder != &CPU_Core286_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core8086_Prefetch_Run) &&
                (cpudecoder != &CPU_Core286_Normal_Run) &&
                (cpudecoder != &CPU_Core8086_Normal_Run)).
         refresh_item(mainMenu);
@@ -302,6 +305,7 @@ void menu_update_core(void) {
         enable(allow_dynamic &&
                (cpudecoder != &CPU_Core_Prefetch_Run) &&
                (cpudecoder != &CPU_Core286_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core8086_Prefetch_Run) &&
                (cpudecoder != &CPU_Core286_Normal_Run) &&
                (cpudecoder != &CPU_Core8086_Normal_Run)).
         refresh_item(mainMenu);
@@ -312,6 +316,7 @@ void menu_update_core(void) {
         enable(allow_dynamic &&
                (cpudecoder != &CPU_Core_Prefetch_Run) &&
                (cpudecoder != &CPU_Core286_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core8086_Prefetch_Run) &&
                (cpudecoder != &CPU_Core286_Normal_Run) &&
                (cpudecoder != &CPU_Core8086_Normal_Run)).
         refresh_item(mainMenu);
@@ -3378,10 +3383,10 @@ public:
 		} else if (cputype == "8086_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
 			CPU_ArchitectureType = CPU_ARCHTYPE_8086;
 			if (core == "normal") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				cpudecoder=&CPU_Core8086_Prefetch_Run;
 				CPU_PrefetchQueueSize = 4; /* Emulate the 8088, which was more common in home PCs than having an 8086 */
 			} else if (core == "auto") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				cpudecoder=&CPU_Core8086_Prefetch_Run;
 				CPU_PrefetchQueueSize = 4; /* Emulate the 8088, which was more common in home PCs than having an 8086 */
 				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
 			} else {
@@ -3558,6 +3563,8 @@ public:
         CPU_Core_Prefetch_reset();
         void CPU_Core286_Prefetch_reset(void);
         CPU_Core286_Prefetch_reset();
+        void CPU_Core8086_Prefetch_reset(void);
+        CPU_Core8086_Prefetch_reset();
  
         if (reboot_now) {
             LOG_MSG("CPU change requires guest system reboot");
