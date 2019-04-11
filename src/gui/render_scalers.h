@@ -43,20 +43,6 @@ typedef enum {
 
 typedef enum scalerOperation {
 	scalerOpNormal,
-#if RENDER_USE_ADVANCED_SCALERS>2
-	scalerOpAdvMame,
-	scalerOpAdvInterp,
-	scalerOpHQ,
-	scalerOpSaI,
-	scalerOpSuperSaI,
-	scalerOpSuperEagle,
-#endif
-#if RENDER_USE_ADVANCED_SCALERS>0
-	scalerOpTV,
-	scalerOpRGB,
-	scalerOpScan,
-	scalerOpGray,
-#endif
 	scalerLast
 } scalerOperation_t;
 

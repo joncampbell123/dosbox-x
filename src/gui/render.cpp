@@ -421,94 +421,15 @@ void RENDER_Reset( void ) {
         else
             simpleBlock = &ScaleNormal1x;
         /* Maybe override them */
-#if RENDER_USE_ADVANCED_SCALERS>0
-        switch (render.scale.op) {
-#if RENDER_USE_ADVANCED_SCALERS>2
-        case scalerOpAdvInterp:
-            if (render.scale.size == 2)
-                complexBlock = &ScaleAdvInterp2x;
-            else if (render.scale.size == 3)
-                complexBlock = &ScaleAdvInterp3x;
-            break;
-        case scalerOpAdvMame:
-            if (render.scale.size == 2)
-                complexBlock = &ScaleAdvMame2x;
-            else if (render.scale.size == 3)
-                complexBlock = &ScaleAdvMame3x;
-            break;
-        case scalerOpHQ:
-            if (render.scale.size == 2)
-                complexBlock = &ScaleHQ2x;
-            else if (render.scale.size == 3)
-                complexBlock = &ScaleHQ3x;
-            break;
-        case scalerOpSuperSaI:
-            if (render.scale.size == 2)
-                complexBlock = &ScaleSuper2xSaI;
-            break;
-        case scalerOpSuperEagle:
-            if (render.scale.size == 2)
-                complexBlock = &ScaleSuperEagle;
-            break;
-        case scalerOpSaI:
-            if (render.scale.size == 2)
-                complexBlock = &Scale2xSaI;
-            break;
-#endif
-        case scalerOpTV:
-            if (render.scale.size == 2)
-                simpleBlock = &ScaleTV2x;
-            else if (render.scale.size == 3)
-                simpleBlock = &ScaleTV3x;
-            break;
-        case scalerOpRGB:
-            if (render.scale.size == 2)
-                simpleBlock = &ScaleRGB2x;
-            else if (render.scale.size == 3)
-                simpleBlock = &ScaleRGB3x;
-            break;
-        case scalerOpScan:
-            if (render.scale.size == 2)
-                simpleBlock = &ScaleScan2x;
-            else if (render.scale.size == 3)
-                simpleBlock = &ScaleScan3x;
-            break;
-        case scalerOpGray:
-            if (render.scale.size == 1){
-			        simpleBlock = &ScaleGrayNormal;
-            }else if (render.scale.size == 2){
-			        simpleBlock = &ScaleGray2x;
-            }
-        break;
-        default:
-            break;
-        }
-#endif
     } else if (dblw && !render.scale.hardware) {
-      if(scalerOpGray == render.scale.op){
-        simpleBlock = &ScaleGrayDw;
-      }else{
         simpleBlock = &ScaleNormalDw;
-      }
     } else if (dblh && !render.scale.hardware) {
-		//Check whether tv2x and scan2x is selected
-		if(scalerOpGray == render.scale.op){
-			simpleBlock = &ScaleGrayDh;
-    }else if(scalerOpTV == render.scale.op){
-			simpleBlock = &ScaleTVDh;
-        }else if(scalerOpScan == render.scale.op){
-			simpleBlock = &ScaleScanDh;
-        }else{
-			simpleBlock = &ScaleNormalDh;
-		}
+        //Check whether tv2x and scan2x is selected
+        simpleBlock = &ScaleNormalDh;
     } else  {
 forcenormal:
         complexBlock = 0;
-        if(scalerOpGray==render.scale.op){
-          simpleBlock = &ScaleGrayNormal;
-        }else{
-          simpleBlock = &ScaleNormal1x;
-        }
+        simpleBlock = &ScaleNormal1x;
     }
     if (complexBlock) {
 #if RENDER_USE_ADVANCED_SCALERS>1
@@ -896,27 +817,6 @@ void RENDER_UpdateFromScalerSetting(void) {
     else if (scaler == "normal3x") { render.scale.op = scalerOpNormal; render.scale.size = 3; render.scale.hardware=false; }
     else if (scaler == "normal4x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=false; }
     else if (scaler == "normal5x") { render.scale.op = scalerOpNormal; render.scale.size = 5; render.scale.hardware=false; }
-#if RENDER_USE_ADVANCED_SCALERS>2
-    else if (scaler == "advmame2x") { render.scale.op = scalerOpAdvMame; render.scale.size = 2; render.scale.hardware=false; }
-    else if (scaler == "advmame3x") { render.scale.op = scalerOpAdvMame; render.scale.size = 3; render.scale.hardware=false; }
-    else if (scaler == "advinterp2x") { render.scale.op = scalerOpAdvInterp; render.scale.size = 2; render.scale.hardware=false; }
-    else if (scaler == "advinterp3x") { render.scale.op = scalerOpAdvInterp; render.scale.size = 3; render.scale.hardware=false; }
-    else if (scaler == "hq2x") { render.scale.op = scalerOpHQ; render.scale.size = 2; render.scale.hardware=false; }
-    else if (scaler == "hq3x") { render.scale.op = scalerOpHQ; render.scale.size = 3; render.scale.hardware=false; }
-    else if (scaler == "2xsai") { render.scale.op = scalerOpSaI; render.scale.size = 2; render.scale.hardware=false; }
-    else if (scaler == "super2xsai") { render.scale.op = scalerOpSuperSaI; render.scale.size = 2; render.scale.hardware=false; }
-    else if (scaler == "supereagle") { render.scale.op = scalerOpSuperEagle; render.scale.size = 2; render.scale.hardware=false; }
-#endif
-#if RENDER_USE_ADVANCED_SCALERS>0
-    else if (scaler == "tv2x") { render.scale.op = scalerOpTV; render.scale.size = 2; render.scale.hardware=false; }
-    else if (scaler == "tv3x") { render.scale.op = scalerOpTV; render.scale.size = 3; render.scale.hardware=false; }
-    else if (scaler == "rgb2x"){ render.scale.op = scalerOpRGB; render.scale.size = 2; render.scale.hardware=false; }
-    else if (scaler == "rgb3x"){ render.scale.op = scalerOpRGB; render.scale.size = 3; render.scale.hardware=false; }
-    else if (scaler == "scan2x"){ render.scale.op = scalerOpScan; render.scale.size = 2; render.scale.hardware=false; }
-    else if (scaler == "scan3x"){ render.scale.op = scalerOpScan; render.scale.size = 3; render.scale.hardware=false; }
-    else if (scaler == "gray"){ render.scale.op = scalerOpGray; render.scale.size = 1; render.scale.hardware=false; }
-    else if (scaler == "gray2x"){ render.scale.op = scalerOpGray; render.scale.size = 2; render.scale.hardware=false; }
-#endif
     else if (scaler == "hardware_none") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware=true; }
     else if (scaler == "hardware2x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=true; }
     else if (scaler == "hardware3x") { render.scale.op = scalerOpNormal; render.scale.size = 6; render.scale.hardware=true; }
