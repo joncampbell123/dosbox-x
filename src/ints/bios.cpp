@@ -74,7 +74,6 @@ bool KEYBOARD_Report_BIOS_PS2Mouse();
 bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
 void pc98_update_palette(void);
 
-bool isa_memory_hole_512kb = false;
 bool int15_wait_force_unmask_irq = false;
 
 Bit16u biosConfigSeg=0;
@@ -5041,9 +5040,6 @@ public:
 
             enable_pc98_copyright_string = section->Get_bool("pc-98 BIOS copyright string");
 
-            // TODO: motherboard init, especially when we get around to full Intel Triton/i440FX chipset emulation
-            isa_memory_hole_512kb = section->Get_bool("isa memory hole at 512kb");
-
             // for PC-98: When accessing the floppy through INT 1Bh, when enabled, run through a waiting loop to make sure
             //     the timer count is not too high on exit (Ys II)
             enable_fdc_timer_hack = section->Get_bool("pc-98 int 1b fdc timer wait");
@@ -5102,9 +5098,6 @@ public:
         // TODO: Allow dosbox.conf to specify an option to add an EBDA (Extended BIOS Data Area)
         //       at the top of the DOS conventional limit, which we then reduce further to hold
         //       it. Most BIOSes past 1992 or so allocate an EBDA.
-
-        /* if requested to emulate an ISA memory hole at 512KB, further limit the memory */
-        if (isa_memory_hole_512kb && t_conv > 512) t_conv = 512;
 
         /* and then unmap RAM between t_conv and ulimit */
         if (t_conv < ulimit) {

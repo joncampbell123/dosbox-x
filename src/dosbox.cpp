@@ -744,9 +744,6 @@ void DOSBOX_SetupConfigSections(void) {
         "  There is generally no speed advantage when raising this value.\n"
         "  Programs that use 286 protected mode like Windows 3.0 in Standard Mode may crash with more than 15MB.");
 
-    Pbool = secprop->Add_bool("isa memory hole at 512kb",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, emulate an ISA memory hole at the 512KB to 640KB area (0x80000-0x9FFFF).");
-
     Pint = secprop->Add_int("memalias", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(0,32);
     Pint->Set_help(
