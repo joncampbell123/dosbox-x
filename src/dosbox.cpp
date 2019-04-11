@@ -850,9 +850,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("enable 8-bit dac",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("If set, allow VESA BIOS calls in IBM PC mode to set DAC width. Has no effect in PC-98 mode.");
 
-    Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
-    Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host");
-
     Pbool = secprop->Add_bool("bochs debug port e9",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, emulate Bochs debug port E9h. ASCII text written to this I/O port is assumed to be debug output, and logged.");
 

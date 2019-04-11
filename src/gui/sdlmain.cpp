@@ -1772,266 +1772,6 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     return retFlags;
 }
 
-#if defined(WIN32) && !defined(HX_DOS)
-// WARNING: Not recommended, there is danger you cannot exit emulator because mouse+keyboard are taken
-static bool enable_hook_everything = false;
-#endif
-
-// Whether or not to hook the keyboard and block special keys.
-// Setting this is recommended so that your keyboard is fully usable in the guest OS when you
-// enable the mouse+keyboard capture. But hooking EVERYTHING is not recommended because there is a
-// danger you become trapped in the DOSBox emulator!
-static bool enable_hook_special_keys = true;
-
-#if defined(WIN32) && !defined(HX_DOS)
-// Whether or not to hook Num/Scroll/Caps lock in order to give the guest OS full control of the
-// LEDs on the keyboard (i.e. the LEDs do not change until the guest OS changes their state).
-// This flag also enables code to set the LEDs to guest state when setting mouse+keyboard capture,
-// and restoring LED state when releasing capture.
-static bool enable_hook_lock_toggle_keys = true;
-#endif
-
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
-// and this is where we store host LED state when capture is set.
-static bool on_capture_num_lock_was_on = true; // reasonable guess
-static bool on_capture_scroll_lock_was_on = false;
-static bool on_capture_caps_lock_was_on = false;
-#endif
-
-static bool exthook_enabled = false;
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
-static HHOOK exthook_winhook = NULL;
-
-#if !defined(__MINGW32__)
-extern "C" void SDL_DOSBox_X_Hack_Set_Toggle_Key_WM_USER_Hack(unsigned char x);
-#endif
-
-static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARAM lParam) {
-    if (nCode == HC_ACTION) {
-        HWND myHwnd = GetHWND();
-
-        if (exthook_enabled && GetFocus() == myHwnd) { /* intercept only if DOSBox-X is the focus and the keyboard is hooked */
-            if (wParam == WM_SYSKEYDOWN || wParam == WM_KEYDOWN || wParam == WM_SYSKEYUP || wParam == WM_KEYUP) {
-                KBDLLHOOKSTRUCT *st_hook = (KBDLLHOOKSTRUCT*)lParam;
-
-                if (st_hook->flags & LLKHF_INJECTED) {
-                    // injected keys are automatically allowed, especially if we are injecting keyboard input into ourself
-                    // to control Num/Scroll/Caps Lock LEDs. If we don't check this we cannot control the LEDs. Injecting
-                    // keydown/keyup for Num Lock is the only means provided by Windows to control those LEDs.
-                }
-                else if (st_hook->vkCode == VK_MENU/*alt*/ || st_hook->vkCode == VK_CONTROL ||
-                    st_hook->vkCode == VK_LSHIFT || st_hook->vkCode == VK_RSHIFT) {
-                    // always allow modifier keys through, so other applications are not left with state inconsistent from
-                    // actual keyboard state.
-                }
-                else {
-                    bool nopass = enable_hook_everything; // if the user wants us to hook ALL keys then that's where this signals it
-                    bool alternate_message = false; // send as WM_USER+0x100 instead of WM_KEYDOWN
-
-                    if (!nopass) {
-                        // hook only certain keys Windows is likely to act on by itself.
-
-                        // FIXME: Hooking the keyboard does NOT prevent Fn+SPACE (zoom) from triggering screen resolution
-                        //        changes in Windows 10! How do we stop that?
-
-                        // FIXME: It might be nice to let the user decide whether or not Print Screen is intercepted.
-
-                        // TODO: We do not hook the volume up/down/mute keys. This is to be kind to the user. They may
-                        // appreciate the ability to dial down the volume if a loud DOS program comes up. But
-                        // if the user WANTS us to, we should allow hooking those keys.
-
-                        // TODO: Allow (if instructed) hooking the VK_SLEEP key so pushing the sleep key (the
-                        // one with the icon of the moon on Microsoft keyboards) can be sent instead to the
-                        // guest OS. Also add code where if we're not hooking the key, then we should listen
-                        // for signals the guest OS is suspending or hibernating and auto-disconnect the
-                        // mouse capture and keyboard hook.
-
-                        switch (st_hook->vkCode) {
-                        case VK_LWIN:   // left Windows key (normally triggers Start menu)
-                        case VK_RWIN:   // right Windows key (normally triggers Start menu)
-                        case VK_APPS:   // Application key (normally open to the user, but just in case)
-                        case VK_PAUSE:  // pause key
-                        case VK_SNAPSHOT: // print screen
-                        case VK_TAB:    // try to catch ALT+TAB too (not blocking VK_TAB will allow host OS to switch tasks)
-                        case VK_ESCAPE: // try to catch CTRL+ESC as well (so Windows 95 Start Menu is accessible)
-                        case VK_SPACE:  // and space (catching VK_ZOOM isn't enough to prevent Windows 10 from changing res)
-                        // these keys have no meaning to DOSBox and so we hook them by default to allow the guest OS to use them
-                        case VK_BROWSER_BACK: // Browser Back key
-                        case VK_BROWSER_FORWARD: // Browser Forward key
-                        case VK_BROWSER_REFRESH: // Browser Refresh key
-                        case VK_BROWSER_STOP: // Browser Stop key
-                        case VK_BROWSER_SEARCH: // Browser Search key
-                        case VK_BROWSER_FAVORITES: // Browser Favorites key
-                        case VK_BROWSER_HOME: // Browser Start and Home key
-                        case VK_MEDIA_NEXT_TRACK: // Next Track key
-                        case VK_MEDIA_PREV_TRACK: // Previous Track key
-                        case VK_MEDIA_STOP: // Stop Media key
-                        case VK_MEDIA_PLAY_PAUSE: // Play / Pause Media key
-                        case VK_LAUNCH_MAIL: // Start Mail key
-                        case VK_LAUNCH_MEDIA_SELECT: // Select Media key
-                        case VK_LAUNCH_APP1: // Start Application 1 key
-                        case VK_LAUNCH_APP2: // Start Application 2 key
-                        case VK_PLAY: // Play key
-                        case VK_ZOOM: // Zoom key (the (+) magnifying glass keyboard shortcut laptops have these days on the spacebar?)
-                            nopass = true;
-                            break;
-
-                            // IME Hiragana key, otherwise inaccessible to us
-                        case 0xF2:
-                            nopass = true; // FIXME: This doesn't (yet) cause a SDL key event.
-                            break;
-
-                            // we allow hooking Num/Scroll/Caps Lock keys so that pressing them does not toggle the LED.
-                            // we then take Num/Scroll/Caps LED state from the guest and let THAT control the LED state.
-                        case VK_CAPITAL:
-                        case VK_NUMLOCK:
-                        case VK_SCROLL:
-                            nopass = enable_hook_lock_toggle_keys;
-                            alternate_message = true;
-                            break;
-                        }
-                    }
-
-                    if (nopass) {
-                        // convert WM_KEYDOWN/WM_KEYUP if obfuscating the message to distinguish between real and injected events
-                        if (alternate_message) {
-                            if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
-                                wParam = WM_USER + 0x100;
-                            else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP)
-                                wParam = WM_USER + 0x101;
-                        }
-
-                        DWORD lParam =
-                            (st_hook->scanCode << 8U) +
-                            ((st_hook->flags & LLKHF_EXTENDED) ? 0x01000000 : 0) +
-                            ((wParam == WM_KEYUP || wParam == WM_SYSKEYUP) ? 0xC0000000 : 0);
-
-                        // catch the keystroke, post it to ourself, do not pass it on
-                        PostMessage(myHwnd, (UINT)wParam, st_hook->vkCode, lParam);
-                        return TRUE;
-                    }
-                }
-            }
-        }
-    }
-
-    return CallNextHookEx(exthook_winhook, nCode, wParam, lParam);
-}
-
-// Microsoft doesn't have an outright "set toggle key state" call, they expect you
-// to know the state and then fake input to toggle. Blegh. Fine.
-void WinSetKeyToggleState(unsigned int vkCode, bool state) {
-    bool curState = (GetKeyState(vkCode) & 1) ? true : false;
-    INPUT inps;
-
-    // if we're already in that state, then there is nothing to do.
-    if (curState == state) return;
-
-    // fake keyboard input.
-    memset(&inps, 0, sizeof(inps));
-    inps.type = INPUT_KEYBOARD;
-    inps.ki.wVk = vkCode;
-    inps.ki.dwFlags = KEYEVENTF_EXTENDEDKEY; // pressed, use wVk.
-    SendInput(1, &inps, sizeof(INPUT));
-
-    memset(&inps, 0, sizeof(inps));
-    inps.type = INPUT_KEYBOARD;
-    inps.ki.wVk = vkCode;
-    inps.ki.dwFlags = KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP; // release, use wVk.
-    SendInput(1, &inps, sizeof(INPUT));
-}
-#endif
-
-Bitu Keyboard_Guest_LED_State();
-void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */);
-
-void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */) {
-    (void)led_state;//POSSIBLY UNUSED
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) /* Microsoft Windows */
-    if (exthook_enabled) { // ONLY if ext hook is enabled, else we risk infinite loops with keyboard events
-        //WinSetKeyToggleState(VK_NUMLOCK, !!(led_state & 2));
-        //WinSetKeyToggleState(VK_SCROLL, !!(led_state & 1));
-        //WinSetKeyToggleState(VK_CAPITAL, !!(led_state & 4));
-    }
-#endif
-}
-
-void DoExtendedKeyboardHook(bool enable) {
-    if (exthook_enabled == enable)
-        return;
-
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
-    if (enable) {
-        if (!exthook_winhook) {
-            exthook_winhook = SetWindowsHookEx(WH_KEYBOARD_LL, WinExtHookKeyboardHookProc, GetModuleHandle(NULL), 0);
-            if (exthook_winhook == NULL) return;
-        }
-
-        // it's on
-        exthook_enabled = enable;
-
-        // flush out and handle pending keyboard I/O
-        {
-            MSG msg;
-
-            while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-                TranslateMessage(&msg);
-                DispatchMessage(&msg);
-            }
-        }
-
-#if !defined(__MINGW32__)
-        // Enable the SDL hack for Win32 to handle Num/Scroll/Caps
-        SDL_DOSBox_X_Hack_Set_Toggle_Key_WM_USER_Hack(1);
-#endif
-
-        // if hooking Num/Scroll/Caps Lock then record the toggle state of those keys.
-        // then read from the keyboard emulation the LED state set by the guest and apply it to the host keyboard.
-        if (enable_hook_lock_toggle_keys) {
-            // record state
-            on_capture_num_lock_was_on = (GetKeyState(VK_NUMLOCK) & 1) ? true : false;
-            on_capture_scroll_lock_was_on = (GetKeyState(VK_SCROLL) & 1) ? true : false;
-            on_capture_caps_lock_was_on = (GetKeyState(VK_CAPITAL) & 1) ? true : false;
-            // change to guest state (FIXME: Read emulated keyboard state and apply!)
-            UpdateKeyboardLEDState(Keyboard_Guest_LED_State());
-        }
-    }
-    else {
-        if (exthook_winhook) {
-            if (enable_hook_lock_toggle_keys) {
-                // restore state
-                //WinSetKeyToggleState(VK_NUMLOCK, on_capture_num_lock_was_on);
-                //WinSetKeyToggleState(VK_SCROLL, on_capture_scroll_lock_was_on);
-                //WinSetKeyToggleState(VK_CAPITAL, on_capture_caps_lock_was_on);
-            }
-
-            {
-                MSG msg;
-
-                // before we disable the SDL hack make sure we flush out and handle any pending keyboard events.
-                // if we don't do this the posted Num/Scroll/Caps events will stay in the queue and will be handled
-                // by SDL after turning off the toggle key hack.
-                Sleep(1); // make sure Windows posts the keystrokes
-                while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-                    TranslateMessage(&msg);
-                    DispatchMessage(&msg);
-                }
-            }
-
-#if !defined(__MINGW32__)
-            // Disable the SDL hack for Win32 to handle Num/Scroll/Caps
-            SDL_DOSBox_X_Hack_Set_Toggle_Key_WM_USER_Hack(0);
-#endif
-
-            UnhookWindowsHookEx(exthook_winhook);
-            exthook_winhook = NULL;
-        }
-
-        exthook_enabled = enable;
-    }
-#endif
-}
-
 void GFX_ReleaseMouse(void) {
     if (sdl.mouse.locked)
         GFX_CaptureMouse();
@@ -2049,10 +1789,8 @@ void GFX_CaptureMouse(bool capture) {
 #else
         SDL_WM_GrabInput(SDL_GRAB_ON);
 #endif
-        if (enable_hook_special_keys) DoExtendedKeyboardHook(true);
         SDL_ShowCursor(SDL_DISABLE);
     } else {
-        DoExtendedKeyboardHook(false);
 #if defined(C_SDL2)
         SDL_SetRelativeMouseMode(SDL_FALSE);
 #else
@@ -2084,10 +1822,8 @@ void GFX_UpdateSDLCaptureState(void) {
 #else
         SDL_WM_GrabInput(SDL_GRAB_ON);
 #endif
-        if (enable_hook_special_keys) DoExtendedKeyboardHook(true);
         SDL_ShowCursor(SDL_DISABLE);
     } else {
-        DoExtendedKeyboardHook(false);
 #if defined(C_SDL2)
         SDL_SetRelativeMouseMode(SDL_FALSE);
 #else
@@ -4233,7 +3969,6 @@ void GFX_LosingFocus(void) {
     sdl.laltstate=SDL_KEYUP;
     sdl.raltstate=SDL_KEYUP;
     MAPPER_LosingFocus();
-    DoExtendedKeyboardHook(false);
 }
 
 #if !defined(C_SDL2)
@@ -7168,13 +6903,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         menu.startup = true;
         menu.showrt = control->opt_showrt;
         menu.hidecycles = (control->opt_showcycles ? false : true);
-
-#if defined(WIN32) && !defined(C_SDL2)
-        {
-            Section_prop *sec = static_cast<Section_prop *>(control->GetSection("dosbox"));
-            enable_hook_special_keys = sec->Get_bool("keyboard hook");
-        }
-#endif
 
         MSG_Init();
         MAPPER_StartUp();

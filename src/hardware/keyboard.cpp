@@ -330,14 +330,9 @@ Bitu Keyboard_Guest_LED_State() {
     return keyb.led_state;
 }
 
-void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */);
-
 void KEYBOARD_SetLEDs(Bit8u bits) {
     /* Some OSes we have control of the LEDs if keyboard+mouse capture */
     keyb.led_state = bits;
-    UpdateKeyboardLEDState(bits);
-
-    /* TODO: Maybe someday you could have DOSBox show the LEDs */
 
     /* log for debug info */
     LOG(LOG_KEYBOARD,LOG_DEBUG)("Keyboard LEDs: SCR=%u NUM=%u CAPS=%u",bits&1,(bits>>1)&1,(bits>>2)&1);
