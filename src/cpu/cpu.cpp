@@ -167,22 +167,13 @@ void menu_update_cputype(void) {
 	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
 
     mainMenu.get_item("cputype_8086").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder != &CPU_Core_Prefetch_Run)).
-        refresh_item(mainMenu);
-    mainMenu.get_item("cputype_8086_prefetch").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_8086).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_80186").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder != &CPU_Core_Prefetch_Run)).
-        refresh_item(mainMenu);
-    mainMenu.get_item("cputype_80186_prefetch").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_80186).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_286").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder != &CPU_Core_Prefetch_Run)).
-        refresh_item(mainMenu);
-    mainMenu.get_item("cputype_286_prefetch").
-        check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_286).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_386").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_386).
@@ -2846,23 +2837,16 @@ public:
         /* these are not mapper shortcuts, and probably should not be mapper shortcuts */
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_8086").
             set_text("8086").set_callback_function(CpuType_ByName);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_8086_prefetch").
-            set_text("8086 with prefetch").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_80186").
             set_text("80186").set_callback_function(CpuType_ByName);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_80186_prefetch").
-            set_text("80186 with prefetch").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_286").
             set_text("286").set_callback_function(CpuType_ByName);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_286_prefetch").
-            set_text("286 with prefetch").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_386").
             set_text("386").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486old").
             set_text("486 (old)").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_486").
             set_text("486").set_callback_function(CpuType_ByName);
-
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium").
             set_text("Pentium").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium_mmx").
@@ -2955,27 +2939,15 @@ public:
 
 		CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUM;
 		std::string cputype(section->Get_string("cputype"));
-		if (cputype == "8086") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_8086;
-			cpudecoder=&CPU_Core8086_Normal_Run;
-		} else if (cputype == "8086_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
-            LOG_MSG("WARNING: 8086 with prefetch is not stable at this time");
+		if (cputype == "8086") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
 			CPU_ArchitectureType = CPU_ARCHTYPE_8086;
             cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
             CPU_PrefetchQueueSize = 4; /* Emulate the 8088, which was more common in home PCs than having an 8086 */
-        } else if (cputype == "80186") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_80186;
-			cpudecoder=&CPU_Core286_Normal_Run;
-		} else if (cputype == "80186_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
-            LOG_MSG("WARNING: 186 with prefetch is not stable at this time");
+        } else if (cputype == "80186") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
 			CPU_ArchitectureType = CPU_ARCHTYPE_80186;
             cpudecoder=&CPU_Core_Prefetch_Run;
             CPU_PrefetchQueueSize = 6;
-        } else if (cputype == "286") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_286;
-			cpudecoder=&CPU_Core286_Normal_Run;
-		} else if (cputype == "286_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
-            LOG_MSG("WARNING: 286 with prefetch is not stable at this time");
+        } else if (cputype == "286") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
 			CPU_ArchitectureType = CPU_ARCHTYPE_286;
             cpudecoder=&CPU_Core_Prefetch_Run;
             CPU_PrefetchQueueSize = 6;
