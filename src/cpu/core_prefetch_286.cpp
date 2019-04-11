@@ -35,9 +35,10 @@ using namespace std;
 
 #include <algorithm>
 
-#define CPU_CORE CPU_ARCHTYPE_386
+#define CPU_CORE CPU_ARCHTYPE_286
+#define CPU_Core_Prefetch_Trap_Run CPU_Core286_Prefetch_Trap_Run
 
-#define DoString DoString_Prefetch
+#define DoString DoString_Prefetch286
 
 extern bool ignore_opcode_63;
 
@@ -77,12 +78,14 @@ extern Bitu cycle_count;
 
 #define OPCODE_NONE			0x000u
 #define OPCODE_0F			0x100u
-#define OPCODE_SIZE			0x200u
 
-#define PREFIX_ADDR			0x1u
+#define OPCODE_SIZE			0u          //DISABLED
+
+#define PREFIX_ADDR			0u			//DISABLED
+
 #define PREFIX_REP			0x2u
 
-#define TEST_PREFIX_ADDR	(core.prefixes & PREFIX_ADDR)
+#define TEST_PREFIX_ADDR	(0u)
 #define TEST_PREFIX_REP		(core.prefixes & PREFIX_REP)
 
 #define DO_PREFIX_SEG(_SEG)					\
@@ -91,11 +94,9 @@ extern Bitu cycle_count;
 	core.base_val_ds=_SEG;					\
 	goto restart_opcode;
 
+// it's the core's job not to decode 0x66-0x67 when compiled for 286
 #define DO_PREFIX_ADDR()								\
-	core.prefixes=(core.prefixes & ~PREFIX_ADDR) |		\
-	(cpu.code.big ^ PREFIX_ADDR);						\
-	core.ea_table=&EATable[(core.prefixes&1u) * 256u];	\
-	goto restart_opcode;
+    abort();
 
 #define DO_PREFIX_REP(_ZERO)				\
 	core.prefixes|=PREFIX_REP;				\
@@ -104,7 +105,7 @@ extern Bitu cycle_count;
 
 typedef PhysPt (*GetEAHandler)(void);
 
-static const Bit32u AddrMaskTable[2]={0x0000ffffu,0xffffffffu};
+static const Bit32u AddrMaskTable[2]={0x0000ffffu,0x0000ffffu};
 
 static struct {
 	Bitu opcode_index;
@@ -139,7 +140,7 @@ static unsigned int pq_hit=0,pq_miss=0;
 #endif
 
 /* MUST BE POWER OF 2 */
-#define prefetch_unit       (4ul)
+#define prefetch_unit       (2ul)
 
 #include "core_prefetch_buf.h"
 
@@ -170,7 +171,7 @@ bool CPU_WRMSR();
 
 #define EALookupTable (core.ea_table)
 
-void CPU_Core_Prefetch_reset(void) {
+void CPU_Core286_Prefetch_reset(void) {
     pq_valid=false;
     prefetch_init(0);
 #ifdef PREFETCH_DEBUG
@@ -178,7 +179,7 @@ void CPU_Core_Prefetch_reset(void) {
 #endif
 }
 
-Bits CPU_Core_Prefetch_Run(void) {
+Bits CPU_Core286_Prefetch_Run(void) {
 	bool invalidate_pq=false;
 
     // FIXME: This makes 8086 4-byte prefetch queue impossible to emulate.
@@ -194,9 +195,9 @@ Bits CPU_Core_Prefetch_Run(void) {
 			invalidate_pq=false;
 		}
 		LOADIP;
-		core.opcode_index=cpu.code.big*0x200u;
-		core.prefixes=cpu.code.big;
-		core.ea_table=&EATable[cpu.code.big*256u];
+		core.prefixes=0;
+		core.opcode_index=0;
+		core.ea_table=&EATable[0];
 		BaseDS=SegBase(ds);
 		BaseSS=SegBase(ss);
 		core.base_val_ds=ds;
@@ -299,11 +300,5 @@ Bits CPU_Core_Prefetch_Trap_Run(void) {
 	cpudecoder = &CPU_Core_Prefetch_Run;
 
 	return ret;
-}
-
-
-
-void CPU_Core_Prefetch_Init(void) {
-
 }
 

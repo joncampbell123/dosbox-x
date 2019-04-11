@@ -3352,10 +3352,10 @@ public:
 		} else if (cputype == "80186_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
 			CPU_ArchitectureType = CPU_ARCHTYPE_80186;
 			if (core == "normal") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				cpudecoder=&CPU_Core286_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
 				CPU_PrefetchQueueSize = 6;
 			} else if (core == "auto") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				cpudecoder=&CPU_Core286_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
 				CPU_PrefetchQueueSize = 6;
 				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
 			} else {
@@ -3367,10 +3367,10 @@ public:
 		} else if (cputype == "286_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
 			CPU_ArchitectureType = CPU_ARCHTYPE_286;
 			if (core == "normal") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				cpudecoder=&CPU_Core286_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
 				CPU_PrefetchQueueSize = 6;
 			} else if (core == "auto") {
-				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				cpudecoder=&CPU_Core286_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
 				CPU_PrefetchQueueSize = 6;
 				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
 			} else {
@@ -3515,6 +3515,8 @@ public:
 
         void CPU_Core_Prefetch_reset(void);
         CPU_Core_Prefetch_reset();
+        void CPU_Core286_Prefetch_reset(void);
+        CPU_Core286_Prefetch_reset();
  
         if (reboot_now) {
             LOG_MSG("CPU change requires guest system reboot");
