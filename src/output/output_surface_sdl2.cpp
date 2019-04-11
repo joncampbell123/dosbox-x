@@ -65,8 +65,8 @@ Bitu OUTPUT_SURFACE_SetSize()
 #endif
 
         /* menu size and consideration of width and height */
-        Bitu consider_height = height + (unsigned int)menuheight + (sdl.overscan_width * 2);
-        Bitu consider_width = width + (sdl.overscan_width * 2);
+        Bitu consider_height = height + (unsigned int)menuheight;
+        Bitu consider_width = width;
 
         if (menu.maxwindow) {
             if (consider_height < currentWindowHeight)
@@ -82,10 +82,10 @@ Bitu OUTPUT_SURFACE_SetSize()
             extern unsigned int min_sdldraw_menu_height;
             /* enforce a minimum 500x300 surface size.
              * the menus are useless below 500x300 */
-            if (consider_width < (min_sdldraw_menu_width + (sdl.overscan_width * 2)))
-                consider_width = (min_sdldraw_menu_width + (sdl.overscan_width * 2));
-            if (consider_height < (min_sdldraw_menu_height + (sdl.overscan_width * 2) + (unsigned int)menuheight))
-                consider_height = (min_sdldraw_menu_height + (sdl.overscan_width * 2) + (unsigned int)menuheight);
+            if (consider_width < (min_sdldraw_menu_width))
+                consider_width = (min_sdldraw_menu_width);
+            if (consider_height < (min_sdldraw_menu_height + (unsigned int)menuheight))
+                consider_height = (min_sdldraw_menu_height + (unsigned int)menuheight);
         }
 #endif
 
@@ -97,8 +97,8 @@ Bitu OUTPUT_SURFACE_SetSize()
          * fit by aspect ratio if asked to do so. */
         if (sdl_xbrz.enable)
         {
-            final_height = (int)max(consider_height, userResizeWindowHeight) - (int)menuheight - ((int)sdl.overscan_width * 2);
-            final_width = (int)max(consider_width, userResizeWindowWidth) - ((int)sdl.overscan_width * 2);
+            final_height = (int)max(consider_height, userResizeWindowHeight) - (int)menuheight;
+            final_width = (int)max(consider_width, userResizeWindowWidth);
 
             sdl.clip.x = sdl.clip.y = 0;
             sdl.clip.w = final_width;
@@ -110,21 +110,20 @@ Bitu OUTPUT_SURFACE_SetSize()
         /* center the screen in the window */
         {
 
-            final_height = (int)max(max(consider_height, userResizeWindowHeight), (Bitu)(sdl.clip.y + sdl.clip.h)) - (int)menuheight - ((int)sdl.overscan_width * 2);
-            final_width = (int)max(max(consider_width, userResizeWindowWidth), (Bitu)(sdl.clip.x + sdl.clip.w)) - ((int)sdl.overscan_width * 2);
+            final_height = (int)max(max(consider_height, userResizeWindowHeight), (Bitu)(sdl.clip.y + sdl.clip.h)) - (int)menuheight;
+            final_width = (int)max(max(consider_width, userResizeWindowWidth), (Bitu)(sdl.clip.x + sdl.clip.w));
             ax = (final_width - (sdl.clip.x + sdl.clip.w)) / 2;
             ay = (final_height - (sdl.clip.y + sdl.clip.h)) / 2;
             if (ax < 0) ax = 0;
             if (ay < 0) ay = 0;
-            sdl.clip.x += ax + (int)sdl.overscan_width;
-            sdl.clip.y += ay + (int)sdl.overscan_width;
+            sdl.clip.x += ax;
+            sdl.clip.y += ay;
             // sdl.clip.w = currentWindowWidth - sdl.clip.x;
             // sdl.clip.h = currentWindowHeight - sdl.clip.y;
         }
 
         {
-            final_width += (int)sdl.overscan_width * 2;
-            final_height += (int)menuheight + (int)sdl.overscan_width * 2;
+            final_height += (int)menuheight;
             sdl.clip.y += (int)menuheight;
 
             LOG_MSG("surface consider=%ux%u final=%ux%u",
