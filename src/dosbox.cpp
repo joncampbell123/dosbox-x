@@ -774,16 +774,13 @@ void DOSBOX_SetupConfigSections(void) {
     const char* oplrates[] = {   "44100", "49716", "48000", "32000","22050", "16000", "11025", "8000", 0 };
     const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "synth", "timidity", "none", 0}; // FIXME: add some way to offer the actually available choices.
     const char* apmbiosversions[] = { "auto", "1.0", "1.1", "1.2", 0 };
-    const char* gustypes[] = { "classic", "classic37", "max", "interwave", 0 };
     const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "ess688", "reveal_sc400", "none", 0 };
     const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "none", "hardware", "hardwaregb", 0};
     const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
-    const char* guspantables[] = { "old", "accurate", "default", 0 };
     const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none",0};
 //    const char* joydeadzone[] = { "0.26", 0 };
 //    const char* joyresponse[] = { "1.0", 0 };
-    const char* iosgus[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", "210", "230", "250", 0 };
     const char* mpubases[] = {
         "0",                                                                                    /* Auto */
         "300", "310", "320", "330", "332", "334", "336", "340", "360",                          /* IBM PC */
@@ -795,9 +792,7 @@ void DOSBOX_SetupConfigSections(void) {
         "d2",  "d4",  "d6",  "d8",  "da",  "dc",  "de",             /* NEC PC-98   (base+(port << 8) i.e. 00D2h base, 2CD2h is DSP) */
         0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
-    const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
     const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
-    const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
     const char* dmassb[] = { "1", "5", "0", "3", "6", "7", 0 };
     const char* oplemus[] = { "default", "compat", "fast", "nuked", 0 };
     const char* tandys[] = { "auto", "on", "off", 0};
@@ -1894,105 +1889,6 @@ void DOSBOX_SetupConfigSections(void) {
             "This option only applies when sbtype is set to sb1 or sb2 (not SBPro or SB16).\n"
             "This is a hack for the Electromotive Force 'Internal Damage' demo which apparently\n"
             "relies on this behavior for Sound Blaster output and should be enabled for accuracy in emulation.");
-
-    secprop=control->AddSection_prop("gus",&Null_Init,true); //done
-    Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false);  
-    Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
-
-    Pbool = secprop->Add_bool("autoamp",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, GF1 output will reduce in volume automatically if the sum of all channels exceeds full volume.\n"
-                    "If not set, then loud music will clip to full volume just as it would on real hardware.\n"
-                    "Enable this option for loud music if you want a more pleasing rendition without saturation and distortion.");
-
-    Pbool = secprop->Add_bool("unmask dma",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Start the DOS virtual machine with the DMA channel already unmasked at the controller.\n"
-            "Use this for DOS applications that expect to operate the GUS but forget to unmask the DMA channel.");
-
-    Pbool = secprop->Add_bool("pic unmask irq",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Start the DOS virtual machine with the GUS IRQ already unmasked at the PIC.");
-
-    Pbool = secprop->Add_bool("startup initialized",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, start the GF1 in a fully initialized state (as if ULTRINIT had been run).\n"
-                    "If clear, leave the card in an uninitialized state (as if cold boot).\n"
-                    "Some DOS games or demoscene productions will hang or fail to use the Ultrasound hardware\n"
-                    "because they assume the card is initialized and their hardware detect does not fully initialize the card.");
-
-    Pbool = secprop->Add_bool("dma enable on dma control polling",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, automatically enable GUS DMA transfer bit in specific cases when the DMA control register is being polled.\n"
-                    "THIS IS A HACK. Some games and demoscene productions need this hack to avoid hanging while uploading sample data\n"
-                    "to the Gravis Ultrasound due to bugs in their implementation.");
-
-    Pbool = secprop->Add_bool("clear dma tc irq if excess polling",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If the DOS application is seen polling the IRQ status register rapidly, automatically clear the DMA TC IRQ status.\n"
-            "This is a hack that should only be used with DOS applications that need it to avoid bugs in their GUS support code.\n"
-            "Needed for:\n"
-            "  Warcraft II by Blizzard ............. if using GUS for music and sound, set this option to prevent the game from\n"
-            "                                        hanging when you click on the buttons in the main menu.");
-
-    /* some DOS demos, especially where the programmers wrote their own tracker, forget to set "master IRQ enable" on the GUS,
-     * and then wonder why music isn't playing. prior to some GUS bugfixes they happend to work anyway because DOSBox also
-     * ignored master IRQ enable. you can restore that buggy behavior here.
-     *
-     * DOS games & demos that need this:
-     *   - "Juice" by Psychic Link (writes 0x300 to GUS reset which only enables DAC and takes card out of reset, does not enable IRQ) */
-    Pbool = secprop->Add_bool("force master irq enable",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Set this option if a DOS game or demo initializes the GUS but is unable to play any music.\n"
-            "Usually the cause is buggy GUS support that resets the GUS but fails to set the Master IRQ enable bit.");
-
-    Pstring = secprop->Add_string("gus panning table",Property::Changeable::WhenIdle,"default");
-    Pstring->Set_values(guspantables);
-    Pstring->Set_help("Controls which table or equation is used for the Gravis Ultrasound panning emulation.\n"
-            "accurate emulation attempts to better reflect how the actual hardware handles panning,\n"
-            "while the old emulation uses a simpler idealistic mapping.");
-
-    Pint = secprop->Add_int("gusrate",Property::Changeable::WhenIdle,44100);
-    Pint->Set_values(rates);
-    Pint->Set_help("Sample rate of Ultrasound emulation.");
-
-    Pbool = secprop->Add_bool("gus fixed render rate",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, Gravis Ultrasound audio output is rendered at a fixed sample rate specified by 'gusrate'. This can provide better quality than real hardware,\n"
-            "if desired. Else, Gravis Ultrasound emulation will change the sample rate of it's output according to the number of active channels, just like real hardware.\n"
-            "Note: DOSBox-X defaults to 'false', while mainline DOSBox SVN is currently hardcoded to render as if this setting is 'true'.");
-
-    Pint = secprop->Add_int("gusmemsize",Property::Changeable::WhenIdle,-1);
-    Pint->SetMinMax(-1,1024);
-    Pint->Set_help("Amount of RAM on the Gravis Ultrasound in KB. Set to -1 for default.");
-
-    Pdouble = secprop->Add_double("gus master volume",Property::Changeable::WhenIdle,0);
-    Pdouble->SetMinMax(-120.0,6.0);
-    Pdouble->Set_help("Master Gravis Ultrasound GF1 volume, in decibels. Reducing the master volume can help with games or demoscene productions where the music is too loud and clipping");
-
-    Phex = secprop->Add_hex("gusbase",Property::Changeable::WhenIdle,0x240);
-    Phex->Set_values(iosgus);
-    Phex->Set_help("The IO base address of the Gravis Ultrasound.");
-
-    Pint = secprop->Add_int("gusirq",Property::Changeable::WhenIdle,5);
-    Pint->Set_values(irqsgus);
-    Pint->Set_help("The IRQ number of the Gravis Ultrasound.");
-
-    Pint = secprop->Add_int("gusdma",Property::Changeable::WhenIdle,3);
-    Pint->Set_values(dmasgus);
-    Pint->Set_help("The DMA channel of the Gravis Ultrasound.");
- 
-    Pstring = secprop->Add_string("irq hack",Property::Changeable::WhenIdle,"none");
-    Pstring->Set_help("Specify a hack related to the Gravis Ultrasound IRQ to avoid crashes in a handful of games and demos.\n"
-            "    none                   Emulate IRQs normally\n"
-            "    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read Dosbox-X Wiki or source code for details.");
-
-    Pstring = secprop->Add_string("gustype",Property::Changeable::WhenIdle,"classic");
-    Pstring->Set_values(gustypes);
-    Pstring->Set_help(  "Type of Gravis Ultrasound to emulate.\n"
-                "classic             Original Gravis Ultrasound chipset\n"
-                "classic37           Original Gravis Ultrasound with ICS Mixer (rev 3.7)\n"
-                "max                 Gravis Ultrasound MAX emulation (with CS4231 codec)\n"
-                "interwave           Gravis Ultrasound Plug & Play (interwave)");
-
-    Pstring = secprop->Add_string("ultradir",Property::Changeable::WhenIdle,"C:\\ULTRASND");
-    Pstring->Set_help(
-        "Path to Ultrasound directory. In this directory\n"
-        "there should be a MIDI directory that contains\n"
-        "the patch files for GUS playback. Patch sets used\n"
-        "with Timidity should work fine.");
 
     secprop = control->AddSection_prop("speaker",&Null_Init,true);//done
     Pbool = secprop->Add_bool("pcspeaker",Property::Changeable::WhenIdle,true);

@@ -2780,10 +2780,6 @@ static void write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
     }
 }
 
-static void adlib_gusforward(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
-    adlib_commandreg=(Bit8u)(val&0xff);
-}
-
 bool SB_Get_Address(Bitu& sbaddr, Bitu& sbirq, Bitu& sbdma) {
     sbaddr=0;
     sbirq =0;
@@ -3341,12 +3337,9 @@ public:
         case OPL_none:
         case OPL_hardware:
         case OPL_hardwareCMS:
-            if (!IS_PC98_ARCH)
-                WriteHandler[0].Install(0x388,adlib_gusforward,IO_MB);
             break;
         case OPL_cms:
             assert(!IS_PC98_ARCH);
-            WriteHandler[0].Install(0x388,adlib_gusforward,IO_MB);
             CMS_Init(section);
             break;
         case OPL_opl2:
