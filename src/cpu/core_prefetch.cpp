@@ -138,6 +138,9 @@ static double pq_next_dbg=0;
 static unsigned int pq_hit=0,pq_miss=0;
 #endif
 
+/* MUST BE POWER OF 2 */
+#define prefetch_unit       (4ul)
+
 /* WARNING: This code needs MORE TESTING. So far, it seems to work fine. */
 
 template <class T> static inline bool prefetch_hit(const Bitu w) {
@@ -178,7 +181,7 @@ static inline void prefetch_init(const Bitu start) {
 
 static inline void prefetch_filldword(void) {
     host_writed(&prefetch_buffer[pq_fill - pq_start],LoadMd(pq_fill));
-    pq_fill += 4/*DWORD*/;
+    pq_fill += prefetch_unit;
 }
 
 static inline void prefetch_refill(const Bitu stop) {
@@ -193,8 +196,8 @@ static inline void prefetch_lazyflush(const Bitu w) {
      * assume: pq_start is DWORD aligned.
      * assume: CPU_PrefetchQueueSize >= 4 */
     if ((w - pq_start) >= pq_limit) {
-        memmove(prefetch_buffer,prefetch_buffer+4,pq_limit-4);
-        pq_start += 4;
+        memmove(prefetch_buffer,prefetch_buffer+prefetch_unit,pq_limit-prefetch_unit);
+        pq_start += prefetch_unit;
 
         prefetch_filldword();
 #ifdef PREFETCH_DEBUG
@@ -212,7 +215,7 @@ template <class T> static inline T Fetch(void) {
         /* as long as prefetch hits are occurring, keep loading more! */
         if ((pq_fill - pq_start) < pq_limit) {
             prefetch_filldword();
-            if (sizeof(T) >= 4 && (pq_fill - pq_start) < pq_limit)
+            if (sizeof(T) >= prefetch_unit && (pq_fill - pq_start) < pq_limit)
                 prefetch_filldword();
         }
 
@@ -222,7 +225,7 @@ template <class T> static inline T Fetch(void) {
 #endif
     }
     else {
-        prefetch_init(core.cseip & (~0x3)); /* fill prefetch starting on DWORD boundary */
+        prefetch_init(core.cseip & (~(prefetch_unit-1ul))); /* fill prefetch starting on DWORD boundary */
         prefetch_refill(pq_start + pq_reload); /* perhaps in the time it takes for a prefetch miss the 80486 can load two DWORDs */
         temp = prefetch_read<T>(core.cseip);
 #ifdef PREFETCH_DEBUG
@@ -283,7 +286,7 @@ Bits CPU_Core_Prefetch_Run(void) {
     //        The best way to accomplish this is to have an alternate version
     //        of this prefetch queue for 286 or lower that fetches in 16-bit
     //        WORDs instead of 32-bit WORDs.
-    pq_limit = (max(CPU_PrefetchQueueSize,8u) + 0x3u) & (~0x3u);
+    pq_limit = (max(CPU_PrefetchQueueSize,(unsigned int)(4ul + prefetch_unit)) + prefetch_unit - 1ul) & (~(prefetch_unit-1ul));
     pq_reload = min(pq_limit,(Bitu)8u);
 
 	while (CPU_Cycles-->0) {
