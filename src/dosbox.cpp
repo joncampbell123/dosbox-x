@@ -785,7 +785,6 @@ void DOSBOX_SetupConfigSections(void) {
         "80d2","80d4","80d6","80d8","80da","80dc","80de",                                       /* NEC PC-98 SB16 */
         0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
-    const char* tandys[] = { "auto", "on", "off", 0};
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     const char* pc98fmboards[] = { "auto", "off", "false", "board26k", "board86", "board86c", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
@@ -1686,14 +1685,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("pcrate",Property::Changeable::WhenIdle,44100);
     Pint->Set_values(rates);
     Pint->Set_help("Sample rate of the PC-Speaker sound generation.");
-
-    Pstring = secprop->Add_string("tandy",Property::Changeable::WhenIdle,"auto");
-    Pstring->Set_values(tandys);
-    Pstring->Set_help("Enable Tandy Sound System emulation. For 'auto', emulation is present only if machine is set to 'tandy'.");
-    
-    Pint = secprop->Add_int("tandyrate",Property::Changeable::WhenIdle,44100);
-    Pint->Set_values(rates);
-    Pint->Set_help("Sample rate of the Tandy 3-Voice generation.");
 
     secprop=control->AddSection_prop("joystick",&Null_Init,false);//done
     Pstring = secprop->Add_string("joysticktype",Property::Changeable::WhenIdle,"auto");
