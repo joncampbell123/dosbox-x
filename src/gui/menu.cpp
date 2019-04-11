@@ -123,7 +123,6 @@ static const char *def_menu_main[] =
     "auto_lock_mouse",
     "--",
     "mapper_pause",
-    "mapper_pauseints",
     "--",
     "mapper_reset",
     "--",
