@@ -72,8 +72,6 @@ bool ignore_undefined_msr = true;
 
 extern bool ignore_opcode_63;
 
-bool cpu_double_fault_enable;
-
 int cpu_rep_max = 0;
 
 Bitu DEBUG_EnableDebugger(void);
@@ -784,7 +782,7 @@ void CPU_Exception(Bitu which,Bitu error ) {
 		error = 0;
 	}
 
-	if (cpu_double_fault_enable) {
+	{
         /* NTS: Putting some thought into it, I don't think divide by zero counts as something to throw a double fault
          *      over. I may be wrong. The behavior of Intel processors will ultimately decide.
          *
@@ -2803,7 +2801,6 @@ public:
 		CPU_Cycles=0;
 
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
-		cpu_double_fault_enable = section->Get_bool("double fault");
 
 		always_report_double_fault = section->Get_bool("always report double fault");
 		always_report_triple_fault = section->Get_bool("always report triple fault");
