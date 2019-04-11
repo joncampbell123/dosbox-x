@@ -208,7 +208,9 @@ void menu_update_core(void) {
     allow_dynamic = (strstr(cpu_sec_type.c_str(),"_prefetch") == NULL);
 
     mainMenu.get_item("mapper_normal").
-        check(cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run).
+        check(cpudecoder == &CPU_Core_Normal_Run ||
+              cpudecoder == &CPU_Core_Prefetch_Run ||
+              cpudecoder == &CPU_Core286_Prefetch_Run).
         refresh_item(mainMenu);
 }
 
