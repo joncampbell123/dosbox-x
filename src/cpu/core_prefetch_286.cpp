@@ -125,7 +125,7 @@ static struct {
 #define BaseDS		core.base_ds
 #define BaseSS		core.base_ss
 
-#define PREFETCH_DEBUG
+//#define PREFETCH_DEBUG
 
 #define MAX_PQ_SIZE 32
 static Bit8u prefetch_buffer[MAX_PQ_SIZE];
