@@ -20,9 +20,6 @@
 enum SCREEN_TYPES {
     SCREEN_SURFACE
     ,SCREEN_OPENGL // [FIXME] cannot make this conditional because somehow SDL2 code uses it while C_OPENGL is definitely disabled by C_SDL2 so SCREEN_OPENGL is unavailable
-#if C_DIRECT3D
-    ,SCREEN_DIRECT3D
-#endif
 };
 
 enum AUTOLOCK_FEEDBACK
@@ -189,7 +186,6 @@ extern Bitu frames;
 extern SDL_Block sdl;
 
 #include <output/output_surface.h>
-#include <output/output_direct3d.h>
 #include <output/output_opengl.h>
 #include <output/output_tools.h>
 #include <output/output_tools_xbrz.h>

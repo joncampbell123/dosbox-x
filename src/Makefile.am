@@ -31,10 +31,6 @@ dosbox_x_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuilt
 
 dosbox_x_LDADD += aviwriter/libaviwriter.a
 
-if C_DIRECT3D
-dosbox_x_LDADD += output/direct3d/liboutputdirect3d.a
-endif
-
 if C_XBRZ
 dosbox_x_LDADD += xBRZ/libxbrz.a
 endif

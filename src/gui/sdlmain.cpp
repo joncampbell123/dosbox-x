@@ -1136,12 +1136,6 @@ Bitu GFX_GetBestMode(Bitu flags)
             break;
 #endif
 
-#if C_DIRECT3D
-        case SCREEN_DIRECT3D:
-            retFlags = OUTPUT_DIRECT3D_GetBestMode(flags);
-            break;
-#endif
-
         default:
             // we should never reach here
             retFlags = 0;
@@ -1769,12 +1763,6 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
             break;
 #endif
 
-#if C_DIRECT3D
-        case SCREEN_DIRECT3D: 
-            retFlags = OUTPUT_DIRECT3D_SetSize();
-            break;
-#endif
-
         default:
             // we should never reach here
             retFlags = 0;
@@ -2356,21 +2344,12 @@ void change_output(int output) {
         sdl_opengl.bilinear = false; //NB
 #endif
         break;
-#if C_DIRECT3D
-    case 5:
-        OUTPUT_DIRECT3D_Select();
-        break;
-#endif
     case 6:
         break;
     case 7:
         // do not set want_type
         break;
     case 8:
-#if C_DIRECT3D
-        if (sdl.desktop.want_type == SCREEN_DIRECT3D) 
-            OUTPUT_DIRECT3D_Select();
-#endif
         break;
 
     default:
@@ -2647,11 +2626,6 @@ bool GFX_StartUpdate(Bit8u* &pixels,Bitu &pitch)
             return OUTPUT_OPENGL_StartUpdate(pixels, pitch);
 #endif
 
-#if C_DIRECT3D
-        case SCREEN_DIRECT3D:
-            return OUTPUT_DIRECT3D_StartUpdate(pixels, pitch);
-#endif
-
         default:
             break;
     }
@@ -2686,11 +2660,6 @@ void GFX_EndUpdate(const Bit16u *changedLines) {
     if (sdl.desktop.prevent_fullscreen)
         return;
 
-#if C_DIRECT3D
-    // we may have to do forced update in D3D case
-    if (d3d && d3d->getForceUpdate());
-    else
-#endif
     if (!sdl.updating)
         return;
 
@@ -2704,12 +2673,6 @@ void GFX_EndUpdate(const Bit16u *changedLines) {
 #if C_OPENGL
         case SCREEN_OPENGL:
             OUTPUT_OPENGL_EndUpdate(changedLines);
-            break;
-#endif
-
-#if C_DIRECT3D
-        case SCREEN_DIRECT3D:
-            OUTPUT_DIRECT3D_EndUpdate(changedLines);
             break;
 #endif
 
@@ -2776,11 +2739,6 @@ Bitu GFX_GetRGB(Bit8u red, Bit8u green, Bit8u blue) {
 # endif
 #endif
 
-#if C_DIRECT3D
-        case SCREEN_DIRECT3D:
-            return SDL_MapRGB(sdl.surface->format, red, green, blue);
-#endif
-
         default:
             break;
     }
@@ -2811,12 +2769,6 @@ static void GUI_ShutDown(Section * /*sec*/) {
 #if C_OPENGL
         case SCREEN_OPENGL:
             OUTPUT_OPENGL_Shutdown();
-            break;
-#endif
-
-#if C_DIRECT3D
-        case SCREEN_DIRECT3D:
-            OUTPUT_DIRECT3D_Shutdown();
             break;
 #endif
 
@@ -3137,7 +3089,7 @@ static void GUI_StartUp() {
 
     if (sdl_xbrz.enable) {
         // xBRZ requirements
-        if ((output != "surface") && (output != "direct3d") && (output != "opengl") && (output != "openglhq") && (output != "openglnb"))
+        if ((output != "surface") && (output != "opengl") && (output != "openglhq") && (output != "openglnb"))
             output = "surface";
     }
 #endif
@@ -3146,9 +3098,7 @@ static void GUI_StartUp() {
     // "overlay" was removed, pre-map to Direct3D or OpenGL or surface
     if (output == "overlay") 
     {
-#if C_DIRECT3D
-        output = "direct3d";
-#elif C_OPENGL
+#if C_OPENGL
         output = "opengl";
 #else
         output = "surface";
@@ -3173,15 +3123,6 @@ static void GUI_StartUp() {
     {
         OUTPUT_OPENGL_Select();
         sdl_opengl.bilinear = false;
-#endif
-#if C_DIRECT3D
-    } 
-    else if (output == "direct3d") 
-    {
-        OUTPUT_DIRECT3D_Select();
-#if LOG_D3D
-        LOG_MSG("SDL:Direct3D activated");
-#endif
 #endif
     } 
     else 
@@ -3844,26 +3785,6 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
                 choice_item = mainMenu.menuUserHoverAt = mainMenu.menuUserAttentionAt;
 
                 popup_stack.push_back(mainMenu.menuUserAttentionAt);
-
-#if C_DIRECT3D
-        if (sdl.desktop.want_type == SCREEN_DIRECT3D) {
-            /* In output=direct3d mode, SDL still has a surface but this code ignores SDL
-             * and draws directly to a Direct3D9 backbuffer which is presented to the window
-             * client area. However, GDI output to the window still works, and this code
-             * uses the SDL surface still. Therefore, for menus to draw correctly atop the
-             * Direct3D output, this code copies the Direct3D backbuffer to the SDL surface
-             * first.
-             *
-             * WARNING: This happens to work with Windows (even Windows 10 build 18xx as of
-             * 2018/05/21) because Windows appears to permit mixing Direct3D and GDI rendering
-             * to the window.
-             *
-             * Someday, if Microsoft should break that ability, this code will need to be
-             * revised to send screen "updates" to the Direct3D backbuffer first, then
-             * Present to the window client area. */
-            if (d3d) d3d->UpdateRectToSDLSurface(0, 0, sdl.surface->w, sdl.surface->h);
-        }
-#endif
 
                 if (OpenGL_using()) {
 #if C_OPENGL
@@ -5295,18 +5216,15 @@ void SDL_SetupConfigSection() {
         "opengl", "openglnb", "openglhq",
 #endif
         "ddraw",
-#if C_DIRECT3D
-        "direct3d",
-#endif
         0 };
 #ifdef __WIN32__
 # if defined(HX_DOS)
         Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "surface"); /* HX DOS should stick to surface */
-# elif defined(__MINGW32__) && !(C_DIRECT3D) && !defined(C_SDL2)
+# elif defined(__MINGW32__) && !defined(C_SDL2)
         /* NTS: OpenGL output never seems to work in VirtualBox under Windows XP */
         Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, isVirtualBox ? "surface" : "opengl"); /* MinGW builds do not yet have Direct3D */
 # else
-        Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "direct3d");
+        Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "surface");
 # endif
 #elif defined(MACOSX) && defined(C_OPENGL) && !defined(C_SDL2)
         /* NTS: Lately, especially on Macbooks with Retina displays, OpenGL gives better performance
@@ -5370,16 +5288,6 @@ void SDL_SetupConfigSection() {
 
     Pstring = sdl_sec->Add_path("mapperfile",Property::Changeable::Always,MAPPERFILE);
     Pstring->Set_help("File used to load/save the key/event mappings from. Resetmapper only works with the default value.");
-
-#if C_DIRECT3D && C_D3DSHADERS
-    Pmulti = sdl_sec->Add_multi("pixelshader",Property::Changeable::Always," ");
-    Pmulti->SetValue("none",/*init*/true);
-    Pmulti->Set_help("Pixelshader program (effect file must be in Shaders subdirectory). If 'forced' is appended,\n"
-        "then the shader will be used even if the result might not be desired.");
-
-    Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"none");
-    Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
-#endif
 
     Pbool = sdl_sec->Add_bool("usescancodes",Property::Changeable::Always,false);
     Pbool->Set_help("Avoid usage of symkeys, might not work on all operating systems.");
@@ -6452,12 +6360,6 @@ bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menui
         change_output(4);
 #endif
     }
-    else if (!strcmp(what,"direct3d")) {
-#if C_DIRECT3D
-        if (sdl.desktop.want_type == SCREEN_DIRECT3D) return true;
-        change_output(5);
-#endif
-    }
 
     SetVal("sdl", "output", what);
     OutputSettingMenuUpdate();
@@ -6715,9 +6617,6 @@ void HideMenu_mapper_shortcut(bool pressed) {
 
 void OutputSettingMenuUpdate(void) {
     mainMenu.get_item("output_surface").check(sdl.desktop.want_type == SCREEN_SURFACE).refresh_item(mainMenu);
-#if C_DIRECT3D
-    mainMenu.get_item("output_direct3d").check(sdl.desktop.want_type == SCREEN_DIRECT3D).refresh_item(mainMenu);
-#endif
 #if C_OPENGL
     mainMenu.get_item("output_opengl").check(sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.bilinear).refresh_item(mainMenu);
     mainMenu.get_item("output_openglnb").check(sdl.desktop.want_type == SCREEN_OPENGL && !sdl_opengl.bilinear).refresh_item(mainMenu);
@@ -6818,9 +6717,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     OUTPUT_SURFACE_Initialize();
 #if C_OPENGL
     OUTPUT_OPENGL_Initialize();
-#endif
-#if C_DIRECT3D
-    OUTPUT_DIRECT3D_Initialize();
 #endif
 
     // initialize some defaults in SDL structure here
@@ -7306,8 +7202,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 item.set_text("Output");
 
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_surface").set_text("Surface").
-                    set_callback_function(output_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_direct3d").set_text("Direct3D").
                     set_callback_function(output_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_opengl").set_text("OpenGL").
                     set_callback_function(output_menu_callback);
