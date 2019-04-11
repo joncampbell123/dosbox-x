@@ -799,21 +799,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(machines);
     Pstring->Set_help("The type of machine DOSBox tries to emulate.");
 
-    // TODO: At some point, I would like to make "mask" the default instead of "fast"
-    Pstring = secprop->Add_string("a20",Property::Changeable::WhenIdle,"fast");
-    Pstring->Set_help("A20 gate emulation mode.\n"
-              "The on/off/on_fake/off_fake options are intended for testing and debugging DOS development,\n"
-              "or to emulate obscure hardware, or to work around potential extended memory problems with DOS programs.\n"
-              "on_fake/off_fake are intended to test whether a program carries out a memory test to ensure the A20\n"
-              "gate is set as intended (as HIMEM.SYS does). If it goes by the gate bit alone, it WILL crash.\n"
-              "This parameter is also changeable from the builtin A20GATE command.\n"
-              "  fast                         Emulate A20 gating by remapping the first 64KB @ 1MB boundary (fast, mainline DOSBox behavior)\n"
-              "  mask                         Emulate A20 gating by masking memory I/O address (accurate)\n"
-              "  off                          Lock A20 gate off (Software/OS cannot enable A20)\n"
-              "  on                           Lock A20 gate on (Software/OS cannot disable A20)\n"
-              "  off_fake                     Lock A20 gate off but allow bit to toggle (hope your DOS game tests the HMA!)\n"
-              "  on_fake                      Lock A20 gate on but allow bit to toggle");
-
     Pbool = secprop->Add_bool("turn off a20 gate on boot",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If enabled, A20 gate is switched off when booting a guest OS.\n"
                     "Enabled by default. Recommended for MS-DOS when HIMEM.SYS is not installed in the guest OS.\n"

@@ -1891,44 +1891,11 @@ void A20Gate_OverrideOn(Section *sec) {
 /* this is called after BIOS boot. the BIOS needs the A20 gate ON to boot properly on 386 or higher! */
 void A20Gate_TakeUserSetting(Section *sec) {
     (void)sec;//UNUSED
-    Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
     memory.a20.enabled = 0;
     a20_fake_changeable = false;
     a20_guest_changeable = true;
-
-    // TODO: A20 gate control should also be handled by a motherboard init routine
-    std::string ss = section->Get_string("a20");
-    if (ss == "mask" || ss == "") {
-        LOG(LOG_MISC,LOG_DEBUG)("A20: masking emulation");
-        a20_guest_changeable = true;
-    }
-    else if (ss == "on") {
-        LOG(LOG_MISC,LOG_DEBUG)("A20: locked on");
-        a20_guest_changeable = false;
-        memory.a20.enabled = 1;
-    }
-    else if (ss == "on_fake") {
-        LOG(LOG_MISC,LOG_DEBUG)("A20: locked on (but will fake control bit)");
-        a20_guest_changeable = false;
-        a20_fake_changeable = true;
-        memory.a20.enabled = 1;
-    }
-    else if (ss == "off") {
-        LOG(LOG_MISC,LOG_DEBUG)("A20: locked off");
-        a20_guest_changeable = false;
-        memory.a20.enabled = 0;
-    }
-    else if (ss == "off_fake") {
-        LOG(LOG_MISC,LOG_DEBUG)("A20: locked off (but will fake control bit)");
-        a20_guest_changeable = false;
-        a20_fake_changeable = true;
-        memory.a20.enabled = 0;
-    }
-    else { /* "" or "fast" */
-        LOG(LOG_MISC,LOG_DEBUG)("A20: masking emulation (fast mode no longer supported)");
-        a20_guest_changeable = true;
-    }
+    a20_guest_changeable = true;
 }
 
 void Init_A20_Gate() {
