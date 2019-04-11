@@ -139,13 +139,4 @@ bool MSG_Write(const char * location) {
 }
 
 void MSG_Init() {
-	Section_prop *section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-
-	if (control->opt_lang != "") {
-		LoadMessageFile(control->opt_lang.c_str());
-	}
-	else {
-		Prop_path* pathprop = section->Get_path("language");
-		if (pathprop != NULL) LoadMessageFile(pathprop->realpath.c_str());
-	}
 }

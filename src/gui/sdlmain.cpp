@@ -647,8 +647,6 @@ void GFX_SetIcon(void)
 #endif
 }
 
-extern std::string dosbox_title;
-
 void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
     (void)frameskip;//UNUSED
     (void)timing;//UNUSED
@@ -665,8 +663,7 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 //  if (timing != -1) internal_timing = timing;
 //  if (frameskip != -1) internal_frameskip = frameskip;
 
-    sprintf(title,"%s%sDOSBox-X %s, %d cyc/ms",
-        dosbox_title.c_str(),dosbox_title.empty()?"":": ",
+    sprintf(title,"DOSBox-X %s, %d cyc/ms",
         VERSION,(int)internal_cycles);
 
     {

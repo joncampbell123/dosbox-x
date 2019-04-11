@@ -155,8 +155,6 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     GFX_LosingFocus();//Release any keys pressed (buffer gets filled again). (could be in above if, but clearing the mapper input when exiting the mapper is sensible as well
     SDL_Delay(20);
 
-    LoadMessageFile(static_cast<Section_prop*>(control->GetSection("dosbox"))->Get_string("language"));
-
     // Comparable to the code of intro.com, but not the same! (the code of intro.com is called from within a com file)
     shell_idle = !dos_kernel_disabled && first_shell && (DOS_PSP(dos.psp()).GetSegment() == DOS_PSP(dos.psp()).GetParent());
 

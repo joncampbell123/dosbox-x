@@ -535,8 +535,6 @@ extern bool new_cga;
 
 bool dpi_aware_enable = true;
 
-std::string dosbox_title;
-
 void DOSBOX_InitTickLoop() {
     LOG(LOG_MISC,LOG_DEBUG)("Initializing tick loop management");
 
@@ -627,11 +625,6 @@ void DOSBOX_RealInit() {
 
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     assert(section != NULL);
-
-    // TODO: allow change at any time. in fact if it were possible for DOSBox-X configuration
-    //       schema code to attach event callbacks when a setting changes, we would set one
-    //       on the title= setting now to auto-update the titlebar when this changes.
-    dosbox_title = section->Get_string("title");
 
     // TODO: these should be parsed by DOS kernel at startup
     dosbox_shell_env_size = (unsigned int)section->Get_int("shell environment size");
@@ -807,11 +800,6 @@ void DOSBOX_SetupConfigSections(void) {
     SDLNetInited = false;
 
     secprop=control->AddSection_prop("dosbox",&Null_Init);
-    Pstring = secprop->Add_path("language",Property::Changeable::Always,"");
-    Pstring->Set_help("Select another language file.");
-
-    Pstring = secprop->Add_path("title",Property::Changeable::Always,"");
-    Pstring->Set_help("Additional text to place in the title bar of the window");
 
     Pstring = secprop->Add_string("machine",Property::Changeable::OnlyAtStart,"svga_s3");
     Pstring->Set_values(machines);
