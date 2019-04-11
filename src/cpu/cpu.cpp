@@ -184,9 +184,19 @@ void CPU_Core_Dynrec_Cache_Init(bool enable_cache);
 void CPU_Core_Dynrec_Cache_Close(void);
 #endif
 
+bool CPU_IsDynamicCore(void);
+
 void menu_update_cputype(void) {
 	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
 	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
+    bool allow_prefetch = false;
+
+    if (!CPU_IsDynamicCore()) {
+        allow_prefetch = true;
+        if ((cpudecoder == &CPU_Core_Full_Run) ||
+            (cpudecoder == &CPU_Core_Simple_Run))
+            allow_prefetch = false;
+    }
 
     mainMenu.get_item("cputype_auto").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_MIXED).
@@ -196,36 +206,42 @@ void menu_update_cputype(void) {
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_8086_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_8086 && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        enable(allow_prefetch).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_80186").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder != &CPU_Core286_Prefetch_Run)).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_80186_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_80186 && (cpudecoder == &CPU_Core286_Prefetch_Run)).
+        enable(allow_prefetch).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_286").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder != &CPU_Core286_Prefetch_Run)).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_286_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_286 && (cpudecoder == &CPU_Core286_Prefetch_Run)).
+        enable(allow_prefetch).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_386").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder != &CPU_Core_Prefetch_Run)).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_386_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_386 && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        enable(allow_prefetch).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_486old").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder != &CPU_Core_Prefetch_Run)).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_486old_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_486OLD && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        enable(allow_prefetch).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_486").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder != &CPU_Core_Prefetch_Run)).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_486_prefetch").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_486NEW && (cpudecoder == &CPU_Core_Prefetch_Run)).
+        enable(allow_prefetch).
         refresh_item(mainMenu);
     mainMenu.get_item("cputype_pentium").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM).
