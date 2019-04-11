@@ -608,33 +608,6 @@ if test x$alsa_midi = xtrue ; then
   CXXFLAGS="$CXXFLAGS $ALSA_CFLAGS"
 fi
 
-dnl FEATURE: MT32 (MUNT) emulation
-AH_TEMPLATE(C_MT32,[Define to 1 to enable MT32 emulation (x86/x86_64 only)])
-AC_ARG_ENABLE(mt32,AC_HELP_STRING([--disable-mt32],[Disable MT32 emulation]),,enable_mt32=yes)
-AC_MSG_CHECKING(whether MT32 emulation will be enabled) 
-
-# test
-if test x$enable_mt32 = xyes ; then 
-  case "$host_cpu" in
-    x86_64 | amd64)
-      AC_MSG_RESULT(yes)
-      AC_DEFINE(C_MT32,1)
-      ;;
-    i?86)
-      AC_MSG_RESULT(yes)
-      AC_DEFINE(C_MT32,1)
-      ;;
-    *)
-      enable_mt32=no
-      AC_MSG_RESULT(no)
-      ;;
-  esac
-else
-  enable_mt32=no
-  AC_MSG_RESULT(no)
-fi 
-AM_CONDITIONAL(C_MT32, test "x$enable_mt32" == "xyes")
-
 dnl NASM (Netwide Assembler)
 AC_PATH_PROG([NASM], [nasm])
 if test -z "$ac_cv_path_NASM"; then
@@ -865,7 +838,6 @@ src/debug/Makefile
 src/dos/Makefile
 src/fpu/Makefile
 src/gui/Makefile
-src/mt32/Makefile
 src/hardware/Makefile
 src/hardware/serialport/Makefile
 src/hardware/reSID/Makefile

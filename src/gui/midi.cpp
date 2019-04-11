@@ -126,10 +126,6 @@ static struct {
 
 /* Include different midi drivers, lowest ones get checked first for default */
 
-#if C_MT32
-#include "midi_mt32.h"
-#endif
-
 #if C_FLUIDSYNTH
 #include "midi_synth.h"
 #endif

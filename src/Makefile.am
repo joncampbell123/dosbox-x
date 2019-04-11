@@ -1,6 +1,6 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include "-DRESDIR=\"$(resdir)\""
 
-SUBDIRS = cpu debug dos fpu gui hardware libs ints misc shell builtin platform mt32 aviwriter output
+SUBDIRS = cpu debug dos fpu gui hardware libs ints misc shell builtin platform aviwriter output
 
 bin_PROGRAMS = dosbox-x
 
@@ -26,10 +26,6 @@ dosbox_x_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuilt
 		   output/liboutput.a
 
 dosbox_x_LDADD += aviwriter/libaviwriter.a
-
-if C_MT32
-dosbox_x_LDADD += mt32/libmt32.a
-endif
 
 EXTRA_DIST = winres.rc dosbox.ico
 

@@ -11,13 +11,6 @@ libgui_a_SOURCES = \
 	midi.cpp midi_win32.h midi_oss.h midi_coreaudio.h midi_alsa.h \
 	midi_coremidi.h sdl_gui.cpp dosbox_splash.h menu.cpp bitop.cpp ptrop.cpp zipcrc.c zipfile.cpp
 
-if C_MT32
-AM_CPPFLAGS += -I$(top_srcdir)/src/mt32
-
-libgui_a_SOURCES += \
-	midi_mt32.h
-endif
-
 if MACOSX
 libgui_a_SOURCES += \
 	menu_osx.mm
