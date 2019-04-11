@@ -22,7 +22,6 @@
 #include "vga.h"
 
 extern bool vga_enable_3C6_ramdac;
-extern bool vga_8bit_dac;
 
 /*
 3C6h (R/W):  PEL Mask
@@ -65,31 +64,7 @@ static void VGA_DAC_SendColor( Bitu index, Bitu src ) {
 
     /* FIXME: Can someone behind the GCC project explain how (unsigned int) OR (unsigned int) somehow becomes (signed int)?? */
 
-    if (vga_8bit_dac) {
-        if (GFX_bpp >= 24) /* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */
-            vga.dac.xlat32[index] =
-                (uint32_t)(blue << (GFX_Bshift)) |
-                (uint32_t)(green << (GFX_Gshift)) |
-                (uint32_t)(red<< (GFX_Rshift)) |
-                (uint32_t)GFX_Amask;
-        else {
-            /* FIXME: Assumes 5:6:5. I need to test against 5:5:5 format sometime. Perhaps I could dig out some older VGA cards and XFree86 drivers that support that format? */
-            vga.dac.xlat16[index] =
-                (uint16_t)(((blue&0xffu)>>3u)<<GFX_Bshift) |
-                (uint16_t)(((green&0xffu)>>2u)<<GFX_Gshift) |
-                (uint16_t)(((red&0xffu)>>3u)<<GFX_Rshift) |
-                (uint16_t)GFX_Amask;
-
-            /* PC-98 mode always renders 32bpp, therefore needs this fix */
-            if (GFX_Bshift == 0)
-                vga.dac.xlat32[index] = (uint32_t)(blue << 0U) | (uint32_t)(green << 8U) | (uint32_t)(red << 16U);
-            else
-                vga.dac.xlat32[index] = (uint32_t)(blue << 16U) | (uint32_t)(green << 8U) | (uint32_t)(red << 0U);
-        }
-
-        RENDER_SetPal( index, red, green, blue );
-    }
-    else {
+    {
         if (GFX_bpp >= 24) /* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */
             vga.dac.xlat32[index] =
                 (uint32_t)(blue << (2u + GFX_Bshift)) |
@@ -233,7 +208,6 @@ Bitu read_p3c8(Bitu port, Bitu iolen){
     return vga.dac.write_index;
 }
 
-extern bool enable_vga_8bit_dac;
 extern bool vga_palette_update_on_full_load;
 
 static unsigned char tmp_dac[3] = {0,0,0};
@@ -245,8 +219,7 @@ void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
     vga.dac.hidac_counter=0;
 
-    if (!enable_vga_8bit_dac)
-        val&=0x3f;
+    val&=0x3f;
 
     if (vga.dac.pel_index < 3) {
         tmp_dac[vga.dac.pel_index]=val;

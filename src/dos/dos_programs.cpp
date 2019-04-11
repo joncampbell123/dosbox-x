@@ -3076,7 +3076,6 @@ private:
                 //get reference to image and cdrom before they are possibly destroyed
                 fatDrive * drive = dynamic_cast<fatDrive*>(Drives[i_drive]);
                 imageDisk* image = drive ? drive->loadedDisk : NULL;
-                isoDrive * cdrom = dynamic_cast<isoDrive*>(Drives[i_drive]);
 
                 switch (DriveManager::UnmountDrive(i_drive)) {
                 case 0: //success

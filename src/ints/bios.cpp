@@ -74,7 +74,6 @@ bool KEYBOARD_Report_BIOS_PS2Mouse();
 bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
 void pc98_update_palette(void);
 
-bool bochs_port_e9 = false;
 bool isa_memory_hole_512kb = false;
 bool int15_wait_force_unmask_irq = false;
 
@@ -113,27 +112,6 @@ Bitu                        rombios_minimum_size = 0x10000;
 
 bool MEM_map_ROM_physmem(Bitu start,Bitu end);
 bool MEM_unmap_physmem(Bitu start,Bitu end);
-
-static std::string bochs_port_e9_line;
-
-static void bochs_port_e9_flush() {
-    if (!bochs_port_e9_line.empty()) {
-        LOG_MSG("Bochs port E9h: %s",bochs_port_e9_line.c_str());
-        bochs_port_e9_line.clear();
-    }
-}
-
-void bochs_port_e9_write(Bitu port,Bitu val,Bitu /*iolen*/) {
-    (void)port;//UNUSED
-    if (val == '\n' || val == '\r') {
-        bochs_port_e9_flush();
-    }
-    else {
-        bochs_port_e9_line += (char)val;
-        if (bochs_port_e9_line.length() >= 256)
-            bochs_port_e9_flush();
-    }
-}
 
 void ROMBIOS_DumpMemory() {
     rombios_alloc.logDump();
@@ -610,7 +588,6 @@ static IO_WriteHandler* dosbox_integration_cb_port_w(IO_CalloutObject &co,Bitu p
  * zero is reported. ems and xms can increase or decrease the other_memsystems
  * counter using the BIOS_ZeroExtendedSize call */
 static Bit16u size_extended;
-static IO_WriteHandleObject *BOCHS_PORT_E9 = NULL;
 
 static Bits other_memsystems=0;
 void CMOS_SetRegister(Bitu regNr, Bit8u val); //For setting equipment word
@@ -4166,11 +4143,6 @@ private:
             dosbox_int_iocallout = IO_Callout_t_none;
         }
 
-        if (BOCHS_PORT_E9) {
-            delete BOCHS_PORT_E9;
-            BOCHS_PORT_E9=NULL;
-        }
-
         extern Bitu call_default,call_default2;
 
         if (IS_PC98_ARCH) {
@@ -5108,8 +5080,6 @@ public:
 
             enable_pc98_copyright_string = section->Get_bool("pc-98 BIOS copyright string");
 
-            bochs_port_e9 = section->Get_bool("bochs debug port e9");
-
             // TODO: motherboard init, especially when we get around to full Intel Triton/i440FX chipset emulation
             isa_memory_hole_512kb = section->Get_bool("isa memory hole at 512kb");
 
@@ -5133,20 +5103,6 @@ public:
                     unhandled_irq_method = UNHANDLED_IRQ_COOPERATIVE_2ND;
                 else
                     unhandled_irq_method = UNHANDLED_IRQ_SIMPLE;
-            }
-        }
-
-        if (bochs_port_e9) {
-            if (BOCHS_PORT_E9 == NULL) {
-                BOCHS_PORT_E9 = new IO_WriteHandleObject;
-                BOCHS_PORT_E9->Install(0xE9,bochs_port_e9_write,IO_MB);
-            }
-            LOG(LOG_MISC,LOG_DEBUG)("Bochs port E9h emulation is active");
-        }
-        else {
-            if (BOCHS_PORT_E9 != NULL) {
-                delete BOCHS_PORT_E9;
-                BOCHS_PORT_E9 = NULL;
             }
         }
 
@@ -5375,11 +5331,6 @@ public:
          * and if allowed to do it's thing in a 32-bit guest OS like WinNT, will trigger
          * a page fault. */
         CPU_Snap_Back_To_Real_Mode();
-
-        if (BOCHS_PORT_E9) {
-            delete BOCHS_PORT_E9;
-            BOCHS_PORT_E9=NULL;
-        }
 
         if (dosbox_int_iocallout != IO_Callout_t_none) {
             IO_FreeCallout(dosbox_int_iocallout);

@@ -30,9 +30,6 @@ Int10Data int10;
 static Bitu call_10 = 0;
 static bool warned_ff=false;
 
-extern bool enable_vga_8bit_dac;
-extern bool vga_8bit_dac;
-
 Bitu INT10_Handler(void) {
 	// NTS: We do have to check the "current video mode" from the BIOS data area every call.
 	//      Some OSes like Windows 95 rely on overwriting the "current video mode" byte in
@@ -626,32 +623,10 @@ CX	640x480	800x600	  1024x768/1280x1024
         case 0x08:
             switch (reg_bl) {
                 case 0x00:                  /* Set DAC width */
-                    if (CurMode->type == M_LIN8) {
-                        /* TODO: If there is a bit on S3 cards to control DAC width in "pseudocolor" modes, replace this code
-                         *       with something to write that bit instead of internal state change like this. */
-                        if (reg_bh >= 8 && enable_vga_8bit_dac)
-                            vga_8bit_dac = true;
-                        else
-                            vga_8bit_dac = false;
-
-                        VGA_DAC_UpdateColorPalette();
-                        reg_bh=(vga_8bit_dac ? 8 : 6);
-                        reg_ah=0x0;
-
-                        LOG(LOG_INT10,LOG_NORMAL)("VESA BIOS called to set VGA DAC width to %u bits",reg_bh);
-                    }
-                    else {
-                        reg_ah=0x3;
-                    }
+                    reg_ah=0x3;
                     break;
                 case 0x01:                  /* Get DAC width */
-                    if (CurMode->type == M_LIN8) {
-                        reg_bh=(vga_8bit_dac ? 8 : 6);
-                        reg_ah=0x0;
-                    }
-                    else {
-                        reg_ah=0x3;
-                    }
+                    reg_ah=0x3;
                     break;
                 default:
                     LOG(LOG_INT10,LOG_ERROR)("Unhandled VESA Function %X Subfunction %X",reg_al,reg_bl);

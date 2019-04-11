@@ -33,7 +33,6 @@
 #define GFX_REGS 0x09
 #define ATT_REGS 0x15
 
-extern bool enable_vga_8bit_dac;
 extern bool int10_vesa_map_as_128kb;
 extern bool allow_vesa_lowres_modes;
 extern bool allow_vesa_4bpp_packed;
@@ -45,7 +44,6 @@ extern bool allow_vesa_15bpp;
 extern bool allow_vesa_8bpp;
 extern bool allow_vesa_4bpp;
 extern bool allow_vesa_tty;
-extern bool vga_8bit_dac;
 
 VideoModeBlock ModeList_VGA[]={
 /* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
@@ -1073,7 +1071,6 @@ bool INT10_SetVideoMode(Bit16u mode) {
 		}
 
         // INT 10h modeset will always clear 8-bit DAC mode (by VESA BIOS standards)
-        vga_8bit_dac = false;
         VGA_DAC_UpdateColorPalette();
     } else {
 		if (!SetCurMode(ModeList_EGA,mode)){
