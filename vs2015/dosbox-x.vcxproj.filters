@@ -103,9 +103,6 @@
     <Filter Include="Sources\hardware\snd_pc98\sound\getsnd">
       <UniqueIdentifier>{f6769d5c-60ef-441a-9658-290ad81b7cec}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\output\direct3d">
-      <UniqueIdentifier>{3755469d-f02e-4c3e-b6cd-25db8b71b1fd}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -313,9 +310,6 @@
       <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\dma.cpp">
-      <Filter>Sources\hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\dongle.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\floppy.cpp">
@@ -702,9 +696,6 @@
     <ClCompile Include="..\src\output\output_surface.cpp">
       <Filter>Sources\output</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\output\output_direct3d.cpp">
-      <Filter>Sources\output</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\output\output_opengl.cpp">
       <Filter>Sources\output</Filter>
     </ClCompile>
@@ -791,15 +782,6 @@
     </ClCompile>
     <ClCompile Include="..\src\hardware\snd_pc98\sound\tms3631g.c">
       <Filter>Sources\hardware\snd_pc98\sound</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\output\direct3d\direct3d.cpp">
-      <Filter>Sources\output\direct3d</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\output\direct3d\hq2x_d3d.cpp">
-      <Filter>Sources\output\direct3d</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\output\direct3d\ScalingEffect.cpp">
-      <Filter>Sources\output\direct3d</Filter>
     </ClCompile>
     <ClCompile Include="..\src\gui\zipfile.cpp">
       <Filter>Sources</Filter>
@@ -1343,9 +1325,6 @@
     <ClInclude Include="..\src\output\output_surface.h">
       <Filter>Sources\output</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\output\output_direct3d.h">
-      <Filter>Sources\output</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\output\output_opengl.h">
       <Filter>Sources\output</Filter>
     </ClInclude>
@@ -1408,18 +1387,6 @@
     </ClInclude>
     <ClInclude Include="..\src\hardware\snd_pc98\common\wavefile.h">
       <Filter>Sources\hardware\snd_pc98\common</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\output\direct3d\d3d_components.h">
-      <Filter>Sources\output\direct3d</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\output\direct3d\direct3d.h">
-      <Filter>Sources\output\direct3d</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\output\direct3d\hq2x_d3d.h">
-      <Filter>Sources\output\direct3d</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\output\direct3d\ScalingEffect.h">
-      <Filter>Sources\output\direct3d</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

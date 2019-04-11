@@ -1537,10 +1537,6 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\misc\regionalloctracking.cpp" />
     <ClCompile Include="..\src\misc\setup.cpp" />
     <ClCompile Include="..\src\misc\support.cpp" />
-    <ClCompile Include="..\src\output\direct3d\direct3d.cpp" />
-    <ClCompile Include="..\src\output\direct3d\hq2x_d3d.cpp" />
-    <ClCompile Include="..\src\output\direct3d\ScalingEffect.cpp" />
-    <ClCompile Include="..\src\output\output_direct3d.cpp" />
     <ClCompile Include="..\src\output\output_opengl.cpp" />
     <ClCompile Include="..\src\output\output_surface.cpp" />
     <ClCompile Include="..\src\output\output_surface_sdl.cpp" />
@@ -1743,11 +1739,6 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClInclude Include="..\src\mt32\TVA.h" />
     <ClInclude Include="..\src\mt32\TVF.h" />
     <ClInclude Include="..\src\mt32\TVP.h" />
-    <ClInclude Include="..\src\output\direct3d\d3d_components.h" />
-    <ClInclude Include="..\src\output\direct3d\direct3d.h" />
-    <ClInclude Include="..\src\output\direct3d\hq2x_d3d.h" />
-    <ClInclude Include="..\src\output\direct3d\ScalingEffect.h" />
-    <ClInclude Include="..\src\output\output_direct3d.h" />
     <ClInclude Include="..\src\output\output_opengl.h" />
     <ClInclude Include="..\src\output\output_surface.h" />
     <ClInclude Include="..\src\output\output_tools.h" />
