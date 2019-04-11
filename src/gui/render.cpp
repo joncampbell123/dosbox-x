@@ -404,27 +404,16 @@ void RENDER_Reset( void ) {
             simpleBlock = &ScaleNormal2x;
         else if (render.scale.size == 3)
             simpleBlock = &ScaleNormal3x;
-        else if (render.scale.size == 1 && !(dblh || dblw) && render.scale.hardware)
-            simpleBlock = &ScaleNormal1x;
-        else if (render.scale.size == 4 && !(dblh || dblw) && render.scale.hardware)
-            simpleBlock = &ScaleNormal2x;
-        else if (render.scale.size == 6 && !(dblh || dblw) && render.scale.hardware)
-            simpleBlock = &ScaleNormal3x;
-        else if (render.scale.size == 4 && !render.scale.hardware)
+        else if (render.scale.size == 4)
             simpleBlock = &ScaleNormal4x;
-        else if (render.scale.size == 5 && !render.scale.hardware)
-            simpleBlock = &ScaleNormal5x;
-        else if (render.scale.size == 8 && !(dblh || dblw) && render.scale.hardware)
-            simpleBlock = &ScaleNormal4x;
-        else if (render.scale.size == 10 && !(dblh || dblw) && render.scale.hardware)
+        else if (render.scale.size == 5)
             simpleBlock = &ScaleNormal5x;
         else
             simpleBlock = &ScaleNormal1x;
         /* Maybe override them */
-    } else if (dblw && !render.scale.hardware) {
+    } else if (dblw) {
         simpleBlock = &ScaleNormalDw;
-    } else if (dblh && !render.scale.hardware) {
-        //Check whether tv2x and scan2x is selected
+    } else if (dblh) {
         simpleBlock = &ScaleNormalDh;
     } else  {
 forcenormal:
@@ -496,44 +485,10 @@ forcenormal:
     width *= xscale;
     Bitu skip = complexBlock ? 1 : 0;
     if (gfx_flags & GFX_SCALING) {
-        if(render.scale.size == 1 && render.scale.hardware) { //hardware_none
-            if(dblh)
-            gfx_scaleh *= 1;
-            if(dblw)
-            gfx_scalew *= 1;
-        } else if(render.scale.size == 4 && render.scale.hardware) {
-            if(dblh)
-            gfx_scaleh *= 2;
-            if(dblw)
-            gfx_scalew *= 2;
-        } else if(render.scale.size == 6 && render.scale.hardware) {
-            if(dblh && dblw) {
-            gfx_scaleh *= 3; gfx_scalew *= 3;
-            } else if(dblh) {
-            gfx_scaleh *= 2;
-            } else if(dblw)
-            gfx_scalew *= 2;
-        } else if(render.scale.size == 8 && render.scale.hardware) { //hardware4x
-            if(dblh)
-            gfx_scaleh *= 4;
-            if(dblw)
-            gfx_scalew *= 4;
-        } else if(render.scale.size == 10 && render.scale.hardware) { //hardware5x
-            if(dblh && dblw) {
-            gfx_scaleh *= 5; gfx_scalew *= 5;
-            } else if(dblh) {
-            gfx_scaleh *= 4;
-            } else if(dblw)
-            gfx_scalew *= 4;
-        }
         height = MakeAspectTable(skip, render.src.height, yscale, yscale );
     } else {
         // Print a warning when hardware scalers are selected, hopefully the first
         // video mode will not have dblh or dblw or AR will be wrong
-        if (render.scale.hardware) {
-            LOG_MSG("Output does not support hardware scaling, switching to normal scalers");
-            render.scale.hardware=false;
-        }
         if ((gfx_flags & GFX_CAN_RANDOM) && gfx_scaleh > 1) {
             gfx_scaleh *= yscale;
             height = MakeAspectTable( skip, render.src.height, gfx_scaleh, yscale );
@@ -806,23 +761,21 @@ void RENDER_UpdateFromScalerSetting(void) {
 
     bool p_forced = render.scale.forced;
     unsigned int p_size = render.scale.size;
-    bool p_hardware = render.scale.hardware;
     unsigned int p_op = render.scale.op;
 
     render.scale.forced = false;
     if(f == "forced") render.scale.forced = true;
    
-    if (scaler == "none") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware=false; }
-    else if (scaler == "normal2x") { render.scale.op = scalerOpNormal; render.scale.size = 2; render.scale.hardware=false; }
-    else if (scaler == "normal3x") { render.scale.op = scalerOpNormal; render.scale.size = 3; render.scale.hardware=false; }
-    else if (scaler == "normal4x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=false; }
-    else if (scaler == "normal5x") { render.scale.op = scalerOpNormal; render.scale.size = 5; render.scale.hardware=false; }
+    if (scaler == "none") { render.scale.op = scalerOpNormal; render.scale.size = 1; }
+    else if (scaler == "normal2x") { render.scale.op = scalerOpNormal; render.scale.size = 2; }
+    else if (scaler == "normal3x") { render.scale.op = scalerOpNormal; render.scale.size = 3; }
+    else if (scaler == "normal4x") { render.scale.op = scalerOpNormal; render.scale.size = 4; }
+    else if (scaler == "normal5x") { render.scale.op = scalerOpNormal; render.scale.size = 5; }
 
     bool reset = false;
 
     if (p_forced != render.scale.forced) reset = true;
     if (p_size != render.scale.size) reset = true;
-    if (p_hardware != render.scale.hardware) reset = true;
     if (p_op != render.scale.op) reset = true;
 
     if (reset) RENDER_CallBack(GFX_CallBackReset);

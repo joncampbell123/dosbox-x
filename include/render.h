@@ -80,7 +80,6 @@ typedef struct {
 		scalerOperation_t op;
 		bool clearCache;
 		bool forced;
-		bool hardware;
 		ScalerLineHandler_t lineHandler;
 		ScalerLineHandler_t linePalHandler;
 		ScalerComplexHandler_t complexHandler;
