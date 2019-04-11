@@ -1559,20 +1559,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(0,100);
     Pint->Set_help("How many milliseconds of data to keep on top of the blocksize.");
 
-    secprop = control->AddSection_prop("speaker",&Null_Init,true);//done
-    Pbool = secprop->Add_bool("pcspeaker",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Enable PC-Speaker emulation.");
-
-    Pint = secprop->Add_int("initial frequency",Property::Changeable::WhenIdle,-1);
-    Pint->Set_help("PC speaker PIT timer is programmed to this frequency on startup. If the DOS game\n"
-            "or demo causes a long audible beep at startup (leaving the gate open) try setting\n"
-            "this option to 0 to silence the PC speaker until reprogrammed by the demo.\n"
-            "Set to 0 for some early Abaddon demos including \"Torso\" and \"Cycling\".");
-
-    Pint = secprop->Add_int("pcrate",Property::Changeable::WhenIdle,44100);
-    Pint->Set_values(rates);
-    Pint->Set_help("Sample rate of the PC-Speaker sound generation.");
-
     /* All the DOS Related stuff, which will eventually start up in the shell */
     secprop=control->AddSection_prop("dos",&Null_Init,false);//done
     Pbool = secprop->Add_bool("xms",Property::Changeable::WhenIdle,true);

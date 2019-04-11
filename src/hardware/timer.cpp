@@ -449,10 +449,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
                 return;
             }
             else if ((p->mode == 3) && (counter == (IS_PC98_ARCH ? 1 : 2))) {
-                void PCSPEAKER_SetCounter_NoNewMode(Bitu cntr);
-
                 // PC speaker
-                PCSPEAKER_SetCounter_NoNewMode(p->cntr);
                 p->update_count=true;
                 return;
             }
@@ -492,12 +489,8 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 
             break;
         case 0x01:          /* Timer hooked to PC-Speaker (NEC-PC98) */
-            if (IS_PC98_ARCH)
-                PCSPEAKER_SetCounter(p->cntr,p->mode);
             break;
         case 0x02:			/* Timer hooked to PC-Speaker (IBM PC) */
-            if (!IS_PC98_ARCH)
-                PCSPEAKER_SetCounter(p->cntr,p->mode);
             break;
         default:
 			LOG(LOG_PIT,LOG_ERROR)("PIT:Illegal timer selected for writing");
@@ -633,7 +626,6 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			pit[latch].new_mode = true;
 			if (latch == (IS_PC98_ARCH ? 1 : 2)) {
 				// notify pc speaker code that the control word was written
-				PCSPEAKER_SetPITControl(mode);
 			}
 		}
 		break;
@@ -767,9 +759,8 @@ void TIMER_BIOS_INIT_Configure() {
     int pcspeaker_pit = IS_PC98_ARCH ? 1 : 2; /* IBM: PC speaker on output 2   PC-98: PC speaker on output 1 */
 
 	{
-		Section_prop *pcsec = static_cast<Section_prop *>(control->GetSection("speaker"));
-		int freq = pcsec->Get_int("initial frequency"); /* original code: 1320 */
 		unsigned int div;
+		int freq = 0;
 
         /* IBM PC defaults to 903Hz.
          * NEC PC-98 defaults to 2KHz */
@@ -800,7 +791,6 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[1].latch_next_counter();
 	pit[2].latch_next_counter();
 
-	PCSPEAKER_SetCounter(pit[pcspeaker_pit].cntr,pit[pcspeaker_pit].mode);
 	PIC_AddEvent(PIT0_Event,pit[0].delay);
 
     if (IS_PC98_ARCH) {
