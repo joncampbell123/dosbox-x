@@ -160,11 +160,6 @@ const char *scaler_menu_opts[][2] = {
     { "normal3x",               "Normal 3X" },
     { "normal4x",               "Normal 4X" },
     { "normal5x",               "Normal 5X" },
-    { "hardware_none",          "Hardware None" },
-    { "hardware2x",             "Hardware 2X" },
-    { "hardware3x",             "Hardware 3X" },
-    { "hardware4x",             "Hardware 4X" },
-    { "hardware5x",             "Hardware 5X" },
     { NULL, NULL }
 };
 
