@@ -766,7 +766,7 @@ void VGA_Reset(Section*) {
      *        various motherboard chipsets known to "steal"
      *        off the top of system RAM, like Intel and
      *        Chips & Tech VGA implementations? */
-    vga.mem.memsize  = _MB_bytes(section->Get_int("vmemsize"));
+    vga.mem.memsize  = _MB_bytes(8);
     vga.mem.memsize  = (vga.mem.memsize + 0xFFFu) & (~0xFFFu);
     /* mainline compatible: vmemsize == 0 means 512KB */
     if (vga.mem.memsize == 0) vga.mem.memsize = _KB_bytes(512);

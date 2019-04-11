@@ -800,21 +800,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(machines);
     Pstring->Set_help("The type of machine DOSBox tries to emulate.");
 
-    Pint = secprop->Add_int("vmemsize", Property::Changeable::WhenIdle,2);
-    Pint->SetMinMax(0,8);
-    Pint->Set_help(
-        "Amount of video memory in megabytes.\n"
-        "  The maximum resolution and color depth the svga_s3 will be able to display\n"
-        "  is determined by this value.\n "
-        "  0: 512k (800x600  at 256 colors)\n"
-        "  1: 1024x768  at 256 colors or 800x600  at 64k colors\n"
-        "  2: 1600x1200 at 256 colors or 1024x768 at 64k colors or 640x480 at 16M colors\n"
-        "  4: 1600x1200 at 64k colors or 1024x768 at 16M colors\n"
-        "  8: up to 1600x1200 at 16M colors\n"
-        "For build engine games, use more memory than in the list above so it can\n"
-        "use triple buffering and thus won't flicker.\n"
-        );
-
     // NOTE: This will be revised as I test the DOSLIB code against more VGA/SVGA hardware!
     Pstring = secprop->Add_string("vga attribute controller mapping",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(vga_ac_mapping_settings);
