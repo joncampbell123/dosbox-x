@@ -1751,19 +1751,7 @@ void Init_RAM() {
     assert(memory.mem_alias_pagemask >= 0xFF);
 
     /* Setup the Physical Page Links */
-    Bitu memsizekb = (Bitu)section->Get_int("memsizekb");
-    {
-        Bitu memsize = (Bitu)section->Get_int("memsize");
-
-        if (memsizekb == 0 && memsize < 1) memsize = 1;
-        else if (memsizekb != 0 && (Bits)memsize < 0) memsize = 0;
-
-        /* round up memsizekb to 4KB multiple */
-        memsizekb = (memsizekb + 3ul) & (~3ul);
-
-        /* roll memsize into memsizekb, simplify this code */
-        memsizekb += memsize * 1024ul;
-    }
+    Bitu memsizekb = (Bitu)section->Get_int("memsize") * (Bitu)1024;
 
     /* we can't have more memory than the memory aliasing allows */
     if ((memory.mem_alias_pagemask+1) != 0/*32-bit integer overflow avoidance*/ &&

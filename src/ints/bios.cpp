@@ -5470,43 +5470,20 @@ extern Bit8u int10_font_08[256 * 8];
 
 /* NTS: Do not use callbacks! This function is called before CALLBACK_Init() */
 void ROMBIOS_Init() {
-    Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-    Bitu oi,i;
+    Bitu i;
 
     // log
     LOG(LOG_MISC,LOG_DEBUG)("Initializing ROM BIOS");
 
-    oi = (Bitu)section->Get_int("rom bios minimum size"); /* in KB */
-    oi = (oi + 3u) & ~3u; /* round to 4KB page */
-    if (oi > 128u) oi = 128u;
-    if (oi == 0u) {
-        if (IS_PC98_ARCH)
-            oi = 96u; // BIOS standard range is E8000-FFFFF
-        else
-            oi = 64u;
-    }
-    if (oi < 8) oi = 8; /* because of some of DOSBox's fixed ROM structures we can only go down to 8KB */
-    rombios_minimum_size = (oi << 10); /* convert to minimum, using size coming downward from 1MB */
+    if (IS_PC98_ARCH)
+        rombios_minimum_size = 0x18000ul;
+    else
+        rombios_minimum_size = 0x10000ul;
 
-    oi = (Bitu)section->Get_int("rom bios allocation max"); /* in KB */
-    oi = (oi + 3u) & ~3u; /* round to 4KB page */
-    if (oi > 128u) oi = 128u;
-    if (oi == 0u) {
-        if (IS_PC98_ARCH)
-            oi = 96u;
-        else
-            oi = 64u;
-    }
-    if (oi < 8u) oi = 8u; /* because of some of DOSBox's fixed ROM structures we can only go down to 8KB */
-    oi <<= 10u;
-    if (oi < rombios_minimum_size) oi = rombios_minimum_size;
-    rombios_minimum_location = 0x100000ul - oi; /* convert to minimum, using size coming downward from 1MB */
+    rombios_minimum_location = 0x100000ul - rombios_minimum_size; /* convert to minimum, using size coming downward from 1MB */
 
     LOG(LOG_BIOS,LOG_DEBUG)("ROM BIOS range: 0x%05X-0xFFFFF",(int)rombios_minimum_location);
     LOG(LOG_BIOS,LOG_DEBUG)("ROM BIOS range according to minimum size: 0x%05X-0xFFFFF",(int)(0x100000 - rombios_minimum_size));
-
-    if (IS_PC98_ARCH && rombios_minimum_location > 0xE8000)
-        LOG(LOG_BIOS,LOG_DEBUG)("Caution: Minimum ROM base higher than E8000 will prevent use of actual PC-98 BIOS image or N88 BASIC");
 
     if (!MEM_map_ROM_physmem(rombios_minimum_location,0xFFFFF)) E_Exit("Unable to map ROM region as ROM");
 

@@ -735,14 +735,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(machines);
     Pstring->Set_help("The type of machine DOSBox tries to emulate.");
 
-    Pint = secprop->Add_int("rom bios allocation max",Property::Changeable::OnlyAtStart,0);
-    Pint->SetMinMax(0,128);
-    Pint->Set_help("Maximum size (top down from 1MB) allowed for ROM BIOS dynamic allocation in KB");
-
-    Pint = secprop->Add_int("rom bios minimum size",Property::Changeable::OnlyAtStart,0);
-    Pint->SetMinMax(0,128);
-    Pint->Set_help("Once ROM BIOS layout is finalized, trim total region down to a minimum amount in KB");
-
     Pint = secprop->Add_int("memsize", Property::Changeable::WhenIdle,16);
     Pint->SetMinMax(1,511);
     Pint->Set_help(
@@ -751,16 +743,6 @@ void DOSBOX_SetupConfigSections(void) {
         "  though few games might require a higher value.\n"
         "  There is generally no speed advantage when raising this value.\n"
         "  Programs that use 286 protected mode like Windows 3.0 in Standard Mode may crash with more than 15MB.");
-
-    Pint = secprop->Add_int("memsizekb", Property::Changeable::WhenIdle,0);
-    Pint->SetMinMax(0,524288);
-    Pint->Set_help(
-        "Amount of memory DOSBox has in kilobytes.\n"
-        "  This value should normally be set to 0.\n"
-        "  If nonzero, it is added to the memsize parameter.\n"
-        "  Finer grained control of total memory may be useful in\n"
-        "  emulating ancient DOS machines with less than 640KB of\n"
-        "  RAM or early 386 systems with odd extended memory sizes.");
 
     Pint = secprop->Add_int("dos mem limit", Property::Changeable::WhenIdle,0);
     Pint->SetMinMax(0,1023);
