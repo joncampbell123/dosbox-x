@@ -35,6 +35,9 @@ using namespace std;
 
 #include <algorithm>
 
+bool CPU_RDMSR();
+bool CPU_WRMSR();
+
 #define CPU_CORE CPU_ARCHTYPE_286
 #define CPU_Core_Prefetch_Trap_Run CPU_Core286_Prefetch_Trap_Run
 
@@ -156,13 +159,8 @@ static Bit32u Fetchd() {
 	return Fetch<uint32_t>();
 }
 
-bool CPU_RDMSR();
-bool CPU_WRMSR();
-
 #define Push_16 CPU_Push16
-#define Push_32 CPU_Push32
 #define Pop_16 CPU_Pop16
-#define Pop_32 CPU_Pop32
 
 #include "instructions.h"
 #include "core_normal/support.h"
@@ -239,8 +237,6 @@ restart_opcode:
 		switch (core.opcode_index+next_opcode) {
 		#include "core_normal/prefix_none.h"
 		#include "core_normal/prefix_0f.h"
-		#include "core_normal/prefix_66.h"
-		#include "core_normal/prefix_66_0f.h"
 		default:
 		illegal_opcode:
 #if C_DEBUG
