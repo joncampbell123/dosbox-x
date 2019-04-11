@@ -124,7 +124,6 @@ static struct {
 #define BaseDS		core.base_ds
 #define BaseSS		core.base_ss
 
-
 #define MAX_PQ_SIZE 32
 static Bit8u prefetch_buffer[MAX_PQ_SIZE];
 static bool pq_valid=false;
@@ -139,108 +138,10 @@ static unsigned int pq_hit=0,pq_miss=0;
 
 //#define PREFETCH_DEBUG
 
-/* WARNING: This code needs MORE TESTING. So far, it seems to work fine. */
+/* MUST BE POWER OF 2 */
+#define prefetch_unit       (4ul)
 
-template <class T> static inline bool prefetch_hit(const Bitu w) {
-    return pq_valid && (w >= pq_start && (w + sizeof(T)) <= pq_fill);
-}
-
-template <class T> static inline T prefetch_read(const Bitu w);
-
-template <class T> static inline void prefetch_read_check(const Bitu w) {
-    (void)w;//POSSIBLY UNUSED
-#ifdef PREFETCH_DEBUG
-    if (!pq_valid) E_Exit("CPU: Prefetch read when not valid!");
-    if (w < pq_start) E_Exit("CPU: Prefetch read below prefetch base");
-    if ((w+sizeof(T)) > pq_fill) E_Exit("CPU: Prefetch read beyond prefetch fill");
-#endif
-}
-
-template <> uint8_t prefetch_read<uint8_t>(const Bitu w) {
-    prefetch_read_check<uint8_t>(w);
-    return prefetch_buffer[w - pq_start];
-}
-
-template <> uint16_t prefetch_read<uint16_t>(const Bitu w) {
-    prefetch_read_check<uint16_t>(w);
-    return host_readw(&prefetch_buffer[w - pq_start]);
-}
-
-template <> uint32_t prefetch_read<uint32_t>(const Bitu w) {
-    prefetch_read_check<uint32_t>(w);
-    return host_readd(&prefetch_buffer[w - pq_start]);
-}
-
-static inline void prefetch_init(const Bitu start) {
-    /* start must be DWORD aligned */
-    pq_start = pq_fill = start;
-    pq_valid = true;
-}
-
-static inline void prefetch_filldword(void) {
-    host_writed(&prefetch_buffer[pq_fill - pq_start],LoadMd(pq_fill));
-    pq_fill += 4/*DWORD*/;
-}
-
-static inline void prefetch_refill(const Bitu stop) {
-    while (pq_fill < stop) prefetch_filldword();
-}
-
-static inline void prefetch_lazyflush(const Bitu w) {
-    /* assume: prefetch buffer hit.
-     * assume: w >= pq_start + sizeof(T) and w + sizeof(T) <= pq_fill
-     * assume: prefetch buffer is full.
-     * assume: w is the memory address + sizeof(T)
-     * assume: pq_start is DWORD aligned.
-     * assume: CPU_PrefetchQueueSize >= 4 */
-    if ((w - pq_start) >= pq_limit) {
-        memmove(prefetch_buffer,prefetch_buffer+4,pq_limit-4);
-        pq_start += 4;
-
-        prefetch_filldword();
-#ifdef PREFETCH_DEBUG
-        assert(pq_start+pq_limit == pq_fill);
-#endif
-    }
-}
-
-/* this implementation follows what I think the Intel 80386/80486 is more likely
- * to do when fetching from prefetch and refilling prefetch --J.C. */
-template <class T> static inline T Fetch(void) {
-    T temp;
-
-    if (prefetch_hit<T>(core.cseip)) {
-        /* as long as prefetch hits are occurring, keep loading more! */
-        if ((pq_fill - pq_start) < pq_limit) {
-            prefetch_filldword();
-            if (sizeof(T) >= 4 && (pq_fill - pq_start) < pq_limit)
-                prefetch_filldword();
-        }
-
-        temp = prefetch_read<T>(core.cseip);
-#ifdef PREFETCH_DEBUG
-        pq_hit++;
-#endif
-    }
-    else {
-        prefetch_init(core.cseip & (~0x3)); /* fill prefetch starting on DWORD boundary */
-        prefetch_refill(pq_start + pq_reload); /* perhaps in the time it takes for a prefetch miss the 80486 can load two DWORDs */
-        temp = prefetch_read<T>(core.cseip);
-#ifdef PREFETCH_DEBUG
-        pq_miss++;
-#endif
-    }
-
-#ifdef PREFETCH_DEBUG
-    if (pq_valid) {
-        assert(core.cseip >= pq_start && (core.cseip+sizeof(T)) <= pq_fill);
-        assert(pq_fill >= pq_start && (pq_fill - pq_start) <= pq_limit);
-    }
-#endif
-
-    core.cseip += sizeof(T);
-    return temp;
-}
+#include "core_prefetch_buf.h"
 
 static Bit8u Fetchb() {
 	return Fetch<uint8_t>();
@@ -284,7 +185,7 @@ Bits CPU_Core_Prefetch_Run(void) {
     //        The best way to accomplish this is to have an alternate version
     //        of this prefetch queue for 286 or lower that fetches in 16-bit
     //        WORDs instead of 32-bit WORDs.
-    pq_limit = (max(CPU_PrefetchQueueSize,8u) + 0x3u) & (~0x3u);
+    pq_limit = (max(CPU_PrefetchQueueSize,(unsigned int)(4ul + prefetch_unit)) + prefetch_unit - 1ul) & (~(prefetch_unit-1ul));
     pq_reload = min(pq_limit,(Bitu)8u);
 
 	while (CPU_Cycles-->0) {
