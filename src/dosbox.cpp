@@ -759,7 +759,6 @@ void DOSBOX_SetupConfigSections(void) {
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
-    const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", 0 };
 
     const char* irqhandler[] = {
         "", "simple", "cooperative_2nd", 0 };
@@ -799,22 +798,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("machine",Property::Changeable::OnlyAtStart,"svga_s3");
     Pstring->Set_values(machines);
     Pstring->Set_help("The type of machine DOSBox tries to emulate.");
-
-    // NOTE: This will be revised as I test the DOSLIB code against more VGA/SVGA hardware!
-    Pstring = secprop->Add_string("vga attribute controller mapping",Property::Changeable::WhenIdle,"auto");
-    Pstring->Set_values(vga_ac_mapping_settings);
-    Pstring->Set_help(
-            "This affects how the attribute controller maps colors, especially in 256-color mode.\n"
-            "Some SVGA cards handle the attribute controller palette differently than most SVGA cards.\n"
-            "  auto                         Automatically pick the mapping based on the SVGA chipset.\n"
-            "  4x4                          Split into two 4-bit nibbles, map through AC, recombine. This is standard VGA behavior including clone SVGA cards.\n"
-            "  4low                         Split into two 4-bit nibbles, remap only the low 4 bits, recombine. This is standard ET4000 behavior.\n"
-            "\n"
-            "NOTES:\n"
-            "  Demoscene executable 'COPPER.EXE' requires the '4low' behavior in order to display line-fading effects\n"
-            "  (including scrolling credits) correctly, else those parts of the demo show up as a blank screen.\n"
-            "  \n"
-            "  4low behavior is default for ET4000 emulation.");
 
     // TODO: At some point, I would like to make "mask" the default instead of "fast"
     Pstring = secprop->Add_string("a20",Property::Changeable::WhenIdle,"fast");

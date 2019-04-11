@@ -95,29 +95,10 @@ void VGA_DAC_UpdateColor( Bitu index ) {
 
     if (IS_VGA_ARCH) {
         if (vga.mode == M_VGA || vga.mode == M_LIN8) {
-            /* WARNING: This code assumes index < 256 */
-            switch (VGA_AC_remap) {
-                case AC_4x4:
-                default: // <- just in case
-                    /* Standard VGA hardware (including the original IBM PS/2 hardware) */
-                    maskIndex  =  vga.dac.combine[index&0xF] & 0x0F;
-                    maskIndex += (vga.dac.combine[index>>4u] & 0x0F) << 4u;
-                    maskIndex &=  vga.dac.pel_mask;
-                    break;
-                case AC_low4:
-                    /* Tseng ET4000 behavior, according to the SVGA card I have where only the low 4 bits are translated. --J.C. */
-                    maskIndex  =  vga.dac.combine[index&0xF] & 0x0F;
-
-                    /* FIXME: TEST THIS ON THE ACTUAL ET4000. This seems to make COPPER.EXE work correctly.
-                     *        Is this what actual ET4000 hardware does in 256-color mode with Color Select? */
-                    if (vga.attr.mode_control & 0x80)
-                        maskIndex += vga.attr.color_select << 4;
-                    else
-                        maskIndex += index & 0xF0;
-
-                    maskIndex &=  vga.dac.pel_mask;
-                    break;
-            }
+            /* Standard VGA hardware (including the original IBM PS/2 hardware) */
+            maskIndex  =  vga.dac.combine[index&0xF] & 0x0F;
+            maskIndex += (vga.dac.combine[index>>4u] & 0x0F) << 4u;
+            maskIndex &=  vga.dac.pel_mask;
         }
         else {
             maskIndex = vga.dac.combine[index&0xF] & vga.dac.pel_mask;
@@ -304,21 +285,11 @@ void VGA_DAC_CombineColor(Bit8u attr,Bit8u pal) {
 
     if (IS_VGA_ARCH) {
         if (vga.mode == M_VGA || vga.mode == M_LIN8) {
-            switch (VGA_AC_remap) {
-                case AC_4x4:
-                default: // <- just in case
-                    /* Standard VGA hardware (including the original IBM PS/2 hardware) */
-                    for (unsigned int i=(unsigned int)attr;i < 0x100;i += 0x10)
-                        VGA_DAC_UpdateColor( i );
-                    for (unsigned int i=0;i < 0x10;i++)
-                        VGA_DAC_UpdateColor( i + (attr<<4u) );
-                    break;
-                case AC_low4:
-                    /* Tseng ET4000 behavior, according to the SVGA card I have where only the low 4 bits are translated. --J.C. */
-                    for (unsigned int i=(unsigned int)attr;i < 0x100;i += 0x10)
-                        VGA_DAC_UpdateColor( i );
-                    break;
-            }
+            /* Standard VGA hardware (including the original IBM PS/2 hardware) */
+            for (unsigned int i=(unsigned int)attr;i < 0x100;i += 0x10)
+                VGA_DAC_UpdateColor( i );
+            for (unsigned int i=0;i < 0x10;i++)
+                VGA_DAC_UpdateColor( i + (attr<<4u) );
         }
         else {
             for (unsigned int i=(unsigned int)attr;i < 0x100;i += 0x10)
