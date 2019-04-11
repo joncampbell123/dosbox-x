@@ -273,12 +273,16 @@ void menu_update_core(void) {
     mainMenu.get_item("mapper_simple").
         check(cpudecoder == &CPU_Core_Simple_Run).
         enable((cpudecoder != &CPU_Core_Prefetch_Run) &&
-               (cpudecoder != &CPU_Core286_Prefetch_Run)).
+               (cpudecoder != &CPU_Core286_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core286_Normal_Run) &&
+               (cpudecoder != &CPU_Core8086_Normal_Run)).
         refresh_item(mainMenu);
     mainMenu.get_item("mapper_full").
         check(cpudecoder == &CPU_Core_Full_Run).
         enable((cpudecoder != &CPU_Core_Prefetch_Run) &&
-               (cpudecoder != &CPU_Core286_Prefetch_Run)).
+               (cpudecoder != &CPU_Core286_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core286_Normal_Run) &&
+               (cpudecoder != &CPU_Core8086_Normal_Run)).
         refresh_item(mainMenu);
 #endif
 #if (C_DYNAMIC_X86)
@@ -286,7 +290,9 @@ void menu_update_core(void) {
         check(cpudecoder == &CPU_Core_Dyn_X86_Run).
         enable(allow_dynamic &&
                (cpudecoder != &CPU_Core_Prefetch_Run) &&
-               (cpudecoder != &CPU_Core286_Prefetch_Run)).
+               (cpudecoder != &CPU_Core286_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core286_Normal_Run) &&
+               (cpudecoder != &CPU_Core8086_Normal_Run)).
         refresh_item(mainMenu);
 #endif
 #if (C_DYNREC)
@@ -294,7 +300,9 @@ void menu_update_core(void) {
         check(cpudecoder == &CPU_Core_Dynrec_Run).
         enable(allow_dynamic &&
                (cpudecoder != &CPU_Core_Prefetch_Run) &&
-               (cpudecoder != &CPU_Core286_Prefetch_Run)).
+               (cpudecoder != &CPU_Core286_Prefetch_Run) &&
+               (cpudecoder != &CPU_Core286_Normal_Run) &&
+               (cpudecoder != &CPU_Core8086_Normal_Run)).
         refresh_item(mainMenu);
 #endif
 }
