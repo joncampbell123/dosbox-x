@@ -5958,7 +5958,6 @@ void INT10_Init();
 void JOYSTICK_Init();
 void SERIAL_Init();
 void PARALLEL_Init();
-void DONGLE_Init();
 void DOS_Init();
 void XMS_Init();
 void EMS_Init();
@@ -7489,7 +7488,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         BIOS_Init();
         INT10_Init();
         SERIAL_Init();
-        DONGLE_Init();
         PARALLEL_Init();
 
 #if defined(WIN32) && !defined(C_SDL2)
