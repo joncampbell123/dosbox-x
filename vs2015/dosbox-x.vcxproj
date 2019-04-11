@@ -1455,7 +1455,6 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\hardware\dbopl.cpp" />
     <ClCompile Include="..\src\hardware\disney.cpp" />
     <ClCompile Include="..\src\hardware\dma.cpp" />
-    <ClCompile Include="..\src\hardware\dongle.cpp" />
     <ClCompile Include="..\src\hardware\floppy.cpp" />
     <ClCompile Include="..\src\hardware\gameblaster.cpp" />
     <ClCompile Include="..\src\hardware\gus.cpp" />

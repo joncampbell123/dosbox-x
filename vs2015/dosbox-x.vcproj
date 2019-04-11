@@ -499,10 +499,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\hardware\dongle.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\dos\dos.cpp"
 				>
 			</File>
