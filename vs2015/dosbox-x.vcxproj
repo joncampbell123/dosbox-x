@@ -1542,12 +1542,10 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\output\output_surface_sdl.cpp" />
     <ClCompile Include="..\src\output\output_surface_sdl2.cpp" />
     <ClCompile Include="..\src\output\output_tools.cpp" />
-    <ClCompile Include="..\src\output\output_tools_xbrz.cpp" />
     <ClCompile Include="..\src\shell\shell.cpp" />
     <ClCompile Include="..\src\shell\shell_batch.cpp" />
     <ClCompile Include="..\src\shell\shell_cmds.cpp" />
     <ClCompile Include="..\src\shell\shell_misc.cpp" />
-    <ClCompile Include="..\src\xBRZ\xbrz.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc" />
@@ -1742,10 +1740,6 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClInclude Include="..\src\output\output_opengl.h" />
     <ClInclude Include="..\src\output\output_surface.h" />
     <ClInclude Include="..\src\output\output_tools.h" />
-    <ClInclude Include="..\src\output\output_tools_xbrz.h" />
-    <ClInclude Include="..\src\xBRZ\xbrz.h" />
-    <ClInclude Include="..\src\xBRZ\xbrz_config.h" />
-    <ClInclude Include="..\src\xBRZ\xbrz_tools.h" />
     <ClInclude Include="config.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

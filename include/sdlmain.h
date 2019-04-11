@@ -188,7 +188,6 @@ extern SDL_Block sdl;
 #include <output/output_surface.h>
 #include <output/output_opengl.h>
 #include <output/output_tools.h>
-#include <output/output_tools_xbrz.h>
 
 #include "zipfile.h"
 

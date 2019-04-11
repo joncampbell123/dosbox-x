@@ -863,9 +863,6 @@ void DOSBOX_SetupConfigSections(void) {
         "tv2x", "tv3x", "rgb2x", "rgb3x", "scan2x", "scan3x", "gray", "gray2x",
 #endif
         "hardware_none", "hardware2x", "hardware3x", "hardware4x", "hardware5x",
-#if C_XBRZ
-        "xbrz", "xbrz_bilinear",
-#endif
         0 };
 
     const char* cores[] = { "normal", 0 };
@@ -1504,28 +1501,17 @@ void DOSBOX_SetupConfigSections(void) {
         "      'surface' output: inherits old DOSBox aspect ratio correction method (adjusting rendered image line count to correct output to 4:3 ratio)\n"
         "          Due to source image manipulation this mode does not mix well with scalers, i.e. multiline scalers like hq2x/hq3x will work poorly\n"
         "          Slightly degrades visual image quality. Has a tiny impact on performance"
-#if C_XBRZ
-        "\n"
-        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so none of the above apply"
-#endif
 #if C_SURFACE_POSTRENDER_ASPECT
         "\n"
         "  'nearest':\n"
         "      'direct3d'/opengl outputs: not available, fallbacks to 'true' mode automatically\n"
         "      'surface' output: scaler friendly aspect ratio correction, works by rescaling rendered image using nearest neighbor scaler\n"
         "          Complex scalers work. Image quality is on par with 'true' mode (and better with scalers). More CPU intensive than 'true' mode\n"
-#if C_XBRZ
-        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so it fallbacks to 'true' mode\n"
-#endif
         "  'bilinear':\n"
         "      'direct3d'/opengl outputs: not available, fallbacks to 'true' mode automatically\n"
         "      'surface' output: scaler friendly aspect ratio correction, works by rescaling rendered image using bilinear scaler\n"
         "          Complex scalers work. Image quality is much better, should be on par with using 'direct3d' output + 'true' mode\n"
         "          Very CPU intensive, high end CPU may be required"
-#if C_XBRZ
-        "\n"
-        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so it fallbacks to 'true' mode"
-#endif
 #endif
     );
 
@@ -1549,20 +1535,6 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
     Pstring->Set_values(force);
-
-#if C_XBRZ
-    Pint = secprop->Add_int("xbrz slice",Property::Changeable::OnlyAtStart,16);
-    Pint->SetMinMax(1,1024);
-    Pint->Set_help("Number of screen lines to process in single xBRZ scaler taskset task, affects xBRZ performance, 16 is the default");
-
-    Pint = secprop->Add_int("xbrz fixed scale factor",Property::Changeable::OnlyAtStart, 0);
-    Pint->SetMinMax(0,6);
-    Pint->Set_help("To use fixed xBRZ scale factor (i.e. to attune performance), set it to 2-6, 0 - use automatic calculation (default)");
-
-    Pint = secprop->Add_int("xbrz max scale factor",Property::Changeable::OnlyAtStart, 0);
-    Pint->SetMinMax(0,6);
-    Pint->Set_help("To cap maximum xBRZ scale factor used (i.e. to attune performance), set it to 2-6, 0 - use scaler allowed maximum (default)");
-#endif
 
     Pbool = secprop->Add_bool("autofit",Property::Changeable::Always,true);
     Pbool->Set_help(

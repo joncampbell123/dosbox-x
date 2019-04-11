@@ -261,14 +261,6 @@ Bitu OUTPUT_OPENGL_SetSize()
 
     Bitu adjTexWidth = sdl.draw.width;
     Bitu adjTexHeight = sdl.draw.height;
-#if C_XBRZ
-    // we do the same as with Direct3D: precreate pixel buffer adjusted for xBRZ
-    if (sdl_xbrz.enable && xBRZ_SetScaleParameters(adjTexWidth, adjTexHeight, sdl.clip.w, sdl.clip.h))
-    {
-        adjTexWidth = adjTexWidth * sdl_xbrz.scale_factor;
-        adjTexHeight = adjTexHeight * sdl_xbrz.scale_factor;
-    }
-#endif
 
     int texsize = 2 << int_log2(adjTexWidth > adjTexHeight ? adjTexWidth : adjTexHeight);
     if (texsize > sdl_opengl.max_texsize) 
@@ -451,15 +443,6 @@ Bitu OUTPUT_OPENGL_SetSize()
 
 bool OUTPUT_OPENGL_StartUpdate(Bit8u* &pixels, Bitu &pitch)
 {
-#if C_XBRZ    
-    if (sdl_xbrz.enable && sdl_xbrz.scale_on) 
-    {
-        sdl_xbrz.renderbuf.resize(sdl.draw.width * sdl.draw.height);
-        pixels = sdl_xbrz.renderbuf.empty() ? nullptr : reinterpret_cast<Bit8u*>(&sdl_xbrz.renderbuf[0]);
-        pitch = sdl.draw.width * sizeof(uint32_t);
-    }
-    else
-#endif
     {
         if (sdl_opengl.pixel_buffer_object)
         {
@@ -497,67 +480,6 @@ void OUTPUT_OPENGL_EndUpdate(const Bit16u *changedLines)
 #endif
         }
 
-#if C_XBRZ
-        if (sdl_xbrz.enable && sdl_xbrz.scale_on)
-        {
-            // OpenGL pixel buffer is precreated for direct xBRZ output, while xBRZ render buffer is used for rendering
-            const int srcWidth = sdl.draw.width;
-            const int srcHeight = sdl.draw.height;
-
-            if (sdl_xbrz.renderbuf.size() == (unsigned int)srcWidth * (unsigned int)srcHeight && srcWidth > 0 && srcHeight > 0)
-            {
-                // we assume render buffer is *not* scaled!
-                const uint32_t* renderBuf = &sdl_xbrz.renderbuf[0]; // help VS compiler a little + support capture by value
-                uint32_t* trgTex;
-                if (sdl_opengl.pixel_buffer_object) 
-                {
-                    glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, sdl_opengl.buffer);
-                    trgTex = (uint32_t *)glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, GL_WRITE_ONLY);
-                }
-                else
-                {
-                    trgTex = reinterpret_cast<uint32_t*>(static_cast<void*>(sdl_opengl.framebuf));
-                }
-
-                if (trgTex)
-                    xBRZ_Render(renderBuf, trgTex, changedLines, srcWidth, srcHeight, sdl_xbrz.scale_factor);
-            }
-
-            // and here we go repeating some stuff with xBRZ related modifications
-            if (sdl_opengl.pixel_buffer_object)
-            {
-                glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
-                glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                    sdl.draw.width * sdl_xbrz.scale_factor, sdl.draw.height * sdl_xbrz.scale_factor, GL_BGRA_EXT,
-#if defined (MACOSX) && !defined(C_SDL2)
-                    // needed for proper looking graphics on macOS 10.12, 10.13
-                    GL_UNSIGNED_INT_8_8_8_8,
-#else
-                    GL_UNSIGNED_INT_8_8_8_8_REV,
-#endif
-                    0);
-                glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-            }
-            else
-            {
-                glBindTexture(GL_TEXTURE_2D, sdl_opengl.texture);
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                    sdl.draw.width * sdl_xbrz.scale_factor, sdl.draw.height * sdl_xbrz.scale_factor, GL_BGRA_EXT,
-#if defined (MACOSX) && !defined(C_SDL2)
-                    // needed for proper looking graphics on macOS 10.12, 10.13
-                    GL_UNSIGNED_INT_8_8_8_8,
-#else
-                    // works on Linux
-                    GL_UNSIGNED_INT_8_8_8_8_REV,
-#endif
-                    (Bit8u *)sdl_opengl.framebuf);
-            }
-            glCallList(sdl_opengl.displaylist);
-            SDL_GL_SwapBuffers();
-        }
-        else
-#endif /*C_XBRZ*/
         if (sdl_opengl.pixel_buffer_object) 
         {
             if (changedLines && (changedLines[0] == sdl.draw.height))

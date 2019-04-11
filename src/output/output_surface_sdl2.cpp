@@ -92,21 +92,6 @@ Bitu OUTPUT_SURFACE_SetSize()
         /* decide where the rectangle on the screen goes */
         int final_width,final_height,ax,ay;
 
-#if C_XBRZ
-        /* scale to fit the window.
-         * fit by aspect ratio if asked to do so. */
-        if (sdl_xbrz.enable)
-        {
-            final_height = (int)max(consider_height, userResizeWindowHeight) - (int)menuheight;
-            final_width = (int)max(consider_width, userResizeWindowWidth);
-
-            sdl.clip.x = sdl.clip.y = 0;
-            sdl.clip.w = final_width;
-            sdl.clip.h = final_height;
-            if (render.aspect) aspectCorrectFitClip(sdl.clip.w, sdl.clip.h, sdl.clip.x, sdl.clip.y, final_width, final_height);
-        }
-        else
-#endif 
         /* center the screen in the window */
         {
 
@@ -163,20 +148,6 @@ Bitu OUTPUT_SURFACE_SetSize()
         retFlags = GFX_CAN_32;
         break;
     }
-
-#if C_XBRZ
-    if (sdl_xbrz.enable)
-    {
-        bool old_scale_on = sdl_xbrz.scale_on;
-        xBRZ_SetScaleParameters(sdl.draw.width, sdl.draw.height, sdl.clip.w, sdl.clip.h);
-        if (sdl_xbrz.scale_on != old_scale_on) {
-            // when we are scaling, we ask render code not to do any aspect correction
-            // when we are not scaling, render code is allowed to do aspect correction at will
-            // due to this, at each scale mode change we need to schedule resize again because window size could change
-            PIC_AddEvent(VGA_SetupDrawing, 50); // schedule another resize here, render has already been initialized at this point and we have just changed its option
-        }
-    }
-#endif
 
     /* WARNING: If the user is resizing our window to smaller than what we want, SDL2 will give us a
      *          window surface according to the smaller size, and then we crash! */

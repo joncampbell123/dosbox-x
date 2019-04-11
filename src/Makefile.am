@@ -15,10 +15,6 @@ if HAVE_WINDRES
 ico_stuff = winres.rc
 endif
 
-if C_XBRZ
-SUBDIRS += xBRZ
-endif
-
 .rc.o:
 	$(WINDRES) -o $@ $<
 
@@ -30,10 +26,6 @@ dosbox_x_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuilt
 		   output/liboutput.a
 
 dosbox_x_LDADD += aviwriter/libaviwriter.a
-
-if C_XBRZ
-dosbox_x_LDADD += xBRZ/libxbrz.a
-endif
 
 if C_MT32
 dosbox_x_LDADD += mt32/libmt32.a

@@ -184,10 +184,6 @@ const char *scaler_menu_opts[][2] = {
     { "2xsai",                  "2xSai" },
     { "super2xsai",             "Super2xSai" },
     { "supereagle",             "SuperEagle" },
-#if C_XBRZ
-    { "xbrz",                   "xBRZ" },
-    { "xbrz_bilinear",          "xBRZ Bilinear" },
-#endif
     { NULL, NULL }
 };
 
@@ -3082,17 +3078,6 @@ static void GUI_StartUp() {
 
     /* Setup Mouse correctly if fullscreen */
     if(sdl.desktop.fullscreen) GFX_CaptureMouse();
-
-#if C_XBRZ
-    // initialize xBRZ parameters and check output type for compatibility
-    xBRZ_Initialize();
-
-    if (sdl_xbrz.enable) {
-        // xBRZ requirements
-        if ((output != "surface") && (output != "opengl") && (output != "openglhq") && (output != "openglnb"))
-            output = "surface";
-    }
-#endif
 
     // output type selection
     // "overlay" was removed, pre-map to Direct3D or OpenGL or surface

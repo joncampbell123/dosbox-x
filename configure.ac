@@ -589,17 +589,6 @@ if test x$host = xi386-pc-os2-emx ; then
   LIBS=$LIBS_BACKUP
 fi
 
-dnl FEATURE: xBRZ
-AH_TEMPLATE(C_XBRZ,[Define to 1 to enable XBRZ scaler])
-AC_ARG_ENABLE(xbrz,AC_HELP_STRING([--enable-xbrz],[compile with xBRZ scaler (default yes)]),enable_xbrz=$enableval,enable_xbrz=yes)
-AM_CONDITIONAL(C_XBRZ, test "x$enable_xbrz" == "xyes")
-if test x$enable_emscripten != xyes; then
-  if test x$enable_xbrz = xyes; then
-    AC_DEFINE(C_XBRZ,1)
-  fi
-fi
-
-dnl FEATURE: xBRZ
 AH_TEMPLATE(C_SCALER_FULL_LINE,[Define to 1 to alter the simpler render scalers to operate only on the full scanline instead of detecting differences. This is a performance adjustment for slow or embedded systems])
 AC_ARG_ENABLE(scaler-full-line,AC_HELP_STRING([--enable-scaler-full-line],[scaler render full line instead of detecting changes, for slower systems]),enable_scaler_full_line=$enableval,enable_scaler_full_line=no)
 AM_CONDITIONAL(C_SCALER_FULL_LINE, test "x$enable_scaler_full_line" == "xyes")
@@ -892,7 +881,6 @@ src/builtin/Makefile
 src/misc/Makefile
 src/shell/Makefile
 src/platform/Makefile
-src/xBRZ/Makefile
 include/Makefile
 ])
 AC_OUTPUT

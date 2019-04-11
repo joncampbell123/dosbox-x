@@ -411,11 +411,7 @@ void RENDER_Reset( void ) {
     gfx_scalew = 1;
     gfx_scaleh = 1;
 
-#if !C_XBRZ
     if (render.aspect == ASPECT_TRUE && !render.aspectOffload)
-#else
-    if (render.aspect == ASPECT_TRUE && !render.aspectOffload && !(sdl_xbrz.enable && sdl_xbrz.scale_on))
-#endif
     {
         if (render.src.ratio>1.0) {
             gfx_scalew = 1;
@@ -882,10 +878,6 @@ void RENDER_OnSectionPropChange(Section *x) {
     mainMenu.get_item("doublescan").check(vga.draw.doublescan_set).refresh_item(mainMenu);
     mainMenu.get_item("mapper_aspratio").check(render.aspect).refresh_item(mainMenu);
 
-#if C_XBRZ
-    xBRZ_Change_Options(section);
-#endif
-
     RENDER_UpdateFrameskipMenu();
     RENDER_UpdateFromScalerSetting();
     RENDER_UpdateScalerMenu();
@@ -914,11 +906,6 @@ void RENDER_UpdateFromScalerSetting(void) {
     Prop_multival* prop = section->Get_multival("scaler");
     std::string f = prop->GetSection()->Get_string("force");
     std::string scaler = prop->GetSection()->Get_string("type");
-
-#if C_XBRZ
-    bool old_xBRZ_enable = sdl_xbrz.enable;
-    sdl_xbrz.enable = false;
-#endif
 
     bool p_forced = render.scale.forced;
     unsigned int p_size = render.scale.size;
@@ -959,22 +946,9 @@ void RENDER_UpdateFromScalerSetting(void) {
     else if (scaler == "hardware3x") { render.scale.op = scalerOpNormal; render.scale.size = 6; render.scale.hardware=true; }
     else if (scaler == "hardware4x") { render.scale.op = scalerOpNormal; render.scale.size = 8; render.scale.hardware=true; }
     else if (scaler == "hardware5x") { render.scale.op = scalerOpNormal; render.scale.size = 10; render.scale.hardware=true; }
-#if C_XBRZ
-    else if (scaler == "xbrz" || scaler == "xbrz_bilinear") { 
-        render.scale.op = scalerOpNormal; 
-        render.scale.size = 1; 
-        render.scale.hardware = false; 
-        vga.draw.doublescan_set = false; 
-        sdl_xbrz.enable = true; 
-        sdl_xbrz.postscale_bilinear = (scaler == "xbrz_bilinear");
-    }
-#endif
 
     bool reset = false;
 
-#if C_XBRZ
-    if (old_xBRZ_enable != sdl_xbrz.enable) reset = true;
-#endif
     if (p_forced != render.scale.forced) reset = true;
     if (p_size != render.scale.size) reset = true;
     if (p_hardware != render.scale.hardware) reset = true;
