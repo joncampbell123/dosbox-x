@@ -764,9 +764,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* force[] = { "", "forced", 0 };
     const char* cyclest[] = { "fixed","max","%u",0 };
     const char* mputypes[] = { "intelligent", "uart", "none", 0 };
-    const char* captureformats[] = { "default", "avi-zmbv", "mpegts-h264", 0 };
     const char* blocksizes[] = {"1024", "2048", "4096", "8192", "512", "256", 0};
-    const char* capturechromaformats[] = { "auto", "4:4:4", "4:2:2", "4:2:0", 0};
     const char* controllertypes[] = { "auto", "at", "xt", "pcjr", "pc98", 0}; // Future work: Tandy(?) and USB
     const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
     const char* cputype_values[] = {"8086", "80186", "286", "386", "486old", "486", "pentium", "pentium_mmx", "ppro_slow", 0};
@@ -872,25 +870,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(0,8);
     Pint->Set_help(
         "Amount of video memory in kilobytes, in addition to vmemsize");
-
-    Pstring = secprop->Add_path("captures",Property::Changeable::Always,"capture");
-    Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
-
-    Pstring = secprop->Add_string("capture chroma format", Property::Changeable::OnlyAtStart,"auto");
-    Pstring->Set_values(capturechromaformats);
-    Pstring->Set_help("Chroma format to use when capturing to H.264. 'auto' picks the best quality option.\n"
-            "4:4:4       Chroma is at full resolution. This provides the best quality, however not widely supported by editing software.\n"
-            "4:2:2       Chroma is at half horizontal resolution.\n"
-            "4:2:0       Chroma is at quarter resolution, which may cause minor color smearing.\n"
-            "            However, this chroma format is most likely to be compatible with video editing software.");
-
-    Pstring = secprop->Add_string("capture format", Property::Changeable::OnlyAtStart,"default");
-    Pstring->Set_values(captureformats);
-    Pstring->Set_help("Capture format to use when capturing video. The availability of the format depends on how DOSBox-X was compiled.\n"
-            "default                     Use compiled-in default (avi-zmbv)\n"
-            "avi-zmbv                    Use DOSBox-style AVI + ZMBV codec with PCM audio\n"
-            "mpegts-h264                 Use MPEG transport stream + H.264 + AAC audio. Resolution & refresh rate changes can be contained\n"
-            "                            within one file with this choice, however not all software can support mid-stream format changes.");
 
     Pint = secprop->Add_int("shell environment size",Property::Changeable::OnlyAtStart,0);
     Pint->SetMinMax(0,65280);
