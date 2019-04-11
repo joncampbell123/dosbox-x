@@ -766,7 +766,6 @@ void DOSBOX_SetupConfigSections(void) {
     const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
     const char* cputype_values[] = {"8086", "80186", "286", "386", "486old", "486", "pentium", "pentium_mmx", "ppro_slow", 0};
     const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
-    const char* apmbiosversions[] = { "auto", "1.0", "1.1", "1.2", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
@@ -1517,30 +1516,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
     Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
             "Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME");
-
-    Pbool = secprop->Add_bool("apmbios",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Emulate Advanced Power Management BIOS calls");
-
-    Pbool = secprop->Add_bool("apmbios pnp",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If emulating ISA PnP BIOS, announce APM BIOS in PnP enumeration.\n"
-            "Warning: this can cause Windows 95 OSR2 and later to enumerate the APM BIOS twice and cause problems.");
-
-    Pstring = secprop->Add_string("apmbios version",Property::Changeable::WhenIdle,"auto");
-    Pstring->Set_values(apmbiosversions);
-    Pstring->Set_help("What version of the APM BIOS specification to emulate.\n"
-            "You will need at least APM BIOS v1.1 for emulation to work with Windows 95/98/ME");
-
-    Pbool = secprop->Add_bool("apmbios allow realmode",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow guest OS to connect from real mode.");
-
-    Pbool = secprop->Add_bool("apmbios allow 16-bit protected mode",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow guest OS to connect from 16-bit protected mode.");
-
-    Pbool = secprop->Add_bool("apmbios allow 32-bit protected mode",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Allow guest OS to connect from 32-bit protected mode.\n"
-            "If you want power management in Windows 95/98/ME (beyond using the APM to shutdown the computer) you MUST enable this option.\n"
-            "Windows 95/98/ME does not support the 16-bit real and protected mode APM BIOS entry points.\n"
-            "Please note at this time that 32-bit APM is unstable under Windows ME");
 
     Pbool = secprop->Add_bool("integration device",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable DOSBox integration I/O device. This can be used by the guest OS to match mouse pointer position, for example. EXPERIMENTAL!");
