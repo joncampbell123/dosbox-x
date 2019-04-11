@@ -2945,11 +2945,11 @@ public:
             CPU_PrefetchQueueSize = 4; /* Emulate the 8088, which was more common in home PCs than having an 8086 */
         } else if (cputype == "80186") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
 			CPU_ArchitectureType = CPU_ARCHTYPE_80186;
-            cpudecoder=&CPU_Core_Prefetch_Run;
+            cpudecoder=&CPU_Core286_Prefetch_Run;
             CPU_PrefetchQueueSize = 6;
         } else if (cputype == "286") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
 			CPU_ArchitectureType = CPU_ARCHTYPE_286;
-            cpudecoder=&CPU_Core_Prefetch_Run;
+            cpudecoder=&CPU_Core286_Prefetch_Run;
             CPU_PrefetchQueueSize = 6;
         } else if (cputype == "386") {
             CPU_ArchitectureType = CPU_ARCHTYPE_386;
