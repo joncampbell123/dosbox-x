@@ -940,29 +940,10 @@ void VGA_Reset(Section*) {
         VGA_SetCGA4Table(0,1,2,3);
     }
 
-    Section_prop * section2=static_cast<Section_prop *>(control->GetSection("vsync"));
-
-    const char * vsyncmodestr;
-    vsyncmodestr=section2->Get_string("vsyncmode");
     void change_output(int output);
     change_output(8);
 
-    const char * vsyncratestr;
-    vsyncratestr=section2->Get_string("vsyncrate");
     double vsyncrate=70;
-    if (!strcasecmp(vsyncmodestr,"host")) {
-#if defined (WIN32)
-        DEVMODE devmode;
-
-        if (EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &devmode))
-            vsyncrate=devmode.dmDisplayFrequency;
-        else
-            sscanf(vsyncratestr,"%lf",&vsyncrate);
-#endif
-    }
-    else {
-        sscanf(vsyncratestr,"%lf",&vsyncrate);
-    }
 
     vsync.period = (1000.0F)/vsyncrate;
 
