@@ -1520,10 +1520,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("integration device",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable DOSBox integration I/O device. This can be used by the guest OS to match mouse pointer position, for example. EXPERIMENTAL!");
 
-    Pbool = secprop->Add_bool("realbig16",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Allow the B (big) bit in real mode. If set, allow the DOS program to set the B bit,\n"
-        "then jump to realmode with B still set (aka Huge Unreal mode). Needed for Project Angel.");
-
     secprop=control->AddSection_prop("keyboard",&Null_Init);
     Pbool = secprop->Add_bool("aux",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Enable emulation of the 8042 auxiliary port. PS/2 mouse emulation requires this to be enabled.\n"

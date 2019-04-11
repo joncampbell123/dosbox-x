@@ -84,63 +84,6 @@ CPU_Regs cpu_regs;
 CPUBlock cpu;
 Segments Segs;
 
-/* [cpu] setting realbig16.
- * If set, allow code to switch back to real mode with the B (big) set in the
- * code selector, and retain the state of the B bit while running in 16-bit
- * real mode. Needed for demos like Project Angel.
- *
- * Modifications are a derivative of this patch:
- *
- * cpu.diff from http://www.vogons.org/viewtopic.php?f=33&t=28226&start=5
- *
- * The main difference between that patch and the modifications derived is that
- * I modified additional points to keep the big bit set (the original cpu.diff
- * missed the CALL and JMP emulation that also reset the flag)
- *
- * It's well known that DOS programs can access all 4GB of addressable memory by
- * jumping into protected mode, loading segment registers with a 4GB limit, then
- * jumping back to real mode without reloading the segment registers, knowing
- * that Intel processors will not update the shadow part of the segment register
- * in real mode. I'm guessing that what Project Angel is doing, is using the same
- * abuse of protected mode to also set the B (big) bit in the code segment so that
- * it's code segment can extend past 64KB (huge unreal mode), which works until
- * something like an interrupt chops off the top 16 bits of the instruction pointer.
- *
- * I want to clarify that realbig16 is an OPTION that is off by default, because
- * I am uncertain at this time whether or not the patch breaks any DOS games or
- * OS emulation. It is rare for a DOS game or demo to actually abuse the CPU in
- * that way, so it is set up that you have to enable it if you need it. --J.C.
- *
- * J.C. TODO: Write a program that abuses the B (big) bit in real mode in the same
- *            way that Project Angel supposedly does, see if it works, then test it
- *            and Project Angel on some old 386/486/Pentium systems lying around to
- *            see how compatible such abuse is with PC hardware. That would make a
- *            good Hackipedia.org episode as well. --J.C.
- *
- * 2014/01/19: I can attest that this patch does indeed allow Project Angel to
- *             run when realbig16=true. And if GUS emulation is active, there is
- *             music as well. Now as for reliability... testing shows that one of
- *             three things can happen when you run the demo:
- *
- *             1) the demo hangs on startup, either right away or after it starts
- *                the ominous music (if you sit for 30 seconds waiting for the
- *                music to build up and nothing happens, consider closing the
- *                emulator and trying again).
- *
- *             2) the demo runs perfectly fine, but timing is slightly screwed up,
- *                and parts of the music sound badly out of sync with each other,
- *                or randomly slows to about 1/2 speed in some sections, animations
- *                run slow sometimes. If this happens, make sure you didn't set
- *                forcerate=ntsc.
- *
- *             3) the demo runs perfectly fine, with no timing issues, except that
- *                DOSBox's S3 emulation is not quite on-time and the bottom 1/4th
- *                of the screen flickers with the contents of the next frame that
- *                the demo is still drawing :(
- *
- *             --J.C. */
-bool cpu_allow_big16 = false;
-
 cpu_cycles_count_t CPU_Cycles = 0;
 cpu_cycles_count_t CPU_CycleLeft = 3000;
 cpu_cycles_count_t CPU_CycleMax = 3000;
@@ -966,7 +909,6 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 		reg_eip=mem_readw(base+(num << 2));
 		Segs.val[cs]=mem_readw(base+(num << 2)+2);
 		Segs.phys[cs]=Segs.val[cs]<<4;
-		if (!cpu_allow_big16) cpu.code.big=false;
 		return;
 	} else {
 		/* Protected Mode Interrupt */
@@ -1199,7 +1141,6 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 			SegSet16(cs,CPU_Pop16());
 			CPU_SetFlags(CPU_Pop16(),FMASK_ALL & 0xffff);
 		}
-		if (!cpu_allow_big16) cpu.code.big=false;
 		DestroyConditionFlags();
 		return;
 	} else {	/* Protected mode IRET */
@@ -1454,7 +1395,6 @@ void CPU_JMP(bool use32,Bitu selector,Bitu offset,Bitu oldeip) {
 			reg_eip=offset;
 		}
 		SegSet16(cs,selector);
-		if (!cpu_allow_big16) cpu.code.big=false;
 		return;
 	} else {
 		CPU_CHECK_COND((selector & 0xfffc)==0,
@@ -1537,7 +1477,6 @@ void CPU_CALL(bool use32,Bitu selector,Bitu offset,Bitu oldeip) {
 			reg_eip = old_eip;
 			throw;
 		}
-		if (!cpu_allow_big16) cpu.code.big=false;
 		SegSet16(cs,selector);
 		return;
 	} else {
@@ -1811,7 +1750,6 @@ void CPU_RET(bool use32,Bitu bytes,Bitu oldeip) {
 		reg_esp+=bytes;
 		SegSet16(cs,new_cs);
 		reg_eip=new_ip;
-		if (!cpu_allow_big16) cpu.code.big=false;
 		return;
 		}
 		catch (GuestPageFaultException &pf) {
@@ -2868,12 +2806,6 @@ public:
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
-		cpu_allow_big16 = section->Get_bool("realbig16");
-
-        if (cpu_allow_big16) {
-            /* FIXME: GCC 4.8: How is this an empty body? Explain. */
-            LOG(LOG_CPU,LOG_DEBUG)("Emulation of the B (big) bit in real mode enabled\n");
-        }
 
 		always_report_double_fault = section->Get_bool("always report double fault");
 		always_report_triple_fault = section->Get_bool("always report triple fault");
