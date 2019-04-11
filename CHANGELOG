@@ -1,4 +1,7 @@
 0.82.18 (next)
+  - CPU type selection menu will now cause guest to reboot
+    if new cpu type incompatible with BIOS prologue/epilogue
+    code, to avoid crashes.
   - PC-98 NEC copyright string option now also installs
     another set of data in another location in the BIOS,
     that Windows 2.1 checks for.
