@@ -2538,20 +2538,6 @@ void GFX_SwitchFullScreen(void)
 #endif
 
     GFX_ResetScreen();
-
-    // set vsync to host
-    // NOTE why forcing ???
-#ifdef WIN32
-    if (menu.startup) // NOTE should be always true I suppose ???
-    {
-        auto vsync = static_cast<Section_prop *>(control->GetSection("vsync"));
-        if (vsync)
-        {
-            auto vsyncMode = vsync->Get_string("vsyncmode");
-            if (!strcmp(vsyncMode, "host")) SetVal("vsync", "vsyncmode", "host");
-        }
-    }
-#endif
 #endif
 }
 
@@ -6450,37 +6436,6 @@ bool vid_pc98_graphics_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
     return true;
 }
 
-bool vsync_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-#if !defined(C_SDL2)
-    const char *val = menuitem->get_name().c_str();
-    if (!strncmp(val,"vsync_",6))
-        val += 6;
-    else
-        return true;
-
-    SetVal("vsync", "vsyncmode", val);
-
-    void change_output(int output);
-    change_output(8);
-
-    VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr);
-    void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
-    VGA_VsyncUpdateMode(VGA_Vsync_Decode(val));
-#endif
-    return true;
-}
-
-bool vsync_set_syncrate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-#if !defined(C_SDL2)
-    GUI_Shortcut(17);
-#endif
-    return true;
-}
-
 bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
 
@@ -7411,21 +7366,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     set_callback_function(output_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_openglnb").set_text("OpenGL NB").
                     set_callback_function(output_menu_callback);
-            }
-            {
-                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoVsyncMenu");
-                item.set_text("V-Sync");
-
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vsync_on").set_text("On").
-                    set_callback_function(vsync_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vsync_force").set_text("Force").
-                    set_callback_function(vsync_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vsync_host").set_text("Host").
-                    set_callback_function(vsync_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vsync_off").set_text("Off").
-                    set_callback_function(vsync_menu_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"vsync_set_syncrate").set_text("Set syncrate").
-                    set_callback_function(vsync_set_syncrate_menu_callback);
             }
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoPC98Menu");

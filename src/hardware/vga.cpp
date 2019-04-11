@@ -542,8 +542,6 @@ extern bool pcibus_enable;
 extern int hack_lfb_yadjust;
 extern uint8_t GDC_display_plane_wait_for_vsync;
 
-void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
-
 VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr) {
     if (!strcasecmp(vsyncmodestr,"off")) return VS_Off;
     else if (!strcasecmp(vsyncmodestr,"on")) return VS_On;
@@ -948,7 +946,6 @@ void VGA_Reset(Section*) {
     vsyncmodestr=section2->Get_string("vsyncmode");
     void change_output(int output);
     change_output(8);
-    VGA_VsyncUpdateMode(VGA_Vsync_Decode(vsyncmodestr));
 
     const char * vsyncratestr;
     vsyncratestr=section2->Get_string("vsyncrate");

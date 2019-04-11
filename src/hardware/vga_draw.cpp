@@ -154,40 +154,6 @@ float uservsyncjolt=0.0f;
 
 VGA_Vsync vsyncmode_current = VS_Off;
 
-void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode) {
-    vsyncmode_current = vsyncmode;
-
-    mainMenu.get_item("vsync_off").check(vsyncmode_current == VS_Off).refresh_item(mainMenu);
-    mainMenu.get_item("vsync_on").check(vsyncmode_current == VS_On).refresh_item(mainMenu);
-    mainMenu.get_item("vsync_force").check(vsyncmode_current == VS_Force).refresh_item(mainMenu);
-    mainMenu.get_item("vsync_host").check(vsyncmode_current == VS_Host).refresh_item(mainMenu);
-
-    switch(vsyncmode) {
-    case VS_Off:
-        vsync.manual    = false;
-        vsync.persistent= false;
-        vsync.faithful  = false;
-        break;
-    case VS_On:
-        vsync.manual    = true;
-        vsync.persistent= true;
-        vsync.faithful  = true;
-        break;
-    case VS_Force:
-    case VS_Host:
-        vsync.manual    = true;
-        vsync.persistent= true;
-        vsync.faithful  = false;
-        break;
-    default:
-        LOG_MSG("VGA_VsyncUpdateMode: Invalid mode, using defaults.");
-        vsync.manual    = false;
-        vsync.persistent= false;
-        vsync.faithful  = false;
-        break;
-    }
-}
-
 void VGA_TweakUserVsyncOffset(float val) { uservsyncjolt = val; }
 
 void VGA_Draw2_Recompute_CRTC_MaskAdd(void) {
