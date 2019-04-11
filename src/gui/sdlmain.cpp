@@ -5814,7 +5814,6 @@ void GUS_Init();
 void INNOVA_Init();
 void PCSPEAKER_Init();
 void TANDYSOUND_Init();
-void DISNEY_Init();
 void PS1SOUND_Init();
 void BIOS_Init();
 void INT10_Init();
@@ -7249,10 +7248,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         SBLASTER_Init();
         JOYSTICK_Init();
         PS1SOUND_Init();
-        DISNEY_Init();
         GUS_Init();
         IDE_Init();
-        INNOVA_Init();
         BIOS_Init();
         INT10_Init();
         SERIAL_Init();
