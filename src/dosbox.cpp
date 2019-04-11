@@ -1520,13 +1520,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("integration device",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable DOSBox integration I/O device. This can be used by the guest OS to match mouse pointer position, for example. EXPERIMENTAL!");
 
-    Pbool = secprop->Add_bool("integration device pnp",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("List DOSBox integration I/O device as part of ISA PnP enumeration. This has no purpose yet.");
-
-    Pbool = secprop->Add_bool("isapnpbios",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Emulate ISA Plug & Play BIOS. Enable if using DOSBox to run a PnP aware DOS program or if booting Windows 9x.\n"
-            "Do not disable if Windows 9x is configured around PnP devices, you will likely confuse it.");
-
     Pbool = secprop->Add_bool("realbig16",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Allow the B (big) bit in real mode. If set, allow the DOS program to set the B bit,\n"
         "then jump to realmode with B still set (aka Huge Unreal mode). Needed for Project Angel.");

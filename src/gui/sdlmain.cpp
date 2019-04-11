@@ -5528,7 +5528,6 @@ void TIMER_Init();
 void CMOS_Init();
 void VGA_Init();
 void CPU_Init();
-void ISAPNP_Cfg_Init();
 #if C_FPU
 void FPU_Init();
 #endif
@@ -6948,7 +6947,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         FPU_Init();
 #endif
         VGA_Init();
-        ISAPNP_Cfg_Init();
         KEYBOARD_Init();
         BIOS_Init();
         INT10_Init();
