@@ -372,26 +372,9 @@ IO_WriteHandleObject::~IO_WriteHandleObject(){
  */
 
 /* how much delay to add to I/O in nanoseconds */
-int io_delay_ns[3] = {-1,-1,-1};
 
 /* nonzero if we're in a callback */
 extern unsigned int last_callback;
-
-inline void IO_USEC_read_delay(const unsigned int szidx) {
-	if (io_delay_ns[szidx] > 0 && last_callback == 0/*NOT running within a callback function*/) {
-		Bits delaycyc = (CPU_CycleMax * io_delay_ns[szidx]) / 1000000;
-		CPU_Cycles -= delaycyc;
-		CPU_IODelayRemoved += delaycyc;
-	}
-}
-
-inline void IO_USEC_write_delay(const unsigned int szidx) {
-	if (io_delay_ns[szidx] > 0 && last_callback == 0/*NOT running within a callback function*/) {
-		Bits delaycyc = (CPU_CycleMax * io_delay_ns[szidx] * 3) / (1000000 * 4);
-		CPU_Cycles -= delaycyc;
-		CPU_IODelayRemoved += delaycyc;
-	}
-}
 
 #ifdef ENABLE_PORTLOG
 static Bit8u crtc_index = 0;
@@ -465,7 +448,6 @@ void IO_WriteB(Bitu port,Bitu val) {
 		CPU_ForceV86FakeIO_Out(port,val,1);
 	}
 	else {
-		IO_USEC_write_delay(0);
 		io_writehandlers[0][port](port,val,1);
 	}
 }
@@ -476,7 +458,6 @@ void IO_WriteW(Bitu port,Bitu val) {
 		CPU_ForceV86FakeIO_Out(port,val,2);
 	}
 	else {
-		IO_USEC_write_delay(1);
 		io_writehandlers[1][port](port,val,2);
 	}
 }
@@ -487,7 +468,6 @@ void IO_WriteD(Bitu port,Bitu val) {
 		CPU_ForceV86FakeIO_Out(port,val,4);
 	}
 	else {
-		IO_USEC_write_delay(2);
 		io_writehandlers[2][port](port,val,4);
 	}
 }
@@ -498,7 +478,6 @@ Bitu IO_ReadB(Bitu port) {
 		return CPU_ForceV86FakeIO_In(port,1);
 	}
 	else {
-		IO_USEC_read_delay(0);
 		retval = io_readhandlers[0][port](port,1);
 	}
 	log_io(0, false, port, retval);
@@ -511,7 +490,6 @@ Bitu IO_ReadW(Bitu port) {
 		return CPU_ForceV86FakeIO_In(port,2);
 	}
 	else {
-		IO_USEC_read_delay(1);
 		retval = io_readhandlers[1][port](port,2);
 	}
 	log_io(1, false, port, retval);
@@ -524,7 +502,6 @@ Bitu IO_ReadD(Bitu port) {
 		return CPU_ForceV86FakeIO_In(port,4);
 	}
 	else {
-		IO_USEC_read_delay(2);
 		retval = io_readhandlers[2][port](port,4);
 	}
 	log_io(2, false, port, retval);
@@ -532,32 +509,6 @@ Bitu IO_ReadD(Bitu port) {
 }
 
 void IO_Reset(Section * /*sec*/) { // Reset or power on
-	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-
-	io_delay_ns[0] = section->Get_int("iodelay");
-	if (io_delay_ns[0] < 0) { // 8-bit transfers are said to have a transfer cycle with 4 wait states
-		// TODO: How can we emulate Intel 440FX chipsets that allow 8-bit PIO with 1 wait state, or zero wait state devices?
-		double t = (1000000000.0 * clockdom_ISA_BCLK.freq_div * 8.5) / clockdom_ISA_BCLK.freq;
-		io_delay_ns[0] = (int)floor(t);
-	}
-
-	io_delay_ns[1] = section->Get_int("iodelay16");
-	if (io_delay_ns[1] < 0) { // 16-bit transfers are said to have a transfer cycle with 1 wait state
-		// TODO: How can we emulate ISA devices that support zero wait states?
-		double t = (1000000000.0 * clockdom_ISA_BCLK.freq_div * 5.5) / clockdom_ISA_BCLK.freq;
-		io_delay_ns[1] = (int)floor(t);
-	}
-
-	io_delay_ns[2] = section->Get_int("iodelay32");
-	if (io_delay_ns[2] < 0) { // assume ISA bus details that turn 32-bit PIO into two 16-bit I/O transfers
-		// TODO: If the device is a PCI device, then 32-bit PIO should take the same amount of time as 8/16-bit PIO
-		double t = (1000000000.0 * clockdom_ISA_BCLK.freq_div * (5.5 + 5.5)) / clockdom_ISA_BCLK.freq;
-		io_delay_ns[2] = (int)floor(t);
-	}
-
-	LOG(LOG_IO,LOG_DEBUG)("I/O 8-bit delay %uns",io_delay_ns[0]);
-	LOG(LOG_IO,LOG_DEBUG)("I/O 16-bit delay %uns",io_delay_ns[1]);
-	LOG(LOG_IO,LOG_DEBUG)("I/O 32-bit delay %uns",io_delay_ns[2]);
 }
 
 void IO_Init() {
