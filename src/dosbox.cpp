@@ -744,16 +744,6 @@ void DOSBOX_SetupConfigSections(void) {
         "  There is generally no speed advantage when raising this value.\n"
         "  Programs that use 286 protected mode like Windows 3.0 in Standard Mode may crash with more than 15MB.");
 
-    Pint = secprop->Add_int("dos mem limit", Property::Changeable::WhenIdle,0);
-    Pint->SetMinMax(0,1023);
-    Pint->Set_help( "Limit DOS conventional memory to this amount. Does not affect extended memory.\n"
-            "Setting this option to a value in the range 636-639 can be used to simulate modern BIOSes\n"
-            "that maintain an EBDA (Extended BIOS Data Area) at the top of conventional memory.\n"
-            "You may also play with this option for diagnostic purposes or to stress test DOS programs in limited memory setups.\n"
-            "\n"
-            "A few DOS games & demos require this option to be set:\n"
-            "     Majic 12 \"Show\": If UMBs are enabled, set this option to 639 to avoid MCB chain corruption error.");
-
     Pbool = secprop->Add_bool("isa memory hole at 512kb",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, emulate an ISA memory hole at the 512KB to 640KB area (0x80000-0x9FFFF).");
 

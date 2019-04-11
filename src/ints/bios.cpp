@@ -3518,8 +3518,6 @@ void BIOS_ZeroExtendedSize(bool in) {
 
 void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 
-unsigned int dos_conventional_limit = 0;
-
 bool AdapterROM_Read(Bitu address,unsigned long *size) {
     unsigned char chksum=0;
     unsigned char c[3];
@@ -3845,32 +3843,6 @@ void gdc_16color_enable_update_vars(void) {
         void pc98_port6A_command_write(unsigned char b);
         pc98_port6A_command_write(0x00);
     }
-}
-
-/* NTS: Remember the 8259 is non-sentient, and the term "slave" is used in a computer programming context */
-static Bitu Default_IRQ_Handler_Cooperative_Slave_Pic(void) {
-    /* PC-98 style IRQ 8-15 handling.
-     *
-     * This mimics the recommended procedure [https://www.webtech.co.jp/company/doc/undocumented_mem/io_pic.txt]
-     *
-     *  mov al,20h      ;Send EOI to SLAVE
-     *  out 0008h,al
-     *  jmp $+2         ;I/O WAIT
-     *  mov al,0Bh      ;ISR read mode set(slave)
-     *  out 0008h,al
-     *  jmp $+2         ;I/O WAIT
-     *  in  al,0008h    ;ISR read(slave)
-     *  cmp al,00h      ;slave pic in-service ?
-     *  jne EoiEnd
-     *  mov al,20h      ;Send EOI to MASTER
-     *  out 0000h,al
-     */
-    IO_WriteB(IS_PC98_ARCH ? 0x08 : 0xA0,0x20); // send EOI to slave
-    IO_WriteB(IS_PC98_ARCH ? 0x08 : 0xA0,0x0B); // ISR read mode set
-    if (IO_ReadB(IS_PC98_ARCH ? 0x08 : 0xA0) == 0) // if slave pic in service..
-        IO_WriteB(IS_PC98_ARCH ? 0x00 : 0x20,0x20); // then EOI the master
-
-    return CBRET_NONE;
 }
 
 class BIOS:public Module_base{
@@ -5072,10 +5044,6 @@ public:
             // TODO: motherboard init, especially when we get around to full Intel Triton/i440FX chipset emulation
             isa_memory_hole_512kb = section->Get_bool("isa memory hole at 512kb");
 
-            // FIXME: Erm, well this couldv'e been named better. It refers to the amount of conventional memory
-            //        made available to the operating system below 1MB, which is usually DOS.
-            dos_conventional_limit = (unsigned int)section->Get_int("dos mem limit");
-
             // for PC-98: When accessing the floppy through INT 1Bh, when enabled, run through a waiting loop to make sure
             //     the timer count is not too high on exit (Ys II)
             enable_fdc_timer_hack = section->Get_bool("pc-98 int 1b fdc timer wait");
@@ -5130,10 +5098,6 @@ public:
                at the end of the conventional 640k) */
             if (machine==MCH_TANDY && t_conv > 624) t_conv = 624;
         }
-
-        /* allow user to further limit the available memory below 1MB */
-        if (dos_conventional_limit != 0 && t_conv > dos_conventional_limit)
-            t_conv = dos_conventional_limit;
 
         // TODO: Allow dosbox.conf to specify an option to add an EBDA (Extended BIOS Data Area)
         //       at the top of the DOS conventional limit, which we then reduce further to hold
