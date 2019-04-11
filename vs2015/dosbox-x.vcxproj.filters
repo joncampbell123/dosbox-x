@@ -219,13 +219,7 @@
     <ClCompile Include="..\src\dos\cdrom.cpp">
       <Filter>Sources\dos</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\dos\cdrom_aspi_win32.cpp">
-      <Filter>Sources\dos</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\dos\cdrom_image.cpp">
-      <Filter>Sources\dos</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\dos\cdrom_ioctl_win32.cpp">
       <Filter>Sources\dos</Filter>
     </ClCompile>
     <ClCompile Include="..\src\dos\dos.cpp">
@@ -333,9 +327,6 @@
     <ClCompile Include="..\src\hardware\gus.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\hardware\hardopl.cpp">
-      <Filter>Sources\hardware</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\hardware\ide.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
@@ -343,12 +334,6 @@
       <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\iohandler.cpp">
-      <Filter>Sources\hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\ipx.cpp">
-      <Filter>Sources\hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\ipxserver.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\joystick.cpp">
@@ -364,9 +349,6 @@
       <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\mpu401.cpp">
-      <Filter>Sources\hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\ne2000.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\nukedopl.cpp">
@@ -459,46 +441,10 @@
     <ClCompile Include="..\src\hardware\vga_xga.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\hardware\voodoo.cpp">
-      <Filter>Sources\hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\voodoo_emu.cpp">
-      <Filter>Sources\hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\voodoo_interface.cpp">
-      <Filter>Sources\hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\voodoo_opengl.cpp">
-      <Filter>Sources\hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\voodoo_vogl.cpp">
-      <Filter>Sources\hardware</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\parport\directlpt_win32.cpp">
-      <Filter>Sources\hardware\parport</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\parport\filelpt.cpp">
-      <Filter>Sources\hardware\parport</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\hardware\parport\parport.cpp">
       <Filter>Sources\hardware\parport</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\hardware\parport\printer.cpp">
-      <Filter>Sources\hardware\parport</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\parport\printer_charmaps.cpp">
-      <Filter>Sources\hardware\parport</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\serialport\directserial.cpp">
-      <Filter>Sources\hardware\serialport</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\hardware\serialport\libserial.cpp">
-      <Filter>Sources\hardware\serialport</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\serialport\misc_util.cpp">
-      <Filter>Sources\hardware\serialport</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\serialport\nullmodem.cpp">
       <Filter>Sources\hardware\serialport</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\serialport\serialdummy.cpp">
@@ -511,9 +457,6 @@
       <Filter>Sources\hardware\serialport</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\serialport\serialport.cpp">
-      <Filter>Sources\hardware\serialport</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\serialport\softmodem.cpp">
       <Filter>Sources\hardware\serialport</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ints\bios.cpp">
@@ -864,9 +807,6 @@
     <ClCompile Include="..\src\gui\zipcrc.c">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\hardware\parport\printer_redir.cpp">
-      <Filter>Sources\hardware\parport</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\builtin\dsxmenu_exe_pc.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
@@ -924,12 +864,6 @@
       <Filter>Sources\dos</Filter>
     </ClInclude>
     <ClInclude Include="..\src\dos\dos_keyboard_layout_data.h">
-      <Filter>Sources\dos</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\dos\dos_network.h">
-      <Filter>Sources\dos</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\dos\dos_network2.h">
       <Filter>Sources\dos</Filter>
     </ClInclude>
     <ClInclude Include="..\src\dos\drives.h">
@@ -1019,55 +953,7 @@
     <ClInclude Include="..\src\hardware\sn76496.h">
       <Filter>Sources\hardware</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\hardware\voodoo_data.h">
-      <Filter>Sources\hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\voodoo_def.h">
-      <Filter>Sources\hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\voodoo_emu.h">
-      <Filter>Sources\hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\voodoo_interface.h">
-      <Filter>Sources\hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\voodoo_opengl.h">
-      <Filter>Sources\hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\voodoo_types.h">
-      <Filter>Sources\hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\voodoo_vogl.h">
-      <Filter>Sources\hardware</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\parport\directlpt_win32.h">
-      <Filter>Sources\hardware\parport</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\parport\filelpt.h">
-      <Filter>Sources\hardware\parport</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\parport\printer.h">
-      <Filter>Sources\hardware\parport</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\parport\printer_charmaps.h">
-      <Filter>Sources\hardware\parport</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\parport\printer_if.h">
-      <Filter>Sources\hardware\parport</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\parport\printer_redir.h">
-      <Filter>Sources\hardware\parport</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\serialport\directserial.h">
-      <Filter>Sources\hardware\serialport</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\hardware\serialport\libserial.h">
-      <Filter>Sources\hardware\serialport</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\serialport\misc_util.h">
-      <Filter>Sources\hardware\serialport</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\serialport\nullmodem.h">
       <Filter>Sources\hardware\serialport</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\serialport\serialdummy.h">
@@ -1077,9 +963,6 @@
       <Filter>Sources\hardware\serialport</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\serialport\serialmouse.h">
-      <Filter>Sources\hardware\serialport</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\hardware\serialport\softmodem.h">
       <Filter>Sources\hardware\serialport</Filter>
     </ClInclude>
     <ClInclude Include="..\src\ints\xms.h">

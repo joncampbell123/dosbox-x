@@ -244,9 +244,6 @@ void                XMS_Init(Section*);
 void                DOS_KeyboardLayout_Init(Section*);
 void                AUTOEXEC_Init(Section*);
 void                INT10_Init(Section*);
-#if C_PRINTER
-void                PRINTER_Init(Section*);
-#endif
 
 signed long long time_to_clockdom(ClockDomain &src,double t) {
     signed long long lt = (signed long long)t;
