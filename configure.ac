@@ -575,10 +575,6 @@ AC_CHECK_LIB(GL, main, have_gl_lib=yes, have_gl_lib=no , )
 AC_CHECK_LIB(opengl32, main, have_opengl32_lib=yes,have_opengl32_lib=no , )
 AC_CHECK_HEADER(GL/gl.h, have_gl_h=yes , have_gl_h=no , )
 
-dnl LIBRARY TEST: Direct3D 9 header support
-AC_CHECK_HEADER(d3d9.h, have_d3d9_h=yes , have_d3d9_h=no , )
-AC_CHECK_HEADER(d3dx9math.h, have_d3dx9math_h=yes , have_d3dx9math_h=no , )
-
 dnl ================== SDL net special test for OS/2
 if test x$host = xi386-pc-os2-emx ; then
   LIBS_BACKUP=$LIBS;
