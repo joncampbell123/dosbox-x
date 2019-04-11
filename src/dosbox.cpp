@@ -1508,6 +1508,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
             "Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME");
 
+    // CLEANUP TODO: "Integration device" does not belong in CPU section!
     Pbool = secprop->Add_bool("integration device",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Enable DOSBox integration I/O device. This can be used by the guest OS to match mouse pointer position, for example. EXPERIMENTAL!");
 
