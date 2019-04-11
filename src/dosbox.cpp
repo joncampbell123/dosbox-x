@@ -763,25 +763,17 @@ void DOSBOX_SetupConfigSections(void) {
     // Some frequently used option sets
     const char* force[] = { "", "forced", 0 };
     const char* cyclest[] = { "fixed","max","%u",0 };
-    const char* mputypes[] = { "intelligent", "uart", "none", 0 };
     const char* blocksizes[] = {"1024", "2048", "4096", "8192", "512", "256", 0};
     const char* controllertypes[] = { "auto", "at", "xt", "pcjr", "pc98", 0}; // Future work: Tandy(?) and USB
     const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
     const char* cputype_values[] = {"8086", "80186", "286", "386", "486old", "486", "pentium", "pentium_mmx", "ppro_slow", 0};
     const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
-    const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "synth", "timidity", "none", 0}; // FIXME: add some way to offer the actually available choices.
     const char* apmbiosversions[] = { "auto", "1.0", "1.1", "1.2", 0 };
     const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
     const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none",0};
 //    const char* joydeadzone[] = { "0.26", 0 };
 //    const char* joyresponse[] = { "1.0", 0 };
-    const char* mpubases[] = {
-        "0",                                                                                    /* Auto */
-        "300", "310", "320", "330", "332", "334", "336", "340", "360",                          /* IBM PC */
-        "c0d0","c8d0","d0d0","d8d0","e0d0","e8d0","f0d0","f8d0",                                /* NEC PC-98 MPU98 */
-        "80d2","80d4","80d6","80d8","80da","80dc","80de",                                       /* NEC PC-98 SB16 */
-        0 };
     const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
     const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     const char* pc98fmboards[] = { "auto", "off", "false", "board26k", "board86", "board86c", 0};
@@ -1616,40 +1608,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("prebuffer",Property::Changeable::OnlyAtStart,20);
     Pint->SetMinMax(0,100);
     Pint->Set_help("How many milliseconds of data to keep on top of the blocksize.");
-
-    secprop=control->AddSection_prop("midi",&Null_Init,true);//done
-
-    Pstring = secprop->Add_string("mpu401",Property::Changeable::WhenIdle,"intelligent");
-    Pstring->Set_values(mputypes);
-    Pstring->Set_help("Type of MPU-401 to emulate.");
-
-    Phex = secprop->Add_hex("mpubase",Property::Changeable::WhenIdle,0/*default*/);
-    Phex->Set_values(mpubases);
-    Phex->Set_help("The IO address of the MPU-401.\n"
-                   "Set to 0 to use a default I/O address.\n"
-                   "300h to 330h are for use with IBM PC mode.\n"
-                   "C0D0h to F8D0h (in steps of 800h) are for use with NEC PC-98 mode (MPU98).\n"
-                   "80D2h through 80DEh are for use with NEC PC-98 Sound Blaster 16 MPU-401 emulation.\n"
-                   "If not assigned (0), 330h is the default for IBM PC and E0D0h is the default for PC-98.");
-
-    Pstring = secprop->Add_string("mididevice",Property::Changeable::WhenIdle,"default");
-    Pstring->Set_values(devices);
-    Pstring->Set_help("Device that will receive the MIDI data from MPU-401.");
-
-    Pstring = secprop->Add_string("midiconfig",Property::Changeable::WhenIdle,"");
-    Pstring->Set_help("Special configuration options for the device driver. This is usually the id of the device you want to use.\n"
-                      "  or in the case of coreaudio or synth, you can specify a soundfont here.\n"
-                      "  When using a Roland MT-32 rev. 0 as midi output device, some games may require a delay in order to prevent 'buffer overflow' issues.\n"
-                      "  In that case, add 'delaysysex', for example: midiconfig=2 delaysysex\n"
-                      "  See the README/Manual for more details.");
-
-    Pint = secprop->Add_int("samplerate",Property::Changeable::WhenIdle,44100);
-    Pint->Set_values(rates);
-    Pint->Set_help("Sample rate for MIDI synthesizer, if applicable.");
-    
-    Pint = secprop->Add_int("mpuirq",Property::Changeable::WhenIdle,-1);
-    Pint->SetMinMax(-1,15);
-    Pint->Set_help("MPU-401 IRQ. -1 to automatically choose.");
 
     secprop = control->AddSection_prop("speaker",&Null_Init,true);//done
     Pbool = secprop->Add_bool("pcspeaker",Property::Changeable::WhenIdle,true);
