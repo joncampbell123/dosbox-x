@@ -699,9 +699,6 @@ void DOSBOX_SetupConfigSections(void) {
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
 
-    const char* irqhandler[] = {
-        "", "simple", "cooperative_2nd", 0 };
-
     /* Setup all the different modules making up DOSBox */
     const char* machines[] = {
         "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega",
@@ -738,13 +735,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(machines);
     Pstring->Set_help("The type of machine DOSBox tries to emulate.");
 
-    Pstring = secprop->Add_string("unhandled irq handler",Property::Changeable::WhenIdle,"");
-    Pstring->Set_values(irqhandler);
-    Pstring->Set_help("Determines how unhandled IRQs are handled. This may help some errant DOS applications.\n"
-                      "Leave unset for default behavior (simple).\n"
-                      "simple               Acknowledge the IRQ, and the master (if slave IRQ)\n"
-                      "mask_isr             Acknowledge IRQs in service on master and slave and mask IRQs still in service, to deal with errant handlers (em-dosbox method)");
-
     Pint = secprop->Add_int("rom bios allocation max",Property::Changeable::OnlyAtStart,0);
     Pint->SetMinMax(0,128);
     Pint->Set_help("Maximum size (top down from 1MB) allowed for ROM BIOS dynamic allocation in KB");
@@ -752,27 +742,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint = secprop->Add_int("rom bios minimum size",Property::Changeable::OnlyAtStart,0);
     Pint->SetMinMax(0,128);
     Pint->Set_help("Once ROM BIOS layout is finalized, trim total region down to a minimum amount in KB");
-
-    Pint = secprop->Add_int("irq delay ns", Property::Changeable::WhenIdle,-1);
-    Pint->SetMinMax(-1,100000);
-    Pint->Set_help( "IRQ delay in nanoseconds. Set to -1 to use default, 0 to disable.\n"
-                    "This is a more precise version of the irqdelay= setting.\n"
-                    "There are some old DOS games and demos that have race conditions with IRQs that need a nonzero value here to work properly.");
-
-    Pint = secprop->Add_int("iodelay", Property::Changeable::WhenIdle,-1);
-    Pint->SetMinMax(-1,100000);
-    Pint->Set_help( "I/O delay in nanoseconds for I/O port access. Set to -1 to use default, 0 to disable.\n"
-            "A value of 1000 (1us) is recommended for ISA bus type delays. If your game\n"
-            "or demo is not sensitive to I/O port and ISA bus timing, you can turn this option off\n"
-            "(set to 0) to increase game performance.");
-
-    Pint = secprop->Add_int("iodelay16", Property::Changeable::WhenIdle,-1);
-    Pint->SetMinMax(-1,100000);
-    Pint->Set_help( "I/O delay for 16-bit transfers. -1 to use default, 0 to disable.");
-
-    Pint = secprop->Add_int("iodelay32", Property::Changeable::WhenIdle,-1);
-    Pint->SetMinMax(-1,100000);
-    Pint->Set_help( "I/O delay for 32-bit transfers. -1 to use default, 0 to disable.");
 
     Pint = secprop->Add_int("memsize", Property::Changeable::WhenIdle,16);
     Pint->SetMinMax(1,511);

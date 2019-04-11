@@ -77,8 +77,6 @@ void pc98_update_palette(void);
 bool isa_memory_hole_512kb = false;
 bool int15_wait_force_unmask_irq = false;
 
-int unhandled_irq_method = UNHANDLED_IRQ_SIMPLE;
-
 Bit16u biosConfigSeg=0;
 
 Bitu BIOS_DEFAULT_IRQ0_LOCATION = ~0u;       // (RealMake(0xf000,0xfea5))
@@ -4175,18 +4173,9 @@ private:
                 RealSetVec(ct,BIOS_DEFAULT_IRQ07_DEF_LOCATION);
         }
 
-        if (unhandled_irq_method == UNHANDLED_IRQ_COOPERATIVE_2ND) {
-            // PC-98 style: Master PIC ack with 0x20 for IRQ 0-7.
-            //              For the slave PIC, ack with 0x20 on the slave, then only ack the master (cascade interrupt)
-            //              if the ISR register on the slave indicates none are in service.
-            CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
-            CALLBACK_Setup(call_irq815default,Default_IRQ_Handler_Cooperative_Slave_Pic,CB_IRET,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
-        }
-        else {
-            // IBM PC style: Master PIC ack with 0x20, slave PIC ack with 0x20, no checking
-            CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
-            CALLBACK_Setup(call_irq815default,NULL,CB_IRET_EOI_PIC2,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
-        }
+        // IBM PC style: Master PIC ack with 0x20, slave PIC ack with 0x20, no checking
+        CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
+        CALLBACK_Setup(call_irq815default,NULL,CB_IRET_EOI_PIC2,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
 
         if (IS_PC98_ARCH) {
             BIOS_UnsetupKeyboard();
@@ -5090,20 +5079,6 @@ public:
             // for PC-98: When accessing the floppy through INT 1Bh, when enabled, run through a waiting loop to make sure
             //     the timer count is not too high on exit (Ys II)
             enable_fdc_timer_hack = section->Get_bool("pc-98 int 1b fdc timer wait");
-
-            {
-                std::string s = section->Get_string("unhandled irq handler");
-
-                if (s == "simple")
-                    unhandled_irq_method = UNHANDLED_IRQ_SIMPLE;
-                else if (s == "cooperative_2nd")
-                    unhandled_irq_method = UNHANDLED_IRQ_COOPERATIVE_2ND;
-                // pick default
-                else if (IS_PC98_ARCH)
-                    unhandled_irq_method = UNHANDLED_IRQ_COOPERATIVE_2ND;
-                else
-                    unhandled_irq_method = UNHANDLED_IRQ_SIMPLE;
-            }
         }
 
         /* pick locations */
