@@ -50,7 +50,7 @@ static void d3d_init(void)
             OUTPUT_SURFACE_Select();
             return;
         }
-        else if (d3d->InitializeDX(wmi.child_window, sdl.desktop.doublebuf) != S_OK) 
+        else if (d3d->InitializeDX(wmi.child_window, false) != S_OK) 
         {
             LOG_MSG("Unable to initialize DirectX");
             OUTPUT_SURFACE_Select();

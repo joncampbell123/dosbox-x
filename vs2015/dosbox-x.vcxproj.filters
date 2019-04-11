@@ -13,9 +13,6 @@
     <Filter Include="Sources\cpu">
       <UniqueIdentifier>{a0d191bf-6485-420a-84b4-8854ff7389a6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\cpu\core_full">
-      <UniqueIdentifier>{67311e9a-8aab-49c8-bb25-b1d7160c8f85}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Sources\cpu\core_normal">
       <UniqueIdentifier>{98d08d67-dcae-4d80-bfa1-15472da792d4}</UniqueIdentifier>
     </Filter>
@@ -109,9 +106,6 @@
     <Filter Include="Sources\output\direct3d">
       <UniqueIdentifier>{3755469d-f02e-4c3e-b6cd-25db8b71b1fd}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\cpu\core_dynrec">
-      <UniqueIdentifier>{8d1a73c6-be58-4d9f-aa03-b9f57516bedb}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -201,22 +195,10 @@
     <ClCompile Include="..\src\cpu\callback.cpp">
       <Filter>Sources\cpu</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cpu\core_full.cpp">
-      <Filter>Sources\cpu</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cpu\core_normal.cpp">
       <Filter>Sources\cpu</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cpu\core_normal_286.cpp">
-      <Filter>Sources\cpu</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cpu\core_normal_8086.cpp">
-      <Filter>Sources\cpu</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cpu\core_prefetch.cpp">
-      <Filter>Sources\cpu</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cpu\core_simple.cpp">
       <Filter>Sources\cpu</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cpu\cpu.cpp">
@@ -756,9 +738,6 @@
     <ClCompile Include="..\src\dosbox.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cpu\core_dyn_x86.cpp">
-      <Filter>Sources\cpu</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\hardware\8255.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
@@ -894,11 +873,14 @@
     <ClCompile Include="..\src\builtin\dsxmenu_exe_pc98.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cpu\core_dynrec.cpp">
-      <Filter>Sources\cpu\core_dynrec</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\misc\iconvpp.cpp">
       <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\core_prefetch_286.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cpu\core_prefetch_8086.cpp">
+      <Filter>Sources\cpu</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

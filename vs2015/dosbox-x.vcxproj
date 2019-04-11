@@ -1340,14 +1340,10 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\builtin\tree_exe.cpp" />
     <ClCompile Include="..\src\builtin\xcopy_exe.cpp" />
     <ClCompile Include="..\src\cpu\callback.cpp" />
-    <ClCompile Include="..\src\cpu\core_dynrec.cpp" />
-    <ClCompile Include="..\src\cpu\core_dyn_x86.cpp" />
-    <ClCompile Include="..\src\cpu\core_full.cpp" />
     <ClCompile Include="..\src\cpu\core_normal.cpp" />
-    <ClCompile Include="..\src\cpu\core_normal_286.cpp" />
-    <ClCompile Include="..\src\cpu\core_normal_8086.cpp" />
     <ClCompile Include="..\src\cpu\core_prefetch.cpp" />
-    <ClCompile Include="..\src\cpu\core_simple.cpp" />
+    <ClCompile Include="..\src\cpu\core_prefetch_286.cpp" />
+    <ClCompile Include="..\src\cpu\core_prefetch_8086.cpp" />
     <ClCompile Include="..\src\cpu\cpu.cpp" />
     <ClCompile Include="..\src\cpu\flags.cpp" />
     <ClCompile Include="..\src\cpu\mmx.cpp" />
