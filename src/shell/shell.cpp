@@ -608,8 +608,6 @@ static char const * const prompt_string="PROMPT=$P$G";
 static char const * const full_name="Z:\\COMMAND.COM";
 static char const * const init_line="/INIT AUTOEXEC.BAT";
 
-extern unsigned int dosbox_shell_env_size;
-
 /* TODO: Why is all this DOS kernel and VFILE registration here in SHELL_Init()?
  *       That's like claiming that DOS memory and device initialization happens from COMMAND.COM!
  *       We need to move the DOS kernel initialization into another function, and the VFILE
@@ -928,12 +926,9 @@ void SHELL_Init() {
 	Bit16u stack_seg;//=DOS_GetMemory(2048/16,"COMMAND.COM stack");
     Bit16u tmp,total_sz;
 
-    // decide shell env size
-    if (dosbox_shell_env_size == 0)
-        dosbox_shell_env_size = (0x158u - (0x118u + 19u)) << 4u; /* equivalent to mainline DOSBox */
-    else
-        dosbox_shell_env_size = (dosbox_shell_env_size+15u)&(~15u); /* round up to paragraph */
+    unsigned int dosbox_shell_env_size = 16384;
 
+    // decide shell env size
     LOG_MSG("COMMAND.COM env size:             %u bytes",dosbox_shell_env_size);
 
     // According to some sources, 0x0008 is a special PSP segment value used by DOS before the first

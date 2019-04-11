@@ -154,7 +154,6 @@ using namespace std;
 
 bool                                vga_alt_new_mode = false;
 
-extern int                          vga_memio_delay_ns;
 extern bool                         gdc_5mhz_mode;
 extern bool                         enable_pc98_egc;
 extern bool                         enable_pc98_grcg;
@@ -563,7 +562,7 @@ void VGA_Reset(Section*) {
 
     GDC_display_plane_wait_for_vsync = section->Get_bool("pc-98 buffer page flip");
 
-    S3_LFB_BASE = section->Get_hex("svga lfb base");
+    S3_LFB_BASE = 0;
     if (S3_LFB_BASE == 0) {
         if (cpu_addr_bits >= 32)
             S3_LFB_BASE = S3_LFB_BASE_DEFAULT;
@@ -756,39 +755,6 @@ void VGA_Reset(Section*) {
     vga.draw.resizing=false;
     vga.mode=M_ERROR;           //For first init
 
-    vga_memio_delay_ns = section->Get_int("vmemdelay");
-    if (vga_memio_delay_ns < 0) {
-        if (IS_EGAVGA_ARCH) {
-            {
-                /* very optimistic setting, ISA bus cycles are longer than 2, but also the 386/486/Pentium pipeline
-                 * instruction decoding. so it's not a matter of sucking up enough CPU cycle counts to match the
-                 * duration of a memory I/O cycle, because real hardware probably has another instruction decode
-                 * going while it does it.
-                 *
-                 * this is long enough to fix some demo's raster effects to work properly but not enough to
-                 * significantly bring DOS games to a crawl. Apparently, this also fixes Future Crew "Panic!"
-                 * by making the shadebob take long enough to allow the 3D rotating dot object to finish it's
-                 * routine just in time to become the FC logo, instead of sitting there waiting awkwardly
-                 * for 3-5 seconds. */
-                double t = (1000000000.0 * clockdom_ISA_BCLK.freq_div * 3.75) / clockdom_ISA_BCLK.freq;
-                vga_memio_delay_ns = (int)floor(t);
-            }
-        }
-        else if (machine == MCH_CGA || machine == MCH_HERC || machine == MCH_MDA) {
-            /* default IBM PC/XT 4.77MHz timing. this is carefully tuned so that Trixter's CGA test program
-             * times our CGA emulation as having about 305KB/sec reading speed. */
-            double t = (1000000000.0 * clockdom_ISA_OSC.freq_div * 143) / (clockdom_ISA_OSC.freq * 3);
-            vga_memio_delay_ns = (int)floor(t);
-        }
-        else {
-            /* dunno. pick something */
-            double t = (1000000000.0 * clockdom_ISA_BCLK.freq_div * 6) / clockdom_ISA_BCLK.freq;
-            vga_memio_delay_ns = (int)floor(t);
-        }
-    }
-
-    LOG(LOG_VGA,LOG_DEBUG)("VGA memory I/O delay %uns",vga_memio_delay_ns);
-
     /* mainline compatible vmemsize (in MB)
      * plus vmemsizekb for KB-level control.
      * then we round up a page.
@@ -801,7 +767,6 @@ void VGA_Reset(Section*) {
      *        off the top of system RAM, like Intel and
      *        Chips & Tech VGA implementations? */
     vga.mem.memsize  = _MB_bytes(section->Get_int("vmemsize"));
-    vga.mem.memsize += _KB_bytes(section->Get_int("vmemsizekb"));
     vga.mem.memsize  = (vga.mem.memsize + 0xFFFu) & (~0xFFFu);
     /* mainline compatible: vmemsize == 0 means 512KB */
     if (vga.mem.memsize == 0) vga.mem.memsize = _KB_bytes(512);
