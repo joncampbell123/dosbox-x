@@ -1691,8 +1691,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->SetMinMax(-1,15);
     Pint->Set_help("MPU-401 IRQ. -1 to automatically choose.");
 
-    secprop=control->AddSection_prop("debug",&Null_Init);
-
     secprop=control->AddSection_prop("sblaster",&Null_Init,true);//done
     
     Pstring = secprop->Add_string("sbtype",Property::Changeable::WhenIdle,"sb16");
