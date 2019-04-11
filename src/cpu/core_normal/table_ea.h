@@ -182,7 +182,7 @@ extern bool do_seg_limits;
 		eaa=Fetchd();					\
 	else							\
 		eaa=Fetchw();					\
-	if (do_seg_limits) {					\
+	{					\
 		if (Segs.expanddown[core.base_val_ds]) {	\
 			if (eaa <= SegLimit(core.base_val_ds)) {\
 				LOG_MSG("Limit check %x <= %x (E)",(unsigned int)eaa,(unsigned int)SegLimit(core.base_val_ds)); \

@@ -1442,9 +1442,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("fpu",Property::Changeable::Always,true);
     Pbool->Set_help("Enable FPU emulation");
 
-    Pbool = secprop->Add_bool("segment limits",Property::Changeable::Always,true);
-    Pbool->Set_help("Enforce segment limits");
-
     Pbool = secprop->Add_bool("always report double fault",Property::Changeable::Always,false);
     Pbool->Set_help("Always report (to log file) double faults if set. Else, a double fault is reported only once. Set this option for debugging purposes.");
 
