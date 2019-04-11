@@ -215,9 +215,6 @@ template <class T> static inline T Fetch(void) {
             if (sizeof(T) >= 4 && (pq_fill - pq_start) < pq_limit)
                 prefetch_filldword();
         }
-        else {
-            prefetch_lazyflush(core.cseip + 4 + sizeof(T));
-        }
 
         temp = prefetch_read<T>(core.cseip);
 #ifdef PREFETCH_DEBUG
@@ -274,12 +271,19 @@ bool CPU_WRMSR();
 void CPU_Core_Prefetch_reset(void) {
     pq_valid=false;
     prefetch_init(0);
+#ifdef PREFETCH_DEBUG
+    pq_next_dbg=0;
+#endif
 }
 
 Bits CPU_Core_Prefetch_Run(void) {
 	bool invalidate_pq=false;
 
-    pq_limit = CPU_PrefetchQueueSize & (~0x3u);
+    // FIXME: This makes 8086 4-byte prefetch queue impossible to emulate.
+    //        The best way to accomplish this is to have an alternate version
+    //        of this prefetch queue for 286 or lower that fetches in 16-bit
+    //        WORDs instead of 32-bit WORDs.
+    pq_limit = (max(CPU_PrefetchQueueSize,8u) + 0x3u) & (~0x3u);
     pq_reload = min(pq_limit,(Bitu)8u);
 
 	while (CPU_Cycles-->0) {
