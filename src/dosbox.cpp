@@ -631,7 +631,7 @@ void DOSBOX_RealInit() {
     //       areas as well, then we should also consider making it look like adapter ROM at startup
     //       so it can be enumerated properly by DOS programs scanning the ROM area.
     /* private area size param in bytes. round up to nearest paragraph */
-    DOS_PRIVATE_SEGMENT_Size = (Bitu)((section->Get_int("private area size") + 8) / 16);
+    DOS_PRIVATE_SEGMENT_Size = 32768 / 16;
 
     // TODO: these should be parsed by BIOS startup
     allow_more_than_640kb = section->Get_bool("allow more than 640kb base memory");
@@ -814,13 +814,6 @@ void DOSBOX_SetupConfigSections(void) {
         "For build engine games, use more memory than in the list above so it can\n"
         "use triple buffering and thus won't flicker.\n"
         );
-
-    Pint = secprop->Add_int("private area size",Property::Changeable::OnlyAtStart,32768); // DOSBox mainline compatible 32KB region
-    Pint->SetMinMax(16,128*1024);
-    Pint->Set_help("Set DOSBox-X private memory area size. This area contains private memory structures used by the DOS kernel.\n"
-            "It is discarded when you boot into another OS. Mainline DOSBox uses 32KB. Testing shows that it is possible\n"
-            "to run DOSBox with as little as 4KB. If DOSBox-X aborts with error \"not enough memory for internal tables\"\n"
-            "then you need to increase this value.");
 
     // NOTE: This will be revised as I test the DOSLIB code against more VGA/SVGA hardware!
     Pstring = secprop->Add_string("vga attribute controller mapping",Property::Changeable::WhenIdle,"auto");
